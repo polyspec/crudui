@@ -114,8 +114,8 @@ CRUDUI_DATA_FILE=/tmp/crudui-php-example.json php -S 127.0.0.1:8082 -t packages/
 ## 검사 어댑터
 
 `php packages/generator-php/bin/generate.php`는 표준 입력에서 JSON 요청 하나를
-수신하고 표준 출력에 JSON 값 하나를 출력합니다. `compileForm`, `bindForm`,
-`buildList`, `renderList`, `buildDetail`, `renderDetail`, `form` 작업을 지원합니다. 폼 작업은 실패한 작업을 포함하여 각
+수신하고 표준 출력에 JSON 값 하나를 출력합니다. `compileForm`, `bindForm`, `bindButtons`,
+`formButtonsHtml`, `buildList`, `renderList`, `buildDetail`, `renderDetail`, `form` 작업을 지원합니다. 폼 작업은 실패한 작업을 포함하여 각
 작업 후 데이터, 필드, HTML과 리비전을 기록합니다. 어댑터는 공개 클래스를
 사용하므로 PHP 구현이나 로드한 네이티브 구현으로 실행할 수 있습니다.
 

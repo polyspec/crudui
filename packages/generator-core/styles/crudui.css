@@ -294,7 +294,8 @@ textarea.crudui-input {
  *    scrolling box). Every header has exactly the header height and never wraps, so
  *    pinned levels meet without overlap.
  * 2. The level label shows only while its header is stuck (a scroll-state container
- *    query).
+ *    query). Browsers without scroll-state queries (Firefox, Safari) get the
+ *    `data-crudui-stuck` header attribute from connectForm instead.
  * 3. A control inside a sticky row keeps a top scroll margin of the pinned headers
  *    above it, and every form control keeps a bottom scroll margin of the footer, so
  *    focusing a control scrolls it into view clear of them.
@@ -333,10 +334,20 @@ textarea.crudui-input {
   border-bottom: 0;
 }
 
-@container scroll-state(not (stuck: top)) {
-  .crudui-node__header > .crudui-node__label {
-    display: none;
+/* Hidden by default; the stuck state shows it. */
+.crudui-node--sticky > .crudui-node__header-container > .crudui-node__header > .crudui-node__label {
+  display: none;
+}
+
+@container scroll-state(stuck: top) {
+  .crudui-node--sticky > .crudui-node__header-container > .crudui-node__header > .crudui-node__label {
+    display: revert;
   }
+}
+
+/* Browsers without scroll-state queries get the stuck state from connectForm. */
+.crudui-node--sticky > .crudui-node__header-container[data-crudui-stuck] > .crudui-node__header > .crudui-node__label {
+  display: revert;
 }
 
 .crudui-node--sticky > .crudui-node__header-container > .crudui-node__header > .crudui-node__title {

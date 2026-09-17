@@ -120,7 +120,10 @@ input's own label inside the body, and its header holds only a description. A
   scrolling box. The header pins on the line and has exactly the header height,
   border included, without wrapping (a long title is truncated), so pinned levels
   meet without overlap. The level label shows only while its header is stuck, by a
-  `scroll-state(stuck: top)` container query. A control inside a sticky row has a
+  `scroll-state(stuck: top)` container query. In a browser without scroll-state
+  queries (Firefox, Safari), `connectForm` sets `data-crudui-stuck` on a header
+  container while sticky positioning moves it from the top of its row, and the
+  stylesheet shows the label from that attribute. A control inside a sticky row has a
   top scroll margin of the headers pinned above it (`--crudui-sticky-cover`, the line
   plus one header height), and every form control has a bottom scroll margin of the
   footer height, so focusing a control scrolls it into view clear of them. No script

@@ -39,7 +39,7 @@ const blocks = {
   widget: { elements: ['affix', 'button'], modifiers: ['search', 'unsupported'] },
   input: { elements: [], modifiers: ['select', 'file'] },
   choices: { elements: ['input', 'label'], modifiers: ['multiple'] },
-  list: { elements: ['table', 'heading', 'heading-label', 'sort', 'cell', 'cards', 'card', 'card-label', 'card-value', 'empty', 'actions', 'action', 'pagination'], modifiers: [] },
+  list: { elements: ['table', 'heading', 'heading-label', 'sort', 'cell', 'cards', 'card', 'card-label', 'card-value', 'empty', 'actions', 'action', 'pagination', 'pagination-prev', 'pagination-page', 'pagination-next'], modifiers: [] },
   detail: { elements: ['field', 'label', 'value'], modifiers: [] },
   value: { elements: [], modifiers: ['text', 'date', 'number', 'choice-label', 'badge', 'link', 'bool', 'image', 'html'] },
   badge: { elements: [], modifiers: [] },

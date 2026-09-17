@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 /** Pack one workspace package from its own directory and return the archive path. */
-export function packPackage(source, destination, packageName, run) {
+export async function packPackage(source, destination, packageName, run) {
   assert.ok(path.isAbsolute(source), `Package source must be absolute: ${source}`);
   assert.ok(path.isAbsolute(destination),
     `Package destination must be absolute: ${destination}`);
@@ -15,7 +15,7 @@ export function packPackage(source, destination, packageName, run) {
   assert.equal(sourceManifest.name, packageName,
     'Package source name must match the expected package name');
 
-  const output = run('npm', [
+  const output = await run('npm', [
     'pack', '.', '--json', '--pack-destination', destination, '--workspaces=false',
   ], source);
   let report;

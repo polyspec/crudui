@@ -163,6 +163,21 @@ columns:
 필드 `design`은 `fields.{이름}`입니다. 자체 `design`을 먼저 검사하고, 그다음 각 열이나 필드를
 [멤버 순서](schema.ko.md)대로 검사합니다.
 
+목록의 `pagination`은 마지막에 경로 `list`로 검사합니다.
+
+| 선언 | 허용 값 | 실패 메시지 |
+| --- | --- | --- |
+| `pagination` | 불리언 또는 객체 | `Invalid pagination at list: expected a boolean or an object` |
+| 객체의 멤버 | `per_page` 또는 `mode` | `Invalid pagination.{key} at list: unknown key` |
+| `per_page` | 1부터 9007199254740991까지의 정수 | `Invalid pagination.per_page at list: expected a positive integer` |
+| `mode` | `pages`, `offset`, `cursor`, `none` | `Invalid pagination.mode at list: expected pages, offset, cursor or none` |
+
+해석된 페이지네이션 모델의 멤버 순서는 `enabled`, 페이지네이션이 켜진 경우의 `perPage`(기본 20)·
+`mode`(기본 `pages`)·`page`(기본 1), 제공된 `total`, 켜진 경우의 `pageCount`입니다. 꺼진 경우에는
+제공된 `page`와 `total`만 남습니다. 페이지 번호는 7페이지까지 모두 표시하고, 그보다 많으면 첫·이전·현재·다음·
+마지막 페이지를 표시합니다. 전체 수가 없으면 현재 페이지는 1이고, 마지막 페이지보다 큰 페이지는 마지막 페이지를
+선택합니다.
+
 PHP에서는 [PHP API 계약](php-extension.ko.md)이 어떤 PHP 값이 객체인지 정합니다. 루트 객체 인수와 고정 객체
 옵션 `data`, `files`에는 빈 PHP 배열을 받고, 중첩 값은 타입을 유지합니다.
 

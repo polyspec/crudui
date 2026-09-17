@@ -36,13 +36,9 @@ func BindForm(template *FormTemplate, data *Object, options BindOptions) ([]*Obj
 		data = NewObject()
 	}
 	// Nil selects each default. Type errors come in option order, before a supported-language check.
-	language := "ko"
-	if options.Language != nil {
-		s, ok := options.Language.(string)
-		if !ok {
-			return nil, fmt.Errorf("Language must be a string")
-		}
-		language = s
+	language, e := bindLanguage(options)
+	if e != nil {
+		return nil, e
 	}
 	bound := boundOptions{IDPrefix: "crudui", KeyPrefix: template.KeyPrefix, Unsupported: "throw"}
 	for _, option := range []struct {

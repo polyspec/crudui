@@ -23,6 +23,7 @@ import (
 	"testing"
 
 	"github.com/polyspec/crudui/packages/validator-go/validator/compose"
+	"github.com/polyspec/crudui/packages/validator-go/validator/internal/conformance"
 )
 
 type forbiddenScanCase struct {
@@ -85,6 +86,7 @@ func TestForbiddenScanMatchesFixture(t *testing.T) {
 	for _, c := range loadForbiddenScanFixtures(t) {
 		c := c
 		t.Run(c.Name, func(t *testing.T) {
+			conformance.Record(t, "validate", "tests/fixtures/spec-validity/cases.json", c.Name)
 			// Data is irrelevant to the scan; pass empty. The scan runs in the load
 			// path before any data-driven validation.
 			res, err := ValidateJSON(c.Spec, nil, filesFor(t, c), "")

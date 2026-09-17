@@ -15,6 +15,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { validateDetail, ComposeLoadError } from './index';
+import { provesConformance } from '../../../../tests/conformance/evidence.mjs';
 
 const FIXTURE = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -32,6 +33,14 @@ interface DetailValidityCase {
 }
 
 const cases: DetailValidityCase[] = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
+
+/** Run one fixture case and record validateDetail evidence for it. */
+function proves(name: string, body: () => void): Promise<void> {
+  return provesConformance(
+    { features: ['validateDetail'], fixture: 'tests/fixtures/detail-validity/cases.json', runtime: 'javascript', case: name },
+    body
+  );
+}
 
 function run(c: DetailValidityCase) {
   return validateDetail(c.spec, c.files ? { files: c.files } : {});
@@ -51,26 +60,28 @@ describe('detail validate — every case declares an engine expectation', () => 
 
 describe('detail validate — engine:pass loads clean', () => {
   for (const c of cases.filter((x) => x.engine === 'pass')) {
-    test(c.name, () => {
-      expect(run(c)).toStrictEqual({ valid: true, errors: [] });
-    });
+    test(c.name, () =>
+      proves(c.name, () => {
+        expect(run(c)).toStrictEqual({ valid: true, errors: [] });
+      }));
   }
 });
 
 describe('detail validate — a composition or forbidden-key failure is a load error', () => {
   for (const c of cases.filter((x) => typeof x.engine === 'object')) {
-    test(c.name, () => {
-      const want = c.engine as { code: string; at: string };
-      let thrown: unknown;
-      try {
-        run(c);
-      } catch (error) {
-        thrown = error;
-      }
-      expect(thrown, `${c.name} must throw a load error`).toBeInstanceOf(ComposeLoadError);
-      const error = thrown as ComposeLoadError;
-      expect(error.code).toStrictEqual(want.code);
-      expect(error.trace.join('.')).toStrictEqual(want.at);
-    });
+    test(c.name, () =>
+      proves(c.name, () => {
+        const want = c.engine as { code: string; at: string };
+        let thrown: unknown;
+        try {
+          run(c);
+        } catch (error) {
+          thrown = error;
+        }
+        expect(thrown, `${c.name} must throw a load error`).toBeInstanceOf(ComposeLoadError);
+        const error = thrown as ComposeLoadError;
+        expect(error.code).toStrictEqual(want.code);
+        expect(error.trace.join('.')).toStrictEqual(want.at);
+      }));
   }
 });

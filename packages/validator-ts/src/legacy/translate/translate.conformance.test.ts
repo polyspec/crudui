@@ -32,6 +32,7 @@ import {
   type TranslateNote,
 } from './index';
 import { scanForbiddenKeys } from '../../forbidden-scan';
+import { provesConformance } from '../../../../../tests/conformance/evidence.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -56,31 +57,53 @@ const schema = JSON.parse(fs.readFileSync(SCHEMA, 'utf8'));
 const ajv = new Ajv({ allErrors: true, strict: false });
 const validateSchema: ValidateFunction = ajv.compile(schema);
 
-describe('legacy→schema translator — forward output matches the fixture', () => {
+// One test per fixture case: forward output, meta-schema validity, forbidden-scan cleanliness and
+// the round-trip verdict must all hold, and the case is recorded as translateLegacy evidence only
+// when they do.
+describe('legacy→schema translator — every fixture case', () => {
   for (const c of cases) {
-    test(`${c.name}: schema reproduced bit-for-bit`, () => {
-      const { schema, notes } = translateFromLegacy(c.legacy);
-      expect(deepEqual(schema, c.schema), `schema mismatch for ${c.name}`).toBe(true);
-      expect(notes, `note log mismatch for ${c.name}`).toStrictEqual(c.notes);
-    });
+    test(c.name, () =>
+      provesConformance(
+        { features: ['translateLegacy'], fixture: 'tests/fixtures/translate/cases.json', runtime: 'javascript', case: c.name },
+        () => {
+          // Forward output matches the fixture bit-for-bit.
+          const { schema, notes } = translateFromLegacy(c.legacy);
+          expect(deepEqual(schema, c.schema), `schema mismatch for ${c.name}`).toBe(true);
+          expect(notes, `note log mismatch for ${c.name}`).toStrictEqual(c.notes);
+
+          // Output passes the schema meta-schema.
+          const ok = validateSchema(c.schema);
+          expect(ok, `meta-schema errors: ${JSON.stringify(validateSchema.errors)}`).toBe(true);
+
+          // Output has ZERO forbidden meta keys.
+          expect(() => scanForbiddenKeys(c.schema, [c.name])).not.toThrow();
+
+          if (c.roundtrip.reversible) {
+            // legacy→schema→legacy = original bit-for-bit (SPEC §6). The forward pass records no
+            // absorption note for a reversible case.
+            expect(notes, `${c.name} must be in the reversible set (empty note log)`).toStrictEqual([]);
+            const back = translateToLegacy(schema);
+            expect(deepEqual(back, c.legacy), `${c.name} round-trip lost data`).toBe(true);
+            // The fixture also recorded the reverse output — assert it matches.
+            expect(deepEqual(back, c.roundtrip.back ?? c.legacy)).toBe(true);
+          } else {
+            // R7 irreversible set: at least one absorption note, no losslessness claim.
+            expect(notes.length, `${c.name} must record ≥1 irreversibility note`).toBeGreaterThan(0);
+            // Every note carries an R7 reason and a path.
+            for (const n of notes) {
+              expect(typeof n.reason).toBe('string');
+              expect(typeof n.path).toBe('string');
+              expect(typeof n.legacyKey).toBe('string');
+            }
+            // The fixture must NOT claim losslessness for a transcend case.
+            expect(c.roundtrip.lossless).toBeUndefined();
+          }
+        }
+      ));
   }
 });
 
-describe('legacy→schema translator — output passes the schema meta-schema', () => {
-  for (const c of cases) {
-    test(`${c.name}: meta-schema valid`, () => {
-      const ok = validateSchema(c.schema);
-      expect(ok, `meta-schema errors: ${JSON.stringify(validateSchema.errors)}`).toBe(true);
-    });
-  }
-});
-
-describe('legacy→schema translator — output has ZERO forbidden meta keys', () => {
-  for (const c of cases) {
-    test(`${c.name}: forbidden-scan clean`, () => {
-      expect(() => scanForbiddenKeys(c.schema, [c.name])).not.toThrow();
-    });
-  }
+describe('legacy→schema translator — fixture-wide invariants', () => {
   test('no x{key} survives in any canonical output', () => {
     const json = JSON.stringify(cases.map((c) => c.schema));
     // No object KEY may be an x-comment. Walk every case spec for x-prefixed keys.
@@ -96,44 +119,11 @@ describe('legacy→schema translator — output has ZERO forbidden meta keys', (
     expect(hasXKey(cases.map((c) => c.schema))).toBe(false);
     expect(json.length).toBeGreaterThan(0);
   });
-});
-
-describe('legacy→schema→legacy: the reversible set is lossless (SPEC §6)', () => {
-  const reversibleCases = cases.filter((c) => c.roundtrip.reversible);
-  for (const c of reversibleCases) {
-    test(`${c.name}: legacy→schema→legacy = original bit-for-bit`, () => {
-      // The forward pass records no absorption note for a reversible case.
-      const { schema, notes } = translateFromLegacy(c.legacy);
-      expect(notes, `${c.name} must be in the reversible set (empty note log)`).toStrictEqual([]);
-      const back = translateToLegacy(schema);
-      expect(deepEqual(back, c.legacy), `${c.name} round-trip lost data`).toBe(true);
-      // The fixture also recorded the reverse output — assert it matches.
-      expect(deepEqual(back, c.roundtrip.back ?? c.legacy)).toBe(true);
-    });
-  }
   test('the reversible set contains at least one case', () => {
-    expect(reversibleCases.length).toBeGreaterThan(0);
+    expect(cases.filter((c) => c.roundtrip.reversible).length).toBeGreaterThan(0);
   });
-});
-
-describe('R7 irreversible set: each case records a reason', () => {
-  const irreversibleCases = cases.filter((c) => !c.roundtrip.reversible);
-  for (const c of irreversibleCases) {
-    test(`${c.name}: at least one absorption note, no losslessness claim`, () => {
-      const { notes } = translateFromLegacy(c.legacy);
-      expect(notes.length, `${c.name} must record ≥1 irreversibility note`).toBeGreaterThan(0);
-      // Every note carries an R7 reason and a path.
-      for (const n of notes) {
-        expect(typeof n.reason).toBe('string');
-        expect(typeof n.path).toBe('string');
-        expect(typeof n.legacyKey).toBe('string');
-      }
-      // The fixture must NOT claim losslessness for a transcend case.
-      expect(c.roundtrip.lossless).toBeUndefined();
-    });
-  }
   test(`the transcend set is non-empty (R7 absorptions are exercised)`, () => {
-    expect(irreversibleCases.length).toBeGreaterThan(0);
+    expect(cases.filter((c) => !c.roundtrip.reversible).length).toBeGreaterThan(0);
   });
 });
 

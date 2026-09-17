@@ -792,6 +792,104 @@
     "expected_html": "<div class=\"crudui-list\"><div class=\"crudui-list__empty\"></div><nav class=\"crudui-list__pagination\" data-mode=\"pages\" data-page=\"9007199254740991\" data-per-page=\"20\" data-total=\"0\"><button aria-label=\"Previous page\" class=\"crudui-list__pagination-prev\" data-page=\"1\" disabled=\"\" type=\"button\">‹</button><button aria-current=\"page\" aria-label=\"Page 1\" class=\"crudui-list__pagination-page\" data-page=\"1\" disabled=\"\" type=\"button\">1</button><button aria-label=\"Next page\" class=\"crudui-list__pagination-next\" data-page=\"1\" disabled=\"\" type=\"button\">›</button></nav></div>"
   },
   {
+    "name": "pagination-page-beyond-last",
+    "note": "a page after the last page marks the last page current and disables both boundary controls.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "label": "Name"
+        }
+      },
+      "pagination": true
+    },
+    "rows": [],
+    "options": {
+      "language": "en",
+      "page": 2,
+      "total": 0
+    },
+    "expected_html": "<div class=\"crudui-list\"><div class=\"crudui-list__empty\"></div><nav class=\"crudui-list__pagination\" data-mode=\"pages\" data-page=\"2\" data-per-page=\"20\" data-total=\"0\"><button aria-label=\"Previous page\" class=\"crudui-list__pagination-prev\" data-page=\"1\" disabled=\"\" type=\"button\">‹</button><button aria-current=\"page\" aria-label=\"Page 1\" class=\"crudui-list__pagination-page\" data-page=\"1\" disabled=\"\" type=\"button\">1</button><button aria-label=\"Next page\" class=\"crudui-list__pagination-next\" data-page=\"1\" disabled=\"\" type=\"button\">›</button></nav></div>"
+  },
+  {
+    "name": "pagination-middle-window",
+    "note": "more than seven pages render the first, previous, current, next and last page numbers.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "label": "Name"
+        }
+      },
+      "pagination": true
+    },
+    "rows": [],
+    "options": {
+      "language": "en",
+      "page": 50,
+      "total": 2000
+    },
+    "expected_html": "<div class=\"crudui-list\"><div class=\"crudui-list__empty\"></div><nav class=\"crudui-list__pagination\" data-mode=\"pages\" data-page=\"50\" data-per-page=\"20\" data-total=\"2000\"><button aria-label=\"Previous page\" class=\"crudui-list__pagination-prev\" data-page=\"49\" type=\"button\">‹</button><button aria-label=\"Page 1\" class=\"crudui-list__pagination-page\" data-page=\"1\" type=\"button\">1</button><button aria-label=\"Page 49\" class=\"crudui-list__pagination-page\" data-page=\"49\" type=\"button\">49</button><button aria-current=\"page\" aria-label=\"Page 50\" class=\"crudui-list__pagination-page\" data-page=\"50\" disabled=\"\" type=\"button\">50</button><button aria-label=\"Page 51\" class=\"crudui-list__pagination-page\" data-page=\"51\" type=\"button\">51</button><button aria-label=\"Page 100\" class=\"crudui-list__pagination-page\" data-page=\"100\" type=\"button\">100</button><button aria-label=\"Next page\" class=\"crudui-list__pagination-next\" data-page=\"51\" type=\"button\">›</button></nav></div>"
+  },
+  {
+    "name": "pagination-largest-window",
+    "note": "the largest safe integer page and total clamp to the last page of a bounded window.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "label": "Name"
+        }
+      },
+      "pagination": true
+    },
+    "rows": [],
+    "options": {
+      "language": "en",
+      "page": 9007199254740991,
+      "total": 9007199254740991
+    },
+    "expected_html": "<div class=\"crudui-list\"><div class=\"crudui-list__empty\"></div><nav class=\"crudui-list__pagination\" data-mode=\"pages\" data-page=\"9007199254740991\" data-per-page=\"20\" data-total=\"9007199254740991\"><button aria-label=\"Previous page\" class=\"crudui-list__pagination-prev\" data-page=\"450359962737049\" type=\"button\">‹</button><button aria-label=\"Page 1\" class=\"crudui-list__pagination-page\" data-page=\"1\" type=\"button\">1</button><button aria-label=\"Page 450359962737049\" class=\"crudui-list__pagination-page\" data-page=\"450359962737049\" type=\"button\">450359962737049</button><button aria-current=\"page\" aria-label=\"Page 450359962737050\" class=\"crudui-list__pagination-page\" data-page=\"450359962737050\" disabled=\"\" type=\"button\">450359962737050</button><button aria-label=\"Next page\" class=\"crudui-list__pagination-next\" data-page=\"450359962737050\" disabled=\"\" type=\"button\">›</button></nav></div>"
+  },
+  {
+    "name": "pagination-without-total",
+    "note": "without a total no page numbers render and both boundary controls are disabled.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "label": "Name"
+        }
+      },
+      "pagination": true
+    },
+    "rows": [],
+    "options": {
+      "language": "en",
+      "page": 1
+    },
+    "expected_html": "<div class=\"crudui-list\"><div class=\"crudui-list__empty\"></div><nav class=\"crudui-list__pagination\" data-mode=\"pages\" data-page=\"1\" data-per-page=\"20\"><button aria-label=\"Previous page\" class=\"crudui-list__pagination-prev\" data-page=\"1\" disabled=\"\" type=\"button\">‹</button><button aria-label=\"Next page\" class=\"crudui-list__pagination-next\" data-page=\"1\" disabled=\"\" type=\"button\">›</button></nav></div>"
+  },
+  {
+    "name": "pagination-page-without-total",
+    "note": "without a total the current page is the first page, whatever page is supplied.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "label": "Name"
+        }
+      },
+      "pagination": true
+    },
+    "rows": [],
+    "options": {
+      "language": "en",
+      "page": 5
+    },
+    "expected_html": "<div class=\"crudui-list\"><div class=\"crudui-list__empty\"></div><nav class=\"crudui-list__pagination\" data-mode=\"pages\" data-page=\"5\" data-per-page=\"20\"><button aria-label=\"Previous page\" class=\"crudui-list__pagination-prev\" data-page=\"1\" disabled=\"\" type=\"button\">‹</button><button aria-label=\"Next page\" class=\"crudui-list__pagination-next\" data-page=\"1\" disabled=\"\" type=\"button\">›</button></nav></div>"
+  },
+  {
     "name": "design-column-class-style",
     "note": "column design class/style reaches the <th> verbatim (form-spec design reuse).",
     "spec": {
@@ -1020,6 +1118,225 @@
     "expectError": {
       "code": "REF_FILE_NOT_FOUND"
     }
+  },
+  {
+    "name": "text-with-nul",
+    "note": "a NUL character in a label and in a value is written like any other character.",
+    "spec": {
+      "columns": {
+        "v": {
+          "field": "v",
+          "label": "A\u0000B"
+        }
+      }
+    },
+    "rows": [
+      {
+        "v": "x\u0000y"
+      }
+    ],
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-list\"><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading\" data-field=\"v\"><span class=\"crudui-list__heading-label\">AB</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--text\">xy</td></tr></tbody></table></div>"
+  },
+  {
+    "name": "reject-pagination-null",
+    "note": "a null pagination is neither a boolean nor an object.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "label": "Name"
+        }
+      },
+      "pagination": null
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid pagination at list: expected a boolean or an object"
+    }
+  },
+  {
+    "name": "reject-pagination-string",
+    "note": "a string pagination is neither a boolean nor an object.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "label": "Name"
+        }
+      },
+      "pagination": "pages"
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid pagination at list: expected a boolean or an object"
+    }
+  },
+  {
+    "name": "reject-pagination-unknown-key",
+    "note": "an undeclared pagination member is rejected.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "label": "Name"
+        }
+      },
+      "pagination": {
+        "per_page": 20,
+        "size": 10
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid pagination.size at list: unknown key"
+    }
+  },
+  {
+    "name": "reject-pagination-per-page-zero",
+    "note": "rows per page start at 1.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "label": "Name"
+        }
+      },
+      "pagination": {
+        "per_page": 0
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid pagination.per_page at list: expected a positive integer"
+    }
+  },
+  {
+    "name": "reject-pagination-per-page-fraction",
+    "note": "rows per page are an integer.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "label": "Name"
+        }
+      },
+      "pagination": {
+        "per_page": 2.5
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid pagination.per_page at list: expected a positive integer"
+    }
+  },
+  {
+    "name": "reject-pagination-per-page-null",
+    "note": "a null per_page is not a count.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "label": "Name"
+        }
+      },
+      "pagination": {
+        "per_page": null
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid pagination.per_page at list: expected a positive integer"
+    }
+  },
+  {
+    "name": "reject-pagination-per-page-unsafe",
+    "note": "rows per page stay within the safe integer range.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "label": "Name"
+        }
+      },
+      "pagination": {
+        "per_page": 9007199254740992
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid pagination.per_page at list: expected a positive integer"
+    }
+  },
+  {
+    "name": "reject-pagination-mode-unknown",
+    "note": "the mode is one of the declared modes.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "label": "Name"
+        }
+      },
+      "pagination": {
+        "mode": "infinite"
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid pagination.mode at list: expected pages, offset, cursor or none"
+    }
+  },
+  {
+    "name": "reject-pagination-mode-empty",
+    "note": "an empty mode is not a declared mode.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "label": "Name"
+        }
+      },
+      "pagination": {
+        "mode": ""
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid pagination.mode at list: expected pages, offset, cursor or none"
+    }
+  },
+  {
+    "name": "pagination-declared-defaults",
+    "note": "a declared mode keeps the default of 20 rows per page.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "label": "Name"
+        }
+      },
+      "pagination": {
+        "mode": "offset"
+      }
+    },
+    "rows": [],
+    "options": {
+      "language": "en",
+      "total": 41
+    },
+    "expected_html": "<div class=\"crudui-list\"><div class=\"crudui-list__empty\"></div><nav class=\"crudui-list__pagination\" data-mode=\"offset\" data-page=\"1\" data-per-page=\"20\" data-total=\"41\"><button aria-label=\"Previous page\" class=\"crudui-list__pagination-prev\" data-page=\"1\" disabled=\"\" type=\"button\">‹</button><button aria-current=\"page\" aria-label=\"Page 1\" class=\"crudui-list__pagination-page\" data-page=\"1\" disabled=\"\" type=\"button\">1</button><button aria-label=\"Page 2\" class=\"crudui-list__pagination-page\" data-page=\"2\" type=\"button\">2</button><button aria-label=\"Page 3\" class=\"crudui-list__pagination-page\" data-page=\"3\" type=\"button\">3</button><button aria-label=\"Next page\" class=\"crudui-list__pagination-next\" data-page=\"2\" type=\"button\">›</button></nav></div>"
   },
   {
     "name": "reject-array-specification",

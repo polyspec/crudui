@@ -256,6 +256,41 @@ const SCENARIOS: ListFixtureCase[] = [
     rows: [],
     options: { language: 'en', page: 9007199254740991, total: 0 },
   },
+  {
+    name: 'pagination-page-beyond-last',
+    note: 'a page after the last page marks the last page current and disables both boundary controls.',
+    spec: { columns: { name: { field: 'name', label: 'Name' } }, pagination: true },
+    rows: [],
+    options: { language: 'en', page: 2, total: 0 },
+  },
+  {
+    name: 'pagination-middle-window',
+    note: 'more than seven pages render the first, previous, current, next and last page numbers.',
+    spec: { columns: { name: { field: 'name', label: 'Name' } }, pagination: true },
+    rows: [],
+    options: { language: 'en', page: 50, total: 2000 },
+  },
+  {
+    name: 'pagination-largest-window',
+    note: 'the largest safe integer page and total clamp to the last page of a bounded window.',
+    spec: { columns: { name: { field: 'name', label: 'Name' } }, pagination: true },
+    rows: [],
+    options: { language: 'en', page: 9007199254740991, total: 9007199254740991 },
+  },
+  {
+    name: 'pagination-without-total',
+    note: 'without a total no page numbers render and both boundary controls are disabled.',
+    spec: { columns: { name: { field: 'name', label: 'Name' } }, pagination: true },
+    rows: [],
+    options: { language: 'en', page: 1 },
+  },
+  {
+    name: 'pagination-page-without-total',
+    note: 'without a total the current page is the first page, whatever page is supplied.',
+    spec: { columns: { name: { field: 'name', label: 'Name' } }, pagination: true },
+    rows: [],
+    options: { language: 'en', page: 5 },
+  },
 
   // --- design appearance on a column header (resolveDesign reuse) ---
   {
@@ -331,6 +366,38 @@ const SCENARIOS: ListFixtureCase[] = [
     rows: [],
     options: { files: {} },
     expectError: { code: 'REF_FILE_NOT_FOUND' },
+  },
+  {
+    name: 'text-with-nul',
+    note: 'a NUL character in a label and in a value is written like any other character.',
+    spec: { columns: { v: { field: 'v', label: 'A\u0000B' } } },
+    rows: [{ v: 'x\u0000y' }],
+    options: { language: 'en' },
+  },
+  // Pagination declaration: the same value types and keys are rejected everywhere.
+  ...([
+    ['reject-pagination-null', 'a null pagination is neither a boolean nor an object.', null, 'Invalid pagination at list: expected a boolean or an object'],
+    ['reject-pagination-string', 'a string pagination is neither a boolean nor an object.', 'pages', 'Invalid pagination at list: expected a boolean or an object'],
+    ['reject-pagination-unknown-key', 'an undeclared pagination member is rejected.', { per_page: 20, size: 10 }, 'Invalid pagination.size at list: unknown key'],
+    ['reject-pagination-per-page-zero', 'rows per page start at 1.', { per_page: 0 }, 'Invalid pagination.per_page at list: expected a positive integer'],
+    ['reject-pagination-per-page-fraction', 'rows per page are an integer.', { per_page: 2.5 }, 'Invalid pagination.per_page at list: expected a positive integer'],
+    ['reject-pagination-per-page-null', 'a null per_page is not a count.', { per_page: null }, 'Invalid pagination.per_page at list: expected a positive integer'],
+    ['reject-pagination-per-page-unsafe', 'rows per page stay within the safe integer range.', { per_page: 9007199254740992 }, 'Invalid pagination.per_page at list: expected a positive integer'],
+    ['reject-pagination-mode-unknown', 'the mode is one of the declared modes.', { mode: 'infinite' }, 'Invalid pagination.mode at list: expected pages, offset, cursor or none'],
+    ['reject-pagination-mode-empty', 'an empty mode is not a declared mode.', { mode: '' }, 'Invalid pagination.mode at list: expected pages, offset, cursor or none'],
+  ] as const).map(([name, note, pagination, message]): ListFixtureCase => ({
+    name,
+    note,
+    spec: { columns: { name: { field: 'name', label: 'Name' } }, pagination } as Record<string, unknown>,
+    rows: [],
+    expectError: { code: 'INVALID_FORM_INPUT', message },
+  })),
+  {
+    name: 'pagination-declared-defaults',
+    note: 'a declared mode keeps the default of 20 rows per page.',
+    spec: { columns: { name: { field: 'name', label: 'Name' } }, pagination: { mode: 'offset' } },
+    rows: [],
+    options: { language: 'en', total: 41 },
   },
   // List input: every runtime rejects the same invalid input with the same message.
   {

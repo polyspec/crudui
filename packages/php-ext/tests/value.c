@@ -59,11 +59,11 @@ int main(void)
 
     ps_value *copy = ps_value_clone(object);
     assert(copy && ps_equal(copy, object));
-    assert(ps_delete(copy, "first"));
+    assert(ps_delete_text(copy, PS_TEXT("first")));
     assert(!ps_equal(copy, object));
     assert(ps_has(object, "first"));
     assert(!ps_get(object, NULL));
-    assert(!ps_delete(object, NULL));
+    assert(!ps_delete_text(object, (ps_text){NULL, 0}));
     ps_value_free(copy);
 
     ps_value *array = ps_value_new(PS_ARRAY);
@@ -109,16 +109,16 @@ int main(void)
     ps_value *ordered = ps_value_ordered(spec);
     assert(ordered && ps_size(ordered) == 10);
     for (size_t i = 0; i < sizeof(expected) / sizeof(*expected); ++i) {
-        assert(!strcmp(ps_key_at(ordered, i), expected[i]));
+        assert(ps_text_is(ps_key(ordered, i), expected[i]));
         const ps_value *child = ps_at(ordered, i);
-        assert(!strcmp(ps_key_at(child, 0), "5") && !strcmp(ps_key_at(child, 1), "z"));
+        assert(ps_text_is(ps_key(child, 0), "5") && ps_text_is(ps_key(child, 1), "z"));
     }
-    assert(!strcmp(ps_key_at(ordered, 9), "list"));
+    assert(ps_text_is(ps_key(ordered, 9), "list"));
     const ps_value *ordered_list = ps_get(ordered, "list");
     assert(ordered_list->kind == PS_ARRAY && ps_size(ordered_list) == 2);
-    assert(!strcmp(ps_key_at(ps_at(ordered_list, 0), 0), "1") && !strcmp(ps_key_at(ps_at(ordered_list, 0), 1), "y"));
+    assert(ps_text_is(ps_key(ps_at(ordered_list, 0), 0), "1") && ps_text_is(ps_key(ps_at(ordered_list, 0), 1), "y"));
     /* The source is not reordered. */
-    assert(!strcmp(ps_key_at(spec, 0), "b") && !strcmp(ps_key_at(ps_at(spec, 0), 0), "z"));
+    assert(ps_text_is(ps_key(spec, 0), "b") && ps_text_is(ps_key(ps_at(spec, 0), 0), "z"));
 
     /* Options keep their own order and data; only files are ordered. */
     ps_value *options = ps_object_value();
@@ -132,11 +132,34 @@ int main(void)
     ps_value *ordered_spec = NULL, *ordered_options = NULL;
     assert(ps_order_specification(spec, options, &ordered_spec, &ordered_options));
     assert(ps_equal(ordered_spec, ordered));
-    assert(!strcmp(ps_key_at(ps_get(ordered_options, "data"), 0), "b"));
-    assert(!strcmp(ps_key_at(ps_get(ps_get(ordered_options, "files"), "base.yml"), 0), "10"));
+    assert(ps_text_is(ps_key(ps_get(ordered_options, "data"), 0), "b"));
+    assert(ps_text_is(ps_key(ps_get(ps_get(ordered_options, "files"), "base.yml"), 0), "10"));
     ps_value *absent_spec = NULL;
     assert(ps_order_specification(NULL, NULL, &absent_spec, NULL) && !absent_spec);
     ps_value_free(ordered_spec); ps_value_free(ordered_options);
     ps_value_free(options); ps_value_free(ordered); ps_value_free(spec);
+
+    /* A NUL character is an ordinary character of values and keys; only well-formed UTF-8 is text. */
+    const uint8_t nul_value[] = {'a', 0, 'b'};
+    const uint8_t overlong_nul[] = {0xc0, 0x80};
+    ps_value *nul_text = ps_value_new(PS_NULL);
+    assert(nul_text && ps_value_string(nul_text, nul_value, sizeof(nul_value)));
+    assert(ps_text_equal(ps_string(nul_text), ((ps_text){"a\0b", 3})));
+    assert(!ps_text_equal(ps_string(nul_text), PS_TEXT("a")));
+    assert(!ps_value_string(nul_text, overlong_nul, sizeof(overlong_nul)));
+    ps_value *keyed = ps_object_value();
+    assert(keyed && ps_set_text(keyed, (ps_text){"k\0x", 3}, integer(1)));
+    assert(ps_set_text(keyed, (ps_text){"k\0y", 3}, integer(2)));
+    assert(ps_set_text(keyed, PS_TEXT("k"), integer(3)));
+    assert(ps_size(keyed) == 3);
+    assert(ps_get_text(keyed, (ps_text){"k\0y", 3})->data.integer == 2);
+    assert(ps_get_text(keyed, PS_TEXT("k"))->data.integer == 3);
+    assert(!ps_get_text(keyed, (ps_text){"k\0z", 3}));
+    assert(!ps_value_insert(keyed, overlong_nul, sizeof(overlong_nul), integer(4)));
+    ps_value *keyed_copy = ps_value_clone(keyed);
+    assert(keyed_copy && ps_equal(keyed, keyed_copy));
+    assert(ps_delete_text(keyed_copy, (ps_text){"k\0x", 3}) && ps_size(keyed_copy) == 2);
+    assert(!ps_equal(keyed, keyed_copy));
+    ps_value_free(keyed_copy); ps_value_free(keyed); ps_value_free(nul_text);
     return 0;
 }

@@ -55,6 +55,8 @@ the same; no runtime selector is embedded in a field specification.
 | --- | --- | --- | --- | --- | --- |
 | Compile structure | `compileForm` | `Generator::compileForm` | `CompileForm` | `compile_form` | `Generator::compileForm` |
 | Bind data | `bindForm` | `Generator::bindForm` | `BindForm` | `bind_form` | `Generator::bindForm` |
+| Bind buttons | `bindButtons` | `Generator::bindButtons` | `BindButtons` | `bind_buttons` | `Generator::bindButtons` |
+| Render buttons | `formButtonsHtml` | `Generator::formButtonsHtml` | `FormButtonsHTML` | `form_buttons_html` | `Generator::formButtonsHtml` |
 | Create instance | `createForm` | `new Form` | `NewForm` | `Form::new` | `new Form` |
 | Replace data | `setData` | `$form->setData` | `SetData` | `set_data` | `$form->setData` |
 | Read data | `getData` | `$form->getData` | `GetData` | `get_data` | `$form->getData` |

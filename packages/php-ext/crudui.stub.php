@@ -6,6 +6,8 @@ namespace CRUDUI {
     final class Generator {
         public static function compileForm(array|\stdClass $spec, array $options = []): \stdClass {}
         public static function bindForm(\stdClass $template, array|\stdClass $data = [], array $options = []): array {}
+        public static function bindButtons(\stdClass $template, array|\stdClass $data = [], array $options = []): array {}
+        public static function formButtonsHtml(array $buttons): string {}
         public static function renderForm(Form $form): string {}
         public static function renderList(array|\stdClass $spec, array $rows, array $options = []): string {}
         public static function buildList(array|\stdClass $spec, array $rows = [], array $options = []): \stdClass {}

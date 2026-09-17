@@ -49,9 +49,11 @@ this contract.
 
 ## Checks
 
+From the repository root:
+
 ```sh
-cargo test
-cargo test --test validate_cli_conformance
-cargo test --test list_validity_conformance
-cargo test --test detail_validity_conformance
+node scripts/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml
+node scripts/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml --test validate_cli_conformance
+node scripts/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml --test list_validity_conformance
+node scripts/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml --test detail_validity_conformance
 ```

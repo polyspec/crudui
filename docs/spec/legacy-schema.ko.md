@@ -38,6 +38,14 @@ properties:
 [구형 표시](legacy-visibility.ko.md)를 참고합니다. 현재 스키마는 해당 키를 거부하며
 `design`과 `validate`를 분리합니다.
 
+## 구형 검증기
+
+TypeScript, PHP, Go, Rust는 이 필드 모델을 읽는 명시적인 구형 검증기를 각각 제공하며, 유효 여부와
+첫 오류의 규칙·경로를 반환합니다. PHP 확장에는 구형 검증기가 없습니다.
+[`tests/fixtures/legacy-validate/cases.json`](../../tests/fixtures/legacy-validate/README.ko.md)의
+공통 사례가 [기능 계약](feature-contracts.ko.md)의 `validateLegacy` 기능을 증명합니다. 각 런타임의
+구형 적합성 검사가 사례를 실행하고, 루트 `npm test`가 네 결과를 비교합니다.
+
 ## 제출 선언
 
 루트의 `action`은 `method`, `url`, `enctype`, `buttons`를 선언할 수 있습니다.

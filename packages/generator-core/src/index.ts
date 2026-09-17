@@ -12,7 +12,8 @@ export {
 export type { ViewState } from './view';
 export { HISTORY_LIMIT, emptyHistory, recordChange, canUndo, canRedo, undoChange, redoChange } from './history';
 export type { History, UndoResult, RedoResult } from './history';
-export { connectForm, connectOutline } from './dom';
+export { connectForm, connectOutline, connectStickyHeaders } from './dom';
+export { patchContent } from './patch';
 export type { FormConnection } from './dom';
 export { resolveAction, runAction } from './actions';
 export type { FormActionName, ActionTarget, ActionResult, FocusTarget } from './actions';

@@ -14,6 +14,15 @@ import { normalizeHtml } from '../../../../tests/fixtures/form-render/normalize.
 // @ts-expect-error shared JavaScript preload link helper
 import { withoutPreloadLinks } from '../../../../tests/fixtures/preload-links.mjs';
 import cases from '../../../../tests/fixtures/detail-render/cases.json';
+import { provesConformance } from '../../../../tests/conformance/evidence.mjs';
+
+/** Run one fixture case and record renderDetail evidence for it. */
+function proves(name: string, body: () => unknown): Promise<unknown> {
+  return provesConformance(
+    { features: ['renderDetail'], fixture: 'tests/fixtures/detail-render/cases.json', runtime: 'react', case: name },
+    body
+  );
+}
 
 interface DetailFixture {
   name: string;
@@ -28,24 +37,24 @@ const fixtures = cases as unknown as DetailFixture[];
 
 describe('detail render — React reproduces the normalized expected_html', () => {
   for (const item of fixtures.filter((fixture) => !fixture.expectError)) {
-    test(item.name, () => {
+    test(item.name, () => proves(item.name, () => {
       expect(normalizeHtml(withoutPreloadLinks(renderDetail(item.spec, item.record ?? {}, item.options)))).toBe(item.expected_html);
-    });
+    }));
   }
 });
 
 describe('detail render — React rejects invalid input with the shared message', () => {
   for (const item of fixtures.filter((fixture) => fixture.expectError)) {
-    test(item.name, () => {
+    test(item.name, () => proves(item.name, () => {
       expect(() => renderDetail(item.spec, item.record ?? {}, item.options)).toThrow(item.expectError!.message);
-    });
+    }));
   }
 });
 
 describe('detail render — read-only output contains no control', () => {
   for (const item of fixtures.filter((fixture) => !fixture.expectError)) {
-    test(item.name, () => {
+    test(item.name, () => proves(item.name, () => {
       expect(renderDetail(item.spec, item.record ?? {}, item.options)).not.toMatch(/<(?:input|select|textarea|form)\b/);
-    });
+    }));
   }
 });

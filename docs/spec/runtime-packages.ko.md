@@ -55,6 +55,8 @@ PHP 호스트를 요구하지 않습니다.
 | --- | --- | --- | --- | --- | --- |
 | 구조 컴파일 | `compileForm` | `Generator::compileForm` | `CompileForm` | `compile_form` | `Generator::compileForm` |
 | 데이터 바인딩 | `bindForm` | `Generator::bindForm` | `BindForm` | `bind_form` | `Generator::bindForm` |
+| 버튼 바인딩 | `bindButtons` | `Generator::bindButtons` | `BindButtons` | `bind_buttons` | `Generator::bindButtons` |
+| 버튼 렌더링 | `formButtonsHtml` | `Generator::formButtonsHtml` | `FormButtonsHTML` | `form_buttons_html` | `Generator::formButtonsHtml` |
 | 인스턴스 생성 | `createForm` | `new Form` | `NewForm` | `Form::new` | `new Form` |
 | 데이터 교체 | `setData` | `$form->setData` | `SetData` | `set_data` | `$form->setData` |
 | 데이터 조회 | `getData` | `$form->getData` | `GetData` | `get_data` | `$form->getData` |

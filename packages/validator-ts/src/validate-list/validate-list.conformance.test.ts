@@ -31,6 +31,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { validateList, ComposeLoadError } from './index';
+import { provesConformance } from '../../../../tests/conformance/evidence.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -53,6 +54,14 @@ interface ListValidityCase {
 
 const cases: ListValidityCase[] = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
 
+/** Run one fixture case and record validateList evidence for it. */
+function proves(name: string, body: () => void): Promise<void> {
+  return provesConformance(
+    { features: ['validateList'], fixture: 'tests/fixtures/list-validity/cases.json', runtime: 'javascript', case: name },
+    body
+  );
+}
+
 function run(c: ListValidityCase) {
   return validateList(c.spec, c.files ? { files: c.files } : {});
 }
@@ -73,39 +82,41 @@ describe('list validate — every case declares an engine expectation', () => {
 
 describe('list validate — engine:pass loads clean (no rows validated)', () => {
   for (const c of cases.filter((x) => x.engine === 'pass')) {
-    test(c.name, () => {
-      // The structure check does not reject a meta-schema-only invalid case
-      // (required/enum/additionalProperties/anyOf) is the meta-schema's job,
-      // never this engine's — so it loads clean here.
-      let result: ReturnType<typeof validateList> | undefined;
-      expect(() => {
-        result = run(c);
-      }, `${c.name} must not be rejected by the four-language structure check`).not.toThrow();
-      // No rows → no data validation: a clean load is always { valid:true, errors:[] }.
-      expect(result).toStrictEqual({ valid: true, errors: [] });
-    });
+    test(c.name, () =>
+      proves(c.name, () => {
+        // The structure check does not reject a meta-schema-only invalid case
+        // (required/enum/additionalProperties/anyOf) is the meta-schema's job,
+        // never this engine's — so it loads clean here.
+        let result: ReturnType<typeof validateList> | undefined;
+        expect(() => {
+          result = run(c);
+        }, `${c.name} must not be rejected by the four-language structure check`).not.toThrow();
+        // No rows → no data validation: a clean load is always { valid:true, errors:[] }.
+        expect(result).toStrictEqual({ valid: true, errors: [] });
+      }));
   }
 });
 
 describe('list validate — a forbidden meta key in the list tree is a LOAD ERROR', () => {
   for (const c of cases.filter((x) => typeof x.engine === 'object')) {
-    test(c.name, () => {
-      const want = c.engine as { code: string; at: string };
-      let thrown: unknown;
-      try {
-        run(c);
-      } catch (e) {
-        thrown = e;
-      }
-      expect(thrown, `${c.name} must throw a load error`).toBeInstanceOf(
-        ComposeLoadError
-      );
-      const err = thrown as ComposeLoadError;
-      expect(err.code).toStrictEqual(want.code);
-      // The dotted trace points at the shallowest offending key — depth is
-      // load-bearing (a deeply nested meta key must be caught at its real path).
-      expect(err.trace.join('.')).toStrictEqual(want.at);
-    });
+    test(c.name, () =>
+      proves(c.name, () => {
+        const want = c.engine as { code: string; at: string };
+        let thrown: unknown;
+        try {
+          run(c);
+        } catch (e) {
+          thrown = e;
+        }
+        expect(thrown, `${c.name} must throw a load error`).toBeInstanceOf(
+          ComposeLoadError
+        );
+        const err = thrown as ComposeLoadError;
+        expect(err.code).toStrictEqual(want.code);
+        // The dotted trace points at the shallowest offending key — depth is
+        // load-bearing (a deeply nested meta key must be caught at its real path).
+        expect(err.trace.join('.')).toStrictEqual(want.at);
+      }));
   }
 });
 

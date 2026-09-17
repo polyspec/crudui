@@ -9,6 +9,8 @@ use CRUDUI\Validator\Validate\FormInputError;
 use CRUDUI\Validator;
 use PHPUnit\Framework\TestCase;
 
+require_once __DIR__ . '/../../../../tests/conformance/evidence.php';
+
 /**
  * CRUDUI validator conformance verifies SPEC §2 G5, §3 and §2 G1. The shared
  * fixture tests/fixtures/validate/cases.json defines each expected result or
@@ -47,6 +49,19 @@ final class ValidateConformanceTest extends TestCase
      * @param array<string, mixed> $case
      */
     public function testValidateMatchesFixture(array $case): void
+    {
+        self::assertFalse((new \ReflectionClass(Validator::class))->isInternal(), 'PHPUnit evidence proves the pure PHP runtime, not the native extension');
+        $passed = false;
+        try {
+            $this->assertCase($case);
+            $passed = true;
+        } finally {
+            crudui_record_conformance('validate', 'tests/fixtures/validate/cases.json', 'php', $case['name'], $passed);
+        }
+    }
+
+    /** @param array<string, mixed> $case */
+    private function assertCase(array $case): void
     {
         self::assertTrue(
             \array_key_exists('expected', $case) !== \array_key_exists('expectFailure', $case),

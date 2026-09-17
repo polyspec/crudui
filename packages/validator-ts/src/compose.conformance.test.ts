@@ -26,6 +26,7 @@ import {
   MemoryLoader,
   ComposeLoadError,
 } from './compose/index';
+import { provesConformance } from '../../../tests/conformance/evidence.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -73,52 +74,48 @@ function run(c: FixtureCase): Record<string, unknown> {
     : composeProperties(c.input.entry, loader, opts);
 }
 
+function proves(name: string, body: () => void): Promise<void> {
+  return provesConformance(
+    { features: ['compileForm'], fixture: 'tests/fixtures/compose/cases.json', runtime: 'javascript', case: name },
+    body
+  );
+}
+
 describe('compose — success cases reproduce the expanded single spec', () => {
   for (const c of cases.filter((x) => !x.expectError)) {
-    test(c.name, () => {
-      const result = run(c);
-      expect(canon(result)).toStrictEqual(canon(c.expected));
-      // Composition keys must be eliminated (single-spec equivalence, SPEC §5).
-      const json = JSON.stringify(result);
-      expect(json).not.toContain('"$ref"');
-      expect(json).not.toContain('"$patch"');
-    });
+    test(c.name, () =>
+      proves(c.name, () => {
+        const result = run(c);
+        expect(canon(result)).toStrictEqual(canon(c.expected));
+        // Composition keys must be eliminated (single-spec equivalence, SPEC §5).
+        const json = JSON.stringify(result);
+        expect(json).not.toContain('"$ref"');
+        expect(json).not.toContain('"$patch"');
+        // Composition is pure pre-processing (field-layer invariant): a composed single spec
+        // must be bit-identical to the same content written WITHOUT composition. Re-composing
+        // the already-expanded spec (no $ref/$patch left) must be a fixed point.
+        const again = composeProperties(result, new MemoryLoader({}));
+        expect(canon(again), `${c.name} — re-compose is a fixed point`).toStrictEqual(canon(result));
+      }));
   }
 });
 
 describe('compose — unresolved composition is a LOAD ERROR, never valid:true', () => {
   for (const c of cases.filter((x) => x.expectError)) {
-    test(c.name, () => {
-      let thrown: unknown;
-      try {
-        run(c);
-      } catch (e) {
-        thrown = e;
-      }
-      expect(thrown, `${c.name} must throw a load error`).toBeInstanceOf(
-        ComposeLoadError
-      );
-      expect((thrown as ComposeLoadError).code).toStrictEqual(
-        c.expectError!.code
-      );
-    });
-  }
-});
-
-describe('compose — composition is pure pre-processing (field-layer invariant)', () => {
-  // The analysis "합성 후 필드층 불변": a composed single spec must be bit-identical
-  // to the same content written WITHOUT composition. Prove it on every success
-  // case by re-composing the already-expanded spec (no $ref/$patch left) and
-  // checking it is a fixed point.
-  for (const c of cases.filter((x) => !x.expectError)) {
-    test(`${c.name} — re-compose is a fixed point`, () => {
-      const first = run(c);
-      const loader = new MemoryLoader({});
-      const again = composeProperties(
-        first as Record<string, unknown>,
-        loader
-      );
-      expect(canon(again)).toStrictEqual(canon(first));
-    });
+    test(c.name, () =>
+      proves(c.name, () => {
+        let thrown: unknown;
+        try {
+          run(c);
+        } catch (e) {
+          thrown = e;
+        }
+        expect(thrown, `${c.name} must throw a load error`).toBeInstanceOf(
+          ComposeLoadError
+        );
+        expect((thrown as ComposeLoadError).code).toStrictEqual(
+          c.expectError!.code
+        );
+      }));
   }
 });

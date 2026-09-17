@@ -89,7 +89,7 @@ const DESIGN_NODE_KEYS: &[&str] = &["class", "style"];
 const BEHAVIOR_KEYS: &[&str] = &["onchange", "onclick", "onload"];
 
 /// Reject the first key of a closed bucket that the bucket does not allow.
-fn check_known_keys(
+pub(crate) fn check_known_keys(
     bucket: &str,
     settings: &Map<String, Value>,
     allowed: &[&str],

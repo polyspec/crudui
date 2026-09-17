@@ -34,6 +34,18 @@ interface FixtureCase {
 /** The fixture matrix (one entry per `fixture_ideas` scenario). */
 const SCENARIOS: FixtureCase[] = [
   {
+    name: 'text-with-nul',
+    note: 'a NUL character in a label, a placeholder and a value is written like any other character.',
+    spec: {
+      type: 'group',
+      properties: {
+        name: { type: 'text', label: 'A\u0000B', placeholder: 'p\u0000q' },
+      },
+    },
+    data: { name: 'x\u0000y' },
+    options: { language: 'en' },
+  },
+  {
     name: 'design-show-expr-truthy',
     note: "design.show '.subscribe' truthy → input shown (visible envelope).",
     spec: {

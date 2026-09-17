@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"strings"
 	"testing"
 
 	gen "github.com/polyspec/crudui/packages/generator-go"
@@ -89,4 +90,107 @@ func TestSnapshotPropagatesRenderError(t *testing.T) {
 	if _, err := snapshot(nil); err == nil {
 		t.Fatal("snapshot accepted a missing form")
 	}
+}
+
+func TestButtonOperationsMatchJavaScript(t *testing.T) {
+	spec, err := gen.DecodeJSON([]byte(`{"type":"group","buttons":[{"type":"link","text":{"ko":"목록","en":"List"},"href":"../?a=1&b=\"2\""},{"type":"submit","name":"__submitted__","value":"go","design":{"class":{"name == \"a\"":"primary","true":"plain"},"style":"color: red; width: 5px"}},{"type":"button","text":"Back <now>","behavior":{"onclick":{"label":"x","script":"history.back()"}}}],"properties":{"name":{"type":"text"}}}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	declared, err := gen.CompileForm(obj(spec), gen.CompileOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	plain, err := gen.CompileForm(gen.NewObject("type", "group", "properties", gen.NewObject()), gen.CompileOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, c := range []struct {
+		request          *gen.Object
+		wantVM, wantHTML string
+	}{
+		{gen.NewObject("operation", "bindButtons", "template", declared, "data", gen.NewObject("name", "a"), "options", gen.NewObject("language", "en")),
+			`[{"type":"link","tag":"a","text":"List","attrs":{"class":"crudui-action crudui-action--text","href":"../?a=1&b=\"2\""}},{"type":"submit","tag":"button","text":"Save","attrs":{"type":"submit","class":"crudui-action crudui-action--text primary","style":"color: red; width: 5px","name":"__submitted__","value":"go"}},{"type":"button","tag":"button","text":"Back <now>","attrs":{"type":"button","class":"crudui-action crudui-action--text","onclick":"history.back()"}}]`,
+			`<a class="crudui-action crudui-action--text" href="../?a=1&amp;b=&quot;2&quot;">List</a><button type="submit" class="crudui-action crudui-action--text primary" style="color: red; width: 5px" name="__submitted__" value="go">Save</button><button type="button" class="crudui-action crudui-action--text" onclick="history.back()">Back &lt;now&gt;</button>`},
+		{gen.NewObject("operation", "bindButtons", "template", plain),
+			`[{"type":"submit","tag":"button","text":"저장","attrs":{"type":"submit","class":"crudui-action crudui-action--text"}}]`,
+			`<button type="submit" class="crudui-action crudui-action--text">저장</button>`},
+	} {
+		// Round-trip through JSON as the command does, so decoded values reach both operations.
+		buttons := roundTrip(t, c.request)
+		if got := plainJSON(t, buttons); got != c.wantVM {
+			t.Fatalf("%s\n%s", got, c.wantVM)
+		}
+		html := roundTrip(t, gen.NewObject("operation", "formButtonsHtml", "buttons", buttons))
+		if html != c.wantHTML {
+			t.Fatalf("%v\n%s", html, c.wantHTML)
+		}
+	}
+	for source, message := range map[string]string{
+		`{"operation":"bindButtons","template":{"kind":"x"}}`:                                                                      "Unsupported form template",
+		`{"operation":"bindButtons","template":{"kind":"crudui/form-template","fields":[],"buttons":[]},"data":[]}`:                "Form data must be an object",
+		`{"operation":"bindButtons","template":{"kind":"crudui/form-template","fields":[],"buttons":[]},"options":[]}`:             "Options must be an object",
+		`{"operation":"bindButtons","template":{"kind":"crudui/form-template","fields":[],"buttons":[]},"options":{"language":1}}`: "Language must be a string",
+		`{"operation":"formButtonsHtml"}`:                                                       "Form buttons must be a list",
+		`{"operation":"formButtonsHtml","buttons":{}}`:                                          "Form buttons must be a list",
+		`{"operation":"formButtonsHtml","buttons":"x"}`:                                         "Form buttons must be a list",
+		`{"operation":"formButtonsHtml","buttons":[1]}`:                                         "Form buttons must be evaluated button objects",
+		`{"operation":"formButtonsHtml","buttons":[null]}`:                                      "Form buttons must be evaluated button objects",
+		`{"operation":"formButtonsHtml","buttons":[{"tag":"div","text":"x","attrs":{}}]}`:       "Form buttons must be evaluated button objects",
+		`{"operation":"formButtonsHtml","buttons":[{"tag":"a","text":1,"attrs":{}}]}`:           "Form buttons must be evaluated button objects",
+		`{"operation":"formButtonsHtml","buttons":[{"tag":"a","text":"x","attrs":[]}]}`:         "Form buttons must be evaluated button objects",
+		`{"operation":"formButtonsHtml","buttons":[{"tag":"a","text":"x","attrs":{"id":"i"}}]}`: "Form buttons must be evaluated button objects",
+		`{"operation":"formButtonsHtml","buttons":[{"tag":"a","text":"x","attrs":{"href":1}}]}`: "Form buttons must be evaluated button objects",
+	} {
+		v, err := gen.DecodeJSON([]byte(source))
+		if err != nil {
+			t.Fatal(err)
+		}
+		_, err = run(obj(v))
+		if err == nil || err.Error() != message {
+			t.Errorf("%s: %v", source, err)
+			continue
+		}
+		if e := errorObject(err); str(val(e, "code")) != "INVALID_FORM_INPUT" || val(e, "at") != "" {
+			t.Errorf("%s: %v", source, e)
+		}
+	}
+}
+
+// roundTrip encodes a request as JSON, decodes it and runs it, returning the decoded result.
+func roundTrip(t *testing.T, request *gen.Object) any {
+	t.Helper()
+	b, err := json.Marshal(request)
+	if err != nil {
+		t.Fatal(err)
+	}
+	v, err := gen.DecodeJSON(b)
+	if err != nil {
+		t.Fatal(err)
+	}
+	result, err := run(obj(v))
+	if err != nil {
+		t.Fatal(err)
+	}
+	out, err := json.Marshal(result)
+	if err != nil {
+		t.Fatal(err)
+	}
+	decoded, err := gen.DecodeJSON(out)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return decoded
+}
+
+// plainJSON encodes a value as JavaScript JSON.stringify does; ordered objects escape HTML characters internally, so those escapes are undone.
+func plainJSON(t *testing.T, v any) string {
+	t.Helper()
+	var b strings.Builder
+	enc := json.NewEncoder(&b)
+	enc.SetEscapeHTML(false)
+	if err := enc.Encode(v); err != nil {
+		t.Fatal(err)
+	}
+	return strings.NewReplacer(`\u0026`, "&", `\u003c`, "<", `\u003e`, ">").Replace(strings.TrimSuffix(b.String(), "\n"))
 }

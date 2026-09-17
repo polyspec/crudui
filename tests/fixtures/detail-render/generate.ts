@@ -46,6 +46,13 @@ const ADA = {
 
 const SCENARIOS: DetailFixtureCase[] = [
   {
+    name: 'text-with-nul',
+    note: 'a NUL character in a label and in a value is written like any other character.',
+    spec: { fields: { v: { field: 'v', label: 'A\u0000B' } } },
+    record: { v: 'x\u0000y' },
+    options: { language: 'en' },
+  },
+  {
     name: 'basic-fields',
     note: 'plain text fields with translated labels; values are escaped.',
     spec: {

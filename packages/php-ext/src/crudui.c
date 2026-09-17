@@ -128,6 +128,46 @@ PHP_METHOD(CRUDUI_Generator, bindForm)
     call_three(template, data, true, options, true, false, ps_bind_form, return_value);
 }
 
+PHP_METHOD(CRUDUI_Generator, bindButtons)
+{
+    zval *template, *data = NULL, *options = NULL;
+    ZEND_PARSE_PARAMETERS_START(1, 3)
+        Z_PARAM_OBJECT_OF_CLASS(template, zend_standard_class_def)
+        Z_PARAM_OPTIONAL
+        Z_PARAM_ARRAY_OR_OBJECT(data)
+        Z_PARAM_ARRAY(options)
+    ZEND_PARSE_PARAMETERS_END();
+    call_three(template, data, true, options, true, false, ps_bind_form_buttons, return_value);
+}
+
+static bool standard_object(zval *value)
+{
+    return Z_TYPE_P(value) == IS_OBJECT && instanceof_function(Z_OBJCE_P(value), zend_standard_class_def);
+}
+
+PHP_METHOD(CRUDUI_Generator, formButtonsHtml)
+{
+    zval *buttons;
+    ZEND_PARSE_PARAMETERS_START(1, 1) Z_PARAM_ARRAY(buttons) ZEND_PARSE_PARAMETERS_END();
+    if (!zend_array_is_list(Z_ARRVAL_P(buttons))) {
+        crudui_invalid_value("Form buttons must be a list", true);
+        return;
+    }
+    /* PHP arrays convert to objects, so a button and its attrs must already be stdClass objects. */
+    zval *button;
+    ZEND_HASH_FOREACH_VAL(Z_ARRVAL_P(buttons), button) {
+        ZVAL_DEREF(button);
+        zval *attrs = standard_object(button)
+            ? zend_hash_str_find_deref(Z_OBJPROP_P(button), "attrs", sizeof("attrs") - 1) : NULL;
+        if (!attrs || !standard_object(attrs)) {
+            crudui_invalid_value("Form buttons must be evaluated button objects", true);
+            return;
+        }
+    } ZEND_HASH_FOREACH_END();
+    ps_value *input = crudui_from_php(buttons, false, true);
+    if (input) { crudui_return(ps_form_buttons_html(input), return_value); ps_value_free(input); }
+}
+
 PHP_METHOD(CRUDUI_Generator, renderList)
 {
     zval *spec, *rows, *options = NULL;

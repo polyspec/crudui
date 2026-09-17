@@ -50,6 +50,16 @@ try {
         case 'bindForm':
             $result = Generator::bindForm(required($request, 'template'), property_exists($request, 'data') ? objectValue($request->data, 'Form data must be an object') : new stdClass(), options(property_exists($request, 'options') ? $request->options : new stdClass()));
             break;
+        case 'bindButtons':
+            $result = Generator::bindButtons(required($request, 'template'), property_exists($request, 'data') ? objectValue($request->data, 'Form data must be an object') : new stdClass(), options(property_exists($request, 'options') ? $request->options : new stdClass()));
+            break;
+        case 'formButtonsHtml':
+            $buttons = required($request, 'buttons');
+            if (!is_array($buttons)) {
+                throw new InvalidArgumentException('Form buttons must be a list');
+            }
+            $result = Generator::formButtonsHtml($buttons);
+            break;
         case 'renderList':
             // JSON decides each type before the library applies the PHP value rules.
             $spec = objectValue(required($request, 'spec'), 'List specification must be an object');

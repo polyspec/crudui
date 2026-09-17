@@ -7,6 +7,8 @@ import (
 	"reflect"
 	"sort"
 	"testing"
+
+	"github.com/polyspec/crudui/packages/validator-go/validator/internal/conformance"
 )
 
 // Composition conformance verifies SPEC §5 and G5.
@@ -107,6 +109,7 @@ func TestComposeMatchesFixture(t *testing.T) {
 	for _, c := range loadFixtures(t) {
 		c := c
 		t.Run(c.Name, func(t *testing.T) {
+			conformance.Record(t, "compileForm", "tests/fixtures/compose/cases.json", c.Name)
 			in := parseInput(t, c.Input)
 			loader := NewMemoryLoader(in.files)
 			opts := ComposeOptions{Basepath: in.basepath}

@@ -22,6 +22,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { validate, ComposeLoadError, FormInputError } from './validate/index';
+import { provesConformance } from '../../../tests/conformance/evidence.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -49,6 +50,14 @@ interface FixtureCase {
 
 const cases: FixtureCase[] = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
 
+/** Run one fixture case and record validate evidence for it. */
+function proves(name: string, body: () => void): Promise<void> {
+  return provesConformance(
+    { features: ['validate'], fixture: 'tests/fixtures/validate/cases.json', runtime: 'javascript', case: name },
+    body
+  );
+}
+
 function run(c: FixtureCase) {
   return validate(c.spec, c.data, c.files ? { files: c.files } : {});
 }
@@ -66,26 +75,28 @@ function failureRecord(error: unknown): FailureRecord | undefined {
 
 describe('validate — result cases reproduce { valid, errors } bit-for-bit', () => {
   for (const c of cases.filter((x) => x.expected)) {
-    test(c.name, () => {
-      const result = run(c);
-      expect(result).toStrictEqual(c.expected);
-    });
+    test(c.name, () =>
+      proves(c.name, () => {
+        const result = run(c);
+        expect(result).toStrictEqual(c.expected);
+      }));
   }
 });
 
 describe('validate — load and input failures throw the exact failure record', () => {
   for (const c of cases.filter((x) => x.expectFailure)) {
-    test(c.name, () => {
-      let thrown: unknown;
-      try {
-        run(c);
-      } catch (e) {
-        thrown = e;
-      }
-      expect(failureRecord(thrown), `${c.name} must throw a validation failure`).toStrictEqual(
-        c.expectFailure
-      );
-    });
+    test(c.name, () =>
+      proves(c.name, () => {
+        let thrown: unknown;
+        try {
+          run(c);
+        } catch (e) {
+          thrown = e;
+        }
+        expect(failureRecord(thrown), `${c.name} must throw a validation failure`).toStrictEqual(
+          c.expectFailure
+        );
+      }));
   }
 });
 

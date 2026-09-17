@@ -45,6 +45,6 @@ properties:
 - [PHP 구형 검증기](../../packages/validator-php/src/Legacy/Validator.php)
 - [Go 구형 검증기](../../packages/validator-go/validator/legacy/validator.go)
 - [Rust 구형 검증기](../../packages/validator-rust/src/legacy/validator.rs)
-- [공통 구형 검증기 사례](../../tests/cases/display-switch.json)
+- [공통 구형 검증기 사례](../../tests/fixtures/legacy-validate/cases.json)의 `display-switch` 묶음
 
 테스트 결과와 배포 상태는 [기능 상태](../features.ko.md)에서 별도로 관리합니다.

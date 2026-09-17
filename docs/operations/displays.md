@@ -282,17 +282,13 @@ original list and detail HTML and detail models from JavaScript, the HTML render
 extension, Go and Rust. The console suite builds the Go and Rust validator programs and tests the
 gateway, including the list and detail endpoints.
 
-Run the structure validation cases from each package directory:
+Run the structure validation cases of each validator from the repository root:
 
 ```sh
-# packages/validator-ts
-npx vitest run src/validate-list/validate-list.conformance.test.ts src/validate-detail/validate-detail.conformance.test.ts
-# packages/validator-php
-vendor/bin/phpunit --filter 'ListValidateConformanceTest|DetailValidateConformanceTest'
-# packages/validator-go
-go test ./validator/validate -run 'TestValidateListMatchesFixture|TestValidateDetailMatchesFixture' -count=1
-# packages/validator-rust
-cargo test --test list_validity_conformance --test detail_validity_conformance
+npm test -w @crudui/validator -- src/validate-list/validate-list.conformance.test.ts src/validate-detail/validate-detail.conformance.test.ts
+node scripts/run-tests.mjs phpunit --cwd packages/validator-php -- --filter 'ListValidateConformanceTest|DetailValidateConformanceTest'
+node scripts/run-tests.mjs go --cwd packages/validator-go -- ./validator/validate -run 'TestValidateListMatchesFixture|TestValidateDetailMatchesFixture'
+node scripts/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml --test list_validity_conformance --test detail_validity_conformance
 ```
 
 Record current results in [features](../features.md) and [changelog](../../CHANGELOG.md).

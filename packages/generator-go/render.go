@@ -397,8 +397,12 @@ func RenderForm(form *Form) (string, error) {
 	if e != nil {
 		return "", e
 	}
+	buttons, e := FormButtonsHTML(bindButtons(form.template.Buttons, form.data, language, m))
+	if e != nil {
+		return "", e
+	}
 	footer := element("div", NewObject("class", "crudui-form__footer"),
-		element("div", NewObject("class", "crudui-controls", "role", "group", "aria-label", m.formActions), formButtonsHTML(form.template.Buttons, form.data, language, m)))
+		element("div", NewObject("class", "crudui-controls", "role", "group", "aria-label", m.formActions), buttons))
 	return `<div class="crudui-form"><div class="crudui-form__body">` + nodesHTML(form.fields) + `</div>` + footer + `</div>`, nil
 }
 

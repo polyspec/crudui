@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace CRUDUI\Generator;
 
+use CRUDUI\FormError;
 use stdClass;
 
 /** Form buttons: the actions a spec declares with root buttons, rendered in the form footer. */
@@ -14,6 +15,9 @@ final class Buttons
 
     /** The buttons of a form whose spec declares none: one submit button. */
     public const DEFAULT = [['type' => 'submit']];
+
+    /** Attribute names of an evaluated button, in output order. */
+    public const ATTRIBUTES = ['type', 'class', 'style', 'name', 'value', 'href', 'onclick'];
 
     /** Evaluate the template buttons for a record in declaration order. */
     public static function bind(stdClass $template, stdClass $data, string $language): array
@@ -50,6 +54,41 @@ final class Buttons
             ];
         }
         return $buttons;
+    }
+
+    /** Evaluate public input with the same template, data and option checks as form binding. */
+    public static function bindPublic(stdClass $template, array|stdClass $data, array $options): array
+    {
+        Template::check($template);
+        return self::bind(Value::spec($template), Value::object($data), Binding::language($options));
+    }
+
+    /** Markup of public input after checking that every element is an evaluated button. */
+    public static function htmlPublic(array $buttons): string
+    {
+        if (!array_is_list($buttons)) {
+            throw new FormError('INVALID_FORM_INPUT', 'Form buttons must be a list');
+        }
+        foreach ($buttons as $button) {
+            if (!self::evaluated($button)) {
+                throw new FormError('INVALID_FORM_INPUT', 'Form buttons must be evaluated button objects');
+            }
+        }
+        return self::html($buttons);
+    }
+
+    /** Whether a value has the tag, text and string attributes that the markup reads. */
+    private static function evaluated(mixed $button): bool
+    {
+        if (!$button instanceof stdClass || !in_array($button->tag ?? null, ['a', 'button'], true) || !is_string($button->text ?? null) || !($button->attrs ?? null) instanceof stdClass) {
+            return false;
+        }
+        foreach ((array) $button->attrs as $name => $value) {
+            if (!in_array((string) $name, self::ATTRIBUTES, true) || !is_string($value)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /** Markup of the form buttons; every renderer inserts this one string into the footer controls group. */

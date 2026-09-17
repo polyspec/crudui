@@ -14,62 +14,6 @@ typedef struct {
     unsigned second;
 } date_parts;
 
-typedef struct {
-    char *data;
-    size_t length;
-    size_t capacity;
-} date_buffer;
-
-static char *copy_text(const char *value);
-
-static bool buffer_bytes(date_buffer *buffer, const char *value, size_t length)
-{
-    if (length > SIZE_MAX - buffer->length - 1) return false;
-    size_t required = buffer->length + length + 1;
-    if (required > buffer->capacity) {
-        size_t capacity = buffer->capacity ? buffer->capacity : 32;
-        while (capacity < required) {
-            if (capacity > SIZE_MAX / 2) { capacity = required; break; }
-            capacity *= 2;
-        }
-        char *resized = realloc(buffer->data, capacity);
-        if (!resized) return false;
-        buffer->data = resized;
-        buffer->capacity = capacity;
-    }
-    if (length) memcpy(buffer->data + buffer->length, value, length);
-    buffer->length += length;
-    buffer->data[buffer->length] = '\0';
-    return true;
-}
-
-static bool buffer_text(date_buffer *buffer, const char *value)
-{
-    return buffer_bytes(buffer, value, strlen(value));
-}
-
-static bool buffer_character(date_buffer *buffer, char value)
-{
-    return buffer_bytes(buffer, &value, 1);
-}
-
-static char *buffer_take(date_buffer *buffer)
-{
-    if (!buffer->data) return copy_text("");
-    char *result = buffer->data;
-    buffer->data = NULL;
-    buffer->length = buffer->capacity = 0;
-    return result;
-}
-
-static char *copy_text(const char *value)
-{
-    size_t length = strlen(value);
-    char *copy = malloc(length + 1);
-    if (copy) memcpy(copy, value, length + 1);
-    return copy;
-}
-
 static bool digits(const char *value, size_t count)
 {
     for (size_t i = 0; i < count; ++i)
@@ -172,9 +116,10 @@ static bool valid_parts(const date_parts *parts)
         parts->minute <= 59 && parts->second <= 59;
 }
 
-static bool parse_iso(const char *source, date_parts *parts, int *offset)
+static bool parse_iso(ps_text text, date_parts *parts, int *offset)
 {
-    size_t length = strlen(source);
+    const char *source = text.bytes;
+    size_t length = text.length;
     if (length < 10 || !digits(source, 4) || source[4] != '-' ||
         !digits(source + 5, 2) || source[7] != '-' || !digits(source + 8, 2)) return false;
     *parts = (date_parts){(int)unsigned_at(source, 4), unsigned_at(source + 5, 2),
@@ -216,12 +161,14 @@ static bool token(const char **cursor, const char *end, const char **start, size
     return true;
 }
 
-static bool parse_rfc(const char *source, date_parts *parts, int *offset)
+static bool parse_rfc(ps_text text, date_parts *parts, int *offset)
 {
     static const char *weekdays[] = {"sun","mon","tue","wed","thu","fri","sat"};
-    const char *cursor = source, *end = source + strlen(source);
+    const char *source = text.bytes;
+    const char *cursor = source, *end = source + text.length;
     int expected_weekday = -1;
-    const char *comma = strchr(source, ',');
+    size_t comma_index = ps_text_find_byte(text, ',', 0);
+    const char *comma = comma_index == SIZE_MAX ? NULL : source + comma_index;
     if (comma) {
         if (comma - source != 3) return false;
         for (size_t i = 0; i < 7; ++i)
@@ -250,7 +197,7 @@ static bool parse_rfc(const char *source, date_parts *parts, int *offset)
     return true;
 }
 
-static bool parse_date(const char *source, date_parts *parts)
+static bool parse_date(ps_text source, date_parts *parts)
 {
     int offset;
     date_parts local;
@@ -267,23 +214,24 @@ static bool parse_date(const char *source, date_parts *parts)
     return true;
 }
 
-static bool append_year(date_buffer *out, int year)
+static bool append_year(ps_html_buffer *out, int year)
 {
     char value[32];
     if (year < 0) snprintf(value, sizeof(value), "-%04u", (unsigned)(-year));
     else snprintf(value, sizeof(value), "%04u", (unsigned)year);
-    return buffer_text(out, value);
+    return ps_html_text(out, value);
 }
 
-char *ps_format_date_pattern(const char *source, const char *pattern)
+ps_chars ps_format_date_pattern(ps_text source, ps_text pattern)
 {
     date_parts parts;
-    if (!parse_date(source, &parts)) return copy_text(source);
-    date_buffer out = {0};
+    if (!parse_date(source, &parts)) return ps_copy(source);
+    ps_html_buffer out = {0};
     char value[8];
-    for (const char *cursor = pattern; *cursor;) {
-        if (!strncmp(cursor, "YYYY", 4)) {
-            if (!append_year(&out, parts.year)) goto fail;
+    for (size_t cursor = 0; cursor < pattern.length;) {
+        ps_text rest = ps_text_slice(pattern, cursor, pattern.length);
+        if (ps_text_starts(rest, "YYYY")) {
+            if (!append_year(&out, parts.year)) break;
             cursor += 4;
         } else {
             struct { const char *token; unsigned value; } entries[] = {
@@ -292,22 +240,19 @@ char *ps_format_date_pattern(const char *source, const char *pattern)
             };
             bool matched = false;
             for (size_t i = 0; i < sizeof(entries) / sizeof(entries[0]); ++i) {
-                if (!strncmp(cursor, entries[i].token, 2)) {
+                if (ps_text_starts(rest, entries[i].token)) {
                     snprintf(value, sizeof(value), "%02u", entries[i].value);
-                    if (!buffer_text(&out, value)) goto fail;
+                    ps_html_text(&out, value);
                     cursor += 2; matched = true; break;
                 }
             }
-            if (!matched && !buffer_character(&out, *cursor++)) goto fail;
+            if (!matched && !ps_html_character(&out, pattern.bytes[cursor++])) break;
         }
     }
-    return buffer_take(&out);
-fail:
-    free(out.data);
-    return NULL;
+    return ps_html_take(&out);
 }
 
-char *ps_format_date(const char *source, bool datetime)
+ps_chars ps_format_date(ps_text source, bool datetime)
 {
-    return ps_format_date_pattern(source, datetime ? "YYYY-MM-DDTHH:mm:ss" : "YYYY-MM-DD");
+    return ps_format_date_pattern(source, datetime ? PS_TEXT("YYYY-MM-DDTHH:mm:ss") : PS_TEXT("YYYY-MM-DD"));
 }

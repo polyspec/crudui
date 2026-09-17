@@ -34,6 +34,10 @@ bool ps_value_visit(const ps_value *, void *, ps_visitor);
 
 ps_result ps_compile_form(const ps_value *spec, const ps_value *options);
 ps_result ps_bind_form(const ps_value *template, const ps_value *data, const ps_value *options);
+/* Evaluated form buttons with the form binding input checks. */
+ps_result ps_bind_form_buttons(const ps_value *template, const ps_value *data, const ps_value *options);
+/* Button markup of evaluated buttons. */
+ps_result ps_form_buttons_html(const ps_value *buttons);
 ps_result ps_render_list(const ps_value *spec, const ps_value *rows, const ps_value *options);
 /* List model: columns, evaluated rows, pagination, sort, actions, empty and design. */
 ps_result ps_build_list(const ps_value *spec, const ps_value *rows, const ps_value *options);

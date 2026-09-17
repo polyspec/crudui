@@ -18,7 +18,7 @@ unreadable suite fails the run. Native executables are rebuilt before comparison
 | `tests/fixtures/expr/` | Tokens, ASTs and expression evaluation. |
 | `tests/fixtures/form-render/` | Expected form rendering. |
 | `tests/fixtures/form-session/` | Shared form controls and interaction scenarios. |
-| `tests/cases/*.json` | Legacy validation cases. |
+| `tests/fixtures/legacy-validate/cases.json` | Legacy validation cases. |
 
 ## Current validation
 
@@ -50,15 +50,18 @@ engine; regenerate it instead of editing `cases.json`.
 
 ## Legacy validation
 
-A legacy suite has `testSuite`, `version`, `description` and `tests`. The fixture
-version describes its format, not the package version. Each test has `id`, `spec`
-and `cases`. A case contains `input` and `expected`; `expected.valid` gives the
-result, while optional `error` and `field` assert the first rule and field path.
+The legacy validation fixture is a list. Each entry has a unique `name`, the
+`suite` it belongs to, a `note`, a `spec` and `cases`. A case contains `input` and
+`expected`; `expected.valid` gives the result, while optional `error` and `field`
+assert the first rule and field path. The
+[fixture README](../../tests/fixtures/legacy-validate/README.md) lists the suites.
 
 The legacy bridge wraps a simple field spec in a group under `value` and wraps
 its input under the same key. A group with `properties` is used directly.
 The `"__undefined__"` input marker represents a missing value in the bridge.
 See the [legacy TypeScript bridge](../../packages/validator-ts/src/__tests__/conformance.test.ts).
+Each runtime's bridge records one `validateLegacy` evidence line per entry; see
+[conformance evidence](conformance.md).
 
 ## Adding and reviewing cases
 

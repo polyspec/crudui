@@ -8,7 +8,7 @@
 # machine-absolute paths). `make docs` run twice yields identical output.
 
 .DEFAULT_GOAL := help
-.PHONY: help docs docs-api docs-schema docs-site docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-check-servers docs-check-all docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-native format-check
+.PHONY: help docs docs-api docs-schema docs-site docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-check-servers docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-extension test-native test-native-suites test-validators conformance format-check
 .NOTPARALLEL: docs docs-site docs-dev docs-preview docs-check docs-verify-idempotent
 
 # Validator benchmark iteration counts (override on the command line, e.g.
@@ -16,8 +16,9 @@
 BENCH_ITERS  ?= 50000
 BENCH_WARMUP ?= 5000
 PHP_EXTENSION ?= $(CURDIR)/packages/php-ext/modules/crudui.so
-# The report lives in the Git directory, which is a file-referenced directory in a worktree.
+# Reports live in the Git directory, which is a file-referenced directory in a worktree.
 NATIVE_REPORT ?= $(shell git rev-parse --git-path native-generators/report.json)
+CONFORMANCE_EVIDENCE ?= $(abspath $(shell git rev-parse --git-path conformance-evidence))
 
 help: ## 타겟 설명
 	@echo "CRUDUI docs — make targets:"
@@ -34,7 +35,10 @@ help: ## 타겟 설명
 	@echo "  make docs-check-servers    examples 서버 4종만 검사 (node/go/php/rust)"
 	@echo "  make docs-verify-idempotent  docs 를 2회 생성하고 diff 가 비는지 검증"
 	@echo "  make build-php-extension   Build and load the native PHP module"
+	@echo "  make test-php-extension    Test the native PHP engine, its builder and its PHP API"
 	@echo "  make test-native           Test PHP, Go, Rust and native PHP generation"
+	@echo "  make test-validators       Test the JavaScript, PHP, Go and Rust validators"
+	@echo "  make conformance           Run every conformance suite and check the evidence against the standard"
 	@echo "  make format-check          Fail when any Rust crate or Go file is not formatted"
 	@echo ""
 	@echo "CRUDUI validator benchmark — make targets:"
@@ -68,19 +72,15 @@ docs-preview: ## 문서 빌드 결과 미리보기 서버
 	npm run docs:preview
 
 # docs-check gates the library packages AND the examples/* API servers.
-# Either arm RED → non-zero exit. (docs-check-all is kept as an explicit alias.)
+# Either arm RED → non-zero exit.
 docs-check: docs-check-documents docs-check-libs docs-check-servers ## doc-coverage 게이트 (라이브러리 + 서버, 미문서화 → 비0 exit)
 	@echo "[make] docs-check: documents, libraries and servers passed"
-
-docs-check-all: docs-check ## docs-check 별칭 (라이브러리 + 서버)
 
 docs-check-documents:
 	npm run manifest:check
 	npm run manifest:docs:check
 	node scripts/check-documents.mjs
-	node --test --test-timeout=30000 scripts/documentation-links.test.mjs
-	node --test --test-timeout=30000 scripts/gen-api-docs.test.mjs
-	node --test --test-timeout=30000 scripts/check-doc-coverage.test.mjs scripts/php-doc-coverage.test.mjs
+	node scripts/run-tests.mjs node -- scripts/documentation-links.test.mjs scripts/gen-api-docs.test.mjs scripts/check-doc-coverage.test.mjs scripts/php-doc-coverage.test.mjs
 	npm run test:docs
 	npm run docs:build
 
@@ -149,25 +149,52 @@ bench-rust: bench-fixtures ## Rust 검증기만 측정
 	node tools/bench/run.js --only rust --iters $(BENCH_ITERS) --warmup $(BENCH_WARMUP)
 
 # The JavaScript packages are built only when their sources or output changed; the
-# engine tests below and the native suite both read the built packages.
-# Every node:test command declares a per-test timeout; tests that need more declare
-# their own. PHPUnit enforces its own per-test limit, and `go test -timeout` limits
-# each test binary (Go has no per-test limit).
+# extension build and the native suite both read the built packages. Every test runs through
+# scripts/run-tests.mjs, which prints each test with its elapsed time and gives it its own
+# timeout.
 build-php-extension:
 	node scripts/require-current-build.mjs
-	node --test --test-timeout=30000 tests/native-generators/php-extension-builder.test.mjs packages/php-ext/tests/engine.test.mjs
 	node scripts/build-crudui-php-extension.mjs
 
-test-native: build-php-extension
+test-php-extension: build-php-extension
+	node scripts/run-tests.mjs node -- tests/native-generators/php-extension-builder.test.mjs packages/php-ext/tests/engine.test.mjs packages/php-ext/tests/api.test.mjs
+
+test-native: test-php-extension test-native-suites
+
+test-native-suites: build-php-extension
 	# generator-php installs the validator as a copy; refresh it from source before any check loads it.
 	composer --working-dir=packages/generator-php reinstall crudui/validator --no-interaction
-	composer --working-dir=packages/generator-php test
-	go -C packages/generator-go test -race -timeout 120s ./...
-	node scripts/run-rust-command.mjs test --locked --manifest-path packages/generator-rust/Cargo.toml
-	node packages/php-ext/tests/run.mjs "$(PHP_EXTENSION)"
-	node --test --test-timeout=10000 tests/native-generators/protocol.test.mjs
-	node tests/native-generators/run.mjs --extension "$(PHP_EXTENSION)" --report "$(NATIVE_REPORT)"
-	node --test --test-timeout=60000 tests/widget-scripts.test.mjs
+	@status=0; \
+	node scripts/run-tests.mjs phpunit --cwd packages/generator-php || status=1; \
+	node scripts/run-tests.mjs go --cwd packages/generator-go -- -race ./... || status=1; \
+	node scripts/run-tests.mjs cargo -- --locked --manifest-path packages/generator-rust/Cargo.toml || status=1; \
+	node scripts/run-tests.mjs node -- tests/native-generators/protocol.test.mjs || status=1; \
+	node scripts/run-tests.mjs node --timeout 60 -- tests/widget-scripts.test.mjs || status=1; \
+	node tests/native-generators/run.mjs --extension "$(PHP_EXTENSION)" --report "$(NATIVE_REPORT)" || status=1; \
+	exit $$status
+
+test-validators:
+	@status=0; \
+	node scripts/run-tests.mjs vitest --cwd packages/validator-ts || status=1; \
+	node scripts/run-tests.mjs phpunit --cwd packages/validator-php || status=1; \
+	node scripts/run-tests.mjs go --cwd packages/validator-go -- ./... || status=1; \
+	node scripts/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml || status=1; \
+	exit $$status
+
+# Every suite that records conformance evidence, then the check of that evidence against
+# contracts/features.json (docs/spec/conformance.md). Every suite runs even when an earlier one
+# fails, so the check reports every gap; any failure fails the target.
+conformance:
+	rm -rf "$(CONFORMANCE_EVIDENCE)"
+	@status=0; \
+	export CRUDUI_CONFORMANCE_EVIDENCE="$(CONFORMANCE_EVIDENCE)"; \
+	$(MAKE) --no-print-directory test-validators || status=1; \
+	$(MAKE) --no-print-directory test-php-extension || status=1; \
+	$(MAKE) --no-print-directory test-native-suites || status=1; \
+	npm run test:forms || status=1; \
+	npm test --prefix examples/cross-check-console/server || status=1; \
+	node scripts/check-conformance.mjs || status=1; \
+	exit $$status
 
 # Every tracked Rust crate must match rustfmt and every tracked Go file gofmt.
 format-check:

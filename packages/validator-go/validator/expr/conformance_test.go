@@ -7,6 +7,8 @@ import (
 	"reflect"
 	"sort"
 	"testing"
+
+	"github.com/polyspec/crudui/packages/validator-go/validator/internal/conformance"
 )
 
 // Expression conformance verifies the three stages in expressions.md §9:
@@ -51,66 +53,66 @@ func loadFixture(t *testing.T) []fixtureSpec {
 	return specs
 }
 
-func TestLexerMatchesFixture(t *testing.T) {
+// TestExpressionMatchesFixture runs every fixture entry as one subtest whose
+// stages (tokens, ast, evaluation) are nested subtests, so the recorded
+// conformance result reflects all three stages of that entry.
+func TestExpressionMatchesFixture(t *testing.T) {
 	for _, spec := range loadFixture(t) {
 		spec := spec
 		t.Run(spec.Name, func(t *testing.T) {
-			toks, err := Tokenize(spec.Expr)
-			if err != nil {
-				t.Fatalf("tokenize error for %q: %v", spec.Expr, err)
-			}
-			got := make([]map[string]any, len(toks))
-			for i, tk := range toks {
-				got[i] = tk.ToMap()
-			}
-			want := normalize(toAny(spec.Tokens))
-			gotN := normalize(toAny(got))
-			if !reflect.DeepEqual(want, gotN) {
-				t.Errorf("tokens mismatch for %q\n want: %v\n  got: %v", spec.Expr, want, gotN)
-			}
+			conformance.Record(t, "validate", "tests/fixtures/expr/cases.json", spec.Name)
+			t.Run("tokens", func(t *testing.T) { checkTokens(t, spec) })
+			t.Run("ast", func(t *testing.T) { checkAST(t, spec) })
+			t.Run("evaluation", func(t *testing.T) { checkEvaluation(t, spec) })
 		})
 	}
 }
 
-func TestParserMatchesFixture(t *testing.T) {
-	for _, spec := range loadFixture(t) {
-		spec := spec
-		t.Run(spec.Name, func(t *testing.T) {
-			ast, err := Parse(spec.Expr)
-			if err != nil {
-				t.Fatalf("parse error for %q: %v", spec.Expr, err)
-			}
-			want := normalize(toAny(spec.AST))
-			got := normalize(toAny(ast.ToMap()))
-			if !reflect.DeepEqual(want, got) {
-				t.Errorf("AST mismatch for %q\n want: %v\n  got: %v", spec.Expr, want, got)
-			}
-		})
+func checkTokens(t *testing.T, spec fixtureSpec) {
+	toks, err := Tokenize(spec.Expr)
+	if err != nil {
+		t.Fatalf("tokenize error for %q: %v", spec.Expr, err)
+	}
+	got := make([]map[string]any, len(toks))
+	for i, tk := range toks {
+		got[i] = tk.ToMap()
+	}
+	want := normalize(toAny(spec.Tokens))
+	gotN := normalize(toAny(got))
+	if !reflect.DeepEqual(want, gotN) {
+		t.Errorf("tokens mismatch for %q\n want: %v\n  got: %v", spec.Expr, want, gotN)
 	}
 }
 
-func TestEvaluationMatchesFixture(t *testing.T) {
-	for _, spec := range loadFixture(t) {
-		spec := spec
-		t.Run(spec.Name, func(t *testing.T) {
-			for i, c := range spec.Cases {
-				val, err := EvaluateValue(spec.Expr, c.Data, c.CurrentPath)
-				if err != nil {
-					t.Fatalf("evaluateValue error [%s] case %d: %v", spec.Expr, i, err)
-				}
-				if !valueEquals(c.Value, val) {
-					t.Errorf("value mismatch [%s] case %d: expected %#v got %#v", spec.Expr, i, c.Value, val)
-				}
+func checkAST(t *testing.T, spec fixtureSpec) {
+	ast, err := Parse(spec.Expr)
+	if err != nil {
+		t.Fatalf("parse error for %q: %v", spec.Expr, err)
+	}
+	want := normalize(toAny(spec.AST))
+	got := normalize(toAny(ast.ToMap()))
+	if !reflect.DeepEqual(want, got) {
+		t.Errorf("AST mismatch for %q\n want: %v\n  got: %v", spec.Expr, want, got)
+	}
+}
 
-				truthy, err := Evaluate(spec.Expr, c.Data, c.CurrentPath)
-				if err != nil {
-					t.Fatalf("evaluate error [%s] case %d: %v", spec.Expr, i, err)
-				}
-				if truthy != c.Truthy {
-					t.Errorf("truthy mismatch [%s] case %d: expected %v got %v", spec.Expr, i, c.Truthy, truthy)
-				}
-			}
-		})
+func checkEvaluation(t *testing.T, spec fixtureSpec) {
+	for i, c := range spec.Cases {
+		val, err := EvaluateValue(spec.Expr, c.Data, c.CurrentPath)
+		if err != nil {
+			t.Fatalf("evaluateValue error [%s] case %d: %v", spec.Expr, i, err)
+		}
+		if !valueEquals(c.Value, val) {
+			t.Errorf("value mismatch [%s] case %d: expected %#v got %#v", spec.Expr, i, c.Value, val)
+		}
+
+		truthy, err := Evaluate(spec.Expr, c.Data, c.CurrentPath)
+		if err != nil {
+			t.Fatalf("evaluate error [%s] case %d: %v", spec.Expr, i, err)
+		}
+		if truthy != c.Truthy {
+			t.Errorf("truthy mismatch [%s] case %d: expected %v got %v", spec.Expr, i, c.Truthy, truthy)
+		}
 	}
 }
 

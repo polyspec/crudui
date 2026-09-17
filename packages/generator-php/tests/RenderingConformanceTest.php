@@ -53,32 +53,27 @@ final class RenderingConformanceTest extends TestCase
         self::assertSame($actual, Rendering::form(Generator::bindForm($template, $case->data ?? [], $options), $buttons, $messages));
     }
 
-    /** Parse layout structure while retaining all field identifiers, values and script text. */
+    /**
+     * Parse layout structure with the HTML5 parser, as the shared JavaScript normalizer does,
+     * while retaining all field identifiers, values and script text.
+     */
     private static function html(string $html): array
     {
-        $document = new \DOMDocument();
-        $errors = libxml_use_internal_errors(true);
-        try {
-            $document->loadHTML('<?xml encoding="UTF-8"?><html><body>' . $html . '</body></html>', LIBXML_NONET | LIBXML_NOERROR | LIBXML_NOWARNING);
-        } finally {
-            libxml_clear_errors();
-            libxml_use_internal_errors($errors);
-        }
-        $body = $document->getElementsByTagName('body')->item(0);
-        return self::children($body, false);
+        $document = \Dom\HTMLDocument::createFromString('<!doctype html><html><body>' . $html . '</body></html>', LIBXML_NOERROR, 'UTF-8');
+        return self::children($document->body, false);
     }
 
-    private static function children(\DOMNode $parent, bool $preserve): array
+    private static function children(\Dom\Node $parent, bool $preserve): array
     {
         $out = [];
         foreach ($parent->childNodes as $node) {
-            if ($node instanceof \DOMText) {
+            if ($node instanceof \Dom\Text) {
                 if ($preserve || trim($node->wholeText) !== '') {
                     $out[] = ['text' => $node->wholeText];
                 }
                 continue;
             }
-            if (!$node instanceof \DOMElement) {
+            if (!$node instanceof \Dom\Element) {
                 continue;
             }
             $attrs = [];
@@ -96,7 +91,7 @@ final class RenderingConformanceTest extends TestCase
                 $attrs[$attribute->name] = $value;
             }
             ksort($attrs, SORT_STRING);
-            $out[] = ['tag' => $node->tagName, 'attributes' => $attrs, 'children' => self::children($node, $preserve || in_array($node->tagName, ['textarea', 'pre', 'script', 'style'], true))];
+            $out[] = ['tag' => $node->localName, 'attributes' => $attrs, 'children' => self::children($node, $preserve || in_array($node->localName, ['textarea', 'pre', 'script', 'style'], true))];
         }
         return $out;
     }

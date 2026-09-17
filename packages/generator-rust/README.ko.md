@@ -72,7 +72,7 @@ null인 경우를 구분합니다.
 
 ```sh
 cargo run --locked --manifest-path packages/generator-rust/Cargo.toml --example form
-cargo test --locked --manifest-path packages/generator-rust/Cargo.toml
+node scripts/run-tests.mjs cargo -- --locked --manifest-path packages/generator-rust/Cargo.toml
 cargo clippy --locked --all-targets --manifest-path packages/generator-rust/Cargo.toml -- -D warnings
 node packages/generator-rust/verify-fixtures.mjs
 make docs-check

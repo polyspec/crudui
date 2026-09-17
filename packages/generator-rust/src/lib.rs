@@ -17,7 +17,7 @@ mod template;
 mod util;
 mod widget;
 
-pub use binding::{bind_form, BindOptions};
+pub use binding::{bind_buttons, bind_form, form_buttons_html, BindOptions};
 pub use detail::{build_detail, render_detail, DetailOptions};
 pub use error::{FormError, FormResult};
 pub use instance::{create_row_key, sequence_row_key, AddRowOptions, Form};

@@ -15,6 +15,8 @@ import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { createProgress } from './test-progress/progress.mjs';
+
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const STAMP = path.join(ROOT, 'node_modules/.cache/crudui/build-stamp.json');
 const PACKAGES = ['validator-ts', 'generator-core', 'generator-html', 'generator-react', 'generator-vue', 'generator-svelte'];
@@ -59,17 +61,25 @@ function run(command, args) {
   });
 }
 
-const started = Date.now();
-const elapsed = () => `${((Date.now() - started) / 1000).toFixed(1)}s`;
+const lines = createProgress({ write: text => process.stdout.write(text) });
+const id = 'build: workspace packages';
+lines.start(id, { group: true });
 const current = await state();
 let recorded;
 try { recorded = JSON.parse(await readFile(STAMP, 'utf8')); } catch (error) { if (error.code !== 'ENOENT') throw error; }
 if (recorded && recorded.inputs === current.inputs && recorded.outputs === current.outputs) {
-  process.stdout.write(`[build] packages are current; no build needed (${elapsed()})\n`);
+  lines.pass(id);
+  lines.line('build: packages are current; no build needed');
 } else {
-  process.stdout.write(`[build] ${recorded ? 'sources or output changed' : 'no recorded build'}; building ${PACKAGES.length} packages\n`);
-  await run('npm', ['run', 'build']);
+  lines.line(`build: ${recorded ? 'sources or output changed' : 'no recorded build'}; building ${PACKAGES.length} packages`);
+  try {
+    await run('npm', ['run', 'build']);
+  } catch (error) {
+    lines.fail(id, undefined, error.message);
+    throw error;
+  }
   await mkdir(path.dirname(STAMP), { recursive: true });
   await writeFile(STAMP, `${JSON.stringify(await state(), null, 2)}\n`);
-  process.stdout.write(`[build] packages built and recorded (${elapsed()})\n`);
+  lines.pass(id);
 }
+lines.close('build');

@@ -20,10 +20,7 @@
   "scripts": {
     "build": "tsup src/index.ts --format cjs,esm --clean --external react --external react-dom && tsc --project tsconfig.build.json",
     "dev": "tsup src/index.ts --format cjs,esm --watch --external react --external react-dom --onSuccess \"tsc --project tsconfig.build.json\"",
-    "test": "vitest",
-    "test:current": "vitest run src/__tests__/form-render.conformance.test.ts src/__tests__/list-render.conformance.test.ts",
-    "test:list": "vitest run src/__tests__/list-render.conformance.test.ts",
-    "test:coverage": "vitest --coverage",
+    "test": "node ../../scripts/run-tests.mjs vitest --cwd packages/generator-react",
     "lint": "eslint src",
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "npm run build"

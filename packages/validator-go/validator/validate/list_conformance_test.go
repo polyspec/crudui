@@ -14,6 +14,7 @@ import (
 	"testing"
 
 	"github.com/polyspec/crudui/packages/validator-go/validator/compose"
+	"github.com/polyspec/crudui/packages/validator-go/validator/internal/conformance"
 )
 
 type listValidityCase struct {
@@ -44,6 +45,7 @@ func TestValidateListMatchesFixture(t *testing.T) {
 	for _, c := range loadListValidityFixtures(t) {
 		c := c
 		t.Run(c.Name, func(t *testing.T) {
+			conformance.Record(t, "validateList", "tests/fixtures/list-validity/cases.json", c.Name)
 			if len(c.Engine) == 0 {
 				t.Fatalf("%s: case must declare engine", c.Name)
 			}

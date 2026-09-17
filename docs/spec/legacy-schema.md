@@ -38,6 +38,15 @@ the current [form instance order contract](form-runtime.md).
 [legacy visibility](legacy-visibility.md). Current schemas reject those keys and
 separate `design` from `validate`.
 
+## Legacy validator
+
+TypeScript, PHP, Go and Rust each ship an explicit legacy validator that reads this field model and
+returns the valid flag with the rule and path of the first error. The PHP extension has no legacy
+validator. The shared cases in
+[`tests/fixtures/legacy-validate/cases.json`](../../tests/fixtures/legacy-validate/README.md) prove
+the `validateLegacy` feature of the [feature contract](feature-contracts.md): each runtime's legacy
+conformance test runs them, and root `npm test` compares the four results.
+
 ## Submission declarations
 
 The root's `action` can declare `method`, `url`, `enctype` and `buttons`. Button
