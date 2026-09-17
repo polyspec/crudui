@@ -2,7 +2,12 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-import { interactionCombinations } from './check-interaction.mjs';
+import { compileForm, createForm } from '@crudui/generator-core';
+import { renderForm } from '@crudui/generator-html';
+import { JSDOM } from 'jsdom';
+
+import { interactionCombinations, rowActionSelector } from './check-interaction.mjs';
+import { specFor } from './src/scenario.mjs';
 import { formFrameworks, formRenderingPaths, formTransports } from './src/runtime-paths.mjs';
 
 const interactionSource = await readFile(
@@ -41,4 +46,24 @@ test('interaction verification uses readiness and operation completion events', 
   assert.match(interactionSource, /window\.comparison\.idle\(\)/);
   assert.match(frameSource, /nextAction/);
   assert.match(consoleSource, /crudui:main-ready/);
+});
+
+test('finds the row actions it presses in the rendered comparison form', () => {
+  const data = { companies: { __0000000000001__: { name: 'Company A', stores: {} } } };
+  const html = renderForm(createForm(compileForm(specFor()), data, { language: 'ko' }));
+  const { document } = new JSDOM(html).window;
+  for (const action of ['add-row', 'remove-row']) {
+    assert.ok(document.querySelector(rowActionSelector(action)), `${action} is found by ${rowActionSelector(action)}`);
+  }
+});
+
+test('each initialization column resets the repository and loads its frame document again', () => {
+  // The `mounted` stage is the column's own initialization from the reset record, whatever an
+  // earlier check left in the repository.
+  const body = consoleSource.slice(consoleSource.indexOf('async function compareInitialization'),
+    consoleSource.indexOf('function renderInitialization'));
+  assert.match(body, /await remountColumn\(index\)/);
+  assert.doesNotMatch(body, /comparison\.reset\(\)/);
+  const remount = consoleSource.slice(consoleSource.indexOf('async function remountColumn'));
+  assert.match(remount, /resetRecord\('populated'\)[\s\S]*loadComparisonFrames\(\{[\s\S]*frames: \[frames\[index\]\]/);
 });

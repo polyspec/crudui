@@ -61,6 +61,20 @@ async function compareMounted() {
 }
 
 /**
+ * Reset the repository and load one column's frame document again, so the column initializes
+ * through its own path from the reset record.
+ */
+async function remountColumn(index) {
+  await frames[index].contentWindow.comparison.resetRecord('populated');
+  await loadComparisonFrames({
+    host: window, frames: [frames[index]], initializations: [formInitializations[index]],
+    path: pathSelector.value, framework: frameworkSelector.value, server: serverSelector.value, language,
+    title: initialization => t[`${initialization}Initialization`], onReady: () => {},
+  });
+  return frames[index].contentWindow.comparison;
+}
+
+/**
  * Run every stage in the `ssr` column, reset, then in the `csr` column with the same
  * row keys. Each `csr` stage is compared with the stored `ssr` stage without normalization.
  */
@@ -78,8 +92,7 @@ async function compareInitialization() {
   };
   let expected;
   for (const [index, column] of formInitializations.entries()) {
-    const comparison = frames[index].contentWindow.comparison;
-    if (column === 'csr') await comparison.reset();
+    const comparison = await remountColumn(index);
     const own = new Map();
     try {
       for (const stage of initializationStages) {

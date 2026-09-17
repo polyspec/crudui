@@ -43,6 +43,17 @@
   stored `2886.5` a typed `9102` was a step mismatch and the form would not submit; the `step` rule
   of the CRUDUI validator decides increments. The shared form case `number-any-step` checks it, and
   the canonical page submits with the browser's constraint validation on.
+- The comparison build's `composer` target ran only `composer install`, which keeps the
+  validator's path-repository copy while the lock is unchanged, so a deployment served an old
+  validator copy and the PHP server failed its startup check. The target now reinstalls the copy.
+- Two browser checks of the deployed verification had not followed the code: the interaction
+  check looked for row actions directly under the row, although the row header sits in a header
+  container, and the benchmark frame still expected a field hidden by its specification to keep its
+  rules. Both follow the current markup and rule; `check-interaction.test.mjs` now finds the row
+  actions in rendered markup.
+- The initialization report's `mounted` stage did not reset the repository and load the column's
+  frame document again, as the specification says, so the server-rendered column showed whatever an
+  earlier check had stored. Each column now resets the record and loads its frame again.
 - The PHP extension wrote list numbers such as `30` as `3e+1`, and the PHP extension and the Go
   generator grouped `1e+21` as `1e,+21`. Both now write numbers as JavaScript does; the shared list
   case `format-number-shortest` checks every runtime.
