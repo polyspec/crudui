@@ -30,7 +30,7 @@ export function getArrayLength(value: unknown): number {
   // Object-key multiple group: data arrives as a plain object keyed by unique
   // ids (e.g. { __a__: {...}, __b__: {...} }) instead of an array. Count its
   // entries so mincount/maxcount see the repeated-group size. PHP counts assoc
-  // arrays identically (Rules/MinCount.php count($value)).
+  // arrays identically (validator-php/src/Rules/MinCount.php count($value)).
   if (typeof value === 'object' && value !== null) {
     return Object.keys(value as Record<string, unknown>).length;
   }
@@ -67,8 +67,4 @@ export const mincountRule: RuleDefinition = {
 
     return null;
   },
-
-  defaultMessage: 'Please select at least {0} items.',
 };
-
-export default mincountRule;

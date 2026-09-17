@@ -183,14 +183,14 @@ func TestXCommentKeyRejected(t *testing.T) {
 	}
 }
 
-func TestLegacyKeysNotRecognized(t *testing.T) {
-	// Legacy names never map onto a canonical field. multiple is a closed
+func TestNonCanonicalKeysNotRecognized(t *testing.T) {
+	// Non-canonical names never map onto a canonical field. multiple is a closed
 	// bucket, so multiple_max under it is rejected as an unknown key.
 	in := `{"multiple":{"multiple_max":9}}`
 	var f FieldSpec
 	err := json.Unmarshal([]byte(in), &f)
 	if err == nil || err.Error() != `model: unknown key "multiple_max" in multiple` {
-		t.Fatalf("legacy multiple_max not rejected: %v", err)
+		t.Fatalf("multiple_max not rejected: %v", err)
 	}
 }
 

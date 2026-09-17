@@ -4,59 +4,31 @@ declare(strict_types=1);
 
 namespace CRUDUI\Validator\Rules;
 
+use CRUDUI\Validator\Patterns\PatternParameter;
+use CRUDUI\Validator\Values\CanonicalText;
+use CRUDUI\Validator\Values\InvalidRuleParameter;
+
 /**
- * Regular expression pattern matching validation rule.
- * Note: Named "Pattern" instead of "Match" because "match" is a reserved keyword in PHP 8.0+.
- * The rule is still registered as "match" in the Validator.
+ * Whole-value pattern rule, registered as both `pattern` and `match`.
+ * Named "Pattern" because "match" is a reserved keyword in PHP.
  */
 class Pattern implements RuleInterface
 {
-    /**
-     * Validate that a value matches the specified regex pattern.
-     */
-    public function validate(mixed $value, mixed $param, array $allData, string $path): bool
+    /** @param string $rule the registered name, `pattern` or `match`, used in parameter failures */
+    public function __construct(private readonly string $rule = 'pattern')
     {
-        if (!is_string($param) || $param === '') {
-            return true;
-        }
-
-        $stringValue = (string)$value;
-
-        // Build the pattern - wrap with delimiters and anchors if not already present
-        $pattern = $param;
-
-        // Check if pattern already has delimiters
-        $firstChar = $pattern[0] ?? '';
-        $hasDelimiters = in_array($firstChar, ['/', '#', '~', '%', '@'], true) &&
-                         preg_match('/^..*.[gimsuxy]*$/s', $pattern);
-
-        if (!$hasDelimiters) {
-            // Add anchors if not present
-            if (!str_starts_with($pattern, '^')) {
-                $pattern = '^' . $pattern;
-            }
-            if (!str_ends_with($pattern, '$')) {
-                $pattern = $pattern . '$';
-            }
-            // Use ~ as delimiter to avoid escaping / in patterns
-            $pattern = '~' . $pattern . '~u';
-        }
-
-        try {
-            return preg_match($pattern, $stringValue) === 1;
-        } catch (\Throwable $e) {
-            // Invalid pattern, return false
-            return false;
-        }
     }
 
     /**
-     * Returns the default error message for this rule.
+     * Validate that the whole canonical text of a value matches a CRUDUI pattern.
+     * An array or object value fails.
      *
-     * @return string Default message, with {0}, {1} placeholders where applicable
+     * @throws InvalidRuleParameter when the parameter is not a pattern in the language
      */
-    public function getDefaultMessage(): string
+    public function validate(mixed $value, mixed $param, array $allData, string $path): bool
     {
-        return 'Please enter a valid format.';
+        $pattern = PatternParameter::compile($this->rule, $param);
+        $text = CanonicalText::of($value);
+        return $text !== null && $pattern->matches($text);
     }
 }

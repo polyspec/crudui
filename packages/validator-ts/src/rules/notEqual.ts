@@ -43,8 +43,4 @@ export const notEqualRule: RuleDefinition = {
 
     return null;
   },
-
-  defaultMessage: 'Please enter a different value.',
 };
-
-export default notEqualRule;

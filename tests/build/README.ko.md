@@ -28,8 +28,12 @@ npm run test:packages
 않은 생명주기 스크립트, 정확한 패키지 버전을 명시하지 않은 스크립트 승인을
 거부합니다.
 
+`test:runtimes`는 계약 manifest 검사도 합성 저장소와 이 저장소에서 실행합니다. 모든 패키지
+진입점은 정확한 값 export와 공개 범위로 선언되어야 하며, internal 진입점은 CRUDUI 패키지 코드만
+가져옵니다.
+
 `test:build`는 validator·generator-core·generator-html·generator-react를 공개 CommonJS·ESM
-export로 로드합니다. `skipLibCheck: false`인 엄격한 NodeNext 타입 소비자를
+export로 로드하고, generator-core의 internal 진입점도 두 형식으로 로드합니다. `skipLibCheck: false`인 엄격한 NodeNext 타입 소비자를
 컴파일하고 전체 선언 참조와 React가 export한 스타일시트를 검사합니다.
 네 TypeScript 패키지 설정 모두 공개 타입에 오류가 있으면 선언을 생성하지
 않아야 합니다.

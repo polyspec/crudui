@@ -2,10 +2,9 @@
 
 [한국어](validation-rules.ko.md).
 
-Current fields declare rules under `validate`. The [schema contract](schema.md)
+Fields declare rules under `validate`. The [schema contract](schema.md)
 defines field structure; [validation APIs](../operations/validation.md) define
-entry points, load failures and input failures. Explicit legacy modules use
-`rules` instead.
+entry points, load failures and input failures.
 
 ## Registered rules
 
@@ -13,15 +12,15 @@ entry points, load failures and input failures. Explicit legacy modules use
 | --- | --- |
 | `required` | `true` requires a supplied, nonempty value. |
 | `email`, `url` | Boolean enablement of the corresponding format check. |
-| `minlength`, `maxlength` | Numeric minimum or maximum string length. |
-| `rangelength` | `[minimum, maximum]` string length. |
+| `minlength`, `maxlength` | Integer minimum or maximum length; see [values](#values). |
+| `rangelength` | `[minimum, maximum]` length; see [values](#values). |
 | `number`, `digits` | Boolean enablement of numeric or digit-only input checks. |
 | `min`, `max` | Numeric lower or upper bound. |
 | `range` | `[minimum, maximum]` numeric bounds. |
 | `step` | Numeric increment. |
-| `match`, `pattern` | Regular-expression parameter; both names use the same rule implementation. |
+| `match`, `pattern` | Whole-value [pattern](#patterns); both names use the same rule implementation. |
 | `equalTo`, `notEqual` | Field comparison; the rule receives its reference or literal parameter unchanged. |
-| `in` | Membership values, including array or map forms. |
+| `in` | [Membership](#values) in a list, comma-separated string or map. |
 | `date`, `dateISO` | Boolean enablement of date format checks. |
 | `enddate` | Start-date field path; a parsed end date must not precede the parsed start date. |
 | `mincount`, `maxcount` | Minimum or maximum collection size. |
@@ -40,16 +39,141 @@ A resolved `false` or `null` parameter disables the rule. The runtime skips
 unregistered rules; validate declaration shapes separately rather than treating
 runtime acceptance as schema verification.
 
-Missing values, null, whitespace-only strings, empty arrays and empty objects
-are empty for `required`. Numeric zero and boolean false are supplied values.
-Other format and bound rules generally allow empty values; collection-count
-rules evaluate empty collections. Requiredness and collection limits are
-separate; see [empty collections](empty-collections.md).
-
 A `number` field runs the implicit `number` check before other rules unless it
 declares that rule explicitly. Nonfinite numeric inputs fail numeric validation.
-String length uses Unicode code points. A pattern is not implicitly anchored;
-declare anchors when the complete string must match.
+
+## Values
+
+Every runtime applies these definitions; the rules below use no other notion of
+whitespace, emptiness or text.
+
+**Unicode data** is Unicode 16.0.0 as recorded in
+[`contracts/unicode-properties.json`](../../contracts/unicode-properties.json), which
+`scripts/generate-unicode-properties.mjs` derives from the Unicode Character Database files in
+`contracts/unicode/`. Every runtime embeds that table and uses no other Unicode data, so every
+runtime classifies every code point the same way.
+
+**Whitespace** is exactly the code points with the Unicode `White_Space` property:
+U+0009–U+000D, U+0020, U+0085, U+00A0, U+1680, U+2000–U+200A, U+2028, U+2029,
+U+202F, U+205F and U+3000. U+0000, U+180E, U+200B and U+FEFF are not whitespace.
+**Trimming** removes leading and trailing whitespace and nothing else.
+
+**Empty values** are a missing value, `null`, a string that is empty after
+trimming, an empty array and an empty object. `0` and `false` are supplied values.
+`required` fails on an empty value. Every other rule except `mincount` and
+`maxcount` passes an empty value without evaluating it; collection-count rules
+evaluate empty collections. Requiredness and collection limits are separate; see
+[empty collections](empty-collections.md).
+
+**Canonical text** of a scalar is: a string itself; `true` as `1` and `false` as
+`0`; a finite number as ECMAScript `Number.prototype.toString` writes its double value (the
+shortest text that reads back as the same double, with an exponent when the
+magnitude is at least 10^21 or below 10^-6, and `0` for negative zero). An integer is first
+converted to the nearest double, so `9007199254740993` is written `9007199254740992`.
+
+**Length** rules (`minlength`, `maxlength`, `rangelength`) count the Unicode code
+points of a scalar's canonical text, untrimmed. Their limits are integers from 0
+to 9007199254740991; `rangelength` requires minimum ≤ maximum. An array or object
+value has no canonical text and fails a length rule, `pattern` and `match`.
+
+**Membership** (`in`) takes its members from a list (each element as is), a
+comma-separated string (split at U+002C, each item trimmed) or a map (its keys).
+Members are strings, numbers or booleans; a member of another type, an
+empty member set and a member whose canonical text is empty after trimming are
+declaration errors; members are checked in order, each for its type before its emptiness. A
+string value is trimmed; an array value passes when every element passes, an empty element
+(including an empty array or object) passes as an empty value does, and a non-empty array or
+object element fails. A value matches a member
+when their canonical texts are the same code points, or when both are numbers or
+strings matching `^[-+]?([0-9]+\.?[0-9]*|[0-9]*\.?[0-9]+)$` with equal values as
+doubles. Case, Unicode normalization and other numeric spellings never match.
+
+## Patterns
+
+`pattern` and `match` require the **whole** canonical text of the value to match,
+as an HTML `pattern` attribute does. A pattern uses the CRUDUI pattern language,
+a regular language that every runtime recognizes and matches itself, with the same
+result and a matching time proportional to the value's length times the pattern's size:
+
+| Construct | Accepted form |
+| --- | --- |
+| Literal | Any Unicode scalar value except `\ ^ $ . \| ? * + ( ) [ ] { }` |
+| Escape | `\` followed by one of `^ $ \ . * + ? ( ) [ ] { } \| / -`; `\t \n \r \f \v`; `\xHH`; `\u{H…}` (1–6 hexadecimal digits, a scalar value) |
+| Class shorthand | `\d` = `[0-9]`, `\w` = `[0-9A-Za-z_]`, `\s` = whitespace, and `\D \W \S` as their complements |
+| Any character | `.` = any code point except U+000A |
+| Bracket class | `[…]` or `[^…]` with at least one member; members are literals, escapes, `\d`, `\w`, `\s`, properties and ranges `a-z` whose endpoints are single code points in non-descending order; inside a class only `[`, `]`, `\` and a `-` that is neither first nor last are escaped |
+| Unicode property | `\p{X}` or `\P{X}` with a general category (`L Lu Ll Lt Lm Lo M Mn Mc Me N Nd Nl No P Pc Pd Ps Pe Pi Pf Po S Sm Sc Sk So Z Zs Zl Zp C Cc Cf Co`), or `\p{Script=Name}` / `\P{Script=Name}` with a script (the Unicode `Script` property) named in the Unicode data |
+| Group | `(…)`, `(?:…)`, `(?<name>…)` with a unique name matching `[A-Za-z_][A-Za-z0-9_]*`; groups nest at most 100 deep |
+| Quantifier | `*`, `+`, `?`, `{n}`, `{n,}`, `{n,m}` (decimal digits, n ≤ m ≤ 1000) after an atom or group, optionally followed by `?` |
+| Alternation | `\|` |
+| Anchor | `^` as the first character and `$` as the last; they add nothing to a whole match |
+
+An alternative or a group may be empty, and a pattern may consist of anchors alone; only the
+empty pattern is rejected. A lazy quantifier matches the same values as its greedy form, because
+only the whole value is matched. `C` is `Cc`, `Cf`, `Co`, the surrogates and the unassigned code
+points; a property's complement contains every code point outside it.
+
+**Size.** The size of a pattern is at most 1000. An atom (a literal, an escape, a shorthand, `.`,
+a class or a property) has size 1; a sequence or an alternation has the sum of its parts' sizes;
+a quantified item has its item's size times its maximum, or times its minimum plus one when it is
+unbounded (`*` and `+` count 1 and 2 times).
+
+Anything else is outside the language, including backreferences, lookaround,
+inline flags, case-insensitive matching, word boundaries, POSIX classes, possessive
+or repeated quantifiers, `\uHHHH`, octal and control escapes, and the empty pattern.
+Delimiters have no meaning: `/x/i` matches the text `/x/i`. A pattern parameter is
+a string, `false` or `null`.
+
+## Parameter errors
+
+A parameter outside these definitions is a load failure. Parameters are checked
+after composition and the forbidden-key scan, fields in declaration order, each field's
+rules in declaration order before the fields it contains, and the first failure is reported. Its location
+is the field's declaration path: the property names from the root joined with `.`,
+without row keys. Every runtime reports the same code and message:
+
+| Parameter | Code | Message |
+| --- | --- | --- |
+| `minlength`, `maxlength` limit | `INVALID_RULE_PARAMETER` | `Invalid {rule} parameter: expected an integer from 0 to 9007199254740991` |
+| `rangelength` limits | `INVALID_RULE_PARAMETER` | `Invalid rangelength parameter: expected [minimum, maximum] integers with minimum not above maximum` |
+| `in` members of another type | `INVALID_RULE_PARAMETER` | `Invalid in parameter: expected a list, a comma-separated string or a map` |
+| `in` member that is not a string, number or boolean | `INVALID_RULE_PARAMETER` | `Invalid in parameter: members must be strings, numbers or booleans` |
+| `in` without members, or with an empty member | `INVALID_RULE_PARAMETER` | `Invalid in parameter: members must not be empty` |
+| `pattern`, `match` of another type | `INVALID_RULE_PARAMETER` | `Invalid {rule} parameter: expected a pattern string` |
+| `pattern`, `match` outside the language | `INVALID_RULE_PATTERN` | `Invalid {rule} pattern: {reason} at {offset}` |
+
+The pattern `{reason}` is one of `empty pattern`, `unexpected character`,
+`unsupported construct`, `invalid escape`, `invalid class`, `invalid range`,
+`invalid property`, `invalid quantifier`, `unterminated group`,
+`unterminated class`, `invalid group name`, `duplicate group name`, `nesting too deep` and
+`pattern too large`. An escape
+not listed in the language is an `invalid escape`, and a `(?` group other than
+`(?:` and `(?<name>` is an `unsupported construct`. `{offset}` is the code-point
+index where the invalid construct starts (the backslash of an escape, the `(` of a
+group, the `[` of a class, the first character of a quantifier or range); for an
+unterminated group or class it is the length of the pattern. A quantifier character
+(`* + ? {`) that does not follow an atom or group, a bound above 1000 and a minimum above the
+maximum are an `invalid quantifier`. Inside a bracket class, `\D`, `\W` and `\S`, an empty
+class, a nested `[` and an unescaped `-` that is neither first, last nor a range operator are an
+`invalid class` at the `[`; a class is read left to right, so such a member is reported when
+it is read, even where it would end a range; a range endpoint that is a set rather than a single
+code point, and a descending range, are an `invalid range` at the first
+endpoint; an escape or property inside a class keeps its own reason at its backslash. A `(?<`
+group that is not a lookbehind (`(?<=`, `(?<!`) and has no valid name closed by `>` is an
+`invalid group name` at the `(`. `^` or `$`
+anywhere but the first or last character (a pattern of one `^` or `$` is an anchor) and a
+surrogate code point are an `unexpected character`. The group that opens the 101st nesting level
+is `nesting too deep` at its `(`. A pattern whose size exceeds 1000 is `pattern too large` at 0,
+checked after the rest of the pattern is valid.
+
+Parameters are checked when the specification loads, including every literal a condition map or
+a ternary can select, whether or not it is selected. A string that is not a valid [expression](expressions.md) is a literal.
+Only a value computed from the data is checked when it is selected: the result of a plain condition
+expression (`false` disables the rule, `true` is checked as the parameter) and a ternary branch
+that is a path or a condition, which happens before the empty-value skip. A runtime
+never skips a pattern rule and never warns. It does not hand patterns to a regular-expression
+engine: it recognizes the pattern with this grammar and matches it with its own linear-time
+matcher over the Unicode data.
 
 Repeated scalar fields apply `required`, `unique`, `mincount` and `maxcount` to
 the collection and other rules to each element. Nested repeated groups retain

@@ -1,5 +1,5 @@
 /**
- * legacy-parity unit tests for $ref resolution edge cases not isolated in
+ * Unit tests for $ref resolution edge cases not isolated in
  * cases.json: self-cycle, three-node cycle, empty-path format error, and the
  * declaration-order rule (a sibling BEFORE $ref is overridden by the base; a
  * sibling AFTER $ref overrides the base).

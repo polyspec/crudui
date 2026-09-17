@@ -45,7 +45,6 @@ function arguments_(values) {
     options: {
       'php-config': { type: 'string' },
       cc: { type: 'string' },
-      'pkg-config': { type: 'string' },
     },
     strict: true,
     allowPositionals: false,
@@ -90,13 +89,20 @@ export async function buildCRUDUIPhpExtension(options = {}) {
       'src/html.c',
       'src/render.c',
       'src/list.c',
+      'src/whitespace.c',
+      'src/canonical.c',
+      'src/rule_length.c',
+      'src/rule_in.c',
+      'src/unicode_data.c',
+      'src/pattern_set.c',
+      'src/pattern.c',
+      'src/pattern_match.c',
+      'src/rule_parameters.c',
       'src/validation.c',
       'src/key.c',
       'src/form.c',
     ],
     includeDirectories: ['src'],
-    // The pattern rule calls PHP's PCRE2 API (ext/pcre/php_pcre.h).
-    phpPcre: true,
     definitions: ['COMPILE_DL_CRUDUI=1', 'ZEND_COMPILE_DL_EXT=1'],
     generatedPaths,
     buildDirectory: '.build',
@@ -114,7 +120,6 @@ async function main() {
     environment,
     phpConfig: await selectedPhpConfig(options['php-config'], environment),
     compiler: declaredValue('PHP_EXTENSION_CC', options.cc, environment),
-    pkgConfig: declaredValue('PHP_EXTENSION_PKG_CONFIG', options['pkg-config'], environment),
   });
 }
 

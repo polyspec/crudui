@@ -29,8 +29,12 @@ For every tracked npm lock file, it also rejects moderate, high and critical
 advisories, unapproved lifecycle scripts and script approvals that do not name an
 exact package version.
 
+`test:runtimes` also runs the contract manifest check on synthetic repositories and on this
+repository: every package entry is declared with its exact value exports and visibility, and only
+CRUDUI package code imports an internal entry.
+
 `test:build` loads validator, generator-core, generator-html and generator-react through their
-public CommonJS and ESM exports. It compiles strict NodeNext type consumers with
+public CommonJS and ESM exports, and generator-core's internal entry in both formats. It compiles strict NodeNext type consumers with
 `skipLibCheck: false`, checks the complete declaration graph and verifies React's
 exported stylesheet. Invalid public types must prevent declaration emission in
 all four TypeScript package configurations.

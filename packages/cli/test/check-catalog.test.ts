@@ -23,7 +23,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 
 import { runCheck } from '../src/check.ts';
-import { WIDGET_KINDS } from '../../generator-core/src/widget.ts';
+import { WIDGET_KINDS } from '@crudui/generator-core/internal';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const fixture = (name: string) => resolve(HERE, 'fixtures', name);

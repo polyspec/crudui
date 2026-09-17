@@ -1,8 +1,7 @@
-import { createValidator } from '#validation-entry';
+import { validate as validateForm } from '@crudui/validator';
 
-/** Connect the existing validator to form error display. */
+/** Connect the public validator to form error display. */
 export function formValidation(view, output, spec, text) {
-  const validator = createValidator(spec);
   function clear() {
     for (const input of view.querySelectorAll('[aria-invalid]')) input.removeAttribute('aria-invalid');
     for (const error of view.querySelectorAll('[data-validation-error]')) error.remove();
@@ -10,7 +9,7 @@ export function formValidation(view, output, spec, text) {
   }
   function validate(data) {
     clear();
-    const result = validator.validate(data);
+    const result = validateForm(spec, data);
     if (!result.valid) {
       const title = document.createElement('p');
       title.textContent = text.invalid;

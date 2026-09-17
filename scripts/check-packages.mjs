@@ -41,14 +41,16 @@ async function step(label, budget, operation) {
 // killed and named instead of stopping the whole check without a report.
 let commandTimeout = 120000;
 // Commands run asynchronously, so the progress lines keep reporting while one runs.
-function run(command, args, cwd = directory) {
+// `input`, when given, is written to the command's standard input.
+function run(command, args, cwd = directory, input = undefined) {
   return new Promise((resolve, reject) => {
-    execFile(command, args, { cwd, encoding: 'utf8', timeout: commandTimeout, killSignal: 'SIGKILL', maxBuffer: 64 * 1024 * 1024 }, (error, stdout, stderr) => {
+    const child = execFile(command, args, { cwd, encoding: 'utf8', timeout: commandTimeout, killSignal: 'SIGKILL', maxBuffer: 64 * 1024 * 1024 }, (error, stdout, stderr) => {
       if (!error) return resolve(stdout);
       if (error.signal === 'SIGKILL') error.message = `${command} ${args.join(' ')} exceeded its ${commandTimeout} ms limit`;
       Object.assign(error, { stdout, stderr });
       reject(error);
     });
+    child.stdin.end(input);
   });
 }
 try {
@@ -109,11 +111,12 @@ validate(spec, data);
       else for (const child of Object.values(value)) check(child);
     };
     check(manifest.exports);
+    assert.ok(!Object.hasOwn(manifest, 'bin'), `${name}: a published package must not declare bin`);
   }
   });
   // Server rendering from the installed entries: each framework package renders a form, a list and a detail.
   const rendering = `
-const form = m.createForm(m.compileForm({ type: 'group', properties: { name: { type: 'text', label: 'Name' } } }), { name: 'Ada' });
+const form = core.createForm(core.compileForm({ type: 'group', properties: { name: { type: 'text', label: 'Name' } } }), { name: 'Ada' });
 const html = [
   await m.renderForm(form),
   await m.renderList({ columns: { name: { field: '.name', label: 'Name' } } }, [{ name: 'Ada' }], { language: 'en' }),
@@ -123,10 +126,10 @@ if (!html.every(part => part.includes('Ada'))) throw new Error('server rendering
   const consumerRequire = createRequire(join(directory, 'package.json'));
   const { createServer, preview } = await step('render on the server from the installed entries', 60000, async () => {
   for (const name of ['@crudui/generator-react', '@crudui/generator-vue']) {
-    await run('node', ['--input-type=module', '-e', `const m = await import('${name}');${rendering}`]);
-    await run('node', ['-e', `(async () => { const m = require('${name}');${rendering} })().catch(error => { console.error(error); process.exit(1); });`]);
+    await run('node', ['--input-type=module', '-e', `const core = await import('@crudui/generator-core');const m = await import('${name}');${rendering}`]);
+    await run('node', ['-e', `(async () => { const core = require('@crudui/generator-core');const m = require('${name}');${rendering} })().catch(error => { console.error(error); process.exit(1); });`]);
   }
-  writeFileSync(join(directory, 'render.mjs'), `import * as m from '@crudui/generator-svelte';\nexport async function render() {${rendering}\n}\n`);
+  writeFileSync(join(directory, 'render.mjs'), `import * as core from '@crudui/generator-core';\nimport * as m from '@crudui/generator-svelte';\nexport async function render() {${rendering}\n}\n`);
   const vite = await import(pathToFileURL(consumerRequire.resolve('vite')).href);
   const renderer = await vite.createServer({ root: directory, logLevel: 'silent', server: { middlewareMode: true } });
   try {

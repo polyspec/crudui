@@ -10,28 +10,19 @@ use CRUDUI\Validator\Support\JsonValue;
  * $patch application — add / remove / replace over the $ref base (SPEC §5).
  * Byte-for-byte port of validator-ts/src/compose/patch.ts.
  *
- * Absorbs the legacy legacy directives $after/$before/$merge/$change/$remove
- * (the analysis legacy_mapping):
- *
- *   $after / $before {existing:{new:val}}  → add   (position = declaration order;
- *                                            CRUDUI properties preserve insert order)
- *   $merge / $change {key:{sub:val}}       → replace + add (deep-merge; scalar =
- *                                            replace, new subkey = add)
- *   $remove [k1,k2] | {k:{sub:…}}          → remove (whole key or deep subkey)
- *
- * CRUDUI normalization (the analysis patch_ops): $patch is an OBJECT of operations.
+ * $patch is an OBJECT of operations.
  * Two order-preserving input shapes are supported:
  *
  *   1. Deep-path set — "field.validate.required": ".other". The dotted key is
  *      split into path segments and the value is SET at that node (creating
  *      intermediate objects). SPEC §5 canonical form. The value replaces any
- *      scalar leaf; for object values it deep-merges (legacy $merge =
- *      drupal_array_merge_deep_array: both-array → deep merge, else latter wins).
+ *      scalar leaf; for object values it deep-merges (both objects → deep merge, else
+ *      the latter wins).
  *
  *   2. Structured ops — explicit add / remove / replace keys:
  *        add:     { "path.to.new": value, … }   — deep-merge value at path
  *        replace: { "path.to.key": value, … }   — same merge rule (scalar override)
- *        remove:  [ "path.to.key", … ] | { … }  — deep delete (legacy arr::remove)
+ *        remove:  [ "path.to.key", … ] | { … }  — deep delete
  *
  * Resolution order: base ($ref) first, then $patch overlays. add/replace
  * deep-merge; remove deep-deletes; deep-path set splits then applies. An
@@ -117,7 +108,7 @@ final class Patch
             return $result;
         }
         if (self::isPlainObject($val)) {
-            // Nested map form (legacy arr::remove): recurse where both sides are objects.
+            // Nested map form: recurse where both sides are objects.
             /** @var array<string, mixed> $val */
             return self::removeNested($base, (array) $val);
         }
@@ -142,8 +133,8 @@ final class Patch
 
     /**
      * Set a value at a deep path, creating intermediate objects. When both the
-     * existing leaf and the new value are plain objects, DEEP-MERGE (legacy $merge);
-     * otherwise the new value REPLACES (legacy scalar override). Returns a new tree
+     * existing leaf and the new value are plain objects, DEEP-MERGE;
+     * otherwise the new value REPLACES. Returns a new tree
      * (PHP arrays are value types, so the input is never mutated).
      *
      * @param array<string, mixed> $node
@@ -185,7 +176,7 @@ final class Patch
     private const UNDEFINED = "\0__compose_undefined__\0";
 
     /**
-     * legacy deep-merge leaf rule (drupal_array_merge_deep_array): both plain objects
+     * Deep-merge leaf rule: both plain objects
      * → recursive deep merge; otherwise the latter value wins (scalar/array
      * override). Mirrors JS mergeValue; an UNDEFINED existing means "no prior
      * leaf" (JS existing === undefined), so the incoming value is taken as-is.
@@ -245,9 +236,9 @@ final class Patch
     }
 
     /**
-     * Nested-map remove (legacy arr::remove): for each key, recurse when both the
+     * Nested-map remove: for each key, recurse when both the
      * target and the removal spec are objects, else unset the key. A missing key
-     * is tolerated here (legacy arr::remove silently unsets), unlike the array form.
+     * is tolerated here (silently skipped), unlike the array form.
      *
      * @param array<string, mixed> $base
      * @param array<string, mixed> $spec

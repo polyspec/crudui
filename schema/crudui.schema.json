@@ -163,16 +163,16 @@
               "$ref": "#/definitions/RuleSwitch"
             },
             "minlength": {
-              "description": "Minimum string length in Unicode code points.",
-              "$ref": "#/definitions/RuleNumber"
+              "description": "Minimum length in Unicode code points of the value's canonical text.",
+              "$ref": "#/definitions/RuleLength"
             },
             "maxlength": {
-              "description": "Maximum string length in Unicode code points.",
-              "$ref": "#/definitions/RuleNumber"
+              "description": "Maximum length in Unicode code points of the value's canonical text.",
+              "$ref": "#/definitions/RuleLength"
             },
             "rangelength": {
-              "description": "Minimum and maximum string length.",
-              "$ref": "#/definitions/RuleBounds"
+              "description": "Minimum and maximum length in Unicode code points of the value's canonical text.",
+              "$ref": "#/definitions/RuleLengthBounds"
             },
             "number": {
               "description": "Requires a finite number when enabled.",
@@ -199,7 +199,7 @@
               "$ref": "#/definitions/RuleNumber"
             },
             "match": {
-              "description": "Regular expression the value must match. Not implicitly anchored.",
+              "description": "Pattern in the CRUDUI pattern language that the whole value must match.",
               "$ref": "#/definitions/RulePattern"
             },
             "pattern": {
@@ -230,30 +230,46 @@
               ]
             },
             "in": {
-              "description": "Allowed values: a comma-separated string, a list, or a value-to-label map whose keys are the values. Passed unchanged; a map is not a condition map.",
+              "description": "Allowed values: a comma-separated string, a list, or a value-to-label map whose keys are the values. Members are nonempty strings, numbers or booleans; a map is not a condition map.",
               "anyOf": [
                 {
-                  "type": "string"
+                  "type": "string",
+                  "pattern": "[^\\t-\\r \\u0085\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000]"
                 },
                 {
                   "type": "array",
+                  "minItems": 1,
                   "items": {
-                    "type": [
-                      "string",
-                      "number",
-                      "boolean",
-                      "null"
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "[^\\t-\\r \\u0085\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000]"
+                      },
+                      {
+                        "type": [
+                          "number",
+                          "boolean"
+                        ]
+                      }
                     ]
                   }
                 },
                 {
                   "type": "object",
                   "propertyNames": {
-                    "$ref": "#/definitions/ForbiddenKeyNames"
+                    "allOf": [
+                      {
+                        "$ref": "#/definitions/ForbiddenKeyNames"
+                      },
+                      {
+                        "pattern": "[^\\t-\\r \\u0085\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000]"
+                      }
+                    ]
                   },
                   "additionalProperties": {
                     "$ref": "#/definitions/ItemLabel"
-                  }
+                  },
+                  "minProperties": 1
                 },
                 {
                   "description": "Disables the rule.",
@@ -1511,6 +1527,50 @@
         }
       ]
     },
+    "RuleLength": {
+      "description": "Length limit in Unicode code points of the value's canonical text: an integer from 0 to 9007199254740991, optionally selected by an expression or condition map.",
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        {
+          "description": "Disables the rule.",
+          "enum": [
+            false,
+            null
+          ]
+        },
+        {
+          "$ref": "#/definitions/Expression"
+        },
+        {
+          "description": "Condition map selecting the parameter.",
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": {
+            "$ref": "#/definitions/ForbiddenKeyNames"
+          },
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              {
+                "description": "Disables the rule.",
+                "enum": [
+                  false,
+                  null
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
     "RuleBounds": {
       "description": "Minimum and maximum rule parameter, optionally selected by an expression or condition map.",
       "anyOf": [
@@ -1561,6 +1621,60 @@
         }
       ]
     },
+    "RuleLengthBounds": {
+      "description": "Minimum and maximum length in Unicode code points, integers from 0 to 9007199254740991 with the minimum not above the maximum, optionally selected by an expression or condition map.",
+      "anyOf": [
+        {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        {
+          "description": "Disables the rule.",
+          "enum": [
+            false,
+            null
+          ]
+        },
+        {
+          "$ref": "#/definitions/Expression"
+        },
+        {
+          "description": "Condition map selecting the parameter.",
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": {
+            "$ref": "#/definitions/ForbiddenKeyNames"
+          },
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 2,
+                "items": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              {
+                "description": "Disables the rule.",
+                "enum": [
+                  false,
+                  null
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
     "RuleFieldReference": {
       "description": "Field reference passed to the rule unchanged; not evaluated as a condition.",
       "anyOf": [
@@ -1577,10 +1691,11 @@
       ]
     },
     "RulePattern": {
-      "description": "Regular expression passed to the rule unchanged; not evaluated as a condition.",
+      "description": "Pattern string in the CRUDUI pattern language, passed to the rule unchanged; not evaluated as a condition. The whole value must match.",
       "anyOf": [
         {
-          "type": "string"
+          "type": "string",
+          "minLength": 1
         },
         {
           "description": "Disables the rule.",

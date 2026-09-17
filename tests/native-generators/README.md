@@ -59,7 +59,7 @@ node tests/native-generators/run.mjs --extension /absolute/crudui.so \
 
 `--target` accepts `javascript`, `html`, `php`, `go`, `rust` and `php-native`.
 `--check` accepts a group name (`form-fixture`, `list`, `detail`, `number`,
-`instance`, `reject`, `compile-reject`, `member-order`, `bindForm-option-reject`,
+`instance`, `request`, `reject`, `compile-reject`, `member-order`, `bindForm-option-reject`,
 `form-option-reject`, `bindForm-shape-reject`, `form-shape-reject`, `dates`), a
 complete check id or a pattern with `*`. Both flags accept comma-separated values and
 may be repeated. A selection that matches no check fails, and the report records the
@@ -105,9 +105,49 @@ JavaScript and to a second native instance; their complete models and original
 HTML must match. The suite does not rewrite random keys or remove identifiers,
 values, attributes or HTML from a comparison.
 
-Each CLI accepts one JSON value on stdin. Operations are `compileForm`,
-`bindForm`, `form`, `renderList`, `buildList`, `buildDetail` and `renderDetail`. A successful response exits with status 0;
-a top-level operation error is `{ "error": { "code", "message", "at" } }` and
-exits with status 1. A form action failure is included in its step and execution
-continues. Error code, message and location must match in every implementation,
-as must preserved state.
+## Programs
+
+Each runtime answers through one program beside this suite. No package publishes these
+programs; each one calls only its package's public API.
+
+| Target | Program | Library |
+| --- | --- | --- |
+| `javascript`, `html` | [`javascript.mjs`](javascript.mjs) (`--renderer html` selects the HTML renderer) | `@crudui/generator-core` with `@crudui/generator-react` or `@crudui/generator-html` |
+| `php`, `php-native` | [`programs/php/generate.php`](programs/php/generate.php) | `crudui/generator` through the Composer autoloader of `packages/generator-php`; with the extension loaded, the extension's classes |
+| `go` | [`programs/go`](programs/go/main.go) (module with its own `go.mod`) | `packages/generator-go` |
+| `rust` | [`programs/rust`](programs/rust/src/main.rs) (crate `crudui-native-generator`) | `crudui-generator` |
+
+The suite builds the Go program into its build directory and the Rust program with
+`cargo build --locked` in `programs/rust`. Their formatting and static checks:
+
+```sh
+gofmt -l tests/native-generators/programs/go
+go -C tests/native-generators/programs/go vet ./...
+node scripts/run-rust-command.mjs fmt --check --manifest-path tests/native-generators/programs/rust/Cargo.toml
+node scripts/run-rust-command.mjs clippy --locked --all-targets --manifest-path tests/native-generators/programs/rust/Cargo.toml -- -D warnings
+```
+
+Each program reads one JSON value on stdin. Operations are `compileForm`, `bindForm`,
+`bindButtons`, `formButtonsHtml`, `form`, `renderList`, `buildList`, `buildDetail` and
+`renderDetail`. A successful response exits with status 0; a top-level operation error is
+`{ "error": { "code", "message", "at" } }` and exits with status 1. JSON decides the type
+of every input before a library call, and each boundary failure is `INVALID_FORM_INPUT`
+with an empty `at`:
+
+| Input | Message |
+| --- | --- |
+| standard input is not one JSON value | `Request must be valid JSON` |
+| the request is not an object | `Request must be an object` |
+| `options` is present and not an object | `Options must be an object` |
+| `data` is present and not an object | `Form data must be an object` |
+| `operation` is none of the operations | `Unknown generator operation` |
+| the `compileForm` `spec` is not an object | `A form spec must be a group with properties` |
+| the `bindForm`, `bindButtons` or `form` `template` is not an object | `Unsupported form template` |
+| the `form` `actions` is present and not an array | `Actions must be an array` |
+
+A form action that is not an object, names no form method or has no `args` array fails
+its step with `Invalid form action`. Every action failure is recorded in its step and
+execution continues. The `request` checks run the same standard input through every
+program and require the JavaScript result, or its error code, message and location.
+Error code, message and location must match in every implementation, as must preserved
+state.

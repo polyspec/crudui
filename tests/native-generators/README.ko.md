@@ -57,7 +57,7 @@ node tests/native-generators/run.mjs --extension /absolute/crudui.so \
 
 `--target`은 `javascript`, `html`, `php`, `go`, `rust`, `php-native`를 받습니다.
 `--check`는 그룹 이름(`form-fixture`, `list`, `detail`, `number`, `instance`,
-`reject`, `compile-reject`, `member-order`, `bindForm-option-reject`,
+`request`, `reject`, `compile-reject`, `member-order`, `bindForm-option-reject`,
 `form-option-reject`, `bindForm-shape-reject`, `form-shape-reject`, `dates`), 전체
 검사 id, `*`를 포함한 패턴을 받습니다. 두 옵션 모두 쉼표로 여러 값을 지정할 수 있고
 여러 번 쓸 수 있습니다. 어떤 검사와도 일치하지 않는 선택은 실패하며, 보고서에
@@ -101,8 +101,48 @@ PHP의 `date.timezone`을 모두 설정하고 날짜/날짜시간/목록의 명�
 제공하여 전체 모델과 원본 HTML을 비교합니다. 무작위 키를 치환하거나 식별자,
 값, 속성, HTML을 제거하여 비교하지 않습니다.
 
-각 CLI는 표준 입력으로 JSON 값 하나를 받습니다. 연산은 `compileForm`, `bindForm`,
-`form`, `renderList`, `buildList`, `buildDetail`, `renderDetail`입니다. 성공 응답은 종료 상태 0을 사용합니다. 최상위 연산 오류는
-`{ "error": { "code", "message", "at" } }`이며 종료 상태 1을 사용합니다. 폼 액션
-실패는 해당 단계에 포함하고 실행을 계속합니다. 오류 코드, 메시지, 위치와 유지한
+## 프로그램
+
+각 런타임은 이 검사기 옆의 프로그램 하나로 응답합니다. 어떤 패키지도 이 프로그램을
+배포하지 않으며, 각 프로그램은 해당 패키지의 공개 API만 호출합니다.
+
+| 대상 | 프로그램 | 라이브러리 |
+| --- | --- | --- |
+| `javascript`, `html` | [`javascript.mjs`](javascript.mjs)(`--renderer html`은 HTML 렌더러 선택) | `@crudui/generator-core`와 `@crudui/generator-react` 또는 `@crudui/generator-html` |
+| `php`, `php-native` | [`programs/php/generate.php`](programs/php/generate.php) | `packages/generator-php`의 Composer 오토로더로 불러온 `crudui/generator`. 확장을 불러오면 확장의 클래스 |
+| `go` | [`programs/go`](programs/go/main.go)(자체 `go.mod`를 가진 모듈) | `packages/generator-go` |
+| `rust` | [`programs/rust`](programs/rust/src/main.rs)(크레이트 `crudui-native-generator`) | `crudui-generator` |
+
+검사기는 Go 프로그램을 빌드 디렉터리에 빌드하고, Rust 프로그램은 `programs/rust`에서
+`cargo build --locked`로 빌드합니다. 형식과 정적 검사는 다음과 같습니다.
+
+```sh
+gofmt -l tests/native-generators/programs/go
+go -C tests/native-generators/programs/go vet ./...
+node scripts/run-rust-command.mjs fmt --check --manifest-path tests/native-generators/programs/rust/Cargo.toml
+node scripts/run-rust-command.mjs clippy --locked --all-targets --manifest-path tests/native-generators/programs/rust/Cargo.toml -- -D warnings
+```
+
+각 프로그램은 표준 입력으로 JSON 값 하나를 받습니다. 연산은 `compileForm`, `bindForm`,
+`bindButtons`, `formButtonsHtml`, `form`, `renderList`, `buildList`, `buildDetail`,
+`renderDetail`입니다. 성공 응답은 종료 상태 0을 사용합니다. 최상위 연산 오류는
+`{ "error": { "code", "message", "at" } }`이며 종료 상태 1을 사용합니다. 라이브러리를
+호출하기 전에 JSON이 모든 입력의 타입을 정하며, 경계 실패는 모두 `at`이 빈
+`INVALID_FORM_INPUT`입니다.
+
+| 입력 | 메시지 |
+| --- | --- |
+| 표준 입력이 JSON 값 하나가 아님 | `Request must be valid JSON` |
+| 요청이 객체가 아님 | `Request must be an object` |
+| `options`가 있고 객체가 아님 | `Options must be an object` |
+| `data`가 있고 객체가 아님 | `Form data must be an object` |
+| `operation`이 어떤 연산도 아님 | `Unknown generator operation` |
+| `compileForm`의 `spec`이 객체가 아님 | `A form spec must be a group with properties` |
+| `bindForm`, `bindButtons`, `form`의 `template`이 객체가 아님 | `Unsupported form template` |
+| `form`의 `actions`가 있고 배열이 아님 | `Actions must be an array` |
+
+객체가 아니거나 폼 메서드를 지정하지 않았거나 `args` 배열이 없는 폼 액션은 해당 단계에서
+`Invalid form action`으로 실패합니다. 액션 실패는 모두 해당 단계에 기록하고 실행을
+계속합니다. `request` 검사는 같은 표준 입력을 모든 프로그램에 전달하고 JavaScript
+결과나 그 오류 코드, 메시지, 위치를 요구합니다. 오류 코드, 메시지, 위치와 유지한
 상태는 모든 구현에서 일치해야 합니다.

@@ -4,50 +4,21 @@ declare(strict_types=1);
 
 namespace CRUDUI\Validator\Rules;
 
+use CRUDUI\Validator\Values\EmptyValue;
+
 /**
- * Required field validation rule.
+ * Required field validation rule: an empty value fails.
  */
 class Required implements RuleInterface
 {
     /**
-     * Validate that a value is not empty.
+     * Validate that a value is supplied and not empty.
      */
     public function validate(mixed $value, mixed $param, array $allData, string $path): bool
     {
-        // If param is false, field is not required
         if ($param === false) {
             return true;
         }
-
-        // Check for empty values
-        if ($value === null) {
-            return false;
-        }
-
-        if (is_string($value)) {
-            return trim($value) !== '';
-        }
-
-        if ($value instanceof \stdClass) $value = (array) $value;
-        if (is_array($value)) {
-            // For file uploads, check if file was uploaded
-            if (isset($value['tmp_name']) && isset($value['error'])) {
-                return $value['error'] === UPLOAD_ERR_OK && !empty($value['tmp_name']);
-            }
-            return count($value) > 0;
-        }
-
-        // Numbers, booleans, objects are considered present
-        return true;
-    }
-
-    /**
-     * Returns the default error message for this rule.
-     *
-     * @return string Default message, with {0}, {1} placeholders where applicable
-     */
-    public function getDefaultMessage(): string
-    {
-        return 'This field is required.';
+        return !EmptyValue::is($value);
     }
 }

@@ -10,15 +10,14 @@ It does not modify the schema or expected results.
 `scripts/check-schema.mjs` holds every specification in the repository that is meant
 to be valid to the meta-schema: the form, list and detail specification of every
 fixture family, each composition file as the fragment its `$ref` selects, the
-specifications of every example under `examples` and `packages/*/examples`, and the
-form-session and validator command-line specifications. A case that expects an input
-or composition failure is not such a specification and is skipped. A specification
+specifications of every example under `examples` and `packages/*/examples`, the
+form-session specifications and the requests that the cross-check console's validator
+processes accept. A case that expects an input or composition failure is not such a
+specification and is skipped. A specification
 declared outside the schema on purpose is listed in the script with its reason and
-asserted to fail, so an exemption cannot become silent. The legacy corpora in
-`examples/legacy` and `tests/fixtures/specs` declare the
-[legacy field model](../spec/legacy-schema.md), which the current schema rejects by
-design; they are checked as legacy instead: each file must parse under the unique-key
-rule and must not pass the current meta-schema.
+asserted to fail, so an exemption cannot become silent. Every tracked YAML file must
+parse under the unique-key rule and be a specification the script checks or a fixture
+of the CLI's own tests. No YAML specification goes unchecked.
 
 The JSON Schema defines accepted declaration shapes. The TypeScript declarations
 in `packages/validator-ts/src/schema.ts` provide corresponding authoring types.

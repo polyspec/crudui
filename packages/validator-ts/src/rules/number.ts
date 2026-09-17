@@ -6,6 +6,7 @@
 
 import { RuleDefinition, ValidationContext } from '../types';
 import { isEmpty } from './required';
+import { trim } from '../values/index';
 
 /**
  * Check if a value is a valid number.
@@ -19,7 +20,7 @@ export function isValidNumber(value: unknown): boolean {
   }
 
   if (typeof value === 'string') {
-    const trimmed = value.trim();
+    const trimmed = trim(value);
     if (trimmed === '') {
       return false;
     }
@@ -60,8 +61,4 @@ export const numberRule: RuleDefinition = {
 
     return null;
   },
-
-  defaultMessage: 'Please enter a valid number.',
 };
-
-export default numberRule;

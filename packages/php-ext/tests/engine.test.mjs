@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { spawn, spawnSync } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { access, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
@@ -16,9 +16,13 @@ import { dateCases, dateListSpec, imageCase, numberCases, urlCase } from '../../
 import { dispatch, errorRecord } from '../../../tests/native-generators/javascript.mjs';
 import { recordConformance } from '../../../tests/conformance/evidence.mjs';
 
-/* A C string literal of the UTF-8 bytes of a value; a NUL character is a zero byte in it. */
+/*
+ * A C string of the UTF-8 bytes of a value followed by a zero byte; a NUL character is a zero byte
+ * in it. Text longer than the 4095 bytes ISO C requires of a string literal is a character array.
+ */
 export function cString(value) {
   const bytes = Buffer.from(value, 'utf8');
+  if (bytes.length > 4000) return `((const char[]){${[...bytes, 0].join(',')}})`;
   return `"${[...bytes].map(byte => `\\${byte.toString(8).padStart(3, '0')}`).join('')}"`;
 }
 
@@ -421,66 +425,11 @@ const listCases = JSON.parse(await readFile(
 const detailCases = JSON.parse(await readFile(
   path.join(root, 'tests/fixtures/detail-validity/cases.json'), 'utf8'));
 
-/* Every pattern or match rule value declared in a specification tree. */
-function patternParameters(value, found = []) {
-  if (!value || typeof value !== 'object') return found;
-  for (const [key, item] of Object.entries(value)) {
-    if (key === 'validate' && item && typeof item === 'object' && !Array.isArray(item)) {
-      for (const rule of ['match', 'pattern']) if (Object.hasOwn(item, rule)) found.push(item[rule]);
-    }
-    patternParameters(item, found);
-  }
-  return found;
-}
-
-/* Every scalar in a data tree: the values a pattern rule can receive. */
-function scalarValues(value, found = []) {
-  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') found.push(value);
-  else if (value && typeof value === 'object') for (const item of Object.values(value)) scalarValues(item, found);
-  return found;
-}
-
-/*
- * The pattern rule results of the pure PHP library (CRUDUI\Validator\Rules\Pattern) for every
- * parameter and value pair. The engine delegates the rule to its host; the fixture programs
- * answer it from this table and fail on any input the table does not hold.
- */
-function libraryPatternResults(pairs) {
-  if (!pairs.length) return [];
-  const autoload = path.join(root, 'packages/validator-php/vendor/autoload.php');
-  const script = [
-    'require $argv[1];',
-    '$rule = new CRUDUI\\Validator\\Rules\\Pattern();',
-    '$pairs = json_decode(stream_get_contents(STDIN), false, 512, JSON_THROW_ON_ERROR);',
-    'echo json_encode(array_map(fn($pair) => $rule->validate($pair[1], $pair[0], [], ""), $pairs), JSON_THROW_ON_ERROR);',
-  ].join(' ');
-  const result = spawnSync(process.env.PHP ?? 'php',
-    ['-n', '-d', 'display_errors=stderr', '-r', script, autoload],
-    { input: JSON.stringify(pairs), encoding: 'utf8' });
-  assert.equal(result.error, undefined);
-  assert.equal(result.status, 0, result.stderr);
-  const results = JSON.parse(result.stdout);
-  assert.equal(results.length, pairs.length);
-  return results;
-}
-
-function patternRuleDeclarations(count) {
-  return [
-    'typedef struct { ps_value *parameter; ps_value *value; int result; } pattern_case;',
-    `static pattern_case pattern_cases[${count + 1}];`,
-    'static size_t pattern_case_count;',
-    '',
-    'int ps_pattern_rule(const ps_value *value, const ps_value *parameter)',
-    '{',
-    '  for (size_t i = 0; i < pattern_case_count; ++i)',
-    '    if (ps_equal(pattern_cases[i].parameter, parameter) && ps_equal(pattern_cases[i].value, value))',
-    '      return pattern_cases[i].result;',
-    '  fputs("unexpected pattern rule input\\n", stderr);',
-    '  return -1;',
-    '}',
-    '',
-  ];
-}
+/* The engine units of rule evaluation, shared by the validation programs. */
+const ruleSources = [
+  'whitespace.c', 'canonical.c', 'rule_length.c', 'rule_in.c', 'unicode_data.c',
+  'pattern_set.c', 'pattern.c', 'pattern_match.c', 'rule_parameters.c',
+];
 
 /** The evidence each validation program case proves, in program order. */
 const validationEvidence = [
@@ -495,20 +444,6 @@ function sourceForValidation() {
   const { lines } = builder;
   let status = 1;
   lines.push(...caseProgramStart);
-  const pairs = new Map();
-  for (const fixture of validationCases) {
-    const parameters = patternParameters([fixture.spec, fixture.files ?? {}]);
-    for (const parameter of parameters)
-      for (const value of scalarValues(fixture.data))
-        pairs.set(JSON.stringify([parameter, value]), [parameter, value]);
-  }
-  const patternPairs = [...pairs.values()];
-  libraryPatternResults(patternPairs).forEach((passed, index) => {
-    const [parameter, value] = patternPairs[index];
-    const parameterValue = builder.emit(parameter);
-    const valueValue = builder.emit(value);
-    lines.push(`  pattern_cases[pattern_case_count++] = (pattern_case){${parameterValue}, ${valueValue}, ${passed ? 1 : 0}};`);
-  });
 
   const check = ({ name, operation, inputs, expected, error }) => {
     lines.push('  {', `  /* ${name} */`, '  int ok = 1;');
@@ -583,13 +518,14 @@ function sourceForValidation() {
       });
     }
   }
-  lines.push('  for (size_t i = 0; i < pattern_case_count; ++i) { ps_value_free(pattern_cases[i].parameter); ps_value_free(pattern_cases[i].value); }');
   lines.push(...caseProgramEnd);
-  return fixtureProgram(lines, patternRuleDeclarations(patternPairs.length));
+  return fixtureProgram(lines);
 }
 
 test('PHP extension engine validates all shared form, list and detail cases', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  assert.equal(validationCases.length + specCases.length + listCases.length + detailCases.length, 115,
+  assert.equal(validationCases.length, 179,
+    'Review extension validation coverage when the shared validation cases change');
+  assert.equal(validationCases.length + specCases.length + listCases.length + detailCases.length, 230,
     'Review extension validation coverage when the shared fixture inventory changes');
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-extension-validation-'));
   let output = '';
@@ -598,7 +534,7 @@ test('PHP extension engine validates all shared form, list and detail cases', { 
       signal: t.signal, root, directory, source: sourceForValidation(), name: 'validation',
       sources: [
         'value.c', 'value_path.c', 'engine_error.c', 'compose.c', 'expression.c',
-        'runtime.c', 'validation.c',
+        'runtime.c', ...ruleSources, 'validation.c',
       ],
       onOutput: stdout => { output = stdout; },
     });
@@ -615,7 +551,7 @@ test('PHP extension engine validation has no undefined behavior findings', { tim
       signal: t.signal, root, directory, source: sourceForValidation(), name: 'validation-sanitize',
       sources: [
         'value.c', 'value_path.c', 'engine_error.c', 'compose.c', 'expression.c',
-        'runtime.c', 'validation.c',
+        'runtime.c', ...ruleSources, 'validation.c',
       ],
       compilerFlags: ['-fsanitize=undefined', '-fno-omit-frame-pointer'],
       runEnvironment: {
@@ -638,7 +574,7 @@ test('PHP extension engine validation has no address sanitizer findings', {
       signal: t.signal, root, directory, source: sourceForValidation(), name: 'validation-address',
       sources: [
         'value.c', 'value_path.c', 'engine_error.c', 'compose.c', 'expression.c',
-        'runtime.c', 'validation.c',
+        'runtime.c', ...ruleSources, 'validation.c',
       ],
       compilerFlags: ['-fsanitize=address', '-fno-omit-frame-pointer'],
       runEnvironment: {
@@ -666,9 +602,9 @@ function sourceForValidationAllocationFailures() {
   });
   const repeatedFieldData = builder.emit({ tags: { first: 'first' } });
   builder.lines.push(
-    `  int status = verify_validation_allocation_failures(${repeatedGroupProperties}, ${repeatedGroupData}, 4);`,
+    `  int status = verify_validation_allocation_failures(${repeatedGroupProperties}, ${repeatedGroupData}, 5);`,
     '  if (status) return status;',
-    `  status = verify_validation_allocation_failures(${repeatedFieldProperties}, ${repeatedFieldData}, 3);`,
+    `  status = verify_validation_allocation_failures(${repeatedFieldProperties}, ${repeatedFieldData}, 4);`,
     '  if (status) return 10 + status;',
     `  ps_value_free(${repeatedGroupProperties}); ps_value_free(${repeatedGroupData});`,
     `  ps_value_free(${repeatedFieldProperties}); ps_value_free(${repeatedFieldData});`,
@@ -679,14 +615,6 @@ function sourceForValidationAllocationFailures() {
     '#include <math.h>',
     '#include <strings.h>',
     '#include <time.h>',
-    '',
-    '/* The specifications of this program declare no pattern rule. */',
-    'int ps_pattern_rule(const ps_value *value, const ps_value *parameter)',
-    '{',
-    '  (void)value; (void)parameter;',
-    '  fputs("unexpected pattern rule input\\n", stderr);',
-    '  return -1;',
-    '}',
     '',
     'static size_t validation_allocation_index;',
     'static size_t validation_fail_at;',
@@ -719,25 +647,27 @@ function sourceForValidationAllocationFailures() {
     '    const ps_value *properties, const ps_value *data, size_t allocation_count)',
     '{',
     '  for (size_t fail_at = 1; fail_at <= allocation_count; ++fail_at) {',
-    '    validation_context context = {data, ps_array_value(), NULL};',
+    '    validation_context context = {data, ps_array_value(), NULL, NULL, 0, NULL};',
     '    if (!context.errors) return 1;',
     '    validation_allocation_index = 0;',
     '    validation_fail_at = fail_at;',
     '    validation_allocation_failed = false;',
-    '    bool result = validate_properties(properties, data, &context, NULL, 0);',
+    '    bool result = validate_properties(properties, data, &context, NULL, 0, 0);',
     '    validation_fail_at = 0;',
     '    ps_value_free(context.errors);',
+    '    free(context.declaration);',
     '    if (!validation_allocation_failed) return 2;',
     '    if (result) return 3;',
     '  }',
-    '  validation_context context = {data, ps_array_value(), NULL};',
+    '  validation_context context = {data, ps_array_value(), NULL, NULL, 0, NULL};',
     '  if (!context.errors) return 4;',
     '  validation_allocation_index = 0;',
     '  validation_fail_at = allocation_count + 1;',
     '  validation_allocation_failed = false;',
-    '  bool result = validate_properties(properties, data, &context, NULL, 0);',
+    '  bool result = validate_properties(properties, data, &context, NULL, 0, 0);',
     '  validation_fail_at = 0;',
     '  ps_value_free(context.errors);',
+    '  free(context.declaration);',
     '  return result && !validation_allocation_failed ? 0 : 5;',
     '}',
   ]);
@@ -752,13 +682,419 @@ test('PHP extension validation returns failure after repeated-field allocation f
       name: 'validation-allocation',
       sources: [
         'value.c', 'value_path.c', 'engine_error.c', 'compose.c', 'expression.c',
-        'runtime.c',
+        'runtime.c', ...ruleSources,
       ],
     });
   } finally {
     await rm(directory, { recursive: true, force: true });
   }
 });
+}
+
+{
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
+const { contractPath, outputPath, unicodeDataSource } = await import('../tools/generate-unicode-data.mjs');
+const unicode = JSON.parse(await readFile(contractPath, 'utf8'));
+
+test('PHP extension Unicode data is generated from the contract', { timeout: ENGINE_INSPECTION_BUDGET }, async () => {
+  assert.equal(unicode.format, 'crudui/unicode-properties');
+  assert.equal(await readFile(outputPath, 'utf8'), unicodeDataSource(unicode),
+    'Regenerate with: node packages/php-ext/tools/generate-unicode-data.mjs');
+});
+
+/* A deterministic sequence of 64-bit patterns (xorshift64*). */
+function* bitPatterns(seed, count) {
+  let state = seed;
+  const mask = (1n << 64n) - 1n;
+  for (let index = 0; index < count; index += 1) {
+    state ^= state >> 12n;
+    state ^= (state << 25n) & mask;
+    state ^= state >> 27n;
+    yield (state * 0x2545F4914F6CDD1Dn) & mask;
+  }
+}
+
+function doubleOfBits(bits) {
+  const view = new DataView(new ArrayBuffer(8));
+  view.setBigUint64(0, bits);
+  return view.getFloat64(0);
+}
+
+function bitsOfDouble(number) {
+  const view = new DataView(new ArrayBuffer(8));
+  view.setFloat64(0, number);
+  return view.getBigUint64(0);
+}
+
+/*
+ * Doubles whose canonical text is compared with Number.prototype.toString: edge values, powers of
+ * two over the whole range with their largest mantissa, powers of ten with several digit strings,
+ * neighbours of short decimals and random bit patterns of every exponent.
+ */
+function canonicalNumbers() {
+  const values = new Set([
+    0, -0, 1, -1, 0.1, 0.2, 0.1 + 0.2, 1.5, 12, 123456789012345680000, 1e21, 1e-7, 0.000001,
+    1e-6, 9.999999999999999e20, 1.0000000000000001e21, 5e-324, -5e-324, 1e-323,
+    Number.MAX_VALUE, -Number.MAX_VALUE, Number.MIN_VALUE, 2.2250738585072014e-308,
+    2.225073858507201e-308, Number.EPSILON, Number.MAX_SAFE_INTEGER, 2 ** 53, 2 ** 53 + 2,
+    1 / 3, 2 / 3, Math.PI, Math.E, 100, 1e100, 123e-20, 5e-7, 4.35, 0.3,
+    9.5e-5, 1234.5678, 0.00001234, 8.41e21, 5e22, 1e23, 2 ** 70, 2 ** 69 + 2 ** 17,
+  ]);
+  for (let exponent = -1074; exponent <= 1023; exponent += 1) {
+    values.add(2 ** exponent);
+    values.add(2 ** exponent * (2 - 2 ** -52));
+  }
+  for (let exponent = -324; exponent <= 308; exponent += 1) {
+    for (const digits of ['1', '1.5', '2', '5', '9.999999999999999', '1.2345678901234567'])
+      values.add(Number(`${digits}e${exponent}`));
+  }
+  for (const text of ['0.1', '0.3', '1.1', '2.675', '100.5', '1e22', '123456.789']) {
+    const bits = bitsOfDouble(Number(text));
+    for (const step of [-2n, -1n, 1n, 2n]) values.add(doubleOfBits(bits + step));
+  }
+  for (const bits of bitPatterns(0x9E3779B97F4A7C15n, 20000)) values.add(doubleOfBits(bits));
+  return [...values].filter(Number.isFinite);
+}
+
+/* Integers are written as their nearest double. */
+const canonicalIntegers = [
+  0n, 7n, -7n, 9007199254740991n, 9007199254740993n, -9007199254740993n, 123456789012345678n,
+  9223372036854775807n, -9223372036854775808n, 1000000000000000000n,
+];
+
+/* Patterns outside the language with their reason and offset, and patterns inside it. */
+const rejectedPatterns = [
+  ['', 'empty pattern', 0],
+  ['한(', 'unterminated group', 2],
+  ['(a$', 'unterminated group', 3],
+  ['[', 'unterminated class', 1],
+  ['[a', 'unterminated class', 2],
+  ['[a-', 'unterminated class', 3],
+  ['(((', 'unterminated group', 3],
+  ['(?', 'unsupported construct', 0],
+  ['(?<!a)', 'unsupported construct', 0],
+  ['(?<=a)', 'unsupported construct', 0],
+  ['(?P<a>x)', 'unsupported construct', 0],
+  ['(?<', 'invalid group name', 0],
+  ['(?<a', 'invalid group name', 0],
+  ['(?<a-b>x)', 'invalid group name', 0],
+  ['(?<1>x)', 'invalid group name', 0],
+  ['(?<n>a)(?<n>b)', 'duplicate group name', 7],
+  ['a}', 'unexpected character', 1],
+  ['a$b', 'unexpected character', 1],
+  ['(a$)', 'unexpected character', 2],
+  ['^^', 'unexpected character', 1],
+  ['a)', 'unexpected character', 1],
+  ['^*', 'invalid quantifier', 1],
+  ['a|*', 'invalid quantifier', 2],
+  ['a*??', 'invalid quantifier', 3],
+  ['a**', 'invalid quantifier', 2],
+  ['a{2}{3}', 'invalid quantifier', 4],
+  ['a{1,1001}', 'invalid quantifier', 1],
+  ['a{1001,}', 'invalid quantifier', 1],
+  ['a{3,2}', 'invalid quantifier', 1],
+  ['a{,2}', 'invalid quantifier', 1],
+  ['a{99999999999999999999}', 'invalid quantifier', 1],
+  ['a{x}', 'invalid quantifier', 1],
+  ['\\', 'invalid escape', 0],
+  ['ab\\', 'invalid escape', 2],
+  [String.raw`\u{}`, 'invalid escape', 0],
+  [String.raw`\u{0000041}`, 'invalid escape', 0],
+  [String.raw`\u{DFFF}`, 'invalid escape', 0],
+  [String.raw`\u{110000}`, 'invalid escape', 0],
+  ['\\' + 'u0041', 'invalid escape', 0],
+  [String.raw`\x4`, 'invalid escape', 0],
+  [String.raw`\cA`, 'invalid escape', 0],
+  [String.raw`\0`, 'invalid escape', 0],
+  [String.raw`\b`, 'invalid escape', 0],
+  [String.raw`[a\q]`, 'invalid escape', 2],
+  [String.raw`\p{Cs}`, 'invalid property', 0],
+  [String.raw`\p{Cn}`, 'invalid property', 0],
+  [String.raw`\p{Lu`, 'invalid property', 0],
+  [String.raw`\p{lu}`, 'invalid property', 0],
+  [String.raw`\pL`, 'invalid property', 0],
+  [String.raw`\p{sc=Latin}`, 'invalid property', 0],
+  [String.raw`\p{Script=latin}`, 'invalid property', 0],
+  [String.raw`\P{Script=Klingon}`, 'invalid property', 0],
+  [String.raw`\p{Script_Extensions=Latin}`, 'invalid property', 0],
+  ['[^]', 'invalid class', 0],
+  ['a[]', 'invalid class', 1],
+  [String.raw`[\W]`, 'invalid class', 0],
+  [String.raw`[a-\D]`, 'invalid class', 0],
+  [String.raw`[\d-\D]`, 'invalid class', 0],
+  ['[a[]', 'invalid class', 0],
+  ['[a-b-c]', 'invalid class', 0],
+  [String.raw`[\d-\q]`, 'invalid escape', 4],
+  [String.raw`[\p{L}-z]`, 'invalid range', 1],
+  [String.raw`[a-\d]`, 'invalid range', 1],
+  ['[a--]', 'invalid range', 1],
+  ['x[b-a]', 'invalid range', 2],
+  ['a{1001}', 'invalid quantifier', 1],
+  ['(a{600}){2,}', 'pattern too large', 0],
+  ['a{1000,}', 'pattern too large', 0],
+  ['(a+){501}', 'pattern too large', 0],
+  ['((a{10}){10}){11}', 'pattern too large', 0],
+  ['a'.repeat(1001), 'pattern too large', 0],
+  ['(a{1000}){1000}[', 'unterminated class', 16],
+  ['(a{1000}){1000}(?', 'unsupported construct', 15],
+  ['('.repeat(101) + ')'.repeat(101), 'nesting too deep', 100],
+  ['()'.repeat(10) + '('.repeat(101), 'nesting too deep', 120],
+];
+
+const acceptedPatterns = [
+  '^', '$', '^$', 'a|', '|', '()', '(a{1000}){0}', 'a{0001}', '(a){2}', '[-a]', '[a-]', '[!--]',
+  '[.$^*a-a|]', String.raw`\u{10FFFF}`, String.raw`\P{Script=Latin}`, '\u{1F600}', 'a{1000}',
+  '(?:a*){500}', 'a{999,}', '(a+){500}', '('.repeat(100) + ')'.repeat(100), '((){1000}){1000}',
+  'a'.repeat(1000), String.raw`\p{C}\p{Co}\p{Cf}\p{Cc}`, '/x/i',
+];
+
+/* Whole-value matches: pattern, text and whether it matches. */
+const matchCases = [
+  ['a|b', 'a', true], ['a|b', 'ab', false], ['a|', '', true], ['a|', 'a', true],
+  ['^ab$', 'ab', true], ['^$', '', true], ['^$', 'x', false], ['x', 'x\n', false],
+  ['a{2,3}', 'a', false], ['a{2,3}', 'aa', true], ['a{2,3}', 'aaa', true], ['a{2,3}', 'aaaa', false],
+  ['a{2,3}?', 'aaa', true], ['a{0002}', 'aa', true], ['a{2,}', 'a'.repeat(5000), true],
+  ['(ab|c)+d?', 'abcab', true], ['(ab|c)+d?', 'abcabd', true], ['(ab|c)+d?', 'd', false],
+  ['(a?)*b', 'aaab', true], ['(|a)+', 'aaa', true], ['()*', '', true], ['()*', 'a', false],
+  ['(a{1000}){0}', '', true], ['(a{1000}){0}', 'a', false], ['((){1000}){1000}', '', true],
+  ['a.b', 'a\u{1F600}b', true], ['a.b', 'a\nb', false], ['a.b', 'a\u0000b', true],
+  ['[.$^*a-a|]+', '.$^*a|', true], ['[.$^*a-a|]', 'b', false],
+  ['[^a-c]', 'd', true], ['[^a-c]', 'b', false], ['[^a-c]', '\u{10FFFF}', true],
+  [String.raw`\d\w`, '1_', true], [String.raw`\d`, '١', false],
+  [String.raw`\s`, '　', true], [String.raw`\s`, '᠎', false], [String.raw`\S`, '᠎', true],
+  [String.raw`\S`, '　', false], [String.raw`[\s\d]+`, ' 1 ', true],
+  [String.raw`\p{Lu}\P{Lu}`, 'Aa', true], [String.raw`\p{Lu}`, 'a', false],
+  [String.raw`\p{Script=Hangul}+`, '한글', true], [String.raw`\P{Script=Latin}+`, '1x', false],
+  [String.raw`\p{Script=Garay}`, '\u{10D40}', true], [String.raw`\p{C}`, '\u{E0000}', true],
+  [String.raw`\p{C}`, '͸', true], [String.raw`\p{Co}`, '', true], [String.raw`\P{C}`, 'a', true],
+  [String.raw`\u{0}\x41\t`, '\u0000A\t', true], ['/x/i', '/x/i', true], ['/x/i', 'x', false],
+  ['(?<name>a)(?:b)', 'ab', true], ['[-a]+', '-a-', true], ['[!--]+', '!,-', true],
+  ['(?:[^\\n]*a){12}c', 'a'.repeat(100000), false], ['(x+x+)+y', 'x'.repeat(100000), false],
+  [String.raw`\p{L}{1000}`, '한'.repeat(1000), true], [String.raw`\p{L}{1000}`, '한'.repeat(999), false],
+  ['(a|aa)*(b|c)', 'a'.repeat(100000) + 'd', false], ['(a|aa)*(b|c)', 'a'.repeat(100000) + 'c', true],
+];
+
+function sourceForValues() {
+  const rangeList = ranges => `{${ranges.map(([start, end]) => `{0x${start.toString(16)}, 0x${end.toString(16)}}`).join(', ')}}`;
+  const propertyRows = table => Object.entries(table).map(([name, ranges]) =>
+    `  {${cString(name)}, (const ps_code_range[])${rangeList(ranges)}, ${ranges.length}},`);
+  const declarations = [
+    '/* The contract, independent of the generated source. */',
+    `static const ps_code_range contract_white_space[] = ${rangeList(unicode.whiteSpace)};`,
+    'static const ps_unicode_property contract_categories[] = {',
+    ...propertyRows(unicode.generalCategories),
+    '};',
+    'static const ps_unicode_property contract_scripts[] = {',
+    ...propertyRows(unicode.scripts),
+    '};',
+    '',
+    'static bool same_ranges(const ps_code_range *left, size_t left_count, const ps_code_range *right, size_t right_count)',
+    '{',
+    '  if (left_count != right_count) return false;',
+    '  for (size_t i = 0; i < left_count; ++i)',
+    '    if (left[i].start != right[i].start || left[i].end != right[i].end) return false;',
+    '  return true;',
+    '}',
+    '',
+    'typedef struct { uint64_t bits; const char *text; size_t length; } number_case;',
+    'static const number_case number_cases[] = {',
+    ...canonicalNumbers().map(number => {
+      const text = String(number);
+      return `  {UINT64_C(0x${bitsOfDouble(number).toString(16)}), ${cString(text)}, ${text.length}},`;
+    }),
+    '};',
+    'typedef struct { int64_t integer; const char *text; } integer_case;',
+    'static const integer_case integer_cases[] = {',
+    ...canonicalIntegers.map(integer => `  {${integer === -9223372036854775808n ? 'INT64_MIN' : `INT64_C(${integer})`}, ${cString(String(Number(integer)))}},`),
+    '};',
+    '',
+    'typedef struct { ps_text source; const char *reason; size_t offset; } rejected_case;',
+    'static const rejected_case rejected_cases[] = {',
+    ...rejectedPatterns.map(([source, reason, offset]) => `  {${cText(source)}, ${cString(reason)}, ${offset}},`),
+    '};',
+    'static const ps_text accepted_cases[] = {',
+    ...acceptedPatterns.map(source => `  ${cText(source)},`),
+    '};',
+    'typedef struct { ps_text source; ps_text text; bool matches; } match_case;',
+    'static const match_case match_cases[] = {',
+    ...matchCases.map(([source, text, matches]) => `  {${cText(source)}, ${cText(text)}, ${matches}},`),
+    '};',
+    '',
+    'static int failures;',
+    'static void failure(const char *label, ps_text text)',
+    '{ fputs(label, stderr); fwrite(text.bytes, 1, text.length > 200 ? 200 : text.length, stderr); fputc(10, stderr); failures++; }',
+    '',
+  ];
+  const lines = [
+    '  /* The embedded Unicode data is the contract. */',
+    `  if (strcmp(ps_unicode_version, ${cString(unicode.unicodeVersion)})) failure("Unicode version differs", PS_TEXT(""));`,
+    '  if (!same_ranges(ps_white_space, ps_white_space_count, contract_white_space, sizeof(contract_white_space) / sizeof(contract_white_space[0])))',
+    '    failure("White_Space differs from the contract", PS_TEXT(""));',
+    `  if (ps_general_categories_count != ${Object.keys(unicode.generalCategories).length} || ps_scripts_count != ${Object.keys(unicode.scripts).length})`,
+    '    failure("property count differs from the contract", PS_TEXT(""));',
+    '  for (size_t i = 0; i < sizeof(contract_categories) / sizeof(contract_categories[0]); ++i) {',
+    '    const ps_unicode_property *found = ps_unicode_category(ps_fixed(contract_categories[i].name));',
+    '    if (!found || !same_ranges(found->ranges, found->count, contract_categories[i].ranges, contract_categories[i].count))',
+    '      failure("category differs from the contract: ", ps_fixed(contract_categories[i].name));',
+    '  }',
+    '  for (size_t i = 0; i < sizeof(contract_scripts) / sizeof(contract_scripts[0]); ++i) {',
+    '    const ps_unicode_property *found = ps_unicode_script(ps_fixed(contract_scripts[i].name));',
+    '    if (!found || !same_ranges(found->ranges, found->count, contract_scripts[i].ranges, contract_scripts[i].count))',
+    '      failure("script differs from the contract: ", ps_fixed(contract_scripts[i].name));',
+    '  }',
+    '  if (ps_unicode_category(PS_TEXT("Cs")) || ps_unicode_category(PS_TEXT("Cn")) || ps_unicode_script(PS_TEXT("Klingon")))',
+    '    failure("a property outside the data was found", PS_TEXT(""));',
+    '',
+    '  /* Whitespace is the White_Space table over every code point. */',
+    '  for (uint32_t code = 0; code <= 0x10ffff; ++code) {',
+    '    bool expected = false;',
+    '    for (size_t i = 0; i < sizeof(contract_white_space) / sizeof(contract_white_space[0]); ++i)',
+    '      expected = expected || (code >= contract_white_space[i].start && code <= contract_white_space[i].end);',
+    '    if (ps_whitespace(code) != expected) {',
+    '      char text[16]; snprintf(text, sizeof(text), "%X", (unsigned)code);',
+    '      failure("whitespace differs: ", ps_fixed(text));',
+    '    }',
+    '  }',
+    `  if (!ps_text_equal(ps_trim(${cText('　\t x \u0000 y  ')}), ${cText('x \u0000 y')})) failure("trim differs", PS_TEXT(""));`,
+    `  if (!ps_text_equal(ps_trim(${cText('﻿x​')}), ${cText('﻿x​')})) failure("trim removed a code point that is not whitespace", PS_TEXT(""));`,
+    `  if (ps_trim(${cText('  　')}).length) failure("whitespace is not empty after trimming", PS_TEXT(""));`,
+    `  if (ps_code_points(${cText('a\u0000\u{1f468}‍\u{1f469}한')}) != 6) failure("code points differ", PS_TEXT(""));`,
+    '',
+    '  /* Sets: surrogates belong to C and to every complement, never to a script or letter set. */',
+    '  {',
+    '    const ps_unicode_property *other = ps_unicode_category(PS_TEXT("C"));',
+    '    const ps_unicode_property *letter = ps_unicode_category(PS_TEXT("L"));',
+    '    if (!ps_code_ranges_contain(other->ranges, other->count, 0xd800) || !ps_code_ranges_contain(other->ranges, other->count, 0xdfff))',
+    '      failure("surrogates are not in C", PS_TEXT(""));',
+    '    ps_code_set set = {0};',
+    '    ps_code_set_add_ranges(&set, letter->ranges, letter->count);',
+    '    ps_code_set_complement(&set);',
+    '    if (!ps_code_ranges_contain(set.ranges, set.count, 0xd800) || ps_code_ranges_contain(set.ranges, set.count, 0x41) ||',
+    '        !ps_code_ranges_contain(set.ranges, set.count, 0x10ffff) || !ps_code_ranges_contain(set.ranges, set.count, 0))',
+    '      failure("complement differs", PS_TEXT(""));',
+    '    ps_code_set_complement(&set);',
+    '    if (!same_ranges(set.ranges, set.count, letter->ranges, letter->count)) failure("double complement differs", PS_TEXT(""));',
+    '    ps_code_set_free(&set);',
+    '    ps_code_set_add(&set, 5, 9); ps_code_set_add(&set, 0, 2); ps_code_set_add(&set, 3, 4); ps_code_set_add(&set, 20, 30); ps_code_set_add(&set, 25, 26);',
+    '    ps_code_set_normalize(&set);',
+    '    if (!same_ranges(set.ranges, set.count, (const ps_code_range[]){{0, 9}, {20, 30}}, 2)) failure("union differs", PS_TEXT(""));',
+    '    ps_code_set_complement(&set);',
+    '    if (!same_ranges(set.ranges, set.count, (const ps_code_range[]){{10, 19}, {31, 0x10ffff}}, 2)) failure("complement from 0 differs", PS_TEXT(""));',
+    '    ps_code_set_free(&set);',
+    '    ps_code_set_complement(&set);',
+    '    if (!same_ranges(set.ranges, set.count, (const ps_code_range[]){{0, 0x10ffff}}, 1)) failure("complement of nothing differs", PS_TEXT(""));',
+    '    ps_code_set_complement(&set);',
+    '    if (set.count) failure("complement of everything is not empty", PS_TEXT(""));',
+    '    ps_code_set_free(&set);',
+    '  }',
+    '',
+    '  /* Canonical number text is Number.prototype.toString of the double. */',
+    '  for (size_t i = 0; i < sizeof(number_cases) / sizeof(number_cases[0]); ++i) {',
+    '    double number;',
+    '    memcpy(&number, &number_cases[i].bits, sizeof(number));',
+    '    ps_chars text = ps_number_text(number);',
+    '    ps_text expected = {number_cases[i].text, number_cases[i].length};',
+    '    if (!text.bytes || !ps_text_equal(ps_view(text), expected)) {',
+    '      failure("number text differs from ", expected);',
+    '      if (text.bytes) failure("  actual: ", ps_view(text));',
+    '    }',
+    '    free(text.bytes);',
+    '  }',
+    '  for (size_t i = 0; i < sizeof(integer_cases) / sizeof(integer_cases[0]); ++i) {',
+    '    ps_value *value = ps_int_value(integer_cases[i].integer);',
+    '    ps_chars text;',
+    '    if (ps_canonical_text(value, &text) != 1 || !ps_text_equal(ps_view(text), ps_fixed(integer_cases[i].text)))',
+    '      failure("integer text differs from ", ps_fixed(integer_cases[i].text));',
+    '    free(text.bytes);',
+    '    ps_value_free(value);',
+    '  }',
+    '  {',
+    '    ps_value *values[] = {ps_bool_value(true), ps_bool_value(false), ps_float_value(-0.0), ps_float_value(2.5),',
+    '      ps_text_value(PS_TEXT(" a ")), ps_null_value(), ps_array_value(), ps_object_value()};',
+    '    const char *expected[] = {"1", "0", "0", "2.5", " a ", NULL, NULL, NULL};',
+    '    for (size_t i = 0; i < sizeof(values) / sizeof(values[0]); ++i) {',
+    '      ps_chars text;',
+    '      int scalar = ps_canonical_text(values[i], &text);',
+    '      if (expected[i] ? scalar != 1 || !ps_text_equal(ps_view(text), ps_fixed(expected[i])) : scalar != 0)',
+    '        failure("canonical text differs: ", ps_fixed(expected[i] ? expected[i] : "(none)"));',
+    '      free(text.bytes);',
+    '      ps_value_free(values[i]);',
+    '    }',
+    '  }',
+    '',
+    '  /* The pattern language. */',
+    '  for (size_t i = 0; i < sizeof(rejected_cases) / sizeof(rejected_cases[0]); ++i) {',
+    '    const rejected_case *item = &rejected_cases[i];',
+    '    ps_pattern *pattern;',
+    '    ps_pattern_error error;',
+    '    int result = ps_pattern_compile(item->source, &pattern, &error);',
+    '    if (result != 0 || strcmp(error.reason, item->reason) || error.offset != item->offset) {',
+    '      char detail[96];',
+    '      snprintf(detail, sizeof(detail), "pattern result differs (%s at %zu): ", result ? "accepted" : error.reason, error.offset);',
+    '      failure(detail, item->source);',
+    '    }',
+    '    ps_pattern_free(pattern);',
+    '  }',
+    '  for (size_t i = 0; i < sizeof(accepted_cases) / sizeof(accepted_cases[0]); ++i) {',
+    '    ps_pattern *pattern;',
+    '    ps_pattern_error error;',
+    '    if (ps_pattern_compile(accepted_cases[i], &pattern, &error) != 1) failure("pattern rejected: ", accepted_cases[i]);',
+    '    /* Character states never exceed the size, and every other state is bounded by it. */',
+    '    else if (ps_pattern_state_count(pattern) > 3 * 1000 + 2) failure("too many states: ", accepted_cases[i]);',
+    '    ps_pattern_free(pattern);',
+    '  }',
+    '  {',
+    '    ps_pattern *pattern;',
+    '    ps_pattern_error error;',
+    '    if (ps_pattern_compile(PS_TEXT("((){1000}){1000}"), &pattern, &error) != 1 || ps_pattern_state_count(pattern) > 4)',
+    '      failure("a repetition of size 0 is not one state", PS_TEXT(""));',
+    '    ps_pattern_free(pattern);',
+    '  }',
+    '',
+    '  /* The matcher. */',
+    '  for (size_t i = 0; i < sizeof(match_cases) / sizeof(match_cases[0]); ++i) {',
+    '    const match_case *item = &match_cases[i];',
+    '    ps_pattern *pattern;',
+    '    ps_pattern_error error;',
+    '    if (ps_pattern_compile(item->source, &pattern, &error) != 1) { failure("pattern rejected: ", item->source); continue; }',
+    '    int matched = ps_pattern_matches(pattern, item->text);',
+    '    if (matched != (item->matches ? 1 : 0)) failure(item->matches ? "no match: " : "unexpected match: ", item->source);',
+    '    ps_pattern_free(pattern);',
+    '  }',
+    '  {',
+    '    ps_pattern_cache *cache = ps_pattern_cache_new();',
+    '    const ps_pattern *first, *second;',
+    '    ps_pattern_error error;',
+    '    if (!cache || ps_pattern_cache_get(cache, PS_TEXT("a+"), &first, &error) != 1 ||',
+    '        ps_pattern_cache_get(cache, PS_TEXT("a+"), &second, &error) != 1 || first != second ||',
+    '        ps_pattern_cache_get(cache, PS_TEXT("a("), &second, &error) != 0 || second || error.offset != 2 ||',
+    '        ps_pattern_cache_get(cache, PS_TEXT("a("), &second, &error) != 0 || strcmp(error.reason, "unterminated group"))',
+    '      failure("the pattern cache differs", PS_TEXT(""));',
+    '    ps_pattern_cache_free(cache);',
+    '  }',
+    '  if (failures) { fprintf(stderr, "%d failures\\n", failures); return 1; }',
+  ];
+  return fixtureProgram(lines, declarations);
+}
+
+for (const sanitized of [false, true]) {
+  test(`PHP extension engine values, Unicode data, patterns and the matcher follow the specification${sanitized ? ' without undefined behavior' : ''}`, {
+    timeout: sanitized ? ENGINE_SANITIZER_BUDGET : ENGINE_TEST_BUDGET,
+  }, async t => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-extension-values-'));
+    try {
+      await compileAndRunEngineFixture({
+        signal: t.signal, root, directory, source: sourceForValues(),
+        name: sanitized ? 'values-sanitize' : 'values',
+        sources: ['value.c', 'whitespace.c', 'canonical.c', 'unicode_data.c', 'pattern_set.c', 'pattern.c', 'pattern_match.c'],
+        compilerFlags: sanitized ? ['-fsanitize=undefined', '-fno-omit-frame-pointer'] : ['-O2'],
+        runEnvironment: { ...process.env, UBSAN_OPTIONS: 'halt_on_error=1' },
+      });
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
+  });
+}
 }
 
 {

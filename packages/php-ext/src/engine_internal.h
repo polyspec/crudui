@@ -3,6 +3,7 @@
 
 #include "crudui_engine.h"
 
+#include <stdlib.h>
 #include <string.h>
 
 /*
@@ -225,15 +226,152 @@ ps_value *ps_expression_value(ps_text expression, const ps_value *data,
 bool ps_expression_truth(ps_text expression, const ps_value *data,
                          const ps_text *current_path, size_t path_length,
                          bool *parsed);
+/*
+ * The literal values a ternary expression can return, through nested ternaries and parentheses,
+ * in branch order: an empty array for any other expression, with *parsed false when the text is
+ * not an expression; NULL on allocation failure.
+ */
+ps_value *ps_expression_literals(ps_text expression, bool *parsed);
 ps_value *ps_condition_value(const ps_value *map, const ps_value *data,
                              const ps_text *current_path, size_t path_length);
 
 /*
- * The pattern and match validation rule, implemented by the host: 1 when the value passes the
- * rule with this parameter, 0 when it fails, -1 when the host raised an error that ends the
- * validation.
+ * Values (whitespace.c, canonical.c; docs/spec/validation-rules.md, "Values").
+ * ps_whitespace: a code point with the Unicode White_Space property.
+ * ps_utf8_decode: the code point at index of engine text and its byte length (at least 1).
+ * ps_trim: the text without leading and trailing whitespace.
+ * ps_code_points: the number of code points.
+ * ps_empty_value: missing, null, a string empty after trimming, or an empty array or object.
+ * ps_number_text: a finite double as ECMAScript Number.prototype.toString writes it; NULL bytes on
+ * allocation failure.
+ * ps_canonical_text: the canonical text of a string, boolean or number: 1 with owned text, 0 for
+ * any other value, -1 on allocation failure.
  */
-int ps_pattern_rule(const ps_value *value, const ps_value *parameter);
+bool ps_whitespace(uint32_t code_point);
+size_t ps_utf8_decode(ps_text text, size_t index, uint32_t *code_point);
+ps_text ps_trim(ps_text text);
+size_t ps_code_points(ps_text text);
+bool ps_empty_value(const ps_value *value);
+ps_chars ps_number_text(double number);
+int ps_canonical_text(const ps_value *value, ps_chars *text);
+
+/*
+ * A rule parameter outside the specification (docs/spec/validation-rules.md, "Parameter
+ * errors"): code is NULL for a valid parameter. A pattern problem has a reason and a code-point
+ * offset and no fixed message; every other problem has a fixed message.
+ */
+typedef struct {
+    const char *code;
+    const char *message;
+    const char *reason;
+    size_t offset;
+} ps_parameter_problem;
+
+/* Length rules (rule_length.c). ps_length_passes: 1 or 0 for a valid parameter, -1 otherwise. */
+bool ps_length_rule(ps_text rule);
+bool ps_length_limit(const ps_value *parameter, int64_t *limit);
+bool ps_length_range(const ps_value *parameter, int64_t *minimum, int64_t *maximum);
+ps_parameter_problem ps_length_parameter(ps_text rule, const ps_value *parameter);
+int ps_length_passes(ps_text rule, const ps_value *value, const ps_value *parameter);
+
+/* Membership (rule_in.c). ps_in_passes: 1, 0, or -1 on allocation failure; the parameter is valid. */
+ps_parameter_problem ps_in_parameter(const ps_value *parameter);
+int ps_in_passes(const ps_value *value, const ps_value *parameter);
+
+/*
+ * Unicode data (unicode_data.c, generated from contracts/unicode-properties.json): inclusive
+ * code-point ranges in ascending order. Property tables are in bytewise name order.
+ */
+typedef struct {
+    uint32_t start;
+    uint32_t end;
+} ps_code_range;
+
+typedef struct {
+    const char *name;
+    const ps_code_range *ranges;
+    size_t count;
+} ps_unicode_property;
+
+extern const char ps_unicode_version[];
+extern const ps_code_range ps_white_space[];
+extern const size_t ps_white_space_count;
+extern const ps_unicode_property ps_general_categories[];
+extern const size_t ps_general_categories_count;
+extern const ps_unicode_property ps_scripts[];
+extern const size_t ps_scripts_count;
+
+/*
+ * Code-point sets (pattern_set.c): sorted, disjoint inclusive ranges.
+ * ps_code_ranges_contain: membership by binary search.
+ * ps_unicode_category, ps_unicode_script: a property by its exact name, or NULL.
+ */
+bool ps_code_ranges_contain(const ps_code_range *ranges, size_t count, uint32_t code_point);
+const ps_unicode_property *ps_unicode_category(ps_text name);
+const ps_unicode_property *ps_unicode_script(ps_text name);
+
+typedef struct {
+    ps_code_range *ranges;
+    size_t count;
+    size_t capacity;
+    bool failed;
+} ps_code_set;
+
+/* Add ranges (in any order); normalize sorts and merges them; complement inverts over 0..0x10FFFF. */
+bool ps_code_set_add(ps_code_set *set, uint32_t start, uint32_t end);
+bool ps_code_set_add_ranges(ps_code_set *set, const ps_code_range *ranges, size_t count);
+bool ps_code_set_normalize(ps_code_set *set);
+bool ps_code_set_complement(ps_code_set *set);
+void ps_code_set_free(ps_code_set *set);
+
+/*
+ * The CRUDUI pattern language (pattern.c) and its matcher (pattern_match.c).
+ * ps_pattern_compile: 1 with a compiled pattern, 0 with the reason and code-point offset of the
+ * first construct outside the language, -1 on allocation failure.
+ * ps_pattern_matches: whether the whole text matches (1 or 0), -1 on allocation failure; the time
+ * is proportional to the code points of the text times the states of the pattern.
+ */
+typedef struct {
+    const char *reason;
+    size_t offset;
+} ps_pattern_error;
+
+typedef struct ps_pattern ps_pattern;
+
+int ps_pattern_compile(ps_text source, ps_pattern **pattern, ps_pattern_error *error);
+int ps_pattern_matches(const ps_pattern *pattern, ps_text text);
+size_t ps_pattern_state_count(const ps_pattern *pattern);
+void ps_pattern_free(ps_pattern *pattern);
+
+/*
+ * Compiled patterns by source text for one operation. ps_pattern_cache_get compiles a source
+ * once: 1 with the borrowed pattern, 0 with the language error, -1 on allocation failure.
+ */
+typedef struct ps_pattern_cache ps_pattern_cache;
+
+ps_pattern_cache *ps_pattern_cache_new(void);
+int ps_pattern_cache_get(ps_pattern_cache *cache, ps_text source, const ps_pattern **pattern,
+                         ps_pattern_error *error);
+void ps_pattern_cache_free(ps_pattern_cache *cache);
+
+/* Rule parameter checks (rule_parameters.c). */
+/*
+ * The problem of a parameter that takes effect (not false or null) for one rule; only the
+ * length, membership and pattern rules have parameter checks. Returns false on allocation
+ * failure.
+ */
+bool ps_rule_parameter(ps_text rule, const ps_value *parameter, ps_pattern_cache *patterns,
+                       ps_parameter_problem *problem);
+/* The load failure of a problem at a field's declaration path; NULL on allocation failure. */
+ps_value *ps_parameter_error(ps_text rule, const ps_parameter_problem *problem,
+                             const ps_text *path, size_t length);
+/*
+ * Check the declared parameters of composed form properties: fields in declaration order (a group
+ * before its children), each field's rules in declaration order. A length limit given by a
+ * condition is checked when validation resolves it. Returns the first load failure, an internal
+ * error on allocation failure, or NULL.
+ */
+ps_value *ps_check_rule_parameters(const ps_value *properties, ps_pattern_cache *patterns);
 
 ps_result ps_ok(ps_value *value);
 /* Errors with fixed text. */

@@ -5,7 +5,7 @@ import {
   evaluateCondition,
   evaluateExpressionValue,
   type PathContext,
-} from '@crudui/validator';
+} from '@crudui/validator/internal';
 
 /**
  * A CRUDUI `Evaluated<V>` value as seen at render: a literal, an Expression string,

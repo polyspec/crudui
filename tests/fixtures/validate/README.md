@@ -25,23 +25,21 @@ The [PHP extension runner](../../../packages/php-ext/tests/validate.php) compare
 member order is compared there as well. A failure case compares `code`, `message` and `at`
 exactly, and every case must declare exactly one of `expected` and `expectFailure`.
 
-The command-line tests send each case on standard input. A result case exits `0` with the result
-on standard output; a failure case exits `2` with `{ error, code, at }`.
+The cross-check console's validator processes receive each case on standard input. A result case
+exits `0` with the result on standard output; a failure case exits `2` with `{ error, code, at }`.
 
 Consumers are the validation conformance tests in
 [TypeScript](../../../packages/validator-ts/src/validate.conformance.test.ts),
 [PHP](../../../packages/validator-php/tests/Validate/ValidateConformanceTest.php),
 [Go](../../../packages/validator-go/validator/validate/conformance_test.go) and
-[Rust](../../../packages/validator-rust/tests/validate_conformance.rs); the command-line tests in
-[TypeScript](../../../packages/validator-ts/src/validate-cli.test.ts),
-[PHP](../../../packages/validator-php/tests/Validate/ValidateCliTest.php),
-[Go](../../../packages/validator-go/cmd/validate/main_test.go) and
-[Rust](../../../packages/validator-rust/tests/validate_cli_conformance.rs); the
+[Rust](../../../packages/validator-rust/tests/validate_conformance.rs); the
 [PHP extension engine test](../../../packages/php-ext/tests/engine.test.mjs) and the
 [PHP extension API test](../../../packages/php-ext/tests/api.test.mjs), which runs the PHP and native
 validators; and the cross-check console
+[validator process test](../../../examples/cross-check-console/server/validator-processes.test.mjs),
+which sends every case to the five validator processes, and its
 [validation runner test](../../../examples/cross-check-console/server/validate-runner.test.mjs),
-which sends a fixture case to the four command-line validators.
+which compares the four language results.
 
 ## Regeneration
 

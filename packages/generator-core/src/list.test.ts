@@ -9,7 +9,8 @@
  */
 
 import { describe, test, expect } from 'vitest';
-import { buildList, ComposeLoadError, paginationPages } from './index';
+import { buildList, ComposeLoadError } from './index';
+import { paginationPages } from './internal';
 
 describe('buildList — structure & engine reuse', () => {
   test('resolves columns, i18n header, sortable, empty (DB-agnostic rows)', () => {

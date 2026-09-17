@@ -46,8 +46,7 @@ interface CaseSpec {
 // ---------------------------------------------------------------------------
 
 const SPECS: CaseSpec[] = [
-  // 1. inheritance basics: base.yml(properties:{a,b}) + main properties.$ref
-  //    (reduced LargeForm.yml:873 + OptionCombination.yml).
+  // 1. inheritance basics: base.yml(properties:{a,b}) + main properties.$ref.
   {
     name: 'ref-inherit-base',
     note: 'plain $ref pulls the file properties layer as the base (a,b)',
@@ -174,13 +173,13 @@ const SPECS: CaseSpec[] = [
         'base.yml': {
           properties: {
             keep: { type: 'text' },
-            legacy_field: { type: 'text' },
+            retired_field: { type: 'text' },
           },
         },
       },
       entry: {
         $ref: 'base.yml',
-        $patch: { remove: ['legacy_field'] },
+        $patch: { remove: ['retired_field'] },
       },
     },
   },
@@ -251,7 +250,7 @@ const SPECS: CaseSpec[] = [
     },
   },
 
-  // 11. sibling key declared after $ref overrides the base (legacy declaration order).
+  // 11. sibling key declared after $ref overrides the base (declaration order).
   {
     name: 'ref-sibling-override',
     note: 'a named sibling after $ref overrides the inherited base key',

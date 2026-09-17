@@ -29,7 +29,6 @@ export const docSections = [
       'compose 패스가 $ref/$patch 를 단일 스펙으로 확장한다. ' +
       '미해결 $ref 는 로드 실패이지 valid:false 가 아니다 — ' +
       '4언어 failure{code:REF_FILE_NOT_FOUND, message, at}, 4렌더러 error 로 표면화. ' +
-      'legacy 갭(LargeForm.yml:873, silent skip) 폐쇄. ' +
       '출처: form-render compose-ref-unresolved-load-error.',
   },
   {
@@ -43,7 +42,7 @@ export const docSections = [
     title: 'design 노드맵 (show)',
     body:
       'design.show 표현식이 truthy 면 표시, falsy 면 wrapper 에 ' +
-      'style="display: none" 을 달되 DOM 은 유지한다(레거시 non-removal 계약). ' +
+      'style="display: none" 을 달되 DOM 은 유지한다(non-removal 계약). ' +
       '제거가 아니라 숨김. 출처: form-render design-show-expr-falsy.',
   },
   {
@@ -146,7 +145,7 @@ export const detailDocSections = [
   {
     title: '구조 검증 (/api/validate-detail)',
     body:
-      '4언어 CLI 가 mode:detail 로 루트와 fields 맵을 합성한 뒤 금지 메타 키를 검사한다. 레코드는 검증하지 않는다. ' +
+      '4언어 검증기 프로세스가 mode:detail 로 루트와 fields 맵을 합성한 뒤 금지 메타 키를 검사한다. 레코드는 검증하지 않는다. ' +
       'show_if 같은 금지 키는 valid:false 가 아니라 failure{code:FORBIDDEN_META_KEY, at:"fields.name.show_if"} 이다. ' +
       '미해결 fields $ref 는 REF_FILE_NOT_FOUND. ' +
       '출처: detail-validity red-show-if-on-field, red-unresolved-fields-ref.',

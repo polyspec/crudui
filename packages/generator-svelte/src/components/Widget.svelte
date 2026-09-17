@@ -25,7 +25,7 @@
 {:else if model.layout === 'file'}
   <div class="crudui-widget">{@html fileGroupBody(model)}</div>
 {:else if isDisplayRaw}
-  <!-- RAW html display (dummy/image-viewer) — unescaped legacy parity content. -->
+  <!-- RAW html display (dummy/image-viewer) — unescaped content. -->
   {#if model.attrs.class !== undefined && model.attrs.style !== undefined}
     <div class={model.attrs.class} style={model.attrs.style}>{@html model.rawHtml ?? ''}</div>
   {:else if model.attrs.class !== undefined}

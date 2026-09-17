@@ -39,7 +39,7 @@ import {
   CELL_FORMATS,
   CELL_FORMAT_DEFAULT,
   CELL_RENDERERS,
-} from '../../generator-core/src/cell.ts';
+} from '@crudui/generator-core/internal';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const SCHEMA_PATH = resolve(HERE, '../../..', 'schema/crudui.schema.json');
@@ -158,11 +158,11 @@ descTest('drift injection — list cell catalog tracks the renderer map, it is n
 descTest('drift-0 wiring — a renderer added in cell.ts surfaces in describe (describe.ts untouched)', () => {
   afterEach(() => {
     vi.resetModules();
-    vi.doUnmock('../../generator-core/src/cell.ts');
+    vi.doUnmock('@crudui/generator-core/internal');
   });
 
   test('mocking cell.ts with an extra `sparkline` renderer makes describe.list.cellFormats include it', async () => {
-    const realCell = await import('../../generator-core/src/cell.ts');
+    const realCell = await import('@crudui/generator-core/internal');
 
     // The injected module: the SAME exports, but CELL_RENDERERS gains one key, and
     // CELL_FORMATS is re-projected from it (exactly what adding a renderer in
@@ -171,7 +171,7 @@ descTest('drift-0 wiring — a renderer added in cell.ts surfaces in describe (d
       ...realCell.CELL_RENDERERS,
       sparkline: (value: unknown) => String(value ?? ''),
     };
-    vi.doMock('../../generator-core/src/cell.ts', () => ({
+    vi.doMock('@crudui/generator-core/internal', () => ({
       ...realCell,
       CELL_RENDERERS: extendedRenderers,
       CELL_FORMATS: Object.keys(extendedRenderers),

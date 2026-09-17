@@ -24,7 +24,10 @@ the next package artifacts. Watch commands regenerate declarations after a
 successful JavaScript build.
 
 Every named type referenced by a public TypeScript declaration is exported from
-the package entry point and included in the generated API reference. TypeDoc
+the package entry point and included in the generated API reference. The API
+reference covers each package's public `"."` entry; the `./internal` entries of
+generator-core and the validator are built beside it with shared chunks in both module formats, so both
+entries use one copy of each module, and it is not documented for applications. TypeDoc
 validation warnings fail both API generation and documentation coverage checks.
 The documentation pipeline does not suppress references to unexported public
 types.

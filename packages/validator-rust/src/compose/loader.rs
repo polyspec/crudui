@@ -1,13 +1,13 @@
 //! File loader for `$ref` resolution.
 //!
-//! `$ref` loads external YAML files (legacy ReferenceResolver: `yml_parse_file`). The
+//! `$ref` loads external YAML files. The
 //! compose engine never touches the filesystem directly — it goes through the
 //! `FileLoader` trait, so the shared fixtures supply a virtual in-memory file set
 //! (the spec graph is the input; no disk needed). The only implementation today
 //! is `MemoryLoader`; a disk + YAML backed loader is not implemented yet — when
 //! added it plugs into the same trait without touching the engine.
 //!
-//! Path normalization mirrors legacy ReferenceResolver:
+//! Path normalization:
 //! - absolute (`/…`) paths pass through unchanged
 //! - relative paths get the basepath prefix (`basepath + '/' + path`)
 //!
@@ -58,7 +58,7 @@ impl MemoryLoader {
 
 impl FileLoader for MemoryLoader {
     fn normalize(&self, path: &str, basepath: &str) -> String {
-        // Absolute path: pass through. Relative: prefix basepath (legacy parity).
+        // Absolute path: pass through. Relative: prefix basepath.
         if path.starts_with('/') {
             return path.to_string();
         }

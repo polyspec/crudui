@@ -7,7 +7,12 @@ const path = resolve(dirname(fileURLToPath(import.meta.url)), '../../../contract
 export interface ContractManifest {
   format: string;
   version: string;
-  packages: Array<{ name: string; path: string; layer: string; exports: string[] }>;
+  packages: Array<{
+    name: string;
+    path: string;
+    layer: string;
+    entries: Record<string, { visibility: 'public' | 'internal'; exports: string[] }>;
+  }>;
   features: Array<{
     id: string;
     owner: string;
@@ -47,9 +52,10 @@ export function renderManifestMarkdown(manifest = loadManifest()): string {
     '',
     '## Packages',
     '',
-    '| Package | Layer | Exports |',
-    '| --- | --- | --- |',
-    ...manifest.packages.map((pkg) => `| \`${pkg.name}\` | ${pkg.layer} | ${pkg.exports.map((name) => `\`${name}\``).join(', ')} |`),
+    '| Package | Layer | Entry | Visibility | Exports |',
+    '| --- | --- | --- | --- | --- |',
+    ...manifest.packages.flatMap((pkg) => Object.entries(pkg.entries).map(([entry, { visibility, exports }]) =>
+      `| \`${pkg.name}\` | ${pkg.layer} | \`${entry}\` | ${visibility} | ${exports.map((name) => `\`${name}\``).join(', ')} |`)),
     '',
     '## Fixtures',
     '',

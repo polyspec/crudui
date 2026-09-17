@@ -1,8 +1,5 @@
 // Package model is the canonical (SPEC-mechanized, single-truth) Go model of the
-// crudui field. It is the model successor to the stable legacy validator package.
-//
-// model runs in parallel with legacy (R7). Do not fold legacy into this package; legacy stays
-// until model stabilizes. Nothing here imports legacy, and legacy imports nothing here.
+// crudui field.
 //
 // The model encodes SPEC §3 exactly:
 //
@@ -25,11 +22,9 @@
 //   - composition. $ref (base inheritance) expands first, then $patch
 //     (add / remove / replace).
 //
-// Only canonical model keys are recognized. Legacy names (multiple_max,
+// Only canonical model keys are recognized. Other spellings (multiple_max,
 // lang:append, sortable*, add_buttons, …) and magic tokens (`*`, `:`) are NOT
-// valid keys here; they have no field on any struct. Their canonical targets are
-// recorded in LegacyKeyMap for a one-way translator, never mixed into the
-// recognized model (R2 / R4).
+// valid keys here; they have no field on any struct and are rejected (R2 / R4).
 //
 // Buckets are closed or open, as in the JSON schema. The closed buckets design,
 // design.{label,wrapper,group,prepend}, behavior, multiple and lang reject any
@@ -527,9 +522,9 @@ func (s *ValidateSlot) UnmarshalJSON(data []byte) error {
 }
 
 // DesignSlot is the design role slot — appearance = display condition (Show) +
-// a per-DOM-node appearance map. R8: the targeted node is visible in the key. It
-// absorbs the legacy element_class / label_class / group_class / input_class /
-// wrapper_class / prepend_class into the node map.
+// a per-DOM-node appearance map. R8: the targeted node is visible in the key;
+// per-node classes are declared here, never as element_class / label_class /
+// group_class / input_class / wrapper_class / prepend_class siblings.
 //
 // Polymorphic: Cancel = the false shape, Bare = the true shape, otherwise the
 // body carries the {} shape. design is a closed bucket: Unmarshal rejects any
@@ -1037,10 +1032,9 @@ func orderedRawObject(data []byte) ([]string, map[string]json.RawMessage, error)
 // identity, and object member order is row order; the specification has no
 // hidden identity or order field (see docs/spec/form-runtime.md).
 //
-// Legacy multiple_max / sortable* / add_buttons / remove_list_button /
-// list_button_text / multiple_button_onclick are NOT fields here; their
-// canonical targets (max / sortable / copy / onclick) are in LegacyKeyMap for a
-// translator, never recognized directly (R2 / R4). multiple is a closed bucket:
+// multiple_max / sortable* / add_buttons / remove_list_button /
+// list_button_text / multiple_button_onclick are NOT fields here; the canonical
+// keys are max / sortable / copy / onclick (R2 / R4). multiple is a closed bucket:
 // Unmarshal rejects any key not modeled below.
 type Multiple struct {
 	// Cancel is the false shape: multiple disabled (cancels a composed-in
@@ -1109,10 +1103,9 @@ func (m *Multiple) UnmarshalJSON(data []byte) error {
 // multilingual control keys live under it, never at top level. Same structural
 // axis as Multiple. Polymorphic false | {} | true.
 //
-// Legacy lang:append / langs / lang_name / lang_key / remove_lang_frame /
-// remove_lang_title / lang_group_class are NOT fields here; their canonical
-// targets (mode / only / name / key / frame / title / group_class) are in
-// LegacyKeyMap for a translator, never recognized directly (R2 / R4). The magic
+// lang:append / langs / lang_name / lang_key / remove_lang_frame /
+// remove_lang_title / lang_group_class are NOT fields here; the canonical keys
+// are mode / only / name / key / frame / title / group_class (R2 / R4). The magic
 // `:` token in lang:append is rejected outright. lang is a closed bucket:
 // Unmarshal rejects any key not modeled below.
 type Lang struct {
@@ -1121,14 +1114,13 @@ type Lang struct {
 	// Enabled is the true shape: the bare on switch with no body.
 	Enabled bool `json:"-"`
 
-	// Mode is the multilingual mode (absorbs legacy lang:append).
+	// Mode is the multilingual mode.
 	Mode any `json:"mode,omitempty"`
 	// Only has two shapes (SPEC §3 C): a language allowlist []string
 	// (["ko","en"]) OR a per-language override map
 	// map[string]{validate/design/behavior/options} ({ja:{validate:…}}). The
 	// allowlist restricts rendered languages; the override map redefines role
-	// slots per language. Held as any so both shapes round-trip. Absorbs the
-	// legacy langs allowlist and the legacy per-language langs map.
+	// slots per language. Held as any so both shapes round-trip.
 	Only any `json:"only,omitempty"`
 	// Name is the per-language name binding.
 	Name any `json:"name,omitempty"`
@@ -1182,9 +1174,9 @@ func (l *Lang) UnmarshalJSON(data []byte) error {
 // CompositionDirective is a composition key. $ref expands first (base
 // inheritance from a file / path; an unresolved $ref cannot load), then $patch
 // applies changes (add / remove / replace, JSON-Patch style, with deep-path set
-// support). Resolution order: $ref → $patch → single spec → field layer. Legacy
-// $after / $before / $merge / $remove are absorbed by $patch (and are forbidden
-// meta keys here).
+// support). Resolution order: $ref → $patch → single spec → field layer.
+// $after / $before / $merge / $remove are forbidden meta keys; $patch expresses
+// those changes.
 type CompositionDirective struct {
 	// Ref is base inheritance (file / path). It expands before anything else.
 	Ref any `json:"$ref,omitempty"`
@@ -1203,8 +1195,8 @@ var CompositionDirectives = []string{"$ref", "$patch"}
 //
 // Condition-only meta keys (display_switch / display_target / if / when /
 // show_if) are gone — conditions live in condition maps and design.show.
-// Convention sigils (_) and legacy directives are gone — $after / $before /
-// $merge / $remove fold into $patch; xclass / xstyle fold into the design node
+// Convention sigils (_) are gone; $after / $before / $merge / $remove are
+// expressed with $patch; xclass / xstyle fold into the design node
 // map. The x{key} comment pattern is handled by ForbiddenKeyPrefix, not this
 // literal list.
 var ForbiddenMetaKeys = []string{
@@ -1238,36 +1230,6 @@ var forbiddenSet = func() map[string]bool {
 	}
 	return m
 }()
-
-// LegacyKeyMap maps every legacy / magic-token key to its canonical model target,
-// for a ONE-WAY translator only. These keys are never recognized as valid input
-// by the model; the map exists so a migration tool can rewrite them. The magic
-// tokens `*` (sortable*) and `:` (lang:append) are normalized to their bare
-// canonical key here and rejected as input everywhere else (R2 / R4).
-var LegacyKeyMap = map[string]string{
-	// multiple bucket
-	"multiple_max":            "multiple.max",
-	"sortable":                "multiple.sortable",
-	"add_buttons":             "multiple.copy",
-	"remove_list_button":      "multiple.copy",
-	"list_button_text":        "multiple.copy",
-	"multiple_button_onclick": "multiple.onclick",
-	// lang bucket
-	"lang:append":       "lang.mode",
-	"langs":             "lang.only",
-	"lang_name":         "lang.name",
-	"lang_key":          "lang.key",
-	"remove_lang_frame": "lang.frame",
-	"remove_lang_title": "lang.title",
-	"lang_group_class":  "lang.group_class",
-	// design node map (legacy *_class absorbed)
-	"element_class": "design.class",
-	"input_class":   "design.class",
-	"label_class":   "design.label.class",
-	"group_class":   "design.group.class",
-	"wrapper_class": "design.wrapper.class",
-	"prepend_class": "design.prepend.class",
-}
 
 // scalarBool reports whether data is the JSON literal true or false, returning
 // the boolean. It distinguishes the polymorphic false / true slot shapes from the

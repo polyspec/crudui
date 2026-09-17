@@ -3,10 +3,9 @@
 // The parser's FIRST pass: expand $ref (base inheritance) then $patch
 // (add/remove/replace + deep-path set) into a single, composition-free spec,
 // BEFORE the field layer / validation / render. Unresolved composition is a LOAD
-// ERROR (ComposeLoadError) — never valid:true (the legacy LargeForm.yml:873 bug).
-// model-NEW only: this never touches the legacy model or loader (R7 parallel run).
+// ERROR (ComposeLoadError) — never valid:true.
 //
-// Byte-for-byte parity with the JS reference (validator-ts/src/model/compose). Both
+// Byte-for-byte parity with the JS reference (validator-ts/src/compose). Both
 // load the SAME shared fixture tests/fixtures/compose/cases.json and must
 // reproduce it identically (G-B 4-language idempotence). interface{} is spelled
 // any (Go ≥ 1.18). No eval.
@@ -17,13 +16,13 @@ package compose
 type ComposeErrorCode string
 
 const (
-	// RefFileNotFound: $ref points at a file that does not exist (legacy yml_parse_file fail).
+	// RefFileNotFound: $ref points at a file that does not exist (the file cannot be loaded).
 	RefFileNotFound ComposeErrorCode = "REF_FILE_NOT_FOUND"
 	// RefFormatError: $ref string is malformed: "(…" with no closing ").keys", or empty path.
 	RefFormatError ComposeErrorCode = "REF_FORMAT_ERROR"
 	// RefDetectKeyNotFound: a detectKey path segment (or the trailing "properties") is absent.
 	RefDetectKeyNotFound ComposeErrorCode = "REF_DETECT_KEY_NOT_FOUND"
-	// RefCycle: $ref cycle detected (A→B→A); legacy would infinite-recurse.
+	// RefCycle: $ref cycle detected (A→B→A); resolution stops instead of recursing forever.
 	RefCycle ComposeErrorCode = "REF_CYCLE"
 	// RefValueType: $ref value is neither a string nor an array of strings.
 	RefValueType ComposeErrorCode = "REF_VALUE_TYPE"
@@ -33,11 +32,18 @@ const (
 	PatchPathConflict ComposeErrorCode = "PATCH_PATH_CONFLICT"
 	// PatchRemoveTargetMissing: $patch remove targets a path that does not exist (strict remove).
 	PatchRemoveTargetMissing ComposeErrorCode = "PATCH_REMOVE_TARGET_MISSING"
-	// ForbiddenMetaKey: a forbidden meta key (condition-only / legacy / magic-symbol,
+	// ForbiddenMetaKey: a forbidden meta key (condition-only / composition-directive / magic-symbol,
 	// or an x{key} comment that survived x-strip) was found at any depth in the
 	// composed single spec. The forbidden-scan runs in the LOAD path after compose
 	// expansion; a hit is a load failure, never valid:true. Mirrors JS forbidden-scan.ts.
 	ForbiddenMetaKey ComposeErrorCode = "FORBIDDEN_META_KEY"
+	// InvalidRuleParameter: a validate rule parameter outside the rule's
+	// definition (docs/spec/validation-rules.md, Parameter errors). Trace is the
+	// field's declaration path.
+	InvalidRuleParameter ComposeErrorCode = "INVALID_RULE_PARAMETER"
+	// InvalidRulePattern: a pattern or match parameter outside the CRUDUI pattern
+	// language. Trace is the field's declaration path.
+	InvalidRulePattern ComposeErrorCode = "INVALID_RULE_PATTERN"
 )
 
 // ComposeLoadError is every composition load failure. NOT a validation error.

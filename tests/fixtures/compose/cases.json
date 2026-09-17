@@ -232,7 +232,7 @@
             "keep": {
               "type": "text"
             },
-            "legacy_field": {
+            "retired_field": {
               "type": "text"
             }
           }
@@ -242,7 +242,7 @@
         "$ref": "base.yml",
         "$patch": {
           "remove": [
-            "legacy_field"
+            "retired_field"
           ]
         }
       }

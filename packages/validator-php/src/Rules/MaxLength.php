@@ -4,34 +4,24 @@ declare(strict_types=1);
 
 namespace CRUDUI\Validator\Rules;
 
+use CRUDUI\Validator\Values\InvalidRuleParameter;
+use CRUDUI\Validator\Values\LengthLimit;
+
 /**
- * Maximum length validation rule.
+ * Maximum length validation rule on the code points of the canonical text.
  */
 class MaxLength implements RuleInterface
 {
     /**
-     * Validate that a value does not exceed the specified length.
+     * Validate that a scalar's canonical text has no more than the specified number of code points.
+     * An array or object value fails.
+     *
+     * @throws InvalidRuleParameter when the limit is not an integer from 0 to 9007199254740991
      */
     public function validate(mixed $value, mixed $param, array $allData, string $path): bool
     {
-        $maxLength = (int)$param;
-
-        if (is_array($value)) {
-            return count($value) <= $maxLength;
-        }
-
-        // Use mb_strlen for proper Unicode character counting
-        $length = mb_strlen((string)$value, 'UTF-8');
-        return $length <= $maxLength;
-    }
-
-    /**
-     * Returns the default error message for this rule.
-     *
-     * @return string Default message, with {0}, {1} placeholders where applicable
-     */
-    public function getDefaultMessage(): string
-    {
-        return 'Please enter no more than {0} characters.';
+        $limit = LengthLimit::single('maxlength', $param);
+        $length = LengthLimit::lengthOf($value);
+        return $length !== null && $length <= $limit;
     }
 }

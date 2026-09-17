@@ -5,9 +5,6 @@
 // parser knows no data, the evaluator knows no string. No eval, no regex/string
 // split evaluation (GRAMMAR §10) — a single forward scan plus recursive descent.
 //
-// This is the model engine. It runs in parallel with the legacy condition_parser in
-// package validator (R7); nothing here imports legacy and legacy imports nothing here.
-//
 // The single truth is the shared 4-language fixture
 // tests/fixtures/expr/cases.json (already passing in JS and PHP). Tokens, AST
 // shape, and evaluated value/truthy are byte-compatible with the JS reference

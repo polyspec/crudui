@@ -7,9 +7,7 @@ namespace CRUDUI\Validator;
 /**
  * CRUDUI canonical FieldSpec model. SINGLE SOURCE OF TRUTH (SPEC §3).
  *
- * This is the CRUDUI NEW model. legacy (CRUDUI\Validator\*) stays untouched and runs
- * in parallel until CRUDUI is stable (R7). This class mechanizes the canonical CRUDUI
- * model ONLY — it never mirrors a legacy shape.
+ * This class mechanizes the canonical CRUDUI model.
  *
  * What is mechanized here:
  * - TOP_LEVEL: the closed, ordered set of field keys, each tagged with its role.
@@ -26,13 +24,12 @@ namespace CRUDUI\Validator;
  * - CONDITION_MAP: a declaration-ordered map; its default key is the literal
  *   `true` expression (always truthy). R4 forbids convention sigils such as `_`.
  * - COMPOSITION: $ref (base inheritance) then $patch (mutation).
- * - FORBIDDEN_META_KEYS: condition-only / legacy meta keys that MUST NOT appear
+ * - FORBIDDEN_META_KEYS: condition-only and retired meta keys that MUST NOT appear
  *   anywhere in a CRUDUI field — not at root, not one level below any slot/bucket.
  *
- * Recognition vs translation. Only canonical CRUDUI names are recognition keys
- * (R2 forbids dual spellings; R4 forbids magic tokens like `*` or `:`). Legacy
- * names (multiple_max, sortable*, lang:append, langs, …) live in ABSORBS_LEGACY
- * for the legacy->CRUDUI translator and are NEVER mixed into the recognition sets.
+ * Recognition. Only canonical CRUDUI names are recognition keys (R2 forbids dual
+ * spellings; R4 forbids magic tokens like `*` or `:`). Other spellings such as
+ * multiple_max, sortable*, lang:append or langs are not recognized.
  *
  * Comment keys (x{key}). The meta-schema is expected to x-strip every `x`-prefixed
  * key BEFORE validating the canonical spec; this model therefore REJECTS an
@@ -132,8 +129,7 @@ final class FieldSpec
      * Sub-keys inside the `design` slot. show = display condition (NOT a node);
      * class/style = the primary (input) node; label|wrapper|group|prepend
      * carry .class/.style for that named node. Which node a class/style targets
-     * is revealed by the key (R8). Absorbs legacy element_class/label_class/
-     * group_class/input_class/wrapper_class/prepend_class.
+     * is revealed by the key (R8).
      *
      * @var list<string>
      */
@@ -226,8 +222,7 @@ final class FieldSpec
 
     /**
      * Dependency-bucket targets and where each one's dependent keys live. Keys
-     * here are CANONICAL CRUDUI names only — no legacy spellings, no magic tokens.
-     * Legacy translation lives in ABSORBS_LEGACY.
+     * here are CANONICAL CRUDUI names only — no alternative spellings, no magic tokens.
      *
      * - type     -> the `options` slot (scalar target's dedicated slot).
      * - multiple -> directly under the `multiple` structural key.
@@ -260,34 +255,6 @@ final class FieldSpec
         'items' => [
             'location' => 'items',
             'keys'     => ['model', 'method', 'table', 'relations', 'api_server', 'items'],
-        ],
-    ];
-
-    /**
-     * Legacy->CRUDUI translation table for the dependency buckets. For the legacy
-     * arm and the migrator ONLY — these names are NOT recognition keys and never
-     * appear in DEPENDENCY_BUCKETS (R2 dual-spelling ban; R4 magic-token ban).
-     * Each entry: bucket => [ legacy_name => schema_name ].
-     *
-     * @var array<string, array<string, string>>
-     */
-    public const ABSORBS_LEGACY = [
-        'multiple' => [
-            'multiple_max'            => 'max',
-            'sortable*'               => 'sortable',
-            'add_buttons'             => 'copy',
-            'remove_list_button'      => 'copy',
-            'list_button_text'        => 'copy',
-            'multiple_button_onclick' => 'onclick',
-        ],
-        'lang' => [
-            'lang:append'       => 'mode',
-            'langs'             => 'only',
-            'lang_name'         => 'name',
-            'lang_key'          => 'key',
-            'remove_lang_frame' => 'frame',
-            'remove_lang_title' => 'title',
-            'lang_group_class'  => 'group_class',
         ],
     ];
 
@@ -334,8 +301,8 @@ final class FieldSpec
     /**
      * Composition directives, in resolution order: $ref (base inheritance) is
      * expanded first; an unresolved $ref cannot be loaded. $patch then mutates.
-     * Legacy $after/$before/$merge/$remove are absorbed by $patch and are
-     * forbidden as literal keys.
+     * $after/$before/$merge/$remove are not directives and are forbidden as
+     * literal keys.
      *
      * @var list<string>
      */
@@ -344,7 +311,7 @@ final class FieldSpec
     // --- forbidden meta keys -------------------------------------------------
 
     /**
-     * Condition-only and legacy meta keys that MUST NOT appear ANYWHERE in a CRUDUI
+     * Condition-only and retired meta keys that MUST NOT appear ANYWHERE in a CRUDUI
      * field — at root, and also one level below any slot or bucket body. Open
      * buckets stay open via propertyNames:{not:{enum:FORBIDDEN}}, so extension is
      * allowed but every one of these is globally blocked. `x{key}` comment keys
@@ -425,16 +392,6 @@ final class FieldSpec
             && $key[0] === 'x'
             && !self::isTopLevelKey($key)
             && !in_array($key, ['xclass', 'xstyle'], true);
-    }
-
-    /**
-     * Canonical CRUDUI name for a legacy dependency-bucket key, or null when the
-     * name is not a known legacy spelling. Translator-only; the legacy name is
-     * never a recognition key.
-     */
-    public static function canonicalFor(string $bucket, string $legacyKey): ?string
-    {
-        return self::ABSORBS_LEGACY[$bucket][$legacyKey] ?? null;
     }
 
     /**

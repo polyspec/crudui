@@ -52,8 +52,4 @@ export const enddateRule: RuleDefinition = {
 
     return null;
   },
-
-  defaultMessage: 'End date must be after the start date.',
 };
-
-export default enddateRule;

@@ -3,6 +3,7 @@ import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
+import { parse } from 'yaml';
 
 const repository = fileURLToPath(new URL('../..', import.meta.url));
 const ignoredDirectories = new Set(['.git', 'node_modules', 'target', 'vendor']);
@@ -122,4 +123,73 @@ test('container definitions select the stable Rust major channel', async () => {
     [],
     `Rust stages must use the stable major channel: ${JSON.stringify(rustStages, null, 2)}`,
   );
+});
+
+async function composerManifests(directory = repository) {
+  const entries = await readdir(directory, { withFileTypes: true });
+  const files = [];
+  for (const entry of entries) {
+    if (entry.isDirectory() && !entry.name.startsWith('.') && !ignoredDirectories.has(entry.name)) {
+      files.push(...await composerManifests(path.join(directory, entry.name)));
+    } else if (entry.isFile() && entry.name === 'composer.json') {
+      files.push(path.join(directory, entry.name));
+    }
+  }
+  return files;
+}
+
+/** The PHP minors from `lowest` to `newest`, as `8.N` strings. */
+function phpMinors(lowest, newest) {
+  const [lowMajor, lowMinor] = lowest.split('.').map(Number);
+  const [highMajor, highMinor] = newest.split('.').map(Number);
+  assert.equal(lowMajor, highMajor, 'The supported PHP range must stay within one major');
+  return Array.from({ length: highMinor - lowMinor + 1 }, (_, i) => `${lowMajor}.${lowMinor + i}`);
+}
+
+test('the declared PHP range is the range CI tests, and containers use the newest tested line', async () => {
+  const workflow = parse(await readFile(path.join(repository, '.github/workflows/ci.yml'), 'utf8'));
+  const composer = await composerManifests();
+  assert.ok(composer.length > 0, 'At least one Composer manifest is required');
+  const constraints = [];
+  for (const file of composer) {
+    const constraint = JSON.parse(await readFile(file, 'utf8')).require?.php;
+    constraints.push({ file: path.relative(repository, file), constraint });
+  }
+  const lowest = constraints[0].constraint?.match(/^\^(\d+\.\d+)$/)?.[1];
+  assert.ok(lowest, `PHP constraints must be one caret range: ${JSON.stringify(constraints)}`);
+  assert.deepEqual(constraints.filter(({ constraint }) => constraint !== `^${lowest}`), [],
+    `Every Composer manifest must require PHP ^${lowest}`);
+
+  const selected = [];
+  for (const job of Object.values(workflow.jobs)) {
+    for (const step of job.steps ?? []) {
+      if (String(step.uses ?? '').startsWith('shivammathur/setup-php@')) {
+        const version = String(step.with?.['php-version'] ?? '');
+        selected.push(version === '${{ matrix.php }}' ? job.strategy.matrix.php.map(String) : [version]);
+      }
+    }
+  }
+  const newest = selected.flat().sort((a, b) => Number(a.split('.')[1]) - Number(b.split('.')[1])).at(-1);
+  const range = phpMinors(lowest, newest);
+  assert.deepEqual(selected.flat().filter((version) => !range.includes(version)), [],
+    `CI must select PHP lines inside ^${lowest}`);
+
+  // Every job that runs a PHP package's own test suite covers the whole declared range.
+  for (const [name, job] of Object.entries(workflow.jobs)) {
+    const commands = (job.steps ?? []).map((step) => String(step.run ?? '')).join('\n');
+    if (/composer --working-dir=packages\/[^ ]+ test\b|make test-native\b/.test(commands)) {
+      assert.deepEqual(job.strategy?.matrix?.php?.map(String), range,
+        `${name} tests a PHP package and must run on every line from ${lowest} to ${newest}`);
+    }
+  }
+
+  const stages = [];
+  for (const definition of await findContainerDefinitions()) {
+    const source = await readFile(definition, 'utf8');
+    for (const match of source.matchAll(/^FROM\s+php:([^\s]+)(?:\s|$)/gm)) {
+      stages.push({ definition: path.relative(repository, definition), tag: match[1] });
+    }
+  }
+  assert.deepEqual(stages.filter((stage) => !stage.tag.startsWith(`${newest}-`)), [],
+    `PHP container stages must use the newest tested line ${newest}`);
 });

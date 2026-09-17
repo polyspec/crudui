@@ -6,6 +6,7 @@
 
 import { RuleDefinition, ValidationContext } from '../types';
 import { isEmpty } from './required';
+import { trim } from '../values/index';
 
 /**
  * URL pattern for validation
@@ -21,7 +22,7 @@ export function isValidUrl(value: unknown): boolean {
     return false;
   }
 
-  const trimmed = value.trim();
+  const trimmed = trim(value);
   if (trimmed === '') {
     return false;
   }
@@ -59,8 +60,4 @@ export const urlRule: RuleDefinition = {
 
     return null;
   },
-
-  defaultMessage: 'Please enter a valid URL.',
 };
-
-export default urlRule;

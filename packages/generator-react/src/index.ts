@@ -1,28 +1,23 @@
-import type { FormInstance } from '@crudui/generator-core';
-/** Form template binding, rendering and list rendering. */
+/**
+ * React components and server rendering for CRUDUI forms, lists and details. Applications
+ * compile and create forms with `@crudui/generator-core`.
+ */
 
 import * as React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import {
   buildList,
   buildDetail,
-  listLayout,
+  type BuildDetailOptions,
   type BuildListOptions,
+  type FormInstance,
 } from '@crudui/generator-core';
+import { listLayout } from '@crudui/generator-core/internal';
 import { Form } from './components/Form';
 import { List } from './components/List';
 import { Detail } from './components/Detail';
 
-export { ComposeLoadError } from '@crudui/validator';
-export { UnsupportedFieldTypeError } from '@crudui/generator-core';
-export { resolveDesign } from '@crudui/generator-core';
-export { evalShow, evalAppearance, makeContext } from '@crudui/generator-core';
-export { makeTranslate } from '@crudui/generator-core';
-export type { Language } from '@crudui/generator-core';
-export type { UnsupportedMode } from '@crudui/generator-core';
-
 // Node, widget, structure map and data view rendering.
-export type { NodeVM, WidgetModel } from '@crudui/generator-core';
 export { Node } from './components/Node';
 export { Controls } from './components/Controls';
 export { Widget } from './components/Widget';
@@ -32,24 +27,12 @@ export type { OutlineProps, OutlineViewProps } from './components/Outline';
 export { DataView, DataPanel } from './components/DataView';
 export type { DataPanelProps } from './components/DataView';
 
-// List models and rendering.
-export { buildList } from '@crudui/generator-core';
-export type {
-  ListViewModel,
-  ColumnVM,
-  CellVM,
-  ListRowVM,
-  PaginationVM,
-  SortVM,
-  ActionVM,
-  CellDisplay,
-} from '@crudui/generator-core';
+// Form, list and detail rendering.
+export { Form } from './components/Form';
 export { List } from './components/List';
 export type { ListProps } from './components/List';
 export { Cell } from './components/Cell';
 export { Detail } from './components/Detail';
-export type { DetailViewModel, DetailFieldVM, BuildDetailOptions } from '@crudui/generator-core';
-export { buildDetail } from '@crudui/generator-core';
 
 /** Render the current form instance as HTML. */
 export function renderForm(form: FormInstance): string {
@@ -81,12 +64,8 @@ export function renderList(
 export function renderDetail(
   detailSpec: Record<string, unknown>,
   record: Record<string, unknown> = {},
-  options: import('@crudui/generator-core').BuildDetailOptions = {},
+  options: BuildDetailOptions = {},
 ): string {
   const vm = buildDetail(detailSpec, record, options);
   return renderToStaticMarkup(React.createElement(Detail, { vm }));
 }
-
-export { Form } from './components/Form';
-export { compileForm, createForm, createRowKey, sequenceRowKey } from '@crudui/generator-core';
-export type { FormTemplate, FormInstance, CreateFormOptions } from '@crudui/generator-core';

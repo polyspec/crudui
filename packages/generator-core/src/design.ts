@@ -3,10 +3,10 @@
  * appearance map (R8). SPEC §3 common-role distribution; mirrors
  * validator-ts/src/types.ts:258 DesignSlot.
  *
- * The legacy scattered meta keys (element_class/label_class/group_class/
- * wrapper_class/prepend_class/display_switch/display_target/style) are absorbed
- * into this one slot's node map. No legacy meta key is read here — the renderer
- * derives EVERY appearance value from `design` alone.
+ * All appearance lives in this one slot's node map. No other meta key
+ * (element_class/label_class/group_class/wrapper_class/prepend_class/
+ * display_switch/display_target/style) is read here — the renderer derives EVERY
+ * appearance value from `design` alone.
  *
  * Slot polymorphism (Slot<DesignSlot>, types.ts:90):
  *   - design === false → slot OFF: every node appearance is empty, show stays
@@ -19,7 +19,7 @@
  * literal, expression, or condition map. eval is never called.
  */
 
-import type { PathContext } from '@crudui/validator';
+import type { PathContext } from '@crudui/validator/internal';
 import { evalShow, evalAppearance } from './expr';
 
 /** Resolved class+style for one DOM node. */

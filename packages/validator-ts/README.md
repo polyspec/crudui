@@ -1,48 +1,38 @@
-# @crudui/validator (JS/TS)
+# @crudui/validator
 
-crudui validator for JavaScript/TypeScript. Ships the legacy `Validator` library
-(form data → `{ valid, errors }`) and the CRUDUI engine (compose → forbidden-scan →
-validate) reused by `@crudui/generator-core`.
+[한국어](README.ko.md).
 
-## CRUDUI entry points
+Validate CRUDUI form data and check list and detail specifications in
+JavaScript and TypeScript.
 
-- `validate(spec, data, opts)` — full form pipeline: compose (G5: expand
-  `$ref`/`$patch`) → forbidden-scan (§6) → validate the data rows (§3 + §2 G1).
-- `validateList(spec, opts)` — read-sister STRUCTURE check (SPEC §9): compose
-  + forbidden-scan over the list tree. Validates NO rows (a list has no data;
-  rows are injected, DB-agnostic). A clean load returns `{ valid: true,
-  errors: [] }`.
-- `validateDetail(spec, opts)` — the same STRUCTURE check for a detail
-  specification: compose the root and the `fields` map, then forbidden-scan.
-  It validates no record. Go, PHP, the PHP extension and Rust run the same
-  shared cases (`tests/fixtures/detail-validity`).
-- `composeProperties`, `MemoryLoader`, `ComposeLoadError` — composition surfaces
-  consumed by the generators.
-- `FormInputError` — submitted data with the wrong shape (`INVALID_FORM_INPUT`).
+## Application API
 
-An unresolved `$ref`/`$patch` or a forbidden meta key is a `ComposeLoadError`
-(a load failure). Root data that is not an object, group data that is not an
-object and repeated data that is not a keyed object throw `FormInputError`. Neither
-failure is `valid:false`; the
-[validation procedure](../../docs/operations/validation.md) defines the messages.
+The package root exports:
 
-## CRUDUI CLI — `bin/validate.mjs`
+- `validate(spec, data, options?)` composes the form specification, rejects
+  forbidden keys and validates `data`. It returns `{ valid, errors }`; each error
+  has `path`, `field`, `rule`, `message` and `value`.
+- `validateList(spec, options?)` composes a list specification and rejects
+  forbidden keys. A list has no submitted data, so a clean load returns
+  `{ valid: true, errors: [] }`.
+- `validateDetail(spec, options?)` performs the same structure check for a detail
+  specification, including its `fields` map.
+- `ComposeLoadError` for an unresolved `$ref` or `$patch` and for a forbidden key.
+- `FormInputError` (code `INVALID_FORM_INPUT`) for root data that is not an
+  object, group data that is not an object and repeated data that is not a keyed
+  object.
 
-The cross-check gateway drives all four languages as symmetric subprocesses
-(spawn, stdin JSON, utf-8). This is the JS wrapper:
+Options accept `files`, a virtual file set for `$ref`, `loader`, an object with
+`normalize(path, basepath)` and `load(key)` that takes precedence over `files`,
+and `basepath` for relative references. The option and result types are
+exported with the functions.
 
-```
-node --import tsx bin/validate.mjs < request.json
-```
+A load or input failure is thrown, never returned as `valid: false`. The
+[validation procedure](../../docs/operations/validation.md) shows usage in every
+language.
 
-- stdin: `{"spec": <object>, "data": <object>, "files"?: {...}, "basepath"?: <string>, "mode"?: "form"|"list"|"detail"}`
-- stdout: `{"valid": <bool>, "errors": [{path, field, rule, message, value}, ...]}`
-
-`mode` defaults to `form`. `list` runs `validateList` and `detail` runs
-`validateDetail` (structure only; `data` is ignored). Any other `mode` value is a
-malformed request: `{"error": "Unsupported validation mode"}` with exit 1. An omitted `data` member validates `{}`. A load or input failure
-exits 2 with exactly `{"error", "code", "at"}` (no `valid` key); a malformed
-request is `{"error"}` with exit 1. Every language's CLI uses this contract.
+The `@crudui/validator/internal` entry serves CRUDUI's own packages and is not
+application API. The package installs no command.
 
 ## Test
 

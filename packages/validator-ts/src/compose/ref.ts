@@ -1,11 +1,11 @@
 /**
  * `$ref` resolution — base inheritance, resolved before anything else (SPEC
- * §5; legacy ReferenceResolver.php).
+ * §5).
  *
  * Resolution supports these current input forms:
  *   (1) value = a single string OR an array of strings — an array resolves each
  *       path in order, then array_merge (later overrides earlier on key clash).
- *   (2) plain path `OptionCombination.yml` → load YAML, descend by the default
+ *   (2) plain path `options.yml` → load YAML, descend by the default
  *       detectKey `['properties']` (= take the file's `properties` only).
  *   (3) path-specified `(file.yml).a.b` → regex split, detectKeys = ['a','b',
  *       'properties'] — descend a.b, then descend to `properties` underneath.
@@ -17,14 +17,14 @@
  * The resolved result is flattened to a single properties map and laid down as
  * the base; `$patch` overlays it (base first, patch overrides). Unresolved
  * `$ref` (missing file / bad format / absent detectKey / cycle) is a LOAD ERROR
- * — never `valid:true` (the legacy LargeForm.yml:873 bug).
+ * — never `valid:true`.
  */
 
 import { ComposeLoadError } from './errors';
 import type { FileLoader, LoadedDoc } from './loader';
 import { applyPatch } from './patch';
 
-/** The regex that splits `(path).keys` — mirrors legacy ReferenceResolver:113. */
+/** The regex that splits `(path).keys`. */
 const PATH_SPEC_RE = /^\((?<path>.*?)\)\.(?<keys>.*)$/;
 
 /**
@@ -44,13 +44,13 @@ export function resolveRef(
   let merged: Record<string, unknown> = {};
   for (const path of paths) {
     const resolved = resolveSingleRef(path, basepath, loader, visiting);
-    // array_merge: later keys override earlier (legacy resolve() semantics).
+    // array_merge: later keys override earlier (array_merge semantics).
     merged = { ...merged, ...resolved };
   }
   return merged;
 }
 
-/** Normalize the `$ref` value into a list of path strings (legacy: scalar→[scalar]). */
+/** Normalize the `$ref` value into a list of path strings (a scalar becomes a one-item list). */
 function normalizeRefValue(value: unknown): string[] {
   if (typeof value === 'string') return [value];
   if (Array.isArray(value)) {
@@ -83,7 +83,7 @@ function resolveSingleRef(
   let path = rawPath;
   let detectKeys: string[] = ['properties'];
 
-  // Path-specified form `(file.yml).a.b` (legacy: leading '(').
+  // Path-specified form `(file.yml).a.b` (leading '(').
   if (path.startsWith('(')) {
     const m = PATH_SPEC_RE.exec(path);
     if (!m || !m.groups) {
@@ -94,11 +94,11 @@ function resolveSingleRef(
     }
     path = m.groups.path;
     const keys = m.groups.keys;
-    // detectKeys = explode('.', keys) ++ ['properties'] (legacy:115).
+    // detectKeys = explode('.', keys) ++ ['properties'].
     detectKeys = [...keys.split('.'), 'properties'];
   }
 
-  // Empty path is a format error (legacy: ReferenceResolver:141).
+  // Empty path is a format error.
   if (path === '') {
     throw new ComposeLoadError('REF_FORMAT_ERROR', `${orgPath} ref error`);
   }
@@ -106,7 +106,7 @@ function resolveSingleRef(
   const key = loader.normalize(path, basepath);
 
   // Cycle detection: this file key already on the current resolution chain
-  // (legacy has no guard and infinite-recurses; CRUDUI must detect — SPEC §7).
+  // (SPEC §7).
   if (visiting.has(key)) {
     throw new ComposeLoadError(
       'REF_CYCLE',
@@ -117,7 +117,7 @@ function resolveSingleRef(
 
   const doc = loader.load(key); // throws REF_FILE_NOT_FOUND if absent
 
-  // Descend detectKeys (legacy: ReferenceResolver:129-136).
+  // Descend detectKeys.
   let node: unknown = doc;
   for (const detectKey of detectKeys) {
     if (
@@ -154,9 +154,9 @@ function resolveSingleRef(
 
 /**
  * Expand any `$ref` (and merge any `$patch`) sitting INSIDE a resolved
- * properties map, recursively (legacy: resolve() re-runs Parser::process). The
- * resolved base is laid down first, then sibling named keys override it (legacy
- * array_merge declaration order: a later plain key overrides an earlier $ref).
+ * properties map, recursively. The resolved base is laid down first, then
+ * sibling named keys override it in declaration order: a later plain key
+ * overrides an earlier $ref.
  */
 function expandNestedRefs(
   node: Record<string, unknown>,
@@ -173,11 +173,11 @@ function expandNestedRefs(
   const own: Record<string, unknown> = {};
 
   // Preserve declaration order: $ref expands to the base; keys declared after it
-  // override, keys before it are overridden by it (legacy positional array_merge).
+  // override, keys before it are overridden by it.
   for (const k of Object.keys(node)) {
     if (k === '$ref') {
-      // base = (earlier own keys) overlaid by ref, matching legacy order where the
-      // ref array_merges onto whatever was processed before it.
+      // base = (earlier own keys) overlaid by ref: the ref merges onto whatever
+      // was processed before it.
       base = { ...own, ...resolveRef(node[k], basepath, loader, visiting) };
       // own keys already folded into base; reset so later keys override base.
       for (const ok of Object.keys(own)) delete own[ok];

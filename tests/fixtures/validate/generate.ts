@@ -34,6 +34,8 @@ import {
   ComposeLoadError,
   FormInputError,
 } from '../../../packages/validator-ts/src/validate/index';
+import { getRule } from '../../../packages/validator-ts/src/rules/index';
+import { AUTHORED_CASES, type AuthoredCase } from './value-rules';
 
 interface CaseSpec {
   /** Specification written as JSON text, so array-index member names keep the order they were written in the fixture file. */
@@ -923,7 +925,29 @@ function build(c: CaseSpec): Record<string, unknown> {
   return base;
 }
 
-const out = SPECS.map(build);
+/**
+ * A case whose outcome the specification states: the result record is written from the stated
+ * outcomes with each rule's default message, never from a runtime's answer.
+ */
+function authored(c: AuthoredCase): Record<string, unknown> {
+  const base: Record<string, unknown> = { name: c.name, note: c.note, spec: c.spec, data: c.data };
+  if (c.failure) {
+    base.expectFailure = c.failure;
+    return base;
+  }
+  const errors = [];
+  for (const [field, outcome] of Object.entries(c.outcomes ?? {})) {
+    if (outcome === null) continue;
+    const rule = getRule(outcome.rule);
+    if (!rule?.defaultMessage) throw new Error(`No default message for ${outcome.rule}`);
+    const message = (outcome.params ?? []).reduce<string>((text, param, index) => text.replace(`{${index}}`, String(param)), rule.defaultMessage);
+    errors.push({ path: field, field, rule: outcome.rule, message, value: c.data[field] ?? null });
+  }
+  base.expected = { valid: errors.length === 0, errors };
+  return base;
+}
+
+const out = [...SPECS.map(build), ...AUTHORED_CASES.map(authored)];
 let text = JSON.stringify(out, null, 2);
 for (const c of SPECS) {
   if (c.specText === undefined) continue;

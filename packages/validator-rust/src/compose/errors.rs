@@ -4,14 +4,14 @@
 //! parser expands `$ref`/`$patch` into a single spec first (G5). An unresolved
 //! composition is NOT a validation failure (`valid:false`) — it is a LOAD
 //! FAILURE: the spec itself does not come into existence. Never let an
-//! unresolved `$ref` pass as `valid:true` (the legacy bug at LargeForm.yml:873).
+//! unresolved `$ref` pass as `valid:true`.
 //!
-//! legacy throw sites promoted to CRUDUI load errors:
-//!   (1) $ref file missing      — ReferenceResolver.php:124 (yml_parse_file)
-//!   (2) $ref format error      — ReferenceResolver.php:113,141 ('… ref error')
-//!   (3) detectKey absent       — ReferenceResolver.php:133 ('… not found')
-//!   (4) $ref cycle (A→B→A)     — legacy infinite-recurses (no guard); CRUDUI detects
-//!   (5) $patch target/op error — $merge/$change undefined key throws (Parser:241)
+//! Load-error classes:
+//!   (1) $ref file missing
+//!   (2) $ref format error
+//!   (3) detectKey absent
+//!   (4) $ref cycle (A→B→A)
+//!   (5) $patch target/op error
 
 use std::fmt;
 
@@ -19,13 +19,13 @@ use std::fmt;
 /// strings are the cross-language contract (`expectError.code` in cases.json).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ComposeErrorCode {
-    /// $ref points at a file that does not exist (legacy yml_parse_file fail).
+    /// $ref points at a file that does not exist.
     RefFileNotFound,
     /// $ref string is malformed: `(…` with no closing `).keys`, or empty path.
     RefFormatError,
     /// A detectKey path segment (or the trailing `properties`) is absent.
     RefDetectKeyNotFound,
-    /// $ref cycle detected (A→B→A); legacy would infinite-recurse.
+    /// $ref cycle detected (A→B→A).
     RefCycle,
     /// $ref value is neither a string nor an array of strings.
     RefValueType,
@@ -36,10 +36,16 @@ pub enum ComposeErrorCode {
     /// $patch remove targets a path that does not exist (strict remove).
     PatchRemoveTargetMissing,
     /// A forbidden meta key survived into the composed single spec at some depth
-    /// (SPEC §6). The recursive forbidden-scan runs after compose/x-strip and
+    /// (SPEC §6). The recursive forbidden-scan runs after composition and x-strip and
     /// before validation; a forbidden key anywhere is a LOAD failure, never
     /// `valid:true`. `trace` carries the dotted path to the offending key.
     ForbiddenMetaKey,
+    /// A rule parameter outside the validation-rule definitions; `trace` is the
+    /// field's declaration path.
+    InvalidRuleParameter,
+    /// A `pattern` or `match` parameter outside the CRUDUI pattern language;
+    /// `trace` is the field's declaration path.
+    InvalidRulePattern,
 }
 
 impl ComposeErrorCode {
@@ -55,6 +61,8 @@ impl ComposeErrorCode {
             ComposeErrorCode::PatchPathConflict => "PATCH_PATH_CONFLICT",
             ComposeErrorCode::PatchRemoveTargetMissing => "PATCH_REMOVE_TARGET_MISSING",
             ComposeErrorCode::ForbiddenMetaKey => "FORBIDDEN_META_KEY",
+            ComposeErrorCode::InvalidRuleParameter => "INVALID_RULE_PARAMETER",
+            ComposeErrorCode::InvalidRulePattern => "INVALID_RULE_PATTERN",
         }
     }
 }

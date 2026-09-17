@@ -3,7 +3,7 @@
 -->
 <script lang="ts">
   import type { ListViewModel } from '@crudui/generator-core';
-  import { paginationPages } from '@crudui/generator-core';
+  import { paginationPages } from '@crudui/generator-core/internal';
   import {
     headerClass,
     headerStyle,

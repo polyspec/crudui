@@ -35,20 +35,19 @@ The [list meta-schema test](../../../packages/validator-ts/src/list-metaschema.c
 and `check-schema.mjs` compile the list entry point and check `expect` and `reason`.
 
 The runtime tests validate `spec` with `files`, read no rows and compare `engine`. The Rust structure
-API returns `Ok(())` for `"pass"`, its equivalent of `{ valid: true, errors: [] }`. The PHP
-command-line test expects exit `0` with the clean result or exit `2` with `{ error, code, at }`, and
-the cross-check console sends every case to the four command-line validators and requires the same
-result from each.
+API returns `Ok(())` for `"pass"`, its equivalent of `{ valid: true, errors: [] }`. The
+cross-check console sends every case to its five validator processes, which exit `0` with the clean
+result or `2` with `{ error, code, at }`, and requires the same result, code and location from each.
 
 Runtime consumers are the list validation tests in
 [TypeScript](../../../packages/validator-ts/src/validate-list/validate-list.conformance.test.ts),
-[PHP](../../../packages/validator-php/tests/Validate/ListValidateConformanceTest.php), the
-[PHP command line](../../../packages/validator-php/tests/Validate/ListValidateCliTest.php),
+[PHP](../../../packages/validator-php/tests/Validate/ListValidateConformanceTest.php),
 [Go](../../../packages/validator-go/validator/validate/list_conformance_test.go),
 [Rust](../../../packages/validator-rust/tests/list_validity_conformance.rs), the
 [PHP extension engine test](../../../packages/php-ext/tests/engine.test.mjs), the
 [PHP extension runner](../../../packages/php-ext/tests/validate.php) and the cross-check console
-[list runner test](../../../examples/cross-check-console/server/validate-list-runner.test.mjs).
+[list runner test](../../../examples/cross-check-console/server/validate-list-runner.test.mjs) and
+[validator process test](../../../examples/cross-check-console/server/validator-processes.test.mjs).
 
 ## Regeneration
 

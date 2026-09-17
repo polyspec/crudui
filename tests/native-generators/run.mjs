@@ -152,9 +152,11 @@ async function build(command, args, cwd) {
   assert.equal(result.signal, null, `Build terminated: ${result.signal}`);
   assert.equal(result.status, 0, `${command} build failed:\n${result.stderr}\n${result.stdout}`);
 }
+// Each language's process is a program beside this suite that calls its package's public API.
+const programs = path.join(ROOT, 'tests/native-generators/programs');
 const goBinary = path.join(buildDirectory, 'generate-go');
-const rustBinary = path.join(ROOT, 'packages/generator-rust/target/debug/generate');
-const phpCLI = path.join(ROOT, 'packages/generator-php/bin/generate.php');
+const rustBinary = path.join(programs, 'rust/target/debug/crudui-native-generator');
+const phpCLI = path.join(programs, 'php/generate.php');
 const phpLiteral = value => "'" + value.replace(/\\/g, '\\\\').replace(/'/g, "\\'") + "'";
 function phpProvenanceSource(autoload) {
   const load = autoload ? `require ${phpLiteral(path.join(ROOT, 'packages/generator-php/vendor/autoload.php'))};` : '';
@@ -170,13 +172,13 @@ const targets = [
     assert.equal(result.stderr, '', 'PHP class inspection produced diagnostics');
     assert.deepEqual(JSON.parse(result.stdout), { generator: false, validator: false, form: false }, 'Pure PHP target must use PHP classes; disable the native extension in its configuration');
   } },
-  { name: 'go', command: goBinary, args: [], prepare: () => build(process.env.GO ?? 'go', ['build', '-o', goBinary, './cmd/generate'], path.join(ROOT, 'packages/generator-go')) },
+  { name: 'go', command: goBinary, args: [], prepare: () => build(process.env.GO ?? 'go', ['build', '-o', goBinary, '.'], path.join(programs, 'go')) },
   {
     name: 'rust',
     command: rustBinary,
     args: [],
-    prepare: () => runRustCommand(['build', '--locked', '--bin', 'generate'], {
-      cwd: path.join(ROOT, 'packages/generator-rust'), run: runCommand,
+    prepare: () => runRustCommand(['build', '--locked'], {
+      cwd: path.join(programs, 'rust'), run: runCommand,
     }),
   },
   { name: 'php-native', command: process.env.PHP ?? 'php', args: ['-d', `extension=${extension ?? ''}`, phpCLI], prepare: async () => {
@@ -288,6 +290,68 @@ const memberOrderRequests = [
   ['build-crudui-detail__fields', '{"operation":"buildDetail","spec":{"fields":{"b":{"field":"b","label":"B"},"10":{"field":"ten","label":"Ten"},"a":{"field":"a","label":"A"}}},"record":{"a":"x","b":"y","ten":"z"},"options":{"language":"en"}}'],
   ['render-crudui-detail__fields', '{"operation":"renderDetail","spec":{"fields":{"b":{"field":"b","label":"B"},"10":{"field":"ten","label":"Ten"},"a":{"field":"a","label":"A"}}},"record":{"a":"x","b":"y","ten":"z"},"options":{"language":"en"}}'],
 ];
+// Requests written as standard input text, checked at the process boundary of every program.
+const requestCases = (() => {
+  const compiled = spec => JSON.stringify(jsonValue(dispatch({ operation: 'compileForm', spec })));
+  const empty = compiled({ type: 'group', properties: {} });
+  const named = compiled({ type: 'group', properties: { name: { type: 'text' } } });
+  const rows = compiled({ type: 'group', properties: { rows: { type: 'text', multiple: true } } });
+  const limited = compiled({ type: 'group', properties: { rows: { type: 'text', multiple: { max: 1 } } } });
+  const buttons = compiled({ type: 'group', buttons: [{ type: 'link', text: { ko: '목록', en: 'List' }, href: '../?a=1&b="2"' }, { type: 'submit', name: '__submitted__', value: 'go', design: { class: { 'name == "a"': 'primary', true: 'plain' }, style: 'color: red; width: 5px' } }, { type: 'button', text: 'Back <now>', behavior: { onclick: { label: 'x', script: 'history.back()' } } }], properties: { name: { type: 'text' } } });
+  const bareTemplate = '{"kind":"crudui/form-template","fields":[],"buttons":[]}';
+  const list = '{"columns":{"v":{"field":"v","label":"V"}}}';
+  const detail = '{"fields":{"v":{"field":"v"}}}';
+  const evaluated = dispatch({ operation: 'bindButtons', template: JSON.parse(buttons), data: { name: 'a' }, options: { language: 'en' } });
+  return [
+    ['text-two-values', '{} {}'], ['text-truncated', '{'], ['text-empty', ''],
+    ['null', 'null'], ['array', '[]'], ['string', '"compileForm"'], ['no-operation', '{}'], ['unknown-operation', '{"operation":"render"}'],
+    ...['compileForm', 'bindForm', 'bindButtons', 'form', 'renderList', 'buildList', 'formButtonsHtml'].map(operation => [`missing-input-${operation}`, `{"operation":"${operation}"}`]),
+    ['options-null', `{"operation":"form","template":${empty},"options":null}`],
+    ['options-array', `{"operation":"bindButtons","template":${bareTemplate},"options":[]}`],
+    ['data-array', `{"operation":"form","template":${empty},"data":[]}`],
+    ['data-null', `{"operation":"bindForm","template":${empty},"data":null}`],
+    ['buttons-data-array', `{"operation":"bindButtons","template":${bareTemplate},"data":[]}`],
+    ['buttons-language-number', `{"operation":"bindButtons","template":${bareTemplate},"options":{"language":1}}`],
+    ['buttons-template-kind', '{"operation":"bindButtons","template":{"kind":"x"}}'],
+    ['actions-null', `{"operation":"form","template":${empty},"actions":null}`],
+    ['actions-null-member', `{"operation":"form","template":${empty},"actions":[null]}`],
+    ['action-shapes', `{"operation":"form","template":${named},"actions":[[],{"method":"render","args":[]},{"method":1,"args":[]},{"method":"getData"},{"method":"getData","args":{}},{"method":"getData","args":[]}]}`],
+    ['option-values-null', `{"operation":"form","template":${named},"data":{},"options":{"language":null,"idPrefix":null,"keyPrefix":null,"unsupported":null}}`],
+    ['compile-missing-file', '{"operation":"compileForm","spec":{"type":"group","properties":{"$ref":"missing.json"}}}'],
+    ['action-failure-keeps-state', `{"operation":"form","template":${named},"data":{"name":"Ada"},"actions":[{"method":"setData","args":[[]]},{"method":"setValue","args":["name","Grace"]}]}`],
+    ['row-actions', `{"operation":"form","template":${rows},"data":{"rows":{"row_a":"A","row_b":"B"}},"actions":[{"method":"addRow","args":["rows",{"key":"row_a"}]},{"method":"moveRow","args":["rows","row_b",0]},{"method":"rekeyRow","args":["rows","row_b","saved_row"]}]}`],
+    ['row-actions-limit', `{"operation":"form","template":${limited},"data":{"rows":{"first":"kept"}},"actions":[{"method":"addRow","args":["rows",{"key":"second"}]},{"method":"copyRow","args":["rows","first"]},{"method":"getValue","args":["rows.first"]}]}`],
+    ['bind-buttons-declared', `{"operation":"bindButtons","template":${buttons},"data":{"name":"a"},"options":{"language":"en"}}`],
+    ['bind-buttons-default', `{"operation":"bindButtons","template":${empty}}`],
+    ['buttons-html-declared', JSON.stringify({ operation: 'formButtonsHtml', buttons: evaluated })],
+    ['buttons-html-missing', '{"operation":"formButtonsHtml"}'],
+    ['buttons-html-null', '{"operation":"formButtonsHtml","buttons":null}'],
+    ['buttons-html-number', '{"operation":"formButtonsHtml","buttons":1}'],
+    ['buttons-html-member-list', '{"operation":"formButtonsHtml","buttons":[[]]}'],
+    ['buttons-html-attribute-id', '{"operation":"formButtonsHtml","buttons":[{"tag":"a","text":"x","attrs":{"id":"i"}}]}'],
+    ['buttons-html-attribute-href', '{"operation":"formButtonsHtml","buttons":[{"tag":"a","text":"x","attrs":{"href":1}}]}'],
+    ...Object.entries({
+      'spec-array': '"spec":[],"rows":[1]', 'spec-string': '"spec":"list"', 'rows-object': `"spec":${list},"rows":{}`,
+      'rows-number': `"spec":${list},"rows":[1]`, 'rows-array': `"spec":${list},"rows":[[]]`,
+      'context-array': `"spec":${list},"rows":[],"options":{"data":[]}`, 'context-string': `"spec":${list},"rows":[],"options":{"data":"s"}`,
+      'context-before-page': `"spec":${list},"rows":[],"options":{"data":[],"page":0}`,
+      'page-string': `"spec":${list},"rows":[],"options":{"page":"2"}`, 'page-array': `"spec":${list},"rows":[],"options":{"page":[]}`,
+      'page-before-total': `"spec":${list},"rows":[],"options":{"page":0,"total":-1,"layout":"grid"}`,
+      'page-fraction': `"spec":${list},"rows":[],"options":{"page":1.5}`, 'page-unsafe': `"spec":${list},"rows":[],"options":{"page":9007199254740992}`,
+      'page-safe-total-negative-zero': `"spec":${list},"rows":[],"options":{"page":9007199254740991,"total":-0}`,
+      'total-before-layout': `"spec":${list},"rows":[],"options":{"total":-1,"layout":"grid"}`,
+      'total-fraction': `"spec":${list},"rows":[],"options":{"total":2.5}`, 'total-boolean': `"spec":${list},"rows":[],"options":{"total":true}`,
+      'layout-unknown': `"spec":${list},"rows":[],"options":{"layout":"grid"}`, 'layout-number': `"spec":${list},"rows":[],"options":{"layout":5}`,
+      'page-meta-array': `"spec":${list},"rows":[],"options":{"pageMeta":[]}`,
+      'options-null-members': `"spec":${list},"rows":[{"v":"a"}],"options":{"data":null,"layout":null,"page":null,"total":null}`,
+    }).map(([name, members]) => [`list-${name}`, `{"operation":"renderList",${members}}`]),
+    ['detail-context-array', `{"operation":"renderDetail","spec":${detail},"record":{},"options":{"data":[]}}`],
+    ['detail-context-string', `{"operation":"buildDetail","spec":${detail},"record":{},"options":{"data":"s"}}`],
+    ['detail-context-null', `{"operation":"renderDetail","spec":${detail},"record":{},"options":{"data":null}}`],
+    ['detail-fields-before-context', '{"operation":"buildDetail","spec":{},"record":{},"options":{"data":[]}}'],
+    ['detail-record-array', `{"operation":"renderDetail","spec":${detail},"record":[]}`],
+  ];
+})();
 const listCases = JSON.parse(await readFile(path.join(ROOT, 'tests/fixtures/list-render/cases.json'), 'utf8'));
 const detailCases = JSON.parse(await readFile(path.join(ROOT, 'tests/fixtures/detail-render/cases.json'), 'utf8'));
 assert.equal(formCases.length, 93, 'The form fixture inventory changed; review coverage before changing this assertion');
@@ -436,6 +500,35 @@ for (const target of runTargets) {
     try { await invoke(target, request); } catch (error) { if (!(error instanceof OperationError)) throw error; actual = error; }
     compareError(actual, expected);
     return { errorCode: actual.code };
+  });
+
+  // The process boundary: every program answers the same standard input as the JavaScript
+  // reference. Text that is not one JSON value fails with the same input error everywhere.
+  for (const [name, text] of requestCases) await check(target, `request:${name}`, async () => {
+    let request, parsed = true;
+    try { request = JSON.parse(text); } catch { parsed = false; }
+    let expected, expectedError;
+    if (!parsed) expectedError = { code: 'INVALID_FORM_INPUT', message: 'Request must be valid JSON', at: '' };
+    else try { expected = oracle(request); } catch (caught) { expectedError = errorRecord(caught); }
+    const result = await execute(target.command, target.args, { input: text });
+    assert.equal(result.stderr, '', 'The program wrote diagnostics');
+    let actual, actualError;
+    try { actual = parseCLIResponse(request !== null && typeof request === 'object' && !Array.isArray(request) ? request : {}, result); }
+    catch (caught) { if (!(caught instanceof OperationError)) throw caught; actualError = caught; }
+    if (expectedError) { compareError(actualError, expectedError); return { error: expectedError }; }
+    assert.equal(actualError, undefined, `The request was rejected: ${actualError?.message}`);
+    if (request.operation === 'bindForm') equalModels(actual, expected);
+    else if (request.operation === 'form') {
+      equalState(actual, expected);
+      assert.equal(actual.steps.length, expected.steps.length);
+      actual.steps.forEach((step, index) => {
+        equalState(step, expected.steps[index]);
+        equalOrdered(step.result, expected.steps[index].result, `steps[${index}].result`);
+        if (expected.steps[index].error === null) assert.equal(step.error, null);
+        else compareError(step.error, expected.steps[index].error);
+      });
+    } else equalOrdered(actual, expected, '$');
+    return { digest: digest(actual) };
   });
 
   // The pagination model: member order and defaults for enabled, declared and disabled paging.

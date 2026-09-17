@@ -2,13 +2,13 @@ package compose
 
 // File loader for $ref resolution (port of loader.ts).
 //
-// $ref loads external YAML files (legacy ReferenceResolver: yml_parse_file). The
+// $ref loads external YAML files. The
 // compose engine never touches the filesystem directly — it goes through a
 // FileLoader, so the shared fixtures supply a virtual in-memory file set while
 // production wires a real disk + YAML loader. One engine, two backends —
 // identical semantics.
 //
-// Path normalization mirrors legacy ReferenceResolver:
+// Path normalization:
 //   - absolute (/…) paths pass through unchanged
 //   - relative paths get the basepath prefix (basepath + "/" + path)
 //
@@ -45,7 +45,7 @@ func NewMemoryLoader(files map[string]*OMap) *MemoryLoader {
 }
 
 // Normalize passes an absolute path through unchanged; a relative path is
-// prefixed by basepath (legacy parity).
+// prefixed by basepath.
 func (l *MemoryLoader) Normalize(path, basepath string) string {
 	if len(path) > 0 && path[0] == '/' {
 		return path

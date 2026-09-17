@@ -112,7 +112,7 @@ export function toBracketNotationWithPrefix(path: string, keyPrefix?: string): s
 }
 
 /**
- * \Legacy\clean_str(): str_replace(['[]','][','[',']'], ['','-','-','-']).
+ * Replace bracket notation for an id: `[]` → '', `][`/`[`/`]` → '-'.
  * Used to derive deterministic element ids from bracket-notation names
  * (choice/multichoice/search) — paired with elementId() (path-derived, stable
  * across frameworks). No random token, no normalizer mask.

@@ -12,14 +12,17 @@ export function errorRecord(error) {
 /** Build the protocol dispatcher over one JavaScript string renderer's form, list and detail APIs. */
 export function createDispatch({ renderForm, renderList, renderDetail }) {
   const state = form => ({ data: form.getData(), fields: form.getSnapshot().fields, html: renderForm(form), revision: form.getSnapshot().revision });
+  // JSON decides the type of each input: a specification and a template are objects.
+  const spec = value => { if (!object(value)) throw new FormInputError('A form spec must be a group with properties'); return value; };
+  const template = value => { if (!object(value)) throw new FormInputError('Unsupported form template'); return value; };
   return function dispatch(request) {
     if (!object(request)) throw new FormInputError('Request must be an object');
     if (own(request, 'options') && !object(request.options)) throw new FormInputError('Options must be an object');
     if (own(request, 'data') && !object(request.data)) throw new FormInputError('Form data must be an object');
     switch (request.operation) {
-      case 'compileForm': return compileForm(request.spec, request.options);
-      case 'bindForm': return bindForm(request.template, request.data, request.options);
-      case 'bindButtons': return bindButtons(request.template, request.data, request.options);
+      case 'compileForm': return compileForm(spec(request.spec), request.options);
+      case 'bindForm': return bindForm(template(request.template), request.data, request.options);
+      case 'bindButtons': return bindButtons(template(request.template), request.data, request.options);
       case 'formButtonsHtml': return formButtonsHtml(request.buttons);
       case 'renderList': return renderList(request.spec, request.rows, request.options);
       case 'buildList': return buildList(request.spec, request.rows, request.options);
@@ -28,7 +31,7 @@ export function createDispatch({ renderForm, renderList, renderDetail }) {
         // The library checks the record in rule order; an absent record is the empty object.
         return (request.operation === 'buildDetail' ? buildDetail : renderDetail)(request.spec, own(request, 'record') ? request.record : {}, request.options);
       case 'form': {
-        const form = createForm(request.template, request.data, request.options);
+        const form = createForm(template(request.template), request.data, request.options);
         if (own(request, 'actions') && !Array.isArray(request.actions)) throw new FormInputError('Actions must be an array');
         const methods = new Set(['setData', 'setValue', 'addRow', 'copyRow', 'removeRow', 'moveRow', 'rekeyRow', 'getValue', 'getData']);
         const steps = [];
@@ -58,7 +61,8 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     if (!Object.hasOwn(renderers, name)) throw new FormInputError('Unknown JavaScript renderer');
     let input = '';
     for await (const chunk of process.stdin) input += chunk;
-    const request = JSON.parse(input);
+    let request;
+    try { request = JSON.parse(input); } catch { throw new FormInputError('Request must be valid JSON'); }
     process.stdout.write(`${JSON.stringify(createDispatch(renderers[name])(request))}\n`);
   } catch (error) {
     process.stdout.write(`${JSON.stringify({ error: errorRecord(error) })}\n`);

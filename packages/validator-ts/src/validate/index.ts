@@ -8,15 +8,13 @@
  *                 An unresolved composition throws `ComposeLoadError` HERE
  *                 (a LOAD failure, NOT `valid:false`) — the spec never comes
  *                 into existence, so there is no validation result to return.
- *                 This closes the legacy `valid:true`-on-unresolved-`$ref` gap
- *                 (LargeForm.yml:873).
+ *                 An unresolved `$ref` never yields `valid:true`.
  *   2/3. validate — `Validator` traverses the composed spec and runs the
  *                 `validate` slot (conditional rule values evaluated by the CRUDUI
  *                 expression engine, then handed to the existing rule registry).
  *
  * The compose pass reuses the existing compose module; the expression engine and
- * rule registry are reused as-is. Nothing here re-implements them, and nothing
- * here touches the legacy model (R7 parallel run).
+ * rule registry are reused as-is. Nothing here re-implements them.
  */
 
 import {
@@ -104,5 +102,3 @@ export function validate(
 
   return new Validator({ type: 'group', properties }).validate(data);
 }
-
-export default validate;

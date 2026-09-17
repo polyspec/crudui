@@ -12,7 +12,7 @@ use CRUDUI\Validator\Support\JsonValue;
  * Resolution supports these input forms:
  *   (1) value = a single string OR a list of strings — a list resolves each path
  *       in order, then array_merge (later overrides earlier on key clash).
- *   (2) plain path 'OptionCombination.yml' → load YAML, descend by the default
+ *   (2) plain path 'options.yml' → load YAML, descend by the default
  *       detectKey ['properties'] (= take the file's properties only).
  *   (3) path-specified '(file.yml).a.b' → regex split, detectKeys = ['a','b',
  *       'properties'] — descend a.b, then descend to properties underneath.
@@ -24,11 +24,11 @@ use CRUDUI\Validator\Support\JsonValue;
  * resolved result is flattened to a single properties map and laid down as the
  * base; $patch overlays it (base first, patch overrides). Unresolved $ref
  * (missing file / bad format / absent detectKey / cycle) is a LOAD ERROR — never
- * valid:true (the legacy LargeForm.yml:873 bug).
+ * valid:true.
  */
 final class Ref
 {
-    /** The regex that splits '(path).keys' — mirrors legacy ReferenceResolver:113. */
+    /** The regex that splits '(path).keys' — the path-specified reference form. */
     private const PATH_SPEC_RE = '/^\((?<path>.*?)\)\.(?<keys>.*)$/s';
 
     /**
@@ -52,14 +52,14 @@ final class Ref
         $merged = [];
         foreach ($paths as $path) {
             $resolved = self::resolveSingle($path, $basepath, $loader, $visiting);
-            // array_merge: later keys override earlier (legacy resolve() semantics).
+            // array_merge: later keys override earlier.
             $merged = self::shallowMerge($merged, $resolved);
         }
         return $merged;
     }
 
     /**
-     * Normalize the $ref value into a list of path strings (legacy: scalar→[scalar]).
+     * Normalize the $ref value into a list of path strings (scalar → [scalar]).
      *
      * @return list<string>
      */
@@ -102,18 +102,18 @@ final class Ref
         $path = $rawPath;
         $detectKeys = ['properties'];
 
-        // Path-specified form '(file.yml).a.b' (legacy: leading '(').
+        // Path-specified form '(file.yml).a.b' (leading '(').
         if (\str_starts_with($path, '(')) {
             if (\preg_match(self::PATH_SPEC_RE, $path, $m) !== 1) {
                 throw new ComposeLoadError('REF_FORMAT_ERROR', $orgPath . ' ref error');
             }
             $path = $m['path'];
             $keys = $m['keys'];
-            // detectKeys = explode('.', keys) ++ ['properties'] (legacy:115).
+            // detectKeys = explode('.', keys) ++ ['properties'].
             $detectKeys = [...\explode('.', $keys), 'properties'];
         }
 
-        // Empty path is a format error (legacy: ReferenceResolver:141).
+        // Empty path is a format error.
         if ($path === '') {
             throw new ComposeLoadError('REF_FORMAT_ERROR', $orgPath . ' ref error');
         }
@@ -121,7 +121,7 @@ final class Ref
         $key = $loader->normalize($path, $basepath);
 
         // Cycle detection: this file key already on the current resolution chain
-        // (legacy has no guard and infinite-recurses; CRUDUI must detect — SPEC §7).
+        // (a cycle must be detected — SPEC §7).
         if (isset($visiting[$key])) {
             $chain = [...\array_keys($visiting), $key];
             throw new ComposeLoadError(
@@ -134,7 +134,7 @@ final class Ref
         // throws REF_FILE_NOT_FOUND if absent; a loaded document uses specification member order.
         $doc = JsonValue::orderedMembers($loader->load($key));
 
-        // Descend detectKeys (legacy: ReferenceResolver:129-136).
+        // Descend detectKeys.
         $node = $doc;
         foreach ($detectKeys as $detectKey) {
             if (self::isPlainObject($node) && \array_key_exists($detectKey, (array) $node)) {
@@ -170,9 +170,9 @@ final class Ref
 
     /**
      * Expand any $ref (and merge any $patch) sitting INSIDE a resolved properties
-     * map, recursively (legacy: resolve() re-runs Parser::process). The resolved base
-     * is laid down first, then sibling named keys override it (legacy array_merge
-     * declaration order: a later plain key overrides an earlier $ref).
+     * map, recursively. The resolved base is laid down first, then sibling named
+     * keys override it (declaration order: a later plain key overrides an earlier
+     * $ref).
      *
      * @param array<string, mixed> $node
      * @param array<string, bool>  $visiting
@@ -193,12 +193,12 @@ final class Ref
         $own = [];
 
         // Preserve declaration order: $ref expands to the base; keys declared
-        // after it override, keys before it are overridden by it (legacy positional
-        // array_merge).
+        // after it override, keys before it are overridden by it (positional
+        // merge).
         foreach ($node as $k => $v) {
             if ($k === '$ref') {
-                // base = (earlier own keys) overlaid by ref, matching legacy order
-                // where the ref array_merges onto whatever was processed before it.
+                // base = (earlier own keys) overlaid by ref, in declaration order:
+                // the ref array_merges onto whatever was processed before it.
                 $base = self::shallowMerge($own, self::resolve($v, $basepath, $loader, $visiting));
                 // own keys already folded into base; reset so later keys override.
                 $own = [];

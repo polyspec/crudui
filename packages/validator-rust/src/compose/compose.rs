@@ -12,7 +12,7 @@
 //! cannot even be loaded. So composition is a pre-processing pass that runs
 //! BEFORE validation/render, not a validation step.
 //!
-//! legacy's positional `array_merge` priority is normalized here: `$ref` = base
+//! Merge priority is positional: `$ref` = base
 //! (first), `$patch` = overlay (later) — base is laid down, patch overrides.
 //!
 //! `compose_properties` is the entry point: it operates on a `properties` map (the
@@ -34,7 +34,7 @@ use super::ref_::resolve_ref;
 /// Options for a composition pass.
 #[derive(Debug, Clone, Default)]
 pub struct ComposeOptions {
-    /// Basepath for relative `$ref` resolution (legacy ReferenceResolver basepath).
+    /// Basepath for relative `$ref` resolution.
     pub basepath: String,
 }
 
@@ -88,7 +88,7 @@ fn expand_properties(
 
     for (k, v) in properties {
         if k == "$ref" {
-            // $ref array_merges onto whatever was declared before it (legacy order).
+            // $ref array_merges onto whatever was declared before it (declaration order).
             let resolved = resolve_ref(&v, basepath, loader, &visiting)?;
             let mut next_base: Map<String, Value> = Map::new();
             for (ok, ov) in own.iter() {
@@ -120,7 +120,7 @@ fn expand_properties(
     // under the SAME key. IndexMap::insert keeps an existing key in its place — so
     // declaration order is preserved. NEVER remove()+insert (remove = swap_remove,
     // which moves the last key into this slot and corrupts the positional order
-    // that legacy's array_merge merge priority is load-bearing on).
+    // that the merge priority is load-bearing on).
     let keys: Vec<String> = result.keys().cloned().collect();
     for field_name in keys {
         if let Some(Value::Object(child)) = result.get(&field_name).cloned() {

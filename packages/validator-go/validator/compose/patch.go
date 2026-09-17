@@ -3,12 +3,7 @@ package compose
 import "strings"
 
 // $patch application — add / remove / replace over the $ref base (SPEC §5).
-// Port of patch.ts. Absorbs the legacy legacy directives
-// $after/$before/$merge/$change/$remove (the analysis legacy_mapping):
-//
-//	$after / $before {existing:{new:val}}  → add   (position = declaration order)
-//	$merge / $change {key:{sub:val}}       → replace + add (deep-merge)
-//	$remove [k1,k2] | {k:{sub:…}}          → remove (whole key or deep subkey)
+// Port of patch.ts.
 //
 // $patch is an OBJECT of operations. Two shapes coexist (both order-preserving):
 //
@@ -20,7 +15,7 @@ import "strings"
 //  2. Structured ops — explicit add / remove / replace keys:
 //     add:     { "path.to.new": value, … }   — deep-merge value at path
 //     replace: { "path.to.key": value, … }   — same merge rule (scalar override)
-//     remove:  [ "path.to.key", … ] | { … }  — deep delete (legacy arr::remove)
+//     remove:  [ "path.to.key", … ] | { … }  — deep delete
 //
 // Resolution order: base ($ref) first, then $patch overlays. An unresolved patch
 // (op shape error, path conflict, strict-remove miss) is a LOAD ERROR.
@@ -100,7 +95,7 @@ func applyRemove(base *OMap, val any) (*OMap, error) {
 		return result, nil
 	}
 	if vm, ok := isOMap(val); ok {
-		// Nested map form (legacy arr::remove): recurse where both sides are objects.
+		// Nested map form: recurse where both sides are objects.
 		return removeNested(base, vm), nil
 	}
 	return nil, newLoadError(PatchShape,
@@ -116,8 +111,8 @@ func splitPath(path string) ([]string, error) {
 }
 
 // setDeepPath sets value at a deep path, creating intermediate objects. When both
-// the existing leaf and the new value are plain objects, DEEP-MERGE (legacy $merge);
-// otherwise the new value REPLACES (legacy scalar override). Returns a new tree.
+// the existing leaf and the new value are plain objects, DEEP-MERGE;
+// otherwise the new value REPLACES. Returns a new tree.
 func setDeepPath(node *OMap, segments []string, value any) (*OMap, error) {
 	head := segments[0]
 	rest := segments[1:]
@@ -154,7 +149,7 @@ func setDeepPath(node *OMap, segments []string, value any) (*OMap, error) {
 	return out, nil
 }
 
-// mergeValue is the legacy deep-merge leaf rule (drupal_array_merge_deep_array): both
+// mergeValue is the deep-merge leaf rule: both
 // plain objects → recursive deep merge; otherwise the latter value wins
 // (scalar/array override).
 func mergeValue(existing, incoming any) any {
@@ -200,9 +195,9 @@ func removeDeepPath(node *OMap, segments []string) (*OMap, error) {
 	return out, nil
 }
 
-// removeNested is the nested-map remove (legacy arr::remove): for each key, recurse
+// removeNested is the nested-map remove: for each key, recurse
 // when both the target and the removal spec are objects, else unset the key. A
-// missing key is tolerated here (legacy arr::remove silently unsets), unlike the
+// missing key is tolerated here (the key is simply absent), unlike the
 // array-path form.
 func removeNested(base *OMap, spec *OMap) *OMap {
 	out := base.Clone()

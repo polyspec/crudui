@@ -23,20 +23,19 @@ Go·Rust·PHP는 숫자를 값으로 비교하므로 `5`와 `5.0`은 같습니�
 비교합니다. 실패 사례는 `code`, `message`, `at`을 정확히 비교하며, 모든 사례는 `expected`와
 `expectFailure` 중 정확히 하나를 선언해야 합니다.
 
-명령행 검사는 각 사례를 표준 입력으로 보냅니다. 결과 사례는 종료 코드 `0`과 함께 결과를 표준 출력에 쓰고,
-실패 사례는 종료 코드 `2`와 함께 `{ error, code, at }`을 씁니다.
+교차 검증 콘솔의 검증기 프로세스는 각 사례를 표준 입력으로 받습니다. 결과 사례는 종료 코드 `0`과 함께
+결과를 표준 출력에 쓰고, 실패 사례는 종료 코드 `2`와 함께 `{ error, code, at }`을 씁니다.
 
 [TypeScript](../../../packages/validator-ts/src/validate.conformance.test.ts),
 [PHP](../../../packages/validator-php/tests/Validate/ValidateConformanceTest.php),
 [Go](../../../packages/validator-go/validator/validate/conformance_test.go),
 [Rust](../../../packages/validator-rust/tests/validate_conformance.rs)의 검증 적합성 검사,
-[TypeScript](../../../packages/validator-ts/src/validate-cli.test.ts),
-[PHP](../../../packages/validator-php/tests/Validate/ValidateCliTest.php),
-[Go](../../../packages/validator-go/cmd/validate/main_test.go),
-[Rust](../../../packages/validator-rust/tests/validate_cli_conformance.rs)의 명령행 검사,
 [PHP 확장 엔진 검사](../../../packages/php-ext/tests/engine.test.mjs)와
-PHP 검증기와 네이티브 검증기를 실행하는 [PHP 확장 API 검사](../../../packages/php-ext/tests/api.test.mjs), 고정 사례를 네 명령행 검증기에 보내는 교차 검증 콘솔의
-[검증 실행기 검사](../../../examples/cross-check-console/server/validate-runner.test.mjs)가 사용합니다.
+PHP 검증기와 네이티브 검증기를 실행하는 [PHP 확장 API 검사](../../../packages/php-ext/tests/api.test.mjs),
+모든 사례를 다섯 검증기 프로세스에 보내는 교차 검증 콘솔의
+[검증기 프로세스 검사](../../../examples/cross-check-console/server/validator-processes.test.mjs)와
+네 언어 결과를 비교하는 [검증 실행기 검사](../../../examples/cross-check-console/server/validate-runner.test.mjs)가
+사용합니다.
 
 ## 재생성
 

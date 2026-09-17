@@ -142,20 +142,17 @@ final class FieldSpecTest extends TestCase
     }
 
     /**
-     * Legacy names are NOT recognition keys; they translate only via the table.
+     * Alternative spellings of dependency keys are NOT recognition keys.
      */
-    public function testLegacyNamesAreTranslatorOnly(): void
+    public function testAlternativeSpellingsAreNotRecognized(): void
     {
         $recognized = [];
         foreach (FieldSpec::DEPENDENCY_BUCKETS as $b) {
             $recognized = array_merge($recognized, $b['keys']);
         }
-        foreach (['multiple_max', 'sortable*', 'lang:append', 'langs', 'add_buttons'] as $legacy) {
-            self::assertNotContains($legacy, $recognized, "legacy name leaked into recognition: {$legacy}");
+        foreach (['multiple_max', 'sortable*', 'lang:append', 'langs', 'add_buttons'] as $name) {
+            self::assertNotContains($name, $recognized, "unrecognized spelling leaked into recognition: {$name}");
         }
-        self::assertSame('max', FieldSpec::canonicalFor('multiple', 'multiple_max'));
-        self::assertSame('only', FieldSpec::canonicalFor('lang', 'langs'));
-        self::assertNull(FieldSpec::canonicalFor('multiple', 'nonexistent'));
     }
 
     /**

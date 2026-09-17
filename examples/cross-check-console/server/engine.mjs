@@ -1,9 +1,10 @@
 /**
  * Load the HTML, React, Vue and Svelte render entries in one Vite SSR environment.
  * The Svelte workspace supplies Vite and its matching compiler plugin.
- * Validation runs separately through the four language CLI processes.
+ * Validation runs separately through the four validator processes.
  */
 
+import { realpathSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -64,7 +65,10 @@ async function bootEngine() {
     plugins: [svelte()],
   });
 
-  const [htmlMod, reactMod, svelteMod, vueMod, vueListMod, normMod] = await Promise.all([
+  // The renderers import generator-core from its installed entry; loading that entry through the
+  // same server gives the application API and the error classes the renderers throw.
+  const [core, htmlMod, reactMod, svelteMod, vueMod, vueListMod, normMod] = await Promise.all([
+    vite.ssrLoadModule(realpathSync(fileURLToPath(import.meta.resolve('@crudui/generator-core')))),
     vite.ssrLoadModule(path.resolve(ROOT, 'packages/generator-html/src/index.ts')),
     vite.ssrLoadModule(path.resolve(ROOT, 'packages/generator-react/src/index.ts')),
     vite.ssrLoadModule(path.resolve(ROOT, 'packages/generator-svelte/src/index.ts')),
@@ -73,10 +77,11 @@ async function bootEngine() {
     vite.ssrLoadModule(path.resolve(ROOT, 'tests/fixtures/form-render/normalize.mjs')),
   ]);
 
+  const coreErrors = { ComposeLoadError: core.ComposeLoadError, UnsupportedFieldTypeError: core.UnsupportedFieldTypeError };
   return {
     renderHtml: htmlMod.renderForm,
-    compileForm: reactMod.compileForm,
-    createForm: reactMod.createForm,
+    compileForm: core.compileForm,
+    createForm: core.createForm,
     renderReact: reactMod.renderForm,
     renderSvelte: svelteMod.renderForm,
     renderVue: vueMod.renderForm,
@@ -96,18 +101,9 @@ async function bootEngine() {
     // ERROR_CLASS_BY_CODE keys the conformance tests use).
     errorClasses: {
       html: {},
-      react: {
-        ComposeLoadError: reactMod.ComposeLoadError,
-        UnsupportedFieldTypeError: reactMod.UnsupportedFieldTypeError,
-      },
-      svelte: {
-        ComposeLoadError: svelteMod.ComposeLoadError,
-        UnsupportedFieldTypeError: svelteMod.UnsupportedFieldTypeError,
-      },
-      vue: {
-        ComposeLoadError: vueMod.ComposeLoadError,
-        UnsupportedFieldTypeError: vueMod.UnsupportedFieldTypeError,
-      },
+      react: coreErrors,
+      svelte: coreErrors,
+      vue: coreErrors,
     },
     close: () => vite.close(),
   };

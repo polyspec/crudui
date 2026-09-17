@@ -139,7 +139,7 @@ function displayVNode(w: WidgetModel): VNode {
     // dummy-input is a widget control, not a RAW div.
     return widgetVNode(w);
   }
-  // RAW html display (dummy/image-viewer) — unescaped legacy parity content, on a
+  // RAW html display (dummy/image-viewer) — unescaped content, on a
   // real container vnode (the sanctioned verbatim-content boundary).
   return h('div', { ...plainProps(w.attrs), innerHTML: w.rawHtml ?? '' });
 }
@@ -148,7 +148,7 @@ function displayVNode(w: WidgetModel): VNode {
  * search layout raw html: style?/script chrome (`nonce=""`, verbatim) + the
  * select2 host `<select>` inside `.crudui-widget--search`. Serialized raw (not
  * vnodes) because the chrome's `nonce=""` and the select's `data-default=""` are
- * empty-valued, and the host select needs `selected="selected"` (legacy select2
+ * empty-valued, and the host select needs `selected="selected"` (select2
  * contract) — all of which Vue's serializer would coerce. The node renderer
  * injects this into the node body.
  */

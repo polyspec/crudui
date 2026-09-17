@@ -17,6 +17,17 @@ session.setData({ name: 'Example' });
 Compile once per shared template and create a session per form instance.
 Use `bindForm(template, data)` to evaluate fields without creating an editable session.
 
+The package entry is the application API: form compilation and binding (`compileForm`,
+`bindForm`, `bindButtons`, `formButtonsHtml`), form instances (`createForm`, `FormInstance`,
+`createRowKey`, `sequenceRowKey`, `formMessages`), view state and history functions, list,
+detail and structure-map models (`buildList`, `buildDetail`, `buildOutline`), browser binding
+(`connectForm`, `connectOutline`, `connectStickyHeaders`, `patchContent`, `resolveAction`,
+`runAction`) and the errors an application catches (`ComposeLoadError`, `FormInputError`,
+`UnsupportedFieldTypeError`). The stylesheet is `@crudui/generator-core/crudui.css`.
+
+`@crudui/generator-core/internal` holds helpers shared by CRUDUI's renderer packages. It is not
+supported for applications and changes with the renderers.
+
 - [Runtime contract](../../docs/spec/form-runtime.md)
 - [Setup, nested rows and verification](../../docs/operations/forms.md)
 - [Feature status](../../docs/features.md)

@@ -8,6 +8,8 @@ const rows = manifest.features.map((feature) => {
   const support = Object.entries(feature.support).map(([name, status]) => `${name}: ${status}`).join('<br>');
   return `| \`${feature.id}\` | ${feature.status} | \`${feature.owner}\` | ${support} | ${feature.verification.length} command(s) |`;
 }).join('\n');
+const entries = manifest.packages.flatMap((pkg) => Object.entries(pkg.entries).map(([entry, { visibility, exports }]) =>
+  `| \`${pkg.name}\` | \`${entry}\` | ${visibility} | ${exports.map((name) => `\`${name}\``).join(', ')} |`)).join('\n');
 const english = `# Feature contracts
 
 [한국어](feature-contracts.ko.md).
@@ -17,6 +19,14 @@ This page is generated from [contracts/features.json](../../contracts/features.j
 | Feature | Status | Owner package | Support status | Verification |
 | --- | --- | --- | --- | --- |
 ${rows}
+
+## Package entries
+
+Each package declares every JavaScript entry of its \`package.json\` \`exports\` map with its value exports. A \`public\` entry is application API. An \`internal\` entry serves CRUDUI's own packages only: applications, examples, tests and documents do not import it, and it changes without notice.
+
+| Package | Entry | Visibility | Value exports |
+| --- | --- | --- | --- |
+${entries}
 
 Run \`npm run manifest:check\` to validate structure and links. Run \`npm run manifest:test\` to execute the declared test commands.
 `;
@@ -29,6 +39,14 @@ const korean = `# 기능 계약
 | 기능 | 상태 | 담당 패키지 | 지원 상태 | 검증 명령 |
 | --- | --- | --- | --- | --- |
 ${rows}
+
+## 패키지 진입점
+
+각 패키지는 \`package.json\` \`exports\`의 모든 JavaScript 진입점과 그 값 export를 선언합니다. \`public\` 진입점은 애플리케이션 API입니다. \`internal\` 진입점은 CRUDUI 자체 패키지만 사용합니다. 애플리케이션, 예제, 테스트와 문서는 이를 가져오지 않으며, 예고 없이 바뀝니다.
+
+| 패키지 | 진입점 | 공개 범위 | 값 export |
+| --- | --- | --- | --- |
+${entries}
 
 구조와 연결은 \`npm run manifest:check\`로 검사하고, 선언된 테스트 명령은 \`npm run manifest:test\`로 실행합니다.
 `;

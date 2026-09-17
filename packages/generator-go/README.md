@@ -111,8 +111,5 @@ curl http://127.0.0.1:8087/list
 curl http://127.0.0.1:8087/detail
 ```
 
-The `cmd/generate` CLI accepts one JSON request on stdin and returns one JSON
-value. Supported operations are `compileForm`, `bindForm`, `bindButtons`,
-`formButtonsHtml`, `form`, `buildList`, `renderList`, `buildDetail` and `renderDetail`. The `form` operation executes actions and records complete state
-after both successful and rejected operations. It is a conformance adapter;
-applications call the library directly.
+The [native conformance suite](../../tests/native-generators/README.md) compares this
+package with the other runtimes through a program that calls its public API.

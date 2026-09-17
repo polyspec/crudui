@@ -32,18 +32,18 @@
 `check-schema.mjs`는 목록 진입점을 컴파일해 `expect`와 `reason`을 확인합니다.
 
 런타임 검사는 `spec`을 `files`와 함께 검증하고 행은 읽지 않으며 `engine`과 비교합니다. Rust 구조 API는
-`"pass"`에 대해 `{ valid: true, errors: [] }`에 해당하는 `Ok(())`를 반환합니다. PHP 명령행 검사는 깨끗한
-결과와 함께 종료 코드 `0`, 또는 `{ error, code, at }`과 함께 종료 코드 `2`를 기대하며, 교차 검증 콘솔은 모든
-사례를 네 명령행 검증기에 보내 모두 같은 결과를 내기를 요구합니다.
+`"pass"`에 대해 `{ valid: true, errors: [] }`에 해당하는 `Ok(())`를 반환합니다.
+교차 검증 콘솔은 모든 사례를 다섯 검증기 프로세스에 보내며, 각 프로세스는 깨끗한 결과와 함께 종료 코드
+`0`, 또는 `{ error, code, at }`과 함께 종료 코드 `2`로 끝나고 모두 같은 결과, 코드, 위치를 내야 합니다.
 
 [TypeScript](../../../packages/validator-ts/src/validate-list/validate-list.conformance.test.ts),
 [PHP](../../../packages/validator-php/tests/Validate/ListValidateConformanceTest.php),
-[PHP 명령행](../../../packages/validator-php/tests/Validate/ListValidateCliTest.php),
 [Go](../../../packages/validator-go/validator/validate/list_conformance_test.go),
 [Rust](../../../packages/validator-rust/tests/list_validity_conformance.rs)의 목록 검증 검사,
 [PHP 확장 엔진 검사](../../../packages/php-ext/tests/engine.test.mjs),
 [PHP 확장 실행기](../../../packages/php-ext/tests/validate.php), 교차 검증 콘솔의
-[목록 실행기 검사](../../../examples/cross-check-console/server/validate-list-runner.test.mjs)가 런타임
+[목록 실행기 검사](../../../examples/cross-check-console/server/validate-list-runner.test.mjs)와
+[검증기 프로세스 검사](../../../examples/cross-check-console/server/validator-processes.test.mjs)가 런타임
 사용처입니다.
 
 ## 재생성

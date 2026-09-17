@@ -13,7 +13,7 @@
  * effect after the entry-point guard) and mounted on an ephemeral port. The form
  * and list render paths are covered by their runner tests; the detail render path
  * is exercised here once for a clean and a failing request (it boots the Vite SSR
- * engine). The validate path spawns the four CLIs, which proves the
+ * engine). The validate path spawns the four validator processes, which proves the
  * "validation failure == 200" rule on real engine output.
  */
 
@@ -139,7 +139,7 @@ describe('HTTP boundary — client input faults are 4xx { error }', () => {
 });
 
 describe('HTTP boundary — a detail render failure is a 200 result surface', () => {
-  // Boots the Vite SSR engine (the detail render path has no CLI).
+  // Boots the Vite SSR engine (the detail render path starts no validator process).
   test('clean detail YAML → 200, parity:true, the same detail markup in all four', async () => {
     const detailSpec = 'fields:\n  name:\n    field: name\n    label: Name\n';
     const res = await postRaw('/api/render-detail', JSON.stringify({ spec: detailSpec, record: { name: 'Ada' }, options: { language: 'en' } }));
@@ -184,7 +184,7 @@ describe('HTTP boundary — CORS + /health', () => {
 });
 
 describe('HTTP boundary — validation FAILURE is a 200 result surface, not an HTTP error', () => {
-  // Real 4-language fan-out (spawns the CRUDUI CLIs). A spec whose data is invalid
+  // Real 4-language fan-out (spawns the validator processes). A spec whose data is invalid
   // must still return HTTP 200 with { results, idempotent } — the failure lives
   // INSIDE the envelope, never as a 4xx/5xx. Requires the Go/Rust binaries.
   test('invalid data → 200, valid:false in the envelope, idempotent:true', async () => {

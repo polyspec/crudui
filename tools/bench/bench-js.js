@@ -96,7 +96,7 @@ function benchSpec(name, iters, warmup) {
 
 function main() {
   const args = parseArgs(process.argv.slice(2));
-  const specs = args.spec ? [args.spec] : ['contact', 'large-form'];
+  const specs = args.spec ? [args.spec] : ['contact', 'large'];
   for (const name of specs) {
     const r = benchSpec(name, args.iters, args.warmup);
     process.stdout.write(JSON.stringify(r) + '\n');

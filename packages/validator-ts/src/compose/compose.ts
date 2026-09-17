@@ -13,8 +13,8 @@
  * cannot even be loaded. So composition is a pre-processing pass that runs
  * BEFORE validation/render, not a validation step.
  *
- * legacy's positional `array_merge` priority is normalized here: `$ref` = base
- * (first), `$patch` = overlay (later) — base is laid down, patch overrides.
+ * Priority: `$ref` = base (first), `$patch` = overlay (later) — base is laid
+ * down, patch overrides.
  *
  * `composeProperties` is the entry point: it operates on a `properties` map (the
  * composition entry point, SPEC §2 / types.ts:73) where `$ref`/`$patch` may sit
@@ -29,13 +29,13 @@ import type { FileLoader } from './loader';
 
 /** Options for a composition pass. */
 export interface ComposeOptions {
-  /** Basepath for relative `$ref` resolution (legacy ReferenceResolver basepath). */
+  /** Basepath for relative `$ref` resolution . */
   basepath?: string;
 }
 
 /**
  * Compose a `properties` map: expand `$ref` to a base, overlay `$patch`, return
- * the single (composition-free) properties map. Named sibling keys follow legacy
+ * the single (composition-free) properties map. Named sibling keys follow
  * declaration order — a key declared after `$ref` overrides the base; a key
  * declared before it is overridden by the base.
  */
@@ -53,7 +53,7 @@ export function composeProperties(
 
   for (const k of Object.keys(properties)) {
     if (k === '$ref') {
-      // $ref array_merges onto whatever was declared before it (legacy order).
+      // $ref array_merges onto whatever was declared before it.
       base = { ...own, ...resolveRef(properties[k], basepath, loader) };
       for (const ok of Object.keys(own)) delete own[ok];
     } else if (k === '$patch') {
@@ -102,7 +102,7 @@ export function composeSpec(
     const own: Record<string, unknown> = {};
     for (const k of Object.keys(spec)) {
       if (k === '$ref') {
-        // Field-level $ref resolves a file's properties layer too (legacy detectKey).
+        // Field-level $ref resolves a file's properties layer too.
         base = { ...own, ...resolveRef(spec[k], basepath, loader) };
         for (const ok of Object.keys(own)) delete own[ok];
       } else if (k === '$patch') {

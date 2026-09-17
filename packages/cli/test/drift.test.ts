@@ -22,9 +22,8 @@ import {
   WIDGET_KINDS,
   WIDGET_CANONICAL,
   WIDGET_LAYOUTS,
-} from '../../generator-core/src/widget.ts';
-import { getRuleNames } from '../../validator-ts/src/rules/index.ts';
-import { FORBIDDEN_META_KEYS } from '../../validator-ts/src/schema.ts';
+} from '@crudui/generator-core/internal';
+import { FORBIDDEN_META_KEYS, getRuleNames } from '@crudui/validator/internal';
 
 descTest('describe is a drift-0 projection of the code single-source-of-truth', () => {
   const r = describe();

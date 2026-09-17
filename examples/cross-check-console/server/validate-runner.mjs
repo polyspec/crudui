@@ -1,7 +1,7 @@
 /**
- * Execute JavaScript, PHP, Go and Rust validator CLIs and compare their results.
+ * Execute the JavaScript, PHP, Go and Rust validator processes and compare their results.
  * Each process receives JSON on stdin and has a ten-second timeout. Responses
- * must match the CLI exit status and JSON contract. Data errors preserve path,
+ * must match the exit status and JSON contract. Data errors preserve path,
  * field, rule, message and value; load and input failures use failure.
  */
 
@@ -10,19 +10,25 @@ import process from 'node:process';
 import { spawnSync } from 'node:child_process';
 import { ROOT } from './engine.mjs';
 
-const JS_PKG = path.join(ROOT, 'packages/validator-ts');
-const PHP_PKG = path.join(ROOT, 'packages/validator-php');
-const GO_PKG = path.join(ROOT, 'packages/validator-go');
-const RUST_PKG = path.join(ROOT, 'packages/validator-rust');
-
-const JS_CLI = path.join(JS_PKG, 'bin/validate.mjs');
-const PHP_CLI = path.join(PHP_PKG, 'bin/validate.php');
-const GO_BIN = process.env.CRUDUI_CROSS_CHECK_GO_VALIDATOR ?? path.join(GO_PKG, 'validate');
-const RUST_BIN = process.env.CRUDUI_CROSS_CHECK_RUST_VALIDATOR
-  ?? path.join(RUST_PKG, 'target/release/validate');
+// The validator processes of the console (../validators): one program per language that answers
+// one JSON request through the language's public validator API. The JavaScript program needs the
+// built packages (`node scripts/require-current-build.mjs`); `npm run build:validators` builds
+// the Go and Rust programs. A deployment may name other Go and Rust executables.
+export const VALIDATORS = path.join(ROOT, 'examples/cross-check-console/validators');
+export const PHP_PROGRAM = path.join(VALIDATORS, 'php/validate.php');
+export const validatorProcesses = Object.freeze({
+  js: { command: process.execPath, args: [path.join(VALIDATORS, 'js/validate.mjs')] },
+  php: { command: 'php', args: [PHP_PROGRAM] },
+  go: { command: process.env.CRUDUI_CROSS_CHECK_GO_VALIDATOR ?? path.join(VALIDATORS, 'go/validate'), args: [] },
+  rust: {
+    command: process.env.CRUDUI_CROSS_CHECK_RUST_VALIDATOR
+      ?? path.join(VALIDATORS, 'rust/target/release/crudui-cross-check-validator'),
+    args: [],
+  },
+});
 
 /**
- * Validate one request through all four language CLIs.
+ * Validate one request through the four validator processes.
  *
  * @param {object} req { spec, data, files?, basepath? }
  * @returns {Promise<{results: object[], idempotent: boolean, mismatch: object|null}>}
@@ -38,7 +44,7 @@ export async function validateAll(req) {
 }
 
 /**
- * Validate list composition and forbidden keys through all four language CLIs.
+ * Validate list composition and forbidden keys through the four validator processes.
  * List requests contain a specification and composition inputs, without row data.
  *
  * @param {object} req { spec, files?, basepath? }
@@ -55,7 +61,7 @@ export async function validateAllList(req) {
 }
 
 /**
- * Validate detail composition and forbidden keys through all four language CLIs.
+ * Validate detail composition and forbidden keys through the four validator processes.
  * Detail requests contain a specification and composition inputs, without a record.
  *
  * @param {object} req { spec, files?, basepath? }
@@ -71,51 +77,36 @@ export async function validateAllDetail(req) {
   return fanOut(payload);
 }
 
-/** Execute all four validator CLIs on one payload and compare the results. */
+/** Execute the four validator processes on one payload and compare the results. */
 function fanOut(payload) {
-  const results = [runJs(payload), runPhp(payload), runGo(payload), runRust(payload)];
+  const results = Object.keys(validatorProcesses).map(lang => runProcess(lang, payload));
   const { idempotent, mismatch } = compareIdempotency(results);
   return { results, idempotent, mismatch };
 }
 
-function runJs(payload) {
-  // Resolve tsx from the validator package to execute the TypeScript source.
-  return runCli('js', process.execPath, ['--import', 'tsx', JS_CLI], JS_PKG, payload);
-}
-
-function runPhp(payload) {
-  return runCli('php', 'php', [PHP_CLI], PHP_PKG, payload);
-}
-
-function runGo(payload) {
-  return runCli('go', GO_BIN, [], GO_PKG, payload);
-}
-
-function runRust(payload) {
-  return runCli('rust', RUST_BIN, [], RUST_PKG, payload);
-}
 
 /**
- * Execute a validator CLI and check its exit status and response fields. Every
+ * Execute a validator process and check its exit status and response fields. Every
  * language uses the same responses:
  *   validation result:     exit 0, stdout { valid, errors:[5-field] }
  *   load or input failure: exit 2, stdout exactly { error, code, at }
  *   malformed request:     exit 1, stdout { error }
  */
-function runCli(lang, cmd, args, cwd, payload) {
+function runProcess(lang, payload) {
+  const { command, args } = validatorProcesses[lang];
   const t0 = performance.now();
-  const proc = spawnSync(cmd, args, {
+  const proc = spawnSync(command, args, {
     encoding: 'utf-8',
     input: JSON.stringify(payload),
     timeout: 10000,
-    cwd,
+    cwd: VALIDATORS,
     env: process.env,
   });
   const ms = Math.round(performance.now() - t0);
 
-  if (proc.error) return cliFail(lang, ms, proc.error.message);
+  if (proc.error) return processFail(lang, ms, proc.error.message);
   if (proc.signal || proc.status === null) {
-    return cliFail(lang, ms, `${lang} CLI terminated (${proc.signal ?? 'no exit status'})`);
+    return processFail(lang, ms, `${lang} validator terminated (${proc.signal ?? 'no exit status'})`);
   }
 
   const stdout = (proc.stdout || '').trim();
@@ -129,7 +120,7 @@ function runCli(lang, cmd, args, cwd, payload) {
   }
 
   if (!isObject(parsed)) {
-    return cliFail(lang, ms, proc.stderr || `invalid ${lang} JSON response (exit ${proc.status})`);
+    return processFail(lang, ms, proc.stderr || `invalid ${lang} JSON response (exit ${proc.status})`);
   }
 
   if (proc.status === 2) {
@@ -137,7 +128,7 @@ function runCli(lang, cmd, args, cwd, payload) {
         typeof parsed.code !== 'string' || !parsed.code ||
         typeof parsed.error !== 'string' || !parsed.error ||
         typeof parsed.at !== 'string') {
-      return cliFail(lang, ms, `invalid ${lang} failure response`);
+      return processFail(lang, ms, `invalid ${lang} failure response`);
     }
     return {
       lang,
@@ -150,13 +141,13 @@ function runCli(lang, cmd, args, cwd, payload) {
   }
 
   if (proc.status !== 0) {
-    return cliFail(lang, ms, proc.stderr || parsed.error || `${lang} CLI exited ${proc.status}`);
+    return processFail(lang, ms, proc.stderr || parsed.error || `${lang} validator exited ${proc.status}`);
   }
   if (typeof parsed.valid !== 'boolean' || !Array.isArray(parsed.errors) ||
       !parsed.errors.every(isValidationError) ||
       parsed.valid !== (parsed.errors.length === 0) ||
       Object.keys(parsed).length !== 2) {
-    return cliFail(lang, ms, `invalid ${lang} validation response`);
+    return processFail(lang, ms, `invalid ${lang} validation response`);
   }
 
   return {
@@ -169,7 +160,7 @@ function runCli(lang, cmd, args, cwd, payload) {
   };
 }
 
-function cliFail(lang, ms, message) {
+function processFail(lang, ms, message) {
   return {
     lang,
     ok: false,
@@ -177,7 +168,7 @@ function cliFail(lang, ms, message) {
     errors: [],
     ms,
     failure: null,
-    error: String(message || '').trim() || `${lang} CLI failed`,
+    error: String(message || '').trim() || `${lang} validator failed`,
   };
 }
 

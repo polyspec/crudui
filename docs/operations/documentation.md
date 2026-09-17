@@ -60,11 +60,10 @@ make docs-verify-idempotent
 ```
 
 TypeScript references describe the five public package entries. Svelte uses its
-built declarations, including `Form`, instead of legacy helper modules. Native
-PHP and Rust HTML is included in the site under `docs/public/api/`. The repeated
+built declarations, including `Form`. Native PHP and Rust HTML is included in the site under `docs/public/api/`. The repeated
 generation check compares those assets, Markdown references and the schema.
 Go references include every package under `validator/`, including composition,
-expressions, validation and explicit legacy packages.
+expressions and validation.
 
 Use repository-relative paths in scripts and documents. External source tools
 must require an explicit input path. They must not depend on another project's
@@ -109,5 +108,5 @@ information.
 
 `npm run test:docs` checks maintained Markdown, source comments and descriptive
 fixture text for the defined writing rules. Vendored dependencies, generated
-references and preserved legacy inputs retain their original contents and are
+references retain their original contents and are
 excluded from this check.

@@ -1,5 +1,5 @@
 import { renderFields } from '../src/internal/renderFields.ts';
-import { compileForm } from '@crudui/generator-core';
+import { ComposeLoadError, UnsupportedFieldTypeError, compileForm } from '@crudui/generator-core';
 /**
  * Verify Svelte SSR against the shared three-framework form fixtures.
  *
@@ -20,10 +20,6 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, test, expect } from 'vitest';
-import {
-  ComposeLoadError,
-  UnsupportedFieldTypeError,
-} from '../src/index.ts';
 import { normalizeHtml } from '../../../tests/fixtures/form-render/normalize.mjs';
 import { provesConformance } from '../../../tests/conformance/evidence.mjs';
 
@@ -85,14 +81,14 @@ describe('form rendering: a load/registry gap is a surfaced ERROR, never silent'
   }
 });
 
-// legacy condition meta keys. The expr engine resolves design.show/class/style to
-// concrete markup; if any of these names reaches the RAW output, the eval/legacy
-// condition path leaked. `if`/`when` are matched only as JSON-key-shaped tokens
+// Forbidden condition meta keys. The expr engine resolves design.show/class/style
+// to concrete markup; if any of these names reaches the RAW output, a condition
+// key leaked. `if`/`when` are matched only as JSON-key-shaped tokens
 // ("if"/"when") so label/text prose never false-positives.
 const FORBIDDEN_LITERAL = ['display_switch', 'display_target', 'show_if'];
 const FORBIDDEN_KEYSHAPE = [/"if"/, /"when"/];
 
-describe('form rendering: eval is never used (no legacy condition metadata)', () => {
+describe('form rendering: eval is never used (no condition metadata)', () => {
   // Operates on the RAW render output (pre-normalization) — the bytes the
   // generator actually emits, where a forbidden meta key or a magic token would
   // still be visible (there is no normalizer mask to hide one).
@@ -100,7 +96,7 @@ describe('form rendering: eval is never used (no legacy condition metadata)', ()
     test(`${c.name} — no forbidden meta-key markup`, () => proves(c.name, () => {
       const raw = render(c);
 
-      // 1: no legacy condition meta key reaches the markup (eval/legacy path never ran).
+      // 1: no forbidden condition meta key reaches the markup.
       for (const lit of FORBIDDEN_LITERAL) {
         expect(raw, `${c.name}: ${lit} leaked into raw output`).not.toContain(lit);
       }

@@ -1,32 +1,13 @@
 /**
  * Minimum length validation rule
  *
- * Validates that a string has at least the specified number of characters
+ * The canonical text of the value has at least the given number of code points
+ * (validation-rules.md, "Values"). An array or object value fails.
  */
 
 import { RuleDefinition, ValidationContext } from '../types';
 import { isEmpty } from './required';
-
-/**
- * Get the length of a value.
- * For strings, returns the Unicode code point count (NOT UTF-16 code units):
- * an astral character such as an emoji counts as 1, matching PHP
- * (preg_split('//u') / mb_strlen) and Go (utf8.RuneCountInString) and the
- * legacy server (Validation.php:468 preg_split('//u')). value.length would
- * count a surrogate pair as 2 and diverge.
- * For arrays, returns the number of elements.
- */
-export function getLength(value: unknown): number {
-  if (typeof value === 'string') {
-    return [...value].length;
-  }
-
-  if (Array.isArray(value)) {
-    return value.length;
-  }
-
-  return 0;
-}
+import { codePointLength, isLengthLimit } from '../values/index';
 
 /**
  * Minlength rule definition
@@ -35,33 +16,26 @@ export const minlengthRule: RuleDefinition = {
   validate(context: ValidationContext): string | null {
     const { value, ruleParam, messages } = context;
 
-    // Skip if no rule param
-    if (ruleParam === null || ruleParam === undefined) {
+    // A false or null parameter disables the rule.
+    if (ruleParam === false || ruleParam === null || ruleParam === undefined) {
       return null;
     }
+    if (!isLengthLimit(ruleParam)) {
+      throw new TypeError('Invalid minlength parameter: expected an integer from 0 to 9007199254740991');
+    }
 
-    // Skip validation if value is empty (required rule handles this)
+    // An empty value passes without evaluation (required handles it).
     if (isEmpty(value)) {
       return null;
     }
 
-    const minLength = Number(ruleParam);
-    if (isNaN(minLength)) {
-      return null;
-    }
-
-    const length = getLength(value);
-
-    if (length < minLength) {
+    const length = codePointLength(value);
+    if (length === undefined || length < ruleParam) {
       const message =
-        messages?.minlength ?? `Please enter at least ${minLength} characters.`;
-      return message.replace('{0}', String(minLength));
+        messages?.minlength ?? 'Please enter at least {0} characters.';
+      return message.replace('{0}', String(ruleParam));
     }
 
     return null;
   },
-
-  defaultMessage: 'Please enter at least {0} characters.',
 };
-
-export default minlengthRule;

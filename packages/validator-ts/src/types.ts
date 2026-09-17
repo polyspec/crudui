@@ -7,66 +7,6 @@
 // ============================================================================
 
 /**
- * Validation rules specification
- */
-export interface RulesSpec {
-  /** Requires a non-empty value; a string may carry a conditional expression gating the requirement. */
-  required?: boolean | string;
-  /** Requires the value to be a syntactically valid email address. */
-  email?: boolean;
-  /** Requires the value to be a syntactically valid URL. */
-  url?: boolean;
-  /** Minimum allowed string length. */
-  minlength?: number;
-  /** Maximum allowed string length. */
-  maxlength?: number;
-  /** Allowed string-length range as `[min, max]` (inclusive). */
-  rangelength?: [number, number];
-  /** Regular expression the value must match. */
-  match?: string;
-  /** Alias of `match` - both names resolve to the same rule implementation */
-  pattern?: string;
-  /** Requires the value to be a valid number (integer or decimal). */
-  number?: boolean;
-  /** Requires the value to consist only of digit characters (0-9). */
-  digits?: boolean;
-  /** Minimum allowed numeric value. */
-  min?: number;
-  /** Maximum allowed numeric value. */
-  max?: number;
-  /** Allowed numeric range as `[min, max]` (inclusive). */
-  range?: [number, number];
-  /** Required increment; the value must be a multiple of this step. */
-  step?: number;
-  /** Path of another field whose value this field must equal. */
-  equalTo?: string;
-  /** Value (or field path) that this field's value must not equal. */
-  notEqual?: string | unknown;
-  /** Whitelist of allowed values; the value must be one of these. */
-  in?: unknown[];
-  /** Requires the value to be a parseable date. */
-  date?: boolean;
-  /** Requires the value to be an ISO-8601 formatted date. */
-  dateISO?: boolean;
-  /** Path of a start-date field; this field's date must not be earlier than it. */
-  enddate?: string;
-  /** Minimum number of selected/array items required. */
-  mincount?: number;
-  /** Maximum number of selected/array items allowed. */
-  maxcount?: number;
-  /** Minimum number of repeated sub-form instances required. */
-  minformcount?: number;
-  /** Maximum number of repeated sub-form instances allowed. */
-  maxformcount?: number;
-  /** Requires the value to be unique among siblings; a string may scope the uniqueness check. */
-  unique?: boolean | string;
-  /** Allowed file types as MIME types/extensions for file inputs. */
-  accept?: string | string[];
-  /** Index signature allowing custom/registered rule names not modeled explicitly. */
-  [key: string]: unknown;
-}
-
-/**
  * Custom error messages specification
  */
 export interface MessagesSpec {
@@ -189,13 +129,11 @@ export interface ValidationContext {
 export type RuleFn = (context: ValidationContext) => string | null;
 
 /**
- * Rule definition with validation function and default message
+ * Rule definition with its validation function
  */
 export interface RuleDefinition {
   /** Validation function; returns an error message string on failure or null on success. */
   validate: RuleFn;
-  /** Fallback message used when the spec provides no custom message for this rule. */
-  defaultMessage: string;
 }
 
 // ============================================================================
@@ -450,14 +388,6 @@ export type WildcardStrategy = 'ANY' | 'ALL' | 'NONE' | 'CURRENT';
 // ============================================================================
 // Condition Evaluation Types
 // ============================================================================
-
-/**
- * Condition evaluation context
- */
-export interface ConditionContext extends PathContext {
-  /** Wildcard evaluation strategy */
-  wildcardStrategy?: WildcardStrategy;
-}
 
 /**
  * Parsed condition cache entry

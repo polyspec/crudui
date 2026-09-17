@@ -333,8 +333,8 @@
     "engine": { "code": "FORBIDDEN_META_KEY", "at": "properties.field.xnote" }
   },
   {
-    "name": "err-seqtokey-legacy",
-    "note": "the legacy seqtokey meta key is forbidden, here under a multiple settings body",
+    "name": "err-seqtokey-in-multiple",
+    "note": "the seqtokey meta key is forbidden, here under a multiple settings body",
     "spec": {
       "type": "group",
       "properties": {

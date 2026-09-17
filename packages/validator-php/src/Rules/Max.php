@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace CRUDUI\Validator\Rules;
 
+use CRUDUI\Validator\Values\Whitespace;
+
 /**
  * Maximum value validation rule.
  */
@@ -45,21 +47,14 @@ class Max implements RuleInterface
         if (is_float($value)) {
             return is_finite($value) ? $value : null;
         }
+        if (\is_string($value)) {
+            $value = Whitespace::trim($value);
+        }
         if (is_numeric($value)) {
             $num = (float)$value;
             return is_finite($num) ? $num : null;
         }
 
         return null;
-    }
-
-    /**
-     * Returns the default error message for this rule.
-     *
-     * @return string Default message, with {0}, {1} placeholders where applicable
-     */
-    public function getDefaultMessage(): string
-    {
-        return 'Please enter a value less than or equal to {0}.';
     }
 }

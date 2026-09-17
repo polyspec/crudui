@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
-# Run the CLI through tsx. Build the validator package before use.
+# Run the CLI through tsx. It imports the built package entries: run `npm run build` first.
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 exec node --import tsx "$DIR/crudui.mjs" "$@"

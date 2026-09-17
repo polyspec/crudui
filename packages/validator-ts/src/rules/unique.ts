@@ -219,8 +219,4 @@ export const uniqueRule: RuleDefinition = {
 
     return null;
   },
-
-  defaultMessage: 'Values must be unique.',
 };
-
-export default uniqueRule;

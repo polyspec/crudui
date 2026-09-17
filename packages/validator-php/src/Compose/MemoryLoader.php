@@ -30,7 +30,7 @@ final class MemoryLoader implements FileLoader
     /** Absolute (/-leading) path passes through; relative gets the basepath prefix. */
     public function normalize(string $path, string $basepath): string
     {
-        // Absolute path: pass through. Relative: prefix basepath (legacy parity).
+        // Absolute path: pass through. Relative: prefix basepath.
         if (\str_starts_with($path, '/')) {
             return $path;
         }

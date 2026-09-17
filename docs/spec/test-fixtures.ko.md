@@ -3,24 +3,16 @@
 [English](test-fixtures.md).
 
 고정 사례는 입력과 기대 동작을 정의합니다. 형식은 검사하는 계약에 따라 다릅니다.
-구형 사례의 통과는 현재 API의 적합성을 증명하지 않습니다.
-
-구형 비교 실행기는 명시적인 legacy 구현을 사용합니다. 선택한 모든 구현은 실행에
-성공하고 사례 기대값과 일치하며 다른 선택 구현과도 일치해야 합니다. 출력 누락,
-실행 실패 또는 읽을 수 없는 스위트는 실행 실패입니다. 비교 전에 네이티브 실행
-파일을 다시 빌드합니다.
 
 | 위치 | 계약 |
 | --- | --- |
-| `tests/fixtures/validate/cases.json` | 현재 검증 결과와 조합 실패. |
-| `tests/fixtures/validator-cli/cases.json` | 검증기 명령행 요청 규칙과 메시지입니다. |
+| `tests/fixtures/validate/cases.json` | 검증 결과와 조합 실패. |
 | `tests/fixtures/compose/` | 참조와 패치 조합. |
 | `tests/fixtures/expr/` | 토큰·AST·표현식 평가. |
 | `tests/fixtures/form-render/` | 기대 폼 렌더링. |
 | `tests/fixtures/form-session/` | 공통 폼 입력과 상호작용 시나리오. |
-| `tests/fixtures/legacy-validate/cases.json` | 구형 검증 사례. |
 
-## 현재 검증
+## 검증
 
 검증 사례 파일은 배열입니다. 각 항목은 `name`, `spec`, `data`를 포함하며 선택적인
 `files`는 조합 입력을 제공합니다. `note`는 사례를 설명합니다. `expected`는 전체
@@ -46,21 +38,6 @@
 항목은 거부합니다. PHP·C PHP 확장·Go·Rust의 패키지 검사와 CLI 검사도 같은 검증
 사례 파일을 사용합니다. `tests/fixtures/validate/generate.ts`가 TypeScript 엔진으로
 사례 파일을 생성하므로 `cases.json`을 직접 수정하지 않고 다시 생성합니다.
-
-## 구형 검증
-
-구형 검증 사례 파일은 목록입니다. 각 항목은 고유한 `name`, 속한 묶음 `suite`,
-`note`, `spec`, `cases`를 포함합니다. 사례는 `input`과 `expected`를 포함하며
-`expected.valid`는 결과를, 선택적인 `error`와 `field`는 첫 규칙과 필드 경로를
-검사합니다. [사례 README](../../tests/fixtures/legacy-validate/README.ko.md)가
-묶음을 나열합니다.
-
-구형 연동 검사는 단일 필드 스펙을 그룹의 `value` 아래에 추가하고 입력도 같은
-키 아래에 추가합니다. `properties`가 있는 그룹은 그대로 사용합니다.
-`"__undefined__"` 입력 표시는 연동 검사에서 값 없음을 나타냅니다.
-[구형 TypeScript 연동 검사](../../packages/validator-ts/src/__tests__/conformance.test.ts)를 참고합니다.
-각 런타임의 연동 검사는 항목마다 `validateLegacy` 증거를 한 줄 기록합니다.
-[적합성 증거](conformance.ko.md)를 참고합니다.
 
 ## 사례 추가와 검토
 

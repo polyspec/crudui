@@ -1,7 +1,7 @@
 /**
  * CRUDUI list-spec validation entry point (reference) — SPEC §9 read sister.
  *
- * The read sister of `validate/index.ts` (validate). A list-spec describes the
+ * The read sister of `src/validate/index.ts` (validate). A list-spec describes the
  * SAME domain as a form-spec, shown as a list instead of accepted as input. It
  * shares the CRUDUI engine 100%: expression / i18n / design / composition ($ref/
  * $patch) / forbidden-key scan run the SAME code that form-spec runs. Nothing
@@ -35,7 +35,7 @@
  * forbidden-key scanning.
  *
  * This NEVER touches form-spec `validate` (R7 parallel run): it is a sibling
- * entry that reuses the shared compose/forbidden-scan modules.
+ * entry that reuses the shared compose and forbidden-scan modules.
  */
 
 import { composeProperties, MemoryLoader } from '../compose/index';
@@ -43,8 +43,6 @@ import { composeRoot } from '../compose-root';
 import type { FileLoader } from '../compose/index';
 import type { FileSet, ValidationResult } from '../types';
 import { scanForbiddenKeys } from '../forbidden-scan';
-
-export { ComposeLoadError } from '../compose/index';
 
 /** Options for a CRUDUI list validation run (mirrors `ValidateOptions`). */
 export interface ValidateListOptions {
@@ -88,7 +86,7 @@ export function validateList(
   //
   // List-root $ref/$patch (G5: a base list-spec inheritance) is applied first,
   // through the SAME resolveRef/applyPatch primitives form-spec uses. The base
-  // file exposes its list under a `properties` layer (the legacy detectKey
+  // file exposes its list under a `properties` layer (the detectKey
   // convention resolveRef enforces). An unresolved root $ref throws here.
   let composed: Record<string, unknown> = composeRoot(spec, loader, opts);
 
@@ -121,7 +119,7 @@ export function validateList(
   }
 
   // Pass 2 (§6): forbidden-scan over the WHOLE composed list tree to arbitrary
-  // depth. A hit (a condition-only/legacy/magic meta key or an `x{key}` residue
+  // depth. A hit (a condition-only/composition-directive/magic meta key or an `x{key}` residue
   // anywhere — a forbidden COLUMN key, a `show_if` on a Column, an `if` one level
   // below the open CellFormat options bucket, …) is a LOAD failure, never
   // `valid:false`. The trace points at the shallowest offending key.
@@ -131,5 +129,3 @@ export function validateList(
   // "schema shape" checks are the meta-schema's job, not this engine's.
   return { valid: true, errors: [] };
 }
-
-export default validateList;

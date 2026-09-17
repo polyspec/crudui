@@ -25,9 +25,8 @@ No container is required when these toolchains are available locally.
 ## Build before loading data
 
 ```tsx
-import {
-  compileForm, createForm, Form, sequenceRowKey,
-} from '@crudui/generator-react';
+import { compileForm, createForm, sequenceRowKey } from '@crudui/generator-core';
+import { Form } from '@crudui/generator-react';
 
 const template = compileForm({
   type: 'group',
@@ -78,8 +77,8 @@ method composition; `connection.sync()` then sets the live control values.
 The HTML renderer returns fragments and does not create the outer `form` element,
 bind browser events, validate data or load records.
 
-Validate `submission` with `Validator` from `@crudui/validator` and the original
-spec. The server assigns saved sequences; apply each returned key to its specific
+Validate `submission` with `validate(spec, submission)` from `@crudui/validator`
+and the original spec. The server assigns saved sequences; apply each returned key to its specific
 collection path. Never replace a token across the entire data object.
 
 ## Checks

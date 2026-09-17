@@ -1,12 +1,6 @@
 //! `$patch` application — add / remove / replace over the `$ref` base (SPEC
-//! §5). Absorbs the legacy legacy directives `$after`/`$before`/`$merge`/`$change`/
-//! `$remove` (the analysis legacy_mapping):
-//!
-//!   $after / $before {existing:{new:val}}  → add   (position = declaration order;
-//!                                            CRUDUI properties preserve insert order)
-//!   $merge / $change {key:{sub:val}}       → replace + add (deep-merge; scalar =
-//!                                            replace, new subkey = add)
-//!   `$remove [k1,k2] | {k:{sub:…}}`        → remove (whole key or deep subkey)
+//! §5). There are no `$after`/`$before`/`$merge`/`$change`/`$remove` directives;
+//! `$patch` is the only overlay.
 //!
 //! CRUDUI normalization (the analysis patch_ops): `$patch` is an OBJECT of operations.
 //! Two order-preserving input shapes are supported:
@@ -14,13 +8,13 @@
 //!   1. Deep-path set — `"field.validate.required": ".other"`. The dotted key is
 //!      split into path segments and the value is SET at that node (creating
 //!      intermediate objects). SPEC §5 canonical form. The value replaces a
-//!      scalar leaf; for object values it deep-merges (legacy $merge =
-//!      drupal_array_merge_deep_array: both-array → deep merge, else latter wins).
+//!      scalar leaf; for object values it deep-merges (both objects → deep
+//!      merge, else the latter wins).
 //!
 //!   2. Structured ops — explicit `add` / `remove` / `replace` keys:
 //!      - add:     `{ "path.to.new": value, … }`   — deep-merge value at path
 //!      - replace: `{ "path.to.key": value, … }`   — same merge rule (scalar override)
-//!      - remove:  `[ "path.to.key", … ] | { … }`  — deep delete (legacy arr::remove)
+//!      - remove:  `[ "path.to.key", … ] | { … }`  — deep delete
 //!
 //! Resolution order: base ($ref) first, then $patch overlays. add/replace
 //! deep-merge; remove deep-deletes; deep-path set splits then applies. An
@@ -110,7 +104,7 @@ fn apply_remove(base: Map<String, Value>, val: &Value) -> ComposeResult<Map<Stri
             }
             Ok(result)
         }
-        // Nested map form (legacy arr::remove): recurse where both sides are objects.
+        // Nested map form: recurse where both sides are objects.
         Value::Object(spec) => Ok(remove_nested(base, spec)),
         _ => Err(ComposeLoadError::new(
             ComposeErrorCode::PatchShape,
@@ -131,14 +125,14 @@ fn split_path(path: &str) -> ComposeResult<Vec<String>> {
 }
 
 /// Set a value at a deep path, creating intermediate objects. When both the
-/// existing leaf and the new value are plain objects, DEEP-MERGE (legacy $merge);
-/// otherwise the new value REPLACES (legacy scalar override). Returns a new tree.
+/// existing leaf and the new value are plain objects, DEEP-MERGE;
+/// otherwise the new value REPLACES. Returns a new tree.
 ///
 /// ORDER: a key that already exists must keep its declared position. We read the
 /// existing value (get().cloned()) WITHOUT removing it, then `insert` under the
 /// same key — IndexMap::insert keeps an existing key in place. A `remove`
-/// (= swap_remove) before re-insert would corrupt the positional order that legacy's
-/// array_merge merge priority depends on. A brand-new key is appended (add).
+/// (= swap_remove) before re-insert would corrupt the declaration order that merge
+/// priority depends on. A brand-new key is appended (add).
 fn set_deep_path(
     mut node: Map<String, Value>,
     segments: &[String],
@@ -176,7 +170,7 @@ fn set_deep_path(
     Ok(node)
 }
 
-/// legacy deep-merge leaf rule (drupal_array_merge_deep_array): both plain objects →
+/// Deep-merge leaf rule: both plain objects →
 /// recursive deep merge; otherwise the latter value wins (scalar/array override).
 fn merge_value(existing: Option<&Value>, incoming: &Value) -> Value {
     if let (Some(Value::Object(ex)), Value::Object(inc)) = (existing, incoming) {
@@ -227,9 +221,9 @@ fn remove_deep_path(
     }
 }
 
-/// Nested-map remove (legacy arr::remove): for each key, recurse when both the target
+/// Nested-map remove: for each key, recurse when both the target
 /// and the removal spec are objects, else unset the key. A missing key is
-/// tolerated here (legacy arr::remove silently unsets), unlike the array-path form.
+/// tolerated here (silently skipped), unlike the array-path form.
 fn remove_nested(mut base: Map<String, Value>, spec: &Map<String, Value>) -> Map<String, Value> {
     for (key, sub) in spec {
         match (base.get(key).cloned(), sub) {

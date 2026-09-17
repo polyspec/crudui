@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import assert from 'node:assert/strict';
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import Ajv from 'ajv';
@@ -95,10 +96,6 @@ for (const [family, validate] of [
     }
     checked++;
   }
-}
-for (const test of read('../tests/fixtures/translate/cases.json')) {
-  assert.equal(validateForm(test.schema), true, `${test.name}: ${JSON.stringify(validateForm.errors)}`);
-  checked++;
 }
 
 // ---------------------------------------------------------------------------
@@ -242,8 +239,8 @@ for (const test of read('../tests/fixtures/compose/cases.json')) {
   for (const document of Object.values(files ?? {})) checkFiles(label, document, files, 'properties');
 }
 
-// Validator command-line requests that the runtime accepts.
-for (const test of read('../tests/fixtures/validator-cli/cases.json')) {
+// Requests that the cross-check console's validator processes accept.
+for (const test of read('../examples/cross-check-console/validators/requests.json')) {
   if (test.expected.exit !== 0) continue;
   let request;
   try {
@@ -253,7 +250,7 @@ for (const test of read('../tests/fixtures/validator-cli/cases.json')) {
   }
   const mode = request.mode ?? 'form';
   const validate = mode === 'list' ? validateList : mode === 'detail' ? validateDetail : validateForm;
-  checkSpec(`validator-cli:${test.name}`, request.spec, validate);
+  checkSpec(`validator-request:${test.name}`, request.spec, validate);
 }
 
 // Browser form-session specifications.
@@ -333,31 +330,18 @@ for (const [file, pattern, extract] of packageExamples) {
 }
 
 // ---------------------------------------------------------------------------
-// Legacy corpora. `examples/legacy` and `tests/fixtures/specs` declare the
-// legacy field model (docs/spec/legacy-schema.md), which the current validator
-// does not convert: rules under `rules`, messages beside them, and visibility in
-// `display_switch`/`display_target`. The current meta-schema rejects that model
-// by design, so these files are checked as legacy: they must parse under the
-// unique-key rule, and they must not pass the current meta-schema.
+// Every tracked YAML specification is accounted for. The form-structure example
+// passes the meta-schema above; the CLI fixtures are inputs of the CLI's own
+// tests, several of them invalid on purpose. Any other YAML file would be a
+// specification no check reads.
 // ---------------------------------------------------------------------------
-function yamlFiles(directory) {
-  const found = [];
-  for (const name of readdirSync(at(directory)).sort()) {
-    if (name === 'node_modules' || name === 'vendor' || name === 'target' || name.startsWith('.')) continue;
-    const relative = `${directory}/${name}`;
-    if (statSync(at(relative)).isDirectory()) found.push(...yamlFiles(relative));
-    else if (/\.ya?ml$/.test(name) && name !== 'docker-compose.yml') found.push(relative);
-  }
-  return found;
-}
-const legacyMarker = /(^|\n)\s*(rules|messages|display_switch|display_target|wrapper_class|group_class):/;
-for (const file of [...yamlFiles('examples/legacy'), ...yamlFiles('tests/fixtures/specs')]) {
-  const source = readText(file);
-  const document = YAML.parse(source); // Throws on a duplicate key.
-  assert.ok(legacyMarker.test(source), `${file}: has no legacy field model marker; move it out of the legacy corpora`);
-  assert.equal(validateForm(document), false, `${file}: passes the current meta-schema, so it is no longer legacy`);
-  checked++;
-}
+const checkedYaml = new Set(['examples/form-structure/spec.yml']);
+const trackedYaml = execFileSync('git', ['ls-files', '*.yml', '*.yaml'], { cwd: repository, encoding: 'utf8' })
+  .split('\n').filter((file) => file && !file.startsWith('.github/') && existsSync(at(file)));
+const unchecked = trackedYaml.filter((file) =>
+  !checkedYaml.has(file) && !file.startsWith('packages/cli/test/fixtures/'));
+assert.deepEqual(unchecked, [], `YAML specifications that no check reads: ${unchecked.join(', ')}`);
+for (const file of trackedYaml) YAML.parse(readText(file)); // Throws on a duplicate key.
 
 const unused = [...outsideSchema.keys()].filter((label) => !seenOutside.has(label));
 assert.deepEqual(unused, [], `declared outside the schema but never reached: ${unused.join(', ')}`);

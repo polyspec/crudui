@@ -106,8 +106,5 @@ curl http://127.0.0.1:8087/list
 curl http://127.0.0.1:8087/detail
 ```
 
-`cmd/generate` CLI는 표준 입력의 JSON 요청 하나를 받아 JSON 값 하나를 반환합니다.
-지원 연산은 `compileForm`, `bindForm`, `bindButtons`, `formButtonsHtml`, `form`, `buildList`, `renderList`,
-`buildDetail`, `renderDetail`입니다. `form` 연산은
-액션을 실행하고 성공 및 거부된 연산마다 전체 상태를 기록합니다. CLI는 적합성
-검사 어댑터이며 애플리케이션은 라이브러리를 직접 호출합니다.
+[네이티브 공통 검사](../../tests/native-generators/README.ko.md)는 이 패키지의 공개 API를
+호출하는 프로그램으로 다른 런타임과 결과를 비교합니다.

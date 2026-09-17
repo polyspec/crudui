@@ -22,7 +22,7 @@ use CRUDUI\Validator\Support\JsonValue;
  * even be loaded. So composition is a pre-processing pass that runs BEFORE
  * validation/render, not a validation step.
  *
- * legacy's positional array_merge priority is normalized here: $ref = base (first),
+ * Composition priority: $ref = base (first),
  * $patch = overlay (later) — base is laid down, patch overrides.
  *
  * composeProperties is the entry point: it operates on a properties map (the
@@ -38,7 +38,7 @@ final class Compose
 
     /**
      * Compose a properties map: expand $ref to a base, overlay $patch, return the
-     * single (composition-free) properties map. Named sibling keys follow legacy
+     * single (composition-free) properties map. Named sibling keys follow
      * declaration order — a key declared after $ref overrides the base; a key
      * declared before it is overridden by the base.
      *
@@ -56,7 +56,7 @@ final class Compose
 
         foreach ($properties as $k => $v) {
             if ($k === '$ref') {
-                // $ref array_merges onto whatever was declared before it (legacy order).
+                // $ref array_merges onto whatever was declared before it (declaration order).
                 $base = self::merge($own, Ref::resolve($v, $basepath, $loader));
                 $own = [];
             } elseif ($k === '$patch') {
@@ -103,8 +103,7 @@ final class Compose
             $own = [];
             foreach ($spec as $k => $v) {
                 if ($k === '$ref') {
-                    // Field-level $ref resolves a file's properties layer too
-                    // (legacy detectKey).
+                    // Field-level $ref resolves a file's properties layer too.
                     $base = self::merge($own, Ref::resolve($v, $basepath, $loader));
                     $own = [];
                 } elseif ($k === '$patch') {

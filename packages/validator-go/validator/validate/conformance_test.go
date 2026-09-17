@@ -53,7 +53,7 @@ type expectedResult struct {
 
 func loadValidateFixtures(t *testing.T) []validateCase {
 	t.Helper()
-	// validator-go/validator/model/validate → repo root is five levels up.
+	// packages/validator-go/validator/validate → repo root is four levels up.
 	path := filepath.Join("..", "..", "..", "..", "tests", "fixtures", "validate", "cases.json")
 	raw, err := os.ReadFile(path)
 	if err != nil {

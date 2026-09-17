@@ -1,5 +1,131 @@
 # 변경 기록
 
+## 2026-09-17 — 저장소 설정 선언과 make 배포
+
+- `.github/repository.json`이 GitHub 저장소 설정을 선언합니다. 홈페이지, 저장소 기능과 병합 방식,
+  Actions 허용 범위와 워크플로 기본 권한, 취약점 알림과 자동 보안 수정, Pages 빌드 방식, `main`에서만
+  배포하는 `github-pages` 환경입니다. `make github-settings`는 다른 설정만 바꾸고 다시 읽으며,
+  `make github-settings-check`는 설정이 다르면 실패합니다. `tests/build/github-repository.test.mjs`가
+  메모리 안의 저장소로 두 명령을 검사합니다. [저장소 설정](docs/operations/repository.ko.md)을 참고합니다.
+- `make deploy`와 `make deploy-verify`는 비교 서비스 배포와 그 검증을 실행하며, 검증 절차 문서도 이
+  명령을 적습니다.
+
+## 2026-09-17 — 배포 패키지에서 명령 프로그램 제외
+
+언어별 검증기·생성기 프로그램은 교차 검증 콘솔과 native 생성기 검사의 프로세스 경계일 뿐인데 패키지
+안에 들어 있었습니다(`packages/validator-go/cmd/validate`, `packages/validator-php/bin/validate.php`,
+Rust `validate`·`generate` 실행 파일, `packages/generator-go/cmd/generate`,
+`packages/generator-php/bin/generate.php`). 애플리케이션은 라이브러리 함수를 호출합니다.
+
+- 검증기 프로그램은 `examples/cross-check-console/validators`에, 생성기 프로그램은
+  `tests/native-generators/programs`에 있으며, 각각 패키지의 공개 API만 호출하고 같은 요청·응답·종료
+  상태를 유지합니다. 콘솔은 공용 검증·목록·상세 사례 전체와 요청 사례 45개를 다섯 검증기 프로세스로
+  실행하고, native 검사는 공용 요청 검사 60개를 모든 생성기 프로그램에 보냅니다.
+- 이 공용 검사로 드러난 경계 동작 차이를 한 규칙으로 맞췄습니다. 모든 프로그램이
+  `Request must be valid JSON`, `Request must be an object`, `Options must be an object`,
+  `Actions must be an array`, `Unknown generator operation`으로 답하고, 객체가 아닌 `spec`은
+  `A form spec must be a group with properties`, 객체가 아닌 `template`은 `Unsupported form template`,
+  잘못된 동작은 단계 오류 `Invalid form action`입니다. `bindButtons`는 버튼을 읽은 뒤 템플릿 종류를
+  확인해 `TypeError`를 던졌으며, 이제 `Unsupported form template`를 보고합니다.
+- 패키지 계약에서 `validatorCli` 기능을 제거했습니다. `tests/build/public-packages.test.mjs`는 배포
+  패키지가 명령 프로그램을 선언하거나 포함하면 실패합니다(`package.json`이나 `composer.json`의 `bin`,
+  `#!`로 시작하는 PHP 파일, Go 모듈의 `package main`, Rust 크레이트의 `[[bin]]`, `src/bin`,
+  `src/main.rs`).
+- `make format-check`는 아직 커밋하지 않은 새 파일도 검사하고 삭제된 파일은 건너뜁니다.
+
+## 2026-09-17 — 레거시 계층 제거
+
+레거시 계층은 이전 필드 모델(`rules`, `messages`, `display_switch`/`display_target`)을 CRUDUI와
+나란히 실행했지만 고정된 이전 동작을 재현하지 않았습니다. TypeScript 레거시 검증기는 현재 규칙
+레지스트리 위에서 실행되어 현재 규칙이 바뀔 때마다 결과도 바뀌었습니다. 이 계층은 호환·이전 경로였고,
+예제는 CI에서 실행되지 않았습니다. 별칭, 대체 경로, 대체 진입점 없이 완전히 제거했습니다.
+
+- 레거시 검증기를 제거했습니다. `@crudui/validator/legacy`(`./legacy` export와 빌드 진입점),
+  `CRUDUI\Validator\Legacy`, Go `validator/legacy` 패키지와 `cmd/validate-legacy`, Rust `legacy`
+  모듈과 `validate-legacy` 실행 파일입니다. 이들만 쓰던 코드도 함께 제거했습니다. TypeScript
+  `RulesSpec` 타입, PHP `Rules\Unique` 규칙과 쓰이지 않는 `PathResolver` 메서드 여섯 개, Go
+  `LegacyKeyMap`, PHP `FieldSpec::ABSORBS_LEGACY` 표와 `canonicalFor()`, Rust `regex` 의존성입니다.
+- 레거시 변환기(`translateFromLegacy`, `roundtripLegacy`)와 말뭉치 스크립트
+  (`scripts/corpus-legacy-*.mts`)를 제거했습니다. `translateLegacy`·`validateLegacy` 기능과
+  `tests/fixtures/legacy-validate`·`tests/fixtures/translate` 고정 데이터도 함께 제거했습니다.
+  `tests/fixtures/specs`의 이전 모델 명세도 제거했습니다.
+- `examples/legacy`를 Compose 파일, PHP·Go·Rust·Node API 서버, 애플리케이션, 공유 명세와 함께
+  제거했습니다. 해당 서버의 문서를 검사하던 `npm run docs:check:servers`, `make docs-check-servers`,
+  스크립트도 제거했습니다.
+- 네 언어 레거시 비교(`tests/runner`)와 그 CI 작업을 제거했습니다. 루트 `npm test`는 이제 모든
+  워크스페이스 패키지의 테스트 스크립트를 실행합니다.
+- `scripts/check-schema.mjs`는 더 이상 레거시 말뭉치를 검사하지 않습니다. 추적하는 YAML 파일이
+  자신이 검사하는 명세나 CLI 테스트 고정 데이터가 아니면 실패합니다.
+- 검증기 벤치마크의 `contact` 명세는 현재 검증기가 읽지 않는 레거시 `rules` 선언이어서 규칙 없는
+  폼을 측정했습니다. 이제 현재 `validate` 선언으로 생성하며, 80개 필드 사례의 이름은 `large`입니다.
+  Go와 Rust 벤치마크 드라이버는 검증기 생성자가 이제 반환하는 오류를 처리합니다.
+- `docs/spec/legacy-schema.md`와 `docs/spec/legacy-visibility.md`를 제거했고, 테스트·스키마·고정
+  데이터·예제·기능 문서는 현재 계층만 설명합니다.
+
+## 2026-09-17 — 패키지 진입점과 정확한 export 선언
+
+`contracts/features.json`은 패키지마다 이름 몇 개만 적었고, manifest 검사는 각 이름이 패키지
+소스 어딘가에 있는지만 확인했습니다. generator-core 진입점은 값 64개를 내보냈고, React·Vue·Svelte
+진입점은 core 함수를 다시 내보냈으며, 렌더러는 공개 진입점으로 core 도우미를 가져왔습니다. 이제 각
+패키지는 `entries`에 `package.json` `exports`의 모든 JavaScript 진입점을 공개 범위(`public` 또는
+`internal`)와 정확한 값 export 목록으로 선언하며 `exports`는 제거했습니다. `npm run manifest:check`는
+TypeScript 컴파일러로 값 export를 읽고, 선언되지 않았거나 없는 진입점·export, 담당 패키지 공개
+진입점 밖의 signature 함수, CRUDUI 패키지 코드 밖에서 가져온 internal 진입점에서 실패합니다.
+`tests/build/contract-manifest.test.mjs`가 각 실패를 증명합니다. 생성되는 기능 계약 페이지는 모든
+진입점을 나열합니다.
+
+- `@crudui/generator-core`는 애플리케이션 API를 내보냅니다. 기능 작업, `FormInstance`,
+  `createRowKey`, `sequenceRowKey`, `formMessages`, `collapsibleRows`, `canUndo`, `canRedo`,
+  `redoChange`, `resolveAction`, `connectStickyHeaders`, 오류 클래스입니다. `listLayout`,
+  `paginationPages`, `parseStyle`은 렌더러용 새 진입점 `@crudui/generator-core/internal`로
+  옮겼습니다. `resolveDesign`, `evalShow`, `evalAppearance`, `makeContext`, `makeTranslate`,
+  `rowPathContains`, `HISTORY_LIMIT`, `FORM_BUTTON_TYPES`, `DEFAULT_FORM_BUTTONS`, `LANGUAGES`,
+  `formatCount`, 위젯·셀 카탈로그, `renderCell`, `normalizeFormat`은 더 이상 내보내지 않습니다.
+- `@crudui/generator-react`, `@crudui/generator-vue`, `@crudui/generator-svelte`는 자신의
+  컴포넌트와 렌더 함수만 내보냅니다. `compileForm`, `createForm`, `buildList`, `buildDetail`, 행 키,
+  오류 클래스는 `@crudui/generator-core`에서 가져옵니다. 세 패키지는 더 이상 `@crudui/validator`에
+  의존하지 않습니다.
+- `formHistory`, `viewState`, `runAction`의 signature는 기능의 모든 함수를 적습니다.
+  존재하지 않는 `FormError`를 적었던 기능은 `FormInputError`를 적습니다.
+
+## 2026-09-17 — PHP 8.4 이상, 선언한 모든 버전에서 검사
+
+PHP 패키지는 `^8.2`를 선언했지만 CI는 PHP 8.4와 8.5에서만 실행했고, 렌더링 적합성 검사는 PHP 8.4의
+HTML5 파서가 필요합니다. `crudui/validator`와 `crudui/generator`는 이제 `^8.4`를
+요구하며, 검증기 작업도 native 작업처럼 PHP 8.4와 8.5에서 실행됩니다. `tests/build/runtime-version-policy.test.mjs`는 Composer 매니페스트가 다른 범위를 선언하거나,
+PHP 패키지를 검사하는 작업이 선언 범위의 모든 버전을 다루지 않거나, PHP 컨테이너가 가장 최신 검사
+버전이 아니면 실패합니다.
+
+## 2026-09-17 — 모든 검증기의 값·패턴 정의 통일
+
+JavaScript·PHP·PHP 확장·Go·Rust 검증기는 공백, 길이가 세는 대상, `in`, 패턴의 의미가 서로
+달랐습니다. 이제 `docs/spec/validation-rules.md`가 이를 한 번 정의하고 모든 검증기가 그 정의를
+따릅니다.
+
+- 공백은 정확히 Unicode `White_Space` 집합이며 trim은 그 밖의 문자를 지우지 않습니다. `required`는
+  값이 없거나 `null`, 공백뿐인 문자열, 빈 배열, 빈 객체이면 실패하고, `mincount`·`maxcount`를 제외한
+  나머지 규칙은 이 값들을 통과시킵니다.
+- 스칼라의 정규 텍스트는 문자열 자신, 불리언은 `1`/`0`, 숫자는 ECMAScript 표기입니다. 길이 규칙은
+  그 코드 포인트 수를 세며 배열과 객체는 실패합니다. 한계값은 0부터 9007199254740991까지의 정수이고
+  `rangelength`는 최솟값 ≤ 최댓값이어야 합니다.
+- `in`은 목록 원소를 그대로, 쉼표 항목은 trim하여, 맵은 키를 멤버로 쓰며, 정규 텍스트가 같거나
+  십진수 값이 같으면 일치합니다. 배열 값은 모든 원소가 통과해야 통과합니다.
+- `pattern`과 `match`는 CRUDUI 패턴 언어로 값 전체를 매칭합니다(`\d`·`\w`·`\s`는 ASCII 숫자·단어
+  문자·공백, `.`은 U+000A만 제외, 일반 분류와 스크립트). `/x/i` 같은 구분자는 일반 텍스트입니다. 모든
+  검증기는 정규식 엔진 대신 패턴을 직접 인식하고 자체 선형 시간 매처로 매칭합니다. JavaScript의 백트래킹은
+  60자에 `(?:[^\n]*a){12}c`를 매칭하는 데 148초가 걸렸고, Rust 엔진은 `\p{L}{1000}`에 43MB와 4.4초가
+  필요했으며, PCRE2와 Rust는 일부 스크립트나 `\p{Cs}`가 없었고, 엔진들은 4,644개 코드 포인트의 문자 여부가
+  서로 달랐습니다. 패턴 크기는 1000 이하, 그룹 중첩은 100단계 이하입니다.
+- Unicode 데이터는 `scripts/generate-unicode-properties.mjs`가 `contracts/unicode/`의 Unicode 16.0.0 파일에서
+  만든 표 `contracts/unicode-properties.json` 하나에서 가져옵니다. 모든 검증기가 이 표를 내장하며 표가 낡으면
+  테스트가 실패합니다.
+- 정의를 벗어난 매개변수는 필드 선언 경로에서 `INVALID_RULE_PARAMETER` 또는
+  `INVALID_RULE_PATTERN`(사유와 코드 포인트 오프셋 포함)으로 로드에 실패합니다. 조건으로 선택되는
+  한계값은 선택될 때 검사합니다.
+- 스키마도 같은 매개변수 형태를 기술합니다. 공용 검증 사례는 64개에서 174개로 늘었고 다섯 검증기
+  모두에서 실행됩니다.
+- 제거: 패턴 구분자 처리, 부분 매칭, 정규식 엔진 번역, 언어별 trim 함수, 길이 한계의 정수 변환.
+
 ## 2026-09-17 — 모든 런타임의 폼 버튼 공개
 
 기능 기준은 모든 서버 런타임에 `bindButtons`와 `formButtonsHtml`을 선언했지만 JavaScript만 공개하고
@@ -273,7 +399,7 @@ native 생성기, PHP 확장 엔진, 패키지 및 PHPUnit 검증 러너가 실�
   런타임이 `items`를 읽는 곳에 select 선택지를 `options`로 두어 select가 비어 렌더링되었습니다.
 - 조건 맵은 모든 런타임에서 기본이 아닌 키를 순서대로 평가하고 `true` 값, 그다음 `null`로 대체합니다. 필드 명세가
   `true` 키가 필수라고 잘못 적었으므로 `docs/spec/expressions.ko.md`가 이미 밝힌 규칙으로 고쳤습니다.
-- `tests/fixtures/specs/LargeForm.yml`에는 중복 YAML 키가 두 곳 있었고 벤치 고정 데이터 생성기가 `uniqueKeys: false`로
+- 큰 예제 명세에는 중복 YAML 키가 두 곳 있었고 벤치 고정 데이터 생성기가 `uniqueKeys: false`로
   파싱해 이를 숨겼습니다. 파싱 결과가 같도록 중복을 제거하고 생성기가 엄격히 파싱하며, 벤치 고정 데이터는 바이트
   단위로 같습니다. `examples/legacy/basic-form.yml`은 따옴표 없는 값 때문에 파싱되지 않아 따옴표로 감쌌습니다.
 
@@ -544,7 +670,7 @@ C 라이브러리가 이 순서로 검사하고, JavaScript 어댑터는 해석�
 `mode`를 먼저 검사했으며, 객체가 아닌 `files`, 객체가 아닌 파일 항목, 문자열이 아닌 `basepath`를 JavaScript와
 Rust는 무시했고 Go와 PHP는 각자의 메시지로 거부했습니다. 이제 모든 어댑터가 하나의 순서와 규칙별 하나의
 메시지로 요청을 검사하고(올바른 JSON, 객체인 요청, 객체인 `spec`, 지원하는 `mode`, 항목이 객체인 객체 `files`,
-문자열 `basepath`), 공용 [명령행 요청 사례](tests/fixtures/validator-cli/README.ko.md)가 교차 검증 콘솔 검사로 네
+문자열 `basepath`), 공용 [명령행 요청 사례](examples/cross-check-console/validators/README.ko.md)가 교차 검증 콘솔 검사로 네
 언어에서 실행됩니다. PHP 자체 명령행 검사는 `files`를 JSON 배열로 보냈으며 이제 객체로 보냅니다.
 
 JavaScript 검증기 검사 1642건 중 1642건, Go 검증기 패키지, Rust 73건 중 73건, PHP 1528건 중 1528건이 통과했고, PHP
@@ -1434,18 +1560,17 @@ HTML을 비교했고 속성 순서에서만 실패했습니다. React는 input�
 
 ## 2026-09-13 — Bootstrap 기반 레거시 UI 경로 제거
 
-레거시 폼 컴포넌트와 원본 Legacy 렌더링 비교는 Bootstrap 위에 만들어졌고, 노드 문법과
+레거시 폼 컴포넌트와 이전 렌더링 비교는 Bootstrap 위에 만들어졌고, 노드 문법과
 `crudui.css`로 대체되었습니다. 현재 경로 옆에 두지 않고 제거합니다.
 
 - `@crudui/generator-react/legacy`, `@crudui/generator-vue/legacy`,
   `@crudui/generator-svelte/legacy`와 그 소스, React `@crudui/generator-react/styles.css`
   스타일시트, 이를 검사하던 테스트(React 테스트 16개, Vue·Svelte 패리티 테스트와 캡처, Svelte
   레거시 컴포넌트 테스트)
-- `examples/legacy/demo-app`, `playground`, `legacy-bootstrap`, `legacy-compare`,
-  `legacy-original`, `legacy-validate-test`, `react-usage.tsx`와 해당 docker-compose 서비스,
+- 이전 데모·플레이그라운드·렌더링 비교 예제, `react-usage.tsx`와 해당 docker-compose 서비스,
   README 항목
 - `tests/parity`, `tests/cross-framework`, `tests/legacy-client`,
-  `tests/fixtures/reference-html`, `tools/legacy-baseline`, 루트 `compare` 페이지, 벤더링한
+  `tests/fixtures/reference-html`, 기준 생성 도구, 루트 `compare` 페이지, 벤더링한
   `packages/generator-legacy`, Vue·Svelte 단계가 form-render 작업을 반복하던 CI parity 작업
 - 레거시 컴포넌트만 쓰던 React, Vue, Svelte 패키지의 `lucide-react`, `yaml` 의존성
 

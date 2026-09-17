@@ -18,10 +18,8 @@ dist/
 # Rust build outputs (Cargo.lock is committed for the binary crate)
 target/
 
-# Compiled example Go server binaries
-examples/legacy/go-api/go-api
-# Compiled validator Go CLI binary
-packages/validator-go/validate
+# Compiled Go validator process of the cross-check console
+examples/cross-check-console/validators/go/validate
 
 # IDE
 .idea/
@@ -54,10 +52,6 @@ docs/public/api/
 # phpDocumentor phar + cache (large, environment-local)
 tools/bin/phpDocumentor.phar
 tools/bin/.phpdoc-cache/
-# Generated legacy corpus measurement reports
-scripts/corpus-legacy-result.json
-scripts/corpus-legacy-classified.json
-scripts/corpus-legacy-verify.json
 
 # Local verification reports
 .verification/

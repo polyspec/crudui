@@ -15,8 +15,7 @@ import (
 // TestSchemaDocCoverage requires a doc comment on every exported top-level
 // function, method, type, constant and variable in the validator tree.
 //
-// The check walks every subpackage recursively. The legacy package runs a
-// separate check over its own directory. The implementation uses go/ast and no
+// The check walks every subpackage recursively. The implementation uses go/ast and no
 // external tooling.
 //
 // Scope follows Go convention: top-level exported declarations must be

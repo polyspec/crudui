@@ -69,14 +69,4 @@ class NotEqual implements RuleInterface
 
         return $current;
     }
-
-    /**
-     * Returns the default error message for this rule.
-     *
-     * @return string Default message, with {0}, {1} placeholders where applicable
-     */
-    public function getDefaultMessage(): string
-    {
-        return 'Please enter a different value.';
-    }
 }

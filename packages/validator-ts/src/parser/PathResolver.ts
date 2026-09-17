@@ -112,46 +112,6 @@ export function getValueByPath(
 }
 
 /**
- * Set value by path in data object
- */
-export function setValueByPath(
-  data: Record<string, unknown>,
-  path: string[],
-  value: unknown
-): void {
-  let current: Record<string, unknown> = data;
-
-  for (let i = 0; i < path.length - 1; i++) {
-    const segment = path[i]!;
-    if (!(segment in current)) {
-      // Create object or array based on next segment
-      const nextSegment = path[i + 1];
-      current[segment] = /^\d+$/.test(nextSegment ?? '') ? [] : {};
-    }
-    current = current[segment] as Record<string, unknown>;
-  }
-
-  const lastSegment = path[path.length - 1];
-  if (lastSegment !== undefined) {
-    current[lastSegment] = value;
-  }
-}
-
-/**
- * Extract current array index from path
- */
-export function extractCurrentIndex(path: string[]): number | null {
-  // Find the last numeric segment in the path
-  for (let i = path.length - 1; i >= 0; i--) {
-    const segment = path[i];
-    if (segment !== undefined && /^\d+$/.test(segment)) {
-      return parseInt(segment, 10);
-    }
-  }
-  return null;
-}
-
-/**
  * Find the array path and remaining path after wildcard
  */
 function findWildcardPosition(path: string[]): {
@@ -588,7 +548,7 @@ function looseEquals(a: unknown, b: unknown): boolean {
 /**
  * Coerce a value to a number for condition comparison.
  * Deliberately lenient (PHP ConditionParser::toNumber parity).
- * Not to be confused with the strict rules/min.ts toNumber used by
+ * Not to be confused with the strict src/rules/min.ts toNumber used by
  * value-validation rules.
  */
 function coerceNumber(value: unknown): number {
@@ -697,46 +657,8 @@ export function pathToString(path: string[]): string {
 }
 
 /**
- * Get parent path
- */
-export function getParentPath(path: string[]): string[] {
-  return path.slice(0, -1);
-}
-
-/**
  * Get field name from path
  */
 export function getFieldName(path: string[]): string {
   return path[path.length - 1] ?? '';
-}
-
-/**
- * Check if path is a child of parent path
- */
-export function isChildPath(childPath: string[], parentPath: string[]): boolean {
-  if (childPath.length <= parentPath.length) {
-    return false;
-  }
-
-  for (let i = 0; i < parentPath.length; i++) {
-    if (childPath[i] !== parentPath[i]) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-/**
- * Get relative path from parent to child
- */
-export function getRelativePath(
-  childPath: string[],
-  parentPath: string[]
-): string[] {
-  if (!isChildPath(childPath, parentPath)) {
-    return childPath;
-  }
-
-  return childPath.slice(parentPath.length);
 }

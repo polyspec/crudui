@@ -56,7 +56,8 @@ impl ValidateError {
         }
     }
 
-    /// Composition trace joined with `.`; empty for an input failure.
+    /// Load-failure trace joined with `.` (a composition trace or a field's
+    /// declaration path); empty for an input failure.
     pub fn at(&self) -> String {
         match self {
             ValidateError::Load(error) => error.trace.join("."),

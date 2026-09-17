@@ -10,8 +10,8 @@ import (
 // Resolution supports these input forms:
 //
 //	(1) value = a single string OR an array of strings — an array resolves each
-//	    path in order, then array_merge (later overrides earlier on key clash).
-//	(2) plain path OptionCombination.yml → load YAML, descend by the default
+//	    path in order, then merge (later overrides earlier on key clash).
+//	(2) plain path options.yml → load YAML, descend by the default
 //	    detectKey ["properties"] (= take the file's properties only).
 //	(3) path-specified (file.yml).a.b → regex split, detectKeys = ["a","b",
 //	    "properties"] — descend a.b, then descend to properties underneath.
@@ -24,7 +24,7 @@ import (
 // base; $patch overlays it (base first, patch overrides). Unresolved $ref
 // (missing file / bad format / absent detectKey / cycle) is a LOAD ERROR.
 
-// pathSpecRE splits (path).keys — mirrors legacy ReferenceResolver:113 and the JS
+// pathSpecRE splits (path).keys — same pattern as the JS
 // /^\((?<path>.*?)\)\.(?<keys>.*)$/.
 var pathSpecRE = regexp.MustCompile(`^\((.*?)\)\.(.*)$`)
 
@@ -48,14 +48,14 @@ func resolveRef(value any, basepath string, loader FileLoader, chain []string) (
 		if err != nil {
 			return nil, err
 		}
-		// array_merge: later keys override earlier (legacy resolve() semantics).
+		// Merge: later keys override earlier.
 		merged = shallowMerge(merged, resolved)
 	}
 	return merged, nil
 }
 
 // normalizeRefValue normalizes the $ref value into a list of path strings
-// (legacy: scalar→[scalar]).
+// (scalar → [scalar]).
 func normalizeRefValue(value any) ([]string, error) {
 	if s, ok := value.(string); ok {
 		return []string{s}, nil
@@ -83,7 +83,7 @@ func resolveSingleRef(rawPath, basepath string, loader FileLoader, chain []strin
 	path := rawPath
 	detectKeys := []string{"properties"}
 
-	// Path-specified form (file.yml).a.b (legacy: leading '(').
+	// Path-specified form (file.yml).a.b (leading '(').
 	if strings.HasPrefix(path, "(") {
 		m := pathSpecRE.FindStringSubmatch(path)
 		if m == nil {
@@ -91,11 +91,11 @@ func resolveSingleRef(rawPath, basepath string, loader FileLoader, chain []strin
 		}
 		path = m[1]
 		keys := m[2]
-		// detectKeys = explode('.', keys) ++ ['properties'] (legacy:115).
+		// detectKeys = keys split on '.' followed by "properties".
 		detectKeys = append(strings.Split(keys, "."), "properties")
 	}
 
-	// Empty path is a format error (legacy: ReferenceResolver:141).
+	// Empty path is a format error.
 	if path == "" {
 		return nil, newLoadError(RefFormatError, orgPath+" ref error")
 	}
@@ -103,7 +103,7 @@ func resolveSingleRef(rawPath, basepath string, loader FileLoader, chain []strin
 	key := loader.Normalize(path, basepath)
 
 	// Cycle detection: this file key already on the current resolution chain
-	// (legacy has no guard and infinite-recurses; model must detect — SPEC §7).
+	// (SPEC §7).
 	for _, c := range chain {
 		if c == key {
 			trace := append(append([]string{}, chain...), key)
@@ -119,7 +119,7 @@ func resolveSingleRef(rawPath, basepath string, loader FileLoader, chain []strin
 	// Every loaded document, from any loader, is read in specification member order.
 	doc, _ := OrderMembers(loaded).(*OMap)
 
-	// Descend detectKeys (legacy: ReferenceResolver:129-136).
+	// Descend detectKeys.
 	var node any = doc
 	for _, detectKey := range detectKeys {
 		nm, ok := isOMap(node)
@@ -147,9 +147,8 @@ func resolveSingleRef(rawPath, basepath string, loader FileLoader, chain []strin
 }
 
 // expandNestedRefs expands any $ref (and merges any $patch) sitting INSIDE a
-// resolved properties map, recursively (legacy: resolve() re-runs Parser::process).
-// The resolved base is laid down first, then sibling named keys override it (legacy
-// array_merge declaration order: a later plain key overrides an earlier $ref).
+// resolved properties map, recursively. The resolved base is laid down first, then sibling named keys
+// override it in declaration order: a later plain key overrides an earlier $ref.
 func expandNestedRefs(node *OMap, basepath string, loader FileLoader, chain []string) (*OMap, error) {
 	if !node.Has("$ref") && !node.Has("$patch") {
 		return node, nil
@@ -161,13 +160,13 @@ func expandNestedRefs(node *OMap, basepath string, loader FileLoader, chain []st
 	own := NewOMap()
 
 	// Preserve declaration order: $ref expands to the base; keys declared after it
-	// override, keys before it are overridden by it (legacy positional array_merge).
+	// override, keys before it are overridden by it.
 	for _, k := range node.Keys() {
 		v, _ := node.Get(k)
 		switch k {
 		case "$ref":
-			// base = (earlier own keys) overlaid by ref, matching legacy order where
-			// the ref array_merges onto whatever was processed before it.
+			// base = (earlier own keys) overlaid by ref: the ref merges onto
+			// whatever was processed before it.
 			resolved, err := resolveRef(v, basepath, loader, chain)
 			if err != nil {
 				return nil, err

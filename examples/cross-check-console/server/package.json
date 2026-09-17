@@ -3,16 +3,15 @@
   "version": "0.0.1",
   "private": true,
   "type": "module",
-  "description": "Cross-check gateway: 4-language CRUDUI validation + HTML/React/Svelte/Vue rendering + static console",
+  "description": "Cross-check gateway: 4-language CRUDUI validation processes + HTML/React/Svelte/Vue rendering + static console",
   "main": "server.mjs",
   "scripts": {
-    "build:go": "cd ../../../packages/validator-go && go build -o validate ./cmd/validate",
+    "build:go": "cd ../validators/go && go build -o validate .",
     "build:rust": "node build-rust.mjs",
-    "check:js-cli": "echo '{\"spec\":{\"type\":\"group\",\"properties\":{}},\"data\":{}}' | node --import tsx ../../../packages/validator-ts/bin/validate.mjs",
-    "build:cli": "npm run build:go && npm run build:rust",
+    "build:validators": "node ../../../scripts/require-current-build.mjs && npm run build:go && npm run build:rust",
     "start": "node server.mjs",
     "dev": "node --watch server.mjs",
-    "pretest": "npm run build:cli",
+    "pretest": "npm run build:validators",
     "test": "node ../../../scripts/run-tests.mjs vitest --cwd examples/cross-check-console/server --root . --dir ."
   },
   "engines": {

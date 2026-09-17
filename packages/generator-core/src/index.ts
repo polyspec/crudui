@@ -1,16 +1,20 @@
-/** Shared form compilation, instance state, data binding and list models. */
+/**
+ * The public application API: form compilation, instance state, data binding, list and detail
+ * models, browser binding and the errors an application catches. Helpers shared by CRUDUI's own
+ * renderer packages are in `./internal`.
+ */
 
 export { compileForm, bindForm } from './form';
 export type { FormTemplate, FormFieldTemplate, CompileFormOptions, BindFormOptions } from './form';
 export { FormInstance, createForm, createRowKey, sequenceRowKey } from './instance';
-export { bindButtons, formButtonsHtml, FORM_BUTTON_TYPES, DEFAULT_FORM_BUTTONS } from './buttons';
+export { bindButtons, formButtonsHtml } from './buttons';
 export type { ButtonVM, FormButtonType, BindButtonsOptions } from './buttons';
 export type { CreateFormOptions, FormSnapshot, AddRowOptions } from './instance';
 export {
-  initialView, rowPathContains, collapsibleRows, toggleRowView, setAllExpandedView, removeRowView, rekeyRowView,
+  initialView, collapsibleRows, toggleRowView, setAllExpandedView, removeRowView, rekeyRowView,
 } from './view';
 export type { ViewState } from './view';
-export { HISTORY_LIMIT, emptyHistory, recordChange, canUndo, canRedo, undoChange, redoChange } from './history';
+export { emptyHistory, recordChange, canUndo, canRedo, undoChange, redoChange } from './history';
 export type { History, UndoResult, RedoResult } from './history';
 export { connectForm, connectOutline, connectStickyHeaders } from './dom';
 export { patchContent } from './patch';
@@ -19,8 +23,6 @@ export { resolveAction, runAction } from './actions';
 export type { FormActionName, ActionTarget, ActionResult, FocusTarget } from './actions';
 export { buildOutline } from './outline';
 export type { OutlineRow, OutlineState } from './outline';
-export { parseStyle } from './css';
-export type { StyleDeclaration } from './css';
 
 export type {
   NodeVM,
@@ -36,25 +38,20 @@ export type {
   UnsupportedVM,
   BuildState,
 } from './viewmodel';
-export { LANGUAGES, formMessages, formatCount } from './messages';
+export { formMessages } from './messages';
 export type { FormMessages } from './messages';
 export type { WidgetModel, WidgetCtx, Attrs, Affix, OptionModel } from './widget';
-export { WIDGET_COUNT, WIDGET_KINDS, WIDGET_LAYOUTS, WIDGET_CANONICAL, hasWidget } from './widget';
 
-// Shared composition, display and localization APIs.
+// Errors an application catches.
 export { ComposeLoadError } from '@crudui/validator';
 export { UnsupportedFieldTypeError } from './errors';
 /** Invalid generator input (code `INVALID_FORM_INPUT`), shared with the validator. */
 export { FormInputError } from '@crudui/validator';
-export { resolveDesign } from './design';
 export type { ResolvedDesign, ResolvedNode } from './design';
-export { evalShow, evalAppearance, makeContext } from './expr';
-export type { Evaluated } from './expr';
-export { makeTranslate } from './content';
-export type { Language, LocalizedText, Translate } from './content';
+export type { Language, LocalizedText } from './content';
 
-// List models and cell rendering.
-export { buildList, listLayout, paginationPages } from './list';
+// List and detail models.
+export { buildList } from './list';
 export type {
   ListViewModel,
   ColumnVM,
@@ -67,13 +64,6 @@ export type {
 } from './list';
 export { buildDetail } from './detail';
 export type { DetailViewModel, DetailFieldVM, BuildDetailOptions } from './detail';
-export {
-  renderCell,
-  normalizeFormat,
-  CELL_RENDERERS,
-  CELL_FORMATS,
-  CELL_FORMAT_DEFAULT,
-} from './cell';
 export type {
   CellFormatModel,
   CellDisplay,

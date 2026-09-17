@@ -15,7 +15,7 @@ composer test --working-dir=packages/generator-php
 ```
 
 Composer 경로 저장소는 인접 패키지의 `crudui/validator`를 `vendor/`에 복사합니다.
-64비트 PHP 8.2 이상과 `mbstring`이 필요합니다. 개발 검사는 DOM을 포함하여
+64비트 PHP 8.4 이상과 `mbstring`이 필요합니다. 개발 검사는 DOM을 포함하여
 PHPUnit이 사용하는 확장도 필요합니다.
 
 ## 폼 API
@@ -111,13 +111,7 @@ CRUDUI_DATA_FILE=/tmp/crudui-php-example.json php -S 127.0.0.1:8082 -t packages/
 불러온 경우(예: `-d "extension=$(pwd)/packages/php-ext/modules/crudui.so"`)에도 수정 없이
 실행됩니다. 브라우저 행 편집과 순서 보존 JSON HTTP 엔드포인트는 제공하지 않습니다.
 
-## 검사 어댑터
-
-`php packages/generator-php/bin/generate.php`는 표준 입력에서 JSON 요청 하나를
-수신하고 표준 출력에 JSON 값 하나를 출력합니다. `compileForm`, `bindForm`, `bindButtons`,
-`formButtonsHtml`, `buildList`, `renderList`, `buildDetail`, `renderDetail`, `form` 작업을 지원합니다. 폼 작업은 실패한 작업을 포함하여 각
-작업 후 데이터, 필드, HTML과 리비전을 기록합니다. 어댑터는 공개 클래스를
-사용하므로 PHP 구현이나 로드한 네이티브 구현으로 실행할 수 있습니다.
+## 공통 검사
 
 [네이티브 공통 검사](../../tests/native-generators/README.ko.md)는 런타임별 전체
 템플릿과 모델, 폼과 목록 HTML 원문, 데이터 주입, 행 작업과 실패 후 보존한

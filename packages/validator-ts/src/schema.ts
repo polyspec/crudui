@@ -1,12 +1,11 @@
 /**
  * CRUDUI Field Type Definitions (canonical, reference)
  *
- * Single source of truth for the CRUDUI field model, mechanized from SPEC.md
- * (the CRUDUI constitution) and expressions.md (the expression engine).
+ * Single source of truth for the CRUDUI field model, mechanized from
+ * docs/spec/schema.md (the specification contract) and docs/spec/expressions.md
+ * (the expression engine).
  *
- * This is CRUDUI-NEW. It does NOT modify or replace the legacy model in `../types.ts`
- * (R7 parallel run — legacy stays stable until CRUDUI is proven). These types are a
- * reference model for the canonical shape; runtime parsing/validation is built
+ * These types are a reference model for the canonical shape; runtime parsing/validation is built
  * on top of them, not in this file.
  *
  * Model invariants enforced here:
@@ -21,7 +20,7 @@
  * - Composition via `$ref`/`$patch` (resolution order `$ref` → `$patch` →
  *   single spec → field layer).
  * - Condition-only meta keys (display_switch/display_target/if/when/show_if/…),
- *   magic tokens (`_`), and legacy directives ($after/$before/$merge/$remove)
+ *   magic tokens (`_`), and the directives $after/$before/$merge/$remove
  *   do NOT exist in this model (G1). A schema layer rejects every forbidden key
  *   globally — one level below every slot and bucket, not just at top level
  *   (open buckets via `propertyNames`, closed shapes via
@@ -254,7 +253,7 @@ export type Properties = {
 /**
  * Composition change directive ($patch). Deep paths map to values
  * (set/replace); the resolution order is `$ref` → `$patch` → single spec →
- * field layer. Legacy `$after`/`$before`/`$merge`/`$remove` are absorbed here.
+ * field layer.
  */
 export interface PatchDirective {
   /** Deep-path key (e.g. `'field.validate.required'`) → patched value. */
@@ -350,8 +349,7 @@ export interface DesignNode {
  * Appearance slot = visibility condition (`show`) + per-DOM-node appearance map
  * (R8). `class`/`style` target the main (input) node; `label`/`wrapper`/`group`/
  * `prepend` target their respective nodes — which node a style targets is
- * visible in the key. Absorbs legacy `element_class`/`label_class`/`group_class`/
- * `input_class`/`wrapper_class`/`prepend_class`.
+ * visible in the key.
  */
 export interface DesignSlot {
   /** Visibility condition (evaluated → boolean). */
@@ -482,7 +480,7 @@ export interface ItemsModel {
 
 /**
  * Dynamic option source (dependency isolation: dynamic items → `items` sub).
- * Collects the source descriptor that legacy scattered as field siblings.
+ * Collects the source descriptor in one place.
  *
  * STRUCTURE ONLY. This type fixes the declared shape of a dynamic source; it
  * does NOT load options. The single real corpus shape (`type: search`) is a
@@ -574,11 +572,9 @@ export type StaticItem =
  * hidden identity or order field (see docs/spec/form-runtime.md).
  *
  * The named keys are the canonical `dependency_buckets.multiple.keys`
- * (`min`/`max`/`copy`/`sortable`/`title`/`controls`/`header`/`onclick`). Legacy names are NOT recognition keys
- * here (R2 anti-duplication, R4 no magic tokens); a translator maps them in:
- * `multiple_max`→`max`, `sortable*`→`sortable`, `add_buttons`/
- * `remove_list_button`/`list_button_text`→`copy`, `multiple_button_onclick`→
- * `onclick`. Only the canonical names appear below.
+ * (`min`/`max`/`copy`/`sortable`/`title`/`controls`/`header`/`onclick`). Other
+ * spellings such as `multiple_max`, `sortable*` or `add_buttons` are not
+ * recognition keys (R2 anti-duplication, R4 no magic tokens).
  */
 export type Multiple = boolean | MultipleSettings;
 
@@ -588,7 +584,7 @@ export interface MultipleSettings {
   min?: number;
   /** Maximum number of rows. */
   max?: number;
-  /** Whether rows provide a copy control (absorbs the legacy button keys). */
+  /** Whether rows provide a copy control. */
   copy?: boolean;
   /** Whether rows are sortable. */
   sortable?: boolean;
@@ -609,9 +605,7 @@ export interface MultipleSettings {
 /**
  * Input multilingual settings (dependency isolation: lang-dependent → `lang`
  * sub). `true` is the bare default. An object carries the dimension settings,
- * including the language-group chrome (`frame`/`title`/`group_class`). Absorbs
- * legacy `lang:append`/`langs`/`lang_name`/`lang_key`/`remove_lang_frame`/
- * `remove_lang_title`/`lang_group_class`.
+ * including the language-group chrome (`frame`/`title`/`group_class`).
  */
 export type Lang = boolean | LangSettings;
 
@@ -621,7 +615,7 @@ export type Lang = boolean | LangSettings;
  * the value is the role-slot override (`validate`/`design`/`behavior`/`options`)
  * applied to that language's input only. Distinct from the allowlist `string[]`:
  * the allowlist restricts which languages render, the override map redefines
- * slots per language. Absorbs the legacy per-language `langs` map shape.
+ * slots per language.
  */
 export interface LangOverride {
   /** Validation rules for this language input. */
@@ -644,8 +638,7 @@ export interface LangSettings {
    * Two shapes (SPEC §3 C): a language allowlist `['ko', 'en']` (`string[]`)
    * OR a per-language override map `{ ja: { validate: … } }`
    * (`LangOverrideMap`). The allowlist restricts the rendered languages; the
-   * override map redefines role slots per language. Absorbs the legacy `langs`
-   * allowlist and the legacy per-language `langs` map.
+   * override map redefines role slots per language.
    */
   only?: string[] | LangOverrideMap;
   /** Name override for the language group. */
@@ -667,9 +660,9 @@ export interface LangSettings {
 /**
  * Meta keys forbidden by the CRUDUI model (canonical `forbidden_meta_keys`):
  * condition-only meta keys (`display_switch`/`display_target`/`if`/`when`/
- * `show_if`), the magic default sigil `_`, legacy composition directives
- * (`$after`/`$before`/`$merge`/`$remove`, all absorbed by `$patch`), and legacy
- * appearance shims (`xclass`/`xstyle`, absorbed by the design node map). They
+ * `show_if`), the magic default sigil `_`, the composition directives
+ * `$after`/`$before`/`$merge`/`$remove` (`$patch` is the only overlay), and the
+ * appearance keys `xclass`/`xstyle` (the design node map replaces them). They
  * must NOT appear anywhere in a CRUDUI spec.
  *
  * Global rejection (not just top level): a schema layer rejects these keys one

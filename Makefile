@@ -8,7 +8,7 @@
 # machine-absolute paths). `make docs` run twice yields identical output.
 
 .DEFAULT_GOAL := help
-.PHONY: help docs docs-api docs-schema docs-site docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-check-servers docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-extension test-native test-native-suites test-validators conformance format-check
+.PHONY: help docs docs-api docs-schema docs-site docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-extension test-native test-native-suites test-validators conformance format-check deploy deploy-verify github-settings github-settings-check
 .NOTPARALLEL: docs docs-site docs-dev docs-preview docs-check docs-verify-idempotent
 
 # Validator benchmark iteration counts (override on the command line, e.g.
@@ -30,9 +30,8 @@ help: ## 타겟 설명
 	@echo "  make docs-dev              문서 개발 서버"
 	@echo "  make docs-preview          문서 빌드 결과 미리보기 서버"
 	@echo "  make docs-clean            생성물 전부 제거 (docs/api, dist, target/doc)"
-	@echo "  make docs-check            doc-coverage 게이트 (라이브러리 + examples 서버, 미문서화 시 RED)"
+	@echo "  make docs-check            doc-coverage 게이트 (문서 + 라이브러리, 미문서화 시 RED)"
 	@echo "  make docs-check-libs       라이브러리 packages/* 만 검사"
-	@echo "  make docs-check-servers    examples 서버 4종만 검사 (node/go/php/rust)"
 	@echo "  make docs-verify-idempotent  docs 를 2회 생성하고 diff 가 비는지 검증"
 	@echo "  make build-php-extension   Build and load the native PHP module"
 	@echo "  make test-php-extension    Test the native PHP engine, its builder and its PHP API"
@@ -40,6 +39,10 @@ help: ## 타겟 설명
 	@echo "  make test-validators       Test the JavaScript, PHP, Go and Rust validators"
 	@echo "  make conformance           Run every conformance suite and check the evidence against the standard"
 	@echo "  make format-check          Fail when any Rust crate or Go file is not formatted"
+	@echo "  make deploy                Deploy the comparison service from the current tree"
+	@echo "  make deploy-verify         Verify the deployed comparison service"
+	@echo "  make github-settings       Apply the repository settings in .github/repository.json"
+	@echo "  make github-settings-check Fail when the repository settings differ from the declaration"
 	@echo ""
 	@echo "CRUDUI validator benchmark — make targets:"
 	@echo ""
@@ -71,10 +74,10 @@ docs-dev: ## 문서 개발 서버
 docs-preview: ## 문서 빌드 결과 미리보기 서버
 	npm run docs:preview
 
-# docs-check gates the library packages AND the examples/* API servers.
+# docs-check gates the documents AND the library packages.
 # Either arm RED → non-zero exit.
-docs-check: docs-check-documents docs-check-libs docs-check-servers ## doc-coverage 게이트 (라이브러리 + 서버, 미문서화 → 비0 exit)
-	@echo "[make] docs-check: documents, libraries and servers passed"
+docs-check: docs-check-documents docs-check-libs ## doc-coverage 게이트 (문서 + 라이브러리, 미문서화 → 비0 exit)
+	@echo "[make] docs-check: documents and libraries passed"
 
 docs-check-documents:
 	npm run manifest:check
@@ -86,9 +89,6 @@ docs-check-documents:
 
 docs-check-libs: ## 라이브러리 packages/* doc-coverage
 	npm run docs:check
-
-docs-check-servers: ## examples 서버 4종 doc-coverage (node/go/php/rust)
-	npm run docs:check:servers
 
 docs-clean: ## 생성물 전부 제거
 	rm -rf docs/api docs/public/api
@@ -130,7 +130,7 @@ docs-verify-idempotent: ## docs 를 2회 생성하고 diff 가 비는지 검증
 # fairness method (startup excluded, same workload enforced, agreement gate).
 # ----------------------------------------------------------------------------
 
-bench-fixtures: ## 벤치 fixture JSON 재생성 (YAML 스펙 → spec/input JSON)
+bench-fixtures: ## 벤치 fixture JSON 재생성 (스펙 → spec/input JSON)
 	node tools/bench/gen-fixtures.js
 
 bench: bench-fixtures ## 4언어 검증기 처리량 비교
@@ -196,11 +196,28 @@ conformance:
 	node scripts/check-conformance.mjs || status=1; \
 	exit $$status
 
-# Every tracked Rust crate must match rustfmt and every tracked Go file gofmt.
+# Every Rust crate and Go file in the working tree (tracked, or new and not ignored) must match
+# rustfmt and gofmt. Tracked files deleted from the working tree are skipped.
+WORKTREE_FILES = git ls-files --cached --others --exclude-standard $(1) | while read -r file; do [ -f "$$file" ] && echo "$$file"; done
 format-check:
-	@for manifest in $$(git ls-files '*Cargo.toml'); do \
+	@for manifest in $$($(call WORKTREE_FILES,'*Cargo.toml')); do \
 		node scripts/run-rust-command.mjs fmt --check --manifest-path "$$manifest" || exit 1; \
 	done
-	@unformatted="$$(gofmt -l $$(git ls-files '*.go'))"; \
+	@unformatted="$$(gofmt -l $$($(call WORKTREE_FILES,'*.go')))"; \
 	if [ -n "$$unformatted" ]; then echo "gofmt differences:"; echo "$$unformatted"; exit 1; fi
 	@echo "[make] format-check: Rust crates and Go files are formatted"
+
+# The comparison service in its long-running container (docs/operations/verification.md).
+# Deployment is idempotent: it recreates nothing that already matches the tree.
+deploy: ## Deploy the comparison service from the current tree
+	node examples/form-comparison/comparison-deployment.mjs
+
+deploy-verify: ## Verify the deployed comparison service
+	node examples/form-comparison/verification.mjs
+
+# GitHub repository settings declared in .github/repository.json (docs/operations/repository.md).
+github-settings: ## Apply the declared repository settings (idempotent)
+	node scripts/github-repository.mjs apply
+
+github-settings-check: ## Fail when the repository settings differ from the declaration
+	node scripts/github-repository.mjs check

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace CRUDUI\Validator\Rules;
 
+use CRUDUI\Validator\Values\Whitespace;
+
 /**
  * Step validation rule.
  * Validates that a numeric value is a multiple of the specified step.
@@ -15,6 +17,9 @@ class Step implements RuleInterface
      */
     public function validate(mixed $value, mixed $param, array $allData, string $path): bool
     {
+        if (\is_string($value)) {
+            $value = Whitespace::trim($value);
+        }
         if (!is_numeric($value) || !is_numeric($param)) {
             return true;
         }
@@ -52,15 +57,5 @@ class Step implements RuleInterface
         }
 
         return strlen($str) - $decimalPos - 1;
-    }
-
-    /**
-     * Returns the default error message for this rule.
-     *
-     * @return string Default message, with {0}, {1} placeholders where applicable
-     */
-    public function getDefaultMessage(): string
-    {
-        return 'Please enter a value that is a multiple of {0}.';
     }
 }

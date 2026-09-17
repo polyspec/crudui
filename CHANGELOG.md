@@ -1,5 +1,144 @@
 # Changes
 
+## 2026-09-17 — Declare the repository settings and deploy through make
+
+- `.github/repository.json` declares the GitHub repository settings: homepage, repository features
+  and merge methods, the Actions policy and default workflow permissions, vulnerability alerts and
+  automated security fixes, the Pages build type and the `github-pages` environment, which deploys
+  only from `main`. `make github-settings` applies only what differs and reads the settings again;
+  `make github-settings-check` fails when a setting differs. `tests/build/github-repository.test.mjs`
+  checks both against an in-memory repository. See [repository settings](docs/operations/repository.md).
+- `make deploy` and `make deploy-verify` run the comparison-service deployment and its verification;
+  the verification procedure names them.
+
+## 2026-09-17 — Keep command programs out of the published packages
+
+The per-language validator and generator programs were only the process boundary of the
+cross-check console and the native generator suite, yet they shipped inside the packages
+(`packages/validator-go/cmd/validate`, `packages/validator-php/bin/validate.php`, the Rust
+`validate` and `generate` binaries, `packages/generator-go/cmd/generate`,
+`packages/generator-php/bin/generate.php`). Applications call the library functions.
+
+- The validator programs are in `examples/cross-check-console/validators` and the generator
+  programs in `tests/native-generators/programs`, each calling only its package's public API with
+  the same request, response and exit status. The console runs every shared validation, list and
+  detail case and 45 request cases through all five validator processes; the native suite sends 60
+  shared request checks to every generator program.
+- Those shared checks found differing boundary behaviour, now one rule: every program answers
+  `Request must be valid JSON`, `Request must be an object`, `Options must be an object`,
+  `Actions must be an array` and `Unknown generator operation`; a non-object `spec` is
+  `A form spec must be a group with properties`, a non-object `template` is
+  `Unsupported form template`, and a malformed action is the step error `Invalid form action`.
+  `bindButtons` checked the template kind after reading its buttons and threw a `TypeError`; it now
+  reports `Unsupported form template`.
+- The `validatorCli` feature is removed from the package contract. `tests/build/public-packages.test.mjs`
+  fails when a published package declares or contains a command program (`bin` in `package.json`
+  or `composer.json`, a PHP file with `#!`, `package main` in a Go module, `[[bin]]`, `src/bin` or
+  `src/main.rs` in a Rust crate).
+- `make format-check` covers new files that are not yet committed and skips deleted ones.
+
+## 2026-09-17 — Remove the legacy layer
+
+The legacy layer kept an old field model (`rules`, `messages`, `display_switch`/`display_target`)
+running beside CRUDUI, but it reproduced no fixed old behaviour: the TypeScript legacy validator ran
+on the current rule registry, so its results moved with every current rule change. The layer was a
+compatibility and migration path, and its examples were not run by CI. It is removed completely,
+with no alias, fallback or replacement entry.
+
+- The legacy validators are gone: `@crudui/validator/legacy` (the `./legacy` export and its build
+  entry), `CRUDUI\Validator\Legacy`, the Go `validator/legacy` package and `cmd/validate-legacy`, and
+  the Rust `legacy` module and `validate-legacy` binary. Code only they used goes with them: the
+  TypeScript `RulesSpec` type, the PHP `Rules\Unique` rule and six unused `PathResolver` methods, the
+  Go `LegacyKeyMap`, the PHP `FieldSpec::ABSORBS_LEGACY` table with `canonicalFor()`, and the Rust
+  `regex` dependency.
+- The legacy translator (`translateFromLegacy`, `roundtripLegacy`) and its corpus scripts
+  (`scripts/corpus-legacy-*.mts`) are removed, together with the `translateLegacy` and
+  `validateLegacy` features and the `tests/fixtures/legacy-validate` and `tests/fixtures/translate`
+  fixtures, and the earlier-model specifications in `tests/fixtures/specs`.
+- `examples/legacy` is removed with its Compose file, PHP, Go, Rust and Node API servers,
+  applications and shared specifications, and with `npm run docs:check:servers`,
+  `make docs-check-servers` and the scripts that checked those servers' documentation.
+- The four-language legacy comparison (`tests/runner`) and its CI job are removed. Root `npm test`
+  now runs the test script of every workspace package.
+- `scripts/check-schema.mjs` no longer checks legacy corpora. It fails when a tracked YAML file is
+  not a specification it checks or a CLI test fixture.
+- The validator benchmark's `contact` specification was a legacy `rules` declaration, which the
+  current validators do not read, so it measured forms without rules. It is now generated as a
+  current `validate` declaration, and the 80-field case is named `large`. The Go and Rust benchmark
+  drivers handle the error the validator constructors now return.
+- `docs/spec/legacy-schema.md` and `docs/spec/legacy-visibility.md` are removed, and the testing,
+  schema, fixture, example and feature documents describe only the current layer.
+
+## 2026-09-17 — Package entries declared with their exact exports
+
+`contracts/features.json` listed a few names per package, and the manifest check only looked for
+each name somewhere in the package source. generator-core's entry exported 64 values, the React, Vue
+and Svelte entries re-exported core functions, and renderers reached core helpers through the
+public entry. Each package now declares under `entries` every JavaScript entry of its `package.json`
+`exports` with its visibility (`public` or `internal`) and its exact value exports; `exports` is
+removed. `npm run manifest:check` reads the value exports with the TypeScript compiler and fails on
+an undeclared or missing entry or export, on a signature function outside the owner's public entry,
+and on an internal entry imported outside CRUDUI package code;
+`tests/build/contract-manifest.test.mjs` proves each failure. The generated feature contract page
+lists every entry.
+
+- `@crudui/generator-core` exports the application API: the feature operations, `FormInstance`,
+  `createRowKey`, `sequenceRowKey`, `formMessages`, `collapsibleRows`, `canUndo`, `canRedo`,
+  `redoChange`, `resolveAction`, `connectStickyHeaders` and the error classes. `listLayout`,
+  `paginationPages` and `parseStyle` move to the new `@crudui/generator-core/internal` entry for the
+  renderers. The entry no longer exports `resolveDesign`, `evalShow`, `evalAppearance`,
+  `makeContext`, `makeTranslate`, `rowPathContains`, `HISTORY_LIMIT`, `FORM_BUTTON_TYPES`,
+  `DEFAULT_FORM_BUTTONS`, `LANGUAGES`, `formatCount`, the widget and cell catalogs, `renderCell` or
+  `normalizeFormat`.
+- `@crudui/generator-react`, `@crudui/generator-vue` and `@crudui/generator-svelte` export only their
+  components and render functions. Import `compileForm`, `createForm`, `buildList`, `buildDetail`,
+  the row keys and the error classes from `@crudui/generator-core`. They no longer depend on
+  `@crudui/validator`.
+- The `formHistory`, `viewState` and `runAction` signatures name every function of the feature;
+  features that listed the nonexistent `FormError` list `FormInputError`.
+
+## 2026-09-17 — PHP 8.4 and later, tested on every declared line
+
+The PHP packages declared `^8.2`, but CI ran them only on PHP 8.4 and 8.5, and the rendering
+conformance test needs PHP 8.4's HTML5 parser. `crudui/validator` and `crudui/generator` now require
+`^8.4`, and the validator job runs on PHP 8.4 and 8.5 like the native job.
+`tests/build/runtime-version-policy.test.mjs` fails when a Composer manifest declares another range,
+when a job that tests a PHP package does not cover every line of the declared range, or when a PHP
+container is not on the newest tested line.
+
+## 2026-09-17 — One definition of values and patterns in every validator
+
+The JavaScript, PHP, PHP extension, Go and Rust validators disagreed on whitespace, on what a
+length counts, on `in` and on what a pattern means. `docs/spec/validation-rules.md` now defines
+them once, and every validator applies that definition:
+
+- Whitespace is exactly the Unicode `White_Space` set; trimming removes nothing else. `required`
+  fails on a missing value, `null`, a blank string, an empty array or an empty object, and every
+  other rule except `mincount` and `maxcount` passes those values.
+- The canonical text of a scalar is the string itself, `1`/`0` for booleans, and the ECMAScript
+  text of a number. Length rules count its code points; an array or object fails them. Limits are
+  integers from 0 to 9007199254740991, and `rangelength` needs minimum ≤ maximum.
+- `in` takes list elements as they are, comma items trimmed, or map keys; it compares canonical
+  text or equal decimal values, and an array value passes when every element passes.
+- `pattern` and `match` match the whole value in the CRUDUI pattern language (`\d`, `\w`, `\s` are
+  ASCII digits, word characters and whitespace; `.` excludes only U+000A; general categories and
+  scripts). Delimiters such as `/x/i` are plain text. Every validator recognizes the pattern itself
+  and matches it with its own linear-time matcher instead of a regular-expression engine: JavaScript's
+  backtracking took 148 seconds for `(?:[^\n]*a){12}c` on 60 characters, Rust's engine needed
+  43 MB and 4.4 seconds for `\p{L}{1000}`, PCRE2 and Rust lacked scripts or `\p{Cs}`, and the
+  engines disagreed on the letters of 4,644 code points. A pattern has at most size 1000 and 100
+  nested groups.
+- Unicode data comes from one table, `contracts/unicode-properties.json`, generated from the
+  Unicode 16.0.0 files in `contracts/unicode/` by `scripts/generate-unicode-properties.mjs`; every
+  validator embeds it and a test fails when the table is stale.
+- A parameter outside these definitions fails the load with `INVALID_RULE_PARAMETER` or
+  `INVALID_RULE_PATTERN` (with the reason and the code-point offset) at the field's declaration
+  path; a limit chosen by a condition is checked when it is chosen.
+- The schema describes the same parameter shapes. The shared validation cases grow from 64 to 174
+  and run in all five validators.
+- Removed: delimiter handling in patterns, partial matches, translation to regular-expression
+  engines, language trimming functions and integer casts of length limits.
+
 ## 2026-09-17 — Expose form buttons in every runtime
 
 The feature standard declared `bindButtons` and `formButtonsHtml` for every server runtime, but only
@@ -327,7 +466,7 @@ specification documents and all runtimes:
 - Condition maps: every runtime evaluates non-default keys in order and falls back to the `true`
   value, then `null`; the field specification wrongly said the `true` key is required and now states
   the rule `docs/spec/expressions.md` already gave.
-- `tests/fixtures/specs/LargeForm.yml` had two duplicate YAML keys, which the benchmark fixture
+- A large example specification had two duplicate YAML keys, which the benchmark fixture
   generator hid by parsing with `uniqueKeys: false`; the duplicates are removed with an identical
   parse result and the generator parses strictly, leaving the benchmark fixtures byte-identical.
   `examples/legacy/basic-form.yml` did not parse because of an unquoted value and is quoted.
@@ -664,7 +803,7 @@ different messages (Go and PHP printed their parser or type errors), Go checked 
 by JavaScript and Rust but rejected by Go and PHP with their own messages. Every adapter now checks
 the request in one order with one message per rule (valid JSON, an object request, an object
 `spec`, a supported `mode`, an object `files` with object members, a string `basepath`), and the
-shared [command-line request cases](tests/fixtures/validator-cli/README.md) run in all four
+shared [command-line request cases](examples/cross-check-console/validators/README.md) run in all four
 languages through the cross-check console tests. PHP's own command-line tests sent `files` as a
 JSON array and now send an object.
 
@@ -1697,7 +1836,7 @@ as did every `tests/build` and `tests/docs` test (67).
 
 ## 2026-09-13 — Remove the Bootstrap-based legacy UI paths
 
-The legacy form components and the original Legacy rendering comparisons were
+The legacy form components and the earlier rendering comparisons were
 built on Bootstrap and are replaced by the node grammar and `crudui.css`. They are
 removed rather than kept beside the current path:
 
@@ -1706,11 +1845,10 @@ removed rather than kept beside the current path:
   `@crudui/generator-react/styles.css` stylesheet, and the tests that exercised them
   (16 React tests, the Vue and Svelte parity tests and captures, the Svelte legacy
   component test);
-- `examples/legacy/demo-app`, `playground`, `legacy-bootstrap`, `legacy-compare`,
-  `legacy-original`, `legacy-validate-test` and `react-usage.tsx`, with their
+- the earlier demo, playground and rendering-comparison examples and `react-usage.tsx`, with their
   docker-compose services and README entries;
 - `tests/parity`, `tests/cross-framework`, `tests/legacy-client`,
-  `tests/fixtures/reference-html`, `tools/legacy-baseline`, the root `compare`
+  `tests/fixtures/reference-html`, the baseline tool, the root `compare`
   pages, the vendored `packages/generator-legacy` and the CI parity job, whose Vue and
   Svelte steps repeated the form-render job;
 - the `lucide-react` and `yaml` dependencies of the React, Vue and Svelte packages,

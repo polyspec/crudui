@@ -8,7 +8,7 @@
  * performs all attribute/text escaping (no util.escAttr/escText here).
  *
  * Sanctioned non-JSX passthrough (per parity strategy), and ONLY these:
- *  - RAW display html (dummy/image-viewer body) — unescaped legacy parity content,
+ *  - RAW display html (dummy/image-viewer body) — unescaped content,
  *  - script/style chrome (search/editors/button) — verbatim JS/CSS text,
  *  - the `&nbsp;` caption on the file-search button (a literal entity),
  *  - a control's OPAQUE `on*` behavior attributes (React structurally drops
@@ -276,14 +276,14 @@ function Display({ w }: { w: WidgetModel }): React.ReactElement {
     // dummy-input is a widget control, not a RAW div.
     return <WidgetGroup w={w} />;
   }
-  // RAW html display (dummy/image-viewer) — unescaped legacy parity content.
+  // RAW html display (dummy/image-viewer) — unescaped content.
   const props = plainProps(w.attrs);
   return <div {...props} dangerouslySetInnerHTML={{ __html: w.rawHtml ?? '' }} />;
 }
 
 /** search layout: style?/script chrome + select2 host select inside .crudui-widget--search. */
 function Search({ w }: { w: WidgetModel }): React.ReactElement {
-  // The select2 host <select> needs `selected="selected"` (legacy select2 contract),
+  // The select2 host <select> needs `selected="selected"` (select2 contract),
   // which React cannot emit via defaultValue. The select is part of the select2
   // host chrome → its options render through the sanctioned chrome passthrough,
   // but the `.crudui-widget--search` div itself is a real JSX element.

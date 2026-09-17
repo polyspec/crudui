@@ -10,6 +10,7 @@
 - [폼 개발과 검증](operations/forms.ko.md)
 - [목록과 상세 개발과 검증](operations/displays.ko.md)
 - [폼·전송 검증](operations/verification.ko.md)
+- [저장소 설정](operations/repository.ko.md)
 - [문서 관리](operations/documentation.ko.md)
 - [표현식 문법](spec/expressions.ko.md)
 - [데이터 검증](operations/validation.ko.md)

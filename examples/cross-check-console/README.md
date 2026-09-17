@@ -10,20 +10,19 @@ validators and three SSR generators.
 Responsibilities in one process (`server/server.mjs`):
 
 - `POST /api/validate` — 4-language CRUDUI FORM validation fan-out. ALL FOUR languages
-  (JS included) run as stdin-JSON CLI subprocesses (the CRUDUI wrappers, not the legacy
-  ones): compose → forbidden-scan → validate. The gateway imports NO validator — it
+  (JS included) run as stdin-JSON [validator processes](validators/README.md): compose → forbidden-scan → validate. The gateway imports NO validator — it
   is a pure orchestrator with zero privileged path, so the four are fully symmetric.
 - `POST /api/validate-list` — 4-language CRUDUI LIST STRUCTURE validation fan-out. The
-  validate sister of `/api/validate` (SPEC §9): the SAME four CLIs route on
+  validate sister of `/api/validate` (SPEC §9): the SAME four processes route on
   `mode:"list"` (compose → forbidden-scan over the list tree). A list carries NO
   rows (they are injected, DB-agnostic), so there is no DATA pass — `data` is
   omitted. A forbidden meta key surfaces as the SAME `failure` record.
 - `POST /api/validate-detail` — 4-language CRUDUI DETAIL STRUCTURE validation fan-out.
-  The four CLIs route on `mode:"detail"` (compose the root and `fields` map →
+  The four processes route on `mode:"detail"` (compose the root and `fields` map →
   forbidden-scan). A detail validation carries no record, so `data` is omitted.
 - `POST /api/render` — HTML/React/Svelte/Vue CRUDUI FORM SSR. React / Svelte (sync) and Vue
   (async) all render in-process through the CRUDUI entries the conformance tests import
-  (the Svelte adapter compiles `.svelte` files, so a bundler-free CLI is impossible
+  (the Svelte adapter compiles `.svelte` files, so a bundler-free process is impossible
   — but all three frameworks load the same way, so the render side is symmetric too).
 - `POST /api/render-list` — HTML/React/Svelte/Vue CRUDUI LIST SSR. The read sister of
   `/api/render` (SPEC §9): a list-spec + INJECTED rows fan out across the three
@@ -39,13 +38,13 @@ Responsibilities in one process (`server/server.mjs`):
 
 ## Why it is independent verification
 
-The conformance checks (`tests/runner/compare-all.js` + the three
+The conformance checks (the four validators' `tests/fixtures/validate` tests + the three
 `form-render.conformance` tests, plus the list-render conformance and the
 4-language list-structure conformance) drives the CRUDUI engine through vitest / go
 test / cargo test / a php worker against FIXED fixtures. The console drives the
 SAME CRUDUI functions through an HTTP gateway against FREE live input. Same engine,
 different wrapper — a bug in one path cannot hide a bug in the other. Removing the
-JS in-process import strengthens this: JS now runs through a CLI exactly like
+JS in-process import strengthens this: JS runs in its own process exactly like
 PHP/Go/Rust, so no language is favored inside the gateway and a 4-language
 agreement is engine determinism, not a privileged-call-path artifact. A live
 reported difference can be exported as a fixture case and added to the
@@ -88,33 +87,32 @@ accepted as an alias; for the detail endpoints `detailSpec` is canonical and `sp
 is the alias. A malformed YAML string or a missing specification is a 400. Validation/render FAILURE is never an HTTP error — it is a
 result surface (always 200). An unresolved `$ref`/`$patch`/forbidden key is a load
 failure, and root, group or repeated data with the wrong shape is an input
-failure. Every validator CLI reports both with exit status 2 and exactly
+failure. Every validator process reports both with exit status 2 and exactly
 `{ error, code, at }`; the gateway exposes them as `failure: { code, message, at }`,
 distinct from `valid:false`. Only real server faults use 4xx/5xx with `{ error }`.
 
 ## Run
 
-The Go and Rust CRUDUI validators are subprocess CLIs that must be compiled first.
-The JS CRUDUI validate CLI (`packages/validator-ts/bin/validate.mjs`) runs the
-TypeScript CRUDUI source through the `tsx` loader (`node --import tsx`) — no separate
-build, but `tsx` must be installed (it is a workspace devDependency; run
-`npm install` at the repo root once). The three generators load from TypeScript
+The [validator processes](validators/README.md) are small programs of this console
+that call each language's public validator API. The Go and Rust programs must be
+compiled first, and the JavaScript program imports the built `@crudui/validator`.
+`npm run build:validators` builds the JavaScript packages first when their output is
+not current. The three generators load from TypeScript
 source via an in-process Vite SSR loader at gateway startup.
 
 ```bash
 # 1. PHP deps (once)
 cd packages/validator-php && composer install && cd -
 
-# 2. tsx for the JS CRUDUI CLI (workspace devDependency)
-npm install                  # at repo root, installs tsx + js-yaml + vite/svelte
+# 2. workspace dependencies
+npm install                  # at repo root, installs js-yaml + vite/svelte
 
-# 3. build the Go + Rust CRUDUI CLIs (the server expects them at fixed paths;
-#    `npm test` runs this first, so tests always use the current sources)
+# 3. build the JavaScript packages and the Go + Rust validator programs (the server expects
+#    them at fixed paths; `npm test` runs this first, so tests always use the current sources)
 cd examples/cross-check-console/server
-npm run build:cli            # = build:go + build:rust
-#   go build -o ../../../packages/validator-go/validate ./cmd/validate
-#   cargo build --locked --release --bin validate  (in packages/validator-rust)
-npm run check:js-cli         # smoke-test the JS CRUDUI CLI (node --import tsx)
+npm run build:validators     # = require-current-build + build:go + build:rust
+#   go build -o validate .                (in ../validators/go)
+#   cargo build --locked --release        (in ../validators/rust)
 
 # 4. start the gateway (boots the CRUDUI render engine, then serves)
 npm start                    # PORT=4000 by default
@@ -172,7 +170,7 @@ badge is independently derived:
 - `idempotent` (validate / validate-list) — a stable per-language signature
   (the complete failure record, or valid + sorted 5-field errors, numeric `value` collapsed so a
   Rust-f64-vs-int serialization never trips a false mismatch; object member order in `value` is
-  ignored while array order remains significant). A failed CLI
+  ignored while array order remains significant). A failed process
   (`ok:false`) carries a distinct signature and never silently agrees. Fewer than
   two languages ran → undetermined (null), not false.
 - `parity` (render / render-list / search render) — a success framework signs with
@@ -191,6 +189,9 @@ list-render and detail-render fixtures through the same four renderers. The one 
 form-instance fixture with missing repeated data is checked for parity and the generated
 row-key contract; its bytes are not compared with the bindForm fixture because the public
 instance is required to generate a random identity.
+`server/validator-processes.test.mjs` sends every request case and every form, list and
+detail validation case to the five [validator processes](validators/README.md) and
+compares each exit status and complete response.
 
 ## Fixture export
 
@@ -207,8 +208,8 @@ downloads it, one case per language/framework:
 - detail tab → `tests/fixtures/detail-render/cases.json` shape:
   `{name,note,spec,record,options,expected_html|expectError:{code,message}}`.
 
-Add an exported divergent case to the automated checks (`compare-all.js` /
-`*.conformance`) to retain it as a regression test.
+Add an exported divergent case to the automated checks (the shared
+`tests/fixtures/*/cases.json` conformance suites) to retain it as a regression test.
 
 ## Local curl smoke test
 
@@ -270,13 +271,14 @@ curl -s -X POST localhost:4000/api/render-detail -H 'Content-Type: application/j
 server/
   server.mjs          gateway: routes (validate, validate-list, validate-detail, render, render-list, render-detail) + CORS + always-200 + static serving
   engine.mjs          one Vite SSR boot → loads the 3 CRUDUI form, list and detail RENDER entries (render only)
-  validate-runner.mjs all 4 langs via spawnSync CLI (zero privileged path); validateAll + validateAllList (mode:list) + validateAllDetail (mode:detail); idempotency verdict
+  validate-runner.mjs all 4 langs via spawnSync validator processes (zero privileged path); validateAll + validateAllList (mode:list) + validateAllDetail (mode:detail); idempotency verdict
   render-runner.mjs   React/Svelte/Vue in-process SSR; renderAll + renderAllList + renderAllDetail; parity verdict
-  package.json        start + build:cli + check:js-cli scripts
+  package.json        start + build:validators scripts
+validators/           validator processes: js/validate.mjs, php/validate.php, go/, rust/ and
+                      requests.json (request contract cases); see validators/README.md
 client/               no-build console (index.html + app.js + examples.js + doc.js + styles.css);
                       three tabs (form, list, detail) over the six endpoints
 ```
 
-The CRUDUI validate CLI wrappers live in their own packages (JS
-`bin/validate.mjs`, PHP `bin/validate.php`, Go `cmd/validate`, Rust
-`src/bin/validate.rs`). legacy is never touched.
+The validator processes belong to this console, not to the packages: applications call
+the library functions, and no package installs a command.

@@ -24,6 +24,8 @@ and the structure map and data view with `renderOutlineView` and `renderDataPane
 
 `renderList(spec, rows, { layout: 'table' | 'card' })` renders the evaluated list.
 `renderDetail(spec, record)` renders one read-only detail from the supplied record.
+`renderOutline(form)` and `renderData(form)` render the structure map and data view of a form
+instance. These eight render functions are the package entry.
 
 - [Runtime contract](../../docs/spec/form-runtime.md)
 - [Form operations](../../docs/operations/forms.md)

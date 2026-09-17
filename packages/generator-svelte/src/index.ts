@@ -1,22 +1,16 @@
-import type { FormInstance } from '@crudui/generator-core';
-/** Form template binding, rendering and list rendering. */
+/**
+ * Svelte components and server rendering for CRUDUI forms, lists and details. Applications
+ * compile and create forms with `@crudui/generator-core`.
+ */
 
 import { render } from 'svelte/server';
-import { buildList, buildDetail, listLayout, type BuildListOptions, type BuildDetailOptions } from '@crudui/generator-core';
+import { buildList, buildDetail, type BuildListOptions, type BuildDetailOptions, type FormInstance } from '@crudui/generator-core';
+import { listLayout } from '@crudui/generator-core/internal';
 import Form from './components/Form.svelte';
 import List from './components/List.svelte';
 import Detail from './components/Detail.svelte';
 
-export { ComposeLoadError } from '@crudui/validator';
-export { UnsupportedFieldTypeError } from '@crudui/generator-core';
-export { resolveDesign } from '@crudui/generator-core';
-export { evalShow, evalAppearance, makeContext } from '@crudui/generator-core';
-export { makeTranslate } from '@crudui/generator-core';
-export type { Language } from '@crudui/generator-core';
-export type { UnsupportedMode } from '@crudui/generator-core';
-
-// Node and widget rendering.
-export type { NodeVM, WidgetModel } from '@crudui/generator-core';
+// Node, widget, structure map and data view rendering.
 export { default as Node } from './components/Node.svelte';
 export { default as Controls } from './components/Controls.svelte';
 export { default as Outline } from './components/Outline.svelte';
@@ -25,22 +19,10 @@ export { default as DataView } from './components/DataView.svelte';
 export { default as DataPanel } from './components/DataPanel.svelte';
 export { default as Widget } from './components/Widget.svelte';
 
-// List models and rendering.
-export { buildList } from '@crudui/generator-core';
-export type {
-  ListViewModel,
-  ColumnVM,
-  CellVM,
-  ListRowVM,
-  PaginationVM,
-  SortVM,
-  ActionVM,
-  CellDisplay,
-} from '@crudui/generator-core';
+// Form, list and detail rendering.
+export { default as Form } from './components/Form.svelte';
 export { default as List } from './components/List.svelte';
 export { default as Detail } from './components/Detail.svelte';
-export { buildDetail } from '@crudui/generator-core';
-export type { DetailViewModel, DetailFieldVM, BuildDetailOptions } from '@crudui/generator-core';
 
 /** Render the current form instance with Svelte hydration markers intact. */
 export function renderForm(form: FormInstance): string {
@@ -77,7 +59,3 @@ export function renderDetail(
   const vm = buildDetail(detailSpec, record, options);
   return render(Detail, { props: { vm } }).body;
 }
-
-export { default as Form } from './components/Form.svelte';
-export { compileForm, createForm, createRowKey, sequenceRowKey } from '@crudui/generator-core';
-export type { FormTemplate, FormInstance, CreateFormOptions } from '@crudui/generator-core';

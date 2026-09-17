@@ -16,18 +16,18 @@ package compose
 // even be loaded. So composition is a pre-processing pass that runs BEFORE
 // validation/render, not a validation step.
 //
-// legacy's positional array_merge priority is normalized here: $ref = base (first),
+// Priority is fixed here: $ref = base (first),
 // $patch = overlay (later) — base is laid down, patch overrides.
 
 // ComposeOptions configures a composition pass.
 type ComposeOptions struct {
-	// Basepath for relative $ref resolution (legacy ReferenceResolver basepath).
+	// Basepath for relative $ref resolution.
 	Basepath string
 }
 
 // ComposeProperties composes a properties map: expand $ref to a base, overlay
 // $patch, return the single (composition-free) properties map. Named sibling
-// keys follow legacy declaration order — a key declared after $ref overrides the
+// keys follow declaration order — a key declared after $ref overrides the
 // base; a key declared before it is overridden by the base.
 //
 // The input and the result are in specification member order (see OrderMembers).
@@ -68,7 +68,7 @@ func composeProperties(properties *OMap, loader FileLoader, opts ComposeOptions)
 		v, _ := properties.Get(k)
 		switch k {
 		case "$ref":
-			// $ref array_merges onto whatever was declared before it (legacy order).
+			// $ref merges onto whatever was declared before it.
 			resolved, err := resolveRef(v, basepath, loader, nil)
 			if err != nil {
 				return nil, err
@@ -124,7 +124,7 @@ func composeSpec(spec *OMap, loader FileLoader, opts ComposeOptions) (*OMap, err
 			v, _ := spec.Get(k)
 			switch k {
 			case "$ref":
-				// Field-level $ref resolves a file's properties layer too (legacy detectKey).
+				// Field-level $ref resolves a file's properties layer too (default detectKey).
 				r, err := resolveRef(v, basepath, loader, nil)
 				if err != nil {
 					return nil, err

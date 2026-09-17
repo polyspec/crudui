@@ -224,15 +224,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 `ValidationResult`를 반환하고 Rust에서는 `Ok(())`를 반환합니다. 합성 실패와 금지 키 실패는
 `ComposeLoadError`이며, JavaScript와 PHP는 이를 던지고 Go는 오류로, Rust는 `Err`로 반환합니다.
 
-검증기 명령줄 프로그램은 요청의 `mode`로 `list`나 `detail`을 받으며 이 모드에서는 `data`를
-무시합니다. [데이터 검증](validation.ko.md)이 요청 규칙, 종료 상태와 메시지를
-정의합니다.
-
-```sh
-echo '{"mode":"detail","spec":{"fields":{"name":{"field":"name"}}}}' \
-  | php packages/validator-php/bin/validate.php
-```
-
 ## 예제
 
 | 예제 | 목록과 상세 |

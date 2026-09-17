@@ -1,56 +1,14 @@
 /**
- * Pattern match validation rule
+ * Pattern validation rule (`match` and `pattern`)
  *
- * Validates that a value matches a regular expression pattern
+ * The whole canonical text of the value must match a pattern of the CRUDUI
+ * pattern language (validation-rules.md, "Patterns").
  */
 
 import { RuleDefinition, ValidationContext } from '../types';
 import { isEmpty } from './required';
-
-/**
- * Pattern cache for compiled regular expressions
- */
-const patternCache = new Map<string, RegExp>();
-
-/**
- * Anchor a pattern to full-string match (^...$), mirroring legacy.
- * legacy client legacy-client.validate.js:1652-1657 and legacy server
- * Validation.php:126 ('~^'.$param.'$~') both force full match.
- * Do NOT double-anchor: if the pattern already starts with ^ or ends with $,
- * leave that side alone (PHP Pattern.php:35-40 str_starts_with/str_ends_with).
- */
-export function anchorPattern(pattern: string): string {
-  let anchored = pattern;
-  if (!anchored.startsWith('^')) {
-    anchored = '^' + anchored;
-  }
-  if (!anchored.endsWith('$')) {
-    anchored = anchored + '$';
-  }
-  return anchored;
-}
-
-/**
- * Get or create a RegExp from a pattern string.
- * The pattern is anchored to full-string match before compilation.
- * The cache key is the anchored source so it reflects the anchoring.
- */
-export function getPattern(pattern: string): RegExp | null {
-  try {
-    const anchored = anchorPattern(pattern);
-
-    const cached = patternCache.get(anchored);
-    if (cached) {
-      return cached;
-    }
-
-    const regex = new RegExp(anchored);
-    patternCache.set(anchored, regex);
-    return regex;
-  } catch {
-    return null;
-  }
-}
+import { canonicalText } from '../values/index';
+import { compilePattern } from '../pattern/index';
 
 /**
  * Match rule definition
@@ -59,37 +17,25 @@ export const matchRule: RuleDefinition = {
   validate(context: ValidationContext): string | null {
     const { value, ruleParam, messages, ruleName } = context;
 
-    // Skip if no rule param
-    if (ruleParam === null || ruleParam === undefined) {
+    // A false or null parameter disables the rule.
+    if (ruleParam === false || ruleParam === null || ruleParam === undefined) {
       return null;
     }
+    if (typeof ruleParam !== 'string') {
+      throw new TypeError(`Invalid ${ruleName ?? 'match'} parameter: expected a pattern string`);
+    }
 
-    // Skip validation if value is empty (required rule handles this)
+    // An empty value passes without evaluation (required handles it).
     if (isEmpty(value)) {
       return null;
     }
 
-    // Get pattern string
-    let pattern: string;
-    if (typeof ruleParam === 'string') {
-      pattern = ruleParam;
-    } else if (ruleParam instanceof RegExp) {
-      pattern = ruleParam.source;
-    } else {
-      return null;
-    }
+    // Throws PatternSyntaxError for a pattern outside the language: never skipped.
+    const matcher = compilePattern(ruleParam);
 
-    // Get or create RegExp
-    const regex = getPattern(pattern);
-    if (!regex) {
-      // Invalid pattern, skip validation
-      return null;
-    }
-
-    // Convert value to string for matching
-    const strValue = String(value);
-
-    if (!regex.test(strValue)) {
+    // A value without canonical text (an array or object) cannot match.
+    const text = canonicalText(value);
+    if (text === undefined || !matcher.test(text)) {
       // Look up the message under the invoked rule name first
       // ('pattern' is an alias of 'match'), then fall back
       const named =
@@ -104,8 +50,4 @@ export const matchRule: RuleDefinition = {
 
     return null;
   },
-
-  defaultMessage: 'Please enter a valid format.',
 };
-
-export default matchRule;

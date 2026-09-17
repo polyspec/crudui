@@ -61,7 +61,7 @@ g. **explain 역검증** — `crudui explain <spec>`로 스펙을 자연어로 �
 - **선택지** "A/B/C 중" → 정적: `items` 배열 또는 value→label 맵(`{ "0": "미사용", "1": "사용" }`).
   동적 "DB/모델에서" → `items.{ model, method, table, relations }`. type은 select|choice|multichoice.
 - **반복** "여러 개 / N개까지 / 추가·삭제 / 정렬" → `multiple: true` 또는 `multiple: { min, max, copy, sortable, title, controls, header, onclick }`.
-  레거시 `multiple_max`·`add_buttons` 금지 — `multiple` 하위로.
+  `multiple_max`·`add_buttons` 같은 별도 키 금지 — `multiple` 하위로.
 - **다국어 입력** "ko/en 입력란 분리" → `lang: true` 또는 `lang: { only: [ko, en] | { ja: { validate: … } }, frame, title, group_class }`.
 - **콘텐츠 번역** "라벨 ko/en" → `label: { ko, en }`. 이건 콘텐츠(G3)이지 분류 대상이 아니다.
 - **보임새/표시** "A면 보임 / 색상" → `design.show: '<표현식>'`, `design.class`/`style` 또는
@@ -78,7 +78,7 @@ g. **explain 역검증** — `crudui explain <spec>`로 스펙을 자연어로 �
 - describe에 없는 `type`을 쓰지 마라. 모르면 발명하지 말고 폴백 후 확인한다.
 - 조건을 `if`/`when`/`show_if`로 표현하지 마라 — 조건은 값의 표현식이다(`required: '.x'`, `show: '.x'`). (G1)
 - 매직 토큰 `_`를 쓰지 마라 — 기본 분기는 `true`다.
-- 레거시 키를 쓰지 마라(`display_switch`·`element_class`·`multiple_max`·`langs`·`$merge`·`seqtokey`…).
+- 금지 키를 쓰지 마라(`display_switch`·`element_class`·`multiple_max`·`langs`·`$merge`·`seqtokey`…).
   describe `forbiddenKeys`와 분류규칙이 흡수처를 준다.
 - `x` 접두 키를 쓰지 마라 — `x{key}`는 주석이고 파서가 무시한다(forbidden 패턴 `^x[\s\S]`). (§3 A)
 - 최상위 키를 임의로 늘리지 마라. 최상위로 분류되지 않은 세부 설정은 지정된 하위 객체에 둔다. (§3 B)

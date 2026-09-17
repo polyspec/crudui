@@ -37,8 +37,7 @@
     "vue": "^3.4.0"
   },
   "dependencies": {
-    "@crudui/generator-core": "0.0.1",
-    "@crudui/validator": "0.0.1"
+    "@crudui/generator-core": "0.0.1"
   },
   "devDependencies": {
     "@types/node": "^25.9.3",

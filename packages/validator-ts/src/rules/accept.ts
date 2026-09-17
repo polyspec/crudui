@@ -6,6 +6,7 @@
 
 import { RuleDefinition, ValidationContext } from '../types';
 import { isEmpty } from './required';
+import { trim } from '../values/index';
 
 /**
  * Common MIME type mappings
@@ -68,7 +69,7 @@ export function parseAcceptParam(param: unknown): string[] {
 
   if (typeof param === 'string') {
     // Split by comma
-    const parts = param.split(',').map(p => p.trim().toLowerCase());
+    const parts = param.split(',').map(p => trim(p).toLowerCase());
     for (const part of parts) {
       if (part.startsWith('.')) {
         // Extension (e.g., .jpg)
@@ -269,8 +270,4 @@ export const acceptRule: RuleDefinition = {
 
     return null;
   },
-
-  defaultMessage: 'Please upload a file with a valid format.',
 };
-
-export default acceptRule;

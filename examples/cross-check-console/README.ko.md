@@ -9,20 +9,20 @@ Node HTTP 게이트웨이가 자동 적합성 검사와 같은 CRUDUI 진입점�
 한 프로세스(`server/server.mjs`)가 맡는 역할은 다음과 같습니다.
 
 - `POST /api/validate` — 4개 언어 CRUDUI 폼 검증 팬아웃. 네 언어 모두(JS 포함)
-  stdin JSON CLI 하위 프로세스로 실행합니다(레거시 래퍼가 아닌 CRUDUI 래퍼). 순서는
+  stdin JSON [검증기 프로세스](validators/README.ko.md)로 실행합니다. 순서는
   compose → forbidden-scan → validate입니다. 게이트웨이는 검증기를 하나도 import하지
   않는 순수 오케스트레이터이며 특권 경로가 없으므로 네 언어가 완전히 대칭입니다.
 - `POST /api/validate-list` — 4개 언어 CRUDUI 목록 구조 검증 팬아웃. `/api/validate`의
-  검증 짝입니다(SPEC §9). 같은 네 CLI가 `mode:"list"`로 분기합니다(목록 트리에 대한
+  검증 짝입니다(SPEC §9). 같은 네 프로세스가 `mode:"list"`로 분기합니다(목록 트리에 대한
   compose → forbidden-scan). 목록은 행을 담지 않으므로(행은 주입되며 DB와 무관)
   데이터 단계가 없고 `data`를 생략합니다. 금지된 메타 키는 같은 `failure` 기록으로
   나타납니다.
-- `POST /api/validate-detail` — 4개 언어 CRUDUI 상세 구조 검증 팬아웃. 네 CLI가
+- `POST /api/validate-detail` — 4개 언어 CRUDUI 상세 구조 검증 팬아웃. 네 프로세스가
   `mode:"detail"`로 분기합니다(루트와 `fields` 맵의 compose → forbidden-scan). 상세
   검증은 레코드를 담지 않으므로 `data`를 생략합니다.
 - `POST /api/render` — 3개 프레임워크 CRUDUI 폼 SSR. React와 Svelte(동기), Vue(비동기)
   모두 적합성 테스트가 import하는 CRUDUI 진입점을 통해 프로세스 안에서 렌더링합니다
-  (Svelte 어댑터가 `.svelte` 파일을 컴파일하므로 번들러 없는 CLI는 불가능하지만, 세
+  (Svelte 어댑터가 `.svelte` 파일을 컴파일하므로 번들러 없는 별도 프로세스는 불가능하지만, 세
   프레임워크를 같은 방식으로 불러오므로 렌더링 쪽도 대칭입니다).
 - `POST /api/render-list` — 3개 프레임워크 CRUDUI 목록 SSR. `/api/render`의 읽기
   짝입니다(SPEC §9). 목록 명세와 주입한 행을 세 목록 SSR 진입점으로 팬아웃합니다.
@@ -37,12 +37,12 @@ Node HTTP 게이트웨이가 자동 적합성 검사와 같은 CRUDUI 진입점�
 
 ## 독립 검증인 이유
 
-적합성 검사(`tests/runner/compare-all.js`와 세 `form-render.conformance` 테스트, 목록
+적합성 검사(네 검증기의 `tests/fixtures/validate` 테스트와 세 `form-render.conformance` 테스트, 목록
 렌더링 적합성, 4개 언어 목록 구조 적합성)는 vitest, go test, cargo test, PHP 워커로
 고정 픽스처에 대해 CRUDUI 엔진을 실행합니다. 콘솔은 같은 CRUDUI 함수를 HTTP
 게이트웨이로 자유로운 실시간 입력에 대해 실행합니다. 엔진은 같고 래퍼가 다르므로 한
 경로의 버그가 다른 경로의 버그를 가릴 수 없습니다. JS의 프로세스 내 import를 없애 이
-성질이 강해졌습니다. 이제 JS도 PHP·Go·Rust와 똑같이 CLI로 실행하므로 게이트웨이 안에서
+성질이 강해졌습니다. 이제 JS도 PHP·Go·Rust와 똑같이 별도 프로세스로 실행하므로 게이트웨이 안에서
 우대받는 언어가 없고, 4개 언어 일치는 특권 호출 경로의 부산물이 아니라 엔진의
 결정성입니다. 실시간으로 보고된 차이는 픽스처 케이스로 내보내 적합성 모음에 회귀
 테스트로 추가할 수 있습니다.
@@ -83,17 +83,17 @@ GET  /                  → static console (client/)
 `detailSpec`이 정식 키이고 `spec`이 별칭입니다. 잘못된 YAML 문자열이나 명세 누락은
 400입니다. 검증·렌더링 실패는 HTTP 오류가 아니라 결과로 나타납니다(항상 200).
 해석되지 않는 `$ref`/`$patch`/금지 키는 로드 실패이고, 루트·그룹·반복 데이터의 형태가
-틀리면 입력 실패입니다. 모든 검증기 CLI는 두 경우 모두 종료 상태 2와 정확히
+틀리면 입력 실패입니다. 모든 검증기 프로세스는 두 경우 모두 종료 상태 2와 정확히
 `{ error, code, at }`를 보고하며, 게이트웨이는 이를 `valid:false`와 구분되는
 `failure: { code, message, at }`로 노출합니다. 실제 서버 오류만 `{ error }`와 함께
 4xx/5xx를 사용합니다.
 
 ## 실행
 
-Go와 Rust CRUDUI 검증기는 먼저 컴파일해야 하는 하위 프로세스 CLI입니다. JS CRUDUI 검증
-CLI(`packages/validator-ts/bin/validate.mjs`)는 `tsx` 로더(`node --import tsx`)로
-TypeScript CRUDUI 소스를 실행합니다. 별도 빌드는 없지만 `tsx`가 설치되어 있어야 합니다
-(워크스페이스 devDependency이므로 저장소 루트에서 `npm install`을 한 번 실행합니다). 세
+[검증기 프로세스](validators/README.ko.md)는 각 언어의 공개 검증기 API를 호출하는 이
+콘솔의 작은 프로그램입니다. Go와 Rust 프로그램은 먼저 컴파일해야 하고, JavaScript
+프로그램은 빌드된 `@crudui/validator`를 import합니다. `npm run build:validators`는
+JavaScript 패키지 출력이 최신이 아니면 먼저 빌드합니다. 세
 생성기는 게이트웨이 시작 시 프로세스 안의 Vite SSR 로더로 TypeScript 소스에서
 불러옵니다.
 
@@ -101,16 +101,15 @@ TypeScript CRUDUI 소스를 실행합니다. 별도 빌드는 없지만 `tsx`가
 # 1. PHP deps (once)
 cd packages/validator-php && composer install && cd -
 
-# 2. tsx for the JS CRUDUI CLI (workspace devDependency)
-npm install                  # at repo root, installs tsx + js-yaml + vite/svelte
+# 2. workspace dependencies
+npm install                  # at repo root, installs js-yaml + vite/svelte
 
-# 3. build the Go + Rust CRUDUI CLIs (the server expects them at fixed paths;
-#    `npm test` runs this first, so tests always use the current sources)
+# 3. build the JavaScript packages and the Go + Rust validator programs (the server expects
+#    them at fixed paths; `npm test` runs this first, so tests always use the current sources)
 cd examples/cross-check-console/server
-npm run build:cli            # = build:go + build:rust
-#   go build -o ../../../packages/validator-go/validate ./cmd/validate
-#   cargo build --locked --release --bin validate  (in packages/validator-rust)
-npm run check:js-cli         # smoke-test the JS CRUDUI CLI (node --import tsx)
+npm run build:validators     # = require-current-build + build:go + build:rust
+#   go build -o validate .                (in ../validators/go)
+#   cargo build --locked --release        (in ../validators/rust)
 
 # 4. start the gateway (boots the CRUDUI render engine, then serves)
 npm start                    # PORT=4000 by default
@@ -162,7 +161,7 @@ http://localhost:4000 을 열고 예제를 고른 뒤 명세와 데이터를 편
 - `idempotent`(validate / validate-list) — 언어별 안정 서명(전체 실패 기록, 또는
   valid와 정렬한 5필드 오류이며, Rust f64와 정수 직렬화 차이로 거짓 불일치가 나지 않도록
   숫자 `value`를 통일하고 `value` 내부 객체 멤버 순서는 무시하며 배열 순서는 유지함).
-  실패한 CLI(`ok:false`)는 별도 서명을 가지므로 조용히 일치로
+  실패한 프로세스(`ok:false`)는 별도 서명을 가지므로 조용히 일치로
   처리되지 않습니다. 실행된 언어가 둘 미만이면 false가 아니라 판정 불가(null)입니다.
 - `parity`(render / render-list / search 렌더링) — 성공한 프레임워크는
   `html:<normalized>`로, 실패한 프레임워크는 `error:<code>`로 서명합니다(네임스페이스가
@@ -174,6 +173,8 @@ http://localhost:4000 을 열고 예제를 고른 뒤 명세와 데이터를 편
 실행합니다. 데이터가 없는 반복 필드의 public form instance fixture 한 건은 네 렌더러
 멱등성과 생성 행 키 계약을 검사합니다. public instance는 무작위 식별자를 생성해야 하므로
 bindForm fixture의 고정 바이트와 비교하지 않습니다.
+`server/validator-processes.test.mjs`는 모든 요청 사례와 폼·목록·상세 검증 사례를 다섯
+[검증기 프로세스](validators/README.ko.md)에 보내 종료 상태와 응답 전체를 비교합니다.
 
 어긋난 실행은 문제가 된 열을 빨갛게 칠하고 항목별 차이 표(어느 언어·프레임워크가 어떤
 경로·규칙이나 태그·속성에서 갈렸는지)를 그립니다. `raw` 토글은 가공한 모든 셀을 서버의
@@ -195,7 +196,7 @@ bindForm fixture의 고정 바이트와 비교하지 않습니다.
 - 상세 탭 → `tests/fixtures/detail-render/cases.json` 형태:
   `{name,note,spec,record,options,expected_html|expectError:{code,message}}`.
 
-내보낸 어긋난 케이스를 자동 검사(`compare-all.js` / `*.conformance`)에 추가하면 회귀
+내보낸 어긋난 케이스를 자동 검사(공용 `tests/fixtures/*/cases.json` 적합성 스위트)에 추가하면 회귀
 테스트로 유지됩니다.
 
 ## 로컬 curl 스모크 테스트
@@ -258,13 +259,14 @@ curl -s -X POST localhost:4000/api/render-detail -H 'Content-Type: application/j
 server/
   server.mjs          gateway: routes (validate, validate-list, validate-detail, render, render-list, render-detail) + CORS + always-200 + static serving
   engine.mjs          one Vite SSR boot → loads the 3 CRUDUI form, list and detail RENDER entries (render only)
-  validate-runner.mjs all 4 langs via spawnSync CLI (zero privileged path); validateAll + validateAllList (mode:list) + validateAllDetail (mode:detail); idempotency verdict
+  validate-runner.mjs all 4 langs via spawnSync validator processes (zero privileged path); validateAll + validateAllList (mode:list) + validateAllDetail (mode:detail); idempotency verdict
   render-runner.mjs   HTML/React/Svelte/Vue in-process SSR; renderAll + renderAllList + renderAllDetail; parity verdict
-  package.json        start + build:cli + check:js-cli scripts
+  package.json        start + build:validators scripts
+validators/           validator processes: js/validate.mjs, php/validate.php, go/, rust/ and
+                      requests.json (request contract cases); see validators/README.ko.md
 client/               no-build console (index.html + app.js + examples.js + doc.js + styles.css);
                       three tabs (form, list, detail) over the six endpoints
 ```
 
-CRUDUI 검증 CLI 래퍼는 각 패키지에 있습니다(JS `bin/validate.mjs`, PHP
-`bin/validate.php`, Go `cmd/validate`, Rust `src/bin/validate.rs`). legacy는 건드리지
-않습니다.
+검증기 프로세스는 패키지가 아니라 이 콘솔에 속합니다. 애플리케이션은 라이브러리 함수를
+호출하며, 어떤 패키지도 명령을 설치하지 않습니다.

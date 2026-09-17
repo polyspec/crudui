@@ -1,0 +1,208 @@
+//! Canonical text of a scalar (validation rules, "Values").
+//!
+//! A string is itself, `true` is `1`, `false` is `0`, and a finite number is written
+//! as ECMAScript `Number.prototype.toString` writes it. JSON integers are read as
+//! the double that ECMAScript would read.
+
+use std::borrow::Cow;
+
+use serde_json::Value;
+
+/// The canonical text of a scalar; `None` for `null`, arrays and objects.
+pub(crate) fn canonical_text(value: &Value) -> Option<Cow<'_, str>> {
+    match value {
+        Value::String(text) => Some(Cow::Borrowed(text)),
+        Value::Bool(true) => Some(Cow::Borrowed("1")),
+        Value::Bool(false) => Some(Cow::Borrowed("0")),
+        Value::Number(number) => number.as_f64().map(|n| Cow::Owned(number_text(n))),
+        Value::Null | Value::Array(_) | Value::Object(_) => None,
+    }
+}
+
+/// ECMAScript `Number::toString(x)` with radix 10 (`NaN`, `Infinity` and
+/// `-Infinity` for nonfinite values, which JSON values never are).
+///
+/// ECMAScript takes the fewest significant digits k whose decimal reads back as
+/// `x` and, among such k-digit decimals, the one closest to `x`, an exact tie going
+/// to the even one. Rust's `{:e}` writes the fewest digits but may break a tie the
+/// other way (2^-25 is exactly 2.98023223876953125e-8; ECMAScript writes
+/// …312e-8, `{:e}` writes …313e-8). The k-digit decimal closest to `x` is the
+/// correctly rounded one, which `{:.*e}` writes with ties to even; when that one
+/// does not read back as `x` (possible just above a power of two), the shortest
+/// output is the only k-digit decimal that does.
+pub(crate) fn number_text(x: f64) -> String {
+    if x.is_nan() {
+        return "NaN".to_string();
+    }
+    if x.is_infinite() {
+        return if x > 0.0 { "Infinity" } else { "-Infinity" }.to_string();
+    }
+    if x == 0.0 {
+        // Covers negative zero.
+        return "0".to_string();
+    }
+    let sign = if x < 0.0 { "-" } else { "" };
+    let magnitude = x.abs();
+    let shortest = format!("{magnitude:e}");
+    let digit_count = shortest.split_once('e').map_or(0, |(mantissa, _)| {
+        mantissa.chars().filter(char::is_ascii_digit).count()
+    });
+    let rounded = format!("{magnitude:.*e}", digit_count - 1);
+    let scientific = if rounded.parse::<f64>() == Ok(magnitude) {
+        rounded
+    } else {
+        shortest
+    };
+    let (mantissa, exponent) = scientific
+        .split_once('e')
+        .expect("`{:e}` always writes an exponent");
+    let exponent: i32 = exponent.parse().expect("`{:e}` writes a decimal exponent");
+    let digits: String = mantissa.chars().filter(|c| *c != '.').collect();
+    let k = digits.len() as i32;
+    // x = 0.d1d2…dk × 10^n
+    let n = exponent + 1;
+
+    let body = if k <= n && n <= 21 {
+        format!("{digits}{}", "0".repeat((n - k) as usize))
+    } else if 0 < n && n <= 21 {
+        let (int, frac) = digits.split_at(n as usize);
+        format!("{int}.{frac}")
+    } else if -6 < n && n <= 0 {
+        format!("0.{}{digits}", "0".repeat((-n) as usize))
+    } else {
+        let e = n - 1;
+        let e_sign = if e >= 0 { '+' } else { '-' };
+        let (first, rest) = digits.split_at(1);
+        if rest.is_empty() {
+            format!("{first}e{e_sign}{}", e.abs())
+        } else {
+            format!("{first}.{rest}e{e_sign}{}", e.abs())
+        }
+    };
+    format!("{sign}{body}")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn numbers_as_ecmascript_writes_them() {
+        let cases: &[(f64, &str)] = &[
+            (0.0, "0"),
+            (-0.0, "0"),
+            (1.0, "1"),
+            (-1.0, "-1"),
+            (12.0, "12"),
+            (1.5, "1.5"),
+            (-1.5, "-1.5"),
+            (100.0, "100"),
+            (0.1, "0.1"),
+            (0.1 + 0.2, "0.30000000000000004"),
+            (1.0 / 3.0, "0.3333333333333333"),
+            (2.0 / 3.0, "0.6666666666666666"),
+            (4.35, "4.35"),
+            (123.456, "123.456"),
+            (0.000001, "0.000001"),
+            (0.0000012, "0.0000012"),
+            (1e-7, "1e-7"),
+            (5e-7, "5e-7"),
+            (1.23e-18, "1.23e-18"),
+            (-1.5e-7, "-1.5e-7"),
+            (1e21, "1e+21"),
+            (1.5e21, "1.5e+21"),
+            (-1e21, "-1e+21"),
+            (1e20, "100000000000000000000"),
+            (123456789012345680000.0, "123456789012345680000"),
+            (999999999999999900000.0, "999999999999999900000"),
+            (1180591620717411303424.0, "1.1805916207174113e+21"),
+            (9007199254740991.0, "9007199254740991"),
+            (9007199254740992.0, "9007199254740992"),
+            (18446744073709551615.0, "18446744073709552000"),
+            (-9223372036854775808.0, "-9223372036854776000"),
+            (1e100, "1e+100"),
+            (f64::MAX, "1.7976931348623157e+308"),
+            (f64::MIN_POSITIVE, "2.2250738585072014e-308"),
+            (5e-324, "5e-324"),
+            (-5e-324, "-5e-324"),
+            (2.5e-6, "0.0000025"),
+            (1e-6, "0.000001"),
+            (
+                f64::from_bits(0x3EB0_C6F7_A0B5_ED8C),
+                "9.999999999999997e-7",
+            ),
+            (0.5, "0.5"),
+            (1234.5678, "1234.5678"),
+            (1e15, "1000000000000000"),
+            (1.7976931348623157e300, "1.7976931348623156e+300"),
+            (5e-8, "5e-8"),
+            (1.0000000000000002, "1.0000000000000002"),
+            (100.25, "100.25"),
+            (f64::INFINITY, "Infinity"),
+            (f64::NEG_INFINITY, "-Infinity"),
+            (f64::NAN, "NaN"),
+        ];
+        for (value, text) in cases {
+            assert_eq!(number_text(*value), *text, "{value:?}");
+        }
+    }
+
+    /// `tests/data/number-text.tsv` pairs double bit patterns with the text
+    /// ECMAScript writes for them; `tools/generate-number-text.mjs` writes it.
+    #[test]
+    fn numbers_match_the_ecmascript_table() {
+        let path = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/data/number-text.tsv");
+        let table = std::fs::read_to_string(path).expect("read the number-text table");
+        let mut count = 0;
+        for line in table.lines() {
+            let (bits, text) = line.split_once('\t').expect("a tab-separated row");
+            let value = f64::from_bits(u64::from_str_radix(bits, 16).expect("hexadecimal bits"));
+            assert_eq!(number_text(value), text, "{bits} ({value:e})");
+            count += 1;
+        }
+        assert!(count >= 10_000, "the table has {count} rows");
+    }
+
+    #[test]
+    fn scalars_and_json_numbers() {
+        let text = |value: Value| canonical_text(&value).map(|t| t.into_owned());
+        assert_eq!(text(json!("  a ")).as_deref(), Some("  a "));
+        assert_eq!(text(json!(true)).as_deref(), Some("1"));
+        assert_eq!(text(json!(false)).as_deref(), Some("0"));
+        assert_eq!(text(json!(12)).as_deref(), Some("12"));
+        assert_eq!(text(json!(-7)).as_deref(), Some("-7"));
+        assert_eq!(
+            text(json!(u64::MAX)).as_deref(),
+            Some("18446744073709552000")
+        );
+        assert_eq!(
+            text(json!(i64::MIN)).as_deref(),
+            Some("-9223372036854776000")
+        );
+        assert_eq!(
+            text(json!(9007199254740993u64)).as_deref(),
+            Some("9007199254740992")
+        );
+        assert_eq!(text(json!(null)), None);
+        assert_eq!(text(json!([1])), None);
+        assert_eq!(text(json!({})), None);
+    }
+
+    #[test]
+    fn json_text_reads_as_the_nearest_double() {
+        for (source, text) in [
+            ("0.30000000000000004", "0.30000000000000004"),
+            ("123456789012345680000", "123456789012345680000"),
+            ("1e21", "1e+21"),
+            ("-0", "0"),
+            ("-0.0", "0"),
+            ("2.2250738585072011e-308", "2.225073858507201e-308"),
+            ("9007199254740993.0", "9007199254740992"),
+            ("0.1e1", "1"),
+        ] {
+            let value: Value = serde_json::from_str(source).unwrap();
+            assert_eq!(canonical_text(&value).unwrap(), text, "{source}");
+        }
+    }
+}

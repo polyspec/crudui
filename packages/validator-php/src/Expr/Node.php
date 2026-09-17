@@ -13,7 +13,7 @@ namespace CRUDUI\Validator\Expr;
  * no position, so the 4-language AST contract excludes it; including it would
  * break cross-language fixture equality.
  *
- * CRUDUI-only. Never reuse legacy CRUDUI\Validator\Legacy\ConditionParser (R7 parallel run).
+ * CRUDUI-only.
  */
 abstract class Node
 {

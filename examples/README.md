@@ -10,7 +10,6 @@
 | [Go package example](../packages/generator-go/examples/server/main.go) | Form, list and detail pages rendered from one stored record |
 | [PHP package example](../packages/generator-php/examples/index.php) | Form, list (`?view=list`) and detail (`?view=detail`) pages rendered from one stored record, with the PHP implementation or the extension |
 | [Rust package example](../packages/generator-rust/examples/form.rs) | One HTML document with a form, a list and details rendered from one record |
-| [Legacy examples](legacy/) | Applications and specifications using explicit legacy APIs |
 
 The [list and detail procedure](../docs/operations/displays.md) describes the package
 examples' list and detail output and their commands. Use the

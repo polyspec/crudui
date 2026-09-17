@@ -1,27 +1,22 @@
 /**
  * `$patch` application — add / remove / replace over the `$ref` base (SPEC
- * §5). Absorbs the legacy legacy directives `$after`/`$before`/`$merge`/`$change`/
- * `$remove` (the analysis legacy_mapping):
+ * §5). `$patch` is the only overlay; the `$after`/`$before`/`$merge`/`$change`/
+ * `$remove` directives are forbidden meta keys. Added keys keep declaration
+ * order because CRUDUI properties preserve insertion order.
  *
- *   $after / $before {existing:{new:val}}  → add   (position = declaration order;
- *                                            CRUDUI properties preserve insert order)
- *   $merge / $change {key:{sub:val}}       → replace + add (deep-merge; scalar =
- *                                            replace, new subkey = add)
- *   $remove [k1,k2] | {k:{sub:…}}          → remove (whole key or deep subkey)
- *
- * CRUDUI normalization (the analysis patch_ops): `$patch` is an OBJECT of operations.
+ * `$patch` is an OBJECT of operations.
  * Two order-preserving input shapes are supported:
  *
  *   1. Deep-path set — `"field.validate.required": ".other"`. The dotted key is
  *      split into path segments and the value is SET at that node (creating
  *      intermediate objects). This is the SPEC §5 canonical form. The value
- *      replaces any scalar leaf; for object values it deep-merges (legacy $merge =
- *      drupal_array_merge_deep_array: both-array → deep merge, else latter wins).
+ *      replaces any scalar leaf; for object values it deep-merges (both
+ *      objects → deep merge, else the latter wins).
  *
  *   2. Structured ops — explicit `add` / `remove` / `replace` keys:
  *        add:     { "path.to.new": value, … }   — deep-merge value at path
  *        replace: { "path.to.key": value, … }   — same merge rule (scalar override)
- *        remove:  [ "path.to.key", … ] | { … }  — deep delete (legacy arr::remove)
+ *        remove:  [ "path.to.key", … ] | { … }  — deep delete
  *
  * Resolution order: base ($ref) first, then $patch overlays. add/replace
  * deep-merge; remove deep-deletes; deep-path set splits then applies. An
@@ -94,7 +89,7 @@ function applyRemove(base: Record<string, unknown>, val: unknown): Record<string
     return result;
   }
   if (val !== null && typeof val === 'object') {
-    // Nested map form (legacy arr::remove): recurse where both sides are objects.
+    // Nested map form: recurse where both sides are objects.
     return removeNested(base, val as Record<string, unknown>);
   }
   throw new ComposeLoadError(
@@ -113,8 +108,8 @@ function splitPath(path: string): string[] {
 
 /**
  * Set a value at a deep path, creating intermediate objects. When both the
- * existing leaf and the new value are plain objects, DEEP-MERGE (legacy $merge);
- * otherwise the new value REPLACES (legacy scalar override). Returns a new tree
+ * existing leaf and the new value are plain objects, DEEP-MERGE;
+ * otherwise the new value REPLACES. Returns a new tree
  * (the input is not mutated).
  */
 function setDeepPath(
@@ -147,7 +142,7 @@ function setDeepPath(
 }
 
 /**
- * legacy deep-merge leaf rule (drupal_array_merge_deep_array): both plain objects →
+ * Deep-merge leaf rule: both plain objects →
  * recursive deep merge; otherwise the latter value wins (scalar/array override).
  */
 function mergeValue(existing: unknown, incoming: unknown): unknown {
@@ -197,9 +192,9 @@ function removeDeepPath(
 }
 
 /**
- * Nested-map remove (legacy arr::remove): for each key, recurse when both the
+ * Nested-map remove: for each key, recurse when both the
  * target and the removal spec are objects, else unset the key. A missing key is
- * tolerated here (legacy arr::remove silently unsets), unlike the array-path form.
+ * tolerated here (it is silently skipped), unlike the array-path form.
  */
 function removeNested(
   base: Record<string, unknown>,

@@ -3,13 +3,13 @@
  *
  * One Node process is responsible for three things:
  *   (a) POST /api/validate, /api/validate-list, /api/validate-detail — 4-language
- *       CRUDUI validation fan-out (JS/PHP/Go/Rust as stdin-JSON CLIs).
+ *       CRUDUI validation fan-out (JS/PHP/Go/Rust stdin-JSON validator processes).
  *   (b) POST /api/render, /api/render-list, /api/render-detail — HTML/React/Svelte/Vue CRUDUI
  *       SSR (React/Svelte sync, Vue async), all in-process through the same CRUDUI
  *       entries used by conformance checks.
  *   (c) static console      — serves client/ at /.
  *
- * It follows the node-api server contract (examples/legacy/node-api/server.js): CORS on
+ * Server contract: CORS on
  * every response, validation/render failures are NOT HTTP errors (always 200 with
  * a result envelope), and only real server faults use 4xx/5xx with { error }.
  *
@@ -181,7 +181,7 @@ export async function handler(req, res) {
 
   // ---- POST /api/validate-list --------------------------------------------
   // The validate sister of /api/validate (SPEC §9): a list-spec STRUCTURE fans
-  // out across the four CRUDUI CLIs in `mode:list` (compose → forbidden-scan; no
+  // out across the four validator processes in `mode:list` (compose → forbidden-scan; no
   // DATA pass — a list carries no rows). Same HTTP contract as /api/validate —
   // a LOAD failure / valid:false is a result surface (200), only a real fan-out
   // fault is 5xx. The form validate path above is untouched (additive).
@@ -214,7 +214,7 @@ export async function handler(req, res) {
   }
 
   // ---- POST /api/validate-detail ------------------------------------------
-  // A detail specification structure fans out across the four CLIs in `mode:detail`
+  // A detail specification structure fans out across the four validator processes in `mode:detail`
   // (compose → forbidden-scan; no record is validated). The HTTP contract matches
   // /api/validate-list: a load failure or valid:false is a 200 result, and only a
   // fan-out fault is 5xx. `detailSpec` is the canonical key; `spec` is an alias.

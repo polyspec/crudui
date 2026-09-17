@@ -1,13 +1,13 @@
 /**
  * File loader for `$ref` resolution.
  *
- * `$ref` loads external YAML files (legacy ReferenceResolver: `yml_parse_file`). The
+ * `$ref` loads external YAML files. The
  * compose engine never touches the filesystem directly — it goes through a
  * `FileLoader`, so the shared fixtures can supply a virtual in-memory file set
  * (the spec graph is the input; no disk needed) while production wires a real
  * disk + YAML loader. One engine, two backends — identical semantics.
  *
- * Path normalization mirrors legacy ReferenceResolver:
+ * Path normalization:
  *   - absolute (`/…`) paths pass through unchanged
  *   - relative paths get the basepath prefix (`basepath + '/' + path`)
  * The loader receives the ALREADY-normalized absolute key, so cycle detection
@@ -45,7 +45,7 @@ export class MemoryLoader implements FileLoader {
   }
 
   normalize(path: string, basepath: string): string {
-    // Absolute path: pass through. Relative: prefix basepath (legacy parity).
+    // Absolute path: pass through. Relative: prefix basepath.
     if (path.startsWith('/')) return path;
     if (basepath) return basepath + '/' + path;
     return path;

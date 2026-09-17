@@ -1,0 +1,10 @@
+[package]
+name = "crudui-native-generator"
+version = "0.0.1"
+edition = "2021"
+publish = false
+
+[dependencies]
+crudui-generator = { path = "../../../../packages/generator-rust" }
+serde = "1"
+serde_json = { version = "1", features = ["preserve_order"] }
