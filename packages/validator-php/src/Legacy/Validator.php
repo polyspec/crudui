@@ -413,7 +413,7 @@ class Validator
 
         // For non-required fields, skip validation if value is empty.
         // Exception: mincount/maxcount must still fire on empty arrays
-        // (an empty multiple field violates mincount - tests/cases/multiple-fields.json).
+        // (an empty multiple field violates mincount - tests/fixtures/legacy-validate/cases.json, suite multiple-fields).
         if ($ruleName !== 'required' && $this->isEmpty($value)) {
             $isCountRuleOnArray = is_array($value) && in_array($ruleName, ['mincount', 'maxcount'], true);
             if (!$isCountRuleOnArray) {

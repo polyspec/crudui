@@ -13,7 +13,7 @@
   ],
   "scripts": {
     "describe": "node --import tsx bin/crudui.mjs describe",
-    "test": "vitest run"
+    "test": "node ../../scripts/run-tests.mjs vitest --cwd packages/cli"
   },
   "dependencies": {
     "@crudui/generator-core": "0.0.1",

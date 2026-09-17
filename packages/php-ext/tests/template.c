@@ -220,7 +220,7 @@ int main(void)
     set(plain, "properties", plain_properties);
     result = ps_compile_form(plain, options);
     assert(result.value && !result.error);
-    assert(!strcmp(ps_key_at(result.value, 3), "buttons") && !ps_has(result.value, "action"));
+    assert(ps_text_is(ps_key(result.value, 3), "buttons") && !ps_has(result.value, "action"));
     const ps_value *defaults = ps_get(result.value, "buttons");
     assert(defaults && defaults->kind == PS_ARRAY && ps_size(defaults) == 1 && ps_size(ps_at(defaults, 0)) == 1);
     assert(ps_is_string(ps_get(ps_at(defaults, 0), "type"), "submit"));
@@ -231,7 +231,7 @@ int main(void)
     set(plain, "buttons", declared_buttons); set(plain, "action", action);
     result = ps_compile_form(plain, options);
     assert(result.value && !result.error);
-    assert(!strcmp(ps_key_at(result.value, 3), "buttons") && !strcmp(ps_key_at(result.value, 4), "action"));
+    assert(ps_text_is(ps_key(result.value, 3), "buttons") && ps_text_is(ps_key(result.value, 4), "action"));
     assert(ps_equal(ps_get(result.value, "buttons"), ps_get(plain, "buttons")));
     assert(ps_equal(ps_get(result.value, "action"), ps_get(plain, "action")));
     ps_value_free(result.value); ps_value_free(plain);

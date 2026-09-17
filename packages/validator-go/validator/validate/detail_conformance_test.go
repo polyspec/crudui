@@ -13,6 +13,7 @@ import (
 	"testing"
 
 	"github.com/polyspec/crudui/packages/validator-go/validator/compose"
+	"github.com/polyspec/crudui/packages/validator-go/validator/internal/conformance"
 )
 
 type detailValidityCase struct {
@@ -43,6 +44,7 @@ func TestValidateDetailMatchesFixture(t *testing.T) {
 	for _, c := range loadDetailValidityFixtures(t) {
 		c := c
 		t.Run(c.Name, func(t *testing.T) {
+			conformance.Record(t, "validateDetail", "tests/fixtures/detail-validity/cases.json", c.Name)
 			if len(c.Engine) == 0 {
 				t.Fatalf("%s: case must declare engine", c.Name)
 			}

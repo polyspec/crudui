@@ -168,31 +168,48 @@ function countOption(value: unknown, min: number): value is number | null | unde
   return value === undefined || value === null || (Number.isSafeInteger(value) && (value as number) >= min);
 }
 
+const PAGINATION_KEYS = ['per_page', 'mode'];
+const PAGINATION_MODES = ['pages', 'offset', 'cursor', 'none'];
+
+/** Reject a wrong value type or an unknown key in the pagination declaration at `path`. */
+function checkPaginationDeclaration(pagination: unknown, path: string): void {
+  const fail = (key: string, expected: string): never => {
+    throw new FormInputError(`Invalid ${key} at ${path}: expected ${expected}`);
+  };
+  if (typeof pagination !== 'boolean' && !isPlainObject(pagination)) fail('pagination', 'a boolean or an object');
+  if (!isPlainObject(pagination)) return;
+  for (const key of Object.keys(pagination)) {
+    if (!PAGINATION_KEYS.includes(key)) throw new FormInputError(`Invalid pagination.${key} at ${path}: unknown key`);
+  }
+  const has = (key: string) => Object.prototype.hasOwnProperty.call(pagination, key);
+  if (has('per_page') && !(Number.isSafeInteger(pagination.per_page) && (pagination.per_page as number) >= 1)) {
+    fail('pagination.per_page', 'a positive integer');
+  }
+  if (has('mode') && !PAGINATION_MODES.includes(pagination.mode as string)) {
+    fail('pagination.mode', 'pages, offset, cursor or none');
+  }
+}
+
+/**
+ * The pagination model, in member order: enabled, then for enabled paging perPage, mode and
+ * page with their defaults, the supplied total and pageCount. Disabled paging keeps only the
+ * supplied page and total.
+ */
 function resolvePagination(pagination: unknown, page: number | null | undefined, total: number | null | undefined): PaginationVM {
-  let base: PaginationVM;
-  if (pagination === false) {
-    base = { enabled: false };
-  } else if (pagination === undefined || pagination === null || pagination === true) {
-    base = { enabled: pagination === true };
-  } else if (isPlainObject(pagination)) {
-    base = {
-      enabled: true,
-      perPage: typeof pagination.per_page === 'number' ? pagination.per_page : undefined,
-      mode: typeof pagination.mode === 'string' ? pagination.mode : undefined,
-    };
-  } else {
-    base = { enabled: false };
+  const enabled = pagination === true || isPlainObject(pagination);
+  const vm: PaginationVM = { enabled };
+  const declared = isPlainObject(pagination) ? pagination : {};
+  if (enabled) {
+    vm.perPage = (declared.per_page as number | undefined) ?? 20;
+    vm.mode = (declared.mode as string | undefined) ?? 'pages';
+    vm.page = page ?? 1;
+  } else if (page !== undefined && page !== null) {
+    vm.page = page;
   }
   // `+ 0` writes negative zero as 0, as every runtime does.
-  if (page !== undefined && page !== null) base.page = page + 0;
-  if (total !== undefined && total !== null) base.total = total + 0;
-  if (base.enabled) {
-    base.perPage ??= 20;
-    base.mode ??= 'pages';
-    base.page ??= 1;
-    base.pageCount = base.total === undefined ? 0 : Math.max(1, Math.ceil(base.total / base.perPage));
-  }
-  return base;
+  if (total !== undefined && total !== null) vm.total = total + 0;
+  if (enabled) vm.pageCount = vm.total === undefined ? 0 : Math.max(1, Math.ceil(vm.total / vm.perPage!));
+  return vm;
 }
 
 function resolveSort(sort: unknown): SortVM | undefined {
@@ -297,13 +314,14 @@ export function buildDisplay(
   const rawColumns = isPlainObject(listSpec.columns) ? listSpec.columns : {};
   const columns = composeProperties(rawColumns, loader, composeOpts);
 
-  // Declarations are checked after the input rules and composition: the own design, then each member.
+  // Declarations are checked after the input rules and composition: the own design, each member, then the pagination.
   if (Object.prototype.hasOwnProperty.call(listSpec, 'design')) checkDesignDeclaration(listSpec.design, paths.own);
   for (const [key, raw] of Object.entries(columns)) {
     if (isPlainObject(raw) && Object.prototype.hasOwnProperty.call(raw, 'design')) {
       checkDesignDeclaration(raw.design, `${paths.members}.${key}`);
     }
   }
+  if (Object.prototype.hasOwnProperty.call(listSpec, 'pagination')) checkPaginationDeclaration(listSpec.pagination, paths.own);
 
   // List-level context for column-visibility expressions (over listData).
   const listCtx = makeContext([], listData);

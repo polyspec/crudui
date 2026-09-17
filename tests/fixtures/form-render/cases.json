@@ -1,5 +1,26 @@
 [
   {
+    "name": "text-with-nul",
+    "note": "a NUL character in a label, a placeholder and a value is written like any other character.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "name": {
+          "type": "text",
+          "label": "A\u0000B",
+          "placeholder": "p\u0000q"
+        }
+      }
+    },
+    "data": {
+      "name": "x\u0000y"
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"name\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:name\">AB</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"name\" data-rule-name=\"name\" id=\"crudui:name\" name=\"name\" placeholder=\"p�q\" type=\"text\" value=\"x�y\"></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
     "name": "design-show-expr-truthy",
     "note": "design.show '.subscribe' truthy → input shown (visible envelope).",
     "spec": {

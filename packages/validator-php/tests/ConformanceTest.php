@@ -8,47 +8,57 @@ use CRUDUI\Validator\Legacy\Validator;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
+require_once __DIR__ . '/../../../tests/conformance/evidence.php';
+
 /**
- * Conformance bridge: runs every fixture in tests/cases/*.json (repo root)
- * through the PHP validator via a PHPUnit data provider.
+ * Conformance bridge: runs every entry of tests/fixtures/legacy-validate/cases.json
+ * (repo root) through the PHP legacy validator via a PHPUnit data provider.
  *
- * The fixtures define the expected validation results.
+ * The fixture defines the expected validation results. One test runs every case
+ * of an entry and records one validateLegacy evidence line for the entry, passed
+ * only when all of its cases pass.
  */
 final class ConformanceTest extends TestCase
 {
-    private const CASES_DIR = __DIR__ . '/../../../tests/cases';
+    private const FIXTURE = 'tests/fixtures/legacy-validate/cases.json';
+    private const ROOT = __DIR__ . '/../../..';
 
     /**
-     * @return iterable<string, array{spec: array, input: mixed, expected: array}>
+     * @return iterable<string, array{entry: array<string, mixed>}>
      */
-    public static function conformanceCases(): iterable
+    public static function conformanceEntries(): iterable
     {
-        $files = glob(self::CASES_DIR . '/*.json');
-        if ($files === false || $files === []) {
-            throw new \RuntimeException('No fixture files found in ' . self::CASES_DIR);
+        $path = self::ROOT . '/' . self::FIXTURE;
+        $raw = file_get_contents($path);
+        if ($raw === false) {
+            throw new \RuntimeException('Cannot read fixture ' . $path);
+        }
+        $entries = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
+        if (!is_array($entries) || $entries === []) {
+            throw new \RuntimeException('No fixture entries found in ' . $path);
         }
 
-        foreach ($files as $file) {
-            $suite = json_decode((string)file_get_contents($file), true, 512, JSON_THROW_ON_ERROR);
-            $suiteName = $suite['testSuite'] ?? basename($file, '.json');
-
-            foreach ($suite['tests'] as $testDef) {
-                foreach ($testDef['cases'] as $i => $case) {
-                    $caseNum = $i + 1;
-                    $key = "{$suiteName} / {$testDef['id']} / case {$caseNum}";
-
-                    yield $key => [
-                        'spec' => $testDef['spec'],
-                        'input' => $case['input'],
-                        'expected' => $case['expected'],
-                    ];
-                }
-            }
+        foreach ($entries as $entry) {
+            yield "{$entry['suite']} / {$entry['name']}" => ['entry' => $entry];
         }
     }
 
-    #[DataProvider('conformanceCases')]
-    public function testFixtureCase(array $spec, mixed $input, array $expected): void
+    /** @param array<string, mixed> $entry */
+    #[DataProvider('conformanceEntries')]
+    public function testFixtureEntry(array $entry): void
+    {
+        $passed = false;
+        try {
+            foreach ($entry['cases'] as $i => $case) {
+                $this->assertFixtureCase($entry['spec'], $case['input'], $case['expected'], "{$entry['name']} case " . ($i + 1));
+            }
+            $passed = true;
+        } finally {
+            crudui_record_conformance('validateLegacy', self::FIXTURE, 'php', $entry['name'], $passed);
+        }
+    }
+
+    private function assertFixtureCase(array $spec, mixed $input, array $expected, string $label): void
     {
         $validator = new Validator(self::convertSpec($spec));
         $result = $validator->validate(self::convertInput($spec, $input));
@@ -56,7 +66,7 @@ final class ConformanceTest extends TestCase
         self::assertSame(
             $expected['valid'],
             $result->isValid(),
-            'valid mismatch. errors: ' . json_encode($result->getErrors(), JSON_UNESCAPED_UNICODE)
+            "{$label}: valid mismatch. errors: " . json_encode($result->getErrors(), JSON_UNESCAPED_UNICODE)
         );
 
         if ($expected['valid']) {
@@ -64,21 +74,21 @@ final class ConformanceTest extends TestCase
         }
 
         $errors = $result->getErrors();
-        self::assertNotEmpty($errors, 'invalid result must carry at least one error');
+        self::assertNotEmpty($errors, "{$label}: invalid result must carry at least one error");
         $firstError = reset($errors);
 
         if (isset($expected['error'])) {
-            self::assertSame($expected['error'], $firstError['rule'] ?? null, 'error rule mismatch');
+            self::assertSame($expected['error'], $firstError['rule'] ?? null, "{$label}: error rule mismatch");
         }
 
         if (isset($expected['field'])) {
-            self::assertSame($expected['field'], $firstError['field'] ?? null, 'error field mismatch');
+            self::assertSame($expected['field'], $firstError['field'] ?? null, "{$label}: error field mismatch");
         }
     }
 
     /**
-     * Wrap simple field specs in a group with a 'value' property
-     * (mirrors tests/runner/run-php.php).
+     * Wrap simple field specs in a group with a 'value' property, as the other
+     * runtimes' legacy conformance tests do.
      */
     private static function convertSpec(array $spec): array
     {

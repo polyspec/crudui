@@ -489,7 +489,11 @@ fn node(node: &Value) -> String {
     };
     let header_html = header(node);
     let header_slot = if node["sticky"] == true && !header_html.is_empty() {
-        element("div", &json!({"class":"crudui-node__header-container"}), &header_html)
+        element(
+            "div",
+            &json!({"class":"crudui-node__header-container"}),
+            &header_html,
+        )
     } else {
         header_html
     };

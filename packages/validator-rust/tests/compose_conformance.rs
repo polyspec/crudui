@@ -7,6 +7,11 @@
 //!   { name, input: { files?, entry, basepath?, kind? }, expected }    — success
 //!   { name, input: { files?, entry, basepath?, kind? }, expectError } — load error
 
+mod common;
+
+const FEATURE: &str = "compileForm";
+const FIXTURE: &str = "tests/fixtures/compose/cases.json";
+
 use crudui_validator::compose::{compose_properties, compose_spec, ComposeOptions, MemoryLoader};
 use serde_json::{Map, Value};
 use std::path::{Path, PathBuf};
@@ -69,81 +74,88 @@ fn compose_matches_fixture() {
 
     for spec in &cases {
         ran += 1;
-        let name = spec.get("name").and_then(Value::as_str).unwrap_or("?");
-        let input = spec.get("input").expect("case missing input");
-
-        // Build the loader from input.files (default empty).
-        let files = input
-            .get("files")
-            .and_then(Value::as_object)
-            .cloned()
-            .unwrap_or_default();
-        let loader = MemoryLoader::new(files);
-
-        // kind: 'properties' (default) | 'spec'.
-        let kind = input
-            .get("kind")
+        let name = spec
+            .get("name")
             .and_then(Value::as_str)
-            .unwrap_or("properties");
+            .unwrap_or_else(|| panic!("fixture case missing name"));
+        failures.extend(common::prove_case(FEATURE, FIXTURE, name, || {
+            let mut failures: Vec<String> = Vec::new();
+            let input = spec.get("input").expect("case missing input");
 
-        // basepath (default '').
-        let opts = match input.get("basepath").and_then(Value::as_str) {
-            Some(bp) => ComposeOptions::with_basepath(bp),
-            None => ComposeOptions::default(),
-        };
+            // Build the loader from input.files (default empty).
+            let files = input
+                .get("files")
+                .and_then(Value::as_object)
+                .cloned()
+                .unwrap_or_default();
+            let loader = MemoryLoader::new(files);
 
-        let entry = obj(input.get("entry").expect("case missing entry"));
+            // kind: 'properties' (default) | 'spec'.
+            let kind = input
+                .get("kind")
+                .and_then(Value::as_str)
+                .unwrap_or("properties");
 
-        let result = if kind == "spec" {
-            compose_spec(entry, &loader, &opts)
-        } else {
-            compose_properties(entry, &loader, &opts)
-        };
+            // basepath (default '').
+            let opts = match input.get("basepath").and_then(Value::as_str) {
+                Some(bp) => ComposeOptions::with_basepath(bp),
+                None => ComposeOptions::default(),
+            };
 
-        match (spec.get("expected"), spec.get("expectError")) {
-            (Some(expected), None) => match result {
-                Ok(actual) => {
-                    let actual_v = Value::Object(actual);
-                    if normalize(expected) != normalize(&actual_v) {
-                        failures.push(format!(
-                            "[{}] expanded spec mismatch\n  expected: {}\n  actual:   {}",
-                            name, expected, actual_v
-                        ));
-                    }
-                }
-                Err(e) => failures.push(format!(
-                    "[{}] expected success but got load error {}: {}",
-                    name, e.code, e.message
-                )),
-            },
-            (None, Some(expect_error)) => {
-                let want = expect_error
-                    .get("code")
-                    .and_then(Value::as_str)
-                    .unwrap_or("?");
-                match result {
-                    Ok(actual) => failures.push(format!(
-                        "[{}] expected load error {} but composed successfully: {}",
-                        name,
-                        want,
-                        Value::Object(actual)
-                    )),
-                    Err(e) => {
-                        let got = e.code.as_str();
-                        if got != want {
+            let entry = obj(input.get("entry").expect("case missing entry"));
+
+            let result = if kind == "spec" {
+                compose_spec(entry, &loader, &opts)
+            } else {
+                compose_properties(entry, &loader, &opts)
+            };
+
+            match (spec.get("expected"), spec.get("expectError")) {
+                (Some(expected), None) => match result {
+                    Ok(actual) => {
+                        let actual_v = Value::Object(actual);
+                        if normalize(expected) != normalize(&actual_v) {
                             failures.push(format!(
-                                "[{}] error code mismatch: expected {} got {} ({})",
-                                name, want, got, e.message
+                                "[{}] expanded spec mismatch\n  expected: {}\n  actual:   {}",
+                                name, expected, actual_v
                             ));
                         }
                     }
+                    Err(e) => failures.push(format!(
+                        "[{}] expected success but got load error {}: {}",
+                        name, e.code, e.message
+                    )),
+                },
+                (None, Some(expect_error)) => {
+                    let want = expect_error
+                        .get("code")
+                        .and_then(Value::as_str)
+                        .unwrap_or("?");
+                    match result {
+                        Ok(actual) => failures.push(format!(
+                            "[{}] expected load error {} but composed successfully: {}",
+                            name,
+                            want,
+                            Value::Object(actual)
+                        )),
+                        Err(e) => {
+                            let got = e.code.as_str();
+                            if got != want {
+                                failures.push(format!(
+                                    "[{}] error code mismatch: expected {} got {} ({})",
+                                    name, want, got, e.message
+                                ));
+                            }
+                        }
+                    }
                 }
+                _ => failures.push(format!(
+                    "[{}] case has neither (or both) expected/expectError",
+                    name
+                )),
             }
-            _ => failures.push(format!(
-                "[{}] case has neither (or both) expected/expectError",
-                name
-            )),
-        }
+            failures
+        }));
     }
 
     assert!(ran > 0, "no compose fixture cases were loaded");

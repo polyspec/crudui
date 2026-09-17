@@ -12,17 +12,26 @@ import { describe, expect, test } from 'vitest';
 import { bindForm, compileForm, formMessages } from '@crudui/generator-core';
 import { normalizeHtml } from '../../../tests/fixtures/form-render/normalize.mjs';
 import { DataPanel, OutlineView } from '../src/index.ts';
+import { provesConformance } from '../../../tests/conformance/evidence.mjs';
+
+/** Run one fixture case and record buildOutline evidence for it. */
+function proves(name, body) {
+  return provesConformance(
+    { features: ['buildOutline'], fixture: 'tests/fixtures/form-outline/cases.json', runtime: 'svelte', case: name },
+    body
+  );
+}
 
 const cases = JSON.parse(fs.readFileSync(new URL('../../../tests/fixtures/form-outline/cases.json', import.meta.url), 'utf8'));
 
 describe('structure map and data view: Svelte reproduces the fixture', () => {
   for (const c of cases) {
-    test(c.name, () => {
+    test(c.name, () => proves(c.name, () => {
       const messages = formMessages(c.options.language);
       const fields = bindForm(compileForm(c.spec), c.data, c.options);
-      const state = { fields, canUndo: c.canUndo };
+      const state = { fields, canUndo: c.canUndo, canRedo: c.canRedo };
       expect(normalizeHtml(render(OutlineView, { props: { state, messages } }).body)).toBe(c.expected_outline_html);
       expect(normalizeHtml(render(DataPanel, { props: { data: c.data, messages } }).body)).toBe(c.expected_data_html);
-    });
+    }));
   }
 });

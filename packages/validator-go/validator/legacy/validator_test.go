@@ -6,9 +6,14 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/polyspec/crudui/packages/validator-go/validator/internal/conformance"
 )
 
-// TestCase represents a single test case from the JSON files
+// legacyFixture is the shared legacy validator fixture, relative to the repository root.
+const legacyFixture = "tests/fixtures/legacy-validate/cases.json"
+
+// testCase represents a single input case of a fixture entry
 type testCase struct {
 	Input    interface{} `json:"input"`
 	Expected struct {
@@ -19,29 +24,22 @@ type testCase struct {
 	} `json:"expected"`
 }
 
-// TestDefinition represents a test with multiple cases
+// testDefinition represents a fixture entry with multiple cases
 type testDefinition struct {
-	ID          string          `json:"id"`
-	Description string          `json:"description"`
-	Spec        json.RawMessage `json:"spec"`
-	Cases       []testCase      `json:"cases"`
+	Name  string          `json:"name"`
+	Suite string          `json:"suite"`
+	Note  string          `json:"note"`
+	Spec  json.RawMessage `json:"spec"`
+	Cases []testCase      `json:"cases"`
 }
 
-// TestSuite represents a complete test suite
-type testSuiteData struct {
-	TestSuite   string           `json:"testSuite"`
-	Version     string           `json:"version"`
-	Description string           `json:"description"`
-	Tests       []testDefinition `json:"tests"`
-}
-
-// findTestCasesDir locates the test cases directory
-func findTestCasesDir() (string, error) {
+// findLegacyFixture locates the shared legacy validator fixture
+func findLegacyFixture() (string, error) {
 	// Try different paths relative to where tests might be run from
 	candidatePaths := []string{
-		"../../../../tests/cases", // From packages/validator-go/validator
-		"../../tests/cases",       // From packages/validator-go
-		"tests/cases",             // From project root
+		"../../../../" + legacyFixture, // From packages/validator-go/validator/legacy
+		"../../" + legacyFixture,       // From packages/validator-go
+		legacyFixture,                  // From project root
 	}
 
 	for _, path := range candidatePaths {
@@ -49,12 +47,12 @@ func findTestCasesDir() (string, error) {
 		if err != nil {
 			continue
 		}
-		if info, err := os.Stat(absPath); err == nil && info.IsDir() {
+		if info, err := os.Stat(absPath); err == nil && !info.IsDir() {
 			return absPath, nil
 		}
 	}
 
-	return "", fmt.Errorf("could not find test cases directory")
+	return "", fmt.Errorf("could not find %s", legacyFixture)
 }
 
 // convertInputData converts input data to match the spec structure
@@ -91,43 +89,39 @@ func formatInputValue(input interface{}) string {
 	return string(b)
 }
 
-// TestAllValidatorCases runs all test cases from the JSON files
+// TestAllValidatorCases runs every entry of the shared legacy fixture. Each
+// entry subtest records one validateLegacy evidence line, passed only when all
+// of its cases pass.
 func TestAllValidatorCases(t *testing.T) {
-	casesDir, err := findTestCasesDir()
+	fixturePath, err := findLegacyFixture()
 	if err != nil {
-		t.Fatalf("Failed to find test cases directory: %v", err)
+		t.Fatalf("Failed to find legacy fixture: %v", err)
 	}
 
-	testFiles, err := filepath.Glob(filepath.Join(casesDir, "*.json"))
-	if err != nil || len(testFiles) == 0 {
-		t.Fatalf("No test files found in %s", casesDir)
+	content, err := os.ReadFile(fixturePath)
+	if err != nil {
+		t.Fatalf("Failed to read fixture %s: %v", fixturePath, err)
 	}
 
-	t.Logf("Found %d test suites in %s", len(testFiles), casesDir)
+	var entries []testDefinition
+	if err := json.Unmarshal(content, &entries); err != nil {
+		t.Fatalf("Failed to parse fixture %s: %v", fixturePath, err)
+	}
+	if len(entries) == 0 {
+		t.Fatalf("No entries found in %s", fixturePath)
+	}
 
-	for _, testFile := range testFiles {
-		content, err := os.ReadFile(testFile)
-		if err != nil {
-			t.Errorf("Failed to read test file %s: %v", testFile, err)
-			continue
-		}
+	t.Logf("Found %d entries in %s", len(entries), fixturePath)
 
-		var suite testSuiteData
-		if err := json.Unmarshal(content, &suite); err != nil {
-			t.Errorf("Failed to parse test file %s: %v", testFile, err)
-			continue
-		}
-
-		// Run each test suite as a subtest
-		t.Run(suite.TestSuite, func(t *testing.T) {
-			for _, testDef := range suite.Tests {
-				t.Run(testDef.ID, func(t *testing.T) {
-					for caseIdx, tc := range testDef.Cases {
-						caseName := fmt.Sprintf("case_%d", caseIdx)
-						t.Run(caseName, func(t *testing.T) {
-							runSingleTestCase(t, testDef, tc, caseIdx)
-						})
-					}
+	for _, testDef := range entries {
+		testDef := testDef
+		// Run each entry as a subtest of its suite
+		t.Run(testDef.Suite+"/"+testDef.Name, func(t *testing.T) {
+			conformance.Record(t, "validateLegacy", legacyFixture, testDef.Name)
+			for caseIdx, tc := range testDef.Cases {
+				caseName := fmt.Sprintf("case_%d", caseIdx)
+				t.Run(caseName, func(t *testing.T) {
+					runSingleTestCase(t, testDef, tc, caseIdx)
 				})
 			}
 		})
@@ -149,7 +143,7 @@ func runSingleTestCase(t *testing.T, testDef testDefinition, tc testCase, caseId
 	if result.IsValid != tc.Expected.Valid {
 		t.Errorf("Expected valid=%t, got valid=%t\nInput: %s\nDescription: %s",
 			tc.Expected.Valid, result.IsValid,
-			formatInputValue(tc.Input), testDef.Description)
+			formatInputValue(tc.Input), testDef.Note)
 		if !result.IsValid && len(result.Errors) > 0 {
 			t.Errorf("Validation errors: %+v", result.Errors)
 		}

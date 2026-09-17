@@ -18,11 +18,7 @@ final class Binding
         Template::check($template);
         $template = Value::spec($template);
         $data = Value::object($data);
-        $options['language'] ??= 'ko';
-        // Callers can pass decoded JSON; each text option is a string when present.
-        if (!is_string($options['language'])) {
-            throw new FormError('INVALID_FORM_INPUT', 'Language must be a string');
-        }
+        $options['language'] = self::language($options);
         foreach (['keyPrefix', 'idPrefix'] as $name) {
             if (($options[$name] ?? null) !== null && !is_string($options[$name])) {
                 throw new FormError('INVALID_FORM_INPUT', $name . ' must be a string');
@@ -37,6 +33,17 @@ final class Binding
         $options['rowSegments'] = $options['rowNumbers'] = [];
         $options['stickyDepth'] = 0;
         return array_map(static fn ($field) => self::field($field, $field->name, $data, $options), $template->fields);
+    }
+
+    /** The checked language option, defaulting to Korean. */
+    public static function language(array $options): string
+    {
+        $language = $options['language'] ?? 'ko';
+        // Callers can pass decoded JSON; each text option is a string when present.
+        if (!is_string($language)) {
+            throw new FormError('INVALID_FORM_INPUT', 'Language must be a string');
+        }
+        return $language;
     }
 
     /** Build the node for one field and its group, collection or language children. */

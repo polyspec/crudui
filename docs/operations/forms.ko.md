@@ -60,13 +60,21 @@ const submission = form.getData();
 프레임워크에 독립적인 HTML은 동등한 renderer 패키지를 사용합니다.
 
 ```ts
+import { connectForm, patchContent } from '@crudui/generator-core';
 import { renderForm, renderList } from '@crudui/generator-html';
 
-host.innerHTML = renderForm(form);
+patchContent(host, renderForm(form));
 const connection = connectForm(host, form);
+form.subscribe(() => {
+  patchContent(host, renderForm(form));
+  connection.sync();
+});
 const listHtml = renderList(listSpec, rows, { layout: 'table' });
 ```
 
+`patchContent`는 호스트의 내용을 새 마크업으로 바꾸되 새 마크업에도 있는 노드는 모두 유지합니다.
+그래서 다시 그려도 포커스된 컨트롤, 선택 영역, 입력기 조합이 유지되며, 이어서 `connection.sync()`가
+컨트롤의 현재 값을 설정합니다.
 HTML renderer는 fragment를 반환하며 외부 `form` 요소를 만들거나 브라우저 이벤트를
 연결하거나 데이터를 검증하거나 레코드를 로드하지 않습니다.
 
@@ -78,19 +86,16 @@ HTML renderer는 fragment를 반환하며 외부 `form` 요소를 만들거나 �
 
 ```sh
 npm run test:forms
-npm test -w @crudui/validator -- --run
+npm test -w @crudui/validator
 make docs-check
 ```
 
-서버 검증 사례는 각 패키지 디렉터리에서 실행합니다.
+서버 검증 사례는 저장소 루트에서 실행합니다.
 
 ```sh
-# packages/validator-php
-vendor/bin/phpunit --filter ValidateConformanceTest
-# packages/validator-go
-go test ./validator/validate -count=1
-# packages/validator-rust
-cargo test --test validate_conformance
+node scripts/run-tests.mjs phpunit --cwd packages/validator-php -- --filter ValidateConformanceTest
+node scripts/run-tests.mjs go --cwd packages/validator-go -- ./validator/validate
+node scripts/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml --test validate_conformance
 ```
 
 `test:forms`는 현재 패키지를 빌드하고 코어, SSR, 마운트한 DOM 테스트를 실행합니다.

@@ -25,7 +25,7 @@ Run from the repository root:
 ```sh
 node scripts/build-crudui-php-extension.mjs
 composer install --working-dir=packages/generator-php
-node packages/php-ext/tests/run.mjs "$(pwd)/packages/php-ext/modules/crudui.so"
+node scripts/run-tests.mjs node -- packages/php-ext/tests/api.test.mjs
 npm run build
 node tests/native-generators/run.mjs \
   --extension "$(pwd)/packages/php-ext/modules/crudui.so" \

@@ -100,6 +100,74 @@ fails(fn()=>new Form($template,[1]), FormError::class, 'INVALID_FORM_INPUT');
 fails(fn()=>new Form($template,null), TypeError::class);
 same(['companies'=>new stdClass()], (array)(new Form($template,['companies'=>new stdClass()]))->getData(), 'Empty collection changed type');
 same([], Generator::bindForm(Generator::compileForm(['type'=>'group','properties'=>new stdClass()])), 'Empty template fields changed type');
+// A NUL character is written like any other character in every string.
+$nulForm = new Form(Generator::compileForm(['type'=>'group','properties'=>["n\0m"=>['type'=>'text','label'=>"A\0B"]]]), ["n\0m"=>"x\0y"]);
+same("x\0y", $nulForm->getValue("n\0m"), 'NUL form value changed');
+same("A\0B", $nulForm->getFields()[0]->header->label, 'NUL form label changed');
+same(["n\0m"], array_keys((array)$nulForm->getData()), 'NUL data key changed');
+$nulHtml = Generator::renderForm($nulForm);
+check(str_contains($nulHtml, ">A\0B<") && str_contains($nulHtml, "value=\"x\0y\"") && str_contains($nulHtml, "name=\"n\0m\""), 'NUL form HTML changed');
+same(2, substr_count($nulHtml, 'crudui:n%00m'), 'NUL control id changed');
+same("x\0y", Generator::buildDetail(['fields'=>['v'=>['field'=>'v','label'=>"L\0M"]]], ['v'=>"x\0y"])->fields[0]->display, 'NUL detail display changed');
+same('<dl class="crudui-detail"><div class="crudui-detail__field"><dt class="crudui-detail__label">L' . "\0" . 'M</dt><dd class="crudui-detail__value crudui-value crudui-value--text">x' . "\0" . 'y</dd></div></dl>',
+    Generator::renderDetail(['fields'=>['v'=>['field'=>'v','label'=>"L\0M"]]], ['v'=>"x\0y"]), 'NUL detail HTML changed');
+same("<button>B\0C</button>", Generator::formButtonsHtml([(object)['tag'=>'button','text'=>"B\0C",'attrs'=>new stdClass()]]), 'NUL button markup changed');
+fails(fn()=>Generator::renderDetail(['fields'=>[]], ['v'=>"\xC0\x80"]), FormError::class, 'INVALID_FORM_INPUT');
+
+// Form buttons: evaluated in declaration order with the form binding checks, rendered alone.
+$buttonTemplate = Generator::compileForm(['type'=>'group','properties'=>['name'=>['type'=>'text']],'buttons'=>[
+    ['type'=>'submit','name'=>'save','value'=>'1','design'=>['class'=>['wide'=>'name == "A"'],'style'=>'color: red']],
+    ['type'=>'reset','text'=>['ko'=>'되돌리기','en'=>'Undo']],
+    ['type'=>'button','text'=>'Go <"&">','behavior'=>['onclick'=>'go("x") && y < 1']],
+    ['type'=>'link','text'=>'Help','href'=>'/help?a=1&b=2'],
+]]);
+$boundButtons = Generator::bindButtons($buttonTemplate, ['name'=>'A'], ['language'=>'en']);
+same(['submit','reset','button','link'], array_map(fn($button)=>$button->type, $boundButtons), 'Button types changed');
+same(['a','button'], [$boundButtons[3]->tag, $boundButtons[2]->tag], 'Button tags changed');
+same(['type','class','style','name','value'], array_keys((array)$boundButtons[0]->attrs), 'Button attribute order changed');
+same(['class','href'], array_keys((array)$boundButtons[3]->attrs), 'Link attribute order changed');
+same('Undo', $boundButtons[1]->text, 'Declared button text changed');
+same(Generator::bindButtons($buttonTemplate, ['name'=>'A'], ['language'=>'en']), (new Form($buttonTemplate, ['name'=>'A'], ['language'=>'en']))->getButtons(), 'Public and form buttons differ');
+same(Generator::bindButtons($buttonTemplate), Generator::bindButtons($buttonTemplate, new stdClass(), ['language'=>null]), 'Default button inputs changed');
+same(Generator::bindButtons($buttonTemplate, ['name'=>'B'], ['language'=>'en']), (new Form($buttonTemplate, ['name'=>'B'], ['language'=>'en']))->getButtons(), 'Record-dependent buttons differ');
+$buttonsHtml = Generator::formButtonsHtml($boundButtons);
+check(str_contains(Generator::renderForm(new Form($buttonTemplate, ['name'=>'A'], ['language'=>'en'])), $buttonsHtml), 'Rendered form does not contain the button markup');
+same('<button type="button" class="crudui-action crudui-action--text" onclick="go(&quot;x&quot;) &amp;&amp; y &lt; 1">Go &lt;"&amp;"&gt;</button><a class="crudui-action crudui-action--text" href="/help?a=1&amp;b=2">Help</a>',
+    Generator::formButtonsHtml([$boundButtons[2], $boundButtons[3]]), 'Button markup changed');
+same('', Generator::formButtonsHtml([]), 'Empty button markup changed');
+foreach ([
+    [fn()=>Generator::bindButtons(new stdClass()), 'Unsupported form template'],
+    [fn()=>Generator::bindButtons($buttonTemplate, [1]), null],
+    [fn()=>Generator::bindButtons($buttonTemplate, [], ['language'=>1]), 'Language must be a string'],
+    [fn()=>Generator::bindButtons($buttonTemplate, [], ['language'=>'xx']), null],
+] as [$operation, $message]) {
+    $buttonError = fails($operation, FormError::class, 'INVALID_FORM_INPUT');
+    if ($message !== null) check($buttonError->getMessage() === $message, "Button input failure changed: $message; received " . $buttonError->getMessage());
+}
+fails(fn()=>Generator::bindButtons($buttonTemplate, null), TypeError::class);
+fails(fn()=>Generator::formButtonsHtml(null), TypeError::class);
+foreach ([['k'=>(object)['tag'=>'a','text'=>'','attrs'=>new stdClass()]], [1=>(object)['tag'=>'a','text'=>'','attrs'=>new stdClass()]]] as $unlisted) {
+    $buttonError = fails(fn()=>Generator::formButtonsHtml($unlisted), FormError::class, 'INVALID_FORM_INPUT');
+    check($buttonError->getMessage() === 'Form buttons must be a list', 'Unlisted button failure changed: ' . $buttonError->getMessage());
+}
+$validButton = (object)['type'=>'reset','tag'=>'button','text'=>'X','attrs'=>(object)['class'=>'c']];
+same('<button class="c">X</button><a></a>', Generator::formButtonsHtml([$validButton, (object)['tag'=>'a','text'=>'','attrs'=>new stdClass()]]), 'Evaluated button members changed');
+foreach ([
+    ['tag'=>'button','text'=>'X','attrs'=>(object)['class'=>'c']],
+    (object)['tag'=>'div','text'=>'X','attrs'=>new stdClass()],
+    (object)['tag'=>'button','text'=>1,'attrs'=>new stdClass()],
+    (object)['tag'=>'button','attrs'=>new stdClass()],
+    (object)['tag'=>'button','text'=>'X'],
+    (object)['tag'=>'button','text'=>'X','attrs'=>['class'=>'c']],
+    (object)['tag'=>'button','text'=>'X','attrs'=>(object)['id'=>'x']],
+    (object)['tag'=>'button','text'=>'X','attrs'=>(object)['class'=>1]],
+    (object)['tag'=>null,'text'=>'X','attrs'=>new stdClass()],
+    'button',
+    null,
+] as $invalidButton) {
+    $buttonError = fails(fn()=>Generator::formButtonsHtml([$validButton, $invalidButton]), FormError::class, 'INVALID_FORM_INPUT');
+    check($buttonError->getMessage() === 'Form buttons must be evaluated button objects' && $buttonError->getPath() === '', 'Button markup failure changed: ' . $buttonError->getMessage());
+}
 
 $error = fails(fn()=>Generator::compileForm(['type'=>'group','properties'=>(object)['$ref'=>'absent.yml']]), ComposeLoadError::class, 'REF_FILE_NOT_FOUND');
 same(['absent.yml'], $error->getCompositionTrace(), 'Composition trace changed');
@@ -207,12 +275,12 @@ foreach ([['x'], 'x', 1, true] as $value) {
 $pagedSpec = $listSpec + ['pagination'=>true];
 $emptyList = '<div class="crudui-list"><div class="crudui-list__empty"></div>';
 foreach ([
-    [[], '<nav class="crudui-list__pagination"></nav>'],
-    [['page'=>2, 'total'=>99], '<nav class="crudui-list__pagination" data-page="2" data-total="99"></nav>'],
-    [['page'=>2.0, 'total'=>-0.0], '<nav class="crudui-list__pagination" data-page="2" data-total="0"></nav>'],
-    [['page'=>9007199254740991, 'total'=>9007199254740991.0], '<nav class="crudui-list__pagination" data-page="9007199254740991" data-total="9007199254740991"></nav>'],
-    [['page'=>1, 'total'=>null], '<nav class="crudui-list__pagination" data-page="1"></nav>'],
-    [['total'=>0], '<nav class="crudui-list__pagination" data-total="0"></nav>'],
+    [[], '<nav class="crudui-list__pagination" data-mode="pages" data-per-page="20" data-page="1"><button type="button" class="crudui-list__pagination-prev" data-page="1" aria-label="Previous page" disabled="">‹</button><button type="button" class="crudui-list__pagination-next" data-page="1" aria-label="Next page" disabled="">›</button></nav>'],
+    [['page'=>2, 'total'=>99], '<nav class="crudui-list__pagination" data-mode="pages" data-per-page="20" data-page="2" data-total="99"><button type="button" class="crudui-list__pagination-prev" data-page="1" aria-label="Previous page">‹</button><button type="button" class="crudui-list__pagination-page" data-page="1" aria-label="Page 1">1</button><button type="button" class="crudui-list__pagination-page" data-page="2" aria-label="Page 2" aria-current="page" disabled="">2</button><button type="button" class="crudui-list__pagination-page" data-page="3" aria-label="Page 3">3</button><button type="button" class="crudui-list__pagination-page" data-page="4" aria-label="Page 4">4</button><button type="button" class="crudui-list__pagination-page" data-page="5" aria-label="Page 5">5</button><button type="button" class="crudui-list__pagination-next" data-page="3" aria-label="Next page">›</button></nav>'],
+    [['page'=>2.0, 'total'=>-0.0], '<nav class="crudui-list__pagination" data-mode="pages" data-per-page="20" data-page="2" data-total="0"><button type="button" class="crudui-list__pagination-prev" data-page="1" aria-label="Previous page" disabled="">‹</button><button type="button" class="crudui-list__pagination-page" data-page="1" aria-label="Page 1" aria-current="page" disabled="">1</button><button type="button" class="crudui-list__pagination-next" data-page="1" aria-label="Next page" disabled="">›</button></nav>'],
+    [['page'=>9007199254740991, 'total'=>9007199254740991.0], '<nav class="crudui-list__pagination" data-mode="pages" data-per-page="20" data-page="9007199254740991" data-total="9007199254740991"><button type="button" class="crudui-list__pagination-prev" data-page="450359962737049" aria-label="Previous page">‹</button><button type="button" class="crudui-list__pagination-page" data-page="1" aria-label="Page 1">1</button><button type="button" class="crudui-list__pagination-page" data-page="450359962737049" aria-label="Page 450359962737049">450359962737049</button><button type="button" class="crudui-list__pagination-page" data-page="450359962737050" aria-label="Page 450359962737050" aria-current="page" disabled="">450359962737050</button><button type="button" class="crudui-list__pagination-next" data-page="450359962737050" aria-label="Next page" disabled="">›</button></nav>'],
+    [['page'=>1, 'total'=>null], '<nav class="crudui-list__pagination" data-mode="pages" data-per-page="20" data-page="1"><button type="button" class="crudui-list__pagination-prev" data-page="1" aria-label="Previous page" disabled="">‹</button><button type="button" class="crudui-list__pagination-next" data-page="1" aria-label="Next page" disabled="">›</button></nav>'],
+    [['total'=>0], '<nav class="crudui-list__pagination" data-mode="pages" data-per-page="20" data-page="1" data-total="0"><button type="button" class="crudui-list__pagination-prev" data-page="1" aria-label="Previous page" disabled="">‹</button><button type="button" class="crudui-list__pagination-page" data-page="1" aria-label="Page 1" aria-current="page" disabled="">1</button><button type="button" class="crudui-list__pagination-next" data-page="1" aria-label="Next page" disabled="">›</button></nav>'],
 ] as [$options, $nav]) {
     same($emptyList . $nav . '</div>', Generator::renderList($pagedSpec, [], $options), 'List page options changed: ' . json_encode($options));
 }

@@ -277,17 +277,13 @@ JavaScript, HTML 렌더러, PHP, PHP 확장, Go, Rust의 원본 목록과 상세
 비교합니다. 콘솔 테스트 모음은 Go와 Rust 검증기 프로그램을 빌드하고 목록과 상세 엔드포인트를
 포함한 게이트웨이를 테스트합니다.
 
-각 패키지 디렉터리에서 구조 검증 사례를 실행합니다.
+저장소 루트에서 각 검증기의 구조 검증 사례를 실행합니다.
 
 ```sh
-# packages/validator-ts
-npx vitest run src/validate-list/validate-list.conformance.test.ts src/validate-detail/validate-detail.conformance.test.ts
-# packages/validator-php
-vendor/bin/phpunit --filter 'ListValidateConformanceTest|DetailValidateConformanceTest'
-# packages/validator-go
-go test ./validator/validate -run 'TestValidateListMatchesFixture|TestValidateDetailMatchesFixture' -count=1
-# packages/validator-rust
-cargo test --test list_validity_conformance --test detail_validity_conformance
+npm test -w @crudui/validator -- src/validate-list/validate-list.conformance.test.ts src/validate-detail/validate-detail.conformance.test.ts
+node scripts/run-tests.mjs phpunit --cwd packages/validator-php -- --filter 'ListValidateConformanceTest|DetailValidateConformanceTest'
+node scripts/run-tests.mjs go --cwd packages/validator-go -- ./validator/validate -run 'TestValidateListMatchesFixture|TestValidateDetailMatchesFixture'
+node scripts/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml --test list_validity_conformance --test detail_validity_conformance
 ```
 
 현재 결과는 [기능 상태](../features.ko.md)와 [변경 기록](../../CHANGELOG.ko.md)에 기록합니다.

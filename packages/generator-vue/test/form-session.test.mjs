@@ -5,6 +5,13 @@ import { compileForm, createForm } from '@crudui/generator-core';
 import { Form } from '../src/components/Form';
 import { spec, data, exerciseSessionDom } from '../../../tests/fixtures/form-session/scenario.mjs';
 import { compareInitialization, compareServerTakeover } from '../../../tests/fixtures/form-session/initialization.mjs';
+import { provesConformance } from '../../../tests/conformance/evidence.mjs';
+
+/** Run one shared form session case and record vue evidence for the features it proves. */
+function proves(fixture, name, features, run) {
+  return provesConformance({ features, fixture: `tests/fixtures/form-session/${fixture}`, runtime: 'vue', case: name }, run);
+}
+const SESSION_FEATURES = ['connectForm', 'connectOutline', 'runAction', 'viewState', 'formHistory'];
 
 it('renders identical HTML and control state with initial or repeatedly injected data', async () => {
   const template = compileForm(spec, { keyPrefix: 'form' });
@@ -16,8 +23,10 @@ it('renders identical HTML and control state with initial or repeatedly injected
     return app;
   });
   try {
-    compareServerTakeover({ element: initial.element, session: initial.session, expect });
-    await compareInitialization({ initial, deferred, expect, flush: nextTick });
+    await proves('initialization.mjs', 'compareServerTakeover', ['connectForm'], () =>
+      compareServerTakeover({ element: initial.element, session: initial.session, expect }));
+    await proves('initialization.mjs', 'compareInitialization', ['connectForm'], () =>
+      compareInitialization({ initial, deferred, expect, flush: nextTick }));
   }
   finally { apps.forEach(app => app.unmount()); }
 });
@@ -28,7 +37,10 @@ it('runs the shared browser lifecycle over a cached Vue form', async () => {
   document.body.append(element);
   const app = createApp({ render: () => h(Form, { form: session }) });
   app.mount(element);
-  try { await exerciseSessionDom({ element, session, expect, flush: nextTick }); }
+  try {
+    await proves('scenario.mjs', 'exerciseSessionDom', SESSION_FEATURES, () =>
+      exerciseSessionDom({ element, session, expect, flush: nextTick }));
+  }
   finally { app.unmount(); element.remove(); }
 });
 
@@ -39,6 +51,9 @@ it('connects labels and preserves multiple choice values through editing and sub
   document.body.append(element);
   const app = createApp({ render: () => h(Form, { form }) });
   app.mount(element);
-  try { await exerciseControls({ element, form, expect, flush: nextTick }); }
+  try {
+    await proves('controls.mjs', 'exerciseControls', ['connectForm'], () =>
+      exerciseControls({ element, form, expect, flush: nextTick }));
+  }
   finally { app.unmount(); element.remove(); }
 });

@@ -9,11 +9,11 @@ typedef struct {
     const ps_value *spec;
     const ps_value *value;
     bool value_present;
-    const char *path;
+    ps_text path;
     const ps_value *design;
-    const char *key_prefix;
-    const char *id;
-    const char *language;
+    ps_text key_prefix;
+    ps_text id;
+    ps_text language;
     const size_t *rows;
     size_t row_count;
 } widget_context;
@@ -23,17 +23,30 @@ static bool set_string(ps_value *object, const char *key, const char *value)
     return ps_set(object, key, ps_string_value(value ? value : ""));
 }
 
-static bool set_text(ps_value *object, const char *key, char *value)
+static bool set_text(ps_value *object, const char *key, ps_text value)
 {
-    bool result = value && set_string(object, key, value);
-    free(value); return result;
+    return value.bytes && ps_set(object, key, ps_text_value(value));
 }
 
-static bool set_nonempty(ps_value *object, const char *key, char *value)
+/* Set owned text and free it. */
+static bool set_owned(ps_value *object, const char *key, ps_chars value)
 {
-    if (!value) return false;
-    bool result = !*value || set_string(object, key, value);
-    free(value); return result;
+    bool result = value.bytes && set_text(object, key, ps_view(value));
+    free(value.bytes); return result;
+}
+
+/* Set owned text unless it is empty, and free it. */
+static bool set_nonempty(ps_value *object, const char *key, ps_chars value)
+{
+    if (!value.bytes) return false;
+    bool result = !value.length || set_text(object, key, ps_view(value));
+    free(value.bytes); return result;
+}
+
+/* A new owned copy: the texts joined, or NULL bytes when a part is missing. */
+static ps_chars joined(ps_chars first, ps_text second, ps_text third)
+{
+    return first.bytes ? PS_CONCAT(ps_view(first), second, third) : (ps_chars){NULL, 0};
 }
 
 static const ps_value *member(const ps_value *object, const char *key)
@@ -41,10 +54,9 @@ static const ps_value *member(const ps_value *object, const char *key)
     return object && object->kind == PS_OBJECT ? ps_get(object, key) : NULL;
 }
 
-static const char *string_member(const ps_value *object, const char *key)
+static ps_text string_member(const ps_value *object, const char *key)
 {
-    const ps_value *value = member(object, key);
-    return value && value->kind == PS_STRING ? ps_string(value) : "";
+    return ps_string(member(object, key));
 }
 
 static const ps_value *design_node(const widget_context *context, const char *name)
@@ -53,50 +65,48 @@ static const ps_value *design_node(const widget_context *context, const char *na
     return node && node->kind == PS_OBJECT ? node : NULL;
 }
 
-static char *context_class(const widget_context *context, const char *base)
+static ps_chars context_class(const widget_context *context, const char *base)
 {
-    return ps_join_classes(base, string_member(design_node(context, "main"), "class"), NULL);
+    return ps_join_classes(ps_fixed(base), string_member(design_node(context, "main"), "class"), PS_TEXT(""));
 }
 
-static char *context_style(const widget_context *context)
+static ps_chars context_style(const widget_context *context)
 {
     return ps_style_string(string_member(design_node(context, "main"), "style"));
 }
 
-static char *context_name(const widget_context *context)
+static ps_chars context_name(const widget_context *context)
 {
     return ps_bracket_name(context->path, context->key_prefix);
 }
 
-static char *context_text(const widget_context *context, const char *key)
+static ps_chars context_text(const widget_context *context, const char *key)
 {
     return ps_translate(member(context->spec, key), context->language);
 }
 
-static char *context_option(const widget_context *context, const char *key,
-                            const char *default_value)
+static ps_chars context_option(const widget_context *context, const char *key,
+                               const char *default_value)
 {
     const ps_value *options = member(context->spec, "options");
     const ps_value *value = member(options, key);
-    return value && value->kind != PS_NULL ? ps_scalar_string(value)
-        : ps_string_join(default_value ? default_value : "", "", "");
+    return value && value->kind != PS_NULL ? ps_scalar_string(value) : ps_copy(ps_fixed(default_value));
 }
 
-static char *context_value(const widget_context *context)
+static ps_chars context_value(const widget_context *context)
 {
     const ps_value *value = context->value_present ? context->value
         : member(context->spec, "default");
     return ps_scalar_string(value);
 }
 
-static char *behavior_script(const widget_context *context, const char *action)
+static ps_chars behavior_script(const widget_context *context, ps_text action)
 {
-    const ps_value *entry = member(member(context->spec, "behavior"), action);
-    if (entry && entry->kind == PS_STRING) return ps_string_join(ps_string(entry), "", "");
+    const ps_value *behavior = member(context->spec, "behavior");
+    const ps_value *entry = behavior && behavior->kind == PS_OBJECT ? ps_get_text(behavior, action) : NULL;
+    if (entry && entry->kind == PS_STRING) return ps_copy(ps_string(entry));
     const ps_value *script = member(entry, "script");
-    return script && script->kind == PS_STRING
-        ? ps_string_join(ps_string(script), "", "")
-        : ps_string_join("", "", "");
+    return ps_copy(script && script->kind == PS_STRING ? ps_string(script) : PS_TEXT(""));
 }
 
 static bool add_behavior(const widget_context *context, ps_value *attrs)
@@ -104,61 +114,63 @@ static bool add_behavior(const widget_context *context, ps_value *attrs)
     const ps_value *behavior = member(context->spec, "behavior");
     if (!behavior || behavior->kind != PS_OBJECT) return true;
     for (size_t i = 0; i < ps_size(behavior); ++i) {
-        char *script = behavior_script(context, ps_key_at(behavior, i));
-        if (!script) return false;
-        if (*script && !set_string(attrs, ps_key_at(behavior, i), script)) { free(script); return false; }
-        free(script);
+        ps_text name = ps_key(behavior, i);
+        ps_chars script = behavior_script(context, name);
+        if (!script.bytes) return false;
+        if (script.length && !ps_set_text(attrs, name, ps_text_value(ps_view(script)))) {
+            free(script.bytes); return false;
+        }
+        free(script.bytes);
     }
     return true;
 }
 
 static bool add_data(const widget_context *context, ps_value *attrs)
 {
-    char *leaf = ps_leaf_name(context->path, context->rows, context->row_count);
-    char *rule = ps_rule_name(context->path, context->rows, context->row_count);
-    char *default_value = ps_scalar_string(member(context->spec, "default"));
-    if (!leaf || !rule || !default_value) { free(leaf); free(rule); free(default_value); return false; }
-    bool result = set_string(attrs, "data-name", leaf) &&
-        set_string(attrs, "data-rule-name", rule) &&
-        set_string(attrs, "data-default", default_value);
-    free(leaf); free(rule); free(default_value); return result;
+    return set_owned(attrs, "data-name", ps_leaf_name(context->path, context->rows, context->row_count)) &&
+        set_owned(attrs, "data-rule-name", ps_rule_name(context->path, context->rows, context->row_count)) &&
+        set_owned(attrs, "data-default", ps_scalar_string(member(context->spec, "default")));
 }
 
 static bool set_affix(const widget_context *context, ps_value *model,
                       const char *kind, bool enabled)
 {
     if (!enabled) return true;
-    char *text = context_text(context, kind);
-    if (!text) return false;
-    if (!*text) { free(text); return true; }
+    ps_chars text = context_text(context, kind);
+    if (!text.bytes) return false;
+    if (!text.length) { free(text.bytes); return true; }
+    bool prepend = !strcmp(kind, "prepend");
     ps_value *affix = ps_object_value();
-    char *class_name = !strcmp(kind, "prepend")
-        ? ps_join_classes("crudui-widget__affix",
-            string_member(design_node(context, "prepend"), "class"), NULL)
-        : ps_string_join("crudui-widget__affix", "", "");
-    char *style = !strcmp(kind, "prepend")
-        ? ps_style_string(string_member(design_node(context, "prepend"), "style")) : NULL;
-    bool result = affix && class_name && set_string(affix, "text", text) &&
-        set_string(affix, "class", class_name) &&
-        (!style || !*style || set_string(affix, "style", style)) &&
+    ps_chars class_name = prepend
+        ? ps_join_classes(PS_TEXT("crudui-widget__affix"),
+            string_member(design_node(context, "prepend"), "class"), PS_TEXT(""))
+        : ps_copy(PS_TEXT("crudui-widget__affix"));
+    ps_chars style = prepend
+        ? ps_style_string(string_member(design_node(context, "prepend"), "style")) : ps_copy(PS_TEXT(""));
+    bool result = affix && class_name.bytes && style.bytes && set_text(affix, "text", ps_view(text)) &&
+        set_text(affix, "class", ps_view(class_name)) &&
+        (!style.length || set_text(affix, "style", ps_view(style))) &&
         ps_set(model, kind, affix);
     if (!result) ps_value_free(affix);
-    free(text); free(class_name); free(style); return result;
+    free(text.bytes); free(class_name.bytes); free(style.bytes); return result;
 }
 
-static bool same_type(const char *left, const char *right)
+/* ASCII case-insensitive equality of a type name and a fixed kind. */
+static bool same_type(ps_text left, const char *right)
 {
-    while (*left && *right) {
-        unsigned char a = (unsigned char)*left++;
-        unsigned char b = (unsigned char)*right++;
+    size_t length = strlen(right);
+    if (left.length != length) return false;
+    for (size_t i = 0; i < length; ++i) {
+        unsigned char a = (unsigned char)left.bytes[i];
+        unsigned char b = (unsigned char)right[i];
         if (a >= 'A' && a <= 'Z') a = (unsigned char)(a - 'A' + 'a');
         if (b >= 'A' && b <= 'Z') b = (unsigned char)(b - 'A' + 'a');
         if (a != b) return false;
     }
-    return !*left && !*right;
+    return true;
 }
 
-static const char *canonical_kind(const char *name)
+static const char *canonical_kind(ps_text name)
 {
     if (same_type(name, "text") || same_type(name, "string")) return "text";
     if (same_type(name, "integer") || same_type(name, "float") ||
@@ -174,7 +186,7 @@ static const char *canonical_kind(const char *name)
     if (same_type(name, "search") || same_type(name, "autocomplete")) return "search";
     if (same_type(name, "tinymce") || same_type(name, "wysiwyg")) return "tinymce";
     if (same_type(name, "button") || same_type(name, "action")) return "button";
-    const char *direct[] = {"email","password","textarea","hidden","date",
+    static const char *const direct[] = {"email","password","textarea","hidden","date",
         "dummy-input","image","file","image-viewer","summernote",
         "editorjs","tui","tagify","tagify2"};
     for (size_t i = 0; i < sizeof(direct) / sizeof(direct[0]); ++i)
@@ -182,55 +194,56 @@ static const char *canonical_kind(const char *name)
     return NULL;
 }
 
-bool ps_widget_supported(const char *type)
+bool ps_widget_supported(ps_text type)
 {
-    return type && canonical_kind(type) != NULL;
+    return type.bytes && canonical_kind(type) != NULL;
 }
 
 static ps_value *source_model(const ps_value *items)
 {
     if (!items || items->kind != PS_OBJECT || !ps_has(items, "model")) return NULL;
     ps_value *source = ps_object_value();
-    char *model = ps_scalar_string(member(items, "model"));
-    char *method = ps_scalar_string(member(items, "method"));
-    char *table = ps_scalar_string(member(items, "table"));
     const ps_value *relations_value = member(items, "relations");
-    char *relations = relations_value && relations_value->kind != PS_NULL
-        ? ps_json_string(relations_value) : ps_string_join("[]", "", "");
-    if (!source || !model || !method || !table || !relations ||
-        !set_string(source, "data-source-model", model) ||
-        !set_string(source, "data-source-method", method) ||
-        !set_string(source, "data-source-table", table) ||
-        !set_string(source, "data-source-relations", relations)) {
-        ps_value_free(source); source = NULL;
-    }
-    free(model); free(method); free(table); free(relations); return source;
+    bool ok = source &&
+        set_owned(source, "data-source-model", ps_scalar_string(member(items, "model"))) &&
+        set_owned(source, "data-source-method", ps_scalar_string(member(items, "method"))) &&
+        set_owned(source, "data-source-table", ps_scalar_string(member(items, "table"))) &&
+        set_owned(source, "data-source-relations", relations_value && relations_value->kind != PS_NULL
+            ? ps_json_string(relations_value) : ps_copy(PS_TEXT("[]")));
+    if (!ok) { ps_value_free(source); source = NULL; }
+    return source;
 }
 
 static bool extend_object(ps_value *target, const ps_value *source)
 {
     if (!source) return true;
     for (size_t i = 0; i < ps_size(source); ++i)
-        if (!ps_set(target, ps_key_at(source, i), ps_value_clone(ps_at(source, i)))) return false;
+        if (!ps_set_text(target, ps_key(source, i), ps_value_clone(ps_at(source, i)))) return false;
     return true;
 }
 
-static bool selected_value(const widget_context *context, const char *key, bool multiple)
+/* Whether the candidate text equals the key; *failed is set when the candidate is missing. */
+static bool same_candidate(ps_chars candidate, ps_text key, bool *failed)
+{
+    if (!candidate.bytes) { *failed = true; return false; }
+    bool match = ps_text_equal(ps_view(candidate), key);
+    free(candidate.bytes);
+    return match;
+}
+
+static bool selected_value(const widget_context *context, ps_text key, bool multiple, bool *failed)
 {
     const ps_value *value = context->value_present ? context->value : member(context->spec, "default");
     if (multiple && value && value->kind == PS_ARRAY) {
         for (size_t i = 0; i < ps_size(value); ++i) {
-            char *candidate = context->value_present ? ps_js_string(ps_at(value, i))
-                                                     : ps_scalar_string(ps_at(value, i));
-            bool match = candidate && !strcmp(candidate, key);
-            free(candidate); if (match) return true;
+            ps_chars candidate = context->value_present ? ps_js_string(ps_at(value, i))
+                                                        : ps_scalar_string(ps_at(value, i));
+            if (same_candidate(candidate, key, failed)) return true;
         }
         return false;
     }
     if (multiple && !ps_truthy(value)) return false;
-    char *candidate = multiple ? ps_js_string(value) : context_value(context);
-    bool result = candidate && !strcmp(candidate, key);
-    free(candidate); return result;
+    return same_candidate(multiple ? ps_js_string(value) : context_value(context), key, failed);
 }
 
 static ps_value *option_models(const widget_context *context, bool multiple, bool choice)
@@ -241,25 +254,30 @@ static ps_value *option_models(const widget_context *context, bool multiple, boo
     if (!items || (items->kind != PS_ARRAY && items->kind != PS_OBJECT) ||
         (items->kind == PS_OBJECT && ps_has(items, "model"))) return options;
     const ps_value *default_value = member(context->spec, "default");
-    char *default_text = default_value && default_value->kind != PS_ARRAY &&
-        default_value->kind != PS_NULL ? ps_scalar_string(default_value) : NULL;
+    bool has_default = default_value && default_value->kind != PS_ARRAY && default_value->kind != PS_NULL;
+    ps_chars default_text = has_default ? ps_scalar_string(default_value) : (ps_chars){NULL, 0};
+    if (has_default && !default_text.bytes) { ps_value_free(options); return NULL; }
     for (size_t i = 0; i < ps_size(items); ++i) {
-        char index[32];
-        const char *key = items->kind == PS_OBJECT ? ps_key_at(items, i)
-            : (snprintf(index, sizeof(index), "%zu", i), index);
+        ps_chars index = {NULL, 0};
+        if (items->kind != PS_OBJECT) index = ps_decimal(i);
+        ps_text key = items->kind == PS_OBJECT ? ps_key(items, i) : ps_view(index);
         const ps_value *entry = ps_at(items, i);
-        char *label = ps_translate(entry, context->language);
-        if (label && !*label) { free(label); label = ps_scalar_string(entry); }
+        ps_chars label = ps_translate(entry, context->language);
+        if (label.bytes && !label.length) { free(label.bytes); label = ps_scalar_string(entry); }
+        bool failed = false;
+        bool selected = selected_value(context, key, multiple, &failed);
         ps_value *option = ps_object_value();
-        bool ok = label && option && set_string(option, "value", key) &&
-            set_string(option, "label", label) &&
-            ps_set(option, "selected", ps_bool_value(selected_value(context, key, multiple))) &&
-            ps_set(option, "isDefault", ps_bool_value(choice && default_text && !strcmp(default_text, key))) &&
+        bool ok = !failed && label.bytes && option && (items->kind == PS_OBJECT || index.bytes) &&
+            set_text(option, "value", key) &&
+            set_text(option, "label", ps_view(label)) &&
+            ps_set(option, "selected", ps_bool_value(selected)) &&
+            ps_set(option, "isDefault", ps_bool_value(choice && default_text.bytes &&
+                                                      ps_text_equal(ps_view(default_text), key))) &&
             ps_append(options, option);
-        free(label);
-        if (!ok) { ps_value_free(option); ps_value_free(options); free(default_text); return NULL; }
+        free(label.bytes); free(index.bytes);
+        if (!ok) { ps_value_free(option); ps_value_free(options); free(default_text.bytes); return NULL; }
     }
-    free(default_text); return options;
+    free(default_text.bytes); return options;
 }
 
 static ps_value *empty_option(void)
@@ -274,22 +292,18 @@ static ps_value *empty_option(void)
     return option;
 }
 
-static char *script_quote(const char *value)
+/* A JSON string literal that is safe inside a script element: every < is <. */
+static ps_chars script_quote(ps_text value)
 {
-    char *quoted = ps_json_quote(value);
-    if (!quoted) return NULL;
-    size_t extra = 0;
-    for (const char *cursor = quoted; *cursor; ++cursor) if (*cursor == '<') extra += 5;
-    if (!extra) return quoted;
-    size_t length = strlen(quoted);
-    char *escaped = malloc(length + extra + 1);
-    if (!escaped) { free(quoted); return NULL; }
-    char *out = escaped;
-    for (const char *cursor = quoted; *cursor; ++cursor) {
-        if (*cursor == '<') { memcpy(out, "\\u003c", 6); out += 6; }
-        else *out++ = *cursor;
+    ps_chars quoted = ps_json_quote(value);
+    if (!quoted.bytes) return quoted;
+    ps_html_buffer out = {0};
+    for (size_t i = 0; i < quoted.length; ++i) {
+        if (quoted.bytes[i] == '<') ps_html_text(&out, "\\u003c");
+        else ps_html_character(&out, quoted.bytes[i]);
     }
-    *out = '\0'; free(quoted); return escaped;
+    free(quoted.bytes);
+    return ps_html_take(&out);
 }
 
 static ps_value *text_control(const char *kind, const widget_context *context)
@@ -298,35 +312,38 @@ static ps_value *text_control(const char *kind, const widget_context *context)
     bool password = !strcmp(kind, "password"), dummy = !strcmp(kind, "dummy-input");
     bool date = !strcmp(kind, "date") || !strcmp(kind, "datetime");
     ps_value *attrs = ps_object_value();
-    char *name = context_name(context);
-    char *value = password ? ps_scalar_string(context->value_present ? context->value : NULL)
-                           : context_value(context);
-    if (date && value) { char *formatted = ps_format_date(value, !strcmp(kind, "datetime")); free(value); value = formatted; }
-    char *class_name = context_class(context, hidden ? "valid-target" :
+    ps_chars name = context_name(context);
+    ps_chars value = password ? ps_scalar_string(context->value_present ? context->value : NULL)
+                              : context_value(context);
+    if (date && value.bytes) {
+        ps_chars formatted = ps_format_date(ps_view(value), !strcmp(kind, "datetime"));
+        free(value.bytes); value = formatted;
+    }
+    ps_chars class_name = context_class(context, hidden ? "valid-target" :
         dummy ? "crudui-input" : "valid-target crudui-input");
-    bool ok = attrs && name && value && class_name;
+    bool ok = attrs && name.bytes && value.bytes && class_name.bytes;
     if (ok && !textarea) ok = set_string(attrs, "type", dummy ? "text" :
         !strcmp(kind, "datetime") ? "datetime-local" : kind);
-    if (ok) ok = set_string(attrs, "name", name);
-    if (ok && !textarea) ok = set_string(attrs, "value", value);
+    if (ok) ok = set_text(attrs, "name", ps_view(name));
+    if (ok && !textarea) ok = set_text(attrs, "value", ps_view(value));
     if (ok && dummy) ok = set_string(attrs, "readonly", "");
-    if (ok) ok = set_string(attrs, "class", class_name);
+    if (ok) ok = set_text(attrs, "class", ps_view(class_name));
     if (ok && textarea) ok = set_string(attrs, "rows", "5");
     if (ok && !textarea && !hidden && !password && !date)
         ok = set_nonempty(attrs, "placeholder", context_text(context, "placeholder"));
     if (ok && !hidden) ok = set_nonempty(attrs, "style", context_style(context));
     if (ok && !password && !hidden && !dummy) ok = add_behavior(context, attrs);
-    if (ok && dummy) ok = set_text(attrs, "data-default", ps_scalar_string(member(context->spec, "default")));
+    if (ok && dummy) ok = set_owned(attrs, "data-default", ps_scalar_string(member(context->spec, "default")));
     else if (ok) ok = add_data(context, attrs);
     ps_value *model = ps_object_value();
     const char *layout = hidden || password || !strcmp(kind, "datetime") ? "bare" : "widget";
     if (ok) ok = model && set_string(model, "kind", kind) && set_string(model, "layout", layout) &&
         set_string(model, "tag", textarea ? "textarea" : "input") &&
-        (!textarea || set_string(model, "text", value)) && ps_set(model, "attrs", attrs);
+        (!textarea || set_text(model, "text", ps_view(value))) && ps_set(model, "attrs", attrs);
     if (ok) attrs = NULL;
     if (ok && !strcmp(layout, "widget"))
         ok = set_affix(context, model, "prepend", true) && set_affix(context, model, "append", true);
-    free(name); free(value); free(class_name);
+    free(name.bytes); free(value.bytes); free(class_name.bytes);
     if (!ok) { ps_value_free(attrs); ps_value_free(model); return NULL; }
     return model;
 }
@@ -335,10 +352,10 @@ static ps_value *select_control(const widget_context *context)
 {
     ps_value *source = source_model(member(context->spec, "items"));
     ps_value *attrs = ps_object_value();
-    char *name = context_name(context);
-    char *class_name = context_class(context, source ? "valid-target crudui-input crudui-input--select valid-target-async" : "valid-target crudui-input crudui-input--select");
-    bool ok = attrs && name && class_name && set_string(attrs, "name", name) &&
-        set_string(attrs, "class", class_name) && extend_object(attrs, source) &&
+    ps_chars name = context_name(context);
+    ps_chars class_name = context_class(context, source ? "valid-target crudui-input crudui-input--select valid-target-async" : "valid-target crudui-input crudui-input--select");
+    bool ok = attrs && name.bytes && class_name.bytes && set_text(attrs, "name", ps_view(name)) &&
+        set_text(attrs, "class", ps_view(class_name)) && extend_object(attrs, source) &&
         set_nonempty(attrs, "style", context_style(context)) && add_behavior(context, attrs) &&
         add_data(context, attrs);
     ps_value *options = ok ? option_models(context, false, false) : NULL;
@@ -353,7 +370,7 @@ static ps_value *select_control(const widget_context *context)
     if (ok) ok = ps_set(model, "options", options);
     if (ok) options = NULL;
     if (ok) ok = set_affix(context, model, "prepend", true) && set_affix(context, model, "append", true);
-    free(name); free(class_name);
+    free(name.bytes); free(class_name.bytes);
     if (!ok) { ps_value_free(attrs); ps_value_free(source); ps_value_free(options); ps_value_free(model); return NULL; }
     return model;
 }
@@ -367,37 +384,37 @@ static ps_value *choices(const char *kind, const widget_context *context)
         "crudui-choices crudui-choices--multiple" : "crudui-choices");
     if (ok) ok = extend_object(attrs, source);
     ps_value *options = ok ? option_models(context, multiple, !multiple) : NULL;
-    char *label_class = context_class(context, "crudui-choices__label");
+    ps_chars label_class = context_class(context, "crudui-choices__label");
     ps_value *model = ps_object_value();
-    if (ok) ok = options && label_class && model && set_string(model, "kind", kind) &&
+    if (ok) ok = options && label_class.bytes && model && set_string(model, "kind", kind) &&
         set_string(model, "layout", "choices") && ps_set(model, "attrs", attrs);
     if (ok) attrs = NULL;
     if (ok) ok = ps_set(model, "source", source ? source : ps_null_value());
     if (ok) source = NULL;
     if (ok) ok = ps_set(model, "options", options);
     if (ok) options = NULL;
-    if (ok) ok = set_string(model, "itemLabelClass", label_class);
+    if (ok) ok = set_text(model, "itemLabelClass", ps_view(label_class));
     if (ok && !member(model, "source")) ok = false;
     if (ok && ps_get(model, "source")->kind == PS_NULL) {
         ps_value *extra = ps_object_value(), *input = ps_object_value();
-        char *name = context_name(context);
-        char *full_name = multiple && name ? ps_string_join(name, "[]", "") : name ? ps_string_join(name, "", "") : NULL;
-        char *leaf = ps_leaf_name(context->path, context->rows, context->row_count);
-        char *rule = ps_rule_name(context->path, context->rows, context->row_count);
-        ok = extra && input && full_name && leaf && rule && set_string(input, "name", full_name) &&
-            set_string(input, "data-name", leaf) && set_string(input, "data-rule-name", rule);
-        char *onchange = behavior_script(context, "onchange");
-        char *onclick = behavior_script(context, "onclick");
-        if (ok && onchange && *onchange) ok = set_string(input, "onchange", onchange);
-        if (ok && !multiple && onclick && *onclick) ok = set_string(input, "onclick", onclick);
+        ps_chars name = context_name(context);
+        ps_chars full_name = joined(name, multiple ? PS_TEXT("[]") : PS_TEXT(""), PS_TEXT(""));
+        ps_chars onchange = behavior_script(context, PS_TEXT("onchange"));
+        ps_chars onclick = behavior_script(context, PS_TEXT("onclick"));
+        ok = extra && input && full_name.bytes && onchange.bytes && onclick.bytes &&
+            set_text(input, "name", ps_view(full_name)) &&
+            set_owned(input, "data-name", ps_leaf_name(context->path, context->rows, context->row_count)) &&
+            set_owned(input, "data-rule-name", ps_rule_name(context->path, context->rows, context->row_count));
+        if (ok && onchange.length) ok = set_text(input, "onchange", ps_view(onchange));
+        if (ok && !multiple && onclick.length) ok = set_text(input, "onclick", ps_view(onclick));
         if (ok) ok = ps_set(extra, "input", input);
         if (ok) input = NULL;
         if (ok) ok = ps_set(model, "extra", extra);
         if (ok) extra = NULL;
-        free(name); free(full_name); free(leaf); free(rule); free(onchange); free(onclick);
+        free(name.bytes); free(full_name.bytes); free(onchange.bytes); free(onclick.bytes);
         ps_value_free(input); ps_value_free(extra);
     }
-    free(label_class);
+    free(label_class.bytes);
     if (!ok) { ps_value_free(attrs); ps_value_free(source); ps_value_free(options); ps_value_free(model); return NULL; }
     return model;
 }
@@ -407,39 +424,40 @@ static ps_value *file_control(const char *kind, const widget_context *context)
     bool cover = !strcmp(kind, "cover");
     const char *base = "valid-target crudui-input crudui-input--file";
     ps_value *file = ps_object_value();
-    char *class_name = context_class(context, base);
-    bool ok = file && class_name && set_string(file, "type", "file") &&
-        set_string(file, "class", class_name);
-    const char *sizes[] = {"max_width","min_width","max_height","min_height","preview_max_width","preview_max_height"};
-    for (size_t i = 0; ok && i < sizeof(sizes) / sizeof(sizes[0]); ++i) {
-        char output[64]; snprintf(output, sizeof(output), "data-%s", sizes[i]);
-        for (char *cursor = output; *cursor; ++cursor) if (*cursor == '_') *cursor = '-';
-        ok = set_text(file, output, context_option(context, sizes[i], "0"));
-    }
-    char *name = context_name(context);
-    char *field_name = cover && name ? ps_string_join(name, "[name]", "") : name ? ps_string_join(name, "", "") : NULL;
-    char *leaf = ps_leaf_name(context->path, context->rows, context->row_count);
-    char *rule = ps_rule_name(context->path, context->rows, context->row_count);
-    if (ok) ok = field_name && leaf && rule && set_string(file, "name", field_name) &&
-        set_string(file, "data-name", leaf) && set_string(file, "data-rule-name", rule) &&
+    ps_chars class_name = context_class(context, base);
+    bool ok = file && class_name.bytes && set_string(file, "type", "file") &&
+        set_text(file, "class", ps_view(class_name));
+    static const char *const sizes[][2] = {
+        {"max_width", "data-max-width"}, {"min_width", "data-min-width"},
+        {"max_height", "data-max-height"}, {"min_height", "data-min-height"},
+        {"preview_max_width", "data-preview-max-width"},
+        {"preview_max_height", "data-preview-max-height"},
+    };
+    for (size_t i = 0; ok && i < sizeof(sizes) / sizeof(sizes[0]); ++i)
+        ok = set_owned(file, sizes[i][1], context_option(context, sizes[i][0], "0"));
+    ps_chars name = context_name(context);
+    ps_chars field_name = joined(name, cover ? PS_TEXT("[name]") : PS_TEXT(""), PS_TEXT(""));
+    if (ok) ok = field_name.bytes && set_text(file, "name", ps_view(field_name)) &&
+        set_owned(file, "data-name", ps_leaf_name(context->path, context->rows, context->row_count)) &&
+        set_owned(file, "data-rule-name", ps_rule_name(context->path, context->rows, context->row_count)) &&
         add_behavior(context, file);
     if (ok && !cover) ok = set_string(file, "value", "");
     const ps_value *accept_value = member(member(context->spec, "validate"), "accept");
-    if (!accept_value || accept_value->kind != PS_STRING || !*ps_string(accept_value))
+    if (!accept_value || accept_value->kind != PS_STRING || !accept_value->data.string.length)
         accept_value = member(member(context->spec, "options"), "accept");
-    char *accept = accept_value ? ps_scalar_string(accept_value)
-        : ps_string_join(!strcmp(kind, "file") ? "*/*" : "image/*", "", "");
-    if (ok) ok = accept && set_string(file, "accept", accept);
+    ps_chars accept = accept_value ? ps_scalar_string(accept_value)
+        : ps_copy(!strcmp(kind, "file") ? PS_TEXT("*/*") : PS_TEXT("image/*"));
+    if (ok) ok = accept.bytes && set_text(file, "accept", ps_view(accept));
     ps_value *extra = ps_object_value();
     if (ok && !cover) {
         ps_value *display = ps_object_value();
-        ok = display && set_string(display, "type", "text") &&
+        ok = extra && display && set_string(display, "type", "text") &&
             set_string(display, "class", "crudui-input") &&
             set_string(display, "value", "") && set_string(display, "readonly", "") &&
             ps_set(extra, "display", display);
         if (!ok) ps_value_free(display);
     }
-    if (ok) ok = ps_set(extra, "file", file);
+    if (ok) ok = extra && ps_set(extra, "file", file);
     if (ok) file = NULL;
     ps_value *model = ps_object_value(), *empty_attrs = ps_object_value();
     if (ok) ok = model && empty_attrs && set_string(model, "kind", kind) &&
@@ -448,65 +466,69 @@ static ps_value *file_control(const char *kind, const widget_context *context)
     if (ok) ok = set_affix(context, model, "prepend", true);
     if (ok) ok = ps_set(model, "extra", extra);
     if (ok) extra = NULL;
-    free(class_name); free(name); free(field_name); free(leaf); free(rule); free(accept);
+    free(class_name.bytes); free(name.bytes); free(field_name.bytes); free(accept.bytes);
     if (!ok) { ps_value_free(file); ps_value_free(extra); ps_value_free(empty_attrs); ps_value_free(model); return NULL; }
     return model;
 }
 
-static char *display_html(const widget_context *context, const char *kind)
+static ps_chars display_html(const widget_context *context, const char *kind)
 {
     if (!strcmp(kind, "image-viewer")) {
         if (!context->value_present || !context->value || context->value->kind != PS_ARRAY || !ps_size(context->value))
-            return ps_string_join("이미지가 없습니다.", "", "");
-        char *height = context_option(context, "height", "");
-        char *out = ps_string_join("", "", "");
-        if (!height || !out) { free(height); free(out); return NULL; }
+            return ps_copy(PS_TEXT("이미지가 없습니다."));
+        ps_chars height = context_option(context, "height", "");
+        if (!height.bytes) return height;
+        ps_html_buffer out = {0};
         for (size_t i = 0; i < ps_size(context->value); ++i) {
-            char *source = ps_scalar_string(ps_at(context->value, i));
-            char *tag = source ? ps_string_join("<img src=\"", source, "\"") : NULL;
-            char *with_height = tag && *height ? ps_string_join(tag, " height=\"", height) : tag ? ps_string_join(tag, "", "") : NULL;
-            char *closed = with_height ? ps_string_join(with_height, *height ? "\">" : ">", "") : NULL;
-            char *next = closed ? ps_string_join(out, closed, "") : NULL;
-            free(source); free(tag); free(with_height); free(closed); free(out); out = next;
-            if (!out) break;
+            ps_chars source = ps_scalar_string(ps_at(context->value, i));
+            if (!source.bytes) { out.failed = true; break; }
+            ps_html_text(&out, "<img src=\"");
+            ps_html_append(&out, ps_view(source));
+            ps_html_text(&out, "\"");
+            if (height.length) {
+                ps_html_text(&out, " height=\"");
+                ps_html_append(&out, ps_view(height));
+                ps_html_text(&out, "\">");
+            } else ps_html_text(&out, ">");
+            free(source.bytes);
         }
-        free(height); return out;
+        free(height.bytes);
+        return ps_html_take(&out);
     }
     const ps_value *value = context->value_present ? context->value : member(context->spec, "default");
     const ps_value *items = member(context->spec, "items");
     if (items && items->kind == PS_OBJECT && !ps_has(items, "model")) {
-        char *key = ps_scalar_string(value);
-        const ps_value *found = key ? ps_get(items, key) : NULL;
-        free(key); if (found) value = found;
+        ps_chars key = ps_scalar_string(value);
+        if (!key.bytes) return key;
+        const ps_value *found = ps_get_text(items, ps_view(key));
+        free(key.bytes);
+        if (found) value = found;
     }
-    char *text = ps_scalar_string(value);
-    if (!text) return NULL;
-    size_t extra = 0;
-    for (size_t i = 0; text[i]; ++i) if (text[i] == '\r' || text[i] == '\n') extra += 6;
-    if (!extra) return text;
-    char *out = malloc(strlen(text) + extra + 1), *target = out;
-    if (!out) { free(text); return NULL; }
-    for (size_t i = 0; text[i]; ++i) {
-        if (text[i] == '\r' || text[i] == '\n') { memcpy(target, "<br />", 6); target += 6; }
-        *target++ = text[i];
+    ps_chars text = ps_scalar_string(value);
+    if (!text.bytes) return text;
+    ps_html_buffer out = {0};
+    for (size_t i = 0; i < text.length; ++i) {
+        if (text.bytes[i] == '\r' || text.bytes[i] == '\n') ps_html_text(&out, "<br />");
+        ps_html_character(&out, text.bytes[i]);
     }
-    *target = '\0'; free(text); return out;
+    free(text.bytes);
+    return ps_html_take(&out);
 }
 
 static ps_value *display_control(const char *kind, const widget_context *context)
 {
     ps_value *attrs = ps_object_value();
     bool ok = attrs != NULL;
-    const char *main_class = string_member(design_node(context, "main"), "class");
-    if (ok && *main_class) ok = set_string(attrs, "class", main_class);
+    ps_text main_class = string_member(design_node(context, "main"), "class");
+    if (ok && main_class.length) ok = set_text(attrs, "class", main_class);
     if (ok && strcmp(kind, "image-viewer")) ok = set_nonempty(attrs, "style", context_style(context));
-    char *raw = ok ? display_html(context, kind) : NULL;
+    ps_chars raw = ok ? display_html(context, kind) : (ps_chars){NULL, 0};
     ps_value *model = ps_object_value();
-    if (ok) ok = raw && model && set_string(model, "kind", kind) &&
+    if (ok) ok = raw.bytes && model && set_string(model, "kind", kind) &&
         set_string(model, "layout", "display") && set_string(model, "tag", "div") &&
-        set_string(model, "rawHtml", raw) && ps_set(model, "attrs", attrs);
+        set_text(model, "rawHtml", ps_view(raw)) && ps_set(model, "attrs", attrs);
     if (ok) attrs = NULL;
-    free(raw);
+    free(raw.bytes);
     if (!ok) { ps_value_free(attrs); ps_value_free(model); return NULL; }
     return model;
 }
@@ -515,62 +537,67 @@ static ps_value *search_control(const widget_context *context)
 {
     ps_value *source = source_model(member(context->spec, "items"));
     ps_value *attrs = ps_object_value();
-    char *class_name = context_class(context, source ? "valid-target crudui-input crudui-input--select valid-target-async" : "valid-target crudui-input crudui-input--select");
-    char *name = context_name(context), *minimum = context_option(context, "keyword_min_length", "2");
-    char *delay = context_option(context, "delay", "250"), *server = context_option(context, "api_server", "");
-    bool ok = attrs && class_name && name && minimum && delay && server &&
-        set_string(attrs, "class", class_name) && set_nonempty(attrs, "style", context_style(context)) &&
-        set_string(attrs, "name", name) && set_string(attrs, "data-keyword-min-length", minimum) &&
-        set_string(attrs, "data-delay", delay) && set_string(attrs, "data-api-server", server) &&
+    ps_chars class_name = context_class(context, source ? "valid-target crudui-input crudui-input--select valid-target-async" : "valid-target crudui-input crudui-input--select");
+    ps_chars name = context_name(context), minimum = context_option(context, "keyword_min_length", "2");
+    ps_chars delay = context_option(context, "delay", "250"), server = context_option(context, "api_server", "");
+    bool ok = attrs && class_name.bytes && name.bytes && minimum.bytes && delay.bytes && server.bytes &&
+        set_text(attrs, "class", ps_view(class_name)) && set_nonempty(attrs, "style", context_style(context)) &&
+        set_text(attrs, "name", ps_view(name)) && set_text(attrs, "data-keyword-min-length", ps_view(minimum)) &&
+        set_text(attrs, "data-delay", ps_view(delay)) && set_text(attrs, "data-api-server", ps_view(server)) &&
         extend_object(attrs, source);
-    char *leaf = ps_leaf_name(context->path, context->rows, context->row_count);
-    char *rule = ps_rule_name(context->path, context->rows, context->row_count);
-    if (ok) ok = leaf && rule && set_string(attrs, "data-name", leaf) &&
-        set_string(attrs, "data-rule-name", rule) && set_string(attrs, "id", context->id);
-    char *onchange = behavior_script(context, "onchange");
-    if (ok && onchange && *onchange) ok = set_string(attrs, "onchange", onchange);
-    if (ok) ok = set_text(attrs, "data-default", ps_scalar_string(member(context->spec, "default")));
-    char *callback = context_option(context, "callback", "");
-    char *quoted_id = script_quote(context->id), *quoted_min = script_quote(minimum ? minimum : "");
-    char *quoted_delay = script_quote(delay ? delay : "");
-    char *container = ps_string_join(context->id, "_select2", "");
-    char *quoted_container = container ? script_quote(container) : NULL;
-    char *callback_script = callback && *callback && quoted_id
-        ? ps_string_join("$(document.getElementById(", quoted_id, "))") : ps_string_join("", "", "");
-    if (callback_script && callback && *callback) {
-        char *next = ps_string_join(callback_script, ".on('select2:select', ", callback); free(callback_script);
-        callback_script = next ? ps_string_join(next, ");", "") : NULL; free(next);
+    if (ok) ok = set_owned(attrs, "data-name", ps_leaf_name(context->path, context->rows, context->row_count)) &&
+        set_owned(attrs, "data-rule-name", ps_rule_name(context->path, context->rows, context->row_count)) &&
+        set_text(attrs, "id", context->id);
+    ps_chars onchange = behavior_script(context, PS_TEXT("onchange"));
+    if (ok) ok = onchange.bytes && (!onchange.length || set_text(attrs, "onchange", ps_view(onchange)));
+    if (ok) ok = set_owned(attrs, "data-default", ps_scalar_string(member(context->spec, "default")));
+    ps_chars callback = context_option(context, "callback", "");
+    ps_chars quoted_id = script_quote(context->id);
+    ps_chars quoted_min = script_quote(ps_view(minimum));
+    ps_chars quoted_delay = script_quote(ps_view(delay));
+    ps_chars container = PS_CONCAT(context->id, PS_TEXT("_select2"));
+    ps_chars quoted_container = container.bytes ? script_quote(ps_view(container)) : container;
+    ps_html_buffer script_out = {0};
+    if (!callback.bytes || !quoted_id.bytes || !quoted_min.bytes || !quoted_delay.bytes || !quoted_container.bytes)
+        script_out.failed = true;
+    ps_html_text(&script_out, "$(function() {select2(CSS.escape(");
+    ps_html_append(&script_out, ps_view(quoted_id));
+    ps_html_text(&script_out, "), ");
+    ps_html_append(&script_out, ps_view(quoted_min));
+    ps_html_text(&script_out, ", ");
+    ps_html_append(&script_out, ps_view(quoted_delay));
+    ps_html_text(&script_out, ", ");
+    ps_html_append(&script_out, ps_view(quoted_container));
+    ps_html_text(&script_out, ");");
+    if (callback.length) {
+        ps_html_text(&script_out, "$(document.getElementById(");
+        ps_html_append(&script_out, ps_view(quoted_id));
+        ps_html_text(&script_out, ")).on('select2:select', ");
+        ps_html_append(&script_out, ps_view(callback));
+        ps_html_text(&script_out, ");");
     }
-    char *script = quoted_id && quoted_min && quoted_delay && quoted_container && callback_script
-        ? ps_string_join("$(function() {select2(CSS.escape(", quoted_id, "), ") : NULL;
-    if (script) { char *next = ps_string_join(script, quoted_min, ", "); free(script); script = next; }
-    if (script) { char *next = ps_string_join(script, quoted_delay, ", "); free(script); script = next; }
-    if (script) { char *next = ps_string_join(script, quoted_container, " );"); free(script); script = next; }
-    if (script) {
-        size_t len = strlen(script); if (len >= 3 && !strcmp(script + len - 3, " );")) memmove(script + len - 3, " );", 4);
-        char *next = ps_string_join(script, callback_script, "});"); free(script); script = next;
-    }
-    /* Remove the only formatting space inserted while composing the exact script. */
-    if (script) { char *space = strstr(script, " );"); if (space) memmove(space, space + 1, strlen(space)); }
+    ps_html_text(&script_out, "});");
+    ps_chars script = ps_html_take(&script_out);
     const ps_value *hide = member(member(context->spec, "options"), "hide_searching");
-    char *style = (!hide || hide->kind == PS_NULL || (hide->kind == PS_STRING && *ps_string(hide))) && quoted_container
-        ? ps_string_join("[class~=", quoted_container, "] .loading-results { display: none; }")
-        : ps_string_join("", "", "");
+    ps_chars style = (!hide || hide->kind == PS_NULL || (hide->kind == PS_STRING && hide->data.string.length)) && quoted_container.bytes
+        ? PS_CONCAT(PS_TEXT("[class~="), ps_view(quoted_container), PS_TEXT("] .loading-results { display: none; }"))
+        : ps_copy(PS_TEXT(""));
     ps_value *options = ok ? option_models(context, false, false) : NULL;
     if (options && !ps_size(options) && !ps_append(options, empty_option())) ok = false;
     ps_value *model = ps_object_value();
-    if (ok) ok = script && style && options && model && set_string(model, "kind", "search") &&
+    if (ok) ok = script.bytes && style.bytes && options && model && set_string(model, "kind", "search") &&
         set_string(model, "layout", "search") && set_string(model, "tag", "select") && ps_set(model, "attrs", attrs);
     if (ok) attrs = NULL;
     if (ok) ok = ps_set(model, "source", source ? source : ps_null_value());
     if (ok) source = NULL;
     if (ok) ok = ps_set(model, "options", options);
     if (ok) options = NULL;
-    if (ok) ok = set_string(model, "script", script) && set_string(model, "styleChrome", style) &&
+    if (ok) ok = set_text(model, "script", ps_view(script)) && set_text(model, "styleChrome", ps_view(style)) &&
         set_affix(context, model, "prepend", true) && set_affix(context, model, "append", true);
-    free(class_name); free(name); free(minimum); free(delay); free(server); free(leaf); free(rule);
-    free(onchange); free(callback); free(quoted_id); free(quoted_min); free(quoted_delay); free(container);
-    free(quoted_container); free(callback_script); free(script); free(style);
+    free(class_name.bytes); free(name.bytes); free(minimum.bytes); free(delay.bytes); free(server.bytes);
+    free(onchange.bytes); free(callback.bytes); free(quoted_id.bytes); free(quoted_min.bytes);
+    free(quoted_delay.bytes); free(container.bytes); free(quoted_container.bytes);
+    free(script.bytes); free(style.bytes);
     if (!ok) { ps_value_free(attrs); ps_value_free(source); ps_value_free(options); ps_value_free(model); return NULL; }
     return model;
 }
@@ -583,125 +610,136 @@ static ps_value *editor_control(const char *kind, const widget_context *context)
         : !strcmp(kind, "editorjs") ? "valid-target crudui-input contentjs"
         : !strcmp(kind, "tui") ? "valid-target crudui-input tuiarea" : "valid-target crudui-input";
     ps_value *attrs = ps_object_value();
-    char *class_name = context_class(context, base), *name = context_name(context);
-    bool ok = attrs && class_name && name;
+    ps_chars class_name = context_class(context, base), name = context_name(context);
+    bool ok = attrs && class_name.bytes && name.bytes;
     if (ok && tagify) ok = set_string(attrs, "type", "text");
-    if (ok) ok = set_string(attrs, "id", context->id) && set_string(attrs, "class", class_name) &&
-        set_string(attrs, "name", name);
-    if (ok && tagify) ok = set_text(attrs, "value", context_value(context));
-    else if (ok) ok = set_text(attrs, "rows", context_option(context, "rows", !strcmp(kind, "summernote") ? "5" : "3"));
-    char *quoted_id = script_quote(context->id);
-    char *selector = quoted_id ? ps_string_join("'#'+CSS.escape(", quoted_id, ")") : NULL;
-    char *script = NULL;
+    if (ok) ok = set_text(attrs, "id", context->id) && set_text(attrs, "class", ps_view(class_name)) &&
+        set_text(attrs, "name", ps_view(name));
+    if (ok && tagify) ok = set_owned(attrs, "value", context_value(context));
+    else if (ok) ok = set_owned(attrs, "rows", context_option(context, "rows", !strcmp(kind, "summernote") ? "5" : "3"));
+    ps_chars quoted_id = script_quote(context->id);
+    if (!quoted_id.bytes) ok = false;
+    /* The selector expression of the editor host. */
+    ps_text selector_parts[] = {PS_TEXT("'#'+CSS.escape("), ps_view(quoted_id), PS_TEXT(")")};
+    ps_html_buffer script = {0};
+    if (ok) {
+        ps_html_text(&script, "$(function() {editor_");
+        ps_html_text(&script, kind);
+        ps_html_character(&script, '(');
+        for (size_t i = 0; i < 3; ++i) ps_html_append(&script, selector_parts[i]);
+        ps_html_text(&script, ", ");
+    }
     if (ok && !strcmp(kind, "tinymce")) {
-        char *height = context_option(context, "height", "300"), *upload = context_option(context, "fileserver", "upload");
-        char *quoted_upload = upload ? script_quote(upload) : NULL;
-        ok = height && upload && quoted_upload && set_string(attrs, "data-type", string_member(context->spec, "type")) &&
-            set_string(attrs, "data-height", height) && set_string(attrs, "data-upload-server", upload);
-        if (ok) {
-            script = ps_string_join("$(function() {editor_tinymce(", selector, ", ");
-            char *next = script ? ps_string_join(script, height, ", ") : NULL; free(script); script = next;
-            next = script ? ps_string_join(script, quoted_upload, ", false);});") : NULL; free(script); script = next;
-        }
-        free(height); free(upload); free(quoted_upload);
+        ps_chars height = context_option(context, "height", "300"), upload = context_option(context, "fileserver", "upload");
+        ps_chars quoted_upload = upload.bytes ? script_quote(ps_view(upload)) : upload;
+        ok = height.bytes && upload.bytes && quoted_upload.bytes &&
+            set_text(attrs, "data-type", string_member(context->spec, "type")) &&
+            set_text(attrs, "data-height", ps_view(height)) && set_text(attrs, "data-upload-server", ps_view(upload));
+        ps_html_append(&script, ps_view(height));
+        ps_html_text(&script, ", ");
+        ps_html_append(&script, ps_view(quoted_upload));
+        ps_html_text(&script, ", false);});");
+        free(height.bytes); free(upload.bytes); free(quoted_upload.bytes);
     } else if (ok && !strcmp(kind, "summernote")) {
-        char *upload = context_option(context, "upload", "upload"), *quoted = upload ? script_quote(upload) : NULL;
-        script = quoted ? ps_string_join("$(function() {editor_summernote(", selector, ", ") : NULL;
-        char *next = script ? ps_string_join(script, quoted, ");});") : NULL; free(script); script = next;
-        free(upload); free(quoted);
+        ps_chars upload = context_option(context, "upload", "upload");
+        ps_chars quoted = upload.bytes ? script_quote(ps_view(upload)) : upload;
+        ok = quoted.bytes != NULL;
+        ps_html_append(&script, ps_view(quoted));
+        ps_html_text(&script, ");});");
+        free(upload.bytes); free(quoted.bytes);
     } else if (ok && (!strcmp(kind, "editorjs") || !strcmp(kind, "tui"))) {
-        char *server = context_option(context, "fileserver", ""), *quoted = server ? script_quote(server) : NULL;
-        ok = server && quoted && set_string(attrs, "data-fileserver", server);
-        if (ok) { char prefix[80]; snprintf(prefix, sizeof(prefix), "$(function() {editor_%s(", kind);
-            script = ps_string_join(prefix, selector, ", ");
-            char *next = script ? ps_string_join(script, quoted, ");});") : NULL; free(script); script = next;
-        }
-        free(server); free(quoted);
+        ps_chars server = context_option(context, "fileserver", "");
+        ps_chars quoted = server.bytes ? script_quote(ps_view(server)) : server;
+        ok = server.bytes && quoted.bytes && set_text(attrs, "data-fileserver", ps_view(server));
+        ps_html_append(&script, ps_view(quoted));
+        ps_html_text(&script, ");});");
+        free(server.bytes); free(quoted.bytes);
     } else if (ok) {
-        char *maximum = context_option(context, "max_tags", "0");
-        ok = maximum && set_string(attrs, "data-max-tags", maximum);
-        char *server = NULL, *quoted_server = NULL;
-        if (ok && !strcmp(kind, "tagify2")) {
-            server = context_option(context, "server", ""); quoted_server = server ? script_quote(server) : NULL;
-            ok = server && quoted_server && set_string(attrs, "data-server", server);
+        ps_chars maximum = context_option(context, "max_tags", "0");
+        ok = maximum.bytes && set_text(attrs, "data-max-tags", ps_view(maximum));
+        ps_chars server = {NULL, 0}, quoted_server = {NULL, 0};
+        bool second = !strcmp(kind, "tagify2");
+        if (ok && second) {
+            server = context_option(context, "server", "");
+            quoted_server = server.bytes ? script_quote(ps_view(server)) : server;
+            ok = server.bytes && quoted_server.bytes && set_text(attrs, "data-server", ps_view(server));
         }
         if (ok) ok = set_nonempty(attrs, "placeholder", context_text(context, "placeholder"));
-        if (ok) { char prefix[80]; snprintf(prefix, sizeof(prefix), "$(function() {editor_%s(", kind);
-            script = ps_string_join(prefix, selector, ", ");
-            char *next = script ? ps_string_join(script, maximum,
-                !strcmp(kind, "tagify2") ? ", " : ");});") : NULL;
-            free(script); script = next;
-            if (script && !strcmp(kind, "tagify2")) {
-                next = ps_string_join(script, quoted_server, ");});");
-                free(script); script = next;
-            }
+        ps_html_append(&script, ps_view(maximum));
+        if (second) {
+            ps_html_text(&script, ", ");
+            ps_html_append(&script, ps_view(quoted_server));
         }
-        free(maximum); free(server); free(quoted_server);
+        ps_html_text(&script, ");});");
+        free(maximum.bytes); free(server.bytes); free(quoted_server.bytes);
     }
-    if (ok) ok = script && add_behavior(context, attrs) && add_data(context, attrs);
+    ps_chars script_text = ps_html_take(&script);
+    if (ok) ok = script_text.bytes && add_behavior(context, attrs) && add_data(context, attrs);
     ps_value *model = ps_object_value();
     if (ok) ok = model && set_string(model, "kind", kind) && set_string(model, "layout", "host-script") &&
         set_string(model, "tag", tagify ? "input" : "textarea") &&
-        (tagify || set_text(model, "text", context_value(context))) && ps_set(model, "attrs", attrs);
+        (tagify || set_owned(model, "text", context_value(context))) && ps_set(model, "attrs", attrs);
     if (ok) attrs = NULL;
-    if (ok) ok = set_string(model, "script", script);
-    free(class_name); free(name); free(quoted_id); free(selector); free(script);
+    if (ok) ok = set_text(model, "script", ps_view(script_text));
+    free(class_name.bytes); free(name.bytes); free(quoted_id.bytes); free(script_text.bytes);
     if (!ok) { ps_value_free(attrs); ps_value_free(model); return NULL; }
     return model;
 }
 
 static ps_value *button_control(const widget_context *context)
 {
-    char *name = context_name(context), *init = context_option(context, "init_script", "");
-    char *onclick = behavior_script(context, "onclick");
-    char *text = ps_has(context->spec, "content") ? context_text(context, "content") : ps_string_join("", "", "");
-    char *quoted_id = script_quote(context->id);
-    char *script = init && onclick && quoted_id ? ps_string_join("\n$(function() {\n    ", init, "\n    $(document.getElementById(") : NULL;
-    if (script) { char *next = ps_string_join(script, quoted_id, "))"); free(script); script = next; }
-    if (script) { char *next = ps_string_join(script, ".on('click', function() {\n        ", onclick); free(script); script = next; }
-    if (script) { char *next = ps_string_join(script, "\n    });\n});\n", ""); free(script); script = next; }
-    char *class_name = context_class(context, "crudui-action crudui-action--text");
-    char *button_name = name ? ps_string_join("btn", name, "") : NULL;
+    ps_chars name = context_name(context), init = context_option(context, "init_script", "");
+    ps_chars onclick = behavior_script(context, PS_TEXT("onclick"));
+    ps_chars text = ps_has(context->spec, "content") ? context_text(context, "content") : ps_copy(PS_TEXT(""));
+    ps_chars quoted_id = script_quote(context->id);
+    ps_chars script = init.bytes && onclick.bytes && quoted_id.bytes
+        ? PS_CONCAT(PS_TEXT("\n$(function() {\n    "), ps_view(init),
+                    PS_TEXT("\n    $(document.getElementById("), ps_view(quoted_id),
+                    PS_TEXT(")).on('click', function() {\n        "), ps_view(onclick),
+                    PS_TEXT("\n    });\n});\n"))
+        : (ps_chars){NULL, 0};
+    ps_chars class_name = context_class(context, "crudui-action crudui-action--text");
+    ps_chars button_name = name.bytes ? PS_CONCAT(PS_TEXT("btn"), ps_view(name)) : name;
     ps_value *attrs = ps_object_value();
-    bool ok = name && init && onclick && text && script && class_name && button_name && attrs &&
-        set_string(attrs, "type", "button") && set_string(attrs, "class", class_name) &&
-        set_string(attrs, "name", button_name) && set_string(attrs, "id", context->id) &&
-        set_string(attrs, "value", text);
+    bool ok = name.bytes && init.bytes && onclick.bytes && text.bytes && script.bytes &&
+        class_name.bytes && button_name.bytes && attrs &&
+        set_string(attrs, "type", "button") && set_text(attrs, "class", ps_view(class_name)) &&
+        set_text(attrs, "name", ps_view(button_name)) && set_text(attrs, "id", context->id) &&
+        set_text(attrs, "value", ps_view(text));
     ps_value *hidden = ps_object_value(), *extra = ps_object_value();
-    char *leaf = ps_leaf_name(context->path, context->rows, context->row_count);
-    char *rule = ps_rule_name(context->path, context->rows, context->row_count);
-    char *value = context_value(context), *default_value = ps_scalar_string(member(context->spec, "default"));
-    if (ok) ok = hidden && extra && leaf && rule && value && default_value &&
+    ps_chars value = context_value(context);
+    if (ok) ok = hidden && extra && value.bytes &&
         set_string(hidden, "type", "hidden") && set_string(hidden, "class", "valid-target") &&
-        set_string(hidden, "readonly", "") && set_string(hidden, "name", name) &&
-        set_string(hidden, "data-name", leaf) && set_string(hidden, "data-rule-name", rule) &&
-        set_string(hidden, "value", value) && set_string(hidden, "data-default", default_value) &&
+        set_string(hidden, "readonly", "") && set_text(hidden, "name", ps_view(name)) &&
+        set_owned(hidden, "data-name", ps_leaf_name(context->path, context->rows, context->row_count)) &&
+        set_owned(hidden, "data-rule-name", ps_rule_name(context->path, context->rows, context->row_count)) &&
+        set_text(hidden, "value", ps_view(value)) &&
+        set_owned(hidden, "data-default", ps_scalar_string(member(context->spec, "default"))) &&
         ps_set(extra, "hidden", hidden);
     if (ok) hidden = NULL;
     ps_value *model = ps_object_value();
     if (ok) ok = model && set_string(model, "kind", "button") && set_string(model, "layout", "button") &&
-        set_string(model, "script", script) && set_string(model, "buttonText", text) &&
+        set_text(model, "script", ps_view(script)) && set_text(model, "buttonText", ps_view(text)) &&
         ps_set(model, "attrs", attrs);
     if (ok) attrs = NULL;
     if (ok) ok = ps_set(model, "extra", extra);
     if (ok) extra = NULL;
-    free(name); free(init); free(onclick); free(text); free(quoted_id); free(script); free(class_name);
-    free(button_name); free(leaf); free(rule); free(value); free(default_value);
+    free(name.bytes); free(init.bytes); free(onclick.bytes); free(text.bytes); free(quoted_id.bytes);
+    free(script.bytes); free(class_name.bytes); free(button_name.bytes); free(value.bytes);
     if (!ok) { ps_value_free(attrs); ps_value_free(hidden); ps_value_free(extra); ps_value_free(model); return NULL; }
     return model;
 }
 
 ps_value *ps_widget(const ps_value *spec, const ps_value *value, bool value_present,
-                    const char *path, const ps_value *design, const char *key_prefix,
-                    const char *id_prefix, const char *language,
+                    ps_text path, const ps_value *design, ps_text key_prefix,
+                    ps_text id_prefix, ps_text language,
                     const size_t *row_segments, size_t row_count)
 {
-    const char *type = string_member(spec, "type");
-    const char *kind = canonical_kind(type);
+    const char *kind = canonical_kind(string_member(spec, "type"));
     if (!kind) return NULL;
-    char *id = ps_control_id(id_prefix, path);
-    if (!id) return NULL;
-    widget_context context = {spec, value, value_present, path, design, key_prefix, id,
+    ps_chars id = ps_control_id(id_prefix, path);
+    if (!id.bytes) return NULL;
+    widget_context context = {spec, value, value_present, path, design, key_prefix, ps_view(id),
                               language, row_segments, row_count};
     ps_value *model;
     if (!strcmp(kind, "select")) model = select_control(&context);
@@ -715,22 +753,22 @@ ps_value *ps_widget(const ps_value *spec, const ps_value *value, bool value_pres
     else if (!strcmp(kind, "button")) model = button_control(&context);
     else model = text_control(kind, &context);
     if (model) {
-        const char *tag = string_member(model, "tag");
-        if ((!strcmp(tag, "input") || !strcmp(tag, "select") || !strcmp(tag, "textarea")) &&
-            !set_string(ps_get_mut(model, "attrs"), "id", id)) { ps_value_free(model); model = NULL; }
+        ps_text tag = string_member(model, "tag");
+        if ((ps_text_is(tag, "input") || ps_text_is(tag, "select") || ps_text_is(tag, "textarea")) &&
+            !set_text(ps_get_mut(model, "attrs"), "id", ps_view(id))) { ps_value_free(model); model = NULL; }
         ps_value *file = ps_get_mut(ps_get_mut(model, "extra"), "file");
-        if (model && file && !set_string(file, "id", id)) { ps_value_free(model); model = NULL; }
+        if (model && file && !set_text(file, "id", ps_view(id))) { ps_value_free(model); model = NULL; }
         if (model && ps_is_string(member(model, "layout"), "choices")) {
             ps_value *options = ps_get_mut(model, "options");
             for (size_t i = 0; options && i < ps_size(options); ++i) {
-                char index[32]; snprintf(index, sizeof(index), ":%zu", i);
-                char *option_id = ps_string_join(id, index, "");
-                if (!option_id || !set_string((ps_value *)ps_at(options, i), "id", option_id)) {
-                    free(option_id); ps_value_free(model); model = NULL; break;
-                }
-                free(option_id);
+                ps_chars index = ps_decimal(i);
+                ps_chars option_id = index.bytes
+                    ? PS_CONCAT(ps_view(id), PS_TEXT(":"), ps_view(index)) : index;
+                bool ok = option_id.bytes && set_text((ps_value *)ps_at(options, i), "id", ps_view(option_id));
+                free(index.bytes); free(option_id.bytes);
+                if (!ok) { ps_value_free(model); model = NULL; break; }
             }
         }
     }
-    free(id); return model;
+    free(id.bytes); return model;
 }

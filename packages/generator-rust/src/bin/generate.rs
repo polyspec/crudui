@@ -1,9 +1,9 @@
 use std::io::{self, Read};
 
 use crudui_generator::{
-    bind_form, build_detail, build_list, compile_form, list_rows, render_detail, render_form, render_list,
-    AddRowOptions, BindOptions, CompileOptions, DetailOptions, Form, FormError, FormResult,
-    FormTemplate, ListOptions,
+    bind_buttons, bind_form, build_detail, build_list, compile_form, form_buttons_html, list_rows,
+    render_detail, render_form, render_list, AddRowOptions, BindOptions, CompileOptions,
+    DetailOptions, Form, FormError, FormResult, FormTemplate, ListOptions,
 };
 use serde::de::DeserializeOwned;
 use serde_json::{json, Value};
@@ -138,6 +138,17 @@ fn generate(request: &Value) -> FormResult<Value> {
             let template: FormTemplate = decode(&request["template"])?;
             let data = object(request.get("data").unwrap_or(&empty), "Form data")?;
             Ok(bind_form(&template, data, &decode::<BindOptions>(options)?)?.into())
+        }
+        Some("bindButtons") => {
+            let template: FormTemplate = decode(&request["template"])?;
+            let data = object(request.get("data").unwrap_or(&empty), "Form data")?;
+            Ok(bind_buttons(&template, data, &decode::<BindOptions>(options)?)?.into())
+        }
+        Some("formButtonsHtml") => {
+            let buttons = request["buttons"]
+                .as_array()
+                .ok_or_else(|| input("Form buttons must be a list"))?;
+            Ok(form_buttons_html(buttons)?.into())
         }
         Some("buildList") | Some("renderList") => {
             let compilation = compile_options(options)?;

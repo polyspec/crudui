@@ -19,7 +19,7 @@ async function writeExecutable(filename) {
   await chmod(filename, 0o755);
 }
 
-test('test-native invokes the shared Rust command entry point', {
+test('test-native runs the Rust tests through the test runner', {
   skip: process.platform === 'win32',
 }, async t => {
   const directory = await mkdtemp(path.join(await realpath(os.tmpdir()), 'crudui-make-path-'));
@@ -51,7 +51,7 @@ test('test-native invokes the shared Rust command entry point', {
   assert.equal(result.status, 0, [result.stdout, result.stderr].join('\n'));
   const commands = await readFile(commandLog, 'utf8');
   assert.match(commands,
-    /^node\tscripts\/run-rust-command\.mjs test --locked --manifest-path packages\/generator-rust\/Cargo\.toml$/m);
+    /^node\tscripts\/run-tests\.mjs cargo -- --locked --manifest-path packages\/generator-rust\/Cargo\.toml$/m);
 });
 
 test('the Rust command entry point executes regular toolchain files', {

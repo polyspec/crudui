@@ -60,13 +60,21 @@ Compile `$ref` files before rendering.
 For framework-independent HTML, use the peer renderer package:
 
 ```ts
+import { connectForm, patchContent } from '@crudui/generator-core';
 import { renderForm, renderList } from '@crudui/generator-html';
 
-host.innerHTML = renderForm(form);
+patchContent(host, renderForm(form));
 const connection = connectForm(host, form);
+form.subscribe(() => {
+  patchContent(host, renderForm(form));
+  connection.sync();
+});
 const listHtml = renderList(listSpec, rows, { layout: 'table' });
 ```
 
+`patchContent` replaces the host's content with the new markup and keeps every node the
+markup still contains, so a re-render keeps the focused control, its selection and an input
+method composition; `connection.sync()` then sets the live control values.
 The HTML renderer returns fragments and does not create the outer `form` element,
 bind browser events, validate data or load records.
 
@@ -78,19 +86,16 @@ collection path. Never replace a token across the entire data object.
 
 ```sh
 npm run test:forms
-npm test -w @crudui/validator -- --run
+npm test -w @crudui/validator
 make docs-check
 ```
 
-Run the server validation cases from each package directory:
+Run the server validation cases from the repository root:
 
 ```sh
-# packages/validator-php
-vendor/bin/phpunit --filter ValidateConformanceTest
-# packages/validator-go
-go test ./validator/validate -count=1
-# packages/validator-rust
-cargo test --test validate_conformance
+node scripts/run-tests.mjs phpunit --cwd packages/validator-php -- --filter ValidateConformanceTest
+node scripts/run-tests.mjs go --cwd packages/validator-go -- ./validator/validate
+node scripts/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml --test validate_conformance
 ```
 
 `test:forms` builds current packages and runs core, SSR and mounted DOM tests.

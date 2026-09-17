@@ -24,17 +24,10 @@
   const pathAttribute = $derived(vm.kind === 'row' || vm.kind === 'lang-item' ? undefined : vm.path);
 </script>
 
-<div class={classes('crudui-node', `crudui-node--${vm.kind}`, vm.sticky && 'crudui-node--sticky', vm.className)} style={rootStyle(vm)} data-field-path={pathAttribute} data-crudui-row-key={vm.key} data-lang={vm.lang} hidden={vm.hidden}>
-  {#if hasHeader}
-    {#if vm.sticky}<div class="crudui-node__header-container"><Header vm={vm} /></div>{:else}<Header vm={vm} />{/if}
-  {/if}
-  <div class={classes('crudui-node__body', vm.body.className)} style={vm.body.style} id={vm.body.id} hidden={bodyHidden}>
-    {#if vm.checkbox}
-      <input class={vm.checkbox.className} id={vm.checkbox.id} name={vm.checkbox.name} type="checkbox" value="1" checked={vm.checkbox.checked || undefined} defaultChecked={vm.checkbox.checked} /><label for={vm.checkbox.id}>{#if vm.checkbox.caption}{vm.checkbox.caption}{/if}</label>
-    {:else if widgetRaw !== null}{@html widgetRaw}
-    {:else if vm.widget}<Widget w={vm.widget} />
-    {:else}{#each vm.children ?? [] as child, index (child.key ?? child.path ?? child.lang ?? index)}<Self vm={child} />{/each}
-    {/if}
-  </div>
-  {#if vm.controls?.placement === 'footer'}<div class="crudui-node__footer"><Controls controls={vm.controls} /></div>{/if}
-</div>
+<div class={classes('crudui-node', `crudui-node--${vm.kind}`, vm.sticky && 'crudui-node--sticky', vm.className)} style={rootStyle(vm)} data-field-path={pathAttribute} data-crudui-row-key={vm.key} data-lang={vm.lang} hidden={vm.hidden}
+  >{#if hasHeader}{#if vm.sticky}<div class="crudui-node__header-container"><Header vm={vm} /></div>{:else}<Header vm={vm} />{/if}{/if
+  }<div class={classes('crudui-node__body', vm.body.className)} style={vm.body.style} id={vm.body.id} hidden={bodyHidden}
+    >{#if vm.checkbox}<input class={vm.checkbox.className} id={vm.checkbox.id} name={vm.checkbox.name} type="checkbox" value="1" checked={vm.checkbox.checked || undefined} defaultChecked={vm.checkbox.checked} /><label for={vm.checkbox.id}>{#if vm.checkbox.caption}{vm.checkbox.caption}{/if}</label
+    >{:else if widgetRaw !== null}{@html widgetRaw}{:else if vm.widget}<Widget w={vm.widget} />{:else}{#each vm.children ?? [] as child, index (child.key ?? child.path ?? child.lang ?? index)}<Self vm={child} />{/each}{/if
+  }</div>{#if vm.controls?.placement === 'footer'}<div class="crudui-node__footer"><Controls controls={vm.controls} /></div>{/if
+}</div>

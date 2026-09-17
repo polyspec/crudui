@@ -1,7 +1,6 @@
 #include "engine_internal.h"
 
 #include <ctype.h>
-#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,8 +13,9 @@ struct ps_form {
     int64_t revision;
 };
 
+/* Path segments as views into the source path. */
 typedef struct {
-    char **items;
+    ps_text *items;
     size_t length;
 } form_path;
 
@@ -34,27 +34,13 @@ static ps_value *input_error(const char *message)
     return ps_error("form", "INVALID_FORM_INPUT", message, "", NULL);
 }
 
-static ps_value *input_error_format(const char *format, ...)
+/* An input error whose message is the prefix, the text and the suffix. */
+static ps_value *input_error_with(const char *prefix, ps_text text, const char *suffix)
 {
-    va_list arguments;
-    va_start(arguments, format);
-    va_list copy;
-    va_copy(copy, arguments);
-    int length = vsnprintf(NULL, 0, format, copy);
-    va_end(copy);
-    if (length < 0) {
-        va_end(arguments);
-        return internal_error();
-    }
-    char *message = malloc((size_t)length + 1);
-    if (!message) {
-        va_end(arguments);
-        return internal_error();
-    }
-    vsnprintf(message, (size_t)length + 1, format, arguments);
-    va_end(arguments);
-    ps_value *error = input_error(message);
-    free(message);
+    ps_chars message = PS_CONCAT(ps_fixed(prefix), text, ps_fixed(suffix));
+    if (!message.bytes) return internal_error();
+    ps_value *error = ps_error_text("form", "INVALID_FORM_INPUT", ps_view(message), PS_TEXT(""), NULL);
+    free(message.bytes);
     return error;
 }
 
@@ -70,22 +56,28 @@ static bool field_group(const ps_value *field)
     return ps_is_string(member(member(field, "spec"), "type"), "group");
 }
 
-static bool valid_key(const char *key)
+static bool reserved_name(ps_text key)
 {
-    if (!key || !*key || !strcmp(key, "__proto__") || !strcmp(key, "prototype") ||
-        !strcmp(key, "constructor")) return false;
+    return ps_text_is(key, "__proto__") || ps_text_is(key, "prototype") ||
+        ps_text_is(key, "constructor");
+}
+
+static bool valid_key(ps_text key)
+{
+    if (!key.length || reserved_name(key)) return false;
     bool digits = true;
-    for (const unsigned char *cursor = (const unsigned char *)key; *cursor; ++cursor) {
-        if (!isalnum(*cursor) && *cursor != '_' && *cursor != '-') return false;
-        if (!isdigit(*cursor)) digits = false;
+    for (size_t i = 0; i < key.length; ++i) {
+        unsigned char c = (unsigned char)key.bytes[i];
+        if (!isalnum(c) && c != '_' && c != '-') return false;
+        if (!isdigit(c)) digits = false;
     }
     return !digits;
 }
 
-static ps_value *checked_key_error(const char *key)
+static ps_value *checked_key_error(ps_text key)
 {
-    return valid_key(key) ? NULL : input_error_format(
-        "Invalid row key: %s; use sequenceRowKey for numeric ids", key ? key : "");
+    return valid_key(key) ? NULL
+        : input_error_with("Invalid row key: ", key, "; use sequenceRowKey for numeric ids");
 }
 
 static ps_value *fresh_key(const ps_value *used, ps_value **error)
@@ -97,7 +89,7 @@ static ps_value *fresh_key(const ps_value *used, ps_value **error)
             return NULL;
         }
         if (result.value && result.value->kind == PS_STRING &&
-            !ps_has(used, ps_string(result.value))) return result.value;
+            !ps_has_text(used, ps_string(result.value))) return result.value;
         ps_value_free(result.value);
     }
     *error = input_error("Unable to generate an unused row key");
@@ -105,10 +97,10 @@ static ps_value *fresh_key(const ps_value *used, ps_value **error)
 }
 
 static ps_value *normalize_fields(const ps_value *fields, const ps_value *value,
-                                  const char *path, ps_value **error);
+                                  ps_text path, ps_value **error);
 
 static ps_value *normalize_row(const ps_value *field, const ps_value *value,
-                               const char *path, ps_value **error)
+                               ps_text path, ps_value **error)
 {
     if (field_group(field))
         return normalize_fields(member(field, "children"), value, path, error);
@@ -119,30 +111,30 @@ static ps_value *normalize_row(const ps_value *field, const ps_value *value,
 
 /* Normalize one keyed row at "<collection path>.<key>". */
 static ps_value *normalize_keyed_row(const ps_value *field, const ps_value *value,
-                                     const char *collection_path, const char *key,
+                                     ps_text collection_path, ps_text key,
                                      ps_value **error)
 {
-    char *row_path = ps_join_path(collection_path, key);
-    if (!row_path) {
+    ps_chars row_path = ps_join_path(collection_path, key);
+    if (!row_path.bytes) {
         *error = internal_error();
         return NULL;
     }
-    ps_value *row = normalize_row(field, value, row_path, error);
-    free(row_path);
+    ps_value *row = normalize_row(field, value, ps_view(row_path), error);
+    free(row_path.bytes);
     return row;
 }
 
 /* Normalize record data; path is the full data path, empty at the root. */
 static ps_value *normalize_fields(const ps_value *fields, const ps_value *value,
-                                  const char *path, ps_value **error)
+                                  ps_text path, ps_value **error)
 {
     if (!fields || fields->kind != PS_ARRAY) {
         *error = input_error("Unsupported form template");
         return NULL;
     }
     if (value && value->kind != PS_OBJECT) {
-        *error = *path ? input_error_format("Group data must be an object: %s", path)
-                       : input_error("Form data must be an object");
+        *error = path.length ? input_error_with("Group data must be an object: ", path, "")
+                             : input_error("Form data must be an object");
         return NULL;
     }
     ps_value *data = value ? ps_value_clone(value) : ps_object_value();
@@ -150,7 +142,7 @@ static ps_value *normalize_fields(const ps_value *fields, const ps_value *value,
         *error = internal_error();
         return NULL;
     }
-    char *field_path = NULL;
+    ps_chars field_path = {NULL, 0};
     for (size_t index = 0; index < ps_size(fields); ++index) {
         const ps_value *field = ps_at(fields, index);
         const ps_value *name_value = member(field, "name");
@@ -158,20 +150,19 @@ static ps_value *normalize_fields(const ps_value *fields, const ps_value *value,
             *error = input_error("Unsupported form template");
             goto fail;
         }
-        const char *name = ps_string(name_value);
-        const ps_value *raw = ps_get(data, name);
+        ps_text name = ps_string(name_value);
+        const ps_value *raw = ps_get_text(data, name);
         ps_value *normalized = NULL;
         if (field_repeats(field) || field_group(field)) {
-            field_path = *path ? ps_join_path(path, name) : ps_string_join(name, "", "");
-            if (!field_path) {
+            field_path = ps_join_path(path, name);
+            if (!field_path.bytes) {
                 *error = internal_error();
                 goto fail;
             }
         }
         if (field_repeats(field)) {
             if (raw && raw->kind != PS_OBJECT) {
-                *error = input_error_format(
-                    "Repeated data must be a keyed object: %s", field_path);
+                *error = input_error_with("Repeated data must be a keyed object: ", ps_view(field_path), "");
                 goto fail;
             }
             ps_value *rows = ps_object_value();
@@ -182,8 +173,8 @@ static ps_value *normalize_fields(const ps_value *fields, const ps_value *value,
             if (!raw) {
                 ps_value *key = fresh_key(rows, error);
                 ps_value *row = key
-                    ? normalize_keyed_row(field, NULL, field_path, ps_string(key), error) : NULL;
-                if (!key || !row || !ps_set(rows, ps_string(key), row)) {
+                    ? normalize_keyed_row(field, NULL, ps_view(field_path), ps_string(key), error) : NULL;
+                if (!key || !row || !ps_set_text(rows, ps_string(key), row)) {
                     ps_value_free(key);
                     ps_value_free(rows);
                     if (!*error) *error = internal_error();
@@ -192,15 +183,15 @@ static ps_value *normalize_fields(const ps_value *fields, const ps_value *value,
                 ps_value_free(key);
             } else {
                 for (size_t row_index = 0; row_index < ps_size(raw); ++row_index) {
-                    const char *key = ps_key_at(raw, row_index);
+                    ps_text key = ps_key(raw, row_index);
                     *error = checked_key_error(key);
                     if (*error) {
                         ps_value_free(rows);
                         goto fail;
                     }
                     ps_value *row = normalize_keyed_row(field, ps_at(raw, row_index),
-                                                        field_path, key, error);
-                    if (!row || !ps_set(rows, key, row)) {
+                                                        ps_view(field_path), key, error);
+                    if (!row || !ps_set_text(rows, key, row)) {
                         ps_value_free(rows);
                         if (!*error) *error = internal_error();
                         goto fail;
@@ -209,7 +200,7 @@ static ps_value *normalize_fields(const ps_value *fields, const ps_value *value,
             }
             normalized = rows;
         } else if (field_group(field)) {
-            normalized = normalize_fields(member(field, "children"), raw, field_path, error);
+            normalized = normalize_fields(member(field, "children"), raw, ps_view(field_path), error);
         } else if (!raw) {
             const ps_value *fallback = member(member(field, "spec"), "default");
             if (fallback) normalized = ps_value_clone(fallback);
@@ -217,38 +208,33 @@ static ps_value *normalize_fields(const ps_value *fields, const ps_value *value,
         } else {
             continue;
         }
-        free(field_path);
-        field_path = NULL;
-        if (!normalized || !ps_set(data, name, normalized)) {
+        free(field_path.bytes);
+        field_path = (ps_chars){NULL, 0};
+        if (!normalized || !ps_set_text(data, name, normalized)) {
             if (!*error) *error = internal_error();
             goto fail;
         }
     }
     return data;
 fail:
-    free(field_path);
+    free(field_path.bytes);
     ps_value_free(data);
     return NULL;
 }
 
-static form_path checked_path(const char *path, ps_value **error)
+static form_path checked_path(ps_text path, ps_value **error)
 {
     form_path result = {0};
-    if (!ps_path_parts(path ? path : "", &result.items, &result.length) ||
-        !result.length) {
-        ps_path_parts_free(result.items, result.length);
-        result = (form_path){0};
-        *error = input_error_format("Invalid form path: %s", path ? path : "");
-        return result;
+    if (!ps_path_parts(path, &result.items, &result.length) || !result.length) {
+        free(result.items);
+        *error = input_error_with("Invalid form path: ", path, "");
+        return (form_path){0};
     }
     for (size_t index = 0; index < result.length; ++index) {
-        if (!strcmp(result.items[index], "__proto__") ||
-            !strcmp(result.items[index], "prototype") ||
-            !strcmp(result.items[index], "constructor")) {
-            ps_path_parts_free(result.items, result.length);
-            result = (form_path){0};
-            *error = input_error_format("Invalid form path: %s", path ? path : "");
-            return result;
+        if (reserved_name(result.items[index])) {
+            free(result.items);
+            *error = input_error_with("Invalid form path: ", path, "");
+            return (form_path){0};
         }
     }
     return result;
@@ -256,38 +242,41 @@ static form_path checked_path(const char *path, ps_value **error)
 
 static void free_path(form_path *path)
 {
-    ps_path_parts_free(path->items, path->length);
+    free(path->items);
     *path = (form_path){0};
 }
 
-static ps_value *put_at(const ps_value *current, char *const *path, size_t length,
+static ps_value *put_at(const ps_value *current, const ps_text *path, size_t length,
                         const ps_value *value)
 {
     if (!length) return NULL;
     ps_value *object = current && current->kind == PS_OBJECT
         ? ps_value_clone(current) : ps_object_value();
     if (!object) return NULL;
+    const ps_value *child = current && current->kind == PS_OBJECT ? ps_get_text(current, path[0]) : NULL;
     ps_value *next = length == 1
         ? ps_value_clone(value)
-        : put_at(member(current, path[0]), path + 1, length - 1, value);
-    if (!next || !ps_set(object, path[0], next)) {
+        : put_at(child, path + 1, length - 1, value);
+    if (!next || !ps_set_text(object, path[0], next)) {
         ps_value_free(object);
         return NULL;
     }
     return object;
 }
 
-static const ps_value *find_field(const ps_value *fields, const char *name)
+static const ps_value *find_field(const ps_value *fields, ps_text name)
 {
     if (!fields || fields->kind != PS_ARRAY) return NULL;
     for (size_t index = 0; index < ps_size(fields); ++index) {
         const ps_value *field = ps_at(fields, index);
-        if (ps_is_string(member(field, "name"), name)) return field;
+        const ps_value *field_name = member(field, "name");
+        if (field_name && field_name->kind == PS_STRING && ps_text_equal(ps_string(field_name), name))
+            return field;
     }
     return NULL;
 }
 
-static bool collection(const ps_form *form, const char *source, form_path *path,
+static bool collection(const ps_form *form, ps_text source, form_path *path,
                        const ps_value **field, const ps_value **rows, ps_value **error)
 {
     *path = checked_path(source, error);
@@ -297,7 +286,7 @@ static bool collection(const ps_form *form, const char *source, form_path *path,
     for (size_t index = 0; index < path->length; ++index) {
         selected = find_field(fields, path->items[index]);
         if (!selected) {
-            *error = input_error_format("Unknown collection: %s", source);
+            *error = input_error_with("Unknown collection: ", source, "");
             free_path(path);
             return false;
         }
@@ -306,10 +295,9 @@ static bool collection(const ps_form *form, const char *source, form_path *path,
         fields = member(selected, "children");
         selected = NULL;
     }
-    const ps_value *data = ps_path_segments(form->data,
-        (const char *const *)path->items, path->length);
+    const ps_value *data = ps_path_segments(form->data, path->items, path->length);
     if (!selected || !field_repeats(selected) || !data || data->kind != PS_OBJECT) {
-        *error = input_error_format("Not a keyed collection: %s", source);
+        *error = input_error_with("Not a keyed collection: ", source, "");
         free_path(path);
         return false;
     }
@@ -340,7 +328,7 @@ static ps_result commit(ps_form *form, ps_value *data)
 static ps_result replace_data(ps_form *form, const ps_value *value)
 {
     ps_value *error = NULL;
-    ps_value *data = normalize_fields(member(form->template, "fields"), value, "", &error);
+    ps_value *data = normalize_fields(member(form->template, "fields"), value, PS_TEXT(""), &error);
     if (!data) return (ps_result){NULL, error ? error : internal_error()};
     return commit(form, data);
 }
@@ -364,8 +352,8 @@ static ps_value *copy_row_value(const ps_value *field, const ps_value *value,
         const ps_value *child = ps_at(children, index);
         const ps_value *name_value = member(child, "name");
         if (!name_value || name_value->kind != PS_STRING) continue;
-        const char *name = ps_string(name_value);
-        const ps_value *raw = ps_get(row, name);
+        ps_text name = ps_string(name_value);
+        const ps_value *raw = ps_get_text(row, name);
         if (!raw || raw->kind != PS_OBJECT) continue;
         if (field_repeats(child)) {
             ps_value *used = ps_value_clone(raw);
@@ -381,8 +369,8 @@ static ps_value *copy_row_value(const ps_value *field, const ps_value *value,
                 ps_value *key = fresh_key(used, error);
                 ps_value *item = key
                     ? copy_row_value(child, ps_at(raw, row_index), error) : NULL;
-                if (!key || !item || !ps_set(copied, ps_string(key), item) ||
-                    !ps_set(used, ps_string(key), ps_null_value())) {
+                if (!key || !item || !ps_set_text(copied, ps_string(key), item) ||
+                    !ps_set_text(used, ps_string(key), ps_null_value())) {
                     ps_value_free(key);
                     ps_value_free(used);
                     ps_value_free(copied);
@@ -393,14 +381,14 @@ static ps_value *copy_row_value(const ps_value *field, const ps_value *value,
                 ps_value_free(key);
             }
             ps_value_free(used);
-            if (!ps_set(row, name, copied)) {
+            if (!ps_set_text(row, name, copied)) {
                 ps_value_free(row);
                 *error = internal_error();
                 return NULL;
             }
         } else if (field_group(child)) {
             ps_value *copied = copy_row_value(child, raw, error);
-            if (!copied || !ps_set(row, name, copied)) {
+            if (!copied || !ps_set_text(row, name, copied)) {
                 ps_value_free(row);
                 if (!*error) *error = internal_error();
                 return NULL;
@@ -426,7 +414,7 @@ static double numeric_setting(const ps_value *field, const char *name, bool *pre
     return 0;
 }
 
-static ps_value *object_with_insert(const ps_value *rows, const char *key,
+static ps_value *object_with_insert(const ps_value *rows, ps_text key,
                                     ps_value *value, size_t at)
 {
     ps_value *output = ps_object_value();
@@ -436,14 +424,14 @@ static ps_value *object_with_insert(const ps_value *rows, const char *key,
     }
     for (size_t index = 0; index <= ps_size(rows); ++index) {
         if (index == at) {
-            if (!ps_set(output, key, value)) {
+            if (!ps_set_text(output, key, value)) {
                 ps_value_free(output);
                 return NULL;
             }
             value = NULL;
         }
         if (index < ps_size(rows) &&
-            !ps_set(output, ps_key_at(rows, index), ps_value_clone(ps_at(rows, index)))) {
+            !ps_set_text(output, ps_key(rows, index), ps_value_clone(ps_at(rows, index)))) {
             ps_value_free(value);
             ps_value_free(output);
             return NULL;
@@ -452,7 +440,15 @@ static ps_value *object_with_insert(const ps_value *rows, const char *key,
     return output;
 }
 
-static ps_result add_row(ps_form *form, const char *source, const ps_value *options)
+/* The position of a row key, or SIZE_MAX. */
+static size_t row_position(const ps_value *rows, ps_text key)
+{
+    for (size_t index = 0; index < ps_size(rows); ++index)
+        if (ps_text_equal(ps_key(rows, index), key)) return index;
+    return SIZE_MAX;
+}
+
+static ps_result add_row(ps_form *form, ps_text source, const ps_value *options)
 {
     if (!options || options->kind != PS_OBJECT)
         return (ps_result){NULL, input_error("Row options must be an object")};
@@ -465,7 +461,7 @@ static ps_result add_row(ps_form *form, const char *source, const ps_value *opti
     double maximum = numeric_setting(field, "max", &has_max);
     if (has_max && (double)ps_size(rows) >= maximum) {
         free_path(&path);
-        return (ps_result){NULL, input_error_format("Maximum row count reached: %s", source)};
+        return (ps_result){NULL, input_error_with("Maximum row count reached: ", source, "")};
     }
     const ps_value *requested = member(options, "key");
     ps_value *key = NULL;
@@ -477,8 +473,8 @@ static ps_result add_row(ps_form *form, const char *source, const ps_value *opti
         return (ps_result){NULL, error ? error : internal_error()};
     }
     error = checked_key_error(ps_string(key));
-    if (error || ps_has(rows, ps_string(key))) {
-        if (!error) error = input_error_format("Row key already exists: %s", ps_string(key));
+    if (error || ps_has_text(rows, ps_string(key))) {
+        if (!error) error = input_error_with("Row key already exists: ", ps_string(key), "");
         ps_value_free(key);
         free_path(&path);
         return (ps_result){NULL, error};
@@ -488,25 +484,23 @@ static ps_result add_row(ps_form *form, const char *source, const ps_value *opti
     if (after && after->kind != PS_NULL) {
         if (after->kind != PS_STRING) error = input_error("afterKey must be a string");
         else {
-            at = SIZE_MAX;
-            for (size_t index = 0; index < ps_size(rows); ++index)
-                if (!strcmp(ps_key_at(rows, index), ps_string(after))) { at = index + 1; break; }
-            if (at == SIZE_MAX)
-                error = input_error_format("Unknown row: %s", ps_string(after));
+            size_t found = row_position(rows, ps_string(after));
+            if (found == SIZE_MAX) error = input_error_with("Unknown row: ", ps_string(after), "");
+            else at = found + 1;
         }
     }
     const ps_value *source_value = ps_has(options, "value") ? member(options, "value") : NULL;
     /* A supplied row value is checked at "<collection path>.<key>". */
-    char *row_path = error ? NULL : ps_string_join(path.items[0], "", "");
-    for (size_t index = 1; row_path && index <= path.length; ++index) {
-        char *next = ps_join_path(row_path,
+    ps_chars row_path = error ? (ps_chars){NULL, 0} : ps_copy(path.items[0]);
+    for (size_t index = 1; row_path.bytes && index <= path.length; ++index) {
+        ps_chars next = ps_join_path(ps_view(row_path),
             index < path.length ? path.items[index] : ps_string(key));
-        free(row_path);
+        free(row_path.bytes);
         row_path = next;
     }
-    if (!error && !row_path) error = internal_error();
-    ps_value *row = error ? NULL : normalize_row(field, source_value, row_path, &error);
-    free(row_path);
+    if (!error && !row_path.bytes) error = internal_error();
+    ps_value *row = error ? NULL : normalize_row(field, source_value, ps_view(row_path), &error);
+    free(row_path.bytes);
     ps_value *next_rows = row
         ? object_with_insert(rows, ps_string(key), row, at) : NULL;
     ps_value *data = next_rows
@@ -526,7 +520,7 @@ static ps_result add_row(ps_form *form, const char *source, const ps_value *opti
     return ps_ok(key);
 }
 
-static ps_result copy_row(ps_form *form, const char *source, const char *key,
+static ps_result copy_row(ps_form *form, ps_text source, ps_text key,
                           const ps_value *options)
 {
     if (!options || options->kind != PS_OBJECT)
@@ -536,16 +530,16 @@ static ps_result copy_row(ps_form *form, const char *source, const char *key,
     ps_value *error = NULL;
     if (!collection(form, source, &path, &field, &rows, &error))
         return (ps_result){NULL, error};
-    const ps_value *value = ps_get(rows, key);
+    const ps_value *value = ps_get_text(rows, key);
     if (!value) {
         free_path(&path);
-        return (ps_result){NULL, input_error_format("Unknown row: %s", key)};
+        return (ps_result){NULL, input_error_with("Unknown row: ", key, "")};
     }
     ps_value *copied = copy_row_value(field, value, &error);
     ps_value *next_options = ps_value_clone(options);
     if (!copied || !next_options || !ps_set(next_options, "value", copied) ||
         ((!member(next_options, "afterKey") || member(next_options, "afterKey")->kind == PS_NULL) &&
-         !ps_set(next_options, "afterKey", ps_string_value(key)))) {
+         !ps_set(next_options, "afterKey", ps_text_value(key)))) {
         ps_value_free(next_options);
         free_path(&path);
         return (ps_result){NULL, error ? error : internal_error()};
@@ -556,25 +550,25 @@ static ps_result copy_row(ps_form *form, const char *source, const char *key,
     return result;
 }
 
-static ps_result remove_row(ps_form *form, const char *source, const char *key)
+static ps_result remove_row(ps_form *form, ps_text source, ps_text key)
 {
     form_path path = {0};
     const ps_value *field = NULL, *rows = NULL;
     ps_value *error = NULL;
     if (!collection(form, source, &path, &field, &rows, &error))
         return (ps_result){NULL, error};
-    if (!ps_has(rows, key)) {
+    if (!ps_has_text(rows, key)) {
         free_path(&path);
-        return (ps_result){NULL, input_error_format("Unknown row: %s", key)};
+        return (ps_result){NULL, input_error_with("Unknown row: ", key, "")};
     }
     bool has_min = false;
     double minimum = numeric_setting(field, "min", &has_min);
     if (has_min && (double)ps_size(rows) <= minimum) {
         free_path(&path);
-        return (ps_result){NULL, input_error_format("Minimum row count reached: %s", source)};
+        return (ps_result){NULL, input_error_with("Minimum row count reached: ", source, "")};
     }
     ps_value *next_rows = ps_value_clone(rows);
-    if (!next_rows || !ps_delete(next_rows, key)) {
+    if (!next_rows || !ps_delete_text(next_rows, key)) {
         ps_value_free(next_rows);
         free_path(&path);
         return (ps_result){NULL, internal_error()};
@@ -595,7 +589,7 @@ static ps_value *reordered_rows(const ps_value *rows, size_t from, size_t to)
         else if (from < to && target >= from && target < to) source = target + 1;
         else if (from > to && target > to && target <= from) source = target - 1;
         else source = target;
-        if (!ps_set(output, ps_key_at(rows, source), ps_value_clone(ps_at(rows, source)))) {
+        if (!ps_set_text(output, ps_key(rows, source), ps_value_clone(ps_at(rows, source)))) {
             ps_value_free(output);
             return NULL;
         }
@@ -603,7 +597,7 @@ static ps_value *reordered_rows(const ps_value *rows, size_t from, size_t to)
     return output;
 }
 
-static ps_result move_row(ps_form *form, const char *source, const char *key,
+static ps_result move_row(ps_form *form, ps_text source, ps_text key,
                           int64_t position)
 {
     form_path path = {0};
@@ -612,17 +606,16 @@ static ps_result move_row(ps_form *form, const char *source, const char *key,
     if (!collection(form, source, &path, &field, &rows, &error))
         return (ps_result){NULL, error};
     (void)field;
-    size_t from = SIZE_MAX;
-    for (size_t index = 0; index < ps_size(rows); ++index)
-        if (!strcmp(ps_key_at(rows, index), key)) { from = index; break; }
+    size_t from = row_position(rows, key);
     if (from == SIZE_MAX) {
         free_path(&path);
-        return (ps_result){NULL, input_error_format("Unknown row: %s", key)};
+        return (ps_result){NULL, input_error_with("Unknown row: ", key, "")};
     }
     if (position < 0 || (uint64_t)position >= ps_size(rows)) {
         free_path(&path);
-        return (ps_result){NULL, input_error_format(
-            "Invalid row position: %lld", (long long)position)};
+        char message[64];
+        snprintf(message, sizeof(message), "Invalid row position: %lld", (long long)position);
+        return (ps_result){NULL, input_error(message)};
     }
     if (from == (size_t)position) {
         free_path(&path);
@@ -636,8 +629,8 @@ static ps_result move_row(ps_form *form, const char *source, const char *key,
     return data ? commit(form, data) : (ps_result){NULL, internal_error()};
 }
 
-static ps_result rekey_row(ps_form *form, const char *source, const char *old_key,
-                           const char *new_key)
+static ps_result rekey_row(ps_form *form, ps_text source, ps_text old_key,
+                           ps_text new_key)
 {
     ps_value *error = checked_key_error(new_key);
     if (error) return (ps_result){NULL, error};
@@ -646,23 +639,22 @@ static ps_result rekey_row(ps_form *form, const char *source, const char *old_ke
     if (!collection(form, source, &path, &field, &rows, &error))
         return (ps_result){NULL, error};
     (void)field;
-    if (!ps_has(rows, old_key)) {
+    if (!ps_has_text(rows, old_key)) {
         free_path(&path);
-        return (ps_result){NULL, input_error_format("Unknown row: %s", old_key)};
+        return (ps_result){NULL, input_error_with("Unknown row: ", old_key, "")};
     }
-    if (!strcmp(old_key, new_key)) {
+    if (ps_text_equal(old_key, new_key)) {
         free_path(&path);
         return ps_ok(ps_null_value());
     }
-    if (ps_has(rows, new_key)) {
+    if (ps_has_text(rows, new_key)) {
         free_path(&path);
-        return (ps_result){NULL, input_error_format("Row key already exists: %s", new_key)};
+        return (ps_result){NULL, input_error_with("Row key already exists: ", new_key, "")};
     }
     ps_value *next_rows = ps_object_value();
     for (size_t index = 0; next_rows && index < ps_size(rows); ++index) {
-        const char *key = !strcmp(ps_key_at(rows, index), old_key)
-            ? new_key : ps_key_at(rows, index);
-        if (!ps_set(next_rows, key, ps_value_clone(ps_at(rows, index)))) {
+        ps_text key = ps_text_equal(ps_key(rows, index), old_key) ? new_key : ps_key(rows, index);
+        if (!ps_set_text(next_rows, key, ps_value_clone(ps_at(rows, index)))) {
             ps_value_free(next_rows);
             next_rows = NULL;
         }
@@ -684,7 +676,7 @@ ps_form_result ps_form_new(const ps_value *template, const ps_value *data,
     ps_value *ordered = ps_value_ordered(template);
     if (!ordered) return (ps_form_result){NULL, internal_error()};
     ps_value *error = NULL;
-    ps_value *normalized = normalize_fields(member(ordered, "fields"), data, "", &error);
+    ps_value *normalized = normalize_fields(member(ordered, "fields"), data, PS_TEXT(""), &error);
     if (!normalized) {
         ps_value_free(ordered);
         return (ps_form_result){NULL, error ? error : internal_error()};
@@ -741,10 +733,10 @@ ps_form *ps_form_clone(const ps_form *form)
 }
 
 /* The interface language of a bound form: its option, or Korean. */
-static const char *form_language(const ps_form *form)
+static ps_text form_language(const ps_form *form)
 {
     const ps_value *language = member(form->options, "language");
-    return language && language->kind == PS_STRING ? ps_string(language) : "ko";
+    return language && language->kind == PS_STRING ? ps_string(language) : PS_TEXT("ko");
 }
 
 ps_result ps_form_read(const ps_form *form, uint8_t member_index)
@@ -763,12 +755,10 @@ ps_result ps_form_read(const ps_form *form, uint8_t member_index)
     }
     if (member_index == 4) {
         ps_value *buttons = ps_bind_buttons(form->template, form->data, form_language(form));
-        char *html = buttons && messages
-            ? ps_render_form(form->fields, buttons, messages->form_actions) : NULL;
+        ps_chars html = buttons && messages
+            ? ps_render_form(form->fields, buttons, messages->form_actions) : (ps_chars){NULL, 0};
         ps_value_free(buttons);
-        if (!html) return (ps_result){NULL, internal_error()};
-        ps_value *value = ps_string_value(html);
-        free(html);
+        ps_value *value = ps_chars_value(html);
         return value ? ps_ok(value) : (ps_result){NULL, internal_error()};
     }
     return (ps_result){NULL, input_error("Unknown form member")};
@@ -783,13 +773,14 @@ static const ps_value *argument(const ps_value *args, size_t index, ps_value **e
     return ps_at(args, index);
 }
 
-static const char *string_argument(const ps_value *args, size_t index, ps_value **error)
+/* A string argument; NULL bytes with *error set when it is missing or not a string. */
+static ps_text string_argument(const ps_value *args, size_t index, ps_value **error)
 {
     const ps_value *value = argument(args, index, error);
-    if (!value) return NULL;
+    if (!value) return (ps_text){NULL, 0};
     if (value->kind != PS_STRING) {
         *error = input_error("Expected a string");
-        return NULL;
+        return (ps_text){NULL, 0};
     }
     return ps_string(value);
 }
@@ -801,12 +792,11 @@ ps_result ps_form_apply(ps_form *form, uint8_t method, const ps_value *args)
     if (!args || args->kind != PS_ARRAY)
         return (ps_result){NULL, input_error("Expected an argument array")};
     if (method == 0) {
-        const char *source = string_argument(args, 0, &error);
-        if (!source) return (ps_result){NULL, error};
+        ps_text source = string_argument(args, 0, &error);
+        if (error) return (ps_result){NULL, error};
         form_path path = checked_path(source, &error);
         if (error) return (ps_result){NULL, error};
-        const ps_value *value = ps_path_segments(form->data,
-            (const char *const *)path.items, path.length);
+        const ps_value *value = ps_path_segments(form->data, path.items, path.length);
         free_path(&path);
         return ps_ok(value ? ps_value_clone(value) : ps_null_value());
     }
@@ -816,7 +806,7 @@ ps_result ps_form_apply(ps_form *form, uint8_t method, const ps_value *args)
         return replace_data(form, data);
     }
     if (method == 2) {
-        const char *source = string_argument(args, 0, &error);
+        ps_text source = string_argument(args, 0, &error);
         const ps_value *value = error ? NULL : argument(args, 1, &error);
         if (error) return (ps_result){NULL, error};
         form_path path = checked_path(source, &error);
@@ -824,39 +814,39 @@ ps_result ps_form_apply(ps_form *form, uint8_t method, const ps_value *args)
         ps_value *updated = put_at(form->data, path.items, path.length, value);
         free_path(&path);
         if (!updated) return (ps_result){NULL, internal_error()};
-        ps_value *normalized = normalize_fields(member(form->template, "fields"), updated, "", &error);
+        ps_value *normalized = normalize_fields(member(form->template, "fields"), updated, PS_TEXT(""), &error);
         ps_value_free(updated);
         return normalized ? commit(form, normalized)
                           : (ps_result){NULL, error ? error : internal_error()};
     }
     if (method == 3) {
-        const char *source = string_argument(args, 0, &error);
+        ps_text source = string_argument(args, 0, &error);
         const ps_value *options = error ? NULL : argument(args, 1, &error);
         return error ? (ps_result){NULL, error} : add_row(form, source, options);
     }
     if (method == 4) {
-        const char *source = string_argument(args, 0, &error);
-        const char *key = error ? NULL : string_argument(args, 1, &error);
+        ps_text source = string_argument(args, 0, &error);
+        ps_text key = error ? source : string_argument(args, 1, &error);
         const ps_value *options = error ? NULL : argument(args, 2, &error);
         return error ? (ps_result){NULL, error} : copy_row(form, source, key, options);
     }
     if (method == 5) {
-        const char *source = string_argument(args, 0, &error);
-        const char *key = error ? NULL : string_argument(args, 1, &error);
+        ps_text source = string_argument(args, 0, &error);
+        ps_text key = error ? source : string_argument(args, 1, &error);
         return error ? (ps_result){NULL, error} : remove_row(form, source, key);
     }
     if (method == 6) {
-        const char *source = string_argument(args, 0, &error);
-        const char *key = error ? NULL : string_argument(args, 1, &error);
+        ps_text source = string_argument(args, 0, &error);
+        ps_text key = error ? source : string_argument(args, 1, &error);
         const ps_value *position = error ? NULL : argument(args, 2, &error);
         if (!error && position->kind != PS_INT) error = input_error("Invalid row position");
         return error ? (ps_result){NULL, error}
                      : move_row(form, source, key, position->data.integer);
     }
     if (method == 7) {
-        const char *source = string_argument(args, 0, &error);
-        const char *old_key = error ? NULL : string_argument(args, 1, &error);
-        const char *new_key = error ? NULL : string_argument(args, 2, &error);
+        ps_text source = string_argument(args, 0, &error);
+        ps_text old_key = error ? source : string_argument(args, 1, &error);
+        ps_text new_key = error ? source : string_argument(args, 2, &error);
         return error ? (ps_result){NULL, error}
                      : rekey_row(form, source, old_key, new_key);
     }

@@ -25,6 +25,15 @@ import {
   UnsupportedFieldTypeError,
 } from '../src/index.ts';
 import { normalizeHtml } from '../../../tests/fixtures/form-render/normalize.mjs';
+import { provesConformance } from '../../../tests/conformance/evidence.mjs';
+
+/** Run one fixture case and record renderForm evidence for it. */
+function proves(name, body) {
+  return provesConformance(
+    { features: ['renderForm'], fixture: 'tests/fixtures/form-render/cases.json', runtime: 'svelte', case: name },
+    body
+  );
+}
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const FIXTURE = path.resolve(HERE, '../../../tests/fixtures/form-render/cases.json');
@@ -36,18 +45,18 @@ function render(c) {
 
 describe('form rendering: Svelte reproduces the normalized expected_html', () => {
   for (const c of cases.filter((x) => !x.expectError)) {
-    test(c.name, () => {
+    test(c.name, () => proves(c.name, () => {
       const actual = normalizeHtml(render(c));
       expect(actual).toStrictEqual(c.expected_html);
-    });
+    }));
   }
 });
 
 describe('form rendering: render is idempotent (stable across re-render)', () => {
   for (const c of cases.filter((x) => !x.expectError)) {
-    test(`${c.name} — re-render is stable`, () => {
+    test(`${c.name} — re-render is stable`, () => proves(c.name, () => {
       expect(normalizeHtml(render(c))).toStrictEqual(normalizeHtml(render(c)));
-    });
+    }));
   }
 });
 
@@ -61,7 +70,7 @@ const ERROR_CLASS_BY_CODE = {
 
 describe('form rendering: a load/registry gap is a surfaced ERROR, never silent', () => {
   for (const c of cases.filter((x) => x.expectError)) {
-    test(c.name, () => {
+    test(c.name, () => proves(c.name, () => {
       let thrown;
       try {
         render(c);
@@ -72,7 +81,7 @@ describe('form rendering: a load/registry gap is a surfaced ERROR, never silent'
       expect(expectedClass, `${c.name}: unknown error code ${c.expectError.code}`).toBeTruthy();
       expect(thrown, `${c.name} must throw a surfaced error`).toBeInstanceOf(expectedClass);
       expect(thrown.code).toStrictEqual(c.expectError.code);
-    });
+    }));
   }
 });
 
@@ -88,7 +97,7 @@ describe('form rendering: eval is never used (no legacy condition metadata)', ()
   // generator actually emits, where a forbidden meta key or a magic token would
   // still be visible (there is no normalizer mask to hide one).
   for (const c of cases.filter((x) => x.expected_html)) {
-    test(`${c.name} — no forbidden meta-key markup`, () => {
+    test(`${c.name} — no forbidden meta-key markup`, () => proves(c.name, () => {
       const raw = render(c);
 
       // 1: no legacy condition meta key reaches the markup (eval/legacy path never ran).
@@ -99,7 +108,7 @@ describe('form rendering: eval is never used (no legacy condition metadata)', ()
         expect(raw, `${c.name}: ${re} leaked into raw output`).not.toMatch(re);
       }
 
-    });
+    }));
   }
 
   // 3: G4 data identity — a real row id (e.g. people.p1) is preserved verbatim

@@ -8,6 +8,8 @@ use CRUDUI\Validator\Compose\ComposeLoadError;
 use CRUDUI\Validator;
 use PHPUnit\Framework\TestCase;
 
+require_once __DIR__ . '/../../../../tests/conformance/evidence.php';
+
 /**
  * CRUDUI detail-spec validation conformance.
  *
@@ -54,6 +56,19 @@ final class DetailValidateConformanceTest extends TestCase
      * @param array<string, mixed> $case
      */
     public function testDetailEngineMatchesFixture(array $case): void
+    {
+        self::assertFalse((new \ReflectionClass(Validator::class))->isInternal(), 'PHPUnit evidence proves the pure PHP runtime, not the native extension');
+        $passed = false;
+        try {
+            $this->assertCase($case);
+            $passed = true;
+        } finally {
+            crudui_record_conformance('validateDetail', 'tests/fixtures/detail-validity/cases.json', 'php', $case['name'], $passed);
+        }
+    }
+
+    /** @param array<string, mixed> $case */
+    private function assertCase(array $case): void
     {
         self::assertArrayHasKey('engine', $case, "case {$case['name']} must declare an engine expectation");
 

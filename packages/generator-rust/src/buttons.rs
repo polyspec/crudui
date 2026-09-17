@@ -5,6 +5,7 @@ use crate::design::resolve_design;
 use crate::messages::Messages;
 use crate::render::{raw_attribute, raw_text};
 use crate::util::translate;
+use crate::{FormError, FormResult};
 use serde_json::{Map, Value};
 
 /// Button types a spec can declare. A link renders an anchor.
@@ -45,53 +46,94 @@ fn button_script(button: &Map<String, Value>, action: &str) -> String {
         .into()
 }
 
-/// Render the form buttons for a record; every implementation emits this markup.
-pub(crate) fn form_buttons_html(
+/// Evaluate form buttons for a record: ordered `type, tag, text, attrs` objects whose
+/// attributes keep the output order type, class, style, name, value, href, onclick.
+pub(crate) fn button_models(
     buttons: &[Map<String, Value>],
     data: &Value,
     language: &str,
     messages: &Messages,
-) -> String {
+) -> Vec<Value> {
     buttons
         .iter()
         .map(|button| {
             let kind = button.get("type").and_then(Value::as_str).unwrap_or("");
             let design = resolve_design(button.get("design"), data, "");
             let tag = if kind == "link" { "a" } else { "button" };
-            let mut attrs: Vec<(&str, String)> = Vec::new();
+            let mut attrs = Map::new();
             if kind != "link" {
-                attrs.push(("type", kind.into()));
+                attrs.insert("type".into(), kind.into());
             }
             let class = design["main"]["class"].as_str().unwrap_or("");
-            attrs.push((
-                "class",
+            attrs.insert(
+                "class".into(),
                 if class.is_empty() {
                     "crudui-action crudui-action--text".into()
                 } else {
-                    format!("crudui-action crudui-action--text {class}")
+                    format!("crudui-action crudui-action--text {class}").into()
                 },
-            ));
+            );
             let style = style_string(design["main"]["style"].as_str().unwrap_or(""));
             if !style.is_empty() {
-                attrs.push(("style", style));
+                attrs.insert("style".into(), style.into());
             }
             for name in ["name", "value", "href"] {
                 if let Some(value) = button.get(name).and_then(Value::as_str) {
-                    attrs.push((name, value.into()));
+                    attrs.insert(name.into(), value.into());
                 }
             }
             let script = button_script(button, "onclick");
             if !script.is_empty() {
-                attrs.push(("onclick", script));
+                attrs.insert("onclick".into(), script.into());
             }
-            let attributes = attrs
-                .iter()
-                .map(|(name, value)| format!(" {name}=\"{}\"", raw_attribute(value)))
-                .collect::<String>();
-            format!(
-                "<{tag}{attributes}>{}</{tag}>",
-                raw_text(&button_label(button, language, button_text(messages, kind)))
-            )
+            let mut model = Map::new();
+            model.insert("type".into(), kind.into());
+            model.insert("tag".into(), tag.into());
+            model.insert(
+                "text".into(),
+                button_label(button, language, button_text(messages, kind)).into(),
+            );
+            model.insert("attrs".into(), Value::Object(attrs));
+            Value::Object(model)
         })
         .collect()
+}
+
+/// Markup of evaluated form buttons; every implementation emits this markup.
+pub(crate) fn buttons_markup(buttons: &[Value]) -> FormResult<String> {
+    let invalid = || FormError::input("Form buttons must be evaluated button objects");
+    buttons
+        .iter()
+        .map(|button| {
+            let tag = match button["tag"].as_str() {
+                Some(tag @ ("a" | "button")) => tag,
+                _ => return Err(invalid()),
+            };
+            let text = button["text"].as_str().ok_or_else(invalid)?;
+            let attrs = button["attrs"].as_object().ok_or_else(invalid)?;
+            let mut attributes = String::new();
+            for (name, value) in attrs {
+                let value = value.as_str().ok_or_else(invalid)?;
+                if !BUTTON_ATTRIBUTES.contains(&name.as_str()) {
+                    return Err(invalid());
+                }
+                attributes.push_str(&format!(" {name}=\"{}\"", raw_attribute(value)));
+            }
+            Ok(format!("<{tag}{attributes}>{}</{tag}>", raw_text(text)))
+        })
+        .collect()
+}
+
+/// The attribute names an evaluated button can carry, in output order.
+const BUTTON_ATTRIBUTES: [&str; 7] = ["type", "class", "style", "name", "value", "href", "onclick"];
+
+/// Render the form buttons for a record.
+pub(crate) fn form_buttons_html(
+    buttons: &[Map<String, Value>],
+    data: &Value,
+    language: &str,
+    messages: &Messages,
+) -> String {
+    buttons_markup(&button_models(buttons, data, language, messages))
+        .expect("evaluated buttons are valid")
 }

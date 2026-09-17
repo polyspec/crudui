@@ -8,6 +8,8 @@ use CRUDUI\Validator\Compose\ComposeLoadError;
 use CRUDUI\Validator;
 use PHPUnit\Framework\TestCase;
 
+require_once __DIR__ . '/../../../../tests/conformance/evidence.php';
+
 /**
  * CRUDUI list-spec validation conformance verifies SPEC §9.
  *
@@ -55,6 +57,19 @@ final class ListValidateConformanceTest extends TestCase
      * @param array<string, mixed> $case
      */
     public function testListEngineMatchesFixture(array $case): void
+    {
+        self::assertFalse((new \ReflectionClass(Validator::class))->isInternal(), 'PHPUnit evidence proves the pure PHP runtime, not the native extension');
+        $passed = false;
+        try {
+            $this->assertCase($case);
+            $passed = true;
+        } finally {
+            crudui_record_conformance('validateList', 'tests/fixtures/list-validity/cases.json', 'php', $case['name'], $passed);
+        }
+    }
+
+    /** @param array<string, mixed> $case */
+    private function assertCase(array $case): void
     {
         self::assertArrayHasKey('engine', $case, "case {$case['name']} must declare an engine expectation");
 

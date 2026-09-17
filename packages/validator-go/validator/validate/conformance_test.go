@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/polyspec/crudui/packages/validator-go/validator/compose"
+	"github.com/polyspec/crudui/packages/validator-go/validator/internal/conformance"
 )
 
 // Validation conformance verifies SPEC §2 G5, §3 and §2 G1.
@@ -72,6 +73,7 @@ func TestValidateMatchesFixture(t *testing.T) {
 	for _, c := range loadValidateFixtures(t) {
 		c := c
 		t.Run(c.Name, func(t *testing.T) {
+			conformance.Record(t, "validate", "tests/fixtures/validate/cases.json", c.Name)
 			files := map[string][]byte{}
 			if len(c.Files) > 0 {
 				var fm map[string]json.RawMessage

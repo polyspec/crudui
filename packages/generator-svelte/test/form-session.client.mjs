@@ -4,6 +4,13 @@ import { compileForm, createForm } from '@crudui/generator-core';
 import Form from '../src/components/Form.svelte';
 import { spec, data, exerciseSessionDom } from '../../../tests/fixtures/form-session/scenario.mjs';
 import { compareInitialization, compareServerTakeover } from '../../../tests/fixtures/form-session/initialization.mjs';
+import { provesConformance } from '../../../tests/conformance/evidence.mjs';
+
+/** Run one shared form session case and record svelte evidence for the features it proves. */
+function proves(fixture, name, features, run) {
+  return provesConformance({ features, fixture: `tests/fixtures/form-session/${fixture}`, runtime: 'svelte', case: name }, run);
+}
+const SESSION_FEATURES = ['connectForm', 'connectOutline', 'runAction', 'viewState', 'formHistory'];
 
 it('renders identical HTML and control state with initial or repeatedly injected data', async () => {
   const template = compileForm(spec, { keyPrefix: 'form' });
@@ -12,8 +19,10 @@ it('renders identical HTML and control state with initial or repeatedly injected
   const apps = [initial, deferred].map(({ session, element }) => mount(Form, { target: element, props: { form: session } }));
   await tick();
   try {
-    compareServerTakeover({ element: initial.element, session: initial.session, expect });
-    await compareInitialization({ initial, deferred, expect, flush: tick });
+    await proves('initialization.mjs', 'compareServerTakeover', ['connectForm'], () =>
+      compareServerTakeover({ element: initial.element, session: initial.session, expect }));
+    await proves('initialization.mjs', 'compareInitialization', ['connectForm'], () =>
+      compareInitialization({ initial, deferred, expect, flush: tick }));
   }
   finally { await Promise.all(apps.map(app => unmount(app))); }
 });
@@ -24,7 +33,10 @@ it('runs the shared browser lifecycle over a cached Svelte form', async () => {
   document.body.append(element);
   const app = mount(Form, { target: element, props: { form: session } });
   await tick();
-  try { await exerciseSessionDom({ element, session, expect, flush: tick }); }
+  try {
+    await proves('scenario.mjs', 'exerciseSessionDom', SESSION_FEATURES, () =>
+      exerciseSessionDom({ element, session, expect, flush: tick }));
+  }
   finally { await unmount(app); element.remove(); }
 });
 
@@ -72,6 +84,9 @@ it('connects labels and preserves multiple choice values through editing and sub
   document.body.append(element);
   const app = mount(Form, { target: element, props: { form } });
   await tick();
-  try { await exerciseControls({ element, form, expect, flush: tick }); }
+  try {
+    await proves('controls.mjs', 'exerciseControls', ['connectForm'], () =>
+      exerciseControls({ element, form, expect, flush: tick }));
+  }
   finally { await unmount(app); element.remove(); }
 });

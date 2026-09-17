@@ -74,13 +74,13 @@ func TestListPageAndTotalAreIntegers(t *testing.T) {
 		options ListOptions
 		want    string
 	}{
-		{"none", ListOptions{}, `{"enabled":true}`},
-		{"null", ListOptions{Page: nil, Total: nil}, `{"enabled":true}`},
-		{"integral floats", ListOptions{Page: 2.0, Total: 99.0}, `{"enabled":true,"page":2,"total":99}`},
-		{"bounds", ListOptions{Page: 9007199254740991.0, Total: 0.0}, `{"enabled":true,"page":9007199254740991,"total":0}`},
-		{"negative zero total", ListOptions{Total: math.Copysign(0, -1)}, `{"enabled":true,"total":0}`},
-		{"go integers", ListOptions{Page: 1, Total: int64(9007199254740991)}, `{"enabled":true,"page":1,"total":9007199254740991}`},
-		{"page only", ListOptions{Page: 3.0}, `{"enabled":true,"page":3}`},
+		{"none", ListOptions{}, `{"enabled":true,"perPage":20,"mode":"pages","page":1,"pageCount":0}`},
+		{"null", ListOptions{Page: nil, Total: nil}, `{"enabled":true,"perPage":20,"mode":"pages","page":1,"pageCount":0}`},
+		{"integral floats", ListOptions{Page: 2.0, Total: 99.0}, `{"enabled":true,"perPage":20,"mode":"pages","page":2,"total":99,"pageCount":5}`},
+		{"bounds", ListOptions{Page: 9007199254740991.0, Total: 0.0}, `{"enabled":true,"perPage":20,"mode":"pages","page":9007199254740991,"total":0,"pageCount":1}`},
+		{"negative zero total", ListOptions{Total: math.Copysign(0, -1)}, `{"enabled":true,"perPage":20,"mode":"pages","page":1,"total":0,"pageCount":1}`},
+		{"go integers", ListOptions{Page: 1, Total: int64(9007199254740991)}, `{"enabled":true,"perPage":20,"mode":"pages","page":1,"total":9007199254740991,"pageCount":450359962737050}`},
+		{"page only", ListOptions{Page: 3.0}, `{"enabled":true,"perPage":20,"mode":"pages","page":3,"pageCount":0}`},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {

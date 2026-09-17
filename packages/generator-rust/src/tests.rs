@@ -775,25 +775,25 @@ fn list_input_errors_follow_contract_order() {
         (
             json!(2.0),
             json!(-0.0),
-            json!({"enabled":true,"page":2,"total":0}),
+            json!({"enabled":true,"perPage":20,"mode":"pages","page":2,"total":0,"pageCount":1}),
             r#"data-page="2" data-total="0""#,
         ),
         (
             json!(9007199254740991_u64),
             json!(9007199254740991.0),
-            json!({"enabled":true,"page":9007199254740991_u64,"total":9007199254740991_u64}),
+            json!({"enabled":true,"perPage":20,"mode":"pages","page":9007199254740991_u64,"total":9007199254740991_u64,"pageCount":450359962737050_u64}),
             r#"data-page="9007199254740991" data-total="9007199254740991""#,
         ),
         (
             json!(1),
             Value::Null,
-            json!({"enabled":true,"page":1}),
+            json!({"enabled":true,"perPage":20,"mode":"pages","page":1,"pageCount":0}),
             r#"data-page="1""#,
         ),
         (
             Value::Null,
             Value::Null,
-            json!({"enabled":true}),
+            json!({"enabled":true,"perPage":20,"mode":"pages","page":1,"pageCount":0}),
             "crudui-list__pagination",
         ),
     ] {
@@ -1330,5 +1330,101 @@ fn display_designs_are_checked_after_input_rules_and_composition() {
             &options
         )),
         invalid("Invalid design.main at fields.name: unknown key")
+    );
+}
+
+#[test]
+fn bind_buttons_and_form_buttons_html_match_the_javascript_output() {
+    let template = compile_form(
+        &json!({"type":"group","properties":{"title":{"type":"text"}},"buttons":[
+            {"type":"link","text":{"ko":"목록","en":"List"},"href":"/list?a=1&b=\"2\""},
+            {"type":"submit","name":"mode","value":"draft","text":"Save <draft>"},
+            {"type":"button","text":"Preview","design":{"class":"primary","style":"color: red; font-weight: bold"},"behavior":{"onclick":"preview(\"x\")"}},
+            {"type":"reset","behavior":{"onclick":{"label":"Clear","script":"clear()"}}}
+        ]}),
+        &CompileOptions::default(),
+    )
+    .unwrap();
+    let options = BindOptions {
+        language: "en".into(),
+        ..Default::default()
+    };
+    let buttons = bind_buttons(&template, &json!({"title":"x"}), &options).unwrap();
+    assert_eq!(
+        serde_json::to_string(&buttons).unwrap(),
+        r#"[{"type":"link","tag":"a","text":"List","attrs":{"class":"crudui-action crudui-action--text","href":"/list?a=1&b=\"2\""}},{"type":"submit","tag":"button","text":"Save <draft>","attrs":{"type":"submit","class":"crudui-action crudui-action--text","name":"mode","value":"draft"}},{"type":"button","tag":"button","text":"Preview","attrs":{"type":"button","class":"crudui-action crudui-action--text primary","style":"color: red; font-weight: bold","onclick":"preview(\"x\")"}},{"type":"reset","tag":"button","text":"Reset","attrs":{"type":"reset","class":"crudui-action crudui-action--text","onclick":"clear()"}}]"#
+    );
+    assert_eq!(
+        form_buttons_html(&buttons).unwrap(),
+        r#"<a class="crudui-action crudui-action--text" href="/list?a=1&amp;b=&quot;2&quot;">List</a><button type="submit" class="crudui-action crudui-action--text" name="mode" value="draft">Save &lt;draft&gt;</button><button type="button" class="crudui-action crudui-action--text primary" style="color: red; font-weight: bold" onclick="preview(&quot;x&quot;)">Preview</button><button type="reset" class="crudui-action crudui-action--text" onclick="clear()">Reset</button>"#
+    );
+
+    let default = compile_form(
+        &json!({"type":"group","properties":{"title":{"type":"text"}}}),
+        &CompileOptions::default(),
+    )
+    .unwrap();
+    let buttons = bind_buttons(&default, &json!({}), &BindOptions::default()).unwrap();
+    assert_eq!(
+        serde_json::to_string(&buttons).unwrap(),
+        r#"[{"type":"submit","tag":"button","text":"저장","attrs":{"type":"submit","class":"crudui-action crudui-action--text"}}]"#
+    );
+    assert_eq!(
+        form_buttons_html(&buttons).unwrap(),
+        r#"<button type="submit" class="crudui-action crudui-action--text">저장</button>"#
+    );
+    let english = bind_buttons(&default, &json!({}), &options).unwrap();
+    assert_eq!(english[0]["text"], "Save");
+
+    for (data, options, message) in [
+        (
+            json!([]),
+            BindOptions::default(),
+            "Form data must be an object",
+        ),
+        (
+            json!({}),
+            BindOptions {
+                language: json!(1),
+                ..Default::default()
+            },
+            "Language must be a string",
+        ),
+    ] {
+        assert_eq!(
+            bind_buttons(&default, &data, &options).unwrap_err().message,
+            message
+        );
+    }
+    for invalid in [
+        json!(null),
+        json!({"tag":"script","text":"","attrs":{}}),
+        json!({"tag":"a","text":1,"attrs":{}}),
+        json!({"tag":"a","text":"","attrs":{"href":1}}),
+        json!({"tag":"a","text":"","attrs":{"x onload":"y"}}),
+        json!({"tag":"a","text":"","attrs":{"id":"y"}}),
+        json!({"tag":"a","text":""}),
+        json!({"tag":"a","text":"","attrs":[]}),
+    ] {
+        let error = form_buttons_html(&[invalid]).unwrap_err();
+        assert_eq!(
+            (
+                error.code.as_str(),
+                error.message.as_str(),
+                error.at.as_str()
+            ),
+            (
+                "INVALID_FORM_INPUT",
+                "Form buttons must be evaluated button objects",
+                ""
+            )
+        );
+    }
+    assert_eq!(
+        form_buttons_html(&[
+            json!({"type":1,"tag":"button","text":"x","attrs":{"onclick":"go()"}})
+        ])
+        .unwrap(),
+        r#"<button onclick="go()">x</button>"#
     );
 }

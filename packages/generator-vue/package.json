@@ -21,9 +21,8 @@
   "scripts": {
     "build": "tsup src/index.ts --format cjs,esm --clean --external vue && tsc --project tsconfig.build.json",
     "dev": "tsup src/index.ts --format cjs,esm --watch --external vue --onSuccess \"tsc --project tsconfig.build.json\"",
-    "test": "vitest run",
-    "test:current": "vitest run test/form-render.conformance.test.mjs test/list-render.conformance.test.mjs",
-    "test:list": "vitest run test/list-render.conformance.test.mjs"
+    "test": "node ../../scripts/run-tests.mjs vitest --cwd packages/generator-vue",
+    "typecheck": "tsc --noEmit"
   },
   "keywords": [
     "vue",

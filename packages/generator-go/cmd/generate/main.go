@@ -140,7 +140,21 @@ func run(request *gen.Object) (any, error) {
 			return gen.BuildDetail(spec, record, detailOptions)
 		}
 		return gen.RenderDetail(spec, record, detailOptions)
-	case "bindForm", "form":
+	case "formButtonsHtml":
+		list, ok := val(request, "buttons").([]any)
+		if !ok {
+			return nil, fmt.Errorf("Form buttons must be a list")
+		}
+		buttons := make([]*gen.Object, 0, len(list))
+		for _, v := range list {
+			o := obj(v)
+			if o == nil {
+				return nil, fmt.Errorf("Form buttons must be evaluated button objects")
+			}
+			buttons = append(buttons, o)
+		}
+		return gen.FormButtonsHTML(buttons)
+	case "bindForm", "bindButtons", "form":
 		b, e := json.Marshal(val(request, "template"))
 		if e != nil {
 			return nil, e
@@ -153,8 +167,11 @@ func run(request *gen.Object) (any, error) {
 		if data == nil && request.Has("data") {
 			return nil, fmt.Errorf("Form data must be an object")
 		}
-		if str(val(request, "operation")) == "bindForm" {
+		switch str(val(request, "operation")) {
+		case "bindForm":
 			return gen.BindForm(&template, data, bindOptions(options))
+		case "bindButtons":
+			return gen.BindButtons(&template, data, bindOptions(options))
 		}
 		f, e := gen.NewForm(&template, data, bindOptions(options))
 		if e != nil {

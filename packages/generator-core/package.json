@@ -22,7 +22,7 @@
   "scripts": {
     "build": "tsup src/index.ts --format cjs,esm --clean && tsc --project tsconfig.build.json",
     "dev": "tsup src/index.ts --format cjs,esm --watch --onSuccess \"tsc --project tsconfig.build.json\"",
-    "test": "vitest",
+    "test": "node ../../scripts/run-tests.mjs vitest --cwd packages/generator-core",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src",
     "prepublishOnly": "npm run build"

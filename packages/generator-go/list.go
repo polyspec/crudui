@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -138,7 +139,7 @@ func buildDisplay(spec *Object, rows []*Object, options ListOptions, paths displ
 	if e != nil {
 		return nil, e
 	}
-	// Declarations are checked after the input rules and composition: the own design, then each member.
+	// Declarations are checked after the input rules and composition: the own design, each member, then the pagination.
 	if spec.Has("design") {
 		if e := checkDesignDeclaration(read(spec, "design"), paths.own); e != nil {
 			return nil, e
@@ -149,6 +150,11 @@ func buildDisplay(spec *Object, rows []*Object, options ListOptions, paths displ
 			if e := checkDesignDeclaration(read(member, "design"), paths.members+"."+key); e != nil {
 				return nil, e
 			}
+		}
+	}
+	if spec.Has("pagination") {
+		if e := checkPaginationDeclaration(read(spec, "pagination"), paths.own); e != nil {
+			return nil, e
 		}
 	}
 	if data == nil {
@@ -201,26 +207,7 @@ func buildDisplay(spec *Object, rows []*Object, options ListOptions, paths displ
 		}
 		rowModels = append(rowModels, NewObject("cells", cells))
 	}
-	pagination := NewObject("enabled", false)
-	p := read(spec, "pagination")
-	if p == true {
-		pagination.Set("enabled", true)
-	} else if object(p) != nil {
-		pagination.Set("enabled", true)
-		if _, ok := asNumber(read(p, "per_page")); ok {
-			pagination.Set("perPage", read(p, "per_page"))
-		}
-		if mode, ok := read(p, "mode").(string); ok {
-			pagination.Set("mode", mode)
-		}
-	}
-	// Supplied page and total are JSON integers (int64), so 2.0 is written as 2 and -0 as 0.
-	if page, present, _ := countOption(options.Page, 1); present {
-		pagination.Set("page", page)
-	}
-	if total, present, _ := countOption(options.Total, 0); present {
-		pagination.Set("total", total)
-	}
+	pagination := paginationModel(read(spec, "pagination"), options)
 	actions := []*Object{}
 	if raw := object(read(spec, "actions")); raw != nil {
 		for _, key := range raw.Keys() {
@@ -421,7 +408,9 @@ func cellBody(cell *Object) string {
 	switch stringAt(display, "kind") {
 	case "badge":
 		attrs := NewObject("class", "crudui-badge")
-		if v := stringAt(display, "variant"); v != "" { attrs.Set("data-crudui-variant", v) }
+		if v := stringAt(display, "variant"); v != "" {
+			attrs.Set("data-crudui-variant", v)
+		}
 		return element("span", attrs, escape(stringAt(display, "label")))
 	case "link":
 		a := NewObject("href", stringAt(display, "href"))
@@ -557,36 +546,136 @@ func listHTML(vm *Object, layout string) string {
 	}
 	p := read(vm, "pagination")
 	if truthy(read(p, "enabled")) {
-		at := NewObject("class", "crudui-list__pagination")
-		mode := stringAt(p, "mode"); if mode == "" { mode = "pages" }; at.Set("data-mode", mode)
-		perPageValue, _ := asNumber(read(p, "perPage")); if perPageValue < 1 { perPageValue = 20 }; at.Set("data-per-page", strconv.FormatInt(int64(perPageValue), 10))
-		pageAttributeValue, _ := asNumber(read(p, "page")); if pageAttributeValue < 1 { pageAttributeValue = 1 }; at.Set("data-page", strconv.FormatInt(int64(pageAttributeValue), 10))
-		for _, k := range []string{"perPage", "page", "total"} {
-			if k == "perPage" || k == "page" { continue }
-			if has(p, k) {
-				name := k
-				if k == "perPage" {
-					name = "per-page"
-				}
-				at.Set("data-"+name, stringAt(p, k))
-			}
+		at := NewObject("class", "crudui-list__pagination", "data-mode", stringAt(p, "mode"), "data-per-page", stringAt(p, "perPage"), "data-page", stringAt(p, "page"))
+		if has(p, "total") {
+			at.Set("data-total", stringAt(p, "total"))
 		}
-		pageValue, _ := asNumber(read(p, "page")); if pageValue < 1 { pageValue = 1 }; page := int64(pageValue)
-		perPage, _ := asNumber(read(p, "perPage")); if perPage < 1 { perPage = 20 }
-		total, totalOK := asNumber(read(p, "total")); pageCount := int64(0)
-		if totalOK { pageCount = int64(math.Max(1, math.Ceil(total/perPage))); if page > pageCount { page = pageCount } }
+		pageCount, _ := read(p, "pageCount").(int64)
+		page := int64(1)
+		if pageCount > 0 {
+			page, _ = read(p, "page").(int64)
+			page = min(pageCount, page)
+		}
 		button := func(class string, value int64, label string, disabled, current bool) string {
 			x := NewObject("type", "button", "class", class, "data-page", strconv.FormatInt(value, 10), "aria-label", label)
-			if current { x.Set("aria-current", "page") }; if disabled { x.Set("disabled", true) }
-			text := label; if label == "Previous page" { text = "‹" }; if label == "Next page" { text = "›" }; if strings.HasPrefix(label, "Page ") { text = strings.TrimPrefix(label, "Page ") }
+			if current {
+				x.Set("aria-current", "page")
+			}
+			if disabled {
+				x.Set("disabled", true)
+			}
+			text := label
+			if label == "Previous page" {
+				text = "‹"
+			}
+			if label == "Next page" {
+				text = "›"
+			}
+			if strings.HasPrefix(label, "Page ") {
+				text = strings.TrimPrefix(label, "Page ")
+			}
 			return element("button", x, text)
 		}
-		content := button("crudui-list__pagination-prev", int64(math.Max(1, float64(page-1))), "Previous page", page <= 1 || pageCount == 0, false)
-		if pageCount > 0 { limit := int64(math.Min(7, float64(pageCount))); for i := int64(1); i <= limit; i++ { content += button("crudui-list__pagination-page", i, "Page "+strconv.FormatInt(i, 10), i == page, i == page) } }
-		content += button("crudui-list__pagination-next", int64(math.Max(1, math.Min(float64(pageCount), float64(page+1)))), "Next page", pageCount == 0 || page >= pageCount, false)
+		content := button("crudui-list__pagination-prev", max(1, page-1), "Previous page", page <= 1 || pageCount == 0, false)
+		for _, i := range paginationPages(page, pageCount) {
+			content += button("crudui-list__pagination-page", i, "Page "+strconv.FormatInt(i, 10), i == page, i == page)
+		}
+		content += button("crudui-list__pagination-next", max(1, min(pageCount, page+1)), "Next page", pageCount == 0 || page >= pageCount, false)
 		body += element("nav", at, content)
 	}
 	return element("div", a, body)
+}
+
+// paginationDeclarationKeys are the members a pagination declaration may hold.
+var paginationDeclarationKeys = []string{"per_page", "mode"}
+
+// checkPaginationDeclaration rejects a wrong value type or an unknown key in the pagination
+// declaration at path.
+func checkPaginationDeclaration(pagination any, path string) error {
+	fail := func(key, expected string) error {
+		return fmt.Errorf("Invalid %s at %s: expected %s", key, path, expected)
+	}
+	p := object(pagination)
+	if _, isBool := pagination.(bool); !isBool && p == nil {
+		return fail("pagination", "a boolean or an object")
+	}
+	if p == nil {
+		return nil
+	}
+	for _, key := range p.Keys() {
+		if !slices.Contains(paginationDeclarationKeys, key) {
+			return fmt.Errorf("Invalid pagination.%s at %s: unknown key", key, path)
+		}
+	}
+	if p.Has("per_page") {
+		if _, _, ok := countOption(read(p, "per_page"), 1); !ok || read(p, "per_page") == nil {
+			return fail("pagination.per_page", "a positive integer")
+		}
+	}
+	if p.Has("mode") {
+		if mode, ok := read(p, "mode").(string); !ok || !slices.Contains([]string{"pages", "offset", "cursor", "none"}, mode) {
+			return fail("pagination.mode", "pages, offset, cursor or none")
+		}
+	}
+	return nil
+}
+
+// paginationModel returns the pagination model, in member order: enabled, then for enabled
+// paging perPage, mode and page with their defaults, the supplied total and pageCount.
+// Disabled paging keeps only the supplied page and total. Supplied counts are JSON integers
+// (int64), so 2.0 is written as 2 and -0 as 0.
+func paginationModel(declared any, options ListOptions) *Object {
+	enabled := declared == true || object(declared) != nil
+	pagination := NewObject("enabled", enabled)
+	page, pagePresent, _ := countOption(options.Page, 1)
+	perPage := int64(20)
+	if enabled {
+		if value, present, ok := countOption(read(declared, "per_page"), 1); present && ok {
+			perPage = value
+		}
+		mode := "pages"
+		if value, ok := read(declared, "mode").(string); ok {
+			mode = value
+		}
+		if !pagePresent {
+			page = 1
+		}
+		pagination.Set("perPage", perPage)
+		pagination.Set("mode", mode)
+		pagination.Set("page", page)
+	} else if pagePresent {
+		pagination.Set("page", page)
+	}
+	total, totalPresent, _ := countOption(options.Total, 0)
+	if totalPresent {
+		pagination.Set("total", total)
+	}
+	if enabled {
+		pageCount := int64(0)
+		if totalPresent {
+			pageCount = max(1, int64(math.Ceil(float64(total)/float64(perPage))))
+		}
+		pagination.Set("pageCount", pageCount)
+	}
+	return pagination
+}
+
+// paginationPages returns the bounded page-number window: every page up to seven pages,
+// otherwise the first, previous, current, next and last page.
+func paginationPages(page, pageCount int64) []int64 {
+	pages := []int64{}
+	if pageCount <= 7 {
+		for i := int64(1); i <= pageCount; i++ {
+			pages = append(pages, i)
+		}
+		return pages
+	}
+	for _, value := range []int64{1, max(1, page-1), page, min(pageCount, page+1), pageCount} {
+		if len(pages) == 0 || pages[len(pages)-1] < value {
+			pages = append(pages, value)
+		}
+	}
+	return pages
 }
 
 // RenderList renders a table or card list with image resource hints in first-use order.

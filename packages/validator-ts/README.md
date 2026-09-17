@@ -46,7 +46,9 @@ request is `{"error"}` with exit 1. Every language's CLI uses this contract.
 
 ## Test
 
-```
-npm test            # full suite (vitest)
-npm run test:current     # CRUDUI conformance only (src/CRUDUI)
+From the repository root:
+
+```sh
+npm test -w @crudui/validator                  # full suite (vitest)
+npm test -w @crudui/validator -- conformance   # conformance test files only
 ```

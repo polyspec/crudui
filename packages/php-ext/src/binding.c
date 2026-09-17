@@ -6,9 +6,9 @@
 
 typedef struct {
     const ps_value *data;
-    const char *key_prefix;
-    const char *id_prefix;
-    const char *language;
+    ps_text key_prefix;
+    ps_text id_prefix;
+    ps_text language;
     const ps_form_messages *messages;
     bool unsupported_marker;
 } bind_context;
@@ -26,7 +26,7 @@ typedef struct {
     bool has_min, has_max;
     double min, max;
     bool copy, sortable, sticky;
-    const char *title;
+    ps_text title;
     const char *controls;
 } multiple_settings;
 
@@ -35,15 +35,19 @@ static const ps_value *member(const ps_value *object, const char *key)
     return object && object->kind == PS_OBJECT ? ps_get(object, key) : NULL;
 }
 
-static const char *string_member(const ps_value *object, const char *key)
+static ps_text string_member(const ps_value *object, const char *key)
 {
-    const ps_value *value = member(object, key);
-    return value && value->kind == PS_STRING ? ps_string(value) : "";
+    return ps_string(member(object, key));
 }
 
 static bool set_string(ps_value *object, const char *key, const char *value)
 {
     return ps_set(object, key, ps_string_value(value ? value : ""));
+}
+
+static bool set_text(ps_value *object, const char *key, ps_text value)
+{
+    return value.bytes && ps_set(object, key, ps_text_value(value));
 }
 
 static bool set_owned(ps_value *object, const char *key, ps_value **value)
@@ -60,10 +64,10 @@ static bool append_owned(ps_value *array, ps_value **value)
     return ps_append(array, owned);
 }
 
-static char *field_type(const ps_value *spec)
+static ps_chars field_type(const ps_value *spec)
 {
     const ps_value *value = member(spec, "type");
-    if (!value || value->kind == PS_NULL) return ps_string_join("", "", "");
+    if (!value || value->kind == PS_NULL) return ps_copy(PS_TEXT(""));
     return ps_js_string(value);
 }
 
@@ -94,8 +98,8 @@ static bool resolve_multiple(const ps_value *multiple, multiple_settings *settin
     const ps_value *title = member(multiple, "title");
     if (title && title->kind == PS_STRING) settings->title = ps_string(title);
     const ps_value *controls = member(multiple, "controls");
-    if (ps_is_string(controls, "footer") || ps_is_string(controls, "outline"))
-        settings->controls = ps_string(controls);
+    if (ps_is_string(controls, "footer")) settings->controls = "footer";
+    else if (ps_is_string(controls, "outline")) settings->controls = "outline";
     settings->sticky = ps_is_string(member(multiple, "header"), "sticky");
     return true;
 }
@@ -109,83 +113,90 @@ static bool checked_value(const ps_value *value)
     return ps_is_string(value, "1");
 }
 
-/* Translated text of a truthy declaration; an empty translation is absent (NULL). */
-static bool translated(const ps_value *value, const char *language, char **text)
+/* Translated text of a truthy declaration; an empty translation is absent (NULL bytes). */
+static bool translated(const ps_value *value, ps_text language, ps_chars *text)
 {
-    *text = NULL;
+    *text = (ps_chars){NULL, 0};
     if (!ps_truthy(value)) return true;
     *text = ps_translate(value, language);
-    if (!*text) return false;
-    if (!**text) { free(*text); *text = NULL; }
+    if (!text->bytes) return false;
+    if (!text->length) { free(text->bytes); *text = (ps_chars){NULL, 0}; }
     return true;
 }
 
-static ps_value *unsupported_widget(const char *type)
+static ps_value *unsupported_widget(ps_text type)
 {
     ps_value *widget = ps_object_value();
     if (!widget || !ps_set(widget, "unsupported", ps_bool_value(true)) ||
-        !set_string(widget, "type", type)) {
+        !set_text(widget, "type", type)) {
         ps_value_free(widget); return NULL;
     }
     return widget;
 }
 
 static ps_value *build_widget(const ps_value *spec, const ps_value *value,
-                              const char *path, const ps_value *design,
+                              ps_text path, const ps_value *design,
                               const bind_context *context, const row_scope *scope,
                               ps_value **error)
 {
-    char *type = field_type(spec);
-    if (!type) return NULL;
-    if (!ps_widget_supported(type)) {
+    ps_chars type = field_type(spec);
+    if (!type.bytes) return NULL;
+    if (!ps_widget_supported(ps_view(type))) {
         if (context->unsupported_marker) {
-            ps_value *widget = unsupported_widget(type);
-            free(type);
+            ps_value *widget = unsupported_widget(ps_view(type));
+            free(type.bytes);
             return widget;
         }
-        size_t length = strlen(type) + strlen(path) + 34;
-        char *message = malloc(length);
-        if (message) snprintf(message, length, "Unsupported field type \"%s\" at \"%s\"", type, path);
-        *error = message ? ps_error("form", "UNSUPPORTED_FIELD_TYPE", message, path, NULL) : NULL;
-        free(message);
-        free(type); return NULL;
+        ps_chars message = PS_CONCAT(PS_TEXT("Unsupported field type \""), ps_view(type),
+                                     PS_TEXT("\" at \""), path, PS_TEXT("\""));
+        *error = message.bytes
+            ? ps_error_text("form", "UNSUPPORTED_FIELD_TYPE", ps_view(message), path, NULL) : NULL;
+        free(message.bytes);
+        free(type.bytes); return NULL;
     }
-    free(type);
+    free(type.bytes);
     return ps_widget(spec, value, value != NULL, path, design,
                      context->key_prefix, context->id_prefix,
                      context->language, scope->segments, scope->count);
 }
 
 /* Input failure for present group data, including a repeated group row, that is not an object. */
-static ps_value *group_data_error(const char *path)
+static ps_value *input_error_with(const char *prefix, ps_text path)
 {
-    char *message = ps_string_join("Group data must be an object: ", path, "");
-    ps_value *error = message ? ps_error("form", "INVALID_FORM_INPUT", message, "", NULL) : NULL;
-    free(message);
+    ps_chars message = PS_CONCAT(ps_fixed(prefix), path);
+    ps_value *error = message.bytes
+        ? ps_error_text("form", "INVALID_FORM_INPUT", ps_view(message), PS_TEXT(""), NULL) : NULL;
+    free(message.bytes);
     return error;
+}
+
+static ps_value *group_data_error(ps_text path)
+{
+    return input_error_with("Group data must be an object: ", path);
 }
 
 /* Node parts. */
 
 /* kind, path, className, style and hidden from the node's design.wrapper and design.show. */
-static ps_value *node_root(const char *kind, const char *path, const ps_value *design)
+static ps_value *node_root(const char *kind, ps_text path, const ps_value *design)
 {
     const ps_value *wrapper = member(design, "wrapper");
-    char *style = ps_style_string(string_member(wrapper, "style"));
+    ps_chars style = ps_style_string(string_member(wrapper, "style"));
     ps_value *node = ps_object_value();
-    bool ok = style && node && set_string(node, "kind", kind) &&
-        set_string(node, "path", path) &&
-        set_string(node, "className", string_member(wrapper, "class")) &&
-        (!*style || set_string(node, "style", style)) &&
+    bool ok = style.bytes && node && set_string(node, "kind", kind) &&
+        set_text(node, "path", path) &&
+        set_text(node, "className", string_member(wrapper, "class")) &&
+        (!style.length || set_text(node, "style", ps_view(style))) &&
         ps_set(node, "hidden", ps_bool_value(!enabled_bool(design, "show")));
-    free(style);
+    free(style.bytes);
     if (!ok) { ps_value_free(node); return NULL; }
     return node;
 }
 
+/* A header member; text with NULL bytes is absent. */
 typedef struct {
     const char *key;
-    const char *text;
+    ps_text text;
 } header_part;
 
 /* Attach a header with design.label appearance when any part has text. */
@@ -193,29 +204,28 @@ static bool attach_header(ps_value *node, const ps_value *design,
                           const header_part *parts, size_t count)
 {
     bool present = false;
-    for (size_t i = 0; i < count; ++i) if (parts[i].text && *parts[i].text) present = true;
+    for (size_t i = 0; i < count; ++i) if (parts[i].text.bytes && parts[i].text.length) present = true;
     if (!present) return true;
     const ps_value *label = member(design, "label");
-    char *style = ps_style_string(string_member(label, "style"));
+    ps_chars style = ps_style_string(string_member(label, "style"));
     ps_value *header = ps_object_value();
-    bool ok = style && header && set_string(header, "className", string_member(label, "class")) &&
-        (!*style || set_string(header, "style", style));
+    bool ok = style.bytes && header && set_text(header, "className", string_member(label, "class")) &&
+        (!style.length || set_text(header, "style", ps_view(style)));
     for (size_t i = 0; ok && i < count; ++i)
-        if (parts[i].text && *parts[i].text) ok = set_string(header, parts[i].key, parts[i].text);
+        if (parts[i].text.bytes && parts[i].text.length) ok = set_text(header, parts[i].key, parts[i].text);
     if (ok) ok = set_owned(node, "header", &header);
-    free(style); ps_value_free(header);
+    free(style.bytes); ps_value_free(header);
     return ok;
 }
 
-static bool attach_body(ps_value *node, const char *class_name, const char *style_source,
-                        const char *id)
+static bool attach_body(ps_value *node, ps_text class_name, ps_text style_source, ps_text id)
 {
-    char *style = ps_style_string(style_source);
+    ps_chars style = ps_style_string(style_source);
     ps_value *body = ps_object_value();
-    bool ok = style && body && set_string(body, "className", class_name) &&
-        (!*style || set_string(body, "style", style)) &&
-        (!id || !*id || set_string(body, "id", id)) && set_owned(node, "body", &body);
-    free(style); ps_value_free(body);
+    bool ok = style.bytes && body && set_text(body, "className", class_name) &&
+        (!style.length || set_text(body, "style", ps_view(style))) &&
+        (!id.length || set_text(body, "id", id)) && set_owned(node, "body", &body);
+    free(style.bytes); ps_value_free(body);
     return ok;
 }
 
@@ -239,22 +249,22 @@ static bool attach_controls(ps_value *node, const char *placement, const char *l
     return ok;
 }
 
-/* Control the label targets: the file input, else the widget control; NULL for none. */
-static const char *label_target(const ps_value *widget)
+/* Control the label targets: the file input, else the widget control; NULL bytes for none. */
+static ps_text label_target(const ps_value *widget)
 {
-    if (enabled_bool(widget, "unsupported")) return NULL;
+    if (enabled_bool(widget, "unsupported")) return (ps_text){NULL, 0};
     const ps_value *id = member(member(member(widget, "extra"), "file"), "id");
     if (!id || id->kind == PS_NULL) id = member(member(widget, "attrs"), "id");
-    return id && id->kind == PS_STRING && id->data.string.length ? ps_string(id) : NULL;
+    return id && id->kind == PS_STRING && id->data.string.length ? ps_string(id) : (ps_text){NULL, 0};
 }
 
 /* Node tree builder. */
 
-static ps_value *build_field(const ps_value *field, const char *path,
+static ps_value *build_field(const ps_value *field, ps_text path,
                              const bind_context *context, const row_scope *scope,
                              ps_value **error);
 
-static ps_value *build_children(const ps_value *field, const char *path,
+static ps_value *build_children(const ps_value *field, ps_text path,
                                 const bind_context *context, const row_scope *scope,
                                 ps_value **error)
 {
@@ -267,10 +277,10 @@ static ps_value *build_children(const ps_value *field, const char *path,
         const ps_value *child = ps_at(templates, i);
         const ps_value *name = member(child, "name");
         if (!name || name->kind != PS_STRING) { ps_value_free(children); return NULL; }
-        char *child_path = ps_join_path(path, ps_string(name));
-        ps_value *model = child_path
-            ? build_field(child, child_path, context, scope, error) : NULL;
-        free(child_path);
+        ps_chars child_path = ps_join_path(path, ps_string(name));
+        ps_value *model = child_path.bytes
+            ? build_field(child, ps_view(child_path), context, scope, error) : NULL;
+        free(child_path.bytes);
         if (!model || !append_owned(children, &model)) {
             ps_value_free(model);
             ps_value_free(children); return NULL;
@@ -279,48 +289,50 @@ static ps_value *build_children(const ps_value *field, const char *path,
     return children;
 }
 
-static ps_value *build_leaf(const ps_value *spec, const char *type, const char *path,
-                            const ps_value *design, const char *label,
-                            const char *description, const bind_context *context,
+static ps_value *build_leaf(const ps_value *spec, ps_text type, ps_text path,
+                            const ps_value *design, ps_text label,
+                            ps_text description, const bind_context *context,
                             const row_scope *scope, ps_value **error)
 {
     const ps_value *value = ps_path(context->data, path);
     ps_value *node = node_root("field", path, design);
     if (!node) return NULL;
-    if (!strcmp(type, "checkbox") || !strcmp(type, "switcher")) {
-        char *id = ps_control_id(context->id_prefix, path);
-        char *name = ps_bracket_name(path, context->key_prefix);
-        char *class_name = ps_join_classes("valid-target",
-            string_member(member(design, "main"), "class"), NULL);
+    if (ps_text_is(type, "checkbox") || ps_text_is(type, "switcher")) {
+        ps_chars id = ps_control_id(context->id_prefix, path);
+        ps_chars name = ps_bracket_name(path, context->key_prefix);
+        ps_chars class_name = ps_join_classes(PS_TEXT("valid-target"),
+            string_member(member(design, "main"), "class"), PS_TEXT(""));
         ps_value *checkbox = ps_object_value();
         header_part parts[] = {{"description", description}};
-        bool ok = id && name && class_name && checkbox &&
-            attach_header(node, design, parts, 1) && attach_body(node, "", "", NULL) &&
-            set_string(checkbox, "id", id) && set_string(checkbox, "name", name) &&
-            set_string(checkbox, "className", class_name) &&
+        bool ok = id.bytes && name.bytes && class_name.bytes && checkbox &&
+            attach_header(node, design, parts, 1) &&
+            attach_body(node, PS_TEXT(""), PS_TEXT(""), (ps_text){NULL, 0}) &&
+            set_text(checkbox, "id", ps_view(id)) && set_text(checkbox, "name", ps_view(name)) &&
+            set_text(checkbox, "className", ps_view(class_name)) &&
             ps_set(checkbox, "checked", ps_bool_value(checked_value(value) ||
                 (!value && checked_value(member(spec, "default"))))) &&
-            set_string(checkbox, "caption", label) &&
+            set_text(checkbox, "caption", label.bytes ? label : PS_TEXT("")) &&
             set_owned(node, "checkbox", &checkbox);
-        free(id); free(name); free(class_name); ps_value_free(checkbox);
+        free(id.bytes); free(name.bytes); free(class_name.bytes); ps_value_free(checkbox);
         if (!ok) { ps_value_free(node); return NULL; }
         return node;
     }
     ps_value *widget = build_widget(spec, value, path, design, context, scope, error);
     bool ok = widget != NULL;
-    if (ok && strcmp(type, "hidden")) {
-        const char *label_for = label ? label_target(widget) : NULL;
+    if (ok && !ps_text_is(type, "hidden")) {
+        ps_text label_for = label.bytes ? label_target(widget) : (ps_text){NULL, 0};
         header_part parts[] = {{"label", label}, {"labelFor", label_for}, {"description", description}};
         ok = attach_header(node, design, parts, 3);
     }
-    ok = ok && attach_body(node, "", "", NULL) && set_owned(node, "widget", &widget);
+    ok = ok && attach_body(node, PS_TEXT(""), PS_TEXT(""), (ps_text){NULL, 0}) &&
+        set_owned(node, "widget", &widget);
     ps_value_free(widget);
     if (!ok) { ps_value_free(node); return NULL; }
     return node;
 }
 
-static ps_value *build_group(const ps_value *field, const char *path, const ps_value *design,
-                             const char *label, const char *description,
+static ps_value *build_group(const ps_value *field, ps_text path, const ps_value *design,
+                             ps_text label, ps_text description,
                              const bind_context *context, const row_scope *scope,
                              ps_value **error)
 {
@@ -333,7 +345,7 @@ static ps_value *build_group(const ps_value *field, const char *path, const ps_v
     ps_value *node = node_root("group", path, design);
     header_part parts[] = {{"label", label}, {"description", description}};
     bool ok = node && attach_header(node, design, parts, 2) &&
-        attach_body(node, string_member(group, "class"), string_member(group, "style"), NULL);
+        attach_body(node, string_member(group, "class"), string_member(group, "style"), (ps_text){NULL, 0});
     ps_value *children = ok ? build_children(field, path, context, scope, error) : NULL;
     ok = children && set_owned(node, "children", &children);
     ps_value_free(children);
@@ -342,49 +354,50 @@ static ps_value *build_group(const ps_value *field, const char *path, const ps_v
 }
 
 /* "1.2.3" from the one-based row numbers. */
-static char *row_number(const size_t *numbers, size_t count)
+static ps_chars row_number(const size_t *numbers, size_t count)
 {
-    size_t length = count * 21 + 1;
-    char *out = malloc(length);
-    if (!out) return NULL;
-    size_t cursor = 0;
-    for (size_t i = 0; i < count; ++i)
-        cursor += (size_t)snprintf(out + cursor, length - cursor, i ? ".%zu" : "%zu", numbers[i]);
-    out[cursor] = '\0';
-    return out;
+    ps_html_buffer out = {0};
+    for (size_t i = 0; i < count; ++i) {
+        ps_chars number = ps_decimal(numbers[i]);
+        if (!number.bytes) out.failed = true;
+        if (i) ps_html_character(&out, '.');
+        ps_html_append(&out, ps_view(number));
+        free(number.bytes);
+    }
+    return ps_html_take(&out);
 }
 
 /* Title of a group row: the title child's value, or the untitled message when empty. */
-static char *row_title(const char *row_path, const char *title, const bind_context *context)
+static ps_chars row_title(ps_text row_path, ps_text title, const bind_context *context)
 {
-    char *title_path = ps_join_path(row_path, title);
-    if (!title_path) return NULL;
-    const ps_value *value = ps_path(context->data, title_path);
-    free(title_path);
+    ps_chars title_path = ps_join_path(row_path, title);
+    if (!title_path.bytes) return title_path;
+    const ps_value *value = ps_path(context->data, ps_view(title_path));
+    free(title_path.bytes);
     if (!value || value->kind == PS_NULL || (value->kind == PS_STRING && !value->data.string.length))
-        return ps_string_join(context->messages->untitled, "", "");
+        return ps_copy(ps_fixed(context->messages->untitled));
     return ps_js_string(value);
 }
 
 static ps_value *build_row(const ps_value *field, const ps_value *spec,
-                           const char *collection_path, const char *key, size_t index,
-                           size_t count, bool group, const char *label,
+                           ps_text collection_path, ps_text key, size_t index,
+                           size_t count, bool group, ps_text label,
                            const multiple_settings *settings, const bind_context *context,
                            const row_scope *scope, size_t *numbers, const size_t *segments,
                            ps_value **error)
 {
     const ps_form_messages *messages = context->messages;
-    char *row_path = ps_join_path(collection_path, key);
-    ps_value *row_design = row_path
-        ? ps_design(member(spec, "design"), context->data, row_path) : NULL;
+    ps_chars row_path = ps_join_path(collection_path, key);
+    ps_value *row_design = row_path.bytes
+        ? ps_design(member(spec, "design"), context->data, ps_view(row_path)) : NULL;
     numbers[scope->count] = index + 1;
     row_scope inner = {segments, numbers, scope->count + 1,
                        scope->sticky_depth + (settings->sticky ? 1 : 0)};
     bool full = settings->has_max && (double)count >= settings->max;
-    char *number = row_number(numbers, scope->count + 1);
+    ps_chars number = row_number(numbers, scope->count + 1);
     ps_value *actions = ps_array_value();
     ps_value *row = ps_object_value();
-    bool ok = row_path && row_design && number && actions && row;
+    bool ok = row_path.bytes && row_design && number.bytes && actions && row;
     if (ok && settings->sortable)
         ok = append_action(actions, "move-up", messages->move_up, index == 0) &&
             append_action(actions, "move-down", messages->move_down, index + 1 == count);
@@ -392,7 +405,7 @@ static ps_value *build_row(const ps_value *field, const ps_value *spec,
     if (ok && settings->copy) ok = append_action(actions, "copy-row", messages->copy_row, full);
     if (ok) ok = append_action(actions, "remove-row", messages->remove_row,
                                settings->has_min && (double)count <= settings->min);
-    ok = ok && set_string(row, "kind", "row") && set_string(row, "key", key) &&
+    ok = ok && set_string(row, "kind", "row") && set_text(row, "key", key) &&
         set_string(row, "className", "") && ps_set(row, "hidden", ps_bool_value(false)) &&
         attach_controls(row, settings->controls, messages->row_controls, &actions);
     if (ok && settings->sticky)
@@ -400,20 +413,21 @@ static ps_value *build_row(const ps_value *field, const ps_value *spec,
             ps_set(row, "stickyDepth", ps_int_value((int64_t)scope->sticky_depth));
     ps_value *header = ok ? ps_object_value() : NULL;
     ok = header && set_string(header, "className", "") &&
-        (!label || set_string(header, "label", label)) && set_string(header, "number", number);
+        (!label.bytes || set_text(header, "label", label)) && set_text(header, "number", ps_view(number));
     if (ok && !group) {
-        const ps_value *value = ps_path(context->data, row_path);
-        ps_value *widget = build_widget(spec, value, row_path, row_design, context, &inner, error);
-        ok = widget && set_owned(row, "header", &header) && attach_body(row, "", "", NULL) &&
+        const ps_value *value = ps_path(context->data, ps_view(row_path));
+        ps_value *widget = build_widget(spec, value, ps_view(row_path), row_design, context, &inner, error);
+        ok = widget && set_owned(row, "header", &header) &&
+            attach_body(row, PS_TEXT(""), PS_TEXT(""), (ps_text){NULL, 0}) &&
             set_owned(row, "widget", &widget);
         ps_value_free(widget);
     } else if (ok) {
-        const ps_value *value = ps_path(context->data, row_path);
+        const ps_value *value = ps_path(context->data, ps_view(row_path));
         if (value && value->kind != PS_OBJECT) {
-            *error = group_data_error(row_path);
+            *error = group_data_error(ps_view(row_path));
             ok = false;
         }
-        ps_value *children = ok ? build_children(field, row_path, context, &inner, error) : NULL;
+        ps_value *children = ok ? build_children(field, ps_view(row_path), context, &inner, error) : NULL;
         size_t nested = 0, nested_rows = 0;
         for (size_t i = 0; children && i < ps_size(children); ++i) {
             const ps_value *child = ps_at(children, i);
@@ -421,48 +435,48 @@ static ps_value *build_row(const ps_value *field, const ps_value *spec,
             nested++;
             nested_rows += ps_size(member(child, "children"));
         }
-        char *summary = !children ? NULL : nested
+        ps_chars summary = !children ? (ps_chars){NULL, 0} : nested
             ? ps_format_count(messages->children, nested_rows)
-            : ps_string_join(messages->collapsed, "", "");
-        char *title = children && settings->title ? row_title(row_path, settings->title, context) : NULL;
-        char *control = children ? ps_control_id(context->id_prefix, row_path) : NULL;
-        char *body_id = control ? ps_string_join(control, ":body", "") : NULL;
+            : ps_copy(ps_fixed(messages->collapsed));
+        ps_chars title = children && settings->title.bytes
+            ? row_title(ps_view(row_path), settings->title, context) : (ps_chars){NULL, 0};
+        ps_chars control = children ? ps_control_id(context->id_prefix, ps_view(row_path)) : (ps_chars){NULL, 0};
+        ps_chars body_id = control.bytes ? PS_CONCAT(ps_view(control), PS_TEXT(":body")) : control;
         const ps_value *design_group = member(row_design, "group");
-        ok = children && summary && (!settings->title || title) && body_id &&
-            (!settings->title || set_string(header, "title", title)) &&
-            set_string(header, "summary", summary) && set_owned(row, "header", &header) &&
+        ok = children && summary.bytes && (!settings->title.bytes || title.bytes) && body_id.bytes &&
+            (!settings->title.bytes || set_text(header, "title", ps_view(title))) &&
+            set_text(header, "summary", ps_view(summary)) && set_owned(row, "header", &header) &&
             attach_body(row, string_member(design_group, "class"),
-                        string_member(design_group, "style"), body_id) &&
+                        string_member(design_group, "style"), ps_view(body_id)) &&
             ps_set(row, "collapsible", ps_bool_value(true)) &&
             ps_set(row, "expanded", ps_bool_value(true)) &&
             set_string(row, "toggleLabel", messages->toggle_row) &&
             set_owned(row, "children", &children);
-        ps_value_free(children); free(summary); free(title); free(control); free(body_id);
+        ps_value_free(children); free(summary.bytes); free(title.bytes);
+        free(control.bytes); free(body_id.bytes);
     }
     ps_value_free(header); ps_value_free(actions);
-    free(number); free(row_path); ps_value_free(row_design);
+    free(number.bytes); free(row_path.bytes); ps_value_free(row_design);
     if (!ok) { ps_value_free(row); return NULL; }
     return row;
 }
 
 static ps_value *build_collection(const ps_value *field, const ps_value *spec,
-                                  const char *type, const char *path,
-                                  const ps_value *design, const char *label,
-                                  const char *description, const multiple_settings *settings,
+                                  ps_text type, ps_text path,
+                                  const ps_value *design, ps_text label,
+                                  ps_text description, const multiple_settings *settings,
                                   const bind_context *context, const row_scope *scope,
                                   ps_value **error)
 {
     const ps_value *value = ps_path(context->data, path);
     if (value && value->kind != PS_OBJECT) {
-        char *message = ps_string_join("Repeated data must be a keyed object: ", path, "");
-        *error = message ? ps_error("form", "INVALID_FORM_INPUT", message, "", NULL) : NULL;
-        free(message);
+        *error = input_error_with("Repeated data must be a keyed object: ", path);
         return NULL;
     }
     size_t path_length = 0;
-    char **parts = NULL;
+    ps_text *parts = NULL;
     if (!ps_path_parts(path, &parts, &path_length)) return NULL;
-    ps_path_parts_free(parts, path_length);
+    free(parts);
     size_t *segments = malloc((scope->count + 1) * sizeof(*segments));
     size_t *numbers = malloc((scope->count + 1) * sizeof(*numbers));
     ps_value *rows = ps_array_value();
@@ -474,20 +488,21 @@ static ps_value *build_collection(const ps_value *field, const ps_value *spec,
         }
         segments[scope->count] = path_length;
     }
-    bool group = !strcmp(type, "group");
+    bool group = ps_text_is(type, "group");
     size_t count = value ? ps_size(value) : 1;
     for (size_t i = 0; ok && i < count; ++i) {
-        const char *key = value ? ps_key_at(value, i) : "__0000000000000__";
+        ps_text key = value ? ps_key(value, i) : PS_TEXT("__0000000000000__");
         ps_value *row = build_row(field, spec, path, key, i, count, group, label, settings,
                                   context, scope, numbers, segments, error);
         ok = row && append_owned(rows, &row);
         ps_value_free(row);
     }
     free(segments); free(numbers);
-    char *count_text = ok ? ps_format_count(context->messages->count, count) : NULL;
-    ps_value *node = count_text ? node_root("collection", path, design) : NULL;
-    header_part header[] = {{"label", label}, {"description", description}, {"count", count_text}};
-    ok = node && attach_header(node, design, header, 3) && attach_body(node, "", "", NULL) &&
+    ps_chars count_text = ok ? ps_format_count(context->messages->count, count) : (ps_chars){NULL, 0};
+    ps_value *node = count_text.bytes ? node_root("collection", path, design) : NULL;
+    header_part header[] = {{"label", label}, {"description", description}, {"count", ps_view(count_text)}};
+    ok = node && attach_header(node, design, header, 3) &&
+        attach_body(node, PS_TEXT(""), PS_TEXT(""), (ps_text){NULL, 0}) &&
         set_string(node, "item", group ? "group" : "field");
     if (ok && !count) {
         ps_value *actions = ps_array_value();
@@ -498,13 +513,13 @@ static ps_value *build_collection(const ps_value *field, const ps_value *spec,
         ps_value_free(actions);
     }
     ok = ok && set_owned(node, "children", &rows);
-    free(count_text); ps_value_free(rows);
+    free(count_text.bytes); ps_value_free(rows);
     if (!ok) { ps_value_free(node); return NULL; }
     return node;
 }
 
-static ps_value *build_lang(const ps_value *spec, const char *path, const ps_value *design,
-                            const char *label, const char *description,
+static ps_value *build_lang(const ps_value *spec, ps_text path, const ps_value *design,
+                            ps_text label, ps_text description,
                             const bind_context *context, const row_scope *scope,
                             ps_value **error)
 {
@@ -512,45 +527,48 @@ static ps_value *build_lang(const ps_value *spec, const char *path, const ps_val
     const ps_value *settings = lang && lang->kind == PS_OBJECT ? lang : NULL;
     const ps_value *frame = member(settings, "frame");
     /* A framed language group is a node modifier; the stylesheet draws the frame around its body. */
-    const char *frame_class = frame && frame->kind == PS_BOOL && !frame->data.boolean
-        ? "" : "crudui-node--framed";
-    char *title = NULL;
+    ps_text frame_class = frame && frame->kind == PS_BOOL && !frame->data.boolean
+        ? PS_TEXT("") : PS_TEXT("crudui-node--framed");
+    ps_chars title = {NULL, 0};
     bool ok = translated(member(settings, "title"), context->language, &title);
-    char *root_class = ok ? ps_join_classes(frame_class,
-        string_member(member(design, "wrapper"), "class"), NULL) : NULL;
-    char *group_class = root_class ? ps_join_classes(string_member(settings, "group_class"), NULL, NULL) : NULL;
-    ps_value *node = group_class ? node_root("lang", path, design) : NULL;
-    header_part header[] = {{"label", label}, {"description", description}, {"title", title}};
-    ok = node && set_string(node, "className", root_class) &&
+    ps_chars root_class = ok ? ps_join_classes(frame_class,
+        string_member(member(design, "wrapper"), "class"), PS_TEXT("")) : (ps_chars){NULL, 0};
+    ps_chars group_class = root_class.bytes
+        ? ps_join_classes(string_member(settings, "group_class"), PS_TEXT(""), PS_TEXT("")) : root_class;
+    ps_value *node = group_class.bytes ? node_root("lang", path, design) : NULL;
+    header_part header[] = {{"label", label}, {"description", description}, {"title", ps_view(title)}};
+    if (!title.bytes) header[2].text = (ps_text){NULL, 0};
+    ok = node && set_text(node, "className", ps_view(root_class)) &&
         attach_header(node, design, header, 3) &&
-        attach_body(node, group_class, "", NULL);
-    free(title); free(root_class); free(group_class);
+        attach_body(node, ps_view(group_class), PS_TEXT(""), (ps_text){NULL, 0});
+    free(title.bytes); free(root_class.bytes); free(group_class.bytes);
     ps_value *children = ok ? ps_array_value() : NULL;
     ok = children != NULL;
     const ps_value *only = member(settings, "only");
-    const char *defaults[] = {"ko", "en", "ja", "zh"};
+    static const char *const defaults[] = {"ko", "en", "ja", "zh"};
     bool listed = only && only->kind == PS_ARRAY && ps_size(only);
     size_t count = listed ? ps_size(only) : 4;
     for (size_t i = 0; ok && i < count; ++i) {
         /* Compilation admits only string codes; a listed non-string is an invalid template. */
         const ps_value *code_value = listed ? ps_at(only, i) : NULL;
         if (listed && code_value->kind != PS_STRING) { ok = false; break; }
-        const char *code = listed ? ps_string(code_value) : defaults[i];
-        char *lang_path = ps_join_path(path, code);
-        ps_value *lang_design = lang_path
-            ? ps_design(member(spec, "design"), context->data, lang_path) : NULL;
-        const ps_value *value = lang_path ? ps_path(context->data, lang_path) : NULL;
+        ps_text code = listed ? ps_string(code_value) : ps_fixed(defaults[i]);
+        ps_chars lang_path = ps_join_path(path, code);
+        ps_value *lang_design = lang_path.bytes
+            ? ps_design(member(spec, "design"), context->data, ps_view(lang_path)) : NULL;
+        const ps_value *value = lang_path.bytes ? ps_path(context->data, ps_view(lang_path)) : NULL;
         ps_value *widget = lang_design
-            ? build_widget(spec, value, lang_path, lang_design, context, scope, error) : NULL;
+            ? build_widget(spec, value, ps_view(lang_path), lang_design, context, scope, error) : NULL;
         ps_value *child = ps_object_value();
         ps_value *child_header = ps_object_value();
         ok = widget && child && child_header &&
-            set_string(child, "kind", "lang-item") && set_string(child, "lang", code) &&
+            set_string(child, "kind", "lang-item") && set_text(child, "lang", code) &&
             set_string(child, "className", "") && ps_set(child, "hidden", ps_bool_value(false)) &&
-            set_string(child_header, "className", "") && set_string(child_header, "label", code) &&
-            set_owned(child, "header", &child_header) && attach_body(child, "", "", NULL) &&
+            set_string(child_header, "className", "") && set_text(child_header, "label", code) &&
+            set_owned(child, "header", &child_header) &&
+            attach_body(child, PS_TEXT(""), PS_TEXT(""), (ps_text){NULL, 0}) &&
             set_owned(child, "widget", &widget) && append_owned(children, &child);
-        free(lang_path); ps_value_free(lang_design);
+        free(lang_path.bytes); ps_value_free(lang_design);
         ps_value_free(widget); ps_value_free(child); ps_value_free(child_header);
     }
     ok = ok && set_owned(node, "children", &children);
@@ -559,39 +577,43 @@ static ps_value *build_lang(const ps_value *spec, const char *path, const ps_val
     return node;
 }
 
-static ps_value *build_field(const ps_value *field, const char *path,
+static ps_value *build_field(const ps_value *field, ps_text path,
                              const bind_context *context, const row_scope *scope,
                              ps_value **error)
 {
     const ps_value *spec = member(field, "spec");
     if (!spec || spec->kind != PS_OBJECT) return NULL;
-    char *type = field_type(spec);
-    ps_value *design = type ? ps_design(member(spec, "design"), context->data, path) : NULL;
-    char *label = NULL, *description = NULL;
+    ps_chars type = field_type(spec);
+    ps_value *design = type.bytes ? ps_design(member(spec, "design"), context->data, path) : NULL;
+    ps_chars label = {NULL, 0}, description = {NULL, 0};
     ps_value *model = NULL;
-    if (type && design && translated(member(spec, "label"), context->language, &label) &&
+    if (type.bytes && design && translated(member(spec, "label"), context->language, &label) &&
         translated(member(spec, "description"), context->language, &description)) {
         multiple_settings settings;
         const ps_value *lang = member(spec, "lang");
+        ps_text label_text = label.bytes ? ps_view(label) : (ps_text){NULL, 0};
+        ps_text description_text = description.bytes ? ps_view(description) : (ps_text){NULL, 0};
         if (resolve_multiple(member(spec, "multiple"), &settings))
-            model = build_collection(field, spec, type, path, design, label, description,
-                                     &settings, context, scope, error);
-        else if (!strcmp(type, "group"))
-            model = build_group(field, path, design, label, description, context, scope, error);
+            model = build_collection(field, spec, ps_view(type), path, design, label_text,
+                                     description_text, &settings, context, scope, error);
+        else if (ps_text_is(ps_view(type), "group"))
+            model = build_group(field, path, design, label_text, description_text, context, scope, error);
         else if (lang && ((lang->kind == PS_BOOL && lang->data.boolean) || lang->kind == PS_OBJECT))
-            model = build_lang(spec, path, design, label, description, context, scope, error);
+            model = build_lang(spec, path, design, label_text, description_text, context, scope, error);
         else
-            model = build_leaf(spec, type, path, design, label, description, context, scope, error);
+            model = build_leaf(spec, ps_view(type), path, design, label_text, description_text,
+                               context, scope, error);
     }
-    free(label); free(description);
-    ps_value_free(design); free(type); return model;
+    free(label.bytes); free(description.bytes);
+    ps_value_free(design); free(type.bytes); return model;
 }
 
+/* A string option; absent or null has NULL bytes. */
 static bool string_option(const ps_value *options, const char *name,
-                          const char **output, ps_value **error)
+                          ps_text *output, ps_value **error)
 {
     const ps_value *value = member(options, name);
-    if (!value || value->kind == PS_NULL) { *output = NULL; return true; }
+    if (!value || value->kind == PS_NULL) { *output = (ps_text){NULL, 0}; return true; }
     if (value->kind == PS_STRING) { *output = ps_string(value); return true; }
     char message[128];
     snprintf(message, sizeof(message), "%s must be a string", name);
@@ -614,8 +636,9 @@ ps_result ps_bind_form(const ps_value *template, const ps_value *data,
     return result;
 }
 
-static ps_result bind_form(const ps_value *template, const ps_value *data,
-                           const ps_value *options)
+/* Template, data, options and language checks shared by form and button binding. */
+static ps_result check_bind_input(const ps_value *template, const ps_value *data,
+                                  const ps_value *options, ps_text *language_output)
 {
     if (!template || template->kind != PS_OBJECT ||
         !ps_is_string(member(template, "kind"), "crudui/form-template") ||
@@ -629,10 +652,49 @@ static ps_result bind_form(const ps_value *template, const ps_value *data,
     const ps_value *language_value = member(options, "language");
     if (language_value && language_value->kind != PS_NULL && language_value->kind != PS_STRING)
         return ps_fail("form", "INVALID_FORM_INPUT", "Language must be a string", "");
-    const char *language = language_value && language_value->kind == PS_STRING
-        ? ps_string(language_value) : "ko";
+    *language_output = language_value && language_value->kind == PS_STRING
+        ? ps_string(language_value) : PS_TEXT("ko");
+    return (ps_result){NULL, NULL};
+}
+
+static ps_result unsupported_language(ps_text language)
+{
+    ps_chars message = PS_CONCAT(PS_TEXT("Unsupported language: "), language);
+    if (!message.bytes) return ps_fail("internal", "INTERNAL_ERROR", "C form binding failed", "");
+    ps_result failure = ps_fail_text("form", "INVALID_FORM_INPUT", ps_view(message), PS_TEXT(""));
+    free(message.bytes);
+    return failure;
+}
+
+/* Public button binding: form binding input checks, then the buttons in specification order. */
+ps_result ps_bind_form_buttons(const ps_value *template, const ps_value *data,
+                               const ps_value *options)
+{
+    ps_value *ordered = NULL;
+    if (!ps_order_specification(template, NULL, &ordered, NULL))
+        return ps_fail("internal", "INTERNAL_ERROR", "C button binding failed", "");
+    ps_text language = {NULL, 0};
+    ps_result result = check_bind_input(ordered, data, options, &language);
+    if (!result.error) {
+        if (!ps_form_messages_for(language)) result = unsupported_language(language);
+        else {
+            ps_value *buttons = ps_bind_buttons(ordered, data, language);
+            result = buttons ? ps_ok(buttons)
+                : ps_fail("internal", "INTERNAL_ERROR", "C button binding failed", "");
+        }
+    }
+    ps_value_free(ordered);
+    return result;
+}
+
+static ps_result bind_form(const ps_value *template, const ps_value *data,
+                           const ps_value *options)
+{
+    ps_text language = {NULL, 0};
+    ps_result checked = check_bind_input(template, data, options, &language);
+    if (checked.error) return checked;
     ps_value *error = NULL;
-    const char *key_prefix = NULL, *id_prefix = NULL;
+    ps_text key_prefix = {NULL, 0}, id_prefix = {NULL, 0};
     if (!string_option(options, "keyPrefix", &key_prefix, &error) ||
         !string_option(options, "idPrefix", &id_prefix, &error))
         return (ps_result){NULL, error};
@@ -642,19 +704,13 @@ static ps_result bind_form(const ps_value *template, const ps_value *data,
         !ps_is_string(unsupported, "throw") && !ps_is_string(unsupported, "marker"))
         return ps_fail("form", "INVALID_FORM_INPUT", "unsupported must be throw or marker", "");
     const ps_form_messages *messages = ps_form_messages_for(language);
-    if (!messages) {
-        char *message = ps_string_join("Unsupported language: ", language, "");
-        if (!message) return ps_fail("internal", "INTERNAL_ERROR", "C form binding failed", "");
-        ps_result failure = ps_fail("form", "INVALID_FORM_INPUT", message, "");
-        free(message);
-        return failure;
-    }
-    if (!key_prefix) {
+    if (!messages) return unsupported_language(language);
+    if (!key_prefix.bytes) {
         const ps_value *stored = member(template, "keyPrefix");
         if (stored && stored->kind == PS_STRING) key_prefix = ps_string(stored);
     }
     bind_context context = {
-        data, key_prefix, id_prefix ? id_prefix : "crudui", language, messages,
+        data, key_prefix, id_prefix.bytes ? id_prefix : PS_TEXT("crudui"), language, messages,
         ps_is_string(unsupported, "marker")
     };
     row_scope root = {NULL, NULL, 0, 0};
@@ -676,26 +732,27 @@ static ps_result bind_form(const ps_value *template, const ps_value *data,
     return ps_ok(fields);
 }
 
-/* A behavior script: a string, or the script of a label and script action. */
-static const char *behavior_script(const ps_value *behavior, const char *action)
+/* A behavior script: a string, or the script of a label and script action; NULL bytes for none. */
+static ps_text behavior_script(const ps_value *behavior, const char *action)
 {
     const ps_value *entry = member(behavior, action);
     const ps_value *script = entry && entry->kind == PS_OBJECT ? ps_get(entry, "script") : entry;
-    return script && script->kind == PS_STRING && script->data.string.length ? ps_string(script) : NULL;
+    return script && script->kind == PS_STRING && script->data.string.length
+        ? ps_string(script) : (ps_text){NULL, 0};
 }
 
 /* Declared content, or the interface text of the button type when nothing translates. */
-static char *button_text(const ps_value *declared, const char *language, const char *fallback)
+static ps_chars button_text(const ps_value *declared, ps_text language, const char *fallback)
 {
     if (declared && (declared->kind == PS_STRING || declared->kind == PS_OBJECT)) {
-        char *text = ps_translate(declared, language);
-        if (!text || *text || declared->kind == PS_STRING) return text;
-        free(text);
+        ps_chars text = ps_translate(declared, language);
+        if (!text.bytes || text.length || declared->kind == PS_STRING) return text;
+        free(text.bytes);
     }
-    return ps_string_join(fallback, "", "");
+    return ps_copy(ps_fixed(fallback));
 }
 
-ps_value *ps_bind_buttons(const ps_value *template, const ps_value *data, const char *language)
+ps_value *ps_bind_buttons(const ps_value *template, const ps_value *data, ps_text language)
 {
     static const char *const optional[] = {"name", "value", "href"};
     const ps_form_messages *messages = ps_form_messages_for(language);
@@ -704,38 +761,36 @@ ps_value *ps_bind_buttons(const ps_value *template, const ps_value *data, const 
     if (!messages || !buttons) { ps_value_free(buttons); return NULL; }
     for (size_t i = 0; declared && declared->kind == PS_ARRAY && i < ps_size(declared); ++i) {
         const ps_value *spec = ps_at(declared, i);
-        const ps_value *type_value = member(spec, "type");
-        const char *type = type_value && type_value->kind == PS_STRING ? ps_string(type_value) : "";
-        bool link = !strcmp(type, "link");
-        const char *fallback = !strcmp(type, "submit") ? messages->submit
-            : !strcmp(type, "reset") ? messages->reset : "";
-        ps_value *design = ps_design(member(spec, "design"), data, "");
+        ps_text type = string_member(spec, "type");
+        bool link = ps_text_is(type, "link");
+        const char *fallback = ps_text_is(type, "submit") ? messages->submit
+            : ps_text_is(type, "reset") ? messages->reset : "";
+        ps_value *design = ps_design(member(spec, "design"), data, PS_TEXT(""));
         const ps_value *main_node = member(design, "main");
-        const ps_value *design_class = member(main_node, "class");
-        const ps_value *design_style = member(main_node, "style");
-        const char *extra = design_class && design_class->kind == PS_STRING ? ps_string(design_class) : "";
-        char *style = ps_style_string(design_style && design_style->kind == PS_STRING ? ps_string(design_style) : "");
-        char *class_name = ps_string_join("crudui-action crudui-action--text", *extra ? " " : "", extra);
-        char *text = button_text(member(spec, "text"), language, fallback);
-        const char *script = behavior_script(member(spec, "behavior"), "onclick");
+        ps_text extra = string_member(main_node, "class");
+        ps_chars style = ps_style_string(string_member(main_node, "style"));
+        ps_chars class_name = PS_CONCAT(PS_TEXT("crudui-action crudui-action--text"),
+                                        extra.length ? PS_TEXT(" ") : PS_TEXT(""), extra);
+        ps_chars text = button_text(member(spec, "text"), language, fallback);
+        ps_text script = behavior_script(member(spec, "behavior"), "onclick");
         ps_value *attrs = ps_object_value();
         ps_value *button = ps_object_value();
-        bool ok = design && main_node && style && class_name && text && attrs && button &&
-            (link || ps_set(attrs, "type", ps_string_value(type))) &&
-            ps_set(attrs, "class", ps_string_value(class_name)) &&
-            (!*style || ps_set(attrs, "style", ps_string_value(style)));
+        bool ok = design && main_node && style.bytes && class_name.bytes && text.bytes && attrs && button &&
+            (link || set_text(attrs, "type", type)) &&
+            set_text(attrs, "class", ps_view(class_name)) &&
+            (!style.length || set_text(attrs, "style", ps_view(style)));
         for (size_t j = 0; ok && j < 3; ++j) {
             const ps_value *value = member(spec, optional[j]);
             if (value && value->kind == PS_STRING) ok = ps_set(attrs, optional[j], ps_value_clone(value));
         }
-        ok = ok && (!script || ps_set(attrs, "onclick", ps_string_value(script))) &&
-            ps_set(button, "type", ps_string_value(type)) &&
+        ok = ok && (!script.bytes || set_text(attrs, "onclick", script)) &&
+            set_text(button, "type", type) &&
             ps_set(button, "tag", ps_string_value(link ? "a" : "button")) &&
-            ps_set(button, "text", ps_string_value(text));
+            set_text(button, "text", ps_view(text));
         if (ok) { ok = ps_set(button, "attrs", attrs); attrs = NULL; }
         if (ok) { ok = ps_append(buttons, button); button = NULL; }
         ps_value_free(design); ps_value_free(attrs); ps_value_free(button);
-        free(style); free(class_name); free(text);
+        free(style.bytes); free(class_name.bytes); free(text.bytes);
         if (!ok) { ps_value_free(buttons); return NULL; }
     }
     return buttons;

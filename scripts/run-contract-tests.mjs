@@ -5,6 +5,8 @@ import { spawnSync } from 'node:child_process';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { createProgress } from './test-progress/progress.mjs';
+
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const manifest = JSON.parse(readFileSync(resolve(root, 'contracts/features.json'), 'utf8'));
 const requested = process.argv.slice(2);
@@ -25,8 +27,11 @@ for (const feature of features) {
   }
 }
 
+// Each declared command prints its own tests; this runner prints the command around them.
+const lines = createProgress({ write: text => process.stdout.write(text) });
 for (const [command, owners] of commands) {
-  process.stdout.write(`\n[manifest:test] ${owners.join(', ')}\n$ ${command}\n`);
+  const id = `${owners.join(', ')}: ${command}`;
+  lines.start(id, { group: true });
   const result = spawnSync('/bin/sh', ['-lc', command], {
     cwd: root,
     stdio: 'inherit',
@@ -34,9 +39,10 @@ for (const [command, owners] of commands) {
   });
   if (result.error) throw result.error;
   if (result.status !== 0) {
-    process.stderr.write(`[manifest:test] failed with status ${result.status ?? 'signal'}\n`);
+    lines.fail(id, undefined, `failed with status ${result.status ?? 'signal'}`);
+    lines.close('manifest:test');
     process.exit(result.status ?? 1);
   }
+  lines.pass(id);
 }
-
-process.stdout.write(`\n[manifest:test] ${commands.size} declared commands passed\n`);
+lines.close(`manifest:test: ${commands.size} declared commands`);

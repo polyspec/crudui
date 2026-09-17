@@ -276,11 +276,40 @@ fail:
     return false;
 }
 
+const ps_value *ps_get_text(const ps_value *value, ps_text key)
+{
+    if (!key.bytes) return NULL;
+    size_t index = member_index(value, key.bytes, key.length);
+    return index == SIZE_MAX ? NULL : value->data.children.items[index].value;
+}
+
+ps_value *ps_get_mut_text(ps_value *value, ps_text key)
+{
+    return (ps_value *)ps_get_text(value, key);
+}
+
+bool ps_has_text(const ps_value *value, ps_text key) { return ps_get_text(value, key) != NULL; }
+
+bool ps_set_text(ps_value *object, ps_text key, ps_value *value)
+{
+    if (!key.bytes) { ps_value_free(value); return false; }
+    return ps_value_insert(object, (const uint8_t *)key.bytes, key.length, value);
+}
+
+bool ps_delete_text(ps_value *object, ps_text key)
+{
+    if (!key.bytes) return false;
+    size_t index = member_index(object, key.bytes, key.length);
+    if (index == SIZE_MAX) return false;
+    ps_member *member = &object->data.children.items[index];
+    free(member->key); ps_value_free(member->value);
+    memmove(member, member + 1, (object->data.children.length - index - 1) * sizeof(*member));
+    object->data.children.length--; return true;
+}
+
 const ps_value *ps_get(const ps_value *value, const char *key)
 {
-    if (!key) return NULL;
-    size_t index = member_index(value, key, strlen(key));
-    return index == SIZE_MAX ? NULL : value->data.children.items[index].value;
+    return key ? ps_get_text(value, ps_fixed(key)) : NULL;
 }
 
 ps_value *ps_get_mut(ps_value *value, const char *key)
@@ -289,26 +318,24 @@ ps_value *ps_get_mut(ps_value *value, const char *key)
 }
 
 bool ps_has(const ps_value *value, const char *key) { return ps_get(value, key) != NULL; }
-size_t ps_size(const ps_value *value) { return value && (value->kind == PS_ARRAY || value->kind == PS_OBJECT) ? value->data.children.length : 0; }
-const ps_value *ps_at(const ps_value *value, size_t index) { return index < ps_size(value) ? value->data.children.items[index].value : NULL; }
-const char *ps_key_at(const ps_value *value, size_t index) { return value && value->kind == PS_OBJECT && index < ps_size(value) ? value->data.children.items[index].key : NULL; }
+
 bool ps_set(ps_value *object, const char *key, ps_value *value)
 {
     if (!key) { ps_value_free(value); return false; }
-    return ps_value_insert(object, (const uint8_t *)key, strlen(key), value);
+    return ps_set_text(object, ps_fixed(key), value);
 }
-bool ps_append(ps_value *array, ps_value *value) { return ps_value_insert(array, NULL, 0, value); }
 
-bool ps_delete(ps_value *object, const char *key)
+size_t ps_size(const ps_value *value) { return value && (value->kind == PS_ARRAY || value->kind == PS_OBJECT) ? value->data.children.length : 0; }
+const ps_value *ps_at(const ps_value *value, size_t index) { return index < ps_size(value) ? value->data.children.items[index].value : NULL; }
+
+ps_text ps_key(const ps_value *value, size_t index)
 {
-    if (!key) return false;
-    size_t index = member_index(object, key, strlen(key));
-    if (index == SIZE_MAX) return false;
-    ps_member *member = &object->data.children.items[index];
-    free(member->key); ps_value_free(member->value);
-    memmove(member, member + 1, (object->data.children.length - index - 1) * sizeof(*member));
-    object->data.children.length--; return true;
+    if (!value || value->kind != PS_OBJECT || index >= ps_size(value)) return PS_TEXT("");
+    const ps_member *member = &value->data.children.items[index];
+    return (ps_text){member->key, member->key_length};
 }
+
+bool ps_append(ps_value *array, ps_value *value) { return ps_value_insert(array, NULL, 0, value); }
 
 bool ps_equal(const ps_value *left, const ps_value *right)
 {
@@ -331,7 +358,7 @@ bool ps_equal(const ps_value *left, const ps_value *right)
         case PS_ARRAY: case PS_OBJECT:
             if (ps_size(left) != ps_size(right)) return false;
             for (size_t i = 0; i < ps_size(left); ++i) {
-                if (left->kind == PS_OBJECT && strcmp(ps_key_at(left, i), ps_key_at(right, i))) return false;
+                if (left->kind == PS_OBJECT && !ps_text_equal(ps_key(left, i), ps_key(right, i))) return false;
                 if (!ps_equal(ps_at(left, i), ps_at(right, i))) return false;
             }
             return true;
@@ -345,7 +372,11 @@ bool ps_is_string(const ps_value *value, const char *text)
         strlen(text) == value->data.string.length &&
         !memcmp(value->data.string.bytes, text, value->data.string.length);
 }
-const char *ps_string(const ps_value *value) { return value && value->kind == PS_STRING ? value->data.string.bytes : ""; }
+ps_text ps_string(const ps_value *value)
+{
+    if (!value || value->kind != PS_STRING) return PS_TEXT("");
+    return (ps_text){value->data.string.bytes, value->data.string.length};
+}
 bool ps_truthy(const ps_value *value)
 {
     if (!value) return false;
@@ -378,13 +409,23 @@ ps_value *ps_float_value(double input)
     if (!value || !ps_value_float(value, input)) { ps_value_free(value); return NULL; }
     return value;
 }
-ps_value *ps_string_value(const char *input)
+ps_value *ps_text_value(ps_text input)
 {
-    if (!input) return NULL;
+    if (!input.bytes) return NULL;
     ps_value *value = ps_value_new(PS_NULL);
-    if (!value || !ps_value_string(value, (const uint8_t *)input, strlen(input))) {
+    if (!value || !ps_value_string(value, (const uint8_t *)input.bytes, input.length)) {
         ps_value_free(value); return NULL;
     }
+    return value;
+}
+ps_value *ps_string_value(const char *input)
+{
+    return input ? ps_text_value(ps_fixed(input)) : NULL;
+}
+ps_value *ps_chars_value(ps_chars input)
+{
+    ps_value *value = input.bytes ? ps_text_value(ps_view(input)) : NULL;
+    free(input.bytes);
     return value;
 }
 ps_value *ps_array_value(void) { return ps_value_new(PS_ARRAY); }
@@ -398,4 +439,153 @@ bool ps_replace(ps_value *parent, size_t index, ps_value *value)
     ps_value_free(parent->data.children.items[index].value);
     parent->data.children.items[index].value = value;
     return true;
+}
+
+bool ps_text_equal(ps_text left, ps_text right)
+{
+    return left.length == right.length &&
+        (!left.length || !memcmp(left.bytes, right.bytes, left.length));
+}
+
+bool ps_text_is(ps_text text, const char *identifier)
+{
+    return identifier && ps_text_equal(text, ps_fixed(identifier));
+}
+
+bool ps_text_starts(ps_text text, const char *prefix)
+{
+    size_t length = strlen(prefix);
+    return text.length >= length && !memcmp(text.bytes, prefix, length);
+}
+
+bool ps_text_ends(ps_text text, const char *suffix)
+{
+    size_t length = strlen(suffix);
+    return text.length >= length && !memcmp(text.bytes + text.length - length, suffix, length);
+}
+
+size_t ps_text_find_byte(ps_text text, char byte, size_t from)
+{
+    if (from >= text.length) return SIZE_MAX;
+    const char *found = memchr(text.bytes + from, byte, text.length - from);
+    return found ? (size_t)(found - text.bytes) : SIZE_MAX;
+}
+
+size_t ps_text_find(ps_text text, ps_text needle, size_t from)
+{
+    if (from > text.length || needle.length > text.length - from) return SIZE_MAX;
+    if (!needle.length) return from;
+    for (size_t i = from; i + needle.length <= text.length; ++i)
+        if (text.bytes[i] == needle.bytes[0] && !memcmp(text.bytes + i, needle.bytes, needle.length))
+            return i;
+    return SIZE_MAX;
+}
+
+ps_text ps_text_slice(ps_text text, size_t start, size_t end)
+{
+    if (end > text.length) end = text.length;
+    if (start > end) start = end;
+    return (ps_text){text.bytes + start, end - start};
+}
+
+int ps_text_compare(ps_text left, ps_text right)
+{
+    size_t shared = left.length < right.length ? left.length : right.length;
+    int order = shared ? memcmp(left.bytes, right.bytes, shared) : 0;
+    if (order) return order;
+    return left.length < right.length ? -1 : left.length > right.length ? 1 : 0;
+}
+
+ps_chars ps_copy(ps_text text)
+{
+    return ps_concat(&text, 1);
+}
+
+ps_chars ps_concat(const ps_text *parts, size_t count)
+{
+    size_t length = 0;
+    for (size_t i = 0; i < count; ++i) {
+        if (!parts[i].bytes && parts[i].length) return (ps_chars){NULL, 0};
+        if (parts[i].length > SIZE_MAX - 1 - length) return (ps_chars){NULL, 0};
+        length += parts[i].length;
+    }
+    char *bytes = malloc(length + 1);
+    if (!bytes) return (ps_chars){NULL, 0};
+    size_t offset = 0;
+    for (size_t i = 0; i < count; ++i) {
+        if (parts[i].length) memcpy(bytes + offset, parts[i].bytes, parts[i].length);
+        offset += parts[i].length;
+    }
+    bytes[length] = '\0';
+    return (ps_chars){bytes, length};
+}
+
+ps_chars ps_decimal(size_t value)
+{
+    char digits[32];
+    size_t cursor = sizeof(digits);
+    do { digits[--cursor] = (char)('0' + value % 10); value /= 10; } while (value);
+    return ps_copy((ps_text){digits + cursor, sizeof(digits) - cursor});
+}
+
+/* The growable output buffer shared by markup, messages and text building. */
+static bool buffer_reserve(ps_html_buffer *out, size_t extra)
+{
+    if (out->failed) return false;
+    if (extra > SIZE_MAX - out->length - 1) { out->failed = true; return false; }
+    size_t needed = out->length + extra + 1;
+    if (needed <= out->capacity) return true;
+    size_t capacity = out->capacity ? out->capacity : 256;
+    while (capacity < needed) {
+        if (capacity > SIZE_MAX / 2) { capacity = needed; break; }
+        capacity *= 2;
+    }
+    char *data = realloc(out->data, capacity);
+    if (!data) { out->failed = true; return false; }
+    out->data = data;
+    out->capacity = capacity;
+    return true;
+}
+
+bool ps_html_bytes(ps_html_buffer *out, const char *value, size_t length)
+{
+    if (!value && length) { out->failed = true; return false; }
+    if (!buffer_reserve(out, length)) return false;
+    if (length) memcpy(out->data + out->length, value, length);
+    out->length += length;
+    out->data[out->length] = '\0';
+    return true;
+}
+
+bool ps_html_append(ps_html_buffer *out, ps_text value)
+{
+    return ps_html_bytes(out, value.bytes, value.length);
+}
+
+bool ps_html_text(ps_html_buffer *out, const char *value)
+{
+    return ps_html_append(out, ps_fixed(value));
+}
+
+bool ps_html_character(ps_html_buffer *out, char value)
+{
+    return ps_html_bytes(out, &value, 1);
+}
+
+ps_chars ps_html_take(ps_html_buffer *out)
+{
+    if (out->failed) {
+        free(out->data);
+        *out = (ps_html_buffer){0};
+        return (ps_chars){NULL, 0};
+    }
+    if (!out->data) return ps_copy(PS_TEXT(""));
+    ps_chars result = {out->data, out->length};
+    *out = (ps_html_buffer){0};
+    return result;
+}
+
+ps_value *ps_html_value(ps_html_buffer *out)
+{
+    return ps_chars_value(ps_html_take(out));
 }

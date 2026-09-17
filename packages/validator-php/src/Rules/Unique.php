@@ -9,7 +9,7 @@ use CRUDUI\Validator\PathResolver;
 /**
  * Unique values validation rule.
  *
- * Two modes (canonical per tests/cases/unique.json):
+ * Two modes (canonical per the unique suite of tests/fixtures/legacy-validate/cases.json):
  * 1. Array-level: value is the whole array of a multiple field - every
  *    non-empty entry must be unique (type-strict comparison).
  * 2. Field-level: value is a scalar field inside a repeated group

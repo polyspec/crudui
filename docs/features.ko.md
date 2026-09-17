@@ -82,8 +82,8 @@ Chromium 위젯·시간대 검사 3개와 `make docs-check`가 통과했습니�
 Chromium 검사 3개, 공개 패키지 검사 9개, 반복 빌드 검사 1개, 폼 검사기 검사
 18개와 폼 검사기 브라우저 CSS 검사 6개가 통과했습니다. 교차 검사 렌더링 33개도
 통과했습니다. 교차 검사 게이트웨이 268개 검사도 통과했으며 공용 폼 검증 fixture
-64개를 JavaScript·PHP·Go·Rust로 모두 실행했습니다. 렌더링 fan-out은 폼 92개, 목록
-42개, 상세 30개 fixture 전체를 포함하며, 생성 행 식별자를 사용하는 public instance
+64개를 JavaScript·PHP·Go·Rust로 모두 실행했습니다. 렌더링 fan-out은 폼 93개, 목록
+58개, 상세 31개 fixture 전체를 포함하며, 생성 행 식별자를 사용하는 public instance
 폼 한 건은 고정 bindForm 바이트 대신 parity와 행 키 계약으로 검사합니다.
 
 실행 가능한 적합성 검사 매트릭스는 선언된 대상 그룹, fixture 목록, gateway 검사 연결,

@@ -53,7 +53,8 @@ test('native report upload uses the current Node.js 24 artifact action', async (
   const versions = [...job.matchAll(/uses:\s*actions\/upload-artifact@([^\s]+)/g)]
     .map(match => match[1]);
 
-  assert.deepEqual(versions, ['v7']);
+  assert.ok(versions.length > 0, 'The native job uploads its report');
+  assert.deepEqual(versions.filter(version => version !== 'v7'), []);
 });
 
 test('browser CI jobs select the regular sandboxed Chrome executable', async () => {

@@ -1,5 +1,17 @@
 #include "php_crudui.h"
 
+/* Throw a new exception of the class whose message is a PHP string, which may hold NUL characters.
+   The message property is declared by the base class. */
+static zend_object *throw_message(zend_class_entry *ce, zend_class_entry *base, zend_string *message)
+{
+    zval exception;
+    object_init_ex(&exception, ce);
+    zend_update_property_str(base, Z_OBJ(exception), ZEND_STRL("message"), message);
+    zend_object *object = Z_OBJ(exception);
+    zend_throw_exception_object(&exception);
+    return object;
+}
+
 static void initialize_error(zend_class_entry *ce, zend_object *object, zend_string *code, zend_string *message, zval *detail)
 {
     zend_update_property_str(ce, object, ZEND_STRL("message"), message);
@@ -118,7 +130,11 @@ PHP_METHOD(CRUDUI_Validator_Compose_ComposeLoadError, __get)
     if (zend_string_equals_literal(name, "code")) {
         return_property(crudui_compose_error_ce, Z_OBJ_P(ZEND_THIS), ZEND_STRL("errorCode"), return_value);
     } else {
-        zend_throw_exception_ex(spl_ce_OutOfRangeException, 0, "Undefined property: CRUDUI\\Validator\\Compose\\ComposeLoadError::$%s", ZSTR_VAL(name));
+        zend_string *message = zend_string_concat2(
+            ZEND_STRL("Undefined property: CRUDUI\\Validator\\Compose\\ComposeLoadError::$"),
+            ZSTR_VAL(name), ZSTR_LEN(name));
+        throw_message(spl_ce_OutOfRangeException, zend_ce_exception, message);
+        zend_string_release(message);
     }
 }
 
@@ -132,6 +148,7 @@ PHP_METHOD(CRUDUI_Validator_Compose_ComposeLoadError, __isset)
 void crudui_throw(ps_value *error)
 {
     zval value;
+    if (EG(exception)) { ps_value_free(error); return; }
     if (!crudui_to_php(error, &value)) { ps_value_free(error); return; }
     ps_value_free(error);
     HashTable *members = Z_OBJPROP(value);
@@ -139,13 +156,17 @@ void crudui_throw(ps_value *error)
     zval *code = zend_hash_str_find(members, ZEND_STRL("code"));
     zval *message = zend_hash_str_find(members, ZEND_STRL("message"));
     bool composition = zend_string_equals_literal(Z_STR_P(kind), "compose");
+    /* Every message is set as a PHP string, so a NUL character in it is kept. */
     if (zend_string_equals_literal(Z_STR_P(kind), "internal")) {
-        zend_throw_error(NULL, "%s", Z_STRVAL_P(message));
+        throw_message(zend_ce_error, zend_ce_error, Z_STR_P(message));
     } else if (zend_string_equals_literal(Z_STR_P(kind), "input")) {
-        crudui_input_failure(Z_STRVAL_P(message));
+        zend_object *object = throw_message(crudui_input_error_ce, zend_ce_exception, Z_STR_P(message));
+        zend_string *input_code = zend_string_init("INVALID_FORM_INPUT", sizeof("INVALID_FORM_INPUT") - 1, false);
+        initialize_error(crudui_input_error_ce, object, input_code, Z_STR_P(message), NULL);
+        zend_string_release(input_code);
     } else {
         zend_class_entry *ce = composition ? crudui_compose_error_ce : crudui_form_error_ce;
-        zend_object *object = zend_throw_exception(ce, Z_STRVAL_P(message), 0);
+        zend_object *object = throw_message(ce, zend_ce_exception, Z_STR_P(message));
         zval *detail = zend_hash_str_find(members, composition ? "trace" : "at", composition ? 5 : 2);
         initialize_error(ce, object, Z_STR_P(code), Z_STR_P(message), detail);
     }
