@@ -326,6 +326,7 @@ static ps_value *text_control(const char *kind, const widget_context *context)
         !strcmp(kind, "datetime") ? "datetime-local" : kind);
     if (ok) ok = set_text(attrs, "name", ps_view(name));
     if (ok && !textarea) ok = set_text(attrs, "value", ps_view(value));
+    if (ok && !strcmp(kind, "number")) ok = set_string(attrs, "step", "any");
     if (ok && dummy) ok = set_string(attrs, "readonly", "");
     if (ok) ok = set_text(attrs, "class", ps_view(class_name));
     if (ok && textarea) ok = set_string(attrs, "rows", "5");

@@ -294,6 +294,7 @@ for (const [file, exported] of [
   ['controls.mjs', 'controlSpec'],
   ['data-rows.mjs', 'onlySpec'],
   ['data-rows.mjs', 'visibilitySpec'],
+  ['typing.mjs', 'typingSpec'],
 ]) {
   const module = await import(pathToFileURL(at(`tests/fixtures/form-session/${file}`)));
   checkSpec(`form-session:${file}`, module[exported], validateForm);

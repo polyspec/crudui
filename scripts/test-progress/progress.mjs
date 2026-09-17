@@ -71,15 +71,17 @@ export function createProgress({ write, heartbeatMs = 5000, timeoutMs, onTimeout
       line(`○ ${id} skipped`);
     },
     /** Tests still running when the tool ended are failures; a failed group fails the run. */
-    close(label) {
+    /** End the run; a nonzero `exitCode` of the tool fails it even when no test failed. */
+    close(label, { exitCode = 0 } = {}) {
       clearInterval(timer);
       for (const id of [...running.keys()]) this.fail(id, undefined, 'the test did not finish');
-      const failed = counts.failed + counts.timedOut + groupCounts.failed;
+      const failed = counts.failed + counts.timedOut + groupCounts.failed + (exitCode === 0 ? 0 : 1);
       const tests = counts.passed + counts.failed + counts.timedOut + counts.skipped;
       const summary = tests || !(groupCounts.passed + groupCounts.failed)
         ? `${counts.passed} passed, ${counts.failed} failed, ${counts.timedOut} timed out, ${counts.skipped} skipped`
         : `${groupCounts.passed} passed, ${groupCounts.failed} failed`;
-      line(`${failed ? '✖' : '✔'} ${label}: ${summary} (${seconds(now() - started)})`);
+      const exit = exitCode === 0 ? '' : `, the tool exited with ${exitCode}`;
+      line(`${failed ? '✖' : '✔'} ${label}: ${summary}${exit} (${seconds(now() - started)})`);
       return { ...counts, ok: failed === 0 };
     },
     counts,

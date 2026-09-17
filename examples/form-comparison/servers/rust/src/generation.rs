@@ -231,7 +231,7 @@ fn document(
     let language = frame_language(query)?;
     let frame = std::fs::read_to_string(
         server
-            .specs
+            .public
             .join("frames")
             .join(format!("{rendering_path}-{framework}"))
             .join("index.html"),
@@ -243,7 +243,7 @@ fn document(
     {
         return Err(internal(FRAME_ERROR));
     }
-    let spec = read_object(&server.specs.join("spec.json"))?;
+    let spec = read_object(&server.public.join("spec.json"))?;
     let template = compile_form(
         &spec,
         &CompileOptions {
@@ -256,7 +256,7 @@ fn document(
         file: server
             .data
             .join(format!("rust-{rendering_path}-{framework}.json")),
-        fixtures: server.specs.join("records.json"),
+        fixtures: server.public.join("records.json"),
     };
     let data = load_data(&repository.read()?)?;
     let form = Form::new(

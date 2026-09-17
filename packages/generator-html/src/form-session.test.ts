@@ -44,8 +44,8 @@ const flush = async () => {};
 function mount(session: FormInstance, element: HTMLElement) {
   const outline = document.createElement('div');
   document.body.append(element, outline);
-  element.innerHTML = renderForm(session);
-  outline.innerHTML = renderOutline(session);
+  patchContent(element, renderForm(session));
+  patchContent(outline, renderOutline(session));
   const connection = connectForm(element, session);
   const outlineConnection = connectOutline(outline, session, element);
   const unsubscribe = session.subscribe(() => {
@@ -123,6 +123,22 @@ test('keeps the values of a group hidden by design.show', async () => {
   try {
     await proves('data-rows.mjs', 'exerciseHiddenValues', ['connectForm'], () =>
       exerciseHiddenValues({ element, session, expect, flush }));
+  } finally {
+    unmount();
+  }
+});
+
+// @ts-expect-error Shared typing assertions across all renderers.
+import { typingSpec, exerciseTyping, installWidgetHost } from '../../../tests/fixtures/form-session/typing.mjs';
+
+test('keeps the typed control node, its order and its caret', async () => {
+  installWidgetHost(document);
+  const form = createForm(compileForm(typingSpec));
+  const element = document.createElement('form');
+  const unmount = mount(form, element);
+  try {
+    await proves('typing.mjs', 'exerciseTyping', ['connectForm', 'patchContent'], () =>
+      exerciseTyping({ element, form, expect, flush }));
   } finally {
     unmount();
   }

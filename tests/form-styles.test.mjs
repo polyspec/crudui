@@ -5,13 +5,11 @@
 import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { existsSync } from 'node:fs';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { webkit } from 'playwright';
-import puppeteer from 'puppeteer';
 import { createServer } from 'vite';
+import { engineDrivers, engines } from './browser-engines.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const entry = '/__crudui_form_styles__.mjs';
@@ -62,48 +60,19 @@ window.formStylesTest = {
 };
 `;
 
-/** The Firefox executable: CRUDUI_FIREFOX_EXECUTABLE, or the platform's installed Firefox. */
-function firefoxExecutable() {
-  const candidates = [process.env.CRUDUI_FIREFOX_EXECUTABLE, '/Applications/Firefox.app/Contents/MacOS/firefox', '/usr/bin/firefox'].filter(Boolean);
-  const found = candidates.find(candidate => existsSync(candidate));
-  if (!found) throw new Error(`Firefox is required for the layout checks; set CRUDUI_FIREFOX_EXECUTABLE (looked in ${candidates.join(', ')})`);
-  return found;
-}
-
 const viewport = { width: 1000, height: 700 };
 
 /**
- * The engine adapter: how each engine launches and opens a page of the viewport size. Chromium
- * and Firefox run through Puppeteer, WebKit through Playwright. The pages of both drivers share
- * the calls the scenarios use: `on('pageerror' | 'console')`, `goto`, `waitForSelector`,
- * `mainFrame`, and on frames `evaluate(fn, arg)`, `evaluateHandle` and `waitForFunction(fn)`.
- * `pointerFocusesButtons` is the engine's known convention for a pointer press on a button.
- * A browser that cannot start fails the run with the reason; no engine is ever skipped.
+ * The engine adapter (tests/browser-engines.mjs) with each engine's known convention for a
+ * pointer press on a button in `pointerFocusesButtons`.
  */
 const drivers = {
-  chromium: {
-    launch: () => puppeteer.launch({ headless: true }),
-    open: async browser => { const page = await browser.newPage(); await page.setViewport(viewport); return page; },
-    pointerFocusesButtons: true,
-  },
-  firefox: {
-    launch: () => puppeteer.launch({ headless: true, browser: 'firefox', executablePath: firefoxExecutable() }),
-    open: async browser => { const page = await browser.newPage(); await page.setViewport(viewport); return page; },
-    pointerFocusesButtons: true,
-  },
-  webkit: {
-    launch: async () => {
-      try { return await webkit.launch({ headless: true }); }
-      catch (error) { throw new Error(`WebKit is required for the layout checks; install it with \`npx playwright install --with-deps webkit\`:\n${error.message}`, { cause: error }); }
-    },
-    // A Playwright page opened from the browser owns its context and closes it with itself.
-    open: browser => browser.newPage({ viewport }),
-    // Safari on macOS does not focus a button on a pointer press; other WebKit ports follow
-    // their own platform, which the scenario measures.
-    pointerFocusesButtons: process.platform === 'darwin' ? false : undefined,
-  },
+  chromium: { ...engineDrivers.chromium, pointerFocusesButtons: true },
+  firefox: { ...engineDrivers.firefox, pointerFocusesButtons: true },
+  // Safari on macOS does not focus a button on a pointer press; other WebKit ports follow
+  // their own platform, which the scenario measures.
+  webkit: { ...engineDrivers.webkit, pointerFocusesButtons: process.platform === 'darwin' ? false : undefined },
 };
-const engines = Object.keys(drivers);
 const browsers = {};
 let server, url, frameUrl, cacheDirectory;
 before(async () => {
@@ -151,7 +120,7 @@ after(async () => {
  * or a 600 px frame. Returns the frame that runs the form and records page errors.
  */
 async function openHost(engine, host) {
-  const page = await drivers[engine].open(browsers[engine]);
+  const page = await drivers[engine].open(browsers[engine], viewport);
   const failures = [];
   page.on('pageerror', error => failures.push(error.message));
   page.on('console', message => { if (message.type() === 'error') failures.push(message.text()); });

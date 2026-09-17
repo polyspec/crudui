@@ -44,10 +44,17 @@ React, Vue, Svelte, HTML 렌더러와 네이티브 렌더러는 같은 마크업
 | `data-crudui-action` | 버튼의 작업 |
 | `hidden` | `design.show`가 false인 노드, 접힌 행 본문, 펼친 행의 요약 |
 | `aria-expanded`, `aria-controls` | 행 토글 상태와 제어하는 본문 |
+| `step="any"` | 모든 숫자 컨트롤(`number`, `integer`, `float`, `decimal`), 아래 참조 |
 
 버튼의 컬렉션 경로는 버튼 자신 또는 가장 가까운 상위 `[data-field-path]`입니다.
 행 키는 그 요소 안에서 가장 가까운 `[data-crudui-row-key]`이며, 없으면 작업은
 컬렉션에 적용됩니다.
+
+검증 규칙은 네이티브 제약 속성으로 쓰지 않으며, 유효성은
+[검증 규칙](validation-rules.ko.md)이 결정합니다. 숫자 컨트롤은 `step="any"`를 가져
+네이티브 제약 검증이 모든 숫자를 받아들입니다. 이 속성이 없으면 기본 step 1이 `value`
+속성에서부터 세어지므로, `2886.5` 같은 저장 값이 있으면 모든 정수가 step 불일치가 됩니다.
+증가 단위는 `step` 규칙이 맡습니다.
 
 ## 노드
 

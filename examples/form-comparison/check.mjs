@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { parse } from 'parse5';
 import puppeteer from 'puppeteer';
 
-import { browserJobReportCount, verifyServerReport } from './browser-report-policy.mjs';
+import { browserJobReportCount, browserUnitLimitsMs, verifyServerReport } from './browser-report-policy.mjs';
 import { checkInteraction } from './check-interaction.mjs';
 import { collectBrowserJob } from './src/browser-job.mjs';
 import { formatDuration } from './src/step-runner.mjs';
@@ -14,6 +14,7 @@ import { readFrameDocument } from './src/frame-document.mjs';
 import { parseFrameDocument } from './src/frame-readiness.mjs';
 import { subscribeMainPageReadiness } from './src/main-page-readiness.mjs';
 import { formFrameworks, formRenderingPaths, formServers } from './src/runtime-paths.mjs';
+import { runUnit } from './src/unit-pool.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const output = process.env.FORM_COMPARISON_RESULTS
@@ -48,42 +49,47 @@ if (existsSync(path.join(output, reportFile))) {
   }
 }
 
-/** Limits of the phases outside the report job, sized from their measured durations. */
-export const checkPhaseLimitsMs = Object.freeze({
-  'main-page': 180_000, interactions: 300_000, artifacts: 300_000,
-});
-
-function progress(message) {
-  process.stdout.write(`${selectedServer}: ${message}\n`);
+/**
+ * Print a unit progress line (`[server] unit: started|running|passed|failed ...`). The step that
+ * runs this check has no total limit; it is stopped when these lines stop (step-runner.mjs).
+ */
+function progress(unit, message) {
+  process.stdout.write(`[${selectedServer}] ${unit}: ${message}\n`);
 }
 
-/** Run one phase with its own limit and report its start and duration. */
+/** Durations of the units outside the report job, recorded for the next limit measurement. */
+const units = [];
+
+/**
+ * Run one phase as a unit with its own limit (browser-report-policy.mjs): it prints its start,
+ * its elapsed time every heartbeat and its result with the duration, and fails at its limit.
+ */
+async function runPhase(id, action) {
+  const result = await runUnit({ id, timeoutMs: browserUnitLimitsMs[id], run: action },
+    { label: selectedServer });
+  units.push({ id, status: result.status, durationMs: result.durationMs, timeoutMs: result.timeoutMs });
+  return result;
+}
+
 async function phase(id, action) {
-  const limitMs = checkPhaseLimitsMs[id];
-  const started = performance.now();
-  progress(`${id} started (limit ${formatDuration(limitMs)})`);
-  let timer;
-  try {
-    const value = await Promise.race([action(), new Promise((resolve, reject) => {
-      timer = setTimeout(() => reject(new Error(
-        `${id} exceeded its ${limitMs} ms limit after `
-        + `${Math.round(performance.now() - started)} ms`)), limitMs);
-    })]);
-    progress(`${id} passed in ${formatDuration(performance.now() - started)}`);
-    return value;
-  } catch (error) {
-    progress(`${id} failed after ${formatDuration(performance.now() - started)}: ${error.message}`);
-    throw error;
-  } finally {
-    clearTimeout(timer);
+  const result = await runPhase(id, action);
+  if (result.status !== 'passed') {
+    throw new Error(`${selectedServer} ${id} ${result.status} after ${formatDuration(result.durationMs)}`
+      + (result.error ? `: ${result.error}` : ''));
   }
+  return result.value;
 }
 
-const browser = await puppeteer.launch({ headless: true, protocolTimeout: 60_000 });
+let browserVersion;
+const browser = await phase('browser-start', async () => {
+  const launched = await puppeteer.launch({ headless: true, protocolTimeout: 60_000 });
+  browserVersion = await launched.version();
+  return launched;
+});
 // A stopped check closes the browser instead of leaving Chromium behind for SIGKILL.
 for (const name of ['SIGTERM', 'SIGINT']) {
   process.once(name, () => {
-    progress(`${name}: closing the browser`);
+    progress('browser-close', `${name}: closing the browser`);
     const forced = setTimeout(() => process.exit(name === 'SIGINT' ? 130 : 143), 10_000);
     forced.unref();
     browser.close().catch(() => {}).finally(() => process.exit(name === 'SIGINT' ? 130 : 143));
@@ -194,22 +200,23 @@ try {
         const failed = results.filter(item => !item.passed).length;
         const label = [report.server, report.path, report.framework,
           report.transport ?? report.kind].join('/');
-        progress(`${label}: ${failed === 0 ? 'passed' : `FAILED ${failed} of ${results.length}`}`
-          + ` in ${formatDuration(report.durationMs ?? 0)}`
+        progress(label, `${failed === 0 ? 'passed in' : `failed ${failed} of ${results.length} checks in`}`
+          + ` ${formatDuration(report.durationMs ?? 0)}`
           + ` (${reports.indexOf(report) + 1}/${state.totalReports},`
           + ` ${formatDuration(performance.now() - jobStarted)} elapsed)`);
       }
       loggedReports = reports.length;
-      const current = state.current === null ? ''
-        : `${state.completedReports}/${state.totalReports} ${state.current}`;
+      const current = state.current ?? '';
       if (current !== loggedProgress) {
-        if (current) progress(`${current} started`);
+        if (current) {
+          progress(current, `started (report ${state.completedReports + 1} of ${state.totalReports})`);
+        }
         loggedProgress = current;
       }
     },
     onProgress({ label, elapsedMs, limitMs, completedReports: done, totalReports }) {
-      progress(`${done}/${totalReports} ${label ?? 'page work between reports'}`
-        + ` running ${formatDuration(elapsedMs)} of ${formatDuration(limitMs)}`);
+      progress(label ?? 'page-work', `running ${formatDuration(elapsedMs)} of ${formatDuration(limitMs)}`
+        + ` (${done}/${totalReports} reports)`);
     },
   });
   scenarioJob = collected.state;
@@ -223,9 +230,9 @@ try {
   finalReport = report;
   report.interactions = await phase('interactions', () => checkInteraction(page, [selectedServer]));
   report.initialMounts = [...initialMounts.values()];
-  await Promise.all(documentChecks);
+  await phase('frame-documents', () => Promise.all(documentChecks));
   report.frameDocuments = [...frameDocuments.values()];
-  report.browser = await browser.version();
+  report.browser = browserVersion;
   report.pageErrors = errors;
   report.initializationArtifacts =
     `initialization-${startedAt.replaceAll(':', '-')}`;
@@ -247,6 +254,7 @@ try {
     }
     await page.screenshot({ path: path.join(output, comparisonFile), fullPage: true });
   });
+  report.units = units;
   report.completedAt = new Date().toISOString();
   report.generatedAt = report.completedAt;
   report.durationMs = Math.max(0, performance.now() - startedClock);
@@ -280,14 +288,14 @@ try {
   const verification = verifyServerReport(report, selectedServer);
   Object.assign(report, {
     complete: verification.complete, passed: verification.passed,
-    failedChecks: verification.failedChecks, performance: verification.performance,
+    failedChecks: verification.failedChecks,
   });
   await writeFile(path.join(output, reportFile), JSON.stringify(report) + '\n');
   const checked = ['scenarios', 'initializations', 'interactions', 'mounts', 'documents']
     .reduce((sum, section) => sum + Object.values(verification[section])
       .reduce((count, item) => count + item.total, 0), 0);
   process.stdout.write(
-    `${selectedServer}: verification completed (${checked} checks; ${verification.failedChecks} failed; ${report.durationMs.toFixed(0)}/${verification.performance.budgetMs} ms)\n`,
+    `${selectedServer}: verification completed (${checked} checks; ${verification.failedChecks} failed; ${formatDuration(report.durationMs)})\n`,
   );
   if (!verification.passed) process.exitCode = 1;
 } catch (error) {
@@ -305,7 +313,7 @@ try {
   const incomplete = {
     ...(finalReport ?? {}), generatedAt: failedAt, startedAt, completedAt: failedAt,
     durationMs: Math.max(0, performance.now() - startedClock),
-    origin: base.origin, activity, scenarioJob,
+    origin: base.origin, activity, scenarioJob, units,
     reports: reports.filter(item => item.kind === 'scenario'),
     initializations: reports.filter(item => item.kind === 'initialization'),
     error: error?.stack ?? String(error),
@@ -316,5 +324,6 @@ try {
   );
   throw error;
 } finally {
-  await browser.close();
+  const closed = await runPhase('browser-close', () => browser.close());
+  if (closed.status !== 'passed') process.exitCode = 1;
 }

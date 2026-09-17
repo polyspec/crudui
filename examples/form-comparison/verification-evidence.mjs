@@ -8,6 +8,8 @@ import {
   expectedGenerationRequests, expectedGenerationResults,
 } from './check-generation.mjs';
 import { assertPersistenceReport, expectedPersistenceResults } from './persistence-report.mjs';
+import { pipelineCombinations } from './src/pipeline-flow.mjs';
+import { recordServers } from './src/record-contract.mjs';
 import { assertSourceIdentity, sameSourceIdentity } from './src/source-identity.mjs';
 
 async function jsonFile(file) {
@@ -32,15 +34,39 @@ function browserCounts(summary) {
 }
 
 /**
+ * The canonical flow report: every combination in order and every store reset, each passed, and
+ * the aggregate passed with the matching counts.
+ */
+function verifyPipeline(pipeline, source) {
+  assert.ok(sameSourceIdentity(pipeline.source, source), 'Pipeline report source identity differs');
+  const expected = pipelineCombinations().map(({ id }) => id);
+  assert.ok(Array.isArray(pipeline.combinations) && Array.isArray(pipeline.resets),
+    'Pipeline report is incomplete');
+  assert.deepEqual(pipeline.combinations.map(result => result.id), expected,
+    'Pipeline combinations differ');
+  assert.deepEqual(pipeline.resets.map(result => result.id),
+    recordServers.map(server => `reset/${server}`), 'Pipeline store resets differ');
+  const failed = [...pipeline.resets, ...pipeline.combinations]
+    .filter(result => result.status !== 'passed');
+  assert.ok(pipeline.passed === true && pipeline.failed === 0 && failed.length === 0,
+    `Pipeline report failed: ${failed.map(result => `${result.id} ${result.status}`).join(', ')
+      || 'the report is not marked passed'}`);
+  assert.equal(pipeline.total, expected.length, 'Pipeline combination total differs');
+  assert.equal(pipeline.passedCombinations, expected.length, 'Pipeline pass total differs');
+  return { combinations: expected.length };
+}
+
+/**
  * Verify the reports of one verification run: every report names the recorded source identity
  * and satisfies every count and pass condition of the form verification contract.
  */
 export async function verifyEvidence(resultsDirectory) {
   assert.ok(path.isAbsolute(resultsDirectory), 'The results directory must be absolute');
-  const [source, generation, persistence, browser] = await Promise.all([
+  const [source, generation, persistence, pipeline, browser] = await Promise.all([
     jsonFile(path.join(resultsDirectory, 'source.json')),
     jsonFile(path.join(resultsDirectory, 'generation.json')),
     jsonFile(path.join(resultsDirectory, 'server-report.json')),
+    jsonFile(path.join(resultsDirectory, 'pipeline.json')),
     jsonFile(path.join(resultsDirectory, 'browser-summary.json')),
   ]);
   assertSourceIdentity(source, 'Verification evidence requires the verified source identity');
@@ -61,10 +87,11 @@ export async function verifyEvidence(resultsDirectory) {
   assertPersistenceReport(persistence);
   assert.equal(persistence.passed, true, 'Persistence report failed');
 
+  const pipelineEvidence = verifyPipeline(pipeline, source);
+
   assert.ok(sameSourceIdentity(browser.source, source), 'Browser aggregate source identity differs');
   assert.equal(browser.complete, true, 'Browser aggregate is incomplete');
   assert.equal(browser.passed, true, 'Browser aggregate failed');
-  assert.equal(browser.performancePassed, true, 'Browser performance failed');
   assert.equal(browser.failedChecks, 0, 'Browser aggregate contains failed checks');
   assert.deepEqual(browser.serverRuns?.map(run => run.server), browserServers,
     'Browser server runs differ');
@@ -72,8 +99,8 @@ export async function verifyEvidence(resultsDirectory) {
     assert.equal(run.complete, true, `${run.server}: browser report is incomplete`);
     assert.equal(run.passed, true, `${run.server}: browser report failed`);
     assert.equal(run.failedChecks, 0, `${run.server}: browser checks failed`);
-    assert.equal(run.performance?.passed, true, `${run.server}: browser performance failed`);
-    assert.equal(run.performance?.budgetMs, 900_000, `${run.server}: browser budget differs`);
+    assert.ok(Number.isFinite(run.durationMs) && run.durationMs >= 0,
+      `${run.server}: browser run duration is missing`);
   }
 
   return {
@@ -83,6 +110,7 @@ export async function verifyEvidence(resultsDirectory) {
       combinations: expectedGenerationCombinations,
     },
     persistence: { results: expectedPersistenceResults },
+    pipeline: pipelineEvidence,
     browser: { checks: browserCounts(browser), servers: browserServers.length },
   };
 }

@@ -73,7 +73,9 @@ const listHtml = renderList(listSpec, rows, { layout: 'table' });
 
 `patchContent`는 호스트의 내용을 새 마크업으로 바꾸되 새 마크업에도 있는 노드는 모두 유지합니다.
 그래서 다시 그려도 포커스된 컨트롤, 선택 영역, 입력기 조합이 유지되며, 이어서 `connection.sync()`가
-컨트롤의 현재 값을 설정합니다.
+컨트롤의 현재 값을 설정합니다. 새 마크업의 스크립트는 그 마크업이 자리를 잡은 뒤 한 번 실행되고, 유지한
+스크립트는 다시 실행되지 않습니다([스크립트 규칙](../spec/form-runtime.ko.md)). 클라이언트의 첫
+마크업도 `patchContent`로 그립니다. `innerHTML`로 넣은 마크업의 스크립트는 실행되지 않습니다.
 HTML renderer는 fragment를 반환하며 외부 `form` 요소를 만들거나 브라우저 이벤트를
 연결하거나 데이터를 검증하거나 레코드를 로드하지 않습니다.
 
@@ -108,6 +110,10 @@ node scripts/run-tests.mjs cargo -- --locked --manifest-path packages/validator-
 구동합니다. Firefox는 `CRUDUI_FIREFOX_EXECUTABLE` 또는 플랫폼 설치 경로에서 찾고, WebKit은
 `npx playwright install --with-deps webkit`으로 설치합니다. 브라우저가 없으면 실행이 실패하며
 어떤 엔진도 건너뛰지 않습니다.
+`tests/widget-script-runs.test.mjs`는 같은 세 엔진에서 HTML, React, Vue, Svelte 렌더러를 브라우저에서
+렌더링한 경우와 서버에서 렌더링한 뒤 하이드레이션한 경우로 스크립트 규칙을 실행합니다. 폼 행 스크립트와
+`html` 목록 셀 스크립트는 첫 렌더링과 추가한 각 행에서 한 번 실행되고, 입력, 행 복사나 이동, 다시
+로드, 목록 다시 그리기에서는 실행되지 않습니다.
 현재 결과는 [기능 상태](../features.ko.md)와 [변경 기록](../../CHANGELOG.ko.md)에 기록합니다.
 
 Svelte 패키지 빌드는 JavaScript, 전처리한 Svelte 컴포넌트, TypeScript 선언을

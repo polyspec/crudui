@@ -742,10 +742,7 @@ action('create', async () => { const result = await request('load'); equal(resul
 action('blank', () => mount());
 action('save', async () => {
   const result = await save();
-  if (result.status !== null) {
-    document.querySelector('#server-data-details').open = true;
-    if (result.status === 200 && window.parent !== window) window.parent.postMessage({ type: 'crudui:pipeline-saved' }, location.origin);
-  }
+  if (result.status !== null) document.querySelector('#server-data-details').open = true;
 });
 action('validate', async () => { if (validation.validate(driver.getData()).valid) { await submit(); document.querySelector('#server-data-details').open = true; } });
 action('reset', () => reset());

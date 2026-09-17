@@ -117,3 +117,18 @@ it('keeps the values of a group hidden by design.show', async () => {
   }
   finally { await unmount(app); element.remove(); }
 });
+
+import { typingSpec, exerciseTyping, installWidgetHost } from '../../../tests/fixtures/form-session/typing.mjs';
+it('keeps the typed control node, its order and its caret', async () => {
+  installWidgetHost(document);
+  const form = createForm(compileForm(typingSpec));
+  const element = document.createElement('form');
+  document.body.append(element);
+  const app = mount(Form, { target: element, props: { form } });
+  await tick();
+  try {
+    await proves('typing.mjs', 'exerciseTyping', ['connectForm'], () =>
+      exerciseTyping({ element, form, expect, flush: tick }));
+  }
+  finally { await unmount(app); element.remove(); }
+});

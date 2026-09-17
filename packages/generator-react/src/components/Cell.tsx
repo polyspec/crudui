@@ -19,6 +19,7 @@
 import * as React from 'react';
 import type { CellVM } from '@crudui/generator-core';
 import { resolvedStyleProps, styleObject } from './attrs';
+import { RawContainer } from './raw';
 
 /** Render the inner display payload of one cell (no `<td>`/`<span>` host). */
 export function CellBody({ cell }: { cell: CellVM }): React.ReactNode {
@@ -75,7 +76,7 @@ export function CellBody({ cell }: { cell: CellVM }): React.ReactNode {
 
     case 'html':
       // The ONLY raw passthrough (sanctioned, SPEC §9.2 html cell). It is injected
-      // verbatim with NO wrapper element — React's dangerouslySetInnerHTML needs a
+      // verbatim with NO wrapper element — raw content needs a
       // host, so a <span> with a "display: contents" no-op is NOT used; instead the
       // raw html is the cell host's own inner html (see Cell below).
       return null;
@@ -124,7 +125,7 @@ export function Cell({
     // The sanctioned raw boundary: the cell host carries the verbatim html as its
     // own inner html (no extra wrapper) — identical to Svelte's {@html} and Vue's
     // innerHTML on the host.
-    return React.createElement(as, { ...props, dangerouslySetInnerHTML: { __html: d.html } });
+    return <RawContainer tag={as} {...props} html={d.html} />;
   }
   return React.createElement(as, props, <CellBody cell={cell} />);
 }

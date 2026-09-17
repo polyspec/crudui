@@ -8,6 +8,7 @@ import {
   resultsDirectory, serverProcess, serverRequest, sourceIdentityFile, sourceMount,
   treeDirectory,
 } from './server-layout.mjs';
+import { recordViews } from './record-contract.mjs';
 import { formServers } from './runtime-paths.mjs';
 
 const serverSource = await readFile(new URL('../server.mjs', import.meta.url), 'utf8');
@@ -44,6 +45,9 @@ test('starts one process for each server implementation from the build volume', 
     assert.equal(process.args.at(-1), '/workspace/build/tree/examples/form-comparison/api.php');
     assert.equal(process.environment.FORM_ORDERED_JSON_PHP_SOURCE,
       `${orderedJsonDirectory}/php/src/OrderedJson.php`);
+    // The record store and the fixture are located by the process, not by constants in api.php.
+    assert.equal(process.environment.FORM_DATA_DIRECTORY, dataDirectory);
+    assert.equal(process.environment.FORM_PUBLIC_DIRECTORY, publicDirectory);
   }
   assert.equal(php.args.some(value => value.startsWith('extension=')), false);
   assert.equal(Object.hasOwn(php.environment, 'FORM_CRUDUI_MODULE_SHA256'), false);
@@ -67,7 +71,8 @@ test('starts one process for each server implementation from the build volume', 
 test('runs the public server from the build tree with an event readiness line', () => {
   const definition = publicServerProcess();
   assert.equal(definition.command, process.execPath);
-  assert.deepEqual(definition.args, ['/workspace/build/tree/examples/form-comparison/server.mjs']);
+  assert.deepEqual(definition.args, ['/workspace/build/tree/examples/form-comparison/server.mjs',
+    '0.0.0.0:8080', dataDirectory, publicDirectory, JSON.stringify({ php: 8081, 'php-ext': 8088, go: 8082, rust: 8085 })]);
   assert.equal(definition.ready.pattern.test(definition.ready.example), true);
   assert.equal(definition.environment.CRUDUI_CROSS_CHECK_GO_VALIDATOR,
     '/workspace/build/bin/validator-go');
@@ -82,7 +87,9 @@ test('publishes build state through process events without polling in the public
   assert.match(serverSource, /process\.on\('message'/);
   assert.equal(serverSource.includes('setTimeout'), false);
   assert.equal(serverSource.includes('setInterval'), false);
-  assert.match(serverSource, /\/api\/source/);
+  // The build state is read from the supervisor's state file, which exists before the public server can start.
+  assert.doesNotMatch(serverSource, /\/api\/source/);
+  assert.match(supervisorSource, /renameSync\(temporary, buildStateFile\)/);
   assert.match(supervisorSource, /waitForChildReadiness/);
   assert.match(supervisorSource, /verifyChildServers/);
   assert.doesNotMatch(supervisorSource + serverSource,
@@ -100,6 +107,17 @@ test('uses the current public API parser and forwards the rendering path', () =>
     '/api/rust/save/original-keyed/svelte',
   ]) assert.equal(serverRequest(invalid), null);
   assert.match(serverSource, /serverRequest\(url\.pathname, url\.search\)/);
+  // The record resource of every native server is forwarded; the public server is the js store.
+  assert.deepEqual(serverRequest('/api/go/records', '?page=2'), { server: 'go', port: 8082, path: '/api/records?page=2' });
+  assert.deepEqual(serverRequest('/api/php-ext/records/22'), { server: 'php-ext', port: 8088, path: '/api/records/22' });
+  assert.deepEqual(serverRequest('/api/rust/records/reset'), { server: 'rust', port: 8085, path: '/api/records/reset' });
+  assert.deepEqual(serverRequest('/api/php/records/view/form', '?id=22'), { server: 'php', port: 8081, path: '/api/records/view/form?id=22' });
+  for (const invalid of ['/api/js/records/22', '/api/go/records/22/extra', '/api/go/records/view/table']) {
+    assert.equal(serverRequest(invalid), null, invalid);
+  }
+  for (const view of recordViews) {
+    assert.equal(serverRequest(`/api/go/records/view/${view}`).path, `/api/records/view/${view}`, view);
+  }
   assert.match(serverSource, /benchmark-console/);
   assert.doesNotMatch(serverSource, /\/displays\//);
 });

@@ -46,10 +46,18 @@ spec declares in `design`.
 | `data-crudui-action` | Operation of a button |
 | `hidden` | `design.show` is false; a collapsed row body; the summary of an expanded row |
 | `aria-expanded`, `aria-controls` | Row toggle state and the controlled body |
+| `step="any"` | Every number control (`number`, `integer`, `float`, `decimal`); see below |
 
 A button's collection path is the nearest `[data-field-path]` at or above it. Its
 row key is the nearest `[data-crudui-row-key]` inside that element; without one
 the action applies to the collection.
+
+Validation rules are not written as native constraint attributes; the
+[validation rules](validation-rules.md) decide validity. A number control carries
+`step="any"` so native constraint validation accepts every number: without it the
+default step of 1 counts from the `value` attribute, and a stored value such as
+`2886.5` would make every whole number a step mismatch. The `step` rule owns
+increments.
 
 ## Nodes
 

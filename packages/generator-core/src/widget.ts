@@ -325,6 +325,7 @@ function textLike(inputType: string): Evaluator {
       type: inputType,
       name: bracketName(ctx),
       value: displayValue,
+      ...(inputType === 'number' ? { step: 'any' } : {}),
       class: mainClass(ctx, 'valid-target crudui-input'),
       ...(placeholder(ctx) ? { placeholder: placeholder(ctx) } : {}),
       ...(mainStyle(ctx) ? { style: mainStyle(ctx)! } : {}),

@@ -4,13 +4,13 @@ import {
   formFrameworks, formInitializations, formRenderingPaths, formServers, formTransports,
   initializationCategories, initializationComparisons,
 } from './src/runtime-paths.mjs';
+import { measuredLimitMs } from './src/unit-pool.mjs';
 import { assertSourceIdentity, sameSourceIdentity } from './src/source-identity.mjs';
 
 export const browserServers = formServers;
 export const browserPaths = formRenderingPaths;
 export const browserFrameworks = formFrameworks;
 export const browserTransports = formTransports;
-export const browserServerRunBudgetMs = 15 * 60 * 1000;
 export const browserScenarioCheckIds = [
   'identity', 'render', 'plus', 'copy', 'order', 'inject', 'transport',
   'nonsequential', 'saved', 'serverValid', 'serverInvalid', 'exact',
@@ -67,6 +67,22 @@ function frameDocumentCombinations() {
 export function browserJobReportCount() {
   return reportCombinations().length + documentCombinations().length;
 }
+
+/**
+ * The slowest durations of the units of one browser check outside its report job, measured in the
+ * deployed verification of 2026-09-16. The main page took at most 1.8 s from the run start to the
+ * report job. The interactions, frame documents and artifacts took at most 26.3 s together after
+ * the job; until each is measured on its own, each takes that bound. Starting and closing
+ * Chromium took 0.7 s and 0.1 s.
+ */
+export const browserUnitMeasurementsMs = Object.freeze({
+  'browser-start': 700, 'main-page': 1_804, interactions: 26_347, 'frame-documents': 26_347,
+  artifacts: 26_347, 'browser-close': 100,
+});
+
+/** Each unit's limit from its measurement (`measuredLimitMs`). */
+export const browserUnitLimitsMs = Object.freeze(Object.fromEntries(
+  Object.entries(browserUnitMeasurementsMs).map(([id, measured]) => [id, measuredLimitMs(measured)])));
 
 function pathSummary(items, checks) {
   return Object.fromEntries(browserPaths.map(renderingPath => {
@@ -198,21 +214,15 @@ export function verifyServerReport(report, expectedServer) {
   ) + report.interactions.filter(item => !item.passed).length
     + report.initialMounts.filter(item => !item.passed).length
     + report.frameDocuments.filter(item => !item.passed).length;
-  const performance = {
-    durationMs: report.durationMs,
-    budgetMs: browserServerRunBudgetMs,
-    passed: report.durationMs <= browserServerRunBudgetMs,
-  };
-
   const common = {
     server: expectedServer,
     scope: 'verification',
     generatedAt: report.generatedAt,
     browser: report.browser,
     complete: true,
-    performance,
+    durationMs: report.durationMs,
     scenarios, initializations, interactions, mounts, documents,
   };
   const failedChecks = resultCount + report.pageErrors.length;
-  return { ...common, passed: failedChecks === 0 && performance.passed, failedChecks };
+  return { ...common, passed: failedChecks === 0, failedChecks };
 }

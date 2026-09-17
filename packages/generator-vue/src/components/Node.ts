@@ -9,6 +9,7 @@
 import { h, type VNode } from 'vue';
 import type { ControlsVM, NodeVM } from '@crudui/generator-core';
 import { Widget, widgetRootRaw } from './Widget';
+import { rawContainer } from './raw';
 
 function classes(...parts: Array<string | undefined | false>): string {
   return parts.filter((part): part is string => typeof part === 'string' && part !== '').join(' ');
@@ -79,7 +80,7 @@ function bodyVNode(vm: NodeVM): VNode {
   }
   if (vm.widget) {
     const raw = widgetRootRaw(vm.widget);
-    if (raw !== null) return h('div', { ...props, innerHTML: raw });
+    if (raw !== null) return rawContainer('div', props, raw);
     return h('div', props, [Widget(vm.widget)]);
   }
   return h('div', props, (vm.children ?? []).map((child) => nodeVNode(child)));

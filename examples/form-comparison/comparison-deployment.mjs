@@ -30,8 +30,9 @@ export const toolchainImageName = `${comparisonImagePrefix}-toolchain`;
 export const deploymentVolumes = Object.freeze({
   build: 'crudui-comparison-build', cache: 'crudui-comparison-cache',
 });
-// Paths of the removed per-commit procedure; deployment removes them.
-export const retiredComparisonPaths = Object.freeze(['candidates', 'sources', 'results']);
+// Paths of the removed per-commit procedure; deployment removes them. `sources/` is not one of
+// them: it holds the host's OrderedJSON checkout that the local record servers build from.
+export const retiredComparisonPaths = Object.freeze(['candidates', 'results']);
 
 /** containerctl's limits for one health declaration, in seconds. */
 export const containerctlHealthLimits = Object.freeze({

@@ -17,9 +17,11 @@ const browserFiles = [
   'examples/form-structure/**',
   'examples/form-comparison/benchmark-console/**',
   'examples/form-comparison/public/main.mjs',
+  'examples/form-comparison/src/pages/stage.mjs',
   'examples/form-comparison/src/form-validation.mjs',
   'examples/form-comparison/src/frame.mjs',
   'packages/generator-svelte/test/form-session.client.mjs',
+  'packages/generator-svelte/test/view-session.client.mjs',
 ];
 
 // Node programs and tests that also hand functions to a browser page
@@ -30,11 +32,14 @@ const nodeAndBrowserFiles = [
   'examples/form-comparison/check.mjs',
   'examples/form-comparison/src/browser-job.browser.mjs',
   'examples/form-comparison/src/main-page-readiness.mjs',
+  'examples/form-comparison/src/pipeline-flow.mjs',
   'packages/generator-vue/test/form-session.test.mjs',
+  'packages/generator-vue/test/view-session.test.mjs',
   'scripts/check-ci-browser.mjs',
   'scripts/check-packages.mjs',
   'tests/form-inspector/browser.test.mjs',
   'tests/form-styles.test.mjs',
+  'tests/widget-script-runs.test.mjs',
   'tests/widget-scripts.test.mjs',
 ];
 

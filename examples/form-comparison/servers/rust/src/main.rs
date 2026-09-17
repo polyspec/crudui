@@ -2,6 +2,7 @@
 mod form;
 mod generation;
 mod json;
+mod records;
 mod repository;
 
 use axum::{
@@ -11,7 +12,6 @@ use axum::{
     routing::any,
     Router,
 };
-use crudui_generator::{render_detail, render_list, DetailOptions, ListOptions};
 use crudui_validator::validate::{validate, ValidateOptions};
 use repository::{load_data, read_object, Repository};
 use serde_json::{json, Value};
@@ -25,11 +25,14 @@ struct Error {
     status: StatusCode,
     message: String,
 }
-fn bad(message: impl Into<String>) -> Error {
+fn failure(status: StatusCode, message: impl Into<String>) -> Error {
     Error {
-        status: StatusCode::BAD_REQUEST,
+        status,
         message: message.into(),
     }
+}
+fn bad(message: impl Into<String>) -> Error {
+    failure(StatusCode::BAD_REQUEST, message)
 }
 impl From<std::io::Error> for Error {
     fn from(error: std::io::Error) -> Self {
@@ -41,7 +44,7 @@ impl From<std::io::Error> for Error {
 }
 impl IntoResponse for Error {
     fn into_response(self) -> Response {
-        let body = json::encode(&json!({"error":self.message,"server":"rust"}))
+        let body = json::encode_values(&json!({"error":self.message,"server":"rust"}))
             .expect("error response contains valid strings");
         (
             self.status,
@@ -62,14 +65,30 @@ fn reply(status: StatusCode, mut body: Value) -> Result<Response> {
             ("Content-Type", "application/json; charset=utf-8"),
             ("Cache-Control", "no-store"),
         ],
-        json::encode(&body)?,
+        json::encode_values(&body)?,
     )
         .into_response())
 }
 
+/// The lowercase media type of a request without parameters.
+fn media_type(request: &Request) -> String {
+    request
+        .headers()
+        .get("Content-Type")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("")
+        .split(';')
+        .next()
+        .unwrap_or("")
+        .trim()
+        .to_ascii_lowercase()
+}
+
 struct Server {
     data: PathBuf,
-    specs: PathBuf,
+    /// The public directory: the browser matrix, the benchmark specification and records, the
+    /// frames and the customer record fixture and specifications.
+    public: PathBuf,
     /// The source identity of the running build, read on every request.
     source: PathBuf,
     actions: Vec<String>,
@@ -79,9 +98,9 @@ struct Server {
 
 impl Server {
     /// Read the browser matrix shared with the JavaScript comparison runner
-    /// (runtime-paths.json in the spec directory) once.
-    fn load(data: PathBuf, specs: PathBuf, source: PathBuf) -> Result<Self> {
-        let matrix = read_object(&specs.join("runtime-paths.json"))?;
+    /// (runtime-paths.json in the public directory) once.
+    fn load(data: PathBuf, public: PathBuf, source: PathBuf) -> Result<Self> {
+        let matrix = read_object(&public.join("runtime-paths.json"))?;
         let list = |name: &str| -> Result<Vec<String>> {
             matrix[name]
                 .as_array()
@@ -99,7 +118,7 @@ impl Server {
             rendering_paths: list("renderingPaths")?,
             frameworks: list("frameworks")?,
             data,
-            specs,
+            public,
             source,
         })
     }
@@ -191,18 +210,9 @@ async fn handle(
         file: server
             .data
             .join(format!("rust-{rendering_path}-{framework}.json")),
-        fixtures: server.specs.join("records.json"),
+        fixtures: server.public.join("records.json"),
     };
-    let kind = request
-        .headers()
-        .get("Content-Type")
-        .and_then(|v| v.to_str().ok())
-        .unwrap_or("")
-        .split(';')
-        .next()
-        .unwrap_or("")
-        .trim()
-        .to_ascii_lowercase();
+    let kind = media_type(&request);
     if action == "load" || action == "reset" {
         let storage = if action == "load" {
             repo.read()?
@@ -251,7 +261,7 @@ async fn handle(
         }
     };
     let data = form::normalize(&received)?;
-    let spec = read_object(&server.specs.join("spec.json"))?;
+    let spec = read_object(&server.public.join("spec.json"))?;
     let validation = validate(&spec, &data, &ValidateOptions::default()).map_err(|e| Error {
         status: match e {
             crudui_validator::ValidateError::Input(_) => StatusCode::BAD_REQUEST,
@@ -283,7 +293,8 @@ async fn main() -> std::result::Result<(), Box<dyn std::error::Error>> {
     let args: Vec<String> = std::env::args().collect();
     if args.len() != 5 {
         return Err(
-            "Expected arguments: address data-directory spec-directory source-identity-file".into(),
+            "Expected arguments: address data-directory public-directory source-identity-file"
+                .into(),
         );
     }
     let server = Arc::new(
@@ -308,89 +319,11 @@ async fn health(State(server): State<Arc<Server>>) -> Result<Response> {
     )
 }
 
-async fn pipeline(Path(operation): Path<String>, request: Request) -> Result<Response> {
-    if request.method() != Method::POST {
-        return Err(Error {
-            status: StatusCode::METHOD_NOT_ALLOWED,
-            message: "Method not allowed".into(),
-        });
-    }
-    let bytes = axum::body::to_bytes(request.into_body(), MAX_BYTES)
-        .await
-        .map_err(|e| Error {
-            status: StatusCode::PAYLOAD_TOO_LARGE,
-            message: e.to_string(),
-        })?;
-    let payload = json::decode(&bytes)?;
-    let spec = payload
-        .get("spec")
-        .ok_or_else(|| bad("Expected spec object"))?;
-    let options = payload.get("options").and_then(Value::as_object);
-    let language = options
-        .and_then(|value| value.get("language"))
-        .and_then(Value::as_str)
-        .unwrap_or("ko")
-        .to_string();
-    let html = if operation == "list" {
-        let rows = payload
-            .get("rows")
-            .and_then(Value::as_array)
-            .ok_or_else(|| bad("Expected rows array"))?;
-        render_list(
-            spec,
-            rows,
-            &ListOptions {
-                language,
-                data: json!({}),
-                page: options
-                    .and_then(|value| value.get("page"))
-                    .cloned()
-                    .unwrap_or(Value::Null),
-                total: options
-                    .and_then(|value| value.get("total"))
-                    .cloned()
-                    .unwrap_or_else(|| json!(rows.len())),
-                layout: json!("table"),
-                ..Default::default()
-            },
-        )
-        .map_err(|e| bad(e.to_string()))?
-    } else if operation == "detail" {
-        let record = payload
-            .get("record")
-            .ok_or_else(|| bad("Expected record object"))?;
-        render_detail(
-            spec,
-            record,
-            &DetailOptions {
-                language,
-                data: json!({}),
-                ..Default::default()
-            },
-        )
-        .map_err(|e| bad(e.to_string()))?
-    } else {
-        return Err(Error {
-            status: StatusCode::NOT_FOUND,
-            message: "Unknown endpoint".into(),
-        });
-    };
-    Ok((
-        StatusCode::OK,
-        [
-            ("Content-Type", "text/html; charset=utf-8"),
-            ("Cache-Control", "no-store"),
-        ],
-        html,
-    )
-        .into_response())
-}
-
 fn application(server: Arc<Server>) -> Router {
     Router::new()
         .route("/api/health", any(health))
-        .route("/api/pipeline/{operation}", any(pipeline))
         .route("/api/{action}/{rendering_path}/{framework}", any(handle))
+        .merge(records::routes())
         .with_state(server)
         .layer(DefaultBodyLimit::max(MAX_BYTES))
 }

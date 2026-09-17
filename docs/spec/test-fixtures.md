@@ -12,6 +12,7 @@ contract.
 | `tests/fixtures/expr/` | Tokens, ASTs and expression evaluation. |
 | `tests/fixtures/form-render/` | Expected form rendering. |
 | `tests/fixtures/form-session/` | Shared form controls and interaction scenarios. |
+| `tests/fixtures/view-session/` | Shared list and detail re-render scenarios. |
 | `tests/fixtures/text-validity/` | [Input text](input-text.md) failures of every operation. |
 
 ## Validation

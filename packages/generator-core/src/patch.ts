@@ -8,11 +8,18 @@
  * path, an id, or a control name with its value for checkboxes and radio buttons. Unkeyed nodes
  * match in order. Attributes are set to those of the new markup; control values and checked states
  * are live properties, which `connectForm().sync()` sets from the form.
+ *
+ * A script runs once, when its markup first appears: each script in inserted markup becomes a new
+ * script element once the whole markup is in place, and the browser runs it when it is connected,
+ * so a script finds the controls that follow it. A kept script never runs again: a parsed or
+ * cloned script never runs, and changing a started script's text does not run it.
  */
 export function patchContent(element: Element, html: string): void {
   const template = element.ownerDocument.createElement('template');
   template.innerHTML = html;
-  patchChildren(element, template.content);
+  const scripts: Array<[Comment, Element]> = [];
+  patchChildren(element, template.content, scripts);
+  for (const [mark, script] of scripts) mark.replaceWith(freshScript(script));
 }
 
 function identity(node: Node): string | undefined {
@@ -29,9 +36,34 @@ function identity(node: Node): string | undefined {
   return type === 'checkbox' || type === 'radio' ? `name:${name}:${element.getAttribute('value') ?? ''}` : `name:${name}`;
 }
 
+/** A new script element with the attributes and text of a parsed one; it runs when connected. */
+function freshScript(script: Element): Element {
+  const fresh = script.ownerDocument.createElement('script');
+  for (const { name, value } of Array.from(script.attributes)) fresh.setAttribute(name, value);
+  fresh.textContent = script.textContent;
+  return fresh;
+}
+
+/**
+ * Imported markup with each script held aside behind a comment until the whole markup is in
+ * place; a comment never runs, while some engines run an imported script.
+ */
+function imported(node: Node, scripts: Array<[Comment, Element]>): Node {
+  if (node.nodeType !== 1) return node;
+  const element = node as Element;
+  const hold = (script: Element) => {
+    const mark = element.ownerDocument.createComment('');
+    scripts.push([mark, script]);
+    return mark;
+  };
+  if (element.nodeName === 'SCRIPT') return hold(element);
+  for (const script of Array.from(element.querySelectorAll('script'))) script.replaceWith(hold(script));
+  return element;
+}
+
 const sameKind = (current: Node, next: Node) => current.nodeType === next.nodeType && current.nodeName === next.nodeName;
 
-function patchChildren(parent: Node, source: Node): void {
+function patchChildren(parent: Node, source: Node, scripts: Array<[Comment, Element]>): void {
   const unused: Node[] = Array.from(parent.childNodes);
   const keyed = new Map<string, Node>();
   for (const node of unused) {
@@ -53,15 +85,15 @@ function patchChildren(parent: Node, source: Node): void {
       if (key !== undefined) keyed.delete(key);
       if (current !== position) parent.insertBefore(current, position);
       else position = position.nextSibling;
-      patchNode(current, next);
+      patchNode(current, next, scripts);
     } else {
-      parent.insertBefore(parent.ownerDocument!.importNode(next, true), position);
+      parent.insertBefore(imported(parent.ownerDocument!.importNode(next, true), scripts), position);
     }
   }
   for (const node of unused) node.parentNode?.removeChild(node);
 }
 
-function patchNode(current: Node, next: Node): void {
+function patchNode(current: Node, next: Node, scripts: Array<[Comment, Element]>): void {
   if (current.nodeType !== 1) {
     if (current.nodeValue !== next.nodeValue) current.nodeValue = next.nodeValue;
     return;
@@ -75,5 +107,5 @@ function patchNode(current: Node, next: Node): void {
     if (element.getAttribute(name) !== value) element.setAttribute(name, value);
   }
   const content = (node: Node) => (node.nodeName === 'TEMPLATE' ? (node as HTMLTemplateElement).content : node);
-  patchChildren(content(element), content(source));
+  patchChildren(content(element), content(source), scripts);
 }

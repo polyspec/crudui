@@ -49,7 +49,7 @@ const testCommit = "0123456789abcdef0123456789abcdef01234567"
 
 func currentServer(t *testing.T) (server, *httptest.Server) {
 	t.Helper()
-	dataDir, specDir, sourceDir := t.TempDir(), t.TempDir(), t.TempDir()
+	dataDir, publicDir, sourceDir := t.TempDir(), t.TempDir(), t.TempDir()
 	sourceFile := filepath.Join(sourceDir, "source.json")
 	if err := os.WriteFile(sourceFile, []byte(`{"commit":"`+testCommit+`","changes":null}`), 0600); err != nil {
 		t.Fatal(err)
@@ -62,16 +62,16 @@ func currentServer(t *testing.T) (server, *httptest.Server) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if err := os.WriteFile(filepath.Join(specDir, name), contents, 0600); err != nil {
+		if err := os.WriteFile(filepath.Join(publicDir, name), contents, 0600); err != nil {
 			t.Fatal(err)
 		}
 	}
 	for _, renderingPath := range matrixRenderingPaths(t) {
 		for _, framework := range matrixFrameworks(t) {
-			writeFrame(t, specDir, renderingPath, framework, testFrame)
+			writeFrame(t, publicDir, renderingPath, framework, testFrame)
 		}
 	}
-	s, err := newServer(dataDir, specDir, sourceFile)
+	s, err := newServer(dataDir, publicDir, sourceFile)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -82,9 +82,9 @@ func currentServer(t *testing.T) (server, *httptest.Server) {
 const testFrame = `<!doctype html><html><head><title>frame</title></head><body><main><div id="form-view"></div></main><script type="module" src="./frame.js"></script></body></html>`
 
 // writeFrame stores a frame document where the SSR endpoint reads it.
-func writeFrame(t *testing.T, specDir, renderingPath, framework, contents string) {
+func writeFrame(t *testing.T, publicDir, renderingPath, framework, contents string) {
 	t.Helper()
-	directory := filepath.Join(specDir, "frames", renderingPath+"-"+framework)
+	directory := filepath.Join(publicDir, "frames", renderingPath+"-"+framework)
 	if err := os.MkdirAll(directory, 0700); err != nil {
 		t.Fatal(err)
 	}
@@ -180,7 +180,7 @@ func TestCompileAndRenderUseCachedStructure(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := os.RemoveAll(s.specDir); err != nil {
+	if err := os.RemoveAll(s.publicDir); err != nil {
 		t.Fatal(err)
 	}
 	for _, name := range []string{"Ada", "", "Grace", "Ada"} {
@@ -213,7 +213,7 @@ func TestCompileAndRenderUseCachedStructure(t *testing.T) {
 	if !bytes.Equal(before, after) {
 		t.Fatal("data binding changed the cached template")
 	}
-	if _, err := os.Stat(s.specDir); !os.IsNotExist(err) {
+	if _, err := os.Stat(s.publicDir); !os.IsNotExist(err) {
 		t.Fatal("render recreated the composition directory")
 	}
 }
@@ -263,12 +263,12 @@ func TestSSRUsesFrameworkStorageAndNormalSubmission(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(s.specDir, "spec.json"), encoded, 0600); err != nil {
+	if err := os.WriteFile(filepath.Join(s.publicDir, "spec.json"), encoded, 0600); err != nil {
 		t.Fatal(err)
 	}
 	for _, framework := range matrixFrameworks(t) {
 		renderingPath := "createForm"
-		repo := repository{filepath.Join(s.dataDir, "go-"+renderingPath+"-"+framework+".json"), filepath.Join(s.specDir, "records.json")}
+		repo := repository{filepath.Join(s.dataDir, "go-"+renderingPath+"-"+framework+".json"), filepath.Join(s.publicDir, "records.json")}
 		state, err := repo.fixture("default")
 		if err != nil {
 			t.Fatal(err)
@@ -384,7 +384,7 @@ func TestRemovedModePathReturnsNotFound(t *testing.T) {
 func TestSSRRejectsWrongParametersAndFrames(t *testing.T) {
 	s, host := currentServer(t)
 	defer host.Close()
-	if err := os.WriteFile(filepath.Join(s.specDir, "spec.json"), []byte(`{"type":"group","properties":{"name":{"type":"text"}}}`), 0600); err != nil {
+	if err := os.WriteFile(filepath.Join(s.publicDir, "spec.json"), []byte(`{"type":"group","properties":{"name":{"type":"text"}}}`), 0600); err != nil {
 		t.Fatal(err)
 	}
 	const parameters = "Expected lang, server and initialization for this SSR frame"
@@ -416,14 +416,14 @@ func TestSSRRejectsWrongParametersAndFrames(t *testing.T) {
 		`<!doctype html><html><body><div id="form-view"></div></html>`,
 		`<!doctype html><html><body><div id="form-view"></div></body></body></html>`,
 	} {
-		writeFrame(t, s.specDir, "createForm", "react", contents)
+		writeFrame(t, s.publicDir, "createForm", "react", contents)
 		ssrFailure(t, host, "/api/ssr/createForm/react"+valid, 500, frame)
 	}
-	if err := os.RemoveAll(filepath.Join(s.specDir, "frames", "createForm-react")); err != nil {
+	if err := os.RemoveAll(filepath.Join(s.publicDir, "frames", "createForm-react")); err != nil {
 		t.Fatal(err)
 	}
 	ssrFailure(t, host, "/api/ssr/createForm/react"+valid, 500, frame)
-	writeFrame(t, s.specDir, "createForm", "react", testFrame)
+	writeFrame(t, s.publicDir, "createForm", "react", testFrame)
 	status, _, body := ssrRequest(t, host, "/api/ssr/createForm/react"+valid)
 	if status != 200 || !strings.Contains(body, `<html lang="ko">`) || !strings.Contains(body, `<div id="form-view"><`) {
 		t.Fatalf("restored frame: %d %s", status, body)

@@ -317,21 +317,24 @@ func renderCell(format *Object, value any, row *Object, lookup map[string]any, p
 			body = fixedNumber(n, int(decimals))
 		}
 		if truthy(read(o, "thousands")) {
-			parts := strings.Split(body, ".")
-			num := parts[0]
+			// Only the leading digit run is grouped; an exponent such as "1e+21" keeps its digits.
 			sign := ""
-			if strings.HasPrefix(num, "-") {
+			if strings.HasPrefix(body, "-") {
 				sign = "-"
-				num = num[1:]
+				body = body[1:]
 			}
+			end := 0
+			for end < len(body) && body[end] >= '0' && body[end] <= '9' {
+				end++
+			}
+			num, rest := body[:end], body[end:]
 			groups := []string{}
 			for len(num) > 3 {
 				groups = append([]string{num[len(num)-3:]}, groups...)
 				num = num[:len(num)-3]
 			}
 			groups = append([]string{num}, groups...)
-			parts[0] = sign + strings.Join(groups, ",")
-			body = strings.Join(parts, ".")
+			body = sign + strings.Join(groups, ",") + rest
 		}
 		return translate(read(o, "prefix"), language) + body + translate(read(o, "suffix"), language), nil
 	case "badge":

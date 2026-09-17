@@ -133,15 +133,17 @@ test('selects comparison images that no container uses after deployment', () => 
   }), /Deployed comparison image reference is invalid/);
 });
 
-test('removes the retired per-commit paths and keeps deployment state', async t => {
+test('removes the retired per-commit paths and keeps deployment state and the host checkout', async t => {
   const directory = await temporaryDirectory(t, 'crudui-retired-');
   const comparisonRoot = path.join(directory, '.form-comparison');
+  // The host's OrderedJSON checkout under sources/ is what the local record servers build from.
   for (const name of ['candidates/abc', 'sources/ordered-json', 'results', 'deployment/data']) {
     await mkdir(path.join(comparisonRoot, name), { recursive: true });
     await writeFile(path.join(comparisonRoot, name, 'file.json'), '{}\n');
   }
   await removeRetiredComparisonPaths(comparisonRoot);
-  assert.deepEqual(await readdir(comparisonRoot), ['deployment']);
+  assert.deepEqual((await readdir(comparisonRoot)).sort(), ['deployment', 'sources']);
+  assert.equal(await readFile(path.join(comparisonRoot, 'sources/ordered-json/file.json'), 'utf8'), '{}\n');
   assert.equal(await readFile(path.join(comparisonRoot, 'deployment/data/file.json'), 'utf8'), '{}\n');
   await assert.rejects(removeRetiredComparisonPaths(directory), /\.form-comparison directory/);
 });

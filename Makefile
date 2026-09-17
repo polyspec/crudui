@@ -247,6 +247,7 @@ CI_COMMANDS = \
 	'npm run manifest:docs:check' \
 	'npm run test:forms' \
 	'npm run test:form-comparison' \
+	'npm run test:form-comparison:pipeline' \
 	'npm run test:packages' \
 	'npm run test:build && npm run test:build:repeat' \
 	'npm run test:inspector' \

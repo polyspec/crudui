@@ -321,7 +321,7 @@ function sourceForFixtures() {
 }
 
 test('PHP extension engine compiles every shared form fixture', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  assert.equal(fixtures.length, 103,
+  assert.equal(fixtures.length, 104,
     'Review C template coverage when the shared fixture inventory changes');
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-compile-'));
   try {
@@ -1398,9 +1398,9 @@ function sourceForFixtures() {
 }
 
 test('PHP extension engine binds every shared form fixture without changing inputs', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  assert.equal(fixtures.length, 103,
+  assert.equal(fixtures.length, 104,
     'Review C binding coverage when the shared fixture inventory changes');
-  assert.equal(bindFixtures.length, 102,
+  assert.equal(bindFixtures.length, 103,
     'Review C binding coverage when compilation error fixtures change');
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-bind-'));
   try {
@@ -1563,9 +1563,9 @@ function sourceForFixtures() {
 }
 
 test('PHP extension engine renders successful shared form fixtures and edge cases as exact HTML', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  assert.equal(fixtures.length, 103,
+  assert.equal(fixtures.length, 104,
     'Review C rendering coverage when the shared fixture inventory changes');
-  assert.equal(renderFixtures.length, 101,
+  assert.equal(renderFixtures.length, 102,
     'Review C rendering coverage when successful fixtures change');
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-render-'));
   try {
@@ -1684,7 +1684,7 @@ const sources = [
 ];
 
 test('PHP extension engine renders the complete list target as exact HTML', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  assert.equal(fixtures.length, 61,
+  assert.equal(fixtures.length, 62,
     'Review C list coverage when the shared fixture inventory changes');
   assert.equal(numberCases.length, 17,
     'Review C number coverage when the native number inventory changes');

@@ -20,7 +20,9 @@
  * RAW, script/style chrome, behavior on* attrs) pass through `{@html}`.
  */
 
-import type { Attrs } from '@crudui/generator-core';
+import { untrack } from 'svelte';
+import type { Attachment } from 'svelte/attachments';
+import { patchContent, type Attrs } from '@crudui/generator-core';
 
 function escAttr(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
@@ -65,5 +67,32 @@ function rawOptions(
     })
     .join('');
 }
+
+/**
+ * The raw markup a container's `{@html}` writes once: server rendering writes it and hydration
+ * keeps it; later markup reaches the container through the `patched` attachment.
+ */
+export function firstMarkup(html: () => string): string {
+  return untrack(html);
+}
+
+/**
+ * Patch raw markup into a container with `patchContent`, so a re-render keeps the focused
+ * control, its caret and its typed order, and a script runs once, when its markup first appears.
+ * A hydrated container starts with the comment Svelte writes before `{@html}` content and keeps
+ * its nodes, whose scripts ran as the page was parsed. A client-rendered container holds parsed
+ * content, whose scripts never run, so its markup is inserted again, which runs them.
+ */
+export function patched(html: string): Attachment<HTMLElement> {
+  return element => {
+    if (!mounted.has(element)) {
+      mounted.add(element);
+      if (element.firstChild?.nodeType !== Node.COMMENT_NODE) element.replaceChildren();
+    }
+    patchContent(element, html);
+  };
+}
+
+const mounted = new WeakSet<Element>();
 
 export { escAttr, escText, serializeAttrs, rawVoid, rawElement, rawOptions };

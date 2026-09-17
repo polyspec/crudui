@@ -150,7 +150,7 @@ test('gives each report the limit of its kind and none to the whole run', () => 
   assert.equal(browserReportLimitMs('php/bindForm/react/form'), browserReportLimitsMs.scenario);
   assert.equal(browserReportLimitMs(null), browserReportLimitsMs.transition);
   for (const limit of Object.values(browserReportLimitsMs)) {
-    assert.ok(Number.isSafeInteger(limit) && limit > 0 && limit <= 180_000);
+    assert.ok(Number.isSafeInteger(limit) && limit > 0 && limit <= 100_000);
   }
 });
 
@@ -175,8 +175,8 @@ test('fails one report that exceeds its own limit and retains collected evidence
   timers.fire(browserReportLimitsMs.initialization);
   await assert.rejects(
     collected,
-    error => /report php\/bindForm\/react\/initialization exceeded its 180000 ms limit/
-      .test(error.message)
+    error => error.message.includes('report php/bindForm/react/initialization exceeded its '
+      + `${browserReportLimitsMs.initialization} ms limit`)
       && error.state.current === 'php/bindForm/react/initialization'
       && error.reports.length === 1
       && error.reports[0].id === 0,
