@@ -6,6 +6,7 @@
     affixHtml, widgetBody, fileGroupBody, isUnsupported, usesStableControl,
     type AnyWidget,
   } from './widget';
+  import { patched, firstMarkup } from './raw';
 
   let { w }: { w: AnyWidget } = $props();
 
@@ -20,22 +21,26 @@
   <!-- Server rendering writes value and text; defaultValue keeps them in the browser DOM. -->
   <input {...model.attrs} defaultValue={model.attrs.value} />
 {:else if model.layout === 'widget' || (model.layout === 'display' && model.kind === 'dummy-input')}
-  <!-- eslint-disable-next-line svelte/no-at-html-tags -- control bytes serialized with escaping in raw.ts (see its header). -->
-  <div class="crudui-widget">{#if usesStableControl(model)}{@html affixHtml(model.prepend)}{#if model.tag === 'textarea'}<textarea {...model.attrs} defaultValue={model.text ?? ''}>{model.text ?? ''}</textarea>{:else}<input {...model.attrs} defaultValue={model.attrs.value} />{/if}{@html affixHtml(model.append)}{:else}{@html widgetBody(model)}{/if}</div>
+  <!-- eslint-disable svelte/no-at-html-tags -- control bytes serialized with escaping in raw.ts (see its header). -->
+  {#if usesStableControl(model)}
+    <div class="crudui-widget">{@html affixHtml(model.prepend)}{#if model.tag === 'textarea'}<textarea {...model.attrs} defaultValue={model.text ?? ''}>{model.text ?? ''}</textarea>{:else}<input {...model.attrs} defaultValue={model.attrs.value} />{/if}{@html affixHtml(model.append)}</div>
+  {:else}
+    <div class="crudui-widget" {@attach patched(widgetBody(model))}>{@html firstMarkup(() => widgetBody(model))}</div>
+  {/if}
 {:else if model.layout === 'file'}
-  <!-- eslint-disable-next-line svelte/no-at-html-tags -- control bytes serialized with escaping in raw.ts (see its header). -->
-  <div class="crudui-widget">{@html fileGroupBody(model)}</div>
+  <div class="crudui-widget" {@attach patched(fileGroupBody(model))}>{@html firstMarkup(() => fileGroupBody(model))}</div>
+  <!-- eslint-enable svelte/no-at-html-tags -->
 {:else if isDisplayRaw}
   <!-- RAW html display (dummy/image-viewer) — unescaped content. -->
   <!-- eslint-disable svelte/no-at-html-tags -- dummy and image-viewer widgets declare raw HTML content. -->
   {#if model.attrs.class !== undefined && model.attrs.style !== undefined}
-    <div class={model.attrs.class} style={model.attrs.style}>{@html model.rawHtml ?? ''}</div>
+    <div class={model.attrs.class} style={model.attrs.style} {@attach patched(model.rawHtml ?? '')}>{@html firstMarkup(() => model.rawHtml ?? '')}</div>
   {:else if model.attrs.class !== undefined}
-    <div class={model.attrs.class}>{@html model.rawHtml ?? ''}</div>
+    <div class={model.attrs.class} {@attach patched(model.rawHtml ?? '')}>{@html firstMarkup(() => model.rawHtml ?? '')}</div>
   {:else if model.attrs.style !== undefined}
-    <div style={model.attrs.style}>{@html model.rawHtml ?? ''}</div>
+    <div style={model.attrs.style} {@attach patched(model.rawHtml ?? '')}>{@html firstMarkup(() => model.rawHtml ?? '')}</div>
   {:else}
-    <div>{@html model.rawHtml ?? ''}</div>
+    <div {@attach patched(model.rawHtml ?? '')}>{@html firstMarkup(() => model.rawHtml ?? '')}</div>
   {/if}
   <!-- eslint-enable svelte/no-at-html-tags -->
 {/if}

@@ -154,60 +154,59 @@ async function openPage(timezone) {
   return { page, failures };
 }
 
-async function activateAndInspect(page) {
+// The host page's helpers, installed before the form is mounted: the form's scripts run once when
+// their markup is inserted.
+const hostSource = () => {
+  const root = document.getElementById('form');
+  const record = window.widgetScriptRecord = { calls: [], events: [], registrations: [], errors: [] };
+  const check = (condition, message) => { if (!condition) record.errors.push(message); return condition; };
+  const inspect = (helper, selector, args) => {
+    const controls = document.querySelectorAll(selector);
+    if (!check(controls.length === 1, helper + ' must select exactly one control')) return undefined;
+    const control = controls[0];
+    check(root.contains(control), helper + ' selected a control outside the form');
+    record.calls.push({ helper, selector, id: control.id, name: control.name, tag: control.tagName, args });
+    return control;
+  };
+  // These host helpers verify selector delivery; external editor packages are not loaded.
+  for (const helper of ['editor_tinymce', 'editor_summernote', 'editor_editorjs', 'editor_tui', 'editor_tagify', 'editor_tagify2']) {
+    window[helper] = (selector, ...args) => inspect(helper, selector, args);
+  }
+  window.select2 = (escapedId, minimum, delay, className) => {
+    const control = inspect('select2', '#' + escapedId, [minimum, delay, className]);
+    if (!control) return;
+    check(className === control.id + '_select2', 'Search helper received the wrong class');
+    const host = document.createElement('span');
+    host.className = className;
+    const result = document.createElement('span');
+    result.className = 'loading-results';
+    host.append(result);
+    document.getElementById('host-results').append(host);
+    check(getComputedStyle(result).display === 'none', 'Search CSS did not select the generated class');
+  };
+  window.recordWidgetScriptEvent = (kind, control, event) => {
+    check(root.contains(control), kind + ' callback selected a control outside the form');
+    check(event.target === control, kind + ' callback received the wrong event target');
+    record.events.push({ kind, id: control.id, name: control.name, event: event.type });
+  };
+  window.$ = value => {
+    if (typeof value === 'function') { value(); return; }
+    check(value instanceof Element && root.contains(value), 'A generated callback must register on its actual control');
+    return { on(type, callback) {
+      check(typeof callback === 'function', 'A generated callback must be callable');
+      record.registrations.push({ type, id: value.id });
+      value.addEventListener(type, callback);
+    } };
+  };
+};
+
+async function inspectScripts(page) {
   return page.evaluate(() => {
     const root = document.getElementById('form');
-    const calls = [], events = [], registrations = [];
-    const assert = (condition, message) => { if (!condition) throw new Error(message); };
-    const inspect = (helper, selector, args) => {
-      const controls = document.querySelectorAll(selector);
-      assert(controls.length === 1, helper + ' must select exactly one control');
-      const control = controls[0];
-      assert(root.contains(control), helper + ' selected a control outside the form');
-      calls.push({ helper, selector, id: control.id, name: control.name, tag: control.tagName, args });
-      return control;
-    };
-    // These host helpers verify selector delivery; external editor packages are not loaded.
-    for (const helper of ['editor_tinymce', 'editor_summernote', 'editor_editorjs', 'editor_tui', 'editor_tagify', 'editor_tagify2']) {
-      window[helper] = (selector, ...args) => inspect(helper, selector, args);
-    }
-    window.select2 = (escapedId, minimum, delay, className) => {
-      const control = inspect('select2', '#' + escapedId, [minimum, delay, className]);
-      assert(className === control.id + '_select2', 'Search helper received the wrong class');
-      const host = document.createElement('span');
-      host.className = className;
-      const result = document.createElement('span');
-      result.className = 'loading-results';
-      host.append(result);
-      document.getElementById('host-results').append(host);
-      assert(getComputedStyle(result).display === 'none', 'Search CSS did not select the generated class');
-    };
-    window.recordWidgetScriptEvent = (kind, control, event) => {
-      assert(root.contains(control), kind + ' callback selected a control outside the form');
-      assert(event.target === control, kind + ' callback received the wrong event target');
-      events.push({ kind, id: control.id, name: control.name, event: event.type });
-    };
-    window.$ = value => {
-      if (typeof value === 'function') { value(); return; }
-      assert(value instanceof Element && root.contains(value), 'A generated callback must register on its actual control');
-      return { on(type, callback) {
-        assert(typeof callback === 'function', 'A generated callback must be callable');
-        registrations.push({ type, id: value.id });
-        value.addEventListener(type, callback);
-      } };
-    };
-    const scripts = [...root.querySelectorAll('script')];
-    assert(scripts.length === 8, 'All eight widget scripts must be present');
-    // The host activates the generated scripts after rendering the controls.
-    for (const source of scripts) {
-      const executable = document.createElement('script');
-      executable.textContent = source.textContent;
-      document.head.append(executable);
-      executable.remove();
-    }
+    const record = window.widgetScriptRecord;
     root.querySelector('select').dispatchEvent(new CustomEvent('select2:select', { bubbles: true }));
     root.querySelector('input[type="button"]').click();
-    return { calls, events, registrations, scripts: scripts.length };
+    return { ...record, scripts: root.querySelectorAll('script').length };
   });
 }
 
@@ -217,14 +216,27 @@ for (const prefix of ["form scope:'한글", "another:'日本語:scope"]) {
     try {
       let initialHtml;
       for (const phase of ['initial', 'injected']) {
-        const html = await page.evaluate(({ spec, data, prefix, phase }) => {
+        await page.evaluate(hostSource);
+        const { html, defaultRowCalls } = await page.evaluate(({ spec, data, prefix, phase }) => {
           window.widgetScriptTest.mount(spec, phase === 'initial' ? data : {}, prefix);
-          if (phase === 'injected') window.widgetScriptTest.inject(data);
-          return window.widgetScriptTest.html();
+          let defaultRowCalls;
+          if (phase === 'injected') {
+            // The empty form's default row ran its scripts; the injected row runs its own.
+            const record = window.widgetScriptRecord;
+            defaultRowCalls = record.calls.map(call => call.helper);
+            record.calls.length = 0;
+            record.registrations.length = 0;
+            window.widgetScriptTest.inject(data);
+          }
+          return { html: window.widgetScriptTest.html(), defaultRowCalls };
         }, { spec, data, prefix, phase });
+        if (phase === 'injected') {
+          assert.deepEqual(defaultRowCalls, [...types.slice(0, 6).map(type => `editor_${type}`), 'select2']);
+        }
         if (phase === 'initial') initialHtml = html;
         else assert.equal(html, initialHtml, 'Initial and injected React HTML must be identical');
-        const result = await activateAndInspect(page);
+        const result = await inspectScripts(page);
+        assert.deepEqual(result.errors, []);
         const id = type => `${encodeURIComponent(prefix)}:${encodeURIComponent(`rows.${rowKey}.${fieldName(type)}`)}`;
         const name = type => `${type === 'button' ? 'btn' : ''}form[rows][${rowKey}][${fieldName(type)}]`;
         assert.equal(result.scripts, 8);

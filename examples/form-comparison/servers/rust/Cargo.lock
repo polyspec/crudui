@@ -153,6 +153,7 @@ dependencies = [
  "crudui-validator",
  "form_urlencoded",
  "ordered-json",
+ "ryu-js",
  "serde_json",
  "tempfile",
  "tokio",

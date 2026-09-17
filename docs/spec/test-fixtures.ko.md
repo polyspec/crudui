@@ -11,6 +11,7 @@
 | `tests/fixtures/expr/` | 토큰·AST·표현식 평가. |
 | `tests/fixtures/form-render/` | 기대 폼 렌더링. |
 | `tests/fixtures/form-session/` | 공통 폼 입력과 상호작용 시나리오. |
+| `tests/fixtures/view-session/` | 공통 목록과 상세 다시 그리기 시나리오. |
 | `tests/fixtures/text-validity/` | 모든 연산의 [입력 텍스트](input-text.ko.md) 실패. |
 
 ## 검증

@@ -3,6 +3,7 @@
 import { h, type VNode } from 'vue';
 import type { DetailViewModel, DetailFieldVM } from '@crudui/generator-core';
 import { cellDisplayVNode } from './List';
+import { rawContainer } from './raw';
 
 function fieldClass(field: DetailFieldVM): string {
   return ['crudui-detail__value', 'crudui-value', `crudui-value--${field.format.type}`, field.design.main.class]
@@ -13,7 +14,7 @@ function fieldVNode(field: DetailFieldVM): VNode {
   const display = field.display;
   const props = { class: fieldClass(field), ...(field.design.main.style ? { style: field.design.main.style } : {}) };
   const value = typeof display !== 'string' && display.kind === 'html'
-    ? h('dd', { ...props, innerHTML: display.html })
+    ? rawContainer('dd', props, display.html)
     : h('dd', props, [cellDisplayVNode(display)]);
   return h('div', { class: 'crudui-detail__field' }, [h('dt', { class: 'crudui-detail__label' }, field.label), value]);
 }

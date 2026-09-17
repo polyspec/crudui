@@ -88,7 +88,6 @@ test('passes only a complete four-server verification with zero failures', () =>
   const summary = summarizeBrowserReports(completeReports(), origin, source);
   assert.equal(summary.complete, true);
   assert.equal(summary.passed, true);
-  assert.equal(summary.performancePassed, true);
   assert.equal(summary.failedChecks, 0);
   const expected = expectedBrowserSections();
   assert.deepEqual(summary.verification.bindForm.scenarios, { total: expected.scenarios, failed: 0 });
@@ -176,15 +175,14 @@ test('fails when corresponding frame documents differ between servers', () => {
     browserServers.length * formInitializations.length);
 });
 
-test('fails a server duration above 900000 milliseconds', () => {
+test('a server run has no whole-run duration budget; its units hold their own limits', () => {
   const reports = completeReports();
-  reports.php.durationMs = 900_001;
+  reports.php.durationMs = 3_600_000;
   const summary = summarizeBrowserReports(reports, origin, source);
-  assert.equal(summary.passed, false);
-  assert.equal(summary.performancePassed, false);
-  assert.deepEqual(summary.serverRuns[0].performance, {
-    durationMs: 900_001, budgetMs: 900_000, passed: false,
-  });
+  assert.equal(summary.passed, true, 'a long run whose units kept their limits passes');
+  assert.equal(summary.performancePassed, undefined, 'the aggregate has no performance budget');
+  assert.equal(summary.serverRuns[0].performance, undefined, 'a server run has no performance budget');
+  assert.equal(summary.serverRuns[0].durationMs, 3_600_000, 'the duration is recorded');
 });
 
 test('command returns status 0 only for a complete successful aggregate', t => {

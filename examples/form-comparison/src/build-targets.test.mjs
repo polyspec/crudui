@@ -73,6 +73,17 @@ test('rebuilds and restarts only the affected native server', () => {
   }
 });
 
+test('restarts the public server when the JavaScript record server or the record contract changes', () => {
+  for (const file of [`${example}/servers/javascript/main.mjs`, `${example}/servers/javascript/records.mjs`]) {
+    assert.deepEqual(summary([file]), { targets: ['public-server'], restarts: ['public'], supervisor: false }, file);
+  }
+  assert.deepEqual(summary([`${example}/src/record-contract.mjs`]),
+    { targets: ['frames', 'public-server'], restarts: ['public'], supervisor: false });
+  // The servers read the published fixture per request, so a fixture change only rebuilds the pages.
+  assert.deepEqual(summary([`${example}/fixtures/customer-records.json`]),
+    { targets: ['frames'], restarts: [], supervisor: false });
+});
+
 test('reinstalls JavaScript dependencies and rebuilds what depends on them', () => {
   assert.deepEqual(summary(['package-lock.json']), {
     targets: ['npm-dependencies', 'javascript-packages', 'ordered-json-javascript', 'frames'], restarts: ['public'],
@@ -100,12 +111,6 @@ test('restarts the public server for its own sources and matrix readers for the 
     targets: ['frames', 'browser-matrix'], restarts: ['public', 'go', 'rust'], supervisor: true,
   });
   assert.equal(summary([`${example}/supervisor.mjs`]).supervisor, true);
-});
-
-test('restarts the public server when canonical CRUDUI rendering changes', () => {
-  assert.deepEqual(summary([`${example}/src/pipeline.mjs`]), {
-    targets: ['frames', 'public-server'], restarts: ['public'], supervisor: false,
-  });
 });
 
 test('restarts the canonical public entry when the display console changes', () => {

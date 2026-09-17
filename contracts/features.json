@@ -331,6 +331,20 @@
         "exerciseOnlyRows",
         "exerciseHiddenValues"
       ]
+    },
+    {
+      "path": "tests/fixtures/form-session/typing.mjs",
+      "kind": "browser-session",
+      "cases": [
+        "exerciseTyping"
+      ]
+    },
+    {
+      "path": "tests/fixtures/view-session/rerender.mjs",
+      "kind": "browser-session",
+      "cases": [
+        "exerciseViewRerender"
+      ]
     }
   ],
   "supportValues": [
@@ -861,7 +875,8 @@
         "tests/fixtures/form-session/scenario.mjs",
         "tests/fixtures/form-session/controls.mjs",
         "tests/fixtures/form-session/initialization.mjs",
-        "tests/fixtures/form-session/data-rows.mjs"
+        "tests/fixtures/form-session/data-rows.mjs",
+        "tests/fixtures/form-session/typing.mjs"
       ],
       "support": {
         "javascript-dom": "pass",
@@ -901,7 +916,9 @@
         "TypeError"
       ],
       "fixtures": [
-        "tests/fixtures/form-session/initialization.mjs"
+        "tests/fixtures/form-session/initialization.mjs",
+        "tests/fixtures/form-session/typing.mjs",
+        "tests/fixtures/view-session/rerender.mjs"
       ],
       "support": {
         "javascript-dom": "pass"
@@ -910,7 +927,8 @@
       "state": "the mounted DOM",
       "tests": [
         "packages/generator-core/src/patch.test.ts",
-        "packages/generator-html/src/form-session.test.ts"
+        "packages/generator-html/src/form-session.test.ts",
+        "packages/generator-html/src/view-session.test.ts"
       ],
       "docs": [
         "docs/operations/forms.md"
@@ -923,6 +941,47 @@
         {
           "id": "test-2",
           "command": "npm test -w @crudui/generator-html -- src/form-session.test.ts"
+        }
+      ]
+    },
+    {
+      "id": "updateView",
+      "owner": "@crudui/generator-core",
+      "signature": "list or detail rendered again from a new model -> the mounted view",
+      "input": "a mounted list or detail and a newly built view model",
+      "output": "the mounted view equal to the new model, keeping every element node the new markup still contains",
+      "errors": [
+        "FormInputError"
+      ],
+      "fixtures": [
+        "tests/fixtures/view-session/rerender.mjs"
+      ],
+      "support": {
+        "javascript-dom": "pass",
+        "react": "pass",
+        "vue": "pass",
+        "svelte": "pass"
+      },
+      "status": "implemented",
+      "state": "the mounted DOM",
+      "tests": [
+        "packages/generator-html/src/view-session.test.ts",
+        "packages/generator-react/src/__tests__/View.test.tsx",
+        "packages/generator-vue/test/view-session.test.mjs",
+        "packages/generator-svelte/test/view-session.client.mjs"
+      ],
+      "docs": [
+        "docs/spec/form-runtime.md",
+        "docs/operations/forms.md"
+      ],
+      "verification": [
+        {
+          "id": "test-1",
+          "command": "npm test -w @crudui/generator-html -- src/view-session.test.ts"
+        },
+        {
+          "id": "test-2",
+          "command": "npm test -w @crudui/generator-react -- src/__tests__/View.test.tsx"
         }
       ]
     },

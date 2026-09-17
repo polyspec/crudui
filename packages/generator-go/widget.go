@@ -133,7 +133,11 @@ func evalWidget(c widgetContext) *Object {
 	var w *Object
 	switch kind {
 	case "text", "email", "number":
-		a = NewObject("type", kind, "name", name, "value", c.display(), "class", c.class("valid-target crudui-input"))
+		a = NewObject("type", kind, "name", name, "value", c.display())
+		if kind == "number" {
+			a.Set("step", "any")
+		}
+		a.Set("class", c.class("valid-target crudui-input"))
 		c.attrsPlaceholder(a)
 		c.attrsStyle(a)
 		c.attrsBehaviorData(a)

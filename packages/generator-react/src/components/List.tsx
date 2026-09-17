@@ -28,7 +28,7 @@ import type {
 import { Cell } from './Cell';
 import { paginationPages } from '@crudui/generator-core/internal';
 import { resolvedStyleProps, styleObject } from './attrs';
-import { escAttr, escText } from './raw';
+import { escAttr, escText, RawContainer } from './raw';
 
 /** Merge a base class with a resolved design class ('' dropped) → className/undefined. */
 function nodeClass(base: string, cls: string): string | undefined {
@@ -82,11 +82,12 @@ function Toolbar({ actions }: { actions: ActionVM[] }): React.ReactElement | nul
   return (
     <div className="crudui-list__actions">
       {actions.map((a) => (
-        <span
+        <RawContainer
           key={a.key}
+          tag="span"
           className="crudui-list__action"
           data-action={a.key}
-          dangerouslySetInnerHTML={{ __html: actionHtml(a) }}
+          html={actionHtml(a)}
         />
       ))}
     </div>

@@ -2,11 +2,13 @@
   Render an evaluated read-only detail model with shared CRUDUI display cells.
 -->
 <script lang="ts">
-  import type { DetailViewModel, CellDisplay } from '@crudui/generator-core';
+  import type { DetailViewModel, DetailFieldVM, CellDisplay } from '@crudui/generator-core';
+  import { patched, firstMarkup } from './raw';
 
   let { vm }: { vm: DetailViewModel } = $props();
   const wrapperClass = $derived(['crudui-detail', vm.design.wrapper.class].filter((s) => s && s.trim()).join(' ').trim());
   const wrapperStyle = $derived(vm.design.wrapper.style?.trim() || undefined);
+  const valueClass = (field: DetailFieldVM) => ['crudui-detail__value', 'crudui-value', `crudui-value--${field.format.type}`, field.design.main.class].filter((s) => s && s.trim()).join(' ').trim();
 </script>
 
 {#snippet cellDisplay(display: CellDisplay)}
@@ -26,9 +28,6 @@
     {:else}
       <span class="crudui-bool crudui-bool--text" data-crudui-state={String(display.value)}>{display.label}</span>
     {/if}
-  {:else if display.kind === 'html'}
-    <!-- eslint-disable-next-line svelte/no-at-html-tags -- the `html` field format declares raw HTML. -->
-    {@html display.html}
   {/if}
 {/snippet}
 
@@ -36,10 +35,12 @@
   {#each vm.fields as field (field.key)}
     <div class="crudui-detail__field">
       <dt class="crudui-detail__label">{field.label}</dt>
-      <dd
-        class={['crudui-detail__value', 'crudui-value', `crudui-value--${field.format.type}`, field.design.main.class].filter((s) => s && s.trim()).join(' ').trim()}
-        style={field.design.main.style?.trim() || undefined}
-      >{@render cellDisplay(field.display)}</dd>
+      {#if typeof field.display !== 'string' && field.display.kind === 'html'}{@const html = field.display.html}
+        <!-- eslint-disable-next-line svelte/no-at-html-tags -- the `html` field format declares raw HTML. -->
+        <dd class={valueClass(field)} style={field.design.main.style?.trim() || undefined} {@attach patched(html)}>{@html firstMarkup(() => html)}</dd>
+      {:else}
+        <dd class={valueClass(field)} style={field.design.main.style?.trim() || undefined}>{@render cellDisplay(field.display)}</dd>
+      {/if}
     </div>
   {/each}
 </dl>

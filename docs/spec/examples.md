@@ -7,17 +7,26 @@ compares validation and rendering results across implementations. Form usage is
 defined in [form operations](../operations/forms.md).
 
 The canonical local example entry is [`https://crudui.test/`](https://crudui.test/). It is one
-pipeline page: List → Detail → Form → Save → List refresh. The separate benchmark screen is
-`/benchmark/`; `/displays/` is not a route.
-The list and detail stages are part of that same pipeline. The benchmark screen is separate at
-`/benchmark/`.
+page for one customer record: List → Detail → Form → Save → List refresh. Its list, detail and
+form use one record specification and one shared fixture of 45 records, and every selectable
+server (JavaScript, PHP, PHP extension, Go and Rust) keeps its own persistent store of those
+records behind one HTTP contract. With SSR the selected server renders the stage into the initial
+document; with CSR the selected client (HTML, React, Vue or Svelte) renders it in the browser from
+that server's JSON. The form mode (`bindForm` or `createForm`) is selectable, and a save returns
+to the same list page with a saved notice. The
+[form verification contract](form-comparison.md#record-resource) defines the record resource,
+the page and its check of all 40 server, client and initialization combinations.
+
+The benchmark screens `/benchmark-console/` and `/benchmark/` are separate from that page. They
+compare server-side and client-side form rendering for every native server and framework with
+the nested companies scenario, and run the render and validation matrices. `/displays/` is not a
+route.
 
 Current examples cover all three specification kinds, not only forms. The Go, PHP and Rust
 package examples render a form, a list and a detail from one example record set, and the PHP
 example runs unchanged with the PHP extension. The cross-check console compares form, list and
-detail rendering and validation across implementations. The form comparison page compares
-server-side and client-side rendering of forms for every server and framework. List and detail displays
-follow the [display formats](display-formats.md).
+detail rendering and validation across implementations. List and detail displays follow the
+[display formats](display-formats.md).
 
 The console accepts a validator response only when the process terminates with
 the expected exit status and emits a JSON object matching the response contract.

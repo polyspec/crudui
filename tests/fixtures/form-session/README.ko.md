@@ -23,6 +23,13 @@
   확인합니다. 또한 `visibilitySpec`, `visibilityData`, `exerciseHiddenValues`를 내보냅니다.
   `exerciseHiddenValues`는 `design.show`가 읽는 체크박스를 눌러 그룹을 숨기고 다시 보이며, 숨긴 동안
   설정한 값을 포함해 그룹의 값이 컨트롤과 `getData()`에 남는지 확인합니다.
+- [`typing.mjs`](typing.mjs)는 `typingSpec`, `installWidgetHost`, `exerciseTyping`을 내보냅니다.
+  `installWidgetHost(document)`는 위젯 스크립트가 호출하는 도우미를 문서에 두고 각 호출을 기록하며,
+  테스트는 폼을 마운트하기 전에 이를 설치합니다. `exerciseTyping`은 숫자, 텍스트, 텍스트 영역, 동작
+  속성이 있는 텍스트 컨트롤에 한 글자씩 입력하고 캐럿을 옮기며, 선택 목록 옵션과 라디오 버튼,
+  체크박스를 고릅니다. 다시 그릴 때마다 컨트롤, 버튼, 스크립트, 스타일, 원시 표시 내용의 요소 노드가
+  그대로인지, 편집한 컨트롤에 포커스가 있는지, 입력 순서와 캐럿, 폼 값이 맞는지, 각 위젯 스크립트가
+  한 번 실행되었는지 확인합니다.
 
 ## 비교
 

@@ -149,6 +149,9 @@ final class Widget
             $value = Dates::parseUtc($value)?->format($kind === 'datetime' ? 'Y-m-d\TH:i:s' : 'Y-m-d') ?? $value;
         }
         $attrs = ['type' => $type, 'name' => $this->name, 'value' => $value];
+        if ($kind === 'number') {
+            $attrs['step'] = 'any';
+        }
         if ($kind === 'dummy-input') {
             $attrs['readonly'] = '';
         }

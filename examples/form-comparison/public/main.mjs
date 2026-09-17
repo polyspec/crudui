@@ -1,65 +1,114 @@
-import { frameUrl } from './frame-readiness.mjs';
-import { formFrameworks, formInitializations, pipelineServers } from './runtime-paths.mjs';
+// The canonical page (docs/spec/form-comparison.md, "Canonical page"): the record flow from the
+// list through detail and form back to the saved list, over the selected server, client,
+// initialization and form mode. The page owns the selection, its links and the saved notice; the
+// selected client's stage module renders or takes over the stage and submits the form.
+import { selectionDefaults, selectionQuery } from './record-view.mjs';
 
 const query = new URLSearchParams(location.search);
-const state = {
-  language: query.get('lang') === 'en' ? 'en' : 'ko',
-  server: pipelineServers.includes(query.get('server')) ? query.get('server') : 'js',
-  framework: formFrameworks.includes(query.get('framework')) ? query.get('framework') : 'html',
-  initialization: formInitializations.includes(query.get('initialization')) ? query.get('initialization') : 'csr',
-  id: query.get('id') || '1',
-  page: query.get('page') || '1',
-};
-const view = ['/detail', '/detail/'].includes(location.pathname) ? 'detail' : ['/form', '/form/'].includes(location.pathname) ? 'form' : 'list';
-const text = {
-  ko: { title: 'CRUDUI 전체 기능 예제', intro: 'CRUDUI가 생성한 목록 링크로 상세와 폼으로 이동하고 실제 저장 결과를 다시 목록에서 확인합니다.', paginationContract: '호출자가 현재 페이지(page)와 전체 레코드 수(total)를 주입하면 CRUDUI가 이전·다음·활성 페이지를 렌더링합니다.', server: '서버', framework: '클라이언트', initialization: '실행 방식', list: '고객 목록', detail: '고객 상세', form: '고객 수정', source: '소스 식별자', ssr: 'SSR', csr: 'CSR', backList: '목록으로 돌아가기' },
-  en: { title: 'CRUDUI full feature example', intro: 'Use CRUDUI-generated list links to open detail and form, then verify the saved result in the list.', paginationContract: 'The caller injects the current page (page) and total record count (total); CRUDUI renders previous, next and active page controls.', server: 'Server', framework: 'Client', initialization: 'Execution', list: 'Customer list', detail: 'Customer detail', form: 'Edit customer', source: 'Source identity', ssr: 'SSR', csr: 'CSR', backList: 'Back to list' },
-}[state.language];
-const $ = selector => document.querySelector(selector);
-document.documentElement.lang = state.language;
-$('#title').textContent = text.title; $('#intro').textContent = text.intro;
-$('#pagination-contract').textContent = text.paginationContract;
-$('#server-label').textContent = text.server; $('#framework-label').textContent = text.framework; $('#initialization-label').textContent = text.initialization;
-$('#source-label').textContent = text.source;
-$('#back-list').textContent = text.backList;
-$('#server').value = state.server; $('#framework').value = state.framework; $('#initialization').value = state.initialization;
-function params(overrides = {}) { return new URLSearchParams({ lang: state.language, server: state.server, framework: state.framework, initialization: state.initialization, page: state.page, ...overrides }).toString(); }
-for (const link of document.querySelectorAll('[data-view]')) {
-  link.href = `/${link.dataset.view === 'list' ? '' : link.dataset.view}?${params({ id: state.id })}`;
-  if (link.dataset.view === view) link.setAttribute('aria-current', 'page');
-}
-for (const control of ['server', 'framework', 'initialization']) $(`#${control}`).addEventListener('change', event => {
-  state[control] = event.target.value;
-  location.href = `${location.pathname}?${params({ id: state.id })}`;
-});
-window.addEventListener('message', event => {
-  if (event.origin !== location.origin || event.data?.type !== 'crudui:pipeline-saved') return;
-  location.href = `/?${params({ id: state.id, saved: '1' })}`;
-});
+const view = { '/detail': 'detail', '/form': 'form' }[location.pathname] ?? 'list';
+const state = Object.fromEntries(Object.entries(selectionDefaults)
+  .map(([member, fallback]) => [member, query.get(member) ?? String(fallback)]));
+state.page = Number(state.page);
+const id = view === 'list' ? null : query.get('id');
+const saved = view === 'list' ? query.get('saved') : null;
 
-function bindPagination() {
-  if (view !== 'list') return;
-  $('#stage').querySelector('.crudui-list__pagination')?.addEventListener('click', event => {
-    const button = event.target.closest('button[data-page]');
-    if (button && !button.disabled) location.href = `/?${params({ page: button.dataset.page })}`;
+const text = {
+  ko: {
+    title: 'CRUDUI 전체 기능 예제',
+    intro: 'CRUDUI가 생성한 목록 링크로 상세와 폼을 열고, 선택한 서버에 저장한 결과를 같은 목록 페이지에서 확인합니다.',
+    paginationContract: '호출자가 현재 페이지(page)와 전체 레코드 수(total)를 주입하면 CRUDUI가 이전·다음·활성 페이지를 렌더링합니다.',
+    server: '서버', framework: '클라이언트', initialization: '실행 방식', mode: '폼 방식', source: '소스 식별자',
+    list: '고객 목록', detail: '고객 상세', form: '고객 수정', backList: '목록으로 돌아가기', language: 'English',
+    steps: { list: '목록', detail: '상세', form: '폼' },
+    saved: record => `레코드 ${record}을(를) 저장했습니다.`,
+    invalid: '입력값을 확인하세요.',
+  },
+  en: {
+    title: 'CRUDUI full feature example',
+    intro: 'Open detail and form through CRUDUI-generated list links, save to the selected server and see the result on the same list page.',
+    paginationContract: 'The caller injects the current page (page) and total record count (total); CRUDUI renders previous, next and active page controls.',
+    server: 'Server', framework: 'Client', initialization: 'Execution', mode: 'Form mode', source: 'Source identity',
+    list: 'Customer list', detail: 'Customer detail', form: 'Edit customer', backList: 'Back to list', language: '한국어',
+    steps: { list: 'List', detail: 'Detail', form: 'Form' },
+    saved: record => `Saved record ${record}.`,
+    invalid: 'Check the entered values.',
+  },
+}[state.lang];
+if (!text) throw new Error(`Unknown language: ${state.lang}`);
+
+const $ = selector => document.querySelector(selector);
+/** The query of this page with the given selection members changed; detail and form keep their id. */
+function params(overrides = {}, recordId = id) {
+  const selection = {
+    lang: state.lang, server: state.server, framework: state.framework,
+    initialization: state.initialization, mode: state.mode, page: state.page, ...overrides,
+  };
+  return `${recordId === null ? '' : `id=${encodeURIComponent(recordId)}&`}${selectionQuery(selection)}`;
+}
+const address = (target, recordId) => `${target === 'list' ? '/' : `/${target}`}?${params({}, target === 'list' ? null : recordId)}`;
+
+document.documentElement.lang = state.lang;
+document.title = text.title;
+$('#title').textContent = text.title;
+$('#intro').textContent = text.intro;
+$('#pagination-contract').textContent = text.paginationContract;
+for (const control of ['server', 'framework', 'initialization', 'mode']) {
+  $(`#${control}-label`).textContent = text[control];
+  $(`#${control}`).value = state[control];
+}
+$('#source-label').textContent = text.source;
+$('#back-list').textContent = `← ${text.backList}`;
+$('#back-list').hidden = view === 'list';
+$('#view-step').textContent = text.steps[view].toUpperCase();
+$('#view-title').textContent = text[view];
+const language = $('#language');
+language.textContent = text.language;
+language.href = `${location.pathname}?${params({ lang: state.lang === 'ko' ? 'en' : 'ko' })}`;
+for (const link of document.querySelectorAll('[data-link]')) {
+  const target = link.dataset.link;
+  if (link.closest('.pipeline-nav')) link.textContent = text.steps[target];
+  if (target === view) link.setAttribute('aria-current', 'page');
+  if (target === 'list' || id !== null) link.href = address(target, id);
+  else link.removeAttribute('href');
+}
+for (const control of ['server', 'framework', 'initialization', 'mode']) {
+  $(`#${control}`).addEventListener('change', event => {
+    state[control] = event.target.value;
+    location.href = `${location.pathname}?${params()}`;
   });
 }
 
-// The benchmark's loadComparisonFrames observes this owned main-page readiness event.
-async function renderView() {
-  if (view === 'form') {
-    $('#stage').hidden = true; $('#form-stage').hidden = false; $('#form-title').textContent = text.form;
-    $('#form-help').textContent = `${text.server}: ${state.server} · ${text.framework}: ${state.framework} · ${text[state.initialization]}`;
-    $('#form-frame').src = frameUrl({ initialization: state.initialization, path: 'bindForm', framework: state.framework, server: state.server, language: state.language });
-    return;
+const stage = $('#stage');
+if (view === 'list') {
+  stage.addEventListener('click', event => {
+    const button = event.target.closest('.crudui-list__pagination button[data-page]');
+    if (button && !button.disabled) location.href = `/?${params({ page: Number(button.dataset.page) })}`;
+  });
+  if (saved !== null) {
+    let notice = $('#saved-notice');
+    if (!notice) {
+      notice = document.createElement('p');
+      notice.id = 'saved-notice';
+      notice.setAttribute('role', 'status');
+      notice.dataset.recordId = saved;
+      stage.before(notice);
+    }
+    notice.className = 'saved-notice';
+    notice.textContent = text.saved(saved);
   }
-  if (document.documentElement.dataset.pipelineInitialization === 'ssr') return;
-  const response = await fetch(`/api/pipeline/${view}?${params({ id: state.id })}`, { cache: 'no-store' });
-  if (!response.ok) throw new Error(`CRUDUI ${view} request failed: ${response.status}`);
-  const body = await response.text();
-  $('#stage').innerHTML = `<div class="stage-heading"><p class="eyebrow">${view.toUpperCase()}</p><h2>${text[view]}</h2><p>${text.intro}</p></div>${body}`;
 }
-const source = await (await fetch('/source.json', { cache: 'no-store' })).json(); $('#source').textContent = JSON.stringify(source, null, 2);
-await renderView();
-bindPagination();
-window.postMessage({ type: 'crudui:main-ready', server: state.server, framework: state.framework, view }, location.origin);
+
+// The document names its initialization; SSR stage markup is taken over, CSR stages start empty.
+if (document.documentElement.dataset.pipelineInitialization !== state.initialization) {
+  throw new Error(`The document was rendered for ${document.documentElement.dataset.pipelineInitialization}, not ${state.initialization}`);
+}
+const { startStage } = await import(`/pages/${encodeURIComponent(state.framework)}/stage.js`);
+const [source] = await Promise.all([
+  fetch('/source.json', { cache: 'no-store' }).then(response => response.json()),
+  startStage({ stage, view, selection: state, id, text }),
+]);
+$('#source').textContent = JSON.stringify(source, null, 2);
+window.postMessage({
+  type: 'crudui:pipeline-ready', view, server: state.server, framework: state.framework,
+  initialization: state.initialization, mode: state.mode, page: state.page, id,
+}, location.origin);

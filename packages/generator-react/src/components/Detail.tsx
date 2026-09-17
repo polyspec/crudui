@@ -4,6 +4,7 @@ import * as React from 'react';
 import type { DetailViewModel, DetailFieldVM } from '@crudui/generator-core';
 import { CellBody } from './Cell';
 import { styleObject } from './attrs';
+import { RawContainer } from './raw';
 
 function fieldClass(field: DetailFieldVM): string | undefined {
   return ['crudui-detail__value', 'crudui-value', `crudui-value--${field.format.type}`, field.design.main.class]
@@ -20,7 +21,7 @@ function Field({ field }: { field: DetailFieldVM }): React.ReactElement {
     <div className="crudui-detail__field">
       <dt className="crudui-detail__label">{field.label}</dt>
       {typeof display !== 'string' && display.kind === 'html' ? (
-        <dd {...valueProps} dangerouslySetInnerHTML={{ __html: display.html }} />
+        <RawContainer tag="dd" {...valueProps} html={display.html} />
       ) : (
         <dd {...valueProps}><CellBody cell={field} /></dd>
       )}

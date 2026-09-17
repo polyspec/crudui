@@ -1,26 +1,30 @@
 import assert from 'node:assert/strict';
-import http from 'node:http';
-import { mkdir, readdir, rm, writeFile } from 'node:fs/promises';
+import { mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { formServers } from './src/runtime-paths.mjs';
 import {
-  cruduiModule, orderedJsonModule, publicOrigin, resultsDirectory, treeDirectory,
+  buildStateFile, cruduiModule, orderedJsonModule, publicOrigin, resultsDirectory, treeDirectory,
 } from './src/server-layout.mjs';
 import { sameSourceIdentity } from './src/source-identity.mjs';
-import { formatDuration, runStages, stopStepsOnSignal } from './src/step-runner.mjs';
+import {
+  formatDuration, runStages, stepHeartbeatMs, stepSilenceLimitMs, stopStepsOnSignal,
+} from './src/step-runner.mjs';
 import { verifyEvidence } from './verification-evidence.mjs';
 
 const example = path.join(treeDirectory, 'examples/form-comparison');
-/**
- * The current build cycle is read once. A cycle that is still building answers when it finishes,
- * so this limit covers one complete build of every target, measured at 58 seconds.
- */
-export const buildReadinessLimitMs = 600_000;
-
+/** A single operation with a total limit. */
 function check(id, timeoutMs, command, args, cwd = example, environment = {}) {
   return { id, timeoutMs, command, args, cwd, environment };
+}
+
+/**
+ * A check made of units, each with its own limit: it has no total limit and is stopped when it
+ * prints no unit progress line within the inactivity limit.
+ */
+function unitCheck(id, args) {
+  return { id, silenceLimitMs: stepSilenceLimitMs, command: 'node', args, cwd: example, environment: {} };
 }
 
 /**
@@ -34,24 +38,29 @@ function check(id, timeoutMs, command, args, cwd = example, environment = {}) {
  *
  * - `php-modes` loads the `crudui.so` and `ordered_json.so` this container built;
  * - `generation` and `persistence` request the four running API servers;
+ * - `pipeline` drives the canonical List → Detail → Form → Save → List flow of the deployed page
+ *   for all 40 server, client and initialization combinations;
  * - the browser checks drive the built frame pages in the container's Chromium;
  * - `browser-summary` aggregates the four browser reports of this run.
  *
- * Every step carries its own timeout, sized from its measured duration. The four browser checks
+ * A single operation carries its own timeout, sized from its measured duration. The pipeline and
+ * browser checks consist of units with their own limits and carry only the inactivity limit. The
+ * four browser checks
  * run at the same time: each one drives its own browser process with its own focus, selection and
  * scroll, and each server keeps its own records, so no measurement of one reaches another.
  */
 export function verificationStages() {
   return [
-    // Measured on the idle deployment: php-modes 1 s, generation 7 s, persistence 2 s,
-    // one browser check 284 s. Each limit leaves an order of magnitude for a loaded machine.
+    // Measured on the idle deployment: php-modes 1 s, generation 7 s, persistence 2 s.
+    // Each limit leaves an order of magnitude for a loaded machine.
     [check('php-modes', 60_000, 'node',
       ['test-php-modes.mjs', orderedJsonModule, cruduiModule, treeDirectory])],
     [check('generation', 120_000, 'node', ['check-generation.mjs', '--url', publicOrigin,
       '--library', treeDirectory, '--report', path.join(resultsDirectory, 'generation.json')])],
     [check('persistence', 60_000, 'node', ['check-servers.mjs'])],
-    formServers.map(server =>
-      check(`browser-${server}`, 1_200_000, 'node', ['check.mjs', server, publicOrigin])),
+    [unitCheck('pipeline', ['check-pipeline.mjs', '--origin', publicOrigin,
+      '--report', path.join(resultsDirectory, 'pipeline.json')])],
+    formServers.map(server => unitCheck(`browser-${server}`, ['check.mjs', server, publicOrigin])),
     [check('browser-summary', 120_000, 'node', ['check-browser-reports.mjs',
       '--results', resultsDirectory, '--origin', publicOrigin,
       '--source', path.join(resultsDirectory, 'source.json'),
@@ -64,37 +73,74 @@ export function verificationChecks() {
   return verificationStages().flat();
 }
 
-/** Wait for the supervisor's current build cycle to finish and require it to be ready. */
-function readyBuild() {
-  return new Promise((resolve, reject) => {
-    // The supervisor answers when the cycle is no longer building; a first build takes minutes.
-    const request = http.get(publicOrigin + '/api/source', response => {
-      const chunks = [];
-      response.on('data', chunk => chunks.push(chunk));
-      response.on('end', () => {
-        try {
-          const state = JSON.parse(Buffer.concat(chunks).toString('utf8'));
-          assert.ok(response.statusCode === 200 && state.status === 'ready',
-            `The build is not ready: ${state.status}${state.error ? ` (${state.error})` : ''}`);
-          resolve(state);
-        } catch (error) { reject(error); }
-      });
-      response.on('error', reject);
-    }).on('error', reject);
-    request.setTimeout(buildReadinessLimitMs, () => request.destroy(new Error(
-      `The build cycle did not finish within ${buildReadinessLimitMs} ms`)));
-  });
+/**
+ * Wait for the supervisor's current build cycle to finish and require it to be ready. It is one
+ * request, answered when the cycle is no longer building, so it is one unit with its own limit
+ * that holds however the response arrives; it prints its elapsed time every heartbeat.
+ */
+/**
+ * Wait for the current build cycle to be ready. The supervisor replaces its build state file at
+ * every change, and while a cycle builds it renews `progress` at every step and heartbeat; each
+ * build target holds its own limit. The wait therefore has no total limit: it stops when the file
+ * shows no new progress within the inactivity limit, which also covers a supervisor that stopped.
+ */
+export async function readyBuild({
+  stateFile = buildStateFile, silenceLimitMs = stepSilenceLimitMs, pollMs = 1_000,
+  heartbeatMs = stepHeartbeatMs,
+  write = text => process.stdout.write(text),
+} = {}) {
+  const prefix = '[verification] build-readiness:';
+  const started = performance.now();
+  const elapsed = () => formatDuration(performance.now() - started);
+  write(`${prefix} started (inactivity limit ${formatDuration(silenceLimitMs)})\n`);
+  let seen;
+  let progressAt = started;
+  let heartbeatAt = started;
+  let reading = 'no answer yet';
+  const stop = (status, message) => {
+    write(`${prefix} ${status} after ${elapsed()}: ${message}\n`);
+    throw new Error(`build-readiness ${status} after ${elapsed()}: ${message}`);
+  };
+  for (;;) {
+    let state;
+    try {
+      state = JSON.parse(await readFile(stateFile, 'utf8'));
+    } catch (error) {
+      reading = error.message;
+    }
+    if (state?.status === 'ready') {
+      write(`${prefix} passed in ${elapsed()}\n`);
+      write(`${prefix} cycle ${state.cycle} is ready\n`);
+      return state;
+    }
+    if (state?.status === 'failed') {
+      stop('failed', `cycle ${state.cycle} failed (${state.error})`);
+    }
+    if (state) {
+      assert.equal(state.status, 'building', `Unknown build status ${state.status}`);
+      reading = `cycle ${state.cycle} building ${state.progress?.target ?? ''}`.trim();
+      const identity = JSON.stringify([state.cycle, state.progress]);
+      if (identity !== seen) {
+        seen = identity;
+        progressAt = performance.now();
+      }
+    }
+    if (performance.now() - progressAt >= silenceLimitMs) {
+      stop('stalled', `no build progress for ${formatDuration(performance.now() - progressAt)} (${reading})`);
+    }
+    if (performance.now() - heartbeatAt >= heartbeatMs) {
+      heartbeatAt = performance.now();
+      write(`${prefix} running ${elapsed()} (${reading})\n`);
+    }
+    await new Promise(resolve => setTimeout(resolve, pollMs));
+  }
 }
 
 async function main() {
   stopStepsOnSignal();
   const startedAt = new Date().toISOString();
   const startedClock = performance.now();
-  process.stdout.write(`[verification] build readiness: waiting at most `
-    + `${formatDuration(buildReadinessLimitMs)}\n`);
   const before = await readyBuild();
-  process.stdout.write(`[verification] build readiness: cycle ${before.cycle} ready in `
-    + `${formatDuration(performance.now() - startedClock)}\n`);
   await mkdir(resultsDirectory, { recursive: true });
   for (const entry of await readdir(resultsDirectory)) {
     await rm(path.join(resultsDirectory, entry), { recursive: true, force: true });

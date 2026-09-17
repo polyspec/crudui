@@ -102,6 +102,19 @@ const SCENARIOS: ListFixtureCase[] = [
     options: { language: 'en' },
   },
   {
+    name: 'format-number-shortest',
+    note: 'number format without decimals → the shortest round-trip text in plain notation between 1e-6 and 1e21 (§9.2).',
+    spec: {
+      columns: {
+        value: { field: 'value', label: 'Value', format: { type: 'number' } },
+        grouped: { field: 'value', label: 'Grouped', format: { type: 'number', thousands: true } },
+      },
+    },
+    rows: ['30', 100, '1200.5', 0.00001, '-0', 1e21, 1.5e-7, '123456789012345680000', 0.1, -4500]
+      .map(value => ({ value })),
+    options: { language: 'en' },
+  },
+  {
     name: 'format-badge',
     note: 'badge format → span.badge.badge-<variant> from the value→variant map (§9.2).',
     spec: {

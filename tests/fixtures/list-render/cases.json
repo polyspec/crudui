@@ -178,6 +178,65 @@
     "expected_html": "<div class=\"crudui-list\"><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading\" data-field=\"score\"><span class=\"crudui-list__heading-label\">Score</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--number\">$1,234,567.50</td></tr><tr><td class=\"crudui-list__cell crudui-value crudui-value--number\">$42.00</td></tr></tbody></table></div>"
   },
   {
+    "name": "format-number-shortest",
+    "note": "number format without decimals → the shortest round-trip text in plain notation between 1e-6 and 1e21 (§9.2).",
+    "spec": {
+      "columns": {
+        "value": {
+          "field": "value",
+          "label": "Value",
+          "format": {
+            "type": "number"
+          }
+        },
+        "grouped": {
+          "field": "value",
+          "label": "Grouped",
+          "format": {
+            "type": "number",
+            "thousands": true
+          }
+        }
+      }
+    },
+    "rows": [
+      {
+        "value": "30"
+      },
+      {
+        "value": 100
+      },
+      {
+        "value": "1200.5"
+      },
+      {
+        "value": 0.00001
+      },
+      {
+        "value": "-0"
+      },
+      {
+        "value": 1e+21
+      },
+      {
+        "value": 1.5e-7
+      },
+      {
+        "value": "123456789012345680000"
+      },
+      {
+        "value": 0.1
+      },
+      {
+        "value": -4500
+      }
+    ],
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-list\"><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading\" data-field=\"value\"><span class=\"crudui-list__heading-label\">Value</span></th><th class=\"crudui-list__heading\" data-field=\"value\"><span class=\"crudui-list__heading-label\">Grouped</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--number\">30</td><td class=\"crudui-list__cell crudui-value crudui-value--number\">30</td></tr><tr><td class=\"crudui-list__cell crudui-value crudui-value--number\">100</td><td class=\"crudui-list__cell crudui-value crudui-value--number\">100</td></tr><tr><td class=\"crudui-list__cell crudui-value crudui-value--number\">1200.5</td><td class=\"crudui-list__cell crudui-value crudui-value--number\">1,200.5</td></tr><tr><td class=\"crudui-list__cell crudui-value crudui-value--number\">0.00001</td><td class=\"crudui-list__cell crudui-value crudui-value--number\">0.00001</td></tr><tr><td class=\"crudui-list__cell crudui-value crudui-value--number\">0</td><td class=\"crudui-list__cell crudui-value crudui-value--number\">0</td></tr><tr><td class=\"crudui-list__cell crudui-value crudui-value--number\">1e+21</td><td class=\"crudui-list__cell crudui-value crudui-value--number\">1e+21</td></tr><tr><td class=\"crudui-list__cell crudui-value crudui-value--number\">1.5e-7</td><td class=\"crudui-list__cell crudui-value crudui-value--number\">1.5e-7</td></tr><tr><td class=\"crudui-list__cell crudui-value crudui-value--number\">123456789012345680000</td><td class=\"crudui-list__cell crudui-value crudui-value--number\">123,456,789,012,345,680,000</td></tr><tr><td class=\"crudui-list__cell crudui-value crudui-value--number\">0.1</td><td class=\"crudui-list__cell crudui-value crudui-value--number\">0.1</td></tr><tr><td class=\"crudui-list__cell crudui-value crudui-value--number\">-4500</td><td class=\"crudui-list__cell crudui-value crudui-value--number\">-4,500</td></tr></tbody></table></div>"
+  },
+  {
     "name": "format-badge",
     "note": "badge format → span.badge.badge-<variant> from the value→variant map (§9.2).",
     "spec": {

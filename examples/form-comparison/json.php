@@ -45,6 +45,31 @@ final class FormJson
         return is_array($data) ? array_map(self::arrays(...), $data) : $data;
     }
 
+    /** Write one number as JavaScript's Number to String conversion writes it. */
+    public static function numberText(int|float $number): string
+    {
+        if (is_int($number)) return (string) $number;
+        if (!is_finite($number)) throw new InvalidArgumentException('JSON numbers are finite');
+        if ($number == 0.0) return '0';
+        $magnitude = abs($number);
+        // The shortest scientific form that reads back as the same binary64 value.
+        for ($precision = 0; $precision < 17; $precision++) {
+            $scientific = sprintf('%.' . $precision . 'e', $magnitude);
+            if ((float) $scientific === $magnitude) break;
+        }
+        [$mantissa, $exponent] = explode('e', $scientific);
+        $digits = str_replace('.', '', $mantissa);
+        $count = strlen($digits);
+        $point = (int) $exponent + 1;
+        $sign = $number < 0 ? '-' : '';
+        if ($count <= $point && $point <= 21) return $sign . $digits . str_repeat('0', $point - $count);
+        if (0 < $point && $point <= 21) return $sign . substr($digits, 0, $point) . '.' . substr($digits, $point);
+        if (-6 < $point && $point <= 0) return $sign . '0.' . str_repeat('0', -$point) . $digits;
+        $power = $point - 1;
+        return $sign . $digits[0] . ($count > 1 ? '.' . substr($digits, 1) : '')
+            . 'e' . ($power < 0 ? '-' : '+') . abs($power);
+    }
+
     private static function data(Value $value): mixed
     {
         return match ($value->kind()) {
@@ -73,7 +98,7 @@ final class FormJson
         if (is_string($data)) return Value::string($data);
         if (is_bool($data)) return Value::boolean($data);
         if (is_int($data) || is_float($data)) {
-            $literal = is_int($data) ? (string) $data : json_encode($data, JSON_THROW_ON_ERROR | JSON_PRESERVE_ZERO_FRACTION);
+            $literal = self::numberText($data);
             self::number($literal);
             return Value::number($literal);
         }

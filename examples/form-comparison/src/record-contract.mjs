@@ -1,0 +1,359 @@
+// The record resource of the canonical page: one customer record specification, one shared
+// fixture and one HTTP contract that every record store implements (docs/spec/form-comparison.md,
+// "Record resource"). The JavaScript, PHP, PHP extension, Go and Rust servers are checked by the
+// same cases below; a case that passes for one server and fails for another is a defect.
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+
+import { compileForm, createForm } from '@crudui/generator-core';
+import { renderDetail, renderForm, renderList } from '@crudui/generator-html';
+import { validate } from '@crudui/validator';
+
+import customerRecords from '../fixtures/customer-records.json' with { type: 'json' };
+import customerSpecs from '../fixtures/customer-specs.json' with { type: 'json' };
+import {
+  formData, linkedSpecs, recordClients, recordInitializations, recordModes, recordServers, recordsPerPage,
+  recordViews, selectionQuery,
+} from './record-view.mjs';
+
+export {
+  formData, recordClients, recordInitializations, recordModes, recordServers, recordsPerPage, recordViews,
+  selectionQuery,
+};
+/** Files every record server reads from its public directory. */
+export const recordFixtureFile = 'customer-records.json';
+export const recordSpecsFile = 'customer-specs.json';
+/** The editable members of one record; `id` is read-only and `avatar` is not part of the form. */
+export const editableRecordFields = Object.freeze(['name', 'status', 'joined', 'score', 'relation', 'markup']);
+
+/** An independent copy of the 45 seeded records. */
+export function recordFixture() {
+  return structuredClone(customerRecords);
+}
+
+/** An independent copy of the list, detail and form specifications of the record. */
+export function recordSpecs() {
+  return structuredClone(customerSpecs);
+}
+
+/** The store file of one server inside its data directory. */
+export function recordStoreName(server) {
+  assert.ok(recordServers.includes(server), `Unknown record server: ${server}`);
+  return `records-${server}.json`;
+}
+
+/** The address of one page of the canonical flow. */
+export function pageAddress(view, selection, { id, saved } = {}) {
+  const query = selectionQuery(selection);
+  if (view === 'list') return `/?${query}${saved === undefined ? '' : `&saved=${encodeURIComponent(saved)}`}`;
+  return `/${view}?id=${encodeURIComponent(id)}&${query}`;
+}
+
+/** The list and detail specifications with the selection query appended to their links. */
+export function stageSpecs(selection) {
+  return linkedSpecs(customerSpecs, selection);
+}
+
+/** The records of one list page, in id order. */
+export function pageRecords(records, page) {
+  return records.slice((page - 1) * recordsPerPage, page * recordsPerPage);
+}
+
+/** The stage HTML the selected server writes for one SSR view; every server writes these bytes. */
+export function expectedStageHtml(view, selection, { records, record }) {
+  const specs = stageSpecs(selection);
+  const language = selection.lang;
+  if (view === 'list') {
+    return renderList(specs.list, pageRecords(records, selection.page),
+      { language, layout: 'table', page: selection.page, total: records.length });
+  }
+  if (view === 'detail') return renderDetail(specs.detail, record, { language });
+  const template = compileForm(specs.form, { keyPrefix: 'form' });
+  const form = renderForm(createForm(template, formData(record), { language }));
+  return `<form id="record-form" method="post" action="/api/${selection.server}/records/${record.id}" `
+    + `enctype="multipart/form-data">${form}</form>`;
+}
+
+/** The record a valid save stores: the previous record with the submitted editable members. */
+export function savedRecord(previous, data) {
+  return {
+    id: previous.id, name: data.name, status: data.status, joined: data.joined,
+    score: Number(data.score), relation: { name: data.relation.name },
+    avatar: previous.avatar, markup: data.markup,
+  };
+}
+
+/** The validation result of one submission, as the reference validator reports it. */
+export function expectedValidation(data) {
+  return validate(recordSpecs().form, data);
+}
+
+/** Native fields of one submission, as the rendered form posts them. */
+export function nativeFields(data, format, { complete = true } = {}) {
+  const fields = format === 'multipart' ? new FormData() : new URLSearchParams();
+  const append = (value, name) => {
+    if (value !== null && typeof value === 'object') {
+      for (const [key, child] of Object.entries(value)) append(child, `${name}[${key}]`);
+    } else fields.append(name, value);
+  };
+  append(data, 'form');
+  if (complete) fields.append('_form_complete', '1');
+  return fields;
+}
+
+/** Encode one submission in the given transport. */
+export function submission(data, format) {
+  return format === 'json'
+    ? { body: JSON.stringify({ form: data }), headers: { 'Content-Type': 'application/json' } }
+    : { body: nativeFields(data, format), headers: {} };
+}
+
+/**
+ * A client of one running record server. `origin` returns the server's current origin, which a
+ * restart may change; its paths are the internal `/api/records...` paths (the public server
+ * forwards `/api/{server}/records...` to them).
+ */
+export function recordClient({ origin, server, storeFile, restart }) {
+  async function request(method, target, { body, headers } = {}) {
+    const response = await fetch(new URL(target, origin()), { method, body, headers, redirect: 'manual' });
+    const text = await response.text();
+    const type = response.headers.get('content-type') ?? '';
+    let json;
+    if (type.startsWith('application/json')) {
+      json = JSON.parse(text);
+      assert.equal(json.server, server, `${method} ${target}: the response names the responding server`);
+    }
+    return { status: response.status, type, text, json, cacheControl: response.headers.get('cache-control') };
+  }
+  return {
+    server, request, restart,
+    storeBytes: () => readFile(storeFile),
+    storeRecords: async () => JSON.parse(await readFile(storeFile, 'utf8')),
+    reset: async () => {
+      const result = await request('POST', '/api/records/reset');
+      assert.equal(result.status, 200, `reset: ${result.text}`);
+      assert.deepEqual(result.json, { total: 45, server }, 'reset response');
+      return result;
+    },
+    save: (id, data, format) => request('POST', `/api/records/${id}`, submission(data, format)),
+  };
+}
+
+const edited = (id, suffix) => ({
+  ...formData(customerRecords[Number(id) - 1]),
+  name: `Edited ${suffix} & <b>`, status: 'blocked', joined: '2027-02-28', score: '9021.25',
+  relation: { name: `Relation ${suffix} / 연관` }, markup: '<em>saved</em>',
+});
+
+async function unchanged(client, action, message) {
+  const before = await client.storeBytes();
+  await action();
+  assert.deepEqual(await client.storeBytes(), before, message);
+}
+
+/**
+ * The contract cases in execution order. Each case starts from a reset store unless it says
+ * otherwise, and leaves the store file as its own assertions describe.
+ */
+export const recordContractCases = Object.freeze([
+  {
+    id: 'reset-seeds-the-fixture',
+    async run(client) {
+      await client.reset();
+      assert.deepEqual(await client.storeRecords(), recordFixture(), 'the store holds the fixture in id order');
+    },
+  },
+  {
+    id: 'list-pages',
+    async run(client) {
+      await client.reset();
+      for (const page of [1, 2, 3]) {
+        const result = await client.request('GET', `/api/records?page=${page}`);
+        assert.equal(result.status, 200, result.text);
+        assert.equal(result.cacheControl, 'no-store');
+        assert.deepEqual(Object.keys(result.json).sort(), ['page', 'perPage', 'records', 'server', 'total']);
+        assert.equal(result.json.page, page);
+        assert.equal(result.json.perPage, 20);
+        assert.equal(result.json.total, 45);
+        assert.deepEqual(result.json.records, pageRecords(recordFixture(), page), `page ${page}`);
+      }
+    },
+  },
+  {
+    id: 'list-rejects-pages',
+    async run(client) {
+      await client.reset();
+      for (const query of ['', '?page=', '?page=0', '?page=01', '?page=-1', '?page=1.0', '?page=x',
+        '?page=1&page=1', '?page=1&per_page=20', '?page=1&sort=name']) {
+        const result = await client.request('GET', `/api/records${query}`);
+        assert.equal(result.status, 400, `query ${query}: ${result.text}`);
+        assert.equal(result.json.error, 'Expected one page parameter', `query ${query}`);
+      }
+      const beyond = await client.request('GET', '/api/records?page=4');
+      assert.equal(beyond.status, 404, beyond.text);
+      assert.equal(beyond.json.error, 'Page not found');
+      assert.equal((await client.request('POST', '/api/records?page=1')).status, 405);
+    },
+  },
+  {
+    id: 'record-by-id',
+    async run(client) {
+      await client.reset();
+      const result = await client.request('GET', '/api/records/22');
+      assert.equal(result.status, 200, result.text);
+      assert.deepEqual(result.json, { record: recordFixture()[21], server: client.server });
+      // The segment is compared as written: an encoded stored id is not a stored id.
+      for (const id of ['46', '0', '022', '%32%32']) {
+        const missing = await client.request('GET', `/api/records/${id}`);
+        assert.equal(missing.status, 404, `id ${id}: ${missing.text}`);
+        assert.equal(missing.json.error, 'Record not found', `id ${id}`);
+      }
+    },
+  },
+  ...['multipart', 'urlencoded', 'json'].map(format => ({
+    id: `save-${format}`,
+    async run(client) {
+      await client.reset();
+      const data = edited('22', format);
+      const result = await client.save('22', data, format);
+      assert.equal(result.status, 200, result.text);
+      const expected = savedRecord(recordFixture()[21], data);
+      assert.deepEqual(result.json, {
+        record: expected, validation: { valid: true, errors: [] }, server: client.server,
+      });
+      const records = recordFixture();
+      records[21] = expected;
+      assert.deepEqual(await client.storeRecords(), records, 'only record 22 changed in the store');
+      assert.deepEqual((await client.request('GET', '/api/records/22')).json.record, expected);
+      assert.deepEqual((await client.request('GET', '/api/records?page=2')).json.records,
+        pageRecords(records, 2), 'the list shows the saved values');
+    },
+  })),
+  {
+    id: 'save-invalid-keeps-the-store',
+    async run(client) {
+      await client.reset();
+      for (const format of ['multipart', 'urlencoded', 'json']) {
+        const data = { ...edited('22', format), name: '', status: 'unknown', joined: '2027-13-40', score: 'many' };
+        await unchanged(client, async () => {
+          const result = await client.save('22', data, format);
+          assert.equal(result.status, 422, `${format}: ${result.text}`);
+          assert.deepEqual(result.json, { validation: expectedValidation(data), server: client.server }, format);
+        }, `${format}: an invalid save stores nothing`);
+      }
+      for (const score of ['-1', '1e20']) {
+        const outside = { ...edited('22', 'outside'), score };
+        const result = await client.save('22', outside, 'multipart');
+        assert.equal(result.status, 422, `score ${score}: ${result.text}`);
+        assert.deepEqual(result.json.validation, expectedValidation(outside), `score ${score}`);
+      }
+    },
+  },
+  {
+    id: 'save-rejects-requests',
+    async run(client) {
+      await client.reset();
+      const data = edited('22', 'rejected');
+      const cases = [
+        ['unknown record', '46', submission({ ...data, id: '46' }, 'multipart'), 404],
+        ['different id', '22', submission({ ...data, id: '23' }, 'multipart'), 400],
+        ['incomplete native form', '22', { body: nativeFields(data, 'multipart', { complete: false }) }, 400],
+        ['unknown member', '22', submission({ ...data, extra: 'x' }, 'urlencoded'), 400],
+        ['missing member', '22', submission({ ...data, relation: undefined }, 'json'), 400],
+        ['number member', '22', { body: JSON.stringify({ form: { ...data, score: 9021.25 } }), headers: { 'Content-Type': 'application/json' } }, 400],
+        ['nested text member', '22', submission({ ...data, name: { ko: 'x' } }, 'json'), 400],
+        ['malformed JSON', '22', { body: '{"form":', headers: { 'Content-Type': 'application/json' } }, 400],
+        ['additional native field', '22', { body: (() => { const fields = nativeFields(data, 'urlencoded'); fields.append('other', 'x'); return fields; })() }, 400],
+        ['additional JSON member', '22', { body: JSON.stringify({ form: data, other: 1 }), headers: { 'Content-Type': 'application/json' } }, 400],
+        ['text request', '22', { body: 'name=x', headers: { 'Content-Type': 'text/plain' } }, 415],
+        ['oversized request', '22', submission({ ...data, markup: 'x'.repeat(2 * 1024 * 1024) }, 'urlencoded'), 413],
+      ];
+      for (const [name, id, request, status] of cases) {
+        await unchanged(client, async () => {
+          const result = await client.request('POST', `/api/records/${id}`, request);
+          assert.equal(result.status, status, `${name}: ${result.text}`);
+          assert.equal(typeof result.json?.error, 'string', `${name}: error message`);
+        }, `${name}: the store is unchanged`);
+      }
+      assert.equal((await client.request('PUT', '/api/records/22', submission(data, 'json'))).status, 405);
+    },
+  },
+  {
+    id: 'reset-restores-the-fixture',
+    async run(client) {
+      await client.reset();
+      assert.equal((await client.save('7', edited('7', 'before reset'), 'multipart')).status, 200);
+      await client.reset();
+      assert.deepEqual(await client.storeRecords(), recordFixture());
+      assert.deepEqual((await client.request('GET', '/api/records/7')).json.record, recordFixture()[6]);
+      const body = await client.request('POST', '/api/records/reset', { body: 'x', headers: { 'Content-Type': 'text/plain' } });
+      assert.equal(body.status, 400, 'reset takes no body');
+    },
+  },
+  {
+    id: 'saved-values-survive-a-restart',
+    async run(client) {
+      await client.reset();
+      const data = edited('41', 'restart');
+      assert.equal((await client.save('41', data, 'multipart')).status, 200);
+      await client.restart();
+      const expected = savedRecord(recordFixture()[40], data);
+      assert.deepEqual((await client.request('GET', '/api/records/41')).json.record, expected);
+      assert.deepEqual((await client.request('GET', '/api/records?page=3')).json.records[0], expected);
+    },
+  },
+  ...recordViews.map(view => ({
+    id: `view-${view}`,
+    async run(client) {
+      await client.reset();
+      const data = edited('22', view);
+      assert.equal((await client.save('22', data, 'multipart')).status, 200);
+      const records = recordFixture();
+      records[21] = savedRecord(records[21], data);
+      for (const [lang, framework, mode] of [['en', 'vue', 'createForm'], ['ko', 'react', 'bindForm']]) {
+        const selection = { lang, server: client.server, framework, initialization: 'ssr', mode, page: 2 };
+        const query = `${view === 'list' ? '' : 'id=22&'}${selectionQuery(selection)}`;
+        const result = await client.request('GET', `/api/records/view/${view}?${query}`);
+        assert.equal(result.status, 200, `${view} ${lang}: ${result.text}`);
+        assert.equal(result.cacheControl, 'no-store');
+        assert.deepEqual(Object.keys(result.json).sort(), ['data', 'html', 'server', 'view']);
+        assert.equal(result.json.view, view);
+        assert.equal(result.json.html, expectedStageHtml(view, selection, { records, record: records[21] }),
+          `${view} ${lang}: the stage HTML of the shared renderers`);
+        assert.deepEqual(result.json.data, view === 'list'
+          ? { page: 2, perPage: 20, total: 45, records: pageRecords(records, 2) }
+          : { record: records[21] }, `${view} ${lang}: the stage data`);
+      }
+    },
+  })),
+  {
+    id: 'view-rejects-queries',
+    async run(client) {
+      await client.reset();
+      const base = { lang: 'en', server: client.server, framework: 'html', initialization: 'ssr', mode: 'bindForm', page: 1 };
+      const query = overrides => selectionQuery({ ...base, ...overrides });
+      const rejected = [
+        ['list', query({ server: client.server === 'go' ? 'rust' : 'go' }), 400],
+        ['list', query({ initialization: 'csr' }), 400],
+        ['list', query({ lang: 'fr' }), 400],
+        ['list', query({ framework: 'angular' }), 400],
+        ['list', query({ mode: 'form' }), 400],
+        ['list', `${query()}&saved=1`, 400],
+        ['list', `${query()}&lang=en`, 400],
+        ['list', query().replace('&mode=bindForm', ''), 400],
+        ['detail', query(), 400],
+        ['form', `id=x&${query()}`, 400],
+        ['list', query({ page: 4 }), 404],
+        ['detail', `id=46&${query()}`, 404],
+        ['form', `id=46&${query()}`, 404],
+        ['table', query(), 404],
+        ['%6Cist', query(), 404],
+      ];
+      for (const [view, search, status] of rejected) {
+        const result = await client.request('GET', `/api/records/view/${view}?${search}`);
+        assert.equal(result.status, status, `${view}?${search}: ${result.text}`);
+        assert.equal(typeof result.json?.error, 'string', `${view}?${search}: error message`);
+      }
+    },
+  },
+]);

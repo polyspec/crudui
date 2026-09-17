@@ -5,7 +5,8 @@ import test from 'node:test';
 
 import { frameUrl, loadComparisonFrames, parseFrameDocument } from './frame-readiness.mjs';
 
-const mainSource = await readFile(new URL('../public/main.mjs', import.meta.url), 'utf8');
+// The benchmark console is the page that loads the comparison frames.
+const consoleSource = await readFile(new URL('../benchmark-console/main.mjs', import.meta.url), 'utf8');
 
 function fixture() {
   const emitter = new EventEmitter();
@@ -110,7 +111,7 @@ test('reads no frame from other documents', () => {
 });
 
 test('uses readiness messages without frame polling or timers', () => {
-  assert.equal(mainSource.includes('for (let attempt'), false);
-  assert.equal(mainSource.includes('setTimeout'), false);
-  assert.match(mainSource, /loadComparisonFrames/);
+  assert.equal(consoleSource.includes('for (let attempt'), false);
+  assert.equal(consoleSource.includes('setTimeout'), false);
+  assert.match(consoleSource, /loadComparisonFrames/);
 });

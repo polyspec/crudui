@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { formButtonsHtml, type ButtonVM, type FormMessages, type NodeVM } from '@crudui/generator-core';
 import { Node } from './Node';
+import { RawContainer } from './raw';
 
 /** Props for the CRUDUI form: the core-built top-level nodes and form buttons. */
 export interface FormFieldsProps {
@@ -26,7 +27,7 @@ export function FormFields({ fields, buttons, messages, rootRef, renderButtons =
         ))}
       </div>
       {renderButtons && <div className="crudui-form__footer">
-        <div className="crudui-controls" role="group" aria-label={messages.formActions} dangerouslySetInnerHTML={{ __html: formButtonsHtml(buttons) }} />
+        <RawContainer className="crudui-controls" role="group" aria-label={messages.formActions} html={formButtonsHtml(buttons)} />
       </div>}
     </div>
   );

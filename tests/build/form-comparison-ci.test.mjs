@@ -36,6 +36,29 @@ test('CI runs the complete form comparison regression suite', async () => {
   assert.match(job, /run:\s*npm run test:form-comparison(?:\s|$)/);
 });
 
+test('CI builds and runs the five record stores and the canonical flow', async () => {
+  const workflow = await readFile(path.join(repository, '.github/workflows/ci.yml'), 'utf8');
+  const job = workflowJob(workflow, 'form-comparison-pipeline');
+  assert.match(job, /timeout-minutes:\s*\d+/);
+  assert.match(job, /uses: shivammathur\/setup-php@/);
+  assert.match(job, /tools: composer/);
+  assert.match(job, /PHP_EXTENSION_PHP_CONFIG:\s*\/usr\/bin\/php-config8\.5/);
+  assert.match(job, /uses: actions\/setup-go@/);
+  assert.match(job, /go-version-file:\s*['"]?\.go-version['"]?/);
+  assert.match(job, /uses: dtolnay\/rust-toolchain@stable/);
+  assert.match(job, /workspaces: examples\/form-comparison\/servers\/rust/);
+  assert.match(job, /composer --working-dir=packages\/generator-php install --no-interaction --prefer-dist/);
+  assert.match(job, /run:\s*npm run test:form-comparison:pipeline(?:\s|$)/);
+  const scripts = JSON.parse(await readFile(path.join(repository, 'package.json'), 'utf8')).scripts;
+  assert.match(scripts['test:form-comparison:pipeline'], /examples\/form-comparison\/record-stores\.test\.mjs/);
+  assert.match(scripts['test:form-comparison:pipeline'], /examples\/form-comparison\/pipeline\.browser\.mjs/);
+  // The Go and Rust server tests need the OrderedJSON checkout the record-store test prepares.
+  const order = ['record-stores.test.mjs', 'go --cwd examples/form-comparison/servers/go',
+    'examples/form-comparison/servers/rust/Cargo.toml', 'pipeline.browser.mjs']
+    .map(part => scripts['test:form-comparison:pipeline'].indexOf(part));
+  assert.ok(order.every((index, position) => index >= 0 && (position === 0 || index > order[position - 1])), String(order));
+});
+
 test('native PHP matrix passes the selected regular php-config path', async () => {
   const workflow = await readFile(path.join(repository, '.github/workflows/ci.yml'), 'utf8');
   const job = workflowJob(workflow, 'native-generators');
@@ -68,7 +91,7 @@ test('native report upload uses the current Node.js 24 artifact action', async (
 test('browser CI jobs select the regular sandboxed Chrome executable', async () => {
   const workflow = await readFile(path.join(repository, '.github/workflows/ci.yml'), 'utf8');
   const failures = [];
-  for (const name of ['form-runtime', 'form-comparison', 'package-browser', 'native-generators']) {
+  for (const name of ['form-runtime', 'form-comparison', 'form-comparison-pipeline', 'package-browser', 'native-generators']) {
     const job = workflowJob(workflow, name);
     if (!/PUPPETEER_EXECUTABLE_PATH:\s*\/opt\/google\/chrome\/chrome/.test(job)) {
       failures.push(`${name}: missing regular Chrome executable`);
@@ -83,7 +106,7 @@ test('browser CI jobs select the regular sandboxed Chrome executable', async () 
       failures.push(`${name}: disables the Chrome sandbox`);
     }
   }
-  for (const file of ['tests/widget-scripts.test.mjs', 'tests/form-styles.test.mjs']) {
+  for (const file of ['tests/widget-scripts.test.mjs', 'tests/form-styles.test.mjs', 'tests/widget-script-runs.test.mjs', 'tests/browser-engines.mjs']) {
     const checks = await readFile(path.join(repository, file), 'utf8');
     if (/--no-sandbox|--disable-setuid-sandbox/.test(checks)) {
       failures.push(`${file}: disables the Chrome sandbox`);

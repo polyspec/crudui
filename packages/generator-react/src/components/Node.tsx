@@ -11,6 +11,7 @@ import type { NodeVM } from '@crudui/generator-core';
 import { Widget, widgetRootRaw } from './Widget';
 import { resolvedStyleProps, styleObject } from './attrs';
 import { Controls } from './Controls';
+import { RawContainer } from './raw';
 
 function classes(...parts: Array<string | undefined | false>): string {
   return parts.filter((part): part is string => typeof part === 'string' && part !== '').join(' ');
@@ -78,7 +79,7 @@ function Body({ vm }: { vm: NodeVM }): React.ReactElement {
   }
   if (vm.widget) {
     const raw = widgetRootRaw(vm.widget);
-    if (raw !== null) return <div {...props} dangerouslySetInnerHTML={{ __html: raw }} />;
+    if (raw !== null) return <RawContainer {...props} html={raw} />;
     return <div {...props}><Widget w={vm.widget} /></div>;
   }
   return (

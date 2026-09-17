@@ -82,3 +82,19 @@ it('keeps the values of a group hidden by design.show', async () => {
     });
   } finally { view.unmount(); element.remove(); }
 });
+
+// @ts-expect-error Shared typing assertions across frameworks.
+import { typingSpec, exerciseTyping, installWidgetHost } from '../../../../tests/fixtures/form-session/typing.mjs';
+it('keeps the typed control node, its order and its caret', async () => {
+  installWidgetHost(document);
+  const form = createForm(compileForm(typingSpec));
+  const element = document.createElement('form');
+  document.body.append(element);
+  const view = render(<Form form={form} />, { container: element });
+  try {
+    await act(async () => {
+      await proves('typing.mjs', 'exerciseTyping', ['connectForm'], () =>
+        exerciseTyping({ element, form, expect, flush: async () => { await act(async () => {}); } }));
+    });
+  } finally { view.unmount(); element.remove(); }
+});
