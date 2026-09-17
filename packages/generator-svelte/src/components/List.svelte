@@ -50,6 +50,7 @@
     {/if}
   {:else if d.kind === 'html'}
     <!-- sanctioned raw boundary: verbatim row HTML the column format opted into. -->
+    <!-- eslint-disable-next-line svelte/no-at-html-tags -- the `html` cell format declares raw row HTML. -->
     {@html d.html}
   {/if}
 {/snippet}
@@ -59,6 +60,7 @@
     <div class="crudui-list__actions">
       {#each vm.actions as action (action.key)}
         <!-- sanctioned raw boundary: behavior on* chrome (opaque host scripts). -->
+        <!-- eslint-disable-next-line svelte/no-at-html-tags -- actionHtml escapes the action text and attributes; only declared on* scripts pass through. -->
         <span class="crudui-list__action" data-action={action.key}>{@html actionHtml(action)}</span>
       {/each}
     </div>
@@ -123,7 +125,7 @@
       data-total={vm.pagination.total !== undefined ? String(vm.pagination.total) : undefined}
     >
       <button type="button" class="crudui-list__pagination-prev" data-page={String(Math.max(1, page - 1))} aria-label="Previous page" disabled={page <= 1 || pageCount === 0}>‹</button>
-      {#each paginationPages(page, pageCount) as pageNumber}
+      {#each paginationPages(page, pageCount) as pageNumber (pageNumber)}
         <button type="button" class="crudui-list__pagination-page" data-page={String(pageNumber)} aria-label={`Page ${pageNumber}`} aria-current={pageNumber === page ? 'page' : undefined} disabled={pageNumber === page}>{pageNumber}</button>
       {/each}
       <button type="button" class="crudui-list__pagination-next" data-page={String(pageCount ? Math.min(pageCount, page + 1) : 1)} aria-label="Next page" disabled={pageCount === 0 || page >= pageCount}>›</button>

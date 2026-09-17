@@ -7,7 +7,8 @@ import { domSnapshot, formSnapshot } from '../../form-inspector/form-snapshot.mj
  * control state, without serialized HTML, whose attribute order is not part of the DOM.
  */
 function renderedState(element) {
-  const { html, ...state } = formSnapshot(element, element);
+  const state = formSnapshot(element, element);
+  delete state.html;
   return state;
 }
 

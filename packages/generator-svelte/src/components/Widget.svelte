@@ -2,7 +2,6 @@
   Render an evaluated widget and its native controls inside the required container.
 -->
 <script lang="ts">
-  import type { WidgetModel } from '@crudui/generator-core';
   import {
     affixHtml, widgetBody, fileGroupBody, isUnsupported, usesStableControl,
     type AnyWidget,
@@ -21,11 +20,14 @@
   <!-- Server rendering writes value and text; defaultValue keeps them in the browser DOM. -->
   <input {...model.attrs} defaultValue={model.attrs.value} />
 {:else if model.layout === 'widget' || (model.layout === 'display' && model.kind === 'dummy-input')}
+  <!-- eslint-disable-next-line svelte/no-at-html-tags -- control bytes serialized with escaping in raw.ts (see its header). -->
   <div class="crudui-widget">{#if usesStableControl(model)}{@html affixHtml(model.prepend)}{#if model.tag === 'textarea'}<textarea {...model.attrs} defaultValue={model.text ?? ''}>{model.text ?? ''}</textarea>{:else}<input {...model.attrs} defaultValue={model.attrs.value} />{/if}{@html affixHtml(model.append)}{:else}{@html widgetBody(model)}{/if}</div>
 {:else if model.layout === 'file'}
+  <!-- eslint-disable-next-line svelte/no-at-html-tags -- control bytes serialized with escaping in raw.ts (see its header). -->
   <div class="crudui-widget">{@html fileGroupBody(model)}</div>
 {:else if isDisplayRaw}
   <!-- RAW html display (dummy/image-viewer) — unescaped content. -->
+  <!-- eslint-disable svelte/no-at-html-tags -- dummy and image-viewer widgets declare raw HTML content. -->
   {#if model.attrs.class !== undefined && model.attrs.style !== undefined}
     <div class={model.attrs.class} style={model.attrs.style}>{@html model.rawHtml ?? ''}</div>
   {:else if model.attrs.class !== undefined}
@@ -35,4 +37,5 @@
   {:else}
     <div>{@html model.rawHtml ?? ''}</div>
   {/if}
+  <!-- eslint-enable svelte/no-at-html-tags -->
 {/if}

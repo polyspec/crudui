@@ -17,8 +17,8 @@ namespace CRUDUI\Validator;
  * - DEPENDENCY_BUCKETS: dependency isolation. type-dependent keys live under the
  *   `options` slot; multiple/lang/items-dependent keys live UNDER that structural
  *   key. A dependent key is never hoisted to the field root.
- * - CLOSED_BUCKET_KEYS: design, behavior, multiple and lang (and each design
- *   node's class/style) reject unknown keys; validate, options and the items
+ * - CLOSED_BUCKET_KEYS: design, behavior, multiple, lang and validate (and each
+ *   design node's class/style) reject unknown keys; options and the items
  *   dynamic source stay open.
  * - DESIGN_NODE_MAP: which DOM node a design appearance entry targets (R8).
  * - CONDITION_MAP: a declaration-ordered map; its default key is the literal
@@ -65,6 +65,9 @@ final class FieldSpec
     /** Role slot: validate/design/behavior/options (§3 role distribution). */
     public const ROLE_SLOT = 'role_slot';
 
+    /** Messages: error message overrides keyed by registered rule name. */
+    public const ROLE_MESSAGES = 'messages';
+
     /** Form declaration: buttons/action, honored on the form root only. */
     public const ROLE_FORM = 'form';
 
@@ -90,7 +93,9 @@ final class FieldSpec
         'prepend'     => self::ROLE_CONTENT,
         'append'      => self::ROLE_CONTENT,
         'help'        => self::ROLE_CONTENT,
+        'content'     => self::ROLE_CONTENT,
         'validate'    => self::ROLE_SLOT,
+        'messages'    => self::ROLE_MESSAGES,
         'design'      => self::ROLE_SLOT,
         'behavior'    => self::ROLE_SLOT,
         'options'     => self::ROLE_SLOT,
@@ -117,13 +122,18 @@ final class FieldSpec
     public const SLOT_VALUE_FORMS = ['false', 'map', 'true'];
 
     /**
-     * Sub-keys recognized inside the `validate` slot. Each value may itself be an
+     * Sub-keys recognized inside the `validate` slot: the registered rule names, in
+     * the order of the validator's default messages. Each value may itself be an
      * expression / condition map, so conditional validation needs no separate key
      * (e.g. required: '.subscribe', email: true). Polymorphic slot (R: G1).
      *
      * @var list<string>
      */
-    public const VALIDATE_SUB_KEYS = ['required', 'email', 'match'];
+    public const VALIDATE_SUB_KEYS = [
+        'required', 'email', 'minlength', 'maxlength', 'min', 'max', 'match', 'pattern',
+        'unique', 'in', 'range', 'rangelength', 'number', 'digits', 'equalTo', 'notEqual',
+        'date', 'dateISO', 'enddate', 'url', 'accept', 'mincount', 'maxcount', 'step',
+    ];
 
     /**
      * Sub-keys inside the `design` slot. show = display condition (NOT a node);
@@ -185,10 +195,10 @@ final class FieldSpec
     /**
      * Closed buckets and the only keys each map form accepts; any other key is
      * an unknown-key violation. Mirrors the JSON schema: design, behavior,
-     * multiple and lang close their map form, and every design node
-     * (DESIGN_NODE_KEYS) closes to class/style. `validate`, `options` and the
-     * `items` dynamic source stay open (see OPTIONS_IS_OPEN) and are checked
-     * only for forbidden and comment keys.
+     * multiple, lang and validate close their map form, and every design node
+     * (DESIGN_NODE_KEYS) closes to class/style. `options` and the `items`
+     * dynamic source stay open (see OPTIONS_IS_OPEN) and are checked only for
+     * forbidden and comment keys.
      *
      * @var array<string, list<string>>
      */
@@ -197,6 +207,7 @@ final class FieldSpec
         'behavior' => self::BEHAVIOR_SUB_KEYS,
         'multiple' => ['only', 'min', 'max', 'copy', 'sortable', 'title', 'controls', 'header', 'onclick'],
         'lang'     => ['mode', 'only', 'name', 'key', 'frame', 'title', 'group_class'],
+        'validate' => self::VALIDATE_SUB_KEYS,
     ];
 
     /**
@@ -536,9 +547,10 @@ final class FieldSpec
      * Deep-validate a decoded CRUDUI field. Returns the list of violations (empty =
      * valid). Enforces: closed top-level key set, polymorphic slot value forms,
      * dependency isolation (a bucket key only under its location), closed bucket
-     * key sets (CLOSED_BUCKET_KEYS: design, behavior, multiple, lang, and each
-     * design node's class/style), and the global forbidden-key check (root + one
-     * level below every slot and bucket; open validate/options/items too). An
+     * key sets (CLOSED_BUCKET_KEYS: design, behavior, multiple, lang, validate and
+     * each design node's class/style), `messages` keys limited to the registered
+     * rule names, and the global forbidden-key check (root +
+     * one level below every slot and bucket; open options/items too). An
      * `x`-prefixed comment key is a violation (x-strip is an upstream step).
      *
      * @param array<string, mixed> $field
@@ -566,7 +578,9 @@ final class FieldSpec
                 continue;
             }
 
-            if (self::isSlot($key) && !self::isValidSlotValue($value)) {
+            if ($key === 'messages' && is_array($value)) {
+                self::guardInside($key, $value, self::VALIDATE_SUB_KEYS, $violations);
+            } elseif (self::isSlot($key) && !self::isValidSlotValue($value)) {
                 $violations[] = "slot {$key} must be false | map | true";
             } elseif ((self::isSlot($key) || self::isDependencyTarget($key)) && is_array($value)) {
                 self::guardInside($key, $value, self::CLOSED_BUCKET_KEYS[$key] ?? null, $violations);

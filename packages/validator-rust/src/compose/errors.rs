@@ -46,6 +46,9 @@ pub enum ComposeErrorCode {
     /// A `pattern` or `match` parameter outside the CRUDUI pattern language;
     /// `trace` is the field's declaration path.
     InvalidRulePattern,
+    /// A `validate` or `messages` key that is not a registered rule name;
+    /// `trace` is the field's declaration path.
+    UnknownRule,
     /// A string or member name of the specification or a composition file that
     /// is not a sequence of Unicode scalar values (docs/spec/input-text.md);
     /// `trace` is its path.
@@ -67,6 +70,7 @@ impl ComposeErrorCode {
             ComposeErrorCode::ForbiddenMetaKey => "FORBIDDEN_META_KEY",
             ComposeErrorCode::InvalidRuleParameter => "INVALID_RULE_PARAMETER",
             ComposeErrorCode::InvalidRulePattern => "INVALID_RULE_PATTERN",
+            ComposeErrorCode::UnknownRule => "UNKNOWN_RULE",
             ComposeErrorCode::InvalidText => "INVALID_TEXT",
         }
     }

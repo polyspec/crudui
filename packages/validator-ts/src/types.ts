@@ -7,7 +7,8 @@
 // ============================================================================
 
 /**
- * Custom error messages specification
+ * Custom error messages by registered rule name. Any other key fails the load
+ * with `UNKNOWN_RULE`.
  */
 export interface MessagesSpec {
   /** Error message shown when the `required` rule fails. */
@@ -54,16 +55,10 @@ export interface MessagesSpec {
   mincount?: string;
   /** Error message shown when the `maxcount` rule fails. */
   maxcount?: string;
-  /** Error message shown when the `minformcount` rule fails. */
-  minformcount?: string;
-  /** Error message shown when the `maxformcount` rule fails. */
-  maxformcount?: string;
   /** Error message shown when the `unique` rule fails. */
   unique?: string;
   /** Error message shown when the `accept` rule fails. */
   accept?: string;
-  /** Index signature mapping any rule name to its custom error message. */
-  [key: string]: string | undefined;
 }
 
 // ============================================================================

@@ -404,7 +404,9 @@ int ps_pattern_cache_get(ps_pattern_cache *cache, ps_text source, const ps_patte
                          ps_pattern_error *error);
 void ps_pattern_cache_free(ps_pattern_cache *cache);
 
-/* Rule parameter checks (rule_parameters.c). */
+/* Rule name and parameter checks (rule_parameters.c). */
+/* Whether a validate or messages key is a registered rule name. */
+bool ps_registered_rule(ps_text rule);
 /*
  * The problem of a parameter that takes effect (not false or null) for one rule; the length,
  * numeric, count, membership and pattern rules have parameter checks. Returns false on
@@ -416,8 +418,9 @@ bool ps_rule_parameter(ps_text rule, const ps_value *parameter, ps_pattern_cache
 ps_value *ps_parameter_error(ps_text rule, const ps_parameter_problem *problem,
                              const ps_text *path, size_t length);
 /*
- * Check the declared parameters of composed form properties: fields in declaration order (a group
- * before its children), each field's rules in declaration order. A resolved parameter given by a
+ * Check the declared rule names and parameters of composed form properties: fields in declaration
+ * order (a group before its children), each field's rules in declaration order and then its
+ * messages keys; a name that is not a registered rule is UNKNOWN_RULE. A resolved parameter given by a
  * condition is checked when validation resolves it. Returns the first load failure, an internal
  * error on allocation failure, or NULL.
  */

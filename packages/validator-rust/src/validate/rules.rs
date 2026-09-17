@@ -43,8 +43,8 @@ pub struct RuleContext<'a> {
     pub form_data: &'a Value,
 }
 
-/// Look up a registered rule by name. Returns `None` for an unregistered rule
-/// (the caller then produces NO error — VALIDATION-RULES common §4).
+/// Look up a registered rule by name. Returns `None` for any other name, which
+/// fails the load with `UNKNOWN_RULE`.
 pub fn get_rule(name: &str) -> Option<fn(&RuleContext) -> Option<String>> {
     match name {
         "required" => Some(rule_required),
@@ -451,12 +451,9 @@ fn rule_match(ctx: &RuleContext) -> Option<String> {
     if canonical_text(ctx.value).is_some_and(|text| program.is_match(&text)) {
         return None;
     }
-    // Message lookup: invoked rule name first (pattern/match alias), then
-    // pattern, then match, then the default.
-    let msg = message_override(ctx.messages, ctx.rule_name)
-        .or_else(|| message_override(ctx.messages, "pattern"))
-        .or_else(|| message_override(ctx.messages, "match"))
-        .unwrap_or("Please enter a valid format.");
+    // The custom message is found under the declared rule name only.
+    let msg =
+        message_override(ctx.messages, ctx.rule_name).unwrap_or("Please enter a valid format.");
     Some(msg.to_string())
 }
 

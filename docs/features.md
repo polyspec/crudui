@@ -58,21 +58,21 @@ On 2026-09-17 the working tree passed `make ci`, which runs every checking comma
 workflow and checks the conformance evidence against `contracts/features.json`, on macOS arm64 with
 PHP 8.5.10, Node.js 26.8.1, Go 1.27.0 and Rust 1.98.1:
 
-- The validators passed 568 JavaScript, 682 PHP, 572 Go and 108 Rust tests, each including all 238
+- The validators passed 580 JavaScript, 698 PHP, 587 Go and 111 Rust tests, each including all 250
   shared validation cases, and the 80 shared input-text cases across the validation and generation
   operations. The PHP extension suite passed 42 tests; its address-sanitizer test runs on Linux.
 - The shared generator report passed 501 checks in each of JavaScript, the HTML renderer, PHP, Go,
   Rust and native PHP (3,006 in total, zero failed), and its inputs did not change during the run.
   The generator packages passed 240 PHP, 115 Go and 35 Rust tests.
-- The cross-check console passed 890 tests, which send every shared validation, list, detail and
+- The cross-check console passed 914 tests, which send every shared validation, list, detail and
   input-text case and the request cases through all five validator processes.
 - The form packages passed core 216, HTML 308, React 502, Vue 472, Svelte 467 and twelve mounted
   Svelte checks; the specification CLI passed 38; the node form checks passed 54, including the
-  stylesheet layout in Chromium, Firefox and WebKit. The form-comparison source suite passed 148
-  checks, the package consumer check seven steps, and `make format-check` passed.
+  stylesheet layout in Chromium, Firefox and WebKit. The form-comparison source suite passed 149
+  checks, `npm run lint` reported no problem across the repository, the package consumer check seven steps, and `make format-check` passed.
 - In the Linux toolchain image the PHP extension engine passed 33 tests, including the
-  address-sanitizer and comma-decimal-locale runs, and `make test-form-styles-linux` passed all 36
-  stylesheet checks in Chromium, Firefox and WebKit.
+  address-sanitizer and comma-decimal-locale runs. The Linux stylesheet checks in Chromium, Firefox
+  and WebKit run in the CI job that runs the form tests.
 
 Conformance is checked from evidence. Every suite that runs a shared fixture records which feature,
 fixture case and runtime passed, and `make conformance` (and the final CI job) compares that evidence

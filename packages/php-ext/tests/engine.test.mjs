@@ -83,29 +83,29 @@ const fixtureHelpers = [
   ]],
   ['put', [
       'static void put(ps_value *object, ps_text key, ps_value *value)',
-      '{ if (!value || !ps_set_text(object, key, value)) { fputs("fixture allocation failed\\n", stderr); abort(); } }',,
+      '{ if (!value || !ps_set_text(object, key, value)) { fputs("fixture allocation failed\\n", stderr); abort(); } }',
   ]],
   ['push', [
       'static void push(ps_value *array, ps_value *value)',
-      '{ if (!value || !ps_append(array, value)) { fputs("fixture allocation failed\\n", stderr); abort(); } }',,
+      '{ if (!value || !ps_append(array, value)) { fputs("fixture allocation failed\\n", stderr); abort(); } }',
   ]],
   ['ps_text_value_checked', [
       'static ps_value *ps_text_value_checked(ps_text text)',
-      '{ ps_value *value = ps_text_value(text); if (!value) { fputs("fixture string allocation failed\\n", stderr); abort(); } return value; }',,
+      '{ ps_value *value = ps_text_value(text); if (!value) { fputs("fixture string allocation failed\\n", stderr); abort(); } return value; }',
   ]],
   ['text_is', [
       '/* A string value with exactly these bytes. */',
       'static bool text_is(const ps_value *value, ps_text text)',
-      '{ return value && value->kind == PS_STRING && ps_text_equal(ps_string(value), text); }',,
+      '{ return value && value->kind == PS_STRING && ps_text_equal(ps_string(value), text); }',
   ]],
   ['print_text', [
       '/* Write text with every byte, including NUL characters, to standard error. */',
       'static void print_text(const char *label, ps_text text)',
-      '{ fputs(label, stderr); fwrite(text.bytes, 1, text.length, stderr); fputc(\'\\n\', stderr); }',,
+      '{ fputs(label, stderr); fwrite(text.bytes, 1, text.length, stderr); fputc(\'\\n\', stderr); }',
   ]],
   ['print_json', [
       'static void print_json(const char *label, const ps_value *value)',
-      '{ ps_chars json = ps_json_string(value); print_text(label, json.bytes ? ps_view(json) : PS_TEXT("null")); free(json.bytes); }',,
+      '{ ps_chars json = ps_json_string(value); print_text(label, json.bytes ? ps_view(json) : PS_TEXT("null")); free(json.bytes); }',
   ]],
 ];
 
@@ -587,9 +587,9 @@ function sourceForValidation() {
 }
 
 test('PHP extension engine validates all shared form, list and detail cases', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  assert.equal(validationCases.length, 238,
+  assert.equal(validationCases.length, 250,
     'Review extension validation coverage when the shared validation cases change');
-  assert.equal(validationCases.length + specCases.length + listCases.length + detailCases.length, 291,
+  assert.equal(validationCases.length + specCases.length + listCases.length + detailCases.length, 303,
     'Review extension validation coverage when the shared fixture inventory changes');
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-extension-validation-'));
   let output = '';
@@ -886,7 +886,7 @@ function stepCases() {
   const cases = [[0.3, 0.1], [0.30000000000000004, 0.1], [2e-7, 0.1], [-0.6, 0.1], [0, 0.1], [1e21, 1e20],
     [1.05e21, 1e20], [1.5e21, 1e20], [3e-7, 2e-7], [4e-7, 2e-7], [1.75, 0.25], [1.8, 0.25], [5e-324, 5e-324],
     [1e-323, 5e-324], [Number.MAX_VALUE, 1e-300], [Number.MAX_VALUE, 7], [1e308, 3e-5], [123456789012345680000, 17],
-    [0.000001, 1e-7], [9007199254740993, 3], [12, 1e-320], [1e-7, 1e21]];
+    [0.000001, 1e-7], [9007199254740992, 3], [12, 1e-320], [1e-7, 1e21]];
   const numbers = canonicalNumbers().filter((_, index) => index % 97 === 0);
   for (let i = 0; i + 1 < numbers.length; i += 2) {
     cases.push([numbers[i], Math.abs(numbers[i + 1]) || 1]);

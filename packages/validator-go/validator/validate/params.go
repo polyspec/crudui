@@ -2,8 +2,8 @@ package validate
 
 // Rule parameter checks (docs/spec/validation-rules.md, Parameter errors).
 //
-// A parameter outside its rule's definition is a load failure located at the
-// field's declaration path (property names without row keys). Parameters are
+// A parameter outside its rule's definition, and a rule name that is not
+// registered, is a load failure located at the field's declaration path (property names without row keys). Parameters are
 // checked when the specification loads, after composition and the forbidden-key
 // scan, fields in declaration order (a group before its children) and each
 // field's rules in declaration order, including every literal a condition map or
@@ -74,9 +74,19 @@ func (v *Validator) checkParameter(rule string, param any) *parameterError {
 	return nil
 }
 
-// checkDeclarations checks the declared parameters of a properties map in
-// declaration order: each literal parameter, and each literal a condition can
-// select. Values a condition takes from the data are left for runRule.
+// checkRuleName returns the UNKNOWN_RULE load failure of a validate or messages
+// key that is not a registered rule, located at the field's declaration path.
+func checkRuleName(rule string, declaration []string) error {
+	if _, ok := getRule(rule); ok {
+		return nil
+	}
+	return &compose.ComposeLoadError{Code: compose.UnknownRule, Message: "Unknown rule: " + rule, Trace: append([]string{}, declaration...)}
+}
+
+// checkDeclarations checks the declared rule names and parameters of a properties
+// map in declaration order: each rule name with each literal parameter, and each
+// literal a condition can select, then the field's messages keys, before the
+// fields it contains. Values a condition takes from the data are left for runRule.
 func (v *Validator) checkDeclarations(properties *compose.OMap, declaration []string) error {
 	for _, name := range properties.Keys() {
 		raw, _ := properties.Get(name)
@@ -87,10 +97,22 @@ func (v *Validator) checkDeclarations(properties *compose.OMap, declaration []st
 		path := appendPath(declaration, name)
 		if rules := normalizeValidateSlot(field); rules != nil {
 			for _, rule := range rules.Keys() {
+				if err := checkRuleName(rule, path); err != nil {
+					return err
+				}
 				param, _ := rules.Get(rule)
 				for _, literal := range selectableLiterals(rule, param) {
 					if perr := v.checkParameter(rule, literal); perr != nil {
 						return perr.loadError(path)
+					}
+				}
+			}
+		}
+		if raw, ok := field.Get("messages"); ok {
+			if messages, ok := raw.(*compose.OMap); ok && messages != nil {
+				for _, rule := range messages.Keys() {
+					if err := checkRuleName(rule, path); err != nil {
+						return err
 					}
 				}
 			}

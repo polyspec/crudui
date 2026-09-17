@@ -3,7 +3,9 @@ import { FormInputError } from '@crudui/validator';
 import { bindButtons, bindForm, compileForm, createForm } from './index';
 
 const compiled = () => JSON.parse(JSON.stringify(compileForm({ type: 'group', properties: { name: { type: 'text' } } })));
-const reshaped = (change: (template: Record<string, any>) => void) => {
+type TemplateRecord = Record<string, unknown>;
+const firstField = (template: TemplateRecord) => (template.fields as TemplateRecord[])[0];
+const reshaped = (change: (template: TemplateRecord) => void) => {
   const template = compiled();
   change(template);
   return template;
@@ -15,12 +17,12 @@ describe('form template shape', () => {
     ['bindButtons', template => bindButtons(template, { name: 'a' })],
     ['createForm', template => createForm(template, { name: 'a' })],
   ];
-  const shapes: [string, (template: Record<string, any>) => void][] = [
+  const shapes: [string, (template: TemplateRecord) => void][] = [
     ['missing fields', t => { delete t.fields; }],
     ['fields not a list', t => { t.fields = {}; }],
-    ['a field that is not an object', t => { t.fields.push('name'); }],
-    ['a field without children', t => { delete t.fields[0].children; }],
-    ['a field with an unknown member', t => { t.fields[0].label = 'Name'; }],
+    ['a field that is not an object', t => { (t.fields as unknown[]).push('name'); }],
+    ['a field without children', t => { delete firstField(t).children; }],
+    ['a field with an unknown member', t => { firstField(t).label = 'Name'; }],
     ['missing buttons', t => { delete t.buttons; }],
     ['buttons not a list', t => { t.buttons = {}; }],
     ['a button that is not an object', t => { t.buttons = [[]]; }],

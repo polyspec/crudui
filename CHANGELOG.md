@@ -1,5 +1,59 @@
 # Changes
 
+## 2026-09-17 — Lint every JavaScript, TypeScript and Svelte source
+
+- `npm run lint` ran `eslint packages` and its configuration skipped every `.js` and `.mjs` file,
+  every test and every Svelte component, so examples, tests, scripts, tools and the root
+  configuration were never linted, in CI or in `make ci`. It now runs `eslint .`, and
+  `eslint.config.mjs` applies the package rule set to every JavaScript, TypeScript, Vue and Svelte
+  source, ignoring only generated or installed output. Per-file settings state where code runs
+  (browser, Node with browser callbacks, CommonJS scripts, Svelte components); `eslint-plugin-svelte`
+  and `globals` are added as development dependencies ([lint](docs/operations/testing.md#lint)).
+- `tests/build/lint-coverage.test.mjs`, run by `npm run test:build`, fails when a tracked source is
+  outside the lint command's paths or not linted by the configuration.
+- The problems the wider lint found are fixed: unused imports, variables and parameters; errors
+  rethrown without their `cause`; needless regular expression escapes and repeated spaces; array
+  holes in the PHP extension's C helper list and the native generator check budgets; number
+  literals that did not keep their written value (`9007199254740993` and `9.999999999999999` are
+  written as the values they already had); `any` in tests; `console.log` in scripts that print
+  through standard output; a Svelte `{#each}` without a key and an effect that read its dependency
+  as a bare expression. The unused root script `capture-react.js`, which wrote to a missing
+  `compare/` directory from a page no example serves, is removed.
+- The Svelte generator's `{@html}` output and the heading slug's control character class are
+  exempt from their rules only on those lines, with the reason written beside each.
+
+## 2026-09-17 — Reject rule names that are not registered rules
+
+- A `validate` key that is not a registered rule was skipped, so a misspelled rule silently turned
+  its check off, and the schema kept other rule names open for rules no runtime can register any
+  more. Such a name is now the load failure `UNKNOWN_RULE` with the message `Unknown rule: {name}`
+  at the field's declaration path, whatever its parameter, in every validator and the PHP
+  extension. A `messages` key names the rule whose message it overrides, so a `messages` key that
+  is not a registered rule fails the same way; it may still name a registered rule the field does
+  not declare. Names are checked with the parameters: fields in declaration order, a field's rules
+  (each name before its parameter) and then its `messages` keys, before the fields it contains
+  ([parameter errors](docs/spec/validation-rules.md#parameter-errors)).
+- The schema's `validate` and `messages` accept the registered rule names only, and
+  `scripts/check-schema.mjs` checks both lists against the rule registry. The PHP `FieldSpec`, Go
+  `FieldSpec` and Rust `FieldSpec` models close `validate` and `messages` the same way and gain the
+  `content` and `messages` keys they lacked; each checks its keys against the schema.
+- `match` and `pattern` used the other name's custom message in JavaScript, Go and Rust when their
+  own was missing. Every runtime now reads a custom message under the declared rule name only, as
+  PHP and the PHP extension already did.
+- The shared case `unregistered-rule-skipped` is replaced by twelve cases written from the
+  specification, including nested row paths, hidden fields, check order and `messages`, and one
+  case for the `match` and `pattern` messages; the shared validation cases grow to 250.
+
+## 2026-09-17 — Compare generated field models with member order in the comparison example
+
+- The generation check of `examples/form-comparison` compared object member order only in
+  attributes, extra settings and record data, so the deployed comparison could accept field models
+  whose member order differed between runtimes. It now uses the order-strict `equalModels` and
+  `equalOrdered` of `tests/native-generators/protocol.mjs` instead of its own copies, so every
+  runtime's models must have the same member order at every depth.
+- `check-generation.test.mjs` shows that rendered forms whose models, widgets or data differ only
+  in member order are rejected.
+
 ## 2026-09-17 — Reject text that is not Unicode scalar values in every runtime
 
 - Text in specifications and data is a sequence of Unicode scalar values

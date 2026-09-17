@@ -54,7 +54,8 @@ function tokenToFixture(t: Token): Record<string, unknown> {
 
 function astToFixture(node: ASTNode): unknown {
   const stripPos = (o: Record<string, unknown>): Record<string, unknown> => {
-    const { position: _p, ...rest } = o;
+    const rest = { ...o };
+    delete rest.position;
     return rest;
   };
   switch (node.type) {

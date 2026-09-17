@@ -109,8 +109,11 @@ A validation result contains a boolean and a flat error list. Each error identif
 `path`, `field`, `rule` and `message`, with `value` when available. A required-input
 failure is a validation result.
 
-Two failures produce no validation result. A missing composition reference or a
-forbidden schema key is a load failure (`ComposeLoadError`). Submitted data with
+Two failures produce no validation result. A missing composition reference, a
+forbidden schema key, a rule name that is not registered (`UNKNOWN_RULE`) or a rule
+parameter outside its definition
+([parameter errors](../spec/validation-rules.md#parameter-errors)) is a load failure
+(`ComposeLoadError`). Submitted data with
 the wrong shape is an input failure (`FormInputError`, code `INVALID_FORM_INPUT`):
 
 | Data | Message |

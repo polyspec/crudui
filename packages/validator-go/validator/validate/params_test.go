@@ -1,10 +1,25 @@
 package validate
 
 import (
+	"slices"
 	"testing"
 
+	model "github.com/polyspec/crudui/packages/validator-go/validator"
 	"github.com/polyspec/crudui/packages/validator-go/validator/compose"
 )
+
+func TestRegistryIsTheModelRuleNames(t *testing.T) {
+	var names []string
+	for name := range builtInRules {
+		names = append(names, name)
+	}
+	want := slices.Clone(model.RuleNames)
+	slices.Sort(names)
+	slices.Sort(want)
+	if !slices.Equal(names, want) {
+		t.Fatalf("registry %v, model %v", names, want)
+	}
+}
 
 func TestParameterChecks(t *testing.T) {
 	cases := []struct {

@@ -1,5 +1,53 @@
 # 변경 기록
 
+## 2026-09-17 — 모든 JavaScript, TypeScript, Svelte 소스 린트
+
+- `npm run lint`는 `eslint packages`를 실행했고 설정은 모든 `.js`·`.mjs` 파일, 모든 테스트, 모든 Svelte
+  컴포넌트를 건너뛰었기 때문에, 예제, 테스트, 스크립트, 도구, 루트 설정은 CI에서도 `make ci`에서도 린트되지
+  않았습니다. 이제 `eslint .`를 실행하며, `eslint.config.mjs`는 생성되거나 설치된 출력만 제외하고 모든
+  JavaScript, TypeScript, Vue, Svelte 소스에 패키지 규칙 집합을 적용합니다. 파일별 설정은 코드가 실행되는
+  환경(브라우저, 브라우저 콜백을 가진 Node, CommonJS 스크립트, Svelte 컴포넌트)만 나타내며,
+  `eslint-plugin-svelte`와 `globals`를 개발 의존성으로 추가합니다([린트](docs/operations/testing.ko.md#린트)).
+- `npm run test:build`가 실행하는 `tests/build/lint-coverage.test.mjs`는 추적되는 소스가 린트 명령의 경로
+  밖에 있거나 설정이 그 소스를 린트하지 않으면 실패합니다.
+- 넓어진 린트가 찾은 문제를 고칩니다. 사용하지 않는 import, 변수, 매개변수, `cause` 없이 다시 던진 오류,
+  불필요한 정규식 이스케이프와 반복 공백, PHP 확장의 C 도우미 목록과 네이티브 생성기 검사 시간 한도의 배열
+  구멍, 적은 값을 유지하지 못하는 숫자 리터럴(`9007199254740993`과 `9.999999999999999`는 이미 가지던 값으로
+  적음), 테스트의 `any`, 표준 출력으로 출력하는 스크립트의 `console.log`, 키 없는 Svelte `{#each}`, 의존
+  값을 단독 표현식으로 읽던 effect입니다. 어떤 예제도 제공하지 않는 페이지에서 없는 `compare/` 디렉터리에
+  쓰던 미사용 루트 스크립트 `capture-react.js`를 삭제합니다.
+- Svelte 생성기의 `{@html}` 출력과 제목 슬러그의 제어 문자 클래스는 해당 줄에서만 규칙에서 제외하고,
+  각 줄 옆에 이유를 적습니다.
+
+## 2026-09-17 — 등록된 규칙이 아닌 규칙 이름 거부
+
+- 등록된 규칙이 아닌 `validate` 키는 건너뛰었기 때문에 철자가 틀린 규칙이 검사를 조용히 껐고, 스키마는
+  더 이상 어떤 런타임도 등록할 수 없는 규칙을 위해 다른 규칙 이름을 열어 두었습니다. 이제 그런 이름은
+  매개변수와 관계없이 모든 검증기와 PHP 확장에서 필드 선언 경로에 위치한 로드 실패 `UNKNOWN_RULE`이며
+  메시지는 `Unknown rule: {name}`입니다. `messages` 키는 메시지를 재정의할 규칙의 이름이므로 등록된
+  규칙이 아닌 `messages` 키도 같은 방식으로 실패하며, 필드가 선언하지 않은 등록 규칙은 여전히 가리킬 수
+  있습니다. 이름은 매개변수와 함께 검사합니다. 필드는 선언 순서로, 필드의 규칙(규칙마다 이름을 매개변수보다
+  먼저)과 이어서 `messages` 키를 그 필드가 포함한 필드보다 먼저 검사합니다
+  ([매개변수 오류](docs/spec/validation-rules.ko.md#매개변수-오류)).
+- 스키마의 `validate`와 `messages`는 등록된 규칙 이름만 허용하며, `scripts/check-schema.mjs`는 두 목록을
+  규칙 등록부와 비교합니다. PHP `FieldSpec`, Go `FieldSpec`, Rust `FieldSpec` 모델도 `validate`와
+  `messages`를 같은 방식으로 닫고, 빠져 있던 `content`와 `messages` 키를 추가하며, 각자 키를 스키마와
+  비교합니다.
+- JavaScript, Go, Rust의 `match`와 `pattern`은 자신의 사용자 메시지가 없으면 다른 이름의 메시지를
+  사용했습니다. 이제 모든 런타임은 PHP와 PHP 확장처럼 선언한 규칙 이름으로만 사용자 메시지를 찾습니다.
+- 공용 사례 `unregistered-rule-skipped`는 중첩 행 경로, 숨긴 필드, 검사 순서, `messages`를 포함해 명세로
+  작성한 사례 12개로 바뀌고, `match`와 `pattern` 메시지 사례 1개가 추가되어 공용 검증 사례는 250개가
+  됩니다.
+
+## 2026-09-17 — 비교 예제에서 생성된 필드 모델을 멤버 순서까지 비교
+
+- `examples/form-comparison`의 생성 검사는 속성, 추가 설정, 레코드 데이터에서만 객체 멤버 순서를
+  비교했기 때문에, 배포된 비교가 런타임마다 멤버 순서가 다른 필드 모델을 통과시킬 수 있었습니다.
+  이제 자체 사본 대신 `tests/native-generators/protocol.mjs`의 순서 엄격 `equalModels`와
+  `equalOrdered`를 사용하므로, 모든 런타임의 모델은 모든 깊이에서 같은 멤버 순서를 가져야 합니다.
+- `check-generation.test.mjs`는 모델, 위젯, 데이터가 멤버 순서만 다른 렌더링 폼이 거부됨을
+  보여 줍니다.
+
 ## 2026-09-17 — 모든 런타임에서 유니코드 스칼라 값이 아닌 텍스트 거부
 
 - 명세와 데이터의 텍스트는 유니코드 스칼라 값의 나열입니다

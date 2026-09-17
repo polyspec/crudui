@@ -3,6 +3,7 @@ import test from 'node:test';
 import {
   assertGenerationProvenance,
   assertGenerationReportInvariants,
+  equalRendered,
   expectedGenerationRequests,
   expectedGenerationResults,
   expectedGenerationCombinations,
@@ -167,4 +168,17 @@ test('retains an ordinary check failure when the report structure is complete', 
   assert.equal(report.invariants.passed, true);
   assert.equal(report.passed, expectedGenerationResults - 1);
   assert.equal(report.failed, 1);
+});
+
+test('rejects rendered forms whose models differ only in member order', () => {
+  const rendered = fields => ({ data: { name: 'A' }, fields, html: '<form></form>' });
+  const field = { name: 'name', type: 'text', value: 'A', attrs: { required: true } };
+  const reordered = { type: 'text', name: 'name', value: 'A', attrs: { required: true } };
+  assert.doesNotThrow(() => equalRendered(rendered([field]), rendered([{ ...field }])));
+  assert.throws(() => equalRendered(rendered([reordered]), rendered([field])),
+    /member order/);
+  assert.throws(() => equalRendered(rendered([{ widget: { b: 1, a: 2 } }]),
+    rendered([{ widget: { a: 2, b: 1 } }])), /member order/);
+  assert.throws(() => equalRendered({ ...rendered([]), data: { b: 1, a: 2 } },
+    { ...rendered([]), data: { a: 2, b: 1 } }), /member order/);
 });

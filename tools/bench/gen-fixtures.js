@@ -18,7 +18,6 @@
 const fs = require('fs');
 const path = require('path');
 
-const ROOT = path.resolve(__dirname, '..', '..');
 const OUT_DIR = path.join(__dirname, 'fixtures');
 
 /** Build the small current-schema contact form: six fields, rules in `validate`. */

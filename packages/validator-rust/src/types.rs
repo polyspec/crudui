@@ -3,10 +3,10 @@
 //! This module represents top-level keys, role slots, dependency buckets, design
 //! nodes, condition maps and `$ref`/`$patch` composition. `deny_unknown_fields`
 //! rejects unrecognized top-level keys and every unknown key inside the closed
-//! buckets `design` (and its nodes), `behavior`, `multiple` and `lang`. `ExtraMap`
-//! accepts extension keys inside the open buckets `validate`, `options` and a
-//! dynamic `items` source, and rejects every forbidden meta key during
-//! deserialization.
+//! buckets `design` (and its nodes), `behavior`, `multiple` and `lang`. `RuleMap`
+//! accepts only registered rule names as `validate` and `messages` keys. `ExtraMap`
+//! accepts extension keys inside the open buckets `options` and a dynamic `items`
+//! source, and rejects every forbidden meta key during deserialization.
 //!
 //! Role slots and structural dimensions use `Polymorphic<T>` for `false`, an
 //! explicit object or `true`. Dependent keys remain under their owning target as
@@ -150,6 +150,98 @@ impl<'de> Deserialize<'de> for ExtraMap {
     }
 }
 
+/// Declaration-ordered rule keys of `validate` or `messages`.
+///
+/// Deserialization rejects every key that is not a registered rule name, and in
+/// `messages` every value that is not a string.
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct RuleMap(pub Map<String, Value>);
+
+impl RuleMap {
+    /// Return the stored rule map.
+    pub fn as_map(&self) -> &Map<String, Value> {
+        &self.0
+    }
+}
+
+/// Read a map whose keys are registered rule names.
+fn read_rule_map<'de, D>(deserializer: D, messages: bool) -> Result<RuleMap, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    struct RuleVisitor(bool);
+
+    impl<'de> Visitor<'de> for RuleVisitor {
+        type Value = RuleMap;
+
+        fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
+            f.write_str("a map keyed by registered rule names")
+        }
+
+        fn visit_map<M>(self, mut access: M) -> Result<RuleMap, M::Error>
+        where
+            M: MapAccess<'de>,
+        {
+            let mut out = Map::new();
+            while let Some(key) = access.next_key::<String>()? {
+                if crate::validate::rules::get_rule(&key).is_none() {
+                    return Err(de::Error::custom(format!("Unknown rule: {key}")));
+                }
+                let value: Value = access.next_value()?;
+                if self.0 && !value.is_string() {
+                    return Err(de::Error::custom(format!(
+                        "message for {key} is not a string"
+                    )));
+                }
+                out.insert(key, value);
+            }
+            Ok(RuleMap(out))
+        }
+    }
+
+    deserializer.deserialize_map(RuleVisitor(messages))
+}
+
+impl<'de> Deserialize<'de> for RuleMap {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        read_rule_map(deserializer, false)
+    }
+}
+
+impl Serialize for RuleMap {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.0.serialize(serializer)
+    }
+}
+
+/// Error message overrides keyed by registered rule name; every value is a string.
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct Messages(pub RuleMap);
+
+impl<'de> Deserialize<'de> for Messages {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        read_rule_map(deserializer, true).map(Messages)
+    }
+}
+
+impl Serialize for Messages {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.0.serialize(serializer)
+    }
+}
+
 impl Serialize for ExtraMap {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -237,10 +329,18 @@ pub struct FieldSpec {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub help: Option<Content>,
 
+    /// Control text of a button or action field, optionally translated.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub content: Option<Content>,
+
     // ---- Top-level polymorphic role slots ----
     /// Validation rules. Values may be expressions or condition maps.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub validate: Option<Polymorphic<ValidateSlot>>,
+
+    /// Error message overrides keyed by registered rule name.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub messages: Option<Messages>,
 
     /// Display condition and DOM-node appearance configuration.
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -265,10 +365,10 @@ pub struct FieldSpec {
 }
 
 // ============================================================================
-// Role slots from SPEC §3. The open slots `validate` and `options` preserve
-// extension keys in ExtraMap, which rejects forbidden meta keys during
-// deserialization. The closed slots `design` and `behavior` reject every
-// unknown key.
+// Role slots from SPEC §3. `validate` accepts the registered rule names only
+// (RuleMap). The open slot `options` preserves extension keys in ExtraMap, which
+// rejects forbidden meta keys during deserialization. The closed slots `design`
+// and `behavior` reject every unknown key.
 // ============================================================================
 
 /// Validation rules whose values may be expressions or condition maps.
@@ -283,9 +383,9 @@ pub struct ValidateSlot {
     /// Match target expressed as a path or expression.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub r#match: Option<ConditionValue>,
-    /// Additional validation rules.
+    /// The other registered rules; any other key is rejected.
     #[serde(flatten)]
-    pub extra: ExtraMap,
+    pub extra: RuleMap,
 }
 
 /// Display condition and appearance configuration for named DOM nodes.
@@ -872,6 +972,53 @@ mod tests {
         }
     }
 
+    // validate and messages keys are registered rule names.
+    #[test]
+    fn rule_keys_are_registered_rules() {
+        for src in [
+            r#"{"type":"text","validate":{"future_rule":1}}"#,
+            r#"{"type":"text","validate":{"required":true,"equalto":".a"}}"#,
+            r#"{"type":"text","messages":{"requird":"x"}}"#,
+            r#"{"type":"text","messages":{"required":1}}"#,
+        ] {
+            let r: Result<FieldSpec, _> = serde_json::from_str(src);
+            assert!(r.is_err(), "unknown rule key must be rejected: {src}");
+        }
+        let src = r#"{"type":"text","validate":{"required":true,"minlength":2,"dateISO":true,"step":0.5},"messages":{"number":"n","required":"r"}}"#;
+        let original: Value = serde_json::from_str(src).unwrap();
+        let spec: FieldSpec = serde_json::from_value(original.clone()).unwrap();
+        assert_eq!(serde_json::to_value(&spec).unwrap(), original);
+    }
+
+    // The model has a field for every top-level key of the schema's field definition.
+    #[test]
+    fn top_level_keys_are_the_schema_field_keys() {
+        let path = concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../schema/crudui.schema.json"
+        );
+        let schema: Value = serde_json::from_str(&std::fs::read_to_string(path).unwrap()).unwrap();
+        let samples = serde_json::json!({
+            "type": "button", "name": "n", "default": 1, "properties": {}, "items": {"model": "m"},
+            "multiple": true, "lang": true, "label": "l", "description": "d", "placeholder": "p",
+            "prepend": "p", "append": "a", "help": "h", "content": "c", "validate": true,
+            "messages": {"required": "r"}, "design": true, "behavior": true, "options": true,
+            "buttons": [], "action": {"method": "post"}, "$ref": "Base.yml", "$patch": {},
+        });
+        let keys: Vec<&String> = schema["definitions"]["Field"]["properties"]
+            .as_object()
+            .unwrap()
+            .keys()
+            .collect();
+        let sample_keys: Vec<&String> = samples.as_object().unwrap().keys().collect();
+        assert_eq!(keys, sample_keys);
+        for key in keys {
+            let field = serde_json::json!({ key.as_str(): samples[key.as_str()].clone() });
+            let r: Result<FieldSpec, _> = serde_json::from_value(field);
+            assert!(r.is_ok(), "{key}: {r:?}");
+        }
+    }
+
     // Closed buckets reject every unknown key, including a design node key.
     #[test]
     fn closed_buckets_reject_unknown_keys() {
@@ -888,14 +1035,10 @@ mod tests {
                 "unknown key in closed bucket must be rejected: {src}"
             );
         }
-        // Open buckets keep accepting unknown keys.
-        for src in [
-            r#"{"type":"text","validate":{"future_rule":1}}"#,
-            r#"{"type":"search","items":{"model":"User","method":"all"}}"#,
-        ] {
-            let r: Result<FieldSpec, _> = serde_json::from_str(src);
-            assert!(r.is_ok(), "open bucket must accept: {src}");
-        }
+        // An open bucket keeps accepting unknown keys.
+        let src = r#"{"type":"search","items":{"model":"User","method":"all"}}"#;
+        let r: Result<FieldSpec, _> = serde_json::from_str(src);
+        assert!(r.is_ok(), "open bucket must accept: {src}");
     }
 
     // Condition-map serialization preserves declaration order.

@@ -39,13 +39,14 @@ const AST_FIELD_ORDER: Record<string, string[]> = {
   Group: ['type', 'expression'],
 };
 
-function stripPosition(node: any): any {
-  if (Array.isArray(node)) {
-    return node.map(stripPosition);
+function stripPosition(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(stripPosition);
   }
-  if (node === null || typeof node !== 'object') {
-    return node;
+  if (value === null || typeof value !== 'object') {
+    return value;
   }
+  const node = value as Record<string, unknown>;
   // Path segment: {type:'identifier',value} | {type:'wildcard'} | {type:'index',value}
   if (node.type === 'identifier' || node.type === 'wildcard' || node.type === 'index') {
     if (node.type === 'wildcard') return { type: 'wildcard' };

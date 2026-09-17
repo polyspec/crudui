@@ -1,7 +1,8 @@
 /**
  * Rule parameter checks (validation-rules.md, "Parameter errors").
  *
- * A parameter outside the definitions is a load failure. Declared parameters are
+ * A parameter outside the definitions, and a rule name that is not registered, is a
+ * load failure. Declared rule names and parameters are
  * checked after composition and the forbidden-key scan, fields in declaration
  * order and each field's rules in declaration order; a parameter selected by a
  * condition is checked when the validator selects it.
@@ -10,6 +11,7 @@
 import { ComposeLoadError } from '../compose/errors';
 import { isFiniteNumber, isLengthLimit, isLengthRange, isNumberRange, isStep, readMembers } from '../values/index';
 import { PatternSyntaxError, compilePattern } from '../pattern/index';
+import { getRule } from '../rules/index';
 
 /** The failure a rule parameter causes. */
 export interface ParameterFailure {
@@ -98,4 +100,16 @@ export function ruleParameterFailure(ruleName: string, param: unknown): Paramete
 export function assertRuleParameter(ruleName: string, param: unknown, declarationPath: string[]): void {
   const failure = ruleParameterFailure(ruleName, param);
   if (failure) throw new ComposeLoadError(failure.code, failure.message, [...declarationPath]);
+}
+
+/**
+ * Throw the load failure of a `validate` or `messages` key that is not a registered rule.
+ *
+ * @param declarationPath the field's property names from the root, without row keys.
+ * @throws {ComposeLoadError} `UNKNOWN_RULE` when the name is not registered.
+ */
+export function assertRuleName(ruleName: string, declarationPath: string[]): void {
+  if (getRule(ruleName) === undefined) {
+    throw new ComposeLoadError('UNKNOWN_RULE', `Unknown rule: ${ruleName}`, [...declarationPath]);
+  }
 }

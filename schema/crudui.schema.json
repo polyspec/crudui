@@ -115,14 +115,86 @@
       ]
     },
     "Messages": {
-      "description": "Error message overrides indexed by rule name. Every registered and application rule name is accepted; each message is a plain string.",
+      "description": "Error message overrides indexed by registered rule name; each message is a plain string. Any other rule name fails the load with UNKNOWN_RULE.",
       "type": "object",
       "propertyNames": {
         "$ref": "#/definitions/ForbiddenKeyNames"
       },
-      "additionalProperties": {
-        "type": "string"
-      }
+      "properties": {
+        "required": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        },
+        "minlength": {
+          "type": "string"
+        },
+        "maxlength": {
+          "type": "string"
+        },
+        "rangelength": {
+          "type": "string"
+        },
+        "number": {
+          "type": "string"
+        },
+        "digits": {
+          "type": "string"
+        },
+        "min": {
+          "type": "string"
+        },
+        "max": {
+          "type": "string"
+        },
+        "range": {
+          "type": "string"
+        },
+        "step": {
+          "type": "string"
+        },
+        "match": {
+          "type": "string"
+        },
+        "pattern": {
+          "type": "string"
+        },
+        "equalTo": {
+          "type": "string"
+        },
+        "notEqual": {
+          "type": "string"
+        },
+        "in": {
+          "type": "string"
+        },
+        "date": {
+          "type": "string"
+        },
+        "dateISO": {
+          "type": "string"
+        },
+        "enddate": {
+          "type": "string"
+        },
+        "mincount": {
+          "type": "string"
+        },
+        "maxcount": {
+          "type": "string"
+        },
+        "unique": {
+          "type": "string"
+        },
+        "accept": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
     },
     "ItemLabel": {
       "description": "Choice display label, optionally translated. The choice value is separate from its label.",
@@ -139,7 +211,7 @@
       ]
     },
     "Validate": {
-      "description": "Validation rules in declaration order. Registered rules have typed parameters; other rule names stay open for rules registered by the application.",
+      "description": "Validation rules in declaration order. Only the registered rules are accepted, each with its typed parameter; any other rule name fails the load with UNKNOWN_RULE.",
       "anyOf": [
         {
           "type": "boolean"
@@ -340,9 +412,7 @@
               ]
             }
           },
-          "additionalProperties": {
-            "$ref": "#/definitions/OpenValue"
-          }
+          "additionalProperties": false
         }
       ]
     },

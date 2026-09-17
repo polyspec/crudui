@@ -27,6 +27,7 @@
       <span class="crudui-bool crudui-bool--text" data-crudui-state={String(display.value)}>{display.label}</span>
     {/if}
   {:else if display.kind === 'html'}
+    <!-- eslint-disable-next-line svelte/no-at-html-tags -- the `html` field format declares raw HTML. -->
     {@html display.html}
   {/if}
 {/snippet}
