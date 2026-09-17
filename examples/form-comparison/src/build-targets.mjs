@@ -94,7 +94,10 @@ export const buildTargets = Object.freeze([
   {
     id: 'public-server',
     timeoutMs: 60_000,
-    inputs: [`${example}/server.mjs`, `${example}/src/json.mjs`, `${example}/src/pipeline.mjs`, `${example}/src/runtime-paths.mjs`, `${example}/check.mjs`],
+    inputs: [`${example}/server.mjs`, new RegExp(`^${example}/servers/javascript/`),
+      `${example}/src/json.mjs`, `${example}/src/record-contract.mjs`, `${example}/src/record-view.mjs`,
+      `${example}/src/runtime-paths.mjs`,
+      `${example}/check.mjs`],
     dependsOn: [],
     steps: [],
     restarts: ['public'],

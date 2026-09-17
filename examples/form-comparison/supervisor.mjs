@@ -1,14 +1,15 @@
 import { spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
+import { renameSync, writeFileSync } from 'node:fs';
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import { completeBuild, planBuild, supervisorFiles } from './src/build-targets.mjs';
 import { installOrderedJson } from './src/ordered-json-source.mjs';
 import { forwardLines, isPhpAccessLogLine } from './src/process-output.mjs';
-import { formatDuration, runStep } from './src/step-runner.mjs';
+import { formatDuration, runStep, stepHeartbeatMs } from './src/step-runner.mjs';
 import {
-  binaryDirectory, cruduiModule, orderedJsonDirectory, publicDirectory, publicServerProcess,
+  binaryDirectory, buildStateFile, cruduiModule, orderedJsonDirectory, publicDirectory, publicServerProcess,
   serverProcess, sourceIdentityFile, sourceMount, stateDirectory, treeDirectory,
 } from './src/server-layout.mjs';
 import { verifyChildServers, waitForChildReadiness } from './src/server-startup.mjs';
@@ -29,16 +30,34 @@ function log(message) {
   process.stdout.write(`[supervisor] ${message}\n`);
 }
 
+/** Hand the state to the public server and replace the build state file in one step. */
+function share() {
+  processes.get('public')?.child.send(state);
+  const temporary = `${buildStateFile}.${process.pid}.tmp`;
+  writeFileSync(temporary, JSON.stringify(state) + '\n');
+  renameSync(temporary, buildStateFile);
+}
+
 function publish(next) {
-  state = { ...state, ...next };
+  state = { ...state, progress: null, ...next };
   const elapsed = next.durationMs === undefined ? '' : ` in ${formatDuration(next.durationMs)}`;
   log(`cycle ${state.cycle}: ${state.status}${elapsed}${state.error ? ` (${state.error})` : ''}`);
-  processes.get('public')?.child.send(state);
+  share();
+}
+
+/**
+ * Renew the building cycle's `progress` for its readers: at every target and every heartbeat, so
+ * a reader sees the supervisor working while each target holds its own limit.
+ */
+function reportProgress(target) {
+  state = { ...state, progress: { target, at: Date.now() } };
+  share();
 }
 
 /** Run one build target: every step streams its progress and holds the target's timeout. */
 async function runTarget(target, label) {
   const started = performance.now();
+  reportProgress(target.id);
   for (const [index, step] of target.steps.entries()) {
     const id = target.steps.length === 1 ? target.id : `${target.id}-${index + 1}`;
     const result = await runStep({ ...step, id, timeoutMs: target.timeoutMs }, { label });
@@ -96,8 +115,11 @@ async function runCycle(plan, source) {
   publish({ status: 'building', cycle: state.cycle + 1, error: null });
   const startedCycle = performance.now();
   const label = `supervisor cycle ${state.cycle}`;
+  let current = 'plan';
+  const heartbeat = setInterval(() => reportProgress(current), stepHeartbeatMs);
   try {
     for (const target of plan.targets) {
+      current = target.id;
       const durationMs = await runTarget(target, label);
       log(`cycle ${state.cycle}: built ${target.id} in ${formatDuration(durationMs)}`);
     }
@@ -105,6 +127,8 @@ async function runCycle(plan, source) {
     const cruduiModuleSha256 = createHash('sha256').update(await readFile(cruduiModule))
       .digest('hex');
     for (const name of plan.restarts) {
+      current = `restart ${name}`;
+      reportProgress(current);
       const startedRestart = performance.now();
       await startProcess(name, cruduiModuleSha256);
       log(`cycle ${state.cycle}: restarted ${name} in `
@@ -115,6 +139,8 @@ async function runCycle(plan, source) {
   } catch (error) {
     publish({ status: 'failed', source, error: error.message,
       durationMs: performance.now() - startedCycle });
+  } finally {
+    clearInterval(heartbeat);
   }
 }
 
@@ -174,6 +200,7 @@ process.on('SIGINT', shutdown);
 async function startupStep(id, action) {
   const started = performance.now();
   log(`start: ${id} started`);
+  reportProgress(`start ${id}`);
   const value = await action();
   log(`start: ${id} finished in ${formatDuration(performance.now() - started)}`);
   return value;

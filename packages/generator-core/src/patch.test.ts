@@ -60,4 +60,37 @@ describe('patchContent keeps the nodes the new markup still contains', () => {
     patchContent(element, next);
     expect(element.innerHTML).toBe(next);
   });
+
+  test('a script runs once when its markup first appears, never again on a patch', () => {
+    // A script runs in the document's own global, so it records its runs in the document.
+    const runs = { get scriptRuns() { return (document.body.dataset.scriptRuns ?? '').split(' ').filter(Boolean); } };
+    delete document.body.dataset.scriptRuns;
+    const script = (text: string) => `<script nonce="">document.body.dataset.scriptRuns = (document.body.dataset.scriptRuns ?? '') + ' ${text}'</script>`;
+    const row = (key: string, text: string) => `<div data-crudui-row-key="${key}">${script(key + ':' + text)}</div>`;
+    const element = document.createElement('div');
+    document.body.append(element);
+    patchContent(element, row('a', '1'));
+    expect(runs.scriptRuns).toEqual(['a:1']);
+    const first = element.querySelector('script');
+    expect(first!.getAttribute('nonce')).toBe('');
+    patchContent(element, row('a', '1'));
+    patchContent(element, row('b', '1') + row('a', '2'));
+    expect(element.querySelector('[data-crudui-row-key="a"] script')).toBe(first);
+    expect(first!.textContent).toContain('a:2');
+    expect(runs.scriptRuns).toEqual(['a:1', 'b:1']);
+    patchContent(element, row('a', '2') + row('b', '1') + script('top'));
+    expect(runs.scriptRuns).toEqual(['a:1', 'b:1', 'top']);
+    expect(element.innerHTML).toBe(row('a', '2') + row('b', '1') + script('top'));
+    element.remove();
+  });
+
+  test('an inserted script runs after the whole markup is in place', () => {
+    delete document.body.dataset.scriptRuns;
+    const element = document.createElement('div');
+    document.body.append(element);
+    const probe = `<script>document.body.dataset.scriptRuns = document.getElementById('later') ? 'found' : 'missing'</script>`;
+    patchContent(element, `<div>${probe}</div><p id="later"></p>`);
+    expect(document.body.dataset.scriptRuns).toBe('found');
+    element.remove();
+  });
 });

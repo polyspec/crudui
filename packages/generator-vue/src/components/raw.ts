@@ -7,8 +7,8 @@
  * behavior slot is by contract an OPAQUE verbatim passthrough (never routed
  * through the expr engine), the same category as the sanctioned
  * `<script>`/`<style>` chrome. So a control element that carries opaque `on*`
- * attributes is serialized here to a raw HTML fragment and embedded via its
- * immediate container vnode's `innerHTML` domProp (the container itself stays a
+ * attributes is serialized here to a raw HTML fragment and embedded in its
+ * immediate container vnode by `rawContainer` (the container itself stays a
  * real vnode element).
  *
  * This is the ONLY raw-attribute path; controls with no `on*` attribute render
@@ -16,7 +16,8 @@
  * the handful of behavior-bearing fields. Mirrors the React adapter's raw.ts.
  */
 
-import type { Attrs } from '@crudui/generator-core';
+import { h, withDirectives, type ObjectDirective, type VNode } from 'vue';
+import { patchContent, type Attrs } from '@crudui/generator-core';
 
 function escAttr(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
@@ -60,6 +61,26 @@ export function rawOptions(
       return `<option value="${escAttr(o.value)}"${sel}>${escText(o.label)}</option>`;
     })
     .join('');
+}
+
+/**
+ * Raw markup of a container. Server rendering writes it as the container's content; in the
+ * browser it is patched into the existing nodes with `patchContent`, so a re-render keeps the
+ * focused control, its caret and its typed order, and a script runs once, when its markup first
+ * appears.
+ */
+const markup: ObjectDirective<Element, string> = {
+  getSSRProps: ({ value }) => ({ innerHTML: value }),
+  // A hydrated container already holds the markup; a new one receives it, and its scripts run.
+  beforeMount: (element, { value }) => patchContent(element, value),
+  beforeUpdate: (element, { value, oldValue }) => {
+    if (value !== oldValue) patchContent(element, value);
+  },
+};
+
+/** A real container vnode whose content is raw markup. */
+export function rawContainer(tag: string, props: Record<string, unknown>, html: string): VNode {
+  return withDirectives(h(tag, props), [[markup, html]]);
 }
 
 export { escAttr, escText };

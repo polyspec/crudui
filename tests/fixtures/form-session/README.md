@@ -25,6 +25,13 @@ form and passes it with `expect` and a `flush` function that waits for rendering
   `visibilitySpec`, `visibilityData` and `exerciseHiddenValues`, which hides and shows a group by
   clicking the checkbox its `design.show` reads and checks that the group's values stay in the
   controls and in `getData()`, including a value set while it is hidden.
+- [`typing.mjs`](typing.mjs) exports `typingSpec`, `installWidgetHost` and `exerciseTyping`.
+  `installWidgetHost(document)` gives the document the helpers widget scripts call and records
+  each call; a test installs it before mounting the form. `exerciseTyping` types into number,
+  text, textarea and behavior-bearing text controls one character at a time, moves the caret, and
+  picks a select option, a radio button and a checkbox. After every re-render it requires the
+  same control, button, script, style and raw display element nodes, the focus on the edited
+  control, the typed order, the caret and the form values, and that each widget script ran once.
 
 ## Comparisons
 

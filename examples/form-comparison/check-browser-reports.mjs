@@ -72,15 +72,13 @@ export function summarizeBrowserReports(reports, expectedOrigin, expectedSource)
   }
 
   const failedChecks = verification.reduce((sum, report) => sum + report.failedChecks, 0);
-  const performancePassed = verification.every(report => report.performance.passed);
   return {
     generatedAt: new Date().toISOString(),
     origin: normalizedOrigin,
     source: expectedSource,
     complete: true,
-    performancePassed,
     failedChecks,
-    passed: failedChecks === 0 && performancePassed,
+    passed: failedChecks === 0,
     verification: aggregate(verification),
     serverRuns,
   };

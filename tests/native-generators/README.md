@@ -75,7 +75,7 @@ records both input manifests. Source directories are read directly, so Git is
 not required. `--source-commit` or `CRUDUI_SOURCE_COMMIT` can record an optional
 source commit without changing the hash comparison.
 
-The 103 form cases compare complete compiled templates and bound models.
+The 104 form cases compare complete compiled templates and bound models.
 Templates from each target are bound by JavaScript and JavaScript templates are
 bound by each target without composition loaders or files. Specification member order and control attribute order are
 compared, and models are compared in member order. The 42 list cases compare original HTML strings, including

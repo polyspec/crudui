@@ -10,14 +10,23 @@ function message(error) {
 }
 
 /**
- * Every browser unit holds its own limit, sized from its measured duration: one initialization
- * report compares 18 stages in two columns and took 27 to 30 seconds per report, one scenario
- * report 1 to 2 seconds, and the page needs a few seconds between reports to load the next pair
- * of frames. A unit that reaches its limit fails the run with the unit and its elapsed time; no
- * single limit covers a whole run.
+ * The slowest durations measured in the deployed verification of 2026-09-16 (four browser checks
+ * at the same time, reports under results/report-*.json): an initialization report compares 18
+ * stages in two columns, a scenario report runs 19 checks, and the page work before, between and
+ * after reports loads the next pair of frames.
+ */
+export const browserReportMeasurementsMs = Object.freeze({
+  initialization: 32_415, scenario: 2_244, transition: 1_864,
+});
+
+/**
+ * Every browser unit holds its own limit: three times its slowest measurement, rounded up to five
+ * seconds, at least ten seconds (`measuredLimitMs` in unit-pool.mjs, which the tests compare). A
+ * unit that reaches its limit fails the run with the unit and its elapsed time; no single limit
+ * covers a whole run.
  */
 export const browserReportLimitsMs = Object.freeze({
-  initialization: 180_000, scenario: 60_000, transition: 120_000,
+  initialization: 100_000, scenario: 10_000, transition: 10_000,
 });
 
 /** The limit of the report a label names, or the limit between reports when it names none. */

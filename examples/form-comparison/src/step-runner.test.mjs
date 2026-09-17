@@ -4,7 +4,7 @@ import test from 'node:test';
 import { promisify } from 'node:util';
 
 import {
-  assertStep, formatDuration, processTree, runStages, runStep,
+  assertStep, formatDuration, isProgressLine, processTree, runStages, runStep,
 } from './step-runner.mjs';
 
 const execFileAsync = promisify(execFile);
@@ -49,6 +49,10 @@ test('selects a process and every descendant', () => {
 test('requires every step to declare its own timeout', () => {
   assert.throws(() => assertStep({ id: 'a', command: 'true', args: [] }),
     /a: every step requires its own timeout/);
+  // A single operation holds a total limit; a step made of units holds an inactivity limit. Never both.
+  assert.throws(() => assertStep({ id: 'b', command: 'true', args: [], timeoutMs: 1, silenceLimitMs: 1 }),
+    /b: every step requires its own timeout/);
+  assert.doesNotThrow(() => assertStep({ id: 'c', command: 'true', args: [], silenceLimitMs: 1 }));
   assert.throws(() => assertStep({ id: 'Upper', command: 'true', args: [], timeoutMs: 1 }),
     /lowercase id/);
 });
@@ -107,4 +111,56 @@ test('runs the steps of one stage together and stops after a failed stage', asyn
   assert.deepEqual(results.map(result => [result.id, result.status]),
     [['first', 'passed'], ['second', 'passed'], ['failing', 'failed']]);
   assert.equal(lines.some(line => line.includes('never')), false);
+});
+
+test('recognizes the progress lines of units, also under nested step prefixes', () => {
+  for (const line of [
+    '[pipeline] js/html/csr: started (timeout 1m00s)',
+    '[php] main-page: running 15.0s',
+    '[php] php/bindForm/react/initialization: passed in 31.2s',
+    '[browser-php] [php] interactions: failed after 2.0s: Error',
+    '[verification] browser-go: timed out after 45.0s',
+    '[verification] browser-go: stalled after 45.0s without progress',
+  ]) assert.equal(isProgressLine(line), true, line);
+  for (const line of ['GET /api/records 200', 'php: something happened', '[php] a warning without a state', '']) {
+    assert.equal(isProgressLine(line), false, line);
+  }
+});
+
+// A child that reports its units: a start, heartbeats and a result, spaced below the silence limit.
+const reportingSource = [
+  "let n = 0; console.log('[unit] work: started (timeout 1.0s)');",
+  "const timer = setInterval(() => { n++; console.log('[unit] work: running ' + n * 100 + 'ms');",
+  "  if (n === 12) { clearInterval(timer); console.log('[unit] work: passed in 1.2s'); } }, 100);",
+].join('\n');
+
+test('a step made of units has no total limit while it keeps reporting progress', async () => {
+  const { lines, write } = recorder();
+  const step = { id: 'reporting', command: process.execPath, args: ['-e', reportingSource], silenceLimitMs: 300 };
+  const result = await runStep(step, { write, heartbeatMs: 1_000 });
+  assert.equal(result.status, 'passed', lines.join('\n'));
+  assert.ok(result.durationMs > 3 * step.silenceLimitMs, 'the step outlived its silence limit several times');
+  assert.equal(lines[0], '[step] reporting: started (inactivity limit 300ms)');
+  assert.equal(result.silenceLimitMs, 300);
+  assert.equal(result.timeoutMs, undefined);
+});
+
+test('a step made of units that stops reporting progress fails and its process tree is stopped', async () => {
+  const { lines, write } = recorder();
+  // It prints output that is not a unit progress line, then hangs while ignoring SIGTERM.
+  const source = [
+    "console.log('[unit] work: started (timeout 1m00s)');",
+    "const timer = setInterval(() => console.log('GET /api/records 200'), 50);",
+    "process.on('SIGTERM', () => {});",
+  ].join('\n');
+  const started = performance.now();
+  const result = await runStep({ id: 'silent', command: process.execPath, args: ['-e', source], silenceLimitMs: 300 },
+    { write, heartbeatMs: 100 });
+  assert.equal(result.status, 'stalled', lines.join('\n'));
+  assert.ok(performance.now() - started < 10_000, 'the grace period bounds the stop');
+  // The runner's own heartbeat is not progress of the child.
+  assert.ok(lines.some(line => /^\[step\] silent: running \d+ms$/.test(line)));
+  assert.ok(lines.some(line => /^\[step\] silent: no progress for \d+ms; killing its process tree$/.test(line)),
+    lines.join('\n'));
+  assert.match(lines.at(-1), /^\[step\] silent: stalled after \d+(?:ms|\.\ds) without progress$/);
 });

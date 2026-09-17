@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"strconv"
+	"strings"
 
 	"github.com/ordered-json/go"
 	"github.com/polyspec/crudui/packages/validator-go/validator/compose"
@@ -136,9 +137,48 @@ func toJSON(value any) (*orderedjson.Value, error) {
 		if math.IsInf(value, 0) || math.IsNaN(value) || (math.Trunc(value) == value && math.Abs(value) > 9007199254740991) {
 			return nil, fmt.Errorf("JSON number exceeds the form data range")
 		}
-		return orderedjson.Number(strconv.FormatFloat(value, 'g', -1, 64))
+		return orderedjson.Number(numberText(value))
 	}
 	return nil, fmt.Errorf("Unsupported JSON value: %T", value)
+}
+
+// numberText writes a finite number as ECMAScript Number.prototype.toString does: the shortest
+// round-trip digits, in plain notation from 10^-6 up to 10^21 and in exponent notation otherwise.
+func numberText(value float64) string {
+	if value == 0 {
+		return "0"
+	}
+	if value < 0 {
+		return "-" + numberText(-value)
+	}
+	mantissa, exponent, _ := strings.Cut(strconv.FormatFloat(value, 'e', -1, 64), "e")
+	digits := strings.Replace(mantissa, ".", "", 1)
+	e, _ := strconv.Atoi(exponent)
+	k, n := len(digits), e+1
+	switch {
+	case k <= n && n <= 21:
+		return digits + strings.Repeat("0", n-k)
+	case 0 < n && n <= 21:
+		return digits[:n] + "." + digits[n:]
+	case -6 < n && n <= 0:
+		return "0." + strings.Repeat("0", -n) + digits
+	}
+	sign := "+"
+	if n-1 < 0 {
+		sign = "-"
+	}
+	exponentText := strconv.Itoa(abs(n - 1))
+	if k == 1 {
+		return digits + "e" + sign + exponentText
+	}
+	return digits[:1] + "." + digits[1:] + "e" + sign + exponentText
+}
+
+func abs(value int) int {
+	if value < 0 {
+		return -value
+	}
+	return value
 }
 
 func clone(value any) any {

@@ -14,13 +14,14 @@
  * envelope; a `.crudui-list__actions` toolbar; a `.crudui-list__table` (thead `.crudui-list__heading` →
  * `.crudui-list__heading-label` + `.crudui-list__sort`; tbody `.crudui-list__cell .crudui-list__cell-TYPE`) or a
  * `.crudui-list__cards` grid of `.crudui-list__card` articles; an empty `.crudui-list__empty`; a
- * `<nav class="crudui-list__pagination">`. The ONLY raw `innerHTML` paths are the two
+ * `<nav class="crudui-list__pagination">`. The ONLY raw content paths (`rawContainer`) are the two
  * sanctioned verbatim boundaries — a `html`-format cell (the host's own inner
  * html, no wrapper) and an action's opaque `behavior` chrome. Read-only: NO
  * `<input>`/`<select>`/`<form>` is emitted.
  */
 
 import { h, type VNode } from 'vue';
+import { rawContainer } from './raw';
 import { paginationPages } from '@crudui/generator-core/internal';
 import type {
   ListViewModel,
@@ -53,7 +54,7 @@ function styleProp(style: string): Record<string, string> {
  * Render one resolved `CellDisplay` to a vnode (or a plain string child). A
  * string display (text/date/number/choice-label) is emitted as escaped text; a
  * structured display becomes its element (badge/link/image/bool). The `html`
- * display is handled by the host (cellVNode/card value) directly via innerHTML so
+ * display is handled by the host (cellVNode/card value) directly with rawContainer so
  * NO wrapper element is added.
  */
 export function cellDisplayVNode(display: CellDisplay): VNode | string {
@@ -98,7 +99,7 @@ export function cellDisplayVNode(display: CellDisplay): VNode | string {
       return h('span', { class: 'crudui-bool crudui-bool--text', 'data-crudui-state': String(display.value) }, display.label);
 
     case 'html':
-      // Handled by the host (innerHTML) — never reached as a child vnode.
+      // Handled by the host (rawContainer) — never reached as a child vnode.
       return '';
 
     default:
@@ -123,7 +124,7 @@ function cellVNode(cell: CellVM): VNode {
   const d = cell.display;
   if (typeof d !== 'string' && d.kind === 'html') {
     // The sanctioned raw boundary: the host carries verbatim html (no wrapper).
-    return h('td', { ...props, innerHTML: d.html });
+    return rawContainer('td', props, d.html);
   }
   return h('td', props, [cellDisplayVNode(d)]);
 }
@@ -181,11 +182,11 @@ function tableVNode(vm: ListViewModel): VNode {
 // card layout (opt-in via mode: 'cards')
 // ---------------------------------------------------------------------------
 
-/** The value vnode of one card cell — html cells inject verbatim via innerHTML. */
+/** The value vnode of one card cell — html cells are written verbatim with rawContainer. */
 function cardValueVNode(cell: CellVM): VNode {
   const d = cell.display;
   if (typeof d !== 'string' && d.kind === 'html') {
-    return h('span', { class: 'crudui-list__card-value', innerHTML: d.html });
+    return rawContainer('span', { class: 'crudui-list__card-value' }, d.html);
   }
   return h('span', { class: 'crudui-list__card-value' }, [cellDisplayVNode(d)]);
 }
@@ -262,7 +263,7 @@ function toolbarVNode(vm: ListViewModel): VNode | null {
     'div',
     { class: 'crudui-list__actions' },
     vm.actions.map((a) =>
-      h('span', { class: 'crudui-list__action', 'data-action': a.key, innerHTML: actionHtml(a) })
+      rawContainer('span', { class: 'crudui-list__action', 'data-action': a.key }, actionHtml(a))
     )
   );
 }

@@ -1,5 +1,52 @@
 # Changes
 
+## 2026-09-17 — Link the canonical page from list to saved list on every server and client
+
+- The public root is one canonical page: list → detail → form → save → refreshed list, for the
+  `js`, `php`, `php-ext`, `go` and `rust` servers, the `html`, `react`, `vue` and `svelte` clients,
+  CSR and SSR, and `bindForm` and `createForm`. The iframe stage, the `/api/pipeline/*` routes and
+  the constant records they served are removed. Every link carries the whole selection; under SSR
+  the stage comes from the selected server and the client takes it over, under CSR the client
+  renders it with its own components ([canonical page](docs/spec/form-comparison.md#canonical-page)).
+- Every server owns a persistent store `records-{server}.json` seeded from one fixture of 45
+  customer records, and implements one HTTP contract (`/api/records`, `/api/records/{id}`,
+  `/api/records/reset`, `/api/records/view/{view}`) with the same status codes, messages and
+  member order. Saves accept exactly the rendered form's fields or exactly the JSON member `form`,
+  validate with the server's own validator and never change the store on failure; writes are
+  serialized and replace the file atomically; an unreadable store answers 500 and is kept. Path
+  segments are compared as written, and view queries are read in their fixed member order.
+- `record-stores.test.mjs` runs the 16 contract cases against all five servers built from the
+  checkout, and `pipeline.browser.mjs` runs the 40 flow combinations in a browser against a local
+  stack; `npm run test:form-comparison:pipeline` and the CI job `form-comparison-pipeline` run both.
+- Checks made of units have no total limit any more: a step stops when it prints no progress line
+  for 45 seconds, and every unit limit is three times its slowest measurement. The build readiness
+  wait reads the supervisor's build state file, which reports progress while a cycle builds,
+  instead of one request to the public server with a 600-second limit; `/api/source` is removed.
+- `scripts/run-tests.mjs` printed `✔` with no tests when a tool failed before running any, such
+  as a Rust compile error; the summary now fails and names the tool's exit code.
+- The Vue adapter replaced a control's element whenever its markup changed, so a number input
+  lost its caret and typing `9104` stored `4019`; the React and Svelte adapters replaced some
+  controls and the button group the same way. Each adapter now writes the markup once and patches
+  later markup in place with `patchContent`, keeping every element node; server output is
+  unchanged. The shared form-session fixture `typing.mjs` checks node identity, focus, caret and
+  typed order in all four adapters.
+- React, Vue and Svelte replaced list and detail `html` content on every render; they now patch it
+  in place as the forms do, and the shared view fixture `rerender.mjs` checks node identity. No
+  adapter ran a widget script on a client render or for a new row, because browsers never run
+  scripts inserted as markup or cloned. `patchContent` now inserts a fresh script element once the
+  new markup is in place, so every script runs exactly once when its markup first appears and never
+  again; `tests/widget-script-runs.test.mjs` checks this in Chromium, Firefox and WebKit for all
+  four adapters, client and server rendering. React's server output stays the byte reference:
+  `byte-reference.test.ts` requires it to equal the HTML renderer's output for every shared case.
+- Number controls (`number`, `integer`, `float`, `decimal`) now carry `step="any"` in every
+  runtime. Without it the browser counted the default step from the rendered value, so after a
+  stored `2886.5` a typed `9102` was a step mismatch and the form would not submit; the `step` rule
+  of the CRUDUI validator decides increments. The shared form case `number-any-step` checks it, and
+  the canonical page submits with the browser's constraint validation on.
+- The PHP extension wrote list numbers such as `30` as `3e+1`, and the PHP extension and the Go
+  generator grouped `1e+21` as `1e,+21`. Both now write numbers as JavaScript does; the shared list
+  case `format-number-shortest` checks every runtime.
+
 ## 2026-09-17 — Remove the Linux style-check image a run pulled
 
 `make test-form-styles-linux` needs the Playwright image of the pinned version, about 10 GB. A run

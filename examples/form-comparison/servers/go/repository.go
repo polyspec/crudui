@@ -44,9 +44,11 @@ func (r repository) fixture(name string) (*object, error) {
 	return value, nil
 }
 
-// transaction locks each file before reading and atomically replaces changed records.
-func (r repository) transaction(operation func(*object) (*object, *object, error)) (*object, error) {
-	lock, err := os.OpenFile(r.file+".lock", os.O_CREATE|os.O_RDWR, 0600)
+// lockedFile runs operation on the decoded contents of file under an exclusive lock, seeding a
+// missing file, and atomically replaces the file when the missing file was seeded or the contents
+// changed. An unreadable or malformed file fails and is left as it is.
+func lockedFile(file string, seed func() (any, error), operation func(any) (any, any, error)) (any, error) {
+	lock, err := os.OpenFile(file+".lock", os.O_CREATE|os.O_RDWR, 0600)
 	if err != nil {
 		return nil, err
 	}
@@ -55,10 +57,14 @@ func (r repository) transaction(operation func(*object) (*object, *object, error
 		return nil, err
 	}
 	defer syscall.Flock(int(lock.Fd()), syscall.LOCK_UN)
-	before, err := readObject(r.file)
+	var before any
+	stored, err := os.ReadFile(file)
 	missing := os.IsNotExist(err)
-	if missing {
-		before, err = r.fixture("default")
+	switch {
+	case missing:
+		before, err = seed()
+	case err == nil:
+		before, err = decodeJSON(stored)
 	}
 	if err != nil {
 		return nil, err
@@ -71,33 +77,48 @@ func (r repository) transaction(operation func(*object) (*object, *object, error
 	if err != nil {
 		return nil, err
 	}
-	previous, err := encodeJSON(before)
+	encoded = append(encoded, '\n')
+	if !missing && bytes.Equal(stored, encoded) {
+		return result, nil
+	}
+	temp, err := os.CreateTemp(filepath.Dir(file), ".form-")
 	if err != nil {
 		return nil, err
 	}
-	if missing || !bytes.Equal(previous, encoded) {
-		temp, err := os.CreateTemp(filepath.Dir(r.file), ".form-")
-		if err != nil {
-			return nil, err
-		}
-		name := temp.Name()
-		defer os.Remove(name)
-		if _, err = temp.Write(append(encoded, '\n')); err != nil {
-			temp.Close()
-			return nil, err
-		}
-		if err = temp.Sync(); err != nil {
-			temp.Close()
-			return nil, err
-		}
-		if err = temp.Close(); err != nil {
-			return nil, err
-		}
-		if err = os.Rename(name, r.file); err != nil {
-			return nil, err
-		}
+	name := temp.Name()
+	defer os.Remove(name)
+	if _, err = temp.Write(encoded); err != nil {
+		temp.Close()
+		return nil, err
+	}
+	if err = temp.Sync(); err != nil {
+		temp.Close()
+		return nil, err
+	}
+	if err = temp.Close(); err != nil {
+		return nil, err
+	}
+	if err = os.Rename(name, file); err != nil {
+		return nil, err
 	}
 	return result, nil
+}
+
+// transaction locks the form file and atomically replaces changed records.
+func (r repository) transaction(operation func(*object) (*object, *object, error)) (*object, error) {
+	result, err := lockedFile(r.file, func() (any, error) { return r.fixture("default") },
+		func(value any) (any, any, error) {
+			state, ok := value.(*object)
+			if !ok {
+				return nil, nil, fmt.Errorf("Expected stored object")
+			}
+			after, result, err := operation(state)
+			return after, result, err
+		})
+	if err != nil {
+		return nil, err
+	}
+	return result.(*object), nil
 }
 
 func (r repository) read() (*object, error) {

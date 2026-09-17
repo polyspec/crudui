@@ -8,14 +8,16 @@
  * value, item list, and script is already evaluated by the core.
  *
  * Leaf CONTROL elements (`<input>`/`<select>`/`<textarea>` and the per-item
- * radio/checkbox pairs) are serialized to a raw HTML string (raw.ts) and injected
- * via the container vnode's `innerHTML` domProp. This is forced by
+ * radio/checkbox pairs) are serialized to a raw HTML string (raw.ts) and written
+ * into the container vnode by `rawContainer`: server rendering writes it as the
+ * container's content and the browser patches later markup into the existing
+ * nodes, so a re-render keeps the focused control. This is forced by
  * `vue/server-renderer`: it coerces every empty-valued attribute to a bare
  * attribute (`data-default=""` → `data-default`) and every boolean-attr name to
  * bare (`readonly="readonly"` → `readonly`), which the React-frozen parity fixture
  * forbids — every control carries `data-default=""`. So a control rendered as a
  * real vnode cannot match the fixture; the container stays a real vnode and only
- * the control bytes are raw. This is the same `innerHTML` mechanism as React's
+ * the control bytes are raw. This is the same raw-content boundary as React's
  * sanctioned RAW/script/behavior boundaries, applied at control granularity
  * because Vue's serializer requires it. There is NO completed-form HTML echo.
  *
@@ -32,6 +34,7 @@ import {
   rawVoid,
   rawElement,
   rawOptions,
+  rawContainer,
   serializeAttrs,
   escAttr,
   escText,
@@ -99,7 +102,7 @@ function groupButtonHtml(
 /** widget layout: prepend? + control + append? inside .crudui-widget. */
 function widgetVNode(w: WidgetModel): VNode {
   const html = affixHtml(w.prepend) + rawControl(w) + affixHtml(w.append);
-  return h('div', { class: 'crudui-widget', innerHTML: html });
+  return rawContainer('div', { class: 'crudui-widget' }, html);
 }
 
 /**
@@ -130,7 +133,7 @@ function fileGroupVNode(w: WidgetModel): VNode {
       : '') +
     rawVoid('input', fileAttrs) +
     (display ? `<button class="crudui-widget__button" type="button">&nbsp;</button>` : '');
-  return h('div', { class: 'crudui-widget', innerHTML: html });
+  return rawContainer('div', { class: 'crudui-widget' }, html);
 }
 
 /** display layout: dummy/dummy-input/image-viewer. */
@@ -170,8 +173,8 @@ function searchHtml(w: WidgetModel): string {
 
 /**
  * When a widget's control(s) sit DIRECTLY under the node body (no
- * widget-level container element), return its raw html so the node renderer injects it
- * into the body via innerHTML; else null and the widget renders as a real
+ * widget-level container element), return its raw html so the node renderer writes it
+ * into the body with `rawContainer`; else null and the widget renders as a real
  * container vnode. Covers bare (datetime/password/hidden/email), host-script
  * (editors/tagify), and button (script + hidden + button) — all carry empty/
  * boolean control attrs Vue would mangle as real vnodes.

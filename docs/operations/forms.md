@@ -73,7 +73,10 @@ const listHtml = renderList(listSpec, rows, { layout: 'table' });
 
 `patchContent` replaces the host's content with the new markup and keeps every node the
 markup still contains, so a re-render keeps the focused control, its selection and an input
-method composition; `connection.sync()` then sets the live control values.
+method composition; `connection.sync()` then sets the live control values. A script in new
+markup runs once, after that markup is in place; a kept script never runs again
+([script rule](../spec/form-runtime.md)). Render the first client markup with `patchContent`
+as well: markup set through `innerHTML` never runs its scripts.
 The HTML renderer returns fragments and does not create the outer `form` element,
 bind browser events, validate data or load records.
 
@@ -108,6 +111,10 @@ engine runs the same scenarios; Chromium and Firefox are driven by Puppeteer, We
 Playwright. Firefox is found at `CRUDUI_FIREFOX_EXECUTABLE` or the platform's install path, and
 WebKit is installed with `npx playwright install --with-deps webkit`. A missing browser fails the
 run; no engine is skipped.
+`tests/widget-script-runs.test.mjs` runs the script rule in the same three engines for the HTML,
+React, Vue and Svelte renderers, each rendered in the browser and rendered on the server and
+hydrated: a form row script and an `html` list cell script run once on the first render and
+once for each added row, and never on typing, a copied or moved row, a reload or a list re-render.
 Record current results in [features](../features.md) and [changelog](../../CHANGELOG.md).
 
 The Svelte package build emits JavaScript, preprocessed Svelte components and

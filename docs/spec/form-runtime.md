@@ -229,7 +229,33 @@ The view model is rebuilt when data changes; the runtime does not promise that
 DOM nodes remain unchanged when a row identity changes.
 
 Scripts and external editor integrations declared by a field are separate from
-native data binding. Browser file inputs cannot be filled from a saved string.
+native data binding.
+
+A script in rendered markup runs once, when its markup first appears, in every renderer
+(HTML, React, Vue and Svelte) and for forms, lists and details:
+
+- Server-rendered markup: the browser runs the script while it parses the page. Hydration keeps
+  the parsed nodes and never runs the script again.
+- Client-rendered markup, a new row and a new list row: the script runs when its markup is
+  inserted, after the rest of that markup is in place, so it finds the controls that follow it.
+- A re-render, a data load with the same values, a moved row and a changed script text never run
+  a kept script again.
+
+Browsers never run a script that was parsed as a fragment (`innerHTML`, a `<template>`) or
+cloned, so every renderer inserts each new script as a new script element. `patchContent` does
+this for the HTML renderer, and the framework renderers write raw markup through it. React keeps
+its own script element for the widget script chrome, which its server output needs byte for
+byte; after a client render it runs a new script element with the same attributes and text next
+to it and removes it. The rule is checked in Chromium, Firefox and WebKit, because jsdom runs
+cloned scripts.
+
+A list or detail rendered again from a new model (`updateView`) keeps every element node its new
+markup still contains, including `html` cells and values: the HTML renderer's application patches
+the new markup with `patchContent`, and the React, Vue and Svelte list and detail components patch
+their raw content the same way. The shared view fixture `tests/fixtures/view-session/rerender.mjs`
+checks this in all four renderers.
+
+Browser file inputs cannot be filled from a saved string.
 The form runtime does not save records, assign database sequences or deploy an
 application.
 
@@ -250,6 +276,9 @@ application.
    in React, Vue and Svelte.
 9. Send consecutive native input events across framework renders; retain every
    accepted edit and finish with matching control and instance values.
+10. Keep every control, button, script, style and raw content node of forms, lists and details
+    across re-renders, and run each script once, when its markup first appears, in Chromium,
+    Firefox and WebKit.
 
 ## Input labels and selection
 

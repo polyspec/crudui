@@ -14,6 +14,7 @@
     actionHtml,
     hasActions,
   } from './list';
+  import { patched, firstMarkup } from './raw';
 
   let {
     vm,
@@ -30,7 +31,8 @@
 
 <!-- One cell's DISPLAY, dispatched on the core CellDisplay union. A plain string
      (text/date/number/choice-label) renders as escaped text; the structured
-     variants render real elements; ONLY `html` passes through `{@html}`. -->
+     variants render real elements. An `html` display is its host's own raw content
+     (see the hosts below). -->
 {#snippet cellDisplay(d: import('@crudui/generator-core').CellDisplay)}
   {#if typeof d === 'string'}
     {d}
@@ -48,10 +50,6 @@
     {:else}
       <span class="crudui-bool crudui-bool--text" data-crudui-state={String(d.value)}>{d.label}</span>
     {/if}
-  {:else if d.kind === 'html'}
-    <!-- sanctioned raw boundary: verbatim row HTML the column format opted into. -->
-    <!-- eslint-disable-next-line svelte/no-at-html-tags -- the `html` cell format declares raw row HTML. -->
-    {@html d.html}
   {/if}
 {/snippet}
 
@@ -61,7 +59,7 @@
       {#each vm.actions as action (action.key)}
         <!-- sanctioned raw boundary: behavior on* chrome (opaque host scripts). -->
         <!-- eslint-disable-next-line svelte/no-at-html-tags -- actionHtml escapes the action text and attributes; only declared on* scripts pass through. -->
-        <span class="crudui-list__action" data-action={action.key}>{@html actionHtml(action)}</span>
+        <span class="crudui-list__action" data-action={action.key} {@attach patched(actionHtml(action))}>{@html firstMarkup(() => actionHtml(action))}</span>
       {/each}
     </div>
   {/if}
@@ -76,7 +74,9 @@
             {@const col = vm.columns[ci]}
             <div class={cellClass(cell)} style={cellStyle(cell)}>
               <span class="crudui-list__card-label">{col?.label ?? ''}</span>
-              <span class="crudui-list__card-value">{@render cellDisplay(cell.display)}</span>
+              <!-- sanctioned raw boundary: verbatim row HTML the column format opted into. -->
+              <!-- eslint-disable-next-line svelte/no-at-html-tags -- the `html` cell format declares raw row HTML. -->
+              {#if typeof cell.display !== 'string' && cell.display.kind === 'html'}{@const html = cell.display.html}<span class="crudui-list__card-value" {@attach patched(html)}>{@html firstMarkup(() => html)}</span>{:else}<span class="crudui-list__card-value">{@render cellDisplay(cell.display)}</span>{/if}
             </div>
           {/each}
         </article>
@@ -104,9 +104,14 @@
         {#each vm.rows as row, ri (ri)}
           <tr>
             {#each row.cells as cell, ci (ci)}
-              <td class={cellClass(cell)} style={cellStyle(cell)}>
-                {@render cellDisplay(cell.display)}
-              </td>
+              {#if typeof cell.display !== 'string' && cell.display.kind === 'html'}{@const html = cell.display.html}
+                <!-- eslint-disable-next-line svelte/no-at-html-tags -- the `html` cell format declares raw row HTML. -->
+                <td class={cellClass(cell)} style={cellStyle(cell)} {@attach patched(html)}>{@html firstMarkup(() => html)}</td>
+              {:else}
+                <td class={cellClass(cell)} style={cellStyle(cell)}>
+                  {@render cellDisplay(cell.display)}
+                </td>
+              {/if}
             {/each}
           </tr>
         {/each}

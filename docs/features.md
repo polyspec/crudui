@@ -45,7 +45,7 @@ Tests and deployment are recorded separately. `pending` is not a passing result.
 
 The current `main` tree is served by the comparison deployment. PHP, PHP extension, Go and Rust
 passed 450 generation checks, 120 persistence checks and 7,008 browser checks with zero failures.
-Each browser server completed below the 900,000 millisecond limit, and the container reported zero
+Every browser report and phase completed within its own limit, and the container reported zero
 zombie processes after verification. The current public contract is the root pipeline example; the
 separate benchmark screen is `/benchmark-console/`. The 45-record canonical list uses three pages
 of 20, 20 and 5 records. Page-level SSR contains the selected CRUDUI list or detail markup, while

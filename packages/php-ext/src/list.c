@@ -304,8 +304,59 @@ static ps_chars shortest_number(double number)
         free(text.bytes);
         if (whole && parsed == number) break;
     }
-    normalize_exponent(candidate);
-    return ps_copy(ps_fixed(candidate));
+    const char *cursor = candidate;
+    bool negative = *cursor == '-';
+    if (negative) cursor++;
+    if (!isdigit((unsigned char)*cursor)) {
+        normalize_exponent(candidate);
+        return ps_copy(ps_fixed(candidate));
+    }
+    /* Collect the significant digits and the position of the decimal point after the first of them. */
+    char digits[64];
+    size_t count = 0;
+    long point = 0;
+    bool fraction = false;
+    for (; *cursor && *cursor != 'e' && *cursor != 'E'; ++cursor) {
+        if (*cursor == '.') { fraction = true; continue; }
+        if (!count && *cursor == '0') { if (fraction) point--; continue; }
+        if (count < sizeof(digits)) digits[count++] = *cursor;
+        if (!fraction) point++;
+    }
+    if (*cursor) point += strtol(cursor + 1, NULL, 10);
+    while (count > 1 && digits[count - 1] == '0') count--;
+    if (!count) return ps_copy(PS_TEXT("0"));
+    /* Write them as JavaScript's Number to String conversion does. */
+    char text[128];
+    size_t length = 0;
+    long k = (long)count;
+    if (negative) text[length++] = '-';
+    if (k <= point && point <= 21) {
+        memcpy(text + length, digits, count);
+        length += count;
+        for (long i = k; i < point; ++i) text[length++] = '0';
+    } else if (0 < point && point <= 21) {
+        memcpy(text + length, digits, (size_t)point);
+        length += (size_t)point;
+        text[length++] = '.';
+        memcpy(text + length, digits + point, count - (size_t)point);
+        length += count - (size_t)point;
+    } else if (-6 < point && point <= 0) {
+        text[length++] = '0';
+        text[length++] = '.';
+        for (long i = point; i < 0; ++i) text[length++] = '0';
+        memcpy(text + length, digits, count);
+        length += count;
+    } else {
+        text[length++] = digits[0];
+        if (count > 1) {
+            text[length++] = '.';
+            memcpy(text + length, digits + 1, count - 1);
+            length += count - 1;
+        }
+        length += (size_t)snprintf(text + length, sizeof(text) - length, "e%c%ld", point - 1 < 0 ? '-' : '+', labs(point - 1));
+    }
+    text[length] = '\0';
+    return ps_copy(ps_fixed(text));
 }
 
 static void bigint_normalize(list_bigint *value)
@@ -580,16 +631,17 @@ static ps_chars fixed_number(double number, int decimals)
 /* A decimal number with its integer digits grouped by three; the number has no NUL character. */
 static bool append_grouped(ps_html_buffer *out, ps_text number)
 {
-    size_t dot = ps_text_find_byte(number, '.', 0);
-    size_t end = dot == SIZE_MAX ? number.length : dot;
+    /* Only the leading digit run is grouped; an exponent such as "1e+21" keeps its digits. */
     size_t start = number.length && number.bytes[0] == '-' ? 1 : 0;
+    size_t end = start;
+    while (end < number.length && isdigit((unsigned char)number.bytes[end])) end++;
     if (start && !ps_html_character(out, '-')) return false;
     for (size_t cursor = start; cursor < end; ++cursor) {
         if (cursor > start && (end - cursor) % 3 == 0 &&
             !ps_html_character(out, ',')) return false;
         if (!ps_html_character(out, number.bytes[cursor])) return false;
     }
-    return dot == SIZE_MAX || ps_html_append(out, ps_text_slice(number, dot, number.length));
+    return end == number.length || ps_html_append(out, ps_text_slice(number, end, number.length));
 }
 
 /* Take ownership of owned text and return it as a string value. */

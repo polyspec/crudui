@@ -19,17 +19,17 @@ import (
 	"github.com/polyspec/crudui/packages/validator-go/validator/validate"
 )
 
-// server holds the data and spec directories, the source identity file and the API routes
+// server holds the data and public directories, the source identity file and the API routes
 // built from the browser matrix.
 type server struct {
-	dataDir, specDir, sourceFile                 string
-	storageRoute, generationRoute, pipelineRoute *regexp.Regexp
+	dataDir, publicDir, sourceFile string
+	storageRoute, generationRoute  *regexp.Regexp
 }
 
 // newServer reads the browser matrix shared with the JavaScript comparison runner
-// (runtime-paths.json in the spec directory) once and builds the API routes from it.
-func newServer(dataDir, specDir, sourceFile string) (server, error) {
-	encoded, err := os.ReadFile(filepath.Join(specDir, "runtime-paths.json"))
+// (runtime-paths.json in the public directory) once and builds the API routes from it.
+func newServer(dataDir, publicDir, sourceFile string) (server, error) {
+	encoded, err := os.ReadFile(filepath.Join(publicDir, "runtime-paths.json"))
 	if err != nil {
 		return server{}, err
 	}
@@ -53,11 +53,10 @@ func newServer(dataDir, specDir, sourceFile string) (server, error) {
 	tail := "/(" + alternatives(matrix.RenderingPaths) + ")/(" + alternatives(matrix.Frameworks) + ")$"
 	return server{
 		dataDir:         dataDir,
-		specDir:         specDir,
+		publicDir:       publicDir,
 		sourceFile:      sourceFile,
 		storageRoute:    regexp.MustCompile(`^/api/(load|save|validate|reset)` + tail),
 		generationRoute: regexp.MustCompile(`^/api/(compile|render|ssr)` + tail),
-		pipelineRoute:   regexp.MustCompile(`^/api/pipeline/(list|detail)$`),
 	}, nil
 }
 
@@ -75,13 +74,6 @@ func writeJSON(w http.ResponseWriter, status int, body *object) {
 }
 func failure(w http.ResponseWriter, status int, err error) {
 	writeJSON(w, status, record("error", err.Error()))
-}
-
-func writeHTML(w http.ResponseWriter, status int, html string) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.Header().Set("Cache-Control", "no-store")
-	w.WriteHeader(status)
-	_, _ = io.WriteString(w, html)
 }
 
 func repositoryFailure(w http.ResponseWriter, err error) {
@@ -112,8 +104,8 @@ func valueAt(data any, path string) any {
 }
 
 func (s server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if match := s.pipelineRoute.FindStringSubmatch(r.URL.Path); match != nil {
-		s.servePipeline(w, r, match[1])
+	if r.URL.Path == "/api/records" || strings.HasPrefix(r.URL.Path, "/api/records/") {
+		s.serveRecords(w, r)
 		return
 	}
 	if match := s.generationRoute.FindStringSubmatch(r.URL.Path); match != nil {
@@ -143,7 +135,7 @@ func (s server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		failure(w, 405, fmt.Errorf("Method not allowed"))
 		return
 	}
-	repo := repository{filepath.Join(s.dataDir, "go-"+renderingPath+"-"+framework+".json"), filepath.Join(s.specDir, "records.json")}
+	repo := repository{filepath.Join(s.dataDir, "go-"+renderingPath+"-"+framework+".json"), filepath.Join(s.publicDir, "records.json")}
 	var body []byte
 	var err error
 	if action != "load" {
@@ -246,7 +238,7 @@ func (s server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		failure(w, 400, err)
 		return
 	}
-	spec, err := readObject(filepath.Join(s.specDir, "spec.json"))
+	spec, err := readObject(filepath.Join(s.publicDir, "spec.json"))
 	if err != nil {
 		failure(w, 500, err)
 		return
@@ -286,7 +278,7 @@ func (s server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	if len(os.Args) != 5 {
-		log.Fatal("Expected arguments: address data-directory spec-directory source-identity-file")
+		log.Fatal("Expected arguments: address data-directory public-directory source-identity-file")
 	}
 	s, err := newServer(os.Args[2], os.Args[3], os.Args[4])
 	if err != nil {

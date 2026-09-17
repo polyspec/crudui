@@ -8,9 +8,10 @@ import { containerRuntime } from './container-runtime.mjs';
 import { treeDirectory } from './src/server-layout.mjs';
 import { sameSourceIdentity } from './src/source-identity.mjs';
 import { sourceIdentity } from './src/source-tree.mjs';
-import { formatDuration, runStep, stopStepsOnSignal } from './src/step-runner.mjs';
+import {
+  formatDuration, runStep, stepSilenceLimitMs, stopStepsOnSignal,
+} from './src/step-runner.mjs';
 import { verifyEvidence } from './verification-evidence.mjs';
-import { buildReadinessLimitMs, verificationStages } from './verify-tree.mjs';
 
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
@@ -21,23 +22,21 @@ export function verificationCommand(containerName) {
 }
 
 /**
- * The host command holds no limit of its own: it waits exactly as long as the checks inside the
- * container may take, which is the readiness wait before and after the run plus the longest step
- * of each stage, and one minute for the container command itself.
+ * The host step that runs one verification inside the container. The run consists of steps and
+ * units with their own limits, so the host holds no total limit: it stops the run when the run
+ * prints no progress line within the inactivity limit.
  */
-export function verificationLimitMs() {
-  const stages = verificationStages()
-    .reduce((sum, stage) => sum + Math.max(...stage.map(step => step.timeoutMs)), 0);
-  return 2 * buildReadinessLimitMs + stages + 60_000;
+export function verificationStep(containerName, runtime) {
+  return {
+    id: 'tree-verification', command: runtime.executable, args: verificationCommand(containerName),
+    environment: runtime.environment, silenceLimitMs: stepSilenceLimitMs,
+  };
 }
 
-async function execute(args) {
+async function execute(containerName) {
   const runtime = await containerRuntime();
-  const result = await runStep({
-    id: 'tree-verification', command: runtime.executable, args,
-    environment: runtime.environment, timeoutMs: verificationLimitMs(),
-  }, { label: 'verification' });
-  assert.equal(result.status, 'passed', `Verification inside ${args[5]} ${result.status} after `
+  const result = await runStep(verificationStep(containerName, runtime), { label: 'verification' });
+  assert.equal(result.status, 'passed', `Verification inside ${containerName} ${result.status} after `
     + `${formatDuration(result.durationMs)}`);
   return result;
 }
@@ -46,7 +45,7 @@ async function main() {
   assert.equal(process.argv.length, 2, 'Usage: node examples/form-comparison/verification.mjs');
   stopStepsOnSignal();
   const before = await sourceIdentity(repositoryRoot);
-  const run = await execute(verificationCommand(deploymentContainer));
+  const run = await execute(deploymentContainer);
   const results = path.join(repositoryRoot, '.form-comparison/deployment/results');
   const summary = JSON.parse(await readFile(path.join(results, 'verification.json'), 'utf8'));
   assert.equal(summary.passed, true, 'The verification summary did not pass');

@@ -351,6 +351,47 @@ jobs:
       - name: Test report policy, browser jobs and source tree
         run: npm run test:form-comparison
 
+  form-comparison-pipeline:
+    name: Record stores and the canonical flow
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PUPPETEER_EXECUTABLE_PATH: /opt/google/chrome/chrome
+      PUPPETEER_SKIP_DOWNLOAD: 'true'
+      PHP_EXTENSION_PHP_CONFIG: /usr/bin/php-config8.5
+    steps:
+      - uses: actions/checkout@v6
+      - name: Setup selected Node.js release line
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.node-version'
+          cache: npm
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          tools: composer
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: '.go-version'
+          cache-dependency-path: examples/form-comparison/servers/go/go.mod
+      - name: Setup Rust (stable)
+        uses: dtolnay/rust-toolchain@stable
+      - name: Cargo cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: examples/form-comparison/servers/rust
+      - name: Install workspace and PHP dependencies
+        run: |
+          npm i -g npm@latest && npm ci --strict-allow-scripts
+          composer --working-dir=packages/validator-php install --no-interaction --prefer-dist
+          composer --working-dir=packages/generator-php install --no-interaction --prefer-dist
+      - name: Verify sandboxed Chrome
+        run: node scripts/check-ci-browser.mjs
+      - name: Test the five record stores and the canonical flow
+        run: npm run test:form-comparison:pipeline
+
   package-browser:
     name: Packages, public builds and browser inspector
     runs-on: ubuntu-latest

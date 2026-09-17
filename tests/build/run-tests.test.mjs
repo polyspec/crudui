@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -100,6 +100,21 @@ test('a test that outlives its timeout stops the tool and fails the run', async 
     assert.match(run.stdout, /▶ .*hang\.test\.mjs › hangs/);
     assert.match(run.stdout, /✖ .*hang\.test\.mjs › hangs \(1\.0s\)/);
     assert.match(run.stdout, /✔ .*hang\.test\.mjs › passes/);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
+test('a tool that fails before any test runs fails the summary line too', async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-run-tests-'));
+  try {
+    await mkdir(path.join(directory, 'src'));
+    await writeFile(path.join(directory, 'Cargo.toml'), '[package]\nname = "broken"\nversion = "0.0.0"\nedition = "2021"\n');
+    await writeFile(path.join(directory, 'src/lib.rs'), '#[test]\nfn broken() { undefined(); }\n');
+    const run = spawnSync(process.execPath, [path.join(ROOT, 'scripts/run-tests.mjs'), 'cargo', '--cwd', directory, '--', '--offline'], { encoding: 'utf8', env: { ...process.env, CARGO_TARGET_DIR: path.join(directory, 'target') } });
+    assert.notEqual(run.status, 0);
+    assert.doesNotMatch(run.stdout, /✔ cargo /);
+    assert.match(run.stdout, /✖ cargo .*: 0 passed, 0 failed, 0 timed out, 0 skipped, the tool exited with [1-9]\d*/);
   } finally {
     await rm(directory, { recursive: true, force: true });
   }

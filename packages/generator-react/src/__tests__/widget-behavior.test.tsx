@@ -1,9 +1,11 @@
 import * as React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { act, fireEvent, render } from '@testing-library/react';
-import { afterEach, expect, it } from 'vitest';
+import { afterEach, beforeEach, expect, it } from 'vitest';
 import { compileForm, createForm } from '@crudui/generator-core';
 import { Form } from '../components/Form';
+// @ts-expect-error Shared widget host across frameworks.
+import { installWidgetHost } from '../../../../tests/fixtures/form-session/typing.mjs';
 
 const behavior = { onchange: 'document.body.dataset.cruduiBehaviorEvents = String(Number(document.body.dataset.cruduiBehaviorEvents || 0) + 1)' };
 const template = compileForm({ type: 'group', properties: {
@@ -12,6 +14,7 @@ const template = compileForm({ type: 'group', properties: {
   translated: { type: 'datetime', lang: { only: ['en', 'ko'] }, behavior },
 } });
 const data = { dates: { first: '2026-09-09T12:00' }, notes: { first: 'One' }, translated: { en: '2026-09-09T12:00', ko: '2026-09-09T13:00' } };
+beforeEach(() => installWidgetHost(document));
 afterEach(() => { delete document.body.dataset.cruduiBehaviorEvents; });
 
 it('preserves declared handlers in repeated and language SSR controls', () => {

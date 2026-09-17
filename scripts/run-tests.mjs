@@ -208,8 +208,8 @@ async function main() {
   }
   const code = await new Promise(resolve => child.on('close', (status, signal) => resolve(status ?? (signal ? 1 : 0))));
   if (progress) {
-    const summary = progress.close(label);
-    process.exitCode = code === 0 && summary.ok && !timedOut ? 0 : 1;
+    const summary = progress.close(label, { exitCode: timedOut ? 0 : code });
+    process.exitCode = summary.ok && !timedOut ? 0 : 1;
   } else process.exitCode = code;
 }
 

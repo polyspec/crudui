@@ -206,6 +206,9 @@ fn text_control(kind: &str, ctx: &WidgetContext<'_>) -> Value {
             },
         );
     }
+    if kind == "number" {
+        put_string(&mut attrs, "step", "any");
+    }
     if dummy {
         put_string(&mut attrs, "readonly", "");
     }

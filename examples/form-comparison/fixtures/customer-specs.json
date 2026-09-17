@@ -1,0 +1,319 @@
+{
+  "list": {
+    "columns": {
+      "id": {
+        "field": "id",
+        "label": {
+          "ko": "식별자",
+          "en": "ID"
+        },
+        "design": {
+          "class": "pipeline-align-number"
+        },
+        "format": {
+          "type": "number",
+          "thousands": false
+        }
+      },
+      "name": {
+        "field": "name",
+        "label": {
+          "ko": "이름",
+          "en": "Name"
+        },
+        "design": {
+          "class": "pipeline-align-text"
+        },
+        "format": {
+          "type": "link",
+          "href": "/detail?id={=id}",
+          "text": {
+            "ko": "상세 보기",
+            "en": "Open detail"
+          }
+        }
+      },
+      "status": {
+        "field": "status",
+        "label": {
+          "ko": "상태",
+          "en": "Status"
+        },
+        "design": {
+          "class": "pipeline-align-center"
+        },
+        "format": {
+          "type": "badge",
+          "map": {
+            "active": "success",
+            "blocked": "danger"
+          }
+        }
+      },
+      "joined": {
+        "field": "joined",
+        "label": {
+          "ko": "가입일",
+          "en": "Joined"
+        },
+        "design": {
+          "class": "pipeline-align-center"
+        },
+        "format": {
+          "type": "date",
+          "pattern": "YYYY-MM-DD"
+        }
+      },
+      "score": {
+        "field": "score",
+        "label": {
+          "ko": "점수",
+          "en": "Score"
+        },
+        "design": {
+          "class": "pipeline-align-number"
+        },
+        "format": {
+          "type": "number",
+          "thousands": true,
+          "prefix": "$"
+        }
+      },
+      "relation": {
+        "field": "relation.name",
+        "label": {
+          "ko": "연관 이름",
+          "en": "Related name"
+        },
+        "design": {
+          "class": "pipeline-align-text"
+        },
+        "format": "text"
+      },
+      "avatar": {
+        "field": "avatar",
+        "label": {
+          "ko": "이미지",
+          "en": "Image"
+        },
+        "design": {
+          "class": "pipeline-align-image"
+        },
+        "format": {
+          "type": "image",
+          "width": 32,
+          "height": 32,
+          "alt": "{=name}.png"
+        }
+      },
+      "markup": {
+        "field": "markup",
+        "label": {
+          "ko": "HTML",
+          "en": "HTML"
+        },
+        "design": {
+          "class": "pipeline-align-text"
+        },
+        "format": "html"
+      }
+    },
+    "pagination": {
+      "per_page": 20,
+      "mode": "offset"
+    }
+  },
+  "detail": {
+    "fields": {
+      "id": {
+        "field": "id",
+        "label": {
+          "ko": "수정",
+          "en": "Edit"
+        },
+        "format": {
+          "type": "link",
+          "href": "/form?id={=id}",
+          "text": {
+            "ko": "폼 열기",
+            "en": "Open form"
+          }
+        }
+      },
+      "name": {
+        "field": "name",
+        "label": {
+          "ko": "이름",
+          "en": "Name"
+        },
+        "format": "text"
+      },
+      "status": {
+        "field": "status",
+        "label": {
+          "ko": "상태",
+          "en": "Status"
+        },
+        "format": {
+          "type": "badge",
+          "map": {
+            "active": "success",
+            "blocked": "danger"
+          }
+        }
+      },
+      "joined": {
+        "field": "joined",
+        "label": {
+          "ko": "가입일",
+          "en": "Joined"
+        },
+        "format": {
+          "type": "date",
+          "pattern": "YYYY-MM-DD"
+        }
+      },
+      "score": {
+        "field": "score",
+        "label": {
+          "ko": "점수",
+          "en": "Score"
+        },
+        "format": {
+          "type": "number",
+          "decimals": 2,
+          "thousands": true,
+          "prefix": "$"
+        }
+      },
+      "relation": {
+        "field": "relation.name",
+        "label": {
+          "ko": "연관 이름",
+          "en": "Related name"
+        },
+        "format": "text"
+      },
+      "markup": {
+        "field": "markup",
+        "label": {
+          "ko": "HTML",
+          "en": "HTML"
+        },
+        "format": "html"
+      }
+    }
+  },
+  "form": {
+    "type": "group",
+    "properties": {
+      "id": {
+        "type": "dummy-input",
+        "label": {
+          "ko": "식별자",
+          "en": "ID"
+        }
+      },
+      "name": {
+        "type": "text",
+        "label": {
+          "ko": "이름",
+          "en": "Name"
+        },
+        "validate": {
+          "required": true,
+          "maxlength": 80
+        }
+      },
+      "status": {
+        "type": "select",
+        "label": {
+          "ko": "상태",
+          "en": "Status"
+        },
+        "items": {
+          "active": {
+            "ko": "활성",
+            "en": "Active"
+          },
+          "blocked": {
+            "ko": "차단",
+            "en": "Blocked"
+          }
+        },
+        "validate": {
+          "required": true,
+          "in": [
+            "active",
+            "blocked"
+          ]
+        }
+      },
+      "joined": {
+        "type": "date",
+        "label": {
+          "ko": "가입일",
+          "en": "Joined"
+        },
+        "validate": {
+          "required": true,
+          "dateISO": true
+        }
+      },
+      "score": {
+        "type": "number",
+        "label": {
+          "ko": "점수",
+          "en": "Score"
+        },
+        "validate": {
+          "required": true,
+          "number": true,
+          "min": 0,
+          "max": 10000000
+        }
+      },
+      "relation": {
+        "type": "group",
+        "label": {
+          "ko": "연관",
+          "en": "Relation"
+        },
+        "properties": {
+          "name": {
+            "type": "text",
+            "label": {
+              "ko": "연관 이름",
+              "en": "Related name"
+            },
+            "validate": {
+              "required": true,
+              "maxlength": 80
+            }
+          }
+        }
+      },
+      "markup": {
+        "type": "textarea",
+        "label": {
+          "ko": "HTML",
+          "en": "HTML"
+        },
+        "validate": {
+          "maxlength": 2000
+        }
+      }
+    },
+    "buttons": [
+      {
+        "type": "submit",
+        "name": "_form_complete",
+        "value": "1",
+        "text": {
+          "ko": "저장",
+          "en": "Save"
+        }
+      }
+    ]
+  }
+}

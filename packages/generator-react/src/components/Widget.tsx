@@ -9,12 +9,12 @@
  *
  * Sanctioned non-JSX passthrough (per parity strategy), and ONLY these:
  *  - RAW display html (dummy/image-viewer body) — unescaped content,
- *  - script/style chrome (search/editors/button) — verbatim JS/CSS text,
+ *  - script/style chrome (search/editors/button) — verbatim JS/CSS text (RawText),
  *  - the `&nbsp;` caption on the file-search button (a literal entity),
  *  - a control's OPAQUE `on*` behavior attributes (React structurally drops
  *    string event attrs) and the select2 host `selected="selected"` — both are
- *    opaque verbatim chrome, serialized via the immediate container's
- *    dangerouslySetInnerHTML (the container stays a real JSX element).
+ *    opaque verbatim chrome, serialized into the immediate container by
+ *    `RawContainer` (the container stays a real JSX element).
  * Every other node is a JSX element; there is no completed-HTML echo.
  */
 
@@ -27,6 +27,8 @@ import {
   rawVoid,
   rawElement,
   rawOptions,
+  RawContainer,
+  RawText,
   escAttr,
   escText,
 } from './raw';
@@ -92,7 +94,7 @@ function WidgetGroup({ w }: { w: WidgetModel }): React.ReactElement {
   // Opaque on* attrs → serialize the whole widget body raw (container JSX).
   if (hasEventAttr(w.attrs)) {
     const html = affixHtml(w.prepend) + rawControl(w) + affixHtml(w.append);
-    return <div className="crudui-widget" dangerouslySetInnerHTML={{ __html: html }} />;
+    return <RawContainer className="crudui-widget" html={html} />;
   }
   let control: React.ReactElement;
   if (w.tag === 'select') {
@@ -148,7 +150,7 @@ function HostScript({ w }: { w: WidgetModel }): React.ReactElement {
   return (
     <>
       {control}
-      <script nonce="" dangerouslySetInnerHTML={{ __html: w.script ?? '' }} />
+      <RawText tag="script" nonce="" text={w.script ?? ''} />
     </>
   );
 }
@@ -227,7 +229,7 @@ function Choices({ w }: { w: WidgetModel }): React.ReactElement {
     const html = (w.options ?? [])
       .map((o) => groupButtonHtml(o, type, shared, labelClass))
       .join('');
-    return <div {...props} dangerouslySetInnerHTML={{ __html: html }} />;
+    return <RawContainer {...props} html={html} />;
   }
   return (
     <div {...props}>
@@ -252,7 +254,7 @@ function FileGroup({ w }: { w: WidgetModel }): React.ReactElement {
         : '') +
       rawVoid('input', fileAttrs) +
       (display ? `<button class="crudui-widget__button" type="button">&nbsp;</button>` : '');
-    return <div className="crudui-widget" dangerouslySetInnerHTML={{ __html: html }} />;
+    return <RawContainer className="crudui-widget" html={html} />;
   }
   return (
     <div className="crudui-widget">
@@ -260,11 +262,7 @@ function FileGroup({ w }: { w: WidgetModel }): React.ReactElement {
       {display ? <input {...inputProps(display)} /> : null}
       {fileEl}
       {display ? (
-        <button
-          className="crudui-widget__button"
-          type="button"
-          dangerouslySetInnerHTML={{ __html: '&nbsp;' }}
-        />
+        <RawContainer tag="button" className="crudui-widget__button" type="button" html={'&nbsp;'} />
       ) : null}
     </div>
   );
@@ -278,7 +276,7 @@ function Display({ w }: { w: WidgetModel }): React.ReactElement {
   }
   // RAW html display (dummy/image-viewer) — unescaped content.
   const props = plainProps(w.attrs);
-  return <div {...props} dangerouslySetInnerHTML={{ __html: w.rawHtml ?? '' }} />;
+  return <RawContainer {...props} html={w.rawHtml ?? ''} />;
 }
 
 /** search layout: style?/script chrome + select2 host select inside .crudui-widget--search. */
@@ -293,11 +291,9 @@ function Search({ w }: { w: WidgetModel }): React.ReactElement {
     affixHtml(w.append);
   return (
     <>
-      {w.styleChrome ? (
-        <style nonce="" dangerouslySetInnerHTML={{ __html: w.styleChrome }} />
-      ) : null}
-      <script nonce="" dangerouslySetInnerHTML={{ __html: w.script ?? '' }} />
-      <div className="crudui-widget crudui-widget--search" dangerouslySetInnerHTML={{ __html: innerHtml }} />
+      {w.styleChrome ? <RawText tag="style" nonce="" text={w.styleChrome} /> : null}
+      <RawText tag="script" nonce="" text={w.script ?? ''} />
+      <RawContainer className="crudui-widget crudui-widget--search" html={innerHtml} />
     </>
   );
 }
@@ -307,7 +303,7 @@ function ActionButton({ w }: { w: WidgetModel }): React.ReactElement {
   const hidden = w.extra?.hidden ?? {};
   return (
     <>
-      <script nonce="" dangerouslySetInnerHTML={{ __html: w.script ?? '' }} />
+      <RawText tag="script" nonce="" text={w.script ?? ''} />
       <input {...inputProps(hidden)} />
       <input {...inputProps(w.attrs)} />
     </>
