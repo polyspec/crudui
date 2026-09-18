@@ -30,7 +30,9 @@ apply this rule (`arguments.js` and its copies in the PHP, Go and Rust
 drivers) before they load a validator; any other value, such as `1e20`,
 `1.5`, `-1` or `abc`, stops the program with exit status 2 and
 `--iters must be a whole number from 1 to 10000000`. `npm run test:bench`
-checks every driver against `tests/fixtures/bench/iteration-arguments.json`.
+checks every driver against `tools/bench/iteration-arguments.json`. That file lists each rejected
+argument pair with its message under `rejected`, and under `accepted` one run of the `contact`
+fixture with the smallest counts, whose report must name that spec and that iteration count.
 
 `run.js` gives each driver 600 seconds, including the `go run` or cargo
 build. The driver runs in its own process group; at the limit the whole group

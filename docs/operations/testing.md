@@ -10,6 +10,8 @@ checking their compiled exports.
 The release profile of the cross-check console's Rust validator program uses `strip = "none"`.
 This keeps release builds independent of the toolchain's optional `rust-objcopy`/`libLLVM.dylib`
 strip pairing; a build must not leave a strip warning after reporting a successful binary.
+Every crate that declares a release profile sets `strip = "none"`;
+`tests/build/rust-release-profile.test.mjs`, run by `npm run test:runtimes`, fails otherwise.
 
 `make ci` runs every checking command of the CI workflow in the workflow's order, collects the
 conformance evidence and checks it as the final CI job does; `tests/build/ci-local.test.mjs` fails
