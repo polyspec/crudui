@@ -547,12 +547,22 @@ export class Lexer {
 // ============================================================================
 
 /**
+ * The most nodes on a path from the root of an expression's syntax tree to a
+ * leaf. A deeper expression is a parse error in every runtime.
+ */
+export const MAX_EXPRESSION_DEPTH = 64;
+
+/**
  * Parser class for building AST from tokens
  */
 export class Parser {
   private tokens: Token[];
   private current: number = 0;
   private partialAST: ASTNode | null = null;
+  /** Nodes being parsed whose children are still open: each is an ancestor of what comes next. */
+  private open = 0;
+  /** Height of the node the last parse method returned. */
+  private height = 0;
 
   constructor(tokens: Token[]) {
     this.tokens = tokens;
@@ -589,7 +599,10 @@ export class Parser {
     this.partialAST = condition;
 
     if (this.match(TokenType.QUESTION)) {
+      const conditionHeight = this.height;
+      this.enter();
       const trueValue = this.parseTernaryExpression();
+      const trueHeight = this.height;
 
       if (!this.match(TokenType.COLON)) {
         const token = this.peek();
@@ -607,8 +620,9 @@ export class Parser {
       }
 
       const falseValue = this.parseTernaryExpression();
+      this.open--;
 
-      return {
+      return this.node(Math.max(conditionHeight, trueHeight, this.height), {
         type: 'Ternary',
         condition,
         trueValue,
@@ -617,7 +631,7 @@ export class Parser {
           start: condition.position.start,
           end: falseValue.position.end,
         },
-      } as TernaryNode;
+      } as TernaryNode);
     }
 
     return condition;
@@ -626,10 +640,11 @@ export class Parser {
   // or_expression = and_expression { "||" and_expression }
   private parseOrExpression(): ASTNode {
     let left = this.parseAndExpression();
+    let height = this.height;
 
     while (this.match(TokenType.OR)) {
       const right = this.parseAndExpression();
-      left = {
+      left = this.node(Math.max(height, this.height), {
         type: 'Binary',
         operator: '||',
         left,
@@ -638,7 +653,8 @@ export class Parser {
           start: left.position.start,
           end: right.position.end,
         },
-      } as BinaryNode;
+      } as BinaryNode);
+      height = this.height;
     }
 
     return left;
@@ -647,10 +663,11 @@ export class Parser {
   // and_expression = not_expression { "&&" not_expression }
   private parseAndExpression(): ASTNode {
     let left = this.parseNotExpression();
+    let height = this.height;
 
     while (this.match(TokenType.AND)) {
       const right = this.parseNotExpression();
-      left = {
+      left = this.node(Math.max(height, this.height), {
         type: 'Binary',
         operator: '&&',
         left,
@@ -659,7 +676,8 @@ export class Parser {
           start: left.position.start,
           end: right.position.end,
         },
-      } as BinaryNode;
+      } as BinaryNode);
+      height = this.height;
     }
 
     return left;
@@ -669,8 +687,10 @@ export class Parser {
   private parseNotExpression(): ASTNode {
     if (this.match(TokenType.NOT)) {
       const startPos = this.previous().position.start;
+      this.enter();
       const operand = this.parseNotExpression();
-      return {
+      this.open--;
+      return this.node(this.height, {
         type: 'Unary',
         operator: '!',
         operand,
@@ -678,7 +698,7 @@ export class Parser {
           start: startPos,
           end: operand.position.end,
         },
-      } as UnaryNode;
+      } as UnaryNode);
     }
 
     return this.parseComparison();
@@ -687,13 +707,14 @@ export class Parser {
   // comparison = primary [ comparison_op value | in_op value_list ]
   private parseComparison(): ASTNode {
     const left = this.parsePrimary();
+    const leftHeight = this.height;
 
     // Check for IN operator
     if (this.match(TokenType.IN, TokenType.NOT_IN)) {
       const negated = this.previous().type === TokenType.NOT_IN;
       const list = this.parseValueList();
       const lastItem = list[list.length - 1];
-      return {
+      return this.node(leftHeight, {
         type: 'In',
         negated,
         value: left,
@@ -702,7 +723,7 @@ export class Parser {
           start: left.position.start,
           end: lastItem ? lastItem.position.end : left.position.end,
         },
-      } as InNode;
+      } as InNode);
     }
 
     // Check for comparison operators
@@ -719,7 +740,7 @@ export class Parser {
       const operator = this.previous().value as BinaryNode['operator'];
       // Parse right side: allows unquoted identifiers as string literals
       const right = this.parseComparisonValue();
-      return {
+      return this.node(Math.max(leftHeight, this.height), {
         type: 'Binary',
         operator,
         left,
@@ -728,7 +749,7 @@ export class Parser {
           start: left.position.start,
           end: right.position.end,
         },
-      } as BinaryNode;
+      } as BinaryNode);
     }
 
     return left;
@@ -832,6 +853,7 @@ export class Parser {
       if (!this.check(TokenType.DOT)) {
         // No dot after identifier - treat as string literal
         const prev = this.previous();
+        this.height = 1;
         return {
           type: 'Literal',
           valueType: 'string',
@@ -853,7 +875,9 @@ export class Parser {
     // Grouped expression
     if (this.match(TokenType.LPAREN)) {
       const startPos = this.previous().position.start;
+      this.enter();
       const expression = this.parseOrExpression();
+      this.open--;
 
       if (!this.match(TokenType.RPAREN)) {
         const token = this.peek();
@@ -870,15 +894,18 @@ export class Parser {
         );
       }
 
-      return {
+      return this.node(this.height, {
         type: 'Group',
         expression,
         position: {
           start: startPos,
           end: this.previous().position.end,
         },
-      } as GroupNode;
+      } as GroupNode);
     }
+
+    // A path or a literal is a leaf.
+    this.height = 1;
 
     // Path (starts with dot or identifier)
     if (
@@ -1021,6 +1048,32 @@ export class Parser {
         end: endPos,
       },
     };
+  }
+
+  /** Open a node whose children follow; the tree is at least one level deeper than the open nodes. */
+  private enter(): void {
+    this.open++;
+    if (this.open >= MAX_EXPRESSION_DEPTH) this.tooDeep();
+  }
+
+  /** A node whose tallest child has `childHeight`; it becomes the last parsed node. */
+  private node<T extends ASTNode>(childHeight: number, node: T): T {
+    this.height = childHeight + 1;
+    if (this.height > MAX_EXPRESSION_DEPTH) this.tooDeep();
+    return node;
+  }
+
+  private tooDeep(): never {
+    const token = this.peek();
+    throw new ParseError(
+      `Expression is nested more than ${MAX_EXPRESSION_DEPTH} levels deep`,
+      token.position,
+      {
+        foundToken: token,
+        phase: 'parser',
+        hint: 'Split the condition or remove redundant parentheses and negations.',
+      }
+    );
   }
 
   private match(...types: TokenType[]): boolean {

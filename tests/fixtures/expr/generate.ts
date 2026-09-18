@@ -9,7 +9,12 @@
  * value  = evaluateExpressionValue(ast, ctx)   (ternary returns its branch value)
  * truthy = evaluateCondition(ast, ctx)          (boolean evaluate())
  */
-import { Lexer, Parser } from '../../../packages/validator-ts/src/parser/ConditionParser';
+import {
+  Lexer,
+  MAX_EXPRESSION_DEPTH,
+  ParseError,
+  Parser,
+} from '../../../packages/validator-ts/src/parser/ConditionParser';
 import {
   evaluateCondition,
   evaluateExpressionValue,
@@ -354,6 +359,53 @@ const SPECS: CaseSpec[] = [
     expr: 'false',
     dataCases: [{ data: {} }],
   },
+
+  // ---- nesting limit: a syntax tree of exactly the limit is accepted -----
+  {
+    name: 'nesting-at-limit',
+    expr: nested(MAX_EXPRESSION_DEPTH - 1, '.a'),
+    dataCases: [{ data: { a: 1 } }, { data: { a: 0 } }],
+  },
+  {
+    name: 'nesting-at-limit-negations',
+    expr: '!'.repeat(MAX_EXPRESSION_DEPTH - 1) + '.a',
+    dataCases: [{ data: { a: 1 } }, { data: { a: 0 } }],
+  },
+  {
+    name: 'nesting-at-limit-chain',
+    expr: Array.from({ length: MAX_EXPRESSION_DEPTH }, () => '.a').join(' || '),
+    dataCases: [{ data: { a: 1 } }, { data: { a: 0 } }],
+  },
+  {
+    name: 'nesting-at-limit-ternaries',
+    expr: '.a ? 1 : '.repeat(MAX_EXPRESSION_DEPTH - 1) + '2',
+    dataCases: [{ data: { a: 1 } }, { data: { a: 0 } }],
+  },
+];
+
+/** `count` parentheses around `inner`. */
+function nested(count: number, inner: string): string {
+  return '('.repeat(count) + inner + ')'.repeat(count);
+}
+
+// ---------------------------------------------------------------------------
+// Rejected expressions: { name, expr }. The expected error is the first line of
+// the message the engine reports below.
+// ---------------------------------------------------------------------------
+
+const REJECTED: Array<{ name: string; expr: string }> = [
+  { name: 'in-bracket-list-unclosed', expr: '.country in [US, CA' },
+  // Each tree is one level deeper than the limit.
+  { name: 'nesting-over-limit-groups', expr: nested(MAX_EXPRESSION_DEPTH, '.a') },
+  { name: 'nesting-over-limit-negations', expr: '!'.repeat(MAX_EXPRESSION_DEPTH) + '.a' },
+  { name: 'nesting-over-limit-comparison', expr: nested(MAX_EXPRESSION_DEPTH - 1, '.a == 1') },
+  {
+    name: 'nesting-over-limit-chain',
+    expr: Array.from({ length: MAX_EXPRESSION_DEPTH + 1 }, () => '.a').join(' || '),
+  },
+  { name: 'nesting-over-limit-ternaries', expr: '.a ? 1 : '.repeat(MAX_EXPRESSION_DEPTH) + '1' },
+  // Far deeper than any parser stack: the parser stops at the limit.
+  { name: 'nesting-far-over-limit', expr: nested(10000, '.a') },
 ];
 
 // ---------------------------------------------------------------------------
@@ -397,4 +449,16 @@ const out = SPECS.map((spec) => {
   return { name: spec.name, expr: spec.expr, tokens, ast, cases };
 });
 
-process.stdout.write(JSON.stringify(out, null, 2) + '\n');
+const rejected = REJECTED.map(({ name, expr }) => {
+  try {
+    new Parser(new Lexer(expr).tokenize()).parse();
+  } catch (error) {
+    if (error instanceof ParseError) {
+      return { name, expr, error: error.message.split('\n')[0] };
+    }
+    throw error;
+  }
+  throw new Error(`${name} parsed; it must be rejected`);
+});
+
+process.stdout.write(JSON.stringify([...out, ...rejected], null, 2) + '\n');

@@ -52,20 +52,6 @@ ps_value *ps_value_new(uint8_t kind)
     return value;
 }
 
-void ps_value_free(ps_value *value)
-{
-    if (!value) return;
-    if (value->kind == PS_STRING) free(value->data.string.bytes);
-    if (value->kind == PS_ARRAY || value->kind == PS_OBJECT) {
-        for (size_t i = 0; i < value->data.children.length; ++i) {
-            free(value->data.children.items[i].key);
-            ps_value_free(value->data.children.items[i].value);
-        }
-        free(value->data.children.items);
-    }
-    free(value);
-}
-
 static void clear_value(ps_value *value)
 {
     if (!value) return;
@@ -76,8 +62,15 @@ static void clear_value(ps_value *value)
             ps_value_free(value->data.children.items[i].value);
         }
         free(value->data.children.items);
+        free(value->data.children.slots);
     }
     memset(&value->data, 0, sizeof(value->data));
+}
+
+void ps_value_free(ps_value *value)
+{
+    clear_value(value);
+    free(value);
 }
 
 void ps_value_bool(ps_value *value, bool input)
@@ -117,9 +110,61 @@ static bool reserve(ps_value *value)
     value->data.children.items = items; value->data.children.capacity = capacity; return true;
 }
 
+/* An object with at least this many members finds a name through its index instead of a scan. */
+#define INDEXED_MEMBERS 16
+
+/* FNV-1a over the name bytes. */
+static size_t name_hash(const char *key, size_t length)
+{
+    uint64_t hash = UINT64_C(14695981039346656037);
+    for (size_t i = 0; i < length; ++i) hash = (hash ^ (uint8_t)key[i]) * UINT64_C(1099511628211);
+    return (size_t)hash;
+}
+
+static void index_member(ps_value *object, size_t position)
+{
+    const ps_member *member = &object->data.children.items[position];
+    size_t mask = object->data.children.slot_count - 1;
+    size_t slot = name_hash(member->key, member->key_length) & mask;
+    while (object->data.children.slots[slot]) slot = (slot + 1) & mask;
+    object->data.children.slots[slot] = position + 1;
+}
+
+/*
+ * Rebuild the index of an object's members with room for four times as many; without memory for
+ * it, names are found by scanning.
+ */
+void ps_value_reindex(ps_value *object)
+{
+    if (!object || object->kind != PS_OBJECT) return;
+    free(object->data.children.slots);
+    object->data.children.slots = NULL;
+    object->data.children.slot_count = 0;
+    size_t length = object->data.children.length, count = INDEXED_MEMBERS * 4;
+    if (length < INDEXED_MEMBERS) return;
+    while (count < length * 4) {
+        if (count > SIZE_MAX / 2 / sizeof(size_t)) return;
+        count *= 2;
+    }
+    size_t *slots = calloc(count, sizeof(*slots));
+    if (!slots) return;
+    object->data.children.slots = slots;
+    object->data.children.slot_count = count;
+    for (size_t i = 0; i < length; ++i) index_member(object, i);
+}
+
 static size_t member_index(const ps_value *object, const char *key, size_t length)
 {
     if (!object || object->kind != PS_OBJECT || !key) return SIZE_MAX;
+    const size_t *slots = object->data.children.slots;
+    if (slots) {
+        size_t mask = object->data.children.slot_count - 1;
+        for (size_t slot = name_hash(key, length) & mask; slots[slot]; slot = (slot + 1) & mask) {
+            const ps_member *member = &object->data.children.items[slots[slot] - 1];
+            if (member->key_length == length && !memcmp(member->key, key, length)) return slots[slot] - 1;
+        }
+        return SIZE_MAX;
+    }
     for (size_t i = 0; i < object->data.children.length; ++i) {
         const ps_member *member = &object->data.children.items[i];
         if (member->key_length == length && !memcmp(member->key, key, length)) return i;
@@ -149,7 +194,12 @@ bool ps_value_insert(ps_value *parent, const uint8_t *key, size_t length, ps_val
     }
     char *copy = copy_bytes(key, length);
     if (!copy || !reserve(parent)) { free(copy); ps_value_free(child); return false; }
-    parent->data.children.items[parent->data.children.length++] = (ps_member){copy, length, child};
+    size_t position = parent->data.children.length++;
+    parent->data.children.items[position] = (ps_member){copy, length, child};
+    /* The index stays at most half full. */
+    if (parent->data.children.slots && position * 2 < parent->data.children.slot_count)
+        index_member(parent, position);
+    else if (position + 1 >= INDEXED_MEMBERS) ps_value_reindex(parent);
     return true;
 }
 
@@ -222,33 +272,36 @@ static bool array_index_name(const char *key, size_t length, uint64_t *index)
     return true;
 }
 
+typedef struct { uint64_t index; ps_member member; } index_member_name;
+
+static int compare_index_names(const void *left, const void *right)
+{
+    uint64_t a = ((const index_member_name *)left)->index, b = ((const index_member_name *)right)->index;
+    return (a > b) - (a < b);
+}
+
 bool ps_value_order(ps_value *value)
 {
     if (!value || (value->kind != PS_ARRAY && value->kind != PS_OBJECT)) return true;
     size_t length = value->data.children.length;
     ps_member *items = value->data.children.items;
     if (value->kind == PS_OBJECT && length > 1) {
-        ps_member *ordered = malloc(length * sizeof(*ordered));
-        uint64_t *indexes = malloc(length * sizeof(*indexes));
-        if (!ordered || !indexes) { free(ordered); free(indexes); return false; }
-        size_t count = 0;
-        /* Array index names in ascending numeric order; each insertion keeps the prefix sorted. */
+        index_member_name *named = malloc(length * sizeof(*named));
+        ps_member *others = malloc(length * sizeof(*others));
+        if (!named || !others) { free(named); free(others); return false; }
+        size_t count = 0, other = 0;
         for (size_t i = 0; i < length; ++i) {
             uint64_t index;
-            if (!array_index_name(items[i].key, items[i].key_length, &index)) continue;
-            size_t at = count;
-            while (at > 0 && indexes[at - 1] > index) {
-                indexes[at] = indexes[at - 1]; ordered[at] = ordered[at - 1]; --at;
-            }
-            indexes[at] = index; ordered[at] = items[i]; ++count;
+            if (array_index_name(items[i].key, items[i].key_length, &index)) named[count++] = (index_member_name){index, items[i]};
+            else others[other++] = items[i];
         }
+        /* Array index names in ascending numeric order; names are distinct, so no two compare equal. */
+        qsort(named, count, sizeof(*named), compare_index_names);
+        for (size_t i = 0; i < count; ++i) items[i] = named[i].member;
         /* Then every other name in insertion order. */
-        for (size_t i = 0; i < length; ++i) {
-            uint64_t index;
-            if (!array_index_name(items[i].key, items[i].key_length, &index)) ordered[count++] = items[i];
-        }
-        memcpy(items, ordered, length * sizeof(*items));
-        free(ordered); free(indexes);
+        memcpy(items + count, others, other * sizeof(*items));
+        free(named); free(others);
+        ps_value_reindex(value);
     }
     for (size_t i = 0; i < length; ++i)
         if (!ps_value_order(items[i].value)) return false;
@@ -309,7 +362,9 @@ bool ps_delete_text(ps_value *object, ps_text key)
     ps_member *member = &object->data.children.items[index];
     free(member->key); ps_value_free(member->value);
     memmove(member, member + 1, (object->data.children.length - index - 1) * sizeof(*member));
-    object->data.children.length--; return true;
+    object->data.children.length--;
+    ps_value_reindex(object);
+    return true;
 }
 
 const ps_value *ps_get(const ps_value *value, const char *key)

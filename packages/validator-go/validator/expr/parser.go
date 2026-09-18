@@ -1,6 +1,14 @@
 package expr
 
-import "slices"
+import (
+	"fmt"
+	"slices"
+)
+
+// MaxExpressionDepth is the most nodes on a path from the root of an
+// expression's syntax tree to a leaf. A deeper expression is a parse error in
+// every runtime.
+const MaxExpressionDepth = 64
 
 // ParseError is raised by the lexer or parser on malformed input. It is panicked
 // internally and recovered by Parse/Tokenize wrappers into a returned error.
@@ -30,6 +38,10 @@ func (e *ParseError) Error() string {
 type Parser struct {
 	tokens  []Token
 	current int
+	// open counts nodes whose children are being parsed: each is an ancestor of what comes next.
+	open int
+	// height is the height of the node the last parse method returned.
+	height int
 }
 
 // NewParser builds a parser over a lexer's token stream (must end in EOF).
@@ -55,14 +67,19 @@ func (p *Parser) parseTernaryExpression() Node {
 	condition := p.parseOrExpression()
 
 	if p.match(TokenQuestion) {
+		conditionHeight := p.height
+		p.enter()
 		trueValue := p.parseTernaryExpression()
+		trueHeight := p.height
 
 		if !p.match(TokenColon) {
 			panic(&ParseError{Message: "Missing colon in ternary expression"})
 		}
 
 		falseValue := p.parseTernaryExpression()
+		p.open--
 
+		p.node(max(conditionHeight, trueHeight, p.height))
 		return &TernaryNode{Condition: condition, TrueValue: trueValue, FalseValue: falseValue}
 	}
 
@@ -72,9 +89,11 @@ func (p *Parser) parseTernaryExpression() Node {
 // or = and { "||" and }
 func (p *Parser) parseOrExpression() Node {
 	left := p.parseAndExpression()
+	height := p.height
 
 	for p.match(TokenOr) {
 		right := p.parseAndExpression()
+		height = p.node(max(height, p.height))
 		left = &BinaryNode{Operator: "||", Left: left, Right: right}
 	}
 
@@ -84,9 +103,11 @@ func (p *Parser) parseOrExpression() Node {
 // and = not { "&&" not }
 func (p *Parser) parseAndExpression() Node {
 	left := p.parseNotExpression()
+	height := p.height
 
 	for p.match(TokenAnd) {
 		right := p.parseNotExpression()
+		height = p.node(max(height, p.height))
 		left = &BinaryNode{Operator: "&&", Left: left, Right: right}
 	}
 
@@ -96,7 +117,10 @@ func (p *Parser) parseAndExpression() Node {
 // not = "!" not | comparison
 func (p *Parser) parseNotExpression() Node {
 	if p.match(TokenNot) {
+		p.enter()
 		operand := p.parseNotExpression()
+		p.open--
+		p.node(p.height)
 		return &UnaryNode{Operator: "!", Operand: operand}
 	}
 
@@ -106,16 +130,19 @@ func (p *Parser) parseNotExpression() Node {
 // comparison = primary [ cmp_op cmp_value | in_op value_list ]
 func (p *Parser) parseComparison() Node {
 	left := p.parsePrimary()
+	leftHeight := p.height
 
 	if p.match(TokenIn, TokenNotIn) {
 		negated := p.previous().Type == TokenNotIn
 		list := p.parseValueList()
+		p.node(leftHeight)
 		return &InNode{Negated: negated, Value: left, List: list}
 	}
 
 	if p.match(TokenEQ, TokenNE, TokenGT, TokenGE, TokenLT, TokenLE) {
 		operator := p.previous().Value
 		right := p.parseComparisonValue()
+		p.node(max(leftHeight, p.height))
 		return &BinaryNode{Operator: operator, Left: left, Right: right}
 	}
 
@@ -168,6 +195,7 @@ func (p *Parser) parseComparisonValue() Node {
 		p.advance() // consume identifier
 
 		if !p.check(TokenDot) {
+			p.height = 1
 			return &LiteralNode{ValueType: "string", Value: p.previous().Value}
 		}
 
@@ -181,12 +209,18 @@ func (p *Parser) parseComparisonValue() Node {
 // primary = "(" or ")" | path | literal
 func (p *Parser) parsePrimary() Node {
 	if p.match(TokenLParen) {
+		p.enter()
 		expression := p.parseOrExpression()
+		p.open--
 		if !p.match(TokenRParen) {
 			panic(&ParseError{Message: "Missing closing parenthesis"})
 		}
+		p.node(p.height)
 		return &GroupNode{Expression: expression}
 	}
+
+	// A path or a literal is a leaf.
+	p.height = 1
 
 	if p.check(TokenDot) || p.check(TokenDotDot) || p.check(TokenIdentifier) {
 		return p.parsePath()
@@ -246,6 +280,29 @@ func (p *Parser) parsePath() *PathNode {
 	}
 
 	return &PathNode{Relative: relative, LevelsUp: levelsUp, Segments: segments}
+}
+
+// enter opens a node whose children follow; the tree is at least one level
+// deeper than the open nodes.
+func (p *Parser) enter() {
+	p.open++
+	if p.open >= MaxExpressionDepth {
+		p.tooDeep()
+	}
+}
+
+// node records a node whose tallest child has childHeight as the last parsed
+// node and returns its height.
+func (p *Parser) node(childHeight int) int {
+	p.height = childHeight + 1
+	if p.height > MaxExpressionDepth {
+		p.tooDeep()
+	}
+	return p.height
+}
+
+func (p *Parser) tooDeep() {
+	panic(&ParseError{Message: fmt.Sprintf("Expression is nested more than %d levels deep", MaxExpressionDepth)})
 }
 
 func literalToInt(lit any) int {

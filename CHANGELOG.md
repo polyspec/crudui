@@ -31,6 +31,18 @@
   own process group with a limit (`scripts/bounded-command.mjs`); at the limit the whole group
   stops, a process that ignores SIGTERM included, and each command prints its elapsed time.
   `CRUDUI_COMMAND_LIMIT_SECONDS` replaces the limit.
+- An expression's syntax tree is at most 64 levels deep in every runtime; a deeper one is a
+  parse error with one message. Deep parentheses had exhausted the TypeScript parser's stack and
+  aborted the Rust process, and every other runtime accepted any depth. Shared expression cases
+  check each construct at the limit, one level over it and 10,000 levels deep.
+- The PHP extension freed a list item twice when an `in [` list was not closed, which aborted the
+  process; the unclosed list is a shared rejected expression case.
+- Reading JSON text in Rust and inserting object members in the PHP extension found a repeated
+  member name by comparing it with every earlier one, so 80,000 members took about six seconds.
+  Both find it through a hash index, and the extension orders array index names by sorting.
+- The `unique` rule in the PHP extension ran its filter condition for every pair of rows and
+  compared every pair; the PHP validator searched a list for every value. Both now take time
+  proportional to the rows. Timing tests compare four times the input against the base size.
 
 ## 2026-09-18 — Accept the form data the library produces
 
