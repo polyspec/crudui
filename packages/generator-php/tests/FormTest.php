@@ -428,8 +428,19 @@ final class FormTest extends TestCase
                 self::assertSame('INVALID_FORM_INPUT', $error->getErrorCode());
             }
         }
-        // Value limits (docs/spec/input-text.md): a reference cycle and a list shared forty levels
-        // deep fail in the input walk, in bounded time.
+    }
+
+    /**
+     * Value limits (docs/spec/input-text.md): an object that contains itself, a reference cycle
+     * and a list shared forty levels deep fail in the input walk. Each shape is one test within the
+     * per-test limit, which a walk that grows with the tree a value denotes never meets.
+     *
+     * @dataProvider limitProvider
+     */
+    public function testValuesBeyondTheLimitsFail(string $shape): void
+    {
+        $object = new stdClass();
+        $object->self = $object;
         $loop = [];
         $loop['self'] = &$loop;
         $loop['again'] = &$loop;
@@ -437,13 +448,20 @@ final class FormTest extends TestCase
         for ($i = 0; $i < 40; $i++) {
             $shared = [$shared, $shared];
         }
-        foreach ([$object, ['loop' => $loop], ['list' => $shared]] as $data) {
-            try {
-                new Form($template, $data);
-                self::fail('A value beyond the limits must fail');
-            } catch (FormError $error) {
-                self::assertSame('Recursive or excessively nested value: data', $error->getMessage());
-            }
+        $data = ['object' => $object, 'loop' => ['loop' => $loop], 'shared' => ['list' => $shared]][$shape];
+        try {
+            new Form(self::template(), $data);
+            self::fail('A value beyond the limits must fail');
+        } catch (FormError $error) {
+            self::assertSame('Recursive or excessively nested value: data', $error->getMessage());
+        }
+    }
+
+    /** @return iterable<string, array{string}> */
+    public static function limitProvider(): iterable
+    {
+        foreach (['object', 'loop', 'shared'] as $shape) {
+            yield $shape => [$shape];
         }
     }
 }
