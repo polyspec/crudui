@@ -10,8 +10,8 @@
   for JSON, and what a browser submits from the rendered form for the native form. Hand-written
   submissions had hidden the mismatch.
 - Every server takes the benchmark request through the same rule as the record save: exactly
-  `form` in JSON, exactly `form[...]` and the completion field in a native form; the Rust server
-  had accepted other members.
+  `form` in JSON, exactly `form[...]` and the completion field in a native form. The Rust server
+  had accepted other members in both, the Go server in both and the PHP servers in JSON.
 
 ## 2026-09-18 — Show the repeated companies form in the canonical record
 
