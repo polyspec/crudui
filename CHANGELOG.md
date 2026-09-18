@@ -11,6 +11,12 @@
   (setup-php provides `php-fpm`), and the filter for the built-in server's access lines is removed. PHP-FPM logs to a file in
   its run directory and copies every message to standard error (`-O`), because a container's
   standard error is a pipe that `/dev/stderr` cannot reopen.
+- nginx answered an oversized body from its headers and closed the connection while the client
+  was still sending, and the public server's forwarder then cut the 413 it had already received
+  (one request in thirty failed with EPIPE). nginx now reads and discards the rest of such a body
+  within ten seconds (`lingering_close always`), the forwarder keeps an answer a server has given
+  whatever happens to the rest of the upload, and the benchmark routes' 413 names the JSON
+  processor as every other benchmark response of a PHP server does.
 - A cycle that failed before its restarts left servers that never started, and the next cycle
   restarted only what its sources changed, so those servers stayed down. Every cycle now also
   starts each supervised process that is not running.
@@ -29,8 +35,8 @@
 - The PHP value copies and the extension's value conversion apply the same limits to every value
   they convert, so members that no check walks are bounded too.
 - The shared cases `tests/fixtures/text-validity/value-graphs.json` build shared and
-  self-containing values in each of those runtimes; each case is one test within the runner's
-  per-test limit, which a walk over the 2^40 nodes of a shared list never meets.
+  self-containing values in each of those runtimes; each case, copy and shape is one test within the
+  runner's per-test limit, which a walk over the 2^40 nodes of a shared list never meets.
 - The benchmark drivers took their iteration counts unchecked: `--iters 1e20` looped without end in
   PHP, and `0`, `-1`, `1.5` or `abc` ran a meaningless or failing loop. `tools/bench/run.js` and the
   JavaScript, PHP, Go and Rust drivers now accept one to eight decimal digits, `--iters` from 1 and

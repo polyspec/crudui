@@ -49,8 +49,11 @@ async function configure() {
     '',
   ].join('\n'));
   const [host, port] = [address.slice(0, address.lastIndexOf(':')), address.slice(address.lastIndexOf(':') + 1)];
-  const failure = (status, message) => `default_type 'application/json; charset=utf-8'; `
-    + `add_header Cache-Control no-store always; return ${status} '${json({ error: message, server })}';`;
+  // Every benchmark response of a PHP server names its JSON processor; record responses do not.
+  const failure = (status, message, benchmark) => `default_type 'application/json; charset=utf-8'; `
+    + `add_header Cache-Control no-store always; return ${status} '${json({
+      error: message, server, ...(benchmark ? { nativeJson: server === 'php-ext' } : {}),
+    })}';`;
   await writeFile(path.join(runDirectory, 'nginx.conf'), `
 daemon off;
 worker_processes 1;
@@ -67,23 +70,34 @@ http {
   server {
     listen ${host}:${port};
     client_max_body_size ${bodyLimit};
-    error_page 413 = @too_large;
-    location @too_large { ${failure(413, 'Request body exceeds 2 MiB')} }
-    location /api/ {
-      fastcgi_pass unix:${socket};
-      fastcgi_param SCRIPT_FILENAME ${path.join(exampleDirectory, 'api.php')};
-      fastcgi_param REQUEST_METHOD $request_method;
-      fastcgi_param REQUEST_URI $request_uri;
-      fastcgi_param QUERY_STRING $query_string;
-      fastcgi_param CONTENT_TYPE $content_type;
-      fastcgi_param CONTENT_LENGTH $content_length;
-      fastcgi_param SERVER_PROTOCOL $server_protocol;
-      fastcgi_param REMOTE_ADDR $remote_addr;
-    }
-    location / { ${failure(404, 'Unknown endpoint')} }
+    # An oversized body is answered at once; nginx then reads and discards what the client still
+    # sends, within these limits, so the client receives the answer instead of a reset connection.
+    lingering_close always;
+    lingering_time 10s;
+    lingering_timeout 5s;
+    location /api/records { error_page 413 = @record_too_large; ${fastcgi()} }
+    location /api/ { error_page 413 = @too_large; ${fastcgi()} }
+    location @record_too_large { ${failure(413, 'Request body exceeds 2 MiB', false)} }
+    location @too_large { ${failure(413, 'Request body exceeds 2 MiB', true)} }
+    location / { ${failure(404, 'Unknown endpoint', false)} }
   }
 }
 `);
+}
+
+/** The FastCGI directives that pass one request to api.php. */
+function fastcgi() {
+  return [
+    `fastcgi_pass unix:${socket};`,
+    `fastcgi_param SCRIPT_FILENAME ${path.join(exampleDirectory, 'api.php')};`,
+    'fastcgi_param REQUEST_METHOD $request_method;',
+    'fastcgi_param REQUEST_URI $request_uri;',
+    'fastcgi_param QUERY_STRING $query_string;',
+    'fastcgi_param CONTENT_TYPE $content_type;',
+    'fastcgi_param CONTENT_LENGTH $content_length;',
+    'fastcgi_param SERVER_PROTOCOL $server_protocol;',
+    'fastcgi_param REMOTE_ADDR $remote_addr;',
+  ].join(' ');
 }
 
 /** Resolve once `probe` succeeds, polling every 20 ms; fail after the start limit. */
