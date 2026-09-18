@@ -8,6 +8,7 @@ import { readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
 
 import { encodeJson } from './src/json.mjs';
+import { forward } from './src/forward.mjs';
 import {
   recordClients, recordInitializations, recordModes, recordServers, selectionQuery,
 } from './src/record-contract.mjs';
@@ -169,30 +170,6 @@ async function servePage(view, url, request, response) {
     if (!(error instanceof PageError)) throw error;
     respond(response, error.status, { error: error.message });
   }
-}
-
-function forward(target, request, response) {
-  // A server may answer before it has read the whole body, as an oversized request's 413. Once it
-  // has answered, its answer is the response: the rest of the upload stops, and a failed write of
-  // that rest does not cut the answer.
-  let answered = false;
-  const outgoing = http.request({
-    hostname: '127.0.0.1', port: target.port, path: target.path, method: request.method,
-    headers: { ...request.headers, host: `127.0.0.1:${target.port}` },
-  }, incoming => {
-    answered = true;
-    request.unpipe(outgoing);
-    response.writeHead(incoming.statusCode, incoming.headers);
-    incoming.pipe(response);
-    incoming.on('error', error => response.destroy(error));
-  });
-  outgoing.on('error', error => {
-    if (answered) return;
-    if (!response.headersSent) respond(response, 502, { error: error.message, server: target.server });
-    else response.destroy(error);
-  });
-  request.on('aborted', () => outgoing.destroy());
-  request.pipe(outgoing);
 }
 
 const types = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.mjs': 'text/javascript', '.json': 'application/json', '.map': 'application/json', '.svg': 'image/svg+xml' };
