@@ -75,8 +75,8 @@ as an input failure that names the value. A custom loader's document is named `f
 
 Go's value entries take maps, slices and `*compose.OMap` values that can share nodes, so Go
 applies the limits like JavaScript and PHP. A Rust `serde_json::Value` owns each of its nodes: it
-cannot share a container or contain itself, so walking it costs no more than building it. Rust's
-value entries do not count its nodes or levels.
+cannot share a container or contain itself, so a shared container cannot appear twice in a value.
+Rust's value entries count nodes and levels: the walk costs no more than building it.
 
 The PHP library's value copies and the extension's value conversion apply the same limits to
 every value they convert, including members that no check walks, such as a member of a button

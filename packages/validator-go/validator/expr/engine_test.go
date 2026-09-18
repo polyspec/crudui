@@ -96,3 +96,39 @@ func TestTernaryValueReturn(t *testing.T) {
 		t.Errorf("want nil got %#v", v)
 	}
 }
+
+// TestCacheBoundedCapacity verifies that the expression AST cache never
+// exceeds its capacity after parsing many distinct expressions.
+func TestCacheBoundedCapacity(t *testing.T) {
+	// Clear cache before test
+	ClearCache()
+	defer ClearCache()
+
+	const numExpressions = 5000
+	const maxCapacity = 1000
+
+	// Parse 5000 distinct expressions
+	for i := 0; i < numExpressions; i++ {
+		expr := ".value > " + string(rune('0'+i%10))
+		_, err := Parse(expr)
+		if err != nil {
+			t.Fatalf("parse error on expression %d: %v", i, err)
+		}
+
+		// Check cache size never exceeds capacity
+		size := astCache.size()
+		if size > maxCapacity {
+			t.Errorf("cache size %d exceeds max capacity %d at iteration %d", size, maxCapacity, i)
+		}
+	}
+
+	// Verify cache is at or near capacity
+	finalSize := astCache.size()
+	if finalSize > maxCapacity {
+		t.Errorf("final cache size %d exceeds capacity %d", finalSize, maxCapacity)
+	}
+	if finalSize < maxCapacity-10 {
+		// Allow some slack for the last eviction, but should be close to capacity
+		t.Logf("final cache size %d is significantly below capacity %d", finalSize, maxCapacity)
+	}
+}

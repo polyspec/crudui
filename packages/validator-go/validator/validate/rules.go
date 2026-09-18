@@ -28,6 +28,8 @@ type ruleContext struct {
 	pathSegments []string
 	// formData is the whole decoded form (map[string]any / []any / scalars).
 	formData map[string]any
+	// call is the state of the validation the rule runs in.
+	call *callState
 	// messages is the per-field custom-message map (rule name → message).
 	messages map[string]string
 	// ruleName is the invoked rule key (pattern vs match alias preserved).
@@ -191,6 +193,44 @@ func ruleMax(value any, ruleParam any, ctx ruleContext) (string, bool) {
 	return "", false
 }
 
+// canonicalJSON generates canonical JSON with sorted object keys (for uniqueness).
+// The result is deterministic: objects with keys in any order produce the same output.
+func canonicalJSON(value any) string {
+	switch v := value.(type) {
+	case nil:
+		return "null"
+	case bool:
+		if v {
+			return "true"
+		}
+		return "false"
+	case string:
+		b, _ := json.Marshal(v)
+		return string(b)
+	case float64:
+		b, _ := json.Marshal(v)
+		return string(b)
+	case []any:
+		var parts []string
+		for _, item := range v {
+			parts = append(parts, canonicalJSON(item))
+		}
+		return "[" + strings.Join(parts, ",") + "]"
+	case map[string]any:
+		keys := sortedKeys(v)
+		var parts []string
+		for _, k := range keys {
+			kJSON, _ := json.Marshal(k)
+			parts = append(parts, string(kJSON)+":"+canonicalJSON(v[k]))
+		}
+		return "{" + strings.Join(parts, ",") + "}"
+	default:
+		// Fallback for unexpected types
+		b, _ := json.Marshal(value)
+		return string(b)
+	}
+}
+
 // comparisonKey builds a uniqueness key. Objects/arrays use their JSON form;
 // scalars carry a type tag so the string "1" and the number 1 are NOT duplicates
 // (JS comparisonKey is a SameValueZero Set key — distinct JS types differ).
@@ -206,11 +246,7 @@ func comparisonKey(value any) string {
 		if n, ok := numberValue(v); ok {
 			return "n:" + canonicalNumber(n)
 		}
-		b, err := json.Marshal(v)
-		if err != nil {
-			return "x:"
-		}
-		return "j:" + string(b)
+		return "j:" + canonicalJSON(value)
 	}
 }
 
@@ -294,6 +330,7 @@ func ruleUnique(value any, ruleParam any, ctx ruleContext) (string, bool) {
 	}
 
 	// Item-level: <containerPath>.<itemKey>.<fieldName>.
+	// Linear-time check: precompute all duplicates once per group, then O(1) lookup per row.
 	if len(ctx.pathSegments) < 2 {
 		return "", false
 	}
@@ -302,31 +339,15 @@ func ruleUnique(value any, ruleParam any, ctx ruleContext) (string, bool) {
 	containerPath := ctx.pathSegments[:len(ctx.pathSegments)-2]
 	container := getValueBySegments(ctx.formData, containerPath)
 
-	// Ordered (key, item) entries.
-	type entry struct {
-		key  string
-		item any
-	}
-	var entries []entry
-	switch c := container.(type) {
+	switch container.(type) {
 	case []any:
 		if !isNumericKey(itemKey) {
 			return "", false
 		}
-		for i, it := range c {
-			entries = append(entries, entry{strconv.Itoa(i), it})
-		}
 	case map[string]any:
-		// Object container: iteration order must be deterministic; sort keys so
-		// "earlier" matches the traversal order used by the engine (sorted keys).
-		keys := sortedKeys(c)
-		for _, k := range keys {
-			entries = append(entries, entry{k, c[k]})
-		}
 	default:
 		return "", false
 	}
-
 	if isEmpty(value) {
 		return "", false
 	}
@@ -334,28 +355,59 @@ func ruleUnique(value any, ruleParam any, ctx ruleContext) (string, bool) {
 		return "", false
 	}
 
-	currentKey := comparisonKey(value)
-	for _, e := range entries {
-		if e.key == itemKey {
-			break // only earlier siblings
+	// The rows of this collection field are walked once per validation: the filter is evaluated
+	// once per row and each row whose value an earlier row holds is recorded.
+	filterParam := ""
+	if isFilter {
+		filterParam = paramStr
+	}
+	cacheKey := strings.Join(containerPath, "\x00") + "\x00" + fieldName + "\x00" + filterParam
+	duplicateSet, cached := ctx.call.uniqueDuplicates[cacheKey]
+	if !cached {
+		type entry struct {
+			key  string
+			item any
 		}
-		itemMap, ok := e.item.(map[string]any)
-		if !ok {
-			continue
-		}
-		if isFilter {
-			siblingPath := append(append([]string{}, containerPath...), e.key, fieldName)
-			if !itemPassesCondition(paramStr, siblingPath, ctx.formData) {
-				continue
+		var entries []entry
+		switch c := container.(type) {
+		case []any:
+			for i, it := range c {
+				entries = append(entries, entry{strconv.Itoa(i), it})
+			}
+		case map[string]any:
+			for _, k := range sortedKeys(c) {
+				entries = append(entries, entry{k, c[k]})
 			}
 		}
-		sibling, ok := itemMap[fieldName]
-		if !ok || isEmpty(sibling) {
-			continue
+		duplicateSet = map[string]bool{}
+		seenKeys := map[string]bool{}
+		for _, e := range entries {
+			itemMap, ok := e.item.(map[string]any)
+			if !ok {
+				continue
+			}
+			itemValue, ok := itemMap[fieldName]
+			if !ok || isEmpty(itemValue) {
+				continue
+			}
+			if isFilter {
+				siblingPath := append(append([]string{}, containerPath...), e.key, fieldName)
+				if !itemPassesCondition(paramStr, siblingPath, ctx.formData) {
+					continue
+				}
+			}
+			key := comparisonKey(itemValue)
+			if seenKeys[key] {
+				duplicateSet[e.key] = true
+			}
+			seenKeys[key] = true
 		}
-		if comparisonKey(sibling) == currentKey {
-			return errMsg, true
-		}
+		ctx.call.uniqueDuplicates[cacheKey] = duplicateSet
+	}
+
+	// O(1) lookup: is this row a duplicate?
+	if duplicateSet[itemKey] {
+		return errMsg, true
 	}
 	return "", false
 }
