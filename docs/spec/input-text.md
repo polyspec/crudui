@@ -51,7 +51,37 @@ checks each document when the loader returns it.
 
 Within one value the check visits array items in index order. For an object it first checks
 every member name, then visits the members in code point order of their names. The first
-invalid text found is reported.
+failure found is reported: invalid text, or a value beyond the value limits.
+
+## Value limits
+
+The check walks each value as the JSON tree it denotes, and the same walk bounds it. A JavaScript
+array or object, a PHP array or object and a Go map, slice or ordered object can appear at more
+than one place of one value: through sharing, through a PHP reference, or because it contains
+itself. The walk visits such a container at every place, as the tree holds it there. A value is
+beyond its limits when:
+
+- it holds more than 1,000,000 nodes, where each array, object, string, number, boolean and
+  `null` of the tree is a node, the value itself included; or
+- it nests more than 512 levels of arrays and objects, the value itself being the first level.
+
+A value that contains itself nests without end, so it is always beyond them. The walk stops at
+the first failure in its order, so it visits at most 1,000,001 nodes whatever tree a value
+denotes. Invalid text that the walk meets before a limit is reported as invalid text, and a limit
+that it passes first is reported as the limit.
+
+The limits apply to every checked value, the specification and the composition files included,
+as an input failure that names the value. A custom loader's document is named `files`.
+
+Go's value entries take maps, slices and `*compose.OMap` values that can share nodes, so Go
+applies the limits like JavaScript and PHP. A Rust `serde_json::Value` owns each of its nodes: it
+cannot share a container or contain itself, so walking it costs no more than building it. Rust's
+value entries do not count its nodes or levels.
+
+The PHP library's value copies and the extension's value conversion apply the same limits to
+every value they convert, including members that no check walks, such as a member of a button
+that the markup does not read. There the failure is the value failure
+`Recursive or excessively nested PHP value` of the [PHP extension](php-extension.md).
 
 ## Failures
 
@@ -70,6 +100,13 @@ A failure in any other argument or option is an input failure:
 - message `Text must be Unicode scalar values: {name}`, where `{name}` is the argument name, or
   `options.` and the option name, followed by the path inside the value, for example
   `data.rows.k1.name` or `options.data.admin`;
+- an empty location.
+
+A value beyond the value limits is an input failure in every argument and option:
+
+- code `INVALID_FORM_INPUT`;
+- message `Recursive or excessively nested value: {name}`, where `{name}` is `spec`, `files`, the
+  argument name, or `options.` and the option name, with no path;
 - an empty location.
 
 | Runtime | Load failure | Input failure |
@@ -105,5 +142,6 @@ invalid JSON before decoding it.
 ## Shared cases
 
 [`tests/fixtures/text-validity`](../../tests/fixtures/text-validity/README.md) holds one case
-file for each operation. Byte strings that JSON text cannot carry are checked by each byte
-string runtime's own tests.
+file for each operation, and `value-graphs.json`, whose cases each runtime that takes shared or
+self-containing values builds with its own containers. Byte strings that JSON text cannot carry
+are checked by each byte string runtime's own tests.

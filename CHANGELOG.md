@@ -1,5 +1,23 @@
 # Changes
 
+## 2026-09-18 — Bound loops and costs that inputs control
+
+- A caller value that shares a container, such as a PHP list built as `$v = [$v, $v]` forty
+  times or a JavaScript or Go list holding the same list twice, made the input text walk and the
+  PHP value copies take time that doubled with every level, and a PHP array holding two
+  references to itself never finished in the extension. The walk only skipped a container
+  already on its path and stopped at 512 levels. Every runtime that takes such values, the
+  JavaScript, PHP, PHP extension and Go libraries, now walks a value as the tree it denotes and
+  stops at the value limits: 1,000,000 nodes and 512 levels of arrays and objects. A value beyond
+  them, including every value that contains itself, fails with `INVALID_FORM_INPUT` and
+  `Recursive or excessively nested value: {name}`, in the order of the input text checks.
+  JavaScript and Go had accepted a value that contains itself.
+- The PHP value copies and the extension's value conversion apply the same limits to every value
+  they convert, so members that no check walks are bounded too.
+- The shared cases `tests/fixtures/text-validity/value-graphs.json` build shared and
+  self-containing values in each of those runtimes and require every case to finish within two
+  seconds.
+
 ## 2026-09-18 — Accept the form data the library produces
 
 - Form data leaves out a field that holds no value, such as an untouched field of a new row, and

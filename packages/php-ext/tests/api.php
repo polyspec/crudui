@@ -204,6 +204,28 @@ foreach ([
     check($buttonError->getMessage() === 'Form buttons must be evaluated button objects' && $buttonError->getPath() === '', 'Button markup failure changed: ' . $buttonError->getMessage());
 }
 
+// Value limits (docs/spec/input-text.md): a value that contains itself or denotes more than
+// 1,000,000 nodes fails as an input failure naming it, in bounded time.
+$loop = [];
+$loop['self'] = &$loop;
+$loop['again'] = &$loop;
+$shared = 'x';
+for ($i = 0; $i < 40; $i++) $shared = [$shared, $shared];
+foreach ([
+    'spec' => fn()=>Generator::compileForm(['type'=>'group','properties'=>new stdClass(),'loop'=>$loop]),
+    'data' => fn()=>new Form($shapeTemplate, ['list'=>$shared]),
+    'options.language' => fn()=>Generator::bindForm($shapeTemplate, [], ['language'=>$loop]),
+    'rows' => fn()=>Generator::buildList(['columns'=>new stdClass()], [$shared]),
+    'record' => fn()=>Generator::buildDetail(['fields'=>new stdClass()], ['loop'=>$loop]),
+] as $name => $operation) {
+    $started = hrtime(true);
+    $limitError = fails($operation, FormError::class, 'INVALID_FORM_INPUT');
+    check($limitError->getMessage() === "Recursive or excessively nested value: $name", 'Value limit failure changed: ' . $limitError->getMessage());
+    check((hrtime(true) - $started) / 1e6 < 2000, "Value limit of $name is not bounded");
+}
+$limitError = fails(fn()=>Validator::validateList(['columns'=>new stdClass()], ['files'=>['a.yml'=>(object)['list'=>$shared]]]), FormInputError::class, 'INVALID_FORM_INPUT');
+check($limitError->getMessage() === 'Recursive or excessively nested value: files', 'Value limit failure changed: ' . $limitError->getMessage());
+
 $error = fails(fn()=>Generator::compileForm(['type'=>'group','properties'=>(object)['$ref'=>'absent.yml']]), ComposeLoadError::class, 'REF_FILE_NOT_FOUND');
 same(['absent.yml'], $error->getCompositionTrace(), 'Composition trace changed');
 check(count($error->getTrace()) > 0, 'PHP exception stack is missing');

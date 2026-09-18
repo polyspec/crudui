@@ -122,15 +122,15 @@ final class Validator
     }
 
     /**
-     * Check the text of a specification, its files, the named inputs and the base path option
-     * (docs/spec/input-text.md).
+     * Check the text and the limits of a specification, its files, the named inputs and the base
+     * path option (docs/spec/input-text.md).
      *
      * @param list<array{0: string, 1: mixed}> $inputs
      */
     private static function checkText(array|stdClass $spec, array $options, array $inputs): void
     {
-        Text::checkSpecification($spec, $options['files'] ?? null);
-        $failure = Text::inputFailure([...$inputs, ...Text::options($options, ['basepath'])]);
+        $failure = Text::specificationFailure($spec, $options['files'] ?? null)
+            ?? Text::inputFailure([...$inputs, ...Text::options($options, ['basepath'])]);
         if ($failure !== null) {
             throw new FormInputError($failure);
         }

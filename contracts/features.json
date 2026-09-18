@@ -197,7 +197,6 @@
             "evaluateCondition",
             "evaluateExpressionValue",
             "getRuleNames",
-            "invalidTextPath",
             "isConditionExpression",
             "isScalarText",
             "parseCondition",

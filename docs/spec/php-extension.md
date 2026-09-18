@@ -125,8 +125,12 @@ Object member order and row keys survive conversion in both directions.
 Returned templates and form, node, widget and button models keep the library's
 member order.
 Unsupported PHP values and recursive structures fail explicitly. Strings and
-member names that are not valid UTF-8 fail as the [input text](input-text.md)
-rule defines, before any other check of the method.
+member names that are not valid UTF-8, and values beyond the value limits, fail
+as the [input text](input-text.md) rule defines, before any other check of the
+method. A converted value that no check walks and that passes the same limits
+fails with `Recursive or excessively nested PHP value`: an
+`InvalidArgumentException` from validation and a `CRUDUI\FormError` with code
+`INVALID_FORM_INPUT` from generation.
 
 The extension does not introduce hidden identity or ordering fields. Form
 transport and ordered JSON transport submit the same keyed records. JSON parsing

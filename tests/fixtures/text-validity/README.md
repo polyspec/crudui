@@ -26,6 +26,24 @@ validation result `{ valid, errors }` for the validation operations and `"pass"`
 generation operations. Cases with valid surrogate pairs and characters from U+E000 to U+FFFF
 check that valid text passes and that members follow code point order.
 
+## Value graphs
+
+`value-graphs.json` holds the cases of the value limits: a value walked as the tree it denotes
+holds at most 1,000,000 nodes and nests at most 512 levels, and a value that contains itself is
+beyond them. JSON text cannot share a container, so each case describes its value graph in
+`graph`, and each consumer builds it with its own containers and places it at `graph.at`, a path
+that starts with `spec`, `files` or `data`, in the case's `validate` inputs. The shapes are:
+
+- `doubled`: `leaf` in a list that holds the previous value twice, `size` times over;
+- `chain`: `leaf` in `size` nested lists;
+- `flat`: one list of `size` items that are `leaf`;
+- `self-twice`: an object whose members `self` and `again` are the object itself, a PHP array
+  that holds two references to itself.
+
+Every case completes within 2 seconds; a walk that grows with the tree a value denotes does not.
+The TypeScript, PHP, Go and PHP extension consumers run them. A Rust value owns its nodes and
+cannot share one, so Rust does not.
+
 ## Consumers
 
 The validation operations are run by the

@@ -85,10 +85,10 @@ func TestInputTextRejectsInvalidUTF8(t *testing.T) {
 	if _, e := RenderDetail(detail, NewObject("v", bad), DetailOptions{}); message(e) != "Text must be Unicode scalar values: record.v" {
 		t.Errorf("detail record: %v", e)
 	}
-	// A value that contains itself is reported by the value check, not searched forever.
+	// A value that contains itself is beyond the value limits, found by the same walk.
 	cyclic := []any{nil}
 	cyclic[0] = cyclic
-	if e := form.SetValue("name", cyclic); message(e) != "Recursive form values are not supported" {
+	if e := form.SetValue("name", cyclic); message(e) != "Recursive or excessively nested value: value" {
 		t.Errorf("cyclic value: %v", e)
 	}
 }

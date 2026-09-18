@@ -24,56 +24,58 @@ final class Text
         return preg_match('//u', $text) === 1;
     }
 
-    /**
-     * The path of the first invalid text: the path of a string, or of the object whose member
-     * name is invalid. Members are visited in code point order of their names, which is the byte
-     * order of UTF-8, and list items in index order. Null when every text is valid.
-     *
-     * @return list<string>|null
-     */
-    public static function invalidPath(mixed $value): ?array
-    {
-        return self::contains($value, 0, []) ? self::first($value, [], 0, []) : null;
-    }
+    /** Message of every value beyond the limits of a value. */
+    public const LIMIT_MESSAGE = 'Recursive or excessively nested value';
+
+    /** Levels of arrays and objects a value may nest, the value itself included. */
+    public const NESTING_LIMIT = 512;
+
+    /** Nodes a value may hold: every array, object, string, number, boolean and null, itself included. */
+    public const NODE_LIMIT = 1000000;
 
     /**
-     * A standard object already on the current path, or a container nested deeper than any
-     * accepted value, is not searched; the operation's value checks report it.
+     * The first failure in a value, walked as the tree it denotes: the path of its first invalid
+     * text, false when the value is beyond its limits there, or null when there is no failure.
+     * Invalid text is located at the path of its string, or of the object whose member name is
+     * invalid. Members are visited in code point order of their names, which is the byte order of
+     * UTF-8, and list items in index order. A value that nests more than NESTING_LIMIT levels or
+     * holds more than NODE_LIMIT nodes is beyond its limits. A shared array or object is walked at
+     * each place, so the limits bound every walk, including one around a reference or an object
+     * that contains itself.
      *
-     * @param array<int, true> $objects the identifiers of the objects on the current path
+     * @return list<string>|false|null
      */
-    private static function enter(mixed $value, int $depth, array &$objects): bool
+    public static function failure(mixed $value): array|false|null
     {
-        if ($depth > 512) {
-            return false;
+        $nodes = 0;
+        if (!self::holds($value, 0, $nodes)) {
+            return null;
         }
-        if ($value instanceof stdClass) {
-            $id = spl_object_id($value);
-            if (isset($objects[$id])) {
-                return false;
-            }
-            $objects[$id] = true;
-        }
-        return true;
+        $nodes = 0;
+        return self::first($value, [], 0, $nodes);
     }
 
-    /** @param array<int, true> $objects */
-    private static function contains(mixed $value, int $depth, array $objects): bool
+    /** Count a node at $depth; false when it takes the value beyond its limits. */
+    private static function admit(mixed $value, int $depth, int &$nodes): bool
     {
+        return ++$nodes <= self::NODE_LIMIT
+            && ($depth < self::NESTING_LIMIT || !$value instanceof stdClass && !is_array($value));
+    }
+
+    /** Whether a value holds a failure; a quick walk in member order before the ordered one. */
+    private static function holds(mixed $value, int $depth, int &$nodes): bool
+    {
+        if (!self::admit($value, $depth, $nodes)) {
+            return true;
+        }
         if (is_string($value)) {
             return !self::isScalar($value);
         }
         if (!$value instanceof stdClass && !is_array($value)) {
             return false;
         }
-        if (!self::enter($value, $depth, $objects)) {
-            return false;
-        }
         foreach ($value as $key => $child) {
-            if (is_string($key) && !self::isScalar($key)) {
-                return true;
-            }
-            if (self::contains($child, $depth + 1, $objects)) {
+            if (is_string($key) && !self::isScalar($key) || self::holds($child, $depth + 1, $nodes)) {
                 return true;
             }
         }
@@ -82,23 +84,22 @@ final class Text
 
     /**
      * @param list<string> $path
-     * @param array<int, true> $objects
-     * @return list<string>|null
+     * @return list<string>|false|null
      */
-    private static function first(mixed $value, array $path, int $depth, array $objects): ?array
+    private static function first(mixed $value, array $path, int $depth, int &$nodes): array|false|null
     {
+        if (!self::admit($value, $depth, $nodes)) {
+            return false;
+        }
         if (is_string($value)) {
             return self::isScalar($value) ? null : $path;
         }
         if (!$value instanceof stdClass && !is_array($value)) {
             return null;
         }
-        if (!self::enter($value, $depth, $objects)) {
-            return null;
-        }
         if (is_array($value) && array_is_list($value)) {
             foreach ($value as $index => $child) {
-                $found = self::first($child, [...$path, (string) $index], $depth + 1, $objects);
+                $found = self::first($child, [...$path, (string) $index], $depth + 1, $nodes);
                 if ($found !== null) {
                     return $found;
                 }
@@ -115,7 +116,7 @@ final class Text
         }
         usort($members, static fn (array $left, array $right): int => strcmp($left[0], $right[0]));
         foreach ($members as [$name, $child]) {
-            $found = self::first($child, [...$path, $name], $depth + 1, $objects);
+            $found = self::first($child, [...$path, $name], $depth + 1, $nodes);
             if ($found !== null) {
                 return $found;
             }
@@ -126,30 +127,40 @@ final class Text
     /**
      * Check a specification and then the composition files an operation reads. Invalid text is
      * the INVALID_TEXT load failure located at its specification path, or at the file name
-     * followed by its path in the file; an invalid file name is located at the empty path.
+     * followed by its path in the file; an invalid file name is located at the empty path. A
+     * value beyond its limits is an input failure, whose message naming spec or files is
+     * returned; null when both pass.
      */
-    public static function checkSpecification(mixed $spec, mixed $files): void
+    public static function specificationFailure(mixed $spec, mixed $files): ?string
     {
-        foreach ([$spec, $files] as $value) {
-            $trace = self::invalidPath($value);
-            if ($trace !== null) {
-                throw new ComposeLoadError('INVALID_TEXT', self::MESSAGE, $trace);
+        foreach (['spec' => $spec, 'files' => $files] as $name => $value) {
+            $failure = self::failure($value);
+            if ($failure === false) {
+                return self::LIMIT_MESSAGE . ': ' . $name;
+            }
+            if ($failure !== null) {
+                throw new ComposeLoadError('INVALID_TEXT', self::MESSAGE, $failure);
             }
         }
+        return null;
     }
 
     /**
      * The failure message of the first invalid text among named caller values, which names the
-     * value and its path, or null.
+     * value and its path, or of the first value beyond its limits, which names the value; null
+     * when every value passes.
      *
      * @param list<array{0: string, 1: mixed}> $inputs
      */
     public static function inputFailure(array $inputs): ?string
     {
         foreach ($inputs as [$name, $value]) {
-            $path = self::invalidPath($value);
-            if ($path !== null) {
-                return self::MESSAGE . ': ' . implode('.', [$name, ...$path]);
+            $failure = self::failure($value);
+            if ($failure === false) {
+                return self::LIMIT_MESSAGE . ': ' . $name;
+            }
+            if ($failure !== null) {
+                return self::MESSAGE . ': ' . implode('.', [$name, ...$failure]);
             }
         }
         return null;

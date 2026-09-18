@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"math"
 	"net/url"
-	"reflect"
 	"strconv"
 	"strings"
 
@@ -371,10 +370,9 @@ func plainLookup(v any) any {
 }
 
 // checkOrderedValue rejects values whose object member order is unavailable.
+// Every caller checks the value's text first, whose walk fails a value that
+// contains itself or passes the value limits (docs/spec/input-text.md).
 func checkOrderedValue(value any) error {
-	return checkValue(value, make(map[*Object]bool), make(map[uintptr]bool))
-}
-func checkValue(value any, objects map[*Object]bool, arrays map[uintptr]bool) error {
 	switch v := value.(type) {
 	case nil, string, bool, int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
 		return nil
@@ -392,27 +390,16 @@ func checkValue(value any, objects map[*Object]bool, arrays map[uintptr]bool) er
 		if v == nil {
 			return nil
 		}
-		if objects[v] {
-			return fmt.Errorf("Recursive form values are not supported")
-		}
-		objects[v] = true
-		defer delete(objects, v)
 		for _, k := range v.Keys() {
 			child, _ := v.Get(k)
-			if e := checkValue(child, objects, arrays); e != nil {
+			if e := checkOrderedValue(child); e != nil {
 				return e
 			}
 		}
 		return nil
 	case []any:
-		ptr := reflect.ValueOf(v).Pointer()
-		if arrays[ptr] && len(v) > 0 {
-			return fmt.Errorf("Recursive form values are not supported")
-		}
-		arrays[ptr] = true
-		defer delete(arrays, ptr)
 		for _, child := range v {
-			if e := checkValue(child, objects, arrays); e != nil {
+			if e := checkOrderedValue(child); e != nil {
 				return e
 			}
 		}
