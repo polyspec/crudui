@@ -48,6 +48,14 @@ function currentGeneration(): FormGeneration
 }
 
 /** Decode one JSON object request within the HTTP size limit. */
+/** The `form` member of a JSON submission, which holds exactly that member. */
+function jsonForm(): mixed
+{
+    $request = jsonRequest();
+    if (array_keys(get_object_vars($request)) !== ['form']) throw new InvalidArgumentException('Expected a request object with exactly form');
+    return $request->form;
+}
+
 function jsonRequest(): stdClass
 {
     $request = FormJson::decode(RequestBody::read());
@@ -199,9 +207,7 @@ function recordView(RecordStore $store, string $view): never
 function recordSubmission(): stdClass
 {
     if (requestMediaType() === 'application/json') {
-        $request = FormJson::decode(RequestBody::read());
-        if (!$request instanceof stdClass || array_keys(get_object_vars($request)) !== ['form']) recordFailure(400, 'Expected a request object with exactly form');
-        return RecordStore::submission($request->form, false);
+        return RecordStore::submission(jsonForm(), false);
     }
     return RecordStore::submission(nativeForm(), true);
 }
@@ -306,7 +312,7 @@ try {
     $spec = FormJson::decode(file_get_contents(FORM_PUBLIC_DIRECTORY . '/spec.json'));
     if ($contentType === 'application/json') {
         $native = false;
-        $received = jsonRequest()->form ?? null;
+        $received = jsonForm();
     } elseif (in_array($contentType, ['multipart/form-data', 'application/x-www-form-urlencoded'], true)) {
         $native = true;
         $received = nativeForm();

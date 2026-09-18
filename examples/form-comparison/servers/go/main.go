@@ -188,45 +188,13 @@ func (s server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		failure(w, 415, err)
 		return
 	}
-	var received *object
-	switch kind {
-	case "application/json":
-		decoded, err := decodeJSON(body)
-		if err != nil {
-			failure(w, 400, err)
-			return
-		}
-		root, ok := decoded.(*object)
-		if !ok {
-			failure(w, 400, fmt.Errorf("Expected request object"))
-			return
-		}
-		received, ok = get(root, "form").(*object)
-		if !ok {
-			failure(w, 400, fmt.Errorf("Expected form object"))
-			return
-		}
-	case "application/x-www-form-urlencoded", "multipart/form-data":
-		fields, err := parseNative(body, r.Header.Get("Content-Type"))
-		if err != nil {
-			failure(w, 400, err)
-			return
-		}
-		if get(fields, "_form_complete") != "1" {
-			failure(w, 400, fmt.Errorf("Incomplete native form submission"))
-			return
-		}
-		received = record()
-		if fields.Has("form") {
-			var ok bool
-			received, ok = get(fields, "form").(*object)
-			if !ok {
-				failure(w, 400, fmt.Errorf("Expected form object"))
-				return
-			}
-		}
-	default:
+	if kind != "application/json" && kind != "multipart/form-data" && kind != "application/x-www-form-urlencoded" {
 		failure(w, 415, fmt.Errorf("Expected a form or JSON request"))
+		return
+	}
+	received, err := submission(body, kind, r.Header.Get("Content-Type"))
+	if err != nil {
+		failure(w, 400, err)
 		return
 	}
 	completed, err := shaped(received, scenarioShape, "form")
