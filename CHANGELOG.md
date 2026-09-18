@@ -20,6 +20,12 @@
 - The Rust validator did not apply the value limits, and its JSON text reader stopped at 127
   levels. It applies 1,000,000 nodes and 512 levels like the other runtimes, converts deep text
   without recursion, and runs every value-limit case it can build from owned values.
+- The public server's forwarder stopped reading an upload once a server had answered it early, as
+  nginx answers an oversized body with 413, and passed on the server's `Connection: close`; the
+  client's connection then closed while it was still sending, and a few requests in a hundred
+  failed with EPIPE instead of reading the 413. The forwarder now reads and discards the rest of
+  the body and keeps hop-by-hop headers to the server's connection; a test forwards forty
+  oversized uploads to a server that answers early as nginx does.
 
 ## 2026-09-18 — Bound loops and costs that inputs control
 
