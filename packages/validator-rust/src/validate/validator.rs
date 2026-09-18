@@ -12,6 +12,9 @@
 //! `tests/fixtures/validate/cases.json` is the single source of truth. errors are
 //! collected in declaration/traversal order and NEVER reordered.
 
+use std::cell::RefCell;
+use std::collections::{HashMap, HashSet};
+
 use serde_json::{Map, Value};
 
 use crate::expr::{Evaluator, Expression, Node};
@@ -82,6 +85,15 @@ const PATTERN_PARAM_RULES: &[&str] = &["match", "pattern"];
 /// possibly a LangMap or null, is display-only).
 const MEMBERSHIP_PARAM_RULES: &[&str] = &["in"];
 
+/// The state of one `validate` call, dropped when it returns.
+pub(crate) struct Run<'a> {
+    /// The whole form data.
+    pub(crate) data: &'a Value,
+    /// For each collection field (container path, field name and filter), the row keys whose
+    /// `unique` value an earlier row already holds.
+    pub(crate) unique_duplicates: RefCell<HashMap<String, HashSet<String>>>,
+}
+
 /// The CRUDUI validator over a composed spec.
 pub struct Validator {
     properties: Map<String, Value>,
@@ -109,7 +121,11 @@ impl Validator {
             return Err(FormInputError::new("Form data must be an object").into());
         }
         let mut errors: Vec<ValidationError> = Vec::new();
-        self.validate_properties(&self.properties, data, &[], &[], data, false, &mut errors)?;
+        let run = Run {
+            data,
+            unique_duplicates: RefCell::new(HashMap::new()),
+        };
+        self.validate_properties(&self.properties, data, &[], &[], &run, false, &mut errors)?;
         Ok(ValidationResult {
             valid: errors.is_empty(),
             errors,
@@ -130,10 +146,11 @@ impl Validator {
         data: &Value,
         current_path: &[String],
         declaration_path: &[String],
-        all_data: &Value,
+        run: &Run<'_>,
         hidden: bool,
         errors: &mut Vec<ValidationError>,
     ) -> Result<(), ValidateError> {
+        let all_data = run.data;
         let empty = Value::Object(Map::new());
         for (property_key, field) in properties {
             if !field.is_object() {
@@ -183,7 +200,7 @@ impl Validator {
                                 row,
                                 &row_path,
                                 declaration,
-                                all_data,
+                                run,
                                 hidden,
                                 errors,
                             )?;
@@ -195,7 +212,7 @@ impl Validator {
                             &field_value,
                             &field_path,
                             declaration,
-                            all_data,
+                            run,
                             errors,
                         )?;
                     }
@@ -213,7 +230,7 @@ impl Validator {
                         nested,
                         &field_path,
                         declaration,
-                        all_data,
+                        run,
                         hidden,
                         errors,
                     )?;
@@ -223,7 +240,7 @@ impl Validator {
                             &field_value,
                             &field_path,
                             declaration,
-                            all_data,
+                            run,
                             errors,
                         )?;
                     }
@@ -243,7 +260,7 @@ impl Validator {
                     rows,
                     &field_path,
                     declaration,
-                    all_data,
+                    run,
                     errors,
                 )?;
             } else {
@@ -252,7 +269,7 @@ impl Validator {
                     &field_value,
                     &field_path,
                     declaration,
-                    all_data,
+                    run,
                     errors,
                 )?;
             }
@@ -273,7 +290,7 @@ impl Validator {
         rows: &Map<String, Value>,
         field_path: &[String],
         declaration: &[String],
-        all_data: &Value,
+        run: &Run<'_>,
         errors: &mut Vec<ValidationError>,
     ) -> Result<(), ValidateError> {
         let messages = field.get("messages");
@@ -293,7 +310,7 @@ impl Validator {
                     field_path,
                     declaration,
                     messages,
-                    all_data,
+                    run,
                 )? {
                     errors.push(ValidationError {
                         path: path_to_string(field_path),
@@ -311,7 +328,7 @@ impl Validator {
         for (key, value) in entries {
             let mut item_path = field_path.to_vec();
             item_path.push(key);
-            self.validate_element_rules(field, value, &item_path, declaration, all_data, errors)?;
+            self.validate_element_rules(field, value, &item_path, declaration, run, errors)?;
         }
         Ok(())
     }
@@ -323,13 +340,13 @@ impl Validator {
         value: &Value,
         item_path: &[String],
         declaration: &[String],
-        all_data: &Value,
+        run: &Run<'_>,
         errors: &mut Vec<ValidationError>,
     ) -> Result<(), ValidateError> {
         let messages = field.get("messages");
         let rules = normalize_validate_slot(field);
 
-        if self.run_implicit_number(field, rules, value, item_path, messages, all_data, errors)? {
+        if self.run_implicit_number(field, rules, value, item_path, messages, run, errors)? {
             return Ok(());
         }
         let rules = match rules {
@@ -347,7 +364,7 @@ impl Validator {
                 item_path,
                 declaration,
                 messages,
-                all_data,
+                run,
             )? {
                 errors.push(ValidationError {
                     path: path_to_string(item_path),
@@ -369,13 +386,13 @@ impl Validator {
         value: &Value,
         field_path: &[String],
         declaration: &[String],
-        all_data: &Value,
+        run: &Run<'_>,
         errors: &mut Vec<ValidationError>,
     ) -> Result<(), ValidateError> {
         let messages = field.get("messages");
         let rules = normalize_validate_slot(field);
 
-        if self.run_implicit_number(field, rules, value, field_path, messages, all_data, errors)? {
+        if self.run_implicit_number(field, rules, value, field_path, messages, run, errors)? {
             return Ok(());
         }
         let rules = match rules {
@@ -390,7 +407,7 @@ impl Validator {
                 field_path,
                 declaration,
                 messages,
-                all_data,
+                run,
             )? {
                 errors.push(ValidationError {
                     path: path_to_string(field_path),
@@ -415,7 +432,7 @@ impl Validator {
         value: &Value,
         path: &[String],
         messages: Option<&Value>,
-        all_data: &Value,
+        run: &Run<'_>,
         errors: &mut Vec<ValidationError>,
     ) -> Result<bool, ValidateError> {
         if field.get("type").and_then(Value::as_str) != Some("number") {
@@ -432,7 +449,7 @@ impl Validator {
             path,
             &[],
             messages,
-            all_data,
+            run,
         )? {
             errors.push(ValidationError {
                 path: path_to_string(path),
@@ -463,8 +480,9 @@ impl Validator {
         current_path: &[String],
         declaration: &[String],
         messages: Option<&Value>,
-        all_data: &Value,
+        run: &Run<'_>,
     ) -> Result<Option<String>, ValidateError> {
+        let all_data = run.data;
         let effective = self.resolve_rule_value(rule_name, rule_value, current_path, all_data);
 
         // A false/null effective param disables the rule.
@@ -489,6 +507,7 @@ impl Validator {
             rule_name,
             path_segments: current_path,
             form_data: all_data,
+            run,
         };
         Ok(rule_fn(&ctx))
     }

@@ -503,6 +503,8 @@ export const AUTHORED_CASES: AuthoredCase[] = [
       ],
     },
   },
+  // --- unique: two values are the same when they are the same JSON value ---
+  ...uniqueCases(),
   {
     name: 'registered-rule-message-undeclared',
     note: 'a messages key may name a registered rule the field does not declare, such as the implicit number check.',
@@ -511,3 +513,55 @@ export const AUTHORED_CASES: AuthoredCase[] = [
     expected: { valid: false, errors: [{ path: 'amount', field: 'amount', rule: 'number', message: 'Enter a number.', value: 'abc' }] },
   },
 ];
+
+/**
+ * `unique` compares values the way `equalTo` does: a string equals only the same code points, a
+ * number only the same number, and never a value of another type; a list equals a list of the same
+ * values in the same order; an object equals an object with the same member names and values, in
+ * any member order. Empty values (after White_Space trimming) do not take part.
+ */
+function uniqueCases(): AuthoredCase[] {
+  const key = (index: number) => `__${String(index + 1).padStart(13, '0')}__`;
+  const collection = (values: unknown[]) => Object.fromEntries(values.map((value, index) => [key(index), value]));
+  const repeated = (name: string, note: string, field: Record<string, unknown>, values: unknown[], unique: boolean): AuthoredCase => {
+    const data = { v: collection(values) };
+    return {
+      name, note,
+      spec: { type: 'group', properties: { v: { ...field, multiple: true, validate: { unique: true } } } },
+      data,
+      expected: unique ? { valid: true, errors: [] } : {
+        valid: false,
+        errors: [{ path: 'v', field: 'v', rule: 'unique', message: 'Values must be unique.', value: data.v }],
+      },
+    };
+  };
+  return [
+    repeated('unique-text-same', 'the same text twice is a duplicate.', { type: 'text' }, ['a', 'b', 'a'], false),
+    repeated('unique-text-case', 'text compares code points exactly: case differs.', { type: 'text' }, ['a', 'A'], true),
+    repeated('unique-text-spaces', 'text compares code points exactly: a trailing space differs.', { type: 'text' }, ['a', 'a '], true),
+    repeated('unique-text-empty', 'empty values, White_Space only included, never duplicate.', { type: 'text' }, ['', ' ', '\u3000', 'a'], true),
+    repeated('unique-number-same', 'the same number twice is a duplicate.', { type: 'number' }, [2, 3, 2], false),
+    repeated('unique-number-and-text', 'a number never equals text, even text that reads as that number.', { type: 'number' }, [1, '1'], true),
+    repeated('unique-list-and-text', 'a list never equals text that spells it.', { type: 'checkbox', items: { a: 'A', b: 'B' } }, [['a'], '["a"]'], true),
+    repeated('unique-list-same', 'lists with the same values in the same order are duplicates.', { type: 'checkbox', items: { a: 'A', b: 'B' } }, [['a', 'b'], ['a', 'b']], false),
+    repeated('unique-list-order', 'lists with the same values in another order differ.', { type: 'checkbox', items: { a: 'A', b: 'B' } }, [['a', 'b'], ['b', 'a']], true),
+    repeated('unique-object-member-order', 'language values with the same members in another order are duplicates.', { type: 'text', lang: { only: ['ko', 'en'] } }, [{ ko: 'a', en: 'b' }, { en: 'b', ko: 'a' }], false),
+    repeated('unique-number-precision', 'numbers compare by their exact value: 0.1 + 0.2 differs from 0.3.', { type: 'number' }, [0.1 + 0.2, 0.3], true),
+    repeated('unique-list-separators', 'a list of two values differs from a list of one value that contains a separator.', { type: 'checkbox', items: { a: 'A', b: 'B' } }, [['a', 'b'], ['a,b'], ['a","b']], true),
+    repeated('unique-nested-member-order', 'members compare in any order at every depth.', { type: 'text', lang: { only: ['ko', 'en'] } }, [{ ko: 'x', en: { a: '1', b: '2' } }, { en: { b: '2', a: '1' }, ko: 'x' }], false),
+    repeated('unique-object-and-list', 'an object never equals a list, whatever its members.', { type: 'text', lang: { only: ['ko', 'en'] } }, [{ ko: 'a', en: 'b' }, ['a', 'b']], true),
+    {
+      name: 'unique-row-field',
+      note: 'a field in a repeated group is unique among the rows; the error names the later duplicate row.',
+      spec: { type: 'group', properties: { rows: { type: 'group', multiple: true, properties: { code: { type: 'text', validate: { unique: true } } } } } },
+      data: { rows: collection([{ code: 'x' }, { code: 'y' }, { code: 'x' }, { code: 'x' }]) },
+      expected: {
+        valid: false,
+        errors: [
+          { path: `rows.${key(2)}.code`, field: 'code', rule: 'unique', message: 'Values must be unique.', value: 'x' },
+          { path: `rows.${key(3)}.code`, field: 'code', rule: 'unique', message: 'Values must be unique.', value: 'x' },
+        ],
+      },
+    },
+  ];
+}

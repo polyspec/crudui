@@ -1,5 +1,26 @@
 # Changes
 
+## 2026-09-19 — Compare unique values as JSON values, bound caches and Rust value limits
+
+- `unique` compared values differently across runtimes: TypeScript and PHP took the text `"[1]"`
+  for the list `[1]`, TypeScript and the extension let object member order count, PHP let `1`
+  and `1.0` differ and wrote floats with fourteen digits, so `0.1 + 0.2` equalled `0.3`.
+  `unique` now compares values as `equalTo` does, by the JSON value they denote: strings by code
+  points, numbers by exact value, no value equal to one of another type, lists in order and
+  object members in any order at every depth. Fifteen shared cases state it, and every runtime
+  passes them.
+- A field declaring `unique` inside a repeated group compared each row with every earlier row and
+  evaluated the filter condition for each pair. Every runtime now walks the rows once per
+  validation, evaluating the filter once per row; tests compare n and 4n rows. The Rust test
+  also found that reading a value by path copied the whole row collection for every row; path
+  reads now borrow the value.
+- The parsed-expression caches of the Go and PHP validators had no bound, so a long-running PHP-FPM
+  worker grew with every distinct expression. Both keep at most 1,000 expressions and evict the
+  least recently used, as the TypeScript validator does.
+- The Rust validator did not apply the value limits, and its JSON text reader stopped at 127
+  levels. It applies 1,000,000 nodes and 512 levels like the other runtimes, converts deep text
+  without recursion, and runs every value-limit case it can build from owned values.
+
 ## 2026-09-18 — Bound loops and costs that inputs control
 
 - The PHP record servers ran on PHP's built-in server, which reads a whole request body before

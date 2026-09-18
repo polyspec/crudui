@@ -7,6 +7,7 @@
 //! order each operation checks them, before decoding them into values.
 
 use crudui_validator::text::{check_inputs, check_specification};
+use crudui_validator::validate::ValidateError;
 
 pub use crudui_validator::text::{JsonString, JsonText, JsonTextError};
 
@@ -20,6 +21,15 @@ const DISPLAY_OPTIONS: [&str; 4] = ["basepath", "data", "language", "layout"];
 
 fn inputs(values: &[(&str, Option<&JsonText>)]) -> FormResult<()> {
     check_inputs(values).map_err(|error| FormError::input(error.message))
+}
+
+/// The specification and file checks: a value over the limits is an input failure, invalid
+/// text a load failure.
+fn specification(spec: Option<&JsonText>, files: Option<&JsonText>) -> FormResult<()> {
+    check_specification(spec, files).map_err(|error| match error {
+        ValidateError::Input(error) => FormError::input(error.message),
+        ValidateError::Load(error) => error.into(),
+    })
 }
 
 fn options<'a>(
@@ -50,7 +60,7 @@ pub fn check_compile_form(
     spec: Option<&JsonText>,
     options_text: Option<&JsonText>,
 ) -> FormResult<()> {
-    check_specification(spec, options_text.and_then(|o| o.get("files")))?;
+    specification(spec, options_text.and_then(|o| o.get("files")))?;
     check(&[], options(options_text, &["basepath", "keyPrefix"]))
 }
 
@@ -75,7 +85,7 @@ pub fn check_display(
     value: Option<&JsonText>,
     options_text: Option<&JsonText>,
 ) -> FormResult<()> {
-    check_specification(spec, options_text.and_then(|o| o.get("files")))?;
+    specification(spec, options_text.and_then(|o| o.get("files")))?;
     check(&[(input, value)], options(options_text, &DISPLAY_OPTIONS))
 }
 

@@ -79,7 +79,8 @@ func (v *Validator) Validate(data any) (ValidationResult, error) {
 		return ValidationResult{}, &FormInputError{Message: "Form data must be an object"}
 	}
 	var errors []ValidationError
-	if err := v.validateProperties(v.properties, root, nil, nil, root, false, &errors); err != nil {
+	call := &callState{uniqueDuplicates: map[string]map[string]bool{}}
+	if err := v.validateProperties(v.properties, root, nil, nil, root, call, false, &errors); err != nil {
 		return ValidationResult{}, err
 	}
 	return ValidationResult{Valid: len(errors) == 0, Errors: errors}, nil
@@ -95,6 +96,15 @@ type fieldRun struct {
 	declaration []string
 	// allData is the whole form.
 	allData map[string]any
+	// call is the state of the validation this field belongs to.
+	call *callState
+}
+
+// callState belongs to one Validate call and is dropped when it returns.
+type callState struct {
+	// uniqueDuplicates maps a collection field (container path, field name and filter) to the row
+	// keys whose value an earlier row already holds.
+	uniqueDuplicates map[string]map[string]bool
 }
 
 // report appends a failed rule to errors.
@@ -108,7 +118,7 @@ func (r fieldRun) report(errors *[]ValidationError, rule, message string, value 
 // validateProperties recurses a properties map (SPEC §3; JS validateProperties).
 // Inside a hidden field (hidden is true) no rule runs, but the data shape is
 // still checked.
-func (v *Validator) validateProperties(properties *compose.OMap, data map[string]any, currentPath, declaration []string, allData map[string]any, hidden bool, errors *[]ValidationError) error {
+func (v *Validator) validateProperties(properties *compose.OMap, data map[string]any, currentPath, declaration []string, allData map[string]any, call *callState, hidden bool, errors *[]ValidationError) error {
 	for _, propertyKey := range properties.Keys() {
 		raw, _ := properties.Get(propertyKey)
 		field, ok := raw.(*compose.OMap)
@@ -118,7 +128,7 @@ func (v *Validator) validateProperties(properties *compose.OMap, data map[string
 
 		fieldName := propertyKey
 		isMultiple := fieldIsMultiple(field)
-		run := fieldRun{field: field, path: appendPath(currentPath, fieldName), declaration: appendPath(declaration, fieldName), allData: allData}
+		run := fieldRun{field: field, path: appendPath(currentPath, fieldName), declaration: appendPath(declaration, fieldName), allData: allData, call: call}
 		fieldPath := run.path
 		fieldValue, present := data[fieldName]
 
@@ -142,7 +152,7 @@ func (v *Validator) validateProperties(properties *compose.OMap, data map[string
 					if !ok {
 						return &FormInputError{Message: "Group data must be an object: " + pathToString(rowPath)}
 					}
-					if err := v.validateProperties(childProps, row, rowPath, run.declaration, allData, fieldHidden, errors); err != nil {
+					if err := v.validateProperties(childProps, row, rowPath, run.declaration, allData, call, fieldHidden, errors); err != nil {
 						return err
 					}
 				}
@@ -156,7 +166,7 @@ func (v *Validator) validateProperties(properties *compose.OMap, data map[string
 			if present && !isObject(fieldValue) {
 				return &FormInputError{Message: "Group data must be an object: " + pathToString(fieldPath)}
 			}
-			if err := v.validateProperties(childProps, asMap(fieldValue), fieldPath, run.declaration, allData, fieldHidden, errors); err != nil {
+			if err := v.validateProperties(childProps, asMap(fieldValue), fieldPath, run.declaration, allData, call, fieldHidden, errors); err != nil {
 				return err
 			}
 			if !fieldHidden {
@@ -310,6 +320,7 @@ func (v *Validator) runRule(run fieldRun, ruleName string, ruleValue any, value 
 	ctx := ruleContext{
 		pathSegments: run.path,
 		formData:     run.allData,
+		call:         run.call,
 		messages:     fieldMessages(run.field),
 		ruleName:     ruleName,
 	}

@@ -227,6 +227,15 @@ the collection and other rules to each element. Nested repeated groups retain
 their row keys in error paths. The [form runtime](form-runtime.md) defines row
 identity and order.
 
+`unique` compares values as `equalTo` does. A string equals only a string with the same code
+points, a number only the same number, and a boolean or `null` only itself; a value never equals
+a value of another type, so `1` differs from `"1"`. A list equals a list of the same values in the
+same order, and an object equals an object with the same member names and values in any member
+order, such as a language value. An empty value (empty after White_Space trimming) takes no part.
+On a repeated field the collection fails when two values are the same; on a field inside a
+repeated group each row fails whose value is the same as that of an earlier row, and a filter
+condition is evaluated once per row. The check takes time linear in the number of values.
+
 ## Conditional parameters
 
 ```yaml

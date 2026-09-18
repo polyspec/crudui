@@ -26,23 +26,45 @@ import {
 import { parseCondition, isConditionExpression } from '../parser/ConditionParser';
 
 /**
- * Build a comparison key for uniqueness checks
+ * Cache for precomputed duplicates per validation run.
+ * Keyed by the allData object (the full form data for this validation).
+ * Value: Map keyed by "containerPath:fieldName:filterParam" -> Map of itemKey -> true if duplicate.
+ * This ensures duplicates are computed once per validation run for each field/filter combo.
  */
-function comparisonKey(value: unknown): unknown {
-  if (typeof value === 'object' && value !== null) {
-    return JSON.stringify(value);
+const duplicatesByRun = new WeakMap<
+  Record<string, unknown>,
+  Map<string, Map<string, boolean>>
+>();
+
+/**
+ * The canonical key of a value for `unique` (docs/spec/validation-rules.md): equal keys mean the
+ * same JSON value. Every value carries its type, strings are JSON-escaped, numbers are written by
+ * their exact value, lists keep their order and object members are sorted by name at every depth,
+ * so no encoding of one type can be read as another.
+ */
+function canonicalKey(value: unknown): string {
+  if (value === null) return 'z';
+  if (typeof value === 'boolean') return value ? 'b1' : 'b0';
+  // String(-0) is "0", so -0 and 0 are the same number.
+  if (typeof value === 'number') return `n${String(value)}`;
+  if (typeof value === 'string') return `s${JSON.stringify(value)}`;
+  if (Array.isArray(value)) return `a[${value.map(canonicalKey).join(',')}]`;
+  if (typeof value === 'object') {
+    const members = Object.keys(value as Record<string, unknown>).sort()
+      .map(name => `${JSON.stringify(name)}:${canonicalKey((value as Record<string, unknown>)[name])}`);
+    return `o{${members.join(',')}}`;
   }
-  return value;
+  return `u${String(value)}`;
 }
 
 /**
  * Check if all values in array are unique
  */
 export function areAllUnique(values: unknown[]): boolean {
-  const seen = new Set<unknown>();
+  const seen = new Set<string>();
 
   for (const value of values) {
-    const key = comparisonKey(value);
+    const key = canonicalKey(value);
     if (seen.has(key)) {
       return false;
     }
@@ -117,7 +139,8 @@ export const uniqueRule: RuleDefinition = {
       let valuesToCheck: unknown[];
 
       if (isFilterCondition) {
-        // Only elements whose item context passes the condition participate
+        // Only elements whose item context passes the condition participate.
+        // Evaluate condition once per item.
         valuesToCheck = [];
         for (const [key, element] of entries) {
           const itemPath = [...pathSegments, key];
@@ -157,64 +180,86 @@ export const uniqueRule: RuleDefinition = {
     const containerPath = pathSegments.slice(0, -2);
     const container = getValueByPath(allData, containerPath);
 
-    // Build ordered (key, item) entries for both array containers and
-    // object containers with unique keys (__xxxx__ format)
-    let entries: [string, unknown][];
-    if (Array.isArray(container)) {
-      if (!/^\d+$/.test(itemKey)) {
-        return null;
-      }
-      entries = container.map((item, i) => [String(i), item]);
-    } else if (container !== null && typeof container === 'object') {
-      entries = Object.entries(container as Record<string, unknown>);
-    } else {
-      return null;
-    }
-
     // Skip empty values (they never count as duplicates)
     if (isEmpty(value)) {
       return null;
     }
 
-    // If a filter condition exists and the current item does not satisfy it,
-    // the current item is excluded from the uniqueness check entirely
-    if (
-      isFilterCondition &&
-      !itemPassesCondition(ruleParam as string, pathSegments, allData)
-    ) {
+    // Evaluate filter condition for the current item once
+    const currentItemPassesFilter = !isFilterCondition ||
+      itemPassesCondition(ruleParam as string, pathSegments, allData);
+
+    // If the current item doesn't pass the filter, it's excluded from the check
+    if (!currentItemPassesFilter) {
       return null;
     }
 
-    const currentKey = comparisonKey(value);
+    // Get or create the cache for this validation run
+    let runCache = duplicatesByRun.get(allData as Record<string, unknown>);
+    if (!runCache) {
+      runCache = new Map();
+      duplicatesByRun.set(allData as Record<string, unknown>, runCache);
+    }
 
-    for (const [key, item] of entries) {
-      if (key === itemKey) {
-        // Only compare against EARLIER siblings so the error lands on the
-        // later (duplicate) item
-        break;
+    // Create a unique key for this container field combination
+    const containerPathStr = containerPath.join('.');
+    const cacheKey = isFilterCondition
+      ? `${containerPathStr}:${fieldName}:${ruleParam}`
+      : `${containerPathStr}:${fieldName}`;
+
+    // If we haven't precomputed duplicates for this field yet, do it now
+    let duplicates = runCache.get(cacheKey);
+    if (!duplicates) {
+      duplicates = new Map<string, boolean>();
+      runCache.set(cacheKey, duplicates);
+
+      // Build ordered (key, item) entries for both array containers and
+      // object containers with unique keys (__xxxx__ format)
+      let entries: [string, unknown][];
+      if (Array.isArray(container)) {
+        if (!/^\d+$/.test(itemKey)) {
+          return null;
+        }
+        entries = container.map((item, i) => [String(i), item]);
+      } else if (container !== null && typeof container === 'object') {
+        entries = Object.entries(container as Record<string, unknown>);
+      } else {
+        return null;
       }
 
-      if (typeof item !== 'object' || item === null) {
-        continue;
-      }
-
-      if (isFilterCondition) {
-        const siblingFieldPath = [...containerPath, key, fieldName];
-        if (
-          !itemPassesCondition(ruleParam as string, siblingFieldPath, allData)
-        ) {
+      // Walk through all rows once and identify which ones are duplicates
+      const seenKeys = new Set<string>();
+      for (const [key, item] of entries) {
+        if (typeof item !== 'object' || item === null) {
           continue;
         }
-      }
 
-      const siblingValue = (item as Record<string, unknown>)[fieldName];
-      if (isEmpty(siblingValue)) {
-        continue;
-      }
+        // Evaluate filter condition once per row
+        if (isFilterCondition) {
+          const itemFieldPath = [...containerPath, key, fieldName];
+          if (!itemPassesCondition(ruleParam as string, itemFieldPath, allData)) {
+            continue;
+          }
+        }
 
-      if (comparisonKey(siblingValue) === currentKey) {
-        return errorMessage;
+        const itemValue = (item as Record<string, unknown>)[fieldName];
+        if (isEmpty(itemValue)) {
+          continue;
+        }
+
+        const itemValueKey = canonicalKey(itemValue);
+        if (seenKeys.has(itemValueKey)) {
+          // This row is a duplicate
+          duplicates.set(key, true);
+        } else {
+          seenKeys.add(itemValueKey);
+        }
       }
+    }
+
+    // Check precomputed result: is this item a duplicate?
+    if (duplicates.get(itemKey)) {
+      return errorMessage;
     }
 
     return null;

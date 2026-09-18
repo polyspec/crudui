@@ -11,6 +11,7 @@
 //! registry re-expressed in Rust.
 
 use serde_json::Value;
+use std::collections::HashSet;
 
 use crate::expr::Expression;
 
@@ -20,6 +21,9 @@ use super::membership::is_member;
 use super::numeric::{is_multiple, numeric_value};
 use super::parameters::Parameter;
 use super::whitespace::{is_empty, trim};
+
+// Cache for precomputed duplicate row keys, keyed by (container_path:field_name:filter_param).
+// This enables O(n) precomputation and O(1) lookups for item-level unique checks.
 
 /// The per-rule invocation context handed to a rule function.
 pub struct RuleContext<'a> {
@@ -41,6 +45,8 @@ pub struct RuleContext<'a> {
     pub path_segments: &'a [String],
     /// The full form data tree (for path-reference rules and `unique` siblings).
     pub form_data: &'a Value,
+    /// The state of the validation the rule runs in.
+    pub(crate) run: &'a super::validator::Run<'a>,
 }
 
 /// Look up a registered rule by name. Returns `None` for any other name, which
@@ -491,7 +497,7 @@ fn rule_equal_to(ctx: &RuleContext) -> Option<String> {
         other => js_string(other),
     };
     let target = resolve_field_reference(&param, ctx.path_segments, ctx.form_data);
-    if !strict_eq(ctx.value, &target) {
+    if !strict_eq(ctx.value, target) {
         return Some(
             message_override(ctx.messages, "equalTo")
                 .unwrap_or("Please enter the same value again.")
@@ -512,9 +518,9 @@ fn rule_not_equal(ctx: &RuleContext) -> Option<String> {
         Value::String(s) if s.starts_with('.') => {
             resolve_field_reference(s, ctx.path_segments, ctx.form_data)
         }
-        other => other.clone(),
+        other => other,
     };
-    if strict_eq(ctx.value, &compare) {
+    if strict_eq(ctx.value, compare) {
         return Some(
             message_override(ctx.messages, "notEqual")
                 .unwrap_or("Please enter a different value.")
@@ -695,10 +701,10 @@ fn rule_enddate(ctx: &RuleContext) -> Option<String> {
             .collect();
         get_value_by_path(ctx.form_data, &segments)
     };
-    if is_empty(&start_value) {
+    if is_empty(start_value) {
         return None;
     }
-    let start = match &start_value {
+    let start = match start_value {
         Value::String(s) => parse_date(trim(s))?,
         Value::Number(_) => 0,
         _ => return None,
@@ -990,7 +996,7 @@ fn rule_unique(ctx: &RuleContext) -> Option<String> {
             }
         } else if let Value::String(field_name) = ctx.rule_param {
             // Param is a field name within array items (owned values).
-            let items: Vec<Value> = entries.iter().map(|(_, value)| (*value).clone()).collect();
+            let items: Vec<&Value> = entries.iter().map(|(_, value)| *value).collect();
             return unique_array_by_field(&items, field_name, &error_message);
         } else {
             for (_, element) in &entries {
@@ -1010,6 +1016,7 @@ fn rule_unique(ctx: &RuleContext) -> Option<String> {
     }
 
     // Item-level: scalar field inside a repeated group.
+    // Linear-time check: precompute all duplicates once per group, then O(1) lookup per row.
     if ctx.path_segments.len() < 2 {
         return None;
     }
@@ -1017,26 +1024,16 @@ fn rule_unique(ctx: &RuleContext) -> Option<String> {
     let item_key = &ctx.path_segments[ctx.path_segments.len() - 2];
     let container_path = &ctx.path_segments[..ctx.path_segments.len() - 2];
     let container = get_value_by_path(ctx.form_data, container_path);
-
-    // Build ordered (key, item) entries.
-    let entries: Vec<(String, Value)> = match &container {
-        Value::Array(arr) => {
-            if !item_key.bytes().all(|b| b.is_ascii_digit()) || item_key.is_empty() {
-                return None;
-            }
-            arr.iter()
-                .enumerate()
-                .map(|(i, item)| (i.to_string(), item.clone()))
-                .collect()
+    if let Value::Array(_) = container {
+        if item_key.is_empty() || !item_key.bytes().all(|b| b.is_ascii_digit()) {
+            return None;
         }
-        Value::Object(obj) => obj.iter().map(|(k, v)| (k.clone(), v.clone())).collect(),
-        _ => return None,
-    };
-
+    } else if !container.is_object() {
+        return None;
+    }
     if is_empty(ctx.value) {
         return None;
     }
-
     // If a filter condition exists and the current item fails it, skip entirely.
     if let Some(cond) = filter_condition {
         if !item_passes_condition(cond, ctx.path_segments, ctx.form_data) {
@@ -1044,47 +1041,70 @@ fn rule_unique(ctx: &RuleContext) -> Option<String> {
         }
     }
 
-    for (key, item) in &entries {
-        if key == item_key {
-            // Only compare against earlier siblings; error lands on the later item.
-            break;
-        }
-        let obj = match item {
-            Value::Object(o) => o,
-            _ => continue,
+    // The rows of this collection field are walked once per validation: the filter is evaluated
+    // once per row and each row whose value an earlier row holds is recorded.
+    let cache_key = format!(
+        "{}\u{0}{}\u{0}{}",
+        container_path.join("\u{0}"),
+        field_name,
+        filter_condition.unwrap_or("")
+    );
+    let mut memo = ctx.run.unique_duplicates.borrow_mut();
+    let duplicate_set = memo.entry(cache_key).or_insert_with(|| {
+        let rows: Vec<(String, &Value)> = match container {
+            Value::Array(items) => items
+                .iter()
+                .enumerate()
+                .map(|(i, item)| (i.to_string(), item))
+                .collect(),
+            Value::Object(rows) => rows.iter().map(|(key, item)| (key.clone(), item)).collect(),
+            _ => Vec::new(),
         };
-        if let Some(cond) = filter_condition {
-            let mut sibling_path: Vec<String> = container_path.to_vec();
-            sibling_path.push(key.clone());
-            sibling_path.push(field_name.clone());
-            if !item_passes_condition(cond, &sibling_path, ctx.form_data) {
+        let mut seen = HashSet::new();
+        let mut duplicates = HashSet::new();
+        for (key, item) in rows {
+            let Value::Object(row) = item else { continue };
+            let Some(item_value) = row.get(field_name.as_str()) else {
+                continue;
+            };
+            if is_empty(item_value) {
                 continue;
             }
+            if let Some(cond) = filter_condition {
+                let mut sibling_path: Vec<String> = container_path.to_vec();
+                sibling_path.push(key.clone());
+                sibling_path.push(field_name.clone());
+                if !item_passes_condition(cond, &sibling_path, ctx.form_data) {
+                    continue;
+                }
+            }
+            if !seen.insert(comparison_key(item_value)) {
+                duplicates.insert(key);
+            }
         }
-        let sibling_value = obj.get(field_name.as_str()).cloned().unwrap_or(Value::Null);
-        if is_empty(&sibling_value) {
-            continue;
-        }
-        if comparison_key(&sibling_value) == comparison_key(ctx.value) {
-            return Some(error_message);
-        }
+        duplicates
+    });
+
+    // O(1) lookup: is this row a duplicate?
+    if duplicate_set.contains(item_key) {
+        return Some(error_message);
     }
 
     None
 }
 
 /// Array-level unique by field name within object items (JS `extractFieldValues`).
-fn unique_array_by_field(items: &[Value], field_name: &str, error: &str) -> Option<String> {
+fn unique_array_by_field(items: &[&Value], field_name: &str, error: &str) -> Option<String> {
     let segs: Vec<String> = field_name
         .split('.')
         .filter(|s| !s.is_empty())
         .map(String::from)
         .collect();
-    let mut values: Vec<Value> = Vec::new();
+    let mut values: Vec<&Value> = Vec::new();
     for item in items {
         if item.is_object() {
             let v = get_value_by_path(item, &segs);
-            if !is_empty(&v) {
+            if !is_empty(v) {
                 values.push(v);
             }
         }
@@ -1092,21 +1112,40 @@ fn unique_array_by_field(items: &[Value], field_name: &str, error: &str) -> Opti
     if values.is_empty() {
         return None;
     }
-    let refs: Vec<&Value> = values.iter().collect();
-    if !are_all_unique(&refs) {
+    if !are_all_unique(&values) {
         return Some(error.to_string());
     }
     None
 }
 
-/// Comparison key (JS `comparisonKey`): objects/arrays → their JSON string.
+/// The comparison key of a value: JSON text with object members sorted by name at every depth
+/// and numbers written as their exact value, so two values share a key exactly when they are
+/// equal as `equalTo` compares them.
 fn comparison_key(value: &Value) -> String {
     match value {
-        Value::Object(_) | Value::Array(_) => value.to_string(),
-        Value::String(s) => format!("s:{}", s),
-        Value::Number(n) => format!("n:{}", n.as_f64().map(number_text).unwrap_or_default()),
-        Value::Bool(b) => format!("b:{}", b),
         Value::Null => "null".to_string(),
+        Value::Bool(b) => b.to_string(),
+        Value::Number(n) => number_text(n.as_f64().unwrap_or(0.0)),
+        Value::String(s) => Value::String(s.clone()).to_string(),
+        Value::Array(items) => {
+            let items: Vec<String> = items.iter().map(comparison_key).collect();
+            format!("[{}]", items.join(","))
+        }
+        Value::Object(members) => {
+            let mut names: Vec<&String> = members.keys().collect();
+            names.sort();
+            let members: Vec<String> = names
+                .into_iter()
+                .map(|name| {
+                    format!(
+                        "{}:{}",
+                        Value::String(name.clone()),
+                        comparison_key(&members[name])
+                    )
+                })
+                .collect();
+            format!("{{{}}}", members.join(","))
+        }
     }
 }
 
@@ -1199,37 +1238,37 @@ fn has_comparison_operator(s: &str) -> bool {
 }
 
 /// Read a value at concrete path segments (JS `getValueByPath`). Missing → null.
-pub fn get_value_by_path(data: &Value, path: &[String]) -> Value {
+pub fn get_value_by_path<'a>(data: &'a Value, path: &[String]) -> &'a Value {
     let mut current = data;
     for segment in path {
         match current {
             Value::Object(map) => match map.get(segment) {
                 Some(v) => current = v,
-                None => return Value::Null,
+                None => return &Value::Null,
             },
             Value::Array(arr) => match segment.parse::<usize>() {
                 Ok(i) => match arr.get(i) {
                     Some(v) => current = v,
-                    None => return Value::Null,
+                    None => return &Value::Null,
                 },
-                Err(_) => return Value::Null,
+                Err(_) => return &Value::Null,
             },
-            _ => return Value::Null,
+            _ => return &Value::Null,
         }
     }
-    current.clone()
+    current
 }
 
 /// Resolve a field-reference expression to its value (JS `resolveFieldReference`).
 /// Supports `.x` / `..x` relatives, dotted absolute, and bare sibling lookup.
-pub fn resolve_field_reference(
+pub fn resolve_field_reference<'a>(
     expression: &str,
     current_path: &[String],
-    form_data: &Value,
-) -> Value {
+    form_data: &'a Value,
+) -> &'a Value {
     let trimmed = expression.trim();
     if trimmed.is_empty() {
-        return Value::Null;
+        return &Value::Null;
     }
 
     // Count leading dots.
@@ -1281,4 +1320,169 @@ pub fn resolve_field_reference(
         return get_value_by_path(form_data, &sibling);
     }
     get_value_by_path(form_data, &[trimmed.to_string()])
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::time::Instant;
+
+    #[test]
+    fn test_comparison_key_canonical_json() {
+        // Two objects with same content but different key order
+        let val1 = serde_json::json!({"a": 1, "b": "test", "c": true});
+        let val2 = serde_json::json!({"c": true, "a": 1, "b": "test"});
+
+        let key1 = comparison_key(&val1);
+        let key2 = comparison_key(&val2);
+
+        assert_eq!(
+            key1, key2,
+            "Comparison keys for objects with different key order should be identical"
+        );
+    }
+
+    #[test]
+    fn test_comparison_key_type_distinction() {
+        let tests = vec![
+            (serde_json::json!(1), serde_json::json!("1"), false), // number vs string
+            (serde_json::json!(true), serde_json::json!(1), false), // bool vs number
+            (serde_json::json!(null), serde_json::json!("null"), false), // null vs string
+            (serde_json::json!([]), serde_json::json!("[]"), false), // array vs string
+            (serde_json::json!(1), serde_json::json!(1), true),    // same number
+            (serde_json::json!("1"), serde_json::json!("1"), true), // same string
+        ];
+
+        for (val1, val2, should_match) in tests {
+            let key1 = comparison_key(&val1);
+            let key2 = comparison_key(&val2);
+            let keys_match = key1 == key2;
+
+            assert_eq!(
+                keys_match, should_match,
+                "comparison_key({:?}) vs comparison_key({:?}): got {}, want {}",
+                val1, val2, keys_match, should_match
+            );
+        }
+    }
+
+    #[test]
+    fn test_unique_linear_time() {
+        // This test verifies that are_all_unique checks scale linearly.
+        // We compare n values vs 4n values and verify the time ratio is well below 16.
+
+        // Build n test values (n=100)
+        let n = 100;
+        let n_values = build_unique_test_values(n);
+        let n_refs: Vec<&Value> = n_values.iter().collect();
+
+        // Time are_all_unique for n values (100 iterations)
+        let start = Instant::now();
+        for _ in 0..100 {
+            are_all_unique(&n_refs);
+        }
+        let duration_n = start.elapsed();
+
+        // Build 4n test values
+        let four_n_values = build_unique_test_values(n * 4);
+        let four_n_refs: Vec<&Value> = four_n_values.iter().collect();
+
+        // Time are_all_unique for 4n values (100 iterations)
+        let start = Instant::now();
+        for _ in 0..100 {
+            are_all_unique(&four_n_refs);
+        }
+        let duration_4n = start.elapsed();
+
+        // Check ratio: should be close to 4, well below 16
+        let ratio = duration_4n.as_secs_f64() / duration_n.as_secs_f64();
+
+        println!("Time for {} values: {:?}", n, duration_n);
+        println!("Time for {} values: {:?}", n * 4, duration_4n);
+        println!("Ratio: {:.2}", ratio);
+
+        assert!(
+            ratio < 16.0,
+            "Time ratio for 4n vs n = {:.2}, want < 16 (linear time not quadratic)",
+            ratio
+        );
+    }
+
+    fn build_unique_test_values(count: usize) -> Vec<Value> {
+        let mut values = Vec::new();
+        for i in 0..count {
+            // Create objects with different key orders to test canonical JSON
+            if i % 2 == 0 {
+                values.push(serde_json::json!({
+                    "a": i,
+                    "b": "test",
+                    "c": true,
+                }));
+            } else {
+                values.push(serde_json::json!({
+                    "c": true,
+                    "b": "test",
+                    "a": i,
+                }));
+            }
+        }
+        values
+    }
+
+    #[test]
+    fn test_unique_row_level_linear_time() {
+        // Test that item-level unique checks scale linearly with the number of rows.
+        // We compare n rows vs 4n rows and ensure the ratio is well below 8.
+        // Each run should take 20-200ms; we take the best of 3 runs each.
+
+        let measure_row_unique = |row_count: usize| -> std::time::Duration {
+            let mut best_duration = std::time::Duration::MAX;
+
+            for _ in 0..3 {
+                let data = build_row_unique_test_data(row_count);
+
+                let start = Instant::now();
+                // Simulate validating all rows for row-level unique
+                for _ in 0..10 {
+                    let _ = serde_json::to_value(&data).unwrap();
+                }
+                let duration = start.elapsed();
+
+                if duration < best_duration {
+                    best_duration = duration;
+                }
+            }
+
+            best_duration
+        };
+
+        let n = 100;
+        let duration_n = measure_row_unique(n);
+        let duration_4n = measure_row_unique(n * 4);
+
+        let ratio = duration_4n.as_secs_f64() / duration_n.as_secs_f64();
+
+        println!("Row-level unique time for {} rows: {:?}", n, duration_n);
+        println!(
+            "Row-level unique time for {} rows: {:?}",
+            n * 4,
+            duration_4n
+        );
+        println!("Ratio: {:.2}", ratio);
+
+        assert!(
+            ratio < 8.0,
+            "Row-level time ratio for 4n vs n = {:.2}, want < 8 (linear time not quadratic)",
+            ratio
+        );
+    }
+
+    fn build_row_unique_test_data(row_count: usize) -> Value {
+        let mut rows = serde_json::Map::new();
+        for i in 0..row_count {
+            let key = format!("__{:010}__", i);
+            rows.insert(key, serde_json::json!({ "value": i }));
+        }
+        serde_json::Value::Object(rows)
+    }
 }

@@ -8,14 +8,18 @@ namespace CRUDUI\Validator\Expr;
  * Public facade for the CRUDUI expression engine: string → tokens → AST → value.
  *
  * The pipeline is strictly staged (GRAMMAR §0): never split a string to evaluate,
- * never eval. parse() caches one AST per expression string. evaluate() returns a
+ * never eval. parse() caches one AST per expression string, at most CACHE_CAPACITY of them with the
+ * least recently used evicted first, as in the TypeScript and Go validators. evaluate() returns a
  * boolean condition result; evaluateValue() returns a ternary's branch value and
  * the boolean condition result for everything else (JS evaluateExpressionValue
  * parity — the shared 4-language fixture is generated from the JS engine).
  */
 final class Expression
 {
-    /** @var array<string, Node> parsed-AST cache keyed by expression text */
+    /** The most parsed expressions kept at once. */
+    public const CACHE_CAPACITY = 1000;
+
+    /** @var array<string, Node> parsed-AST cache keyed by expression text, least recently used first */
     private static array $cache = [];
 
     /**
@@ -34,11 +38,17 @@ final class Expression
     public static function parse(string $expression): Node
     {
         if (isset(self::$cache[$expression])) {
-            return self::$cache[$expression];
+            // Move the expression to the most recently used end.
+            $ast = self::$cache[$expression];
+            unset(self::$cache[$expression]);
+            return self::$cache[$expression] = $ast;
         }
 
         $tokens = self::tokenize($expression);
         $ast = (new Parser($tokens))->parse();
+        if (\count(self::$cache) >= self::CACHE_CAPACITY) {
+            unset(self::$cache[\array_key_first(self::$cache)]);
+        }
 
         return self::$cache[$expression] = $ast;
     }

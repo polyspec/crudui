@@ -105,10 +105,13 @@ fn json_text_reads_what_serde_json_reads() {
         assert!(JsonText::parse(source).is_err(), "{source}");
     }
     let nested = |depth: usize| format!("{}{}", "[".repeat(depth), "]".repeat(depth));
+    // serde_json has a hard limit of 128 nesting levels
     assert!(serde_json::from_str::<Value>(&nested(127)).is_ok());
     assert!(JsonText::parse(&nested(127)).is_ok());
     assert!(serde_json::from_str::<Value>(&nested(128)).is_err());
-    assert!(JsonText::parse(&nested(128)).is_err());
+    // JsonText now supports up to 512 levels
+    assert!(JsonText::parse(&nested(512)).is_ok());
+    assert!(JsonText::parse(&nested(513)).is_err());
 }
 
 #[test]
@@ -138,10 +141,13 @@ fn json_text_locates_invalid_text() {
         "Text must be Unicode scalar values: data.a"
     );
     let error = text::check_specification(None, Some(&named)).unwrap_err();
-    assert_eq!(
-        (error.code.as_str(), error.trace.join(".")),
-        ("INVALID_TEXT", "a".to_owned())
-    );
+    match error {
+        crudui_validator::ValidateError::Load(load_error) => {
+            assert_eq!(load_error.code.as_str(), "INVALID_TEXT");
+            assert_eq!(load_error.trace.join("."), "a");
+        }
+        _ => panic!("expected Load error"),
+    }
     // A number serde_json refuses fails after the text checks.
     let spec = JsonText::parse(r#"{"type":"group","properties":{}}"#).unwrap();
     let data = JsonText::parse(r#"{"n":1e400}"#).unwrap();
@@ -151,4 +157,153 @@ fn json_text_locates_invalid_text() {
             .code(),
         "INVALID_FORM_INPUT"
     );
+}
+
+#[test]
+fn value_graph_limits() {
+    use std::fs;
+    use std::path::PathBuf;
+
+    // Load value-graphs.json
+    let relative = "tests/fixtures/text-validity/value-graphs.json";
+    let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../..")
+        .join(relative);
+    let source = fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {path:?}: {e}"));
+
+    let cases = match JsonText::parse(&source).expect("value-graphs.json") {
+        JsonText::Array(cases) => cases,
+        _ => panic!("fixture is not an array"),
+    };
+
+    // Helper to build a chain of nested JsonText arrays
+    fn build_chain_json_text(depth: usize, leaf: &str) -> JsonText {
+        let mut value = JsonText::String(JsonString::Text(leaf.to_string()));
+        for _ in 0..depth {
+            value = JsonText::Array(vec![value]);
+        }
+        value
+    }
+
+    // Helper to build a flat JsonText list
+    fn build_flat_json_text(size: usize, leaf: &str) -> JsonText {
+        let items = vec![JsonText::String(JsonString::Text(leaf.to_string())); size];
+        JsonText::Array(items)
+    }
+
+    let buildable = [
+        "nesting-at-limit",
+        "nesting-beyond-limit",
+        "nodes-at-limit",
+        "nodes-beyond-limit",
+    ];
+    let mut ran = 0;
+    let mut failures = Vec::new();
+
+    for case in &cases {
+        let name = case.get("name").and_then(|n| match n {
+            JsonText::String(JsonString::Text(name)) => Some(name.clone()),
+            _ => None,
+        });
+        let name = name.expect("case name");
+
+        if !buildable.iter().any(|b| b == &name) {
+            continue;
+        }
+
+        ran += 1;
+
+        let spec = case.get("spec").expect("spec");
+        let mut data = case.get("data").cloned().unwrap_or(JsonText::Null);
+        let graph = case.get("graph").expect("graph");
+
+        // Get graph parameters
+        let at = match graph.get("at") {
+            Some(JsonText::Array(path)) => path
+                .iter()
+                .filter_map(|p| match p {
+                    JsonText::String(JsonString::Text(s)) => Some(s.clone()),
+                    _ => None,
+                })
+                .collect::<Vec<_>>(),
+            _ => continue,
+        };
+
+        let shape = graph
+            .get("shape")
+            .and_then(|s| match s {
+                JsonText::String(JsonString::Text(s)) => Some(s.as_str()),
+                _ => None,
+            })
+            .unwrap_or("");
+
+        let size = graph
+            .get("size")
+            .and_then(|s| match s {
+                JsonText::Number(n) => n.parse::<usize>().ok(),
+                _ => None,
+            })
+            .unwrap_or(0);
+
+        let leaf = graph
+            .get("leaf")
+            .and_then(|l| match l {
+                JsonText::String(JsonString::Text(s)) => Some(s.clone()),
+                _ => None,
+            })
+            .unwrap_or_else(|| "x".to_string());
+
+        // Build the graph value as JsonText
+        let graph_value = match shape {
+            "chain" => build_chain_json_text(size, &leaf),
+            "flat" => build_flat_json_text(size, &leaf),
+            _ => continue, // Skip doubled and self-twice
+        };
+
+        // Place the graph value at the specified path
+        if at.len() == 2 && at[0] == "data" {
+            if let JsonText::Object(ref mut members) = data {
+                let key = JsonString::Text(at[1].clone());
+                if let Some(pos) = members.iter().position(|(n, _)| n == &key) {
+                    members[pos].1 = graph_value;
+                } else {
+                    members.push((key, graph_value));
+                }
+            }
+        } else {
+            continue; // Skip more complex paths for now
+        }
+
+        // Run validation
+        let result = text::validate_text(spec, Some(&data), None, None);
+
+        let actual = match result {
+            Ok(validation_result) => {
+                json!({"valid": validation_result.valid, "errors": validation_result.errors.iter().map(|e| e.to_value()).collect::<Vec<_>>()})
+            }
+            Err(error) => {
+                json!({"code": error.code(), "message": error.message(), "at": error.at()})
+            }
+        };
+        let expected = case
+            .get("expect")
+            .and_then(JsonText::to_value)
+            .expect("expect");
+
+        if actual != expected {
+            failures.push(format!(
+                "value-graphs/{}: got {}, want {}",
+                name, actual, expected
+            ));
+        }
+    }
+
+    assert_eq!(
+        ran,
+        buildable.len(),
+        "every buildable value-graph case runs"
+    );
+    if !failures.is_empty() {
+        panic!("{}", failures.join("\n"));
+    }
 }
