@@ -227,41 +227,92 @@ static ps_text item_key(const ps_value *container, size_t index, char *buffer, s
     return ps_fixed(buffer);
 }
 
-/* 1 when the values are unique, 0 when not, -1 on allocation failure. */
+/* Kinds in the order values sort for the unique rule; an integer and a float are both numbers. */
+static int unique_kind(const ps_value *value)
+{
+    switch (value->kind) {
+        case PS_NULL: return 0;
+        case PS_BOOL: return 1;
+        case PS_INT: case PS_FLOAT: return 2;
+        case PS_STRING: return 3;
+        case PS_ARRAY: return 4;
+        default: return 5;
+    }
+}
+
+static int compare_text(ps_text left, ps_text right)
+{
+    size_t shorter = left.length < right.length ? left.length : right.length;
+    int order = shorter ? memcmp(left.bytes, right.bytes, shorter) : 0;
+    if (order) return order;
+    return (left.length > right.length) - (left.length < right.length);
+}
+
+/*
+ * A total order whose equal values are the values ps_equal matches, except that numbers compare
+ * by their double value, so two integers above 2^53 that convert to the same double are equal.
+ */
+static int compare_unique(const ps_value *left, const ps_value *right)
+{
+    int kinds = unique_kind(left) - unique_kind(right);
+    if (kinds) return kinds;
+    switch (left->kind) {
+        case PS_NULL: return 0;
+        case PS_BOOL: return left->data.boolean - right->data.boolean;
+        case PS_INT: case PS_FLOAT: {
+            double a = left->kind == PS_INT ? (double)left->data.integer : left->data.number;
+            double b = right->kind == PS_INT ? (double)right->data.integer : right->data.number;
+            return (a > b) - (a < b);
+        }
+        case PS_STRING: return compare_text(ps_string(left), ps_string(right));
+        default: {
+            size_t length = ps_size(left);
+            if (length != ps_size(right)) return (length > ps_size(right)) - (length < ps_size(right));
+            for (size_t i = 0; i < length; ++i) {
+                int order = left->kind == PS_OBJECT ? compare_text(ps_key(left, i), ps_key(right, i)) : 0;
+                if (!order) order = compare_unique(ps_at(left, i), ps_at(right, i));
+                if (order) return order;
+            }
+            return 0;
+        }
+    }
+}
+
+static int compare_unique_items(const void *left, const void *right)
+{
+    return compare_unique(*(const ps_value *const *)left, *(const ps_value *const *)right);
+}
+
+/*
+ * 1 when the values are unique, 0 when not, -1 on allocation failure. The filter condition runs
+ * once for each item, and sorting brings equal values next to each other.
+ */
 static int unique_values(const ps_value *values, const ps_value *parameter,
                          const validation_context *context, const ps_text *path, size_t length)
 {
     bool condition = parameter && parameter->kind == PS_STRING && ps_condition_expression(ps_string(parameter));
-    for (size_t i = 0; i < ps_size(values); ++i) {
-        const ps_value *left = ps_at(values, i);
-        char left_index[32];
-        ps_text left_key = item_key(values, i, left_index, sizeof(left_index));
-        ps_text *left_path = calloc(length + 1, sizeof(*left_path));
-        if (!left_path) return -1;
-        for (size_t p = 0; p < length; ++p) left_path[p] = path[p];
-        left_path[length] = left_key;
+    size_t count = ps_size(values), kept = 0;
+    const ps_value **items = malloc((count ? count : 1) * sizeof(*items));
+    ps_text *item_path = calloc(length + 1, sizeof(*item_path));
+    if (!items || !item_path) { free(items); free(item_path); return -1; }
+    for (size_t p = 0; p < length; ++p) item_path[p] = path[p];
+    for (size_t i = 0; i < count; ++i) {
+        const ps_value *item = ps_at(values, i);
+        char index[32];
+        item_path[length] = item_key(values, i, index, sizeof(index));
         if (condition) {
-            bool parsed = false, included = ps_expression_truth(ps_string(parameter), context->data, left_path, length + 1, &parsed);
-            if (!parsed || !included) { free(left_path); continue; }
+            bool parsed = false, included = ps_expression_truth(ps_string(parameter), context->data, item_path, length + 1, &parsed);
+            if (!parsed || !included) continue;
         }
-        if (parameter && parameter->kind == PS_STRING && !condition) left = ps_path(left, ps_string(parameter));
-        free(left_path); if (ps_empty_value(left)) continue;
-        for (size_t j = 0; j < i; ++j) {
-            const ps_value *right = ps_at(values, j);
-            char right_index[32];
-            ps_text right_key = item_key(values, j, right_index, sizeof(right_index));
-            if (condition) {
-                ps_text *right_path = calloc(length + 1, sizeof(*right_path)); if (!right_path) return -1;
-                for (size_t p = 0; p < length; ++p) right_path[p] = path[p];
-                right_path[length] = right_key;
-                bool parsed = false, included = ps_expression_truth(ps_string(parameter), context->data, right_path, length + 1, &parsed);
-                free(right_path); if (!parsed || !included) continue;
-            }
-            if (parameter && parameter->kind == PS_STRING && !condition) right = ps_path(right, ps_string(parameter));
-            if (!ps_empty_value(right) && ps_equal(left, right)) return 0;
-        }
+        if (parameter && parameter->kind == PS_STRING && !condition) item = ps_path(item, ps_string(parameter));
+        if (!ps_empty_value(item)) items[kept++] = item;
     }
-    return 1;
+    free(item_path);
+    qsort(items, kept, sizeof(*items), compare_unique_items);
+    int unique = 1;
+    for (size_t i = 1; i < kept && unique; ++i) if (!compare_unique(items[i - 1], items[i])) unique = 0;
+    free(items);
+    return unique;
 }
 
 static const ps_value *effective_parameter(ps_text rule, const ps_value *declared,

@@ -33,6 +33,8 @@ type fixtureSpec struct {
 	Tokens []map[string]any `json:"tokens"`
 	AST    map[string]any   `json:"ast"`
 	Cases  []fixtureCase    `json:"cases"`
+	// Error is the parse failure message of an expression the parser rejects.
+	Error string `json:"error"`
 }
 
 func loadFixture(t *testing.T) []fixtureSpec {
@@ -61,10 +63,24 @@ func TestExpressionMatchesFixture(t *testing.T) {
 		spec := spec
 		t.Run(spec.Name, func(t *testing.T) {
 			conformance.Record(t, "validate", "tests/fixtures/expr/cases.json", spec.Name)
+			if spec.Error != "" {
+				t.Run("rejection", func(t *testing.T) { checkRejection(t, spec) })
+				return
+			}
 			t.Run("tokens", func(t *testing.T) { checkTokens(t, spec) })
 			t.Run("ast", func(t *testing.T) { checkAST(t, spec) })
 			t.Run("evaluation", func(t *testing.T) { checkEvaluation(t, spec) })
 		})
+	}
+}
+
+func checkRejection(t *testing.T, spec fixtureSpec) {
+	_, err := Parse(spec.Expr)
+	if err == nil {
+		t.Fatalf("%s parsed; want error %q", spec.Name, spec.Error)
+	}
+	if err.Error() != spec.Error {
+		t.Errorf("%s error mismatch\n want: %s\n  got: %s", spec.Name, spec.Error, err.Error())
 	}
 }
 

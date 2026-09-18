@@ -64,6 +64,13 @@ followed by a dot is a path; a leading dot also identifies a path. Thus
 Ternary branch strings must be quoted. An unquoted branch identifier is a data
 path, so `.vip ? gold : plain` reads fields named `gold` and `plain`.
 
+An expression's AST is at most 64 nodes deep, counted from the root to the
+deepest leaf. Every parenthesis, negation, ternary and operator adds a level:
+`((.a))` is three levels deep and `.a || .b || .c` three as well, because the
+chain is a left-nested `Binary` pair. A deeper expression is a parse error with
+the message `Expression is nested more than 64 levels deep`; the parser stops at
+the limit, so no input can exhaust its stack or the evaluator's.
+
 ## 3. Precedence
 
 From lowest to highest:
@@ -147,8 +154,10 @@ the same parser and evaluator as a standalone condition.
 
 ## 9. Verification
 
-All four languages load the same expression fixtures and compare token streams,
-serialized ASTs, boolean results and value results. The fixture generator records
+All four languages and the PHP extension load the same expression fixtures and
+compare token streams, serialized ASTs, boolean results and value results. A
+rejected expression is compared by its parse error message; the extension, which
+reports no message, only fails to parse it. The fixture generator records
 TypeScript output; conformance tests rerun every implementation against those
 expectations. Generation alone does not establish correctness. Expected semantics
 must agree with this contract. Implementation and test results belong in

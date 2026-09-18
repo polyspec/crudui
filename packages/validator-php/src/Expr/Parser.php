@@ -22,7 +22,19 @@ namespace CRUDUI\Validator\Expr;
  */
 final class Parser
 {
+    /**
+     * The most nodes on a path from the root of an expression's syntax tree to a
+     * leaf. A deeper expression is a parse error in every runtime.
+     */
+    public const MAX_EXPRESSION_DEPTH = 64;
+
     private int $current = 0;
+
+    /** Nodes whose children are being parsed: each is an ancestor of what comes next. */
+    private int $open = 0;
+
+    /** Height of the node the last parse method returned. */
+    private int $height = 0;
 
     /**
      * Build a parser over a lexer's token stream (must end in EOF).
@@ -53,14 +65,19 @@ final class Parser
         $condition = $this->parseOrExpression();
 
         if ($this->match(TokenType::QUESTION)) {
+            $conditionHeight = $this->height;
+            $this->enter();
             $trueValue = $this->parseTernaryExpression();
+            $trueHeight = $this->height;
 
             if (!$this->match(TokenType::COLON)) {
                 throw new ParseError('Missing colon in ternary expression');
             }
 
             $falseValue = $this->parseTernaryExpression();
+            $this->open--;
 
+            $this->node(max($conditionHeight, $trueHeight, $this->height));
             return new TernaryNode($condition, $trueValue, $falseValue);
         }
 
@@ -71,9 +88,11 @@ final class Parser
     private function parseOrExpression(): Node
     {
         $left = $this->parseAndExpression();
+        $height = $this->height;
 
         while ($this->match(TokenType::OR)) {
             $right = $this->parseAndExpression();
+            $height = $this->node(max($height, $this->height));
             $left = new BinaryNode('||', $left, $right);
         }
 
@@ -84,9 +103,11 @@ final class Parser
     private function parseAndExpression(): Node
     {
         $left = $this->parseNotExpression();
+        $height = $this->height;
 
         while ($this->match(TokenType::AND)) {
             $right = $this->parseNotExpression();
+            $height = $this->node(max($height, $this->height));
             $left = new BinaryNode('&&', $left, $right);
         }
 
@@ -97,7 +118,10 @@ final class Parser
     private function parseNotExpression(): Node
     {
         if ($this->match(TokenType::NOT)) {
+            $this->enter();
             $operand = $this->parseNotExpression();
+            $this->open--;
+            $this->node($this->height);
             return new UnaryNode('!', $operand);
         }
 
@@ -108,10 +132,12 @@ final class Parser
     private function parseComparison(): Node
     {
         $left = $this->parsePrimary();
+        $leftHeight = $this->height;
 
         if ($this->match(TokenType::IN, TokenType::NOT_IN)) {
             $negated = $this->previous()->type === TokenType::NOT_IN;
             $list = $this->parseValueList();
+            $this->node($leftHeight);
             return new InNode($negated, $left, $list);
         }
 
@@ -125,6 +151,7 @@ final class Parser
         )) {
             $operator = $this->previous()->value;
             $right = $this->parseComparisonValue();
+            $this->node(max($leftHeight, $this->height));
             return new BinaryNode($operator, $left, $right);
         }
 
@@ -186,6 +213,7 @@ final class Parser
             $this->advance(); // consume identifier
 
             if (!$this->check(TokenType::DOT)) {
+                $this->height = 1;
                 return new LiteralNode('string', $this->previous()->value);
             }
 
@@ -200,12 +228,18 @@ final class Parser
     private function parsePrimary(): Node
     {
         if ($this->match(TokenType::LPAREN)) {
+            $this->enter();
             $expression = $this->parseOrExpression();
+            $this->open--;
             if (!$this->match(TokenType::RPAREN)) {
                 throw new ParseError('Missing closing parenthesis');
             }
+            $this->node($this->height);
             return new GroupNode($expression);
         }
+
+        // A path or a literal is a leaf.
+        $this->height = 1;
 
         if (
             $this->check(TokenType::DOT)
@@ -278,6 +312,30 @@ final class Parser
         }
 
         return new PathNode($relative, $levelsUp, $segments);
+    }
+
+    /** Open a node whose children follow; the tree is at least one level deeper than the open nodes. */
+    private function enter(): void
+    {
+        $this->open++;
+        if ($this->open >= self::MAX_EXPRESSION_DEPTH) {
+            throw self::tooDeep();
+        }
+    }
+
+    /** Record a node whose tallest child has $childHeight as the last parsed node; returns its height. */
+    private function node(int $childHeight): int
+    {
+        $this->height = $childHeight + 1;
+        if ($this->height > self::MAX_EXPRESSION_DEPTH) {
+            throw self::tooDeep();
+        }
+        return $this->height;
+    }
+
+    private static function tooDeep(): ParseError
+    {
+        return new ParseError('Expression is nested more than ' . self::MAX_EXPRESSION_DEPTH . ' levels deep');
     }
 
     private function match(TokenType ...$types): bool

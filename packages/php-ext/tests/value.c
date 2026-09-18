@@ -1,7 +1,9 @@
 #include "engine_internal.h"
 
 #include <assert.h>
+#include <stdio.h>
 #include <string.h>
+#include <time.h>
 
 typedef struct {
     size_t count;
@@ -33,6 +35,34 @@ static ps_value *integer(int64_t input)
     assert(value);
     ps_value_int(value, input);
     return value;
+}
+
+static double seconds(void)
+{
+    struct timespec now;
+    timespec_get(&now, TIME_UTC);
+    return (double)now.tv_sec + (double)now.tv_nsec / 1e9;
+}
+
+/* The shortest of three runs that insert count array index names in descending order and order them. */
+static double member_time(size_t count)
+{
+    double best = -1;
+    for (int run = 0; run < 3; ++run) {
+        ps_value *object = ps_object_value();
+        assert(object);
+        double started = seconds();
+        for (size_t i = 0; i < count; ++i) {
+            char key[32]; snprintf(key, sizeof(key), "%zu", count - i);
+            assert(ps_set(object, key, integer(1)));
+        }
+        assert(ps_value_order(object));
+        double elapsed = seconds() - started;
+        assert(ps_text_is(ps_key(object, 0), "1"));
+        ps_value_free(object);
+        if (best < 0 || elapsed < best) best = elapsed;
+    }
+    return best;
 }
 
 int main(void)
@@ -161,5 +191,34 @@ int main(void)
     assert(ps_delete_text(keyed_copy, (ps_text){"k\0x", 3}) && ps_size(keyed_copy) == 2);
     assert(!ps_equal(keyed, keyed_copy));
     ps_value_free(keyed_copy); ps_value_free(keyed); ps_value_free(nul_text);
+
+    /* Many members: every name is found, a repeated name keeps its position, and order holds. */
+    ps_value *many = ps_object_value();
+    assert(many);
+    for (size_t i = 0; i < 1000; ++i) {
+        char key[32]; snprintf(key, sizeof(key), i % 2 ? "%zu" : "name%zu", 999 - i);
+        assert(ps_set(many, key, integer((int64_t)i)));
+    }
+    assert(ps_set(many, "name999", integer(-1)) && ps_size(many) == 1000);
+    assert(ps_text_is(ps_key(many, 0), "name999") && ps_get(many, "name999")->data.integer == -1);
+    assert(ps_value_order(many));
+    assert(ps_text_is(ps_key(many, 0), "0") && ps_text_is(ps_key(many, 499), "998"));
+    assert(ps_text_is(ps_key(many, 500), "name999"));
+    for (size_t i = 1; i < 1000; ++i) {
+        char key[32]; snprintf(key, sizeof(key), i % 2 ? "%zu" : "name%zu", 999 - i);
+        assert(ps_get(many, key) && ps_get(many, key)->data.integer == (int64_t)i);
+    }
+    assert(ps_delete_text(many, PS_TEXT("0")) && !ps_get(many, "0") && ps_size(many) == 999);
+    assert(ps_get(many, "998")->data.integer == 1 && ps_get(many, "name1")->data.integer == 998);
+    ps_value *many_copy = ps_value_clone(many);
+    assert(many_copy && ps_equal(many, many_copy) && ps_get(many_copy, "name1")->data.integer == 998);
+    ps_value_free(many_copy); ps_value_free(many);
+
+    /* Four times the members take about four times as long to insert and order, not sixteen. */
+    double small = member_time(10000), large = member_time(40000);
+    if (!(large < small * 8)) {
+        fprintf(stderr, "10000 members: %.4fs, 40000 members: %.4fs\n", small, large);
+        return 1;
+    }
     return 0;
 }

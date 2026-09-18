@@ -9,6 +9,7 @@
 //! failures as every other runtime: the load failure `INVALID_TEXT` for a
 //! specification or a file, and `INVALID_FORM_INPUT` for other caller values.
 
+use std::collections::HashMap;
 use std::fmt;
 
 use serde_json::{Map, Number, Value};
@@ -25,7 +26,7 @@ const MAX_DEPTH: usize = 127;
 
 /// A string or member name of a JSON document: valid text, or the UTF-16
 /// code units of text that holds an unpaired surrogate.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum JsonString {
     /// A sequence of Unicode scalar values.
     Text(String),
@@ -109,6 +110,8 @@ impl Parser<'_> {
                 }
                 self.pos += 1;
                 let mut members: Vec<(JsonString, JsonText)> = Vec::new();
+                // The position of each name in `members`.
+                let mut positions: HashMap<JsonString, usize> = HashMap::new();
                 self.space();
                 if self.bytes.get(self.pos) == Some(&b'}') {
                     self.pos += 1;
@@ -126,9 +129,12 @@ impl Parser<'_> {
                     }
                     self.pos += 1;
                     let value = self.value(depth + 1)?;
-                    match members.iter_mut().find(|(existing, _)| *existing == name) {
-                        Some(member) => member.1 = value,
-                        None => members.push((name, value)),
+                    match positions.get(&name) {
+                        Some(&position) => members[position].1 = value,
+                        None => {
+                            positions.insert(name.clone(), members.len());
+                            members.push((name, value));
+                        }
                     }
                     self.space();
                     match self.bytes.get(self.pos) {
@@ -555,4 +561,52 @@ pub fn validate_detail_text(
             basepath,
         },
     )?)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::time::{Duration, Instant};
+
+    /// An object of `count` distinct members.
+    fn object(count: usize) -> String {
+        let members: Vec<String> = (0..count).map(|i| format!("\"m{i}\":{i}")).collect();
+        format!("{{{}}}", members.join(","))
+    }
+
+    /// The shortest of three reads of `text`.
+    fn read_time(text: &str) -> Duration {
+        (0..3)
+            .map(|_| {
+                let started = Instant::now();
+                JsonText::parse(text).unwrap();
+                started.elapsed()
+            })
+            .min()
+            .unwrap()
+    }
+
+    #[test]
+    fn repeated_member_keeps_first_position_and_last_value() {
+        let text = JsonText::parse(r#"{"a":1,"b":2,"a":3}"#).unwrap();
+        let JsonText::Object(members) = &text else {
+            panic!("object expected");
+        };
+        let names: Vec<_> = members.iter().map(|(name, _)| name.as_str()).collect();
+        assert_eq!(names, [Some("a"), Some("b")]);
+        assert_eq!(text.get("a"), Some(&JsonText::Number("3".to_owned())));
+    }
+
+    #[test]
+    fn reading_members_takes_time_linear_in_their_count() {
+        // Four times the members takes about four times as long when each
+        // member is found in constant time, and sixteen times as long when each
+        // is compared with every earlier one.
+        let small = read_time(&object(5_000));
+        let large = read_time(&object(20_000));
+        assert!(
+            large < small * 8,
+            "5000 members: {small:?}, 20000 members: {large:?}"
+        );
+    }
 }

@@ -15,7 +15,7 @@ import { describe, test, expect } from 'vitest';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { Lexer, parseCondition } from './parser/ConditionParser';
+import { Lexer, ParseError, parseCondition } from './parser/ConditionParser';
 import {
   evaluateCondition,
   evaluateExpressionValue,
@@ -44,8 +44,23 @@ interface FixtureSpec {
   ast: Record<string, unknown>;
   cases: FixtureCase[];
 }
+/** An expression the parser rejects, with the first line of its message. */
+interface RejectedSpec {
+  name: string;
+  expr: string;
+  error: string;
+}
 
-const specs: FixtureSpec[] = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
+const specs: Array<FixtureSpec | RejectedSpec> = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
+
+function parseFailure(expr: string): string | null {
+  try {
+    parseCondition(expr);
+    return null;
+  } catch (error) {
+    return error instanceof ParseError ? error.message.split('\n')[0]! : String(error);
+  }
+}
 
 // Strip the engine's position metadata so the comparison is "position excluded".
 function tokenToFixture(t: Token): Record<string, unknown> {
@@ -122,6 +137,10 @@ describe('expr — lexer, parser and evaluation match fixture (JS reference)', (
       provesConformance(
         { features: ['validate'], fixture: 'tests/fixtures/expr/cases.json', runtime: 'javascript', case: spec.name },
         () => {
+          if ('error' in spec) {
+            expect(parseFailure(spec.expr), `parser of ${spec.name}`).toBe(spec.error);
+            return;
+          }
           const toks = new Lexer(spec.expr).tokenize().map(tokenToFixture);
           expect(canon(toks), `lexer of ${spec.name}`).toStrictEqual(canon(spec.tokens));
 

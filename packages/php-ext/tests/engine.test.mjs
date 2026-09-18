@@ -427,6 +427,21 @@ function sourceForFixtures() {
   let caseIndex = 0;
   lines.push(...caseProgramStart);
   for (const [fixtureIndex, fixture] of fixtures.entries()) {
+    if (fixture.error) {
+      // The engine reports no message: a rejected expression is one that does not parse.
+      lines.push('  {', `  /* ${fixture.name} */`, '  int ok = 1;');
+      const data = builder.emit({});
+      lines.push('  bool parsed_value = true, parsed_truth = true;');
+      lines.push(`  ps_value *actual = ps_expression_value(${cText(fixture.expr)}, ${data}, NULL, 0, &parsed_value);`);
+      lines.push(`  ps_expression_truth(${cText(fixture.expr)}, ${data}, NULL, 0, &parsed_truth);`);
+      lines.push('  if (parsed_value || parsed_truth || actual) {');
+      lines.push(`    ok = 0; print_text("expression parsed: ", ${cText(fixture.name)});`);
+      lines.push('  }');
+      lines.push(`  ps_value_free(actual); ps_value_free(${data});`);
+      lines.push(...caseReport(fixtureIndex + 1));
+      lines.push('  }');
+      continue;
+    }
     for (const example of fixture.cases) {
       caseIndex += 1;
       lines.push('  {', `  /* ${fixture.name} */`, '  int ok = 1;');
@@ -457,9 +472,9 @@ function sourceForFixtures() {
 }
 
 test('PHP extension engine evaluates every shared expression fixture', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  assert.equal(fixtures.length, 38,
+  assert.equal(fixtures.length, 49,
     'Review C expression coverage when the shared fixture inventory changes');
-  assert.equal(fixtures.reduce((total, fixture) => total + fixture.cases.length, 0), 77,
+  assert.equal(fixtures.reduce((total, fixture) => total + (fixture.cases?.length ?? 0), 0), 85,
     'Review C expression coverage when the shared fixture cases change');
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-expression-'));
   let output = '';
@@ -604,6 +619,78 @@ test('PHP extension engine validates all shared form, list and detail cases', { 
     });
   } finally {
     recordCases(validationEvidence, output);
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
+/*
+ * A filtered unique rule over rows: the filter runs once per row and the rows are compared by
+ * sorting, so four times the rows take about four times as long, not sixteen times.
+ */
+function sourceForUniqueTime() {
+  const builder = new EngineFixtureSource();
+  const { lines } = builder;
+  const spec = builder.emit({
+    type: 'group',
+    properties: {
+      checked: { type: 'number' },
+      rows: {
+        type: 'group', multiple: true, validate: { unique: 'checked == 1' },
+        properties: { name: { type: 'text' }, enabled: { type: 'number' } },
+      },
+    },
+  });
+  lines.push(
+    `  double small = unique_time(${spec}, 400), large = unique_time(${spec}, 1600);`,
+    '  printf("400 rows: %.4fs, 1600 rows: %.4fs\\n", small, large);',
+    `  ps_value_free(${spec});`,
+    '  if (small < 0 || large < 0) return 1;',
+    '  if (!(large < small * 8)) { fputs("unique time grows faster than the rows\\n", stderr); return 2; }',
+  );
+  return fixtureProgram(lines, [
+    '#include <time.h>',
+    'static double seconds(void)',
+    '{ struct timespec now; timespec_get(&now, TIME_UTC); return (double)now.tv_sec + (double)now.tv_nsec / 1e9; }',
+    '/* The shortest of three validations of distinct checked keyed rows, or -1 when one is not valid. */',
+    'static double unique_time(const ps_value *spec, size_t count)',
+    '{',
+    '  ps_value *rows = ps_object_value(), *data = ps_object_value(), *options = ps_object_value();',
+    '  for (size_t i = 0; i < count; ++i) {',
+    '    char name[32]; snprintf(name, sizeof(name), "row%zu", i);',
+    '    ps_value *row = ps_object_value();',
+    '    put(row, PS_TEXT("name"), ps_string_value(name)); put(row, PS_TEXT("enabled"), ps_int_value(1));',
+    '    put(rows, ps_fixed(name), row);',
+    '  }',
+    '  put(data, PS_TEXT("checked"), ps_int_value(1)); put(data, PS_TEXT("rows"), rows);',
+    '  double best = -1;',
+    '  for (int run = 0; run < 3; ++run) {',
+    '    double started = seconds();',
+    '    ps_result result = ps_validate(spec, data, options);',
+    '    double elapsed = seconds() - started;',
+    '    bool valid = result.value && !result.error && ps_get(result.value, "valid") &&',
+    '      ps_get(result.value, "valid")->kind == PS_BOOL && ps_get(result.value, "valid")->data.boolean;',
+    '    ps_value_free(result.value); ps_value_free(result.error);',
+    '    if (!valid) { best = -1; break; }',
+    '    if (best < 0 || elapsed < best) best = elapsed;',
+    '  }',
+    '  ps_value_free(data); ps_value_free(options);',
+    '  return best;',
+    '}',
+  ]);
+}
+
+test('PHP extension engine unique rule takes time linear in the rows', { timeout: ENGINE_TEST_BUDGET }, async t => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-extension-unique-'));
+  try {
+    await compileAndRunEngineFixture({
+      signal: t.signal, root, directory, source: sourceForUniqueTime(), name: 'unique-time',
+      sources: [
+        'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'compose.c', 'expression.c',
+        'runtime.c', ...ruleSources, 'validation.c',
+      ],
+      onOutput: stdout => process.stderr.write(`    ${stdout}`),
+    });
+  } finally {
     await rm(directory, { recursive: true, force: true });
   }
 });

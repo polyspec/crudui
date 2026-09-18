@@ -660,16 +660,30 @@ final class Validator
         }
     }
 
-    /** @param list<mixed> $values */
+    /**
+     * Whether no two comparison keys are identical (===). Each key is found in a
+     * table by a name that is equal exactly when the keys are identical.
+     *
+     * @param list<mixed> $values
+     */
     private function areAllUnique(array $values): bool
     {
         $seen = [];
         foreach ($values as $value) {
             $key = $this->comparisonKey($value);
-            if (in_array($key, $seen, true)) {
+            $name = match (true) {
+                is_string($key) => 's' . $key,
+                is_int($key) => 'i' . $key,
+                // -0.0 === 0.0; every other float spells differently from every other value.
+                is_float($key) => 'f' . ($key == 0.0 ? '0' : var_export($key, true)),
+                is_bool($key) => $key ? 'b1' : 'b0',
+                is_object($key) => 'o' . spl_object_id($key),
+                default => 'n',
+            };
+            if (isset($seen[$name])) {
                 return false;
             }
-            $seen[] = $key;
+            $seen[$name] = true;
         }
         return true;
     }

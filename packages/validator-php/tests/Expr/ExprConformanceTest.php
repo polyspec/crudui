@@ -8,6 +8,7 @@ use CRUDUI\Validator\Expr\ConditionMap;
 use CRUDUI\Validator\Expr\Evaluator;
 use CRUDUI\Validator\Expr\Expression;
 use CRUDUI\Validator\Expr\Node;
+use CRUDUI\Validator\Expr\ParseError;
 use PHPUnit\Framework\TestCase;
 
 require_once __DIR__ . '/../../../../tests/conformance/evidence.php';
@@ -52,6 +53,11 @@ final class ExprConformanceTest extends TestCase
     {
         $passed = false;
         try {
+            if (isset($spec['error'])) {
+                $this->assertRejection($spec);
+                $passed = true;
+                return;
+            }
             $this->assertLexer($spec);
             $this->assertParser($spec);
             $this->assertEvaluation($spec);
@@ -59,6 +65,18 @@ final class ExprConformanceTest extends TestCase
         } finally {
             crudui_record_conformance('validate', 'tests/fixtures/expr/cases.json', 'php', $spec['name'], $passed);
         }
+    }
+
+    /** @param array<string, mixed> $spec */
+    private function assertRejection(array $spec): void
+    {
+        try {
+            Expression::parse($spec['expr']);
+        } catch (ParseError $error) {
+            $this->assertSame($spec['error'], $error->getMessage(), "error mismatch for {$spec['name']}");
+            return;
+        }
+        $this->fail("{$spec['name']} parsed; want error {$spec['error']}");
     }
 
     /** @param array<string, mixed> $spec */
