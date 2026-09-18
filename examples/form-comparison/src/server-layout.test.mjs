@@ -40,9 +40,13 @@ test('starts one process for each server implementation from the build volume', 
   const processes = formServers.map(server => serverProcess(server, { cruduiModuleSha256: moduleSha256 }));
   assert.deepEqual(processes.map(process => process.server), ['php', 'php-ext', 'go', 'rust']);
   const [php, phpExtension, go, rust] = processes;
-  for (const process of [php, phpExtension]) {
-    assert.equal(process.command, 'php');
-    assert.equal(process.args.at(-1), '/workspace/build/tree/examples/form-comparison/api.php');
+  for (const [index, server] of [[0, 'php'], [1, 'php-ext']]) {
+    const process = [php, phpExtension][index];
+    // PHP-FPM behind nginx, started by the PHP server program with its address and run directory.
+    assert.equal(process.command, globalThis.process.execPath);
+    assert.deepEqual(process.args.slice(0, 4), ['/workspace/build/tree/examples/form-comparison/servers/php/main.mjs',
+      `127.0.0.1:${index === 0 ? 8081 : 8088}`, `/workspace/build/state/php-${server}`, '--']);
+    assert.deepEqual(process.ready.pattern, new RegExp(`^CRUDUI_READY ${server}$`, 'm'));
     assert.equal(process.environment.FORM_ORDERED_JSON_PHP_SOURCE,
       `${orderedJsonDirectory}/php/src/OrderedJson.php`);
     // The record store and the fixture are located by the process, not by constants in api.php.
@@ -51,7 +55,7 @@ test('starts one process for each server implementation from the build volume', 
   }
   assert.equal(php.args.some(value => value.startsWith('extension=')), false);
   assert.equal(Object.hasOwn(php.environment, 'FORM_CRUDUI_MODULE_SHA256'), false);
-  assert.deepEqual(phpExtension.args.slice(0, 4),
+  assert.deepEqual(phpExtension.args.slice(4, 8),
     ['-d', `extension=${orderedJsonModule}`, '-d', `extension=${cruduiModule}`]);
   assert.equal(phpExtension.environment.FORM_CRUDUI_MODULE_SHA256, moduleSha256);
   assert.equal(go.command, '/workspace/build/bin/go');
@@ -59,8 +63,8 @@ test('starts one process for each server implementation from the build volume', 
   for (const process of [go, rust]) {
     assert.deepEqual(process.args.slice(1), [dataDirectory, publicDirectory, sourceIdentityFile]);
   }
+  for (const process of [go, rust]) assert.equal(process.args.includes(publicDirectory), true);
   for (const process of processes) {
-    assert.equal(process.args.includes(publicDirectory), true);
     assert.equal(process.args.some(value => /\/opt\/|\/archives\/|metadata\.json/.test(value)), false);
     assert.equal(process.ready.pattern.test(process.ready.example), true);
   }

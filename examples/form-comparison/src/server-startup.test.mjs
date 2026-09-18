@@ -1,11 +1,12 @@
 import assert from 'node:assert/strict';
+import { spawn } from 'node:child_process';
 import { EventEmitter } from 'node:events';
 import { PassThrough } from 'node:stream';
 import test from 'node:test';
 
 import { phpClassFiles } from './php-provenance.mjs';
 import { treeDirectory } from './server-layout.mjs';
-import { serverReady, verifyChildServers, waitForChildReadiness } from './server-startup.mjs';
+import { serverReady, stopChild, verifyChildServers, waitForChildReadiness } from './server-startup.mjs';
 
 const source = { commit: 'a'.repeat(40), changes: 'c'.repeat(64) };
 const moduleSha256 = 'd'.repeat(64);
@@ -171,4 +172,44 @@ test('names the first differing field of a stale server', async () => {
       },
     }),
   }), /go failed startup verification: source/);
+});
+
+function silentChild() {
+  const child = new EventEmitter();
+  child.stdout = new PassThrough();
+  child.stderr = new PassThrough();
+  child.exitCode = null;
+  child.signalCode = null;
+  return child;
+}
+
+test('fails a child that publishes no readiness within its limit', async () => {
+  const started = performance.now();
+  await assert.rejects(waitForChildReadiness(silentChild(), {
+    server: 'go', stream: 'stderr', pattern: /CRUDUI_READY go/,
+  }, 50), /go published no readiness within 50ms/);
+  assert.ok(performance.now() - started < 1_000);
+});
+
+test('fails a health request that does not answer within its limit', async () => {
+  const started = performance.now();
+  // The request answers only when its signal aborts it.
+  const hung = (url, { signal }) => new Promise((resolve, reject) => {
+    signal.addEventListener('abort', () => reject(signal.reason));
+  });
+  await assert.rejects(verifyChildServers({ expected, request: hung, limitMs: 50 }),
+    /php health request failed within 50ms/);
+  assert.ok(performance.now() - started < 1_000);
+});
+
+test('stops a child that ignores SIGTERM with SIGKILL after the grace period', async t => {
+  const child = spawn(process.execPath, ['-e',
+    "process.on('SIGTERM', () => {}); process.stdout.write('ready\\n'); setInterval(() => {}, 1000);"],
+  { stdio: ['ignore', 'pipe', 'inherit'] });
+  t.after(() => { if (child.exitCode === null && child.signalCode === null) child.kill('SIGKILL'); });
+  await new Promise(resolve => child.stdout.once('data', resolve));
+  const started = performance.now();
+  await stopChild(child, 100);
+  assert.equal(child.signalCode, 'SIGKILL');
+  assert.ok(performance.now() - started < 2_000, `stopped after ${performance.now() - started} ms`);
 });

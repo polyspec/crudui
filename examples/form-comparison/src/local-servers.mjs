@@ -13,6 +13,7 @@ import { promisify } from 'node:util';
 
 import { recordFixtureFile, recordServers, recordSpecsFile } from './record-contract.mjs';
 import { installOrderedJson, orderedJsonRevision } from './ordered-json-source.mjs';
+import { processStartLimitMs } from './server-startup.mjs';
 import { sourceIdentity } from './source-tree.mjs';
 import { formatDuration, killProcessTree, runStages, stepHeartbeatMs } from './step-runner.mjs';
 
@@ -24,8 +25,6 @@ export const repositoryRoot = path.resolve(exampleDirectory, '../..');
  * path relative to the repository root, as the build tree does.
  */
 export const localOrderedJsonDirectory = path.join(repositoryRoot, '.form-comparison/sources/ordered-json');
-/** A started process announces readiness within this limit (the record servers measured 0.07 to 0.44 s). */
-export const processStartLimitMs = 30_000;
 
 /** Print one progress line of the local server harness. */
 function progress(write, text) {
@@ -122,8 +121,8 @@ async function phpExtensionArguments(name) {
 
 /**
  * The process of one record server. Every server takes its listening address, its data directory,
- * its public directory and the source identity file; PHP takes them from its environment because
- * the built-in server owns its command line.
+ * its public directory and the source identity file; PHP takes them from its environment, which
+ * PHP-FPM passes on to api.php.
  */
 export async function recordServerProcess(server, { port, dataDirectory, publicDirectory, prepared }) {
   assert.ok(recordServers.includes(server), `Unknown record server: ${server}`);
@@ -135,9 +134,9 @@ export async function recordServerProcess(server, { port, dataDirectory, publicD
       ? ['-d', `extension=${prepared.orderedJsonModule}`, '-d', `extension=${prepared.cruduiModule}`] : [];
     return {
       server, address,
-      command: 'php',
-      args: ['-n', ...common, ...extensions, '-d', 'enable_post_data_reading=0', '-d', 'display_errors=0', '-d', 'log_errors=1',
-        '-S', address, '-t', publicDirectory, path.join(exampleDirectory, 'api.php')],
+      command: process.execPath,
+      args: [path.join(exampleDirectory, 'servers/php/main.mjs'), address, `${dataDirectory}-${server}-run`, '--',
+        '-n', ...common, ...extensions, '-d', 'enable_post_data_reading=0', '-d', 'display_errors=0', '-d', 'log_errors=1'],
       environment: {
         FORM_PHP_SERVER: server,
         FORM_DATA_DIRECTORY: dataDirectory,
@@ -147,7 +146,7 @@ export async function recordServerProcess(server, { port, dataDirectory, publicD
           FORM_CRUDUI_MODULE_SHA256: createHash('sha256').update(await readFile(prepared.cruduiModule)).digest('hex'),
         } : {}),
       },
-      ready: new RegExp(`Development Server \\(http://127\\.0\\.0\\.1:${port}\\) started`),
+      ready: new RegExp(`^CRUDUI_READY ${server}$`, 'm'),
     };
   }
   const programArguments = [address, dataDirectory, publicDirectory, sourceFile];
@@ -187,9 +186,7 @@ export async function startProcess(definition, { write = text => process.stdout.
     const onData = chunk => {
       const text = chunk.toString();
       output += text;
-      for (const line of text.split('\n').filter(Boolean)) {
-        if (!/^\[[^\]]+\] [\d.:]+ (?:Accepted|Closing)$/.test(line)) write(`[${definition.server}] ${line}\n`);
-      }
+      for (const line of text.split('\n').filter(Boolean)) write(`[${definition.server}] ${line}\n`);
       if (definition.ready.test(output)) { clearTimeout(timer); resolve(); }
     };
     child.stdout.on('data', onData);

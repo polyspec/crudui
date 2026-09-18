@@ -4,6 +4,7 @@
 // same cases below; a case that passes for one server and fails for another is a defect.
 import assert from 'node:assert/strict';
 import { readFile, writeFile } from 'node:fs/promises';
+import http from 'node:http';
 
 import { compileForm, createForm } from '@crudui/generator-core';
 import { renderDetail, renderForm, renderList } from '@crudui/generator-html';
@@ -143,8 +144,36 @@ export function recordClient({ origin, server, storeFile, restart }) {
     }
     return { status: response.status, type, text, json, cacheControl: response.headers.get('cache-control') };
   }
+  /**
+   * Send the headers of a request that declares `declaredBytes` and only `sentBytes` of its body,
+   * and never send the rest: the answer can only come from a server that stops at its limit
+   * instead of reading the whole body.
+   */
+  function unfinishedRequest(method, target, { headers, declaredBytes, sentBytes }) {
+    const started = performance.now();
+    return new Promise((resolve, reject) => {
+      const outgoing = http.request(new URL(target, origin()), {
+        method, headers: { ...headers, 'Content-Length': String(declaredBytes) },
+      });
+      outgoing.on('error', reject);
+      outgoing.on('response', response => {
+        const chunks = [];
+        response.on('data', chunk => chunks.push(chunk));
+        response.on('error', reject);
+        response.on('end', () => {
+          const elapsedMs = performance.now() - started;
+          outgoing.destroy();
+          const text = Buffer.concat(chunks).toString('utf8');
+          const type = response.headers['content-type'] ?? '';
+          const json = type.startsWith('application/json') ? JSON.parse(text) : undefined;
+          resolve({ status: response.statusCode, type, text, json, elapsedMs });
+        });
+      });
+      outgoing.write(Buffer.alloc(sentBytes, 'x'));
+    });
+  }
   return {
-    server, request, restart,
+    server, request, unfinishedRequest, restart,
     storeBytes: () => readFile(storeFile),
     writeStore: bytes => writeFile(storeFile, bytes),
     storeRecords: async () => JSON.parse(await readFile(storeFile, 'utf8')),
@@ -434,6 +463,24 @@ export const recordContractCases = Object.freeze([
         }, `${name}: the store is unchanged`);
       }
       assert.equal((await client.request('PUT', '/api/records/22', submission(data, 'json'))).status, 405);
+    },
+  },
+  {
+    id: 'save-stops-reading-an-oversized-request',
+    async run(client) {
+      await client.reset();
+      // The request declares 64 MiB and sends one byte over the 2 MiB limit; the rest never comes.
+      await unchanged(client, async () => {
+        const result = await client.unfinishedRequest('POST', '/api/records/22', {
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          declaredBytes: 64 * 1024 * 1024, sentBytes: 2 * 1024 * 1024 + 1,
+        });
+        assert.equal(result.status, 413, result.text);
+        assert.equal(typeof result.json?.error, 'string', 'error message');
+        assert.equal(result.json.server, client.server, 'the response names the responding server');
+        // Measured at milliseconds; a server that waits for the rest answers only at its request timeout.
+        assert.ok(result.elapsedMs < 5_000, `answered after ${Math.round(result.elapsedMs)} ms`);
+      }, 'an oversized save stores nothing');
     },
   },
   {
