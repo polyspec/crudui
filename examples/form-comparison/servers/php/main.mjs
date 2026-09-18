@@ -35,7 +35,9 @@ async function configure() {
   await mkdir(path.join(runDirectory, 'nginx'), { recursive: true });
   await writeFile(path.join(runDirectory, 'fpm.conf'), [
     '[global]',
-    'error_log = /dev/stderr',
+    // A container's standard error is a pipe /dev/stderr cannot reopen; the log file stays in the
+    // run directory and `-O` copies every message to standard error.
+    `error_log = ${path.join(runDirectory, 'fpm.log')}`,
     'daemonize = no',
     '[api]',
     `listen = ${socket}`,
@@ -131,7 +133,7 @@ process.on('SIGINT', () => stop());
 
 try {
   await configure();
-  run('php-fpm', 'php-fpm', ['-F', '-y', path.join(runDirectory, 'fpm.conf'), ...fpmArguments]);
+  run('php-fpm', 'php-fpm', ['-F', '-O', '-y', path.join(runDirectory, 'fpm.conf'), ...fpmArguments]);
   await waitFor('php-fpm', () => accepts(socket));
   run('nginx', 'nginx', ['-e', 'stderr', '-p', runDirectory, '-c', path.join(runDirectory, 'nginx.conf')]);
   const port = Number(address.slice(address.lastIndexOf(':') + 1));

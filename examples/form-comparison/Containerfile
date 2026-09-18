@@ -7,7 +7,7 @@ FROM node:26-trixie-slim
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates git unzip build-essential tini \
     php8.4-cli php8.4-dev php8.4-mbstring php8.4-xml php8.4-fpm nginx composer \
-    chromium=152.0.7977.82-1~deb13u1 chromium-sandbox=152.0.7977.82-1~deb13u1 \
+    chromium=153.0.8010.47-2~deb13u1 chromium-sandbox=153.0.8010.47-2~deb13u1 \
     && rm -rf /var/lib/apt/lists/*
 COPY --from=go /usr/local/go /usr/local/go
 COPY --from=rust /usr/local/rustup /usr/local/rustup

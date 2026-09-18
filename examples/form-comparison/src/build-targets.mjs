@@ -250,3 +250,11 @@ export function planBuild(paths) {
     supervisor: paths.some(file => supervisorFiles.includes(file)),
   };
 }
+
+/**
+ * The processes one cycle starts: the ones its plan restarts and every supervised process that is
+ * not running, such as one a failed cycle never started, in the supervised order.
+ */
+export function processesToStart(restarts, running) {
+  return supervisedProcesses.filter(name => restarts.includes(name) || !running.includes(name));
+}

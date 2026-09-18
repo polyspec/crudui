@@ -14,8 +14,9 @@ const preparation = [
   /^sh scripts\/install-phpdocumentor\.sh$/,
   /^node scripts\/check-ci-browser\.mjs$/,
   /^npx playwright install --with-deps webkit$/,
-  /^sudo apt-get install -y --no-install-recommends php8\.5-fpm nginx$/,
-  /^sudo ln -sf \/usr\/sbin\/php-fpm8\.5 \/usr\/local\/bin\/php-fpm$/,
+  /^sudo apt-get install -y --no-install-recommends nginx$/,
+  /^php-fpm -v$/,
+  /^nginx -v$/,
 ];
 
 /** The checking commands of the workflow, in job and step order. */

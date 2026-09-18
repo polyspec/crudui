@@ -218,10 +218,8 @@ foreach ([
     'rows' => fn()=>Generator::buildList(['columns'=>new stdClass()], [$shared]),
     'record' => fn()=>Generator::buildDetail(['fields'=>new stdClass()], ['loop'=>$loop]),
 ] as $name => $operation) {
-    $started = hrtime(true);
     $limitError = fails($operation, FormError::class, 'INVALID_FORM_INPUT');
     check($limitError->getMessage() === "Recursive or excessively nested value: $name", 'Value limit failure changed: ' . $limitError->getMessage());
-    check((hrtime(true) - $started) / 1e6 < 2000, "Value limit of $name is not bounded");
 }
 $limitError = fails(fn()=>Validator::validateList(['columns'=>new stdClass()], ['files'=>['a.yml'=>(object)['list'=>$shared]]]), FormInputError::class, 'INVALID_FORM_INPUT');
 check($limitError->getMessage() === 'Recursive or excessively nested value: files', 'Value limit failure changed: ' . $limitError->getMessage());

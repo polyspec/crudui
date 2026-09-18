@@ -4,7 +4,7 @@ import { renameSync, writeFileSync } from 'node:fs';
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
-import { completeBuild, planBuild, supervisorFiles } from './src/build-targets.mjs';
+import { completeBuild, planBuild, processesToStart, supervisorFiles } from './src/build-targets.mjs';
 import { installOrderedJson } from './src/ordered-json-source.mjs';
 import { forwardLines } from './src/process-output.mjs';
 import { formServers } from './src/runtime-paths.mjs';
@@ -144,7 +144,7 @@ async function runCycle(plan, source) {
     await writeSourceIdentity(source);
     const cruduiModuleSha256 = createHash('sha256').update(await readFile(cruduiModule))
       .digest('hex');
-    for (const name of plan.restarts) {
+    for (const name of processesToStart(plan.restarts, [...processes.keys()])) {
       reportProgress('restart', name, stepTerminationGraceMs + processStartLimitMs);
       const startedRestart = performance.now();
       await startProcess(name, cruduiModuleSha256);
