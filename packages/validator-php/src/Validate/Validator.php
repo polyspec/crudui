@@ -104,9 +104,8 @@ final class Validator
     private readonly array $properties;
 
     /**
-     * Precomputed duplicates for this validation run.
-     * Keyed by "containerPath:fieldName:filterParam" -> Map of itemKey -> true if duplicate.
-     * Cleared after validate() completes to avoid state leaking between runs.
+     * For each collection field of the validation in progress (container path, field name and
+     * filter), the row keys whose `unique` value an earlier row already holds.
      *
      * @var array<string, array<string, bool>>
      */
@@ -138,7 +137,7 @@ final class Validator
 
             return new ValidationResult(count($errors) === 0, array_values($errors));
         } finally {
-            // Clear duplicates cache after validation completes to avoid state leaking
+            // The duplicates belong to this validation.
             $this->duplicatesByField = [];
         }
     }
@@ -605,75 +604,49 @@ final class Validator
         $containerPath = array_slice($pathSegments, 0, -2);
         $container = $this->getValueByPath($allData, $containerPath);
 
+        // Rows are list items or members of an object keyed by unique keys (__xxxx__ format).
+        $list = is_array($container) && array_is_list($container);
+        if ($list ? preg_match('/^\d+$/', $itemKey) !== 1 : !is_array($container) && !$container instanceof \stdClass) {
+            return true;
+        }
+
         // Empty values never count as duplicates.
         if (EmptyValue::is($value)) {
             return true;
         }
 
-        // Evaluate filter condition for the current item once
-        $currentItemPassesFilter = !$isFilterCondition ||
-            $this->itemPassesCondition($ruleParam, $pathSegments, $allData);
-
         // A filter condition that excludes the current item drops it entirely.
-        if (!$currentItemPassesFilter) {
+        if ($isFilterCondition && !$this->itemPassesCondition($ruleParam, $pathSegments, $allData)) {
             return true;
         }
 
-        // Create a unique key for this container field combination
-        $containerPathStr = implode('.', $containerPath);
-        $cacheKey = $isFilterCondition
-            ? "{$containerPathStr}:{$fieldName}:{$ruleParam}"
-            : "{$containerPathStr}:{$fieldName}";
-
-        // If we haven't precomputed duplicates for this field yet, do it now
+        // The rows of this collection field are walked once per validation: the filter is
+        // evaluated once per row and each row whose value an earlier row holds is recorded.
+        $cacheKey = implode("\0", [...$containerPath, $fieldName, $isFilterCondition ? $ruleParam : '']);
         if (!isset($this->duplicatesByField[$cacheKey])) {
-            $this->duplicatesByField[$cacheKey] = [];
-            $seenKeys = [];
-
-            // Build ordered (key, item) entries for array or object containers.
-            $entries = [];
-            if (is_array($container) && array_is_list($container)) {
-                if (preg_match('/^\d+$/', $itemKey) !== 1) {
-                    return true;
-                }
-                foreach ($container as $i => $item) {
-                    $entries[] = [(string) $i, $item];
-                }
-            } elseif (is_array($container) || $container instanceof \stdClass) {
-                foreach ($container as $k => $item) {
-                    $entries[] = [(string) $k, $item];
-                }
-            } else {
-                return true;
-            }
-
-            // Walk through all rows once and identify which ones are duplicates
-            foreach ($entries as [$key, $item]) {
+            $duplicates = [];
+            $seen = [];
+            foreach ($container as $key => $item) {
                 if (!is_array($item) && !$item instanceof \stdClass) {
                     continue;
                 }
-
-                // Evaluate filter condition once per row
-                if ($isFilterCondition) {
-                    $itemFieldPath = [...$containerPath, $key, $fieldName];
-                    if (!$this->itemPassesCondition($ruleParam, $itemFieldPath, $allData)) {
-                        continue;
-                    }
-                }
-
                 $itemValue = ((array) $item)[$fieldName] ?? null;
                 if (EmptyValue::is($itemValue)) {
                     continue;
                 }
-
+                $key = (string) $key;
+                if ($isFilterCondition
+                    && !$this->itemPassesCondition($ruleParam, [...$containerPath, $key, $fieldName], $allData)) {
+                    continue;
+                }
                 $itemValueKey = $this->canonicalKey($itemValue);
-                if (isset($seenKeys[$itemValueKey])) {
-                    // This row is a duplicate
-                    $this->duplicatesByField[$cacheKey][$key] = true;
+                if (isset($seen[$itemValueKey])) {
+                    $duplicates[$key] = true;
                 } else {
-                    $seenKeys[$itemValueKey] = true;
+                    $seen[$itemValueKey] = true;
                 }
             }
+            $this->duplicatesByField[$cacheKey] = $duplicates;
         }
 
         // Check precomputed result: is this item a duplicate?

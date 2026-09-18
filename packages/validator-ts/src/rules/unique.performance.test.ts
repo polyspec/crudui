@@ -11,10 +11,9 @@ import { validate } from '../validate/index';
 
 describe('unique rule performance', () => {
   test('item-level check is linear: precomputation makes 4n items ~4x slower', () => {
-    // Use sizes that each take 20-200ms for reliable measurement
     // With precomputation O(n): ratio should be ~4
     // With old quadratic approach O(n²): ratio would be ~16
-    const sizes = [500, 2000];
+    const sizes = [1500, 6000];
     const times: number[] = [];
 
     for (const n of sizes) {
@@ -45,9 +44,10 @@ describe('unique rule performance', () => {
       }
       const data = { items };
 
-      // Measure best of 3 runs
+      // One untimed run warms the code up; the best of five timed runs leaves out scheduling noise
+      validate(spec, data);
       let bestTime = Infinity;
-      for (let run = 0; run < 3; run++) {
+      for (let run = 0; run < 5; run++) {
         const start = performance.now();
         const result = validate(spec, data);
         const elapsed = performance.now() - start;
@@ -72,8 +72,9 @@ describe('unique rule performance', () => {
   });
 
   test('array-level check is linear', () => {
-    // Array-level validation happens all at once, should be linear
-    const sizes = [500, 2000];
+    // Array-level validation happens all at once, should be linear; sizes large enough that each
+    // validation takes milliseconds, not timer noise
+    const sizes = [5000, 20000];
     const times: number[] = [];
 
     for (const n of sizes) {
@@ -99,9 +100,10 @@ describe('unique rule performance', () => {
       }
       const data = { codes };
 
-      // Measure best of 3 runs
+      // One untimed run warms the code up; the best of five timed runs leaves out scheduling noise
+      validate(spec, data);
       let bestTime = Infinity;
-      for (let run = 0; run < 3; run++) {
+      for (let run = 0; run < 5; run++) {
         const start = performance.now();
         const result = validate(spec, data);
         const elapsed = performance.now() - start;
@@ -121,5 +123,28 @@ describe('unique rule performance', () => {
     // Array-level should be linear too
     const ratio = times[1]! / times[0]!;
     expect(ratio).toBeLessThan(8); // Assert linear behavior
+  });
+});
+
+describe('unique rows belong to one validation', () => {
+  test('a second validation of the same data object, changed, answers from its own rows', () => {
+    const spec = {
+      type: 'group',
+      properties: {
+        rows: {
+          type: 'group',
+          multiple: true,
+          properties: { code: { type: 'text', validate: { unique: true } } },
+        },
+      },
+    };
+    const rows: Record<string, { code: string }> = {
+      __0000000000001__: { code: 'x' },
+      __0000000000002__: { code: 'x' },
+    };
+    const data = { rows };
+    expect(validate(spec, data).valid).toBe(false);
+    rows.__0000000000002__.code = 'y';
+    expect(validate(spec, data).valid).toBe(true);
   });
 });

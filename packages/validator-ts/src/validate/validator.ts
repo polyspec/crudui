@@ -33,6 +33,7 @@ import type {
   ValidationError,
   ValidationResult,
   ValidationContext,
+  ValidationRun,
   PathContext,
   MessagesSpec,
   ASTNode,
@@ -229,6 +230,8 @@ function ternaryLiterals(node: ASTNode): unknown[] {
  */
 export class Validator {
   private readonly properties: Record<string, ComposedField>;
+  /** The state of the validation in progress. */
+  private run: ValidationRun = { uniqueDuplicates: new Map() };
 
   /**
    * @param composedSpec a composed CRUDUI root spec — a group with `properties`
@@ -252,6 +255,7 @@ export class Validator {
       throw new FormInputError('Form data must be an object');
     }
     this.checkDeclaredParameters(this.properties, []);
+    this.run = { uniqueDuplicates: new Map() };
     const errors: ValidationError[] = [];
     this.validateProperties(this.properties, data, [], [], data, errors);
     return { valid: errors.length === 0, errors };
@@ -634,6 +638,7 @@ export class Validator {
       ruleParam: effectiveParam,
       messages,
       ruleName,
+      run: this.run,
     };
 
     return ruleDefinition.validate(validationContext);
