@@ -8,7 +8,7 @@ use CRUDUI\FormError;
 use CRUDUI\Validator\Support\Text;
 use stdClass;
 
-/** Input text checks of the generator operations (docs/spec/input-text.md). */
+/** Input text and value limit checks of the generator operations (docs/spec/input-text.md). */
 final class InputText
 {
     /** Options of a form binding or instance, in code point order of their names. */
@@ -20,7 +20,10 @@ final class InputText
     /** Check a specification and the files an operation reads. */
     public static function specification(array|stdClass $spec, array $options): void
     {
-        Text::checkSpecification($spec, $options['files'] ?? null);
+        $failure = Text::specificationFailure($spec, $options['files'] ?? null);
+        if ($failure !== null) {
+            throw new FormError('INVALID_FORM_INPUT', $failure);
+        }
     }
 
     /**

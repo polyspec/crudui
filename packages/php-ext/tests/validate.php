@@ -86,4 +86,38 @@ foreach (['validate','validateList','validateDetail'] as $feature) {
         $results[] = ['case'=>'text-validity/'.$feature.':'.$case->name,'outcome'=>$outcome];
     }
 }
+// Value limits (docs/spec/input-text.md): each case builds its value graph with shared arrays and
+// references, which JSON text cannot carry, and completes in bounded time.
+$graph = static function (stdClass $graph): mixed {
+    if ($graph->shape === 'self-twice') {
+        $loop = [];
+        $loop['self'] = &$loop;
+        $loop['again'] = &$loop;
+        return $loop;
+    }
+    if ($graph->shape === 'flat') return array_fill(0, $graph->size, $graph->leaf);
+    $value = $graph->leaf;
+    for ($i = 0; $i < $graph->size; $i++) $value = $graph->shape === 'doubled' ? [$value, $value] : [$value];
+    return $value;
+};
+foreach (JsonText::decode(file_get_contents($root.'/tests/fixtures/text-validity/value-graphs.json')) as $case) {
+    $inputs = ['spec'=>$case->spec,'files'=>$case->files ?? null,'data'=>$case->data];
+    $target = $inputs[$case->graph->at[0]];
+    $members = array_slice($case->graph->at, 1);
+    foreach (array_slice($members, 0, -1) as $member) $target = $target->{$member};
+    $target->{end($members)} = $graph($case->graph);
+    $started = hrtime(true);
+    try {
+        $outcome = Validator::validate($inputs['spec'],$inputs['data'],$inputs['files'] === null ? [] : ['files'=>$inputs['files']]);
+    } catch (ComposeLoadError $error) {
+        $outcome = ['code'=>$error->getErrorCode(),'message'=>$error->getMessage(),'at'=>implode('.',$error->getCompositionTrace())];
+    } catch (FormInputError $error) {
+        $outcome = ['code'=>$error->getErrorCode(),'message'=>$error->getMessage(),'at'=>''];
+    }
+    $elapsed = (hrtime(true) - $started) / 1e6;
+    $outcome = json_decode(json_encode($outcome,JSON_THROW_ON_ERROR),true,512,JSON_THROW_ON_ERROR);
+    if ($outcome !== json_decode(json_encode($case->expect,JSON_THROW_ON_ERROR),true,512,JSON_THROW_ON_ERROR)) throw new RuntimeException('value-graphs/'.$case->name.': result differs: '.json_encode($outcome));
+    if ($elapsed >= 2000) throw new RuntimeException('value-graphs/'.$case->name.': took '.round($elapsed).' ms');
+    $results[] = ['case'=>'value-graphs:'.$case->name,'outcome'=>$outcome];
+}
 echo json_encode(['native'=>$native,'checks'=>count($results),'results'=>$results],JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES),"\n";

@@ -428,5 +428,24 @@ final class FormTest extends TestCase
                 self::assertSame('INVALID_FORM_INPUT', $error->getErrorCode());
             }
         }
+        // Value limits (docs/spec/input-text.md): a reference cycle and a list shared forty levels
+        // deep fail in the input walk, in bounded time.
+        $loop = [];
+        $loop['self'] = &$loop;
+        $loop['again'] = &$loop;
+        $shared = 'x';
+        for ($i = 0; $i < 40; $i++) {
+            $shared = [$shared, $shared];
+        }
+        foreach ([$object, ['loop' => $loop], ['list' => $shared]] as $data) {
+            $started = hrtime(true);
+            try {
+                new Form($template, $data);
+                self::fail('A value beyond the limits must fail');
+            } catch (FormError $error) {
+                self::assertSame('Recursive or excessively nested value: data', $error->getMessage());
+            }
+            self::assertLessThan(2000, (hrtime(true) - $started) / 1e6);
+        }
     }
 }

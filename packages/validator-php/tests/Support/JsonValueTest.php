@@ -68,6 +68,44 @@ final class JsonValueTest extends TestCase
         JsonValue::orderedObject([1, 2]);
     }
 
+    /**
+     * A copy is bounded by the value limits of docs/spec/input-text.md: a list of 1000 strings
+     * shared forty levels deep denotes more than 2^40 nodes, and a reference cycle nests without
+     * end. Wide leaves keep the copy made before the limit within the memory limit.
+     */
+    public function testCopiesStopAtTheValueLimits(): void
+    {
+        $shared = array_fill(0, 1000, 'x');
+        for ($i = 0; $i < 40; $i++) {
+            $shared = [$shared, $shared];
+        }
+        $loop = [];
+        $loop['self'] = &$loop;
+        $loop['again'] = &$loop;
+        $copies = [
+            'copy' => static fn (mixed $value) => JsonValue::copy($value),
+            'ordered' => static fn (mixed $value) => JsonValue::ordered($value),
+            'orderedMembers' => static fn (mixed $value) => JsonValue::orderedMembers(['value' => $value]),
+        ];
+        foreach ($copies as $name => $copy) {
+            foreach (['shared' => $shared, 'loop' => $loop, 'object' => (object) ['list' => $shared]] as $shape => $value) {
+                $started = hrtime(true);
+                try {
+                    $copy($value);
+                    self::fail("{$name} copied the {$shape} value");
+                } catch (\InvalidArgumentException $error) {
+                    self::assertSame('Recursive or excessively nested PHP value', $error->getMessage());
+                }
+                self::assertLessThan(2000, (hrtime(true) - $started) / 1e6, "{$name} {$shape}");
+            }
+        }
+        $deep = 'x';
+        for ($i = 0; $i < 511; $i++) {
+            $deep = [$deep];
+        }
+        self::assertSame([$deep], JsonValue::copy([$deep]));
+    }
+
     public function testIsArrayIndex(): void
     {
         foreach (['0', '10', '4294967294'] as $name) {

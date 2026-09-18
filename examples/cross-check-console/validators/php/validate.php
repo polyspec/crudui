@@ -77,8 +77,8 @@ try {
         if (!$data instanceof stdClass) {
             // The PHP API takes only an object, so the input text rules that precede the data
             // shape rule are applied here in the library's order.
-            Text::checkSpecification($request->spec, $files);
-            $failure = Text::inputFailure([['data', $data], ['options.basepath', $basepath]]);
+            $failure = Text::specificationFailure($request->spec, $files)
+                ?? Text::inputFailure([['data', $data], ['options.basepath', $basepath]]);
             throw new FormInputError($failure ?? 'Form data must be an object');
         }
         $output = Validator::validate($request->spec, $data, $options);

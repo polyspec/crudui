@@ -76,6 +76,62 @@ final class TextValidityConformanceTest extends TestCase
         }
     }
 
+    /** @return array<string, array{0: stdClass}> */
+    public static function graphProvider(): array
+    {
+        $raw = \file_get_contents(__DIR__ . '/../../../../tests/fixtures/text-validity/value-graphs.json');
+        self::assertIsString($raw);
+        $out = [];
+        foreach (JsonText::decode($raw) as $case) {
+            $out[$case->name] = [$case];
+        }
+        return $out;
+    }
+
+    /** A value graph of the fixture, built with shared arrays and references. */
+    private static function graph(stdClass $graph): mixed
+    {
+        if ($graph->shape === 'self-twice') {
+            $loop = [];
+            $loop['self'] = &$loop;
+            $loop['again'] = &$loop;
+            return $loop;
+        }
+        if ($graph->shape === 'flat') {
+            return \array_fill(0, $graph->size, $graph->leaf);
+        }
+        $value = $graph->leaf;
+        for ($i = 0; $i < $graph->size; $i++) {
+            $value = $graph->shape === 'doubled' ? [$value, $value] : [$value];
+        }
+        return $value;
+    }
+
+    /**
+     * Value limits (docs/spec/input-text.md): the cases of tests/fixtures/text-validity/value-graphs.json
+     * complete in bounded time; a walk that grows with the tree a value denotes does not.
+     *
+     * @dataProvider graphProvider
+     */
+    public function testValueGraphMatchesFixture(stdClass $case): void
+    {
+        $inputs = ['spec' => $case->spec, 'files' => $case->files ?? null, 'data' => $case->data];
+        [$name, $member] = [$case->graph->at[0], \array_slice($case->graph->at, 1)];
+        $target = $inputs[$name];
+        foreach (\array_slice($member, 0, -1) as $segment) {
+            $target = $target->{$segment};
+        }
+        $target->{\end($member)} = self::graph($case->graph);
+        $options = $inputs['files'] === null ? [] : ['files' => $inputs['files']];
+        $started = \hrtime(true);
+        $actual = self::outcome(static fn () => Validator::validate($inputs['spec'], $inputs['data'], $options));
+        self::assertSame(\json_decode(\json_encode($case->expect, JSON_THROW_ON_ERROR), true, 512, JSON_THROW_ON_ERROR), $actual);
+        self::assertLessThan(self::GRAPH_CASE_MS, (\hrtime(true) - $started) / 1e6);
+    }
+
+    /** A graph case completes in this time. */
+    private const GRAPH_CASE_MS = 2000;
+
     public function testInvalidUtf8Bytes(): void
     {
         $spec = static fn (string $label) => (object) ['type' => 'group', 'properties' => (object) ['name' => (object) ['type' => 'text', 'label' => $label]]];
@@ -96,16 +152,18 @@ final class TextValidityConformanceTest extends TestCase
         }
         $bad = \chr(0xff);
         // Integer member names are decimal names in code point order: "10" precedes "9".
-        self::assertSame(['10'], Text::invalidPath((object) ['9' => $bad, '10' => $bad]));
-        self::assertSame(['10'], Text::invalidPath([9 => ['a' => $bad], 10 => $bad]));
-        self::assertSame(['1'], Text::invalidPath(['ok', $bad]));
-        self::assertSame(['0', 'a', '0', 'b'], Text::invalidPath([(object) ['a' => [(object) ['b' => $bad]]]]));
+        self::assertSame(['10'], Text::failure((object) ['9' => $bad, '10' => $bad]));
+        self::assertSame(['10'], Text::failure([9 => ['a' => $bad], 10 => $bad]));
+        self::assertSame(['1'], Text::failure(['ok', $bad]));
+        self::assertSame(['0', 'a', '0', 'b'], Text::failure([(object) ['a' => [(object) ['b' => $bad]]]]));
         $shared = (object) ['b' => $bad];
-        self::assertSame(['y', 'b'], Text::invalidPath((object) ['y' => $shared, 'z' => $shared]));
-        // A value that contains itself is not searched forever.
+        self::assertSame(['y', 'b'], Text::failure((object) ['y' => $shared, 'z' => $shared]));
+        // A value is walked as the tree it denotes: one that contains itself is beyond its limits.
         $cyclic = new stdClass();
         $cyclic->self = $cyclic;
-        self::assertNull(Text::invalidPath($cyclic));
+        self::assertFalse(Text::failure($cyclic));
+        $cyclic->a = $bad;
+        self::assertSame(['a'], Text::failure($cyclic));
     }
 
     public function testJsonTextDecodesAsJsonDecode(): void
