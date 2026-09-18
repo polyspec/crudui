@@ -28,21 +28,36 @@ else. The canonical page embeds none of them. `/displays/` is not a route.
 
 **Specifications.** `examples/form-comparison/fixtures/customer-specs.json` holds the three
 specifications of the customer record: `list`, `detail` and `form`. The record members are
-`id`, `name`, `status`, `joined`, `score`, `relation.name`, `avatar` and `markup`. The list
-shows every member and links each record to its detail; the detail shows every member except
-`avatar` and links the record to its form; the form edits `name`, `status`, `joined`, `score`,
-`relation.name` and `markup`, shows `id` read-only (`dummy-input`) and has no `avatar` field.
-The list declares no sort: it shows the records in store order.
+`id`, `name`, `status`, `joined`, `score`, `relation.name`, `avatar`, `markup` and
+`companies`. The list shows every member except `companies` and links each record to its
+detail; the detail shows every member except `avatar` and `companies` and links the record to
+its form; the form edits `name`, `status`, `joined`, `score`, `relation.name`, `markup` and
+`companies`, shows `id` read-only (`dummy-input`) and has no `avatar` field. The list declares
+no sort: it shows the records in store order.
+
+`companies` is the repeated part of the form: companies (at most 4, copied and sorted, sticky
+headers, a required `name`), each with stores (the same row operations, a required `name`, a
+checkbox `enabled` defaulting to `1`, `detail` notes shown only while `.enabled` is set, and a
+`title` in `ko` and `en`), each with departments (a `name`). Its value is keyed rows:
+`{ key: { name, stores: { key: { name, enabled, detail, title: { ko, en }, departments: { key:
+{ name } } } } } }`, members in this order, every leaf a string and every key a row key
+(`__` + 13 digits or lowercase hexadecimal letters + `__`). The benchmark form of `src/scenario.mjs`
+takes this group from the same file, so both declare it once.
 
 **Fixture.** `examples/form-comparison/fixtures/customer-records.json` holds the 45 seeded
-records in id order, `"1"` to `"45"`, with `score` as a JSON number. The build publishes both
+records in id order, `"1"` to `"45"`, with `score` as a JSON number. Their companies differ in
+the number of companies, stores and departments, and some stores are not `enabled` while their
+`detail` keeps its text. The build publishes both
 files unchanged in the public directory as `customer-records.json` and `customer-specs.json`,
 and every server reads them from there. No program keeps its own copy of the records.
 
 **Store.** Every server owns one persistent store, `records-{server}.json` in its data
 directory (`/data` in the container). The file holds the records array in id order, with the
 member order of the fixture. A missing file is seeded from the fixture on its first read; an
-unreadable or malformed file fails the request and is not replaced. Writes are serialized: the
+unreadable or malformed file fails the request with 500 and is not replaced. A file is malformed
+unless it is a JSON array of records with exactly the fixture's members in order, `score` a number
+and every other scalar a string, and `companies` in the shape of the form. Reset replaces any
+store file, malformed or not, with the fixture; it is the way to recover a store. Writes are serialized: the
 JavaScript server queues them in its one process, and the PHP, Go and Rust servers take an
 exclusive lock on `records-{server}.json.lock` for the read and the write. A write
 replaces the file atomically through a temporary file in the same directory. Saved values are what the list, the
@@ -67,14 +82,21 @@ Another method on these paths answers 405.
 A save accepts the native form, `multipart/form-data` or `application/x-www-form-urlencoded`
 with exactly the fields `form[…]` and `_form_complete=1` as the rendered form posts them, and
 JSON with exactly the member `form`: `{ "form": { … } }`; another field or member answers 400. The submitted object has exactly the form members `id`, `name`, `status`,
-`joined`, `score`, `relation` (with exactly `name`) and `markup`, each a string. The server
+`joined`, `score`, `relation` (with exactly `name`), `markup` and `companies`, each scalar a
+string and `companies` in the shape above. A native form omits an unchecked `enabled` and a
+collection without rows; the server completes such a submission with `enabled` as `""` and each
+missing collection as no rows, so both media types store the same record. A JSON submission
+carries every member. The benchmark save and validation of the same `companies` data apply this
+same rule, so each server checks the companies shape in one place. The server
 answers 404 for an unknown id, 415 for another media type, 413 above 2 MiB, and 400 for
-malformed input, a missing completion field, a missing, additional or non-text member, or an
-`id` other than the path id. It then validates the submission with its own validator and the
+malformed input, a missing completion field, a repeated native field, a missing, additional or non-text member, a key
+that is not a row key, an `enabled` other than `""` or `"1"`, or an `id` other than the path
+id. It then validates the submission with its own validator and the
 `form` specification; an invalid submission answers 422 `{ validation }` with the validator's
 result. A valid submission stores the previous record with the submitted `name`, `status`,
-`joined`, `relation.name` and `markup`, and `score` as the JSON number its decimal text
-denotes; `id` and `avatar` keep their stored values. No failure changes the store file. A store
+`joined`, `relation.name`, `markup` and `companies` (its rows in submitted order with their
+submitted keys; a store's `detail` is kept while it is hidden), and `score` as the JSON number
+its decimal text denotes; `id` and `avatar` keep their stored values. No failure changes the store file. A store
 file that cannot be read as the record list answers 500 and is left as it is.
 
 A view request renders one stage of an SSR document. Its query is exactly `lang` (`ko` or
@@ -156,11 +178,15 @@ its own record on page 2 of its server's store (ids 21 to 28) and:
    data in SSR documents, and an empty stage without stage data in CSR documents;
 2. opens the list at page 2, follows the record's detail link and then its form link, and
    requires each address and each readiness event;
-3. requires the read-only id, replaces the score, submits, and requires the list address with
-   the same page and `saved`, the visible saved notice of the record and the new score in the
-   record's row as the shared list model formats it;
-4. requires the selected server to have stored the score, and under SSR requires the notice and
-   the score in the initial HTML of the list.
+3. requires the read-only id, replaces the score, unchecks `enabled` of the first store of the
+   first company and requires its `detail` to be hidden, adds a department row to that store
+   (the add-row action of its last department row, or of the collection footer when it has no
+   departments) and names it, submits, and requires the list address with the same page
+   and `saved`, the visible saved notice of the record and the new score in the record's row as
+   the shared list model formats it;
+4. requires the selected server to have stored the score, that store with `enabled` `""` and
+   its `detail` unchanged, and the new department as the last row of its departments, and
+   under SSR requires the notice and the score in the initial HTML of the list.
 
 Each combination is one unit with its own timeout, in its own browser context; four run at a
 time. A unit prints its start with its limit, its elapsed time every 15 seconds and its result
@@ -678,13 +704,12 @@ checks atomic updates, locking, position-based loading, parent ownership,
 rejection without file changes, complete deletion and sequence allocation. Type
 verification checks the same scalar and collection rules in every server.
 
-Two PHP warnings belong to these checks and are not defects. The persistence
-check's `request-size-limit` sends a field above the 2 MiB request limit in all
-three transports and requires status 413, which logs `POST Content-Length ...
-exceeds the limit`. The browser `shape` check sends a native form with 10,001
-fields, above `max_input_vars`, and requires status 400, which logs `Input
-variables exceeded 10000`. Each warning comes from the request its own check
-asserts on.
+The PHP servers run with `enable_post_data_reading=0` and read the request body themselves, as
+the other servers do: one parser for urlencoded and multipart bodies rejects a repeated field, a
+name that is both a value and a group, a malformed name and a file part with 400. The
+persistence check's `request-size-limit` therefore gets its 413 from the server's own 2 MiB
+check, and the browser `shape` check's native form with 10,001 fields gets 400 for its
+additional fields; neither request makes PHP log a warning.
 
 Fast source tests reproduce report-policy failures, protocol timeout behavior,
 each report's own limit and the progress it reports, the step runner's timeout,

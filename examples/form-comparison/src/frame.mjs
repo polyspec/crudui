@@ -548,7 +548,7 @@ const checks = [
     equal((await request('save', { companies: [] }, true)).status, 400,
       'wrong empty collection type');
     equal((await submitData({ companies: null })).status, 400, 'invalid collection value');
-    equal((await submitData({ companies: { __abcdef0123456__: { name: '' } } })).status,
+    equal((await submitData({ companies: { __abcdef0123456__: { name: '', stores: {} } } })).status,
       422, 'empty row requires a company name');
     const invalidField = structuredClone(before.data);
     const invalidStore = Object.values(Object.values(invalidField.companies)[0].stores)[0];

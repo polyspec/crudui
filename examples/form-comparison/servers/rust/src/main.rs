@@ -227,7 +227,7 @@ async fn handle(
         let data = load_data(&storage)?;
         return reply(StatusCode::OK, json!({"storage":storage,"data":data}));
     }
-    let received = match kind.as_str() {
+    let (received, native) = match kind.as_str() {
         "application/json" => {
             let bytes = axum::body::to_bytes(request.into_body(), MAX_BYTES)
                 .await
@@ -239,19 +239,17 @@ async fn handle(
                 .get("form")
                 .cloned()
                 .ok_or_else(|| bad("Expected form object"))?;
-            form::check_json_shape(&data)?;
-            data
+            (data, false)
         }
         "multipart/form-data" | "application/x-www-form-urlencoded" => {
             let fields = parse_native(request, &kind).await?;
             if fields.get("_form_complete").and_then(Value::as_str) != Some("1") {
                 return Err(bad("Incomplete native form submission"));
             }
-            let data = fields.get("form").cloned().unwrap_or_else(|| json!({}));
-            if !data.is_object() {
-                return Err(bad("Expected form object"));
-            }
-            data
+            (
+                fields.get("form").cloned().unwrap_or_else(|| json!({})),
+                true,
+            )
         }
         _ => {
             return Err(Error {
@@ -260,7 +258,12 @@ async fn handle(
             })
         }
     };
-    let data = form::normalize(&received)?;
+    // The benchmark form has exactly `companies`; its rows follow the one companies rule.
+    let members = received
+        .as_object()
+        .filter(|members| members.keys().all(|name| name == "companies"))
+        .ok_or_else(|| bad("Expected a form object with exactly companies"))?;
+    let data = json!({"companies":form::companies(members.get("companies"), native)?});
     let spec = read_object(&server.public.join("spec.json"))?;
     let validation = validate(&spec, &data, &ValidateOptions::default()).map_err(|e| Error {
         status: match e {

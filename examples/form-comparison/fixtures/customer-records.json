@@ -9,7 +9,67 @@
       "name": "Northwind"
     },
     "avatar": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
-    "markup": "<strong>verified</strong>"
+    "markup": "<strong>verified</strong>",
+    "companies": {
+      "__0000000000006__": {
+        "name": "Contoso 1",
+        "stores": {
+          "__0000000000002__": {
+            "name": "Busan",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 1-1-1",
+              "en": "Store 1-1-1"
+            },
+            "departments": {
+              "__0000000000001__": {
+                "name": "Support"
+              }
+            }
+          },
+          "__0000000000005__": {
+            "name": "Tokyo",
+            "enabled": "1",
+            "detail": "Open 10:00",
+            "title": {
+              "ko": "매장 1-1-2",
+              "en": "Store 1-1-2"
+            },
+            "departments": {
+              "__0000000000003__": {
+                "name": "Support"
+              },
+              "__0000000000004__": {
+                "name": "Design"
+              }
+            }
+          }
+        }
+      },
+      "__0000000000010__": {
+        "name": "Fabrikam 1",
+        "stores": {
+          "__0000000000009__": {
+            "name": "Tokyo",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 1-2-1",
+              "en": "Store 1-2-1"
+            },
+            "departments": {
+              "__0000000000007__": {
+                "name": "Support"
+              },
+              "__0000000000008__": {
+                "name": "Design"
+              }
+            }
+          }
+        }
+      }
+    }
   },
   {
     "id": "2",
@@ -21,7 +81,79 @@
       "name": "Contoso"
     },
     "avatar": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
-    "markup": "<em>review</em>"
+    "markup": "<em>review</em>",
+    "companies": {
+      "__0000000000014__": {
+        "name": "Fabrikam 2",
+        "stores": {
+          "__0000000000013__": {
+            "name": "Tokyo",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 2-1-1",
+              "en": "Store 2-1-1"
+            },
+            "departments": {
+              "__0000000000011__": {
+                "name": "Design"
+              },
+              "__0000000000012__": {
+                "name": "Sales"
+              }
+            }
+          }
+        }
+      },
+      "__0000000000018__": {
+        "name": "Tailspin 2",
+        "stores": {
+          "__0000000000015__": {
+            "name": "Paris",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 2-2-1",
+              "en": "Store 2-2-1"
+            },
+            "departments": {}
+          },
+          "__0000000000017__": {
+            "name": "Lima",
+            "enabled": "",
+            "detail": "Kept while hidden",
+            "title": {
+              "ko": "매장 2-2-2",
+              "en": "Store 2-2-2"
+            },
+            "departments": {
+              "__0000000000016__": {
+                "name": "Design"
+              }
+            }
+          }
+        }
+      },
+      "__0000000000021__": {
+        "name": "Wingtip 2",
+        "stores": {
+          "__0000000000020__": {
+            "name": "Lima",
+            "enabled": "",
+            "detail": "Kept while hidden",
+            "title": {
+              "ko": "매장 2-3-1",
+              "en": "Store 2-3-1"
+            },
+            "departments": {
+              "__0000000000019__": {
+                "name": "Design"
+              }
+            }
+          }
+        }
+      }
+    }
   },
   {
     "id": "3",
@@ -33,7 +165,38 @@
       "name": "Fabrikam"
     },
     "avatar": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
-    "markup": "<strong>verified</strong>"
+    "markup": "<strong>verified</strong>",
+    "companies": {
+      "__0000000000025__": {
+        "name": "Tailspin 3",
+        "stores": {
+          "__0000000000022__": {
+            "name": "Paris",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 3-1-1",
+              "en": "Store 3-1-1"
+            },
+            "departments": {}
+          },
+          "__0000000000024__": {
+            "name": "Lima",
+            "enabled": "",
+            "detail": "Kept while hidden",
+            "title": {
+              "ko": "매장 3-1-2",
+              "en": "Store 3-1-2"
+            },
+            "departments": {
+              "__0000000000023__": {
+                "name": "Sales"
+              }
+            }
+          }
+        }
+      }
+    }
   },
   {
     "id": "4",
@@ -45,7 +208,60 @@
       "name": "Northwind"
     },
     "avatar": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
-    "markup": "<strong>verified</strong>"
+    "markup": "<strong>verified</strong>",
+    "companies": {
+      "__0000000000028__": {
+        "name": "Wingtip 4",
+        "stores": {
+          "__0000000000027__": {
+            "name": "Lima",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 4-1-1",
+              "en": "Store 4-1-1"
+            },
+            "departments": {
+              "__0000000000026__": {
+                "name": "Support"
+              }
+            }
+          }
+        }
+      },
+      "__0000000000033__": {
+        "name": "Northwind 4",
+        "stores": {
+          "__0000000000031__": {
+            "name": "Oslo",
+            "enabled": "",
+            "detail": "Kept while hidden",
+            "title": {
+              "ko": "매장 4-2-1",
+              "en": "Store 4-2-1"
+            },
+            "departments": {
+              "__0000000000029__": {
+                "name": "Support"
+              },
+              "__0000000000030__": {
+                "name": "Design"
+              }
+            }
+          },
+          "__0000000000032__": {
+            "name": "Seoul",
+            "enabled": "1",
+            "detail": "Open 10:00",
+            "title": {
+              "ko": "매장 4-2-2",
+              "en": "Store 4-2-2"
+            },
+            "departments": {}
+          }
+        }
+      }
+    }
   },
   {
     "id": "5",
@@ -57,7 +273,92 @@
       "name": "Contoso"
     },
     "avatar": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
-    "markup": "<em>review</em>"
+    "markup": "<em>review</em>",
+    "companies": {
+      "__0000000000038__": {
+        "name": "Northwind 5",
+        "stores": {
+          "__0000000000036__": {
+            "name": "Oslo",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 5-1-1",
+              "en": "Store 5-1-1"
+            },
+            "departments": {
+              "__0000000000034__": {
+                "name": "Design"
+              },
+              "__0000000000035__": {
+                "name": "Sales"
+              }
+            }
+          },
+          "__0000000000037__": {
+            "name": "Seoul",
+            "enabled": "1",
+            "detail": "Open 10:00",
+            "title": {
+              "ko": "매장 5-1-2",
+              "en": "Store 5-1-2"
+            },
+            "departments": {}
+          }
+        }
+      },
+      "__0000000000040__": {
+        "name": "Contoso 5",
+        "stores": {
+          "__0000000000039__": {
+            "name": "Seoul",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 5-2-1",
+              "en": "Store 5-2-1"
+            },
+            "departments": {}
+          }
+        }
+      },
+      "__0000000000046__": {
+        "name": "Fabrikam 5",
+        "stores": {
+          "__0000000000042__": {
+            "name": "Busan",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 5-3-1",
+              "en": "Store 5-3-1"
+            },
+            "departments": {
+              "__0000000000041__": {
+                "name": "Design"
+              }
+            }
+          },
+          "__0000000000045__": {
+            "name": "Tokyo",
+            "enabled": "",
+            "detail": "Kept while hidden",
+            "title": {
+              "ko": "매장 5-3-2",
+              "en": "Store 5-3-2"
+            },
+            "departments": {
+              "__0000000000043__": {
+                "name": "Design"
+              },
+              "__0000000000044__": {
+                "name": "Sales"
+              }
+            }
+          }
+        }
+      }
+    }
   },
   {
     "id": "6",
@@ -69,7 +370,24 @@
       "name": "Fabrikam"
     },
     "avatar": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
-    "markup": "<strong>verified</strong>"
+    "markup": "<strong>verified</strong>",
+    "companies": {
+      "__0000000000048__": {
+        "name": "Contoso 6",
+        "stores": {
+          "__0000000000047__": {
+            "name": "Seoul",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 6-1-1",
+              "en": "Store 6-1-1"
+            },
+            "departments": {}
+          }
+        }
+      }
+    }
   },
   {
     "id": "7",
@@ -81,7 +399,67 @@
       "name": "Northwind"
     },
     "avatar": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
-    "markup": "<strong>verified</strong>"
+    "markup": "<strong>verified</strong>",
+    "companies": {
+      "__0000000000054__": {
+        "name": "Fabrikam 7",
+        "stores": {
+          "__0000000000050__": {
+            "name": "Busan",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 7-1-1",
+              "en": "Store 7-1-1"
+            },
+            "departments": {
+              "__0000000000049__": {
+                "name": "Support"
+              }
+            }
+          },
+          "__0000000000053__": {
+            "name": "Tokyo",
+            "enabled": "",
+            "detail": "Kept while hidden",
+            "title": {
+              "ko": "매장 7-1-2",
+              "en": "Store 7-1-2"
+            },
+            "departments": {
+              "__0000000000051__": {
+                "name": "Support"
+              },
+              "__0000000000052__": {
+                "name": "Design"
+              }
+            }
+          }
+        }
+      },
+      "__0000000000058__": {
+        "name": "Tailspin 7",
+        "stores": {
+          "__0000000000057__": {
+            "name": "Tokyo",
+            "enabled": "",
+            "detail": "Kept while hidden",
+            "title": {
+              "ko": "매장 7-2-1",
+              "en": "Store 7-2-1"
+            },
+            "departments": {
+              "__0000000000055__": {
+                "name": "Support"
+              },
+              "__0000000000056__": {
+                "name": "Design"
+              }
+            }
+          }
+        }
+      }
+    }
   },
   {
     "id": "8",
@@ -93,7 +471,79 @@
       "name": "Contoso"
     },
     "avatar": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
-    "markup": "<em>review</em>"
+    "markup": "<em>review</em>",
+    "companies": {
+      "__0000000000062__": {
+        "name": "Tailspin 8",
+        "stores": {
+          "__0000000000061__": {
+            "name": "Tokyo",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 8-1-1",
+              "en": "Store 8-1-1"
+            },
+            "departments": {
+              "__0000000000059__": {
+                "name": "Design"
+              },
+              "__0000000000060__": {
+                "name": "Sales"
+              }
+            }
+          }
+        }
+      },
+      "__0000000000066__": {
+        "name": "Wingtip 8",
+        "stores": {
+          "__0000000000063__": {
+            "name": "Paris",
+            "enabled": "",
+            "detail": "Kept while hidden",
+            "title": {
+              "ko": "매장 8-2-1",
+              "en": "Store 8-2-1"
+            },
+            "departments": {}
+          },
+          "__0000000000065__": {
+            "name": "Lima",
+            "enabled": "1",
+            "detail": "Open 10:00",
+            "title": {
+              "ko": "매장 8-2-2",
+              "en": "Store 8-2-2"
+            },
+            "departments": {
+              "__0000000000064__": {
+                "name": "Design"
+              }
+            }
+          }
+        }
+      },
+      "__0000000000069__": {
+        "name": "Northwind 8",
+        "stores": {
+          "__0000000000068__": {
+            "name": "Lima",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 8-3-1",
+              "en": "Store 8-3-1"
+            },
+            "departments": {
+              "__0000000000067__": {
+                "name": "Design"
+              }
+            }
+          }
+        }
+      }
+    }
   },
   {
     "id": "9",
@@ -105,7 +555,38 @@
       "name": "Fabrikam"
     },
     "avatar": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
-    "markup": "<strong>verified</strong>"
+    "markup": "<strong>verified</strong>",
+    "companies": {
+      "__0000000000073__": {
+        "name": "Wingtip 9",
+        "stores": {
+          "__0000000000070__": {
+            "name": "Paris",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 9-1-1",
+              "en": "Store 9-1-1"
+            },
+            "departments": {}
+          },
+          "__0000000000072__": {
+            "name": "Lima",
+            "enabled": "1",
+            "detail": "Open 10:00",
+            "title": {
+              "ko": "매장 9-1-2",
+              "en": "Store 9-1-2"
+            },
+            "departments": {
+              "__0000000000071__": {
+                "name": "Sales"
+              }
+            }
+          }
+        }
+      }
+    }
   },
   {
     "id": "10",
@@ -117,7 +598,60 @@
       "name": "Northwind"
     },
     "avatar": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
-    "markup": "<strong>verified</strong>"
+    "markup": "<strong>verified</strong>",
+    "companies": {
+      "__0000000000076__": {
+        "name": "Northwind 10",
+        "stores": {
+          "__0000000000075__": {
+            "name": "Lima",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 10-1-1",
+              "en": "Store 10-1-1"
+            },
+            "departments": {
+              "__0000000000074__": {
+                "name": "Support"
+              }
+            }
+          }
+        }
+      },
+      "__0000000000081__": {
+        "name": "Contoso 10",
+        "stores": {
+          "__0000000000079__": {
+            "name": "Oslo",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 10-2-1",
+              "en": "Store 10-2-1"
+            },
+            "departments": {
+              "__0000000000077__": {
+                "name": "Support"
+              },
+              "__0000000000078__": {
+                "name": "Design"
+              }
+            }
+          },
+          "__0000000000080__": {
+            "name": "Seoul",
+            "enabled": "",
+            "detail": "Kept while hidden",
+            "title": {
+              "ko": "매장 10-2-2",
+              "en": "Store 10-2-2"
+            },
+            "departments": {}
+          }
+        }
+      }
+    }
   },
   {
     "id": "11",
@@ -129,7 +663,92 @@
       "name": "Contoso"
     },
     "avatar": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
-    "markup": "<em>review</em>"
+    "markup": "<em>review</em>",
+    "companies": {
+      "__0000000000086__": {
+        "name": "Contoso 11",
+        "stores": {
+          "__0000000000084__": {
+            "name": "Oslo",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 11-1-1",
+              "en": "Store 11-1-1"
+            },
+            "departments": {
+              "__0000000000082__": {
+                "name": "Design"
+              },
+              "__0000000000083__": {
+                "name": "Sales"
+              }
+            }
+          },
+          "__0000000000085__": {
+            "name": "Seoul",
+            "enabled": "",
+            "detail": "Kept while hidden",
+            "title": {
+              "ko": "매장 11-1-2",
+              "en": "Store 11-1-2"
+            },
+            "departments": {}
+          }
+        }
+      },
+      "__0000000000088__": {
+        "name": "Fabrikam 11",
+        "stores": {
+          "__0000000000087__": {
+            "name": "Seoul",
+            "enabled": "",
+            "detail": "Kept while hidden",
+            "title": {
+              "ko": "매장 11-2-1",
+              "en": "Store 11-2-1"
+            },
+            "departments": {}
+          }
+        }
+      },
+      "__0000000000094__": {
+        "name": "Tailspin 11",
+        "stores": {
+          "__0000000000090__": {
+            "name": "Busan",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 11-3-1",
+              "en": "Store 11-3-1"
+            },
+            "departments": {
+              "__0000000000089__": {
+                "name": "Design"
+              }
+            }
+          },
+          "__0000000000093__": {
+            "name": "Tokyo",
+            "enabled": "1",
+            "detail": "Open 10:00",
+            "title": {
+              "ko": "매장 11-3-2",
+              "en": "Store 11-3-2"
+            },
+            "departments": {
+              "__0000000000091__": {
+                "name": "Design"
+              },
+              "__0000000000092__": {
+                "name": "Sales"
+              }
+            }
+          }
+        }
+      }
+    }
   },
   {
     "id": "12",
@@ -141,7 +760,24 @@
       "name": "Fabrikam"
     },
     "avatar": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
-    "markup": "<strong>verified</strong>"
+    "markup": "<strong>verified</strong>",
+    "companies": {
+      "__0000000000096__": {
+        "name": "Fabrikam 12",
+        "stores": {
+          "__0000000000095__": {
+            "name": "Seoul",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 12-1-1",
+              "en": "Store 12-1-1"
+            },
+            "departments": {}
+          }
+        }
+      }
+    }
   },
   {
     "id": "13",
@@ -153,7 +789,67 @@
       "name": "Northwind"
     },
     "avatar": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
-    "markup": "<strong>verified</strong>"
+    "markup": "<strong>verified</strong>",
+    "companies": {
+      "__0000000000102__": {
+        "name": "Tailspin 13",
+        "stores": {
+          "__0000000000098__": {
+            "name": "Busan",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 13-1-1",
+              "en": "Store 13-1-1"
+            },
+            "departments": {
+              "__0000000000097__": {
+                "name": "Support"
+              }
+            }
+          },
+          "__0000000000101__": {
+            "name": "Tokyo",
+            "enabled": "1",
+            "detail": "Open 10:00",
+            "title": {
+              "ko": "매장 13-1-2",
+              "en": "Store 13-1-2"
+            },
+            "departments": {
+              "__0000000000099__": {
+                "name": "Support"
+              },
+              "__0000000000100__": {
+                "name": "Design"
+              }
+            }
+          }
+        }
+      },
+      "__0000000000106__": {
+        "name": "Wingtip 13",
+        "stores": {
+          "__0000000000105__": {
+            "name": "Tokyo",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 13-2-1",
+              "en": "Store 13-2-1"
+            },
+            "departments": {
+              "__0000000000103__": {
+                "name": "Support"
+              },
+              "__0000000000104__": {
+                "name": "Design"
+              }
+            }
+          }
+        }
+      }
+    }
   },
   {
     "id": "14",
@@ -165,7 +861,79 @@
       "name": "Contoso"
     },
     "avatar": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
-    "markup": "<em>review</em>"
+    "markup": "<em>review</em>",
+    "companies": {
+      "__0000000000110__": {
+        "name": "Wingtip 14",
+        "stores": {
+          "__0000000000109__": {
+            "name": "Tokyo",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 14-1-1",
+              "en": "Store 14-1-1"
+            },
+            "departments": {
+              "__0000000000107__": {
+                "name": "Design"
+              },
+              "__0000000000108__": {
+                "name": "Sales"
+              }
+            }
+          }
+        }
+      },
+      "__0000000000114__": {
+        "name": "Northwind 14",
+        "stores": {
+          "__0000000000111__": {
+            "name": "Paris",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 14-2-1",
+              "en": "Store 14-2-1"
+            },
+            "departments": {}
+          },
+          "__0000000000113__": {
+            "name": "Lima",
+            "enabled": "",
+            "detail": "Kept while hidden",
+            "title": {
+              "ko": "매장 14-2-2",
+              "en": "Store 14-2-2"
+            },
+            "departments": {
+              "__0000000000112__": {
+                "name": "Design"
+              }
+            }
+          }
+        }
+      },
+      "__0000000000117__": {
+        "name": "Contoso 14",
+        "stores": {
+          "__0000000000116__": {
+            "name": "Lima",
+            "enabled": "",
+            "detail": "Kept while hidden",
+            "title": {
+              "ko": "매장 14-3-1",
+              "en": "Store 14-3-1"
+            },
+            "departments": {
+              "__0000000000115__": {
+                "name": "Design"
+              }
+            }
+          }
+        }
+      }
+    }
   },
   {
     "id": "15",
@@ -177,7 +945,38 @@
       "name": "Fabrikam"
     },
     "avatar": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
-    "markup": "<strong>verified</strong>"
+    "markup": "<strong>verified</strong>",
+    "companies": {
+      "__0000000000121__": {
+        "name": "Northwind 15",
+        "stores": {
+          "__0000000000118__": {
+            "name": "Paris",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 15-1-1",
+              "en": "Store 15-1-1"
+            },
+            "departments": {}
+          },
+          "__0000000000120__": {
+            "name": "Lima",
+            "enabled": "",
+            "detail": "Kept while hidden",
+            "title": {
+              "ko": "매장 15-1-2",
+              "en": "Store 15-1-2"
+            },
+            "departments": {
+              "__0000000000119__": {
+                "name": "Sales"
+              }
+            }
+          }
+        }
+      }
+    }
   },
   {
     "id": "16",
@@ -189,7 +988,60 @@
       "name": "Northwind"
     },
     "avatar": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
-    "markup": "<strong>verified</strong>"
+    "markup": "<strong>verified</strong>",
+    "companies": {
+      "__0000000000124__": {
+        "name": "Contoso 16",
+        "stores": {
+          "__0000000000123__": {
+            "name": "Lima",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 16-1-1",
+              "en": "Store 16-1-1"
+            },
+            "departments": {
+              "__0000000000122__": {
+                "name": "Support"
+              }
+            }
+          }
+        }
+      },
+      "__0000000000129__": {
+        "name": "Fabrikam 16",
+        "stores": {
+          "__0000000000127__": {
+            "name": "Oslo",
+            "enabled": "",
+            "detail": "Kept while hidden",
+            "title": {
+              "ko": "매장 16-2-1",
+              "en": "Store 16-2-1"
+            },
+            "departments": {
+              "__0000000000125__": {
+                "name": "Support"
+              },
+              "__0000000000126__": {
+                "name": "Design"
+              }
+            }
+          },
+          "__0000000000128__": {
+            "name": "Seoul",
+            "enabled": "1",
+            "detail": "Open 10:00",
+            "title": {
+              "ko": "매장 16-2-2",
+              "en": "Store 16-2-2"
+            },
+            "departments": {}
+          }
+        }
+      }
+    }
   },
   {
     "id": "17",
@@ -201,7 +1053,92 @@
       "name": "Contoso"
     },
     "avatar": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
-    "markup": "<em>review</em>"
+    "markup": "<em>review</em>",
+    "companies": {
+      "__0000000000134__": {
+        "name": "Fabrikam 17",
+        "stores": {
+          "__0000000000132__": {
+            "name": "Oslo",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 17-1-1",
+              "en": "Store 17-1-1"
+            },
+            "departments": {
+              "__0000000000130__": {
+                "name": "Design"
+              },
+              "__0000000000131__": {
+                "name": "Sales"
+              }
+            }
+          },
+          "__0000000000133__": {
+            "name": "Seoul",
+            "enabled": "1",
+            "detail": "Open 10:00",
+            "title": {
+              "ko": "매장 17-1-2",
+              "en": "Store 17-1-2"
+            },
+            "departments": {}
+          }
+        }
+      },
+      "__0000000000136__": {
+        "name": "Tailspin 17",
+        "stores": {
+          "__0000000000135__": {
+            "name": "Seoul",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 17-2-1",
+              "en": "Store 17-2-1"
+            },
+            "departments": {}
+          }
+        }
+      },
+      "__0000000000142__": {
+        "name": "Wingtip 17",
+        "stores": {
+          "__0000000000138__": {
+            "name": "Busan",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 17-3-1",
+              "en": "Store 17-3-1"
+            },
+            "departments": {
+              "__0000000000137__": {
+                "name": "Design"
+              }
+            }
+          },
+          "__0000000000141__": {
+            "name": "Tokyo",
+            "enabled": "",
+            "detail": "Kept while hidden",
+            "title": {
+              "ko": "매장 17-3-2",
+              "en": "Store 17-3-2"
+            },
+            "departments": {
+              "__0000000000139__": {
+                "name": "Design"
+              },
+              "__0000000000140__": {
+                "name": "Sales"
+              }
+            }
+          }
+        }
+      }
+    }
   },
   {
     "id": "18",
@@ -213,7 +1150,24 @@
       "name": "Fabrikam"
     },
     "avatar": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
-    "markup": "<strong>verified</strong>"
+    "markup": "<strong>verified</strong>",
+    "companies": {
+      "__0000000000144__": {
+        "name": "Tailspin 18",
+        "stores": {
+          "__0000000000143__": {
+            "name": "Seoul",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 18-1-1",
+              "en": "Store 18-1-1"
+            },
+            "departments": {}
+          }
+        }
+      }
+    }
   },
   {
     "id": "19",
@@ -225,7 +1179,67 @@
       "name": "Northwind"
     },
     "avatar": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
-    "markup": "<strong>verified</strong>"
+    "markup": "<strong>verified</strong>",
+    "companies": {
+      "__0000000000150__": {
+        "name": "Wingtip 19",
+        "stores": {
+          "__0000000000146__": {
+            "name": "Busan",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 19-1-1",
+              "en": "Store 19-1-1"
+            },
+            "departments": {
+              "__0000000000145__": {
+                "name": "Support"
+              }
+            }
+          },
+          "__0000000000149__": {
+            "name": "Tokyo",
+            "enabled": "",
+            "detail": "Kept while hidden",
+            "title": {
+              "ko": "매장 19-1-2",
+              "en": "Store 19-1-2"
+            },
+            "departments": {
+              "__0000000000147__": {
+                "name": "Support"
+              },
+              "__0000000000148__": {
+                "name": "Design"
+              }
+            }
+          }
+        }
+      },
+      "__0000000000154__": {
+        "name": "Northwind 19",
+        "stores": {
+          "__0000000000153__": {
+            "name": "Tokyo",
+            "enabled": "",
+            "detail": "Kept while hidden",
+            "title": {
+              "ko": "매장 19-2-1",
+              "en": "Store 19-2-1"
+            },
+            "departments": {
+              "__0000000000151__": {
+                "name": "Support"
+              },
+              "__0000000000152__": {
+                "name": "Design"
+              }
+            }
+          }
+        }
+      }
+    }
   },
   {
     "id": "20",
@@ -237,7 +1251,79 @@
       "name": "Contoso"
     },
     "avatar": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
-    "markup": "<em>review</em>"
+    "markup": "<em>review</em>",
+    "companies": {
+      "__0000000000158__": {
+        "name": "Northwind 20",
+        "stores": {
+          "__0000000000157__": {
+            "name": "Tokyo",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 20-1-1",
+              "en": "Store 20-1-1"
+            },
+            "departments": {
+              "__0000000000155__": {
+                "name": "Design"
+              },
+              "__0000000000156__": {
+                "name": "Sales"
+              }
+            }
+          }
+        }
+      },
+      "__0000000000162__": {
+        "name": "Contoso 20",
+        "stores": {
+          "__0000000000159__": {
+            "name": "Paris",
+            "enabled": "",
+            "detail": "Kept while hidden",
+            "title": {
+              "ko": "매장 20-2-1",
+              "en": "Store 20-2-1"
+            },
+            "departments": {}
+          },
+          "__0000000000161__": {
+            "name": "Lima",
+            "enabled": "1",
+            "detail": "Open 10:00",
+            "title": {
+              "ko": "매장 20-2-2",
+              "en": "Store 20-2-2"
+            },
+            "departments": {
+              "__0000000000160__": {
+                "name": "Design"
+              }
+            }
+          }
+        }
+      },
+      "__0000000000165__": {
+        "name": "Fabrikam 20",
+        "stores": {
+          "__0000000000164__": {
+            "name": "Lima",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 20-3-1",
+              "en": "Store 20-3-1"
+            },
+            "departments": {
+              "__0000000000163__": {
+                "name": "Design"
+              }
+            }
+          }
+        }
+      }
+    }
   },
   {
     "id": "21",
@@ -249,7 +1335,38 @@
       "name": "Fabrikam"
     },
     "avatar": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
-    "markup": "<strong>verified</strong>"
+    "markup": "<strong>verified</strong>",
+    "companies": {
+      "__0000000000169__": {
+        "name": "Contoso 21",
+        "stores": {
+          "__0000000000166__": {
+            "name": "Paris",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 21-1-1",
+              "en": "Store 21-1-1"
+            },
+            "departments": {}
+          },
+          "__0000000000168__": {
+            "name": "Lima",
+            "enabled": "1",
+            "detail": "Open 10:00",
+            "title": {
+              "ko": "매장 21-1-2",
+              "en": "Store 21-1-2"
+            },
+            "departments": {
+              "__0000000000167__": {
+                "name": "Sales"
+              }
+            }
+          }
+        }
+      }
+    }
   },
   {
     "id": "22",
@@ -261,7 +1378,60 @@
       "name": "Northwind"
     },
     "avatar": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
-    "markup": "<strong>verified</strong>"
+    "markup": "<strong>verified</strong>",
+    "companies": {
+      "__0000000000172__": {
+        "name": "Fabrikam 22",
+        "stores": {
+          "__0000000000171__": {
+            "name": "Lima",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 22-1-1",
+              "en": "Store 22-1-1"
+            },
+            "departments": {
+              "__0000000000170__": {
+                "name": "Support"
+              }
+            }
+          }
+        }
+      },
+      "__0000000000177__": {
+        "name": "Tailspin 22",
+        "stores": {
+          "__0000000000175__": {
+            "name": "Oslo",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 22-2-1",
+              "en": "Store 22-2-1"
+            },
+            "departments": {
+              "__0000000000173__": {
+                "name": "Support"
+              },
+              "__0000000000174__": {
+                "name": "Design"
+              }
+            }
+          },
+          "__0000000000176__": {
+            "name": "Seoul",
+            "enabled": "",
+            "detail": "Kept while hidden",
+            "title": {
+              "ko": "매장 22-2-2",
+              "en": "Store 22-2-2"
+            },
+            "departments": {}
+          }
+        }
+      }
+    }
   },
   {
     "id": "23",
@@ -273,7 +1443,92 @@
       "name": "Contoso"
     },
     "avatar": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
-    "markup": "<em>review</em>"
+    "markup": "<em>review</em>",
+    "companies": {
+      "__0000000000182__": {
+        "name": "Tailspin 23",
+        "stores": {
+          "__0000000000180__": {
+            "name": "Oslo",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 23-1-1",
+              "en": "Store 23-1-1"
+            },
+            "departments": {
+              "__0000000000178__": {
+                "name": "Design"
+              },
+              "__0000000000179__": {
+                "name": "Sales"
+              }
+            }
+          },
+          "__0000000000181__": {
+            "name": "Seoul",
+            "enabled": "",
+            "detail": "Kept while hidden",
+            "title": {
+              "ko": "매장 23-1-2",
+              "en": "Store 23-1-2"
+            },
+            "departments": {}
+          }
+        }
+      },
+      "__0000000000184__": {
+        "name": "Wingtip 23",
+        "stores": {
+          "__0000000000183__": {
+            "name": "Seoul",
+            "enabled": "",
+            "detail": "Kept while hidden",
+            "title": {
+              "ko": "매장 23-2-1",
+              "en": "Store 23-2-1"
+            },
+            "departments": {}
+          }
+        }
+      },
+      "__0000000000190__": {
+        "name": "Northwind 23",
+        "stores": {
+          "__0000000000186__": {
+            "name": "Busan",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 23-3-1",
+              "en": "Store 23-3-1"
+            },
+            "departments": {
+              "__0000000000185__": {
+                "name": "Design"
+              }
+            }
+          },
+          "__0000000000189__": {
+            "name": "Tokyo",
+            "enabled": "1",
+            "detail": "Open 10:00",
+            "title": {
+              "ko": "매장 23-3-2",
+              "en": "Store 23-3-2"
+            },
+            "departments": {
+              "__0000000000187__": {
+                "name": "Design"
+              },
+              "__0000000000188__": {
+                "name": "Sales"
+              }
+            }
+          }
+        }
+      }
+    }
   },
   {
     "id": "24",
@@ -285,7 +1540,24 @@
       "name": "Fabrikam"
     },
     "avatar": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
-    "markup": "<strong>verified</strong>"
+    "markup": "<strong>verified</strong>",
+    "companies": {
+      "__0000000000192__": {
+        "name": "Wingtip 24",
+        "stores": {
+          "__0000000000191__": {
+            "name": "Seoul",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 24-1-1",
+              "en": "Store 24-1-1"
+            },
+            "departments": {}
+          }
+        }
+      }
+    }
   },
   {
     "id": "25",
@@ -297,7 +1569,67 @@
       "name": "Northwind"
     },
     "avatar": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
-    "markup": "<strong>verified</strong>"
+    "markup": "<strong>verified</strong>",
+    "companies": {
+      "__0000000000198__": {
+        "name": "Northwind 25",
+        "stores": {
+          "__0000000000194__": {
+            "name": "Busan",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 25-1-1",
+              "en": "Store 25-1-1"
+            },
+            "departments": {
+              "__0000000000193__": {
+                "name": "Support"
+              }
+            }
+          },
+          "__0000000000197__": {
+            "name": "Tokyo",
+            "enabled": "1",
+            "detail": "Open 10:00",
+            "title": {
+              "ko": "매장 25-1-2",
+              "en": "Store 25-1-2"
+            },
+            "departments": {
+              "__0000000000195__": {
+                "name": "Support"
+              },
+              "__0000000000196__": {
+                "name": "Design"
+              }
+            }
+          }
+        }
+      },
+      "__0000000000202__": {
+        "name": "Contoso 25",
+        "stores": {
+          "__0000000000201__": {
+            "name": "Tokyo",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 25-2-1",
+              "en": "Store 25-2-1"
+            },
+            "departments": {
+              "__0000000000199__": {
+                "name": "Support"
+              },
+              "__0000000000200__": {
+                "name": "Design"
+              }
+            }
+          }
+        }
+      }
+    }
   },
   {
     "id": "26",
@@ -309,7 +1641,79 @@
       "name": "Contoso"
     },
     "avatar": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
-    "markup": "<em>review</em>"
+    "markup": "<em>review</em>",
+    "companies": {
+      "__0000000000206__": {
+        "name": "Contoso 26",
+        "stores": {
+          "__0000000000205__": {
+            "name": "Tokyo",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 26-1-1",
+              "en": "Store 26-1-1"
+            },
+            "departments": {
+              "__0000000000203__": {
+                "name": "Design"
+              },
+              "__0000000000204__": {
+                "name": "Sales"
+              }
+            }
+          }
+        }
+      },
+      "__0000000000210__": {
+        "name": "Fabrikam 26",
+        "stores": {
+          "__0000000000207__": {
+            "name": "Paris",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 26-2-1",
+              "en": "Store 26-2-1"
+            },
+            "departments": {}
+          },
+          "__0000000000209__": {
+            "name": "Lima",
+            "enabled": "",
+            "detail": "Kept while hidden",
+            "title": {
+              "ko": "매장 26-2-2",
+              "en": "Store 26-2-2"
+            },
+            "departments": {
+              "__0000000000208__": {
+                "name": "Design"
+              }
+            }
+          }
+        }
+      },
+      "__0000000000213__": {
+        "name": "Tailspin 26",
+        "stores": {
+          "__0000000000212__": {
+            "name": "Lima",
+            "enabled": "",
+            "detail": "Kept while hidden",
+            "title": {
+              "ko": "매장 26-3-1",
+              "en": "Store 26-3-1"
+            },
+            "departments": {
+              "__0000000000211__": {
+                "name": "Design"
+              }
+            }
+          }
+        }
+      }
+    }
   },
   {
     "id": "27",
@@ -321,7 +1725,38 @@
       "name": "Fabrikam"
     },
     "avatar": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
-    "markup": "<strong>verified</strong>"
+    "markup": "<strong>verified</strong>",
+    "companies": {
+      "__0000000000217__": {
+        "name": "Fabrikam 27",
+        "stores": {
+          "__0000000000214__": {
+            "name": "Paris",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 27-1-1",
+              "en": "Store 27-1-1"
+            },
+            "departments": {}
+          },
+          "__0000000000216__": {
+            "name": "Lima",
+            "enabled": "",
+            "detail": "Kept while hidden",
+            "title": {
+              "ko": "매장 27-1-2",
+              "en": "Store 27-1-2"
+            },
+            "departments": {
+              "__0000000000215__": {
+                "name": "Sales"
+              }
+            }
+          }
+        }
+      }
+    }
   },
   {
     "id": "28",
@@ -333,7 +1768,60 @@
       "name": "Northwind"
     },
     "avatar": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
-    "markup": "<strong>verified</strong>"
+    "markup": "<strong>verified</strong>",
+    "companies": {
+      "__0000000000220__": {
+        "name": "Tailspin 28",
+        "stores": {
+          "__0000000000219__": {
+            "name": "Lima",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 28-1-1",
+              "en": "Store 28-1-1"
+            },
+            "departments": {
+              "__0000000000218__": {
+                "name": "Support"
+              }
+            }
+          }
+        }
+      },
+      "__0000000000225__": {
+        "name": "Wingtip 28",
+        "stores": {
+          "__0000000000223__": {
+            "name": "Oslo",
+            "enabled": "",
+            "detail": "Kept while hidden",
+            "title": {
+              "ko": "매장 28-2-1",
+              "en": "Store 28-2-1"
+            },
+            "departments": {
+              "__0000000000221__": {
+                "name": "Support"
+              },
+              "__0000000000222__": {
+                "name": "Design"
+              }
+            }
+          },
+          "__0000000000224__": {
+            "name": "Seoul",
+            "enabled": "1",
+            "detail": "Open 10:00",
+            "title": {
+              "ko": "매장 28-2-2",
+              "en": "Store 28-2-2"
+            },
+            "departments": {}
+          }
+        }
+      }
+    }
   },
   {
     "id": "29",
@@ -345,7 +1833,92 @@
       "name": "Contoso"
     },
     "avatar": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
-    "markup": "<em>review</em>"
+    "markup": "<em>review</em>",
+    "companies": {
+      "__0000000000230__": {
+        "name": "Wingtip 29",
+        "stores": {
+          "__0000000000228__": {
+            "name": "Oslo",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 29-1-1",
+              "en": "Store 29-1-1"
+            },
+            "departments": {
+              "__0000000000226__": {
+                "name": "Design"
+              },
+              "__0000000000227__": {
+                "name": "Sales"
+              }
+            }
+          },
+          "__0000000000229__": {
+            "name": "Seoul",
+            "enabled": "1",
+            "detail": "Open 10:00",
+            "title": {
+              "ko": "매장 29-1-2",
+              "en": "Store 29-1-2"
+            },
+            "departments": {}
+          }
+        }
+      },
+      "__0000000000232__": {
+        "name": "Northwind 29",
+        "stores": {
+          "__0000000000231__": {
+            "name": "Seoul",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 29-2-1",
+              "en": "Store 29-2-1"
+            },
+            "departments": {}
+          }
+        }
+      },
+      "__0000000000238__": {
+        "name": "Contoso 29",
+        "stores": {
+          "__0000000000234__": {
+            "name": "Busan",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 29-3-1",
+              "en": "Store 29-3-1"
+            },
+            "departments": {
+              "__0000000000233__": {
+                "name": "Design"
+              }
+            }
+          },
+          "__0000000000237__": {
+            "name": "Tokyo",
+            "enabled": "",
+            "detail": "Kept while hidden",
+            "title": {
+              "ko": "매장 29-3-2",
+              "en": "Store 29-3-2"
+            },
+            "departments": {
+              "__0000000000235__": {
+                "name": "Design"
+              },
+              "__0000000000236__": {
+                "name": "Sales"
+              }
+            }
+          }
+        }
+      }
+    }
   },
   {
     "id": "30",
@@ -357,7 +1930,24 @@
       "name": "Fabrikam"
     },
     "avatar": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
-    "markup": "<strong>verified</strong>"
+    "markup": "<strong>verified</strong>",
+    "companies": {
+      "__0000000000240__": {
+        "name": "Northwind 30",
+        "stores": {
+          "__0000000000239__": {
+            "name": "Seoul",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 30-1-1",
+              "en": "Store 30-1-1"
+            },
+            "departments": {}
+          }
+        }
+      }
+    }
   },
   {
     "id": "31",
@@ -369,7 +1959,67 @@
       "name": "Northwind"
     },
     "avatar": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
-    "markup": "<strong>verified</strong>"
+    "markup": "<strong>verified</strong>",
+    "companies": {
+      "__0000000000246__": {
+        "name": "Contoso 31",
+        "stores": {
+          "__0000000000242__": {
+            "name": "Busan",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 31-1-1",
+              "en": "Store 31-1-1"
+            },
+            "departments": {
+              "__0000000000241__": {
+                "name": "Support"
+              }
+            }
+          },
+          "__0000000000245__": {
+            "name": "Tokyo",
+            "enabled": "",
+            "detail": "Kept while hidden",
+            "title": {
+              "ko": "매장 31-1-2",
+              "en": "Store 31-1-2"
+            },
+            "departments": {
+              "__0000000000243__": {
+                "name": "Support"
+              },
+              "__0000000000244__": {
+                "name": "Design"
+              }
+            }
+          }
+        }
+      },
+      "__0000000000250__": {
+        "name": "Fabrikam 31",
+        "stores": {
+          "__0000000000249__": {
+            "name": "Tokyo",
+            "enabled": "",
+            "detail": "Kept while hidden",
+            "title": {
+              "ko": "매장 31-2-1",
+              "en": "Store 31-2-1"
+            },
+            "departments": {
+              "__0000000000247__": {
+                "name": "Support"
+              },
+              "__0000000000248__": {
+                "name": "Design"
+              }
+            }
+          }
+        }
+      }
+    }
   },
   {
     "id": "32",
@@ -381,7 +2031,79 @@
       "name": "Contoso"
     },
     "avatar": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
-    "markup": "<em>review</em>"
+    "markup": "<em>review</em>",
+    "companies": {
+      "__0000000000254__": {
+        "name": "Fabrikam 32",
+        "stores": {
+          "__0000000000253__": {
+            "name": "Tokyo",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 32-1-1",
+              "en": "Store 32-1-1"
+            },
+            "departments": {
+              "__0000000000251__": {
+                "name": "Design"
+              },
+              "__0000000000252__": {
+                "name": "Sales"
+              }
+            }
+          }
+        }
+      },
+      "__0000000000258__": {
+        "name": "Tailspin 32",
+        "stores": {
+          "__0000000000255__": {
+            "name": "Paris",
+            "enabled": "",
+            "detail": "Kept while hidden",
+            "title": {
+              "ko": "매장 32-2-1",
+              "en": "Store 32-2-1"
+            },
+            "departments": {}
+          },
+          "__0000000000257__": {
+            "name": "Lima",
+            "enabled": "1",
+            "detail": "Open 10:00",
+            "title": {
+              "ko": "매장 32-2-2",
+              "en": "Store 32-2-2"
+            },
+            "departments": {
+              "__0000000000256__": {
+                "name": "Design"
+              }
+            }
+          }
+        }
+      },
+      "__0000000000261__": {
+        "name": "Wingtip 32",
+        "stores": {
+          "__0000000000260__": {
+            "name": "Lima",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 32-3-1",
+              "en": "Store 32-3-1"
+            },
+            "departments": {
+              "__0000000000259__": {
+                "name": "Design"
+              }
+            }
+          }
+        }
+      }
+    }
   },
   {
     "id": "33",
@@ -393,7 +2115,38 @@
       "name": "Fabrikam"
     },
     "avatar": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
-    "markup": "<strong>verified</strong>"
+    "markup": "<strong>verified</strong>",
+    "companies": {
+      "__0000000000265__": {
+        "name": "Tailspin 33",
+        "stores": {
+          "__0000000000262__": {
+            "name": "Paris",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 33-1-1",
+              "en": "Store 33-1-1"
+            },
+            "departments": {}
+          },
+          "__0000000000264__": {
+            "name": "Lima",
+            "enabled": "1",
+            "detail": "Open 10:00",
+            "title": {
+              "ko": "매장 33-1-2",
+              "en": "Store 33-1-2"
+            },
+            "departments": {
+              "__0000000000263__": {
+                "name": "Sales"
+              }
+            }
+          }
+        }
+      }
+    }
   },
   {
     "id": "34",
@@ -405,7 +2158,60 @@
       "name": "Northwind"
     },
     "avatar": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
-    "markup": "<strong>verified</strong>"
+    "markup": "<strong>verified</strong>",
+    "companies": {
+      "__0000000000268__": {
+        "name": "Wingtip 34",
+        "stores": {
+          "__0000000000267__": {
+            "name": "Lima",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 34-1-1",
+              "en": "Store 34-1-1"
+            },
+            "departments": {
+              "__0000000000266__": {
+                "name": "Support"
+              }
+            }
+          }
+        }
+      },
+      "__0000000000273__": {
+        "name": "Northwind 34",
+        "stores": {
+          "__0000000000271__": {
+            "name": "Oslo",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 34-2-1",
+              "en": "Store 34-2-1"
+            },
+            "departments": {
+              "__0000000000269__": {
+                "name": "Support"
+              },
+              "__0000000000270__": {
+                "name": "Design"
+              }
+            }
+          },
+          "__0000000000272__": {
+            "name": "Seoul",
+            "enabled": "",
+            "detail": "Kept while hidden",
+            "title": {
+              "ko": "매장 34-2-2",
+              "en": "Store 34-2-2"
+            },
+            "departments": {}
+          }
+        }
+      }
+    }
   },
   {
     "id": "35",
@@ -417,7 +2223,92 @@
       "name": "Contoso"
     },
     "avatar": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
-    "markup": "<em>review</em>"
+    "markup": "<em>review</em>",
+    "companies": {
+      "__0000000000278__": {
+        "name": "Northwind 35",
+        "stores": {
+          "__0000000000276__": {
+            "name": "Oslo",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 35-1-1",
+              "en": "Store 35-1-1"
+            },
+            "departments": {
+              "__0000000000274__": {
+                "name": "Design"
+              },
+              "__0000000000275__": {
+                "name": "Sales"
+              }
+            }
+          },
+          "__0000000000277__": {
+            "name": "Seoul",
+            "enabled": "",
+            "detail": "Kept while hidden",
+            "title": {
+              "ko": "매장 35-1-2",
+              "en": "Store 35-1-2"
+            },
+            "departments": {}
+          }
+        }
+      },
+      "__0000000000280__": {
+        "name": "Contoso 35",
+        "stores": {
+          "__0000000000279__": {
+            "name": "Seoul",
+            "enabled": "",
+            "detail": "Kept while hidden",
+            "title": {
+              "ko": "매장 35-2-1",
+              "en": "Store 35-2-1"
+            },
+            "departments": {}
+          }
+        }
+      },
+      "__0000000000286__": {
+        "name": "Fabrikam 35",
+        "stores": {
+          "__0000000000282__": {
+            "name": "Busan",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 35-3-1",
+              "en": "Store 35-3-1"
+            },
+            "departments": {
+              "__0000000000281__": {
+                "name": "Design"
+              }
+            }
+          },
+          "__0000000000285__": {
+            "name": "Tokyo",
+            "enabled": "1",
+            "detail": "Open 10:00",
+            "title": {
+              "ko": "매장 35-3-2",
+              "en": "Store 35-3-2"
+            },
+            "departments": {
+              "__0000000000283__": {
+                "name": "Design"
+              },
+              "__0000000000284__": {
+                "name": "Sales"
+              }
+            }
+          }
+        }
+      }
+    }
   },
   {
     "id": "36",
@@ -429,7 +2320,24 @@
       "name": "Fabrikam"
     },
     "avatar": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
-    "markup": "<strong>verified</strong>"
+    "markup": "<strong>verified</strong>",
+    "companies": {
+      "__0000000000288__": {
+        "name": "Contoso 36",
+        "stores": {
+          "__0000000000287__": {
+            "name": "Seoul",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 36-1-1",
+              "en": "Store 36-1-1"
+            },
+            "departments": {}
+          }
+        }
+      }
+    }
   },
   {
     "id": "37",
@@ -441,7 +2349,67 @@
       "name": "Northwind"
     },
     "avatar": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
-    "markup": "<strong>verified</strong>"
+    "markup": "<strong>verified</strong>",
+    "companies": {
+      "__0000000000294__": {
+        "name": "Fabrikam 37",
+        "stores": {
+          "__0000000000290__": {
+            "name": "Busan",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 37-1-1",
+              "en": "Store 37-1-1"
+            },
+            "departments": {
+              "__0000000000289__": {
+                "name": "Support"
+              }
+            }
+          },
+          "__0000000000293__": {
+            "name": "Tokyo",
+            "enabled": "1",
+            "detail": "Open 10:00",
+            "title": {
+              "ko": "매장 37-1-2",
+              "en": "Store 37-1-2"
+            },
+            "departments": {
+              "__0000000000291__": {
+                "name": "Support"
+              },
+              "__0000000000292__": {
+                "name": "Design"
+              }
+            }
+          }
+        }
+      },
+      "__0000000000298__": {
+        "name": "Tailspin 37",
+        "stores": {
+          "__0000000000297__": {
+            "name": "Tokyo",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 37-2-1",
+              "en": "Store 37-2-1"
+            },
+            "departments": {
+              "__0000000000295__": {
+                "name": "Support"
+              },
+              "__0000000000296__": {
+                "name": "Design"
+              }
+            }
+          }
+        }
+      }
+    }
   },
   {
     "id": "38",
@@ -453,7 +2421,79 @@
       "name": "Contoso"
     },
     "avatar": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
-    "markup": "<em>review</em>"
+    "markup": "<em>review</em>",
+    "companies": {
+      "__0000000000302__": {
+        "name": "Tailspin 38",
+        "stores": {
+          "__0000000000301__": {
+            "name": "Tokyo",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 38-1-1",
+              "en": "Store 38-1-1"
+            },
+            "departments": {
+              "__0000000000299__": {
+                "name": "Design"
+              },
+              "__0000000000300__": {
+                "name": "Sales"
+              }
+            }
+          }
+        }
+      },
+      "__0000000000306__": {
+        "name": "Wingtip 38",
+        "stores": {
+          "__0000000000303__": {
+            "name": "Paris",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 38-2-1",
+              "en": "Store 38-2-1"
+            },
+            "departments": {}
+          },
+          "__0000000000305__": {
+            "name": "Lima",
+            "enabled": "",
+            "detail": "Kept while hidden",
+            "title": {
+              "ko": "매장 38-2-2",
+              "en": "Store 38-2-2"
+            },
+            "departments": {
+              "__0000000000304__": {
+                "name": "Design"
+              }
+            }
+          }
+        }
+      },
+      "__0000000000309__": {
+        "name": "Northwind 38",
+        "stores": {
+          "__0000000000308__": {
+            "name": "Lima",
+            "enabled": "",
+            "detail": "Kept while hidden",
+            "title": {
+              "ko": "매장 38-3-1",
+              "en": "Store 38-3-1"
+            },
+            "departments": {
+              "__0000000000307__": {
+                "name": "Design"
+              }
+            }
+          }
+        }
+      }
+    }
   },
   {
     "id": "39",
@@ -465,7 +2505,38 @@
       "name": "Fabrikam"
     },
     "avatar": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
-    "markup": "<strong>verified</strong>"
+    "markup": "<strong>verified</strong>",
+    "companies": {
+      "__0000000000313__": {
+        "name": "Wingtip 39",
+        "stores": {
+          "__0000000000310__": {
+            "name": "Paris",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 39-1-1",
+              "en": "Store 39-1-1"
+            },
+            "departments": {}
+          },
+          "__0000000000312__": {
+            "name": "Lima",
+            "enabled": "",
+            "detail": "Kept while hidden",
+            "title": {
+              "ko": "매장 39-1-2",
+              "en": "Store 39-1-2"
+            },
+            "departments": {
+              "__0000000000311__": {
+                "name": "Sales"
+              }
+            }
+          }
+        }
+      }
+    }
   },
   {
     "id": "40",
@@ -477,7 +2548,60 @@
       "name": "Northwind"
     },
     "avatar": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
-    "markup": "<strong>verified</strong>"
+    "markup": "<strong>verified</strong>",
+    "companies": {
+      "__0000000000316__": {
+        "name": "Northwind 40",
+        "stores": {
+          "__0000000000315__": {
+            "name": "Lima",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 40-1-1",
+              "en": "Store 40-1-1"
+            },
+            "departments": {
+              "__0000000000314__": {
+                "name": "Support"
+              }
+            }
+          }
+        }
+      },
+      "__0000000000321__": {
+        "name": "Contoso 40",
+        "stores": {
+          "__0000000000319__": {
+            "name": "Oslo",
+            "enabled": "",
+            "detail": "Kept while hidden",
+            "title": {
+              "ko": "매장 40-2-1",
+              "en": "Store 40-2-1"
+            },
+            "departments": {
+              "__0000000000317__": {
+                "name": "Support"
+              },
+              "__0000000000318__": {
+                "name": "Design"
+              }
+            }
+          },
+          "__0000000000320__": {
+            "name": "Seoul",
+            "enabled": "1",
+            "detail": "Open 10:00",
+            "title": {
+              "ko": "매장 40-2-2",
+              "en": "Store 40-2-2"
+            },
+            "departments": {}
+          }
+        }
+      }
+    }
   },
   {
     "id": "41",
@@ -489,7 +2613,92 @@
       "name": "Contoso"
     },
     "avatar": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
-    "markup": "<em>review</em>"
+    "markup": "<em>review</em>",
+    "companies": {
+      "__0000000000326__": {
+        "name": "Contoso 41",
+        "stores": {
+          "__0000000000324__": {
+            "name": "Oslo",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 41-1-1",
+              "en": "Store 41-1-1"
+            },
+            "departments": {
+              "__0000000000322__": {
+                "name": "Design"
+              },
+              "__0000000000323__": {
+                "name": "Sales"
+              }
+            }
+          },
+          "__0000000000325__": {
+            "name": "Seoul",
+            "enabled": "1",
+            "detail": "Open 10:00",
+            "title": {
+              "ko": "매장 41-1-2",
+              "en": "Store 41-1-2"
+            },
+            "departments": {}
+          }
+        }
+      },
+      "__0000000000328__": {
+        "name": "Fabrikam 41",
+        "stores": {
+          "__0000000000327__": {
+            "name": "Seoul",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 41-2-1",
+              "en": "Store 41-2-1"
+            },
+            "departments": {}
+          }
+        }
+      },
+      "__0000000000334__": {
+        "name": "Tailspin 41",
+        "stores": {
+          "__0000000000330__": {
+            "name": "Busan",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 41-3-1",
+              "en": "Store 41-3-1"
+            },
+            "departments": {
+              "__0000000000329__": {
+                "name": "Design"
+              }
+            }
+          },
+          "__0000000000333__": {
+            "name": "Tokyo",
+            "enabled": "",
+            "detail": "Kept while hidden",
+            "title": {
+              "ko": "매장 41-3-2",
+              "en": "Store 41-3-2"
+            },
+            "departments": {
+              "__0000000000331__": {
+                "name": "Design"
+              },
+              "__0000000000332__": {
+                "name": "Sales"
+              }
+            }
+          }
+        }
+      }
+    }
   },
   {
     "id": "42",
@@ -501,7 +2710,24 @@
       "name": "Fabrikam"
     },
     "avatar": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
-    "markup": "<strong>verified</strong>"
+    "markup": "<strong>verified</strong>",
+    "companies": {
+      "__0000000000336__": {
+        "name": "Fabrikam 42",
+        "stores": {
+          "__0000000000335__": {
+            "name": "Seoul",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 42-1-1",
+              "en": "Store 42-1-1"
+            },
+            "departments": {}
+          }
+        }
+      }
+    }
   },
   {
     "id": "43",
@@ -513,7 +2739,67 @@
       "name": "Northwind"
     },
     "avatar": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
-    "markup": "<strong>verified</strong>"
+    "markup": "<strong>verified</strong>",
+    "companies": {
+      "__0000000000342__": {
+        "name": "Tailspin 43",
+        "stores": {
+          "__0000000000338__": {
+            "name": "Busan",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 43-1-1",
+              "en": "Store 43-1-1"
+            },
+            "departments": {
+              "__0000000000337__": {
+                "name": "Support"
+              }
+            }
+          },
+          "__0000000000341__": {
+            "name": "Tokyo",
+            "enabled": "",
+            "detail": "Kept while hidden",
+            "title": {
+              "ko": "매장 43-1-2",
+              "en": "Store 43-1-2"
+            },
+            "departments": {
+              "__0000000000339__": {
+                "name": "Support"
+              },
+              "__0000000000340__": {
+                "name": "Design"
+              }
+            }
+          }
+        }
+      },
+      "__0000000000346__": {
+        "name": "Wingtip 43",
+        "stores": {
+          "__0000000000345__": {
+            "name": "Tokyo",
+            "enabled": "",
+            "detail": "Kept while hidden",
+            "title": {
+              "ko": "매장 43-2-1",
+              "en": "Store 43-2-1"
+            },
+            "departments": {
+              "__0000000000343__": {
+                "name": "Support"
+              },
+              "__0000000000344__": {
+                "name": "Design"
+              }
+            }
+          }
+        }
+      }
+    }
   },
   {
     "id": "44",
@@ -525,7 +2811,79 @@
       "name": "Contoso"
     },
     "avatar": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
-    "markup": "<em>review</em>"
+    "markup": "<em>review</em>",
+    "companies": {
+      "__0000000000350__": {
+        "name": "Wingtip 44",
+        "stores": {
+          "__0000000000349__": {
+            "name": "Tokyo",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 44-1-1",
+              "en": "Store 44-1-1"
+            },
+            "departments": {
+              "__0000000000347__": {
+                "name": "Design"
+              },
+              "__0000000000348__": {
+                "name": "Sales"
+              }
+            }
+          }
+        }
+      },
+      "__0000000000354__": {
+        "name": "Northwind 44",
+        "stores": {
+          "__0000000000351__": {
+            "name": "Paris",
+            "enabled": "",
+            "detail": "Kept while hidden",
+            "title": {
+              "ko": "매장 44-2-1",
+              "en": "Store 44-2-1"
+            },
+            "departments": {}
+          },
+          "__0000000000353__": {
+            "name": "Lima",
+            "enabled": "1",
+            "detail": "Open 10:00",
+            "title": {
+              "ko": "매장 44-2-2",
+              "en": "Store 44-2-2"
+            },
+            "departments": {
+              "__0000000000352__": {
+                "name": "Design"
+              }
+            }
+          }
+        }
+      },
+      "__0000000000357__": {
+        "name": "Contoso 44",
+        "stores": {
+          "__0000000000356__": {
+            "name": "Lima",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 44-3-1",
+              "en": "Store 44-3-1"
+            },
+            "departments": {
+              "__0000000000355__": {
+                "name": "Design"
+              }
+            }
+          }
+        }
+      }
+    }
   },
   {
     "id": "45",
@@ -537,6 +2895,37 @@
       "name": "Fabrikam"
     },
     "avatar": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
-    "markup": "<strong>verified</strong>"
+    "markup": "<strong>verified</strong>",
+    "companies": {
+      "__0000000000361__": {
+        "name": "Northwind 45",
+        "stores": {
+          "__0000000000358__": {
+            "name": "Paris",
+            "enabled": "1",
+            "detail": "Open 9:00",
+            "title": {
+              "ko": "매장 45-1-1",
+              "en": "Store 45-1-1"
+            },
+            "departments": {}
+          },
+          "__0000000000360__": {
+            "name": "Lima",
+            "enabled": "1",
+            "detail": "Open 10:00",
+            "title": {
+              "ko": "매장 45-1-2",
+              "en": "Store 45-1-2"
+            },
+            "departments": {
+              "__0000000000359__": {
+                "name": "Sales"
+              }
+            }
+          }
+        }
+      }
+    }
   }
 ]

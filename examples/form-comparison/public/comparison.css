@@ -10,29 +10,29 @@ body { margin: 0; }
 .panel { max-height: 45vh; overflow: auto; }
 .page-header { position: relative; max-width: 1000px; }
 .brand { color: #526b81; font-size: 12px; letter-spacing: 1.4px; font-weight: 700; }
-h1 { font-size: 32px; margin: 10px 0; letter-spacing: -1px; }
-h2 { margin: 0 0 5px; font-size: 18px; }
-p { margin: 10px 0; }
-a { color: #155999; }
+h1:not(#view *, #stage *) { font-size: 32px; margin: 10px 0; letter-spacing: -1px; }
+h2:not(#view *, #stage *) { margin: 0 0 5px; font-size: 18px; }
+p:not(#view *, #stage *) { margin: 10px 0; }
+a:not(#view *, #stage *) { color: #155999; }
 #language { position: absolute; right: 0; top: 0; }
 .example-nav { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin: 12px 0; padding: 9px 12px; background: #fff; border: 1px solid #dae3ec; border-radius: 6px; }
 .example-nav strong { margin-right: 4px; }
 .actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 14px 0; }
-/* Page controls only; the form inside #view takes every style from crudui.css. */
-button:not(#view *), select:not(#view *) { font: inherit; color: #243850; background: #fff; border: 1px solid #b9c6d3; border-radius: 5px; padding: 7px 10px; }
-button:not(#view *) { cursor: pointer; }
-button:not(#view *):hover:enabled { background: #eaf2fc; border-color: #4685c6; }
-button:not(#view *):disabled { opacity: .45; cursor: default; }
+/* Page elements only; CRUDUI output inside #view and #stage takes every style from crudui.css. */
+button:not(#view *, #stage *), select:not(#view *, #stage *) { font: inherit; color: #243850; background: #fff; border: 1px solid #b9c6d3; border-radius: 5px; padding: 7px 10px; }
+button:not(#view *, #stage *) { cursor: pointer; }
+button:not(#view *, #stage *):hover:enabled { background: #eaf2fc; border-color: #4685c6; }
+button:not(#view *, #stage *):disabled { opacity: .45; cursor: default; }
 #all-checks, #save { background: #155999; color: white; border-color: #155999; }
 .frames { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; min-height: 0; }
-iframe { width: 100%; height: 100%; min-height: 0; border: 1px solid #ced8e2; border-radius: 8px; background: white; }
+iframe:not(#view *, #stage *) { width: 100%; height: 100%; min-height: 0; border: 1px solid #ced8e2; border-radius: 8px; background: white; }
 .frame { padding: 18px; background: white; }
 #commit { font-size: 11px; color: #6b7d91; overflow-wrap: anywhere; }
 #method, .muted { font-size: 12px; color: #526579; }
 #view { margin: 18px 0; }
-details { border-top: 1px solid #dce3ea; margin-top: 12px; padding: 12px 0; }
-summary { cursor: pointer; font-weight: 600; }
-pre { font-family: ui-monospace, SFMono-Regular, monospace; font-size: 11px; background: #f0f4f8; padding: 12px; max-height: 500px; overflow: auto; }
+details:not(#view *, #stage *) { border-top: 1px solid #dce3ea; margin-top: 12px; padding: 12px 0; }
+summary:not(#view *, #stage *) { cursor: pointer; font-weight: 600; }
+pre:not(#view *, #stage *) { font-family: ui-monospace, SFMono-Regular, monospace; font-size: 11px; background: #f0f4f8; padding: 12px; max-height: 500px; overflow: auto; }
 .pass { color: #126644; }.fail { color: #a92d30; }
 #results p { font-size: 12px; overflow-wrap: anywhere; }
 .comparison #initialization { background: white; border: 1px solid #dae3ec; border-radius: 8px; padding: 12px 16px; margin: 14px 0; }
@@ -40,10 +40,10 @@ pre { font-family: ui-monospace, SFMono-Regular, monospace; font-size: 11px; bac
 .comparison #initialization-results details { border-top: 1px solid #edf1f5; margin: 0; padding: 6px 0; }
 .comparison #initialization-results summary { font-weight: 500; font-size: 12px; overflow-wrap: anywhere; }
 #report { overflow: auto; }
-table { border-collapse: collapse; width: 100%; margin: 18px 0; background: white; font-size: 12px; }
-th, td { text-align: left; padding: 10px; border: 1px solid #dae3ec; vertical-align: top; }
-th { background: #edf3f8; min-width: 125px; }
-td pre { max-width: 260px; white-space: pre-wrap; overflow-wrap: anywhere; }
+table:not(#view *, #stage *) { border-collapse: collapse; width: 100%; margin: 18px 0; background: white; font-size: 12px; }
+th:not(#view *, #stage *), td:not(#view *, #stage *) { text-align: left; padding: 10px; border: 1px solid #dae3ec; vertical-align: top; }
+th:not(#view *, #stage *) { background: #edf3f8; min-width: 125px; }
+td pre:not(#view *, #stage *) { max-width: 260px; white-space: pre-wrap; overflow-wrap: anywhere; }
 @media (max-width: 1000px) { .frames { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; } .comparison { padding: 14px; } }
 
 /* Canonical application pipeline. The page owns layout; CRUDUI owns the generated display. */

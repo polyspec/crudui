@@ -136,7 +136,7 @@ export async function recordServerProcess(server, { port, dataDirectory, publicD
     return {
       server, address,
       command: 'php',
-      args: ['-n', ...common, ...extensions, '-d', 'max_input_vars=10000', '-d', 'post_max_size=2M', '-d', 'display_errors=0', '-d', 'log_errors=1',
+      args: ['-n', ...common, ...extensions, '-d', 'enable_post_data_reading=0', '-d', 'display_errors=0', '-d', 'log_errors=1',
         '-S', address, '-t', publicDirectory, path.join(exampleDirectory, 'api.php')],
       environment: {
         FORM_PHP_SERVER: server,

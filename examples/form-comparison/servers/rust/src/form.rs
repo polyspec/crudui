@@ -1,12 +1,27 @@
 use crate::{bad, Result};
 use serde_json::{json, Map, Value};
 
-pub fn text(value: &Value) -> Result<String> {
-    match value {
-        Value::Null => Ok(String::new()),
-        Value::String(value) => Ok(value.clone()),
-        _ => Err(bad("Expected string field value")),
-    }
+/// The members of one row of `companies`, of its `stores` and of their `departments`, in order.
+const ROW_MEMBERS: [&[&str]; 3] = [
+    &["name", "stores"],
+    &["name", "enabled", "detail", "title", "departments"],
+    &["name"],
+];
+/// The languages of a store `title`, in order.
+const TITLE_LANGUAGES: [&str; 2] = ["ko", "en"];
+pub fn text_member(value: Option<&Value>, name: &str) -> Result<Value> {
+    value
+        .filter(|value| value.is_string())
+        .cloned()
+        .ok_or_else(|| bad(format!("Expected text member {name}")))
+}
+
+/// The one rule for submitted `companies` data, of the record save and the benchmark save and
+/// validation: keyed rows of companies, stores and departments with their keys in submitted
+/// order and exactly their members in specification order. A native submission omits an
+/// unchecked `enabled` and a collection without rows; they complete as `""` and `{}`.
+pub fn companies(value: Option<&Value>, native: bool) -> Result<Value> {
+    keyed_rows(value, native, 0)
 }
 
 pub fn valid_key(key: &str) -> bool {
@@ -16,10 +31,6 @@ pub fn valid_key(key: &str) -> bool {
         && key.as_bytes()[2..15]
             .iter()
             .all(|v| v.is_ascii_digit() || (b'a'..=b'f').contains(v))
-}
-
-pub fn empty_rows() -> Value {
-    json!({})
 }
 
 pub fn rows(value: &Value) -> Result<Vec<(String, Map<String, Value>)>> {
@@ -54,7 +65,8 @@ pub fn collection(rows: Vec<(String, Map<String, Value>)>) -> Value {
     )
 }
 
-/// Insert one native field without sorting or rebuilding its row order.
+/// Insert one native field without sorting or rebuilding its row order. A name sent twice, or
+/// a name that is also the parent of another field, is rejected.
 pub fn insert_native(root: &mut Value, name: &str, value: String) -> Result<()> {
     let mut segments = Vec::new();
     let first = name.find('[').unwrap_or(name.len());
@@ -88,78 +100,66 @@ pub fn insert_native(root: &mut Value, name: &str, value: String) -> Result<()> 
             .ok_or_else(|| bad("Conflicting native field"))?;
         current = map.entry(key.to_string()).or_insert_with(|| json!({}));
     }
-    current
+    let members = current
         .as_object_mut()
-        .ok_or_else(|| bad("Conflicting native field"))?
-        .insert(segments.last().unwrap().to_string(), Value::String(value));
+        .ok_or_else(|| bad("Conflicting native field"))?;
+    let last = segments.last().unwrap().to_string();
+    if members.contains_key(&last) {
+        return Err(bad(format!("Repeated native field {name}")));
+    }
+    members.insert(last, Value::String(value));
     Ok(())
 }
 
-pub fn check_json_shape(data: &Value) -> Result<()> {
-    fn walk(value: &Value, level: usize) -> Result<()> {
-        for (_, row) in rows(value)? {
-            if level == 1 && row.get("title").is_some_and(|v| !v.is_object()) {
-                return Err(bad("Expected language object"));
-            }
-            if level < 2 {
-                if let Some(child) = row.get(["stores", "departments"][level]) {
-                    walk(child, level + 1)?;
-                }
-            }
+/// Keyed rows of `companies` at one depth (companies, stores, departments): row keys in
+/// submitted order, each row with exactly its members in specification order.
+fn keyed_rows(value: Option<&Value>, native: bool, depth: usize) -> Result<Value> {
+    let rows = match value {
+        None if native => return Ok(json!({})),
+        None => return Err(bad("Expected keyed rows")),
+        Some(value) => value
+            .as_object()
+            .ok_or_else(|| bad("Expected keyed rows"))?,
+    };
+    let names = ROW_MEMBERS[depth];
+    let mut result = Map::new();
+    for (key, row) in rows {
+        if !valid_key(key) {
+            return Err(bad(format!("Expected a row key instead of {key}")));
         }
-        Ok(())
-    }
-    let data = data
-        .as_object()
-        .ok_or_else(|| bad("Expected form object"))?;
-    if let Some(value) = data.get("companies") {
-        walk(value, 0)?;
-    }
-    Ok(())
-}
-
-/// Normalize omitted controls while retaining all submitted rows and keys.
-pub fn normalize(data: &Value) -> Result<Value> {
-    fn walk(value: &Value, level: usize) -> Result<Value> {
-        let mut values = rows(value)?;
-        for (_, row) in &mut values {
-            row.insert(
-                "name".into(),
-                Value::String(text(row.get("name").unwrap_or(&Value::Null))?),
-            );
-            if level == 1 {
-                for field in ["enabled", "detail"] {
-                    let value = text(row.get(field).unwrap_or(&Value::Null))?;
-                    if field == "enabled" && !value.is_empty() && value != "1" {
-                        return Err(bad("Expected checkbox value 1 or empty string"));
+        let row = row
+            .as_object()
+            .ok_or_else(|| bad("Expected a row object"))?;
+        if let Some(name) = row.keys().find(|name| !names.contains(&name.as_str())) {
+            return Err(bad(format!("Unexpected row member {name}")));
+        }
+        let mut members = Map::new();
+        for name in names {
+            let value = row.get(*name);
+            let value = match *name {
+                "stores" | "departments" => keyed_rows(value, native, depth + 1)?,
+                "enabled" => match value {
+                    None if native => json!(""),
+                    Some(Value::String(text)) if text.is_empty() || text == "1" => json!(text),
+                    _ => return Err(bad("Expected enabled as \"\" or \"1\"")),
+                },
+                "title" => {
+                    let title = value
+                        .and_then(Value::as_object)
+                        .filter(|title| title.len() == TITLE_LANGUAGES.len())
+                        .ok_or_else(|| bad("Expected title with exactly ko and en"))?;
+                    let mut languages = Map::new();
+                    for language in TITLE_LANGUAGES {
+                        languages
+                            .insert(language.into(), text_member(title.get(language), "title")?);
                     }
-                    row.insert(field.into(), Value::String(value));
+                    Value::Object(languages)
                 }
-                let empty = json!({});
-                let title = row
-                    .get("title")
-                    .unwrap_or(&empty)
-                    .as_object()
-                    .ok_or_else(|| bad("Expected language object"))?;
-                if title
-                    .keys()
-                    .any(|language| language != "ko" && language != "en")
-                {
-                    return Err(bad("Expected ko or en title field"));
-                }
-                let title = json!({"ko":text(title.get("ko").unwrap_or(&Value::Null))?,"en":text(title.get("en").unwrap_or(&Value::Null))?});
-                row.insert("title".into(), title);
-            }
-            if level < 2 {
-                let field = ["stores", "departments"][level];
-                let child = walk(row.get(field).unwrap_or(&empty_rows()), level + 1)?;
-                row.insert(field.into(), child);
-            }
+                _ => text_member(value, name)?,
+            };
+            members.insert((*name).into(), value);
         }
-        Ok(collection(values))
+        result.insert(key.clone(), Value::Object(members));
     }
-    let data = data
-        .as_object()
-        .ok_or_else(|| bad("Expected form object"))?;
-    Ok(json!({"companies":walk(data.get("companies").unwrap_or(&empty_rows()),0)?}))
+    Ok(Value::Object(result))
 }
