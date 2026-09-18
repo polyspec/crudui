@@ -40,7 +40,9 @@ that starts with `spec`, `files` or `data`, in the case's `validate` inputs. The
 - `self-twice`: an object whose members `self` and `again` are the object itself, a PHP array
   that holds two references to itself.
 
-Every case completes within 2 seconds; a walk that grows with the tree a value denotes does not.
+Every case runs as one test within the runner's per-test limit; a walk that grows with the tree a
+value denotes (2^40 nodes for a shared list forty levels deep) does not finish within it. Wall-clock
+thresholds are not asserted, since a machine's speed would decide them.
 The TypeScript, PHP, Go and PHP extension consumers run them. A Rust value owns its nodes and
 cannot share one, so Rust does not.
 

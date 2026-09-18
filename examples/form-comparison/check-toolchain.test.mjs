@@ -26,8 +26,8 @@ test('builds one toolchain image without repository source', () => {
 test('installs the pinned PHP, Go, Rust, Node.js and Chromium toolchain', () => {
   const install = instructions.find(line => line.startsWith('RUN apt-get update'));
   for (const name of ['git', 'build-essential', 'tini', 'php8.4-cli', 'php8.4-dev',
-    'php8.4-mbstring', 'php8.4-xml', 'php8.4-fpm', 'nginx', 'composer', 'chromium=152.0.7977.82-1~deb13u1',
-    'chromium-sandbox=152.0.7977.82-1~deb13u1']) {
+    'php8.4-mbstring', 'php8.4-xml', 'php8.4-fpm', 'nginx', 'composer', 'chromium=153.0.8010.47-2~deb13u1',
+    'chromium-sandbox=153.0.8010.47-2~deb13u1']) {
     assert.ok(install.split(' ').includes(name), name);
   }
   // The PHP server program starts `php-fpm` and `nginx` by name (servers/php/main.mjs).

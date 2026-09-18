@@ -438,14 +438,12 @@ final class FormTest extends TestCase
             $shared = [$shared, $shared];
         }
         foreach ([$object, ['loop' => $loop], ['list' => $shared]] as $data) {
-            $started = hrtime(true);
             try {
                 new Form($template, $data);
                 self::fail('A value beyond the limits must fail');
             } catch (FormError $error) {
                 self::assertSame('Recursive or excessively nested value: data', $error->getMessage());
             }
-            self::assertLessThan(2000, (hrtime(true) - $started) / 1e6);
         }
     }
 }
