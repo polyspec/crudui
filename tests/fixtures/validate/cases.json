@@ -7071,6 +7071,591 @@
     }
   },
   {
+    "name": "unique-text-same",
+    "note": "the same text twice is a duplicate.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "v": {
+          "type": "text",
+          "multiple": true,
+          "validate": {
+            "unique": true
+          }
+        }
+      }
+    },
+    "data": {
+      "v": {
+        "__0000000000001__": "a",
+        "__0000000000002__": "b",
+        "__0000000000003__": "a"
+      }
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "v",
+          "field": "v",
+          "rule": "unique",
+          "message": "Values must be unique.",
+          "value": {
+            "__0000000000001__": "a",
+            "__0000000000002__": "b",
+            "__0000000000003__": "a"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "unique-text-case",
+    "note": "text compares code points exactly: case differs.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "v": {
+          "type": "text",
+          "multiple": true,
+          "validate": {
+            "unique": true
+          }
+        }
+      }
+    },
+    "data": {
+      "v": {
+        "__0000000000001__": "a",
+        "__0000000000002__": "A"
+      }
+    },
+    "expected": {
+      "valid": true,
+      "errors": []
+    }
+  },
+  {
+    "name": "unique-text-spaces",
+    "note": "text compares code points exactly: a trailing space differs.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "v": {
+          "type": "text",
+          "multiple": true,
+          "validate": {
+            "unique": true
+          }
+        }
+      }
+    },
+    "data": {
+      "v": {
+        "__0000000000001__": "a",
+        "__0000000000002__": "a "
+      }
+    },
+    "expected": {
+      "valid": true,
+      "errors": []
+    }
+  },
+  {
+    "name": "unique-text-empty",
+    "note": "empty values, White_Space only included, never duplicate.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "v": {
+          "type": "text",
+          "multiple": true,
+          "validate": {
+            "unique": true
+          }
+        }
+      }
+    },
+    "data": {
+      "v": {
+        "__0000000000001__": "",
+        "__0000000000002__": " ",
+        "__0000000000003__": "　",
+        "__0000000000004__": "a"
+      }
+    },
+    "expected": {
+      "valid": true,
+      "errors": []
+    }
+  },
+  {
+    "name": "unique-number-same",
+    "note": "the same number twice is a duplicate.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "v": {
+          "type": "number",
+          "multiple": true,
+          "validate": {
+            "unique": true
+          }
+        }
+      }
+    },
+    "data": {
+      "v": {
+        "__0000000000001__": 2,
+        "__0000000000002__": 3,
+        "__0000000000003__": 2
+      }
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "v",
+          "field": "v",
+          "rule": "unique",
+          "message": "Values must be unique.",
+          "value": {
+            "__0000000000001__": 2,
+            "__0000000000002__": 3,
+            "__0000000000003__": 2
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "unique-number-and-text",
+    "note": "a number never equals text, even text that reads as that number.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "v": {
+          "type": "number",
+          "multiple": true,
+          "validate": {
+            "unique": true
+          }
+        }
+      }
+    },
+    "data": {
+      "v": {
+        "__0000000000001__": 1,
+        "__0000000000002__": "1"
+      }
+    },
+    "expected": {
+      "valid": true,
+      "errors": []
+    }
+  },
+  {
+    "name": "unique-list-and-text",
+    "note": "a list never equals text that spells it.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "v": {
+          "type": "checkbox",
+          "items": {
+            "a": "A",
+            "b": "B"
+          },
+          "multiple": true,
+          "validate": {
+            "unique": true
+          }
+        }
+      }
+    },
+    "data": {
+      "v": {
+        "__0000000000001__": [
+          "a"
+        ],
+        "__0000000000002__": "[\"a\"]"
+      }
+    },
+    "expected": {
+      "valid": true,
+      "errors": []
+    }
+  },
+  {
+    "name": "unique-list-same",
+    "note": "lists with the same values in the same order are duplicates.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "v": {
+          "type": "checkbox",
+          "items": {
+            "a": "A",
+            "b": "B"
+          },
+          "multiple": true,
+          "validate": {
+            "unique": true
+          }
+        }
+      }
+    },
+    "data": {
+      "v": {
+        "__0000000000001__": [
+          "a",
+          "b"
+        ],
+        "__0000000000002__": [
+          "a",
+          "b"
+        ]
+      }
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "v",
+          "field": "v",
+          "rule": "unique",
+          "message": "Values must be unique.",
+          "value": {
+            "__0000000000001__": [
+              "a",
+              "b"
+            ],
+            "__0000000000002__": [
+              "a",
+              "b"
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "unique-list-order",
+    "note": "lists with the same values in another order differ.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "v": {
+          "type": "checkbox",
+          "items": {
+            "a": "A",
+            "b": "B"
+          },
+          "multiple": true,
+          "validate": {
+            "unique": true
+          }
+        }
+      }
+    },
+    "data": {
+      "v": {
+        "__0000000000001__": [
+          "a",
+          "b"
+        ],
+        "__0000000000002__": [
+          "b",
+          "a"
+        ]
+      }
+    },
+    "expected": {
+      "valid": true,
+      "errors": []
+    }
+  },
+  {
+    "name": "unique-object-member-order",
+    "note": "language values with the same members in another order are duplicates.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "v": {
+          "type": "text",
+          "lang": {
+            "only": [
+              "ko",
+              "en"
+            ]
+          },
+          "multiple": true,
+          "validate": {
+            "unique": true
+          }
+        }
+      }
+    },
+    "data": {
+      "v": {
+        "__0000000000001__": {
+          "ko": "a",
+          "en": "b"
+        },
+        "__0000000000002__": {
+          "en": "b",
+          "ko": "a"
+        }
+      }
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "v",
+          "field": "v",
+          "rule": "unique",
+          "message": "Values must be unique.",
+          "value": {
+            "__0000000000001__": {
+              "ko": "a",
+              "en": "b"
+            },
+            "__0000000000002__": {
+              "en": "b",
+              "ko": "a"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "unique-number-precision",
+    "note": "numbers compare by their exact value: 0.1 + 0.2 differs from 0.3.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "v": {
+          "type": "number",
+          "multiple": true,
+          "validate": {
+            "unique": true
+          }
+        }
+      }
+    },
+    "data": {
+      "v": {
+        "__0000000000001__": 0.30000000000000004,
+        "__0000000000002__": 0.3
+      }
+    },
+    "expected": {
+      "valid": true,
+      "errors": []
+    }
+  },
+  {
+    "name": "unique-list-separators",
+    "note": "a list of two values differs from a list of one value that contains a separator.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "v": {
+          "type": "checkbox",
+          "items": {
+            "a": "A",
+            "b": "B"
+          },
+          "multiple": true,
+          "validate": {
+            "unique": true
+          }
+        }
+      }
+    },
+    "data": {
+      "v": {
+        "__0000000000001__": [
+          "a",
+          "b"
+        ],
+        "__0000000000002__": [
+          "a,b"
+        ],
+        "__0000000000003__": [
+          "a\",\"b"
+        ]
+      }
+    },
+    "expected": {
+      "valid": true,
+      "errors": []
+    }
+  },
+  {
+    "name": "unique-nested-member-order",
+    "note": "members compare in any order at every depth.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "v": {
+          "type": "text",
+          "lang": {
+            "only": [
+              "ko",
+              "en"
+            ]
+          },
+          "multiple": true,
+          "validate": {
+            "unique": true
+          }
+        }
+      }
+    },
+    "data": {
+      "v": {
+        "__0000000000001__": {
+          "ko": "x",
+          "en": {
+            "a": "1",
+            "b": "2"
+          }
+        },
+        "__0000000000002__": {
+          "en": {
+            "b": "2",
+            "a": "1"
+          },
+          "ko": "x"
+        }
+      }
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "v",
+          "field": "v",
+          "rule": "unique",
+          "message": "Values must be unique.",
+          "value": {
+            "__0000000000001__": {
+              "ko": "x",
+              "en": {
+                "a": "1",
+                "b": "2"
+              }
+            },
+            "__0000000000002__": {
+              "en": {
+                "b": "2",
+                "a": "1"
+              },
+              "ko": "x"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "unique-object-and-list",
+    "note": "an object never equals a list, whatever its members.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "v": {
+          "type": "text",
+          "lang": {
+            "only": [
+              "ko",
+              "en"
+            ]
+          },
+          "multiple": true,
+          "validate": {
+            "unique": true
+          }
+        }
+      }
+    },
+    "data": {
+      "v": {
+        "__0000000000001__": {
+          "ko": "a",
+          "en": "b"
+        },
+        "__0000000000002__": [
+          "a",
+          "b"
+        ]
+      }
+    },
+    "expected": {
+      "valid": true,
+      "errors": []
+    }
+  },
+  {
+    "name": "unique-row-field",
+    "note": "a field in a repeated group is unique among the rows; the error names the later duplicate row.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "rows": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "code": {
+              "type": "text",
+              "validate": {
+                "unique": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "rows": {
+        "__0000000000001__": {
+          "code": "x"
+        },
+        "__0000000000002__": {
+          "code": "y"
+        },
+        "__0000000000003__": {
+          "code": "x"
+        },
+        "__0000000000004__": {
+          "code": "x"
+        }
+      }
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "rows.__0000000000003__.code",
+          "field": "code",
+          "rule": "unique",
+          "message": "Values must be unique.",
+          "value": "x"
+        },
+        {
+          "path": "rows.__0000000000004__.code",
+          "field": "code",
+          "rule": "unique",
+          "message": "Values must be unique.",
+          "value": "x"
+        }
+      ]
+    }
+  },
+  {
     "name": "registered-rule-message-undeclared",
     "note": "a messages key may name a registered rule the field does not declare, such as the implicit number check.",
     "spec": {

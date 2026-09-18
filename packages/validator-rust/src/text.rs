@@ -21,8 +21,17 @@ use crate::{ValidateDetailOptions, ValidateListOptions};
 /// Message of every input text failure.
 pub const MESSAGE: &str = "Text must be Unicode scalar values";
 
-/// The nesting depth `serde_json` accepts.
-const MAX_DEPTH: usize = 127;
+/// Message of every value beyond the limits.
+pub const VALUE_LIMIT_MESSAGE: &str = "Recursive or excessively nested value";
+
+/// The nesting depth the JSON parser accepts (same as other runtimes).
+const MAX_DEPTH: usize = 512;
+
+/// Maximum nodes a value may hold: every array, object, string, number, boolean and null.
+const NODE_LIMIT: usize = 1_000_000;
+
+/// Maximum levels of arrays and objects a value may nest.
+const NESTING_LIMIT: usize = 512;
 
 /// A string or member name of a JSON document: valid text, or the UTF-16
 /// code units of text that holds an unpaired surrogate.
@@ -429,42 +438,175 @@ impl JsonText {
             _ => false,
         }
     }
+
+    /// Whether this value holds a limit violation (too many nodes or too deep nesting).
+    pub fn has_limit_violation(&self) -> bool {
+        let mut nodes = 0;
+        self.check_limits(&mut nodes, 0)
+    }
+
+    /// Count nodes and check nesting depth; true when limits are exceeded.
+    fn check_limits(&self, nodes: &mut usize, depth: usize) -> bool {
+        *nodes += 1;
+        if *nodes > NODE_LIMIT {
+            return true;
+        }
+        match self {
+            JsonText::Array(items) => {
+                if depth >= NESTING_LIMIT {
+                    return true;
+                }
+                items.iter().any(|item| item.check_limits(nodes, depth + 1))
+            }
+            JsonText::Object(members) => {
+                if depth >= NESTING_LIMIT {
+                    return true;
+                }
+                members
+                    .iter()
+                    .any(|(_, value)| value.check_limits(nodes, depth + 1))
+            }
+            _ => false,
+        }
+    }
 }
 
 /// Check a specification and then the composition files an operation reads.
 /// Invalid text is the `INVALID_TEXT` load failure located at its
 /// specification path, or at the file name followed by its path in the file;
-/// an invalid file name is located at the empty path.
+/// an invalid file name is located at the empty path. A value beyond its limits
+/// is `INVALID_FORM_INPUT` naming `spec` or `files`.
 pub fn check_specification(
     spec: Option<&JsonText>,
     files: Option<&JsonText>,
-) -> Result<(), ComposeLoadError> {
-    for value in [spec, files].into_iter().flatten() {
-        if let Some(trace) = value.invalid_path() {
-            return Err(ComposeLoadError::with_trace(
-                ComposeErrorCode::InvalidText,
-                MESSAGE,
-                trace,
-            ));
+) -> Result<(), ValidateError> {
+    for (name, value) in [("spec", spec), ("files", files)] {
+        if let Some(value) = value {
+            if value.has_limit_violation() {
+                return Err(ValidateError::Input(FormInputError::new(format!(
+                    "{VALUE_LIMIT_MESSAGE}: {name}"
+                ))));
+            }
+            if let Some(trace) = value.invalid_path() {
+                return Err(ValidateError::Load(ComposeLoadError::with_trace(
+                    ComposeErrorCode::InvalidText,
+                    MESSAGE,
+                    trace,
+                )));
+            }
         }
     }
     Ok(())
 }
 
 /// Check named caller values in order; absent values are skipped. Invalid text
-/// is `INVALID_FORM_INPUT` naming the value and its path.
+/// is `INVALID_FORM_INPUT` naming the value and its path, and a value beyond its limits
+/// is `INVALID_FORM_INPUT` naming the value.
 pub fn check_inputs(inputs: &[(&str, Option<&JsonText>)]) -> Result<(), FormInputError> {
     for (name, value) in inputs {
-        if let Some(path) = value.and_then(JsonText::invalid_path) {
-            let mut location = vec![(*name).to_owned()];
-            location.extend(path);
-            return Err(FormInputError::new(format!(
-                "{MESSAGE}: {}",
-                location.join(".")
-            )));
+        if let Some(value) = value {
+            if value.has_limit_violation() {
+                return Err(FormInputError::new(format!(
+                    "{VALUE_LIMIT_MESSAGE}: {name}"
+                )));
+            }
+            if let Some(path) = value.invalid_path() {
+                let mut location = vec![(*name).to_owned()];
+                location.extend(path);
+                return Err(FormInputError::new(format!(
+                    "{MESSAGE}: {}",
+                    location.join(".")
+                )));
+            }
         }
     }
     Ok(())
+}
+
+/// Convert JsonText to serde_json::Value with iterative approach to handle 512+ levels.
+/// Invalid text (already checked) becomes None; invalid numbers become None.
+fn json_text_to_value(value: &JsonText) -> Option<Value> {
+    enum StackFrame<'a> {
+        // Process a value and push its result
+        Process(&'a JsonText),
+        // Collect array items (count, accumulated items)
+        CollectArray(usize, Vec<Value>),
+        // Collect object members (names to process, accumulated object)
+        CollectObject(Vec<&'a JsonString>, Map<String, Value>),
+    }
+
+    let mut stack = vec![StackFrame::Process(value)];
+    let mut result_stack: Vec<Value> = Vec::new();
+
+    while let Some(frame) = stack.pop() {
+        match frame {
+            StackFrame::Process(val) => {
+                match val {
+                    JsonText::Null => result_stack.push(Value::Null),
+                    JsonText::Bool(b) => result_stack.push(Value::Bool(*b)),
+                    JsonText::Number(text) => {
+                        let num = serde_json::from_str::<Number>(text).ok()?;
+                        result_stack.push(Value::Number(num));
+                    }
+                    JsonText::String(s) => {
+                        let text = s.as_str()?;
+                        result_stack.push(Value::String(text.to_owned()));
+                    }
+                    JsonText::Array(items) => {
+                        // Push a marker to collect results
+                        stack.push(StackFrame::CollectArray(items.len(), Vec::new()));
+                        // Push items in reverse order
+                        for item in items.iter().rev() {
+                            stack.push(StackFrame::Process(item));
+                        }
+                    }
+                    JsonText::Object(members) => {
+                        // Verify all member names are valid first
+                        for (name, _) in members {
+                            name.as_str()?;
+                        }
+                        // Create list of names in reverse order
+                        let names: Vec<&JsonString> =
+                            members.iter().map(|(n, _)| n).rev().collect();
+                        // Push a marker to collect results
+                        stack.push(StackFrame::CollectObject(names, Map::new()));
+                        // Push members in reverse order
+                        for (_, val) in members.iter().rev() {
+                            stack.push(StackFrame::Process(val));
+                        }
+                    }
+                }
+            }
+            StackFrame::CollectArray(count, mut items) => {
+                // Pop 'count' results from result_stack and add to items
+                for _ in 0..count {
+                    if let Some(item) = result_stack.pop() {
+                        items.push(item);
+                    }
+                }
+                items.reverse();
+                result_stack.push(Value::Array(items));
+            }
+            StackFrame::CollectObject(mut names, mut obj) => {
+                // Pop one result and add it to the object
+                if let Some(name) = names.pop() {
+                    if let Some(val) = result_stack.pop() {
+                        if let Some(name_str) = name.as_str() {
+                            obj.insert(name_str.to_owned(), val);
+                        }
+                    }
+                }
+                if names.is_empty() {
+                    result_stack.push(Value::Object(obj));
+                } else {
+                    // Continue processing more members
+                    stack.push(StackFrame::CollectObject(names, obj));
+                }
+            }
+        }
+    }
+
+    result_stack.pop()
 }
 
 /// A JSON text member that is not text, or a number `serde_json` does not
@@ -472,7 +614,7 @@ pub fn check_inputs(inputs: &[(&str, Option<&JsonText>)]) -> Result<(), FormInpu
 fn decoded(value: Option<&JsonText>) -> Result<Option<Value>, ValidateError> {
     value
         .map(|value| {
-            value.to_value().ok_or_else(|| {
+            json_text_to_value(value).ok_or_else(|| {
                 ValidateError::Input(FormInputError::new("Numbers must be finite JSON numbers"))
             })
         })

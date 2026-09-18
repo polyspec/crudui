@@ -32,6 +32,7 @@ use CRUDUI\Validator\Expr\ConditionalValue;
 use CRUDUI\Validator\Expr\Visibility;
 use CRUDUI\Validator\Values\CanonicalText;
 use CRUDUI\Validator\Values\EmptyValue;
+use CRUDUI\Validator\Values\NumberText;
 
 /**
  * CRUDUI form validator — SPEC §2 G5→§3→§2 G1. Port of
@@ -103,6 +104,15 @@ final class Validator
     private readonly array $properties;
 
     /**
+     * Precomputed duplicates for this validation run.
+     * Keyed by "containerPath:fieldName:filterParam" -> Map of itemKey -> true if duplicate.
+     * Cleared after validate() completes to avoid state leaking between runs.
+     *
+     * @var array<string, array<string, bool>>
+     */
+    private array $duplicatesByField = [];
+
+    /**
      * @param array<string, mixed> $composedSpec a composed CRUDUI root spec — a group
      *        with `properties` (already free of $ref/$patch and forbidden keys).
      * @throws \CRUDUI\Validator\Compose\ComposeLoadError when a declared rule name or parameter is invalid
@@ -122,10 +132,15 @@ final class Validator
      */
     public function validate(array $data): ValidationResult
     {
-        $errors = [];
-        $this->validateProperties($this->properties, $data, [], [], $data, $errors);
+        try {
+            $errors = [];
+            $this->validateProperties($this->properties, $data, [], [], $data, $errors);
 
-        return new ValidationResult(count($errors) === 0, array_values($errors));
+            return new ValidationResult(count($errors) === 0, array_values($errors));
+        } finally {
+            // Clear duplicates cache after validation completes to avoid state leaking
+            $this->duplicatesByField = [];
+        }
     }
 
     /** Register the rule instances; `pattern` and `match` share one implementation. */
@@ -590,58 +605,79 @@ final class Validator
         $containerPath = array_slice($pathSegments, 0, -2);
         $container = $this->getValueByPath($allData, $containerPath);
 
-        // Ordered (key, item) entries for array or object containers.
-        $entries = [];
-        if (is_array($container) && array_is_list($container)) {
-            if (preg_match('/^\d+$/', $itemKey) !== 1) {
-                return true;
-            }
-            foreach ($container as $i => $item) {
-                $entries[] = [(string) $i, $item];
-            }
-        } elseif (is_array($container) || $container instanceof \stdClass) {
-            foreach ($container as $k => $item) {
-                $entries[] = [(string) $k, $item];
-            }
-        } else {
-            return true;
-        }
-
         // Empty values never count as duplicates.
         if (EmptyValue::is($value)) {
             return true;
         }
 
+        // Evaluate filter condition for the current item once
+        $currentItemPassesFilter = !$isFilterCondition ||
+            $this->itemPassesCondition($ruleParam, $pathSegments, $allData);
+
         // A filter condition that excludes the current item drops it entirely.
-        if ($isFilterCondition && !$this->itemPassesCondition($ruleParam, $pathSegments, $allData)) {
+        if (!$currentItemPassesFilter) {
             return true;
         }
 
-        $currentKey = $this->comparisonKey($value);
-        foreach ($entries as [$key, $item]) {
-            if ($key === $itemKey) {
-                // Only earlier siblings (so the error lands on the later dup).
-                break;
+        // Create a unique key for this container field combination
+        $containerPathStr = implode('.', $containerPath);
+        $cacheKey = $isFilterCondition
+            ? "{$containerPathStr}:{$fieldName}:{$ruleParam}"
+            : "{$containerPathStr}:{$fieldName}";
+
+        // If we haven't precomputed duplicates for this field yet, do it now
+        if (!isset($this->duplicatesByField[$cacheKey])) {
+            $this->duplicatesByField[$cacheKey] = [];
+            $seenKeys = [];
+
+            // Build ordered (key, item) entries for array or object containers.
+            $entries = [];
+            if (is_array($container) && array_is_list($container)) {
+                if (preg_match('/^\d+$/', $itemKey) !== 1) {
+                    return true;
+                }
+                foreach ($container as $i => $item) {
+                    $entries[] = [(string) $i, $item];
+                }
+            } elseif (is_array($container) || $container instanceof \stdClass) {
+                foreach ($container as $k => $item) {
+                    $entries[] = [(string) $k, $item];
+                }
+            } else {
+                return true;
             }
-            if (!is_array($item) && !$item instanceof \stdClass) {
-                continue;
-            }
-            if ($isFilterCondition) {
-                $siblingFieldPath = [...$containerPath, $key, $fieldName];
-                if (!$this->itemPassesCondition($ruleParam, $siblingFieldPath, $allData)) {
+
+            // Walk through all rows once and identify which ones are duplicates
+            foreach ($entries as [$key, $item]) {
+                if (!is_array($item) && !$item instanceof \stdClass) {
                     continue;
                 }
-            }
-            $siblingValue = ((array) $item)[$fieldName] ?? null;
-            if (EmptyValue::is($siblingValue)) {
-                continue;
-            }
-            if ($this->comparisonKey($siblingValue) === $currentKey) {
-                return false;
+
+                // Evaluate filter condition once per row
+                if ($isFilterCondition) {
+                    $itemFieldPath = [...$containerPath, $key, $fieldName];
+                    if (!$this->itemPassesCondition($ruleParam, $itemFieldPath, $allData)) {
+                        continue;
+                    }
+                }
+
+                $itemValue = ((array) $item)[$fieldName] ?? null;
+                if (EmptyValue::is($itemValue)) {
+                    continue;
+                }
+
+                $itemValueKey = $this->canonicalKey($itemValue);
+                if (isset($seenKeys[$itemValueKey])) {
+                    // This row is a duplicate
+                    $this->duplicatesByField[$cacheKey][$key] = true;
+                } else {
+                    $seenKeys[$itemValueKey] = true;
+                }
             }
         }
 
-        return true;
+        // Check precomputed result: is this item a duplicate?
+        return !isset($this->duplicatesByField[$cacheKey][$itemKey]);
     }
 
     /**
@@ -661,8 +697,7 @@ final class Validator
     }
 
     /**
-     * Whether no two comparison keys are identical (===). Each key is found in a
-     * table by a name that is equal exactly when the keys are identical.
+     * Whether no two canonical keys are identical.
      *
      * @param list<mixed> $values
      */
@@ -670,31 +705,52 @@ final class Validator
     {
         $seen = [];
         foreach ($values as $value) {
-            $key = $this->comparisonKey($value);
-            $name = match (true) {
-                is_string($key) => 's' . $key,
-                is_int($key) => 'i' . $key,
-                // -0.0 === 0.0; every other float spells differently from every other value.
-                is_float($key) => 'f' . ($key == 0.0 ? '0' : var_export($key, true)),
-                is_bool($key) => $key ? 'b1' : 'b0',
-                is_object($key) => 'o' . spl_object_id($key),
-                default => 'n',
-            };
-            if (isset($seen[$name])) {
+            $key = $this->canonicalKey($value);
+            if (isset($seen[$key])) {
                 return false;
             }
-            $seen[$name] = true;
+            $seen[$key] = true;
         }
         return true;
     }
 
-    /** Build a comparison key: objects/arrays compare by JSON, scalars by value. */
-    private function comparisonKey(mixed $value): mixed
+    /**
+     * The canonical key of a value for `unique` (docs/spec/validation-rules.md): equal keys mean
+     * the same JSON value. Every value carries its type, strings are JSON-escaped, a number of
+     * either PHP type is written by its exact value as ECMAScript writes it, lists keep their
+     * order, and object members, of a stdClass or an associative array, are sorted by name at
+     * every depth.
+     */
+    private function canonicalKey(mixed $value): string
     {
-        if (is_array($value) || $value instanceof \stdClass) {
-            return json_encode($value);
+        if ($value === null) {
+            return 'z';
         }
-        return $value;
+        if (is_bool($value)) {
+            return $value ? 'b1' : 'b0';
+        }
+        if (is_int($value) || is_float($value)) {
+            return 'n' . NumberText::of((float) $value);
+        }
+        if (is_string($value)) {
+            return 's' . json_encode($value, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
+        }
+        if (is_array($value) && array_is_list($value)) {
+            return 'a[' . implode(',', array_map(fn (mixed $item): string => $this->canonicalKey($item), $value)) . ']';
+        }
+        if (is_array($value) || $value instanceof \stdClass) {
+            $members = [];
+            foreach ((array) $value as $name => $member) {
+                $members[(string) $name] = $this->canonicalKey($member);
+            }
+            ksort($members, SORT_STRING);
+            $encoded = [];
+            foreach ($members as $name => $key) {
+                $encoded[] = json_encode((string) $name, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE) . ':' . $key;
+            }
+            return 'o{' . implode(',', $encoded) . '}';
+        }
+        return 'u' . get_debug_type($value);
     }
 
     /**

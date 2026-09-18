@@ -602,9 +602,9 @@ function sourceForValidation() {
 }
 
 test('PHP extension engine validates all shared form, list and detail cases', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  assert.equal(validationCases.length, 250,
+  assert.equal(validationCases.length, 265,
     'Review extension validation coverage when the shared validation cases change');
-  assert.equal(validationCases.length + specCases.length + listCases.length + detailCases.length, 303,
+  assert.equal(validationCases.length + specCases.length + listCases.length + detailCases.length, 318,
     'Review extension validation coverage when the shared fixture inventory changes');
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-extension-validation-'));
   let output = '';
@@ -695,6 +695,73 @@ test('PHP extension engine unique rule takes time linear in the rows', { timeout
   }
 });
 
+function sourceForUniqueRowTime() {
+  const builder = new EngineFixtureSource();
+  const { lines } = builder;
+  const spec = builder.emit({
+    type: 'group',
+    properties: {
+      rows: {
+        type: 'group', multiple: true,
+        properties: { code: { type: 'text', validate: { unique: true } } },
+      },
+    },
+  });
+  lines.push(
+    `  double small = unique_time(${spec}, 1500), large = unique_time(${spec}, 6000);`,
+    '  printf("1500 rows: %.4fs, 6000 rows: %.4fs\\n", small, large);',
+    `  ps_value_free(${spec});`,
+    '  if (small < 0 || large < 0) return 1;',
+    '  if (!(large < small * 8)) { fputs("unique time grows faster than the rows\\n", stderr); return 2; }',
+  );
+  return fixtureProgram(lines, [
+    '#include <time.h>',
+    'static double seconds(void)',
+    '{ struct timespec now; timespec_get(&now, TIME_UTC); return (double)now.tv_sec + (double)now.tv_nsec / 1e9; }',
+    '/* The shortest of three validations of keyed rows with distinct codes, or -1 when one is not valid. */',
+    'static double unique_time(const ps_value *spec, size_t count)',
+    '{',
+    '  ps_value *rows = ps_object_value(), *data = ps_object_value(), *options = ps_object_value();',
+    '  for (size_t i = 0; i < count; ++i) {',
+    '    char name[32]; snprintf(name, sizeof(name), "row%zu", i);',
+    '    ps_value *row = ps_object_value();',
+    '    put(row, PS_TEXT("code"), ps_string_value(name));',
+    '    put(rows, ps_fixed(name), row);',
+    '  }',
+    '  put(data, PS_TEXT("rows"), rows);',
+    '  double best = -1;',
+    '  for (int run = 0; run < 3; ++run) {',
+    '    double started = seconds();',
+    '    ps_result result = ps_validate(spec, data, options);',
+    '    double elapsed = seconds() - started;',
+    '    bool valid = result.value && !result.error && ps_get(result.value, "valid") &&',
+    '      ps_get(result.value, "valid")->kind == PS_BOOL && ps_get(result.value, "valid")->data.boolean;',
+    '    ps_value_free(result.value); ps_value_free(result.error);',
+    '    if (!valid) { best = -1; break; }',
+    '    if (best < 0 || elapsed < best) best = elapsed;',
+    '  }',
+    '  ps_value_free(data); ps_value_free(options);',
+    '  return best;',
+    '}',
+  ]);
+}
+
+test('PHP extension engine unique rule on a field in rows takes time linear in the rows', { timeout: ENGINE_TEST_BUDGET }, async t => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-extension-unique-row-'));
+  try {
+    await compileAndRunEngineFixture({
+      signal: t.signal, root, directory, source: sourceForUniqueRowTime(), name: 'unique-row-time',
+      sources: [
+        'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'compose.c', 'expression.c',
+        'runtime.c', ...ruleSources, 'validation.c',
+      ],
+      onOutput: stdout => process.stderr.write(`    ${stdout}`),
+    });
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
 test('PHP extension engine validation does not depend on a comma decimal locale', { timeout: ENGINE_TEST_BUDGET }, async t => {
   await runUnderCommaLocale({
     signal: t.signal, root, prefix: 'crudui-extension-validation-locale-', name: 'validation-locale',
@@ -763,11 +830,22 @@ function sourceForValidationAllocationFailures() {
     tags: { type: 'text', multiple: true },
   });
   const repeatedFieldData = builder.emit({ tags: { first: 'first' } });
+  const uniqueRowsProperties = builder.emit({
+    rows: {
+      type: 'group',
+      multiple: true,
+      properties: { code: { type: 'text', validate: { unique: true } } },
+    },
+  });
+  const uniqueRowsData = builder.emit({ rows: { first: { code: 'a' }, second: { code: 'a' } } });
   builder.lines.push(
     `  int status = verify_validation_allocation_failures(${repeatedGroupProperties}, ${repeatedGroupData}, 5);`,
     '  if (status) return status;',
     `  status = verify_validation_allocation_failures(${repeatedFieldProperties}, ${repeatedFieldData}, 4);`,
     '  if (status) return 10 + status;',
+    `  status = verify_validation_allocation_failures(${uniqueRowsProperties}, ${uniqueRowsData}, 13);`,
+    '  if (status) return 20 + status;',
+    `  ps_value_free(${uniqueRowsProperties}); ps_value_free(${uniqueRowsData});`,
     `  ps_value_free(${repeatedGroupProperties}); ps_value_free(${repeatedGroupData});`,
     `  ps_value_free(${repeatedFieldProperties}); ps_value_free(${repeatedFieldData});`,
   );
@@ -809,8 +887,8 @@ function sourceForValidationAllocationFailures() {
     '    const ps_value *properties, const ps_value *data, size_t allocation_count)',
     '{',
     '  for (size_t fail_at = 1; fail_at <= allocation_count; ++fail_at) {',
-    '    validation_context context = {data, ps_array_value(), NULL, NULL, 0, NULL};',
-    '    if (!context.errors) return 1;',
+    '    validation_context context = {data, ps_array_value(), NULL, NULL, 0, NULL, NULL, 0, ps_object_value()};',
+    '    if (!context.errors || !context.unique_positions) return 1;',
     '    validation_allocation_index = 0;',
     '    validation_fail_at = fail_at;',
     '    validation_allocation_failed = false;',
@@ -818,11 +896,12 @@ function sourceForValidationAllocationFailures() {
     '    validation_fail_at = 0;',
     '    ps_value_free(context.errors);',
     '    free(context.declaration);',
+    '    release_unique_rows(&context);',
     '    if (!validation_allocation_failed) return 2;',
     '    if (result) return 3;',
     '  }',
-    '  validation_context context = {data, ps_array_value(), NULL, NULL, 0, NULL};',
-    '  if (!context.errors) return 4;',
+    '  validation_context context = {data, ps_array_value(), NULL, NULL, 0, NULL, NULL, 0, ps_object_value()};',
+    '  if (!context.errors || !context.unique_positions) return 4;',
     '  validation_allocation_index = 0;',
     '  validation_fail_at = allocation_count + 1;',
     '  validation_allocation_failed = false;',
@@ -830,6 +909,7 @@ function sourceForValidationAllocationFailures() {
     '  validation_fail_at = 0;',
     '  ps_value_free(context.errors);',
     '  free(context.declaration);',
+    '  release_unique_rows(&context);',
     '  return result && !validation_allocation_failed ? 0 : 5;',
     '}',
   ]);

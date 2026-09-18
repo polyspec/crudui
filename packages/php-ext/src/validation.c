@@ -19,7 +19,18 @@ typedef struct {
     size_t declaration_capacity;
     /* Compiled patterns by source text, filled when the parameters are checked. */
     ps_pattern_cache *patterns;
+    /* For each collection field and filter, the rows whose unique value an earlier row holds. */
+    struct unique_rows *unique_rows;
+    size_t unique_rows_count;
+    /* The position in unique_rows by container path, field name and filter. */
+    ps_value *unique_positions;
 } validation_context;
+
+/* The rows of one collection field whose value an earlier row holds, sorted by address. */
+typedef struct unique_rows {
+    const ps_value **duplicates;
+    size_t count;
+} unique_rows;
 
 static bool string_in(ps_text value, const char *const *items, size_t count)
 {
@@ -278,9 +289,58 @@ static int compare_unique(const ps_value *left, const ps_value *right)
     }
 }
 
-static int compare_unique_items(const void *left, const void *right)
+typedef struct {
+    ps_text name;
+    size_t position;
+} unique_member;
+
+static int compare_members(const void *left, const void *right)
 {
-    return compare_unique(*(const ps_value *const *)left, *(const ps_value *const *)right);
+    return compare_text(((const unique_member *)left)->name, ((const unique_member *)right)->name);
+}
+
+/*
+ * A copy of the value whose object members are sorted by name at every depth, so that
+ * compare_unique finds two objects equal whatever order their members come in. NULL on
+ * allocation failure.
+ */
+static ps_value *canonical_unique_copy(const ps_value *value)
+{
+    if (value->kind != PS_OBJECT && value->kind != PS_ARRAY) return ps_value_clone(value);
+    size_t count = ps_size(value);
+    ps_value *copy = value->kind == PS_OBJECT ? ps_object_value() : ps_array_value();
+    unique_member *members = malloc((count ? count : 1) * sizeof(*members));
+    if (!copy || !members) { ps_value_free(copy); free(members); return NULL; }
+    for (size_t i = 0; i < count; ++i)
+        members[i] = (unique_member){value->kind == PS_OBJECT ? ps_key(value, i) : (ps_text){NULL, 0}, i};
+    if (value->kind == PS_OBJECT) qsort(members, count, sizeof(*members), compare_members);
+    for (size_t i = 0; i < count; ++i) {
+        ps_value *member = canonical_unique_copy(ps_at(value, members[i].position));
+        bool added = member && (value->kind == PS_OBJECT ? ps_set_text(copy, members[i].name, member) : ps_append(copy, member));
+        if (!added) { free(members); ps_value_free(copy); return NULL; }
+    }
+    free(members);
+    return copy;
+}
+
+typedef struct {
+    ps_value *value;
+    size_t position;
+    const ps_value *row;
+} unique_item;
+
+/* Equal values next to each other, each run of equal values in row order. */
+static int compare_unique_entries(const void *left, const void *right)
+{
+    const unique_item *a = left, *b = right;
+    int order = compare_unique(a->value, b->value);
+    return order ? order : (a->position > b->position) - (a->position < b->position);
+}
+
+static void free_unique_items(unique_item *items, size_t count)
+{
+    for (size_t i = 0; i < count; ++i) ps_value_free(items[i].value);
+    free(items);
 }
 
 /*
@@ -292,7 +352,7 @@ static int unique_values(const ps_value *values, const ps_value *parameter,
 {
     bool condition = parameter && parameter->kind == PS_STRING && ps_condition_expression(ps_string(parameter));
     size_t count = ps_size(values), kept = 0;
-    const ps_value **items = malloc((count ? count : 1) * sizeof(*items));
+    unique_item *items = malloc((count ? count : 1) * sizeof(*items));
     ps_text *item_path = calloc(length + 1, sizeof(*item_path));
     if (!items || !item_path) { free(items); free(item_path); return -1; }
     for (size_t p = 0; p < length; ++p) item_path[p] = path[p];
@@ -305,14 +365,90 @@ static int unique_values(const ps_value *values, const ps_value *parameter,
             if (!parsed || !included) continue;
         }
         if (parameter && parameter->kind == PS_STRING && !condition) item = ps_path(item, ps_string(parameter));
-        if (!ps_empty_value(item)) items[kept++] = item;
+        if (ps_empty_value(item)) continue;
+        items[kept] = (unique_item){canonical_unique_copy(item), i, NULL};
+        if (!items[kept].value) { free(item_path); free_unique_items(items, kept); return -1; }
+        ++kept;
     }
     free(item_path);
-    qsort(items, kept, sizeof(*items), compare_unique_items);
+    qsort(items, kept, sizeof(*items), compare_unique_entries);
     int unique = 1;
-    for (size_t i = 1; i < kept && unique; ++i) if (!compare_unique(items[i - 1], items[i])) unique = 0;
-    free(items);
+    for (size_t i = 1; i < kept && unique; ++i) if (!compare_unique(items[i - 1].value, items[i].value)) unique = 0;
+    free_unique_items(items, kept);
     return unique;
+}
+
+static void release_unique_rows(validation_context *context)
+{
+    for (size_t i = 0; i < context->unique_rows_count; ++i) free(context->unique_rows[i].duplicates);
+    free(context->unique_rows);
+    ps_value_free(context->unique_positions);
+}
+
+static int compare_rows(const void *left, const void *right)
+{
+    uintptr_t a = (uintptr_t)*(const ps_value *const *)left, b = (uintptr_t)*(const ps_value *const *)right;
+    return (a > b) - (a < b);
+}
+
+/*
+ * The duplicate rows of one collection field, found once per validation: the filter runs once for
+ * each row and sorting brings equal values next to each other. NULL on allocation failure.
+ */
+static const unique_rows *duplicate_rows(validation_context *context, const ps_value *container,
+                                         ps_text field, ps_text filter, const ps_text *path, size_t length)
+{
+    /* The container path, the field name and the filter, each followed by a zero byte. */
+    size_t key_length = field.length + filter.length + 2;
+    for (size_t p = 0; p + 2 < length; ++p) key_length += path[p].length + 1;
+    char *key = malloc(key_length);
+    if (!key) return NULL;
+    size_t at = 0;
+    for (size_t p = 0; p + 2 < length; ++p) {
+        if (path[p].length) memcpy(key + at, path[p].bytes, path[p].length);
+        at += path[p].length; key[at++] = 0;
+    }
+    if (field.length) memcpy(key + at, field.bytes, field.length);
+    at += field.length; key[at++] = 0;
+    if (filter.length) memcpy(key + at, filter.bytes, filter.length);
+    at += filter.length; key[at++] = 0;
+    ps_text name = {key, key_length};
+    const ps_value *known = ps_get_text(context->unique_positions, name);
+    if (known) { free(key); return &context->unique_rows[known->data.integer]; }
+    unique_rows *grown = realloc(context->unique_rows, (context->unique_rows_count + 1) * sizeof(*grown));
+    if (grown) context->unique_rows = grown;
+    ps_value *position = grown ? ps_int_value((int64_t)context->unique_rows_count) : NULL;
+    bool stored = position && ps_set_text(context->unique_positions, name, position);
+    free(key);
+    if (!stored) return NULL;
+    unique_rows *rows = &grown[context->unique_rows_count++];
+    size_t count = ps_size(container), kept = 0;
+    *rows = (unique_rows){malloc((count ? count : 1) * sizeof(*rows->duplicates)), 0};
+    unique_item *items = malloc((count ? count : 1) * sizeof(*items));
+    ps_text *sibling = calloc(length, sizeof(*sibling));
+    if (!rows->duplicates || !items || !sibling) { free(items); free(sibling); return NULL; }
+    for (size_t p = 0; p < length; ++p) sibling[p] = path[p];
+    for (size_t i = 0; i < count; ++i) {
+        const ps_value *row = ps_at(container, i);
+        const ps_value *value = row && row->kind == PS_OBJECT ? ps_get_text(row, field) : NULL;
+        if (ps_empty_value(value)) continue;
+        if (filter.length) {
+            char index[32];
+            sibling[length - 2] = item_key(container, i, index, sizeof(index));
+            bool parsed = false, included = ps_expression_truth(filter, context->data, sibling, length, &parsed);
+            if (!parsed || !included) continue;
+        }
+        items[kept] = (unique_item){canonical_unique_copy(value), i, row};
+        if (!items[kept].value) { free(sibling); free_unique_items(items, kept); return NULL; }
+        ++kept;
+    }
+    free(sibling);
+    qsort(items, kept, sizeof(*items), compare_unique_entries);
+    for (size_t i = 1; i < kept; ++i)
+        if (!compare_unique(items[i - 1].value, items[i].value)) rows->duplicates[rows->count++] = items[i].row;
+    free_unique_items(items, kept);
+    qsort(rows->duplicates, rows->count, sizeof(*rows->duplicates), compare_rows);
+    return rows;
 }
 
 static const ps_value *effective_parameter(ps_text rule, const ps_value *declared,
@@ -451,25 +587,13 @@ static int rule_passes(ps_text rule, const ps_value *value, const ps_value *para
         if (length < 2 || ps_empty_value(value)) return 1;
         const ps_value *container = ps_path_segments(context->data, path, length - 2);
         if (!container || (container->kind != PS_ARRAY && container->kind != PS_OBJECT)) return 1;
-        ps_text item_name = path[length - 2], field_name = path[length - 1];
         bool condition = parameter->kind == PS_STRING && ps_condition_expression(ps_string(parameter));
         if (condition) { bool parsed = false; if (!ps_expression_truth(ps_string(parameter), context->data, path, length, &parsed) || !parsed) return 1; }
-        for (size_t i = 0; i < ps_size(container); ++i) {
-            char index[32];
-            ps_text key = item_key(container, i, index, sizeof(index));
-            if (ps_text_equal(key, item_name)) break;
-            const ps_value *item = ps_at(container, i);
-            const ps_value *other = item && item->kind == PS_OBJECT ? ps_get_text(item, field_name) : NULL;
-            if (ps_empty_value(other)) continue;
-            if (condition) {
-                ps_text *sibling = calloc(length, sizeof(*sibling)); if (!sibling) return -1;
-                for (size_t p = 0; p < length; ++p) sibling[p] = path[p];
-                sibling[length - 2] = key;
-                bool parsed = false, included = ps_expression_truth(ps_string(parameter), context->data, sibling, length, &parsed);
-                free(sibling); if (!parsed || !included) continue;
-            }
-            if (ps_equal(value, other)) return 0;
-        }
+        const unique_rows *rows = duplicate_rows(context, container, path[length - 1],
+                                                 condition ? ps_string(parameter) : (ps_text){NULL, 0}, path, length);
+        if (!rows) return -1;
+        const ps_value *row = ps_path_segments(context->data, path, length - 1);
+        if (rows->count && bsearch(&row, rows->duplicates, rows->count, sizeof(*rows->duplicates), compare_rows)) return 0;
         return 1;
     }
     if (ps_text_is(rule, "equalTo") || ps_text_is(rule, "notEqual")) {
@@ -531,7 +655,7 @@ static bool validate_rules(const ps_value *field, const ps_value *value,
                            size_t depth, bool array_level, bool element)
 {
     const ps_value *rules = ps_get(field, "validate");
-    if (ps_is_string(ps_get(field, "type"), "number") && (!rules || !ps_has(rules, "number"))) {
+    if (!array_level && ps_is_string(ps_get(field, "type"), "number") && (!rules || !ps_has(rules, "number"))) {
         ps_value *enabled = ps_bool_value(true);
         if (!enabled) return false;
         int pass = rule_passes(PS_TEXT("number"), value, enabled, field, context, path, length);
@@ -782,9 +906,10 @@ static ps_result validate_form(const ps_value *spec, const ps_value *data, const
     /* Rule parameters are checked after composition and the forbidden-key scan. */
     if (!error) error = ps_check_rule_parameters(properties, patterns);
     if (error) { ps_pattern_cache_free(patterns); ps_value_free(properties); return (ps_result){NULL, error}; }
-    validation_context context = {data, ps_array_value(), NULL, NULL, 0, patterns};
-    bool valid = context.errors && validate_properties(properties, data, &context, NULL, 0, 0, false);
+    validation_context context = {data, ps_array_value(), NULL, NULL, 0, patterns, NULL, 0, ps_object_value()};
+    bool valid = context.errors && context.unique_positions && validate_properties(properties, data, &context, NULL, 0, 0, false);
     free(context.declaration);
+    release_unique_rows(&context);
     ps_pattern_cache_free(patterns);
     ps_value_free(properties);
     if (!valid) {
