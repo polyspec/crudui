@@ -25,7 +25,8 @@ $json = '{"id":"1","name":"N","status":"active","joined":"2024-01-01","score":"1
 $expected = FormJson::encode(FormJson::decode($json));
 checkRecords(FormJson::encode(RecordStore::submission(FormJson::decode($json), false)) === $expected, 'A JSON submission keeps its members, rows, keys and order');
 
-// A native submission omits an unchecked checkbox and a collection without rows.
+// Form data leaves out a field that holds no value (a native form also an unchecked checkbox and a
+// collection without rows); both media types complete it.
 $native = [
     'markup' => '', 'companies' => [
         '__00000000000b2__' => ['name' => 'B'],
@@ -37,9 +38,14 @@ $native = [
     'id' => '1', 'name' => 'N', 'status' => 'active', 'joined' => '2024-01-01', 'score' => '1', 'relation' => ['name' => 'R'],
 ];
 checkRecords(FormJson::encode(RecordStore::submission($native, true)) === $expected, 'A native submission is completed to the stored shape in member order');
+checkRecords(FormJson::encode(RecordStore::submission(FormJson::decode(json_encode($native)), false)) === $expected, 'A JSON submission is completed as the native one is');
 $noCompanies = $native;
 unset($noCompanies['companies']);
 checkRecords(FormJson::encode(RecordStore::submission($noCompanies, true)->companies) === '{}', 'A native submission without companies has no rows');
+checkRecords(FormJson::encode(RecordStore::submission((object) ['id' => '1'], false)) === '{"id":"1","name":"","status":"","joined":"","score":"","relation":{"name":""},"markup":"","companies":{}}', 'Every absent member but id completes as its empty value');
+$added = '{"__00000000000a1__":{"stores":{"__00000000000c3__":{"enabled":"1","departments":{"__00000000000d4__":{}}}}}}';
+$completedRow = '{"__00000000000a1__":{"name":"","stores":{"__00000000000c3__":{"name":"","enabled":"1","detail":"","title":{"ko":"","en":""},"departments":{"__00000000000d4__":{"name":""}}}}}}';
+checkRecords(FormJson::encode(RecordStore::submission((object) ['id' => '1', 'companies' => FormJson::decode($added)], false)->companies) === $completedRow, 'A new JSON row completes its absent members');
 
 $variant = static function (callable $change) use ($json): stdClass {
     $form = FormJson::decode($json);
@@ -48,16 +54,16 @@ $variant = static function (callable $change) use ($json): stdClass {
 };
 $store = static fn(stdClass $form): stdClass => $form->companies->__00000000000a1__->stores->__00000000000c3__;
 foreach ([
+    'id is missing' => $variant(static function (stdClass $form): void { unset($form->id); }),
+    'relation misses name' => $variant(static function (stdClass $form): void { $form->relation = (object) []; }),
+    'relation has another member' => $variant(static function (stdClass $form): void { $form->relation->extra = 'x'; }),
     'companies is text' => $variant(static function (stdClass $form): void { $form->companies = 'x'; }),
     'companies is an array' => $variant(static function (stdClass $form): void { $form->companies = []; }),
-    'companies is missing' => $variant(static function (stdClass $form): void { unset($form->companies); }),
     'row key is not a row key' => $variant(static function (stdClass $form): void { $form->companies = (object) ['first' => $form->companies->__00000000000b2__]; }),
     'row key has upper case' => $variant(static function (stdClass $form): void { $form->companies = (object) ['__00000000000B2__' => $form->companies->__00000000000b2__]; }),
     'stores is an array' => $variant(static function (stdClass $form): void { $form->companies->__00000000000b2__->stores = []; }),
     'store name is null' => $variant(static function (stdClass $form) use ($store): void { $store($form)->name = null; }),
-    'company misses stores' => $variant(static function (stdClass $form): void { unset($form->companies->__00000000000b2__->stores); }),
     'store has another member' => $variant(static function (stdClass $form) use ($store): void { $store($form)->extra = 'x'; }),
-    'store misses enabled' => $variant(static function (stdClass $form) use ($store): void { unset($store($form)->enabled); }),
     'enabled is not a checkbox value' => $variant(static function (stdClass $form) use ($store): void { $store($form)->enabled = 'yes'; }),
     'title misses a language' => $variant(static function (stdClass $form) use ($store): void { $store($form)->title = (object) ['ko' => 'x']; }),
     'title has another language' => $variant(static function (stdClass $form) use ($store): void { $store($form)->title->ja = 'x'; }),
@@ -76,8 +82,6 @@ $nativeStore = static function (callable $change) use ($native): array {
 foreach ([
     'enabled is not a checkbox value' => $nativeStore(static function (array &$store): void { $store['enabled'] = 'yes'; }),
     'enabled is nested' => $nativeStore(static function (array &$store): void { $store['enabled'] = ['1']; }),
-    'store misses its name' => $nativeStore(static function (array &$store): void { unset($store['name']); }),
-    'store misses its title' => $nativeStore(static function (array &$store): void { unset($store['title']); }),
     'departments is a list' => $nativeStore(static function (array &$store): void { $store['departments'] = [['name' => 'D']]; }),
     'companies is text' => (static function () use ($native): array { $form = $native; $form['companies'] = 'x'; return $form; })(),
 ] as $name => $form) {
@@ -90,10 +94,12 @@ $companies = FormJson::encode(FormJson::decode($json)->companies);
 checkRecords($benchmark((object) ['companies' => FormJson::decode($json)->companies], false) === $companies, 'The benchmark JSON form keeps its rows');
 checkRecords($benchmark(['companies' => $native['companies']], true) === $companies, 'The benchmark native form is completed as the record form is');
 checkRecords($benchmark([], true) === '{}', 'A benchmark native form without rows has no companies');
-foreach ([[(object) [], false], [(object) ['companies' => (object) [], 'extra' => 'x'], false], [['companies' => [], 'extra' => 'x'], true]] as [$form, $isNative]) {
+checkRecords($benchmark((object) [], false) === '{}', 'A benchmark JSON form without rows has no companies');
+checkRecords($benchmark((object) ['companies' => FormJson::decode($added)], false) === $completedRow, 'A benchmark JSON form completes a new row');
+foreach ([[(object) ['companies' => (object) [], 'extra' => 'x'], false], [['companies' => [], 'extra' => 'x'], true]] as [$form, $isNative]) {
     $failed = false;
     try { $benchmark($form, $isNative); } catch (InvalidArgumentException) { $failed = true; }
-    checkRecords($failed, 'A benchmark form has exactly companies');
+    checkRecords($failed, 'A benchmark form has only companies');
 }
 
 // A stored record follows the same companies rule: a malformed store fails every read and save and
@@ -109,10 +115,17 @@ try {
     unset($withoutCompanies[0]->companies);
     $otherKey = FormJson::decode((string) file_get_contents($fixtureFile));
     $otherKey[0]->companies = (object) ['first' => FormJson::decode($json)->companies->__00000000000b2__];
+    // A stored record holds its companies complete, in member order; the store does not complete them.
+    $incomplete = FormJson::decode((string) file_get_contents($fixtureFile));
+    $incomplete[0]->companies = FormJson::decode('{"__00000000000b2__":{"name":"B"}}');
+    $outOfOrder = FormJson::decode((string) file_get_contents($fixtureFile));
+    $outOfOrder[0]->companies = FormJson::decode('{"__00000000000b2__":{"stores":{},"name":"B"}}');
     foreach ([
         'not JSON' => 'not json',
         'a record without companies' => FormJson::encode($withoutCompanies),
         'a company row key that is not a row key' => FormJson::encode($otherKey),
+        'a company without stores' => FormJson::encode($incomplete),
+        'company members out of order' => FormJson::encode($outOfOrder),
     ] as $name => $bytes) {
         file_put_contents($storeFile, $bytes);
         foreach ([

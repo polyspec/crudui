@@ -607,6 +607,8 @@ const checks = [
       ['{"form":[]}', 'application/json', 400],
       ['{"form":{"companies":null}}', 'application/json', 400],
       ['{"form":{},"number":9007199254740993}', 'application/json', 400],
+      ['{"form":{},"extra":1}', 'application/json', 400],
+      ['_form_complete=1&extra=1', 'application/x-www-form-urlencoded', 400],
       ['{}', 'text/plain', 415],
     ]) {
       const response = await fetch(`/api/${server}/save/${renderingPath}/${framework}`, {

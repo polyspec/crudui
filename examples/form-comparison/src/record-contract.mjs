@@ -7,6 +7,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 
 import { compileForm, createForm } from '@crudui/generator-core';
 import { renderDetail, renderForm, renderList } from '@crudui/generator-html';
+import { JSDOM } from 'jsdom';
 import { validate } from '@crudui/validator';
 
 import customerRecords from '../fixtures/customer-records.json' with { type: 'json' };
@@ -101,6 +102,20 @@ export function nativeFields(data, format, { complete = true } = {}) {
   };
   append(data, 'form');
   if (complete) fields.append('_form_complete', '1');
+  return fields;
+}
+
+/**
+ * The multipart fields a browser submits from rendered form content: the form's successful
+ * controls in tree order, as FormData collects them, and the completion field of its submit button.
+ */
+export function browserFields(html) {
+  const { window } = new JSDOM(`<form>${html}</form>`);
+  const fields = new FormData();
+  for (const [name, value] of new window.FormData(window.document.querySelector('form'))) {
+    fields.append(name, typeof value === 'string' ? value : '');
+  }
+  fields.append('_form_complete', '1');
   return fields;
 }
 
@@ -264,6 +279,69 @@ export const recordContractCases = Object.freeze([
     },
   })),
   {
+    id: 'save-completes-absent-members',
+    async run(client) {
+      await client.reset();
+      // Form data leaves out a field that holds no value: a new row carries only its defaults.
+      const data = edited('27', 'absent');
+      delete data.markup;
+      const company = Object.values(data.companies)[0];
+      company.stores.__00000000000ab__ = { name: 'New store', enabled: '1',
+        departments: { __00000000000ac__: { name: 'New department' } } };
+      const complete = structuredClone(data);
+      complete.markup = '';
+      Object.assign(Object.values(complete.companies)[0].stores.__00000000000ab__,
+        { detail: '', title: { ko: '', en: '' } });
+      complete.companies = Object.fromEntries(Object.entries(complete.companies).map(([key, row]) =>
+        [key, { ...row, stores: Object.fromEntries(Object.entries(row.stores).map(([storeKey, store]) =>
+          [storeKey, { name: store.name, enabled: store.enabled, detail: store.detail, title: store.title,
+            departments: store.departments }])) }]));
+      for (const format of ['json', 'multipart']) {
+        await client.reset();
+        const result = await client.save('27', data, format);
+        assert.equal(result.status, 200, `${format}: ${result.text}`);
+        assert.deepEqual((await client.storeRecords())[26], savedRecord(recordFixture()[26], complete),
+          `${format}: absent members are stored as empty values in member order`);
+      }
+      // An absent required value is empty, so the validator reports it.
+      const unnamed = edited('27', 'unnamed');
+      Object.values(unnamed.companies)[0].stores.__00000000000ad__ = { enabled: '1' };
+      const result = await client.save('27', unnamed, 'json');
+      assert.equal(result.status, 422, result.text);
+    },
+  },
+  ...['json', 'multipart'].map(format => ({
+    id: `save-library-data-${format}`,
+    async run(client) {
+      await client.reset();
+      // The submission is what the library itself produces: the stored record loaded into a form
+      // instance, a company (with its initial store and department) added with the row operation
+      // and two names typed. JSON sends getData(), which leaves out the untouched fields of the new
+      // rows; the native form sends what a browser submits from the rendered form.
+      const record = recordFixture()[28];
+      const form = createForm(compileForm(recordSpecs().form, { keyPrefix: 'form' }), formData(record), { language: 'ko' });
+      const companyKey = '__00000000000c1__';
+      form.addRow('companies', { key: companyKey });
+      const storeKey = Object.keys(form.getData().companies[companyKey].stores)[0];
+      form.setValue(`companies.${companyKey}.name`, 'Library company');
+      form.setValue(`companies.${companyKey}.stores.${storeKey}.name`, 'Library store');
+      const data = form.getData();
+      const store = data.companies[companyKey].stores[storeKey];
+      assert.equal(store.detail, undefined, 'the library leaves out an untouched field of a new row');
+      const request = format === 'json' ? submission(data, 'json') : { body: browserFields(renderForm(form)) };
+      const result = await client.request('POST', '/api/records/29', request);
+      assert.equal(result.status, 200, `${format}: ${result.text}`);
+      const saved = (await client.storeRecords())[28];
+      assert.deepEqual(saved.companies[companyKey], {
+        name: 'Library company',
+        stores: { [storeKey]: {
+          name: 'Library store', enabled: store.enabled ?? '', detail: '', title: { ko: '', en: '' },
+          departments: Object.fromEntries(Object.keys(store.departments ?? {}).map(key => [key, { name: '' }])),
+        } },
+      }, `${format}: the new rows are stored complete`);
+    },
+  })),
+  {
     id: 'save-companies-validates',
     async run(client) {
       await client.reset();
@@ -294,7 +372,6 @@ export const recordContractCases = Object.freeze([
         ['company is text', variant(data => { data.companies = 'x'; }), 'json'],
         ['row key is not a row key', variant(data => { data.companies = { first: Object.values(data.companies)[0] }; }), 'json'],
         ['store has another member', variant(data => { firstStore(data).extra = 'x'; }), 'json'],
-        ['store misses a member', variant(data => { delete firstStore(data).title; }), 'json'],
         ['enabled is not a checkbox value', variant(data => { firstStore(data).enabled = 'yes'; }), 'multipart'],
         ['title language is missing', variant(data => { firstStore(data).title = { ko: 'x' }; }), 'json'],
         ['department name is a number', variant(data => { firstStore(data).departments = { __0000000000001__: { name: 1 } }; }), 'json'],
@@ -338,7 +415,7 @@ export const recordContractCases = Object.freeze([
         ['different id', '22', submission({ ...data, id: '23' }, 'multipart'), 400],
         ['incomplete native form', '22', { body: nativeFields(data, 'multipart', { complete: false }) }, 400],
         ['unknown member', '22', submission({ ...data, extra: 'x' }, 'urlencoded'), 400],
-        ['missing member', '22', submission({ ...data, relation: undefined }, 'json'), 400],
+        ['missing id', '22', submission({ ...data, id: undefined }, 'json'), 400],
         ['number member', '22', { body: JSON.stringify({ form: { ...data, score: 9021.25 } }), headers: { 'Content-Type': 'application/json' } }, 400],
         ['nested text member', '22', submission({ ...data, name: { ko: 'x' } }, 'json'), 400],
         ['malformed JSON', '22', { body: '{"form":', headers: { 'Content-Type': 'application/json' } }, 400],

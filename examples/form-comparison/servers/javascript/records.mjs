@@ -17,21 +17,25 @@ import {
 const bodyLimit = 2 * 1024 * 1024;
 const positiveInteger = /^[1-9][0-9]*$/;
 // The submitted form (docs/spec/form-comparison.md, "Record resource"): `text` and `checkbox`
-// leaves, objects of fixed members and `rows`, keyed rows of one member shape.
+// leaves, `texts`, an object of exactly these text members, `fields`, an object of these fields,
+// and `rows`, keyed rows of one object of fields.
 const text = 'text';
 const checkbox = 'checkbox';
-const rows = members => ({ rows: members });
+const texts = (...members) => ({ texts: members });
+const fields = members => ({ fields: members });
+const rows = members => ({ rows: fields(members) });
+const required = shape => ({ required: shape });
 const rowKey = /^__[0-9a-f]{13}__$/;
-const formShape = {
-  id: text, name: text, status: text, joined: text, score: text, relation: { name: text }, markup: text,
+const formShape = fields({
+  id: required(text), name: text, status: text, joined: text, score: text, relation: texts('name'), markup: text,
   companies: rows({
     name: text,
     stores: rows({
-      name: text, enabled: checkbox, detail: text, title: { ko: text, en: text },
+      name: text, enabled: checkbox, detail: text, title: texts('ko', 'en'),
       departments: rows({ name: text }),
     }),
   }),
-};
+});
 
 class HttpError extends Error {
   constructor(status, message) {
@@ -42,34 +46,43 @@ class HttpError extends Error {
 
 const isObject = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 
+/** The value of an absent field: empty text, empty texts or no rows. */
+function empty(shape) {
+  if (shape === text || shape === checkbox) return '';
+  if (shape.texts) return Object.fromEntries(shape.texts.map(member => [member, '']));
+  return {};
+}
+
 /**
  * The submitted `value` of `shape` at `path`, completed and in the member order of the shape.
- * A native form omits an unchecked checkbox (`""`) and a collection without rows (`{}`); JSON
- * carries every member. Any other difference answers 400.
+ * Form data leaves out a field that holds no value, so an absent field other than a required one
+ * completes as its empty value in both media types. Any other difference answers 400.
  */
-function shaped(value, shape, native, path) {
+function shaped(value, shape, path) {
   if (shape === text || shape === checkbox) {
-    if (value === undefined && native && shape === checkbox) return '';
     if (typeof value !== 'string') throw new HttpError(400, `Expected text at ${path}`);
     if (shape === checkbox && value !== '' && value !== '1') throw new HttpError(400, `Expected "" or "1" at ${path}`);
     return value;
   }
-  if (value === undefined && native && shape.rows) return {};
   if (!isObject(value)) throw new HttpError(400, `Expected an object at ${path}`);
   const result = {};
   if (shape.rows) {
     for (const [key, row] of Object.entries(value)) {
       if (!rowKey.test(key)) throw new HttpError(400, `Expected a row key at ${path}: ${key}`);
-      result[key] = shaped(row, shape.rows, native, `${path}.${key}`);
+      result[key] = shaped(row, shape.rows, `${path}.${key}`);
     }
     return result;
   }
-  const extra = Object.keys(value).find(member => !Object.hasOwn(shape, member));
+  const names = shape.texts ?? Object.keys(shape.fields);
+  const extra = Object.keys(value).find(member => !names.includes(member));
   if (extra !== undefined) throw new HttpError(400, `Unexpected member ${path}.${extra}`);
-  for (const [member, child] of Object.entries(shape)) {
-    const omittable = native && (child === checkbox || Boolean(child.rows));
-    if (!Object.hasOwn(value, member) && !omittable) throw new HttpError(400, `Missing member ${path}.${member}`);
-    result[member] = shaped(value[member], child, native, `${path}.${member}`);
+  for (const member of names) {
+    // An object of texts holds every member; a field may be absent unless it is required.
+    const child = shape.texts ? required(text) : shape.fields[member];
+    const field = child.required ?? child;
+    if (Object.hasOwn(value, member)) result[member] = shaped(value[member], field, `${path}.${member}`);
+    else if (child.required) throw new HttpError(400, `Missing member ${path}.${member}`);
+    else result[member] = empty(field);
   }
   return result;
 }
@@ -79,8 +92,8 @@ const recordMembers = ['id', 'name', 'status', 'joined', 'score', 'relation', 'a
 
 /**
  * Require the records array of a store or of the fixture: records with exactly the fixture's
- * members in order, `score` a number, every other scalar a string and `companies` in the form's
- * shape. Anything else is a server fault.
+ * members in order, `score` a number, every other scalar a string and `companies` complete in the
+ * form's shape and member order. Anything else is a server fault.
  */
 function checkRecords(value, name) {
   const malformed = (detail, cause) => new Error(`The record ${name} is malformed: ${detail}`, { cause });
@@ -94,12 +107,15 @@ function checkRecords(value, name) {
           : member === 'companies' ? true : typeof item === 'string';
       if (!valid) throw malformed(`expected the record member ${member}`);
     }
+    let companies;
     try {
-      shaped(record.companies, formShape.companies, false, 'companies');
+      companies = shaped(record.companies, formShape.fields.companies, 'companies');
     } catch (error) {
       if (!(error instanceof HttpError)) throw error;
       throw malformed(error.message, error);
     }
+    // A stored record holds its companies complete, in member order.
+    if (JSON.stringify(companies) !== JSON.stringify(record.companies)) throw malformed('expected complete companies in member order');
   }
   return value;
 }
@@ -156,7 +172,7 @@ async function parseSubmission(request, body) {
     if (!isObject(value) || Object.keys(value).length !== 1 || !Object.hasOwn(value, 'form')) {
       throw new HttpError(400, 'Expected { "form": { … } }');
     }
-    return shaped(value.form, formShape, false, 'form');
+    return shaped(value.form, formShape, 'form');
   }
   if (type !== 'multipart/form-data' && type !== 'application/x-www-form-urlencoded') {
     throw new HttpError(415, 'Expected multipart/form-data, application/x-www-form-urlencoded or application/json');
@@ -169,7 +185,7 @@ async function parseSubmission(request, body) {
   } catch {
     throw new HttpError(400, 'Malformed form request');
   }
-  return shaped(nativeForm(fields), formShape, true, 'form');
+  return shaped(nativeForm(fields), formShape, 'form');
 }
 
 /** Parse a view query: `id` first for detail and form, then the selection, each exactly once. */

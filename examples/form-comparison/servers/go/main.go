@@ -229,7 +229,7 @@ func (s server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		failure(w, 415, fmt.Errorf("Expected a form or JSON request"))
 		return
 	}
-	completed, err := shaped(received, scenarioShape, kind != "application/json", "form")
+	completed, err := shaped(received, scenarioShape, "form")
 	if err != nil {
 		failure(w, 400, err)
 		return
