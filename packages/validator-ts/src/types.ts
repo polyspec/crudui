@@ -116,6 +116,19 @@ export interface ValidationContext {
   messages?: MessagesSpec;
   /** Name under which the rule was invoked (e.g., 'pattern' vs 'match') */
   ruleName?: string;
+  /** The state of the validation the rule runs in. */
+  run: ValidationRun;
+}
+
+/**
+ * The state of one validation, dropped when it returns.
+ */
+export interface ValidationRun {
+  /**
+   * For each collection field (container path, field name and filter), the row keys whose
+   * `unique` value an earlier row already holds.
+   */
+  uniqueDuplicates: Map<string, Set<string>>;
 }
 
 /**

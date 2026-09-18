@@ -36,4 +36,19 @@ final class UniqueValuesTest extends TestCase
         ]]);
         self::assertTrue($distinct->valid, 'an object never equals a list');
     }
+
+    public function testRowsBelongToOneValidation(): void
+    {
+        $validator = new \CRUDUI\Validator\Validate\Validator(['type' => 'group', 'properties' => [
+            'rows' => ['type' => 'group', 'multiple' => true, 'properties' => [
+                'code' => ['type' => 'text', 'validate' => ['unique' => true]],
+            ]],
+        ]]);
+        $rows = static fn (string ...$codes): array => ['rows' => array_combine(
+            array_map(static fn (int $i): string => sprintf('__%013d__', $i + 1), array_keys($codes)),
+            array_map(static fn (string $code): array => ['code' => $code], $codes),
+        )];
+        self::assertFalse($validator->validate($rows('x', 'x'))->valid);
+        self::assertTrue($validator->validate($rows('x', 'y'))->valid, 'a second validation answers from its own rows');
+    }
 }
