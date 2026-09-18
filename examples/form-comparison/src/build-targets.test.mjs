@@ -5,7 +5,7 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 import {
-  buildTargets, completeBuild, planBuild, supervisedProcesses, supervisorFiles,
+  buildTargets, completeBuild, planBuild, processesToStart, supervisedProcesses, supervisorFiles,
 } from './build-targets.mjs';
 
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
@@ -166,4 +166,13 @@ test('declares every module the supervisor runs from the mounted repository', as
 test('restarts both PHP servers when the PHP server program changes', () => {
   assert.deepEqual(summary([`${example}/servers/php/main.mjs`]),
     { targets: ['php-server'], restarts: ['php', 'php-ext'], supervisor: false });
+});
+
+test('a cycle starts every supervised process that is not running, in the supervised order', () => {
+  // A cycle that failed before its restarts leaves processes that never started; the next cycle
+  // starts them even though its own plan restarts only what its sources changed.
+  assert.deepEqual(processesToStart(['php', 'php-ext'], ['public', 'php', 'php-ext']),
+    ['php', 'php-ext', 'go', 'rust']);
+  assert.deepEqual(processesToStart([], ['public', 'php', 'php-ext', 'go', 'rust']), []);
+  assert.deepEqual(processesToStart(['public'], []), ['public', 'php', 'php-ext', 'go', 'rust']);
 });

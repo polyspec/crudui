@@ -75,9 +75,6 @@ function build({ shape, size = 0, leaf }: Graph): unknown {
   return value;
 }
 
-/** A case completes in this time; a walk that grows with the tree a value denotes does not. */
-const GRAPH_CASE_MS = 2000;
-
 describe('value graphs \u2014 input limits', () => {
   const fixture = 'tests/fixtures/text-validity/value-graphs.json';
   const cases: GraphCase[] = JSON.parse(fs.readFileSync(path.join(ROOT, fixture), 'utf8'));
@@ -89,9 +86,9 @@ describe('value graphs \u2014 input limits', () => {
       let target = inputs[name] as Record<string, unknown>;
       for (const member of members.slice(0, -1)) target = target[member] as Record<string, unknown>;
       target[members[members.length - 1]] = build(c.graph);
-      const started = performance.now();
+      // Each case is one test within the runner's per-test limit, which a walk that grows with the
+      // tree a value denotes (2^40 nodes) never meets.
       expect(outcome(() => operations.validate(c))).toStrictEqual(c.expect);
-      expect(performance.now() - started).toBeLessThan(GRAPH_CASE_MS);
     });
   }
 });

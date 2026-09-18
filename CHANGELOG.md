@@ -7,8 +7,15 @@
   2 MiB. They now run on PHP-FPM behind nginx, the way PHP runs in production
   (`examples/form-comparison/servers/php/main.mjs`): nginx ends a body above 2 MiB with the
   contract's JSON 413 before PHP reads it and passes `/api/` requests to `api.php` over FastCGI.
-  The container image installs `php8.4-fpm` and `nginx`, CI installs them for the record-store
-  job, and the filter for the built-in server's access lines is removed.
+  The container image installs `php8.4-fpm` and `nginx`, CI adds nginx to the record-store job
+  (setup-php provides `php-fpm`), and the filter for the built-in server's access lines is removed. PHP-FPM logs to a file in
+  its run directory and copies every message to standard error (`-O`), because a container's
+  standard error is a pipe that `/dev/stderr` cannot reopen.
+- A cycle that failed before its restarts left servers that never started, and the next cycle
+  restarted only what its sources changed, so those servers stayed down. Every cycle now also
+  starts each supervised process that is not running.
+- The toolchain image pinned a Chromium release Debian no longer serves, so the image could not be
+  built; it pins the current `153.0.8010.47-2~deb13u1`.
 - A caller value that shares a container, such as a PHP list built as `$v = [$v, $v]` forty
   times or a JavaScript or Go list holding the same list twice, made the input text walk and the
   PHP value copies take time that doubled with every level, and a PHP array holding two
@@ -22,8 +29,8 @@
 - The PHP value copies and the extension's value conversion apply the same limits to every value
   they convert, so members that no check walks are bounded too.
 - The shared cases `tests/fixtures/text-validity/value-graphs.json` build shared and
-  self-containing values in each of those runtimes and require every case to finish within two
-  seconds.
+  self-containing values in each of those runtimes; each case is one test within the runner's
+  per-test limit, which a walk over the 2^40 nodes of a shared list never meets.
 - The benchmark drivers took their iteration counts unchecked: `--iters 1e20` looped without end in
   PHP, and `0`, `-1`, `1.5` or `abc` ran a meaningless or failing loop. `tools/bench/run.js` and the
   JavaScript, PHP, Go and Rust drivers now accept one to eight decimal digits, `--iters` from 1 and
