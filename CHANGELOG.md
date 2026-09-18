@@ -1,5 +1,18 @@
 # Changes
 
+## 2026-09-18 — Accept the form data the library produces
+
+- Form data leaves out a field that holds no value, such as an untouched field of a new row, and
+  the servers answered 400 to such a JSON submission, so the benchmark's JSON save of a new row
+  failed. Every server now completes absent members as empty values in JSON and native
+  submissions alike and requires only `id`; a store file is still never completed.
+- The contract saves the data the library itself produces: `getData()` after the row operations
+  for JSON, and what a browser submits from the rendered form for the native form. Hand-written
+  submissions had hidden the mismatch.
+- Every server takes the benchmark request through the same rule as the record save: exactly
+  `form` in JSON, exactly `form[...]` and the completion field in a native form; the Rust server
+  had accepted other members.
+
 ## 2026-09-18 — Show the repeated companies form in the canonical record
 
 - The canonical page's form had become seven flat fields when list, detail and form were joined

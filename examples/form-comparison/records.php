@@ -12,11 +12,8 @@ final class RecordStore
     public const PER_PAGE = 20;
     /** The members of a stored record, in order. */
     private const RECORD_MEMBERS = ['id', 'name', 'status', 'joined', 'score', 'relation', 'avatar', 'markup', 'companies'];
-    /**
-     * The submitted form members, in record member order, with the value a native submission
-     * omits (a collection without rows); null marks a member it always posts.
-     */
-    private const FORM_MEMBERS = ['id' => null, 'name' => null, 'status' => null, 'joined' => null, 'score' => null, 'relation' => null, 'markup' => null, 'companies' => []];
+    /** The submitted record form (FormShape); only `id` must be present. */
+    private const FORM = ['fields' => ['id' => 'text', 'name' => 'text', 'status' => 'text', 'joined' => 'text', 'score' => 'text', 'relation' => ['texts' => ['name']], 'markup' => 'text', 'companies' => FormShape::COMPANIES], 'required' => ['id']];
 
     public function __construct(private readonly string $file, private readonly string $fixtureFile) {}
 
@@ -97,21 +94,10 @@ final class RecordStore
         ];
     }
 
-    /**
-     * Require exactly the form members, each a string, with `relation` holding exactly `name` and
-     * `companies` in its keyed row shape (FormShape), and return them in member order.
-     */
+    /** Require the submitted record form and return it completed in member order (FormShape). */
     public static function submission(mixed $form, bool $native): stdClass
     {
-        $members = FormShape::members($form, $native, self::FORM_MEMBERS, 'form');
-        foreach ($members as $name => $value) {
-            $members[$name] = match ($name) {
-                'relation' => (object) ['name' => FormShape::text(FormShape::members($value, $native, ['name' => null], 'relation')['name'], 'relation.name')],
-                'companies' => FormShape::companies($value, $native),
-                default => FormShape::text($value, $name),
-            };
-        }
-        return (object) $members;
+        return FormShape::shaped($form, self::FORM, $native, 'form');
     }
 
     /** Convert submitted number text as JavaScript's Number conversion does. */
@@ -153,8 +139,8 @@ final class RecordStore
 
     /**
      * Require the records array of a JSON file: records with exactly the fixture's members in
-     * order, `score` a number, every other scalar a string and `companies` in the form's shape
-     * (FormShape). Anything else is a server fault.
+     * order, `score` a number, every other scalar a string and `companies` complete in the
+     * form's shape and member order (FormShape). Anything else is a server fault.
      */
     private static function records(mixed $value, string $name): array
     {
@@ -172,10 +158,12 @@ final class RecordStore
                 if (!$valid) throw new RuntimeException("Malformed $name: expected the record member $member");
             }
             try {
-                FormShape::companies($record->companies, false);
+                $companies = FormShape::shaped($record->companies, FormShape::COMPANIES, false, 'companies');
             } catch (InvalidArgumentException $error) {
                 throw new RuntimeException("Malformed $name: {$error->getMessage()}", 0, $error);
             }
+            // A stored record holds its companies complete, in member order.
+            if (FormJson::encode($companies) !== FormJson::encode($record->companies)) throw new RuntimeException("Malformed $name: expected complete companies in member order");
         }
         return $value;
     }

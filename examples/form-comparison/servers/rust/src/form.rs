@@ -1,27 +1,130 @@
 use crate::{bad, Result};
 use serde_json::{json, Map, Value};
 
-/// The members of one row of `companies`, of its `stores` and of their `departments`, in order.
-const ROW_MEMBERS: [&[&str]; 3] = [
-    &["name", "stores"],
-    &["name", "enabled", "detail", "title", "departments"],
-    &["name"],
-];
-/// The languages of a store `title`, in order.
-const TITLE_LANGUAGES: [&str; 2] = ["ko", "en"];
-pub fn text_member(value: Option<&Value>, name: &str) -> Result<Value> {
-    value
-        .filter(|value| value.is_string())
-        .cloned()
-        .ok_or_else(|| bad(format!("Expected text member {name}")))
+/// One part of the submitted form (docs/spec/form-comparison.md, "Record resource"): a text or
+/// checkbox leaf, an object of exactly these text members, an object of fields, or keyed rows of
+/// one object of fields.
+pub enum Shape {
+    Text,
+    Checkbox,
+    Texts(&'static [&'static str]),
+    Fields(&'static [Field]),
+    Rows(&'static Shape),
 }
 
-/// The one rule for submitted `companies` data, of the record save and the benchmark save and
-/// validation: keyed rows of companies, stores and departments with their keys in submitted
-/// order and exactly their members in specification order. A native submission omits an
-/// unchecked `enabled` and a collection without rows; they complete as `""` and `{}`.
-pub fn companies(value: Option<&Value>, native: bool) -> Result<Value> {
-    keyed_rows(value, native, 0)
+/// One member of an object of fields; only a required field must be present.
+pub struct Field {
+    name: &'static str,
+    shape: Shape,
+    required: bool,
+}
+
+pub const fn field(name: &'static str, shape: Shape) -> Field {
+    Field {
+        name,
+        shape,
+        required: false,
+    }
+}
+
+pub const fn required(name: &'static str, shape: Shape) -> Field {
+    Field {
+        name,
+        shape,
+        required: true,
+    }
+}
+
+const DEPARTMENT: Shape = Shape::Fields(&[field("name", Shape::Text)]);
+const STORE: Shape = Shape::Fields(&[
+    field("name", Shape::Text),
+    field("enabled", Shape::Checkbox),
+    field("detail", Shape::Text),
+    field("title", Shape::Texts(&["ko", "en"])),
+    field("departments", Shape::Rows(&DEPARTMENT)),
+]);
+const COMPANY: Shape = Shape::Fields(&[
+    field("name", Shape::Text),
+    field("stores", Shape::Rows(&STORE)),
+]);
+/// The submitted `companies`, of the record form and of the benchmark form.
+pub const COMPANIES: Shape = Shape::Rows(&COMPANY);
+/// The benchmark form, which holds only `companies`.
+pub const SCENARIO: Shape = Shape::Fields(&[field("companies", COMPANIES)]);
+
+/// The value of an absent field: empty text, empty texts or no rows.
+fn empty(shape: &Shape) -> Value {
+    match shape {
+        Shape::Text | Shape::Checkbox => json!(""),
+        Shape::Texts(names) => Value::Object(
+            names
+                .iter()
+                .map(|name| ((*name).into(), json!("")))
+                .collect(),
+        ),
+        Shape::Fields(_) | Shape::Rows(_) => json!({}),
+    }
+}
+
+/// The one rule for submitted form data, of the record save and the benchmark save and
+/// validation: the submitted `value` of `shape` at `path`, completed and in the member order of
+/// the shape, with row keys in submitted order. Form data leaves out a field that holds no value,
+/// so an absent field other than a required one completes as its empty value in both media
+/// types. Any other difference answers 400.
+pub fn shaped(value: &Value, shape: &Shape, path: &str) -> Result<Value> {
+    let members: Vec<(&str, &Shape, bool)> = match shape {
+        Shape::Text | Shape::Checkbox => {
+            let text = value
+                .as_str()
+                .ok_or_else(|| bad(format!("Expected text at {path}")))?;
+            if matches!(shape, Shape::Checkbox) && !text.is_empty() && text != "1" {
+                return Err(bad(format!("Expected \"\" or \"1\" at {path}")));
+            }
+            return Ok(json!(text));
+        }
+        Shape::Rows(row) => {
+            let mut result = Map::new();
+            for (key, value) in object(value, path)? {
+                if !valid_key(key) {
+                    return Err(bad(format!("Expected a row key at {path}: {key}")));
+                }
+                result.insert(key.clone(), shaped(value, row, &format!("{path}.{key}"))?);
+            }
+            return Ok(Value::Object(result));
+        }
+        // An object of texts holds every member; a field may be absent unless it is required.
+        Shape::Texts(names) => names
+            .iter()
+            .map(|name| (*name, &Shape::Text, true))
+            .collect(),
+        Shape::Fields(fields) => fields
+            .iter()
+            .map(|field| (field.name, &field.shape, field.required))
+            .collect(),
+    };
+    let given = object(value, path)?;
+    if let Some(name) = given
+        .keys()
+        .find(|name| !members.iter().any(|(member, _, _)| member == name))
+    {
+        return Err(bad(format!("Unexpected member {path}.{name}")));
+    }
+    let mut result = Map::new();
+    for (name, shape, required) in members {
+        let value = match given.get(name) {
+            Some(value) => shaped(value, shape, &format!("{path}.{name}"))?,
+            None if required => return Err(bad(format!("Missing member {path}.{name}"))),
+            None => empty(shape),
+        };
+        result.insert(name.into(), value);
+    }
+    Ok(Value::Object(result))
+}
+
+fn object<'a>(value: &'a Value, path: &str) -> Result<&'a Map<String, Value>> {
+    value
+        .as_object()
+        .ok_or_else(|| bad(format!("Expected an object at {path}")))
 }
 
 pub fn valid_key(key: &str) -> bool {
@@ -109,57 +212,4 @@ pub fn insert_native(root: &mut Value, name: &str, value: String) -> Result<()> 
     }
     members.insert(last, Value::String(value));
     Ok(())
-}
-
-/// Keyed rows of `companies` at one depth (companies, stores, departments): row keys in
-/// submitted order, each row with exactly its members in specification order.
-fn keyed_rows(value: Option<&Value>, native: bool, depth: usize) -> Result<Value> {
-    let rows = match value {
-        None if native => return Ok(json!({})),
-        None => return Err(bad("Expected keyed rows")),
-        Some(value) => value
-            .as_object()
-            .ok_or_else(|| bad("Expected keyed rows"))?,
-    };
-    let names = ROW_MEMBERS[depth];
-    let mut result = Map::new();
-    for (key, row) in rows {
-        if !valid_key(key) {
-            return Err(bad(format!("Expected a row key instead of {key}")));
-        }
-        let row = row
-            .as_object()
-            .ok_or_else(|| bad("Expected a row object"))?;
-        if let Some(name) = row.keys().find(|name| !names.contains(&name.as_str())) {
-            return Err(bad(format!("Unexpected row member {name}")));
-        }
-        let mut members = Map::new();
-        for name in names {
-            let value = row.get(*name);
-            let value = match *name {
-                "stores" | "departments" => keyed_rows(value, native, depth + 1)?,
-                "enabled" => match value {
-                    None if native => json!(""),
-                    Some(Value::String(text)) if text.is_empty() || text == "1" => json!(text),
-                    _ => return Err(bad("Expected enabled as \"\" or \"1\"")),
-                },
-                "title" => {
-                    let title = value
-                        .and_then(Value::as_object)
-                        .filter(|title| title.len() == TITLE_LANGUAGES.len())
-                        .ok_or_else(|| bad("Expected title with exactly ko and en"))?;
-                    let mut languages = Map::new();
-                    for language in TITLE_LANGUAGES {
-                        languages
-                            .insert(language.into(), text_member(title.get(language), "title")?);
-                    }
-                    Value::Object(languages)
-                }
-                _ => text_member(value, name)?,
-            };
-            members.insert((*name).into(), value);
-        }
-        result.insert(key.clone(), Value::Object(members));
-    }
-    Ok(Value::Object(result))
 }

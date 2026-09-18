@@ -227,43 +227,11 @@ async fn handle(
         let data = load_data(&storage)?;
         return reply(StatusCode::OK, json!({"storage":storage,"data":data}));
     }
-    let (received, native) = match kind.as_str() {
-        "application/json" => {
-            let bytes = axum::body::to_bytes(request.into_body(), MAX_BYTES)
-                .await
-                .map_err(|e| Error {
-                    status: StatusCode::PAYLOAD_TOO_LARGE,
-                    message: e.to_string(),
-                })?;
-            let data = json::decode(&bytes)?
-                .get("form")
-                .cloned()
-                .ok_or_else(|| bad("Expected form object"))?;
-            (data, false)
-        }
-        "multipart/form-data" | "application/x-www-form-urlencoded" => {
-            let fields = parse_native(request, &kind).await?;
-            if fields.get("_form_complete").and_then(Value::as_str) != Some("1") {
-                return Err(bad("Incomplete native form submission"));
-            }
-            (
-                fields.get("form").cloned().unwrap_or_else(|| json!({})),
-                true,
-            )
-        }
-        _ => {
-            return Err(Error {
-                status: StatusCode::UNSUPPORTED_MEDIA_TYPE,
-                message: "Expected a form or JSON request".into(),
-            })
-        }
-    };
-    // The benchmark form has exactly `companies`; its rows follow the one companies rule.
-    let members = received
-        .as_object()
-        .filter(|members| members.keys().all(|name| name == "companies"))
-        .ok_or_else(|| bad("Expected a form object with exactly companies"))?;
-    let data = json!({"companies":form::companies(members.get("companies"), native)?});
+    // One request rule for the record save and the benchmark: exactly `form` in JSON, exactly
+    // `form[...]` and `_form_complete=1` in a native form.
+    let received = records::submitted(request).await?;
+    // The benchmark form holds only `companies`, under the one rule of the record form.
+    let data = form::shaped(&received, &form::SCENARIO, "form")?;
     let spec = read_object(&server.public.join("spec.json"))?;
     let validation = validate(&spec, &data, &ValidateOptions::default()).map_err(|e| Error {
         status: match e {

@@ -802,7 +802,7 @@ async fn invalid_and_rejected_saves_keep_the_store() {
         (
             "/api/records/22",
             json_type,
-            with("relation", Value::Null),
+            with("id", Value::Null),
             StatusCode::BAD_REQUEST,
         ),
         (
@@ -884,8 +884,19 @@ async fn malformed_stores_fail_without_being_replaced() {
     let mut records = customer_records();
     records[0].as_object_mut().unwrap().remove("companies");
     let without_companies = serde_json::to_string(&records).unwrap();
+    // Stored companies are complete in member order; the store does not complete them.
+    let mut records = customer_records();
+    records[0]["companies"] = json!({"__0000000000001__":{"name":"A"}});
+    let incomplete = serde_json::to_string(&records).unwrap();
+    records[0]["companies"] = json!({"__0000000000001__":{"stores":{},"name":"A"}});
+    let out_of_order = serde_json::to_string(&records).unwrap();
     let save = serde_json::to_string(&serde_json::json!({"form":edited("1")})).unwrap();
-    for malformed in ["{\"records\":[]}", without_companies.as_str()] {
+    for malformed in [
+        "{\"records\":[]}",
+        without_companies.as_str(),
+        incomplete.as_str(),
+        out_of_order.as_str(),
+    ] {
         fs::write(server.data.join("records-rust.json"), malformed).unwrap();
         for (method, path, content_type, body) in [
             ("GET", "/api/records?page=1", "", String::new()),
@@ -1062,7 +1073,7 @@ fn companies_keep_rows_and_keys_in_submitted_order_and_member_order() {
             "__0000000000002__":{"departments":{},"title":{"en":"Second","ko":"둘째"},"detail":"Hidden","enabled":"","name":"B"},
             "__0000000000001__":store_row("1")},"name":"Later"},
         "__0000000000000__":{"name":"Earlier","stores":{}}}));
-    let data = records::form_members(&submitted, false).unwrap();
+    let data = records::form_members(&submitted).unwrap();
     assert_eq!(
         data.as_object().unwrap().keys().collect::<Vec<_>>(),
         [
@@ -1105,28 +1116,35 @@ fn companies_keep_rows_and_keys_in_submitted_order_and_member_order() {
 }
 
 #[test]
-fn native_companies_complete_unchecked_enabled_and_empty_collections() {
-    let mut store = store_row("1");
-    store.as_object_mut().unwrap().remove("enabled");
-    store.as_object_mut().unwrap().remove("departments");
-    let native = with_companies(
-        json!({"__0000000000001__":{"name":"A","stores":{"__0000000000002__":store}},
-        "__0000000000003__":{"name":"B"}}),
-    );
-    let data = records::form_members(&native, true).unwrap();
-    let completed = &data["companies"]["__0000000000001__"]["stores"]["__0000000000002__"];
-    assert_eq!(completed["enabled"], "");
-    assert_eq!(completed["departments"], json!({}));
-    assert_eq!(data["companies"]["__0000000000003__"]["stores"], json!({}));
-    let mut without = edited("22");
-    without.as_object_mut().unwrap().remove("companies");
+fn absent_fields_complete_as_empty_values() {
+    // Form data leaves out a field that holds no value, in both media types.
+    let native = with_companies(json!({
+        "__0000000000001__":{"name":"A","stores":{
+            "__0000000000002__":{"name":"Lima","detail":"Open","title":{"ko":"매장","en":"Store"}},
+            "__0000000000004__":{"enabled":"1","departments":{"__0000000000005__":{}}}}},
+        "__0000000000003__":{}}));
+    let data = records::form_members(&native).unwrap();
     assert_eq!(
-        records::form_members(&without, true).unwrap()["companies"],
-        json!({})
+        data["companies"],
+        json!({
+            "__0000000000001__":{"name":"A","stores":{
+                "__0000000000002__":{"name":"Lima","enabled":"","detail":"Open","title":{"ko":"매장","en":"Store"},"departments":{}},
+                "__0000000000004__":{"name":"","enabled":"1","detail":"","title":{"ko":"","en":""},
+                    "departments":{"__0000000000005__":{"name":""}}}}},
+            "__0000000000003__":{"name":"","stores":{}}})
     );
-    // A JSON submission carries every member.
-    assert!(records::form_members(&native, false).is_err());
-    assert!(records::form_members(&without, false).is_err());
+    assert_eq!(
+        records::form_members(&json!({"id":"22"})).unwrap(),
+        json!({"id":"22","name":"","status":"","joined":"","score":"","relation":{"name":""},"markup":"","companies":{}})
+    );
+    let mut without_id = edited("22");
+    without_id.as_object_mut().unwrap().remove("id");
+    assert!(records::form_members(&without_id).is_err());
+    for relation in [json!({}), json!({"name":"R","extra":"x"})] {
+        let mut data = edited("22");
+        data["relation"] = relation;
+        assert!(records::form_members(&data).is_err());
+    }
 }
 
 #[test]
@@ -1163,12 +1181,6 @@ fn companies_reject_every_other_shape() {
             "store has another member",
             store(&|row| {
                 row.insert("extra".into(), json!("x"));
-            }),
-        ),
-        (
-            "store misses title",
-            store(&|row| {
-                row.remove("title");
             }),
         ),
         (
@@ -1245,10 +1257,8 @@ fn companies_reject_every_other_shape() {
         ),
     ];
     for (name, data) in cases {
-        for native in [false, true] {
-            let error = records::form_members(&data, native).unwrap_err();
-            assert_eq!(error.status, StatusCode::BAD_REQUEST, "{name} ({native})");
-        }
+        let error = records::form_members(&data).unwrap_err();
+        assert_eq!(error.status, StatusCode::BAD_REQUEST, "{name}");
     }
 }
 
@@ -1281,14 +1291,7 @@ async fn benchmark_saves_and_validations_use_the_companies_rule() {
     other_member["other"] = json!("x");
     let cases = [
         ("form has another member", other_member),
-        ("form misses companies", json!({})),
         ("companies is a list", json!({"companies":[]})),
-        (
-            "company misses stores",
-            company(&|row| {
-                row.remove("stores");
-            }),
-        ),
         (
             "company name is null",
             company(&|row| {
@@ -1299,12 +1302,6 @@ async fn benchmark_saves_and_validations_use_the_companies_rule() {
             "company has another member",
             company(&|row| {
                 row.insert("extra".into(), json!("x"));
-            }),
-        ),
-        (
-            "store misses detail",
-            first_store(&|row| {
-                row.remove("detail");
             }),
         ),
         (
@@ -1338,6 +1335,24 @@ async fn benchmark_saves_and_validations_use_the_companies_rule() {
         }
     }
     assert_eq!(fs::read(&repo.file).unwrap(), before);
+    // JSON data of a newly added row and of a form without rows completes as the native form does.
+    let added = json!({"companies":{"__0000000000001__":{"name":"C","stores":{
+        "__0000000000002__":{"name":"S","enabled":"1","departments":{"__0000000000003__":{}}}}}}});
+    let completed = json!({"companies":{"__0000000000001__":{"name":"C","stores":{
+        "__0000000000002__":{"name":"S","enabled":"1","detail":"","title":{"ko":"","en":""},
+            "departments":{"__0000000000003__":{"name":""}}}}}}});
+    for (form, expected) in [(added, completed), (json!({}), json!({"companies":{}}))] {
+        let response = request(
+            &app,
+            "POST",
+            "/api/validate/createForm/react",
+            "application/json",
+            json::encode(&json!({"form":form})).unwrap(),
+        )
+        .await;
+        assert_eq!(response.status(), StatusCode::OK);
+        assert_eq!(decoded(response).await["normalized"], expected);
+    }
     // A native save completes an unchecked enabled and collections without rows.
     let mut expected = data.clone();
     let stores = expected["companies"]["__0000000000005__"]["stores"]
@@ -1440,4 +1455,42 @@ fn number_text_matches_ecmascript() {
         };
         assert_eq!(records::number_text(number), expected, "{value}");
     }
+}
+
+#[tokio::test]
+async fn benchmark_requests_hold_exactly_the_form() {
+    let (_directory, server) = fixture();
+    let app = application(server.clone());
+    let file = server.data.join("rust-createForm-react.json");
+    let path = "/api/save/createForm/react";
+    let before = fs::read(&file).ok();
+    for (content_type, body) in [
+        ("application/json", r#"{"form":{},"extra":1}"#),
+        (
+            "application/x-www-form-urlencoded",
+            "_form_complete=1&extra=1",
+        ),
+    ] {
+        let (status, response) = call(&app, "POST", path, content_type, body.into()).await;
+        assert_eq!(
+            status,
+            StatusCode::BAD_REQUEST,
+            "{content_type}: {response}"
+        );
+        assert_eq!(
+            fs::read(&file).ok(),
+            before,
+            "{content_type}: the store is unchanged"
+        );
+    }
+    // A native form without rows posts only the completion field.
+    let (status, response) = call(
+        &app,
+        "POST",
+        "/api/validate/createForm/react",
+        "application/x-www-form-urlencoded",
+        "_form_complete=1".into(),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "{response}");
 }

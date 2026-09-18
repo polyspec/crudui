@@ -70,12 +70,12 @@ final class FormRepository
     }
 
     /**
-     * Require the benchmark form, exactly `companies` in its keyed row shape (FormShape), and
-     * return it as the validator and the response receive it.
+     * Require the benchmark form, only `companies` in its keyed row shape (FormShape), and
+     * return it completed as the validator and the response receive it.
      */
     public static function submission(mixed $form, bool $native): stdClass
     {
-        return (object) ['companies' => FormShape::companies(FormShape::members($form, $native, ['companies' => []], 'form')['companies'], $native)];
+        return FormShape::shaped($form, FormShape::SCENARIO, $native, 'form');
     }
 
     /** Reject reuse of a saved child identifier under a different parent. */
