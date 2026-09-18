@@ -19,7 +19,7 @@
   `0`, `-1`, `1.5`, `abc`는 의미 없거나 실패하는 반복을 실행했습니다. 이제 `tools/bench/run.js`와
   JavaScript·PHP·Go·Rust 드라이버는 1~8자리 10진수만, `--iters`는 1부터, `--warmup`은 0부터
   10000000까지 받고, 그 밖의 값은 검증기를 불러오기 전에 같은 메시지와 종료 상태 2로 거부합니다.
-  `tests/fixtures/bench/iteration-arguments.json`의 공유 사례를 모든 드라이버에 실행합니다
+  `tools/bench/iteration-arguments.json`의 공유 사례를 모든 드라이버에 실행합니다
   (`npm run test:bench`, CI의 네이티브 생성 작업).
 - JavaScript 드라이버는 더 이상 `Validator` 클래스를 내보내지 않는 공개 진입점에서 그 클래스를
   불러와 매번 실패했습니다. 이제 internal 진입점에서 불러옵니다.
@@ -29,6 +29,8 @@
   그룹에서 제한 시간을 두고 실행됩니다(`scripts/bounded-command.mjs`). 제한 시간이 되면
   SIGTERM을 무시하는 프로세스까지 그룹 전체가 멈추며, 각 명령은 경과 시간을 출력합니다.
   `CRUDUI_COMMAND_LIMIT_SECONDS`가 제한 시간을 대신합니다.
+- 벤치마크 Rust 크레이트는 릴리스 빌드를 strip해 도구의 strip 경고를 출력했습니다. 이제 릴리스 프로필을 가진 다른
+  크레이트처럼 산출물을 strip하지 않으며, `tests/build/rust-release-profile.test.mjs`가 이를 요구합니다.
 
 - 모든 런타임에서 표현식 구문 트리의 깊이는 최대 64 단계이며 더 깊은 표현식은 같은
   메시지의 파싱 오류입니다. 깊은 괄호가 TypeScript 파서의 스택을 소진하고 Rust 프로세스를

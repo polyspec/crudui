@@ -40,7 +40,7 @@ export로 로드하고, generator-core의 internal 진입점도 두 형식으로
 멈추는지 검사합니다([명령 제한 시간](../../docs/operations/testing.ko.md#명령-제한-시간)).
 
 `test:bench`는 JavaScript·PHP·Go·Rust 벤치마크 드라이버와 `tools/bench/run.js`가
-`tests/fixtures/bench/iteration-arguments.json`의 반복 횟수를 같은 규칙과 같은 메시지로 받거나
+`tools/bench/iteration-arguments.json`의 반복 횟수를 같은 규칙과 같은 메시지로 받거나
 거부하는지 검사합니다. PHP, Go, Rust가 필요하며 CI의 네이티브 생성 작업이 실행합니다.
 
 `test:build:repeat`는 전체 빌드를 두 번 실행하고 다섯 패키지의 모든 산출물

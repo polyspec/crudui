@@ -4,7 +4,7 @@
  * Every driver applies the same rule (bench-php.php, go/main.go and rust/main.rs repeat it):
  * a count is one to eight decimal digits inside its range, `--iters` from 1 and `--warmup`
  * from 0, both up to MAX_COUNT. Anything else, a missing value included, stops the program
- * with exit status 2 and the one message tests/fixtures/bench/iteration-arguments.json lists.
+ * with exit status 2 and the one message tools/bench/iteration-arguments.json lists.
  */
 
 const MAX_COUNT = 10000000;

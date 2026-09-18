@@ -21,7 +21,7 @@
   PHP, and `0`, `-1`, `1.5` or `abc` ran a meaningless or failing loop. `tools/bench/run.js` and the
   JavaScript, PHP, Go and Rust drivers now accept one to eight decimal digits, `--iters` from 1 and
   `--warmup` from 0 up to 10000000, and reject anything else before loading a validator, with one
-  message and exit status 2. The shared cases in `tests/fixtures/bench/iteration-arguments.json`
+  message and exit status 2. The shared cases in `tools/bench/iteration-arguments.json`
   run against every driver (`npm run test:bench`, in the native generation job of CI).
 - The JavaScript driver loaded the `Validator` class from the public entry, which no longer
   exports it, and failed on every run; it loads it from the internal entry.
@@ -31,6 +31,9 @@
   own process group with a limit (`scripts/bounded-command.mjs`); at the limit the whole group
   stops, a process that ignores SIGTERM included, and each command prints its elapsed time.
   `CRUDUI_COMMAND_LIMIT_SECONDS` replaces the limit.
+- The benchmark's Rust crate stripped its release build and printed the toolchain's strip warning;
+  it keeps its artifacts unstripped like every crate with a release profile, which
+  `tests/build/rust-release-profile.test.mjs` now requires.
 - An expression's syntax tree is at most 64 levels deep in every runtime; a deeper one is a
   parse error with one message. Deep parentheses had exhausted the TypeScript parser's stack and
   aborted the Rust process, and every other runtime accepted any depth. Shared expression cases

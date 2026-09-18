@@ -1,5 +1,5 @@
 // The benchmark drivers take their iteration counts from the command line. Every driver and the
-// orchestrator apply one rule to them, read from tests/fixtures/bench/iteration-arguments.json: a
+// orchestrator apply one rule to them, read from tools/bench/iteration-arguments.json: a
 // count is decimal digits inside its range, and anything else stops the program before it loads a
 // validator, with the same message. An unchecked count such as `--iters 1e20` used to loop without
 // end. Each driver runs as the README documents it; the Go and Rust drivers compile on their first
@@ -14,7 +14,7 @@ import { fileURLToPath } from 'node:url';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const BENCH = path.join(ROOT, 'tools/bench');
 const FIXTURES = path.join(BENCH, 'fixtures');
-const cases = JSON.parse(readFileSync(path.join(ROOT, 'tests/fixtures/bench/iteration-arguments.json'), 'utf8'));
+const cases = JSON.parse(readFileSync(path.join(ROOT, 'tools/bench/iteration-arguments.json'), 'utf8'));
 
 const programs = {
   'bench-js.js': { command: process.execPath, args: [path.join(BENCH, 'bench-js.js')], cwd: BENCH },
