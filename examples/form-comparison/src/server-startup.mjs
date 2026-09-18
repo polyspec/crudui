@@ -4,9 +4,27 @@ import { phpClassNames, phpClassProvenanceFailure } from './php-provenance.mjs';
 import { formServers } from './runtime-paths.mjs';
 import { serverPorts, treeDirectory } from './server-layout.mjs';
 import { sameSourceIdentity } from './source-identity.mjs';
+import { formatDuration, killProcessTree, stepTerminationGraceMs } from './step-runner.mjs';
 
-/** Resolve after one child process publishes its listening-socket event. */
-export function waitForChildReadiness(child, ready) {
+/** A started process announces readiness within this limit (the record servers measured 0.07 to 0.44 s). */
+export const processStartLimitMs = 30_000;
+
+/** One health request answers within this limit (each answers in milliseconds). */
+export const healthRequestLimitMs = 10_000;
+
+/**
+ * Stop one child server and every descendant: SIGTERM, then SIGKILL after the grace period, so a
+ * child that ignores SIGTERM cannot hold the supervisor.
+ */
+export function stopChild(child, graceMs = stepTerminationGraceMs) {
+  return killProcessTree(child, graceMs);
+}
+
+/**
+ * Resolve after one child process publishes its listening-socket event, and fail when it does not
+ * within its limit.
+ */
+export function waitForChildReadiness(child, ready, limitMs = processStartLimitMs) {
   assert.ok(ready && typeof ready.server === 'string', 'Child readiness requires a server');
   assert.ok(['stdout', 'stderr'].includes(ready.stream),
     'Child readiness requires stdout or stderr');
@@ -19,7 +37,10 @@ export function waitForChildReadiness(child, ready) {
   return new Promise((resolve, reject) => {
     let received = '';
     let settled = false;
+    const timer = setTimeout(() => complete(reject, new Error(
+      `${ready.server} published no readiness within ${formatDuration(limitMs)}`)), limitMs);
     function cleanup() {
+      clearTimeout(timer);
       output.off('data', onData);
       child.off('error', onError);
       child.off('exit', onExit);
@@ -51,13 +72,22 @@ export function waitForChildReadiness(child, ready) {
 
 /**
  * Request each API server's health once and require the published source identity and, for
- * the PHP extension, the digest of the module it loaded.
+ * the PHP extension, the digest of the module it loaded. Each request, its body included, holds
+ * its own limit.
  */
-export async function verifyChildServers({ expected, request = fetch }) {
+export async function verifyChildServers({ expected, request = fetch, limitMs = healthRequestLimitMs }) {
   let phpSignatures;
   for (const server of formServers) {
-    const response = await request('http://127.0.0.1:' + serverPorts[server] + '/api/health');
-    const value = await response.json();
+    let response;
+    let value;
+    try {
+      const signal = AbortSignal.timeout(limitMs);
+      response = await request('http://127.0.0.1:' + serverPorts[server] + '/api/health', { signal });
+      value = await response.json();
+    } catch (error) {
+      throw new Error(`${server} health request failed within ${formatDuration(limitMs)}: ${error.message}`,
+        { cause: error });
+    }
     const failure = serverFailureField(server, response.ok, value, expected, phpSignatures);
     if (failure !== null) throw new Error(server + ' failed startup verification: ' + failure);
     if (server === 'php') phpSignatures = value.generator.signatures;

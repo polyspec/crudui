@@ -26,10 +26,13 @@ test('builds one toolchain image without repository source', () => {
 test('installs the pinned PHP, Go, Rust, Node.js and Chromium toolchain', () => {
   const install = instructions.find(line => line.startsWith('RUN apt-get update'));
   for (const name of ['git', 'build-essential', 'tini', 'php8.4-cli', 'php8.4-dev',
-    'php8.4-mbstring', 'php8.4-xml', 'composer', 'chromium=152.0.7977.82-1~deb13u1',
+    'php8.4-mbstring', 'php8.4-xml', 'php8.4-fpm', 'nginx', 'composer', 'chromium=152.0.7977.82-1~deb13u1',
     'chromium-sandbox=152.0.7977.82-1~deb13u1']) {
     assert.ok(install.split(' ').includes(name), name);
   }
+  // The PHP server program starts `php-fpm` and `nginx` by name (servers/php/main.mjs).
+  assert.ok(instructions.some(line => /ln -s \/usr\/sbin\/php-fpm8\.4 \/usr\/local\/sbin\/php-fpm/.test(line)),
+    'php-fpm is reachable by name');
   const environment = instructions.find(line => line.startsWith('ENV '));
   for (const setting of ['RUSTUP_HOME=/usr/local/rustup', 'CARGO_HOME=/workspace/cache/cargo',
     'CARGO_TARGET_DIR=/workspace/build/cargo-target', 'GOPATH=/workspace/cache/go',

@@ -74,15 +74,17 @@ export function verificationChecks() {
 }
 
 /**
- * Wait for the supervisor's current build cycle to finish and require it to be ready. It is one
- * request, answered when the cycle is no longer building, so it is one unit with its own limit
- * that holds however the response arrives; it prints its elapsed time every heartbeat.
- */
-/**
  * Wait for the current build cycle to be ready. The supervisor replaces its build state file at
- * every change, and while a cycle builds it renews `progress` at every step and heartbeat; each
- * build target holds its own limit. The wait therefore has no total limit: it stops when the file
- * shows no new progress within the inactivity limit, which also covers a supervisor that stopped.
+ * every change. While a cycle builds, `progress` names the step it runs (its target, its step and
+ * the limit the step holds) and `progress.at` is renewed every heartbeat. The two are checked
+ * apart:
+ *
+ * - progress is the step: one step may last its own limit plus the inactivity limit, the margin
+ *   in which the supervisor stops it and moves on. A renewed heartbeat never extends a step.
+ * - the heartbeat shows that the supervisor is alive: a `progress.at` that is not renewed within
+ *   the inactivity limit, a missing file or a stopped supervisor stops the wait.
+ *
+ * The wait therefore has no total limit, and no step holds it longer than that step's own limit.
  */
 export async function readyBuild({
   stateFile = buildStateFile, silenceLimitMs = stepSilenceLimitMs, pollMs = 1_000,
@@ -93,9 +95,15 @@ export async function readyBuild({
   const started = performance.now();
   const elapsed = () => formatDuration(performance.now() - started);
   write(`${prefix} started (inactivity limit ${formatDuration(silenceLimitMs)})\n`);
-  let seen;
-  let progressAt = started;
-  let heartbeatAt = started;
+  // The current step, when it started and the limit it holds.
+  let step;
+  let stepAt = started;
+  let stepLimitMs = 0;
+  let stepName = 'no step';
+  // The last heartbeat and when it was seen.
+  let alive;
+  let aliveAt = started;
+  let printedAt = started;
   let reading = 'no answer yet';
   const stop = (status, message) => {
     write(`${prefix} ${status} after ${elapsed()}: ${message}\n`);
@@ -116,20 +124,33 @@ export async function readyBuild({
     if (state?.status === 'failed') {
       stop('failed', `cycle ${state.cycle} failed (${state.error})`);
     }
+    const now = performance.now();
     if (state) {
       assert.equal(state.status, 'building', `Unknown build status ${state.status}`);
-      reading = `cycle ${state.cycle} building ${state.progress?.target ?? ''}`.trim();
-      const identity = JSON.stringify([state.cycle, state.progress]);
-      if (identity !== seen) {
-        seen = identity;
-        progressAt = performance.now();
+      const progress = state.progress ?? {};
+      reading = `cycle ${state.cycle} building ${progress.target} step ${progress.step}`;
+      // A state without a step holds no limit of its own: it may last the inactivity limit.
+      const identity = JSON.stringify([state.cycle, progress.target, progress.step]);
+      if (identity !== step) {
+        step = identity;
+        stepAt = now;
+        stepLimitMs = progress.limitMs ?? 0;
+        stepName = `step ${progress.step} of ${progress.target}`;
+      }
+      if (progress.at !== alive) {
+        alive = progress.at;
+        aliveAt = now;
       }
     }
-    if (performance.now() - progressAt >= silenceLimitMs) {
-      stop('stalled', `no build progress for ${formatDuration(performance.now() - progressAt)} (${reading})`);
+    if (now - aliveAt >= silenceLimitMs) {
+      stop('stalled', `no supervisor heartbeat for ${formatDuration(now - aliveAt)} (${reading})`);
     }
-    if (performance.now() - heartbeatAt >= heartbeatMs) {
-      heartbeatAt = performance.now();
+    if (now - stepAt >= stepLimitMs + silenceLimitMs) {
+      stop('stalled', `${stepName} exceeded its limit of ${formatDuration(stepLimitMs)} by `
+        + `${formatDuration(now - stepAt - stepLimitMs)} (${reading})`);
+    }
+    if (now - printedAt >= heartbeatMs) {
+      printedAt = now;
       write(`${prefix} running ${elapsed()} (${reading})\n`);
     }
     await new Promise(resolve => setTimeout(resolve, pollMs));

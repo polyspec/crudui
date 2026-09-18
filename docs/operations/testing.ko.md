@@ -4,7 +4,9 @@
 
 저장소 루트에서 실행합니다. `npm ci --strict-allow-scripts`로 Node 의존성을
 설치하고 PHP 패키지의
-Composer 의존성을 설치하며 PHP·Go·Cargo를 `PATH`에서 실행할 수 있게 합니다.
+Composer 의존성을 설치하며 PHP·Go·Cargo를 `PATH`에서 실행할 수 있게 합니다. 비교 예제의 PHP 레코드
+서버에는 `php-fpm`과 `nginx`도 필요합니다(Homebrew: `brew install php nginx`, Debian·Ubuntu:
+`php8.x-fpm`과 `nginx`, 그리고 버전이 붙은 실행 파일을 가리키는 `php-fpm` 링크).
 컴파일된 export를 검사하기 전에 JavaScript 패키지를 빌드합니다.
 
 교차 검증 콘솔의 Rust 검증기 프로그램 릴리스 프로필은 `strip = "none"`을 사용합니다. 릴리스

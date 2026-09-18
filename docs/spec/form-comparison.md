@@ -94,7 +94,9 @@ same rule, so each server checks the companies shape in one place. The server
 answers 404 for an unknown id, 415 for another media type, 413 above 2 MiB, and 400 for
 malformed input, a missing completion field, a repeated native field, a missing `id`, an additional or non-text member, a key
 that is not a row key, an `enabled` other than `""` or `"1"`, or an `id` other than the path
-id. It then validates the submission with its own validator and the
+id. A body over 2 MiB is answered with 413 as soon as it passes the limit: the server reads no
+further and closes the connection, so a client cannot hold it by declaring a large body and
+sending it slowly. It then validates the submission with its own validator and the
 `form` specification; an invalid submission answers 422 `{ validation }` with the validator's
 result. A valid submission stores the previous record with the submitted `name`, `status`,
 `joined`, `relation.name`, `markup` and `companies` (its rows in submitted order with their
@@ -125,8 +127,15 @@ and must produce the same bytes and results.
 
 **Record servers.** Every record server takes its listening address, its data directory, its
 public directory and the source identity file: the Go and Rust binaries and
-`servers/javascript/main.mjs` as arguments in that order, PHP as `-S {address}` with the
-environment variables `FORM_DATA_DIRECTORY` and `FORM_PUBLIC_DIRECTORY`. The public server
+`servers/javascript/main.mjs` as arguments in that order. A PHP server is PHP-FPM behind nginx,
+the way PHP runs in production: `servers/php/main.mjs {address} {run directory} -- {php-fpm
+arguments}` writes both configurations into the run directory, starts `php-fpm` and `nginx` from
+the `PATH`, prints its readiness line once both accept connections and stops both when it stops.
+nginx passes `/api/` requests to `api.php` over FastCGI, answers every other path with a JSON 404,
+and ends a request body above 2 MiB with the JSON 413 of the contract before PHP reads it; the
+data and public directories reach `api.php` as `FORM_DATA_DIRECTORY` and
+`FORM_PUBLIC_DIRECTORY`. PHP's built-in server reads a whole body before it runs the script, so
+it could not stop an oversized request. The public server
 takes its address, its data directory, its public directory and the JSON map of the native
 server ports as arguments; it answers the `js` records with the same module that
 `servers/javascript/main.mjs` serves, and it receives the build state over IPC. Each server
@@ -328,9 +337,7 @@ Each target declares its own timeout and reports its start, its elapsed time whi
 it runs and its duration when it finishes; a target that reaches its timeout fails
 the cycle with its process tree stopped. The Git calls of the source comparison and
 of the pinned OrderedJSON checkout are bounded the same way. Each server's output
-carries that server's name. The PHP built-in server writes an `Accepted` and a
-`Closing` line per request, which bury every other message; those two lines are
-dropped and every other line, warnings included, is kept.
+carries that server's name, and every line, warnings included, is kept.
 
 PHP reads its sources on every request, so a PHP source change needs no build or
 restart; only the installed Composer copies are replaced. `composer install` keeps the
@@ -364,9 +371,16 @@ It requires the published identity and, for the PHP extension, the digest of the
 supervisor as a process message. `/api/health` returns `{"status": "ok",
 "servers": [...]}` only for a ready cycle. At every change the supervisor also
 replaces the build state file `state/build-state.json` with the cycle number, status, identity,
-error and `progress`. While a cycle builds, `progress` names the current startup step, target or
-restart and the time it was renewed; the supervisor renews it at each of them and every 15
-seconds, and each target holds its own limit. A failed
+error and `progress`. While a cycle builds, `progress` names the step it runs, its target and the
+limit that step holds: a startup step or the source identity (60 seconds each, file work measured
+at 0.3 and 1.1 seconds on the host), each build target's step (the target's limit plus the
+5-second termination grace), each restart (the grace plus the 30-second process start limit) and
+the health requests (10 seconds each). `progress.at` is renewed every 15 seconds; it shows that
+the supervisor is alive and is not build progress. Every wait of the supervisor holds a limit: a
+child that publishes no readiness within the start limit fails the cycle and is stopped, each
+health request is aborted at its limit, and a stopped process gets `SIGTERM` and, after the grace,
+`SIGKILL` for its whole tree, so a process that ignores `SIGTERM` cannot hold a restart, a reload
+or the shutdown. A failed
 build keeps the previous processes running and reports `failed` with the error. It
 does not select another build.
 
@@ -707,12 +721,11 @@ checks atomic updates, locking, position-based loading, parent ownership,
 rejection without file changes, complete deletion and sequence allocation. Type
 verification checks the same scalar and collection rules in every server.
 
-The PHP servers run with `enable_post_data_reading=0` and read the request body themselves, as
-the other servers do: one parser for urlencoded and multipart bodies rejects a repeated field, a
-name that is both a value and a group, a malformed name and a file part with 400. The
-persistence check's `request-size-limit` therefore gets its 413 from the server's own 2 MiB
-check, and the browser `shape` check's native form with 10,001 fields gets 400 for its
-additional fields; neither request makes PHP log a warning.
+PHP-FPM runs with `enable_post_data_reading=0`, so the PHP servers read the request body
+themselves, as the other servers do: one parser for urlencoded and multipart bodies rejects a
+repeated field, a name that is both a value and a group, a malformed name and a file part with
+400. The persistence check's `request-size-limit` gets its 413 from nginx before PHP runs, and
+the browser `shape` check's native form with 10,001 fields gets 400 for its additional fields.
 
 Fast source tests reproduce report-policy failures, protocol timeout behavior,
 each report's own limit and the progress it reports, the step runner's timeout,
@@ -732,10 +745,13 @@ combinations block integration.
 Verification runs inside the running comparison container as the `node` user,
 with the Chromium sandbox enabled, against the build of the current tree. It waits
 for the current build cycle by reading the build state file every second and requires it to be
-ready; a failed cycle fails the wait. The wait (`build-readiness`) has no total limit: it stops as
-`stalled` when the file shows no new progress for 45 seconds, which also bounds a missing file or
-a stopped supervisor, and it prints its progress line with its elapsed time and the current state
-every 15 seconds. The public server needs the built packages, so it cannot report a cold build;
+ready; a failed cycle fails the wait. The wait (`build-readiness`) has no total limit. Progress is
+the step, identified by cycle, target and step, never the heartbeat: one step may hold the wait
+for its own limit plus the 45-second inactivity limit, and a step still named after that stops the
+wait as `stalled` even while its heartbeat is renewed. Apart from that, a `progress.at` that is not
+renewed for 45 seconds stops the wait as `stalled`, which also bounds a missing file or a stopped
+supervisor. The wait prints its progress line with its elapsed time and the current step every
+15 seconds. The public server needs the built packages, so it cannot report a cold build;
 the file comes from the supervisor, which runs from the start. It clears `/results`, records the identity in
 `results/source.json` and runs these stages in order, stopping at the first stage
 with a failed step:

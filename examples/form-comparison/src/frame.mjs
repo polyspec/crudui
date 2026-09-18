@@ -493,7 +493,11 @@ const checks = [
     assertOwnership(restored.storage);
     await load(); equal(departmentName(departments(stores(companies()[0])[1])[0]).value, 'Support', 'recreated department reload');
 
-    while (stores(companies()[0]).length) await click(stores(companies()[0])[0], 'remove-row');
+    // Bounded by the starting count: each pass must remove exactly one store.
+    for (let remaining = stores(companies()[0]).length; remaining > 0; remaining -= 1) {
+      await click(stores(companies()[0])[0], 'remove-row');
+      equal(stores(companies()[0]).length, remaining - 1, 'each store removal removes one store');
+    }
     const noStores = await save();
     equal(noStores.storage.companies.length, 1, 'company remains after store deletion');
     equal(noStores.storage.stores.length, 0, 'stored empty stores');

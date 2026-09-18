@@ -148,24 +148,41 @@ function nativeForm(fields) {
   return form;
 }
 
-async function readBody(request) {
-  const chunks = [];
-  let size = 0;
-  for await (const chunk of request) {
-    size += chunk.length;
-    if (size <= bodyLimit) chunks.push(chunk);
-  }
-  return { size, bytes: Buffer.concat(chunks) };
+/**
+ * Read one request body up to 2 MiB. A body over the limit fails with 413 as soon as it passes the
+ * limit: the rest is never read, and the response closes the connection.
+ */
+function readBody(request) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    let size = 0;
+    const settle = (action, value) => {
+      request.off('data', onData);
+      request.off('end', onEnd);
+      request.off('error', onError);
+      request.pause();
+      action(value);
+    };
+    const onData = chunk => {
+      size += chunk.length;
+      if (size > bodyLimit) settle(reject, new HttpError(413, 'Request exceeds 2 MiB'));
+      else chunks.push(chunk);
+    };
+    const onEnd = () => settle(resolve, Buffer.concat(chunks));
+    const onError = error => settle(reject, error);
+    request.on('data', onData);
+    request.once('end', onEnd);
+    request.once('error', onError);
+  });
 }
 
 /** Parse one save request as the rendered form or as JSON posts it. */
 async function parseSubmission(request, body) {
-  if (body.size > bodyLimit) throw new HttpError(413, 'Request exceeds 2 MiB');
   const type = (request.headers['content-type'] ?? '').split(';')[0].trim().toLowerCase();
   if (type === 'application/json') {
     let value;
     try {
-      value = JSON.parse(body.bytes.toString('utf8'));
+      value = JSON.parse(body.toString('utf8'));
     } catch {
       throw new HttpError(400, 'Malformed JSON');
     }
@@ -180,7 +197,7 @@ async function parseSubmission(request, body) {
   let fields;
   try {
     fields = await new Request('http://localhost/', {
-      method: 'POST', headers: { 'Content-Type': request.headers['content-type'] }, body: body.bytes,
+      method: 'POST', headers: { 'Content-Type': request.headers['content-type'] }, body,
     }).formData();
   } catch {
     throw new HttpError(400, 'Malformed form request');
@@ -330,7 +347,7 @@ export function recordStore({ server = 'js', dataDirectory, publicDirectory }) {
 
   async function reset(request) {
     const body = await readBody(request);
-    if (body.size > 0) throw new HttpError(400, 'A reset takes no request body');
+    if (body.length > 0) throw new HttpError(400, 'A reset takes no request body');
     const fixture = await readFixture();
     await exclusive(() => write(fixture));
     return { total: fixture.length };
@@ -379,8 +396,11 @@ export function recordStore({ server = 'js', dataDirectory, publicDirectory }) {
       const status = error instanceof HttpError ? error.status : 500;
       result = { status, body: { error: error.message } };
     }
-    if (!request.complete) request.resume();
-    response.writeHead(result.status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
+    // A body that was not read to its end is not read further: the connection closes.
+    const connection = request.complete ? {} : { Connection: 'close' };
+    response.writeHead(result.status, {
+      'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', ...connection,
+    });
     response.end(JSON.stringify({ ...result.body, server }));
   }
 

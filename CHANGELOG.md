@@ -2,6 +2,13 @@
 
 ## 2026-09-18 — Bound loops and costs that inputs control
 
+- The PHP record servers ran on PHP's built-in server, which reads a whole request body before
+  it runs the script, so they took any body a client declared while the other servers stop at
+  2 MiB. They now run on PHP-FPM behind nginx, the way PHP runs in production
+  (`examples/form-comparison/servers/php/main.mjs`): nginx ends a body above 2 MiB with the
+  contract's JSON 413 before PHP reads it and passes `/api/` requests to `api.php` over FastCGI.
+  The container image installs `php8.4-fpm` and `nginx`, CI installs them for the record-store
+  job, and the filter for the built-in server's access lines is removed.
 - A caller value that shares a container, such as a PHP list built as `$v = [$v, $v]` forty
   times or a JavaScript or Go list holding the same list twice, made the input text walk and the
   PHP value copies take time that doubled with every level, and a PHP array holding two
@@ -46,6 +53,19 @@
 - The `unique` rule in the PHP extension ran its filter condition for every pair of rows and
   compared every pair; the PHP validator searched a list for every value. Both now take time
   proportional to the rows. Timing tests compare four times the input against the base size.
+- The tree verification's build wait counted the supervisor's heartbeat as build progress, so a
+  hung build step whose heartbeat kept renewing held it forever. Progress is now the step (cycle,
+  target and step, with the limit the step holds): one step holds the wait at most its own limit
+  plus the inactivity limit, and the heartbeat only shows that the supervisor is alive.
+- Every wait of the supervisor holds a limit: a child's readiness, each health request, and each
+  stop, which sends `SIGKILL` to the whole process tree after the termination grace, so a server
+  that ignores `SIGTERM` can no longer hold a restart, a reload or the shutdown.
+- The JavaScript record server kept reading a body over 2 MiB until the end or its request
+  timeout. It now answers 413 as soon as the body passes the limit, reads no further and closes
+  the connection, as the Go and Rust servers do; a shared contract case sends an oversized body
+  that never ends.
+- The tests that removed rows until none were left now run at most the starting count of passes
+  and require each pass to remove one row.
 
 ## 2026-09-18 — Accept the form data the library produces
 

@@ -92,6 +92,15 @@ export const buildTargets = Object.freeze([
     restarts: ['public', 'go', 'rust'],
   },
   {
+    // PHP reads api.php per request; only the PHP server program needs its processes restarted.
+    id: 'php-server',
+    timeoutMs: 60_000,
+    inputs: [new RegExp(`^${example}/servers/php/`)],
+    dependsOn: [],
+    steps: [],
+    restarts: ['php', 'php-ext'],
+  },
+  {
     id: 'public-server',
     timeoutMs: 60_000,
     inputs: [`${example}/server.mjs`, new RegExp(`^${example}/servers/javascript/`),
