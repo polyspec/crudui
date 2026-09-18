@@ -8,7 +8,8 @@
 //! stdout: one JSON line per spec (same shape as the other drivers).
 //!
 //! Build/run with `cargo run --release` (debug codegen would mismeasure).
-//! Args: --iters N, --warmup N, --spec NAME, --fixtures DIR.
+//! Args: --iters N, --warmup N, --spec NAME, --fixtures DIR. The counts follow
+//! the rule of ../arguments.js.
 
 use crudui_validator::validate::Validator;
 use serde_json::Value;
@@ -94,6 +95,24 @@ fn json_opt(v: &Option<String>) -> String {
     }
 }
 
+const MAX_COUNT: usize = 10_000_000;
+
+/// The count a flag names, or the exit with the shared message (../arguments.js).
+fn count_argument(flag: &str, value: Option<&String>) -> usize {
+    let minimum = if flag == "--iters" { 1 } else { 0 };
+    let count = value
+        .filter(|text| (1..=8).contains(&text.len()) && text.bytes().all(|b| b.is_ascii_digit()))
+        .and_then(|text| text.parse::<usize>().ok())
+        .filter(|n| (minimum..=MAX_COUNT).contains(n));
+    match count {
+        Some(n) => n,
+        None => {
+            eprintln!("{flag} must be a whole number from {minimum} to {MAX_COUNT}");
+            std::process::exit(2);
+        }
+    }
+}
+
 fn main() {
     let args: Vec<String> = std::env::args().collect();
     let mut iters = 50000usize;
@@ -104,11 +123,11 @@ fn main() {
     while i < args.len() {
         match args[i].as_str() {
             "--iters" => {
-                iters = args[i + 1].parse().unwrap();
+                iters = count_argument("--iters", args.get(i + 1));
                 i += 1;
             }
             "--warmup" => {
-                warmup = args[i + 1].parse().unwrap();
+                warmup = count_argument("--warmup", args.get(i + 1));
                 i += 1;
             }
             "--spec" => {

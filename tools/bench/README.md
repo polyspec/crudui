@@ -24,6 +24,19 @@ node tools/bench/run.js --json          # raw JSON lines, no table/file
 
 Results print as a table and are written to `tools/bench/results.md`.
 
+`--iters` is a whole number from 1 to 10000000 and `--warmup` one from 0 to
+10000000, written as one to eight decimal digits. `run.js` and every driver
+apply this rule (`arguments.js` and its copies in the PHP, Go and Rust
+drivers) before they load a validator; any other value, such as `1e20`,
+`1.5`, `-1` or `abc`, stops the program with exit status 2 and
+`--iters must be a whole number from 1 to 10000000`. `npm run test:bench`
+checks every driver against `tests/fixtures/bench/iteration-arguments.json`.
+
+`run.js` gives each driver 600 seconds, including the `go run` or cargo
+build. The driver runs in its own process group; at the limit the whole group
+stops, and the run reports that backend as failed.
+`CRUDUI_COMMAND_LIMIT_SECONDS` replaces the limit.
+
 ## What is measured
 
 Each backend:
@@ -84,6 +97,7 @@ byte-identical input, and fixture construction stays out of the timed path.
 | file                | role |
 | ------------------- | ---- |
 | `run.js`            | orchestrator: launch drivers, check agreement, table + `results.md` |
+| `arguments.js`      | the iteration-count rule of `run.js` and `bench-js.js` |
 | `gen-fixtures.js`   | specs → `fixtures/*.spec.json` + `*.input.json` |
 | `bench-js.js`       | JS driver (in-process loop) |
 | `bench-php.php`     | PHP driver (single process, in-process loop) |

@@ -14,6 +14,22 @@
   않는 멤버도 제한됩니다.
 - 공유 케이스 `tests/fixtures/text-validity/value-graphs.json`은 이 런타임들에서 공유하거나 자기
   자신을 담는 값을 만들고, 모든 케이스가 2초 안에 끝나기를 요구합니다.
+## 2026-09-18 — 입력이 정하는 반복과 비용에 한계 설정
+
+- 벤치마크 드라이버는 반복 횟수를 검사하지 않았습니다. `--iters 1e20`은 PHP에서 끝나지 않았고,
+  `0`, `-1`, `1.5`, `abc`는 의미 없거나 실패하는 반복을 실행했습니다. 이제 `tools/bench/run.js`와
+  JavaScript·PHP·Go·Rust 드라이버는 1~8자리 10진수만, `--iters`는 1부터, `--warmup`은 0부터
+  10000000까지 받고, 그 밖의 값은 검증기를 불러오기 전에 같은 메시지와 종료 상태 2로 거부합니다.
+  `tests/fixtures/bench/iteration-arguments.json`의 공유 사례를 모든 드라이버에 실행합니다
+  (`npm run test:bench`, CI의 네이티브 생성 작업).
+- JavaScript 드라이버는 더 이상 `Validator` 클래스를 내보내지 않는 공개 진입점에서 그 클래스를
+  불러와 매번 실패했습니다. 이제 internal 진입점에서 불러옵니다.
+- `run.js`는 제한 시간에 자신이 시작한 프로세스만 멈춰서 그 아래의 `go run`·cargo 프로그램이 계속
+  실행되었습니다. 이제 모든 드라이버, `npm run manifest:test`의 선언된 명령,
+  `scripts/require-current-build.mjs`의 빌드, `scripts/gen-api-docs.mjs`의 각 도구가 자기 프로세스
+  그룹에서 제한 시간을 두고 실행됩니다(`scripts/bounded-command.mjs`). 제한 시간이 되면
+  SIGTERM을 무시하는 프로세스까지 그룹 전체가 멈추며, 각 명령은 경과 시간을 출력합니다.
+  `CRUDUI_COMMAND_LIMIT_SECONDS`가 제한 시간을 대신합니다.
 
 ## 2026-09-18 — 라이브러리가 만드는 폼 데이터 수용
 

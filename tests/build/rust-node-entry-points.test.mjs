@@ -140,6 +140,8 @@ test('Rust documentation coverage uses one resolved toolchain', t => {
 test('Rust API generation uses one resolved toolchain', t => {
   const root = fixture(t, 'crudui-rust-api-', [
     'scripts/gen-api-docs.mjs',
+    'scripts/bounded-command.mjs',
+    'scripts/test-progress/progress.mjs',
   ], [
     'docs/api',
     'docs/public/api',
@@ -167,6 +169,8 @@ test('Rust API generation uses one resolved toolchain', t => {
 test('Rust benchmark uses one resolved toolchain for execution and version metadata', t => {
   const root = fixture(t, 'crudui-rust-benchmark-', [
     'tools/bench/run.js',
+    'tools/bench/arguments.js',
+    'scripts/bounded-command.mjs',
   ], [
     'tools/bench/fixtures',
     'tools/bench/rust',

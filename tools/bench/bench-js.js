@@ -2,8 +2,8 @@
 /**
  * bench-js.js — in-process throughput benchmark for validator-ts.
  *
- * Loads the validator from packages/validator-ts/dist (the same module the
- * cross-language runner imports), builds the Validator once per spec, then
+ * Loads the Validator class from packages/validator-ts/dist/internal.js (the
+ * entry CRUDUI's own packages use), builds the Validator once per spec, then
  * loops validate(input) N times. Process startup, module load, spec parse, and
  * fixture I/O all happen BEFORE timing — the measured window is validate-only.
  *
@@ -11,27 +11,20 @@
  *   {"lang":"js","spec":"contact","iters":50000,"ms":12.3,"opsSec":4065040,"avgUs":0.246,"valid":true,"error":null,"field":null}
  *
  * Args: --iters N (default 50000), --warmup N (default 5000), --spec NAME.
+ * The counts follow the rule of arguments.js, checked before the validator loads.
  */
 
 const fs = require('fs');
 const path = require('path');
+const { count } = require('./arguments');
 
 const FIXTURES = path.join(__dirname, 'fixtures');
-const { Validator } = require(path.join(
-  __dirname,
-  '..',
-  '..',
-  'packages',
-  'validator-ts',
-  'dist',
-  'index.js'
-));
 
 function parseArgs(argv) {
   const out = { iters: 50000, warmup: 5000, spec: null };
   for (let i = 0; i < argv.length; i++) {
-    if (argv[i] === '--iters') out.iters = parseInt(argv[++i], 10);
-    else if (argv[i] === '--warmup') out.warmup = parseInt(argv[++i], 10);
+    if (argv[i] === '--iters') out.iters = count('--iters', argv[++i]);
+    else if (argv[i] === '--warmup') out.warmup = count('--warmup', argv[++i]);
     else if (argv[i] === '--spec') out.spec = argv[++i];
   }
   return out;
@@ -51,7 +44,7 @@ function firstError(result) {
   return { error: e.rule, field: e.path };
 }
 
-function benchSpec(name, iters, warmup) {
+function benchSpec(Validator, name, iters, warmup) {
   const { spec, input } = loadFixture(name);
   // Build the validator once; reuse across all iterations.
   const validator = new Validator(spec);
@@ -96,9 +89,10 @@ function benchSpec(name, iters, warmup) {
 
 function main() {
   const args = parseArgs(process.argv.slice(2));
+  const { Validator } = require(path.join(__dirname, '..', '..', 'packages', 'validator-ts', 'dist', 'internal.js'));
   const specs = args.spec ? [args.spec] : ['contact', 'large'];
   for (const name of specs) {
-    const r = benchSpec(name, args.iters, args.warmup);
+    const r = benchSpec(Validator, name, args.iters, args.warmup);
     process.stdout.write(JSON.stringify(r) + '\n');
   }
 }

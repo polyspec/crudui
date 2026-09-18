@@ -1,0 +1,20 @@
+{
+  "description": "Iteration counts every benchmark driver and tools/bench/run.js accept or reject, with the one message they print on standard error and exit status 2. A count is decimal digits only, inside its range.",
+  "rejected": [
+    { "args": ["--iters", "1e20"], "message": "--iters must be a whole number from 1 to 10000000" },
+    { "args": ["--iters", "0"], "message": "--iters must be a whole number from 1 to 10000000" },
+    { "args": ["--iters", "-1"], "message": "--iters must be a whole number from 1 to 10000000" },
+    { "args": ["--iters", "1.5"], "message": "--iters must be a whole number from 1 to 10000000" },
+    { "args": ["--iters", "abc"], "message": "--iters must be a whole number from 1 to 10000000" },
+    { "args": ["--iters", "+5"], "message": "--iters must be a whole number from 1 to 10000000" },
+    { "args": ["--iters", "10000001"], "message": "--iters must be a whole number from 1 to 10000000" },
+    { "args": ["--iters", "9007199254740993"], "message": "--iters must be a whole number from 1 to 10000000" },
+    { "args": ["--iters"], "message": "--iters must be a whole number from 1 to 10000000" },
+    { "args": ["--warmup", "1e20"], "message": "--warmup must be a whole number from 0 to 10000000" },
+    { "args": ["--warmup", "-1"], "message": "--warmup must be a whole number from 0 to 10000000" },
+    { "args": ["--warmup", "1.5"], "message": "--warmup must be a whole number from 0 to 10000000" },
+    { "args": ["--warmup", "abc"], "message": "--warmup must be a whole number from 0 to 10000000" },
+    { "args": ["--warmup", "10000001"], "message": "--warmup must be a whole number from 0 to 10000000" }
+  ],
+  "accepted": { "args": ["--iters", "1", "--warmup", "0", "--spec", "contact"], "iters": 1 }
+}

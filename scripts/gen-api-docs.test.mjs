@@ -32,7 +32,8 @@ for (const target of ['ts', 'go', 'rust', 'php']) {
           'packages/validator-go', 'packages/validator-rust', 'packages/generator-go', 'packages/generator-rust']) {
           mkdirSync(join(root, path), { recursive: true });
         }
-        for (const file of ['gen-api-docs.mjs', 'run-rust-command.mjs', 'tool-resolution.mjs']) {
+        for (const file of ['gen-api-docs.mjs', 'run-rust-command.mjs', 'tool-resolution.mjs', 'bounded-command.mjs', 'test-progress/progress.mjs']) {
+          mkdirSync(dirname(join(root, 'scripts', file)), { recursive: true });
           copyFileSync(new URL('./' + file, import.meta.url), join(root, 'scripts', file));
         }
         writeFileSync(join(root, 'tools/bin/phpDocumentor.phar'), '');
