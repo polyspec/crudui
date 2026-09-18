@@ -266,10 +266,27 @@ func submittedForm(w http.ResponseWriter, r *http.Request) (*object, error) {
 	if err != nil {
 		return nil, fail(http.StatusBadRequest, err.Error())
 	}
+	received, err := submission(body, kind, r.Header.Get("Content-Type"))
+	if err != nil {
+		return nil, err
+	}
+	form, err := shaped(received, formShape, "form")
+	if err != nil {
+		return nil, err
+	}
+	return form.(*object), nil
+}
+
+// submission reads one form submission, as the record save and the benchmark take it: JSON with
+// exactly the member `form`, or a native form with exactly the fields `form[...]` and
+// `_form_complete=1`. A native form without values posts no `form` field and submits no members.
+func submission(body []byte, kind, contentType string) (*object, error) {
+	native := kind == "multipart/form-data" || kind == "application/x-www-form-urlencoded"
 	var root *object
+	var err error
 	expected := []string{"form"}
 	if native {
-		root, err = parseNative(body, r.Header.Get("Content-Type"))
+		root, err = parseNative(body, contentType)
 		expected = []string{"form", "_form_complete"}
 	} else {
 		var value any
@@ -282,14 +299,17 @@ func submittedForm(w http.ResponseWriter, r *http.Request) (*object, error) {
 	if native && get(root, "_form_complete") != "1" {
 		return nil, fail(http.StatusBadRequest, "Incomplete native form submission")
 	}
+	if native && !root.Has("form") {
+		root.Set("form", record())
+	}
 	if !sameMembers(root.Keys(), expected) {
 		return nil, fail(http.StatusBadRequest, "Expected only the form submission fields")
 	}
-	form, err := shaped(get(root, "form"), formShape, "form")
-	if err != nil {
-		return nil, err
+	form, ok := get(root, "form").(*object)
+	if !ok {
+		return nil, fail(http.StatusBadRequest, "Expected form object")
 	}
-	return form.(*object), nil
+	return form, nil
 }
 
 func sameMembers(keys, expected []string) bool {
