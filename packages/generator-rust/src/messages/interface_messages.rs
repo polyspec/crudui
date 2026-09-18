@@ -1,55 +1,11 @@
-//! Runtime interface text shared by every renderer and implementation.
+//! Interface messages for CRUDUI as string constants.
+//!
+//! Generated from `contracts/interface-messages.json` by
+//! `node tools/generate-interface-messages.mjs` (run in `packages/generator-rust`); do not edit.
 
-use crate::{FormError, FormResult};
+use super::Messages;
 
-/// Interface labels for row, collection and form controls. `{count}` is replaced by a number.
-#[allow(dead_code)]
-pub(crate) struct Messages {
-    /// Move a row up.
-    pub move_up: &'static str,
-    /// Move a row down.
-    pub move_down: &'static str,
-    /// Add a row.
-    pub add_row: &'static str,
-    /// Copy a row.
-    pub copy_row: &'static str,
-    /// Remove a row.
-    pub remove_row: &'static str,
-    /// Expand or collapse a row.
-    pub toggle_row: &'static str,
-    /// Expand every row.
-    pub expand_all: &'static str,
-    /// Collapse every row.
-    pub collapse_all: &'static str,
-    /// Undo the last change.
-    pub undo: &'static str,
-    /// Accessible name of a row's controls.
-    pub row_controls: &'static str,
-    /// Accessible name of an empty collection's controls.
-    pub collection_controls: &'static str,
-    /// Accessible name of the form controls.
-    pub form_controls: &'static str,
-    /// Accessible name of the form buttons in the form footer.
-    pub form_actions: &'static str,
-    /// Default text of a submit button.
-    pub submit: &'static str,
-    /// Default text of a reset button.
-    pub reset: &'static str,
-    /// Structure map heading.
-    pub outline: &'static str,
-    /// Current data heading.
-    pub data: &'static str,
-    /// Row title when the title field is empty.
-    pub untitled: &'static str,
-    /// Collapsed row summary without nested collections.
-    pub collapsed: &'static str,
-    /// Collection row count.
-    pub count: &'static str,
-    /// Collapsed row summary with nested rows.
-    pub children: &'static str,
-}
-
-const KO: Messages = Messages {
+pub const KO: Messages = Messages {
     move_up: "위로",
     move_down: "아래로",
     add_row: "추가",
@@ -58,7 +14,8 @@ const KO: Messages = Messages {
     toggle_row: "펼치기/접기",
     expand_all: "모두 펼치기",
     collapse_all: "모두 접기",
-    undo: "되돌리기",
+    undo: "실행취소",
+    redo: "실행복귀",
     row_controls: "행 컨트롤",
     collection_controls: "컬렉션 컨트롤",
     form_controls: "폼 컨트롤",
@@ -73,7 +30,7 @@ const KO: Messages = Messages {
     children: "하위 {count}개",
 };
 
-const EN: Messages = Messages {
+pub const EN: Messages = Messages {
     move_up: "Move up",
     move_down: "Move down",
     add_row: "Add",
@@ -83,6 +40,7 @@ const EN: Messages = Messages {
     expand_all: "Expand all",
     collapse_all: "Collapse all",
     undo: "Undo",
+    redo: "Redo",
     row_controls: "Row controls",
     collection_controls: "Collection controls",
     form_controls: "Form controls",
@@ -97,7 +55,7 @@ const EN: Messages = Messages {
     children: "Nested rows: {count}",
 };
 
-const JA: Messages = Messages {
+pub const JA: Messages = Messages {
     move_up: "上へ",
     move_down: "下へ",
     add_row: "追加",
@@ -107,6 +65,7 @@ const JA: Messages = Messages {
     expand_all: "すべて展開",
     collapse_all: "すべて折りたたむ",
     undo: "元に戻す",
+    redo: "やり直す",
     row_controls: "行の操作",
     collection_controls: "コレクションの操作",
     form_controls: "フォームの操作",
@@ -121,7 +80,7 @@ const JA: Messages = Messages {
     children: "下位 {count}件",
 };
 
-const ZH: Messages = Messages {
+pub const ZH: Messages = Messages {
     move_up: "上移",
     move_down: "下移",
     add_row: "添加",
@@ -131,6 +90,7 @@ const ZH: Messages = Messages {
     expand_all: "全部展开",
     collapse_all: "全部折叠",
     undo: "撤销",
+    redo: "重做",
     row_controls: "行操作",
     collection_controls: "集合操作",
     form_controls: "表单操作",
@@ -144,21 +104,3 @@ const ZH: Messages = Messages {
     count: "{count} 项",
     children: "子项 {count} 项",
 };
-
-/// Return the interface text for a supported language.
-pub(crate) fn form_messages(language: &str) -> FormResult<&'static Messages> {
-    match language {
-        "ko" => Ok(&KO),
-        "en" => Ok(&EN),
-        "ja" => Ok(&JA),
-        "zh" => Ok(&ZH),
-        _ => Err(FormError::input(format!(
-            "Unsupported language: {language}"
-        ))),
-    }
-}
-
-/// Replace `{count}` in a counted message.
-pub(crate) fn format_count(template: &str, count: usize) -> String {
-    template.replacen("{count}", &count.to_string(), 1)
-}
