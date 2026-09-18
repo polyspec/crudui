@@ -190,7 +190,7 @@ async function artifacts(library) {
     }
     await collect(path.join(base, 'dist'));
   }
-  for (const file of ['check-generation.mjs', 'check-generation.test.mjs', 'src/json.mjs', 'src/scenario.mjs', 'package-lock.json']) {
+  for (const file of ['check-generation.mjs', 'check-generation.test.mjs', 'src/json.mjs', 'src/scenario.mjs', 'fixtures/customer-specs.json', 'package-lock.json']) {
     const input = file === 'package-lock.json'
       ? path.join(library, file)
       : new URL(file, import.meta.url);

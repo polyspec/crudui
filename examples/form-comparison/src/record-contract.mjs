@@ -3,7 +3,7 @@
 // "Record resource"). The JavaScript, PHP, PHP extension, Go and Rust servers are checked by the
 // same cases below; a case that passes for one server and fails for another is a defect.
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 
 import { compileForm, createForm } from '@crudui/generator-core';
 import { renderDetail, renderForm, renderList } from '@crudui/generator-html';
@@ -79,7 +79,7 @@ export function savedRecord(previous, data) {
   return {
     id: previous.id, name: data.name, status: data.status, joined: data.joined,
     score: Number(data.score), relation: { name: data.relation.name },
-    avatar: previous.avatar, markup: data.markup,
+    avatar: previous.avatar, markup: data.markup, companies: structuredClone(data.companies),
   };
 }
 
@@ -88,13 +88,16 @@ export function expectedValidation(data) {
   return validate(recordSpecs().form, data);
 }
 
-/** Native fields of one submission, as the rendered form posts them. */
+/**
+ * Native fields of one submission, as the rendered form posts them: an unchecked `enabled`
+ * checkbox and a collection without rows post nothing.
+ */
 export function nativeFields(data, format, { complete = true } = {}) {
   const fields = format === 'multipart' ? new FormData() : new URLSearchParams();
   const append = (value, name) => {
     if (value !== null && typeof value === 'object') {
       for (const [key, child] of Object.entries(value)) append(child, `${name}[${key}]`);
-    } else fields.append(name, value);
+    } else if (!(name.endsWith('[enabled]') && value === '')) fields.append(name, value);
   };
   append(data, 'form');
   if (complete) fields.append('_form_complete', '1');
@@ -128,6 +131,7 @@ export function recordClient({ origin, server, storeFile, restart }) {
   return {
     server, request, restart,
     storeBytes: () => readFile(storeFile),
+    writeStore: bytes => writeFile(storeFile, bytes),
     storeRecords: async () => JSON.parse(await readFile(storeFile, 'utf8')),
     reset: async () => {
       const result = await request('POST', '/api/records/reset');
@@ -229,6 +233,81 @@ export const recordContractCases = Object.freeze([
         pageRecords(records, 2), 'the list shows the saved values');
     },
   })),
+  ...['multipart', 'urlencoded', 'json'].map(format => ({
+    id: `save-companies-${format}`,
+    async run(client) {
+      await client.reset();
+      // Record 24 has companies whose stores differ; the edit reorders, adds and removes rows,
+      // hides a store's notes and empties a collection, as a person editing the form does.
+      const data = edited('24', format);
+      const [[firstKey, first], ...others] = Object.entries(data.companies);
+      const [[storeKey, store]] = Object.entries(first.stores);
+      store.enabled = '';
+      store.detail = 'Kept while hidden after a save';
+      store.departments = {};
+      const added = { name: 'Added company', stores: { __0f1e2d3c4b5a6__: {
+        name: 'Added store', enabled: '1', detail: '', title: { ko: '추가', en: 'Added' },
+        departments: { __00000000000aa__: { name: 'Added department' } },
+      } } };
+      data.companies = Object.fromEntries([['__0a1b2c3d4e5f6__', added], ...others,
+        [firstKey, { ...first, stores: { [storeKey]: store } }]]);
+      const result = await client.save('24', data, format);
+      assert.equal(result.status, 200, result.text);
+      const expected = savedRecord(recordFixture()[23], data);
+      assert.deepEqual(result.json, {
+        record: expected, validation: { valid: true, errors: [] }, server: client.server,
+      });
+      const stored = (await client.storeRecords())[23];
+      assert.deepEqual(stored, expected, 'the store keeps the rows, their keys and order and the hidden notes');
+      assert.deepEqual(Object.keys(stored.companies), Object.keys(data.companies), 'row order');
+      assert.deepEqual((await client.request('GET', '/api/records/24')).json.record, expected);
+    },
+  })),
+  {
+    id: 'save-companies-validates',
+    async run(client) {
+      await client.reset();
+      const five = edited('25', 'five');
+      const row = Object.values(five.companies)[0];
+      five.companies = Object.fromEntries(['1', '2', '3', '4', '5'].map(n =>
+        [`__000000000000${n}__`, structuredClone(row)]));
+      const unnamed = edited('25', 'unnamed');
+      Object.values(Object.values(unnamed.companies)[0].stores)[0].name = '';
+      for (const [name, data] of [['five companies', five], ['unnamed store', unnamed]]) {
+        for (const format of ['multipart', 'json']) {
+          await unchanged(client, async () => {
+            const result = await client.save('25', data, format);
+            assert.equal(result.status, 422, `${name} (${format}): ${result.text}`);
+            assert.deepEqual(result.json, { validation: expectedValidation(data), server: client.server }, `${name} (${format})`);
+          }, `${name} (${format}): an invalid save stores nothing`);
+        }
+      }
+    },
+  },
+  {
+    id: 'save-companies-rejects-shapes',
+    async run(client) {
+      await client.reset();
+      const variant = change => { const data = edited('26', 'shape'); change(data); return data; };
+      const firstStore = data => Object.values(Object.values(data.companies)[0].stores)[0];
+      const cases = [
+        ['company is text', variant(data => { data.companies = 'x'; }), 'json'],
+        ['row key is not a row key', variant(data => { data.companies = { first: Object.values(data.companies)[0] }; }), 'json'],
+        ['store has another member', variant(data => { firstStore(data).extra = 'x'; }), 'json'],
+        ['store misses a member', variant(data => { delete firstStore(data).title; }), 'json'],
+        ['enabled is not a checkbox value', variant(data => { firstStore(data).enabled = 'yes'; }), 'multipart'],
+        ['title language is missing', variant(data => { firstStore(data).title = { ko: 'x' }; }), 'json'],
+        ['department name is a number', variant(data => { firstStore(data).departments = { __0000000000001__: { name: 1 } }; }), 'json'],
+      ];
+      for (const [name, data, format] of cases) {
+        await unchanged(client, async () => {
+          const result = await client.save('26', data, format);
+          assert.equal(result.status, 400, `${name}: ${result.text}`);
+          assert.equal(typeof result.json?.error, 'string', `${name}: error message`);
+        }, `${name}: the store is unchanged`);
+      }
+    },
+  },
   {
     id: 'save-invalid-keeps-the-store',
     async run(client) {
@@ -264,6 +343,8 @@ export const recordContractCases = Object.freeze([
         ['nested text member', '22', submission({ ...data, name: { ko: 'x' } }, 'json'), 400],
         ['malformed JSON', '22', { body: '{"form":', headers: { 'Content-Type': 'application/json' } }, 400],
         ['additional native field', '22', { body: (() => { const fields = nativeFields(data, 'urlencoded'); fields.append('other', 'x'); return fields; })() }, 400],
+        ['repeated native field', '22', { body: (() => { const fields = nativeFields(data, 'urlencoded'); fields.append('form[name]', 'again'); return fields; })() }, 400],
+        ['repeated multipart field', '22', { body: (() => { const fields = nativeFields(data, 'multipart'); fields.append('form[name]', 'again'); return fields; })() }, 400],
         ['additional JSON member', '22', { body: JSON.stringify({ form: data, other: 1 }), headers: { 'Content-Type': 'application/json' } }, 400],
         ['text request', '22', { body: 'name=x', headers: { 'Content-Type': 'text/plain' } }, 415],
         ['oversized request', '22', submission({ ...data, markup: 'x'.repeat(2 * 1024 * 1024) }, 'urlencoded'), 413],
@@ -276,6 +357,36 @@ export const recordContractCases = Object.freeze([
         }, `${name}: the store is unchanged`);
       }
       assert.equal((await client.request('PUT', '/api/records/22', submission(data, 'json'))).status, 405);
+    },
+  },
+  {
+    id: 'malformed-store-fails-and-is-kept',
+    async run(client) {
+      const record = recordFixture()[0];
+      const { companies, ...withoutCompanies } = record;
+      const store = records => JSON.stringify(records);
+      const malformed = [
+        ['not JSON', 'not json'],
+        ['not a record list', '{}'],
+        ['a record without companies', store([withoutCompanies, ...recordFixture().slice(1)])],
+        ['a record with another member', store([{ ...record, extra: 'x' }, ...recordFixture().slice(1)])],
+        ['a company row key that is not a row key', store([{ ...record, companies: { first: Object.values(companies)[0] } }, ...recordFixture().slice(1)])],
+      ];
+      for (const [name, bytes] of malformed) {
+        await client.reset();
+        await client.writeStore(bytes);
+        for (const [method, target, request] of [
+          ['GET', '/api/records?page=1'], ['GET', '/api/records/1'],
+          ['POST', '/api/records/1', submission(edited('1', 'malformed'), 'json')],
+        ]) {
+          const result = await client.request(method, target, request);
+          assert.equal(result.status, 500, `${name}: ${method} ${target}: ${result.text}`);
+          assert.equal(typeof result.json?.error, 'string', `${name}: error message`);
+        }
+        assert.equal(String(await client.storeBytes()), bytes, `${name}: the store file is kept`);
+      }
+      await client.reset();
+      assert.deepEqual(await client.storeRecords(), recordFixture(), 'reset replaces a malformed store');
     },
   },
   {

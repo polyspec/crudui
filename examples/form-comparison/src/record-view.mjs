@@ -38,5 +38,6 @@ export function formData(record) {
   return {
     id: record.id, name: record.name, status: record.status, joined: record.joined,
     score: String(record.score), relation: { name: record.relation.name }, markup: record.markup,
+    companies: structuredClone(record.companies),
   };
 }

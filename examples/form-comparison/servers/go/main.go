@@ -206,10 +206,6 @@ func (s server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			failure(w, 400, fmt.Errorf("Expected form object"))
 			return
 		}
-		if err = checkJSONShape(received); err != nil {
-			failure(w, 400, err)
-			return
-		}
 	case "application/x-www-form-urlencoded", "multipart/form-data":
 		fields, err := parseNative(body, r.Header.Get("Content-Type"))
 		if err != nil {
@@ -233,11 +229,12 @@ func (s server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		failure(w, 415, fmt.Errorf("Expected a form or JSON request"))
 		return
 	}
-	data, err := normalize(received)
+	completed, err := shaped(received, scenarioShape, kind != "application/json", "form")
 	if err != nil {
 		failure(w, 400, err)
 		return
 	}
+	data := completed.(*object)
 	spec, err := readObject(filepath.Join(s.publicDir, "spec.json"))
 	if err != nil {
 		failure(w, 500, err)

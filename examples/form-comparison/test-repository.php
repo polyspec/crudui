@@ -6,16 +6,22 @@ function check(bool $condition, string $message): void
 {
     if (!$condition) throw new RuntimeException($message);
 }
-function formData(array $state): array
+/** The loaded data of one state as the JSON save receives it. */
+function formData(array $state): stdClass
 {
-    return FormJson::arrays(FormJson::decode(FormJson::encode(FormRepository::loadData($state))));
+    return FormJson::decode(FormJson::encode(FormRepository::loadData($state)));
+}
+/** The repository input of one submitted form. */
+function saved(mixed $form, bool $native): array
+{
+    return FormJson::arrays(FormRepository::submission($form, $native));
 }
 
 $file = sys_get_temp_dir() . '/crudui-repository-' . bin2hex(random_bytes(6)) . '.json';
 $repo = new FormRepository($file);
 try {
     $before = $repo->read();
-    $data = FormRepository::normalize(formData($before));
+    $data = saved(formData($before), false);
     $saved = $repo->save($data);
     check($saved['storage'] === $before, 'Save must preserve every loaded value and ID');
     $second = new FormRepository($file);
@@ -24,7 +30,7 @@ try {
     foreach (['companies', 'stores', 'departments'] as $table) {
         $reversed[$table] = array_reverse($reversed[$table]);
     }
-    check(formData($reversed) === formData($before),
+    check(FormJson::encode(formData($reversed)) === FormJson::encode(formData($before)),
         'Loading must use stored positions rather than physical record order');
 
     $company = array_values($data['companies'])[0];
@@ -50,7 +56,7 @@ try {
 
     $row = ['name' => 'New company', 'stores' => []];
     $insert = ['companies' => ['__abcdef0123456__' => $row]];
-    $created = $repo->save(FormRepository::normalize($insert));
+    $created = $repo->save(saved($insert, true));
     check($created['storage']['companies'][0]['company_seq'] === '2',
         'A deleted sequence must not be reused');
     check($created['storage']['next']['company'] === 3,

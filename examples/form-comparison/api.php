@@ -4,6 +4,7 @@ require_once __DIR__ . '/repository.php';
 require_once __DIR__ . '/generation.php';
 require_once __DIR__ . '/matrix.php';
 require_once __DIR__ . '/records.php';
+require_once __DIR__ . '/request-body.php';
 
 /** Return a JSON response and finish the request. The record resource names only the server. */
 function respond(int $status, array $body, bool $records = false): never
@@ -49,10 +50,7 @@ function currentGeneration(): FormGeneration
 /** Decode one JSON object request within the HTTP size limit. */
 function jsonRequest(): stdClass
 {
-    $raw = file_get_contents('php://input');
-    if ($raw === false) throw new RuntimeException('Cannot read the request');
-    if (strlen($raw) > 2 * 1024 * 1024) respond(413, ['error' => 'Request exceeds 2 MiB']);
-    $request = FormJson::decode($raw);
+    $request = FormJson::decode(RequestBody::read());
     if (!$request instanceof stdClass) throw new InvalidArgumentException('Expected request object');
     return $request;
 }
@@ -116,7 +114,20 @@ function requestMediaType(): string
 /** Whether the request carries a body. */
 function requestHasBody(): bool
 {
-    return (int) ($_SERVER['CONTENT_LENGTH'] ?? 0) > 0 || $_POST !== [] || $_FILES !== [] || file_get_contents('php://input') !== '';
+    return (int) ($_SERVER['CONTENT_LENGTH'] ?? 0) > 0 || RequestBody::read() !== '';
+}
+
+/**
+ * The `form` fields of a native save or validation request: exactly `form[…]` and
+ * `_form_complete=1`, each name once; a request without `form` fields submits no members.
+ */
+function nativeForm(): array
+{
+    $fields = RequestBody::fields($_SERVER['CONTENT_TYPE'] ?? '', RequestBody::read());
+    if (($fields['_form_complete'] ?? null) !== '1') throw new InvalidArgumentException('Incomplete native form submission');
+    unset($fields['_form_complete']);
+    if (array_diff(array_keys($fields), ['form']) !== []) throw new InvalidArgumentException('Expected exactly the form fields');
+    return $fields['form'] ?? [];
 }
 
 /** The customer specifications with the selection query appended to the list and detail links. */
@@ -188,19 +199,11 @@ function recordView(RecordStore $store, string $view): never
 function recordSubmission(): stdClass
 {
     if (requestMediaType() === 'application/json') {
-        $raw = file_get_contents('php://input');
-        if (!is_string($raw)) throw new RuntimeException('Cannot read the request');
-        if (strlen($raw) > 2 * 1024 * 1024) recordFailure(413, 'Request exceeds 2 MiB');
-        $request = FormJson::decode($raw);
+        $request = FormJson::decode(RequestBody::read());
         if (!$request instanceof stdClass || array_keys(get_object_vars($request)) !== ['form']) recordFailure(400, 'Expected a request object with exactly form');
-        return RecordStore::submission($request->form);
+        return RecordStore::submission($request->form, false);
     }
-    if ($_FILES !== []) recordFailure(400, 'File uploads are not part of this form');
-    if (($_POST['_form_complete'] ?? null) !== '1') recordFailure(400, 'Incomplete native form submission');
-    $fields = array_keys($_POST);
-    sort($fields);
-    if ($fields !== ['_form_complete', 'form']) recordFailure(400, 'Expected exactly the form fields');
-    return RecordStore::submission($_POST['form']);
+    return RecordStore::submission(nativeForm(), true);
 }
 
 /** Answer one request of the record resource (docs/spec/form-comparison.md, "Record resource"). */
@@ -250,6 +253,8 @@ function recordRoute(string $path): never
         $record = $store->save($id, $submitted);
         if ($record === null) recordFailure(404, 'Record not found');
         respond(200, ['record' => $record, 'validation' => $validation], true);
+    } catch (LengthException $error) {
+        recordFailure(413, $error->getMessage());
     } catch (InvalidArgumentException | JsonException | UnexpectedValueException | \CRUDUI\FormError $error) {
         recordFailure(400, $error->getMessage());
     } catch (Throwable $error) {
@@ -270,7 +275,6 @@ try {
     $expectedMethod = in_array($action, ['load', 'ssr'], true) ? 'GET' : 'POST';
     if ($_SERVER['REQUEST_METHOD'] !== $expectedMethod) respond(405, ['error' => 'Method not allowed']);
     if ((int) ($_SERVER['CONTENT_LENGTH'] ?? 0) > 2 * 1024 * 1024) respond(413, ['error' => 'Request exceeds 2 MiB']);
-    if ($_FILES !== []) respond(400, ['error' => 'File uploads are not part of this form']);
     $contentType = strtolower(trim(explode(';', $_SERVER['CONTENT_TYPE'] ?? '')[0]));
     $generation = currentGeneration();
     if ($action === 'compile' || $action === 'render') {
@@ -292,29 +296,29 @@ try {
         exit;
     }
     if ($action === 'reset' || $action === 'load') {
-        if (!is_string($_POST['fixture'] ?? 'default')) respond(400, ['error' => 'Expected fixture name']);
-        $state = $action === 'reset' ? $repo->reset($_POST['fixture'] ?? 'default') : $repo->read();
+        if ($action === 'reset') {
+            $fixture = RequestBody::fields($_SERVER['CONTENT_TYPE'] ?? '', RequestBody::read())['fixture'] ?? 'default';
+            if (!is_string($fixture)) respond(400, ['error' => 'Expected fixture name']);
+        }
+        $state = $action === 'reset' ? $repo->reset($fixture) : $repo->read();
         respond(200, ['storage' => $state, 'data' => FormRepository::loadData($state), 'generator' => $generation->provenance()]);
     }
     $spec = FormJson::decode(file_get_contents(FORM_PUBLIC_DIRECTORY . '/spec.json'));
     if ($contentType === 'application/json') {
-        $json = jsonRequest();
-        FormRepository::checkJsonShape($json->form ?? null);
-        $wireReceived = $json->form;
-        $received = FormJson::arrays($wireReceived);
+        $native = false;
+        $received = jsonRequest()->form ?? null;
     } elseif (in_array($contentType, ['multipart/form-data', 'application/x-www-form-urlencoded'], true)) {
-        if (($_POST['_form_complete'] ?? '') !== '1') respond(400, ['error' => 'Incomplete native form submission']);
-        $received = $_POST['form'] ?? [];
-        $wireReceived = $received;
+        $native = true;
+        $received = nativeForm();
     } else respond(415, ['error' => 'Expected a form or JSON request']);
-    if (!is_array($received)) respond(400, ['error' => 'Expected form object']);
-    $data = FormRepository::normalize($received);
-    $normalized = FormRepository::wireData($data);
+    $normalized = FormRepository::submission($received, $native);
     $validation = (array) \CRUDUI\Validator::validate($spec, $normalized);
-    $result = ['transport' => $contentType, 'jsonProcessor' => 'ordered-json', 'validatorSource' => 'current', 'received' => $wireReceived, 'normalized' => $normalized, 'validation' => $validation, 'generator' => $generation->provenance()];
+    $result = ['transport' => $contentType, 'jsonProcessor' => 'ordered-json', 'validatorSource' => 'current', 'received' => $received, 'normalized' => $normalized, 'validation' => $validation, 'generator' => $generation->provenance()];
     if ($action === 'validate') respond(200, $result);
     if (!$validation['valid']) respond(422, $result);
-    respond(200, [...$result, ...$repo->save($data)]);
+    respond(200, [...$result, ...$repo->save(FormJson::arrays($normalized))]);
+} catch (LengthException $error) {
+    respond(413, ['error' => $error->getMessage()]);
 } catch (\CRUDUI\FormError $error) {
     respond(400, ['error' => $error->getMessage(), 'code' => $error->getErrorCode(), 'at' => $error->getPath()]);
 } catch (\CRUDUI\Validator\Compose\ComposeLoadError $error) {

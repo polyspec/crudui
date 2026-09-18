@@ -2,6 +2,7 @@ use super::*;
 use axum::body::{to_bytes, Body};
 use crudui_generator::{compile_form, render_form, BindOptions, CompileOptions, Form};
 use crudui_validator::validate::{validate, ValidateOptions};
+use serde_json::Map;
 use std::fs;
 use tower::ServiceExt;
 
@@ -532,8 +533,20 @@ fn customer_records() -> Vec<Value> {
         .clone()
 }
 
+/// A valid submission for one stored record: edited members and the record's companies.
 fn edited(id: &str) -> Value {
-    json!({"id":id,"name":"Edited & <b>","status":"blocked","joined":"2027-02-28","score":"9021.25","relation":{"name":"Relation / 연관"},"markup":"<em>saved</em>"})
+    let records = customer_records();
+    let record = records.iter().find(|record| record["id"] == id).unwrap();
+    json!({"id":id,"name":"Edited & <b>","status":"blocked","joined":"2027-02-28","score":"9021.25","relation":{"name":"Relation / 연관"},"markup":"<em>saved</em>","companies":record["companies"]})
+}
+
+/// Native fields as the rendered record form posts them: an unchecked `enabled` and a
+/// collection without rows post nothing.
+fn record_fields(data: &Value) -> Vec<(String, String)> {
+    let mut fields = Vec::new();
+    native_fields(data, "form", &mut fields);
+    fields.retain(|(name, value)| !(name.ends_with("[enabled]") && value.is_empty()));
+    fields
 }
 
 fn store(server: &Server) -> Vec<u8> {
@@ -651,8 +664,10 @@ async fn saves_store_the_submitted_members_in_fixture_order() {
     let (_directory, server) = fixture();
     let app = application(server.clone());
     let data = edited("22");
-    let mut fields = Vec::new();
-    native_fields(&data, "form", &mut fields);
+    let mut fields = record_fields(&data);
+    assert!(!fields
+        .iter()
+        .any(|(name, _)| name.ends_with("[departments]")));
     fields.push(("_form_complete".into(), "1".into()));
     let native = form_urlencoded::Serializer::new(String::new())
         .extend_pairs(&fields)
@@ -675,7 +690,7 @@ async fn saves_store_the_submitted_members_in_fixture_order() {
         assert_eq!(status, StatusCode::OK, "{content_type}: {response}");
         let mut records = customer_records();
         let previous = records[21].clone();
-        let expected = json!({"id":"22","name":data["name"],"status":"blocked","joined":"2027-02-28","score":9021.25,"relation":{"name":data["relation"]["name"]},"avatar":previous["avatar"],"markup":"<em>saved</em>"});
+        let expected = json!({"id":"22","name":data["name"],"status":"blocked","joined":"2027-02-28","score":9021.25,"relation":{"name":data["relation"]["name"]},"avatar":previous["avatar"],"markup":"<em>saved</em>","companies":data["companies"]});
         assert_eq!(
             response,
             json!({"record":expected,"validation":{"valid":true,"errors":[]},"server":"rust"})
@@ -844,8 +859,7 @@ async fn invalid_and_rejected_saves_keep_the_store() {
         assert!(response["error"].is_string());
         assert_eq!(store(&server), before, "{body:.80}");
     }
-    let mut fields = Vec::new();
-    native_fields(&data, "form", &mut fields);
+    let fields = record_fields(&data);
     let incomplete = form_urlencoded::Serializer::new(String::new())
         .extend_pairs(&fields)
         .finish();
@@ -867,12 +881,28 @@ async fn invalid_and_rejected_saves_keep_the_store() {
 async fn malformed_stores_fail_without_being_replaced() {
     let (_directory, server) = fixture();
     let app = application(server.clone());
-    fs::write(server.data.join("records-rust.json"), "{\"records\":[]}").unwrap();
-    for (method, path) in [("GET", "/api/records?page=1"), ("GET", "/api/records/1")] {
-        let (status, _) = call(&app, method, path, "", String::new()).await;
-        assert_eq!(status, StatusCode::INTERNAL_SERVER_ERROR);
+    let mut records = customer_records();
+    records[0].as_object_mut().unwrap().remove("companies");
+    let without_companies = serde_json::to_string(&records).unwrap();
+    let save = serde_json::to_string(&serde_json::json!({"form":edited("1")})).unwrap();
+    for malformed in ["{\"records\":[]}", without_companies.as_str()] {
+        fs::write(server.data.join("records-rust.json"), malformed).unwrap();
+        for (method, path, content_type, body) in [
+            ("GET", "/api/records?page=1", "", String::new()),
+            ("GET", "/api/records/1", "", String::new()),
+            ("POST", "/api/records/1", "application/json", save.clone()),
+        ] {
+            let (status, value) = call(&app, method, path, content_type, body).await;
+            assert_eq!(status, StatusCode::INTERNAL_SERVER_ERROR, "{method} {path}");
+            assert!(value["error"].is_string());
+        }
+        assert_eq!(store(&server), malformed.as_bytes());
     }
-    assert_eq!(store(&server), b"{\"records\":[]}");
+    // Reset replaces a malformed store with the fixture.
+    let (status, _) = call(&app, "POST", "/api/records/reset", "", String::new()).await;
+    assert_eq!(status, StatusCode::OK);
+    let stored = json::decode_values(&store(&server)).unwrap();
+    assert_eq!(stored.as_array().unwrap(), &customer_records());
 }
 
 const VIEW_QUERY: &str =
@@ -938,6 +968,12 @@ async fn views_render_the_selected_stage() {
     assert!(html.starts_with(r#"<form id="record-form" method="post" action="/api/rust/records/22" enctype="multipart/form-data">"#));
     assert!(html.ends_with("</form>"));
     assert!(html.contains(r#"name="form[relation][name]""#));
+    for key in records[21]["companies"].as_object().unwrap().keys() {
+        assert!(
+            html.contains(&format!(r#"name="form[companies][{key}][name]""#)),
+            "{key}"
+        );
+    }
     assert!(!html.contains("avatar"));
 }
 
@@ -1004,6 +1040,387 @@ async fn views_reject_other_queries() {
         assert_eq!(status, expected, "{view}?{query}: {body}");
         assert!(body["error"].is_string());
     }
+}
+
+/// One store of a companies submission, with every member.
+fn store_row(enabled: &str) -> Value {
+    json!({"name":"Lima","enabled":enabled,"detail":"Open","title":{"ko":"매장","en":"Store"},
+        "departments":{"__0000000000001__":{"name":"Support"}}})
+}
+
+fn with_companies(companies: Value) -> Value {
+    let mut data = edited("22");
+    data["companies"] = companies;
+    data
+}
+
+#[test]
+fn companies_keep_rows_and_keys_in_submitted_order_and_member_order() {
+    // Members arrive in another order; rows keep their submitted order and keys.
+    let submitted = with_companies(json!({
+        "__00000000000ff__":{"stores":{
+            "__0000000000002__":{"departments":{},"title":{"en":"Second","ko":"둘째"},"detail":"Hidden","enabled":"","name":"B"},
+            "__0000000000001__":store_row("1")},"name":"Later"},
+        "__0000000000000__":{"name":"Earlier","stores":{}}}));
+    let data = records::form_members(&submitted, false).unwrap();
+    assert_eq!(
+        data.as_object().unwrap().keys().collect::<Vec<_>>(),
+        [
+            "id",
+            "name",
+            "status",
+            "joined",
+            "score",
+            "relation",
+            "markup",
+            "companies"
+        ]
+    );
+    let companies = data["companies"].as_object().unwrap();
+    assert_eq!(
+        companies.keys().collect::<Vec<_>>(),
+        ["__00000000000ff__", "__0000000000000__"]
+    );
+    let company = companies["__00000000000ff__"].as_object().unwrap();
+    assert_eq!(company.keys().collect::<Vec<_>>(), ["name", "stores"]);
+    let stores = company["stores"].as_object().unwrap();
+    assert_eq!(
+        stores.keys().collect::<Vec<_>>(),
+        ["__0000000000002__", "__0000000000001__"]
+    );
+    let store = stores["__0000000000002__"].as_object().unwrap();
+    assert_eq!(
+        store.keys().collect::<Vec<_>>(),
+        ["name", "enabled", "detail", "title", "departments"]
+    );
+    assert_eq!(store["detail"], "Hidden", "a hidden detail is kept");
+    assert_eq!(
+        store["title"]
+            .as_object()
+            .unwrap()
+            .keys()
+            .collect::<Vec<_>>(),
+        ["ko", "en"]
+    );
+}
+
+#[test]
+fn native_companies_complete_unchecked_enabled_and_empty_collections() {
+    let mut store = store_row("1");
+    store.as_object_mut().unwrap().remove("enabled");
+    store.as_object_mut().unwrap().remove("departments");
+    let native = with_companies(
+        json!({"__0000000000001__":{"name":"A","stores":{"__0000000000002__":store}},
+        "__0000000000003__":{"name":"B"}}),
+    );
+    let data = records::form_members(&native, true).unwrap();
+    let completed = &data["companies"]["__0000000000001__"]["stores"]["__0000000000002__"];
+    assert_eq!(completed["enabled"], "");
+    assert_eq!(completed["departments"], json!({}));
+    assert_eq!(data["companies"]["__0000000000003__"]["stores"], json!({}));
+    let mut without = edited("22");
+    without.as_object_mut().unwrap().remove("companies");
+    assert_eq!(
+        records::form_members(&without, true).unwrap()["companies"],
+        json!({})
+    );
+    // A JSON submission carries every member.
+    assert!(records::form_members(&native, false).is_err());
+    assert!(records::form_members(&without, false).is_err());
+}
+
+#[test]
+fn companies_reject_every_other_shape() {
+    let store = |change: &dyn Fn(&mut Map<String, Value>)| {
+        let mut row = store_row("1");
+        change(row.as_object_mut().unwrap());
+        with_companies(json!({"__0000000000001__":{"name":"A","stores":{"__0000000000002__":row}}}))
+    };
+    let cases = [
+        ("companies is text", with_companies(json!("x"))),
+        ("companies is a list", with_companies(json!([]))),
+        (
+            "row key is a word",
+            with_companies(json!({"first":{"name":"A","stores":{}}})),
+        ),
+        (
+            "row key has capitals",
+            with_companies(json!({"__00000000000AA__":{"name":"A","stores":{}}})),
+        ),
+        (
+            "row key is short",
+            with_companies(json!({"__000000000001__":{"name":"A","stores":{}}})),
+        ),
+        (
+            "row is text",
+            with_companies(json!({"__0000000000001__":"A"})),
+        ),
+        (
+            "company has another member",
+            with_companies(json!({"__0000000000001__":{"name":"A","stores":{},"extra":"x"}})),
+        ),
+        (
+            "store has another member",
+            store(&|row| {
+                row.insert("extra".into(), json!("x"));
+            }),
+        ),
+        (
+            "store misses title",
+            store(&|row| {
+                row.remove("title");
+            }),
+        ),
+        (
+            "store name is a number",
+            store(&|row| {
+                row.insert("name".into(), json!(1));
+            }),
+        ),
+        (
+            "enabled is yes",
+            store(&|row| {
+                row.insert("enabled".into(), json!("yes"));
+            }),
+        ),
+        (
+            "enabled is true",
+            store(&|row| {
+                row.insert("enabled".into(), json!(true));
+            }),
+        ),
+        (
+            "title misses en",
+            store(&|row| {
+                row.insert("title".into(), json!({"ko":"x"}));
+            }),
+        ),
+        (
+            "title has another language",
+            store(&|row| {
+                row.insert("title".into(), json!({"ko":"x","en":"y","fr":"z"}));
+            }),
+        ),
+        (
+            "title replaces en",
+            store(&|row| {
+                row.insert("title".into(), json!({"ko":"x","fr":"y"}));
+            }),
+        ),
+        (
+            "title is text",
+            store(&|row| {
+                row.insert("title".into(), json!("x"));
+            }),
+        ),
+        (
+            "title leaf is null",
+            store(&|row| {
+                row.insert("title".into(), json!({"ko":"x","en":null}));
+            }),
+        ),
+        (
+            "department name is a number",
+            store(&|row| {
+                row.insert(
+                    "departments".into(),
+                    json!({"__0000000000003__":{"name":1}}),
+                );
+            }),
+        ),
+        (
+            "department has another member",
+            store(&|row| {
+                row.insert(
+                    "departments".into(),
+                    json!({"__0000000000003__":{"name":"x","extra":"y"}}),
+                );
+            }),
+        ),
+        (
+            "department key is a word",
+            store(&|row| {
+                row.insert("departments".into(), json!({"x":{"name":"x"}}));
+            }),
+        ),
+    ];
+    for (name, data) in cases {
+        for native in [false, true] {
+            let error = records::form_members(&data, native).unwrap_err();
+            assert_eq!(error.status, StatusCode::BAD_REQUEST, "{name} ({native})");
+        }
+    }
+}
+
+#[tokio::test]
+async fn benchmark_saves_and_validations_use_the_companies_rule() {
+    let (_directory, server) = fixture();
+    let app = application(server.clone());
+    let repo = Repository {
+        file: server.data.join("rust-createForm-react.json"),
+        fixtures: server.public.join("records.json"),
+    };
+    let data = load_data(&repo.reset("nonsequential").unwrap()).unwrap();
+    let before = fs::read(&repo.file).unwrap();
+    let company = |change: &dyn Fn(&mut Map<String, Value>)| {
+        let mut data = data.clone();
+        change(
+            data["companies"]["__0000000000005__"]
+                .as_object_mut()
+                .unwrap(),
+        );
+        data
+    };
+    let first_store = |change: &dyn Fn(&mut Map<String, Value>)| {
+        company(&|row| {
+            let stores = row["stores"].as_object_mut().unwrap();
+            change(stores.values_mut().next().unwrap().as_object_mut().unwrap());
+        })
+    };
+    let mut other_member = data.clone();
+    other_member["other"] = json!("x");
+    let cases = [
+        ("form has another member", other_member),
+        ("form misses companies", json!({})),
+        ("companies is a list", json!({"companies":[]})),
+        (
+            "company misses stores",
+            company(&|row| {
+                row.remove("stores");
+            }),
+        ),
+        (
+            "company name is null",
+            company(&|row| {
+                row.insert("name".into(), Value::Null);
+            }),
+        ),
+        (
+            "company has another member",
+            company(&|row| {
+                row.insert("extra".into(), json!("x"));
+            }),
+        ),
+        (
+            "store misses detail",
+            first_store(&|row| {
+                row.remove("detail");
+            }),
+        ),
+        (
+            "enabled is 2",
+            first_store(&|row| {
+                row.insert("enabled".into(), json!("2"));
+            }),
+        ),
+        (
+            "title has fr",
+            first_store(&|row| {
+                row.insert("title".into(), json!({"fr":"x"}));
+            }),
+        ),
+    ];
+    for action in ["save", "validate"] {
+        for (name, form) in &cases {
+            let response = request(
+                &app,
+                "POST",
+                &format!("/api/{action}/createForm/react"),
+                "application/json",
+                json::encode(&json!({"form":form})).unwrap(),
+            )
+            .await;
+            assert_eq!(
+                response.status(),
+                StatusCode::BAD_REQUEST,
+                "{action}: {name}"
+            );
+        }
+    }
+    assert_eq!(fs::read(&repo.file).unwrap(), before);
+    // A native save completes an unchecked enabled and collections without rows.
+    let mut expected = data.clone();
+    let stores = expected["companies"]["__0000000000005__"]["stores"]
+        .as_object_mut()
+        .unwrap();
+    let store = stores.values_mut().next().unwrap();
+    store["enabled"] = json!("");
+    store["departments"] = json!({});
+    let mut fields = record_fields(&expected);
+    fields.push(("_form_complete".into(), "1".into()));
+    let body = form_urlencoded::Serializer::new(String::new())
+        .extend_pairs(fields)
+        .finish();
+    let response = request(
+        &app,
+        "POST",
+        "/api/save/createForm/react",
+        "application/x-www-form-urlencoded",
+        body,
+    )
+    .await;
+    assert_eq!(response.status(), StatusCode::OK);
+    let saved = decoded(response).await;
+    assert_eq!(saved["normalized"], expected);
+    assert_eq!(saved["data"], expected);
+}
+
+#[tokio::test]
+async fn repeated_native_fields_are_rejected() {
+    let (_directory, server) = fixture();
+    let app = application(server.clone());
+    for name in ["form[name]", "form[a][b]", "_form_complete"] {
+        let mut root = json!({});
+        form::insert_native(&mut root, name, "x".into()).unwrap();
+        let error = form::insert_native(&mut root, name, "y".into()).unwrap_err();
+        assert_eq!(error.status, StatusCode::BAD_REQUEST, "{name}");
+    }
+    let mut root = json!({});
+    form::insert_native(&mut root, "form[a][b]", "x".into()).unwrap();
+    assert!(form::insert_native(&mut root, "form[a]", "y".into()).is_err());
+    call(&app, "POST", "/api/records/reset", "", String::new()).await;
+    let before = store(&server);
+    let repo = Repository {
+        file: server.data.join("rust-createForm-react.json"),
+        fixtures: server.public.join("records.json"),
+    };
+    let benchmark = load_data(&repo.reset("nonsequential").unwrap()).unwrap();
+    let benchmark_before = fs::read(&repo.file).unwrap();
+    let boundary = "crudui-boundary";
+    for (path, data) in [
+        ("/api/records/22", edited("22")),
+        ("/api/save/createForm/react", benchmark.clone()),
+        ("/api/validate/createForm/react", benchmark),
+    ] {
+        let mut fields = record_fields(&data);
+        fields.push(("_form_complete".into(), "1".into()));
+        let repeated = fields[1].clone();
+        fields.push(repeated);
+        let urlencoded = form_urlencoded::Serializer::new(String::new())
+            .extend_pairs(&fields)
+            .finish();
+        let multipart = fields
+            .iter()
+            .map(|(name, value)| format!("--{boundary}\r\nContent-Disposition: form-data; name=\"{name}\"\r\n\r\n{value}\r\n"))
+            .collect::<String>()
+            + &format!("--{boundary}--\r\n");
+        for (content_type, body) in [
+            ("application/x-www-form-urlencoded".to_string(), urlencoded),
+            (
+                format!("multipart/form-data; boundary={boundary}"),
+                multipart,
+            ),
+        ] {
+            let response = request(&app, "POST", path, &content_type, body).await;
+            assert_eq!(
+                response.status(),
+                StatusCode::BAD_REQUEST,
+                "{path} {content_type}"
+            );
+        }
+    }
+    assert_eq!(store(&server), before);
+    assert_eq!(fs::read(&repo.file).unwrap(), benchmark_before);
 }
 
 #[test]

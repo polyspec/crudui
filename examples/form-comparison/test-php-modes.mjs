@@ -63,7 +63,7 @@ try {
 
   for (const mode of ['php', 'php-ext']) {
     const args = extensions(mode);
-    for (const script of ['test-json.php', 'test-repository.php']) success(mode, script, [...args, script]);
+    for (const script of ['test-json.php', 'test-repository.php', 'test-form-shape.php', 'test-request-body.php']) success(mode, script, [...args, script]);
     success(mode, 'test-generation.php', [
       ...args, 'test-generation.php', library, mode,
       mode === 'php-ext' ? cruduiExtension : '-', mode === 'php-ext' ? moduleSha256 : '-', signaturesFile,

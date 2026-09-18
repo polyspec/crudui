@@ -49,3 +49,21 @@ test('the canonical record form keeps the browser constraint validation', async 
     assert.doesNotMatch(source, /novalidate|noValidate|formnovalidate/i, `${name} turns constraint validation off`);
   }
 });
+
+test('page styles never reach the CRUDUI output, which takes every style from crudui.css', async () => {
+  // A rule whose subject is a bare element (`button`, `p`, `a`, ...) matches CRUDUI's own
+  // controls too, so it must exclude both hosts of CRUDUI output: the frame view and the stage.
+  const css = (await readFile(new URL('./comparison.css', import.meta.url), 'utf8'))
+    .replace(/\/\*[\s\S]*?\*\//g, '').replace(/@media[^{]*\{/g, '');
+  const leaking = [];
+  for (const [, selectors] of css.matchAll(/([^{}]+)\{[^{}]*\}/g)) {
+    for (const selector of selectors.split(/,(?![^(]*\))/).map(item => item.trim()).filter(Boolean)) {
+      const subject = selector.replace(/\([^()]*\)/g, '()').split(/\s*[\s>+~]\s*/).at(-1);
+      if (/^[a-z][a-z0-9]*\b/.test(subject) && !['html', 'body'].includes(subject.match(/^[a-z0-9]+/)[0])
+          && !/^(?:#|\.)/.test(selector) && !selector.includes(':not(#view *, #stage *)')) {
+        leaking.push(selector);
+      }
+    }
+  }
+  assert.deepEqual(leaking, [], 'element rules that reach CRUDUI output');
+});

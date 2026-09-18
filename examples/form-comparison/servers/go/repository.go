@@ -44,10 +44,8 @@ func (r repository) fixture(name string) (*object, error) {
 	return value, nil
 }
 
-// lockedFile runs operation on the decoded contents of file under an exclusive lock, seeding a
-// missing file, and atomically replaces the file when the missing file was seeded or the contents
-// changed. An unreadable or malformed file fails and is left as it is.
-func lockedFile(file string, seed func() (any, error), operation func(any) (any, any, error)) (any, error) {
+// withLock runs operation under an exclusive lock on file.
+func withLock(file string, operation func() (any, error)) (any, error) {
 	lock, err := os.OpenFile(file+".lock", os.O_CREATE|os.O_RDWR, 0600)
 	if err != nil {
 		return nil, err
@@ -57,51 +55,72 @@ func lockedFile(file string, seed func() (any, error), operation func(any) (any,
 		return nil, err
 	}
 	defer syscall.Flock(int(lock.Fd()), syscall.LOCK_UN)
-	var before any
-	stored, err := os.ReadFile(file)
-	missing := os.IsNotExist(err)
-	switch {
-	case missing:
-		before, err = seed()
-	case err == nil:
-		before, err = decodeJSON(stored)
-	}
+	return operation()
+}
+
+// lockedFile runs operation on the decoded contents of file under an exclusive lock, seeding a
+// missing file, and atomically replaces the file when the missing file was seeded or the contents
+// changed. An unreadable or malformed file fails and is left as it is.
+func lockedFile(file string, seed func() (any, error), operation func(any) (any, any, error)) (any, error) {
+	return withLock(file, func() (any, error) {
+		var before any
+		stored, err := os.ReadFile(file)
+		missing := os.IsNotExist(err)
+		switch {
+		case missing:
+			before, err = seed()
+		case err == nil:
+			before, err = decodeJSON(stored)
+		}
+		if err != nil {
+			return nil, err
+		}
+		after, result, err := operation(before)
+		if err != nil {
+			return nil, err
+		}
+		encoded, err := encodeJSON(after)
+		if err != nil {
+			return nil, err
+		}
+		encoded = append(encoded, '\n')
+		if !missing && bytes.Equal(stored, encoded) {
+			return result, nil
+		}
+		return result, replaceFile(file, encoded)
+	})
+}
+
+// replaceLocked replaces file with value under its exclusive lock, whatever the file holds.
+func replaceLocked(file string, value any) error {
+	encoded, err := encodeJSON(value)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	after, result, err := operation(before)
-	if err != nil {
-		return nil, err
-	}
-	encoded, err := encodeJSON(after)
-	if err != nil {
-		return nil, err
-	}
-	encoded = append(encoded, '\n')
-	if !missing && bytes.Equal(stored, encoded) {
-		return result, nil
-	}
+	_, err = withLock(file, func() (any, error) { return nil, replaceFile(file, append(encoded, '\n')) })
+	return err
+}
+
+// replaceFile atomically replaces file with encoded through a temporary file in its directory.
+func replaceFile(file string, encoded []byte) error {
 	temp, err := os.CreateTemp(filepath.Dir(file), ".form-")
 	if err != nil {
-		return nil, err
+		return err
 	}
 	name := temp.Name()
 	defer os.Remove(name)
 	if _, err = temp.Write(encoded); err != nil {
 		temp.Close()
-		return nil, err
+		return err
 	}
 	if err = temp.Sync(); err != nil {
 		temp.Close()
-		return nil, err
+		return err
 	}
 	if err = temp.Close(); err != nil {
-		return nil, err
+		return err
 	}
-	if err = os.Rename(name, file); err != nil {
-		return nil, err
-	}
-	return result, nil
+	return os.Rename(name, file)
 }
 
 // transaction locks the form file and atomically replaces changed records.
