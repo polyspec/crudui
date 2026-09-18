@@ -16,3 +16,6 @@ serde_json = { version = "1", features = ["preserve_order"] }
 # up; this profile block just guarantees release codegen even if invoked plainly.
 [profile.release]
 opt-level = 3
+# Keep release artifacts unstripped: the debuginfo strip runs the toolchain's rust-objcopy, whose
+# macOS distribution may lack libLLVM.dylib.
+strip = "none"
