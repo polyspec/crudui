@@ -5,6 +5,7 @@ package main
 // directory, and list, detail, save, reset and SSR view routes.
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -27,8 +28,8 @@ import (
 const recordsPerPage = 20
 
 // formShape is the submitted record form.
-var formShape = membersOf("id", textLeaf, "name", textLeaf, "status", textLeaf, "joined", textLeaf,
-	"score", textLeaf, "relation", membersOf("name", textLeaf), "markup", textLeaf, "companies", companiesShape)
+var formShape = fieldsOf("id", required(textLeaf), "name", textLeaf, "status", textLeaf, "joined", textLeaf,
+	"score", textLeaf, "relation", textsOf("name"), "markup", textLeaf, "companies", companiesShape)
 
 // recordMembers is the member order of a stored record.
 var (
@@ -102,8 +103,8 @@ func checkRecords(value any) ([]any, error) {
 					ok = ok && slices.Equal(relation.Keys(), []string{"name"})
 				}
 			case "companies":
-				_, err := shaped(value, companiesShape, false, name)
-				ok = err == nil
+				// A stored record holds its companies complete, in member order.
+				ok = completeCompanies(value)
 			default:
 				_, ok = value.(string)
 			}
@@ -113,6 +114,18 @@ func checkRecords(value any) ([]any, error) {
 		}
 	}
 	return records, nil
+}
+
+// completeCompanies reports whether stored companies are their own completion: in the form's
+// shape with every member, in member order.
+func completeCompanies(value any) bool {
+	completed, err := shaped(value, companiesShape, "companies")
+	if err != nil {
+		return false
+	}
+	stored, storedErr := encodeJSON(value)
+	shapedText, shapedErr := encodeJSON(completed)
+	return storedErr == nil && shapedErr == nil && bytes.Equal(stored, shapedText)
 }
 
 // storeTransaction runs operation on the stored records under the store lock.
@@ -272,7 +285,7 @@ func submittedForm(w http.ResponseWriter, r *http.Request) (*object, error) {
 	if !sameMembers(root.Keys(), expected) {
 		return nil, fail(http.StatusBadRequest, "Expected only the form submission fields")
 	}
-	form, err := shaped(get(root, "form"), formShape, native, "form")
+	form, err := shaped(get(root, "form"), formShape, "form")
 	if err != nil {
 		return nil, err
 	}

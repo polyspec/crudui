@@ -4,41 +4,62 @@ declare(strict_types=1);
 /**
  * The shape rule of submitted form data, shared by the record save and the benchmark save and
  * validation (docs/spec/form-comparison.md, "Record resource"). JSON members arrive as objects
- * and carry every member; native fields arrive as arrays and omit an unchecked `enabled`
- * (completed as "") and a collection without rows (completed as no rows).
+ * and native fields as arrays. A shape is a `text` or `checkbox` leaf, `texts`, an object of
+ * exactly these text members, `fields`, an object of these fields of which only the `required`
+ * ones must be present, or `rows`, keyed rows of one object of fields.
  */
 final class FormShape
 {
-    /**
-     * The members of one row at each level of `companies`, in member order, with the value a
-     * native submission omits; null marks a member it always posts.
-     */
-    private const COMPANY_MEMBERS = ['name' => null, 'stores' => []];
-    private const STORE_MEMBERS = ['name' => null, 'enabled' => '', 'detail' => null, 'title' => null, 'departments' => []];
-    private const DEPARTMENT_MEMBERS = ['name' => null];
-    private const TITLE_MEMBERS = ['ko' => null, 'en' => null];
+    private const DEPARTMENT = ['fields' => ['name' => 'text']];
+    private const STORE = ['fields' => ['name' => 'text', 'enabled' => 'checkbox', 'detail' => 'text', 'title' => ['texts' => ['ko', 'en']], 'departments' => ['rows' => self::DEPARTMENT]]];
+    private const COMPANY = ['fields' => ['name' => 'text', 'stores' => ['rows' => self::STORE]]];
+    /** The submitted `companies`, of the record form and of the benchmark form. */
+    public const COMPANIES = ['rows' => self::COMPANY];
+    /** The benchmark form, which holds only `companies`. */
+    public const SCENARIO = ['fields' => ['companies' => self::COMPANIES]];
 
     /**
-     * Require exactly these members of one object (a native one completed with the members it
-     * omits) and return them in member order; `$members` maps each name to its omitted value.
+     * Return the submitted `$value` of `$shape` at `$path`, completed and in the member order of
+     * the shape, with row keys in submitted order. Form data leaves out a field that holds no
+     * value, so an absent field other than a required one completes as its empty value in both
+     * media types. Any other difference is rejected.
      */
-    public static function members(mixed $value, bool $native, array $members, string $path): array
+    public static function shaped(mixed $value, string|array $shape, bool $native, string $path): string|stdClass
     {
-        $given = self::object($value, $native, $path);
-        if ($native) {
-            foreach ($members as $name => $omitted) {
-                if ($omitted !== null && !array_key_exists($name, $given)) $given[$name] = $omitted;
-            }
+        if (is_string($shape)) {
+            if (!is_string($value)) throw new InvalidArgumentException("Expected text at $path");
+            if ($shape === 'checkbox' && !in_array($value, ['', '1'], true)) throw new InvalidArgumentException("Expected \"\" or \"1\" at $path");
+            return $value;
         }
-        $names = array_keys($members);
-        $keys = array_map('strval', array_keys($given));
-        sort($keys);
-        $sorted = $names;
-        sort($sorted);
-        if ($keys !== $sorted) throw new InvalidArgumentException('Expected exactly the members ' . implode(', ', $names) . ": $path");
-        $ordered = [];
-        foreach ($names as $name) $ordered[$name] = $given[$name];
-        return $ordered;
+        $given = self::object($value, $native, $path);
+        $result = new stdClass();
+        if (isset($shape['rows'])) {
+            foreach ($given as $key => $row) {
+                $key = (string) $key;
+                if (!preg_match('/^__[0-9a-f]{13}__$/D', $key)) throw new InvalidArgumentException("Expected a row key at $path: $key");
+                $result->$key = self::shaped($row, $shape['rows'], $native, "$path.$key");
+            }
+            return $result;
+        }
+        // An object of texts holds every member; a field may be absent unless it is required.
+        $members = isset($shape['texts']) ? array_fill_keys($shape['texts'], 'text') : $shape['fields'];
+        $required = isset($shape['texts']) ? $shape['texts'] : ($shape['required'] ?? []);
+        foreach (array_keys($given) as $name) {
+            if (!array_key_exists((string) $name, $members)) throw new InvalidArgumentException("Unexpected member $path.$name");
+        }
+        foreach ($members as $name => $member) {
+            if (array_key_exists($name, $given)) $result->$name = self::shaped($given[$name], $member, $native, "$path.$name");
+            elseif (in_array($name, $required, true)) throw new InvalidArgumentException("Missing member $path.$name");
+            else $result->$name = self::empty($member);
+        }
+        return $result;
+    }
+
+    /** The value of an absent field: empty text, empty texts or no rows. */
+    private static function empty(string|array $shape): string|stdClass
+    {
+        if (is_string($shape)) return '';
+        return (object) array_fill_keys($shape['texts'] ?? [], '');
     }
 
     /** Return the members of a JSON object or of native nested fields (an array that is not a list). */
@@ -46,50 +67,6 @@ final class FormShape
     {
         if (!$native && $value instanceof stdClass) return get_object_vars($value);
         if ($native && is_array($value) && ($value === [] || !array_is_list($value))) return $value;
-        throw new InvalidArgumentException("Expected an object: $path");
-    }
-
-    /** Require one text leaf. */
-    public static function text(mixed $value, string $path): string
-    {
-        if (!is_string($value)) throw new InvalidArgumentException("Expected text member: $path");
-        return $value;
-    }
-
-    /** Require the `companies` rows of one submission and return them as stored. */
-    public static function companies(mixed $value, bool $native): stdClass
-    {
-        return self::rows($value, $native, 'companies', self::COMPANY_MEMBERS, static fn(array $company, string $path): stdClass => (object) [
-            'name' => self::text($company['name'], "$path.name"),
-            'stores' => self::rows($company['stores'], $native, "$path.stores", self::STORE_MEMBERS, static function (array $store, string $path) use ($native): stdClass {
-                $enabled = self::text($store['enabled'], "$path.enabled");
-                if (!in_array($enabled, ['', '1'], true)) throw new InvalidArgumentException("Expected checkbox value 1 or empty text: $path.enabled");
-                $title = self::members($store['title'], $native, self::TITLE_MEMBERS, "$path.title");
-                return (object) [
-                    'name' => self::text($store['name'], "$path.name"),
-                    'enabled' => $enabled,
-                    'detail' => self::text($store['detail'], "$path.detail"),
-                    'title' => (object) ['ko' => self::text($title['ko'], "$path.title.ko"), 'en' => self::text($title['en'], "$path.title.en")],
-                    'departments' => self::rows($store['departments'], $native, "$path.departments", self::DEPARTMENT_MEMBERS, static fn(array $department, string $path): stdClass => (object) [
-                        'name' => self::text($department['name'], "$path.name"),
-                    ]),
-                ];
-            }),
-        ]);
-    }
-
-    /**
-     * Require one keyed collection of rows with exactly these members and return its rows,
-     * converted by `$row`, in submitted order with their submitted keys.
-     */
-    private static function rows(mixed $value, bool $native, string $path, array $members, callable $row): stdClass
-    {
-        $rows = new stdClass();
-        foreach (self::object($value, $native, $path) as $key => $given) {
-            $key = (string) $key;
-            if (!preg_match('/^__[0-9a-f]{13}__$/D', $key)) throw new InvalidArgumentException("Expected a row key: $path.$key");
-            $rows->$key = $row(self::members($given, $native, $members, "$path.$key"), "$path.$key");
-        }
-        return $rows;
+        throw new InvalidArgumentException("Expected an object at $path");
     }
 }

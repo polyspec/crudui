@@ -56,7 +56,8 @@ directory (`/data` in the container). The file holds the records array in id ord
 member order of the fixture. A missing file is seeded from the fixture on its first read; an
 unreadable or malformed file fails the request with 500 and is not replaced. A file is malformed
 unless it is a JSON array of records with exactly the fixture's members in order, `score` a number
-and every other scalar a string, and `companies` in the shape of the form. Reset replaces any
+and every other scalar a string, and `companies` in the shape of the form, complete and in member
+order: a store file is never completed the way a submission is. Reset replaces any
 store file, malformed or not, with the fixture; it is the way to recover a store. Writes are serialized: the
 JavaScript server queues them in its one process, and the PHP, Go and Rust servers take an
 exclusive lock on `records-{server}.json.lock` for the read and the write. A write
@@ -81,15 +82,17 @@ Another method on these paths answers 405.
 
 A save accepts the native form, `multipart/form-data` or `application/x-www-form-urlencoded`
 with exactly the fields `form[…]` and `_form_complete=1` as the rendered form posts them, and
-JSON with exactly the member `form`: `{ "form": { … } }`; another field or member answers 400. The submitted object has exactly the form members `id`, `name`, `status`,
-`joined`, `score`, `relation` (with exactly `name`), `markup` and `companies`, each scalar a
-string and `companies` in the shape above. A native form omits an unchecked `enabled` and a
-collection without rows; the server completes such a submission with `enabled` as `""` and each
-missing collection as no rows, so both media types store the same record. A JSON submission
-carries every member. The benchmark save and validation of the same `companies` data apply this
+JSON with exactly the member `form`: `{ "form": { … } }`; another field or member answers 400. The submitted object holds the form members `id`, `name`, `status`, `joined`,
+`score`, `relation` (with `name`), `markup` and `companies`, each scalar a string and
+`companies` in the shape above, and no other member. `id` must be present. Any other member
+may be absent, as form data leaves out a field that holds no value (a new row's untouched text
+field) and a native form leaves out an unchecked `enabled` and a collection without rows: the
+server completes an absent text or checkbox member as `""`, an absent `title` as
+`{ "ko": "", "en": "" }`, an absent `relation` as `{ "name": "" }` and an absent collection as
+no rows, in both media types, so they store the same record. The benchmark save and validation of the same `companies` data apply this
 same rule, so each server checks the companies shape in one place. The server
 answers 404 for an unknown id, 415 for another media type, 413 above 2 MiB, and 400 for
-malformed input, a missing completion field, a repeated native field, a missing, additional or non-text member, a key
+malformed input, a missing completion field, a repeated native field, a missing `id`, an additional or non-text member, a key
 that is not a row key, an `enabled` other than `""` or `"1"`, or an `id` other than the path
 id. It then validates the submission with its own validator and the
 `form` specification; an invalid submission answers 422 `{ validation }` with the validator's

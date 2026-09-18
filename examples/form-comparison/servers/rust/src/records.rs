@@ -2,7 +2,7 @@
 //! the reset and the SSR stage views (docs/spec/form-comparison.md, "Record resource").
 use crate::{
     bad, failure,
-    form::{companies, text_member},
+    form::{field, required, shaped, Shape, COMPANIES},
     json as codec, media_type, parse_native, reply, Error, Result, Server, MAX_BYTES,
 };
 use axum::{
@@ -17,7 +17,7 @@ use crudui_generator::{
     DetailOptions, Form, ListOptions,
 };
 use crudui_validator::validate::{validate, ValidateOptions};
-use serde_json::{json, Map, Number, Value};
+use serde_json::{json, Number, Value};
 use std::{
     fs::{self, OpenOptions},
     io::Write,
@@ -43,18 +43,17 @@ const SELECTION: [&str; 6] = [
     "mode",
     "page",
 ];
-/// The members of one submitted form object; `relation` holds exactly `name` and `companies`
-/// holds keyed rows.
-const FORM_MEMBERS: [&str; 8] = [
-    "id",
-    "name",
-    "status",
-    "joined",
-    "score",
-    "relation",
-    "markup",
-    "companies",
-];
+/// The submitted record form; only `id` must be present.
+const FORM: Shape = Shape::Fields(&[
+    required("id", Shape::Text),
+    field("name", Shape::Text),
+    field("status", Shape::Text),
+    field("joined", Shape::Text),
+    field("score", Shape::Text),
+    field("relation", Shape::Texts(&["name"])),
+    field("markup", Shape::Text),
+    field("companies", COMPANIES),
+]);
 /// The members of one stored record, in order.
 const RECORD_MEMBERS: [&str; 9] = [
     "id",
@@ -193,8 +192,8 @@ impl Store {
 }
 
 /// Decode a records array: records with exactly the fixture's members in order, `score` a
-/// number, every other scalar a string and `companies` in the form's shape. Anything else is a
-/// server fault.
+/// number, every other scalar a string and `companies` complete in the form's shape and member
+/// order. Anything else is a server fault.
 fn records(bytes: &[u8], name: &str) -> Result<Vec<Value>> {
     let malformed = |detail: &str| internal(format!("The record {name} is malformed: {detail}"));
     let value = codec::decode_values(bytes).map_err(|e| malformed(&e.message))?;
@@ -213,9 +212,11 @@ fn records(bytes: &[u8], name: &str) -> Result<Vec<Value>> {
                 "relation" => value.as_object().is_some_and(|relation| {
                     relation.len() == 1 && relation.get("name").is_some_and(Value::is_string)
                 }),
+                // A stored record holds its companies complete, in member order.
                 "companies" => {
-                    companies(Some(value), false).map_err(|e| malformed(&e.message))?;
-                    true
+                    let completed = shaped(value, &COMPANIES, "companies")
+                        .map_err(|e| malformed(&e.message))?;
+                    serde_json::to_string(&completed).ok() == serde_json::to_string(value).ok()
                 }
                 _ => value.is_string(),
             };
@@ -299,15 +300,15 @@ async fn record(State(server): State<Arc<Server>>, request: Request) -> Result<R
     save(&server, &id, request).await
 }
 
-/// The submitted form object of a native or JSON save request, and whether it is native.
-async fn submitted(request: Request) -> Result<(Value, bool)> {
+/// The submitted form object of a native or JSON save request.
+pub(crate) async fn submitted(request: Request) -> Result<Value> {
     let kind = media_type(&request);
-    let (mut body, native) = match kind.as_str() {
+    let mut body = match kind.as_str() {
         "application/json" => {
             let bytes = axum::body::to_bytes(request.into_body(), MAX_BYTES)
                 .await
                 .map_err(|e| failure(StatusCode::PAYLOAD_TOO_LARGE, e.to_string()))?;
-            (codec::decode(&bytes)?, false)
+            codec::decode(&bytes)?
         }
         "multipart/form-data" | "application/x-www-form-urlencoded" => {
             let mut fields = parse_native(request, &kind).await?;
@@ -322,7 +323,11 @@ async fn submitted(request: Request) -> Result<(Value, bool)> {
             {
                 return Err(bad("Incomplete native form submission"));
             }
-            (fields, true)
+            // A native form without rows or values posts no `form` field at all.
+            if !members.contains_key("form") {
+                members.insert("form".into(), json!({}));
+            }
+            fields
         }
         _ => {
             return Err(failure(
@@ -332,45 +337,16 @@ async fn submitted(request: Request) -> Result<(Value, bool)> {
         }
     };
     match body.as_object_mut() {
-        Some(members) if members.len() == 1 => Ok((
-            members
-                .remove("form")
-                .ok_or_else(|| bad("Expected form object"))?,
-            native,
-        )),
+        Some(members) if members.len() == 1 => members
+            .remove("form")
+            .ok_or_else(|| bad("Expected form object")),
         _ => Err(bad("Expected form object")),
     }
 }
 
-/// The submission with exactly the form members, in specification order. A native submission
-/// omits an unchecked `enabled` and a collection without rows; they complete as `""` and `{}`.
-pub(crate) fn form_members(form: &Value, native: bool) -> Result<Value> {
-    let members = form
-        .as_object()
-        .ok_or_else(|| bad("Expected form object"))?;
-    let omitted = usize::from(native && !members.contains_key("companies"));
-    if members.len() + omitted != FORM_MEMBERS.len()
-        || !members
-            .keys()
-            .all(|name| FORM_MEMBERS.contains(&name.as_str()))
-    {
-        return Err(bad("Expected exactly the form members"));
-    }
-    let relation = members
-        .get("relation")
-        .and_then(Value::as_object)
-        .filter(|relation| relation.len() == 1)
-        .ok_or_else(|| bad("Expected relation with exactly name"))?;
-    let mut result = Map::new();
-    for name in FORM_MEMBERS {
-        let value = match name {
-            "relation" => json!({"name":text_member(relation.get("name"), "relation.name")?}),
-            "companies" => companies(members.get(name), native)?,
-            _ => text_member(members.get(name), name)?,
-        };
-        result.insert(name.into(), value);
-    }
-    Ok(Value::Object(result))
+/// The submission completed in the member order of the record form.
+pub(crate) fn form_members(form: &Value) -> Result<Value> {
+    shaped(form, &FORM, "form")
 }
 
 /// The JSON number of valid numeric text; an integral value is stored as an integer.
@@ -390,8 +366,7 @@ fn score(text: &str) -> Result<Value> {
 async fn save(server: &Server, id: &str, request: Request) -> Result<Response> {
     let store = Store::of(server);
     find(&store.read()?, id)?;
-    let (form, native) = submitted(request).await?;
-    let data = form_members(&form, native)?;
+    let data = form_members(&submitted(request).await?)?;
     if data["id"] != id {
         return Err(bad("The form id differs from the record id"));
     }

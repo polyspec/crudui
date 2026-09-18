@@ -170,8 +170,7 @@ func TestNumberTextMatchesECMAScript(t *testing.T) {
 	}
 }
 
-// shapeValue decodes JSON text for a shape test; a native case uses the same objects that
-// parseNative builds.
+// shapeValue decodes JSON text for a shape test; parseNative builds the same objects.
 func shapeValue(t *testing.T, text string) any {
 	t.Helper()
 	value, err := decodeJSON([]byte(text))
@@ -181,23 +180,34 @@ func shapeValue(t *testing.T, text string) any {
 	return value
 }
 
-func TestShapedCompletesNativeCompanies(t *testing.T) {
-	// A native form omits an unchecked checkbox and collections without rows; the result has
-	// every member in shape order and keeps the submitted row order and keys.
-	submitted := `{"__0000000000002__":{"stores":{"__00000000000a1__":{"title":{"en":"A","ko":"K"},"detail":"Kept","name":"S"}},"name":"C"},"__0000000000001__":{"name":"D"}}`
-	expected := `{"__0000000000002__":{"name":"C","stores":{"__00000000000a1__":{"name":"S","enabled":"","detail":"Kept","title":{"ko":"K","en":"A"},"departments":{}}}},"__0000000000001__":{"name":"D","stores":{}}}`
-	value, err := shaped(shapeValue(t, submitted), companiesShape, true, "companies")
+func TestShapedCompletesAbsentFields(t *testing.T) {
+	// Form data leaves out a field that holds no value; the result has every member in shape
+	// order and keeps the submitted row order and keys.
+	submitted := `{"__0000000000002__":{"stores":{"__00000000000a1__":{"title":{"en":"A","ko":"K"},"detail":"Kept","name":"S"},` +
+		`"__00000000000a2__":{"enabled":"1","departments":{"__00000000000b1__":{}}}},"name":"C"},"__0000000000001__":{}}`
+	expected := `{"__0000000000002__":{"name":"C","stores":{"__00000000000a1__":{"name":"S","enabled":"","detail":"Kept","title":{"ko":"K","en":"A"},"departments":{}},` +
+		`"__00000000000a2__":{"name":"","enabled":"1","detail":"","title":{"ko":"","en":""},"departments":{"__00000000000b1__":{"name":""}}}}},` +
+		`"__0000000000001__":{"name":"","stores":{}}}`
+	value, err := shaped(shapeValue(t, submitted), companiesShape, "companies")
 	if err != nil {
 		t.Fatal(err)
 	}
 	if encoded, _ := encodeJSON(value); string(encoded) != expected {
 		t.Fatalf("completed companies: %s", encoded)
 	}
-	if value, err := shaped(nil, companiesShape, true, "companies"); err != nil || len(value.(*object).Keys()) != 0 {
-		t.Fatalf("an absent native collection has no rows: %v", err)
+	form, err := shaped(shapeValue(t, `{"id":"22"}`), formShape, "form")
+	if err != nil {
+		t.Fatal(err)
 	}
-	if _, err := shaped(nil, companiesShape, false, "companies"); err == nil {
-		t.Fatal("JSON carries every member")
+	const completeForm = `{"id":"22","name":"","status":"","joined":"","score":"","relation":{"name":""},"markup":"","companies":{}}`
+	if encoded, _ := encodeJSON(form); string(encoded) != completeForm {
+		t.Fatalf("completed form: %s", encoded)
+	}
+	if _, err := shaped(shapeValue(t, `{"name":"N"}`), formShape, "form"); err == nil {
+		t.Fatal("a form without id is rejected")
+	}
+	if value, err := shaped(shapeValue(t, `{}`), scenarioShape, "form"); err != nil || len(get(value.(*object), "companies").(*object).Keys()) != 0 {
+		t.Fatalf("an absent collection has no rows: %v", err)
 	}
 }
 
@@ -206,40 +216,55 @@ func TestShapedRejectsCompanyShapes(t *testing.T) {
 		return `{"__0000000000001__":{"name":"C","stores":{"__0000000000002__":{` + members + `}}}}`
 	}
 	const complete = `"name":"S","enabled":"1","detail":"","title":{"ko":"","en":""},"departments":{}`
-	cases := []struct {
-		name, companies string
-		native          bool
-	}{
-		{"companies is text", `"x"`, false},
-		{"companies is a list", `[]`, false},
-		{"row key is not a row key", `{"first":{"name":"C","stores":{}}}`, false},
-		{"row key has upper case letters", `{"__000000000000A__":{"name":"C","stores":{}}}`, false},
-		{"row key is too short", `{"__000000000001__":{"name":"C","stores":{}}}`, false},
-		{"row is text", `{"__0000000000001__":"C"}`, false},
-		{"company has another member", `{"__0000000000001__":{"name":"C","stores":{},"extra":"x"}}`, false},
-		{"JSON company misses stores", `{"__0000000000001__":{"name":"C"}}`, false},
-		{"company misses a name", `{"__0000000000001__":{"stores":{}}}`, true},
-		{"store has another member", store(complete + `,"extra":"x"`), false},
-		{"store misses a title", store(`"name":"S","enabled":"1","detail":"","departments":{}`), true},
-		{"native store misses detail", store(`"name":"S","enabled":"1","title":{"ko":"","en":""}`), true},
-		{"JSON store misses enabled", store(`"name":"S","detail":"","title":{"ko":"","en":""},"departments":{}`), false},
-		{"enabled is not a checkbox value", store(`"name":"S","enabled":"yes","detail":"","title":{"ko":"","en":""}`), true},
-		{"enabled is a number", store(`"name":"S","enabled":1,"detail":"","title":{"ko":"","en":""},"departments":{}`), false},
-		{"title language is missing", store(`"name":"S","enabled":"1","detail":"","title":{"ko":"x"},"departments":{}`), false},
-		{"title has another language", store(`"name":"S","enabled":"1","detail":"","title":{"ko":"","en":"","ja":""},"departments":{}`), false},
-		{"title is text", store(`"name":"S","enabled":"1","detail":"","title":"x","departments":{}`), false},
-		{"department name is a number", store(`"name":"S","enabled":"1","detail":"","title":{"ko":"","en":""},"departments":{"__0000000000003__":{"name":1}}`), false},
-		{"department name is null", store(`"name":"S","enabled":"1","detail":"","title":{"ko":"","en":""},"departments":{"__0000000000003__":{"name":null}}`), false},
+	cases := []struct{ name, companies string }{
+		{"companies is text", `"x"`},
+		{"companies is a list", `[]`},
+		{"row key is not a row key", `{"first":{"name":"C","stores":{}}}`},
+		{"row key has upper case letters", `{"__000000000000A__":{"name":"C","stores":{}}}`},
+		{"row key is too short", `{"__000000000001__":{"name":"C","stores":{}}}`},
+		{"row is text", `{"__0000000000001__":"C"}`},
+		{"company has another member", `{"__0000000000001__":{"name":"C","stores":{},"extra":"x"}}`},
+		{"stores is null", `{"__0000000000001__":{"name":"C","stores":null}}`},
+		{"store has another member", store(complete + `,"extra":"x"`)},
+		{"enabled is not a checkbox value", store(`"name":"S","enabled":"yes","detail":"","title":{"ko":"","en":""}`)},
+		{"enabled is a number", store(`"name":"S","enabled":1,"detail":"","title":{"ko":"","en":""},"departments":{}`)},
+		{"title language is missing", store(`"name":"S","enabled":"1","detail":"","title":{"ko":"x"},"departments":{}`)},
+		{"title has another language", store(`"name":"S","enabled":"1","detail":"","title":{"ko":"","en":"","ja":""},"departments":{}`)},
+		{"title is text", store(`"name":"S","enabled":"1","detail":"","title":"x","departments":{}`)},
+		{"department name is a number", store(`"name":"S","enabled":"1","detail":"","title":{"ko":"","en":""},"departments":{"__0000000000003__":{"name":1}}`)},
+		{"department name is null", store(`"name":"S","enabled":"1","detail":"","title":{"ko":"","en":""},"departments":{"__0000000000003__":{"name":null}}`)},
 	}
 	for _, item := range cases {
-		_, err := shaped(shapeValue(t, item.companies), companiesShape, item.native, "companies")
+		_, err := shaped(shapeValue(t, item.companies), companiesShape, "companies")
 		var known statusError
 		if !errors.As(err, &known) || known.status != 400 {
 			t.Errorf("%s: %v", item.name, err)
 		}
 	}
-	if _, err := shaped(shapeValue(t, store(complete)), companiesShape, false, "companies"); err != nil {
-		t.Fatalf("a complete JSON store is accepted: %v", err)
+	if _, err := shaped(shapeValue(t, store(complete)), companiesShape, "companies"); err != nil {
+		t.Fatalf("a complete store is accepted: %v", err)
+	}
+	for name, relation := range map[string]string{"relation misses name": `{}`, "relation has another member": `{"name":"R","extra":"x"}`} {
+		if _, err := shaped(shapeValue(t, `{"id":"22","relation":`+relation+`}`), formShape, "form"); err == nil {
+			t.Errorf("%s is accepted", name)
+		}
+	}
+}
+
+func TestStoredCompaniesAreComplete(t *testing.T) {
+	const complete = `{"__0000000000001__":{"name":"C","stores":{"__0000000000002__":{"name":"S","enabled":"1","detail":"","title":{"ko":"","en":""},"departments":{}}}}}`
+	if !completeCompanies(shapeValue(t, complete)) {
+		t.Fatal("complete stored companies are accepted")
+	}
+	for name, companies := range map[string]string{
+		"a store misses a member": `{"__0000000000001__":{"name":"C","stores":{"__0000000000002__":{"name":"S","enabled":"1","title":{"ko":"","en":""},"departments":{}}}}}`,
+		"a company misses stores": `{"__0000000000001__":{"name":"C"}}`,
+		"members out of order":    `{"__0000000000001__":{"stores":{},"name":"C"}}`,
+		"a row key is invalid":    `{"first":{"name":"C","stores":{}}}`,
+	} {
+		if completeCompanies(shapeValue(t, companies)) {
+			t.Errorf("%s is accepted", name)
+		}
 	}
 }
 
@@ -299,7 +324,6 @@ func TestBenchmarkUsesTheCompaniesShape(t *testing.T) {
 		t.Fatalf("native completion: %d %s", status, normalized)
 	}
 	for name, companies := range map[string]string{
-		"JSON company misses stores":  `{"__0000000000001__":{"name":"C"}}`,
 		"company has another member":  `{"__0000000000001__":{"name":"C","stores":{},"extra":"x"}}`,
 		"company name is null":        `{"__0000000000001__":{"name":null,"stores":{}}}`,
 		"row key is not a row key":    `{"first":{"name":"C","stores":{}}}`,
@@ -309,7 +333,16 @@ func TestBenchmarkUsesTheCompaniesShape(t *testing.T) {
 			t.Errorf("%s: %d", name, status)
 		}
 	}
-	if status, _ := recordRequest(t, host, "POST", path, "application/json", `{"form":{}}`); status != 400 {
-		t.Errorf("JSON carries companies: %d", status)
+	// JSON data of a newly added row completes as the native form does.
+	status, completed = recordRequest(t, host, "POST", path, "application/json",
+		`{"form":{"companies":{"__0000000000001__":{"name":"C","stores":{"__0000000000002__":{"name":"S","enabled":"1","departments":{"__0000000000003__":{}}}}}}}}`)
+	normalized, _ = encodeJSON(get(completed, "normalized"))
+	const added = `{"companies":{"__0000000000001__":{"name":"C","stores":{"__0000000000002__":{"name":"S","enabled":"1","detail":"","title":{"ko":"","en":""},"departments":{"__0000000000003__":{"name":""}}}}}}}`
+	if status != 200 || string(normalized) != added {
+		t.Fatalf("JSON completion: %d %s", status, normalized)
+	}
+	status, completed = recordRequest(t, host, "POST", path, "application/json", `{"form":{}}`)
+	if normalized, _ = encodeJSON(get(completed, "normalized")); status != 200 || string(normalized) != `{"companies":{}}` {
+		t.Errorf("an absent collection has no rows: %d %s", status, normalized)
 	}
 }

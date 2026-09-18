@@ -136,17 +136,20 @@ func rowCollection(items []row) any {
 	return result
 }
 
-// shape is one part of the submitted form: a text or checkbox leaf, an object of fixed members
-// or keyed rows of one member shape.
+// shape is one part of the submitted form: a text or checkbox leaf, an object of exactly these
+// text members, an object of fields or keyed rows of one object of fields.
 type shape struct {
-	leaf    string
-	members []shapeMember
-	rows    *shape
+	leaf   string
+	texts  []string
+	fields []field
+	rows   *shape
 }
 
-type shapeMember struct {
-	name  string
-	shape shape
+// field is one member of an object of fields; only a required field must be present.
+type field struct {
+	name     string
+	shape    shape
+	required bool
 }
 
 var (
@@ -154,11 +157,25 @@ var (
 	checkboxLeaf = shape{leaf: "checkbox"}
 )
 
-// membersOf is an object shape of name and shape pairs in member order.
-func membersOf(pairs ...any) shape {
+func textsOf(names ...string) shape { return shape{texts: names} }
+
+// requiredShape marks a field that must be present.
+type requiredShape struct{ shape shape }
+
+func required(s shape) requiredShape { return requiredShape{s} }
+
+// fieldsOf is an object of fields of name and shape (or required shape) pairs in member order.
+func fieldsOf(pairs ...any) shape {
 	result := shape{}
 	for index := 0; index < len(pairs); index += 2 {
-		result.members = append(result.members, shapeMember{pairs[index].(string), pairs[index+1].(shape)})
+		member := field{name: pairs[index].(string)}
+		switch child := pairs[index+1].(type) {
+		case requiredShape:
+			member.shape, member.required = child.shape, true
+		case shape:
+			member.shape = child
+		}
+		result.fields = append(result.fields, member)
 	}
 	return result
 }
@@ -168,24 +185,29 @@ func rowsOf(row shape) shape { return shape{rows: &row} }
 // companiesShape is the submitted companies of docs/spec/form-comparison.md, "Record resource",
 // and scenarioShape the benchmark form that holds only them.
 var (
-	companiesShape = rowsOf(membersOf("name", textLeaf, "stores", rowsOf(membersOf(
-		"name", textLeaf, "enabled", checkboxLeaf, "detail", textLeaf,
-		"title", membersOf("ko", textLeaf, "en", textLeaf),
-		"departments", rowsOf(membersOf("name", textLeaf)),
+	companiesShape = rowsOf(fieldsOf("name", textLeaf, "stores", rowsOf(fieldsOf(
+		"name", textLeaf, "enabled", checkboxLeaf, "detail", textLeaf, "title", textsOf("ko", "en"),
+		"departments", rowsOf(fieldsOf("name", textLeaf)),
 	))))
-	scenarioShape = membersOf("companies", companiesShape)
+	scenarioShape = fieldsOf("companies", companiesShape)
 )
 
-// shaped returns the submitted value of s at path, completed and in the member order of s. A
-// native form omits an unchecked checkbox ("") and a collection without rows (no rows); JSON
-// carries every member. Any other difference answers 400. An absent member is nil.
-func shaped(value any, s shape, native bool, path string) (any, error) {
-	if value == nil && native && s.leaf == "checkbox" {
-		return "", nil
+// empty is the value of an absent field: empty text, empty texts or no rows.
+func empty(s shape) any {
+	if s.leaf != "" {
+		return ""
 	}
-	if value == nil && native && s.rows != nil {
-		return record(), nil
+	result := record()
+	for _, name := range s.texts {
+		result.Set(name, "")
 	}
+	return result
+}
+
+// shaped returns the submitted value of s at path, completed and in the member order of s. Form
+// data leaves out a field that holds no value, so an absent field other than a required one
+// completes as its empty value in both media types. Any other difference answers 400.
+func shaped(value any, s shape, path string) (any, error) {
 	if s.leaf != "" {
 		text, ok := value.(string)
 		if !ok {
@@ -206,7 +228,7 @@ func shaped(value any, s shape, native bool, path string) (any, error) {
 			if !rowKey.MatchString(key) {
 				return nil, fail(http.StatusBadRequest, "Expected a row key at "+path+": "+key)
 			}
-			row, err := shaped(get(submitted, key), *s.rows, native, path+"."+key)
+			row, err := shaped(get(submitted, key), *s.rows, path+"."+key)
 			if err != nil {
 				return nil, err
 			}
@@ -214,17 +236,25 @@ func shaped(value any, s shape, native bool, path string) (any, error) {
 		}
 		return result, nil
 	}
+	// An object of texts holds every member; a field may be absent unless it is required.
+	members := s.fields
+	for _, name := range s.texts {
+		members = append(members, field{name: name, shape: textLeaf, required: true})
+	}
 	for _, key := range submitted.Keys() {
-		if !slices.ContainsFunc(s.members, func(member shapeMember) bool { return member.name == key }) {
+		if !slices.ContainsFunc(members, func(member field) bool { return member.name == key }) {
 			return nil, fail(http.StatusBadRequest, "Unexpected member "+path+"."+key)
 		}
 	}
-	for _, member := range s.members {
-		omittable := native && (member.shape.leaf == "checkbox" || member.shape.rows != nil)
-		if !submitted.Has(member.name) && !omittable {
-			return nil, fail(http.StatusBadRequest, "Missing member "+path+"."+member.name)
+	for _, member := range members {
+		if !submitted.Has(member.name) {
+			if member.required {
+				return nil, fail(http.StatusBadRequest, "Missing member "+path+"."+member.name)
+			}
+			result.Set(member.name, empty(member.shape))
+			continue
 		}
-		child, err := shaped(get(submitted, member.name), member.shape, native, path+"."+member.name)
+		child, err := shaped(get(submitted, member.name), member.shape, path+"."+member.name)
 		if err != nil {
 			return nil, err
 		}
