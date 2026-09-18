@@ -193,8 +193,11 @@ view clear of the sticky headers and the footer.
 ## Interface messages
 
 Control labels, counts and summaries come from one message table for `ko`, `en`,
-`ja` and `zh` ([`messages.ts`](../../packages/generator-core/src/messages.ts)).
-Every implementation uses the same text. Binding rejects a language that is not a
+`ja` and `zh`, [`contracts/interface-messages.json`](../../contracts/interface-messages.json).
+Every implementation embeds a source generated from that file and a test fails when
+the embedded text differs from it, so every implementation uses the same text.
+Authors do not override this text; text that belongs to the data, as a row title
+that is empty, is declared by the author (see [schema](schema.md)). Binding rejects a language that is not a
 string with `Language must be a string`, then a present `keyPrefix` or `idPrefix`
 that is not a string with `{name} must be a string`, then an `unsupported` other
 than `throw` or `marker` with `unsupported must be throw or marker`, then any other

@@ -944,6 +944,14 @@ test('PHP extension Unicode data is generated from the contract', { timeout: ENG
     'Regenerate with: node packages/php-ext/tools/generate-unicode-data.mjs');
 });
 
+test('PHP extension interface messages are generated from the contract', { timeout: ENGINE_INSPECTION_BUDGET }, async () => {
+  const messages = await import('../tools/generate-interface-messages.mjs');
+  const contract = JSON.parse(await readFile(messages.contractPath, 'utf8'));
+  assert.equal(contract.format, 'crudui/interface-messages');
+  assert.equal(await readFile(messages.outputPath, 'utf8'), messages.interfaceMessagesSource(contract, await messages.structFields()),
+    'Regenerate with: node packages/php-ext/tools/generate-interface-messages.mjs');
+});
+
 /* A deterministic sequence of 64-bit patterns (xorshift64*). */
 function* bitPatterns(seed, count) {
   let state = seed;
@@ -1575,7 +1583,7 @@ test('PHP extension engine binds every shared form fixture without changing inpu
       signal: t.signal, root, directory, source: sourceForFixtures(), name: 'bind-fixtures',
       sources: [
         'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'expression.c',
-        'runtime.c', 'date.c', 'design.c', 'widget.c', 'messages.c', 'binding.c',
+        'runtime.c', 'date.c', 'design.c', 'widget.c', 'messages.c', 'interface_messages.c', 'binding.c',
       ],
     });
   } finally {
@@ -1590,7 +1598,7 @@ test('PHP extension engine binding has no undefined behavior findings', { timeou
       signal: t.signal, root, directory, source: sourceForFixtures(), name: 'bind-fixtures-sanitize',
       sources: [
         'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'expression.c',
-        'runtime.c', 'date.c', 'design.c', 'widget.c', 'messages.c', 'binding.c',
+        'runtime.c', 'date.c', 'design.c', 'widget.c', 'messages.c', 'interface_messages.c', 'binding.c',
       ],
       compilerFlags: ['-fsanitize=undefined', '-fno-omit-frame-pointer'],
       runEnvironment: {
@@ -1647,7 +1655,7 @@ test('PHP extension engine reports supported widget construction failures as int
       signal: t.signal, root, directory, source: sourceForWidgetConstructionFailure(), name: 'widget-failure',
       sources: [
         'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'expression.c',
-        'runtime.c', 'date.c', 'design.c', 'messages.c', 'binding.c',
+        'runtime.c', 'date.c', 'design.c', 'messages.c', 'interface_messages.c', 'binding.c',
       ],
     });
   } finally {
@@ -1740,7 +1748,7 @@ test('PHP extension engine renders successful shared form fixtures and edge case
       signal: t.signal, root, directory, source: sourceForFixtures(), name: 'render-fixtures',
       sources: [
         'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'expression.c',
-        'runtime.c', 'date.c', 'design.c', 'widget.c', 'messages.c', 'binding.c', 'html.c', 'render.c',
+        'runtime.c', 'date.c', 'design.c', 'widget.c', 'messages.c', 'interface_messages.c', 'binding.c', 'html.c', 'render.c',
       ],
     });
   } finally {
@@ -1753,7 +1761,7 @@ test('PHP extension engine form rendering does not depend on a comma decimal loc
     signal: t.signal, root, prefix: 'crudui-c-render-locale-', name: 'render-fixtures-locale', source: sourceForFixtures(),
     sources: [
       'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'expression.c',
-      'runtime.c', 'date.c', 'design.c', 'widget.c', 'messages.c', 'binding.c', 'html.c', 'render.c',
+      'runtime.c', 'date.c', 'design.c', 'widget.c', 'messages.c', 'interface_messages.c', 'binding.c', 'html.c', 'render.c',
     ],
   });
 });
@@ -1765,7 +1773,7 @@ test('PHP extension engine form rendering has no undefined behavior findings', {
       signal: t.signal, root, directory, source: sourceForFixtures(), name: 'render-fixtures-sanitize',
       sources: [
         'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'expression.c',
-        'runtime.c', 'date.c', 'design.c', 'widget.c', 'messages.c', 'binding.c', 'html.c', 'render.c',
+        'runtime.c', 'date.c', 'design.c', 'widget.c', 'messages.c', 'interface_messages.c', 'binding.c', 'html.c', 'render.c',
       ],
       compilerFlags: ['-fsanitize=undefined', '-fno-omit-frame-pointer'],
       runEnvironment: {
@@ -2212,7 +2220,7 @@ test('PHP extension engine updates form state atomically', { timeout: ENGINE_TES
       sources: [
         'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'compose.c', 'declaration.c', 'template.c',
         'expression.c', 'runtime.c', 'date.c', 'design.c', 'widget.c',
-        'messages.c', 'binding.c', 'html.c', 'render.c', 'key.c', 'form.c',
+        'messages.c', 'interface_messages.c', 'binding.c', 'html.c', 'render.c', 'key.c', 'form.c',
       ],
     });
   } finally {

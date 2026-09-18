@@ -176,9 +176,12 @@ href, design, behavior }` 목록이고 `type`은 `submit`, `reset`, `button`, `l
 
 ## 화면 문구
 
-컨트롤 레이블, 개수, 요약은 `ko`, `en`, `ja`, `zh` 문구 표 하나에서 가져옵니다
-([`messages.ts`](../../packages/generator-core/src/messages.ts)). 모든 구현이 같은
-문구를 사용합니다. 바인딩은 문자열이 아닌 언어를 `Language must be a string`으로,
+컨트롤 레이블, 개수, 요약은 `ko`, `en`, `ja`, `zh` 문구 표 하나,
+[`contracts/interface-messages.json`](../../contracts/interface-messages.json)에서
+가져옵니다. 모든 구현은 이 파일에서 생성한 소스를 담고, 담은 문구가 파일과 다르면
+테스트가 실패하므로 모든 구현이 같은 문구를 사용합니다. 작성자는 이 문구를 바꾸지
+않습니다. 비어 있는 행 제목처럼 데이터에 딸린 문구는 작성자가 선언합니다
+([스키마](schema.ko.md) 참고). 바인딩은 문자열이 아닌 언어를 `Language must be a string`으로,
 그다음 문자열이 아닌 `keyPrefix`·`idPrefix`를 `{name} must be a string`으로, 그다음
 `throw`나 `marker`가 아닌 `unsupported`를 `unsupported must be throw or marker`로,
 그다음 그 밖의 언어를 `Unsupported language: {language}`로 거부합니다. 없거나 null인

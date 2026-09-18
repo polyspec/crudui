@@ -37,3 +37,18 @@ API입니다. `internal` 진입점은 CRUDUI 자체 패키지만 사용하며 �
 [`tests/build/contract-manifest.test.mjs`](../tests/build/contract-manifest.test.mjs)는 각 실패를
 합성 저장소에서 증명하고 이 저장소에 검사를 실행합니다.
 CLI는 같은 계약을 도구가 읽을 수 있는 JSON 또는 Markdown으로 출력할 수 있습니다.
+
+## 화면 문구
+
+[`interface-messages.json`](interface-messages.json)에는 지원하는 모든 언어의 화면
+문구가 있습니다. 폼 컨트롤 레이블, 개수, 요약입니다
+([폼 마크업](../docs/spec/form-markup.ko.md#화면-문구)). 문구는 이 파일에만 적습니다.
+각 런타임은 자기 스크립트로 이 파일에서 생성한 소스를 담고, 담은 문구가 파일과
+다르면 실패하는 테스트를 둡니다. 파일을 고친 뒤에는 모든 런타임의 스크립트를
+실행합니다.
+
+- TypeScript: `node packages/generator-core/scripts/generate-interface-messages.mjs`
+- Go: `packages/generator-go`에서 `go generate`
+- Rust: `node packages/generator-rust/tools/generate-interface-messages.mjs`
+- PHP: `php packages/generator-php/scripts/generate-interface-messages.php`
+- PHP 확장: `node packages/php-ext/tools/generate-interface-messages.mjs`
