@@ -752,6 +752,7 @@ static ps_value *ordered_widget(ps_value *model)
             break;
         }
     }
+    ps_value_reindex(model);
     return model;
 }
 

@@ -48,7 +48,14 @@ struct expression_node {
 };
 
 typedef struct { token *items; size_t length; size_t capacity; bool valid; } lexer_output;
-typedef struct { token *tokens; size_t length; size_t current; bool valid; } parser;
+/*
+ * open counts the nodes whose children are being parsed, each an ancestor of what comes next;
+ * height is the height of the node the last parse function returned.
+ */
+typedef struct { token *tokens; size_t length; size_t current; bool valid; size_t open; size_t height; } parser;
+
+/* The most nodes on a path from the root of a syntax tree to a leaf; a deeper expression does not parse. */
+#define MAX_EXPRESSION_DEPTH 64
 typedef struct { const ps_value *data; const ps_text *path; size_t path_length; } evaluator;
 typedef struct { ps_value *value; bool wildcard; } resolved_value;
 
@@ -254,6 +261,23 @@ static bool match(parser *p, token_kind kind)
     return true;
 }
 static token *previous(parser *p) { return &p->tokens[p->current - 1]; }
+
+/* Open a node whose children follow; the tree is at least one level deeper than the open nodes. */
+static bool enter(parser *p)
+{
+    if (++p->open < MAX_EXPRESSION_DEPTH) return true;
+    p->valid = false; return false;
+}
+
+/* Record a node whose tallest child has child_height as the last parsed node. */
+static bool grown(parser *p, size_t child_height)
+{
+    p->height = child_height + 1;
+    if (p->height <= MAX_EXPRESSION_DEPTH) return true;
+    p->valid = false; return false;
+}
+
+static size_t taller(size_t left, size_t right) { return left > right ? left : right; }
 static expression_node *parse_ternary(parser *p);
 static expression_node *parse_or(parser *p);
 static expression_node *parse_primary(parser *p);
@@ -306,13 +330,17 @@ fail:
 static expression_node *parse_primary(parser *p)
 {
     if (match(p, TOK_LPAREN)) {
+        if (!enter(p)) return NULL;
         expression_node *node = new_node(NODE_GROUP);
         if (!node) return NULL;
         /* primary = "(" logic_or ")": a parenthesized expression holds no ternary. */
         node->data.group = parse_or(p);
-        if (!node->data.group || !match(p, TOK_RPAREN)) { p->valid = false; free_node(node); return NULL; }
+        p->open--;
+        if (!node->data.group || !match(p, TOK_RPAREN) || !grown(p, p->height)) { p->valid = false; free_node(node); return NULL; }
         return node;
     }
+    /* A path or a literal is a leaf. */
+    p->height = 1;
     if (check(p, TOK_DOT) || check(p, TOK_DOT_DOT) || check(p, TOK_IDENTIFIER))
         return parse_path_node(p);
     if (match(p, TOK_STRING) || match(p, TOK_NUMBER) || match(p, TOK_BOOLEAN) || match(p, TOK_NULL))
@@ -324,7 +352,7 @@ static expression_node *parse_comparison_value(parser *p)
 {
     if (check(p, TOK_IDENTIFIER) && p->current + 1 < p->length &&
         p->tokens[p->current + 1].kind != TOK_DOT) {
-        p->current++; return literal_node(previous(p)->literal);
+        p->current++; p->height = 1; return literal_node(previous(p)->literal);
     }
     return parse_primary(p);
 }
@@ -348,18 +376,22 @@ static expression_node *parse_comparison(parser *p)
 {
     expression_node *left = parse_primary(p);
     if (!left) return NULL;
+    size_t left_height = p->height;
     if (check(p, TOK_IN) || check(p, TOK_NOT_IN)) {
         bool negated = match(p, TOK_NOT_IN); if (!negated) match(p, TOK_IN);
         expression_node *node = new_node(NODE_IN);
         if (!node) { free_node(left); return NULL; }
         node->data.in.negated = negated; node->data.in.value = left;
         bool brackets = match(p, TOK_LBRACKET);
+        /* item is the parsed item not yet in the list. */
         expression_node *item = parse_list_item(p);
         if (!item || !append_list(node, item)) goto fail;
+        item = NULL;
         while (match(p, TOK_COMMA)) {
             item = parse_list_item(p); if (!item || !append_list(node, item)) goto fail;
+            item = NULL;
         }
-        if (brackets && !match(p, TOK_RBRACKET)) goto fail;
+        if ((brackets && !match(p, TOK_RBRACKET)) || !grown(p, left_height)) goto fail;
         return node;
 fail:
         p->valid = false; free_node(item); free_node(node); return NULL;
@@ -369,7 +401,9 @@ fail:
         operation == TOK_GE || operation == TOK_LT || operation == TOK_LE) {
         p->current++; expression_node *right = parse_comparison_value(p);
         expression_node *node = new_node(NODE_BINARY);
-        if (!right || !node) { free_node(left); free_node(right); free_node(node); return NULL; }
+        if (!right || !node || !grown(p, taller(left_height, p->height))) {
+            free_node(left); free_node(right); free_node(node); return NULL;
+        }
         node->data.binary.operation = operation;
         node->data.binary.left = left;
         node->data.binary.right = right;
@@ -381,19 +415,25 @@ fail:
 static expression_node *parse_not(parser *p)
 {
     if (!match(p, TOK_NOT)) return parse_comparison(p);
+    if (!enter(p)) return NULL;
     expression_node *node = new_node(NODE_UNARY);
     if (!node) return NULL;
     node->data.unary = parse_not(p);
-    if (!node->data.unary) { free_node(node); return NULL; }
+    p->open--;
+    if (!node->data.unary || !grown(p, p->height)) { free_node(node); return NULL; }
     return node;
 }
 
 static expression_node *parse_and(parser *p)
 {
     expression_node *left = parse_not(p);
+    size_t height = p->height;
     while (left && match(p, TOK_AND)) {
         expression_node *right = parse_not(p), *node = new_node(NODE_BINARY);
-        if (!right || !node) { free_node(left); free_node(right); free_node(node); return NULL; }
+        if (!right || !node || !grown(p, taller(height, p->height))) {
+            free_node(left); free_node(right); free_node(node); return NULL;
+        }
+        height = p->height;
         node->data.binary.operation = TOK_AND;
         node->data.binary.left = left;
         node->data.binary.right = right;
@@ -405,9 +445,13 @@ static expression_node *parse_and(parser *p)
 static expression_node *parse_or(parser *p)
 {
     expression_node *left = parse_and(p);
+    size_t height = p->height;
     while (left && match(p, TOK_OR)) {
         expression_node *right = parse_and(p), *node = new_node(NODE_BINARY);
-        if (!right || !node) { free_node(left); free_node(right); free_node(node); return NULL; }
+        if (!right || !node || !grown(p, taller(height, p->height))) {
+            free_node(left); free_node(right); free_node(node); return NULL;
+        }
+        height = p->height;
         node->data.binary.operation = TOK_OR;
         node->data.binary.left = left;
         node->data.binary.right = right;
@@ -420,10 +464,16 @@ static expression_node *parse_ternary(parser *p)
 {
     expression_node *condition = parse_or(p);
     if (!condition || !match(p, TOK_QUESTION)) return condition;
+    size_t condition_height = p->height;
+    if (!enter(p)) { free_node(condition); return NULL; }
     expression_node *yes = parse_ternary(p);
+    size_t yes_height = p->height;
     if (!yes || !match(p, TOK_COLON)) { p->valid = false; free_node(condition); free_node(yes); return NULL; }
     expression_node *no = parse_ternary(p), *node = new_node(NODE_TERNARY);
-    if (!no || !node) { free_node(condition); free_node(yes); free_node(no); free_node(node); return NULL; }
+    p->open--;
+    if (!no || !node || !grown(p, taller(taller(condition_height, yes_height), p->height))) {
+        free_node(condition); free_node(yes); free_node(no); free_node(node); return NULL;
+    }
     node->data.ternary.condition = condition;
     node->data.ternary.yes = yes;
     node->data.ternary.no = no;
@@ -432,7 +482,7 @@ static expression_node *parse_ternary(parser *p)
 
 static expression_node *parse_expression(lexer_output *tokens)
 {
-    parser p = {tokens->items, tokens->length, 0, tokens->valid};
+    parser p = {tokens->items, tokens->length, 0, tokens->valid, 0, 0};
     expression_node *node = p.valid ? parse_ternary(&p) : NULL;
     if (!node || !p.valid || !check(&p, TOK_EOF)) { free_node(node); return NULL; }
     return node;

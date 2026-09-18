@@ -20,16 +20,29 @@ use super::ast::{LiteralValue, Node, PathSegment};
 use super::error::ParseError;
 use super::token::{Literal, Token, TokenType};
 
+/// The most nodes on a path from the root of an expression's syntax tree to a
+/// leaf. A deeper expression is a parse error in every runtime.
+pub const MAX_EXPRESSION_DEPTH: usize = 64;
+
 /// Recursive-descent parser over a lexer's token stream (must end in EOF).
 pub struct Parser {
     tokens: Vec<Token>,
     current: usize,
+    /// Nodes whose children are being parsed: each is an ancestor of what comes next.
+    open: usize,
+    /// Height of the node the last parse method returned.
+    height: usize,
 }
 
 impl Parser {
     /// Build a parser over a token stream.
     pub fn new(tokens: Vec<Token>) -> Self {
-        Parser { tokens, current: 0 }
+        Parser {
+            tokens,
+            current: 0,
+            open: 0,
+            height: 0,
+        }
     }
 
     /// Parse the full token stream into one AST root. Errors on trailing tokens.
@@ -51,14 +64,19 @@ impl Parser {
         let condition = self.parse_or_expression()?;
 
         if self.match_type(TokenType::Question) {
+            let condition_height = self.height;
+            self.enter()?;
             let true_value = self.parse_ternary_expression()?;
+            let true_height = self.height;
 
             if !self.match_type(TokenType::Colon) {
                 return Err(ParseError::new("Missing colon in ternary expression"));
             }
 
             let false_value = self.parse_ternary_expression()?;
+            self.open -= 1;
 
+            self.node(condition_height.max(true_height).max(self.height))?;
             return Ok(Node::Ternary {
                 condition: Box::new(condition),
                 true_value: Box::new(true_value),
@@ -72,9 +90,11 @@ impl Parser {
     // or = and { "||" and }
     fn parse_or_expression(&mut self) -> Result<Node, ParseError> {
         let mut left = self.parse_and_expression()?;
+        let mut height = self.height;
 
         while self.match_type(TokenType::Or) {
             let right = self.parse_and_expression()?;
+            height = self.node(height.max(self.height))?;
             left = Node::Binary {
                 operator: "||".to_string(),
                 left: Box::new(left),
@@ -88,9 +108,11 @@ impl Parser {
     // and = not { "&&" not }
     fn parse_and_expression(&mut self) -> Result<Node, ParseError> {
         let mut left = self.parse_not_expression()?;
+        let mut height = self.height;
 
         while self.match_type(TokenType::And) {
             let right = self.parse_not_expression()?;
+            height = self.node(height.max(self.height))?;
             left = Node::Binary {
                 operator: "&&".to_string(),
                 left: Box::new(left),
@@ -104,7 +126,10 @@ impl Parser {
     // not = "!" not | comparison
     fn parse_not_expression(&mut self) -> Result<Node, ParseError> {
         if self.match_type(TokenType::Not) {
+            self.enter()?;
             let operand = self.parse_not_expression()?;
+            self.open -= 1;
+            self.node(self.height)?;
             return Ok(Node::Unary {
                 operator: "!".to_string(),
                 operand: Box::new(operand),
@@ -117,10 +142,12 @@ impl Parser {
     // comparison = primary [ cmp_op cmp_value | in_op value_list ]
     fn parse_comparison(&mut self) -> Result<Node, ParseError> {
         let left = self.parse_primary()?;
+        let left_height = self.height;
 
         if self.match_any(&[TokenType::In, TokenType::NotIn]) {
             let negated = self.previous().token_type == TokenType::NotIn;
             let list = self.parse_value_list()?;
+            self.node(left_height)?;
             return Ok(Node::In {
                 negated,
                 value: Box::new(left),
@@ -138,6 +165,7 @@ impl Parser {
         ]) {
             let operator = self.previous().value.clone();
             let right = self.parse_comparison_value()?;
+            self.node(left_height.max(self.height))?;
             return Ok(Node::Binary {
                 operator,
                 left: Box::new(left),
@@ -200,6 +228,7 @@ impl Parser {
             self.advance(); // consume identifier
 
             if !self.check(TokenType::Dot) {
+                self.height = 1;
                 return Ok(Node::Literal(LiteralValue::Str(
                     self.previous().value.clone(),
                 )));
@@ -215,12 +244,18 @@ impl Parser {
     // primary = "(" or ")" | path | literal
     fn parse_primary(&mut self) -> Result<Node, ParseError> {
         if self.match_type(TokenType::LParen) {
+            self.enter()?;
             let expression = self.parse_or_expression()?;
+            self.open -= 1;
             if !self.match_type(TokenType::RParen) {
                 return Err(ParseError::new("Missing closing parenthesis"));
             }
+            self.node(self.height)?;
             return Ok(Node::Group(Box::new(expression)));
         }
+
+        // A path or a literal is a leaf.
+        self.height = 1;
 
         if self.check(TokenType::Dot)
             || self.check(TokenType::DotDot)
@@ -305,6 +340,26 @@ impl Parser {
         })
     }
 
+    /// Open a node whose children follow; the tree is at least one level deeper
+    /// than the open nodes.
+    fn enter(&mut self) -> Result<(), ParseError> {
+        self.open += 1;
+        if self.open >= MAX_EXPRESSION_DEPTH {
+            return Err(too_deep());
+        }
+        Ok(())
+    }
+
+    /// Record a node whose tallest child has `child_height` as the last parsed
+    /// node and return its height.
+    fn node(&mut self, child_height: usize) -> Result<usize, ParseError> {
+        self.height = child_height + 1;
+        if self.height > MAX_EXPRESSION_DEPTH {
+            return Err(too_deep());
+        }
+        Ok(self.height)
+    }
+
     fn match_type(&mut self, t: TokenType) -> bool {
         if self.check(t) {
             self.advance();
@@ -348,6 +403,12 @@ impl Parser {
     fn previous(&self) -> &Token {
         &self.tokens[self.current - 1]
     }
+}
+
+fn too_deep() -> ParseError {
+    ParseError::new(format!(
+        "Expression is nested more than {MAX_EXPRESSION_DEPTH} levels deep"
+    ))
 }
 
 fn number_literal(lit: &Literal) -> LiteralValue {

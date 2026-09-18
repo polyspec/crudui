@@ -72,7 +72,11 @@ struct ps_value {
         int64_t integer;
         double number;
         struct { char *bytes; size_t length; } string;
-        struct { ps_member *items; size_t length; size_t capacity; } children;
+        /*
+         * An object with many members also has slots, a hash index of member positions: each
+         * slot holds a position plus one, or zero when empty; slot_count is a power of two.
+         */
+        struct { ps_member *items; size_t length; size_t capacity; size_t *slots; size_t slot_count; } children;
     } data;
 };
 
@@ -92,6 +96,8 @@ ps_value *ps_value_clone(const ps_value *value);
  */
 bool ps_value_order(ps_value *value);
 ps_value *ps_value_ordered(const ps_value *value);
+/* Update an object's member index after its members were reordered in place. */
+void ps_value_reindex(ps_value *object);
 /*
  * True when a template is exactly the shape compileForm produces: only kind
  * (crudui/form-template), fields, buttons (objects), an optional string keyPrefix and an optional

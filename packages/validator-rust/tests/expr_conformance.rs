@@ -85,6 +85,19 @@ fn expression_fixture_matches() {
                 .and_then(Value::as_str)
                 .unwrap_or_else(|| panic!("[{}] case missing expr", name));
 
+            // A rejected expression fails to parse with the recorded message.
+            if let Some(error) = spec.get("error").and_then(Value::as_str) {
+                match Expression::parse(expr) {
+                    Ok(_) => failures.push(format!("[{}] parsed; want error {}", name, error)),
+                    Err(e) if e.message != error => failures.push(format!(
+                        "[{}] error mismatch\n  expected: {}\n  actual:   {}",
+                        name, error, e.message
+                    )),
+                    Err(_) => {}
+                }
+                return failures;
+            }
+
             // (1) lexer
             let expected = spec
                 .get("tokens")
