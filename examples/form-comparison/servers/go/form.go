@@ -5,8 +5,10 @@ import (
 	"io"
 	"mime"
 	"mime/multipart"
+	"net/http"
 	"net/url"
 	"regexp"
+	"slices"
 	"strings"
 	"unicode/utf8"
 )
@@ -43,6 +45,9 @@ func parseNative(body []byte, contentType string) (*object, error) {
 				return fmt.Errorf("Conflicting native field: %s", name)
 			}
 			current = next
+		}
+		if current.Has(segments[len(segments)-1]) {
+			return fmt.Errorf("Repeated native field: %s", name)
 		}
 		current.Set(segments[len(segments)-1], value)
 		return nil
@@ -99,19 +104,6 @@ func parseNative(body []byte, contentType string) (*object, error) {
 	return result, nil
 }
 
-func text(value any) (string, error) {
-	switch value := value.(type) {
-	case nil:
-		return "", nil
-	case string:
-		return value, nil
-	default:
-		return "", fmt.Errorf("Expected string field value")
-	}
-}
-
-func emptyRows() any { return record() }
-
 type row struct {
 	key   string
 	value *object
@@ -144,108 +136,99 @@ func rowCollection(items []row) any {
 	return result
 }
 
-// normalize retains submitted rows and normalizes omitted controls.
-func normalize(data *object) (*object, error) {
-	data = clone(data).(*object)
-	var walk func(any, int, string) (any, error)
-	walk = func(value any, level int, path string) (any, error) {
-		items, err := rows(value, path)
-		if err != nil {
-			return nil, err
+// shape is one part of the submitted form: a text or checkbox leaf, an object of fixed members
+// or keyed rows of one member shape.
+type shape struct {
+	leaf    string
+	members []shapeMember
+	rows    *shape
+}
+
+type shapeMember struct {
+	name  string
+	shape shape
+}
+
+var (
+	textLeaf     = shape{leaf: "text"}
+	checkboxLeaf = shape{leaf: "checkbox"}
+)
+
+// membersOf is an object shape of name and shape pairs in member order.
+func membersOf(pairs ...any) shape {
+	result := shape{}
+	for index := 0; index < len(pairs); index += 2 {
+		result.members = append(result.members, shapeMember{pairs[index].(string), pairs[index+1].(shape)})
+	}
+	return result
+}
+
+func rowsOf(row shape) shape { return shape{rows: &row} }
+
+// companiesShape is the submitted companies of docs/spec/form-comparison.md, "Record resource",
+// and scenarioShape the benchmark form that holds only them.
+var (
+	companiesShape = rowsOf(membersOf("name", textLeaf, "stores", rowsOf(membersOf(
+		"name", textLeaf, "enabled", checkboxLeaf, "detail", textLeaf,
+		"title", membersOf("ko", textLeaf, "en", textLeaf),
+		"departments", rowsOf(membersOf("name", textLeaf)),
+	))))
+	scenarioShape = membersOf("companies", companiesShape)
+)
+
+// shaped returns the submitted value of s at path, completed and in the member order of s. A
+// native form omits an unchecked checkbox ("") and a collection without rows (no rows); JSON
+// carries every member. Any other difference answers 400. An absent member is nil.
+func shaped(value any, s shape, native bool, path string) (any, error) {
+	if value == nil && native && s.leaf == "checkbox" {
+		return "", nil
+	}
+	if value == nil && native && s.rows != nil {
+		return record(), nil
+	}
+	if s.leaf != "" {
+		text, ok := value.(string)
+		if !ok {
+			return nil, fail(http.StatusBadRequest, "Expected text at "+path)
 		}
-		for _, item := range items {
-			name, err := text(get(item.value, "name"))
+		if s.leaf == "checkbox" && text != "" && text != "1" {
+			return nil, fail(http.StatusBadRequest, `Expected "" or "1" at `+path)
+		}
+		return text, nil
+	}
+	submitted, ok := value.(*object)
+	if !ok {
+		return nil, fail(http.StatusBadRequest, "Expected an object at "+path)
+	}
+	result := record()
+	if s.rows != nil {
+		for _, key := range submitted.Keys() {
+			if !rowKey.MatchString(key) {
+				return nil, fail(http.StatusBadRequest, "Expected a row key at "+path+": "+key)
+			}
+			row, err := shaped(get(submitted, key), *s.rows, native, path+"."+key)
 			if err != nil {
 				return nil, err
 			}
-			item.value.Set("name", name)
-			if level == 1 {
-				for _, name := range []string{"enabled", "detail"} {
-					v, err := text(get(item.value, name))
-					if err != nil {
-						return nil, err
-					}
-					if name == "enabled" && v != "" && v != "1" {
-						return nil, fmt.Errorf("Expected checkbox value 1 or empty string")
-					}
-					item.value.Set(name, v)
-				}
-				title := record()
-				raw := get(item.value, "title")
-				if raw != nil {
-					var ok bool
-					title, ok = raw.(*object)
-					if !ok {
-						return nil, fmt.Errorf("Expected language object")
-					}
-				}
-				for _, language := range title.Keys() {
-					if language != "ko" && language != "en" {
-						return nil, fmt.Errorf("Expected ko or en title field")
-					}
-				}
-				ko, err := text(get(title, "ko"))
-				if err != nil {
-					return nil, err
-				}
-				en, err := text(get(title, "en"))
-				if err != nil {
-					return nil, err
-				}
-				item.value.Set("title", record("ko", ko, "en", en))
-			}
-			if level < 2 {
-				child := []string{"stores", "departments"}[level]
-				v := get(item.value, child)
-				if !item.value.Has(child) {
-					v = emptyRows()
-				}
-				nested, err := walk(v, level+1, path+"."+item.key+"."+child)
-				if err != nil {
-					return nil, err
-				}
-				item.value.Set(child, nested)
-			}
+			result.Set(key, row)
 		}
-		return rowCollection(items), nil
+		return result, nil
 	}
-	value := get(data, "companies")
-	if !data.Has("companies") {
-		value = emptyRows()
+	for _, key := range submitted.Keys() {
+		if !slices.ContainsFunc(s.members, func(member shapeMember) bool { return member.name == key }) {
+			return nil, fail(http.StatusBadRequest, "Unexpected member "+path+"."+key)
+		}
 	}
-	companies, err := walk(value, 0, "companies")
-	if err != nil {
-		return nil, err
-	}
-	return record("companies", companies), nil
-}
-
-func checkJSONShape(data *object) error {
-	var walk func(any, int) error
-	walk = func(value any, level int) error {
-		items, err := rows(value, "JSON collection")
+	for _, member := range s.members {
+		omittable := native && (member.shape.leaf == "checkbox" || member.shape.rows != nil)
+		if !submitted.Has(member.name) && !omittable {
+			return nil, fail(http.StatusBadRequest, "Missing member "+path+"."+member.name)
+		}
+		child, err := shaped(get(submitted, member.name), member.shape, native, path+"."+member.name)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		for _, item := range items {
-			if level == 1 && item.value.Has("title") {
-				if _, ok := get(item.value, "title").(*object); !ok {
-					return fmt.Errorf("Expected language object")
-				}
-			}
-			if level < 2 {
-				child := []string{"stores", "departments"}[level]
-				if item.value.Has(child) {
-					if err = walk(get(item.value, child), level+1); err != nil {
-						return err
-					}
-				}
-			}
-		}
-		return nil
+		result.Set(member.name, child)
 	}
-	if data.Has("companies") {
-		return walk(get(data, "companies"), 0)
-	}
-	return nil
+	return result, nil
 }

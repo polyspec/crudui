@@ -5,7 +5,7 @@ import test from 'node:test';
 
 import { validateDetail, validateList } from '@crudui/validator';
 
-import { pipelineCombinations, scoreCellText, stageContent } from './pipeline-flow.mjs';
+import { editedCompanies, firstStore, pipelineCombinations, scoreCellText, stageContent } from './pipeline-flow.mjs';
 import {
   expectedStageHtml, expectedValidation, formData, pageAddress, recordClients, recordFixture,
   recordModes, recordServers, recordSpecs, savedRecord, selectionQuery, stageSpecs,
@@ -21,7 +21,7 @@ test('the shared fixture holds 45 records in id order that pass their own form',
   assert.equal(records.length, 45);
   assert.deepEqual(records.map(record => record.id), Array.from({ length: 45 }, (_, index) => String(index + 1)));
   for (const record of records) {
-    assert.deepEqual(Object.keys(record), ['id', 'name', 'status', 'joined', 'score', 'relation', 'avatar', 'markup']);
+    assert.deepEqual(Object.keys(record), ['id', 'name', 'status', 'joined', 'score', 'relation', 'avatar', 'markup', 'companies']);
     assert.equal(typeof record.score, 'number');
     assert.deepEqual(expectedValidation(formData(record)), { valid: true, errors: [] }, `record ${record.id}`);
     assert.deepEqual(savedRecord(record, formData(record)), record, `record ${record.id} round-trips through its form`);
@@ -75,7 +75,40 @@ test('the flow check covers 40 combinations with their own records and both form
     assert.equal(combination.selection.page, 2);
   }
   assert.equal(new Set(combinations.map(combination => combination.score)).size, 40);
+  assert.equal(new Set(combinations.map(combination => combination.department)).size, 40);
   assert.equal(scoreCellText('9121', 'en'), '$9,121');
+});
+
+test('every flow record starts with an enabled first store the flow can uncheck', () => {
+  const records = recordFixture();
+  for (const recordId of new Set(pipelineCombinations().map(combination => combination.recordId))) {
+    const { path, store } = firstStore(records.find(record => record.id === recordId));
+    assert.equal(store.enabled, '1', `record ${recordId}: ${path}.enabled starts checked`);
+  }
+});
+
+test('the flow expects the edited store unchecked, its detail kept and the new department last', () => {
+  const companies = {
+    __0000000000002__: {
+      name: 'C', stores: {
+        __0000000000001__: { name: 'S', enabled: '1', detail: 'D', title: { ko: 'k', en: 'e' }, departments: { __0000000000003__: { name: 'A' } } },
+        __0000000000004__: { name: 'T', enabled: '1', detail: '', title: { ko: '', en: '' }, departments: {} },
+      },
+    },
+  };
+  const edited = editedCompanies(companies, '__00000000000ff__', 'Desk');
+  assert.equal(JSON.stringify(edited), JSON.stringify({
+    __0000000000002__: {
+      name: 'C', stores: {
+        __0000000000001__: {
+          name: 'S', enabled: '', detail: 'D', title: { ko: 'k', en: 'e' },
+          departments: { __0000000000003__: { name: 'A' }, __00000000000ff__: { name: 'Desk' } },
+        },
+        __0000000000004__: { name: 'T', enabled: '1', detail: '', title: { ko: '', en: '' }, departments: {} },
+      },
+    },
+  }));
+  assert.equal(companies.__0000000000002__.stores.__0000000000001__.enabled, '1', 'the stored companies stay unchanged');
 });
 
 test('the record resource has one source: no constant records and no separate form scenario', async () => {

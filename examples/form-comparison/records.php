@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__ . '/json.php';
+require_once __DIR__ . '/form-shape.php';
 
 /**
  * The customer record store of one PHP server: `records-{server}.json` in the data directory,
@@ -9,8 +10,13 @@ require_once __DIR__ . '/json.php';
 final class RecordStore
 {
     public const PER_PAGE = 20;
-    /** The submitted form members, in record member order. */
-    public const FORM_MEMBERS = ['id', 'name', 'status', 'joined', 'score', 'relation', 'markup'];
+    /** The members of a stored record, in order. */
+    private const RECORD_MEMBERS = ['id', 'name', 'status', 'joined', 'score', 'relation', 'avatar', 'markup', 'companies'];
+    /**
+     * The submitted form members, in record member order, with the value a native submission
+     * omits (a collection without rows); null marks a member it always posts.
+     */
+    private const FORM_MEMBERS = ['id' => null, 'name' => null, 'status' => null, 'joined' => null, 'score' => null, 'relation' => null, 'markup' => null, 'companies' => []];
 
     public function __construct(private readonly string $file, private readonly string $fixtureFile) {}
 
@@ -28,11 +34,12 @@ final class RecordStore
         return $this->transaction(static fn(array $records): array => [$records, $records]);
     }
 
-    /** Replace the store with the fixture and return its record count. */
+    /** Replace the store with the fixture, whatever the store file holds, and return its record count. */
     public function reset(): int
     {
         $fixture = $this->fixture();
-        return $this->transaction(static fn(array $records): array => [$fixture, count($fixture)]);
+        $this->locked(fn() => $this->replace($fixture));
+        return count($fixture);
     }
 
     /**
@@ -54,6 +61,7 @@ final class RecordStore
                 'relation' => (object) ['name' => $submitted->relation->name],
                 'avatar' => $previous->avatar,
                 'markup' => $submitted->markup,
+                'companies' => $submitted->companies,
             ];
             $records[$index] = $record;
             return [$records, $record];
@@ -85,27 +93,25 @@ final class RecordStore
             'score' => FormJson::numberText($record->score),
             'relation' => (object) ['name' => $record->relation->name],
             'markup' => $record->markup,
+            'companies' => $record->companies,
         ];
     }
 
     /**
-     * Require exactly the form members, each a string, with `relation` holding exactly `name`, and
-     * return them in member order. Native fields arrive as arrays and JSON members as objects.
+     * Require exactly the form members, each a string, with `relation` holding exactly `name` and
+     * `companies` in its keyed row shape (FormShape), and return them in member order.
      */
-    public static function submission(mixed $form): stdClass
+    public static function submission(mixed $form, bool $native): stdClass
     {
-        $members = self::members($form);
-        if ($members === null || !self::sameKeys($members, self::FORM_MEMBERS)) throw new InvalidArgumentException('Expected exactly the form members');
-        $relation = self::members($members['relation']);
-        if ($relation === null || !self::sameKeys($relation, ['name'])) throw new InvalidArgumentException('Expected relation with exactly name');
-        $members['relation'] = (object) $relation;
-        foreach (self::FORM_MEMBERS as $name) {
-            if ($name !== 'relation' && !is_string($members[$name])) throw new InvalidArgumentException("Expected text member: $name");
+        $members = FormShape::members($form, $native, self::FORM_MEMBERS, 'form');
+        foreach ($members as $name => $value) {
+            $members[$name] = match ($name) {
+                'relation' => (object) ['name' => FormShape::text(FormShape::members($value, $native, ['name' => null], 'relation')['name'], 'relation.name')],
+                'companies' => FormShape::companies($value, $native),
+                default => FormShape::text($value, $name),
+            };
         }
-        if (!is_string($relation['name'])) throw new InvalidArgumentException('Expected text member: relation.name');
-        $ordered = [];
-        foreach (self::FORM_MEMBERS as $name) $ordered[$name] = $members[$name];
-        return (object) $ordered;
+        return (object) $members;
     }
 
     /** Convert submitted number text as JavaScript's Number conversion does. */
@@ -139,44 +145,71 @@ final class RecordStore
         return floor($value) === $value && abs($value) <= 9007199254740991.0 ? (int) $value : $value;
     }
 
-    /** Return object or array members as an array, or null for another value. */
-    private static function members(mixed $value): ?array
-    {
-        if ($value instanceof stdClass) return get_object_vars($value);
-        if (is_array($value) && ($value === [] || !array_is_list($value))) return $value;
-        return null;
-    }
-
-    private static function sameKeys(array $members, array $names): bool
-    {
-        $keys = array_map('strval', array_keys($members));
-        sort($keys);
-        sort($names);
-        return $keys === $names;
-    }
-
     private static function indexOf(array $records, string $id): ?int
     {
         foreach ($records as $index => $record) if ($record->id === $id) return $index;
         return null;
     }
 
-    /** Require a records array read from a JSON file. */
+    /**
+     * Require the records array of a JSON file: records with exactly the fixture's members in
+     * order, `score` a number, every other scalar a string and `companies` in the form's shape
+     * (FormShape). Anything else is a server fault.
+     */
     private static function records(mixed $value, string $name): array
     {
-        if (!is_array($value)) throw new RuntimeException("Malformed $name");
+        if (!is_array($value) || !array_is_list($value)) throw new RuntimeException("Malformed $name: expected a records array");
         foreach ($value as $record) {
-            if (!$record instanceof stdClass || !is_string($record->id ?? null)) throw new RuntimeException("Malformed $name");
+            if (!$record instanceof stdClass || array_map('strval', array_keys(get_object_vars($record))) !== self::RECORD_MEMBERS) throw new RuntimeException("Malformed $name: expected the record members");
+            foreach (self::RECORD_MEMBERS as $member) {
+                $item = $record->$member;
+                $valid = match ($member) {
+                    'score' => is_int($item) || is_float($item),
+                    'relation' => $item instanceof stdClass && array_keys(get_object_vars($item)) === ['name'] && is_string($item->name),
+                    'companies' => true,
+                    default => is_string($item),
+                };
+                if (!$valid) throw new RuntimeException("Malformed $name: expected the record member $member");
+            }
+            try {
+                FormShape::companies($record->companies, false);
+            } catch (InvalidArgumentException $error) {
+                throw new RuntimeException("Malformed $name: {$error->getMessage()}", 0, $error);
+            }
         }
         return $value;
     }
 
-    /** Serialize read/modify/write operations under one exclusive file lock; writes replace the file atomically. */
-    private function transaction(callable $operation): mixed
+    /** Run one operation under the exclusive store lock. */
+    private function locked(callable $operation): mixed
     {
         $handle = fopen($this->file . '.lock', 'c');
         if ($handle === false || !flock($handle, LOCK_EX)) throw new RuntimeException('Cannot lock the record store');
         try {
+            return $operation();
+        } finally {
+            flock($handle, LOCK_UN);
+            fclose($handle);
+        }
+    }
+
+    /** Replace the store file atomically through a temporary file in its directory. */
+    private function replace(array $records): void
+    {
+        $json = FormJson::encode($records) . "\n";
+        $temporary = tempnam(dirname($this->file), '.records-');
+        if ($temporary === false) throw new RuntimeException('Cannot create the record store file');
+        try {
+            if (file_put_contents($temporary, $json) !== strlen($json) || !rename($temporary, $this->file)) throw new RuntimeException('Cannot write the record store');
+        } finally {
+            if (is_file($temporary)) unlink($temporary);
+        }
+    }
+
+    /** Serialize read/modify/write operations under the store lock; writes replace the file atomically. */
+    private function transaction(callable $operation): mixed
+    {
+        return $this->locked(function () use ($operation): mixed {
             $missing = !file_exists($this->file);
             if ($missing) {
                 $before = $this->fixture();
@@ -190,20 +223,8 @@ final class RecordStore
                 }
             }
             [$after, $result] = $operation($before);
-            if ($missing || $after !== $before) {
-                $json = FormJson::encode($after) . "\n";
-                $temporary = tempnam(dirname($this->file), '.records-');
-                if ($temporary === false) throw new RuntimeException('Cannot create the record store file');
-                try {
-                    if (file_put_contents($temporary, $json) !== strlen($json) || !rename($temporary, $this->file)) throw new RuntimeException('Cannot write the record store');
-                } finally {
-                    if (is_file($temporary)) unlink($temporary);
-                }
-            }
+            if ($missing || $after !== $before) $this->replace($after);
             return $result;
-        } finally {
-            flock($handle, LOCK_UN);
-            fclose($handle);
-        }
+        });
     }
 }

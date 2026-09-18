@@ -1,7 +1,9 @@
 //! The customer record resource of the canonical page: the paged list, one record, its save,
 //! the reset and the SSR stage views (docs/spec/form-comparison.md, "Record resource").
 use crate::{
-    bad, failure, json as codec, media_type, parse_native, reply, Error, Result, Server, MAX_BYTES,
+    bad, failure,
+    form::{companies, text_member},
+    json as codec, media_type, parse_native, reply, Error, Result, Server, MAX_BYTES,
 };
 use axum::{
     extract::{Request, State},
@@ -41,9 +43,29 @@ const SELECTION: [&str; 6] = [
     "mode",
     "page",
 ];
-/// The members of one submitted form object; `relation` holds exactly `name`.
-const FORM_MEMBERS: [&str; 7] = [
-    "id", "name", "status", "joined", "score", "relation", "markup",
+/// The members of one submitted form object; `relation` holds exactly `name` and `companies`
+/// holds keyed rows.
+const FORM_MEMBERS: [&str; 8] = [
+    "id",
+    "name",
+    "status",
+    "joined",
+    "score",
+    "relation",
+    "markup",
+    "companies",
+];
+/// The members of one stored record, in order.
+const RECORD_MEMBERS: [&str; 9] = [
+    "id",
+    "name",
+    "status",
+    "joined",
+    "score",
+    "relation",
+    "avatar",
+    "markup",
+    "companies",
 ];
 /// The largest integer a double represents exactly.
 const SAFE_INTEGER: f64 = 9_007_199_254_740_991.0;
@@ -108,12 +130,8 @@ impl Store {
         records(&fs::read(&self.fixture)?, "fixture")
     }
 
-    /// Lock the store, read it (seeding a missing file from the fixture) and atomically replace
-    /// it with the records the operation returns. A failed operation writes nothing.
-    fn transaction<T>(
-        &self,
-        operation: impl FnOnce(Vec<Value>) -> Result<(Vec<Value>, T)>,
-    ) -> Result<T> {
+    /// Run the operation under the exclusive store lock.
+    fn locked<T>(&self, operation: impl FnOnce() -> Result<T>) -> Result<T> {
         let lock = OpenOptions::new()
             .create(true)
             .truncate(false)
@@ -121,25 +139,52 @@ impl Store {
             .write(true)
             .open(self.file.with_extension("json.lock"))?;
         lock.lock()?;
-        let (before, exists) = match fs::read(&self.file) {
-            Ok(bytes) => (records(&bytes, "store")?, true),
-            Err(error) if error.kind() == std::io::ErrorKind::NotFound => (self.fixture()?, false),
-            Err(error) => return Err(error.into()),
-        };
-        let unchanged = codec::encode_values(&Value::Array(before.clone()))?;
-        let (after, result) = operation(before)?;
-        let encoded = codec::encode_values(&Value::Array(after))?;
-        if !exists || encoded != unchanged {
-            let mut temporary = tempfile::NamedTempFile::new_in(
-                self.file
-                    .parent()
-                    .ok_or_else(|| internal("Missing store directory"))?,
-            )?;
-            writeln!(temporary, "{encoded}")?;
-            temporary.as_file().sync_all()?;
-            temporary.persist(&self.file).map_err(|e| e.error)?;
-        }
-        Ok(result)
+        operation()
+    }
+
+    /// Atomically replace the store file with the records through a temporary file.
+    fn replace(&self, encoded: &str) -> Result<()> {
+        let mut temporary = tempfile::NamedTempFile::new_in(
+            self.file
+                .parent()
+                .ok_or_else(|| internal("Missing store directory"))?,
+        )?;
+        writeln!(temporary, "{encoded}")?;
+        temporary.as_file().sync_all()?;
+        temporary.persist(&self.file).map_err(|e| e.error)?;
+        Ok(())
+    }
+
+    /// Lock the store, read it (seeding a missing file from the fixture) and atomically replace
+    /// it with the records the operation returns. A failed operation writes nothing.
+    fn transaction<T>(
+        &self,
+        operation: impl FnOnce(Vec<Value>) -> Result<(Vec<Value>, T)>,
+    ) -> Result<T> {
+        self.locked(|| {
+            let (before, exists) = match fs::read(&self.file) {
+                Ok(bytes) => (records(&bytes, "store")?, true),
+                Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+                    (self.fixture()?, false)
+                }
+                Err(error) => return Err(error.into()),
+            };
+            let unchanged = codec::encode_values(&Value::Array(before.clone()))?;
+            let (after, result) = operation(before)?;
+            let encoded = codec::encode_values(&Value::Array(after))?;
+            if !exists || encoded != unchanged {
+                self.replace(&encoded)?;
+            }
+            Ok(result)
+        })
+    }
+
+    /// Replace the store with the fixture, whatever the store file holds, and return its count.
+    fn reset(&self) -> Result<usize> {
+        let fixture = self.fixture()?;
+        let encoded = codec::encode_values(&Value::Array(fixture.clone()))?;
+        self.locked(|| self.replace(&encoded))?;
+        Ok(fixture.len())
     }
 
     fn read(&self) -> Result<Vec<Value>> {
@@ -147,13 +192,37 @@ impl Store {
     }
 }
 
-/// Decode a records array: objects with a text `id`. Anything else is a server fault.
+/// Decode a records array: records with exactly the fixture's members in order, `score` a
+/// number, every other scalar a string and `companies` in the form's shape. Anything else is a
+/// server fault.
 fn records(bytes: &[u8], name: &str) -> Result<Vec<Value>> {
-    let malformed = || internal(format!("The record {name} is malformed"));
-    let value = codec::decode_values(bytes).map_err(|_| malformed())?;
-    let items = value.as_array().ok_or_else(malformed)?;
-    if items.iter().any(|item| !item["id"].is_string()) {
-        return Err(malformed());
+    let malformed = |detail: &str| internal(format!("The record {name} is malformed: {detail}"));
+    let value = codec::decode_values(bytes).map_err(|e| malformed(&e.message))?;
+    let items = value
+        .as_array()
+        .ok_or_else(|| malformed("expected a records array"))?;
+    for item in items {
+        let record = item
+            .as_object()
+            .filter(|record| record.keys().eq(RECORD_MEMBERS.iter()))
+            .ok_or_else(|| malformed("expected the record members"))?;
+        for member in RECORD_MEMBERS {
+            let value = &record[member];
+            let valid = match member {
+                "score" => value.is_number(),
+                "relation" => value.as_object().is_some_and(|relation| {
+                    relation.len() == 1 && relation.get("name").is_some_and(Value::is_string)
+                }),
+                "companies" => {
+                    companies(Some(value), false).map_err(|e| malformed(&e.message))?;
+                    true
+                }
+                _ => value.is_string(),
+            };
+            if !valid {
+                return Err(malformed(&format!("expected the record member {member}")));
+            }
+        }
     }
     Ok(items.clone())
 }
@@ -210,10 +279,7 @@ async fn reset(State(server): State<Arc<Server>>, request: Request) -> Result<Re
     if !body.is_empty() {
         return Err(bad("The reset request takes no body"));
     }
-    let store = Store::of(&server);
-    let fixture = store.fixture()?;
-    let total = fixture.len();
-    store.transaction(|_| Ok((fixture, ())))?;
+    let total = Store::of(&server).reset()?;
     reply(StatusCode::OK, json!({"total":total}))
 }
 
@@ -233,15 +299,15 @@ async fn record(State(server): State<Arc<Server>>, request: Request) -> Result<R
     save(&server, &id, request).await
 }
 
-/// The submitted form object of a native or JSON save request.
-async fn submitted(request: Request) -> Result<Value> {
+/// The submitted form object of a native or JSON save request, and whether it is native.
+async fn submitted(request: Request) -> Result<(Value, bool)> {
     let kind = media_type(&request);
-    let mut body = match kind.as_str() {
+    let (mut body, native) = match kind.as_str() {
         "application/json" => {
             let bytes = axum::body::to_bytes(request.into_body(), MAX_BYTES)
                 .await
                 .map_err(|e| failure(StatusCode::PAYLOAD_TOO_LARGE, e.to_string()))?;
-            codec::decode(&bytes)?
+            (codec::decode(&bytes)?, false)
         }
         "multipart/form-data" | "application/x-www-form-urlencoded" => {
             let mut fields = parse_native(request, &kind).await?;
@@ -256,7 +322,7 @@ async fn submitted(request: Request) -> Result<Value> {
             {
                 return Err(bad("Incomplete native form submission"));
             }
-            fields
+            (fields, true)
         }
         _ => {
             return Err(failure(
@@ -266,39 +332,41 @@ async fn submitted(request: Request) -> Result<Value> {
         }
     };
     match body.as_object_mut() {
-        Some(members) if members.len() == 1 => members
-            .remove("form")
-            .ok_or_else(|| bad("Expected form object")),
+        Some(members) if members.len() == 1 => Ok((
+            members
+                .remove("form")
+                .ok_or_else(|| bad("Expected form object"))?,
+            native,
+        )),
         _ => Err(bad("Expected form object")),
     }
 }
 
-/// The submission with exactly the form members as text, in specification order.
-fn form_members(form: &Value) -> Result<Value> {
+/// The submission with exactly the form members, in specification order. A native submission
+/// omits an unchecked `enabled` and a collection without rows; they complete as `""` and `{}`.
+pub(crate) fn form_members(form: &Value, native: bool) -> Result<Value> {
     let members = form
         .as_object()
         .ok_or_else(|| bad("Expected form object"))?;
-    let text = |value: Option<&Value>, name: &str| -> Result<Value> {
-        value
-            .filter(|value| value.is_string())
-            .cloned()
-            .ok_or_else(|| bad(format!("Expected text member {name}")))
-    };
-    if members.len() != FORM_MEMBERS.len()
-        || !FORM_MEMBERS.iter().all(|name| members.contains_key(*name))
+    let omitted = usize::from(native && !members.contains_key("companies"));
+    if members.len() + omitted != FORM_MEMBERS.len()
+        || !members
+            .keys()
+            .all(|name| FORM_MEMBERS.contains(&name.as_str()))
     {
         return Err(bad("Expected exactly the form members"));
     }
-    let relation = members["relation"]
-        .as_object()
+    let relation = members
+        .get("relation")
+        .and_then(Value::as_object)
         .filter(|relation| relation.len() == 1)
         .ok_or_else(|| bad("Expected relation with exactly name"))?;
     let mut result = Map::new();
     for name in FORM_MEMBERS {
-        let value = if name == "relation" {
-            json!({"name":text(relation.get("name"), "relation.name")?})
-        } else {
-            text(members.get(name), name)?
+        let value = match name {
+            "relation" => json!({"name":text_member(relation.get("name"), "relation.name")?}),
+            "companies" => companies(members.get(name), native)?,
+            _ => text_member(members.get(name), name)?,
         };
         result.insert(name.into(), value);
     }
@@ -322,7 +390,8 @@ fn score(text: &str) -> Result<Value> {
 async fn save(server: &Server, id: &str, request: Request) -> Result<Response> {
     let store = Store::of(server);
     find(&store.read()?, id)?;
-    let data = form_members(&submitted(request).await?)?;
+    let (form, native) = submitted(request).await?;
+    let data = form_members(&form, native)?;
     if data["id"] != id {
         return Err(bad("The form id differs from the record id"));
     }
@@ -349,7 +418,9 @@ async fn save(server: &Server, id: &str, request: Request) -> Result<Response> {
         for (name, value) in record.iter_mut() {
             match name.as_str() {
                 "score" => *value = score.clone(),
-                "name" | "status" | "joined" | "relation" | "markup" => *value = data[name].clone(),
+                "name" | "status" | "joined" | "relation" | "markup" | "companies" => {
+                    *value = data[name].clone()
+                }
                 _ => {}
             }
         }
@@ -441,6 +512,9 @@ fn form_data(record: &Value) -> Result<Value> {
             .map(|text| Value::String(text.into()))
             .ok_or_else(|| internal("Expected a text member in the stored record"))
     };
+    let companies = record["companies"]
+        .as_object()
+        .ok_or_else(|| internal("Expected companies in the stored record"))?;
     let score = record["score"]
         .as_number()
         .ok_or_else(|| internal("Expected a numeric score in the stored record"))?;
@@ -448,7 +522,7 @@ fn form_data(record: &Value) -> Result<Value> {
         "id": text(&record["id"])?, "name": text(&record["name"])?,
         "status": text(&record["status"])?, "joined": text(&record["joined"])?,
         "score": number_text(score), "relation": {"name": text(&record["relation"]["name"])?},
-        "markup": text(&record["markup"])?,
+        "markup": text(&record["markup"])?, "companies": companies,
     }))
 }
 

@@ -1,8 +1,10 @@
 // The end-to-end check of the canonical page (docs/spec/form-comparison.md, "Canonical flow
 // check"): for each of the 40 server, client and initialization combinations, open the list at
-// page 2, open one record's detail, open its form, change the score, save, and require the list
-// on page 2 to show the saved value and the saved notice. Each combination is one unit with its own
-// timeout; the check runs the units in a bounded pool.
+// page 2, open one record's detail, open its form, change the score, uncheck `enabled` of the first
+// store of the first company, add a named department to that store, save, and require the list on
+// page 2 to show the saved value and the saved notice and the selected server to have stored the
+// edits. Each combination is one unit with its own timeout; the check runs the units in a bounded
+// pool.
 import assert from 'node:assert/strict';
 
 import { buildList } from '@crudui/generator-core';
@@ -42,6 +44,7 @@ export function pipelineCombinations() {
       },
       recordId: String(21 + clientIndex * 2 + initializationIndex),
       score: String(9_100 + serverIndex * 10 + clientIndex * 2 + initializationIndex),
+      department: `Desk ${9_100 + serverIndex * 10 + clientIndex * 2 + initializationIndex}`,
       submit: (clientIndex + initializationIndex) % 2 === 0 ? 'button' : 'enter',
     }))));
 }
@@ -136,10 +139,90 @@ function expectAddress(page, origin, address, view) {
   assert.equal(url.origin + url.pathname + url.search, new URL(address, origin).href, `${view} address`);
 }
 
+/** One record as the selected server's public record API returns it. */
+async function storedRecord(origin, server, id, signal) {
+  const response = await fetch(new URL(`/api/${server}/records/${id}`, origin), { signal });
+  assert.equal(response.status, 200, `GET /api/${server}/records/${id}`);
+  return (await response.json()).record;
+}
+
+/**
+ * The first store of the first company of `record`: its keys, its field path and its stored value.
+ * The flow edits this store.
+ */
+export function firstStore(record) {
+  const [companyKey, company] = Object.entries(record.companies ?? {})[0] ?? [];
+  assert.ok(company, `record ${record.id} has a company`);
+  const [storeKey, store] = Object.entries(company.stores)[0] ?? [];
+  assert.ok(store, `record ${record.id}: the first company has a store`);
+  return { companyKey, storeKey, store, path: `companies.${companyKey}.stores.${storeKey}` };
+}
+
+/**
+ * The companies the server must store after the flow: the stored companies with the first store's
+ * `enabled` unchecked, its `detail` kept and the added department as the last row of its
+ * departments.
+ */
+export function editedCompanies(companies, departmentKey, department) {
+  const edited = structuredClone(companies);
+  const { companyKey, storeKey } = firstStore({ companies });
+  const store = edited[companyKey].stores[storeKey];
+  store.enabled = '';
+  store.departments[departmentKey] = { name: department };
+  return edited;
+}
+
+/**
+ * Uncheck `enabled` of the edited store and require its `detail` to be hidden, then add a
+ * department row with the row action and type its name. Returns the new row's key.
+ */
+async function editStore(page, recordId, { path, store }, department) {
+  const form = '#stage form#record-form';
+  const enabled = await page.$(`${form} [data-field-path="${path}.enabled"] input[type="checkbox"]`);
+  assert.ok(enabled, `the form edits ${path}.enabled`);
+  const detail = `${form} [data-field-path="${path}.detail"] textarea`;
+  assert.equal(await enabled.evaluate(input => input.checked), true, `record ${recordId}: ${path}.enabled starts checked`);
+  assert.equal(await page.$eval(detail, textarea => textarea.checkVisibility()), true, `record ${recordId}: ${path}.detail starts visible`);
+  await enabled.click();
+  assert.equal(await enabled.evaluate(input => input.checked), false, `${path}.enabled is unchecked`);
+  await page.waitForFunction(selector => {
+    const textarea = document.querySelector(selector);
+    return textarea !== null && !textarea.checkVisibility();
+  }, { timeout: 0, polling: 'mutation' }, detail);
+
+  const departments = `${form} [data-field-path="${path}.departments"]`;
+  const rows = `${departments} > .crudui-node__body > [data-crudui-row-key]`;
+  const keys = () => page.$$eval(rows, elements => elements.map(element => element.dataset.cruduiRowKey));
+  const before = await keys();
+  assert.deepEqual(before, Object.keys(store.departments), `the form shows the departments of ${path}`);
+  // A row's add-row control sits in its header container; an empty collection holds its only
+  // add-row control in the collection footer (docs/spec/empty-collections.md).
+  const add = before.length > 0
+    ? `${rows}[data-crudui-row-key="${before.at(-1)}"] > .crudui-node__header-container > .crudui-node__header [data-crudui-action="add-row"]`
+    : `${departments} > .crudui-node__footer [data-crudui-action="add-row"]`;
+  const button = await page.$(add);
+  assert.ok(button, `the departments of ${path} have the add-row control`);
+  await button.click();
+  await page.waitForFunction((selector, count) => document.querySelectorAll(selector).length === count,
+    { timeout: 0, polling: 'mutation' }, rows, before.length + 1);
+  const after = await keys();
+  const key = after.at(-1);
+  assert.deepEqual(after.slice(0, -1), before, 'the added department is the last row');
+  assert.match(key, /^__[0-9a-f]{13}__$/, 'the added department has a row key');
+  const name = await page.$(`${form} [data-field-path="${path}.departments.${key}.name"] input`);
+  assert.ok(name, 'the added department has its name input');
+  await name.evaluate(input => { input.focus(); input.select(); });
+  await page.keyboard.type(department);
+  assert.equal(await name.evaluate(input => input.value), department, 'the added department is named');
+  return key;
+}
+
 /** Run one combination in its own browser context. */
 export async function runPipelineCombination({ browser, origin, combination, signal }) {
-  const { selection, recordId, score, submit } = combination;
+  const { selection, recordId, score, department, submit } = combination;
   await checkInitialDocuments(origin, combination, { signal });
+  const original = await storedRecord(origin, selection.server, recordId, signal);
+  const edited = firstStore(original);
   const context = await browser.createBrowserContext();
   const close = () => context.close().catch(() => {});
   signal?.addEventListener('abort', close, { once: true });
@@ -171,6 +254,7 @@ export async function runPipelineCombination({ browser, origin, combination, sig
     assert.ok(scoreInput, 'the form edits the score');
     await scoreInput.evaluate(input => { input.focus(); input.select(); });
     await page.keyboard.type(score);
+    const departmentKey = await editStore(page, recordId, edited, department);
     if (submit === 'button') {
       const button = await page.$('#stage form#record-form button[type="submit"]');
       assert.ok(button, 'the form has its save button');
@@ -195,15 +279,17 @@ export async function runPipelineCombination({ browser, origin, combination, sig
     assert.deepEqual(result.notice, { id: recordId, role: 'status', visible: true }, 'the list shows the saved notice');
     assert.equal(result.score, scoreCellText(score, selection.lang), 'the list on the same page shows the saved score');
 
-    const stored = await fetch(new URL(`/api/${selection.server}/records/${recordId}`, origin), { signal });
-    assert.equal(stored.status, 200);
-    assert.equal((await stored.json()).record.score, Number(score), 'the selected server stored the score');
+    const stored = await storedRecord(origin, selection.server, recordId, signal);
+    assert.equal(stored.score, Number(score), 'the selected server stored the score');
+    // JSON text compares the members of every object in order.
+    assert.equal(JSON.stringify(stored.companies), JSON.stringify(editedCompanies(original.companies, departmentKey, department)),
+      `the selected server stored ${edited.path} with enabled "", its detail and the added department last`);
     if (selection.initialization === 'ssr') {
       const html = await (await fetch(new URL(listAddress, origin), { signal })).text();
       assert.match(html, new RegExp(`id="saved-notice"[^>]*data-record-id="${recordId}"`), 'the SSR list document carries the notice');
       assert.ok(stageContent(html)?.includes(`>${scoreCellText(score, selection.lang)}<`), 'the SSR list document carries the saved score');
     }
-    return { recordId, score };
+    return { recordId, score, department };
   } finally {
     signal?.removeEventListener('abort', close);
     await close();

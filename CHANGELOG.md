@@ -1,5 +1,25 @@
 # Changes
 
+## 2026-09-18 — Show the repeated companies form in the canonical record
+
+- The canonical page's form had become seven flat fields when list, detail and form were joined
+  into one customer record, and the repeated form was left only on the benchmark screen. The
+  customer record now carries `companies`: companies, their stores and their departments with
+  row copy, sorting and limits, sticky row headers, notes shown only while a store is enabled,
+  titles in Korean and English, and required names. The benchmark form takes this group from the
+  same specification file, so it is declared once.
+- The 45 seeded records differ in their numbers of companies, stores and departments, and some
+  stores are disabled while their notes keep their text.
+- Every server stores and returns the rows with their keys and order, completes a native
+  submission's unchecked checkbox and empty collections, rejects a malformed row with 400 and an
+  invalid one with 422, and keeps a hidden store's notes. The contract adds nested save,
+  validation and shape cases, and the canonical flow unchecks a store, adds a department and
+  checks what the server stored.
+- Every server checks its store file by the same rule: records with exactly the fixture's members
+  in order, a numeric `score`, text scalars and `companies` in the form's shape, checked by the
+  server's one companies shape function. A malformed or unreadable file answers 500 on list,
+  record, view and save and is kept byte for byte; reset replaces any store file with the fixture.
+
 ## 2026-09-17 — Link the canonical page from list to saved list on every server and client
 
 - The public root is one canonical page: list → detail → form → save → refreshed list, for the

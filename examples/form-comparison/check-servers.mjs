@@ -163,7 +163,7 @@ for (const server of servers) {
           assert.equal((await save(before.data, 'json')).status, 400);
         }
         Object.values(before.data.companies)[0].name = null;
-        assert.equal((await save(before.data, 'json')).status, 422, 'null required value fails the existing validator');
+        assert.equal((await save(before.data, 'json')).status, 400, 'a null leaf is not text and fails the companies shape');
         assert.deepEqual(await readFile(file), bytes);
       });
       await check('language-collection-type', async () => {

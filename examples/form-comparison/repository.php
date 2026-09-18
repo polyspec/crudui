@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__ . '/json.php';
+require_once __DIR__ . '/form-shape.php';
 
 /** File-backed company, store and department records for the form comparison example. */
 final class FormRepository
@@ -68,70 +69,13 @@ final class FormRepository
         return ['companies' => (object) $companies];
     }
 
-    /** Validate one keyed collection without translating its contract. */
-    public static function rows(mixed $value, string $path): array
+    /**
+     * Require the benchmark form, exactly `companies` in its keyed row shape (FormShape), and
+     * return it as the validator and the response receive it.
+     */
+    public static function submission(mixed $form, bool $native): stdClass
     {
-        if (!is_array($value)) throw new InvalidArgumentException("Expected collection: $path");
-        foreach (array_keys($value) as $key) {
-            if (!is_string($key) || !preg_match('/^__[a-f0-9]{13}__$/', $key)) throw new InvalidArgumentException("Invalid row key: $path");
-        }
-        foreach ($value as $row) if (!is_array($row) || ($row !== [] && array_is_list($row))) throw new InvalidArgumentException("Expected row object: $path");
-        return $value;
-    }
-
-    /** Fill values omitted by native HTML submission, retaining the submitted structure. */
-    public static function normalize(array $data): array
-    {
-        $companies = self::rows(array_key_exists('companies', $data) ? $data['companies'] : [], 'companies');
-        foreach ($companies as $companyKey => &$company) {
-            $company['name'] = self::text($company['name'] ?? '');
-            $company['stores'] = self::rows(array_key_exists('stores', $company) ? $company['stores'] : [], "companies.$companyKey.stores");
-            foreach ($company['stores'] as $storeKey => &$store) {
-                $store['name'] = self::text($store['name'] ?? '');
-                $store['enabled'] = self::text($store['enabled'] ?? '');
-                if (!in_array($store['enabled'], ['', '1'], true)) throw new InvalidArgumentException('Expected checkbox value 1 or empty string');
-                $store['detail'] = self::text($store['detail'] ?? '');
-                $title = $store['title'] ?? [];
-                if (!is_array($title) || ($title !== [] && array_is_list($title))) throw new InvalidArgumentException('Expected language object');
-                foreach (array_keys($title) as $language) if (!in_array($language, ['ko', 'en'], true)) throw new InvalidArgumentException('Expected ko or en title field');
-                $store['title'] = ['ko' => self::text($title['ko'] ?? ''), 'en' => self::text($title['en'] ?? '')];
-                $store['departments'] = self::rows(array_key_exists('departments', $store) ? $store['departments'] : [], "companies.$companyKey.stores.$storeKey.departments");
-                foreach ($store['departments'] as &$department) $department['name'] = self::text($department['name'] ?? '');
-                unset($department);
-            }
-            unset($store);
-        }
-        unset($company);
-        return ['companies' => $companies];
-    }
-
-    /** Preserve object and array types in JSON output, including empty collections. */
-    public static function wireData(array $data): array
-    {
-        foreach ($data['companies'] as &$company) {
-            foreach ($company['stores'] as &$store) $store['departments'] = (object) $store['departments'];
-            unset($store);
-            $company['stores'] = (object) $company['stores'];
-        }
-        unset($company);
-        $data['companies'] = (object) $data['companies'];
-        return $data;
-    }
-
-    /** Check JSON collection types before converting PHP objects to associative arrays. */
-    public static function checkJsonShape(mixed $data): void
-    {
-        if (!$data instanceof stdClass) throw new InvalidArgumentException('Expected form object');
-        $walk = static function (mixed $rows, int $level) use (&$walk): void {
-            if (!$rows instanceof stdClass) throw new InvalidArgumentException('Incorrect JSON collection type');
-            foreach ($rows as $row) {
-                if (!$row instanceof stdClass) throw new InvalidArgumentException('Expected row object');
-                if ($level === 1 && property_exists($row, 'title') && !$row->title instanceof stdClass) throw new InvalidArgumentException('Expected language object');
-                $child = ['stores', 'departments'][$level] ?? null;
-                if ($child !== null && property_exists($row, $child)) $walk($row->$child, $level + 1);
-            }
-        };
-        if (property_exists($data, 'companies')) $walk($data->companies, 0);
+        return (object) ['companies' => FormShape::companies(FormShape::members($form, $native, ['companies' => []], 'form')['companies'], $native)];
     }
 
     /** Reject reuse of a saved child identifier under a different parent. */
@@ -140,13 +84,6 @@ final class FormRepository
         foreach ($rows as $row) {
             if (self::key($row[$kind . '_seq']) === $key && $row[$parent . '_seq'] !== $parentSeq) throw new InvalidArgumentException('Incorrect parent for ' . $kind . '_seq');
         }
-    }
-
-    /** Require string fields and normalize omitted or null controls. */
-    private static function text(mixed $value): string
-    {
-        if ($value !== null && !is_string($value)) throw new InvalidArgumentException('Expected string field value');
-        return $value ?? '';
     }
 
     /** Resolve existing ownership or allocate a new sequence for one row. */

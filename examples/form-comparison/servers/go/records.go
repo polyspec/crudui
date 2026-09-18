@@ -26,10 +26,13 @@ import (
 
 const recordsPerPage = 20
 
-// recordMembers is the member order of a stored record; formMembers are the submitted members.
+// formShape is the submitted record form.
+var formShape = membersOf("id", textLeaf, "name", textLeaf, "status", textLeaf, "joined", textLeaf,
+	"score", textLeaf, "relation", membersOf("name", textLeaf), "markup", textLeaf, "companies", companiesShape)
+
+// recordMembers is the member order of a stored record.
 var (
-	recordMembers = []string{"id", "name", "status", "joined", "score", "relation", "avatar", "markup"}
-	formMembers   = []string{"id", "name", "status", "joined", "score", "relation", "markup"}
+	recordMembers = []string{"id", "name", "status", "joined", "score", "relation", "avatar", "markup", "companies"}
 	positiveText  = regexp.MustCompile(`^[1-9][0-9]*$`)
 	recordViews   = []string{"list", "detail", "form"}
 	selectionKeys = []string{"lang", "server", "framework", "initialization", "mode", "page"}
@@ -98,6 +101,9 @@ func checkRecords(value any) ([]any, error) {
 					_, ok = get(relation, "name").(string)
 					ok = ok && slices.Equal(relation.Keys(), []string{"name"})
 				}
+			case "companies":
+				_, err := shaped(value, companiesShape, false, name)
+				ok = err == nil
 			default:
 				_, ok = value.(string)
 			}
@@ -226,7 +232,7 @@ func (s server) resetRecords(r *http.Request) (*object, error) {
 	if err != nil {
 		return nil, err
 	}
-	if _, err = s.storeTransaction(func([]any) ([]any, any, error) { return fixture, nil, nil }); err != nil {
+	if err = replaceLocked(s.recordStore(), fixture); err != nil {
 		return nil, err
 	}
 	return record("total", len(fixture)), nil
@@ -266,24 +272,11 @@ func submittedForm(w http.ResponseWriter, r *http.Request) (*object, error) {
 	if !sameMembers(root.Keys(), expected) {
 		return nil, fail(http.StatusBadRequest, "Expected only the form submission fields")
 	}
-	form, ok := get(root, "form").(*object)
-	if !ok || !sameMembers(form.Keys(), formMembers) {
-		return nil, fail(http.StatusBadRequest, "Expected the record form members")
+	form, err := shaped(get(root, "form"), formShape, native, "form")
+	if err != nil {
+		return nil, err
 	}
-	for _, name := range formMembers {
-		value := get(form, name)
-		if name == "relation" {
-			relation, ok := value.(*object)
-			if !ok || !sameMembers(relation.Keys(), []string{"name"}) {
-				return nil, fail(http.StatusBadRequest, "Expected the relation name member")
-			}
-			value = get(relation, "name")
-		}
-		if _, ok := value.(string); !ok {
-			return nil, fail(http.StatusBadRequest, "Expected text member: "+name)
-		}
-	}
-	return form, nil
+	return form.(*object), nil
 }
 
 func sameMembers(keys, expected []string) bool {
@@ -327,7 +320,7 @@ func (s server) saveRecord(w http.ResponseWriter, r *http.Request, id string) (*
 	}
 	errorList := []any{}
 	for _, item := range result.Errors {
-		errorList = append(errorList, record("path", item.Path, "field", item.Field, "rule", item.Rule, "message", item.Message, "value", item.Value))
+		errorList = append(errorList, record("path", item.Path, "field", item.Field, "rule", item.Rule, "message", item.Message, "value", valueAt(form, item.Path)))
 	}
 	validation := record("valid", result.Valid, "errors", errorList)
 	if !result.Valid {
@@ -429,7 +422,8 @@ func formText(stored *object) *object {
 	relation := get(stored, "relation").(*object)
 	return record("id", get(stored, "id"), "name", get(stored, "name"), "status", get(stored, "status"),
 		"joined", get(stored, "joined"), "score", numberText(get(stored, "score").(float64)),
-		"relation", record("name", get(relation, "name")), "markup", get(stored, "markup"))
+		"relation", record("name", get(relation, "name")), "markup", get(stored, "markup"),
+		"companies", clone(get(stored, "companies")))
 }
 
 func (s server) recordView(view, rawQuery string) (*object, error) {

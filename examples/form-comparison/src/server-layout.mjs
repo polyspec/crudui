@@ -57,8 +57,9 @@ export function serverProcess(server, { cruduiModuleSha256 } = {}) {
     return {
       server,
       command: 'php',
-      // A startup warning, such as an exceeded post_max_size, must not reach a response body.
-      args: [...extensions, '-d', 'max_input_vars=10000', '-d', 'post_max_size=2M',
+      // The server reads and parses the request body itself (request-body.php); a startup
+      // warning must not reach a response body.
+      args: [...extensions, '-d', 'enable_post_data_reading=0',
         '-d', 'display_errors=0', '-d', 'log_errors=1', '-S', address, '-t', publicDirectory, path.join(exampleDirectory, 'api.php')],
       environment: {
         FORM_PHP_SERVER: server,

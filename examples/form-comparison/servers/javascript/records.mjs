@@ -16,7 +16,22 @@ import {
 
 const bodyLimit = 2 * 1024 * 1024;
 const positiveInteger = /^[1-9][0-9]*$/;
-const formMembers = ['id', 'name', 'status', 'joined', 'score', 'relation', 'markup'];
+// The submitted form (docs/spec/form-comparison.md, "Record resource"): `text` and `checkbox`
+// leaves, objects of fixed members and `rows`, keyed rows of one member shape.
+const text = 'text';
+const checkbox = 'checkbox';
+const rows = members => ({ rows: members });
+const rowKey = /^__[0-9a-f]{13}__$/;
+const formShape = {
+  id: text, name: text, status: text, joined: text, score: text, relation: { name: text }, markup: text,
+  companies: rows({
+    name: text,
+    stores: rows({
+      name: text, enabled: checkbox, detail: text, title: { ko: text, en: text },
+      departments: rows({ name: text }),
+    }),
+  }),
+};
 
 class HttpError extends Error {
   constructor(status, message) {
@@ -25,23 +40,74 @@ class HttpError extends Error {
   }
 }
 
-const sameMembers = (value, members) => value !== null && typeof value === 'object' && !Array.isArray(value)
-  && Object.keys(value).length === members.length && members.every(member => Object.hasOwn(value, member));
+const isObject = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 
-/** Require the exact submitted object: the form members, `relation` with `name`, all text. */
-function submittedForm(form) {
-  if (!sameMembers(form, formMembers) || !sameMembers(form.relation, ['name'])) {
-    throw new HttpError(400, 'Expected the form members id, name, status, joined, score, relation.name and markup');
+/**
+ * The submitted `value` of `shape` at `path`, completed and in the member order of the shape.
+ * A native form omits an unchecked checkbox (`""`) and a collection without rows (`{}`); JSON
+ * carries every member. Any other difference answers 400.
+ */
+function shaped(value, shape, native, path) {
+  if (shape === text || shape === checkbox) {
+    if (value === undefined && native && shape === checkbox) return '';
+    if (typeof value !== 'string') throw new HttpError(400, `Expected text at ${path}`);
+    if (shape === checkbox && value !== '' && value !== '1') throw new HttpError(400, `Expected "" or "1" at ${path}`);
+    return value;
   }
-  for (const value of [...formMembers.filter(member => member !== 'relation').map(member => form[member]), form.relation.name]) {
-    if (typeof value !== 'string') throw new HttpError(400, 'Every form member must be text');
+  if (value === undefined && native && shape.rows) return {};
+  if (!isObject(value)) throw new HttpError(400, `Expected an object at ${path}`);
+  const result = {};
+  if (shape.rows) {
+    for (const [key, row] of Object.entries(value)) {
+      if (!rowKey.test(key)) throw new HttpError(400, `Expected a row key at ${path}: ${key}`);
+      result[key] = shaped(row, shape.rows, native, `${path}.${key}`);
+    }
+    return result;
   }
-  return form;
+  const extra = Object.keys(value).find(member => !Object.hasOwn(shape, member));
+  if (extra !== undefined) throw new HttpError(400, `Unexpected member ${path}.${extra}`);
+  for (const [member, child] of Object.entries(shape)) {
+    const omittable = native && (child === checkbox || Boolean(child.rows));
+    if (!Object.hasOwn(value, member) && !omittable) throw new HttpError(400, `Missing member ${path}.${member}`);
+    result[member] = shaped(value[member], child, native, `${path}.${member}`);
+  }
+  return result;
 }
 
-/** The submitted object of native fields `form[…]` with `_form_complete=1`. */
+// The members of a stored record, in order (docs/spec/form-comparison.md, "Record resource", "Store").
+const recordMembers = ['id', 'name', 'status', 'joined', 'score', 'relation', 'avatar', 'markup', 'companies'];
+
+/**
+ * Require the records array of a store or of the fixture: records with exactly the fixture's
+ * members in order, `score` a number, every other scalar a string and `companies` in the form's
+ * shape. Anything else is a server fault.
+ */
+function checkRecords(value, name) {
+  const malformed = (detail, cause) => new Error(`The record ${name} is malformed: ${detail}`, { cause });
+  if (!Array.isArray(value)) throw malformed('expected a records array');
+  for (const record of value) {
+    if (!isObject(record) || Object.keys(record).join() !== recordMembers.join()) throw malformed('expected the record members');
+    for (const member of recordMembers) {
+      const item = record[member];
+      const valid = member === 'score' ? typeof item === 'number'
+        : member === 'relation' ? isObject(item) && Object.keys(item).join() === 'name' && typeof item.name === 'string'
+          : member === 'companies' ? true : typeof item === 'string';
+      if (!valid) throw malformed(`expected the record member ${member}`);
+    }
+    try {
+      shaped(record.companies, formShape.companies, false, 'companies');
+    } catch (error) {
+      if (!(error instanceof HttpError)) throw error;
+      throw malformed(error.message, error);
+    }
+  }
+  return value;
+}
+
+/** The submitted object of native fields `form[…]…` with `_form_complete=1`. */
 function nativeForm(fields) {
-  const form = {};
+  // Objects without a prototype keep every field name, `__proto__` included, an own member.
+  const form = Object.create(null);
   let complete = 0;
   for (const [name, value] of fields) {
     if (typeof value !== 'string') throw new HttpError(400, `Field ${name} must be text`);
@@ -49,19 +115,18 @@ function nativeForm(fields) {
       if (value !== '1' || ++complete > 1) throw new HttpError(400, 'Expected one _form_complete=1');
       continue;
     }
-    const match = /^form\[([^[\]]+)\](?:\[([^[\]]+)\])?$/.exec(name);
+    const match = /^form((?:\[[^[\]]+\])+)$/.exec(name);
     if (!match) throw new HttpError(400, `Unknown field ${name}`);
-    const [, member, child] = match;
-    if (child === undefined) {
-      if (Object.hasOwn(form, member)) throw new HttpError(400, `Repeated field ${name}`);
-      form[member] = value;
-    } else {
-      if (Object.hasOwn(form, member) && (typeof form[member] !== 'object' || Object.hasOwn(form[member], child))) {
-        throw new HttpError(400, `Repeated field ${name}`);
-      }
-      form[member] ??= {};
-      form[member][child] = value;
+    const segments = match[1].slice(1, -1).split('][');
+    const last = segments.pop();
+    let parent = form;
+    for (const segment of segments) {
+      if (!Object.hasOwn(parent, segment)) parent[segment] = Object.create(null);
+      else if (typeof parent[segment] !== 'object') throw new HttpError(400, `Repeated field ${name}`);
+      parent = parent[segment];
     }
+    if (Object.hasOwn(parent, last)) throw new HttpError(400, `Repeated field ${name}`);
+    parent[last] = value;
   }
   if (complete !== 1) throw new HttpError(400, 'The form submission is incomplete');
   return form;
@@ -88,8 +153,10 @@ async function parseSubmission(request, body) {
     } catch {
       throw new HttpError(400, 'Malformed JSON');
     }
-    if (!sameMembers(value, ['form'])) throw new HttpError(400, 'Expected { "form": { … } }');
-    return submittedForm(value.form);
+    if (!isObject(value) || Object.keys(value).length !== 1 || !Object.hasOwn(value, 'form')) {
+      throw new HttpError(400, 'Expected { "form": { … } }');
+    }
+    return shaped(value.form, formShape, false, 'form');
   }
   if (type !== 'multipart/form-data' && type !== 'application/x-www-form-urlencoded') {
     throw new HttpError(415, 'Expected multipart/form-data, application/x-www-form-urlencoded or application/json');
@@ -102,7 +169,7 @@ async function parseSubmission(request, body) {
   } catch {
     throw new HttpError(400, 'Malformed form request');
   }
-  return submittedForm(nativeForm(fields));
+  return shaped(nativeForm(fields), formShape, true, 'form');
 }
 
 /** Parse a view query: `id` first for detail and form, then the selection, each exactly once. */
@@ -128,6 +195,7 @@ function viewSelection(view, search, server) {
 export function recordStore({ server = 'js', dataDirectory, publicDirectory }) {
   const storeFile = path.join(dataDirectory, `records-${server}.json`);
   const readPublished = async name => JSON.parse(await readFile(path.join(publicDirectory, name), 'utf8'));
+  const readFixture = async () => checkRecords(await readPublished('customer-records.json'), 'fixture');
   let queue = Promise.resolve();
 
   /** Run `task` after every earlier store operation of this process. */
@@ -153,13 +221,17 @@ export function recordStore({ server = 'js', dataDirectory, publicDirectory }) {
       text = await readFile(storeFile, 'utf8');
     } catch (error) {
       if (error.code !== 'ENOENT') throw error;
-      const records = await readPublished('customer-records.json');
+      const records = await readFixture();
       await write(records);
       return records;
     }
-    const records = JSON.parse(text);
-    if (!Array.isArray(records)) throw new Error(`${storeFile} does not hold a records array`);
-    return records;
+    let records;
+    try {
+      records = JSON.parse(text);
+    } catch (error) {
+      throw new Error(`The record store is malformed: ${error.message}`, { cause: error });
+    }
+    return checkRecords(records, 'store');
   }
 
   const records = () => exclusive(read);
@@ -243,7 +315,7 @@ export function recordStore({ server = 'js', dataDirectory, publicDirectory }) {
   async function reset(request) {
     const body = await readBody(request);
     if (body.size > 0) throw new HttpError(400, 'A reset takes no request body');
-    const fixture = await readPublished('customer-records.json');
+    const fixture = await readFixture();
     await exclusive(() => write(fixture));
     return { total: fixture.length };
   }
