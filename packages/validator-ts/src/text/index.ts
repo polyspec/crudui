@@ -48,78 +48,104 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
   return prototype === Object.prototype || prototype === null;
 }
 
+/** Message of every value beyond the limits of a value. */
+export const VALUE_LIMIT_MESSAGE = 'Recursive or excessively nested value';
+
+/** Levels of arrays and objects a value may nest, the value itself included. */
+export const NESTING_LIMIT = 512;
+
+/** Nodes a value may hold: every array, object, string, number, boolean and null, itself included. */
+export const NODE_LIMIT = 1_000_000;
+
+/** The first failure in a value: invalid text at its path, or the value is beyond its limits. */
+export type ValueFailure = { text: string[] } | { limit: true };
+
+const LIMIT: ValueFailure = { limit: true };
+
 /**
- * Search `value` unless it is a container already on the current path (`ancestors`), which the
- * operation's own value checks report; `visit` runs with the container on the path.
+ * One walk of a value as the tree it denotes. A container reached twice, through sharing or
+ * because it contains itself, is walked at each place, so the node count and the nesting limit
+ * bound every walk, including one around a cycle.
  */
-function within<T>(value: object, ancestors: Set<object>, visit: () => T, skipped: T): T {
-  if (ancestors.has(value)) return skipped;
-  ancestors.add(value);
-  try {
-    return visit();
-  } finally {
-    ancestors.delete(value);
+class Walk {
+  private nodes = 0;
+
+  /** Count a node at `depth`; false when it takes the value beyond its limits. */
+  admit(value: unknown, depth: number): boolean {
+    if (++this.nodes > NODE_LIMIT) return false;
+    return depth < NESTING_LIMIT || !(Array.isArray(value) || isPlainObject(value));
   }
 }
 
-function containsInvalid(value: unknown, ancestors: Set<object>): boolean {
+/** Whether `value` holds a failure; a quick walk in member order before the ordered one. */
+function holdsFailure(value: unknown, depth: number, walk: Walk): boolean {
+  if (!walk.admit(value, depth)) return true;
   if (typeof value === 'string') return !isScalarText(value);
-  if (Array.isArray(value)) return within(value, ancestors, () => value.some(item => containsInvalid(item, ancestors)), false);
+  if (Array.isArray(value)) return value.some(item => holdsFailure(item, depth + 1, walk));
   if (!isPlainObject(value)) return false;
-  return within(value, ancestors, () => Object.keys(value).some(key =>
-    !isScalarText(key) || containsInvalid(value[key], ancestors)), false);
+  return Object.keys(value).some(key => !isScalarText(key) || holdsFailure(value[key], depth + 1, walk));
 }
 
-function firstInvalid(value: unknown, path: string[], ancestors: Set<object>): string[] | undefined {
-  if (typeof value === 'string') return isScalarText(value) ? undefined : path;
+function firstFailure(value: unknown, path: string[], depth: number, walk: Walk): ValueFailure | undefined {
+  if (!walk.admit(value, depth)) return LIMIT;
+  if (typeof value === 'string') return isScalarText(value) ? undefined : { text: path };
   if (Array.isArray(value)) {
-    return within(value, ancestors, () => {
-      for (let i = 0; i < value.length; i++) {
-        const found = firstInvalid(value[i], [...path, String(i)], ancestors);
-        if (found) return found;
-      }
-      return undefined;
-    }, undefined);
-  }
-  if (!isPlainObject(value)) return undefined;
-  return within(value, ancestors, () => {
-    const keys = Object.keys(value);
-    // A member name is reported at its object; members follow in code point order of their names.
-    if (!keys.every(isScalarText)) return path;
-    for (const key of keys.sort(compareCodePoints)) {
-      const found = firstInvalid(value[key], [...path, key], ancestors);
+    for (let i = 0; i < value.length; i++) {
+      const found = firstFailure(value[i], [...path, String(i)], depth + 1, walk);
       if (found) return found;
     }
     return undefined;
-  }, undefined);
+  }
+  if (!isPlainObject(value)) return undefined;
+  const keys = Object.keys(value);
+  // A member name is reported at its object; members follow in code point order of their names.
+  if (!keys.every(isScalarText)) return { text: path };
+  for (const key of keys.sort(compareCodePoints)) {
+    const found = firstFailure(value[key], [...path, key], depth + 1, walk);
+    if (found) return found;
+  }
+  return undefined;
 }
 
 /**
- * The path of the first invalid text in `value`: the path of a string, or of the object whose
- * member name is invalid. Members are visited in code point order of their names, array items in
- * index order. `undefined` when every text is valid.
+ * The first failure in `value`, walked as the tree it denotes: array items in index order; for an
+ * object, every member name first, then the members in code point order of their names. Invalid
+ * text is located at the path of its string, or of the object whose member name is invalid. A
+ * value that nests more than `NESTING_LIMIT` levels or holds more than `NODE_LIMIT` nodes, which
+ * includes every value that contains itself, is beyond its limits where the walk passes them.
+ * `undefined` when there is no failure.
  */
-export function invalidTextPath(value: unknown): string[] | undefined {
-  return containsInvalid(value, new Set()) ? firstInvalid(value, [], new Set()) : undefined;
+export function valueFailure(value: unknown): ValueFailure | undefined {
+  return holdsFailure(value, 0, new Walk()) ? firstFailure(value, [], 0, new Walk()) : undefined;
+}
+
+function limitFailure(name: string): FormInputError {
+  return new FormInputError(`${VALUE_LIMIT_MESSAGE}: ${name}`);
 }
 
 /**
  * Check a specification and the composition files the operation reads. Invalid text is the load
  * failure `INVALID_TEXT`, located at its specification path or at the file name followed by its
- * path in the file; an invalid file name is located at the empty path.
+ * path in the file; an invalid file name is located at the empty path. A value beyond its limits
+ * is `INVALID_FORM_INPUT` naming `spec` or `files`.
  */
 export function checkSpecificationText(spec: unknown, files?: unknown): void {
-  for (const value of [spec, files]) {
-    const at = invalidTextPath(value);
-    if (at) throw new ComposeLoadError('INVALID_TEXT', INVALID_TEXT_MESSAGE, at);
+  for (const [name, value] of [['spec', spec], ['files', files]] as const) {
+    const failure = valueFailure(value);
+    if (failure && 'limit' in failure) throw limitFailure(name);
+    if (failure) throw new ComposeLoadError('INVALID_TEXT', INVALID_TEXT_MESSAGE, failure.text);
   }
 }
 
-/** Check named caller values in order; invalid text is `INVALID_FORM_INPUT` naming the value and path. */
+/**
+ * Check named caller values in order; invalid text is `INVALID_FORM_INPUT` naming the value and
+ * path, and a value beyond its limits is `INVALID_FORM_INPUT` naming the value.
+ */
 export function checkInputText(inputs: ReadonlyArray<readonly [string, unknown]>): void {
   for (const [name, value] of inputs) {
-    const path = invalidTextPath(value);
-    if (path) throw new FormInputError(`${INVALID_TEXT_MESSAGE}: ${[name, ...path].join('.')}`);
+    const failure = valueFailure(value);
+    if (failure && 'limit' in failure) throw limitFailure(name);
+    if (failure) throw new FormInputError(`${INVALID_TEXT_MESSAGE}: ${[name, ...failure.text].join('.')}`);
   }
 }
 
@@ -130,14 +156,15 @@ export function checkOptionText(options: unknown, names: readonly string[]): voi
   checkInputText(names.filter(name => record[name] !== undefined).map(name => [`options.${name}`, record[name]] as const));
 }
 
-/** A loader that checks each document it loads, located as a composition file. */
+/** A loader that checks each document it loads, located and named as a composition file. */
 export function checkedLoader(loader: FileLoader): FileLoader {
   return {
     normalize: (path: string, basepath: string) => loader.normalize(path, basepath),
     load: (key: string): LoadedDoc => {
       const doc = loader.load(key);
-      const at = invalidTextPath(doc);
-      if (at) throw new ComposeLoadError('INVALID_TEXT', INVALID_TEXT_MESSAGE, [key, ...at]);
+      const failure = valueFailure(doc);
+      if (failure && 'limit' in failure) throw limitFailure('files');
+      if (failure) throw new ComposeLoadError('INVALID_TEXT', INVALID_TEXT_MESSAGE, [key, ...failure.text]);
       return doc;
     },
   };

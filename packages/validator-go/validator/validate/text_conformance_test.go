@@ -14,6 +14,7 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/polyspec/crudui/packages/validator-go/validator/compose"
 	"github.com/polyspec/crudui/packages/validator-go/validator/internal/conformance"
@@ -279,5 +280,120 @@ func TestDecodeOrderedKeepsText(t *testing.T) {
 	}
 	if _, err := compose.DecodeRawMembers([]byte(`[]`)); err == nil {
 		t.Error("accepted an array as members")
+	}
+}
+
+// graphCase is one case of tests/fixtures/text-validity/value-graphs.json.
+type graphCase struct {
+	Name  string          `json:"name"`
+	Spec  json.RawMessage `json:"spec"`
+	Files json.RawMessage `json:"files"`
+	Data  json.RawMessage `json:"data"`
+	Graph json.RawMessage `json:"graph"`
+	Want  json.RawMessage `json:"expect"`
+}
+
+// buildGraph builds the value graph of a case with shared slices and maps.
+func buildGraph(t *testing.T, raw json.RawMessage) ([]string, any) {
+	t.Helper()
+	decoded, err := compose.DecodeOrdered(raw)
+	if err != nil {
+		t.Fatal(err)
+	}
+	graph := decoded.(*compose.OMap)
+	at, _ := graph.Get("at")
+	var path []string
+	for _, segment := range at.([]any) {
+		path = append(path, segment.(string))
+	}
+	shape, _ := graph.Get("shape")
+	if shape == "self-twice" {
+		loop := map[string]any{}
+		loop["self"] = loop
+		loop["again"] = loop
+		return path, loop
+	}
+	sizeValue, _ := graph.Get("size")
+	size := int(sizeValue.(float64))
+	leaf, _ := graph.Get("leaf")
+	if shape == "flat" {
+		items := make([]any, size)
+		for i := range items {
+			items[i] = leaf
+		}
+		return path, items
+	}
+	value := leaf
+	for i := 0; i < size; i++ {
+		if shape == "doubled" {
+			value = []any{value, value}
+		} else {
+			value = []any{value}
+		}
+	}
+	return path, value
+}
+
+// graphCaseLimit bounds each value graph case; a walk that grows with the tree
+// a value denotes does not complete in it.
+const graphCaseLimit = 2 * time.Second
+
+// TestValueGraphsMatchFixture runs the value limit cases, whose values share
+// slices and maps or contain themselves, as Go values can.
+func TestValueGraphsMatchFixture(t *testing.T) {
+	raw, err := os.ReadFile(filepath.Join("..", "..", "..", "..", "tests", "fixtures", "text-validity", "value-graphs.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var cases []graphCase
+	if err := json.Unmarshal(raw, &cases); err != nil {
+		t.Fatal(err)
+	}
+	if len(cases) == 0 {
+		t.Fatal("fixture is empty")
+	}
+	for _, c := range cases {
+		c := c
+		t.Run(c.Name, func(t *testing.T) {
+			decode := func(raw json.RawMessage) *compose.OMap {
+				value, err := compose.DecodeOrdered(raw)
+				if err != nil {
+					t.Fatal(err)
+				}
+				return value.(*compose.OMap)
+			}
+			spec := decode(c.Spec)
+			opts := Options{Files: FileSet{}}
+			if c.Files != nil {
+				files := decode(c.Files)
+				for _, name := range files.Keys() {
+					file, _ := files.Get(name)
+					opts.Files[name] = file.(*compose.OMap)
+				}
+			}
+			data := plainValue(decode(c.Data)).(map[string]any)
+			path, graph := buildGraph(t, c.Graph)
+			member := path[len(path)-1]
+			switch path[0] {
+			case "spec":
+				spec.Set(member, graph)
+			case "files":
+				opts.Files[path[1]].Set(member, graph)
+			default:
+				data[member] = graph
+			}
+			started := time.Now()
+			got := textOutcome(Validate(spec, data, opts))
+			if elapsed := time.Since(started); elapsed >= graphCaseLimit {
+				t.Errorf("took %v", elapsed)
+			}
+			var want any
+			if err := json.Unmarshal(c.Want, &want); err != nil {
+				t.Fatal(err)
+			}
+			if !reflect.DeepEqual(got, want) {
+				t.Errorf("got %#v, want %#v", got, want)
+			}
+		})
 	}
 }

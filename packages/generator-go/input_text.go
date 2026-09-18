@@ -18,8 +18,10 @@ func checkSpecText(spec *Object, files map[string]*Object, loader compose.FileLo
 	if loader != nil {
 		files = nil
 	}
-	if failure := text.CheckSpecification(spec, files); failure != nil {
+	if failure, message := text.CheckSpecification(spec, files); failure != nil {
 		return nil, failure
+	} else if message != "" {
+		return nil, errors.New(message)
 	}
 	if loader != nil {
 		return text.CheckedLoader(loader), nil

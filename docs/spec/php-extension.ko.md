@@ -121,8 +121,10 @@ JSON 입력 경계에서는 `json_decode($json, false, 512, JSON_THROW_ON_ERROR)
 사용합니다. 양방향 변환에서 객체 항목 순서와 행 키를 유지합니다.
 반환하는 템플릿과 폼, 노드, 위젯, 버튼 모델은 라이브러리와 같은 멤버 순서를 유지합니다.
 지원하지 않는 PHP 값과 순환 구조는 명시적으로 실패합니다. 올바른 UTF-8이 아닌 문자열과
-멤버 이름은 메서드의 다른 검사보다 먼저 [입력 텍스트](input-text.ko.md) 규칙대로
-실패합니다.
+멤버 이름, 값 한도를 넘은 값은 메서드의 다른 검사보다 먼저 [입력 텍스트](input-text.ko.md)
+규칙대로 실패합니다. 어떤 검사도 순회하지 않는 변환 값이 같은 한도를 넘으면
+`Recursive or excessively nested PHP value`로 실패합니다. 검증에서는
+`InvalidArgumentException`, 생성에서는 코드가 `INVALID_FORM_INPUT`인 `CRUDUI\FormError`입니다.
 
 확장은 숨김 식별자나 순서 필드를 추가하지 않습니다. 폼 전송과 순서 보존
 JSON 전송은 같은 키 기반 레코드를 전송합니다. JSON 파싱과 직렬화는

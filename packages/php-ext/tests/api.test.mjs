@@ -2,7 +2,7 @@
 // checks in three configurations, and the same validation results.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { statSync } from 'node:fs';
+import { readFileSync, statSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
@@ -55,6 +55,25 @@ for (const composer of [false, true]) {
   });
 }
 
+test('the extension stops converting a value at the value limits', () => {
+  assert.ok(statSync(extension).isFile(), `Build the extension first: ${extension}`);
+  // Button members that the markup does not read are converted too; a shared list forty levels
+  // deep denotes more than 2^40 nodes and fails at the node limit in bounded time.
+  const script = [
+    '$shared = "x";',
+    'for ($i = 0; $i < 40; $i++) $shared = [$shared, $shared];',
+    '$button = (object) ["tag" => "a", "text" => "", "attrs" => new stdClass(), "extra" => $shared];',
+    '$started = hrtime(true);',
+    'try { CRUDUI\\Generator::formButtonsHtml([$button]); echo "converted"; }',
+    'catch (CRUDUI\\FormError $error) { echo $error->getErrorCode(), " ", $error->getMessage(); }',
+    'echo " ", (hrtime(true) - $started) / 1e6 < 2000 ? "bounded" : "unbounded";',
+  ].join('\n');
+  const result = spawnSync(phpBinary, ['-n', '-d', `extension=${extension}`, '-r', script], { encoding: 'utf8', timeout: 20000 });
+  assert.equal(result.error, undefined);
+  assert.equal(result.stderr, '');
+  assert.equal(result.stdout, 'INVALID_FORM_INPUT Recursive or excessively nested PHP value bounded');
+});
+
 test('the extension validates every validation fixture as the library does', () => {
   const pure = php('validate.php', false, true);
   const native = php('validate.php', true, false);
@@ -67,6 +86,9 @@ test('the extension validates every validation fixture as the library does', () 
     const same = JSON.stringify(pure.results.find(result => result.case === id)) === JSON.stringify(native.results.find(result => result.case === id));
     recordConformance({ feature, fixture: `tests/fixtures/text-validity/${feature}/cases.json`, runtime: 'php-native', case: name, passed: same });
   }
+  const graphs = JSON.parse(readFileSync(resolve(root, 'tests/fixtures/text-validity/value-graphs.json'), 'utf8'));
+  assert.deepEqual(native.results.filter(result => result.case.startsWith('value-graphs:')).map(result => result.case),
+    graphs.map(c => `value-graphs:${c.name}`), 'Every value graph case runs in the extension');
   assert.deepEqual(native.results, pure.results, 'Native and PHP validation results differ');
   assert.ok(pure.checks > 0);
 });

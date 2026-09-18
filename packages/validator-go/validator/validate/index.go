@@ -114,11 +114,13 @@ func Validate(spec *compose.OMap, data any, opts Options) (ValidationResult, err
 	return validator.Validate(data)
 }
 
-// checkText checks the text of a specification, its files, the named inputs and
-// the base path option, in that order.
+// checkText checks the text and the limits of a specification, its files, the
+// named inputs and the base path option, in that order.
 func checkText(spec *compose.OMap, opts Options, inputs ...text.Input) error {
-	if failure := text.CheckSpecification(spec, opts.Files); failure != nil {
+	if failure, message := text.CheckSpecification(spec, opts.Files); failure != nil {
 		return failure
+	} else if message != "" {
+		return &FormInputError{Message: message}
 	}
 	inputs = append(inputs, text.Input{Name: "options.basepath", Value: opts.Basepath})
 	if message := text.CheckInputs(inputs...); message != "" {

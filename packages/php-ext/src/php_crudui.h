@@ -20,9 +20,15 @@ bool crudui_to_php(const ps_value *input, zval *output);
 void crudui_return(ps_result result, zval *return_value);
 void crudui_throw(ps_value *error);
 
-/* Input text checks (docs/spec/input-text.md); each returns false after throwing the failure. */
+/* Value limits (docs/spec/input-text.md): levels of arrays and objects, the value itself included,
+   and nodes, which are every array, object, string, number, boolean and null of a value. */
+#define CRUDUI_NESTING_LIMIT 512
+#define CRUDUI_NODE_LIMIT 1000000
+
+/* Input text checks and value limits (docs/spec/input-text.md); each returns false after throwing
+   the failure. form_errors selects the generator failure class over the validator one. */
 typedef struct { const char *name; zval *value; } crudui_text_input;
-bool crudui_check_specification_text(zval *spec, zval *options);
+bool crudui_check_specification_text(zval *spec, zval *options, bool form_errors);
 bool crudui_check_input_text(const crudui_text_input *inputs, size_t count, zval *options,
                              const char *const *names, size_t name_count, bool form_errors);
 void crudui_text_load_failure(zval *trace);

@@ -26,6 +26,5 @@ export {
   checkedComposition,
   checkedLoader,
   compareCodePoints,
-  invalidTextPath,
   isScalarText,
 } from './text/index';

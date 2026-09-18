@@ -65,7 +65,7 @@ static const char *const basepath_option[] = {"basepath"};
 /* Input text of a list or detail method: the specification, the files, the rows or record, the options. */
 static bool display_text(zval *spec, const char *name, zval *value, zval *options)
 {
-    return crudui_check_specification_text(spec, options) &&
+    return crudui_check_specification_text(spec, options, true) &&
         crudui_check_input_text(&(crudui_text_input){name, value}, 1, options, display_options, COUNT(display_options), true);
 }
 
@@ -133,7 +133,7 @@ PHP_METHOD(CRUDUI_Generator, compileForm)
         Z_PARAM_ARRAY(options)
     ZEND_PARSE_PARAMETERS_END();
     static const char *const names[] = {"basepath", "keyPrefix"};
-    if (!crudui_check_specification_text(spec, options) ||
+    if (!crudui_check_specification_text(spec, options, true) ||
         !crudui_check_input_text(NULL, 0, options, names, COUNT(names), true)) return;
     call_two(spec, options, true, ps_compile_form, return_value);
 }
@@ -278,7 +278,7 @@ PHP_METHOD(CRUDUI_Validator, validate)
         Z_PARAM_ARRAY(options)
     ZEND_PARSE_PARAMETERS_END();
     /* Input text is checked first: the specification, the files, the data, then the options. */
-    if (!crudui_check_specification_text(spec, options) ||
+    if (!crudui_check_specification_text(spec, options, false) ||
         !crudui_check_input_text(&(crudui_text_input){"data", data}, 1, options, basepath_option, 1, false)) return;
     /* Root data is a request precondition; an empty PHP array is an empty object. */
     if (Z_TYPE_P(data) == IS_ARRAY && zend_hash_num_elements(Z_ARRVAL_P(data)) != 0 &&
@@ -297,7 +297,7 @@ PHP_METHOD(CRUDUI_Validator, validateList)
         Z_PARAM_OPTIONAL
         Z_PARAM_ARRAY(options)
     ZEND_PARSE_PARAMETERS_END();
-    if (!crudui_check_specification_text(spec, options) ||
+    if (!crudui_check_specification_text(spec, options, false) ||
         !crudui_check_input_text(NULL, 0, options, basepath_option, 1, false)) return;
     call_two(spec, options, false, ps_validate_list, return_value);
 }
@@ -310,7 +310,7 @@ PHP_METHOD(CRUDUI_Validator, validateDetail)
         Z_PARAM_OPTIONAL
         Z_PARAM_ARRAY(options)
     ZEND_PARSE_PARAMETERS_END();
-    if (!crudui_check_specification_text(spec, options) ||
+    if (!crudui_check_specification_text(spec, options, false) ||
         !crudui_check_input_text(NULL, 0, options, basepath_option, 1, false)) return;
     call_two(spec, options, false, ps_validate_detail, return_value);
 }

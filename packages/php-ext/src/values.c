@@ -2,7 +2,12 @@
 #include <math.h>
 #include <string.h>
 
-static ps_value *convert(zval *input, bool object_root, unsigned depth, bool form_errors)
+/*
+ * Convert a PHP value. A shared array is converted at each place, so the conversion stops at the
+ * value limits (docs/spec/input-text.md), which bound a value that denotes a large tree or
+ * contains itself through a reference.
+ */
+static ps_value *convert(zval *input, bool object_root, unsigned depth, size_t *nodes, bool form_errors)
 {
     ps_value *output = NULL;
     HashTable *members;
@@ -11,15 +16,17 @@ static ps_value *convert(zval *input, bool object_root, unsigned depth, bool for
     zend_string *key;
     zval *child;
 
-    if (depth > 512) {
-        crudui_invalid_value("Recursive or excessively nested PHP value", form_errors);
-        return NULL;
-    }
     if (input == NULL) return ps_value_new(object_root ? 6 : 0);
     ZVAL_DEREF(input);
     if (Z_TYPE_P(input) == IS_INDIRECT) input = Z_INDIRECT_P(input);
+    bool container = Z_TYPE_P(input) == IS_ARRAY
+        || (Z_TYPE_P(input) == IS_OBJECT && instanceof_function(Z_OBJCE_P(input), zend_standard_class_def));
+    if (++*nodes > CRUDUI_NODE_LIMIT || (container && depth >= CRUDUI_NESTING_LIMIT)) {
+        crudui_invalid_value("Recursive or excessively nested PHP value", form_errors);
+        return NULL;
+    }
 
-    if (Z_TYPE_P(input) == IS_ARRAY || (Z_TYPE_P(input) == IS_OBJECT && instanceof_function(Z_OBJCE_P(input), zend_standard_class_def))) {
+    if (container) {
         members = Z_TYPE_P(input) == IS_ARRAY ? Z_ARRVAL_P(input) : Z_OBJPROP_P(input);
         object = Z_TYPE_P(input) == IS_OBJECT || !zend_array_is_list(members);
         if (object_root && !object && zend_hash_num_elements(members) != 0) {
@@ -33,7 +40,7 @@ static ps_value *convert(zval *input, bool object_root, unsigned depth, bool for
             /* PHP foreach excludes inaccessible subclass properties. */
             if (key && ZSTR_LEN(key) && ZSTR_VAL(key)[0] == '\0') continue;
             if (Z_TYPE_P(child) == IS_UNDEF) continue;
-            ps_value *value = convert(child, false, depth + 1, form_errors);
+            ps_value *value = convert(child, false, depth + 1, nodes, form_errors);
             if (!value) { ps_value_free(output); return NULL; }
             zend_string *numeric = NULL;
             if (object && !key) key = numeric = zend_long_to_str((zend_long) index);
@@ -74,7 +81,8 @@ static ps_value *convert(zval *input, bool object_root, unsigned depth, bool for
 
 ps_value *crudui_from_php(zval *input, bool object_root, bool form_errors)
 {
-    return convert(input, object_root, 0, form_errors);
+    size_t nodes = 0;
+    return convert(input, object_root, 0, &nodes, form_errors);
 }
 
 static bool append_child(void *context, const uint8_t *key, size_t length, const ps_value *child)
