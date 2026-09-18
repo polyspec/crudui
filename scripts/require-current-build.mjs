@@ -7,16 +7,19 @@
  * to run `npm run build` again, so one verification run built the same six packages
  * three times. The rule here replaces that repetition: a command declares that it
  * needs a current build, and the build runs only when the recorded source and output
- * digests no longer match the working tree.
+ * digests no longer match the working tree. The build has a time limit, at which its whole
+ * process group stops (scripts/bounded-command.mjs).
  */
-import { spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { commandLimitMs, failureOf, formatSeconds, runBounded } from './bounded-command.mjs';
 import { createProgress } from './test-progress/progress.mjs';
 
+// The build of the six packages; scripts/bounded-command.mjs stops it at this limit.
+const BUILD_LIMIT_SECONDS = 600;
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const STAMP = path.join(ROOT, 'node_modules/.cache/crudui/build-stamp.json');
 const PACKAGES = ['validator-ts', 'generator-core', 'generator-html', 'generator-react', 'generator-vue', 'generator-svelte'];
@@ -53,12 +56,13 @@ async function state() {
   return { inputs: digest(JSON.stringify(inputs)), outputs: digest(JSON.stringify(outputs)), packages: PACKAGES };
 }
 
-function run(command, args) {
-  return new Promise((resolve, reject) => {
-    const child = spawn(command, args, { cwd: ROOT, stdio: 'inherit' });
-    child.once('error', reject);
-    child.once('close', status => status === 0 ? resolve() : reject(new Error(`${command} ${args.join(' ')} failed with status ${status}`)));
-  });
+/** Run the build within its limit; at the limit its whole process group stops. */
+async function run(command, args) {
+  const limitMs = commandLimitMs(BUILD_LIMIT_SECONDS);
+  const result = await runBounded({ command, args, cwd: ROOT, limitMs });
+  const failure = failureOf(result, limitMs);
+  if (failure) throw new Error(`${command} ${args.join(' ')} ${failure}`);
+  lines.line(`build: ${command} ${args.join(' ')} finished in ${formatSeconds(result.elapsedMs)}`);
 }
 
 const lines = createProgress({ write: text => process.stdout.write(text) });

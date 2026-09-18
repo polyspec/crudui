@@ -71,6 +71,20 @@ Package scripts, Composer scripts and Makefile targets call test tools only thro
 - a `node:test` file is run by no project command;
 - a TypeScript package has no `typecheck` script, or CI does not run `npm run typecheck`.
 
+## Command limits
+
+A script that runs other commands gives each of them a time limit through
+`scripts/bounded-command.mjs`: the declared commands of `npm run manifest:test`
+(`scripts/run-contract-tests.mjs`, 600 seconds each), the package build of
+`scripts/require-current-build.mjs` (600 seconds), each tool command of `scripts/gen-api-docs.mjs`
+(600 seconds) and each benchmark driver of `tools/bench/run.js` (600 seconds). The command starts in
+its own process group. At the limit the group receives SIGTERM, and SIGKILL once the command ends or
+two seconds later, so the wrapper the script started (npm, `go run`, `cargo run`, `/bin/sh`) and
+every process under it stop, including one that ignores SIGTERM. The script then fails and names
+the limit. Each command prints its elapsed time. `CRUDUI_COMMAND_LIMIT_SECONDS` replaces the limit
+for a slower machine. `tests/build/bounded-commands.test.mjs`, run by `npm run test:build`, runs
+each script with a command that never ends and a one-second limit.
+
 `make conformance` runs every suite that records conformance evidence and checks that evidence
 against the feature contract; see [conformance evidence](../spec/conformance.md).
 

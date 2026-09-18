@@ -14,24 +14,36 @@
  * stdout: one JSON line per spec (same shape as the other drivers).
  *
  * Args: --iters N (default 50000), --warmup N (default 5000), --spec NAME.
+ * The counts follow the rule of arguments.js, checked before the validator loads.
  */
 
 declare(strict_types=1);
-
-require_once __DIR__ . '/../../packages/validator-php/vendor/autoload.php';
 
 use CRUDUI\Validator\Validate\Validator;
 
 $FIXTURES = __DIR__ . '/fixtures';
 
+const MAX_COUNT = 10000000;
+
+/** The count a flag names, or the exit with the shared message (arguments.js). */
+function count_argument(string $flag, ?string $value): int
+{
+    $minimum = $flag === '--iters' ? 1 : 0;
+    if ($value === null || preg_match('/\A[0-9]{1,8}\z/', $value) !== 1
+        || (int) $value < $minimum || (int) $value > MAX_COUNT) {
+        fwrite(STDERR, "$flag must be a whole number from $minimum to " . MAX_COUNT . "\n");
+        exit(2);
+    }
+    return (int) $value;
+}
+
 function parse_args(array $argv): array
 {
     $out = ['iters' => 50000, 'warmup' => 5000, 'spec' => null];
     for ($i = 1; $i < count($argv); $i++) {
-        if ($argv[$i] === '--iters') {
-            $out['iters'] = (int) $argv[++$i];
-        } elseif ($argv[$i] === '--warmup') {
-            $out['warmup'] = (int) $argv[++$i];
+        if ($argv[$i] === '--iters' || $argv[$i] === '--warmup') {
+            $flag = $argv[$i];
+            $out[substr($flag, 2)] = count_argument($flag, $argv[++$i] ?? null);
         } elseif ($argv[$i] === '--spec') {
             $out['spec'] = $argv[++$i];
         }
@@ -99,6 +111,7 @@ function bench_spec(string $dir, string $name, int $iters, int $warmup): array
 }
 
 $args = parse_args($argv);
+require_once __DIR__ . '/../../packages/validator-php/vendor/autoload.php';
 $specs = $args['spec'] !== null ? [$args['spec']] : ['contact', 'large'];
 foreach ($specs as $name) {
     $r = bench_spec($FIXTURES, $name, $args['iters'], $args['warmup']);
