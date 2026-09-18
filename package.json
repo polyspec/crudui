@@ -45,7 +45,8 @@
     "test:runtimes": "node scripts/run-tests.mjs node -- tests/build/runtime-version-policy.test.mjs tests/build/form-comparison-ci.test.mjs tests/build/make-tool-path.test.mjs tests/build/rust-node-entry-points.test.mjs tests/build/conformance-evidence.test.mjs tests/build/unicode-properties.test.mjs tests/build/github-repository.test.mjs tests/build/php-extensions.test.mjs tests/build/ci-local.test.mjs tests/build/run-tests.test.mjs tests/build/test-commands.test.mjs tests/build/contract-manifest.test.mjs",
     "test:docs": "node scripts/run-tests.mjs node --timeout 10 -- tests/docs/*.test.mjs",
     "test:inspector": "node scripts/run-tests.mjs node -- tests/form-inspector/form-snapshot.test.mjs tests/form-inspector/browser.test.mjs",
-    "test:build": "node scripts/run-tests.mjs node -- tests/build/public-packages.test.mjs tests/build/vite-config.test.mjs tests/build/ci-browser.test.mjs tests/build/package-consumer-pack.test.mjs tests/build/lint-coverage.test.mjs",
+    "test:build": "node scripts/run-tests.mjs node -- tests/build/public-packages.test.mjs tests/build/vite-config.test.mjs tests/build/ci-browser.test.mjs tests/build/package-consumer-pack.test.mjs tests/build/lint-coverage.test.mjs tests/build/bounded-commands.test.mjs",
+    "test:bench": "node scripts/run-tests.mjs node --timeout 600 -- tests/build/bench-drivers.test.mjs",
     "test:build:repeat": "node scripts/run-tests.mjs node --timeout 120 -- tests/build/reproducible-build.test.mjs"
   },
   "repository": {

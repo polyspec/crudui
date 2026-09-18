@@ -447,6 +447,7 @@ jobs:
           cache-dependency-path: |
             packages/generator-go/go.mod
             tests/native-generators/programs/go/go.mod
+            tools/bench/go/go.mod
       - name: Setup Rust (stable)
         uses: dtolnay/rust-toolchain@stable
       - name: Cargo cache
@@ -455,6 +456,7 @@ jobs:
           workspaces: |
             packages/generator-rust
             tests/native-generators/programs/rust
+            tools/bench/rust
       - name: Install dependencies
         run: |
           npm i -g npm@latest && npm ci --strict-allow-scripts
@@ -466,6 +468,8 @@ jobs:
         run: make test-native
         env:
           PHP_EXTENSION_PHP_CONFIG: /usr/bin/php-config${{ matrix.php }}
+      - name: Test the benchmark drivers
+        run: npm run test:bench
       - name: Preserve comparison report
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v7

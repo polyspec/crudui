@@ -9,15 +9,16 @@
 //
 // Run via `go run .` from tools/bench/go (its own module with a replace
 // directive to the local packages/validator-go). Flags: --iters, --warmup,
-// --spec.
+// --spec, --fixtures. The counts follow the rule of ../arguments.js.
 package main
 
 import (
 	"encoding/json"
-	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
+	"strconv"
 	"time"
 
 	"github.com/polyspec/crudui/packages/validator-go/validator/compose"
@@ -127,22 +128,57 @@ func benchSpec(dir, name string, iters, warmup int) report {
 func round3(f float64) float64 { return float64(int64(f*1000+0.5)) / 1000 }
 func round4(f float64) float64 { return float64(int64(f*10000+0.5)) / 10000 }
 
-func main() {
-	iters := flag.Int("iters", 50000, "measured iterations")
-	warmup := flag.Int("warmup", 5000, "warmup iterations")
-	spec := flag.String("spec", "", "single spec name (default: contact + large)")
-	fixtures := flag.String("fixtures", "../fixtures", "path to the fixtures directory")
-	flag.Parse()
+const maxCount = 10000000
 
-	dir := *fixtures
+var countPattern = regexp.MustCompile(`^[0-9]{1,8}$`)
+
+// countArgument returns the count a flag names, or exits with the shared message (../arguments.js).
+func countArgument(flag string, args []string, index int) int {
+	minimum := 0
+	if flag == "--iters" {
+		minimum = 1
+	}
+	if index < len(args) && countPattern.MatchString(args[index]) {
+		if n, err := strconv.Atoi(args[index]); err == nil && n >= minimum && n <= maxCount {
+			return n
+		}
+	}
+	fmt.Fprintf(os.Stderr, "%s must be a whole number from %d to %d\n", flag, minimum, maxCount)
+	os.Exit(2)
+	return 0
+}
+
+func main() {
+	iters, warmup, spec, dir := 50000, 5000, "", "../fixtures"
+	args := os.Args[1:]
+	for i := 0; i < len(args); i++ {
+		switch args[i] {
+		case "--iters":
+			i++
+			iters = countArgument("--iters", args, i)
+		case "--warmup":
+			i++
+			warmup = countArgument("--warmup", args, i)
+		case "--spec":
+			i++
+			if i < len(args) {
+				spec = args[i]
+			}
+		case "--fixtures":
+			i++
+			if i < len(args) {
+				dir = args[i]
+			}
+		}
+	}
 
 	specs := []string{"contact", "large"}
-	if *spec != "" {
-		specs = []string{*spec}
+	if spec != "" {
+		specs = []string{spec}
 	}
 
 	for _, name := range specs {
-		r := benchSpec(dir, name, *iters, *warmup)
+		r := benchSpec(dir, name, iters, warmup)
 		out, _ := json.Marshal(r)
 		fmt.Println(string(out))
 	}

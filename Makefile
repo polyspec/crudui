@@ -252,6 +252,7 @@ CI_COMMANDS = \
 	'npm run test:build && npm run test:build:repeat' \
 	'npm run test:inspector' \
 	'make test-native' \
+	'npm run test:bench' \
 	'node scripts/check-conformance.mjs'
 # The stylesheet layout checks as the Linux CI runner runs them (WebKit, Chromium and Firefox in
 # the Playwright image of the pinned version), through `container` on macOS or `docker`. It is not

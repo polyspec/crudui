@@ -37,7 +37,14 @@ CRUDUI package code imports an internal entry.
 public CommonJS and ESM exports, and generator-core's internal entry in both formats. It compiles strict NodeNext type consumers with
 `skipLibCheck: false`, checks the complete declaration graph and verifies React's
 exported stylesheet. Invalid public types must prevent declaration emission in
-all four TypeScript package configurations.
+all four TypeScript package configurations. It also checks that each script that runs other
+commands stops a command that never ends, with its whole process group, at the command's limit
+([command limits](../../docs/operations/testing.md#command-limits)).
+
+`test:bench` checks that the JavaScript, PHP, Go and Rust benchmark drivers and
+`tools/bench/run.js` accept and reject the iteration counts of
+`tests/fixtures/bench/iteration-arguments.json` by one rule with one message. It needs PHP, Go
+and Rust; the native generation job of CI runs it.
 
 `test:build:repeat` runs the complete build twice and compares every output file's
 path and SHA-256 digest in all five package directories.

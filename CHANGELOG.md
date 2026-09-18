@@ -17,6 +17,20 @@
 - The shared cases `tests/fixtures/text-validity/value-graphs.json` build shared and
   self-containing values in each of those runtimes and require every case to finish within two
   seconds.
+- The benchmark drivers took their iteration counts unchecked: `--iters 1e20` looped without end in
+  PHP, and `0`, `-1`, `1.5` or `abc` ran a meaningless or failing loop. `tools/bench/run.js` and the
+  JavaScript, PHP, Go and Rust drivers now accept one to eight decimal digits, `--iters` from 1 and
+  `--warmup` from 0 up to 10000000, and reject anything else before loading a validator, with one
+  message and exit status 2. The shared cases in `tests/fixtures/bench/iteration-arguments.json`
+  run against every driver (`npm run test:bench`, in the native generation job of CI).
+- The JavaScript driver loaded the `Validator` class from the public entry, which no longer
+  exports it, and failed on every run; it loads it from the internal entry.
+- `run.js` stopped only the process it started at its limit, so the `go run` and cargo programs
+  under it kept running. Every driver, `npm run manifest:test`'s declared commands, the build of
+  `scripts/require-current-build.mjs` and each tool of `scripts/gen-api-docs.mjs` now run in their
+  own process group with a limit (`scripts/bounded-command.mjs`); at the limit the whole group
+  stops, a process that ignores SIGTERM included, and each command prints its elapsed time.
+  `CRUDUI_COMMAND_LIMIT_SECONDS` replaces the limit.
 
 ## 2026-09-18 — Accept the form data the library produces
 

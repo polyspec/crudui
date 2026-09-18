@@ -20,17 +20,28 @@
  *
  * Args: --iters N (default 50000), --warmup N (default 5000),
  *       --only js,go (comma list), --json (print raw JSON, skip table/file).
+ * The counts follow the rule of arguments.js, checked before any driver starts.
+ *
+ * Each driver runs with a time limit in its own process group
+ * (scripts/bounded-command.mjs): at the limit the whole group stops, including
+ * the `go run` and cargo processes that sit between this script and the
+ * benchmark program. CRUDUI_COMMAND_LIMIT_SECONDS replaces the limit.
  */
 
 const fs = require('fs');
 const path = require('path');
-const { spawnSync } = require('child_process');
+const { pathToFileURL } = require('url');
+const { count } = require('./arguments');
 
 const BENCH_DIR = __dirname;
 const FIXTURES = path.join(BENCH_DIR, 'fixtures');
 const REPO_ROOT = path.resolve(BENCH_DIR, '..', '..');
 const RESULTS_MD = path.join(BENCH_DIR, 'results.md');
 const RUST_COMMAND = path.join(REPO_ROOT, 'scripts/run-rust-command.mjs');
+const BOUNDED_COMMAND = path.join(REPO_ROOT, 'scripts/bounded-command.mjs');
+// One driver: its build (Go, Rust) and both specs at the requested counts.
+const DRIVER_LIMIT_SECONDS = 600;
+const VERSION_LIMIT_SECONDS = 30;
 
 const SPECS = [
   { name: 'contact', label: 'contact (small, ~6 fields)' },
@@ -40,8 +51,8 @@ const SPECS = [
 function parseArgs(argv) {
   const out = { iters: 50000, warmup: 5000, only: null, json: false };
   for (let i = 0; i < argv.length; i++) {
-    if (argv[i] === '--iters') out.iters = parseInt(argv[++i], 10);
-    else if (argv[i] === '--warmup') out.warmup = parseInt(argv[++i], 10);
+    if (argv[i] === '--iters') out.iters = count('--iters', argv[++i]);
+    else if (argv[i] === '--warmup') out.warmup = count('--warmup', argv[++i]);
     else if (argv[i] === '--only') out.only = argv[++i].split(',').map((s) => s.trim());
     else if (argv[i] === '--json') out.json = true;
   }
@@ -90,21 +101,22 @@ function drivers(iters, warmup) {
   };
 }
 
-/** Run one driver, parse its JSON lines. Returns { ok, rows, error }. */
-function runDriver(lang, d) {
-  const res = spawnSync(d.cmd, d.args, {
+/** Run one driver within its limit, parse its JSON lines. Returns { ok, rows, error }. */
+async function runDriver(bounded, lang, d) {
+  const limitMs = bounded.commandLimitMs(DRIVER_LIMIT_SECONDS);
+  const res = await bounded.runBounded({
+    command: d.cmd,
+    args: d.args,
     cwd: d.cwd,
     env: d.env,
-    encoding: 'utf-8',
-    timeout: 600000,
-    maxBuffer: 1024 * 1024 * 16,
+    limitMs,
+    stdout: 'pipe',
+    stderr: 'pipe',
   });
-
-  if (res.error) {
-    return { ok: false, error: `${lang}: ${res.error.message}` };
-  }
-  if (res.status !== 0) {
-    return { ok: false, error: `${lang}: exit ${res.status}\n${res.stderr || res.stdout}` };
+  const failure = bounded.failureOf(res, limitMs);
+  process.stderr.write(`[bench] ${lang} ${failure ? 'stopped' : 'finished'} after ${bounded.formatSeconds(res.elapsedMs)}\n`);
+  if (failure) {
+    return { ok: false, error: `${lang}: ${failure}\n${res.stderr || res.stdout}` };
   }
 
   const rows = [];
@@ -265,16 +277,14 @@ function writeResultsMd(table, args, langs, meta) {
   fs.writeFileSync(RESULTS_MD, lines.join('\n') + '\n');
 }
 
-function toolVersion(cmd, args, env) {
-  try {
-    const r = spawnSync(cmd, args, { encoding: 'utf-8', env: env || process.env });
-    return (r.stdout || r.stderr || '').trim().split('\n')[0] || 'unknown';
-  } catch {
-    return 'unavailable';
-  }
+async function toolVersion(bounded, cmd, args) {
+  const limitMs = bounded.commandLimitMs(VERSION_LIMIT_SECONDS);
+  const r = await bounded.runBounded({ command: cmd, args, limitMs, stdout: 'pipe', stderr: 'pipe' });
+  if (bounded.failureOf(r, limitMs)) return 'unavailable';
+  return (r.stdout || r.stderr || '').trim().split('\n')[0] || 'unknown';
 }
 
-function main() {
+async function main() {
   const args = parseArgs(process.argv.slice(2));
   const allLangs = ['js', 'php', 'go', 'rust'];
   const langs = args.only ? allLangs.filter((l) => args.only.includes(l)) : allLangs;
@@ -284,13 +294,14 @@ function main() {
     process.exit(1);
   }
 
+  const bounded = await import(pathToFileURL(BOUNDED_COMMAND).href);
   const d = drivers(args.iters, args.warmup);
   const byLangBySpec = {};
   const failures = [];
 
   for (const lang of langs) {
     process.stderr.write(`[bench] running ${lang} (iters=${args.iters}, warmup=${args.warmup})...\n`);
-    const out = runDriver(lang, d[lang]);
+    const out = await runDriver(bounded, lang, d[lang]);
     if (!out.ok) {
       failures.push(out.error);
       process.stderr.write(`[bench] ${lang} FAILED: ${out.error}\n`);
@@ -320,10 +331,10 @@ function main() {
   if (!args.json) {
     printTable(table);
     const meta = {
-      node: toolVersion('node', ['--version']),
-      php: toolVersion('php', ['--version']),
-      go: toolVersion('go', ['version']),
-      cargo: toolVersion(process.execPath, [RUST_COMMAND, '--version']),
+      node: await toolVersion(bounded, 'node', ['--version']),
+      php: await toolVersion(bounded, 'php', ['--version']),
+      go: await toolVersion(bounded, 'go', ['version']),
+      cargo: await toolVersion(bounded, process.execPath, [RUST_COMMAND, '--version']),
     };
     writeResultsMd(table, args, okLangs, meta);
     console.log(`[bench] wrote ${path.relative(REPO_ROOT, RESULTS_MD)}`);
@@ -336,4 +347,7 @@ function main() {
   }
 }
 
-main();
+main().catch((error) => {
+  console.error(error.stack || error.message);
+  process.exit(1);
+});

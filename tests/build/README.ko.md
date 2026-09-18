@@ -36,7 +36,12 @@ npm run test:packages
 export로 로드하고, generator-core의 internal 진입점도 두 형식으로 로드합니다. `skipLibCheck: false`인 엄격한 NodeNext 타입 소비자를
 컴파일하고 전체 선언 참조와 React가 export한 스타일시트를 검사합니다.
 네 TypeScript 패키지 설정 모두 공개 타입에 오류가 있으면 선언을 생성하지
-않아야 합니다.
+않아야 합니다. 또한 다른 명령을 실행하는 스크립트가 끝나지 않는 명령을 제한 시간에 프로세스 그룹째
+멈추는지 검사합니다([명령 제한 시간](../../docs/operations/testing.ko.md#명령-제한-시간)).
+
+`test:bench`는 JavaScript·PHP·Go·Rust 벤치마크 드라이버와 `tools/bench/run.js`가
+`tests/fixtures/bench/iteration-arguments.json`의 반복 횟수를 같은 규칙과 같은 메시지로 받거나
+거부하는지 검사합니다. PHP, Go, Rust가 필요하며 CI의 네이티브 생성 작업이 실행합니다.
 
 `test:build:repeat`는 전체 빌드를 두 번 실행하고 다섯 패키지의 모든 산출물
 파일 경로와 SHA-256을 비교합니다.
