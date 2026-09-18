@@ -1,5 +1,15 @@
 # Changes
 
+## 2026-09-19 — One source for the interface text
+
+- The interface text was copied by hand into the TypeScript, Go, Rust, PHP and PHP extension
+  generators, and nothing checked that the copies agreed: the Korean undo label was 실행취소 in
+  TypeScript and 되돌리기 in the four others, and only TypeScript had the redo label.
+  `contracts/interface-messages.json` is now the only place the text is written. Each runtime
+  embeds a source its own script generates from it, and a test fails when the embedded text
+  differs from the file. The extension's generated table sets every field by name and the
+  generator fails when the contract's keys differ from the C struct's fields.
+
 ## 2026-09-19 — Compare unique values as JSON values, bound caches and Rust value limits
 
 - `unique` compared values differently across runtimes: TypeScript and PHP took the text `"[1]"`

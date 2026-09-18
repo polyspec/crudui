@@ -198,6 +198,7 @@ typedef struct {
     const char *expand_all;
     const char *collapse_all;
     const char *undo;
+    const char *redo;
     const char *row_controls;
     const char *collection_controls;
     const char *form_controls;
@@ -211,6 +212,14 @@ typedef struct {
     const char *count;
     const char *children;
 } ps_form_messages;
+
+/* The interface text of one language, generated from contracts/interface-messages.json. */
+typedef struct {
+    const char *language;
+    ps_form_messages messages;
+} ps_language_messages;
+extern const ps_language_messages ps_interface_messages[];
+extern const size_t ps_interface_messages_count;
 
 /* Interface text for a supported language (ko, en, ja, zh), or NULL. */
 const ps_form_messages *ps_form_messages_for(ps_text language);
