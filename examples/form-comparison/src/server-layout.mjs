@@ -56,11 +56,12 @@ export function serverProcess(server, { cruduiModuleSha256 } = {}) {
       : [];
     return {
       server,
-      command: 'php',
-      // The server reads and parses the request body itself (request-body.php); a startup
+      // PHP-FPM behind nginx (servers/php/main.mjs); nginx stops a request body at 2 MiB. The
+      // server reads and parses the request body itself (request-body.php), and a startup
       // warning must not reach a response body.
-      args: [...extensions, '-d', 'enable_post_data_reading=0',
-        '-d', 'display_errors=0', '-d', 'log_errors=1', '-S', address, '-t', publicDirectory, path.join(exampleDirectory, 'api.php')],
+      command: process.execPath,
+      args: [path.join(exampleDirectory, 'servers/php/main.mjs'), address, path.join(stateDirectory, `php-${server}`),
+        '--', ...extensions, '-d', 'enable_post_data_reading=0', '-d', 'display_errors=0', '-d', 'log_errors=1'],
       environment: {
         FORM_PHP_SERVER: server,
         FORM_DATA_DIRECTORY: dataDirectory,
@@ -69,11 +70,9 @@ export function serverProcess(server, { cruduiModuleSha256 } = {}) {
         ...(server === 'php-ext' ? { FORM_CRUDUI_MODULE_SHA256: cruduiModuleSha256 } : {}),
       },
       ready: {
-        stream: 'stderr',
-        pattern: new RegExp('Development Server \\(http://127\\.0\\.0\\.1:'
-          + serverPorts[server] + '\\) started'),
-        example: 'PHP Development Server (http://127.0.0.1:'
-          + serverPorts[server] + ') started',
+        stream: 'stdout',
+        pattern: new RegExp(`^CRUDUI_READY ${server}$`, 'm'),
+        example: `CRUDUI_READY ${server}`,
       },
     };
   }

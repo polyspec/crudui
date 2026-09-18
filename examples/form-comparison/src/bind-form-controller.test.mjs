@@ -212,7 +212,11 @@ test('row operations focus the affected row after rendering', async () => {
   assert.equal(focusedKey(), k1, 'removing focuses the previous row');
   await act(k1, 'remove-row');
   assert.equal(focusedKey(), added, 'removing the first row focuses the next row');
-  while (keys().length > 1) await act(keys()[0], 'remove-row');
+  // Bounded by the starting count: each pass must remove exactly one row.
+  for (let remaining = keys().length; remaining > 1; remaining -= 1) {
+    await act(keys()[0], 'remove-row');
+    assert.equal(keys().length, remaining - 1, 'each removal removes one row');
+  }
   await act(keys()[0], 'remove-row');
   assert.equal(document.activeElement.matches('[data-crudui-action="add-row"]'), true,
     'removing the last row focuses the collection Add button');

@@ -162,3 +162,8 @@ test('declares every module the supervisor runs from the mounted repository', as
   assert.deepEqual([...visited].sort(), [...supervisorFiles].sort());
   for (const file of supervisorFiles) await access(path.join(repositoryRoot, file));
 });
+
+test('restarts both PHP servers when the PHP server program changes', () => {
+  assert.deepEqual(summary([`${example}/servers/php/main.mjs`]),
+    { targets: ['php-server'], restarts: ['php', 'php-ext'], supervisor: false });
+});

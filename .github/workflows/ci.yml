@@ -387,6 +387,11 @@ jobs:
           npm i -g npm@latest && npm ci --strict-allow-scripts
           composer --working-dir=packages/validator-php install --no-interaction --prefer-dist
           composer --working-dir=packages/generator-php install --no-interaction --prefer-dist
+      - name: Install PHP-FPM and nginx
+        # The PHP record servers run on PHP-FPM behind nginx (examples/form-comparison/servers/php).
+        run: |
+          sudo apt-get install -y --no-install-recommends php8.5-fpm nginx
+          sudo ln -sf /usr/sbin/php-fpm8.5 /usr/local/bin/php-fpm
       - name: Verify sandboxed Chrome
         run: node scripts/check-ci-browser.mjs
       - name: Test the five record stores and the canonical flow

@@ -4,7 +4,9 @@
 
 Run from the repository root. Install Node dependencies with
 `npm ci --strict-allow-scripts`, install the PHP package's Composer dependencies,
-and make PHP, Go and Cargo available on `PATH`. Build JavaScript packages before
+and make PHP, Go and Cargo available on `PATH`, with `php-fpm` and `nginx` for the PHP record
+servers of the comparison example (Homebrew: `brew install php nginx`; Debian and Ubuntu:
+`php8.x-fpm` and `nginx`, with `php-fpm` linked to the versioned binary). Build JavaScript packages before
 checking their compiled exports.
 
 The release profile of the cross-check console's Rust validator program uses `strip = "none"`.
