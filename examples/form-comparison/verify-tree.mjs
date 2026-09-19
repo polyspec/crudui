@@ -85,9 +85,11 @@ export function verificationChecks() {
  *   the inactivity limit, a missing file or a stopped supervisor stops the wait.
  *
  * The wait therefore has no total limit, and no step holds it longer than that step's own limit.
+ * A ready build of another source than `source` is not the build waited for: the supervisor has
+ * not yet taken the checkout, and the wait goes on under the same inactivity limit.
  */
 export async function readyBuild({
-  stateFile = buildStateFile, silenceLimitMs = stepSilenceLimitMs, pollMs = 1_000,
+  source, stateFile = buildStateFile, silenceLimitMs = stepSilenceLimitMs, pollMs = 1_000,
   heartbeatMs = stepHeartbeatMs,
   write = text => process.stdout.write(text),
 } = {}) {
@@ -116,7 +118,7 @@ export async function readyBuild({
     } catch (error) {
       reading = error.message;
     }
-    if (state?.status === 'ready') {
+    if (state?.status === 'ready' && sameSourceIdentity(state.source, source)) {
       write(`${prefix} passed in ${elapsed()}\n`);
       write(`${prefix} cycle ${state.cycle} is ready\n`);
       return state;
@@ -125,7 +127,9 @@ export async function readyBuild({
       stop('failed', `cycle ${state.cycle} failed (${state.error})`);
     }
     const now = performance.now();
-    if (state) {
+    if (state?.status === 'ready') {
+      reading = `cycle ${state.cycle} is ready for ${JSON.stringify(state.source)}, not ${JSON.stringify(source)}`;
+    } else if (state) {
       assert.equal(state.status, 'building', `Unknown build status ${state.status}`);
       const progress = state.progress ?? {};
       reading = `cycle ${state.cycle} building ${progress.target} step ${progress.step}`;
@@ -161,7 +165,8 @@ async function main() {
   stopStepsOnSignal();
   const startedAt = new Date().toISOString();
   const startedClock = performance.now();
-  const before = await readyBuild();
+  assert.equal(process.argv.length, 3, 'Usage: node verify-tree.mjs {source identity JSON}');
+  const before = await readyBuild({ source: JSON.parse(process.argv[2]) });
   await mkdir(resultsDirectory, { recursive: true });
   for (const entry of await readdir(resultsDirectory)) {
     await rm(path.join(resultsDirectory, entry), { recursive: true, force: true });
@@ -177,7 +182,7 @@ async function main() {
     throw new Error(`Verification check ${failed.id} ${failed.status} after `
       + `${formatDuration(failed.durationMs)}`);
   }
-  const after = await readyBuild();
+  const after = await readyBuild({ source: before.source });
   assert.ok(after.cycle === before.cycle && sameSourceIdentity(after.source, before.source),
     'The repository changed during verification; verify it again');
   const evidence = await verifyEvidence(resultsDirectory);

@@ -206,11 +206,17 @@ async function main() {
   } else if (reads) {
     readline.createInterface({ input: child.stdout }).on('line', { go: goEvents, phpunit: phpunitEvents }[options.tool](progress));
   }
-  const code = await new Promise(resolve => child.on('close', (status, signal) => resolve(status ?? (signal ? 1 : 0))));
+  const { status, signal } = await new Promise(resolve => child.on('close', (status, signal) => resolve({ status, signal })));
+  const code = status ?? (signal ? 1 : 0);
   if (progress) {
     const summary = progress.close(label, { exitCode: timedOut ? 0 : code });
     process.exitCode = summary.ok && !timedOut ? 0 : 1;
-  } else process.exitCode = code;
+  } else {
+    // node --test and vitest print their summary from inside the tool; a tool that then ends on a
+    // signal or a nonzero code fails the run, and this line names why.
+    if (code !== 0) process.stdout.write(`✖ ${label}: the tool ended ${signal ? `on ${signal}` : `with exit code ${status}`}\n`);
+    process.exitCode = code;
+  }
 }
 
 if (process.argv[1] && import.meta.url === `file://${process.argv[1]}`) {
