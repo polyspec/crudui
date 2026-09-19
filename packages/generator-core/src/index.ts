@@ -58,6 +58,7 @@ export type {
   CellVM,
   RowVM as ListRowVM,
   PaginationVM,
+  PaginationButtonVM,
   SortVM,
   ActionVM,
   BuildListOptions,

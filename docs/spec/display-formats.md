@@ -169,7 +169,15 @@ and the `table` layout. `page` is the current page and `total` the total record 
 supplies both, the generator derives neither from the rows, and a list whose specification
 enables `pagination` writes them as `data-page` and `data-total`. It also emits previous,
 numbered and next buttons; the resolved page defaults to 1 and the current button carries
-`aria-current="page"` and `disabled`. The upper bound is the largest
+`aria-current="page"` and `disabled`. The resolved pagination model lists these buttons in
+`buttons`, each with its `role` (`previous`, `page` or `next`), `page`, `label`, `current` and
+`disabled`. A renderer chooses a button's text by its role — `‹`, the page number, `›` — and
+writes `label` as its `aria-label`. The labels come from the `list` table of the
+[interface messages](form-markup.md#interface-messages) (`previousPage`, `nextPage`, and `page`
+with `{page}` replaced by the page number) for the display language, or the English entry when
+the table has no entry for that language. A list with no rows shows its declared `empty` text; an
+absent or null `empty` shows the table's `emptyList` for the display language, chosen the same
+way. The upper bound is the largest
 integer every runtime represents exactly; an integral value such as `2.0` is the integer `2`. When several inputs are invalid, the first failing rule in the table order is
 reported. The Go and Rust library signatures take rows as a sequence, so in those languages the
 rows rule applies where decoded JSON becomes that sequence; every other rule is checked by the

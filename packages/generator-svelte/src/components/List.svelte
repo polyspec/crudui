@@ -3,7 +3,6 @@
 -->
 <script lang="ts">
   import type { ListViewModel } from '@crudui/generator-core';
-  import { paginationPages } from '@crudui/generator-core/internal';
   import {
     headerClass,
     headerStyle,
@@ -120,8 +119,7 @@
   {/if}
 
   {#if vm.pagination.enabled}
-    {@const pageCount = vm.pagination.pageCount ?? 0}
-    {@const page = pageCount > 0 ? Math.min(pageCount, Math.max(1, vm.pagination.page ?? 1)) : 1}
+    {@const paginationClasses = { previous: 'crudui-list__pagination-prev', page: 'crudui-list__pagination-page', next: 'crudui-list__pagination-next' }}
     <nav
       class="crudui-list__pagination"
       data-mode={vm.pagination.mode ?? undefined}
@@ -129,11 +127,18 @@
       data-page={vm.pagination.page !== undefined ? String(vm.pagination.page) : undefined}
       data-total={vm.pagination.total !== undefined ? String(vm.pagination.total) : undefined}
     >
-      <button type="button" class="crudui-list__pagination-prev" data-page={String(Math.max(1, page - 1))} aria-label="Previous page" disabled={page <= 1 || pageCount === 0}>‹</button>
-      {#each paginationPages(page, pageCount) as pageNumber (pageNumber)}
-        <button type="button" class="crudui-list__pagination-page" data-page={String(pageNumber)} aria-label={`Page ${pageNumber}`} aria-current={pageNumber === page ? 'page' : undefined} disabled={pageNumber === page}>{pageNumber}</button>
+      {#each vm.pagination.buttons ?? [] as button (button.role + '-' + button.page)}
+        <button
+          type="button"
+          class={paginationClasses[button.role]}
+          data-page={String(button.page)}
+          aria-label={button.label}
+          aria-current={button.current ? 'page' : undefined}
+          disabled={button.disabled}
+        >
+          {button.role === 'previous' ? '‹' : button.role === 'next' ? '›' : button.page}
+        </button>
       {/each}
-      <button type="button" class="crudui-list__pagination-next" data-page={String(pageCount ? Math.min(pageCount, page + 1) : 1)} aria-label="Next page" disabled={pageCount === 0 || page >= pageCount}>›</button>
     </nav>
   {/if}
 </div>

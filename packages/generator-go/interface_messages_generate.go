@@ -21,6 +21,7 @@ var contractPath = filepath.Join("..", "..", "contracts", "interface-messages.js
 // contract is the part of the contract the generator embeds.
 type contract struct {
 	Form map[string]map[string]string `json:"form"`
+	List map[string]map[string]string `json:"list"`
 }
 
 func main() {
@@ -33,31 +34,58 @@ func main() {
 		fail(err)
 	}
 
-	// Collect all keys from all languages
-	keySet := make(map[string]bool)
+	// Collect all form keys from all languages
+	formKeySet := make(map[string]bool)
 	for _, lang := range data.Form {
 		for key := range lang {
-			keySet[key] = true
+			formKeySet[key] = true
 		}
 	}
-	var keys []string
-	for key := range keySet {
-		keys = append(keys, key)
+	var formKeys []string
+	for key := range formKeySet {
+		formKeys = append(formKeys, key)
 	}
-	sort.Strings(keys)
+	sort.Strings(formKeys)
+
+	// Collect all list keys from all languages
+	listKeySet := make(map[string]bool)
+	for _, lang := range data.List {
+		for key := range lang {
+			listKeySet[key] = true
+		}
+	}
+	var listKeys []string
+	for key := range listKeySet {
+		listKeys = append(listKeys, key)
+	}
+	sort.Strings(listKeys)
 
 	var b bytes.Buffer
 	b.WriteString("// Code generated from contracts/interface-messages.json by `go generate` (interface_messages_generate.go). DO NOT EDIT.\n\n")
 	b.WriteString("package generator\n\n")
 
-	// Write the messageTables variable
+	// Write the messageTables variable for form messages
 	b.WriteString("var messageTables = map[string]formMessages{\n")
 
 	languages := []string{"ko", "en", "ja", "zh"}
 	for _, lang := range languages {
 		fmt.Fprintf(&b, "%q: {\n", lang)
 		langData := data.Form[lang]
-		for _, key := range keys {
+		for _, key := range formKeys {
+			value := langData[key]
+			fmt.Fprintf(&b, "%s: %q,\n", key, value)
+		}
+		b.WriteString("},\n")
+	}
+	b.WriteString("}\n\n")
+
+	// Write the listMessagesTables variable for list messages
+	b.WriteString("var listMessagesTables = map[string]listMessages{\n")
+
+	for _, lang := range languages {
+		fmt.Fprintf(&b, "%q: {\n", lang)
+		langData := data.List[lang]
+		for _, key := range listKeys {
 			value := langData[key]
 			fmt.Fprintf(&b, "%s: %q,\n", key, value)
 		}

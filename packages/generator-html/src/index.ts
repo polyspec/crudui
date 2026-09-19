@@ -20,7 +20,7 @@ import {
   type UnsupportedVM,
   type WidgetModel,
 } from '@crudui/generator-core';
-import { listLayout, paginationPages, parseStyle } from '@crudui/generator-core/internal';
+import { listLayout, parseStyle } from '@crudui/generator-core/internal';
 
 type AnyWidget = WidgetModel | UnsupportedVM;
 
@@ -365,15 +365,24 @@ function pagination(vm: ListViewModel): string {
   if (vm.pagination.perPage !== undefined) values['data-per-page'] = scalar(vm.pagination.perPage);
   if (vm.pagination.page !== undefined) values['data-page'] = scalar(vm.pagination.page);
   if (vm.pagination.total !== undefined) values['data-total'] = scalar(vm.pagination.total);
-  const pageCount = vm.pagination.pageCount ?? 0;
-  const page = pageCount > 0 ? Math.min(pageCount, Math.max(1, vm.pagination.page ?? 1)) : 1;
-  const previous = Math.max(1, page - 1);
-  const next = pageCount > 0 ? Math.min(pageCount, page + 1) : 1;
-  const button = (className: string, value: number, label: string, disabled: boolean, current = false) =>
-    element('button', { type: 'button', class: className, 'data-page': scalar(value), 'aria-label': label, ...(current ? { 'aria-current': 'page' } : {}), ...(disabled ? { disabled: true } : {}) }, escapeText(label === 'Previous page' ? '‹' : label === 'Next page' ? '›' : String(value)));
-  const controls = button('crudui-list__pagination-prev', previous, 'Previous page', page <= 1 || pageCount === 0)
-    + paginationPages(page, pageCount).map(value => button('crudui-list__pagination-page', value, `Page ${value}`, value === page, value === page)).join('')
-    + button('crudui-list__pagination-next', next, 'Next page', pageCount === 0 || page >= pageCount);
+  const paginationClasses: Record<string, string> = {
+    previous: 'crudui-list__pagination-prev',
+    page: 'crudui-list__pagination-page',
+    next: 'crudui-list__pagination-next',
+  };
+  const controls = (vm.pagination.buttons ?? []).map(button =>
+    element('button',
+      {
+        type: 'button',
+        class: paginationClasses[button.role],
+        'data-page': scalar(button.page),
+        'aria-label': button.label,
+        ...(button.current ? { 'aria-current': 'page' } : {}),
+        ...(button.disabled ? { disabled: true } : {}),
+      },
+      escapeText(button.role === 'previous' ? '‹' : button.role === 'next' ? '›' : String(button.page))
+    )
+  ).join('');
   return element('nav', values, controls);
 }
 

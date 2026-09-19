@@ -266,7 +266,12 @@ func buildDisplay(spec *Object, rows []*Object, options ListOptions, paths displ
 		}
 	}
 	out.Set("actions", actions)
-	out.Set("empty", translate(read(spec, "empty"), options.Language))
+	// An absent or null list empty uses the interface message; a declared text is used as declared.
+	if empty := read(spec, "empty"); paths.own == "list" && (isAbsent(empty) || empty == nil) {
+		out.Set("empty", listMessagesFor(options.Language).emptyList)
+	} else {
+		out.Set("empty", translate(empty, options.Language))
+	}
 	out.Set("design", resolveDesign(read(spec, "design"), lookup, nil))
 	return out, nil
 }
@@ -559,37 +564,44 @@ func listHTML(vm *Object, layout string) string {
 		if has(p, "total") {
 			at.Set("data-total", stringAt(p, "total"))
 		}
-		pageCount, _ := read(p, "pageCount").(int64)
-		page := int64(1)
-		if pageCount > 0 {
-			page, _ = read(p, "page").(int64)
-			page = min(pageCount, page)
-		}
-		button := func(class string, value int64, label string, disabled, current bool) string {
-			x := NewObject("type", "button", "class", class, "data-page", strconv.FormatInt(value, 10), "aria-label", label)
+		// Render buttons from the pagination model
+		content := ""
+		for _, btn := range objectList(read(p, "buttons")) {
+			role := stringAt(btn, "role")
+			pageNum, _ := read(btn, "page").(int64)
+			label := stringAt(btn, "label")
+			current := truthy(read(btn, "current"))
+			disabled := truthy(read(btn, "disabled"))
+
+			// Determine text by role
+			var text string
+			switch role {
+			case "previous":
+				text = "‹"
+			case "next":
+				text = "›"
+			default: // page
+				text = strconv.FormatInt(pageNum, 10)
+			}
+
+			// Determine class by role
+			class := "crudui-list__pagination-page"
+			switch role {
+			case "previous":
+				class = "crudui-list__pagination-prev"
+			case "next":
+				class = "crudui-list__pagination-next"
+			}
+
+			attrs := NewObject("type", "button", "class", class, "data-page", strconv.FormatInt(pageNum, 10), "aria-label", label)
 			if current {
-				x.Set("aria-current", "page")
+				attrs.Set("aria-current", "page")
 			}
 			if disabled {
-				x.Set("disabled", true)
+				attrs.Set("disabled", true)
 			}
-			text := label
-			if label == "Previous page" {
-				text = "‹"
-			}
-			if label == "Next page" {
-				text = "›"
-			}
-			if strings.HasPrefix(label, "Page ") {
-				text = strings.TrimPrefix(label, "Page ")
-			}
-			return element("button", x, text)
+			content += element("button", attrs, text)
 		}
-		content := button("crudui-list__pagination-prev", max(1, page-1), "Previous page", page <= 1 || pageCount == 0, false)
-		for _, i := range paginationPages(page, pageCount) {
-			content += button("crudui-list__pagination-page", i, "Page "+strconv.FormatInt(i, 10), i == page, i == page)
-		}
-		content += button("crudui-list__pagination-next", max(1, min(pageCount, page+1)), "Next page", pageCount == 0 || page >= pageCount, false)
 		body += element("nav", at, content)
 	}
 	return element("div", a, body)
@@ -630,7 +642,7 @@ func checkPaginationDeclaration(pagination any, path string) error {
 }
 
 // paginationModel returns the pagination model, in member order: enabled, then for enabled
-// paging perPage, mode and page with their defaults, the supplied total and pageCount.
+// paging perPage, mode and page with their defaults, the supplied total, pageCount, and buttons.
 // Disabled paging keeps only the supplied page and total. Supplied counts are JSON integers
 // (int64), so 2.0 is written as 2 and -0 as 0.
 func paginationModel(declared any, options ListOptions) *Object {
@@ -665,6 +677,55 @@ func paginationModel(declared any, options ListOptions) *Object {
 			pageCount = max(1, int64(math.Ceil(float64(total)/float64(perPage))))
 		}
 		pagination.Set("pageCount", pageCount)
+
+		// Generate buttons for enabled paging
+		// Without a total the current page is 1; a page after the last page selects the last page.
+		current := int64(1)
+		if pageCount > 0 {
+			current = min(pageCount, page)
+		}
+
+		// Get list messages for the pagination labels
+		msgs := listMessagesFor(options.Language)
+
+		buttons := []*Object{}
+
+		// Previous button
+		prevDisabled := current <= 1 || pageCount == 0
+		buttons = append(buttons, NewObject(
+			"role", "previous",
+			"page", max(1, current-1),
+			"label", msgs.previousPage,
+			"current", false,
+			"disabled", prevDisabled,
+		))
+
+		// Page buttons
+		for _, pageNum := range paginationPages(current, pageCount) {
+			buttons = append(buttons, NewObject(
+				"role", "page",
+				"page", pageNum,
+				"label", formatPage(msgs.page, pageNum),
+				"current", pageNum == current,
+				"disabled", pageNum == current,
+			))
+		}
+
+		// Next button
+		nextPage := int64(1)
+		if pageCount > 0 {
+			nextPage = min(pageCount, current+1)
+		}
+		nextDisabled := pageCount == 0 || current >= pageCount
+		buttons = append(buttons, NewObject(
+			"role", "next",
+			"page", nextPage,
+			"label", msgs.nextPage,
+			"current", false,
+			"disabled", nextDisabled,
+		))
+
+		pagination.Set("buttons", buttons)
 	}
 	return pagination
 }

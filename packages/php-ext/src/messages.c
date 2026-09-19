@@ -11,6 +11,13 @@ const ps_form_messages *ps_form_messages_for(ps_text language)
     return NULL;
 }
 
+const ps_list_messages *ps_list_messages_for(ps_text language)
+{
+    for (size_t i = 0; i < ps_interface_list_messages_count; ++i)
+        if (ps_text_is(language, ps_interface_list_messages[i].language)) return &ps_interface_list_messages[i].messages;
+    return NULL;
+}
+
 ps_chars ps_format_count(const char *template, size_t count)
 {
     ps_text text = ps_fixed(template);
@@ -20,6 +27,20 @@ ps_chars ps_format_count(const char *template, size_t count)
     ps_chars out = number.bytes
         ? PS_CONCAT(ps_text_slice(text, 0, marker), ps_view(number),
                     ps_text_slice(text, marker + strlen("{count}"), text.length))
+        : number;
+    free(number.bytes);
+    return out;
+}
+
+ps_chars ps_format_page(const char *template, size_t page)
+{
+    ps_text text = ps_fixed(template);
+    size_t marker = ps_text_find(text, PS_TEXT("{page}"), 0);
+    if (marker == SIZE_MAX) return ps_copy(text);
+    ps_chars number = ps_decimal(page);
+    ps_chars out = number.bytes
+        ? PS_CONCAT(ps_text_slice(text, 0, marker), ps_view(number),
+                    ps_text_slice(text, marker + strlen("{page}"), text.length))
         : number;
     free(number.bytes);
     return out;

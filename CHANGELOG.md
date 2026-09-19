@@ -9,6 +9,15 @@
   embeds a source its own script generates from it, and a test fails when the embedded text
   differs from the file. The extension's generated table sets every field by name and the
   generator fails when the contract's keys differ from the C struct's fields.
+- List pagination buttons were named "Previous page", "Next page" and "Page N" in English in
+  every language, and each renderer chose ‹ and › by comparing those names, so the names could not
+  be translated without breaking the buttons. The resolved pagination model now lists its buttons
+  with a role (`previous`, `page`, `next`), page, label, current and disabled; renderers choose
+  the text by role, and the labels come from the contract's `list` table in the display language,
+  or English for a language the table lacks.
+- A list with no rows and no declared `empty` showed an empty box. It now shows the `list` table's
+  `emptyList` text in the display language; a declared text, even an empty one, is used as
+  declared.
 
 ## 2026-09-19 — Compare unique values as JSON values, bound caches and Rust value limits
 

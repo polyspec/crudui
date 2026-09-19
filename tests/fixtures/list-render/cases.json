@@ -980,7 +980,7 @@
       "page": 9007199254740991,
       "total": 0
     },
-    "expected_html": "<div class=\"crudui-list\"><div class=\"crudui-list__empty\"></div><nav class=\"crudui-list__pagination\" data-mode=\"pages\" data-page=\"9007199254740991\" data-per-page=\"20\" data-total=\"0\"><button aria-label=\"Previous page\" class=\"crudui-list__pagination-prev\" data-page=\"1\" disabled=\"\" type=\"button\">‹</button><button aria-current=\"page\" aria-label=\"Page 1\" class=\"crudui-list__pagination-page\" data-page=\"1\" disabled=\"\" type=\"button\">1</button><button aria-label=\"Next page\" class=\"crudui-list__pagination-next\" data-page=\"1\" disabled=\"\" type=\"button\">›</button></nav></div>"
+    "expected_html": "<div class=\"crudui-list\"><div class=\"crudui-list__empty\">No data</div><nav class=\"crudui-list__pagination\" data-mode=\"pages\" data-page=\"9007199254740991\" data-per-page=\"20\" data-total=\"0\"><button aria-label=\"Previous page\" class=\"crudui-list__pagination-prev\" data-page=\"1\" disabled=\"\" type=\"button\">‹</button><button aria-current=\"page\" aria-label=\"Page 1\" class=\"crudui-list__pagination-page\" data-page=\"1\" disabled=\"\" type=\"button\">1</button><button aria-label=\"Next page\" class=\"crudui-list__pagination-next\" data-page=\"1\" disabled=\"\" type=\"button\">›</button></nav></div>"
   },
   {
     "name": "pagination-page-beyond-last",
@@ -1000,7 +1000,7 @@
       "page": 2,
       "total": 0
     },
-    "expected_html": "<div class=\"crudui-list\"><div class=\"crudui-list__empty\"></div><nav class=\"crudui-list__pagination\" data-mode=\"pages\" data-page=\"2\" data-per-page=\"20\" data-total=\"0\"><button aria-label=\"Previous page\" class=\"crudui-list__pagination-prev\" data-page=\"1\" disabled=\"\" type=\"button\">‹</button><button aria-current=\"page\" aria-label=\"Page 1\" class=\"crudui-list__pagination-page\" data-page=\"1\" disabled=\"\" type=\"button\">1</button><button aria-label=\"Next page\" class=\"crudui-list__pagination-next\" data-page=\"1\" disabled=\"\" type=\"button\">›</button></nav></div>"
+    "expected_html": "<div class=\"crudui-list\"><div class=\"crudui-list__empty\">No data</div><nav class=\"crudui-list__pagination\" data-mode=\"pages\" data-page=\"2\" data-per-page=\"20\" data-total=\"0\"><button aria-label=\"Previous page\" class=\"crudui-list__pagination-prev\" data-page=\"1\" disabled=\"\" type=\"button\">‹</button><button aria-current=\"page\" aria-label=\"Page 1\" class=\"crudui-list__pagination-page\" data-page=\"1\" disabled=\"\" type=\"button\">1</button><button aria-label=\"Next page\" class=\"crudui-list__pagination-next\" data-page=\"1\" disabled=\"\" type=\"button\">›</button></nav></div>"
   },
   {
     "name": "pagination-middle-window",
@@ -1020,7 +1020,7 @@
       "page": 50,
       "total": 2000
     },
-    "expected_html": "<div class=\"crudui-list\"><div class=\"crudui-list__empty\"></div><nav class=\"crudui-list__pagination\" data-mode=\"pages\" data-page=\"50\" data-per-page=\"20\" data-total=\"2000\"><button aria-label=\"Previous page\" class=\"crudui-list__pagination-prev\" data-page=\"49\" type=\"button\">‹</button><button aria-label=\"Page 1\" class=\"crudui-list__pagination-page\" data-page=\"1\" type=\"button\">1</button><button aria-label=\"Page 49\" class=\"crudui-list__pagination-page\" data-page=\"49\" type=\"button\">49</button><button aria-current=\"page\" aria-label=\"Page 50\" class=\"crudui-list__pagination-page\" data-page=\"50\" disabled=\"\" type=\"button\">50</button><button aria-label=\"Page 51\" class=\"crudui-list__pagination-page\" data-page=\"51\" type=\"button\">51</button><button aria-label=\"Page 100\" class=\"crudui-list__pagination-page\" data-page=\"100\" type=\"button\">100</button><button aria-label=\"Next page\" class=\"crudui-list__pagination-next\" data-page=\"51\" type=\"button\">›</button></nav></div>"
+    "expected_html": "<div class=\"crudui-list\"><div class=\"crudui-list__empty\">No data</div><nav class=\"crudui-list__pagination\" data-mode=\"pages\" data-page=\"50\" data-per-page=\"20\" data-total=\"2000\"><button aria-label=\"Previous page\" class=\"crudui-list__pagination-prev\" data-page=\"49\" type=\"button\">‹</button><button aria-label=\"Page 1\" class=\"crudui-list__pagination-page\" data-page=\"1\" type=\"button\">1</button><button aria-label=\"Page 49\" class=\"crudui-list__pagination-page\" data-page=\"49\" type=\"button\">49</button><button aria-current=\"page\" aria-label=\"Page 50\" class=\"crudui-list__pagination-page\" data-page=\"50\" disabled=\"\" type=\"button\">50</button><button aria-label=\"Page 51\" class=\"crudui-list__pagination-page\" data-page=\"51\" type=\"button\">51</button><button aria-label=\"Page 100\" class=\"crudui-list__pagination-page\" data-page=\"100\" type=\"button\">100</button><button aria-label=\"Next page\" class=\"crudui-list__pagination-next\" data-page=\"51\" type=\"button\">›</button></nav></div>"
   },
   {
     "name": "pagination-largest-window",
@@ -1040,7 +1040,7 @@
       "page": 9007199254740991,
       "total": 9007199254740991
     },
-    "expected_html": "<div class=\"crudui-list\"><div class=\"crudui-list__empty\"></div><nav class=\"crudui-list__pagination\" data-mode=\"pages\" data-page=\"9007199254740991\" data-per-page=\"20\" data-total=\"9007199254740991\"><button aria-label=\"Previous page\" class=\"crudui-list__pagination-prev\" data-page=\"450359962737049\" type=\"button\">‹</button><button aria-label=\"Page 1\" class=\"crudui-list__pagination-page\" data-page=\"1\" type=\"button\">1</button><button aria-label=\"Page 450359962737049\" class=\"crudui-list__pagination-page\" data-page=\"450359962737049\" type=\"button\">450359962737049</button><button aria-current=\"page\" aria-label=\"Page 450359962737050\" class=\"crudui-list__pagination-page\" data-page=\"450359962737050\" disabled=\"\" type=\"button\">450359962737050</button><button aria-label=\"Next page\" class=\"crudui-list__pagination-next\" data-page=\"450359962737050\" disabled=\"\" type=\"button\">›</button></nav></div>"
+    "expected_html": "<div class=\"crudui-list\"><div class=\"crudui-list__empty\">No data</div><nav class=\"crudui-list__pagination\" data-mode=\"pages\" data-page=\"9007199254740991\" data-per-page=\"20\" data-total=\"9007199254740991\"><button aria-label=\"Previous page\" class=\"crudui-list__pagination-prev\" data-page=\"450359962737049\" type=\"button\">‹</button><button aria-label=\"Page 1\" class=\"crudui-list__pagination-page\" data-page=\"1\" type=\"button\">1</button><button aria-label=\"Page 450359962737049\" class=\"crudui-list__pagination-page\" data-page=\"450359962737049\" type=\"button\">450359962737049</button><button aria-current=\"page\" aria-label=\"Page 450359962737050\" class=\"crudui-list__pagination-page\" data-page=\"450359962737050\" disabled=\"\" type=\"button\">450359962737050</button><button aria-label=\"Next page\" class=\"crudui-list__pagination-next\" data-page=\"450359962737050\" disabled=\"\" type=\"button\">›</button></nav></div>"
   },
   {
     "name": "pagination-without-total",
@@ -1059,7 +1059,7 @@
       "language": "en",
       "page": 1
     },
-    "expected_html": "<div class=\"crudui-list\"><div class=\"crudui-list__empty\"></div><nav class=\"crudui-list__pagination\" data-mode=\"pages\" data-page=\"1\" data-per-page=\"20\"><button aria-label=\"Previous page\" class=\"crudui-list__pagination-prev\" data-page=\"1\" disabled=\"\" type=\"button\">‹</button><button aria-label=\"Next page\" class=\"crudui-list__pagination-next\" data-page=\"1\" disabled=\"\" type=\"button\">›</button></nav></div>"
+    "expected_html": "<div class=\"crudui-list\"><div class=\"crudui-list__empty\">No data</div><nav class=\"crudui-list__pagination\" data-mode=\"pages\" data-page=\"1\" data-per-page=\"20\"><button aria-label=\"Previous page\" class=\"crudui-list__pagination-prev\" data-page=\"1\" disabled=\"\" type=\"button\">‹</button><button aria-label=\"Next page\" class=\"crudui-list__pagination-next\" data-page=\"1\" disabled=\"\" type=\"button\">›</button></nav></div>"
   },
   {
     "name": "pagination-page-without-total",
@@ -1078,7 +1078,7 @@
       "language": "en",
       "page": 5
     },
-    "expected_html": "<div class=\"crudui-list\"><div class=\"crudui-list__empty\"></div><nav class=\"crudui-list__pagination\" data-mode=\"pages\" data-page=\"5\" data-per-page=\"20\"><button aria-label=\"Previous page\" class=\"crudui-list__pagination-prev\" data-page=\"1\" disabled=\"\" type=\"button\">‹</button><button aria-label=\"Next page\" class=\"crudui-list__pagination-next\" data-page=\"1\" disabled=\"\" type=\"button\">›</button></nav></div>"
+    "expected_html": "<div class=\"crudui-list\"><div class=\"crudui-list__empty\">No data</div><nav class=\"crudui-list__pagination\" data-mode=\"pages\" data-page=\"5\" data-per-page=\"20\"><button aria-label=\"Previous page\" class=\"crudui-list__pagination-prev\" data-page=\"1\" disabled=\"\" type=\"button\">‹</button><button aria-label=\"Next page\" class=\"crudui-list__pagination-next\" data-page=\"1\" disabled=\"\" type=\"button\">›</button></nav></div>"
   },
   {
     "name": "design-column-class-style",
@@ -1135,6 +1135,338 @@
       "language": "en"
     },
     "expected_html": "<div class=\"crudui-list\"><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading text-right\" data-field=\"name\" style=\"width: 40%\"><span class=\"crudui-list__heading-label\">Name</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--text text-right\" style=\"width: 40%\">Ada</td></tr><tr><td class=\"crudui-list__cell crudui-value crudui-value--text text-right\" style=\"width: 40%\">Lin</td></tr></tbody></table></div>"
+  },
+  {
+    "name": "pagination-labels-ko",
+    "note": "pagination button names come from the ko list messages; the buttons show ‹, the page number and ›.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "label": "Name"
+        }
+      },
+      "pagination": {
+        "per_page": 1
+      }
+    },
+    "rows": [
+      {
+        "id": 1,
+        "name": "Ada",
+        "status": "active",
+        "joined": "2026-01-02T09:00:00",
+        "score": 1234567.5,
+        "admin": 1,
+        "avatar": "/img/ada.png",
+        "jointablename": {
+          "id": 101
+        },
+        "join": {
+          "join": {
+            "name": "Ada"
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "Lin",
+        "status": "blocked",
+        "joined": "2026-03-15T12:00:00",
+        "score": 42,
+        "admin": 0,
+        "avatar": "/img/lin.png",
+        "jointablename": {
+          "id": 102
+        },
+        "join": {
+          "join": {
+            "name": "Lin"
+          }
+        }
+      }
+    ],
+    "options": {
+      "language": "ko",
+      "page": 2,
+      "total": 3
+    },
+    "expected_html": "<div class=\"crudui-list\"><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading\" data-field=\"name\"><span class=\"crudui-list__heading-label\">Name</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--text\">Ada</td></tr><tr><td class=\"crudui-list__cell crudui-value crudui-value--text\">Lin</td></tr></tbody></table><nav class=\"crudui-list__pagination\" data-mode=\"pages\" data-page=\"2\" data-per-page=\"1\" data-total=\"3\"><button aria-label=\"이전 페이지\" class=\"crudui-list__pagination-prev\" data-page=\"1\" type=\"button\">‹</button><button aria-label=\"1페이지\" class=\"crudui-list__pagination-page\" data-page=\"1\" type=\"button\">1</button><button aria-current=\"page\" aria-label=\"2페이지\" class=\"crudui-list__pagination-page\" data-page=\"2\" disabled=\"\" type=\"button\">2</button><button aria-label=\"3페이지\" class=\"crudui-list__pagination-page\" data-page=\"3\" type=\"button\">3</button><button aria-label=\"다음 페이지\" class=\"crudui-list__pagination-next\" data-page=\"3\" type=\"button\">›</button></nav></div>"
+  },
+  {
+    "name": "pagination-labels-ja",
+    "note": "pagination button names come from the ja list messages; the buttons show ‹, the page number and ›.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "label": "Name"
+        }
+      },
+      "pagination": {
+        "per_page": 1
+      }
+    },
+    "rows": [
+      {
+        "id": 1,
+        "name": "Ada",
+        "status": "active",
+        "joined": "2026-01-02T09:00:00",
+        "score": 1234567.5,
+        "admin": 1,
+        "avatar": "/img/ada.png",
+        "jointablename": {
+          "id": 101
+        },
+        "join": {
+          "join": {
+            "name": "Ada"
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "Lin",
+        "status": "blocked",
+        "joined": "2026-03-15T12:00:00",
+        "score": 42,
+        "admin": 0,
+        "avatar": "/img/lin.png",
+        "jointablename": {
+          "id": 102
+        },
+        "join": {
+          "join": {
+            "name": "Lin"
+          }
+        }
+      }
+    ],
+    "options": {
+      "language": "ja",
+      "page": 2,
+      "total": 3
+    },
+    "expected_html": "<div class=\"crudui-list\"><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading\" data-field=\"name\"><span class=\"crudui-list__heading-label\">Name</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--text\">Ada</td></tr><tr><td class=\"crudui-list__cell crudui-value crudui-value--text\">Lin</td></tr></tbody></table><nav class=\"crudui-list__pagination\" data-mode=\"pages\" data-page=\"2\" data-per-page=\"1\" data-total=\"3\"><button aria-label=\"前のページ\" class=\"crudui-list__pagination-prev\" data-page=\"1\" type=\"button\">‹</button><button aria-label=\"1ページ\" class=\"crudui-list__pagination-page\" data-page=\"1\" type=\"button\">1</button><button aria-current=\"page\" aria-label=\"2ページ\" class=\"crudui-list__pagination-page\" data-page=\"2\" disabled=\"\" type=\"button\">2</button><button aria-label=\"3ページ\" class=\"crudui-list__pagination-page\" data-page=\"3\" type=\"button\">3</button><button aria-label=\"次のページ\" class=\"crudui-list__pagination-next\" data-page=\"3\" type=\"button\">›</button></nav></div>"
+  },
+  {
+    "name": "pagination-labels-zh",
+    "note": "pagination button names come from the zh list messages; the buttons show ‹, the page number and ›.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "label": "Name"
+        }
+      },
+      "pagination": {
+        "per_page": 1
+      }
+    },
+    "rows": [
+      {
+        "id": 1,
+        "name": "Ada",
+        "status": "active",
+        "joined": "2026-01-02T09:00:00",
+        "score": 1234567.5,
+        "admin": 1,
+        "avatar": "/img/ada.png",
+        "jointablename": {
+          "id": 101
+        },
+        "join": {
+          "join": {
+            "name": "Ada"
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "Lin",
+        "status": "blocked",
+        "joined": "2026-03-15T12:00:00",
+        "score": 42,
+        "admin": 0,
+        "avatar": "/img/lin.png",
+        "jointablename": {
+          "id": 102
+        },
+        "join": {
+          "join": {
+            "name": "Lin"
+          }
+        }
+      }
+    ],
+    "options": {
+      "language": "zh",
+      "page": 2,
+      "total": 3
+    },
+    "expected_html": "<div class=\"crudui-list\"><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading\" data-field=\"name\"><span class=\"crudui-list__heading-label\">Name</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--text\">Ada</td></tr><tr><td class=\"crudui-list__cell crudui-value crudui-value--text\">Lin</td></tr></tbody></table><nav class=\"crudui-list__pagination\" data-mode=\"pages\" data-page=\"2\" data-per-page=\"1\" data-total=\"3\"><button aria-label=\"上一页\" class=\"crudui-list__pagination-prev\" data-page=\"1\" type=\"button\">‹</button><button aria-label=\"第 1 页\" class=\"crudui-list__pagination-page\" data-page=\"1\" type=\"button\">1</button><button aria-current=\"page\" aria-label=\"第 2 页\" class=\"crudui-list__pagination-page\" data-page=\"2\" disabled=\"\" type=\"button\">2</button><button aria-label=\"第 3 页\" class=\"crudui-list__pagination-page\" data-page=\"3\" type=\"button\">3</button><button aria-label=\"下一页\" class=\"crudui-list__pagination-next\" data-page=\"3\" type=\"button\">›</button></nav></div>"
+  },
+  {
+    "name": "pagination-labels-fr",
+    "note": "pagination button names come from the English list messages (fr is not in the table); the buttons show ‹, the page number and ›.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "label": "Name"
+        }
+      },
+      "pagination": {
+        "per_page": 1
+      }
+    },
+    "rows": [
+      {
+        "id": 1,
+        "name": "Ada",
+        "status": "active",
+        "joined": "2026-01-02T09:00:00",
+        "score": 1234567.5,
+        "admin": 1,
+        "avatar": "/img/ada.png",
+        "jointablename": {
+          "id": 101
+        },
+        "join": {
+          "join": {
+            "name": "Ada"
+          }
+        }
+      },
+      {
+        "id": 2,
+        "name": "Lin",
+        "status": "blocked",
+        "joined": "2026-03-15T12:00:00",
+        "score": 42,
+        "admin": 0,
+        "avatar": "/img/lin.png",
+        "jointablename": {
+          "id": 102
+        },
+        "join": {
+          "join": {
+            "name": "Lin"
+          }
+        }
+      }
+    ],
+    "options": {
+      "language": "fr",
+      "page": 2,
+      "total": 3
+    },
+    "expected_html": "<div class=\"crudui-list\"><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading\" data-field=\"name\"><span class=\"crudui-list__heading-label\">Name</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--text\">Ada</td></tr><tr><td class=\"crudui-list__cell crudui-value crudui-value--text\">Lin</td></tr></tbody></table><nav class=\"crudui-list__pagination\" data-mode=\"pages\" data-page=\"2\" data-per-page=\"1\" data-total=\"3\"><button aria-label=\"Previous page\" class=\"crudui-list__pagination-prev\" data-page=\"1\" type=\"button\">‹</button><button aria-label=\"Page 1\" class=\"crudui-list__pagination-page\" data-page=\"1\" type=\"button\">1</button><button aria-current=\"page\" aria-label=\"Page 2\" class=\"crudui-list__pagination-page\" data-page=\"2\" disabled=\"\" type=\"button\">2</button><button aria-label=\"Page 3\" class=\"crudui-list__pagination-page\" data-page=\"3\" type=\"button\">3</button><button aria-label=\"Next page\" class=\"crudui-list__pagination-next\" data-page=\"3\" type=\"button\">›</button></nav></div>"
+  },
+  {
+    "name": "empty-undeclared-ko",
+    "note": "no rows and no declared empty → the ko emptyList interface message.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "label": "Name"
+        }
+      }
+    },
+    "rows": [],
+    "options": {
+      "language": "ko"
+    },
+    "expected_html": "<div class=\"crudui-list\"><div class=\"crudui-list__empty\">데이터가 없습니다</div></div>"
+  },
+  {
+    "name": "empty-undeclared-en",
+    "note": "no rows and no declared empty → the en emptyList interface message.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "label": "Name"
+        }
+      }
+    },
+    "rows": [],
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-list\"><div class=\"crudui-list__empty\">No data</div></div>"
+  },
+  {
+    "name": "empty-undeclared-ja",
+    "note": "no rows and no declared empty → the ja emptyList interface message.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "label": "Name"
+        }
+      }
+    },
+    "rows": [],
+    "options": {
+      "language": "ja"
+    },
+    "expected_html": "<div class=\"crudui-list\"><div class=\"crudui-list__empty\">データがありません</div></div>"
+  },
+  {
+    "name": "empty-undeclared-zh",
+    "note": "no rows and no declared empty → the zh emptyList interface message.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "label": "Name"
+        }
+      }
+    },
+    "rows": [],
+    "options": {
+      "language": "zh"
+    },
+    "expected_html": "<div class=\"crudui-list\"><div class=\"crudui-list__empty\">暂无数据</div></div>"
+  },
+  {
+    "name": "empty-declared-null",
+    "note": "a null empty is the same as no declaration → the emptyList interface message.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "label": "Name"
+        }
+      },
+      "empty": null
+    },
+    "rows": [],
+    "options": {
+      "language": "ko"
+    },
+    "expected_html": "<div class=\"crudui-list\"><div class=\"crudui-list__empty\">데이터가 없습니다</div></div>"
+  },
+  {
+    "name": "empty-declared-blank",
+    "note": "a declared empty text is used as declared, even when it is empty.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "label": "Name"
+        }
+      },
+      "empty": ""
+    },
+    "rows": [],
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-list\"><div class=\"crudui-list__empty\"></div></div>"
   },
   {
     "name": "empty-message",
@@ -1527,7 +1859,7 @@
       "language": "en",
       "total": 41
     },
-    "expected_html": "<div class=\"crudui-list\"><div class=\"crudui-list__empty\"></div><nav class=\"crudui-list__pagination\" data-mode=\"offset\" data-page=\"1\" data-per-page=\"20\" data-total=\"41\"><button aria-label=\"Previous page\" class=\"crudui-list__pagination-prev\" data-page=\"1\" disabled=\"\" type=\"button\">‹</button><button aria-current=\"page\" aria-label=\"Page 1\" class=\"crudui-list__pagination-page\" data-page=\"1\" disabled=\"\" type=\"button\">1</button><button aria-label=\"Page 2\" class=\"crudui-list__pagination-page\" data-page=\"2\" type=\"button\">2</button><button aria-label=\"Page 3\" class=\"crudui-list__pagination-page\" data-page=\"3\" type=\"button\">3</button><button aria-label=\"Next page\" class=\"crudui-list__pagination-next\" data-page=\"2\" type=\"button\">›</button></nav></div>"
+    "expected_html": "<div class=\"crudui-list\"><div class=\"crudui-list__empty\">No data</div><nav class=\"crudui-list__pagination\" data-mode=\"offset\" data-page=\"1\" data-per-page=\"20\" data-total=\"41\"><button aria-label=\"Previous page\" class=\"crudui-list__pagination-prev\" data-page=\"1\" disabled=\"\" type=\"button\">‹</button><button aria-current=\"page\" aria-label=\"Page 1\" class=\"crudui-list__pagination-page\" data-page=\"1\" disabled=\"\" type=\"button\">1</button><button aria-label=\"Page 2\" class=\"crudui-list__pagination-page\" data-page=\"2\" type=\"button\">2</button><button aria-label=\"Page 3\" class=\"crudui-list__pagination-page\" data-page=\"3\" type=\"button\">3</button><button aria-label=\"Next page\" class=\"crudui-list__pagination-next\" data-page=\"2\" type=\"button\">›</button></nav></div>"
   },
   {
     "name": "reject-array-specification",
