@@ -12,6 +12,7 @@ import { forward } from './src/forward.mjs';
 import {
   recordClients, recordInitializations, recordModes, recordServers, selectionQuery,
 } from './src/record-contract.mjs';
+import { recordLanguages, selectionDefaults } from './src/record-view.mjs';
 import { formServers } from './src/runtime-paths.mjs';
 import { serverRequest } from './src/server-layout.mjs';
 import { recordStore } from './servers/javascript/records.mjs';
@@ -35,9 +36,16 @@ process.on('message', message => {
 });
 process.on('disconnect', () => process.exit(0));
 
-function respond(response, status, value) {
-  response.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
-  response.end(encodeJson(value));
+/** Every response names its type and forbids type guessing; JSON escapes `<`, `>` and `&`. */
+const escapeScriptJson = value => encodeJson(value)
+  .replace(/[<>&]/g, character => `\\u${character.charCodeAt(0).toString(16).padStart(4, '0')}`);
+
+function respond(response, status, value, headers = {}) {
+  response.writeHead(status, {
+    'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store',
+    'X-Content-Type-Options': 'nosniff', ...headers,
+  });
+  response.end(escapeScriptJson(value));
 }
 
 
@@ -50,12 +58,13 @@ class PageError extends Error {
 
 const pageViews = new Map([['/', 'list'], ['/detail', 'detail'], ['/form', 'form']]);
 const positiveInteger = /^[1-9][0-9]*$/;
+/** The document's selection members: allowed values from the contract, defaults from one source. */
 const selectionMembers = {
-  lang: { values: ['ko', 'en'], fallback: 'ko' },
-  server: { values: recordServers, fallback: 'js' },
-  framework: { values: recordClients, fallback: 'html' },
-  initialization: { values: recordInitializations, fallback: 'csr' },
-  mode: { values: recordModes, fallback: 'bindForm' },
+  lang: { values: recordLanguages, fallback: selectionDefaults.lang },
+  server: { values: recordServers, fallback: selectionDefaults.server },
+  framework: { values: recordClients, fallback: selectionDefaults.framework },
+  initialization: { values: recordInitializations, fallback: selectionDefaults.initialization },
+  mode: { values: recordModes, fallback: selectionDefaults.mode },
 };
 
 /** The selection of one page address; a missing member takes its default. */
@@ -121,9 +130,6 @@ async function stageSource(view, { selection, id }) {
   return result.json;
 }
 
-const escapeScriptJson = value => JSON.stringify(value)
-  .replace(/[<>&]/g, character => `\\u${character.charCodeAt(0).toString(16).padStart(4, '0')}`);
-
 const savedNotice = {
   ko: id => `레코드 ${id}을(를) 저장했습니다.`,
   en: id => `Saved record ${id}.`,
@@ -143,8 +149,11 @@ async function pageDocument(view, request) {
   const { selection, saved } = request;
   const source = await stageSource(view, request);
   let html = await readFile(path.join(publicDirectory, 'index.html'), 'utf8');
+  const rendered = JSON.parse(JSON.stringify(selection));
+  delete rendered.page;
   html = html.replace(/<html[^>]*>/,
-    `<html lang="${selection.lang}" data-pipeline-initialization="${selection.initialization}">`);
+    `<html lang="${selection.lang}" data-pipeline-initialization="${selection.initialization}" `
+      + `data-pipeline-selection="${escapeScriptJson(rendered).replaceAll('"', '&quot;')}">`);
   for (const control of Object.keys(selectionMembers)) {
     if (control !== 'lang') html = selectOption(html, control, selection[control]);
   }
@@ -161,10 +170,15 @@ async function pageDocument(view, request) {
 }
 
 async function servePage(view, url, request, response) {
-  if (request.method !== 'GET') return respond(response, 405, { error: 'Method not allowed' });
+  if (request.method !== 'GET') {
+    return respond(response, 405, { error: 'Method not allowed' }, { Allow: 'GET' });
+  }
   try {
     const html = await pageDocument(view, { view, ...pageSelection(view, url.search) });
-    response.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
+    response.writeHead(200, {
+      'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store',
+      'X-Content-Type-Options': 'nosniff',
+    });
     response.end(html);
   } catch (error) {
     if (!(error instanceof PageError)) throw error;
@@ -177,7 +191,10 @@ const httpServer = http.createServer(async (request, response) => {
   try {
     const url = new URL(request.url, 'http://localhost');
     if (url.pathname === '/benchmark-console' || url.pathname === '/benchmark-console/') {
-      response.writeHead(302, { Location: `/benchmark-console/index.html${url.search}`, 'Cache-Control': 'no-store' });
+      response.writeHead(302, {
+        Location: `/benchmark-console/index.html${url.search}`, 'Cache-Control': 'no-store',
+        'X-Content-Type-Options': 'nosniff',
+      });
       response.end();
       return;
     }
@@ -196,14 +213,19 @@ const httpServer = http.createServer(async (request, response) => {
     const target = serverRequest(url.pathname, url.search);
     if (target) return forward({ ...target, port: ports[target.server] }, request, response);
     if (url.pathname.startsWith('/api/')) return respond(response, 404, { error: 'Unknown endpoint' });
-    if (!['GET', 'HEAD'].includes(request.method)) return respond(response, 405, { error: 'Method not allowed' });
+    if (!['GET', 'HEAD'].includes(request.method)) {
+      return respond(response, 405, { error: 'Method not allowed' }, { Allow: 'GET, HEAD' });
+    }
     // The page template is served only as a rendered page.
     if (url.pathname === '/index.html') return respond(response, 404, { error: 'Unknown file' });
     let file = path.resolve(publicDirectory, `.${decodeURIComponent(url.pathname)}`);
     if (file !== publicDirectory && !file.startsWith(`${publicDirectory}/`)) return respond(response, 404, { error: 'Unknown file' });
     if ((await stat(file)).isDirectory()) file = path.join(file, 'index.html');
     if (!(await stat(file)).isFile()) return respond(response, 404, { error: 'Unknown file' });
-    response.writeHead(200, { 'Content-Type': `${types[path.extname(file)] ?? 'application/octet-stream'}; charset=utf-8`, 'Cache-Control': 'no-store' });
+    response.writeHead(200, {
+      'Content-Type': `${types[path.extname(file)] ?? 'application/octet-stream'}; charset=utf-8`,
+      'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff',
+    });
     if (request.method === 'HEAD') response.end();
     else createReadStream(file).on('error', error => response.destroy(error)).pipe(response);
   } catch (error) {

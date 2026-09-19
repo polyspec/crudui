@@ -2,6 +2,7 @@
 // nodes; a CSR application mounts its own.
 import { createApp, createSSRApp, h, nextTick, shallowRef } from 'vue';
 import { bindButtons, bindForm, buildDetail, buildList, formMessages } from '@crudui/generator-core';
+import { failOnErrors } from '../vue-errors.mjs';
 import { Detail } from '#vue/Detail';
 import { Form } from '#vue/Form';
 import { FormFields } from '#vue/FormFields';
@@ -9,6 +10,7 @@ import { List } from '#vue/List';
 
 function start(container, render, hydrate) {
   const app = (hydrate ? createSSRApp : createApp)({ render });
+  failOnErrors(app);
   app.mount(container);
   return app;
 }
