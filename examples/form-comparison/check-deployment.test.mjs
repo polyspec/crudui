@@ -10,6 +10,7 @@ import {
   deploymentVolumes, preserveDeploymentDirectory, readDeploymentAuthority,
   removeRetiredComparisonPaths, renderDeploymentCompose, toolchainImageName,
   toolchainImageReference, shouldReuseDeployment,
+  buildReadinessCommand,
 } from './comparison-deployment.mjs';
 
 const repositoryRoot = '/Users/example/crudui';
@@ -203,4 +204,11 @@ test('loads the explicit containerctl certificate authority', async t => {
   assert.equal(authority.ca.toString(), certificate);
   assert.match(authority.sha256, /^[0-9a-f]{64}$/);
   await assert.rejects(readDeploymentAuthority({ machine: {} }), /CA path is missing/);
+});
+
+test('deployment waits inside the container for the build of this checkout, from the source mount', () => {
+  assert.deepEqual(buildReadinessCommand('crudui-comparison', { commit: 'abc', changes: null }), [
+    'exec', '--user', 'node', '--env', 'HOME=/home/node', 'crudui-comparison',
+    'node', '/workspace/source/examples/form-comparison/ready-build.mjs', '{"commit":"abc","changes":null}',
+  ]);
 });
