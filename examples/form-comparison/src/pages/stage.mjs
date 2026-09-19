@@ -7,16 +7,8 @@ import { compileForm, createForm } from '@crudui/generator-core';
 
 import * as client from '#stage';
 import { bindFormController } from '../bind-form-controller.mjs';
-import { formData, linkedSpecs, selectionQuery } from '../record-view.mjs';
-
-/** The JSON body of a response with one of the expected statuses; any other response fails. */
-async function readJson(response, what, statuses = [200]) {
-  const type = response.headers.get('content-type') ?? '';
-  if (!type.startsWith('application/json')) throw new Error(`${what}: ${response.status} ${type}`);
-  const body = await response.json();
-  if (!statuses.includes(response.status)) throw new Error(`${what}: ${response.status} ${body.error}`);
-  return body;
-}
+import { readJson, saveForm } from '../save-form.mjs';
+import { formData, linkedSpecs } from '../record-view.mjs';
 
 /** The data of the view: the document's stage data under SSR, the selected server's JSON under CSR. */
 async function viewData(view, selection, id, hydrate) {
@@ -29,37 +21,6 @@ async function viewData(view, selection, id, hydrate) {
     ? `/api/${selection.server}/records?page=${selection.page}`
     : `/api/${selection.server}/records/${encodeURIComponent(id)}`;
   return readJson(await fetch(target, { cache: 'no-store' }), `GET ${target}`);
-}
-
-/** Mark the fields the validation result names and list its errors before the form. */
-function showValidation(stage, form, validation, text) {
-  stage.querySelector('#record-errors')?.remove();
-  for (const input of form.querySelectorAll('[aria-invalid]')) input.removeAttribute('aria-invalid');
-  for (const message of form.querySelectorAll('[data-validation-error]')) message.remove();
-  if (validation.valid) return;
-  const summary = document.createElement('div');
-  summary.id = 'record-errors';
-  summary.className = 'record-errors';
-  summary.setAttribute('role', 'alert');
-  const title = document.createElement('p');
-  title.textContent = text.invalid;
-  summary.append(title);
-  const controls = [...form.querySelectorAll('input[name],textarea[name],select[name]')];
-  for (const error of validation.errors) {
-    const name = `form${error.path.split('.').map(part => `[${part}]`).join('')}`;
-    const item = document.createElement('p');
-    item.textContent = `${error.path}: ${error.message}`;
-    summary.append(item);
-    const control = controls.find(input => input.name === name);
-    if (!control) continue;
-    control.setAttribute('aria-invalid', 'true');
-    const message = document.createElement('p');
-    message.dataset.validationError = '';
-    message.className = 'record-error';
-    message.textContent = error.message;
-    control.closest('[data-field-path]')?.append(message);
-  }
-  form.before(summary);
 }
 
 function formElement(stage, selection, id, hydrate) {
@@ -90,22 +51,10 @@ async function startForm(stage, specs, record, selection, text, hydrate) {
     const view = client.sessionFormView(form, createForm(template, data, { language }), hydrate);
     await view.rendered;
   }
-  let saving = false;
-  form.addEventListener('submit', event => {
-    event.preventDefault();
-    if (saving) return;
-    saving = true;
-    const fields = new FormData(form, event.submitter ?? null);
-    if (!fields.has('_form_complete')) fields.append('_form_complete', '1');
-    const target = form.getAttribute('action');
-    fetch(target, { method: 'POST', body: fields, cache: 'no-store' }).then(async response => {
-      const body = await readJson(response, `POST ${target}`, [200, 422]);
-      if (response.status === 422) {
-        showValidation(stage, form, body.validation, text);
-        return;
-      }
-      location.href = `/?${selectionQuery(selection)}&saved=${encodeURIComponent(record.id)}`;
-    }).finally(() => { saving = false; });
+  saveForm(stage, form, {
+    selection, record, text,
+    send: (target, fields) => fetch(target, { method: 'POST', body: fields, cache: 'no-store' }),
+    navigate: address => { location.href = address; },
   });
 }
 

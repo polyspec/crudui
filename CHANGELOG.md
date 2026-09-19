@@ -1,5 +1,16 @@
 # Changes
 
+## 2026-09-19 — The record form shows a failed save
+
+- The canonical page's form submitted its fields and handled 200 and 422, but a failed request or
+  another answer left the page without a message: the promise rejected with no handler, the page
+  stayed as it was, and only the browser console showed anything. The submit handling now lives in
+  `examples/form-comparison/src/save-form.mjs` with its own jsdom tests: a failed request, a
+  non-JSON answer or an answer outside 200 and 422 shows `<div id="save-errors" role="alert">`
+  before the form with the page language's save-failed text and the failure, keeps the entered
+  values, and leaves the form submittable again. `docs/spec/form-comparison.md` states the
+  behavior.
+
 ## 2026-09-19 — One source for the interface text
 
 - The interface text was copied by hand into the TypeScript, Go, Rust, PHP and PHP extension
