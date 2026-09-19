@@ -43,6 +43,7 @@ Tests and deployment are recorded separately. `pending` is not a passing result.
 
 ## Current comparison deployment verification
 
+On 2026-09-19 the comparison deployment verified commit `7033c969` in 5m19s with zero failures.
 The current `main` tree is served by the comparison deployment. PHP, PHP extension, Go and Rust
 passed 450 generation checks, 120 persistence checks and 7,008 browser checks, and the canonical
 flow passed all 40 combinations of five servers, four clients and both initializations, with zero
