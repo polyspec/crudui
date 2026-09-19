@@ -4,6 +4,7 @@ import { FormInputError, type FileLoader } from '@crudui/validator';
 import { checkedComposition, composeProperties, MemoryLoader } from '@crudui/validator/internal';
 import { checkArgumentText, DISPLAY_OPTIONS } from './input-text';
 import { makeTranslate, type Language, type LocalizedText } from './content';
+import { LIST_MESSAGES } from './interface-messages';
 import { resolveDesign, type ResolvedDesign } from './design';
 import { evalFlag, makeContext } from './expr';
 import { parsePathString, getValueByPath } from './util';
@@ -68,6 +69,31 @@ export interface PaginationVM {
   total?: number;
   /** Number of available pages; one page is retained for an empty result. */
   pageCount?: number;
+  /** The previous, numbered and next buttons of enabled paging, in order. */
+  buttons?: PaginationButtonVM[];
+}
+
+/**
+ * One pagination button. A renderer chooses the button's text by its role (‹, the page number,
+ * ›); `label` is its accessible name from the list interface messages.
+ */
+export interface PaginationButtonVM {
+  /** What the button does. */
+  role: 'previous' | 'page' | 'next';
+  /** The page the button selects. */
+  page: number;
+  /** Accessible name in the display language. */
+  label: string;
+  /** true for the current page's button. */
+  current: boolean;
+  /** true when the button cannot be used. */
+  disabled: boolean;
+}
+
+/** The list interface text of a display language: the table's entry for it, else English. */
+function listMessages(language: string): (typeof LIST_MESSAGES)[keyof typeof LIST_MESSAGES] {
+  return Object.prototype.hasOwnProperty.call(LIST_MESSAGES, language)
+    ? LIST_MESSAGES[language as keyof typeof LIST_MESSAGES] : LIST_MESSAGES.en;
 }
 
 /** Return a bounded page-number window so a large total cannot allocate an unbounded DOM. */
@@ -111,7 +137,7 @@ export interface ListViewModel {
   sort?: SortVM;
   /** Resolved list actions (declaration order). */
   actions: ActionVM[];
-  /** Translated empty-list message. */
+  /** The declared empty-list text, or the interface message when none is declared. */
   empty: string;
   /** Resolved list-container design. */
   design: ResolvedDesign;
@@ -192,7 +218,9 @@ function checkPaginationDeclaration(pagination: unknown, path: string): void {
  * page with their defaults, the supplied total and pageCount. Disabled paging keeps only the
  * supplied page and total.
  */
-function resolvePagination(pagination: unknown, page: number | null | undefined, total: number | null | undefined): PaginationVM {
+function resolvePagination(
+  pagination: unknown, page: number | null | undefined, total: number | null | undefined, language: string,
+): PaginationVM {
   const enabled = pagination === true || isPlainObject(pagination);
   const vm: PaginationVM = { enabled };
   const declared = isPlainObject(pagination) ? pagination : {};
@@ -205,7 +233,20 @@ function resolvePagination(pagination: unknown, page: number | null | undefined,
   }
   // `+ 0` writes negative zero as 0, as every runtime does.
   if (total !== undefined && total !== null) vm.total = total + 0;
-  if (enabled) vm.pageCount = vm.total === undefined ? 0 : Math.max(1, Math.ceil(vm.total / vm.perPage!));
+  if (enabled) {
+    const pageCount = vm.total === undefined ? 0 : Math.max(1, Math.ceil(vm.total / vm.perPage!));
+    vm.pageCount = pageCount;
+    // Without a total the current page is 1; a page after the last page selects the last page.
+    const current = pageCount > 0 ? Math.min(pageCount, vm.page!) : 1;
+    const messages = listMessages(language);
+    vm.buttons = [
+      { role: 'previous', page: Math.max(1, current - 1), label: messages.previousPage, current: false, disabled: current <= 1 || pageCount === 0 },
+      ...paginationPages(current, pageCount).map((value): PaginationButtonVM => ({
+        role: 'page', page: value, label: messages.page.replace('{page}', String(value)), current: value === current, disabled: value === current,
+      })),
+      { role: 'next', page: pageCount > 0 ? Math.min(pageCount, current + 1) : 1, label: messages.nextPage, current: false, disabled: pageCount === 0 || current >= pageCount },
+    ];
+  }
   return vm;
 }
 
@@ -371,10 +412,12 @@ export function buildDisplay(
   return {
     columns: columnVMs,
     rows: rowVMs,
-    pagination: resolvePagination(listSpec.pagination, options.page, options.total),
+    pagination: resolvePagination(listSpec.pagination, options.page, options.total, options.language ?? 'ko'),
     sort: resolveSort(listSpec.sort),
     actions: resolveActions(listSpec.actions, t),
-    empty: listSpec.empty !== undefined ? t(listSpec.empty as LocalizedText) : '',
+    // An absent or null empty uses the interface message; a declared text is used as declared.
+    empty: listSpec.empty === undefined || listSpec.empty === null
+      ? listMessages(options.language ?? 'ko').emptyList : t(listSpec.empty as LocalizedText),
     design: resolveDesign(listSpec.design, listCtx),
   };
 }

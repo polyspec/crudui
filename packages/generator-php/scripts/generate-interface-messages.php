@@ -31,6 +31,7 @@ function crudui_language_table(array $messages): string
 }
 
 $form = $contract['form'];
+$list = $contract['list'];
 
 $source = <<<'PHP'
 <?php
@@ -59,6 +60,21 @@ final class InterfaceMessages
 PHP;
 
 foreach ($form as $lang => $messages) {
+    $source .= "        '{$lang}' => [" . crudui_language_table($messages) . "],\n";
+}
+
+$source .= <<<'PHP'
+    ];
+
+    /**
+     * List pagination and empty state messages for all supported languages.
+     * Structure: language => [key => message]
+     * @var array<string, array<string, string>>
+     */
+    public const LIST = [
+PHP;
+
+foreach ($list as $lang => $messages) {
     $source .= "        '{$lang}' => [" . crudui_language_table($messages) . "],\n";
 }
 

@@ -74,13 +74,13 @@ func TestListPageAndTotalAreIntegers(t *testing.T) {
 		options ListOptions
 		want    string
 	}{
-		{"none", ListOptions{}, `{"enabled":true,"perPage":20,"mode":"pages","page":1,"pageCount":0}`},
-		{"null", ListOptions{Page: nil, Total: nil}, `{"enabled":true,"perPage":20,"mode":"pages","page":1,"pageCount":0}`},
-		{"integral floats", ListOptions{Page: 2.0, Total: 99.0}, `{"enabled":true,"perPage":20,"mode":"pages","page":2,"total":99,"pageCount":5}`},
-		{"bounds", ListOptions{Page: 9007199254740991.0, Total: 0.0}, `{"enabled":true,"perPage":20,"mode":"pages","page":9007199254740991,"total":0,"pageCount":1}`},
-		{"negative zero total", ListOptions{Total: math.Copysign(0, -1)}, `{"enabled":true,"perPage":20,"mode":"pages","page":1,"total":0,"pageCount":1}`},
-		{"go integers", ListOptions{Page: 1, Total: int64(9007199254740991)}, `{"enabled":true,"perPage":20,"mode":"pages","page":1,"total":9007199254740991,"pageCount":450359962737050}`},
-		{"page only", ListOptions{Page: 3.0}, `{"enabled":true,"perPage":20,"mode":"pages","page":3,"pageCount":0}`},
+		{"none", ListOptions{}, `{"enabled":true,"perPage":20,"mode":"pages","page":1,"pageCount":0,"buttons":[{"role":"previous","page":1,"label":"이전 페이지","current":false,"disabled":true},{"role":"next","page":1,"label":"다음 페이지","current":false,"disabled":true}]}`},
+		{"null", ListOptions{Page: nil, Total: nil}, `{"enabled":true,"perPage":20,"mode":"pages","page":1,"pageCount":0,"buttons":[{"role":"previous","page":1,"label":"이전 페이지","current":false,"disabled":true},{"role":"next","page":1,"label":"다음 페이지","current":false,"disabled":true}]}`},
+		{"integral floats", ListOptions{Page: 2.0, Total: 99.0}, `{"enabled":true,"perPage":20,"mode":"pages","page":2,"total":99,"pageCount":5,"buttons":[{"role":"previous","page":1,"label":"이전 페이지","current":false,"disabled":false},{"role":"page","page":1,"label":"1페이지","current":false,"disabled":false},{"role":"page","page":2,"label":"2페이지","current":true,"disabled":true},{"role":"page","page":3,"label":"3페이지","current":false,"disabled":false},{"role":"page","page":4,"label":"4페이지","current":false,"disabled":false},{"role":"page","page":5,"label":"5페이지","current":false,"disabled":false},{"role":"next","page":3,"label":"다음 페이지","current":false,"disabled":false}]}`},
+		{"bounds", ListOptions{Page: 9007199254740991.0, Total: 0.0}, `{"enabled":true,"perPage":20,"mode":"pages","page":9007199254740991,"total":0,"pageCount":1,"buttons":[{"role":"previous","page":1,"label":"이전 페이지","current":false,"disabled":true},{"role":"page","page":1,"label":"1페이지","current":true,"disabled":true},{"role":"next","page":1,"label":"다음 페이지","current":false,"disabled":true}]}`},
+		{"negative zero total", ListOptions{Total: math.Copysign(0, -1)}, `{"enabled":true,"perPage":20,"mode":"pages","page":1,"total":0,"pageCount":1,"buttons":[{"role":"previous","page":1,"label":"이전 페이지","current":false,"disabled":true},{"role":"page","page":1,"label":"1페이지","current":true,"disabled":true},{"role":"next","page":1,"label":"다음 페이지","current":false,"disabled":true}]}`},
+		{"go integers", ListOptions{Page: 1, Total: int64(9007199254740991)}, `{"enabled":true,"perPage":20,"mode":"pages","page":1,"total":9007199254740991,"pageCount":450359962737050,"buttons":[{"role":"previous","page":1,"label":"이전 페이지","current":false,"disabled":true},{"role":"page","page":1,"label":"1페이지","current":true,"disabled":true},{"role":"page","page":2,"label":"2페이지","current":false,"disabled":false},{"role":"page","page":450359962737050,"label":"450359962737050페이지","current":false,"disabled":false},{"role":"next","page":2,"label":"다음 페이지","current":false,"disabled":false}]}`},
+		{"page only", ListOptions{Page: 3.0}, `{"enabled":true,"perPage":20,"mode":"pages","page":3,"pageCount":0,"buttons":[{"role":"previous","page":1,"label":"이전 페이지","current":false,"disabled":true},{"role":"next","page":1,"label":"다음 페이지","current":false,"disabled":true}]}`},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
@@ -95,7 +95,7 @@ func TestListPageAndTotalAreIntegers(t *testing.T) {
 		})
 	}
 	html, err := RenderList(spec, nil, ListOptions{Page: 9007199254740991.0, Total: math.Copysign(0, -1)})
-	if err != nil || !strings.Contains(html, `class="crudui-list__pagination-page" data-page="1" aria-label="Page 1" aria-current="page" disabled=""`) {
+	if err != nil || !strings.Contains(html, `class="crudui-list__pagination-page" data-page="1" aria-label="1페이지" aria-current="page" disabled=""`) {
 		t.Fatalf("%s %v", html, err)
 	}
 }

@@ -65,41 +65,52 @@ function cStringLiteral(value) {
 /** The C field of a contract key: moveUp → move_up. */
 const fieldName = key => key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
 
-/** The fields of ps_form_messages, in declaration order, read from engine_internal.h. */
+/** Each contract table, its C struct and the generated array of {language, messages}. */
+const TABLES = [
+  { table: 'form', struct: 'ps_form_messages', entry: 'ps_language_messages', array: 'ps_interface_messages' },
+  { table: 'list', struct: 'ps_list_messages', entry: 'ps_list_language_messages', array: 'ps_interface_list_messages' },
+];
+
+/** The fields of every table's struct, in declaration order, read from engine_internal.h. */
 export async function structFields() {
   const header = await readFile(path.join(root, 'packages/php-ext/src/engine_internal.h'), 'utf8');
-  const body = /typedef struct \{([^}]*)\} ps_form_messages;/.exec(header)?.[1];
-  if (!body) throw new Error('engine_internal.h has no ps_form_messages');
-  return [...body.matchAll(/const char \*(\w+);/g)].map(match => match[1]);
+  const fields = {};
+  for (const { struct } of TABLES) {
+    const body = new RegExp(`typedef struct \\{([^}]*)\\} ${struct};`).exec(header)?.[1];
+    if (!body) throw new Error(`engine_internal.h has no ${struct}`);
+    fields[struct] = [...body.matchAll(/const char \*(\w+);/g)].map(match => match[1]);
+  }
+  return fields;
 }
 
 /**
- * The C source of the contract's tables. Every language holds exactly the fields of
- * ps_form_messages, each set by name, so a key the struct lacks or a field the contract lacks
- * fails here instead of shifting text into another field.
+ * The C source of the contract's tables. Every language holds exactly the fields of its struct,
+ * each set by name, so a key the struct lacks or a field the contract lacks fails here instead
+ * of shifting text into another field.
  */
 export function interfaceMessagesSource(contract, fields) {
-  const languages = contract.languages;
   const lines = [
     '/*',
     ' * Generated from contracts/interface-messages.json by',
     ' * node packages/php-ext/tools/generate-interface-messages.mjs; do not edit.',
     ' */',
     '#include "engine_internal.h"',
-    '',
-    `const ps_language_messages ps_interface_messages[] = {`,
   ];
-  for (const language of languages) {
-    const messages = contract.form[language];
-    const keys = Object.keys(messages).map(fieldName);
-    if (JSON.stringify([...keys].sort()) !== JSON.stringify([...fields].sort())) {
-      throw new Error(`form.${language} keys ${keys.join(', ')} differ from ps_form_messages fields ${fields.join(', ')}`);
+  for (const { table, struct, entry, array } of TABLES) {
+    lines.push('', `const ${entry} ${array}[] = {`);
+    for (const language of contract.languages) {
+      const messages = contract[table][language];
+      const keys = Object.keys(messages).map(fieldName);
+      if (JSON.stringify([...keys].sort()) !== JSON.stringify([...fields[struct]].sort())) {
+        throw new Error(`${table}.${language} keys ${keys.join(', ')} differ from ${struct} fields ${fields[struct].join(', ')}`);
+      }
+      lines.push(`    {"${language}", {`);
+      for (const [key, text] of Object.entries(messages)) lines.push(`        .${fieldName(key)} = ${cStringLiteral(text)},`);
+      lines.push('    }},');
     }
-    lines.push(`    {"${language}", {`);
-    for (const [key, text] of Object.entries(messages)) lines.push(`        .${fieldName(key)} = ${cStringLiteral(text)},`);
-    lines.push('    }},');
+    lines.push('};', `const size_t ${array}_count = ${contract.languages.length};`);
   }
-  lines.push('};', `const size_t ps_interface_messages_count = ${languages.length};`, '');
+  lines.push('');
   return lines.join('\n');
 }
 

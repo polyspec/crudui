@@ -1855,11 +1855,11 @@ function sourceForFixtures() {
 
 const sources = [
   'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'expression.c',
-  'runtime.c', 'date.c', 'design.c', 'compose.c', 'declaration.c', 'html.c', 'list.c',
+  'runtime.c', 'date.c', 'design.c', 'compose.c', 'declaration.c', 'html.c', 'list.c', 'messages.c', 'interface_messages.c',
 ];
 
 test('PHP extension engine renders the complete list target as exact HTML', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  assert.equal(fixtures.length, 62,
+  assert.equal(fixtures.length, 72,
     'Review C list coverage when the shared fixture inventory changes');
   assert.equal(numberCases.length, 17,
     'Review C number coverage when the native number inventory changes');
@@ -1973,7 +1973,7 @@ function sourceForFixtures() {
 
 const sources = [
   'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'expression.c',
-  'runtime.c', 'date.c', 'design.c', 'compose.c', 'declaration.c', 'html.c', 'list.c',
+  'runtime.c', 'date.c', 'design.c', 'compose.c', 'declaration.c', 'html.c', 'list.c', 'messages.c', 'interface_messages.c',
 ];
 
 test('PHP extension engine renders and builds every shared detail fixture', { timeout: ENGINE_TEST_BUDGET }, async t => {

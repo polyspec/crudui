@@ -37,7 +37,16 @@ describe('buildList — structure & engine reuse', () => {
     expect(vm.columns[1]!.sortable).toBe(false);
     expect(vm.empty).toBe('No data');
     expect(vm.sort).toEqual({ field: 'created_at', dir: 'desc' });
-    expect(vm.pagination).toEqual({ enabled: true, perPage: 20, mode: 'pages', page: 1, total: 42, pageCount: 3 });
+    expect(vm.pagination).toEqual({
+      enabled: true, perPage: 20, mode: 'pages', page: 1, total: 42, pageCount: 3,
+      buttons: [
+        { role: 'previous', page: 1, label: 'Previous page', current: false, disabled: true },
+        { role: 'page', page: 1, label: 'Page 1', current: true, disabled: true },
+        { role: 'page', page: 2, label: 'Page 2', current: false, disabled: false },
+        { role: 'page', page: 3, label: 'Page 3', current: false, disabled: false },
+        { role: 'next', page: 2, label: 'Next page', current: false, disabled: false },
+      ],
+    });
 
     expect(vm.rows).toHaveLength(2);
     expect(vm.rows[0]!.cells[0]!.value).toBe('Ada');

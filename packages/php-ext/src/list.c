@@ -1165,33 +1165,31 @@ static bool append_cards(list_context *context, const list_column *columns, size
     return write_element_end(&context->output, "div");
 }
 
+/* The list interface text of a display language: the table's entry for it, else English. */
+static const ps_list_messages *list_messages(ps_text language)
+{
+    const ps_list_messages *messages = ps_list_messages_for(language);
+    return messages ? messages : ps_list_messages_for(PS_TEXT("en"));
+}
+
+/* The declared empty text; an absent or null declaration is the emptyList interface message. */
+static ps_chars list_empty(const list_context *context)
+{
+    const ps_value *declared = member(context->spec, "empty");
+    if (!declared || declared->kind == PS_NULL) return ps_copy(ps_fixed(list_messages(context->language)->empty_list));
+    return translated(declared, context->language);
+}
+
 static bool append_empty(list_context *context)
 {
     ps_value *attrs = ps_object_value();
-    ps_chars empty = translated(member(context->spec, "empty"), context->language);
+    ps_chars empty = list_empty(context);
     bool ok = attrs && empty.bytes && ps_html_attr_string(attrs, "class", "crudui-list__empty") &&
         write_element_start(&context->output, "div", attrs) &&
         ps_html_escaped(&context->output, ps_view(empty), false) &&
         write_element_end(&context->output, "div");
     if (!ok) ps_value_free(attrs);
     free(empty.bytes);
-    return ok;
-}
-
-static bool append_page_button(list_context *context, const char *class_name, int64_t page, const char *label, bool disabled, bool current)
-{
-    char page_text[32];
-    snprintf(page_text, sizeof(page_text), "%lld", (long long)page);
-    ps_value *attrs = ps_object_value();
-    bool ok = attrs && ps_html_attr_string(attrs, "type", "button") &&
-        ps_html_attr_string(attrs, "class", class_name) &&
-        ps_html_attr_string(attrs, "data-page", page_text) &&
-        ps_html_attr_string(attrs, "aria-label", label);
-    if (ok && current) ok = ps_html_attr_string(attrs, "aria-current", "page");
-    if (ok && disabled) ok = ps_set(attrs, "disabled", ps_bool_value(true));
-    const char *text = strcmp(label, "Previous page") == 0 ? "‹" : (strcmp(label, "Next page") == 0 ? "›" : page_text);
-    if (ok) ok = write_element_start(&context->output, "button", attrs) && ps_html_text(&context->output, text) && write_element_end(&context->output, "button");
-    else ps_value_free(attrs);
     return ok;
 }
 
@@ -1255,6 +1253,69 @@ static void resolve_pagination(const list_context *context, pagination_state *st
     }
 }
 
+/* One pagination button: role, page, label, current and disabled, in that order. */
+static bool append_button_model(ps_value *buttons, const char *role, int64_t page, ps_chars label, bool current, bool disabled)
+{
+    ps_value *button = ps_object_value();
+    bool ok = button && label.bytes && set_fixed(button, "role", role) && ps_set(button, "page", ps_int_value(page)) &&
+        set_text(button, "label", ps_view(label)) && ps_set(button, "current", ps_bool_value(current)) &&
+        ps_set(button, "disabled", ps_bool_value(disabled));
+    free(label.bytes);
+    if (!ok) { ps_value_free(button); return false; }
+    return ps_append(buttons, button);
+}
+
+/*
+ * The previous, numbered and next buttons of enabled paging, or NULL on allocation failure.
+ * Without a total the current page is 1; a page after the last page selects the last page. The
+ * page-number window holds every page up to seven pages, otherwise the first, previous,
+ * current, next and last page.
+ */
+static ps_value *pagination_buttons(ps_text language, const pagination_state *state)
+{
+    const ps_list_messages *messages = list_messages(language);
+    int64_t page_count = state->page_count;
+    int64_t page = page_count > 0 ? (state->page < page_count ? state->page : page_count) : 1;
+    int64_t pages[7];
+    size_t page_total = 0;
+    if (page_count <= 7) {
+        for (int64_t value = 1; value <= page_count; ++value) pages[page_total++] = value;
+    } else {
+        const int64_t window[5] = {1, page > 1 ? page - 1 : 1, page, page < page_count ? page + 1 : page_count, page_count};
+        for (size_t i = 0; i < 5; ++i) if (!page_total || pages[page_total - 1] < window[i]) pages[page_total++] = window[i];
+    }
+    ps_value *buttons = ps_array_value();
+    bool ok = buttons && append_button_model(buttons, "previous", page > 1 ? page - 1 : 1,
+        ps_copy(ps_fixed(messages->previous_page)), false, page_count == 0 || page <= 1);
+    for (size_t i = 0; ok && i < page_total; ++i)
+        ok = append_button_model(buttons, "page", pages[i], ps_format_page(messages->page, (size_t)pages[i]), pages[i] == page, pages[i] == page);
+    if (ok) ok = append_button_model(buttons, "next", page_count == 0 ? 1 : page < page_count ? page + 1 : page_count,
+        ps_copy(ps_fixed(messages->next_page)), false, page_count == 0 || page >= page_count);
+    if (!ok) { ps_value_free(buttons); return NULL; }
+    return buttons;
+}
+
+/* A pagination button's markup: its class and text follow its role, its label is the aria-label. */
+static bool append_page_button(list_context *context, const ps_value *button)
+{
+    ps_text role = ps_string(ps_get(button, "role"));
+    int64_t page = ps_get(button, "page")->data.integer;
+    char page_text[32];
+    snprintf(page_text, sizeof(page_text), "%lld", (long long)page);
+    bool previous = ps_text_is(role, "previous"), next = ps_text_is(role, "next");
+    ps_value *attrs = ps_object_value();
+    bool ok = attrs && ps_html_attr_string(attrs, "type", "button") &&
+        ps_html_attr_string(attrs, "class", previous ? "crudui-list__pagination-prev" : next ? "crudui-list__pagination-next" : "crudui-list__pagination-page") &&
+        ps_html_attr_string(attrs, "data-page", page_text) &&
+        ps_html_attr_text(attrs, "aria-label", ps_string(ps_get(button, "label")));
+    if (ok && ps_get(button, "current")->data.boolean) ok = ps_html_attr_string(attrs, "aria-current", "page");
+    if (ok && ps_get(button, "disabled")->data.boolean) ok = ps_set(attrs, "disabled", ps_bool_value(true));
+    if (!ok) { ps_value_free(attrs); return false; }
+    return write_element_start(&context->output, "button", attrs) &&
+        ps_html_text(&context->output, previous ? "\xE2\x80\xB9" : next ? "\xE2\x80\xBA" : page_text) &&
+        write_element_end(&context->output, "button");
+}
+
 static bool append_pagination(list_context *context)
 {
     pagination_state state;
@@ -1266,28 +1327,13 @@ static bool append_pagination(list_context *context)
         ps_set(attrs, "data-per-page", ps_int_value(state.per_page)) &&
         ps_set(attrs, "data-page", ps_int_value(state.page));
     if (ok && state.total_present) ok = ps_set(attrs, "data-total", ps_int_value(state.total));
-    int64_t page_count = state.page_count;
-    int64_t page = page_count > 0 ? (state.page < page_count ? state.page : page_count) : 1;
-    if (ok) ok = write_element_start(&context->output, "nav", attrs) &&
-        append_page_button(context, "crudui-list__pagination-prev", page > 1 ? page - 1 : 1, "Previous page", page_count == 0 || page <= 1, false);
-    else ps_value_free(attrs);
-    /* The bounded page-number window: every page up to seven pages, otherwise the first,
-       previous, current, next and last page. */
-    int64_t pages[7];
-    size_t page_total = 0;
-    if (page_count <= 7) {
-        for (int64_t value = 1; value <= page_count; ++value) pages[page_total++] = value;
-    } else {
-        const int64_t window[5] = {1, page > 1 ? page - 1 : 1, page, page < page_count ? page + 1 : page_count, page_count};
-        for (size_t i = 0; i < 5; ++i) if (!page_total || pages[page_total - 1] < window[i]) pages[page_total++] = window[i];
-    }
-    for (size_t i = 0; ok && i < page_total; ++i) {
-        char label[32];
-        snprintf(label, sizeof(label), "Page %lld", (long long)pages[i]);
-        ok = append_page_button(context, "crudui-list__pagination-page", pages[i], label, pages[i] == page, pages[i] == page);
-    }
-    if (ok) ok = append_page_button(context, "crudui-list__pagination-next", page_count == 0 ? 1 : page < page_count ? page + 1 : page_count, "Next page", page_count == 0 || page >= page_count, false) && write_element_end(&context->output, "nav");
-    return ok;
+    if (!ok) { ps_value_free(attrs); return false; }
+    ps_value *buttons = pagination_buttons(context->language, &state);
+    ok = buttons && write_element_start(&context->output, "nav", attrs);
+    if (!buttons) ps_value_free(attrs);
+    for (size_t i = 0; ok && i < ps_size(buttons); ++i) ok = append_page_button(context, ps_at(buttons, i));
+    ps_value_free(buttons);
+    return ok && write_element_end(&context->output, "nav");
 }
 
 static bool append_preloads(list_context *context, ps_html_buffer *target)
@@ -1542,7 +1588,12 @@ static ps_value *list_model(list_session *session)
                 ps_set(pagination, "page", ps_int_value(state.page));
         else if (ok && state.page_present) ok = ps_set(pagination, "page", ps_int_value(state.page));
         if (ok && state.total_present) ok = ps_set(pagination, "total", ps_int_value(state.total));
-        if (ok && state.enabled) ok = ps_set(pagination, "pageCount", ps_int_value(state.page_count));
+        if (ok && state.enabled) {
+            ok = ps_set(pagination, "pageCount", ps_int_value(state.page_count));
+            if (ok) {
+                ok = ps_set(pagination, "buttons", pagination_buttons(context->language, &state));
+            }
+        }
         design = ps_design(member(context->spec, "design"), context->data, PS_TEXT(""));
         ok = ok && design && set_value(model, "columns", &columns) && set_value(model, "rows", &row_models) &&
             set_value(model, "pagination", &pagination);
@@ -1590,7 +1641,7 @@ static ps_value *list_model(list_session *session)
             if (ok) ok = ps_append(actions, action), action = NULL;
             ps_value_free(action); free(label.bytes);
         }
-        ps_chars empty = translated(member(context->spec, "empty"), context->language);
+        ps_chars empty = list_empty(context);
         if (ok) ok = set_value(model, "actions", &actions) && empty.bytes &&
             set_text(model, "empty", ps_view(empty)) && set_value(model, "design", &design);
         free(empty.bytes);

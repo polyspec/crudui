@@ -26,13 +26,26 @@ const generateConstant = (lang, langCode) => {
     return `pub const ${langCode}: Messages = Messages {\n${fields}\n};`;
 };
 
+// Generate a ListMessages constant for a language
+const generateListConstant = (lang, langCode) => {
+    const messages = contract.list[lang];
+    const fields = Object.entries(messages)
+        .map(([key, value]) => {
+            const rustKey = toSnakeCase(key);
+            return `    ${rustKey}: ${JSON.stringify(value)},`;
+        })
+        .join('\n');
+
+    return `pub const ${langCode}_LIST: ListMessages = ListMessages {\n${fields}\n};`;
+};
+
 // Generate Rust source
 const output = `//! Interface messages for CRUDUI as string constants.
 //!
 //! Generated from \`contracts/interface-messages.json\` by
 //! \`node tools/generate-interface-messages.mjs\` (run in \`packages/generator-rust\`); do not edit.
 
-use super::Messages;
+use super::{ListMessages, Messages};
 
 ${generateConstant('ko', 'KO')}
 
@@ -41,6 +54,14 @@ ${generateConstant('en', 'EN')}
 ${generateConstant('ja', 'JA')}
 
 ${generateConstant('zh', 'ZH')}
+
+${generateListConstant('ko', 'KO')}
+
+${generateListConstant('en', 'EN')}
+
+${generateListConstant('ja', 'JA')}
+
+${generateListConstant('zh', 'ZH')}
 `;
 
 writeFileSync(join(CRATE, 'src/messages/interface_messages.rs'), output);

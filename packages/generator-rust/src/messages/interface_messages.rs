@@ -3,7 +3,7 @@
 //! Generated from `contracts/interface-messages.json` by
 //! `node tools/generate-interface-messages.mjs` (run in `packages/generator-rust`); do not edit.
 
-use super::Messages;
+use super::{ListMessages, Messages};
 
 pub const KO: Messages = Messages {
     move_up: "위로",
@@ -103,4 +103,32 @@ pub const ZH: Messages = Messages {
     collapsed: "已折叠",
     count: "{count} 项",
     children: "子项 {count} 项",
+};
+
+pub const KO_LIST: ListMessages = ListMessages {
+    previous_page: "이전 페이지",
+    next_page: "다음 페이지",
+    page: "{page}페이지",
+    empty_list: "데이터가 없습니다",
+};
+
+pub const EN_LIST: ListMessages = ListMessages {
+    previous_page: "Previous page",
+    next_page: "Next page",
+    page: "Page {page}",
+    empty_list: "No data",
+};
+
+pub const JA_LIST: ListMessages = ListMessages {
+    previous_page: "前のページ",
+    next_page: "次のページ",
+    page: "{page}ページ",
+    empty_list: "データがありません",
+};
+
+pub const ZH_LIST: ListMessages = ListMessages {
+    previous_page: "上一页",
+    next_page: "下一页",
+    page: "第 {page} 页",
+    empty_list: "暂无数据",
 };

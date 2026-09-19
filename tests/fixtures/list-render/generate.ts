@@ -353,6 +353,35 @@ const SCENARIOS: ListFixtureCase[] = [
   },
 
   // --- empty content ---
+  // --- interface text of pagination and of an undeclared empty list, per display language ---
+  ...(['ko', 'ja', 'zh', 'fr'] as const).map(language => ({
+    name: `pagination-labels-${language}`,
+    note: `pagination button names come from the ${language === 'fr' ? 'English list messages (fr is not in the table)' : `${language} list messages`}; the buttons show ‹, the page number and ›.`,
+    spec: { columns: { name: { field: 'name', label: 'Name' } }, pagination: { per_page: 1 } },
+    rows: PEOPLE,
+    options: { language, page: 2, total: 3 } as RenderListOptions,
+  })),
+  ...(['ko', 'en', 'ja', 'zh'] as const).map(language => ({
+    name: `empty-undeclared-${language}`,
+    note: `no rows and no declared empty → the ${language} emptyList interface message.`,
+    spec: { columns: { name: { field: 'name', label: 'Name' } } },
+    rows: [],
+    options: { language } as RenderListOptions,
+  })),
+  {
+    name: 'empty-declared-null',
+    note: 'a null empty is the same as no declaration → the emptyList interface message.',
+    spec: { columns: { name: { field: 'name', label: 'Name' } }, empty: null },
+    rows: [],
+    options: { language: 'ko' },
+  },
+  {
+    name: 'empty-declared-blank',
+    note: 'a declared empty text is used as declared, even when it is empty.',
+    spec: { columns: { name: { field: 'name', label: 'Name' } }, empty: '' },
+    rows: [],
+    options: { language: 'en' },
+  },
   {
     name: 'empty-message',
     note: 'no rows → the translated empty message, no <table>.',

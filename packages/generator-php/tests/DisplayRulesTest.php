@@ -28,7 +28,7 @@ final class DisplayRulesTest extends TestCase
 
     public function testAnEmptyArraySpecificationIsTheEmptyRootObject(): void
     {
-        self::assertSame('<div class="crudui-list"><div class="crudui-list__empty"></div></div>', Generator::renderList([], []));
+        self::assertSame('<div class="crudui-list"><div class="crudui-list__empty">데이터가 없습니다</div></div>', Generator::renderList([], []));
     }
 
     public function testRejectsAListShapedSpecification(): void
@@ -59,7 +59,7 @@ final class DisplayRulesTest extends TestCase
     public function testPageAndTotalAreSafeIntegers(): void
     {
         $spec = [...self::SPEC, 'pagination' => true];
-        $nav = fn (array $options) => substr(Generator::renderList($spec, [], $options), strlen('<div class="crudui-list"><div class="crudui-list__empty"></div>'), -strlen('</div>'));
+        $nav = fn (array $options) => substr(Generator::renderList($spec, [], $options), strlen('<div class="crudui-list"><div class="crudui-list__empty">데이터가 없습니다</div>'), -strlen('</div>'));
         self::assertStringContainsString('data-mode="pages" data-per-page="20" data-page="1"', $nav([]));
         self::assertStringContainsString('data-page="2" data-total="99"', $nav(['page' => 2, 'total' => 99]));
         self::assertStringContainsString('data-page="2" data-total="0"', $nav(['page' => 2.0, 'total' => -0.0]));

@@ -27,6 +27,12 @@ final class InterfaceMessagesTest extends TestCase
         self::assertSame($contract['form'], InterfaceMessages::MESSAGES);
     }
 
+    public function testEmbeddedListMessagesEqualsTheContract(): void
+    {
+        $contract = self::contract();
+        self::assertSame($contract['list'], InterfaceMessages::LIST);
+    }
+
     public function testGeneratedSourceIsCurrent(): void
     {
         $source = dirname(__DIR__, 2) . '/src/Internal/InterfaceMessages.php';

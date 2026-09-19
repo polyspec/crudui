@@ -49,4 +49,23 @@ final class InterfaceMessages
             'count' => '{count} 项', 'children' => '子项 {count} 项',
         ],
     ];
+
+    /**
+     * List pagination and empty state messages for all supported languages.
+     * Structure: language => [key => message]
+     * @var array<string, array<string, string>>
+     */
+    public const LIST = [        'ko' => [
+            'previousPage' => '이전 페이지', 'nextPage' => '다음 페이지', 'page' => '{page}페이지', 'emptyList' => '데이터가 없습니다',
+        ],
+        'en' => [
+            'previousPage' => 'Previous page', 'nextPage' => 'Next page', 'page' => 'Page {page}', 'emptyList' => 'No data',
+        ],
+        'ja' => [
+            'previousPage' => '前のページ', 'nextPage' => '次のページ', 'page' => '{page}ページ', 'emptyList' => 'データがありません',
+        ],
+        'zh' => [
+            'previousPage' => '上一页', 'nextPage' => '下一页', 'page' => '第 {page} 页', 'emptyList' => '暂无数据',
+        ],
+    ];
 }
