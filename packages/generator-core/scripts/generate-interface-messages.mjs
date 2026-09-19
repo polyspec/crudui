@@ -4,8 +4,9 @@
  *
  *   node packages/generator-core/scripts/generate-interface-messages.mjs
  *
- * Form interface text is generated in four language tables. src/interface-messages.test.ts
- * fails when the written data differs from the contract.
+ * Every table of the contract (form, list) is written with its four languages, keys in the
+ * contract's order. src/interface-messages.test.ts fails when the written data differs from the
+ * contract.
  */
 
 import { readFileSync, writeFileSync } from 'node:fs';
@@ -16,45 +17,28 @@ const here = dirname(fileURLToPath(import.meta.url));
 const contract = JSON.parse(readFileSync(resolve(here, '../../../contracts/interface-messages.json'), 'utf8'));
 const target = resolve(here, '../src/interface-messages.ts');
 
-/**
- * Generates a TypeScript object literal for a language table.
- * Keys and values are in the order they appear in the contract.
- */
+/** The tables of the contract: every member whose value maps each language to its messages. */
+const tables = Object.keys(contract).filter(name => contract[name] !== null && typeof contract[name] === 'object'
+  && !Array.isArray(contract[name]) && contract.languages.every(language => language in contract[name]));
+
 function languageTable(messages) {
-  const entries = Object.entries(messages);
-  const lines = entries.map(([key, value]) => `    ${JSON.stringify(key)}: ${JSON.stringify(value)},`);
+  const lines = Object.entries(messages).map(([key, value]) => `    ${JSON.stringify(key)}: ${JSON.stringify(value)},`);
   return `{\n${lines.join('\n')}\n  }`;
 }
 
+function table(name) {
+  const languages = contract.languages.map(language => `  ${language}: ${languageTable(contract[name][language])},`);
+  return `/** The \`${name}\` messages by language. */\nexport const ${name.toUpperCase()}_MESSAGES = {\n${languages.join('\n')}\n} as const;\n`;
+}
+
 const text = `/**
- * Form interface text in every supported language: labels of form controls, counts and summaries.
+ * CRUDUI interface text in every supported language.
  *
  * Generated from contracts/interface-messages.json by
  * \`node packages/generator-core/scripts/generate-interface-messages.mjs\`. Do not edit;
  * interface-messages.test.ts fails when this data differs from the contract.
- *
- * \`{count}\` is replaced with a number.
  */
 
-/** Form messages in Korean. */
-export const MESSAGES_KO = ${languageTable(contract.form.ko)} as const;
-
-/** Form messages in English. */
-export const MESSAGES_EN = ${languageTable(contract.form.en)} as const;
-
-/** Form messages in Japanese. */
-export const MESSAGES_JA = ${languageTable(contract.form.ja)} as const;
-
-/** Form messages in Chinese. */
-export const MESSAGES_ZH = ${languageTable(contract.form.zh)} as const;
-
-/** All form messages by language. */
-export const MESSAGES = {
-  ko: MESSAGES_KO,
-  en: MESSAGES_EN,
-  ja: MESSAGES_JA,
-  zh: MESSAGES_ZH,
-} as const;
-`;
+${tables.map(table).join('\n')}`;
 
 writeFileSync(target, text);

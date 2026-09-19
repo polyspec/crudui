@@ -3,7 +3,7 @@
 use crate::{FormError, FormResult};
 
 mod interface_messages;
-pub(crate) use interface_messages::{EN, JA, KO, ZH};
+pub(crate) use interface_messages::{EN, EN_LIST, JA, JA_LIST, KO, KO_LIST, ZH, ZH_LIST};
 
 /// Interface labels for row, collection and form controls. `{count}` is replaced by a number.
 #[allow(dead_code)]
@@ -54,6 +54,19 @@ pub(crate) struct Messages {
     pub children: &'static str,
 }
 
+/// Interface labels for list pagination. `{page}` is replaced by a page number.
+#[allow(dead_code)]
+pub(crate) struct ListMessages {
+    /// Previous page button label.
+    pub previous_page: &'static str,
+    /// Next page button label.
+    pub next_page: &'static str,
+    /// Page number button label. `{page}` is replaced by the page number.
+    pub page: &'static str,
+    /// Text shown when a list has no rows.
+    pub empty_list: &'static str,
+}
+
 /// Return the interface text for a supported language.
 pub(crate) fn form_messages(language: &str) -> FormResult<&'static Messages> {
     match language {
@@ -67,9 +80,25 @@ pub(crate) fn form_messages(language: &str) -> FormResult<&'static Messages> {
     }
 }
 
+/// Return the list interface text for a supported language.
+pub(crate) fn list_messages(language: &str) -> &'static ListMessages {
+    match language {
+        "ko" => &KO_LIST,
+        "en" => &EN_LIST,
+        "ja" => &JA_LIST,
+        "zh" => &ZH_LIST,
+        _ => &EN_LIST, // Default to English for unsupported languages
+    }
+}
+
 /// Replace `{count}` in a counted message.
 pub(crate) fn format_count(template: &str, count: usize) -> String {
     template.replacen("{count}", &count.to_string(), 1)
+}
+
+/// Replace `{page}` in a page number message.
+pub(crate) fn format_page(template: &str, page: u64) -> String {
+    template.replacen("{page}", &page.to_string(), 1)
 }
 
 #[cfg(test)]
@@ -143,6 +172,46 @@ mod tests {
                     "collapsed" => messages.collapsed,
                     "count" => messages.count,
                     "children" => messages.children,
+                    _ => panic!("unknown field: {}", snake_key),
+                };
+
+                assert_eq!(
+                    embedded_value, contract_value,
+                    "{}[{}][{}] mismatch: expected {}, got {}",
+                    lang, key, snake_key, contract_value, embedded_value
+                );
+            }
+        }
+
+        // Test list messages
+        let list_messages_list = [
+            ("ko", &KO_LIST),
+            ("en", &EN_LIST),
+            ("ja", &JA_LIST),
+            ("zh", &ZH_LIST),
+        ];
+
+        for (lang, list_messages) in &list_messages_list {
+            let contract_msgs = &contract["list"][lang];
+            assert!(
+                contract_msgs.is_object(),
+                "{}: missing list.{} in contract",
+                hint,
+                lang
+            );
+
+            let contract_obj = contract_msgs.as_object().expect("list messages object");
+            for (key, value) in contract_obj {
+                let snake_key = to_snake_case(key);
+                let contract_value = value
+                    .as_str()
+                    .unwrap_or_else(|| panic!("list.{}.{} should be a string", lang, key));
+
+                let embedded_value = match snake_key.as_str() {
+                    "previous_page" => list_messages.previous_page,
+                    "next_page" => list_messages.next_page,
+                    "page" => list_messages.page,
+                    "empty_list" => list_messages.empty_list,
                     _ => panic!("unknown field: {}", snake_key),
                 };
 

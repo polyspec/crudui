@@ -2,7 +2,7 @@
 
 import { FormInputError } from '@crudui/validator';
 import type { Language } from './content';
-import { MESSAGES as CONTRACT_MESSAGES } from './interface-messages';
+import { FORM_MESSAGES } from './interface-messages';
 
 /** Supported interface languages, in declaration order. */
 export const LANGUAGES: readonly Language[] = ['ko', 'en', 'ja', 'zh'];
@@ -57,7 +57,7 @@ export interface FormMessages {
 
 
 // The generated tables must hold every FormMessages key; the type checker enforces it.
-const MESSAGES: Readonly<Record<Language, FormMessages>> = CONTRACT_MESSAGES;
+const MESSAGES: Readonly<Record<Language, FormMessages>> = FORM_MESSAGES;
 
 /** Return the interface text for a supported language. */
 export function formMessages(language: string): FormMessages {

@@ -1,38 +1,26 @@
 /**
- * The embedded form interface messages equal their source, contracts/interface-messages.json,
- * in all supported languages.
+ * The embedded interface messages equal their source, contracts/interface-messages.json: every
+ * table, every language and every key, in the contract's order.
  */
 
 import { test, expect } from 'vitest';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { MESSAGES } from './interface-messages';
-
-interface Contract {
-  form: {
-    ko: Record<string, string>;
-    en: Record<string, string>;
-    ja: Record<string, string>;
-    zh: Record<string, string>;
-  };
-}
+import { FORM_MESSAGES, LIST_MESSAGES } from './interface-messages';
 
 const contract = JSON.parse(
   fs.readFileSync(
     path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../contracts/interface-messages.json'),
     'utf8'
   )
-) as Contract;
+) as { form: unknown; list: unknown };
 
 test('src/interface-messages.ts equals contracts/interface-messages.json', () => {
-  expect(Object.keys(MESSAGES)).toStrictEqual(['ko', 'en', 'ja', 'zh']);
-  expect(MESSAGES.ko).toStrictEqual(contract.form.ko);
-  expect(Object.keys(MESSAGES.ko)).toStrictEqual(Object.keys(contract.form.ko));
-  expect(MESSAGES.en).toStrictEqual(contract.form.en);
-  expect(Object.keys(MESSAGES.en)).toStrictEqual(Object.keys(contract.form.en));
-  expect(MESSAGES.ja).toStrictEqual(contract.form.ja);
-  expect(Object.keys(MESSAGES.ja)).toStrictEqual(Object.keys(contract.form.ja));
-  expect(MESSAGES.zh).toStrictEqual(contract.form.zh);
-  expect(Object.keys(MESSAGES.zh)).toStrictEqual(Object.keys(contract.form.zh));
+  const embedded = { form: FORM_MESSAGES, list: LIST_MESSAGES };
+  for (const name of ['form', 'list'] as const) {
+    // JSON text compares the order of languages and keys too.
+    expect(JSON.stringify(embedded[name]), `${name}: run node packages/generator-core/scripts/generate-interface-messages.mjs`)
+      .toBe(JSON.stringify(contract[name]));
+  }
 });

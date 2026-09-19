@@ -1,6 +1,6 @@
 {
   "format": "crudui/interface-messages",
-  "description": "The interface text of CRUDUI in every supported language: the labels of form controls, counts and summaries. Every runtime embeds a source generated from this file and tests that it equals this file (docs/spec/form-markup.md, Interface messages). {count} is replaced with a number.",
+  "description": "The interface text of CRUDUI in every supported language. form: the labels of form controls, counts and summaries; {count} is replaced with a number. list: the labels of list pagination buttons, {page} replaced with a page number, and the text of an empty list whose specification declares no empty text. Every runtime embeds a source generated from this file and tests that it equals this file (docs/spec/form-markup.md, Interface messages).",
   "languages": [
     "ko",
     "en",
@@ -103,6 +103,32 @@
       "collapsed": "已折叠",
       "count": "{count} 项",
       "children": "子项 {count} 项"
+    }
+  },
+  "list": {
+    "ko": {
+      "previousPage": "이전 페이지",
+      "nextPage": "다음 페이지",
+      "page": "{page}페이지",
+      "emptyList": "데이터가 없습니다"
+    },
+    "en": {
+      "previousPage": "Previous page",
+      "nextPage": "Next page",
+      "page": "Page {page}",
+      "emptyList": "No data"
+    },
+    "ja": {
+      "previousPage": "前のページ",
+      "nextPage": "次のページ",
+      "page": "{page}ページ",
+      "emptyList": "データがありません"
+    },
+    "zh": {
+      "previousPage": "上一页",
+      "nextPage": "下一页",
+      "page": "第 {page} 页",
+      "emptyList": "暂无数据"
     }
   }
 }

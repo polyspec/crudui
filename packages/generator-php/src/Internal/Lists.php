@@ -119,19 +119,14 @@ final class Lists
             if (property_exists($vm->pagination, 'total')) {
                 $pagination['data-total'] = (string) $vm->pagination->total;
             }
-            $pageCount = $vm->pagination->pageCount;
-            $page = $pageCount > 0 ? min($pageCount, $vm->pagination->page) : 1;
-            $button = static function (string $class, int $value, string $label, bool $disabled, bool $current): string {
-                $attrs = ['type' => 'button', 'class' => $class, 'data-page' => (string) $value, 'aria-label' => $label];
-                if ($current) $attrs['aria-current'] = 'page';
-                if ($disabled) $attrs['disabled'] = '';
-                return Rendering::element('button', $attrs, $label === 'Previous page' ? '‹' : ($label === 'Next page' ? '›' : (string) $value));
-            };
-            $controls = $button('crudui-list__pagination-prev', max(1, $page - 1), 'Previous page', $page <= 1 || $pageCount === 0, false);
-            foreach (self::paginationPages($page, $pageCount) as $value) {
-                $controls .= $button('crudui-list__pagination-page', $value, 'Page ' . $value, $value === $page, $value === $page);
+            $controls = '';
+            foreach ($vm->pagination->buttons as $button) {
+                $buttonAttrs = ['type' => 'button', 'class' => 'crudui-list__pagination-' . ($button->role === 'previous' ? 'prev' : $button->role), 'data-page' => (string) $button->page, 'aria-label' => $button->label];
+                if ($button->current) $buttonAttrs['aria-current'] = 'page';
+                if ($button->disabled) $buttonAttrs['disabled'] = '';
+                // The button's text follows its role.
+                $controls .= Rendering::element('button', $buttonAttrs, match ($button->role) { 'previous' => '‹', 'next' => '›', default => (string) $button->page });
             }
-            $controls .= $button('crudui-list__pagination-next', max(1, min($pageCount, $page + 1)), 'Next page', $pageCount === 0 || $page >= $pageCount, false);
             $body .= Rendering::element('nav', $pagination, $controls);
         }
         return self::preloads($vm) . Rendering::element('div', $attrs, $body);
@@ -189,7 +184,7 @@ final class Lists
             }
             $rowModels[] = (object) ['cells' => $cells];
         }
-        $pagination = self::pagination($spec->pagination ?? null, self::countOptions($options));
+        $pagination = self::pagination($spec->pagination ?? null, self::countOptions($options), $language);
         $sort = isset($spec->sort->field) && is_string($spec->sort->field) && $spec->sort->field !== '' ? (object) ['field' => $spec->sort->field, 'dir' => ($spec->sort->dir ?? null) === 'desc' ? 'desc' : 'asc'] : Missing::Value;
         $actions = [];
         if (($spec->actions ?? null) instanceof stdClass) {
@@ -223,7 +218,10 @@ final class Lists
                 $actions[] = (object) $action;
             }
         }
-        return Value::record(['columns' => $columnModels, 'rows' => $rowModels, 'pagination' => (object) $pagination, 'sort' => $sort, 'actions' => $actions, 'empty' => Value::translate($spec->empty ?? null, $language), 'design' => Design::resolve($spec->design ?? null, $data, [])]);
+        // An absent or null empty uses the interface message; a declared text is used as declared.
+        $declaredEmpty = $spec->empty ?? null;
+        $empty = $declaredEmpty === null ? self::messages($language)['emptyList'] : Value::translate($declaredEmpty, $language);
+        return Value::record(['columns' => $columnModels, 'rows' => $rowModels, 'pagination' => (object) $pagination, 'sort' => $sort, 'actions' => $actions, 'empty' => $empty, 'design' => Design::resolve($spec->design ?? null, $data, [])]);
     }
 
     /**
@@ -269,12 +267,12 @@ final class Lists
 
     /**
      * The pagination model, in member order: enabled, then for enabled paging perPage, mode and
-     * page with their defaults, the supplied total and pageCount. Disabled paging keeps only the
-     * supplied page and total.
+     * page with their defaults, the supplied total, pageCount and the previous, numbered and next
+     * buttons. Disabled paging keeps only the supplied page and total.
      *
      * @param array{page: ?int, total: ?int} $counts
      */
-    private static function pagination(mixed $declared, array $counts): stdClass
+    private static function pagination(mixed $declared, array $counts, string $language): stdClass
     {
         $enabled = $declared === true || $declared instanceof stdClass;
         $pagination = ['enabled' => $enabled];
@@ -291,9 +289,31 @@ final class Lists
             $pagination['total'] = $counts['total'];
         }
         if ($enabled) {
-            $pagination['pageCount'] = $counts['total'] === null ? 0 : max(1, (int) ceil($counts['total'] / $perPage));
+            $pageCount = $counts['total'] === null ? 0 : max(1, (int) ceil($counts['total'] / $perPage));
+            $pagination['pageCount'] = $pageCount;
+            // Without a total the current page is 1; a page after the last page selects the last page.
+            $current = $pageCount > 0 ? min($pageCount, $pagination['page']) : 1;
+            $messages = self::messages($language);
+            $button = static fn (string $role, int $page, string $label, bool $isCurrent, bool $disabled): stdClass
+                => (object) ['role' => $role, 'page' => $page, 'label' => $label, 'current' => $isCurrent, 'disabled' => $disabled];
+            $buttons = [$button('previous', max(1, $current - 1), $messages['previousPage'], false, $current <= 1 || $pageCount === 0)];
+            foreach (self::paginationPages($current, $pageCount) as $value) {
+                $buttons[] = $button('page', $value, str_replace('{page}', (string) $value, $messages['page']), $value === $current, $value === $current);
+            }
+            $buttons[] = $button('next', $pageCount > 0 ? min($pageCount, $current + 1) : 1, $messages['nextPage'], false, $pageCount === 0 || $current >= $pageCount);
+            $pagination['buttons'] = $buttons;
         }
         return (object) $pagination;
+    }
+
+    /**
+     * The list interface text of a display language: the table's entry for it, else English.
+     *
+     * @return array<string, string>
+     */
+    private static function messages(string $language): array
+    {
+        return InterfaceMessages::LIST[$language] ?? InterfaceMessages::LIST['en'];
     }
 
     /** A PHP int or float whose value is an integer from `$min` to 2^53 - 1, as int; otherwise null. */

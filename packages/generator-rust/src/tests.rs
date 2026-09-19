@@ -836,25 +836,25 @@ fn list_input_errors_follow_contract_order() {
         (
             json!(2.0),
             json!(-0.0),
-            json!({"enabled":true,"perPage":20,"mode":"pages","page":2,"total":0,"pageCount":1}),
+            json!({"enabled":true,"perPage":20,"mode":"pages","page":2,"total":0,"pageCount":1,"buttons":[{"role":"previous","page":1,"label":"이전 페이지","current":false,"disabled":true},{"role":"page","page":1,"label":"1페이지","current":true,"disabled":true},{"role":"next","page":1,"label":"다음 페이지","current":false,"disabled":true}]}),
             r#"data-page="2" data-total="0""#,
         ),
         (
             json!(9007199254740991_u64),
             json!(9007199254740991.0),
-            json!({"enabled":true,"perPage":20,"mode":"pages","page":9007199254740991_u64,"total":9007199254740991_u64,"pageCount":450359962737050_u64}),
+            json!({"enabled":true,"perPage":20,"mode":"pages","page":9007199254740991_u64,"total":9007199254740991_u64,"pageCount":450359962737050_u64,"buttons":[{"role":"previous","page":450359962737049_u64,"label":"이전 페이지","current":false,"disabled":false},{"role":"page","page":1,"label":"1페이지","current":false,"disabled":false},{"role":"page","page":450359962737049_u64,"label":"450359962737049페이지","current":false,"disabled":false},{"role":"page","page":450359962737050_u64,"label":"450359962737050페이지","current":true,"disabled":true},{"role":"next","page":450359962737050_u64,"label":"다음 페이지","current":false,"disabled":true}]}),
             r#"data-page="9007199254740991" data-total="9007199254740991""#,
         ),
         (
             json!(1),
             Value::Null,
-            json!({"enabled":true,"perPage":20,"mode":"pages","page":1,"pageCount":0}),
+            json!({"enabled":true,"perPage":20,"mode":"pages","page":1,"pageCount":0,"buttons":[{"role":"previous","page":1,"label":"이전 페이지","current":false,"disabled":true},{"role":"next","page":1,"label":"다음 페이지","current":false,"disabled":true}]}),
             r#"data-page="1""#,
         ),
         (
             Value::Null,
             Value::Null,
-            json!({"enabled":true,"perPage":20,"mode":"pages","page":1,"pageCount":0}),
+            json!({"enabled":true,"perPage":20,"mode":"pages","page":1,"pageCount":0,"buttons":[{"role":"previous","page":1,"label":"이전 페이지","current":false,"disabled":true},{"role":"next","page":1,"label":"다음 페이지","current":false,"disabled":true}]}),
             "crudui-list__pagination",
         ),
     ] {

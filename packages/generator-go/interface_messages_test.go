@@ -17,6 +17,7 @@ func TestInterfaceMessagesMatchesContract(t *testing.T) {
 	}
 	var contract struct {
 		Form map[string]map[string]string `json:"form"`
+		List map[string]map[string]string `json:"list"`
 	}
 	if err := json.Unmarshal(raw, &contract); err != nil {
 		t.Fatal(err)
@@ -53,6 +54,42 @@ func TestInterfaceMessagesMatchesContract(t *testing.T) {
 		for contractKey := range contractMessages {
 			if _, ok := fields.FieldByName(contractKey); !ok {
 				t.Errorf("Language %q has key %q that formMessages lacks", lang, contractKey)
+			}
+		}
+	}
+
+	// Check list messages table matches contract
+	if len(listMessagesTables) != len(contract.List) {
+		t.Errorf("listMessagesTables has %d languages, the contract %d; run go generate", len(listMessagesTables), len(contract.List))
+	}
+	for lang, contractMessages := range contract.List {
+		tableMessages, ok := listMessagesTables[lang]
+		if !ok {
+			t.Errorf("Language %q not in listMessagesTables", lang)
+			continue
+		}
+
+		// Use reflection to check all struct fields
+		v := reflect.ValueOf(tableMessages)
+		for i := 0; i < v.NumField(); i++ {
+			field := v.Type().Field(i)
+			fieldValue := v.Field(i).String()
+			contractValue, exists := contractMessages[field.Name]
+			if !exists {
+				t.Errorf("Field %q not found in list contract for language %q", field.Name, lang)
+				continue
+			}
+			if fieldValue != contractValue {
+				t.Errorf("Language %q, field %q: got %q, contract %q; run go generate",
+					lang, field.Name, fieldValue, contractValue)
+			}
+		}
+
+		// Every contract key is a field of the table.
+		fields := reflect.TypeOf(tableMessages)
+		for contractKey := range contractMessages {
+			if _, ok := fields.FieldByName(contractKey); !ok {
+				t.Errorf("Language %q has key %q that listMessages lacks", lang, contractKey)
 			}
 		}
 	}

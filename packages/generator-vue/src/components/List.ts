@@ -22,7 +22,6 @@
 
 import { h, type VNode } from 'vue';
 import { rawContainer } from './raw';
-import { paginationPages } from '@crudui/generator-core/internal';
 import type {
   ListViewModel,
   ColumnVM,
@@ -277,15 +276,24 @@ function paginationVNode(vm: ListViewModel): VNode | null {
   if (p.perPage !== undefined) props['data-per-page'] = String(p.perPage);
   if (p.page !== undefined) props['data-page'] = String(p.page);
   if (p.total !== undefined) props['data-total'] = String(p.total);
-  const pageCount = p.pageCount ?? 0;
-  const page = pageCount > 0 ? Math.min(pageCount, Math.max(1, p.page ?? 1)) : 1;
-  const button = (className: string, value: number, label: string, disabled: boolean, current = false) =>
-    h('button', { type: 'button', class: className, 'data-page': String(value), 'aria-label': label, ...(current ? { 'aria-current': 'page' } : {}), disabled }, label === 'Previous page' ? '‹' : label === 'Next page' ? '›' : String(value));
-  return h('nav', props, [
-    button('crudui-list__pagination-prev', Math.max(1, page - 1), 'Previous page', page <= 1 || pageCount === 0),
-    ...paginationPages(page, pageCount).map(value => button('crudui-list__pagination-page', value, `Page ${value}`, value === page, value === page)),
-    button('crudui-list__pagination-next', pageCount ? Math.min(pageCount, page + 1) : 1, 'Next page', pageCount === 0 || page >= pageCount),
-  ]);
+  const paginationClasses: Record<string, string> = {
+    previous: 'crudui-list__pagination-prev',
+    page: 'crudui-list__pagination-page',
+    next: 'crudui-list__pagination-next',
+  };
+  return h('nav', props, (p.buttons ?? []).map(button =>
+    h('button',
+      {
+        type: 'button',
+        class: paginationClasses[button.role],
+        'data-page': String(button.page),
+        'aria-label': button.label,
+        ...(button.current ? { 'aria-current': 'page' } : {}),
+        disabled: button.disabled,
+      },
+      button.role === 'previous' ? '‹' : button.role === 'next' ? '›' : String(button.page)
+    )
+  ));
 }
 
 // ---------------------------------------------------------------------------

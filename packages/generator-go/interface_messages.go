@@ -100,3 +100,30 @@ var messageTables = map[string]formMessages{
 		untitled:           "(未命名)",
 	},
 }
+
+var listMessagesTables = map[string]listMessages{
+	"ko": {
+		emptyList:    "데이터가 없습니다",
+		nextPage:     "다음 페이지",
+		page:         "{page}페이지",
+		previousPage: "이전 페이지",
+	},
+	"en": {
+		emptyList:    "No data",
+		nextPage:     "Next page",
+		page:         "Page {page}",
+		previousPage: "Previous page",
+	},
+	"ja": {
+		emptyList:    "データがありません",
+		nextPage:     "次のページ",
+		page:         "{page}ページ",
+		previousPage: "前のページ",
+	},
+	"zh": {
+		emptyList:    "暂无数据",
+		nextPage:     "下一页",
+		page:         "第 {page} 页",
+		previousPage: "上一页",
+	},
+}

@@ -1,15 +1,14 @@
 /**
- * Form interface text in every supported language: labels of form controls, counts and summaries.
+ * CRUDUI interface text in every supported language.
  *
  * Generated from contracts/interface-messages.json by
  * `node packages/generator-core/scripts/generate-interface-messages.mjs`. Do not edit;
  * interface-messages.test.ts fails when this data differs from the contract.
- *
- * `{count}` is replaced with a number.
  */
 
-/** Form messages in Korean. */
-export const MESSAGES_KO = {
+/** The `form` messages by language. */
+export const FORM_MESSAGES = {
+  ko: {
     "moveUp": "위로",
     "moveDown": "아래로",
     "addRow": "추가",
@@ -32,10 +31,8 @@ export const MESSAGES_KO = {
     "collapsed": "접힘",
     "count": "{count}개",
     "children": "하위 {count}개",
-  } as const;
-
-/** Form messages in English. */
-export const MESSAGES_EN = {
+  },
+  en: {
     "moveUp": "Move up",
     "moveDown": "Move down",
     "addRow": "Add",
@@ -58,10 +55,8 @@ export const MESSAGES_EN = {
     "collapsed": "Collapsed",
     "count": "Rows: {count}",
     "children": "Nested rows: {count}",
-  } as const;
-
-/** Form messages in Japanese. */
-export const MESSAGES_JA = {
+  },
+  ja: {
     "moveUp": "上へ",
     "moveDown": "下へ",
     "addRow": "追加",
@@ -84,10 +79,8 @@ export const MESSAGES_JA = {
     "collapsed": "折りたたみ中",
     "count": "{count}件",
     "children": "下位 {count}件",
-  } as const;
-
-/** Form messages in Chinese. */
-export const MESSAGES_ZH = {
+  },
+  zh: {
     "moveUp": "上移",
     "moveDown": "下移",
     "addRow": "添加",
@@ -110,12 +103,33 @@ export const MESSAGES_ZH = {
     "collapsed": "已折叠",
     "count": "{count} 项",
     "children": "子项 {count} 项",
-  } as const;
+  },
+} as const;
 
-/** All form messages by language. */
-export const MESSAGES = {
-  ko: MESSAGES_KO,
-  en: MESSAGES_EN,
-  ja: MESSAGES_JA,
-  zh: MESSAGES_ZH,
+/** The `list` messages by language. */
+export const LIST_MESSAGES = {
+  ko: {
+    "previousPage": "이전 페이지",
+    "nextPage": "다음 페이지",
+    "page": "{page}페이지",
+    "emptyList": "데이터가 없습니다",
+  },
+  en: {
+    "previousPage": "Previous page",
+    "nextPage": "Next page",
+    "page": "Page {page}",
+    "emptyList": "No data",
+  },
+  ja: {
+    "previousPage": "前のページ",
+    "nextPage": "次のページ",
+    "page": "{page}ページ",
+    "emptyList": "データがありません",
+  },
+  zh: {
+    "previousPage": "上一页",
+    "nextPage": "下一页",
+    "page": "第 {page} 页",
+    "emptyList": "暂无数据",
+  },
 } as const;

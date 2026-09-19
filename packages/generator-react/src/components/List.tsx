@@ -26,7 +26,6 @@ import type {
   ListRowVM,
 } from '@crudui/generator-core';
 import { Cell } from './Cell';
-import { paginationPages } from '@crudui/generator-core/internal';
 import { resolvedStyleProps, styleObject } from './attrs';
 import { escAttr, escText, RawContainer } from './raw';
 
@@ -199,16 +198,13 @@ function CardLayout({ vm }: { vm: ListViewModel }): React.ReactElement {
 // pagination controls (the caller still owns querying and navigation)
 // ---------------------------------------------------------------------------
 
+const PAGINATION_CLASSES = {
+  previous: 'crudui-list__pagination-prev', page: 'crudui-list__pagination-page', next: 'crudui-list__pagination-next',
+} as const;
+
 function Pagination({ vm }: { vm: ListViewModel }): React.ReactElement | null {
   const p = vm.pagination;
   if (!p.enabled) return null;
-  const pageCount = p.pageCount ?? 0;
-  const page = pageCount > 0 ? Math.min(pageCount, Math.max(1, p.page ?? 1)) : 1;
-  const button = (className: string, value: number, label: string, disabled: boolean, current = false) => (
-    <button type="button" className={className} data-page={String(value)} aria-label={label} {...(current ? { 'aria-current': 'page' } : {})} disabled={disabled}>
-      {label === 'Previous page' ? '‹' : label === 'Next page' ? '›' : value}
-    </button>
-  );
   return (
     <nav
       className="crudui-list__pagination"
@@ -217,9 +213,19 @@ function Pagination({ vm }: { vm: ListViewModel }): React.ReactElement | null {
       {...(p.page !== undefined ? { 'data-page': String(p.page) } : {})}
       {...(p.total !== undefined ? { 'data-total': String(p.total) } : {})}
     >
-      {button('crudui-list__pagination-prev', Math.max(1, page - 1), 'Previous page', page <= 1 || pageCount === 0)}
-      {paginationPages(page, pageCount).map(value => <React.Fragment key={value}>{button('crudui-list__pagination-page', value, `Page ${value}`, value === page, value === page)}</React.Fragment>)}
-      {button('crudui-list__pagination-next', pageCount ? Math.min(pageCount, page + 1) : 1, 'Next page', pageCount === 0 || page >= pageCount)}
+      {(p.buttons ?? []).map(button => (
+        <button
+          key={`${button.role}-${button.page}`}
+          type="button"
+          className={PAGINATION_CLASSES[button.role]}
+          data-page={String(button.page)}
+          aria-label={button.label}
+          {...(button.current ? { 'aria-current': 'page' } : {})}
+          disabled={button.disabled}
+        >
+          {button.role === 'previous' ? '‹' : button.role === 'next' ? '›' : button.page}
+        </button>
+      ))}
     </nav>
   );
 }

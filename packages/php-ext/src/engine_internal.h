@@ -213,18 +213,35 @@ typedef struct {
     const char *children;
 } ps_form_messages;
 
+/* Interface labels for list pagination buttons and empty list text; {page} is replaced by a page number. */
+typedef struct {
+    const char *previous_page;
+    const char *next_page;
+    const char *page;
+    const char *empty_list;
+} ps_list_messages;
+
 /* The interface text of one language, generated from contracts/interface-messages.json. */
 typedef struct {
     const char *language;
     ps_form_messages messages;
 } ps_language_messages;
+typedef struct {
+    const char *language;
+    ps_list_messages messages;
+} ps_list_language_messages;
 extern const ps_language_messages ps_interface_messages[];
 extern const size_t ps_interface_messages_count;
+extern const ps_list_language_messages ps_interface_list_messages[];
+extern const size_t ps_interface_list_messages_count;
 
 /* Interface text for a supported language (ko, en, ja, zh), or NULL. */
 const ps_form_messages *ps_form_messages_for(ps_text language);
+const ps_list_messages *ps_list_messages_for(ps_text language);
 /* Replace the first {count} in a counted message. */
 ps_chars ps_format_count(const char *template, size_t count);
+/* Replace the first {page} in a page label. */
+ps_chars ps_format_page(const char *template, size_t page);
 
 ps_value *ps_design(const ps_value *design, const ps_value *data, ps_text path);
 bool ps_widget_supported(ps_text type);

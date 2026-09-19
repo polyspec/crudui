@@ -4,6 +4,7 @@ use crudui_validator::compose::{
 use serde_json::{json, Map, Value};
 
 use crate::design::{appearance, flag, resolve_design};
+use crate::messages::{format_page, list_messages};
 use crate::render::{appearance_attrs, element, escape, raw_element, raw_text};
 use crate::template::{check_design_declaration, check_known_keys};
 use crate::util::{join_class, scalar, segments, translate, value_at};
@@ -334,7 +335,12 @@ pub(crate) fn build_display(
         }).collect::<FormResult<Vec<_>>>()?;
         Ok(json!({"cells":cells}))
     }).collect::<FormResult<Vec<_>>>()?;
-    let pagination = pagination_model(&spec["pagination"], checked.page, checked.total);
+    let pagination = pagination_model(
+        &spec["pagination"],
+        checked.page,
+        checked.total,
+        &options.language,
+    );
     let mut actions = Vec::new();
     for (key, raw) in spec["actions"].as_object().into_iter().flatten() {
         if ["$ref", "$patch"].contains(&key.as_str()) {
@@ -368,7 +374,17 @@ pub(crate) fn build_display(
             json!({"field":field,"dir":if spec["sort"]["dir"]=="desc" {"desc"} else {"asc"}});
     }
     result["actions"] = actions.into();
-    result["empty"] = translate(spec.get("empty"), &options.language).into();
+    // A list with no rows shows the declared empty text; absent or null empty shows the
+    // table's emptyList for the display language (same en fallback). A declared text, even "",
+    // is used as declared.
+    let empty_text = if spec.get("empty").is_some_and(|empty| !empty.is_null()) {
+        translate(spec.get("empty"), &options.language)
+    } else if own == "list" {
+        list_messages(&options.language).empty_list.to_string()
+    } else {
+        String::new()
+    };
+    result["empty"] = empty_text.into();
     result["design"] = resolve_design(spec.get("design"), context, "");
     Ok(result)
 }
@@ -600,52 +616,39 @@ pub fn render_list(spec: &Value, rows: &[Value], options: &ListOptions<'_>) -> F
                 attrs[output] = scalar(Some(value)).into();
             }
         }
-        let page_count = pagination["pageCount"].as_u64().unwrap_or(0);
-        let page = if page_count > 0 {
-            pagination["page"].as_u64().unwrap_or(1).min(page_count)
-        } else {
-            1
-        };
-        let button = |class: &str, value: u64, label: &str, disabled: bool, current: bool| {
-            let mut button = json!({"type":"button", "class":class, "data-page":value.to_string(), "aria-label":label});
-            if current {
-                button["aria-current"] = "page".into();
+        // Render buttons from the pagination model
+        let mut controls = String::new();
+        if let Some(buttons) = pagination.get("buttons").and_then(Value::as_array) {
+            for button_data in buttons {
+                let role = button_data["role"].as_str().unwrap_or("");
+                let page_num = button_data["page"].as_u64().unwrap_or(1);
+                let label = button_data["label"].as_str().unwrap_or("");
+                let current = button_data["current"].as_bool().unwrap_or(false);
+                let disabled = button_data["disabled"].as_bool().unwrap_or(false);
+
+                let class = match role {
+                    "previous" => "crudui-list__pagination-prev",
+                    "next" => "crudui-list__pagination-next",
+                    _ => "crudui-list__pagination-page",
+                };
+
+                let text = match role {
+                    "previous" => "‹".to_string(),
+                    "next" => "›".to_string(),
+                    _ => page_num.to_string(),
+                };
+
+                let mut button_attrs = json!({"type":"button", "class":class, "data-page":page_num.to_string(), "aria-label":label});
+                if current {
+                    button_attrs["aria-current"] = "page".into();
+                }
+                if disabled {
+                    button_attrs["disabled"] = true.into();
+                }
+
+                controls += &element("button", &button_attrs, &text);
             }
-            if disabled {
-                button["disabled"] = true.into();
-            }
-            let text = if label == "Previous page" {
-                "‹".to_string()
-            } else if label == "Next page" {
-                "›".to_string()
-            } else {
-                value.to_string()
-            };
-            element("button", &button, &text)
-        };
-        let mut controls = button(
-            "crudui-list__pagination-prev",
-            page.saturating_sub(1).max(1),
-            "Previous page",
-            page <= 1 || page_count == 0,
-            false,
-        );
-        for value in pagination_pages(page, page_count) {
-            controls += &button(
-                "crudui-list__pagination-page",
-                value,
-                &format!("Page {}", value),
-                value == page,
-                value == page,
-            );
         }
-        controls += &button(
-            "crudui-list__pagination-next",
-            page.saturating_add(1).min(page_count.max(1)),
-            "Next page",
-            page_count == 0 || page >= page_count,
-            false,
-        );
         content += &element("nav", &attrs, &controls);
     }
     let wrapper = &model["design"]["wrapper"];
@@ -722,7 +725,12 @@ fn check_pagination_declaration(pagination: &Value, path: &str) -> FormResult<()
 /// The pagination model, in member order: enabled, then for enabled paging perPage, mode and
 /// page with their defaults, the supplied total and pageCount. Disabled paging keeps only the
 /// supplied page and total.
-fn pagination_model(declared: &Value, page: Option<u64>, total: Option<u64>) -> Value {
+fn pagination_model(
+    declared: &Value,
+    page: Option<u64>,
+    total: Option<u64>,
+    language: &str,
+) -> Value {
     let enabled = *declared == true || declared.is_object();
     let mut pagination = json!({"enabled":enabled});
     let per_page = declared
@@ -744,10 +752,50 @@ fn pagination_model(declared: &Value, page: Option<u64>, total: Option<u64>) -> 
         pagination["total"] = total.into();
     }
     if enabled {
-        pagination["pageCount"] = total
+        let page_count = total
             .map(|total| total.div_ceil(per_page).max(1))
-            .unwrap_or(0)
-            .into();
+            .unwrap_or(0);
+        pagination["pageCount"] = page_count.into();
+
+        // Generate buttons for pagination
+        let current_page = if page_count > 0 {
+            page.unwrap_or(1).min(page_count)
+        } else {
+            1
+        };
+        let messages = list_messages(language);
+        let mut buttons = Vec::new();
+
+        // Previous button
+        buttons.push(json!({
+            "role": "previous",
+            "page": (current_page - 1).max(1),
+            "label": messages.previous_page,
+            "current": false,
+            "disabled": current_page <= 1 || page_count == 0
+        }));
+
+        // Page number buttons
+        for value in pagination_pages(current_page, page_count) {
+            buttons.push(json!({
+                "role": "page",
+                "page": value,
+                "label": format_page(messages.page, value),
+                "current": value == current_page,
+                "disabled": value == current_page
+            }));
+        }
+
+        // Next button
+        buttons.push(json!({
+            "role": "next",
+            "page": if page_count > 0 { (current_page + 1).min(page_count) } else { 1 },
+            "label": messages.next_page,
+            "current": false,
+            "disabled": page_count == 0 || current_page >= page_count
+        }));
+
+        pagination["buttons"] = buttons.into();
     }
     pagination
 }
