@@ -169,7 +169,10 @@ The form is rendered in the stage in the selected mode: `bindForm` with its appl
 controller, `createForm` with a form session. A submit event of `#record-form`, from its Save
 button or from Enter in a field, sends the form's native fields as `multipart/form-data` to
 `/api/{server}/records/{id}`. On 200 the page navigates to `/?{selection}&saved={id}` with the
-same page; on 422 it shows the validation result in the form and stays. The list with `saved`
+same page; on 422 it shows the validation result in the form and stays. A failed request or an
+answer outside 200 and 422 shows `<div id="save-errors" role="alert">` before the form with the
+save-failed text of the page language and the failure, keeps the entered values, and leaves the
+form submittable again. The list with `saved`
 shows `<p id="saved-notice" role="status" data-record-id="{id}">` with the saved notice in the
 page language; under SSR the notice is in the initial HTML.
 

@@ -18,6 +18,7 @@ const browserFiles = [
   'examples/form-comparison/benchmark-console/**',
   'examples/form-comparison/public/main.mjs',
   'examples/form-comparison/src/pages/stage.mjs',
+  'examples/form-comparison/src/save-form.mjs',
   'examples/form-comparison/src/form-validation.mjs',
   'examples/form-comparison/src/frame.mjs',
   'packages/generator-svelte/test/form-session.client.mjs',
@@ -29,6 +30,7 @@ const browserFiles = [
 const nodeAndBrowserFiles = [
   'examples/form-comparison/check-interaction.mjs',
   'examples/form-comparison/check-typing.mjs',
+  'examples/form-comparison/src/save-form.test.mjs',
   'examples/form-comparison/check.mjs',
   'examples/form-comparison/src/browser-job.browser.mjs',
   'examples/form-comparison/src/main-page-readiness.mjs',

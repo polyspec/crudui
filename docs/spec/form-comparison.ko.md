@@ -152,7 +152,9 @@ PHP 서버는 PHP를 운영 환경에서 실행하는 방식대로 nginx 뒤의 
 `createForm`은 폼 세션으로 동작합니다. `#record-form`의 submit 이벤트(저장 버튼 또는 필드에서
 Enter)는 폼의 네이티브 필드를 `multipart/form-data`로 `/api/{server}/records/{id}`에
 전송합니다. 200이면 같은 쪽의 `/?{selection}&saved={id}`로 이동하고, 422면 폼에 검증 결과를
-보여 주고 머뭅니다. `saved`가 있는 목록은 페이지 언어의 저장 알림을 담은
+보여 주고 머뭅니다. 요청 실패 또는 200·422 외의 응답은 폼 앞에 페이지 언어의 저장 실패 문구와 실패
+내용을 담은 `<div id="save-errors" role="alert">`를 보여 주고, 입력 값을 그대로 두며, 폼을 다시
+제출할 수 있게 둡니다. `saved`가 있는 목록은 페이지 언어의 저장 알림을 담은
 `<p id="saved-notice" role="status" data-record-id="{id}">`를 보여 주며, SSR에서는 알림이
 초기 HTML에 들어 있습니다.
 
