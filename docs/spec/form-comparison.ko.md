@@ -59,9 +59,11 @@ id 순서로 담습니다. 파일이 없으면 첫 읽기에서 고정 데이터
 
 **HTTP 계약.** 아래 경로는 각 서버 자신의 경로입니다. 공개 서버는 `php`, `php-ext`, `go`,
 `rust`의 `/api/{server}/records…`를 그 서버의 `/api/records…`로 전달하고
-`/api/js/records…`에는 직접 응답합니다. 모든 JSON 응답은 `Cache-Control: no-store`를 가진
-`application/json; charset=utf-8`이며 `server`에 응답한 서버를 적습니다. 모든 실패 응답은
-`{ "error": message, "server": … }`입니다.
+`/api/js/records…`에는 직접 응답합니다. 공개 서버의 모든 응답은 `Cache-Control: no-store`와
+`X-Content-Type-Options: nosniff`를 가진 `application/json; charset=utf-8` 또는
+`text/html; charset=utf-8`이고, 모든 JSON 응답은 `<`, `>`, `&`를 `\u003c`, `\u003e`,
+`\u0026`로 이스케이프해 어떤 해석에서도 실패에 반영된 요청 값이 스크립트나 주석 요소를 닫을 수
+없습니다. 모든 실패 응답은 `{ "error": message, "server": … }`입니다.
 
 | 요청 | 성공 | 실패 |
 | --- | --- | --- |
@@ -71,7 +73,7 @@ id 순서로 담습니다. 파일이 없으면 첫 읽기에서 고정 데이터
 | `POST /api/records/reset` | 200 `{ total: 45 }`, 저장소가 고정 데이터와 같아짐 | 본문이 있는 요청은 400 |
 | `GET /api/records/view/{view}?…` | 200 `{ view, html, data }` | 아래 참조 |
 
-이 경로에 다른 메서드를 쓰면 405로 응답합니다.
+이 경로에서 다른 메서드는 405로 응답하며, 대상이 받는 메서드를 적은 `Allow` 헤더를 가집니다(페이지는 `GET`, 파일은 `GET, HEAD`).
 
 저장은 렌더링된 폼이 전송하는 네이티브 폼(정확히 `form[…]` 필드와 `_form_complete=1`만 담은
 `multipart/form-data` 또는 `application/x-www-form-urlencoded`)과 정확히 `form` 항목만 가진 JSON
@@ -162,6 +164,10 @@ Enter)는 폼의 네이티브 필드를 `multipart/form-data`로 `/api/{server}/
 `{ type: 'crudui:pipeline-ready', view, server, framework, initialization, mode, page, id }`를
 게시합니다. `page`는 숫자이고 목록에서 `id`는 null입니다. 초기화할 수 없는 보기는 스크립트
 오류로 실패합니다. 검사는 이 이벤트를 기다리며 DOM으로 준비 상태를 추정하지 않습니다.
+
+문서는 `<html data-pipeline-selection="…">`에 자기 전체 선택을 담고, 페이지 스크립트는 어떤
+멤버가 URL 선택과 다르면 렌더링 전에 실패합니다. 다른 선택의 오래된 문서는 외부 단계 마크업을
+넘겨받는 대신 실패합니다.
 
 ## 정본 흐름 검사
 

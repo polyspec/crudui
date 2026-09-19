@@ -3,6 +3,8 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 const html = await readFile(new URL('./index.html', import.meta.url), 'utf8');
+const vueStage = await readFile(new URL('../src/pages/stage-vue.ts', import.meta.url), 'utf8');
+const serverSource = await readFile(new URL('../server.mjs', import.meta.url), 'utf8');
 const script = await readFile(new URL('./main.mjs', import.meta.url), 'utf8');
 const server = await readFile(new URL('../server.mjs', import.meta.url), 'utf8');
 
@@ -25,7 +27,7 @@ test('the canonical page has a real link back to the list and no comparison colu
 
 test('SSR page rendering is a server document contract, not a client-only flag', () => {
   assert.match(server, /data-pipeline-initialization/);
-  assert.match(script, /dataset\.pipelineInitialization/);
+  assert.match(script, /dataset\.pipelineSelection/);
 });
 
 test('runtime selection writes the newly selected initialization into the navigation URL', () => {
@@ -66,4 +68,9 @@ test('page styles never reach the CRUDUI output, which takes every style from cr
     }
   }
   assert.deepEqual(leaking, [], 'element rules that reach CRUDUI output');
+});
+
+test('the Vue application fails the page on a component error and the document carries its selection', () => {
+  assert.match(vueStage, /failOnErrors\(app\)/);
+  assert.match(serverSource, /data-pipeline-selection/);
 });

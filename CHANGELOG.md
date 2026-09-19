@@ -1,5 +1,24 @@
 # Changes
 
+## 2026-09-19 — Hardened responses, one selection source, reported Vue errors
+
+- Every response of the public server now carries `X-Content-Type-Options: nosniff`, every JSON
+  body escapes `<`, `>` and `&` as Unicode escapes, and a 405 answers with an `Allow` header
+  naming the methods the target accepts (`GET` on a page, `GET, HEAD` on a file). A hostile
+  request value reflected in an error can therefore not close a script or comment element under
+  any content-type interpretation. `src/server-responses.test.mjs` starts the public server and
+  checks the headers, the `Allow` answers and the escaped reflection.
+- The page selection defaults were defined twice, in `src/record-view.mjs` and in `server.mjs`,
+  and nothing bound the copies together. `server.mjs` now takes every default from
+  `src/record-view.mjs`, so the server and the page cannot drift.
+- The document names its whole selection in `<html data-pipeline-selection="…">` and the page
+  script fails before rendering when any member differs from the URL selection; it checked only
+  `initialization` before, so a stale document of another server could hydrate foreign stage
+  markup whose form action points at another server.
+- A Vue component or render error raised inside the canonical page's Vue application now fails
+  the page as a script error like every other view's failure, through `src/vue-errors.mjs`; Vue
+  logged it to the console and continued before.
+
 ## 2026-09-19 — The record form shows a failed save
 
 - The canonical page's form submitted its fields and handled 200 and 422, but a failed request or

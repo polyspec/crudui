@@ -98,9 +98,13 @@ if (view === 'list') {
   }
 }
 
-// The document names its initialization; SSR stage markup is taken over, CSR stages start empty.
-if (document.documentElement.dataset.pipelineInitialization !== state.initialization) {
-  throw new Error(`The document was rendered for ${document.documentElement.dataset.pipelineInitialization}, not ${state.initialization}`);
+// The document names the selection it was rendered for; a document of another selection fails
+// instead of taking over foreign stage markup.
+const rendered = JSON.parse(document.documentElement.dataset.pipelineSelection ?? '{}');
+for (const member of ['lang', 'server', 'framework', 'initialization', 'mode']) {
+  if (rendered[member] !== state[member]) {
+    throw new Error(`The document was rendered for ${member}=${rendered[member]}, not ${member}=${state[member]}`);
+  }
 }
 const { startStage } = await import(`/pages/${encodeURIComponent(state.framework)}/stage.js`);
 const [source] = await Promise.all([

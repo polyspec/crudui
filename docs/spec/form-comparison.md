@@ -66,9 +66,12 @@ detail and the form show next, also after a restart.
 
 **HTTP contract.** The paths below are each server's own paths. The public server forwards
 `/api/{server}/records…` for `php`, `php-ext`, `go` and `rust` to `/api/records…` of that
-server and answers `/api/js/records…` itself. Every JSON response is
-`application/json; charset=utf-8` with `Cache-Control: no-store` and names the responding
-server in `server`. Every failure is `{ "error": message, "server": … }`.
+server and answers `/api/js/records…` itself. Every response of the public server is
+`application/json; charset=utf-8` or `text/html; charset=utf-8` with `Cache-Control: no-store`
+and `X-Content-Type-Options: nosniff`, and every JSON response escapes `<`, `>` and `&` as
+`\u003c`, `\u003e` and `\u0026`, so a request value reflected in a failure cannot close a
+script or comment element in any interpretation. Every failure is
+`{ "error": message, "server": … }`.
 
 | Request | Success | Failure |
 | --- | --- | --- |
@@ -78,7 +81,7 @@ server in `server`. Every failure is `{ "error": message, "server": … }`.
 | `POST /api/records/reset` | 200 `{ total: 45 }`; the store equals the fixture | 400 for a request with a body |
 | `GET /api/records/view/{view}?…` | 200 `{ view, html, data }` | below |
 
-Another method on these paths answers 405.
+Another method on these paths answers 405 with an `Allow` header naming the methods the target accepts (`GET` on a page, `GET, HEAD` on a file).
 
 A save accepts the native form, `multipart/form-data` or `application/x-www-form-urlencoded`
 with exactly the fields `form[…]` and `_form_complete=1` as the rendered form posts them, and
@@ -181,6 +184,10 @@ When a view is interactive, the page posts
 to its own window, with `page` a number and `id` null on the list. A view that cannot
 initialize fails with a script error. Checks wait for this event and never infer readiness from
 the DOM.
+
+The document carries its whole selection on `<html data-pipeline-selection="…">`, and the page
+script fails before it renders when any member differs from the URL selection: a stale document
+of another selection fails instead of taking over foreign stage markup.
 
 ## Canonical flow check
 
