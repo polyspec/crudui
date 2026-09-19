@@ -15,10 +15,13 @@ import { verifyEvidence } from './verification-evidence.mjs';
 
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
-/** Return the container arguments that run one verification inside the comparison container. */
-export function verificationCommand(containerName) {
+/**
+ * Return the container arguments that run one verification inside the comparison container, of
+ * the build of `source`, this checkout's identity.
+ */
+export function verificationCommand(containerName, source) {
   return ['exec', '--user', 'node', '--env', 'HOME=/home/node', containerName,
-    'node', path.join(treeDirectory, 'examples/form-comparison/verify-tree.mjs')];
+    'node', path.join(treeDirectory, 'examples/form-comparison/verify-tree.mjs'), JSON.stringify(source)];
 }
 
 /**
@@ -26,16 +29,16 @@ export function verificationCommand(containerName) {
  * units with their own limits, so the host holds no total limit: it stops the run when the run
  * prints no progress line within the inactivity limit.
  */
-export function verificationStep(containerName, runtime) {
+export function verificationStep(containerName, runtime, source) {
   return {
-    id: 'tree-verification', command: runtime.executable, args: verificationCommand(containerName),
+    id: 'tree-verification', command: runtime.executable, args: verificationCommand(containerName, source),
     environment: runtime.environment, silenceLimitMs: stepSilenceLimitMs,
   };
 }
 
-async function execute(containerName) {
+async function execute(containerName, source) {
   const runtime = await containerRuntime();
-  const result = await runStep(verificationStep(containerName, runtime), { label: 'verification' });
+  const result = await runStep(verificationStep(containerName, runtime, source), { label: 'verification' });
   assert.equal(result.status, 'passed', `Verification inside ${containerName} ${result.status} after `
     + `${formatDuration(result.durationMs)}`);
   return result;
@@ -45,7 +48,7 @@ async function main() {
   assert.equal(process.argv.length, 2, 'Usage: node examples/form-comparison/verification.mjs');
   stopStepsOnSignal();
   const before = await sourceIdentity(repositoryRoot);
-  const run = await execute(deploymentContainer);
+  const run = await execute(deploymentContainer, before);
   const results = path.join(repositoryRoot, '.form-comparison/deployment/results');
   const summary = JSON.parse(await readFile(path.join(results, 'verification.json'), 'utf8'));
   assert.equal(summary.passed, true, 'The verification summary did not pass');

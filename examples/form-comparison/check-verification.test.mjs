@@ -139,22 +139,22 @@ test('verifies the deployed services alone, without repeating host tests', () =>
   assert.doesNotMatch(JSON.stringify(checks), /\/workspace\/source|\/opt\/|archive|metadata/);
 });
 
-test('runs verification inside the comparison container as the application user', () => {
-  assert.deepEqual(verificationCommand('crudui-comparison'), [
+test('runs verification inside the comparison container as the application user, of this checkout', () => {
+  assert.deepEqual(verificationCommand('crudui-comparison', { commit: 'abc', changes: null }), [
     'exec', '--user', 'node', '--env', 'HOME=/home/node', 'crudui-comparison',
-    'node', '/workspace/build/tree/examples/form-comparison/verify-tree.mjs',
+    'node', '/workspace/build/tree/examples/form-comparison/verify-tree.mjs', '{"commit":"abc","changes":null}',
   ]);
 });
 
 test('the host waits for the container run while it reports progress, without a total limit', () => {
   const runtime = { executable: '/usr/bin/container-runtime', environment: { CONTAINER_HOST: 'unix:///run/test.sock' } };
-  const step = verificationStep('crudui-comparison', runtime);
+  const step = verificationStep('crudui-comparison', runtime, { commit: 'abc', changes: null });
   assert.equal(step.command, runtime.executable);
   assert.deepEqual(step.environment, runtime.environment);
   assert.equal(step.id, 'tree-verification');
   assert.equal(step.timeoutMs, undefined, 'the host verification has no whole-run limit');
   assert.equal(step.silenceLimitMs, stepSilenceLimitMs);
-  assert.deepEqual(step.args, verificationCommand('crudui-comparison'));
+  assert.deepEqual(step.args, verificationCommand('crudui-comparison', { commit: 'abc', changes: null }));
 });
 
 test('no browser run has a budget or a summed limit; every unit limit comes from a measurement', () => {
@@ -215,7 +215,8 @@ async function stateWriter(t, states) {
   return stateFile;
 }
 
-const readiness = { silenceLimitMs: 300, pollMs: 20, heartbeatMs: 60 };
+const checkout = { commit: 'x', changes: null };
+const readiness = { source: checkout, silenceLimitMs: 300, pollMs: 20, heartbeatMs: 60 };
 
 /** One building state: `step` of `target` holding `limitMs`, its heartbeat renewed at `at`. */
 function building(step, limitMs, at = performance.now()) {
@@ -223,7 +224,7 @@ function building(step, limitMs, at = performance.now()) {
 }
 
 test('the build readiness wait lasts while the build moves through its steps and has no total limit', async t => {
-  assert.equal(typeof tree.readyBuild, 'function', 'verify-tree.mjs exports readyBuild({ stateFile, silenceLimitMs, pollMs, heartbeatMs, write })');
+  assert.equal(typeof tree.readyBuild, 'function', 'verify-tree.mjs exports readyBuild({ source, stateFile, silenceLimitMs, pollMs, heartbeatMs, write })');
   assert.equal(tree.buildReadinessLimitMs, undefined, 'the wait has no total limit');
   const started = performance.now();
   // For three silence limits the build moves to a new step every 100 ms, each within its 100 ms
@@ -232,7 +233,7 @@ test('the build readiness wait lasts while the build moves through its steps and
     const elapsed = performance.now() - started;
     if (elapsed < 900) return building(`rust-${Math.floor(elapsed / 100)}`, 100);
     if (elapsed < 1_400) return building('rust-long', 1_000);
-    return { status: 'ready', cycle: 2, source: { commit: 'x' }, error: null, progress: null };
+    return { status: 'ready', cycle: 2, source: checkout, error: null, progress: null };
   });
   const lines = [];
   const state = await tree.readyBuild({ stateFile, ...readiness, write: text => lines.push(text) });
@@ -241,6 +242,24 @@ test('the build readiness wait lasts while the build moves through its steps and
   // Its lines are unit progress lines, so the host's inactivity limit sees the wait as progress.
   assert.ok(lines.some(line => /^\[verification\] build-readiness: running \d+ms \(cycle 2 building rust step rust-[a-z0-9]+\)$/m.test(line)), lines.join(''));
   assert.ok(lines.some(line => /^\[verification\] build-readiness: passed in \d+(?:ms|\.\ds)$/m.test(line)), lines.join(''));
+});
+
+test('the build readiness wait goes on while the ready build is of another source', async t => {
+  // Right after a commit the supervisor still reports the previous checkout as ready; the wait
+  // lasts until it has built this checkout.
+  const started = performance.now();
+  const stateFile = await stateWriter(t, () => performance.now() - started < 200
+    ? { status: 'ready', cycle: 1, source: { commit: 'old', changes: null }, error: null, progress: null }
+    : { status: 'ready', cycle: 2, source: checkout, error: null, progress: null });
+  const state = await tree.readyBuild({ stateFile, ...readiness, write: () => {} });
+  assert.equal(state.cycle, 2);
+  assert.ok(performance.now() - started >= 200);
+});
+
+test('the build readiness wait stops when no build of this source becomes ready within the inactivity limit', async t => {
+  const stateFile = await stateWriter(t, [{ status: 'ready', cycle: 1, source: { commit: 'old', changes: null }, error: null, progress: null }]);
+  await assert.rejects(tree.readyBuild({ stateFile, ...readiness, write: () => {} }),
+    /build-readiness stalled after \d+ms: no supervisor heartbeat for \d+ms \(cycle 1 is ready for \{"commit":"old","changes":null\}, not \{"commit":"x","changes":null\}\)/);
 });
 
 test('the build readiness wait stops at a hung step whose heartbeat keeps renewing', async t => {

@@ -18,6 +18,14 @@
 - A list with no rows and no declared `empty` showed an empty box. It now shows the `list` table's
   `emptyList` text in the display language; a declared text, even an empty one, is used as
   declared.
+- `make deploy` checked the deployed health right after a commit had changed the servers, while
+  the supervisor inside the container was still rebuilding them, and failed with 503; and the
+  verification accepted a build that was ready for the previous checkout and failed only at its
+  end. Both now wait inside the container until the supervisor has built this checkout's source
+  identity, under the build steps' own limits and the inactivity limit.
+- A `node --test` or Vitest run that printed a passing summary and then ended on a signal or a
+  nonzero exit code failed the step without a line saying why. `run-tests.mjs` now prints a
+  failure line naming the signal or exit code.
 
 ## 2026-09-19 — Compare unique values as JSON values, bound caches and Rust value limits
 

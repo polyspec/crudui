@@ -11,7 +11,7 @@ import { promisify } from 'node:util';
 import { browserServers } from './browser-report-policy.mjs';
 import { containerRuntime, runContainer } from './container-runtime.mjs';
 import { forwardLines } from './src/process-output.mjs';
-import { formatDuration, runStep } from './src/step-runner.mjs';
+import { formatDuration, runStep, stepSilenceLimitMs } from './src/step-runner.mjs';
 import {
   buildDirectory, cacheDirectory, dataDirectory, resultsDirectory, sourceMount,
 } from './src/server-layout.mjs';
@@ -431,6 +431,31 @@ async function containerctl(composeFile) {
 }
 
 /**
+ * The container arguments that wait, inside the deployment, until the supervisor has built and
+ * started the servers of `source`, this checkout's identity. The waiting script runs from the
+ * source mount, so the wait is the checkout's own even before the supervisor has copied it.
+ */
+export function buildReadinessCommand(containerName, source) {
+  return ['exec', '--user', 'node', '--env', 'HOME=/home/node', containerName,
+    'node', path.join(sourceMount, 'examples/form-comparison/ready-build.mjs'), JSON.stringify(source)];
+}
+
+/**
+ * Wait for the build of this checkout. The build moves through steps with their own limits, so
+ * the host holds no total limit: it stops the wait when it prints no progress line within the
+ * inactivity limit.
+ */
+async function awaitBuild() {
+  const runtime = await containerRuntime();
+  const result = await runStep({
+    id: 'build-readiness', command: runtime.executable,
+    args: buildReadinessCommand(deploymentContainer, await sourceIdentity(repositoryRoot)),
+    environment: runtime.environment, silenceLimitMs: stepSilenceLimitMs,
+  }, { label: 'deployment' });
+  assert.equal(result.status, 'passed', `Build readiness ${result.status} after ${formatDuration(result.durationMs)}`);
+}
+
+/**
  * Reuse a running deployment whose immutable image and mounts already satisfy the contract.
  * containerctl is reserved for bootstrap or an explicitly incompatible deployment state.
  */
@@ -469,6 +494,8 @@ async function main() {
   const composeFile = path.join(deploymentDirectory, 'compose.yaml');
   await writeFile(composeFile, compose);
   const application = await applyDeployment(composeFile, imageReference, deploymentDirectory);
+  // The servers answer once the supervisor has built this checkout.
+  await awaitBuild();
   const first = await deploymentSnapshot(imageReference, deploymentDirectory);
   const second = await deploymentSnapshot(imageReference, deploymentDirectory);
   assertStableDeployment(first, second);

@@ -119,3 +119,18 @@ test('a tool that fails before any test runs fails the summary line too', async 
     await rm(directory, { recursive: true, force: true });
   }
 });
+
+test('a node run that ends with a failure after its tests passed says so on a failure line', async () => {
+  // The reporter prints its passing summary from inside node --test; when node --test itself then
+  // ends on a signal or a nonzero code, the run fails and a line names why.
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-run-tests-'));
+  try {
+    const file = path.join(directory, 'killed.test.mjs');
+    await writeFile(file, "import test from 'node:test';\ntest('passes', () => {});\ntest.after(() => process.kill(process.ppid, 'SIGKILL'));\n");
+    const run = spawnSync(process.execPath, [path.join(ROOT, 'scripts/run-tests.mjs'), 'node', '--timeout', '10', '--', file], { encoding: 'utf8' });
+    assert.notEqual(run.status, 0);
+    assert.match(run.stdout, /✖ node .*killed\.test\.mjs: the tool ended on SIGKILL/);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
