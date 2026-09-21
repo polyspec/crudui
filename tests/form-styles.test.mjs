@@ -57,6 +57,13 @@ window.formStylesTest = {
       patchContent(outline, renderOutline(form));
     });
   },
+  mountChoice() {
+    const form = createForm(compileForm({
+      type: 'group',
+      properties: { outcome: { type: 'choice', label: 'Outcome', items: { all: 'All outcomes', open: 'Open' } } },
+    }), { outcome: 'open' }, { language: 'en' });
+    element.innerHTML = renderForm(form);
+  },
 };
 `;
 
@@ -403,6 +410,23 @@ for (const engine of engines) for (const host of hosts) {
       assert.deepEqual(keyboardRestored, { action: 'toggle-row', name: null, visible: true }, 'A visibly focused toggle is restored with visible focus');
       assert.match(moved.name ?? '', /\[stores\]\[[^\]]+\]\[name\]$/, 'Focus moved to the new store row');
       assert.equal(moved.visible, true, 'The moved focus is visible');
+    } finally { await page.close(); }
+  });
+}
+
+for (const engine of engines) {
+  test(`${engine} choice labels receive pointer activation`, async () => {
+    const { page, target, failures } = await openHost(engine, 'page');
+    try {
+      await target.evaluate(() => window.formStylesTest.mountChoice());
+      const input = target.locator('input[type="radio"][value="all"]');
+      const label = target.locator('label', { hasText: 'All outcomes' });
+      await input.click();
+      assert.equal(await target.evaluate(() => document.querySelector('input[type="radio"][value="all"]').checked), true, 'The radio input itself remains pointer activatable');
+      await label.click();
+      assert.equal(await target.evaluate(() => document.querySelector('input[type="radio"][value="all"]').checked), true, 'Clicking the visible choice label checks its radio input');
+      assert.equal(await target.evaluate(() => getComputedStyle(document.querySelector('input[type="radio"][value="all"]')).opacity), '0', 'The native input is visually hidden without removing its hit target');
+      assert.deepEqual(failures, []);
     } finally { await page.close(); }
   });
 }

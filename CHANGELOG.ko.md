@@ -1,5 +1,12 @@
 # 변경 기록
 
+## 2026-09-22 — 선택 input의 포인터 입력을 label로 전달
+
+- 시각적으로 숨긴 radio·checkbox input은 이제 투명하게 렌더링하면서 native hit target을
+  유지합니다. 키보드 focus와 native form 의미를 바꾸지 않고 input 자체와 연결된 화면의
+  label 모두 포인터 입력을 받을 수 있습니다. 따라서 브라우저 자동화와 마우스 사용자가
+  같은 접근 가능한 control로 모든 선택지를 활성화할 수 있습니다.
+
 ## 2026-09-19 — 응답 경화, 하나의 선택 원본, Vue 오류 보고
 
 - 공개 서버의 모든 응답이 이제 `X-Content-Type-Options: nosniff`를 가지고, 모든 JSON 본문은
