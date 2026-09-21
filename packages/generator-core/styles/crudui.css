@@ -195,15 +195,16 @@ textarea.crudui-input {
 }
 
 .crudui-choices__input {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: -1px;
+  position: relative;
+  width: 2.25rem;
+  height: 2.25rem;
+  margin: 0 -2.25rem 0 0;
   padding: 0;
   overflow: hidden;
   border: 0;
-  clip-path: inset(50%);
   white-space: nowrap;
+  opacity: 0;
+  z-index: 1;
 }
 
 .crudui-choices__label {

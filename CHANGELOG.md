@@ -1,5 +1,12 @@
 # Changes
 
+## 2026-09-22 — Choice inputs pass pointer activation to their labels
+
+- Visually hidden radio and checkbox inputs now retain a native hit target with transparent
+  rendering, so both direct input activation and their associated visible labels work without
+  changing keyboard focus or native form semantics. Browser automation and mouse users can
+  therefore activate every choice through the same accessible controls.
+
 ## 2026-09-19 — Hardened responses, one selection source, reported Vue errors
 
 - Every response of the public server now carries `X-Content-Type-Options: nosniff`, every JSON
