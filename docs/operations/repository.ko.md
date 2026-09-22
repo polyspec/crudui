@@ -18,7 +18,7 @@ make github-settings-check
 선언 값을 출력하며 실패합니다. 두 명령 모두 저장소 관리 권한이 있는 인증된 `gh`가 필요합니다.
 
 원격에는 `main`만 둡니다. 같은 이력으로 저장소를 다시 만들면 `main`을 푸시하고
-`make github-settings`를 실행해 설정하며, 문서 사이트는 이어지는 `main`의 CI 실행에서
+`make github-settings`를 실행해 설정하며, 문서 웹은 이어지는 `main`의 CI 실행에서
 `deploy-docs` 작업이 게시합니다. 설정은 GitHub 화면이 아니라 선언을 고치고 명령을 실행해
 바꾸므로 선언이 곧 기록입니다.
 

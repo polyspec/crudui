@@ -16,7 +16,7 @@ Each subject has a document for each supported language. Update the language
 versions in the same change and compare their meaning. Store personal
 preferences and conversation context outside Git.
 
-Site navigation uses English and includes a Korean document index. API navigation
+Documentation navigation uses English and includes a Korean document index. API navigation
 includes the validator, shared generator core and all three framework packages,
 plus Go, Rust and PHP references.
 
@@ -27,21 +27,21 @@ they do not establish deployment.
 
 Run `make docs-check` for API documentation, local links, required translations
 and feature status fields. Run `make docs` to generate API references, schema and
-the documentation site. Automated checks do not establish content accuracy;
+the documentation web. Automated checks do not establish content accuracy;
 review the relevant source and tests before recording a result.
 
 `npm run docs:dev` registers a recursive file-system subscription under `docs/`
-before the initial build. It excludes generated `docs/.site/` events, serializes
+before the initial build. It excludes generated `docs/.web/` events, serializes
 rebuilds and combines source events received during one build into one additional
 build. A build failure is reported and a later source event can request another
 build. A file-system subscription failure closes the server with status 1. The
 development server does not scan source files on an interval.
 
-The documentation site build checks internal links. Fix invalid source or
-generated links instead of disabling the link check for the whole site.
+The documentation web build checks internal links. Fix invalid source or
+generated links instead of disabling the link check for the whole web.
 TypeDoc generates relative links and an `index` page for each package.
 Relative links to repository files outside `docs/` are checked for file existence
-and rendered as GitHub source links on the site. Document sources retain their
+and rendered as GitHub source links on the web. Document sources retain their
 repository-relative links. A missing repository file fails the build.
 
 API generation requires TypeDoc, Go, Cargo and phpDocumentor. A tool failure or
@@ -60,7 +60,7 @@ make docs-verify-idempotent
 ```
 
 TypeScript references describe the five public package entries. Svelte uses its
-built declarations, including `Form`. Native PHP and Rust HTML is included in the site under `docs/public/api/`. The repeated
+built declarations, including `Form`. Native PHP and Rust HTML is included in the web under `docs/public/api/`. The repeated
 generation check compares those assets, Markdown references and the schema.
 Go references include every package under `validator/`, including composition,
 expressions and validation.
@@ -79,9 +79,9 @@ fields between translations; prose equivalence requires review.
 
 The documentation URL is `https://polyspec.github.io/crudui/`. The repository's
 Pages publishing source is **GitHub Actions**. [CI](../../.github/workflows/ci.yml)
-runs `make docs-check` with `DOCS_BASE_PATH=/crudui/`, uploads `docs/.site/dist`,
+runs `make docs-check` with `DOCS_BASE_PATH=/crudui/`, uploads `docs/.web/dist`,
 and deploys it to the `github-pages` environment. A `main` push or manual CI run
-on `main` publishes the site; pull requests only run checks.
+on `main` publishes the web; pull requests only run checks.
 
 Preview the published path from the repository root:
 

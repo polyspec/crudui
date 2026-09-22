@@ -38,7 +38,7 @@ Tests and deployment are recorded separately. `pending` is not a passing result.
 | form-initialization-comparison | Side-by-side stage comparison of forms created with data and forms injected after mounting | implemented | passed | not-deployed | [Form comparison](spec/form-comparison.md) |
 | keyed-validation | Key-preserving group and scalar validation in four languages | implemented | passed | not-deployed | [Shared validation cases](../tests/fixtures/validate/cases.json) |
 | docs-check | Document checks and event-driven development rebuilds | implemented | passed | not-deployed | [Documentation procedure](operations/documentation.md) |
-| docs-pages | Static documentation with English, Korean and API pages | implemented | passed | deployed | [Page tests](../tests/docs/site-build.test.mjs), [publication procedure](operations/documentation.md), [published site](https://polyspec.github.io/crudui/) |
+| docs-pages | Static documentation with English, Korean and API pages | implemented | passed | deployed | [Page tests](../tests/docs/web-build.test.mjs), [publication procedure](operations/documentation.md), [published web](https://polyspec.github.io/crudui/) |
 | ordered-json-check | Cross-language JSON document-order verification | implemented | passed | not-deployed | [Processor checks](../tests/ordered-json/check.py) |
 
 ## Current comparison deployment verification
@@ -130,7 +130,7 @@ Library deployment means package publication; no package is published.
 The table records completed browser checks for all four servers.
 Retained implementation failures remain in the reports.
 
-TypeScript, Go, Rust and PHP API generation and the strict static site build
+TypeScript, Go, Rust and PHP API generation and the strict static web build
 passed. Two complete generations produced identical API documentation, native
 HTML assets and schema output. Eight generator failure tests passed, and the raw
 form inspector passed 18 cases.

@@ -182,9 +182,9 @@ A tool with no secure compatible stable release is replaced. Dependency override
 and audit exclusions do not satisfy these checks. Unused build and documentation
 dependencies are removed.
 
-## Documentation site
+## Documentation web
 
-The documentation site build reads Markdown from `docs/` after API reference
+The documentation web build reads Markdown from `docs/` after API reference
 generation. Every Markdown document must contain exactly one level-one heading.
 The heading becomes the document heading and the browser title is
 `<heading> | CRUDUI`. `index.md` maps to the directory route; every other
@@ -200,14 +200,14 @@ anchors, so a link fragment must match the generated slug.
 Documentation-relative links use generated HTML routes. The build verifies every
 local target and fragment. A relative link outside `docs/` requires an existing
 repository file or directory and becomes a repository source link in generated
-HTML. Files under `docs/public/` are copied to the site root. Missing targets,
+HTML. Files under `docs/public/` are copied to the web root. Missing targets,
 missing fragments, duplicate routes and invalid document headings fail the
 build.
 
-The generated site contains navigation, the complete documentation sidebar,
+The generated web contains navigation, the complete documentation sidebar,
 per-page headings and responsive styles. English documents use `en-US` and
 `.ko.md` documents use `ko-KR`. A clean build writes only deterministic
-output to `docs/.site/dist/`; repeated builds from unchanged inputs must produce
+output to `docs/.web/dist/`; repeated builds from unchanged inputs must produce
 identical files. Development and preview commands serve the same generated
 output and return a nonzero status when the initial build fails.
 
@@ -215,7 +215,7 @@ output and return a nonzero status when the initial build fails.
 to `/` when omitted. Explicit values must start and end with `/` and contain only
 letters, digits, `_` or `-` in each path segment. Invalid values fail the command.
 Navigation, document links, images, styles and the 404 page use that prefix.
-GitHub Pages publishes the checked site at `https://polyspec.github.io/crudui/`
+GitHub Pages publishes the checked web at `https://polyspec.github.io/crudui/`
 after the CI documentation job succeeds on `main`.
 
 ## PHP dependencies

@@ -44,7 +44,7 @@ install compilation and production rendering.
 lint and types job and `make ci` call it. `eslint.config.mjs` applies one rule set to every
 JavaScript, TypeScript, Vue and Svelte source: packages, examples, tests, scripts, tools and the
 root configuration files. It ignores only generated or installed output (`dist`, `out`,
-`.svelte-kit`, `node_modules`, `vendor`, `target`, the documentation site's build and generated API
+`.svelte-kit`, `node_modules`, `vendor`, `target`, the documentation web's build and generated API
 pages, and the native build directories). Per-file settings state only where code runs: browser
 globals for browser code, both Node and browser globals for Node programs that hand functions to a
 browser page or a DOM environment, CommonJS for the root package's `.js` scripts, and the Svelte
