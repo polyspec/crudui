@@ -13,7 +13,7 @@ import {
   buildReadinessCommand,
 } from './comparison-deployment.mjs';
 
-const repositoryRoot = '/Users/example/crudui';
+const repositoryRoot = path.resolve(import.meta.dirname, '../..');
 const containerfile = await readFile(new URL('./Containerfile', import.meta.url));
 const imageReference = toolchainImageReference(containerfile);
 
