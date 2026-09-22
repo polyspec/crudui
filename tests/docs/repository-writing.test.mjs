@@ -7,7 +7,7 @@ import test from 'node:test';
 const repository = path.resolve(import.meta.dirname, '../..');
 const excludedPrefixes = [
   'docs/api/',
-  'docs/.site/',
+  'docs/.web/',
   'docs/.vitepress/',
 ];
 const sourceExtensions = new Set([

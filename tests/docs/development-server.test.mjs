@@ -3,10 +3,10 @@ import { EventEmitter } from 'node:events';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-import { watchDocumentation } from '../../scripts/docs-site/watch.mjs';
+import { watchDocumentation } from '../../scripts/docs-web/watch.mjs';
 
 const source = await readFile(
-  new URL('../../scripts/docs-site/cli.mjs', import.meta.url), 'utf8',
+  new URL('../../scripts/docs-web/cli.mjs', import.meta.url), 'utf8',
 );
 
 test('documentation development rebuilds use file-system events', () => {
@@ -44,13 +44,13 @@ test('documentation source events serialize rebuilds and exclude generated outpu
   assert.deepEqual(builds, [1]);
   receive('rename', 'guide.md');
   receive('change', 'reference/api.md');
-  receive('change', '.site/dist/guide.html');
+  receive('change', '.web/dist/guide.html');
   releaseFirst();
   await subscription.idle();
   assert.deepEqual(builds, [1, 2]);
   assert.deepEqual(failures, []);
 
-  receive('change', '.site/dist/index.html');
+  receive('change', '.web/dist/index.html');
   await subscription.idle();
   assert.deepEqual(builds, [1, 2]);
   subscription.close();

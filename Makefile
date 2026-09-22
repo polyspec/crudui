@@ -8,8 +8,8 @@
 # machine-absolute paths). `make docs` run twice yields identical output.
 
 .DEFAULT_GOAL := help
-.PHONY: help docs docs-api docs-schema docs-site docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-extension test-native test-native-suites test-validators conformance format-check deploy deploy-verify github-settings github-settings-check ci test-form-styles-linux
-.NOTPARALLEL: docs docs-site docs-dev docs-preview docs-check docs-verify-idempotent
+.PHONY: help docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-extension test-native test-native-suites test-validators conformance format-check deploy deploy-verify github-settings github-settings-check ci test-form-styles-linux
+.NOTPARALLEL: docs docs-web docs-dev docs-preview docs-check docs-verify-idempotent
 
 # Validator benchmark iteration counts (override on the command line, e.g.
 # `make bench BENCH_ITERS=100000`).
@@ -23,10 +23,10 @@ CONFORMANCE_EVIDENCE ?= $(abspath $(shell git rev-parse --git-path conformance-e
 help: ## 타겟 설명
 	@echo "CRUDUI docs — make targets:"
 	@echo ""
-	@echo "  make docs                  전체 문서 생성 (API doc 멀티언어 + JSON schema 검사 + 정적 사이트)"
+	@echo "  make docs                  전체 문서 생성 (API doc 멀티언어 + JSON schema 검사 + 정적 웹)"
 	@echo "  make docs-api              Generate API references for all languages"
 	@echo "  make docs-schema           스펙 JSON Schema와 공유 고정 데이터 검사"
-	@echo "  make docs-site             정적 사이트 빌드 (docs/.site/dist)"
+	@echo "  make docs-web             정적 웹 빌드 (docs/.web/dist)"
 	@echo "  make docs-dev              문서 개발 서버"
 	@echo "  make docs-preview          문서 빌드 결과 미리보기 서버"
 	@echo "  make docs-clean            생성물 전부 제거 (docs/api, dist, target/doc)"
@@ -58,8 +58,8 @@ help: ## 타겟 설명
 	@echo "  주의: 절대시간은 머신 의존 — 같은 스펙 안에서 백엔드 간 비율만 비교하라."
 	@echo ""
 
-docs: docs-clean docs-site ## 전체 문서 생성 (clean-then-generate)
-	@echo "[make] docs: complete -> docs/.site/dist"
+docs: docs-clean docs-web ## 전체 문서 생성 (clean-then-generate)
+	@echo "[make] docs: complete -> docs/.web/dist"
 
 docs-api: ## 멀티언어 API doc
 	npm run docs:api
@@ -67,7 +67,7 @@ docs-api: ## 멀티언어 API doc
 docs-schema: ## 스펙 JSON Schema 검사
 	npm run spec:schema
 
-docs-site: ## 문서 정적 사이트 빌드
+docs-web: ## 문서 정적 웹 빌드
 	npm run docs:build
 
 docs-dev: ## 문서 개발 서버
@@ -94,7 +94,7 @@ docs-check-libs: ## 라이브러리 packages/* doc-coverage
 
 docs-clean: ## 생성물 전부 제거
 	rm -rf docs/api docs/public/api
-	rm -rf docs/.site
+	rm -rf docs/.web
 	rm -rf packages/validator-rust/target/doc
 	rm -rf tools/bin/.phpdoc-cache
 	@echo "[make] docs-clean: removed generated docs/api, dist, rustdoc, phpdoc cache"
@@ -102,17 +102,17 @@ docs-clean: ## 생성물 전부 제거
 # Generate twice and compare Markdown, native API assets and the schema.
 docs-verify-idempotent: ## docs 를 2회 생성하고 diff 가 비는지 검증
 	@$(MAKE) docs-clean
-	@$(MAKE) docs-site
+	@$(MAKE) docs-web
 	@rm -rf /tmp/crudui-docs-run1 && mkdir -p /tmp/crudui-docs-run1
 	@cp -R docs/api /tmp/crudui-docs-run1/api
 	@cp -R docs/public/api /tmp/crudui-docs-run1/native-api
-	@cp -R docs/.site/dist /tmp/crudui-docs-run1/site
+	@cp -R docs/.web/dist /tmp/crudui-docs-run1/docs
 	@cp schema/crudui.schema.json /tmp/crudui-docs-run1/crudui.schema.json
-	@$(MAKE) docs-site
+	@$(MAKE) docs-web
 	@rm -rf /tmp/crudui-docs-run2 && mkdir -p /tmp/crudui-docs-run2
 	@cp -R docs/api /tmp/crudui-docs-run2/api
 	@cp -R docs/public/api /tmp/crudui-docs-run2/native-api
-	@cp -R docs/.site/dist /tmp/crudui-docs-run2/site
+	@cp -R docs/.web/dist /tmp/crudui-docs-run2/docs
 	@cp schema/crudui.schema.json /tmp/crudui-docs-run2/crudui.schema.json
 	@if diff -r /tmp/crudui-docs-run1 /tmp/crudui-docs-run2 > /tmp/crudui-docs-diff.txt 2>&1; then \
 		echo "[make] docs-verify-idempotent: OK — two runs produced identical deterministic output"; \

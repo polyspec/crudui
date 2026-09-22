@@ -38,7 +38,7 @@
 | form-initialization-comparison | 데이터와 함께 생성한 폼과 마운트 후 주입한 폼의 단계별 좌우 비교 | implemented | passed | not-deployed | [폼 비교](spec/form-comparison.ko.md) |
 | keyed-validation | 네 언어의 키를 유지하는 그룹·단일 값 검증 | implemented | passed | not-deployed | [공용 검증 사례](../tests/fixtures/validate/cases.json) |
 | docs-check | 문서 검사와 이벤트 기반 개발 빌드 | implemented | passed | not-deployed | [문서 관리 절차](operations/documentation.ko.md) |
-| docs-pages | 영어·한국어·API 페이지를 제공하는 정적 문서 | implemented | passed | deployed | [페이지 검사](../tests/docs/site-build.test.mjs), [게시 절차](operations/documentation.ko.md), [게시 사이트](https://polyspec.github.io/crudui/) |
+| docs-pages | 영어·한국어·API 페이지를 제공하는 정적 문서 | implemented | passed | deployed | [페이지 검사](../tests/docs/web-build.test.mjs), [게시 절차](operations/documentation.ko.md), [게시 웹](https://polyspec.github.io/crudui/) |
 | ordered-json-check | 언어별 JSON 문서 순서 검증 | implemented | passed | not-deployed | [처리기 검사](../tests/ordered-json/check.py) |
 
 ## 현재 비교 배포 검증
@@ -124,6 +124,6 @@ Git에서 제거했습니다. 새 이미지는 같은 잠금 버전의 PHP 의�
 표는 서버별로 완료된 최신 검사를 기록합니다.
 네 서버의 브라우저 검사가 완료되었습니다. 보존된 비교 구현의 실패는 보고서에 유지합니다.
 
-TypeScript·Go·Rust·PHP API 생성과 엄격한 정적 사이트 빌드가 통과했습니다.
+TypeScript·Go·Rust·PHP API 생성과 엄격한 정적 웹 빌드가 통과했습니다.
 전체 문서를 두 번 생성한 API 문서·네이티브 HTML 자산·스키마 출력은 동일했습니다.
 생성 실패 검사 8개와 폼 원문 검사기 18개가 통과했습니다.

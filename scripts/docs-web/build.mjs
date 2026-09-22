@@ -9,7 +9,7 @@ import { repositoryLink } from '../documentation-links.mjs';
 import { documentationBasePath, documentationUrl } from './paths.mjs';
 
 const SOURCE_DIRECTORY = dirname(fileURLToPath(import.meta.url));
-const SITE_CSS = join(SOURCE_DIRECTORY, 'site.css');
+const DOCS_CSS = join(SOURCE_DIRECTORY, 'docs.css');
 const EXTERNAL_SCHEME = /^[A-Za-z][A-Za-z\d+.-]*:/;
 const HEADING_COMBINING = /[\u0300-\u036F]/g;
 // eslint-disable-next-line no-control-regex -- heading slugs drop the C0 control characters this class names.
@@ -112,7 +112,7 @@ function validateFragment(page, encodedFragment, sourceFile) {
   }
 }
 
-function resolveSiteLink(href, page, site) {
+function resolveDocsLink(href, page, context) {
   if (!href || EXTERNAL_SCHEME.test(href) || href.startsWith('//')) return href;
   const { pathname, query, fragment } = splitHref(href);
   if (!pathname) {
@@ -121,40 +121,40 @@ function resolveSiteLink(href, page, site) {
   }
 
   if (pathname.startsWith('/')) {
-    const targetPage = pageForRoute(pathname, site.pagesByRoute);
+    const targetPage = pageForRoute(pathname, context.pagesByRoute);
     if (targetPage) {
       validateFragment(targetPage, fragment, page.sourceFile);
-      return `${pageUrl(targetPage, site.basePath)}${suffix(query, fragment)}`;
+      return `${pageUrl(targetPage, context.basePath)}${suffix(query, fragment)}`;
     }
     const staticPath = decodeURIComponent(pathname).replace(/^\/+/, '');
-    if (!site.publicFiles.has(staticPath) && staticPath !== 'assets/site.css') {
+    if (!context.publicFiles.has(staticPath) && staticPath !== 'assets/docs.css') {
       throw new Error(`Missing documentation target in ${page.sourceFile}: ${href}`);
     }
-    return documentationUrl(pathname, site.basePath) + suffix(query, fragment);
+    return documentationUrl(pathname, context.basePath) + suffix(query, fragment);
   }
 
   const decodedPath = decodeURIComponent(pathname);
   const target = resolve(dirname(page.sourceFile), decodedPath);
-  if (!within(site.docsDirectory, target)) {
-    return repositoryLink(href, page.sourceFile, site.repositoryRoot);
+  if (!within(context.docsDirectory, target)) {
+    return repositoryLink(href, page.sourceFile, context.repositoryRoot);
   }
 
-  if (within(site.publicDirectory, target)) {
-    const staticPath = posix(relative(site.publicDirectory, target));
-    if (!site.publicFiles.has(staticPath)) {
+  if (within(context.publicDirectory, target)) {
+    const staticPath = posix(relative(context.publicDirectory, target));
+    if (!context.publicFiles.has(staticPath)) {
       throw new Error(`Missing documentation target in ${page.sourceFile}: ${href}`);
     }
-    return documentationUrl(staticPath, site.basePath) + suffix(query, fragment);
+    return documentationUrl(staticPath, context.basePath) + suffix(query, fragment);
   }
 
-  let targetPage = site.pagesBySource.get(target);
-  if (!targetPage && existsSync(target)) targetPage = site.pagesBySource.get(join(target, 'index.md'));
-  if (!targetPage && !extname(target)) targetPage = site.pagesBySource.get(`${target}.md`);
+  let targetPage = context.pagesBySource.get(target);
+  if (!targetPage && existsSync(target)) targetPage = context.pagesBySource.get(join(target, 'index.md'));
+  if (!targetPage && !extname(target)) targetPage = context.pagesBySource.get(`${target}.md`);
   if (!targetPage) {
     throw new Error(`Missing documentation target in ${page.sourceFile}: ${href}`);
   }
   validateFragment(targetPage, fragment, page.sourceFile);
-  return `${pageUrl(targetPage, site.basePath)}${suffix(query, fragment)}`;
+  return `${pageUrl(targetPage, context.basePath)}${suffix(query, fragment)}`;
 }
 
 function markdownRenderer() {
@@ -177,14 +177,14 @@ function markdownRenderer() {
     ?? ((tokens, index, options, environment, renderer) => renderer.renderToken(tokens, index, options));
   markdown.renderer.rules.link_open = (tokens, index, options, environment, renderer) => {
     const href = tokens[index].attrGet('href');
-    if (href) tokens[index].attrSet('href', resolveSiteLink(href, environment.page, environment.site));
+    if (href) tokens[index].attrSet('href', resolveDocsLink(href, environment.page, environment.context));
     return renderLink(tokens, index, options, environment, renderer);
   };
   const renderImage = markdown.renderer.rules.image
     ?? ((tokens, index, options, environment, renderer) => renderer.renderToken(tokens, index, options));
   markdown.renderer.rules.image = (tokens, index, options, environment, renderer) => {
     const source = tokens[index].attrGet('src');
-    if (source) tokens[index].attrSet('src', resolveSiteLink(source, environment.page, environment.site));
+    if (source) tokens[index].attrSet('src', resolveDocsLink(source, environment.page, environment.context));
     return renderImage(tokens, index, options, environment, renderer);
   };
   return markdown;
@@ -253,15 +253,15 @@ function documentHtml(page, body, pages, basePath) {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="${escapeHtml(description)}">
   <title>${escapeHtml(page.title)} | CRUDUI</title>
-  <link rel="stylesheet" href="${basePath}assets/site.css">
+  <link rel="stylesheet" href="${basePath}assets/docs.css">
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
-  <header class="site-header">
+  <header class="docs-header">
     <a class="brand" href="${basePath}">CRUDUI</a>
     <nav aria-label="Primary"><a href="${basePath}README.html">Guide</a><a href="${basePath}README.ko.html">한국어</a><a href="${basePath}spec/schema.html">Specification</a><a href="${basePath}spec/validation-rules.html">Validation</a><a href="${basePath}api/">API</a><a href="https://github.com/polyspec/crudui">GitHub</a></nav>
   </header>
-  <div class="site-layout">
+  <div class="docs-layout">
     <aside class="sidebar" aria-label="Documentation">${navigation(pages, page, basePath)}</aside>
     <main id="main"><article>${body}</article></main>
     ${outline(page)}
@@ -275,7 +275,7 @@ function documentHtml(page, body, pages, basePath) {
 function notFoundHtml(basePath) {
   return `<!doctype html>
 <html lang="en-US">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>404 | CRUDUI</title><link rel="stylesheet" href="${basePath}assets/site.css"></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>404 | CRUDUI</title><link rel="stylesheet" href="${basePath}assets/docs.css"></head>
 <body><main class="not-found"><p class="error-code">404</p><p>Page not found</p><p><a href="${basePath}">Open the documentation index</a></p></main></body>
 </html>
 `;
@@ -286,7 +286,7 @@ async function writeOutput(filename, content) {
   await writeFile(filename, content);
 }
 
-export async function buildDocumentationSite({ repositoryRoot, docsDirectory, outputDirectory, basePath: baseInput }) {
+export async function buildDocumentationWeb({ repositoryRoot, docsDirectory, outputDirectory, basePath: baseInput }) {
   const basePath = documentationBasePath(baseInput);
   const root = resolve(repositoryRoot);
   const docs = resolve(docsDirectory);
@@ -296,14 +296,14 @@ export async function buildDocumentationSite({ repositoryRoot, docsDirectory, ou
   if (within(output, docs)) throw new Error('Documentation output cannot contain the documentation input');
   const publicDirectory = join(docs, 'public');
   const sourceFiles = (await walk(docs, filename => filename.endsWith('.md')))
-    .filter(filename => !within(join(docs, '.site'), filename) && !within(publicDirectory, filename));
+    .filter(filename => !within(join(docs, '.web'), filename) && !within(publicDirectory, filename));
   const publicInputs = await walk(publicDirectory);
   const publicFiles = new Map(publicInputs.map(filename => [posix(relative(publicDirectory, filename)), filename]));
   const renderer = markdownRenderer();
   const pages = [];
   const pagesBySource = new Map();
   const pagesByRoute = new Map();
-  const outputs = new Set(['404.html', 'assets/site.css']);
+  const outputs = new Set(['404.html', 'assets/docs.css']);
 
   for (const sourceFile of sourceFiles) {
     const page = {
@@ -336,19 +336,19 @@ export async function buildDocumentationSite({ repositoryRoot, docsDirectory, ou
     outputs.add(staticPath);
   }
 
-  const site = { repositoryRoot: root, docsDirectory: docs, publicDirectory, publicFiles, pagesBySource, pagesByRoute, basePath };
+  const context = { repositoryRoot: root, docsDirectory: docs, publicDirectory, publicFiles, pagesBySource, pagesByRoute, basePath };
   const parent = dirname(output);
   await mkdir(parent, { recursive: true });
-  const temporary = await mkdtemp(join(parent, '.site-build-'));
+  const temporary = await mkdtemp(join(parent, '.web-build-'));
   const previous = output + '.previous';
   try {
     for (const page of pages) {
-      const environment = { page, site };
+      const environment = { page, context };
       const body = renderer.renderer.render(page.tokens, renderer.options, environment);
       await writeOutput(join(temporary, page.output), documentHtml(page, body, pages, basePath));
     }
     await writeOutput(join(temporary, '404.html'), notFoundHtml(basePath));
-    await writeOutput(join(temporary, 'assets/site.css'), await readFile(SITE_CSS));
+    await writeOutput(join(temporary, 'assets/docs.css'), await readFile(DOCS_CSS));
     for (const [staticPath, sourceFile] of publicFiles) {
       const destination = join(temporary, staticPath);
       await mkdir(dirname(destination), { recursive: true });

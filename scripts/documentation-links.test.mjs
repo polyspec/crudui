@@ -12,7 +12,7 @@ writeFileSync(join(root, 'tests', 'build notes.md'), '# Build notes');
 const source = join(root, 'docs', 'features.md');
 after(() => rmSync(root, { recursive: true }));
 
-test('site links remain available to the normal site link checker', () => {
+test('documentation links remain available to the normal documentation link checker', () => {
   assert.equal(repositoryLink('./spec/missing.md', source, root), './spec/missing.md');
 });
 

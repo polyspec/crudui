@@ -41,5 +41,5 @@ npm run test:forms
 - [변경 기록](CHANGELOG.ko.md)
 - [개발 규칙](AGENTS.ko.md)
 
-`make docs-check`로 문서를 검사하고 `make docs`로 API 참조, 스키마, 문서 사이트를
+`make docs-check`로 문서를 검사하고 `make docs`로 API 참조, 스키마, 문서 웹을
 생성합니다. 테스트 통과와 배포 상태는 별도로 기록합니다.

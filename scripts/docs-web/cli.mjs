@@ -2,19 +2,19 @@
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { buildDocumentationSite } from './build.mjs';
+import { buildDocumentationWeb } from './build.mjs';
 import { documentationBasePath } from './paths.mjs';
 import { createDocumentationServer } from './server.mjs';
 import { watchDocumentation } from './watch.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const DOCS = join(ROOT, 'docs');
-const OUTPUT = join(DOCS, '.site', 'dist');
+const OUTPUT = join(DOCS, '.web', 'dist');
 const BASE_PATH = documentationBasePath(process.env.DOCS_BASE_PATH);
 
 async function build() {
-  const report = await buildDocumentationSite({ repositoryRoot: ROOT, docsDirectory: DOCS, outputDirectory: OUTPUT, basePath: BASE_PATH });
-  process.stdout.write(`[docs-site] ${report.documents} documents, ${report.pages} pages, ${report.assets} assets\n`);
+  const report = await buildDocumentationWeb({ repositoryRoot: ROOT, docsDirectory: DOCS, outputDirectory: OUTPUT, basePath: BASE_PATH });
+  process.stdout.write(`[docs-web] ${report.documents} documents, ${report.pages} pages, ${report.assets} assets\n`);
 }
 
 function argument(name, defaultValue) {
@@ -56,7 +56,7 @@ async function serve(development) {
   }
   if (development) {
     reportBuildError = error => {
-      process.stderr.write(`[docs-site] rebuild failed: ${error.stack ?? error.message}\n`);
+      process.stderr.write(`[docs-web] rebuild failed: ${error.stack ?? error.message}\n`);
     };
   }
   const server = createDocumentationServer({ outputDirectory: OUTPUT, basePath: BASE_PATH });
@@ -69,7 +69,7 @@ async function serve(development) {
     sourceWatcher?.close();
     throw error;
   }
-  process.stdout.write(`[docs-site] http://${host}:${port}${BASE_PATH}\n`);
+  process.stdout.write(`[docs-web] http://${host}:${port}${BASE_PATH}\n`);
   let stopping = false;
   const stop = (status = 0) => {
     if (stopping) return;
@@ -77,14 +77,14 @@ async function serve(development) {
     sourceWatcher?.close();
     server.close(error => {
       if (error) {
-        process.stderr.write(`[docs-site] server close failed: ${error.stack ?? error.message}\n`);
+        process.stderr.write(`[docs-web] server close failed: ${error.stack ?? error.message}\n`);
         process.exitCode = 1;
       } else process.exitCode = status;
     });
   };
   if (development) {
     handleRuntimeWatchFailure = error => {
-      process.stderr.write(`[docs-site] source watch failed: ${error.stack ?? error.message}\n`);
+      process.stderr.write(`[docs-web] source watch failed: ${error.stack ?? error.message}\n`);
       stop(1);
     };
     if (watchFailure) handleRuntimeWatchFailure(watchFailure);

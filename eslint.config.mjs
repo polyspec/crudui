@@ -55,7 +55,7 @@ export default tseslint.config(
       '**/out/**',
       '**/.svelte-kit/**',
       '**/coverage/**',
-      'docs/.site/**',
+      'docs/.web/**',
       'docs/.vitepress/**',
       'docs/api/**',
       'docs/public/**',

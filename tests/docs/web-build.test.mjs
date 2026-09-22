@@ -4,8 +4,8 @@ import { tmpdir } from 'node:os';
 import { join, relative } from 'node:path';
 import test from 'node:test';
 
-import { buildDocumentationSite } from '../../scripts/docs-site/build.mjs';
-import { createDocumentationServer } from '../../scripts/docs-site/server.mjs';
+import { buildDocumentationWeb } from '../../scripts/docs-web/build.mjs';
+import { createDocumentationServer } from '../../scripts/docs-web/server.mjs';
 
 async function files(directory) {
   const result = [];
@@ -29,7 +29,7 @@ async function contents(directory) {
 }
 
 test('documentation build preserves page routes, titles, links and public files', async t => {
-  const repositoryRoot = await mkdtemp(join(tmpdir(), 'crudui-doc-site-'));
+  const repositoryRoot = await mkdtemp(join(tmpdir(), 'crudui-doc-docs-'));
   t.after(() => rm(repositoryRoot, { recursive: true, force: true }));
   const docsDirectory = join(repositoryRoot, 'docs');
   const outputDirectory = join(repositoryRoot, 'output');
@@ -70,12 +70,12 @@ test('documentation build preserves page routes, titles, links and public files'
   await writeFile(join(docsDirectory, 'public', 'assets', 'fixture.txt'), 'public asset\n');
   await writeFile(join(docsDirectory, 'public', 'assets', 'source.md'), '# Public source file\n');
 
-  const report = await buildDocumentationSite({ repositoryRoot, docsDirectory, outputDirectory });
+  const report = await buildDocumentationWeb({ repositoryRoot, docsDirectory, outputDirectory });
 
   assert.deepEqual(await files(outputDirectory), [
     '404.html',
+    'assets/docs.css',
     'assets/fixture.txt',
-    'assets/site.css',
     'assets/source.md',
     'guide/start.html',
     'index.html',
@@ -112,7 +112,7 @@ test('documentation build rejects a document without one level-one heading', asy
   await mkdir(docsDirectory);
   await writeFile(join(docsDirectory, 'index.md'), '## Missing title\n');
   await assert.rejects(
-    buildDocumentationSite({
+    buildDocumentationWeb({
       repositoryRoot,
       docsDirectory,
       outputDirectory: join(repositoryRoot, 'output'),
@@ -128,15 +128,15 @@ test('documentation build rejects an output path that contains its input', async
   await mkdir(docsDirectory);
   await writeFile(join(docsDirectory, 'index.md'), '# Source remains\n');
   await assert.rejects(
-    buildDocumentationSite({ repositoryRoot, docsDirectory, outputDirectory: repositoryRoot }),
+    buildDocumentationWeb({ repositoryRoot, docsDirectory, outputDirectory: repositoryRoot }),
     /output cannot contain the documentation input/,
   );
   assert.equal(await readFile(join(docsDirectory, 'index.md'), 'utf8'), '# Source remains\n');
 });
 
 for (const [name, link, error] of [
-  ['missing site document', './missing.md', /Missing documentation target/],
-  ['missing site fragment', './index.md#missing', /Missing documentation fragment/],
+  ['missing docs document', './missing.md', /Missing documentation target/],
+  ['missing docs fragment', './index.md#missing', /Missing documentation fragment/],
   ['missing repository file', '../missing.md', /Invalid repository link/],
 ]) {
   test('documentation build rejects a ' + name, async t => {
@@ -146,7 +146,7 @@ for (const [name, link, error] of [
     await mkdir(docsDirectory);
     await writeFile(join(docsDirectory, 'index.md'), '# Links\n\n[Invalid](' + link + ')\n');
     await assert.rejects(
-      buildDocumentationSite({
+      buildDocumentationWeb({
         repositoryRoot,
         docsDirectory,
         outputDirectory: join(repositoryRoot, 'output'),
@@ -164,7 +164,7 @@ test('documentation build rejects public files that replace generated pages', as
   await writeFile(join(docsDirectory, 'index.md'), '# Generated page\n');
   await writeFile(join(docsDirectory, 'public', 'index.html'), 'replacement\n');
   await assert.rejects(
-    buildDocumentationSite({
+    buildDocumentationWeb({
       repositoryRoot,
       docsDirectory,
       outputDirectory: join(repositoryRoot, 'output'),
@@ -181,8 +181,8 @@ test('documentation builds are deterministic', async t => {
   await writeFile(join(docsDirectory, 'index.md'), '# Repeatable\n');
   const first = join(repositoryRoot, 'first');
   const second = join(repositoryRoot, 'second');
-  await buildDocumentationSite({ repositoryRoot, docsDirectory, outputDirectory: first });
-  await buildDocumentationSite({ repositoryRoot, docsDirectory, outputDirectory: second });
+  await buildDocumentationWeb({ repositoryRoot, docsDirectory, outputDirectory: first });
+  await buildDocumentationWeb({ repositoryRoot, docsDirectory, outputDirectory: second });
   assert.deepEqual(await contents(first), await contents(second));
 });
 
@@ -206,9 +206,9 @@ for (const basePath of ['/', '/crudui/']) {
     ].join('\n'));
     await writeFile(join(docsDirectory, 'public', 'icon.svg'), '<svg xmlns="http://www.w3.org/2000/svg"></svg>');
     await writeFile(join(docsDirectory, 'public', 'api', 'index.html'), '<h1>Native API</h1>');
-    await buildDocumentationSite({ repositoryRoot, docsDirectory, outputDirectory, basePath });
+    await buildDocumentationWeb({ repositoryRoot, docsDirectory, outputDirectory, basePath });
     const guide = await readFile(join(outputDirectory, 'guide', 'start.html'), 'utf8');
-    for (const url of [basePath, `${basePath}index.ko.html?lang=ko`, `${basePath}guide/start.html?example=1#install`, `${basePath}api/index.html`, `${basePath}assets/site.css`]) {
+    for (const url of [basePath, `${basePath}index.ko.html?lang=ko`, `${basePath}guide/start.html?example=1#install`, `${basePath}api/index.html`, `${basePath}assets/docs.css`]) {
       assert.ok(guide.includes(`href="${url}"`), url);
     }
     assert.ok(guide.includes(`src="${basePath}icon.svg?version=1"`));
@@ -219,7 +219,7 @@ for (const basePath of ['/', '/crudui/']) {
     });
     t.after(() => new Promise((accept, reject) => server.close(error => error ? reject(error) : accept())));
     const origin = `http://127.0.0.1:${server.address().port}`;
-    for (const route of ['', 'index.ko.html', 'guide/start.html', 'api/index.html', 'icon.svg', 'assets/site.css']) {
+    for (const route of ['', 'index.ko.html', 'guide/start.html', 'api/index.html', 'icon.svg', 'assets/docs.css']) {
       const response = await fetch(origin + basePath + route);
       assert.equal(response.status, 200, route);
       assert.ok((await response.text()).length > 0, route);
@@ -228,7 +228,7 @@ for (const basePath of ['/', '/crudui/']) {
     assert.equal(missing.status, 404);
     const html = await missing.text();
     assert.ok(html.includes(`href="${basePath}"`));
-    assert.ok(html.includes(`href="${basePath}assets/site.css"`));
+    assert.ok(html.includes(`href="${basePath}assets/docs.css"`));
     if (basePath !== '/') {
       const outside = await fetch(origin + '/index.html');
       assert.equal(outside.status, 404);
@@ -244,7 +244,7 @@ test('documentation rejects malformed base paths before writing output', async t
   await mkdir(docsDirectory);
   await writeFile(join(docsDirectory, 'index.md'), '# Home');
   for (const basePath of ['', null, 'crudui/', '/crudui', '//host/', '/../', '/crudui/?query=1', '/a\\b/', '/a%20b/']) {
-    await assert.rejects(buildDocumentationSite({
+    await assert.rejects(buildDocumentationWeb({
       repositoryRoot, docsDirectory, outputDirectory: join(repositoryRoot, 'output'), basePath,
     }), /DOCS_BASE_PATH/);
   }

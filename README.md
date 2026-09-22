@@ -42,5 +42,5 @@ and Korean guides, specifications and generated API references.
 - [Development rules](AGENTS.md)
 
 Run `make docs-check` to check documentation and `make docs` to generate API
-references, schema and the documentation site. Test success and deployment status
+references, schema and the documentation web. Test success and deployment status
 are recorded separately.

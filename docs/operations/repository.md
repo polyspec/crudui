@@ -21,7 +21,7 @@ setting differs from the declaration, naming the setting, its current value and 
 value. Both commands need an authenticated `gh` with administration rights on the repository.
 
 The remote holds only `main`. A repository created again from the same history is configured by
-pushing `main` and running `make github-settings`; the documentation site is then published by
+pushing `main` and running `make github-settings`; the documentation web is then published by
 the `deploy-docs` job of the next CI run on `main`. Change a setting by editing the declaration
 and running the command, never through the GitHub interface, so the declaration stays the record.
 
