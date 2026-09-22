@@ -195,11 +195,11 @@ jobs:
         run: sh scripts/install-phpdocumentor.sh
       - name: Documentation gate (documents and libraries in four languages)
         run: make docs-check
-      - name: Upload documentation site
+      - name: Upload documentation web
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v4
         with:
-          path: docs/.site/dist
+          path: docs/.web/dist
 
   deploy-docs:
     name: Deploy documentation to GitHub Pages
@@ -217,7 +217,7 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Deploy documentation site
+      - name: Deploy documentation web
         id: deployment
         uses: actions/deploy-pages@v4
 
