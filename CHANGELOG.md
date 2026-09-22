@@ -901,9 +901,9 @@ builds are reused only when their source and output digests still match.
 
 ## 2026-09-15 — Use GitHub-compatible documentation heading anchors
 
-The documentation site now generates heading anchors without adding an underscore
+The documentation web now generates heading anchors without adding an underscore
 to headings that start with a digit. Repository-relative document links therefore
-use the same fragments as GitHub source pages. The site build test and the package
+use the same fragments as GitHub source pages. The web build test and the package
 build specification in English and Korean record this rule.
 
 ## 2026-09-15 — Check every repository specification meant to be valid against the meta-schema
@@ -1109,7 +1109,7 @@ tests, and the PHP API passed 642 checks in each of three configurations and 115
 each implementation. `npm run test:forms` passed core 112, HTML 257, React 425, Vue 396 and Svelte
 393 and 10 tests. The validators passed TypeScript 1,677 tests, PHP 1,539 tests and the Go and Rust
 suites, the gateway suite passed 204 tests, and build, lint, formatting, the documentation tests
-(25) and the documentation site checks passed. The working tree for these checks also held changes
+(25) and the documentation web checks passed. The working tree for these checks also held changes
 committed after this one.
 
 ## 2026-09-15 — Lint every TypeScript package without warnings
@@ -1145,13 +1145,13 @@ Vue packages through both `import` and `require`, and from the Svelte package th
 `react-dom/server` and Svelte imports `svelte/server`, both covered by their peer dependencies. The
 Vue suite passed 396 tests and `npm run test:packages` passed.
 
-## 2026-09-15 — Keep Korean heading anchors on the documentation site
+## 2026-09-15 — Keep Korean heading anchors on the documentation web
 
-The documentation site built heading ids from NFKD text. NFKD decomposes Hangul syllables into jamo,
+The documentation web built heading ids from NFKD text. NFKD decomposes Hangul syllables into jamo,
 so a Korean heading such as `목록 모델` received an id that no Korean fragment link could match.
 Heading ids are composed again after combining marks are removed: Hangul keeps its syllables and
-accented Latin letters still lose their marks. The site build test covers a Korean heading, a
-fragment link to it and `Café`. The site build suite passed 11 tests.
+accented Latin letters still lose their marks. The web build test covers a Korean heading, a
+fragment link to it and `Café`. The web build suite passed 11 tests.
 
 ## 2026-09-15 — Compare expected PHP signatures without losing empty objects
 
@@ -1350,7 +1350,7 @@ checks), and the gateway suite passed 135 of 135 with the Go and Rust validator 
 The formats a list column or detail field can declare were described only by the schema and
 the implementations. [Display formats](docs/spec/display-formats.md) now lists each format, its
 options and defaults, the input rules with their messages and the markup, and the documentation
-site publishes it under Specification.
+the documentation web publishes it under Specification.
 
 Measuring the six targets against that document found divergences and defects no shared case
 covered:
@@ -2859,7 +2859,7 @@ deployed.
 The documentation build supports `DOCS_BASE_PATH` and generates explicit static
 HTML links for English, Korean and API documents. Development, preview and 404
 pages use the same URL prefix. CI checks documentation,
-then deploys the generated site to `https://polyspec.github.io/crudui/` from
+then deploys the generated documentation web to `https://polyspec.github.io/crudui/` from
 `main`.
 
 `make docs-check` and `make docs-verify-idempotent` passed with
@@ -3107,7 +3107,7 @@ completion. The verifiers read DOM results only after renderer completion. They
 do not use periodic DOM reads, network-idle inference or fixed rendering delays.
 
 The documentation development server registers its recursive file-system
-subscription before the initial build. It excludes generated `docs/.site/`
+subscription before the initial build. It excludes generated `docs/.web/`
 events, serializes rebuilds and combines source events received during one build
 into one additional build. A build failure is reported and the next source event
 can request another build. A file-system subscription failure closes the server
@@ -3400,7 +3400,7 @@ The English and Korean fixture contract distinguishes current validation,
 composition, expressions, rendering and legacy cases. It documents complete
 validation results separately from load failures and removes outdated counts
 from the format specification. The current and legacy TypeScript conformance
-checks passed 1,124 cases. Documentation checks and the strict site build passed.
+checks passed 1,124 cases. Documentation checks and the strict web build passed.
 
 ## 2026-09-09 — CLI composition failures and documentation
 
@@ -3426,10 +3426,10 @@ to the current schema's independent visibility and validation settings. The
 duplicate visibility guide is removed. The selected TypeScript legacy
 display-switch checks passed 84 cases.
 
-## 2026-09-09 — Documentation site navigation
+## 2026-09-09 — Documentation web navigation
 
-The site uses English navigation with a Korean index link. Generated API navigation
-includes the shared generator core. Documentation checks, the strict site build
+The web uses English navigation with a Korean index link. Generated API navigation
+includes the shared generator core. Documentation checks, the strict web build
 and generated navigation destination checks passed.
 
 ## 2026-09-09 — Data validation guide
@@ -3452,25 +3452,25 @@ for React, Vue and Svelte.
 API generation fails when a required tool fails or its output is missing.
 TypeScript checks all five public package entries, including Svelte component
 declarations. Go documents all validator packages. Rust and PHP HTML references
-are included in the static site. The documentation procedure specifies required
+are included in the static web. The documentation procedure specifies required
 tools; the duplicate procedure is removed.
 
 Eight generator failure tests, documentation checks, Svelte's 345 server tests
 and 3 mounted tests passed. Two complete documentation generations produced
-identical output, including native HTML assets. The strict site build passed.
+identical output, including native HTML assets. The strict web build passed.
 
 ## 2026-09-09 — Documentation link validation
 
-The site checks internal links during builds. TypeDoc generates relative links
-and package index pages. Existing repository files outside the site resolve to
+The web checks internal links during builds. TypeDoc generates relative links
+and package index pages. Existing repository files outside the web resolve to
 GitHub source URLs; missing files fail. Five link tests run in `make docs-check`.
-The strict site build, document checks and generated HTML link checks passed.
+The strict web build, document checks and generated HTML link checks passed.
 
 ## 2026-09-09 — Maintained documentation navigation
 
-The documentation site links to the maintained expression contract. Documentation maintenance
+The documentation web links to the maintained expression contract. Documentation maintenance
 instructions identify the current example index checked by `make docs-check`.
-The document checks and static site build passed.
+The document checks and static web build passed.
 
 ## 2026-09-09 — Shared AST evaluation for ternary parameters
 
@@ -3913,7 +3913,7 @@ Verification: core 19 tests; React 689; Vue 342; Svelte 345 SSR/unit and 1 mount
 DOM test; TypeScript validator 1,579; PHP conformance 61; Go and Rust shared
 validation conformance passed. These runs include 43 shared CRUDUI validation cases.
 Console SSR 32 tests, CLI 35 tests, lint, type checking and `make docs-check`
-passed. API generation, schema generation and the documentation site build
+passed. API generation, schema generation and the documentation web build
 passed. Deployment: not deployed.
 
 ## 2026-09-07 — Schema generation
@@ -3921,4 +3921,4 @@ passed. Deployment: not deployed.
 Removed the unnecessary `ignoreDeprecations: "6.0"` compiler setting because the
 schema generator's bundled TypeScript compiler rejects it. TypeScript type
 checking, schema generation with three example checks, and the documentation
-site build passed. Deployment: not deployed.
+web build passed. Deployment: not deployed.
