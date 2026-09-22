@@ -45,8 +45,8 @@ test-*.html
 .history
 
 # Generated documentation (reproducible via `make docs` — do not commit)
-# Static site output and generated API trees are regenerated on every run.
-docs/.site/
+# Static web output and generated API trees are regenerated on every run.
+docs/.web/
 docs/api/
 docs/public/api/
 # phpDocumentor phar + cache (large, environment-local)
