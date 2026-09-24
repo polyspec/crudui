@@ -166,7 +166,8 @@ filesystem entries with no symbolic-link resolution. The preflight launches
 Chrome without sandbox-disabling arguments and requires `chrome://sandbox` to
 report `You are adequately sandboxed.` This status requires a namespace or SUID
 first layer, PID and network namespaces, and Seccomp-BPF. Any failed condition
-fails the job. CI browser checks do not use `--no-sandbox` or
+fails the job. A failed sandbox condition names the evaluation or the
+`chrome://sandbox` row, its reported value and the required value. CI browser checks do not use `--no-sandbox` or
 `--disable-setuid-sandbox`.
 
 Every Git-tracked npm lock file is a maintained dependency graph. The root

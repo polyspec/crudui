@@ -7,6 +7,8 @@ import puppeteer from 'puppeteer';
 import { createProgress } from './test-progress/progress.mjs';
 
 const forbiddenArguments = new Set(['--no-sandbox', '--disable-setuid-sandbox']);
+const adequateEvaluation = 'You are adequately sandboxed.';
+const requiredRows = ['PID namespaces', 'Network namespaces', 'Seccomp-BPF sandbox'];
 
 function requireExecutableFile(metadata, filename) {
   assert.equal(metadata.isSymbolicLink(), false, `${filename} must not be a symbolic link`);
@@ -61,11 +63,17 @@ export async function checkCiBrowser({
           return [cells[0], cells[1]];
         })),
       }));
-      assert.equal(status.evaluation, 'You are adequately sandboxed.');
-      assert.match(status.rows['Layer 1 Sandbox'] ?? '', /^(?:Namespace|SUID)$/);
-      assert.equal(status.rows['PID namespaces'], 'Yes');
-      assert.equal(status.rows['Network namespaces'], 'Yes');
-      assert.equal(status.rows['Seccomp-BPF sandbox'], 'Yes');
+      assert.equal(status.evaluation, adequateEvaluation,
+        `Chrome sandbox evaluation is ${JSON.stringify(status.evaluation)}; `
+        + `expected ${JSON.stringify(adequateEvaluation)}`);
+      const layer = status.rows['Layer 1 Sandbox'];
+      assert.ok(layer === 'Namespace' || layer === 'SUID',
+        `Chrome sandbox row "Layer 1 Sandbox" is ${JSON.stringify(layer)}; `
+        + 'expected Namespace or SUID');
+      for (const row of requiredRows) {
+        assert.equal(status.rows[row], 'Yes',
+          `Chrome sandbox row "${row}" is ${JSON.stringify(status.rows[row])}; expected "Yes"`);
+      }
     } finally {
       await page.close();
     }

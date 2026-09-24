@@ -1,5 +1,15 @@
 # 변경 기록
 
+## 2026-09-24 — CI 브라우저 사전 검사가 실패한 sandbox 조건을 표시
+
+- `scripts/check-ci-browser.mjs`는 적절하지 않은 `chrome://sandbox` 평가를
+  `Chrome sandbox evaluation is "<value>"; expected "You are adequately sandboxed."`로, 적절하지
+  않은 행을 `Chrome sandbox row "<row>" is "<value>"; expected ...`로 실패시킵니다. 전에는 사전
+  검사가 Node.js가 생성한 assertion 메시지를 사용했습니다. 이 메시지는 비교한 문자열의 문자 사이에
+  색상 코드를 넣으므로 오류에 필요한 상태 문구가 없었고 `tests/build/ci-browser.test.mjs`가
+  실패했습니다.
+- `tests/build/ci-browser.test.mjs`는 필요한 sandbox 행마다 오류를 검사합니다.
+
 ## 2026-09-24 — 목록과 상세가 렌더링 시 잘못된 선언을 거부
 
 - JavaScript, HTML 렌더러, PHP, PHP 확장, Go, Rust의 `buildList`, `buildDetail`, `renderList`,

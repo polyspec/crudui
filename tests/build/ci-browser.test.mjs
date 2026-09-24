@@ -121,6 +121,28 @@ test('CI browser preflight rejects an inadequate Chrome sandbox status', async (
   );
 });
 
+test('CI browser preflight names each inadequate Chrome sandbox row', async () => {
+  const cases = [
+    ['Layer 1 Sandbox', 'None', /Chrome sandbox row "Layer 1 Sandbox" is "None"; expected Namespace or SUID/],
+    ['PID namespaces', 'No', /Chrome sandbox row "PID namespaces" is "No"; expected "Yes"/],
+    ['Network namespaces', 'No', /Chrome sandbox row "Network namespaces" is "No"; expected "Yes"/],
+    ['Seccomp-BPF sandbox', 'No', /Chrome sandbox row "Seccomp-BPF sandbox" is "No"; expected "Yes"/],
+  ];
+  for (const [row, value, message] of cases) {
+    await assert.rejects(
+      checkCiBrowser({
+        executablePath,
+        inspect: inspectRegularChrome,
+        launch: async () => browser({ sandbox: {
+          evaluation: adequateSandbox.evaluation,
+          rows: { ...adequateSandbox.rows, [row]: value },
+        } }),
+      }),
+      message,
+    );
+  }
+});
+
 test('CI browser preflight rejects sandbox-disabling process arguments', async () => {
   await assert.rejects(
     checkCiBrowser({
