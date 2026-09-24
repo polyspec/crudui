@@ -1,5 +1,23 @@
 # 변경 기록
 
+## 2026-09-24 — 목록과 상세가 렌더링 시 잘못된 선언을 거부
+
+- JavaScript, HTML 렌더러, PHP, PHP 확장, Go, Rust의 `buildList`, `buildDetail`, `renderList`,
+  `renderDetail`은 목록과 상세 선언의 형태를 검사합니다
+  ([표시 형식 선언](docs/spec/display-formats.ko.md#선언)). `columns`가 없는 목록은
+  `List specification must declare columns`로 실패하고, 객체가 아닌 `columns`나 `fields`, 알 수 없는
+  루트·열·필드·정렬·동작 키, 루트 `$ref`와 `$patch`, 그리고 `field`, `label`, `format`과 형식이 정해진
+  설정, `sortable`, `search`, `sort`, 동작, `empty`의 잘못된 값 형식은 `INVALID_FORM_INPUT`으로
+  실패합니다. 전에는 `{ "columns": 5 }` 같은 명세가 빈 목록으로 렌더링됐습니다.
+- 렌더러는 `$ref`나 `$patch`를 가진 목록 `search`를 합성하고, `validateList`와 `validateDetail`처럼
+  합성된 명세에서 금지 키를 찾아 해당 경로에서 `FORBIDDEN_META_KEY`로 실패합니다.
+- `null` 형식은 실패합니다. 생략, `true`, `false`는 `text`를 선택합니다.
+- `script`가 있는 동작 객체는 번역한 라벨을 가진 스크립트 동작으로 렌더링됩니다.
+- JavaScript `renderList`는 다른 런타임과 같이 `layout` 옵션을 합성과 선언 검사 전에 검사합니다.
+  `@crudui/generator-core`의 내부 진입점은 `listLayout` 대신 `buildListLayout`을 내보냅니다.
+- 공용 목록·상세 렌더링 고정 데이터가 선언 오류 사례를 정의하고, 모든 런타임이 네이티브 생성기
+  검사로 이를 실행합니다. 목록·상세 유효성 사례도 `buildList`와 `buildDetail`로 만듭니다.
+
 ## 2026-09-22 — 선택 input의 포인터 입력을 label로 전달
 
 - 시각적으로 숨긴 radio·checkbox input은 이제 투명하게 렌더링하면서 native hit target을

@@ -1,9 +1,9 @@
 //! Read-only detail models and HTML rendering.
 
 use crudui_validator::compose::member_ordered;
-use serde_json::{json, Map, Value};
+use serde_json::{json, Value};
 
-use crate::list::{build_display, cell_html, ListOptions};
+use crate::list::{build_display, cell_html, ListContext, ListOptions};
 use crate::render::{element, escape};
 use crate::util::join_class;
 use crate::{FormError, FormResult};
@@ -33,26 +33,21 @@ pub fn build_detail(
     if !options.data.is_null() && !options.data.is_object() {
         return Err(FormError::input("Detail context must be an object"));
     }
-    let mut list_spec = Map::new();
-    list_spec.insert("columns".into(), spec["fields"].clone());
-    if let Some(design) = spec.get("design") {
-        list_spec.insert("design".into(), design.clone());
-    }
     // Page and total are list-only options: a detail neither checks nor uses them.
-    let list_options = DetailOptions {
-        files: options.files.clone(),
-        loader: options.loader,
-        basepath: options.basepath.clone(),
-        language: options.language.clone(),
-        data: options.data.clone(),
-        page: Value::Null,
-        total: Value::Null,
-        layout: Value::Null,
+    let checked = ListContext {
+        data: if options.data.is_null() {
+            json!({})
+        } else {
+            options.data.clone()
+        },
+        page: None,
+        total: None,
     };
     let list = build_display(
-        &Value::Object(list_spec),
+        &Value::Object(spec.clone()),
         &[Value::Object(record.clone())],
-        &list_options,
+        options,
+        &checked,
         "detail",
         "fields",
     )?;

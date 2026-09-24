@@ -12,6 +12,6 @@ describe('manifest markdown', () => {
         expect(markdown.split('\n')).toContain(row);
       }
     }
-    expect(markdown).toContain('| `@crudui/generator-core` | model | `./internal` | internal | `CELL_FORMATS`, `CELL_FORMAT_DEFAULT`, `CELL_RENDERERS`, `WIDGET_CANONICAL`, `WIDGET_COUNT`, `WIDGET_KINDS`, `WIDGET_LAYOUTS`, `listLayout`, `paginationPages`, `parseStyle` |');
+    expect(markdown).toContain('| `@crudui/generator-core` | model | `./internal` | internal | `CELL_FORMATS`, `CELL_FORMAT_DEFAULT`, `CELL_RENDERERS`, `WIDGET_CANONICAL`, `WIDGET_COUNT`, `WIDGET_KINDS`, `WIDGET_LAYOUTS`, `buildListLayout`, `paginationPages`, `parseStyle` |');
   });
 });

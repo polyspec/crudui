@@ -482,6 +482,22 @@ bool ps_declaration_error(ps_text key, ps_text path, const char *expected, ps_va
 bool ps_known_keys(const ps_value *bucket, const char *name, const char *const *allowed,
                    size_t count, ps_text path, ps_value **error);
 bool ps_design_declaration_valid(const ps_value *design, ps_text path, ps_value **error);
+/* The pagination declaration rules of a list at path (list.c). */
+bool ps_pagination_declaration_valid(const ps_value *pagination, ps_text path, ps_value **error);
+/*
+ * The declaration rules of a composed list or detail specification (display_declaration.c): the
+ * root members, the own design at own, each member of the map members at <members>.<name> and,
+ * for a list, search, sort, actions, empty and pagination. own is "list" or "detail" and members
+ * is "columns" or "fields".
+ */
+bool ps_display_declarations_valid(const ps_value *spec, const char *own, const char *members, ps_value **error);
+/*
+ * The forbidden-key scan of a composed specification (forbidden_scan.c): the load failure
+ * FORBIDDEN_META_KEY of the first forbidden key, with path as the prefix of its location, or NULL.
+ */
+ps_value *ps_scan_forbidden(const ps_value *node, ps_text *path, size_t length);
+/* The dotted path, followed by the key when it has bytes (forbidden_scan.c). */
+ps_chars ps_dotted_path(const ps_text *path, size_t length, ps_text key);
 
 ps_value *ps_compose_properties(const ps_value *properties, const ps_value *files,
                                 ps_text basepath, ps_value **error);

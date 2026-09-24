@@ -1,7 +1,7 @@
 /** Evaluate list declarations and supplied records for framework renderers. */
 
 import { FormInputError, type FileLoader } from '@crudui/validator';
-import { checkedComposition, composeProperties, MemoryLoader } from '@crudui/validator/internal';
+import { checkedComposition, composeProperties, MemoryLoader, scanForbiddenKeys } from '@crudui/validator/internal';
 import { checkArgumentText, DISPLAY_OPTIONS } from './input-text';
 import { makeTranslate, type Language, type LocalizedText } from './content';
 import { LIST_MESSAGES } from './interface-messages';
@@ -15,7 +15,7 @@ import {
   type CellDisplay,
   type CellRenderCtx,
 } from './cell';
-import { checkDesignDeclaration } from './form';
+import { checkDisplayDeclarations, type DisplayPaths } from './display-declaration';
 
 // ---------------------------------------------------------------------------
 // view model shapes
@@ -191,28 +191,6 @@ function countOption(value: unknown, min: number): value is number | null | unde
   return value === undefined || value === null || (Number.isSafeInteger(value) && (value as number) >= min);
 }
 
-const PAGINATION_KEYS = ['per_page', 'mode'];
-const PAGINATION_MODES = ['pages', 'offset', 'cursor', 'none'];
-
-/** Reject a wrong value type or an unknown key in the pagination declaration at `path`. */
-function checkPaginationDeclaration(pagination: unknown, path: string): void {
-  const fail = (key: string, expected: string): never => {
-    throw new FormInputError(`Invalid ${key} at ${path}: expected ${expected}`);
-  };
-  if (typeof pagination !== 'boolean' && !isPlainObject(pagination)) fail('pagination', 'a boolean or an object');
-  if (!isPlainObject(pagination)) return;
-  for (const key of Object.keys(pagination)) {
-    if (!PAGINATION_KEYS.includes(key)) throw new FormInputError(`Invalid pagination.${key} at ${path}: unknown key`);
-  }
-  const has = (key: string) => Object.prototype.hasOwnProperty.call(pagination, key);
-  if (has('per_page') && !(Number.isSafeInteger(pagination.per_page) && (pagination.per_page as number) >= 1)) {
-    fail('pagination.per_page', 'a positive integer');
-  }
-  if (has('mode') && !PAGINATION_MODES.includes(pagination.mode as string)) {
-    fail('pagination.mode', 'pages, offset, cursor or none');
-  }
-}
-
 /**
  * The pagination model, in member order: enabled, then for enabled paging perPage, mode and
  * page with their defaults, the supplied total and pageCount. Disabled paging keeps only the
@@ -265,21 +243,23 @@ function resolveActions(
   if (!isPlainObject(actions)) return [];
   const out: ActionVM[] = [];
   for (const [key, raw] of Object.entries(actions)) {
-    if (key === '$ref' || key === '$patch') continue;
     if (typeof raw === 'string') {
       // ListAction = a bare behavior script (BehaviorAction form).
       out.push({ key, label: key, behavior: { [key]: raw } });
       continue;
     }
-    if (!isPlainObject(raw)) continue;
-    const action: ActionVM = {
-      key,
-      label: raw.label !== undefined ? t(raw.label as LocalizedText) : key,
-    };
-    if (raw.format !== undefined) action.format = normalizeFormat(raw.format);
-    if (isPlainObject(raw.behavior)) {
+    const declared = raw as Record<string, unknown>;
+    const label = declared.label !== undefined ? t(declared.label as LocalizedText) : key;
+    // An action object with a script is the object form of a script action.
+    if (typeof declared.script === 'string') {
+      out.push({ key, label, behavior: { [key]: declared.script } });
+      continue;
+    }
+    const action: ActionVM = { key, label };
+    if (declared.format !== undefined) action.format = normalizeFormat(declared.format);
+    if (isPlainObject(declared.behavior)) {
       const beh: Record<string, string> = {};
-      for (const [ev, scr] of Object.entries(raw.behavior)) {
+      for (const [ev, scr] of Object.entries(declared.behavior)) {
         if (typeof scr === 'string') beh[ev] = scr;
         else if (isPlainObject(scr) && typeof scr.script === 'string') beh[ev] = scr.script;
       }
@@ -294,15 +274,35 @@ function resolveActions(
 // the builder
 // ---------------------------------------------------------------------------
 
-/**
- * The list layout option: absent or null selects `table`, and any value other than `table` or
- * `card` fails. Renderers check it after building the list model, so input errors keep the order
- * every runtime uses.
- */
-export function listLayout(layout: unknown): 'table' | 'card' {
+/** The list layout option: absent or null selects `table`, and any value other than `table` or `card` fails. */
+function listLayout(layout: unknown): 'table' | 'card' {
   if (layout === undefined || layout === null) return 'table';
   if (layout === 'table' || layout === 'card') return layout;
   throw new FormInputError('List layout must be table or card');
+}
+
+/** Check the input text and the list input rules in the order every runtime uses; returns the checked loader. */
+function checkListInput(
+  listSpec: Record<string, unknown>,
+  rows: Array<Record<string, unknown>>,
+  options: BuildListOptions
+): FileLoader | undefined {
+  // Input text is checked first (docs/spec/input-text.md).
+  const loader = checkedComposition(listSpec, options);
+  checkArgumentText([['rows', rows]], options, DISPLAY_OPTIONS);
+  // List input, checked in the order every runtime uses (docs/spec/display-formats.md).
+  if (!isPlainObject(listSpec)) throw new FormInputError('List specification must be an object');
+  if (!Array.isArray(rows)) throw new FormInputError('List rows must be an array');
+  if (rows.some((row) => !isPlainObject(row))) throw new FormInputError('List rows must be objects');
+  if (!Object.prototype.hasOwnProperty.call(listSpec, 'columns')) {
+    throw new FormInputError('List specification must declare columns');
+  }
+  if (options.data !== undefined && options.data !== null && !isPlainObject(options.data)) {
+    throw new FormInputError('List context must be an object');
+  }
+  if (!countOption(options.page, 1)) throw new FormInputError('List page must be a positive integer');
+  if (!countOption(options.total, 0)) throw new FormInputError('List total must be a nonnegative integer');
+  return loader;
 }
 
 /**
@@ -316,61 +316,64 @@ export function buildList(
   rows: Array<Record<string, unknown>> = [],
   options: BuildListOptions = {}
 ): ListViewModel {
-  // Input text is checked first (docs/spec/input-text.md).
-  const loader = checkedComposition(listSpec, options);
-  checkArgumentText([['rows', rows]], options, DISPLAY_OPTIONS);
+  const loader = checkListInput(listSpec, rows, options);
   return buildDisplay(listSpec, rows, loader ? { ...options, loader } : options, { own: 'list', members: 'columns' });
 }
 
-/** Declaration path names of a display specification: its own design and its columns or fields. */
-export interface DisplayPaths {
-  /** Path of the specification's own `design`. */
-  own: string;
-  /** Path prefix of each column or field `design`. */
-  members: string;
+/**
+ * Build the list model of a renderer. The `layout` option is an input rule: it is checked after
+ * the other input rules and before composition and the declarations.
+ */
+export function buildListLayout(
+  listSpec: Record<string, unknown>,
+  rows: Array<Record<string, unknown>>,
+  options: BuildListOptions & { layout?: unknown }
+): { vm: ListViewModel; layout: 'table' | 'card' } {
+  const loader = checkListInput(listSpec, rows, options);
+  const layout = listLayout(options.layout);
+  return { vm: buildDisplay(listSpec, rows, loader ? { ...options, loader } : options, { own: 'list', members: 'columns' }), layout };
 }
 
-/** Build a list or detail display model; `paths` names declaration errors for the caller's specification kind. */
+/**
+ * Build a list or detail display model from checked input. The member map named by `paths`
+ * (`columns` or `fields`) and a list `search` with `$ref` or `$patch` are composed, the composed
+ * specification is scanned for forbidden keys, and its declarations are checked.
+ */
 export function buildDisplay(
-  listSpec: Record<string, unknown>,
+  spec: Record<string, unknown>,
   rows: Array<Record<string, unknown>>,
   options: BuildListOptions,
   paths: DisplayPaths
 ): ListViewModel {
-  // List input, checked in the order every runtime uses (docs/spec/display-formats.md).
-  if (!isPlainObject(listSpec)) throw new FormInputError('List specification must be an object');
-  if (!Array.isArray(rows)) throw new FormInputError('List rows must be an array');
-  if (rows.some((row) => !isPlainObject(row))) throw new FormInputError('List rows must be objects');
-  if (options.data !== undefined && options.data !== null && !isPlainObject(options.data)) {
-    throw new FormInputError('List context must be an object');
-  }
-  if (!countOption(options.page, 1)) throw new FormInputError('List page must be a positive integer');
-  if (!countOption(options.total, 0)) throw new FormInputError('List total must be a nonnegative integer');
   const t = makeTranslate(options.language ?? 'ko');
   const loader = options.loader ?? new MemoryLoader(options.files ?? {});
   const composeOpts = options.basepath ? { basepath: options.basepath } : {};
   const listData = options.data ?? {};
 
-  // Stage 2: compose the columns map (expands $ref/$patch at map + per-column).
-  const rawColumns = isPlainObject(listSpec.columns) ? listSpec.columns : {};
-  const columns = composeProperties(rawColumns, loader, composeOpts);
-
-  // Declarations are checked after the input rules and composition: the own design, each member, then the pagination.
-  if (Object.prototype.hasOwnProperty.call(listSpec, 'design')) checkDesignDeclaration(listSpec.design, paths.own);
-  for (const [key, raw] of Object.entries(columns)) {
-    if (isPlainObject(raw) && Object.prototype.hasOwnProperty.call(raw, 'design')) {
-      checkDesignDeclaration(raw.design, `${paths.members}.${key}`);
-    }
+  // Stage 2: compose the member map (expands $ref/$patch at map + per-member).
+  const rawMembers = spec[paths.members];
+  if (!isPlainObject(rawMembers)) throw new FormInputError(`Invalid ${paths.members} at ${paths.own}: expected an object`);
+  const columns = composeProperties(rawMembers, loader, composeOpts);
+  const search = spec.search;
+  const composeSearch = paths.own === 'list' && isPlainObject(search) &&
+    (Object.prototype.hasOwnProperty.call(search, '$ref') || Object.prototype.hasOwnProperty.call(search, '$patch'));
+  const composedSearch = composeSearch ? composeProperties(search as Record<string, unknown>, loader, composeOpts) : search;
+  // The composed specification keeps the member order of the declared one.
+  const listSpec: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(spec)) {
+    listSpec[key] = key === paths.members ? columns : key === 'search' ? composedSearch : value;
   }
-  if (Object.prototype.hasOwnProperty.call(listSpec, 'pagination')) checkPaginationDeclaration(listSpec.pagination, paths.own);
+  // The forbidden-key scan and then the declarations, as the display format specification orders them.
+  scanForbiddenKeys(listSpec);
+  checkDisplayDeclarations(listSpec, paths);
 
   // List-level context for column-visibility expressions (over listData).
   const listCtx = makeContext([], listData);
 
   // Stages 3–4: resolve every column header (drop columns hidden by design.show).
   const columnVMs: ColumnVM[] = [];
-  for (const [key, raw] of Object.entries(columns)) {
-    if (!isPlainObject(raw)) continue;
+  for (const [key, member] of Object.entries(columns)) {
+    const raw = member as Record<string, unknown>;
     const colCtx = makeContext([], listData);
     const colDesign = resolveDesign(raw.design, colCtx);
     if (!colDesign.show) continue; // condition-hidden column → omitted (G1).

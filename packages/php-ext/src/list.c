@@ -157,7 +157,6 @@ static bool collect_columns(list_context *context, list_column **result, size_t 
     *count = 0;
     for (size_t i = 0; i < ps_size(context->columns); ++i) {
         const ps_value *column = ps_at(context->columns, i);
-        if (!column || column->kind != PS_OBJECT) continue;
         ps_value *design = NULL;
         if (!visible_column(column, context->data, &design)) {
             if (!design) goto fail;
@@ -1017,20 +1016,13 @@ static bool append_toolbar(list_context *context)
 {
     const ps_value *actions = member(context->spec, "actions");
     if (!actions || actions->kind != PS_OBJECT) return true;
-    size_t count = 0;
-    for (size_t i = 0; i < ps_size(actions); ++i) {
-        ps_text key = ps_key(actions, i);
-        if (!ps_text_is(key, "$ref") && !ps_text_is(key, "$patch")) count++;
-    }
-    if (!count) return true;
+    if (!ps_size(actions)) return true;
     ps_value *toolbar = ps_object_value();
     if (!toolbar || !ps_html_attr_string(toolbar, "class", "crudui-list__actions") ||
         !write_element_start(&context->output, "div", toolbar)) { ps_value_free(toolbar); return false; }
     for (size_t i = 0; i < ps_size(actions); ++i) {
         ps_text key = ps_key(actions, i);
         const ps_value *action = ps_at(actions, i);
-        if (ps_text_is(key, "$ref") || ps_text_is(key, "$patch") ||
-            (!action || (action->kind != PS_STRING && action->kind != PS_OBJECT))) continue;
         ps_chars label = action_label(action, key, context->language);
         const ps_value *format = action->kind == PS_OBJECT ? member(action, "format") : NULL;
         ps_text type = format && format->kind == PS_OBJECT ? string_member(format, "type") : PS_TEXT("");
@@ -1044,8 +1036,10 @@ static bool append_toolbar(list_context *context)
         if (ok && link && string_member(format, "target").length)
             ok = ps_html_attr_text(attrs, "target", string_member(format, "target"));
         const ps_value *behavior = action->kind == PS_STRING ? NULL : member(action, "behavior");
-        if (action->kind == PS_STRING) {
-            ok = ok && set_event(attrs, key, action);
+        /* A script string, or an object with a script: the script under the action name. */
+        const ps_value *script = action->kind == PS_STRING ? action : member(action, "script");
+        if (script) {
+            ok = ok && set_event(attrs, key, script);
         } else if (behavior && behavior->kind == PS_OBJECT) {
             for (size_t j = 0; ok && j < ps_size(behavior); ++j) {
                 const ps_value *script = ps_at(behavior, j);
@@ -1193,8 +1187,7 @@ static bool append_empty(list_context *context)
     return ok;
 }
 
-/* A wrong value type or an unknown key in the pagination declaration at path. */
-static bool pagination_declaration_valid(const ps_value *pagination, ps_text path, ps_value **error)
+bool ps_pagination_declaration_valid(const ps_value *pagination, ps_text path, ps_value **error)
 {
     static const char *const keys[] = {"per_page", "mode"};
     static const char *const modes[] = {"pages", "offset", "cursor", "none"};
@@ -1379,6 +1372,7 @@ static bool render_list(list_context *context, list_column *columns, size_t coun
 typedef struct {
     list_context context;
     ps_value *declarations;
+    ps_value *composed;
     ps_value *empty_data;
     ps_value *empty_files;
     list_column *columns;
@@ -1392,20 +1386,52 @@ static void list_close(list_session *session)
     free(session->context.preloads);
     free_columns(session->columns, session->column_count);
     ps_value_free(session->declarations);
+    ps_value_free(session->composed);
     ps_value_free(session->empty_data);
     ps_value_free(session->empty_files);
     *session = (list_session){0};
 }
 
 /*
- * Read the language, data, files and basepath options, compose the declarations,
- * check the own design at the path own and each column design at members.<name>,
- * and collect the visible columns. The caller has checked that options is an
- * object. Returns an error value, or NULL when the session is open.
+ * Compose the member map members of spec (columns or fields) and, for a list, a search with $ref or
+ * $patch into a composed copy of spec in the same member order. NULL with *error set on a
+ * composition failure, NULL with *error unset on allocation failure.
  */
-static ps_value *list_open(list_session *session, const ps_value *spec, const ps_value *declarations,
-                           const ps_value *rows, const ps_value *options, const char *layout,
-                           const char *own, const char *members)
+static ps_value *compose_display(list_session *session, const ps_value *spec, const ps_value *files,
+                                 ps_text basepath, const char *own, const char *members, ps_value **error)
+{
+    session->declarations = ps_compose_properties(ps_get(spec, members), files, basepath, error);
+    if (!session->declarations) return NULL;
+    ps_value *search = NULL;
+    const ps_value *declared_search = ps_get(spec, "search");
+    if (strcmp(own, "list") == 0 && declared_search && declared_search->kind == PS_OBJECT &&
+        (ps_has(declared_search, "$ref") || ps_has(declared_search, "$patch"))) {
+        search = ps_compose_properties(declared_search, files, basepath, error);
+        if (!search) return NULL;
+    }
+    ps_value *composed = ps_object_value();
+    bool ok = composed != NULL;
+    for (size_t i = 0; ok && i < ps_size(spec); ++i) {
+        ps_text key = ps_key(spec, i);
+        ps_value *value = ps_text_is(key, members) ? ps_value_clone(session->declarations)
+            : search && ps_text_is(key, "search") ? ps_value_clone(search)
+            : ps_value_clone(ps_at(spec, i));
+        ok = value && ps_set_text(composed, key, value);
+        if (!ok) ps_value_free(value);
+    }
+    ps_value_free(search);
+    if (!ok) { ps_value_free(composed); return NULL; }
+    return composed;
+}
+
+/*
+ * Read the language, data, files and basepath options, compose the specification, scan it for
+ * forbidden keys, check its declarations (own is the root path, members the member map) and
+ * collect the visible columns. The caller has checked the input and that options is an object.
+ * Returns an error value, or NULL when the session is open.
+ */
+static ps_value *list_open(list_session *session, const ps_value *spec, const ps_value *rows,
+                           const ps_value *options, const char *layout, const char *own, const char *members)
 {
     *session = (list_session){0};
     ps_text language = string_member(options, "language");
@@ -1419,28 +1445,22 @@ static ps_value *list_open(list_session *session, const ps_value *spec, const ps
     if (!files) files = session->empty_files = ps_object_value();
     ps_text basepath = string_member(options, "basepath");
     ps_value *error = NULL;
-    session->declarations = ps_compose_properties(declarations, files, basepath, &error);
-    if (error) return error;
-    if (!session->declarations)
-        return ps_fail("internal", "INTERNAL_ERROR", "C list composition failed", "").error;
-    /* Declarations are checked after the input rules and composition: the own design, each member, then the pagination. */
-    const ps_value *own_design = ps_get(spec, "design");
-    bool valid = !own_design || ps_design_declaration_valid(own_design, ps_fixed(own), &error);
-    for (size_t i = 0; valid && i < ps_size(session->declarations); ++i) {
-        const ps_value *column = ps_at(session->declarations, i);
-        const ps_value *design = column && column->kind == PS_OBJECT ? ps_get(column, "design") : NULL;
-        if (!design) continue;
-        ps_chars path = PS_CONCAT(ps_fixed(members), PS_TEXT("."), ps_key(session->declarations, i));
-        if (!path.bytes) { valid = false; break; }
-        valid = ps_design_declaration_valid(design, ps_view(path), &error);
-        free(path.bytes);
+    const ps_value *declared = ps_get(spec, members);
+    if (!declared || declared->kind != PS_OBJECT) {
+        ps_declaration_error(ps_fixed(members), ps_fixed(own), "an object", &error);
+        return error ? error : ps_fail("internal", "INTERNAL_ERROR", "C list declaration check failed", "").error;
     }
-    const ps_value *pagination = ps_get(spec, "pagination");
-    if (valid && pagination) valid = pagination_declaration_valid(pagination, ps_fixed(own), &error);
-    if (!valid)
+    session->composed = compose_display(session, spec, files, basepath, own, members, &error);
+    if (error) return error;
+    if (!session->composed)
+        return ps_fail("internal", "INTERNAL_ERROR", "C list composition failed", "").error;
+    /* The forbidden-key scan and then the declarations, as the display format specification orders them. */
+    error = ps_scan_forbidden(session->composed, NULL, 0);
+    if (error) return error;
+    if (!ps_display_declarations_valid(session->composed, own, members, &error))
         return error ? error : ps_fail("internal", "INTERNAL_ERROR", "C list declaration check failed", "").error;
     session->context = (list_context){
-        spec, session->declarations, rows, options, language, layout, data, {0}, NULL, 0, 0, NULL
+        session->composed, session->declarations, rows, options, language, layout, data, {0}, NULL, 0, 0, NULL
     };
     if (!collect_columns(&session->context, &session->columns, &session->column_count))
         return ps_fail("internal", "INTERNAL_ERROR", "C list rendering failed", "").error;
@@ -1512,6 +1532,8 @@ static ps_result render_list_view(const ps_value *spec, const ps_value *rows, co
     for (size_t i = 0; i < ps_size(rows); ++i)
         if (!ps_at(rows, i) || ps_at(rows, i)->kind != PS_OBJECT)
             return ps_fail("form", "INVALID_FORM_INPUT", "List rows must be objects", "");
+    if (!ps_has(spec, "columns"))
+        return ps_fail("form", "INVALID_FORM_INPUT", "List specification must declare columns", "");
     if (!options || options->kind != PS_OBJECT)
         return ps_fail("form", "INVALID_FORM_INPUT", "Options must be an object", "");
     /* An absent or null context is none; any other value must be an object. */
@@ -1531,7 +1553,7 @@ static ps_result render_list_view(const ps_value *spec, const ps_value *rows, co
     if (!layout)
         return ps_fail("form", "INVALID_FORM_INPUT", "List layout must be table or card", "");
     list_session session;
-    ps_value *error = list_open(&session, spec, member(spec, "columns"), rows, options, layout, "list", "columns");
+    ps_value *error = list_open(&session, spec, rows, options, layout, "list", "columns");
     if (error) { list_close(&session); return (ps_result){NULL, error}; }
     bool ok = render_list(&session.context, session.columns, session.column_count);
     return list_finish(&session, ok, "C list rendering failed");
@@ -1609,13 +1631,14 @@ static ps_value *list_model(list_session *session)
         for (size_t i = 0; ok && declared_actions && declared_actions->kind == PS_OBJECT && i < ps_size(declared_actions); ++i) {
             ps_text key = ps_key(declared_actions, i);
             const ps_value *raw = ps_at(declared_actions, i);
-            if (ps_text_is(key, "$ref") || ps_text_is(key, "$patch") || !raw || (raw->kind != PS_STRING && raw->kind != PS_OBJECT)) continue;
+            /* A script string, or an object with a script: the script under the action name. */
+            const ps_value *script = raw->kind == PS_STRING ? raw : member(raw, "script");
             ps_value *action = ps_object_value();
             ps_chars label = action_label(raw, key, context->language);
             ok = action && label.bytes && set_text(action, "key", key) && set_text(action, "label", ps_view(label));
-            if (ok && raw->kind == PS_STRING) {
+            if (ok && script) {
                 ps_value *behavior = ps_object_value();
-                ok = behavior && ps_set_text(behavior, key, ps_value_clone(raw)) && set_value(action, "behavior", &behavior);
+                ok = behavior && ps_set_text(behavior, key, ps_value_clone(script)) && set_value(action, "behavior", &behavior);
                 ps_value_free(behavior);
             } else if (ok && member(raw, "format")) {
                 const ps_value *raw_format = member(raw, "format");
@@ -1656,13 +1679,14 @@ static ps_result build_list_view(const ps_value *spec, const ps_value *rows, con
     if (!spec || spec->kind != PS_OBJECT) return ps_fail("form", "INVALID_FORM_INPUT", "List specification must be an object", "");
     if (!rows || rows->kind != PS_ARRAY) return ps_fail("form", "INVALID_FORM_INPUT", "List rows must be an array", "");
     for (size_t i = 0; i < ps_size(rows); ++i) if (!ps_at(rows, i) || ps_at(rows, i)->kind != PS_OBJECT) return ps_fail("form", "INVALID_FORM_INPUT", "List rows must be objects", "");
+    if (!ps_has(spec, "columns")) return ps_fail("form", "INVALID_FORM_INPUT", "List specification must declare columns", "");
     if (!options || options->kind != PS_OBJECT) return ps_fail("form", "INVALID_FORM_INPUT", "Options must be an object", "");
     const ps_value *data = member(options, "data");
     if (data && data->kind != PS_NULL && data->kind != PS_OBJECT) return ps_fail("form", "INVALID_FORM_INPUT", "List context must be an object", "");
     bool present; int64_t count;
     if (!count_option(member(options, "page"), 1, &present, &count)) return ps_fail("form", "INVALID_FORM_INPUT", "List page must be a positive integer", "");
     if (!count_option(member(options, "total"), 0, &present, &count)) return ps_fail("form", "INVALID_FORM_INPUT", "List total must be a nonnegative integer", "");
-    list_session session; ps_value *error = list_open(&session, spec, member(spec, "columns"), rows, options, "table", "list", "columns");
+    list_session session; ps_value *error = list_open(&session, spec, rows, options, "table", "list", "columns");
     if (error) { list_close(&session); return (ps_result){NULL, error}; }
     ps_value *model = list_model(&session); const char *failure = session.context.failure; list_close(&session);
     if (!model && failure) return ps_fail("form", "INVALID_FORM_INPUT", failure, "");
@@ -1691,7 +1715,7 @@ static ps_value *detail_open(list_session *session, const ps_value *spec, const 
     const ps_value *data = member(options, "data");
     if (data && data->kind != PS_NULL && data->kind != PS_OBJECT)
         return ps_fail("form", "INVALID_FORM_INPUT", "Detail context must be an object", "").error;
-    return list_open(session, spec, ps_get(spec, "fields"), NULL, options, "table", "detail", "fields");
+    return list_open(session, spec, NULL, options, "table", "detail", "fields");
 }
 
 /* The detail model: each visible field's key, label and evaluated cell, then the design. */

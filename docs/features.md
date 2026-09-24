@@ -34,6 +34,7 @@ Tests and deployment are recorded separately. `pending` is not a passing result.
 | form-markup | Recursive form nodes, list/detail display blocks, row cards and interface messages in five implementations | implemented | passed | not-deployed | [Form markup](spec/form-markup.md), [display formats](spec/display-formats.md) |
 | crudui-details | Read-only detail specification, model, framework-independent HTML rendering and structure validation | implemented | passed | not-deployed | [Specification](spec/schema.md), [display formats](spec/display-formats.md), [feature contract](spec/feature-contracts.md), [shared detail fixture](../tests/fixtures/detail-render/README.md), [native comparison](../tests/native-generators/README.md), [detail validity cases](../tests/fixtures/detail-validity/cases.json) |
 | form-view-state | Row collapse and merged undo/redo history outside record data | implemented | passed | not-deployed | [Node tests](../packages/generator-core/src/node.test.ts) |
+| display-declarations | List and detail declaration checks at render in JavaScript, the HTML renderer, PHP, the PHP extension, Go and Rust | implemented | passed | not-deployed | [Display format declarations](spec/display-formats.md#declarations), [shared list fixture](../tests/fixtures/list-render/README.md), [shared detail fixture](../tests/fixtures/detail-render/README.md), [native comparison](../tests/native-generators/README.md), [render validity test](../packages/generator-core/src/display-validity.test.ts) |
 | form-outline | Structure map and current data view | implemented | passed | not-deployed | [Form markup](spec/form-markup.md) |
 | form-initialization-comparison | Side-by-side stage comparison of forms created with data and forms injected after mounting | implemented | passed | not-deployed | [Form comparison](spec/form-comparison.md) |
 | keyed-validation | Key-preserving group and scalar validation in four languages | implemented | passed | not-deployed | [Shared validation cases](../tests/fixtures/validate/cases.json) |
@@ -56,6 +57,21 @@ Page-level SSR contains the selected server's list, detail or form markup, while
 the stage shell that the selected client fills. Initialization comparison preserves
 framework-owned container markers and compares rendered container contents; Vue's `data-v-app` is
 not removed.
+
+## Display declaration verification
+
+On 2026-09-24 the working tree of the display declaration change passed on macOS arm64 with PHP
+8.5.10, Node.js 26.8.1, Go 1.27.0 and Rust 1.98.0:
+
+- The native generator suite passed 596 checks in each of JavaScript, the HTML renderer, PHP, Go,
+  Rust and native PHP (3,576 in total, zero failed), including the 142 list and 44 detail cases.
+- The form packages passed core 247, HTML 406, React 794, Vue 597, Svelte 590 and 14 mounted
+  Svelte checks, and the node form checks passed 57 and 24. The generator packages passed 249 PHP, 116 Go and 36 Rust
+  tests, and the PHP extension suite passed 46 tests; its address-sanitizer test runs on Linux.
+- The cross-check console passed 1,039 tests, the specification CLI 38, the form-comparison source
+  suite 194, its Go and Rust servers 14 and 18, `npm run manifest:test` 21 commands,
+  `npm run test:packages` seven steps and `npm run test:runtimes` 65 tests. `npm run spec:schema`,
+  `npm run lint`, `npm run typecheck`, `make format-check` and `make docs-check` passed.
 
 ## Native package verification
 

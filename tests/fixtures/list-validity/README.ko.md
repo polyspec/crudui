@@ -46,6 +46,11 @@
 [검증기 프로세스 검사](../../../examples/cross-check-console/server/validator-processes.test.mjs)가 런타임
 사용처입니다.
 
+[렌더 유효성 검사](../../../packages/generator-core/src/display-validity.test.ts)는 모든 사례를
+`buildList`로 만듭니다. `expect`가 `"ok"`이고 `engine`이 `"pass"`인 사례만 만들어지고, `engine` 실패는
+렌더 실패와 같으며, 그 밖의 사례는 `INVALID_FORM_INPUT`으로 실패합니다
+([표시 형식 선언](../../../docs/spec/display-formats.ko.md#선언)).
+
 ## 재생성
 
 생성기는 없으며 사례는 직접 작성합니다. `expect`와 `reason`은 메타 스키마의 목록 정의와, `engine`은 모든

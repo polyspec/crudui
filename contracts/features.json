@@ -55,7 +55,7 @@
             "WIDGET_COUNT",
             "WIDGET_KINDS",
             "WIDGET_LAYOUTS",
-            "listLayout",
+            "buildListLayout",
             "paginationPages",
             "parseStyle"
           ]

@@ -7,6 +7,7 @@ mod css;
 mod date;
 mod design;
 mod detail;
+mod display_declaration;
 mod error;
 mod instance;
 mod list;

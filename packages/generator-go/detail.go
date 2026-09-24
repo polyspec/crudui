@@ -30,13 +30,9 @@ func BuildDetail(spec *Object, record *Object, options DetailOptions) (*Object, 
 	if _, ok := optionObject(options.Data); !ok {
 		return nil, fmt.Errorf("Detail context must be an object")
 	}
-	listSpec := NewObject("columns", read(spec, "fields"))
-	if has(spec, "design") {
-		listSpec.Set("design", read(spec, "design"))
-	}
 	// Page and total are list-only options: a detail neither checks nor uses them.
 	options.Page, options.Total = nil, nil
-	list, err := buildDisplay(listSpec, []*Object{record}, options, displayPaths{own: "detail", members: "fields"})
+	list, err := buildDisplay(spec, []*Object{record}, options, displayPaths{own: "detail", members: "fields"})
 	if err != nil {
 		return nil, err
 	}

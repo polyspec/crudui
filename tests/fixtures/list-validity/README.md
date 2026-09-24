@@ -49,6 +49,11 @@ The cases are read at runtime by the list validation tests in
 [list runner test](../../../examples/cross-check-console/server/validate-list-runner.test.mjs) and
 [validator process test](../../../examples/cross-check-console/server/validator-processes.test.mjs).
 
+The [render validity test](../../../packages/generator-core/src/display-validity.test.ts) builds
+every case with `buildList`: a case builds only when `expect` is `"ok"` and `engine` is `"pass"`, an
+`engine` failure is also the render failure, and any other case fails with `INVALID_FORM_INPUT`
+([display format declarations](../../../docs/spec/display-formats.md#declarations)).
+
 ## Regeneration
 
 There is no generator; the cases are written by hand. Keep `expect` and `reason` consistent with

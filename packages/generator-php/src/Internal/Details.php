@@ -24,12 +24,8 @@ final class Details
         if ($data !== null && !$data instanceof stdClass && !(is_array($data) && ($data === [] || !array_is_list($data)))) {
             throw new FormError('INVALID_FORM_INPUT', 'Detail context must be an object');
         }
-        $list = ['columns' => $spec->fields];
-        if (property_exists($spec, 'design')) {
-            $list['design'] = $spec->design;
-        }
         // Page and total are list options; a detail neither checks nor uses them.
-        $model = Lists::build((object) $list, [$record], array_diff_key($options, ['page' => true, 'total' => true]), 'detail', 'fields');
+        $model = Lists::build($spec, [$record], array_diff_key($options, ['page' => true, 'total' => true]), 'detail', 'fields');
         $fields = [];
         $columns = $model->columns;
         $cells = $model->rows[0]->cells ?? [];

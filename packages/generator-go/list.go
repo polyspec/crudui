@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/polyspec/crudui/packages/validator-go/validator"
 	"github.com/polyspec/crudui/packages/validator-go/validator/compose"
 	"github.com/polyspec/crudui/packages/validator-go/validator/text"
 )
@@ -67,6 +68,9 @@ func checkListInput(spec *Object, rows []*Object, options ListOptions) error {
 			return fmt.Errorf("List rows must be objects")
 		}
 	}
+	if !spec.Has("columns") {
+		return fmt.Errorf("List specification must declare columns")
+	}
 	if _, ok := optionObject(options.Data); !ok {
 		return fmt.Errorf("List context must be an object")
 	}
@@ -101,21 +105,23 @@ func BuildList(spec *Object, rows []*Object, options ListOptions) (*Object, erro
 	if e != nil {
 		return nil, e
 	}
+	if e := checkListInput(spec, rows, options); e != nil {
+		return nil, e
+	}
 	return buildDisplay(spec, rows, options, displayPaths{own: "list", members: "columns"})
 }
 
-// displayPaths names declaration error paths of a display specification: its own design and
-// the prefix of each column or field design.
+// displayPaths names a display specification kind: own is the root path (list or detail) and
+// members the member map and the path prefix of each member (columns or fields).
 type displayPaths struct {
 	own     string
 	members string
 }
 
-// buildDisplay builds a list or detail display model; paths name declaration errors for the caller's specification kind.
+// buildDisplay builds a list or detail display model from checked input. The member map named by
+// paths and a list search with $ref or $patch are composed, the composed specification is
+// scanned for forbidden keys, and its declarations are checked.
 func buildDisplay(spec *Object, rows []*Object, options ListOptions, paths displayPaths) (*Object, error) {
-	if e := checkListInput(spec, rows, options); e != nil {
-		return nil, e
-	}
 	data, _ := optionObject(options.Data)
 	if e := checkOrderedValue(spec); e != nil {
 		return nil, e
@@ -137,31 +143,39 @@ func buildDisplay(spec *Object, rows []*Object, options ListOptions, paths displ
 	if loader == nil {
 		loader = compose.NewMemoryLoader(options.Files)
 	}
-	raw := object(read(spec, "columns"))
+	raw := object(read(spec, paths.members))
 	if raw == nil {
-		raw = NewObject()
+		return nil, fmt.Errorf("Invalid %s at %s: expected an object", paths.members, paths.own)
 	}
-	columns, e := compose.ComposeProperties(raw, loader, compose.ComposeOptions{Basepath: options.Basepath})
+	composeOptions := compose.ComposeOptions{Basepath: options.Basepath}
+	columns, e := compose.ComposeProperties(raw, loader, composeOptions)
 	if e != nil {
 		return nil, e
 	}
-	// Declarations are checked after the input rules and composition: the own design, each member, then the pagination.
-	if spec.Has("design") {
-		if e := checkDesignDeclaration(read(spec, "design"), paths.own); e != nil {
+	var search any = absent
+	if s := object(read(spec, "search")); paths.own == "list" && s != nil && (s.Has("$ref") || s.Has("$patch")) {
+		if search, e = compose.ComposeProperties(s, loader, composeOptions); e != nil {
 			return nil, e
 		}
 	}
-	for _, key := range columns.Keys() {
-		if member := object(read(columns, key)); member != nil && member.Has("design") {
-			if e := checkDesignDeclaration(read(member, "design"), paths.members+"."+key); e != nil {
-				return nil, e
-			}
+	// The composed specification keeps the member order of the declared one.
+	composed := NewObject()
+	for _, key := range spec.Keys() {
+		value := read(spec, key)
+		if key == paths.members {
+			value = columns
+		} else if key == "search" && !isAbsent(search) {
+			value = search
 		}
+		composed.Set(key, value)
 	}
-	if spec.Has("pagination") {
-		if e := checkPaginationDeclaration(read(spec, "pagination"), paths.own); e != nil {
-			return nil, e
-		}
+	spec = composed
+	// The forbidden-key scan and then the declarations, as the display format specification orders them.
+	if e := validator.ScanForbiddenKeys(spec, nil); e != nil {
+		return nil, e
+	}
+	if e := checkDisplayDeclarations(spec, paths); e != nil {
+		return nil, e
 	}
 	if data == nil {
 		data = NewObject()
@@ -170,9 +184,6 @@ func buildDisplay(spec *Object, rows []*Object, options ListOptions, paths displ
 	cols := []*Object{}
 	for _, key := range columns.Keys() {
 		raw := object(read(columns, key))
-		if raw == nil {
-			continue
-		}
 		d := resolveDesign(read(raw, "design"), lookup, nil)
 		if !truthy(read(d, "show")) {
 			continue
@@ -217,21 +228,20 @@ func buildDisplay(spec *Object, rows []*Object, options ListOptions, paths displ
 	actions := []*Object{}
 	if raw := object(read(spec, "actions")); raw != nil {
 		for _, key := range raw.Keys() {
-			if key == "$ref" || key == "$patch" {
-				continue
-			}
 			v := read(raw, key)
 			if text, ok := v.(string); ok {
 				actions = append(actions, NewObject("key", key, "label", key, "behavior", NewObject(key, text)))
 				continue
 			}
 			o := object(v)
-			if o == nil {
-				continue
-			}
 			label := key
 			if o.Has("label") {
 				label = translate(read(o, "label"), options.Language)
+			}
+			// An action object with a script is the object form of a script action.
+			if script, ok := read(o, "script").(string); ok {
+				actions = append(actions, NewObject("key", key, "label", label, "behavior", NewObject(key, script)))
+				continue
 			}
 			a := NewObject("key", key, "label", label)
 			if o.Has("format") {

@@ -34,6 +34,7 @@
 | form-markup | 다섯 구현의 재귀 폼 노드, 목록·상세 표시 블록, 행 카드, 인터페이스 문구 | implemented | passed | not-deployed | [폼 마크업](spec/form-markup.ko.md), [표시 형식](spec/display-formats.ko.md) |
 | crudui-details | 읽기 전용 상세 명세, 모델, 프레임워크 독립 HTML 렌더링과 구조 검증 | implemented | passed | not-deployed | [명세](spec/schema.ko.md), [표시 형식](spec/display-formats.ko.md), [기능 계약](spec/feature-contracts.ko.md), [공용 상세 고정 데이터](../tests/fixtures/detail-render/README.ko.md), [네이티브 비교](../tests/native-generators/README.ko.md), [상세 검증 사례](../tests/fixtures/detail-validity/cases.json) |
 | form-view-state | 레코드 데이터와 분리된 행 접기, 병합 실행취소·실행복귀 이력 | implemented | passed | not-deployed | [노드 테스트](../packages/generator-core/src/node.test.ts) |
+| display-declarations | JavaScript, HTML 렌더러, PHP, PHP 확장, Go, Rust의 렌더링 시 목록·상세 선언 검사 | implemented | passed | not-deployed | [표시 형식 선언](spec/display-formats.ko.md#선언), [공용 목록 고정 데이터](../tests/fixtures/list-render/README.ko.md), [공용 상세 고정 데이터](../tests/fixtures/detail-render/README.ko.md), [네이티브 비교](../tests/native-generators/README.ko.md), [렌더 유효성 검사](../packages/generator-core/src/display-validity.test.ts) |
 | form-outline | 구조 맵과 현재 데이터 보기 | implemented | passed | not-deployed | [폼 마크업](spec/form-markup.ko.md) |
 | form-initialization-comparison | 데이터와 함께 생성한 폼과 마운트 후 주입한 폼의 단계별 좌우 비교 | implemented | passed | not-deployed | [폼 비교](spec/form-comparison.ko.md) |
 | keyed-validation | 네 언어의 키를 유지하는 그룹·단일 값 검증 | implemented | passed | not-deployed | [공용 검증 사례](../tests/fixtures/validate/cases.json) |
@@ -53,6 +54,21 @@
 20·20·5개 세 페이지로 제공합니다. 페이지 수준 SSR에는 선택한 서버의 목록, 상세 또는 폼 마크업이 포함되고
 CSR에는 선택한 클라이언트가 채우는 단계 셸만 포함됩니다. 초기화 비교는 프레임워크가 소유한 컨테이너 표시를
 보존하고 렌더링된 컨테이너 내용만 비교합니다. Vue의 `data-v-app`도 제거하지 않습니다.
+
+## 표시 선언 검증
+
+2026-09-24에 표시 선언 변경의 작업 트리가 macOS arm64, PHP 8.5.10, Node.js 26.8.1, Go 1.27.0,
+Rust 1.98.0에서 다음 검사를 통과했습니다.
+
+- 네이티브 생성기 검사는 JavaScript, HTML 렌더러, PHP, Go, Rust, 네이티브 PHP 각각에서 목록 사례 142개와
+  상세 사례 44개를 포함한 596개 검사를 통과했습니다(합계 3,576개, 실패 0개).
+- 폼 패키지는 core 247, HTML 406, React 794, Vue 597, Svelte 590개와 마운트한 Svelte 14개 검사를
+  통과했고, node 폼 검사는 57개와 24개를 통과했습니다. 생성기 패키지는 PHP 249, Go 116, Rust 36개 검사를, PHP 확장 검사는 46개
+  검사를 통과했습니다. 주소 새니타이저 검사는 Linux에서 실행합니다.
+- 교차 검증 콘솔 1,039개, 명세 CLI 38개, 폼 비교 소스 검사 194개, 그 Go·Rust 서버 14개와 18개,
+  `npm run manifest:test` 명령 21개, `npm run test:packages` 7단계, `npm run test:runtimes` 65개 검사를
+  통과했습니다. `npm run spec:schema`, `npm run lint`, `npm run typecheck`, `make format-check`,
+  `make docs-check`도 통과했습니다.
 
 ## 네이티브 패키지 검증
 

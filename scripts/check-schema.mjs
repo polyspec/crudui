@@ -143,10 +143,6 @@ for (const [family, validate] of [
 // ---------------------------------------------------------------------------
 const outsideSchema = new Map([
   [
-    'detail-render:content-values',
-    'content declared as numbers, objects and arrays. The declaration shape is text or a language map of strings; this case pins how every runtime resolves the other values to empty text (docs/spec/schema.md, Fields).',
-  ],
-  [
     'console:detail-edge-forbidden',
     'the forbidden meta key show_if, quoted from detail-validity red-show-if-on-field.',
   ],

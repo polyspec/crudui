@@ -18,8 +18,10 @@ Each runtime provides two levels:
 - A render function builds the model and writes HTML from it.
 
 Invalid input fails with code `INVALID_FORM_INPUT` and the messages listed under
-[input](../spec/display-formats.md#input). An unresolved composition reference fails with
-`ComposeLoadError`.
+[input](../spec/display-formats.md#input). An unresolved composition reference and a forbidden key
+fail with `ComposeLoadError`. A declaration that does not follow the
+[declaration rules](../spec/display-formats.md#declarations) fails with `INVALID_FORM_INPUT`, so a
+list or detail is rendered only from a specification of the documented shape.
 
 ## Options
 
@@ -226,7 +228,9 @@ Structure validation composes a list or detail declaration and rejects forbidden
 not validate rows or a record. A valid structure returns `{ valid: true, errors: [] }` in
 JavaScript and PHP and a valid `ValidationResult` in Go; Rust returns `Ok(())`. A composition or
 forbidden-key failure is a `ComposeLoadError`: JavaScript and PHP throw it, Go returns it as the
-error and Rust returns it as `Err`.
+error and Rust returns it as `Err`. The model and render functions run the same composition and
+forbidden-key scan on the `columns`, `fields` and `search` declarations and then check the
+declaration rules.
 
 ## Examples
 

@@ -6,6 +6,7 @@ namespace CRUDUI\Generator;
 
 use CRUDUI\FormError;
 use CRUDUI\Validator\Compose\Compose;
+use CRUDUI\Validator\ForbiddenScan;
 use CRUDUI\Validator\Support\NumberValue;
 use stdClass;
 
@@ -15,24 +16,12 @@ final class Lists
     /** Build one read-only list model from validated public inputs. */
     public static function buildPublic(array|stdClass $spec, array $rows, array $options): stdClass
     {
-        if (is_array($spec) && !self::isObject($spec, true)) {
-            throw new FormError('INVALID_FORM_INPUT', 'List specification must be an object');
-        }
-        if (!array_is_list($rows)) {
-            throw new FormError('INVALID_FORM_INPUT', 'List rows must be an array');
-        }
-        foreach ($rows as $row) {
-            if (!self::isObject($row, false)) {
-                throw new FormError('INVALID_FORM_INPUT', 'List rows must be objects');
-            }
-        }
-        self::optionObject($options, 'data', 'List context must be an object');
-        self::countOptions($options);
+        self::checkInput($spec, $rows, $options);
         return self::build(Value::object($spec), $rows, $options, 'list', 'columns');
     }
 
-    /** Render composed list columns, supplied rows, actions and pagination. */
-    public static function render(array|stdClass $spec, array $rows, array $options): string
+    /** Check the list input in the order every runtime uses (docs/spec/display-formats.md). */
+    private static function checkInput(array|stdClass $spec, array $rows, array $options): void
     {
         if (is_array($spec) && !self::isObject($spec, true)) {
             throw new FormError('INVALID_FORM_INPUT', 'List specification must be an object');
@@ -45,8 +34,17 @@ final class Lists
                 throw new FormError('INVALID_FORM_INPUT', 'List rows must be objects');
             }
         }
+        if (!array_key_exists('columns', (array) $spec)) {
+            throw new FormError('INVALID_FORM_INPUT', 'List specification must declare columns');
+        }
         self::optionObject($options, 'data', 'List context must be an object');
         self::countOptions($options);
+    }
+
+    /** Render composed list columns, supplied rows, actions and pagination. */
+    public static function render(array|stdClass $spec, array $rows, array $options): string
+    {
+        self::checkInput($spec, $rows, $options);
         $layout = $options['layout'] ?? 'table';
         if ($layout !== 'table' && $layout !== 'card') {
             throw new FormError('INVALID_FORM_INPUT', 'List layout must be table or card');
@@ -133,8 +131,10 @@ final class Lists
     }
 
     /**
-     * Compose columns and evaluate ordered list and cell models. $own names the path of the
-     * specification's own design and $members the path prefix of each column design.
+     * Evaluate ordered list and cell models from checked input. $own is `list` or `detail` and
+     * $members names the member map, `columns` or `fields`. The member map and a list `search`
+     * with `$ref` or `$patch` are composed, the composed specification is scanned for forbidden
+     * keys, and its declarations are checked.
      */
     public static function build(stdClass $spec, array $rows, array $options, string $own, string $members): stdClass
     {
@@ -142,25 +142,30 @@ final class Lists
         $language = $options['language'] ?? 'ko';
         self::optionObject($options, 'data', 'List context must be an object');
         $data = Value::object($options['data'] ?? []);
-        $columns = Compose::properties((array) ($spec->columns ?? new stdClass()), Template::loader($options), $options['basepath'] ?? '');
-        // Declarations are checked after the input rules and composition: the own design, each member, then the pagination.
-        if (property_exists($spec, 'design')) {
-            Template::checkDesignDeclaration($spec->design, $own);
+        if (!($spec->{$members} ?? null) instanceof stdClass) {
+            throw new FormError('INVALID_FORM_INPUT', sprintf('Invalid %s at %s: expected an object', $members, $own));
         }
-        foreach ($columns as $key => $raw) {
-            if (($raw instanceof stdClass || is_array($raw)) && array_key_exists('design', (array) $raw)) {
-                Template::checkDesignDeclaration(((array) $raw)['design'], $members . '.' . $key);
-            }
+        $loader = Template::loader($options);
+        $basepath = $options['basepath'] ?? '';
+        $columns = Compose::properties((array) $spec->{$members}, $loader, $basepath);
+        $search = $spec->search ?? null;
+        $composeSearch = $own === 'list' && $search instanceof stdClass && (property_exists($search, '$ref') || property_exists($search, '$patch'));
+        // The composed specification keeps the member order of the declared one.
+        $composed = new stdClass();
+        foreach ($spec as $key => $value) {
+            $composed->{$key} = match (true) {
+                $key === $members => (object) $columns,
+                $key === 'search' && $composeSearch => (object) Compose::properties((array) $search, $loader, $basepath),
+                default => $value,
+            };
         }
-        if (property_exists($spec, 'pagination')) {
-            self::checkPaginationDeclaration($spec->pagination, $own);
-        }
+        $spec = $composed;
+        // The forbidden-key scan and then the declarations, as the display format specification orders them.
+        ForbiddenScan::scan($spec);
+        DisplayDeclaration::check($spec, $own, $members);
         $columnModels = [];
         $columnSpecs = [];
         foreach ($columns as $key => $raw) {
-            if (!$raw instanceof stdClass && !is_array($raw)) {
-                continue;
-            }
             $raw = (object) $raw;
             $design = Design::resolve($raw->design ?? null, $data, []);
             if (!$design->show) {
@@ -189,17 +194,18 @@ final class Lists
         $actions = [];
         if (($spec->actions ?? null) instanceof stdClass) {
             foreach ($spec->actions as $key => $raw) {
-                if (in_array($key, ['$ref', '$patch'], true)) {
-                    continue;
-                }
                 if (is_string($raw)) {
                     $actions[] = (object) ['key' => $key, 'label' => $key, 'behavior' => (object) [$key => $raw]];
                     continue;
                 }
-                if (!$raw instanceof stdClass) {
+                $raw = (object) $raw;
+                $label = property_exists($raw, 'label') ? Value::translate($raw->label, $language) : $key;
+                // An action object with a script is the object form of a script action.
+                if (is_string($raw->script ?? null)) {
+                    $actions[] = (object) ['key' => $key, 'label' => $label, 'behavior' => (object) [$key => $raw->script]];
                     continue;
                 }
-                $action = ['key' => $key, 'label' => property_exists($raw, 'label') ? Value::translate($raw->label, $language) : $key];
+                $action = ['key' => $key, 'label' => $label];
                 if (property_exists($raw, 'format')) {
                     $action['format'] = self::format($raw->format);
                 }
@@ -239,29 +245,6 @@ final class Lists
     {
         if (isset($options[$key]) && !self::isObject($options[$key], true)) {
             throw new FormError('INVALID_FORM_INPUT', $message);
-        }
-    }
-
-    /** Reject a wrong value type or an unknown key in the pagination declaration at `$path`. */
-    private static function checkPaginationDeclaration(mixed $pagination, string $path): void
-    {
-        $fail = static fn(string $key, string $expected): never => throw new FormError('INVALID_FORM_INPUT', sprintf('Invalid %s at %s: expected %s', $key, $path, $expected));
-        if (!is_bool($pagination) && !$pagination instanceof stdClass) {
-            $fail('pagination', 'a boolean or an object');
-        }
-        if (!$pagination instanceof stdClass) {
-            return;
-        }
-        foreach (array_keys((array) $pagination) as $key) {
-            if (!in_array((string) $key, ['per_page', 'mode'], true)) {
-                throw new FormError('INVALID_FORM_INPUT', sprintf('Invalid pagination.%s at %s: unknown key', $key, $path));
-            }
-        }
-        if (property_exists($pagination, 'per_page') && self::safeInteger($pagination->per_page, 1) === null) {
-            $fail('pagination.per_page', 'a positive integer');
-        }
-        if (property_exists($pagination, 'mode') && !in_array($pagination->mode, ['pages', 'offset', 'cursor', 'none'], true)) {
-            $fail('pagination.mode', 'pages, offset, cursor or none');
         }
     }
 
@@ -317,7 +300,7 @@ final class Lists
     }
 
     /** A PHP int or float whose value is an integer from `$min` to 2^53 - 1, as int; otherwise null. */
-    private static function safeInteger(mixed $value, int $min): ?int
+    public static function safeInteger(mixed $value, int $min): ?int
     {
         $integral = is_int($value) || is_float($value) && is_finite($value) && floor($value) === $value;
         if (!$integral || $value < $min || $value > 9007199254740991) {
