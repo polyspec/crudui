@@ -151,7 +151,9 @@ Linux CI 브라우저 작업은 러너가 설치한 정규 Chrome 실행 파일
 파일시스템 항목인지 확인합니다. 사전 검사는 sandbox 비활성화 인자 없이 Chrome을
 시작하고 `chrome://sandbox`가 `You are adequately sandboxed.`를 보고하도록
 요구합니다. 이 상태에는 namespace 또는 SUID 1차 계층, PID·network namespace와
-Seccomp-BPF가 필요합니다. 조건 하나라도 실패하면 작업이 실패합니다. CI 브라우저
+Seccomp-BPF가 필요합니다. 조건 하나라도 실패하면 작업이 실패합니다. 실패한
+sandbox 조건은 평가 문구 또는 `chrome://sandbox` 행, 보고된 값과 필요한 값을
+오류에 표시합니다. CI 브라우저
 검사는 `--no-sandbox`와 `--disable-setuid-sandbox`를 사용하지 않습니다.
 
 Git에서 추적하는 모든 npm 잠금 파일은 유지 관리 대상 의존성 그래프입니다. 루트
