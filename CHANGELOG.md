@@ -1,5 +1,27 @@
 # Changes
 
+## 2026-09-24 — Lists and details reject invalid declarations at render
+
+- `buildList`, `buildDetail`, `renderList` and `renderDetail` in JavaScript, the HTML renderer,
+  PHP, the PHP extension, Go and Rust check the list and detail declaration shape
+  ([display format declarations](docs/spec/display-formats.md#declarations)). A list without
+  `columns` fails with `List specification must declare columns`; `columns` or `fields` that are
+  not an object, an unknown root, column, field, sort or action key, a root `$ref` or `$patch`, and
+  a wrong value type of `field`, `label`, `format` and its typed settings, `sortable`, `search`,
+  `sort`, an action or `empty` fail with `INVALID_FORM_INPUT`. Before, such a specification, for
+  example `{ "columns": 5 }`, rendered an empty list.
+- The renderers compose a list `search` with `$ref` or `$patch` and scan the composed
+  specification for forbidden keys as `validateList` and `validateDetail` do, so a forbidden key
+  fails with `FORBIDDEN_META_KEY` at its path.
+- A `null` format fails; absent, `true` and `false` select `text`.
+- An action object with `script` renders as a script action with its translated label.
+- `renderList` in JavaScript checks the `layout` option before composition and the declarations,
+  as every other runtime does. The internal entry of `@crudui/generator-core` exports
+  `buildListLayout` in place of `listLayout`.
+- The shared list and detail render fixtures define the declaration error cases, and every
+  runtime runs them through the native generator suite. The list and detail validity cases are
+  also built by `buildList` and `buildDetail`.
+
 ## 2026-09-22 — Choice inputs pass pointer activation to their labels
 
 - Visually hidden radio and checkbox inputs now retain a native hit target with transparent

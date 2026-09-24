@@ -40,9 +40,11 @@ extensions from being interpreted as paths.
 
 | Declaration | Result |
 | --- | --- |
-| absent, `null`, `true` or `false` | `text` |
+| absent, `true` or `false` | `text` |
 | a string, such as `date` | that type with no settings |
 | an object | its `type` (`text` when absent or empty) with the object's settings |
+
+Any other value, `null` included, fails as the [declarations](#declarations) define.
 
 A type that is not in the table below displays the value as `text` and keeps the declared type
 name in the cell class.
@@ -151,6 +153,7 @@ location.
 | list specification | an object | `List specification must be an object` |
 | list rows | an array | `List rows must be an array` |
 | each list row | an object | `List rows must be objects` |
+| list specification | declares `columns` | `List specification must declare columns` |
 | list `data` option | an object | `List context must be an object` |
 | list `page` option | an integer from 1 to 9007199254740991 | `List page must be a positive integer` |
 | list `total` option | an integer from 0 to 9007199254740991 | `List total must be a nonnegative integer` |
@@ -162,6 +165,8 @@ location.
 
 A detail takes the `data`, `language`, `files` and `basepath` options. It neither checks nor uses
 the list-only `page`, `total` and `layout` options.
+`buildList` does not read `layout`; `renderList` checks it after the other list input rules and
+before composition.
 
 The rules check argument shapes in argument order first, then the declaration, then options.
 An option that is absent or `null` uses its default: an empty context, no current page, no total
@@ -183,15 +188,84 @@ reported. The Go and Rust library signatures take rows as a sequence, so in thos
 rows rule applies where decoded JSON becomes that sequence; every other rule is checked by the
 library.
 
-After the input rules and composition, the declarations are checked. `design` follows the
-[form declaration rules](schema.md#fields) exactly: an unknown key fails with
-`Invalid {key} at {path}: unknown key` and a value of the wrong type with
-`Invalid {key} at {path}: expected {expected}`. The path of the list's own `design` is `list`, of a
-column's `design` `columns.{name}`, of the detail's own `design` `detail` and of a field's `design`
-`fields.{name}`. The own `design` is checked first, then each column or field in
-[member order](schema.md#member-order).
+### Declarations
 
-A list's `pagination` is checked last, at path `list`:
+A renderer composes the `columns` map of a list or the `fields` map of a detail, and the `search`
+declaration of a list when it holds `$ref` or `$patch`, as `validateList` and `validateDetail` do.
+It does not compose the specification root. Before composition, `columns` must be an object
+(`Invalid columns at list: expected an object`) and `fields` must be an object
+(`Invalid fields at detail: expected an object`). A composition failure is a load error with its
+code and location. After composition the renderer scans the composed specification for forbidden
+keys with the validator scan and fails with the load error `FORBIDDEN_META_KEY` at the key's path,
+as the validators do.
+
+The declarations are then checked. The first failing rule fails with `INVALID_FORM_INPUT`, the
+message below and an empty location. An unknown key fails with `Invalid {key} at {path}: unknown key`
+and a value of the wrong type with `Invalid {key} at {path}: expected {expected}`. The checks run in
+this order:
+
+1. The root members in member order.
+2. The own `design`, at path `list` or `detail`.
+3. Each column or field in [member order](schema.md#member-order): its type, its unknown keys in
+   member order, then `field`, `label`, `format`, `design` and `sortable`, at path
+   `columns.{name}` or `fields.{name}`.
+4. For a list: `search`, `sort`, `actions` (each action in member order, at path
+   `actions.{name}`), `empty` and `pagination`, at path `list`.
+
+`design` follows the [form declaration rules](schema.md#fields) exactly. Content is a string, a
+language map (an object with at least one member, each a string or `null`) or `null`. A condition
+map is an object with at least one member.
+
+| Declaration | Accepted value | Failure message |
+| --- | --- | --- |
+| a list root member | `columns`, `search`, `sort`, `pagination`, `actions`, `empty` or `design` | `Invalid {key} at list: unknown key` |
+| a detail root member | `fields` or `design` | `Invalid {key} at detail: unknown key` |
+| a root `$ref` or `$patch` | none: composition belongs in `columns` or `fields` | `Invalid $ref at list: expected composition inside columns`, `Invalid $patch at detail: expected composition inside fields` |
+| a column or field | an object | `Invalid {name} at columns: expected an object`, `Invalid {name} at fields: expected an object` |
+| a column member | `field`, `label`, `format`, `design` or `sortable` | `Invalid {key} at columns.{name}: unknown key` |
+| a field member | `field`, `label`, `format` or `design` | `Invalid {key} at fields.{name}: unknown key` |
+| `field` | a string | `Invalid field at {path}: expected a string` |
+| `label` | content | `Invalid label at {path}: expected a string, a language map or null` |
+| `format` | a boolean, a string or an object | `Invalid format at {path}: expected a boolean, a string or an object` |
+| `format.type`, `format.pattern`, `format.target`, `format.as` | a string | `Invalid format.{key} at {path}: expected a string` |
+| `format.prefix`, `format.suffix`, `format.text`, `format.true`, `format.false`, `format.alt` | content | `Invalid format.{key} at {path}: expected a string, a language map or null` |
+| `format.map` | an object | `Invalid format.map at {path}: expected an object` |
+| each `format.map` label | content | `Invalid format.map.{value} at {path}: expected a string, a language map or null` |
+| `format.href` | a string or a condition map | `Invalid format.href at {path}: expected a string or a condition map` |
+| `format.items` | an array or an object | `Invalid format.items at {path}: expected an array or an object` |
+| `sortable` | a boolean, an expression or a condition map | `Invalid sortable at {path}: expected a boolean, an expression or a condition map` |
+| `search` | a boolean or an object | `Invalid search at list: expected a boolean or an object` |
+| `sort` | an object | `Invalid sort at list: expected an object` |
+| a `sort` member | `field` or `dir` | `Invalid sort.{key} at list: unknown key` |
+| `sort.field` | a string | `Invalid sort.field at list: expected a string` |
+| `sort.dir` | `asc` or `desc` | `Invalid sort.dir at list: expected asc or desc` |
+| `actions` | an object | `Invalid actions at list: expected an object` |
+| an action named `$ref` or `$patch` | none: actions are not composed | `Invalid $ref at actions: unknown key` |
+| an action | a script string or an object | `Invalid {name} at actions: expected a script or an object` |
+| a member of an action with `script` | `label` or `script` | `Invalid {key} at actions.{name}: unknown key` |
+| a member of another action object | `label`, `format`, `behavior` or `design` | `Invalid {key} at actions.{name}: unknown key` |
+| action `script` | a string | `Invalid script at actions.{name}: expected a string` |
+| action `label` | content | `Invalid label at actions.{name}: expected a string, a language map or null` |
+| action `format` | the `format` rules above | `Invalid format at actions.{name}: …` |
+| action `behavior` | a boolean or an object | `Invalid behavior at actions.{name}: expected a boolean or an object` |
+| a `behavior` member | `onchange`, `onclick` or `onload` | `Invalid behavior.{key} at actions.{name}: unknown key` |
+| a `behavior` entry | a script string or an object | `Invalid behavior.{event} at actions.{name}: expected a script or an object` |
+| a `behavior` entry member | `label` or `script` | `Invalid behavior.{event}.{key} at actions.{name}: unknown key` |
+| a `behavior` entry `label` | content | `Invalid behavior.{event}.label at actions.{name}: expected a string, a language map or null` |
+| a `behavior` entry `script` | a string | `Invalid behavior.{event}.script at actions.{name}: expected a string` |
+| action `design` | the `design` rules | `Invalid design… at actions.{name}: …` |
+| `empty` | content | `Invalid empty at list: expected a string, a language map or null` |
+
+Other `format` settings (`truncate`, `decimals`, `thousands`, `width`, `height` and settings that
+the table does not name) accept any value; the forbidden-key scan still applies to their keys.
+The members of a `search` object are form declarations: the list model does not use them, and
+[form compilation](schema.md#fields) and the meta-schema check them.
+
+An action with `script` is a script action, as a script string is: its model is
+`{ key, label, behavior: { {name}: script } }`, with `label` translated or the action name when
+`label` is absent.
+
+`pagination` is checked last, at path `list`:
 
 | Declaration | Accepted value | Failure message |
 | --- | --- | --- |

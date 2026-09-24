@@ -51,10 +51,9 @@ export function buildDetail(
   if (context !== undefined && context !== null && (typeof context !== 'object' || Array.isArray(context))) {
     throw new FormInputError('Detail context must be an object');
   }
-  const fields = detailSpec.fields;
   // Page and total are list-only options: a detail neither checks nor uses them.
   const vm = buildDisplay(
-    { columns: fields, ...(Object.prototype.hasOwnProperty.call(detailSpec, 'design') ? { design: detailSpec.design } : {}) },
+    detailSpec,
     [record],
     { ...options, ...(loader ? { loader } : {}), page: null, total: null },
     { own: 'detail', members: 'fields' },

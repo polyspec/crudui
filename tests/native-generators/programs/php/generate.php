@@ -93,7 +93,8 @@ try {
                 objectValue($row, 'List rows must be objects');
             }
             $listOptions = options(property_exists($request, 'options') ? $request->options : new stdClass());
-            if (isset($listOptions['data'])) {
+            // The context is checked after the columns declaration, which the library checks first.
+            if (property_exists($spec, 'columns') && isset($listOptions['data'])) {
                 objectValue($listOptions['data'], 'List context must be an object');
             }
             $result = Generator::renderList($spec, $rows, $listOptions);
@@ -108,7 +109,8 @@ try {
                 objectValue($row, 'List rows must be objects');
             }
             $listOptions = options(property_exists($request, 'options') ? $request->options : new stdClass());
-            if (isset($listOptions['data'])) {
+            // The context is checked after the columns declaration, which the library checks first.
+            if (property_exists($spec, 'columns') && isset($listOptions['data'])) {
                 objectValue($listOptions['data'], 'List context must be an object');
             }
             $result = Generator::buildList($spec, $rows, $listOptions);

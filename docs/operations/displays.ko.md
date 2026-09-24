@@ -18,7 +18,9 @@
 - 렌더 함수는 모델을 만든 뒤 모델에서 HTML을 작성합니다.
 
 잘못된 입력은 `INVALID_FORM_INPUT` 코드와 [입력](../spec/display-formats.ko.md)에 나열한
-메시지로 실패합니다. 해석할 수 없는 합성 참조는 `ComposeLoadError`로 실패합니다.
+메시지로 실패합니다. 해석할 수 없는 합성 참조와 금지 키는 `ComposeLoadError`로 실패합니다.
+[선언 규칙](../spec/display-formats.ko.md#선언)을 따르지 않는 선언은 `INVALID_FORM_INPUT`으로 실패하므로,
+목록과 상세는 문서화된 형태의 명세에서만 렌더링됩니다.
 
 ## 옵션
 
@@ -223,6 +225,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 않습니다. 유효한 구조는 JavaScript와 PHP에서 `{ valid: true, errors: [] }`, Go에서 유효한
 `ValidationResult`를 반환하고 Rust에서는 `Ok(())`를 반환합니다. 합성 실패와 금지 키 실패는
 `ComposeLoadError`이며, JavaScript와 PHP는 이를 던지고 Go는 오류로, Rust는 `Err`로 반환합니다.
+모델 함수와 렌더 함수는 `columns`, `fields`, `search` 선언에 같은 합성과 금지 키 스캔을 실행한 뒤 선언
+규칙을 검사합니다.
 
 ## 예제
 

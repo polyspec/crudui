@@ -7,15 +7,13 @@ framework renderer. Each case provides `name`, `note`, `spec`, `record`, optiona
 either `expected_html` or `expectError` with its `code` and `message`.
 
 These cases check translated labels, every cell format, an absent value, the detail and field
-designs, a hidden field, composed fields, an empty declaration and the three input errors.
+designs, a hidden field, composed fields, an empty declaration, the input errors and the
+declaration errors of the [display format declarations](../../../docs/spec/display-formats.md#declarations).
 Each case supplies the record; the renderer does not query data.
 
-`content-values` is the one case whose specification is outside the
-[meta-schema](../../../schema/crudui.schema.json) on purpose. Content is declared as text or a
-language map of strings; this case declares numbers, objects and arrays instead to pin how every
-runtime resolves such a value to empty text ([specification structure](../../../docs/spec/schema.md)).
-[`check-schema.mjs`](../../../scripts/check-schema.mjs) records it with that reason and requires it
-to fail the meta-schema, so the exemption cannot become silent.
+`content-values` declares choice labels in `format.items`, which the declaration rules leave open,
+as numbers, a language map with a number and an array; every runtime resolves each such label to
+empty text ([specification structure](../../../docs/spec/schema.md)).
 
 ## Comparisons
 

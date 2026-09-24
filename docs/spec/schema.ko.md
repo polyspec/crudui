@@ -123,6 +123,8 @@ TypeScript, PHP, Go, Rust 구현을 비교합니다. SSR 비교와 마운트한 
 별도 인자입니다. 각 열은 `field` 경로, `label`, `format`, `design`, 선택적
 `sortable`을 정의합니다. 목록과 폼은 합성, 조건, 외형, 콘텐츠 번역을 공유합니다.
 목록은 입력 대신 표시 셀을 사용합니다.
+`columns`가 없는 목록은 `List specification must declare columns`로 실패하며,
+[표시 형식 선언](display-formats.ko.md#선언)이 모든 목록과 상세 선언의 검사를 정의합니다.
 
 | 형식 | 설정 |
 | --- | --- |

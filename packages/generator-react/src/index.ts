@@ -6,13 +6,12 @@
 import * as React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import {
-  buildList,
   buildDetail,
   type BuildDetailOptions,
   type BuildListOptions,
   type FormInstance,
 } from '@crudui/generator-core';
-import { listLayout } from '@crudui/generator-core/internal';
+import { buildListLayout } from '@crudui/generator-core/internal';
 import { Form } from './components/Form';
 import { List } from './components/List';
 import { Detail } from './components/Detail';
@@ -54,10 +53,8 @@ export function renderList(
   rows: Array<Record<string, unknown>> = [],
   options: RenderListOptions = {}
 ): string {
-  // The whole options reach the model, whose input text check reads the layout too.
-  const { layout } = options;
-  const vm = buildList(listSpec, rows, options);
-  const element = React.createElement(List, { vm, layout: listLayout(layout) }) as React.ReactElement;
+  const { vm, layout } = buildListLayout(listSpec, rows, options);
+  const element = React.createElement(List, { vm, layout }) as React.ReactElement;
   return renderToStaticMarkup(element as Parameters<typeof renderToStaticMarkup>[0]);
 }
 

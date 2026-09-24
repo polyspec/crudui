@@ -6,6 +6,7 @@ namespace CRUDUI\Generator\Tests;
 
 use CRUDUI\Generator;
 use PHPUnit\Framework\TestCase;
+use stdClass;
 
 final class DetailTest extends TestCase
 {
@@ -45,7 +46,7 @@ final class DetailTest extends TestCase
         $emptyArray = json_decode('[]', true, 512, JSON_THROW_ON_ERROR);
 
         self::assertSame($emptyArray, $emptyObject);
-        self::assertSame('<dl class="crudui-detail"></dl>', Generator::renderDetail(['fields' => []], $emptyObject));
+        self::assertSame('<dl class="crudui-detail"></dl>', Generator::renderDetail(['fields' => new stdClass()], $emptyObject));
     }
 
     public function testRejectsAssociativeDecodeOfASequentialNumericObject(): void
@@ -54,7 +55,7 @@ final class DetailTest extends TestCase
 
         self::assertTrue(array_is_list($object));
         $this->expectExceptionMessage('Detail record must be an object');
-        Generator::renderDetail(['fields' => []], $object);
+        Generator::renderDetail(['fields' => new stdClass()], $object);
     }
 
     public function testRejectsMissingFields(): void
@@ -78,12 +79,12 @@ final class DetailTest extends TestCase
     public function testRejectsListShapedRecord(): void
     {
         $this->expectExceptionMessage('Detail record must be an object');
-        Generator::renderDetail(['fields' => []], ['Ada']);
+        Generator::renderDetail(['fields' => new stdClass()], ['Ada']);
     }
 
     public function testOmittedRecordUsesAnEmptyObject(): void
     {
-        $html = Generator::renderDetail(['fields' => []]);
+        $html = Generator::renderDetail(['fields' => new stdClass()]);
         self::assertSame('<dl class="crudui-detail"></dl>', $html);
     }
 }

@@ -1,5 +1,4 @@
 import {
-  buildList,
   buildOutline,
   formButtonsHtml,
   type OutlineRow,
@@ -20,7 +19,7 @@ import {
   type UnsupportedVM,
   type WidgetModel,
 } from '@crudui/generator-core';
-import { listLayout, parseStyle } from '@crudui/generator-core/internal';
+import { buildListLayout, parseStyle } from '@crudui/generator-core/internal';
 
 type AnyWidget = WidgetModel | UnsupportedVM;
 
@@ -503,8 +502,6 @@ export function renderList(
   rows: Array<Record<string, unknown>> = [],
   options: RenderListOptions = {},
 ): string {
-  // The whole options reach the model, whose input text check reads the layout too.
-  const { layout } = options;
-  const vm = buildList(spec, rows, options);
-  return imagePreloads(vm.rows) + listHtml(vm, listLayout(layout));
+  const { vm, layout } = buildListLayout(spec, rows, options);
+  return imagePreloads(vm.rows) + listHtml(vm, layout);
 }

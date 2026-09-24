@@ -119,7 +119,7 @@ describe('buildList — structure & engine reuse', () => {
 describe('renderCell catalog — SPEC §9.2 read display values', () => {
   function cell(format: unknown, value: unknown, row: Record<string, unknown> = {}, language: 'ko' | 'en' = 'en') {
     const vm = buildList(
-      { columns: { c: { field: 'c', format } } },
+      { columns: { c: { field: 'c', ...(format === undefined ? {} : { format }) } } },
       [{ ...row, c: value }],
       { language }
     );

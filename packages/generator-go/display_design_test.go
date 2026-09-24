@@ -36,7 +36,7 @@ func TestListAndDetailDesignDeclarations(t *testing.T) {
 		})
 	}
 	// The input rules come first.
-	_, err := BuildList(decodeObject(t, `{"design":{"color":"red"}}`), nil, ListOptions{Page: 0.0})
+	_, err := BuildList(decodeObject(t, `{"columns":{},"design":{"color":"red"}}`), nil, ListOptions{Page: 0.0})
 	if err == nil || err.Error() != "List page must be a positive integer" {
 		t.Fatalf("input rules must precede declarations: %v", err)
 	}

@@ -613,7 +613,7 @@ test('PHP extension engine validates all shared form, list and detail cases', { 
       signal: t.signal, root, directory, source: sourceForValidation(), name: 'validation',
       sources: [
         'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'compose.c', 'expression.c',
-        'runtime.c', ...ruleSources, 'validation.c',
+        'runtime.c', ...ruleSources, 'forbidden_scan.c', 'validation.c',
       ],
       onOutput: stdout => { output = stdout; },
     });
@@ -686,7 +686,7 @@ test('PHP extension engine unique rule takes time linear in the rows', { timeout
       signal: t.signal, root, directory, source: sourceForUniqueTime(), name: 'unique-time',
       sources: [
         'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'compose.c', 'expression.c',
-        'runtime.c', ...ruleSources, 'validation.c',
+        'runtime.c', ...ruleSources, 'forbidden_scan.c', 'validation.c',
       ],
       onOutput: stdout => process.stderr.write(`    ${stdout}`),
     });
@@ -753,7 +753,7 @@ test('PHP extension engine unique rule on a field in rows takes time linear in t
       signal: t.signal, root, directory, source: sourceForUniqueRowTime(), name: 'unique-row-time',
       sources: [
         'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'compose.c', 'expression.c',
-        'runtime.c', ...ruleSources, 'validation.c',
+        'runtime.c', ...ruleSources, 'forbidden_scan.c', 'validation.c',
       ],
       onOutput: stdout => process.stderr.write(`    ${stdout}`),
     });
@@ -768,7 +768,7 @@ test('PHP extension engine validation does not depend on a comma decimal locale'
     source: sourceForValidation(),
     sources: [
       'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'compose.c', 'expression.c',
-      'runtime.c', ...ruleSources, 'validation.c',
+      'runtime.c', ...ruleSources, 'forbidden_scan.c', 'validation.c',
     ],
   });
 });
@@ -780,7 +780,7 @@ test('PHP extension engine validation has no undefined behavior findings', { tim
       signal: t.signal, root, directory, source: sourceForValidation(), name: 'validation-sanitize',
       sources: [
         'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'compose.c', 'expression.c',
-        'runtime.c', ...ruleSources, 'validation.c',
+        'runtime.c', ...ruleSources, 'forbidden_scan.c', 'validation.c',
       ],
       compilerFlags: ['-fsanitize=undefined', '-fno-omit-frame-pointer'],
       runEnvironment: {
@@ -803,7 +803,7 @@ test('PHP extension engine validation has no address sanitizer findings', {
       signal: t.signal, root, directory, source: sourceForValidation(), name: 'validation-address',
       sources: [
         'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'compose.c', 'expression.c',
-        'runtime.c', ...ruleSources, 'validation.c',
+        'runtime.c', ...ruleSources, 'forbidden_scan.c', 'validation.c',
       ],
       compilerFlags: ['-fsanitize=address', '-fno-omit-frame-pointer'],
       runEnvironment: {
@@ -924,7 +924,7 @@ test('PHP extension validation returns failure after repeated-field allocation f
       name: 'validation-allocation',
       sources: [
         'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'compose.c', 'expression.c',
-        'runtime.c', ...ruleSources,
+        'runtime.c', ...ruleSources, 'forbidden_scan.c',
       ],
     });
   } finally {
@@ -1855,11 +1855,12 @@ function sourceForFixtures() {
 
 const sources = [
   'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'expression.c',
-  'runtime.c', 'date.c', 'design.c', 'compose.c', 'declaration.c', 'html.c', 'list.c', 'messages.c', 'interface_messages.c',
+  'runtime.c', 'date.c', 'design.c', 'compose.c', 'declaration.c', 'display_declaration.c', 'forbidden_scan.c', 'html.c',
+  'list.c', 'messages.c', 'interface_messages.c',
 ];
 
 test('PHP extension engine renders the complete list target as exact HTML', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  assert.equal(fixtures.length, 72,
+  assert.equal(fixtures.length, 142,
     'Review C list coverage when the shared fixture inventory changes');
   assert.equal(numberCases.length, 17,
     'Review C number coverage when the native number inventory changes');
@@ -1928,7 +1929,7 @@ function sourceForFixtures() {
     for (const operation of ['render', 'build']) {
       const name = `${operation}:${fixture.name}`;
       const { value: expected, error } = expectation(operation, fixture);
-      if (fixture.expectError) assert.deepEqual(error, { ...fixture.expectError, at: '' });
+      if (fixture.expectError) assert.deepEqual({ code: error.code, message: error.message }, fixture.expectError);
       lines.push('  {', `  /* ${name} */`);
       const specValue = builder.emit(fixture.spec);
       const recordValue = builder.emit(fixture.record ?? {});
@@ -1973,11 +1974,12 @@ function sourceForFixtures() {
 
 const sources = [
   'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'expression.c',
-  'runtime.c', 'date.c', 'design.c', 'compose.c', 'declaration.c', 'html.c', 'list.c', 'messages.c', 'interface_messages.c',
+  'runtime.c', 'date.c', 'design.c', 'compose.c', 'declaration.c', 'display_declaration.c', 'forbidden_scan.c', 'html.c',
+  'list.c', 'messages.c', 'interface_messages.c',
 ];
 
 test('PHP extension engine renders and builds every shared detail fixture', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  assert.equal(fixtures.length, 31,
+  assert.equal(fixtures.length, 44,
     'Review C detail coverage when the shared fixture inventory changes');
   const missing = expectation('build', fixtures.find(fixture => fixture.name === 'missing-value'));
   assert.equal(missing.value.fields[0].value, null);

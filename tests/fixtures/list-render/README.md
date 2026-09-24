@@ -7,7 +7,8 @@ Each case provides `name`, `spec`, `rows`, optional `options`, and either
 `expected_html` or `expectError`.
 
 These cases check table and card layouts, column formats, actions, visibility,
-empty rows and pagination markup. Each case supplies the display rows;
+empty rows and pagination markup, the input errors and the declaration errors of the
+[display format declarations](../../../docs/spec/display-formats.md#declarations). Each case supplies the display rows;
 the renderer does not query a database.
 
 ## Comparisons

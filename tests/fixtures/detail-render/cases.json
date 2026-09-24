@@ -820,50 +820,9 @@
   },
   {
     "name": "content-values",
-    "note": "content is a string or a language map with non-empty string entries; any other value is empty text.",
+    "note": "a choice label in format items is an open value: a label that is not a string or a language map with a non-empty string entry is empty text.",
     "spec": {
       "fields": {
-        "prefixNumberEntry": {
-          "field": "n",
-          "label": "P",
-          "format": {
-            "type": "number",
-            "prefix": {
-              "en": 7,
-              "ko": "K"
-            }
-          }
-        },
-        "prefixObjectEntry": {
-          "field": "n",
-          "label": "O",
-          "format": {
-            "type": "number",
-            "prefix": {
-              "en": {
-                "x": 1
-              }
-            }
-          }
-        },
-        "prefixNumber": {
-          "field": "n",
-          "label": "N",
-          "format": {
-            "type": "number",
-            "prefix": 0
-          }
-        },
-        "boolLabelNumberEntry": {
-          "field": "yes",
-          "label": "B",
-          "format": {
-            "type": "bool",
-            "true": {
-              "en": 3
-            }
-          }
-        },
         "choiceNumber": {
           "field": "a",
           "label": "C",
@@ -899,36 +858,6 @@
             }
           }
         },
-        "badgeNumberEntry": {
-          "field": "a",
-          "label": "G",
-          "format": {
-            "type": "badge",
-            "map": {
-              "a": {
-                "en": 3
-              }
-            }
-          }
-        },
-        "linkTextZero": {
-          "field": "name",
-          "label": "L0",
-          "format": {
-            "type": "link",
-            "href": "/u",
-            "text": 0
-          }
-        },
-        "linkTextFalse": {
-          "field": "name",
-          "label": "LF",
-          "format": {
-            "type": "link",
-            "href": "/u",
-            "text": false
-          }
-        },
         "linkTextEmpty": {
           "field": "name",
           "label": "LE",
@@ -936,27 +865,6 @@
             "type": "link",
             "href": "/u",
             "text": ""
-          }
-        },
-        "linkTextNumberEntry": {
-          "field": "name",
-          "label": "LN",
-          "format": {
-            "type": "link",
-            "href": "/u",
-            "text": {
-              "en": 3
-            }
-          }
-        },
-        "altList": {
-          "field": "img",
-          "label": "I",
-          "format": {
-            "type": "image",
-            "alt": [
-              "x"
-            ]
           }
         }
       }
@@ -972,7 +880,7 @@
     "options": {
       "language": "en"
     },
-    "expected_html": "<dl class=\"crudui-detail\"><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">P</dt><dd class=\"crudui-detail__value crudui-value crudui-value--number\">K5</dd></div><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">O</dt><dd class=\"crudui-detail__value crudui-value crudui-value--number\">5</dd></div><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">N</dt><dd class=\"crudui-detail__value crudui-value crudui-value--number\">5</dd></div><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">B</dt><dd class=\"crudui-detail__value crudui-value crudui-value--bool\"><span class=\"crudui-bool crudui-bool--text\" data-crudui-state=\"true\"></span></dd></div><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">C</dt><dd class=\"crudui-detail__value crudui-value crudui-value--choice-label\"></dd></div><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">D</dt><dd class=\"crudui-detail__value crudui-value crudui-value--choice-label\">가</dd></div><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">E</dt><dd class=\"crudui-detail__value crudui-value crudui-value--choice-label\"></dd></div><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">G</dt><dd class=\"crudui-detail__value crudui-value crudui-value--badge\"><span class=\"crudui-badge\"></span></dd></div><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">L0</dt><dd class=\"crudui-detail__value crudui-value crudui-value--link\"><a href=\"/u\"></a></dd></div><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">LF</dt><dd class=\"crudui-detail__value crudui-value crudui-value--link\"><a href=\"/u\"></a></dd></div><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">LE</dt><dd class=\"crudui-detail__value crudui-value crudui-value--link\"><a href=\"/u\">Ada</a></dd></div><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">LN</dt><dd class=\"crudui-detail__value crudui-value crudui-value--link\"><a href=\"/u\"></a></dd></div><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">I</dt><dd class=\"crudui-detail__value crudui-value crudui-value--image\"><img alt=\"\" src=\"data:image/png;base64,AA==\"></dd></div></dl>"
+    "expected_html": "<dl class=\"crudui-detail\"><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">C</dt><dd class=\"crudui-detail__value crudui-value crudui-value--choice-label\"></dd></div><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">D</dt><dd class=\"crudui-detail__value crudui-value crudui-value--choice-label\">가</dd></div><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">E</dt><dd class=\"crudui-detail__value crudui-value crudui-value--choice-label\"></dd></div><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">LE</dt><dd class=\"crudui-detail__value crudui-value crudui-value--link\"><a href=\"/u\">Ada</a></dd></div></dl>"
   },
   {
     "name": "list-options-ignored",
@@ -1178,6 +1086,457 @@
     "expectError": {
       "code": "INVALID_FORM_INPUT",
       "message": "Detail record must be an object"
+    }
+  },
+  {
+    "name": "reject-root-ref-without-fields",
+    "note": "a root $ref is not composed, so a specification without its own fields declares none.",
+    "spec": {
+      "$ref": "base-detail.yml"
+    },
+    "record": {
+      "id": 7,
+      "name": "<Ada & Lin>",
+      "status": "active",
+      "joined": "2026-01-02T09:00:00",
+      "score": 1234567.5,
+      "admin": 1,
+      "avatar": "/img/ada.png",
+      "notes": "<b>bold</b>",
+      "jointablename": {
+        "id": 107
+      },
+      "join": {
+        "join": {
+          "name": "<Ada & Lin>"
+        }
+      }
+    },
+    "options": {
+      "files": {
+        "base-detail.yml": {
+          "properties": {
+            "fields": {
+              "name": {
+                "field": "name"
+              }
+            }
+          }
+        }
+      }
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Detail specification must declare fields"
+    }
+  },
+  {
+    "name": "reject-forbidden-field-key",
+    "note": "a forbidden key in a field fails the forbidden-key scan.",
+    "spec": {
+      "fields": {
+        "name": {
+          "field": "name",
+          "show_if": ".admin"
+        }
+      }
+    },
+    "record": {
+      "id": 7,
+      "name": "<Ada & Lin>",
+      "status": "active",
+      "joined": "2026-01-02T09:00:00",
+      "score": 1234567.5,
+      "admin": 1,
+      "avatar": "/img/ada.png",
+      "notes": "<b>bold</b>",
+      "jointablename": {
+        "id": 107
+      },
+      "join": {
+        "join": {
+          "name": "<Ada & Lin>"
+        }
+      }
+    },
+    "expectError": {
+      "code": "FORBIDDEN_META_KEY",
+      "message": "forbidden meta key \"show_if\" at fields.name.show_if"
+    }
+  },
+  {
+    "name": "reject-forbidden-root-key",
+    "note": "a forbidden root key fails the scan before the declaration rules.",
+    "spec": {
+      "fields": {
+        "name": {
+          "field": "name"
+        }
+      },
+      "if": ".admin"
+    },
+    "record": {
+      "id": 7,
+      "name": "<Ada & Lin>",
+      "status": "active",
+      "joined": "2026-01-02T09:00:00",
+      "score": 1234567.5,
+      "admin": 1,
+      "avatar": "/img/ada.png",
+      "notes": "<b>bold</b>",
+      "jointablename": {
+        "id": 107
+      },
+      "join": {
+        "join": {
+          "name": "<Ada & Lin>"
+        }
+      }
+    },
+    "expectError": {
+      "code": "FORBIDDEN_META_KEY",
+      "message": "forbidden meta key \"if\" at if"
+    }
+  },
+  {
+    "name": "reject-number-fields",
+    "note": "fields are an object.",
+    "spec": {
+      "fields": 5
+    },
+    "record": {
+      "id": 7,
+      "name": "<Ada & Lin>",
+      "status": "active",
+      "joined": "2026-01-02T09:00:00",
+      "score": 1234567.5,
+      "admin": 1,
+      "avatar": "/img/ada.png",
+      "notes": "<b>bold</b>",
+      "jointablename": {
+        "id": 107
+      },
+      "join": {
+        "join": {
+          "name": "<Ada & Lin>"
+        }
+      }
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid fields at detail: expected an object"
+    }
+  },
+  {
+    "name": "reject-unknown-root-key",
+    "note": "a detail root member that the schema does not list is rejected.",
+    "spec": {
+      "fields": {
+        "name": {
+          "field": "name"
+        }
+      },
+      "sort": {
+        "field": "name"
+      }
+    },
+    "record": {
+      "id": 7,
+      "name": "<Ada & Lin>",
+      "status": "active",
+      "joined": "2026-01-02T09:00:00",
+      "score": 1234567.5,
+      "admin": 1,
+      "avatar": "/img/ada.png",
+      "notes": "<b>bold</b>",
+      "jointablename": {
+        "id": 107
+      },
+      "join": {
+        "join": {
+          "name": "<Ada & Lin>"
+        }
+      }
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid sort at detail: unknown key"
+    }
+  },
+  {
+    "name": "reject-root-ref",
+    "note": "a root $ref beside the fields is not composed.",
+    "spec": {
+      "fields": {
+        "name": {
+          "field": "name"
+        }
+      },
+      "$ref": "base.yml"
+    },
+    "record": {
+      "id": 7,
+      "name": "<Ada & Lin>",
+      "status": "active",
+      "joined": "2026-01-02T09:00:00",
+      "score": 1234567.5,
+      "admin": 1,
+      "avatar": "/img/ada.png",
+      "notes": "<b>bold</b>",
+      "jointablename": {
+        "id": 107
+      },
+      "join": {
+        "join": {
+          "name": "<Ada & Lin>"
+        }
+      }
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid $ref at detail: expected composition inside fields"
+    }
+  },
+  {
+    "name": "reject-field-not-object",
+    "note": "each field is an object.",
+    "spec": {
+      "fields": {
+        "name": 5
+      }
+    },
+    "record": {
+      "id": 7,
+      "name": "<Ada & Lin>",
+      "status": "active",
+      "joined": "2026-01-02T09:00:00",
+      "score": 1234567.5,
+      "admin": 1,
+      "avatar": "/img/ada.png",
+      "notes": "<b>bold</b>",
+      "jointablename": {
+        "id": 107
+      },
+      "join": {
+        "join": {
+          "name": "<Ada & Lin>"
+        }
+      }
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid name at fields: expected an object"
+    }
+  },
+  {
+    "name": "reject-field-sortable",
+    "note": "a detail field does not declare sorting.",
+    "spec": {
+      "fields": {
+        "name": {
+          "field": "name",
+          "sortable": true
+        }
+      }
+    },
+    "record": {
+      "id": 7,
+      "name": "<Ada & Lin>",
+      "status": "active",
+      "joined": "2026-01-02T09:00:00",
+      "score": 1234567.5,
+      "admin": 1,
+      "avatar": "/img/ada.png",
+      "notes": "<b>bold</b>",
+      "jointablename": {
+        "id": 107
+      },
+      "join": {
+        "join": {
+          "name": "<Ada & Lin>"
+        }
+      }
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid sortable at fields.name: unknown key"
+    }
+  },
+  {
+    "name": "reject-field-path",
+    "note": "the field path is a string.",
+    "spec": {
+      "fields": {
+        "name": {
+          "field": [
+            "name"
+          ]
+        }
+      }
+    },
+    "record": {
+      "id": 7,
+      "name": "<Ada & Lin>",
+      "status": "active",
+      "joined": "2026-01-02T09:00:00",
+      "score": 1234567.5,
+      "admin": 1,
+      "avatar": "/img/ada.png",
+      "notes": "<b>bold</b>",
+      "jointablename": {
+        "id": 107
+      },
+      "join": {
+        "join": {
+          "name": "<Ada & Lin>"
+        }
+      }
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid field at fields.name: expected a string"
+    }
+  },
+  {
+    "name": "reject-field-label",
+    "note": "a label is content.",
+    "spec": {
+      "fields": {
+        "name": {
+          "field": "name",
+          "label": true
+        }
+      }
+    },
+    "record": {
+      "id": 7,
+      "name": "<Ada & Lin>",
+      "status": "active",
+      "joined": "2026-01-02T09:00:00",
+      "score": 1234567.5,
+      "admin": 1,
+      "avatar": "/img/ada.png",
+      "notes": "<b>bold</b>",
+      "jointablename": {
+        "id": 107
+      },
+      "join": {
+        "join": {
+          "name": "<Ada & Lin>"
+        }
+      }
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid label at fields.name: expected a string, a language map or null"
+    }
+  },
+  {
+    "name": "reject-field-format",
+    "note": "a format is a boolean, a string or an object.",
+    "spec": {
+      "fields": {
+        "name": {
+          "field": "name",
+          "format": 5
+        }
+      }
+    },
+    "record": {
+      "id": 7,
+      "name": "<Ada & Lin>",
+      "status": "active",
+      "joined": "2026-01-02T09:00:00",
+      "score": 1234567.5,
+      "admin": 1,
+      "avatar": "/img/ada.png",
+      "notes": "<b>bold</b>",
+      "jointablename": {
+        "id": 107
+      },
+      "join": {
+        "join": {
+          "name": "<Ada & Lin>"
+        }
+      }
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid format at fields.name: expected a boolean, a string or an object"
+    }
+  },
+  {
+    "name": "reject-field-format-alt",
+    "note": "an image alternative text is content.",
+    "spec": {
+      "fields": {
+        "name": {
+          "field": "name",
+          "format": {
+            "type": "image",
+            "alt": 5
+          }
+        }
+      }
+    },
+    "record": {
+      "id": 7,
+      "name": "<Ada & Lin>",
+      "status": "active",
+      "joined": "2026-01-02T09:00:00",
+      "score": 1234567.5,
+      "admin": 1,
+      "avatar": "/img/ada.png",
+      "notes": "<b>bold</b>",
+      "jointablename": {
+        "id": 107
+      },
+      "join": {
+        "join": {
+          "name": "<Ada & Lin>"
+        }
+      }
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid format.alt at fields.name: expected a string, a language map or null"
+    }
+  },
+  {
+    "name": "reject-root-key-before-design",
+    "note": "root members are checked before the own design.",
+    "spec": {
+      "design": {
+        "color": "red"
+      },
+      "fields": {
+        "name": {
+          "field": "name"
+        }
+      },
+      "empty": "None"
+    },
+    "record": {
+      "id": 7,
+      "name": "<Ada & Lin>",
+      "status": "active",
+      "joined": "2026-01-02T09:00:00",
+      "score": 1234567.5,
+      "admin": 1,
+      "avatar": "/img/ada.png",
+      "notes": "<b>bold</b>",
+      "jointablename": {
+        "id": 107
+      },
+      "join": {
+        "join": {
+          "name": "<Ada & Lin>"
+        }
+      }
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid empty at detail: unknown key"
     }
   }
 ]

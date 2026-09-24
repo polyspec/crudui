@@ -1,12 +1,14 @@
 use crudui_validator::compose::{
     compose_properties, member_ordered, ComposeOptions, FileLoader, MemoryLoader,
 };
+use crudui_validator::scan_forbidden_keys;
 use serde_json::{json, Map, Value};
 
 use crate::design::{appearance, flag, resolve_design};
+use crate::display_declaration::check_display_declarations;
 use crate::messages::{format_page, list_messages};
 use crate::render::{appearance_attrs, element, escape, raw_element, raw_text};
-use crate::template::{check_design_declaration, check_known_keys};
+use crate::template::check_known_keys;
 use crate::util::{join_class, scalar, segments, translate, value_at};
 use crate::{FormError, FormResult};
 
@@ -241,14 +243,15 @@ fn list_integer(value: &Value, minimum: u64, message: &str) -> FormResult<Option
     }
 }
 
-/// Checked list inputs: the context, where null means empty, and the supplied page and total.
-struct ListContext {
-    data: Value,
-    page: Option<u64>,
-    total: Option<u64>,
+/// Checked display inputs: the context, where null means empty, and the supplied page and total.
+pub(crate) struct ListContext {
+    pub(crate) data: Value,
+    pub(crate) page: Option<u64>,
+    pub(crate) total: Option<u64>,
 }
 
-/// Check list inputs in contract order: specification, rows, context, page, then total.
+/// Check list inputs in contract order: specification, rows, the columns declaration, context,
+/// page, then total.
 fn list_context(
     spec: &Value,
     rows: &[Value],
@@ -259,6 +262,9 @@ fn list_context(
     }
     if rows.iter().any(|row| !row.is_object()) {
         return Err(FormError::input("List rows must be objects"));
+    }
+    if spec.get("columns").is_none() {
+        return Err(FormError::input("List specification must declare columns"));
     }
     let context = match &options.data {
         Value::Null => json!({}),
@@ -280,45 +286,62 @@ fn list_context(
 
 /// Compose a list and bind display rows without modifying the inputs.
 pub fn build_list(spec: &Value, rows: &[Value], options: &ListOptions<'_>) -> FormResult<Value> {
-    build_display(spec, rows, options, "list", "columns")
+    // The specification is read in member order; rows and the context keep their own order.
+    let spec = &member_ordered(spec);
+    let checked = list_context(spec, rows, options)?;
+    build_display(spec, rows, options, &checked, "list", "columns")
 }
 
-/// Build a list or detail display model; `own` names the path of the specification's own
-/// `design` and `members` the path prefix of each column or field `design` in declaration errors.
+/// Build a list or detail display model from checked input. `own` is `list` or `detail` and
+/// `members` names the member map, `columns` or `fields`. The member map and a list `search` with
+/// `$ref` or `$patch` are composed, the composed specification is scanned for forbidden keys, and
+/// its declarations are checked.
 pub(crate) fn build_display(
     spec: &Value,
     rows: &[Value],
     options: &ListOptions<'_>,
+    checked: &ListContext,
     own: &str,
     members: &str,
 ) -> FormResult<Value> {
-    // The specification is read in member order; rows and the context keep their own order.
-    let spec = &member_ordered(spec);
-    let checked = list_context(spec, rows, options)?;
     let context = &checked.data;
     let memory = MemoryLoader::new(options.files.clone());
-    let columns = compose_properties(
-        spec["columns"].as_object().cloned().unwrap_or_default(),
-        options.loader.unwrap_or(&memory),
-        &ComposeOptions::with_basepath(&options.basepath),
-    )?;
-    // Declarations are checked after the input rules and composition: the own design, each member, then the pagination.
-    if let Some(design) = spec.get("design") {
-        check_design_declaration(design, own)?;
-    }
-    for (key, raw) in &columns {
-        if let Some(design) = raw.as_object().and_then(|raw| raw.get("design")) {
-            check_design_declaration(design, &format!("{members}.{key}"))?;
+    let loader = options.loader.unwrap_or(&memory);
+    let compose_options = ComposeOptions::with_basepath(&options.basepath);
+    let Some(declared) = spec[members].as_object() else {
+        return Err(FormError::input(format!(
+            "Invalid {members} at {own}: expected an object"
+        )));
+    };
+    let columns = compose_properties(declared.clone(), loader, &compose_options)?;
+    let search = match spec.get("search").and_then(Value::as_object) {
+        Some(search)
+            if own == "list" && (search.contains_key("$ref") || search.contains_key("$patch")) =>
+        {
+            Some(compose_properties(
+                search.clone(),
+                loader,
+                &compose_options,
+            )?)
         }
+        _ => None,
+    };
+    // The composed specification keeps the member order of the declared one.
+    let mut composed = Map::new();
+    for (key, value) in spec.as_object().into_iter().flatten() {
+        let value = match &search {
+            _ if key == members => Value::Object(columns.clone()),
+            Some(search) if key == "search" => Value::Object(search.clone()),
+            _ => value.clone(),
+        };
+        composed.insert(key.clone(), value);
     }
-    if let Some(pagination) = spec.get("pagination") {
-        check_pagination_declaration(pagination, own)?;
-    }
+    // The forbidden-key scan and then the declarations, as the display format specification orders them.
+    let spec = &Value::Object(composed);
+    scan_forbidden_keys(spec, &[])?;
+    check_display_declarations(spec, own, members)?;
     let mut visible = Vec::new();
     for (key, raw) in &columns {
-        if !raw.is_object() {
-            continue;
-        }
         let design = resolve_design(raw.get("design"), context, "");
         if design["show"] == false {
             continue;
@@ -343,17 +366,20 @@ pub(crate) fn build_display(
     );
     let mut actions = Vec::new();
     for (key, raw) in spec["actions"].as_object().into_iter().flatten() {
-        if ["$ref", "$patch"].contains(&key.as_str()) {
-            continue;
-        }
         if let Some(script) = raw.as_str() {
             actions.push(json!({"key":key,"label":key,"behavior":{key:script}}));
             continue;
         }
-        if !raw.is_object() {
+        let label = raw
+            .get("label")
+            .map(|v| translate(Some(v), &options.language))
+            .unwrap_or_else(|| key.clone());
+        // An action object with a script is the object form of a script action.
+        if let Some(script) = raw["script"].as_str() {
+            actions.push(json!({"key":key,"label":label,"behavior":{key:script}}));
             continue;
         }
-        let mut action = json!({"key":key,"label":raw.get("label").map(|v|translate(Some(v),&options.language)).unwrap_or_else(||key.clone())});
+        let mut action = json!({"key":key,"label":label});
         if raw.get("format").is_some() {
             action["format"] = format(raw.get("format"));
         }
@@ -693,7 +719,7 @@ pub fn render_list(spec: &Value, rows: &[Value], options: &ListOptions<'_>) -> F
 }
 
 /// Reject a wrong value type or an unknown key in the pagination declaration at `path`.
-fn check_pagination_declaration(pagination: &Value, path: &str) -> FormResult<()> {
+pub(crate) fn check_pagination_declaration(pagination: &Value, path: &str) -> FormResult<()> {
     let fail = |key: &str, expected: &str| {
         Err(FormError::input(format!(
             "Invalid {key} at {path}: expected {expected}"

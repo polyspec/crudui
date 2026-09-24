@@ -36,9 +36,11 @@ columns:
 
 | 선언 | 결과 |
 | --- | --- |
-| 생략, `null`, `true`, `false` | `text` |
+| 생략, `true`, `false` | `text` |
 | `date` 같은 문자열 | 설정 없는 해당 형식 |
 | 객체 | 객체의 `type`(없거나 비어 있으면 `text`)과 객체의 설정 |
+
+`null`을 포함한 그 밖의 값은 [선언](#선언)에서 정한 대로 실패합니다.
 
 아래 표에 없는 형식은 값을 `text`로 표시하고, 선언한 형식 이름은 셀 클래스에 유지합니다.
 
@@ -135,6 +137,7 @@ columns:
 | 목록 명세 | 객체 | `List specification must be an object` |
 | 목록 행 | 배열 | `List rows must be an array` |
 | 각 목록 행 | 객체 | `List rows must be objects` |
+| 목록 명세 | `columns` 선언 | `List specification must declare columns` |
 | 목록 `data` 옵션 | 객체 | `List context must be an object` |
 | 목록 `page` 옵션 | 1부터 9007199254740991까지의 정수 | `List page must be a positive integer` |
 | 목록 `total` 옵션 | 0부터 9007199254740991까지의 정수 | `List total must be a nonnegative integer` |
@@ -146,6 +149,8 @@ columns:
 
 상세는 `data`, `language`, `files`, `basepath` 옵션을 받습니다. 목록 전용 옵션 `page`, `total`, `layout`은
 검사하지도 사용하지도 않습니다.
+`buildList`는 `layout`을 읽지 않습니다. `renderList`는 다른 목록 입력 규칙 다음, 조합 전에 이 옵션을
+검사합니다.
 
 규칙은 인자 형태를 인자 순서대로 먼저 검사하고, 그다음 선언, 마지막으로 옵션을 검사합니다. 옵션이 없거나 `null`이면 기본값을 씁니다. 빈 컨텍스트, 현재 페이지 없음, 전체 수 없음, `table` 레이아웃입니다.
 `page`는 현재 페이지, `total`은 전체 레코드 수입니다. 둘 다 호출자가 제공하고 생성기는 행에서 계산하지 않으며,
@@ -163,13 +168,79 @@ columns:
 받으므로, 두 언어에서 행 규칙은 해석한 JSON을 그 시퀀스로 바꾸는 곳에서 적용되고 나머지 규칙은 라이브러리가
 검사합니다.
 
-입력 규칙과 조합이 끝나면 선언을 검사합니다. `design`은 [폼 선언 규칙](schema.ko.md)을 그대로 따릅니다. 알 수 없는
-키는 `Invalid {key} at {path}: unknown key`로, 형식이 틀린 값은 `Invalid {key} at {path}: expected {expected}`로
-실패합니다. 목록 자체 `design`의 경로는 `list`, 열 `design`은 `columns.{이름}`, 상세 자체 `design`은 `detail`,
-필드 `design`은 `fields.{이름}`입니다. 자체 `design`을 먼저 검사하고, 그다음 각 열이나 필드를
-[멤버 순서](schema.ko.md)대로 검사합니다.
+### 선언
 
-목록의 `pagination`은 마지막에 경로 `list`로 검사합니다.
+렌더러는 목록의 `columns` 맵, 상세의 `fields` 맵, 그리고 `$ref`나 `$patch`를 가진 목록의 `search`
+선언을 `validateList`, `validateDetail`과 같은 방식으로 조합합니다. 명세 루트는 조합하지 않습니다.
+조합 전에 `columns`는 객체여야 하고(`Invalid columns at list: expected an object`) `fields`도
+객체여야 합니다(`Invalid fields at detail: expected an object`). 조합 실패는 해당 코드와 위치를 가진
+로드 오류입니다. 조합 후 렌더러는 검증기의 스캔으로 조합된 명세에서 금지 키를 찾고, 검증기와 같이 키 경로에서
+로드 오류 `FORBIDDEN_META_KEY`로 실패합니다.
+
+그다음 선언을 검사합니다. 처음 실패한 규칙은 `INVALID_FORM_INPUT`, 아래 메시지, 빈 위치로 실패합니다.
+알 수 없는 키는 `Invalid {key} at {path}: unknown key`로, 형식이 틀린 값은
+`Invalid {key} at {path}: expected {expected}`로 실패합니다. 검사 순서는 다음과 같습니다.
+
+1. 루트 멤버를 멤버 순서대로 검사합니다.
+2. 자체 `design`을 경로 `list` 또는 `detail`로 검사합니다.
+3. 각 열이나 필드를 [멤버 순서](schema.ko.md)대로 검사합니다. 타입, 멤버 순서대로 알 수 없는 키, 그다음
+   `field`, `label`, `format`, `design`, `sortable`을 경로 `columns.{이름}` 또는 `fields.{이름}`으로
+   검사합니다.
+4. 목록은 `search`, `sort`, `actions`(각 동작을 멤버 순서대로, 경로 `actions.{이름}`), `empty`,
+   `pagination`을 경로 `list`로 검사합니다.
+
+`design`은 [폼 선언 규칙](schema.ko.md)을 그대로 따릅니다. 콘텐츠는 문자열, 언어 맵(멤버가 하나 이상이고 각
+멤버가 문자열이나 `null`인 객체), `null` 중 하나입니다. 조건 맵은 멤버가 하나 이상인 객체입니다.
+
+| 선언 | 허용 값 | 실패 메시지 |
+| --- | --- | --- |
+| 목록 루트 멤버 | `columns`, `search`, `sort`, `pagination`, `actions`, `empty`, `design` | `Invalid {key} at list: unknown key` |
+| 상세 루트 멤버 | `fields`, `design` | `Invalid {key} at detail: unknown key` |
+| 루트 `$ref`, `$patch` | 없음: 조합은 `columns`나 `fields`에 둡니다 | `Invalid $ref at list: expected composition inside columns`, `Invalid $patch at detail: expected composition inside fields` |
+| 열이나 필드 | 객체 | `Invalid {name} at columns: expected an object`, `Invalid {name} at fields: expected an object` |
+| 열 멤버 | `field`, `label`, `format`, `design`, `sortable` | `Invalid {key} at columns.{name}: unknown key` |
+| 필드 멤버 | `field`, `label`, `format`, `design` | `Invalid {key} at fields.{name}: unknown key` |
+| `field` | 문자열 | `Invalid field at {path}: expected a string` |
+| `label` | 콘텐츠 | `Invalid label at {path}: expected a string, a language map or null` |
+| `format` | 불리언, 문자열, 객체 | `Invalid format at {path}: expected a boolean, a string or an object` |
+| `format.type`, `format.pattern`, `format.target`, `format.as` | 문자열 | `Invalid format.{key} at {path}: expected a string` |
+| `format.prefix`, `format.suffix`, `format.text`, `format.true`, `format.false`, `format.alt` | 콘텐츠 | `Invalid format.{key} at {path}: expected a string, a language map or null` |
+| `format.map` | 객체 | `Invalid format.map at {path}: expected an object` |
+| 각 `format.map` 라벨 | 콘텐츠 | `Invalid format.map.{value} at {path}: expected a string, a language map or null` |
+| `format.href` | 문자열 또는 조건 맵 | `Invalid format.href at {path}: expected a string or a condition map` |
+| `format.items` | 배열 또는 객체 | `Invalid format.items at {path}: expected an array or an object` |
+| `sortable` | 불리언, 식, 조건 맵 | `Invalid sortable at {path}: expected a boolean, an expression or a condition map` |
+| `search` | 불리언 또는 객체 | `Invalid search at list: expected a boolean or an object` |
+| `sort` | 객체 | `Invalid sort at list: expected an object` |
+| `sort` 멤버 | `field`, `dir` | `Invalid sort.{key} at list: unknown key` |
+| `sort.field` | 문자열 | `Invalid sort.field at list: expected a string` |
+| `sort.dir` | `asc` 또는 `desc` | `Invalid sort.dir at list: expected asc or desc` |
+| `actions` | 객체 | `Invalid actions at list: expected an object` |
+| 이름이 `$ref`나 `$patch`인 동작 | 없음: 동작은 조합하지 않습니다 | `Invalid $ref at actions: unknown key` |
+| 동작 | 스크립트 문자열 또는 객체 | `Invalid {name} at actions: expected a script or an object` |
+| `script`가 있는 동작의 멤버 | `label`, `script` | `Invalid {key} at actions.{name}: unknown key` |
+| 그 밖의 동작 객체의 멤버 | `label`, `format`, `behavior`, `design` | `Invalid {key} at actions.{name}: unknown key` |
+| 동작 `script` | 문자열 | `Invalid script at actions.{name}: expected a string` |
+| 동작 `label` | 콘텐츠 | `Invalid label at actions.{name}: expected a string, a language map or null` |
+| 동작 `format` | 위의 `format` 규칙 | `Invalid format at actions.{name}: …` |
+| 동작 `behavior` | 불리언 또는 객체 | `Invalid behavior at actions.{name}: expected a boolean or an object` |
+| `behavior` 멤버 | `onchange`, `onclick`, `onload` | `Invalid behavior.{key} at actions.{name}: unknown key` |
+| `behavior` 항목 | 스크립트 문자열 또는 객체 | `Invalid behavior.{event} at actions.{name}: expected a script or an object` |
+| `behavior` 항목 멤버 | `label`, `script` | `Invalid behavior.{event}.{key} at actions.{name}: unknown key` |
+| `behavior` 항목 `label` | 콘텐츠 | `Invalid behavior.{event}.label at actions.{name}: expected a string, a language map or null` |
+| `behavior` 항목 `script` | 문자열 | `Invalid behavior.{event}.script at actions.{name}: expected a string` |
+| 동작 `design` | `design` 규칙 | `Invalid design… at actions.{name}: …` |
+| `empty` | 콘텐츠 | `Invalid empty at list: expected a string, a language map or null` |
+
+그 밖의 `format` 설정(`truncate`, `decimals`, `thousands`, `width`, `height`, 표에 없는 설정)은 어떤
+값이든 받습니다. 이 설정의 키에도 금지 키 스캔은 적용됩니다. `search` 객체의 멤버는 폼 선언입니다. 목록 모델은
+이를 사용하지 않으며, [폼 컴파일](schema.ko.md)과 메타 스키마가 검사합니다.
+
+`script`가 있는 동작은 스크립트 문자열과 같은 스크립트 동작입니다. 모델은
+`{ key, label, behavior: { {name}: script } }`이며, `label`은 번역한 값이고 `label`이 없으면 동작
+이름입니다.
+
+`pagination`은 마지막에 경로 `list`로 검사합니다.
 
 | 선언 | 허용 값 | 실패 메시지 |
 | --- | --- | --- |

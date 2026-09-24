@@ -137,6 +137,9 @@ A list declares `columns`; row records are a separate `buildList(spec, rows,
 options)` argument. Each column defines a `field` path, `label`, `format`,
 `design` and optional `sortable`. Lists share composition, conditions, appearance
 and content translation with forms. They use display cells instead of inputs.
+A list without `columns` fails with `List specification must declare columns`, and the
+[display format declarations](display-formats.md#declarations) define the checks of every list and
+detail declaration.
 
 | Format | Settings |
 | --- | --- |

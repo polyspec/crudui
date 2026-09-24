@@ -38,78 +38,6 @@ static bool string_in(ps_text value, const char *const *items, size_t count)
     return false;
 }
 
-static bool forbidden_key(ps_text key)
-{
-    static const char *const keys[] = {
-        "display_switch", "display_target", "if", "when", "show_if",
-        "_", "seqtokey", "__13hex__", "$after", "$before",
-        "$merge", "$remove", "xclass", "xstyle",
-    };
-    return (key.length >= 2 && key.bytes[0] == 'x') || string_in(key, keys, sizeof(keys) / sizeof(keys[0]));
-}
-
-static ps_value *path_trace(const ps_text *path, size_t length, ps_text key)
-{
-    ps_value *trace = ps_array_value();
-    if (!trace) return NULL;
-    for (size_t i = 0; i < length; ++i)
-        if (!ps_append(trace, ps_text_value(path[i]))) goto fail;
-    if (key.bytes && !ps_append(trace, ps_text_value(key))) goto fail;
-    return trace;
-fail:
-    ps_value_free(trace);
-    return NULL;
-}
-
-/* The dotted path, followed by the key when it has bytes. */
-static ps_chars path_text(const ps_text *path, size_t length, ps_text key)
-{
-    ps_html_buffer out = {0};
-    for (size_t i = 0; i < length; ++i) {
-        if (i) ps_html_character(&out, '.');
-        ps_html_append(&out, path[i]);
-    }
-    if (key.bytes) {
-        if (length) ps_html_character(&out, '.');
-        ps_html_append(&out, key);
-    }
-    return ps_html_take(&out);
-}
-
-static ps_value *scan_forbidden(const ps_value *node, ps_text *path, size_t length)
-{
-    if (!node || (node->kind != PS_ARRAY && node->kind != PS_OBJECT)) return NULL;
-    if (node->kind == PS_OBJECT) {
-        for (size_t i = 0; i < ps_size(node); ++i) {
-            ps_text key = ps_key(node, i);
-            if (!forbidden_key(key)) continue;
-            ps_chars at = path_text(path, length, key);
-            ps_value *trace = path_trace(path, length, key);
-            ps_chars message = at.bytes
-                ? PS_CONCAT(PS_TEXT("forbidden meta key \""), key, PS_TEXT("\" at "), ps_view(at))
-                : at;
-            ps_value *error = message.bytes && trace
-                ? ps_error_text("compose", "FORBIDDEN_META_KEY", ps_view(message), ps_view(at), trace)
-                : NULL;
-            free(message.bytes); free(at.bytes); ps_value_free(trace);
-            return error ? error : ps_error("internal", "INTERNAL_ERROR", "Validation failed", "", NULL);
-        }
-    }
-    for (size_t i = 0; i < ps_size(node); ++i) {
-        char index[32];
-        ps_text key = ps_key(node, i);
-        if (node->kind == PS_ARRAY) { snprintf(index, sizeof(index), "%zu", i); key = ps_fixed(index); }
-        ps_text *next = malloc((length + 1) * sizeof(*next));
-        if (!next) return ps_error("internal", "INTERNAL_ERROR", "Validation failed", "", NULL);
-        if (length) memcpy(next, path, length * sizeof(*next));
-        next[length] = key;
-        ps_value *error = scan_forbidden(ps_at(node, i), next, length + 1);
-        free(next);
-        if (error) return error;
-    }
-    return NULL;
-}
-
 static const ps_value *relative_field(ps_text reference, const validation_context *context,
                                       const ps_text *path, size_t length)
 {
@@ -616,7 +544,7 @@ static int rule_passes(ps_text rule, const ps_value *value, const ps_value *para
 static bool append_error(validation_context *context, const ps_text *path, size_t length,
                          ps_text rule, ps_text message, const ps_value *value)
 {
-    ps_chars full = path_text(path, length, (ps_text){NULL, 0});
+    ps_chars full = ps_dotted_path(path, length, (ps_text){NULL, 0});
     ps_value *error = ps_object_value();
     bool ok = full.bytes && error &&
         ps_set(error, "path", ps_text_value(ps_view(full))) &&
@@ -696,7 +624,7 @@ static int compare_keys(const void *left, const void *right)
 static bool input_failure(validation_context *context, const char *label,
                           const ps_text *path, size_t length)
 {
-    ps_chars full = path_text(path, length, (ps_text){NULL, 0});
+    ps_chars full = ps_dotted_path(path, length, (ps_text){NULL, 0});
     ps_chars message = full.bytes ? PS_CONCAT(ps_fixed(label), ps_view(full)) : full;
     context->failure = message.bytes
         ? ps_error_text("input", "INVALID_FORM_INPUT", ps_view(message), PS_TEXT(""), NULL) : NULL;
@@ -894,12 +822,12 @@ static ps_result validate_form(const ps_value *spec, const ps_value *data, const
     if (error) { ps_value_free(properties); return (ps_result){NULL, error}; }
     if (!properties) properties = ps_object_value();
     ps_text root_path[1] = {PS_TEXT("properties")};
-    error = scan_forbidden(properties, root_path, 1);
+    error = ps_scan_forbidden(properties, root_path, 1);
     /* The form root declarations are scanned like the fields they sit beside. */
     static const char *const form_keys[] = {"buttons", "action"};
     for (size_t i = 0; !error && spec && spec->kind == PS_OBJECT && i < 2; ++i) {
         ps_text form_path[1] = {ps_fixed(form_keys[i])};
-        if (ps_get(spec, form_keys[i])) error = scan_forbidden(ps_get(spec, form_keys[i]), form_path, 1);
+        if (ps_get(spec, form_keys[i])) error = ps_scan_forbidden(ps_get(spec, form_keys[i]), form_path, 1);
     }
     ps_pattern_cache *patterns = error ? NULL : ps_pattern_cache_new();
     if (!error && !patterns) error = ps_error("internal", "INTERNAL_ERROR", "Validation failed", "", NULL);
@@ -940,7 +868,7 @@ static void compose_view_map(ps_value *composed, const char *key, const ps_value
 /* Scan the composed view tree and return the clean-load result. */
 static ps_result finish_view(ps_value *composed, ps_value *error)
 {
-    if (!error) error = scan_forbidden(composed, NULL, 0);
+    if (!error) error = ps_scan_forbidden(composed, NULL, 0);
     ps_value_free(composed);
     if (error) return (ps_result){NULL, error};
     return validation_result(ps_array_value());

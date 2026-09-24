@@ -2209,6 +2209,1392 @@
     }
   },
   {
+    "name": "action-script-object",
+    "note": "an action object with script is a script action: its label is translated and the script is kept under the action name.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "label": "Name"
+        }
+      },
+      "actions": {
+        "remove": {
+          "label": {
+            "en": "Remove"
+          },
+          "script": "confirmDelete(this)"
+        }
+      }
+    },
+    "rows": [
+      {
+        "name": "Ada"
+      }
+    ],
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-list\"><div class=\"crudui-list__actions\"><span class=\"crudui-list__action\" data-action=\"remove\"><button onremove=\"confirmDelete(this)\" type=\"button\">Remove</button></span></div><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading\" data-field=\"name\"><span class=\"crudui-list__heading-label\">Name</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--text\">Ada</td></tr></tbody></table></div>"
+  },
+  {
+    "name": "reject-missing-columns",
+    "note": "a list specification declares columns.",
+    "spec": {
+      "sort": {
+        "field": "name",
+        "dir": "asc"
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "List specification must declare columns"
+    }
+  },
+  {
+    "name": "reject-rows-before-columns",
+    "note": "the rows argument is checked before the columns declaration.",
+    "spec": {},
+    "rows": {},
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "List rows must be an array"
+    }
+  },
+  {
+    "name": "reject-columns-before-context",
+    "note": "the columns declaration is checked before the options.",
+    "spec": {},
+    "rows": [],
+    "options": {
+      "data": []
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "List specification must declare columns"
+    }
+  },
+  {
+    "name": "reject-root-ref-without-columns",
+    "note": "a root $ref is not composed, so a specification without its own columns declares none.",
+    "spec": {
+      "$ref": "base-list.yml"
+    },
+    "rows": [],
+    "options": {
+      "files": {
+        "base-list.yml": {
+          "properties": {
+            "columns": {
+              "name": {
+                "field": "name"
+              }
+            }
+          }
+        }
+      }
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "List specification must declare columns"
+    }
+  },
+  {
+    "name": "reject-context-before-columns-shape",
+    "note": "the options are checked before the columns value.",
+    "spec": {
+      "columns": 5
+    },
+    "rows": [],
+    "options": {
+      "data": []
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "List context must be an object"
+    }
+  },
+  {
+    "name": "reject-layout-before-composition",
+    "note": "the layout option is an input rule: renderList checks it before composition; buildList does not read it.",
+    "spec": {
+      "columns": {
+        "$ref": "missing.yml"
+      }
+    },
+    "rows": [],
+    "options": {
+      "files": {},
+      "layout": "grid"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "List layout must be table or card"
+    }
+  },
+  {
+    "name": "reject-layout-before-declarations",
+    "note": "renderList checks the layout option before the declarations.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name"
+        }
+      },
+      "limit": 10
+    },
+    "rows": [],
+    "options": {
+      "layout": "grid"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "List layout must be table or card"
+    }
+  },
+  {
+    "name": "reject-columns-before-composition",
+    "note": "columns that are not an object fail before the search declaration is composed.",
+    "spec": {
+      "columns": 5,
+      "search": {
+        "$ref": "missing.yml"
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid columns at list: expected an object"
+    }
+  },
+  {
+    "name": "reject-search-unresolved-ref",
+    "note": "a search declaration with $ref is composed as validateList composes it.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name"
+        }
+      },
+      "search": {
+        "$ref": "missing.yml"
+      }
+    },
+    "rows": [],
+    "options": {
+      "files": {}
+    },
+    "expectError": {
+      "code": "REF_FILE_NOT_FOUND",
+      "message": "$ref file not found: missing.yml"
+    }
+  },
+  {
+    "name": "search-composed",
+    "note": "a search declaration with $ref and $patch is composed; the list model does not use search.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "label": "Name"
+        }
+      },
+      "search": {
+        "$ref": "search.yml",
+        "$patch": {
+          "remove": [
+            "q"
+          ]
+        }
+      }
+    },
+    "rows": [
+      {
+        "name": "Ada"
+      }
+    ],
+    "options": {
+      "language": "en",
+      "files": {
+        "search.yml": {
+          "properties": {
+            "q": {
+              "type": "text"
+            },
+            "r": {
+              "type": "text"
+            }
+          }
+        }
+      }
+    },
+    "expected_html": "<div class=\"crudui-list\"><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading\" data-field=\"name\"><span class=\"crudui-list__heading-label\">Name</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--text\">Ada</td></tr></tbody></table></div>"
+  },
+  {
+    "name": "reject-forbidden-key-in-composed-search",
+    "note": "the scan reads the composed search declaration.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name"
+        }
+      },
+      "search": {
+        "$ref": "search.yml"
+      }
+    },
+    "rows": [],
+    "options": {
+      "files": {
+        "search.yml": {
+          "properties": {
+            "q": {
+              "type": "text",
+              "show_if": ".admin"
+            }
+          }
+        }
+      }
+    },
+    "expectError": {
+      "code": "FORBIDDEN_META_KEY",
+      "message": "forbidden meta key \"show_if\" at search.q.show_if"
+    }
+  },
+  {
+    "name": "reject-forbidden-column-name",
+    "note": "a forbidden key used as a column name fails the forbidden-key scan.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name"
+        },
+        "display_switch": {
+          "field": "x"
+        }
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "FORBIDDEN_META_KEY",
+      "message": "forbidden meta key \"display_switch\" at columns.display_switch"
+    }
+  },
+  {
+    "name": "reject-forbidden-format-key",
+    "note": "the forbidden-key scan reaches format settings that the declaration rules leave open.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "format": {
+            "type": "badge",
+            "if": ".admin"
+          }
+        }
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "FORBIDDEN_META_KEY",
+      "message": "forbidden meta key \"if\" at columns.name.format.if"
+    }
+  },
+  {
+    "name": "reject-forbidden-patched-column-key",
+    "note": "the scan reads the composed columns, including a patched column.",
+    "spec": {
+      "columns": {
+        "$ref": "base.yml",
+        "$patch": {
+          "extra": {
+            "field": "extra",
+            "when": ".admin"
+          }
+        }
+      }
+    },
+    "rows": [],
+    "options": {
+      "files": {
+        "base.yml": {
+          "properties": {
+            "name": {
+              "field": "name"
+            }
+          }
+        }
+      }
+    },
+    "expectError": {
+      "code": "FORBIDDEN_META_KEY",
+      "message": "forbidden meta key \"when\" at columns.extra.when"
+    }
+  },
+  {
+    "name": "reject-forbidden-root-key-before-unknown-key",
+    "note": "the scan runs before the declaration rules.",
+    "spec": {
+      "limit": 10,
+      "columns": {
+        "name": {
+          "field": "name"
+        }
+      },
+      "xnote": "n"
+    },
+    "rows": [],
+    "expectError": {
+      "code": "FORBIDDEN_META_KEY",
+      "message": "forbidden meta key \"xnote\" at xnote"
+    }
+  },
+  {
+    "name": "reject-unknown-root-key",
+    "note": "a list root member that the schema does not list is rejected.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name"
+        }
+      },
+      "limit": 10
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid limit at list: unknown key"
+    }
+  },
+  {
+    "name": "reject-root-key-before-design",
+    "note": "root members are checked before the own design.",
+    "spec": {
+      "design": {
+        "color": "red"
+      },
+      "columns": {
+        "name": {
+          "field": "name"
+        }
+      },
+      "limit": 10
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid limit at list: unknown key"
+    }
+  },
+  {
+    "name": "reject-root-ref",
+    "note": "a root $ref beside the columns is not composed.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name"
+        }
+      },
+      "$ref": "base.yml"
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid $ref at list: expected composition inside columns"
+    }
+  },
+  {
+    "name": "reject-root-patch",
+    "note": "a root $patch is not composed.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name"
+        }
+      },
+      "$patch": {
+        "empty": "None"
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid $patch at list: expected composition inside columns"
+    }
+  },
+  {
+    "name": "reject-null-columns",
+    "note": "columns are an object.",
+    "spec": {
+      "columns": null
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid columns at list: expected an object"
+    }
+  },
+  {
+    "name": "reject-array-columns",
+    "note": "columns are an object.",
+    "spec": {
+      "columns": [
+        {
+          "field": "name"
+        }
+      ]
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid columns at list: expected an object"
+    }
+  },
+  {
+    "name": "reject-string-column",
+    "note": "each column is an object.",
+    "spec": {
+      "columns": {
+        "name": "text"
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid name at columns: expected an object"
+    }
+  },
+  {
+    "name": "reject-null-column",
+    "note": "a null column is not a column.",
+    "spec": {
+      "columns": {
+        "name": null
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid name at columns: expected an object"
+    }
+  },
+  {
+    "name": "reject-column-unknown-key",
+    "note": "a column member that the schema does not list is rejected.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "width": 3
+        }
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid width at columns.name: unknown key"
+    }
+  },
+  {
+    "name": "reject-column-unknown-key-before-field",
+    "note": "unknown column keys are checked before the member values.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": 5,
+          "width": 3
+        }
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid width at columns.name: unknown key"
+    }
+  },
+  {
+    "name": "reject-column-field",
+    "note": "the field path is a string.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": 5
+        }
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid field at columns.name: expected a string"
+    }
+  },
+  {
+    "name": "reject-column-label",
+    "note": "a label is content.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "label": 5
+        }
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid label at columns.name: expected a string, a language map or null"
+    }
+  },
+  {
+    "name": "reject-column-label-empty-map",
+    "note": "a language map has at least one member.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "label": {}
+        }
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid label at columns.name: expected a string, a language map or null"
+    }
+  },
+  {
+    "name": "reject-column-label-map-value",
+    "note": "a language map holds strings or null.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "label": {
+            "en": 5
+          }
+        }
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid label at columns.name: expected a string, a language map or null"
+    }
+  },
+  {
+    "name": "reject-column-order",
+    "note": "columns are checked in member order.",
+    "spec": {
+      "columns": {
+        "first": {
+          "label": 5
+        },
+        "second": {
+          "field": 5
+        }
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid label at columns.first: expected a string, a language map or null"
+    }
+  },
+  {
+    "name": "reject-format-array",
+    "note": "a format is a boolean, a string or an object.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "format": [
+            "date"
+          ]
+        }
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid format at columns.name: expected a boolean, a string or an object"
+    }
+  },
+  {
+    "name": "reject-format-null",
+    "note": "a null format is not a format.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "format": null
+        }
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid format at columns.name: expected a boolean, a string or an object"
+    }
+  },
+  {
+    "name": "reject-format-type",
+    "note": "the format type is a string.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "format": {
+            "type": 5
+          }
+        }
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid format.type at columns.name: expected a string"
+    }
+  },
+  {
+    "name": "reject-format-pattern",
+    "note": "a date pattern is a string.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "format": {
+            "type": "date",
+            "pattern": 1
+          }
+        }
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid format.pattern at columns.name: expected a string"
+    }
+  },
+  {
+    "name": "reject-format-target",
+    "note": "a link target is a string.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "format": {
+            "type": "link",
+            "href": "/",
+            "target": 1
+          }
+        }
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid format.target at columns.name: expected a string"
+    }
+  },
+  {
+    "name": "reject-format-as",
+    "note": "a boolean display mode is a string.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "format": {
+            "type": "bool",
+            "as": true
+          }
+        }
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid format.as at columns.name: expected a string"
+    }
+  },
+  {
+    "name": "reject-format-prefix",
+    "note": "a number prefix is content.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "format": {
+            "type": "number",
+            "prefix": 1
+          }
+        }
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid format.prefix at columns.name: expected a string, a language map or null"
+    }
+  },
+  {
+    "name": "reject-format-true-label",
+    "note": "a boolean label is content.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "format": {
+            "type": "bool",
+            "true": []
+          }
+        }
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid format.true at columns.name: expected a string, a language map or null"
+    }
+  },
+  {
+    "name": "reject-format-map",
+    "note": "a badge map is an object.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "format": {
+            "type": "badge",
+            "map": "success"
+          }
+        }
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid format.map at columns.name: expected an object"
+    }
+  },
+  {
+    "name": "reject-format-map-label",
+    "note": "each badge map label is content.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "format": {
+            "type": "badge",
+            "map": {
+              "active": 1
+            }
+          }
+        }
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid format.map.active at columns.name: expected a string, a language map or null"
+    }
+  },
+  {
+    "name": "reject-format-href",
+    "note": "a link href is a string or a condition map.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "format": {
+            "type": "link",
+            "href": 1
+          }
+        }
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid format.href at columns.name: expected a string or a condition map"
+    }
+  },
+  {
+    "name": "reject-format-href-empty-map",
+    "note": "a condition map has at least one member.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "format": {
+            "type": "link",
+            "href": {}
+          }
+        }
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid format.href at columns.name: expected a string or a condition map"
+    }
+  },
+  {
+    "name": "reject-format-items",
+    "note": "choice items are an array or an object.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "format": {
+            "type": "choice-label",
+            "items": "A"
+          }
+        }
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid format.items at columns.name: expected an array or an object"
+    }
+  },
+  {
+    "name": "reject-sortable",
+    "note": "sortable is a boolean, an expression or a condition map.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "sortable": 1
+        }
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid sortable at columns.name: expected a boolean, an expression or a condition map"
+    }
+  },
+  {
+    "name": "reject-sortable-empty-map",
+    "note": "a sortable condition map has at least one member.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "sortable": {}
+        }
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid sortable at columns.name: expected a boolean, an expression or a condition map"
+    }
+  },
+  {
+    "name": "reject-design-before-sortable",
+    "note": "a column design is checked before sortable.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "sortable": 1,
+          "design": {
+            "show": 1
+          }
+        }
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid design.show at columns.name: expected an expression, a boolean or a condition map"
+    }
+  },
+  {
+    "name": "reject-search",
+    "note": "search is a boolean or an object.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name"
+        }
+      },
+      "search": "q"
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid search at list: expected a boolean or an object"
+    }
+  },
+  {
+    "name": "reject-sort",
+    "note": "sort is an object.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name"
+        }
+      },
+      "sort": []
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid sort at list: expected an object"
+    }
+  },
+  {
+    "name": "reject-sort-unknown-key",
+    "note": "sort holds field and dir.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name"
+        }
+      },
+      "sort": {
+        "field": "name",
+        "dir": "asc",
+        "nulls": "last"
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid sort.nulls at list: unknown key"
+    }
+  },
+  {
+    "name": "reject-sort-field",
+    "note": "the sort field is a string.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name"
+        }
+      },
+      "sort": {
+        "field": 5
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid sort.field at list: expected a string"
+    }
+  },
+  {
+    "name": "reject-sort-dir",
+    "note": "the sort direction is asc or desc.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name"
+        }
+      },
+      "sort": {
+        "field": "name",
+        "dir": "sideways"
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid sort.dir at list: expected asc or desc"
+    }
+  },
+  {
+    "name": "reject-sort-before-pagination",
+    "note": "sort is checked before pagination.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name"
+        }
+      },
+      "pagination": "pages",
+      "sort": {
+        "dir": "up"
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid sort.dir at list: expected asc or desc"
+    }
+  },
+  {
+    "name": "reject-actions",
+    "note": "actions are an object.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name"
+        }
+      },
+      "actions": []
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid actions at list: expected an object"
+    }
+  },
+  {
+    "name": "reject-action-ref",
+    "note": "actions are not composed.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name"
+        }
+      },
+      "actions": {
+        "$ref": "actions.yml"
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid $ref at actions: unknown key"
+    }
+  },
+  {
+    "name": "reject-action",
+    "note": "an action is a script or an object.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name"
+        }
+      },
+      "actions": {
+        "edit": 5
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid edit at actions: expected a script or an object"
+    }
+  },
+  {
+    "name": "reject-action-unknown-key",
+    "note": "an action object holds label, format, behavior and design.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name"
+        }
+      },
+      "actions": {
+        "edit": {
+          "label": "Edit",
+          "onclick": "x()"
+        }
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid onclick at actions.edit: unknown key"
+    }
+  },
+  {
+    "name": "reject-script-action-format",
+    "note": "a script action holds label and script.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name"
+        }
+      },
+      "actions": {
+        "edit": {
+          "script": "x()",
+          "format": "link"
+        }
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid format at actions.edit: unknown key"
+    }
+  },
+  {
+    "name": "reject-script-action-script",
+    "note": "an action script is a string.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name"
+        }
+      },
+      "actions": {
+        "edit": {
+          "script": 1
+        }
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid script at actions.edit: expected a string"
+    }
+  },
+  {
+    "name": "reject-action-label",
+    "note": "an action label is content.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name"
+        }
+      },
+      "actions": {
+        "edit": {
+          "label": 1
+        }
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid label at actions.edit: expected a string, a language map or null"
+    }
+  },
+  {
+    "name": "reject-action-format",
+    "note": "an action format follows the format rules.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name"
+        }
+      },
+      "actions": {
+        "edit": {
+          "format": {
+            "type": "link",
+            "href": 1
+          }
+        }
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid format.href at actions.edit: expected a string or a condition map"
+    }
+  },
+  {
+    "name": "reject-action-behavior",
+    "note": "behavior is a boolean or an object.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name"
+        }
+      },
+      "actions": {
+        "edit": {
+          "behavior": "x()"
+        }
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid behavior at actions.edit: expected a boolean or an object"
+    }
+  },
+  {
+    "name": "reject-action-behavior-key",
+    "note": "behavior holds onchange, onclick and onload.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name"
+        }
+      },
+      "actions": {
+        "edit": {
+          "behavior": {
+            "onhover": "x()"
+          }
+        }
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid behavior.onhover at actions.edit: unknown key"
+    }
+  },
+  {
+    "name": "reject-action-behavior-entry",
+    "note": "a behavior entry is a script or an object.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name"
+        }
+      },
+      "actions": {
+        "edit": {
+          "behavior": {
+            "onclick": 1
+          }
+        }
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid behavior.onclick at actions.edit: expected a script or an object"
+    }
+  },
+  {
+    "name": "reject-action-behavior-entry-key",
+    "note": "a behavior entry object holds label and script.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name"
+        }
+      },
+      "actions": {
+        "edit": {
+          "behavior": {
+            "onclick": {
+              "script": "x()",
+              "event": "y"
+            }
+          }
+        }
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid behavior.onclick.event at actions.edit: unknown key"
+    }
+  },
+  {
+    "name": "reject-action-behavior-label",
+    "note": "a behavior entry label is content.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name"
+        }
+      },
+      "actions": {
+        "edit": {
+          "behavior": {
+            "onclick": {
+              "label": 1,
+              "script": "x()"
+            }
+          }
+        }
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid behavior.onclick.label at actions.edit: expected a string, a language map or null"
+    }
+  },
+  {
+    "name": "reject-action-behavior-script",
+    "note": "a behavior entry script is a string.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name"
+        }
+      },
+      "actions": {
+        "edit": {
+          "behavior": {
+            "onclick": {
+              "script": 1
+            }
+          }
+        }
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid behavior.onclick.script at actions.edit: expected a string"
+    }
+  },
+  {
+    "name": "reject-action-design",
+    "note": "an action design follows the design rules.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name"
+        }
+      },
+      "actions": {
+        "edit": {
+          "design": {
+            "color": "red"
+          }
+        }
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid design.color at actions.edit: unknown key"
+    }
+  },
+  {
+    "name": "reject-empty",
+    "note": "the empty text is content.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name"
+        }
+      },
+      "empty": 0
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid empty at list: expected a string, a language map or null"
+    }
+  },
+  {
+    "name": "reject-empty-before-pagination",
+    "note": "empty is checked before pagination.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name"
+        }
+      },
+      "pagination": "pages",
+      "empty": 0
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid empty at list: expected a string, a language map or null"
+    }
+  },
+  {
     "name": "layout-null-selects-table",
     "note": "a null layout selects the table layout, as an absent layout does.",
     "spec": {

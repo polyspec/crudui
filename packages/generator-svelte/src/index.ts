@@ -4,8 +4,8 @@
  */
 
 import { render } from 'svelte/server';
-import { buildList, buildDetail, type BuildListOptions, type BuildDetailOptions, type FormInstance } from '@crudui/generator-core';
-import { listLayout } from '@crudui/generator-core/internal';
+import { buildDetail, type BuildListOptions, type BuildDetailOptions, type FormInstance } from '@crudui/generator-core';
+import { buildListLayout } from '@crudui/generator-core/internal';
 import Form from './components/Form.svelte';
 import List from './components/List.svelte';
 import Detail from './components/Detail.svelte';
@@ -44,10 +44,8 @@ export function renderList(
   rows: Array<Record<string, unknown>> = [],
   options: RenderListOptions = {}
 ): string {
-  // The whole options reach the model, whose input text check reads the layout too.
-  const { layout } = options;
-  const vm = buildList(listSpec, rows, options);
-  const { body } = render(List, { props: { vm, layout: listLayout(layout) } });
+  const { vm, layout } = buildListLayout(listSpec, rows, options);
+  const { body } = render(List, { props: { vm, layout } });
   return body;
 }
 

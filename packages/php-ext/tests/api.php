@@ -112,7 +112,7 @@ same("x\0y", Generator::buildDetail(['fields'=>['v'=>['field'=>'v','label'=>"L\0
 same('<dl class="crudui-detail"><div class="crudui-detail__field"><dt class="crudui-detail__label">L' . "\0" . 'M</dt><dd class="crudui-detail__value crudui-value crudui-value--text">x' . "\0" . 'y</dd></div></dl>',
     Generator::renderDetail(['fields'=>['v'=>['field'=>'v','label'=>"L\0M"]]], ['v'=>"x\0y"]), 'NUL detail HTML changed');
 same("<button>B\0C</button>", Generator::formButtonsHtml([(object)['tag'=>'button','text'=>"B\0C",'attrs'=>new stdClass()]]), 'NUL button markup changed');
-fails(fn()=>Generator::renderDetail(['fields'=>[]], ['v'=>"\xC0\x80"]), FormError::class, 'INVALID_FORM_INPUT');
+fails(fn()=>Generator::renderDetail(['fields'=>new stdClass()], ['v'=>"\xC0\x80"]), FormError::class, 'INVALID_FORM_INPUT');
 
 // Form buttons: evaluated in declaration order with the form binding checks, rendered alone.
 $buttonTemplate = Generator::compileForm(['type'=>'group','properties'=>['name'=>['type'=>'text']],'buttons'=>[
@@ -247,11 +247,11 @@ foreach ([
     [fn()=>Generator::renderList(['columns'=>['name'=>['design'=>['show'=>1]]]], []), 'Invalid design.show at columns.name: expected an expression, a boolean or a condition map'],
     [fn()=>Generator::renderDetail(['fields'=>['name'=>['field'=>'name','design'=>['label'=>['text'=>'x']]]]], []), 'Invalid design.label.text at fields.name: unknown key'],
     [fn()=>Generator::buildDetail(['fields'=>['a'=>['design'=>false],'b'=>['design'=>null]]], []), 'Invalid design at fields.b: expected a boolean or an object'],
-    [fn()=>Generator::buildDetail(['design'=>['wrapper'=>'box'],'fields'=>[]], []), 'Invalid design.wrapper at detail: expected an object'],
-    [fn()=>Generator::renderDetail(['design'=>['group'=>['class'=>[]],'prepend'=>1],'fields'=>[]], []), 'Invalid design.group.class at detail: expected a string or a condition map'],
+    [fn()=>Generator::buildDetail(['design'=>['wrapper'=>'box'],'fields'=>new stdClass()], []), 'Invalid design.wrapper at detail: expected an object'],
+    [fn()=>Generator::renderDetail(['design'=>['group'=>['class'=>[]],'prepend'=>1],'fields'=>new stdClass()], []), 'Invalid design.group.class at detail: expected a string or a condition map'],
     [fn()=>Generator::renderList(['design'=>1], [1]), 'List rows must be objects'],
-    [fn()=>Generator::renderList(['design'=>1], [], ['layout'=>'grid']), 'List layout must be table or card'],
-    [fn()=>Generator::buildDetail(['design'=>1,'fields'=>[]], [], ['data'=>1]), 'Detail context must be an object'],
+    [fn()=>Generator::renderList(['design'=>1,'columns'=>new stdClass()], [], ['layout'=>'grid']), 'List layout must be table or card'],
+    [fn()=>Generator::buildDetail(['design'=>1,'fields'=>new stdClass()], [], ['data'=>1]), 'Detail context must be an object'],
 ] as [$operation, $message]) {
     $displayError = fails($operation, FormError::class, 'INVALID_FORM_INPUT');
     check($displayError->getMessage() === $message && $displayError->getPath() === '', "Display declaration failure changed: $message; received " . $displayError->getMessage());
@@ -295,16 +295,16 @@ same($detail, Generator::buildDetail((object)$detailSpec, (object)['name'=>'Ada'
 $detailHtml = '<dl class="crudui-detail"><div class="crudui-detail__field"><dt class="crudui-detail__label">Name</dt><dd class="crudui-detail__value crudui-value crudui-value--text">Ada</dd></div><div class="crudui-detail__field"><dt class="crudui-detail__label">Missing</dt><dd class="crudui-detail__value crudui-value crudui-value--text"></dd></div></dl>';
 same($detailHtml, Generator::renderDetail($detailSpec, ['name'=>'Ada']), 'Detail HTML changed');
 same($detailHtml, Generator::renderDetail((object)$detailSpec, (object)['name'=>'Ada'], []), 'Object detail HTML differs');
-same('<dl class="crudui-detail"></dl>', Generator::renderDetail(['fields'=>[]]), 'Omitted detail record changed');
+same('<dl class="crudui-detail"></dl>', Generator::renderDetail(['fields'=>new stdClass()]), 'Omitted detail record changed');
 // An empty PHP array is the empty root object; a non-empty list-shaped array is not an object.
-same('<dl class="crudui-detail"></dl>', Generator::renderDetail(['fields'=>[]], []), 'Empty array detail record changed');
-same([], Generator::buildDetail(['fields'=>[]], [])->fields, 'Empty array detail record model changed');
+same('<dl class="crudui-detail"></dl>', Generator::renderDetail(['fields'=>new stdClass()], []), 'Empty array detail record changed');
+same([], Generator::buildDetail(['fields'=>new stdClass()], [])->fields, 'Empty array detail record model changed');
 foreach (['renderDetail', 'buildDetail'] as $method) {
     foreach ([
         [[[], ['name'=>'Ada']], 'Detail specification must declare fields'],
         [[[['field'=>'name']], ['name'=>'Ada']], 'Detail specification must be an object'],
         [[(object)[], ['name'=>'Ada']], 'Detail specification must declare fields'],
-        [[['fields'=>[]], ['Ada']], 'Detail record must be an object'],
+        [[['fields'=>new stdClass()], ['Ada']], 'Detail record must be an object'],
     ] as [$arguments, $message]) {
         $detailError = fails(fn()=>Generator::$method(...$arguments), FormError::class, 'INVALID_FORM_INPUT');
         check($detailError->getMessage() === $message && $detailError->getPath() === '', "$method failure changed: $message");
@@ -317,7 +317,7 @@ $displayFailure = function (callable $operation, string $message): void {
     $error = fails($operation, FormError::class, 'INVALID_FORM_INPUT');
     check($error->getMessage() === $message && $error->getPath() === '', "Display failure changed: $message; received " . $error->getMessage());
 };
-same('<div class="crudui-list"><div class="crudui-list__empty">데이터가 없습니다</div></div>', Generator::renderList([], []), 'Empty array list specification changed');
+$displayFailure(fn()=>Generator::renderList([], []), 'List specification must declare columns');
 $displayFailure(fn()=>Generator::renderList([['columns']], []), 'List specification must be an object');
 $displayFailure(fn()=>Generator::renderList($listSpec, ['a'=>['v'=>1]]), 'List rows must be an array');
 foreach ([[1], [[]], [['a']], [null]] as $rows) {
@@ -329,7 +329,7 @@ foreach ([[], ['data'=>[]], ['data'=>null], ['data'=>new stdClass()], ['page'=>n
 }
 foreach ([['x'], 'x', 1, true] as $value) {
     $displayFailure(fn()=>Generator::renderList($listSpec, [], ['data'=>$value]), 'List context must be an object');
-    $displayFailure(fn()=>Generator::renderDetail(['fields'=>[]], [], ['data'=>$value]), 'Detail context must be an object');
+    $displayFailure(fn()=>Generator::renderDetail(['fields'=>new stdClass()], [], ['data'=>$value]), 'Detail context must be an object');
 }
 // Page and total: PHP int or float whose value is a safe integer, written as decimal digits.
 $pagedSpec = $listSpec + ['pagination'=>true];
@@ -351,7 +351,7 @@ foreach (['2', true, false, [], [2], new stdClass(), 1.5, 0, 0.0, -1, 9007199254
 foreach (['0', true, [], new stdClass(), 2.5, -1, -1.0, 9007199254740992] as $value) {
     $displayFailure(fn()=>Generator::renderList($pagedSpec, [], ['total'=>$value]), 'List total must be a nonnegative integer');
 }
-same('<dl class="crudui-detail"></dl>', Generator::renderDetail(['fields'=>[]], [], ['page'=>'x', 'total'=>-1]), 'Detail must ignore list page options');
+same('<dl class="crudui-detail"></dl>', Generator::renderDetail(['fields'=>new stdClass()], [], ['page'=>'x', 'total'=>-1]), 'Detail must ignore list page options');
 foreach (['grid', '', 5, ['table']] as $layout) {
     $displayFailure(fn()=>Generator::renderList($listSpec, [], ['layout'=>$layout]), 'List layout must be table or card');
 }
@@ -363,7 +363,7 @@ $displayFailure(fn()=>Generator::renderList($listSpec, [], $allInvalid), 'List c
 $displayFailure(fn()=>Generator::renderList($listSpec, [], ['page'=>0, 'total'=>-1, 'layout'=>'grid']), 'List page must be a positive integer');
 $displayFailure(fn()=>Generator::renderList($listSpec, [], ['total'=>-1, 'layout'=>'grid']), 'List total must be a nonnegative integer');
 $displayFailure(fn()=>Generator::renderDetail([], [], ['data'=>1]), 'Detail specification must declare fields');
-same('<dl class="crudui-detail"></dl>', Generator::renderDetail(['fields'=>[]], [], ['data'=>[]]), 'Empty array detail context changed');
+same('<dl class="crudui-detail"></dl>', Generator::renderDetail(['fields'=>new stdClass()], [], ['data'=>[]]), 'Empty array detail context changed');
 $displayValue = fn(array $format, mixed $value) => Generator::buildDetail(['fields'=>['v'=>['field'=>'v','format'=>$format]]], ['v'=>$value])->fields[0]->display;
 foreach ([
     [2, 'a😀bc', 'a😀…'], [3, '가나다라마', '가나다…'], ['2', 'abcd', 'abcd'], [0.5, 'abc', 'abc'],
