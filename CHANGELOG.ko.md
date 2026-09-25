@@ -1,5 +1,19 @@
 # 변경 기록
 
+## 2026-09-25 — 스타일시트가 목록과 상세에 테마를 적용하고 색과 크기를 속성으로 공개
+
+- `crudui.css`는 `--crudui-*` 사용자 정의 속성의 기본값을 명시도 0인 규칙 하나
+  `:where(.crudui-form, .crudui-outline, .crudui-data, .crudui-list, .crudui-detail)`에 선언합니다.
+  이전에는 이 규칙이 폼, 구조 맵, 현재 데이터 보기만 선택해서 폼 밖의 목록이나 상세는 정의되지 않은
+  속성을 읽었고, 페이지는 스타일시트 뒤에 오는 규칙으로만 속성을 바꿀 수 있었습니다.
+- 새 속성: `--crudui-on-accent`(선택된 선택지의 글자, 이전에는 규칙 안의 `#ffffff`),
+  `--crudui-action-text`(동작, 이전에는 `#374151`), `--crudui-action-size`,
+  `--crudui-control-border`, `--crudui-control-height`, `--crudui-radius`와 제출 버튼 속성
+  `--crudui-submit-background`, `--crudui-submit-border`, `--crudui-submit-text`. 기본값은 그려지는
+  크기와 색을 유지합니다. 다른 규칙은 색을 쓰지 않습니다([폼 마크업](docs/spec/form-markup.ko.md#스타일)).
+- `npm run test:forms`에 포함된 `tests/style-properties.test.mjs`는 속성 규칙, 규칙이 읽는 모든
+  속성이 선언되었는지, 다른 규칙이 색을 쓰지 않는지 검사합니다.
+
 ## 2026-09-24 — CI 브라우저 사전 검사가 실패한 sandbox 조건을 표시
 
 - `scripts/check-ci-browser.mjs`는 적절하지 않은 `chrome://sandbox` 평가를

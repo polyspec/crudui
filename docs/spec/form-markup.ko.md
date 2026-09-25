@@ -193,7 +193,36 @@ href, design, behavior }` 목록이고 `type`은 `submit`, `reset`, `button`, `l
 위젯, 컨트롤 아이콘, 고정 헤더, 구조 맵, 현재 데이터 보기를 정의합니다. box-sizing과
 `[hidden]` 요소 숨김을 포함한 모든 규칙은 crudui 블록 범위 안에 있으며 페이지 스타일이나 CSS
 프레임워크에 기대지 않습니다. 페이지는 자기 레이아웃만 스타일링하고 crudui 블록 안은 건드리지
-않습니다. 폼, 구조 맵, 현재 데이터 보기는 `--crudui-*` 사용자 정의 속성 한 벌을 공유합니다.
+않습니다.
+
+폼, 구조 맵, 현재 데이터 보기, 목록, 상세는 `--crudui-*` 사용자 정의 속성 한 벌을 공유합니다.
+규칙 하나 `:where(.crudui-form, .crudui-outline, .crudui-data, .crudui-list, .crudui-detail)`가
+명시도 0으로 기본값을 선언하고, 다른 규칙은 색을 쓰지 않습니다. 페이지는 블록을 선택해 속성을
+정하는 규칙으로 블록의 테마를 정합니다. 예: `.crudui-form, .crudui-list { --crudui-accent: … }`.
+이 규칙은 스타일시트 순서와 관계없이 기본값보다 우선합니다.
+
+| 속성 | 기본값 | 쓰임 |
+| --- | --- | --- |
+| `--crudui-text` | `#111827` | 모든 블록의 글자색 |
+| `--crudui-muted` | `#6b7280` | 설명, 개수, 접사, 상세 레이블 |
+| `--crudui-border` | `#e5e7eb` | 행, 목록, 상세, 동작의 테두리 |
+| `--crudui-surface` | `#ffffff` | 컨트롤, 행, 동작의 배경 |
+| `--crudui-subtle` | `#f9fafb` | 행 헤더, 목록 제목 칸, 접사, 읽기 전용 컨트롤의 배경 |
+| `--crudui-accent` | `#1d4ed8` | 포커스 윤곽선과 선택된 선택지 |
+| `--crudui-on-accent` | `#ffffff` | 선택된 선택지의 글자색 |
+| `--crudui-action-text` | `#374151` | 동작의 글자와 아이콘 색 |
+| `--crudui-action-size` | `1.75rem` | 아이콘 동작의 너비와 높이, 글자 동작의 높이 |
+| `--crudui-control-border` | `var(--crudui-border)` | 컨트롤, 접사, 위젯 버튼, 선택지의 테두리 |
+| `--crudui-control-height` | `2.25rem` | 컨트롤과 선택지의 최소 높이 |
+| `--crudui-radius` | `0.375rem` | 컨트롤, 접사, 선택지, 동작의 모서리 반지름 |
+| `--crudui-submit-background` | `var(--crudui-surface)` | 폼 바닥글 제출 버튼의 배경 |
+| `--crudui-submit-border` | `var(--crudui-border)` | 폼 바닥글 제출 버튼의 테두리 색 |
+| `--crudui-submit-text` | `var(--crudui-action-text)` | 폼 바닥글 제출 버튼의 글자색 |
+
+`--crudui-node-header-height`, `--crudui-row-padding`, `--crudui-row-border`,
+`--crudui-form-footer-height`는 고정 행과 폼 바닥글의 크기를 정합니다(위 참조).
+`tests/style-properties.test.mjs`는 속성 규칙, 규칙이 읽는 모든 속성이 선언되었는지, 다른 규칙이
+색을 쓰지 않는지 검사합니다.
 
 ## 목록·상세 마크업
 

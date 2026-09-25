@@ -18,16 +18,27 @@
   display: none !important;
 }
 
-/* The form, structure map and data view render independently and share one token set. */
-.crudui-form,
-.crudui-outline,
-.crudui-data {
+/*
+ * The form, structure map, data view, list and detail render independently and share one set of
+ * custom properties. The defaults have zero specificity, so a page themes a block with a rule
+ * that selects the block and sets the properties. No other rule writes a color.
+ */
+:where(.crudui-form, .crudui-outline, .crudui-data, .crudui-list, .crudui-detail) {
   --crudui-text: #111827;
   --crudui-muted: #6b7280;
   --crudui-border: #e5e7eb;
   --crudui-surface: #ffffff;
   --crudui-subtle: #f9fafb;
   --crudui-accent: #1d4ed8;
+  --crudui-on-accent: #ffffff;
+  --crudui-action-text: #374151;
+  --crudui-action-size: 1.75rem;
+  --crudui-control-border: var(--crudui-border);
+  --crudui-control-height: 2.25rem;
+  --crudui-radius: 0.375rem;
+  --crudui-submit-background: var(--crudui-surface);
+  --crudui-submit-border: var(--crudui-border);
+  --crudui-submit-text: var(--crudui-action-text);
   --crudui-node-header-height: 2.75rem;
   --crudui-row-padding: 0.75rem;
   --crudui-row-border: 1px;
@@ -107,11 +118,11 @@
   display: block;
   width: 100%;
   min-width: 0;
-  min-height: 2.25rem;
+  min-height: var(--crudui-control-height);
   margin: 0;
   padding: 0.375rem 0.625rem;
-  border: 1px solid var(--crudui-border);
-  border-radius: 0.375rem;
+  border: 1px solid var(--crudui-control-border);
+  border-radius: var(--crudui-radius);
   background: var(--crudui-surface);
   color: inherit;
   font: inherit;
@@ -157,8 +168,8 @@ textarea.crudui-input {
   display: flex;
   align-items: center;
   padding: 0 0.625rem;
-  border: 1px solid var(--crudui-border);
-  border-radius: 0.375rem;
+  border: 1px solid var(--crudui-control-border);
+  border-radius: var(--crudui-radius);
   background: var(--crudui-subtle);
   color: var(--crudui-muted);
   white-space: nowrap;
@@ -166,10 +177,10 @@ textarea.crudui-input {
 
 .crudui-widget__button {
   flex: none;
-  min-width: 2.25rem;
+  min-width: var(--crudui-control-height);
   padding: 0 0.625rem;
-  border: 1px solid var(--crudui-border);
-  border-radius: 0.375rem;
+  border: 1px solid var(--crudui-control-border);
+  border-radius: var(--crudui-radius);
   background: var(--crudui-subtle);
   color: inherit;
   font: inherit;
@@ -177,9 +188,9 @@ textarea.crudui-input {
 }
 
 .crudui-widget--unsupported {
-  min-height: 2.25rem;
-  border: 1px dashed var(--crudui-border);
-  border-radius: 0.375rem;
+  min-height: var(--crudui-control-height);
+  border: 1px dashed var(--crudui-control-border);
+  border-radius: var(--crudui-radius);
 }
 
 /* Choices: each option is a visually hidden radio or checkbox and its label button. */
@@ -196,9 +207,9 @@ textarea.crudui-input {
 
 .crudui-choices__input {
   position: relative;
-  width: 2.25rem;
-  height: 2.25rem;
-  margin: 0 -2.25rem 0 0;
+  width: var(--crudui-control-height);
+  height: var(--crudui-control-height);
+  margin: 0 calc(-1 * var(--crudui-control-height)) 0 0;
   padding: 0;
   overflow: hidden;
   border: 0;
@@ -210,10 +221,10 @@ textarea.crudui-input {
 .crudui-choices__label {
   display: inline-flex;
   align-items: center;
-  min-height: 2.25rem;
+  min-height: var(--crudui-control-height);
   padding: 0.375rem 0.75rem;
-  border: 1px solid var(--crudui-border);
-  border-radius: 0.375rem;
+  border: 1px solid var(--crudui-control-border);
+  border-radius: var(--crudui-radius);
   background: var(--crudui-surface);
   cursor: pointer;
   user-select: none;
@@ -222,7 +233,7 @@ textarea.crudui-input {
 .crudui-choices__input:checked + .crudui-choices__label {
   border-color: var(--crudui-accent);
   background: var(--crudui-accent);
-  color: #ffffff;
+  color: var(--crudui-on-accent);
 }
 
 .crudui-choices__input:focus-visible + .crudui-choices__label {
@@ -427,13 +438,13 @@ textarea.crudui-input {
   --crudui-icon: none;
   display: inline-grid;
   place-items: center;
-  width: 1.75rem;
-  height: 1.75rem;
+  width: var(--crudui-action-size);
+  height: var(--crudui-action-size);
   padding: 0;
   border: 1px solid var(--crudui-border);
-  border-radius: 0.375rem;
+  border-radius: var(--crudui-radius);
   background: var(--crudui-surface);
-  color: #374151;
+  color: var(--crudui-action-text);
   font: inherit;
   text-decoration: none;
   cursor: pointer;
@@ -502,6 +513,13 @@ textarea.crudui-input {
   content: none;
 }
 
+/* The submit button of the form footer carries the submit properties, also on hover. */
+.crudui-form__footer .crudui-action--text[type='submit'] {
+  background: var(--crudui-submit-background);
+  border-color: var(--crudui-submit-border);
+  color: var(--crudui-submit-text);
+}
+
 /* Structure map: one line per form row; a nested row body indents one step. */
 .crudui-outline {
   display: grid;
@@ -546,7 +564,7 @@ textarea.crudui-input {
   width: auto;
   min-width: 0;
   height: auto;
-  min-height: 1.75rem;
+  min-height: var(--crudui-action-size);
   padding: 0.125rem 0.5rem;
   border-color: transparent;
   background: transparent;

@@ -1,5 +1,21 @@
 # Changes
 
+## 2026-09-25 — The stylesheet themes lists and details and exposes its colors and sizes
+
+- `crudui.css` declares the defaults of the `--crudui-*` custom properties in one rule with zero
+  specificity, `:where(.crudui-form, .crudui-outline, .crudui-data, .crudui-list, .crudui-detail)`.
+  Before, the rule selected only the form, the structure map and the data view, so a list or a
+  detail outside a form read undefined properties, and a page could override the properties only
+  with a rule that came after the stylesheet.
+- New properties: `--crudui-on-accent` (text of the selected choice, before `#ffffff` in the
+  rule), `--crudui-action-text` (actions, before `#374151`), `--crudui-action-size`,
+  `--crudui-control-border`, `--crudui-control-height`, `--crudui-radius` and the submit button
+  properties `--crudui-submit-background`, `--crudui-submit-border` and `--crudui-submit-text`.
+  Their defaults keep the rendered sizes and colors. No other rule writes a color
+  ([form markup](docs/spec/form-markup.md#styles)).
+- `tests/style-properties.test.mjs`, part of `npm run test:forms`, checks the property rule, that
+  every property a rule reads is declared and that no other rule writes a color.
+
 ## 2026-09-24 — The CI browser preflight names the failed sandbox condition
 
 - `scripts/check-ci-browser.mjs` fails an inadequate `chrome://sandbox` evaluation with
