@@ -109,7 +109,8 @@ Use the [form verification procedure](verification.md) for raw HTML, DOM, styles
 control state, repeated injection and browser interactions. JSON order and HTTP
 save/load checks are separate from validator package tests.
 
-`npm run test:forms` checks the stylesheet layout in Chromium, Firefox and WebKit on the host.
+`npm run test:forms` checks the stylesheet layout in Chromium, Firefox and WebKit on the host and
+the custom properties of the stylesheet (`tests/style-properties.test.mjs`).
 `make test-form-styles-linux` runs the same checks on Linux in the official Playwright image of
 the pinned version, as the CI job does, so an engine difference on Linux is found before a push.
 The image takes about 10 GB: a run that pulled it removes it when it ends, successful or not, and

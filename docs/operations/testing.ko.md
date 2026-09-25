@@ -107,7 +107,8 @@ HTML 원문·DOM·스타일·입력 상태·반복 주입·브라우저 상호�
 [폼 검증 절차](verification.ko.md)를 사용합니다. JSON 순서와 HTTP 저장·로드
 검사는 검증기 패키지 테스트와 별도입니다.
 
-`npm run test:forms`는 호스트에서 Chromium, Firefox, WebKit의 스타일시트 배치를 검사합니다.
+`npm run test:forms`는 호스트에서 Chromium, Firefox, WebKit의 스타일시트 배치와 스타일시트의
+사용자 정의 속성(`tests/style-properties.test.mjs`)을 검사합니다.
 `make test-form-styles-linux`는 CI 작업처럼 고정된 버전의 공식 Playwright 이미지에서 같은 검사를 Linux로
 실행하므로, Linux에서만 드러나는 엔진 차이를 푸시 전에 찾을 수 있습니다. 이미지는 약 10GB이며, 이미지를
 받은 실행은 성공 여부와 관계없이 끝날 때 이미지를 지우고, 이미 있던 이미지는 남겨 둡니다.

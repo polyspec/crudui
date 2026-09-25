@@ -210,8 +210,37 @@ its default.
 layout, row cards, widgets, control icons, sticky headers, the structure map and the
 data view. Every rule is scoped to a crudui block, including box sizing and hiding
 `[hidden]` elements, and none depends on page styles or a CSS framework. The page
-styles its own layout and nothing inside the crudui blocks. The form, structure map
-and data view share one set of `--crudui-*` custom properties.
+styles its own layout and nothing inside the crudui blocks.
+
+The form, structure map, data view, list and detail share one set of `--crudui-*`
+custom properties. One rule, `:where(.crudui-form, .crudui-outline, .crudui-data,
+.crudui-list, .crudui-detail)`, declares their defaults with zero specificity, and no
+other rule writes a color. A page themes the blocks with a rule that selects them and
+sets the properties, for example `.crudui-form, .crudui-list { --crudui-accent: … }`;
+the rule overrides the defaults in any stylesheet order.
+
+| Property | Default | Use |
+| --- | --- | --- |
+| `--crudui-text` | `#111827` | text color of every block |
+| `--crudui-muted` | `#6b7280` | descriptions, counts, affixes, detail labels |
+| `--crudui-border` | `#e5e7eb` | borders of rows, lists, details and actions |
+| `--crudui-surface` | `#ffffff` | background of controls, rows and actions |
+| `--crudui-subtle` | `#f9fafb` | background of row headers, list headings, affixes and read-only controls |
+| `--crudui-accent` | `#1d4ed8` | focus outlines and the selected choice |
+| `--crudui-on-accent` | `#ffffff` | text of the selected choice |
+| `--crudui-action-text` | `#374151` | text and icon color of actions |
+| `--crudui-action-size` | `1.75rem` | width and height of an icon action, height of a text action |
+| `--crudui-control-border` | `var(--crudui-border)` | borders of controls, affixes, widget buttons and choices |
+| `--crudui-control-height` | `2.25rem` | minimum height of controls and choices |
+| `--crudui-radius` | `0.375rem` | corner radius of controls, affixes, choices and actions |
+| `--crudui-submit-background` | `var(--crudui-surface)` | background of the submit button of the form footer |
+| `--crudui-submit-border` | `var(--crudui-border)` | border color of the submit button of the form footer |
+| `--crudui-submit-text` | `var(--crudui-action-text)` | text color of the submit button of the form footer |
+
+`--crudui-node-header-height`, `--crudui-row-padding`, `--crudui-row-border` and
+`--crudui-form-footer-height` size the sticky rows and the form footer (see above).
+`tests/style-properties.test.mjs` checks the property rule, that every property a rule
+reads is declared and that no other rule writes a color.
 
 ## List and detail markup
 
