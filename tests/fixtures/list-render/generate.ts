@@ -20,7 +20,7 @@
 import {
   renderList,
   type RenderListOptions,
-} from '../../../packages/generator-react/src/index';
+} from '../../../packages/generator-react/src/server';
 // @ts-expect-error — JS normalizer shared across the CRUDUI fixture harness.
 import { normalizeHtml } from '../form-render/normalize.mjs';
 // @ts-expect-error — shared JS preload link helper.

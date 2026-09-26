@@ -21,7 +21,7 @@
 | json-text-values | Rust 검증에서 JSON 객체 멤버 이름, 값과 순서 유지 | implemented | passed | not-deployed | [입력 텍스트 계약](spec/input-text.ko.md), [Rust 텍스트 사례](../packages/validator-rust/tests/text_validity_conformance.rs) |
 | declared-form-data | 모든 그룹 단계에서 선언되지 않은 제출 필드 거부 | implemented | passed | not-deployed | [검증 계약](operations/validation.ko.md), [공유 사례](../tests/fixtures/validate/cases.json) |
 | form-controls | 라벨, 복수 선택 배열과 필드 컨테이너 경로 | implemented | passed | not-deployed | [공유 입력 검사](../tests/fixtures/form-session/controls.mjs) |
-| package-exports | 패키지 export, 타입 선언과 설치 프로덕션 빌드 | implemented | passed | not-deployed | [설치 검사](../scripts/check-packages.mjs) |
+| package-exports | 패키지 export, 분리된 React 컴포넌트·서버 진입점, 타입 선언과 설치 프로덕션 빌드 | implemented | passed | not-deployed | [설치 검사](../scripts/check-packages.mjs), [React 진입점 검사](../packages/generator-react/src/__tests__/entry-boundary.test.ts) |
 | package-install | 플랫폼 의존성 해석과 정상 설치 스크립트 | implemented | passed | not-deployed | [npm ci / test:packages](spec/package-build.ko.md) |
 | package-build | 독립적인 공개 타입 선언 컴파일 | implemented | passed | not-deployed | [빌드 검사](../tests/build/README.ko.md) |
 | package-api | 초기 패키지 API와 버전 메타데이터 | implemented | passed | not-deployed | [API 계약](spec/schema.ko.md) |

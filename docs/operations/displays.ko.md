@@ -75,7 +75,7 @@ React, Vue, Svelte 패키지는 `buildList`와 `buildDetail`을 다시 내보내
 
 | 패키지 | 서버 렌더링 | 컴포넌트 |
 | --- | --- | --- |
-| `@crudui/generator-react` | `renderList`와 `renderDetail`이 문자열을 반환 | `<List vm layout />`, `<Detail vm />` |
+| `@crudui/generator-react/server` | `renderList`와 `renderDetail`이 문자열을 반환 | `@crudui/generator-react`의 `<List vm layout />`, `<Detail vm />` |
 | `@crudui/generator-vue` | `renderList`와 `renderDetail`이 Promise를 반환 | `List(vm, layout)`와 `Detail(vm)`이 VNode를 반환 |
 | `@crudui/generator-svelte` | `renderList`와 `renderDetail`이 문자열을 반환 | `vm`, `layout` 속성을 받는 `List`, `vm` 속성을 받는 `Detail` |
 

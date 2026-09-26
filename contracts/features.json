@@ -100,7 +100,12 @@
             "Node",
             "Outline",
             "OutlineView",
-            "Widget",
+            "Widget"
+          ]
+        },
+        "./server": {
+          "visibility": "public",
+          "exports": [
             "renderDetail",
             "renderForm",
             "renderList"

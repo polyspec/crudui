@@ -1,6 +1,6 @@
 import { pathToFileURL } from 'node:url';
 import { compileForm, bindForm, bindButtons, formButtonsHtml, buildList, buildDetail, createForm, FormInputError } from '@crudui/generator-core';
-import * as react from '@crudui/generator-react';
+import * as react from '@crudui/generator-react/server';
 import * as html from '@crudui/generator-html';
 
 const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);

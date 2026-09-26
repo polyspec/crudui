@@ -6,7 +6,7 @@
  */
 import { describe, expect, test } from 'vitest';
 import { compileForm, createForm } from '@crudui/generator-core';
-import { renderDetail, renderForm, renderList } from '../index';
+import { renderDetail, renderForm, renderList } from '../server';
 import {
   renderDetail as htmlDetail, renderForm as htmlForm, renderList as htmlList,
 } from '@crudui/generator-html';

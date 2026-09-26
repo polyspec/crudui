@@ -58,7 +58,7 @@ attributes in different orders, so the bindings never rearrange attributes and t
 comparisons use the parsed DOM.
 
 The string renderers are React's server rendering (`renderForm` and `renderList` of
-`@crudui/generator-react`), the HTML renderer (`@crudui/generator-html`) and the PHP, PHP
+`@crudui/generator-react/server`), the HTML renderer (`@crudui/generator-html`) and the PHP, PHP
 extension, Go and Rust generators. For the same instance or list they produce the same bytes.
 React's server rendering is the reference, so its serialization is the format: attribute
 names such as `readOnly` and `autoComplete`, void elements closed with `/>`, an input's

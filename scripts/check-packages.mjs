@@ -125,7 +125,7 @@ const html = [
 if (!html.every(part => part.includes('Ada'))) throw new Error('server rendering lost the data');`;
   const installRequire = createRequire(join(directory, 'package.json'));
   const { preview } = await step('render on the server from the installed entries', 60000, async () => {
-  for (const name of ['@crudui/generator-react', '@crudui/generator-vue']) {
+  for (const name of ['@crudui/generator-react/server', '@crudui/generator-vue']) {
     await run('node', ['--input-type=module', '-e', `const core = await import('@crudui/generator-core');const m = await import('${name}');${rendering}`]);
     await run('node', ['-e', `(async () => { const core = require('@crudui/generator-core');const m = require('${name}');${rendering} })().catch(error => { console.error(error); process.exit(1); });`]);
   }

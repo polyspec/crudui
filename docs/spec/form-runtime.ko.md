@@ -53,7 +53,7 @@ React `Form`은 호스트가 제출 컨트롤을 소유할 때 `renderButtons={f
 속성 순서는 이 계약에 포함되지 않습니다. 프레임워크와 브라우저 엔진은 속성을 서로 다른
 순서로 만들므로 바인딩은 속성을 재배치하지 않고, 이 비교는 파싱한 DOM을 사용합니다.
 
-문자열 렌더러는 React 서버 렌더링(`@crudui/generator-react`의 `renderForm`, `renderList`),
+문자열 렌더러는 React 서버 렌더링(`@crudui/generator-react/server`의 `renderForm`, `renderList`),
 HTML 렌더러(`@crudui/generator-html`), PHP, PHP 확장, Go, Rust 생성기입니다. 같은 인스턴스나
 목록에서 이들은 같은 바이트를 만듭니다. React 서버 렌더링이 기준이므로 그 직렬화가 형식입니다.
 `readOnly`, `autoComplete` 같은 속성 이름, `/>`로 닫는 빈 요소, 다른 속성 뒤에 오는 input의

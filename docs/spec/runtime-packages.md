@@ -46,6 +46,11 @@ implementation. Go rendering does not depend on Rust, PHP or Node at runtime.
 PHP rendering does not require its native extension. Rust rendering does not
 require the PHP host.
 
+`@crudui/generator-react` exports components without loading `react-dom/server`.
+`@crudui/generator-react/server` exports `renderForm`, `renderList` and
+`renderDetail` for server-only string rendering. The component entry does not
+export those server functions.
+
 ## API operations
 
 Names use each language's naming convention. The operations and results remain

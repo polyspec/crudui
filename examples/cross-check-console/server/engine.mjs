@@ -67,10 +67,10 @@ async function bootEngine() {
 
   // The renderers import generator-core from its installed entry; loading that entry through the
   // same server gives the public API and the error classes the renderers throw.
-  const [core, htmlMod, reactMod, svelteMod, vueMod, vueListMod, normMod] = await Promise.all([
+  const [core, htmlMod, reactServer, svelteMod, vueMod, vueListMod, normMod] = await Promise.all([
     vite.ssrLoadModule(realpathSync(fileURLToPath(import.meta.resolve('@crudui/generator-core')))),
     vite.ssrLoadModule(path.resolve(ROOT, 'packages/generator-html/src/index.ts')),
-    vite.ssrLoadModule(path.resolve(ROOT, 'packages/generator-react/src/index.ts')),
+    vite.ssrLoadModule(path.resolve(ROOT, 'packages/generator-react/src/server.ts')),
     vite.ssrLoadModule(path.resolve(ROOT, 'packages/generator-svelte/src/index.ts')),
     vite.ssrLoadModule(path.resolve(ROOT, 'packages/generator-vue/src/index.ts')),
     vite.ssrLoadModule(path.resolve(ROOT, 'packages/generator-vue/src/listSsr.ts')),
@@ -82,17 +82,17 @@ async function bootEngine() {
     renderHtml: htmlMod.renderForm,
     compileForm: core.compileForm,
     createForm: core.createForm,
-    renderReact: reactMod.renderForm,
+    renderReact: reactServer.renderForm,
     renderSvelte: svelteMod.renderForm,
     renderVue: vueMod.renderForm,
     // React and Svelte export list rendering from their package entries.
     // Vue exports list rendering from its list SSR entry.
-    renderListReact: reactMod.renderList,
+    renderListReact: reactServer.renderList,
     renderListSvelte: svelteMod.renderList,
     renderListVue: vueListMod.renderList,
     renderListHtml: htmlMod.renderList,
     // All three package entries export detail rendering (Vue re-exports detailSsr).
-    renderDetailReact: reactMod.renderDetail,
+    renderDetailReact: reactServer.renderDetail,
     renderDetailSvelte: svelteMod.renderDetail,
     renderDetailVue: vueMod.renderDetail,
     renderDetailHtml: htmlMod.renderDetail,

@@ -76,7 +76,7 @@ server rendering and components:
 
 | Package | Server rendering | Components |
 | --- | --- | --- |
-| `@crudui/generator-react` | `renderList` and `renderDetail` return strings | `<List vm layout />`, `<Detail vm />` |
+| `@crudui/generator-react/server` | `renderList` and `renderDetail` return strings | `<List vm layout />`, `<Detail vm />` from `@crudui/generator-react` |
 | `@crudui/generator-vue` | `renderList` and `renderDetail` return promises | `List(vm, layout)` and `Detail(vm)` return VNodes |
 | `@crudui/generator-svelte` | `renderList` and `renderDetail` return strings | `List` with `vm` and `layout` props, `Detail` with a `vm` prop |
 

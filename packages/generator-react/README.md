@@ -6,7 +6,8 @@ React rendering for form instances, lists and details.
 
 ```tsx
 import { buildList, compileForm, createForm } from '@crudui/generator-core';
-import { Form, List, renderForm, renderList } from '@crudui/generator-react';
+import { Form, List } from '@crudui/generator-react';
+import { renderForm, renderList } from '@crudui/generator-react/server';
 
 const template = compileForm({
   type: 'group', properties: { name: { type: 'text' } },
@@ -28,9 +29,9 @@ per form. `renderForm(form)` returns the same markup as a string for server rend
 `buildDetail(spec, record, options)` of `@crudui/generator-core`. `renderList(spec, rows, options)` and
 `renderDetail(spec, record, options)` return strings.
 
-The package entry exports components (`Form`, `List`, `Detail`, `Cell`, `Node`, `Controls`,
-`Widget`, `Outline`, `OutlineView`, `DataView`, `DataPanel`) and the render functions `renderForm`,
-`renderList` and `renderDetail`. Compilation, form instances, models and error classes come from
+The component entry exports `Form`, `List`, `Detail`, `Cell`, `Node`, `Controls`,
+`Widget`, `Outline`, `OutlineView`, `DataView`, `DataPanel`). The server entry exports
+`renderForm`, `renderList` and `renderDetail`. Compilation, form instances, models and error classes come from
 `@crudui/generator-core`; this package does not re-export them.
 
 - [Runtime contract](../../docs/spec/form-runtime.md)

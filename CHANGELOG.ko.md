@@ -1,5 +1,12 @@
 # 변경 기록
 
+## 2026-09-26 — React 컴포넌트와 서버 진입점의 export 분리
+
+- `@crudui/generator-react`는 `react-dom/server`를 불러오지 않고 React 컴포넌트를 내보냅니다.
+  `@crudui/generator-react/server`는 문자열 렌더링 함수 `renderForm`, `renderList`, `renderDetail`을
+  내보냅니다. 컴포넌트 진입점은 이 함수를 내보내지 않습니다.
+- React 패키지 사례와 설치된 패키지 검사는 두 진입점 및 CJS·ESM export를 검증합니다.
+
 ## 2026-09-26 — Rust 검증기가 라이선스를 선언
 
 - Rust 검증기 매니페스트가 프로젝트에서 선언한 MIT 라이선스를 명시해 의존성 라이선스 검사가

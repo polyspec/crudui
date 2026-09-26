@@ -53,7 +53,8 @@ const submission = form.getData();
 Keep the template in the shared cache and create an independent form instance for
 each rendered form. Call `setData` when a record load finishes. Vue and Svelte
 also accept the `form` prop. Framework packages export the same core functions.
-Each framework exports `renderForm(form)` for SSR; Vue returns a promise.
+React exports `renderForm(form)` from `@crudui/generator-react/server`; Vue and
+Svelte export their rendering functions from their package entries. Vue returns a promise.
 Compile `$ref` files before rendering.
 
 For framework-independent HTML, use the peer renderer package:

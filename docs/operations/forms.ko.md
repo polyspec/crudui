@@ -53,7 +53,8 @@ const submission = form.getData();
 공유 캐시에는 템플릿을 저장하고 렌더링할 폼마다 독립적인 폼 인스턴스를 생성합니다.
 레코드 로드가 완료되면 `setData`를 호출합니다. Vue와 Svelte도 `form` 속성을
 받습니다. 프레임워크 패키지는 동일한 코어 함수를 제공합니다.
-각 프레임워크는 SSR용 `renderForm(form)`을 export하며 Vue는 Promise를 반환합니다.
+React는 `@crudui/generator-react/server`에서 SSR용 `renderForm(form)`을 내보냅니다.
+Vue와 Svelte는 패키지 진입점에서 렌더 함수를 내보내며 Vue는 Promise를 반환합니다.
 `$ref` 파일은 렌더링 전에 컴파일합니다.
 
 프레임워크에 독립적인 HTML은 동등한 renderer 패키지를 사용합니다.

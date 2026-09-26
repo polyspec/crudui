@@ -305,7 +305,7 @@ async function main() {
       report.artifactsBefore = beforeArtifacts;
       const require = createRequire(path.join(options.library, 'package.json'));
       ({ compileForm, createForm } = await import(pathToFileURL(path.join(options.library, 'packages/generator-core/dist/index.mjs'))));
-      ({ renderForm } = await import(pathToFileURL(path.join(options.library, 'packages/generator-react/dist/index.mjs'))));
+      ({ renderForm } = await import(pathToFileURL(path.join(options.library, 'packages/generator-react/dist/server.mjs'))));
       ({ parse } = await import(pathToFileURL(require.resolve('parse5'))));
       report.source = await request('/source.json');
       source = assertSourceIdentity(report.source, 'Missing current source identity');
