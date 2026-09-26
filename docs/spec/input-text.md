@@ -125,6 +125,9 @@ The TypeScript specification parser and Rust `JsonText` parser reject it. Caller
 hold an object must check the original JSON text before an ordinary object decoder can discard
 duplicate members.
 
+Conversion from JSON text to a runtime value preserves every object's decoded member name,
+associated value and declaration order at every depth. Validation uses those same associations.
+
 A JSON decoder that replaces or refuses an unpaired surrogate escape cannot hand the text to the
 rule, so each runtime reads JSON text with a decoder that keeps it:
 

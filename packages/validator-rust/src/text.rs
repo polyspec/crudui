@@ -526,10 +526,10 @@ fn json_text_to_value(value: &JsonText) -> Option<Value> {
     enum StackFrame<'a> {
         // Process a value and push its result
         Process(&'a JsonText),
-        // Collect array items (count, accumulated items)
-        CollectArray(usize, Vec<Value>),
-        // Collect object members (names to process, accumulated object)
-        CollectObject(Vec<&'a JsonString>, Map<String, Value>),
+        // Collect array items
+        CollectArray(usize),
+        // Collect object members in their declaration order
+        CollectObject(Vec<&'a JsonString>),
     }
 
     let mut stack = vec![StackFrame::Process(value)];
@@ -551,7 +551,7 @@ fn json_text_to_value(value: &JsonText) -> Option<Value> {
                     }
                     JsonText::Array(items) => {
                         // Push a marker to collect results
-                        stack.push(StackFrame::CollectArray(items.len(), Vec::new()));
+                        stack.push(StackFrame::CollectArray(items.len()));
                         // Push items in reverse order
                         for item in items.iter().rev() {
                             stack.push(StackFrame::Process(item));
@@ -562,11 +562,10 @@ fn json_text_to_value(value: &JsonText) -> Option<Value> {
                         for (name, _) in members {
                             name.as_str()?;
                         }
-                        // Create list of names in reverse order
                         let names: Vec<&JsonString> =
-                            members.iter().map(|(n, _)| n).rev().collect();
+                            members.iter().map(|(name, _)| name).collect();
                         // Push a marker to collect results
-                        stack.push(StackFrame::CollectObject(names, Map::new()));
+                        stack.push(StackFrame::CollectObject(names));
                         // Push members in reverse order
                         for (_, val) in members.iter().rev() {
                             stack.push(StackFrame::Process(val));
@@ -574,31 +573,24 @@ fn json_text_to_value(value: &JsonText) -> Option<Value> {
                     }
                 }
             }
-            StackFrame::CollectArray(count, mut items) => {
-                // Pop 'count' results from result_stack and add to items
+            StackFrame::CollectArray(count) => {
+                let mut items = Vec::with_capacity(count);
                 for _ in 0..count {
-                    if let Some(item) = result_stack.pop() {
-                        items.push(item);
-                    }
+                    items.push(result_stack.pop()?);
                 }
                 items.reverse();
                 result_stack.push(Value::Array(items));
             }
-            StackFrame::CollectObject(mut names, mut obj) => {
-                // Pop one result and add it to the object
-                if let Some(name) = names.pop() {
-                    if let Some(val) = result_stack.pop() {
-                        if let Some(name_str) = name.as_str() {
-                            obj.insert(name_str.to_owned(), val);
-                        }
-                    }
+            StackFrame::CollectObject(names) => {
+                let mut values = Vec::with_capacity(names.len());
+                for _ in 0..names.len() {
+                    values.push(result_stack.pop()?);
                 }
-                if names.is_empty() {
-                    result_stack.push(Value::Object(obj));
-                } else {
-                    // Continue processing more members
-                    stack.push(StackFrame::CollectObject(names, obj));
+                let mut object = Map::new();
+                for (name, value) in names.into_iter().zip(values.into_iter().rev()) {
+                    object.insert(name.as_str()?.to_owned(), value);
                 }
+                result_stack.push(Value::Object(object));
             }
         }
     }
@@ -734,6 +726,14 @@ mod tests {
         ] {
             assert!(JsonText::parse(source).is_err(), "{source}");
         }
+    }
+
+    #[test]
+    fn decoded_object_values_keep_their_names_and_order() {
+        let source = r#"{"a":1,"b":{"x":2,"y":3},"c":[4,{"z":5}]}"#;
+        let parsed = JsonText::parse(source).unwrap();
+        let decoded = super::json_text_to_value(&parsed).unwrap();
+        assert_eq!(serde_json::to_string(&decoded).unwrap(), source);
     }
 
     #[test]

@@ -18,6 +18,7 @@ Tests and deployment are recorded separately. `pending` is not a passing result.
 | expressions | Shared expression grammar and boolean conversion | implemented | passed | not-deployed | [Expression contract](spec/expressions.md) |
 | cli | Catalog, static checks and specification descriptions | implemented | passed | not-deployed | [CLI procedure](operations/cli.md) |
 | unique-json-members | Reject repeated decoded JSON member names in specification text | implemented | passed | not-deployed | [Input text contract](spec/input-text.md), [parser tests](../packages/validator-ts/src/text/json.test.ts) |
+| json-text-values | Preserve JSON object member names, values and order during Rust validation | implemented | passed | not-deployed | [Input text contract](spec/input-text.md), [Rust text cases](../packages/validator-rust/tests/text_validity_conformance.rs) |
 | form-controls | Labels, multiple choice arrays and field container paths | implemented | passed | not-deployed | [Shared control assertions](../tests/fixtures/form-session/controls.mjs) |
 | package-exports | Packaged exports, type declarations and install production build | implemented | passed | not-deployed | [Install check](../scripts/check-packages.mjs) |
 | package-install | Resolved dependencies and normal installation | implemented | passed | not-deployed | [npm ci / test:packages](spec/package-build.md) |
