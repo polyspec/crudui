@@ -31,7 +31,7 @@ the documentation web. Automated checks do not establish content accuracy;
 review the relevant source and tests before recording a result.
 
 `npm run docs:dev` registers a recursive file-system subscription under `docs/`
-before the initial build. It excludes generated `docs/.web/` events, serializes
+before the initial build. It excludes generated `docs/.web/` and `docs/.site/` events, serializes
 rebuilds and combines source events received during one build into one additional
 build. A build failure is reported and a later source event can request another
 build. A file-system subscription failure closes the server with status 1. The

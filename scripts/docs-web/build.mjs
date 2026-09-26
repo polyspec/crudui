@@ -296,7 +296,9 @@ export async function buildDocumentationWeb({ repositoryRoot, docsDirectory, out
   if (within(output, docs)) throw new Error('Documentation output cannot contain the documentation input');
   const publicDirectory = join(docs, 'public');
   const sourceFiles = (await walk(docs, filename => filename.endsWith('.md')))
-    .filter(filename => !within(join(docs, '.web'), filename) && !within(publicDirectory, filename));
+    .filter(filename => !within(join(docs, '.web'), filename)
+      && !within(join(docs, '.site'), filename)
+      && !within(publicDirectory, filename));
   const publicInputs = await walk(publicDirectory);
   const publicFiles = new Map(publicInputs.map(filename => [posix(relative(publicDirectory, filename)), filename]));
   const renderer = markdownRenderer();

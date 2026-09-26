@@ -1,5 +1,11 @@
 # Changes
 
+## 2026-09-26 — Documentation build excludes generated site files
+
+- The documentation builder and source watcher exclude generated `docs/.site/` files. A generated
+  Rust documentation license has Markdown syntax without a page heading and must remain an asset.
+- Documentation build and watcher cases check the exclusion.
+
 ## 2026-09-25 — The stylesheet themes lists and details and exposes its colors and sizes
 
 - `crudui.css` declares the defaults of the `--crudui-*` custom properties in one rule with zero
