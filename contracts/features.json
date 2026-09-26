@@ -200,6 +200,7 @@
             "isConditionExpression",
             "isScalarText",
             "parseCondition",
+            "parseJsonDocument",
             "scanForbiddenKeys"
           ]
         }

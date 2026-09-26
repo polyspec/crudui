@@ -9,7 +9,7 @@
 //! failures as every other runtime: the load failure `INVALID_TEXT` for a
 //! specification or a file, and `INVALID_FORM_INPUT` for other caller values.
 
-use std::collections::HashMap;
+use std::collections::HashSet;
 use std::fmt;
 
 use serde_json::{Map, Number, Value};
@@ -66,7 +66,7 @@ pub enum JsonText {
     String(JsonString),
     /// An array.
     Array(Vec<JsonText>),
-    /// An object; a repeated name keeps its first position and its last value.
+    /// An object with unique member names.
     Object(Vec<(JsonString, JsonText)>),
 }
 
@@ -119,8 +119,7 @@ impl Parser<'_> {
                 }
                 self.pos += 1;
                 let mut members: Vec<(JsonString, JsonText)> = Vec::new();
-                // The position of each name in `members`.
-                let mut positions: HashMap<JsonString, usize> = HashMap::new();
+                let mut names: HashSet<JsonString> = HashSet::new();
                 self.space();
                 if self.bytes.get(self.pos) == Some(&b'}') {
                     self.pos += 1;
@@ -131,20 +130,18 @@ impl Parser<'_> {
                     if self.bytes.get(self.pos) != Some(&b'"') {
                         return self.error();
                     }
+                    let offset = self.pos;
                     let name = self.string()?;
+                    if !names.insert(name.clone()) {
+                        return Err(JsonTextError { offset });
+                    }
                     self.space();
                     if self.bytes.get(self.pos) != Some(&b':') {
                         return self.error();
                     }
                     self.pos += 1;
                     let value = self.value(depth + 1)?;
-                    match positions.get(&name) {
-                        Some(&position) => members[position].1 = value,
-                        None => {
-                            positions.insert(name.clone(), members.len());
-                            members.push((name, value));
-                        }
-                    }
+                    members.push((name, value));
                     self.space();
                     match self.bytes.get(self.pos) {
                         Some(b',') => self.pos += 1,
@@ -729,14 +726,14 @@ mod tests {
     }
 
     #[test]
-    fn repeated_member_keeps_first_position_and_last_value() {
-        let text = JsonText::parse(r#"{"a":1,"b":2,"a":3}"#).unwrap();
-        let JsonText::Object(members) = &text else {
-            panic!("object expected");
-        };
-        let names: Vec<_> = members.iter().map(|(name, _)| name.as_str()).collect();
-        assert_eq!(names, [Some("a"), Some("b")]);
-        assert_eq!(text.get("a"), Some(&JsonText::Number("3".to_owned())));
+    fn repeated_member_is_rejected() {
+        for source in [
+            r#"{"a":1,"b":2,"a":3}"#,
+            r#"{"a":{"b":1,"\u0062":2}}"#,
+            r#"[{"a":1,"a":2}]"#,
+        ] {
+            assert!(JsonText::parse(source).is_err(), "{source}");
+        }
     }
 
     #[test]

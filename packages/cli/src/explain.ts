@@ -28,7 +28,7 @@ import { extname } from 'node:path';
 
 import yaml from 'js-yaml';
 
-import { composeSpec, MemoryLoader } from '@crudui/validator/internal';
+import { composeSpec, MemoryLoader, parseJsonDocument } from '@crudui/validator/internal';
 import { describe, type DescribeResult, type RuleEntry } from './describe.ts';
 
 export interface ExplainOptions {
@@ -469,6 +469,6 @@ export function explainFile(file: string | undefined, opts: ExplainOptions = {})
   if (!file) throw new Error('no spec path given');
   const raw = readFileSync(file, 'utf-8');
   const ext = extname(file).toLowerCase();
-  const spec = (ext === '.json' ? JSON.parse(raw) : yaml.load(raw)) as Spec;
+  const spec = (ext === '.json' ? parseJsonDocument(raw) : yaml.load(raw)) as Spec;
   return explainSpec(spec, opts);
 }
