@@ -119,6 +119,12 @@ A value beyond the value limits is an input failure in every argument and option
 
 ## JSON text
 
+JSON specification files have unique decoded object member names at every depth. A repeated name,
+including one written with a different escape sequence, is a parse error before validation.
+The TypeScript specification parser and Rust `JsonText` parser reject it. Callers that already
+hold an object must check the original JSON text before an ordinary object decoder can discard
+duplicate members.
+
 A JSON decoder that replaces or refuses an unpaired surrogate escape cannot hand the text to the
 rule, so each runtime reads JSON text with a decoder that keeps it:
 

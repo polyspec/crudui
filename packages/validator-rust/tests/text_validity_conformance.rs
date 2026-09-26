@@ -76,7 +76,7 @@ fn input_text_matches_fixture() {
 #[test]
 fn json_text_reads_what_serde_json_reads() {
     for source in [
-        r#"{"a":[1,-2.5e3,0,true,false,null,{"b":"\u00e9\ud83d\ude00\n\/"}],"a":"last","c":"中"}"#,
+        r#"{"a":[1,-2.5e3,0,true,false,null,{"b":"\u00e9\ud83d\ude00\n\/"}],"c":"中"}"#,
         " [ ] ",
         "123",
         r#""\u0000""#,
@@ -130,9 +130,8 @@ fn json_text_locates_invalid_text() {
     );
     assert_eq!(parsed.to_value(), None);
     assert_eq!(parsed.shape()["z"], json!(["ok", ""]));
-    let named = JsonText::parse(r#"{"a":{"\ud800":1,"\ud800":{}},"b":"\ud800"}"#).unwrap();
+    let named = JsonText::parse(r#"{"a":{"\ud800":1},"b":"\ud800"}"#).unwrap();
     assert_eq!(named.invalid_path(), Some(vec!["a".to_owned()]));
-    // A repeated invalid name keeps one member, whose value is the last.
     assert_eq!(named.shape()["a"].as_object().unwrap().len(), 1);
     assert_eq!(
         text::check_inputs(&[("data", Some(&named))])

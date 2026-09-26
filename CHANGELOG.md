@@ -6,6 +6,13 @@
   Rust documentation license has Markdown syntax without a page heading and must remain an asset.
 - Documentation build and watcher cases check the exclusion.
 
+## 2026-09-26 — JSON specification readers reject repeated member names
+
+- The specification JSON reader rejects repeated decoded object member names before validation,
+  including names written with different escape sequences. Repeated names otherwise replace input
+  without an error. The CLI and Rust JSON text parser use this rule.
+- Parser, CLI and Rust cases cover nested objects, arrays, escaped names and valid documents.
+
 ## 2026-09-25 — The stylesheet themes lists and details and exposes its colors and sizes
 
 - `crudui.css` declares the defaults of the `--crudui-*` custom properties in one rule with zero

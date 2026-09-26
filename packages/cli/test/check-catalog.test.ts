@@ -29,6 +29,11 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const fixture = (name: string) => resolve(HERE, 'fixtures', name);
 
 descTest('check enforces the leaf-type catalog (WIDGET_KINDS), beyond meta-schema + forbidden', () => {
+  it('rejects a repeated decoded JSON member before schema validation', async () => {
+    const result = await runCheck(fixture('repeated-member.json'));
+    expect(result.ok).toBe(false);
+    expect(result.errors[0].reason).toMatch(/parse failed: Repeated JSON member "type"/);
+  });
   it('rejects an unresolved reference instead of checking the uncomposed field', async () => {
     const result = await runCheck(fixture('unresolved-reference.yml'));
     expect(result.ok).toBe(false);

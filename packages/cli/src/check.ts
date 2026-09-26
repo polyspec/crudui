@@ -28,7 +28,7 @@ import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
 import yaml from 'js-yaml';
 
-import { composeSpec, MemoryLoader, scanForbiddenKeys } from '@crudui/validator/internal';
+import { composeSpec, MemoryLoader, parseJsonDocument, scanForbiddenKeys } from '@crudui/validator/internal';
 // Live widget registry (drift 0): the same key set `describe`/`list-widgets`
 // surface. Imported, never re-declared as a static enum.
 import { WIDGET_KINDS } from '@crudui/generator-core/internal';
@@ -51,7 +51,7 @@ export interface CheckResult {
 function loadSpec(file: string): unknown {
   const raw = readFileSync(file, 'utf-8');
   const ext = extname(file).toLowerCase();
-  if (ext === '.json') return JSON.parse(raw);
+  if (ext === '.json') return parseJsonDocument(raw);
   return yaml.load(raw);
 }
 
@@ -119,7 +119,7 @@ export async function runCheck(file: string | undefined): Promise<CheckResult> {
 
   // Check 1 — meta-schema (ajv). strict:false: the schema carries $comment and
   // descriptive metadata the strict mode would flag; the constraints are intact.
-  const schema = JSON.parse(readFileSync(SCHEMA_PATH, 'utf-8'));
+  const schema = parseJsonDocument(readFileSync(SCHEMA_PATH, 'utf-8'));
   const ajv = new Ajv({ strict: false, allErrors: true });
   addFormats(ajv);
   const validate = ajv.compile(schema);
