@@ -21,6 +21,11 @@
   failed operation with another path, implementation or result.
 - Inspect changes before reverting them. Remove harmful, incorrect or unnecessary
   changes. Describe retained changes by their actual purpose.
+- Reproduce an observed defect with a tracked failing test. For a plausible defect
+  not yet observed, first write a deterministic failing case whose input and required
+  result would expose it. Confirm the intended failure before implementation,
+  correct the cause, and confirm the same case and relevant use tests pass.
+  Investigate a case that cannot expose the problem instead of weakening the criterion.
 - Run relevant tests and `make docs-check`. Record results for the current code
   separately from deployment status.
 - Write comments, documentation, change records and user-facing text as direct
