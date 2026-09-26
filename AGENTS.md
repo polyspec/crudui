@@ -4,6 +4,8 @@
 - After integrating a branch into `main`, verify its commits or equivalent changes are present,
   its worktree is clean, and needed ignored inputs exist elsewhere; then remove the worktree and
   local branch immediately. Preserve unintegrated or active work.
+- When a test-only branch has served its purpose, cherry-pick any useful changes into the owning
+  branch and discard the rest; then remove its worktree and local branch.
 - Update the corresponding `.ko.md` files with the same information.
 - Keep contracts in `docs/spec/`, implementation and deployment status in
   `docs/features.md`, procedures in `docs/operations/`, and actual changes in
