@@ -8,7 +8,7 @@
  */
 
 import { describe, expect, test } from 'vitest';
-import { renderDetail } from '../index';
+import { renderDetail } from '../server';
 // @ts-expect-error shared JavaScript fixture normalizer
 import { normalizeHtml } from '../../../../tests/fixtures/form-render/normalize.mjs';
 // @ts-expect-error shared JavaScript preload link helper

@@ -1,5 +1,13 @@
 # Changes
 
+## 2026-09-26 — React component and server entries have separate exports
+
+- `@crudui/generator-react` exports React components without loading `react-dom/server`.
+  `@crudui/generator-react/server` exports `renderForm`, `renderList` and `renderDetail` for
+  string rendering. The component entry does not export those functions.
+- React package cases and the installed package check verify both entries and their
+  CJS and ESM exports.
+
 ## 2026-09-26 — Rust validator declares its license
 
 - The Rust validator manifest declares MIT, the license declared by the project, so dependency

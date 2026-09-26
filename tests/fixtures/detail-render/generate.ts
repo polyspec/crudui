@@ -14,7 +14,8 @@
  *     > tests/fixtures/detail-render/cases.json
  */
 
-import { renderDetail, type BuildDetailOptions } from '../../../packages/generator-react/src/index';
+import { renderDetail } from '../../../packages/generator-react/src/server';
+import type { BuildDetailOptions } from '@crudui/generator-core';
 // @ts-expect-error — JS normalizer shared across the CRUDUI fixture harness.
 import { normalizeHtml } from '../form-render/normalize.mjs';
 // @ts-expect-error — shared JS preload link helper.

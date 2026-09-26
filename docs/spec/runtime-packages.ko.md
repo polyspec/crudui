@@ -46,6 +46,11 @@ PHP 구현을 자동 로드합니다. [PHP API 계약](php-extension.ko.md)은 �
 PHP 렌더링은 네이티브 확장을 필수로 요구하지 않습니다. Rust 렌더링은
 PHP 호스트를 요구하지 않습니다.
 
+`@crudui/generator-react`는 `react-dom/server`를 불러오지 않고 컴포넌트를
+내보냅니다. `@crudui/generator-react/server`는 서버 전용 문자열 렌더링 함수
+`renderForm`, `renderList`, `renderDetail`을 내보냅니다. 컴포넌트 진입점은
+이 서버 함수를 내보내지 않습니다.
+
 ## API 동작
 
 이름은 각 언어의 명명 규칙을 따릅니다. 동작과 결과는 같으며 필드 명세에
