@@ -1,5 +1,10 @@
 # Changes
 
+## 2026-09-26 — Rust validator declares its license
+
+- The Rust validator manifest declares MIT, the license declared by the project, so dependency
+  license checks can read the validator's license directly.
+
 ## 2026-09-26 — Form validation rejects undeclared submitted fields
 
 - Form validation fails with `INVALID_FORM_INPUT` when root, group or repeated group row data
