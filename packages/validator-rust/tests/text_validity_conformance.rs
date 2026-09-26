@@ -115,6 +115,20 @@ fn json_text_reads_what_serde_json_reads() {
 }
 
 #[test]
+fn json_text_preserves_object_member_values_for_validation() {
+    let spec = JsonText::parse(
+        r#"{"type":"group","properties":{"title":{"type":"text","validate":{"required":true}},"body":{"type":"text","validate":{"maxlength":2}}}}"#,
+    )
+    .unwrap();
+    let missing_title = JsonText::parse(r#"{"body":"ok"}"#).unwrap();
+    let result = text::validate_text(&spec, Some(&missing_title), None, None).unwrap();
+    assert!(!result.valid, "a missing required title must fail");
+    let long_body = JsonText::parse(r#"{"title":"Title","body":"long"}"#).unwrap();
+    let result = text::validate_text(&spec, Some(&long_body), None, None).unwrap();
+    assert!(!result.valid, "a body beyond maxlength must fail");
+}
+
+#[test]
 fn json_text_locates_invalid_text() {
     let parsed =
         JsonText::parse(r#"{"z":["ok","\udc00\ud800"],"\uffff":{"x":"\ud800"},"😀":"\ud800"}"#)

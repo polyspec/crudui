@@ -1,5 +1,12 @@
 # Changes
 
+## 2026-09-26 — Rust JSON text validation retains object member values
+
+- Rust JSON text conversion associates each object member name with its own value and keeps
+  declaration order at every depth. Reversed associations previously let required and length
+  rules pass on the wrong input.
+- Rust cases check direct validation and nested object conversion.
+
 ## 2026-09-26 — Documentation build excludes generated site files
 
 - The documentation builder and source watcher exclude generated `docs/.site/` files. A generated
