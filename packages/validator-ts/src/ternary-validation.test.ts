@@ -5,6 +5,8 @@ describe('conditional validation parameters', () => {
   const spec = {
     type: 'group',
     properties: {
+      enabled: { type: 'text' },
+      limit: { type: 'text' },
       value: { type: 'text', validate: { min: '.enabled ? .limit : 0' } },
     },
   };

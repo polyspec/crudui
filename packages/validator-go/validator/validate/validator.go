@@ -119,6 +119,11 @@ func (r fieldRun) report(errors *[]ValidationError, rule, message string, value 
 // Inside a hidden field (hidden is true) no rule runs, but the data shape is
 // still checked.
 func (v *Validator) validateProperties(properties *compose.OMap, data map[string]any, currentPath, declaration []string, allData map[string]any, call *callState, hidden bool, errors *[]ValidationError) error {
+	for _, name := range sortedKeys(data) {
+		if !properties.Has(name) {
+			return &FormInputError{Message: "Unknown form data field: " + pathToString(appendPath(currentPath, name))}
+		}
+	}
 	for _, propertyKey := range properties.Keys() {
 		raw, _ := properties.Get(propertyKey)
 		field, ok := raw.(*compose.OMap)

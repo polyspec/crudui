@@ -56,6 +56,11 @@ expression (a literal) is visible. The shape of the data is an
 input contract and is checked for hidden fields too. Visibility
 depends on the data alone, so a server reaches the same result as the form that showed it.
 
+Form data contains only fields declared in the corresponding `properties` map. This applies to
+the root, each group and each repeated group row, including hidden groups. A condition or rule
+reference to data must name a declared field. Unknown object members fail as input errors before
+field rules run; the first unknown member is chosen in code point order at each object.
+
 ## Values
 
 Every runtime applies these definitions; the rules below use no other notion of

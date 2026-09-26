@@ -1,5 +1,12 @@
 # Changes
 
+## 2026-09-26 — Form validation rejects undeclared submitted fields
+
+- Form validation fails with `INVALID_FORM_INPUT` when root, group or repeated group row data
+  contains a member without a declared field. It reports the first unknown member in code point
+  order at that object. Condition inputs are declared as fields in the shared cases.
+- JavaScript, PHP, the PHP extension, Go and Rust run the same root, group and row cases.
+
 ## 2026-09-26 — Rust JSON text validation retains object member values
 
 - Rust JSON text conversion associates each object member name with its own value and keeps

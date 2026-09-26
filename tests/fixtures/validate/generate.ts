@@ -110,6 +110,8 @@ const SPECS: CaseSpec[] = [
     name: `ternary-field-limit-${enabled}-${value}`,
     note: 'The selected ternary branch resolves a field value as the validation limit.',
     spec: { type: 'group', properties: {
+      enabled: { type: 'text' },
+      limit: { type: 'text' },
       value: { type: 'text', validate: { min: '.enabled ? .limit : 0' } },
     } },
     data: { enabled, limit: 7, value: String(value) },
@@ -118,6 +120,9 @@ const SPECS: CaseSpec[] = [
     name: `ternary-nested-true-limit-${selected}`,
     note: 'The nested true branch resolves a field value through the expression AST.',
     spec: { type: 'group', properties: {
+      enabled: { type: 'text' },
+      selected: { type: 'text' },
+      limit: { type: 'text' },
       value: { type: 'text', validate: { min: '.enabled ? .selected ? .limit : 0 : 0' } },
     } },
     data: { enabled: true, selected, limit: 7, value: '5' },
@@ -868,6 +873,36 @@ const SPECS: CaseSpec[] = [
       },
     },
     data: { companies: { __a__: { stores: [] } } },
+  },
+  {
+    name: 'input-unknown-root-field',
+    note: 'The first undeclared root member in code point order is an input failure.',
+    spec: { type: 'group', properties: { name: { type: 'text' } } },
+    data: { name: 'N', z: 1, a: 2 },
+  },
+  {
+    name: 'input-unknown-group-field',
+    note: 'An undeclared member inside a group is an input failure.',
+    spec: { type: 'group', properties: {
+      address: { type: 'group', properties: { city: { type: 'text' } } },
+    } },
+    data: { address: { city: 'Seoul', extra: 1 } },
+  },
+  {
+    name: 'input-unknown-hidden-group-field',
+    note: 'A hidden group still rejects an undeclared member in its data.',
+    spec: { type: 'group', properties: {
+      address: { type: 'group', design: { show: false }, properties: { city: { type: 'text' } } },
+    } },
+    data: { address: { city: 'Seoul', extra: 1 } },
+  },
+  {
+    name: 'input-unknown-repeated-row-field',
+    note: 'An undeclared member inside a repeated group row is an input failure.',
+    spec: { type: 'group', properties: {
+      rows: { type: 'group', multiple: true, properties: { code: { type: 'text' } } },
+    } },
+    data: { rows: { row1: { code: 'C', extra: 1 } } },
   },
 ];
 

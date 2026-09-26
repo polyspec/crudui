@@ -118,6 +118,7 @@ fn main() {
 | 객체가 아닌 루트 데이터(합성 전에 검사) | `Form data must be an object` |
 | 값이 있지만 객체가 아닌 그룹 데이터 또는 반복 그룹 행 | `Group data must be an object: {path}` |
 | 값이 있지만 키 기반 객체가 아닌 반복 데이터 | `Repeated data must be a keyed object: {path}` |
+| 루트·그룹·반복 그룹 행 데이터에서 선언된 필드가 없는 객체 멤버 | `Unknown form data field: {path}` |
 
 그룹 또는 반복 데이터가 없는 것은 실패가 아닙니다. JavaScript와 PHP는 실패를
 예외로 발생시키고, Go는 오류로 반환하며, Rust는 `Err(ValidateError)`를 반환합니다.

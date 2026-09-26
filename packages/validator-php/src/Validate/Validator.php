@@ -195,6 +195,13 @@ final class Validator
         array &$errors,
         bool $hidden = false,
     ): void {
+        $names = array_keys($data);
+        sort($names, SORT_STRING);
+        foreach ($names as $name) {
+            if (!array_key_exists($name, $properties)) {
+                throw new FormInputError('Unknown form data field: ' . implode('.', [...$currentPath, (string) $name]));
+            }
+        }
         foreach ($properties as $propertyKey => $field) {
             if (!is_array($field) && !$field instanceof \stdClass) {
                 continue;
