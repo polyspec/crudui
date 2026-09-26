@@ -1,6 +1,9 @@
 # Development
 
 - Update the authoritative specification before changing behavior or direction.
+- After integrating a branch into `main`, verify its commits or equivalent changes are present,
+  its worktree is clean, and needed ignored inputs exist elsewhere; then remove the worktree and
+  local branch immediately. Preserve unintegrated or active work.
 - Update the corresponding `.ko.md` files with the same information.
 - Keep contracts in `docs/spec/`, implementation and deployment status in
   `docs/features.md`, procedures in `docs/operations/`, and actual changes in
