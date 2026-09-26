@@ -40,6 +40,7 @@ import type {
 } from '../types';
 import { getRule } from '../rules/index';
 import { FormInputError } from './errors';
+import { compareCodePoints } from '../text/index';
 import { assertRuleParameter, assertRuleName } from './parameters';
 import {
   parseCondition,
@@ -313,6 +314,11 @@ export class Validator {
     errors: ValidationError[],
     insideHidden = false
   ): void {
+    for (const name of Object.keys(data).sort(compareCodePoints)) {
+      if (!Object.prototype.hasOwnProperty.call(properties, name)) {
+        throw new FormInputError(`Unknown form data field: ${pathToString([...currentPath, name])}`);
+      }
+    }
     for (const [propertyKey, field] of Object.entries(properties)) {
       if (!field || typeof field !== 'object') {
         continue;

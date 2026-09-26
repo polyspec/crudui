@@ -355,6 +355,12 @@
     "spec": {
       "type": "group",
       "properties": {
+        "enabled": {
+          "type": "text"
+        },
+        "limit": {
+          "type": "text"
+        },
         "value": {
           "type": "text",
           "validate": {
@@ -379,6 +385,12 @@
     "spec": {
       "type": "group",
       "properties": {
+        "enabled": {
+          "type": "text"
+        },
+        "limit": {
+          "type": "text"
+        },
         "value": {
           "type": "text",
           "validate": {
@@ -403,6 +415,12 @@
     "spec": {
       "type": "group",
       "properties": {
+        "enabled": {
+          "type": "text"
+        },
+        "limit": {
+          "type": "text"
+        },
         "value": {
           "type": "text",
           "validate": {
@@ -435,6 +453,12 @@
     "spec": {
       "type": "group",
       "properties": {
+        "enabled": {
+          "type": "text"
+        },
+        "limit": {
+          "type": "text"
+        },
         "value": {
           "type": "text",
           "validate": {
@@ -459,6 +483,15 @@
     "spec": {
       "type": "group",
       "properties": {
+        "enabled": {
+          "type": "text"
+        },
+        "selected": {
+          "type": "text"
+        },
+        "limit": {
+          "type": "text"
+        },
         "value": {
           "type": "text",
           "validate": {
@@ -484,6 +517,15 @@
     "spec": {
       "type": "group",
       "properties": {
+        "enabled": {
+          "type": "text"
+        },
+        "selected": {
+          "type": "text"
+        },
+        "limit": {
+          "type": "text"
+        },
         "value": {
           "type": "text",
           "validate": {
@@ -2100,6 +2142,118 @@
     "expectFailure": {
       "code": "INVALID_FORM_INPUT",
       "message": "Repeated data must be a keyed object: companies.__a__.stores",
+      "at": ""
+    }
+  },
+  {
+    "name": "input-unknown-root-field",
+    "note": "The first undeclared root member in code point order is an input failure.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "name": {
+          "type": "text"
+        }
+      }
+    },
+    "data": {
+      "name": "N",
+      "z": 1,
+      "a": 2
+    },
+    "expectFailure": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Unknown form data field: a",
+      "at": ""
+    }
+  },
+  {
+    "name": "input-unknown-group-field",
+    "note": "An undeclared member inside a group is an input failure.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "address": {
+          "type": "group",
+          "properties": {
+            "city": {
+              "type": "text"
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "address": {
+        "city": "Seoul",
+        "extra": 1
+      }
+    },
+    "expectFailure": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Unknown form data field: address.extra",
+      "at": ""
+    }
+  },
+  {
+    "name": "input-unknown-hidden-group-field",
+    "note": "A hidden group still rejects an undeclared member in its data.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "address": {
+          "type": "group",
+          "design": {
+            "show": false
+          },
+          "properties": {
+            "city": {
+              "type": "text"
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "address": {
+        "city": "Seoul",
+        "extra": 1
+      }
+    },
+    "expectFailure": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Unknown form data field: address.extra",
+      "at": ""
+    }
+  },
+  {
+    "name": "input-unknown-repeated-row-field",
+    "note": "An undeclared member inside a repeated group row is an input failure.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "rows": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "code": {
+              "type": "text"
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "rows": {
+        "row1": {
+          "code": "C",
+          "extra": 1
+        }
+      }
+    },
+    "expectFailure": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Unknown form data field: rows.row1.extra",
       "at": ""
     }
   },

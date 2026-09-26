@@ -19,6 +19,7 @@
 | cli | 목록·정적 검사·스펙 설명 | implemented | passed | not-deployed | [CLI 절차](operations/cli.ko.md) |
 | unique-json-members | 명세 JSON 텍스트에서 반복된 디코딩 객체 멤버 이름 거부 | implemented | passed | not-deployed | [입력 텍스트 계약](spec/input-text.ko.md), [파서 테스트](../packages/validator-ts/src/text/json.test.ts) |
 | json-text-values | Rust 검증에서 JSON 객체 멤버 이름, 값과 순서 유지 | implemented | passed | not-deployed | [입력 텍스트 계약](spec/input-text.ko.md), [Rust 텍스트 사례](../packages/validator-rust/tests/text_validity_conformance.rs) |
+| declared-form-data | 모든 그룹 단계에서 선언되지 않은 제출 필드 거부 | implemented | passed | not-deployed | [검증 계약](operations/validation.ko.md), [공유 사례](../tests/fixtures/validate/cases.json) |
 | form-controls | 라벨, 복수 선택 배열과 필드 컨테이너 경로 | implemented | passed | not-deployed | [공유 입력 검사](../tests/fixtures/form-session/controls.mjs) |
 | package-exports | 패키지 export, 타입 선언과 설치 프로덕션 빌드 | implemented | passed | not-deployed | [설치 검사](../scripts/check-packages.mjs) |
 | package-install | 플랫폼 의존성 해석과 정상 설치 스크립트 | implemented | passed | not-deployed | [npm ci / test:packages](spec/package-build.ko.md) |

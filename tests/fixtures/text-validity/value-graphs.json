@@ -2,7 +2,7 @@
   {
     "name": "shared-list-within-limits",
     "note": "a list that holds the same list twice, ten times over, is the tree it denotes: 2047 nodes under data.list.",
-    "spec": { "type": "group", "properties": {} },
+    "spec": { "type": "group", "properties": { "list": { "type": "text" } } },
     "data": { "list": null },
     "graph": { "at": ["data", "list"], "shape": "doubled", "size": 10, "leaf": "x" },
     "expect": { "valid": true, "errors": [] }
@@ -10,7 +10,7 @@
   {
     "name": "shared-list-beyond-node-limit",
     "note": "the same doubling forty times denotes a tree of 2^41 - 1 nodes; the walk stops after 1,000,000.",
-    "spec": { "type": "group", "properties": {} },
+    "spec": { "type": "group", "properties": { "list": { "type": "text" } } },
     "data": { "list": null },
     "graph": { "at": ["data", "list"], "shape": "doubled", "size": 40, "leaf": "x" },
     "expect": { "code": "INVALID_FORM_INPUT", "message": "Recursive or excessively nested value: data", "at": "" }
@@ -18,7 +18,7 @@
   {
     "name": "shared-list-invalid-leaf",
     "note": "invalid text met before the node limit is reported at its path in the tree: the first leaf of the doubled list.",
-    "spec": { "type": "group", "properties": {} },
+    "spec": { "type": "group", "properties": { "list": { "type": "text" } } },
     "data": { "list": null },
     "graph": { "at": ["data", "list"], "shape": "doubled", "size": 40, "leaf": "\ud800" },
     "expect": { "code": "INVALID_FORM_INPUT", "message": "Text must be Unicode scalar values: data.list.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0", "at": "" }
@@ -26,7 +26,7 @@
   {
     "name": "data-self-reference-twice",
     "note": "an object whose members self and again are the object itself denotes no tree.",
-    "spec": { "type": "group", "properties": {} },
+    "spec": { "type": "group", "properties": { "loop": { "type": "text" } } },
     "data": { "loop": null },
     "graph": { "at": ["data", "loop"], "shape": "self-twice" },
     "expect": { "code": "INVALID_FORM_INPUT", "message": "Recursive or excessively nested value: data", "at": "" }
@@ -42,7 +42,7 @@
   {
     "name": "files-shared-list-beyond-node-limit",
     "note": "a composition file beyond the node limit fails as the files option, before the data is checked.",
-    "spec": { "type": "group", "properties": {} },
+    "spec": { "type": "group", "properties": { "bad": { "type": "text" } } },
     "files": { "big.yml": { "list": null } },
     "data": { "bad": "\ud800" },
     "graph": { "at": ["files", "big.yml", "list"], "shape": "doubled", "size": 40, "leaf": "x" },
@@ -51,7 +51,7 @@
   {
     "name": "nesting-at-limit",
     "note": "data and 511 nested lists are 512 levels of arrays and objects, the most a value may nest.",
-    "spec": { "type": "group", "properties": {} },
+    "spec": { "type": "group", "properties": { "list": { "type": "text" } } },
     "data": { "list": null },
     "graph": { "at": ["data", "list"], "shape": "chain", "size": 511, "leaf": "x" },
     "expect": { "valid": true, "errors": [] }
@@ -59,7 +59,7 @@
   {
     "name": "nesting-beyond-limit",
     "note": "one more nested list is 513 levels.",
-    "spec": { "type": "group", "properties": {} },
+    "spec": { "type": "group", "properties": { "list": { "type": "text" } } },
     "data": { "list": null },
     "graph": { "at": ["data", "list"], "shape": "chain", "size": 512, "leaf": "x" },
     "expect": { "code": "INVALID_FORM_INPUT", "message": "Recursive or excessively nested value: data", "at": "" }
@@ -67,7 +67,7 @@
   {
     "name": "nodes-at-limit",
     "note": "data, its list and 999,998 items are 1,000,000 nodes, the most a value may hold.",
-    "spec": { "type": "group", "properties": {} },
+    "spec": { "type": "group", "properties": { "list": { "type": "text" } } },
     "data": { "list": null },
     "graph": { "at": ["data", "list"], "shape": "flat", "size": 999998, "leaf": "x" },
     "expect": { "valid": true, "errors": [] }
@@ -75,7 +75,7 @@
   {
     "name": "nodes-beyond-limit",
     "note": "one more item is 1,000,001 nodes.",
-    "spec": { "type": "group", "properties": {} },
+    "spec": { "type": "group", "properties": { "list": { "type": "text" } } },
     "data": { "list": null },
     "graph": { "at": ["data", "list"], "shape": "flat", "size": 999999, "leaf": "x" },
     "expect": { "code": "INVALID_FORM_INPUT", "message": "Recursive or excessively nested value: data", "at": "" }
@@ -83,7 +83,7 @@
   {
     "name": "text-before-later-limit",
     "note": "members are walked in code point order of their names: invalid text in a precedes the self-reference in b.",
-    "spec": { "type": "group", "properties": {} },
+    "spec": { "type": "group", "properties": { "a": { "type": "text" }, "b": { "type": "text" } } },
     "data": { "b": null, "a": "\ud800" },
     "graph": { "at": ["data", "b"], "shape": "self-twice" },
     "expect": { "code": "INVALID_FORM_INPUT", "message": "Text must be Unicode scalar values: data.a", "at": "" }
@@ -91,7 +91,7 @@
   {
     "name": "limit-before-later-text",
     "note": "the self-reference in a precedes invalid text in b.",
-    "spec": { "type": "group", "properties": {} },
+    "spec": { "type": "group", "properties": { "a": { "type": "text" }, "b": { "type": "text" } } },
     "data": { "b": "\ud800", "a": null },
     "graph": { "at": ["data", "a"], "shape": "self-twice" },
     "expect": { "code": "INVALID_FORM_INPUT", "message": "Recursive or excessively nested value: data", "at": "" }

@@ -680,6 +680,22 @@ static bool validate_properties(const ps_value *properties, const ps_value *data
                                 size_t depth, bool hidden)
 {
     if (!properties || properties->kind != PS_OBJECT) { free(path); return true; }
+    if (data && data->kind == PS_OBJECT) {
+        size_t count = 0;
+        ps_text *keys = sorted_row_keys(data, &count);
+        if (!keys) { free(path); return false; }
+        for (size_t i = 0; i < count; ++i) {
+            if (!ps_get_text(properties, keys[i])) {
+                ps_text *unknown_path = malloc((length + 1) * sizeof(*unknown_path));
+                if (!unknown_path) { free(keys); free(path); return false; }
+                if (length) memcpy(unknown_path, path, length * sizeof(*unknown_path));
+                unknown_path[length] = keys[i];
+                input_failure(context, "Unknown form data field: ", unknown_path, length + 1);
+                free(unknown_path); free(keys); free(path); return false;
+            }
+        }
+        free(keys);
+    }
     for (size_t i = 0; i < ps_size(properties); ++i) {
         ps_text name = ps_key(properties, i); const ps_value *field = ps_at(properties, i);
         if (!field || field->kind != PS_OBJECT) continue;

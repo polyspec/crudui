@@ -150,6 +150,22 @@ impl Validator {
         hidden: bool,
         errors: &mut Vec<ValidationError>,
     ) -> Result<(), ValidateError> {
+        if let Some(object) = data.as_object() {
+            let mut unknown: Vec<&String> = object
+                .keys()
+                .filter(|name| !properties.contains_key(name.as_str()))
+                .collect();
+            unknown.sort();
+            if let Some(name) = unknown.first() {
+                let mut path = current_path.to_vec();
+                path.push((*name).clone());
+                return Err(FormInputError::new(format!(
+                    "Unknown form data field: {}",
+                    path_to_string(&path)
+                ))
+                .into());
+            }
+        }
         let all_data = run.data;
         let empty = Value::Object(Map::new());
         for (property_key, field) in properties {
