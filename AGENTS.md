@@ -12,6 +12,10 @@
   and branch. If removal is impossible, first add a numbered sub-item to the owning checklist with
   the cause and exact removal condition.
 - Update the corresponding `.ko.md` files with the same information.
+- Record each completed feature in `CHANGELOG.md` in the same commit that completes it, and keep
+  uncommitted changes within one feature. A received instruction is triaged first: finish the
+  feature in progress unless the instruction is explicit and urgent, then place the new work by
+  priority before starting it.
 - Keep contracts in `docs/spec/`, implementation and deployment status in
   `docs/features.md`, procedures in `docs/operations/`, and actual changes in
   `CHANGELOG.md`.
