@@ -16,6 +16,12 @@
   uncommitted changes within one feature. A received instruction is triaged first: finish the
   feature in progress unless the instruction is explicit and urgent, then place the new work by
   priority before starting it.
+- The repository's full test suite runs once, when every feature is complete.
+- During development run only the tests of the modified area; run the full suite once, when the
+  feature is completed. Every test reports its own running, completion, success or failure with
+  its elapsed time and has its own timeout; a whole-suite timeout is not used. A long
+  operation gets detailed step logs instead of a timeout, so its process and result stay
+  observable.
 - Keep contracts in `docs/spec/`, implementation and deployment status in
   `docs/features.md`, procedures in `docs/operations/`, and actual changes in
   `CHANGELOG.md`.
