@@ -234,9 +234,11 @@ fn is_valid_email_label(label: &str) -> bool {
     if !is_alnum(bytes[0]) || !is_alnum(bytes[n - 1]) {
         return false;
     }
-    bytes[1..n.saturating_sub(1)]
-        .iter()
-        .all(|&b| is_alnum(b) || b == b'-')
+    bytes
+        .get(1..n.saturating_sub(1))
+        .map_or(true, |middle| {
+            middle.iter().all(|&b| is_alnum(b) || b == b'-')
+        })
 }
 
 // ---------------------------------------------------------------------------
@@ -1484,5 +1486,18 @@ mod tests {
             rows.insert(key, serde_json::json!({ "value": i }));
         }
         serde_json::Value::Object(rows)
+    }
+}
+
+#[cfg(test)]
+mod email_label_tests {
+    #[test]
+    fn a_one_character_label_is_valid_after_the_boundaries() {
+        // The middle slice of one or two characters is empty; the label
+        // stands on its boundary characters alone.
+        assert!(super::is_valid_email_label("a"));
+        assert!(super::is_valid_email_label("ab"));
+        assert!(!super::is_valid_email_label("-"));
+        assert!(!super::is_valid_email_label("a-"));
     }
 }
