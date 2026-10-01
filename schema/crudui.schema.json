@@ -302,7 +302,7 @@
               ]
             },
             "in": {
-              "description": "Allowed values: a comma-separated string, a list, or a value-to-label map whose keys are the values. Members are nonempty strings, numbers or booleans; a map is not a condition map.",
+              "description": "Allowed values: a comma-separated string, a list, or a value-to-label map whose keys are the values. Members are nonempty strings, numbers or booleans; an empty list or map allows no value; a map is not a condition map.",
               "anyOf": [
                 {
                   "type": "string",
@@ -310,7 +310,6 @@
                 },
                 {
                   "type": "array",
-                  "minItems": 1,
                   "items": {
                     "anyOf": [
                       {
@@ -340,8 +339,7 @@
                   },
                   "additionalProperties": {
                     "$ref": "#/definitions/ItemLabel"
-                  },
-                  "minProperties": 1
+                  }
                 },
                 {
                   "description": "Disables the rule.",

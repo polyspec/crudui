@@ -202,13 +202,21 @@ final class ValuesTest extends TestCase
         self::assertTrue(Membership::fromParameter([1e21])->contains('1e+21'));
     }
 
+    public function testEmptyMemberSetsMatchNoValue(): void
+    {
+        foreach ([[], new \stdClass()] as $parameter) {
+            $members = Membership::fromParameter($parameter);
+            foreach (['a', '0', 0, 1.5, true, false] as $value) {
+                self::assertFalse($members->contains($value), var_export($value, true));
+            }
+        }
+    }
+
     /** @return iterable<string, array{mixed, string}> */
     public static function invalidMemberSets(): iterable
     {
         yield 'number' => [5, 'expected a list, a comma-separated string or a map'];
         yield 'true' => [true, 'expected a list, a comma-separated string or a map'];
-        yield 'empty list' => [[], 'members must not be empty'];
-        yield 'empty map' => [new \stdClass(), 'members must not be empty'];
         yield 'empty string' => ['', 'members must not be empty'];
         yield 'empty item' => ['a,,b', 'members must not be empty'];
         yield 'blank element' => [['a', "\u{3000}"], 'members must not be empty'];

@@ -1,5 +1,15 @@
 # Changes
 
+## 2026-10-02 — An empty membership list allows no value
+
+- An `in` rule with an empty list or an empty map is valid and matches no value, so a field
+  whose choice list is empty passes an empty value and fails every other value. The rule
+  previously failed the load with `INVALID_RULE_PARAMETER`, so such a field could not be
+  checked. A blank string and an empty member remain parameter errors.
+- The JSON Schema accepts an empty `in` list and map.
+- JavaScript, PHP, the PHP extension, Go and Rust run the shared empty list, empty map and
+  required cases.
+
 ## 2026-10-01 — Form connection keeps values entered before it
 
 - `connectForm` reads every control that differs from its rendered default before it

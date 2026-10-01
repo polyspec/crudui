@@ -232,4 +232,15 @@ func TestInMembership(t *testing.T) {
 	if perr := checkIn([]any{math.NaN()}); perr == nil {
 		t.Error("a nonfinite member must be rejected")
 	}
+	for _, param := range []any{[]any{}, map[string]any{}} {
+		empty, perr := inMembers(param)
+		if perr != nil {
+			t.Fatalf("inMembers(%#v) = %v, want an empty member set", param, perr)
+		}
+		for _, v := range []any{"a", "0", 0.0, true, false} {
+			if inMatches(v, empty) {
+				t.Errorf("%#v should not be a member of an empty member set", v)
+			}
+		}
+	}
 }

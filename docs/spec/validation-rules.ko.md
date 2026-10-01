@@ -103,8 +103,10 @@ HTML의 유효한 부동소수점 수입니다. 선택적인 `-` 다음에 숫�
   해당 매개변수가 있으면 모두 치환하고, 규칙에 없는 매개변수의 자리 표시자는 쓴 그대로 둡니다.
 
 **포함**(`in`)은 목록(각 원소 그대로), 쉼표 문자열(U+002C로 나누고 각 항목을 다듬음), 맵(키)에서
-멤버를 얻습니다. 멤버는 문자열, 숫자, 불리언이며 그 밖의 형식인 멤버, 빈 멤버 집합, 정규 텍스트를 다듬으면 비는 멤버는
-선언 오류이며, 멤버는 순서대로 각각 형식을 먼저, 빈 값 여부를 다음에 검사합니다. 문자열 값은 다듬고, 배열
+멤버를 얻습니다. 멤버는 문자열, 숫자, 불리언이며 그 밖의 형식인 멤버와 정규 텍스트를 다듬으면 비는 멤버는
+선언 오류이며, 멤버는 순서대로 각각 형식을 먼저, 빈 값 여부를 다음에 검사합니다. 빈 목록과 빈 맵은 빈 멤버
+집합을 선언합니다. 빈 멤버 집합은 유효하며 어떤 값과도 일치하지 않으므로 선택 목록이 빈 필드는 빈 값을 통과시키고
+그 밖의 모든 값을 실패시킵니다. 문자열에는 항목이 항상 하나 이상 있으므로 공백뿐인 문자열은 빈 멤버입니다. 문자열 값은 다듬고, 배열
 값은 모든 원소가 통과해야 통과합니다. 빈 원소(빈 배열·빈 객체 포함)는 빈 값처럼 통과하고 비어 있지 않은 배열이나 객체
 원소는 실패합니다. 값과 멤버의 정규 텍스트가
 같은 코드 포인트이거나, 둘 다 숫자이고 값이 같으면 일치합니다. 목록 원소와 맵 키는 그대로 읽으므로 앞뒤에
@@ -164,7 +166,7 @@ POSIX 클래스, 소유·중첩 수량자, `\uHHHH`, 8진수·제어 문자 이�
 | `mincount`, `maxcount` 제한값 | `INVALID_RULE_PARAMETER` | `Invalid {rule} parameter: expected an integer from 0 to 9007199254740991` |
 | 다른 형식의 `in` 멤버 | `INVALID_RULE_PARAMETER` | `Invalid in parameter: expected a list, a comma-separated string or a map` |
 | 문자열·숫자·불리언이 아닌 `in` 멤버 | `INVALID_RULE_PARAMETER` | `Invalid in parameter: members must be strings, numbers or booleans` |
-| 멤버가 없거나 빈 멤버가 있는 `in` | `INVALID_RULE_PARAMETER` | `Invalid in parameter: members must not be empty` |
+| 빈 멤버가 있는 `in` | `INVALID_RULE_PARAMETER` | `Invalid in parameter: members must not be empty` |
 | 다른 형식의 `pattern`, `match` | `INVALID_RULE_PARAMETER` | `Invalid {rule} parameter: expected a pattern string` |
 | 언어에 속하지 않는 `pattern`, `match` | `INVALID_RULE_PATTERN` | `Invalid {rule} pattern: {reason} at {offset}` |
 

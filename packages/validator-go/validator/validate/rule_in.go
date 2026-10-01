@@ -60,9 +60,6 @@ func inMembers(param any) ([]member, *parameterError) {
 	default:
 		return nil, ruleParameterError("Invalid in parameter: expected a list, a comma-separated string or a map")
 	}
-	if len(raw) == 0 {
-		return nil, ruleParameterError("Invalid in parameter: members must not be empty")
-	}
 	members := make([]member, 0, len(raw))
 	for _, value := range raw {
 		m, ok := newMember(value)
