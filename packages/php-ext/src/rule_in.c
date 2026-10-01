@@ -103,7 +103,6 @@ ps_parameter_problem ps_in_parameter(const ps_value *parameter)
     static const ps_parameter_problem failed = {.code = "INTERNAL_ERROR", .message = "Validation failed"};
     if (!parameter || (parameter->kind != PS_ARRAY && parameter->kind != PS_OBJECT && parameter->kind != PS_STRING))
         return shape;
-    if (parameter->kind != PS_STRING && !ps_size(parameter)) return empty;
     /* Each list element is checked in order: its type, then its text. */
     if (parameter->kind == PS_ARRAY) {
         for (size_t i = 0; i < ps_size(parameter); ++i) {

@@ -46,6 +46,13 @@ describe('values', () => {
     expect(readMembers([' ', null])).toEqual({ error: 'Invalid in parameter: members must not be empty' });
     expect(readMembers(['a', Infinity])).toEqual({ error: 'Invalid in parameter: members must be strings, numbers or booleans' });
     expect(readMembers({ ' ': 'blank' })).toEqual({ error: 'Invalid in parameter: members must not be empty' });
+    for (const empty of [[], {}]) {
+      const none = readMembers(empty);
+      if ('error' in none) throw new Error(none.error);
+      expect(['a', '0', 0, 1.5, true, false, ['a']].map((value) => isMember(value, none.members))).toEqual([
+        false, false, false, false, false, false, false,
+      ]);
+    }
   });
   test('numeric text is the HTML valid floating-point number', () => {
     expect(['12', '-.5e+2', '1E-3', '\u3000 12\t', '1e-400', 0, -0.5].map(numericValue)).toEqual([12, -50, 0.001, 12, 0, 0, -0.5]);

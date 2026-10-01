@@ -120,9 +120,12 @@ non-ASCII digits are not numeric text, and text whose value overflows is not num
 
 **Membership** (`in`) takes its members from a list (each element as is), a
 comma-separated string (split at U+002C, each item trimmed) or a map (its keys).
-Members are strings, numbers or booleans; a member of another type, an
-empty member set and a member whose canonical text is empty after trimming are
-declaration errors; members are checked in order, each for its type before its emptiness. A
+Members are strings, numbers or booleans; a member of another type and a member whose
+canonical text is empty after trimming are declaration errors; members are checked in order,
+each for its type before its emptiness. An empty list and an empty map declare an empty member
+set, which is valid and matches no value: a field whose choice list is empty passes an empty
+value and fails every other value. A string always has at least one item, so a blank string is
+an empty member. A
 string value is trimmed; an array value passes when every element passes, an empty element
 (including an empty array or object) passes as an empty value does, and a non-empty array or
 object element fails. A value matches a member
@@ -190,7 +193,7 @@ without row keys. Every runtime reports the same code and message:
 | `mincount`, `maxcount` limit | `INVALID_RULE_PARAMETER` | `Invalid {rule} parameter: expected an integer from 0 to 9007199254740991` |
 | `in` members of another type | `INVALID_RULE_PARAMETER` | `Invalid in parameter: expected a list, a comma-separated string or a map` |
 | `in` member that is not a string, number or boolean | `INVALID_RULE_PARAMETER` | `Invalid in parameter: members must be strings, numbers or booleans` |
-| `in` without members, or with an empty member | `INVALID_RULE_PARAMETER` | `Invalid in parameter: members must not be empty` |
+| `in` with an empty member | `INVALID_RULE_PARAMETER` | `Invalid in parameter: members must not be empty` |
 | `pattern`, `match` of another type | `INVALID_RULE_PARAMETER` | `Invalid {rule} parameter: expected a pattern string` |
 | `pattern`, `match` outside the language | `INVALID_RULE_PATTERN` | `Invalid {rule} pattern: {reason} at {offset}` |
 

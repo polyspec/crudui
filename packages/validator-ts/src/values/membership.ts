@@ -3,7 +3,8 @@
  *
  * Members come from a list (each element as is), a comma-separated string (split
  * at U+002C, each item trimmed) or a map (its keys). Members are strings, numbers
- * or booleans, and no member's canonical text is empty after trimming.
+ * or booleans, and no member's canonical text is empty after trimming. An empty
+ * list or map is an empty member set, which matches no value.
  */
 
 import { canonicalText } from './canonical';
@@ -40,7 +41,6 @@ export function readMembers(param: unknown): MembersResult {
   } else {
     return { error: MEMBERSHIP_ERRORS.shape };
   }
-  if (members.length === 0) return { error: MEMBERSHIP_ERRORS.empty };
   for (const member of members) {
     if (!isMemberType(member)) return { error: MEMBERSHIP_ERRORS.type };
     if (trim(canonicalText(member) as string) === '') return { error: MEMBERSHIP_ERRORS.empty };

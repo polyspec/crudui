@@ -50,9 +50,6 @@ final class Membership
         } else {
             throw self::failure('expected a list, a comma-separated string or a map');
         }
-        if ($members === []) {
-            throw self::failure('members must not be empty');
-        }
         foreach ($members as $member) {
             if (!\is_string($member) && !\is_int($member) && !\is_float($member) && !\is_bool($member)) {
                 throw self::failure('members must be strings, numbers or booleans');

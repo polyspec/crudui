@@ -3947,11 +3947,47 @@
   },
   {
     "name": "value-in-empty-list",
-    "note": "a membership list has members.",
+    "note": "an empty membership list is valid and matches no value; empty values pass as they do for every rule.",
     "spec": {
       "type": "group",
       "properties": {
-        "value": {
+        "text": {
+          "type": "text",
+          "validate": {
+            "in": []
+          }
+        },
+        "number": {
+          "type": "text",
+          "validate": {
+            "in": []
+          }
+        },
+        "no": {
+          "type": "text",
+          "validate": {
+            "in": []
+          }
+        },
+        "list": {
+          "type": "text",
+          "validate": {
+            "in": []
+          }
+        },
+        "missing": {
+          "type": "text",
+          "validate": {
+            "in": []
+          }
+        },
+        "blank": {
+          "type": "text",
+          "validate": {
+            "in": []
+          }
+        },
+        "none": {
           "type": "text",
           "validate": {
             "in": []
@@ -3960,21 +3996,77 @@
       }
     },
     "data": {
-      "value": "x"
+      "text": "a",
+      "number": 0,
+      "no": false,
+      "list": [
+        "a"
+      ],
+      "missing": null,
+      "blank": " ",
+      "none": []
     },
-    "expectFailure": {
-      "code": "INVALID_RULE_PARAMETER",
-      "message": "Invalid in parameter: members must not be empty",
-      "at": "value"
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "text",
+          "field": "text",
+          "rule": "in",
+          "message": "Please select a valid option.",
+          "value": "a"
+        },
+        {
+          "path": "number",
+          "field": "number",
+          "rule": "in",
+          "message": "Please select a valid option.",
+          "value": 0
+        },
+        {
+          "path": "no",
+          "field": "no",
+          "rule": "in",
+          "message": "Please select a valid option.",
+          "value": false
+        },
+        {
+          "path": "list",
+          "field": "list",
+          "rule": "in",
+          "message": "Please select a valid option.",
+          "value": [
+            "a"
+          ]
+        }
+      ]
     }
   },
   {
     "name": "value-in-empty-map",
-    "note": "a membership map has members.",
+    "note": "an empty membership map is valid and matches no value; empty values pass as they do for every rule.",
     "spec": {
       "type": "group",
       "properties": {
-        "value": {
+        "text": {
+          "type": "text",
+          "validate": {
+            "in": {}
+          }
+        },
+        "number": {
+          "type": "text",
+          "validate": {
+            "in": {}
+          }
+        },
+        "blank": {
+          "type": "text",
+          "validate": {
+            "in": {}
+          }
+        },
+        "object": {
           "type": "text",
           "validate": {
             "in": {}
@@ -3983,12 +4075,75 @@
       }
     },
     "data": {
-      "value": "x"
+      "text": "a",
+      "number": 1,
+      "blank": "",
+      "object": {}
     },
-    "expectFailure": {
-      "code": "INVALID_RULE_PARAMETER",
-      "message": "Invalid in parameter: members must not be empty",
-      "at": "value"
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "text",
+          "field": "text",
+          "rule": "in",
+          "message": "Please select a valid option.",
+          "value": "a"
+        },
+        {
+          "path": "number",
+          "field": "number",
+          "rule": "in",
+          "message": "Please select a valid option.",
+          "value": 1
+        }
+      ]
+    }
+  },
+  {
+    "name": "value-in-empty-list-required",
+    "note": "a required field whose choice list is empty fails required on an empty value and in on any other value.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "empty": {
+          "type": "select",
+          "validate": {
+            "required": true,
+            "in": []
+          }
+        },
+        "chosen": {
+          "type": "select",
+          "validate": {
+            "required": true,
+            "in": []
+          }
+        }
+      }
+    },
+    "data": {
+      "empty": "",
+      "chosen": "q"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "empty",
+          "field": "empty",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": ""
+        },
+        {
+          "path": "chosen",
+          "field": "chosen",
+          "rule": "in",
+          "message": "Please select a valid option.",
+          "value": "q"
+        }
+      ]
     }
   },
   {

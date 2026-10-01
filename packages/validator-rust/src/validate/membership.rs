@@ -13,7 +13,7 @@ pub(crate) enum MembersError {
     Shape,
     /// A list element that is not a string, number or boolean.
     MemberType,
-    /// No members, or a member whose canonical text is empty after trimming.
+    /// A member whose canonical text is empty after trimming.
     Empty,
 }
 
@@ -89,9 +89,6 @@ pub(crate) fn members(parameter: &Value) -> Result<Vec<Comparable>, MembersError
             .collect::<Result<_, _>>()?,
         _ => return Err(MembersError::Shape),
     };
-    if members.is_empty() {
-        return Err(MembersError::Empty);
-    }
     Ok(members)
 }
 
@@ -141,8 +138,6 @@ mod tests {
         for (parameter, error) in [
             (json!(5), MembersError::Shape),
             (json!(true), MembersError::Shape),
-            (json!([]), MembersError::Empty),
-            (json!({}), MembersError::Empty),
             (json!(" \u{3000}"), MembersError::Empty),
             (json!(""), MembersError::Empty),
             (json!("a,,b"), MembersError::Empty),
@@ -160,6 +155,26 @@ mod tests {
         }
         assert!(members(&json!("\u{0}")).is_ok());
         assert!(members(&json!([false, 0])).is_ok());
+    }
+
+    #[test]
+    fn empty_member_sets_match_no_value() {
+        for parameter in [json!([]), json!({})] {
+            assert_eq!(members(&parameter), Ok(Vec::new()), "{parameter}");
+            for value in [
+                json!("a"),
+                json!("0"),
+                json!(0),
+                json!(true),
+                json!(false),
+                json!(["a"]),
+            ] {
+                assert!(
+                    !check(parameter.clone(), value.clone()),
+                    "{parameter} {value}"
+                );
+            }
+        }
     }
 
     #[test]

@@ -233,7 +233,7 @@ mod tests {
     #[test]
     fn fields_and_rules_are_checked_in_declaration_order() {
         let (code, message, at) = failure(json!({
-            "a": { "type": "text", "validate": { "in": [], "pattern": "(" } },
+            "a": { "type": "text", "validate": { "in": [" "], "pattern": "(" } },
             "b": { "type": "text", "validate": { "maxlength": -1 } },
         }));
         assert_eq!(code, "INVALID_RULE_PARAMETER");
@@ -327,7 +327,7 @@ mod tests {
                 "minlength": ".x ? .limit : .y ? 2 : false",
             } },
             // Only groups are descended into, as the validator does.
-            "c": { "type": "text", "properties": { "d": { "validate": { "in": [] } } } },
+            "c": { "type": "text", "properties": { "d": { "validate": { "in": [""] } } } },
         });
         if let Err(error) = check_declared(properties.as_object().unwrap()) {
             panic!("{error:?}");
