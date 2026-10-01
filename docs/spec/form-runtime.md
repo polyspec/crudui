@@ -183,6 +183,11 @@ The shared runtime manages data and row operations. Browser event binding handle
 native input changes and row buttons. Framework adapters render view models and
 synchronize browser input properties after updates. Data binding updates text,
 textarea, selection, checkbox, language fields and conditional display.
+When `connectForm` connects, it first reads every control that a visitor changed in the
+rendered markup, then writes the instance values into the controls. A text control is changed
+when its value differs from its rendered default after the browser sanitizes that default as it
+sanitizes a value, so a value the browser writes in another form, such as a datetime without
+zero seconds, is not a change.
 
 Native typing preserves focus and text selection when rendering replaces an
 input element. A duplicate change event with the same value must not replace

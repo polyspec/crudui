@@ -274,7 +274,16 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
   element.addEventListener('change', onInput);
   element.addEventListener('click', onClick);
   // A visitor can edit server markup before the connection; those edits differ from the
-  // rendered defaults and win over the rendered values.
+  // rendered defaults and win over the rendered values. A browser sanitizes a value it reads, so
+  // the default is compared after the same sanitization: a datetime control reads
+  // 2026-09-09T00:00:00 as 2026-09-09T00:00, which is not an edit.
+  const sanitizedDefault = (control: HTMLInputElement | HTMLTextAreaElement) => {
+    if (control.tagName !== 'INPUT') return control.defaultValue;
+    const probe = control.ownerDocument.createElement('input');
+    probe.type = (control as HTMLInputElement).type;
+    probe.value = control.defaultValue;
+    return probe.value;
+  };
   for (const control of controls()) {
     const edited = control.tagName === 'SELECT'
       ? Array.from((control as HTMLSelectElement).options).some(option => option.selected !== option.defaultSelected)
@@ -282,7 +291,7 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
         ? (control as HTMLInputElement).checked !== (control as HTMLInputElement).defaultChecked
         : control.tagName === 'INPUT' && (control as HTMLInputElement).type === 'file'
           ? ((control as HTMLInputElement).files?.length ?? 0) > 0
-          : control.value !== (control as HTMLInputElement | HTMLTextAreaElement).defaultValue;
+          : control.value !== sanitizedDefault(control as HTMLInputElement | HTMLTextAreaElement);
     if (edited) onInput({ target: control } as unknown as Event);
   }
   sync();

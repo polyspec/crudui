@@ -1,5 +1,13 @@
 # Changes
 
+## 2026-10-02 — Form connection compares sanitized defaults
+
+- `connectForm` compares a text control with its rendered default after the browser sanitizes
+  that default as it sanitizes a value. Chromium reads a datetime default `2026-09-09T00:00:00`
+  as `2026-09-09T00:00`, so the connection read every such control as an edit and replaced
+  the instance value with the browser's form of it.
+- The browser timezone case of the widget script checks covers it in Chromium.
+
 ## 2026-10-02 — renderForm writes the complete form
 
 - `renderForm(form, options)` writes the complete form that a server sends, so the server
