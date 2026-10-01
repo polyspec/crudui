@@ -765,6 +765,165 @@ static ps_text form_language(const ps_form *form)
     return language && language->kind == PS_STRING ? ps_string(language) : PS_TEXT("ko");
 }
 
+/* An options object: an object, or an empty list, which is an empty PHP array. */
+static bool render_object(const ps_value *value)
+{
+    return value && (value->kind == PS_OBJECT || (value->kind == PS_ARRAY && !ps_size(value)));
+}
+
+/* Whether every member is a string and, with names, has one of the names. */
+static bool string_members(const ps_value *object, const char *const *names, size_t count)
+{
+    for (size_t i = 0; object->kind == PS_OBJECT && i < ps_size(object); ++i) {
+        const ps_value *value = ps_at(object, i);
+        bool known = !names;
+        for (size_t k = 0; !known && k < count; ++k) known = ps_text_is(ps_key(object, i), names[k]);
+        if (!known || !value || value->kind != PS_STRING) return false;
+    }
+    return true;
+}
+
+/* Whether a value is a list whose items pass the check. */
+static bool list_of(const ps_value *value, bool (*item)(const ps_value *))
+{
+    if (!value || value->kind != PS_ARRAY) return false;
+    for (size_t i = 0; i < ps_size(value); ++i) if (!item(ps_at(value, i))) return false;
+    return true;
+}
+
+static bool string_item(const ps_value *value) { return value && value->kind == PS_STRING; }
+
+static bool error_item(const ps_value *value)
+{
+    const ps_value *path = member(value, "path"), *message = member(value, "message");
+    return value && value->kind == PS_OBJECT && path && path->kind == PS_STRING &&
+        message && message->kind == PS_STRING;
+}
+
+/* Whether path is the path of a row: its collection path, `.` and its key. */
+static bool row_path_is(ps_text parent, ps_text key, ps_text path)
+{
+    if (path.length != parent.length + 1 + key.length) return false;
+    return (!parent.length || !memcmp(path.bytes, parent.bytes, parent.length)) &&
+        path.bytes[parent.length] == '.' &&
+        (!key.length || !memcmp(path.bytes + parent.length + 1, key.bytes, key.length));
+}
+
+/* The node whose data path is path; a lang-item has no path. Rows sit directly in a collection,
+   so the parent path of a row is the path of its collection. */
+static const ps_value *node_with_path(const ps_value *nodes, ps_text parent, ps_text path)
+{
+    for (size_t i = 0; nodes && nodes->kind == PS_ARRAY && i < ps_size(nodes); ++i) {
+        const ps_value *node = ps_at(nodes, i);
+        ps_text kind = ps_string(member(node, "kind"));
+        const ps_value *own = member(node, "path");
+        bool has_own = own && own->kind == PS_STRING && !ps_text_is(kind, "row") && !ps_text_is(kind, "lang-item");
+        if (ps_text_is(kind, "row") ? row_path_is(parent, ps_string(member(node, "key")), path)
+                                    : has_own && ps_text_equal(ps_string(own), path)) return node;
+        const ps_value *found = node_with_path(member(node, "children"), has_own ? ps_string(own) : parent, path);
+        if (found) return found;
+    }
+    return NULL;
+}
+
+static void release_render(ps_form_render *render)
+{
+    ps_value_free(render->form);
+    for (size_t i = 0; i < render->error_count; ++i) ps_value_free(render->errors[i].messages);
+    free(render->errors);
+}
+
+/* Add one message to the error texts of a node; false only on allocation failure. */
+static bool add_node_error(ps_form_render *render, const ps_value *node, const ps_value *message)
+{
+    size_t index = 0;
+    while (index < render->error_count && render->errors[index].node != node) ++index;
+    if (index == render->error_count) {
+        ps_node_errors *entries = realloc(render->errors, (render->error_count + 1) * sizeof(*entries));
+        if (!entries) return false;
+        render->errors = entries;
+        entries[index] = (ps_node_errors){node, ps_array_value()};
+        render->error_count++;
+        if (!entries[index].messages) return false;
+    }
+    return ps_append(render->errors[index].messages, ps_value_clone(message));
+}
+
+/* The template action member or the render action member of one key. */
+static const ps_value *action_member(const ps_value *action, const ps_value *declared, const char *key)
+{
+    const ps_value *value = action && action->kind == PS_OBJECT ? ps_get(action, key) : NULL;
+    if (!value) value = declared && declared->kind == PS_OBJECT ? ps_get(declared, key) : NULL;
+    return value && value->kind == PS_STRING ? value : NULL;
+}
+
+/* Check render options and build the render model; the error is the first option outside the
+   contract, in the documented order. */
+static ps_value *render_model(const ps_form *form, const ps_value *options, ps_form_render *render)
+{
+    static const char *const option_names[] = {"action", "hidden", "formErrors", "errors"};
+    static const char *const action_names[] = {"method", "url", "enctype"};
+    *render = (ps_form_render){0};
+    if (!options) return NULL;
+    if (!render_object(options)) return input_error("Render options must be an object");
+    for (size_t i = 0; options->kind == PS_OBJECT && i < ps_size(options); ++i) {
+        bool known = false;
+        for (size_t k = 0; !known && k < 4; ++k) known = ps_text_is(ps_key(options, i), option_names[k]);
+        if (!known) return input_error_with("Unknown render option: ", ps_key(options, i), "");
+    }
+    const ps_value *action = options->kind == PS_OBJECT ? ps_get(options, "action") : NULL;
+    const ps_value *hidden = options->kind == PS_OBJECT ? ps_get(options, "hidden") : NULL;
+    const ps_value *form_errors = options->kind == PS_OBJECT ? ps_get(options, "formErrors") : NULL;
+    const ps_value *errors = options->kind == PS_OBJECT ? ps_get(options, "errors") : NULL;
+    if (action && (!render_object(action) || !string_members(action, action_names, 3)))
+        return input_error("action must be an object with string method, url and enctype");
+    if (hidden && (!render_object(hidden) || !string_members(hidden, NULL, 0)))
+        return input_error("hidden must be an object of strings");
+    if (hidden && !action) return input_error("hidden requires action");
+    if (form_errors && !list_of(form_errors, string_item)) return input_error("formErrors must be a list of strings");
+    if (errors && !list_of(errors, error_item))
+        return input_error("errors must be a list of objects with string path and message");
+    for (size_t i = 0; errors && i < ps_size(errors); ++i) {
+        const ps_value *error = ps_at(errors, i);
+        ps_text path = ps_string(ps_get(error, "path"));
+        const ps_value *node = node_with_path(form->fields, PS_TEXT(""), path);
+        if (!node) { release_render(render); return input_error_with("Unknown error path: ", path, ""); }
+        if (!add_node_error(render, node, ps_get(error, "message"))) { release_render(render); return internal_error(); }
+    }
+    render->hidden = hidden;
+    render->form_errors = form_errors;
+    if (action) {
+        const ps_value *declared = member(form->template, "action");
+        const ps_value *url = action_member(action, declared, "url");
+        const ps_value *enctype = action_member(action, declared, "enctype");
+        const ps_value *method = action_member(action, declared, "method");
+        render->form = ps_object_value();
+        if (!render->form || (url && !ps_set(render->form, "action", ps_value_clone(url))) ||
+            (enctype && !ps_set(render->form, "encType", ps_value_clone(enctype))) ||
+            (method && !ps_set(render->form, "method", ps_value_clone(method)))) {
+            release_render(render);
+            return internal_error();
+        }
+    }
+    return NULL;
+}
+
+ps_result ps_form_render_html(const ps_form *form, const ps_value *options)
+{
+    if (!form) return (ps_result){NULL, input_error("Form is not initialized")};
+    ps_form_render render;
+    ps_value *error = render_model(form, options, &render);
+    if (error) return (ps_result){NULL, error};
+    const ps_form_messages *messages = ps_form_messages_for(form_language(form));
+    ps_value *buttons = ps_bind_buttons(form->template, form->data, form_language(form));
+    ps_chars html = buttons && messages
+        ? ps_render_form(form->fields, buttons, messages->form_actions, &render) : (ps_chars){NULL, 0};
+    ps_value_free(buttons);
+    release_render(&render);
+    ps_value *value = ps_chars_value(html);
+    return value ? ps_ok(value) : (ps_result){NULL, internal_error()};
+}
+
 ps_result ps_form_read(const ps_form *form, uint8_t member_index)
 {
     if (!form) return (ps_result){NULL, input_error("Form is not initialized")};
@@ -782,7 +941,7 @@ ps_result ps_form_read(const ps_form *form, uint8_t member_index)
     if (member_index == 4) {
         ps_value *buttons = ps_bind_buttons(form->template, form->data, form_language(form));
         ps_chars html = buttons && messages
-            ? ps_render_form(form->fields, buttons, messages->form_actions) : (ps_chars){NULL, 0};
+            ? ps_render_form(form->fields, buttons, messages->form_actions, NULL) : (ps_chars){NULL, 0};
         ps_value_free(buttons);
         ps_value *value = ps_chars_value(html);
         return value ? ps_ok(value) : (ps_result){NULL, internal_error()};

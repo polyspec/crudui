@@ -270,6 +270,7 @@ progress(`inputs: ${Object.keys(report.inputs.start.files).length} files hashed 
 ({ dispatch, errorRecord } = await import('./javascript.mjs'));
 
 const formCases = JSON.parse(await readFile(path.join(ROOT, 'tests/fixtures/form-render/cases.json'), 'utf8'));
+const completeCases = JSON.parse(await readFile(path.join(ROOT, 'tests/fixtures/form-complete/cases.json'), 'utf8'));
 // Specifications written with array-index member names out of numeric order.
 const orderTemplateText = (() => {
   const template = JSON.stringify(jsonValue(dispatch({ operation: 'compileForm', spec: { type: 'group', properties: { s: { type: 'select', label: 'S', items: { x: 'Ex', 1: 'One', 2: 'Two' } } } } })));
@@ -479,6 +480,26 @@ for (const target of runTargets) {
     assert.equal(await invoke(target, buttonsHtmlRequest), oracle(buttonsHtmlRequest), 'Raw button HTML differs');
     return { template: digest(actualTemplate), fields: digest(actualFields), html: digest(actualHtml), interoperability: true };
   }, { fixture: 'tests/fixtures/form-render/cases.json', case: fixture.name, model: ['compileForm', 'bindForm', 'bindButtons', 'formButtonsHtml'], html: ['renderForm'] });
+
+  // The complete form (docs/spec/form-runtime.md, "Complete form"): the bytes the specification
+  // writes, which the reference also writes, or the declared failure.
+  for (const fixture of completeCases) await check(target, `form-complete:${fixture.name}`, async () => {
+    const template = oracle({ operation: 'compileForm', spec: fixture.spec });
+    const request = { operation: 'renderForm', template, data: fixture.data, options: fixture.options, render: fixture.render };
+    let expected, expectedError;
+    try { expected = oracle(request); } catch (error) { expectedError = errorRecord(error); }
+    let actual, actualError;
+    try { actual = await invoke(target, request); } catch (error) { if (!(error instanceof OperationError)) throw error; actualError = error; }
+    if (fixture.expectError) {
+      assert.deepEqual({ code: expectedError?.code, message: expectedError?.message }, fixture.expectError, 'JavaScript does not meet the declared fixture error');
+      compareError(actualError, expectedError);
+      return { errorCode: actualError.code };
+    }
+    assert.equal(expected, fixture.expected_html, 'The reference differs from the declared complete form');
+    assert.equal(actualError, undefined, 'A complete form request was rejected');
+    assert.equal(actual, fixture.expected_html, 'Raw complete form HTML differs');
+    return { html: digest(actual) };
+  }, { fixture: 'tests/fixtures/form-complete/cases.json', case: fixture.name, html: ['renderForm'] });
 
   for (const fixture of [...listCases, imageCase, urlCase]) await check(target, `list:${fixture.name}`, async () => {
     const request = { operation: 'renderList', spec: fixture.spec, rows: fixture.rows ?? [], options: fixture.options ?? {} };

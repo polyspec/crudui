@@ -293,7 +293,7 @@ func TestSSRUsesFrameworkStorageAndNormalSubmission(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		expectedMarkup, err := generator.RenderForm(form)
+		expectedMarkup, err := generator.RenderForm(form, nil)
 		if err != nil {
 			t.Fatal(err)
 		}

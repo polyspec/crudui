@@ -64,7 +64,7 @@ function headerSlotVNode(vm: NodeVM): VNode | null {
   return vm.sticky ? h('div', { class: 'crudui-node__header-container' }, [header]) : header;
 }
 
-function bodyVNode(vm: NodeVM): VNode {
+function bodyVNode(vm: NodeVM, errors: NodeErrors): VNode {
   const props: Record<string, unknown> = {
     class: classes('crudui-node__body', vm.body.className),
     ...(vm.body.style ? { style: vm.body.style } : {}),
@@ -83,11 +83,23 @@ function bodyVNode(vm: NodeVM): VNode {
     if (raw !== null) return rawContainer('div', props, raw);
     return h('div', props, [Widget(vm.widget)]);
   }
-  return h('div', props, (vm.children ?? []).map((child) => nodeVNode(child)));
+  return h('div', props, (vm.children ?? []).map((child) => nodeVNode(child, errors)));
 }
 
-/** Build the vnode for one node of the recursive form grammar. */
-export function nodeVNode(vm: NodeVM): VNode {
+/** Error texts of the nodes that have errors (form-runtime.md, "Complete form"). */
+export type NodeErrors = ReadonlyMap<NodeVM, readonly string[]>;
+
+const NO_ERRORS: NodeErrors = new Map();
+
+/** The errors slot of a node, present only with messages. */
+function errorsVNodes(messages: readonly string[] | undefined): VNode[] {
+  return messages?.length
+    ? [h('div', { class: 'crudui-node__errors' }, messages.map((text) => h('p', { class: 'crudui-node__error' }, text)))]
+    : [];
+}
+
+/** Build the vnode for one node of the recursive form grammar; `errors` holds the node errors. */
+export function nodeVNode(vm: NodeVM, errors: NodeErrors = NO_ERRORS): VNode {
   const pathAttribute = vm.kind === 'row' || vm.kind === 'lang-item' ? undefined : vm.path;
   const rootStyle = [vm.style, vm.sticky ? `--crudui-sticky-depth: ${vm.stickyDepth ?? 0}` : undefined].filter(Boolean).join('; ');
   return h('div', {
@@ -101,7 +113,8 @@ export function nodeVNode(vm: NodeVM): VNode {
   }, [
     // Only grammar nodes: an absent header or footer adds no child, so no placeholder comment.
     ...[headerSlotVNode(vm)].filter((header): header is VNode => header !== null),
-    bodyVNode(vm),
+    bodyVNode(vm, errors),
+    ...errorsVNodes(errors.get(vm)),
     ...(vm.controls?.placement === 'footer' ? [h('div', { class: 'crudui-node__footer' }, [controlsVNode(vm.controls)])] : []),
   ]);
 }

@@ -51,7 +51,7 @@ func errorObject(err error) *gen.Object {
 	return gen.NewObject("code", code, "message", message, "at", at)
 }
 func snapshot(f *gen.Form) (*gen.Object, error) {
-	html, err := gen.RenderForm(f)
+	html, err := gen.RenderForm(f, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -161,7 +161,7 @@ func run(request *gen.Object) (any, error) {
 			buttons = append(buttons, o)
 		}
 		return gen.FormButtonsHTML(buttons)
-	case "bindForm", "bindButtons", "form":
+	case "bindForm", "bindButtons", "form", "renderForm":
 		// A form template is a JSON object; the library checks its kind.
 		if obj(val(request, "template")) == nil {
 			return nil, fmt.Errorf("Unsupported form template")
@@ -192,6 +192,14 @@ func run(request *gen.Object) (any, error) {
 		f, e := gen.NewForm(&template, data, bindOptions(options))
 		if e != nil {
 			return nil, e
+		}
+		if str(val(request, "operation")) == "renderForm" {
+			// Render options are passed as decoded; RenderForm checks their shape.
+			render, provided := request.Get("render")
+			if !provided {
+				render = gen.NewObject()
+			}
+			return gen.RenderForm(f, render)
 		}
 		steps := []*gen.Object{}
 		if a, ok := val(request, "actions").([]any); ok {

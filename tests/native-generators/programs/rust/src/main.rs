@@ -267,6 +267,15 @@ fn generate(request: &Value, text: Option<&JsonText>) -> FormResult<Value> {
             let record = request.get("record").unwrap_or(&empty);
             build_detail(&request["spec"], record, &options)
         }
+        Some("renderForm") => {
+            check_template_text(request, text)?;
+            let template = template(&request["template"])?;
+            let data = object(request.get("data").unwrap_or(&empty), "Form data")?;
+            let form = Form::new(template, data, decode(options)?)?;
+            // Render options are passed as decoded; render_form checks their shape.
+            let render = request.get("render").cloned().unwrap_or_else(|| json!({}));
+            Ok(Value::String(render_form(&form, Some(&render))?))
+        }
         Some("form") => {
             check_template_text(request, text)?;
             let template = template(&request["template"])?;
@@ -286,10 +295,10 @@ fn generate(request: &Value, text: Option<&JsonText>) -> FormResult<Value> {
                     Ok(value) => (value, Value::Null),
                     Err(error) => (Value::Null, error_json(error)),
                 };
-                steps.push(json!({"result":result,"error":error,"data":form.get_data(),"fields":form.fields(),"html":render_form(&form)?,"revision":form.revision()}));
+                steps.push(json!({"result":result,"error":error,"data":form.get_data(),"fields":form.fields(),"html":render_form(&form, None)?,"revision":form.revision()}));
             }
             Ok(
-                json!({"data":form.get_data(),"fields":form.fields(),"html":render_form(&form)?,"revision":form.revision(),"steps":steps}),
+                json!({"data":form.get_data(),"fields":form.fields(),"html":render_form(&form, None)?,"revision":form.revision(),"steps":steps}),
             )
         }
         _ => Err(input("Unknown generator operation")),

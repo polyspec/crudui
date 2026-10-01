@@ -1,5 +1,22 @@
 # 변경 기록
 
+## 2026-10-02 — renderForm이 완전한 폼을 씀
+
+- `renderForm(form, options)`는 서버가 보내는 완전한 폼을 쓰므로 서버는 폼의 어떤 부분도 직접
+  쓰지 않습니다. `options.action`은 옵션이나 템플릿 `action`에서 가져온 `action`, `encType`, `method`를
+  가진 `form` 요소를 추가합니다. `options.hidden`은 그 안에, `connectForm`이 동기화하는 `crudui-form`
+  요소 밖에 숨은 input을 추가합니다. `options.formErrors`는 본문 앞에 `crudui-form__errors` 요소를
+  추가합니다. `options.errors`는 각 메시지를 해당 데이터 경로를 가진 노드의 본문 뒤
+  `crudui-node__errors` 슬롯에 두며 검증 결과 오류를 그대로 받습니다. 계약 밖의 옵션은
+  `INVALID_FORM_INPUT`으로 실패합니다. 옵션이 없으면 이전처럼 `crudui-form` 블록을 씁니다.
+- JavaScript(`@crudui/generator-html`, `Form`에 `options` 속성을 가진 React·Vue·Svelte), PHP
+  (`Generator::renderForm($form, $options)`), PHP 확장, Go(`RenderForm(form, options)`), Rust
+  (`render_form(&form, options)`)가 같은 마크업을 씁니다. Go와 Rust 호출자는 `crudui-form` 블록만
+  쓸 때 `nil`이나 `None`을 전달합니다.
+- 스타일시트가 새 `--crudui-error` 속성으로 오류에 색을 입힙니다.
+- 공유 완전한 폼 사례를 React, HTML renderer, PHP, PHP 확장, Go, Rust에서 바이트 단위로, Vue와
+  Svelte에서 정규화 뒤에 비교합니다.
+
 ## 2026-10-02 — 단일 선택 필드가 목록을 거부
 
 - `lang`이 없는 `select`, `dropdown`, `selectbox`, `choice`, `radio` 형식의 필드는 값 하나를 가집니다.

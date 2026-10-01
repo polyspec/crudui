@@ -58,8 +58,8 @@ func TestDateRenderingRetainsSourceData(t *testing.T) {
 	if err := empty.SetData(data); err != nil {
 		t.Fatal(err)
 	}
-	initialHTML, _ := RenderForm(initial)
-	injectedHTML, _ := RenderForm(empty)
+	initialHTML, _ := RenderForm(initial, nil)
+	injectedHTML, _ := RenderForm(empty, nil)
 	if initialHTML != injectedHTML {
 		t.Fatal("date injection changed HTML")
 	}

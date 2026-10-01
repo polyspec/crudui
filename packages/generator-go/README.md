@@ -18,7 +18,7 @@ if err != nil { return err }
 form, err := generator.NewForm(template,
     generator.NewObject("name", "Ada"), generator.BindOptions{Language: "en"})
 if err != nil { return err }
-html, err := generator.RenderForm(form)
+html, err := generator.RenderForm(form, nil)
 ```
 
 `CompileForm` resolves composition without record data. The template can be
@@ -33,7 +33,9 @@ returns the node models of the form grammar (`field`, `group`, `collection`,
 return detached values. `SetValue` updates one field. Row operations are
 `AddRow`, `CopyRow`, `RemoveRow`, `MoveRow` and `RekeyRow`; collection paths are
 relative to the record root. A failed operation preserves record data, field
-models and revision. `RenderForm` renders the current instance without changing it.
+models and revision. `RenderForm` renders the current instance without changing it; a nil
+options value writes the `crudui-form` block, and an options object makes it the
+[complete form](../../docs/spec/form-runtime.md#complete-form).
 
 `BuildList` returns list models. `RenderList` accepts `ListOptions.Layout` as
 `table` or `card`. List data is supplied by the caller; generation does not query

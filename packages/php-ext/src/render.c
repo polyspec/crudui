@@ -278,7 +278,7 @@ static bool write_widget(render_buffer *out, const ps_value *model)
     return false;
 }
 
-static bool write_node(render_buffer *out, const ps_value *node);
+static bool write_node(render_buffer *out, const ps_value *node, const ps_form_render *render);
 
 /* Append a class list part; empty parts are skipped and parts are joined by one space. */
 static bool class_part(render_buffer *classes, ps_text part)
@@ -399,7 +399,7 @@ static bool write_header(render_buffer *out, const ps_value *node)
     return ok;
 }
 
-static bool write_body(render_buffer *out, const ps_value *node)
+static bool write_body(render_buffer *out, const ps_value *node, const ps_form_render *render)
 {
     const ps_value *body = member(node, "body");
     render_buffer classes = {0};
@@ -434,13 +434,38 @@ static bool write_body(render_buffer *out, const ps_value *node)
     } else {
         const ps_value *children = member(node, "children");
         for (size_t i = 0; ok && children && children->kind == PS_ARRAY && i < ps_size(children); ++i)
-            ok = write_node(out, ps_at(children, i));
+            ok = write_node(out, ps_at(children, i), render);
     }
     return ok && end_element(out, "div", false);
 }
 
-/* One node of the recursive form grammar: root, header, body and footer slots. */
-static bool write_node(render_buffer *out, const ps_value *node)
+/* A `{block}__errors` element with one `{block}__error` paragraph per message; nothing without messages. */
+static bool write_errors(render_buffer *out, const char *errors_class, const char *error_class,
+                         const ps_value *messages)
+{
+    if (!messages || !ps_size(messages)) return true;
+    ps_value *errors = ps_object_value();
+    ps_value *paragraph = ps_object_value();
+    bool ok = errors && paragraph && attr_string(errors, "class", errors_class) &&
+        attr_string(paragraph, "class", error_class) && start_element(out, "div", errors, false, false);
+    for (size_t i = 0; ok && i < ps_size(messages); ++i)
+        ok = start_element(out, "p", paragraph, false, false) &&
+            escaped(out, ps_string(ps_at(messages, i)), false) && end_element(out, "p", false);
+    ok = ok && end_element(out, "div", false);
+    ps_value_free(errors); ps_value_free(paragraph);
+    return ok;
+}
+
+/* The error texts of a node in the render options, or NULL. */
+static const ps_value *node_errors(const ps_form_render *render, const ps_value *node)
+{
+    for (size_t i = 0; render && i < render->error_count; ++i)
+        if (render->errors[i].node == node) return render->errors[i].messages;
+    return NULL;
+}
+
+/* One node of the recursive form grammar: root, header, body, errors and footer slots. */
+static bool write_node(render_buffer *out, const ps_value *node, const ps_form_render *render)
 {
     if (!node || node->kind != PS_OBJECT) return false;
     ps_text kind = string_member(node, "kind");
@@ -489,7 +514,8 @@ static bool write_node(render_buffer *out, const ps_value *node)
         ok = false;
     }
     free(header_html.bytes);
-    ok = ok && write_body(out, node);
+    ok = ok && write_body(out, node, render) &&
+        write_errors(out, "crudui-node__errors", "crudui-node__error", node_errors(render, node));
     free(class_name.bytes); free(style_text.bytes); ps_value_free(attrs);
     const ps_value *controls = member(node, "controls");
     if (ok && ps_is_string(member(controls, "placement"), "footer")) {
@@ -547,33 +573,54 @@ static bool write_buttons(render_buffer *out, const ps_value *buttons, const cha
     return ok && end_element(out, "div", false) && end_element(out, "div", false);
 }
 
-static ps_chars render_form(const ps_value *fields, const ps_value *buttons, const char *label)
+/* The form element and its hidden inputs, written before the crudui-form block. */
+static bool write_form_start(render_buffer *out, const ps_form_render *render)
+{
+    if (!start_element(out, "form", render->form, false, false)) return false;
+    bool ok = true;
+    for (size_t i = 0; ok && render->hidden && render->hidden->kind == PS_OBJECT && i < ps_size(render->hidden); ++i) {
+        ps_value *input = ps_object_value();
+        ok = input && attr_string(input, "type", "hidden") &&
+            attr_text(input, "name", ps_key(render->hidden, i)) &&
+            attr_clone(input, "value", ps_at(render->hidden, i)) &&
+            start_element(out, "input", input, false, false);
+        ps_value_free(input);
+    }
+    return ok;
+}
+
+static ps_chars render_form(const ps_value *fields, const ps_value *buttons, const char *label,
+                            const ps_form_render *render)
 {
     if (!fields || fields->kind != PS_ARRAY) return (ps_chars){NULL, 0};
     render_buffer out = {0};
     ps_value *form = ps_object_value();
     ps_value *body = ps_object_value();
+    bool wrapped = render && render->form;
     bool ok = form && body && attr_string(form, "class", "crudui-form") &&
         attr_string(body, "class", "crudui-form__body") &&
+        (!wrapped || write_form_start(&out, render)) &&
         start_element(&out, "div", form, false, false) &&
+        write_errors(&out, "crudui-form__errors", "crudui-form__error", render ? render->form_errors : NULL) &&
         start_element(&out, "div", body, false, false);
-    for (size_t i = 0; ok && i < ps_size(fields); ++i) ok = write_node(&out, ps_at(fields, i));
+    for (size_t i = 0; ok && i < ps_size(fields); ++i) ok = write_node(&out, ps_at(fields, i), render);
     ok = ok && end_element(&out, "div", false) &&
         (!buttons || write_buttons(&out, buttons, label));
-    if (!ok || !end_element(&out, "div", false)) out.failed = true;
+    if (!ok || !end_element(&out, "div", false) || (wrapped && !end_element(&out, "form", false))) out.failed = true;
     ps_value_free(form); ps_value_free(body);
     return take(&out);
 }
 
 ps_chars ps_render_fields(const ps_value *fields)
 {
-    return render_form(fields, NULL, NULL);
+    return render_form(fields, NULL, NULL, NULL);
 }
 
-ps_chars ps_render_form(const ps_value *fields, const ps_value *buttons, const char *actions_label)
+ps_chars ps_render_form(const ps_value *fields, const ps_value *buttons, const char *actions_label,
+                        const ps_form_render *render)
 {
     if (!buttons || buttons->kind != PS_ARRAY || !actions_label) return (ps_chars){NULL, 0};
-    return render_form(fields, buttons, actions_label);
+    return render_form(fields, buttons, actions_label, render);
 }
 
 /* A string member, or false when absent or of another kind. */

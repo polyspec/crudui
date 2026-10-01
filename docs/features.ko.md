@@ -19,6 +19,7 @@
 | cli | 목록·정적 검사·스펙 설명 | implemented | passed | not-deployed | [CLI 절차](operations/cli.ko.md) |
 | unique-json-members | 명세 JSON 텍스트에서 반복된 디코딩 객체 멤버 이름 거부 | implemented | passed | not-deployed | [입력 텍스트 계약](spec/input-text.ko.md), [파서 테스트](../packages/validator-ts/src/text/json.test.ts) |
 | json-text-values | Rust 검증에서 JSON 객체 멤버 이름, 값과 순서 유지 | implemented | passed | not-deployed | [입력 텍스트 계약](spec/input-text.ko.md), [Rust 텍스트 사례](../packages/validator-rust/tests/text_validity_conformance.rs) |
+| complete-form | 여덟 문자열 렌더러에서 폼 요소, 숨은 input, 폼·노드 오류를 가진 완전한 폼 | implemented | passed | not-deployed | [완전한 폼](spec/form-runtime.ko.md#완전한-폼), [공유 사례](../tests/fixtures/form-complete/README.ko.md) |
 | single-choice-data | 다섯 검증기에서 단일 선택 필드 값인 배열이나 객체 거부 | implemented | passed | not-deployed | [검증 규칙](spec/validation-rules.ko.md#평가), [공유 사례](../tests/fixtures/validate/value-rules.ts) |
 | empty-membership | 다섯 검증기에서 어떤 값과도 일치하지 않는 빈 `in` 목록·맵 | implemented | passed | not-deployed | [검증 규칙](spec/validation-rules.ko.md#값), [공유 사례](../tests/fixtures/validate/value-rules.ts) |
 | declared-form-data | 모든 그룹 단계에서 선언되지 않은 제출 필드 거부 | implemented | passed | not-deployed | [검증 계약](operations/validation.ko.md), [공유 사례](../tests/fixtures/validate/cases.json) |

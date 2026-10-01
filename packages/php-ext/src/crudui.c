@@ -336,9 +336,19 @@ PHP_METHOD(CRUDUI_Generator, createRowKey)
 PHP_METHOD(CRUDUI_Generator, renderForm)
 {
     zend_object *object;
-    ZEND_PARSE_PARAMETERS_START(1, 1) Z_PARAM_OBJ_OF_CLASS(object, crudui_form_ce) ZEND_PARSE_PARAMETERS_END();
+    zval *options = NULL;
+    ZEND_PARSE_PARAMETERS_START(1, 2)
+        Z_PARAM_OBJ_OF_CLASS(object, crudui_form_ce)
+        Z_PARAM_OPTIONAL
+        Z_PARAM_ZVAL(options)
+    ZEND_PARSE_PARAMETERS_END();
     ps_form *form = require_form(object);
-    if (form) crudui_return(ps_form_read(form, 4), return_value);
+    if (!form) return;
+    /* Absent options are empty options; any other value is checked by the engine. */
+    ps_value *render = options ? crudui_from_php(options, false, true) : NULL;
+    if (options && !render) return;
+    crudui_return(ps_form_render_html(form, render), return_value);
+    ps_value_free(render);
 }
 
 PHP_METHOD(CRUDUI_Form, __construct)

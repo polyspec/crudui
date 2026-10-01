@@ -253,8 +253,25 @@ ps_value *ps_widget(const ps_value *spec, const ps_value *value, bool value_pres
 ps_chars ps_render_fields(const ps_value *fields);
 /* Evaluate the template buttons for a record: type, tag, text and attrs in output order. */
 ps_value *ps_bind_buttons(const ps_value *template, const ps_value *data, ps_text language);
-/* Form markup: the field body, then the footer controls group holding the buttons. */
-ps_chars ps_render_form(const ps_value *fields, const ps_value *buttons, const char *actions_label);
+/* The error texts of one rendered node (form-runtime.md, "Complete form"). */
+typedef struct {
+    const ps_value *node;
+    ps_value *messages;
+} ps_node_errors;
+
+/* Checked render options of a complete form. */
+typedef struct {
+    ps_value *form;              /* form element attributes in output order; NULL without action */
+    const ps_value *hidden;      /* hidden input values: an object of strings, or NULL */
+    const ps_value *form_errors; /* errors of the whole form: a list of strings, or NULL */
+    ps_node_errors *errors;      /* error texts of the nodes that have errors */
+    size_t error_count;
+} ps_form_render;
+
+/* Form markup: the form element and hidden inputs of `render` (NULL for none) around the field
+   body and the footer controls group holding the buttons. */
+ps_chars ps_render_form(const ps_value *fields, const ps_value *buttons, const char *actions_label,
+                        const ps_form_render *render);
 /* Every interface text as an object keyed by message name. */
 ps_value *ps_form_messages_value(const ps_form_messages *messages);
 

@@ -31,9 +31,10 @@ JavaScript에서 값이 `undefined`인 멤버는 없는 멤버이고, PHP에서 
 `extra`에서는 `display`가 `file`보다 앞섭니다.
 
 `createForm(template, data, options)`는 편집 인스턴스를 생성합니다.
-`Form`은 React, Vue, Svelte에서 인스턴스를 렌더링합니다. 호스트가 HTML
-`form` 요소와 제출 처리를 관리합니다. `renderForm(instance)`는 같은 인스턴스를
-서버에서 렌더링합니다. 인스턴스는 두 렌더링 경로를 실행하기 전에 기본값과 행 키를
+`Form`은 React, Vue, Svelte에서 인스턴스를 렌더링합니다. `renderForm(instance, options)`는
+같은 인스턴스를 서버에서 [완전한 폼](#완전한-폼)으로 렌더링하며 `Form` 컴포넌트도 같은 `options`를
+받습니다. `options.action`이 없으면 호스트가 HTML `form` 요소를 관리하며, 제출 처리는
+페이지가 맡습니다. 인스턴스는 두 렌더링 경로를 실행하기 전에 기본값과 행 키를
 준비합니다. 필드 목록만 렌더링하는 기능은 내부 동작입니다.
 `setData(data)`는 마운트 후 레코드를 교체하며, 사용자가 편집한 입력값도
 교체합니다. 템플릿은 변경하지 않습니다. `getData()`는 제출 데이터의 복사본을
@@ -62,9 +63,9 @@ HTML 렌더러(`@crudui/generator-html`), PHP, PHP 확장, Go, Rust 생성기입
 문자열 렌더러를 기준과 바이트 단위로 비교합니다.
 
 `@crudui/generator-html` 패키지는 React, Vue, Svelte 없이 같은 평가 인스턴스와
-목록 모델을 HTML 문자열로 렌더링합니다. `renderForm(form)`은 외부 HTML `form`
-요소를 제외한 폼 내용을 반환합니다. 이를 호스트에 삽입한 뒤
-`connectForm`을 호출할 수 있습니다. `renderFormView(fields, buttons, messages)`는 React, Vue,
+목록 모델을 HTML 문자열로 렌더링합니다. `renderForm(form, options)`은
+[완전한 폼](#완전한-폼)을 반환합니다. 이를 페이지에 삽입한 뒤 그 `crudui-form`
+요소에 `connectForm`을 호출할 수 있습니다. `renderFormView(fields, buttons, messages)`는 React, Vue,
 Svelte의 `FormFields`처럼, 직접 관리하는 데이터를 위해 `bindForm`과 `bindButtons`로
 같은 내용을 렌더링합니다. `renderList(spec, rows, options)`는 선언된
 table 또는 card layout을 반환합니다. 이 패키지는 DOM 연결, 검증, 데이터 로드,
@@ -202,7 +203,45 @@ WebKit은 그 여백을 지키지 않습니다. 스크롤 위치를 따르는
 컬렉션을 검사하고, 나머지 단일 값 규칙은 각 항목을 검사합니다. 다섯 검증 구현 모두
 객체 항목을 키의 정렬 순서로 검증합니다. 이 순서는 오류 순회에만 적용하며 폼 데이터와
 렌더링·제출 행 순서는 데이터 멤버 순서를 유지합니다. 폼 상태는 검증 오류를 보관하지
-않습니다. 현재 데이터를 검증하고 반환된 경로로 오류를 표시합니다.
+않습니다. 현재 데이터를 검증한 결과의 오류를 `renderForm`의
+`options.errors`로 전달합니다.
+
+## 완전한 폼
+
+`renderForm(form, options)`는 서버가 보내는 완전한 폼을 렌더링합니다. 폼 요소, 숨은
+필드, 입력한 값, 오류, 폼 버튼이 여기에 포함됩니다. 입력한 값은 인스턴스 데이터이고 버튼은 템플릿의
+폼 버튼이므로 폼의 어떤 부분도 따로 쓰지 않습니다. `options`의 모든 멤버는 선택이며
+`renderForm(form)`은 `crudui-form` 블록만 쓰는 `renderForm(form, {})`와 같습니다.
+
+| 멤버 | 값 | 마크업 |
+| --- | --- | --- |
+| `action` | 각각 선택인 문자열 `method`, `url`, `enctype`을 가진 객체 | 숨은 필드와 `crudui-form` 블록을 감싸는 `form` 요소이며 React 직렬화와 같이 속성 순서는 `action`, `encType`, `method`입니다. 각 속성은 이 객체의 멤버(`action`에는 `url`, `encType`에는 `enctype`)를, 이 객체에 없으면 템플릿 `action`의 멤버를 사용하고 둘 다 없으면 생략합니다. `action` 속성은 [마크업과 스타일](#마크업과-스타일)의 URL 규칙을 따릅니다. |
+| `hidden` | 문자열 값을 가진 객체 | 멤버마다 `<input type="hidden" name="{name}" value="{value}"/>` 하나를 멤버 순서로 `form` 요소 안의 `crudui-form` 블록 앞에 씁니다. `action`이 필요합니다. |
+| `formErrors` | 문자열 목록 | `crudui-form`의 첫 자식인 `crudui-form__errors` 요소이며 문구마다 `crudui-form__error` 문단 하나를 목록 순서로 담습니다. 빈 목록은 아무것도 쓰지 않습니다. |
+| `errors` | 문자열 `path`와 `message`를 가진 객체 목록 | 각 메시지를 데이터 경로가 `path`인 노드의 `crudui-node__errors` 슬롯에 `crudui-node__error` 문단으로 목록 순서대로 씁니다. |
+
+필드, 그룹, 컬렉션, lang 노드의 데이터 경로는 그 `data-field-path`이고 행의 데이터 경로는 컬렉션
+경로, `.`, 행 키를 이은 값입니다. lang-item 노드는 자기 데이터 경로가 없습니다. 검증 결과의 오류
+(`path`, `field`, `rule`, `message`, `value`)를 그대로 받을 수 있으며 `path`와 `message`만 읽습니다.
+각 문구는 검증 결과의 메시지나 필드와 규칙에 대한 다른 메시지일 수 있고, 폼
+전체에 속한 오류에는 별도 문구를 받습니다. `connectForm`은 `crudui-form` 안의 이름 있는 모든 컨트롤을
+인스턴스 데이터와 동기화하므로 숨은 input은 `crudui-form` 밖에 둡니다.
+
+옵션은 `INVALID_FORM_INPUT`, 빈 위치, 다음 메시지 중 첫 번째로 이 순서에 따라 실패합니다.
+
+| 옵션 | 메시지 |
+| --- | --- |
+| 객체가 아닌 값 | `Render options must be an object` |
+| `action`, `hidden`, `formErrors`, `errors` 이외의 멤버 중 멤버 순서로 첫 번째 | `Unknown render option: {name}` |
+| 멤버가 `method`, `url`, `enctype` 중 하나이고 문자열인 객체가 아닌 `action` | `action must be an object with string method, url and enctype` |
+| 문자열 객체가 아닌 `hidden` | `hidden must be an object of strings` |
+| `action` 없는 `hidden` | `hidden requires action` |
+| 문자열 목록이 아닌 `formErrors` | `formErrors must be a list of strings` |
+| 문자열 `path`와 `message`를 가진 객체 목록이 아닌 `errors` | `errors must be a list of objects with string path and message` |
+| 목록 순서로 첫 번째인, 경로가 어떤 노드도 가리키지 않는 오류 | `Unknown error path: {path}` |
+
+PHP는 옵션 배열을 객체로, 빈 배열을 빈 객체나 빈 목록으로, list 배열을 목록으로 읽습니다. Go와
+Rust는 옵션을 순서 있는 JSON 객체로 받습니다.
 
 ## 캐시와 실행 범위
 

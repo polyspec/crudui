@@ -154,7 +154,7 @@ func renderGeneration(request, options, provenance *object) (*object, error) {
 	if err != nil {
 		return nil, err
 	}
-	markup, err := generator.RenderForm(form)
+	markup, err := generator.RenderForm(form, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -282,7 +282,7 @@ func (s server) serveSSRFrame(w http.ResponseWriter, r *http.Request, renderingP
 		failure(w, http.StatusInternalServerError, err)
 		return
 	}
-	markup, err := generator.RenderForm(form)
+	markup, err := generator.RenderForm(form, nil)
 	if err != nil {
 		failure(w, http.StatusInternalServerError, err)
 		return

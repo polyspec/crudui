@@ -312,7 +312,7 @@ func headerHTML(vm *Object) string {
 	}
 	return element("div", NewObject("class", classes("crudui-node__header", stringAt(header, "className")), "style", stringAt(header, "style")), parts)
 }
-func bodyHTML(vm *Object) string {
+func bodyHTML(vm *Object, errors map[*Object][]string) string {
 	body := read(vm, "body")
 	a := NewObject("class", classes("crudui-node__body", stringAt(body, "className")))
 	for _, k := range []string{"style", "id"} {
@@ -330,13 +330,14 @@ func bodyHTML(vm *Object) string {
 	} else if w := object(read(vm, "widget")); w != nil {
 		inner = renderWidget(w)
 	} else {
-		inner = nodesHTML(objectList(read(vm, "children")))
+		inner = nodesHTML(objectList(read(vm, "children")), errors)
 	}
 	return "<div" + attrs(a, false, false) + flag("hidden", read(vm, "collapsible") == true && read(vm, "expanded") != true) + ">" + inner + "</div>"
 }
 
-// nodeHTML renders one node of the recursive form grammar with its header, body and footer slots.
-func nodeHTML(vm *Object) string {
+// nodeHTML renders one node of the recursive form grammar with its header, body, errors and
+// footer slots; errors holds the error texts of the nodes that have errors.
+func nodeHTML(vm *Object, errors map[*Object][]string) string {
 	kind := stringAt(vm, "kind")
 	sticky := ""
 	if read(vm, "sticky") == true {
@@ -374,20 +375,26 @@ func nodeHTML(vm *Object) string {
 	if read(vm, "sticky") == true && header != "" {
 		header = element("div", NewObject("class", "crudui-node__header-container"), header)
 	}
-	return "<div" + attrs(a, false, false) + flag("hidden", read(vm, "hidden") == true) + ">" + header + bodyHTML(vm) + footer + "</div>"
+	return "<div" + attrs(a, false, false) + flag("hidden", read(vm, "hidden") == true) + ">" + header + bodyHTML(vm, errors) + errorsHTML("crudui-node", errors[vm]) + footer + "</div>"
 }
-func nodesHTML(nodes []*Object) string {
+func nodesHTML(nodes []*Object, errors map[*Object][]string) string {
 	var out strings.Builder
 	for _, n := range nodes {
-		out.WriteString(nodeHTML(n))
+		out.WriteString(nodeHTML(n, errors))
 	}
 	return out.String()
 }
 
-// RenderForm renders one instance without changing its template or data.
-func RenderForm(form *Form) (string, error) {
+// RenderForm renders one instance as the complete form without changing its template or data
+// (form-runtime.md, "Complete form"). options is nil or an object with the optional members
+// action, hidden, formErrors and errors; nil writes the crudui-form block alone.
+func RenderForm(form *Form, options any) (string, error) {
 	if form == nil {
 		return "", fmt.Errorf("Form instance is required")
+	}
+	model, e := formRenderModel(form.fields, form.template.Action, options)
+	if e != nil {
+		return "", e
 	}
 	language := "ko"
 	if s, ok := form.options.Language.(string); ok {
@@ -403,7 +410,15 @@ func RenderForm(form *Form) (string, error) {
 	}
 	footer := element("div", NewObject("class", "crudui-form__footer"),
 		element("div", NewObject("class", "crudui-controls", "role", "group", "aria-label", m.formActions), buttons))
-	return `<div class="crudui-form"><div class="crudui-form__body">` + nodesHTML(form.fields) + `</div>` + footer + `</div>`, nil
+	block := `<div class="crudui-form">` + errorsHTML("crudui-form", model.formErrors) + `<div class="crudui-form__body">` + nodesHTML(form.fields, model.nodeErrors) + `</div>` + footer + `</div>`
+	if model.form == nil {
+		return block, nil
+	}
+	hidden := ""
+	for _, pair := range model.hidden {
+		hidden += inputHTML(NewObject("type", "hidden", "name", pair[0], "value", pair[1]), false)
+	}
+	return element("form", model.form, hidden+block), nil
 }
 
 var javascriptProtocolRE = regexp.MustCompile(`(?i)^[\x00-\x1f ]*j[\r\n\t]*a[\r\n\t]*v[\r\n\t]*a[\r\n\t]*s[\r\n\t]*c[\r\n\t]*r[\r\n\t]*i[\r\n\t]*p[\r\n\t]*t[\r\n\t]*:`)

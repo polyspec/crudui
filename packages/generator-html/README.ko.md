@@ -13,13 +13,15 @@ const form = createForm(template, { name: 'Example' });
 const html = renderForm(form);
 ```
 
-renderer는 평가된 core 모델을 소비하고 HTML fragment를 반환합니다. 외부 `form`
-요소를 만들거나 브라우저 이벤트를 연결하거나 데이터를 검증하거나 레코드를
-로드하지 않습니다. 브라우저 편집이 필요하면 fragment를 삽입한 뒤
+renderer는 평가된 core 모델을 소비하고 HTML을 반환합니다. `renderForm(form, options)`은
+[완전한 폼](../../docs/spec/form-runtime.ko.md#완전한-폼)을 씁니다. `options.action`이 있으면 `form` 요소와
+`options.hidden` input을 만들고 `options.formErrors`와 `options.errors`를 배치합니다. 옵션이 없으면
+`crudui-form` 블록을 반환합니다. 브라우저 이벤트를 연결하거나 데이터를 검증하거나 레코드를 로드하지
+않습니다. 브라우저 편집이 필요하면 마크업을 삽입한 뒤 `crudui-form` 요소에
 `@crudui/generator-core`의 `connectForm`을 사용합니다.
 
 데이터를 `bindForm`으로 직접 관리할 때는
-`renderFormView(bindForm(template, data, options), bindButtons(template, data, options), formMessages(language))`로
+`renderFormView(bindForm(template, data, options), bindButtons(template, data, options), formMessages(language), renderOptions)`로
 같은 마크업을, `renderOutlineView`와 `renderDataPanel`로 구조 맵과 데이터 보기를 렌더링합니다.
 
 `renderList(spec, rows, { layout: 'table' | 'card' })`는 평가된 목록을 렌더링합니다.

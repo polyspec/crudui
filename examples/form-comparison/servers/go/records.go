@@ -518,7 +518,7 @@ func (s server) recordView(view, rawQuery string) (*object, error) {
 		if err != nil {
 			return nil, err
 		}
-		html, err = generator.RenderForm(form)
+		html, err = generator.RenderForm(form, nil)
 		html = `<form id="record-form" method="post" action="/api/go/records/` + values["id"] +
 			`" enctype="multipart/form-data">` + html + `</form>`
 		data = record("record", stored)

@@ -1,5 +1,6 @@
-import { defineComponent, onMounted, onBeforeUnmount, onUpdated, shallowRef, watch, type PropType } from 'vue';
-import { connectForm, type FormInstance } from '@crudui/generator-core';
+import { defineComponent, h, onMounted, onBeforeUnmount, onUpdated, shallowRef, watch, type PropType } from 'vue';
+import { connectForm, type FormInstance, type FormRenderOptions } from '@crudui/generator-core';
+import { formRenderModel } from '@crudui/generator-core/internal';
 import { FormFields } from './FormFields';
 
 /** The interactive adapter over a shared, data-independent form template. */
@@ -12,6 +13,13 @@ export const Form = defineComponent({
       type: Object as PropType<FormInstance>,
       /** A form instance is required. */
       required: true,
+    },
+    /** The complete form options: form element, hidden inputs and errors (form-runtime.md, "Complete form"). */
+    options: {
+      /** FormRenderOptions object. */
+      type: Object as PropType<FormRenderOptions>,
+      /** Absent options write the `crudui-form` block alone. */
+      required: false,
     },
   },
   setup(props) {
@@ -33,6 +41,14 @@ export const Form = defineComponent({
     });
     onUpdated(() => { binding?.sync(); });
     onBeforeUnmount(() => { binding?.disconnect(); unsubscribe?.(); });
-    return () => FormFields(snapshot.value.fields, snapshot.value.buttons, props.form.messages, root);
+    return () => {
+      const model = formRenderModel(snapshot.value.fields, props.form.template.action, props.options);
+      const block = FormFields(snapshot.value.fields, snapshot.value.buttons, props.form.messages, root, model);
+      if (!model.form) return block;
+      return h('form', model.form, [
+        ...model.hidden.map(([name, value]) => h('input', { type: 'hidden', name, value })),
+        block,
+      ]);
+    };
   },
 });

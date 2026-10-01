@@ -115,6 +115,7 @@ export function validateResponse(request, value) {
       }
       break;
     case 'renderDetail': assert.equal(typeof value, 'string', 'Detail HTML must be a string'); break;
+    case 'renderForm': assert.equal(typeof value, 'string', 'Form HTML must be a string'); break;
     case 'form':
       validateState(value);
       assert.ok(Array.isArray(value.steps), 'Form steps must be an array');

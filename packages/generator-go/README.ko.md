@@ -18,7 +18,7 @@ if err != nil { return err }
 form, err := generator.NewForm(template,
     generator.NewObject("name", "Ada"), generator.BindOptions{Language: "en"})
 if err != nil { return err }
-html, err := generator.RenderForm(form)
+html, err := generator.RenderForm(form, nil)
 ```
 
 `CompileForm`은 레코드 데이터 없이 합성을 처리합니다. 템플릿은 `encoding/json`으로
@@ -32,7 +32,8 @@ html, err := generator.RenderForm(form)
 복사한 값을 반환합니다. `SetValue`는 필드 하나를 수정합니다. 행 연산은 `AddRow`,
 `CopyRow`, `RemoveRow`, `MoveRow`, `RekeyRow`이며 컬렉션 경로는 레코드 루트를
 기준으로 합니다. 연산이 실패하면 데이터, 필드 모델, 리비전이 유지됩니다.
-`RenderForm`은 인스턴스를 변경하지 않고 현재 상태를 렌더링합니다.
+`RenderForm`은 인스턴스를 변경하지 않고 현재 상태를 렌더링합니다. nil 옵션은 `crudui-form` 블록을 쓰고
+옵션 객체는 이를 [완전한 폼](../../docs/spec/form-runtime.ko.md#완전한-폼)으로 만듭니다.
 
 `BuildList`는 목록 모델을 반환합니다. `RenderList`의 `ListOptions.Layout`은 `table`
 또는 `card`입니다. 호출자가 목록 데이터를 제공하며 생성기는 데이터베이스를

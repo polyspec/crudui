@@ -24,7 +24,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cached = serde_json::to_vec(&template)?;
     let mut form = Form::new(serde_json::from_slice(&cached)?, &json!({}), BindOptions::default())?;
     form.set_data(&json!({"name": "Ada"}))?;
-    let html = render_form(&form)?;
+    let html = render_form(&form, None)?;
     println!("{html}");
     Ok(())
 }

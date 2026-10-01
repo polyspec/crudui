@@ -8,3 +8,5 @@ export { parseStyle } from './css';
 export type { StyleDeclaration } from './css';
 export { WIDGET_CANONICAL, WIDGET_COUNT, WIDGET_KINDS, WIDGET_LAYOUTS } from './widget';
 export { CELL_FORMAT_DEFAULT, CELL_FORMATS, CELL_RENDERERS } from './cell';
+export { formRenderModel } from './form-render';
+export type { FormRenderModel, FormElementAttributes } from './form-render';

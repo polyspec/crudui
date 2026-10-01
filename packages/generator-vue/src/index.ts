@@ -5,6 +5,7 @@
 
 // Node, widget, structure map and data view rendering.
 export { nodeVNode, controlsVNode } from './components/Node';
+export type { NodeErrors } from './components/Node';
 export { Outline, outlineVNode } from './components/Outline';
 export { DataView, dataVNode } from './components/DataView';
 export { Widget } from './components/Widget';

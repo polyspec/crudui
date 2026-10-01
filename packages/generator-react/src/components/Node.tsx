@@ -13,6 +13,16 @@ import { resolvedStyleProps, styleObject } from './attrs';
 import { Controls } from './Controls';
 import { RawContainer } from './raw';
 
+/** Error texts of the nodes that have errors (form-runtime.md, "Complete form"). */
+export const NodeErrorsContext = React.createContext<ReadonlyMap<NodeVM, readonly string[]>>(new Map());
+
+/** The errors slot of a node, present only with messages. */
+function Errors({ vm }: { vm: NodeVM }): React.ReactElement | null {
+  const messages = React.useContext(NodeErrorsContext).get(vm);
+  if (!messages?.length) return null;
+  return <div className="crudui-node__errors">{messages.map((text, index) => <p key={index} className="crudui-node__error">{text}</p>)}</div>;
+}
+
 function classes(...parts: Array<string | undefined | false>): string {
   return parts.filter((part): part is string => typeof part === 'string' && part !== '').join(' ');
 }
@@ -103,6 +113,7 @@ export function Node({ vm }: { vm: NodeVM }): React.ReactElement {
     >
       <HeaderSlot vm={vm} />
       <Body vm={vm} />
+      <Errors vm={vm} />
       {vm.controls?.placement === 'footer' ? <div className="crudui-node__footer"><Controls controls={vm.controls} /></div> : null}
     </div>
   );

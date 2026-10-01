@@ -82,11 +82,33 @@ final class Rendering
         return '<script nonce="">' . $script . '</script>';
     }
 
-    /** Render top-level nodes inside the crudui-form block. */
-    public static function form(array $nodes, array $buttons, array $messages): string
+    /**
+     * Render the complete form: the form element and hidden inputs of the model around the
+     * crudui-form block with its form errors, nodes and footer.
+     *
+     * @param array{form: ?array<string, string>, hidden: list<array{string, string}>, formErrors: list<string>, nodeErrors: array<int, list<string>>} $model
+     */
+    public static function form(array $nodes, array $buttons, array $messages, array $model = FormRender::EMPTY): string
     {
         $footer = self::element('div', ['class' => 'crudui-form__footer'], self::element('div', ['class' => 'crudui-controls', 'role' => 'group', 'aria-label' => $messages['formActions']], Buttons::html($buttons)));
-        return self::element('div', ['class' => 'crudui-form'], self::element('div', ['class' => 'crudui-form__body'], implode('', array_map(self::node(...), $nodes))) . $footer);
+        $formErrors = $model['formErrors'] === [] ? '' : self::element('div', ['class' => 'crudui-form__errors'], implode('', array_map(static fn (string $text) => self::element('p', ['class' => 'crudui-form__error'], self::text($text)), $model['formErrors'])));
+        $body = implode('', array_map(static fn (stdClass $vm) => self::node($vm, $model['nodeErrors']), $nodes));
+        $block = self::element('div', ['class' => 'crudui-form'], $formErrors . self::element('div', ['class' => 'crudui-form__body'], $body) . $footer);
+        if ($model['form'] === null) {
+            return $block;
+        }
+        $hidden = implode('', array_map(static fn (array $pair) => self::input(['type' => 'hidden', 'name' => $pair[0], 'value' => $pair[1]]), $model['hidden']));
+        return self::element('form', $model['form'], $hidden . $block);
+    }
+
+    /**
+     * The errors slot of a node: one paragraph per message, present only with messages.
+     *
+     * @param list<string> $messages
+     */
+    private static function errors(array $messages): string
+    {
+        return $messages === [] ? '' : self::element('div', ['class' => 'crudui-node__errors'], implode('', array_map(static fn (string $text) => self::element('p', ['class' => 'crudui-node__error'], self::text($text)), $messages)));
     }
 
     /** Join non-empty class names without normalizing their contents. */
@@ -101,7 +123,8 @@ final class Rendering
         return '<div' . self::attrs($attrs) . ($hidden ? ' hidden=""' : '') . '>';
     }
 
-    private static function node(stdClass $vm): string
+    /** @param array<int, list<string>> $errors error texts by node object id */
+    private static function node(stdClass $vm, array $errors): string
     {
         $style = $vm->style ?? null;
         if ($vm->sticky ?? false) {
@@ -123,7 +146,7 @@ final class Rendering
         if (($vm->sticky ?? false) && $header !== '') {
             $header = self::element('div', ['class' => 'crudui-node__header-container'], $header);
         }
-        return self::open($attrs, $vm->hidden) . $header . self::body($vm) . $footer . '</div>';
+        return self::open($attrs, $vm->hidden) . $header . self::body($vm, $errors) . self::errors($errors[spl_object_id($vm)] ?? []) . $footer . '</div>';
     }
 
     private static function header(stdClass $vm): string
@@ -160,7 +183,8 @@ final class Rendering
         return self::element('div', ['class' => self::classes('crudui-node__header', $header->className ?? ''), 'style' => $header->style ?? ''], $parts);
     }
 
-    private static function body(stdClass $vm): string
+    /** @param array<int, list<string>> $errors error texts by node object id */
+    private static function body(stdClass $vm, array $errors): string
     {
         $attrs = ['class' => self::classes('crudui-node__body', $vm->body->className), 'style' => $vm->body->style ?? null, 'id' => $vm->body->id ?? null];
         if (isset($vm->checkbox)) {
@@ -173,7 +197,7 @@ final class Rendering
         } elseif (isset($vm->widget)) {
             $inner = self::widget($vm->widget);
         } else {
-            $inner = implode('', array_map(self::node(...), $vm->children ?? []));
+            $inner = implode('', array_map(static fn (stdClass $child) => self::node($child, $errors), $vm->children ?? []));
         }
         return self::open($attrs, ($vm->collapsible ?? false) === true && ($vm->expanded ?? false) !== true) . $inner . '</div>';
     }

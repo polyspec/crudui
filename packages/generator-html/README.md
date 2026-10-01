@@ -13,13 +13,15 @@ const form = createForm(template, { name: 'Example' });
 const html = renderForm(form);
 ```
 
-The renderer consumes evaluated core models and returns an HTML fragment. It does
-not create the outer `form` element, bind browser events, validate data or load
-records. Use `connectForm` from `@crudui/generator-core` after inserting the
-fragment when browser editing is required.
+The renderer consumes evaluated core models and returns HTML. `renderForm(form, options)` writes
+the [complete form](../../docs/spec/form-runtime.md#complete-form): with `options.action` it
+creates the `form` element and the `options.hidden` inputs, and it places `options.formErrors`
+and `options.errors`; without options it returns the `crudui-form` block. It does not bind
+browser events, validate data or load records. Use `connectForm` from `@crudui/generator-core`
+on the `crudui-form` element after inserting the markup when browser editing is required.
 
 Data owned outside a form instance through `bindForm` renders as the same markup with
-`renderFormView(bindForm(template, data, options), bindButtons(template, data, options), formMessages(language))`,
+`renderFormView(bindForm(template, data, options), bindButtons(template, data, options), formMessages(language), renderOptions)`,
 and the structure map and data view with `renderOutlineView` and `renderDataPanel`.
 
 `renderList(spec, rows, { layout: 'table' | 'card' })` renders the evaluated list.

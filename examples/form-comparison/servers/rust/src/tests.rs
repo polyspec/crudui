@@ -311,7 +311,7 @@ async fn server_html_uses_framework_storage_and_native_submission() {
         },
     )
     .unwrap();
-    assert_eq!(markup, render_form(&expected).unwrap());
+    assert_eq!(markup, render_form(&expected, None).unwrap());
     assert!(!payload.contains('<'));
     let decoded_payload = json::decode(payload.as_bytes()).unwrap();
     assert_eq!(

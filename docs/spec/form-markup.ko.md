@@ -26,7 +26,7 @@ React, Vue, Svelte, HTML 렌더러와 네이티브 렌더러는 같은 마크업
 
 | 블록 | 구조 |
 | --- | --- |
-| `crudui-form` | `crudui-form__body`와 폼 버튼을 담은 `crudui-form__footer`를 가진 폼 루트입니다. |
+| `crudui-form` | 폼 오류마다 `crudui-form__error` 문단을 담은 `crudui-form__errors`, `crudui-form__body`, 폼 버튼을 담은 `crudui-form__footer`를 가진 폼 루트입니다. |
 | `crudui-node` | 데이터 노드 하나입니다. 종류는 아래와 같습니다. |
 | `crudui-controls` | `role="group"`과 접근성 이름을 가진 버튼 묶음입니다. |
 | `crudui-action` | `data-crudui-action`을 가진 버튼입니다. `crudui-action--text`는 레이블을 텍스트로 표시합니다. |
@@ -58,9 +58,10 @@ React, Vue, Svelte, HTML 렌더러와 네이티브 렌더러는 같은 마크업
 
 ## 노드
 
-모든 데이터 노드는 `crudui-node`와 종류 수식자 하나, 그리고 `crudui-node__header`,
-`crudui-node__body`, `crudui-node__footer` 슬롯을 가집니다. 헤더는 내용이 있을 때만,
-푸터는 컨트롤이 있을 때만 출력합니다. 자식 노드는 본문에만, 헤더 부품은 헤더에만,
+모든 데이터 노드는 `crudui-node`와 종류 수식자 하나, 그리고 이 순서의 `crudui-node__header`,
+`crudui-node__body`, `crudui-node__errors`, `crudui-node__footer` 슬롯을 가집니다. 헤더는 내용이
+있을 때만, 오류 슬롯은 오류가 있을 때만(메시지마다 `crudui-node__error` 문단 하나,
+[완전한 폼](form-runtime.ko.md#완전한-폼) 참고), 푸터는 컨트롤이 있을 때만 출력합니다. 자식 노드는 본문에만, 헤더 부품은 헤더에만,
 컨트롤은 헤더 또는 푸터에만 둡니다. `design.wrapper`는 노드 루트, `design.label`은
 헤더, `design.group`은 group과 group 행의 본문, `design.class`는 컨트롤,
 `design.prepend`는 위젯 prepend에 적용합니다.
@@ -149,7 +150,8 @@ React, Vue, Svelte, HTML 렌더러와 네이티브 렌더러는 같은 마크업
 href, design, behavior }` 목록이고 `type`은 `submit`, `reset`, `button`, `link` 중 하나입니다.
 `buttons`가 없는 스펙은 제출 버튼 하나를 가집니다. `text`가 없는 제출·초기화 버튼은 유형의
 인터페이스 문구를 표시하고, button과 link는 `text`가, link는 `href`가 필요합니다.
-`action`(`method`, `url`, `enctype`)은 제출 대상이며 템플릿에 보존합니다.
+`action`(`method`, `url`, `enctype`)은 제출 대상이며 템플릿에 보존합니다. `renderForm`은 이를
+[완전한 폼](form-runtime.ko.md#완전한-폼)의 `form` 요소에 씁니다.
 두 키는 폼 루트에 속합니다.
 
 모든 폼은 `crudui-form__footer`로 끝나며, 폼 작업 문구를 접근 가능한 이름으로 가진
@@ -209,6 +211,7 @@ href, design, behavior }` 목록이고 `type`은 `submit`, `reset`, `button`, `l
 | `--crudui-surface` | `#ffffff` | 컨트롤, 행, 동작의 배경 |
 | `--crudui-subtle` | `#f9fafb` | 행 헤더, 목록 제목 칸, 접사, 읽기 전용 컨트롤의 배경 |
 | `--crudui-accent` | `#1d4ed8` | 포커스 윤곽선과 선택된 선택지 |
+| `--crudui-error` | `#b91c1c` | 폼 오류와 노드 오류의 텍스트 |
 | `--crudui-on-accent` | `#ffffff` | 선택된 선택지의 글자색 |
 | `--crudui-action-text` | `#374151` | 동작의 글자와 아이콘 색 |
 | `--crudui-action-size` | `1.75rem` | 아이콘 동작의 너비와 높이, 글자 동작의 높이 |

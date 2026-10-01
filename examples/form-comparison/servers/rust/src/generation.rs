@@ -116,7 +116,7 @@ fn render(request: &Value, options: &Map<String, Value>, generator: Value) -> Re
     };
     let form = Form::new(template, object(request, "data")?, binding)
         .map_err(|error| bad(error.to_string()))?;
-    let html = render_form(&form).map_err(|error| bad(error.to_string()))?;
+    let html = render_form(&form, None).map_err(|error| bad(error.to_string()))?;
     Ok(
         json!({"data":form.get_data(),"fields":form.fields(),"html":html,"revision":form.revision(),"generator":generator}),
     )
@@ -268,7 +268,7 @@ fn document(
         },
     )
     .map_err(|error| internal(error.to_string()))?;
-    let markup = render_form(&form).map_err(|error| internal(error.to_string()))?;
+    let markup = render_form(&form, None).map_err(|error| internal(error.to_string()))?;
     // JSON escapes keep the payload from ending the script element early.
     let payload = codec::encode(&json!({"data":form.get_data(),"generator":provenance(server)?}))?
         .replace('<', "\\u003c")

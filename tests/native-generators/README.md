@@ -84,7 +84,9 @@ Normalized layout tests remain separate. The 44
 [detail cases](../fixtures/detail-render/README.md) compare both levels a runtime exposes:
 the `buildDetail` model with its member order, and the original `renderDetail` HTML
 including image resource hints. Error cases compare code, message and location at both
-levels.
+levels. The 25 [complete form cases](../fixtures/form-complete/README.md) compare the original
+HTML with the bytes the specification writes, and their option errors compare code, message
+and location.
 
 Additional cases compare keyed data in sequence order 5, 7, 1, scoped additions,
 reordering, saved-key replacement, rejected operations, empty collections,
@@ -137,8 +139,9 @@ node scripts/run-rust-command.mjs clippy --locked --all-targets --manifest-path 
 ```
 
 Each program reads one JSON value on stdin. Operations are `compileForm`, `bindForm`,
-`bindButtons`, `formButtonsHtml`, `form`, `renderList`, `buildList`, `buildDetail` and
-`renderDetail`. A successful response exits with status 0; a top-level operation error is
+`bindButtons`, `formButtonsHtml`, `form`, `renderForm`, `renderList`, `buildList`,
+`buildDetail` and `renderDetail`. `renderForm` creates an instance from `template`, `data` and
+`options` and returns `renderForm(form, render)`, the complete form. A successful response exits with status 0; a top-level operation error is
 `{ "error": { "code", "message", "at" } }` and exits with status 1. JSON decides the type
 of every input before a library call, and each boundary failure is `INVALID_FORM_INPUT`
 with an empty `at`:

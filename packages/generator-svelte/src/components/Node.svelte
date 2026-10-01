@@ -7,6 +7,7 @@
   sibling nodes as text.
 -->
 <script lang="ts">
+  import { getContext } from 'svelte';
   import type { NodeVM } from '@crudui/generator-core';
   import Controls from './Controls.svelte';
   import Header from './Header.svelte';
@@ -14,7 +15,7 @@
   import Self from './Node.svelte';
   import { widgetRootRaw } from './widget';
   import { patched, firstMarkup } from './raw';
-  import { classes, rootStyle } from './field';
+  import { classes, rootStyle, NODE_ERRORS, type NodeErrorsSource } from './field';
 
   let { vm }: { vm: NodeVM } = $props();
 
@@ -23,6 +24,8 @@
   const widgetRaw = $derived(vm.widget ? widgetRootRaw(vm.widget) : null);
   const bodyHidden = $derived(vm.collapsible === true && vm.expanded !== true);
   const pathAttribute = $derived(vm.kind === 'row' || vm.kind === 'lang-item' ? undefined : vm.path);
+  const errorsOf = getContext<NodeErrorsSource | undefined>(NODE_ERRORS);
+  const errors = $derived(errorsOf?.()?.get(vm) ?? []);
 </script>
 
 <div class={classes('crudui-node', `crudui-node--${vm.kind}`, vm.sticky && 'crudui-node--sticky', vm.className)} style={rootStyle(vm)} data-field-path={pathAttribute} data-crudui-row-key={vm.key} data-lang={vm.lang} hidden={vm.hidden}
@@ -32,5 +35,6 @@
   >{:else}<div class={classes('crudui-node__body', vm.body.className)} style={vm.body.style} id={vm.body.id} hidden={bodyHidden}
     >{#if vm.checkbox}<input class={vm.checkbox.className} id={vm.checkbox.id} name={vm.checkbox.name} type="checkbox" value="1" checked={vm.checkbox.checked || undefined} defaultChecked={vm.checkbox.checked} /><label for={vm.checkbox.id}>{#if vm.checkbox.caption}{vm.checkbox.caption}{/if}</label
     >{:else if vm.widget}<Widget w={vm.widget} />{:else}{#each vm.children ?? [] as child, index (child.key ?? child.path ?? child.lang ?? index)}<Self vm={child} />{/each}{/if
-  }</div>{/if}{#if vm.controls?.placement === 'footer'}<div class="crudui-node__footer"><Controls controls={vm.controls} /></div>{/if
+  }</div>{/if}{#if errors.length}<div class="crudui-node__errors">{#each errors as text, index (index)}<p class="crudui-node__error">{text}</p>{/each}</div>{/if
+  }{#if vm.controls?.placement === 'footer'}<div class="crudui-node__footer"><Controls controls={vm.controls} /></div>{/if
 }</div>

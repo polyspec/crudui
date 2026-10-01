@@ -9,6 +9,7 @@ mod design;
 mod detail;
 mod display_declaration;
 mod error;
+mod form_render;
 mod instance;
 mod list;
 mod messages;

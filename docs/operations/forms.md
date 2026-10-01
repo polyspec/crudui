@@ -57,6 +57,30 @@ React exports `renderForm(form)` from `@crudui/generator-react/server`; Vue and
 Svelte export their rendering functions from their package entries. Vue returns a promise.
 Compile `$ref` files before rendering.
 
+A server sends the [complete form](../spec/form-runtime.md#complete-form): the form element,
+hidden fields, the entered values, the errors and the buttons come from one call, and the
+rest of the page writes no part of the form itself. Pass the validation result's errors unchanged or
+with replacement texts:
+
+```ts
+import { validate } from '@crudui/validator';
+import { renderForm } from '@crudui/generator-html';
+
+const result = validate(spec, submitted);
+const form = createForm(template, submitted, { language: 'en' });
+const html = renderForm(form, {
+  action: { method: 'post', url: '/members' },
+  hidden: { _csrf: token },
+  formErrors: result.valid ? [] : ['Check the marked fields.'],
+  errors: result.errors,
+});
+```
+
+PHP calls `Generator::renderForm($form, $options)` with the same members, Go
+`RenderForm(form, options)` and Rust `render_form(&form, Some(&options))` with an ordered JSON
+object. Connect a browser binding to the `crudui-form` element, not to the `form` element:
+`connectForm` synchronizes every named control inside its element with the instance data.
+
 For framework-independent HTML, use the peer renderer package:
 
 ```ts

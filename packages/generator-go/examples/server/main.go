@@ -187,7 +187,7 @@ func (s *server) form(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, e.Error(), http.StatusInternalServerError)
 			return
 		}
-		html, e := generator.RenderForm(form)
+		html, e := generator.RenderForm(form, nil)
 		if e != nil {
 			http.Error(w, e.Error(), http.StatusInternalServerError)
 			return
