@@ -10,6 +10,7 @@ export { FormInstance, createForm, createRowKey, sequenceRowKey } from './instan
 export { bindButtons, formButtonsHtml } from './buttons';
 export type { ButtonVM, FormButtonType, BindButtonsOptions } from './buttons';
 export type { CreateFormOptions, FormSnapshot, AddRowOptions } from './instance';
+export type { FormRenderOptions, FormRenderAction, FormRenderError } from './form-render';
 export {
   initialView, collapsibleRows, toggleRowView, setAllExpandedView, removeRowView, rekeyRowView,
 } from './view';

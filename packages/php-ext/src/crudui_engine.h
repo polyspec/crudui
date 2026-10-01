@@ -57,6 +57,8 @@ ps_form_result ps_form_new(const ps_value *template, const ps_value *data, const
 void ps_form_free(ps_form *form);
 ps_form *ps_form_clone(const ps_form *form);
 ps_result ps_form_read(const ps_form *form, uint8_t member);
+/* Render the complete form with render options; NULL options are empty options. */
+ps_result ps_form_render_html(const ps_form *form, const ps_value *options);
 ps_result ps_form_apply(ps_form *form, uint8_t method, const ps_value *args);
 
 #endif

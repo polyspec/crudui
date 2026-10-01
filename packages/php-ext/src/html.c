@@ -251,7 +251,7 @@ static bool append_attribute(ps_html_buffer *out, ps_text name,
         if (!rendered.length) { free(style.bytes); free(owned.bytes); return true; }
     } else if (!raw && boolean_attribute(name)) {
         rendered = PS_TEXT("");
-    } else if (!raw && (ps_text_is(name, "href") || ps_text_is(name, "src"))) {
+    } else if (!raw && (ps_text_is(name, "href") || ps_text_is(name, "src") || ps_text_is(name, "action"))) {
         if (ps_text_is(name, "src") && !rendered.length) { free(owned.bytes); return true; }
         if (dangerous_url(rendered))
             rendered = PS_TEXT("javascript:throw new Error('React has blocked a javascript: URL as a security precaution.')");

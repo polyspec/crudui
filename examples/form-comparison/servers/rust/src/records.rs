@@ -572,7 +572,7 @@ async fn view(State(server): State<Arc<Server>>, request: Request) -> Result<Res
             .map_err(render)?;
             let html = format!(
                 r#"<form id="record-form" method="post" action="/api/{SERVER}/records/{id}" enctype="multipart/form-data">{}</form>"#,
-                render_form(&form).map_err(render)?
+                render_form(&form, None).map_err(render)?
             );
             (html, json!({"record":record}))
         }

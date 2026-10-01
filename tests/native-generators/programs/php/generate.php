@@ -127,6 +127,10 @@ try {
             }
             $result = Generator::$method($spec, $record, $detailOptions);
             break;
+        case 'renderForm':
+            $form = new Form(template($request), property_exists($request, 'data') ? objectValue($request->data, 'Form data must be an object') : new stdClass(), options(property_exists($request, 'options') ? $request->options : new stdClass()));
+            $result = Generator::renderForm($form, property_exists($request, 'render') ? $request->render : new stdClass());
+            break;
         case 'form':
             $form = new Form(template($request), property_exists($request, 'data') ? objectValue($request->data, 'Form data must be an object') : new stdClass(), options(property_exists($request, 'options') ? $request->options : new stdClass()));
             $steps = [];

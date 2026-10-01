@@ -33,9 +33,10 @@ every widget model lists its members in the order `kind`, `layout`, `tag`,
 `file` in `extra`, in every runtime.
 
 `createForm(template, data, options)` creates an editable instance.
-`Form` renders the instance in React, Vue or Svelte. The host owns the HTML
-`form` element and submission handling. `renderForm(instance)` renders that same
-instance on the server. Data defaults and row identity are prepared by the instance
+`Form` renders the instance in React, Vue or Svelte. `renderForm(instance, options)`
+renders that same instance on the server as a [complete form](#complete-form); the
+`Form` components accept the same `options`. Without `options.action` the host owns the
+HTML `form` element and handles submission. Data defaults and row identity are prepared by the instance
 before either renderer runs. Field-only rendering is an internal operation. `setData(data)`
 replaces the record after mounting, including previously edited input values.
 The template remains unchanged. `getData()` returns detached submission data.
@@ -68,9 +69,9 @@ last value, and the list's image preload links. The native generation check comp
 string renderer with the reference byte for byte.
 
 The `@crudui/generator-html` package renders the same evaluated instance and list
-models as HTML strings without React, Vue or Svelte. `renderForm(form)` returns
-form content without an outer HTML `form` element; pages insert it into
-their host and may then call `connectForm`. `renderFormView(fields, buttons, messages)`
+models as HTML strings without React, Vue or Svelte. `renderForm(form, options)` returns
+the [complete form](#complete-form); it is inserted into a page, which may then call
+`connectForm` on its `crudui-form` element. `renderFormView(fields, buttons, messages)`
 renders the same content from `bindForm` and `bindButtons` for pages that own
 their data, as React, Vue and Svelte provide `FormFields`. `renderList(spec, rows, options)`
 returns the declared table or card layout. The package performs no DOM binding,
@@ -218,8 +219,48 @@ preserve their keys in error paths. Collection rules (`required`, `unique`,
 entry. Object entries are validated in sorted key order in all five validation
 implementations. This ordering applies only to error traversal; form data and
 rendered or submitted row order retain the data member order. Form state does
-not retain validation errors; pages validate the current data and display
-the returned paths.
+not retain validation errors; pages validate the current data and pass the
+returned errors to `renderForm` as `options.errors`.
+
+## Complete form
+
+`renderForm(form, options)` renders the complete form that a server sends: the form element,
+the hidden fields, the entered values, the errors and the form buttons. The
+entered values are the instance data and the buttons are the template's form buttons, so no
+other part of the form is written. Every member of `options` is optional, and
+`renderForm(form)` equals `renderForm(form, {})`, which writes the `crudui-form` block alone.
+
+| Member | Value | Markup |
+| --- | --- | --- |
+| `action` | Object with string `method`, `url` and `enctype`, each optional | A `form` element around the hidden fields and the `crudui-form` block, with the attributes `action`, `encType` and `method` in that order, as React's serialization writes them. Each attribute takes this object's member (`url` for `action`, `enctype` for `encType`), or the member of the template's `action` when this object has none, and is omitted when neither has it. The `action` attribute follows the URL rule of [markup and styles](#markup-and-styles). |
+| `hidden` | Object of string values | One `<input type="hidden" name="{name}" value="{value}"/>` per member, in member order, inside the `form` element before the `crudui-form` block. It requires `action`. |
+| `formErrors` | List of strings | A `crudui-form__errors` element as the first child of `crudui-form`, with one `crudui-form__error` paragraph per text in list order. An empty list writes nothing. |
+| `errors` | List of objects with string `path` and `message` | Each message as a `crudui-node__error` paragraph in the `crudui-node__errors` slot of the node whose data path is `path`, in list order. |
+
+The data path of a field, group, collection or lang node is its `data-field-path`; the data path
+of a row is its collection's path, `.` and its row key. A lang-item node has no data path of its
+own. A validation result error (`path`, `field`, `rule`, `message`, `value`) is accepted
+unchanged; only `path` and `message` are read. Each text is either the message of
+the validation result or another message for the field and rule, and other texts serve errors that
+belong to the whole form. Hidden inputs stay outside `crudui-form` because `connectForm`
+synchronizes every named control inside that element with the instance data.
+
+Options fail with `INVALID_FORM_INPUT`, an empty location and the first of these messages, in
+this order:
+
+| Options | Message |
+| --- | --- |
+| A value that is not an object | `Render options must be an object` |
+| A member other than `action`, `hidden`, `formErrors` and `errors`, the first in member order | `Unknown render option: {name}` |
+| `action` that is not an object whose members are among `method`, `url` and `enctype` and are strings | `action must be an object with string method, url and enctype` |
+| `hidden` that is not an object of strings | `hidden must be an object of strings` |
+| `hidden` without `action` | `hidden requires action` |
+| `formErrors` that is not a list of strings | `formErrors must be a list of strings` |
+| `errors` that is not a list of objects with string `path` and `message` | `errors must be a list of objects with string path and message` |
+| The first error in list order whose path names no node | `Unknown error path: {path}` |
+
+PHP reads an options array as an object, an empty array as an empty object or an empty list, and
+a list array as a list. Go and Rust take the options as an ordered JSON object.
 
 ## Cache and execution limits
 

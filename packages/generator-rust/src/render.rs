@@ -1,3 +1,4 @@
+use crate::form_render::{render_model, NodeErrors, RenderModel};
 use serde_json::{json, Map, Value};
 
 use crate::util::{js_string, scalar, style};
@@ -57,7 +58,7 @@ fn attributes(attrs: &Value, raw: bool) -> String {
         .collect()
 }
 
-fn sanitize_url(url: &str) -> String {
+pub(crate) fn sanitize_url(url: &str) -> String {
     let pattern=regex::RegexBuilder::new(r"^[\x00-\x1f ]*j[\r\n\t]*a[\r\n\t]*v[\r\n\t]*a[\r\n\t]*s[\r\n\t]*c[\r\n\t]*r[\r\n\t]*i[\r\n\t]*p[\r\n\t]*t[\r\n\t]*:")
         .case_insensitive(true).unicode(false).build().expect("URL scheme pattern");
     if pattern.is_match(url) {
@@ -411,7 +412,7 @@ fn header(node: &Value) -> String {
     )
 }
 
-fn body(node: &Value) -> String {
+fn body(node: &Value, errors: &NodeErrors) -> String {
     let body = &node["body"];
     let mut attrs = json!({"class":classes(&["crudui-node__body", str_at(body, "className")]),"style":str_at(body, "style")});
     if let Some(id) = body["id"].as_str().filter(|id| !id.is_empty()) {
@@ -435,13 +436,35 @@ fn body(node: &Value) -> String {
     } else if node.get("widget").is_some() {
         widget(&node["widget"])
     } else {
-        nodes(&node["children"])
+        nodes(&node["children"], errors)
     };
     element("div", &attrs, &content)
 }
 
-/// Render one node of the recursive form grammar.
-fn node(node: &Value) -> String {
+/// The errors slot of a block: one paragraph per message, present only with messages.
+fn errors_html(block: &str, messages: Option<&Vec<String>>) -> String {
+    let Some(messages) = messages.filter(|messages| !messages.is_empty()) else {
+        return String::new();
+    };
+    let paragraphs: String = messages
+        .iter()
+        .map(|text| {
+            element(
+                "p",
+                &json!({"class": format!("{block}__error")}),
+                &escape(text),
+            )
+        })
+        .collect();
+    element(
+        "div",
+        &json!({"class": format!("{block}__errors")}),
+        &paragraphs,
+    )
+}
+
+/// Render one node of the recursive form grammar; `errors` holds the node errors.
+fn node(node: &Value, errors: &NodeErrors) -> String {
     let kind = str_at(node, "kind");
     let modifier = format!("crudui-node--{kind}");
     let sticky = if node["sticky"] == true {
@@ -497,34 +520,50 @@ fn node(node: &Value) -> String {
     } else {
         header_html
     };
-    element("div", &attrs, &(header_slot + &body(node) + &footer))
-}
-
-fn nodes(nodes: &Value) -> String {
-    nodes.as_array().into_iter().flatten().map(node).collect()
-}
-
-pub(crate) fn render_fields(fields: &[Value]) -> String {
+    let errors_slot = errors_html("crudui-node", errors.get(&(node as *const Value)));
     element(
         "div",
-        &json!({"class":"crudui-form"}),
-        &element(
-            "div",
-            &json!({"class":"crudui-form__body"}),
-            &fields.iter().map(node).collect::<String>(),
-        ),
+        &attrs,
+        &(header_slot + &body(node, errors) + &errors_slot + &footer),
     )
 }
 
-/// Render fields and the form buttons for a record as form HTML.
+fn nodes(nodes: &Value, errors: &NodeErrors) -> String {
+    nodes
+        .as_array()
+        .into_iter()
+        .flatten()
+        .map(|child| node(child, errors))
+        .collect()
+}
+
+/// Render the `crudui-form` block without its footer: form errors and the top-level nodes.
+pub(crate) fn render_fields(fields: &[Value], model: &RenderModel) -> String {
+    element(
+        "div",
+        &json!({"class":"crudui-form"}),
+        &(errors_html("crudui-form", Some(&model.form_errors))
+            + &element(
+                "div",
+                &json!({"class":"crudui-form__body"}),
+                &fields
+                    .iter()
+                    .map(|field| node(field, &model.node_errors))
+                    .collect::<String>(),
+            )),
+    )
+}
+
+/// Render fields and the form buttons for a record as the complete form of `model`.
 pub(crate) fn render_form_html(
     fields: &[Value],
     template: &crate::FormTemplate,
     data: &Value,
     language: &str,
+    model: &RenderModel,
 ) -> FormResult<String> {
     let messages = crate::messages::form_messages(language)?;
-    let body = render_fields(fields);
+    let body = render_fields(fields, model);
     let footer = element(
         "div",
         &json!({"class":"crudui-form__footer"}),
@@ -534,19 +573,42 @@ pub(crate) fn render_form_html(
             &crate::buttons::form_buttons_html(&template.buttons, data, language, messages),
         ),
     );
-    Ok(format!(
+    let block = format!(
         "{}{footer}</div>",
         body.strip_suffix("</div>")
             .expect("form markup ends with its closing tag")
+    );
+    let Some(attrs) = &model.form else {
+        return Ok(block);
+    };
+    let hidden: String = model
+        .hidden
+        .iter()
+        .map(|(name, value)| {
+            element(
+                "input",
+                &json!({"type":"hidden","name":name,"value":value}),
+                "",
+            )
+        })
+        .collect();
+    Ok(element(
+        "form",
+        &Value::Object(attrs.clone()),
+        &(hidden + &block),
     ))
 }
 
-/// Render an instance as HTML without executing scripts or browser operations.
-pub fn render_form(form: &Form) -> FormResult<String> {
+/// Render an instance as the complete form without executing scripts or browser operations
+/// (form-runtime.md, "Complete form"). `options` is `None` or an object with the optional members
+/// `action`, `hidden`, `formErrors` and `errors`; `None` writes the `crudui-form` block alone.
+pub fn render_form(form: &Form, options: Option<&Value>) -> FormResult<String> {
+    let model = render_model(form.fields(), form.template().action.as_ref(), options)?;
     render_form_html(
         form.fields(),
         form.template(),
         &form.get_data(),
         form.language(),
+        &model,
     )
 }

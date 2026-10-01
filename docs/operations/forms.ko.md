@@ -57,6 +57,29 @@ React는 `@crudui/generator-react/server`에서 SSR용 `renderForm(form)`을 내
 Vue와 Svelte는 패키지 진입점에서 렌더 함수를 내보내며 Vue는 Promise를 반환합니다.
 `$ref` 파일은 렌더링 전에 컴파일합니다.
 
+서버는 [완전한 폼](../spec/form-runtime.ko.md#완전한-폼)을 보냅니다. 폼 요소, 숨은 필드, 입력한 값,
+오류, 버튼이 한 번의 호출에서 나오므로 폼의 어떤 부분도 따로 쓰지 않습니다. 검증 결과의
+오류를 그대로 전달하거나 자체 문구로 바꿔 전달합니다.
+
+```ts
+import { validate } from '@crudui/validator';
+import { renderForm } from '@crudui/generator-html';
+
+const result = validate(spec, submitted);
+const form = createForm(template, submitted, { language: 'en' });
+const html = renderForm(form, {
+  action: { method: 'post', url: '/members' },
+  hidden: { _csrf: token },
+  formErrors: result.valid ? [] : ['Check the marked fields.'],
+  errors: result.errors,
+});
+```
+
+PHP는 같은 멤버로 `Generator::renderForm($form, $options)`를 호출하고, Go는 `RenderForm(form, options)`,
+Rust는 `render_form(&form, Some(&options))`를 순서 있는 JSON 객체로 호출합니다. 브라우저 바인딩은
+`form` 요소가 아니라 `crudui-form` 요소에 연결합니다. `connectForm`은 자기 요소 안의 이름 있는 모든
+컨트롤을 인스턴스 데이터와 동기화합니다.
+
 프레임워크에 독립적인 HTML은 동등한 renderer 패키지를 사용합니다.
 
 ```ts

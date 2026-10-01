@@ -82,7 +82,8 @@ PHP 메서드 서명과 수명 검사는 별도로 관리합니다. 검사 중 �
 [상세 사례](../fixtures/detail-render/README.ko.md) 44개는
 런타임이 제공하는 두 수준을 모두 비교합니다. 멤버 순서를 포함한 `buildDetail` 모델과
 이미지 리소스 힌트를 포함한 `renderDetail` 원본 HTML입니다. 오류 사례는 두 수준에서
-코드, 메시지, 위치를 비교합니다.
+코드, 메시지, 위치를 비교합니다. [완전한 폼 사례](../fixtures/form-complete/README.ko.md) 25개는 원본 HTML을
+명세가 쓰는 바이트와 비교하고, 옵션 오류는 코드, 메시지, 위치를 비교합니다.
 
 추가 사례는 시퀀스 5, 7, 1 순서의 키 기반 데이터, 지정 컬렉션의 추가, 순서 변경,
 저장 키 교체, 거부된 연산, 빈 컬렉션, 명시적 null, 선택 값, 클래스, CSS, 주입 및
@@ -132,8 +133,9 @@ node scripts/run-rust-command.mjs clippy --locked --all-targets --manifest-path 
 ```
 
 각 프로그램은 표준 입력으로 JSON 값 하나를 받습니다. 연산은 `compileForm`, `bindForm`,
-`bindButtons`, `formButtonsHtml`, `form`, `renderList`, `buildList`, `buildDetail`,
-`renderDetail`입니다. 성공 응답은 종료 상태 0을 사용합니다. 최상위 연산 오류는
+`bindButtons`, `formButtonsHtml`, `form`, `renderForm`, `renderList`, `buildList`, `buildDetail`,
+`renderDetail`입니다. `renderForm`은 `template`, `data`, `options`로 인스턴스를 만들고 완전한 폼인
+`renderForm(form, render)`를 반환합니다. 성공 응답은 종료 상태 0을 사용합니다. 최상위 연산 오류는
 `{ "error": { "code", "message", "at" } }`이며 종료 상태 1을 사용합니다. 라이브러리를
 호출하기 전에 JSON이 모든 입력의 타입을 정하며, 경계 실패는 모두 `at`이 빈
 `INVALID_FORM_INPUT`입니다.

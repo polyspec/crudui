@@ -28,7 +28,7 @@ spec declares in `design`.
 
 | Block | Structure |
 | --- | --- |
-| `crudui-form` | Form root with `crudui-form__body` and `crudui-form__footer` holding the form buttons. |
+| `crudui-form` | Form root with `crudui-form__errors` holding a `crudui-form__error` paragraph per form error, `crudui-form__body` and `crudui-form__footer` holding the form buttons. |
 | `crudui-node` | One data node; see the kinds below. |
 | `crudui-controls` | A button group with `role="group"` and an accessible name. |
 | `crudui-action` | A button with `data-crudui-action`; `crudui-action--text` shows its label as text. |
@@ -62,8 +62,10 @@ increments.
 ## Nodes
 
 Every data node is `crudui-node` with one kind modifier and the slots
-`crudui-node__header`, `crudui-node__body` and `crudui-node__footer`. The header
-is present only with content and the footer only with controls. Child nodes are
+`crudui-node__header`, `crudui-node__body`, `crudui-node__errors` and `crudui-node__footer`, in
+that order. The header is present only with content, the errors slot only with errors (one
+`crudui-node__error` paragraph per message, see [complete form](form-runtime.md#complete-form))
+and the footer only with controls. Child nodes are
 placed only in the body, header parts only in the header, and controls only in
 the header or footer. `design.wrapper` applies to the node root, `design.label`
 to the header, `design.group` to the body of a group or group row, `design.class`
@@ -163,7 +165,8 @@ name, value, href, design, behavior }` where `type` is `submit`, `reset`, `butto
 `link`. A spec without `buttons` has one submit button. Submit and reset buttons
 without `text` show the interface text for their type; a button or link needs `text`,
 and a link needs `href`. `action` (`method`, `url`, `enctype`) is the submission
-target, kept in the template. Both belong to the form root.
+target, kept in the template; `renderForm` writes it on the `form` element of the
+[complete form](form-runtime.md#complete-form). Both belong to the form root.
 
 Every form ends with `crudui-form__footer`, one `crudui-controls` group whose
 accessible name is the form actions text. `bindButtons(template, data, options)`
@@ -227,6 +230,7 @@ the rule overrides the defaults in any stylesheet order.
 | `--crudui-surface` | `#ffffff` | background of controls, rows and actions |
 | `--crudui-subtle` | `#f9fafb` | background of row headers, list headings, affixes and read-only controls |
 | `--crudui-accent` | `#1d4ed8` | focus outlines and the selected choice |
+| `--crudui-error` | `#b91c1c` | text of form and node errors |
 | `--crudui-on-accent` | `#ffffff` | text of the selected choice |
 | `--crudui-action-text` | `#374151` | text and icon color of actions |
 | `--crudui-action-size` | `1.75rem` | width and height of an icon action, height of a text action |

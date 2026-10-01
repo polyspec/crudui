@@ -23,7 +23,9 @@ const list = List(buildList(listSpec, rows, { language: 'en' }), 'table');
 ```
 
 Render `Form` with the `form` prop. Compile once per shared template and create a form instance
-per form. `renderForm(form)` returns a promise of the same markup for server rendering.
+per form. `renderForm(form, options)` returns a promise of the same markup for server rendering;
+`options` makes it the [complete form](../../docs/spec/form-runtime.md#complete-form), and `Form`
+accepts the same `options` prop.
 
 `List(vm, layout)` and `Detail(vm)` return VNodes for models built with `buildList(spec, rows, options)`
 and `buildDetail(spec, record, options)` of `@crudui/generator-core`.

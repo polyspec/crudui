@@ -15,6 +15,7 @@ export type { DataPanelProps } from './components/DataView';
 
 // Form, list and detail rendering.
 export { Form } from './components/Form';
+export type { FormProps } from './components/Form';
 export { List } from './components/List';
 export type { ListProps } from './components/List';
 export { Cell } from './components/Cell';

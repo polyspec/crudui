@@ -60,7 +60,7 @@ PHP 패키지와 확장은 같은 공개 클래스를 제공합니다.
 | `$form->setData(data)` | 인스턴스 데이터를 교체하고 필드를 다시 계산합니다. |
 | `$form->getData()` | 복사된 전송 데이터를 반환합니다. |
 | `$form->addRow`, `copyRow`, `removeRow`, `moveRow`, `rekeyRow` | 폼 런타임에 정의된 행 작업을 수행합니다. |
-| `CRUDUI\Generator::renderForm(form)` | 인스턴스의 폼 HTML을 반환합니다. |
+| `CRUDUI\Generator::renderForm(form, options)` | 인스턴스의 [완전한 폼](form-runtime.ko.md#완전한-폼) HTML을 반환합니다. |
 | `CRUDUI\Generator::sequenceRowKey(seq)` | 저장된 시퀀스를 행 키로 변환합니다. |
 
 컴파일은 공용 컴파일러와 같은 `files`, `basepath`, `keyPrefix` 입력을

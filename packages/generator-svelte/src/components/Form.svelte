@@ -1,15 +1,20 @@
 <!-- @component
   Render an editable form instance and synchronize its data, row actions and input state.
+  `options` are the complete form options (form-runtime.md, "Complete form").
 -->
 <script lang="ts">
   import { untrack } from 'svelte';
-  import { connectForm, type FormInstance } from '@crudui/generator-core';
+  import { connectForm, type FormInstance, type FormRenderOptions } from '@crudui/generator-core';
+  import { formRenderModel } from '@crudui/generator-core/internal';
   import FormFields from './FormFields.svelte';
 
-  let { form }: { form: FormInstance } = $props();
+  let { form, options }: { form: FormInstance; options?: FormRenderOptions } = $props();
   let root = $state<HTMLDivElement>();
   let snapshot = $state(untrack(() => form.getSnapshot()));
   let binding: ReturnType<typeof connectForm> | undefined;
+  const model = $derived(formRenderModel(snapshot.fields, form.template.action, options));
+  // Attribute values are option text; the form element writes them as given.
+  const formAttributes = $derived(model.form as Record<string, string> | undefined);
 
   $effect(() => {
     const current = form;
@@ -22,4 +27,6 @@
   $effect(() => { if (snapshot) binding?.sync(); });
 </script>
 
-<FormFields fields={snapshot.fields} buttons={snapshot.buttons} messages={form.messages} bind:root />
+{#if formAttributes}<form {...formAttributes}
+  >{#each model.hidden as [name, value] (name)}<input type="hidden" {name} {value} />{/each}<FormFields fields={snapshot.fields} buttons={snapshot.buttons} messages={form.messages} {model} bind:root /></form
+>{:else}<FormFields fields={snapshot.fields} buttons={snapshot.buttons} messages={form.messages} {model} bind:root />{/if}

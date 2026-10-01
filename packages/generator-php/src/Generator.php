@@ -7,6 +7,7 @@ namespace CRUDUI;
 use CRUDUI\Generator\Binding;
 use CRUDUI\Generator\Buttons;
 use CRUDUI\Generator\Details;
+use CRUDUI\Generator\FormRender;
 use CRUDUI\Generator\InputText;
 use CRUDUI\Generator\Lists;
 use CRUDUI\Generator\Rendering;
@@ -44,10 +45,17 @@ final class Generator
         return Buttons::htmlPublic($buttons);
     }
 
-    /** Render the current instance inside its crudui-form block. */
-    public static function renderForm(Form $form): string
+    /**
+     * Render the current instance as the complete form (form-runtime.md, "Complete form").
+     *
+     * @param mixed $options an object with optional action, hidden, formErrors and errors members
+     * @throws FormError INVALID_FORM_INPUT for options outside the contract
+     */
+    public static function renderForm(Form $form, mixed $options = []): string
     {
-        return Rendering::form($form->getFields(), $form->getButtons(), $form->getMessages());
+        $fields = $form->getFields();
+        $model = FormRender::model($fields, $form->getTemplate()->action ?? null, $options);
+        return Rendering::form($fields, $form->getButtons(), $form->getMessages(), $model);
     }
 
     /** Render supplied list rows using the table or card layout. */

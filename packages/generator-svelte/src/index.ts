@@ -4,7 +4,7 @@
  */
 
 import { render } from 'svelte/server';
-import { buildDetail, type BuildListOptions, type BuildDetailOptions, type FormInstance } from '@crudui/generator-core';
+import { buildDetail, type BuildListOptions, type BuildDetailOptions, type FormInstance, type FormRenderOptions } from '@crudui/generator-core';
 import { buildListLayout } from '@crudui/generator-core/internal';
 import Form from './components/Form.svelte';
 import List from './components/List.svelte';
@@ -24,9 +24,9 @@ export { default as Form } from './components/Form.svelte';
 export { default as List } from './components/List.svelte';
 export { default as Detail } from './components/Detail.svelte';
 
-/** Render the current form instance with Svelte hydration markers intact. */
-export function renderForm(form: FormInstance): string {
-  return render(Form, { props: { form } }).body;
+/** Render the current form instance as the complete form (form-runtime.md, "Complete form") with Svelte hydration markers intact. */
+export function renderForm(form: FormInstance, options?: FormRenderOptions): string {
+  return render(Form, { props: { form, options } }).body;
 }
 
 /** Options for list rendering. */

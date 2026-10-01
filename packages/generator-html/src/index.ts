@@ -11,6 +11,7 @@ import {
   type CellVM,
   type ControlsVM,
   type FormInstance,
+  type FormRenderOptions,
   type NodeVM,
   type ListViewModel,
   buildDetail,
@@ -19,7 +20,7 @@ import {
   type UnsupportedVM,
   type WidgetModel,
 } from '@crudui/generator-core';
-import { buildListLayout, parseStyle } from '@crudui/generator-core/internal';
+import { buildListLayout, formRenderModel, parseStyle, type FormRenderModel } from '@crudui/generator-core/internal';
 
 type AnyWidget = WidgetModel | UnsupportedVM;
 
@@ -257,7 +258,7 @@ function headerHtml(vm: NodeVM): string {
   return element('div', { class: joinClass('crudui-node__header', header?.className), style: header?.style || undefined }, parts.join(''));
 }
 
-function bodyHtml(vm: NodeVM): string {
+function bodyHtml(vm: NodeVM, errors: NodeErrors): string {
   let inner: string;
   if (vm.checkbox) {
     const box = vm.checkbox;
@@ -266,7 +267,7 @@ function bodyHtml(vm: NodeVM): string {
   } else if (vm.widget) {
     inner = widget(vm.widget);
   } else {
-    inner = (vm.children ?? []).map(node).join('');
+    inner = (vm.children ?? []).map((child) => node(child, errors)).join('');
   }
   return openDiv({ class: joinClass('crudui-node__body', vm.body.className), style: vm.body.style, id: vm.body.id },
     vm.collapsible === true && vm.expanded !== true) + inner + '</div>';
@@ -281,8 +282,18 @@ function rootStyle(vm: NodeVM): string | undefined {
   return [vm.style, vm.sticky ? `--crudui-sticky-depth: ${vm.stickyDepth ?? 0}` : undefined].filter(Boolean).join('; ') || undefined;
 }
 
+/** The errors slot of a node: one paragraph per message, present only with messages. */
+function errorsHtml(messages: readonly string[] | undefined): string {
+  return messages?.length
+    ? element('div', { class: 'crudui-node__errors' }, messages.map((text) => element('p', { class: 'crudui-node__error' }, escape(text))).join(''))
+    : '';
+}
+
+/** Error texts of the nodes that have errors (form-runtime.md, "Complete form"). */
+type NodeErrors = ReadonlyMap<NodeVM, readonly string[]>;
+
 /** Render one node of the recursive form grammar. */
-function node(vm: NodeVM): string {
+function node(vm: NodeVM, errors: NodeErrors): string {
   const root = {
     class: joinClass('crudui-node', `crudui-node--${vm.kind}`, vm.sticky ? 'crudui-node--sticky' : undefined, vm.className),
     style: rootStyle(vm),
@@ -292,7 +303,7 @@ function node(vm: NodeVM): string {
   };
   const header = headerHtml(vm);
   const headerSlot = vm.sticky && header ? element('div', { class: 'crudui-node__header-container' }, header) : header;
-  return openDiv(root, vm.hidden) + headerSlot + bodyHtml(vm) + footerHtml(vm) + '</div>';
+  return openDiv(root, vm.hidden) + headerSlot + bodyHtml(vm, errors) + errorsHtml(errors.get(vm)) + footerHtml(vm) + '</div>';
 }
 
 function cellBody(cell: CellVM): string {
@@ -480,20 +491,32 @@ function formFooterHtml(buttons: readonly ButtonVM[], messages: FormMessages): s
     element('div', { class: 'crudui-controls', role: 'group', 'aria-label': messages.formActions }, formButtonsHtml(buttons)));
 }
 
-/**
- * Render the `crudui-form` block for evaluated nodes and form buttons, as returned by
- * `bindForm` and `bindButtons`.
- */
-export function renderFormView(fields: readonly NodeVM[], buttons: readonly ButtonVM[], messages: FormMessages): string {
-  return element('div', { class: 'crudui-form' },
-    element('div', { class: 'crudui-form__body' }, fields.map(node).join('')) +
+/** The complete form: the form element with hidden inputs around the `crudui-form` block. */
+function completeFormHtml(fields: readonly NodeVM[], buttons: readonly ButtonVM[], messages: FormMessages, model: FormRenderModel): string {
+  const formErrors = model.formErrors.length
+    ? element('div', { class: 'crudui-form__errors' }, model.formErrors.map((text) => element('p', { class: 'crudui-form__error' }, escape(text))).join(''))
+    : '';
+  const block = element('div', { class: 'crudui-form' },
+    formErrors +
+    element('div', { class: 'crudui-form__body' }, fields.map((vm) => node(vm, model.nodeErrors)).join('')) +
     formFooterHtml(buttons, messages));
+  if (!model.form) return block;
+  const hidden = model.hidden.map(([name, value]) => inputHtml({ type: 'hidden', name, value })).join('');
+  return element('form', { action: model.form.action, encType: model.form.encType, method: model.form.method }, hidden + block);
 }
 
-/** Render the current form instance as framework-independent HTML. */
-export function renderForm(form: FormInstance): string {
+/**
+ * Render the complete form for evaluated nodes and form buttons, as returned by
+ * data render it from `bindForm` and `bindButtons`. `options.action` has no template action here.
+ */
+export function renderFormView(fields: readonly NodeVM[], buttons: readonly ButtonVM[], messages: FormMessages, options?: FormRenderOptions): string {
+  return completeFormHtml(fields, buttons, messages, formRenderModel(fields, undefined, options));
+}
+
+/** Render the current form instance as the complete form (form-runtime.md, "Complete form"). */
+export function renderForm(form: FormInstance, options?: FormRenderOptions): string {
   const snapshot = form.getSnapshot();
-  return renderFormView(snapshot.fields, snapshot.buttons, form.messages);
+  return completeFormHtml(snapshot.fields, snapshot.buttons, form.messages, formRenderModel(snapshot.fields, form.template.action, options));
 }
 
 /** Compose, evaluate and render a list without a framework or database; image preloads come first. */

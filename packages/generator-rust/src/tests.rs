@@ -26,7 +26,7 @@ fn initial_injection_repeated_injection_and_restoration_are_exact() {
     let cached = serde_json::to_string(&template).unwrap();
     let data = record();
     let initial = Form::new(template.clone(), &data, BindOptions::default()).unwrap();
-    let html = render_form(&initial).unwrap();
+    let html = render_form(&initial, None).unwrap();
     let mut injected = Form::new(
         serde_json::from_str(&cached).unwrap(),
         &json!({"companies":{}}),
@@ -41,7 +41,7 @@ fn initial_injection_repeated_injection_and_restoration_are_exact() {
     ] {
         injected.set_data(&next).unwrap();
         if next == data {
-            assert_eq!(html, render_form(&injected).unwrap());
+            assert_eq!(html, render_form(&injected, None).unwrap());
             assert_eq!(initial.get_data(), injected.get_data());
             assert_eq!(initial.fields(), injected.fields());
         }
@@ -90,8 +90,8 @@ fn utc_date_controls_and_lists_preserve_data_and_injected_html() {
         assert_eq!(injected.get_data(), data);
         assert_eq!(initial.fields(), injected.fields());
         assert_eq!(
-            render_form(&initial).unwrap(),
-            render_form(&injected).unwrap()
+            render_form(&initial, None).unwrap(),
+            render_form(&injected, None).unwrap()
         );
         assert_eq!(initial.fields()[0]["widget"]["attrs"]["value"], day);
         assert_eq!(initial.fields()[1]["widget"]["attrs"]["value"], time);
@@ -161,7 +161,7 @@ fn copied_nested_rows_have_new_keys_and_operations_preserve_order() {
 fn failed_operations_are_atomic_and_empty_collections_remain_empty() {
     let mut form = Form::new(template(), &record(), BindOptions::default()).unwrap();
     let before = form.get_data();
-    let html = render_form(&form).unwrap();
+    let html = render_form(&form, None).unwrap();
     assert!(form
         .add_row(
             "companies",
@@ -197,10 +197,10 @@ fn failed_operations_are_atomic_and_empty_collections_remain_empty() {
     assert!(form.set_data(&json!({"companies":[]})).is_err());
     assert!(form.set_data(&json!({"companies":null})).is_err());
     assert_eq!(before, form.get_data());
-    assert_eq!(html, render_form(&form).unwrap());
+    assert_eq!(html, render_form(&form, None).unwrap());
     form.set_data(&json!({"companies":{}})).unwrap();
     assert!(form.get_data()["companies"].as_object().unwrap().is_empty());
-    assert!(render_form(&form).unwrap().contains("<div class=\"crudui-node__footer\"><div class=\"crudui-controls\" role=\"group\" aria-label=\"컬렉션 컨트롤\"><button type=\"button\" class=\"crudui-action\" data-crudui-action=\"add-row\" aria-label=\"추가\"></button></div></div>"));
+    assert!(render_form(&form, None).unwrap().contains("<div class=\"crudui-node__footer\"><div class=\"crudui-controls\" role=\"group\" aria-label=\"컬렉션 컨트롤\"><button type=\"button\" class=\"crudui-action\" data-crudui-action=\"add-row\" aria-label=\"추가\"></button></div></div>"));
     form.add_row("companies", AddRowOptions::default()).unwrap();
     assert_eq!(form.get_data()["companies"].as_object().unwrap().len(), 1);
 }
@@ -371,7 +371,7 @@ fn rows_have_ordered_controls_titles_and_sticky_headers() {
     );
     let empty = &collection["children"][1]["children"][1];
     assert_eq!(empty["controls"]["placement"], "footer");
-    let html = crate::render::render_fields(&fields);
+    let html = crate::render::render_fields(&fields, &crate::form_render::RenderModel::default());
     assert!(html.starts_with("<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--collection\" data-field-path=\"items\">"));
     assert!(html.contains("<div class=\"crudui-node crudui-node--row crudui-node--sticky\" style=\"--crudui-sticky-depth:0\" data-crudui-row-key=\"first\"><div class=\"crudui-node__header-container\"><div class=\"crudui-node__header\"><button type=\"button\" class=\"crudui-action\" data-crudui-action=\"toggle-row\" aria-expanded=\"true\" aria-controls=\"crudui:items.first:body\" aria-label=\"Expand or collapse\"></button>"));
     assert!(html.contains("<span class=\"crudui-node__summary\" hidden=\"\">Nested rows: 2</span>"));
@@ -660,7 +660,7 @@ fn native_fixture_records() {
             let fields=bind_form(&template,case.get("data").unwrap_or(&json!({})),&bind)?;
             let data=case.get("data").cloned().unwrap_or(json!({}));
             let language=case["options"]["language"].as_str().unwrap_or("ko");
-            let html=crate::render::render_form_html(&fields,&template,&data,language)?;
+            let html=crate::render::render_form_html(&fields,&template,&data,language,&crate::form_render::RenderModel::default())?;
             Ok(json!({"name":case["name"],"template":template,"fields":fields,"html":html}))
         });
         if let Some(expected)=case.get("expectError") {
@@ -982,8 +982,8 @@ fn clone_has_independent_data_models_and_revision() {
     assert_eq!(cloned.get_data()["memo"], "changed");
     assert_eq!(cloned.revision(), 1);
     assert_ne!(
-        render_form(&original).unwrap(),
-        render_form(&cloned).unwrap()
+        render_form(&original, None).unwrap(),
+        render_form(&cloned, None).unwrap()
     );
 }
 
@@ -1015,7 +1015,7 @@ fn css_values_preserve_nested_separators_comments_and_escapes() {
     for field in form.fields() {
         assert_eq!(field["widget"]["attrs"]["style"], model_css);
     }
-    let html = render_form(&form).unwrap();
+    let html = render_form(&form, None).unwrap();
     assert!(html.contains("style=\"color:blue;--name:&quot;a;b&quot;\""));
     assert!(html.contains("style=\"color: red!important; color: blue; --name: &quot;a;b&quot;\""));
 }
@@ -1084,7 +1084,7 @@ fn form_buttons_default_declared_and_rejected() {
         },
     )
     .unwrap();
-    assert!(render_form(&form).unwrap().ends_with("</div><div class=\"crudui-form__footer\"><div class=\"crudui-controls\" role=\"group\" aria-label=\"Form actions\"><button type=\"submit\" class=\"crudui-action crudui-action--text\">Save</button></div></div></div>"));
+    assert!(render_form(&form, None).unwrap().ends_with("</div><div class=\"crudui-form__footer\"><div class=\"crudui-controls\" role=\"group\" aria-label=\"Form actions\"><button type=\"submit\" class=\"crudui-action crudui-action--text\">Save</button></div></div></div>"));
     let declared = compile_form(&json!({"type":"group","action":{"method":"post","url":"/save"},"buttons":[
         {"type":"submit","name":"__submitted__","value":"go","text":{"ko":"저장하기","en":"Save now"},"design":{"class":"primary"}},
         {"type":"reset"},
@@ -1095,7 +1095,7 @@ fn form_buttons_default_declared_and_rejected() {
         json!({"method":"post","url":"/save"})
     );
     let form = Form::new(declared, &json!({}), BindOptions::default()).unwrap();
-    assert!(render_form(&form).unwrap().contains("<button type=\"submit\" class=\"crudui-action crudui-action--text primary\" name=\"__submitted__\" value=\"go\">저장하기</button><button type=\"reset\" class=\"crudui-action crudui-action--text\">초기화</button><button type=\"button\" class=\"crudui-action crudui-action--text\" onclick=\"history.back()\">Cancel</button><a class=\"crudui-action crudui-action--text\" href=\"../?a=1&amp;b=&quot;2&quot;\">List</a>"));
+    assert!(render_form(&form, None).unwrap().contains("<button type=\"submit\" class=\"crudui-action crudui-action--text primary\" name=\"__submitted__\" value=\"go\">저장하기</button><button type=\"reset\" class=\"crudui-action crudui-action--text\">초기화</button><button type=\"button\" class=\"crudui-action crudui-action--text\" onclick=\"history.back()\">Cancel</button><a class=\"crudui-action crudui-action--text\" href=\"../?a=1&amp;b=&quot;2&quot;\">List</a>"));
     for (spec, message) in [
         (
             json!({"type":"group","buttons":{},"properties":{}}),

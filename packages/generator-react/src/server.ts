@@ -5,13 +5,14 @@ import {
   type BuildDetailOptions,
   type BuildListOptions,
   type FormInstance,
+  type FormRenderOptions,
 } from '@crudui/generator-core';
 import { buildListLayout } from '@crudui/generator-core/internal';
 import { Form, List, Detail } from './index';
 
-/** Render the current form instance as HTML. */
-export function renderForm(form: FormInstance): string {
-  return renderToStaticMarkup(React.createElement(Form, { form }));
+/** Render the current form instance as the complete form (form-runtime.md, "Complete form"). */
+export function renderForm(form: FormInstance, options?: FormRenderOptions): string {
+  return renderToStaticMarkup(React.createElement(Form, { form, options }));
 }
 
 /** Options for list rendering. */

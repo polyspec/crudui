@@ -62,7 +62,7 @@ keyed nested collections, defaults, labels, selection values and display rules.
 | `$form->setData(data)` | Replace instance data and reevaluate fields. |
 | `$form->getData()` | Return detached submission data. |
 | `$form->addRow`, `copyRow`, `removeRow`, `moveRow`, `rekeyRow` | Apply the row operations defined by the form runtime. |
-| `CRUDUI\Generator::renderForm(form)` | Return the instance's form HTML. |
+| `CRUDUI\Generator::renderForm(form, options)` | Return the instance's [complete form](form-runtime.md#complete-form) HTML. |
 | `CRUDUI\Generator::sequenceRowKey(seq)` | Format a saved sequence as a row key. |
 
 Compilation accepts the same `files`, `basepath` and `keyPrefix` inputs as the

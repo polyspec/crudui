@@ -23,7 +23,8 @@ const list = List(buildList(listSpec, rows, { language: 'en' }), 'table');
 ```
 
 `Form`에 `form` 속성을 전달하여 렌더링합니다. 공유 템플릿마다 한 번 컴파일하고 폼마다 폼 인스턴스를
-생성합니다. `renderForm(form)`은 서버 렌더링용으로 같은 마크업을 담은 프로미스를 반환합니다.
+생성합니다. `renderForm(form, options)`은 서버 렌더링용으로 같은 마크업을 담은 프로미스를 반환합니다.
+`options`는 이를 [완전한 폼](../../docs/spec/form-runtime.ko.md#완전한-폼)으로 만들며 `Form`도 같은 `options` 속성을 받습니다.
 
 `List(vm, layout)`와 `Detail(vm)`은 `@crudui/generator-core`의 `buildList(spec, rows, options)`와
 `buildDetail(spec, record, options)`로 만든 모델의 VNode를 반환합니다.

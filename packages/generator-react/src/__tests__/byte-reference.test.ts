@@ -13,6 +13,7 @@ import {
 import formCases from '../../../../tests/fixtures/form-render/cases.json';
 import listCases from '../../../../tests/fixtures/list-render/cases.json';
 import detailCases from '../../../../tests/fixtures/detail-render/cases.json';
+import completeCases from '../../../../tests/fixtures/form-complete/cases.json';
 
 type Case = { name: string; spec: Record<string, unknown>; expectError?: unknown; options?: Record<string, unknown> };
 const valid = <T extends Case>(cases: unknown) => (cases as T[]).filter(c => !c.expectError);
@@ -22,6 +23,12 @@ describe('React server output has the bytes of the HTML renderer', () => {
     test(`form ${c.name}`, () => {
       const form = createForm(compileForm(c.spec, c.options), c.data ?? {}, c.options);
       expect(renderForm(form)).toBe(htmlForm(form));
+    });
+  }
+  for (const c of valid<Case & { data: Record<string, unknown>; render: Record<string, unknown> }>(completeCases)) {
+    test(`complete form ${c.name}`, () => {
+      const form = createForm(compileForm(c.spec), c.data, c.options);
+      expect(renderForm(form, c.render)).toBe(htmlForm(form, c.render));
     });
   }
   for (const c of valid<Case & { rows?: Array<Record<string, unknown>> }>(listCases)) {

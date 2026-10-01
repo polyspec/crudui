@@ -56,6 +56,7 @@
             "WIDGET_KINDS",
             "WIDGET_LAYOUTS",
             "buildListLayout",
+            "formRenderModel",
             "paginationPages",
             "parseStyle"
           ]
@@ -288,6 +289,10 @@
     },
     {
       "path": "tests/fixtures/form-render/cases.json",
+      "kind": "form-html"
+    },
+    {
+      "path": "tests/fixtures/form-complete/cases.json",
       "kind": "form-html"
     },
     {
@@ -579,15 +584,17 @@
     {
       "id": "renderForm",
       "owner": "@crudui/generator-html",
-      "signature": "renderForm(form) -> string",
-      "input": "editable form instance",
-      "output": "HTML fragment without outer form element",
+      "signature": "renderForm(form, options?) -> string",
+      "input": "editable form instance and complete form options",
+      "output": "crudui-form block, or the complete form with form element, hidden inputs and errors",
       "errors": [
         "UnsupportedFieldTypeError",
-        "ComposeLoadError"
+        "ComposeLoadError",
+        "FormInputError"
       ],
       "fixtures": [
-        "tests/fixtures/form-render/cases.json"
+        "tests/fixtures/form-render/cases.json",
+        "tests/fixtures/form-complete/cases.json"
       ],
       "support": {
         "javascript-html": "pass",
@@ -604,7 +611,11 @@
       "tests": [
         "packages/generator-html/src/conformance.test.ts",
         "packages/generator-react/src/__tests__/form-render.conformance.test.ts",
-        "tests/form-inspector/form-snapshot.test.mjs"
+        "tests/form-inspector/form-snapshot.test.mjs",
+        "packages/generator-html/src/form-complete.conformance.test.ts",
+        "packages/generator-react/src/__tests__/form-complete.conformance.test.ts",
+        "packages/generator-vue/test/form-complete.conformance.test.mjs",
+        "packages/generator-svelte/test/form-complete.conformance.test.mjs"
       ],
       "docs": [
         "docs/spec/form-runtime.md",
@@ -620,6 +631,14 @@
         {
           "id": "test-2",
           "command": "npm test -w @crudui/generator-react -- src/__tests__/form-render.conformance.test.ts"
+        },
+        {
+          "id": "test-3",
+          "command": "npm test -w @crudui/generator-html -- src/form-complete.conformance.test.ts"
+        },
+        {
+          "id": "test-4",
+          "command": "npm test -w @crudui/generator-react -- src/__tests__/form-complete.conformance.test.ts"
         }
       ]
     },

@@ -30,6 +30,8 @@ export function createDispatch({ renderForm, renderList, renderDetail }) {
       case 'renderDetail':
         // The library checks the record in rule order; an absent record is the empty object.
         return (request.operation === 'buildDetail' ? buildDetail : renderDetail)(request.spec, own(request, 'record') ? request.record : {}, request.options);
+      case 'renderForm':
+        return renderForm(createForm(template(request.template), request.data, request.options), own(request, 'render') ? request.render : {});
       case 'form': {
         const form = createForm(template(request.template), request.data, request.options);
         if (own(request, 'actions') && !Array.isArray(request.actions)) throw new FormInputError('Actions must be an array');

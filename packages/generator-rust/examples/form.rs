@@ -56,7 +56,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         },
     )?;
     injected.set_data(&data)?;
-    assert_eq!(render_form(&initial)?, render_form(&injected)?);
+    assert_eq!(render_form(&initial, None)?, render_form(&injected, None)?);
     assert_eq!(initial.get_data(), injected.get_data());
     let record = injected.get_data();
     let validation = validate(&spec, &record, &ValidateOptions::default())?;
@@ -120,7 +120,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "<!doctype html><html lang=\"en\"><meta charset=\"utf-8\"><title>CRUDUI form, list and detail</title>\
          <h1>Form</h1><form method=\"post\">{}</form>\
          <h1>List</h1>{list}<h1>Detail</h1>{details}</html>",
-        render_form(&injected)?
+        render_form(&injected, None)?
     );
     Ok(())
 }

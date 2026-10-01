@@ -1,5 +1,23 @@
 # Changes
 
+## 2026-10-02 — renderForm writes the complete form
+
+- `renderForm(form, options)` writes the complete form that a server sends, so the server
+  writes no part of a form. `options.action` adds a `form` element with `action`, `encType` and
+  `method` taken from the option or the template's `action`; `options.hidden` adds hidden inputs
+  inside it, outside the `crudui-form` element that `connectForm` synchronizes;
+  `options.formErrors` adds a `crudui-form__errors` element before the body; `options.errors`
+  places each message in a `crudui-node__errors` slot after the body of the node with that data
+  path, and validation result errors are accepted unchanged. Options outside the contract fail
+  with `INVALID_FORM_INPUT`. Without options the output is the `crudui-form` block as before.
+- JavaScript (`@crudui/generator-html`, React, Vue and Svelte with an `options` prop on `Form`),
+  PHP (`Generator::renderForm($form, $options)`), the PHP extension, Go
+  (`RenderForm(form, options)`) and Rust (`render_form(&form, options)`) write the same markup.
+  Go and Rust callers pass `nil` or `None` for the `crudui-form` block alone.
+- The stylesheet colors errors with the new `--crudui-error` property.
+- The shared complete form cases are compared byte for byte in React, the HTML renderer, PHP,
+  the PHP extension, Go and Rust, and after normalization in Vue and Svelte.
+
 ## 2026-10-02 — A single-choice field rejects a list
 
 - A field of type `select`, `dropdown`, `selectbox`, `choice` or `radio` without `lang` holds one

@@ -19,7 +19,9 @@ const listHtml = renderList(listSpec, [{ name: 'Ada' }], { language: 'en' });
 ```
 
 Render `Form` with the `form` prop. Compile once per shared template and create a form instance
-per form. `renderForm(form)` returns the same markup as a string for server rendering.
+per form. `renderForm(form, options)` returns the same markup as a string for server rendering;
+`options` makes it the [complete form](../../docs/spec/form-runtime.md#complete-form), and `Form`
+accepts the same `options` prop.
 
 `List` takes `vm` and `layout` props and `Detail` takes a `vm` prop, with models built by
 `buildList(spec, rows, options)` and `buildDetail(spec, record, options)` of `@crudui/generator-core`.

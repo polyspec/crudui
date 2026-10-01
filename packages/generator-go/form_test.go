@@ -63,8 +63,8 @@ func TestTemplateCacheAndDataReplacement(t *testing.T) {
 	if e := injected.SetData(data); e != nil {
 		t.Fatal(e)
 	}
-	a, _ := RenderForm(initial)
-	b, _ := RenderForm(injected)
+	a, _ := RenderForm(initial, nil)
+	b, _ := RenderForm(injected, nil)
 	if a != b {
 		t.Fatal("Initial data and later injection must produce identical raw HTML")
 	}
@@ -74,7 +74,7 @@ func TestTemplateCacheAndDataReplacement(t *testing.T) {
 	if e := injected.SetData(data); e != nil {
 		t.Fatal(e)
 	}
-	again, _ := RenderForm(injected)
+	again, _ := RenderForm(injected, nil)
 	if a != again {
 		t.Fatal("Repeated injection changed HTML")
 	}
@@ -84,7 +84,7 @@ func TestTemplateCacheAndDataReplacement(t *testing.T) {
 	if e := injected.SetData(data); e != nil {
 		t.Fatal(e)
 	}
-	again, _ = RenderForm(injected)
+	again, _ = RenderForm(injected, nil)
 	if a != again {
 		t.Fatal("Restoring record changed HTML")
 	}
@@ -113,7 +113,7 @@ func TestScopedRowsAndDocumentOrder(t *testing.T) {
 	if e = f.RekeyRow(p, k, "__0000000000042__"); e != nil {
 		t.Fatal(e)
 	}
-	html, _ := RenderForm(f)
+	html, _ := RenderForm(f, nil)
 	if !strings.Contains(html, `name="form[companies][__0000000000005__][stores][__0000000000042__][name]"`) {
 		t.Fatal("Rekey did not update descendant input names")
 	}
@@ -166,7 +166,7 @@ func TestRejectedOperationsAreAtomic(t *testing.T) {
 func TestEmptyMissingNullAndArrayValues(t *testing.T) {
 	template := compile(t, `{"type":"group","properties":{"tags":{"type":"text","multiple":true,"default":"new"}}}`)
 	empty := newForm(t, template, NewObject("tags", NewObject()))
-	html, _ := RenderForm(empty)
+	html, _ := RenderForm(empty, nil)
 	if !strings.Contains(html, `<div class="crudui-node__footer"><div class="crudui-controls" role="group" aria-label="Collection controls"><button type="button" class="crudui-action" data-crudui-action="add-row" aria-label="Add"></button></div></div>`) || strings.Contains(html, `name="form[tags]`) {
 		t.Fatal("Empty collection must retain only its add control")
 	}
@@ -262,7 +262,7 @@ func TestNativeBindingLabelsAndSelections(t *testing.T) {
 	template := compile(t, `{"type":"group","properties":{"active":{"type":"checkbox","label":"Active"},"memo":{"type":"textarea","label":"Memo","design":{"show":".active","wrapper":{"class":".active ? 'enabled' : 'disabled'"}}},"choices":{"type":"multichoice","label":"Choices","items":{"z":"Z","a":"A","q":"Q"}}}}`)
 	data := NewObject("active", true, "memo", "hello <world>", "choices", []any{"q", "z"})
 	f := newForm(t, template, data)
-	html, _ := RenderForm(f)
+	html, _ := RenderForm(f, nil)
 	if !strings.Contains(html, `for="crudui:memo"`) || !strings.Contains(html, `name="form[choices][]"`) || strings.Count(html, `checked=""`) != 3 {
 		t.Fatal(html)
 	}
@@ -272,7 +272,7 @@ func TestNativeBindingLabelsAndSelections(t *testing.T) {
 	if e := f.SetValue("active", false); e != nil {
 		t.Fatal(e)
 	}
-	html, _ = RenderForm(f)
+	html, _ = RenderForm(f, nil)
 	if !strings.Contains(html, `<div class="crudui-node crudui-node--field disabled" data-field-path="memo" hidden="">`) {
 		t.Fatal("Conditional display was not reevaluated")
 	}
@@ -304,7 +304,7 @@ func TestNodeGrammarRowsAndControls(t *testing.T) {
 	if stringAt(read(nested, "header"), "number") != "1.2" || stringAt(read(nested, "controls"), "placement") != "header" {
 		t.Fatal(encode(t, nested))
 	}
-	html, _ := RenderForm(f)
+	html, _ := RenderForm(f, nil)
 	for _, part := range []string{
 		`<div class="crudui-form"><div class="crudui-form__body"><div class="crudui-node crudui-node--collection" data-field-path="items">`,
 		`<div class="crudui-node crudui-node--row crudui-node--sticky" style="--crudui-sticky-depth:0" data-crudui-row-key="first"><div class="crudui-node__header-container"><div class="crudui-node__header"><button type="button" class="crudui-action" data-crudui-action="toggle-row" aria-expanded="true" aria-controls="crudui:items.first:body" aria-label="Expand or collapse"></button>`,

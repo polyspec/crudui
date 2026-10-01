@@ -14,3 +14,9 @@ export function rootStyle(vm: NodeVM): string | undefined {
     .join('; ');
   return style || undefined;
 }
+
+/** Context key of the node errors that `FormFields` provides to every `Node`. */
+export const NODE_ERRORS = Symbol('crudui-node-errors');
+
+/** Reads the error texts of the nodes that have errors (form-runtime.md, "Complete form"). */
+export type NodeErrorsSource = () => ReadonlyMap<NodeVM, readonly string[]> | undefined;

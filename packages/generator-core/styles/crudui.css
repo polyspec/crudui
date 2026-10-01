@@ -3,7 +3,7 @@
  * data view.
  *
  * Every data node is `crudui-node` with one `crudui-node--{kind}` modifier and
- * the shared `__header`, `__body` and `__footer` slots. Every rule is scoped to a
+ * the shared `__header`, `__body`, `__errors` and `__footer` slots. Every rule is scoped to a
  * crudui block, and a page needs no other stylesheet to render a form: box sizing,
  * controls, choices and affixes are defined here. Behavior reads data and ARIA
  * attributes; these rules only style the grammar.
@@ -31,6 +31,7 @@
   --crudui-subtle: #f9fafb;
   --crudui-accent: #1d4ed8;
   --crudui-on-accent: #ffffff;
+  --crudui-error: #b91c1c;
   --crudui-action-text: #374151;
   --crudui-action-size: 1.75rem;
   --crudui-control-border: var(--crudui-border);
@@ -75,6 +76,24 @@
   flex-basis: 100%;
   margin: 0;
   color: var(--crudui-muted);
+  font-size: 0.8125rem;
+}
+
+/* Form errors precede the body; node errors follow the node body. */
+.crudui-form__errors,
+.crudui-node__errors {
+  display: grid;
+  gap: 0.25rem;
+  color: var(--crudui-error);
+}
+
+.crudui-form__errors {
+  margin-bottom: 0.75rem;
+}
+
+.crudui-form__error,
+.crudui-node__error {
+  margin: 0;
   font-size: 0.8125rem;
 }
 
