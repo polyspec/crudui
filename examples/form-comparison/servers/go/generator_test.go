@@ -257,7 +257,13 @@ func TestGenerationRejectsMalformedRequests(t *testing.T) {
 func TestSSRUsesFrameworkStorageAndNormalSubmission(t *testing.T) {
 	s, host := currentServer(t)
 	defer host.Close()
-	spec := record("type", "group", "properties", record("companies", record("type", "group", "multiple", true, "properties", record("name", record("type", "text", "validate", record("required", true))))),
+	// The specification declares every field of the submission shape the server completes, because
+	// validation rejects an undeclared field.
+	stores := record("type", "group", "multiple", true, "properties", record(
+		"name", record("type", "text"), "enabled", record("type", "text"), "detail", record("type", "text"),
+		"title", record("type", "text", "lang", record("only", []any{"ko", "en"})),
+		"departments", record("type", "group", "multiple", true, "properties", record("name", record("type", "text")))))
+	spec := record("type", "group", "properties", record("companies", record("type", "group", "multiple", true, "properties", record("name", record("type", "text", "validate", record("required", true)), "stores", stores))),
 		"buttons", []any{record("type", "submit", "name", "_form_complete", "value", "1")})
 	encoded, err := encodeJSON(spec)
 	if err != nil {
