@@ -839,11 +839,11 @@ function sourceForValidationAllocationFailures() {
   });
   const uniqueRowsData = builder.emit({ rows: { first: { code: 'a' }, second: { code: 'a' } } });
   builder.lines.push(
-    `  int status = verify_validation_allocation_failures(${repeatedGroupProperties}, ${repeatedGroupData}, 5);`,
+    `  int status = verify_validation_allocation_failures(${repeatedGroupProperties}, ${repeatedGroupData}, 7);`,
     '  if (status) return status;',
-    `  status = verify_validation_allocation_failures(${repeatedFieldProperties}, ${repeatedFieldData}, 4);`,
+    `  status = verify_validation_allocation_failures(${repeatedFieldProperties}, ${repeatedFieldData}, 5);`,
     '  if (status) return 10 + status;',
-    `  status = verify_validation_allocation_failures(${uniqueRowsProperties}, ${uniqueRowsData}, 13);`,
+    `  status = verify_validation_allocation_failures(${uniqueRowsProperties}, ${uniqueRowsData}, 16);`,
     '  if (status) return 20 + status;',
     `  ps_value_free(${uniqueRowsProperties}); ps_value_free(${uniqueRowsData});`,
     `  ps_value_free(${repeatedGroupProperties}); ps_value_free(${repeatedGroupData});`,
