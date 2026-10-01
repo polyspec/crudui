@@ -1,5 +1,13 @@
 # Changes
 
+## 2026-10-01 — Form connection keeps values entered before it
+
+- `connectForm` reads every control that differs from its rendered default before it
+  synchronizes the controls, so values that a visitor entered into server markup before the
+  client connected the form remain in the control and in the form session.
+- The HTML renderer form session case enters text into server markup before the connection
+  and verifies the controls and the session values.
+
 ## 2026-09-26 — React component and server entries have separate exports
 
 - `@crudui/generator-react` exports React components without loading `react-dom/server`.

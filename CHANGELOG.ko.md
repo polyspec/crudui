@@ -1,5 +1,12 @@
 # 변경 기록
 
+## 2026-10-01 — 폼 연결 전에 입력한 값을 유지
+
+- `connectForm`은 control을 동기화하기 전에 렌더된 기본값과 다른 control을 읽습니다. 그래서
+  클라이언트가 폼을 연결하기 전에 방문자가 서버 markup에 입력한 값이 control과 폼 세션에 남습니다.
+- HTML renderer 폼 세션 사례가 연결 전에 서버 markup에 텍스트를 입력하고 control과 세션 값을
+  검증합니다.
+
 ## 2026-09-26 — React 컴포넌트와 서버 진입점의 export 분리
 
 - `@crudui/generator-react`는 `react-dom/server`를 불러오지 않고 React 컴포넌트를 내보냅니다.
