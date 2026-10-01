@@ -20,7 +20,8 @@ final class PublicApiTest extends TestCase
                 self::assertSame('Text must be Unicode scalar values' . $location, $error->getMessage());
             }
         }
-        self::assertTrue(Validator::validate([], ['name' => '한글 🎉'])->valid);
+        $declared = ['type' => 'group', 'properties' => ['name' => ['type' => 'text']]];
+        self::assertTrue(Validator::validate($declared, ['name' => '한글 🎉'])->valid);
     }
 
     public function testCompositionTraceIsSeparateFromTheExceptionStack(): void
