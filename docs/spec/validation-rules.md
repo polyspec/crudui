@@ -61,6 +61,15 @@ the root, each group and each repeated group row, including hidden groups. A con
 reference to data must name a declared field. Unknown object members fail as input errors before
 field rules run; the first unknown member is chosen in code point order at each object.
 
+A single-choice field is a field of type `select`, `dropdown`, `selectbox`, `choice` or `radio`
+whose `lang` is absent, `false` or `null`. It holds one value: its present data, and each row value
+of a repeated single-choice field, is a string, a number, a boolean or `null`. An array or an
+object there, including an empty one, is an input error with the message
+`Choice data must be a single value: {path}`; a field that holds several choices uses
+`multichoice`, `checkboxes` or `checkcontainer`. Like the other data-shape checks it applies to
+hidden fields. Fields are checked in declaration order, the field before its rows, and rows in
+sorted key order.
+
 ## Values
 
 Every runtime applies these definitions; the rules below use no other notion of

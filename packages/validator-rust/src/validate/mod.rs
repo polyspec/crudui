@@ -15,6 +15,7 @@
 //! expression engine reuses `crate::expr`. Nothing re-implements them.
 
 mod canonical;
+mod choice_data;
 pub mod errors;
 mod length;
 mod membership;

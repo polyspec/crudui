@@ -16,8 +16,9 @@ labels, empty member sets that match no value, member order, composed specificat
 the declared rule name, rule names that are not registered (in `validate` and `messages`, at
 nested row paths, for hidden fields and in check order), empty values that skip format rules, and
 the shape of submitted data. The
-data-shape cases reject undeclared members at the root, in groups and in repeated group rows;
-fields referenced by conditions are declared in each specification. The
+data-shape cases reject undeclared members at the root, in groups and in repeated group rows,
+and an array or object as the value of a single-choice field or of its rows, hidden fields
+included; fields referenced by conditions are declared in each specification. The
 visibility cases check that a field hidden by `design.show` (an expression, a condition map or
 `false`, in its row context) skips all of its rules and those of every field it contains, while
 other rules still read its kept value, and a three-step toggle that validates kept values again

@@ -100,6 +100,31 @@ export const MEMBERSHIP_PARAM_RULES = ['in'];
 /** A CRUDUI field after compose: a plain object with the role slots. */
 export type ComposedField = Record<string, unknown>;
 
+/** Field types whose control holds one value (validation-rules.md, "Evaluation"). */
+const SINGLE_CHOICE_TYPES: ReadonlySet<unknown> = new Set(['select', 'dropdown', 'selectbox', 'choice', 'radio']);
+
+/** Whether a field is a single-choice field: a single-choice type without `lang`. */
+function isSingleChoice(field: ComposedField): boolean {
+  return SINGLE_CHOICE_TYPES.has(field.type) && (field.lang === undefined || field.lang === false || field.lang === null);
+}
+
+/**
+ * Reject an array or object as the value of a single-choice field, or of a row of a
+ * repeated one (rows in sorted key order).
+ *
+ * @throws {FormInputError} for the first value that is not a single value.
+ */
+function assertSingleChoiceData(value: unknown, path: string[], repeated: boolean): void {
+  const entries: Array<[string[], unknown]> = repeated
+    ? Object.keys(value as Record<string, unknown>).sort().map((key) => [[...path, key], (value as Record<string, unknown>)[key]])
+    : [[path, value]];
+  for (const [entryPath, entry] of entries) {
+    if (entry !== null && typeof entry === 'object') {
+      throw new FormInputError(`Choice data must be a single value: ${pathToString(entryPath)}`);
+    }
+  }
+}
+
 /**
  * Normalize a polymorphic `validate` slot to a rule map. `false` → no rules;
  * `true`/`{}` → no rules (the default-on slot carries no sub-rules); an object →
@@ -341,6 +366,9 @@ export class Validator {
         throw new FormInputError(
           `Repeated data must be a keyed object: ${pathToString(fieldPath)}`
         );
+      }
+      if (present && isSingleChoice(field)) {
+        assertSingleChoiceData(fieldValue, fieldPath, isMultiple);
       }
 
       if (field.type === 'group' && childProps) {

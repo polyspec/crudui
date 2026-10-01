@@ -1,5 +1,15 @@
 # Changes
 
+## 2026-10-02 — A single-choice field rejects a list
+
+- A field of type `select`, `dropdown`, `selectbox`, `choice` or `radio` without `lang` holds one
+  value. Validation fails with `INVALID_FORM_INPUT` and `Choice data must be a single value:
+  {path}` when its data, or a row of a repeated one, is an array or an object, hidden fields
+  included. Validation previously accepted a list such as `["q", "r"]` and checked `in` for each
+  element, so a submitted list passed as a single choice.
+- JavaScript, PHP, the PHP extension, Go and Rust run the shared list, empty list, object,
+  hidden, repeated row, group row, declaration order and accepted value cases.
+
 ## 2026-10-02 — An empty membership list allows no value
 
 - An `in` rule with an empty list or an empty map is valid and matches no value, so a field
