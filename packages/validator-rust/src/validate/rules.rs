@@ -234,11 +234,9 @@ fn is_valid_email_label(label: &str) -> bool {
     if !is_alnum(bytes[0]) || !is_alnum(bytes[n - 1]) {
         return false;
     }
-    bytes
-        .get(1..n.saturating_sub(1))
-        .map_or(true, |middle| {
-            middle.iter().all(|&b| is_alnum(b) || b == b'-')
-        })
+    bytes.get(1..n.saturating_sub(1)).map_or(true, |middle| {
+        middle.iter().all(|&b| is_alnum(b) || b == b'-')
+    })
 }
 
 // ---------------------------------------------------------------------------
