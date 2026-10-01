@@ -273,6 +273,18 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
   element.addEventListener('input', onInput);
   element.addEventListener('change', onInput);
   element.addEventListener('click', onClick);
+  // A visitor can edit server markup before the connection; those edits differ from the
+  // rendered defaults and win over the rendered values.
+  for (const control of controls()) {
+    const edited = control.tagName === 'SELECT'
+      ? Array.from((control as HTMLSelectElement).options).some(option => option.selected !== option.defaultSelected)
+      : control.tagName === 'INPUT' && ['checkbox', 'radio'].includes((control as HTMLInputElement).type)
+        ? (control as HTMLInputElement).checked !== (control as HTMLInputElement).defaultChecked
+        : control.tagName === 'INPUT' && (control as HTMLInputElement).type === 'file'
+          ? ((control as HTMLInputElement).files?.length ?? 0) > 0
+          : control.value !== (control as HTMLInputElement | HTMLTextAreaElement).defaultValue;
+    if (edited) onInput({ target: control } as unknown as Event);
+  }
   sync();
   return {
     sync,

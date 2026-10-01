@@ -143,3 +143,28 @@ test('keeps the typed control node, its order and its caret', async () => {
     unmount();
   }
 });
+
+test('connecting keeps values entered into the server markup before the connection', () => {
+  const session = createForm(compileForm({
+    type: 'group',
+    properties: { email: { type: 'text' }, note: { type: 'textarea' }, kept: { type: 'text' } },
+  }, { keyPrefix: 'form' }), { email: '', note: '', kept: 'server' });
+  const element = document.createElement('div');
+  element.innerHTML = renderForm(session);
+  const email = element.querySelector<HTMLInputElement>('input[name="form[email]"]')!;
+  const note = element.querySelector<HTMLTextAreaElement>('textarea[name="form[note]"]')!;
+  const kept = element.querySelector<HTMLInputElement>('input[name="form[kept]"]')!;
+  email.value = 'typed@example.test';
+  note.value = 'typed note';
+  const connection = connectForm(element, session);
+  try {
+    expect(email.value).toBe('typed@example.test');
+    expect(note.value).toBe('typed note');
+    expect(kept.value).toBe('server');
+    expect(session.getValue('email')).toBe('typed@example.test');
+    expect(session.getValue('note')).toBe('typed note');
+    expect(session.getValue('kept')).toBe('server');
+  } finally {
+    connection.disconnect();
+  }
+});
