@@ -122,6 +122,7 @@ the wrong shape is an input failure (`FormInputError`, code `INVALID_FORM_INPUT`
 | Present group data or a repeated group row that is not an object | `Group data must be an object: {path}` |
 | Present repeated data that is not a keyed object | `Repeated data must be a keyed object: {path}` |
 | An object member in root, group or repeated group row data without a declared field | `Unknown form data field: {path}` |
+| An array or object as the value of a [single-choice field](../spec/validation-rules.md#evaluation) or of one of its rows | `Choice data must be a single value: {path}` |
 
 Missing group or repeated data is not a failure. JavaScript and PHP throw the
 failure; Go returns it as an error; Rust returns `Err(ValidateError)`. Every

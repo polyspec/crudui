@@ -643,6 +643,43 @@ static ps_text *sorted_row_keys(const ps_value *rows, size_t *count)
     return keys;
 }
 
+/* A single-choice field: select, dropdown, selectbox, choice or radio whose lang is absent, false or null. */
+static bool single_choice_field(const ps_value *field)
+{
+    static const char *const types[] = {"select", "dropdown", "selectbox", "choice", "radio"};
+    const ps_value *type = ps_get(field, "type");
+    bool single = false;
+    for (size_t i = 0; !single && i < sizeof(types) / sizeof(*types); ++i) single = ps_is_string(type, types[i]);
+    const ps_value *lang = ps_get(field, "lang");
+    return single && (!lang || lang->kind == PS_NULL || (lang->kind == PS_BOOL && !lang->data.boolean));
+}
+
+/* Reject an array or object as a single-choice value, or as a row value of a repeated
+   single-choice field in sorted key order. Returns false on a failure. */
+static bool single_choice_data(const ps_value *value, bool repeated, validation_context *context,
+                               const ps_text *path, size_t length)
+{
+    static const char label[] = "Choice data must be a single value: ";
+    if (!repeated) {
+        if (value->kind != PS_ARRAY && value->kind != PS_OBJECT) return true;
+        return input_failure(context, label, path, length);
+    }
+    size_t count = 0;
+    ps_text *keys = sorted_row_keys(value, &count);
+    if (!keys) return false;
+    for (size_t j = 0; j < count; ++j) {
+        const ps_value *row = ps_get_text(value, keys[j]);
+        if (!row || (row->kind != PS_ARRAY && row->kind != PS_OBJECT)) continue;
+        ps_text *row_path = malloc((length + 1) * sizeof(*row_path));
+        if (!row_path) { free(keys); return false; }
+        memcpy(row_path, path, length * sizeof(*row_path)); row_path[length] = keys[j];
+        input_failure(context, label, row_path, length + 1);
+        free(row_path); free(keys); return false;
+    }
+    free(keys);
+    return true;
+}
+
 /* A repeated field: multiple is true, only or an object. */
 static bool repeated_field(const ps_value *field)
 {
@@ -714,6 +751,9 @@ static bool validate_properties(const ps_value *properties, const ps_value *data
         bool group = ps_is_string(ps_get(field, "type"), "group") && children && children->kind == PS_OBJECT;
         if (repeated && value && value->kind != PS_OBJECT) {
             input_failure(context, "Repeated data must be a keyed object: ", path, length + 1);
+            free(path); return false;
+        }
+        if (value && single_choice_field(field) && !single_choice_data(value, repeated, context, path, length + 1)) {
             free(path); return false;
         }
         if (group && !repeated && value && value->kind != PS_OBJECT) {

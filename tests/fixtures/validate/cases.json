@@ -7996,6 +7996,339 @@
     }
   },
   {
+    "name": "input-choice-list",
+    "note": "a select field holds one value; a list is an input failure, not a membership check.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "g": {
+          "type": "select",
+          "items": {
+            "q": "Q",
+            "r": "R"
+          },
+          "validate": {
+            "in": [
+              "q",
+              "r"
+            ]
+          }
+        }
+      }
+    },
+    "data": {
+      "g": [
+        "q",
+        "r"
+      ]
+    },
+    "expectFailure": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Choice data must be a single value: g",
+      "at": ""
+    }
+  },
+  {
+    "name": "input-choice-empty-list",
+    "note": "an empty list is still a list, so it fails before the empty-value rules.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "g": {
+          "type": "dropdown",
+          "items": {
+            "q": "Q"
+          }
+        }
+      }
+    },
+    "data": {
+      "g": []
+    },
+    "expectFailure": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Choice data must be a single value: g",
+      "at": ""
+    }
+  },
+  {
+    "name": "input-choice-object",
+    "note": "a radio field holds one value; an object is an input failure.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "g": {
+          "type": "radio",
+          "items": {
+            "q": "Q"
+          }
+        }
+      }
+    },
+    "data": {
+      "g": {
+        "q": "Q"
+      }
+    },
+    "expectFailure": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Choice data must be a single value: g",
+      "at": ""
+    }
+  },
+  {
+    "name": "input-choice-hidden",
+    "note": "the data shape is checked for a field that design.show hides.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "g": {
+          "type": "selectbox",
+          "items": {
+            "q": "Q"
+          },
+          "design": {
+            "show": false
+          }
+        }
+      }
+    },
+    "data": {
+      "g": [
+        "q"
+      ]
+    },
+    "expectFailure": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Choice data must be a single value: g",
+      "at": ""
+    }
+  },
+  {
+    "name": "input-choice-repeated-row",
+    "note": "each row of a repeated choice field holds one value; rows are checked in sorted key order.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "g": {
+          "type": "choice",
+          "multiple": true,
+          "items": {
+            "q": "Q"
+          }
+        }
+      }
+    },
+    "data": {
+      "g": {
+        "b": [
+          "q"
+        ],
+        "a": {
+          "q": 1
+        },
+        "c": "q"
+      }
+    },
+    "expectFailure": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Choice data must be a single value: g.a",
+      "at": ""
+    }
+  },
+  {
+    "name": "input-choice-in-group-row",
+    "note": "a choice field inside a repeated group row reports its full data path.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "rows": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "g": {
+              "type": "select",
+              "items": {
+                "q": "Q"
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "rows": {
+        "r1": {
+          "g": "q"
+        },
+        "r2": {
+          "g": [
+            "q"
+          ]
+        }
+      }
+    },
+    "expectFailure": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Choice data must be a single value: rows.r2.g",
+      "at": ""
+    }
+  },
+  {
+    "name": "input-choice-declaration-order",
+    "note": "fields are checked in declaration order, so the first choice field with a list is reported.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "first": {
+          "type": "text",
+          "validate": {
+            "required": true
+          }
+        },
+        "second": {
+          "type": "radio",
+          "items": {
+            "q": "Q"
+          }
+        },
+        "third": {
+          "type": "select",
+          "items": {
+            "q": "Q"
+          }
+        }
+      }
+    },
+    "data": {
+      "third": [
+        "q"
+      ],
+      "second": [
+        "q"
+      ]
+    },
+    "expectFailure": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Choice data must be a single value: second",
+      "at": ""
+    }
+  },
+  {
+    "name": "input-choice-single-values",
+    "note": "strings, numbers, booleans and null are single values; multiple choices and language values keep their shapes.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "text": {
+          "type": "select",
+          "items": {
+            "q": "Q"
+          },
+          "validate": {
+            "in": [
+              "q"
+            ]
+          }
+        },
+        "number": {
+          "type": "dropdown",
+          "items": {
+            "1": "One"
+          },
+          "validate": {
+            "in": [
+              "1"
+            ]
+          }
+        },
+        "yes": {
+          "type": "radio",
+          "items": {
+            "1": "Yes"
+          },
+          "validate": {
+            "in": [
+              "1"
+            ]
+          }
+        },
+        "none": {
+          "type": "choice",
+          "items": {
+            "q": "Q"
+          },
+          "validate": {
+            "in": [
+              "q"
+            ]
+          }
+        },
+        "many": {
+          "type": "multichoice",
+          "items": {
+            "q": "Q",
+            "r": "R"
+          },
+          "validate": {
+            "in": [
+              "q",
+              "r"
+            ]
+          }
+        },
+        "boxes": {
+          "type": "checkboxes",
+          "items": {
+            "q": "Q"
+          }
+        },
+        "translated": {
+          "type": "select",
+          "lang": true,
+          "items": {
+            "q": "Q"
+          }
+        },
+        "rows": {
+          "type": "selectbox",
+          "multiple": true,
+          "items": {
+            "q": "Q"
+          },
+          "validate": {
+            "in": [
+              "q"
+            ]
+          }
+        }
+      }
+    },
+    "data": {
+      "text": "q",
+      "number": 1,
+      "yes": true,
+      "none": null,
+      "many": [
+        "q",
+        "r"
+      ],
+      "boxes": [],
+      "translated": {
+        "ko": "q",
+        "en": "q"
+      },
+      "rows": {
+        "a": "q",
+        "b": null
+      }
+    },
+    "expected": {
+      "valid": true,
+      "errors": []
+    }
+  },
+  {
     "name": "visibility-condition-map-without-selection",
     "note": "Only a resolved false hides a field: a condition map that selects nothing leaves the field visible.",
     "spec": {

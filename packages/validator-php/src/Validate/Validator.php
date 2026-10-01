@@ -225,6 +225,9 @@ final class Validator
             if ($isMultiple && $present && !self::isObject($fieldValue)) {
                 throw new FormInputError('Repeated data must be a keyed object: ' . implode('.', $fieldPath));
             }
+            if ($present && self::isSingleChoice($field)) {
+                self::assertSingleChoiceData($fieldValue, $fieldPath, $isMultiple);
+            }
 
             if (($field['type'] ?? null) === 'group' && $childProps !== null) {
                 if ($isMultiple) {
@@ -265,6 +268,39 @@ final class Validator
                 $this->validateMultipleFieldRules($field, $fieldValue, $fieldPath, $fieldDeclaration, $allData, $errors);
             } else {
                 $this->validateFieldRules($field, $fieldValue, $fieldPath, $fieldDeclaration, $allData, $errors);
+            }
+        }
+    }
+
+    /** Field types whose control holds one value (validation-rules.md, "Evaluation"). */
+    private const SINGLE_CHOICE_TYPES = ['select', 'dropdown', 'selectbox', 'choice', 'radio'];
+
+    /** Whether a field is a single-choice field: a single-choice type without `lang`. */
+    private static function isSingleChoice(array $field): bool
+    {
+        $lang = $field['lang'] ?? null;
+        return \in_array($field['type'] ?? null, self::SINGLE_CHOICE_TYPES, true) && ($lang === null || $lang === false);
+    }
+
+    /**
+     * Reject an array or object as the value of a single-choice field, or of a row of a
+     * repeated one (rows in sorted key order).
+     *
+     * @param list<string> $path
+     * @throws FormInputError for the first value that is not a single value
+     */
+    private static function assertSingleChoiceData(mixed $value, array $path, bool $repeated): void
+    {
+        $entries = [[$path, $value]];
+        if ($repeated) {
+            $rows = (array) $value;
+            $keys = array_map('strval', array_keys($rows));
+            sort($keys, SORT_STRING);
+            $entries = array_map(static fn (string $key): array => [[...$path, $key], $rows[$key]], $keys);
+        }
+        foreach ($entries as [$entryPath, $entry]) {
+            if (\is_array($entry) || \is_object($entry)) {
+                throw new FormInputError('Choice data must be a single value: ' . implode('.', $entryPath));
             }
         }
     }

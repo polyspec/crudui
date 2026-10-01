@@ -142,6 +142,11 @@ func (v *Validator) validateProperties(properties *compose.OMap, data map[string
 		if isMultiple && present && !isObject(fieldValue) {
 			return &FormInputError{Message: "Repeated data must be a keyed object: " + pathToString(fieldPath)}
 		}
+		if present && isSingleChoice(field) {
+			if err := checkSingleChoiceData(fieldValue, fieldPath, isMultiple); err != nil {
+				return err
+			}
+		}
 		// A hidden field's rules and its descendants' rules are not evaluated.
 		fieldHidden := hidden || !v.fieldVisible(field, fieldPath, allData)
 

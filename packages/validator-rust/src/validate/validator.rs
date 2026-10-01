@@ -19,6 +19,7 @@ use serde_json::{Map, Value};
 
 use crate::expr::{Evaluator, Expression, Node};
 
+use super::choice_data::{check_single_choice_data, is_single_choice};
 use super::errors::{FormInputError, ValidateError};
 use super::parameters::{check, check_declared, Patterns};
 use super::rules::{get_rule, is_condition_expression, RuleContext};
@@ -190,6 +191,9 @@ impl Validator {
                     path_to_string(&field_path)
                 ))
                 .into());
+            }
+            if let Some(value) = present.filter(|_| is_single_choice(field)) {
+                check_single_choice_data(value, &field_path, is_multiple)?;
             }
 
             if let Some(child_props) = is_group_with_properties(field) {
