@@ -681,7 +681,12 @@ fn native_fixture_records() {
         };
         // Rows arrive as decoded JSON, so the rows rule applies here exactly as in the generator command.
         let spec_rule=if case["spec"].is_object() {Ok(())} else {Err(FormError::input("List specification must be an object"))};
-        let result=spec_rule.and_then(|()|list_rows(case.get("rows"))).and_then(|rows|Ok(json!({"name":case["name"],"model":build_list(&case["spec"],rows,&options)?,"html":render_list(&case["spec"],rows,&options)?})));
+        // renderList checks the layout before composition and buildList does not read it, so the
+        // HTML is rendered first.
+        let result=spec_rule.and_then(|()|list_rows(case.get("rows"))).and_then(|rows|{
+            let html=render_list(&case["spec"],rows,&options)?;
+            Ok(json!({"name":case["name"],"model":build_list(&case["spec"],rows,&options)?,"html":html}))
+        });
         if let Some(expected)=case.get("expectError") {assert_eq!(result.as_ref().unwrap_err().code,expected["code"].as_str().unwrap(),"{}",case["name"]);}
         else {assert!(result.is_ok(),"{}: {:?}",case["name"],result.as_ref().err());}
         result.unwrap_or_else(|error|json!({"name":case["name"],"error":{"code":error.code,"message":error.message,"at":error.at}}))
