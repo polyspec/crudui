@@ -21,7 +21,7 @@ renderer는 평가된 core 모델을 소비하고 HTML을 반환합니다. `rend
 `@crudui/generator-core`의 `connectForm`을 사용합니다.
 
 데이터를 `bindForm`으로 직접 관리할 때는
-`renderFormView(bindForm(template, data, options), bindButtons(template, data, options), formMessages(language), renderOptions)`로
+`renderFormView(bindForm(template, data, options), bindButtons(template, data, options), formMessages(language), renderOptions, formDescription(template, options))`로
 같은 마크업을, `renderOutlineView`와 `renderDataPanel`로 구조 맵과 데이터 보기를 렌더링합니다.
 
 `renderList(spec, rows, { layout: 'table' | 'card' })`는 평가된 목록을 렌더링합니다.

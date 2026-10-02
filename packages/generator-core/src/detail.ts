@@ -2,7 +2,7 @@
 
 import { FormInputError } from '@crudui/validator';
 import { checkedComposition } from '@crudui/validator/internal';
-import { buildDisplay, type BuildListOptions, type CellVM } from './list';
+import { buildDisplay, type ActionVM, type BuildListOptions, type CellVM } from './list';
 import { checkArgumentText, DISPLAY_OPTIONS } from './input-text';
 import type { ResolvedDesign } from './design';
 
@@ -17,6 +17,8 @@ export interface DetailFieldVM extends CellVM {
 export interface DetailViewModel {
   /** Ordered read-only fields. */
   fields: DetailFieldVM[];
+  /** Resolved detail actions in declaration order; empty when none are declared. */
+  actions: ActionVM[];
   /** Resolved detail-container design. */
   design: ResolvedDesign;
 }
@@ -65,6 +67,7 @@ export function buildDetail(
       label: column.label,
       ...(row?.cells[index] as CellVM),
     })),
+    actions: vm.actions,
     design: vm.design,
   };
 }

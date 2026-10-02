@@ -31,7 +31,7 @@ function declaredTokens(spec) {
 // N1/N4: blocks, their elements and their modifiers.
 const blocks = {
   node: { elements: ['header', 'header-container', 'body', 'footer', 'label', 'description', 'number', 'title', 'summary', 'count'], modifiers: ['field', 'group', 'collection', 'row', 'lang', 'lang-item', 'sticky', 'framed'] },
-  form: { elements: ['body', 'footer'], modifiers: [] },
+  form: { elements: ['description', 'body', 'footer'], modifiers: [] },
   controls: { elements: [], modifiers: [] },
   action: { elements: [], modifiers: ['text'] },
   outline: { elements: ['header', 'body'], modifiers: [] },
@@ -39,8 +39,8 @@ const blocks = {
   widget: { elements: ['affix', 'button'], modifiers: ['search', 'unsupported'] },
   input: { elements: [], modifiers: ['select', 'file'] },
   choices: { elements: ['input', 'label'], modifiers: ['multiple'] },
-  list: { elements: ['table', 'heading', 'heading-label', 'sort', 'cell', 'cards', 'card', 'card-label', 'card-value', 'empty', 'actions', 'action', 'pagination', 'pagination-prev', 'pagination-page', 'pagination-next'], modifiers: [] },
-  detail: { elements: ['field', 'label', 'value'], modifiers: [] },
+  list: { elements: ['description', 'table', 'heading', 'heading-label', 'sort', 'cell', 'cards', 'card', 'card-label', 'card-value', 'empty', 'actions', 'action', 'pagination', 'pagination-prev', 'pagination-page', 'pagination-next'], modifiers: [] },
+  detail: { elements: ['actions', 'action', 'field', 'label', 'value'], modifiers: [] },
   value: { elements: [], modifiers: ['text', 'date', 'number', 'choice-label', 'badge', 'link', 'bool', 'image', 'html'] },
   badge: { elements: [], modifiers: [] },
   bool: { elements: [], modifiers: ['text', 'check', 'icon'] },

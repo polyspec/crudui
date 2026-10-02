@@ -371,7 +371,8 @@ fn rows_have_ordered_controls_titles_and_sticky_headers() {
     );
     let empty = &collection["children"][1]["children"][1];
     assert_eq!(empty["controls"]["placement"], "footer");
-    let html = crate::render::render_fields(&fields, &crate::form_render::RenderModel::default());
+    let html =
+        crate::render::render_fields(&fields, &crate::form_render::RenderModel::default(), "");
     assert!(html.starts_with("<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--collection\" data-field-path=\"items\">"));
     assert!(html.contains("<div class=\"crudui-node crudui-node--row crudui-node--sticky\" style=\"--crudui-sticky-depth:0\" data-crudui-row-key=\"first\"><div class=\"crudui-node__header-container\"><div class=\"crudui-node__header\"><button type=\"button\" class=\"crudui-action\" data-crudui-action=\"toggle-row\" aria-expanded=\"true\" aria-controls=\"crudui:items.first:body\" aria-label=\"Expand or collapse\"></button>"));
     assert!(html.contains("<span class=\"crudui-node__summary\" hidden=\"\">Nested rows: 2</span>"));
@@ -1184,6 +1185,7 @@ fn specifications_are_read_in_member_order_and_data_is_not() {
         }],
         buttons: Vec::new(),
         action: None,
+        description: None,
     };
     let data = written(&[("choice", json!("b")), ("z", json!(1)), ("5", json!(2))]);
     let fields = bind_form(&unordered, &data, &BindOptions::default()).unwrap();
@@ -1594,4 +1596,103 @@ fn widget_members_follow_the_output_order() {
         }
     }
     assert_eq!(checked, 5);
+}
+
+/// The root description is kept in the template and written first in the `crudui-form` block;
+/// a list description precedes the actions and a detail writes its actions before the `dl`.
+#[test]
+fn descriptions_and_detail_actions() {
+    let template = compile_form(
+        &json!({"type":"group","description":{"en":"A <b> & \"c\""},"properties":{"n":{"type":"text"}}}),
+        &CompileOptions::default(),
+    )
+    .unwrap();
+    let text = serde_json::to_string(&template).unwrap();
+    assert!(
+        text.ends_with(r#""buttons":[{"type":"submit"}],"description":{"en":"A <b> & \"c\""}}"#),
+        "{text}"
+    );
+    assert_eq!(
+        FormTemplate::from_json(&serde_json::to_value(&template).unwrap()).unwrap(),
+        template
+    );
+    let options = BindOptions {
+        language: "en".into(),
+        ..Default::default()
+    };
+    let form = Form::new(template.clone(), &json!({}), options.clone()).unwrap();
+    let html = render_form(&form, None).unwrap();
+    assert!(html.starts_with(r#"<div class="crudui-form"><p class="crudui-form__description">A &lt;b&gt; &amp; &quot;c&quot;</p><div class="crudui-form__body">"#), "{html}");
+    let empty = compile_form(
+        &json!({"type":"group","description":null,"properties":{}}),
+        &CompileOptions::default(),
+    )
+    .unwrap();
+    assert_eq!(
+        serde_json::to_value(&empty).unwrap()["description"],
+        Value::Null
+    );
+    let html = render_form(&Form::new(empty, &json!({}), options).unwrap(), None).unwrap();
+    assert!(
+        html.starts_with(r#"<div class="crudui-form"><div class="crudui-form__body">"#),
+        "{html}"
+    );
+
+    let list_options = ListOptions {
+        language: "en".into(),
+        ..Default::default()
+    };
+    let spec =
+        json!({"columns":{"n":{"field":"n"}},"description":"Members","actions":{"go":"go()"}});
+    let model = build_list(&spec, &[], &list_options).unwrap();
+    let keys = model
+        .as_object()
+        .unwrap()
+        .keys()
+        .cloned()
+        .collect::<Vec<_>>();
+    assert_eq!(
+        keys,
+        [
+            "columns",
+            "rows",
+            "pagination",
+            "actions",
+            "empty",
+            "description",
+            "design"
+        ]
+    );
+    let html = render_list(&spec, &[], &list_options).unwrap();
+    assert!(html.starts_with(r#"<div class="crudui-list"><p class="crudui-list__description">Members</p><div class="crudui-list__actions">"#), "{html}");
+    let rejected = build_list(
+        &json!({"columns":{},"description":5,"pagination":"x"}),
+        &[],
+        &list_options,
+    );
+    assert_eq!(
+        rejected.unwrap_err().message,
+        "Invalid description at list: expected a string, a language map or null"
+    );
+
+    let detail = json!({"fields":{"n":{"field":"n","label":"N"}},"actions":{"edit":{"label":"Edit","format":{"type":"link","href":"/e"}}}});
+    let model = build_detail(&detail, &json!({"n":"x"}), &list_options).unwrap();
+    let keys = model
+        .as_object()
+        .unwrap()
+        .keys()
+        .cloned()
+        .collect::<Vec<_>>();
+    assert_eq!(keys, ["fields", "actions", "design"]);
+    let html = render_detail(&detail, &json!({"n":"x"}), &list_options).unwrap();
+    assert!(html.starts_with(r#"<div class="crudui-detail__actions"><span class="crudui-detail__action" data-action="edit"><a href="/e">Edit</a></span></div><dl class="crudui-detail">"#), "{html}");
+    let rejected = build_detail(
+        &json!({"fields":{},"actions":[]}),
+        &json!({}),
+        &list_options,
+    );
+    assert_eq!(
+        rejected.unwrap_err().message,
+        "Invalid actions at detail: expected an object"
+    );
 }

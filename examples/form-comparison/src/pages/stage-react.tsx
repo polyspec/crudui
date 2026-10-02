@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { flushSync } from 'react-dom';
 import { createRoot, hydrateRoot } from 'react-dom/client';
-import { bindButtons, bindForm, buildDetail, buildList, formMessages } from '@crudui/generator-core';
+import { bindButtons, bindForm, buildDetail, buildList, formDescription, formMessages } from '@crudui/generator-core';
 import { Detail } from '#react/Detail';
 import { Form } from '#react/Form';
 import { FormFields } from '#react/FormFields';
@@ -47,6 +47,7 @@ export function bindFormView(container, template, language, data, hydrate) {
       fields={bindForm(template, next, { language, collapsed: view.collapsed })}
       buttons={bindButtons(template, next, { language })}
       messages={messages}
+      description={formDescription(template, { language })}
     />
   );
   const view = start(container, fields(data, { collapsed: new Set() }), hydrate);

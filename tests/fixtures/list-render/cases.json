@@ -1566,6 +1566,127 @@
     "expected_html": "<div class=\"crudui-list\"><div class=\"crudui-list__actions\"><span class=\"crudui-list__action\" data-action=\"edit\"><a href=\"/edit\">Edit</a></span><span class=\"crudui-list__action\" data-action=\"remove\"><button onremove=\"confirmDelete(this)\" type=\"button\">remove</button></span></div><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading\" data-field=\"name\"><span class=\"crudui-list__heading-label\">Name</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--text\">Ada</td></tr></tbody></table></div>"
   },
   {
+    "name": "description-before-actions",
+    "note": "a translated description is the first child of the list, before the actions; its text is escaped.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "label": "Name"
+        }
+      },
+      "description": {
+        "ko": "회원 <목록>",
+        "en": "Members <& staff>"
+      },
+      "actions": {
+        "edit": {
+          "label": {
+            "en": "Edit"
+          },
+          "format": {
+            "type": "link",
+            "href": "/edit"
+          }
+        }
+      }
+    },
+    "rows": [
+      {
+        "name": "Ada"
+      }
+    ],
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-list\"><p class=\"crudui-list__description\">Members &lt;&amp; staff&gt;</p><div class=\"crudui-list__actions\"><span class=\"crudui-list__action\" data-action=\"edit\"><a href=\"/edit\">Edit</a></span></div><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading\" data-field=\"name\"><span class=\"crudui-list__heading-label\">Name</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--text\">Ada</td></tr></tbody></table></div>"
+  },
+  {
+    "name": "description-card-without-actions",
+    "note": "a description without actions precedes the card layout.",
+    "spec": {
+      "description": "All members",
+      "columns": {
+        "name": {
+          "field": "name",
+          "label": "Name"
+        }
+      }
+    },
+    "rows": [
+      {
+        "name": "Ada"
+      }
+    ],
+    "options": {
+      "language": "en",
+      "layout": "card"
+    },
+    "expected_html": "<div class=\"crudui-list\"><p class=\"crudui-list__description\">All members</p><div class=\"crudui-list__cards\"><article class=\"crudui-list__card\"><div class=\"crudui-list__cell crudui-value crudui-value--text\"><span class=\"crudui-list__card-label\">Name</span><span class=\"crudui-list__card-value\">Ada</span></div></article></div></div>"
+  },
+  {
+    "name": "description-empty-rows",
+    "note": "a description precedes the empty state of a list without rows.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "label": "Name"
+        }
+      },
+      "description": "All members"
+    },
+    "rows": [],
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-list\"><p class=\"crudui-list__description\">All members</p><div class=\"crudui-list__empty\">No data</div></div>"
+  },
+  {
+    "name": "description-empty-text",
+    "note": "an empty description and a null description write nothing.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "label": "Name"
+        }
+      },
+      "description": ""
+    },
+    "rows": [
+      {
+        "name": "Ada"
+      }
+    ],
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-list\"><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading\" data-field=\"name\"><span class=\"crudui-list__heading-label\">Name</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--text\">Ada</td></tr></tbody></table></div>"
+  },
+  {
+    "name": "description-null",
+    "note": "a null description writes nothing.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "label": "Name"
+        }
+      },
+      "description": null
+    },
+    "rows": [
+      {
+        "name": "Ada"
+      }
+    ],
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-list\"><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading\" data-field=\"name\"><span class=\"crudui-list__heading-label\">Name</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--text\">Ada</td></tr></tbody></table></div>"
+  },
+  {
     "name": "card-layout",
     "note": "card layout → one .crudui-list__card article per row with label:value pairs, no <table>.",
     "spec": {
@@ -3690,6 +3811,96 @@
     "expectError": {
       "code": "INVALID_FORM_INPUT",
       "message": "Invalid empty at list: expected a string, a language map or null"
+    }
+  },
+  {
+    "name": "reject-description",
+    "note": "the description is content.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name"
+        }
+      },
+      "description": 5
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid description at list: expected a string, a language map or null"
+    }
+  },
+  {
+    "name": "reject-description-language-map",
+    "note": "a language map description holds strings or null.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name"
+        }
+      },
+      "description": {
+        "en": 5
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid description at list: expected a string, a language map or null"
+    }
+  },
+  {
+    "name": "reject-empty-before-description",
+    "note": "empty is checked before the description.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name"
+        }
+      },
+      "description": 5,
+      "empty": 0
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid empty at list: expected a string, a language map or null"
+    }
+  },
+  {
+    "name": "reject-description-before-pagination",
+    "note": "the description is checked before pagination.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name"
+        }
+      },
+      "pagination": "pages",
+      "description": 5
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid description at list: expected a string, a language map or null"
+    }
+  },
+  {
+    "name": "reject-actions-before-description",
+    "note": "actions are checked before the description.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name"
+        }
+      },
+      "description": 5,
+      "actions": []
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid actions at list: expected an object"
     }
   },
   {

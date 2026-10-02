@@ -255,14 +255,17 @@ function actionHtml(action: ActionVM): string {
   return `<button type="button"${cls}${style}${behavior}>${label}</button>`;
 }
 
-/** The actions toolbar (null when there are no actions). */
-function toolbarVNode(vm: ListViewModel): VNode | null {
-  if (vm.actions.length === 0) return null;
+/**
+ * The actions of a list or detail: `{block}__actions` with one `{block}__action` span per action
+ * (null when there are no actions).
+ */
+export function actionsVNode(actions: ActionVM[], block: 'crudui-list' | 'crudui-detail'): VNode | null {
+  if (actions.length === 0) return null;
   return h(
     'div',
-    { class: 'crudui-list__actions' },
-    vm.actions.map((a) =>
-      rawContainer('span', { class: 'crudui-list__action', 'data-action': a.key }, actionHtml(a))
+    { class: `${block}__actions` },
+    actions.map((a) =>
+      rawContainer('span', { class: `${block}__action`, 'data-action': a.key }, actionHtml(a))
     )
   );
 }
@@ -304,7 +307,7 @@ function paginationVNode(vm: ListViewModel): VNode | null {
 export type ListLayout = 'table' | 'card';
 
 /**
- * Build the `.crudui-list` envelope vnode around a `ListViewModel`: the actions
+ * Build the `.crudui-list` envelope vnode around a `ListViewModel`: the description, the actions
  * toolbar, the table/card body (or the `.crudui-list__empty` message), and the
  * pagination chrome. Pure presentational vnode tree — no evaluation, no DB,
  * read-only.
@@ -316,7 +319,8 @@ export function List(vm: ListViewModel, layout: ListLayout = 'table'): VNode {
     : layout === 'card'
     ? cardsVNode(vm)
     : tableVNode(vm);
-  const children = [toolbarVNode(vm), body, paginationVNode(vm)].filter(
+  const description = vm.description !== '' ? h('p', { class: 'crudui-list__description' }, vm.description) : null;
+  const children = [description, actionsVNode(vm.actions, 'crudui-list'), body, paginationVNode(vm)].filter(
     (c): c is VNode => c !== null
   );
   return h(

@@ -4,8 +4,8 @@
 
 /* Declaration rules of composed list and detail specifications (docs/spec/display-formats.md). */
 
-static const char *const list_keys[] = {"columns", "search", "sort", "pagination", "actions", "empty", "design"};
-static const char *const detail_keys[] = {"fields", "design"};
+static const char *const list_keys[] = {"columns", "search", "sort", "pagination", "actions", "empty", "description", "design"};
+static const char *const detail_keys[] = {"fields", "actions", "design"};
 static const char *const column_keys[] = {"field", "label", "format", "design", "sortable"};
 static const char *const field_keys[] = {"field", "label", "format", "design"};
 static const char *const sort_keys[] = {"field", "dir"};
@@ -173,7 +173,7 @@ static bool action_members_valid(const ps_value *action, ps_text path, ps_value 
     return !design || ps_design_declaration_valid(design, path, error);
 }
 
-/* One list action at actions.<name>. */
+/* One list or detail action at actions.<name>. */
 static bool action_valid(ps_text name, const ps_value *action, ps_value **error)
 {
     if (action->kind == PS_STRING) return true;
@@ -195,7 +195,21 @@ static bool action_valid(ps_text name, const ps_value *action, ps_value **error)
     return valid;
 }
 
-/* The list members after the columns: search, sort, actions, empty and pagination. */
+/* The actions of a list or detail at own, each action in member order. */
+static bool actions_valid(const ps_value *actions, ps_text own, ps_value **error)
+{
+    if (actions->kind != PS_OBJECT) return ps_declaration_error(PS_TEXT("actions"), own, "an object", error);
+    for (size_t i = 0; i < ps_size(actions); ++i) {
+        ps_text name = ps_key(actions, i);
+        /* Actions are not composed: a composition key is not an action name. */
+        if (ps_text_is(name, "$ref") || ps_text_is(name, "$patch"))
+            return unknown_key(PS_TEXT(""), name, PS_TEXT("actions"), error);
+        if (!action_valid(name, ps_at(actions, i), error)) return false;
+    }
+    return true;
+}
+
+/* The list members after the columns: search, sort, actions, empty, description and pagination. */
 static bool list_members_valid(const ps_value *spec, ps_value **error)
 {
     const ps_text own = PS_TEXT("list");
@@ -213,17 +227,10 @@ static bool list_members_valid(const ps_value *spec, ps_value **error)
         if (dir && !ps_is_string(dir, "asc") && !ps_is_string(dir, "desc"))
             return ps_declaration_error(PS_TEXT("sort.dir"), own, "asc or desc", error);
     }
-    if (actions) {
-        if (actions->kind != PS_OBJECT) return ps_declaration_error(PS_TEXT("actions"), own, "an object", error);
-        for (size_t i = 0; i < ps_size(actions); ++i) {
-            ps_text name = ps_key(actions, i);
-            /* Actions are not composed: a composition key is not an action name. */
-            if (ps_text_is(name, "$ref") || ps_text_is(name, "$patch"))
-                return unknown_key(PS_TEXT(""), name, PS_TEXT("actions"), error);
-            if (!action_valid(name, ps_at(actions, i), error)) return false;
-        }
-    }
+    if (actions && !actions_valid(actions, own, error)) return false;
     if (empty && !is_content(empty)) return ps_declaration_error(PS_TEXT("empty"), own, content, error);
+    const ps_value *description = ps_get(spec, "description");
+    if (description && !is_content(description)) return ps_declaration_error(PS_TEXT("description"), own, content, error);
     return !pagination || ps_pagination_declaration_valid(pagination, own, error);
 }
 
@@ -244,5 +251,7 @@ bool ps_display_declarations_valid(const ps_value *spec, const char *own, const 
     const ps_value *declared = ps_get(spec, members);
     for (size_t i = 0; i < ps_size(declared); ++i)
         if (!member_valid(ps_key(declared, i), ps_at(declared, i), list, members, error)) return false;
-    return !list || list_members_valid(spec, error);
+    if (list) return list_members_valid(spec, error);
+    const ps_value *actions = ps_get(spec, "actions");
+    return !actions || actions_valid(actions, own_text, error);
 }

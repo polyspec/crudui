@@ -12,8 +12,8 @@ export interface DisplayPaths {
   members: 'columns' | 'fields';
 }
 
-const LIST_KEYS = ['columns', 'search', 'sort', 'pagination', 'actions', 'empty', 'design'];
-const DETAIL_KEYS = ['fields', 'design'];
+const LIST_KEYS = ['columns', 'search', 'sort', 'pagination', 'actions', 'empty', 'description', 'design'];
+const DETAIL_KEYS = ['fields', 'actions', 'design'];
 const COLUMN_KEYS = ['field', 'label', 'format', 'design', 'sortable'];
 const FIELD_KEYS = ['field', 'label', 'format', 'design'];
 const SORT_KEYS = ['field', 'dir'];
@@ -108,7 +108,7 @@ function checkBehaviorEntry(event: string, entry: unknown, path: string): void {
   if (has(entry, 'script') && typeof entry.script !== 'string') fail(`behavior.${event}.script`, path, 'a string');
 }
 
-/** Check one list action at `actions.{name}`. */
+/** Check one list or detail action at `actions.{name}`. */
 function checkAction(name: string, action: unknown): void {
   if (typeof action === 'string') return;
   if (!isObject(action)) fail(name, 'actions', 'a script or an object');
@@ -146,9 +146,20 @@ function checkPagination(pagination: unknown, path: string): void {
   }
 }
 
+/** Check the actions declaration of a list or detail at `own`, each action in member order. */
+function checkActions(actions: unknown, own: string): void {
+  if (!isObject(actions)) fail('actions', own, 'an object');
+  for (const [name, action] of Object.entries(actions)) {
+    // Actions are not composed: a composition key is not an action name.
+    if (name === '$ref' || name === '$patch') throw new FormInputError(`Invalid ${name} at actions: unknown key`);
+    checkAction(name, action);
+  }
+}
+
 /**
  * Check a composed list or detail specification: the root members, the own design, each column
- * or field in member order and, for a list, search, sort, actions, empty and pagination.
+ * or field in member order and then, for a list, search, sort, actions, empty, description and
+ * pagination, and for a detail, actions.
  */
 export function checkDisplayDeclarations(spec: Record<string, unknown>, paths: DisplayPaths): void {
   const own = paths.own;
@@ -162,7 +173,10 @@ export function checkDisplayDeclarations(spec: Record<string, unknown>, paths: D
   for (const [name, member] of Object.entries(spec[paths.members] as Record<string, unknown>)) {
     checkMember(name, member, paths);
   }
-  if (own === 'detail') return;
+  if (own === 'detail') {
+    if (has(spec, 'actions')) checkActions(spec.actions, own);
+    return;
+  }
   if (has(spec, 'search') && typeof spec.search !== 'boolean' && !isObject(spec.search)) {
     fail('search', own, 'a boolean or an object');
   }
@@ -173,14 +187,8 @@ export function checkDisplayDeclarations(spec: Record<string, unknown>, paths: D
     if (has(sort, 'field') && typeof sort.field !== 'string') fail('sort.field', own, 'a string');
     if (has(sort, 'dir') && sort.dir !== 'asc' && sort.dir !== 'desc') fail('sort.dir', own, 'asc or desc');
   }
-  if (has(spec, 'actions')) {
-    if (!isObject(spec.actions)) fail('actions', own, 'an object');
-    for (const [name, action] of Object.entries(spec.actions)) {
-      // Actions are not composed: a composition key is not an action name.
-      if (name === '$ref' || name === '$patch') throw new FormInputError(`Invalid ${name} at actions: unknown key`);
-      checkAction(name, action);
-    }
-  }
+  if (has(spec, 'actions')) checkActions(spec.actions, own);
   if (has(spec, 'empty') && !isContent(spec.empty)) fail('empty', own, CONTENT);
+  if (has(spec, 'description') && !isContent(spec.description)) fail('description', own, CONTENT);
   if (has(spec, 'pagination')) checkPagination(spec.pagination, own);
 }

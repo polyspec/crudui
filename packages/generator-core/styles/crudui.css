@@ -91,6 +91,11 @@
   margin-bottom: 0.75rem;
 }
 
+.crudui-form__description {
+  margin: 0 0 0.75rem;
+  color: var(--crudui-muted);
+}
+
 .crudui-form__error,
 .crudui-node__error {
   margin: 0;
@@ -679,13 +684,24 @@ textarea.crudui-input {
   color: var(--crudui-muted);
 }
 
-.crudui-list__actions {
+.crudui-list__description {
+  margin: 0;
+  color: var(--crudui-muted);
+}
+
+.crudui-list__actions,
+.crudui-detail__actions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
 }
 
-.crudui-list__action {
+.crudui-detail__actions {
+  margin-bottom: 0.75rem;
+}
+
+.crudui-list__action,
+.crudui-detail__action {
   display: inline-flex;
 }
 

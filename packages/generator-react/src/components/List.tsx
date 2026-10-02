@@ -76,15 +76,19 @@ function actionHtml(action: ActionVM): string {
   return `<button type="button"${cls}${style}${behavior}>${label}</button>`;
 }
 
-function Toolbar({ actions }: { actions: ActionVM[] }): React.ReactElement | null {
+/**
+ * The actions of a list or detail: `{block}__actions` with one `{block}__action` span per action.
+ * A detail uses the same markup under its own block.
+ */
+export function Toolbar({ actions, block = 'crudui-list' }: { actions: ActionVM[]; block?: 'crudui-list' | 'crudui-detail' }): React.ReactElement | null {
   if (!actions.length) return null;
   return (
-    <div className="crudui-list__actions">
+    <div className={`${block}__actions`}>
       {actions.map((a) => (
         <RawContainer
           key={a.key}
           tag="span"
-          className="crudui-list__action"
+          className={`${block}__action`}
           data-action={a.key}
           html={actionHtml(a)}
         />
@@ -242,13 +246,14 @@ export interface ListProps {
   layout?: 'table' | 'card';
 }
 
-/** Render the `.crudui-list` envelope around toolbar + table/card body + pagination. */
+/** Render the `.crudui-list` envelope around the description, toolbar, table/card body and pagination. */
 export function List({ vm, layout = 'table' }: ListProps): React.ReactElement {
   const className = nodeClass('crudui-list', vm.design.wrapper.class);
   const style = nodeStyle(vm.design.wrapper.style);
   const isEmpty = vm.rows.length === 0;
   return (
     <div {...(className ? { className } : {})} {...resolvedStyleProps(style)}>
+      {vm.description !== '' && <p className="crudui-list__description">{vm.description}</p>}
       <Toolbar actions={vm.actions} />
       {isEmpty ? (
         <div className="crudui-list__empty">{vm.empty}</div>

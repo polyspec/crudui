@@ -24,7 +24,7 @@ export function Form({ form, renderButtons = true, options }: FormProps): React.
   }, [form]);
   React.useLayoutEffect(() => { binding.current?.sync(); }, [snapshot]);
   const model = formRenderModel(snapshot.fields, form.template.action, options);
-  const block = <FormFields fields={snapshot.fields} buttons={snapshot.buttons} messages={form.messages} rootRef={root} renderButtons={renderButtons} model={model} />;
+  const block = <FormFields fields={snapshot.fields} buttons={snapshot.buttons} messages={form.messages} rootRef={root} renderButtons={renderButtons} model={model} description={form.description} />;
   if (!model.form) return block;
   return (
     <form action={model.form.action} encType={model.form.encType} method={model.form.method}>

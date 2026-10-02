@@ -589,8 +589,20 @@ static bool write_form_start(render_buffer *out, const ps_form_render *render)
     return ok;
 }
 
+/* The root description paragraph; nothing when the text is empty. */
+static bool write_description(render_buffer *out, ps_text description)
+{
+    if (!description.length) return true;
+    ps_value *paragraph = ps_object_value();
+    bool ok = paragraph && attr_string(paragraph, "class", "crudui-form__description") &&
+        start_element(out, "p", paragraph, false, false) && escaped(out, description, false) &&
+        end_element(out, "p", false);
+    ps_value_free(paragraph);
+    return ok;
+}
+
 static ps_chars render_form(const ps_value *fields, const ps_value *buttons, const char *label,
-                            const ps_form_render *render)
+                            const ps_form_render *render, ps_text description)
 {
     if (!fields || fields->kind != PS_ARRAY) return (ps_chars){NULL, 0};
     render_buffer out = {0};
@@ -601,6 +613,7 @@ static ps_chars render_form(const ps_value *fields, const ps_value *buttons, con
         attr_string(body, "class", "crudui-form__body") &&
         (!wrapped || write_form_start(&out, render)) &&
         start_element(&out, "div", form, false, false) &&
+        write_description(&out, description) &&
         write_errors(&out, "crudui-form__errors", "crudui-form__error", render ? render->form_errors : NULL) &&
         start_element(&out, "div", body, false, false);
     for (size_t i = 0; ok && i < ps_size(fields); ++i) ok = write_node(&out, ps_at(fields, i), render);
@@ -613,14 +626,14 @@ static ps_chars render_form(const ps_value *fields, const ps_value *buttons, con
 
 ps_chars ps_render_fields(const ps_value *fields)
 {
-    return render_form(fields, NULL, NULL, NULL);
+    return render_form(fields, NULL, NULL, NULL, PS_TEXT(""));
 }
 
 ps_chars ps_render_form(const ps_value *fields, const ps_value *buttons, const char *actions_label,
-                        const ps_form_render *render)
+                        const ps_form_render *render, ps_text description)
 {
     if (!buttons || buttons->kind != PS_ARRAY || !actions_label) return (ps_chars){NULL, 0};
-    return render_form(fields, buttons, actions_label, render);
+    return render_form(fields, buttons, actions_label, render, description);
 }
 
 /* A string member, or false when absent or of another kind. */

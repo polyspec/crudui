@@ -14,9 +14,10 @@ const LIST_KEYS: &[&str] = &[
     "pagination",
     "actions",
     "empty",
+    "description",
     "design",
 ];
-const DETAIL_KEYS: &[&str] = &["fields", "design"];
+const DETAIL_KEYS: &[&str] = &["fields", "actions", "design"];
 const COLUMN_KEYS: &[&str] = &["field", "label", "format", "design", "sortable"];
 const FIELD_KEYS: &[&str] = &["field", "label", "format", "design"];
 const SORT_KEYS: &[&str] = &["field", "dir"];
@@ -172,7 +173,7 @@ fn check_behavior_entry(event: &str, entry: &Value, path: &str) -> FormResult<()
     Ok(())
 }
 
-/// Check one list action at `actions.{name}`.
+/// Check one list or detail action at `actions.{name}`.
 fn check_action(name: &str, action: &Value) -> FormResult<()> {
     let action = match action {
         Value::String(_) => return Ok(()),
@@ -215,8 +216,26 @@ fn check_action(name: &str, action: &Value) -> FormResult<()> {
     Ok(())
 }
 
+/// Check the actions declaration of a list or detail at `own`, each action in member order.
+fn check_actions(actions: &Value, own: &str) -> FormResult<()> {
+    let Some(actions) = actions.as_object() else {
+        return expected("actions", own, "an object");
+    };
+    for (name, action) in actions {
+        // Actions are not composed: a composition key is not an action name.
+        if name == "$ref" || name == "$patch" {
+            return Err(FormError::input(format!(
+                "Invalid {name} at actions: unknown key"
+            )));
+        }
+        check_action(name, action)?;
+    }
+    Ok(())
+}
+
 /// Check a composed list or detail specification: the root members, the own design, each
-/// column or field in member order and, for a list, search, sort, actions, empty and pagination.
+/// column or field in member order and then, for a list, search, sort, actions, empty,
+/// description and pagination, and for a detail, actions.
 /// `own` is `list` or `detail` and `members` is `columns` or `fields`.
 pub(crate) fn check_display_declarations(spec: &Value, own: &str, members: &str) -> FormResult<()> {
     let allowed = if own == "list" {
@@ -246,6 +265,9 @@ pub(crate) fn check_display_declarations(spec: &Value, own: &str, members: &str)
         check_member(name, member, own, members)?;
     }
     if own == "detail" {
+        if let Some(actions) = spec.get("actions") {
+            check_actions(actions, own)?;
+        }
         return Ok(());
     }
     if spec
@@ -270,21 +292,16 @@ pub(crate) fn check_display_declarations(spec: &Value, own: &str, members: &str)
         }
     }
     if let Some(actions) = spec.get("actions") {
-        let Some(actions) = actions.as_object() else {
-            return expected("actions", own, "an object");
-        };
-        for (name, action) in actions {
-            // Actions are not composed: a composition key is not an action name.
-            if name == "$ref" || name == "$patch" {
-                return Err(FormError::input(format!(
-                    "Invalid {name} at actions: unknown key"
-                )));
-            }
-            check_action(name, action)?;
-        }
+        check_actions(actions, own)?;
     }
     if spec.get("empty").is_some_and(|empty| !is_content(empty)) {
         return expected("empty", own, CONTENT);
+    }
+    if spec
+        .get("description")
+        .is_some_and(|description| !is_content(description))
+    {
+        return expected("description", own, CONTENT);
     }
     if let Some(pagination) = spec.get("pagination") {
         check_pagination_declaration(pagination, own)?;

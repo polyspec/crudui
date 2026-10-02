@@ -282,6 +282,7 @@ func buildDisplay(spec *Object, rows []*Object, options ListOptions, paths displ
 	} else {
 		out.Set("empty", translate(empty, options.Language))
 	}
+	out.Set("description", translate(read(spec, "description"), options.Language))
 	out.Set("design", resolveDesign(read(spec, "design"), lookup, nil))
 	return out, nil
 }
@@ -487,6 +488,41 @@ func cellHTML(cell *Object, tag, base string) string {
 	}
 	return element(tag, a, cellBody(cell))
 }
+
+// actionsHTML writes the actions of a list or detail: {block}__actions with one {block}__action
+// span per action, and nothing without actions.
+func actionsHTML(actions []*Object, block string) string {
+	if len(actions) == 0 {
+		return ""
+	}
+	toolbar := ""
+	for _, action := range actions {
+		at := NewObject()
+		tag := "button"
+		format := read(action, "format")
+		if stringAt(format, "type") == "link" {
+			tag = "a"
+			href := stringAt(read(format, "options"), "href")
+			if href == "" {
+				href = "#"
+			}
+			at.Set("href", href)
+			if target := stringAt(read(format, "options"), "target"); target != "" {
+				at.Set("target", target)
+			}
+		} else {
+			at.Set("type", "button")
+		}
+		if b := object(read(action, "behavior")); b != nil {
+			for _, k := range b.Keys() {
+				at.Set("on"+k, read(b, k))
+			}
+		}
+		toolbar += element("span", NewObject("class", block+"__action", "data-action", stringAt(action, "key")), "<"+tag+attrs(at, true, false)+">"+escapeText(stringAt(action, "label"))+"</"+tag+">")
+	}
+	return `<div class="` + block + `__actions">` + toolbar + `</div>`
+}
+
 func listHTML(vm *Object, layout string) string {
 	design := object(read(vm, "design"))
 	a := NewObject("class", joinClass("crudui-list", nodeClass(design, "wrapper")))
@@ -494,35 +530,10 @@ func listHTML(vm *Object, layout string) string {
 		a.Set("style", s)
 	}
 	body := ""
-	actions := objectList(read(vm, "actions"))
-	if len(actions) > 0 {
-		toolbar := ""
-		for _, action := range actions {
-			at := NewObject()
-			tag := "button"
-			format := read(action, "format")
-			if stringAt(format, "type") == "link" {
-				tag = "a"
-				href := stringAt(read(format, "options"), "href")
-				if href == "" {
-					href = "#"
-				}
-				at.Set("href", href)
-				if target := stringAt(read(format, "options"), "target"); target != "" {
-					at.Set("target", target)
-				}
-			} else {
-				at.Set("type", "button")
-			}
-			if b := object(read(action, "behavior")); b != nil {
-				for _, k := range b.Keys() {
-					at.Set("on"+k, read(b, k))
-				}
-			}
-			toolbar += element("span", NewObject("class", "crudui-list__action", "data-action", stringAt(action, "key")), "<"+tag+attrs(at, true, false)+">"+escapeText(stringAt(action, "label"))+"</"+tag+">")
-		}
-		body += `<div class="crudui-list__actions">` + toolbar + `</div>`
+	if description := stringAt(vm, "description"); description != "" {
+		body += element("p", NewObject("class", "crudui-list__description"), escape(description))
 	}
+	body += actionsHTML(objectList(read(vm, "actions")), "crudui-list")
 	rows := objectList(read(vm, "rows"))
 	cols := objectList(read(vm, "columns"))
 	if len(rows) == 0 {

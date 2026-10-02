@@ -2,10 +2,10 @@
  * Complete form conformance (form-runtime.md, "Complete form"): the HTML renderer writes the
  * bytes of every shared case in tests/fixtures/form-complete/cases.json, and an option outside
  * the contract fails with the declared code and message. `renderFormView` writes the same
- * markup from `bindForm` and `bindButtons` for a template without an `action`.
+ * markup from `bindForm`, `bindButtons` and `formDescription` for a template without an `action`.
  */
 import { describe, expect, test } from 'vitest';
-import { bindButtons, bindForm, compileForm, createForm, formMessages } from '@crudui/generator-core';
+import { bindButtons, bindForm, compileForm, createForm, formDescription, formMessages } from '@crudui/generator-core';
 import { renderForm, renderFormView } from './index';
 import fixtureCases from '../../../tests/fixtures/form-complete/cases.json';
 import { provesConformance } from '../../../tests/conformance/evidence.mjs';
@@ -45,7 +45,7 @@ describe('complete form: renderFormView writes the same markup from bound nodes'
     test(c.name, () => {
       const template = compileForm(c.spec);
       const html = renderFormView(bindForm(template, c.data, c.options), bindButtons(template, c.data, c.options),
-        formMessages(c.options.language), c.render as never);
+        formMessages(c.options.language), c.render as never, formDescription(template, c.options));
       expect(html).toBe(c.expected_html);
     });
   }

@@ -63,6 +63,12 @@ final class Form
         return Messages::forLanguage($this->language());
     }
 
+    /** Return the template's root description translated for the instance language; empty text when none. */
+    public function getDescription(): string
+    {
+        return Value::translate($this->template->description ?? null, $this->language());
+    }
+
     /** Return the number of successful data updates. */
     public function getRevision(): int
     {

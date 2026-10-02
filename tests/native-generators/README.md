@@ -75,16 +75,16 @@ records both input manifests. Source directories are read directly, so Git is
 not required. `--source-commit` or `CRUDUI_SOURCE_COMMIT` can record an optional
 source commit without changing the hash comparison.
 
-The 104 form cases compare complete compiled templates and bound models.
+The 118 form cases compare complete compiled templates and bound models.
 Templates from each target are bound by JavaScript and JavaScript templates are
 bound by each target without composition loaders or files. Specification member order and control attribute order are
-compared, and models are compared in member order. The 142 list cases compare original HTML strings, including
+compared, and models are compared in member order. The 155 list cases compare original HTML strings, including
 image resource hints, and their input and declaration error cases compare code, message and location.
-Normalized layout tests remain separate. The 44
+Normalized layout tests remain separate. The 61
 [detail cases](../fixtures/detail-render/README.md) compare both levels a runtime exposes:
 the `buildDetail` model with its member order, and the original `renderDetail` HTML
 including image resource hints. Error cases compare code, message and location at both
-levels. The 25 [complete form cases](../fixtures/form-complete/README.md) compare the original
+levels. The 28 [complete form cases](../fixtures/form-complete/README.md) compare the original
 HTML with the bytes the specification writes, and their option errors compare code, message
 and location.
 

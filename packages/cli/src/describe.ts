@@ -144,7 +144,7 @@ export interface DescribeResult {
     cellFormatSchemaKeys: string[];
     /** true when cell.ts catalog and schema CellFormat agree on no fabricated/missing surface. */
     cellCrossCheckOk: boolean;
-    /** List first-class structure — the columns/search/sort/pagination/actions/empty/design slots. */
+    /** List first-class structure — the columns/search/sort/pagination/actions/empty/description/design slots. */
     structure: {
       /** First-class List keys (schema List.properties, minus $ref/$patch). */
       firstClass: string[];

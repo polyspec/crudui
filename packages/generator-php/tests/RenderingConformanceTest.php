@@ -7,6 +7,7 @@ namespace CRUDUI\Generator\Tests;
 use PHPUnit\Framework\TestCase;
 use CRUDUI\Generator;
 use CRUDUI\Generator\Buttons;
+use CRUDUI\Generator\FormRender;
 use CRUDUI\Generator\Messages;
 use CRUDUI\Generator\Rendering;
 use CRUDUI\Generator\Value;
@@ -39,7 +40,8 @@ final class RenderingConformanceTest extends TestCase
             $language = $options['language'] ?? 'ko';
             $buttons = Buttons::bind($template, Value::object($case->data ?? []), $language);
             $messages = Messages::forLanguage($language);
-            $actual = Rendering::form($fields, $buttons, $messages);
+            $description = Value::translate($template->description ?? null, $language);
+            $actual = Rendering::form($fields, $buttons, $messages, FormRender::EMPTY, $description);
         } catch (\Throwable $error) {
             if (!isset($case->expectError)) {
                 throw $error;
@@ -50,7 +52,7 @@ final class RenderingConformanceTest extends TestCase
         }
         self::assertFalse(isset($case->expectError), 'Expected generation error');
         self::assertSame(self::html($case->expected_html), self::html($actual));
-        self::assertSame($actual, Rendering::form(Generator::bindForm($template, $case->data ?? [], $options), $buttons, $messages));
+        self::assertSame($actual, Rendering::form(Generator::bindForm($template, $case->data ?? [], $options), $buttons, $messages, FormRender::EMPTY, $description));
     }
 
     /**

@@ -10,7 +10,7 @@ React·Vue·Svelte 레이아웃 일치 검사는 `cases.json`을 공유합니다
 합성, 번역 콘텐츠, 언어 입력, 반복과 위젯 출력을 포함하며, `multiple: only` 컬렉션(행 컨트롤 없이
 데이터 키로 렌더링하는 행, 헤더와 빈 본문만 있고 `add-row` 컨트롤이 없는 비어 있거나 데이터가 없는
 컬렉션), 값을 유지하는 숨긴 그룹, select·choice·multichoice·search·dummy 필드의 선택 목록과 잘못된 선택
-목록의 바인딩 실패도 검사합니다. 반복 사례
+목록의 바인딩 실패, `crudui-form` 블록의 첫 자식인 번역한 루트 설명도 검사합니다. 반복 사례
 데이터는 [폼 런타임](../../../docs/spec/form-runtime.ko.md)에 정의된 키 기반
 컬렉션을 사용합니다.
 

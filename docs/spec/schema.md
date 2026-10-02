@@ -188,7 +188,10 @@ detail declaration.
 text. Format-specific settings stay in that object. [Display formats](display-formats.md)
 defines each format, the accepted list and detail input and the markup. `sort`, `pagination`,
 `search` and `actions` declare page behavior. `empty` defines translated
-empty-state content. The core does not query a database, filter records or apply
+empty-state content and `description` translated text shown before the list. The list model
+is `{ columns, rows, pagination, sort, actions, empty, description, design }`: `sort` is absent
+when no sort field is declared, and `description` is the translated `description`, empty text
+when none is declared. The core does not query a database, filter records or apply
 server pagination. The caller supplies the current page and the total record count. When
 `pagination` is enabled, the resolved model defaults `perPage` to 20, `mode` to `pages`,
 and `page` to 1 when omitted. It also supplies `pageCount` (0 without a total, otherwise at
@@ -204,11 +207,12 @@ A detail declares `fields`; one record is supplied separately to
 `buildDetail(spec, record, options)`. Each field uses the same read-only display
 contract as a list cell: `field`, `label`, `format` and `design`. Detail fields
 share composition, conditions, appearance, content translation and cell formats
-with lists, but do not declare sorting, pagination or actions. `buildDetail`
-returns ordered display fields and the evaluated detail design; renderers consume
-that model without querying other data.
+with lists, but do not declare sorting or pagination. A detail declares `actions` as a list
+does. `buildDetail` returns ordered display fields, the resolved actions and the evaluated
+detail design; renderers consume that model and query no data.
 
-The model is `{ fields, design }`. Each field has the members `key`, `label`, `format`,
+The model is `{ fields, actions, design }`; `actions` has the list action models in member
+order and is empty when the detail declares no actions. Each field has the members `key`, `label`, `format`,
 `value`, `display` and `design`, in that order: the list cell of the one record, preceded
 by its key and translated label. `value` is `null` when the record has no value at the
 field path, as it is for a list cell. A declaration that is not an object fails with

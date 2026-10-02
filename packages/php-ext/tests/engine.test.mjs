@@ -321,7 +321,7 @@ function sourceForFixtures() {
 }
 
 test('PHP extension engine compiles every shared form fixture', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  assert.equal(fixtures.length, 115,
+  assert.equal(fixtures.length, 118,
     'Review C template coverage when the shared fixture inventory changes');
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-compile-'));
   try {
@@ -604,7 +604,7 @@ function sourceForValidation() {
 test('PHP extension engine validates all shared form, list and detail cases', { timeout: ENGINE_TEST_BUDGET }, async t => {
   assert.equal(validationCases.length, 287,
     'Review extension validation coverage when the shared validation cases change');
-  assert.equal(validationCases.length + specCases.length + listCases.length + detailCases.length, 343,
+  assert.equal(validationCases.length + specCases.length + listCases.length + detailCases.length, 348,
     'Review extension validation coverage when the shared fixture inventory changes');
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-extension-validation-'));
   let output = '';
@@ -1573,9 +1573,9 @@ function sourceForFixtures() {
 }
 
 test('PHP extension engine binds every shared form fixture without changing inputs', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  assert.equal(fixtures.length, 115,
+  assert.equal(fixtures.length, 118,
     'Review C binding coverage when the shared fixture inventory changes');
-  assert.equal(bindFixtures.length, 114,
+  assert.equal(bindFixtures.length, 117,
     'Review C binding coverage when compilation error fixtures change');
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-bind-'));
   try {
@@ -1738,9 +1738,9 @@ function sourceForFixtures() {
 }
 
 test('PHP extension engine renders successful shared form fixtures and edge cases as exact HTML', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  assert.equal(fixtures.length, 115,
+  assert.equal(fixtures.length, 118,
     'Review C rendering coverage when the shared fixture inventory changes');
-  assert.equal(renderFixtures.length, 108,
+  assert.equal(renderFixtures.length, 111,
     'Review C rendering coverage when successful fixtures change');
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-render-'));
   try {
@@ -1860,7 +1860,7 @@ const sources = [
 ];
 
 test('PHP extension engine renders the complete list target as exact HTML', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  assert.equal(fixtures.length, 145,
+  assert.equal(fixtures.length, 155,
     'Review C list coverage when the shared fixture inventory changes');
   assert.equal(numberCases.length, 17,
     'Review C number coverage when the native number inventory changes');
@@ -1913,6 +1913,7 @@ function expectation(operation, fixture) {
       value: JSON.parse(JSON.stringify({
         fields: model.fields.map(field => Object.fromEntries(fieldMembers.map(
           key => [key, key === 'value' && field.value === undefined ? null : field[key]]))),
+        actions: model.actions,
         design: model.design,
       })),
     };
@@ -1950,7 +1951,7 @@ function sourceForFixtures() {
         lines.push(`    print_text("model differs: ", ${cText(name)});`);
         lines.push(`    print_json("actual: ", actual.value); print_json("expected: ", ${expectedValue});`);
         lines.push(`    return ${status}; }`);
-        lines.push(`  if (!member_order(actual.value, (const char *[]){"fields", "design"}, 2)) { print_text("model member order differs: ", ${cText(name)}); return ${status}; }`);
+        lines.push(`  if (!member_order(actual.value, (const char *[]){"fields", "actions", "design"}, 3)) { print_text("model member order differs: ", ${cText(name)}); return ${status}; }`);
         lines.push(`  for (size_t i = 0; i < ps_size(ps_get(actual.value, "fields")); ++i)`);
         lines.push(`    if (!member_order(ps_at(ps_get(actual.value, "fields"), i), (const char *[]){${fieldMembers.map(cString).join(', ')}}, ${fieldMembers.length})) { print_text("field member order differs: ", ${cText(name)}); return ${status}; }`);
         lines.push(`  ps_value_free(${expectedValue});`);
@@ -1979,7 +1980,7 @@ const sources = [
 ];
 
 test('PHP extension engine renders and builds every shared detail fixture', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  assert.equal(fixtures.length, 46,
+  assert.equal(fixtures.length, 61,
     'Review C detail coverage when the shared fixture inventory changes');
   const missing = expectation('build', fixtures.find(fixture => fixture.name === 'missing-value'));
   assert.equal(missing.value.fields[0].value, null);

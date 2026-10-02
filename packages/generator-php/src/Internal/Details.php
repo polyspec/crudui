@@ -43,7 +43,7 @@ final class Details
                 'design' => $cell->design,
             ];
         }
-        return (object) ['fields' => $fields, 'design' => $model->design];
+        return (object) ['fields' => $fields, 'actions' => $model->actions, 'design' => $model->design];
     }
 
     /**
@@ -64,7 +64,7 @@ final class Details
         return Value::spec(self::root($value, 'Detail specification must be an object'));
     }
 
-    /** Render one read-only detail as a definition list. */
+    /** Render one read-only detail: image preload links, the actions and the definition list. */
     public static function render(array|stdClass $spec, array|stdClass $record, array $options): string
     {
         $model = self::build($spec, $record, $options);
@@ -81,7 +81,7 @@ final class Details
                 Rendering::element('dt', ['class' => 'crudui-detail__label'], Rendering::text($field->label)) .
                 Lists::renderCell($cell, 'dd', 'crudui-detail__value crudui-value crudui-value--' . $field->format->type));
         }
-        return self::preloads($model) . Rendering::element('dl', $attrs, $body);
+        return self::preloads($model) . Lists::actionsHtml($model->actions, 'crudui-detail') . Rendering::element('dl', $attrs, $body);
     }
 
     private static function preloads(stdClass $model): string

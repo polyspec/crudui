@@ -101,15 +101,17 @@ export function validateResponse(request, value) {
     case 'buildList': {
       assert.ok(object(value), 'List model must be an object');
       // A list without a sort declaration has no sort member.
-      const members = ['columns', 'rows', 'pagination', ...(Object.hasOwn(value, 'sort') ? ['sort'] : []), 'actions', 'empty', 'design'];
+      const members = ['columns', 'rows', 'pagination', ...(Object.hasOwn(value, 'sort') ? ['sort'] : []), 'actions', 'empty', 'description', 'design'];
       assert.deepEqual(Object.keys(value), members, 'List model members differ');
       assert.ok(Array.isArray(value.columns) && Array.isArray(value.rows) && Array.isArray(value.actions));
+      assert.equal(typeof value.description, 'string', 'List description must be a string');
       break;
     }
     case 'buildDetail':
       assert.ok(object(value), 'Detail model must be an object');
-      assert.deepEqual(Object.keys(value), ['fields', 'design'], 'Detail model members differ');
+      assert.deepEqual(Object.keys(value), ['fields', 'actions', 'design'], 'Detail model members differ');
       assert.ok(Array.isArray(value.fields), 'Detail fields must be an array');
+      assert.ok(Array.isArray(value.actions), 'Detail actions must be an array');
       for (const field of value.fields) {
         assert.deepEqual(Object.keys(field), ['key', 'label', 'format', 'value', 'display', 'design'], 'Detail field members differ');
       }

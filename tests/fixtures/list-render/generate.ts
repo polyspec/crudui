@@ -416,6 +416,47 @@ const SCENARIOS: ListFixtureCase[] = [
     options: { language: 'en' },
   },
 
+  // --- description (the first child of the list, before the actions) ---
+  {
+    name: 'description-before-actions',
+    note: 'a translated description is the first child of the list, before the actions; its text is escaped.',
+    spec: {
+      columns: { name: { field: 'name', label: 'Name' } },
+      description: { ko: '회원 <목록>', en: 'Members <& staff>' },
+      actions: { edit: { label: { en: 'Edit' }, format: { type: 'link', href: '/edit' } } },
+    },
+    rows: [{ name: 'Ada' }],
+    options: { language: 'en' },
+  },
+  {
+    name: 'description-card-without-actions',
+    note: 'a description without actions precedes the card layout.',
+    spec: { description: 'All members', columns: { name: { field: 'name', label: 'Name' } } },
+    rows: [{ name: 'Ada' }],
+    options: { language: 'en', layout: 'card' },
+  },
+  {
+    name: 'description-empty-rows',
+    note: 'a description precedes the empty state of a list without rows.',
+    spec: { columns: { name: { field: 'name', label: 'Name' } }, description: 'All members' },
+    rows: [],
+    options: { language: 'en' },
+  },
+  {
+    name: 'description-empty-text',
+    note: 'an empty description and a null description write nothing.',
+    spec: { columns: { name: { field: 'name', label: 'Name' } }, description: '' },
+    rows: [{ name: 'Ada' }],
+    options: { language: 'en' },
+  },
+  {
+    name: 'description-null',
+    note: 'a null description writes nothing.',
+    spec: { columns: { name: { field: 'name', label: 'Name' } }, description: null },
+    rows: [{ name: 'Ada' }],
+    options: { language: 'en' },
+  },
+
   // --- card layout ---
   {
     name: 'card-layout',
@@ -818,6 +859,11 @@ const SCENARIOS: ListFixtureCase[] = [
     ['reject-action-design', 'an action design follows the design rules.', { columns: { name: { field: 'name' } }, actions: { edit: { design: { color: 'red' } } } }, 'Invalid design.color at actions.edit: unknown key'],
     ['reject-empty', 'the empty text is content.', { columns: { name: { field: 'name' } }, empty: 0 }, 'Invalid empty at list: expected a string, a language map or null'],
     ['reject-empty-before-pagination', 'empty is checked before pagination.', { columns: { name: { field: 'name' } }, pagination: 'pages', empty: 0 }, 'Invalid empty at list: expected a string, a language map or null'],
+    ['reject-description', 'the description is content.', { columns: { name: { field: 'name' } }, description: 5 }, 'Invalid description at list: expected a string, a language map or null'],
+    ['reject-description-language-map', 'a language map description holds strings or null.', { columns: { name: { field: 'name' } }, description: { en: 5 } }, 'Invalid description at list: expected a string, a language map or null'],
+    ['reject-empty-before-description', 'empty is checked before the description.', { columns: { name: { field: 'name' } }, description: 5, empty: 0 }, 'Invalid empty at list: expected a string, a language map or null'],
+    ['reject-description-before-pagination', 'the description is checked before pagination.', { columns: { name: { field: 'name' } }, pagination: 'pages', description: 5 }, 'Invalid description at list: expected a string, a language map or null'],
+    ['reject-actions-before-description', 'actions are checked before the description.', { columns: { name: { field: 'name' } }, description: 5, actions: [] }, 'Invalid actions at list: expected an object'],
   ] as const).map(([name, note, spec, message]): ListFixtureCase => ({
     name,
     note,

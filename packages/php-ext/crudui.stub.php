@@ -27,6 +27,7 @@ namespace CRUDUI {
         public function getFields(): array {}
         public function getButtons(): array {}
         public function getMessages(): array {}
+        public function getDescription(): string {}
         public function getRevision(): int {}
         public function getData(): \stdClass {}
         public function getValue(string $path): mixed {}

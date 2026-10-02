@@ -18,15 +18,21 @@ export interface FormFieldsProps {
   renderButtons?: boolean;
   /** Checked render options: form errors before the body and node errors in each node. */
   model?: FormRenderModel;
+  /** Translated root description, written first when it is not empty. */
+  description?: string;
 }
 
 const NO_ERRORS: ReadonlyMap<NodeVM, string[]> = new Map();
 
-/** Render the `crudui-form` block: form errors, the top-level nodes and the footer with the form buttons. */
-export function FormFields({ fields, buttons, messages, rootRef, renderButtons = true, model }: FormFieldsProps): React.ReactElement {
+/**
+ * Render the `crudui-form` block: the root description, form errors, the top-level nodes and the
+ * footer with the form buttons.
+ */
+export function FormFields({ fields, buttons, messages, rootRef, renderButtons = true, model, description = '' }: FormFieldsProps): React.ReactElement {
   const formErrors = model?.formErrors ?? [];
   return (
     <div className="crudui-form" ref={rootRef}>
+      {description !== '' && <p className="crudui-form__description">{description}</p>}
       {formErrors.length > 0 && <div className="crudui-form__errors">
         {formErrors.map((text, index) => <p key={index} className="crudui-form__error">{text}</p>)}
       </div>}

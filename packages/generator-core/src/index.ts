@@ -4,7 +4,7 @@
  * renderer packages are in `./internal`.
  */
 
-export { compileForm, bindForm } from './form';
+export { compileForm, bindForm, formDescription } from './form';
 export type { FormTemplate, FormFieldTemplate, CompileFormOptions, BindFormOptions } from './form';
 export { FormInstance, createForm, createRowKey, sequenceRowKey } from './instance';
 export { bindButtons, formButtonsHtml } from './buttons';

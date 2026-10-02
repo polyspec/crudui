@@ -14,7 +14,7 @@ database and do not derive a page or a total from the rows.
 Each runtime provides two levels:
 
 - A model function composes the declaration, evaluates conditions and appearance, translates
-  content and formats every value. A detail model is `{ fields, design }`.
+  content and formats every value. A detail model is `{ fields, actions, design }`.
 - A render function builds the model and writes HTML from it.
 
 Invalid input fails with code `INVALID_FORM_INPUT` and the messages listed under

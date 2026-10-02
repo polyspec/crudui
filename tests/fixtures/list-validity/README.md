@@ -24,8 +24,8 @@ A shape that only the meta-schema rejects, such as missing `columns`, an unknown
 invalid `pagination.mode`, has `engine: "pass"`.
 
 The accepted cases check minimal columns, every cell format, shorthand and boolean formats, sort,
-pagination, actions, the empty state and design, composed columns and a composed search form. The
-rejected cases cover missing columns, forbidden and `x`-prefixed column keys, unknown keys on a
+pagination, actions, the empty state and design, a description, composed columns and a composed
+search form. The rejected cases cover missing columns, a description that is not content, forbidden and `x`-prefixed column keys, unknown keys on a
 column, sort, pagination, an action and the list root, a forbidden key in format options, invalid
 enum values and a malformed format value.
 

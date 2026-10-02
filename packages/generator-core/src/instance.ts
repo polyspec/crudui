@@ -1,5 +1,5 @@
 import { FormInputError } from '@crudui/validator';
-import { bindForm, copyFormValue, type BindFormOptions, type FormFieldTemplate, type FormTemplate } from './form';
+import { bindForm, copyFormValue, formDescription, type BindFormOptions, type FormFieldTemplate, type FormTemplate } from './form';
 import { bindButtons, type ButtonVM } from './buttons';
 import { formMessages, type FormMessages } from './messages';
 import type { NodeVM } from './viewmodel';
@@ -151,6 +151,9 @@ export class FormInstance {
 
   /** Interface text for the instance language. */
   get messages(): FormMessages { return formMessages(this.options.language ?? 'ko'); }
+
+  /** The template's root description translated for the instance language; empty text when none. */
+  get description(): string { return formDescription(this.template, { language: this.options.language ?? 'ko' }); }
 
   /** Detached submission data, retaining keyed nested collections. */
   getData(): Record<string, unknown> { return copyFormValue(this.data); }

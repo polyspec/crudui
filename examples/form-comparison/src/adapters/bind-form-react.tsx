@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { flushSync } from 'react-dom';
 import { createRoot, hydrateRoot } from 'react-dom/client';
-import { bindButtons, bindForm, formMessages } from '@crudui/generator-core';
+import { bindButtons, bindForm, formDescription, formMessages } from '@crudui/generator-core';
 import { FormFields } from '#react/FormFields';
 import { OutlineView } from '#react/Outline';
 import { DataPanel } from '#react/DataView';
@@ -19,12 +19,13 @@ function Committed({ onCommit, children }) {
 
 function start(views, template, language, data, hydrate) {
   const messages = formMessages(language);
+  const description = formDescription(template, { language });
   let commit;
   let fail;
   const rendered = new Promise((resolve, reject) => { commit = () => resolve(); fail = reject; });
   const formTree = (fields, next) => (
     <Committed onCommit={commit}>
-      <FormFields fields={fields} buttons={bindButtons(template, next, { language })} messages={messages} />
+      <FormFields fields={fields} buttons={bindButtons(template, next, { language })} messages={messages} description={description} />
     </Committed>
   );
   const initial = bindForm(template, data, { language, collapsed: emptyView.collapsed });

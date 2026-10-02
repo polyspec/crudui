@@ -206,5 +206,40 @@
         "$ref": "missing.yml"
       }
     }
+  },
+  {
+    "name": "ok-detail-actions",
+    "note": "a detail declares actions as a list does: a script string or an action object.",
+    "expect": "ok",
+    "engine": "pass",
+    "spec": {
+      "fields": { "name": { "field": "name" } },
+      "actions": {
+        "edit": { "label": { "ko": "수정", "en": "Edit" }, "format": { "type": "link", "href": "/members/7/edit" } },
+        "remove": "remove()"
+      }
+    }
+  },
+  {
+    "name": "red-unknown-detail-action-key",
+    "note": "an unknown key on a detail action fails the meta-schema; the runtime scan passes it.",
+    "expect": "fail",
+    "reason": "additionalProperties",
+    "engine": "pass",
+    "spec": {
+      "fields": { "name": { "field": "name" } },
+      "actions": { "edit": { "label": "Edit", "onclick": "x()" } }
+    }
+  },
+  {
+    "name": "red-forbidden-detail-action-name",
+    "note": "a forbidden key as a detail action name fails the meta-schema and the runtime scan.",
+    "expect": "fail",
+    "reason": "propertyNames",
+    "engine": { "code": "FORBIDDEN_META_KEY", "at": "actions.show_if" },
+    "spec": {
+      "fields": { "name": { "field": "name" } },
+      "actions": { "show_if": "x()" }
+    }
   }
 ]

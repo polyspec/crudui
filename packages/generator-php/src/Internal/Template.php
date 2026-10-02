@@ -27,6 +27,7 @@ final class Template
             'fields' => self::fields($properties),
             'buttons' => Value::copy(property_exists($spec, 'buttons') ? $spec->buttons : Buttons::DEFAULT),
             'action' => self::isObject($spec->action ?? null) ? Value::copy($spec->action) : Missing::Value,
+            'description' => property_exists($spec, 'description') ? Value::copy($spec->description) : Missing::Value,
         ]);
     }
 
@@ -268,14 +269,15 @@ final class Template
     /**
      * Copy a template input as JSON values, rejecting a value that is not exactly the shape
      * compile produces: the template kind, a field list, a button object list, an optional
-     * string keyPrefix, an optional object action and no other member; each field has exactly
+     * string keyPrefix, an optional object action, an optional description of any value and no
+     * other member; each field has exactly
      * a string name, an object spec and a field list children.
      */
     public static function checked(stdClass $template): stdClass
     {
         $copy = Value::spec($template);
         $members = array_map('strval', array_keys((array) $copy));
-        $valid = array_diff($members, ['kind', 'keyPrefix', 'fields', 'buttons', 'action']) === []
+        $valid = array_diff($members, ['kind', 'keyPrefix', 'fields', 'buttons', 'action', 'description']) === []
             && ($copy->kind ?? null) === 'crudui/form-template'
             && self::fieldList($copy->fields ?? null)
             && is_array($copy->buttons ?? null)

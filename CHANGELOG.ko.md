@@ -1,5 +1,25 @@
 # 변경 기록
 
+## 2026-10-02 — 폼과 목록의 설명, 상세 동작
+
+- `crudui-form` 블록은 번역한 루트 `description`을 폼 오류와 본문 앞의
+  `<p class="crudui-form__description">`으로 씁니다. 폼 루트는 `description`을 받았지만 어떤 렌더러도
+  쓰지 않아 선언한 설명이 표시되지 않았습니다. 컴파일한 템플릿은 선언한 값을 선택 항목인 마지막 멤버
+  `description`으로 유지하고, 모든 템플릿 형태 검사가 이를 받으며, `formDescription(template, options)`가
+  번역한 텍스트를 반환하고, `renderFormView`가 이를 다섯 번째 인수로 받습니다. 설명이 없거나 비어 있으면
+  아무것도 쓰지 않습니다.
+- 목록은 `description` 콘텐츠를 선언합니다. 목록 모델은 `empty` 뒤에 번역한 `description`을 가지며,
+  비어 있지 않은 설명은 `crudui-list`의 첫 자식으로 동작 앞의 `crudui-list__description` 문단입니다.
+  검사는 `empty` 뒤, `pagination` 앞에 실행하며 `Invalid description at list: expected a string, a
+  language map or null`로 실패합니다.
+- 상세는 목록 동작 규칙과 모델로 `actions`를 선언하며, 메시지에서 목록의 `list` 자리에 `detail`을
+  씁니다. 상세 모델은 `{ fields, actions, design }`이고, 동작이 있는 상세는 이미지 preload 링크 뒤,
+  `dl.crudui-detail` 요소 앞에 동작마다 `crudui-detail__action` 하나를 담은 `crudui-detail__actions`를
+  씁니다. 동작이 없는 상세는 이전과 같은 마크업을 씁니다.
+- JSON Schema가 목록 `description`과 상세 `actions`를 받고, 스타일시트가 새 요소의 스타일을 정하며,
+  React, Vue, Svelte, HTML renderer, PHP, PHP 확장, Go, Rust가 공유 폼, 완전한 폼, 목록, 상세 사례를
+  렌더링합니다.
+
 ## 2026-10-02 — 선택 목록이 작성한 순서를 유지
 
 - `items`는 값에 관계없이 목록 순서를 유지하는 `{ "value": …, "label": … }` 객체의 배열인 선택 목록을

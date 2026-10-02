@@ -2,7 +2,7 @@
 // renderer wrote, which carries markers the record servers do not write, so it clears the
 // server-rendered view and mounts its own nodes.
 import { flushSync, mount, unmount } from 'svelte';
-import { bindButtons, bindForm, buildDetail, buildList, formMessages } from '@crudui/generator-core';
+import { bindButtons, bindForm, buildDetail, buildList, formDescription, formMessages } from '@crudui/generator-core';
 import Detail from '#svelte/Detail.svelte';
 import Form from '#svelte/Form.svelte';
 import FormFields from '#svelte/FormFields.svelte';
@@ -36,6 +36,7 @@ export function bindFormView(container, template, language, data, hydrate) {
     get fields() { return current.fields; },
     get buttons() { return current.buttons; },
     messages,
+    description: formDescription(template, { language }),
   }, hydrate);
   return {
     load: (next, view) => flushSync(() => { current = evaluate(next, view); }),

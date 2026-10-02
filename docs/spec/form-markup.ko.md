@@ -26,7 +26,7 @@ React, Vue, Svelte, HTML 렌더러와 네이티브 렌더러는 같은 마크업
 
 | 블록 | 구조 |
 | --- | --- |
-| `crudui-form` | 폼 오류마다 `crudui-form__error` 문단을 담은 `crudui-form__errors`, `crudui-form__body`, 폼 버튼을 담은 `crudui-form__footer`를 가진 폼 루트입니다. |
+| `crudui-form` | 비어 있지 않은 루트 설명의 `crudui-form__description` 문단, 폼 오류마다 `crudui-form__error` 문단을 담은 `crudui-form__errors`, `crudui-form__body`, 폼 버튼을 담은 `crudui-form__footer`를 가진 폼 루트입니다. |
 | `crudui-node` | 데이터 노드 하나입니다. 종류는 아래와 같습니다. |
 | `crudui-controls` | `role="group"`과 접근성 이름을 가진 버튼 묶음입니다. |
 | `crudui-action` | `data-crudui-action`을 가진 버튼입니다. `crudui-action--text`는 레이블을 텍스트로 표시합니다. |
@@ -230,8 +230,8 @@ href, design, behavior }` 목록이고 `type`은 `submit`, `reset`, `button`, `l
 ## 목록·상세 마크업
 
 표시 결과도 폼 결과와 같은 블록·요소·수식자 문법을 사용합니다. 목록 루트는
-`crudui-list`이고 표, 제목, 셀, 카드, 빈 상태, 동작과 페이지 이동은 각각
-`crudui-list__table`, `crudui-list__heading`, `crudui-list__cell`,
+`crudui-list`이고 설명, 표, 제목, 셀, 카드, 빈 상태, 동작과 페이지 이동은 각각
+`crudui-list__description`, `crudui-list__table`, `crudui-list__heading`, `crudui-list__cell`,
 `crudui-list__cards`, `crudui-list__card`, `crudui-list__empty`,
 `crudui-list__actions`, `crudui-list__action`, `crudui-list__pagination`을
 사용합니다. 페이징 탐색에는 `crudui-list__pagination-prev`,
@@ -241,7 +241,8 @@ href, design, behavior }` 목록이고 `type`은 `submit`, `reset`, `button`, `l
 매우 큰 전체 수에서도 무한한 DOM을 만들지 않도록 페이지 번호는 제한된 범위로
 출력합니다. 상세 루트는 `crudui-detail`이고 필드마다
 `crudui-detail__field`, `crudui-detail__label`, `crudui-detail__value`를
-사용합니다.
+사용합니다. 상세의 동작은 `crudui-detail` 요소 앞의 `crudui-detail__actions`에 동작마다
+`crudui-detail__action` 하나로 씁니다([표시 형식](display-formats.ko.md#마크업)).
 
 표시 값은 모두 `crudui-value`와 닫힌 형식 수식자
 `crudui-value--text`, `--date`, `--number`, `--choice-label`, `--badge`,

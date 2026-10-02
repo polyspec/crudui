@@ -916,9 +916,11 @@ ps_result ps_form_render_html(const ps_form *form, const ps_value *options)
     if (error) return (ps_result){NULL, error};
     const ps_form_messages *messages = ps_form_messages_for(form_language(form));
     ps_value *buttons = ps_bind_buttons(form->template, form->data, form_language(form));
-    ps_chars html = buttons && messages
-        ? ps_render_form(form->fields, buttons, messages->form_actions, &render) : (ps_chars){NULL, 0};
+    ps_chars description = ps_translate(member(form->template, "description"), form_language(form));
+    ps_chars html = buttons && messages && description.bytes
+        ? ps_render_form(form->fields, buttons, messages->form_actions, &render, ps_view(description)) : (ps_chars){NULL, 0};
     ps_value_free(buttons);
+    free(description.bytes);
     release_render(&render);
     ps_value *value = ps_chars_value(html);
     return value ? ps_ok(value) : (ps_result){NULL, internal_error()};
@@ -938,11 +940,18 @@ ps_result ps_form_read(const ps_form *form, uint8_t member_index)
             : messages ? ps_form_messages_value(messages) : NULL;
         return value ? ps_ok(value) : (ps_result){NULL, internal_error()};
     }
+    if (member_index == 7) {
+        /* The template's root description translated for the instance language. */
+        ps_value *value = ps_chars_value(ps_translate(member(form->template, "description"), form_language(form)));
+        return value ? ps_ok(value) : (ps_result){NULL, internal_error()};
+    }
     if (member_index == 4) {
         ps_value *buttons = ps_bind_buttons(form->template, form->data, form_language(form));
-        ps_chars html = buttons && messages
-            ? ps_render_form(form->fields, buttons, messages->form_actions, NULL) : (ps_chars){NULL, 0};
+        ps_chars description = ps_translate(member(form->template, "description"), form_language(form));
+        ps_chars html = buttons && messages && description.bytes
+            ? ps_render_form(form->fields, buttons, messages->form_actions, NULL, ps_view(description)) : (ps_chars){NULL, 0};
         ps_value_free(buttons);
+        free(description.bytes);
         ps_value *value = ps_chars_value(html);
         return value ? ps_ok(value) : (ps_result){NULL, internal_error()};
     }

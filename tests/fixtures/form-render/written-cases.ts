@@ -56,7 +56,37 @@ const SEARCH_YES_NO = field('pick', 'Pick', '<style nonce="">[class~="crudui:pic
 const DUMMY_NO = field('shown', 'Shown', '<div>No</div>', false);
 const INVALID_ITEMS = (path: string) => ({ code: 'INVALID_FORM_INPUT', message: `Invalid items at ${path}: expected value and label pairs with distinct string or number values` });
 
+// The root description (docs/spec/form-runtime.md, Complete form): the translated, escaped text
+// in `crudui-form__description` as the first child of `crudui-form`; empty text writes nothing.
+const NOTE_FIELD = '<div class="crudui-node crudui-node--field" data-field-path="note"><div class="crudui-node__header"><label class="crudui-node__label" for="crudui:note">Note</label></div><div class="crudui-node__body"><div class="crudui-widget"><input class="valid-target crudui-input" data-default="" data-name="note" data-rule-name="note" id="crudui:note" name="note" type="text" value="kept"></div></div></div>';
+const describedForm = (description: string) =>
+  `<div class="crudui-form">${description}<div class="crudui-form__body">${NOTE_FIELD}</div>${FOOTER_EN}`;
+
 export const WRITTEN_CASES = [
+  {
+    name: 'root-description',
+    note: 'The translated root description is the first child of crudui-form, before the body; its text is escaped.',
+    spec: { type: 'group', description: { ko: '회원 정보', en: 'Member <details> & notes' }, properties: { note: { type: 'text', label: 'Note' } } },
+    data: { note: 'kept' },
+    options: { language: 'en' },
+    expected_html: describedForm('<p class="crudui-form__description">Member &lt;details&gt; &amp; notes</p>'),
+  },
+  {
+    name: 'root-description-fallback-language',
+    note: 'A root description without an entry for the display language or en uses the content rule: the ko entry, then the first key.',
+    spec: { type: 'group', description: { ko: '회원 정보', ja: '' }, properties: { note: { type: 'text', label: 'Note' } } },
+    data: { note: 'kept' },
+    options: { language: 'en' },
+    expected_html: describedForm('<p class="crudui-form__description">회원 정보</p>'),
+  },
+  {
+    name: 'root-description-empty',
+    note: 'A root description whose translated text is empty writes nothing.',
+    spec: { type: 'group', description: '', properties: { note: { type: 'text', label: 'Note' } } },
+    data: { note: 'kept' },
+    options: { language: 'en' },
+    expected_html: describedForm(''),
+  },
   {
     name: 'multiple-only-group-rows',
     note: 'multiple: only renders exactly the data rows in data order under their data keys; each row keeps its toggle, label and number and has no row controls.',

@@ -234,5 +234,26 @@
         "name": { "field": "name", "format": ["date"] }
       }
     }
+  },
+  {
+    "name": "ok-description",
+    "note": "a list description is content: a string or a language map.",
+    "expect": "ok",
+    "engine": "pass",
+    "spec": {
+      "columns": { "name": { "field": "name" } },
+      "description": { "ko": "회원 목록", "en": "Members" }
+    }
+  },
+  {
+    "name": "red-bad-description",
+    "note": "a list description that is not content fails the meta-schema; the runtime scan passes it.",
+    "expect": "fail",
+    "reason": "anyOf",
+    "engine": "pass",
+    "spec": {
+      "columns": { "name": { "field": "name" } },
+      "description": 5
+    }
   }
 ]

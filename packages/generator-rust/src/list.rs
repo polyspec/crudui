@@ -414,6 +414,7 @@ pub(crate) fn build_display(
         String::new()
     };
     result["empty"] = empty_text.into();
+    result["description"] = translate(spec.get("description"), &options.language).into();
     result["design"] = resolve_design(spec.get("design"), context, "");
     Ok(result)
 }
@@ -490,18 +491,11 @@ pub(crate) fn cell_html(cell: &Value, tag: &str, base: &str) -> String {
     )
 }
 
-/// Render a list with supplied display rows in table or card layout.
-pub fn render_list(spec: &Value, rows: &[Value], options: &ListOptions<'_>) -> FormResult<String> {
-    list_context(spec, rows, options)?;
-    let layout = match &options.layout {
-        Value::Null => "table",
-        Value::String(layout) if layout == "table" || layout == "card" => layout.as_str(),
-        _ => return Err(FormError::input("List layout must be table or card")),
-    };
-    let model = build_list(spec, rows, options)?;
-    let mut content = String::new();
+/// The actions of a list or detail: `{block}__actions` with one `{block}__action` span per
+/// action holding a link or button with its behavior attributes; nothing without actions.
+pub(crate) fn actions_html(actions: &Value, block: &str) -> String {
     let mut toolbar = String::new();
-    for action in model["actions"].as_array().unwrap() {
+    for action in actions.as_array().into_iter().flatten() {
         let link = action["format"]["type"] == "link";
         let mut attrs = if link {
             json!({"href":action["format"]["options"]["href"].as_str().unwrap_or("#")})
@@ -518,7 +512,7 @@ pub fn render_list(spec: &Value, rows: &[Value], options: &ListOptions<'_>) -> F
         }
         toolbar += &element(
             "span",
-            &json!({"class":"crudui-list__action","data-action":action["key"]}),
+            &json!({"class":format!("{block}__action"),"data-action":action["key"]}),
             &raw_element(
                 if link { "a" } else { "button" },
                 &attrs,
@@ -526,9 +520,35 @@ pub fn render_list(spec: &Value, rows: &[Value], options: &ListOptions<'_>) -> F
             ),
         );
     }
-    if !toolbar.is_empty() {
-        content += &element("div", &json!({"class":"crudui-list__actions"}), &toolbar);
+    if toolbar.is_empty() {
+        return toolbar;
     }
+    element(
+        "div",
+        &json!({"class":format!("{block}__actions")}),
+        &toolbar,
+    )
+}
+
+/// Render a list with supplied display rows in table or card layout.
+pub fn render_list(spec: &Value, rows: &[Value], options: &ListOptions<'_>) -> FormResult<String> {
+    list_context(spec, rows, options)?;
+    let layout = match &options.layout {
+        Value::Null => "table",
+        Value::String(layout) if layout == "table" || layout == "card" => layout.as_str(),
+        _ => return Err(FormError::input("List layout must be table or card")),
+    };
+    let model = build_list(spec, rows, options)?;
+    let mut content = String::new();
+    let description = str_at(&model, "description");
+    if !description.is_empty() {
+        content += &element(
+            "p",
+            &json!({"class":"crudui-list__description"}),
+            &escape(description),
+        );
+    }
+    content += &actions_html(&model["actions"], "crudui-list");
     let columns = model["columns"].as_array().unwrap();
     let rows = model["rows"].as_array().unwrap();
     if rows.is_empty() {

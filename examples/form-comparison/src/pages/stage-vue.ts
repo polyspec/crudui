@@ -1,7 +1,7 @@
 // The canonical page with the Vue components. An SSR application hydrates the server-rendered
 // nodes; a CSR application mounts its own.
 import { createApp, createSSRApp, h, nextTick, shallowRef } from 'vue';
-import { bindButtons, bindForm, buildDetail, buildList, formMessages } from '@crudui/generator-core';
+import { bindButtons, bindForm, buildDetail, buildList, formDescription, formMessages } from '@crudui/generator-core';
 import { failOnErrors } from '../vue-errors.mjs';
 import { Detail } from '#vue/Detail';
 import { Form } from '#vue/Form';
@@ -34,7 +34,7 @@ export function bindFormView(container, template, language, data, hydrate) {
     buttons: bindButtons(template, next, { language }),
   });
   const state = shallowRef(evaluate(data, { collapsed: new Set() }));
-  const app = start(container, () => FormFields(state.value.fields, state.value.buttons, messages), hydrate);
+  const app = start(container, () => FormFields(state.value.fields, state.value.buttons, messages, undefined, undefined, formDescription(template, { language })), hydrate);
   return {
     rendered: nextTick(),
     load: (next, view) => {

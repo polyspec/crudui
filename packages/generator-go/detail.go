@@ -57,10 +57,11 @@ func BuildDetail(spec *Object, record *Object, options DetailOptions) (*Object, 
 			"design", read(cell, "design"),
 		))
 	}
-	return NewObject("fields", fields, "design", read(list, "design")), nil
+	return NewObject("fields", fields, "actions", read(list, "actions"), "design", read(list, "design")), nil
 }
 
-// RenderDetail renders one read-only detail as a definition list.
+// RenderDetail renders one read-only detail: the image preload links, the actions when the
+// detail has any, and the definition list.
 func RenderDetail(spec *Object, record *Object, options DetailOptions) (string, error) {
 	vm, err := BuildDetail(spec, record, options)
 	if err != nil {
@@ -78,7 +79,7 @@ func RenderDetail(spec *Object, record *Object, options DetailOptions) (string, 
 			element("dt", NewObject("class", "crudui-detail__label"), escapeText(stringAt(field, "label")))+
 				cellHTML(cell, "dd", joinClass("crudui-detail__value crudui-value crudui-value--"+stringAt(object(read(field, "format")), "type"), "")))
 	}
-	return detailImagePreloads(vm) + element("dl", attrs, body), nil
+	return detailImagePreloads(vm) + actionsHTML(objectList(read(vm, "actions")), "crudui-detail") + element("dl", attrs, body), nil
 }
 
 func detailImagePreloads(vm *Object) string {

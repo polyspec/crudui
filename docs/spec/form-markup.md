@@ -28,7 +28,7 @@ spec declares in `design`.
 
 | Block | Structure |
 | --- | --- |
-| `crudui-form` | Form root with `crudui-form__errors` holding a `crudui-form__error` paragraph per form error, `crudui-form__body` and `crudui-form__footer` holding the form buttons. |
+| `crudui-form` | Form root with the `crudui-form__description` paragraph of a non-empty root description, `crudui-form__errors` holding a `crudui-form__error` paragraph per form error, `crudui-form__body` and `crudui-form__footer` holding the form buttons. |
 | `crudui-node` | One data node; see the kinds below. |
 | `crudui-controls` | A button group with `role="group"` and an accessible name. |
 | `crudui-action` | A button with `data-crudui-action`; `crudui-action--text` shows its label as text. |
@@ -249,9 +249,9 @@ reads is declared and that no other rule writes a color.
 ## List and detail markup
 
 Display output uses the same block/element/modifier grammar as form output. A list
-root is `crudui-list`; its table, headings, cells, cards, empty state, actions and
-pagination use `crudui-list__table`, `crudui-list__heading`, `crudui-list__cell`,
-`crudui-list__cards`, `crudui-list__card`, `crudui-list__empty`,
+root is `crudui-list`; its description, table, headings, cells, cards, empty state, actions
+and pagination use `crudui-list__description`, `crudui-list__table`, `crudui-list__heading`,
+`crudui-list__cell`, `crudui-list__cards`, `crudui-list__card`, `crudui-list__empty`,
 `crudui-list__actions`, `crudui-list__action` and `crudui-list__pagination`.
 A pagination navigation contains buttons with `crudui-list__pagination-prev`,
 `crudui-list__pagination-page` and `crudui-list__pagination-next`. Each button has
@@ -259,7 +259,9 @@ A pagination navigation contains buttons with `crudui-list__pagination-prev`,
 and last boundary controls are disabled. The renderer emits a bounded page-number
 window for very large totals.
 A detail root is `crudui-detail`; each field uses `crudui-detail__field`,
-`crudui-detail__label` and `crudui-detail__value`.
+`crudui-detail__label` and `crudui-detail__value`. The actions of a detail are written before
+the `crudui-detail` element in `crudui-detail__actions`, with one `crudui-detail__action` per
+action ([display formats](display-formats.md#markup)).
 
 Every displayed value also carries `crudui-value` and the closed format modifier
 `crudui-value--text`, `--date`, `--number`, `--choice-label`, `--badge`, `--link`,

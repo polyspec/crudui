@@ -10,10 +10,9 @@
     cellStyle,
     sortMarker,
     sortDir,
-    actionHtml,
-    hasActions,
   } from './list';
   import { patched, firstMarkup } from './raw';
+  import Actions from './Actions.svelte';
 
   let {
     vm,
@@ -25,7 +24,6 @@
   );
   const wrapperStyle = $derived(vm.design.wrapper.style?.trim() || undefined);
   const isEmpty = $derived(vm.rows.length === 0);
-  const showActions = $derived(hasActions(vm.actions));
 </script>
 
 <!-- One cell's DISPLAY, dispatched on the core CellDisplay union. A plain string
@@ -53,15 +51,8 @@
 {/snippet}
 
 <div class={wrapperClass} style={wrapperStyle}>
-  {#if showActions}
-    <div class="crudui-list__actions">
-      {#each vm.actions as action (action.key)}
-        <!-- sanctioned raw boundary: behavior on* chrome (opaque host scripts). -->
-        <!-- eslint-disable-next-line svelte/no-at-html-tags -- actionHtml escapes the action text and attributes; only declared on* scripts pass through. -->
-        <span class="crudui-list__action" data-action={action.key} {@attach patched(actionHtml(action))}>{@html firstMarkup(() => actionHtml(action))}</span>
-      {/each}
-    </div>
-  {/if}
+  {#if vm.description !== ''}<p class="crudui-list__description">{vm.description}</p>{/if}
+  <Actions actions={vm.actions} block="crudui-list" />
 
   {#if isEmpty}
     <div class="crudui-list__empty">{vm.empty}</div>
