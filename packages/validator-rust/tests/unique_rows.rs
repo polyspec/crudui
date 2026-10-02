@@ -1,9 +1,8 @@
-//! The row-level `unique` check: duplicates belong to one validation, and the check takes time
-//! linear in the number of rows.
+//! The row-level `unique` check: duplicates belong to one validation, and the rows are walked once
+//! per validation.
 
 use crudui_validator::validate::{validate, ValidateOptions};
 use serde_json::{json, Map, Value};
-use std::time::{Duration, Instant};
 
 fn spec() -> Value {
     json!({"type":"group","properties":{"rows":{"type":"group","multiple":true,"properties":{"code":{"type":"text","validate":{"unique":true}}}}}})
@@ -38,24 +37,15 @@ fn unique_rows_belong_to_one_validation() {
     );
 }
 
+/// 25,000 rows are walked once, within seconds; a walk of every earlier row for each row makes
+/// 3 * 10^8 row visits and does not end before the per-test timeout of scripts/run-tests.mjs.
 #[test]
-fn unique_rows_take_linear_time() {
-    let spec = spec();
-    let best = |count: usize| -> Duration {
-        let data = rows((0..count).map(|i| i.to_string()));
-        (0..3)
-            .map(|_| {
-                let started = Instant::now();
-                validate(&spec, &data, &options()).unwrap();
-                started.elapsed()
-            })
-            .min()
-            .unwrap()
-    };
-    let (small, large) = (best(1500), best(6000));
-    let ratio = large.as_secs_f64() / small.as_secs_f64();
-    assert!(
-        ratio < 8.0,
-        "4n rows took {ratio:.1} times as long as n rows ({small:?}, {large:?})"
-    );
+fn many_unique_rows_are_walked_once() {
+    let result = validate(
+        &spec(),
+        &rows((0..25_000).map(|i| i.to_string())),
+        &options(),
+    )
+    .unwrap();
+    assert!(result.valid, "distinct rows were reported as duplicates");
 }

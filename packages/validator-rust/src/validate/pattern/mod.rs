@@ -33,7 +33,6 @@ pub(crate) fn compile(source: &str) -> Result<Program, PatternError> {
 mod tests {
     use super::*;
     use crate::validate::unicode::{GENERAL_CATEGORIES, SCRIPTS};
-    use std::time::{Duration, Instant};
 
     fn rejection(source: &str) -> (Reason, usize) {
         let error = compile(source).unwrap_err();
@@ -133,19 +132,17 @@ mod tests {
         assert!(program.is_match("a"));
     }
 
+    /// Inputs that take exponential time in a backtracking engine: a linear matcher ends them within
+    /// a second, and a backtracking one does not end before the per-test timeout of
+    /// scripts/run-tests.mjs.
     #[test]
     fn matching_is_linear() {
         for (source, text) in [
             ("(?:a|aa)*c", "a".repeat(100_000)),
             ("(?:.*a){12}c", "a".repeat(20_000)),
-            ("\\p{L}{1000}", "\u{D55C}".repeat(1000)),
             ("(a*)*b", "a".repeat(100_000)),
         ] {
-            let started = Instant::now();
-            let program = compile(source).unwrap();
-            let _ = program.is_match(&text);
-            let elapsed = started.elapsed();
-            assert!(elapsed < Duration::from_secs(2), "{source}: {elapsed:?}");
+            assert!(!compile(source).unwrap().is_match(&text), "{source}");
         }
         assert!(matches("\\p{L}{1000}", &"\u{D55C}".repeat(1000)));
         assert!(!matches("\\p{L}{1000}", &"\u{D55C}".repeat(999)));

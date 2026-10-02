@@ -64,6 +64,23 @@ node scripts/run-tests.mjs <node|vitest|go|cargo|phpunit> [--timeout <seconds>] 
 실행기는 각 테스트의 시작, 실행 중임을 알리는 줄, 결과와 경과 시간을 출력합니다. 모든
 테스트는 자기 제한 시간을 가지며, `--timeout`으로 지정하지 않으면 30초입니다. 패키지
 스크립트, Composer 스크립트, Makefile 대상은 이 실행기를 통해서만 테스트 도구를 호출합니다.
+실행기는 Go, Cargo, PHPUnit 테스트를 제한 시간에 멈추며, PHPUnit은 자체 시간 제한을 두지 않습니다.
+`node --test`와 Vitest는 테스트가 기다리는 동안에만 제한 시간에 테스트를 멈추므로 동기 작업을
+멈출 수 없습니다.
+
+## 시간과 부하
+
+테스트는 경과 시간을 제한값이나 다른 경과 시간과 비교하지 않습니다. 기계의 부하가 경과 시간을
+바꾸기 때문입니다. 연산이 선형 시간에 끝나는지 확인하는 검사는 다음 둘 중 하나를 합니다.
+
+- 결정적인 양을 셉니다. JavaScript test runner는 동기 작업을 멈출 수 없으므로 validator의
+  JavaScript 검사는 getter로 데이터 읽기를, 세는 `codePointAt`으로 텍스트 읽기를 세고, 선형 순회의
+  읽기 수를 넘는 첫 읽기에서 실패합니다.
+- 이차 시간이나 지수 시간 구현은 테스트 제한 시간 안에 끝나지 않고 선형 구현은 몇 초 안에 끝나는
+  큰 입력을 실행합니다. PHP, Go, Rust validator 검사와 PHP extension engine fixture가 이렇게 합니다.
+
+`npm run test:runtimes`가 실행하는 `tests/build/validator-test-clocks.test.mjs`는 validator
+테스트나 PHP extension engine fixture가 시계를 읽으면 실패합니다.
 
 `npm run test:runtimes`가 실행하는 `tests/build/test-commands.test.mjs`는 다음 경우에
 실패합니다.

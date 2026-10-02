@@ -217,13 +217,16 @@ final class PatternLanguageTest extends TestCase
         self::assertLessThan(1300, WholeMatchPattern::compile('((a{10})*){100}')->stateCount());
     }
 
-    public function testMatchingTimeIsLinear(): void
+    /**
+     * Inputs that take exponential time in a backtracking engine: a linear matcher ends them
+     * within milliseconds, and a backtracking one does not end before the per-test timeout of
+     * scripts/run-tests.mjs.
+     */
+    public function testMatchingIsLinear(): void
     {
-        $started = hrtime(true);
         self::assertFalse(WholeMatchPattern::compile('(?:[^\\n]*a){12}c')->matches(str_repeat('a', 20000)));
         self::assertFalse(WholeMatchPattern::compile('(?:a|aa)*c')->matches(str_repeat('a', 20000)));
         self::assertTrue(WholeMatchPattern::compile('.*\\p{L}{900}')->matches(str_repeat('한', 1000)));
-        self::assertLessThan(2.0, (hrtime(true) - $started) / 1e9);
     }
 
     public function testInvalidUtf8TextIsRejected(): void

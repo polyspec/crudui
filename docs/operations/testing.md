@@ -66,6 +66,25 @@ node scripts/run-tests.mjs <node|vitest|go|cargo|phpunit> [--timeout <seconds>] 
 The runner prints each test's start, a line while it is still running, its result and its
 elapsed time. Every test has its own timeout, 30 seconds unless `--timeout` sets another.
 Package scripts, Composer scripts and Makefile targets call test tools only through this runner.
+The runner stops a Go, Cargo or PHPUnit test at its timeout, and PHPUnit sets no time limit of its
+own; `node --test` and Vitest stop a test at its timeout only when the test waits, so they cannot
+stop synchronous work.
+
+## Time and load
+
+A test never compares an elapsed time with a limit or with another elapsed time, because the
+load of the machine changes elapsed time. A check that an operation takes linear time does one of
+two things:
+
+- It counts a deterministic quantity. The JavaScript checks of the validator count reads of the
+  data with getters and of the text with a counting `codePointAt`, and fail at the first read
+  beyond the reads of a linear walk, because a JavaScript test runner cannot stop synchronous work.
+- It runs an input so large that a quadratic or exponential implementation does not end before
+  the test's timeout, while the linear implementation ends within a few seconds. The PHP, Go and
+  Rust validator checks and the PHP extension engine fixtures do this.
+
+`tests/build/validator-test-clocks.test.mjs`, run by `npm run test:runtimes`, fails when a
+validator test or a PHP extension engine fixture reads a clock.
 
 `tests/build/test-commands.test.mjs`, run by `npm run test:runtimes`, fails when:
 

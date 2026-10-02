@@ -1,5 +1,31 @@
 # Changes
 
+## 2026-10-02 — Linear-time checks read no clock
+
+- The linear-time checks of the validators and of the PHP extension engine read no clock. They
+  compared elapsed times with a limit or with each other, so they failed under a machine load
+  average of 28 to 38 and passed alone, and `make conformance` and `make ci` did not end with
+  status 0 in one full run.
+- The JavaScript checks count reads: a getter on each row value and each repeated value fails a
+  read beyond the reads of the same value among ten values, and a counting `codePointAt` fails a
+  second read of a text position. The PHP, Go and Rust checks and the PHP extension engine
+  fixtures validate, parse, match or order inputs that a linear implementation ends within seconds
+  and a quadratic or exponential one does not end before the test's timeout. A Rust test that
+  measured `serde_json::to_value` instead of the rule is removed.
+- PHPUnit sets no time limit of its own in the validator and the generator packages, so the test
+  runner's timeout of 30 seconds is the only limit of a PHP test.
+- `tests/build/validator-test-clocks.test.mjs`, run by `npm run test:runtimes`, fails when a
+  validator test or a PHP extension engine fixture reads a clock.
+- The form comparison check that 500 request generators are constructed without deployment-size
+  work compared their elapsed time with 250 ms and failed with 994 ms under load; it now requires
+  them to end within the 10-second limit of its PHP process.
+- The PHP extension engine tests have budgets of 120 seconds, and 300 seconds with a sanitizer,
+  instead of 30 and 60 seconds: the values fixture took 23.7 seconds at a load average of 45, and
+  its sanitized run did not end within 54 seconds at a load average of 107.
+- The stylesheet layout checks close their three browsers within a hook limit of 120 seconds;
+  the close exceeded the default limit of 30 seconds at a load average of 100 and failed
+  `npm run test:forms` after all 61 checks passed.
+
 ## 2026-10-02 — Action behavior members are event attributes
 
 - A list or detail action writes each declared `behavior` member as the attribute of that name:

@@ -120,7 +120,8 @@ after(async () => {
     try { await server?.close(); }
     finally { if (cacheDirectory) await rm(cacheDirectory, { recursive: true, force: true }); }
   }
-});
+// Closing three browsers took longer than the default 30 s hook limit at a load average of 100.
+}, { timeout: 120000 });
 
 /**
  * Open the form document in a host: the page itself, a 420 px scrolling box in the page,

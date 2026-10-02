@@ -232,12 +232,13 @@ export async function runUnderCommaLocale({ signal, root, prefix, name, source, 
 /*
  * Every test compiles and runs a C program, so each step reports its start, its
  * elapsed time and its result while it runs, and the test's own timeout aborts the
- * step it is in. Measured on macOS (Apple silicon, warm caches): a plain
- * compile-and-run takes 0.5–1.1 s and a sanitized one up to 1.2 s. The budgets below
- * leave room for slower and loaded machines, including the CI runners.
+ * step it is in. A timeout only turns a fixture that does not end into a failure, so the
+ * budgets hold the slowest fixture on a loaded machine: the values fixture took 23.7 s at a load
+ * average of 45, and its sanitized run did not end within 54 s at a load average of 107, on an
+ * 11-core macOS machine.
  */
-export const ENGINE_TEST_BUDGET = 30000;
-export const ENGINE_SANITIZER_BUDGET = 60000;
+export const ENGINE_TEST_BUDGET = 120000;
+export const ENGINE_SANITIZER_BUDGET = 300000;
 // Tests that only read repository files; measured at 20–70 ms together.
 export const ENGINE_INSPECTION_BUDGET = 10000;
 const PROGRESS_INTERVAL = 5000;
@@ -624,13 +625,50 @@ test('PHP extension engine validates all shared form, list and detail cases', { 
 });
 
 /*
- * A filtered unique rule over rows: the filter runs once per row and the rows are compared by
- * sorting, so four times the rows take about four times as long, not sixteen times.
+ * The unique rule walks the rows of a collection once per validation. Each fixture validates
+ * 50,000 rows with distinct values, which a single walk checks within seconds; a walk of every
+ * earlier row for each row makes 1.25 * 10^9 row visits and does not end before the timeout of
+ * the test, which stops the fixture. No fixture reads a clock, so the load of the machine cannot
+ * change a result.
  */
-function sourceForUniqueTime() {
+const UNIQUE_ROWS = 50000;
+
+/** A fixture program that validates UNIQUE_ROWS rows built by `row` under the emitted spec. */
+function sourceForManyUniqueRows(spec, row, data) {
   const builder = new EngineFixtureSource();
   const { lines } = builder;
-  const spec = builder.emit({
+  const emitted = builder.emit(spec);
+  lines.push(
+    `  bool valid = rows_valid(${emitted}, ${UNIQUE_ROWS});`,
+    `  ps_value_free(${emitted});`,
+    `  if (!valid) { fputs("${UNIQUE_ROWS} distinct rows were not valid\\n", stderr); return 1; }`,
+  );
+  return fixtureProgram(lines, [
+    '/* Whether the validation of count keyed rows with distinct values is valid. */',
+    'static bool rows_valid(const ps_value *spec, size_t count)',
+    '{',
+    '  ps_value *rows = ps_object_value(), *data = ps_object_value(), *options = ps_object_value();',
+    '  for (size_t i = 0; i < count; ++i) {',
+    '    char name[32]; snprintf(name, sizeof(name), "row%zu", i);',
+    '    ps_value *row = ps_object_value();',
+    ...row,
+    '    put(rows, ps_fixed(name), row);',
+    '  }',
+    ...data,
+    '  put(data, PS_TEXT("rows"), rows);',
+    '  ps_result result = ps_validate(spec, data, options);',
+    '  bool valid = result.value && !result.error && ps_get(result.value, "valid") &&',
+    '    ps_get(result.value, "valid")->kind == PS_BOOL && ps_get(result.value, "valid")->data.boolean;',
+    '  ps_value_free(result.value); ps_value_free(result.error);',
+    '  ps_value_free(data); ps_value_free(options);',
+    '  return valid;',
+    '}',
+  ]);
+}
+
+/** A filtered unique rule over rows: the filter runs once per row. */
+function sourceForUniqueRows() {
+  return sourceForManyUniqueRows({
     type: 'group',
     properties: {
       checked: { type: 'number' },
@@ -639,66 +677,14 @@ function sourceForUniqueTime() {
         properties: { name: { type: 'text' }, enabled: { type: 'number' } },
       },
     },
-  });
-  lines.push(
-    `  double small = unique_time(${spec}, 400), large = unique_time(${spec}, 1600);`,
-    '  printf("400 rows: %.4fs, 1600 rows: %.4fs\\n", small, large);',
-    `  ps_value_free(${spec});`,
-    '  if (small < 0 || large < 0) return 1;',
-    '  if (!(large < small * 8)) { fputs("unique time grows faster than the rows\\n", stderr); return 2; }',
-  );
-  return fixtureProgram(lines, [
-    '#include <time.h>',
-    'static double seconds(void)',
-    '{ struct timespec now; timespec_get(&now, TIME_UTC); return (double)now.tv_sec + (double)now.tv_nsec / 1e9; }',
-    '/* The shortest of three validations of distinct checked keyed rows, or -1 when one is not valid. */',
-    'static double unique_time(const ps_value *spec, size_t count)',
-    '{',
-    '  ps_value *rows = ps_object_value(), *data = ps_object_value(), *options = ps_object_value();',
-    '  for (size_t i = 0; i < count; ++i) {',
-    '    char name[32]; snprintf(name, sizeof(name), "row%zu", i);',
-    '    ps_value *row = ps_object_value();',
+  }, [
     '    put(row, PS_TEXT("name"), ps_string_value(name)); put(row, PS_TEXT("enabled"), ps_int_value(1));',
-    '    put(rows, ps_fixed(name), row);',
-    '  }',
-    '  put(data, PS_TEXT("checked"), ps_int_value(1)); put(data, PS_TEXT("rows"), rows);',
-    '  double best = -1;',
-    '  for (int run = 0; run < 3; ++run) {',
-    '    double started = seconds();',
-    '    ps_result result = ps_validate(spec, data, options);',
-    '    double elapsed = seconds() - started;',
-    '    bool valid = result.value && !result.error && ps_get(result.value, "valid") &&',
-    '      ps_get(result.value, "valid")->kind == PS_BOOL && ps_get(result.value, "valid")->data.boolean;',
-    '    ps_value_free(result.value); ps_value_free(result.error);',
-    '    if (!valid) { best = -1; break; }',
-    '    if (best < 0 || elapsed < best) best = elapsed;',
-    '  }',
-    '  ps_value_free(data); ps_value_free(options);',
-    '  return best;',
-    '}',
-  ]);
+  ], ['  put(data, PS_TEXT("checked"), ps_int_value(1));']);
 }
 
-test('PHP extension engine unique rule takes time linear in the rows', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-extension-unique-'));
-  try {
-    await compileAndRunEngineFixture({
-      signal: t.signal, root, directory, source: sourceForUniqueTime(), name: 'unique-time',
-      sources: [
-        'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'compose.c', 'expression.c',
-        'runtime.c', ...ruleSources, 'forbidden_scan.c', 'validation.c',
-      ],
-      onOutput: stdout => process.stderr.write(`    ${stdout}`),
-    });
-  } finally {
-    await rm(directory, { recursive: true, force: true });
-  }
-});
-
-function sourceForUniqueRowTime() {
-  const builder = new EngineFixtureSource();
-  const { lines } = builder;
-  const spec = builder.emit({
+/** A unique field in rows. */
+function sourceForUniqueField() {
+  return sourceForManyUniqueRows({
     type: 'group',
     properties: {
       rows: {
@@ -706,61 +692,28 @@ function sourceForUniqueRowTime() {
         properties: { code: { type: 'text', validate: { unique: true } } },
       },
     },
-  });
-  lines.push(
-    `  double small = unique_time(${spec}, 1500), large = unique_time(${spec}, 6000);`,
-    '  printf("1500 rows: %.4fs, 6000 rows: %.4fs\\n", small, large);',
-    `  ps_value_free(${spec});`,
-    '  if (small < 0 || large < 0) return 1;',
-    '  if (!(large < small * 8)) { fputs("unique time grows faster than the rows\\n", stderr); return 2; }',
-  );
-  return fixtureProgram(lines, [
-    '#include <time.h>',
-    'static double seconds(void)',
-    '{ struct timespec now; timespec_get(&now, TIME_UTC); return (double)now.tv_sec + (double)now.tv_nsec / 1e9; }',
-    '/* The shortest of three validations of keyed rows with distinct codes, or -1 when one is not valid. */',
-    'static double unique_time(const ps_value *spec, size_t count)',
-    '{',
-    '  ps_value *rows = ps_object_value(), *data = ps_object_value(), *options = ps_object_value();',
-    '  for (size_t i = 0; i < count; ++i) {',
-    '    char name[32]; snprintf(name, sizeof(name), "row%zu", i);',
-    '    ps_value *row = ps_object_value();',
-    '    put(row, PS_TEXT("code"), ps_string_value(name));',
-    '    put(rows, ps_fixed(name), row);',
-    '  }',
-    '  put(data, PS_TEXT("rows"), rows);',
-    '  double best = -1;',
-    '  for (int run = 0; run < 3; ++run) {',
-    '    double started = seconds();',
-    '    ps_result result = ps_validate(spec, data, options);',
-    '    double elapsed = seconds() - started;',
-    '    bool valid = result.value && !result.error && ps_get(result.value, "valid") &&',
-    '      ps_get(result.value, "valid")->kind == PS_BOOL && ps_get(result.value, "valid")->data.boolean;',
-    '    ps_value_free(result.value); ps_value_free(result.error);',
-    '    if (!valid) { best = -1; break; }',
-    '    if (best < 0 || elapsed < best) best = elapsed;',
-    '  }',
-    '  ps_value_free(data); ps_value_free(options);',
-    '  return best;',
-    '}',
-  ]);
+  }, ['    put(row, PS_TEXT("code"), ps_string_value(name));'], []);
 }
 
-test('PHP extension engine unique rule on a field in rows takes time linear in the rows', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-extension-unique-row-'));
-  try {
-    await compileAndRunEngineFixture({
-      signal: t.signal, root, directory, source: sourceForUniqueRowTime(), name: 'unique-row-time',
-      sources: [
-        'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'compose.c', 'expression.c',
-        'runtime.c', ...ruleSources, 'forbidden_scan.c', 'validation.c',
-      ],
-      onOutput: stdout => process.stderr.write(`    ${stdout}`),
-    });
-  } finally {
-    await rm(directory, { recursive: true, force: true });
-  }
-});
+for (const [title, name, source] of [
+  ['PHP extension engine unique rule walks the rows once', 'unique-rows', sourceForUniqueRows],
+  ['PHP extension engine unique rule on a field in rows walks the rows once', 'unique-field', sourceForUniqueField],
+]) {
+  test(title, { timeout: ENGINE_TEST_BUDGET }, async t => {
+    const directory = await mkdtemp(path.join(os.tmpdir(), `crudui-extension-${name}-`));
+    try {
+      await compileAndRunEngineFixture({
+        signal: t.signal, root, directory, source: source(), name,
+        sources: [
+          'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'compose.c', 'expression.c',
+          'runtime.c', ...ruleSources, 'forbidden_scan.c', 'validation.c',
+        ],
+      });
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
+  });
+}
 
 test('PHP extension engine validation does not depend on a comma decimal locale', { timeout: ENGINE_TEST_BUDGET }, async t => {
   await runUnderCommaLocale({

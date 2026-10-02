@@ -48,27 +48,19 @@ final class PublicApiTest extends TestCase
         self::assertNull($result->errors[2]->value);
     }
 
-    /** Four times the rows take about four times as long to check for uniqueness, not sixteen. */
-    public function testUniqueRowsTakeTimeLinearInTheRows(): void
+    /**
+     * 25,000 rows filtered by a condition are walked once, within seconds; a walk of every earlier
+     * row for each row does not end before the per-test timeout of scripts/run-tests.mjs.
+     */
+    public function testUniqueRowsAreWalkedOnce(): void
     {
         $spec = json_decode('{"type":"group","properties":{"checked":{"type":"number"},"rows":{"type":"group","multiple":true,'
             . '"validate":{"unique":"checked == 1"},"properties":{"name":{"type":"text"},"enabled":{"type":"number"}}}}}');
-        $time = static function (int $count) use ($spec): float {
-            $rows = [];
-            for ($i = 0; $i < $count; $i++) {
-                $rows["row{$i}"] = ['name' => "row {$i}", 'enabled' => 1];
-            }
-            $best = INF;
-            for ($run = 0; $run < 3; $run++) {
-                $started = hrtime(true);
-                self::assertTrue(Validator::validate($spec, ['checked' => 1, 'rows' => $rows])->valid);
-                $best = min($best, (hrtime(true) - $started) / 1e9);
-            }
-            return $best;
-        };
-        $small = $time(4000);
-        $large = $time(16000);
-        self::assertLessThan($small * 8, $large, sprintf('4000 rows: %.4fs, 16000 rows: %.4fs', $small, $large));
+        $rows = [];
+        for ($i = 0; $i < 25000; $i++) {
+            $rows["row{$i}"] = ['name' => "row {$i}", 'enabled' => 1];
+        }
+        self::assertTrue(Validator::validate($spec, ['checked' => 1, 'rows' => $rows])->valid);
         $duplicate = ['checked' => 1, 'rows' => ['a' => ['name' => 'same', 'enabled' => 1], 'b' => ['name' => 'same', 'enabled' => 1]]];
         self::assertFalse(Validator::validate($spec, $duplicate)->valid);
     }

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strconv"
 	"testing"
-	"time"
 
 	"github.com/polyspec/crudui/packages/validator-go/validator/compose"
 )
@@ -62,39 +61,22 @@ func TestComparisonKeyTypeDistinction(t *testing.T) {
 	}
 }
 
-// TestUniqueLinearTime checks that areAllUnique scales linearly.
-// We test with n values vs 4n values and verify the ratio is well below 16.
-func TestUniqueLinearTime(t *testing.T) {
-	// Build n test values (n=100)
-	n := 100
-	nValues := buildUniqueTestValues(n)
-
-	// Time areAllUnique for n values (100 iterations)
-	start := time.Now()
-	for i := 0; i < 100; i++ {
-		areAllUnique(nValues)
+// TestUniqueManyValues checks 1,000,000 distinct values. A check that keys each value once ends
+// within a second; one that compares each value with every earlier one makes 5 * 10^11
+// comparisons and does not end before the per-test timeout of scripts/run-tests.mjs, which fails
+// the test.
+func TestUniqueManyValues(t *testing.T) {
+	values := make([]any, 1_000_000)
+	for i := range values {
+		values[i] = "item-" + strconv.Itoa(i)
 	}
-	durationN := time.Since(start)
-
-	// Build 4n test values
-	fourNValues := buildUniqueTestValues(n * 4)
-
-	// Time areAllUnique for 4n values (100 iterations)
-	start = time.Now()
-	for i := 0; i < 100; i++ {
-		areAllUnique(fourNValues)
+	if !areAllUnique(values) {
+		t.Fatal("distinct values were reported as duplicates")
 	}
-	duration4N := time.Since(start)
-
-	// Check ratio: should be close to 4, well below 16
-	ratio := float64(duration4N) / float64(durationN)
-	if ratio > 16 {
-		t.Errorf("Time ratio for 4n vs n = %.2f, want < 16 (linear time not quadratic)", ratio)
+	values[len(values)-1] = "item-0"
+	if areAllUnique(values) {
+		t.Fatal("the last value repeats the first one")
 	}
-
-	t.Logf("Time for %d values: %v", n, durationN)
-	t.Logf("Time for %d values: %v", n*4, duration4N)
-	t.Logf("Ratio: %.2f", ratio)
 }
 
 // buildUniqueTestValues creates values for uniqueness testing.
@@ -120,36 +102,25 @@ func buildUniqueTestValues(count int) []any {
 	return values
 }
 
-// TestUniqueRowLevelLinearTime validates a repeated group whose field declares unique with n and
-// 4n rows: the rows are walked once per validation, so the time grows about four times (sixteen
-// if every row compared itself with every earlier row).
-func TestUniqueRowLevelLinearTime(t *testing.T) {
+// TestUniqueManyRows validates a repeated group of 200,000 rows whose field declares unique. The
+// rows are walked once per validation, which ends within seconds; a walk of every earlier row for
+// each row makes 2 * 10^10 row visits and does not end before the per-test timeout of
+// scripts/run-tests.mjs, which fails the test.
+func TestUniqueManyRows(t *testing.T) {
 	decoded, err := compose.DecodeOrdered([]byte(`{"type":"group","properties":{"rows":{"type":"group","multiple":true,"properties":{"code":{"type":"text","validate":{"unique":true}}}}}}`))
 	if err != nil {
 		t.Fatal(err)
 	}
-	spec := decoded.(*compose.OMap)
-	best := func(count int) time.Duration {
-		rows := map[string]any{}
-		for i := 0; i < count; i++ {
-			rows[fmt.Sprintf("__%013d__", i+1)] = map[string]any{"code": strconv.Itoa(i)}
-		}
-		data := map[string]any{"rows": rows}
-		var fastest time.Duration
-		for run := 0; run < 3; run++ {
-			started := time.Now()
-			if _, err := Validate(spec, data, Options{}); err != nil {
-				t.Fatal(err)
-			}
-			if elapsed := time.Since(started); run == 0 || elapsed < fastest {
-				fastest = elapsed
-			}
-		}
-		return fastest
+	rows := map[string]any{}
+	for i := 0; i < 200_000; i++ {
+		rows[fmt.Sprintf("__%013d__", i+1)] = map[string]any{"code": strconv.Itoa(i)}
 	}
-	small, large := best(1500), best(6000)
-	if ratio := float64(large) / float64(small); ratio >= 8 {
-		t.Fatalf("4n rows took %.1f times as long as n rows (%v, %v)", ratio, small, large)
+	result, err := Validate(decoded.(*compose.OMap), map[string]any{"rows": rows}, Options{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !result.Valid {
+		t.Fatalf("distinct rows were reported as duplicates: %v", result.Errors[:1])
 	}
 }
 
