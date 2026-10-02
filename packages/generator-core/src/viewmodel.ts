@@ -12,6 +12,7 @@ import { resolveDesign, type ResolvedDesign } from './design';
 import { makeContext } from './expr';
 import { FormInputError } from '@crudui/validator';
 import { UnsupportedFieldTypeError } from './errors';
+import { CHOICE_LIST_EXPECTED, choicePairs, isChoiceList } from './choice-list';
 import type { Translate } from './content';
 import { formatCount, type FormMessages } from './messages';
 import { evalWidget, type WidgetCtx, type WidgetModel } from './widget';
@@ -288,6 +289,9 @@ function buildWidget(
   design: ResolvedDesign,
   state: BuildState
 ): WidgetModel | UnsupportedVM {
+  if (isChoiceList(spec.items) && !choicePairs(spec.items)) {
+    throw new FormInputError(`Invalid items at ${path}: expected ${CHOICE_LIST_EXPECTED}`);
+  }
   const type = String(spec.type ?? '');
   const ctx: WidgetCtx = {
     spec,

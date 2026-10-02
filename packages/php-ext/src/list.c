@@ -828,7 +828,11 @@ static ps_value *cell_display(const list_column *column, const ps_value *row,
         if (!key.bytes) return NULL;
         const ps_value *items = member(options, "items");
         const ps_value *label = NULL;
-        if (items && items->kind == PS_ARRAY) {
+        if (ps_is_choice_list(items)) {
+            bool failed = false;
+            label = ps_choice_label(items, ps_view(key), &failed);
+            if (failed) { free(key.bytes); return NULL; }
+        } else if (items && items->kind == PS_ARRAY) {
             /* strtoul stops at a NUL character inside the key or at its terminating zero. */
             char *end = NULL; unsigned long index = strtoul(key.bytes, &end, 10);
             if (end == key.bytes + key.length) label = ps_at(items, (size_t)index);

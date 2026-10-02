@@ -321,7 +321,7 @@ function sourceForFixtures() {
 }
 
 test('PHP extension engine compiles every shared form fixture', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  assert.equal(fixtures.length, 104,
+  assert.equal(fixtures.length, 115,
     'Review C template coverage when the shared fixture inventory changes');
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-compile-'));
   try {
@@ -506,7 +506,7 @@ const detailCases = JSON.parse(await readFile(
 
 /* The engine units of rule evaluation, shared by the validation programs. */
 const ruleSources = [
-  'whitespace.c', 'canonical.c', 'rule_length.c', 'rule_in.c', 'rule_number.c', 'unicode_data.c',
+  'whitespace.c', 'canonical.c', 'rule_length.c', 'rule_in.c', 'choice_list.c', 'rule_number.c', 'unicode_data.c',
   'pattern_set.c', 'pattern.c', 'pattern_match.c', 'rule_parameters.c',
 ];
 
@@ -602,9 +602,9 @@ function sourceForValidation() {
 }
 
 test('PHP extension engine validates all shared form, list and detail cases', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  assert.equal(validationCases.length, 278,
+  assert.equal(validationCases.length, 287,
     'Review extension validation coverage when the shared validation cases change');
-  assert.equal(validationCases.length + specCases.length + listCases.length + detailCases.length, 331,
+  assert.equal(validationCases.length + specCases.length + listCases.length + detailCases.length, 343,
     'Review extension validation coverage when the shared fixture inventory changes');
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-extension-validation-'));
   let output = '';
@@ -1573,9 +1573,9 @@ function sourceForFixtures() {
 }
 
 test('PHP extension engine binds every shared form fixture without changing inputs', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  assert.equal(fixtures.length, 104,
+  assert.equal(fixtures.length, 115,
     'Review C binding coverage when the shared fixture inventory changes');
-  assert.equal(bindFixtures.length, 103,
+  assert.equal(bindFixtures.length, 114,
     'Review C binding coverage when compilation error fixtures change');
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-bind-'));
   try {
@@ -1583,7 +1583,7 @@ test('PHP extension engine binds every shared form fixture without changing inpu
       signal: t.signal, root, directory, source: sourceForFixtures(), name: 'bind-fixtures',
       sources: [
         'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'expression.c',
-        'runtime.c', 'date.c', 'design.c', 'widget.c', 'messages.c', 'interface_messages.c', 'binding.c',
+        'runtime.c', 'date.c', 'design.c', 'widget.c', 'messages.c', 'interface_messages.c', 'binding.c', 'choice_list.c', 'canonical.c',
       ],
     });
   } finally {
@@ -1598,7 +1598,7 @@ test('PHP extension engine binding has no undefined behavior findings', { timeou
       signal: t.signal, root, directory, source: sourceForFixtures(), name: 'bind-fixtures-sanitize',
       sources: [
         'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'expression.c',
-        'runtime.c', 'date.c', 'design.c', 'widget.c', 'messages.c', 'interface_messages.c', 'binding.c',
+        'runtime.c', 'date.c', 'design.c', 'widget.c', 'messages.c', 'interface_messages.c', 'binding.c', 'choice_list.c', 'canonical.c',
       ],
       compilerFlags: ['-fsanitize=undefined', '-fno-omit-frame-pointer'],
       runEnvironment: {
@@ -1655,7 +1655,7 @@ test('PHP extension engine reports supported widget construction failures as int
       signal: t.signal, root, directory, source: sourceForWidgetConstructionFailure(), name: 'widget-failure',
       sources: [
         'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'expression.c',
-        'runtime.c', 'date.c', 'design.c', 'messages.c', 'interface_messages.c', 'binding.c',
+        'runtime.c', 'date.c', 'design.c', 'messages.c', 'interface_messages.c', 'binding.c', 'choice_list.c', 'canonical.c',
       ],
     });
   } finally {
@@ -1738,9 +1738,9 @@ function sourceForFixtures() {
 }
 
 test('PHP extension engine renders successful shared form fixtures and edge cases as exact HTML', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  assert.equal(fixtures.length, 104,
+  assert.equal(fixtures.length, 115,
     'Review C rendering coverage when the shared fixture inventory changes');
-  assert.equal(renderFixtures.length, 102,
+  assert.equal(renderFixtures.length, 108,
     'Review C rendering coverage when successful fixtures change');
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-render-'));
   try {
@@ -1748,7 +1748,7 @@ test('PHP extension engine renders successful shared form fixtures and edge case
       signal: t.signal, root, directory, source: sourceForFixtures(), name: 'render-fixtures',
       sources: [
         'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'expression.c',
-        'runtime.c', 'date.c', 'design.c', 'widget.c', 'messages.c', 'interface_messages.c', 'binding.c', 'html.c', 'render.c',
+        'runtime.c', 'date.c', 'design.c', 'widget.c', 'messages.c', 'interface_messages.c', 'binding.c', 'html.c', 'render.c', 'choice_list.c', 'canonical.c',
       ],
     });
   } finally {
@@ -1761,7 +1761,7 @@ test('PHP extension engine form rendering does not depend on a comma decimal loc
     signal: t.signal, root, prefix: 'crudui-c-render-locale-', name: 'render-fixtures-locale', source: sourceForFixtures(),
     sources: [
       'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'expression.c',
-      'runtime.c', 'date.c', 'design.c', 'widget.c', 'messages.c', 'interface_messages.c', 'binding.c', 'html.c', 'render.c',
+      'runtime.c', 'date.c', 'design.c', 'widget.c', 'messages.c', 'interface_messages.c', 'binding.c', 'html.c', 'render.c', 'choice_list.c', 'canonical.c',
     ],
   });
 });
@@ -1773,7 +1773,7 @@ test('PHP extension engine form rendering has no undefined behavior findings', {
       signal: t.signal, root, directory, source: sourceForFixtures(), name: 'render-fixtures-sanitize',
       sources: [
         'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'expression.c',
-        'runtime.c', 'date.c', 'design.c', 'widget.c', 'messages.c', 'interface_messages.c', 'binding.c', 'html.c', 'render.c',
+        'runtime.c', 'date.c', 'design.c', 'widget.c', 'messages.c', 'interface_messages.c', 'binding.c', 'html.c', 'render.c', 'choice_list.c', 'canonical.c',
       ],
       compilerFlags: ['-fsanitize=undefined', '-fno-omit-frame-pointer'],
       runEnvironment: {
@@ -1856,11 +1856,11 @@ function sourceForFixtures() {
 const sources = [
   'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'expression.c',
   'runtime.c', 'date.c', 'design.c', 'compose.c', 'declaration.c', 'display_declaration.c', 'forbidden_scan.c', 'html.c',
-  'list.c', 'messages.c', 'interface_messages.c',
+  'list.c', 'messages.c', 'interface_messages.c', 'choice_list.c', 'canonical.c',
 ];
 
 test('PHP extension engine renders the complete list target as exact HTML', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  assert.equal(fixtures.length, 142,
+  assert.equal(fixtures.length, 145,
     'Review C list coverage when the shared fixture inventory changes');
   assert.equal(numberCases.length, 17,
     'Review C number coverage when the native number inventory changes');
@@ -1975,11 +1975,11 @@ function sourceForFixtures() {
 const sources = [
   'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'expression.c',
   'runtime.c', 'date.c', 'design.c', 'compose.c', 'declaration.c', 'display_declaration.c', 'forbidden_scan.c', 'html.c',
-  'list.c', 'messages.c', 'interface_messages.c',
+  'list.c', 'messages.c', 'interface_messages.c', 'choice_list.c', 'canonical.c',
 ];
 
 test('PHP extension engine renders and builds every shared detail fixture', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  assert.equal(fixtures.length, 44,
+  assert.equal(fixtures.length, 46,
     'Review C detail coverage when the shared fixture inventory changes');
   const missing = expectation('build', fixtures.find(fixture => fixture.name === 'missing-value'));
   assert.equal(missing.value.fields[0].value, null);
@@ -2222,7 +2222,7 @@ test('PHP extension engine updates form state atomically', { timeout: ENGINE_TES
       sources: [
         'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'compose.c', 'declaration.c', 'template.c',
         'expression.c', 'runtime.c', 'date.c', 'design.c', 'widget.c',
-        'messages.c', 'interface_messages.c', 'binding.c', 'html.c', 'render.c', 'key.c', 'form.c',
+        'messages.c', 'interface_messages.c', 'binding.c', 'html.c', 'render.c', 'key.c', 'form.c', 'choice_list.c', 'canonical.c',
       ],
     });
   } finally {

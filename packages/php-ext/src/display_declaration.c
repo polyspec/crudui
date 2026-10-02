@@ -92,8 +92,16 @@ static bool format_valid(const ps_value *format, ps_text path, ps_value **error)
         } else if (ps_text_is(key, "href")) {
             if (value->kind != PS_STRING && !is_condition_map(value))
                 return ps_declaration_error(PS_TEXT("format.href"), path, "a string or a condition map", error);
-        } else if (ps_text_is(key, "items") && value->kind != PS_ARRAY && value->kind != PS_OBJECT) {
-            return ps_declaration_error(PS_TEXT("format.items"), path, "an array or an object", error);
+        } else if (ps_text_is(key, "items")) {
+            if (value->kind != PS_ARRAY && value->kind != PS_OBJECT)
+                return ps_declaration_error(PS_TEXT("format.items"), path, "an array or an object", error);
+            if (ps_is_choice_list(value)) {
+                int valid = ps_choice_list_valid(value);
+                if (valid < 0) return false;
+                if (!valid)
+                    return ps_declaration_error(PS_TEXT("format.items"), path,
+                                                "value and label pairs with distinct string or number values", error);
+            }
         }
     }
     return true;

@@ -2591,5 +2591,316 @@
       "language": "en"
     },
     "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"score\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:score\">Score</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"score\" data-rule-name=\"score\" id=\"crudui:score\" name=\"score\" step=\"any\" type=\"number\" value=\"2886.5\"></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "choice-list-select-order",
+    "note": "A select field lists a choice list in list order, so the integer-like values 1 and 0 show Yes before No; the option values are the canonical texts of the values.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "answer": {
+          "type": "select",
+          "label": "Answer",
+          "items": [
+            {
+              "value": 1,
+              "label": "Yes"
+            },
+            {
+              "value": 0,
+              "label": "No"
+            }
+          ]
+        }
+      }
+    },
+    "data": {
+      "answer": 0
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"answer\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:answer\">Answer</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><select class=\"valid-target crudui-input crudui-input--select\" data-default=\"\" data-name=\"answer\" data-rule-name=\"answer\" id=\"crudui:answer\" name=\"answer\"><option value=\"1\">Yes</option><option selected=\"\" value=\"0\">No</option></select></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "choice-list-index-labels",
+    "note": "An array of labels keeps its written order with the indexes as values.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "answer": {
+          "type": "select",
+          "label": "Answer",
+          "items": [
+            "Yes",
+            "No"
+          ]
+        }
+      }
+    },
+    "data": {
+      "answer": "1"
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"answer\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:answer\">Answer</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><select class=\"valid-target crudui-input crudui-input--select\" data-default=\"\" data-name=\"answer\" data-rule-name=\"answer\" id=\"crudui:answer\" name=\"answer\"><option value=\"0\">Yes</option><option selected=\"\" value=\"1\">No</option></select></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "choice-list-choice-default",
+    "note": "A choice field lists a choice list in list order with a translated label, checks the value and marks the default.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "agree": {
+          "type": "choice",
+          "label": "Agree",
+          "default": 0,
+          "items": [
+            {
+              "value": 1,
+              "label": {
+                "en": "Yes",
+                "ko": "예"
+              }
+            },
+            {
+              "value": 0,
+              "label": "No"
+            }
+          ]
+        }
+      }
+    },
+    "data": {
+      "agree": 1
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"agree\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Agree</span></div><div class=\"crudui-node__body\"><div class=\"crudui-choices\"><input autocomplete=\"off\" checked=\"\" class=\"valid-target crudui-choices__input\" data-is-default=\"\" data-name=\"agree\" data-rule-name=\"agree\" id=\"crudui:agree:0\" name=\"agree\" type=\"radio\" value=\"1\"><label class=\"crudui-choices__label\" for=\"crudui:agree:0\"><span>Yes</span></label><input autocomplete=\"off\" class=\"valid-target crudui-choices__input\" data-is-default=\"1\" data-name=\"agree\" data-rule-name=\"agree\" id=\"crudui:agree:1\" name=\"agree\" type=\"radio\" value=\"0\"><label class=\"crudui-choices__label\" for=\"crudui:agree:1\"><span>No</span></label></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "choice-list-multichoice-mixed-values",
+    "note": "A multichoice field keeps the list order of string and number values.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "sizes": {
+          "type": "multichoice",
+          "label": "Sizes",
+          "items": [
+            {
+              "value": "10",
+              "label": "Ten"
+            },
+            {
+              "value": 2,
+              "label": "Two"
+            },
+            {
+              "value": "b",
+              "label": "Bee"
+            }
+          ]
+        }
+      }
+    },
+    "data": {
+      "sizes": [
+        "2",
+        "b"
+      ]
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"sizes\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Sizes</span></div><div class=\"crudui-node__body\"><div class=\"crudui-choices crudui-choices--multiple\"><input autocomplete=\"off\" class=\"valid-target crudui-choices__input\" data-name=\"sizes\" data-rule-name=\"sizes\" id=\"crudui:sizes:0\" name=\"sizes[]\" type=\"checkbox\" value=\"10\"><label class=\"crudui-choices__label\" for=\"crudui:sizes:0\"><span>Ten</span></label><input autocomplete=\"off\" checked=\"\" class=\"valid-target crudui-choices__input\" data-name=\"sizes\" data-rule-name=\"sizes\" id=\"crudui:sizes:1\" name=\"sizes[]\" type=\"checkbox\" value=\"2\"><label class=\"crudui-choices__label\" for=\"crudui:sizes:1\"><span>Two</span></label><input autocomplete=\"off\" checked=\"\" class=\"valid-target crudui-choices__input\" data-name=\"sizes\" data-rule-name=\"sizes\" id=\"crudui:sizes:2\" name=\"sizes[]\" type=\"checkbox\" value=\"b\"><label class=\"crudui-choices__label\" for=\"crudui:sizes:2\"><span>Bee</span></label></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "choice-list-search-order",
+    "note": "A search field lists a static choice list in list order.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "pick": {
+          "type": "search",
+          "label": "Pick",
+          "items": [
+            {
+              "value": 1,
+              "label": "Yes"
+            },
+            {
+              "value": 0,
+              "label": "No"
+            }
+          ]
+        }
+      }
+    },
+    "data": {
+      "pick": 1
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"pick\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:pick\">Pick</label></div><div class=\"crudui-node__body\"><style nonce=\"\">[class~=\"crudui:pick_select2\"] .loading-results { display: none; }</style><script nonce=\"\">$(function() {select2(CSS.escape(\"crudui:pick\"), \"2\", \"250\", \"crudui:pick_select2\");});</script><div class=\"crudui-widget crudui-widget--search\"><select class=\"valid-target crudui-input crudui-input--select\" data-api-server=\"\" data-default=\"\" data-delay=\"250\" data-keyword-min-length=\"2\" data-name=\"pick\" data-rule-name=\"pick\" id=\"crudui:pick\" name=\"pick\"><option selected=\"\" value=\"1\">Yes</option><option value=\"0\">No</option></select></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "choice-list-dummy-label",
+    "note": "A dummy field displays the label of its value from a choice list.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "shown": {
+          "type": "dummy",
+          "label": "Shown",
+          "items": [
+            {
+              "value": 1,
+              "label": "Yes"
+            },
+            {
+              "value": 0,
+              "label": "No"
+            }
+          ]
+        }
+      }
+    },
+    "data": {
+      "shown": 0
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"shown\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Shown</span></div><div class=\"crudui-node__body\"><div>No</div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "choice-list-extra-member",
+    "note": "A choice list element has only value and label.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "answer": {
+          "type": "select",
+          "label": "Answer",
+          "items": [
+            {
+              "value": 1,
+              "label": "Yes",
+              "id": 1
+            }
+          ]
+        }
+      }
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid items at answer: expected value and label pairs with distinct string or number values"
+    }
+  },
+  {
+    "name": "choice-list-missing-label",
+    "note": "A choice list element has a label.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "answer": {
+          "type": "choice",
+          "label": "Answer",
+          "items": [
+            {
+              "value": 1
+            }
+          ]
+        }
+      }
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid items at answer: expected value and label pairs with distinct string or number values"
+    }
+  },
+  {
+    "name": "choice-list-mixed-elements",
+    "note": "An array with one object that has a value member is a choice list, so a plain label in it is invalid.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "answer": {
+          "type": "select",
+          "label": "Answer",
+          "items": [
+            "Yes",
+            {
+              "value": 0,
+              "label": "No"
+            }
+          ]
+        }
+      }
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid items at answer: expected value and label pairs with distinct string or number values"
+    }
+  },
+  {
+    "name": "choice-list-boolean-value",
+    "note": "A choice list value is a string or a finite number.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "answer": {
+          "type": "multichoice",
+          "label": "Answer",
+          "items": [
+            {
+              "value": true,
+              "label": "Yes"
+            }
+          ]
+        }
+      }
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid items at answer: expected value and label pairs with distinct string or number values"
+    }
+  },
+  {
+    "name": "choice-list-duplicate-value",
+    "note": "Two choice list values with the same canonical text are invalid, here in a nested group and before the type is evaluated.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "terms": {
+          "type": "group",
+          "label": "Terms",
+          "properties": {
+            "answer": {
+              "type": "not-a-widget",
+              "label": "Answer",
+              "items": [
+                {
+                  "value": 1,
+                  "label": "Yes"
+                },
+                {
+                  "value": "1",
+                  "label": "One"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid items at terms.answer: expected value and label pairs with distinct string or number values"
+    }
   }
 ]

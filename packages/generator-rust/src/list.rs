@@ -4,6 +4,7 @@ use crudui_validator::compose::{
 use crudui_validator::scan_forbidden_keys;
 use serde_json::{json, Map, Value};
 
+use crate::choice_list::{choice_label, is_choice_list};
 use crate::design::{appearance, flag, resolve_design};
 use crate::display_declaration::check_display_declarations;
 use crate::messages::{format_page, list_messages};
@@ -176,7 +177,9 @@ fn cell_display(
         }
         "choice-label" => {
             let items = &options["items"];
-            let raw = if items.get("model").is_some() {
+            let raw = if is_choice_list(items) {
+                choice_label(items, &text)
+            } else if items.get("model").is_some() {
                 None
             } else if let Some(array) = items.as_array() {
                 text.parse::<usize>().ok().and_then(|i| array.get(i))

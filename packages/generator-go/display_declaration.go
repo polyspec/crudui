@@ -106,6 +106,11 @@ func checkFormatDeclaration(format any, path string) error {
 			if !isArray(value) && object(value) == nil {
 				return expected("format.items", path, "an array or an object")
 			}
+			if isChoiceList(value) {
+				if _, ok := choicePairs(value); !ok {
+					return expected("format.items", path, choiceListExpected)
+				}
+			}
 		}
 	}
 	return nil

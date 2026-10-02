@@ -108,7 +108,8 @@ columns:
 
 ### choice-label
 
-`items`는 값에서 라벨로의 맵이거나, 인덱스가 값인 배열입니다. 값의 라벨을 표시합니다. 동적 원천
+`items`는 값에서 라벨로의 맵, 인덱스가 값인 배열, [선택 목록](schema.ko.md#선택-목록) 중 하나입니다.
+값의 라벨을 표시하며, 선택 목록에서는 `value`의 정규 텍스트가 값과 같은 쌍의 라벨입니다. 동적 원천
 (`{ model: … }`)은 렌더러가 읽지 않으며, 라벨이 없는 값은 그대로 표시합니다.
 
 ### bool
@@ -209,6 +210,7 @@ columns:
 | 각 `format.map` 라벨 | 콘텐츠 | `Invalid format.map.{value} at {path}: expected a string, a language map or null` |
 | `format.href` | 문자열 또는 조건 맵 | `Invalid format.href at {path}: expected a string or a condition map` |
 | `format.items` | 배열 또는 객체 | `Invalid format.items at {path}: expected an array or an object` |
+| `format.items` 선택 목록 | [선택 목록](schema.ko.md#선택-목록)의 쌍 | `Invalid format.items at {path}: expected value and label pairs with distinct string or number values` |
 | `sortable` | 불리언, 식, 조건 맵 | `Invalid sortable at {path}: expected a boolean, an expression or a condition map` |
 | `search` | 불리언 또는 객체 | `Invalid search at list: expected a boolean or an object` |
 | `sort` | 객체 | `Invalid sort at list: expected an object` |

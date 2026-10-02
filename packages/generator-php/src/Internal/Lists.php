@@ -396,6 +396,14 @@ final class Lists
                 return Value::record(['kind' => 'link', 'href' => self::interpolate($href, $row, $value), 'text' => isset($options->text) && $options->text !== '' ? Value::translate($options->text, $language) : $text, 'target' => is_string($options->target ?? null) && $options->target !== '' ? $options->target : Missing::Value]);
             case 'choice-label':
                 $items = $options->items ?? null;
+                if (ChoiceList::is($items)) {
+                    foreach (ChoiceList::pairs($items) ?? [] as [$choice, $label]) {
+                        if ($choice === $text) {
+                            return Value::translate($label, $language);
+                        }
+                    }
+                    return $text;
+                }
                 if ($items instanceof stdClass && !property_exists($items, 'model') || is_array($items)) {
                     $found = Value::get($items, $text);
                     if ($found !== Missing::Value) {

@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace CRUDUI\Validator\Values;
 
 /**
- * The member set of `in`: a list (each element as is), a comma-separated string
- * (split at U+002C, each item trimmed) or a map (its keys); list elements and map keys are
- * read as written. A trimmed value matches a member
+ * The member set of `in`: a list (each element as is), a choice list (the value of each
+ * element), a comma-separated string (split at U+002C, each item trimmed) or a map (its keys);
+ * list elements and map keys are read as written. A choice list is checked by the choice list
+ * rules before its values are checked as members. A trimmed value matches a member
  * when their canonical texts are the same code points, or when both are numeric
  * with equal values.
  *
@@ -43,6 +44,9 @@ final class Membership
     {
         if (\is_string($parameter)) {
             $members = array_map(Whitespace::trim(...), explode(',', $parameter));
+        } elseif (\is_array($parameter) && array_is_list($parameter) && self::isChoiceList($parameter)) {
+            $members = self::choiceValues($parameter)
+                ?? throw self::failure('expected value and label pairs with distinct string or number values');
         } elseif (\is_array($parameter) && array_is_list($parameter)) {
             $members = $parameter;
         } elseif ($parameter instanceof \stdClass || \is_array($parameter)) {
@@ -59,6 +63,53 @@ final class Membership
             }
         }
         return new self($members);
+    }
+
+    /**
+     * Whether a list is a choice list (docs/spec/schema.md, "Choice lists"): one of its
+     * elements is an object that has a `value` member.
+     *
+     * @param list<mixed> $list
+     */
+    private static function isChoiceList(array $list): bool
+    {
+        foreach ($list as $item) {
+            if ($item instanceof \stdClass && property_exists($item, 'value')) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * The values of a choice list in order, or null when an element has another member, lacks
+     * `value` or `label`, has a value that is not a string or a finite number, or repeats the
+     * canonical text of an earlier value.
+     *
+     * @param list<mixed> $list
+     * @return list<string|int|float>|null
+     */
+    private static function choiceValues(array $list): ?array
+    {
+        $values = [];
+        $seen = [];
+        foreach ($list as $item) {
+            if (!$item instanceof \stdClass || \count(get_object_vars($item)) !== 2
+                || !property_exists($item, 'value') || !property_exists($item, 'label')) {
+                return null;
+            }
+            $value = $item->value;
+            if (!\is_string($value) && !\is_int($value) && !(\is_float($value) && is_finite($value))) {
+                return null;
+            }
+            $text = (string) CanonicalText::of($value);
+            if (isset($seen[$text])) {
+                return null;
+            }
+            $seen[$text] = true;
+            $values[] = $value;
+        }
+        return $values;
     }
 
     /**

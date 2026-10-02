@@ -126,3 +126,18 @@ descTest('explain — invented-interpretation 0: meaning comes from the describe
     expect(out).toMatch(/알 수 없는|미등록|unknown/i);
   });
 });
+
+descTest('explain — choice lists keep their written order', () => {
+  it('a choice list is explained as value=label options in list order', () => {
+    const out = explainSpec(
+      {
+        type: 'group',
+        properties: {
+          answer: { type: 'select', label: 'Answer', items: [{ value: 1, label: 'Yes' }, { value: 0, label: { en: 'No' } }] },
+        },
+      },
+      { lang: 'en' }
+    );
+    expect(out).toContain('static options (1=Yes, 0=No)');
+  });
+});

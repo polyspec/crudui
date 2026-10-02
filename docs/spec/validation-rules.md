@@ -128,11 +128,16 @@ non-ASCII digits are not numeric text, and text whose value overflows is not num
   rule does not have stays as written.
 
 **Membership** (`in`) takes its members from a list (each element as is), a
-comma-separated string (split at U+002C, each item trimmed) or a map (its keys).
+[choice list](schema.md#choice-lists) (the `value` of each element), a comma-separated string
+(split at U+002C, each item trimmed) or a map (its keys). A list is a choice list when one of its
+elements is an object that has a `value` member; it is checked first by the choice list rules (only
+`value` and `label` members, a string or finite number `value`, no two values with the same
+canonical text) and then its values are checked as members, so a field can declare the same choice
+list as `items` and `in`.
 Members are strings, numbers or booleans; a member of another type and a member whose
 canonical text is empty after trimming are declaration errors; members are checked in order,
 each for its type before its emptiness. An empty list and an empty map declare an empty member
-set, which is valid and matches no value: a field whose choice list is empty passes an empty
+set, which is valid and matches no value: a field with no choices passes an empty
 value and fails every other value. A string always has at least one item, so a blank string is
 an empty member. A
 string value is trimmed; an array value passes when every element passes, an empty element
@@ -201,6 +206,7 @@ without row keys. Every runtime reports the same code and message:
 | `step` | `INVALID_RULE_PARAMETER` | `Invalid step parameter: expected a finite number above 0` |
 | `mincount`, `maxcount` limit | `INVALID_RULE_PARAMETER` | `Invalid {rule} parameter: expected an integer from 0 to 9007199254740991` |
 | `in` members of another type | `INVALID_RULE_PARAMETER` | `Invalid in parameter: expected a list, a comma-separated string or a map` |
+| `in` choice list with another member, a `value` that is not a string or finite number, or two values with the same canonical text | `INVALID_RULE_PARAMETER` | `Invalid in parameter: expected value and label pairs with distinct string or number values` |
 | `in` member that is not a string, number or boolean | `INVALID_RULE_PARAMETER` | `Invalid in parameter: members must be strings, numbers or booleans` |
 | `in` with an empty member | `INVALID_RULE_PARAMETER` | `Invalid in parameter: members must not be empty` |
 | `pattern`, `match` of another type | `INVALID_RULE_PARAMETER` | `Invalid {rule} parameter: expected a pattern string` |

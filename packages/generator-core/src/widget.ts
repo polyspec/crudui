@@ -15,7 +15,7 @@
  *  - placeholder/prepend/append CONTENT via t() over LocalizedText,
  *  - behavior → opaque on-event attrs (no minify, no expr eval),
  *  - options.* chrome settings → data-* values,
- *  - items source classification: static array | value-label map → [key,label][];
+ *  - items source classification: static array | choice list | value-label map → [key,label][];
  *    dynamic { model, ... } → STUB (never enumerated, no fabricated options),
  *  - value formatting (date/datetime), applyDefaultString display value.
  *
@@ -38,6 +38,7 @@ import {
   toBracketNotationWithPrefix,
 } from './util';
 import type { ResolvedDesign } from './design';
+import { choicePairs, isChoiceList } from './choice-list';
 import type { Translate } from './content';
 
 /** Inputs every widget evaluator needs for one leaf field. */
@@ -258,6 +259,7 @@ function isDynamicItemsSource(items: unknown): items is Record<string, unknown> 
 /** Static items → [key,label] entries. Dynamic source → [] (never enumerate). */
 function itemEntries(items: unknown): Array<[string, unknown]> {
   if (items === null || items === undefined) return [];
+  if (isChoiceList(items)) return choicePairs(items) ?? [];
   if (Array.isArray(items)) return items.map((v, i) => [String(i), v]);
   if (typeof items === 'object') {
     if (isDynamicItemsSource(items)) return [];
@@ -620,7 +622,11 @@ const datetime: Evaluator = (ctx) => {
 const dummy: Evaluator = (ctx) => {
   let v: unknown = ctx.value === undefined ? ctx.spec.default : ctx.value;
   const items = ctx.spec.items;
-  if (
+  if (isChoiceList(items)) {
+    const text = phpString(v);
+    const pair = (choicePairs(items) ?? []).find(([value]) => value === text);
+    if (pair) v = pair[1];
+  } else if (
     items &&
     typeof items === 'object' &&
     !Array.isArray(items) &&

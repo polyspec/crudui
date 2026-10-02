@@ -146,6 +146,11 @@ func multipleSettings(spec *Object) *multiple {
 	return m
 }
 func makeWidget(spec *Object, value any, path string, design *Object, s bindState) (*Object, error) {
+	if items := read(spec, "items"); isChoiceList(items) {
+		if _, ok := choicePairs(items); !ok {
+			return nil, fmt.Errorf("Invalid items at %s: expected %s", path, choiceListExpected)
+		}
+	}
 	w := evalWidget(widgetContext{spec: spec, value: value, path: path, design: design, state: s})
 	if w != nil {
 		return w, nil

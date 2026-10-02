@@ -4102,7 +4102,7 @@
   },
   {
     "name": "value-in-empty-list-required",
-    "note": "a required field whose choice list is empty fails required on an empty value and in on any other value.",
+    "note": "a required field with no choices fails required on an empty value and in on any other value.",
     "spec": {
       "type": "group",
       "properties": {
@@ -4144,6 +4144,452 @@
           "value": "q"
         }
       ]
+    }
+  },
+  {
+    "name": "value-in-choice-list",
+    "note": "a choice list contributes the value of each pair; labels are not members and numeric values match by value.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "one": {
+          "type": "text",
+          "validate": {
+            "in": [
+              {
+                "value": 1,
+                "label": "Yes"
+              },
+              {
+                "value": "0",
+                "label": "No"
+              },
+              {
+                "value": "b",
+                "label": {
+                  "en": "Bee"
+                }
+              }
+            ]
+          }
+        },
+        "zero": {
+          "type": "text",
+          "validate": {
+            "in": [
+              {
+                "value": 1,
+                "label": "Yes"
+              },
+              {
+                "value": "0",
+                "label": "No"
+              },
+              {
+                "value": "b",
+                "label": {
+                  "en": "Bee"
+                }
+              }
+            ]
+          }
+        },
+        "decimal": {
+          "type": "text",
+          "validate": {
+            "in": [
+              {
+                "value": 1,
+                "label": "Yes"
+              },
+              {
+                "value": "0",
+                "label": "No"
+              },
+              {
+                "value": "b",
+                "label": {
+                  "en": "Bee"
+                }
+              }
+            ]
+          }
+        },
+        "text": {
+          "type": "text",
+          "validate": {
+            "in": [
+              {
+                "value": 1,
+                "label": "Yes"
+              },
+              {
+                "value": "0",
+                "label": "No"
+              },
+              {
+                "value": "b",
+                "label": {
+                  "en": "Bee"
+                }
+              }
+            ]
+          }
+        },
+        "label": {
+          "type": "text",
+          "validate": {
+            "in": [
+              {
+                "value": 1,
+                "label": "Yes"
+              },
+              {
+                "value": "0",
+                "label": "No"
+              },
+              {
+                "value": "b",
+                "label": {
+                  "en": "Bee"
+                }
+              }
+            ]
+          }
+        },
+        "two": {
+          "type": "text",
+          "validate": {
+            "in": [
+              {
+                "value": 1,
+                "label": "Yes"
+              },
+              {
+                "value": "0",
+                "label": "No"
+              },
+              {
+                "value": "b",
+                "label": {
+                  "en": "Bee"
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    "data": {
+      "one": 1,
+      "zero": "0",
+      "decimal": "1.0",
+      "text": "b",
+      "label": "Yes",
+      "two": 2
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "label",
+          "field": "label",
+          "rule": "in",
+          "message": "Please select a valid option.",
+          "value": "Yes"
+        },
+        {
+          "path": "two",
+          "field": "two",
+          "rule": "in",
+          "message": "Please select a valid option.",
+          "value": 2
+        }
+      ]
+    }
+  },
+  {
+    "name": "value-in-choice-list-items",
+    "note": "a field declares the same choice list as items and in.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "answer": {
+          "type": "select",
+          "items": [
+            {
+              "value": 1,
+              "label": "Yes"
+            },
+            {
+              "value": 0,
+              "label": "No"
+            }
+          ],
+          "validate": {
+            "in": [
+              {
+                "value": 1,
+                "label": "Yes"
+              },
+              {
+                "value": 0,
+                "label": "No"
+              }
+            ]
+          }
+        },
+        "other": {
+          "type": "select",
+          "items": [
+            {
+              "value": 1,
+              "label": "Yes"
+            },
+            {
+              "value": 0,
+              "label": "No"
+            }
+          ],
+          "validate": {
+            "in": [
+              {
+                "value": 1,
+                "label": "Yes"
+              },
+              {
+                "value": 0,
+                "label": "No"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "data": {
+      "answer": "0",
+      "other": "3"
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "other",
+          "field": "other",
+          "rule": "in",
+          "message": "Please select a valid option.",
+          "value": "3"
+        }
+      ]
+    }
+  },
+  {
+    "name": "value-in-choice-list-extra-member",
+    "note": "a choice list element has only value and label.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "in": [
+              {
+                "value": 1,
+                "label": "Yes",
+                "id": 1
+              }
+            ]
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid in parameter: expected value and label pairs with distinct string or number values",
+      "at": "value"
+    }
+  },
+  {
+    "name": "value-in-choice-list-missing-label",
+    "note": "a choice list element has a label.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "in": [
+              {
+                "value": 1
+              }
+            ]
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid in parameter: expected value and label pairs with distinct string or number values",
+      "at": "value"
+    }
+  },
+  {
+    "name": "value-in-choice-list-mixed",
+    "note": "a list with an object that has a value member is a choice list, so a plain member in it is invalid.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "in": [
+              "a",
+              {
+                "value": 1,
+                "label": "Yes"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid in parameter: expected value and label pairs with distinct string or number values",
+      "at": "value"
+    }
+  },
+  {
+    "name": "value-in-choice-list-boolean",
+    "note": "a choice list value is a string or a finite number.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "in": [
+              {
+                "value": true,
+                "label": "Yes"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid in parameter: expected value and label pairs with distinct string or number values",
+      "at": "value"
+    }
+  },
+  {
+    "name": "value-in-choice-list-duplicate",
+    "note": "two choice list values with the same canonical text are invalid.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "in": [
+              {
+                "value": 1,
+                "label": "Yes"
+              },
+              {
+                "value": "1",
+                "label": "One"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid in parameter: expected value and label pairs with distinct string or number values",
+      "at": "value"
+    }
+  },
+  {
+    "name": "value-in-choice-list-shape-first",
+    "note": "the choice list rules are checked before the member rules.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "in": [
+              {
+                "value": "",
+                "label": "Select"
+              },
+              {
+                "value": null,
+                "label": "None"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid in parameter: expected value and label pairs with distinct string or number values",
+      "at": "value"
+    }
+  },
+  {
+    "name": "value-in-choice-list-empty-value",
+    "note": "a choice list value is a member, so an empty value is an empty member.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "in": [
+              {
+                "value": " ",
+                "label": "Select"
+              },
+              {
+                "value": 1,
+                "label": "Yes"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid in parameter: members must not be empty",
+      "at": "value"
     }
   },
   {

@@ -2,6 +2,7 @@
 
 import { FormInputError } from '@crudui/validator';
 import { checkDesignDeclaration } from './form';
+import { CHOICE_LIST_EXPECTED, choicePairs, isChoiceList } from './choice-list';
 
 /** Declaration path names of a display specification. */
 export interface DisplayPaths {
@@ -76,6 +77,7 @@ function checkFormat(format: unknown, path: string): void {
       if (typeof value !== 'string' && !isConditionMap(value)) fail('format.href', path, 'a string or a condition map');
     } else if (key === 'items') {
       if (!Array.isArray(value) && !isObject(value)) fail('format.items', path, 'an array or an object');
+      if (isChoiceList(value) && !choicePairs(value)) fail('format.items', path, CHOICE_LIST_EXPECTED);
     }
   }
 }

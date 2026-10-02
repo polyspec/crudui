@@ -351,6 +351,9 @@ Field containers use `data-field-path` for the data path relative to the form
 root. Only actual controls use `name` for submission. Browser row operations
 resolve the nearest field container and do not depend on a generated title.
 
+A field whose `items` is an invalid [choice list](schema.md#choice-lists) fails binding with
+`INVALID_FORM_INPUT` before its type is evaluated.
+
 Unsupported field types produce `UnsupportedFieldTypeError` with code
 `UNSUPPORTED_FIELD_TYPE`. The message identifies the field type and path without
 a version-specific renderer name.

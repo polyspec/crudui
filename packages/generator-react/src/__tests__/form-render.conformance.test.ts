@@ -1,5 +1,5 @@
 import { renderFields } from '../internal/renderFields';
-import { ComposeLoadError, UnsupportedFieldTypeError, compileForm } from '@crudui/generator-core';
+import { ComposeLoadError, FormInputError, UnsupportedFieldTypeError, compileForm } from '@crudui/generator-core';
 /**
  * form-render conformance — React reference verification.
  *
@@ -39,7 +39,7 @@ interface FixtureCase {
   data?: Record<string, unknown>;
   options?: Record<string, unknown>;
   expected_html?: string;
-  expectError?: { code: string };
+  expectError?: { code: string; message?: string };
 }
 
 const cases = fixtureCases as unknown as FixtureCase[];
@@ -71,6 +71,7 @@ describe('form rendering: render is idempotent (stable across re-render)', () =>
 const ERROR_CLASS_BY_CODE: Record<string, new (...args: never[]) => Error & { code: string }> = {
   REF_FILE_NOT_FOUND: ComposeLoadError as never,
   UNSUPPORTED_FIELD_TYPE: UnsupportedFieldTypeError as never,
+  INVALID_FORM_INPUT: FormInputError as never,
 };
 
 describe('form rendering: a load/registry gap is a surfaced ERROR, never silent', () => {
@@ -86,6 +87,7 @@ describe('form rendering: a load/registry gap is a surfaced ERROR, never silent'
       expect(expectedClass, `${c.name}: unknown error code ${c.expectError!.code}`).toBeTruthy();
       expect(thrown, `${c.name} must throw a surfaced error`).toBeInstanceOf(expectedClass);
       expect((thrown as { code: string }).code).toStrictEqual(c.expectError!.code);
+      if (c.expectError!.message !== undefined) expect((thrown as Error).message).toStrictEqual(c.expectError!.message);
     }));
   }
 });

@@ -24,10 +24,13 @@ A specification is JSON data. JavaScript receives it as plain objects, which lis
 that are array indexes (the decimal integers from 0 to 4294967294 written without leading zeros)
 first in ascending numeric order and all other names in the order they were written. Every
 runtime uses this order for every object in a specification: fields in `properties`, list columns,
-detail fields, `items` value maps, the keys of every bucket, condition maps, composition files and
+detail fields, `items` value-to-label maps, the keys of every bucket, condition maps, composition files and
 the objects composition produces, and compiled templates. "Declaration order" in these documents
 means this order. For example, `properties` written as `b`, `10`, `a` compile, render and validate
 in the order `10`, `b`, `a` in every runtime.
+
+Arrays keep their written order; a [choice list](#choice-lists) declares choices whose values
+are integer-like in their written order.
 
 Record data keeps the order in which it arrives: form data, list rows, detail records and
 `options.data` are never reordered, and [ordered JSON](../operations/ordered-json.md) preserves
@@ -104,10 +107,38 @@ such as `{ en: Name, ko: 이름 }`. `lang` creates one value input per configure
 language, with `only`, `frame`, `title` and `group_class` settings. The default
 languages are `ko`, `en`, `ja` and `zh`.
 
-`items` can be a static array, a value-to-label map or a dynamic source descriptor
-with `model`. Static labels can use language maps. Generators preserve dynamic
-source settings; fetching records and executing external widgets happen outside
-the generators.
+`items` can be a static array whose indexes are the values, a value-to-label map, a
+[choice list](#choice-lists) or a dynamic source descriptor with `model`. Static labels can use
+language maps. Generators preserve dynamic source settings; fetching records and executing
+external widgets happen outside the generators.
+
+### Choice lists
+
+A choice list is an array of `{ "value": …, "label": … }` objects. Each `value` is a string or a
+finite number, and the option value is its [canonical text](validation-rules.md#values): a string
+itself and a number as `Number.prototype.toString` writes it. Each `label` is a label as in a
+value-to-label map. The choices keep the order of the list for any values.
+
+An `items` array is a choice list when one of its elements is an object that has a `value` member.
+Every element must then be an object whose only members are `value` and `label`, every `value` must
+be a string or a finite number, and no two values may have the same canonical text. Binding a field
+whose `items` is a choice list that breaks one of these rules fails with `INVALID_FORM_INPUT`, the
+message `Invalid items at {path}: expected value and label pairs with distinct string or number values`
+and an empty location, where `{path}` is the data path of the field. The check runs before the field
+type is evaluated. Select, choice, multichoice and search fields list the pairs as options in list
+order, and a dummy field displays the label of its value, as they do for a value-to-label map.
+[`in`](validation-rules.md#values) and the [`choice-label` format](display-formats.md#choice-label)
+accept the same choice list.
+
+Choose the form by the required order:
+
+- A value-to-label map lists its values in [member order](#member-order), so integer-like values
+  come first in ascending numeric order: `{ "1": "Yes", "0": "No" }` displays No before Yes. Use a
+  map when that order is the required order, for example for values that are not integer-like.
+- A choice list keeps the written order for any values: `[{ "value": 1, "label": "Yes" },
+  { "value": 0, "label": "No" }]` displays Yes before No. Use it when the values are integer-like or
+  mixed and the written order is required.
+- An array of labels keeps the written order with the indexes `0`, `1`, … as the values.
 
 ## Composition and validation
 

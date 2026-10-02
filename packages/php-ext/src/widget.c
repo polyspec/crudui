@@ -257,11 +257,13 @@ static ps_value *option_models(const widget_context *context, bool multiple, boo
     bool has_default = default_value && default_value->kind != PS_ARRAY && default_value->kind != PS_NULL;
     ps_chars default_text = has_default ? ps_scalar_string(default_value) : (ps_chars){NULL, 0};
     if (has_default && !default_text.bytes) { ps_value_free(options); return NULL; }
+    bool choices = ps_is_choice_list(items);
     for (size_t i = 0; i < ps_size(items); ++i) {
         ps_chars index = {NULL, 0};
-        if (items->kind != PS_OBJECT) index = ps_decimal(i);
+        if (choices) index = ps_choice_value_text(items, i);
+        else if (items->kind != PS_OBJECT) index = ps_decimal(i);
         ps_text key = items->kind == PS_OBJECT ? ps_key(items, i) : ps_view(index);
-        const ps_value *entry = ps_at(items, i);
+        const ps_value *entry = choices ? ps_get(ps_at(items, i), "label") : ps_at(items, i);
         ps_chars label = ps_translate(entry, context->language);
         if (label.bytes && !label.length) { free(label.bytes); label = ps_scalar_string(entry); }
         bool failed = false;
@@ -498,7 +500,15 @@ static ps_chars display_html(const widget_context *context, const char *kind)
     }
     const ps_value *value = context->value_present ? context->value : member(context->spec, "default");
     const ps_value *items = member(context->spec, "items");
-    if (items && items->kind == PS_OBJECT && !ps_has(items, "model")) {
+    if (ps_is_choice_list(items)) {
+        ps_chars key = ps_scalar_string(value);
+        if (!key.bytes) return key;
+        bool failed = false;
+        const ps_value *found = ps_choice_label(items, ps_view(key), &failed);
+        free(key.bytes);
+        if (failed) return (ps_chars){NULL, 0};
+        if (found) value = found;
+    } else if (items && items->kind == PS_OBJECT && !ps_has(items, "model")) {
         ps_chars key = ps_scalar_string(value);
         if (!key.bytes) return key;
         const ps_value *found = ps_get_text(items, ps_view(key));

@@ -22,12 +22,15 @@ cases itself or supplies its own files. [`check-schema.mjs`](../../../scripts/ch
 
 The accepted cases check a plain specification, a conditional requiredness expression, a condition
 map with a `true` default key, deep nesting, choice labels in several languages, empty labels and
-content, per-language overrides, root `buttons` and `action`, and `multiple: only` in its string and
-object forms, which loads with empty data because missing data has no row. The rejected cases place a
+content, per-language overrides, root `buttons` and `action`, `multiple: only` in its string and
+object forms, which loads with empty data because missing data has no row, and a choice list under
+`items` and `in`. The rejected cases place a
 forbidden key (`if`, `when`, `show_if`, `display_switch`, `display_target`, `seqtokey`, `_` or an
 `x`-prefixed key) at the top of a field, under a role slot or an open settings object, in a design
 node, in a nested child, inside an array element, in a base inherited through `$ref`, and in a
-root button or action. Every rejected case has the runtime code `FORBIDDEN_META_KEY`.
+root button or action; these cases have the runtime code `FORBIDDEN_META_KEY`. Two rejected cases
+break the choice list rules: `err-items-choice-list-extra-member` passes the runtime structure check,
+which does not read `items`, and `err-in-choice-list-boolean-value` fails with `INVALID_RULE_PARAMETER`.
 
 `err-after-compose-ref-base-leak` fails the meta-schema with
 `required` because its `spec` is a bare `$ref`.

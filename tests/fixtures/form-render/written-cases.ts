@@ -39,6 +39,23 @@ const LITERAL_STYLE_NOTE = VISIBLE_NOTE.replace(
   'name="note" style="font-family: Made in Script" type="text"'
 );
 
+// Choice lists (docs/spec/schema.md, Choice lists): options in list order for any values.
+const FOOTER_EN = '<div class="crudui-form__footer"><div aria-label="Form actions" class="crudui-controls" role="group"><button class="crudui-action crudui-action--text" type="submit">Save</button></div></div></div>';
+const field = (path: string, label: string, body: string, labelFor = true) =>
+  `<div class="crudui-form"><div class="crudui-form__body"><div class="crudui-node crudui-node--field" data-field-path="${path}"><div class="crudui-node__header">${labelFor ? `<label class="crudui-node__label" for="crudui:${path}">${label}</label>` : `<span class="crudui-node__label">${label}</span>`}</div><div class="crudui-node__body">${body}</div></div></div>${FOOTER_EN}`;
+const YES_NO = [{ value: 1, label: 'Yes' }, { value: 0, label: 'No' }];
+const SELECT_YES_NO = field('answer', 'Answer', '<div class="crudui-widget"><select class="valid-target crudui-input crudui-input--select" data-default="" data-name="answer" data-rule-name="answer" id="crudui:answer" name="answer"><option value="1">Yes</option><option selected="" value="0">No</option></select></div>');
+const INDEX_LABELS = field('answer', 'Answer', '<div class="crudui-widget"><select class="valid-target crudui-input crudui-input--select" data-default="" data-name="answer" data-rule-name="answer" id="crudui:answer" name="answer"><option value="0">Yes</option><option selected="" value="1">No</option></select></div>');
+const radio = (value: string, label: string, index: number, checked: boolean, isDefault: boolean) =>
+  `<input autocomplete="off"${checked ? ' checked=""' : ''} class="valid-target crudui-choices__input" data-is-default="${isDefault ? '1' : ''}" data-name="agree" data-rule-name="agree" id="crudui:agree:${index}" name="agree" type="radio" value="${value}"><label class="crudui-choices__label" for="crudui:agree:${index}"><span>${label}</span></label>`;
+const CHOICE_YES_NO = field('agree', 'Agree', `<div class="crudui-choices">${radio('1', 'Yes', 0, true, false)}${radio('0', 'No', 1, false, true)}</div>`, false);
+const box = (value: string, label: string, index: number, checked: boolean) =>
+  `<input autocomplete="off"${checked ? ' checked=""' : ''} class="valid-target crudui-choices__input" data-name="sizes" data-rule-name="sizes" id="crudui:sizes:${index}" name="sizes[]" type="checkbox" value="${value}"><label class="crudui-choices__label" for="crudui:sizes:${index}"><span>${label}</span></label>`;
+const MULTICHOICE_MIXED = field('sizes', 'Sizes', `<div class="crudui-choices crudui-choices--multiple">${box('10', 'Ten', 0, false)}${box('2', 'Two', 1, true)}${box('b', 'Bee', 2, true)}</div>`, false);
+const SEARCH_YES_NO = field('pick', 'Pick', '<style nonce="">[class~="crudui:pick_select2"] .loading-results { display: none; }</style><script nonce="">$(function() {select2(CSS.escape("crudui:pick"), "2", "250", "crudui:pick_select2");});</script><div class="crudui-widget crudui-widget--search"><select class="valid-target crudui-input crudui-input--select" data-api-server="" data-default="" data-delay="250" data-keyword-min-length="2" data-name="pick" data-rule-name="pick" id="crudui:pick" name="pick"><option selected="" value="1">Yes</option><option value="0">No</option></select></div>');
+const DUMMY_NO = field('shown', 'Shown', '<div>No</div>', false);
+const INVALID_ITEMS = (path: string) => ({ code: 'INVALID_FORM_INPUT', message: `Invalid items at ${path}: expected value and label pairs with distinct string or number values` });
+
 export const WRITTEN_CASES = [
   {
     name: 'multiple-only-group-rows',
@@ -133,5 +150,83 @@ export const WRITTEN_CASES = [
     data: { score: 2886.5 },
     options: { language: 'en' },
     expected_html: FRACTIONAL_SCORE,
+  },
+  {
+    name: 'choice-list-select-order',
+    note: 'A select field lists a choice list in list order, so the integer-like values 1 and 0 show Yes before No; the option values are the canonical texts of the values.',
+    spec: G({ answer: { type: 'select', label: 'Answer', items: YES_NO } }),
+    data: { answer: 0 },
+    options: { language: 'en' },
+    expected_html: SELECT_YES_NO,
+  },
+  {
+    name: 'choice-list-index-labels',
+    note: 'An array of labels keeps its written order with the indexes as values.',
+    spec: G({ answer: { type: 'select', label: 'Answer', items: ['Yes', 'No'] } }),
+    data: { answer: '1' },
+    options: { language: 'en' },
+    expected_html: INDEX_LABELS,
+  },
+  {
+    name: 'choice-list-choice-default',
+    note: 'A choice field lists a choice list in list order with a translated label, checks the value and marks the default.',
+    spec: G({ agree: { type: 'choice', label: 'Agree', default: 0, items: [{ value: 1, label: { en: 'Yes', ko: '예' } }, { value: 0, label: 'No' }] } }),
+    data: { agree: 1 },
+    options: { language: 'en' },
+    expected_html: CHOICE_YES_NO,
+  },
+  {
+    name: 'choice-list-multichoice-mixed-values',
+    note: 'A multichoice field keeps the list order of string and number values.',
+    spec: G({ sizes: { type: 'multichoice', label: 'Sizes', items: [{ value: '10', label: 'Ten' }, { value: 2, label: 'Two' }, { value: 'b', label: 'Bee' }] } }),
+    data: { sizes: ['2', 'b'] },
+    options: { language: 'en' },
+    expected_html: MULTICHOICE_MIXED,
+  },
+  {
+    name: 'choice-list-search-order',
+    note: 'A search field lists a static choice list in list order.',
+    spec: G({ pick: { type: 'search', label: 'Pick', items: YES_NO } }),
+    data: { pick: 1 },
+    options: { language: 'en' },
+    expected_html: SEARCH_YES_NO,
+  },
+  {
+    name: 'choice-list-dummy-label',
+    note: 'A dummy field displays the label of its value from a choice list.',
+    spec: G({ shown: { type: 'dummy', label: 'Shown', items: YES_NO } }),
+    data: { shown: 0 },
+    options: { language: 'en' },
+    expected_html: DUMMY_NO,
+  },
+  {
+    name: 'choice-list-extra-member',
+    note: 'A choice list element has only value and label.',
+    spec: G({ answer: { type: 'select', label: 'Answer', items: [{ value: 1, label: 'Yes', id: 1 }] } }),
+    expectError: INVALID_ITEMS('answer'),
+  },
+  {
+    name: 'choice-list-missing-label',
+    note: 'A choice list element has a label.',
+    spec: G({ answer: { type: 'choice', label: 'Answer', items: [{ value: 1 }] } }),
+    expectError: INVALID_ITEMS('answer'),
+  },
+  {
+    name: 'choice-list-mixed-elements',
+    note: 'An array with one object that has a value member is a choice list, so a plain label in it is invalid.',
+    spec: G({ answer: { type: 'select', label: 'Answer', items: ['Yes', { value: 0, label: 'No' }] } }),
+    expectError: INVALID_ITEMS('answer'),
+  },
+  {
+    name: 'choice-list-boolean-value',
+    note: 'A choice list value is a string or a finite number.',
+    spec: G({ answer: { type: 'multichoice', label: 'Answer', items: [{ value: true, label: 'Yes' }] } }),
+    expectError: INVALID_ITEMS('answer'),
+  },
+  {
+    name: 'choice-list-duplicate-value',
+    note: 'Two choice list values with the same canonical text are invalid, here in a nested group and before the type is evaluated.',
+    spec: G({ terms: { type: 'group', label: 'Terms', properties: { answer: { type: 'not-a-widget', label: 'Answer', items: [{ value: 1, label: 'Yes' }, { value: '1', label: 'One' }] } } } }),
+    expectError: INVALID_ITEMS('terms.answer'),
   },
 ];

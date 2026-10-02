@@ -15,6 +15,9 @@ pub(crate) enum MembersError {
     MemberType,
     /// A member whose canonical text is empty after trimming.
     Empty,
+    /// A choice list with another member, a value that is not a string or a finite number,
+    /// or two values with the same canonical text.
+    Pairs,
 }
 
 impl MembersError {
@@ -28,6 +31,9 @@ impl MembersError {
                 "Invalid in parameter: members must be strings, numbers or booleans"
             }
             MembersError::Empty => "Invalid in parameter: members must not be empty",
+            MembersError::Pairs => {
+                "Invalid in parameter: expected value and label pairs with distinct string or number values"
+            }
         }
     }
 }
@@ -66,9 +72,46 @@ impl Comparable {
     }
 }
 
+/// Whether a list is a choice list (schema, "Choice lists"): one of its elements is an
+/// object that has a `value` member.
+fn is_choice_list(elements: &[Value]) -> bool {
+    elements
+        .iter()
+        .any(|element| element.as_object().is_some_and(|o| o.contains_key("value")))
+}
+
+/// The values of a choice list in order, or `None` when an element has another member, lacks
+/// `value` or `label`, has a value that is not a string or a finite number, or repeats the
+/// canonical text of an earlier value.
+fn choice_values(elements: &[Value]) -> Option<Vec<&Value>> {
+    let mut seen = std::collections::HashSet::new();
+    let mut values = Vec::new();
+    for element in elements {
+        let object = element.as_object()?;
+        if object.len() != 2 || !object.contains_key("label") {
+            return None;
+        }
+        let value = object.get("value")?;
+        if !value.is_string() && !value.is_number() {
+            return None;
+        }
+        if !seen.insert(canonical_text(value)?.into_owned()) {
+            return None;
+        }
+        values.push(value);
+    }
+    Some(values)
+}
+
 /// The members of an `in` parameter that is neither `false` nor `null`.
 pub(crate) fn members(parameter: &Value) -> Result<Vec<Comparable>, MembersError> {
     let members: Vec<Comparable> = match parameter {
+        Value::Array(elements) if is_choice_list(elements) => choice_values(elements)
+            .ok_or(MembersError::Pairs)?
+            .into_iter()
+            .map(|value| Comparable::of_scalar(value).ok_or(MembersError::Pairs))
+            .map(|member| member.and_then(nonblank))
+            .collect::<Result<_, _>>()?,
         Value::Array(elements) => elements
             .iter()
             .map(|element| match element {

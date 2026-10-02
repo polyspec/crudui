@@ -235,7 +235,7 @@ export const AUTHORED_CASES: AuthoredCase[] = [
   },
   {
     name: 'value-in-empty-list-required',
-    note: 'a required field whose choice list is empty fails required on an empty value and in on any other value.',
+    note: 'a required field with no choices fails required on an empty value and in on any other value.',
     spec: { type: 'group', properties: {
       empty: { type: 'select', validate: { required: true, in: [] } },
       chosen: { type: 'select', validate: { required: true, in: [] } },
@@ -243,6 +243,29 @@ export const AUTHORED_CASES: AuthoredCase[] = [
     data: { empty: '', chosen: 'q' },
     outcomes: { empty: fail('required'), chosen: fail('in') },
   },
+  {
+    name: 'value-in-choice-list',
+    note: 'a choice list contributes the value of each pair; labels are not members and numeric values match by value.',
+    ...fields({ one: 1, zero: '0', decimal: '1.0', text: 'b', label: 'Yes', two: 2 }, { in: [{ value: 1, label: 'Yes' }, { value: '0', label: 'No' }, { value: 'b', label: { en: 'Bee' } }] }),
+    outcomes: { one: null, zero: null, decimal: null, text: null, label: fail('in'), two: fail('in') },
+  },
+  {
+    name: 'value-in-choice-list-items',
+    note: 'a field declares the same choice list as items and in.',
+    spec: { type: 'group', properties: {
+      answer: { type: 'select', items: [{ value: 1, label: 'Yes' }, { value: 0, label: 'No' }], validate: { in: [{ value: 1, label: 'Yes' }, { value: 0, label: 'No' }] } },
+      other: { type: 'select', items: [{ value: 1, label: 'Yes' }, { value: 0, label: 'No' }], validate: { in: [{ value: 1, label: 'Yes' }, { value: 0, label: 'No' }] } },
+    } },
+    data: { answer: '0', other: '3' },
+    outcomes: { answer: null, other: fail('in') },
+  },
+  declaration('value-in-choice-list-extra-member', 'a choice list element has only value and label.', { in: [{ value: 1, label: 'Yes', id: 1 }] }, 'Invalid in parameter: expected value and label pairs with distinct string or number values'),
+  declaration('value-in-choice-list-missing-label', 'a choice list element has a label.', { in: [{ value: 1 }] }, 'Invalid in parameter: expected value and label pairs with distinct string or number values'),
+  declaration('value-in-choice-list-mixed', 'a list with an object that has a value member is a choice list, so a plain member in it is invalid.', { in: ['a', { value: 1, label: 'Yes' }] }, 'Invalid in parameter: expected value and label pairs with distinct string or number values'),
+  declaration('value-in-choice-list-boolean', 'a choice list value is a string or a finite number.', { in: [{ value: true, label: 'Yes' }] }, 'Invalid in parameter: expected value and label pairs with distinct string or number values'),
+  declaration('value-in-choice-list-duplicate', 'two choice list values with the same canonical text are invalid.', { in: [{ value: 1, label: 'Yes' }, { value: '1', label: 'One' }] }, 'Invalid in parameter: expected value and label pairs with distinct string or number values'),
+  declaration('value-in-choice-list-shape-first', 'the choice list rules are checked before the member rules.', { in: [{ value: '', label: 'Select' }, { value: null, label: 'None' }] }, 'Invalid in parameter: expected value and label pairs with distinct string or number values'),
+  declaration('value-in-choice-list-empty-value', 'a choice list value is a member, so an empty value is an empty member.', { in: [{ value: ' ', label: 'Select' }, { value: 1, label: 'Yes' }] }, 'Invalid in parameter: members must not be empty'),
   declaration('value-in-blank-string', 'a membership string has members.', { in: ' \u3000' }, 'Invalid in parameter: members must not be empty'),
   declaration('value-in-empty-item', 'every comma item is a member.', { in: 'a,,b' }, 'Invalid in parameter: members must not be empty'),
   declaration('value-in-blank-element', 'a list member is not blank.', { in: ['a', ' '] }, 'Invalid in parameter: members must not be empty'),

@@ -185,6 +185,16 @@ describe('renderCell catalog — SPEC §9.2 read display values', () => {
     expect(cell({ type: 'choice-label', items: { model: 'Category' } }, 'CODE_42')).toBe('CODE_42');
   });
 
+  test('choice-label reads a choice list by the canonical text of each value', () => {
+    const items = [{ value: 1, label: 'Yes' }, { value: 0, label: { ko: '아니요', en: 'No' } }, { value: 'b', label: 'Bee' }];
+    expect(cell({ type: 'choice-label', items }, 1)).toBe('Yes');
+    expect(cell({ type: 'choice-label', items }, '0')).toBe('No');
+    expect(cell({ type: 'choice-label', items }, 'b')).toBe('Bee');
+    expect(cell({ type: 'choice-label', items }, 2)).toBe('2');
+    // An array of labels keeps its indexes as the values.
+    expect(cell({ type: 'choice-label', items: ['Yes', 'No'] }, 1)).toBe('No');
+  });
+
   test('bool (true/false i18n label + as form)', () => {
     expect(cell({ type: 'bool', true: 'Yes', false: 'No', as: 'check' }, 1)).toEqual({
       kind: 'bool',
