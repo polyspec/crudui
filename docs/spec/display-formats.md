@@ -211,7 +211,8 @@ this order:
    member order, then `field`, `label`, `format`, `design` and `sortable`, at path
    `columns.{name}` or `fields.{name}`.
 4. For a list: `search`, `sort`, `actions` (each action in member order, at path
-   `actions.{name}`), `empty` and `pagination`, at path `list`.
+   `actions.{name}`), `empty`, `description` and `pagination`, at path `list`. For a detail:
+   `actions` (each action in member order, at path `actions.{name}`), at path `detail`.
 
 `design` follows the [form declaration rules](schema.md#fields) exactly. Content is a string, a
 language map (an object with at least one member, each a string or `null`) or `null`. A condition
@@ -219,8 +220,8 @@ map is an object with at least one member.
 
 | Declaration | Accepted value | Failure message |
 | --- | --- | --- |
-| a list root member | `columns`, `search`, `sort`, `pagination`, `actions`, `empty` or `design` | `Invalid {key} at list: unknown key` |
-| a detail root member | `fields` or `design` | `Invalid {key} at detail: unknown key` |
+| a list root member | `columns`, `search`, `sort`, `pagination`, `actions`, `empty`, `description` or `design` | `Invalid {key} at list: unknown key` |
+| a detail root member | `fields`, `actions` or `design` | `Invalid {key} at detail: unknown key` |
 | a root `$ref` or `$patch` | none: composition belongs in `columns` or `fields` | `Invalid $ref at list: expected composition inside columns`, `Invalid $patch at detail: expected composition inside fields` |
 | a column or field | an object | `Invalid {name} at columns: expected an object`, `Invalid {name} at fields: expected an object` |
 | a column member | `field`, `label`, `format`, `design` or `sortable` | `Invalid {key} at columns.{name}: unknown key` |
@@ -241,7 +242,7 @@ map is an object with at least one member.
 | a `sort` member | `field` or `dir` | `Invalid sort.{key} at list: unknown key` |
 | `sort.field` | a string | `Invalid sort.field at list: expected a string` |
 | `sort.dir` | `asc` or `desc` | `Invalid sort.dir at list: expected asc or desc` |
-| `actions` | an object | `Invalid actions at list: expected an object` |
+| `actions` | an object | `Invalid actions at list: expected an object`, `Invalid actions at detail: expected an object` |
 | an action named `$ref` or `$patch` | none: actions are not composed | `Invalid $ref at actions: unknown key` |
 | an action | a script string or an object | `Invalid {name} at actions: expected a script or an object` |
 | a member of an action with `script` | `label` or `script` | `Invalid {key} at actions.{name}: unknown key` |
@@ -257,6 +258,7 @@ map is an object with at least one member.
 | a `behavior` entry `script` | a string | `Invalid behavior.{event}.script at actions.{name}: expected a string` |
 | action `design` | the `design` rules | `Invalid design… at actions.{name}: …` |
 | `empty` | content | `Invalid empty at list: expected a string, a language map or null` |
+| `description` | content | `Invalid description at list: expected a string, a language map or null` |
 
 Other `format` settings (`truncate`, `decimals`, `thousands`, `width`, `height` and settings that
 the table does not name) accept any value; the forbidden-key scan still applies to their keys.
@@ -266,6 +268,10 @@ The members of a `search` object are form declarations: the list model does not 
 An action with `script` is a script action, as a script string is: its model is
 `{ key, label, behavior: { {name}: script } }`, with `label` translated or the action name when
 `label` is absent.
+
+A detail declares `actions` with the same rules, paths and messages as a list, with `detail`
+where a list message has `list` (`Invalid actions at detail: expected an object`), and resolves
+each action to the same model.
 
 `pagination` is checked last, at path `list`:
 
@@ -299,8 +305,21 @@ PHP array is accepted for a root object argument and for the fixed object option
 | html | the markup, unescaped | the same inside the `dd` |
 
 A detail is a `dl.crudui-detail` with one `div.crudui-detail__field` per field, each holding
-`dt.crudui-detail__label` and the value. A list root is `crudui-list`; its table,
+`dt.crudui-detail__label` and the value. A list root is `crudui-list`; its description, table,
 headings, cells, cards, empty state, actions and pagination use the corresponding
 `crudui-list__*` elements. The string renderers write the image preload links
 `<link rel="preload" as="image" href="…"/>` before the list or detail, in first-use order and
 without duplicates.
+
+A list whose translated `description` is not empty writes it as escaped text in
+`<p class="crudui-list__description">` as the first child of `crudui-list`, before
+`crudui-list__actions`. An empty description writes nothing.
+
+A list with actions writes `<div class="crudui-list__actions">` with one
+`<span class="crudui-list__action" data-action="{key}">` per action in member order, holding an
+`a` element for an action whose format type is `link` and a `<button type="button">` for any
+other action. A detail with actions writes `<div class="crudui-detail__actions">` holding one
+`<span class="crudui-detail__action" data-action="{key}">` per action with the same inner `a` or
+`button` element that a list action writes, before the `dl.crudui-detail` element and after the
+image preload links of the string renderers. A detail without actions writes only the preload links and the
+`dl.crudui-detail` element.

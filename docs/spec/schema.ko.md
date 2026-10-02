@@ -171,8 +171,11 @@ TypeScript, PHP, Go, Rust 구현을 비교합니다. SSR 비교와 마운트한 
 `format`은 타입 문자열 또는 객체를 사용합니다. 생략, `false`, `true`는 텍스트를
 선택합니다. 형식별 설정은 해당 객체에 작성합니다. [표시 형식](display-formats.ko.md)은 각 형식,
 목록과 상세가 받는 입력, 마크업을 정의합니다. `sort`, `pagination`, `search`,
-`actions`는 페이지 동작을 선언합니다. `empty`는 번역된 빈 목록 메시지를
-정의합니다. 코어는 데이터베이스 조회, 레코드 필터링, 서버 페이지 처리를 수행하지
+`actions`는 페이지 동작을 선언합니다. `empty`는 번역된 빈 목록 메시지를,
+`description`은 목록 앞에 표시하는 번역된 텍스트를 정의합니다. 목록 모델은
+`{ columns, rows, pagination, sort, actions, empty, description, design }`입니다. 정렬 필드를
+선언하지 않으면 `sort`가 없고, `description`은 번역한 `description`이며 선언하지 않으면 빈
+텍스트입니다. 코어는 데이터베이스 조회, 레코드 필터링, 서버 페이지 처리를 수행하지
 않습니다. 현재 페이지와 전체 레코드 수는 호출자가 제공합니다. `pagination`이
 활성화되면 생략된 `perPage`는 20, `mode`는 `pages`, `page`는 1로 해석합니다.
 해석된 모델에는 `pageCount`가 포함됩니다. 전체 수가 없으면 0이고, 있으면 `total`이 0이어도 최소
@@ -187,11 +190,13 @@ TypeScript, PHP, Go, Rust 구현을 비교합니다. SSR 비교와 마운트한 
 상세는 `fields`를 선언하며, 하나의 레코드는
 `buildDetail(spec, record, options)`에 별도로 전달합니다. 각 필드는 목록 셀과 같은
 읽기 전용 표시 계약인 `field`, `label`, `format`, `design`을 사용합니다. 상세 필드는
-목록과 합성, 조건, 외형, 콘텐츠 번역, 셀 형식을 공유하지만 정렬, 페이지 처리, 동작을
-선언하지 않습니다. `buildDetail`은 순서가 있는 표시 필드와 평가된 상세 외형을
-반환하고, 렌더러는 데이터를 조회하지 않고 그 모델을 소비합니다.
+목록과 합성, 조건, 외형, 콘텐츠 번역, 셀 형식을 공유하지만 정렬과 페이지 처리를
+선언하지 않습니다. 상세는 목록과 같은 방식으로 `actions`를 선언합니다. `buildDetail`은 순서가
+있는 표시 필드, 해석한 동작과 평가된 상세 외형을 반환하고, 렌더러는 다른 데이터를
+조회하지 않고 그 모델을 소비합니다.
 
-모델은 `{ fields, design }`입니다. 각 필드는 `key`, `label`, `format`, `value`, `display`,
+모델은 `{ fields, actions, design }`입니다. `actions`는 목록 동작 모델을 멤버 순서로 가지며,
+상세가 동작을 선언하지 않으면 비어 있습니다. 각 필드는 `key`, `label`, `format`, `value`, `display`,
 `design` 멤버를 이 순서로 가집니다. 하나의 레코드에 대한 목록 셀 앞에 키와 번역한 라벨을 둔
 것입니다. 레코드의 필드 경로에 값이 없으면 목록 셀과 마찬가지로 `value`는 `null`입니다. 객체가
 아닌 선언은 `Detail specification must be an object`, `fields`가 없는 선언은 `Detail specification

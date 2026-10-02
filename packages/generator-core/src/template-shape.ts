@@ -10,7 +10,7 @@ const object = (value: unknown): value is Record<string, unknown> =>
 /** Members with a defined value; an undefined member is an absent JSON member. */
 const members = (value: Record<string, unknown>): string[] => Object.keys(value).filter(key => value[key] !== undefined);
 
-const TEMPLATE_MEMBERS = new Set(['kind', 'keyPrefix', 'fields', 'buttons', 'action']);
+const TEMPLATE_MEMBERS = new Set(['kind', 'keyPrefix', 'fields', 'buttons', 'action', 'description']);
 const FIELD_MEMBERS = ['name', 'spec', 'children'];
 
 function fieldShape(value: unknown): boolean {
@@ -24,7 +24,7 @@ function fieldShape(value: unknown): boolean {
 /**
  * Reject a value that is not exactly the shape `compileForm` produces: an object with the
  * template kind, a field list, a button object list, an optional string `keyPrefix`, an
- * optional object `action` and no other member; each field has exactly a string `name`,
+ * optional object `action`, an optional `description` of any value and no other member; each field has exactly a string `name`,
  * an object `spec` and a field list `children`.
  */
 export function checkFormTemplate(template: unknown): asserts template is FormTemplate {

@@ -1,6 +1,6 @@
 // The canonical page with the framework-independent HTML renderer. The renderer writes no
 // framework anchors, so it adopts server-rendered markup as it is.
-import { bindButtons, bindForm, connectForm, formMessages, patchContent } from '@crudui/generator-core';
+import { bindButtons, bindForm, connectForm, formDescription, formMessages, patchContent } from '@crudui/generator-core';
 import { renderDetail, renderForm, renderFormView, renderList } from '#html';
 
 export function list(container, spec, rows, options, hydrate) {
@@ -16,7 +16,7 @@ export function bindFormView(container, template, language, data, hydrate) {
   const messages = formMessages(language);
   const load = (next, view) => {
     const fields = bindForm(template, next, { language, collapsed: view.collapsed });
-    patchContent(container, renderFormView(fields, bindButtons(template, next, { language }), messages));
+    patchContent(container, renderFormView(fields, bindButtons(template, next, { language }), messages, undefined, formDescription(template, { language })));
   };
   if (!hydrate) load(data, { collapsed: new Set() });
   return { load, dispose: () => container.replaceChildren() };

@@ -25,8 +25,12 @@ type FormTemplate struct {
 	// Buttons lists the form buttons in declaration order; one submit button when the spec declares none.
 	Buttons []*Object `json:"buttons"`
 	// Action is the submission target declared by the spec, kept unchanged in the template.
-	Action            *Object `json:"action,omitempty"`
-	keyPrefixProvided bool
+	Action *Object `json:"action,omitempty"`
+	// Description is the root description content as the spec declares it, translated when the
+	// form is rendered. It is a template member when the root declares description.
+	Description         any `json:"description,omitempty"`
+	keyPrefixProvided   bool
+	descriptionProvided bool
 }
 
 // CompileOptions supplies composition files and the optional form-name prefix.
@@ -90,7 +94,11 @@ func CompileForm(spec *Object, options CompileOptions) (*FormTemplate, error) {
 	if declared := object(read(spec, "action")); declared != nil {
 		action = copyValue(declared).(*Object)
 	}
-	return &FormTemplate{Kind: "crudui/form-template", KeyPrefix: options.KeyPrefix, keyPrefixProvided: options.KeyPrefixProvided || options.KeyPrefix != "", Fields: fields, Buttons: buttons, Action: action}, nil
+	var description any
+	if spec.Has("description") {
+		description = copyValue(read(spec, "description"))
+	}
+	return &FormTemplate{Kind: "crudui/form-template", KeyPrefix: options.KeyPrefix, keyPrefixProvided: options.KeyPrefixProvided || options.KeyPrefix != "", Fields: fields, Buttons: buttons, Action: action, Description: description, descriptionProvided: spec.Has("description")}, nil
 }
 
 // checkFormDeclarations rejects a wrong root action or buttons declaration.
@@ -377,14 +385,15 @@ func onlyMembers(o *Object, names ...string) bool {
 
 // UnmarshalJSON reads the template in specification member order. A value that is not
 // exactly the compiled shape is rejected: the template kind, a field list, a button object
-// list, an optional string keyPrefix, an optional object action and no other member.
+// list, an optional string keyPrefix, an optional object action, an optional description of any
+// value and no other member.
 func (t *FormTemplate) UnmarshalJSON(data []byte) error {
 	v, e := DecodeJSON(data)
 	if e != nil {
 		return e
 	}
 	o := object(compose.OrderMembers(v))
-	if o == nil || !onlyMembers(o, "kind", "keyPrefix", "fields", "buttons", "action") || read(o, "kind") != "crudui/form-template" {
+	if o == nil || !onlyMembers(o, "kind", "keyPrefix", "fields", "buttons", "action", "description") || read(o, "kind") != "crudui/form-template" {
 		return errTemplateShape
 	}
 	keyPrefix, keyPrefixOK := read(o, "keyPrefix").(string)
@@ -412,7 +421,11 @@ func (t *FormTemplate) UnmarshalJSON(data []byte) error {
 		}
 		buttons = append(buttons, button)
 	}
-	*t = FormTemplate{Kind: "crudui/form-template", KeyPrefix: keyPrefix, keyPrefixProvided: o.Has("keyPrefix"), Fields: fields, Buttons: buttons, Action: action}
+	var description any
+	if o.Has("description") {
+		description = read(o, "description")
+	}
+	*t = FormTemplate{Kind: "crudui/form-template", KeyPrefix: keyPrefix, keyPrefixProvided: o.Has("keyPrefix"), Fields: fields, Buttons: buttons, Action: action, Description: description, descriptionProvided: o.Has("description")}
 	return nil
 }
 
@@ -465,7 +478,8 @@ func (e *UnsupportedFieldTypeError) Error() string {
 // Code returns the shared unsupported-field error code.
 func (e *UnsupportedFieldTypeError) Code() string { return "UNSUPPORTED_FIELD_TYPE" }
 
-// MarshalJSON retains specification order and an explicitly empty form-name prefix.
+// MarshalJSON retains specification order, an explicitly empty form-name prefix and a declared
+// null description.
 func (t FormTemplate) MarshalJSON() ([]byte, error) {
 	o := NewObject("kind", t.Kind)
 	if t.keyPrefixProvided || t.KeyPrefix != "" {
@@ -475,6 +489,9 @@ func (t FormTemplate) MarshalJSON() ([]byte, error) {
 	o.Set("buttons", t.Buttons)
 	if t.Action != nil {
 		o.Set("action", t.Action)
+	}
+	if t.descriptionProvided || t.Description != nil {
+		o.Set("description", t.Description)
 	}
 	return json.Marshal(o)
 }

@@ -7,7 +7,8 @@ framework renderer. Each case provides `name`, `note`, `spec`, `record`, optiona
 either `expected_html` or `expectError` with its `code` and `message`.
 
 These cases check translated labels, every cell format, an absent value, the detail and field
-designs, a hidden field, composed fields, an empty declaration, the input errors and the
+designs, a hidden field, composed fields, an empty declaration, the detail actions before the
+definition list and after the image preload links, the input errors and the
 declaration errors of the [display format declarations](../../../docs/spec/display-formats.md#declarations).
 Each case supplies the record; the renderer does not query data.
 

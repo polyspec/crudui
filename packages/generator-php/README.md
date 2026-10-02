@@ -56,8 +56,9 @@ Date and datetime controls and list date formatting use UTC. Explicit offsets
 are converted before display; timestamps without offsets are interpreted in UTC.
 Invalid or unsupported date strings and the original instance data remain unchanged.
 
-`Form` provides `getTemplate`, `getFields`, `getRevision`, `getData`, `getValue`,
-`setData`, `setValue`, `addRow`, `copyRow`, `removeRow`, `moveRow` and `rekeyRow`.
+`Form` provides `getTemplate`, `getFields`, `getDescription` (the root description translated
+for the instance language), `getRevision`, `getData`, `getValue`, `setData`, `setValue`, `addRow`,
+`copyRow`, `removeRow`, `moveRow` and `rekeyRow`.
 Returned values are detached copies. Invalid operations leave data, fields and
 revision unchanged.
 

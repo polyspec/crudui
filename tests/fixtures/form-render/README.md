@@ -12,7 +12,8 @@ path. They cover appearance, conditions, composition, translated content,
 language inputs, repetition and widget output, including `multiple: only` collections (rows under
 their data keys without row controls, and an empty or missing collection with its header, an empty
 body and no add-row control) a hidden group that keeps its values, and choice lists in select, choice, multichoice, search and
-dummy fields with the binding failures of invalid choice lists. Repeated fixture data uses keyed
+dummy fields with the binding failures of invalid choice lists, and the translated root description
+as the first child of the `crudui-form` block. Repeated fixture data uses keyed
 collections as defined in the [form runtime](../../../docs/spec/form-runtime.md).
 
 ## Normalization

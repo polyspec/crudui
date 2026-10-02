@@ -30,6 +30,7 @@
             "createRowKey",
             "emptyHistory",
             "formButtonsHtml",
+            "formDescription",
             "formMessages",
             "initialView",
             "patchContent",
@@ -691,7 +692,7 @@
       "owner": "@crudui/generator-core",
       "signature": "buildList(spec, rows, options?) -> ListViewModel",
       "input": "list specification and supplied rows",
-      "output": "list view model with columns, rows, pagination, sort, actions, empty state and design",
+      "output": "list view model with columns, rows, pagination, sort, actions, empty state, description and design",
       "errors": [
         "FormInputError",
         "ComposeLoadError"

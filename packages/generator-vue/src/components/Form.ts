@@ -43,7 +43,7 @@ export const Form = defineComponent({
     onBeforeUnmount(() => { binding?.disconnect(); unsubscribe?.(); });
     return () => {
       const model = formRenderModel(snapshot.value.fields, props.form.template.action, props.options);
-      const block = FormFields(snapshot.value.fields, snapshot.value.buttons, props.form.messages, root, model);
+      const block = FormFields(snapshot.value.fields, snapshot.value.buttons, props.form.messages, root, model, props.form.description);
       if (!model.form) return block;
       return h('form', model.form, [
         ...model.hidden.map(([name, value]) => h('input', { type: 'hidden', name, value })),

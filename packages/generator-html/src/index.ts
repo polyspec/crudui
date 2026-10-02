@@ -349,11 +349,11 @@ export function renderDetail(
 ): string {
   const vm = buildDetail(spec, record, options);
   const preloads = imagePreloads([{ cells: vm.fields }]);
-  return preloads + element('dl', { class: joinClass('crudui-detail', vm.design.wrapper.class), style: vm.design.wrapper.style }, vm.fields.map(detailField).join(''));
+  return preloads + actionsHtml(vm.actions, 'crudui-detail') + element('dl', { class: joinClass('crudui-detail', vm.design.wrapper.class), style: vm.design.wrapper.style }, vm.fields.map(detailField).join(''));
 }
 
-/** A list action: a link or button written raw, with its behavior attributes. */
-function action(action: ActionVM): string {
+/** A list or detail action: a link or button written raw, with its behavior attributes. */
+function action(action: ActionVM, block: 'crudui-list' | 'crudui-detail'): string {
   const values: AttrValues = {};
   let tag = 'button';
   if (action.format?.type === 'link') {
@@ -365,7 +365,12 @@ function action(action: ActionVM): string {
     values.type = 'button';
   }
   for (const [event, script] of Object.entries(action.behavior ?? {})) values[`on${event}`] = scalar(script);
-  return element('span', { class: 'crudui-list__action', 'data-action': action.key }, `<${tag}${attrs(values, true)}>${escapeText(action.label)}</${tag}>`);
+  return element('span', { class: `${block}__action`, 'data-action': action.key }, `<${tag}${attrs(values, true)}>${escapeText(action.label)}</${tag}>`);
+}
+
+/** The actions of a list or detail: `{block}__actions` with one span per action; nothing without actions. */
+function actionsHtml(actions: readonly ActionVM[], block: 'crudui-list' | 'crudui-detail'): string {
+  return actions.length ? `<div class="${block}__actions">${actions.map((item) => action(item, block)).join('')}</div>` : '';
 }
 
 function pagination(vm: ListViewModel): string {
@@ -397,7 +402,8 @@ function pagination(vm: ListViewModel): string {
 }
 
 function listHtml(vm: ListViewModel, layout: 'table' | 'card'): string {
-  let body = vm.actions.length ? `<div class="crudui-list__actions">${vm.actions.map(action).join('')}</div>` : '';
+  let body = vm.description !== '' ? element('p', { class: 'crudui-list__description' }, escape(vm.description)) : '';
+  body += actionsHtml(vm.actions, 'crudui-list');
   if (!vm.rows.length) {
     body += element('div', { class: 'crudui-list__empty' }, escape(vm.empty));
   } else if (layout === 'card') {
@@ -491,12 +497,16 @@ function formFooterHtml(buttons: readonly ButtonVM[], messages: FormMessages): s
     element('div', { class: 'crudui-controls', role: 'group', 'aria-label': messages.formActions }, formButtonsHtml(buttons)));
 }
 
-/** The complete form: the form element with hidden inputs around the `crudui-form` block. */
-function completeFormHtml(fields: readonly NodeVM[], buttons: readonly ButtonVM[], messages: FormMessages, model: FormRenderModel): string {
+/**
+ * The complete form: the form element with hidden inputs around the `crudui-form` block, which
+ * starts with the root description when it is not empty.
+ */
+function completeFormHtml(fields: readonly NodeVM[], buttons: readonly ButtonVM[], messages: FormMessages, model: FormRenderModel, description: string): string {
   const formErrors = model.formErrors.length
     ? element('div', { class: 'crudui-form__errors' }, model.formErrors.map((text) => element('p', { class: 'crudui-form__error' }, escape(text))).join(''))
     : '';
   const block = element('div', { class: 'crudui-form' },
+    (description !== '' ? element('p', { class: 'crudui-form__description' }, escape(description)) : '') +
     formErrors +
     element('div', { class: 'crudui-form__body' }, fields.map((vm) => node(vm, model.nodeErrors)).join('')) +
     formFooterHtml(buttons, messages));
@@ -507,16 +517,20 @@ function completeFormHtml(fields: readonly NodeVM[], buttons: readonly ButtonVM[
 
 /**
  * Render the complete form for evaluated nodes and form buttons, as returned by
- * data render it from `bindForm` and `bindButtons`. `options.action` has no template action here.
+ * `bindForm`, `bindButtons` and `formDescription`. `options.action` has no
+ * template action here. `description` is the translated root description, written first in the
+ * `crudui-form` block when it is not empty.
  */
-export function renderFormView(fields: readonly NodeVM[], buttons: readonly ButtonVM[], messages: FormMessages, options?: FormRenderOptions): string {
-  return completeFormHtml(fields, buttons, messages, formRenderModel(fields, undefined, options));
+export function renderFormView(
+  fields: readonly NodeVM[], buttons: readonly ButtonVM[], messages: FormMessages, options?: FormRenderOptions, description = '',
+): string {
+  return completeFormHtml(fields, buttons, messages, formRenderModel(fields, undefined, options), description);
 }
 
 /** Render the current form instance as the complete form (form-runtime.md, "Complete form"). */
 export function renderForm(form: FormInstance, options?: FormRenderOptions): string {
   const snapshot = form.getSnapshot();
-  return completeFormHtml(snapshot.fields, snapshot.buttons, form.messages, formRenderModel(snapshot.fields, form.template.action, options));
+  return completeFormHtml(snapshot.fields, snapshot.buttons, form.messages, formRenderModel(snapshot.fields, form.template.action, options), form.description);
 }
 
 /** Compose, evaluate and render a list without a framework or database; image preloads come first. */

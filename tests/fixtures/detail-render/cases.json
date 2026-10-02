@@ -797,6 +797,148 @@
     "expected_html": "<dl class=\"crudui-detail\"></dl>"
   },
   {
+    "name": "actions",
+    "note": "detail actions precede the definition list: a link-format action is an a element, a script string and a script object are buttons with their scripts and an empty action object is a button with its name; labels are translated and escaped.",
+    "spec": {
+      "fields": {
+        "name": {
+          "field": "name",
+          "label": "Name"
+        }
+      },
+      "actions": {
+        "edit": {
+          "label": {
+            "ko": "수정",
+            "en": "Edit <&>"
+          },
+          "format": {
+            "type": "link",
+            "href": "/members/7/edit",
+            "target": "_self"
+          }
+        },
+        "remove": "confirmDelete(this)",
+        "archive": {
+          "label": {
+            "en": "Archive"
+          },
+          "script": "archive(this)"
+        },
+        "back": {}
+      }
+    },
+    "record": {
+      "id": 7,
+      "name": "<Ada & Lin>",
+      "status": "active",
+      "joined": "2026-01-02T09:00:00",
+      "score": 1234567.5,
+      "admin": 1,
+      "avatar": "/img/ada.png",
+      "notes": "<b>bold</b>",
+      "jointablename": {
+        "id": 107
+      },
+      "join": {
+        "join": {
+          "name": "<Ada & Lin>"
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-detail__actions\"><span class=\"crudui-detail__action\" data-action=\"edit\"><a href=\"/members/7/edit\" target=\"_self\">Edit &lt;&amp;&gt;</a></span><span class=\"crudui-detail__action\" data-action=\"remove\"><button onremove=\"confirmDelete(this)\" type=\"button\">remove</button></span><span class=\"crudui-detail__action\" data-action=\"archive\"><button onarchive=\"archive(this)\" type=\"button\">Archive</button></span><span class=\"crudui-detail__action\" data-action=\"back\"><button type=\"button\">back</button></span></div><dl class=\"crudui-detail\"><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">Name</dt><dd class=\"crudui-detail__value crudui-value crudui-value--text\">&lt;Ada &amp; Lin&gt;</dd></div></dl>"
+  },
+  {
+    "name": "actions-with-image",
+    "note": "the image preload links of a string renderer precede the actions, and the actions precede the definition list.",
+    "spec": {
+      "design": {
+        "wrapper": {
+          "class": "card"
+        }
+      },
+      "actions": {
+        "edit": {
+          "label": "Edit",
+          "format": {
+            "type": "link",
+            "href": "/members/7/edit"
+          }
+        }
+      },
+      "fields": {
+        "avatar": {
+          "field": "avatar",
+          "label": "Avatar",
+          "format": {
+            "type": "image",
+            "alt": "Avatar"
+          }
+        }
+      }
+    },
+    "record": {
+      "id": 7,
+      "name": "<Ada & Lin>",
+      "status": "active",
+      "joined": "2026-01-02T09:00:00",
+      "score": 1234567.5,
+      "admin": 1,
+      "avatar": "/img/ada.png",
+      "notes": "<b>bold</b>",
+      "jointablename": {
+        "id": 107
+      },
+      "join": {
+        "join": {
+          "name": "<Ada & Lin>"
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-detail__actions\"><span class=\"crudui-detail__action\" data-action=\"edit\"><a href=\"/members/7/edit\">Edit</a></span></div><dl class=\"crudui-detail card\"><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">Avatar</dt><dd class=\"crudui-detail__value crudui-value crudui-value--image\"><img alt=\"Avatar\" src=\"/img/ada.png\"></dd></div></dl>"
+  },
+  {
+    "name": "actions-empty",
+    "note": "an empty actions object writes no actions element.",
+    "spec": {
+      "fields": {
+        "name": {
+          "field": "name",
+          "label": "Name"
+        }
+      },
+      "actions": {}
+    },
+    "record": {
+      "id": 7,
+      "name": "<Ada & Lin>",
+      "status": "active",
+      "joined": "2026-01-02T09:00:00",
+      "score": 1234567.5,
+      "admin": 1,
+      "avatar": "/img/ada.png",
+      "notes": "<b>bold</b>",
+      "jointablename": {
+        "id": 107
+      },
+      "join": {
+        "join": {
+          "name": "<Ada & Lin>"
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<dl class=\"crudui-detail\"><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">Name</dt><dd class=\"crudui-detail__value crudui-value crudui-value--text\">&lt;Ada &amp; Lin&gt;</dd></div></dl>"
+  },
+  {
     "name": "reject-non-object-specification",
     "note": "a declaration that is not an object is rejected.",
     "spec": [],
@@ -1574,6 +1716,452 @@
     "expectError": {
       "code": "INVALID_FORM_INPUT",
       "message": "Invalid format.alt at fields.name: expected a string, a language map or null"
+    }
+  },
+  {
+    "name": "reject-actions",
+    "note": "actions are an object.",
+    "spec": {
+      "fields": {
+        "name": {
+          "field": "name"
+        }
+      },
+      "actions": []
+    },
+    "record": {
+      "id": 7,
+      "name": "<Ada & Lin>",
+      "status": "active",
+      "joined": "2026-01-02T09:00:00",
+      "score": 1234567.5,
+      "admin": 1,
+      "avatar": "/img/ada.png",
+      "notes": "<b>bold</b>",
+      "jointablename": {
+        "id": 107
+      },
+      "join": {
+        "join": {
+          "name": "<Ada & Lin>"
+        }
+      }
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid actions at detail: expected an object"
+    }
+  },
+  {
+    "name": "reject-action-ref",
+    "note": "actions are not composed.",
+    "spec": {
+      "fields": {
+        "name": {
+          "field": "name"
+        }
+      },
+      "actions": {
+        "$ref": "actions.yml"
+      }
+    },
+    "record": {
+      "id": 7,
+      "name": "<Ada & Lin>",
+      "status": "active",
+      "joined": "2026-01-02T09:00:00",
+      "score": 1234567.5,
+      "admin": 1,
+      "avatar": "/img/ada.png",
+      "notes": "<b>bold</b>",
+      "jointablename": {
+        "id": 107
+      },
+      "join": {
+        "join": {
+          "name": "<Ada & Lin>"
+        }
+      }
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid $ref at actions: unknown key"
+    }
+  },
+  {
+    "name": "reject-action",
+    "note": "an action is a script or an object.",
+    "spec": {
+      "fields": {
+        "name": {
+          "field": "name"
+        }
+      },
+      "actions": {
+        "edit": 5
+      }
+    },
+    "record": {
+      "id": 7,
+      "name": "<Ada & Lin>",
+      "status": "active",
+      "joined": "2026-01-02T09:00:00",
+      "score": 1234567.5,
+      "admin": 1,
+      "avatar": "/img/ada.png",
+      "notes": "<b>bold</b>",
+      "jointablename": {
+        "id": 107
+      },
+      "join": {
+        "join": {
+          "name": "<Ada & Lin>"
+        }
+      }
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid edit at actions: expected a script or an object"
+    }
+  },
+  {
+    "name": "reject-action-unknown-key",
+    "note": "an action object holds label, format, behavior and design.",
+    "spec": {
+      "fields": {
+        "name": {
+          "field": "name"
+        }
+      },
+      "actions": {
+        "edit": {
+          "label": "Edit",
+          "onclick": "x()"
+        }
+      }
+    },
+    "record": {
+      "id": 7,
+      "name": "<Ada & Lin>",
+      "status": "active",
+      "joined": "2026-01-02T09:00:00",
+      "score": 1234567.5,
+      "admin": 1,
+      "avatar": "/img/ada.png",
+      "notes": "<b>bold</b>",
+      "jointablename": {
+        "id": 107
+      },
+      "join": {
+        "join": {
+          "name": "<Ada & Lin>"
+        }
+      }
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid onclick at actions.edit: unknown key"
+    }
+  },
+  {
+    "name": "reject-script-action-format",
+    "note": "a script action holds label and script.",
+    "spec": {
+      "fields": {
+        "name": {
+          "field": "name"
+        }
+      },
+      "actions": {
+        "edit": {
+          "script": "x()",
+          "format": "link"
+        }
+      }
+    },
+    "record": {
+      "id": 7,
+      "name": "<Ada & Lin>",
+      "status": "active",
+      "joined": "2026-01-02T09:00:00",
+      "score": 1234567.5,
+      "admin": 1,
+      "avatar": "/img/ada.png",
+      "notes": "<b>bold</b>",
+      "jointablename": {
+        "id": 107
+      },
+      "join": {
+        "join": {
+          "name": "<Ada & Lin>"
+        }
+      }
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid format at actions.edit: unknown key"
+    }
+  },
+  {
+    "name": "reject-action-label",
+    "note": "an action label is content.",
+    "spec": {
+      "fields": {
+        "name": {
+          "field": "name"
+        }
+      },
+      "actions": {
+        "edit": {
+          "label": 1
+        }
+      }
+    },
+    "record": {
+      "id": 7,
+      "name": "<Ada & Lin>",
+      "status": "active",
+      "joined": "2026-01-02T09:00:00",
+      "score": 1234567.5,
+      "admin": 1,
+      "avatar": "/img/ada.png",
+      "notes": "<b>bold</b>",
+      "jointablename": {
+        "id": 107
+      },
+      "join": {
+        "join": {
+          "name": "<Ada & Lin>"
+        }
+      }
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid label at actions.edit: expected a string, a language map or null"
+    }
+  },
+  {
+    "name": "reject-action-format",
+    "note": "an action format follows the format rules.",
+    "spec": {
+      "fields": {
+        "name": {
+          "field": "name"
+        }
+      },
+      "actions": {
+        "edit": {
+          "format": {
+            "type": "link",
+            "href": 1
+          }
+        }
+      }
+    },
+    "record": {
+      "id": 7,
+      "name": "<Ada & Lin>",
+      "status": "active",
+      "joined": "2026-01-02T09:00:00",
+      "score": 1234567.5,
+      "admin": 1,
+      "avatar": "/img/ada.png",
+      "notes": "<b>bold</b>",
+      "jointablename": {
+        "id": 107
+      },
+      "join": {
+        "join": {
+          "name": "<Ada & Lin>"
+        }
+      }
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid format.href at actions.edit: expected a string or a condition map"
+    }
+  },
+  {
+    "name": "reject-action-behavior-entry",
+    "note": "a behavior entry is a script or an object.",
+    "spec": {
+      "fields": {
+        "name": {
+          "field": "name"
+        }
+      },
+      "actions": {
+        "edit": {
+          "behavior": {
+            "onclick": 1
+          }
+        }
+      }
+    },
+    "record": {
+      "id": 7,
+      "name": "<Ada & Lin>",
+      "status": "active",
+      "joined": "2026-01-02T09:00:00",
+      "score": 1234567.5,
+      "admin": 1,
+      "avatar": "/img/ada.png",
+      "notes": "<b>bold</b>",
+      "jointablename": {
+        "id": 107
+      },
+      "join": {
+        "join": {
+          "name": "<Ada & Lin>"
+        }
+      }
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid behavior.onclick at actions.edit: expected a script or an object"
+    }
+  },
+  {
+    "name": "reject-action-design",
+    "note": "an action design follows the design rules.",
+    "spec": {
+      "fields": {
+        "name": {
+          "field": "name"
+        }
+      },
+      "actions": {
+        "edit": {
+          "design": {
+            "color": "red"
+          }
+        }
+      }
+    },
+    "record": {
+      "id": 7,
+      "name": "<Ada & Lin>",
+      "status": "active",
+      "joined": "2026-01-02T09:00:00",
+      "score": 1234567.5,
+      "admin": 1,
+      "avatar": "/img/ada.png",
+      "notes": "<b>bold</b>",
+      "jointablename": {
+        "id": 107
+      },
+      "join": {
+        "join": {
+          "name": "<Ada & Lin>"
+        }
+      }
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid design.color at actions.edit: unknown key"
+    }
+  },
+  {
+    "name": "reject-fields-before-actions",
+    "note": "the fields are checked before the actions.",
+    "spec": {
+      "actions": [],
+      "fields": {
+        "name": 5
+      }
+    },
+    "record": {
+      "id": 7,
+      "name": "<Ada & Lin>",
+      "status": "active",
+      "joined": "2026-01-02T09:00:00",
+      "score": 1234567.5,
+      "admin": 1,
+      "avatar": "/img/ada.png",
+      "notes": "<b>bold</b>",
+      "jointablename": {
+        "id": 107
+      },
+      "join": {
+        "join": {
+          "name": "<Ada & Lin>"
+        }
+      }
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid name at fields: expected an object"
+    }
+  },
+  {
+    "name": "reject-design-before-actions",
+    "note": "the own design is checked before the actions.",
+    "spec": {
+      "actions": [],
+      "design": {
+        "color": "red"
+      },
+      "fields": {
+        "name": {
+          "field": "name"
+        }
+      }
+    },
+    "record": {
+      "id": 7,
+      "name": "<Ada & Lin>",
+      "status": "active",
+      "joined": "2026-01-02T09:00:00",
+      "score": 1234567.5,
+      "admin": 1,
+      "avatar": "/img/ada.png",
+      "notes": "<b>bold</b>",
+      "jointablename": {
+        "id": 107
+      },
+      "join": {
+        "join": {
+          "name": "<Ada & Lin>"
+        }
+      }
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid design.color at detail: unknown key"
+    }
+  },
+  {
+    "name": "reject-list-description",
+    "note": "a detail does not declare a description.",
+    "spec": {
+      "fields": {
+        "name": {
+          "field": "name"
+        }
+      },
+      "description": "Member"
+    },
+    "record": {
+      "id": 7,
+      "name": "<Ada & Lin>",
+      "status": "active",
+      "joined": "2026-01-02T09:00:00",
+      "score": 1234567.5,
+      "admin": 1,
+      "avatar": "/img/ada.png",
+      "notes": "<b>bold</b>",
+      "jointablename": {
+        "id": 107
+      },
+      "join": {
+        "join": {
+          "name": "<Ada & Lin>"
+        }
+      }
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid description at detail: unknown key"
     }
   },
   {

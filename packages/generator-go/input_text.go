@@ -69,7 +69,7 @@ func templateText(t *FormTemplate) any {
 		}
 		return out
 	}
-	return map[string]any{"kind": t.Kind, "keyPrefix": t.KeyPrefix, "fields": fields(t.Fields), "buttons": t.Buttons, "action": t.Action}
+	return map[string]any{"kind": t.Kind, "keyPrefix": t.KeyPrefix, "fields": fields(t.Fields), "buttons": t.Buttons, "action": t.Action, "description": t.Description}
 }
 
 // checkDisplayText checks a list or detail specification, its files, the named

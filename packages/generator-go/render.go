@@ -410,7 +410,11 @@ func RenderForm(form *Form, options any) (string, error) {
 	}
 	footer := element("div", NewObject("class", "crudui-form__footer"),
 		element("div", NewObject("class", "crudui-controls", "role", "group", "aria-label", m.formActions), buttons))
-	block := `<div class="crudui-form">` + errorsHTML("crudui-form", model.formErrors) + `<div class="crudui-form__body">` + nodesHTML(form.fields, model.nodeErrors) + `</div>` + footer + `</div>`
+	description := ""
+	if text := translate(form.template.Description, language); text != "" {
+		description = element("p", NewObject("class", "crudui-form__description"), escape(text))
+	}
+	block := `<div class="crudui-form">` + description + errorsHTML("crudui-form", model.formErrors) + `<div class="crudui-form__body">` + nodesHTML(form.fields, model.nodeErrors) + `</div>` + footer + `</div>`
 	if model.form == nil {
 		return block, nil
 	}

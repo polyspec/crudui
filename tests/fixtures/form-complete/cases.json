@@ -318,6 +318,89 @@
     "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--collection\" data-field-path=\"tags\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Tags</span><span class=\"crudui-node__count\">Rows: 1</span></div><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"k1\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Tags</span><span class=\"crudui-node__number\">1</span></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input type=\"text\" class=\"valid-target crudui-input\" data-name=\"tags[]\" data-rule-name=\"tags[]\" data-default=\"\" id=\"crudui:tags.k1\" name=\"tags[k1]\" value=\"x\"/></div></div><div class=\"crudui-node__errors\"><p class=\"crudui-node__error\">Row.</p></div></div></div><div class=\"crudui-node__errors\"><p class=\"crudui-node__error\">Tags.</p></div></div><div class=\"crudui-node crudui-node--group\" data-field-path=\"addr\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Address</span></div><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"addr.city\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:addr.city\">City</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><select name=\"addr[city]\" class=\"valid-target crudui-input crudui-input--select\" data-name=\"city\" data-rule-name=\"addr[city]\" data-default=\"\" id=\"crudui:addr.city\"><option value=\"s\" selected=\"\">Seoul</option></select></div></div><div class=\"crudui-node__errors\"><p class=\"crudui-node__error\">City one.</p><p class=\"crudui-node__error\">City two.</p></div></div></div><div class=\"crudui-node__errors\"><p class=\"crudui-node__error\">Address.</p></div></div><div class=\"crudui-node crudui-node--field\" data-field-path=\"note\" hidden=\"\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:note\">Note</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input type=\"text\" class=\"valid-target crudui-input\" data-name=\"note\" data-rule-name=\"note\" data-default=\"\" id=\"crudui:note\" name=\"note\" value=\"n\"/></div></div><div class=\"crudui-node__errors\"><p class=\"crudui-node__error\">Note.</p></div></div></div><div class=\"crudui-form__footer\"><div class=\"crudui-controls\" role=\"group\" aria-label=\"Form actions\"><button type=\"submit\" class=\"crudui-action crudui-action--text\">Save</button></div></div></div>"
   },
   {
+    "name": "root-description",
+    "note": "the translated root description precedes the form errors and the body inside the form element; its text is escaped.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "email": {
+          "type": "text",
+          "label": "Email"
+        }
+      },
+      "description": {
+        "ko": "로그인",
+        "en": "Sign in <now> & \"stay\""
+      }
+    },
+    "data": {
+      "email": "a@b"
+    },
+    "options": {
+      "language": "en"
+    },
+    "render": {
+      "action": {
+        "method": "post"
+      },
+      "hidden": {
+        "_csrf": "x"
+      },
+      "formErrors": [
+        "Sign-in failed."
+      ]
+    },
+    "expected_html": "<form method=\"post\"><input type=\"hidden\" name=\"_csrf\" value=\"x\"/><div class=\"crudui-form\"><p class=\"crudui-form__description\">Sign in &lt;now&gt; &amp; &quot;stay&quot;</p><div class=\"crudui-form__errors\"><p class=\"crudui-form__error\">Sign-in failed.</p></div><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"email\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:email\">Email</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input type=\"text\" class=\"valid-target crudui-input\" data-name=\"email\" data-rule-name=\"email\" data-default=\"\" id=\"crudui:email\" name=\"email\" value=\"a@b\"/></div></div></div></div><div class=\"crudui-form__footer\"><div class=\"crudui-controls\" role=\"group\" aria-label=\"Form actions\"><button type=\"submit\" class=\"crudui-action crudui-action--text\">Save</button></div></div></div></form>"
+  },
+  {
+    "name": "root-description-without-options",
+    "note": "empty options write the root description in the crudui-form block alone.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "email": {
+          "type": "text",
+          "label": "Email"
+        }
+      },
+      "description": "Members"
+    },
+    "data": {
+      "email": "a@b"
+    },
+    "options": {
+      "language": "en"
+    },
+    "render": {},
+    "expected_html": "<div class=\"crudui-form\"><p class=\"crudui-form__description\">Members</p><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"email\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:email\">Email</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input type=\"text\" class=\"valid-target crudui-input\" data-name=\"email\" data-rule-name=\"email\" data-default=\"\" id=\"crudui:email\" name=\"email\" value=\"a@b\"/></div></div></div></div><div class=\"crudui-form__footer\"><div class=\"crudui-controls\" role=\"group\" aria-label=\"Form actions\"><button type=\"submit\" class=\"crudui-action crudui-action--text\">Save</button></div></div></div>"
+  },
+  {
+    "name": "root-description-null",
+    "note": "a null root description writes nothing.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "email": {
+          "type": "text",
+          "label": "Email"
+        }
+      },
+      "description": null
+    },
+    "data": {
+      "email": "a@b"
+    },
+    "options": {
+      "language": "en"
+    },
+    "render": {
+      "formErrors": [
+        "First."
+      ]
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__errors\"><p class=\"crudui-form__error\">First.</p></div><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"email\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:email\">Email</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input type=\"text\" class=\"valid-target crudui-input\" data-name=\"email\" data-rule-name=\"email\" data-default=\"\" id=\"crudui:email\" name=\"email\" value=\"a@b\"/></div></div></div></div><div class=\"crudui-form__footer\"><div class=\"crudui-controls\" role=\"group\" aria-label=\"Form actions\"><button type=\"submit\" class=\"crudui-action crudui-action--text\">Save</button></div></div></div>"
+  },
+  {
     "name": "options-not-object",
     "note": "render options are an object.",
     "spec": {

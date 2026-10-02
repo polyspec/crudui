@@ -285,7 +285,7 @@ check($explicitInput->getMessage() === 'message' && $explicitInput->getErrorCode
 
 $detailSpec = ['fields'=>['name'=>['field'=>'name','label'=>'Name'],'missing'=>['field'=>'missing','label'=>'Missing']]];
 $detail = Generator::buildDetail($detailSpec, ['name'=>'Ada']);
-same(['fields','design'], array_keys((array)$detail), 'Detail model member order changed');
+same(['fields','actions','design'], array_keys((array)$detail), 'Detail model member order changed');
 foreach ($detail->fields as $field) {
     same(['key','label','format','value','display','design'], array_keys((array)$field), 'Detail field member order changed');
 }

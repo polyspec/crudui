@@ -55,7 +55,7 @@ final class Generator
     {
         $fields = $form->getFields();
         $model = FormRender::model($fields, $form->getTemplate()->action ?? null, $options);
-        return Rendering::form($fields, $form->getButtons(), $form->getMessages(), $model);
+        return Rendering::form($fields, $form->getButtons(), $form->getMessages(), $model, $form->getDescription());
     }
 
     /** Render supplied list rows using the table or card layout. */

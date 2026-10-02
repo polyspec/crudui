@@ -41,7 +41,40 @@ final class Lists
         self::countOptions($options);
     }
 
-    /** Render composed list columns, supplied rows, actions and pagination. */
+    /**
+     * The actions of a list or detail: <block>__actions with one <block>__action span per action
+     * holding a link or a button; empty text without actions.
+     *
+     * @param list<stdClass> $actions
+     */
+    public static function actionsHtml(array $actions, string $block): string
+    {
+        if ($actions === []) {
+            return '';
+        }
+        $html = '';
+        foreach ($actions as $action) {
+            $attrsAction = [];
+            $tag = 'button';
+            if (($action->format->type ?? null) === 'link') {
+                $tag = 'a';
+                $href = $action->format->options->href ?? '#';
+                $attrsAction['href'] = is_string($href) ? $href : '#';
+                if (is_string($action->format->options->target ?? null)) {
+                    $attrsAction['target'] = $action->format->options->target;
+                }
+            } else {
+                $attrsAction['type'] = 'button';
+            }
+            foreach ($action->behavior ?? [] as $event => $script) {
+                $attrsAction['on' . $event] = $script;
+            }
+            $html .= Rendering::element('span', ['class' => $block . '__action', 'data-action' => $action->key], Rendering::element($tag, $attrsAction, Rendering::text($action->label, true), true));
+        }
+        return Rendering::element('div', ['class' => $block . '__actions'], $html);
+    }
+
+    /** Render composed list columns, supplied rows, the description, actions and pagination. */
     public static function render(array|stdClass $spec, array $rows, array $options): string
     {
         self::checkInput($spec, $rows, $options);
@@ -52,28 +85,10 @@ final class Lists
         $vm = self::build(Value::object($spec), $rows, $options, 'list', 'columns');
         $attrs = self::node('crudui-list', $vm->design->wrapper);
         $body = '';
-        if ($vm->actions !== []) {
-            $actions = '';
-            foreach ($vm->actions as $action) {
-                $attrsAction = [];
-                $tag = 'button';
-                if (($action->format->type ?? null) === 'link') {
-                    $tag = 'a';
-                    $href = $action->format->options->href ?? '#';
-                    $attrsAction['href'] = is_string($href) ? $href : '#';
-                    if (is_string($action->format->options->target ?? null)) {
-                        $attrsAction['target'] = $action->format->options->target;
-                    }
-                } else {
-                    $attrsAction['type'] = 'button';
-                }
-                foreach ($action->behavior ?? [] as $event => $script) {
-                    $attrsAction['on' . $event] = $script;
-                }
-                $actions .= Rendering::element('span', ['class' => 'crudui-list__action', 'data-action' => $action->key], Rendering::element($tag, $attrsAction, Rendering::text($action->label, true), true));
-            }
-            $body .= Rendering::element('div', ['class' => 'crudui-list__actions'], $actions);
+        if ($vm->description !== '') {
+            $body .= Rendering::element('p', ['class' => 'crudui-list__description'], Rendering::text($vm->description));
         }
+        $body .= self::actionsHtml($vm->actions, 'crudui-list');
         if ($vm->rows === []) {
             $body .= Rendering::element('div', ['class' => 'crudui-list__empty'], Rendering::text($vm->empty));
         } elseif ($layout === 'table') {
@@ -227,7 +242,7 @@ final class Lists
         // An absent or null empty uses the interface message; a declared text is used as declared.
         $declaredEmpty = $spec->empty ?? null;
         $empty = $declaredEmpty === null ? self::messages($language)['emptyList'] : Value::translate($declaredEmpty, $language);
-        return Value::record(['columns' => $columnModels, 'rows' => $rowModels, 'pagination' => (object) $pagination, 'sort' => $sort, 'actions' => $actions, 'empty' => $empty, 'design' => Design::resolve($spec->design ?? null, $data, [])]);
+        return Value::record(['columns' => $columnModels, 'rows' => $rowModels, 'pagination' => (object) $pagination, 'sort' => $sort, 'actions' => $actions, 'empty' => $empty, 'description' => Value::translate($spec->description ?? null, $language), 'design' => Design::resolve($spec->design ?? null, $data, [])]);
     }
 
     /**

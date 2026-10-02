@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import {
-  bindButtons, bindForm, compileForm, createForm, formMessages,
+  bindButtons, bindForm, compileForm, createForm, formDescription, formMessages,
   type CompileFormOptions, type CreateFormOptions,
 } from '@crudui/generator-core';
 import { renderForm, renderFormView } from './index';
@@ -40,7 +40,8 @@ function renderFixtureView(item: FixtureCase): string {
   const template = compileForm(item.spec, (item.options ?? {}) as CompileFormOptions);
   const options = (item.options ?? {}) as NonNullable<Parameters<typeof bindForm>[2]> & { language?: string };
   const data = item.data ?? {};
-  return renderFormView(bindForm(template, data, options), bindButtons(template, data, options), formMessages(options.language ?? 'ko'));
+  return renderFormView(bindForm(template, data, options), bindButtons(template, data, options), formMessages(options.language ?? 'ko'),
+    undefined, formDescription(template, options));
 }
 
 describe('stateless HTML form view conformance', () => {

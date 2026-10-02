@@ -28,5 +28,5 @@
 </script>
 
 {#if formAttributes}<form {...formAttributes}
-  >{#each model.hidden as [name, value] (name)}<input type="hidden" {name} {value} />{/each}<FormFields fields={snapshot.fields} buttons={snapshot.buttons} messages={form.messages} {model} bind:root /></form
->{:else}<FormFields fields={snapshot.fields} buttons={snapshot.buttons} messages={form.messages} {model} bind:root />{/if}
+  >{#each model.hidden as [name, value] (name)}<input type="hidden" {name} {value} />{/each}<FormFields fields={snapshot.fields} buttons={snapshot.buttons} messages={form.messages} {model} description={form.description} bind:root /></form
+>{:else}<FormFields fields={snapshot.fields} buttons={snapshot.buttons} messages={form.messages} {model} description={form.description} bind:root />{/if}

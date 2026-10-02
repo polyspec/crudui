@@ -54,11 +54,18 @@ test('raw HTML, values and style attributes are never removed for comparison', (
 });
 test('a list model has a sort member only when the list declares a sort', () => {
   const request = { operation: 'buildList' };
-  const model = { columns: [], rows: [], pagination: { enabled: false }, actions: [], empty: '', design: {} };
-  const sorted = { columns: [], rows: [], pagination: { enabled: false }, sort: { field: 'name', dir: 'asc' }, actions: [], empty: '', design: {} };
+  const model = { columns: [], rows: [], pagination: { enabled: false }, actions: [], empty: '', description: '', design: {} };
+  const sorted = { columns: [], rows: [], pagination: { enabled: false }, sort: { field: 'name', dir: 'asc' }, actions: [], empty: '', description: '', design: {} };
   assert.deepEqual(parseCLIResponse(request, result(model)), model);
   assert.deepEqual(parseCLIResponse(request, result(sorted)), sorted);
   const { sort, ...rest } = sorted;
   assert.throws(() => parseCLIResponse(request, result({ sort, ...rest })), /List model members differ/);
   assert.throws(() => parseCLIResponse(request, result({ ...model, extra: true })), /List model members differ/);
+});
+test('a detail model has fields, actions and design in that order', () => {
+  const request = { operation: 'buildDetail' };
+  const model = { fields: [], actions: [], design: {} };
+  assert.deepEqual(parseCLIResponse(request, result(model)), model);
+  assert.throws(() => parseCLIResponse(request, result({ fields: [], design: {} })), /Detail model members differ/);
+  assert.throws(() => parseCLIResponse(request, result({ fields: [], design: {}, actions: [] })), /Detail model members differ/);
 });

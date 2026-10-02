@@ -1,4 +1,4 @@
-import { bindButtons, bindForm, formMessages, patchContent } from '@crudui/generator-core';
+import { bindButtons, bindForm, formDescription, formMessages, patchContent } from '@crudui/generator-core';
 import { renderDataPanel, renderFormView, renderOutlineView } from '#html';
 
 /** The markup renderer writes no framework anchors, so it adopts the server-rendered nodes. */
@@ -14,7 +14,7 @@ function start(views, template, language, data, hydrate) {
   };
   const load = (next, view = emptyView) => {
     const fields = bindForm(template, next, { language, collapsed: view.collapsed });
-    patchContent(views.form, renderFormView(fields, bindButtons(template, next, { language }), messages));
+    patchContent(views.form, renderFormView(fields, bindButtons(template, next, { language }), messages, undefined, formDescription(template, { language })));
     renderTools(fields, next, view);
   };
   // Hydration keeps the server-rendered form and writes only the browser-only views.

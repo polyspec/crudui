@@ -1,5 +1,27 @@
 # Changes
 
+## 2026-10-02 — Form and list descriptions and detail actions
+
+- The `crudui-form` block writes the translated root `description` as
+  `<p class="crudui-form__description">` before the form errors and the body. A form root accepted
+  `description`, but no renderer wrote it, so a declared description was not shown. The compiled
+  template keeps the declared value as its optional last member `description`, every template
+  shape check accepts it, `formDescription(template, options)` returns the translated text, and
+  `renderFormView` takes it as its fifth argument. An absent or empty description writes nothing.
+- A list declares `description` content. The list model has the translated `description` after
+  `empty`, and a non-empty description is the first child of `crudui-list`, a
+  `crudui-list__description` paragraph before the actions. The check runs after `empty` and before
+  `pagination` and fails with `Invalid description at list: expected a string, a language map or
+  null`.
+- A detail declares `actions` with the list action rules and models; its messages name `detail`
+  where a list message names `list`. The detail model is `{ fields, actions, design }`, and a
+  detail with actions writes `crudui-detail__actions` with one `crudui-detail__action` per action
+  before the `dl.crudui-detail` element and after the image preload links. A detail without actions
+  writes the same markup as before.
+- The JSON Schema accepts the list `description` and the detail `actions`, the stylesheet styles
+  the new elements, and React, Vue, Svelte, the HTML renderer, PHP, the PHP extension, Go and Rust
+  render the shared form, complete form, list and detail cases.
+
 ## 2026-10-02 — Choice lists keep their written order
 
 - `items` accepts a choice list, an array of `{ "value": …, "label": … }` objects whose choices

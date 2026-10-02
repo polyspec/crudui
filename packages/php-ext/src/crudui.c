@@ -392,6 +392,7 @@ FORM_READER(getData, 1)
 FORM_READER(getFields, 2)
 FORM_READER(getRevision, 3)
 FORM_READER(getButtons, 5)
+FORM_READER(getDescription, 7)
 
 PHP_METHOD(CRUDUI_Form, getMessages)
 {

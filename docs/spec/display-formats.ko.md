@@ -188,15 +188,16 @@ columns:
    `field`, `label`, `format`, `design`, `sortable`을 경로 `columns.{이름}` 또는 `fields.{이름}`으로
    검사합니다.
 4. 목록은 `search`, `sort`, `actions`(각 동작을 멤버 순서대로, 경로 `actions.{이름}`), `empty`,
-   `pagination`을 경로 `list`로 검사합니다.
+   `description`, `pagination`을 경로 `list`로 검사합니다. 상세는 `actions`(각 동작을 멤버
+   순서대로, 경로 `actions.{이름}`)를 경로 `detail`로 검사합니다.
 
 `design`은 [폼 선언 규칙](schema.ko.md)을 그대로 따릅니다. 콘텐츠는 문자열, 언어 맵(멤버가 하나 이상이고 각
 멤버가 문자열이나 `null`인 객체), `null` 중 하나입니다. 조건 맵은 멤버가 하나 이상인 객체입니다.
 
 | 선언 | 허용 값 | 실패 메시지 |
 | --- | --- | --- |
-| 목록 루트 멤버 | `columns`, `search`, `sort`, `pagination`, `actions`, `empty`, `design` | `Invalid {key} at list: unknown key` |
-| 상세 루트 멤버 | `fields`, `design` | `Invalid {key} at detail: unknown key` |
+| 목록 루트 멤버 | `columns`, `search`, `sort`, `pagination`, `actions`, `empty`, `description`, `design` | `Invalid {key} at list: unknown key` |
+| 상세 루트 멤버 | `fields`, `actions`, `design` | `Invalid {key} at detail: unknown key` |
 | 루트 `$ref`, `$patch` | 없음: 조합은 `columns`나 `fields`에 둡니다 | `Invalid $ref at list: expected composition inside columns`, `Invalid $patch at detail: expected composition inside fields` |
 | 열이나 필드 | 객체 | `Invalid {name} at columns: expected an object`, `Invalid {name} at fields: expected an object` |
 | 열 멤버 | `field`, `label`, `format`, `design`, `sortable` | `Invalid {key} at columns.{name}: unknown key` |
@@ -217,7 +218,7 @@ columns:
 | `sort` 멤버 | `field`, `dir` | `Invalid sort.{key} at list: unknown key` |
 | `sort.field` | 문자열 | `Invalid sort.field at list: expected a string` |
 | `sort.dir` | `asc` 또는 `desc` | `Invalid sort.dir at list: expected asc or desc` |
-| `actions` | 객체 | `Invalid actions at list: expected an object` |
+| `actions` | 객체 | `Invalid actions at list: expected an object`, `Invalid actions at detail: expected an object` |
 | 이름이 `$ref`나 `$patch`인 동작 | 없음: 동작은 조합하지 않습니다 | `Invalid $ref at actions: unknown key` |
 | 동작 | 스크립트 문자열 또는 객체 | `Invalid {name} at actions: expected a script or an object` |
 | `script`가 있는 동작의 멤버 | `label`, `script` | `Invalid {key} at actions.{name}: unknown key` |
@@ -233,6 +234,7 @@ columns:
 | `behavior` 항목 `script` | 문자열 | `Invalid behavior.{event}.script at actions.{name}: expected a string` |
 | 동작 `design` | `design` 규칙 | `Invalid design… at actions.{name}: …` |
 | `empty` | 콘텐츠 | `Invalid empty at list: expected a string, a language map or null` |
+| `description` | 콘텐츠 | `Invalid description at list: expected a string, a language map or null` |
 
 그 밖의 `format` 설정(`truncate`, `decimals`, `thousands`, `width`, `height`, 표에 없는 설정)은 어떤
 값이든 받습니다. 이 설정의 키에도 금지 키 스캔은 적용됩니다. `search` 객체의 멤버는 폼 선언입니다. 목록 모델은
@@ -241,6 +243,9 @@ columns:
 `script`가 있는 동작은 스크립트 문자열과 같은 스크립트 동작입니다. 모델은
 `{ key, label, behavior: { {name}: script } }`이며, `label`은 번역한 값이고 `label`이 없으면 동작
 이름입니다.
+
+상세는 목록과 같은 규칙, 경로, 메시지로 `actions`를 선언하며, 메시지에서 목록의 `list` 자리에
+`detail`을 씁니다(`Invalid actions at detail: expected an object`). 각 동작은 같은 모델로 해석합니다.
 
 `pagination`은 마지막에 경로 `list`로 검사합니다.
 
@@ -272,7 +277,19 @@ PHP에서는 [PHP API 계약](php-extension.ko.md)이 어떤 PHP 값이 객체�
 | html | 이스케이프하지 않은 마크업 | `dd` 안에 같은 마크업 |
 
 상세는 `dl.crudui-detail`이며 필드마다 `dt.crudui-detail__label`과 값을 담은
-`div.crudui-detail__field`를 둡니다. 목록 루트는 `crudui-list`이며 표, 제목, 셀, 카드,
+`div.crudui-detail__field`를 둡니다. 목록 루트는 `crudui-list`이며 설명, 표, 제목, 셀, 카드,
 빈 상태, 동작과 페이지 이동은 해당 `crudui-list__*` 요소를 사용합니다. 문자열 렌더러는
 목록이나 상세 앞에 이미지 preload 링크 `<link rel="preload" as="image" href="…"/>`를 처음 사용한 순서로 중복 없이
 씁니다.
+
+번역한 `description`이 비어 있지 않은 목록은 그 텍스트를 이스케이프해
+`<p class="crudui-list__description">`에 담아 `crudui-list`의 첫 자식으로, `crudui-list__actions`
+앞에 씁니다. 빈 설명은 아무것도 쓰지 않습니다.
+
+동작이 있는 목록은 `<div class="crudui-list__actions">` 안에 동작마다 멤버 순서대로
+`<span class="crudui-list__action" data-action="{key}">`를 쓰며, 형식 타입이 `link`인 동작은 `a`
+요소를, 다른 동작은 `<button type="button">`을 담습니다. 동작이 있는 상세는
+`<div class="crudui-detail__actions">` 안에 동작마다 목록 동작과 같은 내부 `a` 또는 `button`
+요소를 담은 `<span class="crudui-detail__action" data-action="{key}">`를 쓰며, 이 요소는
+`dl.crudui-detail` 요소 앞, 문자열 렌더러의 이미지 preload 링크 뒤에 둡니다. 동작이 없는 상세는
+preload 링크와 `dl.crudui-detail` 요소만 씁니다.

@@ -1430,7 +1430,7 @@
       ]
     },
     "ListAction": {
-      "description": "List action script or an object containing label, format, behavior and appearance settings.",
+      "description": "List or detail action script or an object containing label, format, behavior and appearance settings.",
       "anyOf": [
         {
           "$ref": "#/definitions/BehaviorAction"
@@ -1498,7 +1498,7 @@
       }
     },
     "Detail": {
-      "description": "Detail declaration with ordered read-only display fields. One record is supplied separately.",
+      "description": "Detail declaration with ordered read-only display fields and actions. One record is supplied separately.",
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -1508,6 +1508,16 @@
         "fields": {
           "description": "Named read-only display field definitions.",
           "$ref": "#/definitions/DetailFields"
+        },
+        "actions": {
+          "description": "Named detail actions.",
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/definitions/ForbiddenKeyNames"
+          },
+          "additionalProperties": {
+            "$ref": "#/definitions/ListAction"
+          }
         },
         "design": {
           "description": "Visibility and node appearance settings.",
@@ -1523,7 +1533,7 @@
       }
     },
     "List": {
-      "description": "List declaration with columns, search, sorting, pagination, actions and empty content. Row data is supplied separately. The server applies searching, sorting and pagination.",
+      "description": "List declaration with columns, search, sorting, pagination, actions, empty content and a description. Row data is supplied separately. The server applies searching, sorting and pagination.",
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -1578,6 +1588,10 @@
         },
         "empty": {
           "description": "Empty-list content, optionally translated.",
+          "$ref": "#/definitions/Content"
+        },
+        "description": {
+          "description": "Description content written before the list, optionally translated.",
           "$ref": "#/definitions/Content"
         },
         "design": {

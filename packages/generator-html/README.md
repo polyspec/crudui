@@ -21,7 +21,7 @@ browser events, validate data or load records. Use `connectForm` from `@crudui/g
 on the `crudui-form` element after inserting the markup when browser editing is required.
 
 Data owned outside a form instance through `bindForm` renders as the same markup with
-`renderFormView(bindForm(template, data, options), bindButtons(template, data, options), formMessages(language), renderOptions)`,
+`renderFormView(bindForm(template, data, options), bindButtons(template, data, options), formMessages(language), renderOptions, formDescription(template, options))`,
 and the structure map and data view with `renderOutlineView` and `renderDataPanel`.
 
 `renderList(spec, rows, { layout: 'table' | 'card' })` renders the evaluated list.

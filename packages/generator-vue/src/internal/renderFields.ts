@@ -1,7 +1,7 @@
 import { createSSRApp } from 'vue';
 import { renderToString } from 'vue/server-renderer';
 import { FormFields } from '../components/FormFields';
-import { bindButtons, bindForm, formMessages, type FormTemplate, type BindFormOptions } from '@crudui/generator-core';
+import { bindButtons, bindForm, formDescription, formMessages, type FormTemplate, type BindFormOptions } from '@crudui/generator-core';
 
 /** Render evaluated fields for layout conformance fixtures. */
 export async function renderFields(template: FormTemplate, options: BindFormOptions & { data?: Record<string, unknown> } = {}): Promise<string> {
@@ -9,5 +9,8 @@ export async function renderFields(template: FormTemplate, options: BindFormOpti
     bindForm(template, options.data, options),
     bindButtons(template, options.data, options),
     formMessages(options.language ?? 'ko'),
+    undefined,
+    undefined,
+    formDescription(template, { language: options.language ?? 'ko' }),
   ) }));
 }

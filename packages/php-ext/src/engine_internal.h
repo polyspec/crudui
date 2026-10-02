@@ -268,10 +268,11 @@ typedef struct {
     size_t error_count;
 } ps_form_render;
 
-/* Form markup: the form element and hidden inputs of `render` (NULL for none) around the field
-   body and the footer controls group holding the buttons. */
+/* Form markup: the form element and hidden inputs of `render` (NULL for none) around the
+   crudui-form block, which holds the translated root description when it is not empty, the form
+   errors, the field body and the footer controls group holding the buttons. */
 ps_chars ps_render_form(const ps_value *fields, const ps_value *buttons, const char *actions_label,
-                        const ps_form_render *render);
+                        const ps_form_render *render, ps_text description);
 /* Every interface text as an object keyed by message name. */
 ps_value *ps_form_messages_value(const ps_form_messages *messages);
 

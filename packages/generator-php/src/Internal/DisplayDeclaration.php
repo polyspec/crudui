@@ -10,8 +10,8 @@ use stdClass;
 /** Declaration rules of composed list and detail specifications (docs/spec/display-formats.md). */
 final class DisplayDeclaration
 {
-    private const LIST_KEYS = ['columns', 'search', 'sort', 'pagination', 'actions', 'empty', 'design'];
-    private const DETAIL_KEYS = ['fields', 'design'];
+    private const LIST_KEYS = ['columns', 'search', 'sort', 'pagination', 'actions', 'empty', 'description', 'design'];
+    private const DETAIL_KEYS = ['fields', 'actions', 'design'];
     private const COLUMN_KEYS = ['field', 'label', 'format', 'design', 'sortable'];
     private const FIELD_KEYS = ['field', 'label', 'format', 'design'];
     private const SORT_KEYS = ['field', 'dir'];
@@ -25,8 +25,8 @@ final class DisplayDeclaration
 
     /**
      * Check a composed list or detail specification: the root members, the own design, each
-     * column or field in member order and, for a list, search, sort, actions, empty and
-     * pagination. $own is `list` or `detail` and $members is `columns` or `fields`.
+     * column or field in member order and then, for a list, search, sort, actions, empty,
+     * description and pagination, and for a detail, actions. $own is `list` or `detail` and $members is `columns` or `fields`.
      */
     public static function check(stdClass $spec, string $own, string $members): void
     {
@@ -46,6 +46,9 @@ final class DisplayDeclaration
             self::member((string) $name, $member, $own, $members);
         }
         if ($own === 'detail') {
+            if (property_exists($spec, 'actions')) {
+                self::actions($spec->actions, $own);
+            }
             return;
         }
         if (property_exists($spec, 'search') && !is_bool($spec->search) && !self::isObject($spec->search)) {
@@ -65,23 +68,32 @@ final class DisplayDeclaration
             }
         }
         if (property_exists($spec, 'actions')) {
-            if (!self::isObject($spec->actions)) {
-                self::expected('actions', $own, 'an object');
-            }
-            foreach ((array) $spec->actions as $name => $action) {
-                $name = (string) $name;
-                // Actions are not composed: a composition key is not an action name.
-                if ($name === '$ref' || $name === '$patch') {
-                    self::unknown($name, 'actions');
-                }
-                self::action($name, $action);
-            }
+            self::actions($spec->actions, $own);
         }
         if (property_exists($spec, 'empty') && !self::isContent($spec->empty)) {
             self::expected('empty', $own, self::CONTENT);
         }
+        if (property_exists($spec, 'description') && !self::isContent($spec->description)) {
+            self::expected('description', $own, self::CONTENT);
+        }
         if (property_exists($spec, 'pagination')) {
             self::pagination($spec->pagination, $own);
+        }
+    }
+
+    /** Check the actions declaration of a list or detail at $own, each action in member order. */
+    private static function actions(mixed $actions, string $own): void
+    {
+        if (!self::isObject($actions)) {
+            self::expected('actions', $own, 'an object');
+        }
+        foreach ((array) $actions as $name => $action) {
+            $name = (string) $name;
+            // Actions are not composed: a composition key is not an action name.
+            if ($name === '$ref' || $name === '$patch') {
+                self::unknown($name, 'actions');
+            }
+            self::action($name, $action);
         }
     }
 
@@ -225,7 +237,7 @@ final class DisplayDeclaration
         }
     }
 
-    /** Check one list action at actions.<name>. */
+    /** Check one list or detail action at actions.<name>. */
     private static function action(string $name, mixed $action): void
     {
         if (is_string($action)) {

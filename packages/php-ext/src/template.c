@@ -282,13 +282,16 @@ static ps_result compile_form(const ps_value *spec, const ps_value *options)
     ps_value *template = ps_object_value();
     const ps_value *declared_buttons = ps_get(spec, "buttons");
     const ps_value *action = ps_get(spec, "action");
+    const ps_value *description = ps_get(spec, "description");
     ps_value *buttons = declared_buttons ? ps_value_clone(declared_buttons) : default_buttons();
     if (!template || !fields || !buttons ||
         !ps_set(template, "kind", ps_string_value("crudui/form-template")) ||
         (key_prefix.bytes && !ps_set(template, "keyPrefix", ps_text_value(key_prefix))) ||
         !ps_set(template, "fields", fields) ||
         !ps_set(template, "buttons", buttons) ||
-        (action && action->kind == PS_OBJECT && !ps_set(template, "action", ps_value_clone(action)))) {
+        (action && action->kind == PS_OBJECT && !ps_set(template, "action", ps_value_clone(action))) ||
+        /* The root description as declared, translated when the form is rendered. */
+        (description && !ps_set(template, "description", ps_value_clone(description)))) {
         ps_value_free(template);
         return ps_fail("internal", "INTERNAL_ERROR", "C form compilation failed", "");
     }

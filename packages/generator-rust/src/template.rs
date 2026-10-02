@@ -36,12 +36,17 @@ pub struct FormTemplate {
     /// Submission target declared by the spec, kept unchanged in the template.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub action: Option<Map<String, Value>>,
+    /// Root description content as declared by the spec (any value, `null` included), translated
+    /// when the form is rendered; `None` when the root declares no description.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<Value>,
 }
 
 impl FormTemplate {
     /// Read a template that is exactly what `compile_form` produces: an object whose only
     /// members are `kind` (`crudui/form-template`), `fields`, `buttons` (objects), an optional
-    /// string `keyPrefix` and an optional object `action`; each field has exactly a string
+    /// string `keyPrefix`, an optional object `action` and an optional `description` of any
+    /// value; each field has exactly a string
     /// `name`, an object `spec` and a field list `children`. Any other value fails with
     /// `Unsupported form template`.
     pub fn from_json(value: &Value) -> FormResult<FormTemplate> {
@@ -49,7 +54,14 @@ impl FormTemplate {
         let object = value.as_object().ok_or_else(shape)?;
         if !only_members(
             object,
-            &["kind", "keyPrefix", "fields", "buttons", "action"],
+            &[
+                "kind",
+                "keyPrefix",
+                "fields",
+                "buttons",
+                "action",
+                "description",
+            ],
         ) || object.get("kind").and_then(Value::as_str) != Some("crudui/form-template")
         {
             return Err(shape());
@@ -79,6 +91,7 @@ impl FormTemplate {
             fields,
             buttons,
             action,
+            description: object.get("description").cloned(),
         })
     }
 }
@@ -414,7 +427,8 @@ fn member_ordered_field(field: &FieldTemplate) -> FieldTemplate {
     }
 }
 
-/// A form template whose field specifications, buttons and action are in specification member order.
+/// A form template whose field specifications, buttons, action and description are in
+/// specification member order.
 pub(crate) fn member_ordered_template(template: &FormTemplate) -> FormTemplate {
     FormTemplate {
         kind: template.kind.clone(),
@@ -422,6 +436,7 @@ pub(crate) fn member_ordered_template(template: &FormTemplate) -> FormTemplate {
         fields: template.fields.iter().map(member_ordered_field).collect(),
         buttons: template.buttons.iter().map(member_ordered_map).collect(),
         action: template.action.as_ref().map(member_ordered_map),
+        description: template.description.as_ref().map(member_ordered),
     }
 }
 
@@ -459,6 +474,7 @@ pub fn compile_form(spec: &Value, options: &CompileOptions<'_>) -> FormResult<Fo
             )])],
         },
         action: spec.get("action").and_then(Value::as_object).cloned(),
+        description: spec.get("description").cloned(),
     })
 }
 

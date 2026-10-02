@@ -1,5 +1,5 @@
 import { flushSync, mount, unmount } from 'svelte';
-import { bindButtons, bindForm, formMessages } from '@crudui/generator-core';
+import { bindButtons, bindForm, formDescription, formMessages } from '@crudui/generator-core';
 import FormFields from '#svelte/FormFields.svelte';
 import OutlineView from '#svelte/OutlineView.svelte';
 import DataPanel from '#svelte/DataPanel.svelte';
@@ -27,6 +27,7 @@ function start(views, template, language, data, hydrate) {
       get fields() { return current.fields; },
       get buttons() { return current.buttons; },
       messages,
+      description: formDescription(template, { language }),
     } }),
     mount(OutlineView, { target: views.outline, props: {
       get state() { return current; },

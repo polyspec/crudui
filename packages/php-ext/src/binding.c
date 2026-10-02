@@ -690,8 +690,8 @@ static bool field_template_list(const ps_value *fields)
 
 bool ps_form_template_shape(const ps_value *template)
 {
-    static const char *const names[] = {"kind", "keyPrefix", "fields", "buttons", "action"};
-    if (!template || template->kind != PS_OBJECT || !only_members(template, names, 5) ||
+    static const char *const names[] = {"kind", "keyPrefix", "fields", "buttons", "action", "description"};
+    if (!template || template->kind != PS_OBJECT || !only_members(template, names, 6) ||
         !ps_is_string(member(template, "kind"), "crudui/form-template") ||
         !field_template_list(member(template, "fields")))
         return false;

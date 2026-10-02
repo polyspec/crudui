@@ -2902,5 +2902,74 @@
       "code": "INVALID_FORM_INPUT",
       "message": "Invalid items at terms.answer: expected value and label pairs with distinct string or number values"
     }
+  },
+  {
+    "name": "root-description",
+    "note": "The translated root description is the first child of crudui-form, before the body; its text is escaped.",
+    "spec": {
+      "type": "group",
+      "description": {
+        "ko": "회원 정보",
+        "en": "Member <details> & notes"
+      },
+      "properties": {
+        "note": {
+          "type": "text",
+          "label": "Note"
+        }
+      }
+    },
+    "data": {
+      "note": "kept"
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><p class=\"crudui-form__description\">Member &lt;details&gt; &amp; notes</p><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"note\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:note\">Note</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"note\" data-rule-name=\"note\" id=\"crudui:note\" name=\"note\" type=\"text\" value=\"kept\"></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "root-description-fallback-language",
+    "note": "A root description without an entry for the display language or en uses the content rule: the ko entry, then the first key.",
+    "spec": {
+      "type": "group",
+      "description": {
+        "ko": "회원 정보",
+        "ja": ""
+      },
+      "properties": {
+        "note": {
+          "type": "text",
+          "label": "Note"
+        }
+      }
+    },
+    "data": {
+      "note": "kept"
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><p class=\"crudui-form__description\">회원 정보</p><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"note\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:note\">Note</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"note\" data-rule-name=\"note\" id=\"crudui:note\" name=\"note\" type=\"text\" value=\"kept\"></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "root-description-empty",
+    "note": "A root description whose translated text is empty writes nothing.",
+    "spec": {
+      "type": "group",
+      "description": "",
+      "properties": {
+        "note": {
+          "type": "text",
+          "label": "Note"
+        }
+      }
+    },
+    "data": {
+      "note": "kept"
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"note\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:note\">Note</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"note\" data-rule-name=\"note\" id=\"crudui:note\" name=\"note\" type=\"text\" value=\"kept\"></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
   }
 ]

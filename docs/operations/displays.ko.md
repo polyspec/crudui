@@ -14,7 +14,7 @@
 각 런타임은 두 단계를 제공합니다.
 
 - 모델 함수는 선언을 합성하고 조건과 외형을 평가하며 콘텐츠를 번역하고 모든 값을 형식화합니다.
-  상세 모델은 `{ fields, design }`입니다.
+  상세 모델은 `{ fields, actions, design }`입니다.
 - 렌더 함수는 모델을 만든 뒤 모델에서 HTML을 작성합니다.
 
 잘못된 입력은 `INVALID_FORM_INPUT` 코드와 [입력](../spec/display-formats.ko.md)에 나열한

@@ -18,8 +18,10 @@ const nodeErrors = (...messages) => messages.length
 /** The `crudui-form__errors` element with one paragraph per escaped message. */
 const formErrors = (...messages) => messages.length
   ? `<div class="crudui-form__errors">${messages.map(text => `<p class="crudui-form__error">${text}</p>`).join('')}</div>` : '';
-/** The `crudui-form` block. */
-const block = (errors, body) => `<div class="crudui-form">${errors}<div class="crudui-form__body">${body}</div>${FOOTER}</div>`;
+/** The `crudui-form` block; a root description paragraph comes first, then the form errors. */
+const block = (errors, body, description = '') => `<div class="crudui-form">${description}${errors}<div class="crudui-form__body">${body}</div>${FOOTER}</div>`;
+/** The `crudui-form__description` paragraph of an escaped root description. */
+const descriptionParagraph = text => `<p class="crudui-form__description">${text}</p>`;
 
 const EMAIL_SPEC = { type: 'group', properties: { email: { type: 'text', label: 'Email' } } };
 const EMAIL_DATA = { email: 'a@b' };
@@ -87,6 +89,15 @@ const cases = [
     NESTED_SPEC, NESTED_DATA,
     { errors: [record('addr.city', 'City one.'), record('tags', 'Tags.'), record('tags.k1', 'Row.'), record('addr', 'Address.'), record('addr.city', 'City two.'), record('note', 'Note.')] },
     block('', nested({ tags: ['Tags.'], row: ['Row.'], addr: ['Address.'], city: ['City one.', 'City two.'], note: ['Note.'] }))),
+  ok('root-description', 'the translated root description precedes the form errors and the body inside the form element; its text is escaped.',
+    { ...EMAIL_SPEC, description: { ko: '로그인', en: 'Sign in <now> & "stay"' } }, EMAIL_DATA,
+    { action: { method: 'post' }, hidden: { _csrf: 'x' }, formErrors: ['Sign-in failed.'] },
+    '<form method="post"><input type="hidden" name="_csrf" value="x"/>'
+    + block(formErrors('Sign-in failed.'), email(), descriptionParagraph('Sign in &lt;now&gt; &amp; &quot;stay&quot;')) + '</form>'),
+  ok('root-description-without-options', 'empty options write the root description in the crudui-form block alone.',
+    { ...EMAIL_SPEC, description: 'Members' }, EMAIL_DATA, {}, block('', email(), descriptionParagraph('Members'))),
+  ok('root-description-null', 'a null root description writes nothing.',
+    { ...EMAIL_SPEC, description: null }, EMAIL_DATA, { formErrors: ['First.'] }, block(formErrors('First.'), email())),
 
   failure('options-not-object', 'render options are an object.', 5, 'Render options must be an object'),
   failure('options-list', 'a list is not render options.', ['action'], 'Render options must be an object'),

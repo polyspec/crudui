@@ -3,7 +3,7 @@
 use crudui_validator::compose::member_ordered;
 use serde_json::{json, Value};
 
-use crate::list::{build_display, cell_html, ListContext, ListOptions};
+use crate::list::{actions_html, build_display, cell_html, ListContext, ListOptions};
 use crate::render::{element, escape};
 use crate::util::join_class;
 use crate::{FormError, FormResult};
@@ -68,10 +68,11 @@ pub fn build_detail(
             })
         })
         .collect::<Vec<_>>();
-    Ok(json!({"fields": fields, "design": list["design"]}))
+    Ok(json!({"fields": fields, "actions": list["actions"], "design": list["design"]}))
 }
 
-/// Render one read-only detail as a definition list.
+/// Render one read-only detail: image preload links, the actions when the detail has any, and
+/// the definition list.
 pub fn render_detail(
     spec: &Value,
     record: &Value,
@@ -126,7 +127,11 @@ pub fn render_detail(
             }
         }
     }
-    Ok(format!("{preloads}{}", element("dl", &attrs, &body)))
+    let actions = actions_html(&model["actions"], "crudui-detail");
+    Ok(format!(
+        "{preloads}{actions}{}",
+        element("dl", &attrs, &body)
+    ))
 }
 
 #[cfg(test)]

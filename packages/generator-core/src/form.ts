@@ -29,6 +29,8 @@ export interface FormTemplate {
   readonly buttons: readonly Readonly<Record<string, unknown>>[];
   /** Submission target declared by the spec, kept unchanged in the template. */
   readonly action?: Readonly<Record<string, unknown>>;
+  /** Root description content as declared by the spec, translated when the form is rendered. */
+  readonly description?: unknown;
 }
 
 /** Composition inputs used only when preparing a template. */
@@ -278,7 +280,21 @@ export function compileForm(
     fields: compileFields(copyFormValue(properties)),
     buttons: copyFormValue((rootSpec.buttons as Record<string, unknown>[] | undefined) ?? [...DEFAULT_FORM_BUTTONS]),
     ...(isRecord(rootSpec.action) ? { action: copyFormValue(rootSpec.action) } : {}),
+    ...(Object.prototype.hasOwnProperty.call(rootSpec, 'description') ? { description: copyFormValue(rootSpec.description) } : {}),
   });
+}
+
+/**
+ * The root description of a template translated for `options.language` (default Korean) by the
+ * content rule; empty text when the template has none. The `crudui-form` block writes it first
+ * when it is not empty.
+ */
+export function formDescription(template: FormTemplate, options: { language?: Language } = {}): string {
+  checkBindText(template, {}, options);
+  checkFormTemplate(template);
+  const language = options.language ?? 'ko';
+  if (typeof language !== 'string') throw new FormInputError('Language must be a string');
+  return makeTranslate(language)(template.description as never);
 }
 
 /** Bind fresh data to a cached structure. No loader, composition or template mutation. */

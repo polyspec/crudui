@@ -8,8 +8,8 @@ import (
 // Declaration rules of composed list and detail specifications (docs/spec/display-formats.md).
 
 var (
-	listRootKeys     = []string{"columns", "search", "sort", "pagination", "actions", "empty", "design"}
-	detailRootKeys   = []string{"fields", "design"}
+	listRootKeys     = []string{"columns", "search", "sort", "pagination", "actions", "empty", "description", "design"}
+	detailRootKeys   = []string{"fields", "actions", "design"}
 	columnKeys       = []string{"field", "label", "format", "design", "sortable"}
 	fieldKeys        = []string{"field", "label", "format", "design"}
 	sortKeys         = []string{"field", "dir"}
@@ -229,9 +229,27 @@ func checkActionDeclaration(name string, action any) error {
 	return nil
 }
 
+// checkActionsDeclaration checks the actions of a list or detail at own, each action in member order.
+func checkActionsDeclaration(value any, own string) error {
+	actions := object(value)
+	if actions == nil {
+		return expected("actions", own, "an object")
+	}
+	for _, name := range actions.Keys() {
+		// Actions are not composed: a composition key is not an action name.
+		if name == "$ref" || name == "$patch" {
+			return fmt.Errorf("Invalid %s at actions: unknown key", name)
+		}
+		if e := checkActionDeclaration(name, read(actions, name)); e != nil {
+			return e
+		}
+	}
+	return nil
+}
+
 // checkDisplayDeclarations checks a composed list or detail specification: the root members,
-// the own design, each column or field in member order and, for a list, search, sort, actions,
-// empty and pagination.
+// the own design, each column or field in member order and then, for a list, search, sort,
+// actions, empty, description and pagination, and for a detail, actions.
 func checkDisplayDeclarations(spec *Object, paths displayPaths) error {
 	own := paths.own
 	allowed := detailRootKeys
@@ -258,6 +276,9 @@ func checkDisplayDeclarations(spec *Object, paths displayPaths) error {
 		}
 	}
 	if own == "detail" {
+		if spec.Has("actions") {
+			return checkActionsDeclaration(read(spec, "actions"), own)
+		}
 		return nil
 	}
 	if search := read(spec, "search"); spec.Has("search") && !isBool(search) && object(search) == nil {
@@ -279,22 +300,15 @@ func checkDisplayDeclarations(spec *Object, paths displayPaths) error {
 		}
 	}
 	if spec.Has("actions") {
-		actions := object(read(spec, "actions"))
-		if actions == nil {
-			return expected("actions", own, "an object")
-		}
-		for _, name := range actions.Keys() {
-			// Actions are not composed: a composition key is not an action name.
-			if name == "$ref" || name == "$patch" {
-				return fmt.Errorf("Invalid %s at actions: unknown key", name)
-			}
-			if e := checkActionDeclaration(name, read(actions, name)); e != nil {
-				return e
-			}
+		if e := checkActionsDeclaration(read(spec, "actions"), own); e != nil {
+			return e
 		}
 	}
 	if spec.Has("empty") && !isContent(read(spec, "empty")) {
 		return expected("empty", own, contentExpected)
+	}
+	if spec.Has("description") && !isContent(read(spec, "description")) {
+		return expected("description", own, contentExpected)
 	}
 	if spec.Has("pagination") {
 		return checkPaginationDeclaration(read(spec, "pagination"), own)

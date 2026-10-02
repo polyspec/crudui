@@ -111,7 +111,7 @@ export interface SortVM {
   dir: 'asc' | 'desc';
 }
 
-/** A resolved list action (toolbar/row). */
+/** A resolved list or detail action. */
 export interface ActionVM {
   /** Action key (the action's name in the actions map). */
   key: string;
@@ -139,6 +139,8 @@ export interface ListViewModel {
   actions: ActionVM[];
   /** The declared empty-list text, or the interface message when none is declared. */
   empty: string;
+  /** The translated list description; empty text when none is declared. */
+  description: string;
   /** Resolved list-container design. */
   design: ResolvedDesign;
 }
@@ -421,6 +423,7 @@ export function buildDisplay(
     // An absent or null empty uses the interface message; a declared text is used as declared.
     empty: listSpec.empty === undefined || listSpec.empty === null
       ? listMessages(options.language ?? 'ko').emptyList : t(listSpec.empty as LocalizedText),
+    description: t(listSpec.description as LocalizedText | undefined),
     design: resolveDesign(listSpec.design, listCtx),
   };
 }

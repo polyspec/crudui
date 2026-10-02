@@ -10,8 +10,8 @@ either `expected_html` or `expectError` (`{ code, message }`).
 `expected_html` is written from the specification in [`generate.mjs`](generate.mjs) and never
 rendered: the node and footer markup is the markup the form-render fixture defines, and the form
 element, the hidden inputs and the error elements are placed where the specification places them.
-The cases cover attribute and text escaping, the template action and its members, hidden input
-order, the blocked JavaScript URL, empty options, errors without a form element, form error order,
+The cases cover attribute and text escaping, the template action and its members, the root
+description before the form errors and a null description, hidden input order, the blocked JavaScript URL, empty options, errors without a form element, form error order,
 collection, row, group, field and hidden field errors, and every option failure in check order.
 
 The tests compare the exact bytes: React's server rendering

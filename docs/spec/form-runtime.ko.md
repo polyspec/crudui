@@ -20,8 +20,10 @@
 템플릿만 받습니다. 그 밖의 값은 `INVALID_FORM_INPUT`, 메시지
 `Unsupported form template`, 빈 위치로 실패합니다. 템플릿은 `kind`
 (`crudui/form-template`), `fields`(필드 템플릿 목록), `buttons`(객체 목록), 선택
-항목인 `keyPrefix`(문자열)와 `action`(객체)만 멤버로 갖는 객체이며, `version`
-멤버는 없습니다. 각 필드 템플릿은 문자열 `name`, 객체 `spec`, 필드 템플릿 목록
+항목인 `keyPrefix`(문자열), `action`(객체), `description`(모든 값)만 멤버로 갖는 객체이며,
+`version` 멤버는 없습니다. `compileForm`은 멤버를 `kind`, `keyPrefix`, `fields`, `buttons`,
+`action`, `description` 순서로 쓰며, 루트가 `description`을 선언하면 그 값을 `description`으로
+씁니다. 각 필드 템플릿은 문자열 `name`, 객체 `spec`, 필드 템플릿 목록
 `children`만 정확히 갖습니다. `spec`과 버튼의 내용은 다시 검사하지 않습니다.
 JavaScript에서 값이 `undefined`인 멤버는 없는 멤버이고, PHP에서 연관 배열은
 객체, 빈 배열과 리스트 배열은 목록입니다. 노드 모델은 [폼 마크업](form-markup.ko.md)이
@@ -65,9 +67,10 @@ HTML 렌더러(`@crudui/generator-html`), PHP, PHP 확장, Go, Rust 생성기입
 `@crudui/generator-html` 패키지는 React, Vue, Svelte 없이 같은 평가 인스턴스와
 목록 모델을 HTML 문자열로 렌더링합니다. `renderForm(form, options)`은
 [완전한 폼](#완전한-폼)을 반환합니다. 이를 페이지에 삽입한 뒤 그 `crudui-form`
-요소에 `connectForm`을 호출할 수 있습니다. `renderFormView(fields, buttons, messages)`는 React, Vue,
-Svelte의 `FormFields`처럼, 직접 관리하는 데이터를 위해 `bindForm`과 `bindButtons`로
-같은 내용을 렌더링합니다. `renderList(spec, rows, options)`는 선언된
+요소에 `connectForm`을 호출할 수 있습니다. `renderFormView(fields, buttons, messages, options,
+description)`는 React, Vue, Svelte의 `FormFields`처럼, 직접 관리하는 데이터를 위해
+`bindForm`, `bindButtons`와 `options.language`로 번역한 루트 설명을 반환하는
+`formDescription(template, options)`로 같은 내용을 렌더링합니다. `renderList(spec, rows, options)`는 선언된
 table 또는 card layout을 반환합니다. 이 패키지는 DOM 연결, 검증, 데이터 로드,
 위젯 실행을 수행하지 않습니다.
 
@@ -216,11 +219,18 @@ WebKit은 그 여백을 지키지 않습니다. 스크롤 위치를 따르는
 폼 버튼이므로 폼의 어떤 부분도 따로 쓰지 않습니다. `options`의 모든 멤버는 선택이며
 `renderForm(form)`은 `crudui-form` 블록만 쓰는 `renderForm(form, {})`와 같습니다.
 
+모든 렌더러에서 `crudui-form` 블록을 쓰는 모든 렌더링은 템플릿의 루트 `description`을 폼 언어로
+[콘텐츠 규칙](schema.ko.md#필드)에 따라 번역해 씁니다. 그 텍스트가 비어 있지 않으면
+`crudui-form`의 첫 자식으로, 이스케이프한 텍스트를 담은 `<p class="crudui-form__description">`을
+`crudui-form__errors`와 `crudui-form__body` 앞에 씁니다. 설명이 없거나 번역한 텍스트가 비어 있으면
+아무것도 쓰지 않습니다. 폼 인스턴스는 그 텍스트를 JavaScript에서는 `description`으로, PHP에서는
+`getDescription()`으로 반환합니다.
+
 | 멤버 | 값 | 마크업 |
 | --- | --- | --- |
 | `action` | 각각 선택인 문자열 `method`, `url`, `enctype`을 가진 객체 | 숨은 필드와 `crudui-form` 블록을 감싸는 `form` 요소이며 React 직렬화와 같이 속성 순서는 `action`, `encType`, `method`입니다. 각 속성은 이 객체의 멤버(`action`에는 `url`, `encType`에는 `enctype`)를, 이 객체에 없으면 템플릿 `action`의 멤버를 사용하고 둘 다 없으면 생략합니다. `action` 속성은 [마크업과 스타일](#마크업과-스타일)의 URL 규칙을 따릅니다. |
 | `hidden` | 문자열 값을 가진 객체 | 멤버마다 `<input type="hidden" name="{name}" value="{value}"/>` 하나를 멤버 순서로 `form` 요소 안의 `crudui-form` 블록 앞에 씁니다. `action`이 필요합니다. |
-| `formErrors` | 문자열 목록 | `crudui-form`의 첫 자식인 `crudui-form__errors` 요소이며 문구마다 `crudui-form__error` 문단 하나를 목록 순서로 담습니다. 빈 목록은 아무것도 쓰지 않습니다. |
+| `formErrors` | 문자열 목록 | `crudui-form` 안에서 설명 뒤, `crudui-form__body` 앞에 두는 `crudui-form__errors` 요소이며 문구마다 `crudui-form__error` 문단 하나를 목록 순서로 담습니다. 빈 목록은 아무것도 쓰지 않습니다. |
 | `errors` | 문자열 `path`와 `message`를 가진 객체 목록 | 각 메시지를 데이터 경로가 `path`인 노드의 `crudui-node__errors` 슬롯에 `crudui-node__error` 문단으로 목록 순서대로 씁니다. |
 
 필드, 그룹, 컬렉션, lang 노드의 데이터 경로는 그 `data-field-path`이고 행의 데이터 경로는 컬렉션

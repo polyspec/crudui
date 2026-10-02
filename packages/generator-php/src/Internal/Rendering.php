@@ -84,16 +84,18 @@ final class Rendering
 
     /**
      * Render the complete form: the form element and hidden inputs of the model around the
-     * crudui-form block with its form errors, nodes and footer.
+     * crudui-form block with the root description when it is not empty, the form errors, nodes
+     * and footer.
      *
      * @param array{form: ?array<string, string>, hidden: list<array{string, string}>, formErrors: list<string>, nodeErrors: array<int, list<string>>} $model
      */
-    public static function form(array $nodes, array $buttons, array $messages, array $model = FormRender::EMPTY): string
+    public static function form(array $nodes, array $buttons, array $messages, array $model = FormRender::EMPTY, string $description = ''): string
     {
+        $descriptionHtml = $description === '' ? '' : self::element('p', ['class' => 'crudui-form__description'], self::text($description));
         $footer = self::element('div', ['class' => 'crudui-form__footer'], self::element('div', ['class' => 'crudui-controls', 'role' => 'group', 'aria-label' => $messages['formActions']], Buttons::html($buttons)));
         $formErrors = $model['formErrors'] === [] ? '' : self::element('div', ['class' => 'crudui-form__errors'], implode('', array_map(static fn (string $text) => self::element('p', ['class' => 'crudui-form__error'], self::text($text)), $model['formErrors'])));
         $body = implode('', array_map(static fn (stdClass $vm) => self::node($vm, $model['nodeErrors']), $nodes));
-        $block = self::element('div', ['class' => 'crudui-form'], $formErrors . self::element('div', ['class' => 'crudui-form__body'], $body) . $footer);
+        $block = self::element('div', ['class' => 'crudui-form'], $descriptionHtml . $formErrors . self::element('div', ['class' => 'crudui-form__body'], $body) . $footer);
         if ($model['form'] === null) {
             return $block;
         }

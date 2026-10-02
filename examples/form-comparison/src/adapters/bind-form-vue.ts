@@ -1,5 +1,5 @@
 import { createApp, createSSRApp, nextTick, shallowRef } from 'vue';
-import { bindButtons, bindForm, formMessages } from '@crudui/generator-core';
+import { bindButtons, bindForm, formDescription, formMessages } from '@crudui/generator-core';
 import { FormFields } from '#vue/FormFields';
 import { outlineVNode } from '#vue/Outline';
 import { dataVNode } from '#vue/DataView';
@@ -17,7 +17,7 @@ function start(views, template, language, data, hydrate) {
   });
   const state = shallowRef(evaluate(data, emptyView));
   const form = (hydrate ? createSSRApp : createApp)({
-    render: () => FormFields(state.value.fields, state.value.buttons, messages),
+    render: () => FormFields(state.value.fields, state.value.buttons, messages, undefined, undefined, formDescription(template, { language })),
   });
   const outline = createApp({
     render: () => outlineVNode({ fields: state.value.fields, canUndo: state.value.view.canUndo }, messages),

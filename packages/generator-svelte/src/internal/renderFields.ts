@@ -1,6 +1,6 @@
 import { render } from 'svelte/server';
 import FormFields from '../components/FormFields.svelte';
-import { bindButtons, bindForm, formMessages, type FormTemplate, type BindFormOptions } from '@crudui/generator-core';
+import { bindButtons, bindForm, formDescription, formMessages, type FormTemplate, type BindFormOptions } from '@crudui/generator-core';
 
 /** Render evaluated fields for layout conformance fixtures. */
 export function renderFields(template: FormTemplate, options: BindFormOptions & { data?: Record<string, unknown> } = {}): string {
@@ -8,5 +8,6 @@ export function renderFields(template: FormTemplate, options: BindFormOptions & 
     fields: bindForm(template, options.data, options),
     buttons: bindButtons(template, options.data, options),
     messages: formMessages(options.language ?? 'ko'),
+    description: formDescription(template, { language: options.language ?? 'ko' }),
   } }).body;
 }

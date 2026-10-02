@@ -1,9 +1,11 @@
 <!-- @component
-  Render an evaluated read-only detail model with shared CRUDUI display cells.
+  Render an evaluated read-only detail model with shared CRUDUI display cells: the actions, when
+  the detail has any, and the definition list.
 -->
 <script lang="ts">
   import type { DetailViewModel, DetailFieldVM, CellDisplay } from '@crudui/generator-core';
   import { patched, firstMarkup } from './raw';
+  import Actions from './Actions.svelte';
 
   let { vm }: { vm: DetailViewModel } = $props();
   const wrapperClass = $derived(['crudui-detail', vm.design.wrapper.class].filter((s) => s && s.trim()).join(' ').trim());
@@ -31,6 +33,7 @@
   {/if}
 {/snippet}
 
+<Actions actions={vm.actions} block="crudui-detail" />
 <dl class={wrapperClass} style={wrapperStyle}>
   {#each vm.fields as field (field.key)}
     <div class="crudui-detail__field">

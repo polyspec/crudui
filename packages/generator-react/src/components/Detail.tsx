@@ -5,6 +5,7 @@ import type { DetailViewModel, DetailFieldVM } from '@crudui/generator-core';
 import { CellBody } from './Cell';
 import { styleObject } from './attrs';
 import { RawContainer } from './raw';
+import { Toolbar } from './List';
 
 function fieldClass(field: DetailFieldVM): string | undefined {
   return ['crudui-detail__value', 'crudui-value', `crudui-value--${field.format.type}`, field.design.main.class]
@@ -29,8 +30,16 @@ function Field({ field }: { field: DetailFieldVM }): React.ReactElement {
   );
 }
 
-/** Render an evaluated read-only detail model without data access or evaluation. */
+/**
+ * Render an evaluated read-only detail model without data access or evaluation: the actions,
+ * when the detail has any, and the definition list.
+ */
 export function Detail({ vm }: { vm: DetailViewModel }): React.ReactElement {
   const className = ['crudui-detail', vm.design.wrapper.class].filter((value) => value && value.trim()).join(' ') || undefined;
-  return <dl className={className} style={styleObject(vm.design.wrapper.style)}>{vm.fields.map((field) => <Field key={field.key} field={field} />)}</dl>;
+  return (
+    <>
+      <Toolbar actions={vm.actions} block="crudui-detail" />
+      <dl className={className} style={styleObject(vm.design.wrapper.style)}>{vm.fields.map((field) => <Field key={field.key} field={field} />)}</dl>
+    </>
+  );
 }

@@ -55,9 +55,9 @@ echo Generator::renderForm($initial);
 표시 전에 변환하고, 오프셋 없는 타임스탬프는 UTC로 해석합니다.
 유효하지 않거나 지원하지 않는 날짜 문자열과 원본 인스턴스 데이터는 변경하지 않습니다.
 
-`Form`은 `getTemplate`, `getFields`, `getRevision`, `getData`, `getValue`,
-`setData`, `setValue`, `addRow`, `copyRow`, `removeRow`, `moveRow`, `rekeyRow`를
-제공합니다. 반환값은 독립된 복사본입니다. 잘못된 작업은 데이터, 필드와
+`Form`은 `getTemplate`, `getFields`, `getDescription`(인스턴스 언어로 번역한 루트 설명),
+`getRevision`, `getData`, `getValue`, `setData`, `setValue`, `addRow`, `copyRow`, `removeRow`,
+`moveRow`, `rekeyRow`를 제공합니다. 반환값은 독립된 복사본입니다. 잘못된 작업은 데이터, 필드와
 리비전을 변경하지 않습니다.
 
 ```php

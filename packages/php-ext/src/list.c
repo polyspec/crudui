@@ -1016,13 +1016,17 @@ static bool set_event(ps_value *attrs, ps_text name, const ps_value *script)
     return ok;
 }
 
-static bool append_toolbar(list_context *context)
+/* The actions of a list or detail: <block>__actions with one <block>__action span per action. */
+static bool append_toolbar(list_context *context, const char *block)
 {
+    char actions_class[32], action_class[32];
+    snprintf(actions_class, sizeof actions_class, "%s__actions", block);
+    snprintf(action_class, sizeof action_class, "%s__action", block);
     const ps_value *actions = member(context->spec, "actions");
     if (!actions || actions->kind != PS_OBJECT) return true;
     if (!ps_size(actions)) return true;
     ps_value *toolbar = ps_object_value();
-    if (!toolbar || !ps_html_attr_string(toolbar, "class", "crudui-list__actions") ||
+    if (!toolbar || !ps_html_attr_string(toolbar, "class", actions_class) ||
         !write_element_start(&context->output, "div", toolbar)) { ps_value_free(toolbar); return false; }
     for (size_t i = 0; i < ps_size(actions); ++i) {
         ps_text key = ps_key(actions, i);
@@ -1033,7 +1037,7 @@ static bool append_toolbar(list_context *context)
         bool link = ps_text_is(type, "link");
         ps_value *span = ps_object_value();
         ps_value *attrs = ps_object_value();
-        bool ok = label.bytes && span && attrs && ps_html_attr_string(span, "class", "crudui-list__action") &&
+        bool ok = label.bytes && span && attrs && ps_html_attr_string(span, "class", action_class) &&
             ps_html_attr_text(span, "data-action", key) &&
             (link ? ps_html_attr_text(attrs, "href", string_member(format, "href"))
                   : ps_html_attr_string(attrs, "type", "button"));
@@ -1360,10 +1364,27 @@ static bool append_container_start(list_context *context, const char *tag, const
     return write_element_start(&context->output, tag, attrs);
 }
 
+/* The translated list description in crudui-list__description; nothing when it is empty. */
+static bool append_description(list_context *context)
+{
+    ps_chars description = translated(member(context->spec, "description"), context->language);
+    if (!description.bytes) return false;
+    if (!description.length) { free(description.bytes); return true; }
+    ps_value *attrs = ps_object_value();
+    bool ok = attrs && ps_html_attr_string(attrs, "class", "crudui-list__description");
+    if (ok) ok = write_element_start(&context->output, "p", attrs) &&
+        ps_html_escaped(&context->output, ps_view(description), false) &&
+        write_element_end(&context->output, "p");
+    else ps_value_free(attrs);
+    free(description.bytes);
+    return ok;
+}
+
 static bool render_list(list_context *context, list_column *columns, size_t count)
 {
     ps_value *design = ps_design(member(context->spec, "design"), context->data, PS_TEXT(""));
-    bool ok = append_container_start(context, "div", "crudui-list", design) && append_toolbar(context);
+    bool ok = append_container_start(context, "div", "crudui-list", design) && append_description(context) &&
+        append_toolbar(context, "crudui-list");
     if (ok) ok = !ps_size(context->rows) ? append_empty(context)
         : !strcmp(context->layout, "card") ? append_cards(context, columns, count)
         : append_table(context, columns, count);
@@ -1563,6 +1584,50 @@ static ps_result render_list_view(const ps_value *spec, const ps_value *rows, co
     return list_finish(&session, ok, "C list rendering failed");
 }
 
+/* The resolved actions of a list or detail, appended to the actions array in member order. */
+static bool append_actions_model(const list_context *context, ps_value *actions)
+{
+    bool ok = true;
+    const ps_value *declared_actions = member(context->spec, "actions");
+    for (size_t i = 0; ok && declared_actions && declared_actions->kind == PS_OBJECT && i < ps_size(declared_actions); ++i) {
+        ps_text key = ps_key(declared_actions, i);
+        const ps_value *raw = ps_at(declared_actions, i);
+        /* A script string, or an object with a script: the script under the action name. */
+        const ps_value *script = raw->kind == PS_STRING ? raw : member(raw, "script");
+        ps_value *action = ps_object_value();
+        ps_chars label = action_label(raw, key, context->language);
+        ok = action && label.bytes && set_text(action, "key", key) && set_text(action, "label", ps_view(label));
+        if (ok && script) {
+            ps_value *behavior = ps_object_value();
+            ok = behavior && ps_set_text(behavior, key, ps_value_clone(script)) && set_value(action, "behavior", &behavior);
+            ps_value_free(behavior);
+        } else if (ok && member(raw, "format")) {
+            const ps_value *raw_format = member(raw, "format");
+            ps_value *format = ps_object_value();
+            ps_text type = raw_format && raw_format->kind == PS_OBJECT ? string_member(raw_format, "type")
+                : raw_format && raw_format->kind == PS_STRING ? ps_string(raw_format) : PS_TEXT("text");
+            ok = format && set_text(format, "type", type.length ? type : PS_TEXT("text")) &&
+                ps_set(format, "options", raw_format->kind == PS_OBJECT ? ps_value_clone(raw_format) : ps_object_value()) &&
+                set_value(action, "format", &format);
+            ps_value_free(format);
+        }
+        if (ok && raw->kind == PS_OBJECT && member(raw, "behavior") && member(raw, "behavior")->kind == PS_OBJECT) {
+            ps_value *behavior = ps_object_value();
+            const ps_value *source = member(raw, "behavior");
+            for (size_t j = 0; ok && j < ps_size(source); ++j) {
+                const ps_value *entry = ps_at(source, j);
+                if (entry && entry->kind == PS_OBJECT) entry = member(entry, "script");
+                if (entry && entry->kind == PS_STRING) ok = ps_set_text(behavior, ps_key(source, j), ps_value_clone(entry));
+            }
+            if (ok && ps_size(behavior)) ok = set_value(action, "behavior", &behavior);
+            ps_value_free(behavior);
+        }
+        if (ok) ok = ps_append(actions, action), action = NULL;
+        ps_value_free(action); free(label.bytes);
+    }
+    return ok;
+}
+
 /* Build the public list model from the same evaluated columns and cells used by rendering. */
 static ps_value *list_model(list_session *session)
 {
@@ -1631,47 +1696,13 @@ static ps_value *list_model(list_session *session)
                 set_value(model, "sort", &sort_model);
             ps_value_free(sort_model);
         }
-        const ps_value *declared_actions = member(context->spec, "actions");
-        for (size_t i = 0; ok && declared_actions && declared_actions->kind == PS_OBJECT && i < ps_size(declared_actions); ++i) {
-            ps_text key = ps_key(declared_actions, i);
-            const ps_value *raw = ps_at(declared_actions, i);
-            /* A script string, or an object with a script: the script under the action name. */
-            const ps_value *script = raw->kind == PS_STRING ? raw : member(raw, "script");
-            ps_value *action = ps_object_value();
-            ps_chars label = action_label(raw, key, context->language);
-            ok = action && label.bytes && set_text(action, "key", key) && set_text(action, "label", ps_view(label));
-            if (ok && script) {
-                ps_value *behavior = ps_object_value();
-                ok = behavior && ps_set_text(behavior, key, ps_value_clone(script)) && set_value(action, "behavior", &behavior);
-                ps_value_free(behavior);
-            } else if (ok && member(raw, "format")) {
-                const ps_value *raw_format = member(raw, "format");
-                ps_value *format = ps_object_value();
-                ps_text type = raw_format && raw_format->kind == PS_OBJECT ? string_member(raw_format, "type")
-                    : raw_format && raw_format->kind == PS_STRING ? ps_string(raw_format) : PS_TEXT("text");
-                ok = format && set_text(format, "type", type.length ? type : PS_TEXT("text")) &&
-                    ps_set(format, "options", raw_format->kind == PS_OBJECT ? ps_value_clone(raw_format) : ps_object_value()) &&
-                    set_value(action, "format", &format);
-                ps_value_free(format);
-            }
-            if (ok && raw->kind == PS_OBJECT && member(raw, "behavior") && member(raw, "behavior")->kind == PS_OBJECT) {
-                ps_value *behavior = ps_object_value();
-                const ps_value *source = member(raw, "behavior");
-                for (size_t j = 0; ok && j < ps_size(source); ++j) {
-                    const ps_value *entry = ps_at(source, j);
-                    if (entry && entry->kind == PS_OBJECT) entry = member(entry, "script");
-                    if (entry && entry->kind == PS_STRING) ok = ps_set_text(behavior, ps_key(source, j), ps_value_clone(entry));
-                }
-                if (ok && ps_size(behavior)) ok = set_value(action, "behavior", &behavior);
-                ps_value_free(behavior);
-            }
-            if (ok) ok = ps_append(actions, action), action = NULL;
-            ps_value_free(action); free(label.bytes);
-        }
+        if (ok) ok = append_actions_model(context, actions);
         ps_chars empty = list_empty(context);
+        ps_chars description = translated(member(context->spec, "description"), context->language);
         if (ok) ok = set_value(model, "actions", &actions) && empty.bytes &&
-            set_text(model, "empty", ps_view(empty)) && set_value(model, "design", &design);
-        free(empty.bytes);
+            set_text(model, "empty", ps_view(empty)) && description.bytes &&
+            set_text(model, "description", ps_view(description)) && set_value(model, "design", &design);
+        free(empty.bytes); free(description.bytes);
     }
     ps_value_free(columns); ps_value_free(row_models); ps_value_free(pagination); ps_value_free(actions); ps_value_free(design);
     if (!ok) { ps_value_free(model); return NULL; }
@@ -1722,14 +1753,15 @@ static ps_value *detail_open(list_session *session, const ps_value *spec, const 
     return list_open(session, spec, NULL, options, "table", "detail", "fields");
 }
 
-/* The detail model: each visible field's key, label and evaluated cell, then the design. */
+/* The detail model: each visible field's key, label and evaluated cell, the actions, then the design. */
 static ps_value *detail_model(list_session *session, const ps_value *record)
 {
     list_context *context = &session->context;
     ps_value *model = ps_object_value();
     ps_value *fields = ps_array_value();
+    ps_value *actions = ps_array_value();
     ps_value *design = NULL;
-    bool ok = model && fields;
+    bool ok = model && fields && actions;
     for (size_t i = 0; ok && i < session->column_count; ++i) {
         const list_column *column = &session->columns[i];
         const ps_value *value = NULL;
@@ -1752,9 +1784,10 @@ static ps_value *detail_model(list_session *session, const ps_value *record)
     }
     if (ok) {
         design = ps_design(member(context->spec, "design"), context->data, PS_TEXT(""));
-        ok = set_value(model, "fields", &fields) && set_value(model, "design", &design);
+        ok = design && append_actions_model(context, actions) && set_value(model, "fields", &fields) &&
+            set_value(model, "actions", &actions) && set_value(model, "design", &design);
     }
-    ps_value_free(fields); ps_value_free(design);
+    ps_value_free(fields); ps_value_free(actions); ps_value_free(design);
     if (!ok) { ps_value_free(model); return NULL; }
     return model;
 }
@@ -1780,7 +1813,8 @@ static ps_result render_detail_view(const ps_value *spec, const ps_value *record
     list_context *context = &session.context;
     ps_html_buffer *out = &context->output;
     ps_value *model = detail_model(&session, record);
-    bool ok = model && append_container_start(context, "dl", "crudui-detail", member(model, "design"));
+    bool ok = model && append_toolbar(context, "crudui-detail") &&
+        append_container_start(context, "dl", "crudui-detail", member(model, "design"));
     const ps_value *fields = member(model, "fields");
     for (size_t i = 0; ok && i < ps_size(fields); ++i) {
         const ps_value *field = ps_at(fields, i);

@@ -537,12 +537,23 @@ fn nodes(nodes: &Value, errors: &NodeErrors) -> String {
         .collect()
 }
 
-/// Render the `crudui-form` block without its footer: form errors and the top-level nodes.
-pub(crate) fn render_fields(fields: &[Value], model: &RenderModel) -> String {
+/// Render the `crudui-form` block without its footer: the translated root description when it
+/// is not empty, form errors and the top-level nodes.
+pub(crate) fn render_fields(fields: &[Value], model: &RenderModel, description: &str) -> String {
+    let description = if description.is_empty() {
+        String::new()
+    } else {
+        element(
+            "p",
+            &json!({"class":"crudui-form__description"}),
+            &escape(description),
+        )
+    };
     element(
         "div",
         &json!({"class":"crudui-form"}),
-        &(errors_html("crudui-form", Some(&model.form_errors))
+        &(description
+            + &errors_html("crudui-form", Some(&model.form_errors))
             + &element(
                 "div",
                 &json!({"class":"crudui-form__body"}),
@@ -563,7 +574,8 @@ pub(crate) fn render_form_html(
     model: &RenderModel,
 ) -> FormResult<String> {
     let messages = crate::messages::form_messages(language)?;
-    let body = render_fields(fields, model);
+    let description = crate::util::translate(template.description.as_ref(), language);
+    let body = render_fields(fields, model, &description);
     let footer = element(
         "div",
         &json!({"class":"crudui-form__footer"}),
