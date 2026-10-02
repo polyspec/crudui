@@ -141,6 +141,17 @@ const SCENARIOS: ListFixtureCase[] = [
     options: { language: 'en' },
   },
   {
+    name: 'format-choice-label-choice-list',
+    note: 'choice-label format looks the value up in a choice list by the canonical text of each value; a value without a pair is displayed unchanged.',
+    spec: {
+      columns: {
+        answer: { field: 'answer', label: 'Answer', format: { type: 'choice-label', items: [{ value: 1, label: 'Yes' }, { value: 0, label: { en: 'No', ko: '아니요' } }] } },
+      },
+    },
+    rows: [{ answer: 1 }, { answer: '0' }, { answer: 2 }],
+    options: { language: 'en' },
+  },
+  {
     name: 'format-link',
     note: 'link format → <a> with explicit {=field}-interpolated href, literal domain and extension, + target (§9.2).',
     spec: {
@@ -779,6 +790,8 @@ const SCENARIOS: ListFixtureCase[] = [
     ['reject-format-href', 'a link href is a string or a condition map.', { columns: { name: { field: 'name', format: { type: 'link', href: 1 } } } }, 'Invalid format.href at columns.name: expected a string or a condition map'],
     ['reject-format-href-empty-map', 'a condition map has at least one member.', { columns: { name: { field: 'name', format: { type: 'link', href: {} } } } }, 'Invalid format.href at columns.name: expected a string or a condition map'],
     ['reject-format-items', 'choice items are an array or an object.', { columns: { name: { field: 'name', format: { type: 'choice-label', items: 'A' } } } }, 'Invalid format.items at columns.name: expected an array or an object'],
+    ['reject-format-items-choice-list', 'a choice list element has only value and label.', { columns: { name: { field: 'name', format: { type: 'choice-label', items: [{ value: 1, label: 'Yes', note: 'x' }] } } } }, 'Invalid format.items at columns.name: expected value and label pairs with distinct string or number values'],
+    ['reject-format-items-duplicate', 'choice list values are distinct.', { columns: { name: { field: 'name', format: { type: 'choice-label', items: [{ value: '0', label: 'No' }, { value: 0, label: 'Zero' }] } } } }, 'Invalid format.items at columns.name: expected value and label pairs with distinct string or number values'],
     ['reject-sortable', 'sortable is a boolean, an expression or a condition map.', { columns: { name: { field: 'name', sortable: 1 } } }, 'Invalid sortable at columns.name: expected a boolean, an expression or a condition map'],
     ['reject-sortable-empty-map', 'a sortable condition map has at least one member.', { columns: { name: { field: 'name', sortable: {} } } }, 'Invalid sortable at columns.name: expected a boolean, an expression or a condition map'],
     ['reject-design-before-sortable', 'a column design is checked before sortable.', { columns: { name: { field: 'name', sortable: 1, design: { show: 1 } } } }, 'Invalid design.show at columns.name: expected an expression, a boolean or a condition map'],

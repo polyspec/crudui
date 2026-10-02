@@ -344,6 +344,22 @@ bool ps_length_range(const ps_value *parameter, int64_t *minimum, int64_t *maxim
 ps_parameter_problem ps_length_parameter(ps_text rule, const ps_value *parameter);
 int ps_length_passes(ps_text rule, const ps_value *value, const ps_value *parameter);
 
+/*
+ * Choice lists (choice_list.c, docs/spec/schema.md "Choice lists").
+ * ps_is_choice_list: an array with an object element that has a value member.
+ * ps_choice_list_valid: 1 when every element has exactly a value and a label, every value is a
+ * string or a finite number and no two values have the same canonical text; 0 otherwise; -1 on
+ * allocation failure.
+ * ps_choice_value_text: the canonical text of the value at index of a valid choice list; NULL
+ * bytes on allocation failure.
+ * ps_choice_label: the label of the pair of a valid choice list whose value text is key, or NULL;
+ * failed reports an allocation failure.
+ */
+bool ps_is_choice_list(const ps_value *items);
+int ps_choice_list_valid(const ps_value *items);
+ps_chars ps_choice_value_text(const ps_value *items, size_t index);
+const ps_value *ps_choice_label(const ps_value *items, ps_text key, bool *failed);
+
 /* Membership (rule_in.c). ps_in_passes: 1, 0, or -1 on allocation failure; the parameter is valid. */
 ps_parameter_problem ps_in_parameter(const ps_value *parameter);
 int ps_in_passes(const ps_value *value, const ps_value *parameter);

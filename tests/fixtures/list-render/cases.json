@@ -327,6 +327,49 @@
     "expected_html": "<div class=\"crudui-list\"><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading\" data-field=\"grade\"><span class=\"crudui-list__heading-label\">Grade</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--choice-label\">Apple</td></tr><tr><td class=\"crudui-list__cell crudui-value crudui-value--choice-label\">Banana</td></tr></tbody></table></div>"
   },
   {
+    "name": "format-choice-label-choice-list",
+    "note": "choice-label format looks the value up in a choice list by the canonical text of each value; a value without a pair is displayed unchanged.",
+    "spec": {
+      "columns": {
+        "answer": {
+          "field": "answer",
+          "label": "Answer",
+          "format": {
+            "type": "choice-label",
+            "items": [
+              {
+                "value": 1,
+                "label": "Yes"
+              },
+              {
+                "value": 0,
+                "label": {
+                  "en": "No",
+                  "ko": "아니요"
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    "rows": [
+      {
+        "answer": 1
+      },
+      {
+        "answer": "0"
+      },
+      {
+        "answer": 2
+      }
+    ],
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-list\"><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading\" data-field=\"answer\"><span class=\"crudui-list__heading-label\">Answer</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--choice-label\">Yes</td></tr><tr><td class=\"crudui-list__cell crudui-value crudui-value--choice-label\">No</td></tr><tr><td class=\"crudui-list__cell crudui-value crudui-value--choice-label\">2</td></tr></tbody></table></div>"
+  },
+  {
     "name": "format-link",
     "note": "link format → <a> with explicit {=field}-interpolated href, literal domain and extension, + target (§9.2).",
     "spec": {
@@ -3057,6 +3100,61 @@
     "expectError": {
       "code": "INVALID_FORM_INPUT",
       "message": "Invalid format.items at columns.name: expected an array or an object"
+    }
+  },
+  {
+    "name": "reject-format-items-choice-list",
+    "note": "a choice list element has only value and label.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "format": {
+            "type": "choice-label",
+            "items": [
+              {
+                "value": 1,
+                "label": "Yes",
+                "note": "x"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid format.items at columns.name: expected value and label pairs with distinct string or number values"
+    }
+  },
+  {
+    "name": "reject-format-items-duplicate",
+    "note": "choice list values are distinct.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "format": {
+            "type": "choice-label",
+            "items": [
+              {
+                "value": "0",
+                "label": "No"
+              },
+              {
+                "value": 0,
+                "label": "Zero"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid format.items at columns.name: expected value and label pairs with distinct string or number values"
     }
   },
   {

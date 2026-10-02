@@ -112,6 +112,13 @@ const SCENARIOS: DetailFixtureCase[] = [
     options: { language: 'en' },
   },
   {
+    name: 'format-choice-label-choice-list',
+    note: 'choice-label format looks the value up in a choice list by the canonical text of each value.',
+    spec: { fields: { answer: { field: 'answer', label: 'Answer', format: { type: 'choice-label', items: [{ value: 1, label: 'Yes' }, { value: 0, label: 'No' }] } } } },
+    record: { answer: 0 },
+    options: { language: 'en' },
+  },
+  {
     name: 'format-link',
     note: 'link format interpolates explicit tokens and preserves literal domain and extension text.',
     spec: { fields: { name: { field: 'name', label: 'Name', format: { type: 'link', href: 'https://example.com/users/{=jointablename.id}/{=join.join.name}.pdf', target: '_blank' } } } },
@@ -341,6 +348,7 @@ const SCENARIOS: DetailFixtureCase[] = [
     ['reject-field-path', 'the field path is a string.', { fields: { name: { field: ['name'] } } }, 'Invalid field at fields.name: expected a string'],
     ['reject-field-label', 'a label is content.', { fields: { name: { field: 'name', label: true } } }, 'Invalid label at fields.name: expected a string, a language map or null'],
     ['reject-field-format', 'a format is a boolean, a string or an object.', { fields: { name: { field: 'name', format: 5 } } }, 'Invalid format at fields.name: expected a boolean, a string or an object'],
+    ['reject-field-format-items', 'a choice list value is a string or a finite number.', { fields: { name: { field: 'name', format: { type: 'choice-label', items: [{ value: null, label: 'None' }] } } } }, 'Invalid format.items at fields.name: expected value and label pairs with distinct string or number values'],
     ['reject-field-format-alt', 'an image alternative text is content.', { fields: { name: { field: 'name', format: { type: 'image', alt: 5 } } } }, 'Invalid format.alt at fields.name: expected a string, a language map or null'],
     ['reject-root-key-before-design', 'root members are checked before the own design.', { design: { color: 'red' }, fields: { name: { field: 'name' } }, empty: 'None' }, 'Invalid empty at detail: unknown key'],
   ] as const).map(([name, note, spec, message]): DetailFixtureCase => ({

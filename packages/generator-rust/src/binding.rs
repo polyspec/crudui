@@ -1,3 +1,4 @@
+use crate::choice_list::{choice_pairs, is_choice_list, CHOICE_LIST_EXPECTED};
 use crate::design::resolve_design;
 use crate::messages::{form_messages, format_count, Messages};
 use crate::template::member_ordered_template;
@@ -341,6 +342,11 @@ impl Binding<'_> {
         design: &Value,
         row_segments: &[usize],
     ) -> FormResult<Value> {
+        if is_choice_list(&spec["items"]) && choice_pairs(&spec["items"]).is_none() {
+            return Err(FormError::input(format!(
+                "Invalid items at {path}: expected {CHOICE_LIST_EXPECTED}"
+            )));
+        }
         let id = control_id(self.id_prefix, path);
         let context = WidgetContext {
             spec,

@@ -3,6 +3,7 @@
 
 mod binding;
 mod buttons;
+mod choice_list;
 mod css;
 mod date;
 mod design;

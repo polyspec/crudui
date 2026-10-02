@@ -1,3 +1,4 @@
+use crate::choice_list::{choice_label, choice_pairs, is_choice_list};
 use crate::util::*;
 use serde_json::{json, Map, Value};
 
@@ -109,6 +110,9 @@ fn source(items: &Value) -> Option<Value> {
 }
 
 fn entries(items: &Value) -> Vec<(String, &Value)> {
+    if is_choice_list(items) {
+        return choice_pairs(items).unwrap_or_default();
+    }
     match items {
         Value::Array(a) => a
             .iter()
@@ -386,7 +390,9 @@ fn display(kind: &str, ctx: &WidgetContext<'_>) -> Value {
     } else {
         put_nonempty(&mut attrs, "style", ctx.style());
         let mut value = ctx.value.or_else(|| ctx.spec.get("default"));
-        if source(&ctx.spec["items"]).is_none() {
+        if is_choice_list(&ctx.spec["items"]) {
+            value = choice_label(&ctx.spec["items"], &scalar(value)).or(value);
+        } else if source(&ctx.spec["items"]).is_none() {
             if let Some(items) = ctx.spec["items"].as_object() {
                 value = items.get(&scalar(value)).or(value);
             }

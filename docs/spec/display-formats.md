@@ -120,8 +120,9 @@ that `map` does not contain produces a badge without a variant, labelled with th
 
 ### choice-label
 
-`items` is a map from value to label or an array whose indexes are the values. The label of the
-value is displayed. A dynamic source (`{ model: … }`) is not read by the renderer, and a value
+`items` is a map from value to label, an array whose indexes are the values or a
+[choice list](schema.md#choice-lists). The label of the value is displayed; in a choice list it is
+the label of the pair whose `value` has the canonical text of the value. A dynamic source (`{ model: … }`) is not read by the renderer, and a value
 without a label is displayed unchanged.
 
 ### bool
@@ -233,6 +234,7 @@ map is an object with at least one member.
 | each `format.map` label | content | `Invalid format.map.{value} at {path}: expected a string, a language map or null` |
 | `format.href` | a string or a condition map | `Invalid format.href at {path}: expected a string or a condition map` |
 | `format.items` | an array or an object | `Invalid format.items at {path}: expected an array or an object` |
+| a `format.items` choice list | pairs as in [choice lists](schema.md#choice-lists) | `Invalid format.items at {path}: expected value and label pairs with distinct string or number values` |
 | `sortable` | a boolean, an expression or a condition map | `Invalid sortable at {path}: expected a boolean, an expression or a condition map` |
 | `search` | a boolean or an object | `Invalid search at list: expected a boolean or an object` |
 | `sort` | an object | `Invalid sort at list: expected an object` |

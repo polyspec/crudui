@@ -511,7 +511,7 @@ export interface ItemsSource {
    * empty `[]` or a single `{ "": "선택하세요" }` prompt). A static array or a
    * value→label map; the runtime replaces it with the fetched rows.
    */
-  items?: StaticItem[] | ItemLabelMap;
+  items?: StaticItem[] | ChoiceList | ItemLabelMap;
   /**
    * Index signature — any further source descriptor key (preserved, never
    * dropped; a forbidden meta key is rejected by the schema layer one level
@@ -521,11 +521,25 @@ export interface ItemsSource {
 }
 
 /**
- * Option source. Either a static array of choices, a static value→label map
- * (`ItemLabelMap`), or a dynamic `ItemsSource` (polymorphic). A
- * dependency-isolation bucket and first-class (SPEC §2 G3 / §3 C).
+ * Option source: an array of labels whose indexes are the values, a choice list
+ * (`ChoiceList`), a static value→label map (`ItemLabelMap`) or a dynamic
+ * `ItemsSource` (docs/spec/schema.md, "Languages and choices").
  */
-export type Items = StaticItem[] | ItemLabelMap | ItemsSource;
+export type Items = StaticItem[] | ChoiceList | ItemLabelMap | ItemsSource;
+
+/**
+ * One choice of a choice list (docs/spec/schema.md, "Choice lists"). The option value is
+ * the canonical text of `value`; the list order is the display order for any values.
+ */
+export interface ChoicePair {
+  /** Option value: a string or a finite number, distinct by canonical text in its list. */
+  value: string | number;
+  /** Display label of the value. */
+  label: ItemLabel;
+}
+
+/** Choices in list order for any values. */
+export type ChoiceList = ChoicePair[];
 
 /**
  * A static option label (display only). A plain string or a per-language LangMap
@@ -543,17 +557,8 @@ export type ItemLabel = LocalizedText;
  */
 export type ItemLabelMap = Record<string, ItemLabel>;
 
-/** A static option: a value→label map entry or a primitive value. */
-export type StaticItem =
-  | {
-      /** Submitted option value. */
-      value: unknown;
-      /** Display label for the option. */
-      label?: ItemLabel;
-    }
-  | Record<string, unknown>
-  | string
-  | number;
+/** A label of an array whose indexes are the values. */
+export type StaticItem = ItemLabel;
 
 // ============================================================================
 // multiple bucket (repeated rows — multiple-dependent keys live under it)

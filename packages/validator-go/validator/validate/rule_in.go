@@ -2,9 +2,10 @@ package validate
 
 // Membership rule in (docs/spec/validation-rules.md, Values).
 //
-// Members come from a list (each element as is), a comma-separated string (split
-// at U+002C, each item trimmed) or a map (its keys); list elements and map keys
-// are read as written. A value matches a member when
+// Members come from a list (each element as is), a choice list (the value of each
+// element), a comma-separated string (split at U+002C, each item trimmed) or a map
+// (its keys); list elements and map keys are read as written. A choice list is
+// checked by the choice list rules before its values are checked as members. A value matches a member when
 // their canonical texts are the same code points, or when both are numeric with
 // equal values.
 
@@ -45,6 +46,13 @@ func inMembers(param any) ([]member, *parameterError) {
 	switch p := param.(type) {
 	case []any:
 		raw = p
+		if isChoiceList(p) {
+			values, ok := choiceValues(p)
+			if !ok {
+				return nil, ruleParameterError("Invalid in parameter: expected value and label pairs with distinct string or number values")
+			}
+			raw = values
+		}
 	case string:
 		for _, item := range strings.Split(p, ",") {
 			raw = append(raw, trimText(item))
@@ -124,4 +132,65 @@ func ruleIn(value any, ruleParam any, ctx ruleContext) (string, bool) {
 		return "", false
 	}
 	return ctx.msg("in", "Please select a valid option."), true
+}
+
+// choiceObject returns the members of a choice list element: an ordered or plain object.
+func choiceObject(item any) (map[string]any, bool) {
+	switch o := item.(type) {
+	case *compose.OMap:
+		out := map[string]any{}
+		for _, key := range o.Keys() {
+			out[key], _ = o.Get(key)
+		}
+		return out, true
+	case map[string]any:
+		return o, true
+	}
+	return nil, false
+}
+
+// isChoiceList reports whether a list is a choice list (docs/spec/schema.md, Choice
+// lists): one of its elements is an object that has a value member.
+func isChoiceList(list []any) bool {
+	for _, item := range list {
+		if o, ok := choiceObject(item); ok {
+			if _, has := o["value"]; has {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// choiceValues returns the values of a choice list in order, or false when an element
+// has another member, lacks value or label, has a value that is not a string or a
+// finite number, or repeats the canonical text of an earlier value.
+func choiceValues(list []any) ([]any, bool) {
+	values := make([]any, 0, len(list))
+	seen := map[string]bool{}
+	for _, item := range list {
+		o, ok := choiceObject(item)
+		if !ok || len(o) != 2 {
+			return nil, false
+		}
+		value, hasValue := o["value"]
+		if _, hasLabel := o["label"]; !hasValue || !hasLabel {
+			return nil, false
+		}
+		if _, isString := value.(string); !isString {
+			if _, isBool := value.(bool); isBool {
+				return nil, false
+			}
+			if _, finite := finiteNumber(value); !finite {
+				return nil, false
+			}
+		}
+		text, _ := canonicalText(value)
+		if seen[text] {
+			return nil, false
+		}
+		seen[text] = true
+		values = append(values, value)
+	}
+	return values, true
 }

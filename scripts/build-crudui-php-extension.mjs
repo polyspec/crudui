@@ -96,6 +96,7 @@ export async function buildCRUDUIPhpExtension(options = {}) {
       'src/canonical.c',
       'src/rule_length.c',
       'src/rule_in.c',
+      'src/choice_list.c',
       'src/number_text.c',
       'src/rule_number.c',
       'src/unicode_data.c',

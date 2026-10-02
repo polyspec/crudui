@@ -25,7 +25,7 @@ interface FixtureCase {
   data?: Record<string, unknown>;
   options?: Record<string, unknown>;
   expected_html?: string;
-  expectError?: { code: string };
+  expectError?: { code: string; message?: string };
 }
 
 /** Wrap a single field spec in a root group (matches the fixture shape). */

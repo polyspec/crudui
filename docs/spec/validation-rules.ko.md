@@ -109,10 +109,13 @@ HTML의 유효한 부동소수점 수입니다. 선택적인 `-` 다음에 숫�
 - 메시지는 숫자 매개변수를 정규 텍스트로 표시합니다. 기본 메시지와 선언한 메시지의 `{0}`과 `{1}`은 규칙에
   해당 매개변수가 있으면 모두 치환하고, 규칙에 없는 매개변수의 자리 표시자는 쓴 그대로 둡니다.
 
-**포함**(`in`)은 목록(각 원소 그대로), 쉼표 문자열(U+002C로 나누고 각 항목을 다듬음), 맵(키)에서
-멤버를 얻습니다. 멤버는 문자열, 숫자, 불리언이며 그 밖의 형식인 멤버와 정규 텍스트를 다듬으면 비는 멤버는
+**포함**(`in`)은 목록(각 원소 그대로), [선택 목록](schema.ko.md#선택-목록)(각 원소의 `value`), 쉼표
+문자열(U+002C로 나누고 각 항목을 다듬음), 맵(키)에서 멤버를 얻습니다. 원소 중 하나가 `value` 멤버가 있는
+객체인 목록은 선택 목록입니다. 선택 목록은 먼저 선택 목록 규칙(`value`와 `label` 멤버만, 문자열이나 유한한
+숫자인 `value`, 정규 텍스트가 같은 값이 둘 없음)으로 검사하고 그다음 그 값을 멤버로 검사하므로, 필드는 같은
+선택 목록을 `items`와 `in`에 선언할 수 있습니다. 멤버는 문자열, 숫자, 불리언이며 그 밖의 형식인 멤버와 정규 텍스트를 다듬으면 비는 멤버는
 선언 오류이며, 멤버는 순서대로 각각 형식을 먼저, 빈 값 여부를 다음에 검사합니다. 빈 목록과 빈 맵은 빈 멤버
-집합을 선언합니다. 빈 멤버 집합은 유효하며 어떤 값과도 일치하지 않으므로 선택 목록이 빈 필드는 빈 값을 통과시키고
+집합을 선언합니다. 빈 멤버 집합은 유효하며 어떤 값과도 일치하지 않으므로 선택지가 없는 필드는 빈 값을 통과시키고
 그 밖의 모든 값을 실패시킵니다. 문자열에는 항목이 항상 하나 이상 있으므로 공백뿐인 문자열은 빈 멤버입니다. 문자열 값은 다듬고, 배열
 값은 모든 원소가 통과해야 통과합니다. 빈 원소(빈 배열·빈 객체 포함)는 빈 값처럼 통과하고 비어 있지 않은 배열이나 객체
 원소는 실패합니다. 값과 멤버의 정규 텍스트가
@@ -172,6 +175,7 @@ POSIX 클래스, 소유·중첩 수량자, `\uHHHH`, 8진수·제어 문자 이�
 | `step` | `INVALID_RULE_PARAMETER` | `Invalid step parameter: expected a finite number above 0` |
 | `mincount`, `maxcount` 제한값 | `INVALID_RULE_PARAMETER` | `Invalid {rule} parameter: expected an integer from 0 to 9007199254740991` |
 | 다른 형식의 `in` 멤버 | `INVALID_RULE_PARAMETER` | `Invalid in parameter: expected a list, a comma-separated string or a map` |
+| 다른 멤버, 문자열이나 유한한 숫자가 아닌 `value`, 정규 텍스트가 같은 두 값이 있는 `in` 선택 목록 | `INVALID_RULE_PARAMETER` | `Invalid in parameter: expected value and label pairs with distinct string or number values` |
 | 문자열·숫자·불리언이 아닌 `in` 멤버 | `INVALID_RULE_PARAMETER` | `Invalid in parameter: members must be strings, numbers or booleans` |
 | 빈 멤버가 있는 `in` | `INVALID_RULE_PARAMETER` | `Invalid in parameter: members must not be empty` |
 | 다른 형식의 `pattern`, `match` | `INVALID_RULE_PARAMETER` | `Invalid {rule} parameter: expected a pattern string` |

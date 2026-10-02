@@ -196,6 +196,31 @@
       },
       "additionalProperties": false
     },
+    "ChoiceList": {
+      "description": "Choices in list order for any values. Each value is a string or a number whose canonical text is the option value; no two values have the same canonical text.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "value",
+          "label"
+        ],
+        "properties": {
+          "value": {
+            "description": "Option value.",
+            "type": [
+              "string",
+              "number"
+            ]
+          },
+          "label": {
+            "description": "Display label of the value.",
+            "$ref": "#/definitions/ItemLabel"
+          }
+        }
+      }
+    },
     "ItemLabel": {
       "description": "Choice display label, optionally translated. The choice value is separate from its label.",
       "anyOf": [
@@ -302,11 +327,14 @@
               ]
             },
             "in": {
-              "description": "Allowed values: a comma-separated string, a list, or a value-to-label map whose keys are the values. Members are nonempty strings, numbers or booleans; an empty list or map allows no value; a map is not a condition map.",
+              "description": "Allowed values: a comma-separated string, a list, a choice list whose values are the members, or a value-to-label map whose keys are the values. Members are nonempty strings, numbers or booleans; an empty list or map allows no value; a map is not a condition map.",
               "anyOf": [
                 {
                   "type": "string",
                   "pattern": "[^\\t-\\r \\u0085\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000]"
+                },
+                {
+                  "$ref": "#/definitions/ChoiceList"
                 },
                 {
                   "type": "array",
@@ -812,13 +840,29 @@
       }
     },
     "Items": {
-      "description": "Static choice array, value-to-label map or dynamic source descriptor. Labels may contain translations.",
+      "description": "Array of labels whose indexes are the values, choice list, value-to-label map or dynamic source descriptor. Labels may contain translations.",
       "anyOf": [
         {
+          "description": "Labels whose indexes are the values. An element that is an object with a value member makes the array a choice list.",
           "type": "array",
           "items": {
-            "$ref": "#/definitions/OpenValue"
+            "allOf": [
+              {
+                "$ref": "#/definitions/OpenValue"
+              },
+              {
+                "not": {
+                  "type": "object",
+                  "required": [
+                    "value"
+                  ]
+                }
+              }
+            ]
           }
+        },
+        {
+          "$ref": "#/definitions/ChoiceList"
         },
         {
           "$ref": "#/definitions/ItemsSource"

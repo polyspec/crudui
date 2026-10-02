@@ -1,5 +1,26 @@
 # Changes
 
+## 2026-10-02 — Choice lists keep their written order
+
+- `items` accepts a choice list, an array of `{ "value": …, "label": … }` objects whose choices
+  keep the list order for any values. A value-to-label map lists integer-like values first in
+  ascending order, so `{ "1": "Yes", "0": "No" }` showed No before Yes and choices with numeric
+  values could not keep a written order. The map and the array of labels keep their meaning; the
+  schema contract states which form to use for which order.
+- An `items` array is a choice list when one of its elements is an object with a `value` member.
+  Every element then has only `value` and `label`, every value is a string or a finite number, and
+  no two values have the same canonical text. Binding a field whose choice list breaks a rule fails
+  with `INVALID_FORM_INPUT` and `Invalid items at {path}: expected value and label pairs with
+  distinct string or number values`; the `choice-label` format fails with the same text for
+  `format.items`, and `in` fails with `INVALID_RULE_PARAMETER` and `Invalid in parameter: expected
+  value and label pairs with distinct string or number values`.
+- Select, choice, multichoice and search fields list the pairs in list order, a dummy field and
+  the `choice-label` format display the label of the value, and `in` takes the values as members,
+  so a field declares the same choice list as `items` and `in`. The JSON Schema defines
+  `ChoiceList`, and `crudui explain` lists the pairs in list order.
+- The HTML renderer, React, Vue, Svelte, PHP, the PHP extension, Go and Rust render the shared
+  choice list cases, and JavaScript, PHP, the PHP extension, Go and Rust validate them.
+
 ## 2026-10-02 — Form connection compares sanitized defaults
 
 - `connectForm` compares a text control with its rendered default after the browser sanitizes

@@ -22,6 +22,7 @@
  */
 
 import { FormInputError } from '@crudui/validator';
+import { choicePairs, isChoiceList } from './choice-list';
 import type { PathContext } from '@crudui/validator/internal';
 import { evalAppearance } from './expr';
 import type { Translate, LocalizedText } from './content';
@@ -310,8 +311,12 @@ export const CELL_RENDERERS: Readonly<Record<string, CellRenderer>> = {
   },
 
   'choice-label': (value, o, ctx) => {
-    const lookup = itemsLookup(o.items);
     const key = asString(value);
+    if (isChoiceList(o.items)) {
+      const pair = (choicePairs(o.items) ?? []).find(([text]) => text === key);
+      return pair ? ctx.t(pair[1] as LocalizedText) : key;
+    }
+    const lookup = itemsLookup(o.items);
     if (key in lookup) {
       // A choice label is content: a string or a language map.
       return ctx.t(lookup[key] as LocalizedText);

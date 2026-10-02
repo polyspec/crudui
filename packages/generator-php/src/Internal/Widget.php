@@ -28,6 +28,9 @@ final class Widget
     /** Evaluate a supported widget model or report its unsupported field type. */
     public static function evaluate(stdClass $spec, mixed $value, string $path, stdClass $design, array $options, array $rows): stdClass
     {
+        if (ChoiceList::is($spec->items ?? null) && ChoiceList::pairs($spec->items) === null) {
+            throw new FormError('INVALID_FORM_INPUT', 'Invalid items at ' . $path . ': expected ' . ChoiceList::EXPECTED);
+        }
         $type = Value::string($spec->type ?? '');
         $kind = self::KINDS[strtolower($type)] ?? null;
         if ($kind === null) {
@@ -189,15 +192,28 @@ final class Widget
     private function items(): array
     {
         $items = $this->spec->items ?? null;
-        return !$this->dynamic() && ($items instanceof stdClass || is_array($items)) ? (array) $items : [];
+        if (ChoiceList::is($items)) {
+            $out = [];
+            foreach (ChoiceList::pairs($items) ?? [] as [$value, $label]) {
+                $out[] = [$value, $label];
+            }
+            return $out;
+        }
+        if ($this->dynamic() || (!$items instanceof stdClass && !is_array($items))) {
+            return [];
+        }
+        $out = [];
+        foreach ((array) $items as $key => $label) {
+            $out[] = [(string) $key, $label];
+        }
+        return $out;
     }
 
     private function options(bool $choice = false): array
     {
         $effective = $this->value === Missing::Value ? Value::scalar($this->spec->default ?? null) : Value::scalar($this->value);
         $out = [];
-        foreach ($this->items() as $key => $label) {
-            $value = (string) $key;
+        foreach ($this->items() as [$value, $label]) {
             $out[] = (object) ['value' => $value, 'label' => $this->t($label) ?: Value::scalar($label), 'selected' => $effective === $value, 'isDefault' => $choice && ($this->spec->default ?? null) !== null && !is_array($this->spec->default) && Value::scalar($this->spec->default) === $value];
         }
         return $out;
@@ -294,7 +310,15 @@ final class Widget
         if ($value === Missing::Value && $default !== '' && $default !== '0') {
             $value = $this->spec->default;
         }
-        if (($this->spec->items ?? null) instanceof stdClass && !$this->dynamic()) {
+        if (ChoiceList::is($this->spec->items ?? null)) {
+            $text = Value::scalar($value);
+            foreach (ChoiceList::pairs($this->spec->items) ?? [] as [$choice, $label]) {
+                if ($choice === $text) {
+                    $value = $label;
+                    break;
+                }
+            }
+        } elseif (($this->spec->items ?? null) instanceof stdClass && !$this->dynamic()) {
             $found = Value::get($this->spec->items, Value::scalar($value));
             if ($found !== Missing::Value) {
                 $value = $found;

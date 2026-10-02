@@ -1,4 +1,4 @@
-import { ComposeLoadError, UnsupportedFieldTypeError, compileForm } from '@crudui/generator-core';
+import { ComposeLoadError, FormInputError, UnsupportedFieldTypeError, compileForm } from '@crudui/generator-core';
 /**
  * form-render conformance — Vue 3 SSR vs the shared 3-framework parity fixture.
  *
@@ -69,6 +69,7 @@ describe('form rendering: Vue SSR is idempotent (stable across re-render)', () =
 const ERROR_CLASS_BY_CODE = {
   REF_FILE_NOT_FOUND: ComposeLoadError,
   UNSUPPORTED_FIELD_TYPE: UnsupportedFieldTypeError,
+  INVALID_FORM_INPUT: FormInputError,
 };
 
 describe('form rendering: a load/registry gap is a surfaced ERROR, never silent', () => {
@@ -84,6 +85,7 @@ describe('form rendering: a load/registry gap is a surfaced ERROR, never silent'
       expect(expectedClass, `${c.name}: unknown error code ${c.expectError.code}`).toBeTruthy();
       expect(thrown, `${c.name} must throw a surfaced error`).toBeInstanceOf(expectedClass);
       expect(thrown.code).toStrictEqual(c.expectError.code);
+      if (c.expectError.message !== undefined) expect(thrown.message).toStrictEqual(c.expectError.message);
     }));
   }
 });

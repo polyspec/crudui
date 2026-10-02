@@ -5,7 +5,8 @@
 
 /*
  * Membership (docs/spec/validation-rules.md, "Values"): members come from a list (each element as
- * is), a comma-separated string (each item trimmed) or a map (its keys). A value matches a member
+ * is), a choice list (the value of each element), a comma-separated string (each item trimmed) or
+ * a map (its keys). A value matches a member
  * when their canonical texts are the same code points, or when both are numeric (numbers, or
  * strings that are numeric text) with equal values.
  */
@@ -60,6 +61,7 @@ static int visit_members(const ps_value *parameter, void *context, member_visito
             start = comma + 1;
         }
     }
+    bool choices = ps_is_choice_list(parameter);
     for (size_t i = 0; i < ps_size(parameter); ++i) {
         member_text member;
         if (parameter->kind == PS_OBJECT) {
@@ -69,6 +71,7 @@ static int visit_members(const ps_value *parameter, void *context, member_visito
             continue;
         }
         const ps_value *item = ps_at(parameter, i);
+        if (choices) item = ps_get(item, "value");
         if (item->kind == PS_STRING) {
             if (!string_member(ps_string(item), &member)) return -1;
             int result = visit(context, &member);
@@ -100,11 +103,18 @@ ps_parameter_problem ps_in_parameter(const ps_value *parameter)
         "Invalid in parameter: members must be strings, numbers or booleans"};
     static const ps_parameter_problem empty = {.code = "INVALID_RULE_PARAMETER", .message =
         "Invalid in parameter: members must not be empty"};
+    static const ps_parameter_problem pairs = {.code = "INVALID_RULE_PARAMETER", .message =
+        "Invalid in parameter: expected value and label pairs with distinct string or number values"};
     static const ps_parameter_problem failed = {.code = "INTERNAL_ERROR", .message = "Validation failed"};
     if (!parameter || (parameter->kind != PS_ARRAY && parameter->kind != PS_OBJECT && parameter->kind != PS_STRING))
         return shape;
-    /* Each list element is checked in order: its type, then its text. */
-    if (parameter->kind == PS_ARRAY) {
+    /* A choice list is checked by the choice list rules before its values are checked as members. */
+    if (ps_is_choice_list(parameter)) {
+        int valid = ps_choice_list_valid(parameter);
+        if (valid < 0) return failed;
+        if (!valid) return pairs;
+    } else if (parameter->kind == PS_ARRAY) {
+        /* Each list element is checked in order: its type, then its text. */
         for (size_t i = 0; i < ps_size(parameter); ++i) {
             const ps_value *item = ps_at(parameter, i);
             if (!scalar_member(item)) return types;

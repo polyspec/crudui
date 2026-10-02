@@ -333,8 +333,18 @@ function explainMultiple(multiple: unknown, p: Phrases): string | null {
   return null;
 }
 
-/** items slot → one clause (static value→label / static array / dynamic source). */
+/** items slot → one clause (choice list / static value→label / static array / dynamic source). */
 function explainItems(items: unknown, lang: string, p: Phrases): string | null {
+  if (Array.isArray(items) && items.some((x) => isObj(x) && 'value' in x)) {
+    // choice list: value and label pairs in list order.
+    return p.itemsStatic(
+      items.map((x) => {
+        const value = isObj(x) ? scalarText(x.value) : scalarText(x);
+        const label = isObj(x) ? content(x.label, lang) : '';
+        return label ? `${value}=${label}` : value;
+      })
+    );
+  }
   if (Array.isArray(items)) {
     return p.itemsStatic(items.map((x) => content(x, lang) || scalarText(x)));
   }

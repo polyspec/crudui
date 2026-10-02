@@ -401,9 +401,9 @@ function textRequest(feature, fixture) {
 }
 const listCases = JSON.parse(await readFile(path.join(ROOT, 'tests/fixtures/list-render/cases.json'), 'utf8'));
 const detailCases = JSON.parse(await readFile(path.join(ROOT, 'tests/fixtures/detail-render/cases.json'), 'utf8'));
-assert.equal(formCases.length, 104, 'The form fixture inventory changed; review coverage before changing this assertion');
-assert.equal(listCases.length, 142, 'The list fixture inventory changed; review coverage before changing this assertion');
-assert.equal(detailCases.length, 44, 'The detail fixture inventory changed; review coverage before changing this assertion');
+assert.equal(formCases.length, 115, 'The form fixture inventory changed; review coverage before changing this assertion');
+assert.equal(listCases.length, 145, 'The list fixture inventory changed; review coverage before changing this assertion');
+assert.equal(detailCases.length, 46, 'The detail fixture inventory changed; review coverage before changing this assertion');
 
 const targetNames = targets.map(target => target.name);
 for (const name of selectedTargets) assert.ok(targetNames.includes(name), `Unknown target: ${name}; available targets are ${targetNames.join(', ')}`);
@@ -449,7 +449,10 @@ for (const target of runTargets) {
     let expectedTemplate, expectedFields, expectedError;
     try { expectedTemplate = oracle(compileRequest); expectedFields = oracle({ operation: 'bindForm', template: expectedTemplate, data: (Object.hasOwn(fixture, 'data') ? fixture.data : {}), options: bindingOptions }); }
     catch (error) { expectedError = errorRecord(error); }
-    if (fixture.expectError) assert.equal(expectedError?.code, fixture.expectError.code, 'JavaScript does not meet declared fixture error expectation');
+    if (fixture.expectError) {
+      assert.equal(expectedError?.code, fixture.expectError.code, 'JavaScript does not meet declared fixture error expectation');
+      if (fixture.expectError.message !== undefined) assert.equal(expectedError?.message, fixture.expectError.message, 'JavaScript does not meet the declared fixture error message');
+    }
     else assert.equal(expectedError, undefined, 'JavaScript unexpectedly rejected a fixture');
     let actualTemplate, actualFields, actualError;
     try {

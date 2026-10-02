@@ -143,6 +143,19 @@ static ps_value *build_widget(const ps_value *spec, const ps_value *value,
                               const bind_context *context, const row_scope *scope,
                               ps_value **error)
 {
+    const ps_value *items = ps_get(spec, "items");
+    if (ps_is_choice_list(items)) {
+        int valid = ps_choice_list_valid(items);
+        if (valid < 0) return NULL;
+        if (!valid) {
+            ps_chars message = PS_CONCAT(PS_TEXT("Invalid items at "), path,
+                                         PS_TEXT(": expected value and label pairs with distinct string or number values"));
+            *error = message.bytes
+                ? ps_error_text("form", "INVALID_FORM_INPUT", ps_view(message), PS_TEXT(""), NULL) : NULL;
+            free(message.bytes);
+            return NULL;
+        }
+    }
     ps_chars type = field_type(spec);
     if (!type.bytes) return NULL;
     if (!ps_widget_supported(ps_view(type))) {

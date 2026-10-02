@@ -378,6 +378,12 @@ func renderCell(format *Object, value any, row *Object, lookup map[string]any, p
 		return d, nil
 	case "choice-label":
 		items := read(o, "items")
+		if isChoiceList(items) {
+			if v, ok := choiceLabel(items, s); ok {
+				return translate(v, language), nil
+			}
+			return s, nil
+		}
 		if !dynamicItems(items) {
 			if v := item(items, s); !isAbsent(v) {
 				// A choice label is content: a string or a language map.

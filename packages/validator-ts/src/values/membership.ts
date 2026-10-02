@@ -1,8 +1,10 @@
 /**
  * Membership (validation-rules.md, "Values").
  *
- * Members come from a list (each element as is), a comma-separated string (split
- * at U+002C, each item trimmed) or a map (its keys). Members are strings, numbers
+ * Members come from a list (each element as is), a choice list (the `value` of
+ * each element), a comma-separated string (split at U+002C, each item trimmed) or
+ * a map (its keys). A choice list is checked by the choice list rules before its
+ * values are checked as members. Members are strings, numbers
  * or booleans, and no member's canonical text is empty after trimming. An empty
  * list or map is an empty member set, which matches no value.
  */
@@ -17,6 +19,7 @@ export const MEMBERSHIP_ERRORS = {
   shape: 'Invalid in parameter: expected a list, a comma-separated string or a map',
   type: 'Invalid in parameter: members must be strings, numbers or booleans',
   empty: 'Invalid in parameter: members must not be empty',
+  pairs: 'Invalid in parameter: expected value and label pairs with distinct string or number values',
 } as const;
 
 /** A member: a string, a finite number or a boolean. */
@@ -29,10 +32,41 @@ function isMemberType(item: unknown): item is Member {
   return typeof item === 'string' || typeof item === 'boolean' || (typeof item === 'number' && Number.isFinite(item));
 }
 
+function isObject(item: unknown): item is Record<string, unknown> {
+  return item !== null && typeof item === 'object' && !Array.isArray(item);
+}
+
+/**
+ * The values of a choice list (schema.md, "Choice lists"), or `undefined` when an element has
+ * another member, lacks `value` or `label`, has a value that is not a string or a finite number,
+ * or repeats the canonical text of an earlier value.
+ */
+function choiceValues(list: readonly unknown[]): Member[] | undefined {
+  const values: Member[] = [];
+  const seen = new Set<string>();
+  for (const item of list) {
+    if (!isObject(item) || Object.keys(item).length !== 2) return undefined;
+    if (!Object.prototype.hasOwnProperty.call(item, 'value') || !Object.prototype.hasOwnProperty.call(item, 'label')) {
+      return undefined;
+    }
+    const value = item.value;
+    if (typeof value !== 'string' && !(typeof value === 'number' && Number.isFinite(value))) return undefined;
+    const text = canonicalText(value) as string;
+    if (seen.has(text)) return undefined;
+    seen.add(text);
+    values.push(value);
+  }
+  return values;
+}
+
 /** Read the members of an `in` parameter, or the parameter error it causes. */
 export function readMembers(param: unknown): MembersResult {
   let members: unknown[];
-  if (Array.isArray(param)) {
+  if (Array.isArray(param) && param.some((item) => isObject(item) && Object.prototype.hasOwnProperty.call(item, 'value'))) {
+    const values = choiceValues(param);
+    if (values === undefined) return { error: MEMBERSHIP_ERRORS.pairs };
+    members = values;
+  } else if (Array.isArray(param)) {
     members = param;
   } else if (typeof param === 'string') {
     members = param.split(',').map(trim);

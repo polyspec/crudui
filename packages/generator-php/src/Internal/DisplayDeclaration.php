@@ -166,8 +166,13 @@ final class DisplayDeclaration
                 if (!is_string($value) && !self::isConditionMap($value)) {
                     self::expected('format.href', $path, 'a string or a condition map');
                 }
-            } elseif ($key === 'items' && !is_array($value) && !$value instanceof stdClass) {
-                self::expected('format.items', $path, 'an array or an object');
+            } elseif ($key === 'items') {
+                if (!is_array($value) && !$value instanceof stdClass) {
+                    self::expected('format.items', $path, 'an array or an object');
+                }
+                if (ChoiceList::is($value) && ChoiceList::pairs($value) === null) {
+                    self::expected('format.items', $path, ChoiceList::EXPECTED);
+                }
             }
         }
     }

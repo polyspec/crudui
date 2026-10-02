@@ -95,8 +95,16 @@ func (c widgetContext) options(selected []string, defaults *string) []*Object {
 	if dynamicItems(items) {
 		return out
 	}
-	for _, k := range keys(items) {
-		v := item(items, k)
+	entries := []choicePair{}
+	if isChoiceList(items) {
+		entries, _ = choicePairs(items)
+	} else {
+		for _, k := range keys(items) {
+			entries = append(entries, choicePair{k, item(items, k)})
+		}
+	}
+	for _, entry := range entries {
+		k, v := entry.value, entry.label
 		label := c.translate(v)
 		if label == "" {
 			label = scalar(v)
@@ -259,7 +267,11 @@ func evalWidget(c widgetContext) *Object {
 			v = read(c.spec, "default")
 		}
 		items := read(c.spec, "items")
-		if object(items) != nil && !dynamicItems(items) {
+		if isChoiceList(items) {
+			if x, ok := choiceLabel(items, scalar(v)); ok {
+				v = x
+			}
+		} else if object(items) != nil && !dynamicItems(items) {
 			if x := read(items, scalar(v)); !isAbsent(x) {
 				v = x
 			}

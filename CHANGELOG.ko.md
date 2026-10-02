@@ -1,5 +1,23 @@
 # 변경 기록
 
+## 2026-10-02 — 선택 목록이 작성한 순서를 유지
+
+- `items`는 값에 관계없이 목록 순서를 유지하는 `{ "value": …, "label": … }` 객체의 배열인 선택 목록을
+  받습니다. 값과 라벨의 맵은 정수 형태의 값을 오름차순으로 먼저 나열하므로 `{ "1": "Yes", "0": "No" }`가
+  No를 Yes보다 먼저 보여 주었고, 숫자 값을 가진 선택지는 작성한 순서를 유지할 수 없었습니다. 맵과 라벨의
+  배열은 의미를 유지하며, 스키마 계약은 어떤 순서에 어떤 형식을 쓰는지 정합니다.
+- 원소 중 하나가 `value` 멤버가 있는 객체인 `items` 배열은 선택 목록입니다. 이때 모든 원소는 `value`와
+  `label`만 가지고, 모든 값은 문자열이나 유한한 숫자이며, 정규 텍스트가 같은 값이 둘 없어야 합니다. 규칙을
+  어긴 선택 목록을 가진 필드를 바인딩하면 `INVALID_FORM_INPUT`과 `Invalid items at {path}: expected value
+  and label pairs with distinct string or number values`로 실패합니다. `choice-label` 형식은
+  `format.items`에 같은 텍스트로 실패하고, `in`은 `INVALID_RULE_PARAMETER`와 `Invalid in parameter:
+  expected value and label pairs with distinct string or number values`로 실패합니다.
+- select, choice, multichoice, search 필드는 쌍을 목록 순서대로 나열하고, dummy 필드와 `choice-label`
+  형식은 값의 라벨을 표시하며, `in`은 값을 멤버로 받으므로 필드는 같은 선택 목록을 `items`와 `in`에
+  선언합니다. JSON Schema가 `ChoiceList`를 정의하고 `crudui explain`이 쌍을 목록 순서대로 나열합니다.
+- HTML renderer, React, Vue, Svelte, PHP, PHP 확장, Go, Rust가 공유 선택 목록 사례를 렌더링하고,
+  JavaScript, PHP, PHP 확장, Go, Rust가 이를 검증합니다.
+
 ## 2026-10-02 — 폼 연결이 정규화한 기본값과 비교
 
 - `connectForm`은 텍스트 컨트롤을 브라우저가 값처럼 정규화한 렌더 기본값과 비교합니다. Chromium은

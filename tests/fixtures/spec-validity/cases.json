@@ -186,6 +186,22 @@
     "engine": "pass"
   },
   {
+    "name": "ok-items-choice-list",
+    "note": "A choice list declares choices whose integer-like values keep the written order, as items and as in.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "answer": {
+          "type": "select",
+          "items": [{ "value": 1, "label": "Yes" }, { "value": 0, "label": { "en": "No", "ko": "아니요" } }],
+          "validate": { "in": [{ "value": 1, "label": "Yes" }, { "value": 0, "label": { "en": "No", "ko": "아니요" } }] }
+        }
+      }
+    },
+    "expect": "ok",
+    "engine": "pass"
+  },
+  {
     "name": "err-top-level-if",
     "note": "a forbidden key at the top of a field body is rejected",
     "spec": {
@@ -496,5 +512,31 @@
     },
     "expect": "ok",
     "engine": "pass"
+  },
+  {
+    "name": "err-items-choice-list-extra-member",
+    "note": "A choice list element has only value and label. The runtime structure check does not read items; binding the field fails.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "answer": { "type": "select", "items": [{ "value": 1, "label": "Yes", "id": 1 }] }
+      }
+    },
+    "expect": "fail",
+    "reason": "anyOf",
+    "engine": "pass"
+  },
+  {
+    "name": "err-in-choice-list-boolean-value",
+    "note": "A choice list value under in is a string or a finite number.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "answer": { "type": "select", "validate": { "in": [{ "value": true, "label": "Yes" }] } }
+      }
+    },
+    "expect": "fail",
+    "reason": "anyOf",
+    "engine": { "code": "INVALID_RULE_PARAMETER", "at": "answer" }
   }
 ]
