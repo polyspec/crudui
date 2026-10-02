@@ -369,8 +369,9 @@ pub(crate) fn build_display(
     );
     let mut actions = Vec::new();
     for (key, raw) in spec["actions"].as_object().into_iter().flatten() {
+        // A script string: a button that runs the script when it is clicked.
         if let Some(script) = raw.as_str() {
-            actions.push(json!({"key":key,"label":key,"behavior":{format!("on{key}"):script}}));
+            actions.push(json!({"key":key,"label":key,"behavior":{"onclick":script}}));
             continue;
         }
         let label = raw
@@ -379,7 +380,7 @@ pub(crate) fn build_display(
             .unwrap_or_else(|| key.clone());
         // An action object with a script is the object form of a script action.
         if let Some(script) = raw["script"].as_str() {
-            actions.push(json!({"key":key,"label":label,"behavior":{format!("on{key}"):script}}));
+            actions.push(json!({"key":key,"label":label,"behavior":{"onclick":script}}));
             continue;
         }
         let mut action = json!({"key":key,"label":label});

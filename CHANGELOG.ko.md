@@ -1,5 +1,17 @@
 # 변경 기록
 
+## 2026-10-02 — 스크립트 동작은 click에서 실행됨
+
+- 목록과 상세의 스크립트 동작은 스크립트를 button의 `onclick`에 쓰므로, button을 누르면 스크립트가
+  실행됩니다. 이전에는 스크립트를 `on{name}`에 썼습니다. 예를 들어 동작 `remove`는 button이 발생시키지
+  않는 event인 `onremove`에 썼으므로 스크립트가 실행되지 않았습니다. 동작 모델은
+  `{ key, label, behavior: { onclick: script } }`입니다.
+- React, Vue, Svelte, HTML 렌더러, PHP, PHP extension, Go, Rust는 공유 목록 case `actions-toolbar`,
+  `action-script-object`와 상세 case `actions`에서 `onclick`을 씁니다.
+- `tests/widget-script-runs.test.mjs`는 Chromium, Firefox, WebKit에서 HTML, React, Vue, Svelte 렌더러를
+  브라우저에서 렌더링한 경우와 서버에서 렌더링한 뒤 하이드레이션한 경우에 목록 스크립트 동작을 두 번
+  누르고, 누를 때마다 스크립트가 한 번 실행되기를 요구합니다.
+
 ## 2026-10-02 — hook 실패는 파일과 함께 출력됨
 
 - test runner는 실패하거나 제한 시간을 넘긴 hook을 포함해 `node --test`와 Vitest 실행의 모든 실패를

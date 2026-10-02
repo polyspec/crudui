@@ -1,5 +1,17 @@
 # Changes
 
+## 2026-10-02 — Script actions run on click
+
+- A list or detail script action writes its script in `onclick` of its button, so the script runs
+  when the button is clicked. It wrote the script in `on{name}`, for example `onremove` for the
+  action `remove`, an event that a button never fires, so the script never ran. Its action model
+  is `{ key, label, behavior: { onclick: script } }`.
+- React, Vue, Svelte, the HTML renderer, PHP, the PHP extension, Go and Rust write `onclick` in the
+  shared list cases `actions-toolbar` and `action-script-object` and the detail case `actions`.
+- `tests/widget-script-runs.test.mjs` clicks a list script action twice in Chromium, Firefox and
+  WebKit for the HTML, React, Vue and Svelte renderers, rendered in the browser and rendered on
+  the server and hydrated, and requires one run of its script per click.
+
 ## 2026-10-02 — Hook failures are printed with their file
 
 - The test runner prints every failure of a `node --test` or Vitest run with its test file and

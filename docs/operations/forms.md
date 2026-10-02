@@ -139,7 +139,8 @@ run; no engine is skipped.
 `tests/widget-script-runs.test.mjs` runs the script rule in the same three engines for the HTML,
 React, Vue and Svelte renderers, each rendered in the browser and rendered on the server and
 hydrated: a form row script and an `html` list cell script run once on the first render and
-once for each added row, and never on typing, a copied or moved row, a reload or a list re-render.
+once for each added row, and never on typing, a copied or moved row, a reload or a list re-render;
+the script of a list script action runs on each click of its button.
 Record current results in [features](../features.md) and [changelog](../../CHANGELOG.md).
 
 The Svelte package build emits JavaScript, preprocessed Svelte components and

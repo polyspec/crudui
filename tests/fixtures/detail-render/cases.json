@@ -798,7 +798,7 @@
   },
   {
     "name": "actions",
-    "note": "detail actions precede the definition list: a link-format action is an a element, a script string and a script object are buttons with their scripts and an empty action object is a button with its name; labels are translated and escaped.",
+    "note": "detail actions precede the definition list: a link-format action is an a element, a script string and a script object are buttons that hold their scripts in onclick and an empty action object is a button with its name; labels are translated and escaped.",
     "spec": {
       "fields": {
         "name": {
@@ -849,7 +849,7 @@
     "options": {
       "language": "en"
     },
-    "expected_html": "<div class=\"crudui-detail__actions\"><span class=\"crudui-detail__action\" data-action=\"edit\"><a href=\"/members/7/edit\" target=\"_self\">Edit &lt;&amp;&gt;</a></span><span class=\"crudui-detail__action\" data-action=\"remove\"><button onremove=\"confirmDelete(this)\" type=\"button\">remove</button></span><span class=\"crudui-detail__action\" data-action=\"archive\"><button onarchive=\"archive(this)\" type=\"button\">Archive</button></span><span class=\"crudui-detail__action\" data-action=\"back\"><button type=\"button\">back</button></span></div><dl class=\"crudui-detail\"><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">Name</dt><dd class=\"crudui-detail__value crudui-value crudui-value--text\">&lt;Ada &amp; Lin&gt;</dd></div></dl>"
+    "expected_html": "<div class=\"crudui-detail__actions\"><span class=\"crudui-detail__action\" data-action=\"edit\"><a href=\"/members/7/edit\" target=\"_self\">Edit &lt;&amp;&gt;</a></span><span class=\"crudui-detail__action\" data-action=\"remove\"><button onclick=\"confirmDelete(this)\" type=\"button\">remove</button></span><span class=\"crudui-detail__action\" data-action=\"archive\"><button onclick=\"archive(this)\" type=\"button\">Archive</button></span><span class=\"crudui-detail__action\" data-action=\"back\"><button type=\"button\">back</button></span></div><dl class=\"crudui-detail\"><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">Name</dt><dd class=\"crudui-detail__value crudui-value crudui-value--text\">&lt;Ada &amp; Lin&gt;</dd></div></dl>"
   },
   {
     "name": "action-behavior-events",

@@ -241,8 +241,9 @@ columns:
 이를 사용하지 않으며, [폼 컴파일](schema.ko.md)과 메타 스키마가 검사합니다.
 
 `script`가 있는 동작은 스크립트 문자열과 같은 스크립트 동작입니다. 모델은
-`{ key, label, behavior: { on{name}: script } }`이며, `label`은 번역한 값이고 `label`이 없으면 동작
-이름입니다. 다른 동작 객체의 모델은 `{ key, label, format?, behavior? }`이며, `behavior`는 선언한
+`{ key, label, behavior: { onclick: script } }`이며, `label`은 번역한 값이고 `label`이 없으면 동작
+이름입니다. 스크립트 동작은 button이고 button은 `click`을 발생시키므로, 스크립트는 button을 누를 때
+실행됩니다. 다른 동작 객체의 모델은 `{ key, label, format?, behavior? }`이며, `behavior`는 선언한
 `behavior` 멤버 이름마다 그 스크립트 문자열 또는 객체 항목의 `script`를 멤버 순서대로 담습니다.
 스크립트가 있는 항목이 없으면 `behavior`는 없습니다. 모델의 `behavior` 키는 event attribute 이름입니다.
 
@@ -291,8 +292,8 @@ PHP에서는 [PHP API 계약](php-extension.ko.md)이 어떤 PHP 값이 객체�
 동작이 있는 목록은 `<div class="crudui-list__actions">` 안에 동작마다 멤버 순서대로
 `<span class="crudui-list__action" data-action="{key}">`를 쓰며, 형식 타입이 `link`인 동작은 `a`
 요소를, 다른 동작은 `<button type="button">`을 담습니다. 이 요소는 동작 모델의 `behavior` 키마다
-그 키를 이름으로 하고 스크립트를 값으로 하는 attribute를 하나 가집니다. `remove`라는 스크립트 동작은
-`onremove`를, 선언한 `behavior.onclick`은 `onclick`을 씁니다. 동작이 있는 상세는
+그 키를 이름으로 하고 스크립트를 값으로 하는 attribute를 하나 가집니다. 스크립트 동작은
+`onclick`을, 선언한 `behavior.onload`는 `onload`를 씁니다. 동작이 있는 상세는
 `<div class="crudui-detail__actions">` 안에 동작마다 목록 동작과 같은 내부 `a` 또는 `button`
 요소를 담은 `<span class="crudui-detail__action" data-action="{key}">`를 쓰며, 이 요소는
 `dl.crudui-detail` 요소 앞, 문자열 렌더러의 이미지 preload 링크 뒤에 둡니다. 동작이 없는 상세는

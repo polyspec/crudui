@@ -229,8 +229,9 @@ func buildDisplay(spec *Object, rows []*Object, options ListOptions, paths displ
 	if raw := object(read(spec, "actions")); raw != nil {
 		for _, key := range raw.Keys() {
 			v := read(raw, key)
+			// A script string: a button that runs the script when it is clicked.
 			if text, ok := v.(string); ok {
-				actions = append(actions, NewObject("key", key, "label", key, "behavior", NewObject("on"+key, text)))
+				actions = append(actions, NewObject("key", key, "label", key, "behavior", NewObject("onclick", text)))
 				continue
 			}
 			o := object(v)
@@ -240,7 +241,7 @@ func buildDisplay(spec *Object, rows []*Object, options ListOptions, paths displ
 			}
 			// An action object with a script is the object form of a script action.
 			if script, ok := read(o, "script").(string); ok {
-				actions = append(actions, NewObject("key", key, "label", label, "behavior", NewObject("on"+key, script)))
+				actions = append(actions, NewObject("key", key, "label", label, "behavior", NewObject("onclick", script)))
 				continue
 			}
 			a := NewObject("key", key, "label", label)

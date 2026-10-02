@@ -2,7 +2,8 @@
 // and in Chromium, Firefox and WebKit: a server-rendered script runs as the page is parsed and
 // never again on hydration; a client-rendered script, and one in a newly added row or list row,
 // runs when it is inserted; a re-render, a patch or a move never runs a kept script again. jsdom
-// runs cloned scripts, which browsers never run, so only real browsers decide this rule.
+// runs cloned scripts, which browsers never run, so only real browsers decide this rule. A list
+// script action runs its script each time its button is clicked.
 import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
@@ -32,7 +33,10 @@ const scenario = {
     },
   },
   data: { rows: { [first]: { name: 'A', body: 'Text' } } },
-  listSpec: { columns: { name: { field: 'name', label: 'Name' }, note: { field: 'note', label: 'Note', format: { type: 'html' } } } },
+  listSpec: {
+    columns: { name: { field: 'name', label: 'Name' }, note: { field: 'note', label: 'Note', format: { type: 'html' } } },
+    actions: { remove: "scriptRuns.push('action:remove')" },
+  },
   row: tag => ({ name: tag, note: `<b>${tag}</b><script nonce="">scriptRuns.push(${JSON.stringify(`cell:${tag}`)})</script>` }),
 };
 
@@ -159,6 +163,7 @@ window.scriptRunsTest = {
   async act(action) { button('${first}', action).click(); return record(); },
   async reload() { form.setData(form.getData()); return record(); },
   async list(tags) { showList(tags); return record(); },
+  async click(action) { listElement.querySelector('[data-action="' + action + '"] button').click(); return record(); },
 };
 `;
 
@@ -252,7 +257,11 @@ for (const engine of engines) for (const adapter of adapters) for (const mode of
       runs.push('cell:two');
       expectRuns(await call('list', ['one', 'two']), 'adding a list row');
       expectRuns(await call('list', ['two', 'one']), 'reordering list rows');
-      assert.equal(new Set(runs).size, 5);
+      runs.push('action:remove');
+      expectRuns(await call('click', 'remove'), 'clicking a script action');
+      runs.push('action:remove');
+      expectRuns(await call('click', 'remove'), 'clicking a script action again');
+      assert.equal(new Set(runs).size, 6);
       assert.deepEqual(failures, [], 'Scripts must run without browser errors');
     } finally { await tab.close(); }
   });

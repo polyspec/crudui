@@ -233,7 +233,7 @@ const SCENARIOS: DetailFixtureCase[] = [
   },
   {
     name: 'actions',
-    note: 'detail actions precede the definition list: a link-format action is an a element, a script string and a script object are buttons with their scripts and an empty action object is a button with its name; labels are translated and escaped.',
+    note: 'detail actions precede the definition list: a link-format action is an a element, a script string and a script object are buttons that hold their scripts in onclick and an empty action object is a button with its name; labels are translated and escaped.',
     spec: {
       fields: { name: { field: 'name', label: 'Name' } },
       actions: {

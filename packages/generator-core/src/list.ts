@@ -121,7 +121,8 @@ export interface ActionVM {
   format?: CellFormatModel;
   /**
    * Event attribute names mapped to their opaque scripts (preserved verbatim), when present:
-   * the declared `behavior` member names, or `on{key}` for a script action.
+   * the declared `behavior` member names, or `onclick` for a script action, whose button runs
+   * its script when it is clicked.
    */
   behavior?: Record<string, string>;
   /** Resolved action design, when present. */
@@ -249,15 +250,15 @@ function resolveActions(
   const out: ActionVM[] = [];
   for (const [key, raw] of Object.entries(actions)) {
     if (typeof raw === 'string') {
-      // A script string: the script under the event attribute on{name}.
-      out.push({ key, label: key, behavior: { [`on${key}`]: raw } });
+      // A script string: a button that runs the script when it is clicked.
+      out.push({ key, label: key, behavior: { onclick: raw } });
       continue;
     }
     const declared = raw as Record<string, unknown>;
     const label = declared.label !== undefined ? t(declared.label as LocalizedText) : key;
     // An action object with a script is the object form of a script action.
     if (typeof declared.script === 'string') {
-      out.push({ key, label, behavior: { [`on${key}`]: declared.script } });
+      out.push({ key, label, behavior: { onclick: declared.script } });
       continue;
     }
     const action: ActionVM = { key, label };

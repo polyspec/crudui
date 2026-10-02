@@ -266,8 +266,9 @@ The members of a `search` object are form declarations: the list model does not 
 [form compilation](schema.md#fields) and the meta-schema check them.
 
 An action with `script` is a script action, as a script string is: its model is
-`{ key, label, behavior: { on{name}: script } }`, with `label` translated or the action name when
-`label` is absent. Another action object has the model `{ key, label, format?, behavior? }`, whose
+`{ key, label, behavior: { onclick: script } }`, with `label` translated or the action name when
+`label` is absent. A script action is a button, and a button fires `click`, so its script runs
+when the button is clicked. Another action object has the model `{ key, label, format?, behavior? }`, whose
 `behavior` maps each declared `behavior` member name to its script string or to the `script` of
 its object entry, in member order; it is absent when no entry has a script. A `behavior` key of
 the model is the event attribute name.
@@ -322,8 +323,8 @@ A list with actions writes `<div class="crudui-list__actions">` with one
 `<span class="crudui-list__action" data-action="{key}">` per action in member order, holding an
 `a` element for an action whose format type is `link` and a `<button type="button">` for any
 other action. That element has one attribute per `behavior` key of the action model, named by the
-key and holding the script: a script action named `remove` writes `onremove`, and a declared
-`behavior.onclick` writes `onclick`. A detail with actions writes `<div class="crudui-detail__actions">` holding one
+key and holding the script: a script action writes `onclick`, and a declared
+`behavior.onload` writes `onload`. A detail with actions writes `<div class="crudui-detail__actions">` holding one
 `<span class="crudui-detail__action" data-action="{key}">` per action with the same inner `a` or
 `button` element that a list action writes, before the `dl.crudui-detail` element and after the
 image preload links of the string renderers. A detail without actions writes only the preload links and the
