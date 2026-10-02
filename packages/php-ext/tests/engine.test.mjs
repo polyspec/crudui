@@ -1860,7 +1860,7 @@ const sources = [
 ];
 
 test('PHP extension engine renders the complete list target as exact HTML', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  assert.equal(fixtures.length, 155,
+  assert.equal(fixtures.length, 156,
     'Review C list coverage when the shared fixture inventory changes');
   assert.equal(numberCases.length, 17,
     'Review C number coverage when the native number inventory changes');
@@ -1980,7 +1980,7 @@ const sources = [
 ];
 
 test('PHP extension engine renders and builds every shared detail fixture', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  assert.equal(fixtures.length, 61,
+  assert.equal(fixtures.length, 62,
     'Review C detail coverage when the shared fixture inventory changes');
   const missing = expectation('build', fixtures.find(fixture => fixture.name === 'missing-value'));
   assert.equal(missing.value.fields[0].value, null);

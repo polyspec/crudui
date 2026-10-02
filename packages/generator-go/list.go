@@ -230,7 +230,7 @@ func buildDisplay(spec *Object, rows []*Object, options ListOptions, paths displ
 		for _, key := range raw.Keys() {
 			v := read(raw, key)
 			if text, ok := v.(string); ok {
-				actions = append(actions, NewObject("key", key, "label", key, "behavior", NewObject(key, text)))
+				actions = append(actions, NewObject("key", key, "label", key, "behavior", NewObject("on"+key, text)))
 				continue
 			}
 			o := object(v)
@@ -240,7 +240,7 @@ func buildDisplay(spec *Object, rows []*Object, options ListOptions, paths displ
 			}
 			// An action object with a script is the object form of a script action.
 			if script, ok := read(o, "script").(string); ok {
-				actions = append(actions, NewObject("key", key, "label", label, "behavior", NewObject(key, script)))
+				actions = append(actions, NewObject("key", key, "label", label, "behavior", NewObject("on"+key, script)))
 				continue
 			}
 			a := NewObject("key", key, "label", label)
@@ -515,7 +515,7 @@ func actionsHTML(actions []*Object, block string) string {
 		}
 		if b := object(read(action, "behavior")); b != nil {
 			for _, k := range b.Keys() {
-				at.Set("on"+k, read(b, k))
+				at.Set(k, read(b, k))
 			}
 		}
 		toolbar += element("span", NewObject("class", block+"__action", "data-action", stringAt(action, "key")), "<"+tag+attrs(at, true, false)+">"+escapeText(stringAt(action, "label"))+"</"+tag+">")

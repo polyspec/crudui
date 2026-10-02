@@ -44,12 +44,12 @@ function nodeStyle(style: string): React.CSSProperties | undefined {
 // actions (toolbar) — behavior is an opaque on* passthrough (raw boundary).
 // ---------------------------------------------------------------------------
 
-/** An action's behavior map → ` on<ev>="script"` raw attr string (verbatim). */
+/** An action's behavior map → ` attribute="script"` raw attr string (verbatim). */
 function behaviorAttrs(behavior: Record<string, string> | undefined): string {
   if (!behavior) return '';
   let out = '';
-  for (const [ev, script] of Object.entries(behavior)) {
-    out += ` on${escAttr(ev)}="${escAttr(script)}"`;
+  for (const [attribute, script] of Object.entries(behavior)) {
+    out += ` ${escAttr(attribute)}="${escAttr(script)}"`;
   }
   return out;
 }
