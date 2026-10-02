@@ -247,6 +247,19 @@ const SCENARIOS: DetailFixtureCase[] = [
     options: { language: 'en' },
   },
   {
+    name: 'action-behavior-events',
+    note: 'a behavior member is the event attribute: each declared script or script object is written once under its member name, on a button and on a link.',
+    spec: {
+      fields: { name: { field: 'name', label: 'Name' } },
+      actions: {
+        edit: { label: { en: 'Edit' }, format: { type: 'link', href: '/members/7/edit' }, behavior: { onclick: 'track(this)' } },
+        remove: { label: { en: 'Remove' }, behavior: { onclick: { label: { en: 'Remove' }, script: 'confirmDelete(this)' }, onload: 'prepare(this)' } },
+      },
+    },
+    record: ADA,
+    options: { language: 'en' },
+  },
+  {
     name: 'actions-with-image',
     note: 'the image preload links of a string renderer precede the actions, and the actions precede the definition list.',
     spec: {

@@ -364,7 +364,7 @@ function action(action: ActionVM, block: 'crudui-list' | 'crudui-detail'): strin
   } else {
     values.type = 'button';
   }
-  for (const [event, script] of Object.entries(action.behavior ?? {})) values[`on${event}`] = scalar(script);
+  for (const [attribute, script] of Object.entries(action.behavior ?? {})) values[attribute] = scalar(script);
   return element('span', { class: `${block}__action`, 'data-action': action.key }, `<${tag}${attrs(values, true)}>${escapeText(action.label)}</${tag}>`);
 }
 

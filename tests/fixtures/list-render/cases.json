@@ -1566,6 +1566,55 @@
     "expected_html": "<div class=\"crudui-list\"><div class=\"crudui-list__actions\"><span class=\"crudui-list__action\" data-action=\"edit\"><a href=\"/edit\">Edit</a></span><span class=\"crudui-list__action\" data-action=\"remove\"><button onremove=\"confirmDelete(this)\" type=\"button\">remove</button></span></div><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading\" data-field=\"name\"><span class=\"crudui-list__heading-label\">Name</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--text\">Ada</td></tr></tbody></table></div>"
   },
   {
+    "name": "action-behavior-events",
+    "note": "a behavior member is the event attribute: each declared script or script object is written once under its member name, on a button and on a link.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "label": "Name"
+        }
+      },
+      "actions": {
+        "edit": {
+          "label": {
+            "en": "Edit"
+          },
+          "format": {
+            "type": "link",
+            "href": "/edit"
+          },
+          "behavior": {
+            "onclick": "track(this)"
+          }
+        },
+        "remove": {
+          "label": {
+            "en": "Remove"
+          },
+          "behavior": {
+            "onclick": {
+              "label": {
+                "en": "Remove"
+              },
+              "script": "confirmDelete(this)"
+            },
+            "onload": "prepare(this)"
+          }
+        }
+      }
+    },
+    "rows": [
+      {
+        "name": "Ada"
+      }
+    ],
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-list\"><div class=\"crudui-list__actions\"><span class=\"crudui-list__action\" data-action=\"edit\"><a href=\"/edit\" onclick=\"track(this)\">Edit</a></span><span class=\"crudui-list__action\" data-action=\"remove\"><button onclick=\"confirmDelete(this)\" onload=\"prepare(this)\" type=\"button\">Remove</button></span></div><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading\" data-field=\"name\"><span class=\"crudui-list__heading-label\">Name</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--text\">Ada</td></tr></tbody></table></div>"
+  },
+  {
     "name": "description-before-actions",
     "note": "a translated description is the first child of the list, before the actions; its text is escaped.",
     "spec": {

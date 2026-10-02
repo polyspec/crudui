@@ -66,8 +66,8 @@ final class Lists
             } else {
                 $attrsAction['type'] = 'button';
             }
-            foreach ($action->behavior ?? [] as $event => $script) {
-                $attrsAction['on' . $event] = $script;
+            foreach ($action->behavior ?? [] as $attribute => $script) {
+                $attrsAction[$attribute] = $script;
             }
             $html .= Rendering::element('span', ['class' => $block . '__action', 'data-action' => $action->key], Rendering::element($tag, $attrsAction, Rendering::text($action->label, true), true));
         }
@@ -210,14 +210,14 @@ final class Lists
         if (($spec->actions ?? null) instanceof stdClass) {
             foreach ($spec->actions as $key => $raw) {
                 if (is_string($raw)) {
-                    $actions[] = (object) ['key' => $key, 'label' => $key, 'behavior' => (object) [$key => $raw]];
+                    $actions[] = (object) ['key' => $key, 'label' => $key, 'behavior' => (object) ['on' . $key => $raw]];
                     continue;
                 }
                 $raw = (object) $raw;
                 $label = property_exists($raw, 'label') ? Value::translate($raw->label, $language) : $key;
                 // An action object with a script is the object form of a script action.
                 if (is_string($raw->script ?? null)) {
-                    $actions[] = (object) ['key' => $key, 'label' => $label, 'behavior' => (object) [$key => $raw->script]];
+                    $actions[] = (object) ['key' => $key, 'label' => $label, 'behavior' => (object) ['on' . $key => $raw->script]];
                     continue;
                 }
                 $action = ['key' => $key, 'label' => $label];

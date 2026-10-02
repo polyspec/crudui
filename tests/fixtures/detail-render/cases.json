@@ -852,6 +852,68 @@
     "expected_html": "<div class=\"crudui-detail__actions\"><span class=\"crudui-detail__action\" data-action=\"edit\"><a href=\"/members/7/edit\" target=\"_self\">Edit &lt;&amp;&gt;</a></span><span class=\"crudui-detail__action\" data-action=\"remove\"><button onremove=\"confirmDelete(this)\" type=\"button\">remove</button></span><span class=\"crudui-detail__action\" data-action=\"archive\"><button onarchive=\"archive(this)\" type=\"button\">Archive</button></span><span class=\"crudui-detail__action\" data-action=\"back\"><button type=\"button\">back</button></span></div><dl class=\"crudui-detail\"><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">Name</dt><dd class=\"crudui-detail__value crudui-value crudui-value--text\">&lt;Ada &amp; Lin&gt;</dd></div></dl>"
   },
   {
+    "name": "action-behavior-events",
+    "note": "a behavior member is the event attribute: each declared script or script object is written once under its member name, on a button and on a link.",
+    "spec": {
+      "fields": {
+        "name": {
+          "field": "name",
+          "label": "Name"
+        }
+      },
+      "actions": {
+        "edit": {
+          "label": {
+            "en": "Edit"
+          },
+          "format": {
+            "type": "link",
+            "href": "/members/7/edit"
+          },
+          "behavior": {
+            "onclick": "track(this)"
+          }
+        },
+        "remove": {
+          "label": {
+            "en": "Remove"
+          },
+          "behavior": {
+            "onclick": {
+              "label": {
+                "en": "Remove"
+              },
+              "script": "confirmDelete(this)"
+            },
+            "onload": "prepare(this)"
+          }
+        }
+      }
+    },
+    "record": {
+      "id": 7,
+      "name": "<Ada & Lin>",
+      "status": "active",
+      "joined": "2026-01-02T09:00:00",
+      "score": 1234567.5,
+      "admin": 1,
+      "avatar": "/img/ada.png",
+      "notes": "<b>bold</b>",
+      "jointablename": {
+        "id": 107
+      },
+      "join": {
+        "join": {
+          "name": "<Ada & Lin>"
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-detail__actions\"><span class=\"crudui-detail__action\" data-action=\"edit\"><a href=\"/members/7/edit\" onclick=\"track(this)\">Edit</a></span><span class=\"crudui-detail__action\" data-action=\"remove\"><button onclick=\"confirmDelete(this)\" onload=\"prepare(this)\" type=\"button\">Remove</button></span></div><dl class=\"crudui-detail\"><div class=\"crudui-detail__field\"><dt class=\"crudui-detail__label\">Name</dt><dd class=\"crudui-detail__value crudui-value crudui-value--text\">&lt;Ada &amp; Lin&gt;</dd></div></dl>"
+  },
+  {
     "name": "actions-with-image",
     "note": "the image preload links of a string renderer precede the actions, and the actions precede the definition list.",
     "spec": {

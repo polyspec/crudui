@@ -87,14 +87,14 @@ function escText(s: string): string {
 /**
  * Serialize an action's behavior on* attrs to a raw attr string (one of the
  * sanctioned raw boundaries — opaque host scripts, preserved verbatim). Returns
- * '' when the action carries no behavior. Each behavior key is a DOM event name
- * (e.g. `click`); its value is the opaque script body kept verbatim by the core.
+ * '' when the action carries no behavior. Each behavior key is an event attribute name
+ * (e.g. `onclick`); its value is the opaque script body kept verbatim by the core.
  */
 export function actionBehaviorAttrs(action: ActionVM): string {
   if (!action.behavior) return '';
   let out = '';
-  for (const [ev, script] of Object.entries(action.behavior)) {
-    out += ` on${escAttr(ev)}="${escAttr(script)}"`;
+  for (const [attribute, script] of Object.entries(action.behavior)) {
+    out += ` ${escAttr(attribute)}="${escAttr(script)}"`;
   }
   return out;
 }

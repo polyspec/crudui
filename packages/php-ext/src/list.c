@@ -1044,7 +1044,8 @@ static bool append_toolbar(list_context *context, const char *block)
         if (ok && link && string_member(format, "target").length)
             ok = ps_html_attr_text(attrs, "target", string_member(format, "target"));
         const ps_value *behavior = action->kind == PS_STRING ? NULL : member(action, "behavior");
-        /* A script string, or an object with a script: the script under the action name. */
+        /* A script string, or an object with a script: the script under on<action name>; a
+           behavior member name is the event attribute name. */
         const ps_value *script = action->kind == PS_STRING ? action : member(action, "script");
         if (script) {
             ok = ok && set_event(attrs, key, script);
@@ -1053,7 +1054,7 @@ static bool append_toolbar(list_context *context, const char *block)
                 const ps_value *script = ps_at(behavior, j);
                 if (script && script->kind == PS_OBJECT) script = member(script, "script");
                 if (!script || script->kind != PS_STRING) continue;
-                ok = set_event(attrs, ps_key(behavior, j), script);
+                ok = ps_set_text(attrs, ps_key(behavior, j), ps_value_clone(script));
             }
         }
         if (ok) ok = write_element_start(&context->output, "span", span) &&
@@ -1592,14 +1593,15 @@ static bool append_actions_model(const list_context *context, ps_value *actions)
     for (size_t i = 0; ok && declared_actions && declared_actions->kind == PS_OBJECT && i < ps_size(declared_actions); ++i) {
         ps_text key = ps_key(declared_actions, i);
         const ps_value *raw = ps_at(declared_actions, i);
-        /* A script string, or an object with a script: the script under the action name. */
+        /* A script string, or an object with a script: the script under on<action name>; a
+           behavior member name is the event attribute name. */
         const ps_value *script = raw->kind == PS_STRING ? raw : member(raw, "script");
         ps_value *action = ps_object_value();
         ps_chars label = action_label(raw, key, context->language);
         ok = action && label.bytes && set_text(action, "key", key) && set_text(action, "label", ps_view(label));
         if (ok && script) {
             ps_value *behavior = ps_object_value();
-            ok = behavior && ps_set_text(behavior, key, ps_value_clone(script)) && set_value(action, "behavior", &behavior);
+            ok = behavior && set_event(behavior, key, script) && set_value(action, "behavior", &behavior);
             ps_value_free(behavior);
         } else if (ok && member(raw, "format")) {
             const ps_value *raw_format = member(raw, "format");

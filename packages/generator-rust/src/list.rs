@@ -370,7 +370,7 @@ pub(crate) fn build_display(
     let mut actions = Vec::new();
     for (key, raw) in spec["actions"].as_object().into_iter().flatten() {
         if let Some(script) = raw.as_str() {
-            actions.push(json!({"key":key,"label":key,"behavior":{key:script}}));
+            actions.push(json!({"key":key,"label":key,"behavior":{format!("on{key}"):script}}));
             continue;
         }
         let label = raw
@@ -379,7 +379,7 @@ pub(crate) fn build_display(
             .unwrap_or_else(|| key.clone());
         // An action object with a script is the object form of a script action.
         if let Some(script) = raw["script"].as_str() {
-            actions.push(json!({"key":key,"label":label,"behavior":{key:script}}));
+            actions.push(json!({"key":key,"label":label,"behavior":{format!("on{key}"):script}}));
             continue;
         }
         let mut action = json!({"key":key,"label":label});
@@ -507,8 +507,8 @@ pub(crate) fn actions_html(actions: &Value, block: &str) -> String {
                 attrs["target"] = target.into();
             }
         }
-        for (event, script) in action["behavior"].as_object().into_iter().flatten() {
-            attrs[format!("on{event}")] = script.clone();
+        for (attribute, script) in action["behavior"].as_object().into_iter().flatten() {
+            attrs[attribute.as_str()] = script.clone();
         }
         toolbar += &element(
             "span",

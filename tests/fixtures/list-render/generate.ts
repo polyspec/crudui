@@ -416,6 +416,20 @@ const SCENARIOS: ListFixtureCase[] = [
     options: { language: 'en' },
   },
 
+  {
+    name: 'action-behavior-events',
+    note: 'a behavior member is the event attribute: each declared script or script object is written once under its member name, on a button and on a link.',
+    spec: {
+      columns: { name: { field: 'name', label: 'Name' } },
+      actions: {
+        edit: { label: { en: 'Edit' }, format: { type: 'link', href: '/edit' }, behavior: { onclick: 'track(this)' } },
+        remove: { label: { en: 'Remove' }, behavior: { onclick: { label: { en: 'Remove' }, script: 'confirmDelete(this)' }, onload: 'prepare(this)' } },
+      },
+    },
+    rows: [{ name: 'Ada' }],
+    options: { language: 'en' },
+  },
+
   // --- description (the first child of the list, before the actions) ---
   {
     name: 'description-before-actions',

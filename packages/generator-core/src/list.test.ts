@@ -247,6 +247,6 @@ describe('buildList — pagination / actions polymorphism', () => {
     );
     expect(vm.actions[0]).toMatchObject({ key: 'edit', label: 'Edit' });
     expect(vm.actions[0]!.format!.type).toBe('link');
-    expect(vm.actions[1]).toEqual({ key: 'remove', label: 'remove', behavior: { remove: 'confirmDelete(this)' } });
+    expect(vm.actions[1]).toEqual({ key: 'remove', label: 'remove', behavior: { onremove: 'confirmDelete(this)' } });
   });
 });

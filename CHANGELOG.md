@@ -1,5 +1,17 @@
 # Changes
 
+## 2026-10-02 — Action behavior members are event attributes
+
+- A list or detail action writes each declared `behavior` member as the attribute of that name:
+  `behavior.onclick` writes `onclick`. Every renderer prefixed `on` to the member name, so
+  `behavior: { onclick: … }` wrote `ononclick`, an attribute that no browser runs.
+- The action model holds the event attribute name as each `behavior` key. A script action keeps
+  its script under `on{name}`, so a script action writes the same `on{name}` attribute as before,
+  and its model key is now `on{name}` instead of `{name}`.
+- React, Vue, Svelte, the HTML renderer, PHP, the PHP extension, Go and Rust render the shared
+  list and detail case `action-behavior-events`, a link and a button with string and object
+  entries.
+
 ## 2026-10-02 — Form and list descriptions and detail actions
 
 - The `crudui-form` block writes the translated root `description` as

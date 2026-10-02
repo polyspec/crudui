@@ -1,5 +1,16 @@
 # 변경 기록
 
+## 2026-10-02 — 동작 behavior 멤버는 event attribute
+
+- 목록과 상세 동작은 선언한 `behavior` 멤버를 각각 같은 이름의 attribute로 씁니다.
+  `behavior.onclick`은 `onclick`을 씁니다. 모든 renderer가 멤버 이름 앞에 `on`을 붙여
+  `behavior: { onclick: … }`가 어떤 브라우저도 실행하지 않는 `ononclick`을 썼습니다.
+- 동작 모델은 각 `behavior` 키로 event attribute 이름을 가집니다. 스크립트 동작은 스크립트를
+  `on{name}` 아래에 두므로 이전과 같은 `on{name}` attribute를 쓰며, 모델 키는 `{name}` 대신
+  `on{name}`입니다.
+- React, Vue, Svelte, HTML renderer, PHP, PHP extension, Go, Rust가 문자열 항목과 객체 항목을 가진
+  링크와 버튼의 공유 목록·상세 case `action-behavior-events`를 렌더합니다.
+
 ## 2026-10-02 — 폼과 목록의 설명, 상세 동작
 
 - `crudui-form` 블록은 번역한 루트 `description`을 폼 오류와 본문 앞의
