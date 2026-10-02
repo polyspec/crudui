@@ -138,12 +138,33 @@ describe('matcher', () => {
     expect(matches('\\p{L}|\\p{Script=Latin}|\\p{Script=Common}', '\ud800')).toBe(false);
     expect(matches('..', '𐀀')).toBe(false);
   });
-  test('matching time is linear in the text', () => {
-    const start = Date.now();
-    expect(matches('(?:.*a){12}c', 'a'.repeat(60))).toBe(false);
-    expect(matches('(?:.*a){12}c', 'a'.repeat(20000))).toBe(false);
-    expect(matches('\\p{L}{1000}', 'é'.repeat(1000))).toBe(true);
-    expect(matches('(a|aa)*b', 'a'.repeat(50000))).toBe(false);
-    expect(Date.now() - start).toBeLessThan(2000);
+  test('matching reads each code point of the text once', () => {
+    // A text whose code point reads are counted: a second read of a position throws, so a matcher
+    // that went back over the text fails at once instead of taking exponential time.
+    const counted = (text: string) => {
+      const read = new Uint8Array(text.length);
+      let reads = 0;
+      const view = {
+        length: text.length,
+        codePointAt(index: number) {
+          if (read[index]) throw new Error(`position ${index} was read twice`);
+          read[index] = 1;
+          reads++;
+          return text.codePointAt(index);
+        },
+      };
+      return { text: view as unknown as string, reads: () => reads };
+    };
+    for (const [pattern, text, expected] of [
+      ['(?:.*a){12}c', 'a'.repeat(60), false],
+      ['(?:.*a){12}c', 'a'.repeat(20000), false],
+      ['\\p{L}{1000}', 'é'.repeat(1000), true],
+      ['\\p{L}{1000}', '𐐀'.repeat(1000), true],
+      ['(a|aa)*b', 'a'.repeat(50000), false],
+    ] as const) {
+      const input = counted(text);
+      expect(compilePattern(pattern).test(input.text), pattern).toBe(expected);
+      expect(input.reads(), pattern).toBe([...text].length);
+    }
   });
 });

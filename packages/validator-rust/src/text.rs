@@ -697,24 +697,11 @@ pub fn validate_detail_text(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::time::{Duration, Instant};
 
     /// An object of `count` distinct members.
     fn object(count: usize) -> String {
         let members: Vec<String> = (0..count).map(|i| format!("\"m{i}\":{i}")).collect();
         format!("{{{}}}", members.join(","))
-    }
-
-    /// The shortest of three reads of `text`.
-    fn read_time(text: &str) -> Duration {
-        (0..3)
-            .map(|_| {
-                let started = Instant::now();
-                JsonText::parse(text).unwrap();
-                started.elapsed()
-            })
-            .min()
-            .unwrap()
     }
 
     #[test]
@@ -736,16 +723,12 @@ mod tests {
         assert_eq!(serde_json::to_string(&decoded).unwrap(), source);
     }
 
+    /// An object of 100,000 distinct members, each found in constant time, is read within a
+    /// second; comparing each member with every earlier one makes 5 * 10^9 comparisons and does
+    /// not end before the per-test timeout of scripts/run-tests.mjs.
     #[test]
-    fn reading_members_takes_time_linear_in_their_count() {
-        // Four times the members takes about four times as long when each
-        // member is found in constant time, and sixteen times as long when each
-        // is compared with every earlier one.
-        let small = read_time(&object(5_000));
-        let large = read_time(&object(20_000));
-        assert!(
-            large < small * 8,
-            "5000 members: {small:?}, 20000 members: {large:?}"
-        );
+    fn reading_many_members_ends() {
+        JsonText::parse(&object(100_000)).unwrap();
+        assert!(JsonText::parse(&format!("{{\"m0\":0,{}", &object(100_000)[1..])).is_err());
     }
 }

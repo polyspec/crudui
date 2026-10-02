@@ -3,7 +3,6 @@ package validate
 import (
 	"strings"
 	"testing"
-	"time"
 )
 
 func TestPatternOutsideTheLanguage(t *testing.T) {
@@ -240,8 +239,9 @@ func TestPatternRepeatedAtomsShareOneSet(t *testing.T) {
 	}
 }
 
-// TestPatternMatchingIsLinear matches inputs that take exponential or large
-// polynomial time in backtracking engines.
+// TestPatternMatchingIsLinear matches inputs that take exponential or large polynomial time in
+// backtracking engines. A linear matcher ends them within milliseconds; a backtracking one does
+// not end before the per-test timeout of scripts/run-tests.mjs, which fails the test.
 func TestPatternMatchingIsLinear(t *testing.T) {
 	cases := []struct {
 		source string
@@ -256,16 +256,12 @@ func TestPatternMatchingIsLinear(t *testing.T) {
 	}
 	for _, c := range cases {
 		source, text := unescapeTest(c.source), unescapeTest(c.text)
-		began := time.Now()
 		m, perr := compilePattern(source)
 		if perr != nil {
 			t.Fatalf("%q: %+v", source, perr)
 		}
 		if got := m.matches(text); got != c.want {
 			t.Errorf("%q matched %v", source, got)
-		}
-		if elapsed := time.Since(began); elapsed > 500*time.Millisecond {
-			t.Errorf("%q took %v", source, elapsed)
 		}
 	}
 }

@@ -3,7 +3,6 @@
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
-#include <time.h>
 
 typedef struct {
     size_t count;
@@ -37,32 +36,25 @@ static ps_value *integer(int64_t input)
     return value;
 }
 
-static double seconds(void)
+/*
+ * Insert count array index names in descending order and order them. 400,000 members are
+ * inserted and ordered within a second; an insertion that compared each name with every earlier
+ * one makes 8 * 10^10 comparisons and does not end before the timeout of the test.
+ */
+static void insert_and_order(size_t count)
 {
-    struct timespec now;
-    timespec_get(&now, TIME_UTC);
-    return (double)now.tv_sec + (double)now.tv_nsec / 1e9;
-}
-
-/* The shortest of three runs that insert count array index names in descending order and order them. */
-static double member_time(size_t count)
-{
-    double best = -1;
-    for (int run = 0; run < 3; ++run) {
-        ps_value *object = ps_object_value();
-        assert(object);
-        double started = seconds();
-        for (size_t i = 0; i < count; ++i) {
-            char key[32]; snprintf(key, sizeof(key), "%zu", count - i);
-            assert(ps_set(object, key, integer(1)));
-        }
-        assert(ps_value_order(object));
-        double elapsed = seconds() - started;
-        assert(ps_text_is(ps_key(object, 0), "1"));
-        ps_value_free(object);
-        if (best < 0 || elapsed < best) best = elapsed;
+    ps_value *object = ps_object_value();
+    assert(object);
+    for (size_t i = 0; i < count; ++i) {
+        char key[32]; snprintf(key, sizeof(key), "%zu", count - i);
+        assert(ps_set(object, key, integer(1)));
     }
-    return best;
+    assert(ps_value_order(object));
+    assert(ps_size(object) == count);
+    assert(ps_text_is(ps_key(object, 0), "1"));
+    char last[32]; snprintf(last, sizeof(last), "%zu", count);
+    assert(ps_text_is(ps_key(object, count - 1), last));
+    ps_value_free(object);
 }
 
 int main(void)
@@ -214,11 +206,6 @@ int main(void)
     assert(many_copy && ps_equal(many, many_copy) && ps_get(many_copy, "name1")->data.integer == 998);
     ps_value_free(many_copy); ps_value_free(many);
 
-    /* Four times the members take about four times as long to insert and order, not sixteen. */
-    double small = member_time(10000), large = member_time(40000);
-    if (!(large < small * 8)) {
-        fprintf(stderr, "10000 members: %.4fs, 40000 members: %.4fs\n", small, large);
-        return 1;
-    }
+    insert_and_order(400000);
     return 0;
 }

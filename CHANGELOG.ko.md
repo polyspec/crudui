@@ -1,5 +1,28 @@
 # 변경 기록
 
+## 2026-10-02 — 선형 시간 검사는 시계를 읽지 않음
+
+- validator와 PHP extension engine의 선형 시간 검사는 시계를 읽지 않습니다. 이 검사들은 경과 시간을
+  제한값이나 서로와 비교하여 기계의 load average가 28에서 38일 때 실패하고 단독으로는 통과했으며,
+  `make conformance`와 `make ci`가 한 번의 전체 실행에서 상태 0으로 끝나지 않았습니다.
+- JavaScript 검사는 읽기를 셉니다. 각 행 값과 반복 값의 getter는 같은 값이 열 개 중에 있을 때의
+  읽기 수를 넘는 읽기에서 실패하고, 세는 `codePointAt`은 텍스트 위치를 두 번째로 읽으면 실패합니다.
+  PHP, Go, Rust 검사와 PHP extension engine fixture는 선형 구현이 몇 초 안에 끝내고 이차 시간이나
+  지수 시간 구현이 테스트 제한 시간 안에 끝내지 못하는 입력을 검증, 해석, 매칭, 정렬합니다. 규칙
+  대신 `serde_json::to_value`를 측정하던 Rust test는 제거했습니다.
+- validator와 generator package의 PHPUnit은 자체 시간 제한을 두지 않으므로 test runner의 30초 제한
+  시간이 PHP 테스트의 유일한 제한입니다.
+- `npm run test:runtimes`가 실행하는 `tests/build/validator-test-clocks.test.mjs`는 validator
+  테스트나 PHP extension engine fixture가 시계를 읽으면 실패합니다.
+- request generator 500개를 배포 규모 작업 없이 생성하는지 확인하는 form comparison 검사는 경과 시간을
+  250 ms와 비교하여 부하에서 994 ms로 실패했습니다. 이제 PHP process의 10초 제한 안에 끝나기를
+  요구합니다.
+- PHP extension engine test의 budget은 30초와 60초 대신 120초, sanitizer를 쓰면 300초입니다. values
+  fixture는 load average 45에서 23.7초가 걸렸고, sanitizer 실행은 load average 107에서 54초 안에
+  끝나지 않았습니다.
+- stylesheet layout 검사는 세 browser를 120초 hook 제한 안에 닫습니다. load average 100에서 닫기가
+  기본 제한 30초를 넘어 61개 검사가 모두 통과한 뒤 `npm run test:forms`가 실패했습니다.
+
 ## 2026-10-02 — 동작 behavior 멤버는 event attribute
 
 - 목록과 상세 동작은 선언한 `behavior` 멤버를 각각 같은 이름의 attribute로 씁니다.

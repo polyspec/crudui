@@ -1325,7 +1325,6 @@ pub fn resolve_field_reference<'a>(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::time::Instant;
 
     #[test]
     fn test_comparison_key_canonical_json() {
@@ -1366,124 +1365,17 @@ mod tests {
         }
     }
 
+    /// 100,000 distinct values are keyed once each within seconds; comparing each value with
+    /// every earlier one makes 5 * 10^9 comparisons and does not end before the per-test timeout
+    /// of scripts/run-tests.mjs.
     #[test]
-    fn test_unique_linear_time() {
-        // This test verifies that are_all_unique checks scale linearly.
-        // We compare n values vs 4n values and verify the time ratio is well below 16.
-
-        // Build n test values (n=100)
-        let n = 100;
-        let n_values = build_unique_test_values(n);
-        let n_refs: Vec<&Value> = n_values.iter().collect();
-
-        // Time are_all_unique for n values (100 iterations)
-        let start = Instant::now();
-        for _ in 0..100 {
-            are_all_unique(&n_refs);
-        }
-        let duration_n = start.elapsed();
-
-        // Build 4n test values
-        let four_n_values = build_unique_test_values(n * 4);
-        let four_n_refs: Vec<&Value> = four_n_values.iter().collect();
-
-        // Time are_all_unique for 4n values (100 iterations)
-        let start = Instant::now();
-        for _ in 0..100 {
-            are_all_unique(&four_n_refs);
-        }
-        let duration_4n = start.elapsed();
-
-        // Check ratio: should be close to 4, well below 16
-        let ratio = duration_4n.as_secs_f64() / duration_n.as_secs_f64();
-
-        println!("Time for {} values: {:?}", n, duration_n);
-        println!("Time for {} values: {:?}", n * 4, duration_4n);
-        println!("Ratio: {:.2}", ratio);
-
-        assert!(
-            ratio < 16.0,
-            "Time ratio for 4n vs n = {:.2}, want < 16 (linear time not quadratic)",
-            ratio
-        );
-    }
-
-    fn build_unique_test_values(count: usize) -> Vec<Value> {
-        let mut values = Vec::new();
-        for i in 0..count {
-            // Create objects with different key orders to test canonical JSON
-            if i % 2 == 0 {
-                values.push(serde_json::json!({
-                    "a": i,
-                    "b": "test",
-                    "c": true,
-                }));
-            } else {
-                values.push(serde_json::json!({
-                    "c": true,
-                    "b": "test",
-                    "a": i,
-                }));
-            }
-        }
-        values
-    }
-
-    #[test]
-    fn test_unique_row_level_linear_time() {
-        // Test that item-level unique checks scale linearly with the number of rows.
-        // We compare n rows vs 4n rows and ensure the ratio is well below 8.
-        // Each run should take 20-200ms; we take the best of 3 runs each.
-
-        let measure_row_unique = |row_count: usize| -> std::time::Duration {
-            let mut best_duration = std::time::Duration::MAX;
-
-            for _ in 0..3 {
-                let data = build_row_unique_test_data(row_count);
-
-                let start = Instant::now();
-                // Simulate validating all rows for row-level unique
-                for _ in 0..10 {
-                    let _ = serde_json::to_value(&data).unwrap();
-                }
-                let duration = start.elapsed();
-
-                if duration < best_duration {
-                    best_duration = duration;
-                }
-            }
-
-            best_duration
-        };
-
-        let n = 100;
-        let duration_n = measure_row_unique(n);
-        let duration_4n = measure_row_unique(n * 4);
-
-        let ratio = duration_4n.as_secs_f64() / duration_n.as_secs_f64();
-
-        println!("Row-level unique time for {} rows: {:?}", n, duration_n);
-        println!(
-            "Row-level unique time for {} rows: {:?}",
-            n * 4,
-            duration_4n
-        );
-        println!("Ratio: {:.2}", ratio);
-
-        assert!(
-            ratio < 8.0,
-            "Row-level time ratio for 4n vs n = {:.2}, want < 8 (linear time not quadratic)",
-            ratio
-        );
-    }
-
-    fn build_row_unique_test_data(row_count: usize) -> Value {
-        let mut rows = serde_json::Map::new();
-        for i in 0..row_count {
-            let key = format!("__{:010}__", i);
-            rows.insert(key, serde_json::json!({ "value": i }));
-        }
-        serde_json::Value::Object(rows)
+    fn test_unique_many_values() {
+        let mut values: Vec<Value> = (0..100_000)
+            .map(|i| Value::String(format!("item-{i}")))
+            .collect();
+        assert!(are_all_unique(&values.iter().collect::<Vec<_>>()));
+        values[99_999] = Value::String("item-0".into());
+        assert!(!are_all_unique(&values.iter().collect::<Vec<_>>()));
     }
 }
 
