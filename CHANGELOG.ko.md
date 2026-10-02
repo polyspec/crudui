@@ -1,5 +1,19 @@
 # 변경 기록
 
+## 2026-10-02 — hook 실패는 파일과 함께 출력됨
+
+- test runner는 실패하거나 제한 시간을 넘긴 hook을 포함해 `node --test`와 Vitest 실행의 모든 실패를
+  test 파일과 경과 시간과 함께 출력합니다. `node --test`는 파일의 제한 시간을 넘긴 after hook을 테스트
+  완료 없이 실패로만 보고하므로, reporter는 모든 테스트를 통과로, 요약을 통과로 출력했고 도구는 1로
+  끝났습니다.
+- `node --test`에서 파일의 실패한 hook은 원인과 함께 `{file} › hook`으로 출력되고, 그 파일은 실패로
+  출력됩니다. Vitest에서 각 suite는 group이므로 suite의 실패한 hook은 원인과 함께 suite 줄에
+  출력되며, hook 오류는 제한 시간을 넘긴 hook의 stack에 없는 message와 함께 출력됩니다.
+- 요약 줄은 실패한 group을 표시합니다. 예: `2 passed, 0 failed, 0 timed out, 0 skipped,
+  3 groups failed`.
+- `npm run test:runtimes`가 실행하는 `tests/build/run-tests.test.mjs`는 `node --test`에서 파일의
+  제한 시간을 넘긴 after hook을, Vitest에서 파일과 suite의 제한 시간을 넘긴 after hook을 실행합니다.
+
 ## 2026-10-02 — 선형 시간 검사는 시계를 읽지 않음
 
 - validator와 PHP extension engine의 선형 시간 검사는 시계를 읽지 않습니다. 이 검사들은 경과 시간을

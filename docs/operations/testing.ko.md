@@ -68,6 +68,14 @@ node scripts/run-tests.mjs <node|vitest|go|cargo|phpunit> [--timeout <seconds>] 
 `node --test`와 Vitest는 테스트가 기다리는 동안에만 제한 시간에 테스트를 멈추므로 동기 작업을
 멈출 수 없습니다.
 
+실행의 모든 실패는 test 파일과 경과 시간과 함께 출력되며, 테스트 밖의 실패도 포함합니다. 실패하거나
+제한 시간을 넘긴 hook과 test 파일의 오류가 그렇습니다. hook이 실패한 파일이나 suite는 그 안의 모든
+테스트가 통과해도 원인과 함께 실패로 출력됩니다. `node --test`에서 파일의 실패한 hook은
+`{file} › hook`으로 출력됩니다. 요약 줄은 실패한 group 수를 표시하므로, 모든 테스트가 통과하고 도구가
+0이 아닌 코드로 끝난 실행은 그 코드의 원인이 된 실패를 보여 줍니다.
+`tests/build/run-tests.test.mjs`는 제한 시간을 넘긴 after hook을 `node --test`와 Vitest에서
+실행합니다.
+
 ## 시간과 부하
 
 테스트는 경과 시간을 제한값이나 다른 경과 시간과 비교하지 않습니다. 기계의 부하가 경과 시간을

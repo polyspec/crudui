@@ -134,3 +134,36 @@ test('a node run that ends with a failure after its tests passed says so on a fa
     await rm(directory, { recursive: true, force: true });
   }
 });
+
+test('a node hook that runs out of time fails its file with the file and the elapsed time', async () => {
+  // node --test reports a timed-out hook of a file only as a failure of the file's process,
+  // without a completion of that test; the file itself still completes as passed.
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-run-tests-'));
+  try {
+    const file = path.join(directory, 'hook.test.mjs');
+    await writeFile(file, "import test from 'node:test';\ntest('passes', () => {});\ntest.after(() => new Promise(resolve => setTimeout(resolve, 60_000)), { timeout: 300 });\n");
+    const run = spawnSync(process.execPath, [path.join(ROOT, 'scripts/run-tests.mjs'), 'node', '--timeout', '10', '--', file], { encoding: 'utf8' });
+    assert.notEqual(run.status, 0);
+    assert.match(run.stdout, /✔ .*hook\.test\.mjs › passes/);
+    assert.match(run.stdout, /✖ .*hook\.test\.mjs › hook \(\d+\.\ds\)\n\s+test timed out after 300ms/);
+    assert.match(run.stdout, /✖ .*hook\.test\.mjs \(\d+\.\ds\)\n/);
+    assert.match(run.stdout, /✖ node --test: 1 passed, 1 failed, 0 timed out, 0 skipped, 1 group failed/);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
+test('a vitest hook that runs out of time is printed with its file, suite, cause and elapsed time', async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-run-tests-'));
+  try {
+    await writeFile(path.join(directory, 'file-hook.test.mjs'), "import { afterAll, test } from 'vitest';\ntest('passes', () => {});\nafterAll(() => new Promise(resolve => setTimeout(resolve, 60_000)), 300);\n");
+    await writeFile(path.join(directory, 'suite-hook.test.mjs'), "import { afterAll, describe, test } from 'vitest';\ndescribe('suite', () => {\n  afterAll(() => new Promise(resolve => setTimeout(resolve, 60_000)), 300);\n  test('passes', () => {});\n});\n");
+    const run = spawnSync(process.execPath, [path.join(ROOT, 'scripts/run-tests.mjs'), 'vitest', '--timeout', '10', '--cwd', directory], { encoding: 'utf8' });
+    assert.notEqual(run.status, 0);
+    assert.match(run.stdout, /✖ .*file-hook\.test\.mjs \(\d+\.\ds\)\n\s+Hook timed out in 300ms/);
+    assert.match(run.stdout, /✖ .*suite-hook\.test\.mjs › suite \(\d+\.\ds\)\n\s+Hook timed out in 300ms/);
+    assert.match(run.stdout, /✖ vitest: 2 passed, 0 failed, 0 timed out, 0 skipped, 3 groups failed/);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
