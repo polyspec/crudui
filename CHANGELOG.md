@@ -1,5 +1,20 @@
 # Changes
 
+## 2026-10-02 — Hook failures are printed with their file
+
+- The test runner prints every failure of a `node --test` or Vitest run with its test file and
+  elapsed time, including a hook that fails or runs out of time. `node --test` reports a timed-out
+  after hook of a file only as a failure without a test completion, so the reporter printed every
+  test as passed and a passing summary while the tool exited with 1.
+- Under `node --test` the failed hook of a file is printed as `{file} › hook` with its cause, and
+  the file is printed as failed. Under Vitest each suite is a group, so a failed hook of a suite is
+  printed on the suite line with its cause, and a hook error is printed with its message, which
+  the stack of a timed-out hook does not hold.
+- The summary line names the failed groups, for example `2 passed, 0 failed, 0 timed out,
+  0 skipped, 3 groups failed`.
+- `tests/build/run-tests.test.mjs`, run by `npm run test:runtimes`, runs a timed-out after hook of
+  a file under `node --test` and of a file and a suite under Vitest.
+
 ## 2026-10-02 — Linear-time checks read no clock
 
 - The linear-time checks of the validators and of the PHP extension engine read no clock. They

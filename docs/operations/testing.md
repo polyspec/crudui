@@ -70,6 +70,14 @@ The runner stops a Go, Cargo or PHPUnit test at its timeout, and PHPUnit sets no
 own; `node --test` and Vitest stop a test at its timeout only when the test waits, so they cannot
 stop synchronous work.
 
+Every failure of a run is printed with its test file and elapsed time, including a failure outside
+a test: a hook that fails or runs out of time and an error of a test file. A file or a suite whose
+hook fails is printed as failed with the cause, even when every test in it passed; for `node --test`
+the failed hook of a file is printed as `{file} › hook`. The summary line names the failed groups,
+so a run whose tests all passed and whose tool exits with a nonzero code shows the failure that
+caused the code. `tests/build/run-tests.test.mjs` runs a timed-out after hook under `node --test`
+and under Vitest.
+
 ## Time and load
 
 A test never compares an elapsed time with a limit or with another elapsed time, because the
