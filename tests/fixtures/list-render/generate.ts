@@ -404,7 +404,7 @@ const SCENARIOS: ListFixtureCase[] = [
   // --- actions toolbar (behavior reuse: link format + bare behavior script) ---
   {
     name: 'actions-toolbar',
-    note: 'link-format action → <a>; bare behavior action → <button> with the verbatim on* script.',
+    note: 'link-format action → <a>; a script action → <button> whose onclick attribute holds the script.',
     spec: {
       columns: { name: { field: 'name', label: 'Name' } },
       actions: {
@@ -691,7 +691,7 @@ const SCENARIOS: ListFixtureCase[] = [
   },
   {
     name: 'action-script-object',
-    note: 'an action object with script is a script action: its label is translated and the script is kept under the action name.',
+    note: 'an action object with script is a script action: its label is translated and its button holds the script in onclick.',
     spec: {
       columns: { name: { field: 'name', label: 'Name' } },
       actions: { remove: { label: { en: 'Remove' }, script: 'confirmDelete(this)' } },

@@ -1007,15 +1007,6 @@ static ps_chars action_label(const ps_value *action, ps_text key, ps_text langua
         ? translated(member(action, "label"), language) : ps_copy(key);
 }
 
-/* Set the event attribute on<name> to a script value. */
-static bool set_event(ps_value *attrs, ps_text name, const ps_value *script)
-{
-    ps_chars event = PS_CONCAT(PS_TEXT("on"), name);
-    bool ok = event.bytes && ps_set_text(attrs, ps_view(event), ps_value_clone(script));
-    free(event.bytes);
-    return ok;
-}
-
 /* The actions of a list or detail: <block>__actions with one <block>__action span per action. */
 static bool append_toolbar(list_context *context, const char *block)
 {
@@ -1044,11 +1035,11 @@ static bool append_toolbar(list_context *context, const char *block)
         if (ok && link && string_member(format, "target").length)
             ok = ps_html_attr_text(attrs, "target", string_member(format, "target"));
         const ps_value *behavior = action->kind == PS_STRING ? NULL : member(action, "behavior");
-        /* A script string, or an object with a script: the script under on<action name>; a
+        /* A script string, or an object with a script: a button that runs the script on click; a
            behavior member name is the event attribute name. */
         const ps_value *script = action->kind == PS_STRING ? action : member(action, "script");
         if (script) {
-            ok = ok && set_event(attrs, key, script);
+            ok = ok && ps_set_text(attrs, PS_TEXT("onclick"), ps_value_clone(script));
         } else if (behavior && behavior->kind == PS_OBJECT) {
             for (size_t j = 0; ok && j < ps_size(behavior); ++j) {
                 const ps_value *script = ps_at(behavior, j);
@@ -1593,7 +1584,7 @@ static bool append_actions_model(const list_context *context, ps_value *actions)
     for (size_t i = 0; ok && declared_actions && declared_actions->kind == PS_OBJECT && i < ps_size(declared_actions); ++i) {
         ps_text key = ps_key(declared_actions, i);
         const ps_value *raw = ps_at(declared_actions, i);
-        /* A script string, or an object with a script: the script under on<action name>; a
+        /* A script string, or an object with a script: a button that runs the script on click; a
            behavior member name is the event attribute name. */
         const ps_value *script = raw->kind == PS_STRING ? raw : member(raw, "script");
         ps_value *action = ps_object_value();
@@ -1601,7 +1592,7 @@ static bool append_actions_model(const list_context *context, ps_value *actions)
         ok = action && label.bytes && set_text(action, "key", key) && set_text(action, "label", ps_view(label));
         if (ok && script) {
             ps_value *behavior = ps_object_value();
-            ok = behavior && set_event(behavior, key, script) && set_value(action, "behavior", &behavior);
+            ok = behavior && ps_set_text(behavior, PS_TEXT("onclick"), ps_value_clone(script)) && set_value(action, "behavior", &behavior);
             ps_value_free(behavior);
         } else if (ok && member(raw, "format")) {
             const ps_value *raw_format = member(raw, "format");

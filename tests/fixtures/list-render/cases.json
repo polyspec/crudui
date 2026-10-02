@@ -1534,7 +1534,7 @@
   },
   {
     "name": "actions-toolbar",
-    "note": "link-format action → <a>; bare behavior action → <button> with the verbatim on* script.",
+    "note": "link-format action → <a>; a script action → <button> whose onclick attribute holds the script.",
     "spec": {
       "columns": {
         "name": {
@@ -1563,7 +1563,7 @@
     "options": {
       "language": "en"
     },
-    "expected_html": "<div class=\"crudui-list\"><div class=\"crudui-list__actions\"><span class=\"crudui-list__action\" data-action=\"edit\"><a href=\"/edit\">Edit</a></span><span class=\"crudui-list__action\" data-action=\"remove\"><button onremove=\"confirmDelete(this)\" type=\"button\">remove</button></span></div><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading\" data-field=\"name\"><span class=\"crudui-list__heading-label\">Name</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--text\">Ada</td></tr></tbody></table></div>"
+    "expected_html": "<div class=\"crudui-list\"><div class=\"crudui-list__actions\"><span class=\"crudui-list__action\" data-action=\"edit\"><a href=\"/edit\">Edit</a></span><span class=\"crudui-list__action\" data-action=\"remove\"><button onclick=\"confirmDelete(this)\" type=\"button\">remove</button></span></div><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading\" data-field=\"name\"><span class=\"crudui-list__heading-label\">Name</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--text\">Ada</td></tr></tbody></table></div>"
   },
   {
     "name": "action-behavior-events",
@@ -2423,7 +2423,7 @@
   },
   {
     "name": "action-script-object",
-    "note": "an action object with script is a script action: its label is translated and the script is kept under the action name.",
+    "note": "an action object with script is a script action: its label is translated and its button holds the script in onclick.",
     "spec": {
       "columns": {
         "name": {
@@ -2448,7 +2448,7 @@
     "options": {
       "language": "en"
     },
-    "expected_html": "<div class=\"crudui-list\"><div class=\"crudui-list__actions\"><span class=\"crudui-list__action\" data-action=\"remove\"><button onremove=\"confirmDelete(this)\" type=\"button\">Remove</button></span></div><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading\" data-field=\"name\"><span class=\"crudui-list__heading-label\">Name</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--text\">Ada</td></tr></tbody></table></div>"
+    "expected_html": "<div class=\"crudui-list\"><div class=\"crudui-list__actions\"><span class=\"crudui-list__action\" data-action=\"remove\"><button onclick=\"confirmDelete(this)\" type=\"button\">Remove</button></span></div><table class=\"crudui-list__table\"><thead><tr><th class=\"crudui-list__heading\" data-field=\"name\"><span class=\"crudui-list__heading-label\">Name</span></th></tr></thead><tbody><tr><td class=\"crudui-list__cell crudui-value crudui-value--text\">Ada</td></tr></tbody></table></div>"
   },
   {
     "name": "reject-missing-columns",

@@ -209,15 +209,16 @@ final class Lists
         $actions = [];
         if (($spec->actions ?? null) instanceof stdClass) {
             foreach ($spec->actions as $key => $raw) {
+                // A script string: a button that runs the script when it is clicked.
                 if (is_string($raw)) {
-                    $actions[] = (object) ['key' => $key, 'label' => $key, 'behavior' => (object) ['on' . $key => $raw]];
+                    $actions[] = (object) ['key' => $key, 'label' => $key, 'behavior' => (object) ['onclick' => $raw]];
                     continue;
                 }
                 $raw = (object) $raw;
                 $label = property_exists($raw, 'label') ? Value::translate($raw->label, $language) : $key;
                 // An action object with a script is the object form of a script action.
                 if (is_string($raw->script ?? null)) {
-                    $actions[] = (object) ['key' => $key, 'label' => $label, 'behavior' => (object) ['on' . $key => $raw->script]];
+                    $actions[] = (object) ['key' => $key, 'label' => $label, 'behavior' => (object) ['onclick' => $raw->script]];
                     continue;
                 }
                 $action = ['key' => $key, 'label' => $label];
