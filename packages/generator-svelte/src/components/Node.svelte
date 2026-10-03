@@ -33,8 +33,8 @@
   }{#if !vm.checkbox && widgetRaw !== null}<div class={classes('crudui-node__body', vm.body.className)} style={vm.body.style} id={vm.body.id} hidden={bodyHidden} {@attach widgetRaw !== null && patched(widgetRaw)}
     >{@html firstMarkup(() => widgetRaw)}<!-- eslint-disable-line svelte/no-at-html-tags -- widgetRootRaw serializes escaped control bytes plus the widget's declared host script (raw.ts). --></div
   >{:else}<div class={classes('crudui-node__body', vm.body.className)} style={vm.body.style} id={vm.body.id} hidden={bodyHidden}
-    >{#if vm.checkbox}<input class={vm.checkbox.className} id={vm.checkbox.id} name={vm.checkbox.name} type="checkbox" role={vm.checkbox.role} {...vm.checkbox.attributes} value="1" checked={vm.checkbox.checked || undefined} defaultChecked={vm.checkbox.checked} /><label for={vm.checkbox.id}>{#if vm.checkbox.caption}{vm.checkbox.caption}{/if}</label
-    >{:else if vm.widget}<Widget w={vm.widget} />{:else}{#each vm.children ?? [] as child, index (child.key ?? child.path ?? child.lang ?? index)}<Self vm={child} />{/each}{/if
+    >{#if vm.checkbox}<input class={vm.checkbox.className} id={vm.checkbox.id} name={vm.checkbox.name} type="checkbox" role={vm.checkbox.role} {...vm.checkbox.attributes} value="1" checked={vm.checkbox.checked || undefined} defaultChecked={vm.checkbox.checked} />{#if vm.checkbox.caption !== undefined}<label for={vm.checkbox.id}>{#if vm.checkbox.caption}{vm.checkbox.caption}{/if}</label>{/if
+    }{:else if vm.widget}<Widget w={vm.widget} />{:else}{#each vm.children ?? [] as child, index (child.key ?? child.path ?? child.lang ?? index)}<Self vm={child} />{/each}{/if
   }</div>{/if}{#if errors.length}<div class="crudui-node__errors">{#each errors as text, index (index)}<p class="crudui-node__error">{text}</p>{/each}</div>{/if
   }{#if vm.controls?.placement === 'footer'}<div class="crudui-node__footer"><Controls controls={vm.controls} /></div>{/if
 }</div>

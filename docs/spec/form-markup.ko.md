@@ -78,7 +78,7 @@ React, Vue, Svelte, HTML 렌더러와 네이티브 렌더러는 같은 마크업
 
 본문에 레이블 대상 컨트롤이 정확히 하나이면 레이블은 그 컨트롤을 가리키는 `label`
 요소이고, 아니면 `span`입니다. 체크박스와 스위처 캡션은 본문 안 입력 자신의
-레이블이며 헤더에는 설명만 둡니다. `hidden` 필드에는 헤더가 없습니다. `language: 'en'`으로 출력한 행은 다음과 같습니다.
+레이블이며 헤더에는 설명만 둡니다. 단, inline [배치](#배치)에서는 헤더가 레이블을 가집니다. `hidden` 필드에는 헤더가 없습니다. `language: 'en'`으로 출력한 행은 다음과 같습니다.
 
 ```html
 <div class="crudui-node crudui-node--row" data-crudui-row-key="__0000000000001__">
@@ -140,7 +140,8 @@ modifier로 씁니다.
 스타일시트는 inline 노드를 레이블 열(`--crudui-label-width`)과 컨트롤 열의 grid로 배치합니다. 헤더는 상자를
 갖지 않으므로(`display: contents`) 레이블은 레이블 열에, 설명은 컨트롤 열의 본문 아래에 놓이고 오류가 그
 뒤에 옵니다. 따라서 헤더 둘레에 상자를 그리는 `design.label`의 class나 style은 그릴 상자가 없습니다.
-레이블은 높이가 컨트롤 하나 이상이며 텍스트를 컨트롤의 첫 줄 가운데에 맞춥니다. line group은 본문의 자식
+레이블은 높이가 컨트롤 하나 이상이며 텍스트를 컨트롤의 첫 줄 가운데에 맞추고, 체크박스와 스위처 필드의
+본문은 높이가 컨트롤 하나이며 input을 가운데에 맞춥니다. line group은 본문의 자식
 노드를 줄바꿈되는 한 행에 둡니다. 각 자식은 내용만큼의 너비를 가지며, 남은 너비를 차지할 자식은
 `design.wrapper.style: "flex: 1"`을 선언합니다. 스키마의 예는 다음을 씁니다.
 
@@ -156,6 +157,22 @@ modifier로 씁니다.
   <div class="crudui-node__header"><span class="crudui-node__label">Font</span></div>
   <div class="crudui-node__body"><div class="crudui-node crudui-node--field"
     data-field-path="appearance.font.family">…</div>…</div>
+</div>
+```
+
+inline 배치에서 레이블을 가진 `checkbox` 또는 `switcher` 필드는 다른 필드와 같이 레이블을 헤더에
+씁니다. 레이블은 input을 가리키는 `label` 요소이고 그 뒤에 설명이 옵니다. 체크박스 모델에는 `caption`
+멤버가 없으므로 본문에는 input만 있고 input이 컨트롤 열의 시작에 놓입니다. 레이블이 없는 체크박스와
+스위처 필드, 그리고 inline 배치 밖의 모든 체크박스와 스위처 필드는 본문의 캡션 레이블을 유지합니다.
+inline group `look` 안에서 레이블 `Sync`와 설명 `Keeps every window in step.`을 가진 스위처 `sync`는 다음을
+씁니다.
+
+```html
+<div class="crudui-node crudui-node--field crudui-node--inline" data-field-path="look.sync">
+  <div class="crudui-node__header"><label class="crudui-node__label" for="crudui:look.sync">Sync</label><p
+    class="crudui-node__description">Keeps every window in step.</p></div>
+  <div class="crudui-node__body"><input class="valid-target crudui-input crudui-input--switch"
+    id="crudui:look.sync" type="checkbox" role="switch" name="look[sync]" value="1"/></div>
 </div>
 ```
 
@@ -212,7 +229,7 @@ choice·multichoice 필드의 선택지는 `class`, `style`, `attributes`를 선
 `valid-target` 다음에 `design.class`의 class가 옵니다. 스위치의 input은 `type="checkbox"`를 유지하므로 폼이
 체크박스처럼 제출하고 바인딩하며, `role="switch"`를 가지므로 보조 기술이 켜짐 또는 꺼짐으로 알립니다. 모든
 렌더러는 `type` 다음에 `role`을, `role` 다음에 선언한 속성을 씁니다. 캡션은 체크박스와 같이 input 자신의
-레이블입니다. 레이블 `Sync`와 데이터 `sync: true`를 가진 필드 `sync`는 다음을 씁니다.
+레이블이며, inline [배치](#배치)에서는 예외입니다. 레이블 `Sync`와 데이터 `sync: true`를 가진 필드 `sync`는 다음을 씁니다.
 
 ```html
 <div class="crudui-node__body"><input class="valid-target crudui-input crudui-input--switch"

@@ -83,7 +83,8 @@ to the control and `design.prepend` to the widget prepend.
 
 A label is a `label` element targeting the control when the body has exactly one
 label target; otherwise it is a `span`. A checkbox or switcher caption is the
-input's own label inside the body, and its header holds only a description. A
+input's own label inside the body, and its header holds only a description, except in an inline
+[layout](#layout), where the header holds the label. A
 `hidden` field has no header. A row with `language: 'en'`:
 
 ```html
@@ -150,7 +151,8 @@ The stylesheet lays an inline node out as a grid of the label column (`--crudui-
 control column. The header takes no box (`display: contents`), so the label is in the label column
 and the description in the control column below the body, followed by the errors; a class or style
 of `design.label` that draws a box around the header therefore has no box to draw on. The label is
-at least one control high and centers its text on the first line of the control. A line group places
+at least one control high and centers its text on the first line of the control, and the body of a
+checkbox or switcher field is one control high and centers its input. A line group places
 the child nodes of its body in one wrapping row; each child is as wide as its content, and a child
 declares `design.wrapper.style: "flex: 1"` to take the remaining width. The example of the schema
 writes:
@@ -167,6 +169,22 @@ writes:
   <div class="crudui-node__header"><span class="crudui-node__label">Font</span></div>
   <div class="crudui-node__body"><div class="crudui-node crudui-node--field"
     data-field-path="appearance.font.family">…</div>…</div>
+</div>
+```
+
+In an inline layout, a `checkbox` or `switcher` field with a label writes the label in the header,
+as every other field does: a `label` element targeting the input, followed by the description. Its
+checkbox model has no `caption` member, so the body holds the input alone and the input starts the
+control column. A checkbox or switcher field without a label, and every checkbox or switcher field
+outside an inline layout, keeps the caption label in the body. A switcher `sync` with the label
+`Sync` and the description `Keeps every window in step.` in the inline group `look` writes:
+
+```html
+<div class="crudui-node crudui-node--field crudui-node--inline" data-field-path="look.sync">
+  <div class="crudui-node__header"><label class="crudui-node__label" for="crudui:look.sync">Sync</label><p
+    class="crudui-node__description">Keeps every window in step.</p></div>
+  <div class="crudui-node__body"><input class="valid-target crudui-input crudui-input--switch"
+    id="crudui:look.sync" type="checkbox" role="switch" name="look[sync]" value="1"/></div>
 </div>
 ```
 
@@ -228,7 +246,7 @@ checkbox field has no `role` member and the control class `valid-target` followe
 `design.class`. The input of a switch keeps `type="checkbox"`, so the form submits and binds it as
 a checkbox, and has `role="switch"`, so assistive technology announces it as on or off. Every
 renderer writes `role` after `type` and the declared attributes after `role`. The caption is the
-input's own label, as for a checkbox. A field `sync` with the label `Sync` and the data
+input's own label, as for a checkbox, except in an inline [layout](#layout). A field `sync` with the label `Sync` and the data
 `sync: true` writes:
 
 ```html

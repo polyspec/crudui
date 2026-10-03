@@ -128,8 +128,8 @@ export interface CheckboxVM {
   checked: boolean;
   /** `switch` for a switcher field (docs/spec/form-markup.md, Switches); absent for a checkbox. */
   role?: 'switch';
-  /** Caption text. */
-  caption: string;
+  /** Caption text; absent when an inline layout writes the label in the node header. */
+  caption?: string;
   /** Declared attributes (`design.attributes`), present only when declared. */
   attributes?: Record<string, string>;
 }
@@ -376,7 +376,10 @@ function buildLeaf(
     ? { ...declaredRoot, className: joinClass('crudui-node--inline', declaredRoot.className) }
     : declaredRoot;
   if (fieldType === 'checkbox' || fieldType === 'switcher') {
-    const header = nodeHeader({ description }, design);
+    const id = controlId(state.idPrefix, path);
+    // An inline layout writes the label in the label column of the header instead of the caption.
+    const headerLabel = state.layout === 'inline' && label ? label : undefined;
+    const header = nodeHeader(headerLabel ? { label: headerLabel, labelFor: id, description } : { description }, design);
     const attributes = declaredAttributes(spec.design).control;
     // A switcher is a checkbox input announced and drawn as a switch.
     const switcher = fieldType === 'switcher';
@@ -385,13 +388,13 @@ function buildLeaf(
       ...(header ? { header } : {}),
       body: nodeBody(),
       checkbox: {
-        id: controlId(state.idPrefix, path),
+        id,
         name: toBracketNotationWithPrefix(path, state.keyPrefix),
         className: joinClass('valid-target', switcher ? 'crudui-input crudui-input--switch' : '', design.main.class),
         checked: value === true || value === 1 || value === '1' ||
           (value === undefined && (spec.default === true || spec.default === 1 || spec.default === '1')),
         ...(switcher ? { role: 'switch' as const } : {}),
-        caption: label ?? '',
+        ...(headerLabel ? {} : { caption: label ?? '' }),
         ...(Object.keys(attributes).length ? { attributes } : {}),
       },
     };

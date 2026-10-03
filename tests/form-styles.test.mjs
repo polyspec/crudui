@@ -445,6 +445,7 @@ const inlineSpec = {
         theme: { type: 'select', label: 'Theme', items: { light: 'Light', dark: 'Dark' }, description: 'Applies to every window.' },
         bare: { type: 'text' },
         agree: { type: 'checkbox', label: 'Agree' },
+        notify: { type: 'switcher', label: 'Notify', description: 'Shows a banner.' },
         sync: { type: 'button', label: 'Sync', content: 'Sync now' },
         run: { type: 'button', content: 'Run' },
         font: {
@@ -473,7 +474,7 @@ for (const engine of engines) {
         document.querySelector('#form .crudui-form').append(probe);
         const labelWidth = probe.getBoundingClientRect().width;
         probe.remove();
-        const paths = ['look.theme', 'look.bare', 'look.agree', 'look.sync', 'look.run', 'look.font'];
+        const paths = ['look.theme', 'look.bare', 'look.agree', 'look.notify', 'look.sync', 'look.run', 'look.font'];
         return {
           labelWidth,
           gap: parseFloat(getComputedStyle(node('look.theme')).columnGap),
@@ -486,6 +487,11 @@ for (const engine of engines) {
           })),
           description: box(node('look.theme').querySelector('.crudui-node__description')),
           buttons: ['look.sync', 'look.run'].map(path => ({ path, body: box(part(path, '.crudui-node__body')), button: box(node(path).querySelector('button')) })),
+          checks: ['look.agree', 'look.notify'].map(path => {
+            const label = node(path).querySelector(':scope > .crudui-node__header > label.crudui-node__label');
+            const input = part(path, '.crudui-node__body').querySelector('input[type="checkbox"]');
+            return { path, label: label ? box(label) : null, labelsInput: label !== null && label.control === input, input: box(input), body: box(part(path, '.crudui-node__body')) };
+          }),
           family: box(node('look.font.family')),
           size: box(node('look.font.size')),
         };
@@ -504,6 +510,16 @@ for (const engine of engines) {
       for (const { path, body, button } of layout.buttons) {
         assert.ok(Math.abs(button.left - body.left) < 0.5, `${path}: the button starts the control column`);
         assert.ok(button.right - button.left < (body.right - body.left) / 2, `${path}: the button is as wide as its content (${button.right - button.left} of ${body.right - body.left} px)`);
+      }
+      // A checkbox or switch field writes its label in the label column, and its input starts the
+      // control column and is centered on the label line.
+      for (const { path, label, labelsInput, input, body } of layout.checks) {
+        assert.ok(label, `${path}: the label is in the label column`);
+        assert.ok(labelsInput, `${path}: the label of the label column targets the input`);
+        assert.ok(label.right - layout.rows[0].node.left <= layout.labelWidth + 0.5, `${path}: the label ends within the label column`);
+        assert.ok(Math.abs(input.left - body.left) < 0.5, `${path}: the input starts the control column (${input.left - body.left} px)`);
+        const middle = box => (box.top + box.bottom) / 2;
+        assert.ok(Math.abs(middle(input) - middle(label)) < 1, `${path}: the input is centered on the label line (${middle(input) - middle(label)} px)`);
       }
       const theme = layout.rows[0];
       assert.ok(Math.abs(layout.description.left - theme.body.left) < 0.5, 'The description is in the control column');
