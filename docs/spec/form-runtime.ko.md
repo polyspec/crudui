@@ -29,7 +29,7 @@ JavaScript에서 값이 `undefined`인 멤버는 없는 멤버이고, PHP에서 
 객체, 빈 배열과 리스트 배열은 목록입니다. 노드 모델은 [폼 마크업](form-markup.ko.md)이
 정한 멤버 순서를 지키며, 모든 런타임에서 위젯 모델의 멤버는 `kind`, `layout`,
 `tag`, `attrs`, `text`, `rawHtml`, `source`, `options`, `itemLabelClass`,
-`script`, `styleChrome`, `buttonText`, `prepend`, `append`, `extra` 순서이고
+`script`, `styleChrome`, `prepend`, `append`, `extra` 순서이고
 `extra`에서는 `display`가 `file`보다, `input`이 `option`보다 앞섭니다.
 
 `createForm(template, data, options)`는 편집 인스턴스를 생성합니다.
@@ -323,7 +323,7 @@ DB seq 발급이나 배포를 수행하지 않습니다.
 `document.getElementById`를 사용합니다. 검색 초기화와 생성된 CSS는
 같은 컨테이너 클래스를 사용합니다. 스크립트의 문자열 인수는 JSON 문자열
 이스케이프와 `<`, U+2028, U+2029 이스케이프를 적용합니다. 선택, 파일,
-검색, 동작 값을 포함한 모든 위젯은 구조상의 행 위치로 규칙 경로를 생성합니다.
+검색을 포함한 모든 위젯은 구조상의 행 위치로 규칙 경로를 생성합니다.
 복수 선택 입력은 배열 전송 이름을 사용하고 주입·편집·전송에서 선택값 전체를
 유지합니다. 선택하지 않은 경우 인스턴스 데이터는 빈 배열입니다.
 

@@ -31,7 +31,7 @@ spec declares in `design`.
 | `crudui-form` | Form root with the `crudui-form__description` paragraph of a non-empty root description, `crudui-form__errors` holding a `crudui-form__error` paragraph per form error, `crudui-form__body` and `crudui-form__footer` holding the form buttons. |
 | `crudui-node` | One data node; see the kinds below. |
 | `crudui-controls` | A button group with `role="group"` and an accessible name. |
-| `crudui-action` | A button with `data-crudui-action`; `crudui-action--text` shows its label as text. |
+| `crudui-action` | A button: an action with `data-crudui-action`, a form button or the button of a [button field](#button-fields); `crudui-action--text` shows its label as text. |
 | `crudui-outline` | Structure map with `__header` form controls and `__body` nodes. |
 | `crudui-data` | Current data view with `__header` and a `pre` `__body`. |
 | `crudui-widget` | A control with its `__affix` prepend and append texts, a file widget's `__button` and a range widget's `__output`; `--search` holds a search select, `--range` holds a range control and `--unsupported` marks a type without a widget. |
@@ -107,7 +107,7 @@ A field declares attributes for its control with `design.attributes` and for its
 `design.wrapper.attributes` ([schema](schema.md#declared-attributes)). The control is the element
 that `design.class` targets: the input, select or textarea of a widget, the file input of an
 image, file or cover field, the `div` of a display field (`dummy`, `image-viewer`), the button of
-an action field and the input of a checkbox or switcher. For a choice or multichoice field, whose
+a button or action field and the input of a checkbox or switcher. For a choice or multichoice field, whose
 `design.class` targets the option labels, the control is every option input. A field with `lang`
 writes the control attributes on the control of every language item, and a repeated scalar field
 on the control of every row. The root of a `field`, `group`, `collection` or `lang` node takes the
@@ -241,6 +241,32 @@ The stylesheet draws the input as a track with a round thumb at its start: the t
 `--crudui-control-border` border and the `--crudui-subtle` background, and the thumb has the
 `--crudui-surface` color. When the switch is on, the track has the `--crudui-accent` border and
 background and the thumb is at its end. A focused switch has a 2px `--crudui-accent` outline.
+
+## Button fields
+
+A `button` field, or its alias `action`, renders one `button` element in the node body. The button
+has `type="button"`, the class `crudui-action crudui-action--text` followed by the class of
+`design.class`, the style of `design.style`, the `id` of the control, the event attributes of
+`behavior` and the declared attributes, in that order, and the `content` text of the field as its
+escaped content. A `behavior` script, such as `onclick`, is an event attribute of the button as it
+is of every other control, so a click runs it; CRUDUI writes no script, no hidden input and no
+`name` for the field, and the field submits no value. A button without event attributes writes its
+`style` last, and a button with event attributes is written with its attributes as declared, as
+every control is ([declared attributes](#declared-attributes)).
+
+The widget model has the layout `button`, the tag `button`, the button attributes as `attrs` and
+the content text as `text`. A field with a label has a header whose label targets the button. A
+field without a label has no header, and in an inline [layout](#layout) its button starts the
+control column as every other control does. The stylesheet makes the button as wide as its content
+and as high as the other controls (`--crudui-control-height`). A field `run` with the label
+`Sync`, the content `Run now` and `behavior: { onclick: "sync()" }` writes:
+
+```html
+<div class="crudui-node crudui-node--field" data-field-path="run"><div class="crudui-node__header"><label
+  class="crudui-node__label" for="crudui:run">Sync</label></div><div class="crudui-node__body"><button
+  type="button" class="crudui-action crudui-action--text" id="crudui:run"
+  onclick="sync()">Run now</button></div></div>
+```
 
 ## Rows
 

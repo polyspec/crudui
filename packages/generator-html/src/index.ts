@@ -226,7 +226,7 @@ function widget(widget: AnyWidget): string {
       return (widget.styleChrome ? `<style nonce="">${widget.styleChrome}</style>` : '') + script +
         `<div class="crudui-widget crudui-widget--search">${affix(widget.prepend, true)}${control(widget, true, 'selected')}${affix(widget.append, true)}</div>`;
     case 'button':
-      return script + inputHtml(widget.extra?.hidden ?? {}) + inputHtml(widget.attrs);
+      return `<button${attrs(raw ? widget.attrs : styleLast(widget.attrs), raw)}>${textContent(widget.text ?? '', raw)}</button>`;
     default:
       return '';
   }

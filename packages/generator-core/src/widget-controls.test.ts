@@ -32,7 +32,7 @@ function repeatedWidget(type: string, multipleLeaf = false): WidgetModel {
 }
 
 describe('widget paths in keyed rows', () => {
-  for (const type of ['choice', 'multichoice', 'image', 'file', 'cover', 'search', 'button']) {
+  for (const type of ['choice', 'multichoice', 'image', 'file', 'cover', 'search']) {
     it(`${type} uses structural group rule paths and actual submission keys`, () => {
       const widget = repeatedWidget(type);
       const controls = [widget.attrs, ...Object.values(widget.extra ?? {})]
@@ -59,7 +59,7 @@ describe('widget paths in keyed rows', () => {
 });
 
 describe('widget script targets', () => {
-  for (const type of ['search', 'tinymce', 'summernote', 'editorjs', 'tui', 'tagify', 'tagify2', 'button']) {
+  for (const type of ['search', 'tinymce', 'summernote', 'editorjs', 'tui', 'tagify', 'tagify2']) {
     it(`${type} uses its scoped control ID in its script`, () => {
       const widget = repeatedWidget(type);
       const id = `${encodeURIComponent(options.idPrefix)}:${encodeURIComponent(`rows.${key}.value`)}`;

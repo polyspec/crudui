@@ -29,7 +29,7 @@ React, Vue, Svelte, HTML 렌더러와 네이티브 렌더러는 같은 마크업
 | `crudui-form` | 비어 있지 않은 루트 설명의 `crudui-form__description` 문단, 폼 오류마다 `crudui-form__error` 문단을 담은 `crudui-form__errors`, `crudui-form__body`, 폼 버튼을 담은 `crudui-form__footer`를 가진 폼 루트입니다. |
 | `crudui-node` | 데이터 노드 하나입니다. 종류는 아래와 같습니다. |
 | `crudui-controls` | `role="group"`과 접근성 이름을 가진 버튼 묶음입니다. |
-| `crudui-action` | `data-crudui-action`을 가진 버튼입니다. `crudui-action--text`는 레이블을 텍스트로 표시합니다. |
+| `crudui-action` | 버튼입니다. `data-crudui-action`을 가진 조작, 폼 버튼, [버튼 필드](#버튼-필드)의 버튼이 이에 해당합니다. `crudui-action--text`는 레이블을 텍스트로 표시합니다. |
 | `crudui-outline` | `__header` 폼 컨트롤과 `__body` 노드를 가진 구조 맵입니다. |
 | `crudui-data` | `__header`와 `pre` `__body`를 가진 현재 데이터 보기입니다. |
 | `crudui-widget` | 앞뒤 텍스트 `__affix`, 파일 위젯의 `__button`, 범위 위젯의 `__output`을 가진 컨트롤입니다. `--search`는 검색 select를, `--range`는 범위 컨트롤을 담고, `--unsupported`는 위젯이 없는 유형을 표시합니다. |
@@ -100,7 +100,7 @@ React, Vue, Svelte, HTML 렌더러와 네이티브 렌더러는 같은 마크업
 필드는 `design.attributes`로 컨트롤의 속성을, `design.wrapper.attributes`로 노드 루트의 속성을
 선언합니다([스키마](schema.ko.md#선언한-속성)). 컨트롤은 `design.class`가 적용되는 요소입니다. 위젯의
 input, select, textarea, image·file·cover 필드의 파일 input, 표시 필드(`dummy`, `image-viewer`)의
-`div`, action 필드의 버튼, 체크박스와 스위처의 input이 컨트롤입니다. `design.class`가 선택지 레이블에
+`div`, button 또는 action 필드의 버튼, 체크박스와 스위처의 input이 컨트롤입니다. `design.class`가 선택지 레이블에
 적용되는 choice와 multichoice 필드에서는 모든 선택지 input이 컨트롤입니다. `lang`을 가진 필드는 모든
 언어 항목의 컨트롤에, 반복 스칼라 필드는 모든 행의 컨트롤에 컨트롤 속성을 씁니다. `field`, `group`,
 `collection`, `lang` 노드의 루트가 wrapper 속성을 받으며 `row`와 `lang-item` 노드는 받지 않습니다.
@@ -224,6 +224,29 @@ choice·multichoice 필드의 선택지는 `class`, `style`, `attributes`를 선
 테두리와 `--crudui-subtle` 배경을, thumb는 `--crudui-surface` 색을 가집니다. 스위치가 켜지면 트랙은
 `--crudui-accent` 테두리와 배경을 가지고 thumb는 끝 쪽에 있습니다. 포커스된 스위치는 2px
 `--crudui-accent` 윤곽선을 가집니다.
+
+## 버튼 필드
+
+`button` 필드와 그 별칭 `action`은 노드 본문에 `button` 요소 하나를 렌더링합니다. 버튼은 `type="button"`,
+`crudui-action crudui-action--text` 다음에 `design.class`의 class가 오는 class, `design.style`의 style,
+컨트롤의 `id`, `behavior`의 이벤트 속성, 선언한 속성을 이 순서로 가지며, 필드의 `content` 텍스트를
+이스케이프한 내용으로 가집니다. `onclick` 같은 `behavior` 스크립트는 다른 모든 컨트롤과 같이 버튼의 이벤트
+속성이므로 클릭하면 실행됩니다. CRUDUI는 이 필드에 스크립트, 숨은 input, `name`을 쓰지 않으며 필드는 값을
+제출하지 않습니다. 이벤트 속성이 없는 버튼은 `style`을 마지막에 쓰고, 이벤트 속성을 가진 버튼은 모든
+컨트롤과 같이 선언된 대로 속성을 씁니다([선언한 속성](#선언한-속성)).
+
+위젯 모델은 배치 `button`, 태그 `button`, 버튼 속성인 `attrs`, 내용 텍스트인 `text`를 가집니다. 레이블을
+가진 필드에는 레이블이 버튼을 대상으로 하는 헤더가 있습니다. 레이블이 없는 필드에는 헤더가 없으며, inline
+[배치](#배치)에서 그 버튼은 다른 모든 컨트롤과 같이 컨트롤 열의 시작에 놓입니다. 스타일시트는 버튼을 내용만큼
+넓고 다른 컨트롤만큼 높게(`--crudui-control-height`) 만듭니다. 레이블 `Sync`, 내용 `Run now`,
+`behavior: { onclick: "sync()" }`를 가진 필드 `run`은 다음을 씁니다.
+
+```html
+<div class="crudui-node crudui-node--field" data-field-path="run"><div class="crudui-node__header"><label
+  class="crudui-node__label" for="crudui:run">Sync</label></div><div class="crudui-node__body"><button
+  type="button" class="crudui-action crudui-action--text" id="crudui:run"
+  onclick="sync()">Run now</button></div></div>
+```
 
 ## 행
 

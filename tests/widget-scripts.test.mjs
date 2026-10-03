@@ -28,7 +28,7 @@ const properties = Object.fromEntries(types.map(type => [fieldName(type), {
     delay: 250,
     callback: 'function(event) { window.recordWidgetScriptEvent("search", this, event); }',
   },
-  ...(type === 'button' ? { text: 'Run', behavior: { onclick: 'window.recordWidgetScriptEvent("button", this, arguments[0]);' } } : {}),
+  ...(type === 'button' ? { content: 'Run', behavior: { onclick: 'window.recordWidgetScriptEvent("button", this, arguments[0]);' } } : {}),
 }]));
 const spec = { type: 'group', properties: { rows: { type: 'group', multiple: true, properties } } };
 const data = { rows: { [rowKey]: Object.fromEntries(types.map(type => [fieldName(type), 'a'])) } };
@@ -205,7 +205,7 @@ async function inspectScripts(page) {
     const root = document.getElementById('form');
     const record = window.widgetScriptRecord;
     root.querySelector('select').dispatchEvent(new CustomEvent('select2:select', { bubbles: true }));
-    root.querySelector('input[type="button"]').click();
+    root.querySelector('button[onclick]').click();
     return { ...record, scripts: root.querySelectorAll('script').length };
   });
 }
@@ -238,8 +238,9 @@ for (const prefix of ["form scope:'한글", "another:'日本語:scope"]) {
         const result = await inspectScripts(page);
         assert.deepEqual(result.errors, []);
         const id = type => `${encodeURIComponent(prefix)}:${encodeURIComponent(`rows.${rowKey}.${fieldName(type)}`)}`;
-        const name = type => `${type === 'button' ? 'btn' : ''}form[rows][${rowKey}][${fieldName(type)}]`;
-        assert.equal(result.scripts, 8);
+        const name = type => `form[rows][${rowKey}][${fieldName(type)}]`;
+        // A button field has no script: its onclick attribute runs on a click, and the button has no name.
+        assert.equal(result.scripts, 7);
         assert.deepEqual(result.calls.map(call => call.helper), [...types.slice(0, 6).map(type => `editor_${type}`), 'select2']);
         for (const [index, call] of result.calls.entries()) {
           const type = types[index];
@@ -251,10 +252,10 @@ for (const prefix of ["form scope:'한글", "another:'日本語:scope"]) {
         assert.deepEqual(result.calls.map(call => call.args), [
           [300, resource, false], [resource], [resource], [resource], [3], [3, resource], ['2', '250', id('search') + '_select2'],
         ]);
-        assert.deepEqual(result.registrations, [{ type: 'select2:select', id: id('search') }, { type: 'click', id: id('button') }]);
+        assert.deepEqual(result.registrations, [{ type: 'select2:select', id: id('search') }]);
         assert.deepEqual(result.events, [
           { kind: 'search', id: id('search'), name: name('search'), event: 'select2:select' },
-          { kind: 'button', id: id('button'), name: name('button'), event: 'click' },
+          { kind: 'button', id: id('button'), name: '', event: 'click' },
         ]);
         assert.deepEqual(failures, [], 'Generated scripts must execute without browser errors');
         await page.evaluate(() => { window.widgetScriptTest.unmount(); document.getElementById('host-results').replaceChildren(); });

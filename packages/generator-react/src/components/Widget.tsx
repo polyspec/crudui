@@ -9,7 +9,7 @@
  *
  * Sanctioned non-JSX passthrough (per parity strategy), and ONLY these:
  *  - RAW display html (dummy/image-viewer body) — unescaped content,
- *  - script/style chrome (search/editors/button) — verbatim JS/CSS text (RawText),
+ *  - script/style chrome (search/editors) — verbatim JS/CSS text (RawText),
  *  - the `&nbsp;` caption on the file-search button (a literal entity),
  *  - a control's OPAQUE `on*` behavior attributes (React structurally drops
  *    string event attrs) and the select2 host `selected="selected"` — both are
@@ -123,14 +123,15 @@ function Bare({ w }: { w: WidgetModel }): React.ReactElement {
 /**
  * When a widget must be serialized raw AT its container root (no wrapper element
  * is allowed), return the raw html; else null and the widget renders as JSX.
- * Only the bare layout with opaque on* attrs needs this (datetime + behavior):
- * the control is a direct child of the node body, so an extra wrapper
+ * The bare, button and host-script layouts with opaque on* attrs need this: the
+ * control is a direct child of the node body, so an extra wrapper
  * would break parity. Every other on*-bearing layout has a real container
  * (`.crudui-widget` / `.crudui-choices`) that absorbs the raw body.
  */
 export function widgetRootRaw(w: AnyWidget): string | null {
   if (isUnsupported(w)) return null;
   if (w.layout === 'bare' && hasEventAttr(w.attrs)) return rawControl(w);
+  if (w.layout === 'button' && hasEventAttr(w.attrs)) return rawElement('button', w.attrs, escText(w.text ?? ''));
   if (w.layout === 'host-script' && hasEventAttr(w.attrs)) {
     // control + trailing <script> chrome, both opaque verbatim.
     return rawControl(w) + `<script nonce="">${w.script ?? ''}</script>`;
@@ -298,16 +299,9 @@ function Search({ w }: { w: WidgetModel }): React.ReactElement {
   );
 }
 
-/** button layout: script chrome + hidden field + button. */
+/** button layout: a button element with its content (on*-bearing buttons are root-raw). */
 function ActionButton({ w }: { w: WidgetModel }): React.ReactElement {
-  const hidden = w.extra?.hidden ?? {};
-  return (
-    <>
-      <RawText tag="script" nonce="" text={w.script ?? ''} />
-      <input {...inputProps(hidden)} />
-      <input {...inputProps(w.attrs)} />
-    </>
-  );
+  return <button {...plainProps(w.attrs)}>{w.text ?? ''}</button>;
 }
 
 /** Render one widget model (or surfaced unsupported marker) as JSX. */

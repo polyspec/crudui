@@ -650,6 +650,12 @@ textarea.crudui-input {
   content: none;
 }
 
+/* The button of a button field is as wide as its content and as high as the other controls. */
+.crudui-node--field > .crudui-node__body > .crudui-action--text {
+  justify-self: start;
+  height: var(--crudui-control-height);
+}
+
 /* The submit button of the form footer carries the submit properties, also on hover. */
 .crudui-form__footer .crudui-action--text[type='submit'] {
   background: var(--crudui-submit-background);

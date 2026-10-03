@@ -134,7 +134,7 @@ export function searchHtml(w: WidgetModel): string {
  * widget-level container element), return its raw html so the node injects it into
  * the body via `{@html}`; else null and Widget.svelte renders a real
  * container element. Covers bare (datetime/password/hidden/email), host-script
- * (editors/tagify), button (script + hidden + button), choices (choice/
+ * (editors/tagify), button (a button element with its content), choices (choice/
  * multichoice) and search — all carry empty/boolean control attrs svelte/server
  * would mangle as real elements.
  */
@@ -144,14 +144,7 @@ export function widgetRootRaw(w: AnyWidget): string | null {
   if (w.layout === 'host-script') {
     return rawControl(w) + `<script nonce="">${w.script ?? ''}</script>`;
   }
-  if (w.layout === 'button') {
-    const hidden = w.extra?.hidden ?? {};
-    return (
-      `<script nonce="">${w.script ?? ''}</script>` +
-      rawVoid('input', hidden) +
-      rawVoid('input', w.attrs)
-    );
-  }
+  if (w.layout === 'button') return rawElement('button', w.attrs, escText(w.text ?? ''));
   if (w.layout === 'choices') return choicesHtml(w);
   if (w.layout === 'search') return searchHtml(w);
   return null;
