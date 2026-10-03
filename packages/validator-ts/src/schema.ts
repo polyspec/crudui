@@ -174,8 +174,11 @@ export interface FieldSpec {
   validate?: Slot<ValidateSlot>;
   /** Error message overrides by rule name, beside the rules they belong to. */
   messages?: import('./types').MessagesSpec;
-  /** Role slot — appearance = visibility + per-node external appearance map. */
-  design?: Slot<DesignSlot>;
+  /**
+   * Role slot — appearance = visibility + per-node external appearance map, with the attributes
+   * the field declares for its control and node root.
+   */
+  design?: Slot<FieldDesignSlot>;
   /**
    * Role slot — behavior (opaque script, NOT routed through the expression
    * engine). `false` nullifies composed inheritance.
@@ -363,6 +366,26 @@ export interface DesignSlot {
   group?: DesignNode;
   /** Prepend node appearance. */
   prepend?: DesignNode;
+}
+
+/**
+ * Attributes a form field declares for an element: a `data-*` or `aria-*` name that crudui does
+ * not write, to a literal string value (docs/spec/schema.md, Declared attributes).
+ */
+export type DeclaredAttributes = Record<string, string>;
+
+/** The wrapper node of a form field: appearance and the attributes of the node root. */
+export interface FieldWrapperNode extends DesignNode {
+  /** Attributes written on the node root after the attributes crudui writes. */
+  attributes?: DeclaredAttributes;
+}
+
+/** The design slot of a form field: the design slot with declared attributes. */
+export interface FieldDesignSlot extends DesignSlot {
+  /** Attributes written on the field's control after the attributes crudui writes. */
+  attributes?: DeclaredAttributes;
+  /** Wrapper node appearance and attributes. */
+  wrapper?: FieldWrapperNode;
 }
 
 /** Design node names (the per-DOM-node appearance map keys). */

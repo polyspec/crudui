@@ -30,7 +30,7 @@ JavaScript에서 값이 `undefined`인 멤버는 없는 멤버이고, PHP에서 
 정한 멤버 순서를 지키며, 모든 런타임에서 위젯 모델의 멤버는 `kind`, `layout`,
 `tag`, `attrs`, `text`, `rawHtml`, `source`, `options`, `itemLabelClass`,
 `script`, `styleChrome`, `buttonText`, `prepend`, `append`, `extra` 순서이고
-`extra`에서는 `display`가 `file`보다 앞섭니다.
+`extra`에서는 `display`가 `file`보다, `input`이 `option`보다 앞섭니다.
 
 `createForm(template, data, options)`는 편집 인스턴스를 생성합니다.
 `Form`은 React, Vue, Svelte에서 인스턴스를 렌더링합니다. `renderForm(instance, options)`는

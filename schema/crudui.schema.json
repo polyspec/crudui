@@ -471,6 +471,86 @@
         }
       }
     },
+    "DeclaredAttributes": {
+      "description": "Attributes a form field declares for an element: data-* or aria-* names that crudui does not write, each with a string value.",
+      "type": "object",
+      "propertyNames": {
+        "allOf": [
+          {
+            "pattern": "^(?:data|aria)-[a-z0-9][a-z0-9._-]*$"
+          },
+          {
+            "not": {
+              "pattern": "^data-(?:crudui|source)-"
+            }
+          },
+          {
+            "not": {
+              "enum": [
+                "data-field-path",
+                "data-lang",
+                "data-name",
+                "data-rule-name",
+                "data-default",
+                "data-is-default",
+                "data-type",
+                "data-height",
+                "data-upload-server",
+                "data-fileserver",
+                "data-server",
+                "data-max-tags",
+                "data-keyword-min-length",
+                "data-delay",
+                "data-api-server",
+                "data-max-width",
+                "data-min-width",
+                "data-max-height",
+                "data-min-height",
+                "data-preview-max-width",
+                "data-preview-max-height",
+                "data-unsupported-type"
+              ]
+            }
+          }
+        ]
+      },
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "FieldWrapperNode": {
+      "description": "CSS classes, inline styles and declared attributes for the node root of a form field.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "class": {
+          "description": "CSS classes, optionally selected by an expression or condition map.",
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/ConditionMap"
+            }
+          ]
+        },
+        "style": {
+          "description": "Inline styles, optionally selected by an expression or condition map.",
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/ConditionMap"
+            }
+          ]
+        },
+        "attributes": {
+          "description": "Attributes written on the node root.",
+          "$ref": "#/definitions/DeclaredAttributes"
+        }
+      }
+    },
     "Design": {
       "description": "Visibility and appearance settings for the main node and named label, wrapper, group and prepend nodes.",
       "anyOf": [
@@ -524,6 +604,76 @@
             "wrapper": {
               "description": "Appearance settings for the wrapper node.",
               "$ref": "#/definitions/DesignNode"
+            },
+            "group": {
+              "description": "Appearance settings for the group node.",
+              "$ref": "#/definitions/DesignNode"
+            },
+            "prepend": {
+              "description": "Appearance settings for the prepend node.",
+              "$ref": "#/definitions/DesignNode"
+            }
+          }
+        }
+      ]
+    },
+    "FieldDesign": {
+      "description": "Visibility, appearance and declared attributes of a form field: the control and the named label, wrapper, group and prepend nodes.",
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "show": {
+              "description": "Visibility expression or condition map.",
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/Expression"
+                },
+                {
+                  "type": "boolean"
+                },
+                {
+                  "$ref": "#/definitions/ConditionMap"
+                }
+              ]
+            },
+            "class": {
+              "description": "CSS classes, optionally selected by an expression or condition map.",
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "$ref": "#/definitions/ConditionMap"
+                }
+              ]
+            },
+            "style": {
+              "description": "Inline styles, optionally selected by an expression or condition map.",
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "$ref": "#/definitions/ConditionMap"
+                }
+              ]
+            },
+            "attributes": {
+              "description": "Attributes written on the field's control.",
+              "$ref": "#/definitions/DeclaredAttributes"
+            },
+            "label": {
+              "description": "Appearance settings for the label node.",
+              "$ref": "#/definitions/DesignNode"
+            },
+            "wrapper": {
+              "description": "Appearance settings and declared attributes for the wrapper node.",
+              "$ref": "#/definitions/FieldWrapperNode"
             },
             "group": {
               "description": "Appearance settings for the group node.",
@@ -1165,7 +1315,7 @@
         },
         "design": {
           "description": "Visibility and node appearance settings.",
-          "$ref": "#/definitions/Design"
+          "$ref": "#/definitions/FieldDesign"
         },
         "behavior": {
           "description": "Opaque behavior scripts.",

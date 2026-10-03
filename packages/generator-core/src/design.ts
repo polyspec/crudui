@@ -102,3 +102,29 @@ export function resolveDesign(
     prepend: resolveNode(d.prepend, ctx),
   };
 }
+
+/** Attributes a form field declares (docs/spec/schema.md, Declared attributes). */
+export interface DeclaredAttributes {
+  /** `design.attributes`: attributes of the field's control. */
+  control: Record<string, string>;
+  /** `design.wrapper.attributes`: attributes of the field's node root. */
+  wrapper: Record<string, string>;
+}
+
+function attributeCopy(value: unknown): Record<string, string> {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) return {};
+  return { ...(value as Record<string, string>) };
+}
+
+/**
+ * The declared attributes of a field design in declaration order. Compilation has checked the
+ * names and values; a design without them yields empty objects.
+ */
+export function declaredAttributes(design: unknown): DeclaredAttributes {
+  if (design === null || typeof design !== 'object' || Array.isArray(design)) return { control: {}, wrapper: {} };
+  const d = design as Record<string, unknown>;
+  const wrapper = d.wrapper !== null && typeof d.wrapper === 'object' && !Array.isArray(d.wrapper)
+    ? (d.wrapper as Record<string, unknown>).attributes
+    : undefined;
+  return { control: attributeCopy(d.attributes), wrapper: attributeCopy(wrapper) };
+}

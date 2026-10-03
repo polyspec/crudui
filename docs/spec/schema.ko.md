@@ -85,6 +85,33 @@ properties:
 CRUDUI 스키마는 `show_if`, `display_switch`, `display_target` 같은 별도 조건 메타키를
 거부합니다.
 
+### 선언한 속성
+
+폼 필드는 CRUDUI가 렌더링하는 요소의 속성을 선언합니다. `design.attributes`는 컨트롤의 속성이고
+`design.wrapper.attributes`는 노드 루트의 속성입니다. 대상 요소와 렌더러가 쓰는 방식은
+[폼 마크업](form-markup.ko.md#선언한-속성)이 정의합니다. 각각은 속성 이름에서 문자열 값으로의
+객체이며, 값은 표현식이나 조건 맵이 아닌 리터럴 텍스트입니다. 이름은 `data-` 또는 `aria-` 뒤에 소문자나
+숫자 하나, 그 뒤에 소문자, 숫자, `-`, `_`, `.`가 오는 형태입니다. CRUDUI가 컨트롤이나 노드 루트에 쓰는
+이름은 거부합니다: `data-field-path`, `data-lang`, `data-crudui-` 또는 `data-source-`로 시작하는 모든 이름,
+`data-name`, `data-rule-name`, `data-default`, `data-is-default`, `data-type`, `data-height`,
+`data-upload-server`, `data-fileserver`, `data-server`, `data-max-tags`, `data-keyword-min-length`,
+`data-delay`, `data-api-server`, `data-max-width`, `data-min-width`, `data-max-height`,
+`data-min-height`, `data-preview-max-width`, `data-preview-max-height`, `data-unsupported-type`.
+
+속성은 폼 필드만 받습니다. 폼 버튼, 목록, 상세의 design과 `label`, `group`, `prepend` 노드는
+`attributes`를 알 수 없는 키로 거부합니다. 컴파일은 `design.attributes`를 `design.class`와
+`design.style` 다음, 디자인 노드 전에 검사하고, `design.wrapper.attributes`를 wrapper의 `class`와
+`style` 다음에 검사합니다. 선언 순서로 모든 이름을 검사한 뒤 모든 값을 검사하며,
+`INVALID_FORM_INPUT`와 빈 위치로 실패합니다.
+
+| 선언 | 메시지 |
+| --- | --- |
+| 객체가 아님 | `Invalid design.attributes at {path}: expected an object` |
+| 규칙 밖의 이름 또는 거부된 이름 | `Invalid design.attributes.{name} at {path}: expected a data-* or aria-* name that crudui does not write` |
+| 문자열이 아닌 값 | `Invalid design.attributes.{name} at {path}: expected a string` |
+
+wrapper 아래에서 키는 `design.wrapper.attributes`입니다.
+
 [표현식 문법](expressions.ko.md)은 토크나이저, 파서, 평가기를 정의합니다.
 상대 경로, 와일드카드, 목록, 비교, 논리, 포함 여부, 조건부 값을 지원합니다.
 산술, 함수 호출, JavaScript 평가는 지원하지 않습니다. `behavior`의 이벤트 스크립트는
@@ -252,6 +279,7 @@ button·action 필드의 컨트롤 텍스트는 `content`에서만 가져오며 
 | `design.class`, `design.style` | 문자열 또는 조건 맵 |
 | `design.label`, `design.wrapper`, `design.group`, `design.prepend` | 객체 |
 | 해당 노드의 `class`와 `style` | 문자열 또는 조건 맵 |
+| `design.attributes`, `design.wrapper.attributes` | `data-*` 또는 `aria-*` 이름에서 문자열로의 객체; 폼 필드에서만([선언한 속성](#선언한-속성)) |
 
 컴파일은 선언 순서로 필드를 검사하며 자식보다 필드를 먼저 검사합니다. 스키마는
 `multiple`, `lang`, `design`, 디자인 노드, `behavior`를 닫습니다. 이들이 나열하지 않은 키는

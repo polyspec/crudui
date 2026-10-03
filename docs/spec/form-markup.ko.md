@@ -94,6 +94,38 @@ React, Vue, Svelte, HTML 렌더러와 네이티브 렌더러는 같은 마크업
 </div>
 ```
 
+## 선언한 속성
+
+필드는 `design.attributes`로 컨트롤의 속성을, `design.wrapper.attributes`로 노드 루트의 속성을
+선언합니다([스키마](schema.ko.md#선언한-속성)). 컨트롤은 `design.class`가 적용되는 요소입니다. 위젯의
+input, select, textarea, image·file·cover 필드의 파일 input, 표시 필드(`dummy`, `image-viewer`)의
+`div`, action 필드의 버튼, 체크박스와 스위처의 input이 컨트롤입니다. `design.class`가 선택지 레이블에
+적용되는 choice와 multichoice 필드에서는 모든 선택지 input이 컨트롤입니다. `lang`을 가진 필드는 모든
+언어 항목의 컨트롤에, 반복 스칼라 필드는 모든 행의 컨트롤에 컨트롤 속성을 씁니다. `field`, `group`,
+`collection`, `lang` 노드의 루트가 wrapper 속성을 받으며 `row`와 `lang-item` 노드는 받지 않습니다.
+동적 선택지 원천은 선택지 input을 렌더링하지 않으므로 컨트롤 속성도 쓰지 않습니다.
+
+모델은 선언한 속성을 선언 순서로 가집니다.
+
+- 노드 모델은 `style` 다음, `hidden` 앞의 `attributes`로 가집니다.
+- 체크박스 모델은 `caption` 다음의 `attributes`로 가집니다.
+- 위젯 모델은 컨트롤의 속성 목록인 `attrs`에, `file` 배치에서는 `extra.file`에 덧붙입니다. `choices`
+  배치는 `extra.input` 다음의 `extra.option`에 둡니다.
+
+각 멤버는 선언에 속성이 하나 이상 있을 때만 존재합니다. 모든 렌더러는 CRUDUI가 그 요소에 쓰는 속성 다음에
+선언한 속성을 선언 순서로 씁니다. 노드 루트에서는 `hidden` 다음에, behavior 속성을 가진 선택지
+input에서는 `data-is-default`와 `checked` 다음에 씁니다. React의 서버 렌더링이 기준 직렬화이므로 기준의
+두 가지 배치가 적용됩니다. behavior 속성이 없는 컨트롤은 속성 목록 다음에 `style`을 쓰고, behavior
+속성이 없는 `input`은 `name`, `checked`, `value`를 마지막에 씁니다. 예를 들어
+`design.attributes: { data-setting: theme, aria-describedby: theme-help }`를 가진 text 필드는
+다음을 씁니다.
+
+```html
+<input type="text" class="valid-target crudui-input" data-name="theme" data-rule-name="theme"
+  data-default="" id="crudui:theme" data-setting="theme" aria-describedby="theme-help"
+  name="theme" value=""/>
+```
+
 ## 행
 
 - 번호는 상위 행들의 1부터 시작하는 위치를 `.`으로 연결합니다.
