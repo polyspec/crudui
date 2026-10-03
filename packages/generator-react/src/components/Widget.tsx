@@ -22,7 +22,7 @@ import * as React from 'react';
 import type { WidgetModel, OptionModel, Affix, Attrs } from '@crudui/generator-core';
 import { optionSections } from '@crudui/generator-core/internal';
 import type { UnsupportedVM } from '@crudui/generator-core';
-import { inputProps, plainProps } from './attrs';
+import { inputProps, plainProps, resolvedStyleProps, styleObject } from './attrs';
 import {
   hasEventAttr,
   rawVoid,
@@ -179,6 +179,11 @@ function HostScript({ w }: { w: WidgetModel }): React.ReactElement {
   );
 }
 
+/** The label class of a choice: the label classes, then the class the choice declares, as single-spaced tokens. */
+function choiceLabelClass(labelClass: string, o: OptionModel): string {
+  return [labelClass, o.className ?? ''].join(' ').split(/\s+/).filter(Boolean).join(' ');
+}
+
 /** Raw serialization of a single choice (input + label). */
 function groupButtonHtml(
   o: OptionModel,
@@ -198,11 +203,11 @@ function groupButtonHtml(
   if (type === 'radio') attrs['data-is-default'] = o.isDefault ? '1' : '';
   const checked = o.selected ? ' checked=""' : '';
   // Insert checked manually (serializeAttrs has no boolean form).
-  const input = `<input${serializeBtn(attrs)}${checked}${serializeBtn(declared)}>`;
+  const input = `<input${serializeBtn(attrs)}${checked}${serializeBtn({ ...declared, ...o.attributes })}>`;
   const forAttr = o.id ? ` for="${escAttr(o.id)}"` : '';
   return (
     input +
-    `<label${forAttr} class="${escAttr(labelClass)}"><span>${escText(o.label)}</span></label>`
+    `<label${forAttr} class="${escAttr(choiceLabelClass(labelClass, o))}"${o.style ? ` style="${escAttr(o.style)}"` : ''}><span>${escText(o.label)}</span></label>`
   );
 }
 
@@ -237,8 +242,8 @@ function GroupButton({
   if (type === 'radio') attrs['data-is-default'] = o.isDefault ? '1' : '';
   return (
     <>
-      <input {...attrs} {...(o.selected ? { defaultChecked: true } : {})} {...declared} />
-      <label htmlFor={o.id} className={labelClass}>
+      <input {...attrs} {...(o.selected ? { defaultChecked: true } : {})} {...declared} {...o.attributes} />
+      <label htmlFor={o.id} className={choiceLabelClass(labelClass, o)} {...resolvedStyleProps(styleObject(o.style))}>
         <span>{o.label}</span>
       </label>
     </>

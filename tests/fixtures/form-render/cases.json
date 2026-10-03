@@ -4031,5 +4031,406 @@
       "code": "INVALID_FORM_INPUT",
       "message": "Invalid validate.range at volume: expected a minimum that is a multiple of validate.step"
     }
+  },
+  {
+    "name": "choice-appearance-swatches",
+    "note": "choice items with class, style and attributes → the label class after the label classes, the label style, the input attributes after the control attributes; design.group on the choices element.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "accent": {
+          "type": "choice",
+          "label": "Accent",
+          "design": {
+            "class": "large",
+            "attributes": {
+              "data-setting": "accent"
+            },
+            "group": {
+              "class": "swatches",
+              "style": "display: grid; gap: 4px"
+            }
+          },
+          "items": [
+            {
+              "value": "blue",
+              "label": "Blue",
+              "class": "swatch",
+              "style": "--swatch-bg: #1d4ed8",
+              "attributes": {
+                "aria-label": "Blue accent"
+              }
+            },
+            {
+              "value": "green",
+              "label": "Green",
+              "class": " swatch  swatch--dark ",
+              "style": "--swatch-bg: #15803d; outline: 1px solid red"
+            },
+            {
+              "value": "plain",
+              "label": "Plain"
+            }
+          ]
+        }
+      }
+    },
+    "data": {
+      "accent": "green"
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"accent\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Accent</span></div><div class=\"crudui-node__body\"><div class=\"crudui-choices swatches\" style=\"display: grid; gap: 4px\"><input aria-label=\"Blue accent\" autocomplete=\"off\" class=\"valid-target crudui-choices__input\" data-is-default=\"\" data-name=\"accent\" data-rule-name=\"accent\" data-setting=\"accent\" id=\"crudui:accent:0\" name=\"accent\" type=\"radio\" value=\"blue\"><label class=\"crudui-choices__label large swatch\" for=\"crudui:accent:0\" style=\"--swatch-bg: #1d4ed8\"><span>Blue</span></label><input autocomplete=\"off\" checked=\"\" class=\"valid-target crudui-choices__input\" data-is-default=\"\" data-name=\"accent\" data-rule-name=\"accent\" data-setting=\"accent\" id=\"crudui:accent:1\" name=\"accent\" type=\"radio\" value=\"green\"><label class=\"crudui-choices__label large swatch swatch--dark\" for=\"crudui:accent:1\" style=\"--swatch-bg: #15803d; outline: 1px solid red\"><span>Green</span></label><input autocomplete=\"off\" class=\"valid-target crudui-choices__input\" data-is-default=\"\" data-name=\"accent\" data-rule-name=\"accent\" data-setting=\"accent\" id=\"crudui:accent:2\" name=\"accent\" type=\"radio\" value=\"plain\"><label class=\"crudui-choices__label large\" for=\"crudui:accent:2\"><span>Plain</span></label></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "choice-appearance-multichoice-override",
+    "note": "multichoice items: a choice attribute named like a control attribute keeps its position and takes the choice value; the choices style without a class.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "days": {
+          "type": "multichoice",
+          "label": "Days",
+          "design": {
+            "attributes": {
+              "data-setting": "days",
+              "aria-describedby": "days-help"
+            },
+            "group": {
+              "style": "display: flex"
+            }
+          },
+          "items": [
+            {
+              "value": "mo",
+              "label": "Mon",
+              "attributes": {
+                "aria-describedby": "mo-help",
+                "data-day": "1"
+              }
+            },
+            {
+              "value": "tu",
+              "label": "Tue",
+              "style": "font-weight: bold"
+            }
+          ]
+        }
+      }
+    },
+    "data": {
+      "days": [
+        "tu"
+      ]
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"days\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Days</span></div><div class=\"crudui-node__body\"><div class=\"crudui-choices crudui-choices--multiple\" style=\"display: flex\"><input aria-describedby=\"mo-help\" autocomplete=\"off\" class=\"valid-target crudui-choices__input\" data-day=\"1\" data-name=\"days\" data-rule-name=\"days\" data-setting=\"days\" id=\"crudui:days:0\" name=\"days[]\" type=\"checkbox\" value=\"mo\"><label class=\"crudui-choices__label\" for=\"crudui:days:0\"><span>Mon</span></label><input aria-describedby=\"days-help\" autocomplete=\"off\" checked=\"\" class=\"valid-target crudui-choices__input\" data-name=\"days\" data-rule-name=\"days\" data-setting=\"days\" id=\"crudui:days:1\" name=\"days[]\" type=\"checkbox\" value=\"tu\"><label class=\"crudui-choices__label\" for=\"crudui:days:1\" style=\"font-weight: bold\"><span>Tue</span></label></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "choice-appearance-behavior",
+    "note": "choice items with appearance and a behavior attribute → the raw inputs with the choice attributes and the raw label style.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "accent": {
+          "type": "radio",
+          "label": "Accent",
+          "behavior": {
+            "onchange": "go(this)"
+          },
+          "design": {
+            "attributes": {
+              "data-setting": "accent"
+            }
+          },
+          "items": [
+            {
+              "value": "blue",
+              "label": "Blue",
+              "class": "swatch",
+              "style": "--swatch-bg: #1d4ed8",
+              "attributes": {
+                "aria-label": "Blue accent",
+                "data-setting": "blue"
+              }
+            },
+            {
+              "value": "red",
+              "label": "Red",
+              "class": "swatch"
+            }
+          ]
+        }
+      }
+    },
+    "data": {
+      "accent": "blue"
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"accent\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Accent</span></div><div class=\"crudui-node__body\"><div class=\"crudui-choices\"><input aria-label=\"Blue accent\" autocomplete=\"off\" checked=\"\" class=\"valid-target crudui-choices__input\" data-is-default=\"\" data-name=\"accent\" data-rule-name=\"accent\" data-setting=\"blue\" id=\"crudui:accent:0\" name=\"accent\" onchange=\"go(this)\" type=\"radio\" value=\"blue\"><label class=\"crudui-choices__label swatch\" for=\"crudui:accent:0\" style=\"--swatch-bg: #1d4ed8\"><span>Blue</span></label><input autocomplete=\"off\" class=\"valid-target crudui-choices__input\" data-is-default=\"\" data-name=\"accent\" data-rule-name=\"accent\" data-setting=\"accent\" id=\"crudui:accent:1\" name=\"accent\" onchange=\"go(this)\" type=\"radio\" value=\"red\"><label class=\"crudui-choices__label swatch\" for=\"crudui:accent:1\"><span>Red</span></label></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "choice-appearance-select",
+    "note": "A select choice declares no appearance.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "accent": {
+          "label": "Accent",
+          "type": "select",
+          "items": [
+            {
+              "value": "blue",
+              "label": "Blue",
+              "class": "swatch"
+            }
+          ]
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid items at accent: expected value and label pairs with distinct string or number values"
+    }
+  },
+  {
+    "name": "choice-appearance-search",
+    "note": "A search choice declares no appearance.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "accent": {
+          "label": "Accent",
+          "type": "search",
+          "items": [
+            {
+              "value": "blue",
+              "label": "Blue",
+              "attributes": {
+                "data-x": "1"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid items at accent: expected value and label pairs with distinct string or number values"
+    }
+  },
+  {
+    "name": "choice-appearance-other-member",
+    "note": "A choice of a choice field has no member besides value, label, class, style and attributes.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "accent": {
+          "label": "Accent",
+          "type": "choice",
+          "items": [
+            {
+              "value": "blue",
+              "label": "Blue",
+              "id": "x"
+            }
+          ]
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid items at accent: expected value and label pairs with distinct string or number values"
+    }
+  },
+  {
+    "name": "choice-appearance-class-list",
+    "note": "The class of a choice is a string.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "accent": {
+          "label": "Accent",
+          "type": "radio",
+          "items": [
+            {
+              "value": "blue",
+              "label": "Blue",
+              "class": [
+                "swatch"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid items.0.class at accent: expected a string"
+    }
+  },
+  {
+    "name": "choice-appearance-style-map",
+    "note": "The style of a choice is a string, not a condition map.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "accent": {
+          "label": "Accent",
+          "type": "multichoice",
+          "items": [
+            {
+              "value": "blue",
+              "label": "Blue"
+            },
+            {
+              "value": "red",
+              "label": "Red",
+              "style": {
+                ".on": "color: red"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid items.1.style at accent: expected a string"
+    }
+  },
+  {
+    "name": "choice-appearance-attributes-text",
+    "note": "The attributes of a choice are an object.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "accent": {
+          "label": "Accent",
+          "type": "choice",
+          "items": [
+            {
+              "value": "blue",
+              "label": "Blue",
+              "attributes": "data-x"
+            }
+          ]
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid items.0.attributes at accent: expected an object"
+    }
+  },
+  {
+    "name": "choice-appearance-event-attribute",
+    "note": "A choice attribute name is a data-* or aria-* name.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "accent": {
+          "label": "Accent",
+          "type": "choice",
+          "items": [
+            {
+              "value": "blue",
+              "label": "Blue",
+              "attributes": {
+                "onclick": "go()"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid items.0.attributes.onclick at accent: expected a data-* or aria-* name that crudui does not write"
+    }
+  },
+  {
+    "name": "choice-appearance-owned-attribute",
+    "note": "A choice attribute name is not one that crudui writes.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "accent": {
+          "label": "Accent",
+          "type": "checkboxes",
+          "items": [
+            {
+              "value": "blue",
+              "label": "Blue",
+              "attributes": {
+                "data-name": "x"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid items.0.attributes.data-name at accent: expected a data-* or aria-* name that crudui does not write"
+    }
+  },
+  {
+    "name": "choice-appearance-number-attribute",
+    "note": "A choice attribute value is a string.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "accent": {
+          "label": "Accent",
+          "type": "choice",
+          "items": [
+            {
+              "value": "blue",
+              "label": "Blue",
+              "attributes": {
+                "data-x": 1
+              }
+            }
+          ]
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid items.0.attributes.data-x at accent: expected a string"
+    }
   }
 ]

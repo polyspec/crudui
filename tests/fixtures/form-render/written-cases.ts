@@ -73,7 +73,29 @@ const RANGE_STEP = { code: 'INVALID_FORM_INPUT', message: 'Invalid validate.step
 const rangeCase = (name: string, note: string, validate: unknown, expectError: { code: string; message: string }) =>
   ({ name, note, spec: G({ volume: { type: 'range', label: 'Volume', ...(validate === undefined ? {} : { validate }) } }), options: { language: 'en' }, expectError });
 
+// Choice appearance checks (docs/spec/schema.md, Choice appearance).
+const appearanceCase = (name: string, note: string, field: Record<string, unknown>, message: string) =>
+  ({ name, note, spec: G({ accent: { label: 'Accent', ...field } }), options: { language: 'en' }, expectError: { code: 'INVALID_FORM_INPUT', message } });
+
 export const WRITTEN_CASES = [
+  appearanceCase('choice-appearance-select', 'A select choice declares no appearance.',
+    { type: 'select', items: [{ value: 'blue', label: 'Blue', class: 'swatch' }] }, INVALID_ITEMS('accent').message),
+  appearanceCase('choice-appearance-search', 'A search choice declares no appearance.',
+    { type: 'search', items: [{ value: 'blue', label: 'Blue', attributes: { 'data-x': '1' } }] }, INVALID_ITEMS('accent').message),
+  appearanceCase('choice-appearance-other-member', 'A choice of a choice field has no member besides value, label, class, style and attributes.',
+    { type: 'choice', items: [{ value: 'blue', label: 'Blue', id: 'x' }] }, INVALID_ITEMS('accent').message),
+  appearanceCase('choice-appearance-class-list', 'The class of a choice is a string.',
+    { type: 'radio', items: [{ value: 'blue', label: 'Blue', class: ['swatch'] }] }, 'Invalid items.0.class at accent: expected a string'),
+  appearanceCase('choice-appearance-style-map', 'The style of a choice is a string, not a condition map.',
+    { type: 'multichoice', items: [{ value: 'blue', label: 'Blue' }, { value: 'red', label: 'Red', style: { '.on': 'color: red' } }] }, 'Invalid items.1.style at accent: expected a string'),
+  appearanceCase('choice-appearance-attributes-text', 'The attributes of a choice are an object.',
+    { type: 'choice', items: [{ value: 'blue', label: 'Blue', attributes: 'data-x' }] }, 'Invalid items.0.attributes at accent: expected an object'),
+  appearanceCase('choice-appearance-event-attribute', 'A choice attribute name is a data-* or aria-* name.',
+    { type: 'choice', items: [{ value: 'blue', label: 'Blue', attributes: { onclick: 'go()' } }] }, 'Invalid items.0.attributes.onclick at accent: expected a data-* or aria-* name that crudui does not write'),
+  appearanceCase('choice-appearance-owned-attribute', 'A choice attribute name is not one that crudui writes.',
+    { type: 'checkboxes', items: [{ value: 'blue', label: 'Blue', attributes: { 'data-name': 'x' } }] }, 'Invalid items.0.attributes.data-name at accent: expected a data-* or aria-* name that crudui does not write'),
+  appearanceCase('choice-appearance-number-attribute', 'A choice attribute value is a string.',
+    { type: 'choice', items: [{ value: 'blue', label: 'Blue', attributes: { 'data-x': 1 } }] }, 'Invalid items.0.attributes.data-x at accent: expected a string'),
   rangeCase('range-without-rules', 'A range field requires validate.range.', undefined, RANGE_BOUNDS),
   rangeCase('range-reversed-bounds', 'The minimum of validate.range is not above the maximum.', { range: [5, 1], step: 1 }, RANGE_BOUNDS),
   rangeCase('range-reference-bounds', 'validate.range of a range field is a literal pair, not a reference.', { range: '.limits', step: 1 }, RANGE_BOUNDS),
