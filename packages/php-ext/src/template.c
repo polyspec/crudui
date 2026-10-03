@@ -1,5 +1,7 @@
 #include "engine_internal.h"
 
+#include <ctype.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -53,6 +55,48 @@ static bool one_of(const ps_value *value, const char *const *allowed, size_t cou
     for (size_t i = 0; i < count; ++i)
         if (ps_is_string(value, allowed[i])) return true;
     return false;
+}
+
+/* A finite number of a literal declaration. */
+static bool finite_number(const ps_value *value, double *number)
+{
+    if (value && value->kind == PS_INT) { *number = (double)value->data.integer; return true; }
+    if (value && value->kind == PS_FLOAT) { *number = value->data.number; return isfinite(*number); }
+    return false;
+}
+
+/* The range type, in any letter case. */
+static bool range_type(const ps_value *type)
+{
+    if (!type || type->kind != PS_STRING) return false;
+    ps_text text = ps_string(type);
+    if (text.length != 5) return false;
+    for (size_t i = 0; i < 5; ++i)
+        if (tolower((unsigned char)text.bytes[i]) != "range"[i]) return false;
+    return true;
+}
+
+/* Reject a range field without literal bounds and a literal step whose multiple the minimum is:
+   the slider moves from the minimum in steps. */
+static bool range_declaration_valid(const ps_value *spec, ps_text path, ps_value **error)
+{
+    const ps_value *validate = ps_get(spec, "validate");
+    if (validate && validate->kind != PS_OBJECT) validate = NULL;
+    const ps_value *bounds = validate ? ps_get(validate, "range") : NULL;
+    double minimum = 0, maximum = 0, step = 0;
+    if (!bounds || bounds->kind != PS_ARRAY || ps_size(bounds) != 2 ||
+        !finite_number(ps_at(bounds, 0), &minimum) || !finite_number(ps_at(bounds, 1), &maximum) ||
+        minimum > maximum)
+        return ps_declaration_error(PS_TEXT("validate.range"), path,
+            "[minimum, maximum] finite numbers with minimum not above maximum", error);
+    if (!finite_number(validate ? ps_get(validate, "step") : NULL, &step) || step <= 0)
+        return ps_declaration_error(PS_TEXT("validate.step"), path, "a finite number above 0", error);
+    int multiple = ps_step_multiple(minimum, step);
+    if (multiple < 0) { *error = NULL; return false; }
+    if (!multiple)
+        return ps_declaration_error(PS_TEXT("validate.range"), path,
+            "a minimum that is a multiple of validate.step", error);
+    return true;
 }
 
 /* Reject a wrong value type or an unknown key in one field's multiple, lang, design and behavior declarations;
@@ -133,8 +177,9 @@ static bool declarations_valid(const ps_value *spec, ps_text path, bool field, p
     const ps_value *design = ps_get(spec, "design");
     if (design && !ps_design_declaration_valid(design, path, field, layouts, error)) return false;
     const ps_value *behavior = ps_get(spec, "behavior");
-    return !behavior || behavior->kind != PS_OBJECT ||
-        ps_known_keys(behavior, "behavior", behavior_keys, 3, path, error);
+    if (behavior && behavior->kind == PS_OBJECT &&
+        !ps_known_keys(behavior, "behavior", behavior_keys, 3, path, error)) return false;
+    return !field || !range_type(ps_get(spec, "type")) || range_declaration_valid(spec, path, error);
 }
 
 /* Reject a wrong root action or buttons declaration. */

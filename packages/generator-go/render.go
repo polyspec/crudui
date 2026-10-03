@@ -174,6 +174,12 @@ func renderWidget(w *Object) string {
 		return `<div class="crudui-widget">` + affixHTML(read(w, "prepend"), raw) + controlHTML(w, raw, "") + affixHTML(read(w, "append"), raw) + `</div>`
 	case "bare":
 		return controlHTML(w, raw, "")
+	case "range":
+		output := NewObject("class", "crudui-widget__output")
+		if id := stringAt(a, "id"); id != "" {
+			output.Set("for", id)
+		}
+		return `<div class="crudui-widget crudui-widget--range">` + affixHTML(read(w, "prepend"), raw) + controlHTML(w, raw, "") + "<output" + attrs(output, raw, false) + ">" + textContent(stringAt(w, "text"), raw) + "</output>" + affixHTML(read(w, "append"), raw) + `</div>`
 	case "host-script":
 		return controlHTML(w, raw, "") + script
 	case "choices":

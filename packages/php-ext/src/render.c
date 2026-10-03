@@ -263,6 +263,24 @@ static bool write_widget(render_buffer *out, const ps_value *model)
         ps_value_free(attrs);
         return ok;
     }
+    if (ps_text_is(layout, "range")) {
+        /* The range input, an output with the value it was rendered with and the unit. */
+        ps_value *attrs = ps_object_value();
+        ps_value *output = ps_object_value();
+        const ps_value *id = member(member(model, "attrs"), "id");
+        bool raw = has_events(member(model, "attrs"));
+        bool ok = attrs && output && attr_string(attrs, "class", "crudui-widget crudui-widget--range") &&
+            attr_string(output, "class", "crudui-widget__output") && (!id || attr_clone(output, "for", id)) &&
+            start_element(out, "div", attrs, false, false) &&
+            write_affix(out, member(model, "prepend"), raw) &&
+            write_control(out, model, false) &&
+            start_element(out, "output", output, raw, false) &&
+            write_escaped(out, string_member(model, "text"), raw) && end_element(out, "output", raw) &&
+            write_affix(out, member(model, "append"), raw) &&
+            end_element(out, "div", false);
+        ps_value_free(attrs); ps_value_free(output);
+        return ok;
+    }
     if (ps_text_is(layout, "bare")) return write_control(out, model, false);
     if (ps_text_is(layout, "host-script"))
         return write_control(out, model, false) && write_script(out, string_member(model, "script"));

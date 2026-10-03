@@ -264,6 +264,9 @@ final class Rendering
                 return self::element('div', ['class' => 'crudui-widget'], self::affix($widget->prepend ?? null, $raw) . self::control($widget, $raw) . self::affix($widget->append ?? null, $raw));
             case 'bare':
                 return self::control($widget, $raw);
+            case 'range':
+                $output = self::element('output', ['class' => 'crudui-widget__output', 'for' => $widget->attrs->id ?? null], self::text($widget->text ?? '', $raw), $raw);
+                return self::element('div', ['class' => 'crudui-widget crudui-widget--range'], self::affix($widget->prepend ?? null, $raw) . self::control($widget, $raw) . $output . self::affix($widget->append ?? null, $raw));
             case 'host-script':
                 return self::control($widget, $raw) . self::script($widget->script ?? '');
             case 'choices':

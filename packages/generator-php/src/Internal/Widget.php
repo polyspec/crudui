@@ -10,7 +10,7 @@ use stdClass;
 /** Evaluate field controls without generating HTML. */
 final class Widget
 {
-    private const KINDS = ['text' => 'text', 'string' => 'text', 'email' => 'email', 'number' => 'number', 'integer' => 'number', 'float' => 'number', 'decimal' => 'number', 'password' => 'password', 'textarea' => 'textarea', 'select' => 'select', 'dropdown' => 'select', 'selectbox' => 'select', 'hidden' => 'hidden', 'choice' => 'choice', 'radio' => 'choice', 'multichoice' => 'multichoice', 'checkboxes' => 'multichoice', 'checkcontainer' => 'multichoice', 'date' => 'date', 'datetime' => 'datetime', 'datetime-local' => 'datetime', 'dummy' => 'dummy', 'html' => 'dummy', 'static' => 'dummy', 'dummy-input' => 'dummy-input', 'image' => 'image', 'file' => 'file', 'cover' => 'cover', 'cover-simple' => 'cover', 'image-viewer' => 'image-viewer', 'search' => 'search', 'autocomplete' => 'search', 'tinymce' => 'tinymce', 'wysiwyg' => 'tinymce', 'summernote' => 'summernote', 'editorjs' => 'editorjs', 'tui' => 'tui', 'button' => 'button', 'action' => 'button', 'tagify' => 'tagify', 'tagify2' => 'tagify2'];
+    private const KINDS = ['text' => 'text', 'string' => 'text', 'email' => 'email', 'number' => 'number', 'integer' => 'number', 'float' => 'number', 'decimal' => 'number', 'range' => 'range', 'password' => 'password', 'textarea' => 'textarea', 'select' => 'select', 'dropdown' => 'select', 'selectbox' => 'select', 'hidden' => 'hidden', 'choice' => 'choice', 'radio' => 'choice', 'multichoice' => 'multichoice', 'checkboxes' => 'multichoice', 'checkcontainer' => 'multichoice', 'date' => 'date', 'datetime' => 'datetime', 'datetime-local' => 'datetime', 'dummy' => 'dummy', 'html' => 'dummy', 'static' => 'dummy', 'dummy-input' => 'dummy-input', 'image' => 'image', 'file' => 'file', 'cover' => 'cover', 'cover-simple' => 'cover', 'image-viewer' => 'image-viewer', 'search' => 'search', 'autocomplete' => 'search', 'tinymce' => 'tinymce', 'wysiwyg' => 'tinymce', 'summernote' => 'summernote', 'editorjs' => 'editorjs', 'tui' => 'tui', 'button' => 'button', 'action' => 'button', 'tagify' => 'tagify', 'tagify2' => 'tagify2'];
 
     private string $id;
 
@@ -42,6 +42,7 @@ final class Widget
         $ctx = new self($spec, $value, $path, $design, $options, $rows);
         $model = match ($kind) {
             'text', 'email', 'number', 'password', 'hidden', 'date', 'datetime', 'dummy-input' => $ctx->input($kind),
+            'range' => $ctx->range(),
             'textarea' => $ctx->textarea(),
             'select', 'search' => $ctx->select($kind),
             'choice', 'multichoice' => $ctx->choices($kind),
@@ -185,6 +186,18 @@ final class Widget
         $attrs = array_replace($attrs, $kind === 'dummy-input' ? ['data-default' => Value::scalar($this->spec->default ?? null)] : $this->data());
         $bare = in_array($kind, ['password', 'hidden', 'datetime'], true);
         return $this->model($kind, $bare ? 'bare' : 'widget', $attrs, ['tag' => 'input', ...$bare ? [] : $this->affixes()]);
+    }
+
+    /**
+     * A range input with the bounds and the step of its required validate.range and validate.step;
+     * compilation has checked them.
+     */
+    private function range(): stdClass
+    {
+        $value = $this->displayValue();
+        $validate = $this->spec->validate;
+        $attrs = ['type' => 'range', 'name' => $this->name, 'value' => $value, 'min' => Value::scalar($validate->range[0]), 'max' => Value::scalar($validate->range[1]), 'step' => Value::scalar($validate->step), 'class' => $this->main('valid-target crudui-input crudui-input--range'), ...$this->style(), ...$this->behavior(), ...$this->data()];
+        return $this->model('range', 'range', $attrs, ['tag' => 'input', 'text' => $value, ...$this->affixes()]);
     }
 
     private function textarea(): stdClass

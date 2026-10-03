@@ -18,6 +18,7 @@ use crate::compose::{ComposeErrorCode, ComposeLoadError};
 use super::errors::ValidateError;
 use super::length::{limit, range_limits, MAX_LIMIT};
 use super::membership::{members, Comparable};
+use super::numeric::{number_range, step};
 use super::pattern::{compile, Program};
 use super::rules::get_rule;
 use super::validator::{
@@ -155,28 +156,18 @@ pub(crate) fn check(
                 "Invalid {rule} parameter: expected a finite number"
             ))
         }),
-        "range" => match parameter.as_array().map(Vec::as_slice) {
-            Some([minimum, maximum]) => match (finite(minimum), finite(maximum)) {
-                (Some(minimum), Some(maximum)) if minimum <= maximum => {
-                    Some(Parameter::Bounds(minimum, maximum))
-                }
-                _ => None,
-            },
-            _ => None,
-        }
-        .ok_or_else(|| {
-            invalid(
-                "Invalid range parameter: expected [minimum, maximum] finite numbers \
-                 with minimum not above maximum"
-                    .to_string(),
-            )
-        }),
-        "step" => finite(parameter)
-            .filter(|step| *step > 0.0)
-            .map(Parameter::Step)
+        "range" => number_range(parameter)
+            .map(|(minimum, maximum)| Parameter::Bounds(minimum, maximum))
             .ok_or_else(|| {
-                invalid("Invalid step parameter: expected a finite number above 0".to_string())
+                invalid(
+                    "Invalid range parameter: expected [minimum, maximum] finite numbers \
+                 with minimum not above maximum"
+                        .to_string(),
+                )
             }),
+        "step" => step(parameter).map(Parameter::Step).ok_or_else(|| {
+            invalid("Invalid step parameter: expected a finite number above 0".to_string())
+        }),
         "mincount" | "maxcount" => limit(parameter).map(Parameter::Count).ok_or_else(|| {
             invalid(format!(
                 "Invalid {rule} parameter: expected an integer from 0 to {MAX_LIMIT}"

@@ -19,7 +19,7 @@ mod choice_data;
 pub mod errors;
 mod length;
 mod membership;
-mod numeric;
+pub mod numeric;
 mod parameters;
 mod pattern;
 pub mod rules;

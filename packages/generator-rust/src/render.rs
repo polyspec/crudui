@@ -222,6 +222,26 @@ fn widget(model: &Value) -> String {
                 + &affix(&model["append"], has_events(&model["attrs"]))),
         ),
         "bare" => control(model, false),
+        "range" => {
+            let raw = has_events(&model["attrs"]);
+            let (render, text): (fn(&str, &Value, &str) -> String, fn(&str) -> String) = if raw {
+                (raw_element, raw_text)
+            } else {
+                (element, escape)
+            };
+            let mut output = json!({"class":"crudui-widget__output"});
+            if let Some(id) = model["attrs"].get("id") {
+                output["for"] = id.clone();
+            }
+            element(
+                "div",
+                &json!({"class":"crudui-widget crudui-widget--range"}),
+                &(affix(&model["prepend"], raw)
+                    + &control(model, false)
+                    + &render("output", &output, &text(str_at(model, "text")))
+                    + &affix(&model["append"], raw)),
+            )
+        }
         "host-script" => control(model, false) + &script(str_at(model, "script")),
         "choices" => {
             let radio = model["kind"] == "choice";

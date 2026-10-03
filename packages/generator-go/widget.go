@@ -150,6 +150,16 @@ func evalWidget(c widgetContext) *Object {
 		c.attrsStyle(a)
 		c.attrsBehaviorData(a)
 		w = c.withAffixes(widget(kind, "widget", "input", a))
+	case "range":
+		// A range input takes the bounds and the step of its validate.range and validate.step
+		// (docs/spec/form-markup.md, Range fields); compilation has checked them.
+		rules := read(c.spec, "validate")
+		bounds := list(read(rules, "range"))
+		a = NewObject("type", "range", "name", name, "value", c.display(), "min", jsString(bounds[0]), "max", jsString(bounds[1]), "step", jsString(read(rules, "step")), "class", c.class("valid-target crudui-input crudui-input--range"))
+		c.attrsStyle(a)
+		c.attrsBehaviorData(a)
+		w = c.withAffixes(widget(kind, "range", "input", a))
+		w.Set("text", c.display())
 	case "password":
 		a = NewObject("type", "password", "name", name, "value", scalar(c.value), "class", c.class("valid-target crudui-input"))
 		c.attrsStyle(a)

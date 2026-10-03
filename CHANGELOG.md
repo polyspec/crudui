@@ -1,5 +1,17 @@
 # Changes
 
+## 2026-10-04 — Range fields
+
+- A `range` field renders a `crudui-widget crudui-widget--range` widget: the prepend affix, a range
+  input with `min`, `max` and `step` from its literal `validate.range` and `validate.step`, a
+  `crudui-widget__output` output with the current value and the append affix as the unit.
+  `compileForm` requires both rules as literal values and a minimum that is a multiple of the step,
+  decided exactly as the `step` rule decides it, and fails with `INVALID_FORM_INPUT` otherwise.
+- The validators check a range field with its `range` and `step` rules.
+- React, Vue, Svelte, the HTML renderer, PHP, the PHP extension, Go and Rust write the range widget
+  in the shared form cases `range-*` and reject the eight written range cases; the TypeScript, PHP,
+  PHP extension, Go and Rust validators pass the shared validation case `range-field-values`.
+
 ## 2026-10-04 — Inline and line layouts
 
 - A group declares `design.layout`: `inline` makes every field node inside it one row of a label

@@ -3,6 +3,7 @@ use crudui_validator::compose::{
     compose_properties, member_ordered, member_ordered_map, ComposeOptions, FileLoader,
     MemoryLoader,
 };
+use crudui_validator::validate::numeric;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
@@ -476,6 +477,37 @@ fn check_declarations(spec: &Map<String, Value>, path: &str, field: bool) -> For
     }
     if let Some(behavior) = spec.get("behavior").and_then(Value::as_object) {
         check_known_keys("behavior", behavior, BEHAVIOR_KEYS, path)?;
+    }
+    if field
+        && spec
+            .get("type")
+            .and_then(Value::as_str)
+            .is_some_and(|t| t.to_lowercase() == "range")
+    {
+        check_range_declaration(spec, path)?;
+    }
+    Ok(())
+}
+
+/// Reject a range field without literal bounds and a literal step whose multiple the minimum
+/// is: the slider moves from the minimum in steps.
+fn check_range_declaration(spec: &Map<String, Value>, path: &str) -> FormResult<()> {
+    let validate = spec.get("validate").filter(|v| v.is_object());
+    let rule = |key: &str| validate.and_then(|v| v.get(key)).unwrap_or(&Value::Null);
+    let Some((minimum, _)) = numeric::number_range(rule("range")) else {
+        return Err(FormError::input(format!(
+            "Invalid validate.range at {path}: expected [minimum, maximum] finite numbers with minimum not above maximum"
+        )));
+    };
+    let Some(step) = numeric::step(rule("step")) else {
+        return Err(FormError::input(format!(
+            "Invalid validate.step at {path}: expected a finite number above 0"
+        )));
+    };
+    if !numeric::is_multiple(minimum, step) {
+        return Err(FormError::input(format!(
+            "Invalid validate.range at {path}: expected a minimum that is a multiple of validate.step"
+        )));
     }
     Ok(())
 }
