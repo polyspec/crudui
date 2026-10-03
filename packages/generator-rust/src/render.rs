@@ -313,9 +313,15 @@ fn widget(model: &Value) -> String {
                 )
         }
         "button" => {
-            script(str_at(model, "script"))
-                + &element("input", &model["extra"]["hidden"], "")
-                + &element("input", &model["attrs"], "")
+            if has_events(&model["attrs"]) {
+                raw_element("button", &model["attrs"], &raw_text(str_at(model, "text")))
+            } else {
+                element(
+                    "button",
+                    &style_last(&model["attrs"]),
+                    &escape(str_at(model, "text")),
+                )
+            }
         }
         _ => String::new(),
     }

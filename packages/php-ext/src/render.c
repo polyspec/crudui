@@ -272,10 +272,7 @@ static bool write_widget(render_buffer *out, const ps_value *model)
         return start_element(out, "div", member(model, "attrs"), false, true) &&
             append(out, string_member(model, "rawHtml")) && end_element(out, "div", false);
     if (ps_text_is(layout, "search")) return write_search(out, model);
-    if (ps_text_is(layout, "button"))
-        return write_script(out, string_member(model, "script")) &&
-            start_element(out, "input", member(member(model, "extra"), "hidden"), false, false) &&
-            start_element(out, "input", member(model, "attrs"), false, false);
+    if (ps_text_is(layout, "button")) return write_control(out, model, false);
     return false;
 }
 

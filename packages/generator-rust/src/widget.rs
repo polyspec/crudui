@@ -543,20 +543,24 @@ fn editor(kind: &str, ctx: &WidgetContext<'_>) -> Value {
     model
 }
 
+/// A button element with the content text; behavior scripts are its event attributes.
 fn button(ctx: &WidgetContext<'_>) -> Value {
-    let name = ctx.name();
-    let id = ctx.id;
-    let init = ctx.opt("init_script", "");
-    let onclick = ctx.script("onclick");
+    let mut attrs = Map::new();
+    put_string(&mut attrs, "type", "button");
+    put_string(
+        &mut attrs,
+        "class",
+        ctx.class("crudui-action crudui-action--text"),
+    );
+    put_nonempty(&mut attrs, "style", ctx.style());
+    put_string(&mut attrs, "id", ctx.id);
+    ctx.behavior(&mut attrs);
     let text = if ctx.spec.get("content").is_some() {
         ctx.text("content")
     } else {
         String::new()
     };
-    json!({"kind":"button","layout":"button","script":format!("\n$(function() {{\n    {init}\n    $(document.getElementById({})).on('click', function() {{\n        {onclick}\n    }});\n}});\n",script_string(id)),
-        "buttonText":text,"attrs":{"type":"button","class":ctx.class("crudui-action crudui-action--text"),"name":format!("btn{name}"),"id":id,"value":text},
-        "extra":{"hidden":{"type":"hidden","class":"valid-target","readonly":"","name":name,
-            "data-name":leaf_name(ctx.path,ctx.row_segments),"data-rule-name":rule_name(ctx.path,ctx.row_segments),"value":ctx.value(),"data-default":scalar(ctx.spec.get("default"))}}})
+    json!({"kind":"button","layout":"button","tag":"button","attrs":attrs,"text":text})
 }
 
 pub(crate) fn evaluate_widget(field_type: &str, ctx: &WidgetContext<'_>) -> Option<Value> {
@@ -624,7 +628,7 @@ pub(crate) fn declared_attributes(spec: &Value, wrapper: bool) -> Option<Map<Str
 }
 
 /// Widget model members in output order.
-pub(crate) const WIDGET_MEMBERS: [&str; 15] = [
+pub(crate) const WIDGET_MEMBERS: [&str; 14] = [
     "kind",
     "layout",
     "tag",
@@ -636,7 +640,6 @@ pub(crate) const WIDGET_MEMBERS: [&str; 15] = [
     "itemLabelClass",
     "script",
     "styleChrome",
-    "buttonText",
     "prepend",
     "append",
     "extra",

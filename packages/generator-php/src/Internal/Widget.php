@@ -141,7 +141,7 @@ final class Widget
     }
 
     /** Widget model members in their output order (docs/spec/form-runtime.md). */
-    private const MEMBERS = ['kind', 'layout', 'tag', 'attrs', 'text', 'rawHtml', 'source', 'options', 'itemLabelClass', 'script', 'styleChrome', 'buttonText', 'prepend', 'append', 'extra'];
+    private const MEMBERS = ['kind', 'layout', 'tag', 'attrs', 'text', 'rawHtml', 'source', 'options', 'itemLabelClass', 'script', 'styleChrome', 'prepend', 'append', 'extra'];
 
     private function model(string $kind, string $layout, array $attrs, array $extra = []): stdClass
     {
@@ -381,14 +381,11 @@ final class Widget
         return $this->model($kind, 'host-script', $attrs, ['tag' => $tagify ? 'input' : 'textarea', 'text' => $tagify ? Missing::Value : $this->displayValue(), 'script' => '$(function() {editor_' . $kind . '(' . $arguments . ');});']);
     }
 
+    /** A button element with the content text; behavior scripts are its event attributes. */
     private function button(): stdClass
     {
-        $id = $this->id;
-        $init = $this->opt('init_script', '');
-        $onclick = $this->behavior()['onclick'] ?? '';
-        $script = "\n\$(function() {\n    " . $init . "\n    \$(document.getElementById(" . self::js($id) . ")).on('click', function() {\n        " . $onclick . "\n    });\n});\n";
         $text = property_exists($this->spec, 'content') ? $this->t($this->spec->content) : '';
-        return $this->model('button', 'button', ['type' => 'button', 'class' => $this->main('crudui-action crudui-action--text'), 'name' => 'btn' . $this->name, 'id' => $id, 'value' => $text], ['script' => $script, 'buttonText' => $text, 'extra' => (object) ['hidden' => (object) ['type' => 'hidden', 'class' => 'valid-target', 'readonly' => '', 'name' => $this->name, 'data-name' => Value::leaf($this->path, $this->rows), 'data-rule-name' => Value::rule($this->path, $this->rows), 'value' => $this->displayValue(), 'data-default' => Value::scalar($this->spec->default ?? null)]]]);
+        return $this->model('button', 'button', ['type' => 'button', 'class' => $this->main('crudui-action crudui-action--text'), ...$this->style(), 'id' => $this->id, ...$this->behavior()], ['tag' => 'button', 'text' => $text]);
     }
 
     private static function js(string $value): string

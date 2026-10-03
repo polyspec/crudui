@@ -1,5 +1,19 @@
 # Changes
 
+## 2026-10-04 — Button fields render as buttons
+
+- A `button` or `action` field renders one `button` element with `type="button"`, the class
+  `crudui-action crudui-action--text` and the `design.class` class, the `design.style` style, the
+  control id, the behavior event attributes and the declared attributes, and the escaped `content`
+  text. A behavior `onclick` script is an `onclick` attribute of the button. The field writes no
+  jQuery click script, no hidden input and no `name`, and submits no value.
+- The widget model has the tag `button` and the content as `text`; the `buttonText` member and the
+  `init_script` option are removed.
+- The stylesheet makes the button as wide as its content and as high as the other controls.
+- React, Vue, Svelte, the HTML renderer, PHP, the PHP extension, Go and Rust write the button in
+  the shared form cases `button-empty`, `action-alias`, `button-behavior-onclick` and
+  `control-attributes-file-display-button`.
+
 ## 2026-10-04 — Switcher fields render as switches
 
 - A `switcher` field renders a switch: its checkbox model has `role: "switch"` after `checked` and

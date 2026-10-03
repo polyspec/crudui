@@ -7,7 +7,7 @@ import (
 )
 
 func TestScriptControlsUseTheRenderedID(t *testing.T) {
-	for _, typ := range []string{"tinymce", "summernote", "editorjs", "tui", "tagify", "tagify2", "search", "button"} {
+	for _, typ := range []string{"tinymce", "summernote", "editorjs", "tui", "tagify", "tagify2", "search"} {
 		t.Run(typ, func(t *testing.T) {
 			template, e := CompileForm(NewObject("type", "group", "properties", NewObject("editor field", NewObject("type", typ, "options", NewObject("callback", "onSelected", "fileserver", "</script>\"&>", "upload", "</script>\"&>")))), CompileOptions{})
 			if e != nil {
@@ -26,14 +26,14 @@ func TestScriptControlsUseTheRenderedID(t *testing.T) {
 			if strings.Contains(script, "</script>") {
 				t.Fatal("A string value can close the script element")
 			}
-			if typ != "search" && typ != "button" && !strings.Contains(script, "CSS.escape(") {
+			if typ != "search" && !strings.Contains(script, "CSS.escape(") {
 				t.Fatal("Control selector is not escaped")
 			}
 		})
 	}
 }
 func TestEveryRepeatedControlUsesStructuralRulePaths(t *testing.T) {
-	for _, typ := range []string{"choice", "multichoice", "image", "file", "cover", "search", "button"} {
+	for _, typ := range []string{"choice", "multichoice", "image", "file", "cover", "search"} {
 		t.Run(typ, func(t *testing.T) {
 			template, e := CompileForm(NewObject("type", "group", "properties", NewObject("groups", NewObject("type", "group", "multiple", true, "properties", NewObject("field", NewObject("type", typ, "items", NewObject("a", "A")))))), CompileOptions{})
 			if e != nil {
@@ -52,8 +52,6 @@ func TestEveryRepeatedControlUsesStructuralRulePaths(t *testing.T) {
 				attrs = object(read(read(w, "extra"), "input"))
 			case "image", "file", "cover":
 				attrs = object(read(read(w, "extra"), "file"))
-			case "button":
-				attrs = object(read(read(w, "extra"), "hidden"))
 			}
 			if stringAt(attrs, "data-rule-name") != "groups[][field]" {
 				t.Fatal(encode(t, attrs))

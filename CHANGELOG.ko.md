@@ -1,5 +1,19 @@
 # 변경 기록
 
+## 2026-10-04 — button 필드는 button으로 렌더링됨
+
+- `button` 또는 `action` 필드는 `type="button"`, class `crudui-action crudui-action--text`와
+  `design.class` class, `design.style` style, 컨트롤 id, behavior event 속성, 선언 속성, 그리고
+  escape한 `content` 텍스트를 가진 `button` 요소 하나를 렌더링합니다. behavior `onclick` 스크립트는
+  button의 `onclick` 속성입니다. 필드는 jQuery click 스크립트, hidden input, `name`을 쓰지 않으며 값을
+  제출하지 않습니다.
+- widget 모델은 tag `button`과 내용 `text`를 가지며, `buttonText` 멤버와 `init_script` option은
+  제거되었습니다.
+- 스타일시트는 button을 내용만큼 넓고 다른 컨트롤만큼 높게 만듭니다.
+- React, Vue, Svelte, HTML 렌더러, PHP, PHP extension, Go, Rust는 공유 폼 case `button-empty`,
+  `action-alias`, `button-behavior-onclick`, `control-attributes-file-display-button`에서 button을
+  씁니다.
+
 ## 2026-10-04 — switcher 필드는 스위치로 렌더링됨
 
 - `switcher` 필드는 스위치를 렌더링합니다. checkbox 모델은 `checked` 뒤에 `role: "switch"`를 갖고, 컨트롤

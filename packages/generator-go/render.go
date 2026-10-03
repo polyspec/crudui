@@ -244,7 +244,10 @@ func renderWidget(w *Object) string {
 		}
 		return style + script + `<div class="crudui-widget crudui-widget--search">` + affixHTML(read(w, "prepend"), true) + controlHTML(w, true, "selected") + affixHTML(read(w, "append"), true) + `</div>`
 	case "button":
-		return script + inputHTML(object(read(read(w, "extra"), "hidden")), false) + inputHTML(a, false)
+		if !raw {
+			a = styleLast(a)
+		}
+		return "<button" + attrs(a, raw, false) + ">" + textContent(stringAt(w, "text"), raw) + "</button>"
 	}
 	return ""
 }

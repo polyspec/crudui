@@ -697,54 +697,30 @@ static ps_value *editor_control(const char *kind, const widget_context *context)
     return model;
 }
 
+/* A button field: one button element with its content; it submits no value. */
 static ps_value *button_control(const widget_context *context)
 {
-    ps_chars name = context_name(context), init = context_option(context, "init_script", "");
-    ps_chars onclick = behavior_script(context, PS_TEXT("onclick"));
     ps_chars text = ps_has(context->spec, "content") ? context_text(context, "content") : ps_copy(PS_TEXT(""));
-    ps_chars quoted_id = script_quote(context->id);
-    ps_chars script = init.bytes && onclick.bytes && quoted_id.bytes
-        ? PS_CONCAT(PS_TEXT("\n$(function() {\n    "), ps_view(init),
-                    PS_TEXT("\n    $(document.getElementById("), ps_view(quoted_id),
-                    PS_TEXT(")).on('click', function() {\n        "), ps_view(onclick),
-                    PS_TEXT("\n    });\n});\n"))
-        : (ps_chars){NULL, 0};
     ps_chars class_name = context_class(context, "crudui-action crudui-action--text");
-    ps_chars button_name = name.bytes ? PS_CONCAT(PS_TEXT("btn"), ps_view(name)) : name;
     ps_value *attrs = ps_object_value();
-    bool ok = name.bytes && init.bytes && onclick.bytes && text.bytes && script.bytes &&
-        class_name.bytes && button_name.bytes && attrs &&
+    bool ok = text.bytes && class_name.bytes && attrs &&
         set_string(attrs, "type", "button") && set_text(attrs, "class", ps_view(class_name)) &&
-        set_text(attrs, "name", ps_view(button_name)) && set_text(attrs, "id", context->id) &&
-        set_text(attrs, "value", ps_view(text));
-    ps_value *hidden = ps_object_value(), *extra = ps_object_value();
-    ps_chars value = context_value(context);
-    if (ok) ok = hidden && extra && value.bytes &&
-        set_string(hidden, "type", "hidden") && set_string(hidden, "class", "valid-target") &&
-        set_string(hidden, "readonly", "") && set_text(hidden, "name", ps_view(name)) &&
-        set_owned(hidden, "data-name", ps_leaf_name(context->path, context->rows, context->row_count)) &&
-        set_owned(hidden, "data-rule-name", ps_rule_name(context->path, context->rows, context->row_count)) &&
-        set_text(hidden, "value", ps_view(value)) &&
-        set_owned(hidden, "data-default", ps_scalar_string(member(context->spec, "default"))) &&
-        ps_set(extra, "hidden", hidden);
-    if (ok) hidden = NULL;
+        set_nonempty(attrs, "style", context_style(context)) &&
+        set_text(attrs, "id", context->id) && add_behavior(context, attrs);
     ps_value *model = ps_object_value();
     if (ok) ok = model && set_string(model, "kind", "button") && set_string(model, "layout", "button") &&
-        set_text(model, "script", ps_view(script)) && set_text(model, "buttonText", ps_view(text)) &&
-        ps_set(model, "attrs", attrs);
+        set_string(model, "tag", "button") && ps_set(model, "attrs", attrs);
     if (ok) attrs = NULL;
-    if (ok) ok = ps_set(model, "extra", extra);
-    if (ok) extra = NULL;
-    free(name.bytes); free(init.bytes); free(onclick.bytes); free(text.bytes); free(quoted_id.bytes);
-    free(script.bytes); free(class_name.bytes); free(button_name.bytes); free(value.bytes);
-    if (!ok) { ps_value_free(attrs); ps_value_free(hidden); ps_value_free(extra); ps_value_free(model); return NULL; }
+    if (ok) ok = set_text(model, "text", ps_view(text));
+    free(text.bytes); free(class_name.bytes);
+    if (!ok) { ps_value_free(attrs); ps_value_free(model); return NULL; }
     return model;
 }
 
 /* Widget model members in output order. */
 static const char *const widget_members[] = {
     "kind", "layout", "tag", "attrs", "text", "rawHtml", "source", "options", "itemLabelClass",
-    "script", "styleChrome", "buttonText", "prepend", "append", "extra",
+    "script", "styleChrome", "prepend", "append", "extra",
 };
 
 /* Reorder the widget's members in place to the output order; unlisted members keep their order after. */
