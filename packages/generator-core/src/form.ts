@@ -1,5 +1,7 @@
 import { FormInputError, type FileLoader } from '@crudui/validator';
-import { checkOptionText, checkedComposition, composeProperties, MemoryLoader } from '@crudui/validator/internal';
+import {
+  checkOptionText, checkedComposition, composeProperties, isMultiple, isNumberRange, isStep, MemoryLoader,
+} from '@crudui/validator/internal';
 import { checkBindText } from './input-text';
 import { makeTranslate, type Language } from './content';
 import { DEFAULT_FORM_BUTTONS, FORM_BUTTON_TYPES } from './buttons';
@@ -173,6 +175,22 @@ function checkDeclarations(spec: Record<string, unknown>, path: string, field = 
   }
   if (has(spec, 'design')) checkDesignDeclaration(spec.design, path, field);
   if (isRecord(spec.behavior)) closed(spec.behavior, 'behavior', CLOSED_BUCKET_KEYS.behavior!);
+  if (field && typeof spec.type === 'string' && spec.type.toLowerCase() === 'range') checkRangeDeclaration(spec, path);
+}
+
+/**
+ * Reject a range field without literal bounds and a literal step whose multiple the minimum is
+ * (docs/spec/schema.md, Range fields): the slider moves from the minimum in steps.
+ */
+function checkRangeDeclaration(spec: Record<string, unknown>, path: string): void {
+  const validate = isRecord(spec.validate) ? spec.validate : {};
+  if (!isNumberRange(validate.range)) {
+    throw new FormInputError(`Invalid validate.range at ${path}: expected [minimum, maximum] finite numbers with minimum not above maximum`);
+  }
+  if (!isStep(validate.step)) throw new FormInputError(`Invalid validate.step at ${path}: expected a finite number above 0`);
+  if (!isMultiple(validate.range[0], validate.step)) {
+    throw new FormInputError(`Invalid validate.range at ${path}: expected a minimum that is a multiple of validate.step`);
+  }
 }
 
 /**

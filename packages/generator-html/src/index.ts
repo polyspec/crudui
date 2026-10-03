@@ -199,6 +199,9 @@ function widget(widget: AnyWidget): string {
       return `<div class="crudui-widget">${affix(widget.prepend, raw)}${control(widget, raw, '')}${affix(widget.append, raw)}</div>`;
     case 'bare':
       return control(widget, raw, '');
+    case 'range':
+      return `<div class="crudui-widget crudui-widget--range">${affix(widget.prepend, raw)}${control(widget, raw, '')}` +
+        `<output${attrs({ class: 'crudui-widget__output', for: widget.attrs.id }, raw)}>${textContent(widget.text ?? '', raw)}</output>${affix(widget.append, raw)}</div>`;
     case 'host-script':
       return control(widget, raw, '') + script;
     case 'choices':

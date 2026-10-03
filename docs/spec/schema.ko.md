@@ -71,6 +71,34 @@ properties:
       class: { ".priority == 'high'": text-danger, true: "" }
 ```
 
+### 범위 필드
+
+`range` 필드는 슬라이더로 고르는 숫자 하나를 가집니다. 범위와 증가 단위는 검증 규칙입니다.
+`validate.range`는 `[minimum, maximum]`이고 `validate.step`은 증가 단위입니다. 둘 다 필수이며 표현식이나
+조건 맵이 아닌 리터럴 값입니다. 슬라이더는 최솟값에서 단계만큼 움직이므로 최솟값은 단계의 배수이고,
+슬라이더의 모든 위치가 두 규칙을 통과합니다. 모든 검증기는 제출된 값을 이 규칙으로 검사합니다
+([숫자](validation-rules.ko.md#값)). 숫자이고 범위 안에 있으며 단계의 배수인 값이 통과하고, 빈 값은
+`required`를 선언하지 않으면 통과합니다. `append`는 현재 값 뒤에 쓰는 단위입니다. 컨트롤은
+[폼 마크업](form-markup.ko.md#범위-필드)이 정의합니다.
+
+```yaml
+volume:
+  type: range
+  label: Volume
+  default: 50
+  append: "%"
+  validate: { range: [0, 100], step: 5 }
+```
+
+컴파일은 범위 필드를 `behavior` 다음에 검사하며 `INVALID_FORM_INPUT`와 빈 위치로 실패합니다. 배수 여부는
+`step` 규칙과 같이 정확하게 판정합니다.
+
+| 선언 | 메시지 |
+| --- | --- |
+| `validate.range`가 없거나, 최솟값이 최댓값보다 크지 않은 유한한 숫자 두 개가 아님 | `Invalid validate.range at {path}: expected [minimum, maximum] finite numbers with minimum not above maximum` |
+| `validate.step`이 없거나 0보다 큰 유한한 숫자가 아님 | `Invalid validate.step at {path}: expected a finite number above 0` |
+| 최솟값이 단계의 배수가 아님 | `Invalid validate.range at {path}: expected a minimum that is a multiple of validate.step` |
+
 ## 조건과 외형
 
 조건은 해당 설정의 값으로 작성합니다. `design.show`는 표시 여부를 결정합니다.

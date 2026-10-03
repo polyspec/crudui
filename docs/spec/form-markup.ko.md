@@ -32,8 +32,8 @@ React, Vue, Svelte, HTML 렌더러와 네이티브 렌더러는 같은 마크업
 | `crudui-action` | `data-crudui-action`을 가진 버튼입니다. `crudui-action--text`는 레이블을 텍스트로 표시합니다. |
 | `crudui-outline` | `__header` 폼 컨트롤과 `__body` 노드를 가진 구조 맵입니다. |
 | `crudui-data` | `__header`와 `pre` `__body`를 가진 현재 데이터 보기입니다. |
-| `crudui-widget` | 앞뒤 텍스트 `__affix`와 파일 위젯의 `__button`을 가진 컨트롤입니다. `--search`는 검색 select를 담고, `--unsupported`는 위젯이 없는 유형을 표시합니다. |
-| `crudui-input` | 기본 input, textarea, select입니다. select는 `--select`, 파일 입력은 `--file`을 가집니다. |
+| `crudui-widget` | 앞뒤 텍스트 `__affix`, 파일 위젯의 `__button`, 범위 위젯의 `__output`을 가진 컨트롤입니다. `--search`는 검색 select를, `--range`는 범위 컨트롤을 담고, `--unsupported`는 위젯이 없는 유형을 표시합니다. |
+| `crudui-input` | 기본 input, textarea, select입니다. select는 `--select`, 파일 입력은 `--file`, 범위 입력은 `--range`를 가집니다. |
 | `crudui-choices` | 라디오(choice) 또는 체크박스(multichoice) 선택지입니다. 각 `__input` 뒤에 `__label`이 오고, `--multiple`은 체크박스 선택지를 줄바꿈합니다. |
 
 | 속성 | 의미 |
@@ -54,7 +54,7 @@ React, Vue, Svelte, HTML 렌더러와 네이티브 렌더러는 같은 마크업
 [검증 규칙](validation-rules.ko.md)이 결정합니다. 숫자 컨트롤은 `step="any"`를 가져
 네이티브 제약 검증이 모든 숫자를 받아들입니다. 이 속성이 없으면 기본 step 1이 `value`
 속성에서부터 세어지므로, `2886.5` 같은 저장 값이 있으면 모든 정수가 step 불일치가 됩니다.
-증가 단위는 `step` 규칙이 맡습니다.
+증가 단위는 `step` 규칙이 맡습니다. [범위 컨트롤](#범위-필드)만 예외입니다.
 
 ## 노드
 
@@ -124,6 +124,28 @@ input에서는 `data-is-default`와 `checked` 다음에 씁니다. React의 서�
 <input type="text" class="valid-target crudui-input" data-name="theme" data-rule-name="theme"
   data-default="" id="crudui:theme" data-setting="theme" aria-describedby="theme-help"
   name="theme" value=""/>
+```
+
+## 범위 필드
+
+`range` 필드([스키마](schema.ko.md#범위-필드))는 `crudui-widget crudui-widget--range` 위젯을 렌더링합니다.
+앞 텍스트, `range` 유형의 `input`, 그 input을 위한 `crudui-widget__output` `output` 요소, 단위를 나타내는
+뒤 텍스트로 이루어집니다. input은 `valid-target crudui-input crudui-input--range` 클래스와 `min`, `max`,
+`step` 속성을 가지며, 값은 `validate.range`와 `validate.step`의 정규 텍스트입니다. 이들은 네이티브 속성으로
+쓰는 유일한 검증 매개변수입니다. 슬라이더는 이 값 없이 위치를 갖지 못하고, 슬라이더가 제공하는 모든 위치는
+`range`와 `step` 규칙을 통과합니다. output은 폼을 렌더링할 때의 값을 표시하며, `connectForm`처럼 변경 뒤
+다시 렌더링하는 렌더러가 새 값을 표시합니다. 빈 값은 빈 `value`로 쓰며 브라우저는 이를 범위의 가운데에
+표시하고, output은 비어 있습니다.
+
+위젯 모델은 배치 `range`, 태그 `input`, input 속성인 `attrs`, output 텍스트인 `text`를 가집니다.
+`default: 50`, `append: "%"`, `validate: { range: [0, 100], step: 5 }`를 가진 `volume` 필드는 다음을 씁니다.
+
+```html
+<div class="crudui-widget crudui-widget--range"><input type="range" min="0" max="100" step="5"
+  class="valid-target crudui-input crudui-input--range" data-name="volume" data-rule-name="volume"
+  data-default="50" id="crudui:volume" name="volume" value="50"/><output
+  class="crudui-widget__output" for="crudui:volume">50</output><span
+  class="crudui-widget__affix">%</span></div>
 ```
 
 ## 행

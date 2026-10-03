@@ -34,8 +34,8 @@ spec declares in `design`.
 | `crudui-action` | A button with `data-crudui-action`; `crudui-action--text` shows its label as text. |
 | `crudui-outline` | Structure map with `__header` form controls and `__body` nodes. |
 | `crudui-data` | Current data view with `__header` and a `pre` `__body`. |
-| `crudui-widget` | A control with its `__affix` prepend and append texts and a file widget's `__button`; `--search` holds a search select and `--unsupported` marks a type without a widget. |
-| `crudui-input` | A native input, textarea or select; `--select` for a select and `--file` for a file input. |
+| `crudui-widget` | A control with its `__affix` prepend and append texts, a file widget's `__button` and a range widget's `__output`; `--search` holds a search select, `--range` holds a range control and `--unsupported` marks a type without a widget. |
+| `crudui-input` | A native input, textarea or select; `--select` for a select, `--file` for a file input and `--range` for a range input. |
 | `crudui-choices` | Radio (choice) or checkbox (multichoice) options: each `__input` is followed by its `__label`; `--multiple` wraps checkbox options. |
 
 | Attribute | Meaning |
@@ -57,7 +57,7 @@ Validation rules are not written as native constraint attributes; the
 `step="any"` so native constraint validation accepts every number: without it the
 default step of 1 counts from the `value` attribute, and a stored value such as
 `2886.5` would make every whole number a step mismatch. The `step` rule owns
-increments.
+increments. A [range control](#range-fields) is the one exception.
 
 ## Nodes
 
@@ -133,6 +133,31 @@ aria-describedby: theme-help }` writes:
 <input type="text" class="valid-target crudui-input" data-name="theme" data-rule-name="theme"
   data-default="" id="crudui:theme" data-setting="theme" aria-describedby="theme-help"
   name="theme" value=""/>
+```
+
+## Range fields
+
+A `range` field ([schema](schema.md#range-fields)) renders a `crudui-widget crudui-widget--range`
+widget: the prepend affix, an `input` of type `range`, a `crudui-widget__output` `output` element
+for that input and the append affix, which names the unit. The input has the class
+`valid-target crudui-input crudui-input--range` and the `min`, `max` and `step` attributes, the
+canonical texts of `validate.range` and `validate.step`. They are the only validation parameters
+written as native attributes: a slider has no positions without them, and every position it
+offers passes the `range` and `step` rules. The output shows the value the form was rendered with;
+a renderer that renders again after a change, as `connectForm` does, shows the new value. An empty
+value is written as an empty `value`, which the browser shows at the middle of the bounds, and an
+empty output.
+
+The widget model has the layout `range`, the tag `input`, the input attributes as `attrs` and the
+output text as `text`. A field `volume` with `default: 50`, `append: "%"` and
+`validate: { range: [0, 100], step: 5 }` writes:
+
+```html
+<div class="crudui-widget crudui-widget--range"><input type="range" min="0" max="100" step="5"
+  class="valid-target crudui-input crudui-input--range" data-name="volume" data-rule-name="volume"
+  data-default="50" id="crudui:volume" name="volume" value="50"/><output
+  class="crudui-widget__output" for="crudui:volume">50</output><span
+  class="crudui-widget__affix">%</span></div>
 ```
 
 ## Rows

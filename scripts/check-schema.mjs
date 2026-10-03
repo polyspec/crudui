@@ -91,6 +91,21 @@ for (const [label, valid, value] of [
   assert.equal(valid(value), false, `declared attributes are rejected on a ${label}`);
   checked++;
 }
+// Range fields (docs/spec/schema.md, Range fields): literal bounds and a literal step, or a
+// composition reference that supplies them.
+for (const [label, field, expected] of [
+  ['bounds and step', { type: 'range', append: '%', validate: { range: [0, 100], step: 5 } }, true],
+  ['reference', { type: 'range', $ref: 'volume.yml' }, true],
+  ['no validate', { type: 'range' }, false],
+  ['no step', { type: 'range', validate: { range: [0, 100] } }, false],
+  ['expression bounds', { type: 'range', validate: { range: '.limits', step: 1 } }, false],
+  ['zero step', { type: 'range', validate: { range: [0, 100], step: 0 } }, false],
+  ['condition map step', { type: 'range', validate: { range: [0, 100], step: { '.fine': 0.1, true: 1 } } }, false],
+]) {
+  const spec = { type: 'group', properties: { volume: field } };
+  assert.equal(validateForm(spec), expected, `range field, ${label}: ${JSON.stringify(validateForm.errors)}`);
+  checked++;
+}
 // `validate` and `messages` accept the registered rule names only: the rules of the rule registry.
 const registeredRules = [...readText('packages/validator-ts/src/rules/index.ts').matchAll(/^ {2}\['(\w+)', \w+Rule\],$/gm)]
   .map((match) => match[1]);

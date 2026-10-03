@@ -78,6 +78,36 @@ properties:
       class: { ".priority == 'high'": text-danger, true: "" }
 ```
 
+### Range fields
+
+A `range` field holds one number chosen on a slider. Its bounds and its increment are its
+validation rules: `validate.range` is `[minimum, maximum]` and `validate.step` is the increment.
+Both are required and both are literal values, not expressions or condition maps. The slider
+moves from the minimum in steps, so the minimum is a multiple of the step and every position of
+the slider passes both rules. Every validator checks the submitted value with these rules
+([numbers](validation-rules.md#values)): a value passes when it is numeric, within the bounds and
+a multiple of the step, and an empty value passes unless `required` is declared. `append` is the
+unit written after the current value. The [form markup](form-markup.md#range-fields) defines the
+control.
+
+```yaml
+volume:
+  type: range
+  label: Volume
+  default: 50
+  append: "%"
+  validate: { range: [0, 100], step: 5 }
+```
+
+Compilation checks a range field after its `behavior` and fails with `INVALID_FORM_INPUT` and an
+empty location. Multiples are decided exactly, as the `step` rule decides them.
+
+| Declaration | Message |
+| --- | --- |
+| `validate.range` absent, or not two finite numbers with the minimum not above the maximum | `Invalid validate.range at {path}: expected [minimum, maximum] finite numbers with minimum not above maximum` |
+| `validate.step` absent, or not a finite number above 0 | `Invalid validate.step at {path}: expected a finite number above 0` |
+| A minimum that is not a multiple of the step | `Invalid validate.range at {path}: expected a minimum that is a multiple of validate.step` |
+
 ## Conditions and appearance
 
 Conditions are values in the relevant setting. `design.show` controls visibility;

@@ -211,6 +211,22 @@ export interface FieldSpec {
   $patch?: PatchDirective;
 }
 
+/**
+ * A range field (docs/spec/schema.md, Range fields): a number chosen on a slider whose bounds and
+ * increment are the literal `range` and `step` rules; the minimum is a multiple of the step.
+ */
+export interface RangeFieldSpec extends FieldSpec {
+  /** The range type. */
+  type: 'range';
+  /** Validation with the required literal bounds and step of the slider. */
+  validate: ValidateSlot & {
+    /** Inclusive `[minimum, maximum]` of the slider. */
+    range: [number, number];
+    /** Increment of the slider, a finite number above 0. */
+    step: number;
+  };
+}
+
 /** One form button. A button or link needs text; a link needs href. */
 export interface FormButton {
   /** Button type; a link renders an anchor. */
