@@ -137,13 +137,14 @@ final class FieldSpec
 
     /**
      * Sub-keys inside the `design` slot. show = display condition (NOT a node);
-     * class/style = the primary (input) node; label|wrapper|group|prepend
-     * carry .class/.style for that named node. Which node a class/style targets
-     * is revealed by the key (R8).
+     * class/style = the primary (input) node; attributes = the declared
+     * attributes of the control; label|wrapper|group|prepend carry .class/.style
+     * for that named node, and the wrapper also .attributes. Which node a
+     * class/style targets is revealed by the key (R8).
      *
      * @var list<string>
      */
-    public const DESIGN_SUB_KEYS = ['show', 'class', 'style', 'label', 'wrapper', 'group', 'prepend'];
+    public const DESIGN_SUB_KEYS = ['show', 'class', 'style', 'attributes', 'label', 'wrapper', 'group', 'prepend'];
 
     /**
      * Sub-keys inside the `behavior` slot. Opaque client JS, passed through
@@ -222,6 +223,14 @@ final class FieldSpec
     public const DESIGN_NODE_KEYS = ['class', 'style'];
 
     /**
+     * The closed key set of the wrapper node: its appearance and the declared
+     * attributes of the node root.
+     *
+     * @var list<string>
+     */
+    public const WRAPPER_NODE_KEYS = ['class', 'style', 'attributes'];
+
+    /**
      * The `options` slot is open (a type may introduce its own settings). The
      * schema keeps it open with propertyNames:{not:{enum:FORBIDDEN}} rather than
      * additionalProperties:true, so a type extends freely yet a forbidden meta
@@ -282,10 +291,12 @@ final class FieldSpec
         'show',
         'class',
         'style',
+        'attributes',
         'label.class',
         'label.style',
         'wrapper.class',
         'wrapper.style',
+        'wrapper.attributes',
         'group.class',
         'group.style',
         'prepend.class',
@@ -587,7 +598,7 @@ final class FieldSpec
                 if ($key === 'design') {
                     foreach (self::DESIGN_NODES as $node) {
                         if (is_array($value[$node] ?? null)) {
-                            self::guardInside("design.{$node}", $value[$node], self::DESIGN_NODE_KEYS, $violations);
+                            self::guardInside("design.{$node}", $value[$node], $node === 'wrapper' ? self::WRAPPER_NODE_KEYS : self::DESIGN_NODE_KEYS, $violations);
                         }
                     }
                 }
