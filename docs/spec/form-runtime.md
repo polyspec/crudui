@@ -331,9 +331,9 @@ node that `design.show` hides takes part, as it does in a submission.
 
 | Control | Entry |
 | --- | --- |
-| `input` of type `text`, `email`, `password`, `number`, `date`, `datetime-local`, `hidden` or another type not named below, and `textarea` | Its current value, a string. A number is the text the control holds, and a date or datetime is the text the browser submits. |
-| `input` of type `checkbox` or `radio` | Its `value` when it is checked; nothing when it is not. |
-| `select`, single or `multiple` | The value of each selected option; nothing when no option is selected. |
+| `input` of type `text`, `email`, `password`, `number`, `range`, `date`, `datetime-local`, `hidden` or another type not named below, and `textarea` | Its current value, a string. A number is the text the control holds, a range is the value the browser holds (the midpoint of its bounds while the rendered value is empty), and a date or datetime is the text the browser submits. |
+| `input` of type `checkbox`, including a switch, or `radio` | Its `value` when it is checked; nothing when it is not. |
+| `select`, single or `multiple` | The value of each selected option, inside an `optgroup` or not; nothing when no option is selected. |
 | `input` of type `file` | Nothing. The browser cannot build the value a server receives for a file. |
 
 Each entry is placed at the path its name denotes. The name is `{first}[{segment}]…`, optionally
