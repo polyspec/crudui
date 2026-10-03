@@ -320,8 +320,11 @@ static ps_value *build_leaf(const ps_value *spec, ps_text type, ps_text path,
     if (ps_text_is(type, "checkbox") || ps_text_is(type, "switcher")) {
         ps_chars id = ps_control_id(context->id_prefix, path);
         ps_chars name = ps_bracket_name(path, context->key_prefix);
+        /* A switcher is a checkbox input announced and drawn as a switch. */
+        bool switcher = ps_text_is(type, "switcher");
         ps_chars class_name = ps_join_classes(PS_TEXT("valid-target"),
-            string_member(member(design, "main"), "class"), PS_TEXT(""));
+            switcher ? PS_TEXT("crudui-input crudui-input--switch") : PS_TEXT(""),
+            string_member(member(design, "main"), "class"));
         ps_value *checkbox = ps_object_value();
         header_part parts[] = {{"description", description}};
         bool ok = id.bytes && name.bytes && class_name.bytes && checkbox &&
@@ -331,6 +334,7 @@ static ps_value *build_leaf(const ps_value *spec, ps_text type, ps_text path,
             set_text(checkbox, "className", ps_view(class_name)) &&
             ps_set(checkbox, "checked", ps_bool_value(checked_value(value) ||
                 (!value && checked_value(member(spec, "default"))))) &&
+            (!switcher || set_text(checkbox, "role", PS_TEXT("switch"))) &&
             set_text(checkbox, "caption", label.bytes ? label : PS_TEXT("")) &&
             (!ps_declared_attributes(spec, false) ||
              ps_set(checkbox, "attributes", ps_value_clone(ps_declared_attributes(spec, false)))) &&

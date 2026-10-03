@@ -191,12 +191,16 @@ final class Rendering
         $attrs = ['class' => self::classes('crudui-node__body', $vm->body->className), 'style' => $vm->body->style ?? null, 'id' => $vm->body->id ?? null];
         if (isset($vm->checkbox)) {
             $box = $vm->checkbox;
-            $input = ['class' => $box->className, 'id' => $box->id, 'name' => $box->name, 'type' => 'checkbox', 'value' => '1'];
+            $input = ['class' => $box->className, 'id' => $box->id, 'name' => $box->name, 'type' => 'checkbox'];
+            if (isset($box->role)) {
+                $input['role'] = $box->role;
+            }
+            $input['value'] = '1';
             if ($box->checked) {
                 $input['checked'] = '';
             }
             $input = [...$input, ...(array) ($box->attributes ?? [])];
-            $inner = self::input($input) . self::element('label', ['for' => $box->id], self::text($box->caption));
+            $inner = self::input($input) . (isset($box->caption) ? self::element('label', ['for' => $box->id], self::text($box->caption)) : '');
         } elseif (isset($vm->widget)) {
             $inner = self::widget($vm->widget);
         } else {

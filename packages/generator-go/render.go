@@ -332,7 +332,11 @@ func bodyHTML(vm *Object, errors map[*Object][]string) string {
 	}
 	inner := ""
 	if box := object(read(vm, "checkbox")); box != nil {
-		input := NewObject("class", stringAt(box, "className"), "id", stringAt(box, "id"), "name", stringAt(box, "name"), "type", "checkbox", "value", "1")
+		input := NewObject("class", stringAt(box, "className"), "id", stringAt(box, "id"), "name", stringAt(box, "name"), "type", "checkbox")
+		if has(box, "role") {
+			input.Set("role", stringAt(box, "role"))
+		}
+		input.Set("value", "1")
 		if read(box, "checked") == true {
 			input.Set("checked", true)
 		}

@@ -125,7 +125,9 @@ final class Binding
         $root = self::root('field', $path, $design, $spec);
         if ($type === 'checkbox' || $type === 'switcher') {
             $checkedValue = $value === Missing::Value ? $spec->default ?? null : $value;
-            $checkbox = Value::record(['id' => Value::controlId($state['idPrefix'] ?? 'crudui', $path), 'name' => Value::name($path, $state['keyPrefix'] ?? null), 'className' => Value::classes('valid-target', $design->main->class), 'checked' => in_array($checkedValue, [true, 1, '1'], true), 'caption' => $label === Missing::Value ? '' : $label, 'attributes' => Design::declared($spec->design ?? null, false)]);
+            // A switcher is a checkbox input announced and drawn as a switch.
+            $switcher = $type === 'switcher';
+            $checkbox = Value::record(['id' => Value::controlId($state['idPrefix'] ?? 'crudui', $path), 'name' => Value::name($path, $state['keyPrefix'] ?? null), 'className' => Value::classes('valid-target', $switcher ? 'crudui-input crudui-input--switch' : '', $design->main->class), 'checked' => in_array($checkedValue, [true, 1, '1'], true), 'role' => $switcher ? 'switch' : Missing::Value, 'caption' => $label === Missing::Value ? '' : $label, 'attributes' => Design::declared($spec->design ?? null, false)]);
             return Value::record([...$root, 'header' => self::header(['description' => $description], $design), 'body' => self::body(), 'checkbox' => $checkbox]);
         }
         $widget = Widget::evaluate($spec, $value, $path, $design, $state, $state['rowSegments']);
