@@ -74,7 +74,12 @@ alone does not generate that package output.
   declared validator and generator builds in dependency order.
 - The validator, generator-core, generator-html and generator-react load through their public
   CommonJS and ES module exports without importing package source paths.
+- `@crudui/form-binding` loads only through its ES module export. Its declarations are in ES
+  module format, and neither Node.js nor TypeScript resolves the package for a CommonJS project.
 - Strict install projects resolve public types and their complete declaration imports.
+- Install verification installs every package that `contracts/features.json` records, and
+  repeated builds compare the output of every one of them; a check whose package list differs
+  from that record fails.
 - Install verification packs each workspace from its package directory. The
   current stable npm `pack --json` result contains exactly one package record.
   The record reports the same package name and one archive filename.

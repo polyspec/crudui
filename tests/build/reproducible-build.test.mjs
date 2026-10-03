@@ -7,7 +7,14 @@ import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
-const packages = ['validator-ts', 'generator-core', 'generator-html', 'generator-react', 'generator-vue', 'generator-svelte'];
+const packages = ['validator-ts', 'generator-core', 'generator-html', 'generator-react', 'generator-vue', 'generator-svelte', 'form-binding'];
+// contracts/features.json records every published npm package; the check compares all of them.
+const published = JSON.parse(readFileSync(resolve(root, 'contracts/features.json'), 'utf8')).packages
+  .map(({ path }) => relative(resolve(root, 'packages'), resolve(root, path)));
+
+test('the reproducible build check covers every published package', () => {
+  assert.deepEqual([...packages].sort(), [...published].sort());
+});
 
 function outputs() {
   const files = [];

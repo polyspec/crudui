@@ -1,5 +1,26 @@
 # Changes
 
+## 2026-10-04 — Release checks of the browser validation binding
+
+- The package install check (`scripts/check-packages.mjs`), the public package test
+  (`tests/build/public-packages.test.mjs`) and the reproducible build test
+  (`tests/build/reproducible-build.test.mjs`) did not include `@crudui/form-binding`, so a release
+  did not pack, install, type-check or rebuild it. The install check and the reproducible build
+  test now fail when their package list differs from the packages of `contracts/features.json`,
+  and both include the package. The install project imports `bindForm` and binds a form rendered
+  by `renderForm`, and its browser check submits the empty form and requires the required error
+  and the focus on the control.
+- The public package test showed that TypeScript resolved the package's declarations for a
+  CommonJS project although Node.js has no CommonJS entry, and that the declarations were in
+  CommonJS format for an ES module. The package now declares `"type": "module"` and only an
+  `import` export with its types, and its relative imports name `.js` files, so the ES module
+  declarations resolve under `NodeNext`. The test requires the import export to load from `dist`
+  with the exports of the contract, rejects a CommonJS resolution in Node.js and TypeScript, and
+  type-checks `bindForm` in the ES module install fixture.
+- The declaration build test now covers every published package with a `tsconfig.build.json` and
+  fails when one is missing; it adds `@crudui/form-binding` and `@crudui/generator-html`, which
+  had the same declaration build and was not checked.
+
 ## 2026-10-04 — Browser validation of server-rendered forms
 
 - `@crudui/form-binding` (`packages/form-binding`) validates a server-rendered complete form in the

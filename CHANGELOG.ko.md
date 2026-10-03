@@ -1,5 +1,24 @@
 # 변경 기록
 
+## 2026-10-04 — 브라우저 검증 바인딩의 릴리스 검사
+
+- 패키지 설치 검사(`scripts/check-packages.mjs`), 공개 패키지 테스트
+  (`tests/build/public-packages.test.mjs`), 재현 가능한 빌드 테스트
+  (`tests/build/reproducible-build.test.mjs`)에 `@crudui/form-binding`이 없었으므로 릴리스가 이
+  패키지를 패키징, 설치, 타입 검사, 재빌드하지 않았습니다. 설치 검사와 재현 가능한 빌드 테스트는
+  패키지 목록이 `contracts/features.json`의 패키지와 다르면 실패하며, 두 검사 모두 이 패키지를
+  포함합니다. 설치 프로젝트는 `bindForm`을 import해 `renderForm`이 렌더링한 폼을 연결하고, 브라우저
+  검사는 빈 폼을 제출해 필수 입력 오류와 컨트롤의 포커스를 요구합니다.
+- 공개 패키지 테스트에서 Node.js에는 CommonJS 진입점이 없는데도 TypeScript가 CommonJS 프로젝트에 이
+  패키지의 선언을 해석하고, ES 모듈의 선언이 CommonJS 형식이라는 결함이 드러났습니다. 이제 패키지는
+  `"type": "module"`과 타입을 포함한 `import` export만 선언하고, 상대 import는 `.js` 파일을 가리키므로
+  ES 모듈 선언이 `NodeNext`에서 해석됩니다. 테스트는 import export가 `dist`에서 계약의 export로
+  로드되는지 요구하고, Node.js와 TypeScript의 CommonJS 해석을 거부하며, ES 모듈 설치 fixture에서
+  `bindForm`의 타입을 검사합니다.
+- 선언 빌드 테스트는 이제 `tsconfig.build.json`이 있는 모든 게시 패키지를 다루고 하나라도 빠지면
+  실패합니다. `@crudui/form-binding`과, 같은 선언 빌드를 가졌지만 검사되지 않던
+  `@crudui/generator-html`을 추가합니다.
+
 ## 2026-10-04 — 서버가 렌더링한 폼의 브라우저 검증
 
 - `@crudui/form-binding`(`packages/form-binding`)은 서버가 렌더링한 완전한 폼을 서버가 검증할 때 쓰는

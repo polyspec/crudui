@@ -68,7 +68,11 @@ Cargo 경로를 실행하고 `RUSTC`와 `RUSTDOC`에 해석된 컴파일러 경�
   빌드를 의존성 순서로 실행한다.
 - validator·generator-core·generator-html·generator-react는 패키지 소스 경로 import 없이 공개
   CommonJS·ES 모듈 export로 로드된다.
+- `@crudui/form-binding`은 ES 모듈 export로만 로드된다. 선언은 ES 모듈 형식이며, Node.js와
+  TypeScript 모두 CommonJS 프로젝트에 이 패키지를 해석하지 않는다.
 - 엄격한 설치 검사는 공개 타입과 모든 하위 선언 import를 해석한다.
+- 설치 검증은 `contracts/features.json`이 기록한 모든 패키지를 설치하고, 반복 빌드는 그 모든
+  패키지의 출력을 비교한다. 패키지 목록이 이 기록과 다른 검사는 실패한다.
 - 설치 검증은 각 워크스페이스를 해당 패키지 디렉터리에서 패키징한다. 현재 안정
   npm의 `pack --json` 결과는 패키지 record를 정확히 하나 포함한다. record는 같은
   패키지 이름과 아카이브 파일 이름 하나를 보고한다.

@@ -4,7 +4,7 @@
  */
 import { FormInputError } from '@crudui/validator';
 
-import { dataControls, type Control } from './nodes';
+import { dataControls, type Control } from './nodes.js';
 
 type Data = Record<string, unknown>;
 

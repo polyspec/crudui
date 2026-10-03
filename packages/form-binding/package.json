@@ -2,12 +2,13 @@
   "name": "@crudui/form-binding",
   "version": "0.0.1",
   "description": "Browser validation of server-rendered CRUDUI forms",
-  "module": "dist/index.mjs",
-  "types": "dist/index.d.ts",
+  "type": "module",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs"
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
     },
     "./package.json": "./package.json"
   },

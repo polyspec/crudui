@@ -10,6 +10,7 @@ import {
   type ValidateDetailOptions, type ValidateListOptions, type ValidateOptions, type ValidationError,
   type ValidationResult,
 } from '@crudui/validator';
+import { bindForm, type FormBinding, type FormBindingOptions } from '@crudui/form-binding';
 import { createElement, type ReactElement } from 'react';
 
 const spec = { type: 'group', properties: { name: { type: 'text' } } };
@@ -26,10 +27,12 @@ const listResult: ValidationResult = validateList({ columns: {} }, {} satisfies 
 const detailResult: ValidationResult = validateDetail({ fields: {} }, {} satisfies ValidateDetailOptions);
 const randomKey: string = createRowKey();
 const savedKey: string = sequenceRowKey('42');
+const bindingOptions: FormBindingOptions = { keyPrefix: 'form' };
+const bind: (form: HTMLFormElement) => FormBinding = (form) => bindForm(form, spec, bindingOptions);
 type PublicTypes = [
   ComposeErrorCode, FileLoader, FileSet, ValidationError, FormConnection,
   NodeVM, ButtonVM, AnyWidget, ListProps, RenderListOptions,
 ];
 const publicTypes: PublicTypes | undefined = undefined;
 
-export { template, session, snapshot, view, html, list, valid, listResult, detailResult, randomKey, savedKey, publicTypes };
+export { template, session, snapshot, view, html, list, valid, listResult, detailResult, randomKey, savedKey, bind, publicTypes };

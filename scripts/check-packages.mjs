@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join, resolve } from 'node:path';
+import { join, relative, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import puppeteer from 'puppeteer';
 import { createRequire } from 'node:module';
@@ -12,7 +12,10 @@ import { createProgress } from './test-progress/progress.mjs';
 const root = fileURLToPath(new URL('../', import.meta.url));
 const require = createRequire(import.meta.url);
 const directory = mkdtempSync(join(tmpdir(), 'crudui-install-'));
-const packages = ['validator-ts', 'generator-core', 'generator-html', 'generator-react', 'generator-vue', 'generator-svelte'];
+const packages = ['validator-ts', 'generator-core', 'generator-html', 'generator-react', 'generator-vue', 'generator-svelte', 'form-binding'];
+// contracts/features.json records every published npm package; the install project installs all of them.
+const published = JSON.parse(readFileSync(join(root, 'contracts/features.json'), 'utf8')).packages
+  .map(({ path }) => relative(join(root, 'packages'), join(root, path)));
 const dependencies = {};
 const { allowScripts } = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
 process.stdout.write(`Install project: ${directory}\n`);
@@ -55,6 +58,7 @@ function run(command, args, cwd = directory, input = undefined) {
 }
 try {
   await step(`pack ${packages.length} packages`, 60000, async () => {
+  assert.deepEqual([...packages].sort(), [...published].sort(), 'the install check packs every published package');
   for (const folder of packages) {
     const source = join(root, 'packages', folder);
     const manifest = JSON.parse(readFileSync(join(source, 'package.json'), 'utf8'));
@@ -83,6 +87,8 @@ import { compileForm, createForm, validate } from './api';
 import { Form as ReactForm, type AnyWidget as ReactAnyWidget } from '@crudui/generator-react';
 import { Form as VueForm, type AnyWidget as VueAnyWidget } from '@crudui/generator-vue';
 import { Form as SvelteForm } from '@crudui/generator-svelte';
+import { renderForm } from '@crudui/generator-html';
+import { bindForm } from '@crudui/form-binding';
 type FrameworkWidgetTypes = [ReactAnyWidget, VueAnyWidget];
 const frameworkWidgetTypes: FrameworkWidgetTypes | undefined = undefined;
 void frameworkWidgetTypes;
@@ -96,9 +102,16 @@ createRoot(document.getElementById('react')!).render(createElement(ReactForm, { 
 createApp({ render: () => h(VueForm, { form: vueForm }) }).mount('#vue');
 mount(SvelteForm, { target: document.getElementById('svelte')!, props: { form: svelteForm } });
 validate(spec, data);
+// The server-rendered form that the browser validation binding validates before submission.
+const bindingSpec = { type: 'group', properties: { email: { type: 'email', label: 'Email', validate: { required: true } } } };
+document.getElementById('binding')!.innerHTML = renderForm(
+  createForm(compileForm(bindingSpec, { keyPrefix: 'form' }), {}, { idPrefix: 'binding', language: 'en' }),
+  { action: { method: 'post', url: '/submit' } },
+);
+bindForm(document.querySelector<HTMLFormElement>('#binding form')!, bindingSpec, { keyPrefix: 'form' });
 `);
   writeFileSync(join(directory, 'api.ts'), `export { compileForm, createForm } from '@crudui/generator-core';\nexport { validate } from '@crudui/validator';\n`);
-  writeFileSync(join(directory, 'index.html'), '<!doctype html><html><head><title>Package verification</title><link rel="icon" href="data:,"></head><body><div id="react"></div><div id="vue"></div><div id="svelte"></div><script type="module" src="/main.ts"></script></body></html>');
+  writeFileSync(join(directory, 'index.html'), '<!doctype html><html><head><title>Package verification</title><link rel="icon" href="data:,"></head><body><div id="react"></div><div id="vue"></div><div id="svelte"></div><div id="binding"></div><script type="module" src="/main.ts"></script></body></html>');
   writeFileSync(join(directory, 'vite.config.mjs'), `import { defineConfig } from 'vite';\nimport { svelte } from '@sveltejs/vite-plugin-svelte';\nexport default defineConfig({ plugins: [svelte()] });\n`);
   await step('install the packages of the install project', 120000,
     async () => writeFileSync(join(directory, 'install.log'), await run('npm', ['install'])));
@@ -143,7 +156,7 @@ if (!html.every(part => part.includes('Ada'))) throw new Error('server rendering
     async () => writeFileSync(join(directory, 'typecheck.log'), await run(join(directory, 'node_modules/.bin/tsc'), ['--noEmit'])));
   await step('build the install project', 60000,
     async () => writeFileSync(join(directory, 'build.log'), await run(join(directory, 'node_modules/.bin/vite'), ['build'])));
-  await step('run the three-framework browser check', 60000, async () => {
+  await step('run the three-framework and form binding browser check', 60000, async () => {
   const server = await preview({ root: directory, preview: { host: '127.0.0.1', port: 0, open: false } });
   let browser;
   try {
@@ -162,9 +175,13 @@ if (!html.every(part => part.includes('Ada'))) throw new Error('server rendering
       await page.type(`#${framework} input`, '!');
       assert.equal(await page.$eval(`#${framework} input`, element => element.value), 'Packaged form!');
     }
+    // The bound form stops an invalid submission: it shows the required error and focuses the control.
+    await page.click('#binding button[type="submit"]');
+    assert.deepEqual(await page.$$eval('#binding .crudui-node__error', elements => elements.map(element => element.textContent)), ['This field is required.']);
+    assert.equal(await page.evaluate(() => document.activeElement?.getAttribute('name')), 'form[email]');
     assert.deepEqual(errors, []);
     await page.screenshot({ path: join(directory, 'browser.png'), fullPage: true });
-    writeFileSync(join(directory, 'browser.json'), JSON.stringify({ frameworks: ['react', 'vue', 'svelte'], labels: true, typing: true, pageErrors: errors }, null, 2));
+    writeFileSync(join(directory, 'browser.json'), JSON.stringify({ frameworks: ['react', 'vue', 'svelte'], labels: true, typing: true, binding: true, pageErrors: errors }, null, 2));
   } finally {
     await browser?.close();
     await new Promise(resolve => server.httpServer.close(resolve));
