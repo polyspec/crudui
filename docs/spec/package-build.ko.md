@@ -73,6 +73,9 @@ Cargo 경로를 실행하고 `RUSTC`와 `RUSTDOC`에 해석된 컴파일러 경�
 - `@crudui/generator-vue`는 `"type": "module"`을 선언하고 ES 모듈·CommonJS export로 로드된다.
   선언은 ES 모듈 형식이고 상대 import는 `.js` 파일을 가리키므로, 엄격한 `NodeNext` ES 모듈·CommonJS
   프로젝트가 이 선언으로 컴파일된다.
+- `@crudui/generator-svelte`는 `svelte` export로 로드된다. 선언은 ES 모듈 형식이고 상대 import는
+  `.js` 파일이나 `.svelte` 파일을 가리킨다. Svelte 도구처럼 `.svelte` 파일 import를 그 옆의
+  `.svelte.d.ts` 선언으로 해석하면, 엄격한 `NodeNext` ES 모듈 프로젝트가 이 선언으로 컴파일된다.
 - 엄격한 설치 검사는 공개 타입과 모든 하위 선언 import를 해석한다.
 - 설치 검증은 `contracts/features.json`이 기록한 모든 패키지를 설치하고, 반복 빌드는 그 모든
   패키지의 출력을 비교한다. 패키지 목록이 이 기록과 다른 검사는 실패한다.

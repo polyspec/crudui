@@ -13,9 +13,9 @@
   import Header from './Header.svelte';
   import Widget from './Widget.svelte';
   import Self from './Node.svelte';
-  import { widgetRootRaw } from './widget';
-  import { patched, firstMarkup } from './raw';
-  import { classes, rootStyle, NODE_ERRORS, type NodeErrorsSource } from './field';
+  import { widgetRootRaw } from './widget.js';
+  import { patched, firstMarkup } from './raw.js';
+  import { classes, rootStyle, NODE_ERRORS, type NodeErrorsSource } from './field.js';
 
   let { vm }: { vm: NodeVM } = $props();
 

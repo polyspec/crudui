@@ -15,7 +15,7 @@
 
 import type { WidgetModel, OptionModel, Affix, Attrs } from '@crudui/generator-core';
 import type { UnsupportedVM } from '@crudui/generator-core';
-import { rawVoid, rawElement, rawOptions, serializeAttrs, escAttr, escText } from './raw';
+import { rawVoid, rawElement, rawOptions, serializeAttrs, escAttr, escText } from './raw.js';
 
 export type AnyWidget = WidgetModel | UnsupportedVM;
 

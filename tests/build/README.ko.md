@@ -34,7 +34,7 @@ npm run test:packages
 
 `test:build`는 validator·generator-core·generator-html·generator-react를 공개 CommonJS·ESM
 export로 로드하고, generator-core의 internal 진입점도 두 형식으로 로드합니다. `skipLibCheck: false`인 엄격한 NodeNext 타입 프로젝트를
-validator·generator-core·generator-html·generator-react·generator-vue·form-binding의 선언으로
+validator·generator-core·generator-html·generator-react·generator-vue·generator-svelte·form-binding의 선언으로
 컴파일하고 전체 선언 참조와 React가 export한 스타일시트를 검사합니다.
 네 TypeScript 패키지 설정 모두 공개 타입에 오류가 있으면 선언을 생성하지
 않아야 합니다. 또한 다른 명령을 실행하는 스크립트가 끝나지 않는 명령을 제한 시간에 프로세스 그룹째

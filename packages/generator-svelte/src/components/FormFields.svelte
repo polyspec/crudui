@@ -3,7 +3,7 @@
   import { formButtonsHtml, type ButtonVM, type FormMessages, type NodeVM } from '@crudui/generator-core';
   import type { FormRenderModel } from '@crudui/generator-core/internal';
   import Node from './Node.svelte';
-  import { NODE_ERRORS, type NodeErrorsSource } from './field';
+  import { NODE_ERRORS, type NodeErrorsSource } from './field.js';
 
   let { fields, buttons, messages, root = $bindable(), model, description = '' }: { fields: NodeVM[]; buttons: ButtonVM[]; messages: FormMessages; root?: HTMLDivElement; model?: FormRenderModel; description?: string } = $props();
   const formErrors = $derived(model?.formErrors ?? []);

@@ -4,8 +4,8 @@
 -->
 <script lang="ts">
   import type { ActionVM } from '@crudui/generator-core';
-  import { actionHtml, hasActions } from './list';
-  import { patched, firstMarkup } from './raw';
+  import { actionHtml, hasActions } from './list.js';
+  import { patched, firstMarkup } from './raw.js';
 
   let { actions, block }: { actions: ActionVM[]; block: 'crudui-list' | 'crudui-detail' } = $props();
 </script>

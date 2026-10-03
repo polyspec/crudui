@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { NodeVM } from '@crudui/generator-core';
   import Controls from './Controls.svelte';
-  import { classes } from './field';
+  import { classes } from './field.js';
 
   let { vm }: { vm: NodeVM } = $props();
   const header = $derived(vm.header);

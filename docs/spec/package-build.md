@@ -79,6 +79,10 @@ alone does not generate that package output.
 - `@crudui/generator-vue` declares `"type": "module"` and loads through its ES module and
   CommonJS exports. Its declarations are in ES module format and their relative imports name `.js`
   files, so strict `NodeNext` ES module and CommonJS projects compile against them.
+- `@crudui/generator-svelte` loads through its `svelte` export. Its declarations are in ES module
+  format, and their relative imports name `.js` files or `.svelte` files. A strict `NodeNext` ES
+  module project compiles against them when an import of a `.svelte` file resolves to the
+  `.svelte.d.ts` declaration beside it, as the Svelte toolchain resolves it.
 - Strict install projects resolve public types and their complete declaration imports.
 - Install verification installs every package that `contracts/features.json` records, and
   repeated builds compare the output of every one of them; a check whose package list differs

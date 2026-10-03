@@ -1,5 +1,18 @@
 # Changes
 
+## 2026-10-04 — NodeNext declarations of the Svelte renderer
+
+- `@crudui/generator-svelte` declares `"type": "module"`, and the public type test
+  (`tests/build/public-packages.test.mjs`) did not compile the package. The test now resolves the
+  package for the ES module fixture to `dist/index.d.ts` in ES module format and compiles `Form`
+  and `renderForm` in the ES module fixture (`tests/build/public-types.mts`). Its compiler host
+  resolves an import of a `.svelte` file to the `.svelte.d.ts` declaration beside it, as the
+  Svelte toolchain resolves it.
+- The extended test failed with `TS2835: Relative import paths need explicit file extensions in
+  ECMAScript imports` in `dist/components/Widget.svelte.d.ts`, which imported `./widget`. The
+  relative imports of the package's `.svelte` and `.ts` source files now name `.js` files. The
+  published JavaScript and Svelte files differ only in these import paths.
+
 ## 2026-10-04 — NodeNext declarations of the Vue renderer
 
 - `@crudui/generator-vue` declares `"type": "module"`, so TypeScript reads its declarations as ES

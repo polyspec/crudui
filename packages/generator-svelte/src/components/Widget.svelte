@@ -5,8 +5,8 @@
   import {
     affixHtml, widgetBody, fileGroupBody, rangeBody, isUnsupported, usesStableControl,
     type AnyWidget,
-  } from './widget';
-  import { patched, firstMarkup } from './raw';
+  } from './widget.js';
+  import { patched, firstMarkup } from './raw.js';
 
   let { w }: { w: AnyWidget } = $props();
 
