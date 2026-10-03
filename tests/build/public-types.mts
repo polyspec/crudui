@@ -11,6 +11,7 @@ import {
   type ValidationResult,
 } from '@crudui/validator';
 import { bindForm, type FormBinding, type FormBindingOptions } from '@crudui/form-binding';
+import { Form as VueForm, renderForm as renderVueForm, type AnyWidget as VueAnyWidget } from '@crudui/generator-vue';
 import { createElement, type ReactElement } from 'react';
 
 const spec = { type: 'group', properties: { name: { type: 'text' } } };
@@ -29,10 +30,12 @@ const randomKey: string = createRowKey();
 const savedKey: string = sequenceRowKey('42');
 const bindingOptions: FormBindingOptions = { keyPrefix: 'form' };
 const bind: (form: HTMLFormElement) => FormBinding = (form) => bindForm(form, spec, bindingOptions);
+const vueView = VueForm;
+const vueHtml: Promise<string> = renderVueForm(session);
 type PublicTypes = [
   ComposeErrorCode, FileLoader, FileSet, ValidationError, FormConnection,
-  NodeVM, ButtonVM, AnyWidget, ListProps, RenderListOptions,
+  NodeVM, ButtonVM, AnyWidget, ListProps, RenderListOptions, VueAnyWidget,
 ];
 const publicTypes: PublicTypes | undefined = undefined;
 
-export { template, session, snapshot, view, html, list, valid, listResult, detailResult, randomKey, savedKey, bind, publicTypes };
+export { template, session, snapshot, view, html, list, valid, listResult, detailResult, randomKey, savedKey, bind, vueView, vueHtml, publicTypes };

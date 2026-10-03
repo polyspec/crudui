@@ -76,6 +76,9 @@ alone does not generate that package output.
   CommonJS and ES module exports without importing package source paths.
 - `@crudui/form-binding` loads only through its ES module export. Its declarations are in ES
   module format, and neither Node.js nor TypeScript resolves the package for a CommonJS project.
+- `@crudui/generator-vue` declares `"type": "module"` and loads through its ES module and
+  CommonJS exports. Its declarations are in ES module format and their relative imports name `.js`
+  files, so strict `NodeNext` ES module and CommonJS projects compile against them.
 - Strict install projects resolve public types and their complete declaration imports.
 - Install verification installs every package that `contracts/features.json` records, and
   repeated builds compare the output of every one of them; a check whose package list differs

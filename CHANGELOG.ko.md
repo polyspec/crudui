@@ -1,5 +1,18 @@
 # 변경 기록
 
+## 2026-10-04 — Vue 렌더러의 NodeNext 선언
+
+- `@crudui/generator-vue`는 `"type": "module"`을 선언하므로 TypeScript는 선언을 ES 모듈로 읽지만,
+  선언의 상대 import에 파일 확장자가 없었습니다. 엄격한 `NodeNext` 프로젝트는 `dist/index.d.ts`에서
+  `TS2834: Relative import paths need explicit file extensions in ECMAScript imports` 오류로
+  실패했습니다. 공개 타입 테스트(`tests/build/public-packages.test.mjs`)가 이 패키지를 컴파일하지
+  않았으므로 어떤 검사도 이 오류를 보고하지 않았습니다.
+- 이제 테스트는 ES 모듈 fixture에서 이 패키지가 ES 모듈 형식의 `dist/index.d.ts`로 해석되는지
+  검사하고, ES 모듈 fixture(`tests/build/public-types.mts`)와 CommonJS fixture
+  (`tests/build/public-types.cts`)에서 `Form`, `renderForm`, `AnyWidget`을 컴파일합니다. 패키지
+  소스의 상대 import는 이제 `.js` 파일을 가리킵니다. `import`·`require` export의 JavaScript 출력은
+  변경 전 출력과 바이트 단위로 같습니다.
+
 ## 2026-10-04 — 브라우저 검증 바인딩의 릴리스 검사
 
 - 패키지 설치 검사(`scripts/check-packages.mjs`), 공개 패키지 테스트

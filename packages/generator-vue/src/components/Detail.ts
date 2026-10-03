@@ -2,8 +2,8 @@
 
 import { Fragment, h, type VNode } from 'vue';
 import type { DetailViewModel, DetailFieldVM } from '@crudui/generator-core';
-import { actionsVNode, cellDisplayVNode } from './List';
-import { rawContainer } from './raw';
+import { actionsVNode, cellDisplayVNode } from './List.js';
+import { rawContainer } from './raw.js';
 
 function fieldClass(field: DetailFieldVM): string {
   return ['crudui-detail__value', 'crudui-value', `crudui-value--${field.format.type}`, field.design.main.class]

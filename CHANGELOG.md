@@ -1,5 +1,18 @@
 # Changes
 
+## 2026-10-04 — NodeNext declarations of the Vue renderer
+
+- `@crudui/generator-vue` declares `"type": "module"`, so TypeScript reads its declarations as ES
+  modules, but their relative imports had no file extension. A strict `NodeNext` project failed
+  with `TS2834: Relative import paths need explicit file extensions in ECMAScript imports` in
+  `dist/index.d.ts`. The public type test (`tests/build/public-packages.test.mjs`) did not compile
+  the package, so no check reported the error.
+- The test now resolves the package for the ES module fixture to `dist/index.d.ts` in ES module
+  format, and compiles `Form`, `renderForm` and `AnyWidget` in the ES module fixture
+  (`tests/build/public-types.mts`) and the CommonJS fixture (`tests/build/public-types.cts`). The
+  relative imports of the package source now name `.js` files. The JavaScript output of the
+  `import` and `require` exports is byte-identical to the output before the change.
+
 ## 2026-10-04 — Release checks of the browser validation binding
 
 - The package install check (`scripts/check-packages.mjs`), the public package test

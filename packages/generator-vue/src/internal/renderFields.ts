@@ -1,6 +1,6 @@
 import { createSSRApp } from 'vue';
 import { renderToString } from 'vue/server-renderer';
-import { FormFields } from '../components/FormFields';
+import { FormFields } from '../components/FormFields.js';
 import { bindButtons, bindForm, formDescription, formMessages, type FormTemplate, type BindFormOptions } from '@crudui/generator-core';
 
 /** Render evaluated fields for layout conformance fixtures. */

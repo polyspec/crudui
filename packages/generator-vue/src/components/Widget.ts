@@ -29,7 +29,7 @@
 import { h, type VNode } from 'vue';
 import type { WidgetModel, OptionModel, Affix, Attrs } from '@crudui/generator-core';
 import type { UnsupportedVM } from '@crudui/generator-core';
-import { plainProps } from './attrs';
+import { plainProps } from './attrs.js';
 import {
   rawVoid,
   rawElement,
@@ -38,7 +38,7 @@ import {
   serializeAttrs,
   escAttr,
   escText,
-} from './raw';
+} from './raw.js';
 
 /** Widget model accepted by the renderer, including unsupported markers. */
 export type AnyWidget = WidgetModel | UnsupportedVM;

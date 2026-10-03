@@ -2,7 +2,7 @@
 
 import { type BuildListOptions } from '@crudui/generator-core';
 import { buildListLayout } from '@crudui/generator-core/internal';
-import { List, type ListLayout } from './components/List';
+import { List, type ListLayout } from './components/List.js';
 
 /** Options for a CRUDUI list SSR render. */
 export interface RenderListOptions extends BuildListOptions {

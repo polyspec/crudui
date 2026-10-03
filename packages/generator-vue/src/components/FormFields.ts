@@ -1,7 +1,7 @@
 import { h, type VNode, type VNodeRef } from 'vue';
 import { formButtonsHtml, type ButtonVM, type FormMessages, type NodeVM } from '@crudui/generator-core';
 import type { FormRenderModel } from '@crudui/generator-core/internal';
-import { nodeVNode } from './Node';
+import { nodeVNode } from './Node.js';
 
 /**
  * Build the `crudui-form` block vnode: the root description, form errors, the top-level nodes and
