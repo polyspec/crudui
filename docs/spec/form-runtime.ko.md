@@ -305,9 +305,9 @@ Rust는 옵션을 순서 있는 JSON 객체로 받습니다.
 
 | 컨트롤 | 항목 |
 | --- | --- |
-| 유형이 `text`, `email`, `password`, `number`, `date`, `datetime-local`, `hidden`이거나 아래에 없는 다른 유형인 `input`, 그리고 `textarea` | 현재 값인 문자열입니다. 숫자는 컨트롤이 담은 텍스트이고 날짜와 날짜시간은 브라우저가 제출하는 텍스트입니다. |
-| 유형이 `checkbox`나 `radio`인 `input` | 선택되었으면 그 `value`이고 선택되지 않았으면 없습니다. |
-| 단일 또는 `multiple` `select` | 선택된 옵션마다 그 값이며 선택된 옵션이 없으면 없습니다. |
+| 유형이 `text`, `email`, `password`, `number`, `range`, `date`, `datetime-local`, `hidden`이거나 아래에 없는 다른 유형인 `input`, 그리고 `textarea` | 현재 값인 문자열입니다. 숫자는 컨트롤이 담은 텍스트이고, range는 브라우저가 담은 값(렌더링한 값이 비어 있으면 범위의 중간값)이며, 날짜와 날짜시간은 브라우저가 제출하는 텍스트입니다. |
+| 유형이 `checkbox`(스위치 포함)나 `radio`인 `input` | 선택되었으면 그 `value`이고 선택되지 않았으면 없습니다. |
+| 단일 또는 `multiple` `select` | `optgroup` 안에 있든 없든 선택된 옵션마다 그 값이며 선택된 옵션이 없으면 없습니다. |
 | 유형이 `file`인 `input` | 없습니다. 브라우저는 서버가 파일에 대해 받는 값을 만들 수 없습니다. |
 
 각 항목은 이름이 가리키는 경로에 놓입니다. 이름은 `{first}[{segment}]…`이고 `[]`로 끝날 수 있습니다.

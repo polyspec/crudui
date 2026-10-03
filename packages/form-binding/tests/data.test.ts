@@ -78,6 +78,27 @@ describe('data collection', () => {
     expect(collectData(body(form), 'form')).toStrictEqual({});
   });
 
+  it('reads switch, range, grouped select, button and laid-out group fields as a submission sends them', () => {
+    const laidOut = {
+      type: 'group',
+      properties: {
+        on: { type: 'switcher', label: 'On' },
+        level: { type: 'range', validate: { range: [0, 100], step: 5 } },
+        pick: { type: 'select', items: [{ value: 'a', label: 'A' }, { label: 'G', choices: [{ value: 'b', label: 'B' }] }] },
+        go: { type: 'button', content: 'Go' },
+        row: { type: 'group', design: { layout: 'line' }, properties: { x: { type: 'text' } } },
+        inline: { type: 'group', design: { layout: 'inline' }, properties: { z: { type: 'text' } } },
+      },
+    };
+    const { form } = renderedForm(laidOut, { row: { x: 'X' }, inline: { z: 'Z' } });
+    // An empty range control holds the midpoint of its bounds, and a submission sends it.
+    expect(collectData(body(form), 'form')).toStrictEqual({ level: '50', pick: 'a', row: { x: 'X' }, inline: { z: 'Z' } });
+    control(form, 'form[on]').checked = true;
+    control(form, 'form[level]').value = '35';
+    control<HTMLSelectElement>(form, 'form[pick]').value = 'b';
+    expect(collectData(body(form), 'form')).toStrictEqual({ on: '1', level: '35', pick: 'b', row: { x: 'X' }, inline: { z: 'Z' } });
+  });
+
   it('leaves out file, disabled and node-less controls', () => {
     const { document, form } = renderedForm(spec, filled, { hidden: { _csrf: 'secret' } });
     control(form, 'form[name]').disabled = true;
