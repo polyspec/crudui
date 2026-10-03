@@ -5,7 +5,7 @@
 
 | ID | 기능 | 구현 | 검증 | 배포 | 근거 |
 | --- | --- | --- | --- | --- | --- |
-| control-attributes | 필드 컨트롤, 노드, 폼 버튼, 행 컨트롤에 선언한 `attributes`를 여덟 렌더러가 속성으로 쓰며, 이름은 `data-*`와 `aria-*`로 제한한다 | in-progress | pending | not-deployed | [명세](spec/schema.ko.md#선언한-속성), [폼 마크업](spec/form-markup.ko.md#선언한-속성); `@crudui/generator-core`([모델과 검사 사례](../packages/generator-core/src/declared-attributes.test.ts)), `@crudui/generator-html`([바이트 사례](../packages/generator-html/src/declared-attributes.test.ts)), JSON Schema에 구현됨; React, Vue, Svelte, PHP, PHP 확장, Go, Rust가 남아 있으며 공유 폼 사례는 모든 렌더러를 구현할 때 추가 |
+| control-attributes | 필드 컨트롤과 노드에 선언한 `attributes`를 여덟 렌더러가 속성으로 쓰며, 이름은 `data-*`와 `aria-*`로 제한한다 | in-progress | pending | not-deployed | [명세](spec/schema.ko.md#선언한-속성), [폼 마크업](spec/form-markup.ko.md#선언한-속성); `@crudui/generator-core`([모델과 검사 사례](../packages/generator-core/src/declared-attributes.test.ts)), `@crudui/generator-html`([바이트 사례](../packages/generator-html/src/declared-attributes.test.ts)), JSON Schema에 구현됨; React, Vue, Svelte, PHP, PHP 확장, Go, Rust가 남아 있으며 공유 폼 사례는 모든 렌더러를 구현할 때 추가 |
 | switch-control | `switcher` 필드를 여덟 렌더러가 체크 상자와 다른 스위치(`role="switch"`)로 렌더링한다 | not-started | pending | not-deployed | [폼 마크업](spec/form-markup.ko.md) |
 | range-control | `range` 필드를 여덟 렌더러가 범위, 단계, 현재 값을 가진 슬라이더로 렌더링하고 검증기 다섯 개가 검증한다 | not-started | pending | not-deployed | [명세](spec/schema.ko.md#필드) |
 | button-control | `button` 필드를 여덟 렌더러가 내용과 속성을 가진 `button` 요소로, 스크립트 없이 렌더링한다 | not-started | pending | not-deployed | [폼 마크업](spec/form-markup.ko.md) |
