@@ -58,6 +58,7 @@ function groupButtonHtml(
   o: OptionModel,
   type: 'radio' | 'checkbox',
   shared: Attrs,
+  declared: Attrs,
   labelClass: string
 ): string {
   const attrs: Attrs = {
@@ -70,7 +71,7 @@ function groupButtonHtml(
   };
   if (type === 'radio') attrs['data-is-default'] = o.isDefault ? '1' : '';
   const checked = o.selected ? ' checked=""' : '';
-  const input = `<input${serializeAttrs(attrs)}${checked}>`;
+  const input = `<input${serializeAttrs(attrs)}${checked}${serializeAttrs(declared)}>`;
   const forAttr = o.id ? ` for="${escAttr(o.id)}"` : '';
   return (
     input +
@@ -91,9 +92,10 @@ export function widgetBody(w: WidgetModel): string {
 export function choicesHtml(w: WidgetModel): string {
   const type: 'radio' | 'checkbox' = w.kind === 'choice' ? 'radio' : 'checkbox';
   const shared = (w.extra?.input ?? {}) as Attrs;
+  const declared = (w.extra?.option ?? {}) as Attrs;
   const labelClass = w.itemLabelClass ?? '';
   const body = (w.options ?? [])
-    .map((o) => groupButtonHtml(o, type, shared, labelClass))
+    .map((o) => groupButtonHtml(o, type, shared, declared, labelClass))
     .join('');
   return `<div${serializeAttrs(w.attrs)}>${body}</div>`;
 }

@@ -369,8 +369,30 @@ func evalWidget(c widgetContext) *Object {
 		if tag == "input" || tag == "select" || tag == "textarea" {
 			object(read(w, "attrs")).Set("id", c.id())
 		}
+		appendDeclaredAttributes(w, declaredAttributes(read(c.spec, "design"), false))
 	}
 	return orderedWidget(w)
+}
+
+// appendDeclaredAttributes adds the declared control attributes after the attributes crudui writes
+// on the control: attrs, extra.file of a file layout, or extra.option of a choices layout with
+// option inputs.
+func appendDeclaredAttributes(w *Object, attributes *Object) {
+	if attributes == nil {
+		return
+	}
+	extra := object(read(w, "extra"))
+	if stringAt(w, "layout") == "choices" {
+		if has(extra, "input") {
+			extra.Set("option", attributes)
+		}
+		return
+	}
+	if file := object(read(extra, "file")); file != nil {
+		merge(file, attributes)
+		return
+	}
+	merge(object(read(w, "attrs")), attributes)
 }
 
 // widgetMembers lists the widget model members in their output order (docs/spec/form-runtime.md).

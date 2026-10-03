@@ -194,16 +194,19 @@ static ps_value *group_data_error(ps_text path)
 
 /* Node parts. */
 
-/* kind, path, className, style and hidden from the node's design.wrapper and design.show. */
-static ps_value *node_root(const char *kind, ps_text path, const ps_value *design)
+/* kind, path, className, style, attributes and hidden from the node's design.wrapper, its declared
+   wrapper attributes and design.show. */
+static ps_value *node_root(const char *kind, ps_text path, const ps_value *design, const ps_value *spec)
 {
     const ps_value *wrapper = member(design, "wrapper");
+    const ps_value *attributes = ps_declared_attributes(spec, true);
     ps_chars style = ps_style_string(string_member(wrapper, "style"));
     ps_value *node = ps_object_value();
     bool ok = style.bytes && node && set_string(node, "kind", kind) &&
         set_text(node, "path", path) &&
         set_text(node, "className", string_member(wrapper, "class")) &&
         (!style.length || set_text(node, "style", ps_view(style))) &&
+        (!attributes || ps_set(node, "attributes", ps_value_clone(attributes))) &&
         ps_set(node, "hidden", ps_bool_value(!enabled_bool(design, "show")));
     free(style.bytes);
     if (!ok) { ps_value_free(node); return NULL; }
@@ -312,7 +315,7 @@ static ps_value *build_leaf(const ps_value *spec, ps_text type, ps_text path,
                             const row_scope *scope, ps_value **error)
 {
     const ps_value *value = ps_path(context->data, path);
-    ps_value *node = node_root("field", path, design);
+    ps_value *node = node_root("field", path, design, spec);
     if (!node) return NULL;
     if (ps_text_is(type, "checkbox") || ps_text_is(type, "switcher")) {
         ps_chars id = ps_control_id(context->id_prefix, path);
@@ -329,6 +332,8 @@ static ps_value *build_leaf(const ps_value *spec, ps_text type, ps_text path,
             ps_set(checkbox, "checked", ps_bool_value(checked_value(value) ||
                 (!value && checked_value(member(spec, "default"))))) &&
             set_text(checkbox, "caption", label.bytes ? label : PS_TEXT("")) &&
+            (!ps_declared_attributes(spec, false) ||
+             ps_set(checkbox, "attributes", ps_value_clone(ps_declared_attributes(spec, false)))) &&
             set_owned(node, "checkbox", &checkbox);
         free(id.bytes); free(name.bytes); free(class_name.bytes); ps_value_free(checkbox);
         if (!ok) { ps_value_free(node); return NULL; }
@@ -359,7 +364,7 @@ static ps_value *build_group(const ps_value *field, ps_text path, const ps_value
         return NULL;
     }
     const ps_value *group = member(design, "group");
-    ps_value *node = node_root("group", path, design);
+    ps_value *node = node_root("group", path, design, member(field, "spec"));
     header_part parts[] = {{"label", label}, {"description", description}};
     bool ok = node && attach_header(node, design, parts, 2) &&
         attach_body(node, string_member(group, "class"), string_member(group, "style"), (ps_text){NULL, 0});
@@ -521,7 +526,7 @@ static ps_value *build_collection(const ps_value *field, const ps_value *spec,
     }
     free(segments); free(numbers);
     ps_chars count_text = ok ? ps_format_count(context->messages->count, count) : (ps_chars){NULL, 0};
-    ps_value *node = count_text.bytes ? node_root("collection", path, design) : NULL;
+    ps_value *node = count_text.bytes ? node_root("collection", path, design, spec) : NULL;
     header_part header[] = {{"label", label}, {"description", description}, {"count", ps_view(count_text)}};
     ok = node && attach_header(node, design, header, 3) &&
         attach_body(node, PS_TEXT(""), PS_TEXT(""), (ps_text){NULL, 0}) &&
@@ -557,7 +562,7 @@ static ps_value *build_lang(const ps_value *spec, ps_text path, const ps_value *
         string_member(member(design, "wrapper"), "class"), PS_TEXT("")) : (ps_chars){NULL, 0};
     ps_chars group_class = root_class.bytes
         ? ps_join_classes(string_member(settings, "group_class"), PS_TEXT(""), PS_TEXT("")) : root_class;
-    ps_value *node = group_class.bytes ? node_root("lang", path, design) : NULL;
+    ps_value *node = group_class.bytes ? node_root("lang", path, design, spec) : NULL;
     header_part header[] = {{"label", label}, {"description", description}, {"title", ps_view(title)}};
     if (!title.bytes) header[2].text = (ps_text){NULL, 0};
     ok = node && set_text(node, "className", ps_view(root_class)) &&

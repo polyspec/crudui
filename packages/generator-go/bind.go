@@ -161,11 +161,28 @@ func makeWidget(spec *Object, value any, path string, design *Object, s bindStat
 	return nil, &UnsupportedFieldTypeError{Type: stringAt(spec, "type"), Path: path}
 }
 
-// nodeRoot starts a node with its kind, path and design.wrapper appearance.
-func nodeRoot(kind, path string, d *Object) *Object {
+// declaredAttributes returns a copy of the declared control attributes (design.attributes) or,
+// with wrapper, the node root attributes (design.wrapper.attributes); nil when none is declared.
+func declaredAttributes(design any, wrapper bool) *Object {
+	source := read(design, "attributes")
+	if wrapper {
+		source = read(read(design, "wrapper"), "attributes")
+	}
+	o := object(source)
+	if o == nil || len(o.Keys()) == 0 {
+		return nil
+	}
+	return copyValue(o).(*Object)
+}
+
+// nodeRoot starts a node with its kind, path, design.wrapper appearance and declared attributes.
+func nodeRoot(kind, path string, d *Object, spec *Object) *Object {
 	vm := NewObject("kind", kind, "path", path, "className", nodeClass(d, "wrapper"))
 	if st := styleString(nodeStyle(d, "wrapper")); st != "" {
 		vm.Set("style", st)
+	}
+	if attributes := declaredAttributes(read(spec, "design"), true); attributes != nil {
+		vm.Set("attributes", attributes)
 	}
 	vm.Set("hidden", read(d, "show") != true)
 	return vm
@@ -236,7 +253,7 @@ func buildField(f FieldTemplate, path string, s bindState) (*Object, error) {
 func buildLeaf(spec *Object, path string, d *Object, label, description string, s bindState) (*Object, error) {
 	typ := stringAt(spec, "type")
 	value := getPath(s.data, path)
-	vm := nodeRoot("field", path, d)
+	vm := nodeRoot("field", path, d, spec)
 	if typ == "checkbox" || typ == "switcher" {
 		effective := value
 		if isAbsent(effective) {
@@ -245,7 +262,11 @@ func buildLeaf(spec *Object, path string, d *Object, label, description string, 
 		checked := effective == true || effective == float64(1) || effective == 1 || effective == "1"
 		setHeader(vm, d, "description", description)
 		vm.Set("body", nodeBody("", "", ""))
-		vm.Set("checkbox", NewObject("id", controlID(s.options.IDPrefix, path), "name", bracketName(path, s.options.KeyPrefix), "className", joinClass("valid-target", nodeClass(d, "main")), "checked", checked, "caption", label))
+		checkbox := NewObject("id", controlID(s.options.IDPrefix, path), "name", bracketName(path, s.options.KeyPrefix), "className", joinClass("valid-target", nodeClass(d, "main")), "checked", checked, "caption", label)
+		if attributes := declaredAttributes(read(spec, "design"), false); attributes != nil {
+			checkbox.Set("attributes", attributes)
+		}
+		vm.Set("checkbox", checkbox)
 		return vm, nil
 	}
 	w, e := makeWidget(spec, value, path, d, s)
@@ -267,7 +288,7 @@ func buildGroup(f FieldTemplate, path string, d *Object, label, description stri
 	if e := checkGroupData(getPath(s.data, path), path); e != nil {
 		return nil, e
 	}
-	vm := nodeRoot("group", path, d)
+	vm := nodeRoot("group", path, d, f.Spec)
 	setHeader(vm, d, "label", label, "description", description)
 	vm.Set("body", nodeBody(nodeClass(d, "group"), nodeStyle(d, "group"), ""))
 	children, e := buildChildren(f.Children, path, s)
@@ -301,7 +322,7 @@ func buildCollection(f FieldTemplate, path string, d *Object, label, description
 		}
 		rows = append(rows, row)
 	}
-	vm := nodeRoot("collection", path, d)
+	vm := nodeRoot("collection", path, d, f.Spec)
 	setHeader(vm, d, "label", label, "description", description, "count", formatCount(s.messages.count, len(keys)))
 	vm.Set("body", nodeBody("", "", ""))
 	vm.Set("item", item)
@@ -410,7 +431,7 @@ func buildLang(spec *Object, path string, d *Object, label, description string, 
 	if truthy(read(l, "title")) {
 		title = translate(read(l, "title"), s.language)
 	}
-	vm := nodeRoot("lang", path, d)
+	vm := nodeRoot("lang", path, d, spec)
 	// A framed language group is a node modifier; the stylesheet draws the frame around its body.
 	vm.Set("className", joinClass(frame, stringAt(vm, "className")))
 	setHeader(vm, d, "label", label, "description", description, "title", title)

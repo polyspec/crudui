@@ -119,10 +119,10 @@ final class Rendering
         return implode(' ', array_filter($parts, static fn ($part) => $part !== ''));
     }
 
-    /** Open a div with an optional valueless hidden attribute last. */
-    private static function open(array $attrs, bool $hidden): string
+    /** Open a div with an optional valueless hidden attribute and then the declared attributes. */
+    private static function open(array $attrs, bool $hidden, array $declared = []): string
     {
-        return '<div' . self::attrs($attrs) . ($hidden ? ' hidden=""' : '') . '>';
+        return '<div' . self::attrs($attrs) . ($hidden ? ' hidden=""' : '') . self::attrs($declared) . '>';
     }
 
     /** @param array<int, list<string>> $errors error texts by node object id */
@@ -148,7 +148,7 @@ final class Rendering
         if (($vm->sticky ?? false) && $header !== '') {
             $header = self::element('div', ['class' => 'crudui-node__header-container'], $header);
         }
-        return self::open($attrs, $vm->hidden) . $header . self::body($vm, $errors) . self::errors($errors[spl_object_id($vm)] ?? []) . $footer . '</div>';
+        return self::open($attrs, $vm->hidden, (array) ($vm->attributes ?? [])) . $header . self::body($vm, $errors) . self::errors($errors[spl_object_id($vm)] ?? []) . $footer . '</div>';
     }
 
     private static function header(stdClass $vm): string
@@ -195,6 +195,7 @@ final class Rendering
             if ($box->checked) {
                 $input['checked'] = '';
             }
+            $input = [...$input, ...(array) ($box->attributes ?? [])];
             $inner = self::input($input) . self::element('label', ['for' => $box->id], self::text($box->caption));
         } elseif (isset($vm->widget)) {
             $inner = self::widget($vm->widget);
@@ -273,6 +274,7 @@ final class Rendering
                     if ($option->selected) {
                         $attrs['checked'] = '';
                     }
+                    $attrs = [...$attrs, ...(array) ($widget->extra->option ?? [])];
                     $body .= self::input($attrs, $raw) . self::element('label', ['for' => $option->id, 'class' => $widget->itemLabelClass ?? ''], self::element('span', [], self::text($option->label, $raw), $raw), $raw);
                 }
                 return self::element('div', self::controlAttrs($widget->attrs), $body);

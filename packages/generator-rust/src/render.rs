@@ -181,16 +181,24 @@ fn control(widget: &Value, search: bool) -> String {
     } else {
         text(str_at(widget, "text"))
     };
-    let mut attrs = widget["attrs"].clone();
-    if !raw {
-        if let Some(style) = attrs
-            .as_object_mut()
-            .and_then(|attrs| attrs.shift_remove("style"))
-        {
-            attrs["style"] = style;
-        }
-    }
+    let attrs = if raw {
+        widget["attrs"].clone()
+    } else {
+        style_last(&widget["attrs"])
+    };
     render(tag, &attrs, &content)
+}
+
+/// The attributes with `style` moved last, as an ordinary control writes them.
+fn style_last(attrs: &Value) -> Value {
+    let mut attrs = attrs.clone();
+    if let Some(style) = attrs
+        .as_object_mut()
+        .and_then(|attrs| attrs.shift_remove("style"))
+    {
+        attrs["style"] = style;
+    }
+    attrs
 }
 
 fn script(text: &str) -> String {
@@ -245,6 +253,9 @@ fn widget(model: &Value) -> String {
                     if option["selected"] == true {
                         attrs.insert("checked".into(), "".into());
                     }
+                    if let Some(declared) = model["extra"]["option"].as_object() {
+                        attrs.extend(declared.clone());
+                    }
                     let label = json!({"for":option["id"],"class":model["itemLabelClass"]});
                     let raw = has_events(&model["extra"]["input"]);
                     let input = if raw { raw_element } else { element };
@@ -281,7 +292,11 @@ fn widget(model: &Value) -> String {
             }
             element("div", &json!({"class":"crudui-widget"}), &content)
         }
-        "display" => element("div", &model["attrs"], str_at(model, "rawHtml")),
+        "display" => element(
+            "div",
+            &style_last(&model["attrs"]),
+            str_at(model, "rawHtml"),
+        ),
         "search" => {
             let mut content = String::new();
             if !str_at(model, "styleChrome").is_empty() {
@@ -427,6 +442,11 @@ fn body(node: &Value, errors: &NodeErrors) -> String {
         if checkbox["checked"] == true {
             input["checked"] = "".into();
         }
+        if let (Some(input), Some(declared)) =
+            (input.as_object_mut(), checkbox["attributes"].as_object())
+        {
+            input.extend(declared.clone());
+        }
         element("input", &input, "")
             + &element(
                 "label",
@@ -500,6 +520,9 @@ fn node(node: &Value, errors: &NodeErrors) -> String {
     }
     if node["hidden"] == true {
         attrs["hidden"] = "".into();
+    }
+    if let (Some(attrs), Some(declared)) = (attrs.as_object_mut(), node["attributes"].as_object()) {
+        attrs.extend(declared.clone());
     }
     let footer = if node["controls"]["placement"] == "footer" {
         element(

@@ -8,6 +8,7 @@ import (
 	"github.com/polyspec/crudui/packages/validator-go/validator/text"
 	"slices"
 	"strconv"
+	"strings"
 )
 
 // FieldTemplate stores one resolved field specification and its ordered children.
@@ -146,7 +147,7 @@ func checkFormDeclarations(spec *Object) error {
 		if kind == "link" && !button.Has("href") {
 			return fail(key+".href", "a link target")
 		}
-		if e := checkDeclarations(button, "form."+key); e != nil {
+		if e := checkDeclarations(button, "form."+key, false); e != nil {
 			return e
 		}
 	}
@@ -166,7 +167,7 @@ func compileFields(p *Object, parent string) ([]FieldTemplate, error) {
 		if parent != "" {
 			path = parent + "." + name
 		}
-		if e := checkDeclarations(raw, path); e != nil {
+		if e := checkDeclarations(raw, path, true); e != nil {
 			return nil, e
 		}
 		children, e := compileFields(object(read(raw, "properties")), path)
@@ -209,6 +210,8 @@ var closedKeys = map[string][]string{
 	"lang":          {"mode", "only", "name", "key", "frame", "title", "group_class"},
 	"design":        {"show", "class", "style", "label", "wrapper", "group", "prepend"},
 	"design node":   {"class", "style"},
+	"field design":  {"show", "class", "style", "attributes", "label", "wrapper", "group", "prepend"},
+	"field wrapper": {"class", "style", "attributes"},
 	"behavior":      {"onchange", "onclick", "onload"},
 }
 
@@ -223,7 +226,8 @@ func unknownKey(o *Object, bucket string) (string, bool) {
 }
 
 // checkDeclarations rejects a wrong value type or an unknown key in one field's closed declarations.
-func checkDeclarations(spec *Object, path string) error {
+// Only a form field (field) accepts declared attributes in its design.
+func checkDeclarations(spec *Object, path string, field bool) error {
 	fail := func(key, expected string) error {
 		return fmt.Errorf("Invalid %s at %s: expected %s", key, path, expected)
 	}
@@ -305,7 +309,7 @@ func checkDeclarations(spec *Object, path string) error {
 		}
 	}
 	if spec.Has("design") {
-		if e := checkDesignDeclaration(read(spec, "design"), path); e != nil {
+		if e := checkDesignDeclaration(read(spec, "design"), path, field); e != nil {
 			return e
 		}
 	}
@@ -317,9 +321,70 @@ func checkDeclarations(spec *Object, path string) error {
 	return nil
 }
 
+// ownedAttributePrefixes are the prefixes of attribute names crudui writes on a control or a node root.
+var ownedAttributePrefixes = []string{"data-crudui-", "data-source-"}
+
+// ownedAttributeNames are the attribute names crudui writes on a control or a node root.
+var ownedAttributeNames = []string{
+	"data-field-path", "data-lang", "data-name", "data-rule-name", "data-default", "data-is-default",
+	"data-type", "data-height", "data-upload-server", "data-fileserver", "data-server", "data-max-tags",
+	"data-keyword-min-length", "data-delay", "data-api-server", "data-max-width", "data-min-width",
+	"data-max-height", "data-min-height", "data-preview-max-width", "data-preview-max-height",
+	"data-unsupported-type",
+}
+
+// declaredAttributeName reports whether name is a data-* or aria-* name crudui does not write:
+// lowercase letters, digits, "-", "_" and "." after the prefix, starting with a letter or a digit.
+func declaredAttributeName(name string) bool {
+	rest, found := strings.CutPrefix(name, "data-")
+	if !found {
+		rest, found = strings.CutPrefix(name, "aria-")
+	}
+	if !found || rest == "" {
+		return false
+	}
+	for index := 0; index < len(rest); index++ {
+		c := rest[index]
+		alphanumeric := (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9')
+		if !alphanumeric && (index == 0 || (c != '-' && c != '_' && c != '.')) {
+			return false
+		}
+	}
+	if slices.Contains(ownedAttributeNames, name) {
+		return false
+	}
+	for _, prefix := range ownedAttributePrefixes {
+		if strings.HasPrefix(name, prefix) {
+			return false
+		}
+	}
+	return true
+}
+
+// checkDeclaredAttributes rejects declared attributes at key that are not an object of permitted
+// names to strings. Every name is checked before any value.
+func checkDeclaredAttributes(attributes any, key, path string) error {
+	o := object(attributes)
+	if o == nil {
+		return fmt.Errorf("Invalid %s at %s: expected an object", key, path)
+	}
+	for _, name := range o.Keys() {
+		if !declaredAttributeName(name) {
+			return fmt.Errorf("Invalid %s.%s at %s: expected a data-* or aria-* name that crudui does not write", key, name, path)
+		}
+	}
+	for _, name := range o.Keys() {
+		if _, ok := read(o, name).(string); !ok {
+			return fmt.Errorf("Invalid %s.%s at %s: expected a string", key, name, path)
+		}
+	}
+	return nil
+}
+
 // checkDesignDeclaration rejects an unknown key or a wrong value type in one design declaration at path.
-// Form fields, list and detail specifications, their columns and fields share this rule.
-func checkDesignDeclaration(design any, path string) error {
+// Form fields, form buttons, list and detail specifications, their columns and fields share this
+// rule; only a form field (field) accepts attributes and wrapper.attributes.
+func checkDesignDeclaration(design any, path string, field bool) error {
 	fail := func(key, expected string) error {
 		return fmt.Errorf("Invalid %s at %s: expected %s", key, path, expected)
 	}
@@ -333,7 +398,11 @@ func checkDesignDeclaration(design any, path string) error {
 	if d == nil {
 		return nil
 	}
-	if key, found := unknownKey(d, "design"); found {
+	designBucket := "design"
+	if field {
+		designBucket = "field design"
+	}
+	if key, found := unknownKey(d, designBucket); found {
 		return unknown("design." + key)
 	}
 	if show := read(d, "show"); d.Has("show") {
@@ -346,6 +415,11 @@ func checkDesignDeclaration(design any, path string) error {
 			return fail("design."+key, "a string or a condition map")
 		}
 	}
+	if d.Has("attributes") {
+		if e := checkDeclaredAttributes(read(d, "attributes"), "design.attributes", path); e != nil {
+			return e
+		}
+	}
 	for _, node := range []string{"label", "wrapper", "group", "prepend"} {
 		if !d.Has(node) {
 			continue
@@ -354,12 +428,21 @@ func checkDesignDeclaration(design any, path string) error {
 		if n == nil {
 			return fail("design."+node, "an object")
 		}
-		if key, found := unknownKey(n, "design node"); found {
+		nodeBucket := "design node"
+		if field && node == "wrapper" {
+			nodeBucket = "field wrapper"
+		}
+		if key, found := unknownKey(n, nodeBucket); found {
 			return unknown("design." + node + "." + key)
 		}
 		for _, key := range []string{"class", "style"} {
 			if n.Has(key) && !conditionValue(read(n, key)) {
 				return fail("design."+node+"."+key, "a string or a condition map")
+			}
+		}
+		if n.Has("attributes") {
+			if e := checkDeclaredAttributes(read(n, "attributes"), "design."+node+".attributes", path); e != nil {
+				return e
 			}
 		}
 	}

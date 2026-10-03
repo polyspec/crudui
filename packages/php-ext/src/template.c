@@ -55,8 +55,9 @@ static bool one_of(const ps_value *value, const char *const *allowed, size_t cou
     return false;
 }
 
-/* Reject a wrong value type or an unknown key in one field's multiple, lang, design and behavior declarations. */
-static bool declarations_valid(const ps_value *spec, ps_text path, ps_value **error)
+/* Reject a wrong value type or an unknown key in one field's multiple, lang, design and behavior declarations;
+   only a form field (field) accepts declared attributes. */
+static bool declarations_valid(const ps_value *spec, ps_text path, bool field, ps_value **error)
 {
     /* Buttons and the submission target belong to the form, not to a field. */
     static const char *const form_keys[] = {"buttons", "action"};
@@ -125,7 +126,7 @@ static bool declarations_valid(const ps_value *spec, ps_text path, ps_value **er
             return ps_declaration_error(PS_TEXT("lang.only"), path, "a list of language codes or an object", error);
     }
     const ps_value *design = ps_get(spec, "design");
-    if (design && !ps_design_declaration_valid(design, path, error)) return false;
+    if (design && !ps_design_declaration_valid(design, path, field, error)) return false;
     const ps_value *behavior = ps_get(spec, "behavior");
     return !behavior || behavior->kind != PS_OBJECT ||
         ps_known_keys(behavior, "behavior", behavior_keys, 3, path, error);
@@ -175,7 +176,7 @@ static bool form_declarations_valid(const ps_value *spec, ps_value **error)
         if (ps_is_string(type, "link") && !ps_has(button, "href"))
             return ps_declaration_error(ps_fixed(key), PS_TEXT("form"), "a link target", error);
         snprintf(path, sizeof(path), "form.buttons.%zu", i);
-        if (!declarations_valid(button, ps_fixed(path), error)) return false;
+        if (!declarations_valid(button, ps_fixed(path), false, error)) return false;
     }
     return true;
 }
@@ -201,7 +202,7 @@ static ps_value *compile_fields(const ps_value *properties, ps_text parent,
         if (!raw || raw->kind != PS_OBJECT) continue;
         ps_text name = ps_key(properties, i);
         ps_chars path = parent.length ? PS_CONCAT(parent, PS_TEXT("."), name) : ps_copy(name);
-        if (!path.bytes || !declarations_valid(raw, ps_view(path), error)) { free(path.bytes); goto fail; }
+        if (!path.bytes || !declarations_valid(raw, ps_view(path), true, error)) { free(path.bytes); goto fail; }
         ps_value *field = ps_object_value();
         ps_value *spec = ps_object_value();
         if (!field || !spec) { free(path.bytes); ps_value_free(field); ps_value_free(spec); goto fail; }

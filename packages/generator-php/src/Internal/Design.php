@@ -103,4 +103,20 @@ final class Design
         };
         return (object) ['show' => self::show(Value::get($design, 'show'), $data, $path), 'main' => $node($design), 'label' => $node($design->label ?? null), 'wrapper' => $node($design->wrapper ?? null), 'group' => $node($design->group ?? null), 'prepend' => $node($design->prepend ?? null)];
     }
+
+    /**
+     * A copy of the declared control attributes (design.attributes) or, with $wrapper, the node
+     * root attributes (design.wrapper.attributes); the missing marker when none is declared.
+     */
+    public static function declared(mixed $design, bool $wrapper): stdClass|Missing
+    {
+        if ($wrapper && $design instanceof stdClass) {
+            $design = $design->wrapper ?? null;
+        }
+        $attributes = $design instanceof stdClass ? $design->attributes ?? null : null;
+        if (!$attributes instanceof stdClass || get_object_vars($attributes) === []) {
+            return Missing::Value;
+        }
+        return clone $attributes;
+    }
 }

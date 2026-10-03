@@ -12,9 +12,10 @@
 //     dependents go under that key. The structure keys multiple / lang are
 //     themselves polymorphic false | {} | true.
 //   - design node map. design addresses appearance per DOM node by key
-//     (show / class / style / label.{class,style} / wrapper.{class,style} /
-//     group.{class,style} / prepend.{class,style}) — R8: which node a style
-//     targets is visible in the key, not inferred.
+//     (show / class / style / attributes / label.{class,style} /
+//     wrapper.{class,style,attributes} / group.{class,style} /
+//     prepend.{class,style}) — R8: which node a style targets is visible in the
+//     key, not inferred.
 //   - condition maps. A declaration-ordered map whose default key is the
 //     literal true (R4 — no convention sigils such as _). Keys are evaluated in
 //     declaration order; the first truthy key wins; order is preserved on a
@@ -602,8 +603,9 @@ func (s *ValidateSlot) UnmarshalJSON(data []byte) error {
 //
 // Polymorphic: Cancel = the false shape, Bare = the true shape, otherwise the
 // body carries the {} shape. design is a closed bucket: Unmarshal rejects any
-// key outside show / class / style / label / wrapper / group / prepend, and any
-// node key outside class / style (DesignNodeMap).
+// key outside show / class / style / attributes / label / wrapper / group /
+// prepend, and any node key outside class / style, and attributes on the
+// wrapper (DesignNodeMap).
 type DesignSlot struct {
 	// Cancel is the false shape: cancels a composed-in design slot.
 	Cancel bool `json:"-"`
@@ -617,10 +619,12 @@ type DesignSlot struct {
 	Class any `json:"class,omitempty"`
 	// Style is the inline appearance for the field's own node.
 	Style any `json:"style,omitempty"`
+	// Attributes are the attributes a form field declares for its control.
+	Attributes *DeclaredAttributes `json:"attributes,omitempty"`
 	// Label is the appearance map for the label node.
 	Label *DesignNode `json:"label,omitempty"`
-	// Wrapper is the appearance map for the wrapper node.
-	Wrapper *DesignNode `json:"wrapper,omitempty"`
+	// Wrapper is the appearance map and the declared attributes of the wrapper node.
+	Wrapper *WrapperNode `json:"wrapper,omitempty"`
 	// Group is the appearance map for the group node.
 	Group *DesignNode `json:"group,omitempty"`
 	// Prepend is the appearance map for the prepend node.
@@ -660,8 +664,12 @@ func (s *DesignSlot) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	for i, key := range keys {
+		allowed := designNodeKeys
+		if key == "wrapper" {
+			allowed = wrapperNodeKeys
+		}
 		if key == "label" || key == "wrapper" || key == "group" || key == "prepend" {
-			if err := rejectUnknownKeys(values[i], "design."+key, designNodeKeys); err != nil {
+			if err := rejectUnknownKeys(values[i], "design."+key, allowed); err != nil {
 				return err
 			}
 		}
@@ -686,10 +694,94 @@ type DesignNode struct {
 }
 
 // designKeys are the keys a design object allows.
-var designKeys = []string{"show", "class", "style", "label", "wrapper", "group", "prepend"}
+var designKeys = []string{"show", "class", "style", "attributes", "label", "wrapper", "group", "prepend"}
 
 // designNodeKeys are the keys a design node allows.
 var designNodeKeys = []string{"class", "style"}
+
+// wrapperNodeKeys are the keys the wrapper design node allows.
+var wrapperNodeKeys = []string{"class", "style", "attributes"}
+
+// WrapperNode is the appearance of the wrapper node (the node root) and the
+// attributes a form field declares for it. It is a closed bucket: Unmarshal
+// rejects any key beyond class / style / attributes.
+type WrapperNode struct {
+	// Class is the node's appearance class.
+	Class any `json:"class,omitempty"`
+	// Style is the node's inline appearance.
+	Style any `json:"style,omitempty"`
+	// Attributes are the attributes declared for the node root.
+	Attributes *DeclaredAttributes `json:"attributes,omitempty"`
+}
+
+// UnmarshalJSON reads a WrapperNode and rejects any key beyond class / style / attributes.
+func (n *WrapperNode) UnmarshalJSON(data []byte) error {
+	if err := rejectUnknownKeys(data, "design.wrapper", wrapperNodeKeys); err != nil {
+		return err
+	}
+	type alias WrapperNode
+	var a alias
+	if err := json.Unmarshal(data, &a); err != nil {
+		return err
+	}
+	*n = WrapperNode(a)
+	return nil
+}
+
+// DeclaredAttributes are the attributes a form field declares for an element,
+// in declaration order. Every value is a string; compilation checks the names.
+type DeclaredAttributes struct {
+	// Keys holds the attribute names in declaration order.
+	Keys []string
+	// Values maps each attribute name to its value.
+	Values map[string]string
+}
+
+// MarshalJSON emits DeclaredAttributes as a JSON object in declaration order.
+func (a *DeclaredAttributes) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	buf.WriteByte('{')
+	for i, key := range a.Keys {
+		if i > 0 {
+			buf.WriteByte(',')
+		}
+		name, err := json.Marshal(key)
+		if err != nil {
+			return nil, err
+		}
+		value, err := json.Marshal(a.Values[key])
+		if err != nil {
+			return nil, err
+		}
+		buf.Write(name)
+		buf.WriteByte(':')
+		buf.Write(value)
+	}
+	buf.WriteByte('}')
+	return buf.Bytes(), nil
+}
+
+// UnmarshalJSON reads DeclaredAttributes and rejects a value that is not an
+// object and a member value that is not a string.
+func (a *DeclaredAttributes) UnmarshalJSON(data []byte) error {
+	if trimmed := bytes.TrimSpace(data); len(trimmed) == 0 || trimmed[0] != '{' {
+		return fmt.Errorf("model: attributes must be an object")
+	}
+	keys, values, err := objectMembers(data)
+	if err != nil {
+		return err
+	}
+	a.Keys = keys
+	a.Values = make(map[string]string, len(keys))
+	for i, key := range keys {
+		var value string
+		if err := json.Unmarshal(values[i], &value); err != nil {
+			return fmt.Errorf("model: attribute %q is not a string: %w", key, err)
+		}
+		a.Values[key] = value
+	}
+	return nil
+}
 
 // UnmarshalJSON reads a DesignNode and rejects any key beyond class / style.
 func (n *DesignNode) UnmarshalJSON(data []byte) error {
@@ -711,10 +803,12 @@ var DesignNodeMap = []string{
 	"show",
 	"class",
 	"style",
+	"attributes",
 	"label.class",
 	"label.style",
 	"wrapper.class",
 	"wrapper.style",
+	"wrapper.attributes",
 	"group.class",
 	"group.style",
 	"prepend.class",
