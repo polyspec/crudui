@@ -221,6 +221,43 @@
         }
       }
     },
+    "ChoiceItems": {
+      "description": "The choice list of a field's items. In a choice or multichoice field each choice may also declare the class and style of its label and the declared attributes of its input; binding rejects these members in other fields.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "value",
+          "label"
+        ],
+        "properties": {
+          "value": {
+            "description": "Option value.",
+            "type": [
+              "string",
+              "number"
+            ]
+          },
+          "label": {
+            "description": "Display label of the value.",
+            "$ref": "#/definitions/ItemLabel"
+          },
+          "class": {
+            "description": "Class of the choice's label.",
+            "type": "string"
+          },
+          "style": {
+            "description": "Inline style of the choice's label.",
+            "type": "string"
+          },
+          "attributes": {
+            "description": "Attributes written on the choice's input.",
+            "$ref": "#/definitions/DeclaredAttributes"
+          }
+        }
+      }
+    },
     "ItemLabel": {
       "description": "Choice display label, optionally translated. The choice value is separate from its label.",
       "anyOf": [
@@ -1012,7 +1049,7 @@
           }
         },
         {
-          "$ref": "#/definitions/ChoiceList"
+          "$ref": "#/definitions/ChoiceItems"
         },
         {
           "$ref": "#/definitions/ItemsSource"

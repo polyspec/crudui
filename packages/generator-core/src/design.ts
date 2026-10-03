@@ -19,6 +19,7 @@
  * literal, expression, or condition map. eval is never called.
  */
 
+import { FormInputError } from '@crudui/validator';
 import type { PathContext } from '@crudui/validator/internal';
 import { evalShow, evalAppearance } from './expr';
 
@@ -127,4 +128,36 @@ export function declaredAttributes(design: unknown): DeclaredAttributes {
     ? (d.wrapper as Record<string, unknown>).attributes
     : undefined;
   return { control: attributeCopy(d.attributes), wrapper: attributeCopy(wrapper) };
+}
+
+/**
+ * Names of a `data-*` or `aria-*` attribute: lowercase letters, digits, `-`, `_` and `.` after the
+ * prefix, starting with a letter or a digit.
+ */
+const DECLARED_ATTRIBUTE_NAME = /^(?:data|aria)-[a-z0-9][a-z0-9._-]*$/;
+/** Prefixes of attribute names crudui writes on a control or a node root. */
+const OWNED_ATTRIBUTE_PREFIXES: readonly string[] = ['data-crudui-', 'data-source-'];
+/** Attribute names crudui writes on a control or a node root. */
+const OWNED_ATTRIBUTE_NAMES: readonly string[] = [
+  'data-field-path', 'data-lang', 'data-name', 'data-rule-name', 'data-default', 'data-is-default',
+  'data-type', 'data-height', 'data-upload-server', 'data-fileserver', 'data-server', 'data-max-tags',
+  'data-keyword-min-length', 'data-delay', 'data-api-server', 'data-max-width', 'data-min-width',
+  'data-max-height', 'data-min-height', 'data-preview-max-width', 'data-preview-max-height',
+  'data-unsupported-type',
+];
+
+/** Reject declared attributes at `key` that are not an object of permitted names to strings. */
+export function checkDeclaredAttributes(attributes: unknown, key: string, path: string): void {
+  if (attributes === null || typeof attributes !== 'object' || Array.isArray(attributes)) {
+    throw new FormInputError(`Invalid ${key} at ${path}: expected an object`);
+  }
+  for (const name of Object.keys(attributes as Record<string, unknown>)) {
+    if (!DECLARED_ATTRIBUTE_NAME.test(name) || OWNED_ATTRIBUTE_NAMES.includes(name) ||
+        OWNED_ATTRIBUTE_PREFIXES.some(prefix => name.startsWith(prefix))) {
+      throw new FormInputError(`Invalid ${key}.${name} at ${path}: expected a data-* or aria-* name that crudui does not write`);
+    }
+  }
+  for (const [name, value] of Object.entries(attributes as Record<string, unknown>)) {
+    if (typeof value !== 'string') throw new FormInputError(`Invalid ${key}.${name} at ${path}: expected a string`);
+  }
 }

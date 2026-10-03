@@ -2,6 +2,7 @@ import { FormInputError, type FileLoader } from '@crudui/validator';
 import {
   checkOptionText, checkedComposition, composeProperties, isMultiple, isNumberRange, isStep, MemoryLoader,
 } from '@crudui/validator/internal';
+import { checkDeclaredAttributes } from './design';
 import { checkBindText } from './input-text';
 import { makeTranslate, type Language } from './content';
 import { DEFAULT_FORM_BUTTONS, FORM_BUTTON_TYPES } from './buttons';
@@ -190,36 +191,6 @@ function checkRangeDeclaration(spec: Record<string, unknown>, path: string): voi
   if (!isStep(validate.step)) throw new FormInputError(`Invalid validate.step at ${path}: expected a finite number above 0`);
   if (!isMultiple(validate.range[0], validate.step)) {
     throw new FormInputError(`Invalid validate.range at ${path}: expected a minimum that is a multiple of validate.step`);
-  }
-}
-
-/**
- * Names of a `data-*` or `aria-*` attribute: lowercase letters, digits, `-`, `_` and `.` after the
- * prefix, starting with a letter or a digit.
- */
-const DECLARED_ATTRIBUTE_NAME = /^(?:data|aria)-[a-z0-9][a-z0-9._-]*$/;
-/** Prefixes of attribute names crudui writes on a control or a node root. */
-const OWNED_ATTRIBUTE_PREFIXES: readonly string[] = ['data-crudui-', 'data-source-'];
-/** Attribute names crudui writes on a control or a node root. */
-const OWNED_ATTRIBUTE_NAMES: readonly string[] = [
-  'data-field-path', 'data-lang', 'data-name', 'data-rule-name', 'data-default', 'data-is-default',
-  'data-type', 'data-height', 'data-upload-server', 'data-fileserver', 'data-server', 'data-max-tags',
-  'data-keyword-min-length', 'data-delay', 'data-api-server', 'data-max-width', 'data-min-width',
-  'data-max-height', 'data-min-height', 'data-preview-max-width', 'data-preview-max-height',
-  'data-unsupported-type',
-];
-
-/** Reject declared attributes at `key` that are not an object of permitted names to strings. */
-function checkDeclaredAttributes(attributes: unknown, key: string, path: string): void {
-  if (!isRecord(attributes)) throw new FormInputError(`Invalid ${key} at ${path}: expected an object`);
-  for (const name of Object.keys(attributes)) {
-    if (!DECLARED_ATTRIBUTE_NAME.test(name) || OWNED_ATTRIBUTE_NAMES.includes(name) ||
-        OWNED_ATTRIBUTE_PREFIXES.some(prefix => name.startsWith(prefix))) {
-      throw new FormInputError(`Invalid ${key}.${name} at ${path}: expected a data-* or aria-* name that crudui does not write`);
-    }
-  }
-  for (const [name, value] of Object.entries(attributes)) {
-    if (typeof value !== 'string') throw new FormInputError(`Invalid ${key}.${name} at ${path}: expected a string`);
   }
 }
 

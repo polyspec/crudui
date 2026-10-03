@@ -36,7 +36,7 @@ spec declares in `design`.
 | `crudui-data` | Current data view with `__header` and a `pre` `__body`. |
 | `crudui-widget` | A control with its `__affix` prepend and append texts, a file widget's `__button` and a range widget's `__output`; `--search` holds a search select, `--range` holds a range control and `--unsupported` marks a type without a widget. |
 | `crudui-input` | A native input, textarea or select; `--select` for a select, `--file` for a file input and `--range` for a range input. |
-| `crudui-choices` | Radio (choice) or checkbox (multichoice) options: each `__input` is followed by its `__label`; `--multiple` wraps checkbox options. |
+| `crudui-choices` | Radio (choice) or checkbox (multichoice) options: each `__input` is followed by its `__label`; `--multiple` wraps checkbox options. Each choice may add its own label class and style and input attributes ([choice appearance](#choice-appearance)). |
 
 | Attribute | Meaning |
 | --- | --- |
@@ -68,7 +68,8 @@ that order. The header is present only with content, the errors slot only with e
 and the footer only with controls. Child nodes are
 placed only in the body, header parts only in the header, and controls only in
 the header or footer. `design.wrapper` applies to the node root, `design.label`
-to the header, `design.group` to the body of a group or group row, `design.class`
+to the header, `design.group` to the body of a group or group row and to the `crudui-choices`
+element of a choice or multichoice field, `design.class`
 to the control and `design.prepend` to the widget prepend.
 
 | Kind | Header | Body |
@@ -133,6 +134,30 @@ aria-describedby: theme-help }` writes:
 <input type="text" class="valid-target crudui-input" data-name="theme" data-rule-name="theme"
   data-default="" id="crudui:theme" data-setting="theme" aria-describedby="theme-help"
   name="theme" value=""/>
+```
+
+## Choice appearance
+
+A choice of a choice or multichoice field may declare `class`, `style` and `attributes`
+([schema](schema.md#choice-appearance)). The label of the choice takes the class after its label
+classes (`crudui-choices__label` and `design.class`) and the style after the class. The input of the
+choice takes the attributes after the field's control attributes; a name declared in both keeps the
+position of the field's attribute and takes the choice's value. The `crudui-choices` element takes
+the class of `design.group` after its own classes and the style of `design.group`. An option model
+has the members `className`, `style` and `attributes` after `id`, each present only when declared;
+`style` is normalized as a design style is. With the data `accent: green`, the example of the schema
+writes:
+
+```html
+<div class="crudui-choices swatches"><input data-name="accent" data-rule-name="accent" type="radio"
+  autoComplete="off" class="valid-target crudui-choices__input" id="crudui:accent:0"
+  data-is-default="" aria-label="Blue accent" name="accent" value="blue"/><label
+  for="crudui:accent:0" class="crudui-choices__label swatch"
+  style="--swatch-bg:#1d4ed8"><span>Blue</span></label><input data-name="accent"
+  data-rule-name="accent" type="radio" autoComplete="off" class="valid-target crudui-choices__input"
+  id="crudui:accent:1" data-is-default="" name="accent" checked="" value="green"/><label
+  for="crudui:accent:1" class="crudui-choices__label swatch"
+  style="--swatch-bg:#15803d"><span>Green</span></label></div>
 ```
 
 ## Range fields

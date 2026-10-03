@@ -34,7 +34,7 @@ React, Vue, Svelte, HTML 렌더러와 네이티브 렌더러는 같은 마크업
 | `crudui-data` | `__header`와 `pre` `__body`를 가진 현재 데이터 보기입니다. |
 | `crudui-widget` | 앞뒤 텍스트 `__affix`, 파일 위젯의 `__button`, 범위 위젯의 `__output`을 가진 컨트롤입니다. `--search`는 검색 select를, `--range`는 범위 컨트롤을 담고, `--unsupported`는 위젯이 없는 유형을 표시합니다. |
 | `crudui-input` | 기본 input, textarea, select입니다. select는 `--select`, 파일 입력은 `--file`, 범위 입력은 `--range`를 가집니다. |
-| `crudui-choices` | 라디오(choice) 또는 체크박스(multichoice) 선택지입니다. 각 `__input` 뒤에 `__label`이 오고, `--multiple`은 체크박스 선택지를 줄바꿈합니다. |
+| `crudui-choices` | 라디오(choice) 또는 체크박스(multichoice) 선택지입니다. 각 `__input` 뒤에 `__label`이 오고, `--multiple`은 체크박스 선택지를 줄바꿈합니다. 각 선택지는 자신의 레이블 class와 style, input 속성을 더할 수 있습니다([선택지 외형](#선택지-외형)). |
 
 | 속성 | 의미 |
 | --- | --- |
@@ -63,7 +63,8 @@ React, Vue, Svelte, HTML 렌더러와 네이티브 렌더러는 같은 마크업
 있을 때만, 오류 슬롯은 오류가 있을 때만(메시지마다 `crudui-node__error` 문단 하나,
 [완전한 폼](form-runtime.ko.md#완전한-폼) 참고), 푸터는 컨트롤이 있을 때만 출력합니다. 자식 노드는 본문에만, 헤더 부품은 헤더에만,
 컨트롤은 헤더 또는 푸터에만 둡니다. `design.wrapper`는 노드 루트, `design.label`은
-헤더, `design.group`은 group과 group 행의 본문, `design.class`는 컨트롤,
+헤더, `design.group`은 group과 group 행의 본문 및 choice·multichoice 필드의 `crudui-choices` 요소,
+`design.class`는 컨트롤,
 `design.prepend`는 위젯 prepend에 적용합니다.
 
 | 종류 | 헤더 | 본문 |
@@ -124,6 +125,29 @@ input에서는 `data-is-default`와 `checked` 다음에 씁니다. React의 서�
 <input type="text" class="valid-target crudui-input" data-name="theme" data-rule-name="theme"
   data-default="" id="crudui:theme" data-setting="theme" aria-describedby="theme-help"
   name="theme" value=""/>
+```
+
+## 선택지 외형
+
+choice·multichoice 필드의 선택지는 `class`, `style`, `attributes`를 선언할 수 있습니다
+([스키마](schema.ko.md#선택지-외형)). 선택지의 레이블은 레이블 클래스(`crudui-choices__label`과
+`design.class`) 다음에 class를, class 다음에 style을 받습니다. 선택지의 input은 필드의 컨트롤 속성 다음에
+속성을 받으며, 둘 다에 선언한 이름은 필드 속성의 위치를 유지하고 선택지의 값을 가집니다.
+`crudui-choices` 요소는 자신의 클래스 다음에 `design.group`의 class를, 그리고 `design.group`의 style을
+받습니다. option 모델은 `id` 다음에 `className`, `style`, `attributes` 멤버를 가지며 각각 선언했을 때만
+존재합니다. `style`은 design style과 같이 정규화합니다. 데이터 `accent: green`으로 스키마의 예는 다음을
+씁니다.
+
+```html
+<div class="crudui-choices swatches"><input data-name="accent" data-rule-name="accent" type="radio"
+  autoComplete="off" class="valid-target crudui-choices__input" id="crudui:accent:0"
+  data-is-default="" aria-label="Blue accent" name="accent" value="blue"/><label
+  for="crudui:accent:0" class="crudui-choices__label swatch"
+  style="--swatch-bg:#1d4ed8"><span>Blue</span></label><input data-name="accent"
+  data-rule-name="accent" type="radio" autoComplete="off" class="valid-target crudui-choices__input"
+  id="crudui:accent:1" data-is-default="" name="accent" checked="" value="green"/><label
+  for="crudui:accent:1" class="crudui-choices__label swatch"
+  style="--swatch-bg:#15803d"><span>Green</span></label></div>
 ```
 
 ## 범위 필드

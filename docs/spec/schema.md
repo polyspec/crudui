@@ -179,7 +179,8 @@ itself and a number as `Number.prototype.toString` writes it. Each `label` is a 
 value-to-label map. The choices keep the order of the list for any values.
 
 An `items` array is a choice list when one of its elements is an object that has a `value` member.
-Every element must then be an object whose only members are `value` and `label`, every `value` must
+Every element must then be an object whose only members are `value` and `label`, besides the
+[appearance](#choice-appearance) members in a choice or multichoice field, every `value` must
 be a string or a finite number, and no two values may have the same canonical text. Binding a field
 whose `items` is a choice list that breaks one of these rules fails with `INVALID_FORM_INPUT`, the
 message `Invalid items at {path}: expected value and label pairs with distinct string or number values`
@@ -198,6 +199,40 @@ Choose the form by the required order:
   { "value": 0, "label": "No" }]` displays Yes before No. Use it when the values are integer-like or
   mixed and the written order is required.
 - An array of labels keeps the written order with the indexes `0`, `1`, … as the values.
+
+### Choice appearance
+
+A choice in the choice list of a choice or multichoice field (the types `choice`, `radio`,
+`multichoice`, `checkboxes` and `checkcontainer`) may declare its appearance: `class` and `style`
+are literal strings applied to the label of the choice, and `attributes` are
+[declared attributes](#declared-attributes) written on the input of the choice. The field's
+`design.group` (`class` and `style`) applies to the element that holds the choices. A page
+can lay the choices out with these, for example as a grid of color swatches whose label reads a
+custom property that each choice sets in `style`. The [form markup](form-markup.md#choice-appearance)
+defines the output. The choice lists of other fields, of `in` and of the `choice-label` format have
+only `value` and `label`, and another member fails as described above.
+
+```yaml
+accent:
+  type: choice
+  label: Accent
+  items:
+    - { value: blue, label: Blue, class: swatch, style: "--swatch-bg: #1d4ed8", attributes: { aria-label: Blue accent } }
+    - { value: green, label: Green, class: swatch, style: "--swatch-bg: #15803d" }
+  design:
+    group: { class: swatches }
+```
+
+Binding checks the appearance after the choice list rules, choice by choice in list order and in
+each choice `class`, `style` and then `attributes`, every name before every value. It fails with
+`INVALID_FORM_INPUT` and an empty location; `{index}` is the zero-based position of the choice:
+
+| Declaration | Message |
+| --- | --- |
+| A `class` or `style` that is not a string | `Invalid items.{index}.{member} at {path}: expected a string` |
+| `attributes` that is not an object | `Invalid items.{index}.attributes at {path}: expected an object` |
+| A name outside the rule or a refused name | `Invalid items.{index}.attributes.{name} at {path}: expected a data-* or aria-* name that crudui does not write` |
+| A value that is not a string | `Invalid items.{index}.attributes.{name} at {path}: expected a string` |
 
 ## Composition and validation
 

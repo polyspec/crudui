@@ -12,10 +12,10 @@ import { declaredAttributes, resolveDesign, type ResolvedDesign } from './design
 import { makeContext } from './expr';
 import { FormInputError } from '@crudui/validator';
 import { UnsupportedFieldTypeError } from './errors';
-import { CHOICE_LIST_EXPECTED, choicePairs, isChoiceList } from './choice-list';
+import { CHOICE_LIST_EXPECTED, checkChoiceAppearance, choicePairs, isChoiceList } from './choice-list';
 import type { Translate } from './content';
 import { formatCount, type FormMessages } from './messages';
-import { evalWidget, type WidgetCtx, type WidgetModel } from './widget';
+import { evalWidget, WIDGET_LAYOUTS, type WidgetCtx, type WidgetModel } from './widget';
 import type { FormFieldTemplate } from './form';
 
 /** Behavior when a field `type` has no registered widget. */
@@ -306,10 +306,15 @@ function buildWidget(
   design: ResolvedDesign,
   state: BuildState
 ): WidgetModel | UnsupportedVM {
-  if (isChoiceList(spec.items) && !choicePairs(spec.items)) {
-    throw new FormInputError(`Invalid items at ${path}: expected ${CHOICE_LIST_EXPECTED}`);
-  }
   const type = String(spec.type ?? '');
+  if (isChoiceList(spec.items)) {
+    // Only the choices of a choice or multichoice field declare their appearance.
+    const appearance = WIDGET_LAYOUTS[type.toLowerCase()] === 'choices';
+    if (!choicePairs(spec.items, appearance)) {
+      throw new FormInputError(`Invalid items at ${path}: expected ${CHOICE_LIST_EXPECTED}`);
+    }
+    if (appearance) checkChoiceAppearance(spec.items, path);
+  }
   const ctx: WidgetCtx = {
     spec,
     value,
