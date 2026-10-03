@@ -1,7 +1,7 @@
 use crate::form_render::{render_model, NodeErrors, RenderModel};
 use serde_json::{json, Map, Value};
 
-use crate::util::{js_string, scalar, style};
+use crate::util::{join_class, js_string, scalar, style};
 use crate::{Form, FormResult};
 
 pub(crate) fn escape(value: &str) -> String {
@@ -276,7 +276,17 @@ fn widget(model: &Value) -> String {
                     if let Some(declared) = model["extra"]["option"].as_object() {
                         attrs.extend(declared.clone());
                     }
-                    let label = json!({"for":option["id"],"class":model["itemLabelClass"]});
+                    // A choice attribute named like a control attribute keeps that position.
+                    if let Some(declared) = option["attributes"].as_object() {
+                        attrs.extend(declared.clone());
+                    }
+                    let mut label = json!({"for":option["id"],"class":join_class(&[
+                        str_at(model, "itemLabelClass"),
+                        str_at(option, "className"),
+                    ])});
+                    if let Some(inline) = option.get("style") {
+                        label["style"] = inline.clone();
+                    }
                     let raw = has_events(&model["extra"]["input"]);
                     let input = if raw { raw_element } else { element };
                     let text = if raw { raw_text } else { escape };

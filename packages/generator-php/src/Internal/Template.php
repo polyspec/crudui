@@ -291,7 +291,7 @@ final class Template
     }
 
     /** Reject declared attributes at $key that are not an object of permitted names to strings; names first. */
-    private static function checkDeclaredAttributes(mixed $attributes, string $key, string $path): void
+    public static function checkDeclaredAttributes(mixed $attributes, string $key, string $path): void
     {
         if (!self::isObject($attributes)) {
             self::invalid($key, $path, 'an object');

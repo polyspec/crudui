@@ -245,6 +245,8 @@ ps_chars ps_format_page(const char *template, size_t page);
 
 ps_value *ps_design(const ps_value *design, const ps_value *data, ps_text path);
 bool ps_widget_supported(ps_text type);
+/* Whether a field type renders the choices layout (choice and multichoice and their aliases). */
+bool ps_widget_choices(ps_text type);
 /*
  * The declared control attributes of a field spec (design.attributes) or, with wrapper, its node
  * root attributes (design.wrapper.attributes); NULL when none is declared.
@@ -355,16 +357,17 @@ int ps_length_passes(ps_text rule, const ps_value *value, const ps_value *parame
 /*
  * Choice lists (choice_list.c, docs/spec/schema.md "Choice lists").
  * ps_is_choice_list: an array with an object element that has a value member.
- * ps_choice_list_valid: 1 when every element has exactly a value and a label, every value is a
- * string or a finite number and no two values have the same canonical text; 0 otherwise; -1 on
- * allocation failure.
+ * ps_choice_list_valid: 1 when every element has a value and a label and no other member, besides
+ * class, style and attributes with appearance (the choices of a choice or multichoice field), every
+ * value is a string or a finite number and no two values have the same canonical text; 0
+ * otherwise; -1 on allocation failure.
  * ps_choice_value_text: the canonical text of the value at index of a valid choice list; NULL
  * bytes on allocation failure.
  * ps_choice_label: the label of the pair of a valid choice list whose value text is key, or NULL;
  * failed reports an allocation failure.
  */
 bool ps_is_choice_list(const ps_value *items);
-int ps_choice_list_valid(const ps_value *items);
+int ps_choice_list_valid(const ps_value *items, bool appearance);
 ps_chars ps_choice_value_text(const ps_value *items, size_t index);
 const ps_value *ps_choice_label(const ps_value *items, ps_text key, bool *failed);
 
@@ -526,6 +529,9 @@ bool ps_known_keys(const ps_value *bucket, const char *name, const char *const *
                    size_t count, ps_text path, ps_value **error);
 bool ps_design_declaration_valid(const ps_value *design, ps_text path, bool field, size_t layouts,
                                  ps_value **error);
+/* Declared attributes at key: an object of data-* or aria-* names crudui does not write to strings;
+   every name is checked before any value. */
+bool ps_declared_attributes_valid(const ps_value *attributes, const char *key, ps_text path, ps_value **error);
 /* The pagination declaration rules of a list at path (list.c). */
 bool ps_pagination_declaration_valid(const ps_value *pagination, ps_text path, ps_value **error);
 /*

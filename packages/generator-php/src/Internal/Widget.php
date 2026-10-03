@@ -28,11 +28,18 @@ final class Widget
     /** Evaluate a supported widget model or report its unsupported field type. */
     public static function evaluate(stdClass $spec, mixed $value, string $path, stdClass $design, array $options, array $rows): stdClass
     {
-        if (ChoiceList::is($spec->items ?? null) && ChoiceList::pairs($spec->items) === null) {
-            throw new FormError('INVALID_FORM_INPUT', 'Invalid items at ' . $path . ': expected ' . ChoiceList::EXPECTED);
-        }
         $type = Value::string($spec->type ?? '');
         $kind = self::KINDS[strtolower($type)] ?? null;
+        if (ChoiceList::is($spec->items ?? null)) {
+            // Only the choices of a choice or multichoice field declare their appearance.
+            $appearance = $kind === 'choice' || $kind === 'multichoice';
+            if (ChoiceList::pairs($spec->items, $appearance) === null) {
+                throw new FormError('INVALID_FORM_INPUT', 'Invalid items at ' . $path . ': expected ' . ChoiceList::EXPECTED);
+            }
+            if ($appearance) {
+                ChoiceList::checkAppearance($spec->items, $path);
+            }
+        }
         if ($kind === null) {
             if (($options['unsupported'] ?? 'throw') === 'marker') {
                 return (object) ['unsupported' => true, 'type' => $type];
@@ -221,7 +228,7 @@ final class Widget
         $items = $this->spec->items ?? null;
         if (ChoiceList::is($items)) {
             $out = [];
-            foreach (ChoiceList::pairs($items) ?? [] as [$value, $label]) {
+            foreach (ChoiceList::pairs($items, true) ?? [] as [$value, $label]) {
                 $out[] = [$value, $label];
             }
             return $out;
@@ -276,12 +283,18 @@ final class Widget
     private function choices(string $kind): stdClass
     {
         $radio = $kind === 'choice';
-        $attrs = ['class' => $radio ? 'crudui-choices' : 'crudui-choices crudui-choices--multiple'];
+        // The choices element: its classes, then the class and style of design.group.
+        $attrs = ['class' => Value::classes($radio ? 'crudui-choices' : 'crudui-choices crudui-choices--multiple', $this->design->group->class), ...array_filter(['style' => Value::style($this->design->group->style)], static fn ($style) => $style !== null && $style !== '')];
         $labelClass = $this->main('crudui-choices__label');
         if ($this->dynamic()) {
             return $this->model($kind, 'choices', [...$attrs, ...(array) $this->source()], ['source' => $this->source(), 'options' => [], 'itemLabelClass' => $labelClass]);
         }
         $options = $this->options($radio);
+        // Each option has its id (assigned with the control id) before the appearance of its choice.
+        $appearances = ChoiceList::is($this->spec->items ?? null) ? ChoiceList::appearances($this->spec->items) : [];
+        foreach ($options as $index => $option) {
+            $options[$index] = (object) [...get_object_vars($option), 'id' => '', ...$appearances[$index] ?? []];
+        }
         if (!$radio) {
             $value = $this->value === Missing::Value ? $this->spec->default ?? null : $this->value;
             $selected = is_array($value) ? array_map(Value::string(...), $value) : (Value::truthy($value) ? [Value::string($value)] : []);

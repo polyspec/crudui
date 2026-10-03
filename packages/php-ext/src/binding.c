@@ -140,26 +140,50 @@ static ps_value *unsupported_widget(ps_text type)
     return widget;
 }
 
+/* Reject a class or style of a choice that is not a string and choice attributes that break the
+   declared attribute rules, choice by choice in list order. */
+static bool choice_appearance_valid(const ps_value *items, ps_text path, ps_value **error)
+{
+    static const char *const strings[] = {"class", "style"};
+    for (size_t i = 0; i < ps_size(items); ++i) {
+        const ps_value *choice = ps_at(items, i);
+        char key[64];
+        for (size_t j = 0; j < 2; ++j) {
+            const ps_value *member_value = ps_get(choice, strings[j]);
+            snprintf(key, sizeof(key), "items.%zu.%s", i, strings[j]);
+            if (member_value && member_value->kind != PS_STRING)
+                return ps_declaration_error(ps_fixed(key), path, "a string", error);
+        }
+        const ps_value *attributes = ps_get(choice, "attributes");
+        snprintf(key, sizeof(key), "items.%zu.attributes", i);
+        if (attributes && !ps_declared_attributes_valid(attributes, key, path, error)) return false;
+    }
+    return true;
+}
+
 static ps_value *build_widget(const ps_value *spec, const ps_value *value,
                               ps_text path, const ps_value *design,
                               const bind_context *context, const row_scope *scope,
                               ps_value **error)
 {
     const ps_value *items = ps_get(spec, "items");
+    ps_chars type = field_type(spec);
+    if (!type.bytes) return NULL;
     if (ps_is_choice_list(items)) {
-        int valid = ps_choice_list_valid(items);
-        if (valid < 0) return NULL;
+        /* Only the choices of a choice or multichoice field declare their appearance. */
+        bool appearance = ps_widget_choices(ps_view(type));
+        int valid = ps_choice_list_valid(items, appearance);
+        if (valid < 0) { free(type.bytes); return NULL; }
         if (!valid) {
             ps_chars message = PS_CONCAT(PS_TEXT("Invalid items at "), path,
                                          PS_TEXT(": expected value and label pairs with distinct string or number values"));
             *error = message.bytes
                 ? ps_error_text("form", "INVALID_FORM_INPUT", ps_view(message), PS_TEXT(""), NULL) : NULL;
-            free(message.bytes);
+            free(message.bytes); free(type.bytes);
             return NULL;
         }
+        if (appearance && !choice_appearance_valid(items, path, error)) { free(type.bytes); return NULL; }
     }
-    ps_chars type = field_type(spec);
-    if (!type.bytes) return NULL;
     if (!ps_widget_supported(ps_view(type))) {
         if (context->unsupported_marker) {
             ps_value *widget = unsupported_widget(ps_view(type));

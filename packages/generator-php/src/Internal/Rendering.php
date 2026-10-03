@@ -281,8 +281,13 @@ final class Rendering
                     if ($option->selected) {
                         $attrs['checked'] = '';
                     }
-                    $attrs = [...$attrs, ...(array) ($widget->extra->option ?? [])];
-                    $body .= self::input($attrs, $raw) . self::element('label', ['for' => $option->id, 'class' => $widget->itemLabelClass ?? ''], self::element('span', [], self::text($option->label, $raw), $raw), $raw);
+                    // A choice attribute named like a control attribute keeps the control attribute's position.
+                    $attrs = [...$attrs, ...(array) ($widget->extra->option ?? []), ...(array) ($option->attributes ?? [])];
+                    $label = ['for' => $option->id, 'class' => Value::classes($widget->itemLabelClass ?? '', $option->className ?? '')];
+                    if (isset($option->style)) {
+                        $label['style'] = $option->style;
+                    }
+                    $body .= self::input($attrs, $raw) . self::element('label', $label, self::element('span', [], self::text($option->label, $raw), $raw), $raw);
                 }
                 return self::element('div', self::controlAttrs($widget->attrs), $body);
             case 'file':

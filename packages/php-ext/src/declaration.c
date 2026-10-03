@@ -69,7 +69,7 @@ static bool declared_attribute_name(ps_text name)
 
 /* Reject declared attributes at key that are not an object of permitted names to strings; every
    name is checked before any value. */
-static bool declared_attributes_valid(const ps_value *attributes, const char *key, ps_text path, ps_value **error)
+bool ps_declared_attributes_valid(const ps_value *attributes, const char *key, ps_text path, ps_value **error)
 {
     if (attributes->kind != PS_OBJECT) return ps_declaration_error(ps_fixed(key), path, "an object", error);
     for (size_t i = 0; i < ps_size(attributes); ++i) {
@@ -118,7 +118,7 @@ bool ps_design_declaration_valid(const ps_value *design, ps_text path, bool fiel
             return ps_declaration_error(ps_fixed(styles[i][1]), path, "a string or a condition map", error);
     }
     const ps_value *attributes = ps_get(design, "attributes");
-    if (attributes && !declared_attributes_valid(attributes, "design.attributes", path, error)) return false;
+    if (attributes && !ps_declared_attributes_valid(attributes, "design.attributes", path, error)) return false;
     const ps_value *layout = layouts ? ps_get(design, "layout") : NULL;
     bool known_layout = false;
     for (size_t i = 0; layout && i < layouts; ++i) known_layout = known_layout || ps_is_string(layout, layout_names[i]);
@@ -140,7 +140,7 @@ bool ps_design_declaration_valid(const ps_value *design, ps_text path, bool fiel
                 return ps_declaration_error(ps_fixed(nodes[i][2 + j]), path, "a string or a condition map", error);
         }
         const ps_value *node_attributes = ps_get(node, "attributes");
-        if (node_attributes && !declared_attributes_valid(node_attributes, nodes[i][4], path, error)) return false;
+        if (node_attributes && !ps_declared_attributes_valid(node_attributes, nodes[i][4], path, error)) return false;
     }
     return true;
 }

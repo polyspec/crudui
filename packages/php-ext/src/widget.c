@@ -200,6 +200,12 @@ bool ps_widget_supported(ps_text type)
     return type.bytes && canonical_kind(type) != NULL;
 }
 
+bool ps_widget_choices(ps_text type)
+{
+    const char *kind = type.bytes ? canonical_kind(type) : NULL;
+    return kind && (!strcmp(kind, "choice") || !strcmp(kind, "multichoice"));
+}
+
 static ps_value *source_model(const ps_value *items)
 {
     if (!items || items->kind != PS_OBJECT || !ps_has(items, "model")) return NULL;
@@ -384,8 +390,12 @@ static ps_value *choices(const char *kind, const widget_context *context)
     bool multiple = !strcmp(kind, "multichoice");
     ps_value *source = source_model(member(context->spec, "items"));
     ps_value *attrs = ps_object_value();
-    bool ok = attrs && set_string(attrs, "class", multiple ?
-        "crudui-choices crudui-choices--multiple" : "crudui-choices");
+    /* The choices element: its classes, then the class and style of design.group. */
+    ps_chars choices_class = ps_join_classes(multiple ? PS_TEXT("crudui-choices crudui-choices--multiple")
+        : PS_TEXT("crudui-choices"), string_member(design_node(context, "group"), "class"), PS_TEXT(""));
+    bool ok = attrs && choices_class.bytes && set_text(attrs, "class", ps_view(choices_class)) &&
+        set_nonempty(attrs, "style", ps_style_string(string_member(design_node(context, "group"), "style")));
+    free(choices_class.bytes);
     if (ok) ok = extend_object(attrs, source);
     ps_value *options = ok ? option_models(context, multiple, !multiple) : NULL;
     ps_chars label_class = context_class(context, "crudui-choices__label");
@@ -789,6 +799,20 @@ bool ps_append_attributes(ps_value *object, const ps_value *attributes)
     return true;
 }
 
+/* The appearance of the choice at index of a checked choice list after the option id: the label
+   class and style and the input attributes, each only when declared. */
+static bool set_appearance(ps_value *option, const ps_value *items, size_t index)
+{
+    if (!ps_is_choice_list(items)) return true;
+    const ps_value *choice = ps_at(items, index);
+    ps_text class_name = string_member(choice, "class");
+    const ps_value *attributes = member(choice, "attributes");
+    return (!class_name.length || set_text(option, "className", class_name)) &&
+        set_nonempty(option, "style", ps_style_string(string_member(choice, "style"))) &&
+        (!attributes || attributes->kind != PS_OBJECT || !ps_size(attributes) ||
+         ps_set(option, "attributes", ps_value_clone(attributes)));
+}
+
 /* Add the declared control attributes after the attributes crudui writes on the control: attrs,
    extra.file of a file layout, or extra.option of a choices layout with option inputs. */
 static bool append_declared(ps_value *model, const ps_value *spec)
@@ -840,7 +864,8 @@ ps_value *ps_widget(const ps_value *spec, const ps_value *value, bool value_pres
                 ps_chars index = ps_decimal(i);
                 ps_chars option_id = index.bytes
                     ? PS_CONCAT(ps_view(id), PS_TEXT(":"), ps_view(index)) : index;
-                bool ok = option_id.bytes && set_text((ps_value *)ps_at(options, i), "id", ps_view(option_id));
+                bool ok = option_id.bytes && set_text((ps_value *)ps_at(options, i), "id", ps_view(option_id)) &&
+                    set_appearance((ps_value *)ps_at(options, i), member(spec, "items"), i);
                 free(index.bytes); free(option_id.bytes);
                 if (!ok) { ps_value_free(model); model = NULL; break; }
             }

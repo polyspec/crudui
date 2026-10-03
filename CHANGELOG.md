@@ -1,5 +1,19 @@
 # Changes
 
+## 2026-10-04 — Choice appearance
+
+- A choice in the choice list of a `choice` or `multichoice` field may declare `class` and `style`
+  for its label and `attributes` for its input, with the declared attribute rules, and the field's
+  `design.group` applies to the `crudui-choices` element. Binding rejects these members in the
+  choice lists of other fields and a class or style that is not a string or attributes that break
+  the rules with `INVALID_FORM_INPUT`.
+- An option model has `className`, `style` and `attributes` after `id`. Every renderer writes the
+  choice class after the label classes as single-spaced tokens, its style on the label and its
+  attributes after the field's control attributes; a name declared in both keeps the field's
+  position and takes the choice's value.
+- React, Vue, Svelte, the HTML renderer, PHP, the PHP extension, Go and Rust write the appearance in
+  the shared form cases `choice-appearance-*` and reject the nine written appearance cases.
+
 ## 2026-10-04 — Range fields
 
 - A `range` field renders a `crudui-widget crudui-widget--range` widget: the prepend affix, a range
