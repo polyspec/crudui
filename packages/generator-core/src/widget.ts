@@ -109,12 +109,13 @@ export interface WidgetModel {
     | 'file' // image/file/cover file-input cluster inside .crudui-widget
     | 'display' // dummy/dummy-input/image-viewer display-only
     | 'search' // select2 host: style?/script + .crudui-widget--search
+    | 'range' // prepend? + range input + output + append? inside .crudui-widget--range
     | 'button'; // action: script + hidden + button
   /** Main control element name ('input'|'select'|'textarea'|'div'). */
   tag?: 'input' | 'select' | 'textarea' | 'div';
   /** Main control attributes (lowercase HTML names). Empty for file/cover. */
   attrs: Attrs;
-  /** Textarea/dummy text content (already display-resolved). */
+  /** Textarea/dummy text content and range output text (already display-resolved). */
   text?: string;
   /** RAW html for a display widget (dummy/image-viewer) — passes unescaped. */
   rawHtml?: string;
@@ -349,6 +350,36 @@ function textLike(inputType: string): Evaluator {
     };
   };
 }
+
+/**
+ * A range input with the bounds and the step of its required `validate.range` and `validate.step`
+ * (docs/spec/form-markup.md, Range fields); compilation has checked them.
+ */
+const range: Evaluator = (ctx) => {
+  const displayValue = applyDefaultString(ctx.value, ctx.spec.default);
+  const validate = (ctx.spec.validate ?? {}) as { range?: [number, number]; step?: number };
+  const [minimum, maximum] = validate.range ?? [];
+  return {
+    kind: 'range',
+    layout: 'range',
+    tag: 'input',
+    attrs: {
+      type: 'range',
+      name: bracketName(ctx),
+      value: displayValue,
+      min: String(minimum),
+      max: String(maximum),
+      step: String(validate.step),
+      class: mainClass(ctx, 'valid-target crudui-input crudui-input--range'),
+      ...(mainStyle(ctx) ? { style: mainStyle(ctx)! } : {}),
+      ...behaviorAttrs(ctx),
+      ...dataAttrs(ctx),
+    },
+    text: displayValue,
+    prepend: prependAffix(ctx),
+    append: appendAffix(ctx),
+  };
+};
 
 const password: Evaluator = (ctx) => ({
   kind: 'password',
@@ -1043,6 +1074,7 @@ const REGISTRY: Record<string, Evaluator> = {
   integer: textLike('number'),
   float: textLike('number'),
   decimal: textLike('number'),
+  range,
   password,
   textarea,
   select,

@@ -1344,7 +1344,55 @@
           "description": "Composition operations applied after reference resolution.",
           "$ref": "#/definitions/Patch"
         }
-      }
+      },
+      "allOf": [
+        {
+          "description": "A range field declares literal bounds and a literal step (docs/spec/schema.md, Range fields); a field with $ref receives them by composition.",
+          "if": {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "const": "range"
+              }
+            },
+            "not": {
+              "required": [
+                "$ref"
+              ]
+            }
+          },
+          "then": {
+            "required": [
+              "validate"
+            ],
+            "properties": {
+              "validate": {
+                "type": "object",
+                "required": [
+                  "range",
+                  "step"
+                ],
+                "properties": {
+                  "range": {
+                    "type": "array",
+                    "minItems": 2,
+                    "maxItems": 2,
+                    "items": {
+                      "type": "number"
+                    }
+                  },
+                  "step": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
     },
     "CellFormat": {
       "description": "Cell display format as a type name or an object with format-specific settings.",

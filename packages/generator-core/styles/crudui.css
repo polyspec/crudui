@@ -217,6 +217,36 @@ textarea.crudui-input {
   border-radius: var(--crudui-radius);
 }
 
+/* A range widget: the slider, its current value and the unit, separated instead of joined. */
+.crudui-widget--range {
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.crudui-widget--range > :not(:first-child) {
+  margin-left: 0;
+}
+
+.crudui-widget--range > .crudui-widget__affix {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.crudui-input--range {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  accent-color: var(--crudui-accent);
+}
+
+.crudui-widget__output {
+  flex: none;
+  min-width: 3ch;
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
 /* Choices: each option is a visually hidden radio or checkbox and its label button. */
 .crudui-choices {
   position: relative;

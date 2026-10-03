@@ -29,3 +29,4 @@ export {
   compareCodePoints,
   isScalarText,
 } from './text/index';
+export { isMultiple, isNumberRange, isStep } from './values/index';

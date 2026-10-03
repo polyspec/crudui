@@ -205,7 +205,10 @@
             "evaluateExpressionValue",
             "getRuleNames",
             "isConditionExpression",
+            "isMultiple",
+            "isNumberRange",
             "isScalarText",
+            "isStep",
             "parseCondition",
             "parseJsonDocument",
             "scanForbiddenKeys"
