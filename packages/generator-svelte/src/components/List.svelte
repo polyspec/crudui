@@ -10,8 +10,8 @@
     cellStyle,
     sortMarker,
     sortDir,
-  } from './list';
-  import { patched, firstMarkup } from './raw';
+  } from './list.js';
+  import { patched, firstMarkup } from './raw.js';
   import Actions from './Actions.svelte';
 
   let {

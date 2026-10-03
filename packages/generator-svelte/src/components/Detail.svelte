@@ -4,7 +4,7 @@
 -->
 <script lang="ts">
   import type { DetailViewModel, DetailFieldVM, CellDisplay } from '@crudui/generator-core';
-  import { patched, firstMarkup } from './raw';
+  import { patched, firstMarkup } from './raw.js';
   import Actions from './Actions.svelte';
 
   let { vm }: { vm: DetailViewModel } = $props();

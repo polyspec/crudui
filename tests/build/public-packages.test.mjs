@@ -19,8 +19,9 @@ const packages = ['validator-ts', 'generator-core', 'generator-html', 'generator
 // (docs/spec/form-runtime.md#browser-validation).
 const moduleOnlyPackages = ['form-binding'].map(load);
 // ES module packages whose declarations TypeScript resolves through the top-level types condition:
-// generator-vue loads through its import and require exports.
-const moduleDeclarationPackages = ['generator-vue'].map(load);
+// generator-vue loads through its import and require exports, and generator-svelte through the
+// svelte export of the Svelte toolchain.
+const moduleDeclarationPackages = ['generator-vue', 'generator-svelte'].map(load);
 const contract = JSON.parse(readFileSync(resolve(root, 'contracts/features.json'), 'utf8'));
 
 test('ES module Vitest configurations declare their module format', () => {
@@ -134,6 +135,24 @@ test('ES module packages load through their import export only', async () => {
   }
 });
 
+/**
+ * A compiler host that resolves modules as TypeScript does, and a relative `.svelte` import to the
+ * `.svelte.d.ts` declaration that svelte-package writes beside it, as the Svelte toolchain does.
+ */
+function svelteCompilerHost(options) {
+  const host = ts.createCompilerHost(options);
+  const cache = ts.createModuleResolutionCache(root, (file) => file, options);
+  host.resolveModuleNameLiterals = (literals, containingFile, redirected, compilerOptions, containingSource) => literals.map((literal) => {
+    const declaration = resolve(dirname(containingFile), `${literal.text}.d.ts`);
+    if (/^\.\.?\//.test(literal.text) && literal.text.endsWith('.svelte') && ts.sys.fileExists(declaration)) {
+      return { resolvedModule: { resolvedFileName: declaration, extension: ts.Extension.Dts, isExternalLibraryImport: true } };
+    }
+    const mode = ts.getModeForUsageLocation(containingSource, literal, compilerOptions);
+    return ts.resolveModuleName(literal.text, containingFile, compilerOptions, host, cache, redirected, mode);
+  });
+  return host;
+}
+
 test('public type entries and their declaration graph compile in ESM and CommonJS', () => {
   const options = {
     noEmit: true,
@@ -176,7 +195,7 @@ test('public type entries and their declaration graph compile in ESM and CommonJ
     assert.equal(realpathSync(resolution.resolvedModule.resolvedFileName), declared);
     moduleFormats.set(declared, pkg.manifest.name);
   }
-  const program = ts.createProgram(fixtures, options);
+  const program = ts.createProgram(fixtures, options, svelteCompilerHost(options));
   const diagnostics = ts.getPreEmitDiagnostics(program);
   assert.equal(diagnostics.length, 0, ts.formatDiagnostics(diagnostics.slice(0, 12), {
     getCurrentDirectory: () => root,
