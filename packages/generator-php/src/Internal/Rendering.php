@@ -230,14 +230,24 @@ final class Rendering
             return self::element('textarea', $raw ? $widget->attrs : self::controlAttrs($widget->attrs), (!$raw && str_starts_with($text, "\n") ? "\n" : '') . self::text($text, $raw), $raw);
         }
         if (($widget->tag ?? '') === 'select') {
+            // The options of one group are written inside one optgroup element, in list order.
             $options = '';
+            $group = null;
+            $run = '';
             foreach ($widget->options ?? [] as $option) {
+                $index = $option->group->index ?? null;
+                if ($index !== ($group->index ?? null)) {
+                    $options .= $group === null ? $run : self::element('optgroup', ['label' => $group->label], $run, $raw);
+                    $group = $option->group ?? null;
+                    $run = '';
+                }
                 $attrs = ['value' => $option->value];
                 if ($option->selected) {
                     $attrs['selected'] = $widget->kind === 'search' ? 'selected' : '';
                 }
-                $options .= self::element('option', $attrs, self::text($option->label, $raw), $raw);
+                $run .= self::element('option', $attrs, self::text($option->label, $raw), $raw);
             }
+            $options .= $group === null ? $run : self::element('optgroup', ['label' => $group->label], $run, $raw);
             return self::element('select', $raw ? $widget->attrs : self::controlAttrs($widget->attrs), $options, $raw);
         }
         return self::input($widget->attrs, $raw);

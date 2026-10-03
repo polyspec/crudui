@@ -322,13 +322,16 @@ function sourceForFixtures() {
 }
 
 test('PHP extension engine compiles every shared form fixture', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  assert.equal(fixtures.length, 118,
+  assert.equal(fixtures.length, 185,
     'Review C template coverage when the shared fixture inventory changes');
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-compile-'));
   try {
     await compileAndRunEngineFixture({
       signal: t.signal, root, directory, source: sourceForFixtures(), name: 'compile-fixtures',
-      sources: ['value.c', 'number_text.c', 'engine_error.c', 'compose.c', 'declaration.c', 'template.c'],
+      sources: [
+        'value.c', 'number_text.c', 'engine_error.c', 'compose.c', 'declaration.c', 'template.c',
+        'canonical.c', 'rule_number.c', 'rule_length.c', 'whitespace.c', 'unicode_data.c', 'pattern_set.c',
+      ],
     });
   } finally {
     await rm(directory, { recursive: true, force: true });
@@ -603,9 +606,9 @@ function sourceForValidation() {
 }
 
 test('PHP extension engine validates all shared form, list and detail cases', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  assert.equal(validationCases.length, 287,
+  assert.equal(validationCases.length, 296,
     'Review extension validation coverage when the shared validation cases change');
-  assert.equal(validationCases.length + specCases.length + listCases.length + detailCases.length, 348,
+  assert.equal(validationCases.length + specCases.length + listCases.length + detailCases.length, 363,
     'Review extension validation coverage when the shared fixture inventory changes');
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-extension-validation-'));
   let output = '';
@@ -1462,8 +1465,11 @@ for (const sanitized of [false, true]) {
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 const fixtures = JSON.parse(await readFile(
   path.join(root, 'tests/fixtures/form-render/cases.json'), 'utf8'));
-const bindFixtures = fixtures.filter(
-  fixture => fixture.expectError?.code !== 'REF_FILE_NOT_FOUND');
+// A fixture that compilation rejects has no template to bind; the compilation test covers it.
+const bindFixtures = fixtures.filter(fixture => {
+  try { dispatch({ operation: 'compileForm', spec: fixture.spec, options: fixture.options ?? {} }); return true; }
+  catch { return false; }
+});
 
 function sourceForFixtures() {
   const builder = new EngineFixtureSource();
@@ -1526,9 +1532,9 @@ function sourceForFixtures() {
 }
 
 test('PHP extension engine binds every shared form fixture without changing inputs', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  assert.equal(fixtures.length, 118,
+  assert.equal(fixtures.length, 185,
     'Review C binding coverage when the shared fixture inventory changes');
-  assert.equal(bindFixtures.length, 117,
+  assert.equal(bindFixtures.length, 159,
     'Review C binding coverage when compilation error fixtures change');
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-bind-'));
   try {
@@ -1536,7 +1542,7 @@ test('PHP extension engine binds every shared form fixture without changing inpu
       signal: t.signal, root, directory, source: sourceForFixtures(), name: 'bind-fixtures',
       sources: [
         'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'expression.c',
-        'runtime.c', 'date.c', 'design.c', 'widget.c', 'messages.c', 'interface_messages.c', 'binding.c', 'choice_list.c', 'canonical.c',
+        'runtime.c', 'date.c', 'design.c', 'widget.c', 'messages.c', 'interface_messages.c', 'binding.c', 'declaration.c', 'choice_list.c', 'canonical.c',
       ],
     });
   } finally {
@@ -1551,7 +1557,7 @@ test('PHP extension engine binding has no undefined behavior findings', { timeou
       signal: t.signal, root, directory, source: sourceForFixtures(), name: 'bind-fixtures-sanitize',
       sources: [
         'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'expression.c',
-        'runtime.c', 'date.c', 'design.c', 'widget.c', 'messages.c', 'interface_messages.c', 'binding.c', 'choice_list.c', 'canonical.c',
+        'runtime.c', 'date.c', 'design.c', 'widget.c', 'messages.c', 'interface_messages.c', 'binding.c', 'declaration.c', 'choice_list.c', 'canonical.c',
       ],
       compilerFlags: ['-fsanitize=undefined', '-fno-omit-frame-pointer'],
       runEnvironment: {
@@ -1577,6 +1583,24 @@ function sourceForWidgetConstructionFailure() {
     'bool ps_widget_supported(ps_text type)',
     '{',
     '  return ps_text_is(type, "text");',
+    '}',
+    '',
+    'bool ps_widget_choices(ps_text type)',
+    '{',
+    '  (void)type;',
+    '  return false;',
+    '}',
+    '',
+    'bool ps_widget_select(ps_text type)',
+    '{',
+    '  (void)type;',
+    '  return false;',
+    '}',
+    '',
+    'const ps_value *ps_declared_attributes(const ps_value *spec, bool wrapper)',
+    '{',
+    '  (void)spec; (void)wrapper;',
+    '  return NULL;',
     '}',
     '',
     'ps_value *ps_widget(const ps_value *spec, const ps_value *value, bool value_present,',
@@ -1608,7 +1632,7 @@ test('PHP extension engine reports supported widget construction failures as int
       signal: t.signal, root, directory, source: sourceForWidgetConstructionFailure(), name: 'widget-failure',
       sources: [
         'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'expression.c',
-        'runtime.c', 'date.c', 'design.c', 'messages.c', 'interface_messages.c', 'binding.c', 'choice_list.c', 'canonical.c',
+        'runtime.c', 'date.c', 'design.c', 'messages.c', 'interface_messages.c', 'binding.c', 'declaration.c', 'choice_list.c', 'canonical.c',
       ],
     });
   } finally {
@@ -1691,9 +1715,9 @@ function sourceForFixtures() {
 }
 
 test('PHP extension engine renders successful shared form fixtures and edge cases as exact HTML', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  assert.equal(fixtures.length, 118,
+  assert.equal(fixtures.length, 185,
     'Review C rendering coverage when the shared fixture inventory changes');
-  assert.equal(renderFixtures.length, 111,
+  assert.equal(renderFixtures.length, 134,
     'Review C rendering coverage when successful fixtures change');
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-render-'));
   try {
@@ -1701,7 +1725,7 @@ test('PHP extension engine renders successful shared form fixtures and edge case
       signal: t.signal, root, directory, source: sourceForFixtures(), name: 'render-fixtures',
       sources: [
         'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'expression.c',
-        'runtime.c', 'date.c', 'design.c', 'widget.c', 'messages.c', 'interface_messages.c', 'binding.c', 'html.c', 'render.c', 'choice_list.c', 'canonical.c',
+        'runtime.c', 'date.c', 'design.c', 'widget.c', 'messages.c', 'interface_messages.c', 'binding.c', 'declaration.c', 'html.c', 'render.c', 'choice_list.c', 'canonical.c',
       ],
     });
   } finally {
@@ -1714,7 +1738,7 @@ test('PHP extension engine form rendering does not depend on a comma decimal loc
     signal: t.signal, root, prefix: 'crudui-c-render-locale-', name: 'render-fixtures-locale', source: sourceForFixtures(),
     sources: [
       'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'expression.c',
-      'runtime.c', 'date.c', 'design.c', 'widget.c', 'messages.c', 'interface_messages.c', 'binding.c', 'html.c', 'render.c', 'choice_list.c', 'canonical.c',
+      'runtime.c', 'date.c', 'design.c', 'widget.c', 'messages.c', 'interface_messages.c', 'binding.c', 'declaration.c', 'html.c', 'render.c', 'choice_list.c', 'canonical.c',
     ],
   });
 });
@@ -1726,7 +1750,7 @@ test('PHP extension engine form rendering has no undefined behavior findings', {
       signal: t.signal, root, directory, source: sourceForFixtures(), name: 'render-fixtures-sanitize',
       sources: [
         'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'expression.c',
-        'runtime.c', 'date.c', 'design.c', 'widget.c', 'messages.c', 'interface_messages.c', 'binding.c', 'html.c', 'render.c', 'choice_list.c', 'canonical.c',
+        'runtime.c', 'date.c', 'design.c', 'widget.c', 'messages.c', 'interface_messages.c', 'binding.c', 'declaration.c', 'html.c', 'render.c', 'choice_list.c', 'canonical.c',
       ],
       compilerFlags: ['-fsanitize=undefined', '-fno-omit-frame-pointer'],
       runEnvironment: {
@@ -1813,7 +1837,7 @@ const sources = [
 ];
 
 test('PHP extension engine renders the complete list target as exact HTML', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  assert.equal(fixtures.length, 156,
+  assert.equal(fixtures.length, 157,
     'Review C list coverage when the shared fixture inventory changes');
   assert.equal(numberCases.length, 17,
     'Review C number coverage when the native number inventory changes');
@@ -2177,6 +2201,7 @@ test('PHP extension engine updates form state atomically', { timeout: ENGINE_TES
         'value.c', 'number_text.c', 'value_path.c', 'engine_error.c', 'compose.c', 'declaration.c', 'template.c',
         'expression.c', 'runtime.c', 'date.c', 'design.c', 'widget.c',
         'messages.c', 'interface_messages.c', 'binding.c', 'html.c', 'render.c', 'key.c', 'form.c', 'choice_list.c', 'canonical.c',
+        'rule_number.c', 'rule_length.c', 'whitespace.c', 'unicode_data.c', 'pattern_set.c',
       ],
     });
   } finally {
@@ -2193,11 +2218,14 @@ test('PHP extension engine compiles composed form templates', { timeout: ENGINE_
   try {
     const executable = path.join(directory, 'template-test');
     const extensionSource = file => path.join(root, 'packages/php-ext/src', file);
-    const compile = await runStep('template-test: compiling 5 sources', process.env.CC ?? 'cc', [
+    const compile = await runStep('template-test: compiling 12 sources', process.env.CC ?? 'cc', [
       '-std=c11', '-Wall', '-Wextra', '-Werror', '-pedantic',
       '-I', path.join(root, 'packages/php-ext/src'),
       extensionSource('value.c'), extensionSource('engine_error.c'),
       extensionSource('compose.c'), extensionSource('declaration.c'), extensionSource('template.c'),
+      extensionSource('number_text.c'), extensionSource('canonical.c'), extensionSource('rule_number.c'),
+      extensionSource('rule_length.c'), extensionSource('whitespace.c'), extensionSource('unicode_data.c'),
+      extensionSource('pattern_set.c'),
       path.join(root, 'packages/php-ext/tests/template.c'), '-o', executable,
     ], { signal: t.signal });
     assert.equal(compile.signal, null);

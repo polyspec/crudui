@@ -366,9 +366,11 @@ impl Binding<'_> {
     ) -> FormResult<Value> {
         let field_type = spec["type"].as_str().unwrap_or("").to_lowercase();
         if is_choice_list(&spec["items"]) {
-            // Only the choices of a choice or multichoice field declare their appearance.
+            // Only the choices of a choice or multichoice field declare their appearance, and
+            // only the choice list of a select field has groups.
             let appearance = matches!(widget_kind(&field_type), Some("choice" | "multichoice"));
-            if choice_pairs(&spec["items"], appearance).is_none() {
+            let groups = widget_kind(&field_type) == Some("select");
+            if choice_pairs(&spec["items"], appearance, groups).is_none() {
                 return Err(FormError::input(format!(
                     "Invalid items at {path}: expected {CHOICE_LIST_EXPECTED}"
                 )));

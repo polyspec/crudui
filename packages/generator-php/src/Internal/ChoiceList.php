@@ -13,14 +13,14 @@ final class ChoiceList
     /** The expected-value text of a choice list declaration failure. */
     public const EXPECTED = 'value and label pairs with distinct string or number values';
 
-    /** Whether `items` is a choice list: an array with an object element that has a `value` member. */
+    /** Whether `items` is a choice list: an array with an object element that has a `value` or a `choices` member. */
     public static function is(mixed $items): bool
     {
         if (!is_array($items)) {
             return false;
         }
         foreach ($items as $item) {
-            if ($item instanceof stdClass && property_exists($item, 'value')) {
+            if ($item instanceof stdClass && (property_exists($item, 'value') || property_exists($item, 'choices'))) {
                 return true;
             }
         }
@@ -30,39 +30,86 @@ final class ChoiceList
     /** The members a choice of a choice or multichoice field may declare besides value and label. */
     private const APPEARANCE_MEMBERS = ['class', 'style', 'attributes'];
 
+    /** Whether a choice list element is a group: an object that has a `choices` member. */
+    private static function isGroup(mixed $item): bool
+    {
+        return $item instanceof stdClass && property_exists($item, 'choices');
+    }
+
     /**
-     * The value text and label pairs in list order, or null when an element has another member
-     * (an appearance member is accepted with $appearance), lacks value or label, has a value that
-     * is not a string or a finite number, or repeats the canonical text of an earlier value.
+     * The value text and label pairs in list order, the choices of each group in place of the
+     * group, or null when an element has another member (an appearance member is accepted with
+     * $appearance), lacks value or label, has a value that is not a string or a finite number,
+     * or repeats the canonical text of an earlier value, or when the list has a group without
+     * $groups or a group that is not a label and a non-empty list of choices without appearance
+     * members.
      *
      * @param list<mixed> $items
      * @return list<array{0: string, 1: mixed}>|null
      */
-    public static function pairs(array $items, bool $appearance = false): ?array
+    public static function pairs(array $items, bool $appearance = false, bool $groups = false): ?array
     {
         $pairs = [];
         $seen = [];
-        foreach ($items as $item) {
+        $add = static function (mixed $item, array $members) use (&$pairs, &$seen): bool {
             if (!$item instanceof stdClass || !property_exists($item, 'value') || !property_exists($item, 'label')) {
-                return null;
+                return false;
             }
             foreach (array_keys(get_object_vars($item)) as $member) {
-                if ($member !== 'value' && $member !== 'label' && !($appearance && in_array($member, self::APPEARANCE_MEMBERS, true))) {
-                    return null;
+                if ($member !== 'value' && $member !== 'label' && !in_array($member, $members, true)) {
+                    return false;
                 }
             }
             $value = $item->value;
             if (!is_string($value) && !is_int($value) && !(is_float($value) && is_finite($value))) {
-                return null;
+                return false;
             }
             $text = Value::scalar($value);
             if (isset($seen[$text])) {
-                return null;
+                return false;
             }
             $seen[$text] = true;
             $pairs[] = [$text, $item->label];
+            return true;
+        };
+        foreach ($items as $item) {
+            if ($groups && self::isGroup($item)) {
+                $choices = $item->choices;
+                if (count(get_object_vars($item)) !== 2 || !property_exists($item, 'label') || !is_array($choices) || !array_is_list($choices) || $choices === []) {
+                    return null;
+                }
+                foreach ($choices as $choice) {
+                    if (!$add($choice, [])) {
+                        return null;
+                    }
+                }
+            } elseif (!$add($item, $appearance ? self::APPEARANCE_MEMBERS : [])) {
+                return null;
+            }
         }
         return $pairs;
+    }
+
+    /**
+     * The group of each pair of a checked choice list in the order of pairs(): the index of the
+     * group in the list and its declared label, or null for a choice outside groups.
+     *
+     * @param list<mixed> $items
+     * @return list<array{index: int, label: mixed}|null>
+     */
+    public static function groups(array $items): array
+    {
+        $out = [];
+        foreach ($items as $index => $item) {
+            if (self::isGroup($item)) {
+                foreach ($item->choices as $_choice) {
+                    $out[] = ['index' => $index, 'label' => $item->label];
+                }
+            } else {
+                $out[] = null;
+            }
+        }
+        return $out;
     }
 
     /**

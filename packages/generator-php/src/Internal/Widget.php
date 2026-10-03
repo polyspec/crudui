@@ -33,7 +33,8 @@ final class Widget
         if (ChoiceList::is($spec->items ?? null)) {
             // Only the choices of a choice or multichoice field declare their appearance.
             $appearance = $kind === 'choice' || $kind === 'multichoice';
-            if (ChoiceList::pairs($spec->items, $appearance) === null) {
+            // Only the choice list of a select field has groups.
+            if (ChoiceList::pairs($spec->items, $appearance, $kind === 'select') === null) {
                 throw new FormError('INVALID_FORM_INPUT', 'Invalid items at ' . $path . ': expected ' . ChoiceList::EXPECTED);
             }
             if ($appearance) {
@@ -228,7 +229,7 @@ final class Widget
         $items = $this->spec->items ?? null;
         if (ChoiceList::is($items)) {
             $out = [];
-            foreach (ChoiceList::pairs($items, true) ?? [] as [$value, $label]) {
+            foreach (ChoiceList::pairs($items, true, true) ?? [] as [$value, $label]) {
                 $out[] = [$value, $label];
             }
             return $out;
@@ -258,6 +259,13 @@ final class Widget
         $dynamic = $this->dynamic();
         $source = $dynamic ? $this->source() : null;
         $options = $this->options();
+        if ($kind === 'select' && ChoiceList::is($this->spec->items ?? null)) {
+            foreach (ChoiceList::groups($this->spec->items) as $index => $group) {
+                if ($group !== null) {
+                    $options[$index]->group = (object) ['index' => $group['index'], 'label' => $this->t($group['label']) ?: Value::scalar($group['label'])];
+                }
+            }
+        }
         if (!$options) {
             $options = [(object) ['value' => '', 'label' => 'select', 'selected' => false, 'isDefault' => false]];
         }

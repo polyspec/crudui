@@ -247,6 +247,8 @@ ps_value *ps_design(const ps_value *design, const ps_value *data, ps_text path);
 bool ps_widget_supported(ps_text type);
 /* Whether a field type renders the choices layout (choice and multichoice and their aliases). */
 bool ps_widget_choices(ps_text type);
+/* Whether a field type renders a select (select, dropdown and selectbox). */
+bool ps_widget_select(ps_text type);
 /*
  * The declared control attributes of a field spec (design.attributes) or, with wrapper, its node
  * root attributes (design.wrapper.attributes); NULL when none is declared.
@@ -355,20 +357,30 @@ ps_parameter_problem ps_length_parameter(ps_text rule, const ps_value *parameter
 int ps_length_passes(ps_text rule, const ps_value *value, const ps_value *parameter);
 
 /*
- * Choice lists (choice_list.c, docs/spec/schema.md "Choice lists").
- * ps_is_choice_list: an array with an object element that has a value member.
- * ps_choice_list_valid: 1 when every element has a value and a label and no other member, besides
+ * Choice lists (choice_list.c, docs/spec/schema.md "Choice lists", "Choice groups").
+ * ps_is_choice_list: an array with an object element that has a value or a choices member.
+ * ps_choice_next: the next choice of a choice list in written order, the choices of each group in
+ * place of the group, or NULL at the end; group, when given, receives the position of the group in
+ * the list, or SIZE_MAX for a choice outside groups. A cursor starts as {items, 0, 0}.
+ * ps_choice_list_valid: 1 when every choice has a value and a label and no other member, besides
  * class, style and attributes with appearance (the choices of a choice or multichoice field), every
- * value is a string or a finite number and no two values have the same canonical text; 0
- * otherwise; -1 on allocation failure.
- * ps_choice_value_text: the canonical text of the value at index of a valid choice list; NULL
- * bytes on allocation failure.
- * ps_choice_label: the label of the pair of a valid choice list whose value text is key, or NULL;
+ * value is a string or a finite number, no two values have the same canonical text and, with
+ * groups (the choice list of a select field or an in parameter), every group has exactly a label
+ * and a non-empty list of such choices without appearance; 0 otherwise; -1 on allocation failure.
+ * ps_choice_value_text: the canonical text of the value of a valid choice; NULL bytes on
+ * allocation failure.
+ * ps_choice_label: the label of the choice of a valid choice list whose value text is key, or NULL;
  * failed reports an allocation failure.
  */
+typedef struct {
+    const ps_value *items;
+    size_t item;
+    size_t inner;
+} ps_choice_cursor;
 bool ps_is_choice_list(const ps_value *items);
-int ps_choice_list_valid(const ps_value *items, bool appearance);
-ps_chars ps_choice_value_text(const ps_value *items, size_t index);
+const ps_value *ps_choice_next(ps_choice_cursor *cursor, size_t *group);
+int ps_choice_list_valid(const ps_value *items, bool appearance, bool groups);
+ps_chars ps_choice_value_text(const ps_value *choice);
 const ps_value *ps_choice_label(const ps_value *items, ps_text key, bool *failed);
 
 /* Membership (rule_in.c). ps_in_passes: 1, 0, or -1 on allocation failure; the parameter is valid. */

@@ -1,5 +1,21 @@
 # 변경 기록
 
+## 2026-10-04 — 선택지 그룹
+
+- `select`, `dropdown`, `selectbox` 필드의 선택 목록은 레이블과 하나 이상의 값·레이블 쌍으로 이루어진
+  그룹을 일반 선택지와 함께 쓴 순서대로 담을 수 있습니다. 요소에 `value`나 `choices` 멤버가 있으면 선택
+  목록입니다. 값은 목록 전체에서 서로 다르며, 바인딩은 빈 그룹, 다른 멤버, 중첩 그룹, 모양 멤버, 다른
+  필드의 그룹을 거부하고, `choice-label` 형식은 그룹을 거부합니다.
+- 그룹 안의 옵션 모델은 `items`에서의 그룹 위치와 번역한 레이블을 담은 `group` 멤버를 가집니다. 모든
+  렌더러는 그룹의 선택지를 `optgroup` 요소 안에 쓰며, behavior 속성이 있는 select의 raw 경로에서도
+  같습니다.
+- TypeScript, PHP, PHP extension, Go, Rust 검증기의 `in` 규칙은 그룹 안의 값을 멤버로 받고 잘못된
+  그룹을 `INVALID_RULE_PARAMETER`로 거부합니다.
+- React, Vue, Svelte, HTML 렌더러, PHP, PHP extension, Go, Rust는 공유 폼 case `choice-groups-*`와 목록
+  case `reject-format-items-choice-group`을 통과하고, 검증기 다섯 개는 공유 검증 case
+  `value-in-choice-groups*`를 통과합니다. PHP extension engine test는 현재 고정 데이터 수를 세고 engine
+  프로그램이 쓰는 단위를 링크합니다.
+
 ## 2026-10-04 — 선택지 모양
 
 - `choice`나 `multichoice` 필드의 선택 목록에 있는 선택지는 선언 속성 규칙에 따라 레이블의 `class`와

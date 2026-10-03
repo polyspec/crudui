@@ -141,12 +141,25 @@ func controlHTML(w *Object, raw bool, selection string) string {
 	switch tag {
 	case "select":
 		body := ""
+		// The options of a run of consecutive options of one group are written in its optgroup.
+		var group *Object
 		for _, o := range objectList(read(w, "options")) {
+			g := object(read(o, "group"))
+			if group != nil && (g == nil || read(g, "index") != read(group, "index")) {
+				body += "</optgroup>"
+			}
+			if g != nil && (group == nil || read(g, "index") != read(group, "index")) {
+				body += "<optgroup" + attrs(NewObject("label", stringAt(g, "label")), raw, false) + ">"
+			}
+			group = g
 			at := NewObject("value", stringAt(o, "value"))
 			if truthy(read(o, "selected")) {
 				at.Set("selected", selection)
 			}
 			body += "<option" + attrs(at, raw, false) + ">" + textContent(stringAt(o, "label"), raw) + "</option>"
+		}
+		if group != nil {
+			body += "</optgroup>"
 		}
 		return "<select" + attrs(a, raw, false) + ">" + body + "</select>"
 	case "textarea":

@@ -166,18 +166,34 @@ fn control(widget: &Value, search: bool) -> String {
     let text = if raw { raw_text } else { escape };
     let render = if raw { raw_element } else { element };
     let content = if tag == "select" {
-        widget["options"]
-            .as_array()
-            .into_iter()
-            .flatten()
-            .map(|option| {
-                let mut attrs = json!({"value":option["value"]});
-                if option["selected"] == true {
-                    attrs["selected"] = if search { "selected" } else { "" }.into();
-                }
-                render("option", &attrs, &text(str_at(option, "label")))
-            })
-            .collect()
+        let option = |option: &Value| {
+            let mut attrs = json!({"value":option["value"]});
+            if option["selected"] == true {
+                attrs["selected"] = if search { "selected" } else { "" }.into();
+            }
+            render("option", &attrs, &text(str_at(option, "label")))
+        };
+        // The options of one group run inside one optgroup element.
+        let mut content = String::new();
+        let options = widget["options"].as_array().map_or(&[][..], Vec::as_slice);
+        let mut start = 0;
+        while start < options.len() {
+            let group = options[start].get("group");
+            let end = start
+                + options[start..]
+                    .iter()
+                    .take_while(|o| {
+                        o.get("group").map(|g| &g["index"]) == group.map(|g| &g["index"])
+                    })
+                    .count();
+            let run: String = options[start..end].iter().map(option).collect();
+            content += &match group {
+                Some(group) => render("optgroup", &json!({"label":group["label"]}), &run),
+                None => run,
+            };
+            start = end;
+        }
+        content
     } else {
         text(str_at(widget, "text"))
     };

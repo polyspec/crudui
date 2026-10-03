@@ -96,7 +96,7 @@ static bool format_valid(const ps_value *format, ps_text path, ps_value **error)
             if (value->kind != PS_ARRAY && value->kind != PS_OBJECT)
                 return ps_declaration_error(PS_TEXT("format.items"), path, "an array or an object", error);
             if (ps_is_choice_list(value)) {
-                int valid = ps_choice_list_valid(value, false);
+                int valid = ps_choice_list_valid(value, false, false);
                 if (valid < 0) return false;
                 if (!valid)
                     return ps_declaration_error(PS_TEXT("format.items"), path,
