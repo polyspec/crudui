@@ -3,7 +3,7 @@ package validate
 // Membership rule in (docs/spec/validation-rules.md, Values).
 //
 // Members come from a list (each element as is), a choice list (the value of each
-// element), a comma-separated string (split at U+002C, each item trimmed) or a map
+// choice, inside groups included), a comma-separated string (split at U+002C, each item trimmed) or a map
 // (its keys); list elements and map keys are read as written. A choice list is
 // checked by the choice list rules before its values are checked as members. A value matches a member when
 // their canonical texts are the same code points, or when both are numeric with
@@ -150,11 +150,14 @@ func choiceObject(item any) (map[string]any, bool) {
 }
 
 // isChoiceList reports whether a list is a choice list (docs/spec/schema.md, Choice
-// lists): one of its elements is an object that has a value member.
+// lists and Choice groups): one of its elements is an object that has a value or a
+// choices member.
 func isChoiceList(list []any) bool {
 	for _, item := range list {
 		if o, ok := choiceObject(item); ok {
-			if _, has := o["value"]; has {
+			_, hasValue := o["value"]
+			_, hasChoices := o["choices"]
+			if hasValue || hasChoices {
 				return true
 			}
 		}
@@ -162,35 +165,58 @@ func isChoiceList(list []any) bool {
 	return false
 }
 
-// choiceValues returns the values of a choice list in order, or false when an element
-// has another member, lacks value or label, has a value that is not a string or a
-// finite number, or repeats the canonical text of an earlier value.
+// choiceValues returns the values of a choice list in written order, the values of each
+// group in place of the group, or false when a choice has another member, lacks value or
+// label, has a value that is not a string or a finite number, or repeats the canonical
+// text of an earlier value, or when a group has another member, lacks label or has no
+// list of one or more choices.
 func choiceValues(list []any) ([]any, bool) {
 	values := make([]any, 0, len(list))
 	seen := map[string]bool{}
-	for _, item := range list {
+	add := func(item any) bool {
 		o, ok := choiceObject(item)
 		if !ok || len(o) != 2 {
-			return nil, false
+			return false
 		}
 		value, hasValue := o["value"]
 		if _, hasLabel := o["label"]; !hasValue || !hasLabel {
-			return nil, false
+			return false
 		}
 		if _, isString := value.(string); !isString {
 			if _, isBool := value.(bool); isBool {
-				return nil, false
+				return false
 			}
 			if _, finite := finiteNumber(value); !finite {
-				return nil, false
+				return false
 			}
 		}
 		text, _ := canonicalText(value)
 		if seen[text] {
-			return nil, false
+			return false
 		}
 		seen[text] = true
 		values = append(values, value)
+		return true
+	}
+	for _, item := range list {
+		if o, ok := choiceObject(item); ok {
+			if choices, isGroup := o["choices"]; isGroup {
+				_, hasLabel := o["label"]
+				group, isList := choices.([]any)
+				if len(o) != 2 || !hasLabel || !isList || len(group) == 0 {
+					return nil, false
+				}
+				for _, choice := range group {
+					if !add(choice) {
+						return nil, false
+					}
+				}
+				continue
+			}
+		}
+		if !add(item) {
+			return nil, false
+		}
 	}
 	return values, true
 }

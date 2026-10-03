@@ -200,6 +200,12 @@ bool ps_widget_supported(ps_text type)
     return type.bytes && canonical_kind(type) != NULL;
 }
 
+bool ps_widget_select(ps_text type)
+{
+    const char *kind = type.bytes ? canonical_kind(type) : NULL;
+    return kind && !strcmp(kind, "select");
+}
+
 bool ps_widget_choices(ps_text type)
 {
     const char *kind = type.bytes ? canonical_kind(type) : NULL;
@@ -253,6 +259,20 @@ static bool selected_value(const widget_context *context, ps_text key, bool mult
     return same_candidate(multiple ? ps_js_string(value) : context_value(context), key, failed);
 }
 
+/* The group of a select option: its position in the choice list and its translated label. */
+static bool set_group(ps_value *option, const ps_value *item, size_t index, ps_text language)
+{
+    const ps_value *label_value = member(item, "label");
+    ps_chars label = ps_translate(label_value, language);
+    if (label.bytes && !label.length) { free(label.bytes); label = ps_scalar_string(label_value); }
+    ps_value *group = ps_object_value();
+    bool ok = label.bytes && group && ps_set(group, "index", ps_int_value((int64_t)index)) &&
+        set_text(group, "label", ps_view(label));
+    free(label.bytes);
+    if (!ok) { ps_value_free(group); return false; }
+    return ps_set(option, "group", group);
+}
+
 static ps_value *option_models(const widget_context *context, bool multiple, bool choice)
 {
     const ps_value *items = member(context->spec, "items");
@@ -265,12 +285,16 @@ static ps_value *option_models(const widget_context *context, bool multiple, boo
     ps_chars default_text = has_default ? ps_scalar_string(default_value) : (ps_chars){NULL, 0};
     if (has_default && !default_text.bytes) { ps_value_free(options); return NULL; }
     bool choices = ps_is_choice_list(items);
-    for (size_t i = 0; i < ps_size(items); ++i) {
+    /* A choice list gives its choices in written order, the choices of each group in place. */
+    ps_choice_cursor cursor = {items, 0, 0};
+    const ps_value *choice_item = NULL;
+    size_t group = SIZE_MAX;
+    for (size_t i = 0; choices ? (choice_item = ps_choice_next(&cursor, &group)) != NULL : i < ps_size(items); ++i) {
         ps_chars index = {NULL, 0};
-        if (choices) index = ps_choice_value_text(items, i);
+        if (choices) index = ps_choice_value_text(choice_item);
         else if (items->kind != PS_OBJECT) index = ps_decimal(i);
         ps_text key = items->kind == PS_OBJECT ? ps_key(items, i) : ps_view(index);
-        const ps_value *entry = choices ? ps_get(ps_at(items, i), "label") : ps_at(items, i);
+        const ps_value *entry = choices ? ps_get(choice_item, "label") : ps_at(items, i);
         ps_chars label = ps_translate(entry, context->language);
         if (label.bytes && !label.length) { free(label.bytes); label = ps_scalar_string(entry); }
         bool failed = false;
@@ -282,6 +306,7 @@ static ps_value *option_models(const widget_context *context, bool multiple, boo
             ps_set(option, "selected", ps_bool_value(selected)) &&
             ps_set(option, "isDefault", ps_bool_value(choice && default_text.bytes &&
                                                       ps_text_equal(ps_view(default_text), key))) &&
+            (group == SIZE_MAX || set_group(option, ps_at(items, group), group, context->language)) &&
             ps_append(options, option);
         free(label.bytes); free(index.bytes);
         if (!ok) { ps_value_free(option); ps_value_free(options); free(default_text.bytes); return NULL; }

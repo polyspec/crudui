@@ -97,8 +97,9 @@ func (c widgetContext) options(selected []string, defaults *string) []*Object {
 	}
 	entries := []choicePair{}
 	if isChoiceList(items) {
-		// Binding has checked the list and accepted appearance members only for choices.
-		entries, _ = choicePairs(items, true)
+		// Binding has checked the list and accepted appearance members only for choices and groups
+		// only for a select field.
+		entries, _ = choicePairs(items, true, true)
 	} else {
 		for _, k := range keys(items) {
 			entries = append(entries, choicePair{k, item(items, k)})
@@ -131,12 +132,18 @@ func widget(kind, layout, tag string, attrs *Object) *Object {
 
 var widgetAliases = map[string]string{"string": "text", "integer": "number", "float": "number", "decimal": "number", "dropdown": "select", "selectbox": "select", "radio": "choice", "checkboxes": "multichoice", "checkcontainer": "multichoice", "datetime-local": "datetime", "html": "dummy", "static": "dummy", "cover-simple": "cover", "autocomplete": "search", "wysiwyg": "tinymce", "action": "button"}
 
-// choicesType reports whether a field type, or its alias, renders the choices layout.
-func choicesType(typ string) bool {
+// canonicalType returns the lowercase widget type of a field type, an alias resolved.
+func canonicalType(typ string) string {
 	kind := strings.ToLower(typ)
 	if canonical, ok := widgetAliases[kind]; ok {
 		kind = canonical
 	}
+	return kind
+}
+
+// choicesType reports whether a field type, or its alias, renders the choices layout.
+func choicesType(typ string) bool {
+	kind := canonicalType(typ)
 	return kind == "choice" || kind == "multichoice"
 }
 
@@ -219,6 +226,17 @@ func evalWidget(c widgetContext) *Object {
 		options := c.options([]string{c.display()}, nil)
 		if len(options) == 0 {
 			options = []*Object{NewObject("value", "", "label", "select", "selected", false, "isDefault", false)}
+		} else if isChoiceList(items) {
+			// An option inside a choice list group has the group's position and translated label.
+			for i, group := range choiceGroups(items) {
+				if group != nil {
+					label := c.translate(group.label)
+					if label == "" {
+						label = scalar(group.label)
+					}
+					options[i].Set("group", NewObject("index", group.index, "label", label))
+				}
+			}
 		}
 		w.Set("options", options)
 	case "choice", "multichoice":

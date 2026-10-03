@@ -168,9 +168,10 @@ func multipleSettings(spec *Object) *multiple {
 }
 func makeWidget(spec *Object, value any, path string, design *Object, s bindState) (*Object, error) {
 	if items := read(spec, "items"); isChoiceList(items) {
-		// Only the choices of a choice or multichoice field declare their appearance.
+		// Only the choices of a choice or multichoice field declare their appearance, and only the
+		// choice list of a select field has groups.
 		appearance := choicesType(stringAt(spec, "type"))
-		if _, ok := choicePairs(items, appearance); !ok {
+		if _, ok := choicePairs(items, appearance, canonicalType(stringAt(spec, "type")) == "select"); !ok {
 			return nil, fmt.Errorf("Invalid items at %s: expected %s", path, choiceListExpected)
 		}
 		if appearance {

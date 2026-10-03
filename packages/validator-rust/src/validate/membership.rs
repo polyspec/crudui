@@ -72,21 +72,28 @@ impl Comparable {
     }
 }
 
-/// Whether a list is a choice list (schema, "Choice lists"): one of its elements is an
-/// object that has a `value` member.
+/// Whether a list is a choice list (schema, "Choice lists" and "Choice groups"): one of its
+/// elements is an object that has a `value` or a `choices` member.
 fn is_choice_list(elements: &[Value]) -> bool {
-    elements
-        .iter()
-        .any(|element| element.as_object().is_some_and(|o| o.contains_key("value")))
+    elements.iter().any(|element| {
+        element
+            .as_object()
+            .is_some_and(|o| o.contains_key("value") || o.contains_key("choices"))
+    })
 }
 
-/// The values of a choice list in order, or `None` when an element has another member, lacks
-/// `value` or `label`, has a value that is not a string or a finite number, or repeats the
-/// canonical text of an earlier value.
+/// The values of a choice list in written order, the values of each group in place of the
+/// group, or `None` when a choice has another member, lacks `value` or `label`, has a value
+/// that is not a string or a finite number, or repeats the canonical text of an earlier value,
+/// or when a group has another member, lacks `label` or has no list of one or more choices.
 fn choice_values(elements: &[Value]) -> Option<Vec<&Value>> {
     let mut seen = std::collections::HashSet::new();
     let mut values = Vec::new();
-    for element in elements {
+    fn choice<'a>(
+        element: &'a Value,
+        seen: &mut std::collections::HashSet<String>,
+        values: &mut Vec<&'a Value>,
+    ) -> Option<()> {
         let object = element.as_object()?;
         if object.len() != 2 || !object.contains_key("label") {
             return None;
@@ -99,6 +106,21 @@ fn choice_values(elements: &[Value]) -> Option<Vec<&Value>> {
             return None;
         }
         values.push(value);
+        Some(())
+    }
+    for element in elements {
+        match element.as_object() {
+            Some(group) if group.contains_key("choices") => {
+                let choices = group["choices"].as_array().filter(|c| !c.is_empty())?;
+                if group.len() != 2 || !group.contains_key("label") {
+                    return None;
+                }
+                for element in choices {
+                    choice(element, &mut seen, &mut values)?;
+                }
+            }
+            _ => choice(element, &mut seen, &mut values)?,
+        }
     }
     Some(values)
 }

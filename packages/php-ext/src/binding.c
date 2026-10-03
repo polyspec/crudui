@@ -170,9 +170,10 @@ static ps_value *build_widget(const ps_value *spec, const ps_value *value,
     ps_chars type = field_type(spec);
     if (!type.bytes) return NULL;
     if (ps_is_choice_list(items)) {
-        /* Only the choices of a choice or multichoice field declare their appearance. */
+        /* Only the choices of a choice or multichoice field declare their appearance, and only the
+           choice list of a select field has groups. */
         bool appearance = ps_widget_choices(ps_view(type));
-        int valid = ps_choice_list_valid(items, appearance);
+        int valid = ps_choice_list_valid(items, appearance, ps_widget_select(ps_view(type)));
         if (valid < 0) { free(type.bytes); return NULL; }
         if (!valid) {
             ps_chars message = PS_CONCAT(PS_TEXT("Invalid items at "), path,

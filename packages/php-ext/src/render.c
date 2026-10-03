@@ -92,8 +92,25 @@ static bool write_control(render_buffer *out, const ps_value *widget, bool searc
     if (ps_html_void_tag(tag)) return true;
     if (ps_text_is(tag, "select")) {
         const ps_value *options = member(widget, "options");
+        /* The options of one group form one optgroup element; a group ends where its index changes. */
+        const ps_value *open_group = NULL;
         for (size_t i = 0; options && options->kind == PS_ARRAY && i < ps_size(options); ++i) {
             const ps_value *option = ps_at(options, i);
+            const ps_value *group = member(option, "group");
+            const ps_value *index = member(group, "index");
+            bool same = open_group && index && ps_equal(member(open_group, "index"), index);
+            if (open_group && !same) {
+                if (!end_element(out, "optgroup", raw)) return false;
+                open_group = NULL;
+            }
+            if (group && !open_group) {
+                ps_value *group_attrs = ps_object_value();
+                bool ok = group_attrs && attr_clone(group_attrs, "label", member(group, "label")) &&
+                    start_element(out, "optgroup", group_attrs, raw, false);
+                ps_value_free(group_attrs);
+                if (!ok) return false;
+                open_group = group;
+            }
             ps_value *option_attrs = ps_object_value();
             if (!option_attrs || !attr_clone(option_attrs, "value", member(option, "value")) ||
                 (bool_member(option, "selected") &&
@@ -107,6 +124,7 @@ static bool write_control(render_buffer *out, const ps_value *widget, bool searc
             ps_value_free(option_attrs);
             if (!ok) return false;
         }
+        if (open_group && !end_element(out, "optgroup", raw)) return false;
     } else {
         ps_text content = string_member(widget, "text");
         if (!raw && ps_text_is(tag, "textarea") && content.length && content.bytes[0] == '\n' &&

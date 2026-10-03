@@ -1,5 +1,22 @@
 # Changes
 
+## 2026-10-04 — Choice groups
+
+- The choice list of a `select`, `dropdown` or `selectbox` field may contain groups, each a label
+  and one or more value and label pairs, mixed with plain choices in written order. A list is a
+  choice list when an element has a `value` or a `choices` member. Values stay distinct across the
+  whole list; binding rejects an empty group, another member, a nested group, appearance members
+  and a group in any other field, and the `choice-label` format rejects a group.
+- An option model inside a group has the member `group` with the group's index in `items` and its
+  translated label. Every renderer writes the choices of a group inside an `optgroup` element, on
+  the raw path of a select with behavior attributes too.
+- The `in` rule of the TypeScript, PHP, PHP extension, Go and Rust validators takes the values inside
+  groups as members and rejects a malformed group with `INVALID_RULE_PARAMETER`.
+- React, Vue, Svelte, the HTML renderer, PHP, the PHP extension, Go and Rust pass the shared form
+  cases `choice-groups-*` and the list case `reject-format-items-choice-group`; the five validators
+  pass the shared validation cases `value-in-choice-groups*`. The PHP extension engine test counts
+  the current fixture inventory and links the units the engine programs use.
+
 ## 2026-10-04 — Choice appearance
 
 - A choice in the choice list of a `choice` or `multichoice` field may declare `class` and `style`

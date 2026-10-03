@@ -6,7 +6,7 @@ namespace CRUDUI\Validator\Values;
 
 /**
  * The member set of `in`: a list (each element as is), a choice list (the value of each
- * element), a comma-separated string (split at U+002C, each item trimmed) or a map (its keys);
+ * choice, the choices of a group included), a comma-separated string (split at U+002C, each item trimmed) or a map (its keys);
  * list elements and map keys are read as written. A choice list is checked by the choice list
  * rules before its values are checked as members. A trimmed value matches a member
  * when their canonical texts are the same code points, or when both are numeric
@@ -67,14 +67,14 @@ final class Membership
 
     /**
      * Whether a list is a choice list (docs/spec/schema.md, "Choice lists"): one of its
-     * elements is an object that has a `value` member.
+     * elements is an object that has a `value` or a `choices` member.
      *
      * @param list<mixed> $list
      */
     private static function isChoiceList(array $list): bool
     {
         foreach ($list as $item) {
-            if ($item instanceof \stdClass && property_exists($item, 'value')) {
+            if ($item instanceof \stdClass && (property_exists($item, 'value') || property_exists($item, 'choices'))) {
                 return true;
             }
         }
@@ -82,9 +82,10 @@ final class Membership
     }
 
     /**
-     * The values of a choice list in order, or null when an element has another member, lacks
-     * `value` or `label`, has a value that is not a string or a finite number, or repeats the
-     * canonical text of an earlier value.
+     * The values of a choice list in order, the values of a group's choices in place of the
+     * group, or null when an element has another member, lacks `value` or `label`, has a value
+     * that is not a string or a finite number, or repeats the canonical text of an earlier value,
+     * or when a group (an element with `choices`) is not a label and a non-empty list of choices.
      *
      * @param list<mixed> $list
      * @return list<string|int|float>|null
@@ -93,21 +94,38 @@ final class Membership
     {
         $values = [];
         $seen = [];
-        foreach ($list as $item) {
+        $add = static function (mixed $item) use (&$values, &$seen): bool {
             if (!$item instanceof \stdClass || \count(get_object_vars($item)) !== 2
                 || !property_exists($item, 'value') || !property_exists($item, 'label')) {
-                return null;
+                return false;
             }
             $value = $item->value;
             if (!\is_string($value) && !\is_int($value) && !(\is_float($value) && is_finite($value))) {
-                return null;
+                return false;
             }
             $text = (string) CanonicalText::of($value);
             if (isset($seen[$text])) {
-                return null;
+                return false;
             }
             $seen[$text] = true;
             $values[] = $value;
+            return true;
+        };
+        foreach ($list as $item) {
+            if ($item instanceof \stdClass && property_exists($item, 'choices')) {
+                $choices = $item->choices;
+                if (\count(get_object_vars($item)) !== 2 || !property_exists($item, 'label')
+                    || !\is_array($choices) || !array_is_list($choices) || $choices === []) {
+                    return null;
+                }
+                foreach ($choices as $choice) {
+                    if (!$add($choice)) {
+                        return null;
+                    }
+                }
+            } elseif (!$add($item)) {
+                return null;
+            }
         }
         return $values;
     }

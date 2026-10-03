@@ -1,4 +1,6 @@
-use crate::choice_list::{choice_appearances, choice_label, choice_pairs, is_choice_list};
+use crate::choice_list::{
+    choice_appearances, choice_groups, choice_label, choice_pairs, is_choice_list,
+};
 use crate::util::*;
 use serde_json::{json, Map, Value};
 
@@ -113,7 +115,7 @@ fn source(items: &Value) -> Option<Value> {
 
 fn entries(items: &Value) -> Vec<(String, &Value)> {
     if is_choice_list(items) {
-        return choice_pairs(items, true).unwrap_or_default();
+        return choice_pairs(items, true, true).unwrap_or_default();
     }
     match items {
         Value::Array(a) => a
@@ -273,6 +275,14 @@ fn select_control(ctx: &WidgetContext<'_>) -> Value {
     let mut options = options(ctx, false, false);
     if options.is_empty() {
         options.push(empty_option());
+    } else if is_choice_list(&ctx.spec["items"]) {
+        // An option inside a group has the position of the group in the list and its label.
+        for (option, group) in options.iter_mut().zip(choice_groups(&ctx.spec["items"])) {
+            if let Some((index, label)) = group {
+                let text = translate(Some(label), ctx.language);
+                option["group"] = json!({"index": index, "label": if text.is_empty() { scalar(Some(label)) } else { text }});
+            }
+        }
     }
     let mut model = json!({"kind":"select","layout":"widget","tag":"select","attrs":attrs,"source":source,"options":options});
     ctx.affixes(&mut model, true);

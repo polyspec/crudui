@@ -62,7 +62,10 @@ static int visit_members(const ps_value *parameter, void *context, member_visito
         }
     }
     bool choices = ps_is_choice_list(parameter);
-    for (size_t i = 0; i < ps_size(parameter); ++i) {
+    /* A choice list contributes the value of each choice, inside groups included. */
+    ps_choice_cursor cursor = {parameter, 0, 0};
+    const ps_value *choice = NULL;
+    for (size_t i = 0; choices ? (choice = ps_choice_next(&cursor, NULL)) != NULL : i < ps_size(parameter); ++i) {
         member_text member;
         if (parameter->kind == PS_OBJECT) {
             if (!string_member(ps_key(parameter, i), &member)) return -1;
@@ -70,8 +73,7 @@ static int visit_members(const ps_value *parameter, void *context, member_visito
             if (result) return result;
             continue;
         }
-        const ps_value *item = ps_at(parameter, i);
-        if (choices) item = ps_get(item, "value");
+        const ps_value *item = choices ? ps_get(choice, "value") : ps_at(parameter, i);
         if (item->kind == PS_STRING) {
             if (!string_member(ps_string(item), &member)) return -1;
             int result = visit(context, &member);
@@ -110,7 +112,7 @@ ps_parameter_problem ps_in_parameter(const ps_value *parameter)
         return shape;
     /* A choice list is checked by the choice list rules before its values are checked as members. */
     if (ps_is_choice_list(parameter)) {
-        int valid = ps_choice_list_valid(parameter, false);
+        int valid = ps_choice_list_valid(parameter, false, true);
         if (valid < 0) return failed;
         if (!valid) return pairs;
     } else if (parameter->kind == PS_ARRAY) {
