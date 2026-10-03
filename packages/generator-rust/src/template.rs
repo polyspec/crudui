@@ -179,6 +179,92 @@ const DESIGN_KEYS: &[&str] = &[
 ];
 /// Allowed keys of a closed design node.
 const DESIGN_NODE_KEYS: &[&str] = &["class", "style"];
+/// Allowed keys of the closed `design` bucket of a form field.
+const FIELD_DESIGN_KEYS: &[&str] = &[
+    "show",
+    "class",
+    "style",
+    "attributes",
+    "label",
+    "wrapper",
+    "group",
+    "prepend",
+];
+/// Allowed keys of the `wrapper` design node of a form field.
+const FIELD_WRAPPER_KEYS: &[&str] = &["class", "style", "attributes"];
+/// Prefixes of attribute names crudui writes on a control or a node root.
+const OWNED_ATTRIBUTE_PREFIXES: &[&str] = &["data-crudui-", "data-source-"];
+/// Attribute names crudui writes on a control or a node root.
+const OWNED_ATTRIBUTE_NAMES: &[&str] = &[
+    "data-field-path",
+    "data-lang",
+    "data-name",
+    "data-rule-name",
+    "data-default",
+    "data-is-default",
+    "data-type",
+    "data-height",
+    "data-upload-server",
+    "data-fileserver",
+    "data-server",
+    "data-max-tags",
+    "data-keyword-min-length",
+    "data-delay",
+    "data-api-server",
+    "data-max-width",
+    "data-min-width",
+    "data-max-height",
+    "data-min-height",
+    "data-preview-max-width",
+    "data-preview-max-height",
+    "data-unsupported-type",
+];
+
+/// Whether `name` is a `data-*` or `aria-*` name crudui does not write: lowercase letters,
+/// digits, `-`, `_` and `.` after the prefix, starting with a letter or a digit.
+fn declared_attribute_name(name: &str) -> bool {
+    let Some(rest) = name
+        .strip_prefix("data-")
+        .or_else(|| name.strip_prefix("aria-"))
+    else {
+        return false;
+    };
+    let valid = !rest.is_empty()
+        && rest.bytes().enumerate().all(|(index, c)| {
+            c.is_ascii_lowercase()
+                || c.is_ascii_digit()
+                || (index > 0 && (c == b'-' || c == b'_' || c == b'.'))
+        });
+    valid
+        && !OWNED_ATTRIBUTE_NAMES.contains(&name)
+        && !OWNED_ATTRIBUTE_PREFIXES
+            .iter()
+            .any(|prefix| name.starts_with(prefix))
+}
+
+/// Reject declared attributes at `key` that are not an object of permitted names to strings.
+/// Every name is checked before any value.
+fn check_declared_attributes(attributes: &Value, key: &str, path: &str) -> FormResult<()> {
+    let Some(attributes) = attributes.as_object() else {
+        return Err(FormError::input(format!(
+            "Invalid {key} at {path}: expected an object"
+        )));
+    };
+    if let Some(name) = attributes
+        .keys()
+        .find(|name| !declared_attribute_name(name))
+    {
+        return Err(FormError::input(format!(
+            "Invalid {key}.{name} at {path}: expected a data-* or aria-* name that crudui does not write"
+        )));
+    }
+    if let Some((name, _)) = attributes.iter().find(|(_, value)| !value.is_string()) {
+        return Err(FormError::input(format!(
+            "Invalid {key}.{name} at {path}: expected a string"
+        )));
+    }
+    Ok(())
+}
 /// Allowed keys of the closed `behavior` bucket.
 const BEHAVIOR_KEYS: &[&str] = &["onchange", "onclick", "onload"];
 
@@ -198,8 +284,9 @@ pub(crate) fn check_known_keys(
 }
 
 /// Reject an unknown key or a wrong value type in one `design` declaration at `path`. Form
-/// fields, list and detail specifications, their columns and fields share this rule.
-pub(crate) fn check_design_declaration(design: &Value, path: &str) -> FormResult<()> {
+/// fields, form buttons, list and detail specifications, their columns and fields share this
+/// rule; only a form field (`field`) accepts `attributes` and `wrapper.attributes`.
+pub(crate) fn check_design_declaration(design: &Value, path: &str, field: bool) -> FormResult<()> {
     let fail = |key: &str, expected: &str| -> FormResult<()> {
         Err(FormError::input(format!(
             "Invalid {key} at {path}: expected {expected}"
@@ -211,7 +298,12 @@ pub(crate) fn check_design_declaration(design: &Value, path: &str) -> FormResult
     let Some(design) = design.as_object() else {
         return Ok(());
     };
-    check_known_keys("design", design, DESIGN_KEYS, path)?;
+    let design_keys = if field {
+        FIELD_DESIGN_KEYS
+    } else {
+        DESIGN_KEYS
+    };
+    check_known_keys("design", design, design_keys, path)?;
     if design
         .get("show")
         .is_some_and(|v| !v.is_boolean() && !condition_value(v))
@@ -223,6 +315,9 @@ pub(crate) fn check_design_declaration(design: &Value, path: &str) -> FormResult
             return fail(&format!("design.{key}"), "a string or a condition map");
         }
     }
+    if let Some(attributes) = design.get("attributes") {
+        check_declared_attributes(attributes, "design.attributes", path)?;
+    }
     for node in ["label", "wrapper", "group", "prepend"] {
         let Some(value) = design.get(node) else {
             continue;
@@ -230,7 +325,12 @@ pub(crate) fn check_design_declaration(design: &Value, path: &str) -> FormResult
         let Some(value) = value.as_object() else {
             return fail(&format!("design.{node}"), "an object");
         };
-        check_known_keys(&format!("design.{node}"), value, DESIGN_NODE_KEYS, path)?;
+        let node_keys = if field && node == "wrapper" {
+            FIELD_WRAPPER_KEYS
+        } else {
+            DESIGN_NODE_KEYS
+        };
+        check_known_keys(&format!("design.{node}"), value, node_keys, path)?;
         for key in ["class", "style"] {
             if value.get(key).is_some_and(|v| !condition_value(v)) {
                 return fail(
@@ -239,13 +339,16 @@ pub(crate) fn check_design_declaration(design: &Value, path: &str) -> FormResult
                 );
             }
         }
+        if let Some(attributes) = value.get("attributes") {
+            check_declared_attributes(attributes, &format!("design.{node}.attributes"), path)?;
+        }
     }
     Ok(())
 }
 
 /// Reject a wrong value type or an unknown key in one field's `multiple`, `lang`,
-/// `design` and `behavior` declarations.
-fn check_declarations(spec: &Map<String, Value>, path: &str) -> FormResult<()> {
+/// `design` and `behavior` declarations. Only a form field (`field`) accepts declared attributes.
+fn check_declarations(spec: &Map<String, Value>, path: &str, field: bool) -> FormResult<()> {
     let fail = |key: &str, expected: &str| -> FormResult<()> {
         Err(FormError::input(format!(
             "Invalid {key} at {path}: expected {expected}"
@@ -333,7 +436,7 @@ fn check_declarations(spec: &Map<String, Value>, path: &str) -> FormResult<()> {
         }
     }
     if let Some(design) = spec.get("design") {
-        check_design_declaration(design, path)?;
+        check_design_declaration(design, path, field)?;
     }
     if let Some(behavior) = spec.get("behavior").and_then(Value::as_object) {
         check_known_keys("behavior", behavior, BEHAVIOR_KEYS, path)?;
@@ -387,7 +490,7 @@ fn check_form_declarations(spec: &Map<String, Value>) -> FormResult<()> {
         if kind == "link" && !button.contains_key("href") {
             return fail(&format!("{key}.href"), "a link target");
         }
-        check_declarations(button, &format!("form.{key}"))?;
+        check_declarations(button, &format!("form.{key}"), false)?;
     }
     Ok(())
 }
@@ -403,7 +506,7 @@ fn fields(properties: &Map<String, Value>, parent: &str) -> FormResult<Vec<Field
         } else {
             format!("{parent}.{name}")
         };
-        check_declarations(raw, &path)?;
+        check_declarations(raw, &path, true)?;
         let mut spec = raw.clone();
         let children = match spec.shift_remove("properties") {
             Some(Value::Object(children)) => fields(&children, &path)?,

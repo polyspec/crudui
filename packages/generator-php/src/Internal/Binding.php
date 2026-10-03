@@ -58,7 +58,7 @@ final class Binding
         }
         if (($spec->type ?? null) === 'group') {
             self::checkGroup(Value::path($data, $path), $path);
-            return Value::record([...self::root('group', $path, $design), 'header' => self::header(['label' => $label, 'description' => $description], $design), 'body' => self::body($design->group->class, $design->group->style), 'children' => self::children($field, $path, $data, $state)]);
+            return Value::record([...self::root('group', $path, $design, $spec), 'header' => self::header(['label' => $label, 'description' => $description], $design), 'body' => self::body($design->group->class, $design->group->style), 'children' => self::children($field, $path, $data, $state)]);
         }
         $lang = $spec->lang ?? null;
         if ($lang === true || $lang instanceof stdClass) {
@@ -93,9 +93,9 @@ final class Binding
         return $settings;
     }
 
-    private static function root(string $kind, string $path, stdClass $design): array
+    private static function root(string $kind, string $path, stdClass $design, stdClass $spec): array
     {
-        return ['kind' => $kind, 'path' => $path, 'className' => $design->wrapper->class, 'style' => Value::style($design->wrapper->style) ?? Missing::Value, 'hidden' => !$design->show];
+        return ['kind' => $kind, 'path' => $path, 'className' => $design->wrapper->class, 'style' => Value::style($design->wrapper->style) ?? Missing::Value, 'attributes' => Design::declared($spec->design ?? null, true), 'hidden' => !$design->show];
     }
 
     /** Header with the given parts, or the missing marker when every part is empty. */
@@ -122,10 +122,10 @@ final class Binding
     {
         $type = Value::string($spec->type ?? '');
         $value = Value::path($data, $path);
-        $root = self::root('field', $path, $design);
+        $root = self::root('field', $path, $design, $spec);
         if ($type === 'checkbox' || $type === 'switcher') {
             $checkedValue = $value === Missing::Value ? $spec->default ?? null : $value;
-            $checkbox = (object) ['id' => Value::controlId($state['idPrefix'] ?? 'crudui', $path), 'name' => Value::name($path, $state['keyPrefix'] ?? null), 'className' => Value::classes('valid-target', $design->main->class), 'checked' => in_array($checkedValue, [true, 1, '1'], true), 'caption' => $label === Missing::Value ? '' : $label];
+            $checkbox = Value::record(['id' => Value::controlId($state['idPrefix'] ?? 'crudui', $path), 'name' => Value::name($path, $state['keyPrefix'] ?? null), 'className' => Value::classes('valid-target', $design->main->class), 'checked' => in_array($checkedValue, [true, 1, '1'], true), 'caption' => $label === Missing::Value ? '' : $label, 'attributes' => Design::declared($spec->design ?? null, false)]);
             return Value::record([...$root, 'header' => self::header(['description' => $description], $design), 'body' => self::body(), 'checkbox' => $checkbox]);
         }
         $widget = Widget::evaluate($spec, $value, $path, $design, $state, $state['rowSegments']);
@@ -159,7 +159,7 @@ final class Binding
             $controls = (object) ['placement' => 'footer', 'label' => $messages['collectionControls'], 'actions' => [self::action('add-row', $messages['addRow'], $full)]];
         }
         $header = self::header(['label' => $label, 'description' => $description, 'count' => Messages::count($messages['count'], count($keys))], $design);
-        return Value::record([...self::root('collection', $path, $design), 'header' => $header, 'body' => self::body(), 'item' => $item, 'controls' => $controls, 'children' => $rows]);
+        return Value::record([...self::root('collection', $path, $design, $field->spec), 'header' => $header, 'body' => self::body(), 'item' => $item, 'controls' => $controls, 'children' => $rows]);
     }
 
     private static function row(stdClass $field, string $collectionPath, string $key, int $index, int $count, string $item, string|Missing $label, array $settings, stdClass $data, array $state): stdClass
@@ -224,7 +224,7 @@ final class Binding
             $children[] = (object) ['kind' => 'lang-item', 'lang' => $code, 'className' => '', 'hidden' => false, 'header' => (object) ['className' => '', 'label' => $code], 'body' => self::body(), 'widget' => Widget::evaluate($spec, Value::path($data, $langPath), $langPath, $langDesign, $state, $state['rowSegments'])];
         }
         $header = self::header(['label' => $label, 'description' => $description, 'title' => $title], $design);
-        $root = self::root('lang', $path, $design);
+        $root = self::root('lang', $path, $design, $spec);
         // A framed language group is a node modifier; the stylesheet draws the frame around its body.
         $root['className'] = Value::classes($frame ? 'crudui-node--framed' : '', $root['className']);
         return Value::record([...$root, 'header' => $header, 'body' => self::body(Value::classes($groupClass)), 'children' => $children]);

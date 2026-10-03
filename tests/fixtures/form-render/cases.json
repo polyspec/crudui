@@ -2971,5 +2971,720 @@
       "language": "en"
     },
     "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"note\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:note\">Note</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"note\" data-rule-name=\"note\" id=\"crudui:note\" name=\"note\" type=\"text\" value=\"kept\"></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "control-attributes-text",
+    "note": "design.attributes on a text input after its crudui attributes and design.wrapper.attributes on the node root after its class and path.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "theme": {
+          "type": "text",
+          "label": "Theme",
+          "design": {
+            "class": "wide",
+            "style": "color: red",
+            "attributes": {
+              "data-setting": "theme",
+              "aria-describedby": "theme-help"
+            },
+            "wrapper": {
+              "class": "row",
+              "style": "margin: 0",
+              "attributes": {
+                "data-section": "look",
+                "aria-label": "Look & feel"
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "theme": "dark"
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div aria-label=\"Look &amp; feel\" class=\"crudui-node crudui-node--field row\" data-field-path=\"theme\" data-section=\"look\" style=\"margin: 0\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:theme\">Theme</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input aria-describedby=\"theme-help\" class=\"valid-target crudui-input wide\" data-default=\"\" data-name=\"theme\" data-rule-name=\"theme\" data-setting=\"theme\" id=\"crudui:theme\" name=\"theme\" style=\"color: red\" type=\"text\" value=\"dark\"></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "control-attributes-hidden-node",
+    "note": "design.wrapper.attributes follow the hidden attribute of a node that design.show hides.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "theme": {
+          "type": "text",
+          "label": "Theme",
+          "design": {
+            "show": false,
+            "wrapper": {
+              "attributes": {
+                "data-section": "look"
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {},
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"theme\" data-section=\"look\" hidden=\"\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:theme\">Theme</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"theme\" data-rule-name=\"theme\" id=\"crudui:theme\" name=\"theme\" type=\"text\" value=\"\"></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "control-attributes-behavior",
+    "note": "design.attributes on a text input with a behavior attribute follow the behavior and id attributes.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "theme": {
+          "type": "text",
+          "label": "Theme",
+          "behavior": {
+            "onchange": "save(this)"
+          },
+          "design": {
+            "attributes": {
+              "data-setting": "theme"
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "theme": "dark"
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"theme\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:theme\">Theme</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"theme\" data-rule-name=\"theme\" data-setting=\"theme\" id=\"crudui:theme\" name=\"theme\" onchange=\"save(this)\" type=\"text\" value=\"dark\"></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "control-attributes-select-textarea",
+    "note": "design.attributes on a select and a textarea, each before its style.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "size": {
+          "type": "select",
+          "label": "Size",
+          "items": {
+            "s": "Small",
+            "l": "Large"
+          },
+          "design": {
+            "style": "width: 5em",
+            "attributes": {
+              "data-setting": "size"
+            }
+          }
+        },
+        "memo": {
+          "type": "textarea",
+          "label": "Memo",
+          "design": {
+            "attributes": {
+              "aria-describedby": "memo-help"
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "size": "l",
+      "memo": "x"
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"size\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:size\">Size</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><select class=\"valid-target crudui-input crudui-input--select\" data-default=\"\" data-name=\"size\" data-rule-name=\"size\" data-setting=\"size\" id=\"crudui:size\" name=\"size\" style=\"width: 5em\"><option value=\"s\">Small</option><option selected=\"\" value=\"l\">Large</option></select></div></div></div><div class=\"crudui-node crudui-node--field\" data-field-path=\"memo\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:memo\">Memo</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><textarea aria-describedby=\"memo-help\" class=\"valid-target crudui-input\" data-default=\"\" data-name=\"memo\" data-rule-name=\"memo\" id=\"crudui:memo\" name=\"memo\" rows=\"5\">x</textarea></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "control-attributes-checkbox",
+    "note": "design.attributes on a checkbox input and a switcher input before name, checked and value.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "dark": {
+          "type": "checkbox",
+          "label": "Dark",
+          "design": {
+            "attributes": {
+              "data-setting": "dark"
+            },
+            "wrapper": {
+              "attributes": {
+                "data-section": "look"
+              }
+            }
+          }
+        },
+        "sync": {
+          "type": "switcher",
+          "label": "Sync",
+          "design": {
+            "attributes": {
+              "aria-describedby": "sync-help"
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "dark": true
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"dark\" data-section=\"look\"><div class=\"crudui-node__body\"><input checked=\"\" class=\"valid-target\" data-setting=\"dark\" id=\"crudui:dark\" name=\"dark\" type=\"checkbox\" value=\"1\"><label for=\"crudui:dark\">Dark</label></div></div><div class=\"crudui-node crudui-node--field\" data-field-path=\"sync\"><div class=\"crudui-node__body\"><input aria-describedby=\"sync-help\" class=\"valid-target crudui-input crudui-input--switch\" id=\"crudui:sync\" name=\"sync\" role=\"switch\" type=\"checkbox\" value=\"1\"><label for=\"crudui:sync\">Sync</label></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "control-attributes-choices",
+    "note": "design.attributes on every option input of a choice and a multichoice field, after their crudui attributes.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "mode": {
+          "type": "choice",
+          "label": "Mode",
+          "items": {
+            "a": "Auto",
+            "m": "Manual"
+          },
+          "design": {
+            "attributes": {
+              "data-setting": "mode"
+            }
+          }
+        },
+        "days": {
+          "type": "multichoice",
+          "label": "Days",
+          "items": {
+            "mo": "Mon",
+            "tu": "Tue"
+          },
+          "design": {
+            "attributes": {
+              "data-setting": "days",
+              "aria-describedby": "days-help"
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "mode": "m",
+      "days": [
+        "tu"
+      ]
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"mode\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Mode</span></div><div class=\"crudui-node__body\"><div class=\"crudui-choices\"><input autocomplete=\"off\" class=\"valid-target crudui-choices__input\" data-is-default=\"\" data-name=\"mode\" data-rule-name=\"mode\" data-setting=\"mode\" id=\"crudui:mode:0\" name=\"mode\" type=\"radio\" value=\"a\"><label class=\"crudui-choices__label\" for=\"crudui:mode:0\"><span>Auto</span></label><input autocomplete=\"off\" checked=\"\" class=\"valid-target crudui-choices__input\" data-is-default=\"\" data-name=\"mode\" data-rule-name=\"mode\" data-setting=\"mode\" id=\"crudui:mode:1\" name=\"mode\" type=\"radio\" value=\"m\"><label class=\"crudui-choices__label\" for=\"crudui:mode:1\"><span>Manual</span></label></div></div></div><div class=\"crudui-node crudui-node--field\" data-field-path=\"days\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Days</span></div><div class=\"crudui-node__body\"><div class=\"crudui-choices crudui-choices--multiple\"><input aria-describedby=\"days-help\" autocomplete=\"off\" class=\"valid-target crudui-choices__input\" data-name=\"days\" data-rule-name=\"days\" data-setting=\"days\" id=\"crudui:days:0\" name=\"days[]\" type=\"checkbox\" value=\"mo\"><label class=\"crudui-choices__label\" for=\"crudui:days:0\"><span>Mon</span></label><input aria-describedby=\"days-help\" autocomplete=\"off\" checked=\"\" class=\"valid-target crudui-choices__input\" data-name=\"days\" data-rule-name=\"days\" data-setting=\"days\" id=\"crudui:days:1\" name=\"days[]\" type=\"checkbox\" value=\"tu\"><label class=\"crudui-choices__label\" for=\"crudui:days:1\"><span>Tue</span></label></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "control-attributes-choice-behavior",
+    "note": "design.attributes on option inputs with behavior attributes follow data-is-default and checked.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "mode": {
+          "type": "choice",
+          "label": "Mode",
+          "items": {
+            "a": "Auto",
+            "m": "Manual"
+          },
+          "behavior": {
+            "onchange": "save(this)"
+          },
+          "design": {
+            "attributes": {
+              "data-setting": "mode"
+            }
+          }
+        },
+        "days": {
+          "type": "multichoice",
+          "label": "Days",
+          "items": {
+            "mo": "Mon"
+          },
+          "behavior": {
+            "onchange": "save(this)"
+          },
+          "design": {
+            "attributes": {
+              "data-setting": "days"
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "mode": "a",
+      "days": [
+        "mo"
+      ]
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"mode\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Mode</span></div><div class=\"crudui-node__body\"><div class=\"crudui-choices\"><input autocomplete=\"off\" checked=\"\" class=\"valid-target crudui-choices__input\" data-is-default=\"\" data-name=\"mode\" data-rule-name=\"mode\" data-setting=\"mode\" id=\"crudui:mode:0\" name=\"mode\" onchange=\"save(this)\" type=\"radio\" value=\"a\"><label class=\"crudui-choices__label\" for=\"crudui:mode:0\"><span>Auto</span></label><input autocomplete=\"off\" class=\"valid-target crudui-choices__input\" data-is-default=\"\" data-name=\"mode\" data-rule-name=\"mode\" data-setting=\"mode\" id=\"crudui:mode:1\" name=\"mode\" onchange=\"save(this)\" type=\"radio\" value=\"m\"><label class=\"crudui-choices__label\" for=\"crudui:mode:1\"><span>Manual</span></label></div></div></div><div class=\"crudui-node crudui-node--field\" data-field-path=\"days\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Days</span></div><div class=\"crudui-node__body\"><div class=\"crudui-choices crudui-choices--multiple\"><input autocomplete=\"off\" checked=\"\" class=\"valid-target crudui-choices__input\" data-name=\"days\" data-rule-name=\"days\" data-setting=\"days\" id=\"crudui:days:0\" name=\"days[]\" onchange=\"save(this)\" type=\"checkbox\" value=\"mo\"><label class=\"crudui-choices__label\" for=\"crudui:days:0\"><span>Mon</span></label></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "control-attributes-dynamic-choice",
+    "note": "A dynamic choice source renders no option input and no control attributes; the node root keeps its wrapper attributes.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "mode": {
+          "type": "choice",
+          "label": "Mode",
+          "items": {
+            "model": "Mode",
+            "table": "modes"
+          },
+          "design": {
+            "attributes": {
+              "data-setting": "mode"
+            },
+            "wrapper": {
+              "attributes": {
+                "data-section": "look"
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {},
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"mode\" data-section=\"look\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Mode</span></div><div class=\"crudui-node__body\"><div class=\"crudui-choices\" data-source-method=\"\" data-source-model=\"Mode\" data-source-relations=\"[]\" data-source-table=\"modes\"></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "control-attributes-file-display-button",
+    "note": "design.attributes on the file input of an image field, the div of a dummy field, the button of an action field and the select of a search field.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "photo": {
+          "type": "image",
+          "label": "Photo",
+          "design": {
+            "attributes": {
+              "data-setting": "photo"
+            }
+          }
+        },
+        "shown": {
+          "type": "dummy",
+          "label": "Shown",
+          "design": {
+            "class": "note",
+            "style": "color: gray",
+            "attributes": {
+              "aria-live": "polite"
+            }
+          }
+        },
+        "run": {
+          "type": "button",
+          "label": "Run",
+          "content": "Run",
+          "design": {
+            "attributes": {
+              "data-setting": "run"
+            }
+          }
+        },
+        "pick": {
+          "type": "search",
+          "label": "Pick",
+          "items": {
+            "a": "A"
+          },
+          "design": {
+            "attributes": {
+              "data-setting": "pick"
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "shown": "Ready"
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"photo\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:photo\">Photo</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"crudui-input\" readonly=\"\" type=\"text\" value=\"\"><input accept=\"image/*\" class=\"valid-target crudui-input crudui-input--file\" data-max-height=\"0\" data-max-width=\"0\" data-min-height=\"0\" data-min-width=\"0\" data-name=\"photo\" data-preview-max-height=\"0\" data-preview-max-width=\"0\" data-rule-name=\"photo\" data-setting=\"photo\" id=\"crudui:photo\" name=\"photo\" type=\"file\" value=\"\"><button class=\"crudui-widget__button\" type=\"button\">&nbsp;</button></div></div></div><div class=\"crudui-node crudui-node--field\" data-field-path=\"shown\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Shown</span></div><div class=\"crudui-node__body\"><div aria-live=\"polite\" class=\"note\" style=\"color: gray\">Ready</div></div></div><div class=\"crudui-node crudui-node--field\" data-field-path=\"run\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:run\">Run</label></div><div class=\"crudui-node__body\"><button class=\"crudui-action crudui-action--text\" data-setting=\"run\" id=\"crudui:run\" type=\"button\">Run</button></div></div><div class=\"crudui-node crudui-node--field\" data-field-path=\"pick\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:pick\">Pick</label></div><div class=\"crudui-node__body\"><style nonce=\"\">[class~=\"crudui:pick_select2\"] .loading-results { display: none; }</style><script nonce=\"\">$(function() {select2(CSS.escape(\"crudui:pick\"), \"2\", \"250\", \"crudui:pick_select2\");});</script><div class=\"crudui-widget crudui-widget--search\"><select class=\"valid-target crudui-input crudui-input--select\" data-api-server=\"\" data-default=\"\" data-delay=\"250\" data-keyword-min-length=\"2\" data-name=\"pick\" data-rule-name=\"pick\" data-setting=\"pick\" id=\"crudui:pick\" name=\"pick\"><option value=\"a\">A</option></select></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "control-attributes-rows-lang-group",
+    "note": "design.attributes on every row control of a repeated scalar field and every language control; wrapper attributes on the collection, lang and group roots and none on row or lang-item nodes.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "tags": {
+          "type": "text",
+          "label": "Tags",
+          "multiple": true,
+          "design": {
+            "attributes": {
+              "data-setting": "tags"
+            },
+            "wrapper": {
+              "attributes": {
+                "data-section": "tags"
+              }
+            }
+          }
+        },
+        "title": {
+          "type": "text",
+          "label": "Title",
+          "lang": {
+            "only": [
+              "en",
+              "ko"
+            ]
+          },
+          "design": {
+            "attributes": {
+              "data-setting": "title"
+            },
+            "wrapper": {
+              "attributes": {
+                "data-section": "title"
+              }
+            }
+          }
+        },
+        "look": {
+          "type": "group",
+          "label": "Look",
+          "design": {
+            "wrapper": {
+              "attributes": {
+                "aria-label": "Look"
+              }
+            }
+          },
+          "properties": {
+            "size": {
+              "type": "number",
+              "label": "Size"
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "tags": {
+        "__opt_a1__": "x",
+        "__opt_b2__": "y"
+      },
+      "title": {
+        "en": "Hi",
+        "ko": "안녕"
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--collection\" data-field-path=\"tags\" data-section=\"tags\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Tags</span><span class=\"crudui-node__count\">Rows: 2</span></div><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__opt_a1__\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Tags</span><span class=\"crudui-node__number\">1</span><div aria-label=\"Row controls\" class=\"crudui-controls\" role=\"group\"><button aria-label=\"Add\" class=\"crudui-action\" data-crudui-action=\"add-row\" type=\"button\"></button><button aria-label=\"Remove\" class=\"crudui-action\" data-crudui-action=\"remove-row\" type=\"button\"></button></div></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"tags[]\" data-rule-name=\"tags[]\" data-setting=\"tags\" id=\"crudui:tags.__opt_a1__\" name=\"tags[__opt_a1__]\" type=\"text\" value=\"x\"></div></div></div><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__opt_b2__\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Tags</span><span class=\"crudui-node__number\">2</span><div aria-label=\"Row controls\" class=\"crudui-controls\" role=\"group\"><button aria-label=\"Add\" class=\"crudui-action\" data-crudui-action=\"add-row\" type=\"button\"></button><button aria-label=\"Remove\" class=\"crudui-action\" data-crudui-action=\"remove-row\" type=\"button\"></button></div></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"tags[]\" data-rule-name=\"tags[]\" data-setting=\"tags\" id=\"crudui:tags.__opt_b2__\" name=\"tags[__opt_b2__]\" type=\"text\" value=\"y\"></div></div></div></div></div><div class=\"crudui-node crudui-node--lang crudui-node--framed\" data-field-path=\"title\" data-section=\"title\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Title</span></div><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--lang-item\" data-lang=\"en\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">en</span></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"en\" data-rule-name=\"title[en]\" data-setting=\"title\" id=\"crudui:title.en\" name=\"title[en]\" type=\"text\" value=\"Hi\"></div></div></div><div class=\"crudui-node crudui-node--lang-item\" data-lang=\"ko\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">ko</span></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"ko\" data-rule-name=\"title[ko]\" data-setting=\"title\" id=\"crudui:title.ko\" name=\"title[ko]\" type=\"text\" value=\"안녕\"></div></div></div></div></div><div aria-label=\"Look\" class=\"crudui-node crudui-node--group\" data-field-path=\"look\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Look</span></div><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"look.size\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:look.size\">Size</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"size\" data-rule-name=\"look[size]\" id=\"crudui:look.size\" name=\"look[size]\" step=\"any\" type=\"number\" value=\"\"></div></div></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "control-attributes-not-object",
+    "note": "design.attributes must be an object.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "theme": {
+          "type": "text",
+          "label": "Theme",
+          "design": {
+            "attributes": "data-x"
+          }
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid design.attributes at theme: expected an object"
+    }
+  },
+  {
+    "name": "control-attributes-wrapper-list",
+    "note": "design.wrapper.attributes must be an object, not a list.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "theme": {
+          "type": "text",
+          "label": "Theme",
+          "design": {
+            "wrapper": {
+              "attributes": [
+                "data-x"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid design.wrapper.attributes at theme: expected an object"
+    }
+  },
+  {
+    "name": "control-attributes-event-name",
+    "note": "An event attribute name is neither data-* nor aria-*.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "theme": {
+          "type": "text",
+          "label": "Theme",
+          "design": {
+            "attributes": {
+              "onclick": "go()"
+            }
+          }
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid design.attributes.onclick at theme: expected a data-* or aria-* name that crudui does not write"
+    }
+  },
+  {
+    "name": "control-attributes-uppercase-name",
+    "note": "A data-* name with an uppercase letter is refused.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "theme": {
+          "type": "text",
+          "label": "Theme",
+          "design": {
+            "attributes": {
+              "data-Key": "x"
+            }
+          }
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid design.attributes.data-Key at theme: expected a data-* or aria-* name that crudui does not write"
+    }
+  },
+  {
+    "name": "control-attributes-bare-prefix",
+    "note": "A prefix without a name after it is refused.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "theme": {
+          "type": "text",
+          "label": "Theme",
+          "design": {
+            "attributes": {
+              "aria-": "x"
+            }
+          }
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid design.attributes.aria- at theme: expected a data-* or aria-* name that crudui does not write"
+    }
+  },
+  {
+    "name": "control-attributes-owned-name",
+    "note": "A name crudui writes on a control is refused.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "theme": {
+          "type": "text",
+          "label": "Theme",
+          "design": {
+            "attributes": {
+              "data-rule-name": "x"
+            }
+          }
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid design.attributes.data-rule-name at theme: expected a data-* or aria-* name that crudui does not write"
+    }
+  },
+  {
+    "name": "control-attributes-owned-prefix",
+    "note": "A data-crudui-* name on the node root is refused.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "theme": {
+          "type": "text",
+          "label": "Theme",
+          "design": {
+            "wrapper": {
+              "attributes": {
+                "data-crudui-row-key": "x"
+              }
+            }
+          }
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid design.wrapper.attributes.data-crudui-row-key at theme: expected a data-* or aria-* name that crudui does not write"
+    }
+  },
+  {
+    "name": "control-attributes-names-before-values",
+    "note": "Every name is checked before any value: the refused name fails although an earlier value is not a string.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "theme": {
+          "type": "text",
+          "label": "Theme",
+          "design": {
+            "attributes": {
+              "data-count": 1,
+              "data-field-path": "x"
+            }
+          }
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid design.attributes.data-field-path at theme: expected a data-* or aria-* name that crudui does not write"
+    }
+  },
+  {
+    "name": "control-attributes-value-type",
+    "note": "An attribute value must be a string.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "theme": {
+          "type": "text",
+          "label": "Theme",
+          "design": {
+            "attributes": {
+              "data-x": "ok",
+              "aria-hidden": true
+            }
+          }
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid design.attributes.aria-hidden at theme: expected a string"
+    }
+  },
+  {
+    "name": "control-attributes-label-node",
+    "note": "Only the wrapper node accepts attributes.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "theme": {
+          "type": "text",
+          "label": "Theme",
+          "design": {
+            "label": {
+              "attributes": {
+                "data-x": "1"
+              }
+            }
+          }
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid design.label.attributes at theme: unknown key"
+    }
+  },
+  {
+    "name": "control-attributes-form-button",
+    "note": "A form button design does not accept attributes.",
+    "spec": {
+      "type": "group",
+      "buttons": [
+        {
+          "type": "submit",
+          "design": {
+            "attributes": {
+              "data-x": "1"
+            }
+          }
+        }
+      ],
+      "properties": {
+        "theme": {
+          "type": "text"
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid design.attributes at form.buttons.0: unknown key"
+    }
   }
 ]

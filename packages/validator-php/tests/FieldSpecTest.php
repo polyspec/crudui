@@ -118,6 +118,21 @@ final class FieldSpecTest extends TestCase
     }
 
     /**
+     * Declared attributes (docs/spec/schema.md, Declared attributes): design.attributes and
+     * design.wrapper.attributes are accepted; another design node rejects attributes.
+     */
+    public function testDesignDeclaredAttributes(): void
+    {
+        self::assertSame([], FieldSpec::validate(['design' => [
+            'attributes' => ['data-setting' => 'theme', 'aria-describedby' => 'help'],
+            'wrapper' => ['class' => 'row', 'attributes' => ['data-section' => 'look']],
+        ]]));
+        self::assertSame(['unknown key under design.label: attributes'], FieldSpec::validate(['design' => ['label' => ['attributes' => ['data-x' => '1']]]]));
+        self::assertContains('attributes', FieldSpec::DESIGN_NODE_MAP);
+        self::assertContains('wrapper.attributes', FieldSpec::DESIGN_NODE_MAP);
+    }
+
+    /**
      * `x`-prefixed comment keys are rejected (x-strip is upstream).
      */
     public function testCommentKeysRejected(): void

@@ -162,6 +162,7 @@ function groupButtonHtml(
   o: OptionModel,
   type: 'radio' | 'checkbox',
   shared: Attrs,
+  declared: Attrs,
   labelClass: string
 ): string {
   const attrs: Attrs = {
@@ -175,7 +176,7 @@ function groupButtonHtml(
   if (type === 'radio') attrs['data-is-default'] = o.isDefault ? '1' : '';
   const checked = o.selected ? ' checked=""' : '';
   // Insert checked manually (serializeAttrs has no boolean form).
-  const input = `<input${serializeBtn(attrs)}${checked}>`;
+  const input = `<input${serializeBtn(attrs)}${checked}${serializeBtn(declared)}>`;
   const forAttr = o.id ? ` for="${escAttr(o.id)}"` : '';
   return (
     input +
@@ -194,11 +195,13 @@ function GroupButton({
   o,
   type,
   shared,
+  declared,
   labelClass,
 }: {
   o: OptionModel;
   type: 'radio' | 'checkbox';
   shared: Attrs;
+  declared: Attrs;
   labelClass: string;
 }): React.ReactElement {
   const attrs: Record<string, unknown> = {
@@ -212,7 +215,7 @@ function GroupButton({
   if (type === 'radio') attrs['data-is-default'] = o.isDefault ? '1' : '';
   return (
     <>
-      <input {...attrs} {...(o.selected ? { defaultChecked: true } : {})} />
+      <input {...attrs} {...(o.selected ? { defaultChecked: true } : {})} {...declared} />
       <label htmlFor={o.id} className={labelClass}>
         <span>{o.label}</span>
       </label>
@@ -224,19 +227,20 @@ function GroupButton({
 function Choices({ w }: { w: WidgetModel }): React.ReactElement {
   const type: 'radio' | 'checkbox' = w.kind === 'choice' ? 'radio' : 'checkbox';
   const shared = (w.extra?.input ?? {}) as Attrs;
+  const declared = (w.extra?.option ?? {}) as Attrs;
   const props = plainProps(w.attrs);
   const labelClass = w.itemLabelClass ?? '';
   // Opaque on* attrs live on the per-item inputs → serialize the group body raw.
   if (hasEventAttr(shared)) {
     const html = (w.options ?? [])
-      .map((o) => groupButtonHtml(o, type, shared, labelClass))
+      .map((o) => groupButtonHtml(o, type, shared, declared, labelClass))
       .join('');
     return <RawContainer {...props} html={html} />;
   }
   return (
     <div {...props}>
       {(w.options ?? []).map((o, i) => (
-        <GroupButton key={i} o={o} type={type} shared={shared} labelClass={labelClass} />
+        <GroupButton key={i} o={o} type={type} shared={shared} declared={declared} labelClass={labelClass} />
       ))}
     </div>
   );

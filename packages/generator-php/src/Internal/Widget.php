@@ -61,6 +61,20 @@ final class Widget
                 $option->id = $ctx->id . ':' . $i;
             }
         }
+        // Declared control attributes follow the attributes crudui writes on the control.
+        $attributes = Design::declared($spec->design ?? null, false);
+        if ($attributes !== Missing::Value) {
+            if ($model->layout === 'choices') {
+                if (isset($model->extra->input)) {
+                    $model->extra->option = $attributes;
+                }
+            } else {
+                $target = $model->extra->file ?? $model->attrs;
+                foreach (get_object_vars($attributes) as $name => $attribute) {
+                    $target->{$name} = $attribute;
+                }
+            }
+        }
         return $model;
     }
 

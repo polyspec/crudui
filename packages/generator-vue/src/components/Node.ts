@@ -110,6 +110,7 @@ export function nodeVNode(vm: NodeVM, errors: NodeErrors = NO_ERRORS): VNode {
     ...(vm.key !== undefined ? { 'data-crudui-row-key': vm.key } : {}),
     ...(vm.lang !== undefined ? { 'data-lang': vm.lang } : {}),
     hidden: vm.hidden,
+    ...vm.attributes,
   }, [
     // Only grammar nodes: an absent header or footer adds no child, so no placeholder comment.
     ...[headerSlotVNode(vm)].filter((header): header is VNode => header !== null),

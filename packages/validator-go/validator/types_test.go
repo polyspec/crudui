@@ -227,6 +227,23 @@ func TestClosedBucketsRejectUnknownKeys(t *testing.T) {
 	}
 }
 
+// Declared attributes (docs/spec/schema.md, Declared attributes): design.attributes and
+// design.wrapper.attributes keep their order; other nodes and non-string values are rejected.
+func TestDesignDeclaredAttributes(t *testing.T) {
+	roundTrip(t, `{"design":{"class":"c","attributes":{"data-setting":"theme","aria-describedby":"help"},"wrapper":{"class":"row","attributes":{"data-section":"look"}}}}`)
+	cases := map[string]string{
+		`{"design":{"label":{"attributes":{"data-x":"1"}}}}`: `model: unknown key "attributes" in design.label`,
+		`{"design":{"attributes":{"data-x":1}}}`:             `model: attribute "data-x" is not a string`,
+		`{"design":{"wrapper":{"attributes":"data-x"}}}`:     `model: attributes must be an object`,
+	}
+	for in, want := range cases {
+		var f FieldSpec
+		if err := json.Unmarshal([]byte(in), &f); err == nil || !strings.HasPrefix(err.Error(), want) {
+			t.Fatalf("%s: want %s, got %v", in, want, err)
+		}
+	}
+}
+
 func TestValidateExtraStructuralRoundTrip(t *testing.T) {
 	in := `{"validate":{"required":true,"minlength":3,"in":{"a":"A"}}}`
 	var f FieldSpec

@@ -766,6 +766,36 @@ static ps_value *ordered_widget(ps_value *model)
     return model;
 }
 
+const ps_value *ps_declared_attributes(const ps_value *spec, bool wrapper)
+{
+    const ps_value *design = member(spec, "design");
+    const ps_value *attributes = member(wrapper ? member(design, "wrapper") : design, "attributes");
+    return attributes && attributes->kind == PS_OBJECT && ps_size(attributes) ? attributes : NULL;
+}
+
+bool ps_append_attributes(ps_value *object, const ps_value *attributes)
+{
+    for (size_t i = 0; attributes && i < ps_size(attributes); ++i)
+        if (!ps_set_text(object, ps_key(attributes, i), ps_value_clone(ps_at(attributes, i)))) return false;
+    return true;
+}
+
+/* Add the declared control attributes after the attributes crudui writes on the control: attrs,
+   extra.file of a file layout, or extra.option of a choices layout with option inputs. */
+static bool append_declared(ps_value *model, const ps_value *spec)
+{
+    const ps_value *attributes = ps_declared_attributes(spec, false);
+    if (!attributes) return true;
+    ps_value *extra = ps_get_mut(model, "extra");
+    if (ps_is_string(member(model, "layout"), "choices")) {
+        if (!member(extra, "input")) return true;
+        ps_value *option = ps_value_clone(attributes);
+        return option && ps_set(extra, "option", option);
+    }
+    ps_value *file = ps_get_mut(extra, "file");
+    return ps_append_attributes(file ? file : ps_get_mut(model, "attrs"), attributes);
+}
+
 ps_value *ps_widget(const ps_value *spec, const ps_value *value, bool value_present,
                     ps_text path, const ps_value *design, ps_text key_prefix,
                     ps_text id_prefix, ps_text language,
@@ -805,6 +835,7 @@ ps_value *ps_widget(const ps_value *spec, const ps_value *value, bool value_pres
                 if (!ok) { ps_value_free(model); model = NULL; break; }
             }
         }
+        if (model && !append_declared(model, spec)) { ps_value_free(model); model = NULL; }
     }
     free(id.bytes); return ordered_widget(model);
 }

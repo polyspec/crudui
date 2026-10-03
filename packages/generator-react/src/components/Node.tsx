@@ -110,6 +110,7 @@ export function Node({ vm }: { vm: NodeVM }): React.ReactElement {
       {...(vm.key !== undefined ? { 'data-crudui-row-key': vm.key } : {})}
       {...(vm.lang !== undefined ? { 'data-lang': vm.lang } : {})}
       hidden={vm.hidden}
+      {...vm.attributes}
     >
       <HeaderSlot vm={vm} />
       <Body vm={vm} />

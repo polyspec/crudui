@@ -401,7 +401,7 @@ function textRequest(feature, fixture) {
 }
 const listCases = JSON.parse(await readFile(path.join(ROOT, 'tests/fixtures/list-render/cases.json'), 'utf8'));
 const detailCases = JSON.parse(await readFile(path.join(ROOT, 'tests/fixtures/detail-render/cases.json'), 'utf8'));
-assert.equal(formCases.length, 118, 'The form fixture inventory changed; review coverage before changing this assertion');
+assert.equal(formCases.length, 139, 'The form fixture inventory changed; review coverage before changing this assertion');
 assert.equal(listCases.length, 156, 'The list fixture inventory changed; review coverage before changing this assertion');
 assert.equal(detailCases.length, 62, 'The detail fixture inventory changed; review coverage before changing this assertion');
 

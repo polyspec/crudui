@@ -120,14 +120,23 @@ func objectList(v any) []*Object {
 	}
 	return out
 }
+
+// styleLast returns the attributes with style moved last, as an ordinary control writes them.
+func styleLast(a *Object) *Object {
+	if !a.Has("style") {
+		return a
+	}
+	a = a.Clone()
+	style := read(a, "style")
+	a.Delete("style")
+	a.Set("style", style)
+	return a
+}
 func controlHTML(w *Object, raw bool, selection string) string {
 	tag := stringAt(w, "tag")
 	a := object(read(w, "attrs"))
-	if !raw && a.Has("style") {
-		a = a.Clone()
-		style := read(a, "style")
-		a.Delete("style")
-		a.Set("style", style)
+	if !raw {
+		a = styleLast(a)
 	}
 	switch tag {
 	case "select":
@@ -198,6 +207,7 @@ func renderWidget(w *Object) string {
 			if raw && at.Has("checked") {
 				at.Set("checked", "")
 			}
+			merge(at, read(read(w, "extra"), "option"))
 			body += inputHTML(at, raw)
 			label := NewObject()
 			if id := stringAt(o, "id"); id != "" {
@@ -226,7 +236,7 @@ func renderWidget(w *Object) string {
 		}
 		return `<div class="crudui-widget">` + body + `</div>`
 	case "display":
-		return "<div" + attrs(a, false, false) + ">" + stringAt(w, "rawHtml") + "</div>"
+		return "<div" + attrs(styleLast(a), false, false) + ">" + stringAt(w, "rawHtml") + "</div>"
 	case "search":
 		style := ""
 		if s := stringAt(w, "styleChrome"); s != "" {
@@ -326,6 +336,7 @@ func bodyHTML(vm *Object, errors map[*Object][]string) string {
 		if read(box, "checked") == true {
 			input.Set("checked", true)
 		}
+		merge(input, read(box, "attributes"))
 		inner = inputHTML(input, false) + element("label", NewObject("for", stringAt(box, "id")), escape(stringAt(box, "caption")))
 	} else if w := object(read(vm, "widget")); w != nil {
 		inner = renderWidget(w)
@@ -375,7 +386,7 @@ func nodeHTML(vm *Object, errors map[*Object][]string) string {
 	if read(vm, "sticky") == true && header != "" {
 		header = element("div", NewObject("class", "crudui-node__header-container"), header)
 	}
-	return "<div" + attrs(a, false, false) + flag("hidden", read(vm, "hidden") == true) + ">" + header + bodyHTML(vm, errors) + errorsHTML("crudui-node", errors[vm]) + footer + "</div>"
+	return "<div" + attrs(a, false, false) + flag("hidden", read(vm, "hidden") == true) + attrs(object(read(vm, "attributes")), false, false) + ">" + header + bodyHTML(vm, errors) + errorsHTML("crudui-node", errors[vm]) + footer + "</div>"
 }
 func nodesHTML(nodes []*Object, errors map[*Object][]string) string {
 	var out strings.Builder

@@ -62,7 +62,39 @@ const NOTE_FIELD = '<div class="crudui-node crudui-node--field" data-field-path=
 const describedForm = (description: string) =>
   `<div class="crudui-form">${description}<div class="crudui-form__body">${NOTE_FIELD}</div>${FOOTER_EN}`;
 
+// Declared attribute checks (docs/spec/schema.md, Declared attributes).
+const ATTRIBUTE_NAME = (key: string, name: string, path = 'theme') => ({ code: 'INVALID_FORM_INPUT', message: `Invalid ${key}.${name} at ${path}: expected a data-* or aria-* name that crudui does not write` });
+const attributesCase = (name: string, note: string, design: Record<string, unknown>, expectError: { code: string; message: string }) =>
+  ({ name, note, spec: G({ theme: { type: 'text', label: 'Theme', design } }), options: { language: 'en' }, expectError });
+
 export const WRITTEN_CASES = [
+  attributesCase('control-attributes-not-object', 'design.attributes must be an object.',
+    { attributes: 'data-x' }, { code: 'INVALID_FORM_INPUT', message: 'Invalid design.attributes at theme: expected an object' }),
+  attributesCase('control-attributes-wrapper-list', 'design.wrapper.attributes must be an object, not a list.',
+    { wrapper: { attributes: ['data-x'] } }, { code: 'INVALID_FORM_INPUT', message: 'Invalid design.wrapper.attributes at theme: expected an object' }),
+  attributesCase('control-attributes-event-name', 'An event attribute name is neither data-* nor aria-*.',
+    { attributes: { onclick: 'go()' } }, ATTRIBUTE_NAME('design.attributes', 'onclick')),
+  attributesCase('control-attributes-uppercase-name', 'A data-* name with an uppercase letter is refused.',
+    { attributes: { 'data-Key': 'x' } }, ATTRIBUTE_NAME('design.attributes', 'data-Key')),
+  attributesCase('control-attributes-bare-prefix', 'A prefix without a name after it is refused.',
+    { attributes: { 'aria-': 'x' } }, ATTRIBUTE_NAME('design.attributes', 'aria-')),
+  attributesCase('control-attributes-owned-name', 'A name crudui writes on a control is refused.',
+    { attributes: { 'data-rule-name': 'x' } }, ATTRIBUTE_NAME('design.attributes', 'data-rule-name')),
+  attributesCase('control-attributes-owned-prefix', 'A data-crudui-* name on the node root is refused.',
+    { wrapper: { attributes: { 'data-crudui-row-key': 'x' } } }, ATTRIBUTE_NAME('design.wrapper.attributes', 'data-crudui-row-key')),
+  attributesCase('control-attributes-names-before-values', 'Every name is checked before any value: the refused name fails although an earlier value is not a string.',
+    { attributes: { 'data-count': 1, 'data-field-path': 'x' } }, ATTRIBUTE_NAME('design.attributes', 'data-field-path')),
+  attributesCase('control-attributes-value-type', 'An attribute value must be a string.',
+    { attributes: { 'data-x': 'ok', 'aria-hidden': true } }, { code: 'INVALID_FORM_INPUT', message: 'Invalid design.attributes.aria-hidden at theme: expected a string' }),
+  attributesCase('control-attributes-label-node', 'Only the wrapper node accepts attributes.',
+    { label: { attributes: { 'data-x': '1' } } }, { code: 'INVALID_FORM_INPUT', message: 'Invalid design.label.attributes at theme: unknown key' }),
+  {
+    name: 'control-attributes-form-button',
+    note: 'A form button design does not accept attributes.',
+    spec: { type: 'group', buttons: [{ type: 'submit', design: { attributes: { 'data-x': '1' } } }], properties: { theme: { type: 'text' } } },
+    options: { language: 'en' },
+    expectError: { code: 'INVALID_FORM_INPUT', message: 'Invalid design.attributes at form.buttons.0: unknown key' },
+  },
   {
     name: 'root-description',
     note: 'The translated root description is the first child of crudui-form, before the body; its text is escaped.',

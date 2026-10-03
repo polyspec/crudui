@@ -54,7 +54,7 @@ final class Template
             }
             $raw = (array) $raw;
             $path = $parent === '' ? (string) $name : $parent . '.' . $name;
-            self::checkDeclarations($raw, $path);
+            self::checkDeclarations($raw, $path, true);
             $children = $raw['properties'] ?? null;
             unset($raw['properties']);
             $out[] = (object) ['name' => (string) $name, 'spec' => Value::copy((object) $raw), 'children' => $children instanceof stdClass || is_array($children) && !array_is_list($children) ? self::fields((array) $children, $path) : []];
@@ -131,12 +131,15 @@ final class Template
             if ($declared['type'] === 'link' && !array_key_exists('href', $declared)) {
                 $fail($key . '.href', 'a link target');
             }
-            self::checkDeclarations($declared, 'form.' . $key);
+            self::checkDeclarations($declared, 'form.' . $key, false);
         }
     }
 
-    /** Reject a wrong value type or an unknown key in one field's multiple, lang, design and behavior declarations. */
-    private static function checkDeclarations(array $spec, string $path): void
+    /**
+     * Reject a wrong value type or an unknown key in one field's multiple, lang, design and behavior
+     * declarations. Only a form field ($field) accepts declared attributes.
+     */
+    private static function checkDeclarations(array $spec, string $path, bool $field): void
     {
         $fail = static function (string $key, string $expected) use ($path): never {
             self::invalid($key, $path, $expected);
@@ -204,18 +207,67 @@ final class Template
             }
         }
         if (array_key_exists('design', $spec)) {
-            self::checkDesignDeclaration($spec['design'], $path);
+            self::checkDesignDeclaration($spec['design'], $path, $field);
         }
         if (self::isObject($spec['behavior'] ?? null)) {
             self::closed('behavior', (array) $spec['behavior'], ['onchange', 'onclick', 'onload'], $path);
         }
     }
 
+    /** Prefixes of attribute names crudui writes on a control or a node root. */
+    private const OWNED_ATTRIBUTE_PREFIXES = ['data-crudui-', 'data-source-'];
+
+    /** Attribute names crudui writes on a control or a node root. */
+    private const OWNED_ATTRIBUTE_NAMES = [
+        'data-field-path', 'data-lang', 'data-name', 'data-rule-name', 'data-default', 'data-is-default',
+        'data-type', 'data-height', 'data-upload-server', 'data-fileserver', 'data-server', 'data-max-tags',
+        'data-keyword-min-length', 'data-delay', 'data-api-server', 'data-max-width', 'data-min-width',
+        'data-max-height', 'data-min-height', 'data-preview-max-width', 'data-preview-max-height',
+        'data-unsupported-type',
+    ];
+
+    /**
+     * Whether a name is a data-* or aria-* name crudui does not write: lowercase letters, digits,
+     * "-", "_" and "." after the prefix, starting with a letter or a digit.
+     */
+    private static function declaredAttributeName(string $name): bool
+    {
+        if (preg_match('/\A(?:data|aria)-[a-z0-9][a-z0-9._-]*\z/', $name) !== 1 || in_array($name, self::OWNED_ATTRIBUTE_NAMES, true)) {
+            return false;
+        }
+        foreach (self::OWNED_ATTRIBUTE_PREFIXES as $prefix) {
+            if (str_starts_with($name, $prefix)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /** Reject declared attributes at $key that are not an object of permitted names to strings; names first. */
+    private static function checkDeclaredAttributes(mixed $attributes, string $key, string $path): void
+    {
+        if (!self::isObject($attributes)) {
+            self::invalid($key, $path, 'an object');
+        }
+        $attributes = (array) $attributes;
+        foreach (array_keys($attributes) as $name) {
+            if (!self::declaredAttributeName((string) $name)) {
+                self::invalid($key . '.' . $name, $path, 'a data-* or aria-* name that crudui does not write');
+            }
+        }
+        foreach ($attributes as $name => $value) {
+            if (!is_string($value)) {
+                self::invalid($key . '.' . $name, $path, 'a string');
+            }
+        }
+    }
+
     /**
      * Reject a wrong value type or an unknown key in one declared design: a form field or button,
-     * a list or detail specification, or a list column or detail field.
+     * a list or detail specification, or a list column or detail field. Only a form field ($field)
+     * accepts attributes and wrapper.attributes.
      */
-    public static function checkDesignDeclaration(mixed $design, string $path): void
+    public static function checkDesignDeclaration(mixed $design, string $path, bool $field = false): void
     {
         if (!is_bool($design) && !self::isObject($design)) {
             self::invalid('design', $path, 'a boolean or an object');
@@ -224,7 +276,9 @@ final class Template
             return;
         }
         $design = (array) $design;
-        self::closed('design', $design, ['show', 'class', 'style', 'label', 'wrapper', 'group', 'prepend'], $path);
+        self::closed('design', $design, $field
+            ? ['show', 'class', 'style', 'attributes', 'label', 'wrapper', 'group', 'prepend']
+            : ['show', 'class', 'style', 'label', 'wrapper', 'group', 'prepend'], $path);
         if (array_key_exists('show', $design) && !is_bool($design['show']) && !self::conditionValue($design['show'])) {
             self::invalid('design.show', $path, 'an expression, a boolean or a condition map');
         }
@@ -232,6 +286,9 @@ final class Template
             if (array_key_exists($key, $design) && !self::conditionValue($design[$key])) {
                 self::invalid('design.' . $key, $path, 'a string or a condition map');
             }
+        }
+        if (array_key_exists('attributes', $design)) {
+            self::checkDeclaredAttributes($design['attributes'], 'design.attributes', $path);
         }
         foreach (['label', 'wrapper', 'group', 'prepend'] as $node) {
             if (!array_key_exists($node, $design)) {
@@ -241,11 +298,14 @@ final class Template
                 self::invalid('design.' . $node, $path, 'an object');
             }
             $values = (array) $design[$node];
-            self::closed('design.' . $node, $values, ['class', 'style'], $path);
+            self::closed('design.' . $node, $values, $field && $node === 'wrapper' ? ['class', 'style', 'attributes'] : ['class', 'style'], $path);
             foreach (['class', 'style'] as $key) {
                 if (array_key_exists($key, $values) && !self::conditionValue($values[$key])) {
                     self::invalid('design.' . $node . '.' . $key, $path, 'a string or a condition map');
                 }
+            }
+            if (array_key_exists('attributes', $values)) {
+                self::checkDeclaredAttributes($values['attributes'], 'design.' . $node . '.attributes', $path);
             }
         }
     }

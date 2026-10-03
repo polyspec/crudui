@@ -124,7 +124,7 @@ static bool member_valid(ps_text name, const ps_value *member, bool list, const 
     if (valid && label && !is_content(label))
         valid = ps_declaration_error(PS_TEXT("label"), path, content, error);
     if (valid && format) valid = format_valid(format, path, error);
-    if (valid && design) valid = ps_design_declaration_valid(design, path, error);
+    if (valid && design) valid = ps_design_declaration_valid(design, path, false, error);
     if (valid && sortable && sortable->kind != PS_BOOL && sortable->kind != PS_STRING && !is_condition_map(sortable))
         valid = ps_declaration_error(PS_TEXT("sortable"), path, "a boolean, an expression or a condition map", error);
     free(owned.bytes);
@@ -170,7 +170,7 @@ static bool action_members_valid(const ps_value *action, ps_text path, ps_value 
         for (size_t i = 0; i < ps_size(behavior); ++i)
             if (!behavior_entry_valid(ps_key(behavior, i), ps_at(behavior, i), path, error)) return false;
     }
-    return !design || ps_design_declaration_valid(design, path, error);
+    return !design || ps_design_declaration_valid(design, path, false, error);
 }
 
 /* One list or detail action at actions.<name>. */
@@ -247,7 +247,7 @@ bool ps_display_declarations_valid(const ps_value *spec, const char *own, const 
             return unknown_key(PS_TEXT(""), key, own_text, error);
     }
     const ps_value *design = ps_get(spec, "design");
-    if (design && !ps_design_declaration_valid(design, own_text, error)) return false;
+    if (design && !ps_design_declaration_valid(design, own_text, false, error)) return false;
     const ps_value *declared = ps_get(spec, members);
     for (size_t i = 0; i < ps_size(declared); ++i)
         if (!member_valid(ps_key(declared, i), ps_at(declared, i), list, members, error)) return false;

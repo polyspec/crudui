@@ -592,7 +592,35 @@ pub(crate) fn evaluate_widget(field_type: &str, ctx: &WidgetContext<'_>) -> Opti
             option["id"] = format!("{id}:{i}").into();
         }
     }
+    // Declared control attributes follow the attributes crudui writes on the control.
+    if let Some(attributes) = declared_attributes(ctx.spec, false) {
+        if model["layout"] == "choices" {
+            if model["extra"].get("input").is_some() {
+                model["extra"]["option"] = attributes.into();
+            }
+        } else if let Some(file) = model
+            .get_mut("extra")
+            .and_then(|extra| extra.get_mut("file"))
+            .and_then(Value::as_object_mut)
+        {
+            file.extend(attributes);
+        } else if let Some(attrs) = model["attrs"].as_object_mut() {
+            attrs.extend(attributes);
+        }
+    }
     Some(ordered_widget(model))
+}
+
+/// The declared control attributes (`design.attributes`) or, with `wrapper`, the node root
+/// attributes (`design.wrapper.attributes`) of a field; `None` when none is declared.
+pub(crate) fn declared_attributes(spec: &Value, wrapper: bool) -> Option<Map<String, Value>> {
+    let design = &spec["design"];
+    let attributes = if wrapper {
+        &design["wrapper"]["attributes"]
+    } else {
+        &design["attributes"]
+    };
+    attributes.as_object().filter(|a| !a.is_empty()).cloned()
 }
 
 /// Widget model members in output order.

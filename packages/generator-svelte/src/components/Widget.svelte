@@ -33,14 +33,6 @@
 {:else if isDisplayRaw}
   <!-- RAW html display (dummy/image-viewer) — unescaped content. -->
   <!-- eslint-disable svelte/no-at-html-tags -- dummy and image-viewer widgets declare raw HTML content. -->
-  {#if model.attrs.class !== undefined && model.attrs.style !== undefined}
-    <div class={model.attrs.class} style={model.attrs.style} {@attach patched(model.rawHtml ?? '')}>{@html firstMarkup(() => model.rawHtml ?? '')}</div>
-  {:else if model.attrs.class !== undefined}
-    <div class={model.attrs.class} {@attach patched(model.rawHtml ?? '')}>{@html firstMarkup(() => model.rawHtml ?? '')}</div>
-  {:else if model.attrs.style !== undefined}
-    <div style={model.attrs.style} {@attach patched(model.rawHtml ?? '')}>{@html firstMarkup(() => model.rawHtml ?? '')}</div>
-  {:else}
-    <div {@attach patched(model.rawHtml ?? '')}>{@html firstMarkup(() => model.rawHtml ?? '')}</div>
-  {/if}
+  <div {...model.attrs} {@attach patched(model.rawHtml ?? '')}>{@html firstMarkup(() => model.rawHtml ?? '')}</div>
   <!-- eslint-enable svelte/no-at-html-tags -->
 {/if}

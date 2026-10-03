@@ -28,7 +28,7 @@
   const errors = $derived(errorsOf?.()?.get(vm) ?? []);
 </script>
 
-<div class={classes('crudui-node', `crudui-node--${vm.kind}`, vm.sticky && 'crudui-node--sticky', vm.className)} style={rootStyle(vm)} data-field-path={pathAttribute} data-crudui-row-key={vm.key} data-lang={vm.lang} hidden={vm.hidden}
+<div class={classes('crudui-node', `crudui-node--${vm.kind}`, vm.sticky && 'crudui-node--sticky', vm.className)} style={rootStyle(vm)} data-field-path={pathAttribute} data-crudui-row-key={vm.key} data-lang={vm.lang} hidden={vm.hidden} {...vm.attributes}
   >{#if hasHeader}{#if vm.sticky}<div class="crudui-node__header-container"><Header vm={vm} /></div>{:else}<Header vm={vm} />{/if}{/if
   }{#if !vm.checkbox && widgetRaw !== null}<div class={classes('crudui-node__body', vm.body.className)} style={vm.body.style} id={vm.body.id} hidden={bodyHidden} {@attach widgetRaw !== null && patched(widgetRaw)}
     >{@html firstMarkup(() => widgetRaw)}<!-- eslint-disable-line svelte/no-at-html-tags -- widgetRootRaw serializes escaped control bytes plus the widget's declared host script (raw.ts). --></div

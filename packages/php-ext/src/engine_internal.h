@@ -245,6 +245,13 @@ ps_chars ps_format_page(const char *template, size_t page);
 
 ps_value *ps_design(const ps_value *design, const ps_value *data, ps_text path);
 bool ps_widget_supported(ps_text type);
+/*
+ * The declared control attributes of a field spec (design.attributes) or, with wrapper, its node
+ * root attributes (design.wrapper.attributes); NULL when none is declared.
+ */
+const ps_value *ps_declared_attributes(const ps_value *spec, bool wrapper);
+/* Append copies of the members of attributes to object in their order; false on allocation failure. */
+bool ps_append_attributes(ps_value *object, const ps_value *attributes);
 /* An absent key prefix has NULL bytes. */
 ps_value *ps_widget(const ps_value *spec, const ps_value *value, bool value_present,
                     ps_text path, const ps_value *design, ps_text key_prefix,
@@ -509,13 +516,14 @@ ps_value *ps_error_text(const char *kind, const char *code, ps_text message,
  * ps_declaration_error: "Invalid <key> at <path>: expected <expected>".
  * ps_known_keys: the first member of a closed bucket that is not allowed,
  * "Invalid <name>.<key> at <path>: unknown key".
- * ps_design_declaration_valid: the design declaration rules of a form field, a list or detail
- * specification, or a list column or detail field.
+ * ps_design_declaration_valid: the design declaration rules of a form field or button, a list or
+ * detail specification, or a list column or detail field; only a form field (field) accepts
+ * attributes and wrapper.attributes.
  */
 bool ps_declaration_error(ps_text key, ps_text path, const char *expected, ps_value **error);
 bool ps_known_keys(const ps_value *bucket, const char *name, const char *const *allowed,
                    size_t count, ps_text path, ps_value **error);
-bool ps_design_declaration_valid(const ps_value *design, ps_text path, ps_value **error);
+bool ps_design_declaration_valid(const ps_value *design, ps_text path, bool field, ps_value **error);
 /* The pagination declaration rules of a list at path (list.c). */
 bool ps_pagination_declaration_valid(const ps_value *pagination, ps_text path, ps_value **error);
 /*

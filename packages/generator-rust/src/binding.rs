@@ -3,7 +3,7 @@ use crate::design::resolve_design;
 use crate::messages::{form_messages, format_count, Messages};
 use crate::template::member_ordered_template;
 use crate::util::*;
-use crate::widget::{evaluate_widget, WidgetContext};
+use crate::widget::{declared_attributes, evaluate_widget, WidgetContext};
 use crate::{FieldTemplate, FormError, FormResult, FormTemplate};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
@@ -258,7 +258,7 @@ fn text_at<'a>(value: &'a Value, node: &str, key: &str) -> &'a str {
     value[node][key].as_str().unwrap_or("")
 }
 
-fn node_root(kind: &str, path: &str, design: &Value) -> Map<String, Value> {
+fn node_root(kind: &str, path: &str, design: &Value, spec: &Value) -> Map<String, Value> {
     let mut node = Map::new();
     put_string(&mut node, "kind", kind);
     put_string(&mut node, "path", path);
@@ -268,6 +268,9 @@ fn node_root(kind: &str, path: &str, design: &Value) -> Map<String, Value> {
         "style",
         style(text_at(design, "wrapper", "style")),
     );
+    if let Some(attributes) = declared_attributes(spec, true) {
+        node.insert("attributes".into(), attributes.into());
+    }
     node.insert("hidden".into(), (design["show"] != true).into());
     node
 }
@@ -408,7 +411,7 @@ impl Binding<'_> {
         }
         if spec["type"] == "group" {
             check_group(value_at(self.data, path), path)?;
-            let mut node = node_root("group", path, &design);
+            let mut node = node_root("group", path, &design, &spec);
             if let Some(header) = node_header(
                 vec![("label", label), ("description", description)],
                 &design,
@@ -445,7 +448,7 @@ impl Binding<'_> {
         scope: &Scope,
     ) -> FormResult<Value> {
         let kind = spec["type"].as_str().unwrap_or("");
-        let mut node = node_root("field", path, design);
+        let mut node = node_root("field", path, design, spec);
         if kind == "checkbox" || kind == "switcher" {
             if let Some(header) = node_header(vec![("description", description)], design) {
                 node.insert("header".into(), header);
@@ -456,16 +459,17 @@ impl Binding<'_> {
                 Some(value) => on(value),
                 None => spec.get("default").is_some_and(on),
             };
-            node.insert(
-                "checkbox".into(),
-                json!({
-                    "id": control_id(self.id_prefix,path),
-                    "name": bracket(path, self.key_prefix),
-                    "className": join_class(&["valid-target", text_at(design, "main", "class")]),
-                    "checked": checked,
-                    "caption": label.unwrap_or_default(),
-                }),
-            );
+            let mut checkbox = json!({
+                "id": control_id(self.id_prefix,path),
+                "name": bracket(path, self.key_prefix),
+                "className": join_class(&["valid-target", text_at(design, "main", "class")]),
+                "checked": checked,
+                "caption": label.unwrap_or_default(),
+            });
+            if let Some(attributes) = declared_attributes(spec, false) {
+                checkbox["attributes"] = attributes.into();
+            }
+            node.insert("checkbox".into(), checkbox);
             return Ok(node.into());
         }
         let widget = self.widget(spec, path, design, &scope.row_segments)?;
@@ -522,7 +526,7 @@ impl Binding<'_> {
             })
             .collect::<FormResult<Vec<_>>>()?;
         let count = Some(format_count(self.messages.count, keys.len()));
-        let mut node = node_root("collection", path, design);
+        let mut node = node_root("collection", path, design, spec);
         if let Some(header) = node_header(
             vec![
                 ("label", label),
@@ -659,7 +663,7 @@ impl Binding<'_> {
         scope: &Scope,
     ) -> FormResult<Value> {
         let title = Some(translate(settings.title, self.language));
-        let mut node = node_root("lang", path, design);
+        let mut node = node_root("lang", path, design, spec);
         if let Some(header) = node_header(
             vec![
                 ("label", label),

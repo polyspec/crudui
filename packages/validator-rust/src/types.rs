@@ -403,12 +403,15 @@ pub struct DesignSlot {
     /// Style for the primary input node.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub style: Option<ConditionValue>,
+    /// Attributes a form field declares for its control.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub attributes: Option<DeclaredAttributes>,
     /// Label-node appearance.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub label: Option<DesignNode>,
-    /// Wrapper-node appearance.
+    /// Wrapper-node appearance and declared attributes.
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub wrapper: Option<DesignNode>,
+    pub wrapper: Option<WrapperNode>,
     /// Group-node appearance.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub group: Option<DesignNode>,
@@ -429,6 +432,53 @@ pub struct DesignNode {
     /// Node style represented as an expression or condition map.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub style: Option<ConditionValue>,
+}
+
+/// Appearance and declared attributes of the wrapper node (the node root).
+///
+/// A closed bucket: `deny_unknown_fields` rejects every key except class, style and attributes.
+#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct WrapperNode {
+    /// Node class represented as an expression or condition map.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub class: Option<ConditionValue>,
+    /// Node style represented as an expression or condition map.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub style: Option<ConditionValue>,
+    /// Attributes a form field declares for the node root.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub attributes: Option<DeclaredAttributes>,
+}
+
+/// Attributes a form field declares for an element, in declaration order.
+///
+/// Deserialization rejects every value that is not a string; compilation checks the names.
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct DeclaredAttributes(pub Map<String, Value>);
+
+impl<'de> Deserialize<'de> for DeclaredAttributes {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let map = Map::<String, Value>::deserialize(deserializer)?;
+        if let Some((name, _)) = map.iter().find(|(_, value)| !value.is_string()) {
+            return Err(de::Error::custom(format!(
+                "attribute {name} is not a string"
+            )));
+        }
+        Ok(DeclaredAttributes(map))
+    }
+}
+
+impl Serialize for DeclaredAttributes {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.0.serialize(serializer)
+    }
 }
 
 /// Opaque client behavior scripts shared by all field types.
@@ -728,6 +778,25 @@ mod tests {
                 assert_eq!(v.email, Some(ConditionValue::Single(Value::Bool(true))));
             }
             other => panic!("expected validate config, got {other:?}"),
+        }
+    }
+
+    /// Declared attributes (docs/spec/schema.md, Declared attributes): `design.attributes` and
+    /// `design.wrapper.attributes` keep their order; other nodes and non-string values fail.
+    #[test]
+    fn design_declared_attributes() {
+        let text = r#"{"type":"text","design":{"attributes":{"data-setting":"theme","aria-describedby":"help"},"wrapper":{"class":"row","attributes":{"data-section":"look"}}}}"#;
+        let f = parse(text);
+        assert_eq!(serde_json::to_string(&f).unwrap(), text);
+        for invalid in [
+            r#"{"design":{"label":{"attributes":{"data-x":"1"}}}}"#,
+            r#"{"design":{"attributes":{"data-x":1}}}"#,
+            r#"{"design":{"wrapper":{"attributes":"data-x"}}}"#,
+        ] {
+            assert!(
+                serde_json::from_str::<FieldSpec>(invalid).is_err(),
+                "accepted {invalid}"
+            );
         }
     }
 

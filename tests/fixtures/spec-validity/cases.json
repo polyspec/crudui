@@ -514,6 +514,52 @@
     "engine": "pass"
   },
   {
+    "name": "ok-design-attributes",
+    "note": "A form field declares data-* and aria-* attributes for its control and its node root; validation loads the specification.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "theme": {
+          "type": "text",
+          "design": {
+            "attributes": {
+              "data-setting": "theme",
+              "aria-describedby": "theme-help"
+            },
+            "wrapper": {
+              "class": "row",
+              "attributes": {
+                "data-section": "look"
+              }
+            }
+          }
+        }
+      }
+    },
+    "expect": "ok",
+    "engine": "pass"
+  },
+  {
+    "name": "err-design-attributes-owned-name",
+    "note": "A declared attribute name that crudui writes fails the meta-schema; the runtime structure check does not read design and passes.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "theme": {
+          "type": "text",
+          "design": {
+            "attributes": {
+              "data-rule-name": "theme"
+            }
+          }
+        }
+      }
+    },
+    "expect": "fail",
+    "reason": "propertyNames",
+    "engine": "pass"
+  },
+  {
     "name": "err-items-choice-list-extra-member",
     "note": "A choice list element has only value and label. The runtime structure check does not read items; binding the field fails.",
     "spec": {

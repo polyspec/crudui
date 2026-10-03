@@ -134,7 +134,7 @@ fn check_member(name: &str, member: &Value, own: &str, members: &str) -> FormRes
         check_format(format, &path)?;
     }
     if let Some(design) = member.get("design") {
-        check_design_declaration(design, &path)?;
+        check_design_declaration(design, &path, false)?;
     }
     if member.get("sortable").is_some_and(|sortable| {
         !sortable.is_boolean() && !sortable.is_string() && !is_condition_map(sortable)
@@ -211,7 +211,7 @@ fn check_action(name: &str, action: &Value) -> FormResult<()> {
         }
     }
     if let Some(design) = action.get("design") {
-        check_design_declaration(design, &path)?;
+        check_design_declaration(design, &path, false)?;
     }
     Ok(())
 }
@@ -254,7 +254,7 @@ pub(crate) fn check_display_declarations(spec: &Value, own: &str, members: &str)
         }
     }
     if let Some(design) = spec.get("design") {
-        check_design_declaration(design, own)?;
+        check_design_declaration(design, own, false)?;
     }
     for (name, member) in spec
         .get(members)

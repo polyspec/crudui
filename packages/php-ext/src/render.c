@@ -147,7 +147,8 @@ static bool write_choice_group(render_buffer *out, const ps_value *model)
             (member(option, "id") && !attr_clone(attrs, "id", member(option, "id"))) ||
             (radio && !attr_string(attrs, "data-is-default",
                                    bool_member(option, "isDefault") ? "1" : "")) ||
-            (bool_member(option, "selected") && !attr_string(attrs, "checked", ""))) {
+            (bool_member(option, "selected") && !attr_string(attrs, "checked", "")) ||
+            !ps_append_attributes(attrs, member(extra, "option"))) {
             ps_value_free(attrs);
             return false;
         }
@@ -268,7 +269,7 @@ static bool write_widget(render_buffer *out, const ps_value *model)
     if (ps_text_is(layout, "choices")) return write_choice_group(out, model);
     if (ps_text_is(layout, "file")) return write_file_group(out, model);
     if (ps_text_is(layout, "display"))
-        return start_element(out, "div", member(model, "attrs"), false, false) &&
+        return start_element(out, "div", member(model, "attrs"), false, true) &&
             append(out, string_member(model, "rawHtml")) && end_element(out, "div", false);
     if (ps_text_is(layout, "search")) return write_search(out, model);
     if (ps_text_is(layout, "button"))
@@ -425,6 +426,7 @@ static bool write_body(render_buffer *out, const ps_value *node, const ps_form_r
             attr_text(input, "name", string_member(checkbox, "name")) &&
             attr_string(input, "type", "checkbox") && attr_string(input, "value", "1") &&
             (!bool_member(checkbox, "checked") || attr_string(input, "checked", "")) &&
+            ps_append_attributes(input, member(checkbox, "attributes")) &&
             start_element(out, "input", input, false, false) &&
             attr_text(label, "for", string_member(checkbox, "id")) &&
             write_text_element(out, "label", label, string_member(checkbox, "caption"));
@@ -499,6 +501,7 @@ static bool write_node(render_buffer *out, const ps_value *node, const ps_form_r
         (!member(node, "key") || attr_clone(attrs, "data-crudui-row-key", member(node, "key"))) &&
         (!member(node, "lang") || attr_clone(attrs, "data-lang", member(node, "lang"))) &&
         (!bool_member(node, "hidden") || attr_string(attrs, "hidden", "")) &&
+        ps_append_attributes(attrs, member(node, "attributes")) &&
         write_header(&header, node) && start_element(out, "div", attrs, false, false);
     if (!ok) header.failed = true;
     ps_chars header_html = take(&header);
