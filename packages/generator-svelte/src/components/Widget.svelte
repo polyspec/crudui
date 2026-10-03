@@ -3,7 +3,7 @@
 -->
 <script lang="ts">
   import {
-    affixHtml, widgetBody, fileGroupBody, isUnsupported, usesStableControl,
+    affixHtml, widgetBody, fileGroupBody, rangeBody, isUnsupported, usesStableControl,
     type AnyWidget,
   } from './widget';
   import { patched, firstMarkup } from './raw';
@@ -27,6 +27,8 @@
   {:else}
     <div class="crudui-widget" {@attach patched(widgetBody(model))}>{@html firstMarkup(() => widgetBody(model))}</div>
   {/if}
+{:else if model.layout === 'range'}
+  <div class="crudui-widget crudui-widget--range" {@attach patched(rangeBody(model))}>{@html firstMarkup(() => rangeBody(model))}</div>
 {:else if model.layout === 'file'}
   <div class="crudui-widget" {@attach patched(fileGroupBody(model))}>{@html firstMarkup(() => fileGroupBody(model))}</div>
   <!-- eslint-enable svelte/no-at-html-tags -->

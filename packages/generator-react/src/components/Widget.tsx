@@ -114,6 +114,28 @@ function WidgetGroup({ w }: { w: WidgetModel }): React.ReactElement {
   );
 }
 
+/** The output of a range widget: the value the form was rendered with. */
+function outputHtml(w: WidgetModel): string {
+  const forAttr = w.attrs.id !== undefined ? ` for="${escAttr(w.attrs.id)}"` : '';
+  return `<output class="crudui-widget__output"${forAttr}>${escText(w.text ?? '')}</output>`;
+}
+
+/** range layout: prepend? + range input + output + append? inside .crudui-widget--range. */
+function Range({ w }: { w: WidgetModel }): React.ReactElement {
+  if (hasEventAttr(w.attrs)) {
+    const html = affixHtml(w.prepend) + rawVoid('input', w.attrs) + outputHtml(w) + affixHtml(w.append);
+    return <RawContainer className="crudui-widget crudui-widget--range" html={html} />;
+  }
+  return (
+    <div className="crudui-widget crudui-widget--range">
+      {w.prepend ? <AffixSpan affix={w.prepend} /> : null}
+      <input {...inputProps(w.attrs)} />
+      <output className="crudui-widget__output" htmlFor={w.attrs.id}>{w.text ?? ''}</output>
+      {w.append ? <AffixSpan affix={w.append} /> : null}
+    </div>
+  );
+}
+
 /** bare layout: control alone (password/hidden/datetime). */
 function Bare({ w }: { w: WidgetModel }): React.ReactElement {
   // A bare control with opaque on* attrs is serialized at its CONTAINER root
@@ -319,6 +341,8 @@ export function Widget({ w }: { w: AnyWidget }): React.ReactElement | null {
       return <WidgetGroup w={w} />;
     case 'bare':
       return <Bare w={w} />;
+    case 'range':
+      return <Range w={w} />;
     case 'host-script':
       return <HostScript w={w} />;
     case 'choices':

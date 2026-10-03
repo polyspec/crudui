@@ -282,6 +282,22 @@ const NEW: FixtureCase[] = [
       title: { type: 'text', label: 'Title', lang: { only: ['en', 'ko'] }, design: { attributes: { 'data-setting': 'title' }, wrapper: { attributes: { 'data-section': 'title' } } } },
       look: { type: 'group', label: 'Look', design: { wrapper: { attributes: { 'aria-label': 'Look' } } }, properties: { size: { type: 'number', label: 'Size' } } } }),
     { tags: { __opt_a1__: 'x', __opt_b2__: 'y' }, title: { en: 'Hi', ko: '안녕' } }, { language: 'en' }),
+
+  // ---- H. RANGE FIELDS (docs/spec/form-markup.md, Range fields) ----------------
+  pass('range-default-unit', 'range → a range input with min, max and step from validate.range and validate.step, an output with the default value and the append affix as the unit.',
+    G({ volume: { type: 'range', label: 'Volume', default: 50, append: '%', validate: { range: [0, 100], step: 5 } } }),
+    {}, { language: 'en' }),
+  pass('range-bound-fraction', 'range with fractional bounds and step, a prepend affix and a bound value written in the input and the output.',
+    G({ balance: { type: 'range', label: 'Balance', prepend: 'L', validate: { range: [-1.5, 1.5], step: 0.25 } } }),
+    { balance: -0.75 }, { language: 'en' }),
+  pass('range-empty', 'range without a default or data → an empty value and an empty output.',
+    G({ level: { type: 'range', label: 'Level', validate: { required: true, range: [2, 10], step: 2 } } }),
+    {}, { language: 'en' }),
+  pass('range-behavior-design', 'range with a behavior attribute, design.class, design.style and declared attributes → the raw input and the output.',
+    G({ volume: { type: 'range', label: 'Volume', default: 50, append: 'dB', validate: { range: [0, 100], step: 10 },
+      behavior: { onchange: 'save(this)' }, design: { class: 'wide', style: 'width: 8rem', attributes: { 'data-setting': 'volume' } } },
+      gain: { type: 'range', validate: { range: [0, 1], step: 0.1 }, design: { style: 'width: 4rem', attributes: { 'aria-label': 'Gain' } } } }),
+    { gain: '0.3' }, { language: 'en' }),
 ];
 
 // Cases whose expected HTML is written from the specification, not rendered.

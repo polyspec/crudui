@@ -100,6 +100,13 @@ export function choicesHtml(w: WidgetModel): string {
   return `<div${serializeAttrs(w.attrs)}>${body}</div>`;
 }
 
+/** range body: prepend? + range input + output + append?, inside .crudui-widget--range. */
+export function rangeBody(w: WidgetModel): string {
+  const forAttr = w.attrs.id !== undefined ? ` for="${escAttr(w.attrs.id)}"` : '';
+  const output = `<output class="crudui-widget__output"${forAttr}>${escText(w.text ?? '')}</output>`;
+  return affixHtml(w.prepend) + rawVoid('input', w.attrs) + output + affixHtml(w.append);
+}
+
 /** file-group body: image/file (display+file+button) or cover (single file). */
 export function fileGroupBody(w: WidgetModel): string {
   const display = w.extra?.display;

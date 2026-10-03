@@ -560,6 +560,18 @@
     "engine": "pass"
   },
   {
+    "name": "ok-range-field",
+    "note": "A range field declares literal validate.range and validate.step, its bounds and increment; validation loads the specification.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "volume": { "type": "range", "label": "Volume", "default": 50, "append": "%", "validate": { "range": [0, 100], "step": 5 } }
+      }
+    },
+    "expect": "ok",
+    "engine": "pass"
+  },
+  {
     "name": "err-items-choice-list-extra-member",
     "note": "A choice list element has only value and label. The runtime structure check does not read items; binding the field fails.",
     "spec": {
