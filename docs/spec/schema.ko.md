@@ -140,6 +140,52 @@ CRUDUI 스키마는 `show_if`, `display_switch`, `display_target` 같은 별도 
 
 wrapper 아래에서 키는 `design.wrapper.attributes`입니다.
 
+### 배치
+
+`group` 필드는 `design.layout`으로 안에 있는 필드의 배치를 선언합니다. 값은 표현식이나 조건 맵이 아닌
+리터럴 문자열입니다.
+
+- `inline`: group 안의 모든 field 노드는 깊이에 관계없이 한 행입니다. 너비가 `--crudui-label-width`인
+  레이블 열은 레이블을 담고, 컨트롤 열은 컨트롤, 그 아래의 설명, 오류를 담습니다. 레이블이 없는 필드는
+  레이블 열을 비워 두므로 모든 행의 컨트롤이 정렬됩니다. group, collection, lang 노드는 쌓인 배치를
+  유지하며 안에 있는 field 노드에 inline 배치를 전달합니다. 반복 스칼라 필드의 행과 언어 필드의 항목은
+  field 노드가 아니므로 쌓인 배치를 유지합니다.
+- `line`: group의 자식 노드를 한 줄에 나란히 둡니다. 예를 들어 select 뒤에 작은 버튼을 둡니다. inline
+  배치 안에서 group은 한 행이며, 레이블은 레이블 열에, 줄은 컨트롤 열에 둡니다. line의 자식 노드는 inline
+  배치를 받지 않습니다.
+- `stacked`: 레이블을 컨트롤 위에 두며, 선언이 없는 폼의 배치입니다. group은 상속받을 inline 배치를
+  끝내기 위해 이 값을 선언합니다.
+
+`design.layout`이 없는 group은 둘러싼 group의 배치를 상속합니다. 반복 group은 `stacked`와 `inline`을
+받으며, 이 값은 행의 필드에 적용됩니다. 출력은 [폼 마크업](form-markup.ko.md#배치)이 정의합니다.
+
+```yaml
+appearance:
+  type: group
+  label: Appearance
+  design: { layout: inline }
+  properties:
+    theme: { type: select, label: Theme, items: { light: Light, dark: Dark }, description: Applies to every window. }
+    font:
+      type: group
+      label: Font
+      design: { layout: line }
+      properties:
+        family: { type: select, items: { mono: Mono, sans: Sans } }
+        size: { type: text }
+```
+
+컴파일은 `design.layout`을 `design.attributes` 다음, 디자인 노드 전에 검사하며 `INVALID_FORM_INPUT`와
+빈 위치로 실패합니다. 폼 루트는 배치를 받지 않으며, 컴파일은 루트의 `design.layout`을 `buttons` 다음에
+검사합니다. JSON Schema는 필드 선언을 기술하므로 루트를 group으로 검사하고, 루트의 배치는 컴파일이
+검사합니다.
+
+| 선언 | 메시지 |
+| --- | --- |
+| group이 아닌 필드, 폼 버튼, 폼 루트의 `design.layout` | `Invalid design.layout at {path}: unknown key`, 루트의 `{path}`는 `form` |
+| `stacked`, `inline`, `line`이 아닌 값 | `Invalid design.layout at {path}: expected stacked, inline or line` |
+| 반복 group의 `line` | `Invalid design.layout at {path}: expected stacked or inline` |
+
 [표현식 문법](expressions.ko.md)은 토크나이저, 파서, 평가기를 정의합니다.
 상대 경로, 와일드카드, 목록, 비교, 논리, 포함 여부, 조건부 값을 지원합니다.
 산술, 함수 호출, JavaScript 평가는 지원하지 않습니다. `behavior`의 이벤트 스크립트는
@@ -340,6 +386,7 @@ button·action 필드의 컨트롤 텍스트는 `content`에서만 가져오며 
 | `design.label`, `design.wrapper`, `design.group`, `design.prepend` | 객체 |
 | 해당 노드의 `class`와 `style` | 문자열 또는 조건 맵 |
 | `design.attributes`, `design.wrapper.attributes` | `data-*` 또는 `aria-*` 이름에서 문자열로의 객체; 폼 필드에서만([선언한 속성](#선언한-속성)) |
+| `design.layout` | `stacked`, `inline`, `line`; group 필드에서만([배치](#배치)) |
 
 컴파일은 선언 순서로 필드를 검사하며 자식보다 필드를 먼저 검사합니다. 스키마는
 `multiple`, `lang`, `design`, 디자인 노드, `behavior`를 닫습니다. 이들이 나열하지 않은 키는

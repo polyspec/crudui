@@ -40,6 +40,7 @@
   --crudui-submit-background: var(--crudui-surface);
   --crudui-submit-border: var(--crudui-border);
   --crudui-submit-text: var(--crudui-action-text);
+  --crudui-label-width: 10rem;
   --crudui-node-header-height: 2.75rem;
   --crudui-row-padding: 0.75rem;
   --crudui-row-border: 1px;
@@ -128,6 +129,54 @@
   width: 1rem;
   height: 1rem;
   margin: 0;
+}
+
+/*
+ * Inline layout: a field node is one row of a label column and a control column. The header takes
+ * no box, so its label is in the label column and its description below the control, followed by
+ * the errors. A node without a label leaves the label column empty, so every control aligns.
+ */
+.crudui-node--inline {
+  grid-template-columns: var(--crudui-label-width) minmax(0, 1fr);
+  column-gap: 0.75rem;
+  align-items: start;
+}
+
+.crudui-node--inline > .crudui-node__header {
+  display: contents;
+}
+
+.crudui-node--inline > .crudui-node__header > .crudui-node__label {
+  grid-column: 1;
+  grid-row: 1;
+  display: flex;
+  align-items: center;
+  min-height: var(--crudui-control-height);
+}
+
+.crudui-node--inline > .crudui-node__header > .crudui-node__description {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.crudui-node--inline > :is(.crudui-node__body, .crudui-node__errors, .crudui-node__footer) {
+  grid-column: 2;
+}
+
+.crudui-node--inline > .crudui-node__body {
+  grid-row: 1;
+}
+
+/* A line group places its child nodes side by side, each as wide as its content. */
+.crudui-node--line > .crudui-node__body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.crudui-node--line > .crudui-node__body > .crudui-node {
+  flex: 0 1 auto;
 }
 
 /* Widgets: a control with its affixes, a set of choices, or a file or search widget. */

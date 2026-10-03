@@ -153,6 +153,54 @@ declaration order and then every value, and fails with `INVALID_FORM_INPUT` and 
 
 Under the wrapper the key is `design.wrapper.attributes`.
 
+### Layout
+
+A `group` field declares the layout of the fields inside it with `design.layout`, a literal string,
+not an expression or a condition map:
+
+- `inline`: every field node inside the group, at any depth, is one row. The label column, whose
+  width is `--crudui-label-width`, holds the label; the control column holds the control, the
+  description below it and the errors. A field without a label leaves the label column empty, so
+  the controls of all rows align. Group, collection and language nodes keep the stacked layout and
+  pass the inline layout to the field nodes inside them. The rows of a repeated scalar field and
+  the items of a language field are not field nodes and stay stacked.
+- `line`: the child nodes of the group sit side by side on one line, for example a select followed
+  by small buttons. In an inline layout the group is one row: its label is in the label column and
+  the line in the control column. The child nodes of a line take no inline layout.
+- `stacked`: the label above the control, the layout of a form without a declaration. A group
+  declares it to end an inline layout it would inherit.
+
+A group without `design.layout` inherits the layout of the enclosing group. A repeated group accepts
+`stacked` and `inline`, which apply to the fields of its rows. The [form markup](form-markup.md#layout)
+defines the output.
+
+```yaml
+appearance:
+  type: group
+  label: Appearance
+  design: { layout: inline }
+  properties:
+    theme: { type: select, label: Theme, items: { light: Light, dark: Dark }, description: Applies to every window. }
+    font:
+      type: group
+      label: Font
+      design: { layout: line }
+      properties:
+        family: { type: select, items: { mono: Mono, sans: Sans } }
+        size: { type: text }
+```
+
+Compilation checks `design.layout` after `design.attributes` and before the design nodes, and
+fails with `INVALID_FORM_INPUT` and an empty location. The form root takes no layout: compilation
+checks its `design.layout` after its `buttons`. The JSON Schema describes a field declaration, so it
+checks the root as a group and leaves the root's layout to compilation.
+
+| Declaration | Message |
+| --- | --- |
+| `design.layout` of a field that is not a group, of a form button or of the form root | `Invalid design.layout at {path}: unknown key`, where `{path}` is `form` for the root |
+| A value other than `stacked`, `inline` or `line` | `Invalid design.layout at {path}: expected stacked, inline or line` |
+| `line` on a repeated group | `Invalid design.layout at {path}: expected stacked or inline` |
+
 The [expression grammar](expressions.md) defines the tokenizer, parser
 and evaluator. Supported expressions include relative paths, wildcards, lists,
 comparison, logic, membership and conditional values. Arithmetic, function calls
@@ -369,6 +417,7 @@ button; a `button` or `link` needs `text` and a `link` needs `href` (see the
 | `design.label`, `design.wrapper`, `design.group`, `design.prepend` | Object |
 | `class` and `style` of those nodes | String or condition map |
 | `design.attributes`, `design.wrapper.attributes` | Object of a `data-*` or `aria-*` name to a string; form fields only ([declared attributes](#declared-attributes)) |
+| `design.layout` | `stacked`, `inline` or `line`; group fields only ([layout](#layout)) |
 
 Compilation checks fields in declaration order, each field before its children.
 The schema closes `multiple`, `lang`, `design`, the design nodes and `behavior`: a key they do

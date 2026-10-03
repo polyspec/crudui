@@ -104,6 +104,7 @@ const CLOSED_BUCKET_KEYS: Record<string, readonly string[]> = {
   design: ['show', 'class', 'style', 'label', 'wrapper', 'group', 'prepend'],
   node: ['class', 'style'],
   fieldDesign: ['show', 'class', 'style', 'attributes', 'label', 'wrapper', 'group', 'prepend'],
+  groupDesign: ['show', 'class', 'style', 'attributes', 'layout', 'label', 'wrapper', 'group', 'prepend'],
   fieldWrapper: ['class', 'style', 'attributes'],
   behavior: ['onchange', 'onclick', 'onload'],
 };
@@ -174,7 +175,7 @@ function checkDeclarations(spec: Record<string, unknown>, path: string, field = 
     const codes = Array.isArray(only) && only.every(code => typeof code === 'string');
     if (!codes && !isRecord(only)) fail('lang.only', 'a list of language codes or an object');
   }
-  if (has(spec, 'design')) checkDesignDeclaration(spec.design, path, field);
+  if (has(spec, 'design')) checkDesignDeclaration(spec.design, path, field, field ? groupLayouts(spec) : undefined);
   if (isRecord(spec.behavior)) closed(spec.behavior, 'behavior', CLOSED_BUCKET_KEYS.behavior!);
   if (field && typeof spec.type === 'string' && spec.type.toLowerCase() === 'range') checkRangeDeclaration(spec, path);
 }
@@ -195,11 +196,22 @@ function checkRangeDeclaration(spec: Record<string, unknown>, path: string): voi
 }
 
 /**
+ * The `design.layout` values a group field accepts (docs/spec/schema.md, Layout): a repeated group
+ * has no line, and a field that is not a group has no layout.
+ */
+function groupLayouts(spec: Record<string, unknown>): readonly string[] | undefined {
+  if (spec.type !== 'group') return undefined;
+  const repeated = spec.multiple === true || spec.multiple === 'only' || isRecord(spec.multiple);
+  return repeated ? ['stacked', 'inline'] : ['stacked', 'inline', 'line'];
+}
+
+/**
  * Reject an unknown key or a wrong value type in one `design` declaration at `path`. Form fields,
  * form buttons, list and detail specifications, their columns and fields share this rule; only a
- * form field (`field`) accepts `attributes` and `wrapper.attributes`.
+ * form field (`field`) accepts `attributes` and `wrapper.attributes`, and only a group field
+ * accepts `layout`, one of `layouts`.
  */
-export function checkDesignDeclaration(design: unknown, path: string, field = false): void {
+export function checkDesignDeclaration(design: unknown, path: string, field = false, layouts?: readonly string[]): void {
   const has = (object: Record<string, unknown>, key: string) => Object.prototype.hasOwnProperty.call(object, key);
   const fail = (key: string, expected: string): never => {
     throw new FormInputError(`Invalid ${key} at ${path}: expected ${expected}`);
@@ -211,7 +223,8 @@ export function checkDesignDeclaration(design: unknown, path: string, field = fa
   };
   if (typeof design !== 'boolean' && !isRecord(design)) fail('design', 'a boolean or an object');
   if (isRecord(design)) {
-    closed(design, 'design', field ? CLOSED_BUCKET_KEYS.fieldDesign! : CLOSED_BUCKET_KEYS.design!);
+    const keys = layouts ? CLOSED_BUCKET_KEYS.groupDesign! : field ? CLOSED_BUCKET_KEYS.fieldDesign! : CLOSED_BUCKET_KEYS.design!;
+    closed(design, 'design', keys);
     if (has(design, 'show') && typeof design.show !== 'boolean' && !conditionValue(design.show)) {
       fail('design.show', 'an expression, a boolean or a condition map');
     }
@@ -219,6 +232,9 @@ export function checkDesignDeclaration(design: unknown, path: string, field = fa
       if (has(design, key) && !conditionValue(design[key])) fail(`design.${key}`, 'a string or a condition map');
     }
     if (has(design, 'attributes')) checkDeclaredAttributes(design.attributes, 'design.attributes', path);
+    if (layouts && has(design, 'layout') && !layouts.includes(design.layout as string)) {
+      fail('design.layout', layouts.length === 3 ? 'stacked, inline or line' : 'stacked or inline');
+    }
     for (const node of ['label', 'wrapper', 'group', 'prepend']) {
       if (!has(design, node)) continue;
       const value = design[node];
@@ -296,6 +312,10 @@ export function compileForm(
     throw new FormInputError('A form spec must be a group with properties');
   }
   checkFormDeclarations(rootSpec);
+  // The form root takes no layout; a group field declares it (docs/spec/schema.md, Layout).
+  if (isRecord(rootSpec.design) && Object.prototype.hasOwnProperty.call(rootSpec.design, 'layout')) {
+    throw new FormInputError('Invalid design.layout at form: unknown key');
+  }
   const properties = composeProperties(
     (rootSpec.properties as Record<string, unknown>) ?? {},
     checkedLoader ?? new MemoryLoader(options.files ?? {}),

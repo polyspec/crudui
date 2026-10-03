@@ -30,7 +30,7 @@ function declaredTokens(spec) {
 
 // N1/N4: blocks, their elements and their modifiers.
 const blocks = {
-  node: { elements: ['header', 'header-container', 'body', 'footer', 'label', 'description', 'number', 'title', 'summary', 'count'], modifiers: ['field', 'group', 'collection', 'row', 'lang', 'lang-item', 'sticky', 'framed'] },
+  node: { elements: ['header', 'header-container', 'body', 'footer', 'label', 'description', 'number', 'title', 'summary', 'count'], modifiers: ['field', 'group', 'collection', 'row', 'lang', 'lang-item', 'sticky', 'framed', 'inline', 'line'] },
   form: { elements: ['description', 'body', 'footer'], modifiers: [] },
   controls: { elements: [], modifiers: [] },
   action: { elements: [], modifiers: ['text'] },

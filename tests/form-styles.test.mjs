@@ -431,3 +431,77 @@ for (const engine of engines) {
     } finally { await page.close(); }
   });
 }
+
+// Inline layout (docs/spec/form-markup.md, Layout): every field node of an inline group is one row
+// of the label column and the control column, and a line group places its children side by side.
+const inlineSpec = {
+  type: 'group',
+  properties: {
+    look: {
+      type: 'group',
+      label: 'Look',
+      design: { layout: 'inline' },
+      properties: {
+        theme: { type: 'select', label: 'Theme', items: { light: 'Light', dark: 'Dark' }, description: 'Applies to every window.' },
+        bare: { type: 'text' },
+        agree: { type: 'checkbox', label: 'Agree' },
+        font: {
+          type: 'group',
+          label: 'Font',
+          design: { layout: 'line' },
+          properties: { family: { type: 'select', items: { mono: 'Mono', sans: 'Sans' } }, size: { type: 'text' } },
+        },
+      },
+    },
+  },
+};
+
+for (const engine of engines) {
+  test(`${engine} inline layout aligns every control in the control column`, async () => {
+    const { page, target, failures } = await openHost(engine, 'page');
+    try {
+      await target.evaluate(([spec]) => window.formStylesTest.mount(spec, {}), [inlineSpec]);
+      await frames(target);
+      const layout = await target.evaluate(() => {
+        const box = element => { const r = element.getBoundingClientRect(); return { left: r.left, right: r.right, top: r.top, bottom: r.bottom }; };
+        const node = path => document.querySelector(`#form [data-field-path="${path}"]`);
+        const part = (path, slot) => node(path).querySelector(`:scope > ${slot}`);
+        const probe = document.createElement('div');
+        probe.style.width = 'var(--crudui-label-width)';
+        document.querySelector('#form .crudui-form').append(probe);
+        const labelWidth = probe.getBoundingClientRect().width;
+        probe.remove();
+        const paths = ['look.theme', 'look.bare', 'look.agree', 'look.font'];
+        return {
+          labelWidth,
+          gap: parseFloat(getComputedStyle(node('look.theme')).columnGap),
+          rows: paths.map(path => ({
+            path,
+            node: box(node(path)),
+            body: box(part(path, '.crudui-node__body')),
+            label: node(path).querySelector(':scope > .crudui-node__header > .crudui-node__label')
+              ? box(node(path).querySelector(':scope > .crudui-node__header > .crudui-node__label')) : null,
+          })),
+          description: box(node('look.theme').querySelector('.crudui-node__description')),
+          family: box(node('look.font.family')),
+          size: box(node('look.font.size')),
+        };
+      });
+      assert.deepEqual(failures, []);
+      const column = layout.labelWidth + layout.gap;
+      for (const row of layout.rows) {
+        assert.ok(Math.abs(row.body.left - row.node.left - column) < 0.5,
+          `${row.path}: the control column starts after the label column (${row.body.left - row.node.left} px, expected ${column} px)`);
+        if (row.label) {
+          assert.ok(Math.abs(row.label.left - row.node.left) < 0.5, `${row.path}: the label starts the row`);
+          assert.ok(row.label.top < row.body.bottom && row.body.top < row.label.bottom, `${row.path}: the label and the control share the first line`);
+        }
+      }
+      const theme = layout.rows[0];
+      assert.ok(Math.abs(layout.description.left - theme.body.left) < 0.5, 'The description is in the control column');
+      assert.ok(layout.description.top >= theme.body.bottom - 0.5, 'The description is below the control');
+      assert.ok(layout.family.top < layout.size.bottom && layout.size.top < layout.family.bottom && layout.size.left >= layout.family.right,
+        `The children of a line group sit side by side (${JSON.stringify([layout.family, layout.size])})`);
+    } finally { await page.close(); }
+  });
+}

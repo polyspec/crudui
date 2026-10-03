@@ -69,8 +69,8 @@ React, Vue, Svelte, HTML 렌더러와 네이티브 렌더러는 같은 마크업
 
 | 종류 | 헤더 | 본문 |
 | --- | --- | --- |
-| `field` | `__label`, `__description` | 위젯 |
-| `group` | `__label`, `__description` | 자식 노드 |
+| `field` | `__label`, `__description` | 위젯. inline [배치](#배치)에서 노드에 `crudui-node--inline`이 붙습니다 |
+| `group` | `__label`, `__description` | 자식 노드. line 배치를 선언하면 노드에 `crudui-node--line`이, inline 배치 안에서는 `crudui-node--inline`도 붙습니다 |
 | `collection` | `__label`, `__description`, `__count` | row 노드. 행이 없으면 푸터에 `add-row` 컨트롤 |
 | `row` | 토글, `__label`, `__number`, `__title`, `__summary`, 컨트롤 | 스칼라 행의 위젯 또는 group 행의 자식 노드 |
 | `lang` | `__label`, `__description`, `__title`(`lang.title`) | lang-item 노드. `lang.frame`이 true(기본값)이면 노드에 `crudui-node--framed`가 붙습니다 |
@@ -125,6 +125,38 @@ input에서는 `data-is-default`와 `checked` 다음에 씁니다. React의 서�
 <input type="text" class="valid-target crudui-input" data-name="theme" data-rule-name="theme"
   data-default="" id="crudui:theme" data-setting="theme" aria-describedby="theme-help"
   name="theme" value=""/>
+```
+
+## 배치
+
+group은 `design.layout`으로 필드의 배치를 선언합니다([스키마](schema.ko.md#배치)). 노드 모델은
+`crudui-node--framed`를 쓰는 것과 같이 배치를 루트 클래스(`className`)의 앞, `design.wrapper` 클래스 앞에
+modifier로 씁니다.
+
+- inline 배치의 field 노드는 `crudui-node--inline`을 가집니다.
+- `line`을 선언한 group은 `crudui-node--line`을 가지며, group이 inline 배치 안에 있으면 그 앞에
+  `crudui-node--inline`을 가집니다.
+
+스타일시트는 inline 노드를 레이블 열(`--crudui-label-width`)과 컨트롤 열의 grid로 배치합니다. 헤더는 상자를
+갖지 않으므로(`display: contents`) 레이블은 레이블 열에, 설명은 컨트롤 열의 본문 아래에 놓이고 오류가 그
+뒤에 옵니다. 따라서 헤더 둘레에 상자를 그리는 `design.label`의 class나 style은 그릴 상자가 없습니다.
+레이블은 높이가 컨트롤 하나 이상이며 텍스트를 컨트롤의 첫 줄 가운데에 맞춥니다. line group은 본문의 자식
+노드를 줄바꿈되는 한 행에 둡니다. 각 자식은 내용만큼의 너비를 가지며, 남은 너비를 차지할 자식은
+`design.wrapper.style: "flex: 1"`을 선언합니다. 스키마의 예는 다음을 씁니다.
+
+```html
+<div class="crudui-node crudui-node--field crudui-node--inline" data-field-path="appearance.theme">
+  <div class="crudui-node__header"><label class="crudui-node__label"
+    for="crudui:appearance.theme">Theme</label><p class="crudui-node__description">Applies to every
+    window.</p></div>
+  <div class="crudui-node__body">…</div>
+</div>
+<div class="crudui-node crudui-node--group crudui-node--inline crudui-node--line"
+  data-field-path="appearance.font">
+  <div class="crudui-node__header"><span class="crudui-node__label">Font</span></div>
+  <div class="crudui-node__body"><div class="crudui-node crudui-node--field"
+    data-field-path="appearance.font.family">…</div>…</div>
+</div>
 ```
 
 ## 선택지 외형
@@ -299,6 +331,7 @@ href, design, behavior }` 목록이고 `type`은 `submit`, `reset`, `button`, `l
 | `--crudui-submit-background` | `var(--crudui-surface)` | 폼 바닥글 제출 버튼의 배경 |
 | `--crudui-submit-border` | `var(--crudui-border)` | 폼 바닥글 제출 버튼의 테두리 색 |
 | `--crudui-submit-text` | `var(--crudui-action-text)` | 폼 바닥글 제출 버튼의 글자색 |
+| `--crudui-label-width` | `10rem` | inline 배치의 레이블 열 너비 |
 
 `--crudui-node-header-height`, `--crudui-row-padding`, `--crudui-row-border`,
 `--crudui-form-footer-height`는 고정 행과 폼 바닥글의 크기를 정합니다(위 참조).

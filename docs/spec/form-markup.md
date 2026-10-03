@@ -74,8 +74,8 @@ to the control and `design.prepend` to the widget prepend.
 
 | Kind | Header | Body |
 | --- | --- | --- |
-| `field` | `__label` and `__description` | Widget |
-| `group` | `__label` and `__description` | Child nodes |
+| `field` | `__label` and `__description` | Widget; the node has `crudui-node--inline` in an inline [layout](#layout) |
+| `group` | `__label` and `__description` | Child nodes; the node has `crudui-node--line` when it declares the line layout, and also `crudui-node--inline` in an inline layout |
 | `collection` | `__label`, `__description` and `__count` | Row nodes; the footer holds the `add-row` control when there are no rows |
 | `row` | Toggle, `__label`, `__number`, `__title`, `__summary`, controls | Widget of a scalar row, or child nodes of a group row |
 | `lang` | `__label`, `__description` and `__title` (`lang.title`) | lang-item nodes; the node has `crudui-node--framed` when `lang.frame` is true (the default) |
@@ -134,6 +134,40 @@ aria-describedby: theme-help }` writes:
 <input type="text" class="valid-target crudui-input" data-name="theme" data-rule-name="theme"
   data-default="" id="crudui:theme" data-setting="theme" aria-describedby="theme-help"
   name="theme" value=""/>
+```
+
+## Layout
+
+A group declares the layout of its fields with `design.layout` ([schema](schema.md#layout)). The
+node model writes the layout as modifiers at the start of the root class (`className`), before the
+`design.wrapper` class, as it writes `crudui-node--framed`:
+
+- A field node in an inline layout has `crudui-node--inline`.
+- A group that declares `line` has `crudui-node--line`, preceded by `crudui-node--inline` when the
+  group is in an inline layout.
+
+The stylesheet lays an inline node out as a grid of the label column (`--crudui-label-width`) and the
+control column. The header takes no box (`display: contents`), so the label is in the label column
+and the description in the control column below the body, followed by the errors; a class or style
+of `design.label` that draws a box around the header therefore has no box to draw on. The label is
+at least one control high and centers its text on the first line of the control. A line group places
+the child nodes of its body in one wrapping row; each child is as wide as its content, and a child
+declares `design.wrapper.style: "flex: 1"` to take the remaining width. The example of the schema
+writes:
+
+```html
+<div class="crudui-node crudui-node--field crudui-node--inline" data-field-path="appearance.theme">
+  <div class="crudui-node__header"><label class="crudui-node__label"
+    for="crudui:appearance.theme">Theme</label><p class="crudui-node__description">Applies to every
+    window.</p></div>
+  <div class="crudui-node__body">…</div>
+</div>
+<div class="crudui-node crudui-node--group crudui-node--inline crudui-node--line"
+  data-field-path="appearance.font">
+  <div class="crudui-node__header"><span class="crudui-node__label">Font</span></div>
+  <div class="crudui-node__body"><div class="crudui-node crudui-node--field"
+    data-field-path="appearance.font.family">…</div>…</div>
+</div>
 ```
 
 ## Choice appearance
@@ -325,6 +359,7 @@ the rule overrides the defaults in any stylesheet order.
 | `--crudui-submit-background` | `var(--crudui-surface)` | background of the submit button of the form footer |
 | `--crudui-submit-border` | `var(--crudui-border)` | border color of the submit button of the form footer |
 | `--crudui-submit-text` | `var(--crudui-action-text)` | text color of the submit button of the form footer |
+| `--crudui-label-width` | `10rem` | width of the label column of an inline layout |
 
 `--crudui-node-header-height`, `--crudui-row-padding`, `--crudui-row-border` and
 `--crudui-form-footer-height` size the sticky rows and the form footer (see above).

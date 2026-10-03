@@ -43,6 +43,8 @@ export interface BuildState {
   stickyDepth?: number;
   /** Row paths rendered collapsed. */
   collapsed?: ReadonlySet<string>;
+  /** Layout of the field nodes from the enclosing groups (docs/spec/schema.md, Layout). */
+  layout?: 'inline';
 }
 
 /** A surfaced unsupported-type marker (only in 'marker' mode). */
@@ -366,7 +368,11 @@ function buildLeaf(
 ): NodeVM {
   const fieldType = String(spec.type ?? '');
   const value = getValueByPath(state.data, path);
-  const root = nodeRoot('field', path, design, spec);
+  const declaredRoot = nodeRoot('field', path, design, spec);
+  // A field node of an inline layout is one row of a label column and a control column.
+  const root = state.layout === 'inline'
+    ? { ...declaredRoot, className: joinClass('crudui-node--inline', declaredRoot.className) }
+    : declaredRoot;
   if (fieldType === 'checkbox' || fieldType === 'switcher') {
     const header = nodeHeader({ description }, design);
     const attributes = declaredAttributes(spec.design).control;
@@ -392,6 +398,22 @@ function buildLeaf(
   return { ...root, ...(header ? { header } : {}), body: nodeBody(), widget };
 }
 
+/** The `design.layout` a group declares; compilation has checked the value. */
+function declaredLayout(spec: Record<string, unknown>): string | undefined {
+  const design = spec.design;
+  if (design === null || typeof design !== 'object' || Array.isArray(design)) return undefined;
+  const layout = (design as Record<string, unknown>).layout;
+  return typeof layout === 'string' ? layout : undefined;
+}
+
+/** The state of a group's children: a declared layout replaces the inherited one, and a line ends it. */
+function layoutState(state: BuildState, layout: string | undefined): BuildState {
+  if (layout === undefined) return state;
+  const next: BuildState = { ...state };
+  delete next.layout;
+  return layout === 'inline' ? { ...next, layout: 'inline' } : next;
+}
+
 function buildGroup(
   spec: Record<string, unknown>,
   path: string,
@@ -403,11 +425,16 @@ function buildGroup(
 ): NodeVM {
   checkGroupData(getValueByPath(state.data, path), path);
   const header = nodeHeader({ label, description }, design);
+  const layout = declaredLayout(spec);
+  const root = nodeRoot('group', path, design, spec);
+  // A line group is one row in an inline layout, and its children take no inline layout.
+  const modifiers = layout === 'line' ? [state.layout === 'inline' ? 'crudui-node--inline' : '', 'crudui-node--line'] : [];
   return {
-    ...nodeRoot('group', path, design, spec),
+    ...root,
+    className: joinClass(...modifiers, root.className),
     ...(header ? { header } : {}),
     body: nodeBody(design.group.class, design.group.style),
-    children: buildChildren(path, state, templates),
+    children: buildChildren(path, layoutState(state, layout), templates),
   };
 }
 
@@ -424,7 +451,8 @@ function buildCollection(
   const keys = rowKeys(getValueByPath(state.data, path), path, settings.only);
   const item = spec.type === 'group' ? 'group' : 'field';
   const full = settings.max !== undefined && keys.length >= settings.max;
-  const rows = keys.map((key, index) => buildRow(spec, path, key, index, keys.length, item, label, settings, state, templates));
+  const rowsState = item === 'group' ? layoutState(state, declaredLayout(spec)) : state;
+  const rows = keys.map((key, index) => buildRow(spec, path, key, index, keys.length, item, label, settings, rowsState, templates));
   const header = nodeHeader({ label, description, count: formatCount(state.messages.count, keys.length) }, design);
   return {
     ...nodeRoot('collection', path, design, spec),
