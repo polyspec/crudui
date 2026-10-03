@@ -106,7 +106,7 @@ test('browser CI jobs select the regular sandboxed Chrome executable', async () 
       failures.push(`${name}: disables the Chrome sandbox`);
     }
   }
-  for (const file of ['tests/widget-scripts.test.mjs', 'tests/form-styles.test.mjs', 'tests/widget-script-runs.test.mjs', 'tests/browser-engines.mjs']) {
+  for (const file of ['tests/widget-scripts.test.mjs', 'tests/form-styles.test.mjs', 'tests/widget-script-runs.test.mjs', 'tests/browser-engines.mjs', 'packages/form-binding/tests/browser.test.ts']) {
     const checks = await readFile(path.join(repository, file), 'utf8');
     if (/--no-sandbox|--disable-setuid-sandbox/.test(checks)) {
       failures.push(`${file}: disables the Chrome sandbox`);

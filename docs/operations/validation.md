@@ -135,7 +135,8 @@ form on submit; an invalid form is not sent and focus moves to its first invalid
 form from script with `form.requestSubmit()`: `form.submit()` fires no `submit` event, so the
 binding does not validate it. Call `binding.dispose()` before the page removes the form.
 
-Run the binding checks, including the Chromium check, from the repository root:
+Run the binding checks, including the check in Chromium, Firefox and WebKit, from the repository
+root:
 
 ```sh
 make test-form-binding

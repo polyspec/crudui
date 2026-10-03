@@ -37,7 +37,7 @@ help: ## 타겟 설명
 	@echo "  make test-php-extension    Test the native PHP engine, its builder and its PHP API"
 	@echo "  make test-native           Test PHP, Go, Rust and native PHP generation"
 	@echo "  make test-validators       Test the JavaScript, PHP, Go and Rust validators"
-	@echo "  make test-form-binding     Test the browser validation binding, its markup parity and Chromium"
+	@echo "  make test-form-binding     Test the browser validation binding, its markup parity and three browsers"
 	@echo "  make conformance           Run every conformance suite and check the evidence against the standard"
 	@echo "  make format-check          Fail when any Rust crate or Go file is not formatted"
 	@echo "  make ci                    Run every command of the CI workflow in order"
@@ -185,8 +185,8 @@ test-validators:
 	exit $$status
 
 # The browser validation binding (docs/spec/form-runtime.md, "Browser validation"): data
-# collection, timing, error markup parity with renderForm and the Chromium check. It reads the
-# built validator and renderers.
+# collection, timing, error markup parity with renderForm and the check in Chromium, Firefox and
+# WebKit. It reads the built validator and renderers.
 test-form-binding:
 	node scripts/require-current-build.mjs
 	npm test -w @crudui/form-binding
