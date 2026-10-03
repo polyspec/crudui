@@ -2,7 +2,8 @@
  * Choice lists (docs/spec/schema.md, "Choice lists"): an `items` array of
  * `{ value, label }` objects whose choices keep the list order for any values. The choices of a
  * choice or multichoice field may also declare `class`, `style` and `attributes`
- * (docs/spec/schema.md, "Choice appearance").
+ * (docs/spec/schema.md, "Choice appearance"). The choice list of a select field may also contain
+ * groups of choices (docs/spec/schema.md, "Choice groups").
  */
 
 import { FormInputError } from '@crudui/validator';
@@ -16,9 +17,18 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
 
-/** Whether `items` is a choice list: an array with an object element that has a `value` member. */
+function hasMember(item: Record<string, unknown>, key: string): boolean {
+  return Object.prototype.hasOwnProperty.call(item, key);
+}
+
+/** Whether `items` is a choice list: an array with an object element that has a `value` or a `choices` member. */
 export function isChoiceList(items: unknown): items is unknown[] {
-  return Array.isArray(items) && items.some((item) => isPlainObject(item) && Object.prototype.hasOwnProperty.call(item, 'value'));
+  return Array.isArray(items) && items.some((item) => isPlainObject(item) && (hasMember(item, 'value') || hasMember(item, 'choices')));
+}
+
+/** Whether a choice list element is a group: an object that has a `choices` member. */
+function isGroup(item: unknown): item is Record<string, unknown> {
+  return isPlainObject(item) && hasMember(item, 'choices');
 }
 
 /** The canonical text of a choice value: a string itself, a number as `Number.prototype.toString` writes it. */
@@ -32,25 +42,53 @@ function valueText(value: unknown): string | undefined {
 const APPEARANCE_MEMBERS: readonly string[] = ['class', 'style', 'attributes'];
 
 /**
- * The `[value text, label]` pairs of a choice list in list order, or `undefined` when an
- * element has another member (an appearance member is accepted with `appearance`), lacks `value`
- * or `label`, has a value that is not a string or a finite number, or repeats the canonical text
- * of an earlier value.
+ * The `[value text, label]` pairs of a choice list in list order, the choices of each group in
+ * place of the group, or `undefined` when an element has another member (an appearance member is
+ * accepted with `appearance`), lacks `value` or `label`, has a value that is not a string or a
+ * finite number, or repeats the canonical text of an earlier value, or when the list has a group
+ * without `groups` or a group that is not `label` and a non-empty list of choices without
+ * appearance members.
  */
-export function choicePairs(items: readonly unknown[], appearance = false): Array<[string, unknown]> | undefined {
+export function choicePairs(items: readonly unknown[], appearance = false, groups = false): Array<[string, unknown]> | undefined {
   const pairs: Array<[string, unknown]> = [];
   const seen = new Set<string>();
-  for (const item of items) {
-    if (!isPlainObject(item)) return undefined;
-    const has = (key: string) => Object.prototype.hasOwnProperty.call(item, key);
+  const add = (item: unknown, members: readonly string[]): boolean => {
+    if (!isPlainObject(item)) return false;
     const extra = Object.keys(item).filter((key) => key !== 'value' && key !== 'label');
-    if (!has('value') || !has('label') || extra.some((key) => !appearance || !APPEARANCE_MEMBERS.includes(key))) return undefined;
+    if (!hasMember(item, 'value') || !hasMember(item, 'label') || extra.some((key) => !members.includes(key))) return false;
     const text = valueText(item.value);
-    if (text === undefined || seen.has(text)) return undefined;
+    if (text === undefined || seen.has(text)) return false;
     seen.add(text);
     pairs.push([text, item.label]);
+    return true;
+  };
+  for (const item of items) {
+    if (groups && isGroup(item)) {
+      const choices = item.choices;
+      if (Object.keys(item).length !== 2 || !hasMember(item, 'label') || !Array.isArray(choices) || choices.length === 0) return undefined;
+      if (!choices.every((choice) => add(choice, []))) return undefined;
+    } else if (!add(item, appearance ? APPEARANCE_MEMBERS : [])) {
+      return undefined;
+    }
   }
   return pairs;
+}
+
+/** The group of an option: the position of the group in the choice list and its label. */
+export interface ChoiceListGroup {
+  /** Zero-based position of the group in the choice list. */
+  index: number;
+  /** Label of the group as declared. */
+  label: unknown;
+}
+
+/**
+ * The group of each pair of a checked choice list in the order of `choicePairs`, `undefined` for
+ * a choice outside groups.
+ */
+export function choiceGroups(items: readonly unknown[]): Array<ChoiceListGroup | undefined> {
+  return items.flatMap((item, index) =>
+    isGroup(item) ? (item.choices as unknown[]).map(() => ({ index, label: item.label })) : [undefined]);
 }
 
 /** The appearance of one choice: the label class and style and the input attributes. */

@@ -58,6 +58,7 @@
             "WIDGET_LAYOUTS",
             "buildListLayout",
             "formRenderModel",
+            "optionSections",
             "paginationPages",
             "parseStyle"
           ]

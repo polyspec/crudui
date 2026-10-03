@@ -212,6 +212,25 @@ writes:
   style="--swatch-bg:#15803d"><span>Green</span></label></div>
 ```
 
+## Choice groups
+
+The choice list of a select field may contain groups ([schema](schema.md#choice-groups)). The
+select writes the options in written order: a plain choice as an `option` element, and the
+choices of a group as the `option` elements of one `optgroup` element whose `label` attribute is
+the translated label of the group. A select with behavior attributes writes the groups in its raw
+markup the same way. An option model of a choice inside a group has the member `group` after its
+other members, an object with `index`, the zero-based position of the group in `items`, and
+`label`, the translated label; the renderers write the runs of consecutive options of one group or
+outside groups. With the data `region: eu-north`, the example of the schema writes:
+
+```html
+<div class="crudui-widget"><select name="region" class="valid-target crudui-input crudui-input--select"
+  data-name="region" data-rule-name="region" data-default="" id="crudui:region"><option
+  value="auto">Automatic</option><optgroup label="Europe"><option value="eu-west">West</option><option
+  value="eu-north" selected="">North</option></optgroup><optgroup label="Asia"><option
+  value="ap-east">East</option></optgroup></select></div>
+```
+
 ## Range fields
 
 A `range` field ([schema](schema.md#range-fields)) renders a `crudui-widget crudui-widget--range`

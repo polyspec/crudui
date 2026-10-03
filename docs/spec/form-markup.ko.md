@@ -199,6 +199,23 @@ choice·multichoice 필드의 선택지는 `class`, `style`, `attributes`를 선
   style="--swatch-bg:#15803d"><span>Green</span></label></div>
 ```
 
+## 선택지 그룹
+
+select 필드의 선택 목록은 그룹을 가질 수 있습니다([스키마](schema.ko.md#선택지-그룹)). select는 option을
+작성한 순서대로 씁니다. 일반 선택지는 `option` 요소로, 그룹의 선택지는 그룹의 번역된 라벨을 `label` 속성으로
+가진 `optgroup` 요소 하나 안의 `option` 요소로 씁니다. 동작 속성이 있는 select도 원시 마크업에 그룹을 같은
+방식으로 씁니다. 그룹 안 선택지의 option 모델은 다른 멤버 뒤에 `group` 멤버를 가지며, 이 멤버는 `items`에서
+그룹의 0부터 시작하는 위치인 `index`와 번역된 라벨인 `label`을 가진 객체입니다. 렌더러는 한 그룹에 속하거나
+그룹 밖에 있는 연속된 option의 묶음을 씁니다. 데이터가 `region: eu-north`이면 스키마의 예는 다음을 씁니다.
+
+```html
+<div class="crudui-widget"><select name="region" class="valid-target crudui-input crudui-input--select"
+  data-name="region" data-rule-name="region" data-default="" id="crudui:region"><option
+  value="auto">Automatic</option><optgroup label="Europe"><option value="eu-west">West</option><option
+  value="eu-north" selected="">North</option></optgroup><optgroup label="Asia"><option
+  value="ap-east">East</option></optgroup></select></div>
+```
+
 ## 범위 필드
 
 `range` 필드([스키마](schema.ko.md#범위-필드))는 `crudui-widget crudui-widget--range` 위젯을 렌더링합니다.

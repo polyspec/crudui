@@ -208,9 +208,10 @@ option 값은 그 [정규 텍스트](validation-rules.ko.md#값)입니다. 문�
 `Number.prototype.toString`이 쓰는 텍스트입니다. 각 `label`은 값과 라벨의 맵의 라벨과 같습니다. 선택지는
 값에 관계없이 목록 순서를 유지합니다.
 
-`items` 배열의 원소 중 하나가 `value` 멤버가 있는 객체이면 그 배열은 선택 목록입니다. 이때 모든 원소는
-멤버가 `value`와 `label`(choice·multichoice 필드에서는 [외형](#선택지-외형) 멤버도)뿐인 객체여야 하고, 모든 `value`는 문자열이나 유한한 숫자여야 하며, 정규 텍스트가
-같은 값이 둘 있으면 안 됩니다. `items`가 이 규칙 중 하나를 어긴 선택 목록인 필드를 바인딩하면
+`items` 배열의 원소 중 하나가 `value` 멤버나 `choices` 멤버가 있는 객체이면 그 배열은 선택 목록입니다.
+이때 모든 원소는 멤버가 `value`와 `label`(choice·multichoice 필드에서는 [외형](#선택지-외형) 멤버도)뿐인
+객체이거나, select 필드에서는 [그룹](#선택지-그룹)이어야 하고, 모든 `value`는 문자열이나 유한한 숫자여야
+하며, 그룹 안을 포함하여 목록 안에서 정규 텍스트가 같은 값이 둘 있으면 안 됩니다. `items`가 이 규칙 중 하나를 어긴 선택 목록인 필드를 바인딩하면
 `INVALID_FORM_INPUT`, 메시지
 `Invalid items at {path}: expected value and label pairs with distinct string or number values`, 빈 위치로
 실패하며, `{path}`는 필드의 데이터 경로입니다. 이 검사는 필드 타입을 평가하기 전에 실행됩니다. select,
@@ -227,6 +228,43 @@ choice, multichoice, search 필드는 값과 라벨의 맵처럼 쌍을 목록 �
   { "value": 0, "label": "No" }]`는 Yes를 No보다 먼저 표시합니다. 값이 정수 형태이거나 섞여 있고 작성한
   순서가 필요할 때 사용합니다.
 - 라벨의 배열은 인덱스 `0`, `1`, …을 값으로 하여 작성한 순서를 유지합니다.
+
+### 선택지 그룹
+
+select 필드(`select`, `dropdown`, `selectbox` 타입)의 선택 목록은 그룹 항목을 가질 수 있습니다. 그룹은
+멤버가 `label`(값과 라벨의 맵의 라벨과 같음)과 `choices`(`{ "value": …, "label": … }` 선택지가 하나 이상인
+목록)뿐인 객체입니다. 그룹과 일반 선택지는 섞을 수 있으며 option은 작성한 순서를 유지합니다. 일반 선택지는
+select의 option이고 그룹의 선택지는 `optgroup` 요소 하나의 option이며, 출력은
+[폼 마크업](form-markup.ko.md#선택지-그룹)이 정의합니다. 그룹은 다른 그룹을 담지 않고, 그룹의 선택지에는
+외형 멤버가 없습니다. 그룹 안팎의 모든 선택지의 값이 필드의 선택지입니다. 값은 목록 전체에서 정규 텍스트로
+서로 다르고, 필드의 값은 어느 그룹에 있든 텍스트가 같은 option을 선택하며,
+[`in`](validation-rules.ko.md#값)도 같은 목록을 받습니다.
+
+다음 선택 목록을 가진 필드를 바인딩하면 위에서 설명한 대로 실패합니다. 다른 멤버가 있거나, `label`이나
+`choices`가 없거나, `choices`가 목록이 아니거나 빈 목록이거나, 선택지 규칙을 어긴 선택지가 있는 그룹, 같은
+그룹이나 다른 그룹이나 그룹 밖에 있는 값과 정규 텍스트가 같은 값, select 필드가 아닌 필드의 그룹입니다.
+[`choice-label` 형식](display-formats.ko.md#choice-label)의 선택 목록에 있는 그룹은 그곳에서 선택지의 다른
+멤버처럼 실패합니다.
+
+```yaml
+region:
+  type: select
+  label: Region
+  items:
+    - { value: auto, label: Automatic }
+    - label: Europe
+      choices:
+        - { value: eu-west, label: West }
+        - { value: eu-north, label: North }
+    - label: Asia
+      choices:
+        - { value: ap-east, label: East }
+  validate:
+    in:
+      - { value: auto, label: Automatic }
+      - { label: Europe, choices: [{ value: eu-west, label: West }, { value: eu-north, label: North }] }
+      - { label: Asia, choices: [{ value: ap-east, label: East }] }
+```
 
 ### 선택지 외형
 
