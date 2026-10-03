@@ -348,6 +348,26 @@ const NEW: FixtureCase[] = [
   pass('inline-layout-repeated', 'an inline repeated group → the fields of its rows have crudui-node--inline; the collection and row nodes do not.',
     G({ rows: { type: 'group', label: 'Rows', multiple: true, design: { layout: 'inline' }, properties: { name: { type: 'text', label: 'Name' }, on: { type: 'switcher', label: 'On' } } } }),
     { rows: { __opt_a1__: { name: 'x', on: '1' } } }, { language: 'en' }),
+
+  // ---- K. CHOICE GROUPS (docs/spec/form-markup.md, Choice groups) --------------
+  pass('choice-groups-select', 'select items with plain choices and groups in written order → options and optgroup elements with the translated group label; the selected value inside a group.',
+    G({ region: { type: 'select', label: 'Region', items: [
+      { value: 'auto', label: 'Automatic' },
+      { label: { en: 'Europe', ko: '유럽' }, choices: [{ value: 'eu-west', label: 'West' }, { value: 'eu-north', label: { en: 'North', ko: '북부' } }] },
+      { value: 7, label: 'Seven' },
+      { label: 'Asia', choices: [{ value: 'ap-east', label: 'East' }] },
+    ] } }),
+    { region: 'eu-north' }, { language: 'en' }),
+  pass('choice-groups-only-groups', 'dropdown and selectbox items made only of groups → optgroup elements alone; the Korean group label.',
+    G({ zone: { type: 'dropdown', label: 'Zone', items: [{ label: { en: 'Europe', ko: '유럽' }, choices: [{ value: 1, label: 'One' }, { value: 2, label: 'Two' }] }] },
+      pick: { type: 'selectbox', label: 'Pick', items: [{ label: 'A', choices: [{ value: 'a', label: 'A' }] }, { label: 'B', choices: [{ value: 'b', label: 'B' }] }] } }),
+    { zone: 2 }, { language: 'ko' }),
+  pass('choice-groups-behavior', 'a select with groups and a behavior attribute → the raw select with its optgroup elements.',
+    G({ region: { type: 'select', label: 'Region', behavior: { onchange: 'go(this)' }, items: [
+      { value: 'auto', label: 'Automatic' },
+      { label: 'Europe <west>', choices: [{ value: 'eu-west', label: 'West & more' }] },
+    ] } }),
+    { region: 'eu-west' }, { language: 'en' }),
 ];
 
 // Cases whose expected HTML is written from the specification, not rendered.

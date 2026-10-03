@@ -81,7 +81,32 @@ const appearanceCase = (name: string, note: string, field: Record<string, unknow
 const layoutCase = (name: string, note: string, spec: Record<string, unknown>, message: string) =>
   ({ name, note, spec, options: { language: 'en' }, expectError: { code: 'INVALID_FORM_INPUT', message } });
 
+// Choice group checks (docs/spec/schema.md, Choice groups).
+const EUROPE = { label: 'Europe', choices: [{ value: 'eu-west', label: 'West' }, { value: 'eu-north', label: 'North' }] };
+const groupCase = (name: string, note: string, field: Record<string, unknown>) =>
+  ({ name, note, spec: G({ region: { label: 'Region', ...field } }), options: { language: 'en' }, expectError: INVALID_ITEMS('region') });
+
 export const WRITTEN_CASES = [
+  groupCase('choice-groups-repeated-value', 'Values stay distinct across groups.',
+    { type: 'select', items: [EUROPE, { label: 'Again', choices: [{ value: 'eu-west', label: 'West' }] }] }),
+  groupCase('choice-groups-repeated-plain-value', 'A value inside a group is distinct from a plain choice value, by canonical text.',
+    { type: 'select', items: [{ value: 7, label: 'Seven' }, { label: 'Asia', choices: [{ value: '7', label: 'Seven' }] }] }),
+  groupCase('choice-groups-empty', 'A group has at least one choice.',
+    { type: 'select', items: [EUROPE, { label: 'Empty', choices: [] }] }),
+  groupCase('choice-groups-choices-text', 'The choices of a group are a list.',
+    { type: 'select', items: [{ label: 'Bad', choices: 'eu-west' }] }),
+  groupCase('choice-groups-without-label', 'A group has a label.',
+    { type: 'select', items: [{ choices: [{ value: 1, label: 'One' }] }] }),
+  groupCase('choice-groups-extra-member', 'A group has only label and choices.',
+    { type: 'select', items: [{ ...EUROPE, class: 'x' }] }),
+  groupCase('choice-groups-nested', 'A group holds no group.',
+    { type: 'select', items: [{ label: 'Outer', choices: [EUROPE] }] }),
+  groupCase('choice-groups-choice-appearance', 'A choice inside a group declares no appearance.',
+    { type: 'select', items: [{ label: 'Styled', choices: [{ value: 1, label: 'One', class: 'x' }] }] }),
+  groupCase('choice-groups-choice-field', 'A choice field has no groups.',
+    { type: 'choice', items: [EUROPE] }),
+  groupCase('choice-groups-search-field', 'A search field has no groups.',
+    { type: 'search', items: [{ value: 'auto', label: 'Automatic' }, EUROPE] }),
   layoutCase('layout-on-field', 'design.layout is a member of a group field only.',
     G({ a: { type: 'text', design: { layout: 'inline' } } }), 'Invalid design.layout at a: unknown key'),
   layoutCase('layout-on-form-root', 'The form root declares no layout.',
