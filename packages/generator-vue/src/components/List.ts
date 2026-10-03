@@ -21,7 +21,7 @@
  */
 
 import { h, type VNode } from 'vue';
-import { rawContainer } from './raw';
+import { rawContainer } from './raw.js';
 import type {
   ListViewModel,
   ColumnVM,

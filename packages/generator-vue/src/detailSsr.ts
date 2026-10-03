@@ -1,7 +1,7 @@
 /** Detail HTML rendering with Vue's server renderer. */
 
 import { buildDetail, type BuildDetailOptions } from '@crudui/generator-core';
-import { Detail } from './components/Detail';
+import { Detail } from './components/Detail.js';
 
 /** Options for a CRUDUI detail SSR render. */
 export type RenderDetailOptions = BuildDetailOptions;

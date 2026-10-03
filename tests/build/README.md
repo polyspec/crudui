@@ -35,7 +35,8 @@ CRUDUI package code imports an internal entry.
 
 `test:build` loads validator, generator-core, generator-html and generator-react through their
 public CommonJS and ESM exports, and generator-core's internal entry in both formats. It compiles strict NodeNext type projects with
-`skipLibCheck: false`, checks the complete declaration graph and verifies React's
+`skipLibCheck: false` against the declarations of validator, generator-core, generator-html,
+generator-react, generator-vue and form-binding, checks the complete declaration graph and verifies React's
 exported stylesheet. Invalid public types must prevent declaration emission in
 all four TypeScript package configurations. It also checks that each script that runs other
 commands stops a command that never ends, with its whole process group, at the command's limit

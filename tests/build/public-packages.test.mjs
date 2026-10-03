@@ -18,6 +18,9 @@ const packages = ['validator-ts', 'generator-core', 'generator-html', 'generator
 // Packages that publish only an ES module: the browser validation binding runs only in a browser
 // (docs/spec/form-runtime.md#browser-validation).
 const moduleOnlyPackages = ['form-binding'].map(load);
+// ES module packages whose declarations TypeScript resolves through the top-level types condition:
+// generator-vue loads through its import and require exports.
+const moduleDeclarationPackages = ['generator-vue'].map(load);
 const contract = JSON.parse(readFileSync(resolve(root, 'contracts/features.json'), 'utf8'));
 
 test('ES module Vitest configurations declare their module format', () => {
@@ -163,6 +166,16 @@ test('public type entries and their declaration graph compile in ESM and CommonJ
     const common = ts.resolveModuleName(pkg.manifest.name, commonFixture, options, ts.sys, undefined, undefined, ts.ModuleKind.CommonJS);
     assert.equal(common.resolvedModule, undefined, `${pkg.manifest.name} must not resolve types for a CommonJS project`);
   }
+  // An ES module package with a top-level types condition resolves for the ES module fixture, to
+  // declarations in ES module format; the CommonJS fixture also requires generator-vue.
+  for (const pkg of moduleDeclarationPackages) {
+    const declared = output(pkg, pkg.manifest.types);
+    assert.equal(output(pkg, pkg.manifest.exports['.'].types), declared);
+    const resolution = ts.resolveModuleName(pkg.manifest.name, fixtures[0], options, ts.sys, undefined, undefined, ts.ModuleKind.ESNext);
+    assert.ok(resolution.resolvedModule, `${pkg.manifest.name} must resolve for ${fixtures[0]}`);
+    assert.equal(realpathSync(resolution.resolvedModule.resolvedFileName), declared);
+    moduleFormats.set(declared, pkg.manifest.name);
+  }
   const program = ts.createProgram(fixtures, options);
   const diagnostics = ts.getPreEmitDiagnostics(program);
   assert.equal(diagnostics.length, 0, ts.formatDiagnostics(diagnostics.slice(0, 12), {
@@ -177,7 +190,7 @@ test('public type entries and their declaration graph compile in ESM and CommonJ
   }
   for (const source of program.getSourceFiles()) {
     const filename = realpathSync(source.fileName);
-    for (const pkg of [...packages, ...moduleOnlyPackages]) {
+    for (const pkg of [...packages, ...moduleOnlyPackages, ...moduleDeclarationPackages]) {
       if (within(pkg.directory, filename)) {
         assert.ok(within(resolve(pkg.directory, 'dist'), filename), `declarations read package source: ${relative(root, filename)}`);
         assert.ok(source.isDeclarationFile, `non-declaration package input: ${relative(root, filename)}`);

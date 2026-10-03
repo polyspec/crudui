@@ -8,8 +8,8 @@
 
 import { h, type VNode } from 'vue';
 import type { ControlsVM, NodeVM } from '@crudui/generator-core';
-import { Widget, widgetRootRaw } from './Widget';
-import { rawContainer } from './raw';
+import { Widget, widgetRootRaw } from './Widget.js';
+import { rawContainer } from './raw.js';
 
 function classes(...parts: Array<string | undefined | false>): string {
   return parts.filter((part): part is string => typeof part === 'string' && part !== '').join(' ');

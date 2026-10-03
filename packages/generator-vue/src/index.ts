@@ -4,20 +4,20 @@
  */
 
 // Node, widget, structure map and data view rendering.
-export { nodeVNode, controlsVNode } from './components/Node';
-export type { NodeErrors } from './components/Node';
-export { Outline, outlineVNode } from './components/Outline';
-export { DataView, dataVNode } from './components/DataView';
-export { Widget } from './components/Widget';
-export type { AnyWidget } from './components/Widget';
+export { nodeVNode, controlsVNode } from './components/Node.js';
+export type { NodeErrors } from './components/Node.js';
+export { Outline, outlineVNode } from './components/Outline.js';
+export { DataView, dataVNode } from './components/DataView.js';
+export { Widget } from './components/Widget.js';
+export type { AnyWidget } from './components/Widget.js';
 
 // Form, list and detail rendering.
-export { Form } from './components/Form';
-export { List } from './components/List';
-export type { ListLayout } from './components/List';
-export { Detail } from './components/Detail';
-export { renderForm } from './ssr';
-export { renderList } from './listSsr';
-export type { RenderListOptions } from './listSsr';
-export { renderDetail } from './detailSsr';
-export type { RenderDetailOptions } from './detailSsr';
+export { Form } from './components/Form.js';
+export { List } from './components/List.js';
+export type { ListLayout } from './components/List.js';
+export { Detail } from './components/Detail.js';
+export { renderForm } from './ssr.js';
+export { renderList } from './listSsr.js';
+export type { RenderListOptions } from './listSsr.js';
+export { renderDetail } from './detailSsr.js';
+export type { RenderDetailOptions } from './detailSsr.js';

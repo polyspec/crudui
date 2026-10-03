@@ -8,7 +8,7 @@ import {
   type OutlineRow,
   type OutlineState,
 } from '@crudui/generator-core';
-import { controlsVNode } from './Node';
+import { controlsVNode } from './Node.js';
 
 function textActionVNode(name: string, label: string, disabled = false): VNode {
   return h('button', { type: 'button', class: 'crudui-action crudui-action--text', 'data-crudui-action': name, 'aria-disabled': disabled ? 'true' : undefined }, label);
