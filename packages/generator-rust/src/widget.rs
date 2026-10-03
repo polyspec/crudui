@@ -92,6 +92,7 @@ fn kind(name: &str) -> Option<&str> {
         "search" | "autocomplete" => "search",
         "tinymce" | "wysiwyg" => "tinymce",
         "button" | "action" => "button",
+        "range" => "range",
         "email" | "password" | "textarea" | "hidden" | "date" | "dummy-input" | "image"
         | "file" | "image-viewer" | "summernote" | "editorjs" | "tui" | "tagify" | "tagify2" => {
             name
@@ -543,6 +544,32 @@ fn editor(kind: &str, ctx: &WidgetContext<'_>) -> Value {
     model
 }
 
+/// A range input with the bounds and the step of its required `validate.range` and
+/// `validate.step`; compilation has checked them.
+fn range(ctx: &WidgetContext<'_>) -> Value {
+    let validate = &ctx.spec["validate"];
+    let value = ctx.value();
+    let mut attrs = Map::new();
+    put_string(&mut attrs, "type", "range");
+    put_string(&mut attrs, "name", ctx.name());
+    put_string(&mut attrs, "value", &value);
+    put_string(&mut attrs, "min", scalar(Some(&validate["range"][0])));
+    put_string(&mut attrs, "max", scalar(Some(&validate["range"][1])));
+    put_string(&mut attrs, "step", scalar(Some(&validate["step"])));
+    put_string(
+        &mut attrs,
+        "class",
+        ctx.class("valid-target crudui-input crudui-input--range"),
+    );
+    put_nonempty(&mut attrs, "style", ctx.style());
+    ctx.behavior(&mut attrs);
+    ctx.data_attrs(&mut attrs);
+    let mut model =
+        json!({"kind":"range","layout":"range","tag":"input","attrs":attrs,"text":value});
+    ctx.affixes(&mut model, true);
+    model
+}
+
 /// A button element with the content text; behavior scripts are its event attributes.
 fn button(ctx: &WidgetContext<'_>) -> Value {
     let mut attrs = Map::new();
@@ -574,6 +601,7 @@ pub(crate) fn evaluate_widget(field_type: &str, ctx: &WidgetContext<'_>) -> Opti
         "search" => search(ctx),
         "tinymce" | "summernote" | "editorjs" | "tui" | "tagify" | "tagify2" => editor(kind, ctx),
         "button" => button(ctx),
+        "range" => range(ctx),
         _ => text_control(kind, ctx),
     };
     let id = ctx.id.to_owned();

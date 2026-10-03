@@ -1,5 +1,17 @@
 # 변경 기록
 
+## 2026-10-04 — range 필드
+
+- `range` 필드는 `crudui-widget crudui-widget--range` widget을 렌더링합니다. prepend affix, 리터럴
+  `validate.range`와 `validate.step`에서 온 `min`, `max`, `step`을 가진 range input, 현재 값을 보이는
+  `crudui-widget__output` output, 단위인 append affix로 이루어집니다. `compileForm`은 두 규칙이 리터럴
+  값이고 최솟값이 step의 배수이기를 `step` 규칙과 같은 정확한 판정으로 요구하며, 그렇지 않으면
+  `INVALID_FORM_INPUT`으로 실패합니다.
+- 검증기는 range 필드를 `range`와 `step` 규칙으로 검사합니다.
+- React, Vue, Svelte, HTML 렌더러, PHP, PHP extension, Go, Rust는 공유 폼 case `range-*`에서 range
+  widget을 쓰고 작성된 range case 여덟 개를 거부하며, TypeScript, PHP, PHP extension, Go, Rust 검증기는
+  공유 검증 case `range-field-values`를 통과합니다.
+
 ## 2026-10-04 — inline 배치와 line 배치
 
 - group은 `design.layout`을 선언합니다. `inline`은 그 안의 모든 필드 노드를 `--crudui-label-width`

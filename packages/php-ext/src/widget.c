@@ -186,6 +186,7 @@ static const char *canonical_kind(ps_text name)
     if (same_type(name, "search") || same_type(name, "autocomplete")) return "search";
     if (same_type(name, "tinymce") || same_type(name, "wysiwyg")) return "tinymce";
     if (same_type(name, "button") || same_type(name, "action")) return "button";
+    if (same_type(name, "range")) return "range";
     static const char *const direct[] = {"email","password","textarea","hidden","date",
         "dummy-input","image","file","image-viewer","summernote",
         "editorjs","tui","tagify","tagify2"};
@@ -697,6 +698,38 @@ static ps_value *editor_control(const char *kind, const widget_context *context)
     return model;
 }
 
+/* A range input with the bounds and the step of its required validate.range and validate.step;
+   compilation has checked them. The output shows the value. */
+static ps_value *range_control(const widget_context *context)
+{
+    const ps_value *validate = member(context->spec, "validate");
+    const ps_value *bounds = member(validate, "range");
+    ps_chars name = context_name(context), value = context_value(context);
+    ps_chars class_name = context_class(context, "valid-target crudui-input crudui-input--range");
+    ps_chars minimum = bounds && bounds->kind == PS_ARRAY && ps_size(bounds) == 2
+        ? ps_scalar_string(ps_at(bounds, 0)) : (ps_chars){NULL, 0};
+    ps_chars maximum = minimum.bytes ? ps_scalar_string(ps_at(bounds, 1)) : (ps_chars){NULL, 0};
+    ps_chars step = maximum.bytes ? ps_scalar_string(member(validate, "step")) : (ps_chars){NULL, 0};
+    ps_value *attrs = ps_object_value();
+    bool ok = attrs && name.bytes && value.bytes && class_name.bytes && step.bytes &&
+        set_string(attrs, "type", "range") && set_text(attrs, "name", ps_view(name)) &&
+        set_text(attrs, "value", ps_view(value)) && set_text(attrs, "min", ps_view(minimum)) &&
+        set_text(attrs, "max", ps_view(maximum)) && set_text(attrs, "step", ps_view(step)) &&
+        set_text(attrs, "class", ps_view(class_name)) &&
+        set_nonempty(attrs, "style", context_style(context)) &&
+        add_behavior(context, attrs) && add_data(context, attrs);
+    ps_value *model = ps_object_value();
+    if (ok) ok = model && set_string(model, "kind", "range") && set_string(model, "layout", "range") &&
+        set_string(model, "tag", "input") && ps_set(model, "attrs", attrs);
+    if (ok) attrs = NULL;
+    if (ok) ok = set_text(model, "text", ps_view(value)) &&
+        set_affix(context, model, "prepend", true) && set_affix(context, model, "append", true);
+    free(name.bytes); free(value.bytes); free(class_name.bytes);
+    free(minimum.bytes); free(maximum.bytes); free(step.bytes);
+    if (!ok) { ps_value_free(attrs); ps_value_free(model); return NULL; }
+    return model;
+}
+
 /* A button field: one button element with its content; it submits no value. */
 static ps_value *button_control(const widget_context *context)
 {
@@ -793,6 +826,7 @@ ps_value *ps_widget(const ps_value *spec, const ps_value *value, bool value_pres
              !strcmp(kind, "editorjs") || !strcmp(kind, "tui") ||
              !strcmp(kind, "tagify") || !strcmp(kind, "tagify2")) model = editor_control(kind, &context);
     else if (!strcmp(kind, "button")) model = button_control(&context);
+    else if (!strcmp(kind, "range")) model = range_control(&context);
     else model = text_control(kind, &context);
     if (model) {
         ps_text tag = string_member(model, "tag");

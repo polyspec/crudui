@@ -43,6 +43,28 @@ pub(crate) fn numeric_value(value: &Value) -> Option<f64> {
     }
 }
 
+/// The bounds of a `range` parameter: `[minimum, maximum]` finite numbers with the
+/// minimum not above the maximum.
+pub fn number_range(parameter: &Value) -> Option<(f64, f64)> {
+    match parameter.as_array().map(Vec::as_slice) {
+        Some([minimum, maximum]) => match (finite(minimum), finite(maximum)) {
+            (Some(minimum), Some(maximum)) if minimum <= maximum => Some((minimum, maximum)),
+            _ => None,
+        },
+        _ => None,
+    }
+}
+
+/// The increment of a `step` parameter: a finite number above 0.
+pub fn step(parameter: &Value) -> Option<f64> {
+    finite(parameter).filter(|step| *step > 0.0)
+}
+
+/// A JSON number as a finite double.
+fn finite(value: &Value) -> Option<f64> {
+    value.as_f64().filter(|number| number.is_finite())
+}
+
 /// A finite nonnegative double as the decimal its canonical text writes:
 /// `significand × 10^exponent`.
 fn decimal(value: f64) -> (u64, i32) {
@@ -92,7 +114,7 @@ fn pow10_mod(mut exponent: u32, m: u64) -> u64 {
 
 /// Whether finite `value` is an integer multiple of finite `step > 0`, both read
 /// as the decimals their canonical texts write; decided exactly.
-pub(crate) fn is_multiple(value: f64, step: f64) -> bool {
+pub fn is_multiple(value: f64, step: f64) -> bool {
     let (a, p) = decimal(value);
     let (b, q) = decimal(step);
     if a == 0 {

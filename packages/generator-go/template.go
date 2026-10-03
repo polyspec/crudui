@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/polyspec/crudui/packages/validator-go/validator/compose"
 	"github.com/polyspec/crudui/packages/validator-go/validator/text"
+	"github.com/polyspec/crudui/packages/validator-go/validator/validate"
 	"slices"
 	"strconv"
 	"strings"
@@ -326,6 +327,28 @@ func checkDeclarations(spec *Object, path string, field bool) error {
 		if key, found := unknownKey(behavior, "behavior"); found {
 			return unknown("behavior." + key)
 		}
+	}
+	if field && strings.ToLower(stringAt(spec, "type")) == "range" {
+		return checkRangeDeclaration(spec, path)
+	}
+	return nil
+}
+
+// checkRangeDeclaration rejects a range field without literal bounds and a literal step whose
+// multiple the minimum is (docs/spec/schema.md, Range fields): the slider moves from the minimum
+// in steps.
+func checkRangeDeclaration(spec *Object, path string) error {
+	rules := read(spec, "validate")
+	minimum, _, ok := validate.NumberRange(read(rules, "range"))
+	if !ok {
+		return fmt.Errorf("Invalid validate.range at %s: expected [minimum, maximum] finite numbers with minimum not above maximum", path)
+	}
+	step, ok := validate.StepSize(read(rules, "step"))
+	if !ok {
+		return fmt.Errorf("Invalid validate.step at %s: expected a finite number above 0", path)
+	}
+	if !validate.IsStepMultiple(minimum, step) {
+		return fmt.Errorf("Invalid validate.range at %s: expected a minimum that is a multiple of validate.step", path)
 	}
 	return nil
 }

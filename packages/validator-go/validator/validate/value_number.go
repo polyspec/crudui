@@ -191,3 +191,20 @@ func withParameters(message string, params ...float64) string {
 	}
 	return message
 }
+
+// NumberRange returns the minimum and maximum of a literal range parameter:
+// two finite numbers with the minimum not above the maximum.
+func NumberRange(param any) (float64, float64, bool) {
+	return numericRange(param)
+}
+
+// StepSize returns a literal step parameter: a finite number above 0.
+func StepSize(param any) (float64, bool) {
+	return stepSize(param)
+}
+
+// IsStepMultiple reports whether value is an integer multiple of a positive
+// step counted from 0, decided exactly as the step rule decides it.
+func IsStepMultiple(value, step float64) bool {
+	return isStepMultiple(value, step)
+}

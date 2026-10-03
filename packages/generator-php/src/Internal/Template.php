@@ -7,6 +7,8 @@ namespace CRUDUI\Generator;
 use CRUDUI\FormError;
 use CRUDUI\Validator\Compose\Compose;
 use CRUDUI\Validator\Compose\MemoryLoader;
+use CRUDUI\Validator\Values\InvalidRuleParameter;
+use CRUDUI\Validator\Values\Numeric;
 use stdClass;
 
 /** Compose field structures independently of instance data. */
@@ -215,6 +217,31 @@ final class Template
         }
         if (self::isObject($spec['behavior'] ?? null)) {
             self::closed('behavior', (array) $spec['behavior'], ['onchange', 'onclick', 'onload'], $path);
+        }
+        if ($field && is_string($spec['type'] ?? null) && strtolower($spec['type']) === 'range') {
+            self::checkRangeDeclaration($spec, $path);
+        }
+    }
+
+    /**
+     * Reject a range field without literal bounds and a literal step whose multiple the minimum
+     * is: the slider moves from the minimum in steps.
+     */
+    private static function checkRangeDeclaration(array $spec, string $path): void
+    {
+        $validate = self::isObject($spec['validate'] ?? null) ? (array) $spec['validate'] : [];
+        try {
+            [$minimum] = Numeric::range($validate['range'] ?? null);
+        } catch (InvalidRuleParameter) {
+            self::invalid('validate.range', $path, '[minimum, maximum] finite numbers with minimum not above maximum');
+        }
+        try {
+            $step = Numeric::step($validate['step'] ?? null);
+        } catch (InvalidRuleParameter) {
+            self::invalid('validate.step', $path, 'a finite number above 0');
+        }
+        if (!Numeric::isMultiple($minimum, $step)) {
+            self::invalid('validate.range', $path, 'a minimum that is a multiple of validate.step');
         }
     }
 
