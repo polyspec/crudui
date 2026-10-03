@@ -74,7 +74,7 @@ function bodyVNode(vm: NodeVM, errors: NodeErrors): VNode {
   if (vm.checkbox) {
     const box = vm.checkbox;
     return h('div', props, [
-      h('input', { class: box.className, id: box.id, name: box.name, type: 'checkbox', value: '1', ...(box.checked ? { checked: true } : {}) }),
+      h('input', { class: box.className, id: box.id, name: box.name, type: 'checkbox', role: box.role, value: '1', ...(box.checked ? { checked: true } : {}), ...box.attributes }),
       h('label', { for: box.id }, box.caption),
     ]);
   }
