@@ -3,9 +3,9 @@
  */
 import { FormInputError, validate, type ValidationError, type ValidationResult } from '@crudui/validator';
 
-import { collectData } from './data';
-import { containsFile, dataControls, isControl, nodeOf, nodePath, nodesByPath } from './nodes';
-import { formBody, writeFormErrors, writeNodeErrors } from './slots';
+import { collectData } from './data.js';
+import { containsFile, dataControls, isControl, nodeOf, nodePath, nodesByPath } from './nodes.js';
+import { formBody, writeFormErrors, writeNodeErrors } from './slots.js';
 
 /** Options of `bindForm`; every member is optional. */
 export interface FormBindingOptions {

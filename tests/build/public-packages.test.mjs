@@ -9,11 +9,16 @@ import ts from 'typescript';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const require = createRequire(import.meta.url);
-const packages = ['validator-ts', 'generator-core', 'generator-html', 'generator-react'].map((folder) => {
+const load = (folder) => {
   const directory = resolve(root, 'packages', folder);
   const manifest = JSON.parse(readFileSync(resolve(directory, 'package.json'), 'utf8'));
   return { directory, manifest };
-});
+};
+const packages = ['validator-ts', 'generator-core', 'generator-html', 'generator-react'].map(load);
+// Packages that publish only an ES module: the browser validation binding runs only in a browser
+// (docs/spec/form-runtime.md#browser-validation).
+const moduleOnlyPackages = ['form-binding'].map(load);
+const contract = JSON.parse(readFileSync(resolve(root, 'contracts/features.json'), 'utf8'));
 
 test('ES module Vitest configurations declare their module format', () => {
   const failures = [];
@@ -115,6 +120,17 @@ for (const mode of ['import', 'require']) {
   });
 }
 
+test('ES module packages load through their import export only', async () => {
+  for (const pkg of moduleOnlyPackages) {
+    const name = pkg.manifest.name;
+    const path = realpathSync(fileURLToPath(import.meta.resolve(name)));
+    assert.ok(within(resolve(pkg.directory, 'dist'), path) && statSync(path).isFile(), `${name} must load from a file in dist`);
+    const declared = contract.packages.find((entry) => entry.name === name).entries['.'].exports;
+    assert.deepEqual(Object.keys(await import(name)).sort(), [...declared].sort(), name);
+    assert.throws(() => require.resolve(name), { code: 'ERR_PACKAGE_PATH_NOT_EXPORTED' }, `${name} must not declare a CommonJS entry`);
+  }
+});
+
 test('public type entries and their declaration graph compile in ESM and CommonJS', () => {
   const options = {
     noEmit: true,
@@ -137,6 +153,16 @@ test('public type entries and their declaration graph compile in ESM and CommonJ
       assert.equal(realpathSync(resolution.resolvedModule.resolvedFileName), declared);
     }
   }
+  // An ES module package resolves only for the ES module fixture, to declarations in ES module format.
+  const moduleFormats = new Map();
+  for (const pkg of moduleOnlyPackages) {
+    const [moduleFixture, commonFixture] = fixtures;
+    const resolution = ts.resolveModuleName(pkg.manifest.name, moduleFixture, options, ts.sys, undefined, undefined, ts.ModuleKind.ESNext);
+    assert.ok(resolution.resolvedModule, `${pkg.manifest.name} must resolve for ${moduleFixture}`);
+    moduleFormats.set(realpathSync(resolution.resolvedModule.resolvedFileName), pkg.manifest.name);
+    const common = ts.resolveModuleName(pkg.manifest.name, commonFixture, options, ts.sys, undefined, undefined, ts.ModuleKind.CommonJS);
+    assert.equal(common.resolvedModule, undefined, `${pkg.manifest.name} must not resolve types for a CommonJS project`);
+  }
   const program = ts.createProgram(fixtures, options);
   const diagnostics = ts.getPreEmitDiagnostics(program);
   assert.equal(diagnostics.length, 0, ts.formatDiagnostics(diagnostics.slice(0, 12), {
@@ -144,9 +170,14 @@ test('public type entries and their declaration graph compile in ESM and CommonJ
     getCanonicalFileName: (file) => file,
     getNewLine: () => '\n',
   }));
+  for (const [filename, name] of moduleFormats) {
+    const source = program.getSourceFiles().find((file) => realpathSync(file.fileName) === filename);
+    assert.ok(source, `${name} declarations must be part of the program`);
+    assert.equal(source.impliedNodeFormat, ts.ModuleKind.ESNext, `${name} declarations must be in ES module format`);
+  }
   for (const source of program.getSourceFiles()) {
     const filename = realpathSync(source.fileName);
-    for (const pkg of packages) {
+    for (const pkg of [...packages, ...moduleOnlyPackages]) {
       if (within(pkg.directory, filename)) {
         assert.ok(within(resolve(pkg.directory, 'dist'), filename), `declarations read package source: ${relative(root, filename)}`);
         assert.ok(source.isDeclarationFile, `non-declaration package input: ${relative(root, filename)}`);
@@ -167,12 +198,22 @@ test('generator-core exposes the only form stylesheet through the public crudui.
 });
 
 
+// The published packages whose declarations TypeScript builds from tsconfig.build.json.
+const declarationPackages = ['validator-ts', 'generator-core', 'generator-html', 'generator-react', 'generator-vue', 'form-binding'];
+
+test('the declaration build check covers every published package with a declaration build', () => {
+  const built = contract.packages
+    .filter(({ path }) => existsSync(resolve(root, path, 'tsconfig.build.json')))
+    .map(({ path }) => relative(resolve(root, 'packages'), resolve(root, path)));
+  assert.deepEqual([...declarationPackages].sort(), built.sort());
+});
+
 test('declaration builds emit no files when a public type is invalid', () => {
   const temporary = mkdtempSync(resolve(tmpdir(), 'crudui-declaration-error-'));
   try {
     const source = resolve(temporary, 'invalid.ts');
     writeFileSync(source, "export const value: number = 'invalid';\n");
-    for (const folder of ['validator-ts', 'generator-core', 'generator-react', 'generator-vue']) {
+    for (const folder of declarationPackages) {
       const directory = resolve(root, 'packages', folder);
       const filename = resolve(directory, 'tsconfig.build.json');
       const config = ts.readConfigFile(filename, ts.sys.readFile);
