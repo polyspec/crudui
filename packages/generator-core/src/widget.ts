@@ -38,7 +38,7 @@ import {
   toBracketNotationWithPrefix,
 } from './util';
 import type { ResolvedDesign } from './design';
-import { choicePairs, isChoiceList } from './choice-list';
+import { choiceAppearances, choicePairs, isChoiceList } from './choice-list';
 import type { Translate } from './content';
 
 /** Inputs every widget evaluator needs for one leaf field. */
@@ -88,6 +88,12 @@ export interface OptionModel {
   isDefault: boolean;
   /** DOM id for the paired input (choice/multichoice). */
   id?: string;
+  /** Label class of the choice (choice list `class`), present only when declared. */
+  className?: string;
+  /** Label inline style of the choice (choice list `style`), present only when declared. */
+  style?: string;
+  /** Input attributes of the choice (choice list `attributes`), present only when declared. */
+  attributes?: Attrs;
 }
 
 /** data-source-* descriptor for a dynamic {model} items stub. */
@@ -262,10 +268,13 @@ function isDynamicItemsSource(items: unknown): items is Record<string, unknown> 
   );
 }
 
-/** Static items → [key,label] entries. Dynamic source → [] (never enumerate). */
+/**
+ * Static items → [key,label] entries. Dynamic source → [] (never enumerate). Binding has checked a
+ * choice list and accepted appearance members only for a choice or multichoice field.
+ */
 function itemEntries(items: unknown): Array<[string, unknown]> {
   if (items === null || items === undefined) return [];
-  if (isChoiceList(items)) return choicePairs(items) ?? [];
+  if (isChoiceList(items)) return choicePairs(items, true) ?? [];
   if (Array.isArray(items)) return items.map((v, i) => [String(i), v]);
   if (typeof items === 'object') {
     if (isDynamicItemsSource(items)) return [];
@@ -481,6 +490,12 @@ const hidden: Evaluator = (ctx) => ({
   },
 });
 
+/** The choices element: its classes, then the class and style of `design.group`. */
+function choicesAttrs(ctx: WidgetCtx, base: string): Attrs {
+  const style = styleString(ctx.design.group.style);
+  return { class: joinClass(base, ctx.design.group.class), ...(style ? { style } : {}) };
+}
+
 const choice: Evaluator = (ctx) => {
   const name = bracketName(ctx);
   const items = ctx.spec.items;
@@ -499,7 +514,7 @@ const choice: Evaluator = (ctx) => {
       kind: 'choice',
       layout: 'choices',
       attrs: {
-        class: 'crudui-choices',
+        ...choicesAttrs(ctx, 'crudui-choices'),
         ...dynamicSourceAttrs(items),
       },
       source: dynamicSourceAttrs(items),
@@ -519,6 +534,7 @@ const choice: Evaluator = (ctx) => {
     return ctx.value === undefined ? defaultStr ?? '' : v;
   })();
   const idPrefix = elementId('choice', ctx.path);
+  const appearances = isChoiceList(items) ? choiceAppearances(items) : [];
 
   const options: OptionModel[] = itemEntries(items).map(([key, label], index) => {
     const value = String(key);
@@ -528,13 +544,14 @@ const choice: Evaluator = (ctx) => {
       selected: effectiveValue === value,
       isDefault: defaultStr !== null && defaultStr === value,
       id: `${idPrefix}-${index + 1}`,
+      ...appearances[index],
     };
   });
 
   return {
     kind: 'choice',
     layout: 'choices',
-    attrs: { class: 'crudui-choices' },
+    attrs: choicesAttrs(ctx, 'crudui-choices'),
     source: null,
     options,
     itemLabelClass: labelClass,
@@ -564,7 +581,7 @@ const multichoice: Evaluator = (ctx) => {
       kind: 'multichoice',
       layout: 'choices',
       attrs: {
-        class: 'crudui-choices crudui-choices--multiple',
+        ...choicesAttrs(ctx, 'crudui-choices crudui-choices--multiple'),
         ...dynamicSourceAttrs(items),
       },
       source: dynamicSourceAttrs(items),
@@ -588,6 +605,7 @@ const multichoice: Evaluator = (ctx) => {
   }
 
   const idPrefix = `mchoice-${cleanStr(name)}`;
+  const appearances = isChoiceList(items) ? choiceAppearances(items) : [];
   const options: OptionModel[] = itemEntries(items).map(([key, label], index) => {
     const value = String(key);
     return {
@@ -596,13 +614,14 @@ const multichoice: Evaluator = (ctx) => {
       selected: selectedValues.includes(value),
       isDefault: false,
       id: `${idPrefix}${index + 1}`,
+      ...appearances[index],
     };
   });
 
   return {
     kind: 'multichoice',
     layout: 'choices',
-    attrs: { class: 'crudui-choices crudui-choices--multiple' },
+    attrs: choicesAttrs(ctx, 'crudui-choices crudui-choices--multiple'),
     source: null,
     options,
     itemLabelClass: labelClass,

@@ -163,7 +163,7 @@ option 값은 그 [정규 텍스트](validation-rules.ko.md#값)입니다. 문�
 값에 관계없이 목록 순서를 유지합니다.
 
 `items` 배열의 원소 중 하나가 `value` 멤버가 있는 객체이면 그 배열은 선택 목록입니다. 이때 모든 원소는
-멤버가 `value`와 `label`뿐인 객체여야 하고, 모든 `value`는 문자열이나 유한한 숫자여야 하며, 정규 텍스트가
+멤버가 `value`와 `label`(choice·multichoice 필드에서는 [외형](#선택지-외형) 멤버도)뿐인 객체여야 하고, 모든 `value`는 문자열이나 유한한 숫자여야 하며, 정규 텍스트가
 같은 값이 둘 있으면 안 됩니다. `items`가 이 규칙 중 하나를 어긴 선택 목록인 필드를 바인딩하면
 `INVALID_FORM_INPUT`, 메시지
 `Invalid items at {path}: expected value and label pairs with distinct string or number values`, 빈 위치로
@@ -181,6 +181,38 @@ choice, multichoice, search 필드는 값과 라벨의 맵처럼 쌍을 목록 �
   { "value": 0, "label": "No" }]`는 Yes를 No보다 먼저 표시합니다. 값이 정수 형태이거나 섞여 있고 작성한
   순서가 필요할 때 사용합니다.
 - 라벨의 배열은 인덱스 `0`, `1`, …을 값으로 하여 작성한 순서를 유지합니다.
+
+### 선택지 외형
+
+choice·multichoice 필드(`choice`, `radio`, `multichoice`, `checkboxes`, `checkcontainer` 타입)의 선택
+목록에서 각 선택지는 외형을 선언할 수 있습니다. `class`와 `style`은 선택지의 레이블에 적용하는 리터럴
+문자열이고, `attributes`는 선택지의 input에 쓰는 [선언한 속성](#선언한-속성)입니다. 필드의
+`design.group`(`class`와 `style`)은 선택지를 담는 요소에 적용합니다. 이를 사용해 선택지를
+배치할 수 있습니다. 예를 들어 각 선택지가 `style`에서 설정한 사용자 정의 속성을 레이블이 읽는 색 견본
+격자로 배치합니다. 출력은 [폼 마크업](form-markup.ko.md#선택지-외형)이 정의합니다. 다른 필드, `in`,
+`choice-label` 형식의 선택 목록은 `value`와 `label`만 가지며, 다른 멤버는 위와 같이 실패합니다.
+
+```yaml
+accent:
+  type: choice
+  label: Accent
+  items:
+    - { value: blue, label: Blue, class: swatch, style: "--swatch-bg: #1d4ed8", attributes: { aria-label: Blue accent } }
+    - { value: green, label: Green, class: swatch, style: "--swatch-bg: #15803d" }
+  design:
+    group: { class: swatches }
+```
+
+바인딩은 선택 목록 규칙 다음에 외형을 검사합니다. 선택지를 목록 순서로, 각 선택지에서는 `class`, `style`,
+`attributes` 순서로 검사하며 모든 이름을 모든 값보다 먼저 검사합니다. `INVALID_FORM_INPUT`와 빈 위치로
+실패하며, `{index}`는 선택지의 0부터 시작하는 위치입니다.
+
+| 선언 | 메시지 |
+| --- | --- |
+| 문자열이 아닌 `class` 또는 `style` | `Invalid items.{index}.{member} at {path}: expected a string` |
+| 객체가 아닌 `attributes` | `Invalid items.{index}.attributes at {path}: expected an object` |
+| 규칙 밖의 이름 또는 거부된 이름 | `Invalid items.{index}.attributes.{name} at {path}: expected a data-* or aria-* name that crudui does not write` |
+| 문자열이 아닌 값 | `Invalid items.{index}.attributes.{name} at {path}: expected a string` |
 
 ## 합성과 검증
 

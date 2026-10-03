@@ -106,6 +106,19 @@ for (const [label, field, expected] of [
   assert.equal(validateForm(spec), expected, `range field, ${label}: ${JSON.stringify(validateForm.errors)}`);
   checked++;
 }
+// Choice appearance (docs/spec/schema.md, Choice appearance): the choices of a field's items may
+// declare a label class and style and input attributes; `in` keeps value and label pairs.
+for (const [label, field, expected] of [
+  ['class, style and attributes', { type: 'choice', items: [{ value: 'blue', label: 'Blue', class: 'swatch', style: '--swatch-bg: #1d4ed8', attributes: { 'aria-label': 'Blue accent' } }], design: { group: { class: 'swatches' } } }, true],
+  ['class that is not a string', { type: 'choice', items: [{ value: 'blue', label: 'Blue', class: ['swatch'] }] }, false],
+  ['owned attribute name', { type: 'choice', items: [{ value: 'blue', label: 'Blue', attributes: { 'data-is-default': '1' } }] }, false],
+  ['another member', { type: 'choice', items: [{ value: 'blue', label: 'Blue', id: 'b' }] }, false],
+  ['appearance in a membership rule', { type: 'choice', items: ['Blue'], validate: { in: [{ value: 0, label: 'Blue', class: 'swatch' }] } }, false],
+]) {
+  const spec = { type: 'group', properties: { accent: field } };
+  assert.equal(validateForm(spec), expected, `choice appearance, ${label}: ${JSON.stringify(validateForm.errors)}`);
+  checked++;
+}
 // `validate` and `messages` accept the registered rule names only: the rules of the rule registry.
 const registeredRules = [...readText('packages/validator-ts/src/rules/index.ts').matchAll(/^ {2}\['(\w+)', \w+Rule\],$/gm)]
   .map((match) => match[1]);

@@ -181,10 +181,11 @@ function choices(widget: WidgetModel): string {
     if (type === 'radio') values['data-is-default'] = option.isDefault ? '1' : '';
     if (option.selected) values.checked = true;
     if (raw && values.checked !== undefined) values.checked = '';
-    Object.assign(values, widget.extra?.option);
+    Object.assign(values, widget.extra?.option, option.attributes);
     const label: AttrValues = {};
     if (option.id) label.for = option.id;
-    label.class = widget.itemLabelClass ?? '';
+    label.class = joinClass(widget.itemLabelClass, option.className);
+    if (option.style) label.style = option.style;
     return inputHtml(values, raw) + `<label${attrs(label, raw)}><span>${textContent(option.label, raw)}</span></label>`;
   }).join('');
   return `<div${attrs(widget.attrs)}>${body}</div>`;

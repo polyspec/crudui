@@ -378,7 +378,7 @@ export interface DesignSlot {
   label?: DesignNode;
   /** Wrapper node appearance. */
   wrapper?: DesignNode;
-  /** Group node appearance. */
+  /** Body appearance of a group or group row, and of the choices of a choice or multichoice field. */
   group?: DesignNode;
   /** Prepend node appearance. */
   prepend?: DesignNode;
@@ -564,7 +564,7 @@ export interface ItemsSource {
  * (`ChoiceList`), a static value→label map (`ItemLabelMap`) or a dynamic
  * `ItemsSource` (docs/spec/schema.md, "Languages and choices").
  */
-export type Items = StaticItem[] | ChoiceList | ItemLabelMap | ItemsSource;
+export type Items = StaticItem[] | ChoiceItems | ItemLabelMap | ItemsSource;
 
 /**
  * One choice of a choice list (docs/spec/schema.md, "Choice lists"). The option value is
@@ -579,6 +579,23 @@ export interface ChoicePair {
 
 /** Choices in list order for any values. */
 export type ChoiceList = ChoicePair[];
+
+/**
+ * One choice of a field's `items` (docs/spec/schema.md, "Choice appearance"). In a choice or
+ * multichoice field it may declare the appearance of its label and input; binding rejects these
+ * members in other fields.
+ */
+export interface ChoiceItem extends ChoicePair {
+  /** Class of the choice's label, after the label classes. */
+  class?: string;
+  /** Inline style of the choice's label. */
+  style?: string;
+  /** Attributes written on the choice's input after the field's control attributes. */
+  attributes?: DeclaredAttributes;
+}
+
+/** The choices of a field's `items` in list order. */
+export type ChoiceItems = ChoiceItem[];
 
 /**
  * A static option label (display only). A plain string or a per-language LangMap
