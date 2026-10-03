@@ -61,7 +61,7 @@ describe('widget member order', () => {
         body: { type: 'tinymce' },
       },
     });
-    const order = ['kind', 'layout', 'tag', 'attrs', 'text', 'rawHtml', 'source', 'options', 'itemLabelClass', 'script', 'styleChrome', 'buttonText', 'prepend', 'append', 'extra'];
+    const order = ['kind', 'layout', 'tag', 'attrs', 'text', 'rawHtml', 'source', 'options', 'itemLabelClass', 'script', 'styleChrome', 'prepend', 'append', 'extra'];
     for (const node of bindForm(template, {})) {
       const keys = Object.keys((node as { widget: object }).widget);
       expect(keys).toEqual(order.filter(key => keys.includes(key)));

@@ -1438,7 +1438,7 @@
   },
   {
     "name": "button-empty",
-    "note": "button → click-binder script + hidden field + button.",
+    "note": "button → a button element with the content text, no script and no hidden input.",
     "spec": {
       "type": "group",
       "properties": {
@@ -1457,11 +1457,11 @@
     "options": {
       "language": "ko"
     },
-    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"b\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:b\">버튼</label></div><div class=\"crudui-node__body\"><script nonce=\"\">\n$(function() {\n    \n    $(document.getElementById(\"crudui:b\")).on('click', function() {\n        \n    });\n});\n</script><input class=\"valid-target\" data-default=\"\" data-name=\"b\" data-rule-name=\"b\" name=\"b\" readonly=\"\" type=\"hidden\" value=\"\"><input class=\"crudui-action crudui-action--text\" id=\"crudui:b\" name=\"btnb\" type=\"button\" value=\"실행\"></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"폼 작업\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">저장</button></div></div></div>"
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"b\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:b\">버튼</label></div><div class=\"crudui-node__body\"><button class=\"crudui-action crudui-action--text\" id=\"crudui:b\" type=\"button\">실행</button></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"폼 작업\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">저장</button></div></div></div>"
   },
   {
     "name": "action-alias",
-    "note": "action alias → button markup with onclick behavior.",
+    "note": "action alias → the button element with the onclick behavior attribute.",
     "spec": {
       "type": "group",
       "properties": {
@@ -1483,7 +1483,7 @@
     "options": {
       "language": "ko"
     },
-    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"a\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:a\">액션</label></div><div class=\"crudui-node__body\"><script nonce=\"\">\n$(function() {\n    \n    $(document.getElementById(\"crudui:a\")).on('click', function() {\n        doSave()\n    });\n});\n</script><input class=\"valid-target\" data-default=\"\" data-name=\"a\" data-rule-name=\"a\" name=\"a\" readonly=\"\" type=\"hidden\" value=\"\"><input class=\"crudui-action crudui-action--text\" id=\"crudui:a\" name=\"btna\" type=\"button\" value=\"저장\"></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"폼 작업\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">저장</button></div></div></div>"
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"a\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:a\">액션</label></div><div class=\"crudui-node__body\"><button class=\"crudui-action crudui-action--text\" id=\"crudui:a\" onclick=\"doSave()\" type=\"button\">저장</button></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"폼 작업\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">저장</button></div></div></div>"
   },
   {
     "name": "search-empty",
@@ -2222,7 +2222,7 @@
   },
   {
     "name": "button-behavior-onclick",
-    "note": "button behavior onclick → wrapped in click-binder script verbatim.",
+    "note": "button behavior onclick → an onclick attribute on the button element, verbatim.",
     "spec": {
       "type": "group",
       "properties": {
@@ -2244,7 +2244,7 @@
     "options": {
       "language": "ko"
     },
-    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"b\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:b\">버튼</label></div><div class=\"crudui-node__body\"><script nonce=\"\">\n$(function() {\n    \n    $(document.getElementById(\"crudui:b\")).on('click', function() {\n        window.run() && go()\n    });\n});\n</script><input class=\"valid-target\" data-default=\"\" data-name=\"b\" data-rule-name=\"b\" name=\"b\" readonly=\"\" type=\"hidden\" value=\"\"><input class=\"crudui-action crudui-action--text\" id=\"crudui:b\" name=\"btnb\" type=\"button\" value=\"실행\"></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"폼 작업\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">저장</button></div></div></div>"
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"b\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:b\">버튼</label></div><div class=\"crudui-node__body\"><button class=\"crudui-action crudui-action--text\" id=\"crudui:b\" onclick=\"window.run() &amp;&amp; go()\" type=\"button\">실행</button></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"폼 작업\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">저장</button></div></div></div>"
   },
   {
     "name": "multiple-only-group-rows",

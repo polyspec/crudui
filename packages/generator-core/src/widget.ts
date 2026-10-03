@@ -116,12 +116,12 @@ export interface WidgetModel {
     | 'display' // dummy/dummy-input/image-viewer display-only
     | 'search' // select2 host: style?/script + .crudui-widget--search
     | 'range' // prepend? + range input + output + append? inside .crudui-widget--range
-    | 'button'; // action: script + hidden + button
-  /** Main control element name ('input'|'select'|'textarea'|'div'). */
-  tag?: 'input' | 'select' | 'textarea' | 'div';
+    | 'button'; // button/action: a button element with its content
+  /** Main control element name ('input'|'select'|'textarea'|'div'|'button'). */
+  tag?: 'input' | 'select' | 'textarea' | 'div' | 'button';
   /** Main control attributes (lowercase HTML names). Empty for file/cover. */
   attrs: Attrs;
-  /** Textarea/dummy text content and range output text (already display-resolved). */
+  /** Textarea/dummy text content, range output text and button content (already display-resolved). */
   text?: string;
   /** RAW html for a display widget (dummy/image-viewer) — passes unescaped. */
   rawHtml?: string;
@@ -135,15 +135,13 @@ export interface WidgetModel {
   append?: Affix;
   /** Per-option label class (choice/multichoice). */
   itemLabelClass?: string;
-  /** Inline script chrome text (editors/tagify/search/button). */
+  /** Inline script chrome text (editors/tagify/search). */
   script?: string;
   /** Inline style chrome text (search hide_searching). */
   styleChrome?: string;
-  /** Button display caption (action widget). */
-  buttonText?: string;
   /**
-   * Secondary attrs (button hidden field, image readonly display input, file input, choice
-   * option input shared attrs and the declared option attributes `option`).
+   * Secondary attrs (image readonly display input, file input, choice option input shared attrs
+   * and the declared option attributes `option`).
    */
   extra?: Record<string, Attrs>;
 }
@@ -997,41 +995,20 @@ const tui = editorTextarea(
   (ctx, id) => `$(function() {editor_tui('#'+CSS.escape(${scriptString(id)}), ${scriptString(optWith(ctx, 'fileserver', ''))});});`
 );
 
-const button: Evaluator = (ctx) => {
-  const name = bracketName(ctx);
-  const id = ctx.controlId;
-  const onclick = behaviorScript(ctx, 'onclick');
-  const initScript = optStr(ctx, 'init_script') ?? '';
-  const script =
-    `\n$(function() {\n    ${initScript}\n    $(document.getElementById(${scriptString(id)})).on('click', function() {\n        ${onclick}\n    });\n});\n`;
-  const displayValue = applyDefaultString(ctx.value, ctx.spec.default);
-  const textVal = ctx.spec.content === undefined ? '' : ctx.t(ctx.spec.content as never);
-  return {
-    kind: 'button',
-    layout: 'button',
-    script,
-    buttonText: textVal,
-    attrs: {
-      type: 'button',
-      class: mainClass(ctx, 'crudui-action crudui-action--text'),
-      name: `btn${name}`,
-      id,
-      value: textVal,
-    },
-    extra: {
-      hidden: {
-        type: 'hidden',
-        class: 'valid-target',
-        readonly: '',
-        name,
-        'data-name': leafName(ctx.path, ctx.rowSegments),
-        'data-rule-name': ruleNameForPath(ctx.path, ctx.rowSegments),
-        value: displayValue,
-        'data-default': phpString(ctx.spec.default),
-      },
-    },
-  };
-};
+/** A button element with the content text; behavior scripts are its event attributes. */
+const button: Evaluator = (ctx) => ({
+  kind: 'button',
+  layout: 'button',
+  tag: 'button',
+  attrs: {
+    type: 'button',
+    class: mainClass(ctx, 'crudui-action crudui-action--text'),
+    ...(mainStyle(ctx) ? { style: mainStyle(ctx)! } : {}),
+    id: ctx.controlId,
+    ...behaviorAttrs(ctx),
+  },
+  text: ctx.spec.content === undefined ? '' : ctx.t(ctx.spec.content as never),
+});
 
 const tagify: Evaluator = (ctx) => {
   const id = ctx.controlId;
@@ -1204,7 +1181,7 @@ export const WIDGET_CANONICAL: Readonly<Record<string, string>> = (() => {
 /** Widget model members in their output order (docs/spec/form-runtime.md). */
 const WIDGET_MEMBERS = [
   'kind', 'layout', 'tag', 'attrs', 'text', 'rawHtml', 'source', 'options',
-  'itemLabelClass', 'script', 'styleChrome', 'buttonText', 'prepend', 'append', 'extra',
+  'itemLabelClass', 'script', 'styleChrome', 'prepend', 'append', 'extra',
 ] as const satisfies readonly (keyof WidgetModel)[];
 /** Every widget model member has an output position. */
 type UnorderedWidgetMember = Exclude<keyof WidgetModel, (typeof WIDGET_MEMBERS)[number]>;

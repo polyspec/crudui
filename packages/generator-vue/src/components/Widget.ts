@@ -176,8 +176,8 @@ function searchHtml(w: WidgetModel): string {
  * widget-level container element), return its raw html so the node renderer writes it
  * into the body with `rawContainer`; else null and the widget renders as a real
  * container vnode. Covers bare (datetime/password/hidden/email), host-script
- * (editors/tagify), and button (script + hidden + button) — all carry empty/
- * boolean control attrs Vue would mangle as real vnodes.
+ * (editors/tagify), and button (a button element with its content) — all carry
+ * empty/boolean or opaque on* control attrs Vue would mangle as real vnodes.
  */
 export function widgetRootRaw(w: AnyWidget): string | null {
   if (isUnsupported(w)) return null;
@@ -185,14 +185,7 @@ export function widgetRootRaw(w: AnyWidget): string | null {
   if (w.layout === 'host-script') {
     return rawControl(w) + `<script nonce="">${w.script ?? ''}</script>`;
   }
-  if (w.layout === 'button') {
-    const hidden = w.extra?.hidden ?? {};
-    return (
-      `<script nonce="">${w.script ?? ''}</script>` +
-      rawVoid('input', hidden) +
-      rawVoid('input', w.attrs)
-    );
-  }
+  if (w.layout === 'button') return rawElement('button', w.attrs, escText(w.text ?? ''));
   if (w.layout === 'choices') return choicesHtml(w);
   if (w.layout === 'search') return searchHtml(w);
   return null;

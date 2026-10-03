@@ -31,7 +31,7 @@ in PHP an associative array is an object and an empty or list array is a list.
 Node models keep the member order the [form markup](form-markup.md) defines, and
 every widget model lists its members in the order `kind`, `layout`, `tag`,
 `attrs`, `text`, `rawHtml`, `source`, `options`, `itemLabelClass`, `script`,
-`styleChrome`, `buttonText`, `prepend`, `append`, `extra`, with `display` before
+`styleChrome`, `prepend`, `append`, `extra`, with `display` before
 `file` and `input` before `option` in `extra`, in every runtime.
 
 `createForm(template, data, options)` creates an editable instance.
@@ -350,7 +350,7 @@ escape the identifier with `CSS.escape`; direct DOM lookup uses
 `document.getElementById`. Search initialization and its generated CSS use the
 same container class. String arguments in scripts use JSON string escaping and
 escape `<`, U+2028 and U+2029. Every widget derives rule paths from the structural
-row positions, including choices, file controls, search and action values.
+row positions, including choices, file controls and search.
 Multiple-choice inputs use an array submission name and preserve every selected
 value through injection, editing and submission. An empty selection is an empty
 array in instance data.
