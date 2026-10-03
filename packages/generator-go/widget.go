@@ -350,17 +350,16 @@ func evalWidget(c widgetContext) *Object {
 	case "tinymce", "summernote", "editorjs", "tui", "tagify", "tagify2":
 		w = editorWidget(kind, c)
 	case "button":
-		id := c.id()
+		a = NewObject("type", "button", "class", c.class("crudui-action crudui-action--text"))
+		c.attrsStyle(a)
+		a.Set("id", c.id())
+		merge(a, c.behavior())
+		w = widget(kind, "button", "button", a)
 		text := ""
 		if c.spec.Has("content") {
 			text = c.translate(read(c.spec, "content"))
 		}
-		a = NewObject("type", "button", "class", c.class("crudui-action crudui-action--text"), "name", "btn"+name, "id", id, "value", text)
-		w = widget(kind, "button", "", a)
-		w.Set("buttonText", text)
-		w.Set("script", fmt.Sprintf("\n$(function() {\n    %s\n    $(document.getElementById(%s)).on('click', function() {\n        %s\n    });\n});\n", c.option("init_script", ""), scriptString(id), stringAt(c.behavior(), "onclick")))
-		hidden := NewObject("type", "hidden", "class", "valid-target", "readonly", "", "name", name, "data-name", leafName(c.path, c.state.rows), "data-rule-name", ruleName(c.path, c.state.rows), "value", c.display(), "data-default", scalar(read(c.spec, "default")))
-		w.Set("extra", NewObject("hidden", hidden))
+		w.Set("text", text)
 	default:
 		return nil
 	}
@@ -396,7 +395,7 @@ func appendDeclaredAttributes(w *Object, attributes *Object) {
 }
 
 // widgetMembers lists the widget model members in their output order (docs/spec/form-runtime.md).
-var widgetMembers = []string{"kind", "layout", "tag", "attrs", "text", "rawHtml", "source", "options", "itemLabelClass", "script", "styleChrome", "buttonText", "prepend", "append", "extra"}
+var widgetMembers = []string{"kind", "layout", "tag", "attrs", "text", "rawHtml", "source", "options", "itemLabelClass", "script", "styleChrome", "prepend", "append", "extra"}
 
 // orderedWidget returns the widget with its members in output order.
 func orderedWidget(w *Object) *Object {

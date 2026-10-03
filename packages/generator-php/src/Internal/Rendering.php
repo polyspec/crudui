@@ -300,7 +300,7 @@ final class Rendering
                 $raw = true;
                 return (($widget->styleChrome ?? '') !== '' ? self::element('style', ['nonce' => ''], $widget->styleChrome) : '') . self::script($widget->script ?? '') . self::element('div', ['class' => 'crudui-widget crudui-widget--search'], self::affix($widget->prepend ?? null, $raw) . self::control($widget, $raw) . self::affix($widget->append ?? null, $raw));
             case 'button':
-                return self::script($widget->script ?? '') . self::input($widget->extra->hidden) . self::input($widget->attrs);
+                return self::element('button', $raw ? $widget->attrs : self::controlAttrs($widget->attrs), self::text($widget->text ?? '', $raw), $raw);
         }
         throw new \LogicException('Unknown widget layout: ' . $widget->layout);
     }
