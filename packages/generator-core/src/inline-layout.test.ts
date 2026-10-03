@@ -86,3 +86,34 @@ describe('layout declaration checks', () => {
       .toBe('Invalid design.layout at a: expected stacked or inline');
   });
 });
+
+describe('checkbox and switcher labels in an inline layout', () => {
+  const look = (properties: Record<string, unknown>, layout = 'inline') =>
+    nodes(G({ look: { type: 'group', design: { layout }, properties } }))[0]!.children!;
+
+  it('writes the label of a checkbox or switcher in the header and leaves the input without a caption', () => {
+    const [sync, agree] = look({
+      sync: { type: 'switcher', label: 'Sync', description: 'Keeps every window in step.' },
+      agree: { type: 'checkbox', label: 'Agree' },
+    });
+    expect(sync!.header).toEqual({ className: '', label: 'Sync', labelFor: 'crudui:look.sync', description: 'Keeps every window in step.' });
+    expect(sync!.checkbox).toEqual({
+      id: 'crudui:look.sync',
+      name: 'look[sync]',
+      className: 'valid-target crudui-input crudui-input--switch',
+      checked: false,
+      role: 'switch',
+    });
+    expect(agree!.header).toEqual({ className: '', label: 'Agree', labelFor: 'crudui:look.agree' });
+    expect(agree!.checkbox).toEqual({ id: 'crudui:look.agree', name: 'look[agree]', className: 'valid-target', checked: false });
+  });
+
+  it('keeps the caption of a checkbox without a label and of every checkbox outside an inline layout', () => {
+    const [bare] = look({ bare: { type: 'checkbox' } });
+    expect(bare!.header).toBeUndefined();
+    expect(bare!.checkbox!.caption).toBe('');
+    const [sync] = look({ sync: { type: 'switcher', label: 'Sync', description: 'Help' } }, 'stacked');
+    expect(sync!.header).toEqual({ className: '', description: 'Help' });
+    expect(sync!.checkbox!.caption).toBe('Sync');
+  });
+});

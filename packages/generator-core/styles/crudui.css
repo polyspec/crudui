@@ -201,6 +201,11 @@
   grid-row: 1;
 }
 
+/* The input of a checkbox or switch is centered on the label line of the label column. */
+.crudui-node--inline > .crudui-node__body:has(> input[type='checkbox']) {
+  min-height: var(--crudui-control-height);
+}
+
 /* A line group places its child nodes side by side, each as wide as its content. */
 .crudui-node--line > .crudui-node__body {
   display: flex;

@@ -271,7 +271,7 @@ function bodyHtml(vm: NodeVM, errors: NodeErrors): string {
   if (vm.checkbox) {
     const box = vm.checkbox;
     inner = inputHtml({ class: box.className, id: box.id, name: box.name, type: 'checkbox', role: box.role, value: '1', ...(box.checked ? { checked: true } : {}), ...box.attributes }) +
-      element('label', { for: box.id }, escape(box.caption));
+      (box.caption === undefined ? '' : element('label', { for: box.id }, escape(box.caption)));
   } else if (vm.widget) {
     inner = widget(vm.widget);
   } else {

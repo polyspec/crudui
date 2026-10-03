@@ -83,7 +83,7 @@ function Body({ vm }: { vm: NodeVM }): React.ReactElement {
     return (
       <div {...props}>
         <input className={box.className} id={box.id} name={box.name} type="checkbox" role={box.role} {...box.attributes} value="1" defaultChecked={box.checked} />
-        <label htmlFor={box.id}>{box.caption}</label>
+        {box.caption === undefined ? null : <label htmlFor={box.id}>{box.caption}</label>}
       </div>
     );
   }
