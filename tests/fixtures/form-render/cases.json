@@ -4795,5 +4795,519 @@
       "code": "INVALID_FORM_INPUT",
       "message": "Invalid design.layout at a: expected stacked or inline"
     }
+  },
+  {
+    "name": "choice-groups-select",
+    "note": "select items with plain choices and groups in written order → options and optgroup elements with the translated group label; the selected value inside a group.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "region": {
+          "type": "select",
+          "label": "Region",
+          "items": [
+            {
+              "value": "auto",
+              "label": "Automatic"
+            },
+            {
+              "label": {
+                "en": "Europe",
+                "ko": "유럽"
+              },
+              "choices": [
+                {
+                  "value": "eu-west",
+                  "label": "West"
+                },
+                {
+                  "value": "eu-north",
+                  "label": {
+                    "en": "North",
+                    "ko": "북부"
+                  }
+                }
+              ]
+            },
+            {
+              "value": 7,
+              "label": "Seven"
+            },
+            {
+              "label": "Asia",
+              "choices": [
+                {
+                  "value": "ap-east",
+                  "label": "East"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "data": {
+      "region": "eu-north"
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"region\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:region\">Region</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><select class=\"valid-target crudui-input crudui-input--select\" data-default=\"\" data-name=\"region\" data-rule-name=\"region\" id=\"crudui:region\" name=\"region\"><option value=\"auto\">Automatic</option><optgroup label=\"Europe\"><option value=\"eu-west\">West</option><option selected=\"\" value=\"eu-north\">North</option></optgroup><option value=\"7\">Seven</option><optgroup label=\"Asia\"><option value=\"ap-east\">East</option></optgroup></select></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "choice-groups-only-groups",
+    "note": "dropdown and selectbox items made only of groups → optgroup elements alone; the Korean group label.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "zone": {
+          "type": "dropdown",
+          "label": "Zone",
+          "items": [
+            {
+              "label": {
+                "en": "Europe",
+                "ko": "유럽"
+              },
+              "choices": [
+                {
+                  "value": 1,
+                  "label": "One"
+                },
+                {
+                  "value": 2,
+                  "label": "Two"
+                }
+              ]
+            }
+          ]
+        },
+        "pick": {
+          "type": "selectbox",
+          "label": "Pick",
+          "items": [
+            {
+              "label": "A",
+              "choices": [
+                {
+                  "value": "a",
+                  "label": "A"
+                }
+              ]
+            },
+            {
+              "label": "B",
+              "choices": [
+                {
+                  "value": "b",
+                  "label": "B"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "data": {
+      "zone": 2
+    },
+    "options": {
+      "language": "ko"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"zone\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:zone\">Zone</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><select class=\"valid-target crudui-input crudui-input--select\" data-default=\"\" data-name=\"zone\" data-rule-name=\"zone\" id=\"crudui:zone\" name=\"zone\"><optgroup label=\"유럽\"><option value=\"1\">One</option><option selected=\"\" value=\"2\">Two</option></optgroup></select></div></div></div><div class=\"crudui-node crudui-node--field\" data-field-path=\"pick\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:pick\">Pick</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><select class=\"valid-target crudui-input crudui-input--select\" data-default=\"\" data-name=\"pick\" data-rule-name=\"pick\" id=\"crudui:pick\" name=\"pick\"><optgroup label=\"A\"><option value=\"a\">A</option></optgroup><optgroup label=\"B\"><option value=\"b\">B</option></optgroup></select></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"폼 작업\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">저장</button></div></div></div>"
+  },
+  {
+    "name": "choice-groups-behavior",
+    "note": "a select with groups and a behavior attribute → the raw select with its optgroup elements.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "region": {
+          "type": "select",
+          "label": "Region",
+          "behavior": {
+            "onchange": "go(this)"
+          },
+          "items": [
+            {
+              "value": "auto",
+              "label": "Automatic"
+            },
+            {
+              "label": "Europe <west>",
+              "choices": [
+                {
+                  "value": "eu-west",
+                  "label": "West & more"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "data": {
+      "region": "eu-west"
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"region\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:region\">Region</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><select class=\"valid-target crudui-input crudui-input--select\" data-default=\"\" data-name=\"region\" data-rule-name=\"region\" id=\"crudui:region\" name=\"region\" onchange=\"go(this)\"><option value=\"auto\">Automatic</option><optgroup label=\"Europe <west>\"><option selected=\"\" value=\"eu-west\">West &amp; more</option></optgroup></select></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "choice-groups-repeated-value",
+    "note": "Values stay distinct across groups.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "region": {
+          "label": "Region",
+          "type": "select",
+          "items": [
+            {
+              "label": "Europe",
+              "choices": [
+                {
+                  "value": "eu-west",
+                  "label": "West"
+                },
+                {
+                  "value": "eu-north",
+                  "label": "North"
+                }
+              ]
+            },
+            {
+              "label": "Again",
+              "choices": [
+                {
+                  "value": "eu-west",
+                  "label": "West"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid items at region: expected value and label pairs with distinct string or number values"
+    }
+  },
+  {
+    "name": "choice-groups-repeated-plain-value",
+    "note": "A value inside a group is distinct from a plain choice value, by canonical text.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "region": {
+          "label": "Region",
+          "type": "select",
+          "items": [
+            {
+              "value": 7,
+              "label": "Seven"
+            },
+            {
+              "label": "Asia",
+              "choices": [
+                {
+                  "value": "7",
+                  "label": "Seven"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid items at region: expected value and label pairs with distinct string or number values"
+    }
+  },
+  {
+    "name": "choice-groups-empty",
+    "note": "A group has at least one choice.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "region": {
+          "label": "Region",
+          "type": "select",
+          "items": [
+            {
+              "label": "Europe",
+              "choices": [
+                {
+                  "value": "eu-west",
+                  "label": "West"
+                },
+                {
+                  "value": "eu-north",
+                  "label": "North"
+                }
+              ]
+            },
+            {
+              "label": "Empty",
+              "choices": []
+            }
+          ]
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid items at region: expected value and label pairs with distinct string or number values"
+    }
+  },
+  {
+    "name": "choice-groups-choices-text",
+    "note": "The choices of a group are a list.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "region": {
+          "label": "Region",
+          "type": "select",
+          "items": [
+            {
+              "label": "Bad",
+              "choices": "eu-west"
+            }
+          ]
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid items at region: expected value and label pairs with distinct string or number values"
+    }
+  },
+  {
+    "name": "choice-groups-without-label",
+    "note": "A group has a label.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "region": {
+          "label": "Region",
+          "type": "select",
+          "items": [
+            {
+              "choices": [
+                {
+                  "value": 1,
+                  "label": "One"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid items at region: expected value and label pairs with distinct string or number values"
+    }
+  },
+  {
+    "name": "choice-groups-extra-member",
+    "note": "A group has only label and choices.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "region": {
+          "label": "Region",
+          "type": "select",
+          "items": [
+            {
+              "label": "Europe",
+              "choices": [
+                {
+                  "value": "eu-west",
+                  "label": "West"
+                },
+                {
+                  "value": "eu-north",
+                  "label": "North"
+                }
+              ],
+              "class": "x"
+            }
+          ]
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid items at region: expected value and label pairs with distinct string or number values"
+    }
+  },
+  {
+    "name": "choice-groups-nested",
+    "note": "A group holds no group.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "region": {
+          "label": "Region",
+          "type": "select",
+          "items": [
+            {
+              "label": "Outer",
+              "choices": [
+                {
+                  "label": "Europe",
+                  "choices": [
+                    {
+                      "value": "eu-west",
+                      "label": "West"
+                    },
+                    {
+                      "value": "eu-north",
+                      "label": "North"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid items at region: expected value and label pairs with distinct string or number values"
+    }
+  },
+  {
+    "name": "choice-groups-choice-appearance",
+    "note": "A choice inside a group declares no appearance.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "region": {
+          "label": "Region",
+          "type": "select",
+          "items": [
+            {
+              "label": "Styled",
+              "choices": [
+                {
+                  "value": 1,
+                  "label": "One",
+                  "class": "x"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid items at region: expected value and label pairs with distinct string or number values"
+    }
+  },
+  {
+    "name": "choice-groups-choice-field",
+    "note": "A choice field has no groups.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "region": {
+          "label": "Region",
+          "type": "choice",
+          "items": [
+            {
+              "label": "Europe",
+              "choices": [
+                {
+                  "value": "eu-west",
+                  "label": "West"
+                },
+                {
+                  "value": "eu-north",
+                  "label": "North"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid items at region: expected value and label pairs with distinct string or number values"
+    }
+  },
+  {
+    "name": "choice-groups-search-field",
+    "note": "A search field has no groups.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "region": {
+          "label": "Region",
+          "type": "search",
+          "items": [
+            {
+              "value": "auto",
+              "label": "Automatic"
+            },
+            {
+              "label": "Europe",
+              "choices": [
+                {
+                  "value": "eu-west",
+                  "label": "West"
+                },
+                {
+                  "value": "eu-north",
+                  "label": "North"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid items at region: expected value and label pairs with distinct string or number values"
+    }
   }
 ]

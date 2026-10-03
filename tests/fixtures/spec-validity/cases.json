@@ -611,6 +611,22 @@
     "engine": "pass"
   },
   {
+    "name": "ok-choice-groups",
+    "note": "The choice list of a select field holds a plain choice and a group, under items and in; validation loads the specification.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "region": {
+          "type": "select",
+          "items": [{ "value": "auto", "label": "Automatic" }, { "label": "Europe", "choices": [{ "value": "eu-west", "label": "West" }] }],
+          "validate": { "in": [{ "value": "auto", "label": "Automatic" }, { "label": "Europe", "choices": [{ "value": "eu-west", "label": "West" }] }] }
+        }
+      }
+    },
+    "expect": "ok",
+    "engine": "pass"
+  },
+  {
     "name": "err-items-choice-list-extra-member",
     "note": "A choice list element has only value and label. The runtime structure check does not read items; binding the field fails.",
     "spec": {

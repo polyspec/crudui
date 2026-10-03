@@ -3299,6 +3299,36 @@
     }
   },
   {
+    "name": "reject-format-items-choice-group",
+    "note": "a choice list of the choice-label format has no groups.",
+    "spec": {
+      "columns": {
+        "name": {
+          "field": "name",
+          "format": {
+            "type": "choice-label",
+            "items": [
+              {
+                "label": "Europe",
+                "choices": [
+                  {
+                    "value": "eu-west",
+                    "label": "West"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "rows": [],
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid format.items at columns.name: expected value and label pairs with distinct string or number values"
+    }
+  },
+  {
     "name": "reject-format-items-duplicate",
     "note": "choice list values are distinct.",
     "spec": {
