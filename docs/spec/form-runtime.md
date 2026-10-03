@@ -462,8 +462,8 @@ installation.
     across re-renders, and run each script once, when its markup first appears, in Chromium,
     Firefox and WebKit.
 11. Bind a server-rendered form in the browser: write the error markup that `renderForm` writes
-    for the same errors, and in Chromium show an error when a changed field loses focus, send no
-    request for an invalid submission and submit the corrected form.
+    for the same errors, and in Chromium, Firefox and WebKit show an error when a changed field
+    loses focus, send no request for an invalid submission and submit the corrected form.
 
 ## Input labels and selection
 

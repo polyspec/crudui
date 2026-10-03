@@ -132,7 +132,7 @@ const binding = bindForm(document.querySelector('#member-form'), spec, {
 발생시키지 않으므로 바인딩이 검증하지 않습니다. 페이지가 폼을 제거하기 전에 `binding.dispose()`를
 호출합니다.
 
-Chromium 검사를 포함한 바인딩 검사는 저장소 루트에서 실행합니다.
+Chromium, Firefox, WebKit 검사를 포함한 바인딩 검사는 저장소 루트에서 실행합니다.
 
 ```sh
 make test-form-binding

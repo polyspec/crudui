@@ -18,6 +18,12 @@
 - 선언 빌드 테스트는 이제 `tsconfig.build.json`이 있는 모든 게시 패키지를 다루고 하나라도 빠지면
   실패합니다. `@crudui/form-binding`과, 같은 선언 빌드를 가졌지만 검사되지 않던
   `@crudui/generator-html`을 추가합니다.
+- 바인딩의 브라우저 검사(`packages/form-binding/tests/browser.test.ts`)는 Chromium에서만 실행되었고,
+  다른 브라우저 검사는 Chromium, Firefox, WebKit에서 실행됩니다. 이제 같은 사례를
+  `tests/browser-engines.mjs`로 세 엔진에서 실행하고, 타입은 `tests/browser-engines.d.mts`가
+  제공합니다. Puppeteer에는 Playwright 라우트가 없으므로 로컬 HTTP 서버가 페이지를 제공하고 각 제출을
+  기록합니다. 사례는 세 엔진에서 통과합니다. CI는 어떤 검사도 쓰지 않는 Playwright Chromium을 더 이상
+  설치하지 않고, 패키지는 `playwright`를 더 이상 선언하지 않습니다.
 
 ## 2026-10-04 — 서버가 렌더링한 폼의 브라우저 검증
 

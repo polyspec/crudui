@@ -1,16 +1,18 @@
-// The binding in Chromium: a server-rendered form shows an error when a changed control loses
+// The binding in Chromium, Firefox and WebKit, the browsers of the repository's browser checks
+// (tests/browser-engines.mjs): a server-rendered form shows an error when a changed control loses
 // focus, an invalid submission sends no request and reaches no other submit listener, and a
-// corrected form submits normally. Playwright serves the page, the bundled binding and the
-// submission target from routes, so every request the page makes is recorded.
+// corrected form submits normally. A local server serves the page, the bundled binding and the
+// submission target and records every submission it receives.
+import { createServer, type Server } from 'node:http';
+import type { AddressInfo } from 'node:net';
 import { fileURLToPath } from 'node:url';
 
 import { build } from 'esbuild';
-import { chromium, type Browser, type Page } from 'playwright';
 import { afterAll, beforeAll, expect, it } from 'vitest';
 
+import { engineDrivers, engines, type Engine, type EngineBrowser, type EnginePage } from '../../../tests/browser-engines.mjs';
 import { formHtml } from './dom';
 
-const origin = 'https://crudui.test';
 const spec = {
   type: 'group',
   properties: {
@@ -29,82 +31,109 @@ window.binding = bindForm(document.querySelector('form'), ${JSON.stringify(spec)
 document.body.dataset.bound = 'true';
 </script></body></html>`;
 
-let browser: Browser;
-let bundle: string;
+const saved = '<!doctype html><title>Saved</title><p id="saved">Saved</p>';
+const browsers: Partial<Record<Engine, EngineBrowser>> = {};
+let server: Server;
+let origin: string;
+/** The body of every submission the server received, and the waiter of the next one. */
+const posts: string[] = [];
+let nextPost: ((body: string) => void) | undefined;
 
 beforeAll(async () => {
   const output = await build({
     entryPoints: [fileURLToPath(new URL('../src/index.ts', import.meta.url))],
     bundle: true, format: 'esm', platform: 'browser', write: false, logLevel: 'silent',
   });
-  bundle = output.outputFiles[0]!.text;
-  browser = await chromium.launch({ headless: true });
-}, 60000);
-
-afterAll(async () => {
-  await browser?.close();
-}, 60000);
-
-/** Open the form page; every request is answered by a route and recorded. */
-async function open(): Promise<{ tab: Page; posts: string[]; failures: string[] }> {
-  const tab = await browser.newPage();
-  const posts: string[] = [];
-  const failures: string[] = [];
-  tab.on('pageerror', (error) => failures.push(error.message));
-  await tab.route(`${origin}/**`, async (route) => {
-    const request = route.request();
-    const path = new URL(request.url()).pathname;
-    if (request.method() === 'POST' && path === '/submit') {
-      posts.push(request.postData() ?? '');
-      await route.fulfill({ contentType: 'text/html', body: '<!doctype html><title>Saved</title><p id="saved">Saved</p>' });
-    } else if (path === '/') {
-      await route.fulfill({ contentType: 'text/html', body: page(formHtml(spec, {})) });
-    } else if (path === '/binding.mjs') {
-      await route.fulfill({ contentType: 'text/javascript', body: bundle });
+  const bundle = output.outputFiles[0]!.text;
+  const body = page(formHtml(spec, {}));
+  server = createServer((request, response) => {
+    const path = new URL(request.url ?? '/', 'http://localhost').pathname;
+    if (request.method === 'POST' && path === '/submit') {
+      const chunks: Buffer[] = [];
+      request.on('data', (chunk: Buffer) => chunks.push(chunk));
+      request.on('end', () => {
+        const text = Buffer.concat(chunks).toString('utf8');
+        posts.push(text);
+        nextPost?.(text);
+        response.writeHead(200, { 'Content-Type': 'text/html' }).end(saved);
+      });
+    } else if (request.method === 'GET' && path === '/') {
+      response.writeHead(200, { 'Content-Type': 'text/html' }).end(body);
+    } else if (request.method === 'GET' && path === '/binding.mjs') {
+      response.writeHead(200, { 'Content-Type': 'text/javascript' }).end(bundle);
     } else {
-      await route.fulfill({ status: 404, body: '' });
+      response.writeHead(404).end();
     }
   });
-  await tab.goto(`${origin}/`);
-  await tab.locator('body[data-bound="true"]').waitFor({ timeout: 10000 });
-  return { tab, posts, failures };
-}
+  await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
+  origin = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+  for (const engine of engines) browsers[engine] = await engineDrivers[engine].launch();
+}, 120000);
 
-it('shows errors while typing, stops an invalid submission and submits a corrected form', async () => {
-  const { tab, posts, failures } = await open();
+afterAll(async () => {
   try {
-    const email = tab.locator('input[name="form[email]"]');
-    const name = tab.locator('input[name="form[name]"]');
-    const emailErrors = tab.locator('[data-field-path="email"] > .crudui-node__errors > .crudui-node__error');
-    const nameErrors = tab.locator('[data-field-path="name"] > .crudui-node__errors > .crudui-node__error');
-
-    await email.fill('x');
-    expect(await emailErrors.count()).toBe(0);
-    await email.press('Tab');
-    await emailErrors.waitFor({ state: 'visible', timeout: 5000 });
-    expect(await emailErrors.allTextContents()).toStrictEqual(['Please enter a valid email address.']);
-    expect(await email.getAttribute('aria-invalid')).toBe('true');
-
-    // The click dispatches the submit event and runs its listeners before it returns.
-    await tab.locator('button[type="submit"]').click();
-    expect(await tab.evaluate(() => (window as unknown as { librarySubmits: number }).librarySubmits)).toBe(0);
-    expect(await nameErrors.allTextContents()).toStrictEqual(['This field is required.']);
-    expect(await email.evaluate((element) => element === document.activeElement)).toBe(true);
-
-    await email.fill('ada@example.com');
-    expect(await emailErrors.count()).toBe(0);
-    expect(await email.getAttribute('aria-invalid')).toBeNull();
-    await name.fill('Ada');
-    expect(await nameErrors.count()).toBe(0);
-
-    const request = tab.waitForRequest((sent) => sent.method() === 'POST', { timeout: 10000 });
-    await tab.locator('button[type="submit"]').click();
-    await request;
-    await tab.locator('#saved').waitFor({ timeout: 10000 });
-    // The invalid click sent nothing: the only request is the corrected submission.
-    expect(posts).toStrictEqual([`form%5Bemail%5D=ada%40example.com&form%5Bname%5D=Ada`]);
-    expect(failures).toStrictEqual([]);
+    await Promise.all(Object.values(browsers).map((browser) => browser.close()));
   } finally {
-    await tab.close();
+    await new Promise((resolve) => server?.close(resolve));
   }
 }, 60000);
+
+const emailErrors = '[data-field-path="email"] > .crudui-node__errors > .crudui-node__error';
+const nameErrors = '[data-field-path="name"] > .crudui-node__errors > .crudui-node__error';
+const email = 'input[name="form[email]"]';
+const name = 'input[name="form[name]"]';
+
+/** The texts of the elements a selector matches. */
+const texts = (tab: EnginePage, selector: string) =>
+  tab.evaluate((target) => Array.from(document.querySelectorAll(target), (element) => element.textContent), selector);
+
+/** The `aria-invalid` attribute of the element a selector matches. */
+const invalid = (tab: EnginePage, selector: string) =>
+  tab.evaluate((target) => document.querySelector(target)!.getAttribute('aria-invalid'), selector);
+
+for (const engine of engines) {
+  it(`${engine}: shows errors while typing, stops an invalid submission and submits a corrected form`, async () => {
+    const tab = await engineDrivers[engine].open(browsers[engine]!, { width: 1000, height: 700 });
+    const failures: string[] = [];
+    tab.on('pageerror', (error) => failures.push(error.message));
+    posts.length = 0;
+    try {
+      await tab.goto(`${origin}/`);
+      await tab.waitForSelector('body[data-bound="true"]', { timeout: 10000 });
+
+      await tab.focus(email);
+      await tab.keyboard.type('x');
+      expect(await texts(tab, emailErrors)).toStrictEqual([]);
+      await tab.keyboard.press('Tab');
+      await tab.waitForSelector(emailErrors, { timeout: 5000 });
+      expect(await texts(tab, emailErrors)).toStrictEqual(['Please enter a valid email address.']);
+      expect(await invalid(tab, email)).toBe('true');
+
+      // The click dispatches the submit event and runs its listeners before it returns.
+      await tab.click('button[type="submit"]');
+      expect(await tab.evaluate(() => (window as unknown as { librarySubmits: number }).librarySubmits, undefined)).toBe(0);
+      expect(await texts(tab, nameErrors)).toStrictEqual(['This field is required.']);
+      expect(await tab.evaluate((target) => document.querySelector(target) === document.activeElement, email)).toBe(true);
+
+      // Typing over the selected value replaces it, as a user does.
+      await tab.evaluate((target) => document.querySelector<HTMLInputElement>(target)!.select(), email);
+      await tab.keyboard.type('ada@example.com');
+      expect(await texts(tab, emailErrors)).toStrictEqual([]);
+      expect(await invalid(tab, email)).toBeNull();
+      await tab.focus(name);
+      await tab.keyboard.type('Ada');
+      expect(await texts(tab, nameErrors)).toStrictEqual([]);
+
+      const submitted = new Promise<string>((resolve) => { nextPost = resolve; });
+      await tab.click('button[type="submit"]');
+      await submitted;
+      await tab.waitForSelector('#saved', { timeout: 10000 });
+      // The invalid click sent nothing: the only request is the corrected submission.
+      expect(posts).toStrictEqual([`form%5Bemail%5D=ada%40example.com&form%5Bname%5D=Ada`]);
+      expect(failures).toStrictEqual([]);
+    } finally {
+      nextPost = undefined;
+      await tab.close();
+    }
+  }, 60000);
+}

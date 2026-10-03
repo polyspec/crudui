@@ -20,6 +20,13 @@
 - The declaration build test now covers every published package with a `tsconfig.build.json` and
   fails when one is missing; it adds `@crudui/form-binding` and `@crudui/generator-html`, which
   had the same declaration build and was not checked.
+- The browser check of the binding (`packages/form-binding/tests/browser.test.ts`) ran only in
+  Chromium, while the other browser checks run in Chromium, Firefox and WebKit. It now runs the
+  same case in the three engines through `tests/browser-engines.mjs`, with
+  `tests/browser-engines.d.mts` as its types, and a local HTTP server serves the page and records
+  each submission instead of Playwright routes, which Puppeteer does not have. The case passes in
+  the three engines. CI no longer installs the Playwright Chromium, which no check uses, and the
+  package no longer declares `playwright`.
 
 ## 2026-10-04 — Browser validation of server-rendered forms
 

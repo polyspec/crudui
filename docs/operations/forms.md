@@ -134,9 +134,9 @@ WebKit: sticky header stacking, the level label and its `data-crudui-stuck` fall
 seams, row card edges and focus scrolling, each in a page, a scrolling box and a frame. Every
 engine runs the same scenarios; Chromium and Firefox are driven by Puppeteer, WebKit by
 Playwright. Firefox is found at `CRUDUI_FIREFOX_EXECUTABLE` or the platform's install path, and
-WebKit, with the Playwright Chromium that the [browser validation](validation.md#browser-validation)
-check uses, is installed with `npx playwright install --with-deps webkit chromium`. A missing
-browser fails the run; no engine is skipped.
+WebKit is installed with `npx playwright install --with-deps webkit`. A missing browser fails the
+run; no engine is skipped. The [browser validation](validation.md#browser-validation) check of
+`packages/form-binding/tests/browser.test.ts` runs in the same three engines.
 `tests/widget-script-runs.test.mjs` runs the script rule in the same three engines for the HTML,
 React, Vue and Svelte renderers, each rendered in the browser and rendered on the server and
 hydrated: a form row script and an `html` list cell script run once on the first render and
