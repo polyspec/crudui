@@ -34,6 +34,7 @@ unavailable native module fails the native test target.
 | `packages/generator-core` | JavaScript templates, instances and evaluated models | JavaScript composition and expression modules |
 | `packages/generator-react`, `generator-vue`, `generator-svelte` | Framework integration, browser operation and rendering | Shared JavaScript generator |
 | `packages/generator-html` | Framework-independent JavaScript form, list and detail HTML rendering | Shared JavaScript generator |
+| `packages/form-binding` | [Browser validation](form-runtime.md#browser-validation) of a server-rendered form | JavaScript validator |
 | `packages/generator-php` | PHP template compilation, data binding, form, list and detail HTML | PHP composition and expression modules |
 | `packages/generator-go` | Go template compilation, data binding, form, list and detail HTML | Go composition and expression modules |
 | `packages/generator-rust` | Rust template compilation, data binding, form, list and detail HTML | Rust composition and expression modules |

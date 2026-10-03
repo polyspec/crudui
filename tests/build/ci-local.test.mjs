@@ -13,7 +13,7 @@ const preparation = [
   /^composer --working-dir=\S+ install\b/,
   /^sh scripts\/install-phpdocumentor\.sh$/,
   /^node scripts\/check-ci-browser\.mjs$/,
-  /^npx playwright install --with-deps webkit$/,
+  /^npx playwright install --with-deps webkit chromium$/,
   /^sudo apt-get install -y --no-install-recommends nginx$/,
   /^php-fpm -v$/,
   /^nginx -v$/,

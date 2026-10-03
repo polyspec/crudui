@@ -19,8 +19,15 @@ Words inside a name are joined by one hyphen (`lang-item`). A modifier is always
 used together with its block class (`class="crudui-node crudui-node--row"`).
 An element name has one level; elements have no modifiers. Classes carry style
 only: browser behavior reads the data and ARIA attributes below, never classes.
+One exception has a fixed boundary: the [browser validation](form-runtime.md#browser-validation)
+binding finds the slots it replaces by the classes `crudui-form__body`, `crudui-form__errors`,
+`crudui-node__body` and `crudui-node__errors`, because these slots carry no data or ARIA
+attribute. A test of the binding fails when its source names another class. The exception ends
+when the renderers write a data attribute on these slots.
 Widgets follow the same forms; the only other classes a renderer writes are
-`valid-target` and `valid-target-async`, which mark validated controls, the editor
+`valid-target`, which marks the controls whose values the rules check, and
+`valid-target-async`, which marks a select with a dynamic source (see
+[browser validation](form-runtime.md#browser-validation)), the editor
 hosts `tinymcearea`, `summernote`, `contentjs` and `tuiarea`, and the classes a
 spec declares in `design`.
 
