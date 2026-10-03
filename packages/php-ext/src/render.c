@@ -427,8 +427,10 @@ static bool write_body(render_buffer *out, const ps_value *node, const ps_form_r
             (!bool_member(checkbox, "checked") || attr_string(input, "checked", "")) &&
             ps_append_attributes(input, member(checkbox, "attributes")) &&
             start_element(out, "input", input, false, false) &&
-            attr_text(label, "for", string_member(checkbox, "id")) &&
-            write_text_element(out, "label", label, string_member(checkbox, "caption"));
+            /* An inline layout writes the label in the header, and the checkbox has no caption. */
+            (!member(checkbox, "caption") ||
+             (attr_text(label, "for", string_member(checkbox, "id")) &&
+              write_text_element(out, "label", label, string_member(checkbox, "caption"))));
         ps_value_free(input); ps_value_free(label);
     } else if (member(node, "widget")) {
         ok = write_widget(out, member(node, "widget"));

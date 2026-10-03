@@ -12,7 +12,7 @@
 //     dependents go under that key. The structure keys multiple / lang are
 //     themselves polymorphic false | {} | true.
 //   - design node map. design addresses appearance per DOM node by key
-//     (show / class / style / attributes / label.{class,style} /
+//     (show / class / style / attributes / layout / label.{class,style} /
 //     wrapper.{class,style,attributes} / group.{class,style} /
 //     prepend.{class,style}) — R8: which node a style targets is visible in the
 //     key, not inferred.
@@ -603,8 +603,8 @@ func (s *ValidateSlot) UnmarshalJSON(data []byte) error {
 //
 // Polymorphic: Cancel = the false shape, Bare = the true shape, otherwise the
 // body carries the {} shape. design is a closed bucket: Unmarshal rejects any
-// key outside show / class / style / attributes / label / wrapper / group /
-// prepend, and any node key outside class / style, and attributes on the
+// key outside show / class / style / attributes / layout / label / wrapper /
+// group / prepend, and any node key outside class / style, and attributes on the
 // wrapper (DesignNodeMap).
 type DesignSlot struct {
 	// Cancel is the false shape: cancels a composed-in design slot.
@@ -621,6 +621,8 @@ type DesignSlot struct {
 	Style any `json:"style,omitempty"`
 	// Attributes are the attributes a form field declares for its control.
 	Attributes *DeclaredAttributes `json:"attributes,omitempty"`
+	// Layout is the layout a group declares for its fields: stacked, inline or line.
+	Layout string `json:"layout,omitempty"`
 	// Label is the appearance map for the label node.
 	Label *DesignNode `json:"label,omitempty"`
 	// Wrapper is the appearance map and the declared attributes of the wrapper node.
@@ -694,7 +696,7 @@ type DesignNode struct {
 }
 
 // designKeys are the keys a design object allows.
-var designKeys = []string{"show", "class", "style", "attributes", "label", "wrapper", "group", "prepend"}
+var designKeys = []string{"show", "class", "style", "attributes", "layout", "label", "wrapper", "group", "prepend"}
 
 // designNodeKeys are the keys a design node allows.
 var designNodeKeys = []string{"class", "style"}

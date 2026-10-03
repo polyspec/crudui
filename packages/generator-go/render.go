@@ -344,7 +344,11 @@ func bodyHTML(vm *Object, errors map[*Object][]string) string {
 			input.Set("checked", true)
 		}
 		merge(input, read(box, "attributes"))
-		inner = inputHTML(input, false) + element("label", NewObject("for", stringAt(box, "id")), escape(stringAt(box, "caption")))
+		inner = inputHTML(input, false)
+		// An inline layout writes the label in the header; the checkbox model then has no caption.
+		if has(box, "caption") {
+			inner += element("label", NewObject("for", stringAt(box, "id")), escape(stringAt(box, "caption")))
+		}
 	} else if w := object(read(vm, "widget")); w != nil {
 		inner = renderWidget(w)
 	} else {

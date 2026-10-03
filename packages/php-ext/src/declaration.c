@@ -86,10 +86,13 @@ static bool declared_attributes_valid(const ps_value *attributes, const char *ke
     return true;
 }
 
-bool ps_design_declaration_valid(const ps_value *design, ps_text path, bool field, ps_value **error)
+bool ps_design_declaration_valid(const ps_value *design, ps_text path, bool field, size_t layouts,
+                                 ps_value **error)
 {
     static const char *const design_keys[] = {"show", "class", "style", "label", "wrapper", "group", "prepend"};
     static const char *const field_design_keys[] = {"show", "class", "style", "attributes", "label", "wrapper", "group", "prepend"};
+    static const char *const group_design_keys[] = {"show", "class", "style", "attributes", "layout", "label", "wrapper", "group", "prepend"};
+    static const char *const layout_names[] = {"stacked", "inline", "line"};
     static const char *const node_keys[] = {"class", "style"};
     static const char *const field_wrapper_keys[] = {"class", "style", "attributes"};
     static const char *const styles[][2] = {{"class", "design.class"}, {"style", "design.style"}};
@@ -102,8 +105,9 @@ bool ps_design_declaration_valid(const ps_value *design, ps_text path, bool fiel
     if (design->kind != PS_BOOL && design->kind != PS_OBJECT)
         return ps_declaration_error(PS_TEXT("design"), path, "a boolean or an object", error);
     if (design->kind != PS_OBJECT) return true;
-    if (!(field ? ps_known_keys(design, "design", field_design_keys, 8, path, error)
-                : ps_known_keys(design, "design", design_keys, 7, path, error)))
+    if (!(layouts ? ps_known_keys(design, "design", group_design_keys, 9, path, error)
+          : field ? ps_known_keys(design, "design", field_design_keys, 8, path, error)
+                  : ps_known_keys(design, "design", design_keys, 7, path, error)))
         return false;
     const ps_value *show = ps_get(design, "show");
     if (show && show->kind != PS_BOOL && !condition_value(show))
@@ -115,6 +119,12 @@ bool ps_design_declaration_valid(const ps_value *design, ps_text path, bool fiel
     }
     const ps_value *attributes = ps_get(design, "attributes");
     if (attributes && !declared_attributes_valid(attributes, "design.attributes", path, error)) return false;
+    const ps_value *layout = layouts ? ps_get(design, "layout") : NULL;
+    bool known_layout = false;
+    for (size_t i = 0; layout && i < layouts; ++i) known_layout = known_layout || ps_is_string(layout, layout_names[i]);
+    if (layout && !known_layout)
+        return ps_declaration_error(PS_TEXT("design.layout"), path,
+                                    layouts == 3 ? "stacked, inline or line" : "stacked or inline", error);
     for (size_t i = 0; i < 4; ++i) {
         const ps_value *node = ps_get(design, nodes[i][0]);
         if (!node) continue;

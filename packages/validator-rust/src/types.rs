@@ -406,6 +406,9 @@ pub struct DesignSlot {
     /// Attributes a form field declares for its control.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub attributes: Option<DeclaredAttributes>,
+    /// Layout of the field nodes inside a group field.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub layout: Option<Layout>,
     /// Label-node appearance.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub label: Option<DesignNode>,
@@ -418,6 +421,18 @@ pub struct DesignSlot {
     /// Prepend-node appearance.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub prepend: Option<DesignNode>,
+}
+
+/// Layout a group field declares for its field nodes (docs/spec/schema.md, Layout).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Layout {
+    /// The label above the control; ends an inherited inline layout.
+    Stacked,
+    /// Each field node is one row of a label column and a control column.
+    Inline,
+    /// The child nodes side by side in one row.
+    Line,
 }
 
 /// Appearance configuration for one named DOM node.
@@ -792,6 +807,23 @@ mod tests {
             r#"{"design":{"label":{"attributes":{"data-x":"1"}}}}"#,
             r#"{"design":{"attributes":{"data-x":1}}}"#,
             r#"{"design":{"wrapper":{"attributes":"data-x"}}}"#,
+        ] {
+            assert!(
+                serde_json::from_str::<FieldSpec>(invalid).is_err(),
+                "accepted {invalid}"
+            );
+        }
+    }
+
+    /// Layout (docs/spec/schema.md, Layout): `design.layout` is stacked, inline or line.
+    #[test]
+    fn design_layout() {
+        let text = r#"{"type":"group","design":{"layout":"inline","wrapper":{"class":"section"}}}"#;
+        let f = parse(text);
+        assert_eq!(serde_json::to_string(&f).unwrap(), text);
+        for invalid in [
+            r#"{"design":{"layout":"grid"}}"#,
+            r#"{"design":{"layout":{".wide":"inline"}}}"#,
         ] {
             assert!(
                 serde_json::from_str::<FieldSpec>(invalid).is_err(),

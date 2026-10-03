@@ -132,6 +132,13 @@ final class FieldSpecTest extends TestCase
         self::assertContains('wrapper.attributes', FieldSpec::DESIGN_NODE_MAP);
     }
 
+    /** Layout (docs/spec/schema.md, Layout): a group's design accepts layout. */
+    public function testDesignLayout(): void
+    {
+        self::assertSame([], FieldSpec::validate(['type' => 'group', 'design' => ['layout' => 'inline']]));
+        self::assertContains('layout', FieldSpec::DESIGN_SUB_KEYS);
+    }
+
     /**
      * `x`-prefixed comment keys are rejected (x-strip is upstream).
      */

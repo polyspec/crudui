@@ -190,6 +190,18 @@ const FIELD_DESIGN_KEYS: &[&str] = &[
     "group",
     "prepend",
 ];
+/// Allowed keys of the closed `design` bucket of a group field.
+const GROUP_DESIGN_KEYS: &[&str] = &[
+    "show",
+    "class",
+    "style",
+    "attributes",
+    "layout",
+    "label",
+    "wrapper",
+    "group",
+    "prepend",
+];
 /// Allowed keys of the `wrapper` design node of a form field.
 const FIELD_WRAPPER_KEYS: &[&str] = &["class", "style", "attributes"];
 /// Prefixes of attribute names crudui writes on a control or a node root.
@@ -285,8 +297,14 @@ pub(crate) fn check_known_keys(
 
 /// Reject an unknown key or a wrong value type in one `design` declaration at `path`. Form
 /// fields, form buttons, list and detail specifications, their columns and fields share this
-/// rule; only a form field (`field`) accepts `attributes` and `wrapper.attributes`.
-pub(crate) fn check_design_declaration(design: &Value, path: &str, field: bool) -> FormResult<()> {
+/// rule; only a form field (`field`) accepts `attributes` and `wrapper.attributes`, and only a
+/// group field accepts `layout`, one of `layouts`.
+pub(crate) fn check_design_declaration(
+    design: &Value,
+    path: &str,
+    field: bool,
+    layouts: Option<&[&str]>,
+) -> FormResult<()> {
     let fail = |key: &str, expected: &str| -> FormResult<()> {
         Err(FormError::input(format!(
             "Invalid {key} at {path}: expected {expected}"
@@ -298,7 +316,9 @@ pub(crate) fn check_design_declaration(design: &Value, path: &str, field: bool) 
     let Some(design) = design.as_object() else {
         return Ok(());
     };
-    let design_keys = if field {
+    let design_keys = if layouts.is_some() {
+        GROUP_DESIGN_KEYS
+    } else if field {
         FIELD_DESIGN_KEYS
     } else {
         DESIGN_KEYS
@@ -317,6 +337,21 @@ pub(crate) fn check_design_declaration(design: &Value, path: &str, field: bool) 
     }
     if let Some(attributes) = design.get("attributes") {
         check_declared_attributes(attributes, "design.attributes", path)?;
+    }
+    if let (Some(layouts), Some(layout)) = (layouts, design.get("layout")) {
+        if !layout
+            .as_str()
+            .is_some_and(|layout| layouts.contains(&layout))
+        {
+            return fail(
+                "design.layout",
+                if layouts.len() == 3 {
+                    "stacked, inline or line"
+                } else {
+                    "stacked or inline"
+                },
+            );
+        }
     }
     for node in ["label", "wrapper", "group", "prepend"] {
         let Some(value) = design.get(node) else {
@@ -436,12 +471,29 @@ fn check_declarations(spec: &Map<String, Value>, path: &str, field: bool) -> For
         }
     }
     if let Some(design) = spec.get("design") {
-        check_design_declaration(design, path, field)?;
+        let layouts = if field { group_layouts(spec) } else { None };
+        check_design_declaration(design, path, field, layouts)?;
     }
     if let Some(behavior) = spec.get("behavior").and_then(Value::as_object) {
         check_known_keys("behavior", behavior, BEHAVIOR_KEYS, path)?;
     }
     Ok(())
+}
+
+/// The `design.layout` values a group field accepts: a repeated group has no line, and a field
+/// that is not a group has no layout.
+fn group_layouts(spec: &Map<String, Value>) -> Option<&'static [&'static str]> {
+    if spec.get("type").is_none_or(|t| t != "group") {
+        return None;
+    }
+    let repeated = spec
+        .get("multiple")
+        .is_some_and(|v| *v == true || *v == "only" || v.is_object());
+    Some(if repeated {
+        &["stacked", "inline"]
+    } else {
+        &["stacked", "inline", "line"]
+    })
 }
 
 /// Reject a wrong root `action` or `buttons` declaration.
@@ -553,6 +605,12 @@ pub fn compile_form(spec: &Value, options: &CompileOptions<'_>) -> FormResult<Fo
         ));
     }
     check_form_declarations(spec.as_object().expect("checked group"))?;
+    // The form root takes no layout; a group field declares it.
+    if spec["design"].get("layout").is_some() {
+        return Err(FormError::input(
+            "Invalid design.layout at form: unknown key",
+        ));
+    }
     let memory = MemoryLoader::new(options.files.clone());
     let properties = compose_properties(
         spec["properties"]

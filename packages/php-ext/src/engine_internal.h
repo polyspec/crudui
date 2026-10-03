@@ -518,12 +518,14 @@ ps_value *ps_error_text(const char *kind, const char *code, ps_text message,
  * "Invalid <name>.<key> at <path>: unknown key".
  * ps_design_declaration_valid: the design declaration rules of a form field or button, a list or
  * detail specification, or a list column or detail field; only a form field (field) accepts
- * attributes and wrapper.attributes.
+ * attributes and wrapper.attributes, and only a group field accepts layout, one of the first
+ * layouts names of stacked, inline and line (3 for a group, 2 for a repeated group, 0 otherwise).
  */
 bool ps_declaration_error(ps_text key, ps_text path, const char *expected, ps_value **error);
 bool ps_known_keys(const ps_value *bucket, const char *name, const char *const *allowed,
                    size_t count, ps_text path, ps_value **error);
-bool ps_design_declaration_valid(const ps_value *design, ps_text path, bool field, ps_value **error);
+bool ps_design_declaration_valid(const ps_value *design, ps_text path, bool field, size_t layouts,
+                                 ps_value **error);
 /* The pagination declaration rules of a list at path (list.c). */
 bool ps_pagination_declaration_valid(const ps_value *pagination, ps_text path, ps_value **error);
 /*

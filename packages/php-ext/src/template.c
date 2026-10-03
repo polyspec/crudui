@@ -125,8 +125,13 @@ static bool declarations_valid(const ps_value *spec, ps_text path, bool field, p
         if (!codes)
             return ps_declaration_error(PS_TEXT("lang.only"), path, "a list of language codes or an object", error);
     }
+    /* Only a group field declares a layout, and a repeated group has no line. */
+    size_t layouts = 0;
+    if (field && ps_is_string(ps_get(spec, "type"), "group"))
+        layouts = multiple && ((multiple->kind == PS_BOOL && multiple->data.boolean) ||
+                               multiple->kind == PS_OBJECT || ps_is_string(multiple, "only")) ? 2 : 3;
     const ps_value *design = ps_get(spec, "design");
-    if (design && !ps_design_declaration_valid(design, path, field, error)) return false;
+    if (design && !ps_design_declaration_valid(design, path, field, layouts, error)) return false;
     const ps_value *behavior = ps_get(spec, "behavior");
     return !behavior || behavior->kind != PS_OBJECT ||
         ps_known_keys(behavior, "behavior", behavior_keys, 3, path, error);
@@ -251,6 +256,10 @@ static ps_result compile_form(const ps_value *spec, const ps_value *options)
     if (!form_declarations_valid(spec, &form_failure))
         return form_failure ? (ps_result){NULL, form_failure}
                             : ps_fail("internal", "INTERNAL_ERROR", "C form compilation failed", "");
+    /* The form root takes no layout; a group field declares it. */
+    const ps_value *root_design = ps_get(spec, "design");
+    if (root_design && root_design->kind == PS_OBJECT && ps_has(root_design, "layout"))
+        return input_error("Invalid design.layout at form: unknown key");
     if (!options || options->kind != PS_OBJECT) return input_error("Expected an object");
 
     const ps_value *files = option(options, "files");

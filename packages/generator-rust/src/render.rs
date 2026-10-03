@@ -457,12 +457,16 @@ fn body(node: &Value, errors: &NodeErrors) -> String {
         {
             input.extend(declared.clone());
         }
-        element("input", &input, "")
-            + &element(
+        // An inline layout writes the label in the header, so the checkbox has no caption.
+        let caption = match checkbox.get("caption") {
+            Some(caption) => element(
                 "label",
                 &json!({"for":checkbox["id"]}),
-                &escape(str_at(checkbox, "caption")),
-            )
+                &escape(caption.as_str().unwrap_or("")),
+            ),
+            None => String::new(),
+        };
+        element("input", &input, "") + &caption
     } else if node.get("widget").is_some() {
         widget(&node["widget"])
     } else {

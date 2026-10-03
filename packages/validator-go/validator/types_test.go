@@ -327,3 +327,8 @@ func TestTopLevelKeysAreTheSchemaFieldKeys(t *testing.T) {
 		t.Fatalf("model keys %v, schema keys %v", fieldKeys, want)
 	}
 }
+
+// Layout (docs/spec/schema.md, Layout): a group declares design.layout, which the design slot keeps.
+func TestDesignLayout(t *testing.T) {
+	roundTrip(t, `{"type":"group","design":{"layout":"inline","wrapper":{"class":"section"}}}`)
+}

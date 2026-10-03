@@ -142,7 +142,7 @@ func checkMemberDeclaration(name string, member any, paths displayPaths) error {
 		}
 	}
 	if o.Has("design") {
-		if e := checkDesignDeclaration(read(o, "design"), path, false); e != nil {
+		if e := checkDesignDeclaration(read(o, "design"), path, false, nil); e != nil {
 			return e
 		}
 	}
@@ -224,7 +224,7 @@ func checkActionDeclaration(name string, action any) error {
 		}
 	}
 	if o.Has("design") {
-		return checkDesignDeclaration(read(o, "design"), path, false)
+		return checkDesignDeclaration(read(o, "design"), path, false, nil)
 	}
 	return nil
 }
@@ -265,7 +265,7 @@ func checkDisplayDeclarations(spec *Object, paths displayPaths) error {
 		}
 	}
 	if spec.Has("design") {
-		if e := checkDesignDeclaration(read(spec, "design"), own, false); e != nil {
+		if e := checkDesignDeclaration(read(spec, "design"), own, false, nil); e != nil {
 			return e
 		}
 	}

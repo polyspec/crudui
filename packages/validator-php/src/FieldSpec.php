@@ -138,13 +138,14 @@ final class FieldSpec
     /**
      * Sub-keys inside the `design` slot. show = display condition (NOT a node);
      * class/style = the primary (input) node; attributes = the declared
-     * attributes of the control; label|wrapper|group|prepend carry .class/.style
+     * attributes of the control; layout = the layout a group gives its fields
+     * (not a node); label|wrapper|group|prepend carry .class/.style
      * for that named node, and the wrapper also .attributes. Which node a
      * class/style targets is revealed by the key (R8).
      *
      * @var list<string>
      */
-    public const DESIGN_SUB_KEYS = ['show', 'class', 'style', 'attributes', 'label', 'wrapper', 'group', 'prepend'];
+    public const DESIGN_SUB_KEYS = ['show', 'class', 'style', 'attributes', 'layout', 'label', 'wrapper', 'group', 'prepend'];
 
     /**
      * Sub-keys inside the `behavior` slot. Opaque client JS, passed through
