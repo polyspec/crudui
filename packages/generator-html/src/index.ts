@@ -270,7 +270,7 @@ function bodyHtml(vm: NodeVM, errors: NodeErrors): string {
   let inner: string;
   if (vm.checkbox) {
     const box = vm.checkbox;
-    inner = inputHtml({ class: box.className, id: box.id, name: box.name, type: 'checkbox', value: '1', ...(box.checked ? { checked: true } : {}), ...box.attributes }) +
+    inner = inputHtml({ class: box.className, id: box.id, name: box.name, type: 'checkbox', role: box.role, value: '1', ...(box.checked ? { checked: true } : {}), ...box.attributes }) +
       element('label', { for: box.id }, escape(box.caption));
   } else if (vm.widget) {
     inner = widget(vm.widget);

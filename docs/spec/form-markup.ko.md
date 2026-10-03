@@ -33,7 +33,7 @@ React, Vue, Svelte, HTML 렌더러와 네이티브 렌더러는 같은 마크업
 | `crudui-outline` | `__header` 폼 컨트롤과 `__body` 노드를 가진 구조 맵입니다. |
 | `crudui-data` | `__header`와 `pre` `__body`를 가진 현재 데이터 보기입니다. |
 | `crudui-widget` | 앞뒤 텍스트 `__affix`, 파일 위젯의 `__button`, 범위 위젯의 `__output`을 가진 컨트롤입니다. `--search`는 검색 select를, `--range`는 범위 컨트롤을 담고, `--unsupported`는 위젯이 없는 유형을 표시합니다. |
-| `crudui-input` | 기본 input, textarea, select입니다. select는 `--select`, 파일 입력은 `--file`, 범위 입력은 `--range`를 가집니다. |
+| `crudui-input` | 기본 input, textarea, select입니다. select는 `--select`, 파일 입력은 `--file`, 범위 입력은 `--range`, [스위치](#스위치)의 체크박스 input은 `--switch`를 가집니다. |
 | `crudui-choices` | 라디오(choice) 또는 체크박스(multichoice) 선택지입니다. 각 `__input` 뒤에 `__label`이 오고, `--multiple`은 체크박스 선택지를 줄바꿈합니다. 각 선택지는 자신의 레이블 class와 style, input 속성을 더할 수 있습니다([선택지 외형](#선택지-외형)). |
 
 | 속성 | 의미 |
@@ -204,6 +204,27 @@ choice·multichoice 필드의 선택지는 `class`, `style`, `attributes`를 선
   class="crudui-widget__affix">%</span></div>
 ```
 
+## 스위치
+
+`switcher` 필드는 스위치를 렌더링합니다. 노드 모델은 체크박스 필드의 `checkbox` 모델에 `checked` 다음의
+`role: "switch"` 멤버를 더해 가지며, 컨트롤 class는 `valid-target crudui-input crudui-input--switch`
+다음에 `design.class`의 class가 옵니다. 체크박스 필드에는 `role` 멤버가 없고, 컨트롤 class는
+`valid-target` 다음에 `design.class`의 class가 옵니다. 스위치의 input은 `type="checkbox"`를 유지하므로 폼이
+체크박스처럼 제출하고 바인딩하며, `role="switch"`를 가지므로 보조 기술이 켜짐 또는 꺼짐으로 알립니다. 모든
+렌더러는 `type` 다음에 `role`을, `role` 다음에 선언한 속성을 씁니다. 캡션은 체크박스와 같이 input 자신의
+레이블입니다. 레이블 `Sync`와 데이터 `sync: true`를 가진 필드 `sync`는 다음을 씁니다.
+
+```html
+<div class="crudui-node__body"><input class="valid-target crudui-input crudui-input--switch"
+  id="crudui:sync" type="checkbox" role="switch" name="sync" checked="" value="1"/><label
+  for="crudui:sync">Sync</label></div>
+```
+
+스타일시트는 input을 시작 쪽에 둥근 thumb가 있는 트랙으로 그립니다. 트랙은 `--crudui-control-border`
+테두리와 `--crudui-subtle` 배경을, thumb는 `--crudui-surface` 색을 가집니다. 스위치가 켜지면 트랙은
+`--crudui-accent` 테두리와 배경을 가지고 thumb는 끝 쪽에 있습니다. 포커스된 스위치는 2px
+`--crudui-accent` 윤곽선을 가집니다.
+
 ## 행
 
 - 번호는 상위 행들의 1부터 시작하는 위치를 `.`으로 연결합니다.
@@ -320,7 +341,7 @@ href, design, behavior }` 목록이고 `type`은 `submit`, `reset`, `button`, `l
 | `--crudui-border` | `#e5e7eb` | 행, 목록, 상세, 동작의 테두리 |
 | `--crudui-surface` | `#ffffff` | 컨트롤, 행, 동작의 배경 |
 | `--crudui-subtle` | `#f9fafb` | 행 헤더, 목록 제목 칸, 접사, 읽기 전용 컨트롤의 배경 |
-| `--crudui-accent` | `#1d4ed8` | 포커스 윤곽선과 선택된 선택지 |
+| `--crudui-accent` | `#1d4ed8` | 포커스 윤곽선, 선택된 선택지, 켜진 스위치의 트랙 |
 | `--crudui-error` | `#b91c1c` | 폼 오류와 노드 오류의 텍스트 |
 | `--crudui-on-accent` | `#ffffff` | 선택된 선택지의 글자색 |
 | `--crudui-action-text` | `#374151` | 동작의 글자와 아이콘 색 |

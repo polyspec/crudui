@@ -505,3 +505,49 @@ for (const engine of engines) {
     } finally { await page.close(); }
   });
 }
+
+// Switches (docs/spec/form-markup.md, Switches): a switcher input is drawn as a track wider than it
+// is high with a thumb at its start, the track takes the accent color and the thumb moves to the
+// end when the switch is on, and a focused switch has an accent outline.
+for (const engine of engines) {
+  test(`${engine} a switcher is drawn as a track and thumb`, async () => {
+    const { page, target, failures } = await openHost(engine, 'page');
+    try {
+      await target.evaluate(() => window.formStylesTest.mount({ type: 'group', properties: { sync: { type: 'switcher', label: 'Sync' } } }, {}));
+      await frames(target);
+      const states = await target.evaluate(() => {
+        const input = document.querySelector('#form input[role="switch"]');
+        const probe = document.createElement('div');
+        probe.style.color = 'var(--crudui-accent)';
+        document.querySelector('#form .crudui-form').append(probe);
+        const accent = getComputedStyle(probe).color;
+        probe.remove();
+        const state = () => {
+          const style = getComputedStyle(input);
+          const box = input.getBoundingClientRect();
+          return {
+            checked: input.checked, width: box.width, height: box.height, background: style.backgroundColor,
+            thumb: style.backgroundImage, position: style.backgroundPositionX,
+            outline: `${style.outlineStyle} ${style.outlineWidth} ${style.outlineColor}`,
+          };
+        };
+        const off = state();
+        input.click();
+        const on = state();
+        input.focus();
+        const focused = state();
+        return { accent, off, on, focused };
+      });
+      assert.deepEqual(failures, []);
+      const { accent, off, on, focused } = states;
+      assert.ok(off.width > off.height * 1.5, `The track is wider than it is high (${off.width} x ${off.height} px)`);
+      assert.match(off.thumb, /radial-gradient/, 'The thumb is drawn on the track');
+      assert.equal(off.position, '0%', 'The thumb is at the start of an off switch');
+      assert.notEqual(off.background, accent, 'An off track is not the accent color');
+      assert.equal(on.checked, true, 'A click turns the switch on');
+      assert.equal(on.background, accent, 'An on track is the accent color');
+      assert.equal(on.position, '100%', 'The thumb is at the end of an on switch');
+      assert.equal(focused.outline, `solid 2px ${accent}`, 'A focused switch has an accent outline');
+    } finally { await page.close(); }
+  });
+}

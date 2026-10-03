@@ -126,6 +126,8 @@ export interface CheckboxVM {
   className: string;
   /** Checked state from the bound data. */
   checked: boolean;
+  /** `switch` for a switcher field (docs/spec/form-markup.md, Switches); absent for a checkbox. */
+  role?: 'switch';
   /** Caption text. */
   caption: string;
   /** Declared attributes (`design.attributes`), present only when declared. */
@@ -376,6 +378,8 @@ function buildLeaf(
   if (fieldType === 'checkbox' || fieldType === 'switcher') {
     const header = nodeHeader({ description }, design);
     const attributes = declaredAttributes(spec.design).control;
+    // A switcher is a checkbox input announced and drawn as a switch.
+    const switcher = fieldType === 'switcher';
     return {
       ...root,
       ...(header ? { header } : {}),
@@ -383,9 +387,10 @@ function buildLeaf(
       checkbox: {
         id: controlId(state.idPrefix, path),
         name: toBracketNotationWithPrefix(path, state.keyPrefix),
-        className: joinClass('valid-target', design.main.class),
+        className: joinClass('valid-target', switcher ? 'crudui-input crudui-input--switch' : '', design.main.class),
         checked: value === true || value === 1 || value === '1' ||
           (value === undefined && (spec.default === true || spec.default === 1 || spec.default === '1')),
+        ...(switcher ? { role: 'switch' as const } : {}),
         caption: label ?? '',
         ...(Object.keys(attributes).length ? { attributes } : {}),
       },

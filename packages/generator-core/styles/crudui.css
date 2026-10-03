@@ -132,6 +132,40 @@
 }
 
 /*
+ * A switch: the checkbox input is a track with a round thumb at its start. When the switch is on,
+ * the track takes the accent color and the thumb moves to its end. The thumb is a background image,
+ * because Firefox draws no ::before box on an input.
+ */
+.crudui-node--field > .crudui-node__body > input.crudui-input--switch {
+  flex: none;
+  appearance: none;
+  width: 2.25rem;
+  height: 1.25rem;
+  min-height: 0;
+  padding: 2px;
+  border: 1px solid var(--crudui-control-border);
+  border-radius: 0.625rem;
+  background-color: var(--crudui-subtle);
+  background-image: radial-gradient(circle closest-side, var(--crudui-surface) 92%, transparent);
+  background-origin: content-box;
+  background-position: 0% 50%;
+  background-repeat: no-repeat;
+  background-size: calc(1.25rem - 6px) calc(1.25rem - 6px);
+  cursor: pointer;
+}
+
+.crudui-node--field > .crudui-node__body > input.crudui-input--switch:checked {
+  border-color: var(--crudui-accent);
+  background-color: var(--crudui-accent);
+  background-position: 100% 50%;
+}
+
+.crudui-node--field > .crudui-node__body > input.crudui-input--switch:focus {
+  outline: 2px solid var(--crudui-accent);
+  outline-offset: 1px;
+}
+
+/*
  * Inline layout: a field node is one row of a label column and a control column. The header takes
  * no box, so its label is in the label column and its description below the control, followed by
  * the errors. A node without a label leaves the label column empty, so every control aligns.

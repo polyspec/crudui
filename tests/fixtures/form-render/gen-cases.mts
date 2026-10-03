@@ -93,7 +93,7 @@ const NEW: FixtureCase[] = [
     G({ agree: { type: 'checkbox', label: { ko: '동의' } } }), {}, { language: 'ko' }),
   pass('checkbox-with-data', 'checkbox with value 1 renders checked.',
     G({ agree: { type: 'checkbox', label: { ko: '동의' } } }), { agree: 1 }, { language: 'ko' }),
-  pass('switcher-bare', 'switcher → same node body markup as checkbox (alias path), no value.',
+  pass('switcher-bare', 'switcher → a checkbox input with role=switch and the switch class, its caption in the node body, no value.',
     G({ on: { type: 'switcher', label: { ko: '켜기' } } }), {}, { language: 'ko' }),
 
   // ---- B. NEW WIDGETS — empty + with-data (high-freq first) ------------------

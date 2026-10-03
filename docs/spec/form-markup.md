@@ -35,7 +35,7 @@ spec declares in `design`.
 | `crudui-outline` | Structure map with `__header` form controls and `__body` nodes. |
 | `crudui-data` | Current data view with `__header` and a `pre` `__body`. |
 | `crudui-widget` | A control with its `__affix` prepend and append texts, a file widget's `__button` and a range widget's `__output`; `--search` holds a search select, `--range` holds a range control and `--unsupported` marks a type without a widget. |
-| `crudui-input` | A native input, textarea or select; `--select` for a select, `--file` for a file input and `--range` for a range input. |
+| `crudui-input` | A native input, textarea or select; `--select` for a select, `--file` for a file input, `--range` for a range input and `--switch` for the checkbox input of a [switch](#switches). |
 | `crudui-choices` | Radio (choice) or checkbox (multichoice) options: each `__input` is followed by its `__label`; `--multiple` wraps checkbox options. Each choice may add its own label class and style and input attributes ([choice appearance](#choice-appearance)). |
 
 | Attribute | Meaning |
@@ -219,6 +219,29 @@ output text as `text`. A field `volume` with `default: 50`, `append: "%"` and
   class="crudui-widget__affix">%</span></div>
 ```
 
+## Switches
+
+A `switcher` field renders a switch. Its node model has the `checkbox` model of a checkbox field
+with the member `role: "switch"` after `checked`, and the control class
+`valid-target crudui-input crudui-input--switch` followed by the class of `design.class`. A
+checkbox field has no `role` member and the control class `valid-target` followed by the class of
+`design.class`. The input of a switch keeps `type="checkbox"`, so the form submits and binds it as
+a checkbox, and has `role="switch"`, so assistive technology announces it as on or off. Every
+renderer writes `role` after `type` and the declared attributes after `role`. The caption is the
+input's own label, as for a checkbox. A field `sync` with the label `Sync` and the data
+`sync: true` writes:
+
+```html
+<div class="crudui-node__body"><input class="valid-target crudui-input crudui-input--switch"
+  id="crudui:sync" type="checkbox" role="switch" name="sync" checked="" value="1"/><label
+  for="crudui:sync">Sync</label></div>
+```
+
+The stylesheet draws the input as a track with a round thumb at its start: the track has the
+`--crudui-control-border` border and the `--crudui-subtle` background, and the thumb has the
+`--crudui-surface` color. When the switch is on, the track has the `--crudui-accent` border and
+background and the thumb is at its end. A focused switch has a 2px `--crudui-accent` outline.
+
 ## Rows
 
 - The number joins the one-based positions of the enclosing rows with `.`.
@@ -348,7 +371,7 @@ the rule overrides the defaults in any stylesheet order.
 | `--crudui-border` | `#e5e7eb` | borders of rows, lists, details and actions |
 | `--crudui-surface` | `#ffffff` | background of controls, rows and actions |
 | `--crudui-subtle` | `#f9fafb` | background of row headers, list headings, affixes and read-only controls |
-| `--crudui-accent` | `#1d4ed8` | focus outlines and the selected choice |
+| `--crudui-accent` | `#1d4ed8` | focus outlines, the selected choice and the track of an on switch |
 | `--crudui-error` | `#b91c1c` | text of form and node errors |
 | `--crudui-on-accent` | `#ffffff` | text of the selected choice |
 | `--crudui-action-text` | `#374151` | text and icon color of actions |

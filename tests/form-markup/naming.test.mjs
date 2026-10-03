@@ -37,7 +37,7 @@ const blocks = {
   outline: { elements: ['header', 'body'], modifiers: [] },
   data: { elements: ['header', 'body'], modifiers: [] },
   widget: { elements: ['affix', 'button', 'output'], modifiers: ['search', 'range', 'unsupported'] },
-  input: { elements: [], modifiers: ['select', 'file', 'range'] },
+  input: { elements: [], modifiers: ['select', 'file', 'range', 'switch'] },
   choices: { elements: ['input', 'label'], modifiers: ['multiple'] },
   list: { elements: ['description', 'table', 'heading', 'heading-label', 'sort', 'cell', 'cards', 'card', 'card-label', 'card-value', 'empty', 'actions', 'action', 'pagination', 'pagination-prev', 'pagination-page', 'pagination-next'], modifiers: [] },
   detail: { elements: ['actions', 'action', 'field', 'label', 'value'], modifiers: [] },
