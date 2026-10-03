@@ -655,7 +655,7 @@
       ]
     },
     "FieldDesign": {
-      "description": "Visibility, appearance and declared attributes of a form field: the control and the named label, wrapper, group and prepend nodes.",
+      "description": "Visibility, appearance, declared attributes and the layout of a group of a form field: the control and the named label, wrapper, group and prepend nodes.",
       "anyOf": [
         {
           "type": "boolean"
@@ -703,6 +703,14 @@
             "attributes": {
               "description": "Attributes written on the field's control.",
               "$ref": "#/definitions/DeclaredAttributes"
+            },
+            "layout": {
+              "description": "Layout of the fields inside a group field: stacked, inline (a label column and a control column) or line (child nodes side by side).",
+              "enum": [
+                "stacked",
+                "inline",
+                "line"
+              ]
             },
             "label": {
               "description": "Appearance settings for the label node.",
@@ -1423,6 +1431,65 @@
                   "step": {
                     "type": "number",
                     "exclusiveMinimum": 0
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "description": "Only a group field declares design.layout (docs/spec/schema.md, Layout).",
+          "if": {
+            "not": {
+              "required": [
+                "type"
+              ],
+              "properties": {
+                "type": {
+                  "const": "group"
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "design": {
+                "not": {
+                  "type": "object",
+                  "required": [
+                    "layout"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "description": "A repeated group declares no line layout.",
+          "if": {
+            "required": [
+              "multiple"
+            ],
+            "properties": {
+              "multiple": {
+                "not": {
+                  "const": false
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "design": {
+                "not": {
+                  "type": "object",
+                  "required": [
+                    "layout"
+                  ],
+                  "properties": {
+                    "layout": {
+                      "const": "line"
+                    }
                   }
                 }
               }

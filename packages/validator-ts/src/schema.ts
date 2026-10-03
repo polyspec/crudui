@@ -396,10 +396,15 @@ export interface FieldWrapperNode extends DesignNode {
   attributes?: DeclaredAttributes;
 }
 
-/** The design slot of a form field: the design slot with declared attributes. */
+/** The design slot of a form field: the design slot with declared attributes and a group's layout. */
 export interface FieldDesignSlot extends DesignSlot {
   /** Attributes written on the field's control after the attributes crudui writes. */
   attributes?: DeclaredAttributes;
+  /**
+   * Layout of the fields inside a group field (docs/spec/schema.md, Layout); other fields and the
+   * form root reject it, and a repeated group has no `line`.
+   */
+  layout?: 'stacked' | 'inline' | 'line';
   /** Wrapper node appearance and attributes. */
   wrapper?: FieldWrapperNode;
 }

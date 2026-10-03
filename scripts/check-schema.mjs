@@ -119,6 +119,20 @@ for (const [label, field, expected] of [
   assert.equal(validateForm(spec), expected, `choice appearance, ${label}: ${JSON.stringify(validateForm.errors)}`);
   checked++;
 }
+// Layout (docs/spec/schema.md, Layout): stacked, inline or line on a group field; a repeated group
+// has no line. The schema describes a field, so the form root's layout is a compilation check.
+for (const [label, field, expected] of [
+  ['inline group', { type: 'group', design: { layout: 'inline' }, properties: { a: { type: 'text' } } }, true],
+  ['line group', { type: 'group', design: { layout: 'line' }, properties: { a: { type: 'text' } } }, true],
+  ['inline repeated group', { type: 'group', multiple: true, design: { layout: 'inline' }, properties: { a: { type: 'text' } } }, true],
+  ['line repeated group', { type: 'group', multiple: { min: 1 }, design: { layout: 'line' }, properties: { a: { type: 'text' } } }, false],
+  ['other value', { type: 'group', design: { layout: 'grid' }, properties: { a: { type: 'text' } } }, false],
+  ['text field', { type: 'text', design: { layout: 'inline' } }, false],
+]) {
+  const spec = { type: 'group', properties: { look: field } };
+  assert.equal(validateForm(spec), expected, `layout, ${label}: ${JSON.stringify(validateForm.errors)}`);
+  checked++;
+}
 // `validate` and `messages` accept the registered rule names only: the rules of the rule registry.
 const registeredRules = [...readText('packages/validator-ts/src/rules/index.ts').matchAll(/^ {2}\['(\w+)', \w+Rule\],$/gm)]
   .map((match) => match[1]);
