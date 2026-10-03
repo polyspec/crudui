@@ -4432,5 +4432,368 @@
       "code": "INVALID_FORM_INPUT",
       "message": "Invalid items.0.attributes.data-x at accent: expected a string"
     }
+  },
+  {
+    "name": "inline-layout-fields",
+    "note": "an inline group → crudui-node--inline on every field node before the wrapper class; a checkbox and a switcher with a label write the label and the description in the header and the input alone in the body; a checkbox without a label keeps its caption; buttons with and without a label.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "look": {
+          "type": "group",
+          "label": "Look",
+          "design": {
+            "layout": "inline",
+            "wrapper": {
+              "class": "section"
+            }
+          },
+          "properties": {
+            "theme": {
+              "type": "select",
+              "label": "Theme",
+              "description": "Applies to every window.",
+              "items": {
+                "light": "Light",
+                "dark": "Dark"
+              },
+              "design": {
+                "wrapper": {
+                  "class": "wide"
+                }
+              }
+            },
+            "sync": {
+              "type": "switcher",
+              "label": "Sync",
+              "description": "Keeps every window in step."
+            },
+            "agree": {
+              "type": "checkbox",
+              "label": "Agree",
+              "design": {
+                "attributes": {
+                  "data-setting": "agree"
+                }
+              }
+            },
+            "bare": {
+              "type": "checkbox"
+            },
+            "run": {
+              "type": "button",
+              "label": "Sync now",
+              "content": "Run"
+            },
+            "go": {
+              "type": "button",
+              "content": "Go"
+            },
+            "note": {
+              "type": "text"
+            }
+          }
+        },
+        "outside": {
+          "type": "checkbox",
+          "label": "Outside"
+        }
+      }
+    },
+    "data": {
+      "look": {
+        "sync": true,
+        "agree": 1
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--group section\" data-field-path=\"look\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Look</span></div><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--field crudui-node--inline wide\" data-field-path=\"look.theme\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:look.theme\">Theme</label><p class=\"crudui-node__description\">Applies to every window.</p></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><select class=\"valid-target crudui-input crudui-input--select\" data-default=\"\" data-name=\"theme\" data-rule-name=\"look[theme]\" id=\"crudui:look.theme\" name=\"look[theme]\"><option value=\"light\">Light</option><option value=\"dark\">Dark</option></select></div></div></div><div class=\"crudui-node crudui-node--field crudui-node--inline\" data-field-path=\"look.sync\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:look.sync\">Sync</label><p class=\"crudui-node__description\">Keeps every window in step.</p></div><div class=\"crudui-node__body\"><input checked=\"\" class=\"valid-target crudui-input crudui-input--switch\" id=\"crudui:look.sync\" name=\"look[sync]\" role=\"switch\" type=\"checkbox\" value=\"1\"></div></div><div class=\"crudui-node crudui-node--field crudui-node--inline\" data-field-path=\"look.agree\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:look.agree\">Agree</label></div><div class=\"crudui-node__body\"><input checked=\"\" class=\"valid-target\" data-setting=\"agree\" id=\"crudui:look.agree\" name=\"look[agree]\" type=\"checkbox\" value=\"1\"></div></div><div class=\"crudui-node crudui-node--field crudui-node--inline\" data-field-path=\"look.bare\"><div class=\"crudui-node__body\"><input class=\"valid-target\" id=\"crudui:look.bare\" name=\"look[bare]\" type=\"checkbox\" value=\"1\"><label for=\"crudui:look.bare\"></label></div></div><div class=\"crudui-node crudui-node--field crudui-node--inline\" data-field-path=\"look.run\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:look.run\">Sync now</label></div><div class=\"crudui-node__body\"><button class=\"crudui-action crudui-action--text\" id=\"crudui:look.run\" type=\"button\">Run</button></div></div><div class=\"crudui-node crudui-node--field crudui-node--inline\" data-field-path=\"look.go\"><div class=\"crudui-node__body\"><button class=\"crudui-action crudui-action--text\" id=\"crudui:look.go\" type=\"button\">Go</button></div></div><div class=\"crudui-node crudui-node--field crudui-node--inline\" data-field-path=\"look.note\"><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"note\" data-rule-name=\"look[note]\" id=\"crudui:look.note\" name=\"look[note]\" type=\"text\" value=\"\"></div></div></div></div></div><div class=\"crudui-node crudui-node--field\" data-field-path=\"outside\"><div class=\"crudui-node__body\"><input class=\"valid-target\" id=\"crudui:outside\" name=\"outside\" type=\"checkbox\" value=\"1\"><label for=\"crudui:outside\">Outside</label></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "inline-layout-line-stacked",
+    "note": "a line group in an inline group → crudui-node--inline crudui-node--line and plain child fields; a nested group inherits inline; a stacked group ends it; a lang field in an inline group; a line group outside an inline layout.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "look": {
+          "type": "group",
+          "label": "Look",
+          "design": {
+            "layout": "inline"
+          },
+          "properties": {
+            "font": {
+              "type": "group",
+              "label": "Font",
+              "design": {
+                "layout": "line"
+              },
+              "properties": {
+                "family": {
+                  "type": "text",
+                  "label": "Family"
+                },
+                "size": {
+                  "type": "number",
+                  "label": "Size",
+                  "design": {
+                    "wrapper": {
+                      "style": "flex: 1"
+                    }
+                  }
+                }
+              }
+            },
+            "nested": {
+              "type": "group",
+              "properties": {
+                "deep": {
+                  "type": "checkbox",
+                  "label": "Deep"
+                }
+              }
+            },
+            "plain": {
+              "type": "group",
+              "design": {
+                "layout": "stacked"
+              },
+              "properties": {
+                "flat": {
+                  "type": "switcher",
+                  "label": "Flat"
+                }
+              }
+            },
+            "names": {
+              "type": "text",
+              "label": "Names",
+              "lang": {
+                "only": [
+                  "en",
+                  "ko"
+                ]
+              }
+            }
+          }
+        },
+        "actions": {
+          "type": "group",
+          "design": {
+            "layout": "line"
+          },
+          "properties": {
+            "a": {
+              "type": "text",
+              "label": "A"
+            },
+            "b": {
+              "type": "text",
+              "label": "B"
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "look": {
+        "font": {
+          "family": "Mono",
+          "size": 12
+        },
+        "names": {
+          "en": "Hi",
+          "ko": "안녕"
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--group\" data-field-path=\"look\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Look</span></div><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--group crudui-node--inline crudui-node--line\" data-field-path=\"look.font\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Font</span></div><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"look.font.family\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:look.font.family\">Family</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"family\" data-rule-name=\"look[font][family]\" id=\"crudui:look.font.family\" name=\"look[font][family]\" type=\"text\" value=\"Mono\"></div></div></div><div class=\"crudui-node crudui-node--field\" data-field-path=\"look.font.size\" style=\"flex: 1\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:look.font.size\">Size</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"size\" data-rule-name=\"look[font][size]\" id=\"crudui:look.font.size\" name=\"look[font][size]\" step=\"any\" type=\"number\" value=\"12\"></div></div></div></div></div><div class=\"crudui-node crudui-node--group\" data-field-path=\"look.nested\"><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--field crudui-node--inline\" data-field-path=\"look.nested.deep\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:look.nested.deep\">Deep</label></div><div class=\"crudui-node__body\"><input class=\"valid-target\" id=\"crudui:look.nested.deep\" name=\"look[nested][deep]\" type=\"checkbox\" value=\"1\"></div></div></div></div><div class=\"crudui-node crudui-node--group\" data-field-path=\"look.plain\"><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"look.plain.flat\"><div class=\"crudui-node__body\"><input class=\"valid-target crudui-input crudui-input--switch\" id=\"crudui:look.plain.flat\" name=\"look[plain][flat]\" role=\"switch\" type=\"checkbox\" value=\"1\"><label for=\"crudui:look.plain.flat\">Flat</label></div></div></div></div><div class=\"crudui-node crudui-node--lang crudui-node--framed\" data-field-path=\"look.names\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Names</span></div><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--lang-item\" data-lang=\"en\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">en</span></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"en\" data-rule-name=\"look[names][en]\" id=\"crudui:look.names.en\" name=\"look[names][en]\" type=\"text\" value=\"Hi\"></div></div></div><div class=\"crudui-node crudui-node--lang-item\" data-lang=\"ko\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">ko</span></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"ko\" data-rule-name=\"look[names][ko]\" id=\"crudui:look.names.ko\" name=\"look[names][ko]\" type=\"text\" value=\"안녕\"></div></div></div></div></div></div></div><div class=\"crudui-node crudui-node--group crudui-node--line\" data-field-path=\"actions\"><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"actions.a\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:actions.a\">A</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"a\" data-rule-name=\"actions[a]\" id=\"crudui:actions.a\" name=\"actions[a]\" type=\"text\" value=\"\"></div></div></div><div class=\"crudui-node crudui-node--field\" data-field-path=\"actions.b\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:actions.b\">B</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"b\" data-rule-name=\"actions[b]\" id=\"crudui:actions.b\" name=\"actions[b]\" type=\"text\" value=\"\"></div></div></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "inline-layout-repeated",
+    "note": "an inline repeated group → the fields of its rows have crudui-node--inline; the collection and row nodes do not.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "rows": {
+          "type": "group",
+          "label": "Rows",
+          "multiple": true,
+          "design": {
+            "layout": "inline"
+          },
+          "properties": {
+            "name": {
+              "type": "text",
+              "label": "Name"
+            },
+            "on": {
+              "type": "switcher",
+              "label": "On"
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "rows": {
+        "__opt_a1__": {
+          "name": "x",
+          "on": "1"
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--collection\" data-field-path=\"rows\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Rows</span><span class=\"crudui-node__count\">Rows: 1</span></div><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__opt_a1__\"><div class=\"crudui-node__header\"><button aria-controls=\"crudui:rows.__opt_a1__:body\" aria-expanded=\"true\" aria-label=\"Expand or collapse\" class=\"crudui-action\" data-crudui-action=\"toggle-row\" type=\"button\"></button><span class=\"crudui-node__label\">Rows</span><span class=\"crudui-node__number\">1</span><span class=\"crudui-node__summary\" hidden=\"\">Collapsed</span><div aria-label=\"Row controls\" class=\"crudui-controls\" role=\"group\"><button aria-label=\"Add\" class=\"crudui-action\" data-crudui-action=\"add-row\" type=\"button\"></button><button aria-label=\"Remove\" class=\"crudui-action\" data-crudui-action=\"remove-row\" type=\"button\"></button></div></div><div class=\"crudui-node__body\" id=\"crudui:rows.__opt_a1__:body\"><div class=\"crudui-node crudui-node--field crudui-node--inline\" data-field-path=\"rows.__opt_a1__.name\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:rows.__opt_a1__.name\">Name</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"name\" data-rule-name=\"rows[][name]\" id=\"crudui:rows.__opt_a1__.name\" name=\"rows[__opt_a1__][name]\" type=\"text\" value=\"x\"></div></div></div><div class=\"crudui-node crudui-node--field crudui-node--inline\" data-field-path=\"rows.__opt_a1__.on\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:rows.__opt_a1__.on\">On</label></div><div class=\"crudui-node__body\"><input checked=\"\" class=\"valid-target crudui-input crudui-input--switch\" id=\"crudui:rows.__opt_a1__.on\" name=\"rows[__opt_a1__][on]\" role=\"switch\" type=\"checkbox\" value=\"1\"></div></div></div></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "layout-on-field",
+    "note": "design.layout is a member of a group field only.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "a": {
+          "type": "text",
+          "design": {
+            "layout": "inline"
+          }
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid design.layout at a: unknown key"
+    }
+  },
+  {
+    "name": "layout-on-form-root",
+    "note": "The form root declares no layout.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "a": {
+          "type": "text"
+        }
+      },
+      "design": {
+        "layout": "inline"
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid design.layout at form: unknown key"
+    }
+  },
+  {
+    "name": "layout-on-form-button",
+    "note": "A form button declares no layout.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "a": {
+          "type": "text"
+        }
+      },
+      "buttons": [
+        {
+          "type": "submit",
+          "design": {
+            "layout": "inline"
+          }
+        }
+      ]
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid design.layout at form.buttons.0: unknown key"
+    }
+  },
+  {
+    "name": "layout-unknown-value",
+    "note": "design.layout is stacked, inline or line.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "a": {
+          "type": "group",
+          "design": {
+            "layout": "grid"
+          },
+          "properties": {}
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid design.layout at a: expected stacked, inline or line"
+    }
+  },
+  {
+    "name": "layout-condition-map",
+    "note": "design.layout is a literal, not a condition map.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "a": {
+          "type": "group",
+          "design": {
+            "layout": {
+              ".wide": "inline"
+            }
+          },
+          "properties": {}
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid design.layout at a: expected stacked, inline or line"
+    }
+  },
+  {
+    "name": "layout-line-repeated",
+    "note": "A repeated group is not laid out on one line.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "a": {
+          "type": "group",
+          "multiple": true,
+          "design": {
+            "layout": "line"
+          },
+          "properties": {}
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid design.layout at a: expected stacked or inline"
+    }
   }
 ]

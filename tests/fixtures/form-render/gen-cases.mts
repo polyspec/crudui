@@ -322,6 +322,32 @@ const NEW: FixtureCase[] = [
         { value: 'red', label: 'Red', class: 'swatch' },
       ] } }),
     { accent: 'blue' }, { language: 'en' }),
+
+  // ---- J. LAYOUT (docs/spec/form-markup.md, Layout) ----------------------------
+  pass('inline-layout-fields', 'an inline group → crudui-node--inline on every field node before the wrapper class; a checkbox and a switcher with a label write the label and the description in the header and the input alone in the body; a checkbox without a label keeps its caption; buttons with and without a label.',
+    G({ look: { type: 'group', label: 'Look', design: { layout: 'inline', wrapper: { class: 'section' } }, properties: {
+      theme: { type: 'select', label: 'Theme', description: 'Applies to every window.', items: { light: 'Light', dark: 'Dark' }, design: { wrapper: { class: 'wide' } } },
+      sync: { type: 'switcher', label: 'Sync', description: 'Keeps every window in step.' },
+      agree: { type: 'checkbox', label: 'Agree', design: { attributes: { 'data-setting': 'agree' } } },
+      bare: { type: 'checkbox' },
+      run: { type: 'button', label: 'Sync now', content: 'Run' },
+      go: { type: 'button', content: 'Go' },
+      note: { type: 'text' },
+    } },
+    outside: { type: 'checkbox', label: 'Outside' } }),
+    { look: { sync: true, agree: 1 } }, { language: 'en' }),
+  pass('inline-layout-line-stacked', 'a line group in an inline group → crudui-node--inline crudui-node--line and plain child fields; a nested group inherits inline; a stacked group ends it; a lang field in an inline group; a line group outside an inline layout.',
+    G({ look: { type: 'group', label: 'Look', design: { layout: 'inline' }, properties: {
+      font: { type: 'group', label: 'Font', design: { layout: 'line' }, properties: { family: { type: 'text', label: 'Family' }, size: { type: 'number', label: 'Size', design: { wrapper: { style: 'flex: 1' } } } } },
+      nested: { type: 'group', properties: { deep: { type: 'checkbox', label: 'Deep' } } },
+      plain: { type: 'group', design: { layout: 'stacked' }, properties: { flat: { type: 'switcher', label: 'Flat' } } },
+      names: { type: 'text', label: 'Names', lang: { only: ['en', 'ko'] } },
+    } },
+    actions: { type: 'group', design: { layout: 'line' }, properties: { a: { type: 'text', label: 'A' }, b: { type: 'text', label: 'B' } } } }),
+    { look: { font: { family: 'Mono', size: 12 }, names: { en: 'Hi', ko: '안녕' } } }, { language: 'en' }),
+  pass('inline-layout-repeated', 'an inline repeated group → the fields of its rows have crudui-node--inline; the collection and row nodes do not.',
+    G({ rows: { type: 'group', label: 'Rows', multiple: true, design: { layout: 'inline' }, properties: { name: { type: 'text', label: 'Name' }, on: { type: 'switcher', label: 'On' } } } }),
+    { rows: { __opt_a1__: { name: 'x', on: '1' } } }, { language: 'en' }),
 ];
 
 // Cases whose expected HTML is written from the specification, not rendered.

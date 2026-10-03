@@ -592,6 +592,25 @@
     "engine": "pass"
   },
   {
+    "name": "ok-design-layout",
+    "note": "A group declares the inline layout and a child group the line layout; validation loads the specification.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "look": {
+          "type": "group",
+          "design": { "layout": "inline" },
+          "properties": {
+            "theme": { "type": "text", "label": "Theme" },
+            "font": { "type": "group", "design": { "layout": "line" }, "properties": { "family": { "type": "text" } } }
+          }
+        }
+      }
+    },
+    "expect": "ok",
+    "engine": "pass"
+  },
+  {
     "name": "err-items-choice-list-extra-member",
     "note": "A choice list element has only value and label. The runtime structure check does not read items; binding the field fails.",
     "spec": {
