@@ -262,7 +262,17 @@ func buildLeaf(spec *Object, path string, d *Object, label, description string, 
 		checked := effective == true || effective == float64(1) || effective == 1 || effective == "1"
 		setHeader(vm, d, "description", description)
 		vm.Set("body", nodeBody("", "", ""))
-		checkbox := NewObject("id", controlID(s.options.IDPrefix, path), "name", bracketName(path, s.options.KeyPrefix), "className", joinClass("valid-target", nodeClass(d, "main")), "checked", checked, "caption", label)
+		// A switcher is a checkbox input announced and drawn as a switch.
+		switcher := typ == "switcher"
+		control := ""
+		if switcher {
+			control = "crudui-input crudui-input--switch"
+		}
+		checkbox := NewObject("id", controlID(s.options.IDPrefix, path), "name", bracketName(path, s.options.KeyPrefix), "className", joinClass("valid-target", control, nodeClass(d, "main")), "checked", checked)
+		if switcher {
+			checkbox.Set("role", "switch")
+		}
+		checkbox.Set("caption", label)
 		if attributes := declaredAttributes(read(spec, "design"), false); attributes != nil {
 			checkbox.Set("attributes", attributes)
 		}

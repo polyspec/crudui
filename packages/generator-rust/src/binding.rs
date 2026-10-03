@@ -459,13 +459,22 @@ impl Binding<'_> {
                 Some(value) => on(value),
                 None => spec.get("default").is_some_and(on),
             };
+            // A switcher is a checkbox input announced and drawn as a switch.
+            let switcher = kind == "switcher";
             let mut checkbox = json!({
                 "id": control_id(self.id_prefix,path),
                 "name": bracket(path, self.key_prefix),
-                "className": join_class(&["valid-target", text_at(design, "main", "class")]),
+                "className": join_class(&[
+                    "valid-target",
+                    if switcher { "crudui-input crudui-input--switch" } else { "" },
+                    text_at(design, "main", "class"),
+                ]),
                 "checked": checked,
-                "caption": label.unwrap_or_default(),
             });
+            if switcher {
+                checkbox["role"] = "switch".into();
+            }
+            checkbox["caption"] = label.unwrap_or_default().into();
             if let Some(attributes) = declared_attributes(spec, false) {
                 checkbox["attributes"] = attributes.into();
             }

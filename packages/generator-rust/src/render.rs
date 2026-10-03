@@ -438,7 +438,11 @@ fn body(node: &Value, errors: &NodeErrors) -> String {
     }
     let content = if node["checkbox"].is_object() {
         let checkbox = &node["checkbox"];
-        let mut input = json!({"class":checkbox["className"],"id":checkbox["id"],"name":checkbox["name"],"type":"checkbox","value":"1"});
+        let mut input = json!({"class":checkbox["className"],"id":checkbox["id"],"name":checkbox["name"],"type":"checkbox"});
+        if let Some(role) = checkbox.get("role") {
+            input["role"] = role.clone();
+        }
+        input["value"] = "1".into();
         if checkbox["checked"] == true {
             input["checked"] = "".into();
         }

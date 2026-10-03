@@ -1,5 +1,16 @@
 # 변경 기록
 
+## 2026-10-04 — switcher 필드는 스위치로 렌더링됨
+
+- `switcher` 필드는 스위치를 렌더링합니다. checkbox 모델은 `checked` 뒤에 `role: "switch"`를 갖고, 컨트롤
+  class는 `design.class` class 앞에 `valid-target crudui-input crudui-input--switch`를 가지며, 모든
+  렌더러는 `type="checkbox"` 뒤에 `role="switch"`를, `role` 뒤에 선언 속성을 씁니다. input은 체크 상자로
+  제출되고 바인딩됩니다. `checkbox` 필드의 마크업은 그대로입니다.
+- 스타일시트는 accent, border, subtle, surface 속성으로 스위치를 둥근 thumb가 있는 track으로 그리며,
+  Chromium, Firefox, WebKit에서 측정합니다.
+- React, Vue, Svelte, HTML 렌더러, PHP, PHP extension, Go, Rust는 공유 폼 case `switcher-bare`와
+  `control-attributes-checkbox`에서 스위치를 씁니다.
+
 ## 2026-10-02 — 스크립트 동작은 click에서 실행됨
 
 - 목록과 상세의 스크립트 동작은 스크립트를 button의 `onclick`에 쓰므로, button을 누르면 스크립트가

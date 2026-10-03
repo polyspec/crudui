@@ -1,5 +1,17 @@
 # Changes
 
+## 2026-10-04 — Switcher fields render as switches
+
+- A `switcher` field renders a switch: its checkbox model has `role: "switch"` after `checked` and
+  the control class `valid-target crudui-input crudui-input--switch` before the `design.class`
+  class, and every renderer writes `role="switch"` after `type="checkbox"` and the declared
+  attributes after `role`. The input submits and binds as a checkbox. A `checkbox` field keeps its
+  markup.
+- The stylesheet draws the switch as a track with a round thumb from the accent, border, subtle and
+  surface properties, measured in Chromium, Firefox and WebKit.
+- React, Vue, Svelte, the HTML renderer, PHP, the PHP extension, Go and Rust write the switch in the
+  shared form cases `switcher-bare` and `control-attributes-checkbox`.
+
 ## 2026-10-02 — Script actions run on click
 
 - A list or detail script action writes its script in `onclick` of its button, so the script runs

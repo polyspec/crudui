@@ -424,7 +424,9 @@ static bool write_body(render_buffer *out, const ps_value *node, const ps_form_r
             attr_text(input, "class", string_member(checkbox, "className")) &&
             attr_text(input, "id", string_member(checkbox, "id")) &&
             attr_text(input, "name", string_member(checkbox, "name")) &&
-            attr_string(input, "type", "checkbox") && attr_string(input, "value", "1") &&
+            attr_string(input, "type", "checkbox") &&
+            (!string_member(checkbox, "role").length || attr_clone(input, "role", member(checkbox, "role"))) &&
+            attr_string(input, "value", "1") &&
             (!bool_member(checkbox, "checked") || attr_string(input, "checked", "")) &&
             ps_append_attributes(input, member(checkbox, "attributes")) &&
             start_element(out, "input", input, false, false) &&
