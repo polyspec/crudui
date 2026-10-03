@@ -67,7 +67,22 @@ const ATTRIBUTE_NAME = (key: string, name: string, path = 'theme') => ({ code: '
 const attributesCase = (name: string, note: string, design: Record<string, unknown>, expectError: { code: string; message: string }) =>
   ({ name, note, spec: G({ theme: { type: 'text', label: 'Theme', design } }), options: { language: 'en' }, expectError });
 
+// Range field checks (docs/spec/schema.md, Range fields).
+const RANGE_BOUNDS = { code: 'INVALID_FORM_INPUT', message: 'Invalid validate.range at volume: expected [minimum, maximum] finite numbers with minimum not above maximum' };
+const RANGE_STEP = { code: 'INVALID_FORM_INPUT', message: 'Invalid validate.step at volume: expected a finite number above 0' };
+const rangeCase = (name: string, note: string, validate: unknown, expectError: { code: string; message: string }) =>
+  ({ name, note, spec: G({ volume: { type: 'range', label: 'Volume', ...(validate === undefined ? {} : { validate }) } }), options: { language: 'en' }, expectError });
+
 export const WRITTEN_CASES = [
+  rangeCase('range-without-rules', 'A range field requires validate.range.', undefined, RANGE_BOUNDS),
+  rangeCase('range-reversed-bounds', 'The minimum of validate.range is not above the maximum.', { range: [5, 1], step: 1 }, RANGE_BOUNDS),
+  rangeCase('range-reference-bounds', 'validate.range of a range field is a literal pair, not a reference.', { range: '.limits', step: 1 }, RANGE_BOUNDS),
+  rangeCase('range-three-bounds', 'validate.range of a range field has exactly two numbers.', { range: [0, 1, 2], step: 1 }, RANGE_BOUNDS),
+  rangeCase('range-without-step', 'A range field requires validate.step.', { range: [0, 10] }, RANGE_STEP),
+  rangeCase('range-zero-step', 'validate.step of a range field is above 0.', { range: [0, 10], step: 0 }, RANGE_STEP),
+  rangeCase('range-conditional-step', 'validate.step of a range field is a literal number, not a conditional map.', { range: [0, 10], step: { '.fine': 0.1, true: 1 } }, RANGE_STEP),
+  rangeCase('range-minimum-off-step', 'The minimum of validate.range is a multiple of validate.step.', { range: [0.5, 10], step: 1 },
+    { code: 'INVALID_FORM_INPUT', message: 'Invalid validate.range at volume: expected a minimum that is a multiple of validate.step' }),
   attributesCase('control-attributes-not-object', 'design.attributes must be an object.',
     { attributes: 'data-x' }, { code: 'INVALID_FORM_INPUT', message: 'Invalid design.attributes at theme: expected an object' }),
   attributesCase('control-attributes-wrapper-list', 'design.wrapper.attributes must be an object, not a list.',

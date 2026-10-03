@@ -10639,6 +10639,174 @@
     }
   },
   {
+    "name": "range-field-values",
+    "note": "a range field is validated by its range and step rules: a numeric value on a step within the bounds passes, an empty value is not evaluated.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "on": {
+          "type": "range",
+          "validate": {
+            "range": [
+              0,
+              1
+            ],
+            "step": 0.1
+          }
+        },
+        "text": {
+          "type": "range",
+          "validate": {
+            "range": [
+              0,
+              1
+            ],
+            "step": 0.1
+          }
+        },
+        "top": {
+          "type": "range",
+          "validate": {
+            "range": [
+              0,
+              1
+            ],
+            "step": 0.1
+          }
+        },
+        "empty": {
+          "type": "range",
+          "validate": {
+            "range": [
+              0,
+              1
+            ],
+            "step": 0.1
+          }
+        },
+        "above": {
+          "type": "range",
+          "validate": {
+            "range": [
+              0,
+              1
+            ],
+            "step": 0.1
+          }
+        },
+        "below": {
+          "type": "range",
+          "validate": {
+            "range": [
+              0,
+              1
+            ],
+            "step": 0.1
+          }
+        },
+        "off": {
+          "type": "range",
+          "validate": {
+            "range": [
+              0,
+              1
+            ],
+            "step": 0.1
+          }
+        },
+        "drift": {
+          "type": "range",
+          "validate": {
+            "range": [
+              0,
+              1
+            ],
+            "step": 0.1
+          }
+        },
+        "word": {
+          "type": "range",
+          "validate": {
+            "range": [
+              0,
+              1
+            ],
+            "step": 0.1
+          }
+        },
+        "yes": {
+          "type": "range",
+          "validate": {
+            "range": [
+              0,
+              1
+            ],
+            "step": 0.1
+          }
+        }
+      }
+    },
+    "data": {
+      "on": 0.3,
+      "text": "0.7",
+      "top": 1,
+      "empty": "",
+      "above": 1.1,
+      "below": -0.1,
+      "off": 0.25,
+      "drift": 0.30000000000000004,
+      "word": "loud",
+      "yes": true
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "above",
+          "field": "above",
+          "rule": "range",
+          "message": "Please enter a value between 0 and 1.",
+          "value": 1.1
+        },
+        {
+          "path": "below",
+          "field": "below",
+          "rule": "range",
+          "message": "Please enter a value between 0 and 1.",
+          "value": -0.1
+        },
+        {
+          "path": "off",
+          "field": "off",
+          "rule": "step",
+          "message": "Please enter a value that is a multiple of 0.1.",
+          "value": 0.25
+        },
+        {
+          "path": "drift",
+          "field": "drift",
+          "rule": "step",
+          "message": "Please enter a value that is a multiple of 0.1.",
+          "value": 0.30000000000000004
+        },
+        {
+          "path": "word",
+          "field": "word",
+          "rule": "range",
+          "message": "Please enter a value between 0 and 1.",
+          "value": "loud"
+        },
+        {
+          "path": "yes",
+          "field": "yes",
+          "rule": "range",
+          "message": "Please enter a value between 0 and 1.",
+          "value": true
+        }
+      ]
+    }
+  },
+  {
     "name": "step-exact-decimal",
     "note": "multiples are decided on the decimal texts without a tolerance.",
     "spec": {

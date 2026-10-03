@@ -17,11 +17,11 @@ function error(field: string, rule: string, value: unknown, params: unknown[] = 
   return { path: field, field, rule, message: message(rule, params, template), value };
 }
 
-/** One text field per value, all declaring the same rules; `failing` maps a field to its failure. */
+/** One field of `type` (text unless given) per value, all declaring the same rules; `failing` maps a field to its failure. */
 function fields(name: string, note: string, values: Record<string, unknown>, validate: Record<string, unknown>,
-  failing: Record<string, [rule: string, params?: unknown[]]>): WrittenCase {
+  failing: Record<string, [rule: string, params?: unknown[]]>, type = 'text'): WrittenCase {
   const properties: Record<string, unknown> = {};
-  for (const field of Object.keys(values)) properties[field] = { type: 'text', validate };
+  for (const field of Object.keys(values)) properties[field] = { type, validate };
   const errors = Object.keys(values).filter((field) => failing[field])
     .map((field) => error(field, failing[field][0], values[field] ?? null, failing[field][1] ?? []));
   return { name, note, spec: { type: 'group', properties }, data: values, expected: { valid: errors.length === 0, errors } };
@@ -76,6 +76,12 @@ export const NUMERIC_CASES: Array<WrittenCase | FailureCase> = [
   fields('max-reads-exponent', 'exponent text is numeric: 1e3 is above 10.', { exponent: '1e3' }, { max: 10 }, { exponent: ['max', [10]] }),
   fields('bounds-negative-zero-and-fractions', 'fractional and negative bounds compare as doubles.',
     { inside: '-0.25', outside: '-0.75' }, { range: [-0.5, 0.5] }, { outside: ['range', [-0.5, 0.5]] }),
+
+  // --- range fields (docs/spec/schema.md, Range fields) ---
+  fields('range-field-values', 'a range field is validated by its range and step rules: a numeric value on a step within the bounds passes, an empty value is not evaluated.',
+    { on: 0.3, text: '0.7', top: 1, empty: '', above: 1.1, below: -0.1, off: 0.25, drift: 0.30000000000000004, word: 'loud', yes: true },
+    { range: [0, 1], step: 0.1 },
+    { above: ['range', [0, 1]], below: ['range', [0, 1]], off: ['step', [0.1]], drift: ['step', [0.1]], word: ['range', [0, 1]], yes: ['range', [0, 1]] }, 'range'),
 
   // --- step ---
   fields('step-exact-decimal', 'multiples are decided on the decimal texts without a tolerance.',

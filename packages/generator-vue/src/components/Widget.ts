@@ -106,6 +106,14 @@ function widgetVNode(w: WidgetModel): VNode {
   return rawContainer('div', { class: 'crudui-widget' }, html);
 }
 
+/** range layout: prepend? + range input + output + append? inside .crudui-widget--range. */
+function rangeVNode(w: WidgetModel): VNode {
+  const forAttr = w.attrs.id !== undefined ? ` for="${escAttr(w.attrs.id)}"` : '';
+  const output = `<output class="crudui-widget__output"${forAttr}>${escText(w.text ?? '')}</output>`;
+  const html = affixHtml(w.prepend) + rawVoid('input', w.attrs) + output + affixHtml(w.append);
+  return rawContainer('div', { class: 'crudui-widget crudui-widget--range' }, html);
+}
+
 /**
  * choices layout raw html: `<div {attrs}>` + per-item input/label pairs. The
  * container is serialized raw (not a vnode) because its own `w.attrs` may carry
@@ -210,6 +218,8 @@ export function Widget(w: AnyWidget): VNode | null {
   switch (w.layout) {
     case 'widget':
       return widgetVNode(w);
+    case 'range':
+      return rangeVNode(w);
     case 'file':
       return fileGroupVNode(w);
     case 'display':

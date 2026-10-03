@@ -3686,5 +3686,350 @@
       "code": "INVALID_FORM_INPUT",
       "message": "Invalid design.attributes at form.buttons.0: unknown key"
     }
+  },
+  {
+    "name": "range-default-unit",
+    "note": "range → a range input with min, max and step from validate.range and validate.step, an output with the default value and the append affix as the unit.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "volume": {
+          "type": "range",
+          "label": "Volume",
+          "default": 50,
+          "append": "%",
+          "validate": {
+            "range": [
+              0,
+              100
+            ],
+            "step": 5
+          }
+        }
+      }
+    },
+    "data": {},
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"volume\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:volume\">Volume</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget crudui-widget--range\"><input class=\"valid-target crudui-input crudui-input--range\" data-default=\"50\" data-name=\"volume\" data-rule-name=\"volume\" id=\"crudui:volume\" max=\"100\" min=\"0\" name=\"volume\" step=\"5\" type=\"range\" value=\"50\"><output class=\"crudui-widget__output\" for=\"crudui:volume\">50</output><span class=\"crudui-widget__affix\">%</span></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "range-bound-fraction",
+    "note": "range with fractional bounds and step, a prepend affix and a bound value written in the input and the output.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "balance": {
+          "type": "range",
+          "label": "Balance",
+          "prepend": "L",
+          "validate": {
+            "range": [
+              -1.5,
+              1.5
+            ],
+            "step": 0.25
+          }
+        }
+      }
+    },
+    "data": {
+      "balance": -0.75
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"balance\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:balance\">Balance</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget crudui-widget--range\"><span class=\"crudui-widget__affix\">L</span><input class=\"valid-target crudui-input crudui-input--range\" data-default=\"\" data-name=\"balance\" data-rule-name=\"balance\" id=\"crudui:balance\" max=\"1.5\" min=\"-1.5\" name=\"balance\" step=\"0.25\" type=\"range\" value=\"-0.75\"><output class=\"crudui-widget__output\" for=\"crudui:balance\">-0.75</output></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "range-empty",
+    "note": "range without a default or data → an empty value and an empty output.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "level": {
+          "type": "range",
+          "label": "Level",
+          "validate": {
+            "required": true,
+            "range": [
+              2,
+              10
+            ],
+            "step": 2
+          }
+        }
+      }
+    },
+    "data": {},
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"level\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:level\">Level</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget crudui-widget--range\"><input class=\"valid-target crudui-input crudui-input--range\" data-default=\"\" data-name=\"level\" data-rule-name=\"level\" id=\"crudui:level\" max=\"10\" min=\"2\" name=\"level\" step=\"2\" type=\"range\" value=\"\"><output class=\"crudui-widget__output\" for=\"crudui:level\"></output></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "range-behavior-design",
+    "note": "range with a behavior attribute, design.class, design.style and declared attributes → the raw input and the output.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "volume": {
+          "type": "range",
+          "label": "Volume",
+          "default": 50,
+          "append": "dB",
+          "validate": {
+            "range": [
+              0,
+              100
+            ],
+            "step": 10
+          },
+          "behavior": {
+            "onchange": "save(this)"
+          },
+          "design": {
+            "class": "wide",
+            "style": "width: 8rem",
+            "attributes": {
+              "data-setting": "volume"
+            }
+          }
+        },
+        "gain": {
+          "type": "range",
+          "validate": {
+            "range": [
+              0,
+              1
+            ],
+            "step": 0.1
+          },
+          "design": {
+            "style": "width: 4rem",
+            "attributes": {
+              "aria-label": "Gain"
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "gain": "0.3"
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"volume\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:volume\">Volume</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget crudui-widget--range\"><input class=\"valid-target crudui-input crudui-input--range wide\" data-default=\"50\" data-name=\"volume\" data-rule-name=\"volume\" data-setting=\"volume\" id=\"crudui:volume\" max=\"100\" min=\"0\" name=\"volume\" onchange=\"save(this)\" step=\"10\" style=\"width: 8rem\" type=\"range\" value=\"50\"><output class=\"crudui-widget__output\" for=\"crudui:volume\">50</output><span class=\"crudui-widget__affix\">dB</span></div></div></div><div class=\"crudui-node crudui-node--field\" data-field-path=\"gain\"><div class=\"crudui-node__body\"><div class=\"crudui-widget crudui-widget--range\"><input aria-label=\"Gain\" class=\"valid-target crudui-input crudui-input--range\" data-default=\"\" data-name=\"gain\" data-rule-name=\"gain\" id=\"crudui:gain\" max=\"1\" min=\"0\" name=\"gain\" step=\"0.1\" style=\"width: 4rem\" type=\"range\" value=\"0.3\"><output class=\"crudui-widget__output\" for=\"crudui:gain\">0.3</output></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "range-without-rules",
+    "note": "A range field requires validate.range.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "volume": {
+          "type": "range",
+          "label": "Volume"
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid validate.range at volume: expected [minimum, maximum] finite numbers with minimum not above maximum"
+    }
+  },
+  {
+    "name": "range-reversed-bounds",
+    "note": "The minimum of validate.range is not above the maximum.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "volume": {
+          "type": "range",
+          "label": "Volume",
+          "validate": {
+            "range": [
+              5,
+              1
+            ],
+            "step": 1
+          }
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid validate.range at volume: expected [minimum, maximum] finite numbers with minimum not above maximum"
+    }
+  },
+  {
+    "name": "range-reference-bounds",
+    "note": "validate.range of a range field is a literal pair, not a reference.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "volume": {
+          "type": "range",
+          "label": "Volume",
+          "validate": {
+            "range": ".limits",
+            "step": 1
+          }
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid validate.range at volume: expected [minimum, maximum] finite numbers with minimum not above maximum"
+    }
+  },
+  {
+    "name": "range-three-bounds",
+    "note": "validate.range of a range field has exactly two numbers.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "volume": {
+          "type": "range",
+          "label": "Volume",
+          "validate": {
+            "range": [
+              0,
+              1,
+              2
+            ],
+            "step": 1
+          }
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid validate.range at volume: expected [minimum, maximum] finite numbers with minimum not above maximum"
+    }
+  },
+  {
+    "name": "range-without-step",
+    "note": "A range field requires validate.step.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "volume": {
+          "type": "range",
+          "label": "Volume",
+          "validate": {
+            "range": [
+              0,
+              10
+            ]
+          }
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid validate.step at volume: expected a finite number above 0"
+    }
+  },
+  {
+    "name": "range-zero-step",
+    "note": "validate.step of a range field is above 0.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "volume": {
+          "type": "range",
+          "label": "Volume",
+          "validate": {
+            "range": [
+              0,
+              10
+            ],
+            "step": 0
+          }
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid validate.step at volume: expected a finite number above 0"
+    }
+  },
+  {
+    "name": "range-conditional-step",
+    "note": "validate.step of a range field is a literal number, not a conditional map.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "volume": {
+          "type": "range",
+          "label": "Volume",
+          "validate": {
+            "range": [
+              0,
+              10
+            ],
+            "step": {
+              ".fine": 0.1,
+              "true": 1
+            }
+          }
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid validate.step at volume: expected a finite number above 0"
+    }
+  },
+  {
+    "name": "range-minimum-off-step",
+    "note": "The minimum of validate.range is a multiple of validate.step.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "volume": {
+          "type": "range",
+          "label": "Volume",
+          "validate": {
+            "range": [
+              0.5,
+              10
+            ],
+            "step": 1
+          }
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid validate.range at volume: expected a minimum that is a multiple of validate.step"
+    }
   }
 ]
