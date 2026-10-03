@@ -77,7 +77,23 @@ const rangeCase = (name: string, note: string, validate: unknown, expectError: {
 const appearanceCase = (name: string, note: string, field: Record<string, unknown>, message: string) =>
   ({ name, note, spec: G({ accent: { label: 'Accent', ...field } }), options: { language: 'en' }, expectError: { code: 'INVALID_FORM_INPUT', message } });
 
+// Layout checks (docs/spec/schema.md, Layout).
+const layoutCase = (name: string, note: string, spec: Record<string, unknown>, message: string) =>
+  ({ name, note, spec, options: { language: 'en' }, expectError: { code: 'INVALID_FORM_INPUT', message } });
+
 export const WRITTEN_CASES = [
+  layoutCase('layout-on-field', 'design.layout is a member of a group field only.',
+    G({ a: { type: 'text', design: { layout: 'inline' } } }), 'Invalid design.layout at a: unknown key'),
+  layoutCase('layout-on-form-root', 'The form root declares no layout.',
+    { ...G({ a: { type: 'text' } }), design: { layout: 'inline' } }, 'Invalid design.layout at form: unknown key'),
+  layoutCase('layout-on-form-button', 'A form button declares no layout.',
+    { ...G({ a: { type: 'text' } }), buttons: [{ type: 'submit', design: { layout: 'inline' } }] }, 'Invalid design.layout at form.buttons.0: unknown key'),
+  layoutCase('layout-unknown-value', 'design.layout is stacked, inline or line.',
+    G({ a: { type: 'group', design: { layout: 'grid' }, properties: {} } }), 'Invalid design.layout at a: expected stacked, inline or line'),
+  layoutCase('layout-condition-map', 'design.layout is a literal, not a condition map.',
+    G({ a: { type: 'group', design: { layout: { '.wide': 'inline' } }, properties: {} } }), 'Invalid design.layout at a: expected stacked, inline or line'),
+  layoutCase('layout-line-repeated', 'A repeated group is not laid out on one line.',
+    G({ a: { type: 'group', multiple: true, design: { layout: 'line' }, properties: {} } }), 'Invalid design.layout at a: expected stacked or inline'),
   appearanceCase('choice-appearance-select', 'A select choice declares no appearance.',
     { type: 'select', items: [{ value: 'blue', label: 'Blue', class: 'swatch' }] }, INVALID_ITEMS('accent').message),
   appearanceCase('choice-appearance-search', 'A search choice declares no appearance.',
