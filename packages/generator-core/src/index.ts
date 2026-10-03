@@ -41,7 +41,7 @@ export type {
 } from './viewmodel';
 export { formMessages } from './messages';
 export type { FormMessages } from './messages';
-export type { WidgetModel, WidgetCtx, Attrs, Affix, OptionModel } from './widget';
+export type { WidgetModel, WidgetCtx, Attrs, Affix, OptionModel, OptionGroupModel } from './widget';
 
 // Errors the API throws.
 export { ComposeLoadError } from '@crudui/validator';

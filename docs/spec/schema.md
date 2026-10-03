@@ -226,10 +226,11 @@ finite number, and the option value is its [canonical text](validation-rules.md#
 itself and a number as `Number.prototype.toString` writes it. Each `label` is a label as in a
 value-to-label map. The choices keep the order of the list for any values.
 
-An `items` array is a choice list when one of its elements is an object that has a `value` member.
-Every element must then be an object whose only members are `value` and `label`, besides the
-[appearance](#choice-appearance) members in a choice or multichoice field, every `value` must
-be a string or a finite number, and no two values may have the same canonical text. Binding a field
+An `items` array is a choice list when one of its elements is an object that has a `value` member
+or a `choices` member. Every element must then be an object whose only members are `value` and
+`label`, besides the [appearance](#choice-appearance) members in a choice or multichoice field, or,
+in a select field, a [group](#choice-groups); every `value` must be a string or a finite number,
+and no two values in the list, inside groups included, may have the same canonical text. Binding a field
 whose `items` is a choice list that breaks one of these rules fails with `INVALID_FORM_INPUT`, the
 message `Invalid items at {path}: expected value and label pairs with distinct string or number values`
 and an empty location, where `{path}` is the data path of the field. The check runs before the field
@@ -247,6 +248,46 @@ Choose the form by the required order:
   { "value": 0, "label": "No" }]` displays Yes before No. Use it when the values are integer-like or
   mixed and the written order is required.
 - An array of labels keeps the written order with the indexes `0`, `1`, … as the values.
+
+### Choice groups
+
+The choice list of a select field (the types `select`, `dropdown` and `selectbox`) may contain group
+entries. A group is an object whose only members are `label`, a label as in a value-to-label map,
+and `choices`, a list of one or more `{ "value": …, "label": … }` choices. Groups and plain choices
+may be mixed, and the options keep the written order: a plain choice is an option of the select and
+the choices of a group are the options of one `optgroup` element, which the
+[form markup](form-markup.md#choice-groups) defines. A group does not contain another group, and its
+choices have no appearance members. The values of all choices, inside and outside groups, are the
+choices of the field: they are distinct by canonical text across the whole list, the value of the
+field selects the option with the same text in any group, and [`in`](validation-rules.md#values)
+accepts the same list.
+
+Binding a field whose choice list breaks one of these rules fails as described above: a group with
+another member, without `label` or `choices`, with `choices` that is not a list or is an empty list,
+or with a choice that breaks the choice rules, a value that repeats the canonical text of a value in
+the same or another group or outside groups, and a group in a field that is not a select field. A
+group in the choice list of the [`choice-label` format](display-formats.md#choice-label) fails as
+another member of a choice does there.
+
+```yaml
+region:
+  type: select
+  label: Region
+  items:
+    - { value: auto, label: Automatic }
+    - label: Europe
+      choices:
+        - { value: eu-west, label: West }
+        - { value: eu-north, label: North }
+    - label: Asia
+      choices:
+        - { value: ap-east, label: East }
+  validate:
+    in:
+      - { value: auto, label: Automatic }
+      - { label: Europe, choices: [{ value: eu-west, label: West }, { value: eu-north, label: North }] }
+      - { label: Asia, choices: [{ value: ap-east, label: East }] }
+```
 
 ### Choice appearance
 

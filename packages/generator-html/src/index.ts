@@ -17,10 +17,11 @@ import {
   buildDetail,
   type BuildDetailOptions,
   type DetailViewModel,
+  type OptionModel,
   type UnsupportedVM,
   type WidgetModel,
 } from '@crudui/generator-core';
-import { buildListLayout, formRenderModel, parseStyle, type FormRenderModel } from '@crudui/generator-core/internal';
+import { buildListLayout, formRenderModel, optionSections, parseStyle, type FormRenderModel } from '@crudui/generator-core/internal';
 
 type AnyWidget = WidgetModel | UnsupportedVM;
 
@@ -159,8 +160,11 @@ function styleLast(values: AttrValues): AttrValues {
 function control(widget: WidgetModel, raw: boolean, selection: string): string {
   const values = raw ? widget.attrs : styleLast(widget.attrs);
   if (widget.tag === 'select') {
-    const options = (widget.options ?? []).map((option) =>
-      `<option${attrs({ value: option.value, ...(option.selected ? { selected: selection } : {}) }, raw)}>${textContent(option.label, raw)}</option>`).join('');
+    const option = (item: OptionModel) =>
+      `<option${attrs({ value: item.value, ...(item.selected ? { selected: selection } : {}) }, raw)}>${textContent(item.label, raw)}</option>`;
+    const options = optionSections(widget.options ?? []).map((section) => section.group
+      ? `<optgroup${attrs({ label: section.group.label }, raw)}>${section.options.map(option).join('')}</optgroup>`
+      : section.options.map(option).join('')).join('');
     return `<select${attrs(values, raw)}>${options}</select>`;
   }
   if (widget.tag === 'textarea') {

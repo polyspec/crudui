@@ -38,7 +38,7 @@ import {
   toBracketNotationWithPrefix,
 } from './util';
 import type { ResolvedDesign } from './design';
-import { choiceAppearances, choicePairs, isChoiceList } from './choice-list';
+import { choiceAppearances, choiceGroups, choicePairs, isChoiceList } from './choice-list';
 import type { Translate } from './content';
 
 /** Inputs every widget evaluator needs for one leaf field. */
@@ -94,6 +94,39 @@ export interface OptionModel {
   style?: string;
   /** Input attributes of the choice (choice list `attributes`), present only when declared. */
   attributes?: Attrs;
+  /** Group of a select option inside a choice list group, present only for such an option. */
+  group?: OptionGroupModel;
+}
+
+/** The group of a select option (docs/spec/form-markup.md, "Choice groups"). */
+export interface OptionGroupModel {
+  /** Zero-based position of the group in the choice list; options of one group share it. */
+  index: number;
+  /** Display label of the group (translated). */
+  label: string;
+}
+
+/** A run of consecutive options: the options of one group, or options outside groups. */
+export interface OptionSection {
+  /** Group of the options, absent for options outside groups. */
+  group?: OptionGroupModel;
+  /** Options in list order. */
+  options: OptionModel[];
+}
+
+/**
+ * Split options into runs of consecutive options with the same group, in list order. A renderer
+ * writes a section with a group as one `optgroup` element and the other options directly.
+ */
+export function optionSections(options: readonly OptionModel[]): OptionSection[] {
+  const sections: OptionSection[] = [];
+  for (const option of options) {
+    const last = sections[sections.length - 1];
+    if (last && option.group && last.group?.index === option.group.index) last.options.push(option);
+    else if (last && !option.group && !last.group) last.options.push(option);
+    else sections.push(option.group ? { group: option.group, options: [option] } : { options: [option] });
+  }
+  return sections;
 }
 
 /** data-source-* descriptor for a dynamic {model} items stub. */
@@ -268,11 +301,12 @@ function isDynamicItemsSource(items: unknown): items is Record<string, unknown> 
 
 /**
  * Static items → [key,label] entries. Dynamic source → [] (never enumerate). Binding has checked a
- * choice list and accepted appearance members only for a choice or multichoice field.
+ * choice list and accepted appearance members only for a choice or multichoice field and groups
+ * only for a select field.
  */
 function itemEntries(items: unknown): Array<[string, unknown]> {
   if (items === null || items === undefined) return [];
-  if (isChoiceList(items)) return choicePairs(items, true) ?? [];
+  if (isChoiceList(items)) return choicePairs(items, true, true) ?? [];
   if (Array.isArray(items)) return items.map((v, i) => [String(i), v]);
   if (typeof items === 'object') {
     if (isDynamicItemsSource(items)) return [];
@@ -447,15 +481,20 @@ const select: Evaluator = (ctx) => {
   }
 
   const entries = itemEntries(items);
+  const groups = isChoiceList(items) ? choiceGroups(items) : [];
   const options: OptionModel[] =
     entries.length === 0
       ? [{ value: '', label: 'select', selected: false, isDefault: false }]
-      : entries.map(([key, val]) => ({
-          value: key,
-          label: ctx.t(val as never) || phpString(val),
-          selected: effectiveValue === key,
-          isDefault: false,
-        }));
+      : entries.map(([key, val], index) => {
+          const group = groups[index];
+          return {
+            value: key,
+            label: ctx.t(val as never) || phpString(val),
+            selected: effectiveValue === key,
+            isDefault: false,
+            ...(group ? { group: { index: group.index, label: ctx.t(group.label as never) || phpString(group.label) } } : {}),
+          };
+        });
 
   return {
     kind: 'select',

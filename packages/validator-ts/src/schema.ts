@@ -342,8 +342,8 @@ export interface ValidateSlot {
   unique?: boolean | string | null;
   /** Accepted file extensions or MIME types. */
   accept?: string | string[] | false | null;
-  /** Allowed values: comma-separated string, list, or value-to-label map. */
-  in?: string | Array<string | number | boolean | null> | Record<string, LangMap | string | null> | false | null;
+  /** Allowed values: comma-separated string, list, choice list with groups, or value-to-label map. */
+  in?: string | Array<string | number | boolean | null> | Array<ChoicePair | ChoiceGroup> | Record<string, LangMap | string | null> | false | null;
 }
 
 // ============================================================================
@@ -599,8 +599,19 @@ export interface ChoiceItem extends ChoicePair {
   attributes?: DeclaredAttributes;
 }
 
-/** The choices of a field's `items` in list order. */
-export type ChoiceItems = ChoiceItem[];
+/**
+ * A group of choices in a choice list (docs/spec/schema.md, "Choice groups"). Only the choice list
+ * of a select field and the `in` rule accept groups; binding rejects a group in other fields.
+ */
+export interface ChoiceGroup {
+  /** Display label of the group. */
+  label: ItemLabel;
+  /** One or more choices of the group in list order; their values are distinct across the list. */
+  choices: ChoicePair[];
+}
+
+/** The choices and groups of a field's `items` in list order. */
+export type ChoiceItems = Array<ChoiceItem | ChoiceGroup>;
 
 /**
  * A static option label (display only). A plain string or a per-language LangMap

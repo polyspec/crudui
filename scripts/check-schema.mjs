@@ -133,6 +133,23 @@ for (const [label, field, expected] of [
   assert.equal(validateForm(spec), expected, `layout, ${label}: ${JSON.stringify(validateForm.errors)}`);
   checked++;
 }
+// Choice groups (docs/spec/schema.md, Choice groups): a choice list may contain groups of one or
+// more value and label pairs, mixed with plain choices, in `items` and in `in`.
+for (const [label, field, expected] of [
+  ['groups only', { type: 'select', items: [{ label: 'Europe', choices: [{ value: 'eu-west', label: 'West' }] }, { label: { en: 'Asia' }, choices: [{ value: 7, label: 'Seven' }] }] }, true],
+  ['groups and choices', { type: 'select', items: [{ value: 'auto', label: 'Automatic' }, { label: 'Europe', choices: [{ value: 'eu-west', label: 'West' }] }] }, true],
+  ['groups in a membership rule', { type: 'select', items: ['Auto'], validate: { in: [{ value: 'auto', label: 'Automatic' }, { label: 'Europe', choices: [{ value: 'eu-west', label: 'West' }] }] } }, true],
+  ['group without choices', { type: 'select', items: [{ label: 'Europe', choices: [] }] }, false],
+  ['group without a label', { type: 'select', items: [{ choices: [{ value: 'eu-west', label: 'West' }] }] }, false],
+  ['group with another member', { type: 'select', items: [{ label: 'Europe', class: 'x', choices: [{ value: 'eu-west', label: 'West' }] }] }, false],
+  ['nested group', { type: 'select', items: [{ label: 'Europe', choices: [{ label: 'West', choices: [{ value: 'eu-west', label: 'West' }] }] }] }, false],
+  ['group choice with appearance', { type: 'select', items: [{ label: 'Europe', choices: [{ value: 'eu-west', label: 'West', class: 'x' }] }] }, false],
+  ['group without choices in a membership rule', { type: 'select', items: ['Auto'], validate: { in: [{ label: 'Europe', choices: [] }] } }, false],
+]) {
+  const spec = { type: 'group', properties: { region: field } };
+  assert.equal(validateForm(spec), expected, `choice groups, ${label}: ${JSON.stringify(validateForm.errors)}`);
+  checked++;
+}
 // `validate` and `messages` accept the registered rule names only: the rules of the rule registry.
 const registeredRules = [...readText('packages/validator-ts/src/rules/index.ts').matchAll(/^ {2}\['(\w+)', \w+Rule\],$/gm)]
   .map((match) => match[1]);

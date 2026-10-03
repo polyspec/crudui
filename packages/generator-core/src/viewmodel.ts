@@ -15,7 +15,7 @@ import { UnsupportedFieldTypeError } from './errors';
 import { CHOICE_LIST_EXPECTED, checkChoiceAppearance, choicePairs, isChoiceList } from './choice-list';
 import type { Translate } from './content';
 import { formatCount, type FormMessages } from './messages';
-import { evalWidget, WIDGET_LAYOUTS, type WidgetCtx, type WidgetModel } from './widget';
+import { evalWidget, WIDGET_CANONICAL, WIDGET_LAYOUTS, type WidgetCtx, type WidgetModel } from './widget';
 import type { FormFieldTemplate } from './form';
 
 /** Behavior when a field `type` has no registered widget. */
@@ -312,9 +312,11 @@ function buildWidget(
 ): WidgetModel | UnsupportedVM {
   const type = String(spec.type ?? '');
   if (isChoiceList(spec.items)) {
-    // Only the choices of a choice or multichoice field declare their appearance.
+    // Only the choices of a choice or multichoice field declare their appearance, and only the
+    // choice list of a select field has groups.
     const appearance = WIDGET_LAYOUTS[type.toLowerCase()] === 'choices';
-    if (!choicePairs(spec.items, appearance)) {
+    const groups = WIDGET_CANONICAL[type.toLowerCase()] === 'select';
+    if (!choicePairs(spec.items, appearance, groups)) {
       throw new FormInputError(`Invalid items at ${path}: expected ${CHOICE_LIST_EXPECTED}`);
     }
     if (appearance) checkChoiceAppearance(spec.items, path);

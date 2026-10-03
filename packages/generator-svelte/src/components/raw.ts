@@ -22,7 +22,8 @@
 
 import { untrack } from 'svelte';
 import type { Attachment } from 'svelte/attachments';
-import { patchContent, type Attrs } from '@crudui/generator-core';
+import { patchContent, type Attrs, type OptionModel } from '@crudui/generator-core';
+import { optionSections } from '@crudui/generator-core/internal';
 
 function escAttr(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
@@ -51,20 +52,23 @@ function rawElement(tag: string, attrs: Attrs, innerHtml: string): string {
   return `<${tag}${serializeAttrs(attrs)}>${innerHtml}</${tag}>`;
 }
 
-/** Serialize <option> markup (search/select via raw path). */
+/** Serialize <option> markup, the options of each group inside an <optgroup> (search/select via raw path). */
 function rawOptions(
-  options: Array<{ value: string; label: string; selected: boolean }>,
+  options: OptionModel[],
   selectedAttr: 'empty' | 'selected'
 ): string {
-  return options
-    .map((o) => {
-      const sel = o.selected
-        ? selectedAttr === 'selected'
-          ? ' selected="selected"'
-          : ' selected=""'
-        : '';
-      return `<option value="${escAttr(o.value)}"${sel}>${escText(o.label)}</option>`;
-    })
+  const option = (o: OptionModel) => {
+    const sel = o.selected
+      ? selectedAttr === 'selected'
+        ? ' selected="selected"'
+        : ' selected=""'
+      : '';
+    return `<option value="${escAttr(o.value)}"${sel}>${escText(o.label)}</option>`;
+  };
+  return optionSections(options)
+    .map((section) => section.group
+      ? `<optgroup label="${escAttr(section.group.label)}">${section.options.map(option).join('')}</optgroup>`
+      : section.options.map(option).join(''))
     .join('');
 }
 

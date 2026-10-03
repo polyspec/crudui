@@ -196,66 +196,117 @@
       },
       "additionalProperties": false
     },
+    "ChoicePair": {
+      "description": "One choice: an option value and its display label.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "label"
+      ],
+      "properties": {
+        "value": {
+          "description": "Option value.",
+          "type": [
+            "string",
+            "number"
+          ]
+        },
+        "label": {
+          "description": "Display label of the value.",
+          "$ref": "#/definitions/ItemLabel"
+        }
+      }
+    },
     "ChoiceList": {
       "description": "Choices in list order for any values. Each value is a string or a number whose canonical text is the option value; no two values have the same canonical text.",
       "type": "array",
       "items": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "value",
-          "label"
-        ],
-        "properties": {
-          "value": {
-            "description": "Option value.",
-            "type": [
-              "string",
-              "number"
-            ]
-          },
-          "label": {
-            "description": "Display label of the value.",
-            "$ref": "#/definitions/ItemLabel"
-          }
-        }
+        "$ref": "#/definitions/ChoicePair"
       }
     },
     "ChoiceItems": {
-      "description": "The choice list of a field's items. In a choice or multichoice field each choice may also declare the class and style of its label and the declared attributes of its input; binding rejects these members in other fields.",
+      "description": "The choice list of a field's items. In a choice or multichoice field each choice may also declare the class and style of its label and the declared attributes of its input, and in a select field the list may contain groups of choices; binding rejects these members and groups in other fields.",
       "type": "array",
       "items": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": [
-          "value",
-          "label"
-        ],
-        "properties": {
-          "value": {
-            "description": "Option value.",
-            "type": [
-              "string",
-              "number"
-            ]
+        "anyOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "value",
+              "label"
+            ],
+            "properties": {
+              "value": {
+                "description": "Option value.",
+                "type": [
+                  "string",
+                  "number"
+                ]
+              },
+              "label": {
+                "description": "Display label of the value.",
+                "$ref": "#/definitions/ItemLabel"
+              },
+              "class": {
+                "description": "Class of the choice's label.",
+                "type": "string"
+              },
+              "style": {
+                "description": "Inline style of the choice's label.",
+                "type": "string"
+              },
+              "attributes": {
+                "description": "Attributes written on the choice's input.",
+                "$ref": "#/definitions/DeclaredAttributes"
+              }
+            }
           },
-          "label": {
-            "description": "Display label of the value.",
-            "$ref": "#/definitions/ItemLabel"
-          },
-          "class": {
-            "description": "Class of the choice's label.",
-            "type": "string"
-          },
-          "style": {
-            "description": "Inline style of the choice's label.",
-            "type": "string"
-          },
-          "attributes": {
-            "description": "Attributes written on the choice's input.",
-            "$ref": "#/definitions/DeclaredAttributes"
+          {
+            "$ref": "#/definitions/ChoiceGroup"
           }
+        ]
+      }
+    },
+    "ChoiceGroup": {
+      "description": "A group of choices in the choice list of a select field or of the in rule: a label and one or more value and label pairs whose values are distinct across the whole list. Binding rejects a group in other fields.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "label",
+        "choices"
+      ],
+      "properties": {
+        "label": {
+          "description": "Display label of the group.",
+          "$ref": "#/definitions/ItemLabel"
+        },
+        "choices": {
+          "description": "Choices of the group in list order.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/ChoiceList"
+            },
+            {
+              "minItems": 1
+            }
+          ]
         }
+      }
+    },
+    "GroupedChoiceList": {
+      "description": "A choice list whose elements are choices or groups of choices, in list order; the values of all choices are distinct by canonical text.",
+      "type": "array",
+      "items": {
+        "anyOf": [
+          {
+            "$ref": "#/definitions/ChoicePair"
+          },
+          {
+            "$ref": "#/definitions/ChoiceGroup"
+          }
+        ]
       }
     },
     "ItemLabel": {
@@ -364,14 +415,14 @@
               ]
             },
             "in": {
-              "description": "Allowed values: a comma-separated string, a list, a choice list whose values are the members, or a value-to-label map whose keys are the values. Members are nonempty strings, numbers or booleans; an empty list or map allows no value; a map is not a condition map.",
+              "description": "Allowed values: a comma-separated string, a list, a choice list, with groups, whose values are the members, or a value-to-label map whose keys are the values. Members are nonempty strings, numbers or booleans; an empty list or map allows no value; a map is not a condition map.",
               "anyOf": [
                 {
                   "type": "string",
                   "pattern": "[^\\t-\\r \\u0085\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000]"
                 },
                 {
-                  "$ref": "#/definitions/ChoiceList"
+                  "$ref": "#/definitions/GroupedChoiceList"
                 },
                 {
                   "type": "array",
@@ -1038,7 +1089,7 @@
       "description": "Array of labels whose indexes are the values, choice list, value-to-label map or dynamic source descriptor. Labels may contain translations.",
       "anyOf": [
         {
-          "description": "Labels whose indexes are the values. An element that is an object with a value member makes the array a choice list.",
+          "description": "Labels whose indexes are the values. An element that is an object with a value or a choices member makes the array a choice list.",
           "type": "array",
           "items": {
             "allOf": [
@@ -1048,8 +1099,17 @@
               {
                 "not": {
                   "type": "object",
-                  "required": [
-                    "value"
+                  "anyOf": [
+                    {
+                      "required": [
+                        "value"
+                      ]
+                    },
+                    {
+                      "required": [
+                        "choices"
+                      ]
+                    }
                   ]
                 }
               }

@@ -2,7 +2,7 @@
  * Membership (validation-rules.md, "Values").
  *
  * Members come from a list (each element as is), a choice list (the `value` of
- * each element), a comma-separated string (split at U+002C, each item trimmed) or
+ * each choice, inside groups included), a comma-separated string (split at U+002C, each item trimmed) or
  * a map (its keys). A choice list is checked by the choice list rules before its
  * values are checked as members. Members are strings, numbers
  * or booleans, and no member's canonical text is empty after trimming. An empty
@@ -36,33 +36,51 @@ function isObject(item: unknown): item is Record<string, unknown> {
   return item !== null && typeof item === 'object' && !Array.isArray(item);
 }
 
+function hasMember(item: Record<string, unknown>, key: string): boolean {
+  return Object.prototype.hasOwnProperty.call(item, key);
+}
+
 /**
- * The values of a choice list (schema.md, "Choice lists"), or `undefined` when an element has
- * another member, lacks `value` or `label`, has a value that is not a string or a finite number,
- * or repeats the canonical text of an earlier value.
+ * The values of a choice list (schema.md, "Choice lists" and "Choice groups") in written order,
+ * the values of each group in place of the group, or `undefined` when a choice has another
+ * member, lacks `value` or `label`, has a value that is not a string or a finite number, or
+ * repeats the canonical text of an earlier value, or when a group has another member, lacks
+ * `label` or has no list of one or more choices.
  */
 function choiceValues(list: readonly unknown[]): Member[] | undefined {
   const values: Member[] = [];
   const seen = new Set<string>();
-  for (const item of list) {
-    if (!isObject(item) || Object.keys(item).length !== 2) return undefined;
-    if (!Object.prototype.hasOwnProperty.call(item, 'value') || !Object.prototype.hasOwnProperty.call(item, 'label')) {
-      return undefined;
-    }
+  const add = (item: unknown): boolean => {
+    if (!isObject(item) || Object.keys(item).length !== 2 || !hasMember(item, 'value') || !hasMember(item, 'label')) return false;
     const value = item.value;
-    if (typeof value !== 'string' && !(typeof value === 'number' && Number.isFinite(value))) return undefined;
+    if (typeof value !== 'string' && !(typeof value === 'number' && Number.isFinite(value))) return false;
     const text = canonicalText(value) as string;
-    if (seen.has(text)) return undefined;
+    if (seen.has(text)) return false;
     seen.add(text);
     values.push(value);
+    return true;
+  };
+  for (const item of list) {
+    if (isObject(item) && hasMember(item, 'choices')) {
+      const choices = item.choices;
+      if (Object.keys(item).length !== 2 || !hasMember(item, 'label') || !Array.isArray(choices) || choices.length === 0) return undefined;
+      if (!choices.every(add)) return undefined;
+    } else if (!add(item)) {
+      return undefined;
+    }
   }
   return values;
+}
+
+/** Whether a list is a choice list: it has an object element with a `value` or a `choices` member. */
+function isChoiceList(list: readonly unknown[]): boolean {
+  return list.some((item) => isObject(item) && (hasMember(item, 'value') || hasMember(item, 'choices')));
 }
 
 /** Read the members of an `in` parameter, or the parameter error it causes. */
 export function readMembers(param: unknown): MembersResult {
   let members: unknown[];
-  if (Array.isArray(param) && param.some((item) => isObject(item) && Object.prototype.hasOwnProperty.call(item, 'value'))) {
+  if (Array.isArray(param) && isChoiceList(param)) {
     const values = choiceValues(param);
     if (values === undefined) return { error: MEMBERSHIP_ERRORS.pairs };
     members = values;

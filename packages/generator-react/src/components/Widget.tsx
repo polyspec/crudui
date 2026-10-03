@@ -20,6 +20,7 @@
 
 import * as React from 'react';
 import type { WidgetModel, OptionModel, Affix, Attrs } from '@crudui/generator-core';
+import { optionSections } from '@crudui/generator-core/internal';
 import type { UnsupportedVM } from '@crudui/generator-core';
 import { inputProps, plainProps } from './attrs';
 import {
@@ -69,11 +70,11 @@ function SelectControl({ w }: { w: WidgetModel }): React.ReactElement {
   const props = plainProps(w.attrs);
   return (
     <select {...props} {...(multiple ? { multiple: true, defaultValue: selected } : selected.length ? { defaultValue: selected[0] } : {})}>
-      {(w.options ?? []).map((o, i) => (
-        <option key={i} value={o.value}>
-          {o.label}
-        </option>
-      ))}
+      {optionSections(w.options ?? []).map((section, i) => section.group ? (
+        <optgroup key={i} label={section.group.label}>
+          {section.options.map((o, j) => <option key={j} value={o.value}>{o.label}</option>)}
+        </optgroup>
+      ) : section.options.map((o, j) => <option key={`${i}:${j}`} value={o.value}>{o.label}</option>))}
     </select>
   );
 }
