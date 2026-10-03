@@ -19,6 +19,8 @@ typedef struct {
     const size_t *numbers;
     size_t count;
     size_t sticky_depth;
+    /* The fields are laid out inline: a design.layout inline of an enclosing group. */
+    bool inline_layout;
 } row_scope;
 
 /* Evaluated controls and limits for a repeated field. */
@@ -278,6 +280,30 @@ static ps_text label_target(const ps_value *widget)
     return id && id->kind == PS_STRING && id->data.string.length ? ps_string(id) : (ps_text){NULL, 0};
 }
 
+/* The design.layout a group declares; compilation has checked the value. */
+static ps_text declared_layout(const ps_value *spec)
+{
+    const ps_value *layout = member(member(spec, "design"), "layout");
+    return layout && layout->kind == PS_STRING ? ps_string(layout) : (ps_text){NULL, 0};
+}
+
+/* The scope of a group's children: a declared layout replaces the inherited one, and a line ends it. */
+static row_scope layout_scope(const row_scope *scope, ps_text layout)
+{
+    row_scope next = *scope;
+    if (layout.bytes) next.inline_layout = ps_text_is(layout, "inline");
+    return next;
+}
+
+/* Prepend layout modifiers to the root class of a node. */
+static bool prepend_class(ps_value *node, ps_text first, ps_text second)
+{
+    ps_chars joined = ps_join_classes(first, second, string_member(node, "className"));
+    bool ok = joined.bytes && set_text(node, "className", ps_view(joined));
+    free(joined.bytes);
+    return ok;
+}
+
 /* Node tree builder. */
 
 static ps_value *build_field(const ps_value *field, ps_text path,
@@ -317,6 +343,10 @@ static ps_value *build_leaf(const ps_value *spec, ps_text type, ps_text path,
     const ps_value *value = ps_path(context->data, path);
     ps_value *node = node_root("field", path, design, spec);
     if (!node) return NULL;
+    /* A field node of an inline layout is one row of a label column and a control column. */
+    if (scope->inline_layout && !prepend_class(node, PS_TEXT("crudui-node--inline"), PS_TEXT(""))) {
+        ps_value_free(node); return NULL;
+    }
     if (ps_text_is(type, "checkbox") || ps_text_is(type, "switcher")) {
         ps_chars id = ps_control_id(context->id_prefix, path);
         ps_chars name = ps_bracket_name(path, context->key_prefix);
@@ -326,16 +356,20 @@ static ps_value *build_leaf(const ps_value *spec, ps_text type, ps_text path,
             switcher ? PS_TEXT("crudui-input crudui-input--switch") : PS_TEXT(""),
             string_member(member(design, "main"), "class"));
         ps_value *checkbox = ps_object_value();
-        header_part parts[] = {{"description", description}};
+        /* An inline layout writes the label in the label column of the header instead of the caption. */
+        bool header_label = scope->inline_layout && label.length;
+        header_part parts[] = {{"label", header_label ? label : (ps_text){NULL, 0}},
+                               {"labelFor", header_label && id.bytes ? ps_view(id) : (ps_text){NULL, 0}},
+                               {"description", description}};
         bool ok = id.bytes && name.bytes && class_name.bytes && checkbox &&
-            attach_header(node, design, parts, 1) &&
+            attach_header(node, design, parts, 3) &&
             attach_body(node, PS_TEXT(""), PS_TEXT(""), (ps_text){NULL, 0}) &&
             set_text(checkbox, "id", ps_view(id)) && set_text(checkbox, "name", ps_view(name)) &&
             set_text(checkbox, "className", ps_view(class_name)) &&
             ps_set(checkbox, "checked", ps_bool_value(checked_value(value) ||
                 (!value && checked_value(member(spec, "default"))))) &&
             (!switcher || set_text(checkbox, "role", PS_TEXT("switch"))) &&
-            set_text(checkbox, "caption", label.bytes ? label : PS_TEXT("")) &&
+            (header_label || set_text(checkbox, "caption", label.bytes ? label : PS_TEXT(""))) &&
             (!ps_declared_attributes(spec, false) ||
              ps_set(checkbox, "attributes", ps_value_clone(ps_declared_attributes(spec, false)))) &&
             set_owned(node, "checkbox", &checkbox);
@@ -368,11 +402,18 @@ static ps_value *build_group(const ps_value *field, ps_text path, const ps_value
         return NULL;
     }
     const ps_value *group = member(design, "group");
+    ps_text layout = declared_layout(member(field, "spec"));
     ps_value *node = node_root("group", path, design, member(field, "spec"));
     header_part parts[] = {{"label", label}, {"description", description}};
-    bool ok = node && attach_header(node, design, parts, 2) &&
+    /* A line group is one row in an inline layout, and its children take no inline layout. */
+    bool line = ps_text_is(layout, "line");
+    bool ok = node &&
+        (!line || prepend_class(node, scope->inline_layout ? PS_TEXT("crudui-node--inline") : PS_TEXT(""),
+                                PS_TEXT("crudui-node--line"))) &&
+        attach_header(node, design, parts, 2) &&
         attach_body(node, string_member(group, "class"), string_member(group, "style"), (ps_text){NULL, 0});
-    ps_value *children = ok ? build_children(field, path, context, scope, error) : NULL;
+    row_scope inner = layout_scope(scope, layout);
+    ps_value *children = ok ? build_children(field, path, context, &inner, error) : NULL;
     ok = children && set_owned(node, "children", &children);
     ps_value_free(children);
     if (!ok) { ps_value_free(node); return NULL; }
@@ -418,7 +459,7 @@ static ps_value *build_row(const ps_value *field, const ps_value *spec,
         ? ps_design(member(spec, "design"), context->data, ps_view(row_path)) : NULL;
     numbers[scope->count] = index + 1;
     row_scope inner = {segments, numbers, scope->count + 1,
-                       scope->sticky_depth + (settings->sticky ? 1 : 0)};
+                       scope->sticky_depth + (settings->sticky ? 1 : 0), scope->inline_layout};
     bool full = settings->has_max && (double)count >= settings->max;
     ps_chars number = row_number(numbers, scope->count + 1);
     ps_value *actions = ps_array_value();
@@ -520,11 +561,13 @@ static ps_value *build_collection(const ps_value *field, const ps_value *spec,
         segments[scope->count] = path_length;
     }
     bool group = ps_text_is(type, "group");
+    /* A repeated group applies its declared layout to the fields of its rows. */
+    row_scope rows_scope = group ? layout_scope(scope, declared_layout(spec)) : *scope;
     size_t count = value ? ps_size(value) : settings->only ? 0 : 1;
     for (size_t i = 0; ok && i < count; ++i) {
         ps_text key = value ? ps_key(value, i) : PS_TEXT("__0000000000000__");
         ps_value *row = build_row(field, spec, path, key, i, count, group, label, settings,
-                                  context, scope, numbers, segments, error);
+                                  context, &rows_scope, numbers, segments, error);
         ok = row && append_owned(rows, &row);
         ps_value_free(row);
     }
@@ -788,7 +831,7 @@ static ps_result bind_form(const ps_value *template, const ps_value *data,
         data, key_prefix, id_prefix.bytes ? id_prefix : PS_TEXT("crudui"), language, messages,
         ps_is_string(unsupported, "marker")
     };
-    row_scope root = {NULL, NULL, 0, 0};
+    row_scope root = {NULL, NULL, 0, 0, false};
     ps_value *fields = ps_array_value();
     const ps_value *templates = member(template, "fields");
     for (size_t i = 0; fields && i < ps_size(templates); ++i) {

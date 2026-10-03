@@ -76,6 +76,10 @@ func CompileForm(spec *Object, options CompileOptions) (*FormTemplate, error) {
 	if e := checkFormDeclarations(spec); e != nil {
 		return nil, e
 	}
+	// The form root takes no layout; a group field declares it (docs/spec/schema.md, Layout).
+	if has(read(spec, "design"), "layout") {
+		return nil, fmt.Errorf("Invalid design.layout at form: unknown key")
+	}
 	p, e := compose.ComposeProperties(object(read(spec, "properties")), loader, compose.ComposeOptions{Basepath: options.Basepath})
 	if e != nil {
 		return nil, e
@@ -211,6 +215,7 @@ var closedKeys = map[string][]string{
 	"design":        {"show", "class", "style", "label", "wrapper", "group", "prepend"},
 	"design node":   {"class", "style"},
 	"field design":  {"show", "class", "style", "attributes", "label", "wrapper", "group", "prepend"},
+	"group design":  {"show", "class", "style", "attributes", "layout", "label", "wrapper", "group", "prepend"},
 	"field wrapper": {"class", "style", "attributes"},
 	"behavior":      {"onchange", "onclick", "onload"},
 }
@@ -309,7 +314,11 @@ func checkDeclarations(spec *Object, path string, field bool) error {
 		}
 	}
 	if spec.Has("design") {
-		if e := checkDesignDeclaration(read(spec, "design"), path, field); e != nil {
+		var layouts []string
+		if field {
+			layouts = groupLayouts(spec)
+		}
+		if e := checkDesignDeclaration(read(spec, "design"), path, field, layouts); e != nil {
 			return e
 		}
 	}
@@ -381,10 +390,23 @@ func checkDeclaredAttributes(attributes any, key, path string) error {
 	return nil
 }
 
+// groupLayouts returns the design.layout values a group field accepts (docs/spec/schema.md, Layout):
+// a repeated group has no line, and a field that is not a group has no layout (nil).
+func groupLayouts(spec *Object) []string {
+	if stringAt(spec, "type") != "group" {
+		return nil
+	}
+	if repeatedSpec(spec) {
+		return []string{"stacked", "inline"}
+	}
+	return []string{"stacked", "inline", "line"}
+}
+
 // checkDesignDeclaration rejects an unknown key or a wrong value type in one design declaration at path.
 // Form fields, form buttons, list and detail specifications, their columns and fields share this
-// rule; only a form field (field) accepts attributes and wrapper.attributes.
-func checkDesignDeclaration(design any, path string, field bool) error {
+// rule; only a form field (field) accepts attributes and wrapper.attributes, and only a group
+// field (non-nil layouts) accepts layout, one of layouts.
+func checkDesignDeclaration(design any, path string, field bool, layouts []string) error {
 	fail := func(key, expected string) error {
 		return fmt.Errorf("Invalid %s at %s: expected %s", key, path, expected)
 	}
@@ -399,7 +421,9 @@ func checkDesignDeclaration(design any, path string, field bool) error {
 		return nil
 	}
 	designBucket := "design"
-	if field {
+	if layouts != nil {
+		designBucket = "group design"
+	} else if field {
 		designBucket = "field design"
 	}
 	if key, found := unknownKey(d, designBucket); found {
@@ -419,6 +443,12 @@ func checkDesignDeclaration(design any, path string, field bool) error {
 		if e := checkDeclaredAttributes(read(d, "attributes"), "design.attributes", path); e != nil {
 			return e
 		}
+	}
+	if layout, _ := read(d, "layout").(string); layouts != nil && d.Has("layout") && !slices.Contains(layouts, layout) {
+		if len(layouts) == 3 {
+			return fail("design.layout", "stacked, inline or line")
+		}
+		return fail("design.layout", "stacked or inline")
 	}
 	for _, node := range []string{"label", "wrapper", "group", "prepend"} {
 		if !d.Has(node) {

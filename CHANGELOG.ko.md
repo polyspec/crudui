@@ -1,5 +1,18 @@
 # 변경 기록
 
+## 2026-10-04 — inline 배치와 line 배치
+
+- group은 `design.layout`을 선언합니다. `inline`은 그 안의 모든 필드 노드를 `--crudui-label-width`
+  레이블 열과 컨트롤, 설명, 오류를 담는 컨트롤 열의 한 줄로 만들고, `line`은 group의 자식 노드를 나란히
+  두며, `stacked`는 물려받은 inline 배치를 끝냅니다. 선언이 없는 group은 감싸는 group의 배치를
+  물려받고, 반복 group은 행의 필드에 `inline`을 적용합니다. `compileForm`은 다른 필드, 폼 버튼, 폼 루트의
+  멤버, 다른 값, 반복 group의 `line`을 `INVALID_FORM_INPUT`으로 거부합니다.
+- 노드 모델은 루트 class 앞에 `crudui-node--inline`과 `crudui-node--line`을 씁니다. inline 배치에서
+  레이블이 있는 checkbox나 switcher 필드는 레이블을 헤더에 쓰고 본문에는 input만 둡니다.
+- React, Vue, Svelte, HTML 렌더러, PHP, PHP extension, Go, Rust는 공유 폼 case `inline-layout-*`에서
+  배치를 쓰고 작성된 배치 case 여섯 개를 거부합니다. PHP, Go, Rust 검증기의 타입 명세 모델이
+  `design.layout`을 받습니다.
+
 ## 2026-10-04 — 컨트롤과 노드의 선언 속성
 
 - 폼 필드는 `design.attributes`로 컨트롤의 `data-*`, `aria-*` 속성을, `design.wrapper.attributes`로 노드

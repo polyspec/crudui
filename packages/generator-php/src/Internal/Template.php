@@ -20,6 +20,10 @@ final class Template
             throw new FormError('INVALID_FORM_INPUT', 'A form spec must be a group with properties');
         }
         self::checkFormDeclarations($spec);
+        // The form root takes no layout; a group field declares it.
+        if (self::isObject($spec->design ?? null) && array_key_exists('layout', (array) $spec->design)) {
+            throw new FormError('INVALID_FORM_INPUT', 'Invalid design.layout at form: unknown key');
+        }
         $properties = Compose::properties((array) $spec->properties, self::loader($options), $options['basepath'] ?? '');
         return Value::record([
             'kind' => 'crudui/form-template',
@@ -207,11 +211,27 @@ final class Template
             }
         }
         if (array_key_exists('design', $spec)) {
-            self::checkDesignDeclaration($spec['design'], $path, $field);
+            self::checkDesignDeclaration($spec['design'], $path, $field, $field ? self::groupLayouts($spec) : null);
         }
         if (self::isObject($spec['behavior'] ?? null)) {
             self::closed('behavior', (array) $spec['behavior'], ['onchange', 'onclick', 'onload'], $path);
         }
+    }
+
+    /**
+     * The design.layout values a group field accepts: a repeated group has no line, and a field
+     * that is not a group has no layout.
+     *
+     * @return list<string>|null
+     */
+    private static function groupLayouts(array $spec): ?array
+    {
+        if (($spec['type'] ?? null) !== 'group') {
+            return null;
+        }
+        $multiple = $spec['multiple'] ?? null;
+        $repeated = $multiple === true || $multiple === 'only' || self::isObject($multiple);
+        return $repeated ? ['stacked', 'inline'] : ['stacked', 'inline', 'line'];
     }
 
     /** Prefixes of attribute names crudui writes on a control or a node root. */
@@ -265,9 +285,10 @@ final class Template
     /**
      * Reject a wrong value type or an unknown key in one declared design: a form field or button,
      * a list or detail specification, or a list column or detail field. Only a form field ($field)
-     * accepts attributes and wrapper.attributes.
+     * accepts attributes and wrapper.attributes, and only a group field ($layouts) accepts layout,
+     * one of $layouts.
      */
-    public static function checkDesignDeclaration(mixed $design, string $path, bool $field = false): void
+    public static function checkDesignDeclaration(mixed $design, string $path, bool $field = false, ?array $layouts = null): void
     {
         if (!is_bool($design) && !self::isObject($design)) {
             self::invalid('design', $path, 'a boolean or an object');
@@ -276,9 +297,11 @@ final class Template
             return;
         }
         $design = (array) $design;
-        self::closed('design', $design, $field
-            ? ['show', 'class', 'style', 'attributes', 'label', 'wrapper', 'group', 'prepend']
-            : ['show', 'class', 'style', 'label', 'wrapper', 'group', 'prepend'], $path);
+        self::closed('design', $design, match (true) {
+            $layouts !== null => ['show', 'class', 'style', 'attributes', 'layout', 'label', 'wrapper', 'group', 'prepend'],
+            $field => ['show', 'class', 'style', 'attributes', 'label', 'wrapper', 'group', 'prepend'],
+            default => ['show', 'class', 'style', 'label', 'wrapper', 'group', 'prepend'],
+        }, $path);
         if (array_key_exists('show', $design) && !is_bool($design['show']) && !self::conditionValue($design['show'])) {
             self::invalid('design.show', $path, 'an expression, a boolean or a condition map');
         }
@@ -289,6 +312,9 @@ final class Template
         }
         if (array_key_exists('attributes', $design)) {
             self::checkDeclaredAttributes($design['attributes'], 'design.attributes', $path);
+        }
+        if ($layouts !== null && array_key_exists('layout', $design) && !in_array($design['layout'], $layouts, true)) {
+            self::invalid('design.layout', $path, count($layouts) === 3 ? 'stacked, inline or line' : 'stacked or inline');
         }
         foreach (['label', 'wrapper', 'group', 'prepend'] as $node) {
             if (!array_key_exists($node, $design)) {

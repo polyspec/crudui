@@ -1,5 +1,21 @@
 # Changes
 
+## 2026-10-04 — Inline and line layouts
+
+- A group declares `design.layout`: `inline` makes every field node inside it one row of a label
+  column of `--crudui-label-width` and a control column with the control, the description and the
+  errors; `line` places the group's child nodes side by side; `stacked` ends an inherited inline
+  layout. A group without the declaration inherits the layout of the enclosing group, and a
+  repeated group applies `inline` to the fields of its rows. `compileForm` rejects the member on
+  another field, a form button and the form root, another value and `line` on a repeated group
+  with `INVALID_FORM_INPUT`.
+- The node model writes `crudui-node--inline` and `crudui-node--line` at the start of the root
+  class. In an inline layout a checkbox or switcher field with a label writes the label in the
+  header and the input alone in the body.
+- React, Vue, Svelte, the HTML renderer, PHP, the PHP extension, Go and Rust write the layout in
+  the shared form cases `inline-layout-*` and reject the six written layout cases. The typed
+  specification models of the PHP, Go and Rust validators accept `design.layout`.
+
 ## 2026-10-04 — Declared attributes of controls and nodes
 
 - A form field declares `data-*` and `aria-*` attributes for its control with `design.attributes`

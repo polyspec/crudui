@@ -62,6 +62,23 @@ struct Scope {
     row_numbers: Vec<usize>,
     /// Number of enclosing rows with a sticky header.
     sticky_depth: usize,
+    /// Whether the enclosing groups lay their field nodes out inline.
+    inline: bool,
+}
+
+/// The `design.layout` a group declares; compilation has checked the value.
+fn declared_layout(spec: &Value) -> Option<&str> {
+    spec["design"]["layout"].as_str()
+}
+
+/// The scope of a group's children: a declared layout replaces the inherited one, and a line
+/// ends it.
+fn layout_scope(scope: &Scope, layout: Option<&str>) -> Scope {
+    let mut next = scope.clone();
+    if let Some(layout) = layout {
+        next.inline = layout == "inline";
+    }
+    next
 }
 
 /// Evaluate the node grammar using a compiled template and independent record data.
@@ -411,7 +428,21 @@ impl Binding<'_> {
         }
         if spec["type"] == "group" {
             check_group(value_at(self.data, path), path)?;
+            let layout = declared_layout(&spec);
             let mut node = node_root("group", path, &design, &spec);
+            // A line group is one row in an inline layout, and its children take no inline layout.
+            if layout == Some("line") {
+                let class_name = join_class(&[
+                    if scope.inline {
+                        "crudui-node--inline"
+                    } else {
+                        ""
+                    },
+                    "crudui-node--line",
+                    text_at(&design, "wrapper", "class"),
+                ]);
+                put_string(&mut node, "className", class_name);
+            }
             if let Some(header) = node_header(
                 vec![("label", label), ("description", description)],
                 &design,
@@ -428,7 +459,8 @@ impl Binding<'_> {
             );
             node.insert(
                 "children".into(),
-                self.children(&field.children, path, scope)?.into(),
+                self.children(&field.children, path, &layout_scope(scope, layout))?
+                    .into(),
             );
             return Ok(node.into());
         }
@@ -449,8 +481,25 @@ impl Binding<'_> {
     ) -> FormResult<Value> {
         let kind = spec["type"].as_str().unwrap_or("");
         let mut node = node_root("field", path, design, spec);
+        // A field node of an inline layout is one row of a label column and a control column.
+        if scope.inline {
+            let class_name =
+                join_class(&["crudui-node--inline", text_at(design, "wrapper", "class")]);
+            put_string(&mut node, "className", class_name);
+        }
         if kind == "checkbox" || kind == "switcher" {
-            if let Some(header) = node_header(vec![("description", description)], design) {
+            let id = control_id(self.id_prefix, path);
+            // An inline layout writes the label in the label column of the header instead of the caption.
+            let header_label = label.clone().filter(|_| scope.inline);
+            let parts = match &header_label {
+                Some(label) => vec![
+                    ("label", Some(label.clone())),
+                    ("labelFor", Some(id.clone())),
+                    ("description", description),
+                ],
+                None => vec![("description", description)],
+            };
+            if let Some(header) = node_header(parts, design) {
                 node.insert("header".into(), header);
             }
             node.insert("body".into(), node_body("", "", None));
@@ -462,7 +511,7 @@ impl Binding<'_> {
             // A switcher is a checkbox input announced and drawn as a switch.
             let switcher = kind == "switcher";
             let mut checkbox = json!({
-                "id": control_id(self.id_prefix,path),
+                "id": id,
                 "name": bracket(path, self.key_prefix),
                 "className": join_class(&[
                     "valid-target",
@@ -474,7 +523,9 @@ impl Binding<'_> {
             if switcher {
                 checkbox["role"] = "switch".into();
             }
-            checkbox["caption"] = label.unwrap_or_default().into();
+            if header_label.is_none() {
+                checkbox["caption"] = label.unwrap_or_default().into();
+            }
             if let Some(attributes) = declared_attributes(spec, false) {
                 checkbox["attributes"] = attributes.into();
             }
@@ -517,6 +568,11 @@ impl Binding<'_> {
             "field"
         };
         let full = settings.max.is_some_and(|max| keys.len() as f64 >= max);
+        let rows_scope = if item == "group" {
+            layout_scope(scope, declared_layout(spec))
+        } else {
+            scope.clone()
+        };
         let children = keys
             .iter()
             .enumerate()
@@ -530,7 +586,7 @@ impl Binding<'_> {
                     keys.len(),
                     &label,
                     settings,
-                    scope,
+                    &rows_scope,
                 )
             })
             .collect::<FormResult<Vec<_>>>()?;

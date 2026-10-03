@@ -58,13 +58,39 @@ final class Binding
         }
         if (($spec->type ?? null) === 'group') {
             self::checkGroup(Value::path($data, $path), $path);
-            return Value::record([...self::root('group', $path, $design, $spec), 'header' => self::header(['label' => $label, 'description' => $description], $design), 'body' => self::body($design->group->class, $design->group->style), 'children' => self::children($field, $path, $data, $state)]);
+            $layout = self::declaredLayout($spec);
+            $root = self::root('group', $path, $design, $spec);
+            // A line group is one row in an inline layout, and its children take no inline layout.
+            if ($layout === 'line') {
+                $root['className'] = Value::classes(($state['layout'] ?? null) === 'inline' ? 'crudui-node--inline' : '', 'crudui-node--line', $root['className']);
+            }
+            return Value::record([...$root, 'header' => self::header(['label' => $label, 'description' => $description], $design), 'body' => self::body($design->group->class, $design->group->style), 'children' => self::children($field, $path, $data, self::layoutState($state, $layout))]);
         }
         $lang = $spec->lang ?? null;
         if ($lang === true || $lang instanceof stdClass) {
             return self::lang($spec, $path, $data, $design, $label, $description, $lang, $state);
         }
         return self::leaf($spec, $path, $data, $design, $label, $description, $state);
+    }
+
+    /** The design.layout a group declares; compilation has checked the value. */
+    private static function declaredLayout(stdClass $spec): ?string
+    {
+        $layout = ($spec->design ?? null) instanceof stdClass ? $spec->design->layout ?? null : null;
+        return is_string($layout) ? $layout : null;
+    }
+
+    /** The state of a group's children: a declared layout replaces the inherited one, and a line ends it. */
+    private static function layoutState(array $state, ?string $layout): array
+    {
+        if ($layout === null) {
+            return $state;
+        }
+        unset($state['layout']);
+        if ($layout === 'inline') {
+            $state['layout'] = 'inline';
+        }
+        return $state;
     }
 
     /** Evaluated controls and limits for a repeated field, or null when the field does not repeat. */
@@ -123,12 +149,21 @@ final class Binding
         $type = Value::string($spec->type ?? '');
         $value = Value::path($data, $path);
         $root = self::root('field', $path, $design, $spec);
+        // A field node of an inline layout is one row of a label column and a control column.
+        $inline = ($state['layout'] ?? null) === 'inline';
+        if ($inline) {
+            $root['className'] = Value::classes('crudui-node--inline', $root['className']);
+        }
         if ($type === 'checkbox' || $type === 'switcher') {
+            $id = Value::controlId($state['idPrefix'] ?? 'crudui', $path);
+            // An inline layout writes the label in the label column of the header instead of the caption.
+            $headerLabel = $inline && $label !== Missing::Value && $label !== '';
             $checkedValue = $value === Missing::Value ? $spec->default ?? null : $value;
             // A switcher is a checkbox input announced and drawn as a switch.
             $switcher = $type === 'switcher';
-            $checkbox = Value::record(['id' => Value::controlId($state['idPrefix'] ?? 'crudui', $path), 'name' => Value::name($path, $state['keyPrefix'] ?? null), 'className' => Value::classes('valid-target', $switcher ? 'crudui-input crudui-input--switch' : '', $design->main->class), 'checked' => in_array($checkedValue, [true, 1, '1'], true), 'role' => $switcher ? 'switch' : Missing::Value, 'caption' => $label === Missing::Value ? '' : $label, 'attributes' => Design::declared($spec->design ?? null, false)]);
-            return Value::record([...$root, 'header' => self::header(['description' => $description], $design), 'body' => self::body(), 'checkbox' => $checkbox]);
+            $checkbox = Value::record(['id' => $id, 'name' => Value::name($path, $state['keyPrefix'] ?? null), 'className' => Value::classes('valid-target', $switcher ? 'crudui-input crudui-input--switch' : '', $design->main->class), 'checked' => in_array($checkedValue, [true, 1, '1'], true), 'role' => $switcher ? 'switch' : Missing::Value, 'caption' => $headerLabel ? Missing::Value : ($label === Missing::Value ? '' : $label), 'attributes' => Design::declared($spec->design ?? null, false)]);
+            $header = self::header($headerLabel ? ['label' => $label, 'labelFor' => $id, 'description' => $description] : ['description' => $description], $design);
+            return Value::record([...$root, 'header' => $header, 'body' => self::body(), 'checkbox' => $checkbox]);
         }
         $widget = Widget::evaluate($spec, $value, $path, $design, $state, $state['rowSegments']);
         if ($type === 'hidden') {
@@ -150,9 +185,10 @@ final class Binding
             throw new FormError('INVALID_FORM_INPUT', 'Repeated data must be a keyed object: ' . $path);
         }
         $item = ($field->spec->type ?? null) === 'group' ? 'group' : 'field';
+        $rowsState = $item === 'group' ? self::layoutState($state, self::declaredLayout($field->spec)) : $state;
         $rows = [];
         foreach ($keys as $index => $key) {
-            $rows[] = self::row($field, $path, $key, $index, count($keys), $item, $label, $settings, $data, $state);
+            $rows[] = self::row($field, $path, $key, $index, count($keys), $item, $label, $settings, $data, $rowsState);
         }
         $messages = $state['messages'];
         $controls = Missing::Value;

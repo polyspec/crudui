@@ -22,6 +22,27 @@ type bindState struct {
 	numbers []int
 	// stickyDepth counts enclosing rows with a sticky header.
 	stickyDepth int
+	// layout is "inline" when the field nodes take the inline layout of an enclosing group.
+	layout string
+}
+
+// declaredLayout returns the design.layout a group declares; compilation has checked the value.
+func declaredLayout(spec *Object) string {
+	layout, _ := read(read(spec, "design"), "layout").(string)
+	return layout
+}
+
+// layoutState returns the state of a group's children: a declared layout replaces the inherited
+// one, and a line or stacked layout ends it.
+func layoutState(s bindState, layout string) bindState {
+	if layout == "" {
+		return s
+	}
+	s.layout = ""
+	if layout == "inline" {
+		s.layout = "inline"
+	}
+	return s
 }
 
 // BindForm creates the node models of the form grammar without changing the template or record.
@@ -254,13 +275,24 @@ func buildLeaf(spec *Object, path string, d *Object, label, description string, 
 	typ := stringAt(spec, "type")
 	value := getPath(s.data, path)
 	vm := nodeRoot("field", path, d, spec)
+	// A field node of an inline layout is one row of a label column and a control column.
+	if s.layout == "inline" {
+		vm.Set("className", joinClass("crudui-node--inline", stringAt(vm, "className")))
+	}
 	if typ == "checkbox" || typ == "switcher" {
 		effective := value
 		if isAbsent(effective) {
 			effective = read(spec, "default")
 		}
 		checked := effective == true || effective == float64(1) || effective == 1 || effective == "1"
-		setHeader(vm, d, "description", description)
+		id := controlID(s.options.IDPrefix, path)
+		// An inline layout writes the label in the label column of the header instead of the caption.
+		headerLabel := s.layout == "inline" && label != ""
+		if headerLabel {
+			setHeader(vm, d, "label", label, "labelFor", id, "description", description)
+		} else {
+			setHeader(vm, d, "description", description)
+		}
 		vm.Set("body", nodeBody("", "", ""))
 		// A switcher is a checkbox input announced and drawn as a switch.
 		switcher := typ == "switcher"
@@ -268,11 +300,13 @@ func buildLeaf(spec *Object, path string, d *Object, label, description string, 
 		if switcher {
 			control = "crudui-input crudui-input--switch"
 		}
-		checkbox := NewObject("id", controlID(s.options.IDPrefix, path), "name", bracketName(path, s.options.KeyPrefix), "className", joinClass("valid-target", control, nodeClass(d, "main")), "checked", checked)
+		checkbox := NewObject("id", id, "name", bracketName(path, s.options.KeyPrefix), "className", joinClass("valid-target", control, nodeClass(d, "main")), "checked", checked)
 		if switcher {
 			checkbox.Set("role", "switch")
 		}
-		checkbox.Set("caption", label)
+		if !headerLabel {
+			checkbox.Set("caption", label)
+		}
 		if attributes := declaredAttributes(read(spec, "design"), false); attributes != nil {
 			checkbox.Set("attributes", attributes)
 		}
@@ -299,9 +333,18 @@ func buildGroup(f FieldTemplate, path string, d *Object, label, description stri
 		return nil, e
 	}
 	vm := nodeRoot("group", path, d, f.Spec)
+	layout := declaredLayout(f.Spec)
+	// A line group is one row in an inline layout, and its children take no inline layout.
+	if layout == "line" {
+		inline := ""
+		if s.layout == "inline" {
+			inline = "crudui-node--inline"
+		}
+		vm.Set("className", joinClass(inline, "crudui-node--line", stringAt(vm, "className")))
+	}
 	setHeader(vm, d, "label", label, "description", description)
 	vm.Set("body", nodeBody(nodeClass(d, "group"), nodeStyle(d, "group"), ""))
-	children, e := buildChildren(f.Children, path, s)
+	children, e := buildChildren(f.Children, path, layoutState(s, layout))
 	if e != nil {
 		return nil, e
 	}
@@ -324,9 +367,13 @@ func buildCollection(f FieldTemplate, path string, d *Object, label, description
 	if stringAt(f.Spec, "type") == "group" {
 		item = "group"
 	}
+	rowsState := s
+	if item == "group" {
+		rowsState = layoutState(s, declaredLayout(f.Spec))
+	}
 	rows := []*Object{}
 	for i, key := range keys {
-		row, e := buildRow(f, path, key, i, len(keys), item, label, m, s)
+		row, e := buildRow(f, path, key, i, len(keys), item, label, m, rowsState)
 		if e != nil {
 			return nil, e
 		}
