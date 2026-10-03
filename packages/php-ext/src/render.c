@@ -148,19 +148,25 @@ static bool write_choice_group(render_buffer *out, const ps_value *model)
             (radio && !attr_string(attrs, "data-is-default",
                                    bool_member(option, "isDefault") ? "1" : "")) ||
             (bool_member(option, "selected") && !attr_string(attrs, "checked", "")) ||
-            !ps_append_attributes(attrs, member(extra, "option"))) {
+            !ps_append_attributes(attrs, member(extra, "option")) ||
+            !ps_append_attributes(attrs, member(option, "attributes"))) {
             ps_value_free(attrs);
             return false;
         }
         bool ok = start_element(out, "input", attrs, raw, false);
         ps_value_free(attrs);
         if (!ok) return false;
+        /* The label classes, then the class the choice declares, and its style. */
         ps_value *label_attrs = ps_object_value();
-        if (!label_attrs || !attr_clone(label_attrs, "for", member(option, "id")) ||
-            !attr_text(label_attrs, "class", string_member(model, "itemLabelClass"))) {
-            ps_value_free(label_attrs);
+        ps_chars label_class = ps_join_classes(string_member(model, "itemLabelClass"),
+                                               string_member(option, "className"), PS_TEXT(""));
+        if (!label_attrs || !label_class.bytes || !attr_clone(label_attrs, "for", member(option, "id")) ||
+            !attr_text(label_attrs, "class", ps_view(label_class)) ||
+            (string_member(option, "style").length && !attr_clone(label_attrs, "style", member(option, "style")))) {
+            ps_value_free(label_attrs); free(label_class.bytes);
             return false;
         }
+        free(label_class.bytes);
         ok = start_element(out, "label", label_attrs, raw, false) &&
             start_element(out, "span", NULL, raw, false) &&
             write_escaped(out, string_member(option, "label"), raw) &&

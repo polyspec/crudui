@@ -214,12 +214,16 @@ func renderWidget(w *Object) string {
 				at.Set("checked", "")
 			}
 			merge(at, read(read(w, "extra"), "option"))
+			merge(at, read(o, "attributes"))
 			body += inputHTML(at, raw)
 			label := NewObject()
 			if id := stringAt(o, "id"); id != "" {
 				label.Set("for", id)
 			}
-			label.Set("class", stringAt(w, "itemLabelClass"))
+			label.Set("class", joinClass(stringAt(w, "itemLabelClass"), stringAt(o, "className")))
+			if style := stringAt(o, "style"); style != "" {
+				label.Set("style", style)
+			}
 			body += "<label" + attrs(label, raw, false) + "><span>" + textContent(stringAt(o, "label"), raw) + "</span></label>"
 		}
 		return "<div" + attrs(a, false, false) + ">" + body + "</div>"

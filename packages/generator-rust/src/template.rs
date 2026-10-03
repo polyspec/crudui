@@ -257,7 +257,11 @@ fn declared_attribute_name(name: &str) -> bool {
 
 /// Reject declared attributes at `key` that are not an object of permitted names to strings.
 /// Every name is checked before any value.
-fn check_declared_attributes(attributes: &Value, key: &str, path: &str) -> FormResult<()> {
+pub(crate) fn check_declared_attributes(
+    attributes: &Value,
+    key: &str,
+    path: &str,
+) -> FormResult<()> {
     let Some(attributes) = attributes.as_object() else {
         return Err(FormError::input(format!(
             "Invalid {key} at {path}: expected an object"

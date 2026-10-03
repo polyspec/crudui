@@ -25,13 +25,25 @@ ps_chars ps_choice_value_text(const ps_value *items, size_t index)
     return text;
 }
 
-int ps_choice_list_valid(const ps_value *items)
+/* Whether a choice has value, label and no other member than the appearance members it may declare. */
+static bool choice_members(const ps_value *item, bool appearance)
+{
+    static const char *const members[] = {"value", "label", "class", "style", "attributes"};
+    if (item->kind != PS_OBJECT || !ps_has(item, "value") || !ps_has(item, "label")) return false;
+    for (size_t i = 0; i < ps_size(item); ++i) {
+        bool known = false;
+        for (size_t j = 0; !known && j < (appearance ? 5 : 2); ++j) known = ps_text_is(ps_key(item, i), members[j]);
+        if (!known) return false;
+    }
+    return true;
+}
+
+int ps_choice_list_valid(const ps_value *items, bool appearance)
 {
     size_t count = ps_size(items);
     for (size_t i = 0; i < count; ++i) {
         const ps_value *item = ps_at(items, i);
-        if (item->kind != PS_OBJECT || ps_size(item) != 2 || !ps_has(item, "value") || !ps_has(item, "label"))
-            return 0;
+        if (!choice_members(item, appearance)) return 0;
         const ps_value *value = ps_get(item, "value");
         if (value->kind != PS_STRING && value->kind != PS_INT &&
             !(value->kind == PS_FLOAT && isfinite(value->data.number)))

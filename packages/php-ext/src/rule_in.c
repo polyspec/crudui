@@ -110,7 +110,7 @@ ps_parameter_problem ps_in_parameter(const ps_value *parameter)
         return shape;
     /* A choice list is checked by the choice list rules before its values are checked as members. */
     if (ps_is_choice_list(parameter)) {
-        int valid = ps_choice_list_valid(parameter);
+        int valid = ps_choice_list_valid(parameter, false);
         if (valid < 0) return failed;
         if (!valid) return pairs;
     } else if (parameter->kind == PS_ARRAY) {

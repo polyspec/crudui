@@ -97,7 +97,8 @@ func (c widgetContext) options(selected []string, defaults *string) []*Object {
 	}
 	entries := []choicePair{}
 	if isChoiceList(items) {
-		entries, _ = choicePairs(items)
+		// Binding has checked the list and accepted appearance members only for choices.
+		entries, _ = choicePairs(items, true)
 	} else {
 		for _, k := range keys(items) {
 			entries = append(entries, choicePair{k, item(items, k)})
@@ -129,6 +130,16 @@ func widget(kind, layout, tag string, attrs *Object) *Object {
 }
 
 var widgetAliases = map[string]string{"string": "text", "integer": "number", "float": "number", "decimal": "number", "dropdown": "select", "selectbox": "select", "radio": "choice", "checkboxes": "multichoice", "checkcontainer": "multichoice", "datetime-local": "datetime", "html": "dummy", "static": "dummy", "cover-simple": "cover", "autocomplete": "search", "wysiwyg": "tinymce", "action": "button"}
+
+// choicesType reports whether a field type, or its alias, renders the choices layout.
+func choicesType(typ string) bool {
+	kind := strings.ToLower(typ)
+	if canonical, ok := widgetAliases[kind]; ok {
+		kind = canonical
+	}
+	return kind == "choice" || kind == "multichoice"
+}
+
 var newlineRE = regexp.MustCompile(`\r\n|\n\r|\r|\n`)
 
 func evalWidget(c widgetContext) *Object {
@@ -217,7 +228,11 @@ func evalWidget(c widgetContext) *Object {
 		if kind == "multichoice" {
 			class = "crudui-choices crudui-choices--multiple"
 		}
-		a = NewObject("class", class)
+		// The choices element takes the class and style of design.group after its own class.
+		a = NewObject("class", joinClass(class, nodeClass(c.design, "group")))
+		if style := styleString(nodeStyle(c.design, "group")); style != "" {
+			a.Set("style", style)
+		}
 		var source any = nil
 		if dynamic {
 			source = sourceAttrs(items)
@@ -253,6 +268,9 @@ func evalWidget(c widgetContext) *Object {
 		options := c.options(selected, def)
 		for i, o := range options {
 			o.Set("id", c.id()+":"+strconv.Itoa(i))
+			if isChoiceList(items) {
+				choiceAppearance(o, object(list(items)[i]))
+			}
 		}
 		w.Set("options", options)
 		if !dynamic {

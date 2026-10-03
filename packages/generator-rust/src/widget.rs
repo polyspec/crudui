@@ -1,4 +1,4 @@
-use crate::choice_list::{choice_label, choice_pairs, is_choice_list};
+use crate::choice_list::{choice_appearances, choice_label, choice_pairs, is_choice_list};
 use crate::util::*;
 use serde_json::{json, Map, Value};
 
@@ -79,7 +79,8 @@ impl WidgetContext<'_> {
     }
 }
 
-fn kind(name: &str) -> Option<&str> {
+/// The widget kind of a lowercase field type, or `None` for a type without a widget.
+pub(crate) fn widget_kind(name: &str) -> Option<&str> {
     Some(match name {
         "text" | "string" => "text",
         "integer" | "float" | "decimal" | "number" => "number",
@@ -112,7 +113,7 @@ fn source(items: &Value) -> Option<Value> {
 
 fn entries(items: &Value) -> Vec<(String, &Value)> {
     if is_choice_list(items) {
-        return choice_pairs(items).unwrap_or_default();
+        return choice_pairs(items, true).unwrap_or_default();
     }
     match items {
         Value::Array(a) => a
@@ -281,11 +282,25 @@ fn select_control(ctx: &WidgetContext<'_>) -> Value {
 fn choices(kind: &str, ctx: &WidgetContext<'_>) -> Value {
     let multi = kind == "multichoice";
     let source = source(&ctx.spec["items"]);
-    let mut attrs =
-        json!({"class":if multi {"crudui-choices crudui-choices--multiple"}else{"crudui-choices"}})
-            .as_object()
-            .unwrap()
-            .clone();
+    // The choices element: its classes, then the class and style of `design.group`.
+    let mut attrs = Map::new();
+    put_string(
+        &mut attrs,
+        "class",
+        join_class(&[
+            if multi {
+                "crudui-choices crudui-choices--multiple"
+            } else {
+                "crudui-choices"
+            },
+            ctx.design["group"]["class"].as_str().unwrap_or(""),
+        ]),
+    );
+    put_nonempty(
+        &mut attrs,
+        "style",
+        style(ctx.design["group"]["style"].as_str().unwrap_or("")),
+    );
     if let Some(ref source) = source {
         attrs.extend(source.as_object().unwrap().clone());
     }
@@ -592,7 +607,7 @@ fn button(ctx: &WidgetContext<'_>) -> Value {
 
 pub(crate) fn evaluate_widget(field_type: &str, ctx: &WidgetContext<'_>) -> Option<Value> {
     let lower = field_type.to_lowercase();
-    let kind = kind(&lower)?;
+    let kind = widget_kind(&lower)?;
     let mut model = match kind {
         "select" => select_control(ctx),
         "choice" | "multichoice" => choices(kind, ctx),
@@ -622,6 +637,18 @@ pub(crate) fn evaluate_widget(field_type: &str, ctx: &WidgetContext<'_>) -> Opti
             .enumerate()
         {
             option["id"] = format!("{id}:{i}").into();
+        }
+        // The appearance of each choice follows its id.
+        if is_choice_list(&ctx.spec["items"]) {
+            let appearances = choice_appearances(&ctx.spec["items"]);
+            for (option, appearance) in model["options"]
+                .as_array_mut()
+                .unwrap()
+                .iter_mut()
+                .zip(appearances)
+            {
+                option.as_object_mut().unwrap().extend(appearance);
+            }
         }
     }
     // Declared control attributes follow the attributes crudui writes on the control.

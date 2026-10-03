@@ -1,9 +1,11 @@
-use crate::choice_list::{choice_pairs, is_choice_list, CHOICE_LIST_EXPECTED};
+use crate::choice_list::{
+    check_choice_appearance, choice_pairs, is_choice_list, CHOICE_LIST_EXPECTED,
+};
 use crate::design::resolve_design;
 use crate::messages::{form_messages, format_count, Messages};
 use crate::template::member_ordered_template;
 use crate::util::*;
-use crate::widget::{declared_attributes, evaluate_widget, WidgetContext};
+use crate::widget::{declared_attributes, evaluate_widget, widget_kind, WidgetContext};
 use crate::{FieldTemplate, FormError, FormResult, FormTemplate};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
@@ -362,10 +364,18 @@ impl Binding<'_> {
         design: &Value,
         row_segments: &[usize],
     ) -> FormResult<Value> {
-        if is_choice_list(&spec["items"]) && choice_pairs(&spec["items"]).is_none() {
-            return Err(FormError::input(format!(
-                "Invalid items at {path}: expected {CHOICE_LIST_EXPECTED}"
-            )));
+        let field_type = spec["type"].as_str().unwrap_or("").to_lowercase();
+        if is_choice_list(&spec["items"]) {
+            // Only the choices of a choice or multichoice field declare their appearance.
+            let appearance = matches!(widget_kind(&field_type), Some("choice" | "multichoice"));
+            if choice_pairs(&spec["items"], appearance).is_none() {
+                return Err(FormError::input(format!(
+                    "Invalid items at {path}: expected {CHOICE_LIST_EXPECTED}"
+                )));
+            }
+            if appearance {
+                check_choice_appearance(&spec["items"], path)?;
+            }
         }
         let id = control_id(self.id_prefix, path);
         let context = WidgetContext {

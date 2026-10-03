@@ -100,7 +100,7 @@ fn check_format(format: &Value, path: &str) -> FormResult<()> {
             if !value.is_array() && !value.is_object() {
                 return expected("format.items", path, "an array or an object");
             }
-            if is_choice_list(value) && choice_pairs(value).is_none() {
+            if is_choice_list(value) && choice_pairs(value, false).is_none() {
                 return expected("format.items", path, CHOICE_LIST_EXPECTED);
             }
         }

@@ -1,5 +1,17 @@
 # 변경 기록
 
+## 2026-10-04 — 선택지 모양
+
+- `choice`나 `multichoice` 필드의 선택 목록에 있는 선택지는 선언 속성 규칙에 따라 레이블의 `class`와
+  `style`, input의 `attributes`를 선언할 수 있고, 필드의 `design.group`은 `crudui-choices` 요소에
+  적용됩니다. 바인딩은 다른 필드의 선택 목록에 있는 이 멤버, 문자열이 아닌 class나 style, 규칙을 어긴
+  attributes를 `INVALID_FORM_INPUT`으로 거부합니다.
+- 옵션 모델은 `id` 뒤에 `className`, `style`, `attributes`를 가집니다. 모든 렌더러는 선택지 class를
+  레이블 class 뒤에 공백 하나로 구분한 토큰으로, style을 레이블에, attributes를 필드 컨트롤 속성 뒤에
+  쓰며, 양쪽에 선언한 이름은 필드 속성의 위치를 유지하고 선택지의 값을 가집니다.
+- React, Vue, Svelte, HTML 렌더러, PHP, PHP extension, Go, Rust는 공유 폼 case `choice-appearance-*`에서
+  모양을 쓰고 작성된 모양 case 아홉 개를 거부합니다.
+
 ## 2026-10-04 — range 필드
 
 - `range` 필드는 `crudui-widget crudui-widget--range` widget을 렌더링합니다. prepend affix, 리터럴
