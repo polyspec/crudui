@@ -298,6 +298,30 @@ const NEW: FixtureCase[] = [
       behavior: { onchange: 'save(this)' }, design: { class: 'wide', style: 'width: 8rem', attributes: { 'data-setting': 'volume' } } },
       gain: { type: 'range', validate: { range: [0, 1], step: 0.1 }, design: { style: 'width: 4rem', attributes: { 'aria-label': 'Gain' } } } }),
     { gain: '0.3' }, { language: 'en' }),
+
+  // ---- I. CHOICE APPEARANCE (docs/spec/form-markup.md, Choice appearance) ------
+  pass('choice-appearance-swatches', 'choice items with class, style and attributes → the label class after the label classes, the label style, the input attributes after the control attributes; design.group on the choices element.',
+    G({ accent: { type: 'choice', label: 'Accent', design: { class: 'large', attributes: { 'data-setting': 'accent' }, group: { class: 'swatches', style: 'display: grid; gap: 4px' } },
+      items: [
+        { value: 'blue', label: 'Blue', class: 'swatch', style: '--swatch-bg: #1d4ed8', attributes: { 'aria-label': 'Blue accent' } },
+        { value: 'green', label: 'Green', class: ' swatch  swatch--dark ', style: '--swatch-bg: #15803d; outline: 1px solid red' },
+        { value: 'plain', label: 'Plain' },
+      ] } }),
+    { accent: 'green' }, { language: 'en' }),
+  pass('choice-appearance-multichoice-override', 'multichoice items: a choice attribute named like a control attribute keeps its position and takes the choice value; the choices style without a class.',
+    G({ days: { type: 'multichoice', label: 'Days', design: { attributes: { 'data-setting': 'days', 'aria-describedby': 'days-help' }, group: { style: 'display: flex' } },
+      items: [
+        { value: 'mo', label: 'Mon', attributes: { 'aria-describedby': 'mo-help', 'data-day': '1' } },
+        { value: 'tu', label: 'Tue', style: 'font-weight: bold' },
+      ] } }),
+    { days: ['tu'] }, { language: 'en' }),
+  pass('choice-appearance-behavior', 'choice items with appearance and a behavior attribute → the raw inputs with the choice attributes and the raw label style.',
+    G({ accent: { type: 'radio', label: 'Accent', behavior: { onchange: 'go(this)' }, design: { attributes: { 'data-setting': 'accent' } },
+      items: [
+        { value: 'blue', label: 'Blue', class: 'swatch', style: '--swatch-bg: #1d4ed8', attributes: { 'aria-label': 'Blue accent', 'data-setting': 'blue' } },
+        { value: 'red', label: 'Red', class: 'swatch' },
+      ] } }),
+    { accent: 'blue' }, { language: 'en' }),
 ];
 
 // Cases whose expected HTML is written from the specification, not rendered.

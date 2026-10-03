@@ -572,6 +572,26 @@
     "engine": "pass"
   },
   {
+    "name": "ok-choice-appearance",
+    "note": "The choices of a choice field declare a label class and style and input attributes; validation loads the specification.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "accent": {
+          "type": "choice",
+          "design": { "group": { "class": "swatches" } },
+          "items": [
+            { "value": "blue", "label": "Blue", "class": "swatch", "style": "--swatch-bg: #1d4ed8", "attributes": { "aria-label": "Blue accent" } },
+            { "value": "green", "label": "Green", "class": "swatch" }
+          ],
+          "validate": { "in": [{ "value": "blue", "label": "Blue" }, { "value": "green", "label": "Green" }] }
+        }
+      }
+    },
+    "expect": "ok",
+    "engine": "pass"
+  },
+  {
     "name": "err-items-choice-list-extra-member",
     "note": "A choice list element has only value and label. The runtime structure check does not read items; binding the field fails.",
     "spec": {

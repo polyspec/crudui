@@ -70,6 +70,11 @@ function rawControl(w: WidgetModel, selectedAttr: 'empty' | 'selected' = 'empty'
   return rawVoid('input', w.attrs);
 }
 
+/** The label class of a choice: the label classes, then the class the choice declares, as single-spaced tokens. */
+function choiceLabelClass(labelClass: string, o: OptionModel): string {
+  return [labelClass, o.className ?? ''].join(' ').split(/\s+/).filter(Boolean).join(' ');
+}
+
 /** Raw serialization of one choice (input + label). */
 function groupButtonHtml(
   o: OptionModel,
@@ -88,11 +93,11 @@ function groupButtonHtml(
   };
   if (type === 'radio') attrs['data-is-default'] = o.isDefault ? '1' : '';
   const checked = o.selected ? ' checked=""' : '';
-  const input = `<input${serializeAttrs(attrs)}${checked}${serializeAttrs(declared)}>`;
+  const input = `<input${serializeAttrs(attrs)}${checked}${serializeAttrs({ ...declared, ...o.attributes })}>`;
   const forAttr = o.id ? ` for="${escAttr(o.id)}"` : '';
   return (
     input +
-    `<label${forAttr} class="${escAttr(labelClass)}"><span>${escText(o.label)}</span></label>`
+    `<label${forAttr} class="${escAttr(choiceLabelClass(labelClass, o))}"${o.style ? ` style="${escAttr(o.style)}"` : ''}><span>${escText(o.label)}</span></label>`
   );
 }
 
