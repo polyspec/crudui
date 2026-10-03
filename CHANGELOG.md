@@ -1,5 +1,20 @@
 # Changes
 
+## 2026-10-04 — Declared attributes of controls and nodes
+
+- A form field declares `data-*` and `aria-*` attributes for its control with `design.attributes`
+  and for its node root with `design.wrapper.attributes`. `compileForm` rejects a value that is not
+  an object, a name outside the rule or written by CRUDUI and a value that is not a string with
+  `INVALID_FORM_INPUT`; form buttons, lists, details and the label, group and prepend nodes reject
+  the member as an unknown key.
+- The node model has the wrapper attributes after `style`, the checkbox model after `caption`, and
+  a widget model appends the control attributes to `attrs`, to `extra.file` of a file layout or
+  keeps them in `extra.option` of a choices layout. Every renderer writes them after the attributes
+  CRUDUI writes, with the placements of React's server rendering.
+- React, Vue, Svelte, the HTML renderer, PHP, the PHP extension, Go and Rust write them in the
+  shared form cases `control-attributes-*`. The JSON Schema, the TypeScript types and the typed
+  specification models of the PHP, Go and Rust validators accept the declarations.
+
 ## 2026-10-04 — Button fields render as buttons
 
 - A `button` or `action` field renders one `button` element with `type="button"`, the class

@@ -1,5 +1,17 @@
 # 변경 기록
 
+## 2026-10-04 — 컨트롤과 노드의 선언 속성
+
+- 폼 필드는 `design.attributes`로 컨트롤의 `data-*`, `aria-*` 속성을, `design.wrapper.attributes`로 노드
+  루트의 속성을 선언합니다. `compileForm`은 객체가 아닌 값, 규칙 밖이거나 CRUDUI가 쓰는 이름, 문자열이
+  아닌 값을 `INVALID_FORM_INPUT`으로 거부하며, 폼 버튼, 목록, 상세와 label, group, prepend 노드는 이
+  멤버를 알 수 없는 키로 거부합니다.
+- 노드 모델은 `style` 뒤에 wrapper 속성을, checkbox 모델은 `caption` 뒤에 속성을 가지며, widget 모델은
+  컨트롤 속성을 `attrs`나 file 레이아웃의 `extra.file`에 덧붙이거나 choices 레이아웃의 `extra.option`에
+  둡니다. 모든 렌더러는 CRUDUI가 쓰는 속성 뒤에 React 서버 렌더링의 배치로 이를 씁니다.
+- React, Vue, Svelte, HTML 렌더러, PHP, PHP extension, Go, Rust는 공유 폼 case `control-attributes-*`에서
+  이를 씁니다. JSON Schema, TypeScript 타입, PHP, Go, Rust 검증기의 타입 명세 모델이 선언을 받습니다.
+
 ## 2026-10-04 — button 필드는 button으로 렌더링됨
 
 - `button` 또는 `action` 필드는 `type="button"`, class `crudui-action crudui-action--text`와
