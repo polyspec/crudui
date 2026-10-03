@@ -32,7 +32,7 @@ Node models keep the member order the [form markup](form-markup.md) defines, and
 every widget model lists its members in the order `kind`, `layout`, `tag`,
 `attrs`, `text`, `rawHtml`, `source`, `options`, `itemLabelClass`, `script`,
 `styleChrome`, `buttonText`, `prepend`, `append`, `extra`, with `display` before
-`file` in `extra`, in every runtime.
+`file` and `input` before `option` in `extra`, in every runtime.
 
 `createForm(template, data, options)` creates an editable instance.
 `Form` renders the instance in React, Vue or Svelte. `renderForm(instance, options)`

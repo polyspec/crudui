@@ -100,6 +100,8 @@ const CLOSED_BUCKET_KEYS: Record<string, readonly string[]> = {
   lang: ['mode', 'only', 'name', 'key', 'frame', 'title', 'group_class'],
   design: ['show', 'class', 'style', 'label', 'wrapper', 'group', 'prepend'],
   node: ['class', 'style'],
+  fieldDesign: ['show', 'class', 'style', 'attributes', 'label', 'wrapper', 'group', 'prepend'],
+  fieldWrapper: ['class', 'style', 'attributes'],
   behavior: ['onchange', 'onclick', 'onload'],
 };
 
@@ -111,7 +113,7 @@ const ONLY_MULTIPLE_KEYS: readonly string[] = ['only', 'title', 'header'];
  * `behavior` declarations. Within a bucket, unknown keys are checked in declaration order before
  * the values.
  */
-function checkDeclarations(spec: Record<string, unknown>, path: string): void {
+function checkDeclarations(spec: Record<string, unknown>, path: string, field = true): void {
   const has = (object: Record<string, unknown>, key: string) => Object.prototype.hasOwnProperty.call(object, key);
   const fail = (key: string, expected: string): never => {
     throw new FormInputError(`Invalid ${key} at ${path}: expected ${expected}`);
@@ -169,15 +171,46 @@ function checkDeclarations(spec: Record<string, unknown>, path: string): void {
     const codes = Array.isArray(only) && only.every(code => typeof code === 'string');
     if (!codes && !isRecord(only)) fail('lang.only', 'a list of language codes or an object');
   }
-  if (has(spec, 'design')) checkDesignDeclaration(spec.design, path);
+  if (has(spec, 'design')) checkDesignDeclaration(spec.design, path, field);
   if (isRecord(spec.behavior)) closed(spec.behavior, 'behavior', CLOSED_BUCKET_KEYS.behavior!);
 }
 
 /**
- * Reject an unknown key or a wrong value type in one `design` declaration at `path`. Form fields,
- * list and detail specifications, their columns and fields share this rule.
+ * Names of a `data-*` or `aria-*` attribute: lowercase letters, digits, `-`, `_` and `.` after the
+ * prefix, starting with a letter or a digit.
  */
-export function checkDesignDeclaration(design: unknown, path: string): void {
+const DECLARED_ATTRIBUTE_NAME = /^(?:data|aria)-[a-z0-9][a-z0-9._-]*$/;
+/** Prefixes of attribute names crudui writes on a control or a node root. */
+const OWNED_ATTRIBUTE_PREFIXES: readonly string[] = ['data-crudui-', 'data-source-'];
+/** Attribute names crudui writes on a control or a node root. */
+const OWNED_ATTRIBUTE_NAMES: readonly string[] = [
+  'data-field-path', 'data-lang', 'data-name', 'data-rule-name', 'data-default', 'data-is-default',
+  'data-type', 'data-height', 'data-upload-server', 'data-fileserver', 'data-server', 'data-max-tags',
+  'data-keyword-min-length', 'data-delay', 'data-api-server', 'data-max-width', 'data-min-width',
+  'data-max-height', 'data-min-height', 'data-preview-max-width', 'data-preview-max-height',
+  'data-unsupported-type',
+];
+
+/** Reject declared attributes at `key` that are not an object of permitted names to strings. */
+function checkDeclaredAttributes(attributes: unknown, key: string, path: string): void {
+  if (!isRecord(attributes)) throw new FormInputError(`Invalid ${key} at ${path}: expected an object`);
+  for (const name of Object.keys(attributes)) {
+    if (!DECLARED_ATTRIBUTE_NAME.test(name) || OWNED_ATTRIBUTE_NAMES.includes(name) ||
+        OWNED_ATTRIBUTE_PREFIXES.some(prefix => name.startsWith(prefix))) {
+      throw new FormInputError(`Invalid ${key}.${name} at ${path}: expected a data-* or aria-* name that crudui does not write`);
+    }
+  }
+  for (const [name, value] of Object.entries(attributes)) {
+    if (typeof value !== 'string') throw new FormInputError(`Invalid ${key}.${name} at ${path}: expected a string`);
+  }
+}
+
+/**
+ * Reject an unknown key or a wrong value type in one `design` declaration at `path`. Form fields,
+ * form buttons, list and detail specifications, their columns and fields share this rule; only a
+ * form field (`field`) accepts `attributes` and `wrapper.attributes`.
+ */
+export function checkDesignDeclaration(design: unknown, path: string, field = false): void {
   const has = (object: Record<string, unknown>, key: string) => Object.prototype.hasOwnProperty.call(object, key);
   const fail = (key: string, expected: string): never => {
     throw new FormInputError(`Invalid ${key} at ${path}: expected ${expected}`);
@@ -189,22 +222,27 @@ export function checkDesignDeclaration(design: unknown, path: string): void {
   };
   if (typeof design !== 'boolean' && !isRecord(design)) fail('design', 'a boolean or an object');
   if (isRecord(design)) {
-    closed(design, 'design', CLOSED_BUCKET_KEYS.design!);
+    closed(design, 'design', field ? CLOSED_BUCKET_KEYS.fieldDesign! : CLOSED_BUCKET_KEYS.design!);
     if (has(design, 'show') && typeof design.show !== 'boolean' && !conditionValue(design.show)) {
       fail('design.show', 'an expression, a boolean or a condition map');
     }
     for (const key of ['class', 'style']) {
       if (has(design, key) && !conditionValue(design[key])) fail(`design.${key}`, 'a string or a condition map');
     }
+    if (has(design, 'attributes')) checkDeclaredAttributes(design.attributes, 'design.attributes', path);
     for (const node of ['label', 'wrapper', 'group', 'prepend']) {
       if (!has(design, node)) continue;
       const value = design[node];
       if (!isRecord(value)) fail(`design.${node}`, 'an object');
-      closed(value as Record<string, unknown>, `design.${node}`, CLOSED_BUCKET_KEYS.node!);
+      const nodeKeys = field && node === 'wrapper' ? CLOSED_BUCKET_KEYS.fieldWrapper! : CLOSED_BUCKET_KEYS.node!;
+      closed(value as Record<string, unknown>, `design.${node}`, nodeKeys);
       for (const key of ['class', 'style']) {
         if (has(value as Record<string, unknown>, key) && !conditionValue((value as Record<string, unknown>)[key])) {
           fail(`design.${node}.${key}`, 'a string or a condition map');
         }
+      }
+      if (has(value as Record<string, unknown>, 'attributes')) {
+        checkDeclaredAttributes((value as Record<string, unknown>).attributes, `design.${node}.attributes`, path);
       }
     }
   }
@@ -238,7 +276,7 @@ function checkFormDeclarations(spec: Record<string, unknown>): void {
     }
     if (!has(texts, declared.type as string) && !has(declared, 'text')) fail(`${key}.text`, 'content for this button type');
     if (declared.type === 'link' && !has(declared, 'href')) fail(`${key}.href`, 'a link target');
-    checkDeclarations(declared, `form.${key}`);
+    checkDeclarations(declared, `form.${key}`, false);
   });
 }
 

@@ -100,6 +100,41 @@ input's own label inside the body, and its header holds only a description. A
 </div>
 ```
 
+## Declared attributes
+
+A field declares attributes for its control with `design.attributes` and for its node root with
+`design.wrapper.attributes` ([schema](schema.md#declared-attributes)). The control is the element
+that `design.class` targets: the input, select or textarea of a widget, the file input of an
+image, file or cover field, the `div` of a display field (`dummy`, `image-viewer`), the button of
+an action field and the input of a checkbox or switcher. For a choice or multichoice field, whose
+`design.class` targets the option labels, the control is every option input. A field with `lang`
+writes the control attributes on the control of every language item, and a repeated scalar field
+on the control of every row. The root of a `field`, `group`, `collection` or `lang` node takes the
+wrapper attributes; `row` and `lang-item` nodes take none. A dynamic choice source renders no
+option input and therefore no control attributes.
+
+The models carry the declared attributes in declaration order:
+
+- A node model has them as `attributes` after `style` and before `hidden`.
+- A checkbox model has them as `attributes` after `caption`.
+- A widget model appends them to the attribute list of its control: `attrs`, or `extra.file` for a
+  `file` layout. A `choices` layout keeps them in `extra.option` after `extra.input`.
+
+Each member is present only when the declaration has at least one attribute. Every renderer writes
+the declared attributes after the attributes CRUDUI writes on the element, in declaration order:
+after `hidden` on a node root, and after `data-is-default` and `checked` on an option input that
+has behavior attributes. React's server rendering is the reference serialization, so two
+placements of the reference apply: a control without behavior attributes writes `style` after
+the attribute list, and an `input` without behavior attributes writes `name`, `checked` and
+`value` last. For example, a text field with `design.attributes: { data-setting: theme,
+aria-describedby: theme-help }` writes:
+
+```html
+<input type="text" class="valid-target crudui-input" data-name="theme" data-rule-name="theme"
+  data-default="" id="crudui:theme" data-setting="theme" aria-describedby="theme-help"
+  name="theme" value=""/>
+```
+
 ## Rows
 
 - The number joins the one-based positions of the enclosing rows with `.`.

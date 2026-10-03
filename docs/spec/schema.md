@@ -94,6 +94,35 @@ an expression only when it parses completely under the
 metadata such as `show_if`, `display_switch`
 and `display_target` is rejected in CRUDUI schemas.
 
+### Declared attributes
+
+A form field declares attributes of the elements CRUDUI renders for it: `design.attributes` for
+its control and `design.wrapper.attributes` for its node root. The
+[form markup](form-markup.md#declared-attributes) defines the elements and how renderers write
+them. Each is an object of attribute name to string value; a value is literal text, not an
+expression or a condition map. A name is `data-` or `aria-` followed by a lowercase letter or a
+digit and then lowercase letters, digits, `-`, `_` or `.`. A name that CRUDUI writes on a control
+or a node root is refused: `data-field-path`, `data-lang`, every name that starts with
+`data-crudui-` or `data-source-`, `data-name`, `data-rule-name`, `data-default`,
+`data-is-default`, `data-type`, `data-height`, `data-upload-server`, `data-fileserver`,
+`data-server`, `data-max-tags`, `data-keyword-min-length`, `data-delay`, `data-api-server`,
+`data-max-width`, `data-min-width`, `data-max-height`, `data-min-height`,
+`data-preview-max-width`, `data-preview-max-height` and `data-unsupported-type`.
+
+Only form fields accept attributes. A form button, list or detail design and the `label`,
+`group` and `prepend` nodes reject `attributes` as an unknown key. Compilation checks
+`design.attributes` after `design.class` and `design.style` and before the design nodes, and
+`design.wrapper.attributes` after the wrapper's `class` and `style`. It checks every name in
+declaration order and then every value, and fails with `INVALID_FORM_INPUT` and an empty location:
+
+| Declaration | Message |
+| --- | --- |
+| Not an object | `Invalid design.attributes at {path}: expected an object` |
+| A name outside the rule or a refused name | `Invalid design.attributes.{name} at {path}: expected a data-* or aria-* name that crudui does not write` |
+| A value that is not a string | `Invalid design.attributes.{name} at {path}: expected a string` |
+
+Under the wrapper the key is `design.wrapper.attributes`.
+
 The [expression grammar](expressions.md) defines the tokenizer, parser
 and evaluator. Supported expressions include relative paths, wildcards, lists,
 comparison, logic, membership and conditional values. Arithmetic, function calls
@@ -274,6 +303,7 @@ button; a `button` or `link` needs `text` and a `link` needs `href` (see the
 | `design.class`, `design.style` | String or condition map |
 | `design.label`, `design.wrapper`, `design.group`, `design.prepend` | Object |
 | `class` and `style` of those nodes | String or condition map |
+| `design.attributes`, `design.wrapper.attributes` | Object of a `data-*` or `aria-*` name to a string; form fields only ([declared attributes](#declared-attributes)) |
 
 Compilation checks fields in declaration order, each field before its children.
 The schema closes `multiple`, `lang`, `design`, the design nodes and `behavior`: a key they do

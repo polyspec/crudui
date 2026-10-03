@@ -148,13 +148,16 @@ function affix(value: Affix | undefined, raw: boolean): string {
   return `<span${attrs(values, raw)}>${textContent(value.text ?? '', raw)}</span>`;
 }
 
+/** Attributes with `style` moved last, as an ordinary control writes them. */
+function styleLast(values: AttrValues): AttrValues {
+  if (values.style === undefined) return values;
+  const { style, ...rest } = values;
+  return { ...rest, style };
+}
+
 /** The main control; an ordinary control writes its `style` last. */
 function control(widget: WidgetModel, raw: boolean, selection: string): string {
-  let values: AttrValues = widget.attrs;
-  if (!raw && values.style !== undefined) {
-    const { style, ...rest } = values;
-    values = { ...rest, style };
-  }
+  const values = raw ? widget.attrs : styleLast(widget.attrs);
   if (widget.tag === 'select') {
     const options = (widget.options ?? []).map((option) =>
       `<option${attrs({ value: option.value, ...(option.selected ? { selected: selection } : {}) }, raw)}>${textContent(option.label, raw)}</option>`).join('');
@@ -178,6 +181,7 @@ function choices(widget: WidgetModel): string {
     if (type === 'radio') values['data-is-default'] = option.isDefault ? '1' : '';
     if (option.selected) values.checked = true;
     if (raw && values.checked !== undefined) values.checked = '';
+    Object.assign(values, widget.extra?.option);
     const label: AttrValues = {};
     if (option.id) label.for = option.id;
     label.class = widget.itemLabelClass ?? '';
@@ -213,7 +217,7 @@ function widget(widget: AnyWidget): string {
     }
     case 'display':
       if (widget.kind === 'dummy-input') return `<div class="crudui-widget">${affix(widget.prepend, false)}${control(widget, false, '')}${affix(widget.append, false)}</div>`;
-      return `<div${attrs(widget.attrs)}>${widget.rawHtml ?? ''}</div>`;
+      return `<div${attrs(styleLast(widget.attrs))}>${widget.rawHtml ?? ''}</div>`;
     case 'search':
       return (widget.styleChrome ? `<style nonce="">${widget.styleChrome}</style>` : '') + script +
         `<div class="crudui-widget crudui-widget--search">${affix(widget.prepend, true)}${control(widget, true, 'selected')}${affix(widget.append, true)}</div>`;
@@ -224,9 +228,9 @@ function widget(widget: AnyWidget): string {
   }
 }
 
-/** `<div …>` with an optional valueless `hidden` attribute last. */
-function openDiv(values: AttrValues, hidden = false): string {
-  return `<div${attrs(values)}${hidden ? ' hidden=""' : ''}>`;
+/** `<div …>` with an optional valueless `hidden` attribute and then the declared attributes. */
+function openDiv(values: AttrValues, hidden = false, declared: AttrValues = {}): string {
+  return `<div${attrs(values)}${hidden ? ' hidden=""' : ''}${attrs(declared)}>`;
 }
 
 function controlsHtml(controls: ControlsVM): string {
@@ -262,7 +266,7 @@ function bodyHtml(vm: NodeVM, errors: NodeErrors): string {
   let inner: string;
   if (vm.checkbox) {
     const box = vm.checkbox;
-    inner = inputHtml({ class: box.className, id: box.id, name: box.name, type: 'checkbox', value: '1', ...(box.checked ? { checked: true } : {}) }) +
+    inner = inputHtml({ class: box.className, id: box.id, name: box.name, type: 'checkbox', value: '1', ...(box.checked ? { checked: true } : {}), ...box.attributes }) +
       element('label', { for: box.id }, escape(box.caption));
   } else if (vm.widget) {
     inner = widget(vm.widget);
@@ -303,7 +307,7 @@ function node(vm: NodeVM, errors: NodeErrors): string {
   };
   const header = headerHtml(vm);
   const headerSlot = vm.sticky && header ? element('div', { class: 'crudui-node__header-container' }, header) : header;
-  return openDiv(root, vm.hidden) + headerSlot + bodyHtml(vm, errors) + errorsHtml(errors.get(vm)) + footerHtml(vm) + '</div>';
+  return openDiv(root, vm.hidden, vm.attributes) + headerSlot + bodyHtml(vm, errors) + errorsHtml(errors.get(vm)) + footerHtml(vm) + '</div>';
 }
 
 function cellBody(cell: CellVM): string {

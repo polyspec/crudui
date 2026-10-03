@@ -57,6 +57,8 @@ export interface WidgetCtx {
   keyPrefix?: string;
   /** Resolved design appearance for this field. */
   design: ResolvedDesign;
+  /** Declared attributes of the control (`design.attributes`) in declaration order. */
+  attributes?: Attrs;
   /** Content translator (active language). */
   t: Translate;
 }
@@ -132,7 +134,10 @@ export interface WidgetModel {
   styleChrome?: string;
   /** Button display caption (action widget). */
   buttonText?: string;
-  /** Secondary attrs (button hidden field, image readonly display input). */
+  /**
+   * Secondary attrs (button hidden field, image readonly display input, file input, choice
+   * option input shared attrs and the declared option attributes `option`).
+   */
   extra?: Record<string, Attrs>;
 }
 
@@ -1174,6 +1179,17 @@ export function evalWidget(type: string, ctx: WidgetCtx): WidgetModel | undefine
   if (widget.extra?.file) widget.extra.file.id = id;
   if (widget.layout === 'choices') {
     for (const [index, option] of (widget.options ?? []).entries()) option.id = `${id}:${index}`;
+  }
+  // Declared control attributes follow the attributes crudui writes on the control.
+  const attributes = ctx.attributes ?? {};
+  if (Object.keys(attributes).length) {
+    if (widget.layout === 'choices') {
+      if (widget.extra?.input) widget.extra.option = { ...attributes };
+    } else if (widget.extra?.file) {
+      Object.assign(widget.extra.file, attributes);
+    } else {
+      Object.assign(widget.attrs, attributes);
+    }
   }
   return orderedWidget(widget);
 }

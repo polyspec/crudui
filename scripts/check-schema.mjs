@@ -67,6 +67,30 @@ for (const [extra, expected] of [
   assert.equal(validateForm(spec), expected, `buttons: ${JSON.stringify(extra)} ${JSON.stringify(validateForm.errors)}`);
   checked++;
 }
+// Declared attributes (docs/spec/schema.md, Declared attributes): form fields only, data-* or
+// aria-* names that crudui does not write, string values.
+for (const [label, properties, expected] of [
+  ['control and wrapper', { theme: { type: 'text', design: { attributes: { 'data-setting': 'theme', 'aria-describedby': 'help' }, wrapper: { class: 'row', attributes: { 'data-section': 'look' } } } } }, true],
+  ['event name', { theme: { type: 'text', design: { attributes: { onclick: 'go()' } } } }, false],
+  ['uppercase name', { theme: { type: 'text', design: { attributes: { 'data-Key': 'x' } } } }, false],
+  ['bare prefix', { theme: { type: 'text', design: { attributes: { 'aria-': 'x' } } } }, false],
+  ['owned name', { theme: { type: 'text', design: { attributes: { 'data-rule-name': 'x' } } } }, false],
+  ['owned prefix', { theme: { type: 'text', design: { wrapper: { attributes: { 'data-crudui-row-key': 'x' } } } } }, false],
+  ['number value', { theme: { type: 'text', design: { attributes: { 'data-count': 1 } } } }, false],
+  ['label node', { theme: { type: 'text', design: { label: { attributes: { 'data-x': '1' } } } } }, false],
+]) {
+  const spec = { type: 'group', properties };
+  assert.equal(validateForm(spec), expected, `declared attributes, ${label}: ${JSON.stringify(validateForm.errors)}`);
+  checked++;
+}
+for (const [label, valid, value] of [
+  ['form button', validateForm, { type: 'group', properties: { theme: { type: 'text' } }, buttons: [{ type: 'submit', design: { attributes: { 'data-x': '1' } } }] }],
+  ['list column', validateList, { columns: { a: { field: 'a', design: { attributes: { 'data-x': '1' } } } } }],
+  ['detail field', validateDetail, { fields: { a: { field: 'a', design: { attributes: { 'data-x': '1' } } } } }],
+]) {
+  assert.equal(valid(value), false, `declared attributes are rejected on a ${label}`);
+  checked++;
+}
 // `validate` and `messages` accept the registered rule names only: the rules of the rule registry.
 const registeredRules = [...readText('packages/validator-ts/src/rules/index.ts').matchAll(/^ {2}\['(\w+)', \w+Rule\],$/gm)]
   .map((match) => match[1]);

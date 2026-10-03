@@ -8,7 +8,7 @@ import {
   styleString,
   toBracketNotationWithPrefix,
 } from './util';
-import { resolveDesign, type ResolvedDesign } from './design';
+import { declaredAttributes, resolveDesign, type ResolvedDesign } from './design';
 import { makeContext } from './expr';
 import { FormInputError } from '@crudui/validator';
 import { UnsupportedFieldTypeError } from './errors';
@@ -126,6 +126,8 @@ export interface CheckboxVM {
   checked: boolean;
   /** Caption text. */
   caption: string;
+  /** Declared attributes (`design.attributes`), present only when declared. */
+  attributes?: Record<string, string>;
 }
 
 /** One evaluated node of the recursive form grammar. */
@@ -142,6 +144,8 @@ export interface NodeVM {
   className: string;
   /** Root inline style (`design.wrapper`). */
   style?: string;
+  /** Root declared attributes (`design.wrapper.attributes`), present only when declared. */
+  attributes?: Record<string, string>;
   /** Whether `design.show` hides the node. */
   hidden: boolean;
   /** Header slot, present only with content. */
@@ -251,9 +255,22 @@ function checkGroupData(value: unknown, path: string): void {
 // Node parts
 // ---------------------------------------------------------------------------
 
-function nodeRoot(kind: NodeKind, path: string, design: ResolvedDesign): Pick<NodeVM, 'kind' | 'path' | 'className' | 'style' | 'hidden'> {
+function nodeRoot(
+  kind: NodeKind,
+  path: string,
+  design: ResolvedDesign,
+  spec: Record<string, unknown>
+): Pick<NodeVM, 'kind' | 'path' | 'className' | 'style' | 'attributes' | 'hidden'> {
   const style = styleString(design.wrapper.style);
-  return { kind, path, className: design.wrapper.class, ...(style ? { style } : {}), hidden: !design.show };
+  const attributes = declaredAttributes(spec.design).wrapper;
+  return {
+    kind,
+    path,
+    className: design.wrapper.class,
+    ...(style ? { style } : {}),
+    ...(Object.keys(attributes).length ? { attributes } : {}),
+    hidden: !design.show,
+  };
 }
 
 /** Header with the given parts, or undefined when every part is empty. */
@@ -300,6 +317,7 @@ function buildWidget(
     keyPrefix: state.keyPrefix,
     idPrefix: state.idPrefix,
     design,
+    attributes: declaredAttributes(spec.design).control,
     t: state.t,
     rowSegments: state.rowSegments,
   };
@@ -327,7 +345,7 @@ export function buildField(
   const description = spec.description ? state.t(spec.description as never) : undefined;
   const multiple = resolveMultiple(spec);
   if (multiple) return buildCollection(spec, path, design, label, description, multiple, state, children);
-  if (spec.type === 'group') return buildGroup(path, design, label, description, state, children);
+  if (spec.type === 'group') return buildGroup(spec, path, design, label, description, state, children);
   const lang = resolveLang(spec);
   if (lang) return buildLang(spec, path, design, label, description, lang, state);
   return buildLeaf(spec, path, design, label, description, state);
@@ -343,9 +361,10 @@ function buildLeaf(
 ): NodeVM {
   const fieldType = String(spec.type ?? '');
   const value = getValueByPath(state.data, path);
-  const root = nodeRoot('field', path, design);
+  const root = nodeRoot('field', path, design, spec);
   if (fieldType === 'checkbox' || fieldType === 'switcher') {
     const header = nodeHeader({ description }, design);
+    const attributes = declaredAttributes(spec.design).control;
     return {
       ...root,
       ...(header ? { header } : {}),
@@ -357,6 +376,7 @@ function buildLeaf(
         checked: value === true || value === 1 || value === '1' ||
           (value === undefined && (spec.default === true || spec.default === 1 || spec.default === '1')),
         caption: label ?? '',
+        ...(Object.keys(attributes).length ? { attributes } : {}),
       },
     };
   }
@@ -368,6 +388,7 @@ function buildLeaf(
 }
 
 function buildGroup(
+  spec: Record<string, unknown>,
   path: string,
   design: ResolvedDesign,
   label: string | undefined,
@@ -378,7 +399,7 @@ function buildGroup(
   checkGroupData(getValueByPath(state.data, path), path);
   const header = nodeHeader({ label, description }, design);
   return {
-    ...nodeRoot('group', path, design),
+    ...nodeRoot('group', path, design, spec),
     ...(header ? { header } : {}),
     body: nodeBody(design.group.class, design.group.style),
     children: buildChildren(path, state, templates),
@@ -401,7 +422,7 @@ function buildCollection(
   const rows = keys.map((key, index) => buildRow(spec, path, key, index, keys.length, item, label, settings, state, templates));
   const header = nodeHeader({ label, description, count: formatCount(state.messages.count, keys.length) }, design);
   return {
-    ...nodeRoot('collection', path, design),
+    ...nodeRoot('collection', path, design, spec),
     ...(header ? { header } : {}),
     body: nodeBody(),
     item,
@@ -511,7 +532,7 @@ function buildLang(
 ): NodeVM {
   const title = lang.title ? state.t(lang.title as never) : '';
   const header = nodeHeader({ label, description, title }, design);
-  const root = nodeRoot('lang', path, design);
+  const root = nodeRoot('lang', path, design, spec);
   return {
     ...root,
     // A framed language group is a node modifier; the stylesheet draws the frame around its body.
