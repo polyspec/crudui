@@ -5,6 +5,13 @@ Tests and deployment are recorded separately. `pending` is not a passing result.
 
 | ID | Feature | Implementation | Verification | Deployment | Evidence |
 | --- | --- | --- | --- | --- | --- |
+| control-attributes | Declared `attributes` of a field's control, its node, a form button and a row control written as attributes in eight renderers, limited to `data-*` and `aria-*` names | not-started | pending | not-deployed | [Specification](spec/schema.md#fields) |
+| switch-control | A `switcher` field rendered as a switch (`role="switch"`) distinct from a checkbox in eight renderers | not-started | pending | not-deployed | [Form markup](spec/form-markup.md) |
+| range-control | A `range` field rendered as a slider with its bounds, step and current value in eight renderers and validated in five validators | not-started | pending | not-deployed | [Specification](spec/schema.md#fields) |
+| button-control | A `button` field rendered as a `button` element with its content and attributes and no script in eight renderers | not-started | pending | not-deployed | [Form markup](spec/form-markup.md) |
+| choice-appearance | A class and style for each choice of a choice field in eight renderers, so a choice field can render as a grid of swatches | not-started | pending | not-deployed | [Specification](spec/schema.md#choice-lists) |
+| inline-layout | A form layout that places each field's label and control on one row in eight renderers | not-started | pending | not-deployed | [Form markup](spec/form-markup.md) |
+| collection-controls | Declared texts and attributes of row controls and an add control after the last row in eight renderers | not-started | pending | not-deployed | [Form markup](spec/form-markup.md#rows) |
 | validator-responses | Validator process status and complete response checks | implemented | passed | not-deployed | [Response tests](../examples/cross-check-console/server/validate-response.test.mjs), [Validator process cases](../examples/cross-check-console/validators/README.md) |
 | php-api | Common PHP and extension classes with identical methods | implemented | passed | not-deployed | [PHP API contract](spec/php-extension.md) |
 | generator-php | PHP form generation and SSR | implemented | passed | not-deployed | [Runtime contract](spec/runtime-packages.md) |

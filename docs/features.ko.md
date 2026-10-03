@@ -5,6 +5,13 @@
 
 | ID | 기능 | 구현 | 검증 | 배포 | 근거 |
 | --- | --- | --- | --- | --- | --- |
+| control-attributes | 필드 컨트롤, 노드, 폼 버튼, 행 컨트롤에 선언한 `attributes`를 여덟 렌더러가 속성으로 쓰며, 이름은 `data-*`와 `aria-*`로 제한한다 | not-started | pending | not-deployed | [명세](spec/schema.ko.md#필드) |
+| switch-control | `switcher` 필드를 여덟 렌더러가 체크 상자와 다른 스위치(`role="switch"`)로 렌더링한다 | not-started | pending | not-deployed | [폼 마크업](spec/form-markup.ko.md) |
+| range-control | `range` 필드를 여덟 렌더러가 범위, 단계, 현재 값을 가진 슬라이더로 렌더링하고 검증기 다섯 개가 검증한다 | not-started | pending | not-deployed | [명세](spec/schema.ko.md#필드) |
+| button-control | `button` 필드를 여덟 렌더러가 내용과 속성을 가진 `button` 요소로, 스크립트 없이 렌더링한다 | not-started | pending | not-deployed | [폼 마크업](spec/form-markup.ko.md) |
+| choice-appearance | 선택 필드의 선택지마다 class와 style을 여덟 렌더러가 적용하여, 선택 필드를 견본 격자로 렌더링할 수 있다 | not-started | pending | not-deployed | [명세](spec/schema.ko.md#선택-목록) |
+| inline-layout | 각 필드의 레이블과 컨트롤을 한 줄에 두는 폼 배치를 여덟 렌더러가 제공한다 | not-started | pending | not-deployed | [폼 마크업](spec/form-markup.ko.md) |
+| collection-controls | 행 컨트롤의 선언된 글과 속성, 마지막 행 뒤의 추가 컨트롤을 여덟 렌더러가 렌더링한다 | not-started | pending | not-deployed | [폼 마크업](spec/form-markup.ko.md#행) |
 | validator-responses | 검증기 프로세스 상태와 완전한 응답 검사 | implemented | passed | not-deployed | [응답 검사](../examples/cross-check-console/server/validate-response.test.mjs), [검증기 프로세스 사례](../examples/cross-check-console/validators/README.ko.md) |
 | php-api | 동일한 메서드를 제공하는 PHP와 확장의 공통 클래스 | implemented | passed | not-deployed | [PHP API 계약](spec/php-extension.ko.md) |
 | generator-php | PHP 폼 생성과 SSR | implemented | passed | not-deployed | [런타임 계약](spec/runtime-packages.ko.md) |
