@@ -79,7 +79,7 @@ test('TypeScript checks all six current public entries', () => environment(root 
   assert.equal(result.status, 0, result.stderr);
   const calls = readFileSync(join(root, 'calls.jsonl'), 'utf8').trim().split('\n').map(JSON.parse);
   assert.equal(calls[0].command, 'npm');
-  assert.deepEqual(calls.slice(1).map(call => call.args.at(-1)), ['generator-core', 'validator-ts', 'generator-html', 'generator-react', 'generator-vue', 'generator-svelte'].map(pkg => join(root, 'packages', pkg, pkg === 'generator-svelte' ? 'dist/index.d.ts' : 'src/index.ts')));
+  assert.deepEqual(calls.slice(1).map(call => call.args.at(-1)), ['generator-core', 'validator-ts', 'generator-html', 'generator-react', 'generator-vue', 'generator-svelte', 'form-binding'].map(pkg => join(root, 'packages', pkg, pkg === 'generator-svelte' ? 'dist/index.d.ts' : 'src/index.ts')));
 }));
 test('TypeScript rejects a public declaration that references an unexported type', () => {
   const result = spawnSync(join(repository, 'node_modules/.bin/typedoc'), [

@@ -18,8 +18,14 @@ React, Vue, Svelte, HTML 렌더러와 네이티브 렌더러는 같은 마크업
 클래스와 함께 씁니다(`class="crudui-node crudui-node--row"`). 요소 이름은 한
 단계만 쓰며 요소에는 수식자를 두지 않습니다. 클래스는 스타일만 담당합니다.
 브라우저 동작은 아래의 data·ARIA 속성만 읽고 클래스를 읽지 않습니다.
-위젯도 같은 형태를 따릅니다. 렌더러가 그 밖에 쓰는 클래스는 검증 대상 컨트롤을 표시하는
-`valid-target`과 `valid-target-async`, 에디터 호스트 `tinymcearea`, `summernote`,
+예외 하나는 경계가 정해져 있습니다. [브라우저 검증](form-runtime.ko.md#브라우저-검증) 바인딩은 자신이
+교체하는 슬롯을 클래스 `crudui-form__body`, `crudui-form__errors`, `crudui-node__body`,
+`crudui-node__errors`로 찾습니다. 이 슬롯에는 data·ARIA 속성이 없기 때문입니다. 바인딩의 소스가 다른
+클래스를 가리키면 바인딩의 테스트가 실패합니다. 렌더러가 이 슬롯에 data 속성을 쓰면 이 예외는
+끝납니다.
+위젯도 같은 형태를 따릅니다. 렌더러가 그 밖에 쓰는 클래스는 규칙이 값을 검사하는 컨트롤을 표시하는
+`valid-target`, 동적 소스를 가진 select를 표시하는 `valid-target-async`([브라우저
+검증](form-runtime.ko.md#브라우저-검증) 참조), 에디터 호스트 `tinymcearea`, `summernote`,
 `contentjs`, `tuiarea`, 그리고 스펙이 `design`으로 선언한 클래스뿐입니다.
 
 ## 블록과 속성

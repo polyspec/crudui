@@ -167,6 +167,19 @@
       }
     },
     {
+      "name": "@crudui/form-binding",
+      "path": "packages/form-binding",
+      "layer": "validation",
+      "entries": {
+        ".": {
+          "visibility": "public",
+          "exports": [
+            "bindForm"
+          ]
+        }
+      }
+    },
+    {
       "name": "@crudui/validator",
       "path": "packages/validator-ts",
       "layer": "validation",

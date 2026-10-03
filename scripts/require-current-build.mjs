@@ -4,7 +4,7 @@
  *
  * Several commands need the same built packages: the native generator suite, the
  * form suites, the package install check and the contract tests. Each of them used
- * to run `npm run build` again, so one verification run built the same six packages
+ * to run `npm run build` again, so one verification run built the same packages
  * three times. The rule here replaces that repetition: a command declares that it
  * needs a current build, and the build runs only when the recorded source and output
  * digests no longer match the working tree. The build has a time limit, at which its whole
@@ -18,11 +18,11 @@ import { fileURLToPath } from 'node:url';
 import { commandLimitMs, failureOf, formatSeconds, runBounded } from './bounded-command.mjs';
 import { createProgress } from './test-progress/progress.mjs';
 
-// The build of the six packages; scripts/bounded-command.mjs stops it at this limit.
+// The build of the workspace packages; scripts/bounded-command.mjs stops it at this limit.
 const BUILD_LIMIT_SECONDS = 600;
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const STAMP = path.join(ROOT, 'node_modules/.cache/crudui/build-stamp.json');
-const PACKAGES = ['validator-ts', 'generator-core', 'generator-html', 'generator-react', 'generator-vue', 'generator-svelte'];
+const PACKAGES = ['validator-ts', 'generator-core', 'generator-html', 'generator-react', 'generator-vue', 'generator-svelte', 'form-binding'];
 const SOURCE_FILE = /\.(?:ts|tsx|mts|cts|js|mjs|cjs|json|svelte|vue|css)$/;
 
 const digest = value => createHash('sha256').update(value).digest('hex');

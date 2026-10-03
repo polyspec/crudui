@@ -9,7 +9,8 @@ with the [schema procedure](schema-validation.md). The
 
 Install dependencies and build the JavaScript packages first. JavaScript and PHP
 examples run from the repository root; Go and Rust use the module setup described
-below. Each example supplies an empty required email and expects `valid` to be false.
+below. Each language example supplies an empty required email and expects `valid` to be
+false.
 
 ## TypeScript and JavaScript
 
@@ -101,6 +102,43 @@ fn main() {
     assert!(!result.valid);
     assert_eq!(result.errors[0].rule, "required");
 }
+```
+
+## Browser validation
+
+Validate a server-rendered form in the browser with the specification the server validates it
+with, so a user sees errors before the request is sent. The
+[browser validation contract](../spec/form-runtime.md#browser-validation) defines the data, the
+error markup and the timing. The server still validates every submission it receives.
+
+1. Render the complete form on the server with `renderForm(form, { action, ... })`, from a
+   template compiled with a `keyPrefix`.
+2. Send the specification with the page, for example as JSON in a
+   `<script type="application/json">` element. The binding calls `validate(spec, data)` without
+   files or a loader, so send the specification with its composition resolved.
+3. Bind the parsed `form` element with the same key prefix and the page's texts:
+
+```js
+import { bindForm } from '@crudui/form-binding';
+
+const texts = { 'email.required': 'Enter your email address.', invalid: 'Check the marked fields.' };
+const spec = JSON.parse(document.querySelector('#member-spec').textContent);
+const binding = bindForm(document.querySelector('#member-form'), spec, {
+  keyPrefix: 'form',
+  message: (error) => texts[`${error.field}.${error.rule}`] ?? error.message,
+  formErrors: (result) => (result.valid ? [] : [texts.invalid]),
+});
+```
+
+The binding validates a changed field when it loses focus and on every later change, and the whole
+form on submit; an invalid form is not sent and focus moves to its first invalid control. Send a
+form from script with `form.requestSubmit()`: `form.submit()` fires no `submit` event, so the
+binding does not validate it. Call `binding.dispose()` before the page removes the form.
+
+Run the binding checks, including the Chromium check, from the repository root:
+
+```sh
+make test-form-binding
 ```
 
 ## Results and failures

@@ -131,9 +131,10 @@ node scripts/run-tests.mjs cargo -- --locked --manifest-path packages/validator-
 검사합니다. sticky 헤더 쌓임, 단계 레이블과 그 `data-crudui-stuck` 대체 경로, 테두리 한 겹의
 이음매, 행 카드의 선, 포커스 스크롤을 페이지, 스크롤 상자, 프레임에서 각각 확인합니다. 모든
 엔진이 같은 시나리오를 실행하며, Chromium과 Firefox는 Puppeteer로, WebKit은 Playwright로
-구동합니다. Firefox는 `CRUDUI_FIREFOX_EXECUTABLE` 또는 플랫폼 설치 경로에서 찾고, WebKit은
-`npx playwright install --with-deps webkit`으로 설치합니다. 브라우저가 없으면 실행이 실패하며
-어떤 엔진도 건너뛰지 않습니다.
+구동합니다. Firefox는 `CRUDUI_FIREFOX_EXECUTABLE` 또는 플랫폼 설치 경로에서 찾고, WebKit과
+[브라우저 검증](validation.ko.md#브라우저-검증) 검사가 쓰는 Playwright Chromium은
+`npx playwright install --with-deps webkit chromium`으로 설치합니다. 브라우저가 없으면 실행이
+실패하며 어떤 엔진도 건너뛰지 않습니다.
 `tests/widget-script-runs.test.mjs`는 같은 세 엔진에서 HTML, React, Vue, Svelte 렌더러를 브라우저에서
 렌더링한 경우와 서버에서 렌더링한 뒤 하이드레이션한 경우로 스크립트 규칙을 실행합니다. 폼 행 스크립트와
 `html` 목록 셀 스크립트는 첫 렌더링과 추가한 각 행에서 한 번 실행되고, 입력, 행 복사나 이동, 다시

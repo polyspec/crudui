@@ -20,7 +20,7 @@ if (!['all', 'ts', 'go', 'rust', 'php'].includes(target)) {
   throw new Error('Use all, ts, go, rust or php');
 }
 const want = name => target === 'all' || target === name;
-const packages = ['validator-ts', 'generator-core', 'generator-html', 'generator-react', 'generator-vue', 'generator-svelte'];
+const packages = ['validator-ts', 'generator-core', 'generator-html', 'generator-react', 'generator-vue', 'generator-svelte', 'form-binding'];
 
 // One tool command: a package build, one TypeDoc package, one Go listing or page, rustdoc or phpDocumentor.
 const COMMAND_LIMIT_SECONDS = 600;

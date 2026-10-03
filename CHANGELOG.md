@@ -1,5 +1,35 @@
 # Changes
 
+## 2026-10-04 — Browser validation of server-rendered forms
+
+- `@crudui/form-binding` (`packages/form-binding`) validates a server-rendered complete form in the
+  browser with the specification the server validates it with. A form rendered on the server was
+  validated only after a request, so a user saw errors only after the round trip.
+- `bindForm(form, spec, options)` builds the data from the named controls inside the form's nodes as
+  a native submission sends them and a server decodes them: strings, CRLF line breaks, `[]` names
+  as lists, rows keyed by their row keys, and no member for an unchecked checkbox, an empty choice,
+  a select without a selected option or a collection without rows. File, disabled and node-less
+  controls take no part, and errors of a node that contains a file control are left to the server.
+- It validates a changed node when its control loses focus and on every later change, and the whole
+  form on submit and on `validate()`. It writes the `crudui-node__errors` and `crudui-form__errors`
+  markup that `renderForm` writes for the same errors, replaces server-rendered errors at the first
+  validation of their node, and sets and removes `aria-invalid` on the controls of each written
+  node. It sets `novalidate`, so the browser's constraint validation does not stop a submission
+  first.
+- An invalid submission is cancelled in the capture phase of the window with `preventDefault()` and
+  `stopImmediatePropagation()`, so no other submit listener such as htmx sends a request, and focus
+  moves to the first invalid control. `options.message` and `options.formErrors` supply the texts.
+- The specification defines the binding in [form runtime](docs/spec/form-runtime.md#browser-validation);
+  [form markup](docs/spec/form-markup.md#class-names) records the one class exception: the binding
+  finds the error slots by four classes, and a test of the package fails when its source names
+  another class.
+- The package tests run through `make test-form-binding` and `npm run test:forms`: data collection
+  of every control kind, timing, submission, focus, `aria-invalid` and options in jsdom; the error
+  markup of 59 invalid cases of the shared validation fixture equals `renderForm`'s; and a
+  Chromium check through Playwright shows an error after leaving a changed field, sends no request
+  for an invalid submission and submits the corrected form. CI installs the Playwright Chromium
+  with WebKit.
+
 ## 2026-10-04 — Choice groups
 
 - The choice list of a `select`, `dropdown` or `selectbox` field may contain groups, each a label

@@ -8,7 +8,7 @@
 # machine-absolute paths). `make docs` run twice yields identical output.
 
 .DEFAULT_GOAL := help
-.PHONY: help docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-extension test-native test-native-suites test-validators conformance format-check deploy deploy-verify github-settings github-settings-check ci test-form-styles-linux
+.PHONY: help docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-extension test-native test-native-suites test-validators test-form-binding conformance format-check deploy deploy-verify github-settings github-settings-check ci test-form-styles-linux
 .NOTPARALLEL: docs docs-web docs-dev docs-preview docs-check docs-verify-idempotent
 
 # Validator benchmark iteration counts (override on the command line, e.g.
@@ -37,6 +37,7 @@ help: ## 타겟 설명
 	@echo "  make test-php-extension    Test the native PHP engine, its builder and its PHP API"
 	@echo "  make test-native           Test PHP, Go, Rust and native PHP generation"
 	@echo "  make test-validators       Test the JavaScript, PHP, Go and Rust validators"
+	@echo "  make test-form-binding     Test the browser validation binding, its markup parity and Chromium"
 	@echo "  make conformance           Run every conformance suite and check the evidence against the standard"
 	@echo "  make format-check          Fail when any Rust crate or Go file is not formatted"
 	@echo "  make ci                    Run every command of the CI workflow in order"
@@ -182,6 +183,13 @@ test-validators:
 	node scripts/run-tests.mjs go --cwd packages/validator-go -- ./... || status=1; \
 	node scripts/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml || status=1; \
 	exit $$status
+
+# The browser validation binding (docs/spec/form-runtime.md, "Browser validation"): data
+# collection, timing, error markup parity with renderForm and the Chromium check. It reads the
+# built validator and renderers.
+test-form-binding:
+	node scripts/require-current-build.mjs
+	npm test -w @crudui/form-binding
 
 # Every suite that records conformance evidence, then the check of that evidence against
 # contracts/features.json (docs/spec/conformance.md). Every suite runs even when an earlier one

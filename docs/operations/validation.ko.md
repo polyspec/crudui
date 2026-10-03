@@ -8,7 +8,7 @@
 
 먼저 의존성을 설치하고 JavaScript 패키지를 빌드합니다. JavaScript와 PHP 예제는
 저장소 루트에서 실행하며 Go와 Rust는 아래에 설명한 모듈 설정을 사용합니다.
-각 예제는 필수 이메일에 빈 값을 제공하며 `valid`가 false인지 검사합니다.
+각 언어 예제는 필수 이메일에 빈 값을 제공하며 `valid`가 false인지 검사합니다.
 
 ## TypeScript와 JavaScript
 
@@ -99,6 +99,43 @@ fn main() {
     assert!(!result.valid);
     assert_eq!(result.errors[0].rule, "required");
 }
+```
+
+## 브라우저 검증
+
+서버가 렌더링한 폼을 서버가 검증할 때 쓰는 스펙으로 브라우저에서 검증하면 사용자는 요청을 보내기 전에
+오류를 봅니다. [브라우저 검증 계약](../spec/form-runtime.ko.md#브라우저-검증)이 데이터, 오류 마크업,
+시점을 정의합니다. 서버는 받은 모든 제출을 계속 검증합니다.
+
+1. `keyPrefix`로 컴파일한 템플릿에서 서버가 `renderForm(form, { action, ... })`으로 완전한 폼을
+   렌더링합니다.
+2. 스펙을 페이지와 함께 보냅니다. 예를 들어 `<script type="application/json">` 요소에 JSON으로
+   넣습니다. 바인딩은 파일이나 로더 없이 `validate(spec, data)`를 호출하므로 합성을 해석한 스펙을
+   보냅니다.
+3. 같은 키 접두사와 페이지 문구로 파싱된 `form` 요소를 연결합니다.
+
+```js
+import { bindForm } from '@crudui/form-binding';
+
+const texts = { 'email.required': 'Enter your email address.', invalid: 'Check the marked fields.' };
+const spec = JSON.parse(document.querySelector('#member-spec').textContent);
+const binding = bindForm(document.querySelector('#member-form'), spec, {
+  keyPrefix: 'form',
+  message: (error) => texts[`${error.field}.${error.rule}`] ?? error.message,
+  formErrors: (result) => (result.valid ? [] : [texts.invalid]),
+});
+```
+
+바인딩은 바뀐 필드를 포커스를 잃을 때와 그 뒤의 모든 변경에서 검증하고, 제출할 때 폼 전체를
+검증합니다. 유효하지 않은 폼은 보내지 않으며 포커스는 첫 번째 유효하지 않은 컨트롤로 옮겨 갑니다.
+스크립트로 폼을 보낼 때는 `form.requestSubmit()`을 씁니다. `form.submit()`은 `submit` 이벤트를
+발생시키지 않으므로 바인딩이 검증하지 않습니다. 페이지가 폼을 제거하기 전에 `binding.dispose()`를
+호출합니다.
+
+Chromium 검사를 포함한 바인딩 검사는 저장소 루트에서 실행합니다.
+
+```sh
+make test-form-binding
 ```
 
 ## 결과와 실패
