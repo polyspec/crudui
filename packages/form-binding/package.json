@@ -16,7 +16,7 @@
   "scripts": {
     "build": "tsup src/index.ts --format esm --clean && tsc --project tsconfig.build.json",
     "test": "node ../../scripts/run-tests.mjs vitest --cwd packages/form-binding",
-    "typecheck": "tsc --noEmit && tsc --noEmit --project tests/tsconfig.json",
+    "typecheck": "tsc --noEmit && tsc --noEmit --project tsconfig.tests.json",
     "lint": "eslint src tests",
     "prepublishOnly": "npm run build"
   },
