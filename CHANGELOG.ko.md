@@ -1,5 +1,13 @@
 # 변경 기록
 
+## 2026-10-05 — 저장소의 test rule (C2.1)
+
+- AGENTS는 작업을 개발하는 동안 바뀐 것을 소유한 Red와 Green test만 실행하고, full suite는
+  checklist의 활성 작업이 모두 끝났을 때 정확히 한 번 실행합니다. 전에는 feature가 끝날 때마다
+  full suite를 실행했습니다. 긴 작업은 자기 timeout에 더해 step log를 출력합니다. 전에는 step log가
+  timeout을 대신했습니다. `make docs-check`는 문서나 공개 API 문서가 바뀌었을 때만 실행하고,
+  checklist의 Verification 열은 작업을 소유한 명령을 적습니다. checklist에 wave 2를 적었습니다.
+
 ## 2026-10-04 — Tailwind 버전의 export (C1.5)
 
 - `@crudui/generator-core`는 `./crudui.tailwind.css`를 export합니다. feature status에
