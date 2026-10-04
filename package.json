@@ -47,7 +47,7 @@
     "test:docs": "node scripts/run-tests.mjs node --timeout 10 -- tests/docs/*.test.mjs",
     "test:inspector": "node scripts/run-tests.mjs node -- tests/form-inspector/form-snapshot.test.mjs tests/form-inspector/browser.test.mjs",
     "test:build": "node scripts/run-tests.mjs node -- tests/build/public-packages.test.mjs tests/build/vite-config.test.mjs tests/build/ci-browser.test.mjs tests/build/package-install-pack.test.mjs tests/build/lint-coverage.test.mjs tests/build/bounded-commands.test.mjs",
-    "test:bench": "node scripts/run-tests.mjs node --timeout 600 -- tests/build/bench-drivers.test.mjs",
+    "test:bench": "node scripts/require-current-build.mjs && node tools/bench/build-drivers.mjs && node scripts/run-tests.mjs node -- tests/build/bench-drivers.test.mjs",
     "test:build:repeat": "node scripts/run-tests.mjs node --timeout 120 -- tests/build/reproducible-build.test.mjs"
   },
   "repository": {

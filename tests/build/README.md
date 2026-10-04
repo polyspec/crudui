@@ -45,7 +45,10 @@ commands stops a command that never ends, with its whole process group, at the c
 `test:bench` checks that the JavaScript, PHP, Go and Rust benchmark drivers and
 `tools/bench/run.js` accept and reject the iteration counts of
 `tools/bench/iteration-arguments.json` by one rule with one message. It needs PHP, Go
-and Rust; the native generation job of CI runs it.
+and Rust; the native generation job of CI runs it. It first builds the packages and then the Go and
+Rust drivers with `tools/bench/build-drivers.mjs`, which prints each build with its elapsed time and
+stops it at its limit; the test runs the built drivers, and each of its tests has the 30-second
+timeout of the test runner.
 
 `test:build:repeat` runs the complete build twice and compares every output file's
 path and SHA-256 digest in all five package directories.

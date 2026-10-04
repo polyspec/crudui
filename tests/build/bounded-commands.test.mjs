@@ -163,3 +163,20 @@ test('run.js stops a driver and every process it started at the limit', async ()
     rmSync(box.root, { recursive: true, force: true });
   }
 });
+
+test('build-drivers.mjs stops a driver build and every process it started at the limit', async () => {
+  // GO names the Go command of the build; here that program never ends.
+  const box = sandbox(['tools/bench/build-drivers.mjs', 'tools/bench/drivers.mjs', ...SHARED]);
+  try {
+    mkdirSync(path.join(box.root, 'tools/bench/go'));
+    mkdirSync(path.join(box.root, 'tools/bench/rust'));
+    const result = await runScript(path.join(box.root, 'tools/bench/build-drivers.mjs'), [], {
+      cwd: box.root, env: limitEnvironment({ GO: box.program('go') }),
+    });
+    assertStopped(result);
+    assert.match(result.output, /✖ build: go benchmark driver \(\d+\.\ds\)/);
+    await assertGone(box.pidFile);
+  } finally {
+    rmSync(box.root, { recursive: true, force: true });
+  }
+});

@@ -110,7 +110,8 @@ method는 세지 않으며, 없는 test file에 대한 오류나 warning을 담�
 다른 명령을 실행하는 스크립트는 `scripts/bounded-command.mjs`로 각 명령에 제한 시간을 둡니다.
 `npm run manifest:test`의 선언된 명령(`scripts/run-contract-tests.mjs`, 각 600초),
 `scripts/require-current-build.mjs`의 패키지 빌드(600초), `scripts/gen-api-docs.mjs`의 각 도구
-명령(600초), `tools/bench/run.js`의 각 벤치마크 드라이버(600초)가 대상입니다. 명령은 자기 프로세스
+명령(600초), `tools/bench/run.js`의 각 벤치마크 드라이버(600초), `tools/bench/build-drivers.mjs`의 각
+드라이버 빌드(600초)가 대상입니다. 명령은 자기 프로세스
 그룹에서 시작합니다. 제한 시간이 되면 그룹이 SIGTERM을 받고, 명령이 끝나는 즉시 또는 2초 뒤에
 SIGKILL을 받으므로, 스크립트가 시작한 래퍼(npm, `go run`, `cargo run`, `/bin/sh`)와 그 아래의 모든
 프로세스가 SIGTERM을 무시하는 것까지 멈춥니다. 그다음 스크립트는 제한 시간을 밝히며 실패합니다. 각

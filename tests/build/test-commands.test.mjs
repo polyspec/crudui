@@ -142,3 +142,16 @@ test('CI time limits bound setup steps and never a step or a job that runs tests
   }
   assert.deepEqual(violations, []);
 });
+
+// The Go and Rust benchmark drivers compile for minutes on a cold cache. The build is its own step
+// with step logs and a build limit; the test runs the built drivers, each test within seconds.
+test('the benchmark driver test runs built drivers within the default test timeout', () => {
+  const command = JSON.parse(read('package.json')).scripts['test:bench'];
+  const build = command.indexOf('node tools/bench/build-drivers.mjs');
+  const runner = command.indexOf('node scripts/run-tests.mjs node');
+  assert.ok(build !== -1 && runner > build, `test:bench builds the drivers before the test: ${command}`);
+  assert.doesNotMatch(command, /--timeout/, 'test:bench keeps the 30-second timeout of each test');
+  const source = read('tests/build/bench-drivers.test.mjs');
+  assert.doesNotMatch(source, /\btimeout:/, 'no benchmark driver test sets its own timeout');
+  assert.doesNotMatch(source, /'run'/, 'the test runs no `go run` or `cargo run`, which compile');
+});

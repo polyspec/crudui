@@ -1,5 +1,15 @@
 # 변경 기록
 
+## 2026-10-05 — driver test에서 build된 benchmark driver 실행 (C2.3)
+
+- `npm run test:bench`는 package를 build한 뒤 `tools/bench/build-drivers.mjs`로 Go와 Rust benchmark
+  driver를 build합니다. 이 script는 각 build를 경과 시간과 함께 출력하고 600초에서 process group째
+  멈춥니다. `tests/build/bench-drivers.test.mjs`는 build된 driver(`tools/bench/drivers.mjs`가 이름을
+  정합니다)를 실행하고 각 test는 test runner의 30초 timeout을 가집니다. 전에는 accepted case가 600초
+  timeout 아래에서 `go run`과 `cargo run`으로 driver를 compile했습니다. `tests/build/test-commands.test.mjs`는
+  test가 자기 timeout을 두거나 `run`으로 driver를 실행하면 실패하고, `tests/build/bounded-commands.test.mjs`는
+  끝나지 않는 driver build를 한도에서 멈춥니다.
+
 ## 2026-10-05 — setup step에만 두는 CI 시간 한도 (C2.2)
 
 - test를 실행하는 CI job과 step에는 `timeout-minutes`가 없습니다. test runner가 각 test를
