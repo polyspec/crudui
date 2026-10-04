@@ -135,6 +135,12 @@ node scripts/run-tests.mjs cargo -- --locked --manifest-path packages/validator-
 `npx playwright install --with-deps webkit`으로 설치합니다. 브라우저가 없으면 실행이 실패하며 어떤
 엔진도 건너뛰지 않습니다. `packages/form-binding/tests/browser.test.ts`의
 [브라우저 검증](validation.ko.md#브라우저-검증) 검사도 같은 세 엔진에서 실행합니다.
+`tests/viewport.test.mjs`는 공유 render case 432개의 expected HTML을 360과 1280 CSS pixel로 열어 문서의
+가로 overflow가 없는지 확인하고, `tests/tailwind-styles.test.mjs`는 `crudui.tailwind.css`를 Tailwind CSS로
+compile해 `crudui.css`의 computed style과 같은지 확인합니다. 둘 다 같은 세 엔진에서 실행합니다.
+`test:forms`는 먼저 `node packages/generator-core/scripts/write-tailwind-styles.mjs --check`를 실행하며,
+이 검사는 `crudui.tailwind.css`가 `crudui.css`와 다르면 실패합니다. `crudui.css`를 바꾼 뒤에는 이 script를
+`--check` 없이 실행하고 두 file을 함께 commit합니다.
 `tests/widget-script-runs.test.mjs`는 같은 세 엔진에서 HTML, React, Vue, Svelte 렌더러를 브라우저에서
 렌더링한 경우와 서버에서 렌더링한 뒤 하이드레이션한 경우로 스크립트 규칙을 실행합니다. 폼 행 스크립트와
 `html` 목록 셀 스크립트는 첫 렌더링과 추가한 각 행에서 한 번 실행되고, 입력, 행 복사나 이동, 다시

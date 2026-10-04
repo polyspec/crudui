@@ -17,6 +17,7 @@
       "require": "./dist/internal.js"
     },
     "./crudui.css": "./styles/crudui.css",
+    "./crudui.tailwind.css": "./styles/crudui.tailwind.css",
     "./package.json": "./package.json"
   },
   "files": [

@@ -137,6 +137,13 @@ Playwright. Firefox is found at `CRUDUI_FIREFOX_EXECUTABLE` or the platform's in
 WebKit is installed with `npx playwright install --with-deps webkit`. A missing browser fails the
 run; no engine is skipped. The [browser validation](validation.md#browser-validation) check of
 `packages/form-binding/tests/browser.test.ts` runs in the same three engines.
+`tests/viewport.test.mjs` places the expected HTML of the 432 shared render cases at 360 and
+1280 CSS pixels and requires no horizontal overflow of the document, and
+`tests/tailwind-styles.test.mjs` compiles `crudui.tailwind.css` with Tailwind CSS and requires the
+computed styles of `crudui.css`, both in the same three engines. `test:forms` first runs
+`node packages/generator-core/scripts/write-tailwind-styles.mjs --check`, which fails when
+`crudui.tailwind.css` differs from `crudui.css`; after a change of `crudui.css`, run the script
+without `--check` and commit both files.
 `tests/widget-script-runs.test.mjs` runs the script rule in the same three engines for the HTML,
 React, Vue and Svelte renderers, each rendered in the browser and rendered on the server and
 hydrated: a form row script and an `html` list cell script run once on the first render and
