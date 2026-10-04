@@ -1,5 +1,14 @@
 # 변경 기록
 
+## 2026-10-05 — 변경 event로 기다리는 build readiness (C2.4)
+
+- `examples/form-comparison/verify-tree.mjs`의 `readyBuild`는 build state file을 시작할 때와 file
+  directory의 변경 event(`fs.watch`)마다 읽습니다. 전에는 1초마다 다시 읽었습니다. timer는 inactivity
+  한도나 step 한도가 끝나거나 진행 줄을 출력할 때에만 실행됩니다. clock, watch, read는 parameter이고,
+  `check-verification.test.mjs`의 readiness test는 20 ms마다 다시 쓰는 file과 wall-clock 한도 대신
+  명시적인 event와 fake clock으로 상태를 바꿉니다. event loop를 400 ms마다 350 ms씩 막으면 이전 case는
+  실패했고 새 case는 통과합니다.
+
 ## 2026-10-05 — driver test에서 build된 benchmark driver 실행 (C2.3)
 
 - `npm run test:bench`는 package를 build한 뒤 `tools/bench/build-drivers.mjs`로 Go와 Rust benchmark

@@ -754,8 +754,10 @@ combinations block integration.
 
 Verification runs inside the running comparison container as the `node` user,
 with the Chromium sandbox enabled, against the build of the current tree. It waits
-for the current build cycle by reading the build state file every second and requires it to be
-ready; a failed cycle fails the wait. The wait (`build-readiness`) has no total limit. Progress is
+for the current build cycle by reading the build state file at its start and at every change event
+of the file's directory, where the supervisor renames each new state over the file, and requires it
+to be ready; a failed cycle fails the wait. It reads the file on no timer: a timer runs only at the
+moment one of the limits below ends or a progress line is due. The wait (`build-readiness`) has no total limit. Progress is
 the step, identified by cycle, target and step, never the heartbeat: one step may hold the wait
 for its own limit plus the 45-second inactivity limit, and a step still named after that stops the
 wait as `stalled` even while its heartbeat is renewed. Apart from that, a `progress.at` that is not

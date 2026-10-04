@@ -1,5 +1,15 @@
 # Changes
 
+## 2026-10-05 — Build readiness on change events (C2.4)
+
+- `readyBuild` of `examples/form-comparison/verify-tree.mjs` reads the build state file at its
+  start and at every change event of the file's directory (`fs.watch`); it reread the file every
+  second. A timer runs only when an inactivity or step limit ends or a progress line is due. The
+  clock, the watch and the read are parameters, and the readiness tests of
+  `check-verification.test.mjs` change the state with explicit events and a fake clock instead of
+  a file rewritten every 20 ms and bounds on wall-clock time. With the event loop blocked 350 ms
+  of every 400 ms, the former cases failed and the new ones pass.
+
 ## 2026-10-05 — Built benchmark drivers in the driver test (C2.3)
 
 - `npm run test:bench` builds the packages, then the Go and Rust benchmark drivers with
