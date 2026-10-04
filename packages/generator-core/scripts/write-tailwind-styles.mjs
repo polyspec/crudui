@@ -12,7 +12,9 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createProgress } from '../../../scripts/test-progress/progress.mjs';
 
+const lines = createProgress({ write: text => process.stdout.write(text) });
 const styles = resolve(dirname(fileURLToPath(import.meta.url)), '../styles');
 const source = resolve(styles, 'crudui.css');
 const target = resolve(styles, 'crudui.tailwind.css');
@@ -33,8 +35,8 @@ if (process.argv.includes('--check')) {
     console.error(`FAIL ${target} differs from ${source}; run node packages/generator-core/scripts/write-tailwind-styles.mjs`);
     process.exit(1);
   }
-  console.log(`PASS ${target} matches ${source}`);
+  lines.line(`PASS ${target} matches ${source}`);
 } else {
   writeFileSync(target, text);
-  console.log(`wrote ${target}`);
+  lines.line(`wrote ${target}`);
 }

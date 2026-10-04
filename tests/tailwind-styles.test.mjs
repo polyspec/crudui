@@ -63,7 +63,7 @@ test('the compiled Tailwind version holds the CRUDUI rules in the layer componen
 
 for (const engine of engines) {
   for (const width of widths) {
-    test(`${engine} at ${width} px: the Tailwind version computes the styles of crudui.css`, { timeout: 600000 }, async () => {
+    test(`${engine} at ${width} px: the Tailwind version computes the styles of crudui.css`, { timeout: 600000 }, async t => {
       const started = performance.now();
       const plain = await open(engine, width, core);
       const layered = await open(engine, width, tailwind);
@@ -78,7 +78,7 @@ for (const engine of engines) {
             failures.push(`${item.name}: element ${index}: ${differing.slice(0, 3).join('; ')}`);
           }
         }
-        console.log(`${engine} ${width} px: ${cases.length} cases, ${failures.length} differ, ${Math.round(performance.now() - started)} ms`);
+        t.diagnostic(`${engine} ${width} px: ${cases.length} cases, ${failures.length} differ, ${Math.round(performance.now() - started)} ms`);
         assert.deepEqual(failures, []);
       } finally {
         await plain.close();

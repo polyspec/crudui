@@ -41,6 +41,8 @@ const nodeAndBrowserFiles = [
   'scripts/check-packages.mjs',
   'tests/form-inspector/browser.test.mjs',
   'tests/form-styles.test.mjs',
+  'tests/tailwind-styles.test.mjs',
+  'tests/viewport.test.mjs',
   'tests/widget-script-runs.test.mjs',
   'tests/widget-scripts.test.mjs',
 ];
