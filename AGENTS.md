@@ -27,8 +27,10 @@
   operation gets detailed step logs instead of a timeout, so its process and result stay
   observable.
 - Keep contracts in `docs/spec/`, implementation and deployment status in
-  `docs/features.md`, procedures in `docs/operations/`, and actual changes in
-  `CHANGELOG.md`.
+  `docs/features.md`, procedures in `docs/operations/`, planned tasks with their
+  verification and completion in `docs/plans/execution-checklist.md`, and actual
+  changes in `CHANGELOG.md`. Every change belongs to a task of the checklist; add the
+  task before the work when it is missing.
 - Use the simplest implementation that meets the current contract. Remove
   replaced runtime paths instead of adding compatibility or migration code.
 - Separate structure compilation, instance data, rendering and validation.
@@ -59,3 +61,29 @@
   external source, copying or adaptation history. Name an external project only
   when its identity, API or path is required by the current contract or procedure.
 - Keep personal preferences and conversation context outside the repository.
+
+# Checklist
+
+- This repository has one checklist, `docs/plans/execution-checklist.md`. Split a task into
+  sub-items or add tasks to it; do not create another checklist. Every repository keeps its own
+  checklist.
+- A task has one of four states: `[ ]` waiting, `[~]` in progress, `[o]` done, `[!]` bypassed.
+  A task is `[o]` only after its verification passed on the committed tree.
+- `[!]` is used only when the next task cannot proceed without bypassing this one. The task records
+  the cause and the condition for retrying it; when that condition holds, resume the task without
+  waiting for approval. `[!]` is not done. An audit covers only the `[!]` tasks with their causes and
+  retry conditions and does not repeat unrelated full test runs.
+- A new problem gets a new task. A problem related to a task that is `[o]` gets a sub-item with the
+  next derived ID (`C1.2-1`, `C1.2-2`) that goes through `[~]` and `[o]`; the `[o]` task keeps its
+  state.
+- A task reproduces a problem, or a stated assumed problem, with a failing test first, confirms the
+  failure, changes the implementation and confirms the same test passes.
+- Independent tasks may run in parallel, but finishing a task in progress comes before starting a
+  new one: the number of `[o]` tasks grows, not the number of `[~]` tasks.
+- Uncommitted changes never span more than one task. When a task becomes `[o]`, its changelog entry
+  and its commit are made in the same unit of work.
+- A received instruction is classified first: a task of the checklist, a rule of this file, or an
+  answer only. Unless the instruction states that it is urgent, record it as a task with its priority
+  and continue the task in progress. Rules belong in this file without duplication, never in the
+  checklist or the changelog.
+- Korean documents write technical terms in English and only the surrounding text in Korean.
