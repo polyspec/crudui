@@ -1,5 +1,14 @@
 # 변경 기록
 
+## 2026-10-04 — 좁은 viewport에 맞는 list (C1.2)
+
+- `.crudui-list`는 스스로 가로로 scroll하므로, 긴 숫자를 담은 list case `format-number-shortest`처럼
+  viewport보다 넓은 table이 더 이상 page를 넓히지 않습니다. 360 CSS pixel에서 그 case는 Chromium,
+  Firefox, WebKit에서 문서를 408~428 px로 넓혔습니다. `tests/viewport.test.mjs`는 공유 render fixture의
+  case 432개의 expected HTML을 `crudui.css`가 있는 page에 두고 세 engine에서 360과 1280 px로 열어,
+  문서의 가로 overflow가 없고 모든 control과 action이 viewport 안에 있는지 확인합니다. 변경 전에는 그
+  case에서 실패했습니다.
+
 ## 2026-10-04 — stylesheet의 viewport 폭 (C1.1)
 
 - form markup contract에 `crudui.css`의 viewport 폭을 적었습니다. 360과 1280 CSS pixel에서 모든 공유

@@ -468,7 +468,9 @@ page with `crudui.css` and no other stylesheet, causes no horizontal overflow of
 the scroll width of the document element is not greater than the viewport width. Every control
 (`input`, `select`, `textarea`, `button`) and every action lies within the viewport, except
 inside an element that scrolls horizontally on its own (`overflow-x` `auto` or `scroll`), such
-as the table of a list, whose content may be wider than the viewport.
+as the table of a list, whose content may be wider than the viewport. A list scrolls
+horizontally on its own, so a wide table does not widen the page. `tests/viewport.test.mjs`
+checks every case at both widths in Chromium, Firefox and WebKit.
 
 ## List and detail markup
 

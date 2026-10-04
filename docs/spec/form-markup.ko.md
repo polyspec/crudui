@@ -430,7 +430,9 @@ href, design, behavior }` 목록이고 `type`은 `submit`, `reset`, `button`, `l
 overflow가 생기지 않습니다. 곧 document element의 scroll width가 viewport 폭보다 크지 않습니다.
 모든 control(`input`, `select`, `textarea`, `button`)과 모든 action은 viewport 안에 있습니다. 다만
 list의 table처럼 스스로 가로로 scroll하는 element(`overflow-x`가 `auto`나 `scroll`) 안은 viewport보다
-넓을 수 있습니다.
+넓을 수 있습니다. list는
+스스로 가로로 scroll하므로, 넓은 table이 page를 넓히지 않습니다. `tests/viewport.test.mjs`는 Chromium,
+Firefox, WebKit에서 모든 case를 두 폭으로 검사합니다.
 
 ## 목록·상세 마크업
 

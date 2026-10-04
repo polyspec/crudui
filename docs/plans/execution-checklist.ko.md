@@ -18,7 +18,7 @@
 | ID | 작업 | Verification | 상태 |
 |---|---|---|---|
 | C1.1 | 좁은 viewport를 명세한다. 공유 fixture의 모든 block은 viewport 폭 360 CSS pixel과 1280 pixel에서 page의 가로 overflow 없이 렌더되고, 모든 control과 action은 viewport 안에 있다 | `make docs-check` | [o] |
-| C1.2 | 공유 fixture에 대한 좁은 viewport browser case를 더하고, `crudui.css`가 overflow하는 곳에서 실패하는지 확인한 뒤 `crudui.css`를 고친다 | browser case, `make docs-check` | [ ] |
+| C1.2 | 공유 fixture에 대한 좁은 viewport browser case를 더하고, `crudui.css`가 overflow하는 곳에서 실패하는지 확인한 뒤 `crudui.css`를 고친다 | browser case, `make docs-check` | [o] |
 | C1.3 | Tailwind 버전을 명세한다. `@crudui/generator-core/crudui.tailwind.css`는 같은 `crudui-*` class를 `@apply`와 같은 `--crudui-*` custom property로 꾸미는 Tailwind CSS 4 source이고, Tailwind build로 compile된다. markup은 바뀌지 않고, compile한 결과는 두 폭에서 공유 fixture의 모든 element에 `crudui.css`와 같은 computed style을 준다 | `make docs-check` | [ ] |
 | C1.4 | `crudui.tailwind.css`를 쓰고, 최신 stable Tailwind CSS로 compile해 두 폭에서 computed style을 `crudui.css`와 비교하는 case를 더한다. source가 없을 때 case가 실패하는지 확인한다 | 비교 case | [ ] |
 | C1.5 | package export, feature status, operations 문서, changelog, full test suite | full test suite, `make docs-check` | [ ] |
