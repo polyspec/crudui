@@ -1,5 +1,13 @@
 # 변경 기록
 
+## 2026-10-04 — Tailwind 버전의 명세 (C1.3)
+
+- form markup contract에 `crudui.tailwind.css`를 명세했습니다. `crudui.css`의 rule을 Tailwind CSS 4의
+  cascade layer `components`에 담고, `crudui.css`에서 생성하고 그것과 대조하며, 360과 1280 px에서
+  `crudui.css`와 같은 computed style을 줍니다. 작업은 처음에 `@apply`로 쓴 두 번째 stylesheet를
+  요구했는데, 손으로 쓴 rule 두 벌은 서로 어긋날 수 있으므로 고쳤습니다. file은 아직 구현되지
+  않았습니다(C1.4).
+
 ## 2026-10-04 — 좁은 viewport에 맞는 list (C1.2)
 
 - `.crudui-list`는 스스로 가로로 scroll하므로, 긴 숫자를 담은 list case `format-number-shortest`처럼
