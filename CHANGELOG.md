@@ -1,5 +1,14 @@
 # Changes
 
+## 2026-10-05 — PHPUnit counts of the test runner (C2.5)
+
+- The PHPUnit mode of `scripts/run-tests.mjs` counts only tests. A `testSuiteFinished` message
+  carries no location, so the finish of a test class or a data provider method was counted as a
+  passed test: the validator-php run reported 804 passed tests where PHPUnit ran 763, and now
+  reports 763. Lines that are not TeamCity messages, such as `Test file "..." not found` and the
+  summary with its warnings, are printed; they were dropped. `tests/build/run-tests.test.mjs`
+  failed on both before the change.
+
 ## 2026-10-05 — Test rules of the repository (C2.1)
 
 - AGENTS runs only the Red and Green tests that own a change while a task is in development, and

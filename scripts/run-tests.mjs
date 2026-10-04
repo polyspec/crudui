@@ -151,24 +151,35 @@ export function cargoEvents(progress) {
 
 const unescapeTeamcity = value => value.replace(/\|(['|\][nr])/g, (match, character) => ({ n: '\n', r: '\r' })[character] ?? character);
 
-/** Read PHPUnit TeamCity messages into progress lines. */
+/**
+ * Read PHPUnit TeamCity messages into progress lines. Other lines, such as an error about a
+ * missing test file or the summary with its warnings, are printed as they are.
+ */
 export function phpunitEvents(progress) {
   const failures = new Map();
   // A test is named by its class and method; testFinished repeats only the method name.
   const ids = new Map();
+  // Suites without a location (the configuration and the test suites) are printed as groups. A
+  // class or a data provider method has a location on its start only, so its finish is matched by
+  // this set and is not counted.
+  const groups = new Set();
   const qualified = attributes => {
     const hint = /::\\?([^:]+)::(.+)$/.exec(attributes.locationHint ?? '');
     return hint ? `${hint[1].split('\\').pop()}::${hint[2]}` : attributes.name;
   };
   return line => {
     const message = /^##teamcity\[(\w+)((?: \w+='(?:[^'|]|\|.)*')*)\]$/.exec(line.trim());
-    if (!message) return undefined;
+    if (!message) return line.trim() ? progress.line(line) : undefined;
     const attributes = Object.fromEntries([...message[2].matchAll(/ (\w+)='((?:[^'|]|\|.)*)'/g)].map(([, key, value]) => [key, unescapeTeamcity(value)]));
     if (message[1] === 'testStarted') ids.set(attributes.name, qualified(attributes));
     const id = ids.get(attributes.name) ?? attributes.name;
     switch (message[1]) {
-      case 'testSuiteStarted': return attributes.locationHint ? undefined : progress.start(id, { group: true });
-      case 'testSuiteFinished': return attributes.locationHint ? undefined : progress.pass(id);
+      case 'testSuiteStarted': {
+        if (attributes.locationHint) return undefined;
+        groups.add(id);
+        return progress.start(id, { group: true });
+      }
+      case 'testSuiteFinished': return groups.delete(id) ? progress.pass(id) : undefined;
       case 'testStarted': return progress.start(id);
       case 'testFailed': failures.set(id, `${attributes.message ?? ''}\n${attributes.details ?? ''}`); return undefined;
       case 'testIgnored': return progress.skip(id);
