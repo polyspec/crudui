@@ -50,7 +50,7 @@ function measure(html) {
 
 for (const engine of engines) {
   for (const width of widths) {
-    test(`${engine} at ${width} px: every shared render case fits the viewport`, { timeout: 300000 }, async () => {
+    test(`${engine} at ${width} px: every shared render case fits the viewport`, { timeout: 300000 }, async t => {
       const started = performance.now();
       const page = await engineDrivers[engine].open(browsers[engine], { width, height: 800 });
       try {
@@ -60,7 +60,7 @@ for (const engine of engines) {
           const problems = await page.mainFrame().evaluate(measure, item.html);
           if (problems.length > 0) failures.push(`${item.name}: ${problems.join('; ')}`);
         }
-        console.log(`${engine} ${width} px: ${cases.length} cases, ${failures.length} failed, ${Math.round(performance.now() - started)} ms`);
+        t.diagnostic(`${engine} ${width} px: ${cases.length} cases, ${failures.length} failed, ${Math.round(performance.now() - started)} ms`);
         assert.deepEqual(failures, []);
       } finally {
         await page.close();
