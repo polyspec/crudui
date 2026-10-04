@@ -1,5 +1,12 @@
 # 변경 기록
 
+## 2026-10-04 — Tailwind 버전의 export (C1.5)
+
+- `@crudui/generator-core`는 `./crudui.tailwind.css`를 export합니다. feature status에
+  `viewport-widths`와 `tailwind-styles`를 적고, operations 문서에 viewport test와 Tailwind test, 그리고
+  `crudui.css`를 바꾼 뒤의 재생성을 적었습니다. full suite(`make ci`)가 통과합니다. 첫 실행은 새 test와
+  script에서 `npm run lint`와 `npm run test:runtimes`가 실패했고, C1.4-1이 고쳤습니다.
+
 ## 2026-10-04 — style의 Tailwind 버전 (C1.4)
 
 - `packages/generator-core/styles/crudui.tailwind.css`는 `crudui.css`의 rule을 cascade layer
