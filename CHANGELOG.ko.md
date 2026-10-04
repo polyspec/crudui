@@ -1,5 +1,13 @@
 # 변경 기록
 
+## 2026-10-05 — test runner의 PHPUnit 개수 (C2.5)
+
+- `scripts/run-tests.mjs`의 PHPUnit mode는 test만 셉니다. `testSuiteFinished` message에는
+  location이 없어서 test class나 data provider method의 끝이 통과한 test로 세어졌습니다.
+  validator-php 실행은 PHPUnit이 763개를 실행했는데 804 passed를 보고했고, 이제 763을 보고합니다.
+  `Test file "..." not found`나 warning을 담은 요약처럼 TeamCity message가 아닌 줄을 출력합니다. 전에는
+  버려졌습니다. `tests/build/run-tests.test.mjs`는 변경 전에 두 가지 모두에서 실패했습니다.
+
 ## 2026-10-05 — 저장소의 test rule (C2.1)
 
 - AGENTS는 작업을 개발하는 동안 바뀐 것을 소유한 Red와 Green test만 실행하고, full suite는

@@ -70,21 +70,30 @@ test('serial libtest output starts a test before its result arrives', () => {
   ]);
 });
 
-test('PHPUnit TeamCity messages name each test by class and method', () => {
+test('PHPUnit TeamCity messages name each test by class and method and other lines are printed', () => {
   const { lines, progress } = recorder();
   const read = phpunitEvents(progress);
   for (const line of [
+    'PHPUnit 12.5.0 by Sebastian Bergmann and contributors.',
+    '',
     "##teamcity[testSuiteStarted name='Suite' flowId='1']",
+    "##teamcity[testSuiteStarted name='A\\ATest' locationHint='php_qn:///t/ATest.php::\\A\\ATest' flowId='1']",
+    "##teamcity[testSuiteStarted name='testA' locationHint='php_qn:///t/ATest.php::\\A\\ATest::testA' flowId='1']",
     "##teamcity[testStarted name='testA with data set \"x\"' locationHint='php_qn:///t/ATest.php::\\\\A\\\\ATest::testA with data set \"x\"' flowId='1']",
     "##teamcity[testFailed name='testA with data set \"x\"' message='Failed asserting |'1|'' details='at ATest.php:3|n' flowId='1']",
     "##teamcity[testFinished name='testA with data set \"x\"' duration='12' flowId='1']",
+    "##teamcity[testSuiteFinished name='testA' flowId='1']",
     "##teamcity[testStarted name='testB' locationHint='php_qn:///t/ATest.php::\\\\A\\\\ATest::testB' flowId='1']",
     "##teamcity[testFinished name='testB' duration='0' flowId='1']",
+    "##teamcity[testSuiteFinished name='A\\ATest' flowId='1']",
     "##teamcity[testSuiteFinished name='Suite' flowId='1']",
+    'Test file "/missing.php" not found',
   ]) read(line);
+  // The class and the data provider method are suites, not tests: two tests ran.
+  assert.deepEqual(progress.counts, { passed: 1, failed: 1, skipped: 0, timedOut: 0 });
   assert.deepEqual(lines, [
-    '▶ Suite', '▶ ATest::testA with data set "x"', '✖ ATest::testA with data set "x" (0.0s)', "Failed asserting '1'", 'at ATest.php:3',
-    '▶ ATest::testB', '✔ ATest::testB (0.0s)', '✔ Suite (0.0s)',
+    'PHPUnit 12.5.0 by Sebastian Bergmann and contributors.', '▶ Suite', '▶ ATest::testA with data set "x"', '✖ ATest::testA with data set "x" (0.0s)', "Failed asserting '1'", 'at ATest.php:3',
+    '▶ ATest::testB', '✔ ATest::testB (0.0s)', '✔ Suite (0.0s)', 'Test file "/missing.php" not found',
   ]);
 });
 

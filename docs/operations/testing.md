@@ -69,6 +69,9 @@ Package scripts, Composer scripts and Makefile targets call test tools only thro
 The runner stops a Go, Cargo or PHPUnit test at its timeout, and PHPUnit sets no time limit of its
 own; `node --test` and Vitest stop a test at its timeout only when the test waits, so they cannot
 stop synchronous work.
+PHPUnit runs with `--teamcity`: the runner counts each TeamCity test, never a test class or a data
+provider method, and prints every line that is not a TeamCity message, such as an error about a
+missing test file or the summary with its warnings.
 
 Every failure of a run is printed with its test file and elapsed time, including a failure outside
 a test: a hook that fails or runs out of time and an error of a test file. A file or a suite whose
