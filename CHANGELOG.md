@@ -1,5 +1,13 @@
 # Changes
 
+## 2026-10-04 — Specification of the Tailwind version (C1.3)
+
+- The form markup contract specifies `crudui.tailwind.css`: the rules of `crudui.css` inside the
+  cascade layer `components` of Tailwind CSS 4, generated from `crudui.css` and checked against
+  it, with the same computed styles as `crudui.css` at 360 and 1280 px. The task first required a
+  second stylesheet written with `@apply`; it is amended, because two hand-written copies of the
+  rules could differ. The file is not implemented yet (C1.4).
+
 ## 2026-10-04 — Lists that fit a narrow viewport (C1.2)
 
 - `.crudui-list` scrolls horizontally on its own, so a table wider than the viewport, such as the

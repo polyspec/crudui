@@ -472,6 +472,26 @@ as the table of a list, whose content may be wider than the viewport. A list scr
 horizontally on its own, so a wide table does not widen the page. `tests/viewport.test.mjs`
 checks every case at both widths in Chromium, Firefox and WebKit.
 
+### Tailwind CSS
+
+Not implemented yet: the file, its script and its test arrive with task C1.4 of the execution
+checklist.
+
+A page styled with Tailwind CSS 4 uses
+`@crudui/generator-core/crudui.tailwind.css` in place of `crudui.css`, and imports it after
+`tailwindcss`. The file holds the rules of `crudui.css` unchanged inside the cascade layer
+`components`, so a utility class of the page, which lies in the later layer `utilities`,
+overrides a CRUDUI rule. The markup is the same for both files. `packages/generator-core/scripts/write-tailwind-styles.mjs`
+writes the file from `crudui.css`, and its `--check` mode fails when the committed file differs,
+so the two files never hold different rules. A page themes the blocks with the
+`--crudui-*` properties, as with `crudui.css`, for example with the colors of its Tailwind theme:
+`.crudui-form, .crudui-list { --crudui-accent: var(--color-indigo-600); }`.
+
+Compiled with the theme and the utilities of the latest stable Tailwind CSS and no other
+stylesheet, `crudui.tailwind.css` gives every element of the expected HTML of every shared render
+fixture the same computed style, without custom properties, as `crudui.css` at the viewport widths
+360 and 1280. `tests/tailwind-styles.test.mjs` compares them in Chromium, Firefox and WebKit.
+
 ## List and detail markup
 
 Display output uses the same block/element/modifier grammar as form output. A list

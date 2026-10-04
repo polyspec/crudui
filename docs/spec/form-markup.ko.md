@@ -434,6 +434,24 @@ list의 table처럼 스스로 가로로 scroll하는 element(`overflow-x`가 `au
 스스로 가로로 scroll하므로, 넓은 table이 page를 넓히지 않습니다. `tests/viewport.test.mjs`는 Chromium,
 Firefox, WebKit에서 모든 case를 두 폭으로 검사합니다.
 
+### Tailwind CSS
+
+아직 구현되지 않았습니다. file과 script와 test는 실행 checklist의 작업 C1.4에서 만들어집니다.
+
+Tailwind CSS 4로 꾸미는 page는 `crudui.css` 대신
+`@crudui/generator-core/crudui.tailwind.css`를 쓰고, 이 file을 `tailwindcss` 뒤에 import합니다. 이
+file은 `crudui.css`의 rule을 바꾸지 않고 cascade layer `components` 안에 담습니다. 그래서 더 뒤의 layer
+`utilities`에 있는 page의 utility class가 CRUDUI rule보다 우선합니다. markup은 두 file에서
+같습니다. `packages/generator-core/scripts/write-tailwind-styles.mjs`가 `crudui.css`에서 이 file을 쓰고,
+그 `--check` mode는 커밋된 file이 다르면 실패하므로, 두 file은 다른 rule을 담지 않습니다. page는
+`crudui.css`와 같이 `--crudui-*` property로 block의 theme을 정합니다. 예를 들어 Tailwind theme의 색을 쓸
+수 있습니다: `.crudui-form, .crudui-list { --crudui-accent: var(--color-indigo-600); }`.
+
+최신 stable Tailwind CSS의 theme과 utility로 compile하고 다른 stylesheet가 없을 때,
+`crudui.tailwind.css`는 viewport 폭 360과 1280에서 모든 공유 render fixture의 expected HTML의 모든
+element에 `crudui.css`와 같은 computed style(custom property 제외)을 줍니다.
+`tests/tailwind-styles.test.mjs`가 Chromium, Firefox, WebKit에서 둘을 비교합니다.
+
 ## 목록·상세 마크업
 
 표시 결과도 폼 결과와 같은 블록·요소·수식자 문법을 사용합니다. 목록 루트는
