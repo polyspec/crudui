@@ -780,6 +780,12 @@ textarea.crudui-input {
   min-width: 0;
 }
 
+/* A table wider than the viewport, such as one with long numbers, scrolls inside the list and
+   does not widen the page. */
+.crudui-list {
+  overflow-x: auto;
+}
+
 .crudui-list__table {
   width: 100%;
   border-collapse: collapse;

@@ -1,5 +1,15 @@
 # Changes
 
+## 2026-10-04 — Lists that fit a narrow viewport (C1.2)
+
+- `.crudui-list` scrolls horizontally on its own, so a table wider than the viewport, such as the
+  list case `format-number-shortest` with its long numbers, no longer widens the page. At 360 CSS
+  pixels that case made the document 408 to 428 px wide in Chromium, Firefox and WebKit.
+  `tests/viewport.test.mjs` places the expected HTML of the 432 cases of the shared render
+  fixtures in a page with `crudui.css` at 360 and 1280 px in the three engines and requires no
+  horizontal overflow of the document and every control and action inside the viewport; it failed
+  on that case before the change.
+
 ## 2026-10-04 — Viewport widths of the stylesheet (C1.1)
 
 - The form markup contract states the viewport widths of `crudui.css`: at 360 and 1280 CSS
