@@ -100,7 +100,10 @@ validator test or a PHP extension engine fixture reads a clock.
 `tests/build/test-commands.test.mjs`, run by `npm run test:runtimes`, fails when:
 
 - a package script, Composer script, Makefile target or CI step calls a test tool directly;
-- a CI job has no `timeout-minutes`;
+- a CI step that runs tests, or the job of such a step, has `timeout-minutes`, a step of that job
+  that runs no tests has none, or a job without a test step has none. A step runs tests when its
+  command calls `scripts/run-tests.mjs` or reaches, through npm scripts, Composer scripts and
+  Makefile targets, a test command or the runner; the runner bounds each of its tests;
 - a script that a test command starts does not print through `scripts/test-progress/progress.mjs`;
 - a `node:test` file is run by no project command;
 - a TypeScript package has no `typecheck` script, or CI does not run `npm run typecheck`.

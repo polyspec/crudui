@@ -1,7 +1,7 @@
 // The test command standard: every test the project runs goes through scripts/run-tests.mjs,
 // which prints each test as it starts, runs, passes or fails with its elapsed time and stops a
 // test that outlives its own timeout. A test tool called directly from a project command, or a
-// CI job without its own time limit, fails this check.
+// CI time limit over a step or a job that runs tests, fails this check.
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
@@ -9,7 +9,9 @@ import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
-import { directTestTools, isTestCommand, matchesArgument, nodeScripts, nodeTestArguments, projectCommands } from '../../scripts/test-commands.mjs';
+import {
+  directTestTools, isTestCommand, makeTargets, matchesArgument, nodeScripts, nodeTestArguments, projectCommands, runsTests, workflowJobs,
+} from '../../scripts/test-commands.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const tracked = [
@@ -85,19 +87,58 @@ test('every TypeScript package declares a typecheck that CI runs', () => {
   assert.ok(ci.includes('npm run typecheck'), 'CI does not run npm run typecheck');
 });
 
-test('every CI job has its own time limit', () => {
-  const workflows = tracked.filter(file => file.startsWith('.github/workflows/'));
-  const missing = [];
-  for (const file of workflows) {
-    const lines = read(file).split('\n');
-    const jobsAt = lines.findIndex(line => /^jobs:\s*$/.test(line));
-    for (let index = jobsAt + 1; index < lines.length; index++) {
-      const job = /^ {2}([\w-]+):\s*$/.exec(lines[index]);
-      if (!job) continue;
-      let end = index + 1;
-      while (end < lines.length && !/^ {2}[\w-]+:\s*$/.test(lines[end]) && !/^\S/.test(lines[end])) end++;
-      if (!lines.slice(index + 1, end).some(line => /^ {4}timeout-minutes:\s*\d+\s*$/.test(line))) missing.push(`${file} ${job[1]}`);
+/** The npm scripts, Composer scripts, workspaces and Makefile targets the repository declares. */
+function declaredCommands() {
+  const project = { npm: {}, composer: {}, workspaces: {}, make: {} };
+  for (const file of tracked) {
+    const directory = path.posix.dirname(file);
+    if (file.endsWith('package.json')) {
+      const manifest = JSON.parse(read(file));
+      project.npm[directory] = manifest.scripts ?? {};
+      if (manifest.name) project.workspaces[manifest.name] = directory;
+    } else if (file.endsWith('composer.json')) {
+      project.composer[directory] = JSON.parse(read(file)).scripts ?? {};
+    } else if (file === 'Makefile') {
+      project.make = makeTargets(read(file));
     }
   }
-  assert.deepEqual(missing, []);
+  return project;
+}
+
+test('a CI step runs tests when its command reaches the test runner', () => {
+  const project = declaredCommands();
+  for (const command of [
+    'npm run test:runtimes', 'npm test -w @crudui/validator', 'composer --working-dir=packages/validator-php test',
+    'node scripts/run-tests.mjs go --cwd packages/validator-go -- ./...', 'make docs-check', 'make test-native',
+    'npm test --prefix examples/cross-check-console/server', 'npm run manifest:test', 'npm run test:build && npm run test:build:repeat',
+  ]) assert.equal(runsTests(command, project), true, command);
+  for (const command of [
+    'npm i -g npm@latest && npm ci --strict-allow-scripts', 'npm run build', 'npm run lint', 'npm run typecheck',
+    'make build-php-extension', 'node scripts/check-ci-browser.mjs', 'node scripts/check-conformance.mjs',
+  ]) assert.equal(runsTests(command, project), false, command);
+});
+
+// The test runner gives every test its own timeout, so a time limit over a step that runs tests,
+// or over its job, is a whole-suite timeout. The other steps of such a job (checkout, toolchains,
+// installs, builds, uploads) each keep a short limit of their own. A job without a test step keeps
+// a job limit.
+test('CI time limits bound setup steps and never a step or a job that runs tests', () => {
+  const project = declaredCommands();
+  const violations = [];
+  for (const file of tracked.filter(name => name.startsWith('.github/workflows/'))) {
+    for (const job of workflowJobs(read(file))) {
+      const tests = job.steps.filter(step => step.run && runsTests(step.run, project));
+      if (!tests.length) {
+        if (!job.timeout) violations.push(`${file} ${job.name}: a job without tests has no timeout-minutes`);
+        continue;
+      }
+      if (job.timeout) violations.push(`${file} ${job.name}: the job runs tests and has timeout-minutes`);
+      for (const step of job.steps) {
+        const label = `${file}:${step.line} ${job.name} ${step.name ?? step.run ?? step.uses}`;
+        if (tests.includes(step) && step.timeout) violations.push(`${label}: runs tests and has timeout-minutes`);
+        if (!tests.includes(step) && !step.timeout) violations.push(`${label}: does not run tests and has no timeout-minutes`);
+      }
+    }
+  }
+  assert.deepEqual(violations, []);
 });

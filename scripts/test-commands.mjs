@@ -2,6 +2,8 @@
 // require that every test runs through scripts/run-tests.mjs. `npm test` and `composer test` run a
 // declared script, which is checked where it is declared.
 
+import path from 'node:path';
+
 /**
  * The commands a tracked file declares: npm or composer scripts, Makefile recipes, CI steps and
  * the verification commands of the feature manifest.
@@ -118,4 +120,127 @@ export function nodeTestArguments(command) {
 export function matchesArgument(file, argument) {
   const pattern = argument.split('*').map(part => part.replace(/[.+?^${}()|[\]\\]/g, '\\$&')).join('[^/]*');
   return new RegExp(`^${pattern}$`).test(file);
+}
+
+/**
+ * The jobs of a workflow with their steps. A job or a step has `timeout` when it declares
+ * `timeout-minutes`; a step has `run` (its command) or `uses` (an action).
+ */
+export function workflowJobs(text) {
+  const jobs = [];
+  const lines = text.split('\n');
+  const jobsAt = lines.findIndex(line => /^jobs:\s*$/.test(line));
+  if (jobsAt === -1) return jobs;
+  let job;
+  let step;
+  for (let index = jobsAt + 1; index < lines.length; index++) {
+    const line = lines[index];
+    if (/^\S/.test(line)) break;
+    const name = /^ {2}([\w-]+):\s*$/.exec(line);
+    if (name) {
+      job = { name: name[1], line: index + 1, timeout: false, steps: [] };
+      step = undefined;
+      jobs.push(job);
+      continue;
+    }
+    if (!job) continue;
+    if (/^ {4}timeout-minutes:/.test(line)) job.timeout = true;
+    const item = /^ {6}- (.*)$/.exec(line);
+    if (item) {
+      step = { line: index + 1, timeout: false };
+      job.steps.push(step);
+    }
+    const key = item ? /^([\w-]+):\s*(.*)$/.exec(item[1]) : /^ {8}([\w-]+):\s*(.*)$/.exec(line);
+    if (!step || !key) continue;
+    const [, field, value] = key;
+    if (field === 'timeout-minutes') step.timeout = true;
+    else if (field === 'name') step.name = value;
+    else if (field === 'uses') step.uses = value;
+    else if (field === 'run') {
+      if (value !== '|' && value !== '>') {
+        step.run = value;
+        continue;
+      }
+      const block = [];
+      while (index + 1 < lines.length && (lines[index + 1].trim() === '' || lines[index + 1].search(/\S/) > 8)) block.push(lines[++index].trim());
+      step.run = block.filter(Boolean).join(value === '>' ? ' ' : '\n');
+    }
+  }
+  return jobs;
+}
+
+/** The value of an option given as `--name value` or `--name=value`, and the remaining arguments. */
+function takeOptions(args, names) {
+  const options = {};
+  const rest = [];
+  for (let index = 0; index < args.length; index++) {
+    const [flag, inline] = args[index].split(/=(.*)/s);
+    if (names.includes(flag)) options[flag] = inline ?? args[++index];
+    else rest.push(args[index]);
+  }
+  return { options, rest };
+}
+
+/**
+ * Whether a command runs tests: it calls scripts/run-tests.mjs, or an npm script, a Composer
+ * script or a Makefile target that is a test command (`isTestCommand`) or that reaches one.
+ * `project` holds the declared commands: `npm` and `composer` map a directory to its scripts,
+ * `workspaces` maps a package name to its directory and `make` maps a target to its prerequisites
+ * and recipe lines.
+ */
+export function runsTests(command, project, directory = '.', seen = new Set()) {
+  for (const segment of command.split(/&&|\|\||[;|\n]/)) {
+    const tokens = segment.trim().split(/\s+/).filter(Boolean);
+    while (tokens.length && /^[A-Z_][A-Z0-9_]*=/.test(tokens[0])) tokens.shift();
+    if (tokens.some(token => runner.test(token))) return true;
+    const reached = [];
+    if (tokens[0] === 'npm') {
+      const { options, rest } = takeOptions(tokens.slice(1), ['-w', '--workspace', '--prefix']);
+      const [subcommand, script] = rest.filter(token => !token.startsWith('-'));
+      const name = ['test', 't'].includes(subcommand) ? 'test' : ['run', 'run-script'].includes(subcommand) ? script : undefined;
+      if (!name) continue;
+      if (isTestCommand('package.json', name)) return true;
+      const workspace = options['-w'] ?? options['--workspace'];
+      const target = workspace ? project.workspaces[workspace] : options['--prefix'] ? path.posix.join(directory, options['--prefix']) : directory;
+      reached.push(...[project.npm[target]?.[name] ?? []].flat().map(value => [value, target, `npm ${target} ${name}`]));
+    } else if (tokens[0] === 'composer') {
+      const { options, rest } = takeOptions(tokens.slice(1), ['--working-dir', '-d']);
+      const [name] = rest.filter(token => !token.startsWith('-'));
+      if (!name) continue;
+      if (isTestCommand('composer.json', name)) return true;
+      const target = path.posix.join(directory, options['--working-dir'] ?? options['-d'] ?? '.');
+      reached.push(...[project.composer[target]?.[name] ?? []].flat().map(value => [value, target, `composer ${target} ${name}`]));
+    } else if (tokens[0] === 'make' || tokens[0] === '$(MAKE)') {
+      for (const target of tokens.slice(1).filter(token => !token.startsWith('-') && !token.includes('='))) {
+        if (isTestCommand('Makefile', target)) return true;
+        const rule = project.make[target];
+        if (!rule) continue;
+        reached.push(...rule.prerequisites.map(prerequisite => [`make ${prerequisite}`, directory, `make ${prerequisite}`]));
+        reached.push(...rule.commands.map(value => [value, directory, `make ${target}`]));
+      }
+    }
+    for (const [value, target, key] of reached) {
+      const id = `${key}\n${value}`;
+      if (seen.has(id)) continue;
+      seen.add(id);
+      if (runsTests(value, project, target, seen)) return true;
+    }
+  }
+  return false;
+}
+
+/** The prerequisites and recipe lines of every Makefile target. */
+export function makeTargets(text) {
+  const targets = {};
+  let current;
+  for (const line of text.replace(/\\\n\s*/g, ' ').split('\n')) {
+    const rule = /^([^\s#.][^:=]*):(?!=)([^#]*)/.exec(line);
+    if (rule) {
+      const prerequisites = rule[2].trim().split(/\s+/).filter(Boolean);
+      for (const target of rule[1].trim().split(/\s+/)) targets[target] = current = { prerequisites, commands: [] };
+    } else if (line.startsWith('\t') && current) {
+      current.commands.push(line.trim().replace(/^[@-]+/, ''));
+    }
+  }
+  return targets;
 }
