@@ -1,5 +1,15 @@
 # 변경 기록
 
+## 2026-10-04 — style의 Tailwind 버전 (C1.4)
+
+- `packages/generator-core/styles/crudui.tailwind.css`는 `crudui.css`의 rule을 cascade layer
+  `components`에 담습니다. `packages/generator-core/scripts/write-tailwind-styles.mjs`가 이 file을 쓰고,
+  `npm run test:forms`에 들어 있는 그 `--check` mode는 커밋된 file이 다르면 실패합니다. file이 없을 때
+  실패했습니다. `tests/tailwind-styles.test.mjs`는 이 file을 Tailwind CSS 4.3.3의 theme과 utility로
+  compile하고, 공유 render case 432개를 Chromium, Firefox, WebKit에서 360과 1280 px로 열어 computed
+  style을 `crudui.css`와 비교합니다. 다른 element는 없습니다. file이 없을 때는 `Can't resolve`로
+  실패했습니다. Tailwind CSS와 `@tailwindcss/node` 4.3.3은 저장소의 development dependency입니다.
+
 ## 2026-10-04 — Tailwind 버전의 명세 (C1.3)
 
 - form markup contract에 `crudui.tailwind.css`를 명세했습니다. `crudui.css`의 rule을 Tailwind CSS 4의

@@ -436,8 +436,6 @@ Firefox, WebKit에서 모든 case를 두 폭으로 검사합니다.
 
 ### Tailwind CSS
 
-아직 구현되지 않았습니다. file과 script와 test는 실행 checklist의 작업 C1.4에서 만들어집니다.
-
 Tailwind CSS 4로 꾸미는 page는 `crudui.css` 대신
 `@crudui/generator-core/crudui.tailwind.css`를 쓰고, 이 file을 `tailwindcss` 뒤에 import합니다. 이
 file은 `crudui.css`의 rule을 바꾸지 않고 cascade layer `components` 안에 담습니다. 그래서 더 뒤의 layer

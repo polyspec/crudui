@@ -1,5 +1,16 @@
 # Changes
 
+## 2026-10-04 — Tailwind version of the styles (C1.4)
+
+- `packages/generator-core/styles/crudui.tailwind.css` holds the rules of `crudui.css` in the
+  cascade layer `components`. `packages/generator-core/scripts/write-tailwind-styles.mjs` writes it,
+  and its `--check` mode, part of `npm run test:forms`, fails when the committed file differs; it
+  failed before the file existed. `tests/tailwind-styles.test.mjs` compiles the file with the theme
+  and the utilities of Tailwind CSS 4.3.3 and compares the computed styles with `crudui.css` for the
+  432 shared render cases at 360 and 1280 px in Chromium, Firefox and WebKit: no element differs.
+  It failed with `Can't resolve` before the file existed. Tailwind CSS and `@tailwindcss/node` 4.3.3
+  are development dependencies of the repository.
+
 ## 2026-10-04 — Specification of the Tailwind version (C1.3)
 
 - The form markup contract specifies `crudui.tailwind.css`: the rules of `crudui.css` inside the

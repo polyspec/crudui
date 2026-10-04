@@ -474,9 +474,6 @@ checks every case at both widths in Chromium, Firefox and WebKit.
 
 ### Tailwind CSS
 
-Not implemented yet: the file, its script and its test arrive with task C1.4 of the execution
-checklist.
-
 A page styled with Tailwind CSS 4 uses
 `@crudui/generator-core/crudui.tailwind.css` in place of `crudui.css`, and imports it after
 `tailwindcss`. The file holds the rules of `crudui.css` unchanged inside the cascade layer
