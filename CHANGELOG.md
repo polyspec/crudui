@@ -1,5 +1,13 @@
 # Changes
 
+## 2026-10-04 — Export of the Tailwind version (C1.5)
+
+- `@crudui/generator-core` exports `./crudui.tailwind.css`. The feature status lists
+  `viewport-widths` and `tailwind-styles`, and the operations document states the viewport and
+  Tailwind tests and the regeneration after a change of `crudui.css`. The full suite (`make ci`)
+  passes; its first run failed `npm run lint` and `npm run test:runtimes` on the new tests and
+  script, which C1.4-1 corrected.
+
 ## 2026-10-04 — Tailwind version of the styles (C1.4)
 
 - `packages/generator-core/styles/crudui.tailwind.css` holds the rules of `crudui.css` in the
