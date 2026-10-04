@@ -39,7 +39,8 @@ test('CI runs the complete form comparison regression suite', async () => {
 test('CI builds and runs the five record stores and the canonical flow', async () => {
   const workflow = await readFile(path.join(repository, '.github/workflows/ci.yml'), 'utf8');
   const job = workflowJob(workflow, 'form-comparison-pipeline');
-  assert.match(job, /timeout-minutes:\s*\d+/);
+  // The test runner bounds each test; the job has no time limit over them (test-commands.test.mjs).
+  assert.doesNotMatch(job, /^ {4}timeout-minutes:/m);
   assert.match(job, /uses: shivammathur\/setup-php@/);
   assert.match(job, /tools: composer/);
   assert.match(job, /PHP_EXTENSION_PHP_CONFIG:\s*\/usr\/bin\/php-config8\.5/);

@@ -1,5 +1,15 @@
 # Changes
 
+## 2026-10-05 — CI time limits of setup steps only (C2.2)
+
+- No CI job that runs tests and no step that runs tests has `timeout-minutes`; the test runner
+  bounds each test. Every other step of such a job (checkout, toolchains, installs, builds,
+  uploads) has a limit of 5 or 10 minutes, and a job without tests keeps its job limit.
+  `tests/build/test-commands.test.mjs` follows npm scripts, Composer scripts and Makefile targets
+  to find the steps that run tests and fails on a limit over them; it required a job limit before
+  and listed 13 jobs when the case was added. `test:form-comparison:pipeline` builds through
+  `scripts/require-current-build.mjs`, which bounds the build.
+
 ## 2026-10-05 — PHPUnit counts of the test runner (C2.5)
 
 - The PHPUnit mode of `scripts/run-tests.mjs` counts only tests. A `testSuiteFinished` message

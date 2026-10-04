@@ -1,5 +1,14 @@
 # 변경 기록
 
+## 2026-10-05 — setup step에만 두는 CI 시간 한도 (C2.2)
+
+- test를 실행하는 CI job과 step에는 `timeout-minutes`가 없습니다. test runner가 각 test를
+  제한합니다. 그런 job의 다른 step(checkout, toolchain, install, build, upload)은 5분이나 10분 한도를
+  가지고, test가 없는 job은 job 한도를 유지합니다. `tests/build/test-commands.test.mjs`는 npm script,
+  Composer script, Makefile 대상을 따라가 test를 실행하는 step을 찾고 그 위의 한도에서 실패합니다. 전에는
+  job 한도를 요구했고, case를 더했을 때 13개 job을 나열했습니다. `test:form-comparison:pipeline`은 build를
+  제한하는 `scripts/require-current-build.mjs`로 build합니다.
+
 ## 2026-10-05 — test runner의 PHPUnit 개수 (C2.5)
 
 - `scripts/run-tests.mjs`의 PHPUnit mode는 test만 셉니다. `testSuiteFinished` message에는
