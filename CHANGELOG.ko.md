@@ -1,5 +1,12 @@
 # 변경 기록
 
+## 2026-10-04 — stylesheet의 viewport 폭 (C1.1)
+
+- form markup contract에 `crudui.css`의 viewport 폭을 적었습니다. 360과 1280 CSS pixel에서 모든 공유
+  render fixture의 expected HTML은 문서의 가로 overflow를 만들지 않고, 스스로 가로로 scroll하는
+  element 안을 빼면 모든 control과 action이 viewport 안에 있습니다. stylesheet에는 좁은 viewport를 위한
+  rule이 없었습니다.
+
 ## 2026-10-04 — Svelte 렌더러의 NodeNext 선언
 
 - `@crudui/generator-svelte`는 `"type": "module"`을 선언하지만 공개 타입 테스트

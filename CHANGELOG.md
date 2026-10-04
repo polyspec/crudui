@@ -1,5 +1,12 @@
 # Changes
 
+## 2026-10-04 — Viewport widths of the stylesheet (C1.1)
+
+- The form markup contract states the viewport widths of `crudui.css`: at 360 and 1280 CSS
+  pixels the expected HTML of every shared render fixture causes no horizontal overflow of the
+  document, and every control and action lies within the viewport except inside an element that
+  scrolls horizontally on its own. The stylesheet had no rule for a narrow viewport.
+
 ## 2026-10-04 — NodeNext declarations of the Svelte renderer
 
 - `@crudui/generator-svelte` declares `"type": "module"`, and the public type test
