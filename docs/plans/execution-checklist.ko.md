@@ -23,3 +23,15 @@
 | C1.4 | 커밋된 file도 검사하는 script로 `crudui.tailwind.css`를 생성한다. 최신 stable Tailwind CSS로 compile해 세 engine에서 두 폭으로 computed style을 `crudui.css`와 비교하는 case를 더한다. file이 없을 때 둘 다 실패하는지 확인한다 | 생성 검사, 비교 case | [o] |
 | C1.4-1 | viewport test, Tailwind test, 생성 script가 저장소 검사를 통과하게 한다. `make ci`는 `npm run lint`에서 실패했다. 두 test가 browser global을 쓰는 함수를 page에 넘기면서 Node와 browser file 목록에 없었고 `console.log`로 썼기 때문이다. `npm run test:runtimes`에서도 실패했다. `test:forms`가 실행하는 script가 `scripts/test-progress/progress.mjs`로 출력하지 않았기 때문이다. test를 목록에 넣고, `t.diagnostic`으로 보고하고, progress line으로 출력한다 | `make ci` | [o] |
 | C1.5 | package export, feature status, operations 문서, changelog, full test suite | full test suite, `make docs-check` | [o] |
+
+## Wave 2 — test별로 제한되고 관측되는 test 실행
+
+의존: 없음. AGENTS의 rule은 feature가 끝날 때마다 full suite를 실행하게 했고, 긴 작업은 step log로 timeout을 대신하게 했다. suite를 실행하는 CI job은 모든 test 위에 10~30분의 job timeout을 둔다. benchmark driver test는 Go와 Rust driver를 test 안에서 600초 한도로 compile한다. tree verification의 build readiness 대기는 state file을 1초마다 읽고, 그 test는 wall-clock 시간을 한도와 비교한다. `scripts/run-tests.mjs`의 PHPUnit mode는 class와 data provider suite를 통과한 test로 세고, TeamCity message가 아닌 줄을 모두 버린다.
+
+| ID | 작업 | Verification | 상태 |
+|---|---|---|---|
+| C2.1 | AGENTS에 test rule을 적는다. 작업 중에는 바뀐 것을 소유한 Red와 Green test만 실행한다. full suite는 활성 작업이 모두 끝났을 때 정확히 한 번 실행한다. 긴 작업은 자기 timeout에 더해 step log를 출력한다. `make docs-check`는 문서나 공개 API 문서가 바뀌었을 때만 실행한다. Verification 열에는 소유 명령을 적는다. Cause: AGENTS는 feature가 끝날 때마다 full suite를 실행하게 했고 step log가 timeout을 대신하게 했다. Red: AGENTS.md와 AGENTS.ko.md에 그 문장이 있다. Green: 새 rule이 있다 | `node scripts/check-documents.mjs`, `node scripts/run-tests.mjs node --timeout 10 -- tests/docs/changelog.test.mjs tests/docs/repository-writing.test.mjs` | [o] |
+| C2.2 | suite를 실행하는 모든 CI job에서 job timeout을 없애고 setup step마다 짧은 자기 timeout을 둔다. `tests/build/test-commands.test.mjs`는 suite step이나 suite step을 가진 job에 `timeout-minutes`가 있거나 그 job의 setup step에 없으면 실패한다 | `node scripts/run-tests.mjs node -- tests/build/test-commands.test.mjs tests/build/form-comparison-ci.test.mjs` | [ ] |
+| C2.3 | Go와 Rust benchmark driver를 step log와 build 한도를 가진 별도 단계에서 build하고, `tests/build/bench-drivers.test.mjs`는 build된 driver를 초 단위 timeout으로 실행한다. 600초나 590초 한도를 가진 case는 없다 | `npm run test:bench` | [ ] |
+| C2.4 | build readiness를 state file의 변경(`fs.watch`)과 주입 가능한 clock으로 기다린다. readiness test는 명시적인 event와 fake clock으로 상태를 바꾸고 wall-clock 시간을 비교하지 않는다 | `node scripts/run-tests.mjs node -- examples/form-comparison/check-verification.test.mjs` | [ ] |
+| C2.5 | `scripts/run-tests.mjs`의 PHPUnit mode에서 class나 data provider suite가 아니라 PHPUnit test만 세고, TeamCity message가 아닌 PHPUnit 줄을 출력한다 | `node scripts/run-tests.mjs node -- tests/build/run-tests.test.mjs` | [ ] |

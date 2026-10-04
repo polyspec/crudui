@@ -1,5 +1,14 @@
 # Changes
 
+## 2026-10-05 — Test rules of the repository (C2.1)
+
+- AGENTS runs only the Red and Green tests that own a change while a task is in development, and
+  the full suite exactly once, when every active task of the checklist is done; it ran the full
+  suite at each completed feature. A long operation prints step logs in addition to its own
+  timeout; the rule let the step logs replace the timeout. `make docs-check` runs only when a
+  document or a public API document changed, and the Verification column of the checklist names
+  the commands that own a task. The checklist lists wave 2.
+
 ## 2026-10-04 — Export of the Tailwind version (C1.5)
 
 - `@crudui/generator-core` exports `./crudui.tailwind.css`. The feature status lists

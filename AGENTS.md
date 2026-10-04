@@ -16,16 +16,17 @@
   uncommitted changes within one feature. A received instruction is triaged first: finish the
   feature in progress unless the instruction is explicit and urgent, then place the new work by
   priority before starting it.
-- The repository's full test suite runs once, when every feature is complete.
 - Write commit messages in English as `type(scope): subject (#issue)`: a subject of at most 50
   characters, capitalized, imperative, without a trailing period; a blank line; a body wrapped
   near 72 characters explaining what changed and why; an optional footer for references. The
   type is one of feat, fix, docs, style, refactor, test or chore.
-- During development run only the tests of the modified area; run the full suite once, when the
-  feature is completed. Every test reports its own running, completion, success or failure with
-  its elapsed time and has its own timeout; a whole-suite timeout is not used. A long
-  operation gets detailed step logs instead of a timeout, so its process and result stay
-  observable.
+- While a task is in development, run only the Red and Green tests that own the change. The full
+  suite runs exactly once, when every active task of the checklist is done; it never runs after
+  each fix or each task. Every test reports its own running, completion, success or failure with
+  its elapsed time and has its own timeout; a whole-suite timeout is not used. A long operation
+  prints detailed step logs in addition to its own timeout, so its process and result stay
+  observable. A test that runs for tens of minutes, or that prints only its start and its end, is
+  a defect.
 - Keep contracts in `docs/spec/`, implementation and deployment status in
   `docs/features.md`, procedures in `docs/operations/`, planned tasks with their
   verification and completion in `docs/plans/execution-checklist.md`, and actual
@@ -52,8 +53,9 @@
   result would expose it. Confirm the intended failure before implementation,
   correct the cause, and confirm the same case and relevant use tests pass.
   Investigate a case that cannot expose the problem instead of weakening the criterion.
-- Run relevant tests and `make docs-check`. Record results for the current code
-  separately from deployment status.
+- Run the tests that own the change. Run `make docs-check` only when a document or the API
+  documentation of a public package changed. Record results for the current code separately
+  from deployment status.
 - Write comments, documentation, change records and user-facing text as direct
   descriptions of current behavior. Name the subject, operation, target and
   result. State a necessary cause in one sentence.
@@ -78,6 +80,8 @@
   state.
 - A task reproduces a problem, or a stated assumed problem, with a failing test first, confirms the
   failure, changes the implementation and confirms the same test passes.
+- The Verification column of a task names the commands that own the task, never `make ci` or the
+  full suite.
 - Independent tasks may run in parallel, but finishing a task in progress comes before starting a
   new one: the number of `[o]` tasks grows, not the number of `[~]` tasks.
 - Uncommitted changes never span more than one task. When a task becomes `[o]`, its changelog entry
