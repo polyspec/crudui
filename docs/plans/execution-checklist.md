@@ -17,7 +17,7 @@ Depends on: none. `@crudui/generator-core/crudui.css` is the only stylesheet of 
 
 | ID | Task | Verification | Status |
 |---|---|---|---|
-| C1.1 | Specify the narrow viewport: every block of the shared fixtures renders without horizontal overflow of the page at a viewport width of 360 CSS pixels and at 1280 pixels, with every control and action inside the viewport | `make docs-check` | [ ] |
+| C1.1 | Specify the narrow viewport: every block of the shared fixtures renders without horizontal overflow of the page at a viewport width of 360 CSS pixels and at 1280 pixels, with every control and action inside the viewport | `make docs-check` | [o] |
 | C1.2 | Add the browser case of the narrow viewport over the shared fixtures, confirm that it fails where `crudui.css` overflows, and correct `crudui.css` | the browser case, `make docs-check` | [ ] |
 | C1.3 | Specify the Tailwind version: `@crudui/generator-core/crudui.tailwind.css`, a Tailwind CSS 4 source that styles the same `crudui-*` classes with `@apply` and the same `--crudui-*` custom properties, which compiles with a Tailwind build; the markup does not change, and the compiled result gives every element of the shared fixtures the same computed style as `crudui.css` at both widths | `make docs-check` | [ ] |
 | C1.4 | Write `crudui.tailwind.css` and a case that compiles it with the latest stable Tailwind CSS and compares the computed styles with `crudui.css` at both widths; confirm the case fails before the source exists | the comparison case | [ ] |

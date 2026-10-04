@@ -422,6 +422,16 @@ href, design, behavior }` 목록이고 `type`은 `submit`, `reset`, `button`, `l
 `tests/style-properties.test.mjs`는 속성 규칙, 규칙이 읽는 모든 속성이 선언되었는지, 다른 규칙이
 색을 쓰지 않는지 검사합니다.
 
+### Viewport 폭
+
+`crudui.css`는 360 CSS pixel 이상의 모든 viewport 폭에서 모든 block을 배치합니다. viewport 폭
+360과 1280에서, 공유 render fixture(`tests/fixtures/form-render`, `form-complete`, `list-render`,
+`detail-render`)의 모든 case의 expected HTML을 `crudui.css`만 있는 page에 두었을 때 문서의 가로
+overflow가 생기지 않습니다. 곧 document element의 scroll width가 viewport 폭보다 크지 않습니다.
+모든 control(`input`, `select`, `textarea`, `button`)과 모든 action은 viewport 안에 있습니다. 다만
+list의 table처럼 스스로 가로로 scroll하는 element(`overflow-x`가 `auto`나 `scroll`) 안은 viewport보다
+넓을 수 있습니다.
+
 ## 목록·상세 마크업
 
 표시 결과도 폼 결과와 같은 블록·요소·수식자 문법을 사용합니다. 목록 루트는

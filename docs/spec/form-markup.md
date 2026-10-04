@@ -459,6 +459,17 @@ the rule overrides the defaults in any stylesheet order.
 `tests/style-properties.test.mjs` checks the property rule, that every property a rule
 reads is declared and that no other rule writes a color.
 
+### Viewport widths
+
+`crudui.css` lays out every block at any viewport width from 360 CSS pixels. At the viewport
+widths 360 and 1280, the expected HTML of every case of the shared render fixtures
+(`tests/fixtures/form-render`, `form-complete`, `list-render` and `detail-render`), placed in a
+page with `crudui.css` and no other stylesheet, causes no horizontal overflow of the document:
+the scroll width of the document element is not greater than the viewport width. Every control
+(`input`, `select`, `textarea`, `button`) and every action lies within the viewport, except
+inside an element that scrolls horizontally on its own (`overflow-x` `auto` or `scroll`), such
+as the table of a list, whose content may be wider than the viewport.
+
 ## List and detail markup
 
 Display output uses the same block/element/modifier grammar as form output. A list
