@@ -1,5 +1,16 @@
 # Changes
 
+## 2026-10-05 — Built benchmark drivers in the driver test (C2.3)
+
+- `npm run test:bench` builds the packages, then the Go and Rust benchmark drivers with
+  `tools/bench/build-drivers.mjs`, which prints each build with its elapsed time and stops it at
+  600 seconds with its process group. `tests/build/bench-drivers.test.mjs` runs the built drivers
+  (`tools/bench/drivers.mjs` names them) and each of its tests has the 30-second timeout of the
+  test runner; the accepted case compiled the drivers through `go run` and `cargo run` under a
+  600-second timeout. `tests/build/test-commands.test.mjs` fails when the test sets its own timeout
+  or runs a driver through `run`, and `tests/build/bounded-commands.test.mjs` stops a driver build
+  that never ends at its limit.
+
 ## 2026-10-05 — CI time limits of setup steps only (C2.2)
 
 - No CI job that runs tests and no step that runs tests has `timeout-minutes`; the test runner

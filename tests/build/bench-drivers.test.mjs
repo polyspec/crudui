@@ -2,30 +2,33 @@
 // orchestrator apply one rule to them, read from tools/bench/iteration-arguments.json: a
 // count is decimal digits inside its range, and anything else stops the program before it loads a
 // validator, with the same message. An unchecked count such as `--iters 1e20` used to loop without
-// end. Each driver runs as the README documents it; the Go and Rust drivers compile on their first
-// run, which the accepted case pays.
+// end. The JavaScript and PHP drivers run as the README documents them; the Go and Rust drivers run
+// as the programs tools/bench/build-drivers.mjs built before this test, so every case ends within
+// seconds and no case pays a compilation.
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
+import { BENCH, compiledDrivers } from '../../tools/bench/drivers.mjs';
+
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const BENCH = path.join(ROOT, 'tools/bench');
 const FIXTURES = path.join(BENCH, 'fixtures');
 const cases = JSON.parse(readFileSync(path.join(ROOT, 'tools/bench/iteration-arguments.json'), 'utf8'));
 
+const compiled = compiledDrivers();
 const programs = {
   'bench-js.js': { command: process.execPath, args: [path.join(BENCH, 'bench-js.js')], cwd: BENCH },
   'bench-php.php': { command: process.env.PHP ?? 'php', args: [path.join(BENCH, 'bench-php.php')], cwd: BENCH },
-  'go/main.go': { command: process.env.GO ?? 'go', args: ['run', '.', '--fixtures', FIXTURES], cwd: path.join(BENCH, 'go') },
-  'rust/main.rs': {
-    command: process.execPath,
-    args: [path.join(ROOT, 'scripts/run-rust-command.mjs'), 'run', '--release', '--quiet', '--', '--fixtures', FIXTURES],
-    cwd: path.join(BENCH, 'rust'),
-  },
+  'go/main.go': { command: compiled.go.program, args: ['--fixtures', FIXTURES], cwd: path.join(BENCH, 'go') },
+  'rust/main.rs': { command: compiled.rust.program, args: ['--fixtures', FIXTURES], cwd: path.join(BENCH, 'rust') },
 };
+
+// One run of a driver ends within these limits; the test runner gives each test 30 seconds.
+const ACCEPTED_DEADLINE_MS = 10_000;
+const REJECTED_DEADLINE_MS = 5_000;
 
 /**
  * Run one program in its own process group; at the deadline the whole group is killed, so a
@@ -54,8 +57,9 @@ function run({ command, args, cwd }, extra, deadlineMs) {
 const rows = stdout => stdout.split('\n').filter(line => line.trim().startsWith('{')).map(line => JSON.parse(line));
 
 for (const [name, program] of Object.entries(programs)) {
-  test(`${name} accepts a count inside the range`, { timeout: 600_000 }, async () => {
-    const result = await run(program, cases.accepted.args, 590_000);
+  test(`${name} accepts a count inside the range`, async () => {
+    assert.ok(existsSync(program.command) || !path.isAbsolute(program.command), `${program.command} is missing; run node tools/bench/build-drivers.mjs`);
+    const result = await run(program, cases.accepted.args, ACCEPTED_DEADLINE_MS);
     assert.equal(result.timedOut, false, `${name} did not finish`);
     assert.equal(result.status, 0, result.stderr);
     const [row, ...rest] = rows(result.stdout);
@@ -64,9 +68,9 @@ for (const [name, program] of Object.entries(programs)) {
     assert.equal(row.iters, cases.accepted.iters);
   });
 
-  test(`${name} rejects every count outside the rule with the shared message`, { timeout: 120_000 }, async () => {
+  test(`${name} rejects every count outside the rule with the shared message`, async () => {
     for (const { args, message } of cases.rejected) {
-      const result = await run(program, args, 20_000);
+      const result = await run(program, args, REJECTED_DEADLINE_MS);
       const label = `${name} ${args.join(' ')}`;
       assert.equal(result.timedOut, false, `${label} kept running`);
       assert.notEqual(result.status, 0, label);
@@ -76,10 +80,10 @@ for (const [name, program] of Object.entries(programs)) {
   });
 }
 
-test('run.js rejects every count outside the rule before it starts a driver', { timeout: 60_000 }, async () => {
+test('run.js rejects every count outside the rule before it starts a driver', async () => {
   const orchestrator = { command: process.execPath, args: [path.join(BENCH, 'run.js'), '--json'], cwd: BENCH };
   for (const { args, message } of cases.rejected) {
-    const result = await run(orchestrator, args, 10_000);
+    const result = await run(orchestrator, args, REJECTED_DEADLINE_MS);
     const label = `run.js ${args.join(' ')}`;
     assert.equal(result.timedOut, false, `${label} kept running`);
     assert.equal(result.status, 2, label);

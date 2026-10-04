@@ -42,7 +42,10 @@ validator·generator-core·generator-html·generator-react·generator-vue·gener
 
 `test:bench`는 JavaScript·PHP·Go·Rust 벤치마크 드라이버와 `tools/bench/run.js`가
 `tools/bench/iteration-arguments.json`의 반복 횟수를 같은 규칙과 같은 메시지로 받거나
-거부하는지 검사합니다. PHP, Go, Rust가 필요하며 CI의 네이티브 생성 작업이 실행합니다.
+거부하는지 검사합니다. PHP, Go, Rust가 필요하며 CI의 네이티브 생성 작업이 실행합니다. 먼저 패키지를 빌드하고
+`tools/bench/build-drivers.mjs`로 Go와 Rust 드라이버를 빌드합니다. 이 스크립트는 각 빌드를 경과 시간과
+함께 출력하고 제한 시간에 멈춥니다. 테스트는 빌드된 드라이버를 실행하며 각 테스트는 테스트 실행기의
+30초 제한 시간을 가집니다.
 
 `test:build:repeat`는 전체 빌드를 두 번 실행하고 다섯 패키지의 모든 산출물
 파일 경로와 SHA-256을 비교합니다.

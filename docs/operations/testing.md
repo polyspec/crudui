@@ -114,7 +114,8 @@ A script that runs other commands gives each of them a time limit through
 `scripts/bounded-command.mjs`: the declared commands of `npm run manifest:test`
 (`scripts/run-contract-tests.mjs`, 600 seconds each), the package build of
 `scripts/require-current-build.mjs` (600 seconds), each tool command of `scripts/gen-api-docs.mjs`
-(600 seconds) and each benchmark driver of `tools/bench/run.js` (600 seconds). The command starts in
+(600 seconds), each benchmark driver of `tools/bench/run.js` (600 seconds) and each driver build of
+`tools/bench/build-drivers.mjs` (600 seconds). The command starts in
 its own process group. At the limit the group receives SIGTERM, and SIGKILL once the command ends or
 two seconds later, so the wrapper the script started (npm, `go run`, `cargo run`, `/bin/sh`) and
 every process under it stop, including one that ignores SIGTERM. The script then fails and names
