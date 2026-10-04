@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict';
-import { renameSync, writeFileSync } from 'node:fs';
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -197,102 +196,186 @@ test('every phase of a browser check, and the browser itself, runs as a unit', a
   assert.doesNotMatch(check, /^const browser = await puppeteer\.launch/m, 'the browser starts inside a unit');
 });
 
-/** A build state file replaced as the supervisor does, holding `states` in turn, repeating the last. */
-async function stateWriter(t, states) {
-  const directory = await mkdtemp(path.join(tmpdir(), 'crudui-build-state-'));
-  t.after(() => rm(directory, { recursive: true, force: true }));
-  const stateFile = path.join(directory, 'build-state.json');
-  let index = 0;
-  const write = () => {
-    const state = typeof states === 'function' ? states(index) : states[Math.min(index, states.length - 1)];
-    index += 1;
-    writeFileSync(`${stateFile}.tmp`, JSON.stringify(state));
-    renameSync(`${stateFile}.tmp`, stateFile);
+/** A clock that moves only when the test advances it, running each due timer at its time. */
+function fakeClock() {
+  let now = 0;
+  let next = 0;
+  const timers = new Map();
+  return {
+    now: () => now,
+    setTimer(callback, milliseconds) {
+      timers.set(++next, { at: now + milliseconds, callback });
+      return next;
+    },
+    clearTimer(timer) { timers.delete(timer); },
+    advance(milliseconds) {
+      const target = now + milliseconds;
+      for (;;) {
+        const [id, due] = [...timers].sort((a, b) => a[1].at - b[1].at)[0] ?? [];
+        if (!due || due.at > target) break;
+        timers.delete(id);
+        now = due.at;
+        due.callback();
+      }
+      now = target;
+    },
   };
-  write();
-  const timer = setInterval(write, 20);
-  t.after(() => clearInterval(timer));
-  return stateFile;
+}
+
+/** Let every pending read of the state and its observation finish. */
+const settle = () => new Promise(resolve => setImmediate(resolve));
+
+/**
+ * A build readiness wait over a state the test publishes: `publish` replaces the state and sends
+ * the change event the directory watch sends, and the clock moves only through `clock.advance`.
+ */
+async function readiness(t) {
+  const clock = fakeClock();
+  const lines = [];
+  let state;
+  let changed = () => {};
+  let watching = false;
+  const wait = tree.readyBuild({
+    source: checkout, stateFile: '/state/build-state.json', silenceLimitMs: 300, heartbeatMs: 60, clock,
+    watch: (file, onChange) => {
+      assert.equal(file, '/state/build-state.json');
+      changed = onChange;
+      watching = true;
+      return () => { watching = false; };
+    },
+    read: async file => {
+      if (state === undefined) throw new Error(`ENOENT: no such file or directory, open '${file}'`);
+      return JSON.stringify(state);
+    },
+    write: text => lines.push(text),
+  });
+  let outcome;
+  wait.then(value => { outcome = { value }; }, error => { outcome = { error }; });
+  await settle();
+  t.after(() => assert.equal(watching, false, 'the wait stopped watching the state file'));
+  return {
+    clock, lines,
+    outcome: () => outcome,
+    async publish(next) {
+      state = next;
+      changed();
+      await settle();
+    },
+    async advance(milliseconds) {
+      clock.advance(milliseconds);
+      await settle();
+    },
+  };
 }
 
 const checkout = { commit: 'x', changes: null };
-const readiness = { source: checkout, silenceLimitMs: 300, pollMs: 20, heartbeatMs: 60 };
 
 /** One building state: `step` of `target` holding `limitMs`, its heartbeat renewed at `at`. */
-function building(step, limitMs, at = performance.now()) {
+function building(step, limitMs, at) {
   return { status: 'building', cycle: 2, source: null, error: null, progress: { target: 'rust', step, limitMs, at } };
 }
 
 test('the build readiness wait lasts while the build moves through its steps and has no total limit', async t => {
-  assert.equal(typeof tree.readyBuild, 'function', 'verify-tree.mjs exports readyBuild({ source, stateFile, silenceLimitMs, pollMs, heartbeatMs, write })');
+  assert.equal(typeof tree.readyBuild, 'function', 'verify-tree.mjs exports readyBuild({ source, stateFile, silenceLimitMs, heartbeatMs, write, clock, watch, read })');
   assert.equal(tree.buildReadinessLimitMs, undefined, 'the wait has no total limit');
-  const started = performance.now();
+  const wait = await readiness(t);
   // For three silence limits the build moves to a new step every 100 ms, each within its 100 ms
-  // limit; then one step holds its 1 s limit past the silence limit; then the build is ready.
-  const stateFile = await stateWriter(t, () => {
-    const elapsed = performance.now() - started;
-    if (elapsed < 900) return building(`rust-${Math.floor(elapsed / 100)}`, 100);
-    if (elapsed < 1_400) return building('rust-long', 1_000);
-    return { status: 'ready', cycle: 2, source: checkout, error: null, progress: null };
-  });
-  const lines = [];
-  const state = await tree.readyBuild({ stateFile, ...readiness, write: text => lines.push(text) });
-  assert.equal(state.cycle, 2);
-  assert.ok(performance.now() - started >= 1_400);
+  // limit; then one step holds its 1 s limit past the silence limit while its heartbeat renews;
+  // then the build is ready.
+  for (let index = 0; index < 9; index++) {
+    await wait.publish(building(`rust-${index}`, 100, wait.clock.now()));
+    await wait.advance(100);
+  }
+  for (let index = 0; index < 5; index++) {
+    await wait.publish(building('rust-long', 1_000, wait.clock.now()));
+    await wait.advance(100);
+  }
+  assert.equal(wait.outcome(), undefined, 'the wait is still running');
+  await wait.publish({ status: 'ready', cycle: 2, source: checkout, error: null, progress: null });
+  assert.equal(wait.outcome()?.value?.cycle, 2, String(wait.outcome()?.error));
+  const output = wait.lines.join('');
   // Its lines are unit progress lines, so the host's inactivity limit sees the wait as progress.
-  assert.ok(lines.some(line => /^\[verification\] build-readiness: running \d+ms \(cycle 2 building rust step rust-[a-z0-9]+\)$/m.test(line)), lines.join(''));
-  assert.ok(lines.some(line => /^\[verification\] build-readiness: passed in \d+(?:ms|\.\ds)$/m.test(line)), lines.join(''));
+  assert.match(output, /^\[verification\] build-readiness: running 60ms \(cycle 2 building rust step rust-0\)$/m);
+  assert.match(output, /^\[verification\] build-readiness: running 1\.4s \(cycle 2 building rust step rust-long\)$/m);
+  assert.match(output, /^\[verification\] build-readiness: passed in 1\.4s$/m);
 });
 
 test('the build readiness wait goes on while the ready build is of another source', async t => {
   // Right after a commit the supervisor still reports the previous checkout as ready; the wait
   // lasts until it has built this checkout.
-  const started = performance.now();
-  const stateFile = await stateWriter(t, () => performance.now() - started < 200
-    ? { status: 'ready', cycle: 1, source: { commit: 'old', changes: null }, error: null, progress: null }
-    : { status: 'ready', cycle: 2, source: checkout, error: null, progress: null });
-  const state = await tree.readyBuild({ stateFile, ...readiness, write: () => {} });
-  assert.equal(state.cycle, 2);
-  assert.ok(performance.now() - started >= 200);
+  const wait = await readiness(t);
+  await wait.publish({ status: 'ready', cycle: 1, source: { commit: 'old', changes: null }, error: null, progress: null });
+  await wait.advance(200);
+  assert.equal(wait.outcome(), undefined, 'the wait is still running');
+  await wait.publish({ status: 'ready', cycle: 2, source: checkout, error: null, progress: null });
+  assert.equal(wait.outcome()?.value?.cycle, 2);
 });
 
 test('the build readiness wait stops when no build of this source becomes ready within the inactivity limit', async t => {
-  const stateFile = await stateWriter(t, [{ status: 'ready', cycle: 1, source: { commit: 'old', changes: null }, error: null, progress: null }]);
-  await assert.rejects(tree.readyBuild({ stateFile, ...readiness, write: () => {} }),
-    /build-readiness stalled after \d+ms: no supervisor heartbeat for \d+ms \(cycle 1 is ready for \{"commit":"old","changes":null\}, not \{"commit":"x","changes":null\}\)/);
+  const wait = await readiness(t);
+  await wait.publish({ status: 'ready', cycle: 1, source: { commit: 'old', changes: null }, error: null, progress: null });
+  await wait.advance(299);
+  assert.equal(wait.outcome(), undefined, 'the wait is still running');
+  await wait.advance(1);
+  assert.equal(wait.outcome()?.error?.message, 'build-readiness stalled after 300ms: no supervisor heartbeat for 300ms '
+    + '(cycle 1 is ready for {"commit":"old","changes":null}, not {"commit":"x","changes":null})');
 });
 
 test('the build readiness wait stops at a hung step whose heartbeat keeps renewing', async t => {
   // The supervisor stays alive and renews `progress.at`, but the step never changes: the heartbeat
   // is not build progress, so the wait stops at the step's limit plus the inactivity limit.
-  const stateFile = await stateWriter(t, () => building('rust-1', 100));
-  const lines = [];
-  const started = performance.now();
-  await assert.rejects(tree.readyBuild({ stateFile, ...readiness, write: text => lines.push(text) }),
-    /build-readiness stalled after \d+ms: step rust-1 of rust exceeded its limit of 100ms by \d+ms \(cycle 2 building rust step rust-1\)/);
-  const elapsed = performance.now() - started;
-  assert.ok(elapsed >= 400 && elapsed < 1_000, `stopped after ${Math.round(elapsed)} ms`);
-  assert.ok(lines.some(line => /^\[verification\] build-readiness: stalled after/m.test(line)), lines.join(''));
+  const wait = await readiness(t);
+  for (let index = 0; index < 7; index++) {
+    await wait.publish(building('rust-1', 100, wait.clock.now()));
+    await wait.advance(50);
+  }
+  await wait.publish(building('rust-1', 100, wait.clock.now()));
+  await wait.advance(49);
+  assert.equal(wait.outcome(), undefined, 'the wait is still running');
+  await wait.advance(1);
+  assert.equal(wait.outcome()?.error?.message,
+    'build-readiness stalled after 400ms: step rust-1 of rust exceeded its limit of 100ms by 300ms (cycle 2 building rust step rust-1)');
+  assert.match(wait.lines.join(''), /^\[verification\] build-readiness: stalled after 400ms/m);
 });
 
 test('the build readiness wait stops when the supervisor renews no heartbeat within the inactivity limit', async t => {
-  const stateFile = await stateWriter(t, [building('rust-1', 60_000, 1)]);
-  const lines = [];
-  const started = performance.now();
-  await assert.rejects(tree.readyBuild({ stateFile, ...readiness, write: text => lines.push(text) }),
-    /build-readiness stalled after \d+ms: no supervisor heartbeat for \d+ms \(cycle 2 building rust step rust-1\)/);
-  assert.ok(performance.now() - started < 1_000);
-  assert.ok(lines.some(line => /^\[verification\] build-readiness: stalled after/m.test(line)), lines.join(''));
+  const wait = await readiness(t);
+  await wait.publish(building('rust-1', 60_000, 1));
+  await wait.advance(299);
+  assert.equal(wait.outcome(), undefined, 'the wait is still running');
+  await wait.advance(1);
+  assert.equal(wait.outcome()?.error?.message,
+    'build-readiness stalled after 300ms: no supervisor heartbeat for 300ms (cycle 2 building rust step rust-1)');
+  assert.match(wait.lines.join(''), /^\[verification\] build-readiness: stalled after 300ms/m);
 });
 
 test('the build readiness wait is bounded without a state file and fails on a failed build', async t => {
+  const missing = await readiness(t);
+  await missing.advance(300);
+  assert.equal(missing.outcome()?.error?.message, 'build-readiness stalled after 300ms: no supervisor heartbeat for 300ms '
+    + "(ENOENT: no such file or directory, open '/state/build-state.json')");
+  const failed = await readiness(t);
+  await failed.advance(20);
+  await failed.publish({ status: 'failed', cycle: 4, source: null, error: 'go-1 failed after 2s', progress: null });
+  assert.equal(failed.outcome()?.error?.message, 'build-readiness failed after 20ms: cycle 4 failed (go-1 failed after 2s)');
+});
+
+test('the build readiness wait reads the state file at each change of its directory', async t => {
+  // The supervisor's own replacement: a new file renamed over the state file. The clock does not
+  // move, so only the change event can end the wait.
   const directory = await mkdtemp(path.join(tmpdir(), 'crudui-build-state-'));
   t.after(() => rm(directory, { recursive: true, force: true }));
-  await assert.rejects(tree.readyBuild({ stateFile: path.join(directory, 'missing.json'), ...readiness, write: () => {} }),
-    /build-readiness stalled after \d+ms: no supervisor heartbeat for \d+ms \(.*ENOENT/);
-  const failed = await stateWriter(t, [{ status: 'failed', cycle: 4, source: null, error: 'go-1 failed after 2s', progress: null }]);
-  await assert.rejects(tree.readyBuild({ stateFile: failed, ...readiness, write: () => {} }),
-    /build-readiness failed after \d+ms: cycle 4 failed \(go-1 failed after 2s\)/);
+  const stateFile = path.join(directory, 'build-state.json');
+  const replace = async state => {
+    await writeFile(`${stateFile}.tmp`, JSON.stringify(state));
+    await rename(`${stateFile}.tmp`, stateFile);
+  };
+  await replace(building('rust-1', 60_000, 1));
+  const lines = [];
+  const ready = tree.readyBuild({ source: checkout, stateFile, clock: fakeClock(), write: text => lines.push(text) });
+  await replace({ status: 'ready', cycle: 3, source: checkout, error: null, progress: null });
+  assert.equal((await ready).cycle, 3);
+  assert.match(lines.join(''), /^\[verification\] build-readiness: passed in 0ms$/m);
 });
 
 test('accepts complete evidence for one source identity', async t => {

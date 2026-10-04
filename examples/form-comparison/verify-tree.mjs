@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { watch } from 'node:fs';
 import { mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -73,92 +74,156 @@ export function verificationChecks() {
   return verificationStages().flat();
 }
 
+/** The clock of the build readiness wait: the current time and one-shot timers. */
+export const systemClock = {
+  now: () => performance.now(),
+  setTimer: (callback, milliseconds) => setTimeout(callback, milliseconds),
+  clearTimer: timer => clearTimeout(timer),
+};
+
+/**
+ * Call `onChange` at every change in the directory of `file`, where the supervisor replaces the
+ * file by renaming a new one over it, and `onError` when the directory cannot be watched. Returns
+ * the function that stops watching.
+ */
+export function watchDirectoryOf(file, onChange, onError) {
+  const watcher = watch(path.dirname(file), () => onChange());
+  watcher.on('error', onError);
+  return () => watcher.close();
+}
+
 /**
  * Wait for the current build cycle to be ready. The supervisor replaces its build state file at
  * every change. While a cycle builds, `progress` names the step it runs (its target, its step and
- * the limit the step holds) and `progress.at` is renewed every heartbeat. The two are checked
- * apart:
+ * the limit the step holds) and `progress.at` is renewed every heartbeat. The wait reads the file
+ * once at its start and again at every change event of its directory; it reads nothing on a
+ * timer. The two parts of the state are checked apart:
  *
  * - progress is the step: one step may last its own limit plus the inactivity limit, the margin
  *   in which the supervisor stops it and moves on. A renewed heartbeat never extends a step.
  * - the heartbeat shows that the supervisor is alive: a `progress.at` that is not renewed within
  *   the inactivity limit, a missing file or a stopped supervisor stops the wait.
  *
- * The wait therefore has no total limit, and no step holds it longer than that step's own limit.
- * A ready build of another source than `source` is not the build waited for: the supervisor has
- * not yet taken the checkout, and the wait goes on under the same inactivity limit.
+ * A timer runs only at the next moment one of these limits ends or a progress line is due, so a
+ * limit only turns a missing state into a failure. The wait therefore has no total limit, and no
+ * step holds it longer than that step's own limit. A ready build of another source than `source`
+ * is not the build waited for: the supervisor has not yet taken the checkout, and the wait goes on
+ * under the same inactivity limit. `clock`, `watch` and `read` replace the system clock, the
+ * directory watch and the file read.
  */
-export async function readyBuild({
-  source, stateFile = buildStateFile, silenceLimitMs = stepSilenceLimitMs, pollMs = 1_000,
-  heartbeatMs = stepHeartbeatMs,
+export function readyBuild({
+  source, stateFile = buildStateFile, silenceLimitMs = stepSilenceLimitMs, heartbeatMs = stepHeartbeatMs,
   write = text => process.stdout.write(text),
+  clock = systemClock, watch: watchState = watchDirectoryOf, read = file => readFile(file, 'utf8'),
 } = {}) {
   const prefix = '[verification] build-readiness:';
-  const started = performance.now();
-  const elapsed = () => formatDuration(performance.now() - started);
-  write(`${prefix} started (inactivity limit ${formatDuration(silenceLimitMs)})\n`);
-  // The current step, when it started and the limit it holds.
-  let step;
-  let stepAt = started;
-  let stepLimitMs = 0;
-  let stepName = 'no step';
-  // The last heartbeat and when it was seen.
-  let alive;
-  let aliveAt = started;
-  let printedAt = started;
-  let reading = 'no answer yet';
-  const stop = (status, message) => {
-    write(`${prefix} ${status} after ${elapsed()}: ${message}\n`);
-    throw new Error(`build-readiness ${status} after ${elapsed()}: ${message}`);
-  };
-  for (;;) {
-    let state;
+  return new Promise((resolve, reject) => {
+    const started = clock.now();
+    const elapsed = () => formatDuration(clock.now() - started);
+    write(`${prefix} started (inactivity limit ${formatDuration(silenceLimitMs)})\n`);
+    // The current step, when it started and the limit it holds.
+    let step;
+    let stepAt = started;
+    let stepLimitMs = 0;
+    let stepName = 'no step';
+    // The last heartbeat and when it was seen.
+    let alive;
+    let aliveAt = started;
+    let printedAt = started;
+    let reading = 'no answer yet';
+    let done = false;
+    let timer;
+    let stopWatching = () => {};
+    const end = () => {
+      done = true;
+      clock.clearTimer(timer);
+      stopWatching();
+    };
+    const stop = (status, message) => {
+      if (done) return;
+      end();
+      write(`${prefix} ${status} after ${elapsed()}: ${message}\n`);
+      reject(new Error(`build-readiness ${status} after ${elapsed()}: ${message}`));
+    };
+    // Apply the limits at the current time and set the timer to the next moment one ends or a
+    // progress line is due.
+    const check = () => {
+      if (done) return;
+      const now = clock.now();
+      if (now - aliveAt >= silenceLimitMs) {
+        return stop('stalled', `no supervisor heartbeat for ${formatDuration(now - aliveAt)} (${reading})`);
+      }
+      if (now - stepAt >= stepLimitMs + silenceLimitMs) {
+        return stop('stalled', `${stepName} exceeded its limit of ${formatDuration(stepLimitMs)} by `
+          + `${formatDuration(now - stepAt - stepLimitMs)} (${reading})`);
+      }
+      if (now - printedAt >= heartbeatMs) {
+        printedAt = now;
+        write(`${prefix} running ${elapsed()} (${reading})\n`);
+      }
+      clock.clearTimer(timer);
+      const next = Math.min(aliveAt + silenceLimitMs, stepAt + stepLimitMs + silenceLimitMs, printedAt + heartbeatMs);
+      timer = clock.setTimer(check, next - now);
+    };
+    const observe = state => {
+      if (state.status === 'ready' && sameSourceIdentity(state.source, source)) {
+        end();
+        write(`${prefix} passed in ${elapsed()}\n`);
+        write(`${prefix} cycle ${state.cycle} is ready\n`);
+        return resolve(state);
+      }
+      if (state.status === 'failed') return stop('failed', `cycle ${state.cycle} failed (${state.error})`);
+      const now = clock.now();
+      if (state.status === 'ready') {
+        reading = `cycle ${state.cycle} is ready for ${JSON.stringify(state.source)}, not ${JSON.stringify(source)}`;
+      } else {
+        assert.equal(state.status, 'building', `Unknown build status ${state.status}`);
+        const progress = state.progress ?? {};
+        reading = `cycle ${state.cycle} building ${progress.target} step ${progress.step}`;
+        // A state without a step holds no limit of its own: it may last the inactivity limit.
+        const identity = JSON.stringify([state.cycle, progress.target, progress.step]);
+        if (identity !== step) {
+          step = identity;
+          stepAt = now;
+          stepLimitMs = progress.limitMs ?? 0;
+          stepName = `step ${progress.step} of ${progress.target}`;
+        }
+        if (progress.at !== alive) {
+          alive = progress.at;
+          aliveAt = now;
+        }
+      }
+      return check();
+    };
+    // Reads run one after another, so the states are observed in the order of the events.
+    let reads = Promise.resolve();
+    const load = () => {
+      reads = reads.then(async () => {
+        if (done) return;
+        let state;
+        try {
+          state = JSON.parse(await read(stateFile));
+        } catch (error) {
+          reading = error.message;
+        }
+        if (done) return;
+        try {
+          if (state) observe(state);
+          else check();
+        } catch (error) {
+          end();
+          reject(error);
+        }
+      });
+    };
     try {
-      state = JSON.parse(await readFile(stateFile, 'utf8'));
+      stopWatching = watchState(stateFile, load, error => stop('failed', `cannot watch ${stateFile}: ${error.message}`));
     } catch (error) {
-      reading = error.message;
+      return stop('failed', `cannot watch ${stateFile}: ${error.message}`);
     }
-    if (state?.status === 'ready' && sameSourceIdentity(state.source, source)) {
-      write(`${prefix} passed in ${elapsed()}\n`);
-      write(`${prefix} cycle ${state.cycle} is ready\n`);
-      return state;
-    }
-    if (state?.status === 'failed') {
-      stop('failed', `cycle ${state.cycle} failed (${state.error})`);
-    }
-    const now = performance.now();
-    if (state?.status === 'ready') {
-      reading = `cycle ${state.cycle} is ready for ${JSON.stringify(state.source)}, not ${JSON.stringify(source)}`;
-    } else if (state) {
-      assert.equal(state.status, 'building', `Unknown build status ${state.status}`);
-      const progress = state.progress ?? {};
-      reading = `cycle ${state.cycle} building ${progress.target} step ${progress.step}`;
-      // A state without a step holds no limit of its own: it may last the inactivity limit.
-      const identity = JSON.stringify([state.cycle, progress.target, progress.step]);
-      if (identity !== step) {
-        step = identity;
-        stepAt = now;
-        stepLimitMs = progress.limitMs ?? 0;
-        stepName = `step ${progress.step} of ${progress.target}`;
-      }
-      if (progress.at !== alive) {
-        alive = progress.at;
-        aliveAt = now;
-      }
-    }
-    if (now - aliveAt >= silenceLimitMs) {
-      stop('stalled', `no supervisor heartbeat for ${formatDuration(now - aliveAt)} (${reading})`);
-    }
-    if (now - stepAt >= stepLimitMs + silenceLimitMs) {
-      stop('stalled', `${stepName} exceeded its limit of ${formatDuration(stepLimitMs)} by `
-        + `${formatDuration(now - stepAt - stepLimitMs)} (${reading})`);
-    }
-    if (now - printedAt >= heartbeatMs) {
-      printedAt = now;
-      write(`${prefix} running ${elapsed()} (${reading})\n`);
-    }
-    await new Promise(resolve => setTimeout(resolve, pollMs));
-  }
+    check();
+    load();
+  });
 }
 
 async function main() {
