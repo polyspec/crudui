@@ -1,5 +1,16 @@
 # Changes
 
+## 2026-10-05 — Every check of a script after a failure (C7.4)
+
+- `test:forms`, `test:form-comparison`, `test:form-comparison:pipeline`, `docs:check:all`, the `test`
+  script of generator-svelte and the `typecheck` script of form-binding run each independent check
+  with `|| status=1` and exit with the collected status; they chained the checks with `&&`, so the
+  first failure skipped the others. `test:form-comparison:build` is removed and each form comparison
+  suite runs `require-current-build` for the packages it reads. CI and `make ci` run `npm run
+  test:build` and `npm run test:build:repeat` as two commands. `scripts/run-contract-tests.mjs` runs
+  every declared command and fails after the last one. `tests/build/test-commands.test.mjs` fails
+  for a package script or a CI step that stops at a failing check.
+
 ## 2026-10-05 — Runs that check nothing fail (C7.3)
 
 - `scripts/run-tests.mjs` fails a go, cargo or phpunit run and the Vitest reporter fails a vitest run

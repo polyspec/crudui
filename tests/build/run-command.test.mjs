@@ -88,6 +88,21 @@ test('run-contract-tests runs a declared command to its end', async t => {
   assert.match(result.output, /✔ slow\/check: .*declared \(\d+\.\ds\)/);
 });
 
+test('run-contract-tests runs every declared command after an earlier one failed', async t => {
+  const box = sandbox(t, ['scripts/run-contract-tests.mjs']);
+  mkdirSync(path.join(box.root, 'contracts'));
+  const marker = path.join(box.root, 'second-ran');
+  writeFileSync(path.join(box.root, 'contracts/features.json'), JSON.stringify({
+    features: [{ id: 'a', verification: [{ id: 'fails', command: 'exit 3' }, { id: 'runs', command: `touch ${JSON.stringify(marker)}` }] }],
+  }));
+  const result = await runScript(path.join(box.root, 'scripts/run-contract-tests.mjs'), [], { cwd: box.root, env: process.env });
+  assert.equal(result.status, 1, result.output);
+  assert.equal(existsSync(marker), true, 'the command after the failed one ran');
+  assert.match(result.output, /✖ a\/fails: exit 3 \([\d.]+s\)\n\s+failed with status 3/);
+  assert.match(result.output, /✔ a\/runs: /);
+  assert.match(result.output, /manifest:test: 2 declared commands, failed: a\/fails: exit 3/);
+});
+
 test('run-contract-tests fails when the selection declares no command', async t => {
   const box = sandbox(t, ['scripts/run-contract-tests.mjs']);
   mkdirSync(path.join(box.root, 'contracts'));

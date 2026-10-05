@@ -1,5 +1,15 @@
 # 변경 기록
 
+## 2026-10-05 — 실패 뒤에도 실행되는 script의 모든 검사 (C7.4)
+
+- `test:forms`, `test:form-comparison`, `test:form-comparison:pipeline`, `docs:check:all`, generator-svelte의 `test`
+  script, form-binding의 `typecheck` script는 독립된 각 검사를 `|| status=1`로 실행하고 모은 상태로 끝납니다. 이전에는
+  검사를 `&&`로 이었으므로 첫 실패가 나머지를 건너뛰게 했습니다. `test:form-comparison:build`는 제거되고 form comparison의
+  각 suite는 자신이 읽는 package를 위해 `require-current-build`를 실행합니다. CI와 `make ci`는 `npm run test:build`와
+  `npm run test:build:repeat`를 두 명령으로 실행합니다. `scripts/run-contract-tests.mjs`는 선언된 모든 명령을 실행하고
+  마지막 명령 뒤에 실패합니다. `tests/build/test-commands.test.mjs`는 실패한 검사에서 멈추는 package script나 CI step에
+  대해 실패합니다.
+
 ## 2026-10-05 — 아무것도 검사하지 않는 실행의 실패 (C7.3)
 
 - `scripts/run-tests.mjs`는 test case가 하나도 통과, 실패, 시간 초과하지 않은 go, cargo, phpunit 실행을, Vitest

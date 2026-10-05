@@ -515,9 +515,12 @@ jobs:
       - name: Pack and test package installs
         if: ${{ !cancelled() }}
         run: npm run test:packages
-      - name: Test public package exports, types and reproducible builds
+      - name: Test public package exports and types
         if: ${{ !cancelled() }}
-        run: npm run test:build && npm run test:build:repeat
+        run: npm run test:build
+      - name: Test reproducible builds
+        if: ${{ !cancelled() }}
+        run: npm run test:build:repeat
       - name: Test the form inspector
         if: ${{ !cancelled() }}
         run: npm run test:inspector
