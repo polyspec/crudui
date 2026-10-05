@@ -1,5 +1,11 @@
 # Changes
 
+## 2026-10-05 — Stage steps that meet through a pipe (C2.9-1)
+
+- The two steps of one stage in the step runner test open the two ends of a named pipe, so the
+  stage ends only when both run at the same time. They waited for each other's file through a
+  directory watch, whose event stream on macOS starts late and lost a file in 4 of 10 runs.
+
 ## 2026-10-05 — Setup contract of the local pipeline stack (C2.7-2)
 
 - `check-verification.test.mjs` checks that the pipeline and record store tests start and stop
