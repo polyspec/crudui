@@ -1,5 +1,12 @@
 # 변경 기록
 
+## 2026-10-05 — 모든 make에서 같게 읽히는 make dry run (C7.1)
+
+- test는 Makefile 대상의 명령을 `tests/build/make-dry-run.mjs`의 `makeDryRun`으로 읽습니다. 이것은 `MAKEFLAGS=w`를 설정하고
+  상위 make의 변수를 지운 채 `make --no-print-directory -n`을 실행합니다. 다른 make 안의 GNU Make 4는 명령 앞뒤에
+  `Entering directory` 줄을 출력했으므로 `tests/build/full-run.test.mjs`가 그곳에서 실패했습니다.
+  `tests/build/make-dry-run.test.mjs`는 helper 밖의 make dry run에 대해 실패합니다.
+
 ## 2026-10-05 — 19.2.8에 둔 React (C5.8-2-1)
 
 - React와 React DOM을 19.2.8로 고정합니다. React 19.3.0은 React renderer가 render하는 widget script의 `<script>` 요소에
