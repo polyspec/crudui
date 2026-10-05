@@ -1,5 +1,12 @@
 # 변경 기록
 
+## 2026-10-06 — Vitest event로 밝히는 실패한 Vitest hook (C5.8-4-1)
+
+- Vitest reporter는 시작했고 그 file이나 suite가 실패하기 전에 끝나지 않은 hook에 대해 `<hook name> hook of <entity>
+  started and failed`를 출력하고, runner case는 Vitest 4에서 5로 문구가 바뀐 Vitest message 대신 hook 이름과 실패한 entity를
+  단언합니다. Vitest 5.0.3은 실패한 hook에 `onHookEnd`를 보내지 않고 event를 묶어 보내므로 경과 시간도 실패 종류도
+  단언하지 않습니다.
+
 ## 2026-10-06 — 기록하는 test stub의 첫 실행 시간 (C7.13-1)
 
 - `tests/build/checkout-npm.test.mjs`와 `tests/build/install-browsers.test.mjs`의 stub case는 각 stub 첫 실행의 경과

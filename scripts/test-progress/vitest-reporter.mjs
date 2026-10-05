@@ -16,6 +16,28 @@ export default class ProgressReporter {
   onInit() {
     this.progress = createProgress({ write: text => process.stdout.write(text) });
     this.suites = new Set();
+    // The hooks of each file or suite that started and have not ended. Vitest 5 sends no onHookEnd for a hook that
+    // failed, by a timeout or a throw, and its timing arrives batched, so a failed entity names its unended hooks
+    // without an elapsed time or a failure kind.
+    this.hooks = new Map();
+  }
+
+  onHookStart(hook) {
+    const id = this.id(hook.entity);
+    this.hooks.set(id, [...(this.hooks.get(id) ?? []), hook.name]);
+  }
+
+  onHookEnd(hook) {
+    const id = this.id(hook.entity);
+    const names = this.hooks.get(id) ?? [];
+    names.splice(names.lastIndexOf(hook.name), 1);
+  }
+
+  /** The lines of a failed entity: its unended hooks, then the errors of Vitest. */
+  failure(id, errors) {
+    const hooks = (this.hooks.get(id) ?? []).map(name => `${name} hook of ${id} started and failed`);
+    this.hooks.delete(id);
+    return [...hooks, errorText(errors)].filter(Boolean).join('\n');
   }
 
   id(entity) {
@@ -31,7 +53,7 @@ export default class ProgressReporter {
     const id = this.id(testModule);
     const errors = testModule.errors();
     const duration = testModule.diagnostic().duration;
-    if (errors.length || testModule.state() === 'failed') this.progress.fail(id, duration, errorText(errors));
+    if (errors.length || testModule.state() === 'failed') this.progress.fail(id, duration, this.failure(id, errors));
     else this.progress.pass(id, duration);
   }
 
@@ -46,7 +68,7 @@ export default class ProgressReporter {
     // Vitest reports a skipped suite without its start.
     if (!this.suites.delete(id)) this.progress.start(id, { group: true });
     const errors = testSuite.errors();
-    if (errors.length || testSuite.state() === 'failed') this.progress.fail(id, undefined, errorText(errors));
+    if (errors.length || testSuite.state() === 'failed') this.progress.fail(id, undefined, this.failure(id, errors));
     else if (testSuite.state() === 'skipped') this.progress.skip(id);
     else this.progress.pass(id);
   }
