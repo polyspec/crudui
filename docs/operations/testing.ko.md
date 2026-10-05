@@ -3,8 +3,8 @@
 [English](testing.md).
 
 저장소 루트에서 실행합니다. 모든 도구는 checkout이 기록한 release로 실행됩니다(`docs/spec/package-build.ko.md`,
-"런타임과 의존성 버전"). `make install`은 기록한 npm, npm과 Composer 의존성, `rust-toolchain.toml`의 Rust toolchain을
-설치하고, `make toolchain-check`는 다른 release로 실행되는 모든 도구를 기대한 release와 함께 밝힙니다.
+"런타임과 의존성 버전"). `make install`은 기록한 npm, npm과 Composer 의존성, `rust-toolchain.toml`의 Rust toolchain,
+`scripts/install-phpdocumentor.sh`가 SHA-256으로 검사하는 phpDocumentor release를 설치하고, `make toolchain-check`는 다른 release로 실행되는 모든 도구를 기대한 release와 함께 밝힙니다.
 `node scripts/install-npm.mjs`로 `package.json`의 `packageManager`가 기록한 npm
 릴리스를 checkout에 설치하며, 이 명령은 machine의 npm을 바꾸지 않습니다. make는 그 `.tools/npm/node_modules/.bin`을
 `PATH`의 맨 앞에 두고, npm을 직접 실행하는 shell은 `export PATH="$PWD/.tools/npm/node_modules/.bin:$PATH"`로 그렇게
@@ -62,6 +62,14 @@ record의 `reruns`에 쓰고, 모든 명령이 통과하면 그 tree의 결과�
 
 CI workflow는 `main`으로의 push마다 같은 명령을 job에서 실행하고 `make ci`는 실행하지 않으므로 guard는 CI 실행을 판단하지 않습니다.
 CI처럼 새 checkout에는 record가 없으므로, 그곳에서 `make ci`는 `[~]` 작업이 없고 tree가 깨끗하면 실행됩니다.
+
+commit 전에 `make owner-check`는 바뀐 경로를 소유한 검사를 실행합니다. 경로는 commit되지 않은 변경과 새 file,
+`PATHS`의 경로, 또는 `BASE` 뒤에 바뀐 경로입니다. `scripts/owner-checks.json`은 경로 glob마다 그것을 소유한 make 대상,
+root npm script, workspace와 package directory의 test script, node test file을, 검사마다 그것이 읽는 경로(`inputs`)를
+밝힙니다. `scripts/owner-check.mjs`는 어떤 규칙도 소유하지 않는 경로, 경로가 없는 glob, full suite 대상, 알 수 없는
+script나 test, 그리고 경로의 규칙이 그 검사를 고르지 않는데 검사가 읽는 경로에 대해 어떤 검사보다 먼저 실패합니다. 고른
+모든 검사를 하나가 실패한 뒤에도 실행하며 full suite는 실행하지 않습니다. `tests/build/owner-check.test.mjs`는 선택,
+거부, repository의 선언을 확인합니다.
 
 Makefile 대상의 명령을 읽는 test는 `tests/build/make-dry-run.mjs`의 `makeDryRun`을 실행합니다. 이것은 `MAKEFLAGS=w`를 설정하고
 상위 make의 `MAKELEVEL`, `GNUMAKEFLAGS`, `MAKEFILES`, `MFLAGS`를 지운 채 `make --no-print-directory -n <target>`을 실행하므로,

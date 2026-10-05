@@ -1,5 +1,14 @@
 # 변경 기록
 
+## 2026-10-05 — 모든 commit 전의 owner check (C7.9)
+
+- `make owner-check`는 `scripts/owner-checks.json`이 바뀐 경로의 owner로 선언한 검사를 실행합니다. make 대상, root npm
+  script, workspace와 package directory의 test script, node test file이며 full suite는 실행하지 않습니다. owner가 없는
+  경로, 경로가 없는 glob, full suite 대상, 알 수 없는 script나 test, 그리고 경로의 규칙이 그 검사를 고르지 않는데 검사가
+  읽는 경로(`inputs`)에 대해 어떤 검사보다 먼저 실패하고, 고른 모든 검사는 앞의 검사가 실패한 뒤에도 실행됩니다. 변경의
+  소유 검사를 손으로 골랐으므로 AGENTS는 이것을 commit 전의 검사로 정합니다. `make test-ordered-json`은 어떤 명령도 실행하지
+  않던 `tests/ordered-json`의 Python unit test를 실행하고, `make install`은 `make docs-check`가 읽는 phpDocumentor를 설치합니다.
+
 ## 2026-10-05 — 무엇이 왜 실패했는지 밝히는 실패 (C7.8)
 
 - timeout을 넘긴 test는 경과 시간, 한도, runner가 멈추는 명령을 출력하고, 검사의 다른 한도도 명령, 한도, 경과 시간을

@@ -4,7 +4,8 @@
 
 Run from the repository root. Every tool runs at the release that the checkout records
 (`docs/spec/package-build.md`, "Runtime and dependency versions"): `make install` installs the
-recorded npm, the npm and Composer dependencies and the Rust toolchain of `rust-toolchain.toml`,
+recorded npm, the npm and Composer dependencies, the Rust toolchain of `rust-toolchain.toml` and the
+phpDocumentor release that `scripts/install-phpdocumentor.sh` checks by its SHA-256,
 and `make toolchain-check` names every tool that runs at another release with the expected one.
 Install the npm release that `packageManager` of `package.json`
 records into the checkout with `node scripts/install-npm.mjs`, which never changes the npm of the
@@ -76,6 +77,16 @@ becomes `passed`.
 The CI workflow runs the same commands in its jobs on each push to `main` and does not run `make
 ci`, so the guard does not decide CI runs. A new checkout, as in CI, has no record, so `make ci`
 runs there when no task is `[~]` and the tree is clean.
+
+Before a commit, `make owner-check` runs the checks that own the changed paths: the uncommitted
+changes and new files, the paths of `PATHS`, or the paths changed since `BASE`. `scripts/owner-checks.json`
+names, for globs of paths, the make targets, the root npm scripts, the test scripts of workspaces and
+package directories and the node test files that own them, and for a check the paths that it reads
+(`inputs`). `scripts/owner-check.mjs` fails before any check runs for a path that no rule owns, a glob
+without a path, a target of the full suite, an unknown script or test, and a path that a check reads
+when no rule of the path selects that check; it runs every selected check, also after one failed, and
+never the full suite. `tests/build/owner-check.test.mjs` checks the selection, the refusals and the
+declaration of the repository.
 
 A test that reads the commands of a Makefile target runs `makeDryRun` of
 `tests/build/make-dry-run.mjs`: `make --no-print-directory -n <target>` with `MAKEFLAGS=w` and without
