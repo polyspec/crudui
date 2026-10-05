@@ -1,5 +1,10 @@
 # Changes
 
+## 2026-10-06 — Stub stall closed with its evidence (C7.13)
+
+- The 30 s stall of the stub programs did not recur in 12 CI runs and 3 local runs; their first
+  executions took up to 81 ms on Linux and up to 979 ms on macOS, and the logging stays.
+
 ## 2026-10-06 — Offline package install (C7.16-1)
 
 - The install project of `npm run test:packages` installs with `npm ci --offline` from a lock that
