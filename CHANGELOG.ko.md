@@ -1,5 +1,10 @@
 # 변경 기록
 
+## 2026-10-06 — checklist 문구 (C7.15-1)
+
+- C7.15와 C7.16 행은 writing 검사가 거부하는 단어 없이 pre-push hook과 문서 job을 서술합니다. 그 단어는 CI의 문서
+  job을 실패시켰습니다.
+
 ## 2026-10-06 — make를 거치는 CI (C7.17)
 
 - workflow의 모든 step이 make 대상을 실행하므로 Makefile의 offline 설정, checkout npm, download 검사가 CI에 적용됩니다.
