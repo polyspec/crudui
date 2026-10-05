@@ -1,5 +1,12 @@
 # 변경 기록
 
+## 2026-10-05 — 경고와 함께 쓰인 comma locale (C5.6)
+
+- engine test는 Linux의 comma locale build를 그 결과로 보고합니다. `localedef -c`는 경고와 함께 locale을 쓰면 status 1로
+  끝나고, step은 test가 통과하기 전에 `comma locale: compiling: failed (1)`을 출력했습니다. 이제 `LC_NUMERIC`이 쓰인
+  status 1은 `wrote the locale with warnings (exit 1)`로 보고되고, 0이 아닌 다른 status는 build를 실패시킵니다.
+  `packages/php-ext/tests/engine.test.mjs`의 case는 stub `localedef`로 build를 실행합니다.
+
 ## 2026-10-05 — 빠진 conformance evidence의 suite (C5.5)
 
 - `scripts/check-conformance.mjs`는 evidence가 빠졌거나 실패한 기능, fixture, runtime마다 그 runtime을 증명하는 모든
