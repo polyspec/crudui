@@ -1,5 +1,11 @@
 # Changes
 
+## 2026-10-05 — Local servers stopped at the exit of their test process (C2.19)
+
+- The local stack of the form comparison tests stops the process groups of the servers it started
+  when its test process exits without stopping them. A pipeline test whose stop hook timed out and
+  whose process was forced to exit left its record servers running for hours.
+
 ## 2026-10-05 — Change signal of every deployment (C2.10-2)
 
 - `make deploy` signals the supervisor before it waits for the build in either mode: containerctl

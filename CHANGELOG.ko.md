@@ -1,5 +1,11 @@
 # 변경 기록
 
+## 2026-10-05 — test process 종료 시 멈추는 local server (C2.19)
+
+- form comparison test의 local stack은 test process가 server를 멈추지 않고 종료하면 시작한 server의
+  process group을 멈춥니다. stop hook이 시간 초과되고 process가 강제 종료된 pipeline test가 record
+  server를 몇 시간 동안 남겼습니다.
+
 ## 2026-10-05 — 모든 배포의 변경 신호 (C2.10-2)
 
 - `make deploy`는 어느 mode에서든 빌드를 기다리기 전에 supervisor에 신호합니다. containerctl도 이전
