@@ -1,5 +1,17 @@
 # Changes
 
+## 2026-10-05 — Every registered node:test case runs or its file fails (C5.9)
+
+- `scripts/run-tests.mjs` preloads `scripts/test-progress/load-check.mjs` into every `node:test`
+  file's process, which fails a file whose process ends before its module finished evaluating, and
+  the node reporter fails a file that reports no case. The lint rule
+  `crudui/no-await-after-test-registration` of `scripts/lint/node-test-rules.mjs` rejects a
+  top-level `await` after the first `node:test` registration. `node --test --test-force-exit` ends
+  a file's process when its known tests end, and `packages/php-ext/tests/engine.test.mjs`
+  registered tests after top-level `await`s: a case before the first `await` ran alone, and with
+  `--test-name-pattern` the file passed while no case ran. engine.test now reads its fixtures
+  synchronously and imports the Unicode data generator statically.
+
 ## 2026-10-05 — The npm pack report of npm 12 (C5.2-1)
 
 - The dist lock test of `tests/build/shared-resources.test.mjs` reads the `npm pack` report through

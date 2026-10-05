@@ -190,3 +190,44 @@ test('a vitest hook that runs out of time is printed with its file, suite, cause
     await rm(directory, { recursive: true, force: true });
   }
 });
+
+/** Run node test files through the runner in a directory of their own. */
+async function runNodeFiles(files, extra = []) {
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-run-tests-'));
+  try {
+    const paths = [];
+    for (const [name, source] of Object.entries(files)) {
+      paths.push(path.join(directory, name));
+      await writeFile(path.join(directory, name), source);
+    }
+    const env = { ...process.env };
+    delete env.NODE_TEST_CONTEXT;
+    return await runAsync([path.join(ROOT, 'scripts/run-tests.mjs'), 'node', '--timeout', '10', '--', ...extra, ...paths], { env });
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+}
+
+test('a file whose process ends before its module registered every test fails', async () => {
+  // The first test ends while the module waits, so --test-force-exit ends the process before the
+  // second test is registered.
+  const run = await runNodeFiles({
+    'late.test.mjs': "import test from 'node:test';\ntest('registered first', () => {});\nawait new Promise(resolve => setTimeout(resolve, 300));\ntest('registered after the wait', () => {});\n",
+  });
+  assert.equal(run.status, 1, run.stdout);
+  assert.match(run.stdout, /late\.test\.mjs: the process ended before the module finished loading; tests registered later did not run/);
+  assert.match(run.stdout, /✖ [^\n]*late\.test\.mjs \(/);
+});
+
+test('a file that runs no test case fails', async () => {
+  const run = await runNodeFiles({ 'none.test.mjs': "import test from 'node:test';\ntest('a case', () => {});\n" },
+    ['--test-name-pattern', 'no such case']);
+  assert.equal(run.status, 1, run.stdout);
+  assert.match(run.stdout, /✖ [^\n]*none\.test\.mjs \([^\n]*\n\s*the file ran no test case/);
+});
+
+test('a file whose test leaves a handle open still ends when its tests end', async () => {
+  const run = await runNodeFiles({ 'handle.test.mjs': "import test from 'node:test';\ntest('leaves an interval', () => { setInterval(() => {}, 1000); });\n" });
+  assert.equal(run.status, 0, run.stdout);
+  assert.match(run.stdout, /✔ node --test: 1 passed/);
+});

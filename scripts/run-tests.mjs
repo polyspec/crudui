@@ -13,7 +13,7 @@
 import { spawn } from 'node:child_process';
 import path from 'node:path';
 import readline from 'node:readline';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { recordSuiteRun } from '../tests/conformance/runs.mjs';
 import { createProgress } from './test-progress/progress.mjs';
@@ -49,7 +49,8 @@ export function toolCommand({ tool, timeoutSeconds, cwd, args }) {
       return {
         command: process.execPath,
         // A timed-out test can leave work pending; the file's process ends when its tests end.
-        args: ['--test', '--test-force-exit', `--test-timeout=${milliseconds}`, `--test-reporter=${path.join(ROOT, 'scripts/test-progress/node-reporter.mjs')}`, '--test-reporter-destination=stdout', ...args],
+        // A file whose process ends before its module registered every test fails (load-check.mjs).
+        args: ['--test', '--test-force-exit', `--import=${pathToFileURL(path.join(ROOT, 'scripts/test-progress/load-check.mjs')).href}`, `--test-timeout=${milliseconds}`, `--test-reporter=${path.join(ROOT, 'scripts/test-progress/node-reporter.mjs')}`, '--test-reporter-destination=stdout', ...args],
       };
     case 'vitest':
       return {
