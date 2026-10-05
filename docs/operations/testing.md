@@ -167,3 +167,29 @@ leaves an image that was already present.
 Record the revision, commands, results and deployment status in
 [feature status](../features.md). A test result applies to the code and inputs
 actually executed. Test counts alone do not establish coverage or deployment.
+
+## Shared resources
+
+Runs of different checkouts run on one machine at the same time. A resource that one
+run can own is created for that run: a temporary directory from `mktemp -d` or `mkdtemp`, a port
+the operating system assigns, or a name that contains the run's identity. A resource that is single
+for the machine or the checkout is used under a holder lock of `scripts/holder-lock.mjs`:
+
+- One run holds the lock at a time. The lock file holds the holder's record: the checkout of the
+  code that took it, the pid, the start time of that process, the time the lock was taken, the
+  command and a random token. The record is written completely to a private file and linked to the
+  lock path, and the link fails when the lock exists, so the lock is taken atomically and a reader
+  never sees a partial record.
+- A run that finds the lock held fails with the holder's record.
+- A lock whose holder process no longer runs, or whose pid now belongs to a process with another
+  start time, is reported with its record and kept. Remove it explicitly with
+  `node scripts/holder-lock.mjs remove-dead <lock file>`, which refuses a running holder.
+- Only the holder releases the lock; the release checks the token of the record first.
+- `node scripts/holder-lock.mjs hold <lock file> -- <command>` runs a command while holding the
+  lock, passes SIGINT, SIGTERM and SIGHUP to it, releases the lock when it exits and exits with its
+  status. It prints the acquisition and the release.
+
+The lock of a resource of one checkout is `var/locks/<name>.lock` in that checkout; the lock of a
+resource that every checkout of the user account shares is `~/.local/state/crudui/locks/<name>.lock`.
+`tests/build/holder-lock.test.mjs`, run by `npm run test:runtimes`, checks the record, the refusal,
+concurrent runs, the report and the removal of a lock whose holder no longer runs, and the release.

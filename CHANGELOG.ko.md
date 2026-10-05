@@ -1,5 +1,17 @@
 # 변경 기록
 
+## 2026-10-05 — 하나뿐인 resource의 holder lock (C3.2)
+
+- `scripts/holder-lock.mjs`는 한 번에 한 실행만 쓸 수 있는 resource를 잡습니다. lock file의 record는
+  holder의 checkout, pid, process 시작 시각, 시각과 command를 밝힙니다. record는 모두 쓴 뒤 lock path로
+  link하므로 lock은 atomic하게 잡힙니다. 잡힌 lock은 holder의 record와 함께 거부합니다. holder process가
+  더 이상 실행되지 않거나 pid가 시작 시각이 다른 process의 것인 lock은 보고하고,
+  `node scripts/holder-lock.mjs remove-dead <lock file>`이 지울 때까지 남겨 둡니다. 이 command는 실행
+  중인 holder를 거부합니다. holder만 lock을 해제합니다. `hold`는 lock을 잡은 채 command를 실행합니다.
+  checkout 하나의 lock은 `var/locks/` 아래에, 모든 checkout이 함께 쓰는 lock은
+  `~/.local/state/crudui/locks/` 아래에 있습니다. `tests/build/holder-lock.test.mjs`는
+  `npm run test:runtimes`에서 실행됩니다.
+
 ## 2026-10-05 — documentation 실행마다 따로 쓰는 snapshot directory (C3.1)
 
 - `make docs-verify-idempotent`는 두 snapshot과 그 차이를 실행이 `mktemp -d`로 만들고 끝날 때 지우는
