@@ -77,8 +77,8 @@
   checklist.
 - A task has one of four states: `[ ]` waiting, `[~]` in progress, `[o]` done, `[!]` bypassed.
   A task is `[o]` only after its verification passed on the committed tree.
-- A task state marker appears in the checklist only as the state of a task row, at the start of
-  its last cell. The checklist has no legend; its texts name states in words.
+- A task state marker, also an x or a capital X between brackets as Markdown task lists write it,
+  appears in the checklist only as the state of a task row, at the start of its last cell. The checklist has no legend; its texts name states in words.
   `scripts/check-documents.mjs` fails for any other marker and names its file, line and column.
 - `[!]` is used only when the next task cannot proceed without bypassing this one. The task records
   the cause and the condition for retrying it; when that condition holds, resume the task without

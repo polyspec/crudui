@@ -1,5 +1,12 @@
 # Changes
 
+## 2026-10-05 — Task list states as state markers (C4.1-1)
+
+- `scripts/check-documents.mjs` also fails for an x or a capital X between brackets in the
+  execution checklist that is not the state of a task row, because a Markdown reader takes these
+  forms as task list states. The case of `scripts/checklist-markers.test.mjs` failed before the
+  change, because the check reported neither form.
+
 ## 2026-10-05 — Task state markers only as task states (C4.1)
 
 - A task state marker appears in the execution checklist only as the state of a task row, at the

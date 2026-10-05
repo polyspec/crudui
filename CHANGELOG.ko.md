@@ -1,5 +1,11 @@
 # 변경 기록
 
+## 2026-10-05 — 상태 표시로 다루는 task list 상태 (C4.1-1)
+
+- `scripts/check-documents.mjs`는 execution checklist에서 작업 행의 상태가 아닌 대괄호 안의 x나 대문자 X에 대해서도
+  실패합니다. Markdown reader가 이 형식을 task list 상태로 읽기 때문입니다. `scripts/checklist-markers.test.mjs`의
+  case는 검사가 두 형식을 보고하지 않아 변경 전에 실패했습니다.
+
 ## 2026-10-05 — 작업 상태로만 쓰는 작업 상태 표시 (C4.1)
 
 - 작업 상태 표시는 execution checklist에서 작업 행 마지막 칸 첫머리의 상태로만 쓰입니다. checklist의 범례와 C2.1-2의
