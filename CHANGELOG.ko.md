@@ -1,5 +1,18 @@
 # 변경 기록
 
+## 2026-10-05 — 한도 없는 장기 작업의 명령 (C2.3-1)
+
+- `scripts/run-command.mjs`가 `scripts/bounded-command.mjs`를 대신합니다. 명령을 시간 한도 없이
+  종료까지 실행하고, 종료 상태를 결과로 삼으며, 명령이 끝나면 그 process group에 남긴 process를
+  멈춥니다. 그래서 출력 pipe를 붙잡은 process가 호출자를 붙잡지 못합니다.
+  `scripts/require-current-build.mjs`의 package build, `scripts/gen-api-docs.mjs`의 도구,
+  `scripts/run-contract-tests.mjs`의 선언된 명령, `tools/bench/run.js`의 driver와 version 조회,
+  `tools/bench/build-drivers.mjs`의 driver build에는 600초나 30초 한도가 없고,
+  `CRUDUI_COMMAND_LIMIT_SECONDS`는 제거했습니다. `build-drivers.mjs`는 step 줄과 함께 compiler 출력을
+  흘립니다. 이전 module과 1초 한도에서는 각 script가 1.2초 뒤에 끝나는 명령에서 실패했습니다.
+  `tests/build/run-command.test.mjs`가 `tests/build/bounded-commands.test.mjs`를 대신하며, 남은 자식의
+  멈춤을 시간 한도 대신 script 출력의 close로 확인합니다.
+
 ## 2026-10-05 — 시간 한도 없는 CI (C2.2-1)
 
 - CI workflow에는 `timeout-minutes`가 없습니다. step은 test를 실행하거나(각 case는

@@ -1,27 +1,23 @@
 #!/usr/bin/env node
 // Build the Go and Rust benchmark drivers before tests/build/bench-drivers.test.mjs runs them.
-// Each build prints its start, a line while it is still running, its result and its elapsed time,
-// and stops at its limit with its whole process group (scripts/bounded-command.mjs).
-// CRUDUI_COMMAND_LIMIT_SECONDS replaces the limit.
-import { commandLimitMs, failureOf, runBounded } from '../../scripts/bounded-command.mjs';
+// Each build prints its start and command, streams the output of the compiler as it runs, prints a
+// line while it is still running, and ends with its result and its elapsed time. A build has no
+// time limit: its exit status decides the result (scripts/run-command.mjs).
+import { failureOf, runCommand } from '../../scripts/run-command.mjs';
 import { createProgress } from '../../scripts/test-progress/progress.mjs';
 import { compiledDrivers } from './drivers.mjs';
-
-// A cold Rust release build of the validator and the driver; Go builds within seconds.
-const BUILD_LIMIT_SECONDS = 600;
 
 const progress = createProgress({ write: text => process.stdout.write(text) });
 let failed = false;
 for (const [language, { build }] of Object.entries(compiledDrivers())) {
   const id = `build: ${language} benchmark driver`;
-  const limitMs = commandLimitMs(BUILD_LIMIT_SECONDS);
   progress.start(id);
-  progress.line(`${id}: ${build.command} ${build.args.join(' ')} (limit ${limitMs / 1000}s)`);
-  const result = await runBounded({ ...build, limitMs, stdout: 'pipe', stderr: 'pipe' });
-  const failure = failureOf(result, limitMs);
+  progress.line(`${id}: ${build.command} ${build.args.join(' ')}`);
+  const result = await runCommand(build);
+  const failure = failureOf(result);
   if (failure) {
     failed = true;
-    progress.fail(id, result.elapsedMs, `${failure}\n${result.stderr}${result.stdout}`);
+    progress.fail(id, result.elapsedMs, failure);
   } else {
     progress.pass(id, result.elapsedMs);
   }

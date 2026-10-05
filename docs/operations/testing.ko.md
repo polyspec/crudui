@@ -106,19 +106,17 @@ method는 세지 않으며, 없는 test file에 대한 오류나 warning을 담�
 - 어떤 프로젝트 명령도 실행하지 않는 `node:test` 파일이 있습니다.
 - TypeScript 패키지에 `typecheck` 스크립트가 없거나 CI가 `npm run typecheck`를 실행하지 않습니다.
 
-## 명령 제한 시간
+## 장기 작업의 명령
 
-다른 명령을 실행하는 스크립트는 `scripts/bounded-command.mjs`로 각 명령에 제한 시간을 둡니다.
-`npm run manifest:test`의 선언된 명령(`scripts/run-contract-tests.mjs`, 각 600초),
-`scripts/require-current-build.mjs`의 패키지 빌드(600초), `scripts/gen-api-docs.mjs`의 각 도구
-명령(600초), `tools/bench/run.js`의 각 벤치마크 드라이버(600초), `tools/bench/build-drivers.mjs`의 각
-드라이버 빌드(600초)가 대상입니다. 명령은 자기 프로세스
-그룹에서 시작합니다. 제한 시간이 되면 그룹이 SIGTERM을 받고, 명령이 끝나는 즉시 또는 2초 뒤에
-SIGKILL을 받으므로, 스크립트가 시작한 래퍼(npm, `go run`, `cargo run`, `/bin/sh`)와 그 아래의 모든
-프로세스가 SIGTERM을 무시하는 것까지 멈춥니다. 그다음 스크립트는 제한 시간을 밝히며 실패합니다. 각
-명령은 경과 시간을 출력합니다. 느린 기기에서는 `CRUDUI_COMMAND_LIMIT_SECONDS`가 제한 시간을
-대신합니다. `npm run test:build`가 실행하는 `tests/build/bounded-commands.test.mjs`는 끝나지 않는
-명령과 1초 제한으로 각 스크립트를 실행합니다.
+다른 명령을 실행하는 스크립트는 `scripts/run-command.mjs`로 각 명령을 끝까지 실행합니다.
+`npm run manifest:test`의 선언된 명령(`scripts/run-contract-tests.mjs`), `scripts/require-current-build.mjs`의
+패키지 빌드, `scripts/gen-api-docs.mjs`의 각 도구 명령, `tools/bench/run.js`의 각 벤치마크 드라이버,
+`tools/bench/build-drivers.mjs`의 각 드라이버 빌드가 대상입니다. 명령에는 시간 한도가 없습니다. 명령의
+종료가 명령을 끝내고 종료 상태가 결과를 정하며, 스크립트는 명령과 경과 시간을 출력합니다. 명령은 자기
+프로세스 그룹에서 시작하고, 명령이 끝나면 그룹에 남긴 프로세스를 멈추므로 출력 pipe를 열어 둔
+프로세스가 스크립트를 붙잡지 못합니다. 중단된 스크립트는 실행 중인 명령을 멈춥니다.
+`npm run test:build`가 실행하는 `tests/build/run-command.test.mjs`는 1.2초 뒤에 끝나는 명령으로 각
+스크립트를 실행하고, 명령이 남긴 자식이 멈췄는지를 스크립트 출력의 close로 확인합니다.
 
 `make conformance`는 적합성 근거를 기록하는 모든 테스트 모음을 실행하고 그 근거를 기능
 계약과 대조합니다. [적합성 근거](../spec/conformance.ko.md)를 참고합니다.

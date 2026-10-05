@@ -1,18 +1,17 @@
 #!/usr/bin/env node
 /**
- * Execute the test commands declared by the CRUDUI contract manifest. Each command has a time limit
- * (scripts/bounded-command.mjs); at the limit its whole process group stops and the run fails.
+ * Execute the test commands declared by the CRUDUI contract manifest. Each command runs its own
+ * tests, each with its own timeout, and runs to its end without a limit over them
+ * (scripts/run-command.mjs); a failed command fails the run.
  */
 import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { commandLimitMs, failureOf, runBounded } from './bounded-command.mjs';
+import { failureOf, runCommand } from './run-command.mjs';
 import { createProgress } from './test-progress/progress.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-// A declared command runs the test files of one package.
-const COMMAND_LIMIT_SECONDS = 600;
 const manifest = JSON.parse(readFileSync(resolve(root, 'contracts/features.json'), 'utf8'));
 const requested = process.argv.slice(2);
 const featureId = requested[0] === '--feature' ? requested[1] : undefined;
@@ -33,13 +32,12 @@ for (const feature of features) {
 }
 
 // Each declared command prints its own tests; this runner prints the command around them.
-const limitMs = commandLimitMs(COMMAND_LIMIT_SECONDS);
 const lines = createProgress({ write: text => process.stdout.write(text) });
 for (const [command, owners] of commands) {
   const id = `${owners.join(', ')}: ${command}`;
   lines.start(id, { group: true });
-  const result = await runBounded({ command: '/bin/sh', args: ['-lc', command], cwd: root, limitMs });
-  const failure = failureOf(result, limitMs);
+  const result = await runCommand({ command: '/bin/sh', args: ['-lc', command], cwd: root });
+  const failure = failureOf(result);
   if (failure) {
     lines.fail(id, result.elapsedMs, failure);
     lines.close('manifest:test');
