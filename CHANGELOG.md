@@ -1,5 +1,14 @@
 # Changes
 
+## 2026-10-05 — A comma locale written with warnings (C5.6)
+
+- The engine tests report the build of the comma locale on Linux by its result: `localedef -c`
+  exits with status 1 when it writes the locale with warnings, and the step printed
+  `comma locale: compiling: failed (1)` before its test passed. Status 1 with a written
+  `LC_NUMERIC` is now reported as `wrote the locale with warnings (exit 1)`, and any other status
+  other than 0 fails the build. A case of `packages/php-ext/tests/engine.test.mjs` runs the build
+  with a stub `localedef`.
+
 ## 2026-10-05 — The suites behind missing conformance evidence (C5.5)
 
 - `scripts/check-conformance.mjs` names, for each feature, fixture and runtime with missing or

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
+import { existsSync } from 'node:fs';
 import { access, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
@@ -195,8 +196,8 @@ export function fixtureProgram(body, declarations = [], { explicitLocale = false
  * de_DE.UTF-8; a Linux toolchain without locale data gets a locale compiled into the directory
  * from a definition that sets only the numeric category.
  */
-export async function commaLocaleEnvironment(directory, signal) {
-  if (process.platform === 'darwin') {
+export async function commaLocaleEnvironment(directory, signal, { platform = process.platform, localedef = 'localedef' } = {}) {
+  if (platform === 'darwin') {
     const listed = await runStep('comma locale: listing', 'locale', ['-a'], { signal });
     assert.match(listed.stdout, /^de_DE\.UTF-8$/m, 'macOS provides the de_DE.UTF-8 locale');
     return { ...process.env, CRUDUI_COMMA_LOCALE: '1', LC_ALL: 'de_DE.UTF-8' };
@@ -212,12 +213,19 @@ export async function commaLocaleEnvironment(directory, signal) {
   }
   await writeFile(charmap, ['<code_set_name> CRUDUI-ASCII', '<comment_char> %', '<escape_char> /',
     '<mb_cur_min> 1', '<mb_cur_max> 1', 'CHARMAP', ...characters, 'END CHARMAP', ''].join('\n'));
-  // Categories other than the numeric one are absent; -c writes the locale anyway.
+  // Categories other than the numeric one are absent; -c writes the locale anyway, and localedef
+  // then exits with status 1, the status of a locale written with warnings.
   await mkdir(locales, { recursive: true });
-  const compiled = await runStep('comma locale: compiling', 'localedef',
-    ['-c', '--no-warnings=ascii', '-i', source, '-f', charmap, path.join(locales, 'crudui-comma')], { signal });
-  await access(path.join(locales, 'crudui-comma', 'LC_NUMERIC'))
+  const numeric = path.join(locales, 'crudui-comma', 'LC_NUMERIC');
+  const compiled = await runStep('comma locale: compiling', localedef,
+    ['-c', '--no-warnings=ascii', '-i', source, '-f', charmap, path.join(locales, 'crudui-comma')], {
+      signal,
+      outcome: ({ status }) => (status === 1 && existsSync(numeric) ? 'wrote the locale with warnings (exit 1)' : undefined),
+    });
+  await access(numeric)
     .catch(() => assert.fail(`localedef wrote no locale:\n${compiled.stderr}${compiled.stdout}`));
+  assert.ok(compiled.status === 0 || compiled.status === 1,
+    `localedef ended ${compiled.signal ? `on ${compiled.signal}` : `with status ${compiled.status}`}:\n${compiled.stderr}${compiled.stdout}`);
   return { ...process.env, CRUDUI_COMMA_LOCALE: '1', LOCPATH: locales, LC_ALL: 'crudui-comma' };
 }
 
@@ -246,8 +254,11 @@ export const ENGINE_SANITIZER_BUDGET = 300000;
 export const ENGINE_INSPECTION_BUDGET = 10000;
 const PROGRESS_INTERVAL = 5000;
 
-/** Run one step of a fixture program, reporting progress until it finishes. */
-function runStep(label, command, args, { signal, env } = {}) {
+/**
+ * Run one step of a fixture program, reporting progress until it finishes. `outcome` may name the
+ * result of a status that the command defines as more than passed or failed.
+ */
+function runStep(label, command, args, { signal, env, outcome } = {}) {
   const started = Date.now();
   const elapsed = () => `${((Date.now() - started) / 1000).toFixed(1)}s`;
   process.stderr.write(`    ${label}: started\n`);
@@ -266,7 +277,8 @@ function runStep(label, command, args, { signal, env } = {}) {
     child.once('error', error => { clearInterval(running); reject(error); });
     child.once('close', (status, closeSignal) => {
       clearInterval(running);
-      process.stderr.write(`    ${label}: ${status === 0 ? 'passed' : `failed (${closeSignal ?? status})`} in ${elapsed()}\n`);
+      const result = outcome?.({ status, signal: closeSignal }) ?? (status === 0 ? 'passed' : `failed (${closeSignal ?? status})`);
+      process.stderr.write(`    ${label}: ${result} in ${elapsed()}\n`);
       resolve({ status, signal: closeSignal, stdout, stderr });
     });
   });
@@ -2445,4 +2457,29 @@ test('every C program of the engine tests compiles through one function that lin
   assert.equal(points.length, 1, `compiler commands on lines ${points.join(', ')}`);
   const at = source.search(compilerUse);
   assert.match(source.slice(at, source.indexOf('{ signal', at)), /'-lm'/, 'the compiler command links the math library');
+});
+
+test('a comma locale that localedef wrote with warnings is reported as written', async t => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-comma-locale-'));
+  const lines = [];
+  const write = process.stderr.write;
+  process.stderr.write = (chunk, ...rest) => { lines.push(String(chunk)); return write.call(process.stderr, chunk, ...rest); };
+  try {
+    // localedef exits with status 1 when it writes a locale with warnings; the stub does the same.
+    const localedef = path.join(directory, 'localedef');
+    await writeFile(localedef, '#!/bin/sh\nfor target; do :; done\nmkdir -p "$target" && : > "$target/LC_NUMERIC"\necho "warning: no category LC_CTYPE" >&2\nexit 1\n', { mode: 0o755 });
+    const environment = await commaLocaleEnvironment(directory, t.signal, { platform: 'linux', localedef });
+    assert.equal(environment.LC_ALL, 'crudui-comma');
+    const reported = lines.join('').split('\n').filter(line => line.includes('comma locale: compiling:') && !line.endsWith('started'));
+    assert.deepEqual(reported.map(line => line.trim().replace(/ in \d+\.\d+s$/, '')),
+      ['comma locale: compiling: wrote the locale with warnings (exit 1)']);
+    // Without the locale, the same status is a failure.
+    await writeFile(localedef, '#!/bin/sh\nexit 1\n', { mode: 0o755 });
+    await rm(path.join(directory, 'locales'), { recursive: true, force: true });
+    await assert.rejects(commaLocaleEnvironment(directory, t.signal, { platform: 'linux', localedef }), /localedef wrote no locale/);
+    assert.match(lines.join(''), /comma locale: compiling: failed \(1\)/);
+  } finally {
+    process.stderr.write = write;
+    await rm(directory, { recursive: true, force: true });
+  }
 });
