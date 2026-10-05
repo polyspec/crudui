@@ -3,7 +3,7 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { markerErrors } from './checklist-markers.mjs';
+import { markerErrors, textErrors } from './checklist-markers.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const documents = new Set([
@@ -84,7 +84,8 @@ if (JSON.stringify(statuses('docs/features.md')) !== JSON.stringify(statuses('do
   errors.push('docs/features.md: English and Korean status fields differ');
 }
 for (const path of ['docs/plans/execution-checklist.md', 'docs/plans/execution-checklist.ko.md']) {
-  errors.push(...markerErrors(path, readFileSync(join(root, path), 'utf8')));
+  const text = readFileSync(join(root, path), 'utf8');
+  errors.push(...markerErrors(path, text), ...textErrors(path, text));
 }
 if (errors.length) {
   for (const error of errors) process.stderr.write(`[docs] ${error}\n`);

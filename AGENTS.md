@@ -80,6 +80,13 @@
 - A task state marker, also an x or a capital X between brackets as Markdown task lists write it,
   appears in the checklist only as the state of a task row, at the start of its last cell. The checklist has no legend; its texts name states in words.
   `scripts/check-documents.mjs` fails for any other marker and names its file, line and column.
+- The checklist holds only headings and task tables, and `scripts/check-documents.mjs` fails for any
+  other line with its file, line and column. Each wave is a heading `## Wave <n> — <title>`, whose
+  wave name links the section `wave-<n>` of `docs/plans/waves.md`, followed by a table with the
+  columns ID, Task, Verification and Status. A task ID has the form `C<wave>.<number>`, and a task
+  row starts with it. `docs/plans/waves.md` holds the dependencies and the background of each wave;
+  a wave starts when the waves that it names as dependencies are done.
+- A task changes the specification first, then adds failing tests, then changes the implementation.
 - `[!]` is used only when the next task cannot proceed without bypassing this one. The task records
   the cause and the condition for retrying it; when that condition holds, resume the task without
   waiting for approval. `[!]` is not done. An audit covers only the `[!]` tasks with their causes and

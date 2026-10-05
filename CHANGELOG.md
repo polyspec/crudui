@@ -1,5 +1,14 @@
 # Changes
 
+## 2026-10-05 — A checklist of headings and task tables (C4.1-2)
+
+- The execution checklist holds only headings and task tables, and `scripts/check-documents.mjs`
+  fails for any other line with its file, line and column. The checklist held a translation link, a
+  paragraph on its content, the How to use rules and a paragraph of dependencies and background
+  under each wave, and no check told such text from tasks. The rules are in AGENTS, and the
+  dependencies and the background of the waves are in `docs/plans/waves.md`, which each wave heading
+  links. The case of `scripts/checklist-markers.test.mjs` failed before the change.
+
 ## 2026-10-05 — Task list states as state markers (C4.1-1)
 
 - `scripts/check-documents.mjs` also fails for an x or a capital X between brackets in the
