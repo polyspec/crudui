@@ -14,7 +14,7 @@
 // --update first raises every newer dependency without an exception to its latest stable release, keeping the range
 // operator of its manifest, and updates the packages with an advisory; then it reviews and records again.
 // The advisories of the Cargo locks come from cargo-audit of the checkout (scripts/install-cargo-audit.mjs, which
-// `make install` runs) and the RustSec advisory database.
+// `make install-cargo-audit` runs) and the RustSec advisory database.
 import { spawnSync } from 'node:child_process';
 import { existsSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
@@ -113,7 +113,7 @@ function advisories(root, state) {
     const command = cargoAuditCommand(root);
     const args = ['audit', '--db', path.join(root, '.tools', 'rustsec-advisory-db'), ...(fetched ? ['--no-fetch'] : []), '--file', path.join(root, lock), '--json'];
     // cargo-audit exits with 1 when it finds a vulnerability.
-    const answer = existsSync(command) ? query(command, args, root, [0, 1]) : { error: `${path.relative(root, command)} is not installed; run make install` };
+    const answer = existsSync(command) ? query(command, args, root, [0, 1]) : { error: `${path.relative(root, command)} is not installed; run make install-cargo-audit` };
     fetched ||= !answer.error;
     if (answer.error) {
       result.set(lock, { error: answer.error });

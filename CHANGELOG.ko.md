@@ -1,5 +1,12 @@
 # 변경 기록
 
+## 2026-10-06 — offline 검사 (C7.16)
+
+- Makefile은 cargo, go, npm, Composer를 offline으로 실행하고, install 대상과 의존성 review만 download합니다.
+  `make install-crates`는 모든 Cargo.lock의 crate를 download하며, cargo를 실행하는 대상은 crate가 없으면 먼저 lock과
+  `run make install`과 함께 실패합니다. comparison pipeline은 OrderedJSON checkout을 fetch하는 대신
+  `make install-ordered-json`의 checkout을 읽습니다.
+
 ## 2026-10-06 — 개발은 unit test, 다른 모든 검사는 CI (C7.15)
 
 - 개발은 변경을 소유한 unit test를 실행하고, end-to-end 검사, `make owner-check`, `make ci`는 push 뒤에 CI에서

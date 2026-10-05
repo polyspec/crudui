@@ -213,7 +213,8 @@ tree는 언제나 같은 결과를 냅니다. review 대상은 registry 의존�
 게시자가 deprecated로 표시하지 않은 최신 안정 release를, 그리고 `package-lock.json`(moderate,
 high, critical)과 각 `composer.lock`(모든 보안 권고와 abandoned package)의 보안 권고를
 registry에 묻고, checkout의 모든 Cargo lock의 보안 권고를 cargo-audit으로 RustSec advisory
-database에서 읽습니다(모든 취약점과 unmaintained, unsound, yanked crate). `make install`은
+database에서 읽습니다(모든 취약점과 unmaintained, unsound, yanked crate). `make dependency-review`의 선행 대상인
+`make install-cargo-audit`은
 `config/toolchain.json`의 cargo-audit release를 `.tools/cargo-audit`에 설치합니다. `RECORD=1`은 review를 각 잠금 파일의 sha256과 함께
 `config/dependency-review.json`에 쓰고, `UPDATE=1`은 먼저 더 새로운 의존성을 manifest의 범위
 연산자를 유지한 채 올립니다. 예약된 workflow `.github/workflows/dependency-review.yml`이
@@ -228,6 +229,22 @@ database에서 읽습니다(모든 취약점과 unmaintained, unsound, yanked cr
 `composer validate --strict`가 최신이 아닌 Composer lock을 찾으면 실패합니다.
 `config/dependency-policy.json`의 예외는 ecosystem, manifest, package를 지정하고 재현된 이유,
 제거 조건, 검증 명령을 선언합니다.
+
+### offline 검사
+
+검사는 network를 읽지 않습니다. Makefile은 모든 recipe와 그것이 시작하는 명령에
+`CARGO_NET_OFFLINE=true`, `GOPROXY=off`, `npm_config_offline=true`,
+`COMPOSER_DISABLE_NETWORK=1`을 export하고, download 대상인 `install`, `install-crates`,
+`install-ordered-json`, `install-cargo-audit`, `dependency-review`만 `$(ONLINE)`으로 이를
+풉니다. `make install-crates`는 Rust record server의 lock이 읽는 고정된 OrderedJSON
+checkout(`.form-comparison/sources/ordered-json`) 다음에 모든 Cargo.lock의 crate를
+download하고, `make install`이 이를 실행합니다. cargo를 실행하는 모든 대상은
+`make cargo-downloads-check`(`scripts/check-cargo-downloads.mjs`)에 의존합니다. 이 검사는
+lock마다 `cargo fetch --locked --offline`을 실행하고, `--offline` 없이 다시 시도하라는 cargo의
+안내 대신 각 lock, cargo의 첫 오류 줄, `run make install, which downloads them`과 함께
+실패합니다. comparison pipeline은 OrderedJSON checkout을 읽고, 없거나 다른 revision이면
+`make install-ordered-json`을 밝히며 실패하고, 아무것도 download하지 않습니다. checkout의 Go
+module은 `replace`로 checkout의 module만 요구하므로 Go는 module proxy를 읽지 않습니다.
 
 ## 문서 웹
 

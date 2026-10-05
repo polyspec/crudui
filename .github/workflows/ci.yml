@@ -246,6 +246,8 @@ jobs:
         run: npm ci --strict-allow-scripts
       - name: Install PHP API documentation generator
         run: sh scripts/install-phpdocumentor.sh
+      - name: Download the crates of every Cargo.lock
+        run: make install-crates
       - name: Documentation gate (documents and libraries in four languages)
         if: ${{ !cancelled() }}
         run: make docs-check
@@ -489,6 +491,8 @@ jobs:
         run: node scripts/install-browsers.mjs chrome --chrome-sandbox
       - name: Verify sandboxed Chrome
         run: node scripts/check-ci-browser.mjs
+      - name: Install the pinned OrderedJSON checkout
+        run: make install-ordered-json
       - name: Test the five record stores and the canonical flow
         if: ${{ !cancelled() }}
         run: npm run test:form-comparison:pipeline
@@ -587,6 +591,8 @@ jobs:
         run: node scripts/install-browsers.mjs chrome --chrome-sandbox
       - name: Verify sandboxed Chrome
         run: node scripts/check-ci-browser.mjs
+      - name: Download the crates of every Cargo.lock
+        run: make install-crates
       - name: Build and test native packages
         if: ${{ !cancelled() }}
         run: make test-native

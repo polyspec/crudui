@@ -11,7 +11,8 @@ import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 
 import { recordFixtureFile, recordServers, recordSpecsFile } from './record-contract.mjs';
-import { installOrderedJson, orderedJsonRevision } from './ordered-json-source.mjs';
+import { orderedJsonRevision } from './ordered-json-source.mjs';
+import { orderedJsonPresent } from '../install-ordered-json.mjs';
 import { sourceIdentity } from './source-tree.mjs';
 import { formatDuration, killProcessTree, runStages, stepHeartbeatMs } from './step-runner.mjs';
 
@@ -38,24 +39,12 @@ const readyLine = server => new RegExp(`^CRUDUI_READY ${server} (127\\.0\\.0\\.1
 export const anyLoopbackPort = '127.0.0.1:0';
 
 async function orderedJsonCheckout(write) {
-  try {
-    const { stdout } = await execFileAsync('git', ['-C', localOrderedJsonDirectory, 'rev-parse', 'HEAD']);
-    const { stdout: changes } = await execFileAsync('git', ['-C', localOrderedJsonDirectory, 'status', '--porcelain', '--untracked-files=no']);
-    if (stdout.trim() === orderedJsonRevision && changes.trim() === '') {
-      progress(write, `ordered-json checkout: ${orderedJsonRevision} present`);
-      return;
-    }
-  } catch { /* no checkout yet */ }
-  const started = performance.now();
-  progress(write, 'ordered-json checkout: started');
-  const heartbeat = setInterval(() => progress(write,
-    `ordered-json checkout: running ${formatDuration(performance.now() - started)}`), stepHeartbeatMs);
-  try {
-    await installOrderedJson(localOrderedJsonDirectory);
-  } finally {
-    clearInterval(heartbeat);
+  // The checkout is a download of make install; a check reads it and downloads nothing.
+  if (!await orderedJsonPresent(localOrderedJsonDirectory)) {
+    throw new Error(`the OrderedJSON checkout ${localOrderedJsonDirectory} is missing or not at ${orderedJsonRevision}; `
+      + 'run make install-ordered-json (make install runs it), which downloads it');
   }
-  progress(write, `ordered-json checkout: passed in ${formatDuration(performance.now() - started)}`);
+  progress(write, `ordered-json checkout: ${orderedJsonRevision} present`);
 }
 
 /**
