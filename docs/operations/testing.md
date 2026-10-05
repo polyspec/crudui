@@ -200,5 +200,8 @@ concurrent runs, the report and the removal of a lock whose holder no longer run
 |---|---|
 | Snapshots of `make docs-verify-idempotent` | A directory from `mktemp -d`, removed at the run's exit |
 | Playwright image of `make test-form-styles-linux` | User-wide lock `playwright-v<version>-noble`; the run keeps the image, and `make remove-form-styles-image` removes it under the lock |
+| Comparison deployment of `make deploy` and `make deploy-verify` | User-wide lock `form-comparison-deployment`, taken before any other step |
 
-`tests/build/shared-resources.test.mjs`, run by `npm run test:runtimes`, checks each row.
+`tests/build/shared-resources.test.mjs`, run by `npm run test:runtimes`, checks the first two rows;
+`examples/form-comparison/check-deployment-lock.test.mjs`, run by
+`npm run test:form-comparison:source`, checks the deployment.

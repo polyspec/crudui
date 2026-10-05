@@ -1,5 +1,16 @@
 # Changes
 
+## 2026-10-05 — A holder lock of the comparison deployment (C3.4)
+
+- `make deploy` and `make deploy-verify` take the user-wide holder lock `form-comparison-deployment`
+  before any other step and release it when they exit. The deployment is one Compose project
+  `crudui` with its container and its volumes for the user account, and a deployment from another
+  checkout replaced it while a verification ran. A held lock refuses the run with the
+  holder's checkout, pid and process start time. `holdUntilExit` of `scripts/holder-lock.mjs`
+  releases a lock at process exit, also after `process.exit` from a signal handler.
+  `examples/form-comparison/check-deployment-lock.test.mjs` runs in
+  `npm run test:form-comparison:source`.
+
 ## 2026-10-05 — A kept Playwright image under a holder lock (C3.3)
 
 - `make test-form-styles-linux` keeps the Playwright image. A run that pulled the image removed it

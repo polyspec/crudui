@@ -3,7 +3,8 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { deploymentContainer } from './comparison-deployment.mjs';
+import { holdUntilExit } from '../../scripts/holder-lock.mjs';
+import { deploymentContainer, deploymentLockFile } from './comparison-deployment.mjs';
 import { containerRuntime } from './container-runtime.mjs';
 import { treeDirectory } from './src/server-layout.mjs';
 import { sameSourceIdentity } from './src/source-identity.mjs';
@@ -46,6 +47,7 @@ async function execute(containerName, source) {
 
 async function main() {
   assert.equal(process.argv.length, 2, 'Usage: node examples/form-comparison/verification.mjs');
+  holdUntilExit(deploymentLockFile());
   stopStepsOnSignal();
   const before = await sourceIdentity(repositoryRoot);
   const run = await execute(deploymentContainer, before);

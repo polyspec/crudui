@@ -191,5 +191,8 @@ holder가 더 이상 실행되지 않는 lock의 보고와 제거, 해제를 확
 |---|---|
 | `make docs-verify-idempotent`의 snapshot | `mktemp -d`의 directory, 실행이 끝날 때 지움 |
 | `make test-form-styles-linux`의 Playwright image | user 범위 lock `playwright-v<version>-noble`; 실행은 image를 남기고, `make remove-form-styles-image`가 lock 아래에서 지움 |
+| `make deploy`와 `make deploy-verify`의 comparison deployment | user 범위 lock `form-comparison-deployment`, 다른 step보다 먼저 잡음 |
 
-`npm run test:runtimes`가 실행하는 `tests/build/shared-resources.test.mjs`는 각 행을 확인합니다.
+`npm run test:runtimes`가 실행하는 `tests/build/shared-resources.test.mjs`는 앞의 두 행을 확인하고,
+`npm run test:form-comparison:source`가 실행하는 `examples/form-comparison/check-deployment-lock.test.mjs`는
+deployment를 확인합니다.
