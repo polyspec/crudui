@@ -1,5 +1,13 @@
 # 변경 기록
 
+## 2026-10-05 — documentation 실행마다 따로 쓰는 snapshot directory (C3.1)
+
+- `make docs-verify-idempotent`는 두 snapshot과 그 차이를 실행이 `mktemp -d`로 만들고 끝날 때 지우는
+  directory에 씁니다. 전에는 고정 path `/tmp/crudui-docs-run1`, `/tmp/crudui-docs-run2`,
+  `/tmp/crudui-docs-diff.txt`를 써서, 다른 checkout의 실행이 비교 도중에 그것을 지우고 다시
+  썼습니다. `npm run test:runtimes`가 실행하는 `tests/build/shared-resources.test.mjs`는 `/tmp` 아래의
+  고정 path를 쓰는 Makefile 줄에서 실패합니다.
+
 ## 2026-10-05 — pipe로 만나는 stage step (C2.9-1)
 
 - step runner test에서 한 stage의 두 step은 named pipe의 두 끝을 열므로, stage는 둘이 동시에 실행될
