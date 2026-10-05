@@ -46,7 +46,7 @@
     { "paths": ["scripts/php-extension-builder.mjs", "scripts/build-crudui-php-extension.mjs", "scripts/build-ordered-json-php-extension.mjs"], "targets": ["test-php-extension"], "tests": ["tests/build/atomic-publish.test.mjs", "tests/build/php-extensions.test.mjs"] },
     { "paths": ["scripts/check-documents.mjs", "scripts/checklist-markers*.mjs", "scripts/documentation-links*.mjs"], "targets": ["docs-check-documents"] },
     { "paths": ["scripts/check-doc-coverage*.mjs", "scripts/php-doc-coverage.*", "scripts/gen-api-docs*.mjs", "scripts/typedoc.*.json", "scripts/tsconfig.svelte-docs.json", "scripts/fixtures/typedoc/**", "scripts/install-phpdocumentor.sh", "scripts/docs-web/**"], "targets": ["docs-check"] },
-    { "paths": ["scripts/check-packages.mjs"], "scripts": ["test:packages"] },
+    { "paths": ["scripts/check-packages.mjs", "scripts/install-lock.mjs"], "scripts": ["test:packages"], "tests": ["tests/build/install-lock.test.mjs"] },
     { "paths": ["scripts/github-repository.mjs", ".github/repository.json"], "tests": ["tests/build/github-repository.test.mjs"] },
     { "paths": ["scripts/tracked-files.mjs"], "scripts": ["lint", "manifest:check"], "tests": ["tests/build/tracked-files.test.mjs", "tests/build/lint-coverage.test.mjs", "tests/build/contract-manifest.test.mjs", "tests/build/runtime-version-policy.test.mjs", "tests/build/public-packages.test.mjs", "tests/build/vite-config.test.mjs", "tests/build/php-extensions.test.mjs"] },
     { "paths": ["scripts/owner-check.mjs", "scripts/owner-checks.json"], "tests": ["tests/build/owner-check.test.mjs"] },

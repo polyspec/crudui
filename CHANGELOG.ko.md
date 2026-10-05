@@ -1,5 +1,10 @@
 # 변경 기록
 
+## 2026-10-06 — offline 패키지 설치 (C7.16-1)
+
+- `npm run test:packages`의 설치 프로젝트는 `scripts/install-lock.mjs`가 루트 lock에서 만든 lock으로
+  `npm ci --offline`을 실행해 설치하므로, 루트 lock의 release를 설치하고 registry에 range를 묻지 않습니다.
+
 ## 2026-10-06 — 모든 CI job의 보고서 (C7.18)
 
 - 모든 CI job은 각 대상을 끝까지 실행하는 `make ci-targets`로 검사를 실행하고, 각 대상의 log와 실패한 대상마다의 첫

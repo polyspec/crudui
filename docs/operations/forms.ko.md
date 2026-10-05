@@ -156,7 +156,10 @@ Svelte 패키지 빌드는 JavaScript, 전처리한 Svelte 컴포넌트, TypeScr
 
 `npm run test:packages`는 JavaScript 패키지 전체를 빌드·패키징하고 별도 설치
 프로젝트에 설치합니다. export 파일과 타입 선언을 검사하고 세 폼 컴포넌트를
-사용하는 프로덕션 번들을 컴파일합니다. 통과한 검사는 임시 설치 프로젝트를
+사용하는 프로덕션 번들을 컴파일합니다. 설치 프로젝트는 `scripts/install-lock.mjs`가 루트
+`package-lock.json`에서 만든 lock으로 `npm ci --offline`을 실행해 설치합니다. 이 lock은 패키징한 패키지를
+`file:` tarball로, npm이 설치 프로젝트에 resolve하는 모든 registry 패키지를 루트 lock 항목으로 담으므로, 설치 프로젝트는
+`make install`의 npm cache에서 루트 lock의 release를 설치하고 registry에 range를 묻지 않습니다. 통과한 검사는 임시 설치 프로젝트를
 삭제합니다. 실패한 검사는 `failure.log`와 함께 프로젝트를 남기고 경로를 출력합니다.
 
 ## 패키지 타입 선언 검사

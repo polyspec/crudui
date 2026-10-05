@@ -6,6 +6,7 @@ import { join, relative, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import puppeteer from 'puppeteer';
 import { createRequire } from 'node:module';
+import { installLock } from './install-lock.mjs';
 import { packPackage } from './package-install-pack.mjs';
 import { useCheckoutNpm } from './checkout-npm.mjs';
 import { createProgress } from './test-progress/progress.mjs';
@@ -19,6 +20,8 @@ const packages = ['validator-ts', 'generator-core', 'generator-html', 'generator
 const published = JSON.parse(readFileSync(join(root, 'contracts/features.json'), 'utf8')).packages
   .map(({ path }) => relative(join(root, 'packages'), join(root, path)));
 const dependencies = {};
+// The packed packages for the install lock (scripts/install-lock.mjs).
+const packed = {};
 const { allowScripts } = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
 process.stdout.write(`Install project: ${directory}\n`);
 
@@ -66,9 +69,9 @@ try {
     const source = join(root, 'packages', folder);
     const manifest = JSON.parse(readFileSync(join(source, 'package.json'), 'utf8'));
     assert.equal(manifest.version, '0.0.1', manifest.name);
-    dependencies[manifest.name] = `file:${await packPackage(
-      source, directory, manifest.name, run,
-    )}`;
+    const tarball = await packPackage(source, directory, manifest.name, run);
+    dependencies[manifest.name] = `file:${tarball}`;
+    packed[manifest.name] = { directory: `packages/${folder}`, tarball, manifest };
   }
   });
   for (const name of ['react', 'react-dom', 'vue', 'svelte', 'typescript', '@types/react', '@types/react-dom', '@types/node', 'vite', '@sveltejs/vite-plugin-svelte']) {
@@ -76,7 +79,11 @@ try {
       ? JSON.parse(readFileSync(join(root, 'packages/generator-svelte/package.json'), 'utf8')).devDependencies[name]
       : require(`${name}/package.json`).version;
   }
-  writeFileSync(join(directory, 'package.json'), JSON.stringify({ name: 'crudui-install-check', version: '0.0.1', private: true, type: 'module', dependencies, allowScripts }, null, 2));
+  const project = { name: 'crudui-install-check', version: '0.0.1', private: true, type: 'module', dependencies, allowScripts };
+  writeFileSync(join(directory, 'package.json'), JSON.stringify(project, null, 2));
+  // The install project installs the releases of the root lock from the npm cache that make install fills, without a registry.
+  const rootLock = JSON.parse(readFileSync(join(root, 'package-lock.json'), 'utf8'));
+  writeFileSync(join(directory, 'package-lock.json'), `${JSON.stringify(installLock({ rootLock, manifest: project, packed }), null, 2)}\n`);
   writeFileSync(join(directory, 'tsconfig.json'), JSON.stringify({ compilerOptions: {
     target: 'ES2022', module: 'ESNext', moduleResolution: 'bundler', strict: true, noEmit: true,
     esModuleInterop: true, lib: ['ES2022', 'DOM', 'DOM.Iterable'],
@@ -117,7 +124,7 @@ bindForm(document.querySelector<HTMLFormElement>('#binding form')!, bindingSpec,
   writeFileSync(join(directory, 'index.html'), '<!doctype html><html><head><title>Package verification</title><link rel="icon" href="data:,"></head><body><div id="react"></div><div id="vue"></div><div id="svelte"></div><div id="binding"></div><script type="module" src="/main.ts"></script></body></html>');
   writeFileSync(join(directory, 'vite.config.mjs'), `import { defineConfig } from 'vite';\nimport { svelte } from '@sveltejs/vite-plugin-svelte';\nexport default defineConfig({ plugins: [svelte()] });\n`);
   await step('install the packages of the install project', 120000,
-    async () => writeFileSync(join(directory, 'install.log'), await run('npm', ['install'])));
+    async () => writeFileSync(join(directory, 'install.log'), await run('npm', ['ci', '--offline'])));
   await step('verify package exports', 10000, () => {
   for (const name of Object.keys(dependencies).filter(name => name.startsWith('@crudui/'))) {
     const base = join(directory, 'node_modules', name);

@@ -1,5 +1,11 @@
 # Changes
 
+## 2026-10-06 — Offline package install (C7.16-1)
+
+- The install project of `npm run test:packages` installs with `npm ci --offline` from a lock that
+  `scripts/install-lock.mjs` derives from the root lock, so it installs the releases of the root lock
+  and resolves no range against a registry.
+
 ## 2026-10-06 — A report for every CI job (C7.18)
 
 - Every CI job runs its checks with `make ci-targets`, which runs each target to its end, and uploads
