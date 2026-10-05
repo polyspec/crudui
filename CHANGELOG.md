@@ -1,5 +1,10 @@
 # Changes
 
+## 2026-10-06 — jest-dom 7 (C5.8-9)
+
+- generator-react tests with `@testing-library/jest-dom` 7.0.1; it stayed at 6.9.1 because 6.10.0 was
+  deprecated as a minor release with breaking changes, which 7 publishes as a major.
+
 ## 2026-10-06 — @sveltejs/package 3 (C5.8-8)
 
 - generator-svelte packages its components with `@sveltejs/package` 3.0.0; the 57 files of its `dist`

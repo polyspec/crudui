@@ -1,5 +1,10 @@
 # 변경 기록
 
+## 2026-10-06 — jest-dom 7 (C5.8-9)
+
+- generator-react는 `@testing-library/jest-dom` 7.0.1로 test합니다. 6.10.0이 breaking change가 있는 minor로 deprecated되어
+  6.9.1에 머물렀고, 7은 그 변경을 major로 게시합니다.
+
 ## 2026-10-06 — @sveltejs/package 3 (C5.8-8)
 
 - generator-svelte는 `@sveltejs/package` 3.0.0으로 component를 package합니다. 그 `dist`의 57개 file은 2.5.8의 것과 같습니다.
