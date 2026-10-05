@@ -1,5 +1,14 @@
 # Changes
 
+## 2026-10-05 — Dependencies at the latest release of their major (C5.8-2)
+
+- 19 npm dependencies of the root and workspace manifests and PHPUnit in both Composer packages are
+  raised to the latest stable release of their locked major, among them `puppeteer` 25.12.0,
+  `eslint` 10.12.0, `react` and `react-dom` 19.3.0, `vite` 8.3.2 and PHPUnit 10.5.66. Each
+  manifest keeps its range operator, the `react` overrides follow the direct ranges, and the install
+  script approval names `puppeteer@25.12.0`. `@testing-library/jest-dom` stays at 6.9.1 because its
+  publisher deprecated 6.10.0 as a minor release with breaking changes.
+
 ## 2026-10-05 — One npm release locally, in CI and in the images (C5.2-2)
 
 - `packageManager` of `package.json` records npm 12.2.0, and `node scripts/install-npm.mjs`

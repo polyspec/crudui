@@ -12,7 +12,7 @@
         "php": "^8.4"
     },
     "require-dev": {
-        "phpunit/phpunit": "^10.0"
+        "phpunit/phpunit": "^10.5.66"
     },
     "autoload": {
         "psr-4": {
