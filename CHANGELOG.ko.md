@@ -1,5 +1,9 @@
 # 변경 기록
 
+## 2026-10-06 — @sveltejs/package 3 (C5.8-8)
+
+- generator-svelte는 `@sveltejs/package` 3.0.0으로 component를 package합니다. 그 `dist`의 57개 file은 2.5.8의 것과 같습니다.
+
 ## 2026-10-06 — 실행 major의 Node.js type 정의 (C5.8-7)
 
 - TypeScript workspace 6개는 기록된 Node.js 26.8.1의 major인 `@types/node` 26.6.4를 씁니다. 이전에는 Node.js 25를
