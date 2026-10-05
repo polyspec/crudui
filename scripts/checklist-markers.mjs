@@ -1,10 +1,11 @@
 /**
  * Check that a task state marker of the execution checklist appears only as the state of a task row: at the start
- * of the last cell of a row whose first cell is a task ID. A marker in a legend, in prose, in a task text, in another
+ * of the last cell of a row whose first cell is a task ID. An x or a capital X between brackets, the task list states of
+ * GitHub, is a marker too. A marker in a legend, in prose, in a task text, in another
  * table or in inline code is an error with its file, line and column.
  */
 const TASK_ROW = /^\|\s*C\d[\w.-]*\s*\|/;
-const MARKER = /\[[ ~o!]\]/g;
+const MARKER = /\[[ ~o!xX]\]/g;
 
 /** The column index of the state of a task row, or -1 when the line is not a task row. */
 function stateIndex(line) {
