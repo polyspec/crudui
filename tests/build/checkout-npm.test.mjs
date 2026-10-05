@@ -76,7 +76,7 @@ test('no script, make target or CI step installs npm into the machine', () => {
   for (const file of files) {
     if (!existsSync(path.join(ROOT, file))) continue;
     readFileSync(path.join(ROOT, file), 'utf8').split('\n').forEach((line, index) => {
-      if (/\bnpm (?:i|install)\b[^\n]*(?:\s-g\b|--global\b)|'(?:--global|-g)'/.test(line)) violations.push(`${file}:${index + 1}: ${line.trim()}`);
+      if (/\bnpm (?:i|install)\b[^\n]*(?:\s-g\b|--global\b)|\bnpm\b[^\n]*'(?:--global|-g)'/.test(line)) violations.push(`${file}:${index + 1}: ${line.trim()}`);
     });
   }
   assert.deepEqual(violations, []);

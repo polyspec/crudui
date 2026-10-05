@@ -13,17 +13,25 @@ on:
 permissions:
   contents: read
 
+# The toolchains of the checkout at their recorded versions (docs/spec/package-build.md): rustup installs nothing on the
+# first cargo, and go never downloads the toolchain of a go.mod.
+env:
+  RUSTUP_AUTO_INSTALL: '0'
+  GOTOOLCHAIN: local
+
 jobs:
   push-gate:
     name: push-gate
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Setup selected Node.js release line
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version-file: '.node-version'
+      - name: Check the recorded toolchain versions
+        run: node scripts/check-toolchain.mjs node
       - name: Refuse a commit with a task in progress
         run: node scripts/push-gate.mjs commit HEAD

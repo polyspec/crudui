@@ -2,6 +2,8 @@ module github.com/polyspec/crudui/tests/native-generators/programs/go
 
 go 1.21
 
+toolchain go1.27.0
+
 require (
 	github.com/polyspec/crudui/packages/generator-go v0.0.1
 	github.com/polyspec/crudui/packages/validator-go v0.0.1

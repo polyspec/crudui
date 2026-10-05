@@ -243,9 +243,10 @@ Enter)는 폼의 네이티브 필드를 `multipart/form-data`로 `/api/{server}/
 
 ### 툴체인 이미지
 
-`examples/form-comparison/Containerfile`은 이미지 하나를 정의합니다. Node.js 26, Git,
-PHP 8.4(CLI, 개발 헤더, mbstring, XML), Composer, C 빌드 도구, Go 1.27, stable Rust,
-tini, 고정한 Chromium과 샌드박스를 포함합니다. 어떤 명령도 저장소를 복사하거나 읽지 않으며
+`examples/form-comparison/Containerfile`은 이미지 하나를 정의합니다. checkout이 기록한
+Node.js·Go·Rust 릴리스(각 단계 이미지는 digest로 지정), Git, PHP 8.4(CLI, 개발 헤더, mbstring,
+XML), Composer, C 빌드 도구, tini, 고정한 Chromium과 샌드박스를 포함하며, Debian 패키지는 한
+날짜의 snapshot에서 받습니다. 어떤 명령도 저장소를 복사하거나 읽지 않으며
 저장소에 의존하는 빌드 단계도 없습니다. 이미지 태그는 Containerfile 내용의 SHA-256
 digest 앞 16자리이므로 이 파일이 바뀔 때만 이미지를 다시 빌드합니다. 컨테이너는 두 볼륨
 루트를 비특권 `node` 사용자에게 넘기기 위해서만 root로 시작하고, 이후 그 사용자로

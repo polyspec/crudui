@@ -1,5 +1,22 @@
 # Changes
 
+## 2026-10-05 — Exact toolchain versions everywhere (C7.2)
+
+- The specification records exact versions instead of release channels, which made the toolchain of
+  a run depend on its date. `.node-version` is 26.8.1, `.go-version` 1.27.0 with a `toolchain` line in
+  every `go.mod`, `rust-toolchain.toml` 1.98.1 with `rustfmt` and `clippy`, and
+  `config/toolchain.json` records PHP 8.4.26 and 8.5.11, Composer 2.10.3 and the SHA-256 of the Linux
+  Node.js archive. The Makefile, CI and the images set `RUSTUP_AUTO_INSTALL=0` and
+  `GOTOOLCHAIN=local`; `make install` installs the npm, the dependencies and the Rust toolchain, and
+  `node scripts/check-toolchain.mjs` fails for a tool at another version with the record, the expected
+  and the running version and the fix; every CI job runs it for the tools it set up.
+- CI runs on `ubuntu-24.04` with every action named by the commit SHA of a release; container stages
+  name their images by tag and digest and install Debian packages from the snapshot of 2026-10-05.
+  Chrome and Firefox run at the builds that puppeteer pins and WebKit at the build of playwright
+  (`node scripts/install-browsers.mjs`), in CI with the sandbox helper of that Chrome; the Linux style
+  check downloads the Node.js archive of `.node-version` and checks its SHA-256.
+  `scripts/run-contract-tests.mjs` runs `sh -c` instead of a login shell.
+
 ## 2026-10-05 — The checkout npm module in the copies of the tests (C7.7-1)
 
 - `tests/build/rust-node-entry-points.test.mjs` and `tests/build/run-command.test.mjs` copy

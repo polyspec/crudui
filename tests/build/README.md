@@ -14,11 +14,15 @@ npm run test:build:repeat
 npm run test:packages
 ```
 
-`test:runtimes` requires one even-numbered Node.js major in `.node-version` and
-one Go major and minor release in `.go-version`. CI reads both files, and every
-Node.js and Go container stage uses the corresponding release line. Rust CI and
-container stages select the stable Rust channel. The check rejects exact runtime
-patch releases. `packageManager` of `package.json` records one exact npm release;
+`test:runtimes` requires one exact release of every tool: Node.js in `.node-version`,
+Go in `.go-version` and the `toolchain` line of every `go.mod`, Rust in
+`rust-toolchain.toml`, PHP and Composer in `config/toolchain.json`, and requires the
+running Node.js, npm, Go, Rust and Composer to be those releases
+(`scripts/check-toolchain.mjs`). Every CI job runs on `ubuntu-24.04`, names its actions by
+commit SHA, sets up the recorded releases and checks the tools it set up; every
+container stage names its image by tag and digest and installs Debian packages from a
+snapshot of one date; no browser of a release channel or of the machine is used.
+`packageManager` of `package.json` records one exact npm release;
 the check fails when the running npm, a workflow step or a container definition
 selects another release, and `node scripts/install-npm.mjs` installs it into `.tools/npm` of the checkout.
 `tests/build/checkout-npm.test.mjs` fails when a script, a make target or a CI step installs npm into the machine,

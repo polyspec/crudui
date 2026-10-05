@@ -33,11 +33,11 @@ export async function checkCiBrowser({
   inspect = lstat,
   launch = options => puppeteer.launch(options),
 } = {}) {
-  assert.equal(typeof executablePath, 'string', 'PUPPETEER_EXECUTABLE_PATH is required');
+  assert.equal(typeof executablePath, 'string', 'the Chrome executable path is required');
   assert.equal(path.isAbsolute(executablePath), true,
-    'PUPPETEER_EXECUTABLE_PATH must be absolute');
+    `the Chrome executable path ${executablePath} must be absolute`);
   assert.equal(path.resolve(executablePath), executablePath,
-    'PUPPETEER_EXECUTABLE_PATH must be canonical');
+    `the Chrome executable path ${executablePath} must be canonical`);
 
   await requireCanonicalDirectory(path.dirname(executablePath), inspect);
   const executable = await inspect(executablePath);
@@ -86,10 +86,12 @@ export async function checkCiBrowser({
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const lines = createProgress({ write: text => process.stdout.write(text), timeoutMs: 60_000, onTimeout: () => process.exit(1) });
-  const id = `sandboxed Chrome at ${process.env.PUPPETEER_EXECUTABLE_PATH}`;
+  // The Chrome that puppeteer pins (scripts/install-browsers.mjs), or the one that PUPPETEER_EXECUTABLE_PATH names.
+  const executablePath = process.env.PUPPETEER_EXECUTABLE_PATH ?? await puppeteer.executablePath();
+  const id = `sandboxed Chrome at ${executablePath}`;
   lines.start(id);
   try {
-    await checkCiBrowser();
+    await checkCiBrowser({ executablePath });
     lines.pass(id);
   } catch (error) {
     lines.fail(id, undefined, error.stack ?? error.message);

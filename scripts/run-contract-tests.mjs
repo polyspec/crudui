@@ -36,7 +36,7 @@ const lines = createProgress({ write: text => process.stdout.write(text) });
 for (const [command, owners] of commands) {
   const id = `${owners.join(', ')}: ${command}`;
   lines.start(id, { group: true });
-  const result = await runCommand({ command: '/bin/sh', args: ['-lc', command], cwd: root });
+  const result = await runCommand({ command: '/bin/sh', args: ['-c', command], cwd: root });
   const failure = failureOf(result);
   if (failure) {
     lines.fail(id, result.elapsedMs, failure);

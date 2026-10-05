@@ -275,9 +275,11 @@ building the image again.
 
 ### Toolchain image
 
-`examples/form-comparison/Containerfile` defines one image: Node.js 26, Git, PHP
-8.4 (CLI, development headers, mbstring and XML), Composer, the C build tools, Go
-1.27, stable Rust, tini, and the pinned Chromium with its sandbox. No instruction
+`examples/form-comparison/Containerfile` defines one image: the Node.js, Go and Rust
+releases that the checkout records, each stage image by its digest, Git, PHP 8.4
+(CLI, development headers, mbstring and XML), Composer, the C build tools, tini,
+and the pinned Chromium with its sandbox, the Debian packages from the snapshot
+of one date. No instruction
 copies or reads the repository, and no build step depends on it. The image tag is
 the first 16 hexadecimal characters of the SHA-256 digest of the Containerfile
 content, so the image is built again only when that file changes. The container

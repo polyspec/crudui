@@ -1,5 +1,20 @@
 # 변경 기록
 
+## 2026-10-05 — 모든 곳의 정확한 toolchain version (C7.2)
+
+- specification은 release channel 대신 정확한 version을 기록합니다. channel은 실행의 toolchain을 그 날짜에 따라
+  달라지게 했습니다. `.node-version`은 26.8.1, `.go-version`은 모든 `go.mod`의 `toolchain` 줄과 함께 1.27.0,
+  `rust-toolchain.toml`은 `rustfmt`, `clippy`와 함께 1.98.1이며, `config/toolchain.json`은 PHP 8.4.26과 8.5.11,
+  Composer 2.10.3, Linux Node.js archive의 SHA-256을 기록합니다. Makefile, CI, image는 `RUSTUP_AUTO_INSTALL=0`과
+  `GOTOOLCHAIN=local`을 설정하고, `make install`은 npm, 의존성, Rust toolchain을 설치하며,
+  `node scripts/check-toolchain.mjs`는 다른 version의 도구에 대해 기록, 기대한 version과 실행 중인 version, 해결
+  방법으로 실패합니다. 모든 CI job은 자신이 설치한 도구에 대해 그것을 실행합니다.
+- CI는 `ubuntu-24.04`에서 실행되고 모든 action을 release의 commit SHA로 지정합니다. container 단계는 image를 tag와
+  digest로 지정하고 2026-10-05 snapshot의 Debian package를 설치합니다. Chrome과 Firefox는 puppeteer가 고정한 build로,
+  WebKit은 playwright의 build로 실행되며(`node scripts/install-browsers.mjs`), CI에서는 그 Chrome의 sandbox helper와
+  함께 실행됩니다. Linux style 검사는 `.node-version`의 Node.js archive를 받아 SHA-256을 검사합니다.
+  `scripts/run-contract-tests.mjs`는 login shell 대신 `sh -c`를 실행합니다.
+
 ## 2026-10-05 — test 복사본의 checkout npm module (C7.7-1)
 
 - `tests/build/rust-node-entry-points.test.mjs`와 `tests/build/run-command.test.mjs`는 C7.7부터 그것을 import하는

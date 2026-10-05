@@ -1,0 +1,10 @@
+{
+  "php": [
+    "8.4.26",
+    "8.5.11"
+  ],
+  "composer": "2.10.3",
+  "node": {
+    "linux-x64.tar.gz": "b2b76660fa4ded4e0b2a41ee3c0c651cd52ea8170ead91ebac1e147ac3d55643"
+  }
+}

@@ -2,7 +2,11 @@
 
 [한국어](testing.ko.md).
 
-Run from the repository root. Install the npm release that `packageManager` of `package.json`
+Run from the repository root. Every tool runs at the release that the checkout records
+(`docs/spec/package-build.md`, "Runtime and dependency versions"): `make install` installs the
+recorded npm, the npm and Composer dependencies and the Rust toolchain of `rust-toolchain.toml`,
+and `make toolchain-check` names every tool that runs at another release with the expected one.
+Install the npm release that `packageManager` of `package.json`
 records into the checkout with `node scripts/install-npm.mjs`, which never changes the npm of the
 machine; make puts its `.tools/npm/node_modules/.bin` first on `PATH`, and a shell that runs npm
 itself puts it there with `export PATH="$PWD/.tools/npm/node_modules/.bin:$PATH"`. Install Node

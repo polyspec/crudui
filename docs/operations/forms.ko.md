@@ -133,9 +133,9 @@ node scripts/run-tests.mjs cargo -- --locked --manifest-path packages/validator-
 검사합니다. sticky 헤더 쌓임, 단계 레이블과 그 `data-crudui-stuck` 대체 경로, 테두리 한 겹의
 이음매, 행 카드의 선, 포커스 스크롤을 페이지, 스크롤 상자, 프레임에서 각각 확인합니다. 모든
 엔진이 같은 시나리오를 실행하며, Chromium과 Firefox는 Puppeteer로, WebKit은 Playwright로
-구동합니다. Firefox는 `CRUDUI_FIREFOX_EXECUTABLE` 또는 플랫폼 설치 경로에서 찾고, WebKit은
-`npx playwright install --with-deps webkit`으로 설치합니다. 브라우저가 없으면 실행이 실패하며 어떤
-엔진도 건너뛰지 않습니다. `packages/form-binding/tests/browser.test.ts`의
+구동하며, 각각 잠긴 package가 고정한 build를 씁니다. `node scripts/install-browsers.mjs chrome firefox
+webkit`이 그것들을 설치합니다(Linux에서는 WebKit에 `--with-deps`). 브라우저가 없으면 실행이 그것을 설치하는
+명령과 함께 실패하며 어떤 엔진도 건너뛰지 않습니다. `packages/form-binding/tests/browser.test.ts`의
 [브라우저 검증](validation.ko.md#브라우저-검증) 검사도 같은 세 엔진에서 실행합니다.
 `tests/viewport.test.mjs`는 공유 render case 432개의 expected HTML을 360과 1280 CSS pixel로 열어 문서의
 가로 overflow가 없는지 확인하고, `tests/tailwind-styles.test.mjs`는 `crudui.tailwind.css`를 Tailwind CSS로
