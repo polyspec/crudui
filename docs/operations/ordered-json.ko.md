@@ -28,7 +28,7 @@
 ORDERED_JSON_SOURCE=/absolute/path/to/ordered-json
 git clone --no-checkout https://github.com/polyspec/ordered-json "$ORDERED_JSON_SOURCE"
 git -C "$ORDERED_JSON_SOURCE" checkout main
-python3 -m unittest discover -s tests/ordered-json -p 'test_*.py'
+make test-ordered-json
 python3 "$ORDERED_JSON_SOURCE/scripts/verify.py"
 python3 tests/ordered-json/check.py "$ORDERED_JSON_SOURCE"
 make docs-check

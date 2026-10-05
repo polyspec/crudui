@@ -100,10 +100,12 @@ test('the checkout records one exact version of every tool', async () => {
   assert.match(config.node['linux-x64.tar.gz'], /^[0-9a-f]{64}$/, 'config/toolchain.json records the SHA-256 of the Linux x64 archive of the Node.js release');
   // setup-php and Homebrew cannot install the same patch, so PHP is pinned by its minor release; the patch is evidence.
   assert.ok(config.php.length > 0 && config.php.every(release => /^\d+\.\d+$/.test(release)), `config/toolchain.json must record php as minor releases; it records ${JSON.stringify(config.php)}`);
+  // Python, a test tool of tests/ordered-json, is pinned by its minor release like PHP.
+  assert.match(config.python, /^\d+\.\d+$/, 'config/toolchain.json must record python as one minor release');
 });
 
 test('every tool runs at the version that the checkout records, PHP at a recorded minor', () => {
-  assert.deepEqual(toolchainMismatches(['node', 'npm', 'go', 'rust', 'php', 'composer'], { root: repository }), []);
+  assert.deepEqual(toolchainMismatches(['node', 'npm', 'go', 'rust', 'php', 'python', 'composer'], { root: repository }), []);
 });
 
 test('the running releases are reported, the patch of PHP included', () => {
@@ -119,6 +121,10 @@ test('a tool at another version fails with its record, the expected and the runn
   const run = command => (command === 'go' ? { status: 1, stdout: '', stderr: 'go: not found' } : { status: 0, stdout: outputs[command] ?? '', stderr: '' });
   // Another patch of a recorded minor is accepted.
   assert.deepEqual(toolchainMismatches(['php'], { root: repository, run: () => ({ status: 0, stdout: `${recorded.php[0]}.99\n` }) }), []);
+  assert.deepEqual(toolchainMismatches(['python'], { root: repository, run: () => ({ status: 0, stdout: `Python ${recorded.python}.99\n` }) }), []);
+  assert.deepEqual(toolchainMismatches(['python'], { root: repository, run: () => ({ status: 0, stdout: 'Python 3.1.4\n' }) }), [
+    `python: 3.1.4 runs here and config/toolchain.json python records ${recorded.python}; fix: install python ${recorded.python}`,
+  ]);
   assert.deepEqual(toolchainMismatches(['node', 'rust', 'php', 'go'], { root: repository, run }), [
     `node: 1.2.3 runs here and .node-version records ${recorded.node}; fix: install node ${recorded.node}`,
     `rust: 1.0.0 runs here and rust-toolchain.toml records ${recorded.rust}; fix: make install (rustup toolchain install --no-self-update)`,
@@ -185,6 +191,10 @@ test('every CI job sets up the recorded toolchains and checks the tools it set u
           const versions = step.with?.['php-version'] === '${{ matrix.php }}' ? job.strategy.matrix.php.map(String) : [String(step.with?.['php-version'])];
           for (const version of versions) if (!minors.includes(version)) violations.push(`${file} ${id}: PHP ${version} is not a minor of config/toolchain.json`);
           if (step.with?.tools !== `composer:${recorded.composer}`) violations.push(`${file} ${id}: setup-php must install composer:${recorded.composer}`);
+        }
+        if (uses.startsWith('actions/setup-python@')) {
+          tools.push('python');
+          if (String(step.with?.['python-version']) !== recorded.python) violations.push(`${file} ${id}: setup-python must install the recorded minor ${recorded.python}`);
         }
         if (/rust-toolchain|dtolnay/.test(uses)) violations.push(`${file} ${id}: ${uses} selects a Rust toolchain; run rustup toolchain install --no-self-update`);
         if (run.split('\n').includes('rustup toolchain install --no-self-update')) tools.push('rust');

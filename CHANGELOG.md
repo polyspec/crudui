@@ -1,5 +1,12 @@
 # Changes
 
+## 2026-10-06 — Python pinned by its minor release (C7.12)
+
+- `config/toolchain.json` records Python 3.9, which runs the tests of `tests/ordered-json`, and
+  `node scripts/check-toolchain.mjs python` compares the running major and minor and prints the patch.
+  The build-lint job of CI sets it up with `actions/setup-python` by commit SHA and runs
+  `make test-ordered-json`, which `make ci` runs too; no command ran those tests before C7.9.
+
 ## 2026-10-06 — PHP pinned by its minor release (C7.2-3)
 
 - `config/toolchain.json` records the PHP minors 8.4 and 8.5, and `node scripts/check-toolchain.mjs`

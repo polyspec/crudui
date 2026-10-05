@@ -7,6 +7,7 @@
 //   rust       channel of rust-toolchain.toml, as rustup selects it in the checkout without installing it
 //   php        config/toolchain.json `php`: the tested minor releases; setup-php and Homebrew cannot install the
 //              same patch, so the major and minor are compared and the running patch is evidence
+//   python     config/toolchain.json `python`: the minor release of the Python test tools, compared like PHP
 //   composer   config/toolchain.json `composer`
 // Every named tool is checked, also after a mismatch; each mismatch names the record, the expected and the running
 // version, and the fix.
@@ -21,6 +22,12 @@ import { recordedNpm, ROOT } from './checkout-npm.mjs';
 import { createProgress } from './test-progress/progress.mjs';
 
 const read = (root, file) => readFileSync(path.join(root, file), 'utf8');
+
+/** A minor release `<major>.<minor>` of config/toolchain.json, or an error naming the expected form. */
+function minorRecord(value) {
+  if (!/^\d+\.\d+$/.test(value ?? '')) throw new Error(`config/toolchain.json must record python as one minor release <major>.<minor>; it records ${JSON.stringify(value)}`);
+  return value;
+}
 
 /** The recorded exact versions of the checkout at `root`. */
 export function recordedToolchain(root = ROOT) {
@@ -40,6 +47,7 @@ export function recordedToolchain(root = ROOT) {
     go: exact('.go-version', read(root, '.go-version').trim()),
     rust: exact('rust-toolchain.toml channel', rust ?? ''),
     php,
+    python: minorRecord(config.python),
     composer: exact('config/toolchain.json composer', config.composer),
   };
 }
@@ -51,6 +59,7 @@ const probes = {
   go: { command: 'go', args: ['env', 'GOVERSION'], pattern: /^go(\d+\.\d+\.\d+)$/m, record: '.go-version' },
   rust: { command: 'rustc', args: ['--version'], pattern: /^rustc (\d+\.\d+\.\d+) /m, record: 'rust-toolchain.toml', fix: 'make install (rustup toolchain install --no-self-update)' },
   php: { command: 'php', args: ['-r', 'echo PHP_VERSION, "\\n";'], pattern: /^(\d+\.\d+\.\d+)$/m, record: 'config/toolchain.json php' },
+  python: { command: 'python3', args: ['--version'], pattern: /^Python (\d+\.\d+\.\d+)$/m, record: 'config/toolchain.json python' },
   composer: { command: 'composer', args: ['--version', '--no-ansi'], pattern: /^Composer version (\d+\.\d+\.\d+) /m, record: 'config/toolchain.json composer' },
 };
 
@@ -88,10 +97,11 @@ export function toolchainMismatches(tools, { root = ROOT, env = process.env, run
       continue;
     }
     const running = probe.pattern.exec(result.stdout)?.[1];
-    // PHP is pinned by its minor release; the patch of the run is evidence, not a requirement.
+    // PHP and Python are pinned by their minor release; the patch of the run is evidence, not a requirement.
     const minor = running?.split('.').slice(0, 2).join('.');
-    const expected = tool === 'php' ? recorded.php.join(' or ') : recorded[tool];
-    if (tool === 'php' ? !recorded.php.includes(minor) : running !== expected) {
+    const minors = { php: recorded.php, python: [recorded.python] }[tool];
+    const expected = minors ? minors.join(' or ') : recorded[tool];
+    if (minors ? !minors.includes(minor) : running !== expected) {
       mismatches.push(`${tool}: ${running ?? `no version in the output of \`${shown}\`: ${result.stdout.trim()}`} runs here and ${probe.record} records ${expected}; fix: ${probe.fix ?? `install ${tool} ${expected}`}`);
     }
   }
