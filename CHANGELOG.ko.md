@@ -1,5 +1,15 @@
 # 변경 기록
 
+## 2026-10-05 — comparison deployment의 holder lock (C3.4)
+
+- `make deploy`와 `make deploy-verify`는 다른 step보다 먼저 user 범위 holder lock
+  `form-comparison-deployment`를 잡고 끝날 때 해제합니다. deployment는 user account에 하나뿐인 Compose
+  project `crudui`와 그 container, volume이며, 다른 checkout의 deployment가 verification
+  도중에 그것을 바꿨습니다. 잡힌 lock은 holder의 checkout, pid, process 시작 시각과 함께 실행을
+  거부합니다. `scripts/holder-lock.mjs`의 `holdUntilExit`는 process가 끝날 때, signal handler의
+  `process.exit` 뒤에도 lock을 해제합니다. `examples/form-comparison/check-deployment-lock.test.mjs`는
+  `npm run test:form-comparison:source`에서 실행됩니다.
+
 ## 2026-10-05 — holder lock 아래에서 유지하는 Playwright image (C3.3)
 
 - `make test-form-styles-linux`는 Playwright image를 남겨 둡니다. 전에는 image를 받은 실행이 끝날 때,

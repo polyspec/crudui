@@ -51,7 +51,11 @@ make deploy-verify
 ```
 
 `make deploy`는 `examples/form-comparison/comparison-deployment.mjs`를, `make deploy-verify`는
-`examples/form-comparison/verification.mjs`를 실행합니다.
+`examples/form-comparison/verification.mjs`를 실행합니다. deployment는 user account에 하나뿐입니다:
+Compose project `crudui` 하나와 그 container, volume입니다. 그래서 두 program은 다른 step보다 먼저 user
+범위 holder lock `form-comparison-deployment`를 잡고 끝날 때 해제합니다. lock을 잡은 다른 checkout의
+실행이 있으면 그 checkout, pid, process 시작 시각과 함께 거부됩니다
+([함께 쓰는 resource](testing.ko.md#함께-쓰는-resource)).
 
 배포 명령은 `examples/form-comparison/Containerfile`이 바뀌었을 때만 툴체인 이미지를
 빌드합니다. 저장소를 읽기 전용으로 마운트하고 빌드 산출물은 `crudui-comparison-build`와

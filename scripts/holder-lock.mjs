@@ -159,6 +159,21 @@ export function removeDeadLock(lockFile) {
   return record;
 }
 
+/**
+ * Take the lock for the rest of this process: it is released when the process exits, also through
+ * `process.exit` from a signal handler. A process that a signal ends without a handler leaves the
+ * lock to `remove-dead`.
+ */
+export function holdUntilExit(lockFile) {
+  const lock = acquireHolderLock(lockFile);
+  process.stderr.write(`lock: acquired ${lockFile} (pid ${process.pid})\n`);
+  process.once('exit', () => {
+    lock.release();
+    process.stderr.write(`lock: released ${lockFile}\n`);
+  });
+  return lock;
+}
+
 /** Run a command while holding the lock; the exit status is the command's. */
 export async function holdWhileRunning(lockFile, command, args) {
   const lock = acquireHolderLock(lockFile, { command: [command, ...args].join(' ') });

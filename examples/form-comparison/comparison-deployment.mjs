@@ -8,6 +8,7 @@ import tls from 'node:tls';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 
+import { holdUntilExit, userLockFile } from '../../scripts/holder-lock.mjs';
 import { browserServers } from './browser-report-policy.mjs';
 import { containerRuntime, runContainer } from './container-runtime.mjs';
 import { forwardLines } from './src/process-output.mjs';
@@ -27,6 +28,11 @@ const deploymentGroup = 'crudui';
 const deploymentService = 'comparison';
 const comparisonImagePrefix = 'localhost/crudui-form-comparison';
 export const toolchainImageName = `${comparisonImagePrefix}-toolchain`;
+/**
+ * The user-wide holder lock of the deployment: the Compose project, its container and its volumes
+ * are single, so `make deploy` and `make deploy-verify` of every checkout take this lock first.
+ */
+export const deploymentLockFile = () => userLockFile('form-comparison-deployment');
 export const deploymentVolumes = Object.freeze({
   build: 'crudui-comparison-build', cache: 'crudui-comparison-cache',
 });
@@ -472,6 +478,7 @@ async function applyDeployment(composeFile, imageReference, deploymentDirectory)
 
 async function main() {
   assert.equal(process.argv.length, 2, 'Usage: node examples/form-comparison/comparison-deployment.mjs');
+  holdUntilExit(deploymentLockFile());
   const startedClock = performance.now();
   const comparisonRoot = path.join(repositoryRoot, '.form-comparison');
   const deploymentDirectory = path.join(comparisonRoot, 'deployment');

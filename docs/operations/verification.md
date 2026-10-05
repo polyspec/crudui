@@ -53,7 +53,11 @@ make deploy-verify
 ```
 
 `make deploy` runs `examples/form-comparison/comparison-deployment.mjs` and `make deploy-verify`
-runs `examples/form-comparison/verification.mjs`.
+runs `examples/form-comparison/verification.mjs`. The deployment is single for the user account:
+one Compose project `crudui`, its container and its volumes. Both programs therefore take the
+user-wide holder lock `form-comparison-deployment` before any other step and release it when they
+exit; a run of another checkout that holds the lock refuses them with its checkout, pid
+and process start time ([shared resources](testing.md#shared-resources)).
 
 The deployment command builds the toolchain image only when
 `examples/form-comparison/Containerfile` changed. It mounts the repository
