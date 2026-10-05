@@ -149,6 +149,15 @@ test('every job runs its checks through make ci-targets and uploads their report
   assert.deepEqual(violations, []);
 });
 
+// The runners are few: a new push to a ref stops the CI run of its previous push. The push check runs on every pushed
+// commit and keeps its runs.
+test('a new push stops the CI run of the previous push of its ref, and the push check keeps every run', async () => {
+  assert.deepEqual(parse(await read('.github/workflows/ci.yml')).concurrency, {
+    group: '${{ github.workflow }}-${{ github.ref }}', 'cancel-in-progress': true,
+  });
+  assert.equal(parse(await read('.github/workflows/push-gate.yml')).concurrency, undefined);
+});
+
 test('every checking step of the CI workflow runs after an earlier failure', async () => {
   const violations = stepsStoppedByFailure(parse(await read('.github/workflows/ci.yml')));
   assert.deepEqual(violations, []);

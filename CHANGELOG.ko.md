@@ -1,5 +1,9 @@
 # 변경 기록
 
+## 2026-10-06 — ref마다 CI 실행 하나 (C7.19)
+
+- ref의 새 push는 이전 push의 CI 실행을 취소하고, push 검사는 여전히 push된 모든 commit에 실행됩니다.
+
 ## 2026-10-06 — 새 clone에서의 전체 실행 (C5.7)
 
 - `make ci`는 `make install` 뒤의 commit된 commit의 새 clone인 `var/full-run/clone`에서 명령을 실행하므로, working

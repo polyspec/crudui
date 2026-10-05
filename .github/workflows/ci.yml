@@ -8,8 +8,9 @@ on:
   pull_request:
   workflow_dispatch:
 
+# The runners are few: a new push to a ref cancels the run of its previous push (tests/build/ci-local.test.mjs).
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
