@@ -36,13 +36,39 @@ export function userLockFile(name) {
   return path.join(os.homedir(), '.local/state/crudui/locks', `${name}.lock`);
 }
 
-/** The start time of a running process as `ps` prints it, or null when no such process runs. */
+/**
+ * The start time of a process from the text of `/proc/<pid>/stat` and the boot time of `/proc/stat`:
+ * field 22 counts clock ticks from boot. The command name in parentheses may hold spaces, so the
+ * fields are counted after its closing parenthesis.
+ */
+export function procStart(stat, systemStat) {
+  const ticks = stat.slice(stat.lastIndexOf(')') + 2).split(' ')[19];
+  const boot = /^btime (\d+)$/m.exec(systemStat)?.[1];
+  assert.match(ticks ?? '', /^\d+$/, `No start time in ${JSON.stringify(stat)}`);
+  assert.ok(boot, 'No boot time in /proc/stat');
+  return `${ticks} clock ticks after the boot at ${new Date(Number(boot) * 1000).toISOString()}`;
+}
+
+/**
+ * The start time of a running process, or null when no such process runs: from `/proc` on Linux,
+ * whose minimal container images have no `ps`, and as `ps` prints it elsewhere.
+ */
 export function processStart(pid) {
   try {
     process.kill(pid, 0);
   } catch (error) {
     if (error.code === 'ESRCH') return null;
     if (error.code !== 'EPERM') throw error;
+  }
+  if (process.platform === 'linux') {
+    let stat;
+    try {
+      stat = fs.readFileSync(`/proc/${pid}/stat`, 'utf8');
+    } catch (error) {
+      if (error.code === 'ENOENT') return null;
+      throw error;
+    }
+    return procStart(stat, fs.readFileSync('/proc/stat', 'utf8'));
   }
   try {
     return execFileSync('/bin/ps', ['-o', 'lstart=', '-p', String(pid)], {
@@ -165,34 +191,55 @@ export function removeDeadLock(lockFile) {
  * lock to `remove-dead`.
  */
 export function holdUntilExit(lockFile) {
-  const lock = acquireHolderLock(lockFile);
-  process.stderr.write(`lock: acquired ${lockFile} (pid ${process.pid})\n`);
-  process.once('exit', () => {
-    lock.release();
-    process.stderr.write(`lock: released ${lockFile}\n`);
-  });
+  const lock = acquireReported(lockFile);
+  process.once('exit', () => lock.release());
   return lock;
 }
 
-/** Run a command while holding the lock; the exit status is the command's. */
-export async function holdWhileRunning(lockFile, command, args) {
-  const lock = acquireHolderLock(lockFile, { command: [command, ...args].join(' ') });
-  process.stderr.write(`lock: acquired ${lockFile} (pid ${process.pid})\n`);
-  const child = spawn(command, args, { stdio: 'inherit' });
+/**
+ * Run a command with inherited standard streams and return its exit status. SIGINT, SIGTERM and
+ * SIGHUP of this process go to the command, so a lock holder releases its lock after the command
+ * has ended.
+ */
+export async function runCommand(command, args, { cwd } = {}) {
+  const child = spawn(command, args, { stdio: 'inherit', cwd });
   const forward = signal => child.kill(signal);
   const signals = ['SIGINT', 'SIGTERM', 'SIGHUP'];
   for (const signal of signals) process.on(signal, forward);
-  const status = await new Promise(resolve => {
-    child.on('error', error => {
-      process.stderr.write(`lock: ${command} did not start: ${error.message}\n`);
-      resolve(127);
+  try {
+    return await new Promise(resolve => {
+      child.on('error', error => {
+        process.stderr.write(`lock: ${command} did not start: ${error.message}\n`);
+        resolve(127);
+      });
+      child.on('exit', (code, signal) => resolve(code ?? 128 + os.constants.signals[signal]));
     });
-    child.on('exit', (code, signal) => resolve(code ?? 128 + os.constants.signals[signal]));
-  });
-  for (const signal of signals) process.off(signal, forward);
-  lock.release();
-  process.stderr.write(`lock: released ${lockFile}\n`);
-  return status;
+  } finally {
+    for (const signal of signals) process.off(signal, forward);
+  }
+}
+
+/** Take the lock and print the acquisition; the handle's release prints the release. */
+export function acquireReported(lockFile, options) {
+  const lock = acquireHolderLock(lockFile, options);
+  process.stderr.write(`lock: acquired ${lockFile} (pid ${process.pid})\n`);
+  return {
+    ...lock,
+    release() {
+      lock.release();
+      process.stderr.write(`lock: released ${lockFile}\n`);
+    },
+  };
+}
+
+/** Run a command while holding the lock; the exit status is the command's. */
+export async function holdWhileRunning(lockFile, command, args, { cwd } = {}) {
+  const lock = acquireReported(lockFile, { command: [command, ...args].join(' ') });
+  try {
+    return await runCommand(command, args, { cwd });
+  } finally {
+    lock.release();
+  }
 }
 
 async function main(argv) {

@@ -8,7 +8,7 @@ import { after, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 import {
-  acquireHolderLock, processStart, readLockRecord, removeDeadLock, repositoryRoot,
+  acquireHolderLock, processStart, procStart, readLockRecord, removeDeadLock, repositoryRoot,
 } from '../../scripts/holder-lock.mjs';
 
 const script = fileURLToPath(new URL('../../scripts/holder-lock.mjs', import.meta.url));
@@ -162,4 +162,11 @@ test('a lock file without a record is an error, not a free lock', () => {
   fs.writeFileSync(file, '');
   assert.throws(() => acquireHolderLock(file), /holds no lock record/);
   assert.equal(fs.readFileSync(file, 'utf8'), '');
+});
+
+test('the start time on Linux comes from /proc, also for a command name with spaces', () => {
+  const stat = '4242 (node (a) b) S 1 4242 4242 0 -1 4194560 100 0 0 0 1 2 0 0 20 0 11 0 987654 1000 50';
+  assert.equal(procStart(stat, 'cpu  1 2 3\nbtime 1790000000\nprocesses 9\n'),
+    '987654 clock ticks after the boot at 2026-09-21T14:13:20.000Z');
+  assert.throws(() => procStart('4242 (node) S 1', 'btime 1790000000\n'), /No start time/);
 });

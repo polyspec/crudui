@@ -1,5 +1,16 @@
 # Changes
 
+## 2026-10-05 — Package builds and packs under the lock of dist (C3.5)
+
+- Every built package's build script is `node ../../scripts/package-dist.mjs build '<command>'`,
+  which holds the checkout lock `dist-<package folder>` for the whole build. `tsup --clean` and
+  `svelte-package` empty `dist` first, so a concurrent pack that ran during a build read an empty or partly written `dist`. `node scripts/package-dist.mjs pack <package
+  directory> <destination directory>` checks under the same lock that `dist` holds output and runs
+  `npm pack`, printing its JSON report; the package install check packs through it.
+- On Linux, `scripts/holder-lock.mjs` reads the start time of a process from `/proc/<pid>/stat`
+  and the boot time of `/proc/stat`, since the toolchain image of the comparison, which builds the
+  packages, has no `ps`; other systems use `ps`.
+
 ## 2026-10-05 — A holder lock of the comparison deployment (C3.4)
 
 - `make deploy` and `make deploy-verify` take the user-wide holder lock `form-comparison-deployment`

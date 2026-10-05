@@ -17,7 +17,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "svelte-package -i src -o dist",
+    "build": "node ../../scripts/package-dist.mjs build 'svelte-package -i src -o dist'",
     "test": "node ../../scripts/run-tests.mjs vitest --cwd packages/generator-svelte && node ../../scripts/run-tests.mjs vitest --cwd packages/generator-svelte --config vitest.client.config.ts",
     "typecheck": "svelte-check --tsconfig ./tsconfig.json"
   },

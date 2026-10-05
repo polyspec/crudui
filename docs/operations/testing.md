@@ -201,7 +201,17 @@ concurrent runs, the report and the removal of a lock whose holder no longer run
 | Snapshots of `make docs-verify-idempotent` | A directory from `mktemp -d`, removed at the run's exit |
 | Playwright image of `make test-form-styles-linux` | User-wide lock `playwright-v<version>-noble`; the run keeps the image, and `make remove-form-styles-image` removes it under the lock |
 | Comparison deployment of `make deploy` and `make deploy-verify` | User-wide lock `form-comparison-deployment`, taken before any other step |
+| `dist` of each built package | Checkout lock `dist-<package folder>`, held by the package's whole build and by every pack |
 
-`tests/build/shared-resources.test.mjs`, run by `npm run test:runtimes`, checks the first two rows;
+The build script of every built package is `node ../../scripts/package-dist.mjs build '<command>'`,
+which runs the build command under the package's `dist` lock. `node scripts/package-dist.mjs pack
+<package directory> <destination directory>` checks under the same lock that `dist` holds output
+and runs `npm pack`, whose JSON report it prints on standard output; the package install check and
+repositories that install CRUDUI archives pack through it, so a pack never reads a `dist` that a
+build has emptied. On Linux the lock reads the start time of a process from `/proc`, since minimal
+container images such as the toolchain image of the comparison have no `ps`.
+
+`tests/build/shared-resources.test.mjs`, run by `npm run test:runtimes`, checks the documentation,
+image and `dist` rows;
 `examples/form-comparison/check-deployment-lock.test.mjs`, run by
 `npm run test:form-comparison:source`, checks the deployment.

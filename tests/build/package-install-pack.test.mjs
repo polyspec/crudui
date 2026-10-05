@@ -6,6 +6,8 @@ import test from 'node:test';
 
 import { packPackage } from '../../scripts/package-install-pack.mjs';
 
+const repositoryRoot = path.resolve(import.meta.dirname, '../..');
+
 /** A package directory whose manifest names the package, as packPackage reads it. */
 function packageSource(name) {
   const directory = mkdtempSync(path.join(tmpdir(), 'crudui-pack-source-'));
@@ -13,7 +15,7 @@ function packageSource(name) {
   return directory;
 }
 
-test('package install packs the current package without workspace selection', async () => {
+test('package install packs a package under the lock of its dist', async () => {
   const source = packageSource('@crudui/generator-core');
   const destination = path.resolve('/temporary/install');
   const calls = [];
@@ -29,9 +31,9 @@ test('package install packs the current package without workspace selection', as
 
     assert.equal(archive, path.join(destination, 'crudui-generator-core-0.0.1.tgz'));
     assert.deepEqual(calls, [{
-      command: 'npm',
-      args: ['pack', '.', '--json', '--pack-destination', destination, '--workspaces=false'],
-      cwd: source,
+      command: process.execPath,
+      args: [path.join(repositoryRoot, 'scripts/package-dist.mjs'), 'pack', source, destination],
+      cwd: repositoryRoot,
     }]);
   } finally {
     rmSync(source, { recursive: true, force: true });
