@@ -20,7 +20,7 @@ NPM := $(CURDIR)/.tools/npm/node_modules/.bin/npm
 # installed release and never downloads the toolchain of a go.mod. `make install` installs them.
 export RUSTUP_AUTO_INSTALL := 0
 export GOTOOLCHAIN := local
-.PHONY: help install toolchain-check docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-extension test-native test-native-suites test-validators test-form-binding conformance format-check deploy deploy-verify deploy-watch github-settings github-settings-check hooks hooks-check ci rerun-failed test-form-styles-linux remove-form-styles-image
+.PHONY: help install toolchain-check owner-check test-ordered-json docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-extension test-native test-native-suites test-validators test-form-binding conformance format-check deploy deploy-verify deploy-watch github-settings github-settings-check hooks hooks-check ci rerun-failed test-form-styles-linux remove-form-styles-image
 .NOTPARALLEL: docs docs-web docs-dev docs-preview docs-check docs-verify-idempotent
 
 # Validator benchmark iteration counts (override on the command line, e.g.
@@ -38,8 +38,10 @@ HOOKS_PATH := $(shell [ "$$(git config core.hooksPath)" = .githooks ] || git con
 help: ## 타겟 설명
 	@echo "CRUDUI docs — make targets:"
 	@echo ""
-	@echo "  make install               Install the recorded npm, the npm and Composer dependencies and the Rust toolchain"
+	@echo "  make install               Install the recorded npm, the npm and Composer dependencies, the Rust toolchain and phpDocumentor"
 	@echo "  make toolchain-check       Fail when a tool does not run at the version that the checkout records"
+	@echo "  make owner-check           Run the owner checks of the changed paths (scripts/owner-checks.json); PATHS or BASE select the paths"
+	@echo "  make test-ordered-json     Test the processor checks of tests/ordered-json without an OrderedJSON checkout"
 	@echo "  make docs                  전체 문서 생성 (API doc 멀티언어 + JSON schema 검사 + 정적 웹)"
 	@echo "  make docs-api              Generate API references for all languages"
 	@echo "  make docs-schema           스펙 JSON Schema와 공유 고정 데이터 검사"
@@ -79,18 +81,29 @@ help: ## 타겟 설명
 	@echo "  주의: 절대시간은 머신 의존 — 같은 스펙 안에서 백엔드 간 비율만 비교하라."
 	@echo ""
 
-# The npm of packageManager into .tools/npm, the dependencies of the lock files, and the Rust toolchain of
-# rust-toolchain.toml. Node.js, Go, PHP and Composer are installed at the versions of .node-version, .go-version and
+# The npm of packageManager into .tools/npm, the dependencies of the lock files, the Rust toolchain of
+# rust-toolchain.toml and the phpDocumentor release that scripts/install-phpdocumentor.sh checks by its SHA-256. Node.js, Go, PHP and Composer are installed at the versions of .node-version, .go-version and
 # config/toolchain.json by the machine's package manager; `make toolchain-check` names every tool at another version.
-install: ## Install the recorded npm, the npm and Composer dependencies and the Rust toolchain
+install: ## Install the recorded npm, the npm and Composer dependencies, the Rust toolchain and phpDocumentor
 	node scripts/install-npm.mjs
 	$(NPM) ci --strict-allow-scripts
 	composer --working-dir=packages/validator-php install --no-interaction --prefer-dist
 	composer --working-dir=packages/generator-php install --no-interaction --prefer-dist
 	rustup toolchain install --no-self-update
+	sh scripts/install-phpdocumentor.sh
 
 toolchain-check: ## Fail when a tool does not run at the version that the checkout records
 	node scripts/check-toolchain.mjs node npm go rust php composer
+
+# The checks that own the changed paths (scripts/owner-checks.json): the paths of PATHS, the paths changed since BASE, or
+# the uncommitted changes and the new files that are not ignored. It never runs the full suite.
+owner-check: ## Run the owner checks of the changed paths: PATHS, the paths since BASE, or the uncommitted changes
+	node scripts/owner-check.mjs $(if $(PATHS),--paths "$(PATHS)") $(if $(BASE),--base "$(BASE)")
+
+# The unit tests of the processor checks of tests/ordered-json (docs/operations/ordered-json.md); the checks themselves need
+# an OrderedJSON checkout and run by hand.
+test-ordered-json: ## Test the processor checks of tests/ordered-json without an OrderedJSON checkout
+	python3 -m unittest discover -s tests/ordered-json -p 'test_*.py'
 
 docs: docs-clean docs-web ## 전체 문서 생성 (clean-then-generate)
 	@echo "[make] docs: complete -> docs/.web/dist"

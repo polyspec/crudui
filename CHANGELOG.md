@@ -1,5 +1,16 @@
 # Changes
 
+## 2026-10-05 — The owner check before every commit (C7.9)
+
+- `make owner-check` runs the checks that `scripts/owner-checks.json` declares as owners of the changed
+  paths: make targets, root npm scripts, the test scripts of workspaces and package directories and
+  node test files, never the full suite. It fails before any check for a path without an owner, a
+  glob without a path, a full-suite target, an unknown script or test, and a path that a check reads
+  (`inputs`) when no rule of the path selects that check; every selected check runs after an earlier
+  one failed. AGENTS makes it the check before a commit, since the owning checks of a change were
+  chosen by hand. `make test-ordered-json` runs the Python unit tests of `tests/ordered-json`, which no
+  command ran, and `make install` installs phpDocumentor, which `make docs-check` reads.
+
 ## 2026-10-05 — Failures that name what failed and why (C7.8)
 
 - A test that outlives its timeout prints its elapsed time, its limit and the command that the runner

@@ -68,9 +68,11 @@
   result would expose it. Confirm the intended failure before implementation,
   correct the cause, and confirm the same case and relevant use tests pass.
   Investigate a case that cannot expose the problem instead of weakening the criterion.
-- Run the tests that own the change. Run `make docs-check` only when a document or the API
-  documentation of a public package changed. Record results for the current code separately
-  from deployment status.
+- Run the tests that own the change. Before a commit, run `make owner-check`: it runs the checks
+  that `scripts/owner-checks.json` declares as owners of the changed paths, never the full suite,
+  and fails for a path that no rule owns and for a path that a check reads (`inputs`) when no rule
+  of the path selects that check. A new path gets its owner in that file in the same change. Record
+  results for the current code separately from deployment status.
 - Write comments, documentation, change records and user-facing text as direct
   descriptions of current behavior. Name the subject, operation, target and
   result. State a necessary cause in one sentence.
