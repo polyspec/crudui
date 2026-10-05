@@ -1,5 +1,13 @@
 # Changes
 
+## 2026-10-05 — The npm pack report of npm 12 (C5.2-1)
+
+- The dist lock test of `tests/build/shared-resources.test.mjs` reads the `npm pack` report through
+  `packReport` of `scripts/package-install-pack.mjs`, which reads the array of npm 11 and the
+  object keyed by package name of npm 12, and fails with the expected archive count and package
+  name. With npm 12, which CI installs as the latest npm, the test failed with `TypeError: object
+  is not iterable`, which does not say what was expected.
+
 ## 2026-10-05 — Pushes refused while a task is in progress (C6.1)
 
 - The tracked pre-push hook `.githooks/pre-push` runs `node scripts/push-gate.mjs hook`, which

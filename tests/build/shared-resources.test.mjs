@@ -7,6 +7,7 @@ import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 import { acquireHolderLock } from '../../scripts/holder-lock.mjs';
+import { packReport } from '../../scripts/package-install-pack.mjs';
 
 const root = fileURLToPath(new URL('../..', import.meta.url));
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
@@ -151,8 +152,7 @@ test('a build and a pack of a package refuse while another run holds its dist', 
     }
     const packed = pack();
     assert.equal(packed.status, 0, packed.stderr);
-    const [report] = JSON.parse(packed.stdout);
-    assert.equal(report.name, '@crudui/dist-lock-fixture');
+    const report = packReport(packed.stdout, '@crudui/dist-lock-fixture');
     assert.ok(report.files.some(entry => entry.path === 'dist/index.js'), 'The archive holds the built dist');
     assert.deepEqual(fs.readdirSync(destination), [report.filename]);
     assert.equal(fs.existsSync(lockFile), false);

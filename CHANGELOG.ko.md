@@ -1,5 +1,12 @@
 # 변경 기록
 
+## 2026-10-05 — npm 12의 npm pack report (C5.2-1)
+
+- `tests/build/shared-resources.test.mjs`의 dist lock test는 `scripts/package-install-pack.mjs`의 `packReport`로
+  `npm pack` report를 읽습니다. `packReport`는 npm 11의 배열과 npm 12의 package 이름을 key로 하는 object를 읽고, 기대한
+  archive 수와 package 이름으로 실패합니다. CI가 최신 npm으로 설치하는 npm 12에서 test는 무엇을 기대했는지 말하지 않는
+  `TypeError: object is not iterable`로 실패했습니다.
+
 ## 2026-10-05 — 작업이 진행 중인 동안 거부되는 push (C6.1)
 
 - 추적되는 pre-push hook `.githooks/pre-push`는 `node scripts/push-gate.mjs hook`을 실행합니다. 이 entry는 push되는 모든
