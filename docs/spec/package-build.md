@@ -241,7 +241,11 @@ dependencies, packages of this repository and Composer platform requirements are
 outside the review by definition. `make dependency-review` asks the registries for
 the latest stable release of each registry dependency that its publisher has not
 deprecated, and for the advisories of `package-lock.json` (moderate, high and
-critical) and of each `composer.lock` (every advisory and abandoned package).
+critical), of each `composer.lock` (every advisory and abandoned package) and of
+every Cargo lock of the checkout, which cargo-audit reads from the RustSec advisory
+database (every vulnerability and every unmaintained, unsound or yanked crate).
+`make install` installs the cargo-audit release of `config/toolchain.json` into
+`.tools/cargo-audit`.
 `RECORD=1` writes the review with the sha256 of each lock to
 `config/dependency-review.json`, and `UPDATE=1` first raises each newer dependency
 in its manifest, keeping its range operator. The scheduled workflow

@@ -212,7 +212,9 @@ tree는 언제나 같은 결과를 냅니다. review 대상은 registry 의존�
 사항은 정의상 review 밖에 있습니다. `make dependency-review`는 각 registry 의존성에 대해
 게시자가 deprecated로 표시하지 않은 최신 안정 release를, 그리고 `package-lock.json`(moderate,
 high, critical)과 각 `composer.lock`(모든 보안 권고와 abandoned package)의 보안 권고를
-registry에 묻습니다. `RECORD=1`은 review를 각 잠금 파일의 sha256과 함께
+registry에 묻고, checkout의 모든 Cargo lock의 보안 권고를 cargo-audit으로 RustSec advisory
+database에서 읽습니다(모든 취약점과 unmaintained, unsound, yanked crate). `make install`은
+`config/toolchain.json`의 cargo-audit release를 `.tools/cargo-audit`에 설치합니다. `RECORD=1`은 review를 각 잠금 파일의 sha256과 함께
 `config/dependency-review.json`에 쓰고, `UPDATE=1`은 먼저 더 새로운 의존성을 manifest의 범위
 연산자를 유지한 채 올립니다. 예약된 workflow `.github/workflows/dependency-review.yml`이
 매일 review를 실행하며, 어떤 검사나 gating CI job도 이를 실행하지 않습니다.

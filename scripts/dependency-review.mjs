@@ -13,12 +13,15 @@
 // compares the checkout with that record without a network.
 // --update first raises every newer dependency without an exception to its latest stable release, keeping the range
 // operator of its manifest, and updates the packages with an advisory; then it reviews and records again.
+// The advisories of the Cargo locks come from cargo-audit of the checkout (scripts/install-cargo-audit.mjs, which
+// `make install` runs) and the RustSec advisory database.
 import { spawnSync } from 'node:child_process';
-import { writeFileSync } from 'node:fs';
+import { existsSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { useCheckoutNpm } from './checkout-npm.mjs';
-import { POLICY, RECORD, NPM_LOCK, dependencyKey, digest, isPrerelease, older, readJson, readState, stableDescending } from './dependency-state.mjs';
+import { POLICY, RECORD, NPM_LOCK, dependencyKey, digest, isPrerelease, lockEcosystem, older, readJson, readState, stableDescending } from './dependency-state.mjs';
+import { cargoAuditCommand } from './install-cargo-audit.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const UPDATE = 'make dependency-review UPDATE=1';
@@ -104,7 +107,31 @@ function advisories(root, state) {
     }
     result.set(NPM_LOCK, { advisories: list });
   }
-  for (const lock of state.locks.filter(item => item !== NPM_LOCK)) {
+  // cargo-audit reads the RustSec advisory database from a clone in .tools; the first lock fetches it.
+  let fetched = false;
+  for (const lock of state.locks.filter(item => lockEcosystem(item) === 'cargo')) {
+    const command = cargoAuditCommand(root);
+    const args = ['audit', '--db', path.join(root, '.tools', 'rustsec-advisory-db'), ...(fetched ? ['--no-fetch'] : []), '--file', path.join(root, lock), '--json'];
+    // cargo-audit exits with 1 when it finds a vulnerability.
+    const answer = existsSync(command) ? query(command, args, root, [0, 1]) : { error: `${path.relative(root, command)} is not installed; run make install` };
+    fetched ||= !answer.error;
+    if (answer.error) {
+      result.set(lock, { error: answer.error });
+      continue;
+    }
+    const list = [];
+    for (const item of answer.value.vulnerabilities?.list ?? []) {
+      list.push({ package: item.package.name, version: item.package.version, id: item.advisory.id, severity: item.advisory.cvss ? `vulnerability ${item.advisory.cvss}` : 'vulnerability', title: item.advisory.title, url: item.advisory.url ?? `https://rustsec.org/advisories/${item.advisory.id}` });
+    }
+    // The warnings are unmaintained, unsound and yanked crates.
+    for (const [kind, warnings] of Object.entries(answer.value.warnings ?? {})) {
+      for (const warning of warnings) {
+        list.push({ package: warning.package.name, version: warning.package.version, id: warning.advisory?.id ?? kind, severity: kind, title: warning.advisory?.title ?? `${kind} release`, ...(warning.advisory ? { url: warning.advisory.url ?? `https://rustsec.org/advisories/${warning.advisory.id}` } : {}) });
+      }
+    }
+    result.set(lock, { advisories: list });
+  }
+  for (const lock of state.locks.filter(item => lockEcosystem(item) === 'composer')) {
     const directory = path.posix.dirname(lock);
     const lockData = readJson(root, lock);
     const versions = new Map([...(lockData.packages ?? []), ...(lockData['packages-dev'] ?? [])].map(item => [item.name, item.version]));
@@ -193,13 +220,16 @@ export function updatePlan({ newer, advisories: found }) {
     }
   }
   if (found.some(advisory => advisory.lock === NPM_LOCK)) plan.push({ command: 'npm', args: ['audit', 'fix'], cwd: '.' });
-  const composerLocks = new Map();
+  const affected = new Map();
   for (const advisory of found.filter(item => item.lock !== NPM_LOCK)) {
-    const directory = path.posix.dirname(advisory.lock);
-    if (!composerLocks.has(directory)) composerLocks.set(directory, new Set());
-    composerLocks.get(directory).add(advisory.package);
+    if (!affected.has(advisory.lock)) affected.set(advisory.lock, new Set());
+    affected.get(advisory.lock).add(advisory.package);
   }
-  for (const [directory, packages] of composerLocks) plan.push({ command: 'composer', args: ['update', '--with-dependencies', '--no-interaction', ...packages], cwd: directory });
+  for (const [lock, packages] of affected) {
+    const directory = path.posix.dirname(lock);
+    if (lockEcosystem(lock) === 'cargo') plan.push({ command: 'cargo', args: ['update', ...[...packages].flatMap(name => ['-p', name])], cwd: directory });
+    else plan.push({ command: 'composer', args: ['update', '--with-dependencies', '--no-interaction', ...packages], cwd: directory });
+  }
   return plan;
 }
 

@@ -1,7 +1,8 @@
 # The scheduled dependency review (docs/spec/package-build.md, "Dependency review"). It asks the registries for newer
-# stable releases and advisories of the committed manifests and locks and fails with one line for each, naming the
-# package, its version, the newer release or the advisory and the fix command. It gates no commit: the checks of the CI
-# workflow read only the files of the tree and the review record config/dependency-review.json.
+# stable releases and advisories of the committed manifests and locks, and RustSec for the advisories of the Cargo
+# locks, and fails with one line for each, naming the package, its version, the newer release or the advisory and the
+# fix command. It gates no commit: the checks of the CI workflow read only the files of the tree and the review record
+# config/dependency-review.json.
 name: Dependency review
 
 on:
@@ -37,7 +38,11 @@ jobs:
         with:
           php-version: '8.5'
           tools: composer:2.10.3
+      - name: Install the Rust toolchain of rust-toolchain.toml
+        run: rustup toolchain install --no-self-update
       - name: Check the recorded toolchain versions
-        run: node scripts/check-toolchain.mjs node npm php composer
+        run: node scripts/check-toolchain.mjs node npm rust php composer
+      - name: Install the cargo-audit release of config/toolchain.json
+        run: node scripts/install-cargo-audit.mjs
       - name: Review the dependencies
         run: make dependency-review
