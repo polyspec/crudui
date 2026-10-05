@@ -100,26 +100,21 @@ docs-clean: ## 생성물 전부 제거
 	rm -rf tools/bin/.phpdoc-cache
 	@echo "[make] docs-clean: removed generated docs/api, dist, rustdoc, phpdoc cache"
 
-# Generate twice and compare Markdown, native API assets and the schema.
+# Generate twice and compare Markdown, native API assets and the schema. The snapshots and the
+# difference go to a directory that this run creates with mktemp and removes at its exit, so
+# runs of other checkouts do not overwrite them.
 docs-verify-idempotent: ## docs 를 2회 생성하고 diff 가 비는지 검증
 	@$(MAKE) docs-clean
-	@$(MAKE) docs-web
-	@rm -rf /tmp/crudui-docs-run1 && mkdir -p /tmp/crudui-docs-run1
-	@cp -R docs/api /tmp/crudui-docs-run1/api
-	@cp -R docs/public/api /tmp/crudui-docs-run1/native-api
-	@cp -R docs/.web/dist /tmp/crudui-docs-run1/docs
-	@cp schema/crudui.schema.json /tmp/crudui-docs-run1/crudui.schema.json
-	@$(MAKE) docs-web
-	@rm -rf /tmp/crudui-docs-run2 && mkdir -p /tmp/crudui-docs-run2
-	@cp -R docs/api /tmp/crudui-docs-run2/api
-	@cp -R docs/public/api /tmp/crudui-docs-run2/native-api
-	@cp -R docs/.web/dist /tmp/crudui-docs-run2/docs
-	@cp schema/crudui.schema.json /tmp/crudui-docs-run2/crudui.schema.json
-	@if diff -r /tmp/crudui-docs-run1 /tmp/crudui-docs-run2 > /tmp/crudui-docs-diff.txt 2>&1; then \
+	@runs=$$(mktemp -d -t crudui-docs-verify.XXXXXX) && trap 'rm -rf "$$runs"' EXIT && \
+	snapshot() { mkdir "$$runs/$$1" && cp -R docs/api "$$runs/$$1/api" && \
+		cp -R docs/public/api "$$runs/$$1/native-api" && cp -R docs/.web/dist "$$runs/$$1/docs" && \
+		cp schema/crudui.schema.json "$$runs/$$1/crudui.schema.json"; } && \
+	$(MAKE) docs-web && snapshot run1 && $(MAKE) docs-web && snapshot run2 && \
+	if diff -r "$$runs/run1" "$$runs/run2" > "$$runs/diff.txt" 2>&1; then \
 		echo "[make] docs-verify-idempotent: OK — two runs produced identical deterministic output"; \
 	else \
 		echo "[make] docs-verify-idempotent: FAILED — outputs differ:"; \
-		cat /tmp/crudui-docs-diff.txt; \
+		cat "$$runs/diff.txt"; \
 		exit 1; \
 	fi
 

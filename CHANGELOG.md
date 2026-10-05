@@ -1,5 +1,14 @@
 # Changes
 
+## 2026-10-05 — A snapshot directory per documentation run (C3.1)
+
+- `make docs-verify-idempotent` writes its two snapshots and their difference to a directory that
+  the run creates with `mktemp -d` and removes at its exit. It used the fixed paths
+  `/tmp/crudui-docs-run1`, `/tmp/crudui-docs-run2` and `/tmp/crudui-docs-diff.txt`, which a run of
+  another checkout removed and rewrote during the comparison.
+  `tests/build/shared-resources.test.mjs`, run by `npm run test:runtimes`, fails on a Makefile line
+  with a fixed path under `/tmp`.
+
 ## 2026-10-05 — Stage steps that meet through a pipe (C2.9-1)
 
 - The two steps of one stage in the step runner test open the two ends of a named pipe, so the
