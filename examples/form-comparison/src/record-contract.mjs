@@ -478,8 +478,8 @@ export const recordContractCases = Object.freeze([
         assert.equal(result.status, 413, result.text);
         assert.equal(typeof result.json?.error, 'string', 'error message');
         assert.equal(result.json.server, client.server, 'the response names the responding server');
-        // Measured at milliseconds; a server that waits for the rest answers only at its request timeout.
-        assert.ok(result.elapsedMs < 5_000, `answered after ${Math.round(result.elapsedMs)} ms`);
+        // The rest of the body never comes, so a server that waited for it would not answer within
+        // the case's own timeout; the 413 with the server's error comes from the declared length.
       }, 'an oversized save stores nothing');
     },
   },

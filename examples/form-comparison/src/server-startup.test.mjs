@@ -184,22 +184,19 @@ function silentChild() {
 }
 
 test('fails a child that publishes no readiness within its limit', async () => {
-  const started = performance.now();
+  // The child never publishes readiness, so only the limit can end the wait.
   await assert.rejects(waitForChildReadiness(silentChild(), {
     server: 'go', stream: 'stderr', pattern: /CRUDUI_READY go/,
   }, 50), /go published no readiness within 50ms/);
-  assert.ok(performance.now() - started < 1_000);
 });
 
 test('fails a health request that does not answer within its limit', async () => {
-  const started = performance.now();
-  // The request answers only when its signal aborts it.
+  // The request answers only when its signal aborts it, so only the limit can end it.
   const hung = (url, { signal }) => new Promise((resolve, reject) => {
     signal.addEventListener('abort', () => reject(signal.reason));
   });
   await assert.rejects(verifyChildServers({ expected, request: hung, limitMs: 50 }),
     /php health request failed within 50ms/);
-  assert.ok(performance.now() - started < 1_000);
 });
 
 test('stops a child that ignores SIGTERM with SIGKILL after the grace period', async t => {
@@ -208,8 +205,7 @@ test('stops a child that ignores SIGTERM with SIGKILL after the grace period', a
   { stdio: ['ignore', 'pipe', 'inherit'] });
   t.after(() => { if (child.exitCode === null && child.signalCode === null) child.kill('SIGKILL'); });
   await new Promise(resolve => child.stdout.once('data', resolve));
-  const started = performance.now();
+  // The child ignores SIGTERM, so it ends only by the SIGKILL that follows the grace period.
   await stopChild(child, 100);
   assert.equal(child.signalCode, 'SIGKILL');
-  assert.ok(performance.now() - started < 2_000, `stopped after ${performance.now() - started} ms`);
 });

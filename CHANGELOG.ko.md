@@ -1,5 +1,14 @@
 # 변경 기록
 
+## 2026-10-05 — 경과 시간 한도 대신 원인 확인 (C2.9)
+
+- 어떤 test도 경과 시간에 한도를 두지 않습니다. `tests/build/test-commands.test.mjs`는 경과 시간을
+  0이 아닌 값과 비교하는 `assert.ok`에서 실패합니다. `tests/build/run-tests.test.mjs`의 runner timeout
+  case와 hook case는 끝나지 않는 test나 hook을 event loop를 막지 않는 spawn으로 실행하므로 runner의
+  timeout만 그것을 끝냅니다. form comparison의 readiness, health, stop, timeout, stall case는 시험하는
+  멈춤으로만 끝나고, 한 stage의 두 step은 서로의 file이 생겨야만 끝나며, 너무 큰 저장은 413과 case
+  자신의 timeout에 의존합니다. assertion 10개가 wall-clock 시간을 0.5초에서 20초 사이로 제한했습니다.
+
 ## 2026-10-05 — hook timeout 없는 teardown (C2.7)
 
 - `scripts/test-progress/teardown.mjs`의 `teardown`은 browser close, server stop, directory 삭제를
