@@ -79,6 +79,13 @@ method는 세지 않으며, 없는 test file에 대한 오류나 warning을 담�
 `tests/build/run-tests.test.mjs`는 제한 시간을 넘긴 after hook을 `node --test`와 Vitest에서
 실행합니다.
 
+teardown(browser close, server stop, directory 삭제)은 test case가 아니라 장기 작업입니다.
+`node:test` 파일은 `scripts/test-progress/teardown.mjs`의 `teardown`으로 이를 등록하며, 이는 timeout이
+`Infinity`인 파일이나 test 하나(`{ context: t }`)의 `after` hook입니다. teardown은 close가 resolve되거나
+process가 종료되면 끝나고, 그 오류는 파일을 실패시키며, 시작, 실행 중 5초마다의 줄, 경과 시간과 함께
+끝을 출력합니다. Vitest teardown은 timeout이 `Infinity`인 `afterAll` hook입니다.
+`tests/build/teardown.test.mjs`는 teardown이 1.5초 걸리는 파일을 1초 test timeout으로 실행합니다.
+
 ## 시간과 부하
 
 테스트는 경과 시간을 제한값이나 다른 경과 시간과 비교하지 않습니다. 기계의 부하가 경과 시간을

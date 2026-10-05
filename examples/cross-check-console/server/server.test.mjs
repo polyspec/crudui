@@ -30,9 +30,12 @@ beforeAll(async () => {
   base = `http://127.0.0.1:${server.address().port}`;
 });
 
+// The server stop is a teardown: it ends when the close resolves and has no hook timeout.
 afterAll(async () => {
+  const started = performance.now();
   await new Promise((resolve) => server.close(resolve));
-});
+  process.stdout.write(`[teardown] server stop: finished in ${((performance.now() - started) / 1000).toFixed(1)}s\n`);
+}, Infinity);
 
 /** POST raw bytes (so a deliberately malformed JSON body can be sent). */
 function postRaw(pathname, rawBody) {

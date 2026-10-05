@@ -6,6 +6,7 @@ import test from 'node:test';
 
 import { buildDocumentationWeb } from '../../scripts/docs-web/build.mjs';
 import { createDocumentationServer } from '../../scripts/docs-web/server.mjs';
+import { teardown } from '../../scripts/test-progress/teardown.mjs';
 
 async function files(directory) {
   const result = [];
@@ -219,7 +220,7 @@ for (const basePath of ['/', '/crudui/']) {
       server.once('error', reject);
       server.listen(0, '127.0.0.1', accept);
     });
-    t.after(() => new Promise((accept, reject) => server.close(error => error ? reject(error) : accept())));
+    teardown('server stop', () => new Promise((accept, reject) => server.close(error => error ? reject(error) : accept())), { context: t });
     const origin = `http://127.0.0.1:${server.address().port}`;
     for (const route of ['', 'index.ko.html', 'guide/start.html', 'api/index.html', 'icon.svg', 'assets/docs.css']) {
       const response = await fetch(origin + basePath + route);

@@ -1,5 +1,17 @@
 # 변경 기록
 
+## 2026-10-05 — hook timeout 없는 teardown (C2.7)
+
+- `scripts/test-progress/teardown.mjs`의 `teardown`은 browser close, server stop, directory 삭제를
+  timeout이 `Infinity`인 파일이나 test의 `after` hook으로 등록합니다. close가 resolve되거나 process가
+  종료되면 끝나고, 오류로 파일을 실패시키며, 시작, 5초마다의 줄, 경과 시간과 함께 끝을 출력합니다.
+  pipeline browser test, form inspector test, record store test, browser job test, style, viewport,
+  Tailwind, widget script test, 문서 server test의 teardown hook이 이를 쓰고, cross-check console
+  server와 form binding의 Vitest `afterAll` hook은 timeout `Infinity`를 가집니다. node:test는 자기
+  timeout이 없는 hook에 test timeout을 주었으므로, 부하가 있는 기기에서 모든 test가 통과하는 동안
+  pipeline test의 server stop이 10초를, inspector test의 browser close가 30초를 넘었습니다.
+  `tests/build/teardown.test.mjs`는 1.5초 걸리는 teardown을 1초 test timeout으로 실행합니다.
+
 ## 2026-10-05 — 한도 없는 장기 작업의 명령 (C2.3-1)
 
 - `scripts/run-command.mjs`가 `scripts/bounded-command.mjs`를 대신합니다. 명령을 시간 한도 없이

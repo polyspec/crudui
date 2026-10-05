@@ -70,13 +70,17 @@ beforeAll(async () => {
   for (const engine of engines) browsers[engine] = await engineDrivers[engine].launch();
 }, 120000);
 
+// The browser close and the server stop are a teardown: it ends when both close calls resolve and
+// has no hook timeout.
 afterAll(async () => {
+  const started = performance.now();
   try {
     await Promise.all(Object.values(browsers).map((browser) => browser.close()));
   } finally {
     await new Promise((resolve) => server?.close(resolve));
+    process.stdout.write(`[teardown] browser close and server stop: finished in ${((performance.now() - started) / 1000).toFixed(1)}s\n`);
   }
-}, 60000);
+}, Infinity);
 
 const emailErrors = '[data-field-path="email"] > .crudui-node__errors > .crudui-node__error';
 const nameErrors = '[data-field-path="name"] > .crudui-node__errors > .crudui-node__error';

@@ -2,8 +2,10 @@
 // pseudo-element content changes and nothing else.
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { after, before, test } from 'node:test';
+import { before, test } from 'node:test';
 import puppeteer from 'puppeteer';
+
+import { teardown } from '../../scripts/test-progress/teardown.mjs';
 
 const source = await readFile(new URL('./form-snapshot.mjs', import.meta.url), 'utf8');
 const moduleUrl = `data:text/javascript;base64,${Buffer.from(source).toString('base64')}`;
@@ -20,7 +22,7 @@ before(async () => {
     window.inspector = { snapshot, compareSnapshots, expected: snapshot() };
   }, moduleUrl);
 });
-after(async () => { await browser?.close(); });
+teardown('browser close', () => browser?.close());
 
 const unchanged = () => page.evaluate(() => {
   const { snapshot, compareSnapshots, expected } = window.inspector;
