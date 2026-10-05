@@ -1,5 +1,13 @@
 # 변경 기록
 
+## 2026-10-05 — 자기 major의 최신 release로 올린 의존성 (C5.8-2)
+
+- root와 workspace manifest의 npm 의존성 19개와 두 Composer package의 PHPUnit을 잠긴 major의 최신 stable release로
+  올렸습니다. `puppeteer` 25.12.0, `eslint` 10.12.0, `react`와 `react-dom` 19.3.0, `vite` 8.3.2, PHPUnit 10.5.66이
+  그 예입니다. 각 manifest는 range operator를 유지하고, `react` override는 direct range를 따르며, install script 승인은
+  `puppeteer@25.12.0`을 밝힙니다. `@testing-library/jest-dom`은 게시자가 6.10.0을 breaking change가 있는 minor
+  release로 deprecated했으므로 6.9.1에 남습니다.
+
 ## 2026-10-05 — local, CI, image의 하나의 npm release (C5.2-2)
 
 - `package.json`의 `packageManager`는 npm 12.2.0을 기록하고, `node scripts/install-npm.mjs`는 정확히 그 release를
