@@ -1,5 +1,15 @@
 # 변경 기록
 
+## 2026-10-05 — 전체 실행의 guard (C2.1-2)
+
+- `make ci`는 어떤 명령보다 먼저 guard `scripts/full-run.mjs`를 시작합니다. AGENTS는 전체 suite를 활성 작업이 모두 끝났을 때 정확히 한
+  번 실행한다고 적지만 이를 강제하는 것이 없었습니다. `make ci`는 진행 중인 작업이 있을 때, 커밋되지 않은 변경이 있을 때, 이미 검증한 tree에서도 명령을
+  시작했습니다. guard는 판단을 이유와 함께 출력하고, checklist 작업이 `[~]`이면 활성 ID를 작업과 함께 나열하며 거부하고, 추적 파일의 변경이 커밋되지
+  않았으면 거부하고, `var/full-run.json`이 현재 tree의 전체 실행을 기록하고 있으면 그 실행을 밝히며 거부합니다. `CI_COMMANDS`의 각 명령을 끝까지
+  실행하고 각 명령의 앞뒤에 record를 쓰므로 멈춘 실행은 `incomplete`로 남습니다. `make rerun-failed`는 현재 tree에서 통과하지 못한 명령만
+  다시 실행하고 통과한 명령의 적합성 증거를 유지합니다. `tests/build/full-run.test.mjs`는 변경 전 `ERR_MODULE_NOT_FOUND`로 실패했고,
+  변경 뒤 그 11개 case가 stub 명령으로 통과합니다.
+
 ## 2026-10-05 — test process 종료 시 멈추는 local server (C2.19)
 
 - form comparison test의 local stack은 test process가 server를 멈추지 않고 종료하면 시작한 server의

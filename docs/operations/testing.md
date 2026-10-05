@@ -17,7 +17,42 @@ Every crate that declares a release profile sets `strip = "none"`;
 
 `make ci` runs every checking command of the CI workflow in the workflow's order, collects the
 conformance evidence and checks it as the final CI job does; `tests/build/ci-local.test.mjs` fails
-when the list differs from `.github/workflows/ci.yml`. The individual commands are:
+when the list differs from `.github/workflows/ci.yml`.
+
+`make ci` runs once per committed tree, when no task of `docs/plans/execution-checklist.md` is
+`[~]`. Before any command it starts `scripts/full-run.mjs`, which prints its decision with the
+reason (`[full-run] run: ...` or `[full-run] refuse: ...`) and refuses with status 1 while a task
+row of the checklist is `[~]`, listing each active ID with its task; while tracked files have
+uncommitted changes (`git status --porcelain --untracked-files=no`), because a full run verifies a
+committed tree; when `var/full-run.json` records a full run of the current tree (`git rev-parse
+HEAD^{tree}`), naming that run with its commit, its start time and its result; and while the process
+of an `incomplete` record still runs.
+
+A target of the guard is one command of `CI_COMMANDS`, named by its text. A full run removes the
+conformance evidence of earlier runs, runs each command with `sh -c` to its end, also after a
+command fails, and prints `[full-run] start <command> (<n>/<total>)` and `[full-run] <command>
+passed|failed in <seconds> s`; no command has a time limit. It writes `var/full-run.json` before and
+after each command: the tree, the commit, the process, the start and end times, the result
+(`incomplete` until the last command ends, then `passed` or `failed`), the failed commands and each
+command with its status (`pending`, `running`, `passed`, `failed`), its times and its elapsed
+milliseconds. A run that is stopped therefore stays recorded as `incomplete`, with the command that
+was running. `var/` is ignored by Git, so each checkout and worktree has its own record. A commit
+that changes the tree permits a new full run when no task is `[~]`.
+
+`make rerun-failed` reruns only the commands of the current tree that did not pass: the failed
+commands and the commands that an `incomplete` run did not finish. It keeps the conformance evidence
+of the commands that passed, which `node scripts/check-conformance.mjs` reads. It is refused like
+`make ci` for a task in progress, uncommitted changes and a running process, and also when there is
+no record, when the record belongs to another tree and when the full run of the tree passed. It
+writes each rerun into `reruns` of the record; when every command has passed, the result of the tree
+becomes `passed`.
+
+The CI workflow runs the same commands in its jobs on each push to `main` and does not run `make
+ci`, so the guard does not decide CI runs. A push happens only when every active task is done. A new
+checkout, as in CI, has no record, so `make ci` runs there when no task is `[~]` and the tree is
+clean.
+
+The individual commands are:
 
 ```sh
 composer --working-dir=packages/validator-php install
