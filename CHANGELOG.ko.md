@@ -1,5 +1,13 @@
 # 변경 기록
 
+## 2026-10-05 — 자신이나 준비 단계가 만든 것만 읽는 검사 (C7.5)
+
+- `make test-php-extension`은 generator-php의 vendor directory를 load하는 test 전에 그 validator 복사본을 다시 설치합니다.
+  이전에는 `make test-native-suites`만 그것을 새로 했습니다. `test:build`는 exports로 package를 load하는 test 전에
+  `require-current-build`를 실행합니다. `scripts/repeat-build.mjs`는 자신의 두 build를 비교해 다른 모든 file과 함께
+  실패합니다. 그 test는 그 script만 쓰는 기록을 읽었습니다. `scripts/run-rust-command.mjs`는 그 directory의 checkout 밖의
+  `CARGO_TARGET_DIR`을 거부합니다. cargo는 수정 시각으로 최신 여부를 판단하므로 다른 checkout의 출력을 다시 씁니다.
+
 ## 2026-10-05 — 실패 뒤에도 실행되는 script의 모든 검사 (C7.4)
 
 - `test:forms`, `test:form-comparison`, `test:form-comparison:pipeline`, `docs:check:all`, generator-svelte의 `test`

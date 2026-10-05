@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
@@ -73,4 +74,21 @@ test('an optional extension used without its requirement is reported', async () 
   } finally {
     await rm(directory, { recursive: true, force: true });
   }
+});
+
+// generator-php installs the validator as a copy, so a target whose tests load the vendor directory of generator-php
+// refreshes that copy from source before them; otherwise the tests read a copy that an earlier run installed.
+test('a make target whose tests load the generator-php vendor reinstalls the validator copy first', async () => {
+  const { makeTargets } = await import('../../scripts/test-commands.mjs');
+  const targets = makeTargets(await readFile(path.join(repository, 'Makefile'), 'utf8'));
+  const violations = [];
+  for (const [name, rule] of Object.entries(targets)) {
+    rule.commands.forEach((command, index) => {
+      const files = /run-tests\.mjs node(?: --timeout \d+)? -- (.+?)(?: \|\||;|$)/.exec(command)?.[1].split(/\s+/) ?? [];
+      const reads = files.filter(file => file.endsWith('.mjs')).some(file => readFileSync(path.join(repository, file), 'utf8').includes('generator-php/vendor'));
+      const reinstalled = rule.commands.slice(0, index).some(line => line.startsWith('composer --working-dir=packages/generator-php reinstall crudui/validator'));
+      if (reads && !reinstalled) violations.push(`${name}: \`${command}\` loads packages/generator-php/vendor without reinstalling crudui/validator first`);
+    });
+  }
+  assert.deepEqual(violations, []);
 });

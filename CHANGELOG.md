@@ -1,5 +1,15 @@
 # Changes
 
+## 2026-10-05 — Checks that read only what they or their preparation create (C7.5)
+
+- `make test-php-extension` reinstalls the validator copy of generator-php before its tests, which
+  load that vendor directory; only `make test-native-suites` refreshed it. `test:build` runs
+  `require-current-build` before the tests that load the packages through their exports.
+  `scripts/repeat-build.mjs` compares its own two builds and fails with every file that differs; its
+  test read the records that only that script wrote. `scripts/run-rust-command.mjs` refuses a
+  `CARGO_TARGET_DIR` outside the checkout of its directory, because cargo judges freshness by
+  modification times and reuses the outputs of another checkout.
+
 ## 2026-10-05 — Every check of a script after a failure (C7.4)
 
 - `test:forms`, `test:form-comparison`, `test:form-comparison:pipeline`, `docs:check:all`, the `test`
