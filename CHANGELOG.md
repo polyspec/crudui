@@ -1,5 +1,11 @@
 # Changes
 
+## 2026-10-05 — The toolchain image test with the digest stages (C7.2-2)
+
+- `examples/form-comparison/check-toolchain.test.mjs` requires the stages of the comparison image as
+  the recorded releases with their digests. C7.2 changed the stages and was committed while this test
+  still required the release lines.
+
 ## 2026-10-05 — Exact toolchain versions everywhere (C7.2)
 
 - The specification records exact versions instead of release channels, which made the toolchain of
