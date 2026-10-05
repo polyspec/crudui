@@ -1,11 +1,13 @@
 import assert from 'node:assert/strict';
-import { after, before, test } from 'node:test';
+import { before, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import puppeteer from 'puppeteer';
 import { createServer } from 'vite';
+
+import { teardown } from '../scripts/test-progress/teardown.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const entry = '/__crudui_widget_scripts__.mjs';
@@ -96,13 +98,9 @@ before(async () => {
   url = `${server.resolvedUrls.local[0]}widget-scripts`;
   browser = await puppeteer.launch({ headless: true });
 }, { timeout: 60000 });
-after(async () => {
-  try { await browser?.close(); }
-  finally {
-    try { await server?.close(); }
-    finally { if (cacheDirectory) await rm(cacheDirectory, { recursive: true, force: true }); }
-  }
-});
+teardown('browser close', () => browser?.close());
+teardown('server stop', () => server?.close());
+teardown('cache removal', () => cacheDirectory && rm(cacheDirectory, { recursive: true, force: true }));
 
 test('limits Vite dependency optimization to the declared widget packages', () => {
   assert.equal(server.config.optimizeDeps.noDiscovery, true);

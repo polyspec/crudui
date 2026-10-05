@@ -1,5 +1,19 @@
 # Changes
 
+## 2026-10-05 — Teardowns without a hook timeout (C2.7)
+
+- `teardown` of `scripts/test-progress/teardown.mjs` registers a browser close, a server stop or a
+  directory removal as an `after` hook of a file or of a test with the timeout `Infinity`. It ends
+  when its close resolves or its process exits, fails the file with its error, and prints its
+  start, a line every five seconds and its end with the elapsed time. The teardown hooks of the
+  pipeline browser test, the form inspector test, the record store test, the browser job test, the
+  style, viewport, Tailwind and widget script tests and the documentation server test use it; the
+  Vitest `afterAll` hooks of the cross-check console server and the form binding have the timeout
+  `Infinity`. node:test gave a hook without its own timeout the test timeout, so on a loaded
+  machine the server stop of the pipeline test ran out of its 10 seconds and the browser close of
+  the inspector test out of 30 seconds while every test passed. `tests/build/teardown.test.mjs`
+  runs a teardown of 1.5 seconds under a test timeout of one second.
+
 ## 2026-10-05 — Commands of long operations without a limit (C2.3-1)
 
 - `scripts/run-command.mjs` replaces `scripts/bounded-command.mjs`. It runs a command to its exit

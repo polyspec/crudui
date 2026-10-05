@@ -5,8 +5,10 @@ import assert from 'node:assert/strict';
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { after, before, describe, test } from 'node:test';
+import { before, describe, test } from 'node:test';
 import puppeteer from 'puppeteer';
+
+import { teardown } from '../../scripts/test-progress/teardown.mjs';
 
 import { browserUnitLimitsMs } from './browser-report-policy.mjs';
 import {
@@ -68,12 +70,15 @@ before(async () => {
   browser = await puppeteer.launch({ headless: true, protocolTimeout: pipelineUnitLimitMs });
 }, { timeout: browserUnitLimitsMs['browser-start'] });
 
-// A stop waits up to 2 s before it kills a process tree; the processes stop at the same time.
-const stopLimitMs = 10_000;
-
-after(async () => { await browser?.close(); }, { timeout: browserUnitLimitsMs['browser-close'] });
-after(async () => { await Promise.all(processes.map(running => running.stop())); }, { timeout: stopLimitMs });
-after(async () => { if (root) await rm(root, { recursive: true, force: true }); }, { timeout: stopLimitMs });
+// The teardowns end when the browser has closed, every server process has exited and the
+// directory is removed; the servers stop at the same time.
+teardown('browser close', () => browser?.close());
+teardown('server stop', () => Promise.all(processes.map(async running => {
+  const started = performance.now();
+  await running.stop();
+  process.stdout.write(`[teardown] server stop: ${running.origin} exited after ${((performance.now() - started) / 1000).toFixed(1)}s\n`);
+})));
+teardown('directory removal', () => root && rm(root, { recursive: true, force: true }));
 
 describe('record stores reset', { concurrency: recordServers.length }, () => {
   for (const server of recordServers) {

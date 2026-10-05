@@ -5,7 +5,9 @@ import assert from 'node:assert/strict';
 import { mkdir, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { after, before, describe, test } from 'node:test';
+import { before, describe, test } from 'node:test';
+
+import { teardown } from '../../scripts/test-progress/teardown.mjs';
 
 import { freePort, prepareRecordServers, recordPublicDirectory, recordServerProcess, startProcess } from './src/local-servers.mjs';
 import { recordClient, recordContractCases, recordServers, recordStoreName } from './src/record-contract.mjs';
@@ -26,9 +28,7 @@ before(async () => {
   prepared = await prepareRecordServers({ buildDirectory: path.join(root, 'bin') });
 }, preparationHook);
 
-after(async () => {
-  if (root) await rm(root, { recursive: true, force: true });
-});
+teardown('directory removal', () => root && rm(root, { recursive: true, force: true }));
 
 for (const server of recordServers) {
   describe(`${server} record store`, () => {
@@ -50,7 +50,7 @@ for (const server of recordServers) {
         restart: async () => { await running.stop(); await start(); },
       });
     }, { timeout: 60_000 });
-    after(async () => { await running?.stop(); });
+    teardown(`${server} server stop`, () => running?.stop());
 
     for (const contractCase of recordContractCases) {
       test(contractCase.id, { timeout: caseLimitMs }, async () => {
