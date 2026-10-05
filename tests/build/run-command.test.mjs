@@ -129,6 +129,39 @@ test('run.js runs a benchmark driver to its end', async t => {
   assert.match(result.output, /"spec":"contact"/);
 });
 
+// The JavaScript driver of these cases is a `node` from PATH that reports one row, or prints its
+// version or fails on `--version`.
+function benchNode(box, version) {
+  const row = JSON.stringify({ spec: 'contact', lang: 'js', valid: true, error: null, field: null, opsSec: 1, avgUs: 1, ms: 1 });
+  box.program('node', "if (process.argv[2] === '--version') {\n"
+    + (version ? `  process.stdout.write(${JSON.stringify(`${version}\n`)});\n` : "  process.stderr.write('node: broken installation\\n'); process.exitCode = 3;\n")
+    + `} else process.stdout.write(${JSON.stringify(`${row}\n`)});\n`);
+}
+
+test('run.js records the version of each tool of the backends it ran', async t => {
+  const box = sandbox(t, ['tools/bench/run.js', 'tools/bench/arguments.js', 'tools/bench/fixtures']);
+  benchNode(box, 'v99.1.0');
+  const result = await runScript(path.join(box.root, 'tools/bench/run.js'), ['--only', 'js'], {
+    cwd: box.root, env: { ...process.env, PATH: path.join(box.root, 'bin') },
+  });
+  assert.equal(result.status, 0, result.output);
+  const report = readFileSync(path.join(box.root, 'tools/bench/results.md'), 'utf8');
+  assert.match(report, /^- node: v99\.1\.0$/m);
+  assert.doesNotMatch(report, /^- (?:php|go|rust\/cargo):/m, 'a tool of a backend that did not run is not recorded');
+});
+
+test('run.js fails when a version command fails, with its error', async t => {
+  const box = sandbox(t, ['tools/bench/run.js', 'tools/bench/arguments.js', 'tools/bench/fixtures']);
+  benchNode(box);
+  const result = await runScript(path.join(box.root, 'tools/bench/run.js'), ['--only', 'js'], {
+    cwd: box.root, env: { ...process.env, PATH: path.join(box.root, 'bin') },
+  });
+  assert.notEqual(result.status, 0, result.output);
+  assert.match(result.output, /node --version failed with status 3/);
+  assert.match(result.output, /node: broken installation/);
+  assert.equal(existsSync(path.join(box.root, 'tools/bench/results.md')), false, 'no report with a missing version');
+});
+
 test('build-drivers.mjs streams a driver build to its end and stops what it left behind', async t => {
   // GO names the Go command of the build. The Rust build finds no toolchain in the sandbox and fails.
   const box = sandbox(t, ['tools/bench/build-drivers.mjs', 'tools/bench/drivers.mjs', 'scripts/run-rust-command.mjs', 'scripts/tool-resolution.mjs']);

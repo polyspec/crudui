@@ -1,5 +1,12 @@
 # Changes
 
+## 2026-10-05 — Failed version commands fail the benchmark (C2.14)
+
+- `tools/bench/run.js` fails with the command, its failure and its output when a version command
+  fails or prints no version, and `results.md` records the versions of the tools of the backends
+  that ran. A failed version was recorded as `unavailable` and an empty one as `unknown`, and the
+  versions of all four tools were queried for every run.
+
 ## 2026-10-05 — Package builds and packs under the lock of dist (C3.5)
 
 - Every built package's build script is `node ../../scripts/package-dist.mjs build '<command>'`,

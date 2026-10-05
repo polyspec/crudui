@@ -207,10 +207,7 @@ function writeResultsMd(table, args, langs, meta) {
   lines.push(`- iterations (measured): ${fmtInt(args.iters)}`);
   lines.push(`- warmup iterations: ${fmtInt(args.warmup)}`);
   lines.push(`- backends: ${langs.join(', ')}`);
-  lines.push(`- node: ${meta.node}`);
-  lines.push(`- php: ${meta.php}`);
-  lines.push(`- go: ${meta.go}`);
-  lines.push(`- rust/cargo: ${meta.cargo}`);
+  for (const [tool, version] of Object.entries(meta)) lines.push(`- ${tool}: ${version}`);
   lines.push('');
   lines.push('## Results');
   lines.push('');
@@ -272,11 +269,24 @@ function writeResultsMd(table, args, langs, meta) {
   fs.writeFileSync(RESULTS_MD, lines.join('\n') + '\n');
 }
 
+/** The first line of a tool's version; a failed or empty version command fails the run. */
 async function toolVersion(commands, cmd, args) {
   const r = await commands.runCommand({ command: cmd, args, stdout: 'pipe', stderr: 'pipe' });
-  if (commands.failureOf(r)) return 'unavailable';
-  return (r.stdout || r.stderr || '').trim().split('\n')[0] || 'unknown';
+  const shown = [path.basename(cmd), ...args.map((arg) => (arg === RUST_COMMAND ? path.relative(REPO_ROOT, arg) : arg))].join(' ');
+  const failure = commands.failureOf(r);
+  if (failure) throw new Error(`${shown} ${failure}\n${r.stderr}${r.stdout}`);
+  const version = r.stdout.trim().split('\n')[0];
+  if (!version) throw new Error(`${shown} printed no version`);
+  return version;
 }
+
+/** The tool whose version each backend reports, as it appears in results.md. */
+const VERSION_COMMANDS = {
+  js: ['node', 'node', ['--version']],
+  php: ['php', 'php', ['--version']],
+  go: ['go', 'go', ['version']],
+  rust: ['rust/cargo', process.execPath, [RUST_COMMAND, '--version']],
+};
 
 async function main() {
   const args = parseArgs(process.argv.slice(2));
@@ -324,12 +334,12 @@ async function main() {
 
   if (!args.json) {
     printTable(table);
-    const meta = {
-      node: await toolVersion(commands, 'node', ['--version']),
-      php: await toolVersion(commands, 'php', ['--version']),
-      go: await toolVersion(commands, 'go', ['version']),
-      cargo: await toolVersion(commands, process.execPath, [RUST_COMMAND, '--version']),
-    };
+    // Only the tools of the backends that ran are recorded.
+    const meta = {};
+    for (const lang of okLangs) {
+      const [tool, cmd, versionArgs] = VERSION_COMMANDS[lang];
+      meta[tool] = await toolVersion(commands, cmd, versionArgs);
+    }
     writeResultsMd(table, args, okLangs, meta);
     console.log(`[bench] wrote ${path.relative(REPO_ROOT, RESULTS_MD)}`);
   }
