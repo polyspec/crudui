@@ -89,7 +89,7 @@ docs-check-documents:
 	npm run manifest:check
 	npm run manifest:docs:check
 	node scripts/check-documents.mjs
-	node scripts/run-tests.mjs node -- scripts/documentation-links.test.mjs scripts/gen-api-docs.test.mjs scripts/check-doc-coverage.test.mjs scripts/php-doc-coverage.test.mjs
+	node scripts/run-tests.mjs node -- scripts/checklist-markers.test.mjs scripts/documentation-links.test.mjs scripts/gen-api-docs.test.mjs scripts/check-doc-coverage.test.mjs scripts/php-doc-coverage.test.mjs
 	npm run test:docs
 	npm run docs:build
 

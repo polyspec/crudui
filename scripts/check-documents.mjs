@@ -1,8 +1,9 @@
 #!/usr/bin/env node
-/** Check maintained document links, translations and feature status fields. */
+/** Check maintained document links, translations, feature status fields and checklist state markers. */
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { markerErrors } from './checklist-markers.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const documents = new Set([
@@ -81,6 +82,9 @@ function statuses(path) {
 }
 if (JSON.stringify(statuses('docs/features.md')) !== JSON.stringify(statuses('docs/features.ko.md'))) {
   errors.push('docs/features.md: English and Korean status fields differ');
+}
+for (const path of ['docs/plans/execution-checklist.md', 'docs/plans/execution-checklist.ko.md']) {
+  errors.push(...markerErrors(path, readFileSync(join(root, path), 'utf8')));
 }
 if (errors.length) {
   for (const error of errors) process.stderr.write(`[docs] ${error}\n`);

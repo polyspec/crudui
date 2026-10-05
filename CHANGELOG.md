@@ -1,5 +1,15 @@
 # Changes
 
+## 2026-10-05 — Task state markers only as task states (C4.1)
+
+- A task state marker appears in the execution checklist only as the state of a task row, at the
+  start of its last cell. The legend of the checklist and the text of C2.1-2 wrote markers in inline
+  code, so a tool that counted markers counted tasks in progress that do not exist.
+  `scripts/check-documents.mjs` now fails for any other marker in both languages and names its
+  file, line and column; the legend is removed, AGENTS defines the states, and the texts name states
+  in words. `scripts/checklist-markers.test.mjs` failed with `ERR_MODULE_NOT_FOUND` before the
+  change, and its fixture passed the former document check.
+
 ## 2026-10-05 — Guard of the full run (C2.1-2)
 
 - `make ci` starts the guard `scripts/full-run.mjs` before any command. AGENTS states that the full
