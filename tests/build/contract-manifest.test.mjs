@@ -2,6 +2,7 @@
 // exports and visibility. Each failure the check reports is proven here on a synthetic
 // repository, and the real repository must pass.
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -110,6 +111,8 @@ function errorsFor(change = () => {}) {
     }
     mkdirSync(path.join(root, 'contracts'), { recursive: true });
     writeFileSync(path.join(root, 'contracts/features.json'), JSON.stringify(repo.manifest, null, 2));
+    // The check reads the files of a Git checkout (scripts/tracked-files.mjs).
+    execFileSync('git', ['init', '--quiet'], { cwd: root });
     return checkContractManifest(root).errors;
   } finally {
     rmSync(root, { recursive: true, force: true });

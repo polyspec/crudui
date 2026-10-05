@@ -11,11 +11,13 @@
  * of CRUDUI packages under packages/ imports an `internal` entry, and no package imports another
  * package's files by a relative path: it imports that package's entries by name.
  */
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
-import { dirname, extname, join, relative, resolve, sep } from 'node:path';
+import { existsSync, readFileSync } from 'node:fs';
+import { dirname, extname, relative, resolve, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import Ajv from 'ajv';
 import ts from 'typescript';
+
+import { trackedFiles } from './tracked-files.mjs';
 
 const scriptRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const schema = JSON.parse(readFileSync(resolve(scriptRoot, 'contracts/features.schema.json'), 'utf8'));
@@ -24,7 +26,6 @@ const schemaValidate = new Ajv({ allErrors: true, strict: false }).compile(schem
 const codeTarget = /\.[cm]?js$/;
 const sourceExtensions = ['.ts', '.tsx', '.mts', '.cts', '.js', '.mjs', '.cjs'];
 const scannedExtensions = new Set(['.ts', '.tsx', '.mts', '.cts', '.js', '.jsx', '.mjs', '.cjs', '.svelte', '.vue', '.md', '.html']);
-const ignoredDirectories = new Set(['.git', '.svelte-kit', 'dist', 'node_modules', 'out', 'target', 'vendor']);
 // A `.svelte` module's only value export is its component.
 const svelteModule = resolve(scriptRoot, '__svelte_component__.ts');
 const svelteModuleText = 'declare const component: unknown;\nexport default component;\n';
@@ -131,19 +132,12 @@ function signatureFunctions(signature) {
   return [...names].filter((name) => name !== 'new').sort(byCodeUnit);
 }
 
-/** Repository files that can hold module specifiers, relative to the root with `/` separators. */
-function scannedFiles(root, directory = root) {
-  const files = [];
-  for (const entry of readdirSync(directory, { withFileTypes: true })) {
-    if (entry.isSymbolicLink()) continue;
-    const path = join(directory, entry.name);
-    if (entry.isDirectory()) {
-      if (!ignoredDirectories.has(entry.name)) files.push(...scannedFiles(root, path));
-    } else if (entry.isFile() && scannedExtensions.has(extname(entry.name))) {
-      files.push(relative(root, path).split(sep).join('/'));
-    }
-  }
-  return files;
+/**
+ * Repository files that can hold module specifiers, relative to the root with `/` separators: the files of the
+ * checkout that Git tracks or does not ignore, so installed and generated output never takes part.
+ */
+function scannedFiles(root) {
+  return trackedFiles(root).filter(file => scannedExtensions.has(extname(file)));
 }
 
 // A relative specifier in an import, export, require, dynamic import or Vitest module mock.

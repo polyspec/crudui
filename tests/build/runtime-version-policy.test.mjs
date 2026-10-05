@@ -7,25 +7,14 @@ import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
 
 import { recordedToolchain, toolchainMismatches, toolchainVersions } from '../../scripts/check-toolchain.mjs';
+import { trackedFiles } from '../../scripts/tracked-files.mjs';
 import { makeDryRun } from './make-dry-run.mjs';
 
 const repository = fileURLToPath(new URL('../..', import.meta.url));
-const ignoredDirectories = new Set(['.git', 'node_modules', 'target', 'vendor']);
 
-async function findContainerDefinitions(directory = repository) {
-  const entries = await readdir(directory, { withFileTypes: true });
-  const files = [];
-  for (const entry of entries) {
-    if (entry.isDirectory()
-      && !entry.name.startsWith('.')
-      && !ignoredDirectories.has(entry.name)) {
-      files.push(...await findContainerDefinitions(path.join(directory, entry.name)));
-    } else if (entry.isFile()
-      && (entry.name === 'Dockerfile' || entry.name.endsWith('Containerfile'))) {
-      files.push(path.join(directory, entry.name));
-    }
-  }
-  return files;
+/** The container definitions of the checkout: Dockerfile and *Containerfile among its tracked files. */
+async function findContainerDefinitions() {
+  return trackedFiles(repository).filter(file => /(?:^|\/)(?:Dockerfile|[^/]*Containerfile)$/.test(file)).map(file => path.join(repository, file));
 }
 
 /** The exact npm release that `packageManager` of package.json records. */
@@ -273,17 +262,9 @@ test('the declared contract commands run in a shell without login files', async 
   assert.doesNotMatch(runner, /'-lc'|'-l'/);
 });
 
-async function composerManifests(directory = repository) {
-  const entries = await readdir(directory, { withFileTypes: true });
-  const files = [];
-  for (const entry of entries) {
-    if (entry.isDirectory() && !entry.name.startsWith('.') && !ignoredDirectories.has(entry.name)) {
-      files.push(...await composerManifests(path.join(directory, entry.name)));
-    } else if (entry.isFile() && entry.name === 'composer.json') {
-      files.push(path.join(directory, entry.name));
-    }
-  }
-  return files;
+/** The Composer manifests of the checkout among its tracked files. */
+async function composerManifests() {
+  return trackedFiles(repository).filter(file => /(?:^|\/)composer\.json$/.test(file)).map(file => path.join(repository, file));
 }
 
 /** The PHP minors from `lowest` to `newest`, as `8.N` strings. */

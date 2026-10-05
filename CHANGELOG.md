@@ -1,5 +1,13 @@
 # Changes
 
+## 2026-10-06 — Checks that read the files of the checkout (C7.14)
+
+- ESLint ignores every path that Git ignores, and the checks that walked the tree with their own lists
+  of skipped directory names read the tracked files through `scripts/tracked-files.mjs`: a copy of a
+  `dist` under the ignored `var/` failed `npm run lint`, and a stray file under an ignored directory
+  could change the other checks. `tests/build/tracked-files.test.mjs` fails for a new list of skipped
+  directory names.
+
 ## 2026-10-06 — jest-dom 7 (C5.8-9)
 
 - generator-react tests with `@testing-library/jest-dom` 7.0.1; it stayed at 6.9.1 because 6.10.0 was

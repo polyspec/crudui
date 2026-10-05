@@ -8,6 +8,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 let dispatch, errorRecord;
+import { trackedFiles } from '../../scripts/tracked-files.mjs';
 import { parseCLIResponse, OperationError, equalOrdered, equalModels, equalState } from './protocol.mjs';
 import { formScenarios, numberCases, companySpec, companyData, row, imageCase, urlCase, dateCases, dateFormSpec, dateFormData, dateListSpec } from './cases.mjs';
 import { failureOf, runCommand } from '../../scripts/run-command.mjs';
@@ -99,24 +100,22 @@ function execute(command, args, options = {}) {
 
 async function inputManifest() {
   const entries = {};
-  const excluded = new Set(['node_modules', 'vendor', 'target', 'dist', 'build', 'modules', '.libs', '.git', '.phpunit.cache', 'autom4te.cache']);
   const sourceFile = /\.(?:ts|tsx|js|mjs|cjs|go|rs|php|c|h|css|html|vue|svelte|json|ya?ml|toml|lock|mod|sum|xml|m4)$/;
-  const walk = async (relative, built = false) => {
+  // The built output of the packages that the generators read, which Git ignores.
+  const walk = async relative => {
     const directory = await readdir(path.join(ROOT, relative), { withFileTypes: true });
     for (const entry of directory.sort((a, b) => a.name.localeCompare(b.name))) {
       const file = `${relative}/${entry.name}`;
-      if (entry.isDirectory() && (built || !excluded.has(entry.name))) await walk(file, built);
-      else if (entry.isFile() && (built ? /\.(?:js|mjs|cjs)$/.test(file) : sourceFile.test(file) || entry.name === 'Makefile')) {
-        entries[file] = digest(await readFile(path.join(ROOT, file)));
-      }
+      if (entry.isDirectory()) await walk(file);
+      else if (entry.isFile() && /\.(?:js|mjs|cjs)$/.test(file)) entries[file] = digest(await readFile(path.join(ROOT, file)));
     }
   };
-  const packages = await readdir(path.join(ROOT, 'packages'), { withFileTypes: true });
-  for (const entry of packages.sort((a, b) => a.name.localeCompare(b.name))) {
-    if (entry.isDirectory() && /^(?:generator-|validator-|php-ext$)/.test(entry.name)) await walk(`packages/${entry.name}`);
+  // The sources are the files of the checkout that Git tracks or does not ignore (scripts/tracked-files.mjs).
+  const sources = /^(?:packages\/(?:generator-[^/]+|validator-[^/]+|php-ext)|tests\/native-generators|tests\/fixtures\/(?:form-render|list-render|detail-render|text-validity))\//;
+  for (const file of trackedFiles(ROOT)) {
+    if (sources.test(file) && (sourceFile.test(file) || path.basename(file) === 'Makefile')) entries[file] = digest(await readFile(path.join(ROOT, file)));
   }
-  for (const directory of ['tests/native-generators', 'tests/fixtures/form-render', 'tests/fixtures/list-render', 'tests/fixtures/detail-render', 'tests/fixtures/text-validity']) await walk(directory);
-  for (const directory of ['packages/generator-core/dist', 'packages/generator-react/dist', 'packages/validator-ts/dist']) await walk(directory, true);
+  for (const directory of ['packages/generator-core/dist', 'packages/generator-react/dist', 'packages/validator-ts/dist']) await walk(directory);
   for (const file of ['package.json', 'package-lock.json']) entries[file] = digest(await readFile(path.join(ROOT, file)));
   if (extension) {
     try { entries[extension] = digest(await readFile(extension)); }

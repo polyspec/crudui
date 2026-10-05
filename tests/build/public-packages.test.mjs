@@ -1,11 +1,14 @@
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, realpathSync, statSync, mkdtempSync, mkdirSync, writeFileSync, existsSync, rmSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 import { tmpdir } from 'node:os';
 import ts from 'typescript';
+
+import { trackedFiles } from '../../scripts/tracked-files.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const require = createRequire(import.meta.url);
@@ -262,14 +265,9 @@ test('declaration builds emit no files when a public type is invalid', () => {
   } finally { rmSync(temporary, { recursive: true, force: true }); }
 });
 
-const skippedDirectories = new Set(['node_modules', 'vendor', 'target', 'dist', 'dist.next', 'dist.old', '.git']);
+/** The files of a package directory that Git tracks or does not ignore, as absolute paths. */
 function* files(directory) {
-  for (const entry of readdirSync(directory, { withFileTypes: true })) {
-    if (skippedDirectories.has(entry.name)) continue;
-    const path = resolve(directory, entry.name);
-    if (entry.isDirectory()) yield* files(path);
-    else if (entry.isFile()) yield path;
-  }
+  for (const file of trackedFiles(directory)) yield resolve(directory, file);
 }
 
 /**
@@ -309,6 +307,8 @@ function publishedCommands(directory) {
 
 test('each command form in a published package is detected', () => {
   const temporary = mkdtempSync(resolve(tmpdir(), 'crudui-package-commands-'));
+  // The check reads the files of a Git checkout (scripts/tracked-files.mjs).
+  execFileSync('git', ['init', '--quiet'], { cwd: temporary });
   const make = (name, entries) => {
     const directory = resolve(temporary, name);
     for (const [path, content] of Object.entries(entries)) {

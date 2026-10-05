@@ -1,5 +1,12 @@
 # 변경 기록
 
+## 2026-10-06 — checkout의 file을 읽는 검사 (C7.14)
+
+- ESLint는 Git이 무시하는 모든 경로를 무시하고, 건너뛸 directory 이름 목록을 각자 두고 tree를 돌던 검사는
+  `scripts/tracked-files.mjs`로 추적된 file을 읽습니다. 무시되는 `var/` 아래의 `dist` 복사본은 `npm run lint`를 실패시켰고,
+  무시되는 directory 아래의 남은 file이 다른 검사를 바꿀 수 있었습니다. `tests/build/tracked-files.test.mjs`는 건너뛸
+  directory 이름 목록이 새로 생기면 실패합니다.
+
 ## 2026-10-06 — jest-dom 7 (C5.8-9)
 
 - generator-react는 `@testing-library/jest-dom` 7.0.1로 test합니다. 6.10.0이 breaking change가 있는 minor로 deprecated되어
