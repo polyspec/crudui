@@ -28,7 +28,8 @@ prerequisite에서 멈추므로 Makefile 대상은 테스트를 실행하는 대
 
 `make ci`는 `docs/plans/execution-checklist.md`의 작업 중 `[~]`인 것이 없을 때, 커밋된 tree마다 한 번 실행됩니다. 어떤 명령보다
 먼저 `scripts/full-run.mjs`를 시작하며, 이 guard는 판단을 이유와 함께 출력하고(`[full-run] run: ...` 또는 `[full-run]
-refuse: ...`) 다음의 경우 status 1로 거부합니다. checklist의 작업 행이 `[~]`이면 활성 ID를 작업과 함께 나열하며 거부합니다. 추적 파일에 커밋되지
+refuse: ...`) 다음의 경우 status 1로 거부합니다. checklist의 작업 행이 `[~]`이면 활성 ID를 작업과 함께 나열하며 거부합니다. pre-push hook이
+설치되지 않았으면(`node scripts/push-gate.mjs hooks-check`, 아래) 거부합니다. 추적 파일에 커밋되지
 않은 변경이 있으면(`git status --porcelain --untracked-files=no`) 거부합니다. 전체 실행은 커밋된 tree를 검증하기 때문입니다.
 `var/full-run.json`이 현재 tree(`git rev-parse HEAD^{tree}`)의 전체 실행을 기록하고 있으면 그 실행을 commit, 시작 시각, 결과와
 함께 밝히며 거부합니다. `incomplete` record의 process가 아직 실행 중이면 거부합니다.
@@ -46,8 +47,26 @@ scripts/check-conformance.mjs`가 읽는, 통과한 명령의 적합성 증거�
 `make ci`와 같이 거부되고, record가 없을 때, record가 다른 tree의 것일 때, 그 tree의 전체 실행이 통과했을 때도 거부됩니다. 각 재실행을
 record의 `reruns`에 쓰고, 모든 명령이 통과하면 그 tree의 결과는 `passed`가 됩니다.
 
-CI workflow는 `main`으로의 push마다 같은 명령을 job에서 실행하고 `make ci`는 실행하지 않으므로 guard는 CI 실행을 판단하지 않습니다. push는
-활성 작업이 모두 끝났을 때만 합니다. CI처럼 새 checkout에는 record가 없으므로, 그곳에서 `make ci`는 `[~]` 작업이 없고 tree가 깨끗하면 실행됩니다.
+CI workflow는 `main`으로의 push마다 같은 명령을 job에서 실행하고 `make ci`는 실행하지 않으므로 guard는 CI 실행을 판단하지 않습니다.
+CI처럼 새 checkout에는 record가 없으므로, 그곳에서 `make ci`는 `[~]` 작업이 없고 tree가 깨끗하면 실행됩니다.
+
+push는 checklist에 `[~]` 작업이 없을 때만 합니다. 추적되는 pre-push hook `.githooks/pre-push`는 Git이 push하는 ref와 함께
+`node scripts/push-gate.mjs hook`을 실행합니다. 이 검사는 push되는 모든 commit의 checklist(`git show <sha>:docs/plans/execution-checklist.md`)와
+working tree의 checklist를 guard의 `activeItems`로 읽고, 그중 하나에 진행 중인 작업이 있으면 status 1로 push를 거부합니다. 이 검사는 `push
+refused: checklist tasks are in progress`, 작업마다 push되는 ref와 commit 또는 `working tree`, 그 ID와 제목을 적은 줄, 이유, 해결 방법을
+출력합니다. 해결 방법은 작업을 완료하거나, 그 원인과 재시도 조건과 함께 `[!]`로 표시하는 것입니다. checklist가 없는 push commit, Git 오류,
+검사 자체의 오류도 그 원인을 적으며 push를 거부합니다. 삭제되는 ref는 commit을 push하지 않으므로 working tree만으로 검사합니다.
+
+Git은 hook을 version 관리하지 않습니다. 모든 `make` 실행은 Makefile을 읽을 때 설정이 다르면 `core.hooksPath`를 `.githooks`로 설정하므로,
+어떤 make target이든 실행한 checkout에는 hook이 있습니다. `make hooks`는 hook을 설치하고 `node scripts/push-gate.mjs hooks-check`를
+실행하며, `make hooks-check`도 이것을 실행합니다. 이 검사는 `core.hooksPath`가 `.githooks`가 아니거나 `.githooks/pre-push`가 실행
+가능한 file이 아니면 실패하고 해결 방법을 적습니다. `make ci`의 guard도 같은 이유로 거부합니다.
+
+hook이 없는 clone이나 hook을 건너뛴 push도 GitHub에 도달합니다. `.github/workflows/push-gate.yml`의 job `push-gate`는 모든 branch로의
+push와 모든 pull request에서 실행되어, push된 commit(pull request의 head commit)을 checkout하고
+`node scripts/push-gate.mjs commit HEAD`를 실행합니다. 이 job은 그 commit의 checklist에 진행 중인 작업이 있을 때, commit에 checklist가 없을 때, commit이
+`.githooks/pre-push`를 실행 가능한 file(mode `100755`)로 추적하지 않을 때 실패하며, 거부 내용을 progress line으로, 각 줄을 error
+annotation으로, 그리고 job summary에 출력합니다.
 
 개별 명령은 다음과 같습니다.
 

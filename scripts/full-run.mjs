@@ -6,16 +6,19 @@
 //
 // A target of the full suite is one command of the CI workflow, which runs with `sh -c` and is named by its text.
 // The full suite runs once, when every active checklist item is done (AGENTS). The guard refuses a run while a task
-// row of docs/plans/execution-checklist.md is `[~]`, while tracked changes are uncommitted, and while the run of
-// another process is still going on. A full run is refused when var/full-run.json already records a run of the
-// current tree (`git rev-parse HEAD^{tree}`); `rerun-failed` is refused unless that record exists and has targets that
-// did not pass. The guard prints its decision with the reason, runs each target with `sh -c <command>` to its end,
-// prints its start and its result with the elapsed time, and writes the record before and after each target, so a run
-// that is stopped stays recorded as `incomplete`. No step has a time limit.
+// row of docs/plans/execution-checklist.md is `[~]`, while the pre-push hook is not installed
+// (`scripts/push-gate.mjs hooks-check`), while tracked changes are uncommitted, and while the run of another process
+// is still going on. A full run is refused when var/full-run.json already records a run of the current tree
+// (`git rev-parse HEAD^{tree}`); `rerun-failed` is refused unless that record exists and has targets that did not
+// pass. The guard prints its decision with the reason, runs each target with `sh -c <command>` to its end, prints its
+// start and its result with the elapsed time, and writes the record before and after each target, so a run that is
+// stopped stays recorded as `incomplete`. No step has a time limit.
 import { spawn, spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+
+import { hooksIssue } from './push-gate.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const USAGE = 'Usage: node scripts/full-run.mjs run <command>... | rerun-failed';
@@ -41,14 +44,18 @@ export function activeItems(text) {
 const notPassed = record => record.targets.filter(target => target.status !== 'passed').map(target => target.name);
 
 /**
- * Decides whether the guard runs. `mode` is `run` or `rerun-failed`; `active` the active checklist items; `dirty` the
- * `git status --porcelain` lines of tracked files; `tree` the current tree; `record` the record of the last run or
- * null; `running` whether the process of an incomplete record still exists. Returns `{ run, reason, targets }`.
+ * Decides whether the guard runs. `mode` is `run` or `rerun-failed`; `active` the active checklist items; `hooks` why
+ * the pre-push hook does not run, or null; `dirty` the `git status --porcelain` lines of tracked files; `tree` the
+ * current tree; `record` the record of the last run or null; `running` whether the process of an incomplete record
+ * still exists. Returns `{ run, reason, targets }`.
  */
-export function decide({ mode, targets, active, dirty, tree, record, running }) {
+export function decide({ mode, targets, active, hooks = null, dirty, tree, record, running }) {
   const refuse = reason => ({ run: false, reason, targets: [] });
   if (active.length > 0) {
     return refuse(`${active.length} active checklist item${active.length === 1 ? '' : 's'} in ${CHECKLIST}; the full suite runs once, when every active item is done:\n${active.map(item => `  ${item.id} ${item.title}`).join('\n')}`);
+  }
+  if (hooks) {
+    return refuse(`the pre-push hook is not installed, so a push with a task in progress is not refused: ${hooks}`);
   }
   if (dirty.length > 0) {
     return refuse(`the working tree has uncommitted tracked changes; a full run verifies a committed tree:\n${dirty.map(line => `  ${line}`).join('\n')}`);
@@ -121,12 +128,13 @@ function runCommand(root, command) {
  */
 export async function fullRun({ root = ROOT, mode, targets = [], runTarget = name => runCommand(root, name), print = line => process.stdout.write(`${line}\n`), evidence = process.env.CRUDUI_CONFORMANCE_EVIDENCE }) {
   const active = activeItems(readFileSync(path.join(root, CHECKLIST), 'utf8'));
+  const hooks = hooksIssue(root);
   const dirty = git(root, 'status', '--porcelain', '--untracked-files=no').split('\n').filter(Boolean);
   const tree = git(root, 'rev-parse', 'HEAD^{tree}').trim();
   const commit = git(root, 'rev-parse', 'HEAD').trim();
   const record = readRecord(root);
   const running = Boolean(record && record.result === 'incomplete' && record.pid !== process.pid && alive(record.pid));
-  const decision = decide({ mode, targets, active, dirty, tree, record, running });
+  const decision = decide({ mode, targets, active, hooks, dirty, tree, record, running });
   print(`[full-run] ${decision.run ? 'run' : 'refuse'}: ${decision.reason}`);
   if (!decision.run) return 1;
   // `node scripts/check-conformance.mjs`, the last command, checks the evidence that the commands of this tree collect:

@@ -1,0 +1,4 @@
+#!/bin/sh
+# The pre-push hook of this repository (AGENTS.md). Git starts it in the top level of the working tree with the pushed
+# refs on stdin; scripts/push-gate.mjs refuses the push while a checklist task is [~].
+exec node scripts/push-gate.mjs hook

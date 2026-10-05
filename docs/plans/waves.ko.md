@@ -23,3 +23,7 @@
 ## Wave 5
 
 의존: 없음. CI는 2026-09-25부터 모든 push에서 실패했고, 같은 tree에서 local `make ci`는 통과했다. local full run은 이전 실행의 build 결과물이 있는 working tree에서 시작하고 macOS의 Apple clang으로 C를 compile한다. CI는 각 job을 새 checkout에서 시작하고 Linux의 GCC로 compile한다. 실패한 step은 그 job의 이후 검사를 건너뛰게 했고, `make test-native`의 실패한 prerequisite는 native suite를 건너뛰게 했으므로, CI 실행 한 번이 모든 실패를 보여 주지 않았고 conformance 검사는 그것을 써야 했던 suite 없이 빠진 evidence를 보고했다.
+
+## Wave 6
+
+의존: 없음. AGENTS와 testing 안내는 모든 진행 중 작업이 끝났을 때만 push한다고 정하지만, 이를 강제하는 것이 없었다. 진행 중 작업이 있는 push가 GitHub에 도달했고, GitHub의 CI는 push된 tree에서 full suite를 실행한다. Git은 hook을 version 관리하지 않고 `core.hooksPath`는 clone마다의 설정이므로, hook은 그것을 설치한 clone에서만 동작하며 `git push --no-verify`나 다른 clone은 hook 없이 push한다. GitHub은 file의 내용으로 push를 거부할 수 없고, workflow는 push가 받아들여진 뒤에 실패한다.

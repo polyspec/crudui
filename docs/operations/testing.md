@@ -30,7 +30,8 @@ with the collected status.
 `make ci` runs once per committed tree, when no task of `docs/plans/execution-checklist.md` is
 `[~]`. Before any command it starts `scripts/full-run.mjs`, which prints its decision with the
 reason (`[full-run] run: ...` or `[full-run] refuse: ...`) and refuses with status 1 while a task
-row of the checklist is `[~]`, listing each active ID with its task; while tracked files have
+row of the checklist is `[~]`, listing each active ID with its task; while the pre-push hook is not
+installed (`node scripts/push-gate.mjs hooks-check`, below); while tracked files have
 uncommitted changes (`git status --porcelain --untracked-files=no`), because a full run verifies a
 committed tree; when `var/full-run.json` records a full run of the current tree (`git rev-parse
 HEAD^{tree}`), naming that run with its commit, its start time and its result; and while the process
@@ -56,9 +57,32 @@ writes each rerun into `reruns` of the record; when every command has passed, th
 becomes `passed`.
 
 The CI workflow runs the same commands in its jobs on each push to `main` and does not run `make
-ci`, so the guard does not decide CI runs. A push happens only when every active task is done. A new
-checkout, as in CI, has no record, so `make ci` runs there when no task is `[~]` and the tree is
-clean.
+ci`, so the guard does not decide CI runs. A new checkout, as in CI, has no record, so `make ci`
+runs there when no task is `[~]` and the tree is clean.
+
+A push happens only when no task of the checklist is `[~]`. The tracked pre-push hook
+`.githooks/pre-push` runs `node scripts/push-gate.mjs hook` with the refs that Git pushes. The check
+reads the checklist of every pushed commit (`git show <sha>:docs/plans/execution-checklist.md`) and
+of the working tree with `activeItems` of the guard, and refuses the push with status 1 while one of
+them has a task in progress. It prints `push refused: checklist tasks are in progress`, one line per
+task with the pushed ref and commit or `working tree`, its ID and its title, the reason and the
+remedy: complete the task, or mark it `[!]` with its cause and retry condition. A pushed commit
+without the checklist, a Git error and an error of the check also refuse the push, naming the cause; a
+deleted ref pushes no commit and is checked by the working tree alone.
+
+Git does not version hooks. Every `make` run sets `core.hooksPath` to `.githooks` when it reads the
+Makefile and the setting differs, so a checkout that runs any make target has the hook. `make hooks`
+installs it and runs `node scripts/push-gate.mjs hooks-check`, which `make hooks-check` also runs:
+it fails while `core.hooksPath` is not `.githooks` or `.githooks/pre-push` is not an executable
+file, and names the fix. The guard of `make ci` refuses for the same reasons.
+
+A clone without the hook, or a push that skips it, still reaches GitHub. The job `push-gate` of
+`.github/workflows/push-gate.yml` runs on every push to any branch and on every pull request,
+checks out the pushed commit (the head commit of a pull request) and runs
+`node scripts/push-gate.mjs commit HEAD`. It fails while the checklist of that commit has a task in
+progress, when the commit has no checklist and when it does not track `.githooks/pre-push` as an
+executable file (mode `100755`); it prints the refusal through the progress lines, each line as an
+error annotation, and in the job summary.
 
 The individual commands are:
 
