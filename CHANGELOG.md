@@ -1,5 +1,10 @@
 # Changes
 
+## 2026-10-06 — One CI run per ref (C7.19)
+
+- A new push to a ref cancels the CI run of its previous push; the push check still runs for every
+  pushed commit.
+
 ## 2026-10-06 — Full run in a fresh clone (C5.7)
 
 - `make ci` runs its commands in `var/full-run/clone`, a fresh clone of the committed commit after
