@@ -174,7 +174,8 @@ latest release of a channel, and no tool installs another version on its own.
   rustup's message instead of installing it; `make install` and CI install it
   with `rustup toolchain install --no-self-update`.
 - `config/toolchain.json` records the tested PHP minor releases in `php`, the
-  exact Composer release in `composer`, and the SHA-256 of the Linux x64 archive
+  minor release of Python, which runs the tests of `tests/ordered-json`
+  (`make test-ordered-json`), in `python`, compared like PHP, the exact Composer release in `composer`, and the SHA-256 of the Linux x64 archive
   of the Node.js release in `node`. PHP is pinned by its minor release, because
   setup-php and Homebrew cannot install the same patch: the checks compare the
   major and minor of the running PHP, and the patch that a run ran on is its

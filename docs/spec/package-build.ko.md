@@ -156,7 +156,8 @@ Node.js는 활성 LTS 또는 다음 LTS로 지정된 최신 짝수 안정 메이
   `clippy`와 함께 기록합니다. Makefile, CI, 이미지는 `RUSTUP_AUTO_INSTALL=0`을 설정하므로, 설치된
   toolchain이 없는 cargo는 그것을 설치하는 대신 rustup의 메시지로 실패합니다. `make install`과 CI는
   `rustup toolchain install --no-self-update`로 그것을 설치합니다.
-- `config/toolchain.json`은 `php`에 검사하는 PHP minor 릴리스를, `composer`에 정확한 Composer 릴리스를,
+- `config/toolchain.json`은 `php`에 검사하는 PHP minor 릴리스를, `python`에 `tests/ordered-json`의 test
+  (`make test-ordered-json`)를 실행하는 Python의 minor 릴리스(PHP처럼 비교)를, `composer`에 정확한 Composer 릴리스를,
   `node`에 Node.js 릴리스의 Linux x64 archive SHA-256을 기록합니다. setup-php와 Homebrew는 같은 patch를 설치할
   수 없으므로 PHP는 minor 릴리스로 고정합니다. 검사는 실행 중인 PHP의 major와 minor를 비교하고, 실행이 쓴 patch는
   그 실행의 evidence이며 `node scripts/check-toolchain.mjs`가 출력하고 `var/full-run.json`이 다른 실행 중인 릴리스와

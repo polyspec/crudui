@@ -1,5 +1,12 @@
 # 변경 기록
 
+## 2026-10-06 — minor 릴리스로 고정한 Python (C7.12)
+
+- `config/toolchain.json`은 `tests/ordered-json`의 test를 실행하는 Python 3.9를 기록하고, `node scripts/check-toolchain.mjs
+  python`은 실행 중인 major와 minor를 비교하고 patch를 출력합니다. CI의 build-lint job은 commit SHA로 지정한
+  `actions/setup-python`으로 그것을 설치하고 `make test-ordered-json`을 실행하며, `make ci`도 그것을 실행합니다. C7.9 전에는
+  어떤 명령도 그 test를 실행하지 않았습니다.
+
 ## 2026-10-06 — minor 릴리스로 고정한 PHP (C7.2-3)
 
 - `config/toolchain.json`은 PHP minor 8.4와 8.5를 기록하고, `node scripts/check-toolchain.mjs`는 실행 중인 PHP의 major와

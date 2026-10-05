@@ -93,7 +93,7 @@ install: ## Install the recorded npm, the npm and Composer dependencies, the Rus
 	sh scripts/install-phpdocumentor.sh
 
 toolchain-check: ## Fail when a tool does not run at the version that the checkout records
-	node scripts/check-toolchain.mjs node npm go rust php composer
+	node scripts/check-toolchain.mjs node npm go rust php python composer
 
 # The checks that own the changed paths (scripts/owner-checks.json): the paths of PATHS, the paths changed since BASE, or
 # the uncommitted changes and the new files that are not ignored. It never runs the full suite.
@@ -316,6 +316,7 @@ CI_COMMANDS = \
 	'npm run build' \
 	'npm run lint' \
 	'npm run typecheck' \
+	'make test-ordered-json' \
 	'npm test -w @crudui/validator' \
 	'composer --working-dir=packages/validator-php test' \
 	'node scripts/run-tests.mjs go --cwd packages/validator-go -- ./...' \
