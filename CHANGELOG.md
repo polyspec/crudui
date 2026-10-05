@@ -1,5 +1,11 @@
 # Changes
 
+## 2026-10-06 — Node.js type definitions of the running major (C5.8-7)
+
+- The six TypeScript workspaces use `@types/node` 26.6.4, the major of the recorded Node.js 26.8.1;
+  they described Node.js 25. `tests/build/runtime-version-policy.test.mjs` fails for an `@types/node`
+  range of another major than `.node-version`.
+
 ## 2026-10-06 — js-yaml 5 with the YAML 1.2 core schema (C5.8-6)
 
 - The cli and the cross-check console use js-yaml 5.4.2 through its named `load` export. Its default
