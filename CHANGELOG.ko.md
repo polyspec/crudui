@@ -1,5 +1,11 @@
 # 변경 기록
 
+## 2026-10-05 — 종료된 group의 process tree 멈춤 (C2.16)
+
+- form comparison의 `killProcessTree`는 멈춘 process의 group에 종료된 process만 남아 있어도
+  완료합니다. macOS가 종료되었지만 아직 회수되지 않은 group에 답하는 EPERM은 멈출 것이 없음을
+  뜻합니다. 전에는 tree를 kill한 뒤 `kill EPERM`으로 실패했습니다.
+
 ## 2026-10-05 — host에서 게시하는 source 변경 (C2.10)
 
 - form comparison supervisor는 1초마다가 아니라 `SIGUSR2`마다 mount된 저장소를 비교합니다. host의

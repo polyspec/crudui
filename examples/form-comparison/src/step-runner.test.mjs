@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { execFile } from 'node:child_process';
+import { execFile, spawn } from 'node:child_process';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -7,7 +7,7 @@ import test from 'node:test';
 import { promisify } from 'node:util';
 
 import {
-  assertStep, formatDuration, isProgressLine, processTree, runStages, runStep,
+  assertStep, formatDuration, isProgressLine, killProcessTree, processTree, runStages, runStep,
 } from './step-runner.mjs';
 
 const execFileAsync = promisify(execFile);
@@ -169,4 +169,26 @@ test('a step made of units that stops reporting progress fails and its process t
   assert.ok(lines.some(line => /^\[step\] silent: no progress for \d+ms; killing its process tree$/.test(line)),
     lines.join('\n'));
   assert.match(lines.at(-1), /^\[step\] silent: stalled after \d+(?:ms|\.\ds) without progress$/);
+});
+
+test('stops a whole process tree whose group holds only exited processes', async () => {
+  // The child starts a grandchild in its own session, as Chromium's helpers do; both ignore SIGTERM.
+  // After the grace both are killed; the child's group then holds only the exited child, which a
+  // group signal on macOS can answer with EPERM. The stop is still complete and does not fail.
+  // The grandchild holds the child's standard output, so the output ends only when both are gone.
+  const source = [
+    "const { spawn } = require('node:child_process');",
+    "spawn(process.execPath, ['-e', \"process.on('SIGTERM', () => {}); setInterval(() => {}, 1000)\"], { detached: true, stdio: ['ignore', 'inherit', 'ignore'] });",
+    "console.log('started');",
+    "process.on('SIGTERM', () => {}); setInterval(() => {}, 1000);",
+  ].join('\n');
+  for (let run = 0; run < 10; run++) {
+    const child = spawn(process.execPath, ['-e', source], { stdio: ['ignore', 'pipe', 'inherit'], detached: true });
+    const ended = new Promise(resolve => child.stdout.once('end', resolve));
+    await new Promise(resolve => child.stdout.setEncoding('utf8').once('data', resolve));
+    child.stdout.resume();
+    await killProcessTree(child, 100);
+    assert.equal(child.signalCode, 'SIGKILL');
+    await ended;
+  }
 });

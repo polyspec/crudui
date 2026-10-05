@@ -41,11 +41,17 @@ async function processTable() {
     .map(([pid, ppid]) => ({ pid, ppid }));
 }
 
+/**
+ * Send a signal to a process, or to a process group when `pid` is negative. A process or group that
+ * is gone (ESRCH) has nothing left to stop; a group whose processes have all exited but not yet been
+ * reaped answers EPERM on macOS, which also leaves nothing to stop.
+ */
 function signal(pid, name) {
   try {
     process.kill(pid, name);
   } catch (error) {
-    if (error.code !== 'ESRCH') throw error;
+    if (error.code === 'ESRCH' || (error.code === 'EPERM' && pid < 0)) return;
+    throw error;
   }
 }
 
