@@ -34,9 +34,16 @@ setup('stylesheet compile and browser launch', async () => {
 });
 teardown('browser close', () => Promise.all(Object.values(browsers).map(browser => browser.close())));
 
-// In the page: places one case and returns the computed style of every element, without custom
-// properties, in document order.
-function computed(html) {
+// In the page: applies one of the two stylesheets, places one case and returns the computed style of
+// every element, without custom properties, in document order. A page behind another page of its
+// browser is hidden, and Chromium lets the system page out the memory of its renderer, so a call on
+// it waits on page-ins under memory pressure; one page holds both stylesheets and stays visible.
+// Playwright passes one argument to the page function, so the case and the sheet travel together.
+function computed({ html, sheet }) {
+  if (document.visibilityState !== 'visible') throw new Error(`the page is ${document.visibilityState}, not visible`);
+  for (const style of document.querySelectorAll('style[data-sheet]')) style.media = style.dataset.sheet === sheet ? 'all' : 'not all';
+  const active = Array.from(document.styleSheets, entry => entry.media.mediaText === 'not all' ? null : entry.ownerNode.dataset.sheet).filter(Boolean);
+  if (active.join() !== sheet) throw new Error(`the stylesheets ${active.join(', ')} apply instead of ${sheet}`);
   document.body.innerHTML = html;
   return Array.from(document.body.querySelectorAll('*'), element => {
     const style = getComputedStyle(element);
@@ -49,9 +56,9 @@ function computed(html) {
   });
 }
 
-async function open(engine, width, stylesheet) {
+async function open(engine, width) {
   const page = await engineDrivers[engine].open(browsers[engine], { width, height: 800 });
-  await page.setContent(`<!doctype html><html><head><meta name="viewport" content="width=device-width"><style>${stylesheet}</style></head><body style="margin:0"></body></html>`);
+  await page.setContent(`<!doctype html><html><head><meta name="viewport" content="width=device-width"><style data-sheet="plain">${core}</style><style data-sheet="layered" media="not all">${tailwind}</style></head><body style="margin:0"></body></html>`);
   return page;
 }
 
@@ -60,21 +67,20 @@ test('the compiled Tailwind version holds the CRUDUI rules in the layer componen
   assert.ok(tailwind.includes('.crudui-form'), 'the compiled stylesheet has no CRUDUI rule');
 });
 
-// Two pages per engine and width hold crudui.css and the compiled Tailwind version; every shared
+// One page per engine and width holds crudui.css and the compiled Tailwind version; every shared
 // render case is its own test with the runner's timeout of a test.
 for (const engine of engines) {
   for (const width of widths) {
     describe(`${engine} at ${width} px: the Tailwind version computes the styles of crudui.css`, () => {
-      let plain, layered;
+      let page;
       setup(`${engine} ${width} px page open`, async () => {
-        plain = await open(engine, width, core);
-        layered = await open(engine, width, tailwind);
+        page = await open(engine, width);
       });
-      teardown(`${engine} ${width} px page close`, () => Promise.all([plain?.close(), layered?.close()]));
+      teardown(`${engine} ${width} px page close`, () => page?.close());
       for (const item of cases) {
         test(item.name, async () => {
-          const expected = await plain.mainFrame().evaluate(computed, item.html);
-          const actual = await layered.mainFrame().evaluate(computed, item.html);
+          const expected = await page.mainFrame().evaluate(computed, { html: item.html, sheet: 'plain' });
+          const actual = await page.mainFrame().evaluate(computed, { html: item.html, sheet: 'layered' });
           const index = expected.findIndex((value, at) => value !== actual[at]);
           if (index >= 0 || expected.length !== actual.length) {
             const differing = (expected[index] ?? '').split(';').filter(entry => !(actual[index] ?? '').split(';').includes(entry));
