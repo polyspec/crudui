@@ -1,5 +1,11 @@
 # Changes
 
+## 2026-10-05 — PHP record server ready on its processes' lines (C2.15)
+
+- `servers/php/main.mjs` is ready when PHP-FPM writes `NOTICE: ready to handle connections` and
+  nginx, at the `notice` log level, writes `start worker processes`, and copies their standard
+  error. It tried a connection every 20 ms and failed after a start limit of 10 seconds.
+
 ## 2026-10-05 — Waits of the form comparison without limits (C2.13-1)
 
 - The build readiness wait has no inactivity or step limit: it ends when this source is ready,

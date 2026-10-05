@@ -1,5 +1,11 @@
 # 변경 기록
 
+## 2026-10-05 — process 줄로 ready가 되는 PHP record server (C2.15)
+
+- `servers/php/main.mjs`는 PHP-FPM이 `NOTICE: ready to handle connections`를, `notice` log level의
+  nginx가 `start worker processes`를 쓰면 ready가 되고, 그 standard error를 복사합니다. 전에는 20 ms마다
+  연결을 시도하고 10초 start 한도 뒤에 실패했습니다.
+
 ## 2026-10-05 — 한도 없는 form comparison 대기 (C2.13-1)
 
 - build readiness 대기에는 비활동 한도와 step 한도가 없습니다. 이 source가 ready이면 끝나고, 실패한

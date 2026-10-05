@@ -7,7 +7,6 @@
 import { spawn } from 'node:child_process';
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { connect } from 'node:net';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -25,8 +24,12 @@ const socketDirectory = await mkdtemp(path.join(tmpdir(), 'crudui-fpm-'));
 const socket = path.join(socketDirectory, 'fpm.sock');
 /** The request body limit of every record server. */
 const bodyLimit = '2m';
-/** Starting PHP-FPM and nginx measured under 0.2 s; each holds this limit. */
-const startLimitMs = 10_000;
+/**
+ * The line each process writes to standard error once it accepts connections: PHP-FPM after it
+ * listens on its socket, nginx (at the `notice` log level) after it opened its listening socket and
+ * starts its workers.
+ */
+const readyLines = { 'php-fpm': /NOTICE: ready to handle connections/, nginx: /\[notice\] \d+#\d+: start worker processes/ };
 
 const json = value => JSON.stringify(value).replaceAll('\\', '\\\\').replaceAll("'", "\\'");
 
@@ -58,7 +61,7 @@ async function configure() {
 daemon off;
 worker_processes 1;
 pid ${runDirectory}/nginx.pid;
-error_log stderr warn;
+error_log stderr notice;
 events { worker_connections 256; }
 http {
   access_log off;
@@ -100,31 +103,27 @@ function fastcgi() {
   ].join(' ');
 }
 
-/** Resolve once `probe` succeeds, polling every 20 ms; fail after the start limit. */
-async function waitFor(name, probe) {
-  const started = performance.now();
-  for (;;) {
-    if (await probe()) return;
-    if (performance.now() - started > startLimitMs) throw new Error(`${name} did not accept connections within ${startLimitMs} ms`);
-    await new Promise(resolve => setTimeout(resolve, 20));
-  }
-}
-
-const accepts = target => new Promise(resolve => {
-  const connection = connect(target);
-  connection.once('connect', () => { connection.destroy(); resolve(true); });
-  connection.once('error', () => resolve(false));
-});
-
 const children = [];
 let stopping = false;
 
+/**
+ * Start one process, copy its standard error, and resolve when it writes its readiness line. A
+ * start has no time limit; a process that fails or exits stops the server with its reason.
+ */
 function run(name, command, args) {
-  const child = spawn(command, args, { stdio: ['ignore', 'inherit', 'inherit'] });
+  const child = spawn(command, args, { stdio: ['ignore', 'inherit', 'pipe'] });
   child.once('error', error => stop(`${name} failed to start: ${error.message}`));
   child.once('exit', (code, signal) => { if (!stopping) stop(`${name} exited: ${signal ?? code}`); });
   children.push(child);
-  return child;
+  return new Promise(resolve => {
+    let pending = '';
+    child.stderr.setEncoding('utf8').on('data', chunk => {
+      process.stderr.write(chunk);
+      const lines = (pending + chunk).split('\n');
+      pending = lines.pop();
+      if (lines.some(line => readyLines[name].test(line))) resolve();
+    });
+  });
 }
 
 /** Stop both processes; a reason means the server failed and exits with status 1. */
@@ -147,12 +146,8 @@ process.on('SIGINT', () => stop());
 
 try {
   await configure();
-  run('php-fpm', 'php-fpm', ['-F', '-O', '-y', path.join(runDirectory, 'fpm.conf'), ...fpmArguments]);
-  await waitFor('php-fpm', () => accepts(socket));
-  run('nginx', 'nginx', ['-e', 'stderr', '-p', runDirectory, '-c', path.join(runDirectory, 'nginx.conf')]);
-  const port = Number(address.slice(address.lastIndexOf(':') + 1));
-  const host = address.slice(0, address.lastIndexOf(':'));
-  await waitFor('nginx', () => accepts({ host, port }));
+  await run('php-fpm', 'php-fpm', ['-F', '-O', '-y', path.join(runDirectory, 'fpm.conf'), ...fpmArguments]);
+  await run('nginx', 'nginx', ['-e', 'stderr', '-p', runDirectory, '-c', path.join(runDirectory, 'nginx.conf')]);
   process.stdout.write(`CRUDUI_READY ${server}\n`);
 } catch (error) {
   stop(error.message);
