@@ -1,5 +1,12 @@
 # 변경 기록
 
+## 2026-10-05 — 실패 뒤에도 실행하는 recipe의 모든 검사 (C5.10)
+
+- `make docs-check-documents`와 `make format-check`는 recipe의 모든 검사를 `|| status=1`로 실행하고 모은 상태로 끝납니다.
+  make는 처음 실패한 recipe 줄에서 멈추므로, `npm run manifest:check`가 실패하면 다른 문서 검사, 문서 test, 문서 build를
+  건너뛰었고, rustfmt와 다른 첫 Rust crate는 다른 crate와 gofmt를 건너뛰게 했습니다. `tests/build/test-commands.test.mjs`는
+  대상의 첫 검사 뒤의 recipe 줄, 검사의 `|| exit`, `status=1`을 설정하지 않는 검사에 대해 실패합니다.
+
 ## 2026-10-05 — 등록된 node:test case는 실행되거나 file이 실패합니다 (C5.9)
 
 - `scripts/run-tests.mjs`는 모든 `node:test` file의 process에 `scripts/test-progress/load-check.mjs`를 preload하며, 이

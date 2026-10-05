@@ -93,13 +93,16 @@ docs-check: ## doc-coverage 게이트 (문서 + 라이브러리, 미문서화 �
 	if [ $$status -eq 0 ]; then echo "[make] docs-check: documents and libraries passed"; fi; \
 	exit $$status
 
+# Every check runs even when an earlier one fails, so one run reports every failure.
 docs-check-documents:
-	npm run manifest:check
-	npm run manifest:docs:check
-	node scripts/check-documents.mjs
-	node scripts/run-tests.mjs node -- scripts/checklist-markers.test.mjs scripts/documentation-links.test.mjs scripts/gen-api-docs.test.mjs scripts/check-doc-coverage.test.mjs scripts/php-doc-coverage.test.mjs
-	npm run test:docs
-	npm run docs:build
+	@status=0; \
+	npm run manifest:check || status=1; \
+	npm run manifest:docs:check || status=1; \
+	node scripts/check-documents.mjs || status=1; \
+	node scripts/run-tests.mjs node -- scripts/checklist-markers.test.mjs scripts/documentation-links.test.mjs scripts/gen-api-docs.test.mjs scripts/check-doc-coverage.test.mjs scripts/php-doc-coverage.test.mjs || status=1; \
+	npm run test:docs || status=1; \
+	npm run docs:build || status=1; \
+	exit $$status
 
 docs-check-libs: ## 라이브러리 packages/* doc-coverage
 	npm run docs:check
@@ -218,15 +221,18 @@ conformance:
 	exit $$status
 
 # Every Rust crate and Go file in the working tree (tracked, or new and not ignored) must match
-# rustfmt and gofmt. Tracked files deleted from the working tree are skipped.
+# rustfmt and gofmt. Tracked files deleted from the working tree are skipped. Every crate and the Go
+# files are checked even when an earlier check fails, so one run reports every difference.
 WORKTREE_FILES = git ls-files --cached --others --exclude-standard $(1) | while read -r file; do [ -f "$$file" ] && echo "$$file"; done
 format-check:
-	@for manifest in $$($(call WORKTREE_FILES,'*Cargo.toml')); do \
-		node scripts/run-rust-command.mjs fmt --check --manifest-path "$$manifest" || exit 1; \
-	done
-	@unformatted="$$(gofmt -l $$($(call WORKTREE_FILES,'*.go')))"; \
-	if [ -n "$$unformatted" ]; then echo "gofmt differences:"; echo "$$unformatted"; exit 1; fi
-	@echo "[make] format-check: Rust crates and Go files are formatted"
+	@status=0; \
+	for manifest in $$($(call WORKTREE_FILES,'*Cargo.toml')); do \
+		node scripts/run-rust-command.mjs fmt --check --manifest-path "$$manifest" || status=1; \
+	done; \
+	unformatted="$$(gofmt -l $$($(call WORKTREE_FILES,'*.go')))"; \
+	if [ -n "$$unformatted" ]; then echo "gofmt differences:"; echo "$$unformatted"; status=1; fi; \
+	if [ $$status -eq 0 ]; then echo "[make] format-check: Rust crates and Go files are formatted"; fi; \
+	exit $$status
 
 # The comparison service in its long-running container (docs/operations/verification.md).
 # Deployment is idempotent: it recreates nothing that already matches the tree.

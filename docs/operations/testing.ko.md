@@ -24,7 +24,10 @@ Composer 의존성을 설치하며 PHP·Go·Cargo를 `PATH`에서 실행할 수 
 `tests/build/ci-local.test.mjs`는 그것이 없는 검사 단계마다 작업과 단계를 적고 실패합니다. make는 처음 실패한
 prerequisite에서 멈추므로 Makefile 대상은 테스트를 실행하는 대상을 prerequisite로 두지 않습니다.
 `make test-native`와 `make docs-check`처럼 여러 테스트 대상을 실행하는 대상은 각각을
-`$(MAKE) <target> || status=1`로 실행하고 모은 상태로 끝납니다.
+`$(MAKE) <target> || status=1`로 실행하고 모은 상태로 끝납니다. make는 처음 실패한 recipe 줄에서도 멈추므로,
+대상의 첫 검사를 실행하는 recipe 줄은 그 대상의 마지막 줄이며 `make docs-check-documents`와 `make format-check`처럼
+각 검사를 `|| status=1`로 실행하고 `exit $$status`로 끝납니다. build나 install 같은 그 앞의 준비 줄은 여전히 대상을
+멈추며, `make docs-verify-idempotent`처럼 뒤 단계가 앞 단계의 결과를 읽는 `&&` 연결은 하나의 검사입니다.
 
 `make ci`는 `docs/plans/execution-checklist.md`의 작업 중 `[~]`인 것이 없을 때, 커밋된 tree마다 한 번 실행됩니다. 어떤 명령보다
 먼저 `scripts/full-run.mjs`를 시작하며, 이 guard는 판단을 이유와 함께 출력하고(`[full-run] run: ...` 또는 `[full-run]
@@ -184,6 +187,8 @@ hook입니다. test는 browser를 launch하지 않고 setup이 launch한 browser
 - 어떤 프로젝트 명령도 실행하지 않는 `node:test` 파일이 있습니다.
 - TypeScript 패키지에 `typecheck` 스크립트가 없거나 CI가 `npm run typecheck`를 실행하지 않습니다.
 - Makefile 대상이 테스트를 실행하는 대상을 prerequisite로 둡니다.
+- 대상의 첫 검사를 실행하는 줄 뒤에 recipe 줄이 있거나, 검사가 `|| exit`로 recipe를 끝내거나, 그 줄의 검사가 다음
+  검사 전에 `status=1`을 설정하지 않습니다.
 
 ## 장기 작업의 명령
 

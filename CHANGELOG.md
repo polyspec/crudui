@@ -1,5 +1,14 @@
 # Changes
 
+## 2026-10-05 — Every check of a recipe after a failure (C5.10)
+
+- `make docs-check-documents` and `make format-check` run every check of their recipes with
+  `|| status=1` and exit with the collected status. Make stops at the first recipe line that fails,
+  so a failing `npm run manifest:check` skipped the other document checks, the documentation tests
+  and the documentation build, and the first Rust crate that differed from rustfmt skipped the
+  other crates and gofmt. `tests/build/test-commands.test.mjs` fails for a recipe line after the
+  first check of its target, for `|| exit` in a check and for a check that does not set `status=1`.
+
 ## 2026-10-05 — Every registered node:test case runs or its file fails (C5.9)
 
 - `scripts/run-tests.mjs` preloads `scripts/test-progress/load-check.mjs` into every `node:test`
