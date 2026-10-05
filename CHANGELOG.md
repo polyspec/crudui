@@ -1,5 +1,10 @@
 # Changes
 
+## 2026-10-06 — @sveltejs/package 3 (C5.8-8)
+
+- generator-svelte packages its components with `@sveltejs/package` 3.0.0; the 57 files of its `dist`
+  are identical to those of 2.5.8.
+
 ## 2026-10-06 — Node.js type definitions of the running major (C5.8-7)
 
 - The six TypeScript workspaces use `@types/node` 26.6.4, the major of the recorded Node.js 26.8.1;
