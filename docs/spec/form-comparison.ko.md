@@ -282,7 +282,9 @@ supervisor를 실행합니다.
 ### 자연 적용
 
 컨테이너에서는 supervisor `examples/form-comparison/supervisor.mjs` 하나가 실행됩니다.
-시작하면 빌드 트리를 동기화하고 모든 대상을 빌드한 뒤 공개 서버(JavaScript 레코드 서버를
+시작하면 프로세스 id를 기록하고 서비스 port 8080에서 listen하며, 공개 서버가 시작할 때까지 모든 요청에
+503과 빌드 상태로 답합니다. containerctl은 컨테이너 시작 후 1분 안에 그 port에 연결하는데, 빈 볼륨의
+첫 빌드는 그보다 오래 걸리기 때문입니다. 그다음 빌드 트리를 동기화하고 모든 대상을 빌드한 뒤 공개 서버(JavaScript 레코드 서버를
 겸함)와 네이티브 API 서버 네 개(PHP, PHP 확장, Go, Rust)를 시작합니다. macOS 호스트의 파일 이벤트는 VM 파일 공유를 거쳐 Linux 컨테이너에 전달되지
 않으므로 호스트 프로세스가 이를 게시합니다. 소스 감시기(`make deploy-watch`가 실행하는
 `source-events.mjs`)는 working tree의 파일 이벤트(`fs.watch` recursive, macOS에서는 FSEvents)를

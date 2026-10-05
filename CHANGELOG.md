@@ -1,5 +1,12 @@
 # Changes
 
+## 2026-10-05 — Service port answered from the supervisor's start (C2.13-3)
+
+- The comparison supervisor listens on port 8080 from its start and answers 503 with the build
+  state until it hands the port to the public server. containerctl checks the service port within
+  one minute of the container start; without the healthcheck that C2.13-2 removed, a first build of
+  empty volumes outlasted that minute and `make deploy` failed at the connection.
+
 ## 2026-10-05 — Change signal of a reusing deployment (C2.10-1)
 
 - `make deploy` signals the running supervisor before it waits for the build when it reuses the
