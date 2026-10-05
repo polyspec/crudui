@@ -1,18 +1,6 @@
 # Execution checklist
 
-[English](execution-checklist.md).
-
-이 문서는 CRUDUI의 계획된 작업과 각 작업의 verification command, 상태를 담는다. contract는 [specification](../spec/form-markup.ko.md)에, feature별 상태는 [feature status](../features.ko.md)에, 실제 변경은 [changelog](../../CHANGELOG.ko.md)에 있다.
-
-## 사용법
-
-- Task ID 형식은 `C<wave>.<number>`다. branch는 `{type}/{shortname}-C<wave>.<number>`, worktree는 `crudui-{shortname}-C<wave>.<number>`다(AGENTS).
-- 작업은 specification을 먼저 바꾸고, failing test를 더하고, 그다음 implementation을 바꾼다.
-- wave는 의존으로 적은 wave가 끝나면 시작한다.
-
-## Wave 1 — 좁은 viewport를 위한 stylesheet와 stylesheet의 Tailwind 버전
-
-의존: 없음. `@crudui/generator-core/crudui.css`는 CRUDUI block의 유일한 stylesheet이고, 좁은 viewport를 위한 rule이 없다. form, list, detail을 phone 폭으로 여는 test도 없다. Tailwind CSS로 꾸미는 page는 CRUDUI style을 그 Tailwind build와 theme으로 build할 수 없다. CRUDUI는 고유 stylesheet와 Tailwind 버전을 함께 내고, 설치하는 쪽이 둘 중 하나를 고른다.
+## [Wave 1](waves.ko.md#wave-1) — 좁은 viewport를 위한 stylesheet와 stylesheet의 Tailwind 버전
 
 | ID | 작업 | Verification | 상태 |
 |---|---|---|---|
@@ -23,9 +11,7 @@
 | C1.4-1 | viewport test, Tailwind test, 생성 script가 저장소 검사를 통과하게 한다. `make ci`는 `npm run lint`에서 실패했다. 두 test가 browser global을 쓰는 함수를 page에 넘기면서 Node와 browser file 목록에 없었고 `console.log`로 썼기 때문이다. `npm run test:runtimes`에서도 실패했다. `test:forms`가 실행하는 script가 `scripts/test-progress/progress.mjs`로 출력하지 않았기 때문이다. test를 목록에 넣고, `t.diagnostic`으로 보고하고, progress line으로 출력한다 | `make ci` | [o] |
 | C1.5 | package export, feature status, operations 문서, changelog, full test suite | full test suite, `make docs-check` | [o] |
 
-## Wave 2 — test별로 제한되고 관측되는 test 실행
-
-의존: 없음. AGENTS의 rule은 feature가 끝날 때마다 full suite를 실행하게 했고, 긴 작업은 step log로 timeout을 대신하게 했다. suite를 실행하는 CI job은 모든 test 위에 10~30분의 job timeout을 둔다. benchmark driver test는 Go와 Rust driver를 test 안에서 600초 한도로 compile한다. tree verification의 build readiness 대기는 state file을 1초마다 읽고, 그 test는 wall-clock 시간을 한도와 비교한다. `scripts/run-tests.mjs`의 PHPUnit mode는 class와 data provider suite를 통과한 test로 세고, TeamCity message가 아닌 줄을 모두 버린다.
+## [Wave 2](waves.ko.md#wave-2) — test별로 제한되고 관측되는 test 실행
 
 | ID | 작업 | Verification | 상태 |
 |---|---|---|---|
@@ -63,9 +49,7 @@
 | C2.19 | local stack의 server를 시작한 test process가 멈추지 않고 종료하면 그 server를 멈춘다. `src/local-servers.mjs`는 `startProcess`가 시작한 모든 server의 process group을 기록하고, process 종료 시 아직 멈추지 않은 group을 kill한다. Cause: 2026-10-05 05:37의 `examples/form-comparison/pipeline.browser.mjs` 실행에서 server stop hook이 아직 10초 한도를 넘었고(C2.7) 그 process가 강제 종료되어, PHP, PHP 확장, Go record server가 7시간 넘게 남았다(coordinator가 PHP server를 멈췄고, `crudui-pipeline-h0rCc4`의 Go server는 여기서 멈췄다). Red: 새 `src/local-servers.test.mjs`는 child에서 `startProcess`로 대역 server를 시작한 뒤 child를 종료한다. server가 남았고 case가 10초를 넘겼다. Green: server가 붙잡은 named pipe의 끝으로 관측해 case가 4번 모두 1.1초에 통과하고, 남은 대역 server가 없다 | `node scripts/run-tests.mjs node -- examples/form-comparison/src/local-servers.test.mjs` | [o] |
 | C2.5 | `scripts/run-tests.mjs`의 PHPUnit mode에서 class나 data provider suite가 아니라 PHPUnit test만 세고, TeamCity message가 아닌 PHPUnit 줄을 출력한다. Cause: `testSuiteFinished` message에는 location이 없어서 class나 data provider method의 끝이 통과한 test로 세어졌고, TeamCity message가 아닌 줄은 모두 버려졌다. Red: TeamCity case가 1개인 통과 test를 3개로 셌고 PHPUnit banner와 `Test file "/missing.php" not found` 줄을 잃었다. validator-php 실행은 PHPUnit의 763개에 대해 804 passed를 보고했다. Green: 같은 case가 1 passed, 1 failed를 세고 두 줄을 출력한다. validator-php 실행은 763 passed를 보고한다 | `node scripts/run-tests.mjs node -- tests/build/run-tests.test.mjs` | [o] |
 
-## Wave 3 — test와 deployment 실행이 함께 쓰는 resource
-
-의존: 없음. 다른 checkout의 실행이 같은 resource를 쓴다: `/tmp` 아래의 고정 directory, Linux style check의 Playwright image, comparison deployment, 그리고 package build가 비우고 다른 repository가 pack하는 `dist` directory. 한 실행이 다른 실행이 쓰는 resource를 바꾸거나 초기화할 수 있다. 한 실행이 소유할 수 있는 resource는 그 실행의 directory나 이름을 받고, 하나뿐인 resource는 holder lock을 받는다: 한 번에 한 holder, holder의 checkout, pid, process 시작 시각을 밝히는 거부, holder에 의한 해제.
+## [Wave 3](waves.ko.md#wave-3) — test와 deployment 실행이 함께 쓰는 resource
 
 | ID | 작업 | Verification | 상태 |
 |---|---|---|---|
@@ -75,12 +59,10 @@
 | C3.4 | `make deploy`와 `make deploy-verify`는 다른 step보다 먼저 comparison deployment(volume을 가진 하나뿐인 Compose project `crudui`)의 user 범위 holder lock을 잡는다. Cause: 다른 checkout의 deployment가 verification 도중에 container와 Compose project, volume을 바꿨다. Red: test가 lock을 잡은 동안 `comparison-deployment.mjs`는 container runtime을 찾으러 진행했고 `verification.mjs`는 입력을 읽으러 진행했으며, 어느 쪽도 holder를 밝히지 않았다. Green: lock이 잡힌 동안 두 program은 holder의 pid와 process 시작 시각과 함께 실패하고, lock이 비어 있으면 lock을 잡고 test `PATH`에 container runtime이 없어 실패한 뒤 lock을 해제한다 | `node scripts/run-tests.mjs node -- examples/form-comparison/check-deployment-lock.test.mjs` | [o] |
 | C3.5 | 모든 package build는 build 내내 그 package `dist`의 lock을 잡고, `scripts/package-dist.mjs pack`은 같은 lock 아래에서 package를 pack하므로, build가 비운 `dist`를 읽는 pack은 없다. package install check와 다른 repository는 이것으로 pack한다. Cause: `tsup --clean`과 `svelte-package`는 `dist`를 쓰기 전에 비우는데, package install check와 다른 repository는 build를 알지 못한 채 `dist`에 `npm pack`을 실행했다. Red: build script는 lock을 잡지 않았고, test가 `generator-html`의 `dist` lock을 잡은 동안 `npm run build -w @crudui/generator-html`이 `dist`를 다시 build했으며 `scripts/package-dist.mjs`는 없었다. package install case는 그것을 통한 pack을 기대했다. Green: case가 통과한다: build는 holder의 pid와 process 시작 시각과 함께 실패하고 `dist`를 바꾸지 않으며, pack은 실패하고 archive를 쓰지 않는다. 해제 뒤 pack은 `dist` file을 담은 archive 하나를 쓰고 lock을 남기지 않는다. `npm run build`는 7개 lock을 차례로 잡고 해제한다. comparison의 toolchain image에는 `ps`가 없으므로 Linux에서 시작 시각은 `/proc`에서 온다: holder lock case 9개가 `ps` 없는 `node:26.8.1-trixie-slim`에서 통과한다 | `node scripts/run-tests.mjs node -- tests/build/shared-resources.test.mjs tests/build/package-install-pack.test.mjs tests/build/holder-lock.test.mjs`, `npm run build` | [o] |
 
-## Wave 4 — 도구가 읽을 수 있는 작업 상태 표시
-
-의존: 없음. checklist가 사용법의 범례와 C2.1-2의 문장에 작업 상태 표시를 적었으므로, file의 표시를 세는 도구가 존재하지 않는 진행 중 작업을 셌다. 작업 상태 밖의 checklist를 읽는 검사가 없었다.
+## [Wave 4](waves.ko.md#wave-4) — 도구가 읽을 수 있는 작업 상태 표시
 
 | ID | 작업 | Verification | 상태 |
 |---|---|---|---|
 | C4.1 | 이 checklist에서 작업 상태 표시는 작업 행 마지막 칸 첫머리의 상태로만 쓴다. AGENTS가 상태를 정의한다. 범례를 없애고 문장은 상태를 말로 적으며, `scripts/check-documents.mjs`가 두 언어에서 다른 모든 표시에 대해 file, 줄, 열을 적고 예외 없이 실패하게 한다. `scripts/checklist-markers.test.mjs`는 변경 전에 실패한다. Red: test는 `ERR_MODULE_NOT_FOUND`로 실패했다. 범례, 작업의 inline code, 일시 우회 작업의 원인, 작업이 아닌 행의 마지막 칸에 표시를 담은 그 fixture를 두 checklist로 쓰면 이전 `scripts/check-documents.mjs`는 `53 document pairs: links, examples and status fields passed`로 통과했다. Green: 2개 case가 통과한다. 같은 fixture는 언어마다 위치 5개로 실패한다. 검사를 넣고 문장이 이전 것일 때 문서 검사는 언어마다 10, 35번 줄의 표시 14개로 실패했고, 변경 후에는 통과한다 | `node scripts/run-tests.mjs node -- scripts/checklist-markers.test.mjs`, `node scripts/check-documents.mjs` | [o] |
 | C4.1-1 | GitHub의 task list 상태도 상태 표시로 다룬다. C4.1은 이 저장소의 네 상태만 검사하지만 Markdown reader는 대괄호 안의 x나 대문자 X도 task list 항목의 상태로 읽으므로, 작업 상태 밖의 그런 표시가 문서 검사를 통과했다. 검사가 그 표시에 대해 file, 줄, 열을 적고 실패하게 하며, 변경 전에 실패하는 case를 `scripts/checklist-markers.test.mjs`에 둔다. Red: inline code로 대문자 X를 적은 작업과 x 형식의 목록 항목을 fixture에 더하자 검사가 두 표시를 보고하지 않아 case가 실패했다. Green: 2개 case가 통과하고 fixture는 위치 7개로 실패하며, 문서 검사가 통과한다 | `node scripts/run-tests.mjs node -- scripts/checklist-markers.test.mjs`, `node scripts/check-documents.mjs` | [o] |
-| C4.1-2 | checklist에는 제목과 작업 table만 둔다. checklist에는 번역 link, 내용을 설명하는 문단, 사용법 규칙, 웨이브마다 의존과 배경을 적은 문단이 있었고 그런 문장을 작업과 구별하는 검사가 없었다. 규칙은 AGENTS로, 웨이브의 의존과 배경은 각 웨이브 제목이 link하는 `docs/plans/waves.md`로 옮긴다. 문서 검사가 빈 줄, 제목, 작업 행, table 머리 행과 그 구분 행이 아닌 모든 줄에 대해 file, 줄, 열을 적고 실패하게 하며, 변경 전에 실패하는 case를 `scripts/checklist-markers.test.mjs`에 둔다 | `node scripts/run-tests.mjs node -- scripts/checklist-markers.test.mjs`, `node scripts/check-documents.mjs` | [~] |
+| C4.1-2 | checklist에는 제목과 작업 table만 둔다. checklist에는 번역 link, 내용을 설명하는 문단, 사용법 규칙, 웨이브마다 의존과 배경을 적은 문단이 있었고 그런 문장을 작업과 구별하는 검사가 없었다. 규칙은 AGENTS로, 웨이브의 의존과 배경은 각 웨이브 제목이 link하는 `docs/plans/waves.md`로 옮긴다. 문서 검사가 빈 줄, 제목, 작업 행, table 머리 행과 그 구분 행이 아닌 모든 줄에 대해 file, 줄, 열을 적고 실패하게 하며, 변경 전에 실패하는 case를 `scripts/checklist-markers.test.mjs`에 둔다. Red: module에 `textErrors`가 없어 test가 실패했고, 번역 link, 문단, 사용법 아래의 목록 항목, 의존 줄, 작업이 아닌 행, 구분 행 없는 table을 담은 그 fixture를 두 checklist로 쓰면 이전 문서 검사를 통과했다. Green: 3개 case가 통과하고 fixture는 위치 6개로 실패한다. 검사를 넣고 checklist가 이전 것일 때 문서 검사는 언어마다 9줄로 실패했고, 옮긴 뒤에는 통과한다 | `node scripts/run-tests.mjs node -- scripts/checklist-markers.test.mjs`, `node scripts/check-documents.mjs` | [o] |

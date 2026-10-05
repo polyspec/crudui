@@ -1,5 +1,12 @@
 # 변경 기록
 
+## 2026-10-05 — 제목과 작업 table만 둔 checklist (C4.1-2)
+
+- execution checklist에는 제목과 작업 table만 있고, `scripts/check-documents.mjs`는 다른 줄에 대해 file, 줄, 열을 적고
+  실패합니다. checklist에는 번역 link, 내용을 설명하는 문단, 사용법 규칙, wave마다 의존과 배경을 적은 문단이 있었고
+  그런 문장을 작업과 구별하는 검사가 없었습니다. 규칙은 AGENTS에, wave의 의존과 배경은 각 wave 제목이 link하는
+  `docs/plans/waves.md`에 있습니다. `scripts/checklist-markers.test.mjs`의 case는 변경 전에 실패했습니다.
+
 ## 2026-10-05 — 상태 표시로 다루는 task list 상태 (C4.1-1)
 
 - `scripts/check-documents.mjs`는 execution checklist에서 작업 행의 상태가 아닌 대괄호 안의 x나 대문자 X에 대해서도

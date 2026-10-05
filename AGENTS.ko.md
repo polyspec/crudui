@@ -69,6 +69,12 @@
   verification이 통과한 뒤에만 `[o]`로 바꾼다.
 - 작업 상태 표시는, Markdown task list가 쓰는 대괄호 안의 x나 대문자 X도, checklist에서 작업 행 마지막 칸 첫머리의 상태로만 쓴다. checklist에는 범례가 없고
   문장은 상태를 말로 적는다. `scripts/check-documents.mjs`는 다른 표시에 대해 실패하고 그 file, 줄, 열을 적는다.
+- checklist에는 제목과 작업 table만 두며, `scripts/check-documents.mjs`는 다른 줄에 대해 file, 줄, 열을 적고
+  실패한다. 각 wave는 wave 이름이 `docs/plans/waves.ko.md`의 section `wave-<n>`을 link하는 `## Wave <n> — <제목>`
+  제목과 그 뒤의 ID, 작업, Verification, 상태 열을 가진 table이다. Task ID 형식은 `C<wave>.<number>`이며 작업
+  행은 ID로 시작한다. `docs/plans/waves.md`가 wave마다 의존과 배경을 적고, wave는 의존으로 적은 wave가 끝나면
+  시작한다.
+- 작업은 specification을 먼저 바꾸고, failing test를 더하고, 그다음 implementation을 바꾼다.
 - `[!]`는 이 작업을 우회하지 않으면 다음 작업을 진행할 수 없을 때만 쓴다. 작업에 원인과 재시도
   조건을 기록하고, 그 조건이 성립하면 승인을 기다리지 않고 재개한다. `[!]`는 완료가 아니다. 감사는
   `[!]` 작업과 그 원인·재시도 조건만 다루고, 관련 없는 full test를 반복하지 않는다.
