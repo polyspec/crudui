@@ -430,6 +430,24 @@ export function buildReadinessCommand(containerName, source) {
     'node', path.join(sourceMount, 'examples/form-comparison/ready-build.mjs'), JSON.stringify(source)];
 }
 
+/** The container arguments that signal the supervisor of `containerName` that the source changed. */
+export function sourceChangeCommand(containerName) {
+  return ['exec', '--user', 'node', containerName, 'node',
+    path.join(sourceMount, 'examples/form-comparison/source-changed.mjs')];
+}
+
+/**
+ * Signal the running supervisor that the source changed. It compares the mounted checkout only at
+ * a change signal, and the checkout may have changed since the last one.
+ */
+async function signalSourceChange() {
+  const runtime = await containerRuntime();
+  await runDeploymentStep({
+    id: 'source-change', command: runtime.executable, args: sourceChangeCommand(deploymentContainer),
+    environment: runtime.environment,
+  });
+}
+
 /**
  * Wait for the build of this checkout. Building is a long operation, so the wait has no time limit:
  * it prints the build steps it reads and ends at the ready state of this checkout or a failure.
@@ -484,7 +502,9 @@ async function main() {
   const composeFile = path.join(deploymentDirectory, 'compose.yaml');
   await writeFile(composeFile, compose);
   const application = await applyDeployment(composeFile, imageReference, deploymentDirectory);
-  // The servers answer once the supervisor has built this checkout.
+  // A reused container's supervisor compares the checkout at the change signal; a new one compared
+  // it at its start. The servers answer once the supervisor has built this checkout.
+  if (application.mode === 'sync') await signalSourceChange();
   await awaitBuild();
   const first = await deploymentSnapshot(imageReference, deploymentDirectory);
   const second = await deploymentSnapshot(imageReference, deploymentDirectory);

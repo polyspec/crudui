@@ -5,7 +5,8 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-import { sourceChangeCommand, watchSourceEvents } from '../source-events.mjs';
+import { sourceChangeCommand } from '../comparison-deployment.mjs';
+import { watchSourceEvents } from '../source-events.mjs';
 import { changeRequests } from './change-requests.mjs';
 
 /** A watch the test drives: `emit` sends one file event. */
@@ -93,4 +94,29 @@ test('the Git calls of the source comparison and the OrderedJSON checkout hold n
   for (const file of ['./source-tree.mjs', './ordered-json-source.mjs']) {
     assert.doesNotMatch(await readFile(new URL(file, import.meta.url), 'utf8'), /\btimeout\b|TimeoutMs/, file);
   }
+});
+
+test('a stopped source watcher closes its watch and prints its stop', async () => {
+  const watch = fakeWatch();
+  const lines = [];
+  const controller = new AbortController();
+  const watching = watchSourceEvents({
+    root: '/repository', watch: watch.subscribe, write: text => lines.push(text), deliver: async () => {},
+    stop: controller.signal,
+  });
+  watch.emit('a');
+  await new Promise(setImmediate);
+  controller.abort();
+  await watching;
+  assert.equal(watch.stopped, true);
+  assert.match(lines.join(''), /^\[source-events\] stopped after 1 delivery$/m);
+});
+
+test('a deployment that reuses the running container signals the supervisor before it waits for the build', async () => {
+  // The running supervisor compares the checkout only at a change signal; the checkout may have
+  // changed since the last one, so the deployment sends one before it waits for this checkout.
+  const source = await readFile(new URL('../comparison-deployment.mjs', import.meta.url), 'utf8');
+  const main = source.slice(source.indexOf('async function main()'));
+  const signal = main.indexOf("if (application.mode === 'sync') await signalSourceChange();");
+  assert.ok(signal > 0 && signal < main.indexOf('await awaitBuild();'), 'the signal precedes the wait for the build');
 });

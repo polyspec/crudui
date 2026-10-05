@@ -12,26 +12,20 @@ import { watch as watchFiles } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { deploymentContainer } from './comparison-deployment.mjs';
+import { deploymentContainer, sourceChangeCommand } from './comparison-deployment.mjs';
 import { containerRuntime } from './container-runtime.mjs';
 import { changeRequests } from './src/change-requests.mjs';
-import { sourceMount } from './src/server-layout.mjs';
 import { formatDuration } from './src/step-runner.mjs';
 
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
-/** The container arguments that signal the supervisor of `containerName`. */
-export function sourceChangeCommand(containerName) {
-  return ['exec', '--user', 'node', containerName, 'node',
-    path.join(sourceMount, 'examples/form-comparison/source-changed.mjs')];
-}
-
 /**
  * Watch `root` and deliver one signal for each event, coalescing the events that arrive during a
  * delivery. `watch(root, onEvent, onError)` subscribes and returns the function that stops it;
- * `deliver()` sends one signal. Resolves when the watch fails or a delivery fails, with that error.
+ * `deliver()` sends one signal. Rejects when the watch fails or a delivery fails, with that error,
+ * and resolves when `stop` aborts, after it closed the watch.
  */
-export function watchSourceEvents({ root, watch, deliver, write = text => process.stdout.write(text) }) {
+export function watchSourceEvents({ root, watch, deliver, write = text => process.stdout.write(text), stop: stopSignal }) {
   return new Promise((resolve, reject) => {
     let stop = () => {};
     let deliveries = 0;
@@ -52,13 +46,22 @@ export function watchSourceEvents({ root, watch, deliver, write = text => proces
       write(`[source-events] ${event} ${file ?? ''}\n`);
       requests.request()?.catch(fail);
     }, fail);
+    stopSignal?.addEventListener('abort', () => {
+      stop();
+      write(`[source-events] stopped after ${deliveries} ${deliveries === 1 ? 'delivery' : 'deliveries'}\n`);
+      resolve();
+    }, { once: true });
   });
 }
 
 async function main() {
   const runtime = await containerRuntime();
   const args = sourceChangeCommand(deploymentContainer);
+  // SIGINT and SIGTERM stop the watcher: it closes its watch and prints its stop.
+  const stop = new AbortController();
+  for (const name of ['SIGINT', 'SIGTERM']) process.once(name, () => stop.abort());
   await watchSourceEvents({
+    stop: stop.signal,
     root: repositoryRoot,
     watch: (root, onEvent, onError) => {
       const watcher = watchFiles(root, { recursive: true }, onEvent);

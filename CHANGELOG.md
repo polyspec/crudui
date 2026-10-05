@@ -1,5 +1,12 @@
 # Changes
 
+## 2026-10-05 — Change signal of a reusing deployment (C2.10-1)
+
+- `make deploy` signals the running supervisor before it waits for the build when it reuses the
+  container, so a new commit is compared without the source watcher; it waited on the previous
+  commit's ready state. `make deploy-watch` stops at `SIGINT` or `SIGTERM` with a line that says
+  how many signals it delivered.
+
 ## 2026-10-05 — Reuse of a routed comparison container (C2.18-1)
 
 - The deployment reuses a running comparison container only when containerctl routes

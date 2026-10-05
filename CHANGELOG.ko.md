@@ -1,5 +1,11 @@
 # 변경 기록
 
+## 2026-10-05 — 재사용하는 배포의 변경 신호 (C2.10-1)
+
+- container를 재사용하는 `make deploy`는 빌드를 기다리기 전에 실행 중인 supervisor에 신호하므로, 새
+  commit을 source 감시기 없이 비교합니다. 전에는 이전 commit의 ready 상태에서 기다렸습니다.
+  `make deploy-watch`는 `SIGINT`나 `SIGTERM`에서 전달한 신호 수를 적은 줄과 함께 멈춥니다.
+
 ## 2026-10-05 — route된 comparison container의 재사용 (C2.18-1)
 
 - 배포는 containerctl이 `crudui.test`를 route할 때만 실행 중인 comparison container를 재사용하고,
