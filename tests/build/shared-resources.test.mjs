@@ -98,24 +98,53 @@ test('every package build runs under the lock of its dist directory', () => {
   }
 });
 
+/**
+ * A checkout of its own in a temporary directory: the dist and lock scripts and one package whose
+ * build writes `dist/index.js`, so the test reads no build output of this checkout.
+ */
+function fixtureCheckout() {
+  const checkout = fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()), 'crudui-dist-lock-'));
+  fs.mkdirSync(path.join(checkout, 'scripts'));
+  for (const script of ['package-dist.mjs', 'holder-lock.mjs']) {
+    fs.copyFileSync(path.join(root, 'scripts', script), path.join(checkout, 'scripts', script));
+  }
+  const packageDirectory = path.join(checkout, 'packages', 'fixture');
+  fs.mkdirSync(packageDirectory, { recursive: true });
+  fs.writeFileSync(path.join(packageDirectory, 'package.json'), `${JSON.stringify({
+    name: '@crudui/dist-lock-fixture', version: '0.0.0', private: true, type: 'module', files: ['dist'],
+    scripts: { build: "node ../../scripts/package-dist.mjs build 'node build.mjs'" },
+  }, null, 2)}\n`);
+  fs.writeFileSync(path.join(packageDirectory, 'build.mjs'), [
+    "import fs from 'node:fs';",
+    "fs.rmSync('dist', { recursive: true, force: true });",
+    "fs.mkdirSync('dist');",
+    "fs.writeFileSync('dist/index.js', 'export default 1;\\n');",
+    '',
+  ].join('\n'));
+  return { checkout, packageDirectory, lockFile: path.join(checkout, 'var/locks', 'dist-fixture.lock') };
+}
+
 test('a build and a pack of a package refuse while another run holds its dist', () => {
-  const folder = 'generator-html';
-  const packageDirectory = path.join(root, 'packages', folder);
-  const destination = fs.mkdtempSync(path.join(os.tmpdir(), 'crudui-dist-pack-'));
-  const file = path.join(root, 'var/locks', `dist-${folder}.lock`);
-  const pack = () => spawnSync(process.execPath, [path.join(root, 'scripts/package-dist.mjs'), 'pack',
-    packageDirectory, destination], { cwd: root, encoding: 'utf8' });
+  const { checkout, packageDirectory, lockFile } = fixtureCheckout();
+  const destination = path.join(checkout, 'packs');
+  fs.mkdirSync(destination);
+  const build = () => spawnSync('npm', ['run', 'build'], { cwd: packageDirectory, encoding: 'utf8' });
+  const pack = () => spawnSync(process.execPath, [path.join(checkout, 'scripts/package-dist.mjs'), 'pack',
+    packageDirectory, destination], { cwd: checkout, encoding: 'utf8' });
   try {
-    const lock = acquireHolderLock(file, { command: 'npm run build' });
+    const built = build();
+    assert.equal(built.status, 0, built.stderr);
+    const distBefore = fs.readdirSync(path.join(packageDirectory, 'dist')).sort();
+    assert.deepEqual(distBefore, ['index.js']);
+    const lock = acquireHolderLock(lockFile, { command: 'npm run build' });
     try {
-      const distBefore = fs.readdirSync(path.join(packageDirectory, 'dist')).sort();
-      const build = spawnSync('npm', ['run', 'build', '-w', '@crudui/generator-html'], { cwd: root, encoding: 'utf8' });
-      assert.notEqual(build.status, 0, build.stdout);
-      assert.match(build.stderr, new RegExp(`${file} is held by pid ${process.pid} \\(process started `));
+      const refusedBuild = build();
+      assert.notEqual(refusedBuild.status, 0, refusedBuild.stdout);
+      assert.match(refusedBuild.stderr, new RegExp(`${lockFile} is held by pid ${process.pid} \\(process started `));
       assert.deepEqual(fs.readdirSync(path.join(packageDirectory, 'dist')).sort(), distBefore);
       const refused = pack();
       assert.equal(refused.status, 1, refused.stderr);
-      assert.match(refused.stderr, new RegExp(`${file} is held by pid ${process.pid} `));
+      assert.match(refused.stderr, new RegExp(`${lockFile} is held by pid ${process.pid} `));
       assert.deepEqual(fs.readdirSync(destination), []);
     } finally {
       lock.release();
@@ -123,11 +152,11 @@ test('a build and a pack of a package refuse while another run holds its dist', 
     const packed = pack();
     assert.equal(packed.status, 0, packed.stderr);
     const [report] = JSON.parse(packed.stdout);
-    assert.equal(report.name, '@crudui/generator-html');
-    assert.ok(report.files.some(entry => entry.path.startsWith('dist/')), 'The archive holds the built dist');
+    assert.equal(report.name, '@crudui/dist-lock-fixture');
+    assert.ok(report.files.some(entry => entry.path === 'dist/index.js'), 'The archive holds the built dist');
     assert.deepEqual(fs.readdirSync(destination), [report.filename]);
-    assert.equal(fs.existsSync(file), false);
+    assert.equal(fs.existsSync(lockFile), false);
   } finally {
-    fs.rmSync(destination, { recursive: true, force: true });
+    fs.rmSync(checkout, { recursive: true, force: true });
   }
 });
