@@ -1,5 +1,13 @@
 # 변경 기록
 
+## 2026-10-06 — 의존성 review (C5.8)
+
+- `npm run test:dependencies`는 registry에 `npm audit`을 실행하는 대신 `config/dependency-review.json`에
+  기록된 review와 의존성을 대조하므로, 같은 tree는 어느 날이든 같은 결과를 냅니다. `make dependency-review`는
+  registry에 새 안정 release와 보안 권고를 묻고, `RECORD=1`은 review를 기록하며 `UPDATE=1`은 먼저 갱신합니다.
+  예약된 workflow가 이를 매일 실행합니다. React 19.2.8은 기록된 예외로 유지되고(C5.8-2-1), typescript-eslint는
+  첫 review가 찾은 8.71.1로 올라갑니다.
+
 ## 2026-10-06 — PHPUnit 13 (C5.8-10)
 
 - validator-php와 generator-php는 PHPUnit 13.4.1로 test하고, PHPUnit 12가 `@dataProvider` annotation을 없앴으므로 data

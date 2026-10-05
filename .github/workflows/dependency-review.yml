@@ -1,0 +1,43 @@
+# The scheduled dependency review (docs/spec/package-build.md, "Dependency review"). It asks the registries for newer
+# stable releases and advisories of the committed manifests and locks and fails with one line for each, naming the
+# package, its version, the newer release or the advisory and the fix command. It gates no commit: the checks of the CI
+# workflow read only the files of the tree and the review record config/dependency-review.json.
+name: Dependency review
+
+on:
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# The toolchains of the checkout at their recorded versions (docs/spec/package-build.md); this workflow runs no cargo
+# and no go.
+env:
+  RUSTUP_AUTO_INSTALL: '0'
+  GOTOOLCHAIN: local
+
+jobs:
+  review:
+    name: dependency review
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - name: Setup the Node.js release of .node-version
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version-file: '.node-version'
+      - name: Install the recorded npm into the checkout
+        run: |
+          node scripts/install-npm.mjs
+          echo "$PWD/.tools/npm/node_modules/.bin" >> "$GITHUB_PATH"
+      - name: Setup PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: '8.5'
+          tools: composer:2.10.3
+      - name: Check the recorded toolchain versions
+        run: node scripts/check-toolchain.mjs node npm php composer
+      - name: Review the dependencies
+        run: make dependency-review

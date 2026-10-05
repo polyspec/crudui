@@ -5,6 +5,7 @@ import { builtinModules } from 'node:module';
 import path from 'node:path';
 import test from 'node:test';
 
+import { check, findingLine } from '../../scripts/check-dependencies.mjs';
 import { makeTargets, nodeTestArguments } from '../../scripts/test-commands.mjs';
 
 const root = path.resolve(import.meta.dirname, '../..');
@@ -341,24 +342,10 @@ test('Composer package versions come from repository metadata', () => {
   assert.deepEqual(failures, []);
 });
 
-test('tracked npm lock files have no moderate or higher vulnerability', () => {
-  const failures = [];
-  for (const lockFile of trackedLockFiles()) {
-    const directory = path.dirname(path.join(root, lockFile));
-    const result = executeNpm([
-      'audit', '--package-lock-only', '--audit-level=moderate', '--json',
-    ], directory);
-    const counts = result.report.metadata?.vulnerabilities;
-    assert.ok(counts, `${lockFile}: npm audit did not return vulnerability counts`);
-    if (result.status !== 0 || counts.moderate + counts.high + counts.critical !== 0) {
-      failures.push({
-        lockFile,
-        vulnerabilities: counts,
-        packages: Object.keys(result.report.vulnerabilities ?? {}),
-      });
-    }
-  }
-  assert.deepEqual(failures, []);
+test('the dependencies match their recorded review, without a registry query', () => {
+  // scripts/check-dependencies.mjs reads the manifests, the locks, config/dependency-policy.json and the review record
+  // config/dependency-review.json; `make dependency-review RECORD=1` writes the record from the registries.
+  assert.deepEqual(check(root).map(findingLine), []);
 });
 
 test('tracked npm dependency graphs approve every install script by exact version', () => {

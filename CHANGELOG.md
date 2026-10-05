@@ -1,5 +1,14 @@
 # Changes
 
+## 2026-10-06 — Dependency review (C5.8)
+
+- `npm run test:dependencies` compares the dependencies with the review recorded in
+  `config/dependency-review.json` instead of running `npm audit` against the registry, so the same tree
+  gives the same result on every day. `make dependency-review` asks the registries for newer stable
+  releases and advisories, `RECORD=1` records the review and `UPDATE=1` updates first; a scheduled
+  workflow runs it every day. React 19.2.8 is kept by a recorded exception (C5.8-2-1), and
+  typescript-eslint moves to 8.71.1, the release that the first review found.
+
 ## 2026-10-06 — PHPUnit 13 (C5.8-10)
 
 - validator-php and generator-php test with PHPUnit 13.4.1, and their 18 data providers are declared

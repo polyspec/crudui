@@ -193,16 +193,39 @@ sandbox 비활성화 인자 없이 Chrome을 시작하고 `chrome://sandbox`가
 
 Git에서 추적하는 모든 npm 잠금 파일은 유지 관리 대상 의존성 그래프입니다. 루트
 설치의 `npm ls --all`은 잘못되거나 누락되거나 충돌하는 의존성 없이 상태 0을
-반환해야 합니다. 각 추적 잠금 파일의
-`npm audit --package-lock-only --audit-level=moderate`는 중간·높음·치명적 취약점을
-보고하지 않아야 합니다. 각 그래프의
-`npm ci --dry-run --strict-allow-scripts`도 성공해야 합니다. URL 의존성은 루트
+반환해야 합니다. 각 그래프의
+`npm ci --dry-run --strict-allow-scripts`는 성공해야 합니다. URL 의존성은 루트
 매니페스트가 직접 선언한 경우에만 가져올 수 있습니다. 프로젝트 npm 설정은
 `allow-remote=root`를 선언하며 의존성이 추가한 URL 의존성은 npm이 거부합니다.
 매니페스트는 허용한 각 URL을 변경되지 않는 소스 리비전에 고정하고 잠금 파일은
 무결성을 기록합니다. 호환되는 안전한 안정
 릴리스가 없는 도구는 교체합니다. 의존성 override와 audit 제외는 이 기준을
 충족하지 않습니다. 사용하지 않는 빌드·문서 의존성은 제거합니다.
+
+### 의존성 review
+
+의존성은 검사가 registry에 묻는 결과가 아니라 review 때 알려진 상태로 판단하므로, 같은
+tree는 언제나 같은 결과를 냅니다. review 대상은 registry 의존성입니다. 루트와 각 workspace
+`package.json`의 `dependencies`와 `devDependencies`, 그리고 `config/dependency-policy.json`이
+지정한 Composer package(`packages/validator-php`, `packages/generator-php`)의 `require`와
+`require-dev`입니다. peer 의존성, URL 의존성, 이 저장소의 package와 Composer platform 요구
+사항은 정의상 review 밖에 있습니다. `make dependency-review`는 각 registry 의존성에 대해
+게시자가 deprecated로 표시하지 않은 최신 안정 release를, 그리고 `package-lock.json`(moderate,
+high, critical)과 각 `composer.lock`(모든 보안 권고와 abandoned package)의 보안 권고를
+registry에 묻습니다. `RECORD=1`은 review를 각 잠금 파일의 sha256과 함께
+`config/dependency-review.json`에 쓰고, `UPDATE=1`은 먼저 더 새로운 의존성을 manifest의 범위
+연산자를 유지한 채 올립니다. 예약된 workflow `.github/workflows/dependency-review.yml`이
+매일 review를 실행하며, 어떤 검사나 gating CI job도 이를 실행하지 않습니다.
+
+`npm run test:dependencies`는 checkout의 file만 읽고(`scripts/check-dependencies.mjs`) 각
+발견을 규칙과 고치는 방법과 함께 보고합니다. 잠금 파일이 review 뒤에 바뀌었거나, registry
+의존성에 review 항목이 없거나 review가 기록한 것과 다른 version으로 잠겼거나, registry
+의존성이 예외 없이 review의 최신 안정 release보다 오래되었거나, 예외가 최신 release인 의존성을
+지정하거나, 잠금 파일에 review 때 보안 권고가 있었거나, `package-lock.json`이 manifest를
+기록하지 않거나, 이 저장소의 package를 그 자신의 version으로 요구하지 않거나, network 없는
+`composer validate --strict`가 최신이 아닌 Composer lock을 찾으면 실패합니다.
+`config/dependency-policy.json`의 예외는 ecosystem, manifest, package를 지정하고 재현된 이유,
+제거 조건, 검증 명령을 선언합니다.
 
 ## 문서 웹
 

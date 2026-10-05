@@ -20,7 +20,7 @@ NPM := $(CURDIR)/.tools/npm/node_modules/.bin/npm
 # installed release and never downloads the toolchain of a go.mod. `make install` installs them.
 export RUSTUP_AUTO_INSTALL := 0
 export GOTOOLCHAIN := local
-.PHONY: help install toolchain-check owner-check test-ordered-json docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-extension test-native test-native-suites test-validators test-form-binding conformance format-check deploy deploy-verify deploy-watch github-settings github-settings-check hooks hooks-check ci rerun-failed test-form-styles-linux remove-form-styles-image
+.PHONY: help install dependency-review toolchain-check owner-check test-ordered-json docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-extension test-native test-native-suites test-validators test-form-binding conformance format-check deploy deploy-verify deploy-watch github-settings github-settings-check hooks hooks-check ci rerun-failed test-form-styles-linux remove-form-styles-image
 .NOTPARALLEL: docs docs-web docs-dev docs-preview docs-check docs-verify-idempotent
 
 # Validator benchmark iteration counts (override on the command line, e.g.
@@ -40,6 +40,7 @@ help: ## 타겟 설명
 	@echo ""
 	@echo "  make install               Install the recorded npm, the npm and Composer dependencies, the Rust toolchain and phpDocumentor"
 	@echo "  make toolchain-check       Fail when a tool does not run at the version that the checkout records"
+	@echo "  make dependency-review     Ask the registries for newer stable releases and advisories; RECORD=1 records, UPDATE=1 updates first"
 	@echo "  make owner-check           Run the owner checks of the changed paths (scripts/owner-checks.json); PATHS or BASE select the paths"
 	@echo "  make test-ordered-json     Test the processor checks of tests/ordered-json without an OrderedJSON checkout"
 	@echo "  make docs                  전체 문서 생성 (API doc 멀티언어 + JSON schema 검사 + 정적 웹)"
@@ -91,6 +92,13 @@ install: ## Install the recorded npm, the npm and Composer dependencies, the Rus
 	composer --working-dir=packages/generator-php install --no-interaction --prefer-dist
 	rustup toolchain install --no-self-update
 	sh scripts/install-phpdocumentor.sh
+
+# The dependency review (docs/spec/package-build.md, "Dependency review"): it asks the registries for the latest stable
+# release of every registry dependency and for the advisories of every lock. RECORD=1 writes config/dependency-review.json,
+# which `npm run test:dependencies` compares with the checkout without a network; UPDATE=1 updates first. No check runs it;
+# the scheduled workflow .github/workflows/dependency-review.yml runs it every day.
+dependency-review: ## Ask the registries for newer stable releases and advisories; RECORD=1 records the review, UPDATE=1 updates first
+	node scripts/dependency-review.mjs $(if $(RECORD),--record) $(if $(UPDATE),--update)
 
 toolchain-check: ## Fail when a tool does not run at the version that the checkout records
 	node scripts/check-toolchain.mjs node npm go rust php python composer
