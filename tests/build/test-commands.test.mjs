@@ -166,3 +166,14 @@ test('no test asserts a bound on an elapsed time', () => {
   const bounds = files.flatMap(file => read(file).split('\n').flatMap((line, index) => CLOCK_BOUND.test(line) ? [`${file}:${index + 1}`] : []));
   assert.deepEqual(bounds, []);
 });
+
+// Building the packages is a long operation. The reproducible build check builds them twice in a
+// logged step without a time limit; its test compares the recorded outputs within seconds.
+test('the reproducible build test compares recorded builds within the default test timeout', () => {
+  const command = JSON.parse(read('package.json')).scripts['test:build:repeat'];
+  const build = command.indexOf('node scripts/repeat-build.mjs');
+  const runner = command.indexOf('node scripts/run-tests.mjs node');
+  assert.ok(build !== -1 && runner > build, `test:build:repeat builds twice before the test: ${command}`);
+  assert.doesNotMatch(command, /--timeout/, 'test:build:repeat keeps the 30-second timeout of each test');
+  assert.doesNotMatch(read('tests/build/reproducible-build.test.mjs'), /npm', \['run', 'build'\]/, 'the test runs no build');
+});

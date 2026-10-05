@@ -1,5 +1,13 @@
 # Changes
 
+## 2026-10-05 — Reproducible build in a logged step (C2.12)
+
+- `npm run test:build:repeat` builds the packages twice with `scripts/repeat-build.mjs`, a logged
+  step without a time limit that records the path and SHA-256 digest of every output file of the
+  published packages after each build. `tests/build/reproducible-build.test.mjs` compares the two
+  records with each other and with the current output under the 30-second timeout of each test; it
+  ran both builds inside one test case through a blocking `execFileSync` under 120 seconds.
+
 ## 2026-10-05 — Native generator checks in one pool (C2.8)
 
 - `tests/native-generators/run.mjs` builds the Go and Rust programs once in a build step before

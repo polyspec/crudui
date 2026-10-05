@@ -50,8 +50,10 @@ Rust drivers with `tools/bench/build-drivers.mjs`, which streams each build's ou
 result with its elapsed time, without a time limit; the test runs the built drivers, and each of its
 tests has the 30-second timeout of the test runner.
 
-`test:build:repeat` runs the complete build twice and compares every output file's
-path and SHA-256 digest in all five package directories.
+`test:build:repeat` runs the complete build twice with `scripts/repeat-build.mjs`, a logged step
+without a time limit that records the path and SHA-256 digest of every output file of the published
+packages after each build. The test then compares both records with each other and with the current
+output, each test within the 30-second timeout of the test runner.
 
 `test:packages` builds and packs the packages, installs them into a separate
 install project, compiles all framework types, builds the install project and runs

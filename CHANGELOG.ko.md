@@ -1,5 +1,13 @@
 # 변경 기록
 
+## 2026-10-05 — log를 남기는 단계의 재현 가능한 build (C2.12)
+
+- `npm run test:build:repeat`는 `scripts/repeat-build.mjs`로 package를 두 번 build합니다. 이는 시간
+  한도 없이 log를 남기는 단계로, 각 build 뒤에 공개 package의 모든 산출물 file 경로와 SHA-256을
+  기록합니다. `tests/build/reproducible-build.test.mjs`는 두 기록을 서로, 그리고 현재 산출물과 각 test의
+  30초 timeout 아래에서 비교합니다. 전에는 막는 `execFileSync`로 두 build를 120초 test case 하나 안에서
+  실행했습니다.
+
 ## 2026-10-05 — 하나의 pool에서 실행하는 native generator check (C2.8)
 
 - `tests/native-generators/run.mjs`는 어떤 check보다 먼저 build 단계에서 Go와 Rust 프로그램을 한 번
