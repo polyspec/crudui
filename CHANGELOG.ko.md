@@ -1,5 +1,10 @@
 # 변경 기록
 
+## 2026-10-05 — workspace compiler의 TypeScript 7 (C5.8-3)
+
+- TypeScript workspace 7개는 TypeScript 7.0.2로 build하고 type 검사를 합니다. typescript-eslint, typedoc, svelte-check,
+  `@sveltejs/package`는 7보다 낮은 peer range를 선언하므로 npm이 root에 그 peer로 설치하는 TypeScript 6.0.3을 씁니다.
+
 ## 2026-10-05 — 자기 major의 최신 release로 올린 의존성 (C5.8-2)
 
 - root와 workspace manifest의 npm 의존성 19개와 두 Composer package의 PHPUnit을 잠긴 major의 최신 stable release로

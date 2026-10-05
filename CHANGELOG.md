@@ -1,5 +1,11 @@
 # Changes
 
+## 2026-10-05 — TypeScript 7 for the workspace compilers (C5.8-3)
+
+- The seven TypeScript workspaces build and type-check with TypeScript 7.0.2. typescript-eslint,
+  typedoc, svelte-check and `@sveltejs/package` declare peer ranges below 7, so they keep the
+  TypeScript 6.0.3 that npm installs at the root as their peer.
+
 ## 2026-10-05 — Dependencies at the latest release of their major (C5.8-2)
 
 - 19 npm dependencies of the root and workspace manifests and PHPUnit in both Composer packages are

@@ -43,7 +43,7 @@
     "@types/node": "^25.9.9",
     "parse5": "^8.0.1",
     "tsup": "^8.0.0",
-    "typescript": "^6.0.3",
+    "typescript": "^7.0.2",
     "vitest": "^4.1.8",
     "vue": "^3.5.43"
   },
