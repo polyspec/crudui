@@ -51,6 +51,44 @@ test('make ci runs every checking command of the CI workflow, in the same order'
   assert.deepEqual(local, workflow);
 });
 
+/** The steps that run a checking command without `if: ${{ !cancelled() }}`, as `job: step`. */
+export function stepsStoppedByFailure(workflow) {
+  const violations = [];
+  for (const [id, job] of Object.entries(workflow.jobs)) {
+    for (const step of job.steps ?? []) {
+      if (typeof step.run !== 'string') continue;
+      if (workflowCommands({ jobs: { [id]: { steps: [step] } } }).length === 0) continue;
+      if (String(step.if ?? '').replace(/\s+/g, ' ').trim() !== '${{ !cancelled() }}') {
+        violations.push(`${job.name ?? id}: ${step.name ?? step.run}`);
+      }
+    }
+  }
+  return violations;
+}
+
+test('every checking step of the CI workflow runs after an earlier failure', async () => {
+  const violations = stepsStoppedByFailure(parse(await read('.github/workflows/ci.yml')));
+  assert.deepEqual(violations, []);
+});
+
+test('a checking step that a failure skips is reported by job and step', () => {
+  const violations = stepsStoppedByFailure({
+    jobs: {
+      a: {
+        name: 'build',
+        steps: [
+          { uses: 'actions/checkout@v6' },
+          { name: 'Install', run: 'npm ci --strict-allow-scripts' },
+          { name: 'Test', run: 'npm run test:x' },
+          { name: 'Lint', run: 'npm run lint', if: '${{ !cancelled() }}' },
+          { run: 'npm run typecheck', if: 'success()' },
+        ],
+      },
+    },
+  });
+  assert.deepEqual(violations, ['build: Test', 'build: npm run typecheck']);
+});
+
 test('a workflow command missing from make ci is reported', () => {
   const workflow = workflowCommands({
     jobs: {

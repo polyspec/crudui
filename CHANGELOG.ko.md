@@ -1,5 +1,16 @@
 # 변경 기록
 
+## 2026-10-05 — 실패 뒤에도 실행하는 모든 검사 (C5.1)
+
+- 검사 명령을 실행하는 모든 workflow step은 `if: ${{ !cancelled() }}`를 가지며, `make test-native`와 `make docs-check`는
+  각 test 대상을 `$(MAKE) <target> || status=1`로 실행하고 모은 상태로 끝납니다. CI는 step 하나가 실패한 뒤
+  Lint, Type-check, dependency 검사, benchmark driver를 건너뛰었고, `make test-native`는 실패한 prerequisite
+  `test-php-extension`에서 멈춰 `tests/native-generators/run.mjs`가 report도 conformance evidence도 쓰지 않았습니다.
+  `tests/build/ci-local.test.mjs`는 조건이 없는 검사 step의 job과 step을 적고 실패하고, `tests/build/test-commands.test.mjs`는
+  test를 실행하는 대상을 prerequisite로 둔 Makefile 대상에 대해 실패하며, `tests/build/make-tool-path.test.mjs`는 PHP extension
+  test 명령이 실패할 때 `make test-native`를 실행합니다. `tests/build/dependency-health.test.mjs`의 native import 검사는
+  `test-native`의 recipe 줄만 읽어 빈 목록을 검사했습니다. 이제 prerequisite와 `$(MAKE)` 대상을 따라가고 빈 목록이면 실패합니다.
+
 ## 2026-10-05 — 제목과 작업 table만 둔 checklist (C4.1-2)
 
 - execution checklist에는 제목과 작업 table만 있고, `scripts/check-documents.mjs`는 다른 줄에 대해 file, 줄, 열을 적고

@@ -82,8 +82,13 @@ docs-preview: ## 문서 빌드 결과 미리보기 서버
 
 # docs-check gates the documents AND the library packages.
 # Either arm RED → non-zero exit.
-docs-check: docs-check-documents docs-check-libs ## doc-coverage 게이트 (문서 + 라이브러리, 미문서화 → 비0 exit)
-	@echo "[make] docs-check: documents and libraries passed"
+# Both arms run even when the first fails.
+docs-check: ## doc-coverage 게이트 (문서 + 라이브러리, 미문서화 → 비0 exit)
+	@status=0; \
+	$(MAKE) --no-print-directory docs-check-documents || status=1; \
+	$(MAKE) --no-print-directory docs-check-libs || status=1; \
+	if [ $$status -eq 0 ]; then echo "[make] docs-check: documents and libraries passed"; fi; \
+	exit $$status
 
 docs-check-documents:
 	npm run manifest:check
@@ -160,7 +165,12 @@ build-php-extension:
 test-php-extension: build-php-extension
 	node scripts/run-tests.mjs node -- tests/native-generators/php-extension-builder.test.mjs packages/php-ext/tests/engine.test.mjs packages/php-ext/tests/api.test.mjs
 
-test-native: test-php-extension test-native-suites
+# Both suites run even when the first fails, so one run reports every failure; any failure fails the target.
+test-native:
+	@status=0; \
+	$(MAKE) --no-print-directory test-php-extension || status=1; \
+	$(MAKE) --no-print-directory test-native-suites || status=1; \
+	exit $$status
 
 test-native-suites: build-php-extension
 	# generator-php installs the validator as a copy; refresh it from source before any check loads it.

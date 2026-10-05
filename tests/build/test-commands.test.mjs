@@ -118,6 +118,25 @@ test('a CI step runs tests when its command reaches the test runner', () => {
   ]) assert.equal(runsTests(command, project), false, command);
 });
 
+/** The prerequisites that run tests, as `target: prerequisite`, of the declared Makefile targets. */
+function testPrerequisites(project) {
+  return Object.entries(project.make).flatMap(([target, rule]) => rule.prerequisites
+    .filter(prerequisite => runsTests(`make ${prerequisite}`, project))
+    .map(prerequisite => `${target}: ${prerequisite}`));
+}
+
+// Make stops at the first prerequisite that fails, so a target that runs several test targets runs
+// each with `$(MAKE) <target> || status=1` and exits with the collected status.
+test('no Makefile target takes a target that runs tests as a prerequisite', () => {
+  const fixture = makeTargets([
+    'all: build test-a test-b', 'build:', '\tnpm run build', 'test-a:', '\tnode scripts/run-tests.mjs node -- a.test.mjs',
+    'test-b:', '\tnode scripts/run-tests.mjs node -- b.test.mjs', 'collect:',
+    '\t@status=0; $(MAKE) test-a || status=1; $(MAKE) test-b || status=1; exit $$status', '',
+  ].join('\n'));
+  assert.deepEqual(testPrerequisites({ npm: {}, composer: {}, workspaces: {}, make: fixture }), ['all: test-a', 'all: test-b']);
+  assert.deepEqual(testPrerequisites(declaredCommands()), []);
+});
+
 // A CI step runs either tests, whose cases each hold their own timeout in the test runner, or a
 // long operation: a checkout, a toolchain setup, an install, a build, a lint or type check, an
 // upload or a deployment. A long operation prints its own logs and has no time limit, and a job

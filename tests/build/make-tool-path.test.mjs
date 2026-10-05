@@ -54,6 +54,48 @@ test('test-native runs the Rust tests through the test runner', {
     /^node\tscripts\/run-tests\.mjs cargo -- --locked --manifest-path packages\/generator-rust\/Cargo\.toml$/m);
 });
 
+test('test-native runs the native suites after the PHP extension tests fail, and fails', {
+  skip: process.platform === 'win32',
+}, async t => {
+  const directory = await mkdtemp(path.join(await realpath(os.tmpdir()), 'crudui-make-status-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+
+  const home = path.join(directory, 'home');
+  const commandDirectory = path.join(directory, 'commands');
+  const commandLog = path.join(directory, 'commands.log');
+  await mkdir(home);
+  await mkdir(commandDirectory);
+  await Promise.all(['composer', 'go', 'npm', 'sh'].map(command => (
+    writeExecutable(path.join(commandDirectory, command))
+  )));
+  // The PHP extension test command fails; every other command succeeds.
+  await writeFile(path.join(commandDirectory, 'node'), [
+    '#!/bin/sh',
+    'printf \'%s\t%s\n\' "${0##*/}" "$*" >> "$COMMAND_LOG"',
+    'case "$*" in *packages/php-ext/tests/engine.test.mjs*) exit 1 ;; esac',
+    '',
+  ].join('\n'));
+  await chmod(path.join(commandDirectory, 'node'), 0o755);
+
+  const result = spawnSync(make, ['--no-print-directory', '-f', 'Makefile', 'test-native'], {
+    cwd: repository,
+    encoding: 'utf8',
+    env: {
+      COMMAND_LOG: commandLog,
+      HOME: home,
+      LANG: 'C',
+      LC_ALL: 'C',
+      PATH: `${commandDirectory}:/usr/bin:/bin`,
+    },
+  });
+
+  assert.equal(result.error, undefined, result.error?.message);
+  assert.notEqual(result.status, 0, [result.stdout, result.stderr].join('\n'));
+  const commands = await readFile(commandLog, 'utf8');
+  assert.match(commands, /^node\ttests\/native-generators\/run\.mjs --extension /m,
+    `the native suites did not run:\n${commands}`);
+});
+
 test('the Rust command entry point executes regular toolchain files', {
   skip: process.platform === 'win32',
 }, async t => {

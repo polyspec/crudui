@@ -19,6 +19,13 @@ Composer 의존성을 설치하며 PHP·Go·Cargo를 `PATH`에서 실행할 수 
 작업처럼 검사합니다. `tests/build/ci-local.test.mjs`는 이 목록이 `.github/workflows/ci.yml`과 다르면
 실패합니다.
 
+실패는 이후 검사를 멈추지 않으므로 한 번의 실행이 모든 실패를 보고합니다. 검사 명령을 실행하는 워크플로
+단계는 모두 `if: ${{ !cancelled() }}`를 가지므로 실패한 단계가 그 작업의 이후 검사를 건너뛰게 하지 않습니다.
+`tests/build/ci-local.test.mjs`는 그것이 없는 검사 단계마다 작업과 단계를 적고 실패합니다. make는 처음 실패한
+prerequisite에서 멈추므로 Makefile 대상은 테스트를 실행하는 대상을 prerequisite로 두지 않습니다.
+`make test-native`와 `make docs-check`처럼 여러 테스트 대상을 실행하는 대상은 각각을
+`$(MAKE) <target> || status=1`로 실행하고 모은 상태로 끝납니다.
+
 `make ci`는 `docs/plans/execution-checklist.md`의 작업 중 `[~]`인 것이 없을 때, 커밋된 tree마다 한 번 실행됩니다. 어떤 명령보다
 먼저 `scripts/full-run.mjs`를 시작하며, 이 guard는 판단을 이유와 함께 출력하고(`[full-run] run: ...` 또는 `[full-run]
 refuse: ...`) 다음의 경우 status 1로 거부합니다. checklist의 작업 행이 `[~]`이면 활성 ID를 작업과 함께 나열하며 거부합니다. 추적 파일에 커밋되지
@@ -141,6 +148,7 @@ hook입니다. test는 browser를 launch하지 않고 setup이 launch한 browser
 - 테스트 명령이 시작하는 스크립트가 `scripts/test-progress/progress.mjs`로 출력하지 않습니다.
 - 어떤 프로젝트 명령도 실행하지 않는 `node:test` 파일이 있습니다.
 - TypeScript 패키지에 `typecheck` 스크립트가 없거나 CI가 `npm run typecheck`를 실행하지 않습니다.
+- Makefile 대상이 테스트를 실행하는 대상을 prerequisite로 둡니다.
 
 ## 장기 작업의 명령
 
