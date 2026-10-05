@@ -1,5 +1,10 @@
 # 변경 기록
 
+## 2026-10-05 — comparison image의 Chromium (C2.17)
+
+- comparison toolchain image는 `chromium`과 `chromium-sandbox` `154.0.8037.92-1~deb13u1`을 설치합니다.
+  Debian이 고정한 `153.0.8010.47-2~deb13u1`을 교체해서 `make deploy`의 image build가 실패했습니다.
+
 ## 2026-10-05 — 한도 없는 form comparison step (C2.13-2)
 
 - form comparison의 step은 끝까지 실행하고 종료 상태로 판정합니다. step runner는 전체 한도나 비활동

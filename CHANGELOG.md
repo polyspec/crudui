@@ -1,5 +1,11 @@
 # Changes
 
+## 2026-10-05 — Chromium of the comparison image (C2.17)
+
+- The comparison toolchain image installs `chromium` and `chromium-sandbox`
+  `154.0.8037.92-1~deb13u1`. Debian replaced the pinned `153.0.8010.47-2~deb13u1`, so the image
+  build of `make deploy` failed.
+
 ## 2026-10-05 — Steps of the form comparison without limits (C2.13-2)
 
 - A step of the form comparison runs to its end and is decided by its exit status: the step
