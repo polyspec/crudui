@@ -140,6 +140,25 @@ PHPUnit runs with `--teamcity`: the runner counts each TeamCity test, never a te
 provider method, and prints every line that is not a TeamCity message, such as an error about a
 missing test file or the summary with its warnings.
 
+Every registered case of a `node:test` file runs, or the file fails. `node --test` runs with
+`--test-force-exit`, which ends a file's process when its known tests end, so a test that leaves a
+handle open cannot hold the run; a test that the module registers after that end never runs. Three
+checks close that gap:
+
+- The runner preloads `scripts/test-progress/load-check.mjs` into every test file's process. A
+  process that ends before its module finished evaluating, top-level `await`s included, fails the
+  file with `the process ended before the module finished loading; tests registered later did not
+  run`.
+- A file that reports no case, neither passed, failed nor skipped, fails with `the file ran no test
+  case`, for example when `--test-name-pattern` selects none of its tests.
+- The lint rule `crudui/no-await-after-test-registration` of `scripts/lint/node-test-rules.mjs`
+  rejects a top-level `await` after the first `node:test` registration of a module, so every case
+  is registered before the module's first wait and the first check does not depend on how long the
+  earlier cases take.
+
+`tests/build/run-tests.test.mjs` runs files for the first two checks and
+`tests/build/test-commands.test.mjs` runs the lint rule on fixtures.
+
 Every failure of a run is printed with its test file and elapsed time, including a failure outside
 a test: a hook that fails or runs out of time and an error of a test file. A file or a suite whose
 hook fails is printed as failed with the cause, even when every test in it passed; for `node --test`

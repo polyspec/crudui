@@ -122,6 +122,22 @@ PHPUnit은 `--teamcity`로 실행합니다. 실행기는 TeamCity test를 하나
 method는 세지 않으며, 없는 test file에 대한 오류나 warning을 담은 요약처럼 TeamCity message가 아닌
 줄을 모두 출력합니다.
 
+`node:test` 파일에 등록된 모든 case는 실행되거나 파일이 실패합니다. `node --test`는 알려진 test가 끝나면
+파일의 process를 끝내는 `--test-force-exit`로 실행되므로, handle을 열어 둔 test가 실행을 붙잡지 못합니다.
+대신 module이 그 끝 뒤에 등록하는 test는 실행되지 않습니다. 세 검사가 그 틈을 막습니다.
+
+- 실행기는 모든 test 파일의 process에 `scripts/test-progress/load-check.mjs`를 preload합니다. module의
+  evaluation이 top-level `await`까지 끝나기 전에 끝나는 process는 파일을
+  `the process ended before the module finished loading; tests registered later did not run`으로 실패시킵니다.
+- 통과, 실패, skip 중 어떤 case도 보고하지 않은 파일은 `the file ran no test case`로 실패합니다.
+  `--test-name-pattern`이 그 파일의 test를 하나도 고르지 않을 때가 그렇습니다.
+- `scripts/lint/node-test-rules.mjs`의 lint rule `crudui/no-await-after-test-registration`은 module에서 첫
+  `node:test` 등록 뒤의 top-level `await`를 거부합니다. 그래서 모든 case는 module이 처음 기다리기 전에 등록되고,
+  첫 검사는 앞 case의 소요 시간에 의존하지 않습니다.
+
+`tests/build/run-tests.test.mjs`는 앞의 두 검사를 파일로 실행하고, `tests/build/test-commands.test.mjs`는 lint
+rule을 fixture로 실행합니다.
+
 실행의 모든 실패는 test 파일과 경과 시간과 함께 출력되며, 테스트 밖의 실패도 포함합니다. 실패하거나
 제한 시간을 넘긴 hook과 test 파일의 오류가 그렇습니다. hook이 실패한 파일이나 suite는 그 안의 모든
 테스트가 통과해도 원인과 함께 실패로 출력됩니다. `node --test`에서 파일의 실패한 hook은

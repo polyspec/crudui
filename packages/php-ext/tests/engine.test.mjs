@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { access, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
@@ -16,6 +16,7 @@ import { buildTargets } from '../../../examples/form-comparison/src/build-target
 import { dateCases, dateListSpec, imageCase, numberCases, urlCase } from '../../../tests/native-generators/cases.mjs';
 import { dispatch, errorRecord } from '../../../tests/native-generators/javascript.mjs';
 import { recordConformance } from '../../../tests/conformance/evidence.mjs';
+import { contractPath, outputPath, unicodeDataSource } from '../tools/generate-unicode-data.mjs';
 
 /*
  * A C string of the UTF-8 bytes of a value followed by a zero byte; a NUL character is a zero byte
@@ -318,7 +319,7 @@ export async function compileAndRunEngineFixture({ directory, source, name, ...o
 
 {
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
-const fixtures = JSON.parse(await readFile(
+const fixtures = JSON.parse(readFileSync(
   path.join(root, 'tests/fixtures/form-render/cases.json'), 'utf8'));
 
 function sourceForFixtures() {
@@ -366,7 +367,7 @@ test('PHP extension engine compiles every shared form fixture', { timeout: ENGIN
 
 {
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
-const cases = JSON.parse(await readFile(
+const cases = JSON.parse(readFileSync(
   path.join(root, 'tests/fixtures/compose/cases.json'), 'utf8'));
 
 function sourceForCases() {
@@ -447,7 +448,7 @@ test('PHP extension engine rejects a null reference value', { timeout: ENGINE_TE
 
 {
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
-const fixtures = JSON.parse(await readFile(
+const fixtures = JSON.parse(readFileSync(
   path.join(root, 'tests/fixtures/expr/cases.json'), 'utf8'));
 
 function sourceForFixtures() {
@@ -524,13 +525,13 @@ test('PHP extension engine evaluates every shared expression fixture', { timeout
 
 {
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
-const validationCases = JSON.parse(await readFile(
+const validationCases = JSON.parse(readFileSync(
   path.join(root, 'tests/fixtures/validate/cases.json'), 'utf8'));
-const specCases = JSON.parse(await readFile(
+const specCases = JSON.parse(readFileSync(
   path.join(root, 'tests/fixtures/spec-validity/cases.json'), 'utf8'));
-const listCases = JSON.parse(await readFile(
+const listCases = JSON.parse(readFileSync(
   path.join(root, 'tests/fixtures/list-validity/cases.json'), 'utf8'));
-const detailCases = JSON.parse(await readFile(
+const detailCases = JSON.parse(readFileSync(
   path.join(root, 'tests/fixtures/detail-validity/cases.json'), 'utf8'));
 
 /* The engine units of rule evaluation, shared by the validation programs. */
@@ -916,8 +917,7 @@ test('PHP extension validation returns failure after repeated-field allocation f
 
 {
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
-const { contractPath, outputPath, unicodeDataSource } = await import('../tools/generate-unicode-data.mjs');
-const unicode = JSON.parse(await readFile(contractPath, 'utf8'));
+const unicode = JSON.parse(readFileSync(contractPath, 'utf8'));
 
 test('PHP extension Unicode data is generated from the contract', { timeout: ENGINE_INSPECTION_BUDGET }, async () => {
   assert.equal(unicode.format, 'crudui/unicode-properties');
@@ -1488,7 +1488,7 @@ for (const sanitized of [false, true]) {
 
 {
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
-const fixtures = JSON.parse(await readFile(
+const fixtures = JSON.parse(readFileSync(
   path.join(root, 'tests/fixtures/form-render/cases.json'), 'utf8'));
 // A fixture that compilation rejects has no template to bind; the compilation test covers it.
 const bindFixtures = fixtures.filter(fixture => {
@@ -1668,7 +1668,7 @@ test('PHP extension engine reports supported widget construction failures as int
 
 {
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
-const fixtures = JSON.parse(await readFile(
+const fixtures = JSON.parse(readFileSync(
   path.join(root, 'tests/fixtures/form-render/cases.json'), 'utf8'));
 const renderFixtures = fixtures.filter(fixture => !fixture.expectError);
 const edgeFixtures = [
@@ -1791,7 +1791,7 @@ test('PHP extension engine form rendering has no undefined behavior findings', {
 
 {
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
-const fixtures = JSON.parse(await readFile(
+const fixtures = JSON.parse(readFileSync(
   path.join(root, 'tests/fixtures/list-render/cases.json'), 'utf8'));
 const additionalFixtures = [
   imageCase,
@@ -1900,7 +1900,7 @@ test('PHP extension engine list rendering has no undefined behavior findings', {
 
 {
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
-const fixtures = JSON.parse(await readFile(
+const fixtures = JSON.parse(readFileSync(
   path.join(root, 'tests/fixtures/detail-render/cases.json'), 'utf8'));
 const fieldMembers = ['key', 'label', 'format', 'value', 'display', 'design'];
 
@@ -2271,7 +2271,7 @@ test('PHP extension engine value model preserves order and owns independent valu
 
 {
 const root = new URL('../../../', import.meta.url);
-const files = Object.fromEntries(await Promise.all([
+const files = Object.fromEntries([
   '.dockerignore',
   'Makefile',
   'examples/form-comparison/Containerfile',
@@ -2279,7 +2279,7 @@ const files = Object.fromEntries(await Promise.all([
   'packages/php-ext/README.md',
   'packages/php-ext/README.ko.md',
   'scripts/build-crudui-php-extension.mjs',
-].map(async filename => [filename, await readFile(new URL(filename, root), 'utf8')])));
+].map(filename => [filename, readFileSync(new URL(filename, root), 'utf8')]));
 
 function normalized(source) {
   return source.replace(/\s+/g, ' ');

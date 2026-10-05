@@ -3,6 +3,8 @@ import svelte from 'eslint-plugin-svelte';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
+import nodeTestRules from './scripts/lint/node-test-rules.mjs';
+
 // Every JavaScript, TypeScript, Vue and Svelte source the repository tracks is
 // linted with one rule set; tests/build/lint-coverage.test.mjs fails when a
 // tracked source is left out. Only generated or installed output is ignored,
@@ -82,6 +84,12 @@ export default tseslint.config(
       '@typescript-eslint/no-non-null-assertion': 'off',
       'no-console': ['warn', { allow: ['warn', 'error'] }],
     },
+  },
+  {
+    // Every node:test test is registered before the module's first wait (docs/operations/testing.md).
+    files: sourceFiles,
+    plugins: { crudui: nodeTestRules },
+    rules: { 'crudui/no-await-after-test-registration': 'error' },
   },
   {
     files: sourceFiles,

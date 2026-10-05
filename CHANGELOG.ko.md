@@ -1,5 +1,15 @@
 # 변경 기록
 
+## 2026-10-05 — 등록된 node:test case는 실행되거나 file이 실패합니다 (C5.9)
+
+- `scripts/run-tests.mjs`는 모든 `node:test` file의 process에 `scripts/test-progress/load-check.mjs`를 preload하며, 이
+  module은 module의 evaluation이 끝나기 전에 process가 끝난 file을 실패시킵니다. node reporter는 case를 하나도 보고하지
+  않은 file을 실패시킵니다. `scripts/lint/node-test-rules.mjs`의 lint rule `crudui/no-await-after-test-registration`은 첫
+  `node:test` 등록 뒤의 top-level `await`를 거부합니다. `node --test --test-force-exit`는 알려진 test가 끝나면 file의
+  process를 끝내고, `packages/php-ext/tests/engine.test.mjs`는 top-level `await` 뒤에 test를 등록했으므로 첫 `await` 앞의
+  case가 혼자 실행되었고 `--test-name-pattern`을 주면 case가 실행되지 않았는데 file이 통과했습니다. engine.test는 이제
+  fixture를 동기로 읽고 Unicode data generator를 정적으로 import합니다.
+
 ## 2026-10-05 — npm 12의 npm pack report (C5.2-1)
 
 - `tests/build/shared-resources.test.mjs`의 dist lock test는 `scripts/package-install-pack.mjs`의 `packReport`로

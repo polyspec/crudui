@@ -9,6 +9,9 @@ import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
+import { Linter } from 'eslint';
+
+import nodeTestRules from '../../scripts/lint/node-test-rules.mjs';
 import {
   directTestTools, isTestCommand, makeTargets, matchesArgument, nodeScripts, nodeTestArguments, projectCommands, runsTests, workflowJobs,
 } from '../../scripts/test-commands.mjs';
@@ -216,4 +219,34 @@ test('no program waits in an interval loop', () => {
     });
   }
   assert.deepEqual(loops, []);
+});
+
+// node --test runs with --test-force-exit, so a test registered after a top-level wait may never
+// run; the lint rule requires every registration before the module's first wait.
+test('a top-level await after the first node:test registration is a lint error', () => {
+  const linter = new Linter({ configType: 'flat' });
+  const config = [{
+    files: ['**/*.mjs'],
+    languageOptions: { ecmaVersion: 'latest', sourceType: 'module' },
+    plugins: { crudui: nodeTestRules },
+    rules: { 'crudui/no-await-after-test-registration': 'error' },
+  }];
+  const lint = source => linter.verify(source, config, 'case.test.mjs').map(item => `${item.line}: ${item.ruleId}`);
+  const rule = 'crudui/no-await-after-test-registration';
+  assert.deepEqual(lint([
+    "import test from 'node:test';",
+    "const data = await Promise.resolve(1);",
+    "test('a', async () => { await Promise.resolve(data); });",
+    "{ const more = 2; test('b', () => more); }",
+    "async function load() { return await Promise.resolve(3); }",
+    "test('c', load);",
+  ].join('\n')), []);
+  assert.deepEqual(lint([
+    "import test, { describe } from 'node:test';",
+    "test('a', () => {});",
+    "const late = await Promise.resolve(1);",
+    "{ const fixtures = await Promise.resolve([]); describe('b', () => fixtures); }",
+    "for await (const item of []) test(String(item), () => {});",
+  ].join('\n')), [`3: ${rule}`, `4: ${rule}`, `5: ${rule}`]);
+  assert.deepEqual(lint("import { it } from 'vitest';\nit('a', () => {});\nawait Promise.resolve();\n"), []);
 });

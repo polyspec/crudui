@@ -24,6 +24,8 @@ export default class ProgressReporter extends Transform {
     this.completedFailures = new Map();
     // Files whose run reported a failure that no test completion holds, by real path.
     this.failedFiles = new Set();
+    // The number of cases each file reported, by real path; a file that reports none fails.
+    this.cases = new Map();
   }
 
   key(data) {
@@ -52,10 +54,15 @@ export default class ProgressReporter extends Transform {
       const { id, group } = this.id(data);
       const { duration_ms: duration, error, passed } = data.details;
       const file = data.file && realpathSync(data.file);
+      if (!group && file) this.cases.set(file, (this.cases.get(file) ?? 0) + 1);
       if (data.skip || data.todo) this.progress.skip(id);
       else if (passed && group && this.failedFiles.has(file)) {
         this.failedFiles.delete(file);
         this.progress.fail(id, duration, 'a failure outside its tests failed the file');
+      } else if (passed && group && !this.cases.get(file)) {
+        this.progress.fail(id, duration, 'the file ran no test case');
+        // node --test counts no failure for it; this reporter runs in that process and fails it.
+        process.exitCode = 1;
       } else if (passed) this.progress.pass(id, duration);
       else {
         const key = this.key(data);
