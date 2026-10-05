@@ -7,8 +7,10 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import puppeteer from 'puppeteer';
 import { createRequire } from 'node:module';
 import { packPackage } from './package-install-pack.mjs';
+import { useCheckoutNpm } from './checkout-npm.mjs';
 import { createProgress } from './test-progress/progress.mjs';
 
+useCheckoutNpm();
 const root = fileURLToPath(new URL('../', import.meta.url));
 const require = createRequire(import.meta.url);
 const directory = mkdtempSync(join(tmpdir(), 'crudui-install-'));

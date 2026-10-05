@@ -21,6 +21,7 @@ import path from 'node:path';
 import {
   acquireReported, checkoutLockFile, holdWhileRunning, repositoryRoot, runCommand,
 } from './holder-lock.mjs';
+import { useCheckoutNpm } from './checkout-npm.mjs';
 
 /** The folder of a package directory of this checkout. */
 function packageFolder(directory) {
@@ -61,6 +62,7 @@ async function main(argv) {
     + '       node scripts/package-dist.mjs pack <package directory> <destination directory>');
 }
 
+useCheckoutNpm();
 main(process.argv.slice(2)).then(status => { process.exitCode = status; }, error => {
   process.stderr.write(`package-dist: ${error.message}\n`);
   process.exitCode = 1;

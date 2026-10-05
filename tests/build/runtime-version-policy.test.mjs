@@ -64,7 +64,7 @@ test('the npm that runs here is the release that package.json records', async ()
   const running = spawnSync(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['--version'], { encoding: 'utf8' });
   assert.equal(running.error, undefined, running.error?.message);
   assert.equal(running.stdout.trim(), recorded,
-    `npm ${running.stdout.trim()} runs here and package.json records npm ${recorded}; fix: node scripts/install-npm.mjs`);
+    `npm ${running.stdout.trim()} runs here and package.json records npm ${recorded}; fix: node scripts/install-npm.mjs installs it into .tools/npm, and make puts .tools/npm/node_modules/.bin first on PATH`);
 });
 
 test('every workflow job installs the recorded npm before it runs npm', async () => {

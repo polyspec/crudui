@@ -14,6 +14,8 @@ CRUDUI은 YAML 또는 JavaScript 객체로 폼·목록·상세·검증을 정의
 저장소 루트에서 실행합니다.
 
 ```sh
+node scripts/install-npm.mjs
+export PATH="$PWD/.tools/npm/node_modules/.bin:$PATH"
 npm ci --strict-allow-scripts
 npm run build
 npm run test:forms

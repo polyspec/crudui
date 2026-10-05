@@ -1,5 +1,7 @@
 # Dependencies
 node_modules/
+# The npm of this checkout (scripts/install-npm.mjs)
+/.tools/
 # Workspace packages use the root dependency lock file.
 packages/*/package-lock.json
 

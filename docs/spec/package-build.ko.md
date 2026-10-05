@@ -147,8 +147,10 @@ Node.js는 활성 LTS 또는 다음 LTS로 지정된 최신 짝수 안정 메이
 사용합니다. npm은 예외입니다. 루트 `package.json`의 `packageManager`가 정확한 npm
 릴리스 하나를 기록합니다. 설치하고 패키징하고 스크립트를 실행하는 npm이 그 결과를
 바꾸기 때문이며, `pack --json` report가 npm 11의 배열에서 npm 12의 object로 바뀐 것이
-그 예입니다. `node scripts/install-npm.mjs`는 정확히 그 릴리스를 설치하고, CI와 컨테이너
-이미지는 그것을 실행하거나 같은 릴리스를 설치하며, local 실행도 그 릴리스를 씁니다.
+그 예입니다. `node scripts/install-npm.mjs`는 정확히 그 릴리스를 checkout의 무시되는 directory
+`.tools/npm`에 설치하며, 다른 모든 checkout이 쓰는 machine의 npm에는 설치하지 않습니다.
+Makefile, npm을 시작하는 모든 script, 모든 CI job은 `.tools/npm/node_modules/.bin`을 `PATH`의 맨 앞에
+둡니다. 컨테이너 이미지는 같은 릴리스를 그 이미지의 npm으로 설치합니다.
 새 npm 릴리스는 `packageManager`를 바꿔서 채택합니다. 후보 빌드는 이 채널을 한 번
 해석하고 결과 이미지와 런타임 버전을 검증 근거에 기록합니다. 이후 빌드는 적용
 가능한 새 릴리스를 사용하고 새 검증 근거를 생성합니다. 패키지 잠금 파일은 해석한

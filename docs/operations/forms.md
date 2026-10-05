@@ -7,6 +7,8 @@
 Run commands from the repository root. Install Node.js and npm, then run:
 
 ```sh
+node scripts/install-npm.mjs
+export PATH="$PWD/.tools/npm/node_modules/.bin:$PATH"
 npm ci --strict-allow-scripts
 npm run build
 ```

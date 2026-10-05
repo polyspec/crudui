@@ -1,5 +1,15 @@
 # 변경 기록
 
+## 2026-10-05 — machine이 아닌 checkout의 npm (C7.7)
+
+- `node scripts/install-npm.mjs`는 `packageManager`의 npm release를 `npm install --prefix`로 임시 directory에
+  설치한 뒤 제자리로 rename하여 checkout의 무시되는 `.tools/npm`에 두고, `npm install --global`은 실행하지 않습니다.
+  이전에는 모든 repository가 쓰는 machine의 npm을 바꿨고 다른 repository의 `npm ci`를 깨뜨렸습니다.
+  Makefile은 `.tools/npm/node_modules/.bin`을 맨 앞에 둔 `PATH`를 export하고, GNU Make 3.81이 shell 문법이 없는
+  recipe program을 시작할 때의 `PATH`에서 찾으므로 recipe에서 npm을 `$(NPM)`으로 시작합니다. npm을 시작하는 모든
+  script는 `scripts/checkout-npm.mjs`의 `useCheckoutNpm`을 호출하고, 모든 CI job은 첫 npm 명령 전에 그 directory를
+  `GITHUB_PATH`에 더합니다. `tests/build/checkout-npm.test.mjs`는 다른 모든 형식에 대해 실패합니다.
+
 ## 2026-10-05 — 모든 make에서 같게 읽히는 make dry run (C7.1)
 
 - test는 Makefile 대상의 명령을 `tests/build/make-dry-run.mjs`의 `makeDryRun`으로 읽습니다. 이것은 `MAKEFLAGS=w`를 설정하고

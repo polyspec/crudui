@@ -194,7 +194,8 @@ export function runsTests(command, project, directory = '.', seen = new Set()) {
     while (tokens.length && /^[A-Z_][A-Z0-9_]*=/.test(tokens[0])) tokens.shift();
     if (tokens.some(token => runner.test(token))) return true;
     const reached = [];
-    if (tokens[0] === 'npm') {
+    // The Makefile starts npm by its path in the checkout, $(NPM).
+    if (tokens[0] === 'npm' || tokens[0] === '$(NPM)') {
       const { options, rest } = takeOptions(tokens.slice(1), ['-w', '--workspace', '--prefix']);
       const [subcommand, script] = rest.filter(token => !token.startsWith('-'));
       const name = ['test', 't'].includes(subcommand) ? 'test' : ['run', 'run-script'].includes(subcommand) ? script : undefined;

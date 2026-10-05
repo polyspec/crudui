@@ -17,6 +17,7 @@ import { fileURLToPath } from 'node:url';
 
 import { failureOf, formatSeconds, runCommand } from './run-command.mjs';
 import { createProgress } from './test-progress/progress.mjs';
+import { useCheckoutNpm } from './checkout-npm.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const STAMP = path.join(ROOT, 'node_modules/.cache/crudui/build-stamp.json');
@@ -62,6 +63,7 @@ async function run(command, args) {
   lines.line(`build: ${command} ${args.join(' ')} finished in ${formatSeconds(result.elapsedMs)}`);
 }
 
+useCheckoutNpm();
 const lines = createProgress({ write: text => process.stdout.write(text) });
 const id = 'build: workspace packages';
 lines.start(id, { group: true });
