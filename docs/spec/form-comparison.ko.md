@@ -244,9 +244,9 @@ Enter)는 폼의 네이티브 필드를 `multipart/form-data`로 `/api/{server}/
 ### 툴체인 이미지
 
 `examples/form-comparison/Containerfile`은 이미지 하나를 정의합니다. checkout이 기록한
-Node.js·Go·Rust 릴리스(각 단계 이미지는 digest로 지정), Git, PHP 8.4(CLI, 개발 헤더, mbstring,
-XML), Composer, C 빌드 도구, tini, 고정한 Chromium과 샌드박스를 포함하며, Debian 패키지는 한
-날짜의 snapshot에서 받습니다. 어떤 명령도 저장소를 복사하거나 읽지 않으며
+Node.js·Go·Rust 릴리스(각 단계 이미지는 digest로 지정), `php` fpm 이미지의 가장 새로 검사한 minor의
+PHP 릴리스(CLI, php-fpm, 개발 헤더, mbstring, XML), 이미지의 Composer, Git, nginx, C 빌드 도구, tini,
+고정한 Chromium과 샌드박스를 포함하며, Debian 패키지는 한 날짜의 snapshot에서 받습니다. 어떤 명령도 저장소를 복사하거나 읽지 않으며
 저장소에 의존하는 빌드 단계도 없습니다. 이미지 태그는 Containerfile 내용의 SHA-256
 digest 앞 16자리이므로 이 파일이 바뀔 때만 이미지를 다시 빌드합니다. 컨테이너는 두 볼륨
 루트를 비특권 `node` 사용자에게 넘기기 위해서만 root로 시작하고, 이후 그 사용자로
@@ -375,8 +375,8 @@ supervisor는 `crudui.so`와 `ordered_json.so`에 공용 PHP 확장 빌더 하�
 발견 결과, 서로 다른 PHP 설치 정보가 있으면 빌드에 실패합니다. 명령이 실패한 뒤 다른
 실행 파일이나 빌드 경로를 선택하지 않습니다. 생성한 빌드 경로와 모듈 경로에는 정규
 파일과 디렉터리만 포함합니다.
-Linux 툴체인은 versioned `php-config` 파일을 명시하고 설치된 Debian `gcc` 패키지
-기록 하나에서 C 컴파일러를 선택합니다.
+Linux 툴체인은 PHP 이미지의 `php-config`인 `/usr/local/bin/php-config`를 명시하고 설치된
+Debian `gcc` 패키지 기록 하나에서 C 컴파일러를 선택합니다.
 
 폼 비교 CI 작업은 소스·생성기 생성 스위트를 실행하기 전에 루트 npm 그래프와 PHP
 검증기·생성기의 Composer 그래프를 설치합니다. 깨끗한 체크아웃은 무시된 `vendor/`

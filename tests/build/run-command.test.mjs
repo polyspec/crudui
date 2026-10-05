@@ -88,6 +88,15 @@ test('run-contract-tests runs a declared command to its end', async t => {
   assert.match(result.output, /✔ slow\/check: .*declared \(\d+\.\ds\)/);
 });
 
+test('run-contract-tests fails when the selection declares no command', async t => {
+  const box = sandbox(t, ['scripts/run-contract-tests.mjs']);
+  mkdirSync(path.join(box.root, 'contracts'));
+  writeFileSync(path.join(box.root, 'contracts/features.json'), JSON.stringify({ features: [{ id: 'empty', verification: [] }] }));
+  const result = await runScript(path.join(box.root, 'scripts/run-contract-tests.mjs'), [], { cwd: box.root, env: process.env });
+  assert.equal(result.status, 1, result.output);
+  assert.match(result.output, /✖ manifest:test: ran no command: the selected features declare no verification command/);
+});
+
 test('require-current-build runs the build to its end and stops what it left behind', async t => {
   const box = sandbox(t, ['scripts/require-current-build.mjs', 'package.json', 'package-lock.json']);
   const pidFile = path.join(box.root, 'orphan.pid');

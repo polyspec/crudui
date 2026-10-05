@@ -135,7 +135,7 @@ test('a tool that fails before any test runs fails the summary line too', async 
     const run = spawnSync(process.execPath, [path.join(ROOT, 'scripts/run-tests.mjs'), 'cargo', '--cwd', directory, '--', '--offline'], { encoding: 'utf8', env: { ...process.env, CARGO_TARGET_DIR: path.join(directory, 'target') } });
     assert.notEqual(run.status, 0);
     assert.doesNotMatch(run.stdout, /✔ cargo /);
-    assert.match(run.stdout, /✖ cargo .*: 0 passed, 0 failed, 0 timed out, 0 skipped, the tool exited with [1-9]\d*/);
+    assert.match(run.stdout, /✖ cargo .*: ran no test case, 0 passed, 0 failed, 0 timed out, 0 skipped, the tool exited with [1-9]\d*/);
   } finally {
     await rm(directory, { recursive: true, force: true });
   }
@@ -230,4 +230,36 @@ test('a file whose test leaves a handle open still ends when its tests end', asy
   const run = await runNodeFiles({ 'handle.test.mjs': "import test from 'node:test';\ntest('leaves an interval', () => { setInterval(() => {}, 1000); });\n" });
   assert.equal(run.status, 0, run.stdout);
   assert.match(run.stdout, /✔ node --test: 1 passed/);
+});
+
+test('a run that requires tests and runs no test case fails with ran no test case', () => {
+  const empty = recorder();
+  empty.progress.start('package', { group: true });
+  empty.progress.pass('package');
+  assert.equal(empty.progress.close('go .', { requireTests: true }).ok, false);
+  assert.match(empty.lines.at(-1), /^✖ go \.: ran no test case, 1 passed, 0 failed \(0\.0s\)$/);
+
+  const skipped = recorder();
+  skipped.progress.start('a');
+  skipped.progress.skip('a');
+  assert.equal(skipped.progress.close('cargo', { requireTests: true }).ok, false);
+  assert.match(skipped.lines.at(-1), /ran no test case/);
+
+  const ran = recorder();
+  ran.progress.start('a');
+  ran.progress.pass('a');
+  assert.equal(ran.progress.close('phpunit', { requireTests: true }).ok, true);
+});
+
+test('a go run of packages without tests fails with ran no test case', async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-run-tests-'));
+  try {
+    await writeFile(path.join(directory, 'go.mod'), 'module example.com/empty\n\ngo 1.21\n');
+    await writeFile(path.join(directory, 'empty.go'), 'package empty\n\nfunc Value() int { return 1 }\n');
+    const run = await runAsync([path.join(ROOT, 'scripts/run-tests.mjs'), 'go', '--cwd', directory, '--', './...'], { env: { ...process.env, GOTOOLCHAIN: 'local', GOFLAGS: '-mod=mod' } });
+    assert.notEqual(run.status, 0, run.stdout);
+    assert.match(run.stdout, /✖ go [^\n]*: ran no test case/);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
 });

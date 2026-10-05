@@ -27,3 +27,4 @@ packages/php-ext/native/*.o
 packages/php-ext/native/*.dep
 packages/php-ext/*.la
 packages/php-ext/run-tests.php
+.tools

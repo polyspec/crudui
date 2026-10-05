@@ -61,9 +61,11 @@ do not install or verify the external editor implementations.
 
 ## Apple container
 
-The container definition includes PHP 8.4 and its development headers, the Node.js,
-Go and Rust releases that the checkout records, each image by its digest, Composer
-and Chromium from the Debian snapshot of one date.
+The container definition is the `php` image of the PHP release that
+`config/toolchain.json` records for the newest tested minor, with its development
+headers and `/usr/local/bin/php-config`, the Node.js, Go, Rust and Composer
+releases that the checkout records, each image by its digest, and Chromium from
+the Debian snapshot of one date.
 Build from the complete repository context. Generated host dependencies and
 binaries are excluded. Dependencies are installed from the package lock files
 inside the image.

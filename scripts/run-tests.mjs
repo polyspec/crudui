@@ -225,7 +225,7 @@ async function main() {
   const { status, signal } = await new Promise(resolve => child.on('close', (status, signal) => resolve({ status, signal })));
   const code = status ?? (signal ? 1 : 0);
   if (progress) {
-    const summary = progress.close(label, { exitCode: timedOut ? 0 : code });
+    const summary = progress.close(label, { exitCode: timedOut ? 0 : code, requireTests: true });
     process.exitCode = summary.ok && !timedOut ? 0 : 1;
   } else {
     // node --test and vitest print their summary from inside the tool; a tool that then ends on a

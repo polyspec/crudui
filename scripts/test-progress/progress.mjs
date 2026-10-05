@@ -73,11 +73,14 @@ export function createProgress({ write, heartbeatMs = 5000, timeoutMs, onTimeout
     /**
      * End the run. Tests still running are failures; a failed group or a nonzero `exitCode` of
      * the tool fails the run even when no test failed, and the summary names the failed groups.
+     * With `requireTests`, a run in which no test case passed, failed or ran out of time fails
+     * with `ran no test case`: a selection that matched nothing checked nothing.
      */
-    close(label, { exitCode = 0 } = {}) {
+    close(label, { exitCode = 0, requireTests = false } = {}) {
       clearInterval(timer);
       for (const id of [...running.keys()]) this.fail(id, undefined, 'the test did not finish');
-      const failed = counts.failed + counts.timedOut + groupCounts.failed + (exitCode === 0 ? 0 : 1);
+      const empty = requireTests && counts.passed + counts.failed + counts.timedOut === 0;
+      const failed = counts.failed + counts.timedOut + groupCounts.failed + (exitCode === 0 ? 0 : 1) + (empty ? 1 : 0);
       const tests = counts.passed + counts.failed + counts.timedOut + counts.skipped;
       // A group can fail while every test in it passed, for example on a failed hook of a file.
       const groupsFailed = groupCounts.failed === 1 ? ', 1 group failed' : `, ${groupCounts.failed} groups failed`;
@@ -85,7 +88,7 @@ export function createProgress({ write, heartbeatMs = 5000, timeoutMs, onTimeout
         ? `${counts.passed} passed, ${counts.failed} failed, ${counts.timedOut} timed out, ${counts.skipped} skipped${groupCounts.failed ? groupsFailed : ''}`
         : `${groupCounts.passed} passed, ${groupCounts.failed} failed`;
       const exit = exitCode === 0 ? '' : `, the tool exited with ${exitCode}`;
-      line(`${failed ? '✖' : '✔'} ${label}: ${summary}${exit} (${seconds(now() - started)})`);
+      line(`${failed ? '✖' : '✔'} ${label}: ${empty ? 'ran no test case, ' : ''}${summary}${exit} (${seconds(now() - started)})`);
       return { ...counts, ok: failed === 0 };
     },
     counts,

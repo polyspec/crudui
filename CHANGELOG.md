@@ -1,5 +1,16 @@
 # Changes
 
+## 2026-10-05 — Runs that check nothing fail (C7.3)
+
+- `scripts/run-tests.mjs` fails a go, cargo or phpunit run and the Vitest reporter fails a vitest run
+  in which no test case passed, failed or ran out of time, with `ran no test case`;
+  `scripts/run-contract-tests.mjs` fails with `ran no command` when the selected features declare no
+  verification command. Such runs passed while they checked nothing.
+- The PHP check of the container definitions reads the `php` stages and the `php8.N-*` packages and
+  fails on an empty list; it iterated over the `FROM php:` stages, of which there were none, while
+  both images installed the Debian PHP 8.4. Both images now take PHP from the `php` image of the
+  recorded 8.5.11 and Composer from the `composer` 2.10.3 image, each by digest, and the PHP
+  extension builds use `/usr/local/bin/php-config`.
 ## 2026-10-05 — One visible page for the Tailwind style checks (C5.11)
 
 - `tests/tailwind-styles.test.mjs` computes the styles of `crudui.css` and of the Tailwind version in

@@ -2307,10 +2307,10 @@ test('PHP modules use the shared builder through explicit entry points', { timeo
   assert.match(files['tests/containers/native.Containerfile'],
     /node scripts\/build-crudui-php-extension\.mjs/);
   assert.match(files['tests/containers/native.Containerfile'],
-    /PHP_EXTENSION_PHP_CONFIG=\/usr\/bin\/php-config8\.4/);
+    /PHP_EXTENSION_PHP_CONFIG=\/usr\/local\/bin\/php-config/);
   assert.equal(
     files['tests/containers/native.Containerfile']
-      .match(/\/usr\/bin\/php-config8\.4/g)?.length,
+      .match(/\/usr\/local\/bin\/php-config/g)?.length,
     1,
     'The native container must declare php-config once',
   );
@@ -2319,9 +2319,9 @@ test('PHP modules use the shared builder through explicit entry points', { timeo
   // from the mounted repository with the declared php-config.
   const commandLine = step => [step.command, ...step.args].join(' ');
   assert.deepEqual(cruduiTarget.steps.map(commandLine),
-    ['node scripts/build-crudui-php-extension.mjs --php-config /usr/bin/php-config8.4']);
+    ['node scripts/build-crudui-php-extension.mjs --php-config /usr/local/bin/php-config']);
   assert.deepEqual(orderedJsonTarget.steps.map(commandLine), [
-    'node scripts/build-ordered-json-php-extension.mjs --php-config /usr/bin/php-config8.4'
+    'node scripts/build-ordered-json-php-extension.mjs --php-config /usr/local/bin/php-config'
       + ' --source /workspace/build/tree/.form-comparison/sources/ordered-json/php-extension/src',
   ]);
   const toolchain = normalized(files['examples/form-comparison/Containerfile']);
