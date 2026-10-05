@@ -140,6 +140,55 @@ test('no Makefile target takes a target that runs tests as a prerequisite', () =
   assert.deepEqual(testPrerequisites(declaredCommands()), []);
 });
 
+// A check command of a recipe: a command that reaches tests, or a document, format or manifest check.
+const CHECK = /\bnpm run [\w:-]*check\b|\bnode scripts\/check-[\w-]+\.mjs\b|--check\b|\bgofmt -l\b/;
+
+/**
+ * The recipes that stop at a failing check, as `target: reason`. Make stops at the first recipe
+ * line that fails, so the line that runs the first check is the last line of its target and runs
+ * each check with `|| status=1`, ending with `exit $$status`. Preparation lines before it still stop
+ * the target; a chain joined by `&&` whose later steps read the result of the earlier ones is one
+ * check.
+ */
+function stoppingRecipes(project) {
+  const isCheck = command => CHECK.test(command) || runsTests(command, project);
+  const violations = [];
+  for (const [target, rule] of Object.entries(project.make)) {
+    const first = rule.commands.findIndex(isCheck);
+    if (first === -1) continue;
+    const line = rule.commands[first];
+    for (const later of rule.commands.slice(first + 1)) violations.push(`${target}: \`${later}\` runs only when \`${line}\` passed`);
+    if (/\|\|\s*exit\b/.test(line)) violations.push(`${target}: a failing check ends the recipe with || exit`);
+    // Each check of the line sets status=1 on failure before the next check, and the line exits
+    // with the collected status.
+    const segments = line.split(';').map(command => command.trim());
+    const checks = segments.flatMap((command, index) => (isCheck(command) ? [index] : []));
+    const recorded = checks.every((index, position) => segments.slice(index, checks[position + 1] ?? segments.length)
+      .some(command => /\bstatus=1\b/.test(command)));
+    if (checks.length > 1 && (!recorded || !/exit \$\$status$/.test(line))) {
+      violations.push(`${target}: the checks of one line do not each set status=1 and exit with it`);
+    }
+  }
+  return violations;
+}
+
+test('a Makefile target runs every check after an earlier check failed', () => {
+  const fixture = makeTargets([
+    'lines:', '\tnpm run manifest:check', '\tnode scripts/check-documents.mjs', '\tnpm run docs:build',
+    'loop:', '\t@for crate in a b; do node scripts/run-rust-command.mjs fmt --check --manifest-path "$$crate" || exit 1; done',
+    'collected:', '\tnpm run build', '\t@status=0; npm run manifest:check || status=1; node scripts/check-documents.mjs || status=1; exit $$status',
+    'chain:', '\t$(MAKE) docs-clean', '\t@runs=$$(mktemp -d) && $(MAKE) docs-web && diff -r "$$runs/a" "$$runs/b"',
+    'unrecorded:', '\t@status=0; npm run manifest:check; node scripts/check-documents.mjs || status=1; exit $$status', '',
+  ].join('\n'));
+  assert.deepEqual(stoppingRecipes({ npm: {}, composer: {}, workspaces: {}, make: fixture }), [
+    'lines: `node scripts/check-documents.mjs` runs only when `npm run manifest:check` passed',
+    'lines: `npm run docs:build` runs only when `npm run manifest:check` passed',
+    'loop: a failing check ends the recipe with || exit',
+    'unrecorded: the checks of one line do not each set status=1 and exit with it',
+  ]);
+  assert.deepEqual(stoppingRecipes(declaredCommands()), []);
+});
+
 // A CI step runs either tests, whose cases each hold their own timeout in the test runner, or a
 // long operation: a checkout, a toolchain setup, an install, a build, a lint or type check, an
 // upload or a deployment. A long operation prints its own logs and has no time limit, and a job
