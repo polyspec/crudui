@@ -1,5 +1,10 @@
 # Changes
 
+## 2026-10-06 — Checklist wording (C7.15-1)
+
+- The rows C7.15 and C7.16 describe the pre-push hook and the documentation job without the word
+  that the writing check refuses, which failed the documentation job of CI.
+
 ## 2026-10-06 — CI through make (C7.17)
 
 - Every step of the workflows runs a make target, so the offline settings, the checkout npm and the
