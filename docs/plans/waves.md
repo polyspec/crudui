@@ -19,3 +19,7 @@ Depends on: none. Runs of different checkouts use the same resources: fixed dire
 ## Wave 4
 
 Depends on: none. The checklist wrote task state markers in its How to use legend and in the text of C2.1-2, so a tool that counted the markers of the file counted tasks in progress that do not exist. No check read the checklist outside the task states.
+
+## Wave 5
+
+Depends on: none. CI has failed on every push since 2026-09-25 while `make ci` passed locally on the same trees. The local full run starts in a working tree with the build output of earlier runs and compiles C with Apple clang on macOS; CI starts each job from a fresh checkout and compiles with GCC on Linux. A failed step skipped the later checks of its job, and a failed prerequisite of `make test-native` skipped the native suites, so one CI run did not show every failure, and the conformance check reported missing evidence without the suite that should have written it.

@@ -19,3 +19,7 @@
 ## Wave 4
 
 의존: 없음. checklist가 사용법의 범례와 C2.1-2의 문장에 작업 상태 표시를 적었으므로, file의 표시를 세는 도구가 존재하지 않는 진행 중 작업을 셌다. 작업 상태 밖의 checklist를 읽는 검사가 없었다.
+
+## Wave 5
+
+의존: 없음. CI는 2026-09-25부터 모든 push에서 실패했고, 같은 tree에서 local `make ci`는 통과했다. local full run은 이전 실행의 build 결과물이 있는 working tree에서 시작하고 macOS의 Apple clang으로 C를 compile한다. CI는 각 job을 새 checkout에서 시작하고 Linux의 GCC로 compile한다. 실패한 step은 그 job의 이후 검사를 건너뛰게 했고, `make test-native`의 실패한 prerequisite는 native suite를 건너뛰게 했으므로, CI 실행 한 번이 모든 실패를 보여 주지 않았고 conformance 검사는 그것을 써야 했던 suite 없이 빠진 evidence를 보고했다.
