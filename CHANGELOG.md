@@ -1,5 +1,11 @@
 # Changes
 
+## 2026-10-06 — The Chrome sandbox helper installed by one command (C7.2-4)
+
+- `scripts/install-browsers.mjs` installs the sandbox helper with `sudo install -o root -g root -m 4755
+  <chrome_sandbox> /usr/local/sbin/chrome-devel-sandbox`. It put `install` twice into the command, so
+  every browser job of CI failed at the browser installation and Chrome aborted without its helper.
+
 ## 2026-10-05 — The owner check before every commit (C7.9)
 
 - `make owner-check` runs the checks that `scripts/owner-checks.json` declares as owners of the changed

@@ -1,5 +1,11 @@
 # 변경 기록
 
+## 2026-10-06 — 명령 하나로 설치하는 Chrome sandbox helper (C7.2-4)
+
+- `scripts/install-browsers.mjs`는 sandbox helper를 `sudo install -o root -g root -m 4755 <chrome_sandbox>
+  /usr/local/sbin/chrome-devel-sandbox`로 설치합니다. 이전에는 명령에 `install`을 두 번 넣었으므로 CI의 모든 browser
+  job이 browser 설치에서 실패했고 Chrome은 helper 없이 중단했습니다.
+
 ## 2026-10-05 — 모든 commit 전의 owner check (C7.9)
 
 - `make owner-check`는 `scripts/owner-checks.json`이 바뀐 경로의 owner로 선언한 검사를 실행합니다. make 대상, root npm
