@@ -29,7 +29,7 @@ export GOPROXY := off
 export npm_config_offline := true
 export COMPOSER_DISABLE_NETWORK := 1
 ONLINE := env -u CARGO_NET_OFFLINE -u GOPROXY -u npm_config_offline -u COMPOSER_DISABLE_NETWORK
-.PHONY: help install install-crates install-ordered-json install-cargo-audit cargo-downloads-check dependency-review toolchain-check owner-check test-ordered-json docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-extension test-native test-native-suites test-validators test-form-binding conformance format-check deploy deploy-verify deploy-watch github-settings github-settings-check hooks hooks-check ci rerun-failed test-form-styles-linux remove-form-styles-image
+.PHONY: help push-gate-check install install-npm install-node-modules install-composer install-rust install-phpdocumentor install-browsers check-ci-browser test-runtimes test-dependencies build lint typecheck test-validator-js test-validator-php test-validator-go test-validator-rust test-cross-check manifest-test require-build test-cli manifest-check manifest-docs-check test-forms test-form-comparison test-form-comparison-pipeline test-packages test-build test-build-repeat test-inspector test-bench check-conformance install-crates install-ordered-json install-cargo-audit cargo-downloads-check dependency-review toolchain-check owner-check test-ordered-json docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-extension test-native test-native-suites test-validators test-form-binding conformance format-check deploy deploy-verify deploy-watch github-settings github-settings-check hooks hooks-check ci rerun-failed test-form-styles-linux remove-form-styles-image
 .NOTPARALLEL: docs docs-web docs-dev docs-preview docs-check docs-verify-idempotent
 
 # Validator benchmark iteration counts (override on the command line, e.g.
@@ -96,14 +96,33 @@ help: ## 타겟 설명
 # The npm of packageManager into .tools/npm, the dependencies of the lock files, the Rust toolchain of
 # rust-toolchain.toml, the crates of every Cargo.lock, the OrderedJSON checkout of the comparison and the phpDocumentor release that scripts/install-phpdocumentor.sh checks by its SHA-256. Node.js, Go, PHP and Composer are installed at the versions of .node-version, .go-version and
 # config/toolchain.json by the machine's package manager; `make toolchain-check` names every tool at another version.
-install: ## Install the recorded npm, the npm, Composer and Cargo dependencies, the Rust toolchain and phpDocumentor
+install: install-node-modules install-composer install-rust install-crates install-phpdocumentor ## Install the recorded npm, the npm, Composer and Cargo dependencies, the Rust toolchain and phpDocumentor
+
+# The parts of make install, which the CI jobs run for what they check: every CI step runs a make target, so the recipes
+# start every tool with the offline settings, $(NPM) and the toolchains of the checkout.
+install-npm: ## Install the npm release of packageManager into .tools/npm
 	$(ONLINE) node scripts/install-npm.mjs
+
+install-node-modules: install-npm ## Install the npm dependencies of package-lock.json with their approved install scripts
 	$(ONLINE) $(NPM) ci --strict-allow-scripts
+
+install-composer: ## Install the Composer dependencies of validator-php and generator-php
 	$(ONLINE) composer --working-dir=packages/validator-php install --no-interaction --prefer-dist
 	$(ONLINE) composer --working-dir=packages/generator-php install --no-interaction --prefer-dist
+
+install-rust: ## Install the Rust toolchain of rust-toolchain.toml
 	rustup toolchain install --no-self-update
-	$(MAKE) --no-print-directory install-crates
-	sh scripts/install-phpdocumentor.sh
+
+install-phpdocumentor: ## Install the phpDocumentor release that scripts/install-phpdocumentor.sh checks by its SHA-256
+	$(ONLINE) sh scripts/install-phpdocumentor.sh
+
+# The browsers that puppeteer and playwright pin (scripts/install-browsers.mjs); BROWSERS names the browsers and options.
+BROWSERS ?= chrome firefox webkit
+install-browsers: ## Install the pinned browsers of BROWSERS (chrome firefox webkit) into the checkout
+	$(ONLINE) node scripts/install-browsers.mjs $(BROWSERS)
+
+check-ci-browser: ## Check that the pinned Chrome runs sandboxed
+	node scripts/check-ci-browser.mjs
 
 # The crates of every Cargo.lock, after the OrderedJSON checkout that the lock of the Rust record server reads; a CI job
 # that runs a target with cargo-downloads-check runs it.
@@ -131,8 +150,60 @@ cargo-downloads-check: ## Check that the crates of every Cargo.lock are download
 dependency-review: install-cargo-audit ## Ask the registries for newer stable releases and advisories; RECORD=1 records the review, UPDATE=1 updates first
 	$(ONLINE) node scripts/dependency-review.mjs $(if $(RECORD),--record) $(if $(UPDATE),--update)
 
-toolchain-check: ## Fail when a tool does not run at the version that the checkout records
-	node scripts/check-toolchain.mjs node npm go rust php python composer
+# TOOLS names the tools that a CI job set up.
+TOOLS ?= node npm go rust php python composer
+toolchain-check: ## Fail when a tool of TOOLS does not run at the version that the checkout records
+	node scripts/check-toolchain.mjs $(TOOLS)
+
+# The checking commands of the CI workflow, one target each (CI_COMMANDS).
+test-runtimes: ## Exact runtime versions and test standards
+	$(NPM) run test:runtimes
+test-dependencies: ## The dependency graph and its recorded review
+	$(NPM) run test:dependencies
+build: ## Build the JavaScript packages
+	$(NPM) run build
+lint: ## Lint the repository
+	$(NPM) run lint
+typecheck: ## Type-check every TypeScript package
+	$(NPM) run typecheck
+test-validator-js: ## The TypeScript validator suite
+	$(NPM) test -w @crudui/validator
+test-validator-php: ## The PHP validator suite
+	composer --working-dir=packages/validator-php test
+test-validator-go: ## The Go validator suite
+	node scripts/run-tests.mjs go --cwd packages/validator-go -- ./...
+test-validator-rust: cargo-downloads-check ## The Rust validator suite
+	node scripts/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml
+test-cross-check: cargo-downloads-check ## The cross-check console gateway conformance
+	$(NPM) test --prefix examples/cross-check-console/server
+manifest-test: cargo-downloads-check ## The verification commands of the feature contracts
+	$(NPM) run manifest:test
+require-build: ## Build the packages when their sources or output changed
+	node scripts/require-current-build.mjs
+test-cli: ## The command-line interface suite
+	$(NPM) test -w @crudui/cli
+manifest-check: ## The feature contract manifest
+	$(NPM) run manifest:check
+manifest-docs-check: ## The generated feature contract documents
+	$(NPM) run manifest:docs:check
+test-forms: ## Form instances, renderers and the browser checks
+	$(NPM) run test:forms
+test-form-comparison: ## The form comparison runner regressions
+	$(NPM) run test:form-comparison
+test-form-comparison-pipeline: cargo-downloads-check ## The record stores and the canonical flow
+	$(NPM) run test:form-comparison:pipeline
+test-packages: ## The package install check
+	$(NPM) run test:packages
+test-build: ## The public builds
+	$(NPM) run test:build
+test-build-repeat: ## The reproducible build
+	$(NPM) run test:build:repeat
+test-inspector: ## The browser inspector
+	$(NPM) run test:inspector
+test-bench: cargo-downloads-check ## The benchmark drivers
+	$(NPM) run test:bench
+check-conformance: ## The conformance evidence against contracts/features.json
+	node scripts/check-conformance.mjs
 
 # The checks that own the changed paths (scripts/owner-checks.json): the paths of PATHS, the paths changed since BASE, or
 # the uncommitted changes and the new files that are not ignored. It never runs the full suite.
@@ -346,38 +417,43 @@ hooks: ## Install the tracked Git hooks (.githooks) and check them
 hooks-check: ## Fail when the pre-push hook is not installed
 	node scripts/push-gate.mjs hooks-check
 
+# The push check of .github/workflows/push-gate.yml: the checked-out commit has no checklist task in progress and tracks
+# the hook.
+push-gate-check: ## Fail when the checked-out commit has a checklist task in progress or does not track the pre-push hook
+	node scripts/push-gate.mjs commit HEAD
+
 # Every command the CI workflow runs after installing tools and dependencies, in workflow order,
 # with the conformance evidence collected and checked like the final CI job
 # (tests/build/ci-local.test.mjs keeps this list equal to .github/workflows/ci.yml).
 CI_COMMANDS = \
-	'npm run test:runtimes' \
-	'npm run test:dependencies' \
-	'npm run build' \
-	'npm run lint' \
-	'npm run typecheck' \
+	'make test-runtimes' \
+	'make test-dependencies' \
+	'make build' \
+	'make lint' \
+	'make typecheck' \
 	'make test-ordered-json' \
-	'npm test -w @crudui/validator' \
-	'composer --working-dir=packages/validator-php test' \
-	'node scripts/run-tests.mjs go --cwd packages/validator-go -- ./...' \
-	'node scripts/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml' \
+	'make test-validator-js' \
+	'make test-validator-php' \
+	'make test-validator-go' \
+	'make test-validator-rust' \
 	'make docs-check' \
 	'make build-php-extension' \
-	'npm test --prefix examples/cross-check-console/server' \
-	'npm run manifest:test' \
-	'node scripts/require-current-build.mjs' \
-	'npm test -w @crudui/cli' \
-	'npm run manifest:check' \
-	'npm run manifest:docs:check' \
-	'npm run test:forms' \
-	'npm run test:form-comparison' \
-	'npm run test:form-comparison:pipeline' \
-	'npm run test:packages' \
-	'npm run test:build' \
-	'npm run test:build:repeat' \
-	'npm run test:inspector' \
+	'make test-cross-check' \
+	'make manifest-test' \
+	'make require-build' \
+	'make test-cli' \
+	'make manifest-check' \
+	'make manifest-docs-check' \
+	'make test-forms' \
+	'make test-form-comparison' \
+	'make test-form-comparison-pipeline' \
+	'make test-packages' \
+	'make test-build' \
+	'make test-build-repeat' \
+	'make test-inspector' \
 	'make test-native' \
-	'npm run test:bench' \
-	'node scripts/check-conformance.mjs'
+	'make test-bench' \
+	'make check-conformance'
 # The stylesheet layout checks as the Linux CI runner runs them (WebKit, Chromium and Firefox in
 # the Playwright image of the pinned version), through `container` on macOS or `docker`. It is not
 # part of `make ci`, which runs the workflow commands on this machine.

@@ -93,7 +93,7 @@ async function guard(directory, mode, targets, failing = []) {
 
 test('make ci and make rerun-failed start the guard before any step', () => {
   const ci = dryRun('ci');
-  assert.match(ci[0], /^CRUDUI_CONFORMANCE_EVIDENCE=".+conformance-evidence" node scripts\/full-run\.mjs run 'npm run test:runtimes' 'npm run test:dependencies' /, ci.join('\n'));
+  assert.match(ci[0], /^CRUDUI_CONFORMANCE_EVIDENCE=".+conformance-evidence" node scripts\/full-run\.mjs run 'make test-runtimes' 'make test-dependencies' /, ci.join('\n'));
   assert.equal(ci.length, 1, ci.join('\n'));
   assert.equal(dryRun('rerun-failed').length, 1);
   assert.match(dryRun('rerun-failed')[0], /^CRUDUI_CONFORMANCE_EVIDENCE=".+conformance-evidence" node scripts\/full-run\.mjs rerun-failed$/);

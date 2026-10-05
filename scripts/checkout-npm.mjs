@@ -2,7 +2,7 @@
 // scripts/install-npm.mjs` installs the release that `packageManager` of package.json records into the ignored
 // directory .tools/npm of the checkout, never into the machine: a global npm is shared by every checkout of
 // the machine, and an install of one replaces the npm of the others. The Makefile exports PATH with NPM_BIN first, every
-// script that starts npm calls useCheckoutNpm, and every CI job adds NPM_BIN to GITHUB_PATH.
+// script that starts npm calls useCheckoutNpm, and every CI step starts npm through a make target.
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 

@@ -1,5 +1,11 @@
 # Changes
 
+## 2026-10-06 — CI through make (C7.17)
+
+- Every step of the workflows runs a make target, so the offline settings, the checkout npm and the
+  downloads check of the Makefile apply to CI: the install targets, `make toolchain-check TOOLS=...`
+  and one target for each checking command, which `make ci` runs in the same order.
+
 ## 2026-10-06 — Offline checks (C7.16)
 
 - The Makefile runs cargo, go, npm and Composer offline, and only the install targets and the

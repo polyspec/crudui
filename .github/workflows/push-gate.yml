@@ -32,6 +32,6 @@ jobs:
         with:
           node-version-file: '.node-version'
       - name: Check the recorded toolchain versions
-        run: node scripts/check-toolchain.mjs node
+        run: make toolchain-check TOOLS=node
       - name: Refuse a commit with a task in progress
-        run: node scripts/push-gate.mjs commit HEAD
+        run: make push-gate-check

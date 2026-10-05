@@ -141,20 +141,20 @@ test('every script that starts npm puts the checkout npm first', () => {
   assert.deepEqual(violations, [], 'call useCheckoutNpm() of scripts/checkout-npm.mjs before starting npm');
 });
 
-test('every CI job puts the checkout npm on GITHUB_PATH before its first npm command', () => {
+// A CI step starts npm only through a make target (tests/build/ci-local.test.mjs), and the Makefile puts the checkout
+// npm first on PATH, so no job adds it to GITHUB_PATH.
+test('every CI job starts npm through make, which puts the checkout npm first on PATH', () => {
+  assert.match(readFileSync(path.join(ROOT, 'Makefile'), 'utf8'), /^export PATH := \$\(CURDIR\)\/\.tools\/npm\/node_modules\/\.bin:\$\(PATH\)$/m);
   const directory = path.join(ROOT, '.github/workflows');
   const violations = [];
   for (const file of readdirSync(directory).filter(name => /\.ya?ml$/.test(name))) {
     const workflow = parse(readFileSync(path.join(directory, file), 'utf8'));
     for (const [id, job] of Object.entries(workflow.jobs ?? {})) {
-      let onPath = false;
       for (const step of job.steps ?? []) {
         if (typeof step.run !== 'string') continue;
-        const commands = step.run.split(/\n|&&/).map(text => text.trim()).filter(Boolean);
-        for (const command of commands) {
-          if (/^(?:npm|npx)\b/.test(command) && !onPath) violations.push(`${file} ${id}: \`${command}\` runs before .tools/npm/node_modules/.bin is on GITHUB_PATH`);
+        for (const command of step.run.split(/\n|&&/).map(text => text.trim()).filter(Boolean)) {
+          if (/^(?:npm|npx)\b/.test(command) || /GITHUB_PATH/.test(command)) violations.push(`${file} ${id}: \`${command}\``);
         }
-        if (commands.includes('node scripts/install-npm.mjs') && commands.includes('echo "$PWD/.tools/npm/node_modules/.bin" >> "$GITHUB_PATH"')) onPath = true;
       }
     }
   }

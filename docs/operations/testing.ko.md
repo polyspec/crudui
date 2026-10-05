@@ -27,6 +27,13 @@ container, form comparison, native와 cross-check suite, 전체 build), `make ow
 CI에서 실행하며, push나 commit 전에 local 검사를 요구하는 규칙은 없습니다. pre-push hook은 checklist 작업이 `[~]`인
 동안 push를 거부할 뿐입니다(아래). `make ci`와 `make owner-check`는 요청할 때 실행할 수 있습니다.
 
+workflow의 모든 step은 make 대상을 실행합니다. 설치(`make install-npm`, `make install-node-modules`,
+`make install-composer`, `make install-rust`, `make install-crates`, `make install-browsers BROWSERS="..."`), 도구 검사
+(`make toolchain-check TOOLS="..."`), 각 검사(`make test-runtimes`, `make lint`, `make test-forms`와 `CI_COMMANDS`의 나머지)가
+그렇습니다. 그래서 recipe는 모든 도구를 offline 설정, `$(NPM)`, checkout의 toolchain으로 시작합니다.
+`tests/build/ci-local.test.mjs`는 make 없이 node, npm, npx, cargo, go, php, composer, rustup, python3, sh를 시작하는 step에서
+실패합니다.
+
 `make ci`는 CI 워크플로의 모든 검사 명령을 워크플로 순서대로 실행하고, 적합성 증거를 모아 CI의 마지막
 작업처럼 검사합니다. `tests/build/ci-local.test.mjs`는 이 목록이 `.github/workflows/ci.yml`과 다르면
 실패합니다.
