@@ -4,7 +4,7 @@
 // properties, as crudui.css at 360 and 1280 CSS pixels in Chromium, Firefox and WebKit.
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { test } from 'node:test';
+import { describe, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { compile } from '@tailwindcss/node';
 import { engineDrivers, engines } from './browser-engines.mjs';
@@ -60,28 +60,27 @@ test('the compiled Tailwind version holds the CRUDUI rules in the layer componen
   assert.ok(tailwind.includes('.crudui-form'), 'the compiled stylesheet has no CRUDUI rule');
 });
 
+// Two pages per engine and width hold crudui.css and the compiled Tailwind version; every shared
+// render case is its own test with the runner's timeout of a test.
 for (const engine of engines) {
   for (const width of widths) {
-    test(`${engine} at ${width} px: the Tailwind version computes the styles of crudui.css`, { timeout: 600000 }, async t => {
-      const started = performance.now();
-      const plain = await open(engine, width, core);
-      const layered = await open(engine, width, tailwind);
-      try {
-        const failures = [];
-        for (const item of cases) {
+    describe(`${engine} at ${width} px: the Tailwind version computes the styles of crudui.css`, () => {
+      let plain, layered;
+      setup(`${engine} ${width} px page open`, async () => {
+        plain = await open(engine, width, core);
+        layered = await open(engine, width, tailwind);
+      });
+      teardown(`${engine} ${width} px page close`, () => Promise.all([plain?.close(), layered?.close()]));
+      for (const item of cases) {
+        test(item.name, async () => {
           const expected = await plain.mainFrame().evaluate(computed, item.html);
           const actual = await layered.mainFrame().evaluate(computed, item.html);
           const index = expected.findIndex((value, at) => value !== actual[at]);
           if (index >= 0 || expected.length !== actual.length) {
             const differing = (expected[index] ?? '').split(';').filter(entry => !(actual[index] ?? '').split(';').includes(entry));
-            failures.push(`${item.name}: element ${index}: ${differing.slice(0, 3).join('; ')}`);
+            assert.fail(`element ${index}: ${differing.slice(0, 3).join('; ')}`);
           }
-        }
-        t.diagnostic(`${engine} ${width} px: ${cases.length} cases, ${failures.length} differ, ${Math.round(performance.now() - started)} ms`);
-        assert.deepEqual(failures, []);
-      } finally {
-        await plain.close();
-        await layered.close();
+        });
       }
     });
   }
