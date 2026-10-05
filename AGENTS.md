@@ -20,22 +20,24 @@
   characters, capitalized, imperative, without a trailing period; a blank line; a body wrapped
   near 72 characters explaining what changed and why; an optional footer for references. The
   type is one of feat, fix, docs, style, refactor, test or chore.
-- While a task is in development, run only the Red and Green tests that own the change. The full
-  suite runs exactly once, when every active task of the checklist is done; it never runs after
-  each fix or each task. Every test reports its own running, completion, success or failure with
+- During development, run only the unit tests that own the change: its Red and Green cases. End-to-end
+  checks (browsers, containers, the form comparison, the native and cross-check suites, full builds),
+  `make owner-check` and the full run `make ci` run in CI after the push, and no rule requires a local
+  check before a push or a commit. A failure that CI reports gets a task like any other defect.
+  Every test reports its own running, completion, success or failure with
   its elapsed time. Each test case is a short verification unit and has its own timeout; a
   whole-suite timeout is not used. A long operation (a build, an install, a toolchain setup, a
   browser close, a server stop, a whole suite) prints detailed step logs and has no timeout, no
   inactivity limit included: its success or failure is judged from its observed result and errors,
   and its end is the event of that result. A test that runs for tens of minutes, or that prints only
   its start and its end, is a defect.
-- The guard `scripts/full-run.mjs` enforces the single full run before any step: `make ci` is
-  refused while a task is `[~]`, while tracked changes are uncommitted, and when `var/full-run.json`
+- `make ci` reproduces the CI workflow on this machine on request. Its guard `scripts/full-run.mjs`
+  runs it once per committed tree: it is refused while a task is `[~]`, while tracked changes are uncommitted, and when `var/full-run.json`
   records a full run of the current tree, and while the pre-push hook is not installed;
   `make rerun-failed` reruns only the commands of the current tree that did not pass
   (`docs/operations/testing.md`).
 - A push happens only when no task of the checklist is `[~]`, neither in a pushed commit nor in the
-  working tree. The tracked pre-push hook `.githooks/pre-push` runs
+  working tree; this is the only check before a push, and it runs no test. The tracked pre-push hook `.githooks/pre-push` runs
   `node scripts/push-gate.mjs hook`, which refuses such a push and names each task in progress.
   Every `make` run sets `core.hooksPath` to `.githooks` when it reads the Makefile; `make hooks`
   installs and checks the hook, and `make hooks-check` fails while it is not installed. The job
@@ -68,8 +70,8 @@
   result would expose it. Confirm the intended failure before implementation,
   correct the cause, and confirm the same case and relevant use tests pass.
   Investigate a case that cannot expose the problem instead of weakening the criterion.
-- Run the tests that own the change. Before a commit, run `make owner-check`: it runs the checks
-  that `scripts/owner-checks.json` declares as owners of the changed paths, never the full suite,
+- `scripts/owner-checks.json` declares the checks that own each path and the paths that each check
+  reads; `make owner-check` runs the owners of the changed paths on request, never the full suite,
   and fails for a path that no rule owns and for a path that a check reads (`inputs`) when no rule
   of the path selects that check. A new path gets its owner in that file in the same change. Record
   results for the current code separately from deployment status.
@@ -144,8 +146,8 @@ The same tree gives the same result on every date and machine, and a failed run 
 - Assertions: a test asserts the structured result of an external tool (its exit status, report, events), never its
   human-readable output, whose wording changes with its version, its locale or a parent process; the commands of a
   Makefile target are read only through `makeDryRun` of `tests/build/make-dry-run.mjs`.
-- Owners: every path has an owner in `scripts/owner-checks.json`, with the paths that each check reads, and
-  `make owner-check` runs before every commit.
+- Owners: every path has an owner in `scripts/owner-checks.json`, with the paths that each check reads, and CI runs
+  every check after each push.
 - Shared resources: a resource that runs share is held by a lease (`scripts/holder-lock.mjs`) or each run uses a
   directory, name or port of its own; a port is taken by the server that listens on it (port 0) and announced, never
   probed before.

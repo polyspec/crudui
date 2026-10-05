@@ -17,18 +17,21 @@
 - 커밋 로그는 영문으로 `type(scope): subject (#issue)` 형식으로 쓴다: 50자 이내 명령조 대문자 시작
   제목(끝 마침표 없음), 빈 줄, 72자 부근 개행한 본문(무엇을·왜 변경했는지), 선택적 꼬리말. 타입은
   feat, fix, docs, style, refactor, test, chore 중 하나다.
-- 작업을 개발하는 동안에는 바뀐 것을 소유한 Red와 Green 테스트만 실행합니다. 전체 묶음은
-  checklist의 활성 작업이 모두 끝났을 때 정확히 한 번 실행하고, 수정마다나 작업마다 실행하지
-  않습니다. 모든 테스트는 자신의 실행·완료·성공·실패와 경과 시간을 출력합니다. 각 test case는
+- 개발하는 동안에는 바뀐 것을 소유한 unit test, 곧 그 Red와 Green case만 실행합니다. end-to-end 검사(browser,
+  container, form comparison, native와 cross-check suite, 전체 build), `make owner-check`, 전체 실행 `make ci`는 push 뒤에
+  CI에서 실행하며, push나 commit 전에 local 검사를 요구하는 규칙은 없습니다. CI가 보고한 실패는 다른 결함처럼
+  작업을 얻습니다. 모든 테스트는 자신의 실행·완료·성공·실패와 경과 시간을 출력합니다. 각 test case는
   짧은 검증 단위이며 자기 timeout을 가지고, 전체 일괄 timeout은 쓰지 않습니다. 장기 작업(build,
   install, toolchain setup, browser close, server stop, 전체 suite)은 상세 step log를 출력하고
   timeout을 두지 않으며, 출력 없음 한도도 두지 않습니다. 그 성공과 실패는 관측한 결과와 오류로
   판정하고, 그 끝은 그 결과의 event입니다. 수십 분 동안 실행되는 테스트와 시작과 끝만 출력하는
   테스트는 결함입니다.
-- guard `scripts/full-run.mjs`가 어떤 단계보다 먼저 한 번의 전체 실행을 강제합니다. 작업이 `[~]`이거나, 추적 파일의 변경이 커밋되지 않았거나,
+- `make ci`는 요청할 때 이 machine에서 CI workflow를 재현합니다. 그 guard `scripts/full-run.mjs`는 커밋된 tree마다
+  한 번 실행합니다. 작업이 `[~]`이거나, 추적 파일의 변경이 커밋되지 않았거나,
   `var/full-run.json`이 현재 tree의 전체 실행을 기록하고 있거나, pre-push hook이 설치되지 않았으면 `make ci`는 거부됩니다.
   `make rerun-failed`는 현재 tree에서 통과하지 못한 명령만 다시 실행합니다(`docs/operations/testing.md`).
-- push는 push되는 commit에도 working tree에도 checklist의 `[~]` 작업이 없을 때만 합니다. 추적되는 pre-push hook
+- push는 push되는 commit에도 working tree에도 checklist의 `[~]` 작업이 없을 때만 합니다. 이것이 push 전의 유일한 검사이며
+  test는 실행하지 않습니다. 추적되는 pre-push hook
   `.githooks/pre-push`는 `node scripts/push-gate.mjs hook`을 실행하고, 이 entry는 그런 push를 거부하며 진행 중인 각 작업을
   적습니다. 모든 `make` 실행은 Makefile을 읽을 때 `core.hooksPath`를 `.githooks`로 설정합니다. `make hooks`는 hook을
   설치하고 검사하며, `make hooks-check`는 hook이 설치되지 않은 동안 실패합니다. `.github/workflows/push-gate.yml`의 job
@@ -58,8 +61,8 @@
   실패 사례를 먼저 작성합니다. 구현 전에 의도한 실패를 확인하고 원인을
   고친 뒤 같은 사례와 관련 사용 테스트의 통과를 확인합니다. 사례가
   문제를 드러내지 못하면 기준을 낮추지 말고 조사합니다.
-- 바뀐 것을 소유한 테스트를 실행합니다. commit 전에 `make owner-check`를 실행합니다. 이것은
-  `scripts/owner-checks.json`이 바뀐 경로의 owner로 선언한 검사를 실행하고 full suite는 실행하지 않으며,
+- `scripts/owner-checks.json`은 각 경로를 소유한 검사와 각 검사가 읽는 경로를 선언합니다. `make owner-check`는
+  요청할 때 바뀐 경로의 owner를 실행하고 full suite는 실행하지 않으며,
   어떤 규칙도 소유하지 않는 경로와, 검사가 읽는 경로(`inputs`)를 그 경로의 규칙이 그 검사로 고르지 않을 때
   실패합니다. 새 경로는 같은 변경에서 그 file에 owner를 얻습니다. 현재 코드의 검사 결과와 배포 상태를
   별도로 기록합니다.
@@ -124,7 +127,7 @@
 - 단언: test는 외부 도구의 구조화된 결과(exit status, report, event)를 단언하고, version, locale, 부모 process에 따라 문구가
   바뀌는 사람이 읽는 출력은 단언하지 않는다. Makefile 대상의 명령은 `tests/build/make-dry-run.mjs`의 `makeDryRun`으로만
   읽는다.
-- owner: 모든 경로는 `scripts/owner-checks.json`에 owner와 각 검사가 읽는 경로를 가지며, 모든 commit 전에
-  `make owner-check`를 실행한다.
+- owner: 모든 경로는 `scripts/owner-checks.json`에 owner와 각 검사가 읽는 경로를 가지며, CI는 push마다 모든 검사를
+  실행한다.
 - 공유 자원: 실행들이 함께 쓰는 자원은 lease(`scripts/holder-lock.mjs`)로 잡거나 실행마다 자기 directory, 이름, port를
   쓴다. port는 그것에서 수신하는 server가 잡고(port 0) 알리며, 미리 확인하지 않는다.
