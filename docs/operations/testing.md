@@ -70,6 +70,12 @@ committed tree; when `var/full-run.json` records a full run of the current tree 
 HEAD^{tree}`), naming that run with its commit, its start time and its result; and while the process
 of an `incomplete` record still runs.
 
+The commands run in `var/full-run/clone`, a fresh clone of the committed commit: the guard clones
+the checkout into it, checks out the commit and runs `make install` there, so no ignored build
+output, run record or untracked file of the working tree reaches a check. A rerun of the same commit
+reuses the clone when its installs completed; a failed `make install` stops the run before any
+command and names the clone and the commit.
+
 A target of the guard is one command of `CI_COMMANDS`, named by its text. A full run removes the
 conformance evidence of earlier runs, runs each command with `sh -c` to its end, also after a
 command fails, and prints `[full-run] start <command> (<n>/<total>)` and `[full-run] <command>

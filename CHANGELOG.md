@@ -1,5 +1,10 @@
 # Changes
 
+## 2026-10-06 — Full run in a fresh clone (C5.7)
+
+- `make ci` runs its commands in `var/full-run/clone`, a fresh clone of the committed commit after
+  `make install`, so no ignored output of the working tree reaches a check.
+
 ## 2026-10-06 — Stub stall closed with its evidence (C7.13)
 
 - The 30 s stall of the stub programs did not recur in 12 CI runs and 3 local runs; their first

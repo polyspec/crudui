@@ -12,7 +12,8 @@
 // (`git rev-parse HEAD^{tree}`); `rerun-failed` is refused unless that record exists and has targets that did not
 // pass. The guard prints its decision with the reason, runs each target with `sh -c <command>` to its end, prints its
 // start and its result with the elapsed time, and writes the record before and after each target, so a run that is
-// stopped stays recorded as `incomplete`. No step has a time limit.
+// stopped stays recorded as `incomplete`. No step has a time limit. The commands run in var/full-run/clone, a fresh
+// clone of the committed tree after `make install`, so no ignored output of the working tree reaches a check.
 import { spawn, spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
@@ -27,6 +28,8 @@ const USAGE = 'Usage: node scripts/full-run.mjs run <command>... | rerun-failed'
 export const CHECKLIST = 'docs/plans/execution-checklist.md';
 // The record of the last full run of this checkout; /var/ is ignored by Git.
 export const RECORD = 'var/full-run.json';
+// The fresh clone of the committed tree in which the commands run, so no ignored output of the working tree reaches them.
+export const CLONE = 'var/full-run/clone';
 
 const TASK_ROW = /^\|\s*(C\d[\w.-]*)\s*\|/;
 
@@ -125,6 +128,30 @@ function runCommand(root, command) {
 }
 
 /**
+ * A fresh clone of `commit` of the checkout at `root` in CLONE: the files of the committed tree and nothing else. A
+ * clone at another commit or with changes is replaced; `install(directory)` resolves whether `make install` passed in
+ * a new clone. Returns the absolute path of the clone.
+ */
+export async function prepareClone({ root, commit, print, install }) {
+  const directory = path.join(root, CLONE);
+  const head = existsSync(path.join(directory, '.git')) ? spawnSync('git', ['rev-parse', 'HEAD'], { cwd: directory, encoding: 'utf8' }) : null;
+  const clean = head?.status === 0 && spawnSync('git', ['status', '--porcelain', '--untracked-files=no'], { cwd: directory, encoding: 'utf8' }).stdout === '';
+  if (head?.stdout.trim() === commit && clean && existsSync(path.join(directory, '.git', 'crudui-installed'))) {
+    print(`[full-run] clone ${CLONE} is at ${commit} with its installs`);
+    return directory;
+  }
+  rmSync(directory, { recursive: true, force: true });
+  mkdirSync(path.dirname(directory), { recursive: true });
+  git(root, 'clone', '--quiet', '--no-checkout', root, directory);
+  git(directory, 'checkout', '--quiet', '--detach', commit);
+  print(`[full-run] cloned ${commit} into ${CLONE}; make install starts`);
+  if (!await install(directory)) throw new Error(`make install failed in the clone ${CLONE} of ${commit}`);
+  // The marker lies in the Git directory of the clone, outside its tree.
+  writeFileSync(path.join(directory, '.git', 'crudui-installed'), `${commit}\n`);
+  return directory;
+}
+
+/**
  * Inspects the checkout, decides and runs. `runTarget(name)` resolves whether a target passed. Returns the exit
  * status: 0 when the full result of the tree is passed, 1 otherwise.
  */
@@ -148,7 +175,7 @@ export async function fullRun(options) {
   }
 }
 
-async function guardedRun({ root, mode, targets = [], runTarget = name => runCommand(root, name), print, evidence = process.env.CRUDUI_CONFORMANCE_EVIDENCE, versions = () => toolchainVersions(undefined, { root }) }) {
+async function guardedRun({ root, mode, targets = [], runTarget = (name, directory) => runCommand(directory, name), install = directory => runCommand(directory, 'make install'), print, evidence = process.env.CRUDUI_CONFORMANCE_EVIDENCE, versions = () => toolchainVersions(undefined, { root }) }) {
   const active = activeItems(readFileSync(path.join(root, CHECKLIST), 'utf8'));
   const hooks = hooksIssue(root);
   const dirty = git(root, 'status', '--porcelain', '--untracked-files=no').split('\n').filter(Boolean);
@@ -175,6 +202,8 @@ async function guardedRun({ root, mode, targets = [], runTarget = name => runCom
   if (rerun) current.reruns.push(rerun);
   writeRecord(root, current);
 
+  // The commands run in a fresh clone of the committed tree (C5.7): a check never reads ignored output of earlier runs.
+  const clone = await prepareClone({ root, commit: current.commit ?? commit, print, install });
   const begin = Date.now();
   for (const [index, name] of decision.targets.entries()) {
     const target = current.targets.find(entry => entry.name === name);
@@ -182,7 +211,7 @@ async function guardedRun({ root, mode, targets = [], runTarget = name => runCom
     writeRecord(root, current);
     print(`[full-run] start ${name} (${index + 1}/${decision.targets.length})`);
     const targetBegin = Date.now();
-    const passed = await runTarget(name);
+    const passed = await runTarget(name, clone);
     Object.assign(target, { status: passed ? 'passed' : 'failed', ended: now(), elapsedMs: Date.now() - targetBegin });
     writeRecord(root, current);
     print(`[full-run] ${name} ${target.status} in ${seconds(target.elapsedMs)}`);
