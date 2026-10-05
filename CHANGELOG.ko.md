@@ -1,5 +1,10 @@
 # 변경 기록
 
+## 2026-10-06 — 새 clone에서의 전체 실행 (C5.7)
+
+- `make ci`는 `make install` 뒤의 commit된 commit의 새 clone인 `var/full-run/clone`에서 명령을 실행하므로, working
+  tree의 무시되는 출력이 검사에 닿지 않습니다.
+
 ## 2026-10-06 — 근거와 함께 닫은 stub stall (C7.13)
 
 - stub program의 30 s stall은 CI 실행 12번과 local 실행 3번에서 재발하지 않았습니다. 첫 실행은 Linux에서 최대 81 ms,

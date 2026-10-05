@@ -79,6 +79,7 @@ async function guard(directory, mode, targets, failing = []) {
     print: line => lines.push(line),
     evidence: path.join(directory, 'var/conformance-evidence'),
     versions: () => ({ node: '26.8.1', php: '8.5.10' }),
+    install: async () => true,
     runTarget: async name => {
       // The record names the target as running while it runs, with the run still incomplete.
       const current = record(directory);
@@ -267,6 +268,7 @@ test('a run that stops records the run as incomplete, and rerun-failed runs its 
     targets: ['a', 'b', 'c'],
     print: () => {},
     evidence: path.join(directory, 'var/conformance-evidence'),
+    install: async () => true,
     runTarget: async name => {
       if (name === 'b') throw new Error('stopped');
       return true;
@@ -285,6 +287,50 @@ test('a run that stops records the run as incomplete, and rerun-failed runs its 
   assert.equal(rerun.status, 0, rerun.output);
   assert.deepEqual(rerun.ran, ['b', 'c']);
   assert.equal(record(directory).result, 'passed');
+});
+
+test('the commands run in a fresh clone of the committed tree, without the ignored and untracked files of the checkout', async t => {
+  const directory = checkout(t, DONE);
+  commit(directory, 'source.txt', 'committed\n');
+  // Output of an earlier run and a file that was never committed stay in the working tree only.
+  mkdirSync(path.join(directory, 'var/dist'), { recursive: true });
+  writeFileSync(path.join(directory, 'var/dist/stale.js'), 'stale\n');
+  writeFileSync(path.join(directory, 'untracked.txt'), 'new\n');
+  const installs = [];
+  const seen = [];
+  const status = await fullRun({
+    root: directory, mode: 'run', targets: ['a', 'b'], print: () => {},
+    evidence: path.join(directory, 'var/conformance-evidence'), versions: () => ({}),
+    install: async clone => { installs.push(clone); return true; },
+    runTarget: async (name, clone) => {
+      seen.push({ name, clone, head: git(clone, 'rev-parse', 'HEAD'), files: git(clone, 'ls-files', '--others', '--cached').split('\n').sort(),
+        stale: existsSync(path.join(clone, 'var/dist/stale.js')), untracked: existsSync(path.join(clone, 'untracked.txt')) });
+      return true;
+    },
+  });
+  assert.equal(status, 0);
+  const clone = path.join(directory, 'var/full-run/clone');
+  assert.deepEqual(installs, [clone], 'make install runs once in the new clone');
+  for (const entry of seen) {
+    assert.equal(entry.clone, clone);
+    assert.equal(entry.head, git(directory, 'rev-parse', 'HEAD'));
+    assert.deepEqual(entry.files, ['.githooks/pre-push', '.gitignore', 'docs/plans/execution-checklist.md', 'source.txt']);
+    assert.equal(entry.stale, false);
+    assert.equal(entry.untracked, false);
+  }
+  // A rerun of the same commit reuses the installed clone; a failed install fails the run before any target.
+  const failed = record(directory);
+  Object.assign(failed, { result: 'failed', failed: ['b'] });
+  failed.targets[1].status = 'failed';
+  writeFileSync(path.join(directory, RECORD), JSON.stringify(failed));
+  const reran = [];
+  assert.equal(await fullRun({ root: directory, mode: 'rerun-failed', print: () => {}, evidence: path.join(directory, 'var/conformance-evidence'), versions: () => ({}),
+    install: async () => { throw new Error('the installed clone is reused'); }, runTarget: async name => { reran.push(name); return true; } }), 0);
+  assert.deepEqual(reran, ['b']);
+  rmSync(path.join(clone, '.git/crudui-installed'));
+  writeFileSync(path.join(directory, RECORD), JSON.stringify(failed));
+  await assert.rejects(fullRun({ root: directory, mode: 'rerun-failed', print: () => {}, evidence: path.join(directory, 'var/conformance-evidence'), versions: () => ({}),
+    install: async () => false, runTarget: async () => true }), /make install failed in the clone var\/full-run\/clone of [0-9a-f]{40}/);
 });
 
 test('a full run starts without conformance evidence, and a rerun keeps the evidence of the commands that passed', async t => {

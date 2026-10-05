@@ -61,6 +61,11 @@ refuse: ...`) 다음의 경우 status 1로 거부합니다. checklist의 작업 
 `var/full-run.json`이 현재 tree(`git rev-parse HEAD^{tree}`)의 전체 실행을 기록하고 있으면 그 실행을 commit, 시작 시각, 결과와
 함께 밝히며 거부합니다. `incomplete` record의 process가 아직 실행 중이면 거부합니다.
 
+명령은 commit된 commit의 새 clone인 `var/full-run/clone`에서 실행됩니다. guard는 checkout을 그곳에 clone하고 commit을
+checkout한 뒤 그곳에서 `make install`을 실행하므로, working tree의 무시되는 build 출력, 실행 기록, 추적되지 않는 file은 검사에
+닿지 않습니다. 같은 commit의 rerun은 설치가 끝난 clone을 다시 쓰고, 실패한 `make install`은 어떤 명령보다 먼저 실행을
+멈추고 clone과 commit을 밝힙니다.
+
 guard의 target은 `CI_COMMANDS`의 명령 하나이며 그 text로 이름을 붙입니다. 전체 실행은 이전 실행의 적합성 증거를 지우고, 각 명령을 `sh -c`로
 끝까지 실행하며, 명령이 실패한 뒤에도 계속하고, `[full-run] start <command> (<n>/<total>)`와 `[full-run] <command>
 passed|failed in <seconds> s`를 출력합니다. 어떤 명령에도 시간 제한이 없습니다. 각 명령의 앞뒤에 `var/full-run.json`을 씁니다. 이
