@@ -249,6 +249,14 @@ test('a package script or a CI step runs every check after an earlier check fail
   assert.deepEqual(violations, []);
 });
 
+// tests/build/public-packages.test.mjs loads every published package through its exports, which name its `dist`, so
+// test:build builds the packages first and never reads the output of an earlier build.
+test('test:build builds the packages before the tests that load them', () => {
+  const script = JSON.parse(read('package.json')).scripts['test:build'];
+  assert.match(script, /^node scripts\/require-current-build\.mjs && node scripts\/run-tests\.mjs node -- .*tests\/build\/public-packages\.test\.mjs/);
+  assert.match(read('tests/build/public-packages.test.mjs'), /await import\(pkg\.manifest\.name\)/);
+});
+
 // A CI step runs either tests, whose cases each hold their own timeout in the test runner, or a
 // long operation: a checkout, a toolchain setup, an install, a build, a lint or type check, an
 // upload or a deployment. A long operation prints its own logs and has no time limit, and a job
@@ -298,15 +306,14 @@ test('no test asserts a bound on an elapsed time', () => {
   assert.deepEqual(bounds, []);
 });
 
-// Building the packages is a long operation. The reproducible build check builds them twice in a
-// logged step without a time limit; its test compares the recorded outputs within seconds.
-test('the reproducible build test compares recorded builds within the default test timeout', () => {
+// Building the packages is a long operation. The reproducible build check builds them twice in a logged step without a
+// time limit and compares its own two builds; its test reads no build record and runs within the default timeout.
+test('the reproducible build check compares its own builds and its test reads no record', () => {
   const command = JSON.parse(read('package.json')).scripts['test:build:repeat'];
-  const build = command.indexOf('node scripts/repeat-build.mjs');
-  const runner = command.indexOf('node scripts/run-tests.mjs node');
-  assert.ok(build !== -1 && runner > build, `test:build:repeat builds twice before the test: ${command}`);
-  assert.doesNotMatch(command, /--timeout/, 'test:build:repeat keeps the 30-second timeout of each test');
-  assert.doesNotMatch(read('tests/build/reproducible-build.test.mjs'), /npm', \['run', 'build'\]/, 'the test runs no build');
+  assert.equal(command, 'status=0; node scripts/repeat-build.mjs || status=1; node scripts/run-tests.mjs node -- tests/build/reproducible-build.test.mjs || status=1; exit $status');
+  const test = read('tests/build/reproducible-build.test.mjs');
+  assert.doesNotMatch(test, /npm', \['run', 'build'\]|REPEAT_BUILD|readFileSync\(join\(/, 'the test runs no build and reads no build record');
+  assert.doesNotMatch(read('scripts/repeat-build.mjs'), /writeFile|REPEAT_BUILD/, 'the check keeps no record between runs');
 });
 
 // A program waits for the event of what it waits for (AGENTS): a process exit, a readiness line, a

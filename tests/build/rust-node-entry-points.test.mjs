@@ -254,3 +254,21 @@ test('cross-check server builds Rust through its module-located entry point', t 
     rustdoc: tools.rustdoc,
   }]);
 });
+
+test('a Cargo command refuses a CARGO_TARGET_DIR outside its checkout', async t => {
+  const { requireCheckoutTarget, runRustCommand } = await import('../../scripts/run-rust-command.mjs');
+  const outside = mkdtempSync(path.join(realpathSync(os.tmpdir()), 'crudui-shared-target-'));
+  t.after(() => rmSync(outside, { recursive: true, force: true }));
+  const crate = path.join(repository, 'packages/validator-rust');
+  const ran = [];
+  await assert.rejects(
+    runRustCommand(['build'], { cwd: crate, environment: { ...process.env, CARGO_TARGET_DIR: outside }, run: async (...call) => { ran.push(call); } }),
+    new RegExp(`CARGO_TARGET_DIR ${outside} is outside the checkout ${repository} of ${crate}`),
+  );
+  assert.deepEqual(ran, [], 'no tool runs before the refusal');
+  // A target inside the checkout, and no CARGO_TARGET_DIR, are accepted.
+  assert.doesNotThrow(() => requireCheckoutTarget(crate, { CARGO_TARGET_DIR: path.join(repository, 'var/target') }));
+  assert.doesNotThrow(() => requireCheckoutTarget(crate, {}));
+  // Outside a Git working tree, the checkout is the working directory.
+  assert.doesNotThrow(() => requireCheckoutTarget(outside, { CARGO_TARGET_DIR: path.join(outside, 'target') }));
+});

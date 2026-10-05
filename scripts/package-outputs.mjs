@@ -1,6 +1,6 @@
 // The build output of the published workspace packages: the path and SHA-256 digest of every file
-// in each package's `dist` directory, in path order. scripts/repeat-build.mjs records it after each
-// of two builds, and tests/build/reproducible-build.test.mjs compares the records.
+// in each package's `dist` directory, in path order. scripts/repeat-build.mjs reads it after each of
+// its two builds and compares them.
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { lstatSync, readdirSync, readFileSync } from 'node:fs';
@@ -9,7 +9,6 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const PACKAGES = ['validator-ts', 'generator-core', 'generator-html', 'generator-react', 'generator-vue', 'generator-svelte', 'form-binding'];
-export const REPEAT_BUILD_DIRECTORY = path.join(ROOT, 'node_modules/.cache/crudui/repeat-build');
 
 export function buildOutputs() {
   const files = [];
