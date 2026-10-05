@@ -1,5 +1,12 @@
 # 변경 기록
 
+## 2026-10-05 — 긴 C string의 문자 상수 (C5.3)
+
+- `packages/php-ext/tests/engine.test.mjs`의 `cString`은 4000 byte보다 긴 값의 각 byte를 octal escape의 문자 상수로
+  씁니다. 이전에는 byte를 정수로 써서 127보다 큰 UTF-8 byte가 `char`를 초기화했고, GCC는 render fixture를
+  `-Werror=overflow`로 실패시켰습니다. Apple clang은 두 형식을 모두 받아들입니다. file의 case는 initializer에 127보다
+  큰 정수가 있으면 실패하고 문자 상수를 값의 byte로 되돌려 비교합니다.
+
 ## 2026-10-05 — build 결과물 없이 실행하는 dist lock test (C5.2)
 
 - `tests/build/shared-resources.test.mjs`는 임시 checkout에서 build하고 pack하는 fixture package로 `dist` lock을
