@@ -1,5 +1,12 @@
 # 변경 기록
 
+## 2026-10-05 — 19.2.8에 둔 React (C5.8-2-1)
+
+- React와 React DOM을 19.2.8로 고정합니다. React 19.3.0은 React renderer가 render하는 widget script의 `<script>` 요소에
+  browser 오류를 보고하므로, C5.8-2가 React를 올린 뒤 `tests/widget-script-runs.test.mjs`의 React case가 세 browser에서
+  실패했습니다. 갱신은 React renderer가 client render에서 `<script>` 요소 없이 widget script를 실행하게 되면 다시
+  시도합니다.
+
 ## 2026-10-05 — Vitest 5 (C5.8-4)
 
 - root와 workspace 8개는 Vitest 5.0.3으로 test합니다. Vitest 5는 실패한 hook을 stack의 `Error:` 접두어와 함께 출력하며,

@@ -1,5 +1,13 @@
 # Changes
 
+## 2026-10-05 — React kept at 19.2.8 (C5.8-2-1)
+
+- React and React DOM are pinned to 19.2.8. React 19.3.0 reports a browser error for the `<script>`
+  elements of widget scripts that the React renderer renders, so the React cases of
+  `tests/widget-script-runs.test.mjs` failed in three browsers after C5.8-2 raised React. The update
+  is retried when the React renderer runs widget scripts without `<script>` elements in client
+  rendering.
+
 ## 2026-10-05 — Vitest 5 (C5.8-4)
 
 - The root and the eight workspaces test with Vitest 5.0.3. Vitest 5 prints a failed hook with the
