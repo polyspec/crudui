@@ -5,7 +5,8 @@
 //   npm        packageManager of package.json (installed into .tools/npm by scripts/install-npm.mjs)
 //   go         .go-version, with GOTOOLCHAIN=local so go never downloads another toolchain
 //   rust       channel of rust-toolchain.toml, as rustup selects it in the checkout without installing it
-//   php        config/toolchain.json `php`: one exact release for each tested minor
+//   php        config/toolchain.json `php`: the tested minor releases; setup-php and Homebrew cannot install the
+//              same patch, so the major and minor are compared and the running patch is evidence
 //   composer   config/toolchain.json `composer`
 // Every named tool is checked, also after a mismatch; each mismatch names the record, the expected and the running
 // version, and the fix.
@@ -16,8 +17,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { ROOT } from './checkout-npm.mjs';
-import { recordedNpm } from './install-npm.mjs';
+import { recordedNpm, ROOT } from './checkout-npm.mjs';
 import { createProgress } from './test-progress/progress.mjs';
 
 const read = (root, file) => readFileSync(path.join(root, file), 'utf8');
@@ -31,13 +31,15 @@ export function recordedToolchain(root = ROOT) {
   const config = JSON.parse(read(root, 'config/toolchain.json'));
   const rust = /^\s*channel\s*=\s*"([^"]*)"\s*$/m.exec(read(root, 'rust-toolchain.toml'))?.[1];
   const php = config.php;
-  if (!Array.isArray(php) || php.length === 0) throw new Error(`config/toolchain.json must record php as a list of exact releases; it records ${JSON.stringify(php)}`);
+  if (!Array.isArray(php) || php.length === 0 || php.some(value => !/^\d+\.\d+$/.test(value))) {
+    throw new Error(`config/toolchain.json must record php as a list of minor releases <major>.<minor>; it records ${JSON.stringify(php)}`);
+  }
   return {
     node: exact('.node-version', read(root, '.node-version').trim()),
     npm: recordedNpm(JSON.parse(read(root, 'package.json'))),
     go: exact('.go-version', read(root, '.go-version').trim()),
     rust: exact('rust-toolchain.toml channel', rust ?? ''),
-    php: php.map(value => exact('config/toolchain.json php', value)),
+    php,
     composer: exact('config/toolchain.json composer', config.composer),
   };
 }
@@ -54,11 +56,26 @@ const probes = {
 
 export const TOOLS = Object.keys(probes);
 
+const defaultRun = (root, env) => (command, args) => spawnSync(command, args, { cwd: root, env, encoding: 'utf8' });
+
+/**
+ * The release of each of `tools` that runs at `root`, as `{ tool: release }`, or `unavailable: <reason>`. A run records
+ * them as the evidence of what it ran on, the patch of PHP included.
+ */
+export function toolchainVersions(tools = TOOLS, { root = ROOT, env = process.env, run = defaultRun(root, env) } = {}) {
+  return Object.fromEntries(tools.map(tool => {
+    const probe = probes[tool];
+    const result = run(probe.command, probe.args);
+    if (result.error || result.status !== 0) return [tool, `unavailable: ${probe.command} ${result.error?.message ?? `exited with ${result.status}`}`];
+    return [tool, probe.pattern.exec(result.stdout)?.[1] ?? `unavailable: no version in ${JSON.stringify(result.stdout.trim())}`];
+  }));
+}
+
 /**
  * The mismatches of `tools` at `root`: one line for each tool that does not run at its recorded version. `run` starts a
  * version command and returns `{ status, stdout, stderr, error }`.
  */
-export function toolchainMismatches(tools, { root = ROOT, env = process.env, run = (command, args) => spawnSync(command, args, { cwd: root, env, encoding: 'utf8' }) } = {}) {
+export function toolchainMismatches(tools, { root = ROOT, env = process.env, run = defaultRun(root, env) } = {}) {
   const recorded = recordedToolchain(root);
   const mismatches = [];
   for (const tool of tools) {
@@ -71,9 +88,10 @@ export function toolchainMismatches(tools, { root = ROOT, env = process.env, run
       continue;
     }
     const running = probe.pattern.exec(result.stdout)?.[1];
-    // PHP records one exact release for each tested minor; the running minor selects it.
-    const expected = tool === 'php' ? recorded.php.find(release => running && release.split('.').slice(0, 2).join('.') === running.split('.').slice(0, 2).join('.')) ?? recorded.php.join(' or ') : recorded[tool];
-    if (running !== expected) {
+    // PHP is pinned by its minor release; the patch of the run is evidence, not a requirement.
+    const minor = running?.split('.').slice(0, 2).join('.');
+    const expected = tool === 'php' ? recorded.php.join(' or ') : recorded[tool];
+    if (tool === 'php' ? !recorded.php.includes(minor) : running !== expected) {
       mismatches.push(`${tool}: ${running ?? `no version in the output of \`${shown}\`: ${result.stdout.trim()}`} runs here and ${probe.record} records ${expected}; fix: ${probe.fix ?? `install ${tool} ${expected}`}`);
     }
   }
@@ -90,6 +108,8 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   const id = `toolchain: ${tools.join(', ')} at the recorded versions`;
   lines.start(id, { group: true });
   const mismatches = toolchainMismatches(tools);
+  // The releases that run here are the evidence of the run, the patch of PHP included.
+  lines.line(`toolchain: ${Object.entries(toolchainVersions(tools)).map(([tool, release]) => `${tool} ${release}`).join(', ')}`);
   if (mismatches.length === 0) lines.pass(id);
   else lines.fail(id, undefined, mismatches.join('\n'));
   lines.close('toolchain');

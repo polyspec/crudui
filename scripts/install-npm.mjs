@@ -13,16 +13,12 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync } 
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { npmBin, npmPrefix, ROOT } from './checkout-npm.mjs';
+import { npmBin, npmPrefix, recordedNpm, ROOT } from './checkout-npm.mjs';
 import { failureOf, formatSeconds, runCommand } from './run-command.mjs';
 import { createProgress } from './test-progress/progress.mjs';
 
-/** The exact npm release of `packageManager`, or an error naming the expected form. */
-export function recordedNpm(manifest) {
-  const match = /^npm@(\d+\.\d+\.\d+)$/.exec(manifest.packageManager ?? '');
-  if (!match) throw new Error(`package.json must record packageManager as npm@<major>.<minor>.<patch>; it records ${manifest.packageManager}`);
-  return match[1];
-}
+export { recordedNpm };
+
 
 /** The release of the npm installed under `prefix`, or undefined when none is installed. */
 function installedRelease(prefix) {

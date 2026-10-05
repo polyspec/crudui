@@ -1,5 +1,13 @@
 # Changes
 
+## 2026-10-06 — PHP pinned by its minor release (C7.2-3)
+
+- `config/toolchain.json` records the PHP minors 8.4 and 8.5, and `node scripts/check-toolchain.mjs`
+  compares the major and minor of the running PHP with them; setup-php and Homebrew cannot install the
+  same patch, so the exact patch record failed on one of them. The patch of a run is evidence: the
+  check prints the running release of every tool and `var/full-run.json` records them. The container
+  images keep their exact tags with digests. The local check now covers PHP, which closes C7.2-1.
+
 ## 2026-10-06 — The Chrome sandbox helper installed by one command (C7.2-4)
 
 - `scripts/install-browsers.mjs` installs the sandbox helper with `sudo install -o root -g root -m 4755

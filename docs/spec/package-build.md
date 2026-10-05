@@ -173,15 +173,20 @@ latest release of a channel, and no tool installs another version on its own.
   `RUSTUP_AUTO_INSTALL=0`, so a cargo without the installed toolchain fails with
   rustup's message instead of installing it; `make install` and CI install it
   with `rustup toolchain install --no-self-update`.
-- `config/toolchain.json` records the exact PHP release of each tested PHP minor
-  in `php`, the exact Composer release in `composer`, and the SHA-256 of the
-  Linux x64 archive of the Node.js release in `node`. A container image takes
-  PHP from the `php` image of the recorded release of the newest tested minor and
+- `config/toolchain.json` records the tested PHP minor releases in `php`, the
+  exact Composer release in `composer`, and the SHA-256 of the Linux x64 archive
+  of the Node.js release in `node`. PHP is pinned by its minor release, because
+  setup-php and Homebrew cannot install the same patch: the checks compare the
+  major and minor of the running PHP, and the patch that a run ran on is its
+  evidence, which `node scripts/check-toolchain.mjs` prints and
+  `var/full-run.json` records with the other running releases. A container image
+  keeps an exact tag with its digest, which reproduces by digest, and takes
+  PHP from the `php` image of a release of the newest tested minor and
   Composer from the `composer` image of its recorded release, because Debian has
   no package of either release; no image installs a `php8.N-*` package.
 - `node scripts/check-toolchain.mjs <tool>...` fails for every named tool that
   does not run at its recorded version and names the record, the expected and the
-  running version, and the fix. Every CI job runs it for the tools that it set up;
+  running version, and the fix; it prints the running release of every named tool. Every CI job runs it for the tools that it set up;
   `make toolchain-check` runs it for all of them.
 
 A container stage names its image by an exact tag and its digest, and the
