@@ -1,5 +1,11 @@
 # 변경 기록
 
+## 2026-10-05 — local pipeline stack의 setup 계약 (C2.7-2)
+
+- `check-verification.test.mjs`는 pipeline과 record store test가 `scripts/test-progress/hooks.mjs`의
+  `setup`과 `teardown`으로 stack과 browser를 시작하고 멈추며 자기 hook을 등록하지 않는지 확인합니다.
+  전에는 C2.7-1이 pipeline test에서 없앤 `browser-start`와 `browser-close` 한도를 요구했습니다.
+
 ## 2026-10-05 — state file 자체를 감시하는 readiness 대기 (C2.4-1)
 
 - form comparison의 readiness 대기는 build state file 자체를 감시하며(`watchStateFile`), 그 watch는

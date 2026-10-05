@@ -176,14 +176,20 @@ test('no browser run has a budget or a summed limit; every unit limit comes from
   assert.equal(pipelineCheck.pipelineBrowserLimitMs, undefined, 'the pipeline check starts and closes its browser with the measured limits');
 });
 
-test('the local pipeline stack has no summed hook limit and starts its browser with the measured limit', async () => {
+test('the local pipeline stack has no summed hook limit and starts and stops in setups and teardowns', async () => {
   for (const file of ['./pipeline.browser.mjs', './record-stores.test.mjs', './check-pipeline.mjs']) {
     const source = await readFile(new URL(file, import.meta.url), 'utf8');
     assert.doesNotMatch(source, /prepareLimitMs|stackStartLimitMs|pipelineBrowserLimitMs|\d_000 \+ \d/, `${file} sums no limits`);
   }
+  // The browser launch, the stack start and their stops are long operations without a hook limit.
+  for (const file of ['./pipeline.browser.mjs', './record-stores.test.mjs']) {
+    const source = await readFile(new URL(file, import.meta.url), 'utf8');
+    assert.match(source, /from '\.\.\/\.\.\/scripts\/test-progress\/hooks\.mjs'/, `${file} uses setup and teardown`);
+    assert.doesNotMatch(source, /^\s*(?:before|after)\(/m, `${file} has no hook of its own`);
+  }
   const stack = await readFile(new URL('./pipeline.browser.mjs', import.meta.url), 'utf8');
-  assert.match(stack, /browserUnitLimitsMs\['browser-start'\]/);
-  assert.match(stack, /browserUnitLimitsMs\['browser-close'\]/);
+  assert.match(stack, /setup\('browser launch'/);
+  assert.match(stack, /teardown\('browser close'/);
 });
 
 test('every phase of a browser check, and the browser itself, runs as a unit', async () => {
