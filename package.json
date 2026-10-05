@@ -92,7 +92,7 @@
     "eslint-plugin-svelte": "^3.23.0",
     "globals": "^17.13.0",
     "js-yaml": "^4.2.0",
-    "jsdom": "29.1.1",
+    "jsdom": "30.1.2",
     "markdown-it": "15.0.2",
     "ordered-json": "https://codeload.github.com/polyspec/ordered-json/tar.gz/main",
     "parse5": "^8.0.1",

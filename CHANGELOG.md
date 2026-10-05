@@ -1,5 +1,10 @@
 # Changes
 
+## 2026-10-06 — jsdom 30 in the whole tree (C5.8-5)
+
+- The root and generator-react use jsdom 30.1.2, the release of form-binding, so one major of jsdom
+  runs in the tree instead of 29.1.1 beside 30.1.2.
+
 ## 2026-10-06 — Failed Vitest hooks named from the events of Vitest (C5.8-4-1)
 
 - The Vitest reporter prints `<hook name> hook of <entity> started and failed` for a hook that started
