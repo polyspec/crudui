@@ -92,7 +92,10 @@ teardown takes 1.5 seconds under a test timeout of one second.
 ## Time and load
 
 A test never compares an elapsed time with a limit or with another elapsed time, because the
-load of the machine changes elapsed time. A check that an operation takes linear time does one of
+load of the machine changes elapsed time. It checks the cause instead: an event, a result that only
+the expected path produces, or an operation that never ends unless the code under test stops it,
+under the test's own timeout. `tests/build/test-commands.test.mjs` fails on an assertion that bounds
+an elapsed time. A check that an operation takes linear time does one of
 two things:
 
 - It counts a deterministic quantity. The JavaScript checks of the validator count reads of the

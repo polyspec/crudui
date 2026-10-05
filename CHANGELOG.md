@@ -1,5 +1,15 @@
 # Changes
 
+## 2026-10-05 — Causal checks instead of elapsed-time bounds (C2.9)
+
+- No test bounds an elapsed time; `tests/build/test-commands.test.mjs` fails on an `assert.ok` that
+  compares an elapsed time with anything but 0. The runner timeout and hook cases of
+  `tests/build/run-tests.test.mjs` run a test or hook that never settles through a spawn that does
+  not block the event loop, so only the runner's timeout ends them. The readiness, health, stop,
+  timeout and stall cases of the form comparison end only by the stop under test, the two steps of
+  one stage each end only when the other's file exists, and the oversized save relies on its 413 and
+  the case's own timeout. Ten assertions bounded the wall-clock time between 0.5 and 20 seconds.
+
 ## 2026-10-05 — Teardowns without a hook timeout (C2.7)
 
 - `teardown` of `scripts/test-progress/teardown.mjs` registers a browser close, a server stop or a

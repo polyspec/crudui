@@ -21,13 +21,12 @@ test('a unit reports its start, heartbeat and result with its duration', async (
 test('a unit that outlives its own timeout fails with its id and aborts its action', async () => {
   const lines = [];
   let aborted;
-  const started = performance.now();
+  // The action never settles, so a result proves that the timeout does not wait for it.
   const result = await runUnit({
     id: 'stuck', timeoutMs: 80,
     run: signal => new Promise(() => signal.addEventListener('abort', () => { aborted = signal.reason; })),
   }, { write: text => lines.push(text), heartbeatMs: 1_000 });
   assert.equal(result.status, 'timed-out');
-  assert.ok(performance.now() - started < 500, 'the timeout does not wait for the action');
   assert.match(aborted.message, /stuck timed out after/);
   assert.match(lines.at(-1), /stuck: timed out after/);
 });

@@ -1,5 +1,8 @@
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 import test from 'node:test';
 import { promisify } from 'node:util';
 
@@ -87,10 +90,9 @@ test('kills the whole process tree of a step that reaches its timeout', async ()
     "console.log('grandchild ' + child.pid);",
     "process.on('SIGTERM', () => {}); setInterval(() => {}, 1000);",
   ].join('\n');
-  const started = performance.now();
+  // The step and its grandchild ignore SIGTERM, so the step ends only by the kill of its tree.
   const result = await runStep({ ...node('hung', source), timeoutMs: 300 }, { write });
   assert.equal(result.status, 'timed-out');
-  assert.ok(performance.now() - started < 10_000, 'the grace period bounds the kill');
   const grandchild = Number(lines.find(line => line.startsWith('[hung] grandchild '))?.split(' ').at(-1));
   assert.ok(Number.isInteger(grandchild), lines.join('\n'));
   assert.equal(await alive(grandchild), false, 'the detached grandchild was killed');
@@ -99,15 +101,26 @@ test('kills the whole process tree of a step that reaches its timeout', async ()
   assert.match(lines.at(-1), /^\[step\] hung: timed out after \d+(?:ms|\.\ds)$/);
 });
 
-test('runs the steps of one stage together and stops after a failed stage', async () => {
+test('runs the steps of one stage together and stops after a failed stage', async t => {
   const { lines, write } = recorder();
-  const started = performance.now();
+  // Each step of the first stage creates its own file and ends only when the other's file exists,
+  // so the stage ends only when both steps run at the same time.
+  const directory = await mkdtemp(path.join(tmpdir(), 'crudui-stage-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const meet = (own, other) => [
+    "const fs = require('node:fs'); const path = require('node:path');",
+    `const directory = ${JSON.stringify(directory)};`,
+    `const other = path.join(directory, ${JSON.stringify(other)});`,
+    "const watcher = fs.watch(directory, () => { if (fs.existsSync(other)) process.exit(0); });",
+    `fs.writeFileSync(path.join(directory, ${JSON.stringify(own)}), '');`,
+    'if (fs.existsSync(other)) process.exit(0);',
+    'watcher.ref();',
+  ].join('\n');
   const results = await runStages([
-    [node('first', 'setTimeout(() => {}, 300)'), node('second', 'setTimeout(() => {}, 300)')],
+    [node('first', meet('first', 'second')), node('second', meet('second', 'first'))],
     [node('failing', 'process.exit(1)')],
     [node('never', '')],
   ], { write });
-  assert.ok(performance.now() - started < 1_200, 'one stage runs its steps at the same time');
   assert.deepEqual(results.map(result => [result.id, result.status]),
     [['first', 'passed'], ['second', 'passed'], ['failing', 'failed']]);
   assert.equal(lines.some(line => line.includes('never')), false);
@@ -139,7 +152,7 @@ test('a step made of units has no total limit while it keeps reporting progress'
   const step = { id: 'reporting', command: process.execPath, args: ['-e', reportingSource], silenceLimitMs: 300 };
   const result = await runStep(step, { write, heartbeatMs: 1_000 });
   assert.equal(result.status, 'passed', lines.join('\n'));
-  assert.ok(result.durationMs > 3 * step.silenceLimitMs, 'the step outlived its silence limit several times');
+  assert.equal(lines.filter(line => /^\[reporting\] \[unit\] work: running /.test(line)).length, 12, lines.join('\n'));
   assert.equal(lines[0], '[step] reporting: started (inactivity limit 300ms)');
   assert.equal(result.silenceLimitMs, 300);
   assert.equal(result.timeoutMs, undefined);
@@ -153,11 +166,10 @@ test('a step made of units that stops reporting progress fails and its process t
     "const timer = setInterval(() => console.log('GET /api/records 200'), 50);",
     "process.on('SIGTERM', () => {});",
   ].join('\n');
-  const started = performance.now();
+  // The step ignores SIGTERM and never ends on its own, so only the stop of its tree ends it.
   const result = await runStep({ id: 'silent', command: process.execPath, args: ['-e', source], silenceLimitMs: 300 },
     { write, heartbeatMs: 100 });
   assert.equal(result.status, 'stalled', lines.join('\n'));
-  assert.ok(performance.now() - started < 10_000, 'the grace period bounds the stop');
   // The runner's own heartbeat is not progress of the child.
   assert.ok(lines.some(line => /^\[step\] silent: running \d+ms$/.test(line)));
   assert.ok(lines.some(line => /^\[step\] silent: no progress for \d+ms; killing its process tree$/.test(line)),

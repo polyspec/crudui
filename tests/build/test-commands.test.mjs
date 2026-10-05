@@ -150,3 +150,19 @@ test('the benchmark driver test runs built drivers within the default test timeo
   assert.doesNotMatch(source, /\btimeout:/, 'no benchmark driver test sets its own timeout');
   assert.doesNotMatch(source, /'run'/, 'the test runs no `go run` or `cargo run`, which compile');
 });
+
+// The load of the machine changes elapsed time, so a test never asserts an upper or lower bound on
+// an elapsed time; it checks the cause instead: an event, a result that only the expected path can
+// produce, or an operation that never ends unless the code under test stops it, under the test's
+// own timeout. A check that a duration is a finite, non-negative number is not a bound.
+test('no test asserts a bound on an elapsed time', () => {
+  const CLOCK_BOUND = /\bassert\.ok\([^;]*?(?:(?:performance|Date)\.now\(\)\s*-\s*\w+|\.(?:elapsedMs|durationMs))\s*[<>]=?\s*(?!0\b)[\w.(]/;
+  const call = 'assert' + '.ok';
+  assert.equal(CLOCK_BOUND.test(`${call}(performance.now() - started < 1_000);`), true);
+  assert.equal(CLOCK_BOUND.test(`${call}(result.durationMs > 3 * limit);`), true);
+  assert.equal(CLOCK_BOUND.test(`${call}(Number.isFinite(run.durationMs) && run.durationMs >= 0);`), false);
+  const files = execFileSync('git', ['ls-files', '--cached', '--others', '--exclude-standard', '*.mjs', '*.js', '*.cjs', '*.ts'], { cwd: ROOT, encoding: 'utf8' })
+    .split('\n').filter(file => file && existsSync(path.join(ROOT, file)));
+  const bounds = files.flatMap(file => read(file).split('\n').flatMap((line, index) => CLOCK_BOUND.test(line) ? [`${file}:${index + 1}`] : []));
+  assert.deepEqual(bounds, []);
+});

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
@@ -10,6 +10,18 @@ import { cargoEvents, goEvents, parseArguments, phpunitEvents, toolCommand } fro
 import { createProgress } from '../../scripts/test-progress/progress.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+
+/** Run a command without blocking the event loop, so this case's own timeout can stop it. */
+function runAsync(args, options = {}) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, args, { ...options, stdio: ['ignore', 'pipe', 'pipe'] });
+    let stdout = '', stderr = '';
+    child.stdout.setEncoding('utf8').on('data', chunk => { stdout += chunk; });
+    child.stderr.setEncoding('utf8').on('data', chunk => { stderr += chunk; });
+    child.once('error', reject);
+    child.once('close', status => resolve({ status, stdout, stderr }));
+  });
+}
 
 function recorder() {
   const lines = [];
@@ -101,10 +113,10 @@ test('a test that outlives its timeout stops the tool and fails the run', async 
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-run-tests-'));
   try {
     const file = path.join(directory, 'hang.test.mjs');
-    await writeFile(file, "import test from 'node:test';\ntest('hangs', () => new Promise(resolve => setTimeout(resolve, 60_000)));\ntest('passes', () => {});\n");
-    const started = Date.now();
-    const run = spawnSync(process.execPath, [path.join(ROOT, 'scripts/run-tests.mjs'), 'node', '--timeout', '1', '--', file], { encoding: 'utf8' });
-    assert.ok(Date.now() - started < 20_000, 'The run did not stop at the timeout');
+    // The hanging test never settles and keeps its process alive, so the run ends only when the
+    // runner stops the test at its timeout; this case's own timeout fails a run that never ends.
+    await writeFile(file, "import test from 'node:test';\ntest('hangs', () => { setInterval(() => {}, 1000); return new Promise(() => {}); });\ntest('passes', () => {});\n");
+    const run = await runAsync([path.join(ROOT, 'scripts/run-tests.mjs'), 'node', '--timeout', '1', '--', file]);
     assert.notEqual(run.status, 0);
     assert.match(run.stdout, /▶ .*hang\.test\.mjs › hangs/);
     assert.match(run.stdout, /✖ .*hang\.test\.mjs › hangs \(1\.0s\)/);
@@ -150,8 +162,9 @@ test('a node hook that runs out of time fails its file with the file and the ela
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-run-tests-'));
   try {
     const file = path.join(directory, 'hook.test.mjs');
-    await writeFile(file, "import test from 'node:test';\ntest('passes', () => {});\ntest.after(() => new Promise(resolve => setTimeout(resolve, 60_000)), { timeout: 300 });\n");
-    const run = spawnSync(process.execPath, [path.join(ROOT, 'scripts/run-tests.mjs'), 'node', '--timeout', '10', '--', file], { encoding: 'utf8' });
+    // The hook never settles, so the file ends only at the hook's own timeout.
+    await writeFile(file, "import test from 'node:test';\ntest('passes', () => {});\ntest.after(() => { setInterval(() => {}, 1000); return new Promise(() => {}); }, { timeout: 300 });\n");
+    const run = await runAsync([path.join(ROOT, 'scripts/run-tests.mjs'), 'node', '--timeout', '10', '--', file]);
     assert.notEqual(run.status, 0);
     assert.match(run.stdout, /✔ .*hook\.test\.mjs › passes/);
     assert.match(run.stdout, /✖ .*hook\.test\.mjs › hook \(\d+\.\ds\)\n\s+test timed out after 300ms/);
@@ -165,9 +178,10 @@ test('a node hook that runs out of time fails its file with the file and the ela
 test('a vitest hook that runs out of time is printed with its file, suite, cause and elapsed time', async () => {
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-run-tests-'));
   try {
-    await writeFile(path.join(directory, 'file-hook.test.mjs'), "import { afterAll, test } from 'vitest';\ntest('passes', () => {});\nafterAll(() => new Promise(resolve => setTimeout(resolve, 60_000)), 300);\n");
-    await writeFile(path.join(directory, 'suite-hook.test.mjs'), "import { afterAll, describe, test } from 'vitest';\ndescribe('suite', () => {\n  afterAll(() => new Promise(resolve => setTimeout(resolve, 60_000)), 300);\n  test('passes', () => {});\n});\n");
-    const run = spawnSync(process.execPath, [path.join(ROOT, 'scripts/run-tests.mjs'), 'vitest', '--timeout', '10', '--cwd', directory], { encoding: 'utf8' });
+    // The hooks never settle, so each file ends only at its hook's own timeout.
+    await writeFile(path.join(directory, 'file-hook.test.mjs'), "import { afterAll, test } from 'vitest';\ntest('passes', () => {});\nafterAll(() => new Promise(() => {}), 300);\n");
+    await writeFile(path.join(directory, 'suite-hook.test.mjs'), "import { afterAll, describe, test } from 'vitest';\ndescribe('suite', () => {\n  afterAll(() => new Promise(() => {}), 300);\n  test('passes', () => {});\n});\n");
+    const run = await runAsync([path.join(ROOT, 'scripts/run-tests.mjs'), 'vitest', '--timeout', '10', '--cwd', directory]);
     assert.notEqual(run.status, 0);
     assert.match(run.stdout, /✖ .*file-hook\.test\.mjs \(\d+\.\ds\)\n\s+Hook timed out in 300ms/);
     assert.match(run.stdout, /✖ .*suite-hook\.test\.mjs › suite \(\d+\.\ds\)\n\s+Hook timed out in 300ms/);
