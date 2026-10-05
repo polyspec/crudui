@@ -130,7 +130,7 @@ test('reloads the supervisor in its own process so the container keeps running',
   // The supervisor is the only child of the container's init process; if it exited, the container
   // would stop. A reload replaces the process image and keeps its process id.
   const reload = supervisorSource.slice(supervisorSource.indexOf('async function reloadSupervisor'),
-    supervisorSource.indexOf('async function watchSource'));
+    supervisorSource.indexOf('/**\n * Compare the mounted repository at every change event.'));
   assert.match(reload, /process\.execve\(process\.execPath, \[process\.execPath,\s/);
   assert.doesNotMatch(reload, /process\.exit\(|spawn\(|detached/);
 });

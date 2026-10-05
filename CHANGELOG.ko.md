@@ -1,5 +1,15 @@
 # 변경 기록
 
+## 2026-10-05 — host에서 게시하는 source 변경 (C2.10)
+
+- form comparison supervisor는 1초마다가 아니라 `SIGUSR2`마다 mount된 저장소를 비교합니다. host의
+  source 감시기 `source-events.mjs`(`make deploy-watch`)는 working tree의 file event를 구독하고 event마다
+  container 안에서 `source-changed.mjs`를 실행하며, 이는 supervisor가 `state/supervisor.pid`에 기록한
+  process id에 신호합니다. 비교 중의 신호와 전달 중의 event는 그 뒤에 실행을 한 번 더 일으킵니다
+  (`src/change-requests.mjs`). 15초마다 state file을 다시 쓰던 heartbeat는 없앴습니다.
+  `tests/build/test-commands.test.mjs`는 sleep하거나 진행 줄을 출력하지 않는 interval을 실행하는
+  program에서 실패합니다.
+
 ## 2026-10-05 — process 줄로 ready가 되는 PHP record server (C2.15)
 
 - `servers/php/main.mjs`는 PHP-FPM이 `NOTICE: ready to handle connections`를, `notice` log level의

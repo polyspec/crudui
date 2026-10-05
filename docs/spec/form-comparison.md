@@ -328,9 +328,15 @@ One supervisor, `examples/form-comparison/supervisor.mjs`, runs in the container
 At start it synchronizes the build tree, builds every target and starts the public
 server (which is also the JavaScript record server) and the four native API servers
 (PHP, the PHP extension, Go and Rust). File events from the macOS host do not reach the
-Linux container through the VM file share. The supervisor therefore compares the
-mounted repository with Git once per second: the checked-out commit and the size
-and modification time of every uncommitted path. It copies only the changed paths,
+Linux container through the VM file share, so a host process publishes them: the source watcher
+(`source-events.mjs`, run by `make deploy-watch`) subscribes to the file events of the working tree
+(`fs.watch`, recursive: FSEvents on macOS) and, for every event, runs `source-changed.mjs` in the
+container (`container exec`), which sends `SIGUSR2` to the process id the supervisor recorded in
+`state/supervisor.pid`. Events during a delivery make one more delivery after it. The watcher has
+no time limit, prints its start, every event and every delivery, and ends with the error of a
+failed watch or delivery. At every signal the supervisor compares the mounted repository with Git:
+the checked-out commit and the size and modification time of every uncommitted path; a signal
+during a comparison makes one more comparison after it, and no comparison runs on a timer. It copies only the changed paths,
 runs only the targets whose inputs changed, in the order below, and restarts only
 their processes. A target also runs when a target it depends on runs.
 
@@ -401,8 +407,8 @@ does not select another build.
 Each child server publishes one readiness event after binding its listening
 socket. The supervisor waits for that event before it requests health. Startup and
 verification use no sleep interval, retry loop or periodic health request; the
-only intervals are the source comparison above and the progress lines of a running
-step, which report elapsed time and never decide that something is ready.
+only intervals are the progress lines of a running step, which report elapsed time and never
+decide that something is ready; the source comparison runs at the change signals above.
 
 The supervisor uses one PHP extension builder for `crudui.so` and
 `ordered_json.so`. Each extension has an explicit build entry point and declares

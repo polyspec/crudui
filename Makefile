@@ -8,7 +8,7 @@
 # machine-absolute paths). `make docs` run twice yields identical output.
 
 .DEFAULT_GOAL := help
-.PHONY: help docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-extension test-native test-native-suites test-validators test-form-binding conformance format-check deploy deploy-verify github-settings github-settings-check ci test-form-styles-linux remove-form-styles-image
+.PHONY: help docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-extension test-native test-native-suites test-validators test-form-binding conformance format-check deploy deploy-verify deploy-watch github-settings github-settings-check ci test-form-styles-linux remove-form-styles-image
 .NOTPARALLEL: docs docs-web docs-dev docs-preview docs-check docs-verify-idempotent
 
 # Validator benchmark iteration counts (override on the command line, e.g.
@@ -45,6 +45,7 @@ help: ## 타겟 설명
 	@echo "  make remove-form-styles-image  Remove that Playwright image unless a check holds it"
 	@echo "  make deploy                Deploy the comparison service from the current tree"
 	@echo "  make deploy-verify         Verify the deployed comparison service"
+	@echo "  make deploy-watch          Publish working-tree changes to the comparison service"
 	@echo "  make github-settings       Apply the repository settings in .github/repository.json"
 	@echo "  make github-settings-check Fail when the repository settings differ from the declaration"
 	@echo ""
@@ -220,6 +221,11 @@ deploy: ## Deploy the comparison service from the current tree
 
 deploy-verify: ## Verify the deployed comparison service
 	node examples/form-comparison/verification.mjs
+
+# The host's source watcher: it signals the supervisor of the comparison service at every file
+# event of the working tree, and runs until it is stopped or a watch or delivery fails.
+deploy-watch: ## Publish working-tree changes to the comparison service
+	node examples/form-comparison/source-events.mjs
 
 # GitHub repository settings declared in .github/repository.json (docs/operations/repository.md).
 github-settings: ## Apply the declared repository settings (idempotent)

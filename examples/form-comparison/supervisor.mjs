@@ -6,20 +6,18 @@ import path from 'node:path';
 
 import { completeBuild, planBuild, processesToStart, supervisorFiles } from './src/build-targets.mjs';
 import { installOrderedJson } from './src/ordered-json-source.mjs';
+import { changeRequests } from './src/change-requests.mjs';
 import { forwardLines } from './src/process-output.mjs';
-import { formatDuration, runStep, stepHeartbeatMs } from './src/step-runner.mjs';
+import { formatDuration, runStep } from './src/step-runner.mjs';
 import {
   binaryDirectory, buildStateFile, cruduiModule, orderedJsonDirectory, publicDirectory, publicServerProcess,
-  serverProcess, sourceIdentityFile, sourceMount, stateDirectory, treeDirectory,
+  serverProcess, sourceIdentityFile, sourceMount, stateDirectory, supervisorProcessFile, treeDirectory,
 } from './src/server-layout.mjs';
 import { stopChild, verifyChildServers, waitForChildReadiness } from './src/server-startup.mjs';
 import {
   applyTreeChanges, changedPaths, readTreeState, sourceIdentity, synchronizeTree,
 } from './src/source-tree.mjs';
 
-// File events from the host do not reach a Linux container through the VM file share, so the
-// mounted repository is compared with Git once per interval.
-const checkInterval = 1_000;
 const manifestFile = path.join(stateDirectory, 'tree-manifest.json');
 const processes = new Map();
 let state = { status: 'building', cycle: 0, source: null, error: null };
@@ -51,15 +49,6 @@ function reportProgress(target, step) {
   share();
 }
 
-/**
- * Renew `progress.at` every heartbeat while a cycle builds. The heartbeat shows that the
- * supervisor is alive; it is not build progress, so it never extends a step's limit.
- */
-setInterval(() => {
-  if (state.status !== 'building' || !state.progress) return;
-  state = { ...state, progress: { ...state.progress, at: Date.now() } };
-  share();
-}, stepHeartbeatMs);
 
 /** Run one build target: every step streams its progress and holds the target's timeout. */
 async function runTarget(target, label) {
@@ -185,16 +174,26 @@ async function reloadSupervisor() {
     path.join(sourceMount, 'examples/form-comparison/supervisor.mjs')], process.env);
 }
 
-async function watchSource() {
-  while (!stopping) {
-    try {
-      await checkSource();
-    } catch (error) {
-      publish({ status: 'failed', error: error.message });
-    }
-    await new Promise(resolve => setTimeout(resolve, checkInterval));
+/**
+ * Compare the mounted repository at every change event. File events of the host do not reach the
+ * container through the VM file share, so the host's source watcher (source-events.mjs) signals
+ * this process with SIGUSR2 for every change of the working tree. A signal during a comparison
+ * makes one more comparison after it; no comparison runs on a timer.
+ */
+const comparisons = changeRequests(async () => {
+  try {
+    await checkSource();
+  } catch (error) {
+    publish({ status: 'failed', error: error.message });
   }
-}
+});
+let comparing = false;
+let changedDuringStart = false;
+process.on('SIGUSR2', () => {
+  log('source change signalled');
+  if (comparing) comparisons.request();
+  else changedDuringStart = true;
+});
 
 async function shutdown() {
   stopping = true;
@@ -217,10 +216,15 @@ async function startupStep(id, action) {
 
 await Promise.all([treeDirectory, publicDirectory, binaryDirectory, stateDirectory]
   .map(directory => mkdir(directory, { recursive: true })));
+// The signal handler is installed above, so a change signalled after this record is not lost.
+writeFileSync(`${supervisorProcessFile}.${process.pid}.tmp`, `${process.pid}\n`);
+renameSync(`${supervisorProcessFile}.${process.pid}.tmp`, supervisorProcessFile);
 await startupStep('ordered-json-sources', () => installOrderedJson(orderedJsonDirectory));
 treeState = await readTreeState(sourceMount);
 const initialSource = await sourceIdentity(sourceMount);
 await startupStep('build-tree', () =>
   synchronizeTree({ source: sourceMount, tree: treeDirectory, manifestFile }));
 await runCycle(completeBuild(), initialSource);
-await watchSource();
+comparing = true;
+log('start: waiting for source change signals');
+if (changedDuringStart) comparisons.request();
