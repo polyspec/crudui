@@ -1,5 +1,13 @@
 # 변경 기록
 
+## 2026-10-05 — timeout 없는 장기 작업 (C2.1-1)
+
+- AGENTS는 장기 작업(build, install, toolchain setup, browser close, server stop, 전체 suite)에
+  상세 step log를 두고 timeout을 두지 않으며, 출력 없음 한도도 두지 않습니다. 그 결과와 오류가
+  성공과 실패를 정하고, 결과의 event가 작업을 끝냅니다. 각 test case는 자기 timeout을 유지합니다.
+  C2.1의 rule은 장기 작업에 자기 timeout에 더해 step log를 두게 해서, 한도보다 오래 걸린 정상
+  실행이 실패했습니다.
+
 ## 2026-10-05 — 변경 event로 기다리는 build readiness (C2.4)
 
 - `examples/form-comparison/verify-tree.mjs`의 `readyBuild`는 build state file을 시작할 때와 file
