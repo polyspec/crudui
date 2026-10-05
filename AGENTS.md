@@ -118,3 +118,34 @@
   and continue the task in progress. Rules belong in this file without duplication, never in the
   checklist or the changelog.
 - Korean documents write technical terms in English and only the surrounding text in Korean.
+
+# Idempotency
+
+The same tree gives the same result on every date and machine, and a failed run shows what failed and why.
+
+- Tools and dependencies: every tool runs at the exact release that the checkout records (`.node-version`,
+  `.go-version`, `rust-toolchain.toml`, `config/toolchain.json`, `packageManager` of `package.json`), and
+  `node scripts/check-toolchain.mjs` fails for another; an image is named by its digest and its Debian packages by a
+  snapshot date, an action by its commit SHA, a browser by the build that the locked package pins. No run queries a
+  registry for a latest release or a channel, and no tool installs another release on its own
+  (`RUSTUP_AUTO_INSTALL=0`, `GOTOOLCHAIN=local`). A tool of the repository is installed into the checkout
+  (`.tools`), never into the machine, which other checkouts share.
+- Inputs: a check reads only outputs that it or its declared preparation creates in the same run (a build through
+  `require-current-build`, a reinstalled copy, its own records), never the leftover of another command or run.
+- Publication: a shared output that another run may read is written to a path of its run and renamed into place.
+- Failures: every independent check runs after an earlier one failed (`|| status=1` and `exit $status`), and the run
+  fails after the last one with each failure; `&&` joins only steps whose later step reads the output of the earlier.
+- Messages: every failure states the expected value, the actual value and the error of the tool, with the command,
+  the path and the limit concerned; a timeout names the command, its limit and the elapsed time.
+- Empty selections: a run, a selection or a check list that checks nothing fails (`ran no test case`,
+  `ran no command`, an empty list of a check).
+- Processes: a run starts its processes in a group of their own, stops the whole tree and waits until it is gone,
+  and releases what it holds in `finally`.
+- Assertions: a test asserts the structured result of an external tool (its exit status, report, events), never its
+  human-readable output, whose wording changes with its version, its locale or a parent process; the commands of a
+  Makefile target are read only through `makeDryRun` of `tests/build/make-dry-run.mjs`.
+- Owners: every path has an owner in `scripts/owner-checks.json`, with the paths that each check reads, and
+  `make owner-check` runs before every commit.
+- Shared resources: a resource that runs share is held by a lease (`scripts/holder-lock.mjs`) or each run uses a
+  directory, name or port of its own; a port is taken by the server that listens on it (port 0) and announced, never
+  probed before.

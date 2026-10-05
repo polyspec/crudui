@@ -100,3 +100,31 @@
   급하다고 명시하지 않는 한, 우선순위와 함께 작업으로 기록하고 진행 중인 작업을 계속한다. 규칙은
   이 파일에 중복 없이 두고, checklist나 changelog에는 넣지 않는다.
 - 한글 문서는 기술 용어를 영어 그대로 쓰고 문맥만 한글로 쓴다.
+
+# 멱등성
+
+같은 tree는 모든 날짜와 machine에서 같은 결과를 내고, 실패한 실행은 무엇이 왜 실패했는지 보여 준다.
+
+- 도구와 의존성: 모든 도구는 checkout이 기록한 정확한 release(`.node-version`, `.go-version`, `rust-toolchain.toml`,
+  `config/toolchain.json`, `package.json`의 `packageManager`)로 실행되고, `node scripts/check-toolchain.mjs`는 다른 release에
+  대해 실패한다. image는 digest로, 그 Debian package는 snapshot 날짜로, action은 commit SHA로, browser는 잠긴 package가
+  고정한 build로 지정한다. 어떤 실행도 registry에 최신 release나 channel을 묻지 않고, 어떤 도구도 스스로 다른 release를
+  설치하지 않는다(`RUSTUP_AUTO_INSTALL=0`, `GOTOOLCHAIN=local`). repository의 도구는 checkout(`.tools`)에 설치하며, 다른
+  checkout이 함께 쓰는 machine에는 설치하지 않는다.
+- 입력: 검사는 자신이나 선언된 준비가 같은 실행에서 만든 출력(`require-current-build`를 거친 build, 다시 설치한 복사본,
+  자기 기록)만 읽고, 다른 명령이나 실행이 남긴 것은 읽지 않는다.
+- 게시: 다른 실행이 읽을 수 있는 공유 출력은 그 실행의 경로에 쓴 뒤 제자리로 rename한다.
+- 실패: 독립된 모든 검사는 앞의 검사가 실패한 뒤에도 실행되고(`|| status=1`과 `exit $status`), 실행은 마지막 검사 뒤에
+  모든 실패와 함께 실패한다. `&&`는 뒤 단계가 앞 단계의 출력을 읽는 단계만 잇는다.
+- 메시지: 모든 실패는 기대한 값, 실제 값, 도구의 오류를 관련된 명령, 경로, 한도와 함께 밝힌다. timeout은 명령, 그 한도,
+  경과 시간을 밝힌다.
+- 빈 선택: 아무것도 검사하지 않는 실행, 선택, 검사 목록은 실패한다(`ran no test case`, `ran no command`, 검사의 빈 목록).
+- process: 실행은 process를 자기 group에서 시작하고, tree 전체를 멈춘 뒤 사라질 때까지 기다리며, 잡은 것은 `finally`에서
+  놓는다.
+- 단언: test는 외부 도구의 구조화된 결과(exit status, report, event)를 단언하고, version, locale, 부모 process에 따라 문구가
+  바뀌는 사람이 읽는 출력은 단언하지 않는다. Makefile 대상의 명령은 `tests/build/make-dry-run.mjs`의 `makeDryRun`으로만
+  읽는다.
+- owner: 모든 경로는 `scripts/owner-checks.json`에 owner와 각 검사가 읽는 경로를 가지며, 모든 commit 전에
+  `make owner-check`를 실행한다.
+- 공유 자원: 실행들이 함께 쓰는 자원은 lease(`scripts/holder-lock.mjs`)로 잡거나 실행마다 자기 directory, 이름, port를
+  쓴다. port는 그것에서 수신하는 server가 잡고(port 0) 알리며, 미리 확인하지 않는다.
