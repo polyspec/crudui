@@ -27,3 +27,7 @@
 ## Wave 6
 
 의존: 없음. AGENTS와 testing 안내는 모든 진행 중 작업이 끝났을 때만 push한다고 정하지만, 이를 강제하는 것이 없었다. 진행 중 작업이 있는 push가 GitHub에 도달했고, GitHub의 CI는 push된 tree에서 full suite를 실행한다. Git은 hook을 version 관리하지 않고 `core.hooksPath`는 clone마다의 설정이므로, hook은 그것을 설치한 clone에서만 동작하며 `git push --no-verify`나 다른 clone은 hook 없이 push한다. GitHub은 file의 내용으로 push를 거부할 수 없고, workflow는 push가 받아들여진 뒤에 실패한다.
+
+## Wave 7
+
+의존: 없음. 날짜, machine, 실행 순서에 따라 달라지는 결과가 있었다. GNU Make 3.81과 4에서 출력이 다른 make dry run, 정확한 toolchain version 대신 release channel, test case나 명령 없이 통과하는 실행, 처음 실패한 suite에서 멈추는 연결, 다른 명령이 남긴 출력을 읽는 검사, 다른 실행이 읽는 동안 제자리에 쓰는 출력, 사용 전에 확인한 port, machine npm을 바꾸는 설치, 명령, 경로, 한도가 없는 실패, 변경의 소유 검사를 기계적으로 고르지 않는 것, 죽이지만 기다리지 않는 process tree다. 이런 종류의 결함은 모든 repository에서 class로 고치고, AGENTS에 class마다 규칙 하나를 둔다.
