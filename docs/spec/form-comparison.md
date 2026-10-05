@@ -225,8 +225,8 @@ The same combinations run against a local stack built from the checkout
 (`pipeline.browser.mjs`, one test per combination) and, in tree verification, against the
 deployed service (`check-pipeline.mjs`). `record-stores.test.mjs` runs the HTTP contract cases
 of `src/record-contract.mjs` against all five servers started from the checkout, each case with
-its own timeout. Both local checks first build the server programs, each as a step with its own
-limit: the OrderedJSON checkout at `.form-comparison/sources/ordered-json` (the path the Go and
+its own timeout. Both local checks first build the server programs, each as a step without a time
+limit that prints its progress: the OrderedJSON checkout at `.form-comparison/sources/ordered-json` (the path the Go and
 Rust manifests name), both PHP extensions, the PHP validator copy, the Go binary and the Rust
 debug binary. The local stack then starts its five processes at the same time and its browser.
 A process start and the browser start are long operations without a limit: each ends at its
@@ -240,29 +240,24 @@ Three rules hold for every command in this contract: the deployment, the
 supervisor's build cycles and every verification check.
 
 1. **A run reports what it is doing while it runs.** No check waits with only a
-   start and an end. Every step prints a start line with its own limit, a line
-   with its elapsed time every 15 seconds while it runs, its output under its
-   step name, and a line that says passed, failed, timed out or stalled with the
-   duration. Nested units report the same way, as progress lines of the form
+   start and an end. Every step prints a start line, a line with its elapsed time
+   every 15 seconds while it runs, its output under its step name, and a line that
+   says passed or failed with the duration. Nested units report the same way, as progress lines of the form
    `[label] unit: started|running|passed|failed|timed out`: each build target,
    each browser report, each check phase, the browser start and close (long operations without a
    limit), each
    canonical flow combination and every wait, including the wait for a build cycle.
-2. **Every unit holds its own limit, sized from its measured duration, and no run
-   has a total limit.** A unit's limit is three times its slowest measured
-   duration, rounded up to five seconds and at least ten seconds
-   (`measuredLimitMs`), and the code names the measurement it comes from. A step
-   that is a single operation, such as a build target, the generation check or the
-   browser aggregate, holds a total limit sized the same way. A step made of units,
-   such as a browser check, the canonical flow check or the host's tree
-   verification, holds no total limit and no duration budget, and no limit is
-   summed from its units: it holds an inactivity limit of 45 seconds, three missed
-   15-second heartbeats, and fails as stalled when it prints no progress line for
-   that long. Output that is not a progress line, and the runner's own heartbeat,
-   do not count as progress. A step that reaches its limit or its inactivity limit
-   is stopped with its whole process tree, its process group and every descendant
-   that left the group, and the run fails with that step's id and elapsed time. A
-   stopped check closes its browser on `SIGTERM` instead of waiting for `SIGKILL`.
+2. **A long operation holds no time limit; a unit holds its own.** A step (a build
+   target, a verification check, the host's tree verification, a deployment step),
+   a process start, a browser start or close and every wait are long operations: each
+   runs to its end, its exit status, readiness event or result decides it, and it
+   holds neither a total limit nor an inactivity limit. A unit, such as a browser
+   report, a check phase or a canonical flow combination, is a short verification and
+   holds its own limit, three times its slowest measured duration, rounded up to five
+   seconds and at least ten seconds (`measuredLimitMs`); the code names the
+   measurement it comes from. A stopped process tree, its process group and every
+   descendant that left the group, gets `SIGTERM` and, after the grace, `SIGKILL`, and
+   a stopped check closes its browser on `SIGTERM` instead of waiting for `SIGKILL`.
 3. **A check runs where it belongs.** Tree verification covers the deployed
    services alone. The host and CI run the source suite, the Go and Rust server
    tests and the ordered JSON tests; repeating them inside the container would
@@ -354,10 +349,10 @@ their processes. A target also runs when a target it depends on runs.
 | `go-server` | `servers/go/`, the Go generator and validator | | Go |
 | `rust-server` | `servers/rust/` except `target/`, the Rust generator and validator | | Rust |
 
-Each target declares its own timeout and reports its start, its elapsed time while
-it runs and its duration when it finishes; a target that reaches its timeout fails
-the cycle with its process tree stopped. The Git calls of the source comparison and
-of the pinned OrderedJSON checkout are bounded the same way. Each server's output
+Each target runs to its end without a time limit and reports its start, its elapsed
+time while it runs and its duration when it finishes; a target whose step fails fails
+the cycle. The Git calls of the source comparison and of the pinned OrderedJSON
+checkout hold no time limit either. Each server's output
 carries that server's name, and every line, warnings included, is kept.
 
 PHP reads its sources on every request, so a PHP source change needs no build or
@@ -714,8 +709,7 @@ runs, the check prints its progress line with its elapsed time every 15 seconds,
 and it prints each completed report with its result and duration. A unit that
 reaches its limit fails the run with that unit's name and its elapsed time, and the
 failure retains the current state and every completed report. The browser check as
-a whole has no limit, no summed limit and no duration budget; tree verification
-stops it only when it prints no progress line for 45 seconds.
+a whole has no limit, no summed limit and no duration budget.
 
 A complete server report requires a browser job of 24 reports: 16 scenario
 reports with 19 checks each and eight initialization reports with 168 comparison
@@ -749,8 +743,8 @@ repeated field, a name that is both a value and a group, a malformed name and a 
 the browser `shape` check's native form with 10,001 fields gets 400 for its additional fields.
 
 Fast source tests reproduce report-policy failures, protocol timeout behavior,
-each report's own limit and the progress it reports, the step runner's timeout,
-inactivity limit and process-tree stop, the dropped PHP access lines, source identity and build-target selection,
+each report's own limit and the progress it reports, the step runner's run to the end
+and process-tree stop, the dropped PHP access lines, source identity and build-target selection,
 build tree synchronization, snapshot differences, generation cache behavior and
 request-count changes, the unit runner's limits and progress, the record resource's
 fixture and links, and the canonical page's declared controls. These tests do not
@@ -777,16 +771,16 @@ the file comes from the supervisor, which runs from the start. It clears `/resul
 with a failed step:
 
 1. the PHP processor modes, which load the `crudui.so` and `ordered_json.so` this
-   container built (60,000 milliseconds; measured at 1 second);
-2. generation against the four running native servers (120,000; measured at 7 seconds);
-3. persistence against the four running native servers (60,000; measured at 2 seconds);
+   container built (measured at 1 second);
+2. generation against the four running native servers (measured at 7 seconds);
+3. persistence against the four running native servers (measured at 2 seconds);
 4. the canonical flow check of the deployed page for all 40 combinations
-   (`check-pipeline.mjs`; units with their own limits, the step with the inactivity
-   limit alone);
+   (`check-pipeline.mjs`; units with their own limits);
 5. browser verification for PHP, the PHP extension, Go and Rust, the four at the
-   same time (units with their own limits, each step with the inactivity limit
-   alone; one run measured at 316 seconds);
-6. the browser aggregate of this run's four reports (120,000).
+   same time (units with their own limits; one run measured at 316 seconds);
+6. the browser aggregate of this run's four reports.
+
+Each stage's steps run to their end without a time limit and print their progress.
 
 Each step verifies the deployed build: an extension this container compiled, a
 running server or a built frame page. The source suite, the Go and Rust server
@@ -828,20 +822,14 @@ The definition gives the service eight processors and 8 GB, which the four
 simultaneous browser checks need. It contains no commit, archive or image digest,
 so a source change never changes it.
 
-The health check accepts the service only when `/api/health` reports every server.
-containerctl accepts each health duration up to 10 minutes and 1 through 100
-retries, and waits at most the start period plus the retries times the interval and
-timeout, 30 minutes in total. The definition does not take that budget: the first
-start of empty volumes installed and built everything and answered health 58
-seconds after the container started, so the check waits a 120 second start period
-and then 24 checks every 5 seconds with a 5 second timeout, six minutes in all.
-
-While containerctl waits, the wait is not silent. containerctl reports the started
-container and each health attempt with its elapsed time, and from the start of the
-container the deployment command prints the supervisor's build progress: each build
-target's start, its elapsed time while it runs and its duration. Applying the
-definition holds its own timeout, the health budget and one minute for containerctl
-itself; building the image holds its own.
+The definition declares no healthcheck. containerctl would wait for a declared health within
+the start period plus the retries times the interval and timeout, and the first start of empty
+volumes installs and builds everything, a long operation without a time limit. containerctl
+therefore returns once the container runs, and the deployment command waits for the build of this
+checkout through the build state (`ready-build.mjs` in the container), which prints every build
+step it reads and has no limit. While containerctl applies the definition, the deployment command
+prints the supervisor's build progress from the start of the container. Neither applying the
+definition nor building the image holds a time limit.
 
 Before it applies the definition, the command preserves the saved records of the
 active service in `.form-comparison/deployment/data` without overwriting different

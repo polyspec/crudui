@@ -5,7 +5,7 @@ import { promisify } from 'node:util';
 const execFileAsync = promisify(execFile);
 /** A running step prints one line with its elapsed time at this interval. */
 export const stepHeartbeatMs = 15_000;
-/** A stopped step's process tree gets this long to exit after SIGTERM before SIGKILL. */
+/** A stopped process tree gets this long to exit after SIGTERM before SIGKILL. */
 export const stepTerminationGraceMs = 5_000;
 
 /** Format a duration for progress lines: `850ms`, `42.1s`, `3m04s`. */
@@ -98,45 +98,25 @@ function prefixLines(stream, prefix, write, onLine) {
 }
 
 /**
- * A step that runs units fails when it prints no progress line for this long: three heartbeats of
- * its units, each of which prints its elapsed time every 15 seconds.
- */
-export const stepSilenceLimitMs = 3 * stepHeartbeatMs;
-
-/**
- * A progress line of a unit, also under the prefixes of nested steps: `[label] id: started`,
- * `running`, `passed`, `failed`, `timed out` or `stalled`.
- */
-export function isProgressLine(line) {
-  return /^(?:\[[^\]]+\] )+[^\s:]+: (?:started|running|passed|failed|timed out|stalled)\b/.test(line);
-}
-
-function positiveLimit(value) {
-  return Number.isSafeInteger(value) && value > 0;
-}
-
-/**
- * Validate one step definition: an id, a command and its own limit. A single operation holds a
- * total limit (`timeoutMs`); a step made of units, each with its own limit, holds an inactivity
- * limit (`silenceLimitMs`) instead and has no total limit.
+ * Validate one step definition: an id, a command and its arguments. A step is a long operation (a
+ * build, a check made of units, a deployment step) and holds no limit, so a step that declares a
+ * total or an inactivity limit is rejected.
  */
 export function assertStep(step) {
   assert.match(step?.id ?? '', /^[a-z0-9][a-z0-9-]*$/, 'A step requires a lowercase id');
   assert.equal(typeof step.command, 'string', `${step.id}: a step requires a command`);
   assert.ok(Array.isArray(step.args), `${step.id}: a step requires arguments`);
-  assert.ok(positiveLimit(step.timeoutMs) !== positiveLimit(step.silenceLimitMs)
-    && (step.timeoutMs === undefined || step.silenceLimitMs === undefined),
-  `${step.id}: every step requires its own timeout: a total limit or an inactivity limit`);
+  assert.ok(step.timeoutMs === undefined && step.silenceLimitMs === undefined,
+    `${step.id}: a step runs to its end and holds no time limit`);
   return step;
 }
 
 const running = new Set();
 
 /**
- * Run one step and stream its progress: a start line, a line with the elapsed time at every
- * heartbeat while it runs, its output prefixed with its id, and a pass, fail or timeout line with
- * its duration. A step that reaches its total limit, or a step made of units that prints no
- * progress line within its inactivity limit, has its whole process tree killed.
+ * Run one step to its end and stream its progress: a start line, a line with the elapsed time at
+ * every heartbeat while it runs, its output prefixed with its id, and a pass or fail line with its
+ * duration. The step has no time limit; its exit status decides its result.
  */
 export async function runStep(step, options = {}) {
   assertStep(step);
@@ -145,63 +125,32 @@ export async function runStep(step, options = {}) {
   const label = options.label ?? 'step';
   const started = performance.now();
   const elapsed = () => formatDuration(performance.now() - started);
-  const silent = step.silenceLimitMs !== undefined;
-  write(`[${label}] ${step.id}: started (${silent
-    ? `inactivity limit ${formatDuration(step.silenceLimitMs)}`
-    : `timeout ${formatDuration(step.timeoutMs)}`})\n`);
+  write(`[${label}] ${step.id}: started\n`);
   const child = spawn(step.command, step.args, {
     cwd: step.cwd, env: { ...process.env, ...step.environment },
     stdio: ['ignore', 'pipe', 'pipe'], detached: true,
   });
   const entry = { child, step };
   running.add(entry);
-  const onOutput = options.onLine ?? (() => {});
-  let stopped;
-  let timer;
-  let lastProgress = started;
-  const stop = (status, message) => {
-    if (stopped) return;
-    stopped = status;
-    write(`[${label}] ${step.id}: ${message}; killing its process tree\n`);
-    killProcessTree(child).catch(error => write(`[${label}] ${step.id}: ${error.message}\n`));
-  };
-  const armSilence = () => {
-    clearTimeout(timer);
-    timer = setTimeout(() => stop('stalled',
-      `no progress for ${formatDuration(performance.now() - lastProgress)}`), step.silenceLimitMs);
-  };
-  const onLine = line => {
-    if (silent && !stopped && isProgressLine(line)) {
-      lastProgress = performance.now();
-      armSilence();
-    }
-    onOutput(line);
-  };
+  const onLine = options.onLine ?? (() => {});
   const output = Promise.all([
     prefixLines(child.stdout, `[${step.id}] `, write, onLine),
     prefixLines(child.stderr, `[${step.id}] `, write, onLine),
   ]);
   const heartbeat = setInterval(() => write(`[${label}] ${step.id}: running ${elapsed()}\n`),
     heartbeatMs);
-  if (silent) armSilence();
-  else timer = setTimeout(() => stop('timed-out', `timeout after ${elapsed()}`), step.timeoutMs);
   const [code, signalName, error] = await new Promise(resolve => {
     child.once('error', failure => resolve([null, null, failure]));
     child.once('exit', (exitCode, exitSignal) => resolve([exitCode, exitSignal, null]));
   });
   clearInterval(heartbeat);
-  clearTimeout(timer);
   running.delete(entry);
   if (!error) await output;
   const durationMs = performance.now() - started;
-  const status = stopped ?? (code === 0 ? 'passed' : 'failed');
-  const detail = status === 'timed-out' ? `timed out after ${formatDuration(durationMs)}`
-    : status === 'stalled' ? `stalled after ${formatDuration(durationMs)} without progress`
-      : status === 'passed' ? `passed in ${formatDuration(durationMs)}`
-        : `failed (${error?.message ?? signalName ?? `exit ${code}`}) after ${formatDuration(durationMs)}`;
-  write(`[${label}] ${step.id}: ${detail}\n`);
-  return { id: step.id, status, exitCode: code, signal: signalName, durationMs,
-    ...(silent ? { silenceLimitMs: step.silenceLimitMs } : { timeoutMs: step.timeoutMs }) };
+  const status = code === 0 ? 'passed' : 'failed';
+  write(`[${label}] ${step.id}: ${status === 'passed' ? `passed in ${formatDuration(durationMs)}`
+    : `failed (${error?.message ?? signalName ?? `exit ${code}`}) after ${formatDuration(durationMs)}`}\n`);
+  return { id: step.id, status, exitCode: code, signal: signalName, durationMs };
 }
 
 /**

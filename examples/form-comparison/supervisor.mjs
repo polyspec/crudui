@@ -50,14 +50,13 @@ function reportProgress(target, step) {
 }
 
 
-/** Run one build target: every step streams its progress and holds the target's timeout. */
+/** Run one build target: every step streams its progress and runs to its end. */
 async function runTarget(target, label) {
   const started = performance.now();
   for (const [index, step] of target.steps.entries()) {
     const id = target.steps.length === 1 ? target.id : `${target.id}-${index + 1}`;
-    // runStep stops the step at its timeout and kills its tree after the termination grace.
     reportProgress(target.id, id);
-    const result = await runStep({ ...step, id, timeoutMs: target.timeoutMs }, { label });
+    const result = await runStep({ ...step, id }, { label });
     if (result.status !== 'passed') {
       throw new Error(`${id} ${result.status} after ${formatDuration(result.durationMs)}`);
     }

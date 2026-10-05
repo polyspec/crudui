@@ -17,6 +17,10 @@ function summary(paths) {
     supervisor: plan.supervisor };
 }
 
+test('a build target is a long operation and holds no timeout', () => {
+  assert.deepEqual(buildTargets.filter(target => 'timeoutMs' in target).map(target => target.id), []);
+});
+
 test('rebuilds and restarts nothing for sources read per request', () => {
   for (const file of [`${example}/api.php`, 'packages/generator-php/src/Form.php',
     'docs/spec/form-comparison.md', `${example}/servers/rust/target/release/crudui`,

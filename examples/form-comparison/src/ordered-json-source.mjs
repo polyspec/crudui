@@ -16,13 +16,9 @@ export const orderedJsonPackages = Object.freeze({
   rust: 'rust/Cargo.toml',
 });
 
-/** A clone or fetch of the pinned sources has its own timeout, which a lost network reaches. */
-export const orderedJsonGitTimeoutMs = 600_000;
-
 async function defaultGit(directory, args) {
   const { stdout } = await execFileAsync('git', args, {
     cwd: directory, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024,
-    timeout: orderedJsonGitTimeoutMs, killSignal: 'SIGKILL',
   });
   return stdout;
 }

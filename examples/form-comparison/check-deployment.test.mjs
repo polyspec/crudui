@@ -4,9 +4,9 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 
+import * as deployment from './comparison-deployment.mjs';
 import {
-  assertStableDeployment, containerctlHealthLimits, deploymentCleanupPlan, deploymentCpus,
-  deploymentHealth, deploymentHealthBudgetSeconds, deploymentMemory, deploymentStepLimitsMs,
+  assertStableDeployment, deploymentCleanupPlan, deploymentCpus, deploymentMemory,
   deploymentVolumes, preserveDeploymentDirectory, readDeploymentAuthority,
   removeRetiredComparisonPaths, renderDeploymentCompose, toolchainImageName,
   toolchainImageReference, shouldReuseDeployment,
@@ -58,50 +58,17 @@ test('renders one deterministic deployment that mounts the repository read-only'
   // Nothing in the definition depends on a commit, an archive or an image digest.
   assert.doesNotMatch(first, /[0-9a-f]{40}|sha256:|metadata|archive/);
 
-  const healthLine = first.split('\n').find(line => line.startsWith('      test: '));
-  const healthCommand = JSON.parse(healthLine.slice('      test: '.length));
-  assert.deepEqual(healthCommand.slice(0, 2), ['CMD', 'node']);
-  assert.doesNotThrow(() => new Function(healthCommand[3]));
-  assert.match(healthCommand[3], /\/api\/health/);
   assert.match(first, new RegExp(`^    cpus: "${deploymentCpus}"$`, 'm'));
   assert.match(first, new RegExp(`^    mem_limit: ${deploymentMemory}$`, 'm'));
 });
 
-test('waits for health within a budget sized from the measured start', () => {
+test('declares no healthcheck, whose budget would bound the first build', () => {
+  // containerctl waits for a declared health within start_period + retries × (interval + timeout);
+  // the first start builds everything, so the deployment waits for the build state instead.
   const compose = renderDeploymentCompose({ repositoryRoot, imageReference });
-  const seconds = key => Number(compose.match(new RegExp(`^      ${key}: (\\d+)s$`, 'm'))?.[1]);
-  const [interval, timeout, startPeriod] = ['interval', 'timeout', 'start_period'].map(seconds);
-  const retries = Number(compose.match(/^ {6}retries: (\d+)$/m)?.[1]);
-  assert.deepEqual({ interval, timeout, retries, startPeriod }, {
-    interval: deploymentHealth.intervalSeconds, timeout: deploymentHealth.timeoutSeconds,
-    retries: deploymentHealth.retries, startPeriod: deploymentHealth.startPeriodSeconds,
-  });
-
-  // containerctl accepts interval and timeout above zero and start_period from zero, each at
-  // most 10 minutes, 1 through 100 retries, and a startup budget of at most 30 minutes.
-  for (const [name, value] of [['interval', interval], ['timeout', timeout]]) {
-    assert.ok(Number.isInteger(value) && value > 0
-      && value <= containerctlHealthLimits.maxDurationSeconds,
-    `Deployment health ${name} must be whole seconds above zero and at most 10 minutes`);
-  }
-  assert.ok(Number.isInteger(startPeriod) && startPeriod >= 0
-    && startPeriod <= containerctlHealthLimits.maxDurationSeconds,
-  'Deployment health start_period must be whole seconds from zero to 10 minutes');
-  assert.ok(Number.isInteger(retries) && retries >= containerctlHealthLimits.minRetries
-    && retries <= containerctlHealthLimits.maxRetries,
-  'Deployment health retries must be within containerctl range 1..100');
-
-  // The measured start answered health 58 seconds after the container started. The budget covers
-  // that with margin and stays far below containerctl's 30 minutes, which no step may take.
-  const budget = startPeriod + retries * (interval + timeout);
-  assert.equal(budget, deploymentHealthBudgetSeconds);
-  assert.equal(budget, 360);
-  assert.ok(budget < containerctlHealthLimits.maxBudgetSeconds,
-    'A whole run never gets one thirty minute timeout');
-  assert.equal(deploymentStepLimitsMs['containerctl-up'], (budget + 60) * 1_000,
-    'Applying the definition waits the health budget and one minute for containerctl itself');
-  for (const [id, limit] of Object.entries(deploymentStepLimitsMs)) {
-    assert.ok(Number.isSafeInteger(limit) && limit > 0, `${id} must carry its own timeout`);
+  assert.doesNotMatch(compose, /healthcheck|start_period|retries/);
+  for (const name of ['containerctlHealthLimits', 'deploymentHealth', 'deploymentHealthBudgetSeconds', 'deploymentStepLimitsMs']) {
+    assert.equal(deployment[name], undefined, `${name} is not declared`);
   }
 });
 

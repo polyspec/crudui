@@ -88,3 +88,9 @@ test('the supervisor compares the repository at change signals, not on a timer',
   const signal = await readFile(new URL('../source-changed.mjs', import.meta.url), 'utf8');
   assert.match(signal, /process\.kill\(pid, 'SIGUSR2'\)/);
 });
+
+test('the Git calls of the source comparison and the OrderedJSON checkout hold no timeout', async () => {
+  for (const file of ['./source-tree.mjs', './ordered-json-source.mjs']) {
+    assert.doesNotMatch(await readFile(new URL(file, import.meta.url), 'utf8'), /\btimeout\b|TimeoutMs/, file);
+  }
+});

@@ -1,5 +1,13 @@
 # 변경 기록
 
+## 2026-10-05 — 한도 없는 form comparison step (C2.13-2)
+
+- form comparison의 step은 끝까지 실행하고 종료 상태로 판정합니다. step runner는 전체 한도나 비활동
+  한도를 거부하고, build target, verification 검사, local build, host verification, deployment step은
+  한도를 가지지 않습니다. Compose 정의는 첫 build를 제한하던 예산의 healthcheck를 선언하지 않고,
+  배포는 대신 checkout의 build 상태를 기다립니다. 소스 비교와 OrderedJSON checkout의 Git 호출에는
+  timeout이 없습니다. 검사 안의 단위는 자기 한도를 유지합니다.
+
 ## 2026-10-05 — 종료된 group의 process tree 멈춤 (C2.16)
 
 - form comparison의 `killProcessTree`는 멈춘 process의 group에 종료된 process만 남아 있어도

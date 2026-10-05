@@ -10,7 +10,7 @@ import { treeDirectory } from './src/server-layout.mjs';
 import { sameSourceIdentity } from './src/source-identity.mjs';
 import { sourceIdentity } from './src/source-tree.mjs';
 import {
-  formatDuration, runStep, stepSilenceLimitMs, stopStepsOnSignal,
+  formatDuration, runStep, stopStepsOnSignal,
 } from './src/step-runner.mjs';
 import { verifyEvidence } from './verification-evidence.mjs';
 
@@ -26,14 +26,14 @@ export function verificationCommand(containerName, source) {
 }
 
 /**
- * The host step that runs one verification inside the container. The run consists of steps and
- * units with their own limits, so the host holds no total limit: it stops the run when the run
- * prints no progress line within the inactivity limit.
+ * The host step that runs one verification inside the container: a long operation that runs to
+ * its end without a time limit and streams the progress of its steps; the units inside them keep
+ * their own limits.
  */
 export function verificationStep(containerName, runtime, source) {
   return {
     id: 'tree-verification', command: runtime.executable, args: verificationCommand(containerName, source),
-    environment: runtime.environment, silenceLimitMs: stepSilenceLimitMs,
+    environment: runtime.environment,
   };
 }
 

@@ -15,13 +15,9 @@ const commitPattern = /^[0-9a-f]{40}$/;
 // Operator-local editor settings are per-checkout state, not comparison source.
 const localOnlyPaths = new Set(['.claude/settings.local.json']);
 
-/** One comparison of the mounted repository runs every second, so its Git calls are bounded. */
-export const sourceGitTimeoutMs = 120_000;
-
 async function git(root, args) {
   const { stdout } = await execFileAsync('git', [...gitOptions, ...args], {
     cwd: root, encoding: 'buffer', maxBuffer: 256 * 1024 * 1024,
-    timeout: sourceGitTimeoutMs, killSignal: 'SIGKILL',
   });
   return stdout;
 }
