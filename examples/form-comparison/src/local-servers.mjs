@@ -160,6 +160,16 @@ export async function recordServerProcess(server, { port, dataDirectory, publicD
   };
 }
 
+// Every process group a local stack started and has not stopped. A test process that ends without
+// stopping them, for example after a failed hook and a forced exit, stops them at its exit, so no
+// server outlives the run that started it.
+const startedGroups = new Set();
+process.on('exit', () => {
+  for (const pid of startedGroups) {
+    try { process.kill(-pid, 'SIGKILL'); } catch (error) { if (error.code !== 'ESRCH' && error.code !== 'EPERM') throw error; }
+  }
+});
+
 /**
  * Start one process and wait for its readiness line, then require that it answers on the requested
  * address. A process start is a long operation without a time limit: it prints a line with its
@@ -177,6 +187,8 @@ export async function startProcess(definition, { write = text => process.stdout.
     ? fork(definition.args[0], definition.args.slice(1), { ...options, execPath: definition.command })
     : spawn(definition.command, definition.args, options);
   if (message) child.send(message);
+  startedGroups.add(child.pid);
+  child.once('exit', () => startedGroups.delete(child.pid));
   let output = '';
   const ready = new Promise((resolve, reject) => {
     const timer = setInterval(() => progress(write,

@@ -231,7 +231,9 @@ Rust manifests name), both PHP extensions, the PHP validator copy, the Go binary
 debug binary. The local stack then starts its five processes at the same time and its browser.
 A process start and the browser start are long operations without a limit: each ends at its
 readiness event or its launch and prints a line with its elapsed time every 15 seconds while it
-waits. The test hooks that run these operations are setups without a limit. `npm run test:form-comparison:pipeline` runs both, and the CI job
+waits. The test hooks that run these operations are setups without a limit. A test process that
+ends without stopping the servers it started, for example after a failed hook and a forced exit,
+stops their process groups at its exit, so no server outlives the run. `npm run test:form-comparison:pipeline` runs both, and the CI job
 `form-comparison-pipeline` runs that command.
 
 ## Progress, limits and scope

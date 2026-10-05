@@ -206,7 +206,8 @@ Enter)는 폼의 네이티브 필드를 `multipart/form-data`로 `/api/{server}/
 바이너리입니다. 그다음 로컬 구성은 다섯 프로세스를 동시에 시작하고 브라우저를 시작합니다.
 프로세스 시작과 브라우저 시작은 제한 시간이 없는 장기 작업입니다. 각각 준비 이벤트나 launch에서
 끝나고, 기다리는 동안 15초마다 경과 시간 줄을 출력합니다. 이 작업들을 실행하는 테스트 훅은
-제한 시간이 없는 setup입니다. `npm run test:form-comparison:pipeline`이 둘을 실행하고 CI 작업
+제한 시간이 없는 setup입니다. 시작한 서버를 멈추지 않고 끝나는 테스트 프로세스는, 예를 들어 실패한 훅과
+강제 종료 뒤에도, 종료할 때 그 프로세스 그룹을 멈추므로 어떤 서버도 실행보다 오래 남지 않습니다. `npm run test:form-comparison:pipeline`이 둘을 실행하고 CI 작업
 `form-comparison-pipeline`이 이 명령을 실행합니다.
 
 ## 진행, 제한 시간, 범위
