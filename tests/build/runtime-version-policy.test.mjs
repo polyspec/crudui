@@ -133,6 +133,23 @@ test('a tool at another version fails with its record, the expected and the runn
   ]);
 });
 
+// The type definitions of Node.js describe the runtime that runs the code, so every manifest requires the major of
+// the recorded Node.js release.
+test('every @types/node range requires the major of .node-version', async () => {
+  const major = recordedToolchain(repository).node.split('.')[0];
+  const files = spawnSync('git', ['ls-files', '--cached', '--others', '--exclude-standard', '*package.json'], { cwd: repository, encoding: 'utf8' }).stdout.split('\n').filter(Boolean);
+  const violations = [];
+  for (const file of files) {
+    let manifest;
+    try { manifest = JSON.parse(await read(file)); } catch { continue; }
+    for (const field of ['dependencies', 'devDependencies']) {
+      const range = manifest[field]?.['@types/node'];
+      if (range !== undefined && !new RegExp(`^[\\^~]?${major}\\.`).test(range)) violations.push(`${file} ${field}: @types/node ${range}, .node-version records Node.js ${major}`);
+    }
+  }
+  assert.deepEqual(violations, []);
+});
+
 test('every go.mod names the recorded Go release as its toolchain', async () => {
   const { go } = recordedToolchain(repository);
   const files = spawnSync('git', ['ls-files', '--cached', '--others', '--exclude-standard', '*go.mod'], { cwd: repository, encoding: 'utf8' }).stdout.split('\n').filter(Boolean);

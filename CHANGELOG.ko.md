@@ -1,5 +1,11 @@
 # 변경 기록
 
+## 2026-10-06 — 실행 major의 Node.js type 정의 (C5.8-7)
+
+- TypeScript workspace 6개는 기록된 Node.js 26.8.1의 major인 `@types/node` 26.6.4를 씁니다. 이전에는 Node.js 25를
+  기술했습니다. `tests/build/runtime-version-policy.test.mjs`는 `.node-version`과 다른 major의 `@types/node` range에 대해
+  실패합니다.
+
 ## 2026-10-06 — YAML 1.2 core schema의 js-yaml 5 (C5.8-6)
 
 - cli와 cross-check console은 이름 있는 `load` export로 js-yaml 5.4.2를 씁니다. 그 기본 schema는 `scripts/check-schema.mjs`의
