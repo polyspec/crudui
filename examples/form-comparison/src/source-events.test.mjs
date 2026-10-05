@@ -112,12 +112,14 @@ test('a stopped source watcher closes its watch and prints its stop', async () =
   assert.match(lines.join(''), /^\[source-events\] stopped after 1 delivery$/m);
 });
 
-test('a deployment that reuses the running container signals the supervisor before it waits for the build', async () => {
-  // The running supervisor compares the checkout only at a change signal; the checkout may have
-  // changed since the last one, so the deployment sends one before it waits for this checkout.
+test('a deployment signals the supervisor before it waits for the build', async () => {
+  // A running supervisor compares the checkout only at a change signal, and containerctl also
+  // reuses an unchanged container whose supervisor started from an earlier checkout; the deployment
+  // sends one signal before it waits for this checkout, in either mode.
   const source = await readFile(new URL('../comparison-deployment.mjs', import.meta.url), 'utf8');
   const main = source.slice(source.indexOf('async function main()'));
-  const signal = main.indexOf("if (application.mode === 'sync') await signalSourceChange();");
+  assert.doesNotMatch(main, /application\.mode === 'sync'\) await signalSourceChange/);
+  const signal = main.indexOf('await signalSourceChange();');
   assert.ok(signal > 0 && signal < main.indexOf('await awaitBuild();'), 'the signal precedes the wait for the build');
 });
 

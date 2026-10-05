@@ -1,5 +1,10 @@
 # 변경 기록
 
+## 2026-10-05 — 모든 배포의 변경 신호 (C2.10-2)
+
+- `make deploy`는 어느 mode에서든 빌드를 기다리기 전에 supervisor에 신호합니다. containerctl도 이전
+  checkout에서 시작한 supervisor의 바뀌지 않은 container를 재사용하기 때문입니다.
+
 ## 2026-10-05 — supervisor 시작부터 답하는 서비스 port (C2.13-3)
 
 - comparison supervisor는 시작부터 port 8080에서 listen하고, 공개 서버에 port를 넘길 때까지 빌드 상태와

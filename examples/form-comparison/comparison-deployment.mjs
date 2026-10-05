@@ -502,9 +502,11 @@ async function main() {
   const composeFile = path.join(deploymentDirectory, 'compose.yaml');
   await writeFile(composeFile, compose);
   const application = await applyDeployment(composeFile, imageReference, deploymentDirectory);
-  // A reused container's supervisor compares the checkout at the change signal; a new one compared
-  // it at its start. The servers answer once the supervisor has built this checkout.
-  if (application.mode === 'sync') await signalSourceChange();
+  // The supervisor compares the checkout at a change signal. containerctl also reuses an unchanged
+  // container whose supervisor started from an earlier checkout, and a new supervisor records its
+  // process before its port opens, so the signal reaches it in either mode. The servers answer once
+  // the supervisor has built this checkout.
+  await signalSourceChange();
   await awaitBuild();
   const first = await deploymentSnapshot(imageReference, deploymentDirectory);
   const second = await deploymentSnapshot(imageReference, deploymentDirectory);
