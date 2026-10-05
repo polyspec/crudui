@@ -320,7 +320,10 @@ repositories or submodules.
 ### Natural application
 
 One supervisor, `examples/form-comparison/supervisor.mjs`, runs in the container.
-At start it synchronizes the build tree, builds every target and starts the public
+At start it records its process id and listens on the service port 8080, where it answers every
+request with 503 and the build state until the public server starts: containerctl connects to that
+port within a minute of the container start, and the first build of empty volumes takes longer.
+It then synchronizes the build tree, builds every target and starts the public
 server (which is also the JavaScript record server) and the four native API servers
 (PHP, the PHP extension, Go and Rust). File events from the macOS host do not reach the
 Linux container through the VM file share, so a host process publishes them: the source watcher

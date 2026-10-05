@@ -1,5 +1,11 @@
 # 변경 기록
 
+## 2026-10-05 — supervisor 시작부터 답하는 서비스 port (C2.13-3)
+
+- comparison supervisor는 시작부터 port 8080에서 listen하고, 공개 서버에 port를 넘길 때까지 빌드 상태와
+  함께 503으로 답합니다. containerctl은 container 시작 후 1분 안에 서비스 port를 확인하므로, C2.13-2가
+  없앤 healthcheck 없이는 빈 볼륨의 첫 빌드가 그 1분을 넘겨 `make deploy`가 연결에서 실패했습니다.
+
 ## 2026-10-05 — 재사용하는 배포의 변경 신호 (C2.10-1)
 
 - container를 재사용하는 `make deploy`는 빌드를 기다리기 전에 실행 중인 supervisor에 신호하므로, 새

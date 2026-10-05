@@ -120,3 +120,14 @@ test('a deployment that reuses the running container signals the supervisor befo
   const signal = main.indexOf("if (application.mode === 'sync') await signalSourceChange();");
   assert.ok(signal > 0 && signal < main.indexOf('await awaitBuild();'), 'the signal precedes the wait for the build');
 });
+
+test('the supervisor answers on the service port until the public server listens', async () => {
+  // containerctl connects to the service port within a minute of the container start, before the
+  // first build ends; the supervisor listens there from its start and hands the port over.
+  const supervisor = await readFile(new URL('../supervisor.mjs', import.meta.url), 'utf8');
+  const listen = supervisor.indexOf('.listen(publicPort');
+  assert.ok(listen > 0 && listen < supervisor.indexOf('await runCycle(completeBuild()'), 'the port is open before the first build');
+  const start = supervisor.slice(supervisor.indexOf('async function startProcess(name'));
+  assert.ok(start.indexOf('releasePublicPort()') > 0
+    && start.indexOf('releasePublicPort()') < start.indexOf('spawn('), 'the port is released before the public server starts');
+});

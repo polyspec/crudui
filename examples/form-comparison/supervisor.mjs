@@ -1,5 +1,6 @@
 import { spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
+import { createServer } from 'node:http';
 import { renameSync, writeFileSync } from 'node:fs';
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import path from 'node:path';
@@ -10,7 +11,7 @@ import { changeRequests } from './src/change-requests.mjs';
 import { forwardLines } from './src/process-output.mjs';
 import { formatDuration, runStep } from './src/step-runner.mjs';
 import {
-  binaryDirectory, buildStateFile, cruduiModule, orderedJsonDirectory, publicDirectory, publicServerProcess,
+  binaryDirectory, buildStateFile, cruduiModule, orderedJsonDirectory, publicDirectory, publicPort, publicServerProcess,
   serverProcess, sourceIdentityFile, sourceMount, stateDirectory, supervisorProcessFile, treeDirectory,
 } from './src/server-layout.mjs';
 import { stopChild, verifyChildServers, waitForChildReadiness } from './src/server-startup.mjs';
@@ -73,8 +74,31 @@ async function stopProcess(name) {
   await stopChild(entry.child);
 }
 
+/**
+ * containerctl connects to the service port within a minute of the container start, and the first
+ * build of empty volumes takes longer. Until the public server listens, the supervisor answers on
+ * that port itself: every request gets 503 with the build state.
+ */
+let portHolder = createServer((request, response) => {
+  response.writeHead(503, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
+  response.end(`${JSON.stringify({ status: state.status, cycle: state.cycle, error: state.error })}\n`);
+});
+
+/** Hand the service port to the public server: stop answering and close every connection. */
+async function releasePublicPort() {
+  if (!portHolder) return;
+  const holder = portHolder;
+  portHolder = null;
+  await new Promise(resolve => {
+    holder.close(resolve);
+    holder.closeAllConnections();
+  });
+  log('start: service port handed to the public server');
+}
+
 async function startProcess(name, cruduiModuleSha256) {
   await stopProcess(name);
+  if (name === 'public') await releasePublicPort();
   const definition = name === 'public'
     ? publicServerProcess() : serverProcess(name, { cruduiModuleSha256 });
   const child = spawn(definition.command, definition.args, {
@@ -218,6 +242,9 @@ await Promise.all([treeDirectory, publicDirectory, binaryDirectory, stateDirecto
 // The signal handler is installed above, so a change signalled after this record is not lost.
 writeFileSync(`${supervisorProcessFile}.${process.pid}.tmp`, `${process.pid}\n`);
 renameSync(`${supervisorProcessFile}.${process.pid}.tmp`, supervisorProcessFile);
+// The port opens after the process record, so a deployment that sees the port can signal.
+await new Promise((resolve, reject) => portHolder.once('error', reject).listen(publicPort, '0.0.0.0', resolve));
+log(`start: answering on port ${publicPort} until the public server listens`);
 await startupStep('ordered-json-sources', () => installOrderedJson(orderedJsonDirectory));
 treeState = await readTreeState(sourceMount);
 const initialSource = await sourceIdentity(sourceMount);
