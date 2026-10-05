@@ -11,6 +11,8 @@ import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
+import { makeDryRun } from './make-dry-run.mjs';
+
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const CHECKLIST = 'docs/plans/execution-checklist.md';
 const FILES = ['Makefile', 'scripts/full-run.mjs', 'scripts/push-gate.mjs', 'scripts/test-progress/progress.mjs', '.githooks/pre-push'];
@@ -108,7 +110,7 @@ test('R3: hooks-check fails while the hook is not installed, and make installs i
   assert.match(missing.stderr, /core\.hooksPath is unset, not \.githooks[\s\S]*make hooks/);
 
   // Any make run installs the hook while it reads the Makefile.
-  const dry = run(directory, 'make', '-n', 'help');
+  const dry = makeDryRun(directory, 'help', { env: ENV });
   assert.equal(dry.status, 0, dry.stderr);
   assert.equal(git(directory, 'config', 'core.hooksPath'), '.githooks');
 

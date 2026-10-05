@@ -65,6 +65,12 @@ The CI workflow runs the same commands in its jobs on each push to `main` and do
 ci`, so the guard does not decide CI runs. A new checkout, as in CI, has no record, so `make ci`
 runs there when no task is `[~]` and the tree is clean.
 
+A test that reads the commands of a Makefile target runs `makeDryRun` of
+`tests/build/make-dry-run.mjs`: `make --no-print-directory -n <target>` with `MAKEFLAGS=w` and without
+`MAKELEVEL`, `GNUMAKEFLAGS`, `MAKEFILES` and `MFLAGS` of a parent make, so GNU Make 3.81 and GNU Make 4,
+also inside another make, print only the commands. `tests/build/make-dry-run.test.mjs` fails for a dry
+run of make outside it.
+
 A push happens only when no task of the checklist is `[~]`. The tracked pre-push hook
 `.githooks/pre-push` runs `node scripts/push-gate.mjs hook` with the refs that Git pushes. The check
 reads the checklist of every pushed commit (`git show <sha>:docs/plans/execution-checklist.md`) and

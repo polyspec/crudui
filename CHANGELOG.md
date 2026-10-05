@@ -1,5 +1,13 @@
 # Changes
 
+## 2026-10-05 — Make dry runs that read the same on every make (C7.1)
+
+- Tests read the commands of a Makefile target through `makeDryRun` of `tests/build/make-dry-run.mjs`,
+  which runs `make --no-print-directory -n` with `MAKEFLAGS=w` and without the variables of a parent
+  make. GNU Make 4 inside another make printed `Entering directory` lines around the commands, so
+  `tests/build/full-run.test.mjs` failed there. `tests/build/make-dry-run.test.mjs` fails for a dry
+  run of make outside the helper.
+
 ## 2026-10-05 — React kept at 19.2.8 (C5.8-2-1)
 
 - React and React DOM are pinned to 19.2.8. React 19.3.0 reports a browser error for the `<script>`

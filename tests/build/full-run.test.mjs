@@ -11,6 +11,7 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 import { activeItems, decide, fullRun, RECORD } from '../../scripts/full-run.mjs';
+import { makeDryRun } from './make-dry-run.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
@@ -30,7 +31,7 @@ const DONE = CHECKLIST.replace('| [~] |', '| [o] |');
 
 // The commands that make prints for `target` without running them.
 function dryRun(target) {
-  const run = spawnSync('make', ['-n', target], { cwd: ROOT, encoding: 'utf8' });
+  const run = makeDryRun(ROOT, target);
   assert.equal(run.status, 0, run.stderr);
   return run.stdout.split('\n').filter(Boolean);
 }
