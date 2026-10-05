@@ -12,7 +12,7 @@ import { holdUntilExit, userLockFile } from '../../scripts/holder-lock.mjs';
 import { browserServers } from './browser-report-policy.mjs';
 import { containerRuntime, runContainer } from './container-runtime.mjs';
 import { forwardLines } from './src/process-output.mjs';
-import { formatDuration, runStep, stepSilenceLimitMs } from './src/step-runner.mjs';
+import { formatDuration, runStep } from './src/step-runner.mjs';
 import {
   buildDirectory, cacheDirectory, dataDirectory, resultsDirectory, sourceMount,
 } from './src/server-layout.mjs';
@@ -40,21 +40,6 @@ export const deploymentVolumes = Object.freeze({
 // them: it holds the host's OrderedJSON checkout that the local record servers build from.
 export const retiredComparisonPaths = Object.freeze(['candidates', 'results']);
 
-/** containerctl's limits for one health declaration, in seconds. */
-export const containerctlHealthLimits = Object.freeze({
-  maxDurationSeconds: 600, minRetries: 1, maxRetries: 100, maxBudgetSeconds: 1800,
-});
-/**
- * The health budget, sized from the measured start: the first start of empty volumes installed
- * and built everything and answered health 58 seconds after the container started. The start
- * period covers twice that, and the checks that follow six times it, so a slow machine still
- * passes while a stopped build fails in six minutes instead of thirty.
- */
-export const deploymentHealth = Object.freeze({
-  intervalSeconds: 5, timeoutSeconds: 5, retries: 24, startPeriodSeconds: 120,
-});
-export const deploymentHealthBudgetSeconds = deploymentHealth.startPeriodSeconds
-  + deploymentHealth.retries * (deploymentHealth.intervalSeconds + deploymentHealth.timeoutSeconds);
 /** Four browser checks run at the same time, one browser and one API server each. */
 export const deploymentCpus = 8;
 export const deploymentMemory = '8G';
@@ -68,15 +53,17 @@ export function toolchainImageReference(containerfile) {
   return `${toolchainImageName}:${sha256(containerfile).slice(0, 16)}`;
 }
 
-/** Create the Compose definition used by containerctl. */
+/**
+ * Create the Compose definition used by containerctl. It declares no healthcheck: containerctl
+ * would wait for health within a budget, and the first start builds everything, a long operation
+ * without a time limit. The deployment instead waits for the build state of this checkout
+ * (`awaitBuild`), which prints every step and has no limit.
+ */
 export function renderDeploymentCompose({ repositoryRoot: root, imageReference }) {
   assert.ok(path.isAbsolute(root) && path.normalize(root) === root && !root.includes(':'),
     'Deployment repository root must be one absolute path without a colon');
   assert.match(imageReference, new RegExp(`^${toolchainImageName}:[0-9a-f]{16}$`),
     'Deployment image must be the toolchain image');
-  const healthScript = "fetch('http://127.0.0.1:8080/api/health').then(async response => { const health = await response.json(); "
-    + `if (!response.ok || health.status !== 'ok' || JSON.stringify(health.servers) !== ${JSON.stringify(JSON.stringify(browserServers))}) process.exit(1) })`
-    + '.catch(() => process.exit(1))';
   const volume = value => `      - ${JSON.stringify(value)}`;
   return [
     'name: crudui',
@@ -95,14 +82,6 @@ export function renderDeploymentCompose({ repositoryRoot: root, imageReference }
     volume(`./results:${resultsDirectory}`),
     '    labels:',
     `      containerctl.domain: ${deploymentDomain}`,
-    '    healthcheck:',
-    `      test: ${JSON.stringify(['CMD', 'node', '-e', healthScript])}`,
-    // containerctl waits at most start_period + retries × (interval + timeout) and allows 30
-    // minutes. This budget is sized from the measured start instead: see deploymentHealth.
-    `      interval: ${deploymentHealth.intervalSeconds}s`,
-    `      timeout: ${deploymentHealth.timeoutSeconds}s`,
-    `      retries: ${deploymentHealth.retries}`,
-    `      start_period: ${deploymentHealth.startPeriodSeconds}s`,
     '',
     'volumes:',
     '  build:',
@@ -266,18 +245,9 @@ async function certificate(hostname, ca) {
   });
 }
 
-/**
- * Limits of the deployment's own steps. The image build is measured at its first run on this
- * machine; the deployment waits the health budget and one minute for containerctl itself.
- */
-export const deploymentStepLimitsMs = Object.freeze({
-  'toolchain-image': 1_800_000,
-  'containerctl-up': (deploymentHealthBudgetSeconds + 60) * 1_000,
-});
-
+/** Run one deployment step to its end; a failed step fails the deployment. */
 async function runDeploymentStep(step, options = {}) {
-  const result = await runStep({ ...step, timeoutMs: deploymentStepLimitsMs[step.id] },
-    { label: 'deployment', ...options });
+  const result = await runStep(step, { label: 'deployment', ...options });
   assert.equal(result.status, 'passed',
     `${step.id} ${result.status} after ${formatDuration(result.durationMs)}`);
   return result;
@@ -447,16 +417,15 @@ export function buildReadinessCommand(containerName, source) {
 }
 
 /**
- * Wait for the build of this checkout. The build moves through steps with their own limits, so
- * the host holds no total limit: it stops the wait when it prints no progress line within the
- * inactivity limit.
+ * Wait for the build of this checkout. Building is a long operation, so the wait has no time limit:
+ * it prints the build steps it reads and ends at the ready state of this checkout or a failure.
  */
 async function awaitBuild() {
   const runtime = await containerRuntime();
   const result = await runStep({
     id: 'build-readiness', command: runtime.executable,
     args: buildReadinessCommand(deploymentContainer, await sourceIdentity(repositoryRoot)),
-    environment: runtime.environment, silenceLimitMs: stepSilenceLimitMs,
+    environment: runtime.environment,
   }, { label: 'deployment' });
   assert.equal(result.status, 'passed', `Build readiness ${result.status} after ${formatDuration(result.durationMs)}`);
 }

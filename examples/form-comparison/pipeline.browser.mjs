@@ -22,8 +22,6 @@ import { recordServers } from './src/record-contract.mjs';
 import { sourceIdentity } from './src/source-tree.mjs';
 import { runStages } from './src/step-runner.mjs';
 
-// The public build measured 2.0 s.
-const publicBuildLimitMs = 120_000;
 
 let root;
 let browser;
@@ -38,7 +36,7 @@ setup('stack start', async () => {
   await mkdir(dataDirectory, { recursive: true });
   const prepared = await prepareRecordServers({ buildDirectory: path.join(root, 'bin') });
   const [build] = await runStages([[{
-    id: 'public-build', timeoutMs: publicBuildLimitMs, command: process.execPath,
+    id: 'public-build', command: process.execPath,
     args: [path.join(exampleDirectory, 'build.mjs'), publicDirectory], cwd: repositoryRoot, environment: {},
   }]], { label: 'local-servers' });
   assert.equal(build.status, 'passed', `public build ${build.status}`);

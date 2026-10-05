@@ -10,22 +10,14 @@ import {
 } from './src/server-layout.mjs';
 import { sameSourceIdentity } from './src/source-identity.mjs';
 import {
-  formatDuration, runStages, stepHeartbeatMs, stepSilenceLimitMs, stopStepsOnSignal,
+  formatDuration, runStages, stepHeartbeatMs, stopStepsOnSignal,
 } from './src/step-runner.mjs';
 import { verifyEvidence } from './verification-evidence.mjs';
 
 const example = path.join(treeDirectory, 'examples/form-comparison');
-/** A single operation with a total limit. */
-function check(id, timeoutMs, command, args, cwd = example, environment = {}) {
-  return { id, timeoutMs, command, args, cwd, environment };
-}
-
-/**
- * A check made of units, each with its own limit: it has no total limit and is stopped when it
- * prints no unit progress line within the inactivity limit.
- */
-function unitCheck(id, args) {
-  return { id, silenceLimitMs: stepSilenceLimitMs, command: 'node', args, cwd: example, environment: {} };
+/** One check of the verification: a step that runs to its end and prints its progress. */
+function check(id, args) {
+  return { id, command: 'node', args, cwd: example, environment: {} };
 }
 
 /**
@@ -44,25 +36,21 @@ function unitCheck(id, args) {
  * - the browser checks drive the built frame pages in the container's Chromium;
  * - `browser-summary` aggregates the four browser reports of this run.
  *
- * A single operation carries its own timeout, sized from its measured duration. The pipeline and
- * browser checks consist of units with their own limits and carry only the inactivity limit. The
- * four browser checks
+ * A check is a long operation: it runs to its end without a time limit and prints its progress;
+ * the units inside the pipeline and browser checks keep their own limits. The four browser checks
  * run at the same time: each one drives its own browser process with its own focus, selection and
  * scroll, and each server keeps its own records, so no measurement of one reaches another.
  */
 export function verificationStages() {
   return [
-    // Measured on the idle deployment: php-modes 1 s, generation 7 s, persistence 2 s.
-    // Each limit leaves an order of magnitude for a loaded machine.
-    [check('php-modes', 60_000, 'node',
-      ['test-php-modes.mjs', orderedJsonModule, cruduiModule, treeDirectory])],
-    [check('generation', 120_000, 'node', ['check-generation.mjs', '--url', publicOrigin,
+    [check('php-modes', ['test-php-modes.mjs', orderedJsonModule, cruduiModule, treeDirectory])],
+    [check('generation', ['check-generation.mjs', '--url', publicOrigin,
       '--library', treeDirectory, '--report', path.join(resultsDirectory, 'generation.json')])],
-    [check('persistence', 60_000, 'node', ['check-servers.mjs'])],
-    [unitCheck('pipeline', ['check-pipeline.mjs', '--origin', publicOrigin,
+    [check('persistence', ['check-servers.mjs'])],
+    [check('pipeline', ['check-pipeline.mjs', '--origin', publicOrigin,
       '--report', path.join(resultsDirectory, 'pipeline.json')])],
-    formServers.map(server => unitCheck(`browser-${server}`, ['check.mjs', server, publicOrigin])),
-    [check('browser-summary', 120_000, 'node', ['check-browser-reports.mjs',
+    formServers.map(server => check(`browser-${server}`, ['check.mjs', server, publicOrigin])),
+    [check('browser-summary', ['check-browser-reports.mjs',
       '--results', resultsDirectory, '--origin', publicOrigin,
       '--source', path.join(resultsDirectory, 'source.json'),
       '--report', path.join(resultsDirectory, 'browser-summary.json')])],

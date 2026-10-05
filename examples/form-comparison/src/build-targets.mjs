@@ -42,14 +42,13 @@ export const supervisedProcesses = Object.freeze(['public', ...formServers]);
 
 /**
  * Build targets in execution order. A target runs when a changed path matches one of its inputs
- * or when a target it depends on runs; afterwards its processes restart. Each target carries its
- * own timeout, sized from the measured duration of its first build with a whole-minute margin;
- * a target that reaches it fails the cycle instead of holding the build for an unbounded time.
+ * or when a target it depends on runs; afterwards its processes restart. A target is a build, a
+ * long operation: it runs to its end without a time limit, prints its steps, and its exit status
+ * decides it; a failed step fails the cycle.
  */
 export const buildTargets = Object.freeze([
   {
     id: 'npm-dependencies',
-    timeoutMs: 600_000,
     inputs: ['package.json', 'package-lock.json', /^packages\/[^/]+\/package\.json$/],
     dependsOn: [],
     steps: [step('npm', ['ci', '--strict-allow-scripts'])],
@@ -57,7 +56,6 @@ export const buildTargets = Object.freeze([
   },
   {
     id: 'javascript-packages',
-    timeoutMs: 600_000,
     inputs: [javascriptPackages, /^tsconfig[^/]*\.json$/],
     dependsOn: ['npm-dependencies'],
     steps: [step('npm', ['run', 'build'])],
@@ -65,7 +63,6 @@ export const buildTargets = Object.freeze([
   },
   {
     id: 'ordered-json-javascript',
-    timeoutMs: 60_000,
     inputs: [`${example}/src/ordered-json-source.mjs`, 'scripts/install-ordered-json-js.mjs',
       'package.json', 'package-lock.json'],
     dependsOn: ['npm-dependencies'],
@@ -74,7 +71,6 @@ export const buildTargets = Object.freeze([
   },
   {
     id: 'frames',
-    timeoutMs: 300_000,
     inputs: [
       new RegExp(`^${example}/(?:build\\.mjs|public/|benchmark/|benchmark-console/|src/|viewer/|fixtures/)`),
       javascriptPackages, 'tests/form-inspector/form-snapshot.mjs',
@@ -86,7 +82,6 @@ export const buildTargets = Object.freeze([
   {
     // The public, Go and Rust servers read the browser matrix when they start.
     id: 'browser-matrix',
-    timeoutMs: 60_000,
     inputs: [`${example}/src/runtime-paths.json`],
     dependsOn: [],
     steps: [],
@@ -95,7 +90,6 @@ export const buildTargets = Object.freeze([
   {
     // PHP reads api.php per request; only the PHP server program needs its processes restarted.
     id: 'php-server',
-    timeoutMs: 60_000,
     inputs: [new RegExp(`^${example}/servers/php/`)],
     dependsOn: [],
     steps: [],
@@ -103,7 +97,6 @@ export const buildTargets = Object.freeze([
   },
   {
     id: 'public-server',
-    timeoutMs: 60_000,
     inputs: [`${example}/server.mjs`, new RegExp(`^${example}/servers/javascript/`),
       `${example}/src/json.mjs`, `${example}/src/record-contract.mjs`, `${example}/src/record-view.mjs`,
       `${example}/src/runtime-paths.mjs`,
@@ -114,7 +107,6 @@ export const buildTargets = Object.freeze([
   },
   {
     id: 'cross-check-console',
-    timeoutMs: 60_000,
     inputs: [new RegExp('^examples/cross-check-console/(?:client/|server/|validators/(?:js|php)/)')],
     dependsOn: [],
     steps: [],
@@ -125,7 +117,6 @@ export const buildTargets = Object.freeze([
     // `install` keeps the validator's path-repository copy while the lock is unchanged, so the copy
     // is reinstalled from the tree.
     id: 'composer',
-    timeoutMs: 300_000,
     inputs: [/^packages\/validator-php\//, /^packages\/generator-php\/composer\.(?:json|lock)$/],
     dependsOn: [],
     steps: [
@@ -140,7 +131,6 @@ export const buildTargets = Object.freeze([
   },
   {
     id: 'crudui-php-extension',
-    timeoutMs: 180_000,
     inputs: [/^packages\/php-ext\//, 'scripts/build-crudui-php-extension.mjs',
       ...phpExtensionBuilder],
     dependsOn: [],
@@ -149,7 +139,6 @@ export const buildTargets = Object.freeze([
   },
   {
     id: 'ordered-json-php-extension',
-    timeoutMs: 180_000,
     inputs: ['scripts/build-ordered-json-php-extension.mjs', ...phpExtensionBuilder],
     dependsOn: [],
     steps: [step('node', ['scripts/build-ordered-json-php-extension.mjs', '--php-config', phpConfig,
@@ -158,7 +147,6 @@ export const buildTargets = Object.freeze([
   },
   {
     id: 'go-server',
-    timeoutMs: 300_000,
     inputs: [new RegExp(`^${example}/servers/go/`), /^packages\/(?:generator|validator)-go\//],
     dependsOn: [],
     steps: [step('go', ['build', '-trimpath', '-o', path.join(binaryDirectory, 'go'), '.'],
@@ -167,7 +155,6 @@ export const buildTargets = Object.freeze([
   },
   {
     id: 'cross-check-go-validator',
-    timeoutMs: 300_000,
     inputs: [/^packages\/validator-go\//, new RegExp('^examples/cross-check-console/validators/go/')],
     dependsOn: [],
     steps: [step('go', ['build', '-trimpath', '-o', path.join(binaryDirectory, 'validator-go'), '.'],
@@ -176,7 +163,6 @@ export const buildTargets = Object.freeze([
   },
   {
     id: 'cross-check-rust-validator',
-    timeoutMs: 900_000,
     inputs: [new RegExp('^packages/validator-rust/'),
       new RegExp('^examples/cross-check-console/validators/rust/(?!target/)')],
     dependsOn: [],
@@ -190,7 +176,6 @@ export const buildTargets = Object.freeze([
   },
   {
     id: 'rust-server',
-    timeoutMs: 900_000,
     inputs: [new RegExp(`^${example}/servers/rust/(?!target/)`),
       /^packages\/(?:generator|validator)-rust\//],
     dependsOn: [],
@@ -206,9 +191,6 @@ export const buildTargets = Object.freeze([
 
 const targetIndex = new Map(buildTargets.map((target, index) => [target.id, index]));
 for (const [index, target] of buildTargets.entries()) {
-  if (!(Number.isSafeInteger(target.timeoutMs) && target.timeoutMs > 0)) {
-    throw new Error(`Build target ${target.id} must declare its own timeout`);
-  }
   for (const dependency of target.dependsOn) {
     if (!(targetIndex.get(dependency) < index)) {
       throw new Error(`Build target ${target.id} must follow ${dependency}`);

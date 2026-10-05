@@ -1,5 +1,14 @@
 # Changes
 
+## 2026-10-05 — Steps of the form comparison without limits (C2.13-2)
+
+- A step of the form comparison runs to its end and is decided by its exit status: the step
+  runner rejects a total or inactivity limit, and the build targets, the verification checks,
+  the local builds, the host verification and the deployment steps hold none. The Compose
+  definition declares no healthcheck, whose budget bounded the first build; the deployment waits
+  for the build state of the checkout instead. The Git calls of the source comparison and of the
+  OrderedJSON checkout hold no timeout. The units inside a check keep their own limits.
+
 ## 2026-10-05 — Process tree stops of exited groups (C2.16)
 
 - `killProcessTree` of the form comparison completes when the group of the stopped process holds

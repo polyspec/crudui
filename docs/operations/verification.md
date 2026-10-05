@@ -69,16 +69,13 @@ volumes. Container creation is reserved for an absent, stopped or image-mismatch
 deployment. The command preserves the active service's data and removes unused
 comparison images and retired per-commit directories.
 
-Neither command waits silently. Every step prints its start with its own limit,
-its elapsed time every 15 seconds while it runs and its duration when it finishes.
-A step that is one operation holds a timeout; a step made of units, such as the
-tree verification itself, a browser check or the canonical flow check, holds no
-total limit and is stopped when it prints no unit progress line for 45 seconds.
-A step that reaches either limit is stopped with its whole process tree and names
-itself and its elapsed time. While containerctl waits for health, the deployment
-command prints the supervisor's build targets as they run. The health check waits
-six minutes, sized from the measured start of 58 seconds, not containerctl's 30
-minute maximum.
+Neither command waits silently, and neither holds a time limit over a long operation. Every step
+prints its start, its elapsed time every 15 seconds while it runs and its duration when it
+finishes, runs to its end and is decided by its exit status; only the units inside a check, such
+as a browser report or a canonical flow combination, hold their own limits. The definition declares
+no healthcheck, so containerctl returns once the container runs; the deployment command prints the
+supervisor's build targets as they run and then waits for the build of this checkout, printing
+every build step, without a limit.
 
 A source change is published by the source watcher, which runs in a terminal of the host while the
 service follows the working tree:
@@ -129,8 +126,8 @@ initialization comparisons, 320 successful interaction
 checks, 32 successful mount checks and 64 matching frame-document checks. No run has a duration
 budget or a total limit: each unit holds its own limit, three times its slowest measurement
 (100,000 milliseconds for an initialization report measured at 32 seconds, 10,000 for a scenario
-report measured at 2 seconds), and a browser check fails only when one of its units reaches its
-limit or when it prints no progress for 45 seconds. A failed, missing, malformed or timed-out result returns status 1. A source change during the run returns status 1. The
+report measured at 2 seconds), and a browser check fails only when one of its units fails or
+reaches its limit. A failed, missing, malformed or timed-out result returns status 1. A source change during the run returns status 1. The
 command also returns status 1 when any report names another source identity or when
 the evidence identity differs from the checkout's identity. The command does not
 retry requests or use sleep intervals.

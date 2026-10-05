@@ -62,25 +62,23 @@ async function orderedJsonCheckout(write) {
 
 /**
  * Build what the five record servers run: the OrderedJSON checkout, both PHP extensions, the
- * refreshed PHP validator copy and the Go and Rust server binaries. Every build is one step with
- * its own timeout. Measured with warm caches: validator copy 2.2 s, extensions 4.5 and 4.8 s, Go
- * 8.8 s, Rust debug build 15 s; the limits are those of the container's cold builds of the same
- * targets (docs/spec/form-comparison.md, "Build cycles").
+ * refreshed PHP validator copy and the Go and Rust server binaries. Every build is one step that
+ * runs to its end without a time limit and prints its output and progress.
  */
 export async function prepareRecordServers({ buildDirectory, write = text => process.stdout.write(text) }) {
   await orderedJsonCheckout(write);
   const goBinary = path.join(buildDirectory, 'go-server');
-  const step = (id, timeoutMs, command, args, cwd = repositoryRoot, environment = {}) =>
-    ({ id, timeoutMs, command, args, cwd, environment });
+  const step = (id, command, args, cwd = repositoryRoot, environment = {}) =>
+    ({ id, command, args, cwd, environment });
   const results = await runStages([[
-    step('composer-validator', 120_000, 'composer',
+    step('composer-validator', 'composer',
       ['--working-dir=packages/generator-php', 'reinstall', 'crudui/validator', '--no-interaction']),
-    step('crudui-php-extension', 180_000, process.execPath, ['scripts/build-crudui-php-extension.mjs']),
-    step('ordered-json-php-extension', 180_000, process.execPath, ['scripts/build-ordered-json-php-extension.mjs',
+    step('crudui-php-extension', process.execPath, ['scripts/build-crudui-php-extension.mjs']),
+    step('ordered-json-php-extension', process.execPath, ['scripts/build-ordered-json-php-extension.mjs',
       '--source', path.join(localOrderedJsonDirectory, 'php-extension/src')]),
-    step('go-server', 300_000, 'go', ['build', '-trimpath', '-o', goBinary, '.'],
+    step('go-server', 'go', ['build', '-trimpath', '-o', goBinary, '.'],
       path.join(exampleDirectory, 'servers/go'), { CGO_ENABLED: '0' }),
-    step('rust-server', 900_000, process.execPath, [path.join(repositoryRoot, 'scripts/run-rust-command.mjs'),
+    step('rust-server', process.execPath, [path.join(repositoryRoot, 'scripts/run-rust-command.mjs'),
       'build', '--locked'], path.join(exampleDirectory, 'servers/rust')),
   ]], { label: 'local-servers', write });
   const failed = results.find(result => result.status !== 'passed');

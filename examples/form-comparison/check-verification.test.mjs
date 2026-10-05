@@ -10,7 +10,7 @@ import {
   finalizeGenerationReport, generationFrameworks, generationRenderingPaths, generationServers,
 } from './check-generation.mjs';
 import { finalizePersistenceReport, persistenceCheckIds } from './persistence-report.mjs';
-import { stepSilenceLimitMs } from './src/step-runner.mjs';
+import { assertStep } from './src/step-runner.mjs';
 import { measuredLimitMs } from './src/unit-pool.mjs';
 import { browserReportLimitsMs, browserReportMeasurementsMs } from './src/browser-job.mjs';
 import { verificationCommand, verificationStep } from './verification.mjs';
@@ -108,21 +108,11 @@ test('verifies the deployed services alone, without repeating host tests', () =>
   // output of this container; the host and CI run them before a deployment.
   assert.doesNotMatch(JSON.stringify(checks),
     /test:form-comparison|source-suite|server-tests|"npm"|"cargo"|json\.test\.mjs/);
-  // Single operations hold a total limit; checks made of units hold only an inactivity limit.
-  const unitChecks = ['pipeline', 'browser-php', 'browser-php-ext', 'browser-go', 'browser-rust'];
+  // A check is a long operation: it runs to its end without a limit; its units hold their own.
   for (const check of checks) {
     assert.ok(check.cwd.startsWith('/workspace/build/tree'), `${check.id}: ${check.cwd}`);
-    if (unitChecks.includes(check.id)) {
-      assert.equal(check.timeoutMs, undefined, `${check.id}: a step made of units has no total limit`);
-      assert.equal(check.silenceLimitMs, stepSilenceLimitMs, `${check.id}: inactivity limit`);
-    } else {
-      assert.ok(Number.isSafeInteger(check.timeoutMs) && check.timeoutMs > 0,
-        `${check.id} must carry its own timeout`);
-      assert.ok(check.timeoutMs <= 120_000, `${check.id}: a single operation has a short limit`);
-      assert.equal(check.silenceLimitMs, undefined, check.id);
-    }
+    assert.doesNotThrow(() => assertStep(check), `${check.id} holds no time limit`);
   }
-  assert.equal(stepSilenceLimitMs, 45_000, 'three missed 15-second heartbeats stop a step');
   const byId = Object.fromEntries(checks.map(check => [check.id, check]));
   assert.deepEqual(byId.pipeline.args, ['check-pipeline.mjs', '--origin', 'http://127.0.0.1:8080',
     '--report', '/results/pipeline.json']);
@@ -145,14 +135,13 @@ test('runs verification inside the comparison container as the unprivileged user
   ]);
 });
 
-test('the host waits for the container run while it reports progress, without a total limit', () => {
+test('the host waits for the container run while it reports progress, without a limit', () => {
   const runtime = { executable: '/usr/bin/container-runtime', environment: { CONTAINER_HOST: 'unix:///run/test.sock' } };
   const step = verificationStep('crudui-comparison', runtime, { commit: 'abc', changes: null });
   assert.equal(step.command, runtime.executable);
   assert.deepEqual(step.environment, runtime.environment);
   assert.equal(step.id, 'tree-verification');
-  assert.equal(step.timeoutMs, undefined, 'the host verification has no whole-run limit');
-  assert.equal(step.silenceLimitMs, stepSilenceLimitMs);
+  assert.doesNotThrow(() => assertStep(step), 'the host verification holds no time limit');
   assert.deepEqual(step.args, verificationCommand('crudui-comparison', { commit: 'abc', changes: null }));
 });
 
