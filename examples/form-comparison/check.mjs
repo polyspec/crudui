@@ -14,7 +14,7 @@ import { readFrameDocument } from './src/frame-document.mjs';
 import { parseFrameDocument } from './src/frame-readiness.mjs';
 import { subscribeMainPageReadiness } from './src/main-page-readiness.mjs';
 import { formFrameworks, formRenderingPaths, formServers } from './src/runtime-paths.mjs';
-import { runUnit } from './src/unit-pool.mjs';
+import { runOperation, runUnit } from './src/unit-pool.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const output = process.env.FORM_COMPARISON_RESULTS
@@ -81,17 +81,20 @@ async function phase(id, action) {
 }
 
 let browserVersion;
-const browser = await phase('browser-start', async () => {
+// Starting Chromium is a long operation: it runs to its end without a limit and prints its
+// progress like a unit.
+const started = await runOperation({ id: 'browser-start', run: async () => {
   const launched = await puppeteer.launch({ headless: true, protocolTimeout: 60_000 });
   browserVersion = await launched.version();
   return launched;
-});
+} }, { label: selectedServer });
+units.push({ id: 'browser-start', status: started.status, durationMs: started.durationMs });
+if (started.status !== 'passed') throw new Error(`${selectedServer} browser-start failed: ${started.error}`);
+const browser = started.value;
 // A stopped check closes the browser instead of leaving Chromium behind for SIGKILL.
 for (const name of ['SIGTERM', 'SIGINT']) {
   process.once(name, () => {
     progress('browser-close', `${name}: closing the browser`);
-    const forced = setTimeout(() => process.exit(name === 'SIGINT' ? 130 : 143), 10_000);
-    forced.unref();
     browser.close().catch(() => {}).finally(() => process.exit(name === 'SIGINT' ? 130 : 143));
   });
 }
@@ -324,6 +327,7 @@ try {
   );
   throw error;
 } finally {
-  const closed = await runPhase('browser-close', () => browser.close());
+  const closed = await runOperation({ id: 'browser-close', run: () => browser.close() }, { label: selectedServer });
+  units.push({ id: 'browser-close', status: closed.status, durationMs: closed.durationMs });
   if (closed.status !== 'passed') process.exitCode = 1;
 }

@@ -13,7 +13,6 @@ import { promisify } from 'node:util';
 
 import { recordFixtureFile, recordServers, recordSpecsFile } from './record-contract.mjs';
 import { installOrderedJson, orderedJsonRevision } from './ordered-json-source.mjs';
-import { processStartLimitMs } from './server-startup.mjs';
 import { sourceIdentity } from './source-tree.mjs';
 import { formatDuration, killProcessTree, runStages, stepHeartbeatMs } from './step-runner.mjs';
 
@@ -165,11 +164,13 @@ export async function recordServerProcess(server, { port, dataDirectory, publicD
 
 /**
  * Start one process and wait for its readiness line, then require that it answers on the requested
- * address. A process that exits, or stays silent past its start limit, fails with its output.
+ * address. A process start is a long operation without a time limit: it prints a line with its
+ * elapsed time every heartbeat while it waits, and a process that exits before its readiness fails
+ * with its output.
  */
 export async function startProcess(definition, { write = text => process.stdout.write(text), ipc = false, message } = {}) {
   const started = performance.now();
-  progress(write, `${definition.server}: starting on ${definition.address} (limit ${formatDuration(processStartLimitMs)})`);
+  progress(write, `${definition.server}: starting on ${definition.address}`);
   const options = {
     env: { ...process.env, ...definition.environment }, detached: true,
     stdio: ipc ? ['ignore', 'pipe', 'pipe', 'ipc'] : ['ignore', 'pipe', 'pipe'],
@@ -180,20 +181,19 @@ export async function startProcess(definition, { write = text => process.stdout.
   if (message) child.send(message);
   let output = '';
   const ready = new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error(
-      `${definition.server} did not announce readiness within ${formatDuration(processStartLimitMs)}:\n${output}`)),
-    processStartLimitMs);
+    const timer = setInterval(() => progress(write,
+      `${definition.server}: waiting for readiness (${formatDuration(performance.now() - started)})`), stepHeartbeatMs);
     const onData = chunk => {
       const text = chunk.toString();
       output += text;
       for (const line of text.split('\n').filter(Boolean)) write(`[${definition.server}] ${line}\n`);
-      if (definition.ready.test(output)) { clearTimeout(timer); resolve(); }
+      if (definition.ready.test(output)) { clearInterval(timer); resolve(); }
     };
     child.stdout.on('data', onData);
     child.stderr.on('data', onData);
-    child.once('error', error => { clearTimeout(timer); reject(error); });
+    child.once('error', error => { clearInterval(timer); reject(error); });
     child.once('exit', (code, signal) => {
-      clearTimeout(timer);
+      clearInterval(timer);
       reject(new Error(`${definition.server} exited (${signal ?? code}) before readiness:\n${output}`));
     });
   });

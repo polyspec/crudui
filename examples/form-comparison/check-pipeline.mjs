@@ -12,11 +12,10 @@ import {
   pipelineCombinations, pipelineConcurrency, pipelineResetUnits, pipelineUnitLimitMs,
   pipelineUnits,
 } from './src/pipeline-flow.mjs';
-import { browserUnitLimitsMs } from './browser-report-policy.mjs';
 import { recordServers } from './src/record-contract.mjs';
 import { assertSourceIdentity } from './src/source-identity.mjs';
 import { formatDuration } from './src/step-runner.mjs';
-import { runUnits } from './src/unit-pool.mjs';
+import { runOperation, runUnits } from './src/unit-pool.mjs';
 
 /** Summarize the unit results of one run. */
 export function pipelineReport({ origin, source, resets, combinations, startedAt, durationMs }) {
@@ -44,12 +43,12 @@ async function main() {
   const source = assertSourceIdentity(await (await fetch(new URL('/source.json', origin))).json());
   write(`[pipeline] ${pipelineCombinations().length} combinations, ${pipelineConcurrency} at a time, `
     + `${formatDuration(pipelineUnitLimitMs)} each\n`);
-  let browser;
-  const [launch] = await runUnits([{
-    id: 'browser-start', timeoutMs: browserUnitLimitsMs['browser-start'],
-    run: async () => { browser = await puppeteer.launch({ headless: true, protocolTimeout: pipelineUnitLimitMs }); },
-  }], { concurrency: 1, label: 'pipeline', write });
-  assert.equal(launch.status, 'passed', 'The browser did not start');
+  // Starting and closing Chromium are long operations without a limit.
+  const launch = await runOperation({
+    id: 'browser-start', run: () => puppeteer.launch({ headless: true, protocolTimeout: pipelineUnitLimitMs }),
+  }, { label: 'pipeline', write });
+  assert.equal(launch.status, 'passed', `The browser did not start: ${launch.error}`);
+  const browser = launch.value;
   for (const name of ['SIGTERM', 'SIGINT']) {
     process.once(name, () => {
       write(`[pipeline] ${name}: closing the browser\n`);
@@ -64,8 +63,8 @@ async function main() {
       : [];
     report = pipelineReport({ origin: origin.href, source, resets, combinations, startedAt, durationMs: performance.now() - started });
   } finally {
-    await runUnits([{ id: 'browser-close', timeoutMs: browserUnitLimitsMs['browser-close'], run: () => browser.close() }],
-      { concurrency: 1, label: 'pipeline', write });
+    const closed = await runOperation({ id: 'browser-close', run: () => browser.close() }, { label: 'pipeline', write });
+    if (closed.status !== 'passed') process.exitCode = 1;
   }
   await mkdir(path.dirname(values.report), { recursive: true });
   await writeFile(values.report, JSON.stringify(report, null, 2) + '\n');

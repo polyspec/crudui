@@ -183,11 +183,20 @@ function silentChild() {
   return child;
 }
 
-test('fails a child that publishes no readiness within its limit', async () => {
-  // The child never publishes readiness, so only the limit can end the wait.
-  await assert.rejects(waitForChildReadiness(silentChild(), {
-    server: 'go', stream: 'stderr', pattern: /CRUDUI_READY go/,
-  }, 50), /go published no readiness within 50ms/);
+test('waits for a child that publishes its readiness late, printing the wait', async () => {
+  // A process start has no limit: the wait ends at the readiness event, which the child publishes
+  // only after the wait has printed its first heartbeat line.
+  const child = silentChild();
+  const lines = [];
+  const ready = waitForChildReadiness(child, { server: 'go', stream: 'stderr', pattern: /CRUDUI_READY go/ }, {
+    heartbeatMs: 10,
+    write: text => {
+      lines.push(text);
+      if (lines.length === 1) child.stderr.write('CRUDUI_READY go\n');
+    },
+  });
+  assert.equal(await ready, 'go');
+  assert.ok(lines.some(line => /^\[startup\] go: waiting for readiness \(\d+ms\)\n$/.test(line)), lines.join(''));
 });
 
 test('fails a health request that does not answer within its limit', async () => {

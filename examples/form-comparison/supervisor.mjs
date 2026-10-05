@@ -7,15 +7,12 @@ import path from 'node:path';
 import { completeBuild, planBuild, processesToStart, supervisorFiles } from './src/build-targets.mjs';
 import { installOrderedJson } from './src/ordered-json-source.mjs';
 import { forwardLines } from './src/process-output.mjs';
-import { formServers } from './src/runtime-paths.mjs';
-import { formatDuration, runStep, stepHeartbeatMs, stepTerminationGraceMs } from './src/step-runner.mjs';
+import { formatDuration, runStep, stepHeartbeatMs } from './src/step-runner.mjs';
 import {
   binaryDirectory, buildStateFile, cruduiModule, orderedJsonDirectory, publicDirectory, publicServerProcess,
   serverProcess, sourceIdentityFile, sourceMount, stateDirectory, treeDirectory,
 } from './src/server-layout.mjs';
-import {
-  healthRequestLimitMs, processStartLimitMs, stopChild, verifyChildServers, waitForChildReadiness,
-} from './src/server-startup.mjs';
+import { stopChild, verifyChildServers, waitForChildReadiness } from './src/server-startup.mjs';
 import {
   applyTreeChanges, changedPaths, readTreeState, sourceIdentity, synchronizeTree,
 } from './src/source-tree.mjs';
@@ -23,10 +20,6 @@ import {
 // File events from the host do not reach a Linux container through the VM file share, so the
 // mounted repository is compared with Git once per interval.
 const checkInterval = 1_000;
-// The startup steps and the source identity are file work: measured on the host at 0.3 s (the
-// build tree) and 1.1 s (the OrderedJSON checkout), each with a whole-minute margin as the build
-// targets have.
-const startupStepLimitMs = 60_000;
 const manifestFile = path.join(stateDirectory, 'tree-manifest.json');
 const processes = new Map();
 let state = { status: 'building', cycle: 0, source: null, error: null };
@@ -52,12 +45,9 @@ function publish(next) {
   share();
 }
 
-/**
- * Name the step the building cycle runs: its target, its step and the limit that step holds. A
- * reader waits for one step at most its limit; the step changes when the supervisor moves on.
- */
-function reportProgress(target, step, limitMs) {
-  state = { ...state, progress: { target, step, limitMs, at: Date.now() } };
+/** Name the step the building cycle runs: its target and its step. */
+function reportProgress(target, step) {
+  state = { ...state, progress: { target, step, at: Date.now() } };
   share();
 }
 
@@ -77,7 +67,7 @@ async function runTarget(target, label) {
   for (const [index, step] of target.steps.entries()) {
     const id = target.steps.length === 1 ? target.id : `${target.id}-${index + 1}`;
     // runStep stops the step at its timeout and kills its tree after the termination grace.
-    reportProgress(target.id, id, target.timeoutMs + stepTerminationGraceMs);
+    reportProgress(target.id, id);
     const result = await runStep({ ...step, id, timeoutMs: target.timeoutMs }, { label });
     if (result.status !== 'passed') {
       throw new Error(`${id} ${result.status} after ${formatDuration(result.durationMs)}`);
@@ -115,9 +105,9 @@ async function startProcess(name, cruduiModuleSha256) {
     publish({ status: 'failed', error: `${name} exited: ${signal ?? code}` });
   });
   try {
-    await waitForChildReadiness(child, { server: name, ...definition.ready }, processStartLimitMs);
+    await waitForChildReadiness(child, { server: name, ...definition.ready });
   } catch (error) {
-    // A process that did not become ready within its limit is not left running.
+    // A process that failed before its readiness is not left running.
     await stopProcess(name);
     throw error;
   }
@@ -140,18 +130,18 @@ async function runCycle(plan, source) {
       const durationMs = await runTarget(target, label);
       log(`cycle ${state.cycle}: built ${target.id} in ${formatDuration(durationMs)}`);
     }
-    reportProgress('source', 'source-identity', startupStepLimitMs);
+    reportProgress('source', 'source-identity');
     await writeSourceIdentity(source);
     const cruduiModuleSha256 = createHash('sha256').update(await readFile(cruduiModule))
       .digest('hex');
     for (const name of processesToStart(plan.restarts, [...processes.keys()])) {
-      reportProgress('restart', name, stepTerminationGraceMs + processStartLimitMs);
+      reportProgress('restart', name);
       const startedRestart = performance.now();
       await startProcess(name, cruduiModuleSha256);
       log(`cycle ${state.cycle}: restarted ${name} in `
         + `${formatDuration(performance.now() - startedRestart)}`);
     }
-    reportProgress('verify', 'child-servers', formServers.length * healthRequestLimitMs);
+    reportProgress('verify', 'child-servers');
     await verifyChildServers({ expected: { source, cruduiModuleSha256 } });
     publish({ status: 'ready', source, durationMs: performance.now() - startedCycle });
   } catch (error) {
@@ -175,7 +165,7 @@ async function checkSource() {
   const plan = planBuild(paths);
   if (supervisorFiles.some(file => paths.includes(file))) {
     publish({ status: 'building', source, error: null });
-    reportProgress('reload', 'stop-processes', stepTerminationGraceMs);
+    reportProgress('reload', 'stop-processes');
     await reloadSupervisor();
     return;
   }
@@ -219,7 +209,7 @@ process.on('SIGINT', shutdown);
 async function startupStep(id, action) {
   const started = performance.now();
   log(`start: ${id} started`);
-  reportProgress('start', id, startupStepLimitMs);
+  reportProgress('start', id);
   const value = await action();
   log(`start: ${id} finished in ${formatDuration(performance.now() - started)}`);
   return value;
