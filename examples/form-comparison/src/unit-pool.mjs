@@ -34,7 +34,7 @@ export async function runUnit(unit, options = {}) {
   let timer;
   const timeout = new Promise(resolve => {
     timer = setTimeout(() => {
-      controller.abort(new Error(`${unit.id} timed out after ${elapsed()}`));
+      controller.abort(new Error(`${unit.id} ran ${elapsed()} and exceeded its ${formatDuration(unit.timeoutMs)} timeout`));
       resolve({ status: 'timed-out' });
     }, unit.timeoutMs);
   });
@@ -47,7 +47,7 @@ export async function runUnit(unit, options = {}) {
   clearTimeout(timer);
   const durationMs = performance.now() - started;
   const detail = outcome.status === 'passed' ? `passed in ${formatDuration(durationMs)}`
-    : outcome.status === 'timed-out' ? `timed out after ${formatDuration(durationMs)}`
+    : outcome.status === 'timed-out' ? `ran ${formatDuration(durationMs)} and exceeded its ${formatDuration(unit.timeoutMs)} timeout`
       : `failed after ${formatDuration(durationMs)}: ${outcome.error?.stack ?? outcome.error}`;
   write(`[${label}] ${unit.id}: ${detail}\n`);
   return {

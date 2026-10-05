@@ -74,8 +74,10 @@ mod tests {
             env!("CARGO_MANIFEST_DIR"),
             "/../../contracts/unicode-properties.json"
         );
-        let text = std::fs::read_to_string(path).expect("read contracts/unicode-properties.json");
-        let contract: Value = serde_json::from_str(&text).expect("parse the contract");
+        let text =
+            std::fs::read_to_string(path).unwrap_or_else(|error| panic!("read {path}: {error}"));
+        let contract: Value =
+            serde_json::from_str(&text).unwrap_or_else(|error| panic!("parse {path}: {error}"));
         let hint = "src/validate/unicode/data.rs differs from the contract; \
                     run `node tools/generate-unicode-properties.mjs`";
         assert_eq!(

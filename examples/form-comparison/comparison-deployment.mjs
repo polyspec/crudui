@@ -232,7 +232,7 @@ async function response(url, ca) {
       });
       value.on('error', reject);
     });
-    request.setTimeout(10_000, () => request.destroy(new Error(`${url}: request timed out`)));
+    request.setTimeout(10_000, () => request.destroy(new Error(`GET ${url} received no data for its 10000 ms limit`)));
     request.on('error', reject);
   });
 }
@@ -254,7 +254,7 @@ async function certificate(hostname, ca) {
         });
       } catch (error) { reject(error); } finally { socket.end(); }
     });
-    socket.once('timeout', () => socket.destroy(new Error('Deployment certificate request timed out')));
+    socket.once('timeout', () => socket.destroy(new Error(`The TLS connection to ${hostname}:443 for the deployment certificate received no data for its 10000 ms limit`)));
     socket.once('error', reject);
   });
 }

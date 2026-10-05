@@ -10,9 +10,10 @@ const seconds = milliseconds => `${(milliseconds / 1000).toFixed(1)}s`;
  * @param {number} [options.heartbeatMs] interval of the still-running lines
  * @param {number} [options.timeoutMs] a test running longer is reported to `onTimeout`
  * @param {(id: string) => void} [options.onTimeout] stops the test that ran out of time
+ * @param {string} [options.command] the command that a timeout stops, named on the timeout line
  * @param {() => number} [options.now]
  */
-export function createProgress({ write, heartbeatMs = 5000, timeoutMs, onTimeout, now = () => Date.now() }) {
+export function createProgress({ write, heartbeatMs = 5000, timeoutMs, onTimeout, command, now = () => Date.now() }) {
   const started = now();
   const running = new Map();
   const counts = { passed: 0, failed: 0, skipped: 0, timedOut: 0 };
@@ -24,7 +25,7 @@ export function createProgress({ write, heartbeatMs = 5000, timeoutMs, onTimeout
       if (timeoutMs !== undefined && elapsed > timeoutMs && !test.expired) {
         test.expired = true;
         counts.timedOut++;
-        line(`⏱ ${id} exceeded its ${seconds(timeoutMs)} timeout`);
+        line(`⏱ ${id} ran ${seconds(elapsed)} and exceeded its ${seconds(timeoutMs)} timeout${command ? `; stopping \`${command}\`` : ''}`);
         onTimeout?.(id);
       } else if (!test.expired) {
         line(`… ${id} still running (${seconds(elapsed)}${timeoutMs === undefined ? '' : ` of ${seconds(timeoutMs)}`})`);

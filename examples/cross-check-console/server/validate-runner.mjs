@@ -104,7 +104,10 @@ function runProcess(lang, payload) {
   });
   const ms = Math.round(performance.now() - t0);
 
-  if (proc.error) return processFail(lang, ms, proc.error.message);
+  if (proc.error) {
+    const limit = proc.error.code === 'ETIMEDOUT' ? `; it ran ${ms} ms of its 10000 ms limit` : '';
+    return processFail(lang, ms, `${[command, ...args].join(' ')}: ${proc.error.message}${limit}`);
+  }
   if (proc.signal || proc.status === null) {
     return processFail(lang, ms, `${lang} validator terminated (${proc.signal ?? 'no exit status'})`);
   }

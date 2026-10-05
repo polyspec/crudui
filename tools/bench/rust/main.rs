@@ -31,10 +31,14 @@ struct Report {
 fn load_fixture(dir: &str, name: &str) -> (Value, Value) {
     let spec_path = Path::new(dir).join(format!("{}.spec.json", name));
     let input_path = Path::new(dir).join(format!("{}.input.json", name));
-    let spec: Value = serde_json::from_str(&fs::read_to_string(spec_path).expect("read spec"))
-        .expect("parse spec");
-    let input: Value = serde_json::from_str(&fs::read_to_string(input_path).expect("read input"))
-        .expect("parse input");
+    let read = |path: &Path| -> Value {
+        let text = fs::read_to_string(path)
+            .unwrap_or_else(|error| panic!("read {}: {error}", path.display()));
+        serde_json::from_str(&text)
+            .unwrap_or_else(|error| panic!("parse {}: {error}", path.display()))
+    };
+    let spec = read(&spec_path);
+    let input = read(&input_path);
     (spec, input)
 }
 

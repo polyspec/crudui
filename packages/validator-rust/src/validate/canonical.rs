@@ -153,7 +153,8 @@ mod tests {
     #[test]
     fn numbers_match_the_ecmascript_table() {
         let path = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/data/number-text.tsv");
-        let table = std::fs::read_to_string(path).expect("read the number-text table");
+        let table =
+            std::fs::read_to_string(path).unwrap_or_else(|error| panic!("read {path}: {error}"));
         let mut count = 0;
         for line in table.lines() {
             let (bits, text) = line.split_once('\t').expect("a tab-separated row");
