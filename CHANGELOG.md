@@ -1,5 +1,16 @@
 # Changes
 
+## 2026-10-05 — The suites behind missing conformance evidence (C5.5)
+
+- `scripts/check-conformance.mjs` names, for each feature, fixture and runtime with missing or
+  failing evidence, every suite that proves the runtime with its state: did not run, did not
+  finish, ended with failure and its exit status, or passed. `scripts/run-tests.mjs` and
+  `tests/native-generators/run.mjs` write a run record to `runs/` of the evidence directory through
+  `tests/conformance/runs.mjs`, with the status null at the start and the exit status at the exit,
+  and `evidenceSuites` declares each suite with its command and runtimes. The check reported
+  `185 missing` for each runtime when the native suite did not run and did not say why. The count
+  of evidence files no longer includes the `runs` directory.
+
 ## 2026-10-05 — One compiler command for the engine tests (C5.4)
 
 - Every C program of `packages/php-ext/tests/engine.test.mjs` compiles through

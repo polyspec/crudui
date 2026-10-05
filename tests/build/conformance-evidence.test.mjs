@@ -1,11 +1,14 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, readFile, readdir, rm } from 'node:fs/promises';
+import { spawnSync } from 'node:child_process';
+import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 
-import { checkConformance, summarize } from '../../scripts/check-conformance.mjs';
+import { checkConformance, evidenceSuites, suiteStates, summarize } from '../../scripts/check-conformance.mjs';
 import { recordConformance } from '../conformance/evidence.mjs';
+
+const ROOT = path.resolve(import.meta.dirname, '../..');
 
 const fixture = 'tests/fixtures/list-render/cases.json';
 const feature = { id: 'renderList', support: { php: 'pass', go: 'unsupported' }, fixtures: [fixture] };
@@ -19,7 +22,7 @@ test('every case of a supported runtime needs passing evidence', () => {
   assert.deepEqual(problems.failed, [{ feature: 'renderList', fixture, runtime: 'php', case: 'b' }]);
   const none = checkConformance({ ...base, evidence: [] });
   assert.deepEqual(none.missing.map(item => item.case), ['a', 'b']);
-  assert.deepEqual(summarize(none), [{ id: `renderList · ${fixture} · php`, missing: ['a', 'b'], failed: [] }]);
+  assert.deepEqual(summarize(none), [{ id: `renderList · ${fixture} · php`, runtime: 'php', missing: ['a', 'b'], failed: [], suites: [] }]);
 });
 
 test('a case recorded twice passes only when every run passed', () => {
@@ -84,6 +87,74 @@ test('the JavaScript recorder appends one line per case only when an evidence di
   } finally {
     if (previous === undefined) delete process.env.CRUDUI_CONFORMANCE_EVIDENCE;
     else process.env.CRUDUI_CONFORMANCE_EVIDENCE = previous;
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
+const suites = [
+  { name: 'validator PHP', run: { program: 'scripts/run-tests.mjs', tool: 'phpunit', cwd: 'packages/validator-php' }, runtimes: ['php'] },
+  { name: 'native generators', run: { program: 'tests/native-generators/run.mjs' }, runtimes: ['php', 'go'] },
+  { name: 'PHP extension', run: { program: 'scripts/run-tests.mjs', tool: 'node', argument: 'packages/php-ext/tests/engine.test.mjs' }, runtimes: ['php-native'] },
+  { name: 'Svelte renderer', run: { program: 'scripts/run-tests.mjs', tool: 'vitest', cwd: 'packages/generator-svelte' }, runtimes: ['svelte'] },
+];
+const run = (fields, started, status) => ({ tool: null, cwd: '.', args: [], ...fields, started, status });
+
+test('missing evidence names each suite of its runtime that did not run, did not finish or failed', () => {
+  const runs = [
+    run({ program: 'scripts/run-tests.mjs', tool: 'phpunit', cwd: 'packages/validator-php' }, '2026-10-05T10:00:00.000Z', 1),
+    run({ program: 'scripts/run-tests.mjs', tool: 'phpunit', cwd: 'packages/validator-php' }, '2026-10-05T11:00:00.000Z', 0),
+    run({ program: 'scripts/run-tests.mjs', tool: 'node', args: ['packages/php-ext/tests/engine.test.mjs', 'packages/php-ext/tests/api.test.mjs'] }, '2026-10-05T10:00:00.000Z', null),
+    run({ program: 'scripts/run-tests.mjs', tool: 'vitest', cwd: 'packages/generator-svelte' }, '2026-10-05T10:00:00.000Z', 0),
+    run({ program: 'scripts/run-tests.mjs', tool: 'vitest', cwd: 'packages/generator-svelte', args: ['--config', 'vitest.client.config.ts'] }, '2026-10-05T10:01:00.000Z', 2),
+    run({ program: 'scripts/run-tests.mjs', tool: 'go', cwd: 'packages/generator-go' }, '2026-10-05T10:00:00.000Z', 1),
+  ];
+  assert.deepEqual(Object.fromEntries(suiteStates(suites, runs)), {
+    'validator PHP': 'passed',
+    'native generators': 'did not run',
+    'PHP extension': 'did not finish',
+    'Svelte renderer': 'ended with failure (exit 2)',
+  });
+  const problems = checkConformance({ ...base, evidence: [record('php', 'a')] });
+  assert.deepEqual(summarize(problems, { suites, runs }), [{
+    id: `renderList · ${fixture} · php`, runtime: 'php', missing: ['b'], failed: [],
+    suites: [{ name: 'validator PHP', state: 'passed' }, { name: 'native generators', state: 'did not run' }],
+  }]);
+});
+
+test('every runtime that a feature supports is proven by a declared suite', async () => {
+  const standard = JSON.parse(await readFile(path.join(ROOT, 'contracts/features.json'), 'utf8'));
+  const supported = new Set(standard.features.flatMap(item => Object.entries(item.support)
+    .filter(([, support]) => support === 'pass').map(([runtime]) => runtime)));
+  const proven = new Set(evidenceSuites.flatMap(suite => suite.runtimes));
+  assert.deepEqual([...supported].filter(runtime => !proven.has(runtime)).sort(), []);
+});
+
+test('the test runner and the native suite leave a run record with their exit status', async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-suite-runs-'));
+  try {
+    const passing = path.join(directory, 'pass.test.mjs');
+    const failing = path.join(directory, 'fail.test.mjs');
+    await writeFile(passing, "import test from 'node:test';\ntest('passes', () => {});\n");
+    await writeFile(failing, "import test from 'node:test';\ntest('fails', () => { throw new Error('failed'); });\n");
+    const evidence = path.join(directory, 'evidence');
+    const env = { ...process.env, CRUDUI_CONFORMANCE_EVIDENCE: evidence };
+    delete env.NODE_TEST_CONTEXT;
+    for (const file of [passing, failing]) {
+      spawnSync(process.execPath, [path.join(ROOT, 'scripts/run-tests.mjs'), 'node', '--', file], { cwd: ROOT, env, encoding: 'utf8' });
+    }
+    // The native suite records its run before it reads its arguments, so a usage error ends the run.
+    spawnSync(process.execPath, [path.join(ROOT, 'tests/native-generators/run.mjs'), '--unknown'], { cwd: ROOT, env, encoding: 'utf8' });
+    const runs = await Promise.all((await readdir(path.join(evidence, 'runs'))).map(async file => (
+      JSON.parse(await readFile(path.join(evidence, 'runs', file), 'utf8')))));
+    const summary = runs.map(({ program, tool, cwd, args, status }) => ({ program, tool, cwd, args, status }))
+      .sort((left, right) => JSON.stringify(left).localeCompare(JSON.stringify(right)));
+    assert.deepEqual(summary, [
+      { program: 'scripts/run-tests.mjs', tool: 'node', cwd: '.', args: [failing], status: 1 },
+      { program: 'scripts/run-tests.mjs', tool: 'node', cwd: '.', args: [passing], status: 0 },
+      { program: 'tests/native-generators/run.mjs', tool: null, cwd: '.', args: ['--unknown'], status: 1 },
+    ]);
+    assert.ok(runs.every(item => !Number.isNaN(Date.parse(item.started))));
+  } finally {
     await rm(directory, { recursive: true, force: true });
   }
 });

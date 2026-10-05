@@ -44,6 +44,23 @@ fails when:
   proven by no feature;
 - a feature names a fixture that is not a registered case fixture.
 
+## Suite runs
+
+A missing case does not tell whether its suite failed, did not finish or did not run, so each run of
+a suite that records evidence also leaves a run record in `runs/` of the evidence directory:
+[`scripts/run-tests.mjs`](../../scripts/run-tests.mjs) for the test command it runs and
+[`tests/native-generators/run.mjs`](../../tests/native-generators/run.mjs) for itself, through
+[`tests/conformance/runs.mjs`](../../tests/conformance/runs.mjs). A record
+`{"program", "tool", "cwd", "args", "started", "status"}` is written with `status` `null` when the run
+starts and again with the exit status when its process exits, so a stopped run keeps `null`.
+
+`evidenceSuites` of the check declares each suite with the command that runs it and the runtimes it
+proves. For each feature, fixture and runtime with missing or failing evidence, the check names every
+suite that proves the runtime with its state: `did not run` when no record matches its command,
+`did not finish` when a record has no status, `ended with failure (exit <status>)` or `passed`. The
+latest record of each matching command decides, and a suite run by several commands takes the worst
+state of them. Every runtime that a feature supports is proven by a declared suite.
+
 Server runtimes are compared byte for byte with the JavaScript reference output by
 [`tests/native-generators/run.mjs`](../../tests/native-generators/run.mjs); client renderers are
 compared with the fixture's normalized HTML, where only differences a framework itself causes are

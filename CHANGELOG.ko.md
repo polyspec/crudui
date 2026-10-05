@@ -1,5 +1,14 @@
 # 변경 기록
 
+## 2026-10-05 — 빠진 conformance evidence의 suite (C5.5)
+
+- `scripts/check-conformance.mjs`는 evidence가 빠졌거나 실패한 기능, fixture, runtime마다 그 runtime을 증명하는 모든
+  suite를 상태와 함께 적습니다. 상태는 실행되지 않음, 끝나지 않음, 종료 상태와 함께 실패로 끝남, 통과입니다.
+  `scripts/run-tests.mjs`와 `tests/native-generators/run.mjs`는 `tests/conformance/runs.mjs`로 evidence directory의
+  `runs/`에 시작할 때 상태 null, 끝날 때 종료 상태를 담은 실행 기록을 쓰고, `evidenceSuites`는 suite마다 명령과
+  runtime을 선언합니다. 이전 검사는 native suite가 실행되지 않았을 때 runtime마다 `185 missing`을 보고했고 이유를 말하지
+  않았습니다. evidence file 수는 더 이상 `runs` directory를 세지 않습니다.
+
 ## 2026-10-05 — engine test의 하나의 compiler 명령 (C5.4)
 
 - `packages/php-ext/tests/engine.test.mjs`의 모든 C program은 math library를 link하는 `compileAndRunEngineProgram`으로

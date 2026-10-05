@@ -13,11 +13,14 @@ import { formScenarios, numberCases, companySpec, companyData, row, imageCase, u
 import { failureOf, runCommand } from '../../scripts/run-command.mjs';
 import { runRustCommand } from '../../scripts/run-rust-command.mjs';
 import { recordConformance } from '../conformance/evidence.mjs';
+import { recordSuiteRun } from '../conformance/runs.mjs';
 import { createProgress } from '../../scripts/test-progress/progress.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const USAGE = 'Usage: node tests/native-generators/run.mjs --extension /absolute/crudui.so [--report path] [--source-commit hash] [--target names] [--check patterns]';
 const argv = process.argv.slice(2);
+// The run is recorded before its arguments are read, so every end of the run has its status.
+recordSuiteRun({ program: 'tests/native-generators/run.mjs', cwd: '.', args: argv });
 let extension, reportPath;
 let sourceCommit = process.env.CRUDUI_SOURCE_COMMIT;
 const selectedTargets = [], checkPatterns = [];

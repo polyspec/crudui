@@ -39,6 +39,22 @@ JavaScript는 모델과 문자열 렌더러가 별도 패키지이므로 서버 
 - `tests/fixtures` 아래 디렉터리에 등록된 fixture가 없거나, 등록된 사례 fixture를 증명하는 기능이 없을 때
 - 기능이 등록된 사례 fixture가 아닌 fixture를 지정할 때
 
+## Suite 실행
+
+빠진 사례만으로는 그 suite가 실패했는지, 끝나지 않았는지, 실행되지 않았는지 알 수 없으므로, 증거를 기록하는
+suite의 실행은 증거 디렉터리의 `runs/`에 실행 기록도 남깁니다.
+[`scripts/run-tests.mjs`](../../scripts/run-tests.mjs)는 자신이 실행하는 테스트 명령의 기록을,
+[`tests/native-generators/run.mjs`](../../tests/native-generators/run.mjs)는 자신의 기록을
+[`tests/conformance/runs.mjs`](../../tests/conformance/runs.mjs)로 씁니다. 기록
+`{"program", "tool", "cwd", "args", "started", "status"}`는 실행이 시작할 때 `status`를 `null`로 써지고,
+process가 끝날 때 종료 상태로 다시 써지므로 멈춘 실행은 `null`을 유지합니다.
+
+검사의 `evidenceSuites`는 suite마다 그것을 실행하는 명령과 증명하는 런타임을 선언합니다. 증거가 빠졌거나
+실패한 기능, fixture, 런타임마다 검사는 그 런타임을 증명하는 모든 suite를 상태와 함께 적습니다. 명령에 맞는
+기록이 없으면 `did not run`, 기록에 상태가 없으면 `did not finish`, 그 밖에는
+`ended with failure (exit <status>)`나 `passed`입니다. 맞는 명령마다 가장 최근 기록이 결정하고, 여러 명령으로
+실행되는 suite는 그중 가장 나쁜 상태를 가집니다. 기능이 지원하는 모든 런타임은 선언된 suite가 증명합니다.
+
 서버 런타임은 [`tests/native-generators/run.mjs`](../../tests/native-generators/run.mjs)가 JavaScript
 기준 출력과 바이트 단위로 비교합니다. 클라이언트 렌더러는 fixture의 정규화된 HTML과 비교하며, 정규화는
 프레임워크 자체가 만드는 차이에만 적용합니다.

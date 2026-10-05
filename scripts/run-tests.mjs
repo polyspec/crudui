@@ -15,6 +15,7 @@ import path from 'node:path';
 import readline from 'node:readline';
 import { fileURLToPath } from 'node:url';
 
+import { recordSuiteRun } from '../tests/conformance/runs.mjs';
 import { createProgress } from './test-progress/progress.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -196,7 +197,10 @@ export function phpunitEvents(progress) {
 async function main() {
   const options = parseArguments(process.argv.slice(2));
   const { command, args } = toolCommand(options);
-  const label = `${options.tool} ${path.relative(ROOT, options.cwd) || '.'}${options.args.length ? ` ${options.args.join(' ')}` : ''}`;
+  const cwd = path.relative(ROOT, options.cwd) || '.';
+  const label = `${options.tool} ${cwd}${options.args.length ? ` ${options.args.join(' ')}` : ''}`;
+  // A suite that records conformance evidence leaves the record of its run (docs/spec/conformance.md).
+  recordSuiteRun({ program: 'scripts/run-tests.mjs', tool: options.tool, cwd, args: options.args });
   process.stdout.write(`▶ ${label} (each test ${options.timeoutSeconds}s)\n`);
   const reads = ['go', 'cargo', 'phpunit'].includes(options.tool);
   const cargo = options.tool === 'cargo';
