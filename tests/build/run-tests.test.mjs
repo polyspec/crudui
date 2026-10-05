@@ -183,8 +183,9 @@ test('a vitest hook that runs out of time is printed with its file, suite, cause
     await writeFile(path.join(directory, 'suite-hook.test.mjs'), "import { afterAll, describe, test } from 'vitest';\ndescribe('suite', () => {\n  afterAll(() => new Promise(() => {}), 300);\n  test('passes', () => {});\n});\n");
     const run = await runAsync([path.join(ROOT, 'scripts/run-tests.mjs'), 'vitest', '--timeout', '10', '--cwd', directory]);
     assert.notEqual(run.status, 0);
-    assert.match(run.stdout, /✖ .*file-hook\.test\.mjs \(\d+\.\ds\)\n\s+(?:Error: )?Hook timed out in 300ms/);
-    assert.match(run.stdout, /✖ .*suite-hook\.test\.mjs › suite \(\d+\.\ds\)\n\s+(?:Error: )?Hook timed out in 300ms/);
+    // The hook name and the failed entity come from the events of Vitest; its message stays in the output unasserted.
+    assert.match(run.stdout, /✖ .*file-hook\.test\.mjs \(\d+\.\ds\)\n\s+afterAll hook of [^\n]*file-hook\.test\.mjs started and failed\n/);
+    assert.match(run.stdout, /✖ .*suite-hook\.test\.mjs › suite \(\d+\.\ds\)\n\s+afterAll hook of [^\n]*suite-hook\.test\.mjs › suite started and failed\n/);
     assert.match(run.stdout, /✖ vitest: 2 passed, 0 failed, 0 timed out, 0 skipped, 3 groups failed/);
   } finally {
     await rm(directory, { recursive: true, force: true });

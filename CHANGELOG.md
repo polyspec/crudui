@@ -1,5 +1,13 @@
 # Changes
 
+## 2026-10-06 — Failed Vitest hooks named from the events of Vitest (C5.8-4-1)
+
+- The Vitest reporter prints `<hook name> hook of <entity> started and failed` for a hook that started
+  and did not end before its file or suite failed, and the runner case asserts the hook name and the
+  failed entities instead of the message of Vitest, whose wording changed from Vitest 4 to 5. Vitest
+  5.0.3 sends no `onHookEnd` for a failed hook and batches its events, so neither the elapsed time nor
+  the failure kind is asserted.
+
 ## 2026-10-06 — The first execution time of test stubs logged (C7.13-1)
 
 - The stub cases of `tests/build/checkout-npm.test.mjs` and `tests/build/install-browsers.test.mjs` log
