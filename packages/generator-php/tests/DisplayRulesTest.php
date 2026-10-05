@@ -9,6 +9,7 @@ use CRUDUI\Generator;
 use CRUDUI\Validator\Compose\ComposeLoadError;
 use PHPUnit\Framework\TestCase;
 use stdClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /** List and detail input, text truncation and number decimal rules of docs/spec/display-formats.md. */
 final class DisplayRulesTest extends TestCase
@@ -174,7 +175,7 @@ final class DisplayRulesTest extends TestCase
         ];
     }
 
-    /** @dataProvider truncations */
+    #[DataProvider('truncations')]
     public function testTruncationKeepsWholeCodePoints(mixed $limit, string $value, string $expected): void
     {
         self::assertSame($expected, self::display(['type' => 'text', 'truncate' => $limit], $value));

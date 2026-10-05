@@ -1,5 +1,10 @@
 # 변경 기록
 
+## 2026-10-06 — PHPUnit 13 (C5.8-10)
+
+- validator-php와 generator-php는 PHPUnit 13.4.1로 test하고, PHPUnit 12가 `@dataProvider` annotation을 없앴으므로 data
+  provider 18개를 attribute `#[DataProvider(...)]`로 선언합니다. 두 suite는 PHPUnit 10.5와 같은 763개, 311개 case를 실행합니다.
+
 ## 2026-10-06 — checkout의 file을 읽는 검사 (C7.14)
 
 - ESLint는 Git이 무시하는 모든 경로를 무시하고, 건너뛸 directory 이름 목록을 각자 두고 tree를 돌던 검사는

@@ -7,6 +7,7 @@ namespace CRUDUI\Validator\Tests\Support;
 use CRUDUI\Validator\Support\JsonValue;
 use PHPUnit\Framework\TestCase;
 use stdClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /** Specification member order: array index names ascending, then other names in insertion order. */
 final class JsonValueTest extends TestCase
@@ -74,9 +75,8 @@ final class JsonValueTest extends TestCase
      * end. Each copy and shape is one test within the per-test limit, which a copy that grows with
      * the tree a value denotes never meets. Wide leaves keep the copy made before the limit within
      * the memory limit.
-     *
-     * @dataProvider limitProvider
      */
+    #[DataProvider('limitProvider')]
     public function testCopiesStopAtTheValueLimits(string $copy, string $shape): void
     {
         $shared = array_fill(0, 1000, 'x');

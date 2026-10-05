@@ -8,6 +8,7 @@ use CRUDUI\Validator\Compose\Compose;
 use CRUDUI\Validator\Compose\ComposeLoadError;
 use CRUDUI\Validator\Compose\MemoryLoader;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 require_once __DIR__ . '/../../../../tests/conformance/evidence.php';
 
@@ -42,9 +43,9 @@ final class ComposeConformanceTest extends TestCase
     }
 
     /**
-     * @dataProvider fixtureProvider
      * @param array<string, mixed> $spec
      */
+    #[DataProvider('fixtureProvider')]
     public function testComposeMatchesFixture(array $spec): void
     {
         $passed = false;

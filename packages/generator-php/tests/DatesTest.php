@@ -7,6 +7,7 @@ namespace CRUDUI\Generator\Tests;
 use PHPUnit\Framework\TestCase;
 use CRUDUI\Form;
 use CRUDUI\Generator;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 final class DatesTest extends TestCase
 {
@@ -28,7 +29,7 @@ final class DatesTest extends TestCase
         ];
     }
 
-    /** @dataProvider dates */
+    #[DataProvider('dates')]
     public function testControlsAndListsUseUtcAndPreserveSuppliedData(string $input, string $date, string $datetime): void
     {
         $this->assertRenderedValues($input, $date, $datetime);
@@ -48,7 +49,7 @@ final class DatesTest extends TestCase
         ]);
     }
 
-    /** @dataProvider invalidDates */
+    #[DataProvider('invalidDates')]
     public function testInvalidAndUnsupportedDatesRemainUnchanged(string $input): void
     {
         $this->assertRenderedValues($input, $input, $input);

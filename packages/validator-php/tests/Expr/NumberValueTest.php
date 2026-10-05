@@ -7,6 +7,7 @@ namespace CRUDUI\Validator\Tests\Expr;
 use PHPUnit\Framework\TestCase;
 use CRUDUI\Validator\Expr\Expression;
 use CRUDUI\Validator\Support\NumberValue;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 final class NumberValueTest extends TestCase
 {
@@ -22,7 +23,7 @@ final class NumberValueTest extends TestCase
         ];
     }
 
-    /** @dataProvider numericStrings */
+    #[DataProvider('numericStrings')]
     public function testCompleteNumberConversionUsesOneRounding(string $text, ?float $expected): void
     {
         self::assertSame($expected, NumberValue::parseString($text));
