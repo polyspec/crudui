@@ -42,7 +42,5 @@ jobs:
         run: rustup toolchain install --no-self-update
       - name: Check the recorded toolchain versions
         run: node scripts/check-toolchain.mjs node npm rust php composer
-      - name: Install the cargo-audit release of config/toolchain.json
-        run: node scripts/install-cargo-audit.mjs
       - name: Review the dependencies
         run: make dependency-review

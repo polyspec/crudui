@@ -3,7 +3,8 @@
 [English](testing.md).
 
 저장소 루트에서 실행합니다. 모든 도구는 checkout이 기록한 release로 실행됩니다(`docs/spec/package-build.ko.md`,
-"런타임과 의존성 버전"). `make install`은 기록한 npm, npm과 Composer 의존성, `rust-toolchain.toml`의 Rust toolchain,
+"런타임과 의존성 버전"). `make install`은 기록한 npm, npm과 Composer 의존성, `rust-toolchain.toml`의 Rust toolchain, comparison의 OrderedJSON checkout과
+모든 Cargo.lock의 crate(`make install-crates`),
 `scripts/install-phpdocumentor.sh`가 SHA-256으로 검사하는 phpDocumentor release를 설치하고, `make toolchain-check`는 다른 release로 실행되는 모든 도구를 기대한 release와 함께 밝힙니다.
 `node scripts/install-npm.mjs`로 `package.json`의 `packageManager`가 기록한 npm
 릴리스를 checkout에 설치하며, 이 명령은 machine의 npm을 바꾸지 않습니다. make는 그 `.tools/npm/node_modules/.bin`을

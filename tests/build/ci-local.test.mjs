@@ -17,6 +17,7 @@ const preparation = [
   /^node scripts\/install-browsers\.mjs\b/,
   /^node scripts\/check-toolchain\.mjs\b/,
   /^rustup toolchain install --no-self-update$/,
+  /^make install-(?:crates|ordered-json)$/,
   /^sudo apt-get install -y --no-install-recommends nginx$/,
   /^php-fpm -v$/,
   /^nginx -v$/,

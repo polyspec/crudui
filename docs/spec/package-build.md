@@ -244,7 +244,8 @@ deprecated, and for the advisories of `package-lock.json` (moderate, high and
 critical), of each `composer.lock` (every advisory and abandoned package) and of
 every Cargo lock of the checkout, which cargo-audit reads from the RustSec advisory
 database (every vulnerability and every unmaintained, unsound or yanked crate).
-`make install` installs the cargo-audit release of `config/toolchain.json` into
+`make install-cargo-audit`, a prerequisite of `make dependency-review`, installs the
+cargo-audit release of `config/toolchain.json` into
 `.tools/cargo-audit`.
 `RECORD=1` writes the review with the sha256 of each lock to
 `config/dependency-review.json`, and `UPDATE=1` first raises each newer dependency
@@ -264,6 +265,25 @@ of this repository is not required at its own version, or `composer validate
 exception of `config/dependency-policy.json` names its ecosystem, manifest and
 package and declares a reproduced reason, a removal condition and verification
 commands.
+
+### Offline checks
+
+A check reads no network. The Makefile exports `CARGO_NET_OFFLINE=true`,
+`GOPROXY=off`, `npm_config_offline=true` and `COMPOSER_DISABLE_NETWORK=1` for every
+recipe and the commands that it starts; only the download targets `install`,
+`install-crates`, `install-ordered-json`, `install-cargo-audit` and
+`dependency-review` lift them with `$(ONLINE)`. `make install-crates` downloads the
+crates of every Cargo.lock after the pinned OrderedJSON checkout
+(`.form-comparison/sources/ordered-json`) that the lock of the Rust record server
+reads, and `make install` runs it. Every target that runs cargo depends on
+`make cargo-downloads-check` (`scripts/check-cargo-downloads.mjs`), which runs
+`cargo fetch --locked --offline` for each lock and fails with each lock, the first
+error line of cargo and `run make install, which downloads them`, instead of cargo's
+advice to retry without `--offline`. The comparison pipeline reads the OrderedJSON
+checkout and fails when it is missing or at another revision, naming
+`make install-ordered-json`; it downloads nothing. The Go modules of the checkout
+require only modules of the checkout through `replace`, so Go reads no module
+proxy.
 
 ## Documentation web
 

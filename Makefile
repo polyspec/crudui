@@ -20,7 +20,16 @@ NPM := $(CURDIR)/.tools/npm/node_modules/.bin/npm
 # installed release and never downloads the toolchain of a go.mod. `make install` installs them.
 export RUSTUP_AUTO_INSTALL := 0
 export GOTOOLCHAIN := local
-.PHONY: help install dependency-review toolchain-check owner-check test-ordered-json docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-extension test-native test-native-suites test-validators test-form-binding conformance format-check deploy deploy-verify deploy-watch github-settings github-settings-check hooks hooks-check ci rerun-failed test-form-styles-linux remove-form-styles-image
+# A check reads no network (docs/spec/package-build.md, "Offline checks"): every recipe and the scripts that it starts
+# run cargo, go, npm and Composer offline, so a missing download fails at once instead of reaching a registry in one run
+# and not in another. The targets that download, install-crates, install-ordered-json, install-cargo-audit and
+# dependency-review, and the downloads of install run their commands with $(ONLINE); cargo-downloads-check names make install for a missing crate.
+export CARGO_NET_OFFLINE := true
+export GOPROXY := off
+export npm_config_offline := true
+export COMPOSER_DISABLE_NETWORK := 1
+ONLINE := env -u CARGO_NET_OFFLINE -u GOPROXY -u npm_config_offline -u COMPOSER_DISABLE_NETWORK
+.PHONY: help install install-crates install-ordered-json install-cargo-audit cargo-downloads-check dependency-review toolchain-check owner-check test-ordered-json docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-extension test-native test-native-suites test-validators test-form-binding conformance format-check deploy deploy-verify deploy-watch github-settings github-settings-check hooks hooks-check ci rerun-failed test-form-styles-linux remove-form-styles-image
 .NOTPARALLEL: docs docs-web docs-dev docs-preview docs-check docs-verify-idempotent
 
 # Validator benchmark iteration counts (override on the command line, e.g.
@@ -38,7 +47,9 @@ HOOKS_PATH := $(shell [ "$$(git config core.hooksPath)" = .githooks ] || git con
 help: ## 타겟 설명
 	@echo "CRUDUI docs — make targets:"
 	@echo ""
-	@echo "  make install               Install the recorded npm, the npm and Composer dependencies, the Rust toolchain, cargo-audit and phpDocumentor"
+	@echo "  make install               Install the recorded npm, the npm, Composer and Cargo dependencies, the Rust toolchain and phpDocumentor"
+	@echo "  make install-crates        Download the crates of every Cargo.lock and the OrderedJSON checkout that one reads"
+	@echo "  make install-cargo-audit   Install the cargo-audit release of config/toolchain.json into .tools/cargo-audit"
 	@echo "  make toolchain-check       Fail when a tool does not run at the version that the checkout records"
 	@echo "  make dependency-review     Ask the registries for newer stable releases and advisories; RECORD=1 records, UPDATE=1 updates first"
 	@echo "  make owner-check           Run the owner checks of the changed paths (scripts/owner-checks.json); PATHS or BASE select the paths"
@@ -83,30 +94,49 @@ help: ## 타겟 설명
 	@echo ""
 
 # The npm of packageManager into .tools/npm, the dependencies of the lock files, the Rust toolchain of
-# rust-toolchain.toml, the cargo-audit release of config/toolchain.json into .tools/cargo-audit and the phpDocumentor release that scripts/install-phpdocumentor.sh checks by its SHA-256. Node.js, Go, PHP and Composer are installed at the versions of .node-version, .go-version and
+# rust-toolchain.toml, the crates of every Cargo.lock, the OrderedJSON checkout of the comparison and the phpDocumentor release that scripts/install-phpdocumentor.sh checks by its SHA-256. Node.js, Go, PHP and Composer are installed at the versions of .node-version, .go-version and
 # config/toolchain.json by the machine's package manager; `make toolchain-check` names every tool at another version.
-install: ## Install the recorded npm, the npm and Composer dependencies, the Rust toolchain, cargo-audit and phpDocumentor
-	node scripts/install-npm.mjs
-	$(NPM) ci --strict-allow-scripts
-	composer --working-dir=packages/validator-php install --no-interaction --prefer-dist
-	composer --working-dir=packages/generator-php install --no-interaction --prefer-dist
+install: ## Install the recorded npm, the npm, Composer and Cargo dependencies, the Rust toolchain and phpDocumentor
+	$(ONLINE) node scripts/install-npm.mjs
+	$(ONLINE) $(NPM) ci --strict-allow-scripts
+	$(ONLINE) composer --working-dir=packages/validator-php install --no-interaction --prefer-dist
+	$(ONLINE) composer --working-dir=packages/generator-php install --no-interaction --prefer-dist
 	rustup toolchain install --no-self-update
-	node scripts/install-cargo-audit.mjs
+	$(MAKE) --no-print-directory install-crates
 	sh scripts/install-phpdocumentor.sh
+
+# The crates of every Cargo.lock, after the OrderedJSON checkout that the lock of the Rust record server reads; a CI job
+# that runs a target with cargo-downloads-check runs it.
+install-crates: install-ordered-json ## Download the crates of every Cargo.lock
+	$(ONLINE) node scripts/check-cargo-downloads.mjs --fetch
+
+# The pinned OrderedJSON checkout of the comparison record servers (examples/form-comparison/install-ordered-json.mjs);
+# the Cargo lock of the Rust record server reads it.
+install-ordered-json: ## Install the pinned OrderedJSON checkout of the comparison record servers
+	$(ONLINE) node examples/form-comparison/install-ordered-json.mjs
+
+# The cargo-audit release of config/toolchain.json in .tools/cargo-audit, which the dependency review runs.
+install-cargo-audit: ## Install the cargo-audit release of config/toolchain.json into .tools/cargo-audit
+	$(ONLINE) node scripts/install-cargo-audit.mjs
+
+# The crates of every Cargo.lock in the registry of CARGO_HOME; every target that runs cargo depends on it, and it names
+# make install for a missing crate instead of cargo's advice to retry without --offline.
+cargo-downloads-check: ## Check that the crates of every Cargo.lock are downloaded; names make install otherwise
+	node scripts/check-cargo-downloads.mjs
 
 # The dependency review (docs/spec/package-build.md, "Dependency review"): it asks the registries for the latest stable
 # release of every registry dependency and for the advisories of every npm, Composer and Cargo lock. RECORD=1 writes config/dependency-review.json,
 # which `npm run test:dependencies` compares with the checkout without a network; UPDATE=1 updates first. No check runs it;
 # the scheduled workflow .github/workflows/dependency-review.yml runs it every day.
-dependency-review: ## Ask the registries for newer stable releases and advisories; RECORD=1 records the review, UPDATE=1 updates first
-	node scripts/dependency-review.mjs $(if $(RECORD),--record) $(if $(UPDATE),--update)
+dependency-review: install-cargo-audit ## Ask the registries for newer stable releases and advisories; RECORD=1 records the review, UPDATE=1 updates first
+	$(ONLINE) node scripts/dependency-review.mjs $(if $(RECORD),--record) $(if $(UPDATE),--update)
 
 toolchain-check: ## Fail when a tool does not run at the version that the checkout records
 	node scripts/check-toolchain.mjs node npm go rust php python composer
 
 # The checks that own the changed paths (scripts/owner-checks.json): the paths of PATHS, the paths changed since BASE, or
 # the uncommitted changes and the new files that are not ignored. It never runs the full suite.
-owner-check: ## Run the owner checks of the changed paths: PATHS, the paths since BASE, or the uncommitted changes
+owner-check: cargo-downloads-check ## Run the owner checks of the changed paths: PATHS, the paths since BASE, or the uncommitted changes
 	node scripts/owner-check.mjs $(if $(PATHS),--paths "$(PATHS)") $(if $(BASE),--base "$(BASE)")
 
 # The unit tests of the processor checks of tests/ordered-json (docs/operations/ordered-json.md); the checks themselves need
@@ -117,19 +147,19 @@ test-ordered-json: ## Test the processor checks of tests/ordered-json without an
 docs: docs-clean docs-web ## 전체 문서 생성 (clean-then-generate)
 	@echo "[make] docs: complete -> docs/.web/dist"
 
-docs-api: ## 멀티언어 API doc
+docs-api: cargo-downloads-check ## 멀티언어 API doc
 	$(NPM) run docs:api
 
 docs-schema: ## 스펙 JSON Schema 검사
 	$(NPM) run spec:schema
 
-docs-web: ## 문서 정적 웹 빌드
+docs-web: cargo-downloads-check ## 문서 정적 웹 빌드
 	$(NPM) run docs:build
 
-docs-dev: ## 문서 개발 서버
+docs-dev: cargo-downloads-check ## 문서 개발 서버
 	$(NPM) run docs:dev
 
-docs-preview: ## 문서 빌드 결과 미리보기 서버
+docs-preview: cargo-downloads-check ## 문서 빌드 결과 미리보기 서버
 	$(NPM) run docs:preview
 
 # docs-check gates the documents AND the library packages.
@@ -143,7 +173,7 @@ docs-check: ## doc-coverage 게이트 (문서 + 라이브러리, 미문서화 �
 	exit $$status
 
 # Every check runs even when an earlier one fails, so one run reports every failure.
-docs-check-documents:
+docs-check-documents: cargo-downloads-check
 	@status=0; \
 	$(NPM) run manifest:check || status=1; \
 	$(NPM) run manifest:docs:check || status=1; \
@@ -153,7 +183,7 @@ docs-check-documents:
 	$(NPM) run docs:build || status=1; \
 	exit $$status
 
-docs-check-libs: ## 라이브러리 packages/* doc-coverage
+docs-check-libs: cargo-downloads-check ## 라이브러리 packages/* doc-coverage
 	$(NPM) run docs:check
 
 docs-clean: ## 생성물 전부 제거
@@ -194,19 +224,19 @@ docs-verify-idempotent: ## docs 를 2회 생성하고 diff 가 비는지 검증
 bench-fixtures: ## 벤치 fixture JSON 재생성 (스펙 → spec/input JSON)
 	node tools/bench/gen-fixtures.js
 
-bench: bench-fixtures ## 4언어 검증기 처리량 비교
+bench: cargo-downloads-check bench-fixtures ## 4언어 검증기 처리량 비교
 	node tools/bench/run.js --iters $(BENCH_ITERS) --warmup $(BENCH_WARMUP)
 
-bench-js: bench-fixtures ## JS 검증기만 측정
+bench-js: cargo-downloads-check bench-fixtures ## JS 검증기만 측정
 	node tools/bench/run.js --only js --iters $(BENCH_ITERS) --warmup $(BENCH_WARMUP)
 
-bench-php: bench-fixtures ## PHP 검증기만 측정
+bench-php: cargo-downloads-check bench-fixtures ## PHP 검증기만 측정
 	node tools/bench/run.js --only php --iters $(BENCH_ITERS) --warmup $(BENCH_WARMUP)
 
-bench-go: bench-fixtures ## Go 검증기만 측정
+bench-go: cargo-downloads-check bench-fixtures ## Go 검증기만 측정
 	node tools/bench/run.js --only go --iters $(BENCH_ITERS) --warmup $(BENCH_WARMUP)
 
-bench-rust: bench-fixtures ## Rust 검증기만 측정
+bench-rust: cargo-downloads-check bench-fixtures ## Rust 검증기만 측정
 	node tools/bench/run.js --only rust --iters $(BENCH_ITERS) --warmup $(BENCH_WARMUP)
 
 # The JavaScript packages are built only when their sources or output changed; the
@@ -230,7 +260,7 @@ test-native:
 	$(MAKE) --no-print-directory test-native-suites || status=1; \
 	exit $$status
 
-test-native-suites: build-php-extension
+test-native-suites: cargo-downloads-check build-php-extension
 	# generator-php installs the validator as a copy; refresh it from source before any check loads it, under the
 	# checkout lock of that vendor directory, so two runs never reinstall it at once.
 	node scripts/holder-lock.mjs hold "$(CURDIR)/var/locks/composer-generator-php.lock" -- composer --working-dir=packages/generator-php reinstall crudui/validator --no-interaction
@@ -243,7 +273,7 @@ test-native-suites: build-php-extension
 	node tests/native-generators/run.mjs --extension "$(PHP_EXTENSION)" --report "$(NATIVE_REPORT)" || status=1; \
 	exit $$status
 
-test-validators:
+test-validators: cargo-downloads-check
 	@status=0; \
 	node scripts/run-tests.mjs vitest --cwd packages/validator-ts || status=1; \
 	node scripts/run-tests.mjs phpunit --cwd packages/validator-php || status=1; \
@@ -261,7 +291,7 @@ test-form-binding:
 # Every suite that records conformance evidence, then the check of that evidence against
 # contracts/features.json (docs/spec/conformance.md). Every suite runs even when an earlier one
 # fails, so the check reports every gap; any failure fails the target.
-conformance:
+conformance: cargo-downloads-check
 	rm -rf "$(CONFORMANCE_EVIDENCE)"
 	@status=0; \
 	export CRUDUI_CONFORMANCE_EVIDENCE="$(CONFORMANCE_EVIDENCE)"; \

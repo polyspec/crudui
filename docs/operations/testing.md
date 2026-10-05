@@ -4,8 +4,9 @@
 
 Run from the repository root. Every tool runs at the release that the checkout records
 (`docs/spec/package-build.md`, "Runtime and dependency versions"): `make install` installs the
-recorded npm, the npm and Composer dependencies, the Rust toolchain of `rust-toolchain.toml` and the
-phpDocumentor release that `scripts/install-phpdocumentor.sh` checks by its SHA-256,
+recorded npm, the npm and Composer dependencies, the Rust toolchain of `rust-toolchain.toml`, the
+crates of every Cargo.lock with the OrderedJSON checkout of the comparison (`make install-crates`) and
+the phpDocumentor release that `scripts/install-phpdocumentor.sh` checks by its SHA-256,
 and `make toolchain-check` names every tool that runs at another release with the expected one.
 Install the npm release that `packageManager` of `package.json`
 records into the checkout with `node scripts/install-npm.mjs`, which never changes the npm of the

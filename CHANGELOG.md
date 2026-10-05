@@ -1,5 +1,13 @@
 # Changes
 
+## 2026-10-06 — Offline checks (C7.16)
+
+- The Makefile runs cargo, go, npm and Composer offline, and only the install targets and the
+  dependency review download. `make install-crates` downloads the crates of every Cargo.lock, and a
+  target that runs cargo fails first with the lock and `run make install` when a crate is missing.
+  The comparison pipeline reads the OrderedJSON checkout of `make install-ordered-json` instead of
+  fetching it.
+
 ## 2026-10-06 — Unit tests in development, every other check in CI (C7.15)
 
 - Development runs the unit tests that own a change; end-to-end checks, `make owner-check` and
