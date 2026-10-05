@@ -1,5 +1,13 @@
 # Changes
 
+## 2026-10-05 — Character constants in long C strings (C5.3)
+
+- `cString` of `packages/php-ext/tests/engine.test.mjs` writes each byte of a value longer than
+  4000 bytes as a character constant with an octal escape. It wrote the bytes as integers, so a
+  UTF-8 byte above 127 initialized a `char`, and GCC failed the render fixtures with
+  `-Werror=overflow`; Apple clang accepts both forms. A case of the file fails for an integer above
+  127 in the initializer and decodes the constants back to the bytes of the value.
+
 ## 2026-10-05 — A dist lock test without build output (C5.2)
 
 - `tests/build/shared-resources.test.mjs` checks the `dist` lock on a fixture package that it

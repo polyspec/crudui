@@ -22,8 +22,11 @@ import { recordConformance } from '../../../tests/conformance/evidence.mjs';
  */
 export function cString(value) {
   const bytes = Buffer.from(value, 'utf8');
-  if (bytes.length > 4000) return `((const char[]){${[...bytes, 0].join(',')}})`;
-  return `"${[...bytes].map(byte => `\\${byte.toString(8).padStart(3, '0')}`).join('')}"`;
+  const escape = byte => `\\${byte.toString(8).padStart(3, '0')}`;
+  // Each element is a character constant: an integer above 127 does not fit a signed `char`, and
+  // GCC rejects it with -Werror=overflow.
+  if (bytes.length > 4000) return `((const char[]){${[...bytes, 0].map(byte => `'${escape(byte)}'`).join(',')}})`;
+  return `"${[...bytes].map(escape).join('')}"`;
 }
 
 /* The same bytes as engine text with their explicit length. */
@@ -2430,3 +2433,18 @@ test('PHP extension engine text is exactly Unicode scalar values', { timeout: EN
   }
 });
 }
+
+test('a long C string initializes each char with a character constant of its byte', () => {
+  const value = `${'\u00ec\u0000a'.repeat(1500)}\u{1f600}`;
+  const source = cString(value);
+  const elements = /^\(\(const char\[\]\)\{(.*)\}\)$/.exec(source)?.[1].split(',');
+  assert.ok(elements, source.slice(0, 80));
+  assert.deepEqual(elements.filter(element => /^\d+$/.test(element) && Number(element) > 127).slice(0, 3), [],
+    'an integer above 127 initializes a char');
+  const bytes = elements.map(element => {
+    const constant = /^'\\([0-7]{3})'$/.exec(element);
+    assert.ok(constant, `not a character constant: ${element}`);
+    return Number.parseInt(constant[1], 8);
+  });
+  assert.deepEqual(Buffer.from(bytes), Buffer.concat([Buffer.from(value, 'utf8'), Buffer.from([0])]));
+});
