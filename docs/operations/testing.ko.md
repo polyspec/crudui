@@ -17,7 +17,32 @@ Composer 의존성을 설치하며 PHP·Go·Cargo를 `PATH`에서 실행할 수 
 
 `make ci`는 CI 워크플로의 모든 검사 명령을 워크플로 순서대로 실행하고, 적합성 증거를 모아 CI의 마지막
 작업처럼 검사합니다. `tests/build/ci-local.test.mjs`는 이 목록이 `.github/workflows/ci.yml`과 다르면
-실패합니다. 개별 명령은 다음과 같습니다.
+실패합니다.
+
+`make ci`는 `docs/plans/execution-checklist.md`의 작업 중 `[~]`인 것이 없을 때, 커밋된 tree마다 한 번 실행됩니다. 어떤 명령보다
+먼저 `scripts/full-run.mjs`를 시작하며, 이 guard는 판단을 이유와 함께 출력하고(`[full-run] run: ...` 또는 `[full-run]
+refuse: ...`) 다음의 경우 status 1로 거부합니다. checklist의 작업 행이 `[~]`이면 활성 ID를 작업과 함께 나열하며 거부합니다. 추적 파일에 커밋되지
+않은 변경이 있으면(`git status --porcelain --untracked-files=no`) 거부합니다. 전체 실행은 커밋된 tree를 검증하기 때문입니다.
+`var/full-run.json`이 현재 tree(`git rev-parse HEAD^{tree}`)의 전체 실행을 기록하고 있으면 그 실행을 commit, 시작 시각, 결과와
+함께 밝히며 거부합니다. `incomplete` record의 process가 아직 실행 중이면 거부합니다.
+
+guard의 target은 `CI_COMMANDS`의 명령 하나이며 그 text로 이름을 붙입니다. 전체 실행은 이전 실행의 적합성 증거를 지우고, 각 명령을 `sh -c`로
+끝까지 실행하며, 명령이 실패한 뒤에도 계속하고, `[full-run] start <command> (<n>/<total>)`와 `[full-run] <command>
+passed|failed in <seconds> s`를 출력합니다. 어떤 명령에도 시간 제한이 없습니다. 각 명령의 앞뒤에 `var/full-run.json`을 씁니다. 이
+record는 tree, commit, process, 시작과 끝 시각, 결과(마지막 명령이 끝날 때까지 `incomplete`, 그다음 `passed` 또는 `failed`),
+실패한 명령, 그리고 각 명령의 상태(`pending`, `running`, `passed`, `failed`), 시각, 경과 millisecond를 담습니다. 따라서 멈춘 실행은
+실행 중이던 명령과 함께 `incomplete`로 기록되어 남습니다. `var/`는 Git이 무시하므로 checkout과 worktree마다 자기 record를 가집니다.
+tree를 바꾸는 commit은 `[~]` 작업이 없을 때 새 전체 실행을 허용합니다.
+
+`make rerun-failed`는 현재 tree에서 통과하지 못한 명령, 즉 실패한 명령과 `incomplete` 실행이 끝내지 못한 명령만 다시 실행합니다. `node
+scripts/check-conformance.mjs`가 읽는, 통과한 명령의 적합성 증거는 유지합니다. 진행 중인 작업, 커밋되지 않은 변경, 실행 중인 process에 대해서는
+`make ci`와 같이 거부되고, record가 없을 때, record가 다른 tree의 것일 때, 그 tree의 전체 실행이 통과했을 때도 거부됩니다. 각 재실행을
+record의 `reruns`에 쓰고, 모든 명령이 통과하면 그 tree의 결과는 `passed`가 됩니다.
+
+CI workflow는 `main`으로의 push마다 같은 명령을 job에서 실행하고 `make ci`는 실행하지 않으므로 guard는 CI 실행을 판단하지 않습니다. push는
+활성 작업이 모두 끝났을 때만 합니다. CI처럼 새 checkout에는 record가 없으므로, 그곳에서 `make ci`는 `[~]` 작업이 없고 tree가 깨끗하면 실행됩니다.
+
+개별 명령은 다음과 같습니다.
 
 ```sh
 composer --working-dir=packages/validator-php install

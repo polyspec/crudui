@@ -25,6 +25,9 @@
   timeout을 두지 않으며, 출력 없음 한도도 두지 않습니다. 그 성공과 실패는 관측한 결과와 오류로
   판정하고, 그 끝은 그 결과의 event입니다. 수십 분 동안 실행되는 테스트와 시작과 끝만 출력하는
   테스트는 결함입니다.
+- guard `scripts/full-run.mjs`가 어떤 단계보다 먼저 한 번의 전체 실행을 강제합니다. 작업이 `[~]`이거나, 추적 파일의 변경이 커밋되지 않았거나,
+  `var/full-run.json`이 현재 tree의 전체 실행을 기록하고 있으면 `make ci`는 거부됩니다. `make rerun-failed`는 현재 tree에서
+  통과하지 못한 명령만 다시 실행합니다(`docs/operations/testing.md`).
 - 계약은 `docs/spec/`, 구현·배포 상태는 `docs/features.md`, 절차는
   `docs/operations/`, 계획된 작업과 그 검증·완료는 `docs/plans/execution-checklist.md`,
   실제 변경은 `CHANGELOG.md`에서 관리합니다. 모든 변경은 checklist의 작업 하나에 속하며,

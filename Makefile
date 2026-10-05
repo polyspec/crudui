@@ -8,7 +8,7 @@
 # machine-absolute paths). `make docs` run twice yields identical output.
 
 .DEFAULT_GOAL := help
-.PHONY: help docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-extension test-native test-native-suites test-validators test-form-binding conformance format-check deploy deploy-verify deploy-watch github-settings github-settings-check ci test-form-styles-linux remove-form-styles-image
+.PHONY: help docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-extension test-native test-native-suites test-validators test-form-binding conformance format-check deploy deploy-verify deploy-watch github-settings github-settings-check ci rerun-failed test-form-styles-linux remove-form-styles-image
 .NOTPARALLEL: docs docs-web docs-dev docs-preview docs-check docs-verify-idempotent
 
 # Validator benchmark iteration counts (override on the command line, e.g.
@@ -40,7 +40,8 @@ help: ## 타겟 설명
 	@echo "  make test-form-binding     Test the browser validation binding, its markup parity and three browsers"
 	@echo "  make conformance           Run every conformance suite and check the evidence against the standard"
 	@echo "  make format-check          Fail when any Rust crate or Go file is not formatted"
-	@echo "  make ci                    Run every command of the CI workflow in order"
+	@echo "  make ci                    Run every command of the CI workflow in order, once per tree (scripts/full-run.mjs)"
+	@echo "  make rerun-failed          Rerun the commands of make ci that did not pass on the current tree"
 	@echo "  make test-form-styles-linux  Run the stylesheet layout checks on Linux in the Playwright image"
 	@echo "  make remove-form-styles-image  Remove that Playwright image unless a check holds it"
 	@echo "  make deploy                Deploy the comparison service from the current tree"
@@ -273,13 +274,12 @@ test-form-styles-linux: ## Run the stylesheet layout checks on Linux in the Play
 remove-form-styles-image: ## Remove that Playwright image unless a check holds it
 	sh scripts/test-form-styles-linux.sh --remove-image
 
-ci: ## Run every command of the CI workflow in order
-	rm -rf "$(CONFORMANCE_EVIDENCE)"
-	@status=0; failed=''; \
-	export CRUDUI_CONFORMANCE_EVIDENCE="$(CONFORMANCE_EVIDENCE)"; \
-	for command in $(CI_COMMANDS); do \
-		echo "[ci] $$command"; \
-		if ! sh -c "$$command"; then status=1; failed="$$failed\n  $$command"; fi; \
-	done; \
-	if [ $$status -ne 0 ]; then printf "[ci] failed:$$failed\n"; fi; \
-	exit $$status
+# `make ci` runs CI_COMMANDS through the guard scripts/full-run.mjs, which refuses while a checklist task is [~], while
+# tracked changes are uncommitted or when var/full-run.json records a run of the current tree, removes the conformance
+# evidence of earlier runs, runs each command with `sh -c` to its end and records its result; `make rerun-failed` reruns
+# the commands of the current tree that did not pass and keeps the evidence of those that passed.
+ci: ## Run every command of the CI workflow in order through the guard: once per tree, when no checklist task is [~]
+	CRUDUI_CONFORMANCE_EVIDENCE="$(CONFORMANCE_EVIDENCE)" node scripts/full-run.mjs run $(CI_COMMANDS)
+
+rerun-failed: ## Rerun only the commands of make ci that did not pass on the current tree
+	CRUDUI_CONFORMANCE_EVIDENCE="$(CONFORMANCE_EVIDENCE)" node scripts/full-run.mjs rerun-failed

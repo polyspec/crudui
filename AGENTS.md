@@ -29,6 +29,10 @@
   inactivity limit included: its success or failure is judged from its observed result and errors,
   and its end is the event of that result. A test that runs for tens of minutes, or that prints only
   its start and its end, is a defect.
+- The guard `scripts/full-run.mjs` enforces the single full run before any step: `make ci` is
+  refused while a task is `[~]`, while tracked changes are uncommitted, and when `var/full-run.json`
+  records a full run of the current tree; `make rerun-failed` reruns only the commands of the
+  current tree that did not pass (`docs/operations/testing.md`).
 - Keep contracts in `docs/spec/`, implementation and deployment status in
   `docs/features.md`, procedures in `docs/operations/`, planned tasks with their
   verification and completion in `docs/plans/execution-checklist.md`, and actual

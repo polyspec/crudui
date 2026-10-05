@@ -1,5 +1,19 @@
 # Changes
 
+## 2026-10-05 — Guard of the full run (C2.1-2)
+
+- `make ci` starts the guard `scripts/full-run.mjs` before any command. AGENTS states that the full
+  suite runs exactly once, when every active task is done, and nothing enforced it: `make ci`
+  started its commands with a task in progress, with uncommitted changes and on a tree it had
+  already verified. The guard prints its decision with the reason and refuses while a checklist task
+  is `[~]`, listing each active ID with its task, while tracked changes are uncommitted, and when
+  `var/full-run.json` records a full run of the current tree, naming that run. It runs each command
+  of `CI_COMMANDS` to its end and writes the record before and after each command, so a stopped run
+  stays `incomplete`. `make rerun-failed` reruns only the commands of the current tree that did not
+  pass and keeps the conformance evidence of those that passed. `tests/build/full-run.test.mjs`
+  failed with `ERR_MODULE_NOT_FOUND` before the change; its 11 cases pass with stub commands after
+  it.
+
 ## 2026-10-05 — Local servers stopped at the exit of their test process (C2.19)
 
 - The local stack of the form comparison tests stops the process groups of the servers it started
