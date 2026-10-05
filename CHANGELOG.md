@@ -1,5 +1,13 @@
 # Changes
 
+## 2026-10-05 — Readiness wait on the state file itself (C2.4-1)
+
+- The readiness wait of the form comparison watches the build state file itself
+  (`watchStateFile`), whose watch is registered when it returns, and at every replacement watches
+  the new file before it reads. It watched the file's directory, whose event stream on macOS starts
+  after `fs.watch` returns, so a replacement made right after the wait started could be lost; the
+  real-file case failed in 5 of 10 loaded runs and passes in 20 of 20.
+
 ## 2026-10-05 — One test per render case in the viewport and Tailwind checks (C2.11)
 
 - `tests/viewport.test.mjs` and `tests/tailwind-styles.test.mjs` open the pages of each engine and

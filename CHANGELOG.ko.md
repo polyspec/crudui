@@ -1,5 +1,12 @@
 # 변경 기록
 
+## 2026-10-05 — state file 자체를 감시하는 readiness 대기 (C2.4-1)
+
+- form comparison의 readiness 대기는 build state file 자체를 감시하며(`watchStateFile`), 그 watch는
+  돌아올 때 등록되어 있고, 교체될 때마다 읽기 전에 새 file을 감시합니다. 전에는 file의 directory를
+  감시했고, macOS에서 그 event stream은 `fs.watch`가 돌아온 뒤에 시작하므로 대기 시작 직후의 교체를
+  잃을 수 있었습니다. 실제 file case는 부하에서 10번 중 5번 실패했고, 이제 20번 모두 통과합니다.
+
 ## 2026-10-05 — viewport와 Tailwind 검사의 render case별 test (C2.11)
 
 - `tests/viewport.test.mjs`와 `tests/tailwind-styles.test.mjs`는 각 engine과 폭의 page를 suite의

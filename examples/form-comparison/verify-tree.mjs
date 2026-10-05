@@ -82,21 +82,43 @@ export const systemClock = {
 };
 
 /**
- * Call `onChange` at every change in the directory of `file`, where the supervisor replaces the
- * file by renaming a new one over it, and `onError` when the directory cannot be watched. Returns
- * the function that stops watching.
+ * Call `onChange` at every replacement of `file`, which the supervisor replaces by renaming a new
+ * file over it, and `onError` when the file cannot be watched. The watch is on the file itself,
+ * whose registration is complete when `watch` returns (kqueue on macOS, inotify on Linux); a
+ * directory watch on macOS starts its event stream later and can miss a replacement made right
+ * after it starts. A replacement ends the watch of the replaced file, so every event first watches
+ * the current file and then calls `onChange`, whose read sees every replacement made before that
+ * watch. Returns the function that stops watching.
  */
-export function watchDirectoryOf(file, onChange, onError) {
-  const watcher = watch(path.dirname(file), () => onChange());
-  watcher.on('error', onError);
-  return () => watcher.close();
+export function watchStateFile(file, onChange, onError) {
+  let watcher;
+  let stopped = false;
+  const arm = () => {
+    watcher?.close();
+    try {
+      watcher = watch(file, () => {
+        if (stopped) return;
+        arm();
+        onChange();
+      });
+    } catch (error) {
+      stopped = true;
+      return onError(error);
+    }
+    watcher.on('error', error => { if (!stopped) onError(error); });
+  };
+  arm();
+  return () => {
+    stopped = true;
+    watcher?.close();
+  };
 }
 
 /**
  * Wait for the current build cycle to be ready. The supervisor replaces its build state file at
  * every change. While a cycle builds, `progress` names the step it runs (its target, its step and
  * the limit the step holds) and `progress.at` is renewed every heartbeat. The wait reads the file
- * once at its start and again at every change event of its directory; it reads nothing on a
+ * once at its start and again at every replacement of the file; it reads nothing on a
  * timer. The two parts of the state are checked apart:
  *
  * - progress is the step: one step may last its own limit plus the inactivity limit, the margin
@@ -109,12 +131,12 @@ export function watchDirectoryOf(file, onChange, onError) {
  * step holds it longer than that step's own limit. A ready build of another source than `source`
  * is not the build waited for: the supervisor has not yet taken the checkout, and the wait goes on
  * under the same inactivity limit. `clock`, `watch` and `read` replace the system clock, the
- * directory watch and the file read.
+ * file watch and the file read.
  */
 export function readyBuild({
   source, stateFile = buildStateFile, silenceLimitMs = stepSilenceLimitMs, heartbeatMs = stepHeartbeatMs,
   write = text => process.stdout.write(text),
-  clock = systemClock, watch: watchState = watchDirectoryOf, read = file => readFile(file, 'utf8'),
+  clock = systemClock, watch: watchState = watchStateFile, read = file => readFile(file, 'utf8'),
 } = {}) {
   const prefix = '[verification] build-readiness:';
   return new Promise((resolve, reject) => {

@@ -360,7 +360,7 @@ test('the build readiness wait is bounded without a state file and fails on a fa
   assert.equal(failed.outcome()?.error?.message, 'build-readiness failed after 20ms: cycle 4 failed (go-1 failed after 2s)');
 });
 
-test('the build readiness wait reads the state file at each change of its directory', async t => {
+test('the build readiness wait reads the state file at each replacement', async t => {
   // The supervisor's own replacement: a new file renamed over the state file. The clock does not
   // move, so only the change event can end the wait.
   const directory = await mkdtemp(path.join(tmpdir(), 'crudui-build-state-'));
