@@ -1,5 +1,11 @@
 # 변경 기록
 
+## 2026-10-05 — pipe로 만나는 stage step (C2.9-1)
+
+- step runner test에서 한 stage의 두 step은 named pipe의 두 끝을 열므로, stage는 둘이 동시에 실행될
+  때만 끝납니다. 전에는 directory watch로 서로의 file을 기다렸고, macOS에서 그 event stream은 늦게
+  시작해 10번 중 4번 file을 잃었습니다.
+
 ## 2026-10-05 — local pipeline stack의 setup 계약 (C2.7-2)
 
 - `check-verification.test.mjs`는 pipeline과 record store test가 `scripts/test-progress/hooks.mjs`의

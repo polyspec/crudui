@@ -103,21 +103,15 @@ test('kills the whole process tree of a step that reaches its timeout', async ()
 
 test('runs the steps of one stage together and stops after a failed stage', async t => {
   const { lines, write } = recorder();
-  // Each step of the first stage creates its own file and ends only when the other's file exists,
-  // so the stage ends only when both steps run at the same time.
+  // The two steps of the first stage open the two ends of one named pipe. Opening one end blocks
+  // until the other end is open, so the stage ends only when both steps run at the same time.
   const directory = await mkdtemp(path.join(tmpdir(), 'crudui-stage-'));
   t.after(() => rm(directory, { recursive: true, force: true }));
-  const meet = (own, other) => [
-    "const fs = require('node:fs'); const path = require('node:path');",
-    `const directory = ${JSON.stringify(directory)};`,
-    `const other = path.join(directory, ${JSON.stringify(other)});`,
-    "const watcher = fs.watch(directory, () => { if (fs.existsSync(other)) process.exit(0); });",
-    `fs.writeFileSync(path.join(directory, ${JSON.stringify(own)}), '');`,
-    'if (fs.existsSync(other)) process.exit(0);',
-    'watcher.ref();',
-  ].join('\n');
+  const pipe = path.join(directory, 'meet');
+  await execFileAsync('mkfifo', [pipe]);
+  const meet = flags => `require('node:fs').closeSync(require('node:fs').openSync(${JSON.stringify(pipe)}, '${flags}'));`;
   const results = await runStages([
-    [node('first', meet('first', 'second')), node('second', meet('second', 'first'))],
+    [node('first', meet('r')), node('second', meet('w'))],
     [node('failing', 'process.exit(1)')],
     [node('never', '')],
   ], { write });
