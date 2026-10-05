@@ -1,5 +1,15 @@
 # 변경 기록
 
+## 2026-10-05 — 시간 한도 없는 CI (C2.2-1)
+
+- CI workflow에는 `timeout-minutes`가 없습니다. step은 test를 실행하거나(각 case는
+  `scripts/run-tests.mjs`에서 자기 timeout을 가집니다) 장기 작업(checkout, toolchain setup, install,
+  build, lint, type check, upload, deployment)을 실행하며, 장기 작업은 log를 출력하고 시간 한도를
+  두지 않습니다. 어떤 job도 step 위에 한도를 두지 않습니다. C2.2는 이런 step 84개에 5분이나 10분
+  한도를 두었고 `deploy-docs`와 `conformance` job의 한도를 남겼습니다.
+  `tests/build/test-commands.test.mjs`는 `timeout-minutes`를 가진 job이나 step에서 실패합니다. 전에는
+  test를 실행하지 않는 모든 step에 그것을 요구했습니다.
+
 ## 2026-10-05 — timeout 없는 장기 작업 (C2.1-1)
 
 - AGENTS는 장기 작업(build, install, toolchain setup, browser close, server stop, 전체 suite)에

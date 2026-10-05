@@ -1,5 +1,14 @@
 # Changes
 
+## 2026-10-05 — CI without time limits (C2.2-1)
+
+- The CI workflow has no `timeout-minutes`. A step runs tests, whose cases hold their own timeouts
+  in `scripts/run-tests.mjs`, or a long operation (checkout, toolchain setup, install, build, lint,
+  type check, upload, deployment), which prints its logs and has no time limit; no job has a limit
+  over its steps. C2.2 had given 84 such steps a limit of 5 or 10 minutes and kept the limits of the
+  `deploy-docs` and `conformance` jobs. `tests/build/test-commands.test.mjs` fails on a job or a
+  step with `timeout-minutes`; it required one on every step that runs no tests.
+
 ## 2026-10-05 — Long operations without a timeout (C2.1-1)
 
 - AGENTS gives a long operation (a build, an install, a toolchain setup, a browser close, a server

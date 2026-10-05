@@ -1,7 +1,7 @@
 // The test command standard: every test the project runs goes through scripts/run-tests.mjs,
 // which prints each test as it starts, runs, passes or fails with its elapsed time and stops a
 // test that outlives its own timeout. A test tool called directly from a project command, or a
-// CI time limit over a step or a job that runs tests, fails this check.
+// CI time limit over a step or a job, fails this check.
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
@@ -118,25 +118,20 @@ test('a CI step runs tests when its command reaches the test runner', () => {
   ]) assert.equal(runsTests(command, project), false, command);
 });
 
-// The test runner gives every test its own timeout, so a time limit over a step that runs tests,
-// or over its job, is a whole-suite timeout. The other steps of such a job (checkout, toolchains,
-// installs, builds, uploads) each keep a short limit of their own. A job without a test step keeps
-// a job limit.
-test('CI time limits bound setup steps and never a step or a job that runs tests', () => {
+// A CI step runs either tests, whose cases each hold their own timeout in the test runner, or a
+// long operation: a checkout, a toolchain setup, an install, a build, a lint or type check, an
+// upload or a deployment. A long operation prints its own logs and has no time limit, and a job
+// has no time limit over its steps, so a normal run that takes longer than usual never fails.
+test('CI has no time limit over a long operation, a test step or a job', () => {
   const project = declaredCommands();
   const violations = [];
   for (const file of tracked.filter(name => name.startsWith('.github/workflows/'))) {
     for (const job of workflowJobs(read(file))) {
-      const tests = job.steps.filter(step => step.run && runsTests(step.run, project));
-      if (!tests.length) {
-        if (!job.timeout) violations.push(`${file} ${job.name}: a job without tests has no timeout-minutes`);
-        continue;
-      }
-      if (job.timeout) violations.push(`${file} ${job.name}: the job runs tests and has timeout-minutes`);
+      if (job.timeout) violations.push(`${file}:${job.line} ${job.name}: the job has timeout-minutes`);
       for (const step of job.steps) {
-        const label = `${file}:${step.line} ${job.name} ${step.name ?? step.run ?? step.uses}`;
-        if (tests.includes(step) && step.timeout) violations.push(`${label}: runs tests and has timeout-minutes`);
-        if (!tests.includes(step) && !step.timeout) violations.push(`${label}: does not run tests and has no timeout-minutes`);
+        if (!step.timeout) continue;
+        const kind = step.run && runsTests(step.run, project) ? 'runs tests' : 'runs a long operation';
+        violations.push(`${file}:${step.line} ${job.name} ${step.name ?? step.run ?? step.uses}: ${kind} and has timeout-minutes`);
       }
     }
   }

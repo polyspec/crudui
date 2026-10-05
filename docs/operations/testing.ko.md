@@ -97,10 +97,11 @@ method는 세지 않으며, 없는 test file에 대한 오류나 warning을 담�
 실패합니다.
 
 - 패키지 스크립트, Composer 스크립트, Makefile 대상, CI 단계가 테스트 도구를 직접 호출합니다.
-- 테스트를 실행하는 CI 단계나 그 단계가 속한 작업에 `timeout-minutes`가 있거나, 그 작업에서 테스트를
-  실행하지 않는 단계에 없거나, 테스트 단계가 없는 작업에 없습니다. 단계의 명령이
+- CI 작업이나 단계에 `timeout-minutes`가 있습니다. 단계는 테스트나 장기 작업(checkout, toolchain
+  setup, install, build, lint나 type check, upload, deployment)을 실행합니다. 실행기가 테스트 단계의
+  각 test case를 제한하고, 장기 작업은 log를 출력하며 시간 한도를 두지 않습니다. 단계의 명령이
   `scripts/run-tests.mjs`를 호출하거나 npm script, Composer script, Makefile 대상을 거쳐 테스트 명령이나
-  실행기에 닿으면 그 단계는 테스트를 실행합니다. 실행기가 각 테스트를 제한합니다.
+  실행기에 닿으면 그 단계는 테스트를 실행합니다.
 - 테스트 명령이 시작하는 스크립트가 `scripts/test-progress/progress.mjs`로 출력하지 않습니다.
 - 어떤 프로젝트 명령도 실행하지 않는 `node:test` 파일이 있습니다.
 - TypeScript 패키지에 `typecheck` 스크립트가 없거나 CI가 `npm run typecheck`를 실행하지 않습니다.
