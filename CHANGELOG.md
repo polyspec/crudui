@@ -1,5 +1,14 @@
 # Changes
 
+## 2026-10-05 — One compiler command for the engine tests (C5.4)
+
+- Every C program of `packages/php-ext/tests/engine.test.mjs` compiles through
+  `compileAndRunEngineProgram`, which links the math library. The template and value tests wrote
+  their own compiler commands, and the template test, without `-lm`, failed on Linux with
+  `undefined reference to 'log10'`; macOS has the math functions in its system library. A case of
+  the file fails when the file holds more than one compiler command or when that command does not
+  link `-lm`.
+
 ## 2026-10-05 — Character constants in long C strings (C5.3)
 
 - `cString` of `packages/php-ext/tests/engine.test.mjs` writes each byte of a value longer than

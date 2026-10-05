@@ -272,18 +272,21 @@ function runStep(label, command, args, { signal, env } = {}) {
   });
 }
 
-export async function compileAndRunEngineFixture({ root, directory, source, sources, name,
+/*
+ * Compile a C program with the named sources of packages/php-ext/src and run it. Every C program
+ * of these tests compiles here; the math library is linked because glibc keeps log10, ceil and
+ * floor in libm, while macOS has them in its system library.
+ */
+export async function compileAndRunEngineProgram({ root, directory, program, sources, name,
   compilerFlags = [], runEnvironment, signal, onOutput }) {
-  const fixtureSource = path.join(directory, `${name}.c`);
   const executable = path.join(directory, name);
-  await writeFile(fixtureSource, source);
   const extensionSource = file => path.join(root, 'packages/php-ext/src', file);
   const compile = await runStep(`${name}: compiling ${sources.length} sources`,
     process.env.CC ?? 'cc', [
       '-std=c11', '-Wall', '-Wextra', '-Werror', '-pedantic',
       ...compilerFlags,
       '-I', path.join(root, 'packages/php-ext/src'),
-      ...sources.map(extensionSource), fixtureSource, '-o', executable, '-lm',
+      ...sources.map(extensionSource), program, '-o', executable, '-lm',
     ], { signal });
   assert.equal(compile.signal, null);
   assert.equal(compile.status, 0, compile.stderr || compile.stdout);
@@ -292,6 +295,13 @@ export async function compileAndRunEngineFixture({ root, directory, source, sour
   onOutput?.(run.stdout);
   assert.equal(run.signal, null, run.stderr || run.stdout);
   assert.equal(run.status, 0, run.stderr || run.stdout);
+}
+
+/* Write a generated fixture program to the directory, then compile and run it. */
+export async function compileAndRunEngineFixture({ directory, source, name, ...options }) {
+  const program = path.join(directory, `${name}.c`);
+  await writeFile(program, source);
+  await compileAndRunEngineProgram({ ...options, directory, program, name });
 }
 
 {
@@ -2219,23 +2229,12 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../.
 test('PHP extension engine compiles composed form templates', { timeout: ENGINE_TEST_BUDGET }, async t => {
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-template-'));
   try {
-    const executable = path.join(directory, 'template-test');
-    const extensionSource = file => path.join(root, 'packages/php-ext/src', file);
-    const compile = await runStep('template-test: compiling 12 sources', process.env.CC ?? 'cc', [
-      '-std=c11', '-Wall', '-Wextra', '-Werror', '-pedantic',
-      '-I', path.join(root, 'packages/php-ext/src'),
-      extensionSource('value.c'), extensionSource('engine_error.c'),
-      extensionSource('compose.c'), extensionSource('declaration.c'), extensionSource('template.c'),
-      extensionSource('number_text.c'), extensionSource('canonical.c'), extensionSource('rule_number.c'),
-      extensionSource('rule_length.c'), extensionSource('whitespace.c'), extensionSource('unicode_data.c'),
-      extensionSource('pattern_set.c'),
-      path.join(root, 'packages/php-ext/tests/template.c'), '-o', executable,
-    ], { signal: t.signal });
-    assert.equal(compile.signal, null);
-    assert.equal(compile.status, 0, compile.stderr || compile.stdout);
-    const run = await runStep('template-test: running', executable, [], { signal: t.signal });
-    assert.equal(run.signal, null);
-    assert.equal(run.status, 0, run.stderr || run.stdout);
+    await compileAndRunEngineProgram({
+      root, directory, name: 'template-test', signal: t.signal,
+      program: path.join(root, 'packages/php-ext/tests/template.c'),
+      sources: ['value.c', 'engine_error.c', 'compose.c', 'declaration.c', 'template.c', 'number_text.c',
+        'canonical.c', 'rule_number.c', 'rule_length.c', 'whitespace.c', 'unicode_data.c', 'pattern_set.c'],
+    });
   } finally {
     await rm(directory, { recursive: true, force: true });
   }
@@ -2248,20 +2247,10 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../.
 test('PHP extension engine value model preserves order and owns independent values', { timeout: ENGINE_TEST_BUDGET }, async t => {
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-value-'));
   try {
-    const executable = path.join(directory, 'value-test');
-    const compiler = process.env.CC ?? 'cc';
-    const compile = await runStep('value-test: compiling 2 sources', compiler, [
-      '-std=c11', '-Wall', '-Wextra', '-Werror', '-pedantic',
-      '-I', path.join(root, 'packages/php-ext/src'),
-      path.join(root, 'packages/php-ext/src/value.c'),
-      path.join(root, 'packages/php-ext/tests/value.c'),
-      '-o', executable,
-    ], { signal: t.signal });
-    assert.equal(compile.signal, null);
-    assert.equal(compile.status, 0, compile.stderr || compile.stdout);
-    const run = await runStep('value-test: running', executable, [], { signal: t.signal });
-    assert.equal(run.signal, null);
-    assert.equal(run.status, 0, run.stderr || run.stdout);
+    await compileAndRunEngineProgram({
+      root, directory, name: 'value-test', signal: t.signal,
+      program: path.join(root, 'packages/php-ext/tests/value.c'), sources: ['value.c'],
+    });
   } finally {
     await rm(directory, { recursive: true, force: true });
   }
@@ -2447,4 +2436,13 @@ test('a long C string initializes each char with a character constant of its byt
     return Number.parseInt(constant[1], 8);
   });
   assert.deepEqual(Buffer.from(bytes), Buffer.concat([Buffer.from(value, 'utf8'), Buffer.from([0])]));
+});
+
+test('every C program of the engine tests compiles through one function that links the math library', async () => {
+  const source = await readFile(fileURLToPath(import.meta.url), 'utf8');
+  const compilerUse = new RegExp(String.raw`process\.env\.` + 'CC\\b', 'g');
+  const points = [...source.matchAll(compilerUse)].map(match => source.slice(0, match.index).split('\n').length);
+  assert.equal(points.length, 1, `compiler commands on lines ${points.join(', ')}`);
+  const at = source.search(compilerUse);
+  assert.match(source.slice(at, source.indexOf('{ signal', at)), /'-lm'/, 'the compiler command links the math library');
 });
