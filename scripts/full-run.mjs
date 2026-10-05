@@ -18,6 +18,7 @@ import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync 
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { toolchainVersions } from './check-toolchain.mjs';
 import { acquireHolderLock, HolderLockRefused } from './holder-lock.mjs';
 import { hooksIssue } from './push-gate.mjs';
 
@@ -147,7 +148,7 @@ export async function fullRun(options) {
   }
 }
 
-async function guardedRun({ root, mode, targets = [], runTarget = name => runCommand(root, name), print, evidence = process.env.CRUDUI_CONFORMANCE_EVIDENCE }) {
+async function guardedRun({ root, mode, targets = [], runTarget = name => runCommand(root, name), print, evidence = process.env.CRUDUI_CONFORMANCE_EVIDENCE, versions = () => toolchainVersions(undefined, { root }) }) {
   const active = activeItems(readFileSync(path.join(root, CHECKLIST), 'utf8'));
   const hooks = hooksIssue(root);
   const dirty = git(root, 'status', '--porcelain', '--untracked-files=no').split('\n').filter(Boolean);
@@ -167,7 +168,10 @@ async function guardedRun({ root, mode, targets = [], runTarget = name => runCom
   const current = mode === 'run'
     ? { tree, commit, result: 'incomplete', pid: process.pid, started: now(), ended: null, targets: targets.map(name => ({ name, status: 'pending' })), reruns: [] }
     : { ...record, result: 'incomplete', pid: process.pid };
-  const rerun = mode === 'run' ? null : { started: now(), ended: null, targets: decision.targets, result: 'incomplete' };
+  // The releases that the run runs on: config/toolchain.json pins PHP by its minor, so the patch is evidence of the run.
+  const toolchain = versions();
+  if (mode === 'run') current.toolchain = toolchain;
+  const rerun = mode === 'run' ? null : { started: now(), ended: null, targets: decision.targets, result: 'incomplete', toolchain };
   if (rerun) current.reruns.push(rerun);
   writeRecord(root, current);
 

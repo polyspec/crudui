@@ -6,7 +6,7 @@ import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
 
-import { recordedToolchain, toolchainMismatches } from '../../scripts/check-toolchain.mjs';
+import { recordedToolchain, toolchainMismatches, toolchainVersions } from '../../scripts/check-toolchain.mjs';
 import { makeDryRun } from './make-dry-run.mjs';
 
 const repository = fileURLToPath(new URL('../..', import.meta.url));
@@ -98,21 +98,31 @@ test('the checkout records one exact version of every tool', async () => {
   assert.match(toolchain, /^components = \["rustfmt", "clippy"\]$/m);
   const config = JSON.parse(await read('config/toolchain.json'));
   assert.match(config.node['linux-x64.tar.gz'], /^[0-9a-f]{64}$/, 'config/toolchain.json records the SHA-256 of the Linux x64 archive of the Node.js release');
+  // setup-php and Homebrew cannot install the same patch, so PHP is pinned by its minor release; the patch is evidence.
+  assert.ok(config.php.length > 0 && config.php.every(release => /^\d+\.\d+$/.test(release)), `config/toolchain.json must record php as minor releases; it records ${JSON.stringify(config.php)}`);
 });
 
-// PHP joins this list with C7.2-1, when the machine runs the recorded PHP release.
-test('every tool runs at the version that the checkout records', () => {
-  assert.deepEqual(toolchainMismatches(['node', 'npm', 'go', 'rust', 'composer'], { root: repository }), []);
+test('every tool runs at the version that the checkout records, PHP at a recorded minor', () => {
+  assert.deepEqual(toolchainMismatches(['node', 'npm', 'go', 'rust', 'php', 'composer'], { root: repository }), []);
+});
+
+test('the running releases are reported, the patch of PHP included', () => {
+  const outputs = { node: 'v26.8.1\n', php: '8.5.10\n' };
+  const run = command => ({ status: 0, stdout: outputs[command] ?? '', stderr: '' });
+  assert.deepEqual(toolchainVersions(['node', 'php'], { root: repository, run }), { node: '26.8.1', php: '8.5.10' });
+  assert.deepEqual(toolchainVersions(['go'], { root: repository, run: () => ({ status: 1, stdout: '' }) }), { go: 'unavailable: go exited with 1' });
 });
 
 test('a tool at another version fails with its record, the expected and the running version and the fix', () => {
   const recorded = recordedToolchain(repository);
-  const outputs = { node: 'v1.2.3\n', rustc: 'rustc 1.0.0 (abc 2020-01-01)\n', php: '8.4.1\n' };
+  const outputs = { node: 'v1.2.3\n', rustc: 'rustc 1.0.0 (abc 2020-01-01)\n', php: '8.3.30\n' };
   const run = command => (command === 'go' ? { status: 1, stdout: '', stderr: 'go: not found' } : { status: 0, stdout: outputs[command] ?? '', stderr: '' });
+  // Another patch of a recorded minor is accepted.
+  assert.deepEqual(toolchainMismatches(['php'], { root: repository, run: () => ({ status: 0, stdout: `${recorded.php[0]}.99\n` }) }), []);
   assert.deepEqual(toolchainMismatches(['node', 'rust', 'php', 'go'], { root: repository, run }), [
     `node: 1.2.3 runs here and .node-version records ${recorded.node}; fix: install node ${recorded.node}`,
     `rust: 1.0.0 runs here and rust-toolchain.toml records ${recorded.rust}; fix: make install (rustup toolchain install --no-self-update)`,
-    `php: 8.4.1 runs here and config/toolchain.json php records ${recorded.php.find(release => release.startsWith('8.4.'))}; fix: install php ${recorded.php.find(release => release.startsWith('8.4.'))}`,
+    `php: 8.3.30 runs here and config/toolchain.json php records ${recorded.php.join(' or ')}; fix: install php ${recorded.php.join(' or ')}`,
     'go: `go env GOVERSION` failed (status 1): go: not found',
   ]);
 });
@@ -154,7 +164,7 @@ test('every workflow runs on ubuntu-24.04 with actions named by commit SHA and n
 
 test('every CI job sets up the recorded toolchains and checks the tools it set up', async () => {
   const recorded = recordedToolchain(repository);
-  const minors = recorded.php.map(release => release.split('.').slice(0, 2).join('.'));
+  const minors = recorded.php;
   const violations = [];
   for (const { file, workflow } of await workflows()) {
     for (const [id, job] of Object.entries(workflow.jobs)) {
@@ -173,7 +183,7 @@ test('every CI job sets up the recorded toolchains and checks the tools it set u
         if (uses.startsWith('shivammathur/setup-php@')) {
           tools.push('php', 'composer');
           const versions = step.with?.['php-version'] === '${{ matrix.php }}' ? job.strategy.matrix.php.map(String) : [String(step.with?.['php-version'])];
-          for (const version of versions) if (!minors.includes(version)) violations.push(`${file} ${id}: PHP ${version} has no exact release in config/toolchain.json`);
+          for (const version of versions) if (!minors.includes(version)) violations.push(`${file} ${id}: PHP ${version} is not a minor of config/toolchain.json`);
           if (step.with?.tools !== `composer:${recorded.composer}`) violations.push(`${file} ${id}: setup-php must install composer:${recorded.composer}`);
         }
         if (/rust-toolchain|dtolnay/.test(uses)) violations.push(`${file} ${id}: ${uses} selects a Rust toolchain; run rustup toolchain install --no-self-update`);
@@ -295,9 +305,10 @@ test('the declared PHP range is the range CI tests, and containers use the newes
   }
 
   // The PHP of every container: the tag of a php stage and the minor of an apt package php8.N-*.
-  const { php: releases, composer: composerRelease } = recordedToolchain(repository);
-  const release = releases.find(value => value.startsWith(`${newest}.`));
-  assert.ok(release, `config/toolchain.json records no exact release of the newest tested line ${newest}`);
+  // An image keeps its exact tag with its digest, which reproduces by digest; its minor is the newest recorded one.
+  const { php: minors, composer: composerRelease } = recordedToolchain(repository);
+  assert.ok(minors.includes(newest), `config/toolchain.json does not record the newest tested minor ${newest}`);
+  const release = newest;
   const found = [];
   const violations = [];
   for (const definition of await findContainerDefinitions()) {
@@ -305,7 +316,7 @@ test('the declared PHP range is the range CI tests, and containers use the newes
     const source = await readFile(definition, 'utf8');
     for (const [, tag] of source.matchAll(/^FROM\s+php:([^\s@]+)/gm)) {
       found.push(`${name}: php:${tag}`);
-      if (!tag.startsWith(`${release}-`)) violations.push(`${name}: php:${tag} is not the recorded release ${release}`);
+      if (!new RegExp(`^${release.replace('.', '\\.')}\\.\\d+-`).test(tag)) violations.push(`${name}: php:${tag} is not an exact release of the minor ${release}`);
     }
     for (const [, minor] of source.matchAll(/\bphp(\d+\.\d+)-[a-z]+/g)) {
       found.push(`${name}: php${minor}`);

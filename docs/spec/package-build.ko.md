@@ -156,13 +156,16 @@ Node.js는 활성 LTS 또는 다음 LTS로 지정된 최신 짝수 안정 메이
   `clippy`와 함께 기록합니다. Makefile, CI, 이미지는 `RUSTUP_AUTO_INSTALL=0`을 설정하므로, 설치된
   toolchain이 없는 cargo는 그것을 설치하는 대신 rustup의 메시지로 실패합니다. `make install`과 CI는
   `rustup toolchain install --no-self-update`로 그것을 설치합니다.
-- `config/toolchain.json`은 `php`에 검사하는 각 PHP minor의 정확한 PHP 릴리스를, `composer`에
-  정확한 Composer 릴리스를, `node`에 Node.js 릴리스의 Linux x64 archive SHA-256을 기록합니다. 컨테이너
-  이미지는 Debian에 그 릴리스의 패키지가 없으므로 PHP를 가장 새로 검사한 minor의 기록 릴리스인 `php`
-  이미지에서, Composer를 기록 릴리스의 `composer` 이미지에서 받으며, 어떤 이미지도 `php8.N-*` 패키지를
+- `config/toolchain.json`은 `php`에 검사하는 PHP minor 릴리스를, `composer`에 정확한 Composer 릴리스를,
+  `node`에 Node.js 릴리스의 Linux x64 archive SHA-256을 기록합니다. setup-php와 Homebrew는 같은 patch를 설치할
+  수 없으므로 PHP는 minor 릴리스로 고정합니다. 검사는 실행 중인 PHP의 major와 minor를 비교하고, 실행이 쓴 patch는
+  그 실행의 evidence이며 `node scripts/check-toolchain.mjs`가 출력하고 `var/full-run.json`이 다른 실행 중인 릴리스와
+  함께 기록합니다. 컨테이너 이미지는 digest로 재현되는 정확한 tag와 digest를 유지하며, Debian에 그 릴리스의
+  패키지가 없으므로 PHP를 가장 새로 검사한 minor의 릴리스인 `php` 이미지에서, Composer를 기록 릴리스의 `composer` 이미지에서 받으며, 어떤 이미지도 `php8.N-*` 패키지를
   설치하지 않습니다.
 - `node scripts/check-toolchain.mjs <tool>...`은 기록한 버전으로 실행되지 않는 모든 지정 도구에 대해
-  실패하며 기록, 기대한 버전, 실행 중인 버전, 해결 방법을 밝힙니다. 모든 CI job은 자신이 설치한
+  실패하며 기록, 기대한 버전, 실행 중인 버전, 해결 방법을 밝히고, 지정한 모든 도구의 실행 중인 릴리스를
+  출력합니다. 모든 CI job은 자신이 설치한
   도구에 대해 그것을 실행하고, `make toolchain-check`는 모든 도구에 대해 실행합니다.
 
 컨테이너 단계는 이미지를 정확한 tag와 digest로 지정하고, 이미지의 Debian 패키지는 기록한 한

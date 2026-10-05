@@ -16,7 +16,7 @@ npm run test:packages
 
 `test:runtimes`는 모든 도구의 정확한 릴리스 하나를 요구합니다. Node.js는 `.node-version`에, Go는
 `.go-version`과 모든 `go.mod`의 `toolchain` 줄에, Rust는 `rust-toolchain.toml`에, PHP와 Composer는
-`config/toolchain.json`에 기록하며, 실행 중인 Node.js, npm, Go, Rust, Composer가 그 릴리스이기를 요구합니다
+`config/toolchain.json`에 PHP minor와 함께 기록하며, 실행 중인 Node.js, npm, Go, Rust, Composer가 그 릴리스이고 PHP가 기록한 minor이기를 요구합니다
 (`scripts/check-toolchain.mjs`). 모든 CI job은 `ubuntu-24.04`에서 실행되고, action을 commit SHA로 지정하며,
 기록한 릴리스를 설치하고 자신이 설치한 도구를 검사합니다. 모든 컨테이너 단계는 이미지를 tag와 digest로
 지정하고 한 날짜의 snapshot에서 Debian 패키지를 설치합니다. 릴리스 채널이나 machine의 브라우저는 쓰지 않습니다.

@@ -25,3 +25,10 @@ export function toolPath(current = process.env.PATH ?? '') {
 export function useCheckoutNpm() {
   process.env.PATH = toolPath(process.env.PATH);
 }
+
+/** The exact npm release of `packageManager`, or an error naming the expected form. */
+export function recordedNpm(manifest) {
+  const match = /^npm@(\d+\.\d+\.\d+)$/.exec(manifest.packageManager ?? '');
+  if (!match) throw new Error(`package.json must record packageManager as npm@<major>.<minor>.<patch>; it records ${manifest.packageManager}`);
+  return match[1];
+}

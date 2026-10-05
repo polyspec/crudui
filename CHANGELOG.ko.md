@@ -1,5 +1,13 @@
 # 변경 기록
 
+## 2026-10-06 — minor 릴리스로 고정한 PHP (C7.2-3)
+
+- `config/toolchain.json`은 PHP minor 8.4와 8.5를 기록하고, `node scripts/check-toolchain.mjs`는 실행 중인 PHP의 major와
+  minor를 그것과 비교합니다. setup-php와 Homebrew는 같은 patch를 설치할 수 없으므로 정확한 patch 기록은 둘 중 하나에서
+  실패했습니다. 실행의 patch는 evidence입니다. 검사는 모든 도구의 실행 중인 release를 출력하고 `var/full-run.json`이
+  그것을 기록합니다. container image는 digest가 있는 정확한 tag를 유지합니다. local 검사가 이제 PHP를 다루므로 C7.2-1이
+  닫힙니다.
+
 ## 2026-10-06 — 명령 하나로 설치하는 Chrome sandbox helper (C7.2-4)
 
 - `scripts/install-browsers.mjs`는 sandbox helper를 `sudo install -o root -g root -m 4755 <chrome_sandbox>

@@ -78,6 +78,7 @@ async function guard(directory, mode, targets, failing = []) {
     targets,
     print: line => lines.push(line),
     evidence: path.join(directory, 'var/conformance-evidence'),
+    versions: () => ({ node: '26.8.1', php: '8.5.10' }),
     runTarget: async name => {
       // The record names the target as running while it runs, with the run still incomplete.
       const current = record(directory);
@@ -213,6 +214,15 @@ test('a full run records each target, and the same tree is refused a second time
   const changed = await guard(directory, 'run', ['a']);
   assert.equal(changed.status, 0, changed.output);
   assert.match(changed.output, /differs from the tree/);
+});
+
+test('a full run records the releases it ran on, the patch of PHP included', async t => {
+  const directory = checkout(t, DONE);
+  const { status } = await guard(directory, 'run', ['a'], ['a']);
+  assert.equal(status, 1);
+  assert.deepEqual(record(directory).toolchain, { node: '26.8.1', php: '8.5.10' });
+  await guard(directory, 'rerun-failed', []);
+  assert.deepEqual(record(directory).reruns.at(-1).toolchain, { node: '26.8.1', php: '8.5.10' });
 });
 
 test('rerun-failed without a record is refused', async t => {
