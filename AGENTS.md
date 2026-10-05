@@ -23,10 +23,12 @@
 - While a task is in development, run only the Red and Green tests that own the change. The full
   suite runs exactly once, when every active task of the checklist is done; it never runs after
   each fix or each task. Every test reports its own running, completion, success or failure with
-  its elapsed time and has its own timeout; a whole-suite timeout is not used. A long operation
-  prints detailed step logs in addition to its own timeout, so its process and result stay
-  observable. A test that runs for tens of minutes, or that prints only its start and its end, is
-  a defect.
+  its elapsed time. Each test case is a short verification unit and has its own timeout; a
+  whole-suite timeout is not used. A long operation (a build, an install, a toolchain setup, a
+  browser close, a server stop, a whole suite) prints detailed step logs and has no timeout, no
+  inactivity limit included: its success or failure is judged from its observed result and errors,
+  and its end is the event of that result. A test that runs for tens of minutes, or that prints only
+  its start and its end, is a defect.
 - Keep contracts in `docs/spec/`, implementation and deployment status in
   `docs/features.md`, procedures in `docs/operations/`, planned tasks with their
   verification and completion in `docs/plans/execution-checklist.md`, and actual

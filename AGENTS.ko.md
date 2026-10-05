@@ -19,9 +19,11 @@
   feat, fix, docs, style, refactor, test, chore 중 하나다.
 - 작업을 개발하는 동안에는 바뀐 것을 소유한 Red와 Green 테스트만 실행합니다. 전체 묶음은
   checklist의 활성 작업이 모두 끝났을 때 정확히 한 번 실행하고, 수정마다나 작업마다 실행하지
-  않습니다. 모든 테스트는 자신의 실행·완료·성공·실패와 경과 시간을 출력하고 자기 타임아웃을
-  가지며, 전체 일괄 타임아웃은 쓰지 않습니다. 장기 작업은 자기 타임아웃에 더해 상세 단계 로그를
-  출력해 과정과 결과를 관측할 수 있게 합니다. 수십 분 동안 실행되는 테스트와 시작과 끝만 출력하는
+  않습니다. 모든 테스트는 자신의 실행·완료·성공·실패와 경과 시간을 출력합니다. 각 test case는
+  짧은 검증 단위이며 자기 timeout을 가지고, 전체 일괄 timeout은 쓰지 않습니다. 장기 작업(build,
+  install, toolchain setup, browser close, server stop, 전체 suite)은 상세 step log를 출력하고
+  timeout을 두지 않으며, 출력 없음 한도도 두지 않습니다. 그 성공과 실패는 관측한 결과와 오류로
+  판정하고, 그 끝은 그 결과의 event입니다. 수십 분 동안 실행되는 테스트와 시작과 끝만 출력하는
   테스트는 결함입니다.
 - 계약은 `docs/spec/`, 구현·배포 상태는 `docs/features.md`, 절차는
   `docs/operations/`, 계획된 작업과 그 검증·완료는 `docs/plans/execution-checklist.md`,

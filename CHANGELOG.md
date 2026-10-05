@@ -1,5 +1,13 @@
 # Changes
 
+## 2026-10-05 — Long operations without a timeout (C2.1-1)
+
+- AGENTS gives a long operation (a build, an install, a toolchain setup, a browser close, a server
+  stop, a whole suite) detailed step logs and no timeout, no inactivity limit included; its result
+  and errors decide its success or failure, and the event of its result ends it. Each test case
+  keeps its own timeout. The rule of C2.1 gave a long operation step logs in addition to its own
+  timeout, so a normal run that took longer than its limit failed.
+
 ## 2026-10-05 — Build readiness on change events (C2.4)
 
 - `readyBuild` of `examples/form-comparison/verify-tree.mjs` reads the build state file at its
