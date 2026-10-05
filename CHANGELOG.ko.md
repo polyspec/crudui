@@ -1,5 +1,11 @@
 # 변경 기록
 
+## 2026-10-05 — benchmark를 실패시키는 version 명령 실패 (C2.14)
+
+- `tools/bench/run.js`는 version 명령이 실패하거나 version을 출력하지 않으면 명령, 실패, 출력과 함께
+  실패하고, `results.md`는 실행된 backend의 도구 version을 기록합니다. 전에는 실패한 version을
+  `unavailable`, 빈 출력을 `unknown`으로 기록했고, 모든 실행에서 네 도구의 version을 조회했습니다.
+
 ## 2026-10-05 — dist lock 아래의 package build와 pack (C3.5)
 
 - build되는 모든 package의 build script는 `node ../../scripts/package-dist.mjs build '<command>'`이며,
