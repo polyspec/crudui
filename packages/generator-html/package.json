@@ -15,7 +15,7 @@
   },
   "files": ["dist", "src"],
   "scripts": {
-    "build": "tsup src/index.ts --format cjs,esm --clean && tsc --project tsconfig.build.json",
+    "build": "node ../../scripts/package-dist.mjs build 'tsup src/index.ts --format cjs,esm --clean && tsc --project tsconfig.build.json'",
     "dev": "tsup src/index.ts --format cjs,esm --watch --onSuccess \"tsc --project tsconfig.build.json\"",
     "test": "node ../../scripts/run-tests.mjs vitest --cwd packages/generator-html",
     "typecheck": "tsc --noEmit",

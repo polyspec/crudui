@@ -1,5 +1,17 @@
 # 변경 기록
 
+## 2026-10-05 — dist lock 아래의 package build와 pack (C3.5)
+
+- build되는 모든 package의 build script는 `node ../../scripts/package-dist.mjs build '<command>'`이며,
+  build 내내 checkout lock `dist-<package folder>`를 잡습니다. `tsup --clean`과 `svelte-package`는
+  먼저 `dist`를 비우므로, build 도중에 실행된 동시 pack은 비었거나 일부만 쓰인
+  `dist`를 읽었습니다. `node scripts/package-dist.mjs pack <package directory> <destination directory>`는
+  같은 lock 아래에서 `dist`에 output이 있는지 확인하고 `npm pack`을 실행해 그 JSON report를 출력합니다.
+  package install check는 이것으로 pack합니다.
+- Linux에서 `scripts/holder-lock.mjs`는 process 시작 시각을 `/proc/<pid>/stat`과 `/proc/stat`의 boot
+  시각에서 읽습니다. package를 build하는 comparison의 toolchain image에는 `ps`가 없기 때문입니다. 다른
+  system은 `ps`를 씁니다.
+
 ## 2026-10-05 — comparison deployment의 holder lock (C3.4)
 
 - `make deploy`와 `make deploy-verify`는 다른 step보다 먼저 user 범위 holder lock

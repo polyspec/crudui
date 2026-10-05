@@ -2,7 +2,9 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 
-/** Pack one workspace package from its own directory and return the archive path. */
+const repositoryRoot = path.resolve(import.meta.dirname, '..');
+
+/** Pack one workspace package under the lock of its dist and return the archive path. */
 export async function packPackage(source, destination, packageName, run) {
   assert.ok(path.isAbsolute(source), `Package source must be absolute: ${source}`);
   assert.ok(path.isAbsolute(destination),
@@ -15,9 +17,11 @@ export async function packPackage(source, destination, packageName, run) {
   assert.equal(sourceManifest.name, packageName,
     'Package source name must match the expected package name');
 
-  const output = await run('npm', [
-    'pack', '.', '--json', '--pack-destination', destination, '--workspaces=false',
-  ], source);
+  // scripts/package-dist.mjs packs under the lock of the package's dist, so no build of another
+  // run empties dist during the pack.
+  const output = await run(process.execPath, [
+    path.join(repositoryRoot, 'scripts/package-dist.mjs'), 'pack', source, destination,
+  ], repositoryRoot);
   let report;
   try {
     report = JSON.parse(output);

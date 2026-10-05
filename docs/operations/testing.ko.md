@@ -192,7 +192,17 @@ holder가 더 이상 실행되지 않는 lock의 보고와 제거, 해제를 확
 | `make docs-verify-idempotent`의 snapshot | `mktemp -d`의 directory, 실행이 끝날 때 지움 |
 | `make test-form-styles-linux`의 Playwright image | user 범위 lock `playwright-v<version>-noble`; 실행은 image를 남기고, `make remove-form-styles-image`가 lock 아래에서 지움 |
 | `make deploy`와 `make deploy-verify`의 comparison deployment | user 범위 lock `form-comparison-deployment`, 다른 step보다 먼저 잡음 |
+| build되는 각 package의 `dist` | checkout lock `dist-<package folder>`, package build 전체와 모든 pack이 잡음 |
 
-`npm run test:runtimes`가 실행하는 `tests/build/shared-resources.test.mjs`는 앞의 두 행을 확인하고,
+build되는 모든 package의 build script는 `node ../../scripts/package-dist.mjs build '<command>'`이고,
+package `dist` lock 아래에서 build command를 실행합니다. `node scripts/package-dist.mjs pack
+<package directory> <destination directory>`는 같은 lock 아래에서 `dist`에 output이 있는지 확인하고
+`npm pack`을 실행하며, 그 JSON report를 standard output에 출력합니다. package install check와 CRUDUI
+archive를 설치하는 repository는 이것으로 pack하므로, build가 비운 `dist`를 읽는 pack은 없습니다.
+Linux에서 lock은 process 시작 시각을 `/proc`에서 읽습니다. comparison의 toolchain image 같은 최소
+container image에는 `ps`가 없기 때문입니다.
+
+`npm run test:runtimes`가 실행하는 `tests/build/shared-resources.test.mjs`는 documentation, image,
+`dist` 행을 확인하고,
 `npm run test:form-comparison:source`가 실행하는 `examples/form-comparison/check-deployment-lock.test.mjs`는
 deployment를 확인합니다.
