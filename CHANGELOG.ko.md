@@ -1,5 +1,15 @@
 # 변경 기록
 
+## 2026-10-05 — 하나의 pool에서 실행하는 native generator check (C2.8)
+
+- `tests/native-generators/run.mjs`는 어떤 check보다 먼저 build 단계에서 Go와 Rust 프로그램을 한 번
+  build하며, build 도구의 출력, 5초마다의 줄과 함께 시간 한도 없이 실행합니다. 300초와 900초의 준비
+  예산과 모든 process의 30초 한도는 없앴습니다. probe가 check 예산 안에서 각 PHP 프로그램을
+  확인합니다. 모든 target의 check는 하나의 pool에서 `os.availableParallelism()`개씩 실행하며, 각각은
+  자기 예산을 가진 하나의 test이고 그 signal은 비동기 context에 둡니다. 각 target의 check 738개가
+  차례로 실행되었고 javascript, html, php, php-native target은 요청마다 interpreter를 시작하므로
+  suite는 962.5초가 걸렸고 거의 모두 check에 들었습니다. 같은 4428개 check가 이제 199.8초에 통과합니다.
+
 ## 2026-10-05 — hook timeout 없는 setup (C2.7-1)
 
 - `scripts/test-progress/hooks.mjs`가 `scripts/test-progress/teardown.mjs`를 대신하며 `setup`을

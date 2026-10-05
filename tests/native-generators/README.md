@@ -22,27 +22,32 @@ node tests/native-generators/run.mjs \
 ## Progress, time budgets and selection
 
 The run reports itself while it runs. Every line carries the elapsed time since the
-start: the input hashing, each target's preparation, each check group as it starts and
-when it finishes with its pass count and duration, a line every five seconds for a
-group or check that is still running, and each target's total.
+start. It first hashes its inputs, then runs the build step: the Go and Rust programs of
+the selected targets are built once, with the output of the build tool and a line every
+five seconds while a build runs, and without a time limit. A probe then checks the PHP
+program of each PHP target. Every check is then its own test with a start line, a line
+every five seconds while it runs and its result with its duration. The checks of every
+target are independent processes and run in one pool, as many at a time as the machine
+has processors (`os.availableParallelism()`). Each target's pass count follows.
 
 ```
-[    0.1s] inputs: 561 files hashed (0.1s)
-[    0.1s] targets: php, go; checks matching list, dates
-[    0.1s] php: preparing
-[    0.2s] php: prepared (0.1s)
-[    0.2s]   php · list: running
-[    4.0s]   php · list: 44/44 passed (3.7s)
-[    5.0s] php: 47/47 checks passed (4.9s)
+[    0.6s] inputs: 744 files hashed (0.6s)
+[    0.7s] targets: javascript, html, php, go, rust, php-native
+[    0.8s] ▶ build: go program
+[    1.5s] ✔ build: go program (0.7s)
+[    2.1s] checks: 4428 checks of 6 targets, 11 at a time
+[    2.1s] ▶ javascript › form-fixture:text-with-nul
+[    2.6s] ✔ javascript › form-fixture:text-with-nul (0.5s)
+[  199.3s] go: 738/738 checks passed
 ```
 
 Each check carries its own time budget, sized from the measured duration of the
 slowest check in its group: 20 s for a form fixture, a form instance or a timezone
-case (measured 385 ms, 335 ms and 282 ms) and 10 s for every other group (measured
-under 130 ms). Preparation, which builds the Go and Rust generators, carries 300 s and
-900 s. A check that exceeds its budget is stopped together with every process it
-started, is reported by id and fails the run; the run continues with the next check,
-so one stuck check never stops the report.
+case (measured 385 ms, 335 ms and 282 ms alone) and 10 s for every other group
+(measured under 130 ms). A check that exceeds its budget is stopped together with every
+process it started, is reported by id and fails the run; the other checks continue, so
+one stuck check never stops the report. A build is a long operation, not a check: it
+has no budget, and its exit status decides it.
 
 While developing one target or one area, run only its checks. The complete suite is
 run once when the change is complete. The commands below run, in order, only the Rust
@@ -65,7 +70,7 @@ complete check id or a pattern with `*`. Both flags accept comma-separated value
 may be repeated. A selection that matches no check fails, and the report records the
 selection so a filtered run is not mistaken for a complete one.
 
-Go and Rust executables are built by the suite. `PHP`, `GO` and `CARGO` can select
+Go and Rust executables are built by the build step of the suite. `PHP`, `GO` and `CARGO` can select
 the corresponding installed commands. The extension must register native
 `CRUDUI\Generator`, `CRUDUI\Validator` and `CRUDUI\Form` classes. Reflection
 requires all three classes to be internal for native PHP and user-defined for

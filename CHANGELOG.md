@@ -1,5 +1,16 @@
 # Changes
 
+## 2026-10-05 — Native generator checks in one pool (C2.8)
+
+- `tests/native-generators/run.mjs` builds the Go and Rust programs once in a build step before
+  any check, with the output of the build tool, a line every five seconds and no time limit; the
+  preparation budgets of 300 and 900 seconds and the 30-second limit of every process are removed.
+  A probe checks each PHP program within a check budget. The checks of every target run in one pool,
+  `os.availableParallelism()` at a time, each as its own test with its budget and its signal in its
+  asynchronous context. The 738 checks of each target ran one after another, and the javascript,
+  html, php and php-native targets start an interpreter for every request, so the suite took 962.5
+  seconds, almost all in checks; the same 4428 checks now pass in 199.8 seconds.
+
 ## 2026-10-05 — Setups without a hook timeout (C2.7-1)
 
 - `scripts/test-progress/hooks.mjs` replaces `scripts/test-progress/teardown.mjs` and adds `setup`,
