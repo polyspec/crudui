@@ -708,7 +708,7 @@ Containerfile 내용의 태그를 가진 이미지가 없을 때만 툴체인 �
 - `/workspace/build`의 `crudui-comparison-build`, `/workspace/cache`의
   `crudui-comparison-cache` 이름 있는 볼륨
 - `/data`의 배포 `data` 디렉터리와 `/results`의 `results` 디렉터리
-- `containerctl.domain: crudui.test` 레이블
+- containerctl이 서비스로 route하는 domain인 `x-containerctl.domains: [crudui.test]`
 
 이 정의는 동시에 실행하는 브라우저 검사 네 개에 필요한 프로세서 여덟 개와 8 GB를 서비스에
 줍니다. 정의에는 커밋, 아카이브, 이미지 digest가 없으므로 소스 변경이 정의를 바꾸지 않습니다.

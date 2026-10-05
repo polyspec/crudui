@@ -80,8 +80,9 @@ export function renderDeploymentCompose({ repositoryRoot: root, imageReference }
     volume(`cache:${cacheDirectory}`),
     volume(`./data:${dataDirectory}`),
     volume(`./results:${resultsDirectory}`),
-    '    labels:',
-    `      containerctl.domain: ${deploymentDomain}`,
+    // containerctl routes a service only to the domains it lists here.
+    '    x-containerctl:',
+    `      domains: [${JSON.stringify(deploymentDomain)}]`,
     '',
     'volumes:',
     '  build:',
@@ -346,14 +347,14 @@ async function routeState(status, imageReference) {
   const service = group.services?.find(item => item.name === deploymentService);
   assert.ok(service, 'Deployment route service is missing');
   assert.equal(service.container, deploymentContainer, 'Deployment route container differs');
-  assert.equal(service.domain, deploymentDomain, 'Deployment route domain differs');
-  assert.equal(service.url, `https://${deploymentDomain}/`, 'Deployment route URL differs');
+  assert.deepEqual(service.domains, [deploymentDomain], 'Deployment route domains differ');
+  assert.deepEqual(service.urls, [`https://${deploymentDomain}/`], 'Deployment route URLs differ');
   assert.equal(service.state, 'running', 'Deployment route service is not running');
   assert.equal(service.routed, true, 'Deployment route is not active');
   assert.equal(service.image, imageReference, 'Deployment route image differs');
   return {
     group: group.name, service: service.name, container: service.container,
-    domain: service.domain, url: service.url, image: service.image, port: service.port,
+    domain: service.domains[0], url: service.urls[0], image: service.image, port: service.port,
     scheme: service.scheme, state: service.state, routed: service.routed,
   };
 }

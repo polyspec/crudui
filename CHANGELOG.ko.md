@@ -1,5 +1,11 @@
 # 변경 기록
 
+## 2026-10-05 — x-containerctl 아래의 comparison service route (C2.18)
+
+- comparison service의 Compose 정의는 domain을 `x-containerctl.domains`에 적고, 배포 검사는
+  `containerctl status --json`의 `domains`와 `urls`를 읽습니다. containerctl은 그 domain만 route하므로
+  `containerctl.domain` label은 service를 internal로 남겼고 `make deploy`가 route에서 실패했습니다.
+
 ## 2026-10-05 — comparison image의 Chromium (C2.17)
 
 - comparison toolchain image는 `chromium`과 `chromium-sandbox` `154.0.8037.92-1~deb13u1`을 설치합니다.
