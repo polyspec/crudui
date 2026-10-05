@@ -20,7 +20,8 @@ make docs-check
 
 Every command must return status 0 for the same source tree before tree
 verification. `npm run test:dependencies` verifies package declarations and install
-policy. `npm run typecheck` type-checks every TypeScript package. `make test-validators`
+policy, and compares the dependencies with their recorded review without a registry query;
+`make dependency-review RECORD=1` records a new review (docs/spec/package-build.md). `npm run typecheck` type-checks every TypeScript package. `make test-validators`
 runs the TypeScript, PHP, Go and Rust validator suites. `make test-native` builds the PHP
 extension, runs its engine, builder and API tests (`make test-php-extension`) and runs the PHP,
 Go, Rust, shared protocol and generator checks, including the Chromium widget and timezone

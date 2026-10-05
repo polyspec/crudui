@@ -1,0 +1,626 @@
+{
+  "schema": 1,
+  "comment": "Written by make dependency-review RECORD=1 (scripts/dependency-review.mjs) from the registries; npm run test:dependencies compares the checkout with it without a network.",
+  "reviewed": "2026-10-05T17:22:56.907Z",
+  "locks": [
+    {
+      "lock": "package-lock.json",
+      "sha256": "2501d86ee5c10167497a95b6c959fb693ae075cb3baba9ae2cc74a2517e31766",
+      "advisories": []
+    },
+    {
+      "lock": "packages/validator-php/composer.lock",
+      "sha256": "d1f8b253624ac96a110444b7cfa40da968f4892c617d6df1dcad5c732aca1af5",
+      "advisories": []
+    },
+    {
+      "lock": "packages/generator-php/composer.lock",
+      "sha256": "85d07ff924d9d1734796bdfcb741b79009bf6e48e0df18a75f2b3efa892f138f",
+      "advisories": []
+    }
+  ],
+  "dependencies": [
+    {
+      "ecosystem": "npm",
+      "manifest": "package.json",
+      "package": "puppeteer",
+      "version": "25.12.0",
+      "latest": "25.12.0"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "package.json",
+      "package": "@eslint/js",
+      "version": "10.0.1",
+      "latest": "10.0.1"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "package.json",
+      "package": "@sveltejs/vite-plugin-svelte",
+      "version": "7.3.1",
+      "latest": "7.3.1"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "package.json",
+      "package": "@tailwindcss/node",
+      "version": "4.3.3",
+      "latest": "4.3.3"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "package.json",
+      "package": "@types/react",
+      "version": "19.3.0",
+      "latest": "19.3.0"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "package.json",
+      "package": "@types/react-dom",
+      "version": "19.3.0",
+      "latest": "19.3.0"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "package.json",
+      "package": "ajv",
+      "version": "8.20.0",
+      "latest": "8.20.0"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "package.json",
+      "package": "ajv-formats",
+      "version": "3.0.1",
+      "latest": "3.0.1"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "package.json",
+      "package": "debug",
+      "version": "4.4.3",
+      "latest": "4.4.3"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "package.json",
+      "package": "eslint",
+      "version": "10.12.0",
+      "latest": "10.12.0"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "package.json",
+      "package": "eslint-plugin-svelte",
+      "version": "3.23.0",
+      "latest": "3.23.0"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "package.json",
+      "package": "globals",
+      "version": "17.13.0",
+      "latest": "17.13.0"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "package.json",
+      "package": "js-yaml",
+      "version": "5.4.2",
+      "latest": "5.4.2"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "package.json",
+      "package": "jsdom",
+      "version": "30.1.2",
+      "latest": "30.1.2"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "package.json",
+      "package": "markdown-it",
+      "version": "15.0.2",
+      "latest": "15.0.2"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "package.json",
+      "package": "parse5",
+      "version": "8.0.1",
+      "latest": "8.0.1"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "package.json",
+      "package": "playwright",
+      "version": "1.63.0",
+      "latest": "1.63.0"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "package.json",
+      "package": "postcss",
+      "version": "8.5.29",
+      "latest": "8.5.29"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "package.json",
+      "package": "react",
+      "version": "19.2.8",
+      "latest": "19.3.0"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "package.json",
+      "package": "react-dom",
+      "version": "19.2.8",
+      "latest": "19.3.0"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "package.json",
+      "package": "tailwindcss",
+      "version": "4.3.3",
+      "latest": "4.3.3"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "package.json",
+      "package": "typedoc",
+      "version": "0.28.20",
+      "latest": "0.28.20"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "package.json",
+      "package": "typedoc-plugin-markdown",
+      "version": "4.13.1",
+      "latest": "4.13.1"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "package.json",
+      "package": "typescript-eslint",
+      "version": "8.71.1",
+      "latest": "8.71.1"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "package.json",
+      "package": "vite",
+      "version": "8.3.2",
+      "latest": "8.3.2"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "package.json",
+      "package": "vitest",
+      "version": "5.0.3",
+      "latest": "5.0.3"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "package.json",
+      "package": "yaml",
+      "version": "2.9.1",
+      "latest": "2.9.1"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/cli/package.json",
+      "package": "ajv",
+      "version": "8.20.0",
+      "latest": "8.20.0"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/cli/package.json",
+      "package": "ajv-formats",
+      "version": "3.0.1",
+      "latest": "3.0.1"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/cli/package.json",
+      "package": "js-yaml",
+      "version": "5.4.2",
+      "latest": "5.4.2"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/cli/package.json",
+      "package": "tsx",
+      "version": "4.23.15",
+      "latest": "4.23.15"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/cli/package.json",
+      "package": "vitest",
+      "version": "5.0.3",
+      "latest": "5.0.3"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/form-binding/package.json",
+      "package": "@types/jsdom",
+      "version": "30.0.0",
+      "latest": "30.0.0"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/form-binding/package.json",
+      "package": "@types/node",
+      "version": "26.6.4",
+      "latest": "26.6.4"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/form-binding/package.json",
+      "package": "esbuild",
+      "version": "0.28.2",
+      "latest": "0.28.2"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/form-binding/package.json",
+      "package": "eslint",
+      "version": "10.12.0",
+      "latest": "10.12.0"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/form-binding/package.json",
+      "package": "jsdom",
+      "version": "30.1.2",
+      "latest": "30.1.2"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/form-binding/package.json",
+      "package": "tsup",
+      "version": "8.5.1",
+      "latest": "8.5.1"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/form-binding/package.json",
+      "package": "typescript",
+      "version": "7.0.2",
+      "latest": "7.0.2"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/form-binding/package.json",
+      "package": "vitest",
+      "version": "5.0.3",
+      "latest": "5.0.3"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/generator-core/package.json",
+      "package": "@types/node",
+      "version": "26.6.4",
+      "latest": "26.6.4"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/generator-core/package.json",
+      "package": "eslint",
+      "version": "10.12.0",
+      "latest": "10.12.0"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/generator-core/package.json",
+      "package": "tsup",
+      "version": "8.5.1",
+      "latest": "8.5.1"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/generator-core/package.json",
+      "package": "typescript",
+      "version": "7.0.2",
+      "latest": "7.0.2"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/generator-core/package.json",
+      "package": "vitest",
+      "version": "5.0.3",
+      "latest": "5.0.3"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/generator-html/package.json",
+      "package": "@types/node",
+      "version": "26.6.4",
+      "latest": "26.6.4"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/generator-html/package.json",
+      "package": "eslint",
+      "version": "10.12.0",
+      "latest": "10.12.0"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/generator-html/package.json",
+      "package": "tsup",
+      "version": "8.5.1",
+      "latest": "8.5.1"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/generator-html/package.json",
+      "package": "typescript",
+      "version": "7.0.2",
+      "latest": "7.0.2"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/generator-html/package.json",
+      "package": "vitest",
+      "version": "5.0.3",
+      "latest": "5.0.3"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/generator-react/package.json",
+      "package": "@testing-library/jest-dom",
+      "version": "7.0.1",
+      "latest": "7.0.1"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/generator-react/package.json",
+      "package": "@testing-library/react",
+      "version": "16.3.3",
+      "latest": "16.3.3"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/generator-react/package.json",
+      "package": "@testing-library/user-event",
+      "version": "14.6.7",
+      "latest": "14.6.7"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/generator-react/package.json",
+      "package": "@types/node",
+      "version": "26.6.4",
+      "latest": "26.6.4"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/generator-react/package.json",
+      "package": "@types/react",
+      "version": "19.3.0",
+      "latest": "19.3.0"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/generator-react/package.json",
+      "package": "@types/react-dom",
+      "version": "19.3.0",
+      "latest": "19.3.0"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/generator-react/package.json",
+      "package": "eslint",
+      "version": "10.12.0",
+      "latest": "10.12.0"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/generator-react/package.json",
+      "package": "jsdom",
+      "version": "30.1.2",
+      "latest": "30.1.2"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/generator-react/package.json",
+      "package": "react",
+      "version": "19.2.8",
+      "latest": "19.3.0"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/generator-react/package.json",
+      "package": "react-dom",
+      "version": "19.2.8",
+      "latest": "19.3.0"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/generator-react/package.json",
+      "package": "tsup",
+      "version": "8.5.1",
+      "latest": "8.5.1"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/generator-react/package.json",
+      "package": "typescript",
+      "version": "7.0.2",
+      "latest": "7.0.2"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/generator-react/package.json",
+      "package": "vitest",
+      "version": "5.0.3",
+      "latest": "5.0.3"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/generator-svelte/package.json",
+      "package": "@sveltejs/package",
+      "version": "3.0.0",
+      "latest": "3.0.0"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/generator-svelte/package.json",
+      "package": "@sveltejs/vite-plugin-svelte",
+      "version": "7.3.1",
+      "latest": "7.3.1"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/generator-svelte/package.json",
+      "package": "parse5",
+      "version": "8.0.1",
+      "latest": "8.0.1"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/generator-svelte/package.json",
+      "package": "svelte",
+      "version": "5.57.1",
+      "latest": "5.57.1"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/generator-svelte/package.json",
+      "package": "svelte-check",
+      "version": "4.7.6",
+      "latest": "4.7.6"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/generator-svelte/package.json",
+      "package": "typescript",
+      "version": "7.0.2",
+      "latest": "7.0.2"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/generator-svelte/package.json",
+      "package": "vite",
+      "version": "8.3.2",
+      "latest": "8.3.2"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/generator-svelte/package.json",
+      "package": "vitest",
+      "version": "5.0.3",
+      "latest": "5.0.3"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/generator-vue/package.json",
+      "package": "@types/node",
+      "version": "26.6.4",
+      "latest": "26.6.4"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/generator-vue/package.json",
+      "package": "parse5",
+      "version": "8.0.1",
+      "latest": "8.0.1"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/generator-vue/package.json",
+      "package": "tsup",
+      "version": "8.5.1",
+      "latest": "8.5.1"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/generator-vue/package.json",
+      "package": "typescript",
+      "version": "7.0.2",
+      "latest": "7.0.2"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/generator-vue/package.json",
+      "package": "vitest",
+      "version": "5.0.3",
+      "latest": "5.0.3"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/generator-vue/package.json",
+      "package": "vue",
+      "version": "3.5.43",
+      "latest": "3.5.43"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/validator-ts/package.json",
+      "package": "@types/node",
+      "version": "26.6.4",
+      "latest": "26.6.4"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/validator-ts/package.json",
+      "package": "ajv",
+      "version": "8.20.0",
+      "latest": "8.20.0"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/validator-ts/package.json",
+      "package": "ajv-formats",
+      "version": "3.0.1",
+      "latest": "3.0.1"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/validator-ts/package.json",
+      "package": "eslint",
+      "version": "10.12.0",
+      "latest": "10.12.0"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/validator-ts/package.json",
+      "package": "tsup",
+      "version": "8.5.1",
+      "latest": "8.5.1"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/validator-ts/package.json",
+      "package": "typescript",
+      "version": "7.0.2",
+      "latest": "7.0.2"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/validator-ts/package.json",
+      "package": "vitest",
+      "version": "5.0.3",
+      "latest": "5.0.3"
+    },
+    {
+      "ecosystem": "composer",
+      "manifest": "packages/validator-php/composer.json",
+      "package": "phpunit/phpunit",
+      "version": "13.4.1",
+      "latest": "13.4.1"
+    },
+    {
+      "ecosystem": "composer",
+      "manifest": "packages/generator-php/composer.json",
+      "package": "phpunit/phpunit",
+      "version": "13.4.1",
+      "latest": "13.4.1"
+    }
+  ]
+}

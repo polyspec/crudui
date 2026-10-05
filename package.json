@@ -41,7 +41,7 @@
     "test:form-comparison:library": "node scripts/require-current-build.mjs && node scripts/run-tests.mjs node -- examples/form-comparison/generation-performance.test.mjs",
     "docs:check:documents": "node scripts/check-documents.mjs",
     "test:packages": "node scripts/require-current-build.mjs && node scripts/check-packages.mjs",
-    "test:dependencies": "node scripts/run-tests.mjs node --timeout 60 -- tests/build/dependency-health.test.mjs",
+    "test:dependencies": "node scripts/run-tests.mjs node --timeout 60 -- tests/build/dependency-health.test.mjs tests/build/dependency-review.test.mjs",
     "test:runtimes": "node scripts/run-tests.mjs node -- tests/build/runtime-version-policy.test.mjs tests/build/form-comparison-ci.test.mjs tests/build/make-tool-path.test.mjs tests/build/rust-node-entry-points.test.mjs tests/build/conformance-evidence.test.mjs tests/build/unicode-properties.test.mjs tests/build/github-repository.test.mjs tests/build/php-extensions.test.mjs tests/build/ci-local.test.mjs tests/build/run-tests.test.mjs tests/build/test-commands.test.mjs tests/build/validator-test-clocks.test.mjs tests/build/contract-manifest.test.mjs tests/build/rust-release-profile.test.mjs tests/build/shared-resources.test.mjs tests/build/holder-lock.test.mjs tests/build/full-run.test.mjs tests/build/push-gate.test.mjs tests/build/make-dry-run.test.mjs tests/build/checkout-npm.test.mjs tests/build/atomic-publish.test.mjs tests/build/failure-messages.test.mjs tests/build/owner-check.test.mjs tests/build/install-browsers.test.mjs tests/build/tracked-files.test.mjs",
     "test:docs": "node scripts/run-tests.mjs node --timeout 10 -- tests/docs/*.test.mjs",
     "test:inspector": "node scripts/run-tests.mjs node -- tests/form-inspector/form-snapshot.test.mjs tests/form-inspector/browser.test.mjs",
@@ -103,7 +103,7 @@
     "tailwindcss": "4.3.3",
     "typedoc": "^0.28.19",
     "typedoc-plugin-markdown": "^4.13.1",
-    "typescript-eslint": "^8.71.0",
+    "typescript-eslint": "^8.71.1",
     "vite": "8.3.2",
     "vitest": "^5.0.3",
     "yaml": "^2.9.1"

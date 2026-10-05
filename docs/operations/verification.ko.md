@@ -19,7 +19,9 @@ make docs-check
 ```
 
 트리 검증 전에 같은 소스 트리에서 모든 명령이 종료 상태 0을 반환해야 합니다.
-`npm run test:dependencies`는 패키지 선언과 설치 정책을 검사합니다.
+`npm run test:dependencies`는 패키지 선언과 설치 정책을 검사하고, registry에 묻지 않고
+의존성을 기록된 review와 대조합니다. 새 review는 `make dependency-review RECORD=1`이 기록합니다
+(docs/spec/package-build.md).
 `npm run typecheck`는 모든 TypeScript 패키지의 타입을 검사합니다. `make test-validators`는
 TypeScript, PHP, Go, Rust 검증기 테스트 모음을 실행합니다. `make test-native`는 PHP 확장을
 빌드하고 엔진·빌더·API 테스트(`make test-php-extension`)를 실행한 뒤 PHP, Go, Rust, 공통

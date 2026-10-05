@@ -219,9 +219,8 @@ browser checks do not use `--no-sandbox` or `--disable-setuid-sandbox`.
 
 Every Git-tracked npm lock file is a maintained dependency graph. The root
 installation must make `npm ls --all` return status 0 without invalid, missing or
-conflicting dependencies. `npm audit --package-lock-only --audit-level=moderate`
-must report no moderate, high or critical vulnerability for each tracked lock
-file. `npm ci --dry-run --strict-allow-scripts` must also succeed for each graph.
+conflicting dependencies. `npm ci --dry-run --strict-allow-scripts` must succeed
+for each graph.
 A URL dependency may be fetched only when the root manifest declares it directly.
 The project npm configuration sets `allow-remote=root`; npm rejects URL
 dependencies introduced by dependencies. The manifest pins each permitted URL to
@@ -229,6 +228,38 @@ an immutable source revision, and the lock file records its integrity.
 A tool with no secure compatible stable release is replaced. Dependency overrides
 and audit exclusions do not satisfy these checks. Unused build and documentation
 dependencies are removed.
+
+### Dependency review
+
+Dependencies are judged by the state known at their review, never by a registry
+query of a check, so one tree gives one result at any time. The review covers the
+registry dependencies: the `dependencies` and `devDependencies` of the root
+`package.json` and of each workspace, and the `require` and `require-dev` of the
+Composer packages that `config/dependency-policy.json` names
+(`packages/validator-php` and `packages/generator-php`). Peer dependencies, URL
+dependencies, packages of this repository and Composer platform requirements are
+outside the review by definition. `make dependency-review` asks the registries for
+the latest stable release of each registry dependency that its publisher has not
+deprecated, and for the advisories of `package-lock.json` (moderate, high and
+critical) and of each `composer.lock` (every advisory and abandoned package).
+`RECORD=1` writes the review with the sha256 of each lock to
+`config/dependency-review.json`, and `UPDATE=1` first raises each newer dependency
+in its manifest, keeping its range operator. The scheduled workflow
+`.github/workflows/dependency-review.yml` runs the review every day; no check and
+no gating CI job runs it.
+
+`npm run test:dependencies` reads only the files of the checkout
+(`scripts/check-dependencies.mjs`) and reports each finding with its rule and fix.
+It fails when a lock changed after its review, a registry dependency has no review
+entry or is locked at another version than its review recorded, a registry
+dependency is older than the latest stable release of its review without an
+exception, an exception names a dependency at its latest release, a lock had an
+advisory at its review, `package-lock.json` does not record a manifest, a package
+of this repository is not required at its own version, or `composer validate
+--strict` without a network finds a Composer lock that is not current. An
+exception of `config/dependency-policy.json` names its ecosystem, manifest and
+package and declares a reproduced reason, a removal condition and verification
+commands.
 
 ## Documentation web
 
