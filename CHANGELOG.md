@@ -1,5 +1,19 @@
 # Changes
 
+## 2026-10-05 — Pushes refused while a task is in progress (C6.1)
+
+- The tracked pre-push hook `.githooks/pre-push` runs `node scripts/push-gate.mjs hook`, which
+  reads the checklist of every pushed commit and of the working tree with `activeItems` of
+  `scripts/full-run.mjs` and refuses the push while a task is `[~]`, naming each task with its ID
+  and title, the reason and the remedy. A pushed commit without the checklist, a Git error and an
+  error of the check also refuse the push. Before, a push with a task in progress reached GitHub.
+- Every `make` run sets `core.hooksPath` to `.githooks`; `make hooks` installs and checks the
+  hook, `make hooks-check` fails while it is not installed, and the guard of `make ci` refuses
+  while it is not installed.
+- The job `push-gate` of `.github/workflows/push-gate.yml` runs `node scripts/push-gate.mjs commit`
+  on every pushed commit and pull request and fails for a commit with a task in progress, without
+  the checklist or without the executable hook, so a push past the hook fails it.
+
 ## 2026-10-05 — A comma locale written with warnings (C5.6)
 
 - The engine tests report the build of the comma locale on Linux by its result: `localedef -c`

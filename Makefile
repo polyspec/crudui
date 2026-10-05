@@ -8,7 +8,7 @@
 # machine-absolute paths). `make docs` run twice yields identical output.
 
 .DEFAULT_GOAL := help
-.PHONY: help docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-extension test-native test-native-suites test-validators test-form-binding conformance format-check deploy deploy-verify deploy-watch github-settings github-settings-check ci rerun-failed test-form-styles-linux remove-form-styles-image
+.PHONY: help docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-extension test-native test-native-suites test-validators test-form-binding conformance format-check deploy deploy-verify deploy-watch github-settings github-settings-check hooks hooks-check ci rerun-failed test-form-styles-linux remove-form-styles-image
 .NOTPARALLEL: docs docs-web docs-dev docs-preview docs-check docs-verify-idempotent
 
 # Validator benchmark iteration counts (override on the command line, e.g.
@@ -19,6 +19,9 @@ PHP_EXTENSION ?= $(CURDIR)/packages/php-ext/modules/crudui.so
 # Reports live in the Git directory, which is a file-referenced directory in a worktree.
 NATIVE_REPORT ?= $(shell git rev-parse --git-path native-generators/report.json)
 CONFORMANCE_EVIDENCE ?= $(abspath $(shell git rev-parse --git-path conformance-evidence))
+# Every make run installs the tracked Git hooks: it sets core.hooksPath to .githooks when the setting differs, so the
+# pre-push hook .githooks/pre-push refuses a push while a checklist task is [~] (scripts/push-gate.mjs, AGENTS.md).
+HOOKS_PATH := $(shell [ "$$(git config core.hooksPath)" = .githooks ] || git config core.hooksPath .githooks; git config core.hooksPath)
 
 help: ## 타겟 설명
 	@echo "CRUDUI docs — make targets:"
@@ -244,6 +247,15 @@ github-settings: ## Apply the declared repository settings (idempotent)
 
 github-settings-check: ## Fail when the repository settings differ from the declaration
 	node scripts/github-repository.mjs check
+
+# The pre-push hook of every push (scripts/push-gate.mjs): `make hooks` installs it, `make hooks-check` fails while
+# core.hooksPath is not .githooks or the hook is not an executable file.
+hooks: ## Install the tracked Git hooks (.githooks) and check them
+	git config core.hooksPath .githooks
+	node scripts/push-gate.mjs hooks-check
+
+hooks-check: ## Fail when the pre-push hook is not installed
+	node scripts/push-gate.mjs hooks-check
 
 # Every command the CI workflow runs after installing tools and dependencies, in workflow order,
 # with the conformance evidence collected and checked like the final CI job

@@ -1,0 +1,29 @@
+# The push check of every pushed commit and pull request (AGENTS.md, docs/operations/testing.md). The pre-push hook
+# .githooks/pre-push refuses a push while a checklist task is [~]; a push past the hook, from a clone without it or
+# with the hook skipped, reaches GitHub, and this job fails for it with the same message. It checks the pushed commit
+# (the head commit of a pull request): its checklist has no task in progress, and it tracks the hook as an executable
+# file. The check needs Node.js alone and installs no dependency.
+
+name: Push check
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  push-gate:
+    name: push-gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Setup selected Node.js release line
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.node-version'
+      - name: Refuse a commit with a task in progress
+        run: node scripts/push-gate.mjs commit HEAD

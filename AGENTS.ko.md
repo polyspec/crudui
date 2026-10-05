@@ -26,8 +26,14 @@
   판정하고, 그 끝은 그 결과의 event입니다. 수십 분 동안 실행되는 테스트와 시작과 끝만 출력하는
   테스트는 결함입니다.
 - guard `scripts/full-run.mjs`가 어떤 단계보다 먼저 한 번의 전체 실행을 강제합니다. 작업이 `[~]`이거나, 추적 파일의 변경이 커밋되지 않았거나,
-  `var/full-run.json`이 현재 tree의 전체 실행을 기록하고 있으면 `make ci`는 거부됩니다. `make rerun-failed`는 현재 tree에서
-  통과하지 못한 명령만 다시 실행합니다(`docs/operations/testing.md`).
+  `var/full-run.json`이 현재 tree의 전체 실행을 기록하고 있거나, pre-push hook이 설치되지 않았으면 `make ci`는 거부됩니다.
+  `make rerun-failed`는 현재 tree에서 통과하지 못한 명령만 다시 실행합니다(`docs/operations/testing.md`).
+- push는 push되는 commit에도 working tree에도 checklist의 `[~]` 작업이 없을 때만 합니다. 추적되는 pre-push hook
+  `.githooks/pre-push`는 `node scripts/push-gate.mjs hook`을 실행하고, 이 entry는 그런 push를 거부하며 진행 중인 각 작업을
+  적습니다. 모든 `make` 실행은 Makefile을 읽을 때 `core.hooksPath`를 `.githooks`로 설정합니다. `make hooks`는 hook을
+  설치하고 검사하며, `make hooks-check`는 hook이 설치되지 않은 동안 실패합니다. `.github/workflows/push-gate.yml`의 job
+  `push-gate`는 push되는 모든 commit과 pull request에 `node scripts/push-gate.mjs commit <sha>`를 실행하고, hook을 거치지
+  않은 push에 같은 message로 실패합니다.
 - 계약은 `docs/spec/`, 구현·배포 상태는 `docs/features.md`, 절차는
   `docs/operations/`, 계획된 작업과 그 검증·완료는 `docs/plans/execution-checklist.md`,
   실제 변경은 `CHANGELOG.md`에서 관리합니다. 모든 변경은 checklist의 작업 하나에 속하며,

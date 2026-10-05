@@ -23,3 +23,7 @@ Depends on: none. The checklist wrote task state markers in its How to use legen
 ## Wave 5
 
 Depends on: none. CI has failed on every push since 2026-09-25 while `make ci` passed locally on the same trees. The local full run starts in a working tree with the build output of earlier runs and compiles C with Apple clang on macOS; CI starts each job from a fresh checkout and compiles with GCC on Linux. A failed step skipped the later checks of its job, and a failed prerequisite of `make test-native` skipped the native suites, so one CI run did not show every failure, and the conformance check reported missing evidence without the suite that should have written it.
+
+## Wave 6
+
+Depends on: none. AGENTS and the testing guide state that a push happens only when every active task is done, and nothing enforced it: a push with a task in progress reached GitHub, where CI runs the full suite on the pushed tree. Git does not version hooks, and `core.hooksPath` is a setting of each clone, so a hook works only where a clone installed it, and `git push --no-verify` or another clone passes without it. GitHub cannot refuse a push by the content of a file; a workflow fails after the push is accepted.

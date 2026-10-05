@@ -31,8 +31,17 @@
   its start and its end, is a defect.
 - The guard `scripts/full-run.mjs` enforces the single full run before any step: `make ci` is
   refused while a task is `[~]`, while tracked changes are uncommitted, and when `var/full-run.json`
-  records a full run of the current tree; `make rerun-failed` reruns only the commands of the
-  current tree that did not pass (`docs/operations/testing.md`).
+  records a full run of the current tree, and while the pre-push hook is not installed;
+  `make rerun-failed` reruns only the commands of the current tree that did not pass
+  (`docs/operations/testing.md`).
+- A push happens only when no task of the checklist is `[~]`, neither in a pushed commit nor in the
+  working tree. The tracked pre-push hook `.githooks/pre-push` runs
+  `node scripts/push-gate.mjs hook`, which refuses such a push and names each task in progress.
+  Every `make` run sets `core.hooksPath` to `.githooks` when it reads the Makefile; `make hooks`
+  installs and checks the hook, and `make hooks-check` fails while it is not installed. The job
+  `push-gate` of `.github/workflows/push-gate.yml` runs `node scripts/push-gate.mjs commit <sha>`
+  on every pushed commit and pull request and fails with the same message for a push that passed
+  no hook.
 - Keep contracts in `docs/spec/`, implementation and deployment status in
   `docs/features.md`, procedures in `docs/operations/`, planned tasks with their
   verification and completion in `docs/plans/execution-checklist.md`, and actual

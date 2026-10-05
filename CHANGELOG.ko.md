@@ -1,5 +1,17 @@
 # 변경 기록
 
+## 2026-10-05 — 작업이 진행 중인 동안 거부되는 push (C6.1)
+
+- 추적되는 pre-push hook `.githooks/pre-push`는 `node scripts/push-gate.mjs hook`을 실행합니다. 이 entry는 push되는 모든
+  commit과 working tree의 checklist를 `scripts/full-run.mjs`의 `activeItems`로 읽고, 작업이 `[~]`인 동안 각 작업의 ID와
+  제목, 이유, 해결 방법을 적으며 push를 거부합니다. checklist가 없는 push commit, Git 오류, 검사 자체의 오류도 push를 거부합니다.
+  이전에는 진행 중인 작업이 있는 push가 GitHub에 도달했습니다.
+- 모든 `make` 실행은 `core.hooksPath`를 `.githooks`로 설정합니다. `make hooks`는 hook을 설치하고 검사하고,
+  `make hooks-check`는 hook이 설치되지 않은 동안 실패하며, `make ci`의 guard는 hook이 설치되지 않은 동안 거부합니다.
+- `.github/workflows/push-gate.yml`의 job `push-gate`는 push되는 모든 commit과 pull request에
+  `node scripts/push-gate.mjs commit`을 실행하고, 진행 중인 작업이 있거나 checklist가 없거나 실행 가능한 hook이 없는 commit에
+  실패하므로, hook을 거치지 않은 push는 이 job을 실패시킵니다.
+
 ## 2026-10-05 — 경고와 함께 쓰인 comma locale (C5.6)
 
 - engine test는 Linux의 comma locale build를 그 결과로 보고합니다. `localedef -c`는 경고와 함께 locale을 쓰면 status 1로
