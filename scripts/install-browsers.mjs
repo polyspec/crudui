@@ -33,8 +33,9 @@ export function installCommands(browsers, { withDeps = false, chromeSandbox = fa
   if (browsers.includes('webkit')) commands.push({ id: 'webkit of playwright', command: 'npx', args: ['--no-install', 'playwright', 'install', ...(withDeps ? ['--with-deps'] : []), 'webkit'] });
   if (chromeSandbox) {
     if (!browsers.includes('chrome')) throw new Error('--chrome-sandbox installs the helper of the Chrome that this run installs; name chrome');
-    const install = ['install', '-o', 'root', '-g', 'root', '-m', '4755'];
-    commands.push({ id: `Chrome sandbox helper at ${SANDBOX_HELPER}`, sandbox: true, command: root ? 'install' : 'sudo', args: root ? install : ['install', ...install] });
+    // One install command whose two operands, the helper of the installed Chrome and SANDBOX_HELPER, follow the options.
+    const options = ['-o', 'root', '-g', 'root', '-m', '4755'];
+    commands.push({ id: `Chrome sandbox helper at ${SANDBOX_HELPER}`, sandbox: true, command: root ? 'install' : 'sudo', args: root ? options : ['install', ...options] });
   }
   return commands;
 }
