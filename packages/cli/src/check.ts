@@ -26,7 +26,7 @@ import { dirname, resolve, extname } from 'node:path';
 
 import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
-import yaml from 'js-yaml';
+import { load as loadYaml } from 'js-yaml';
 
 import { composeSpec, MemoryLoader, parseJsonDocument, scanForbiddenKeys } from '@crudui/validator/internal';
 // Live widget registry (drift 0): the same key set `describe`/`list-widgets`
@@ -48,11 +48,12 @@ export interface CheckResult {
   errors: CheckError[];
 }
 
-function loadSpec(file: string): unknown {
+/** Read a specification file: JSON, or YAML in the YAML 1.2 core schema of js-yaml, as the other YAML paths of the repository read it. */
+export function loadSpec(file: string): unknown {
   const raw = readFileSync(file, 'utf-8');
   const ext = extname(file).toLowerCase();
   if (ext === '.json') return parseJsonDocument(raw);
-  return yaml.load(raw);
+  return loadYaml(raw);
 }
 
 /** A field node is a record (object, not array). */

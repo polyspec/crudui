@@ -1,5 +1,11 @@
 # 변경 기록
 
+## 2026-10-06 — YAML 1.2 core schema의 js-yaml 5 (C5.8-6)
+
+- cli와 cross-check console은 이름 있는 `load` export로 js-yaml 5.4.2를 씁니다. 그 기본 schema는 `scripts/check-schema.mjs`의
+  `yaml` package처럼 YAML 1.2 core schema입니다. 날짜 모양의 값은 문자열로 남고 `<<`는 평범한 key이며, js-yaml 4는 `Date`를
+  읽고 병합했습니다. 각 경로의 case가 이것을 고정합니다.
+
 ## 2026-10-06 — tree 전체의 jsdom 30 (C5.8-5)
 
 - root와 generator-react는 form-binding의 release인 jsdom 30.1.2를 쓰므로, tree에서 29.1.1과 30.1.2 대신 jsdom의 major 하나만
