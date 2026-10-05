@@ -21,6 +21,11 @@ Composer 의존성을 설치하며 PHP·Go·Cargo를 `PATH`에서 실행할 수 
 릴리스 프로필을 선언한 모든 크레이트는 `strip = "none"`을 설정하며,
 `npm run test:runtimes`가 실행하는 `tests/build/rust-release-profile.test.mjs`가 이를 검사합니다.
 
+개발하는 동안에는 바뀐 것을 소유한 unit test, 곧 그 Red와 Green case만 실행합니다. end-to-end 검사(browser,
+container, form comparison, native와 cross-check suite, 전체 build), `make owner-check`, 전체 실행 `make ci`는 push 뒤에
+CI에서 실행하며, push나 commit 전에 local 검사를 요구하는 규칙은 없습니다. pre-push hook은 checklist 작업이 `[~]`인
+동안 push를 거부할 뿐입니다(아래). `make ci`와 `make owner-check`는 요청할 때 실행할 수 있습니다.
+
 `make ci`는 CI 워크플로의 모든 검사 명령을 워크플로 순서대로 실행하고, 적합성 증거를 모아 CI의 마지막
 작업처럼 검사합니다. `tests/build/ci-local.test.mjs`는 이 목록이 `.github/workflows/ci.yml`과 다르면
 실패합니다.
@@ -63,7 +68,7 @@ record의 `reruns`에 쓰고, 모든 명령이 통과하면 그 tree의 결과�
 CI workflow는 `main`으로의 push마다 같은 명령을 job에서 실행하고 `make ci`는 실행하지 않으므로 guard는 CI 실행을 판단하지 않습니다.
 CI처럼 새 checkout에는 record가 없으므로, 그곳에서 `make ci`는 `[~]` 작업이 없고 tree가 깨끗하면 실행됩니다.
 
-commit 전에 `make owner-check`는 바뀐 경로를 소유한 검사를 실행합니다. 경로는 commit되지 않은 변경과 새 file,
+요청하면 `make owner-check`는 바뀐 경로를 소유한 검사를 실행합니다. 경로는 commit되지 않은 변경과 새 file,
 `PATHS`의 경로, 또는 `BASE` 뒤에 바뀐 경로입니다. `scripts/owner-checks.json`은 경로 glob마다 그것을 소유한 make 대상,
 root npm script, workspace와 package directory의 test script, node test file을, 검사마다 그것이 읽는 경로(`inputs`)를
 밝힙니다. `scripts/owner-check.mjs`는 어떤 규칙도 소유하지 않는 경로, 경로가 없는 glob, full suite 대상, 알 수 없는
@@ -250,7 +255,7 @@ HTML 원문·DOM·스타일·입력 상태·반복 주입·브라우저 상호�
 `npm run test:forms`는 호스트에서 Chromium, Firefox, WebKit의 스타일시트 배치와 스타일시트의
 사용자 정의 속성(`tests/style-properties.test.mjs`)을 검사합니다.
 `make test-form-styles-linux`는 CI 작업처럼 고정된 버전의 공식 Playwright 이미지에서 같은 검사를 Linux로
-실행하므로, Linux에서만 드러나는 엔진 차이를 푸시 전에 찾을 수 있습니다. 이미지는 약 10GB이고 user
+실행합니다. CI 작업은 push 뒤에 이를 실행하며, Linux에서만 드러나는 엔진 차이를 local에서 확인해야 할 때 씁니다. 이미지는 약 10GB이고 user
 account의 모든 checkout이 같은 이미지를 쓰므로 실행은 이미지를 남겨 두며, container는 이미지의 user 범위
 holder lock 아래에서 실행됩니다([함께 쓰는 resource](#함께-쓰는-resource) 참고).
 `make remove-form-styles-image`는 같은 lock 아래에서 이미지를 지우고, check가 실행되는 동안에는

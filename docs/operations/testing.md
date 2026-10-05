@@ -23,6 +23,12 @@ strip pairing; a build must not leave a strip warning after reporting a successf
 Every crate that declares a release profile sets `strip = "none"`;
 `tests/build/rust-release-profile.test.mjs`, run by `npm run test:runtimes`, fails otherwise.
 
+During development, run only the unit tests that own the change: its Red and Green cases.
+End-to-end checks (browsers, containers, the form comparison, the native and cross-check suites,
+full builds), `make owner-check` and the full run `make ci` run in CI after the push, and no rule
+requires a local check before a push or a commit; the pre-push hook only refuses a push while a
+checklist task is `[~]` (below). `make ci` and `make owner-check` remain available on request.
+
 `make ci` runs every checking command of the CI workflow in the workflow's order, collects the
 conformance evidence and checks it as the final CI job does; `tests/build/ci-local.test.mjs` fails
 when the list differs from `.github/workflows/ci.yml`.
@@ -78,7 +84,7 @@ The CI workflow runs the same commands in its jobs on each push to `main` and do
 ci`, so the guard does not decide CI runs. A new checkout, as in CI, has no record, so `make ci`
 runs there when no task is `[~]` and the tree is clean.
 
-Before a commit, `make owner-check` runs the checks that own the changed paths: the uncommitted
+On request, `make owner-check` runs the checks that own the changed paths: the uncommitted
 changes and new files, the paths of `PATHS`, or the paths changed since `BASE`. `scripts/owner-checks.json`
 names, for globs of paths, the make targets, the root npm scripts, the test scripts of workspaces and
 package directories and the node test files that own them, and for a check the paths that it reads
@@ -285,7 +291,7 @@ save/load checks are separate from validator package tests.
 `npm run test:forms` checks the stylesheet layout in Chromium, Firefox and WebKit on the host and
 the custom properties of the stylesheet (`tests/style-properties.test.mjs`).
 `make test-form-styles-linux` runs the same checks on Linux in the official Playwright image of
-the pinned version, as the CI job does, so an engine difference on Linux is found before a push.
+the pinned version, as the CI job does after a push, when an engine difference on Linux needs a local run.
 The image takes about 10 GB and every checkout of the user account uses the same one, so a run
 keeps it, and its container runs under the user-wide holder lock of the image (see
 [Shared resources](#shared-resources)). `make remove-form-styles-image` removes the image under the

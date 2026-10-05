@@ -1,5 +1,11 @@
 # Changes
 
+## 2026-10-06 — Unit tests in development, every other check in CI (C7.15)
+
+- Development runs the unit tests that own a change; end-to-end checks, `make owner-check` and
+  `make ci` run in CI after the push, and no rule requires a local check before a commit or a push.
+  The pre-push hook still refuses a push while a checklist task is in progress.
+
 ## 2026-10-06 — RustSec advisories of the Cargo locks (C5.8-1)
 
 - The dependency review reads the advisories of the six Cargo locks from RustSec with cargo-audit

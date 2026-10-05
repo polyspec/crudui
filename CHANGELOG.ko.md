@@ -1,5 +1,11 @@
 # 변경 기록
 
+## 2026-10-06 — 개발은 unit test, 다른 모든 검사는 CI (C7.15)
+
+- 개발은 변경을 소유한 unit test를 실행하고, end-to-end 검사, `make owner-check`, `make ci`는 push 뒤에 CI에서
+  실행하며, commit이나 push 전에 local 검사를 요구하는 규칙은 없습니다. pre-push hook은 checklist 작업이 진행 중인
+  동안 여전히 push를 거부합니다.
+
 ## 2026-10-06 — Cargo lock의 RustSec 보안 권고 (C5.8-1)
 
 - 의존성 review는 `make install`이 `.tools/cargo-audit`에 설치하는 cargo-audit 0.22.2로 Cargo lock 6개의 보안
