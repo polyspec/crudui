@@ -21,26 +21,30 @@ node tests/native-generators/run.mjs \
 ## 진행 상황, 시간 예산, 선택 실행
 
 검사기는 실행 중에 자신의 상태를 보고합니다. 모든 줄에 시작 이후 경과 시간이
-붙습니다. 입력 해시, 각 대상의 준비, 각 검사 그룹의 시작과 통과 수·소요 시간을
-담은 종료, 5초 이상 계속되는 그룹이나 검사의 실행 중 줄, 각 대상의 합계입니다.
+붙습니다. 먼저 입력을 해시하고 build 단계를 실행합니다. 선택한 대상의 Go와 Rust
+프로그램을 한 번씩 빌드하며, 빌드 도구의 출력과 빌드 중 5초마다의 줄을 출력하고 시간
+한도는 두지 않습니다. 이어서 probe가 각 PHP 대상의 PHP 프로그램을 확인합니다. 그다음 각
+검사는 시작 줄, 실행 중 5초마다의 줄, 소요 시간과 함께 결과를 출력하는 하나의 test입니다.
+모든 대상의 검사는 서로 독립된 프로세스이므로 하나의 pool에서 기기의 processor 수
+(`os.availableParallelism()`)만큼 동시에 실행합니다. 이어서 각 대상의 통과 수를 출력합니다.
 
 ```
-[    0.1s] inputs: 561 files hashed (0.1s)
-[    0.1s] targets: php, go; checks matching list, dates
-[    0.1s] php: preparing
-[    0.2s] php: prepared (0.1s)
-[    0.2s]   php · list: running
-[    4.0s]   php · list: 44/44 passed (3.7s)
-[    5.0s] php: 47/47 checks passed (4.9s)
+[    0.6s] inputs: 744 files hashed (0.6s)
+[    0.7s] targets: javascript, html, php, go, rust, php-native
+[    0.8s] ▶ build: go program
+[    1.5s] ✔ build: go program (0.7s)
+[    2.1s] checks: 4428 checks of 6 targets, 11 at a time
+[    2.1s] ▶ javascript › form-fixture:text-with-nul
+[    2.6s] ✔ javascript › form-fixture:text-with-nul (0.5s)
+[  199.3s] go: 738/738 checks passed
 ```
 
 각 검사에는 그룹에서 가장 느린 검사의 측정값으로 정한 시간 예산이 있습니다. 폼
-고정 사례, 폼 인스턴스, 타임존 사례는 20초(측정값 385ms, 335ms, 282ms)이고 나머지
-그룹은 10초(측정값 130ms 미만)입니다. Go와 Rust 생성기를 빌드하는 준비 단계는 각각
-300초와 900초입니다.
-예산을 넘긴 검사는 그 검사가 시작한 모든 프로세스와 함께 중단되고 검사 id와 함께
-보고되며 실행을 실패로 만듭니다. 다음 검사는 계속 실행하므로 멈춘 검사 하나가
-보고서 전체를 막지 않습니다.
+고정 사례, 폼 인스턴스, 타임존 사례는 20초(단독 측정값 385ms, 335ms, 282ms)이고 나머지
+그룹은 10초(측정값 130ms 미만)입니다. 예산을 넘긴 검사는 그 검사가 시작한 모든
+프로세스와 함께 중단되고 검사 id와 함께 보고되며 실행을 실패로 만듭니다. 다른 검사는
+계속 실행하므로 멈춘 검사 하나가 보고서 전체를 막지 않습니다. 빌드는 검사가 아니라 장기
+작업이므로 예산이 없고 종료 상태가 결과를 정합니다.
 
 한 대상이나 한 영역을 개발하는 동안에는 해당 검사만 실행합니다. 전체 검사는 변경이
 끝난 뒤 한 번 실행합니다. 아래 명령은 차례대로 Rust 대상만, Go와 네이티브 PHP 대상의
@@ -63,7 +67,7 @@ node tests/native-generators/run.mjs --extension /absolute/crudui.so \
 여러 번 쓸 수 있습니다. 어떤 검사와도 일치하지 않는 선택은 실패하며, 보고서에
 선택 내용을 기록하므로 선택 실행을 전체 실행으로 오인하지 않습니다.
 
-검사기가 Go와 Rust 실행 파일을 빌드합니다. `PHP`, `GO`, `CARGO`로 해당 설치 명령을
+검사기의 build 단계가 Go와 Rust 실행 파일을 빌드합니다. `PHP`, `GO`, `CARGO`로 해당 설치 명령을
 지정할 수 있습니다. 확장은 네이티브 `CRUDUI\Generator`, `CRUDUI\Validator`,
 `CRUDUI\Form` 클래스를 등록해야 합니다. Reflection으로 세 클래스가 네이티브
 PHP에서는 내부 클래스이고 순수 PHP에서는 사용자 정의 클래스인지 확인합니다.

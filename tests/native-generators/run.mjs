@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import assert from 'node:assert/strict';
+import { AsyncLocalStorage } from 'node:async_hooks';
 import { spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { readFile, writeFile, mkdir, mkdtemp, stat, readdir, rm } from 'node:fs/promises';
@@ -9,6 +10,7 @@ import { fileURLToPath } from 'node:url';
 let dispatch, errorRecord;
 import { parseCLIResponse, OperationError, equalOrdered, equalModels, equalState } from './protocol.mjs';
 import { formScenarios, numberCases, companySpec, companyData, row, imageCase, urlCase, dateCases, dateFormSpec, dateFormData, dateListSpec } from './cases.mjs';
+import { failureOf, runCommand } from '../../scripts/run-command.mjs';
 import { runRustCommand } from '../../scripts/run-rust-command.mjs';
 import { recordConformance } from '../conformance/evidence.mjs';
 import { createProgress } from '../../scripts/test-progress/progress.mjs';
@@ -36,7 +38,11 @@ const seconds = since => `${((Date.now() - since) / 1000).toFixed(1)}s`;
 // Every check prints its start, a line while it keeps running, and its result.
 const lines = createProgress({ write: text => process.stdout.write(text) });
 const progress = text => lines.line(text);
+// A build prints a line at this interval while it runs.
 const RUNNING_INTERVAL = 5000;
+// Every check is independent and runs its own processes, so the checks of every target run in
+// one pool, this many at the same time.
+const CONCURRENCY = os.availableParallelism();
 // A check id is `group:case`; the group selects the time budget.
 const groupOf = name => name.includes(':') ? name.slice(0, name.indexOf(':')) : name;
 const pattern = text => new RegExp(`^${text.replace(/[.*+?^${}()|[\]\\]/g, character => character === '*' ? '.*' : `\\${character}`)}$`);
@@ -55,24 +61,23 @@ const CHECK_BUDGETS = [
 ];
 const DEFAULT_CHECK_BUDGET = 10000;
 const checkBudget = name => CHECK_BUDGETS.find(([match]) => match.test(groupOf(name)))?.[1] ?? DEFAULT_CHECK_BUDGET;
-// Preparation builds the Go and Rust generators; a cold Cargo build dominates it.
-const PREPARE_BUDGET = { go: 300000, rust: 900000 };
 const digest = value => createHash('sha256').update(typeof value === 'string' || Buffer.isBuffer(value) ? value : JSON.stringify(value)).digest('hex');
 const jsonValue = value => JSON.parse(JSON.stringify(value));
 const stateOnly = value => ({ data: value.data, fields: value.fields, html: value.html, revision: value.revision });
 
-// The signal of the running check; every process it starts is killed when its budget expires.
-let currentSignal;
+// The signal of the running check, in the asynchronous context of that check; every process it
+// starts is killed when its budget expires.
+const checkSignal = new AsyncLocalStorage();
 
+/** Run one program of a check; the check's budget stops it. */
 function execute(command, args, options = {}) {
-  const signal = options.signal ?? currentSignal;
+  const signal = checkSignal.getStore();
   return new Promise(resolve => {
-    let stdout = '', stderr = '', failure, timedOut = false, settled = false;
+    let stdout = '', stderr = '', failure, settled = false;
     const settle = (status, processSignal) => {
       if (settled) return;
       settled = true;
-      clearTimeout(timer);
-      resolve({ status, signal: processSignal, stdout, stderr, error: failure ?? (timedOut ? new Error('CLI timed out') : undefined) });
+      resolve({ status, signal: processSignal, stdout, stderr, error: failure });
     };
     if (signal?.aborted) {
       failure = new Error('Check budget expired before the process started');
@@ -80,35 +85,12 @@ function execute(command, args, options = {}) {
       return;
     }
     const child = spawn(command, args, { cwd: options.cwd ?? ROOT, env: options.env ?? process.env, stdio: ['pipe', 'pipe', 'pipe'], signal, killSignal: 'SIGKILL' });
-    const timer = setTimeout(() => { timedOut = true; child.kill('SIGKILL'); }, options.timeout ?? 30000);
     child.stdout.on('data', data => { stdout += data; if (stdout.length > 32 * 1024 * 1024) { failure = new Error('CLI response exceeds 32 MiB'); child.kill('SIGKILL'); } });
     child.stderr.on('data', data => { stderr += data; });
     child.on('error', error => { failure = error; settle(null, null); });
     child.on('close', (status, processSignal) => settle(status, processSignal));
     child.stdin.on('error', error => { if (error.code !== 'EPIPE') failure = error; });
     child.stdin.end(options.input ?? '');
-  });
-}
-
-/** Run one command for the Rust toolchain resolver, honoring the running check's budget. */
-function runCommand(executable, args, options = {}) {
-  return new Promise((resolve, reject) => {
-    const capture = options.capture ?? false;
-    const child = spawn(executable, args, {
-      cwd: options.cwd, env: options.environment, signal: currentSignal, killSignal: 'SIGKILL',
-      stdio: capture ? ['ignore', 'pipe', 'pipe'] : ['ignore', 'inherit', 'inherit'],
-    });
-    let stdout = '', stderr = '';
-    if (capture) {
-      child.stdout.setEncoding('utf8'); child.stderr.setEncoding('utf8');
-      child.stdout.on('data', chunk => { stdout += chunk; });
-      child.stderr.on('data', chunk => { stderr += chunk; });
-    }
-    child.once('error', reject);
-    child.once('close', (status, signal) => {
-      if (status === 0 && signal === null) resolve({ stdout, stderr });
-      else reject(new Error(`Command failed (${signal ?? status ?? 'unknown'}): ${[executable, ...args].join(' ')}${capture && stderr.trim() ? `: ${stderr.trim()}` : ''}`));
-    });
   });
 }
 
@@ -143,11 +125,12 @@ async function inputManifest() {
   return { ...(sourceCommit ? { commit: sourceCommit } : {}), digest: digest(entries), files: entries };
 }
 
-async function build(command, args, cwd) {
-  const result = await execute(command, args, { cwd, timeout: 300000 });
-  assert.equal(result.error, undefined, result.error?.message);
-  assert.equal(result.signal, null, `Build terminated: ${result.signal}`);
-  assert.equal(result.status, 0, `${command} build failed:\n${result.stderr}\n${result.stdout}`);
+/** Build the Go program to its end; the build tool prints its own output as it runs. */
+async function buildGo(cwd) {
+  const command = process.env.GO ?? 'go';
+  const result = await runCommand({ command, args: ['build', '-o', goBinary, '.'], cwd });
+  const failure = failureOf(result);
+  if (failure) throw new Error(`${command} build -o ${goBinary} . ${failure}`);
 }
 // Each language's process is a program beside this suite that calls its package's public API.
 const programs = path.join(ROOT, 'tests/native-generators/programs');
@@ -159,26 +142,21 @@ function phpProvenanceSource(autoload) {
   const load = autoload ? `require ${phpLiteral(path.join(ROOT, 'packages/generator-php/vendor/autoload.php'))};` : '';
   return `${load}$out=[];foreach(['generator'=>'CRUDUI\\Generator','validator'=>'CRUDUI\\Validator','form'=>'CRUDUI\\Form'] as $key=>$class){$out[$key]=class_exists($class,false) ? (new ReflectionClass($class))->isInternal() : ${autoload ? '((new ReflectionClass($class))->isInternal())' : 'null'};}echo json_encode($out);`;
 }
+// A target's `build` is a long operation without a time limit; its `probe` is a short check of the
+// program it runs.
 const targets = [
-  { name: 'javascript', command: process.execPath, args: [path.join(ROOT, 'tests/native-generators/javascript.mjs')], prepare: async () => {} },
-  { name: 'html', command: process.execPath, args: [path.join(ROOT, 'tests/native-generators/javascript.mjs'), '--renderer', 'html'], prepare: async () => {} },
-  { name: 'php', command: process.env.PHP ?? 'php', args: [phpCLI], prepare: async () => {
+  { name: 'javascript', command: process.execPath, args: [path.join(ROOT, 'tests/native-generators/javascript.mjs')] },
+  { name: 'html', command: process.execPath, args: [path.join(ROOT, 'tests/native-generators/javascript.mjs'), '--renderer', 'html'] },
+  { name: 'php', command: process.env.PHP ?? 'php', args: [phpCLI], probe: async () => {
     await stat(path.join(ROOT, 'packages/generator-php/vendor/autoload.php'));
     const result = await execute(process.env.PHP ?? 'php', ['-r', phpProvenanceSource(true)]);
     assert.equal(result.status, 0, result.stderr); assert.equal(result.signal, null);
     assert.equal(result.stderr, '', 'PHP class inspection produced diagnostics');
     assert.deepEqual(JSON.parse(result.stdout), { generator: false, validator: false, form: false }, 'Pure PHP target must use PHP classes; disable the native extension in its configuration');
   } },
-  { name: 'go', command: goBinary, args: [], prepare: () => build(process.env.GO ?? 'go', ['build', '-o', goBinary, '.'], path.join(programs, 'go')) },
-  {
-    name: 'rust',
-    command: rustBinary,
-    args: [],
-    prepare: () => runRustCommand(['build', '--locked'], {
-      cwd: path.join(programs, 'rust'), run: runCommand,
-    }),
-  },
-  { name: 'php-native', command: process.env.PHP ?? 'php', args: ['-d', `extension=${extension ?? ''}`, phpCLI], prepare: async () => {
+  { name: 'go', command: goBinary, args: [], build: () => buildGo(path.join(programs, 'go')) },
+  { name: 'rust', command: rustBinary, args: [], build: () => runRustCommand(['build', '--locked'], { cwd: path.join(programs, 'rust') }) },
+  { name: 'php-native', command: process.env.PHP ?? 'php', args: ['-d', `extension=${extension ?? ''}`, phpCLI], probe: async () => {
     assert.ok(extension && path.isAbsolute(extension), '--extension must provide an absolute native PHP module path');
     assert.ok((await stat(extension)).isFile(), 'Native PHP module must be a file');
     const source = phpProvenanceSource(false);
@@ -212,14 +190,11 @@ function recordEvidence(target, proves, passed) {
   for (const [feature, runtime] of runtimes) recordConformance({ feature, fixture: proves.fixture, runtime, case: proves.case, passed });
 }
 
-async function check(target, name, operation, proves) {
-  if (!selectsCheck(name)) return;
-  selectedCount++;
+/** Run one check within its budget; it resolves with whether the check passed. */
+async function runCheck(target, name, operation, proves) {
   const id = `${target.name} › ${name}`;
   const started = Date.now(), budget = checkBudget(name);
   const controller = new AbortController();
-  const previousSignal = currentSignal;
-  currentSignal = controller.signal;
   let expired;
   lines.start(id);
   const budgetTimer = setTimeout(() => {
@@ -229,19 +204,32 @@ async function check(target, name, operation, proves) {
   const expiry = new Promise((resolve, reject) => controller.signal.addEventListener('abort', () => reject(expired), { once: true }));
   expiry.catch(() => {});
   try {
-    const details = await Promise.race([operation(), expiry]);
+    const details = await Promise.race([checkSignal.run(controller.signal, operation), expiry]);
     report.checks.push({ target: target.name, case: name, passed: true, durationMs: Date.now() - started, ...details });
     if (proves) recordEvidence(target, proves, true);
     lines.pass(id, Date.now() - started);
+    return true;
   } catch (error) {
     const failure = expired ?? error;
     if (proves) recordEvidence(target, proves, false);
     report.checks.push({ target: target.name, case: name, passed: false, durationMs: Date.now() - started, timedOut: expired !== undefined, error: { name: failure.name, message: failure.message, code: failure.code, at: failure.at, expected: failure.expected, actual: failure.actual } });
     lines.fail(id, Date.now() - started, failure.message);
+    return false;
   } finally {
     clearTimeout(budgetTimer);
-    currentSignal = previousSignal;
   }
+}
+// The selected checks of every target, run by one pool after the builds.
+const queue = [];
+function check(target, name, operation, proves) {
+  if (!selectsCheck(name)) return;
+  selectedCount++;
+  queue.push(() => runCheck(target, name, operation, proves));
+}
+async function runQueue() {
+  let next = 0;
+  const worker = async () => { while (next < queue.length) await queue[next++](); };
+  await Promise.all(Array.from({ length: Math.min(CONCURRENCY, queue.length) }, worker));
 }
 function compareError(actual, expected) {
   assert.ok(actual, 'Expected operation to fail');
@@ -410,40 +398,40 @@ for (const name of selectedTargets) assert.ok(targetNames.includes(name), `Unkno
 const runTargets = selectedTargets.length ? targets.filter(target => selectedTargets.includes(target.name)) : targets;
 progress(`targets: ${runTargets.map(target => target.name).join(', ')}${checkPatterns.length ? `; checks matching ${checkPatterns.join(', ')}` : ''}`);
 
+// The build step: each selected target that has a program to build builds it once, before any
+// check, with the build tool's output and a line every five seconds, and no time limit. A probe
+// then checks the program a target runs, within the budget of a check.
+const available = [];
 for (const target of runTargets) {
-  const targetStart = Date.now();
   const status = { name: target.name, available: false, passed: false, command: target.command, args: target.args };
   report.targets.push(status);
-  progress(`${target.name}: preparing`);
-  const prepareBudget = PREPARE_BUDGET[target.name] ?? 120000;
-  const controller = new AbortController();
-  currentSignal = controller.signal;
-  let prepareExpired;
-  const prepareTimer = setTimeout(() => {
-    prepareExpired = new Error(`preparation exceeded its ${prepareBudget} ms budget; the build was stopped`);
-    controller.abort(prepareExpired);
-  }, prepareBudget);
-  const prepareRunning = setInterval(() => progress(`${target.name}: still preparing (${seconds(targetStart)} of ${prepareBudget / 1000}s)`), RUNNING_INTERVAL);
-  const prepareExpiry = new Promise((resolve, reject) => controller.signal.addEventListener('abort', () => reject(prepareExpired), { once: true }));
-  prepareExpiry.catch(() => {});
-  try {
-    await Promise.race([target.prepare(), prepareExpiry]);
-    status.available = true;
-    status.prepareMs = Date.now() - targetStart;
-    progress(`${target.name}: prepared (${seconds(targetStart)})`);
-  } catch (error) {
-    const failure = prepareExpired ?? error;
-    status.error = failure.message;
-    process.stderr.write(`${target.name}: unavailable: ${failure.message}\n`);
-    progress(`${target.name}: unavailable (${seconds(targetStart)})`);
-    continue;
-  } finally {
-    clearTimeout(prepareTimer);
-    clearInterval(prepareRunning);
-    currentSignal = undefined;
+  if (target.build) {
+    const id = `build: ${target.name} program`;
+    const buildStart = Date.now();
+    lines.start(id, { group: true });
+    const running = setInterval(() => progress(`${id}: still running (${seconds(buildStart)})`), RUNNING_INTERVAL);
+    try {
+      await target.build();
+      status.buildMs = Date.now() - buildStart;
+      lines.pass(id, status.buildMs);
+    } catch (error) {
+      status.error = error.message;
+      lines.fail(id, Date.now() - buildStart, error.message);
+      continue;
+    } finally {
+      clearInterval(running);
+    }
   }
+  if (target.probe && !await runCheck(target, 'probe', async () => { await target.probe(); return {}; })) {
+    status.error = `${target.name} probe failed`;
+    continue;
+  }
+  status.available = true;
+  available.push(target);
+}
 
-  for (const fixture of formCases) await check(target, `form-fixture:${fixture.name}`, async () => {
+for (const target of available) {
+  for (const fixture of formCases) check(target, `form-fixture:${fixture.name}`, async () => {
     const compileRequest = { operation: 'compileForm', spec: fixture.spec, options: fixture.options ?? {} };
     const bindingOptions = Object.fromEntries(Object.entries(fixture.options ?? {}).filter(([key]) => ['idPrefix', 'language', 'keyPrefix', 'unsupported'].includes(key)));
     let expectedTemplate, expectedFields, expectedError;
@@ -486,7 +474,7 @@ for (const target of runTargets) {
 
   // The complete form (docs/spec/form-runtime.md, "Complete form"): the bytes the specification
   // writes, which the reference also writes, or the declared failure.
-  for (const fixture of completeCases) await check(target, `form-complete:${fixture.name}`, async () => {
+  for (const fixture of completeCases) check(target, `form-complete:${fixture.name}`, async () => {
     const template = oracle({ operation: 'compileForm', spec: fixture.spec });
     const request = { operation: 'renderForm', template, data: fixture.data, options: fixture.options, render: fixture.render };
     let expected, expectedError;
@@ -504,7 +492,7 @@ for (const target of runTargets) {
     return { html: digest(actual) };
   }, { fixture: 'tests/fixtures/form-complete/cases.json', case: fixture.name, html: ['renderForm'] });
 
-  for (const fixture of [...listCases, imageCase, urlCase]) await check(target, `list:${fixture.name}`, async () => {
+  for (const fixture of [...listCases, imageCase, urlCase]) check(target, `list:${fixture.name}`, async () => {
     const request = { operation: 'renderList', spec: fixture.spec, rows: fixture.rows ?? [], options: fixture.options ?? {} };
     let expected, expectedError;
     try { expected = oracle(request); } catch (error) { expectedError = errorRecord(error); }
@@ -534,7 +522,7 @@ for (const target of runTargets) {
     return { html: digest(actual), model: digest(actualModel), rawHTML: true };
   }, listCases.includes(fixture) ? { fixture: 'tests/fixtures/list-render/cases.json', case: fixture.name, model: ['buildList'], html: ['renderList'] } : undefined);
 
-  await check(target, 'build-list-model', async () => {
+  check(target, 'build-list-model', async () => {
     const request = {
       operation: 'buildList',
       spec: {
@@ -561,7 +549,7 @@ for (const target of runTargets) {
     ['object', {}], ['string', 'buttons'], ['null-button', [null]], ['array-button', [[]]],
     ['tag', [{ ...button, tag: 'div' }]], ['text', [{ ...button, text: 1 }]], ['attrs-array', [{ ...button, attrs: [] }]],
     ['attribute-name', [{ ...button, attrs: { onmouseover: 'x' } }]], ['attribute-value', [{ ...button, attrs: { class: 1 } }]],
-  ]) await check(target, `reject-buttons:${name}`, async () => {
+  ]) check(target, `reject-buttons:${name}`, async () => {
     const request = { operation: 'formButtonsHtml', buttons };
     let expected;
     try { oracle(request); } catch (error) { expected = errorRecord(error); }
@@ -574,7 +562,7 @@ for (const target of runTargets) {
 
   // The process boundary: every program answers the same standard input as the JavaScript
   // reference. Text that is not one JSON value fails with the same input error everywhere.
-  for (const [name, text] of requestCases) await check(target, `request:${name}`, async () => {
+  for (const [name, text] of requestCases) check(target, `request:${name}`, async () => {
     let request, parsed = true;
     try { request = JSON.parse(text); } catch { parsed = false; }
     let expected, expectedError;
@@ -606,7 +594,7 @@ for (const target of runTargets) {
 
   // Invalid input text fails with the same code, message and location in every program; a
   // request that is not UTF-8 is not JSON text.
-  for (const { feature, fixture: file, cases } of textFamilies) for (const fixture of cases) await check(target, `text:${feature}:${fixture.name}`, async () => {
+  for (const { feature, fixture: file, cases } of textFamilies) for (const fixture of cases) check(target, `text:${feature}:${fixture.name}`, async () => {
     const request = textRequest(feature, fixture);
     let actual, actualError;
     try { actual = await invoke(target, request); } catch (error) { if (!(error instanceof OperationError)) throw error; actualError = error; }
@@ -618,7 +606,7 @@ for (const target of runTargets) {
     compareError(failure, fixture.expect);
     return { error: fixture.expect };
   }, { fixture: file, case: fixture.name, model: [feature] });
-  await check(target, 'text:request-not-utf8', async () => {
+  check(target, 'text:request-not-utf8', async () => {
     const result = await execute(target.command, target.args, { input: Buffer.from([0x7b, 0x22, 0x6f, 0x22, 0x3a, 0x22, 0xed, 0xa0, 0x80, 0x22, 0x7d]) });
     assert.equal(result.stderr, '', 'The program wrote diagnostics');
     let actualError;
@@ -635,7 +623,7 @@ for (const target of runTargets) {
     ['declared-per-page', { per_page: 7 }, { page: 1 }],
     ['disabled-counts', false, { page: 3, total: 12 }],
     ['absent-counts', undefined, { total: 5 }],
-  ]) await check(target, `list-pagination-model:${name}`, async () => {
+  ]) check(target, `list-pagination-model:${name}`, async () => {
     const spec = { columns: { name: { field: 'name', label: 'Name' } }, sort: { field: 'name', dir: 'asc' }, ...(pagination === undefined ? {} : { pagination }) };
     const request = { operation: 'buildList', spec, rows: [], options: { language: 'en', ...options } };
     const actual = await invoke(target, request);
@@ -644,7 +632,7 @@ for (const target of runTargets) {
   });
 
   // A detail is checked at both levels a runtime exposes: the model and its raw HTML.
-  for (const fixture of detailCases) await check(target, `detail:${fixture.name}`, async () => {
+  for (const fixture of detailCases) check(target, `detail:${fixture.name}`, async () => {
     const evidence = {};
     for (const operation of ['buildDetail', 'renderDetail']) {
       const request = { operation, spec: fixture.spec, record: fixture.record ?? {}, options: fixture.options ?? {} };
@@ -669,7 +657,7 @@ for (const target of runTargets) {
     return { model: evidence.buildDetail, html: evidence.renderDetail, rawHTML: true };
   }, { fixture: 'tests/fixtures/detail-render/cases.json', case: fixture.name, model: ['buildDetail'], html: ['renderDetail'] });
 
-  for (const [index, item] of numberCases.entries()) await check(target, `number:${index}`, async () => {
+  for (const [index, item] of numberCases.entries()) check(target, `number:${index}`, async () => {
     const format = { type: 'number' };
     if (Object.hasOwn(item, 'decimals')) format.decimals = item.decimals;
     const request = { operation: 'renderList', spec: { columns: { number: { field: 'number', format } } }, rows: [{ number: item.value }] };
@@ -681,7 +669,7 @@ for (const target of runTargets) {
     return { expectedNumber: item.expected, html: digest(actual) };
   });
 
-  for (const scenario of formScenarios) await check(target, `instance:${scenario.name}`, async () => {
+  for (const scenario of formScenarios) check(target, `instance:${scenario.name}`, async () => {
     const compileRequest = { operation: 'compileForm', spec: scenario.spec, options: scenario.compileOptions ?? {} };
     const template = oracle(compileRequest), nativeTemplate = await invoke(target, compileRequest);
     equalOrdered(nativeTemplate, template);
@@ -743,7 +731,7 @@ for (const target of runTargets) {
     return { data: digest(actual.data), fields: digest(actual.fields), html: digest(actual.html), steps: actual.steps.length, rawHTML: true };
   }, { fixture: 'tests/native-generators/cases.mjs', case: scenario.name, model: ['createForm'] });
 
-  await check(target, 'instance:nested-copy-fresh-keys-and-original-values', async () => {
+  check(target, 'instance:nested-copy-fresh-keys-and-original-values', async () => {
     const template = await invoke(target, { operation: 'compileForm', spec: companySpec, options: { keyPrefix: 'form' } });
     const before = await invoke(target, { operation: 'form', template, data: companyData, options: { language: 'en' } });
     const actual = await invoke(target, { operation: 'form', template, data: companyData, options: { language: 'en' }, actions: [{ method: 'copyRow', args: ['companies', row(5)] }] });
@@ -773,7 +761,7 @@ for (const target of runTargets) {
     return { actual, rawHTML: true, generatedKeysPreserved: true };
   });
 
-  await check(target, 'instance:missing-repeated-data-creates-one-row', async () => {
+  check(target, 'instance:missing-repeated-data-creates-one-row', async () => {
     const spec = { type: 'group', properties: { tags: { type: 'text', multiple: true, default: 'new' } } };
     const template = await invoke(target, { operation: 'compileForm', spec });
     const actual = await invoke(target, { operation: 'form', template, data: {} });
@@ -784,7 +772,7 @@ for (const target of runTargets) {
     return { actual, generatedKeysPreserved: true };
   });
 
-  for (const [name, data] of [['null-root', null], ['array-root', []], ['null-collection', { companies: null }], ['array-collection', { companies: [] }], ['numeric-row-key', { companies: { 5: { name: 'Five', stores: {} } } }]]) await check(target, `reject:${name}`, async () => {
+  for (const [name, data] of [['null-root', null], ['array-root', []], ['null-collection', { companies: null }], ['array-collection', { companies: [] }], ['numeric-row-key', { companies: { 5: { name: 'Five', stores: {} } } }]]) check(target, `reject:${name}`, async () => {
     const request = { operation: 'form', template: oracle({ operation: 'compileForm', spec: companySpec }), data };
     let expected;
     try { oracle(request); } catch (caught) { expected = errorRecord(caught); }
@@ -836,7 +824,7 @@ for (const target of runTargets) {
     ['design-node-unknown-key', { type: 'text', design: { label: { class: 'a', text: 'Name' } } }, 'Invalid design.label.text at rows: unknown key'],
     ['behavior-unknown-key', { type: 'text', behavior: { onclick: 'go()', onsubmit: 'send()' } }, 'Invalid behavior.onsubmit at rows: unknown key'],
   ];
-  for (const [name, field, message] of declarationRejections) await check(target, `compile-reject:${name}`, async () => {
+  for (const [name, field, message] of declarationRejections) check(target, `compile-reject:${name}`, async () => {
     const request = { operation: 'compileForm', spec: { type: 'group', properties: { rows: field } } };
     let expected;
     try { oracle(request); } catch (caught) { expected = errorRecord(caught); }
@@ -849,7 +837,7 @@ for (const target of runTargets) {
   });
   // Member order: requests are sent as JSON text, so array-index member names arrive in the order they were written
   // (a JavaScript object would already hold them first). Order is judged where it survives parsing: arrays, HTML and messages.
-  for (const [name, text] of memberOrderRequests) await check(target, `member-order:${name}`, async () => {
+  for (const [name, text] of memberOrderRequests) check(target, `member-order:${name}`, async () => {
     const request = JSON.parse(text);
     let expected, expectedError;
     try { expected = oracle(request); } catch (caught) { expectedError = errorRecord(caught); }
@@ -874,7 +862,7 @@ for (const target of runTargets) {
     ['language-unsupported', { language: 'fr', idPrefix: null }, 'Unsupported language: fr'],
   ];
   // The operation is the outer loop so each check group runs as one contiguous group.
-  for (const operation of ['bindForm', 'form']) for (const [name, options, message] of optionRejections) await check(target, `${operation}-option-reject:${name}`, async () => {
+  for (const operation of ['bindForm', 'form']) for (const [name, options, message] of optionRejections) check(target, `${operation}-option-reject:${name}`, async () => {
     const request = { operation, template: oracle({ operation: 'compileForm', spec: companySpec }), data: companyData, options };
     let expected;
     try { oracle(request); } catch (caught) { expected = errorRecord(caught); }
@@ -885,7 +873,7 @@ for (const target of runTargets) {
     compareError(error, expected);
     return { error: expected };
   });
-  for (const operation of ['bindForm', 'form']) for (const [name, spec, data, message] of shapeRejections) await check(target, `${operation}-shape-reject:${name}`, async () => {
+  for (const operation of ['bindForm', 'form']) for (const [name, spec, data, message] of shapeRejections) check(target, `${operation}-shape-reject:${name}`, async () => {
     const request = { operation, template: oracle({ operation: 'compileForm', spec }), data };
     let expected;
     try { oracle(request); } catch (caught) { expected = errorRecord(caught); }
@@ -897,7 +885,7 @@ for (const target of runTargets) {
     return { error: expected };
   });
 
-  for (const timezone of ['UTC', 'Asia/Seoul', 'America/Los_Angeles']) await check(target, `dates:${timezone}`, async () => {
+  for (const timezone of ['UTC', 'Asia/Seoul', 'America/Los_Angeles']) check(target, `dates:${timezone}`, async () => {
     const template = await invoke(target, { operation: 'compileForm', spec: dateFormSpec }, timezone);
     const request = { operation: 'form', template, data: dateFormData, options: { idPrefix: 'utc-dates' } };
     const initial = await invoke(target, request, timezone), expected = oracle(request);
@@ -927,12 +915,17 @@ for (const target of runTargets) {
     return { timezone, dateValues: dateCases.length, html: digest(html), fields: digest(initial.fields), rawHTML: true };
   });
 
-  status.checks = report.checks.filter(check => check.target === target.name).length;
-  status.failures = report.checks.filter(check => check.target === target.name && !check.passed).length;
-  status.passed = status.failures === 0;
-  status.durationMs = Date.now() - targetStart;
-  progress(`${target.name}: ${status.checks - status.failures}/${status.checks} checks passed (${seconds(targetStart)})`);
 }
+const checksStart = Date.now();
+progress(`checks: ${queue.length} checks of ${available.length} targets, ${Math.min(CONCURRENCY, queue.length)} at a time`);
+await runQueue();
+for (const status of report.targets.filter(target => target.available)) {
+  status.checks = report.checks.filter(check => check.target === status.name).length;
+  status.failures = report.checks.filter(check => check.target === status.name && !check.passed).length;
+  status.passed = status.failures === 0;
+  progress(`${status.name}: ${status.checks - status.failures}/${status.checks} checks passed`);
+}
+progress(`checks: finished (${seconds(checksStart)})`);
 progress('inputs: hashing sources and built artifacts again');
 try {
   report.inputs.end = await inputManifest();
