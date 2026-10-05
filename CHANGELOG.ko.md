@@ -1,5 +1,11 @@
 # 변경 기록
 
+## 2026-10-05 — route된 comparison container의 재사용 (C2.18-1)
+
+- 배포는 containerctl이 `crudui.test`를 route할 때만 실행 중인 comparison container를 재사용하고,
+  아니면 containerctl로 정의를 적용합니다. 전에는 실행 중인 container의 image가 같아서 바뀐 route가
+  적용되지 않았습니다.
+
 ## 2026-10-05 — x-containerctl 아래의 comparison service route (C2.18)
 
 - comparison service의 Compose 정의는 domain을 `x-containerctl.domains`에 적고, 배포 검사는

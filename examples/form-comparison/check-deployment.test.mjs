@@ -30,11 +30,18 @@ test('names the toolchain image by the Containerfile content alone', () => {
     imageReference);
 });
 
-test('reuses a matching running container and bootstraps only an absent or incompatible one', () => {
-  assert.equal(shouldReuseDeployment({ state: 'running', imageReference }, imageReference), true);
-  assert.equal(shouldReuseDeployment({ state: 'exited', imageReference }, imageReference), false);
-  assert.equal(shouldReuseDeployment({ state: 'running', imageReference: 'other' }, imageReference), false);
-  assert.equal(shouldReuseDeployment(undefined, imageReference), false);
+test('reuses a matching running and routed container and bootstraps only an absent or incompatible one', () => {
+  // The route containerctl reports for the service: reuse needs the declared domain routed.
+  const route = { routed: true, domains: ['crudui.test'] };
+  const running = { state: 'running', imageReference };
+  assert.equal(shouldReuseDeployment(running, imageReference, route), true);
+  assert.equal(shouldReuseDeployment({ state: 'exited', imageReference }, imageReference, route), false);
+  assert.equal(shouldReuseDeployment({ state: 'running', imageReference: 'other' }, imageReference, route), false);
+  assert.equal(shouldReuseDeployment(undefined, imageReference, route), false);
+  // A definition whose route containerctl has not applied is applied again.
+  assert.equal(shouldReuseDeployment(running, imageReference, { routed: false, domains: ['crudui.test'] }), false);
+  assert.equal(shouldReuseDeployment(running, imageReference, { routed: true, domains: ['other.test'] }), false);
+  assert.equal(shouldReuseDeployment(running, imageReference, undefined), false);
 });
 
 test('renders one deterministic deployment that mounts the repository read-only', () => {

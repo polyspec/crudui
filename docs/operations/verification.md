@@ -63,9 +63,9 @@ The deployment command builds the toolchain image only when
 `examples/form-comparison/Containerfile` changed. It mounts the repository
 read-only and keeps build outputs in the `crudui-comparison-build` and
 `crudui-comparison-cache` volumes. If the expected container is running with the
-expected image, deployment performs source synchronization through that existing
+expected image and containerctl routes `crudui.test` to it, deployment performs source synchronization through that existing
 container; it does not recreate the container, restart services or reconnect
-volumes. Container creation is reserved for an absent, stopped or image-mismatched
+volumes. containerctl applies the definition only for an absent, stopped, image-mismatched or unrouted
 deployment. The command preserves the active service's data and removes unused
 comparison images and retired per-commit directories.
 

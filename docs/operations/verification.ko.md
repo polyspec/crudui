@@ -59,9 +59,10 @@ Compose project `crudui` 하나와 그 container, volume입니다. 그래서 두
 
 배포 명령은 `examples/form-comparison/Containerfile`이 바뀌었을 때만 툴체인 이미지를
 빌드합니다. 저장소를 읽기 전용으로 마운트하고 빌드 산출물은 `crudui-comparison-build`와
-`crudui-comparison-cache` 볼륨에 둡니다. 예상 컨테이너가 예상 이미지로 실행 중이면 기존
+`crudui-comparison-cache` 볼륨에 둡니다. 예상 컨테이너가 예상 이미지로 실행 중이고 containerctl이
+`crudui.test`를 그 컨테이너로 route하면 기존
 컨테이너를 통해 소스만 동기화하며 컨테이너를 재생성하거나 서비스를 재시작하거나 볼륨을
-다시 연결하지 않습니다. 컨테이너가 없거나 중지되었거나 이미지가 다를 때만 생성합니다.
+다시 연결하지 않습니다. 컨테이너가 없거나 중지되었거나 이미지가 다르거나 route가 적용되지 않았을 때만 containerctl로 정의를 적용합니다.
 명령은 실행 중인 서비스의 데이터를 보존하고 사용하지 않는 비교 이미지와 더 이상 쓰지 않는
 커밋별 디렉터리를 제거합니다.
 

@@ -118,9 +118,22 @@ export function assertStableDeployment(before, after) {
   }
 }
 
-/** Return whether an existing container satisfies the reuse condition before any runtime command. */
-export function shouldReuseDeployment(container, imageReference) {
-  return container?.state === 'running' && container.imageReference === imageReference;
+/**
+ * Return whether an existing container satisfies the reuse condition before any runtime command:
+ * it runs the expected image, and containerctl routes the declared domain to it (`route` is the
+ * service that `containerctl status` reports). A definition whose route containerctl has not
+ * applied is applied again.
+ */
+export function shouldReuseDeployment(container, imageReference, route) {
+  return container?.state === 'running' && container.imageReference === imageReference
+    && route?.routed === true && JSON.stringify(route.domains) === JSON.stringify([deploymentDomain]);
+}
+
+/** The deployment service as `containerctl status` reports it, or undefined. */
+async function reportedRoute() {
+  const { stdout } = await execFile('containerctl', ['status', '--json'], { encoding: 'utf8' });
+  return JSON.parse(stdout).groups?.find(item => item.name === deploymentGroup)
+    ?.services?.find(item => item.name === deploymentService);
 }
 
 async function fileDigests(root) {
@@ -437,7 +450,7 @@ async function awaitBuild() {
  */
 async function applyDeployment(composeFile, imageReference, deploymentDirectory) {
   const active = (await listContainers()).find(container => container.id === deploymentContainer);
-  if (shouldReuseDeployment(active, imageReference)) {
+  if (shouldReuseDeployment(active, imageReference, await reportedRoute())) {
     await containerState(imageReference, deploymentDirectory);
     return { mode: 'sync', containerId: active.id };
   }
