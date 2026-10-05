@@ -79,12 +79,14 @@ method는 세지 않으며, 없는 test file에 대한 오류나 warning을 담�
 `tests/build/run-tests.test.mjs`는 제한 시간을 넘긴 after hook을 `node --test`와 Vitest에서
 실행합니다.
 
-teardown(browser close, server stop, directory 삭제)은 test case가 아니라 장기 작업입니다.
-`node:test` 파일은 `scripts/test-progress/teardown.mjs`의 `teardown`으로 이를 등록하며, 이는 timeout이
-`Infinity`인 파일이나 test 하나(`{ context: t }`)의 `after` hook입니다. teardown은 close가 resolve되거나
-process가 종료되면 끝나고, 그 오류는 파일을 실패시키며, 시작, 실행 중 5초마다의 줄, 경과 시간과 함께
-끝을 출력합니다. Vitest teardown은 timeout이 `Infinity`인 `afterAll` hook입니다.
-`tests/build/teardown.test.mjs`는 teardown이 1.5초 걸리는 파일을 1초 test timeout으로 실행합니다.
+setup(browser launch, server start, stylesheet compile, build)과 teardown(browser close, server stop,
+directory 삭제)은 test case가 아니라 장기 작업입니다. `node:test` 파일은 `scripts/test-progress/hooks.mjs`의
+`setup`과 `teardown`으로 이를 등록하며, 이는 timeout이 `Infinity`인 파일, suite, test 하나(`{ context: t }`)의
+`before`나 `after` hook입니다. 각각은 작업이 끝나면(browser가 launch되고, server가 listen하고, close가
+resolve되고, process가 종료되면) 끝나고, 그 오류는 파일을 실패시키며, 시작, 실행 중 5초마다의 줄, 경과
+시간과 함께 끝을 출력합니다. Vitest setup이나 teardown은 timeout이 `Infinity`인 `beforeAll`이나 `afterAll`
+hook입니다. test는 browser를 launch하지 않고 setup이 launch한 browser의 page를 엽니다.
+`tests/build/hooks.test.mjs`는 setup이나 teardown이 1.5초 걸리는 파일을 1초 test timeout으로 실행합니다.
 
 ## 시간과 부하
 

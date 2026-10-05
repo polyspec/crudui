@@ -6,7 +6,7 @@ import puppeteer from 'puppeteer';
 
 import { collectBrowserJob } from './browser-job.mjs';
 import { subscribeMainPageReadiness } from './main-page-readiness.mjs';
-import { teardown } from '../../../scripts/test-progress/teardown.mjs';
+import { setup, teardown } from '../../../scripts/test-progress/hooks.mjs';
 
 const mediaTypes = { '.mjs': 'text/javascript', '.json': 'application/json' };
 
@@ -34,10 +34,22 @@ async function publicModules(t) {
   return `http://127.0.0.1:${server.address().port}`;
 }
 
+// Launching a browser is a long operation, so the browser starts once before the tests. A second
+// connection to it, whose protocol calls time out after one second, serves the protocol timeout
+// tests; the launch itself keeps the default protocol timeout.
+let browser, shortProtocolBrowser;
+setup('browser launch', async () => {
+  browser = await puppeteer.launch({ headless: true });
+  shortProtocolBrowser = await puppeteer.connect({ browserWSEndpoint: browser.wsEndpoint(), protocolTimeout: 1_000 });
+});
+teardown('browser close', async () => {
+  await shortProtocolBrowser?.disconnect();
+  await browser?.close();
+});
+
 test('loads the public frame readiness module in Chromium', async t => {
-  const browser = await puppeteer.launch({ headless: true });
-  teardown('browser close', () => browser.close(), { context: t });
   const page = await browser.newPage();
+  teardown('page close', () => page.close(), { context: t });
   const origin = await publicModules(t);
   await page.goto(`${origin}/`, { waitUntil: 'load' });
   assert.deepEqual(await page.evaluate(async url => {
@@ -47,9 +59,8 @@ test('loads the public frame readiness module in Chromium', async t => {
 });
 
 test('reports whether the pointer is over a comparison frame in Chromium', async t => {
-  const browser = await puppeteer.launch({ headless: true });
-  teardown('browser close', () => browser.close(), { context: t });
   const page = await browser.newPage();
+  teardown('page close', () => page.close(), { context: t });
   const source = await readFile(new URL('./frame-pointer.mjs', import.meta.url), 'utf8');
   const moduleUrl = 'data:text/javascript,' + encodeURIComponent(source);
   await page.setContent('<div style="height:100px">page</div>'
@@ -67,9 +78,8 @@ test('reports whether the pointer is over a comparison frame in Chromium', async
 
 test('receives delayed main-page readiness without one open protocol call',
   { timeout: 10_000 }, async t => {
-    const browser = await puppeteer.launch({ headless: true, protocolTimeout: 1_000 });
-    teardown('browser close', () => browser.close(), { context: t });
-    const page = await browser.newPage();
+    const page = await shortProtocolBrowser.newPage();
+    teardown('page close', () => page.close(), { context: t });
     const readiness = await subscribeMainPageReadiness(page);
     const expected = {
       type: 'crudui:main-ready', server: 'php', framework: 'react',
@@ -82,17 +92,15 @@ test('receives delayed main-page readiness without one open protocol call',
 
 test('collects a browser job whose total duration exceeds one protocol call',
   { timeout: 30_000 }, async t => {
-    const browser = await puppeteer.launch({ headless: true, protocolTimeout: 1_000 });
-    teardown('browser close', () => browser.close(), { context: t });
-
-    const directPage = await browser.newPage();
+    const directPage = await shortProtocolBrowser.newPage();
     await assert.rejects(
       directPage.evaluate(() => new Promise(resolve => setTimeout(resolve, 1_500))),
       /Runtime\.callFunctionOn timed out/,
     );
     await directPage.close();
 
-    const jobPage = await browser.newPage();
+    const jobPage = await shortProtocolBrowser.newPage();
+    teardown('page close', () => jobPage.close(), { context: t });
     await jobPage.setContent('<!doctype html><title>browser job</title>');
     const listeners = new Set();
     await jobPage.exposeFunction('publishTestJobEvent', async event => {

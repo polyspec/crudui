@@ -5,10 +5,10 @@
 // horizontally on its own.
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { before, test } from 'node:test';
+import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { engineDrivers, engines } from './browser-engines.mjs';
-import { teardown } from '../scripts/test-progress/teardown.mjs';
+import { setup, teardown } from '../scripts/test-progress/hooks.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const stylesheet = readFileSync(`${root}packages/generator-core/styles/crudui.css`, 'utf8');
@@ -18,9 +18,9 @@ const cases = corpora.flatMap(corpus => JSON.parse(readFileSync(`${root}tests/fi
 const widths = [360, 1280];
 
 const browsers = {};
-before(async () => {
+setup('browser launch', async () => {
   for (const engine of engines) browsers[engine] = await engineDrivers[engine].launch();
-}, { timeout: 60000 });
+});
 teardown('browser close', () => Promise.all(Object.values(browsers).map(browser => browser.close())));
 
 // In the page: places one case and returns every overflow that the contract forbids.

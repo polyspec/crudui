@@ -1,5 +1,17 @@
 # Changes
 
+## 2026-10-05 — Setups without a hook timeout (C2.7-1)
+
+- `scripts/test-progress/hooks.mjs` replaces `scripts/test-progress/teardown.mjs` and adds `setup`,
+  a `before` hook of a file, a suite or a test with the timeout `Infinity` that ends when its
+  launch, start or compile settles and prints its start, a line every five seconds and its end.
+  The setup hooks of the style, Tailwind, viewport, widget script, form inspector, pipeline and
+  record store tests use it; they held limits of 60 or 120 seconds, the browser start limit or the
+  30-second timeout that node:test gives a hook without its own. The browser job test launches its
+  browser once in a setup instead of inside tests of 10 or 30 seconds, and connects to it a second
+  time with the one-second protocol timeout its protocol timeout tests need. The Vitest `beforeAll`
+  hooks of the cross-check console server and the form binding have the timeout `Infinity`.
+
 ## 2026-10-05 — Causal checks instead of elapsed-time bounds (C2.9)
 
 - No test bounds an elapsed time; `tests/build/test-commands.test.mjs` fails on an `assert.ok` that

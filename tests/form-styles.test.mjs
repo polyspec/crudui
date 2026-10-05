@@ -3,14 +3,14 @@
 // real browsers. Every check runs the same way in a page, in a scrolling box and in a frame, and
 // every engine runs the same scenario through one engine adapter.
 import assert from 'node:assert/strict';
-import { before, test } from 'node:test';
+import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createServer } from 'vite';
 import { engineDrivers, engines } from './browser-engines.mjs';
-import { teardown } from '../scripts/test-progress/teardown.mjs';
+import { setup, teardown } from '../scripts/test-progress/hooks.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const entry = '/__crudui_form_styles__.mjs';
@@ -83,7 +83,7 @@ const drivers = {
 };
 const browsers = {};
 let server, url, frameUrl, cacheDirectory;
-before(async () => {
+setup('server start and browser launch', async () => {
   cacheDirectory = await mkdtemp(join(tmpdir(), 'crudui-form-styles-'));
   server = await createServer({
     root, configFile: false, logLevel: 'error', cacheDir: cacheDirectory,
@@ -114,7 +114,7 @@ before(async () => {
   url = `${server.resolvedUrls.local[0]}form-styles`;
   frameUrl = `${server.resolvedUrls.local[0]}form-styles-frame`;
   for (const engine of engines) browsers[engine] = await drivers[engine].launch();
-}, { timeout: 60000 });
+});
 teardown('browser close', () => Promise.all(Object.values(browsers).map(browser => browser.close())));
 teardown('server stop', () => server?.close());
 teardown('cache removal', () => cacheDirectory && rm(cacheDirectory, { recursive: true, force: true }));

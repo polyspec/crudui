@@ -5,7 +5,7 @@
 // runs cloned scripts, which browsers never run, so only real browsers decide this rule. A list
 // script action runs its script each time its button is clicked.
 import assert from 'node:assert/strict';
-import { before, test } from 'node:test';
+import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -13,7 +13,7 @@ import { join } from 'node:path';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { createServer } from 'vite';
 import { engineDrivers, engines } from './browser-engines.mjs';
-import { teardown } from '../scripts/test-progress/teardown.mjs';
+import { setup, teardown } from '../scripts/test-progress/hooks.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const clientEntry = '/__crudui_script_runs__.mjs';
@@ -176,7 +176,7 @@ window.editor_tinymce = selector => { scriptRuns.push('row:' + /__[0-9a-z]+__/.e
 
 let server, url, cacheDirectory;
 const browsers = {};
-before(async () => {
+setup('server start and browser launch', async () => {
   cacheDirectory = await mkdtemp(join(tmpdir(), 'crudui-script-runs-'));
   server = await createServer({
     root, configFile: false, logLevel: 'error', cacheDir: cacheDirectory,
@@ -216,7 +216,7 @@ before(async () => {
   await server.listen();
   url = `${server.resolvedUrls.local[0]}script-runs`;
   for (const engine of engines) browsers[engine] = await engineDrivers[engine].launch();
-}, { timeout: 120000 });
+});
 teardown('browser close', () => Promise.all(Object.values(browsers).map(browser => browser.close())));
 teardown('server stop', () => server?.close());
 teardown('cache removal', () => cacheDirectory && rm(cacheDirectory, { recursive: true, force: true }));
