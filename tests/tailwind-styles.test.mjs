@@ -4,11 +4,11 @@
 // properties, as crudui.css at 360 and 1280 CSS pixels in Chromium, Firefox and WebKit.
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { before, test } from 'node:test';
+import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { compile } from '@tailwindcss/node';
 import { engineDrivers, engines } from './browser-engines.mjs';
-import { teardown } from '../scripts/test-progress/teardown.mjs';
+import { setup, teardown } from '../scripts/test-progress/hooks.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const styles = `${root}packages/generator-core/styles`;
@@ -19,7 +19,7 @@ const widths = [360, 1280];
 
 const browsers = {};
 let core, tailwind;
-before(async () => {
+setup('stylesheet compile and browser launch', async () => {
   core = readFileSync(`${styles}/crudui.css`, 'utf8');
   // A stylesheet that imports the Tailwind theme and utilities and then the CRUDUI file.
   const input = [
@@ -31,7 +31,7 @@ before(async () => {
   const compiler = await compile(input, { base: root, onDependency: () => {} });
   tailwind = compiler.build([]);
   for (const engine of engines) browsers[engine] = await engineDrivers[engine].launch();
-}, { timeout: 60000 });
+});
 teardown('browser close', () => Promise.all(Object.values(browsers).map(browser => browser.close())));
 
 // In the page: places one case and returns the computed style of every element, without custom

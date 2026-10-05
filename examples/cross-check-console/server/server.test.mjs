@@ -24,11 +24,12 @@ import { coerceSpec, handler } from './server.mjs';
 let server;
 let base;
 
+// The server start is a setup: it ends when the server listens and has no hook timeout.
 beforeAll(async () => {
   server = http.createServer(handler);
   await new Promise((resolve) => server.listen(0, resolve));
   base = `http://127.0.0.1:${server.address().port}`;
-});
+}, Infinity);
 
 // The server stop is a teardown: it ends when the close resolves and has no hook timeout.
 afterAll(async () => {

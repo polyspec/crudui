@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { before, test } from 'node:test';
+import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -7,7 +7,7 @@ import { join } from 'node:path';
 import puppeteer from 'puppeteer';
 import { createServer } from 'vite';
 
-import { teardown } from '../scripts/test-progress/teardown.mjs';
+import { setup, teardown } from '../scripts/test-progress/hooks.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const entry = '/__crudui_widget_scripts__.mjs';
@@ -69,7 +69,7 @@ window.widgetScriptTest = {
 `;
 
 let server, browser, url, cacheDirectory;
-before(async () => {
+setup('server start and browser launch', async () => {
   cacheDirectory = await mkdtemp(join(tmpdir(), 'crudui-widget-scripts-'));
   server = await createServer({
     root, configFile: false, logLevel: 'error', cacheDir: cacheDirectory,
@@ -97,7 +97,7 @@ before(async () => {
   await server.listen();
   url = `${server.resolvedUrls.local[0]}widget-scripts`;
   browser = await puppeteer.launch({ headless: true });
-}, { timeout: 60000 });
+});
 teardown('browser close', () => browser?.close());
 teardown('server stop', () => server?.close());
 teardown('cache removal', () => cacheDirectory && rm(cacheDirectory, { recursive: true, force: true }));

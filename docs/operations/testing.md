@@ -81,12 +81,15 @@ so a run whose tests all passed and whose tool exits with a nonzero code shows t
 caused the code. `tests/build/run-tests.test.mjs` runs a timed-out after hook under `node --test`
 and under Vitest.
 
-A teardown (a browser close, a server stop, a directory removal) is a long operation, not a test
-case. A `node:test` file registers it with `teardown` of `scripts/test-progress/teardown.mjs`, an
-`after` hook of the file or of one test (`{ context: t }`) with the timeout `Infinity`: it ends when
-its close resolves or its process exits, its error fails the file, and it prints its start, a line
-every five seconds while it runs and its end with the elapsed time. A Vitest teardown is an
-`afterAll` hook with the timeout `Infinity`. `tests/build/teardown.test.mjs` runs a file whose
+A setup (a browser launch, a server start, a stylesheet compile, a build) and a teardown (a
+browser close, a server stop, a directory removal) are long operations, not test cases. A
+`node:test` file registers them with `setup` and `teardown` of `scripts/test-progress/hooks.mjs`, a
+`before` or `after` hook of the file, of a suite or of one test (`{ context: t }`) with the timeout
+`Infinity`: each ends when its operation settles (the browser launched, the server listens, the
+close resolved, the process exited), its error fails the file, and it prints its start, a line
+every five seconds while it runs and its end with the elapsed time. A Vitest setup or teardown is a
+`beforeAll` or `afterAll` hook with the timeout `Infinity`. A test opens pages of a browser that a
+setup launched instead of launching one. `tests/build/hooks.test.mjs` runs files whose setup or
 teardown takes 1.5 seconds under a test timeout of one second.
 
 ## Time and load

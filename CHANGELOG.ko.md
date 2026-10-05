@@ -1,5 +1,16 @@
 # 변경 기록
 
+## 2026-10-05 — hook timeout 없는 setup (C2.7-1)
+
+- `scripts/test-progress/hooks.mjs`가 `scripts/test-progress/teardown.mjs`를 대신하며 `setup`을
+  더합니다. 이는 timeout이 `Infinity`인 파일, suite, test의 `before` hook으로, launch, start, compile이
+  끝나면 끝나고 시작, 5초마다의 줄, 끝을 출력합니다. style, Tailwind, viewport, widget script, form
+  inspector, pipeline, record store test의 setup hook이 이를 씁니다. 이 hook들은 60초나 120초 한도,
+  browser start 한도, 또는 node:test가 자기 timeout 없는 hook에 주는 30초를 가졌습니다. browser job
+  test는 10초나 30초 test 안이 아니라 setup에서 browser를 한 번 launch하고, protocol timeout test가
+  필요로 하는 1초 protocol timeout으로 한 번 더 connect합니다. cross-check console
+  server와 form binding의 Vitest `beforeAll` hook은 timeout `Infinity`를 가집니다.
+
 ## 2026-10-05 — 경과 시간 한도 대신 원인 확인 (C2.9)
 
 - 어떤 test도 경과 시간에 한도를 두지 않습니다. `tests/build/test-commands.test.mjs`는 경과 시간을

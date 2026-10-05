@@ -39,7 +39,10 @@ let origin: string;
 const posts: string[] = [];
 let nextPost: ((body: string) => void) | undefined;
 
+// The bundle build, the server start and the browser launches are a setup: it ends when the last
+// browser has launched and has no hook timeout.
 beforeAll(async () => {
+  const started = performance.now();
   const output = await build({
     entryPoints: [fileURLToPath(new URL('../src/index.ts', import.meta.url))],
     bundle: true, format: 'esm', platform: 'browser', write: false, logLevel: 'silent',
@@ -68,7 +71,8 @@ beforeAll(async () => {
   await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
   origin = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
   for (const engine of engines) browsers[engine] = await engineDrivers[engine].launch();
-}, 120000);
+  process.stdout.write(`[setup] bundle build, server start and browser launch: finished in ${((performance.now() - started) / 1000).toFixed(1)}s\n`);
+}, Infinity);
 
 // The browser close and the server stop are a teardown: it ends when both close calls resolve and
 // has no hook timeout.

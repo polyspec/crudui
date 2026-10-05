@@ -5,16 +5,13 @@ import assert from 'node:assert/strict';
 import { mkdir, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { before, describe, test } from 'node:test';
+import { describe, test } from 'node:test';
 
-import { teardown } from '../../scripts/test-progress/teardown.mjs';
+import { setup, teardown } from '../../scripts/test-progress/hooks.mjs';
 
 import { freePort, prepareRecordServers, recordPublicDirectory, recordServerProcess, startProcess } from './src/local-servers.mjs';
 import { recordClient, recordContractCases, recordServers, recordStoreName } from './src/record-contract.mjs';
 
-// The preparation is the checkout and the parallel builds. Every operation in it holds its own limit
-// and prints its progress, so the hook that runs them has no limit of its own.
-const preparationHook = { timeout: Infinity };
 // One contract case, including a server restart; the process start alone measured 79 to 96 ms.
 const caseLimitMs = 20_000;
 
@@ -22,11 +19,12 @@ let root;
 let prepared;
 let publicDirectory;
 
-before(async () => {
+// The preparation is the checkout and the parallel builds; each prints its progress.
+setup('record server preparation', async () => {
   root = await mkdtemp(path.join(tmpdir(), 'crudui-record-stores-'));
   publicDirectory = await recordPublicDirectory(path.join(root, 'public'));
   prepared = await prepareRecordServers({ buildDirectory: path.join(root, 'bin') });
-}, preparationHook);
+});
 
 teardown('directory removal', () => root && rm(root, { recursive: true, force: true }));
 
@@ -41,7 +39,7 @@ for (const server of recordServers) {
       });
       running = await startProcess(definition);
     }
-    before(async () => {
+    setup(`${server} server start`, async () => {
       await mkdir(dataDirectory(), { recursive: true });
       await start();
       client = recordClient({
@@ -49,7 +47,7 @@ for (const server of recordServers) {
         storeFile: path.join(dataDirectory(), recordStoreName(server)),
         restart: async () => { await running.stop(); await start(); },
       });
-    }, { timeout: 60_000 });
+    });
     teardown(`${server} server stop`, () => running?.stop());
 
     for (const contractCase of recordContractCases) {

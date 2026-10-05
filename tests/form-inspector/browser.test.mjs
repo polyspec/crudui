@@ -2,16 +2,16 @@
 // pseudo-element content changes and nothing else.
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { before, test } from 'node:test';
+import { test } from 'node:test';
 import puppeteer from 'puppeteer';
 
-import { teardown } from '../../scripts/test-progress/teardown.mjs';
+import { setup, teardown } from '../../scripts/test-progress/hooks.mjs';
 
 const source = await readFile(new URL('./form-snapshot.mjs', import.meta.url), 'utf8');
 const moduleUrl = `data:text/javascript;base64,${Buffer.from(source).toString('base64')}`;
 let browser, page;
 
-before(async () => {
+setup('browser launch and page', async () => {
   browser = await puppeteer.launch({ headless: true });
   page = await browser.newPage();
   await page.setContent('<style>.row { color: rgb(1, 2, 3); } .row::before { content: "Before"; } .row::after { content: "After"; }</style><form><div class="row"><input name="form[name]" value="Saved"></div></form>');

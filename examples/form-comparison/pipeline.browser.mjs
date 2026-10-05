@@ -5,12 +5,11 @@ import assert from 'node:assert/strict';
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { before, describe, test } from 'node:test';
+import { describe, test } from 'node:test';
 import puppeteer from 'puppeteer';
 
-import { teardown } from '../../scripts/test-progress/teardown.mjs';
+import { setup, teardown } from '../../scripts/test-progress/hooks.mjs';
 
-import { browserUnitLimitsMs } from './browser-report-policy.mjs';
 import {
   exampleDirectory, freePort, prepareRecordServers, publicServerDefinition, recordServerProcess, repositoryRoot,
   startProcess,
@@ -25,16 +24,14 @@ import { runStages } from './src/step-runner.mjs';
 
 // The public build measured 2.0 s.
 const publicBuildLimitMs = 120_000;
-// The stack hook runs the checkout, the builds and the process starts. Every operation in it holds
-// its own limit and prints its progress, so the hook has no limit of its own.
-const stackHook = { timeout: Infinity };
 
 let root;
 let browser;
 let origin;
 const processes = [];
 
-before(async () => {
+// The stack setup runs the checkout, the builds and the process starts and prints their progress.
+setup('stack start', async () => {
   root = await mkdtemp(path.join(tmpdir(), 'crudui-pipeline-'));
   const publicDirectory = path.join(root, 'public');
   const dataDirectory = path.join(root, 'data');
@@ -64,11 +61,11 @@ before(async () => {
   const failed = started.find(result => result.status === 'rejected');
   if (failed) throw failed.reason;
   origin = processes.at(-1).origin;
-}, stackHook);
+});
 
-before(async () => {
+setup('browser launch', async () => {
   browser = await puppeteer.launch({ headless: true, protocolTimeout: pipelineUnitLimitMs });
-}, { timeout: browserUnitLimitsMs['browser-start'] });
+});
 
 // The teardowns end when the browser has closed, every server process has exited and the
 // directory is removed; the servers stop at the same time.
