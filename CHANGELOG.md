@@ -1,5 +1,12 @@
 # Changes
 
+## 2026-10-05 — Process tree stops of exited groups (C2.16)
+
+- `killProcessTree` of the form comparison completes when the group of the stopped process holds
+  only exited processes: a group signal answered with EPERM, as macOS answers for a group whose
+  processes have exited but are not yet reaped, leaves nothing to stop. The stop failed with
+  `kill EPERM` after it had killed the tree.
+
 ## 2026-10-05 — Source changes published from the host (C2.10)
 
 - The form comparison supervisor compares the mounted repository at every `SIGUSR2` instead of
