@@ -109,20 +109,19 @@ validator test or a PHP extension engine fixture reads a clock.
 - a `node:test` file is run by no project command;
 - a TypeScript package has no `typecheck` script, or CI does not run `npm run typecheck`.
 
-## Command limits
+## Commands of long operations
 
-A script that runs other commands gives each of them a time limit through
-`scripts/bounded-command.mjs`: the declared commands of `npm run manifest:test`
-(`scripts/run-contract-tests.mjs`, 600 seconds each), the package build of
-`scripts/require-current-build.mjs` (600 seconds), each tool command of `scripts/gen-api-docs.mjs`
-(600 seconds), each benchmark driver of `tools/bench/run.js` (600 seconds) and each driver build of
-`tools/bench/build-drivers.mjs` (600 seconds). The command starts in
-its own process group. At the limit the group receives SIGTERM, and SIGKILL once the command ends or
-two seconds later, so the wrapper the script started (npm, `go run`, `cargo run`, `/bin/sh`) and
-every process under it stop, including one that ignores SIGTERM. The script then fails and names
-the limit. Each command prints its elapsed time. `CRUDUI_COMMAND_LIMIT_SECONDS` replaces the limit
-for a slower machine. `tests/build/bounded-commands.test.mjs`, run by `npm run test:build`, runs
-each script with a command that never ends and a one-second limit.
+A script that runs other commands runs each of them to its end through `scripts/run-command.mjs`:
+the declared commands of `npm run manifest:test` (`scripts/run-contract-tests.mjs`), the package
+build of `scripts/require-current-build.mjs`, each tool command of `scripts/gen-api-docs.mjs`, each
+benchmark driver of `tools/bench/run.js` and each driver build of `tools/bench/build-drivers.mjs`.
+A command has no time limit: its exit ends it and its exit status decides the result, and the
+script prints the command with its elapsed time. The command starts in its own process group; when
+it exits, the processes it left in the group are stopped, so a process that keeps an output pipe
+open cannot hold the script. An interrupted script stops its running commands.
+`tests/build/run-command.test.mjs`, run by `npm run test:build`, runs each script with a command
+that ends after 1.2 seconds, and checks with the close of the script's output that a child the
+command left behind was stopped.
 
 `make conformance` runs every suite that records conformance evidence and checks that evidence
 against the feature contract; see [conformance evidence](../spec/conformance.md).

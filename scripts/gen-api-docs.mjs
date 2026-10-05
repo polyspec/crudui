@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 /**
  * Generate public API references; a failed tool or missing output fails the command. Each tool
- * command has a time limit, at which its whole process group stops (scripts/bounded-command.mjs),
- * and prints its elapsed time.
+ * command runs to its end without a time limit (scripts/run-command.mjs) and prints its elapsed
+ * time.
  */
 import { cpSync, existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { basename, dirname, join, relative } from 'node:path';
 
-import { commandLimitMs, failureOf, runBounded } from './bounded-command.mjs';
+import { failureOf, runCommand } from './run-command.mjs';
 import { createProgress } from './test-progress/progress.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -22,18 +22,15 @@ if (!['all', 'ts', 'go', 'rust', 'php'].includes(target)) {
 const want = name => target === 'all' || target === name;
 const packages = ['validator-ts', 'generator-core', 'generator-html', 'generator-react', 'generator-vue', 'generator-svelte', 'form-binding'];
 
-// One tool command: a package build, one TypeDoc package, one Go listing or page, rustdoc or phpDocumentor.
-const COMMAND_LIMIT_SECONDS = 600;
-const limitMs = commandLimitMs(COMMAND_LIMIT_SECONDS);
 const lines = createProgress({ write: text => process.stdout.write(text) });
 const shown = value => value.startsWith(ROOT) ? relative(ROOT, value) || '.' : value;
 
-/** Run one tool command within its limit; `capture` returns its standard output. */
+/** Run one tool command to its end; `capture` returns its standard output. */
 async function run(command, args, cwd = ROOT, { capture = false } = {}) {
   const id = [basename(command), ...args.map(shown)].join(' ');
   lines.start(id, { group: true });
-  const result = await runBounded({ command, args, cwd, limitMs, stdout: capture ? 'pipe' : 'inherit' });
-  const failure = failureOf(result, limitMs);
+  const result = await runCommand({ command, args, cwd, stdout: capture ? 'pipe' : 'inherit' });
+  const failure = failureOf(result);
   if (failure) {
     lines.fail(id, result.elapsedMs, failure);
     throw new Error(`Command failed: ${id} ${failure}`);

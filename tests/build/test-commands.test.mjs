@@ -139,7 +139,7 @@ test('CI has no time limit over a long operation, a test step or a job', () => {
 });
 
 // The Go and Rust benchmark drivers compile for minutes on a cold cache. The build is its own step
-// with step logs and a build limit; the test runs the built drivers, each test within seconds.
+// with step logs and no time limit; the test runs the built drivers, each test within seconds.
 test('the benchmark driver test runs built drivers within the default test timeout', () => {
   const command = JSON.parse(read('package.json')).scripts['test:bench'];
   const build = command.indexOf('node tools/bench/build-drivers.mjs');

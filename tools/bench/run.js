@@ -22,10 +22,10 @@
  *       --only js,go (comma list), --json (print raw JSON, skip table/file).
  * The counts follow the rule of arguments.js, checked before any driver starts.
  *
- * Each driver runs with a time limit in its own process group
- * (scripts/bounded-command.mjs): at the limit the whole group stops, including
- * the `go run` and cargo processes that sit between this script and the
- * benchmark program. CRUDUI_COMMAND_LIMIT_SECONDS replaces the limit.
+ * Each driver runs to its end in its own process group without a time limit
+ * (scripts/run-command.mjs); its exit status decides the result, and the
+ * processes it leaves behind, such as the benchmark program under `go run` or
+ * cargo, are stopped when it exits.
  */
 
 const fs = require('fs');
@@ -38,10 +38,7 @@ const FIXTURES = path.join(BENCH_DIR, 'fixtures');
 const REPO_ROOT = path.resolve(BENCH_DIR, '..', '..');
 const RESULTS_MD = path.join(BENCH_DIR, 'results.md');
 const RUST_COMMAND = path.join(REPO_ROOT, 'scripts/run-rust-command.mjs');
-const BOUNDED_COMMAND = path.join(REPO_ROOT, 'scripts/bounded-command.mjs');
-// One driver: its build (Go, Rust) and both specs at the requested counts.
-const DRIVER_LIMIT_SECONDS = 600;
-const VERSION_LIMIT_SECONDS = 30;
+const RUN_COMMAND = path.join(REPO_ROOT, 'scripts/run-command.mjs');
 
 const SPECS = [
   { name: 'contact', label: 'contact (small, ~6 fields)' },
@@ -101,20 +98,18 @@ function drivers(iters, warmup) {
   };
 }
 
-/** Run one driver within its limit, parse its JSON lines. Returns { ok, rows, error }. */
-async function runDriver(bounded, lang, d) {
-  const limitMs = bounded.commandLimitMs(DRIVER_LIMIT_SECONDS);
-  const res = await bounded.runBounded({
+/** Run one driver to its end, parse its JSON lines. Returns { ok, rows, error }. */
+async function runDriver(commands, lang, d) {
+  const res = await commands.runCommand({
     command: d.cmd,
     args: d.args,
     cwd: d.cwd,
     env: d.env,
-    limitMs,
     stdout: 'pipe',
     stderr: 'pipe',
   });
-  const failure = bounded.failureOf(res, limitMs);
-  process.stderr.write(`[bench] ${lang} ${failure ? 'stopped' : 'finished'} after ${bounded.formatSeconds(res.elapsedMs)}\n`);
+  const failure = commands.failureOf(res);
+  process.stderr.write(`[bench] ${lang} ${failure ? 'failed' : 'finished'} after ${commands.formatSeconds(res.elapsedMs)}\n`);
   if (failure) {
     return { ok: false, error: `${lang}: ${failure}\n${res.stderr || res.stdout}` };
   }
@@ -277,10 +272,9 @@ function writeResultsMd(table, args, langs, meta) {
   fs.writeFileSync(RESULTS_MD, lines.join('\n') + '\n');
 }
 
-async function toolVersion(bounded, cmd, args) {
-  const limitMs = bounded.commandLimitMs(VERSION_LIMIT_SECONDS);
-  const r = await bounded.runBounded({ command: cmd, args, limitMs, stdout: 'pipe', stderr: 'pipe' });
-  if (bounded.failureOf(r, limitMs)) return 'unavailable';
+async function toolVersion(commands, cmd, args) {
+  const r = await commands.runCommand({ command: cmd, args, stdout: 'pipe', stderr: 'pipe' });
+  if (commands.failureOf(r)) return 'unavailable';
   return (r.stdout || r.stderr || '').trim().split('\n')[0] || 'unknown';
 }
 
@@ -294,14 +288,14 @@ async function main() {
     process.exit(1);
   }
 
-  const bounded = await import(pathToFileURL(BOUNDED_COMMAND).href);
+  const commands = await import(pathToFileURL(RUN_COMMAND).href);
   const d = drivers(args.iters, args.warmup);
   const byLangBySpec = {};
   const failures = [];
 
   for (const lang of langs) {
     process.stderr.write(`[bench] running ${lang} (iters=${args.iters}, warmup=${args.warmup})...\n`);
-    const out = await runDriver(bounded, lang, d[lang]);
+    const out = await runDriver(commands, lang, d[lang]);
     if (!out.ok) {
       failures.push(out.error);
       process.stderr.write(`[bench] ${lang} FAILED: ${out.error}\n`);
@@ -331,10 +325,10 @@ async function main() {
   if (!args.json) {
     printTable(table);
     const meta = {
-      node: await toolVersion(bounded, 'node', ['--version']),
-      php: await toolVersion(bounded, 'php', ['--version']),
-      go: await toolVersion(bounded, 'go', ['version']),
-      cargo: await toolVersion(bounded, process.execPath, [RUST_COMMAND, '--version']),
+      node: await toolVersion(commands, 'node', ['--version']),
+      php: await toolVersion(commands, 'php', ['--version']),
+      go: await toolVersion(commands, 'go', ['version']),
+      cargo: await toolVersion(commands, process.execPath, [RUST_COMMAND, '--version']),
     };
     writeResultsMd(table, args, okLangs, meta);
     console.log(`[bench] wrote ${path.relative(REPO_ROOT, RESULTS_MD)}`);

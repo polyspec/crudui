@@ -35,10 +35,10 @@ directory) and checks every driver against `tools/bench/iteration-arguments.json
 argument pair with its message under `rejected`, and under `accepted` one run of the `contact`
 fixture with the smallest counts, whose report must name that spec and that iteration count.
 
-`run.js` gives each driver 600 seconds, including the `go run` or cargo
-build. The driver runs in its own process group; at the limit the whole group
-stops, and the run reports that backend as failed.
-`CRUDUI_COMMAND_LIMIT_SECONDS` replaces the limit.
+`run.js` runs each driver, including the `go run` or cargo build, to its end
+without a time limit. The driver runs in its own process group; its exit
+status decides the result, a failed driver is reported as a failed backend, and
+the processes it leaves behind are stopped when it exits.
 
 ## What is measured
 

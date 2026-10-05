@@ -1,5 +1,19 @@
 # Changes
 
+## 2026-10-05 — Commands of long operations without a limit (C2.3-1)
+
+- `scripts/run-command.mjs` replaces `scripts/bounded-command.mjs`. It runs a command to its exit
+  without a time limit, takes the exit status as the result, and stops the processes the command
+  left in its process group when it exits, so a process that holds an output pipe cannot hold the
+  caller. The package build of `scripts/require-current-build.mjs`, the tools of
+  `scripts/gen-api-docs.mjs`, the declared commands of `scripts/run-contract-tests.mjs`, the drivers
+  and version queries of `tools/bench/run.js` and the driver builds of `tools/bench/build-drivers.mjs`
+  have no limit of 600 or 30 seconds, and `CRUDUI_COMMAND_LIMIT_SECONDS` is removed.
+  `build-drivers.mjs` streams the compiler output with its step lines. With the former module and a
+  one-second limit, each script failed on a command that ends after 1.2 seconds;
+  `tests/build/run-command.test.mjs` replaces `tests/build/bounded-commands.test.mjs` and checks the
+  stop of a left-behind child through the close of the script's output instead of a bound on time.
+
 ## 2026-10-05 — CI without time limits (C2.2-1)
 
 - The CI workflow has no `timeout-minutes`. A step runs tests, whose cases hold their own timeouts

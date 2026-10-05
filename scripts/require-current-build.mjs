@@ -7,19 +7,17 @@
  * to run `npm run build` again, so one verification run built the same packages
  * three times. The rule here replaces that repetition: a command declares that it
  * needs a current build, and the build runs only when the recorded source and output
- * digests no longer match the working tree. The build has a time limit, at which its whole
- * process group stops (scripts/bounded-command.mjs).
+ * digests no longer match the working tree. The build runs to its end without a time limit, and
+ * its output streams as it runs (scripts/run-command.mjs).
  */
 import { createHash } from 'node:crypto';
 import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { commandLimitMs, failureOf, formatSeconds, runBounded } from './bounded-command.mjs';
+import { failureOf, formatSeconds, runCommand } from './run-command.mjs';
 import { createProgress } from './test-progress/progress.mjs';
 
-// The build of the workspace packages; scripts/bounded-command.mjs stops it at this limit.
-const BUILD_LIMIT_SECONDS = 600;
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const STAMP = path.join(ROOT, 'node_modules/.cache/crudui/build-stamp.json');
 const PACKAGES = ['validator-ts', 'generator-core', 'generator-html', 'generator-react', 'generator-vue', 'generator-svelte', 'form-binding'];
@@ -56,11 +54,10 @@ async function state() {
   return { inputs: digest(JSON.stringify(inputs)), outputs: digest(JSON.stringify(outputs)), packages: PACKAGES };
 }
 
-/** Run the build within its limit; at the limit its whole process group stops. */
+/** Run the build to its end; its exit status decides the result. */
 async function run(command, args) {
-  const limitMs = commandLimitMs(BUILD_LIMIT_SECONDS);
-  const result = await runBounded({ command, args, cwd: ROOT, limitMs });
-  const failure = failureOf(result, limitMs);
+  const result = await runCommand({ command, args, cwd: ROOT });
+  const failure = failureOf(result);
   if (failure) throw new Error(`${command} ${args.join(' ')} ${failure}`);
   lines.line(`build: ${command} ${args.join(' ')} finished in ${formatSeconds(result.elapsedMs)}`);
 }
