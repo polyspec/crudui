@@ -41,7 +41,7 @@ function run(mode, args) {
 const diagnostics = result => `${result.stderr}\n${result.stdout}`;
 function success(mode, name, args) {
   const result = run(mode, args);
-  assert.equal(result.error, undefined, `${mode}/${name}: ${result.error?.message}`);
+  assert.equal(result.error, undefined, `${mode}/${name}: php -n ${args.join(' ')}: ${result.error?.message}${result.error?.code === 'ETIMEDOUT' ? ' after its 60000 ms limit' : ''}`);
   assert.equal(result.signal, null, `${mode}/${name}: terminated by ${result.signal}`);
   assert.equal(result.status, 0, `${mode}/${name}: ${result.stderr}\n${result.stdout}`);
   process.stdout.write(`${mode}: ${result.stdout}`);

@@ -1,5 +1,15 @@
 # Changes
 
+## 2026-10-05 — Failures that name what failed and why (C7.8)
+
+- A test that outlives its timeout prints its elapsed time, its limit and the command that the runner
+  stops; the other limits of the checks name their command, limit and elapsed time too.
+  `scripts/run-tests.mjs` reports a tool that cannot start with its path, the error and the command
+  that installs it instead of ending on an unhandled error; a Go package that ran no test case is
+  reported as `ran no test case` instead of passed. Every file read of the Rust programs and tests
+  names the path and the error; `tests/build/failure-messages.test.mjs` fails for a read that drops
+  them.
+
 ## 2026-10-05 — A stopped process tree is gone when the stop ends (C7.10)
 
 - `killProcessTree` of the form comparison step runner resolves when the step's process has exited

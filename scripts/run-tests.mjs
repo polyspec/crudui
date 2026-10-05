@@ -80,20 +80,31 @@ function splitCargo(args) {
 /** Read go test -json events into progress lines; a test's output is shown only when it fails. */
 export function goEvents(progress) {
   const output = new Map();
+  // The test cases that each package started; a package that started none passed nothing.
+  const started = new Map();
   return line => {
     let event;
     try { event = JSON.parse(line); } catch { return progress.line(line); }
     const id = event.Test ? `${event.Package} › ${event.Test.replaceAll('/', ' › ')}` : event.Package;
     const group = !event.Test;
     switch (event.Action) {
-      case 'start': return progress.start(id, { group: true });
-      case 'run': return group ? undefined : progress.start(id);
+      case 'start': started.set(event.Package, 0); return progress.start(id, { group: true });
+      case 'run':
+        if (group) return undefined;
+        started.set(event.Package, (started.get(event.Package) ?? 0) + 1);
+        return progress.start(id);
       case 'output': {
         if (group) { if (!/^(?:ok|PASS|FAIL|\?)\s/.test(event.Output)) process.stdout.write(event.Output); return; }
         output.set(id, (output.get(id) ?? '') + event.Output);
         return;
       }
-      case 'pass': output.delete(id); return group ? progress.pass(id, event.Elapsed * 1000) : progress.pass(id, event.Elapsed * 1000);
+      case 'pass':
+        output.delete(id);
+        if (group && !started.get(event.Package)) {
+          progress.skip(id);
+          return progress.line(`○ ${id}: ran no test case`);
+        }
+        return progress.pass(id, event.Elapsed * 1000);
       case 'skip': output.delete(id); return progress.skip(id);
       case 'fail': {
         const text = (output.get(id) ?? '').split('\n').filter(entry => !/^\s*(?:=== RUN|--- FAIL|=== (?:PAUSE|CONT))/.test(entry)).join('\n');
@@ -195,6 +206,17 @@ export function phpunitEvents(progress) {
   };
 }
 
+/** The command that installs the program of a tool that cannot start. */
+export function installFix({ tool, cwd }) {
+  return {
+    node: 'install the Node.js release of .node-version',
+    vitest: 'npm ci --strict-allow-scripts',
+    go: 'install the Go release of .go-version',
+    cargo: 'install the Node.js release of .node-version',
+    phpunit: `composer --working-dir=${cwd} install --no-interaction --prefer-dist`,
+  }[tool];
+}
+
 async function main() {
   const options = parseArguments(process.argv.slice(2));
   const { command, args } = toolCommand(options);
@@ -209,10 +231,13 @@ async function main() {
   const env = { ...process.env };
   delete env.NODE_TEST_CONTEXT;
   const child = spawn(command, args, { cwd: options.cwd, env, stdio: ['ignore', reads ? 'pipe' : 'inherit', cargo ? 'pipe' : 'inherit'], detached: reads });
+  // A tool that cannot start fails the run with its path, the cause and the command that installs it.
+  const failedStart = new Promise(resolve => child.once('error', resolve));
   let timedOut = false;
   const progress = reads ? createProgress({
     write: text => process.stdout.write(text),
     timeoutMs: options.timeoutSeconds * 1000,
+    command: [command, ...args].join(' '),
     onTimeout: () => { timedOut = true; process.kill(-child.pid, 'SIGTERM'); },
   }) : undefined;
   if (cargo) {
@@ -222,7 +247,17 @@ async function main() {
   } else if (reads) {
     readline.createInterface({ input: child.stdout }).on('line', { go: goEvents, phpunit: phpunitEvents }[options.tool](progress));
   }
-  const { status, signal } = await new Promise(resolve => child.on('close', (status, signal) => resolve({ status, signal })));
+  const ended = await Promise.race([
+    new Promise(resolve => child.on('close', (status, signal) => resolve({ status, signal }))),
+    failedStart.then(error => ({ error })),
+  ]);
+  if (ended.error) {
+    progress?.close(label, { exitCode: 1 });
+    process.stdout.write(`✖ ${label}: cannot start ${command}: ${ended.error.message}; fix: ${installFix(options)}\n`);
+    process.exitCode = 1;
+    return;
+  }
+  const { status, signal } = ended;
   const code = status ?? (signal ? 1 : 0);
   if (progress) {
     const summary = progress.close(label, { exitCode: timedOut ? 0 : code, requireTests: true });

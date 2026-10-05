@@ -263,3 +263,50 @@ test('a go run of packages without tests fails with ran no test case', async () 
     await rm(directory, { recursive: true, force: true });
   }
 });
+
+test('a go package that ran no test case is not counted as passed', () => {
+  const { lines, progress } = recorder();
+  const read = goEvents(progress);
+  for (const event of [
+    { Action: 'start', Package: 'empty' },
+    { Action: 'output', Package: 'empty', Output: 'testing: warning: no tests to run\n' },
+    { Action: 'output', Package: 'empty', Output: 'ok  \tempty\t0.1s [no tests to run]\n' },
+    { Action: 'pass', Package: 'empty', Elapsed: 0.1 },
+    { Action: 'start', Package: 'tested' },
+    { Action: 'run', Package: 'tested', Test: 'TestA' },
+    { Action: 'pass', Package: 'tested', Test: 'TestA', Elapsed: 0 },
+    { Action: 'pass', Package: 'tested', Elapsed: 0.2 },
+  ]) read(JSON.stringify(event));
+  assert.ok(lines.includes('○ empty: ran no test case'), lines.join('\n'));
+  assert.equal(lines.some(line => line.startsWith('✔ empty')), false, lines.join('\n'));
+  assert.ok(lines.includes('✔ tested (0.2s)'), lines.join('\n'));
+  assert.match(progress.close('go .', { requireTests: true }).ok ? 'ok' : 'failed', /ok/);
+});
+
+test('a test that outlives its timeout names the command, the limit and the elapsed time', () => {
+  const lines = [];
+  let clock = 0;
+  let stopped = 0;
+  const progress = createProgress({
+    write: text => lines.push(text.replace(/^\[\s*[\d.]+s\] /, '').trim()), now: () => clock, heartbeatMs: 10,
+    timeoutMs: 1000, command: 'go test -json ./...', onTimeout: () => { stopped++; },
+  });
+  progress.start('p › TestSlow');
+  clock = 1500;
+  return new Promise(resolve => setTimeout(resolve, 30)).then(() => {
+    progress.close('go .');
+    assert.equal(stopped, 1);
+    assert.ok(lines.includes('⏱ p › TestSlow ran 1.5s and exceeded its 1.0s timeout; stopping `go test -json ./...`'), lines.join('\n'));
+  });
+});
+
+test('a tool that cannot start names its path and the command that installs it', async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-run-tests-'));
+  try {
+    const run = await runAsync([path.join(ROOT, 'scripts/run-tests.mjs'), 'phpunit', '--cwd', directory]);
+    assert.notEqual(run.status, 0);
+    assert.match(run.stdout + run.stderr, new RegExp(`cannot start ${directory.replaceAll('/', '\\/')}\\/vendor\\/bin\\/phpunit: spawn [^\\n]*ENOENT; fix: composer --working-dir=${directory.replaceAll('/', '\\/')} install --no-interaction --prefer-dist`));
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});

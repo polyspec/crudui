@@ -1,5 +1,12 @@
 # 변경 기록
 
+## 2026-10-05 — 무엇이 왜 실패했는지 밝히는 실패 (C7.8)
+
+- timeout을 넘긴 test는 경과 시간, 한도, runner가 멈추는 명령을 출력하고, 검사의 다른 한도도 명령, 한도, 경과 시간을
+  밝힙니다. `scripts/run-tests.mjs`는 시작할 수 없는 tool을 처리되지 않은 오류로 끝나는 대신 그 경로, 오류, 설치 명령으로
+  보고하고, test case를 실행하지 않은 Go package는 통과 대신 `ran no test case`로 보고합니다. Rust program과 test의 모든
+  file 읽기는 경로와 오류를 밝히며, `tests/build/failure-messages.test.mjs`는 그것을 버리는 읽기에 대해 실패합니다.
+
 ## 2026-10-05 — 중지가 끝나면 사라진 process tree (C7.10)
 
 - form comparison step runner의 `killProcessTree`는 step의 process가 끝나고 그 output pipe가 닫히면 끝나며, pipe는 그것을 가진

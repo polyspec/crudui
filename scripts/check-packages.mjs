@@ -48,10 +48,11 @@ let commandTimeout = 120000;
 // Commands run asynchronously, so the progress lines keep reporting while one runs.
 // `input`, when given, is written to the command's standard input.
 function run(command, args, cwd = directory, input = undefined) {
+  const started = Date.now();
   return new Promise((resolve, reject) => {
     const child = execFile(command, args, { cwd, encoding: 'utf8', timeout: commandTimeout, killSignal: 'SIGKILL', maxBuffer: 64 * 1024 * 1024 }, (error, stdout, stderr) => {
       if (!error) return resolve(stdout);
-      if (error.signal === 'SIGKILL') error.message = `${command} ${args.join(' ')} exceeded its ${commandTimeout} ms limit`;
+      if (error.signal === 'SIGKILL') error.message = `${command} ${args.join(' ')} ran ${Date.now() - started} ms and exceeded its ${commandTimeout} ms limit`;
       Object.assign(error, { stdout, stderr });
       reject(error);
     });

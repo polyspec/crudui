@@ -201,7 +201,7 @@ async function runCheck(target, name, operation, proves) {
   let expired;
   lines.start(id);
   const budgetTimer = setTimeout(() => {
-    expired = new Error(`${name} exceeded its ${budget} ms budget; the check and its processes were stopped`);
+    expired = new Error(`${name} ran ${Date.now() - started} ms and exceeded its ${budget} ms budget; the check and its processes were stopped`);
     controller.abort(expired);
   }, budget);
   const expiry = new Promise((resolve, reject) => controller.signal.addEventListener('abort', () => reject(expired), { once: true }));

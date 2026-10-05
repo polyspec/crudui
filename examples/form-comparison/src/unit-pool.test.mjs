@@ -27,8 +27,8 @@ test('a unit that outlives its own timeout fails with its id and aborts its acti
     run: signal => new Promise(() => signal.addEventListener('abort', () => { aborted = signal.reason; })),
   }, { write: text => lines.push(text), heartbeatMs: 1_000 });
   assert.equal(result.status, 'timed-out');
-  assert.match(aborted.message, /stuck timed out after/);
-  assert.match(lines.at(-1), /stuck: timed out after/);
+  assert.match(aborted.message, /^stuck ran [\d.]+m?s and exceeded its [\d.]+m?s timeout$/);
+  assert.match(lines.at(-1), /stuck: ran [\d.]+m?s and exceeded its [\d.]+m?s timeout/);
 });
 
 test('a failed unit keeps its error and the pool keeps running the others', async () => {

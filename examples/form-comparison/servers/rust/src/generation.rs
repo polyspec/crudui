@@ -229,14 +229,16 @@ fn document(
     query: Option<&str>,
 ) -> Result<Response> {
     let language = frame_language(query)?;
-    let frame = std::fs::read_to_string(
-        server
-            .public
-            .join("frames")
-            .join(format!("{rendering_path}-{framework}"))
-            .join("index.html"),
-    )
-    .map_err(|_| internal(FRAME_ERROR))?;
+    let frame_path = server
+        .public
+        .join("frames")
+        .join(format!("{rendering_path}-{framework}"))
+        .join("index.html");
+    // The response carries the contract error; the server's error stream names the file and the cause.
+    let frame = std::fs::read_to_string(&frame_path).map_err(|error| {
+        eprintln!("read {}: {error}", frame_path.display());
+        internal(FRAME_ERROR)
+    })?;
     if [HTML_START, FORM_VIEW, BODY_END]
         .iter()
         .any(|part| frame.matches(part).count() != 1)
