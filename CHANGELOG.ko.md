@@ -1,5 +1,12 @@
 # 변경 기록
 
+## 2026-10-05 — Tailwind style 검사의 보이는 page 하나 (C5.11)
+
+- `tests/tailwind-styles.test.mjs`는 `crudui.css`와 Tailwind 판의 style을 engine과 너비마다 page 하나에서 계산하며, 그
+  page는 두 stylesheet를 담고 `media`로 하나를 적용합니다. test는 한 browser에서 page 둘을 열었고 첫 page는 Chromium과
+  Firefox에서 hidden이었으며, memory 압박에서 hidden Chromium page의 호출은 page-in을 최대 44.2 s 기다려 case의 timeout을
+  넘겼습니다. 이제 각 호출은 page가 보이고 요청한 stylesheet만 적용될 때만 진행합니다.
+
 ## 2026-10-05 — digest 단계를 받아들이는 toolchain image test (C7.2-2)
 
 - `examples/form-comparison/check-toolchain.test.mjs`는 비교 image의 단계를 digest가 있는 기록한 release로 요구합니다.
@@ -3235,6 +3242,7 @@ DOM 사례, 교차 검증 콘솔은 속성으로 요소를 선택합니다.
 입력 불변 검사), 구성별 PHP API 검사 361개, PHP 구현별 검증 사례 100개를 통과했습니다. `npm run test:forms`가 core 101, HTML 112, React 701, Vue 344, Svelte 345,
 정규화 10개 검사를 통과했습니다. 폼 비교 페이지 소스 검사 137개, Go·Rust 검증기
 바이너리를 다시 빌드한 뒤 교차 검증 콘솔 117개, `make docs-check`가 통과했습니다.
+
 ## 2026-09-13 — 통과한 검사의 임시 디렉터리 삭제
 
 `tests/native-generators/run.mjs`는 실행마다 `crudui-native-generators-*` 빌드

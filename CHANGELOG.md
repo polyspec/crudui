@@ -1,5 +1,13 @@
 # Changes
 
+## 2026-10-05 — One visible page for the Tailwind style checks (C5.11)
+
+- `tests/tailwind-styles.test.mjs` computes the styles of `crudui.css` and of the Tailwind version in
+  one page per engine and width, which holds both stylesheets and applies one with its `media`. The
+  test opened two pages in one browser, the first page was hidden in Chromium and Firefox, and under
+  memory pressure a call on the hidden Chromium page waited up to 44.2 s on page-ins, past the timeout
+  of a case. Each call now fails unless its page is visible and only the requested stylesheet applies.
+
 ## 2026-10-05 — The toolchain image test with the digest stages (C7.2-2)
 
 - `examples/form-comparison/check-toolchain.test.mjs` requires the stages of the comparison image as
@@ -3702,6 +3710,7 @@ cases in each PHP implementation, after reinstalling the copied PHP validator. `
 Svelte 345 and ten normalizer checks. Form comparison source checks passed 137,
 the cross-check console passed 117 after rebuilding the Go and Rust validator
 binaries, and `make docs-check` passed.
+
 ## 2026-09-13 — Remove check directories after passing runs
 
 `tests/native-generators/run.mjs` created a `crudui-native-generators-*` build
