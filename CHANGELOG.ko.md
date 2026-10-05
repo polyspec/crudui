@@ -1,5 +1,10 @@
 # 변경 기록
 
+## 2026-10-05 — Vitest 5 (C5.8-4)
+
+- root와 workspace 8개는 Vitest 5.0.3으로 test합니다. Vitest 5는 실패한 hook을 stack의 `Error:` 접두어와 함께 출력하며,
+  제한 시간을 넘긴 Vitest hook에 대한 runner case는 그 접두어를 받아들입니다.
+
 ## 2026-10-05 — workspace compiler의 TypeScript 7 (C5.8-3)
 
 - TypeScript workspace 7개는 TypeScript 7.0.2로 build하고 type 검사를 합니다. typescript-eslint, typedoc, svelte-check,

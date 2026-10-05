@@ -1,5 +1,10 @@
 # Changes
 
+## 2026-10-05 — Vitest 5 (C5.8-4)
+
+- The root and the eight workspaces test with Vitest 5.0.3. Vitest 5 prints a failed hook with the
+  `Error:` prefix of its stack, and the runner case for a timed-out Vitest hook accepts it.
+
 ## 2026-10-05 — TypeScript 7 for the workspace compilers (C5.8-3)
 
 - The seven TypeScript workspaces build and type-check with TypeScript 7.0.2. typescript-eslint,
