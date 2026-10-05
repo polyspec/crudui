@@ -1,5 +1,10 @@
 # 변경 기록
 
+## 2026-10-05 — digest 단계를 받아들이는 toolchain image test (C7.2-2)
+
+- `examples/form-comparison/check-toolchain.test.mjs`는 비교 image의 단계를 digest가 있는 기록한 release로 요구합니다.
+  C7.2는 단계를 바꿨고, 이 test가 여전히 release 계열을 요구하는 동안 commit되었습니다.
+
 ## 2026-10-05 — 모든 곳의 정확한 toolchain version (C7.2)
 
 - specification은 release channel 대신 정확한 version을 기록합니다. channel은 실행의 toolchain을 그 날짜에 따라

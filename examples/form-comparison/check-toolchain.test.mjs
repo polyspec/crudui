@@ -7,11 +7,12 @@ const instructions = containerfile.replace(/\\\n/g, ' ').split('\n')
   .map(line => line.trim().replace(/\s+/g, ' ')).filter(line => line && !line.startsWith('#'));
 
 test('builds one toolchain image without repository source', () => {
-  assert.deepEqual(instructions.filter(line => line.startsWith('FROM ')), [
-    'FROM golang:1.27-trixie AS go',
-    'FROM rust:1-slim-trixie AS rust',
-    'FROM node:26-trixie-slim',
-  ]);
+  // The stages are the recorded releases, each image by its digest (tests/build/runtime-version-policy.test.mjs).
+  const stages = instructions.filter(line => line.startsWith('FROM '));
+  assert.equal(stages.length, 3, stages.join('\n'));
+  assert.match(stages[0], /^FROM golang:\d+\.\d+\.\d+-trixie@sha256:[0-9a-f]{64} AS go$/);
+  assert.match(stages[1], /^FROM rust:\d+\.\d+\.\d+-slim-trixie@sha256:[0-9a-f]{64} AS rust$/);
+  assert.match(stages[2], /^FROM node:\d+\.\d+\.\d+-trixie-slim@sha256:[0-9a-f]{64}$/);
   assert.equal(instructions.some(line => line.startsWith('ADD ')), false);
   for (const line of instructions.filter(line => line.startsWith('COPY '))) {
     assert.match(line, /^COPY --from=(?:go|rust) \/usr\/local\/\S+ \/usr\/local\/\S+$/);
