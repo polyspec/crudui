@@ -256,6 +256,7 @@ build has emptied. On Linux the lock reads the start time of a process from `/pr
 container images such as the toolchain image of the comparison have no `ps`.
 
 `tests/build/shared-resources.test.mjs`, run by `npm run test:runtimes`, checks the documentation,
-image and `dist` rows;
+image and `dist` rows; it checks the `dist` lock on a fixture package that it builds in a temporary
+checkout, so it reads no build output of the repository and runs before `npm run build`;
 `examples/form-comparison/check-deployment-lock.test.mjs`, run by
 `npm run test:form-comparison:source`, checks the deployment.

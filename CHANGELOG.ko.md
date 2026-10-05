@@ -1,5 +1,12 @@
 # 변경 기록
 
+## 2026-10-05 — build 결과물 없이 실행하는 dist lock test (C5.2)
+
+- `tests/build/shared-resources.test.mjs`는 임시 checkout에서 build하고 pack하는 fixture package로 `dist` lock을
+  확인합니다. CI는 `npm run build`보다 먼저 `npm run test:runtimes`를 실행하고, test는
+  `packages/generator-html/dist`에 대한 `ENOENT`로 실패했으며 local 실행은 이전 build의 `dist`를 읽었습니다. build
+  결과물이 없는 worktree에서 test는 변경 전에 실패했고 변경 후 통과합니다.
+
 ## 2026-10-05 — 실패 뒤에도 실행하는 모든 검사 (C5.1)
 
 - 검사 명령을 실행하는 모든 workflow step은 `if: ${{ !cancelled() }}`를 가지며, `make test-native`와 `make docs-check`는

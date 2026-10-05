@@ -1,5 +1,13 @@
 # Changes
 
+## 2026-10-05 — A dist lock test without build output (C5.2)
+
+- `tests/build/shared-resources.test.mjs` checks the `dist` lock on a fixture package that it
+  builds and packs in a temporary checkout. CI runs `npm run test:runtimes` before `npm run build`,
+  and the test failed with `ENOENT` on `packages/generator-html/dist`, while a local run read the
+  `dist` of an earlier build. In a worktree without build output the test failed before the change
+  and passes after it.
+
 ## 2026-10-05 — Every check after a failure (C5.1)
 
 - Every workflow step that runs a checking command has `if: ${{ !cancelled() }}`, and `make

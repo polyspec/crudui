@@ -236,6 +236,7 @@ Linux에서 lock은 process 시작 시각을 `/proc`에서 읽습니다. compari
 container image에는 `ps`가 없기 때문입니다.
 
 `npm run test:runtimes`가 실행하는 `tests/build/shared-resources.test.mjs`는 documentation, image,
-`dist` 행을 확인하고,
+`dist` 행을 확인합니다. `dist` lock은 임시 checkout에서 build하는 fixture package로 확인하므로 저장소의 build
+결과물을 읽지 않고 `npm run build`보다 먼저 실행됩니다.
 `npm run test:form-comparison:source`가 실행하는 `examples/form-comparison/check-deployment-lock.test.mjs`는
 deployment를 확인합니다.
