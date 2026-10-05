@@ -19,6 +19,14 @@ Every crate that declares a release profile sets `strip = "none"`;
 conformance evidence and checks it as the final CI job does; `tests/build/ci-local.test.mjs` fails
 when the list differs from `.github/workflows/ci.yml`.
 
+A failure never stops the later checks, so one run reports every failure. Each workflow step that
+runs a checking command has `if: ${{ !cancelled() }}`, so a failed step does not skip the later
+checks of its job; `tests/build/ci-local.test.mjs` fails with the job and the step of each checking
+step without it. A Makefile target never takes a target that runs tests as a prerequisite, because
+make stops at the first prerequisite that fails; a target that runs several test targets, such as
+`make test-native` and `make docs-check`, runs each with `$(MAKE) <target> || status=1` and exits
+with the collected status.
+
 `make ci` runs once per committed tree, when no task of `docs/plans/execution-checklist.md` is
 `[~]`. Before any command it starts `scripts/full-run.mjs`, which prints its decision with the
 reason (`[full-run] run: ...` or `[full-run] refuse: ...`) and refuses with status 1 while a task
@@ -157,6 +165,7 @@ validator test or a PHP extension engine fixture reads a clock.
 - a script that a test command starts does not print through `scripts/test-progress/progress.mjs`;
 - a `node:test` file is run by no project command;
 - a TypeScript package has no `typecheck` script, or CI does not run `npm run typecheck`.
+- a Makefile target takes a target that runs tests as a prerequisite.
 
 ## Commands of long operations
 

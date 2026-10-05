@@ -1,5 +1,20 @@
 # Changes
 
+## 2026-10-05 — Every check after a failure (C5.1)
+
+- Every workflow step that runs a checking command has `if: ${{ !cancelled() }}`, and `make
+  test-native` and `make docs-check` run each of their test targets with `$(MAKE) <target> ||
+  status=1` and exit with the collected status. CI skipped Lint, Type-check, the
+  dependency check and the benchmark drivers after one failed step, and `make test-native` stopped
+  at its failed prerequisite `test-php-extension`, so `tests/native-generators/run.mjs` wrote
+  neither its report nor its conformance evidence. `tests/build/ci-local.test.mjs` fails with the
+  job and step of a checking step without the condition, `tests/build/test-commands.test.mjs`
+  fails for a Makefile target that takes a target that runs tests as a prerequisite, and
+  `tests/build/make-tool-path.test.mjs` runs `make test-native` with a failing PHP extension test
+  command. The native import check of `tests/build/dependency-health.test.mjs` read only the recipe
+  lines of `test-native` and checked an empty list; it follows prerequisites and `$(MAKE)` targets
+  and fails for an empty list.
+
 ## 2026-10-05 — A checklist of headings and task tables (C4.1-2)
 
 - The execution checklist holds only headings and task tables, and `scripts/check-documents.mjs`

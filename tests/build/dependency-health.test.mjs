@@ -5,6 +5,8 @@ import { builtinModules } from 'node:module';
 import path from 'node:path';
 import test from 'node:test';
 
+import { makeTargets, nodeTestArguments } from '../../scripts/test-commands.mjs';
+
 const root = path.resolve(import.meta.dirname, '../..');
 const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 const git = process.platform === 'win32' ? 'git.exe' : 'git';
@@ -62,13 +64,46 @@ function workspacePackageDirectories() {
   });
 }
 
-function nativeTestNodeEntrypoints() {
-  const makefile = readFileSync(path.join(root, 'Makefile'), 'utf8');
-  const target = makefile.match(/^test-native:[^\n]*\n((?:\t[^\n]*\n?)*)/m);
-  assert.ok(target, 'Makefile must define test-native');
-  return [...target[1].matchAll(/\bnode(?:\s+--test)?\s+([^\s"']+\.mjs)\b/g)]
-    .map((match) => match[1]);
+/**
+ * The Node.js programs and test files that `make <target>` runs: the recipe lines of the target,
+ * of its prerequisites and of the targets its recipe runs with `$(MAKE)` or `make`.
+ */
+export function makeNodeEntrypoints(targets, target, seen = new Set()) {
+  if (seen.has(target)) return [];
+  seen.add(target);
+  const rule = targets[target];
+  assert.ok(rule, `Makefile must define ${target}`);
+  const reached = [
+    ...rule.prerequisites,
+    ...rule.commands.flatMap((command) => [...command.matchAll(/(?:\$\(MAKE\)|\bmake)\s+((?:-[^\s]+\s+)*)([\w.-]+)/g)]
+      .map((match) => match[2])),
+  ];
+  return [...new Set([
+    ...rule.commands.flatMap((command) => [
+      ...[...command.matchAll(/\bnode(?:\s+--test)?\s+([^\s"']+\.mjs)\b/g)].map((match) => match[1]),
+      ...nodeTestArguments(command),
+    ]),
+    ...reached.flatMap((name) => makeNodeEntrypoints(targets, name, seen)),
+  ])];
 }
+
+function nativeTestNodeEntrypoints() {
+  const entrypoints = makeNodeEntrypoints(
+    makeTargets(readFileSync(path.join(root, 'Makefile'), 'utf8')), 'test-native',
+  );
+  assert.notDeepEqual(entrypoints, [], 'make test-native runs no Node.js program');
+  return entrypoints;
+}
+
+test('the Node.js programs of a target include those of its prerequisites and sub-makes', () => {
+  const targets = makeTargets([
+    'all: build', '\t@status=0; $(MAKE) --no-print-directory suite || status=1; exit $$status',
+    'build:', '\tnode scripts/build.mjs', 'suite:', '\tnode scripts/run-tests.mjs node -- a.test.mjs b.test.mjs', '',
+  ].join('\n'));
+  assert.deepEqual(makeNodeEntrypoints(targets, 'all').sort(),
+    ['a.test.mjs', 'b.test.mjs', 'scripts/build.mjs', 'scripts/run-tests.mjs']);
+  assert.deepEqual(makeNodeEntrypoints(makeTargets('empty:\n\techo\n'), 'empty'), []);
+});
 
 function rootExampleEntrypoints() {
   const result = execute(git, [
