@@ -49,8 +49,9 @@ async function uncovered(files, targets) {
 }
 
 test('the coverage check finds sources the lint command leaves out', async () => {
-  assert.deepEqual(await uncovered(['packages/validator-ts/dist/index.js'], ['.']), [
-    'packages/validator-ts/dist/index.js: eslint.config.mjs ignores it or no entry matches it',
+  // An installed file, which exists in every checkout that ran npm ci and which Git ignores.
+  assert.deepEqual(await uncovered(['node_modules/eslint/lib/api.js'], ['.']), [
+    'node_modules/eslint/lib/api.js: eslint.config.mjs ignores it or no entry matches it',
   ]);
   assert.deepEqual(await uncovered(['scripts/run-tests.mjs'], ['packages']), [
     "scripts/run-tests.mjs: outside the lint command's paths (packages)",
@@ -64,4 +65,21 @@ test('npm run lint covers every JavaScript, TypeScript, Vue and Svelte source', 
   assert.ok(sources.length > 0, 'git must list the repository sources');
   assert.ok(sources.some(file => file.endsWith('.svelte')), 'the source list must include Svelte components');
   assert.deepEqual(await uncovered(sources, lintTargets()), []);
+});
+
+// A file under a directory that Git ignores is no source: a stray copy of build output under var/ must not reach ESLint.
+test('ESLint ignores every path that Git ignores', async t => {
+  const { mkdirSync, rmSync, writeFileSync } = await import('node:fs');
+  const { ignoredPaths } = await import('../../scripts/tracked-files.mjs');
+  const stray = path.join(root, 'var/lint-coverage-stray');
+  mkdirSync(stray, { recursive: true });
+  t.after(() => rmSync(stray, { recursive: true, force: true }));
+  writeFileSync(path.join(stray, 'Actions.svelte.d.ts'), 'export type Props = {};\n');
+  const eslint = new ESLint({ cwd: root });
+  const reached = [];
+  for (const entry of [...ignoredPaths(root), 'var/lint-coverage-stray/Actions.svelte.d.ts']) {
+    const probe = entry.endsWith('/') ? `${entry}probe.ts` : entry;
+    if (!(await eslint.isPathIgnored(probe))) reached.push(probe);
+  }
+  assert.deepEqual(reached, []);
 });

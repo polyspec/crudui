@@ -1,30 +1,16 @@
 import assert from 'node:assert/strict';
-import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 
-const root = path.resolve(import.meta.dirname, '../..');
-const ignoredDirectories = new Set([
-  '.git', '.svelte-kit', 'dist', 'dist.next', 'dist.old', 'node_modules', 'target', 'vendor',
-]);
+import { trackedFiles } from '../../scripts/tracked-files.mjs';
 
-function viteConfigurationFiles(directory, base = directory) {
-  const files = [];
-  for (const entry of readdirSync(directory, { withFileTypes: true })) {
-    if (entry.isSymbolicLink()) continue;
-    const filename = path.join(directory, entry.name);
-    if (entry.isDirectory()) {
-      if (!ignoredDirectories.has(entry.name)) {
-        files.push(...viteConfigurationFiles(filename, base));
-      }
-    } else if (entry.isFile() && /(?:^|\/)vite\.config\.[cm]?[jt]s$/.test(
-      path.relative(base, filename).split(path.sep).join('/'),
-    )) {
-      files.push(path.relative(base, filename));
-    }
-  }
-  return files.sort();
+const root = path.resolve(import.meta.dirname, '../..');
+/** The Vite configuration files of the checkout at `directory` among its tracked files. */
+function viteConfigurationFiles(directory) {
+  return trackedFiles(directory).filter(file => /(?:^|\/)vite\.config\.[cm]?[jt]s$/.test(file)).sort();
 }
 
 test('ES module Vite configurations use native module paths', () => {
@@ -43,6 +29,8 @@ test('Vite configuration discovery does not require Git metadata', (t) => {
   mkdirSync(path.join(directory, 'node_modules/ignored'), { recursive: true });
   writeFileSync(path.join(directory, 'packages/example/vite.config.ts'), 'export default {};\n');
   writeFileSync(path.join(directory, 'node_modules/ignored/vite.config.ts'), 'ignored\n');
+  writeFileSync(path.join(directory, '.gitignore'), 'node_modules/\n');
+  execFileSync('git', ['init', '--quiet'], { cwd: directory });
 
   assert.deepEqual(viteConfigurationFiles(directory), ['packages/example/vite.config.ts']);
 });

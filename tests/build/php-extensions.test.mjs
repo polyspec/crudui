@@ -1,10 +1,13 @@
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
+
+import { trackedFiles } from '../../scripts/tracked-files.mjs';
 
 const repository = fileURLToPath(new URL('../..', import.meta.url));
 
@@ -21,14 +24,9 @@ const optionalExtensions = [
   ['dom', /\b(?:Dom\\|DOMDocument\b)/],
 ];
 
+/** The PHP files of `directory` that Git tracks or does not ignore, as absolute paths. */
 async function phpFiles(directory) {
-  const files = [];
-  for (const entry of await readdir(directory, { withFileTypes: true })) {
-    const full = path.join(directory, entry.name);
-    if (entry.isDirectory()) files.push(...await phpFiles(full));
-    else if (entry.name.endsWith('.php')) files.push(full);
-  }
-  return files;
+  return trackedFiles(directory).filter(file => file.endsWith('.php')).map(file => path.join(directory, file));
 }
 
 /** Extensions a package's shipped PHP uses without requiring them. */
@@ -69,6 +67,7 @@ test('an optional extension used without its requirement is reported', async () 
     await mkdir(path.join(directory, 'src'));
     await writeFile(path.join(directory, 'composer.json'), JSON.stringify({ require: { php: '^8.4' } }));
     await writeFile(path.join(directory, 'src/Name.php'), '<?php\n// ctype_alpha($x) in a comment is ignored\nreturn ctype_digit($name[0]) && mb_strlen($name) > 0;\n');
+    execFileSync('git', ['init', '--quiet'], { cwd: directory });
     const missing = await undeclaredExtensions(directory);
     assert.deepEqual(missing.map((line) => line.split(': ')[1]), ['ext-mbstring', 'ext-ctype']);
   } finally {

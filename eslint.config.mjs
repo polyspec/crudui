@@ -4,10 +4,13 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 import nodeTestRules from './scripts/lint/node-test-rules.mjs';
+import { ignoredPaths } from './scripts/tracked-files.mjs';
+
+const root = import.meta.dirname;
 
 // Every JavaScript, TypeScript, Vue and Svelte source the repository tracks is
 // linted with one rule set; tests/build/lint-coverage.test.mjs fails when a
-// tracked source is left out. Only generated or installed output is ignored,
+// tracked source is left out. Only the paths that Git ignores are ignored,
 // and the per-file settings below describe where code runs, not exceptions.
 const sourceFiles = ['**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,vue,svelte}'];
 const svelteFiles = ['**/*.svelte', '**/*.svelte.js', '**/*.svelte.ts'];
@@ -51,26 +54,9 @@ const nodeAndBrowserFiles = [
 
 export default tseslint.config(
   {
-    ignores: [
-      '**/node_modules/**',
-      '**/vendor/**',
-      '**/target/**',
-      '**/dist/**',
-      '**/dist.next/**',
-      '**/dist.old/**',
-      '**/out/**',
-      '**/.svelte-kit/**',
-      '**/coverage/**',
-      'docs/.web/**',
-      'docs/.vitepress/**',
-      'docs/api/**',
-      'docs/public/**',
-      'packages/php-ext/.build/**',
-      'packages/php-ext/modules/**',
-      'tools/bin/**',
-      '.form-comparison/**',
-      '.verification/**',
-    ],
+    // Every path that Git ignores, as Git reports it for this checkout: installed and generated output, locks, run
+    // records and the tools of the checkout. A file there is no source, so a stray copy under var/ never reaches lint.
+    ignores: ignoredPaths(root).map(entry => (entry.endsWith('/') ? `${entry}**` : entry)),
   },
   { files: sourceFiles },
   eslint.configs.recommended,
