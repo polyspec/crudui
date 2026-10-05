@@ -8,6 +8,13 @@
 # machine-absolute paths). `make docs` run twice yields identical output.
 
 .DEFAULT_GOAL := help
+# The npm of this checkout (scripts/checkout-npm.mjs): `node scripts/install-npm.mjs` installs the release that
+# packageManager of package.json records into the ignored .tools/npm, and every command of make finds it first on PATH.
+# The npm of the machine is never changed.
+export PATH := $(CURDIR)/.tools/npm/node_modules/.bin:$(PATH)
+# GNU Make 3.81 looks up the program of a recipe line without shell syntax on the PATH that make started with, not on the
+# exported one, so every recipe starts npm by its path (tests/build/checkout-npm.test.mjs).
+NPM := $(CURDIR)/.tools/npm/node_modules/.bin/npm
 .PHONY: help docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-extension test-native test-native-suites test-validators test-form-binding conformance format-check deploy deploy-verify deploy-watch github-settings github-settings-check hooks hooks-check ci rerun-failed test-form-styles-linux remove-form-styles-image
 .NOTPARALLEL: docs docs-web docs-dev docs-preview docs-check docs-verify-idempotent
 
@@ -69,19 +76,19 @@ docs: docs-clean docs-web ## 전체 문서 생성 (clean-then-generate)
 	@echo "[make] docs: complete -> docs/.web/dist"
 
 docs-api: ## 멀티언어 API doc
-	npm run docs:api
+	$(NPM) run docs:api
 
 docs-schema: ## 스펙 JSON Schema 검사
-	npm run spec:schema
+	$(NPM) run spec:schema
 
 docs-web: ## 문서 정적 웹 빌드
-	npm run docs:build
+	$(NPM) run docs:build
 
 docs-dev: ## 문서 개발 서버
-	npm run docs:dev
+	$(NPM) run docs:dev
 
 docs-preview: ## 문서 빌드 결과 미리보기 서버
-	npm run docs:preview
+	$(NPM) run docs:preview
 
 # docs-check gates the documents AND the library packages.
 # Either arm RED → non-zero exit.
@@ -96,16 +103,16 @@ docs-check: ## doc-coverage 게이트 (문서 + 라이브러리, 미문서화 �
 # Every check runs even when an earlier one fails, so one run reports every failure.
 docs-check-documents:
 	@status=0; \
-	npm run manifest:check || status=1; \
-	npm run manifest:docs:check || status=1; \
+	$(NPM) run manifest:check || status=1; \
+	$(NPM) run manifest:docs:check || status=1; \
 	node scripts/check-documents.mjs || status=1; \
 	node scripts/run-tests.mjs node -- scripts/checklist-markers.test.mjs scripts/documentation-links.test.mjs scripts/gen-api-docs.test.mjs scripts/check-doc-coverage.test.mjs scripts/php-doc-coverage.test.mjs || status=1; \
-	npm run test:docs || status=1; \
-	npm run docs:build || status=1; \
+	$(NPM) run test:docs || status=1; \
+	$(NPM) run docs:build || status=1; \
 	exit $$status
 
 docs-check-libs: ## 라이브러리 packages/* doc-coverage
-	npm run docs:check
+	$(NPM) run docs:check
 
 docs-clean: ## 생성물 전부 제거
 	rm -rf docs/api docs/public/api
@@ -203,7 +210,7 @@ test-validators:
 # WebKit. It reads the built validator and renderers.
 test-form-binding:
 	node scripts/require-current-build.mjs
-	npm test -w @crudui/form-binding
+	$(NPM) test -w @crudui/form-binding
 
 # Every suite that records conformance evidence, then the check of that evidence against
 # contracts/features.json (docs/spec/conformance.md). Every suite runs even when an earlier one
@@ -215,8 +222,8 @@ conformance:
 	$(MAKE) --no-print-directory test-validators || status=1; \
 	$(MAKE) --no-print-directory test-php-extension || status=1; \
 	$(MAKE) --no-print-directory test-native-suites || status=1; \
-	npm run test:forms || status=1; \
-	npm test --prefix examples/cross-check-console/server || status=1; \
+	$(NPM) run test:forms || status=1; \
+	$(NPM) test --prefix examples/cross-check-console/server || status=1; \
 	node scripts/check-conformance.mjs || status=1; \
 	exit $$status
 

@@ -20,7 +20,9 @@ npm run test:packages
 컨테이너 단계는 안정 Rust 채널을 선택합니다. 검사는 정확한 런타임 패치 릴리스를
 거부합니다. `package.json`의 `packageManager`는 정확한 npm 릴리스 하나를 기록합니다. 검사는 실행 중인
 npm, workflow step, 컨테이너 정의가 다른 릴리스를 고르면 실패하며, `node scripts/install-npm.mjs`가
-그 릴리스를 설치합니다. 런타임
+그 릴리스를 checkout의 `.tools/npm`에 설치합니다. `tests/build/checkout-npm.test.mjs`는 script, make 대상, CI step이
+npm을 machine에 설치할 때, make, npm을 시작하는 script, CI job이 `.tools/npm/node_modules/.bin`을 `PATH`의 맨 앞에
+두지 않을 때, 설치가 다른 릴리스나 임시 directory를 남길 때 실패합니다. 런타임
 검사는 프로세스 `PATH`에 Cargo가 없는 환경에서 저장소의 Rust Node.js 진입점을
 실행합니다. 각 진입점은 하나의 toolchain 기록에서 Cargo, rustc, rustdoc을 해석하고
 해석한 컴파일러 경로를 Cargo에 전달해야 합니다.

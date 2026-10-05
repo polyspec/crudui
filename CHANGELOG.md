@@ -1,5 +1,17 @@
 # Changes
 
+## 2026-10-05 — npm of the checkout, not of the machine (C7.7)
+
+- `node scripts/install-npm.mjs` installs the npm release of `packageManager` into the ignored
+  `.tools/npm` of the checkout with `npm install --prefix` into a temporary directory that it renames
+  into place, and never runs `npm install --global`. It replaced the npm of the machine, which every
+  repository uses, and broke the `npm ci` of another repository. The Makefile exports
+  `PATH` with `.tools/npm/node_modules/.bin` first and starts npm in its recipes as `$(NPM)`, because
+  GNU Make 3.81 looks up a recipe program without shell syntax on the `PATH` it started with; every
+  script that starts npm calls `useCheckoutNpm` of `scripts/checkout-npm.mjs`, and every CI job adds
+  the directory to `GITHUB_PATH` before its first npm command. `tests/build/checkout-npm.test.mjs`
+  fails for any other form.
+
 ## 2026-10-05 — Make dry runs that read the same on every make (C7.1)
 
 - Tests read the commands of a Makefile target through `makeDryRun` of `tests/build/make-dry-run.mjs`,

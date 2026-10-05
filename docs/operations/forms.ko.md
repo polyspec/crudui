@@ -7,6 +7,8 @@
 저장소 루트에서 명령을 실행합니다. Node.js와 npm을 설치한 후 실행합니다.
 
 ```sh
+node scripts/install-npm.mjs
+export PATH="$PWD/.tools/npm/node_modules/.bin:$PATH"
 npm ci --strict-allow-scripts
 npm run build
 ```

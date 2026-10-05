@@ -13,7 +13,9 @@ import { fileURLToPath } from 'node:url';
 import { buildOutputs, REPEAT_BUILD_DIRECTORY } from './package-outputs.mjs';
 import { failureOf, runCommand } from './run-command.mjs';
 import { createProgress } from './test-progress/progress.mjs';
+import { useCheckoutNpm } from './checkout-npm.mjs';
 
+useCheckoutNpm();
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const lines = createProgress({ write: text => process.stdout.write(text) });
 await rm(REPEAT_BUILD_DIRECTORY, { recursive: true, force: true });

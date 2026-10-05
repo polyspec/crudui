@@ -7,6 +7,8 @@
 패키지를 빌드합니다.
 
 ```sh
+node scripts/install-npm.mjs
+export PATH="$PWD/.tools/npm/node_modules/.bin:$PATH"
 npm ci --strict-allow-scripts
 npm run build
 ```

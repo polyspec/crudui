@@ -161,8 +161,11 @@ use the stable major channel instead of an exact patch release. npm is the
 exception: `packageManager` of the root `package.json` records one exact npm
 release, because the npm that installs, packs and runs the scripts changes their
 results, as the `pack --json` report changed from an array in npm 11 to an object
-in npm 12. `node scripts/install-npm.mjs` installs exactly that release; CI and
-the container images run it or install the same release, and local runs use it.
+in npm 12. `node scripts/install-npm.mjs` installs exactly that release into the
+ignored directory `.tools/npm` of the checkout and never into the machine, whose
+npm every other checkout uses. The Makefile, every script that starts
+npm and every CI job put `.tools/npm/node_modules/.bin` first on `PATH`; a
+container image installs the same release as the npm of its image.
 A newer npm release is adopted by changing `packageManager`. A candidate build resolves these channels once and
 records the resulting image and runtime versions in its verification evidence. A
 later build adopts a newer applicable release and produces new evidence. Package

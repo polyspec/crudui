@@ -2,8 +2,11 @@
 
 [한국어](testing.ko.md).
 
-Run from the repository root. Install Node dependencies with
-`npm ci --strict-allow-scripts`, install the PHP package's Composer dependencies,
+Run from the repository root. Install the npm release that `packageManager` of `package.json`
+records into the checkout with `node scripts/install-npm.mjs`, which never changes the npm of the
+machine; make puts its `.tools/npm/node_modules/.bin` first on `PATH`, and a shell that runs npm
+itself puts it there with `export PATH="$PWD/.tools/npm/node_modules/.bin:$PATH"`. Install Node
+dependencies with `npm ci --strict-allow-scripts`, install the PHP package's Composer dependencies,
 and make PHP, Go and Cargo available on `PATH`, with `php-fpm` and `nginx` for the PHP record
 servers of the comparison example (Homebrew: `brew install php nginx`; Debian and Ubuntu:
 `php8.x-fpm` and `nginx`, with `php-fpm` linked to the versioned binary). Build JavaScript packages before

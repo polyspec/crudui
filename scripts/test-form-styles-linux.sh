@@ -52,6 +52,7 @@ git config --global --add safe.directory /repo
 cd /repo && git ls-files -z --cached --others --exclude-standard | while IFS= read -r -d "" file; do [ -e "$file" ] && printf "%s\0" "$file"; done | tar --null -T - -cf - | tar -xf - -C /work
 cd /work
 node scripts/install-npm.mjs
+export PATH="/work/.tools/npm/node_modules/.bin:$PATH"
 npm ci --strict-allow-scripts --no-audit --no-fund --loglevel=error
 npx --no-install playwright install chrome >/dev/null
 apt-get install -y -qq xz-utils >/dev/null

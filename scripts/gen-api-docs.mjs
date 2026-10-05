@@ -8,9 +8,11 @@ import { cpSync, existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { basename, dirname, join, relative } from 'node:path';
 
+import { useCheckoutNpm } from './checkout-npm.mjs';
 import { failureOf, runCommand } from './run-command.mjs';
 import { createProgress } from './test-progress/progress.mjs';
 
+useCheckoutNpm();
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const RUST_COMMAND = join(ROOT, 'scripts/run-rust-command.mjs');
 const API_DIR = join(ROOT, 'docs/api');

@@ -24,7 +24,8 @@ test('CI runs the complete form comparison regression suite', async () => {
   assert.match(job, /node-version-file:\s*['"]?\.node-version['"]?/);
   assert.match(job, /uses: shivammathur\/setup-php@/);
   assert.match(job, /php-version:\s*['"]?8\.5['"]?/);
-  assert.match(job, /node scripts\/install-npm\.mjs && npm ci --strict-allow-scripts/);
+  assert.match(job, /node scripts\/install-npm\.mjs\n\s*echo "\$PWD\/\.tools\/npm\/node_modules\/\.bin" >> "\$GITHUB_PATH"/);
+  assert.match(job, /npm ci --strict-allow-scripts/);
   assert.match(
     job,
     /composer --working-dir=packages\/validator-php install --no-interaction --prefer-dist/,
