@@ -84,8 +84,10 @@ service follows the working tree:
 make deploy-watch
 ```
 
-It prints every file event and every signal it delivers to the supervisor, has no time limit, and
-ends with the error of a failed watch or delivery. Without it, the service keeps the last tree it
+It prints every file event and every signal it delivers to the supervisor, has no time limit, ends
+with the error of a failed watch or delivery, and stops at Ctrl-C (`SIGINT`) or `SIGTERM` with a
+line that says how many signals it delivered. `make deploy` signals the supervisor once itself
+before it waits for the build. Without it, the service keeps the last tree it
 compared. At every signal the supervisor copies the changed files into the
 build tree, rebuilds only the affected target and restarts only the affected server.
 PHP source changes apply on the next request. A supervisor-module change reloads the

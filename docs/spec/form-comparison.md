@@ -328,8 +328,10 @@ Linux container through the VM file share, so a host process publishes them: the
 (`fs.watch`, recursive: FSEvents on macOS) and, for every event, runs `source-changed.mjs` in the
 container (`container exec`), which sends `SIGUSR2` to the process id the supervisor recorded in
 `state/supervisor.pid`. Events during a delivery make one more delivery after it. The watcher has
-no time limit, prints its start, every event and every delivery, and ends with the error of a
-failed watch or delivery. At every signal the supervisor compares the mounted repository with Git:
+no time limit, prints its start, every event and every delivery, ends with the error of a failed
+watch or delivery, and at `SIGINT` or `SIGTERM` closes its watch and prints its stop. A deployment
+that reuses the running container sends the same signal before it waits for the build, because
+the checkout may have changed since the last signal. At every signal the supervisor compares the mounted repository with Git:
 the checked-out commit and the size and modification time of every uncommitted path; a signal
 during a comparison makes one more comparison after it, and no comparison runs on a timer. It copies only the changed paths,
 runs only the targets whose inputs changed, in the order below, and restarts only
