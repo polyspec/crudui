@@ -137,7 +137,9 @@ the `PATH`, prints its readiness line once both accept connections and stops bot
 It learns that from their own log lines on standard error, without a time limit and without
 connection attempts: PHP-FPM writes `NOTICE: ready to handle connections` after it listens on its
 socket, and nginx, at the `notice` log level, writes `start worker processes` after it opened its
-listening socket.
+listening socket. The program binds the listening address itself and passes the socket to nginx as
+file descriptor 3, which the variable `NGINX` names, so nginx listens on the port that the program
+took.
 nginx passes `/api/` requests to `api.php` over FastCGI, answers every other path with a JSON 404,
 and ends a request body above 2 MiB with the JSON 413 of the contract before PHP reads it; the
 data and public directories reach `api.php` as `FORM_DATA_DIRECTORY` and
@@ -146,7 +148,10 @@ it could not stop an oversized request. The public server
 takes its address, its data directory, its public directory and the JSON map of the native
 server ports as arguments; it answers the `js` records with the same module that
 `servers/javascript/main.mjs` serves, and it receives the build state over IPC. Each server
-prints its readiness line after it listens on the requested address.
+listens on the requested address, port 0 included, and then prints its readiness line
+`CRUDUI_READY {server} {host}:{port}` with the address it took. The local checks start every server
+on `127.0.0.1:0` and reach it on the address of that line, so no port is chosen before the server
+that listens on it.
 
 ## Canonical page
 

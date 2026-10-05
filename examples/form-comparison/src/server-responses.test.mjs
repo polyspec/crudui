@@ -4,7 +4,7 @@ import { copyFile, cp, mkdir, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
-import { freePort, publicServerDefinition, startProcess } from './local-servers.mjs';
+import { publicServerDefinition, startProcess } from './local-servers.mjs';
 import { killProcessTree } from './step-runner.mjs';
 
 // The responses of the public server (docs/spec/form-comparison.md, "Responses"): every response
@@ -13,7 +13,6 @@ import { killProcessTree } from './step-runner.mjs';
 const query = 'lang=en&server=js&framework=html&initialization=ssr&mode=bindForm&page=2';
 
 test('every response carries nosniff, 405 answers Allow and error JSON escapes HTML', async () => {
-  const port = await freePort();
   const dataDirectory = await mkdtemp(path.join(tmpdir(), 'crudui-server-responses-'));
   // The public directory needs the record files the build otherwise publishes.
   const publicDirectory = path.join(dataDirectory, 'public');
@@ -24,8 +23,9 @@ test('every response carries nosniff, 405 answers Allow and error JSON escapes H
   await copyFile(path.join(import.meta.dirname, '../fixtures/customer-records.json'),
     path.join(publicDirectory, 'customer-records.json'));
   const definition = publicServerDefinition({
-    port, dataDirectory, publicDirectory,
-    ports: { php: port, 'php-ext': port, go: port, rust: port },
+    dataDirectory, publicDirectory,
+    // No case of this file reaches a native server; port 9, the discard port, answers no request.
+    ports: { php: 9, 'php-ext': 9, go: 9, rust: 9 },
   });
   let running;
   try {

@@ -18,6 +18,7 @@ import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync 
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { acquireHolderLock, HolderLockRefused } from './holder-lock.mjs';
 import { hooksIssue } from './push-gate.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -126,7 +127,27 @@ function runCommand(root, command) {
  * Inspects the checkout, decides and runs. `runTarget(name)` resolves whether a target passed. Returns the exit
  * status: 0 when the full result of the tree is passed, 1 otherwise.
  */
-export async function fullRun({ root = ROOT, mode, targets = [], runTarget = name => runCommand(root, name), print = line => process.stdout.write(`${line}\n`), evidence = process.env.CRUDUI_CONFORMANCE_EVIDENCE }) {
+export async function fullRun(options) {
+  const root = options.root ?? ROOT;
+  const print = options.print ?? (line => process.stdout.write(`${line}\n`));
+  // The guard reads the record, decides and writes it under the checkout lock `full-run`, so two runs of one checkout
+  // never both decide from the same record; a second run is refused with the holder.
+  let lock;
+  try {
+    lock = acquireHolderLock(path.join(root, 'var/locks/full-run.lock'), { command: `full-run ${options.mode}` });
+  } catch (error) {
+    if (!(error instanceof HolderLockRefused)) throw error;
+    print(`[full-run] refuse: ${error.message}`);
+    return 1;
+  }
+  try {
+    return await guardedRun({ ...options, root, print });
+  } finally {
+    lock.release();
+  }
+}
+
+async function guardedRun({ root, mode, targets = [], runTarget = name => runCommand(root, name), print, evidence = process.env.CRUDUI_CONFORMANCE_EVIDENCE }) {
   const active = activeItems(readFileSync(path.join(root, CHECKLIST), 'utf8'));
   const hooks = hooksIssue(root);
   const dirty = git(root, 'status', '--porcelain', '--untracked-files=no').split('\n').filter(Boolean);

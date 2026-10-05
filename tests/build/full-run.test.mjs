@@ -11,6 +11,7 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 import { activeItems, decide, fullRun, RECORD } from '../../scripts/full-run.mjs';
+import { acquireHolderLock } from '../../scripts/holder-lock.mjs';
 import { makeDryRun } from './make-dry-run.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
@@ -163,6 +164,23 @@ test('a checkout without the pre-push hook is refused before any target', async 
   assert.equal(status, 1);
   assert.deepEqual(ran, []);
   assert.match(output, /^\[full-run\] refuse: the pre-push hook is not installed[\s\S]*make hooks/);
+});
+
+test('a second guard of one checkout is refused while the first holds the full-run lock', async t => {
+  const directory = checkout(t, DONE);
+  const lock = acquireHolderLock(path.join(directory, 'var/locks/full-run.lock'), { command: 'full-run run' });
+  try {
+    const { status, output, ran } = await guard(directory, 'run', ['a']);
+    assert.equal(status, 1);
+    assert.deepEqual(ran, []);
+    assert.match(output, new RegExp(`^\\[full-run\\] refuse: .*full-run\\.lock is held by pid ${process.pid} `, 'm'));
+    assert.equal(existsSync(path.join(directory, RECORD)), false, 'the refused guard writes no record');
+  } finally {
+    lock.release();
+  }
+  const { status } = await guard(directory, 'run', ['a']);
+  assert.equal(status, 0);
+  assert.equal(existsSync(path.join(directory, 'var/locks/full-run.lock')), false, 'the guard releases the lock');
 });
 
 test('a dirty tree is refused', async t => {

@@ -15,7 +15,7 @@ import { makeDryRun } from './make-dry-run.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const CHECKLIST = 'docs/plans/execution-checklist.md';
-const FILES = ['Makefile', 'scripts/full-run.mjs', 'scripts/push-gate.mjs', 'scripts/test-progress/progress.mjs', '.githooks/pre-push'];
+const FILES = ['Makefile', 'scripts/full-run.mjs', 'scripts/push-gate.mjs', 'scripts/holder-lock.mjs', 'scripts/test-progress/progress.mjs', '.githooks/pre-push'];
 
 const ACTIVE = `# Execution checklist
 

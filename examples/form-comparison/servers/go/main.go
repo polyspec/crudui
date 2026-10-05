@@ -253,6 +253,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Fprintln(os.Stderr, "CRUDUI_READY go")
+	// The address that the listener took, also for port 0.
+	fmt.Fprintln(os.Stderr, "CRUDUI_READY go", listener.Addr().String())
 	log.Fatal(http.Serve(listener, s))
 }

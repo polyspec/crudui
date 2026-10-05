@@ -23,6 +23,8 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { createProgress } from './test-progress/progress.mjs';
+
 const script = fileURLToPath(import.meta.url);
 export const repositoryRoot = path.resolve(path.dirname(script), '..');
 
@@ -219,15 +221,22 @@ export async function runCommand(command, args, { cwd, env } = {}) {
   }
 }
 
+// The acquisition and release lines, on standard error through the shared progress lines.
+let reportLines;
+const report = text => {
+  reportLines ??= createProgress({ write: line => process.stderr.write(line) });
+  reportLines.line(text);
+};
+
 /** Take the lock and print the acquisition; the handle's release prints the release. */
 export function acquireReported(lockFile, options) {
   const lock = acquireHolderLock(lockFile, options);
-  process.stderr.write(`lock: acquired ${lockFile} (pid ${process.pid})\n`);
+  report(`lock: acquired ${lockFile} (pid ${process.pid})`);
   return {
     ...lock,
     release() {
       lock.release();
-      process.stderr.write(`lock: released ${lockFile}\n`);
+      report(`lock: released ${lockFile}`);
     },
   };
 }

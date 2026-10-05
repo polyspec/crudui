@@ -1,5 +1,15 @@
 # 변경 기록
 
+## 2026-10-05 — 자신이 잡은 port의 server와 lock된 공유 단계 (C7.11)
+
+- form comparison의 모든 server는 port 0을 포함한 자기 주소에 bind하고 준비 줄 `CRUDUI_READY {server} {host}:{port}`에 잡은
+  주소를 밝힙니다. PHP launcher는 bind한 socket을 nginx에 넘기고, nginx는 변수 `NGINX`에서 그것을 읽습니다. local stack은
+  모든 server를 `127.0.0.1:0`에서 시작하고 알린 주소로 접근합니다. `freePort`는 port를 확인하고 나중 process에 넘겼으므로
+  그 사이에 다른 process가 그것을 잡을 수 있었습니다.
+- generator-php vendor의 다시 설치는 make, local server, 비교 build에서 checkout lock `composer-generator-php` 아래에서 실행되고,
+  `make ci`의 guard는 checkout lock `full-run`을 잡으므로, 한 checkout의 두 실행은 동시에 다시 설치하거나 같은 record로 정하지
+  않습니다.
+
 ## 2026-10-05 — rename으로 게시하는 공유 출력 (C7.6)
 
 - PHP extension builder는 자기 process의 directory에 compile하고 `<module>.so.<pid>`로 link한 뒤 load하여 검사하고

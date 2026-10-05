@@ -234,5 +234,6 @@ const httpServer = http.createServer(async (request, response) => {
   }
 });
 process.on('SIGTERM', () => httpServer.close(() => process.exit(0)));
+// The readiness line names the address that the server took, also for port 0.
 httpServer.listen(Number(address.slice(separator + 1)), address.slice(0, separator),
-  () => process.stderr.write('CRUDUI_READY public\n'));
+  () => process.stderr.write(`CRUDUI_READY public ${httpServer.address().address}:${httpServer.address().port}\n`));

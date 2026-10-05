@@ -4,7 +4,7 @@
 // after the launcher has written the configuration files, and accept no connection at all.
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
-import { chmodSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -24,7 +24,7 @@ function sandbox(t, programs) {
 
 /** Start the launcher; resolve with its first stdout line or its exit with its output. */
 function launch(root) {
-  const child = spawn(process.execPath, [launcher, '127.0.0.1:1', path.join(root, 'run')], {
+  const child = spawn(process.execPath, [launcher, '127.0.0.1:0', path.join(root, 'run')], {
     env: { ...process.env, PATH: `${root}:${process.env.PATH}`, FORM_PHP_SERVER: 'php' },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
@@ -45,11 +45,19 @@ const ready = line => `process.stderr.write(${JSON.stringify(`${line}\n`)}); set
 test('the PHP server is ready when PHP-FPM and nginx write their readiness lines', async t => {
   const root = sandbox(t, {
     'php-fpm': ready('[05-Oct-2026 11:27:58] NOTICE: ready to handle connections'),
-    nginx: ready('2026/10/05 11:28:06 [notice] 24002#0: start worker processes'),
+    // nginx receives the listening socket of the launcher as file descriptor 3, named by NGINX.
+    nginx: "const fs = require('node:fs'); fs.writeFileSync(process.argv[process.argv.indexOf('-p') + 1] + '/INHERITED', "
+      + "JSON.stringify({ nginx: process.env.NGINX, socket: fs.fstatSync(3).isSocket() }));\n"
+      + ready('2026/10/05 11:28:06 [notice] 24002#0: start worker processes'),
   });
   const result = await launch(root);
   t.after(() => result.child.kill('SIGTERM'));
   assert.equal(result.ready, true, result.output);
+  // The launcher took a port of the system for 127.0.0.1:0, wrote it into the nginx configuration and names it.
+  const [, port] = /CRUDUI_READY php 127\.0\.0\.1:(\d+)/.exec(result.output) ?? [];
+  assert.ok(Number(port) > 0, result.output);
+  assert.match(readFileSync(path.join(root, 'run', 'nginx.conf'), 'utf8'), new RegExp(`listen 127\\.0\\.0\\.1:${port};`));
+  assert.deepEqual(JSON.parse(readFileSync(path.join(root, 'run', 'INHERITED'), 'utf8')), { nginx: '3;', socket: true });
   assert.match(result.output, /NOTICE: ready to handle connections/);
   assert.match(result.output, /start worker processes/);
 });

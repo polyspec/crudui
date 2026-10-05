@@ -46,7 +46,9 @@ test('starts one process for each server implementation from the build volume', 
     assert.equal(process.command, globalThis.process.execPath);
     assert.deepEqual(process.args.slice(0, 4), ['/workspace/build/tree/examples/form-comparison/servers/php/main.mjs',
       `127.0.0.1:${index === 0 ? 8081 : 8088}`, `/workspace/build/state/php-${server}`, '--']);
-    assert.deepEqual(process.ready.pattern, new RegExp(`^CRUDUI_READY ${server}$`, 'm'));
+    const port = index === 0 ? 8081 : 8088;
+    assert.deepEqual(process.ready.pattern, new RegExp(`^CRUDUI_READY ${server} 127\\.0\\.0\\.1:${port}$`, 'm'));
+    assert.equal(process.ready.pattern.test(process.ready.example), true);
     assert.equal(process.environment.FORM_ORDERED_JSON_PHP_SOURCE,
       `${orderedJsonDirectory}/php/src/OrderedJson.php`);
     // The record store and the fixture are located by the process, not by constants in api.php.

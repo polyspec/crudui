@@ -121,13 +121,17 @@ PHP 서버는 PHP를 운영 환경에서 실행하는 방식대로 nginx 뒤의 
 `PATH`의 `php-fpm`과 `nginx`를 시작하며, 둘 다 연결을 받으면 준비 줄을 출력하고 멈출 때 둘 다
 멈춥니다. 이를 시간 한도와 연결 시도 없이 두 프로세스가 standard error에 쓰는 자기 log 줄로 압니다.
 PHP-FPM은 socket에서 listen한 뒤 `NOTICE: ready to handle connections`를 쓰고, nginx는 `notice` log
-level에서 listening socket을 연 뒤 `start worker processes`를 씁니다. nginx는 `/api/` 요청을 FastCGI로 `api.php`에 넘기고 다른 경로에는 JSON 404로 응답하며,
+level에서 listening socket을 연 뒤 `start worker processes`를 씁니다. program은 수신 주소에 직접 bind하고 그
+socket을 변수 `NGINX`가 가리키는 file descriptor 3으로 nginx에 넘기므로, nginx는 program이 잡은 port에서
+수신합니다. nginx는 `/api/` 요청을 FastCGI로 `api.php`에 넘기고 다른 경로에는 JSON 404로 응답하며,
 2 MiB를 넘는 요청 본문은 PHP가 읽기 전에 계약의 JSON 413으로 끝냅니다. 데이터·공개 디렉터리는
 `FORM_DATA_DIRECTORY`, `FORM_PUBLIC_DIRECTORY`로 `api.php`에 전달됩니다. PHP 내장 서버는 스크립트를
 실행하기 전에 본문 전체를 읽으므로 너무 큰 요청을 멈출 수 없었습니다. 공개
 서버는 주소, 데이터 디렉터리, 공개 디렉터리, 네이티브 서버 포트의 JSON 맵을 인수로 받고,
 `servers/javascript/main.mjs`가 제공하는 모듈과 같은 모듈로 `js` 레코드에 응답하며, 빌드
-상태를 IPC로 받습니다. 각 서버는 요청받은 주소에서 수신을 시작한 뒤 준비 줄을 출력합니다.
+상태를 IPC로 받습니다. 각 서버는 port 0을 포함해 요청받은 주소에서 수신을 시작한 뒤 잡은 주소와 함께 준비 줄
+`CRUDUI_READY {server} {host}:{port}`를 출력합니다. local 검사는 모든 서버를 `127.0.0.1:0`에서 시작하고 그 줄의 주소로
+접근하므로, 수신할 서버보다 먼저 port를 고르지 않습니다.
 
 ## 정본 페이지
 

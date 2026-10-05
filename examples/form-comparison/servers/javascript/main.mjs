@@ -24,5 +24,6 @@ const server = http.createServer(async (request, response) => {
   await store.handle(request, response, url.pathname, url.search);
 });
 process.on('SIGTERM', () => server.close(() => process.exit(0)));
+// The readiness line names the address that the server took, also for port 0.
 server.listen(Number(address.slice(separator + 1)), address.slice(0, separator),
-  () => process.stderr.write('CRUDUI_READY js\n'));
+  () => process.stderr.write(`CRUDUI_READY js ${server.address().address}:${server.address().port}\n`));
