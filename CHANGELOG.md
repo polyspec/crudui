@@ -1,5 +1,11 @@
 # Changes
 
+## 2026-10-05 — The checkout npm module in the copies of the tests (C7.7-1)
+
+- `tests/build/rust-node-entry-points.test.mjs` and `tests/build/run-command.test.mjs` copy
+  `scripts/checkout-npm.mjs` with the scripts that import it since C7.7, which failed to load
+  without it in their temporary checkouts.
+
 ## 2026-10-05 — npm of the checkout, not of the machine (C7.7)
 
 - `node scripts/install-npm.mjs` installs the npm release of `packageManager` into the ignored

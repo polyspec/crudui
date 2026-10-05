@@ -1,5 +1,10 @@
 # 변경 기록
 
+## 2026-10-05 — test 복사본의 checkout npm module (C7.7-1)
+
+- `tests/build/rust-node-entry-points.test.mjs`와 `tests/build/run-command.test.mjs`는 C7.7부터 그것을 import하는
+  script와 함께 `scripts/checkout-npm.mjs`를 복사합니다. 그것이 없는 임시 checkout에서 script가 load에 실패했습니다.
+
 ## 2026-10-05 — machine이 아닌 checkout의 npm (C7.7)
 
 - `node scripts/install-npm.mjs`는 `packageManager`의 npm release를 `npm install --prefix`로 임시 directory에
