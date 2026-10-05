@@ -15,14 +15,20 @@ concurrency:
 permissions:
   contents: read
 
+# The toolchains of the checkout at their recorded versions (docs/spec/package-build.md): rustup installs nothing on the
+# first cargo, and go never downloads the toolchain of a go.mod.
+env:
+  RUSTUP_AUTO_INSTALL: '0'
+  GOTOOLCHAIN: local
+
 jobs:
   build-lint:
     name: build, lint and types
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6
-      - name: Setup selected Node.js release line
-        uses: actions/setup-node@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - name: Setup the Node.js release of .node-version
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version-file: '.node-version'
           cache: npm
@@ -30,9 +36,24 @@ jobs:
         run: |
           node scripts/install-npm.mjs
           echo "$PWD/.tools/npm/node_modules/.bin" >> "$GITHUB_PATH"
+      # The runtime checks compare every running tool with the version that the checkout records.
+      - name: Setup PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: '8.5'
+          tools: composer:2.10.3
+      - name: Setup Go
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        with:
+          go-version-file: '.go-version'
+          cache: false
+      - name: Install the Rust toolchain of rust-toolchain.toml
+        run: rustup toolchain install --no-self-update
+      - name: Check the recorded toolchain versions
+        run: node scripts/check-toolchain.mjs node npm go rust php composer
       - name: Install workspace dependencies
         run: npm ci --strict-allow-scripts
-      - name: Verify runtime version channels and test standards
+      - name: Verify exact runtime versions and test standards
         if: ${{ !cancelled() }}
         run: npm run test:runtimes
       - name: Verify dependency graph and advisories
@@ -50,13 +71,13 @@ jobs:
 
   validator-js:
     name: validator · JavaScript
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       CRUDUI_CONFORMANCE_EVIDENCE: ${{ github.workspace }}/conformance-evidence
     steps:
-      - uses: actions/checkout@v6
-      - name: Setup selected Node.js release line
-        uses: actions/setup-node@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - name: Setup the Node.js release of .node-version
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version-file: '.node-version'
           cache: npm
@@ -64,6 +85,8 @@ jobs:
         run: |
           node scripts/install-npm.mjs
           echo "$PWD/.tools/npm/node_modules/.bin" >> "$GITHUB_PATH"
+      - name: Check the recorded toolchain versions
+        run: node scripts/check-toolchain.mjs node npm
       - name: Install workspace dependencies
         run: npm ci --strict-allow-scripts
       - name: Test
@@ -71,7 +94,7 @@ jobs:
         run: npm test -w @crudui/validator
       - name: Preserve conformance evidence
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: conformance-evidence-validator-js
           path: conformance-evidence/
@@ -79,7 +102,7 @@ jobs:
 
   validator-php:
     name: validator · PHP (${{ matrix.php }})
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -87,17 +110,19 @@ jobs:
     env:
       CRUDUI_CONFORMANCE_EVIDENCE: ${{ github.workspace }}/conformance-evidence
     steps:
-      - uses: actions/checkout@v6
-      - name: Setup selected Node.js release line
-        uses: actions/setup-node@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - name: Setup the Node.js release of .node-version
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version-file: '.node-version'
           cache: npm
       - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
           php-version: ${{ matrix.php }}
-          tools: composer
+          tools: composer:2.10.3
+      - name: Check the recorded toolchain versions
+        run: node scripts/check-toolchain.mjs node php composer
       - name: Install PHP dependencies
         run: composer --working-dir=packages/validator-php install --no-interaction --prefer-dist
       - name: Test
@@ -105,7 +130,7 @@ jobs:
         run: composer --working-dir=packages/validator-php test
       - name: Preserve conformance evidence
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: conformance-evidence-validator-php-${{ matrix.php }}
           path: conformance-evidence/
@@ -113,27 +138,29 @@ jobs:
 
   validator-go:
     name: validator · Go
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       CRUDUI_CONFORMANCE_EVIDENCE: ${{ github.workspace }}/conformance-evidence
     steps:
-      - uses: actions/checkout@v6
-      - name: Setup selected Node.js release line
-        uses: actions/setup-node@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - name: Setup the Node.js release of .node-version
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version-file: '.node-version'
           cache: npm
       - name: Setup Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
         with:
           go-version-file: '.go-version'
           cache-dependency-path: packages/validator-go/go.mod
+      - name: Check the recorded toolchain versions
+        run: node scripts/check-toolchain.mjs node go
       - name: Test
         if: ${{ !cancelled() }}
         run: node scripts/run-tests.mjs go --cwd packages/validator-go -- ./...
       - name: Preserve conformance evidence
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: conformance-evidence-validator-go
           path: conformance-evidence/
@@ -141,20 +168,22 @@ jobs:
 
   validator-rust:
     name: validator · Rust
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       CRUDUI_CONFORMANCE_EVIDENCE: ${{ github.workspace }}/conformance-evidence
     steps:
-      - uses: actions/checkout@v6
-      - name: Setup selected Node.js release line
-        uses: actions/setup-node@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - name: Setup the Node.js release of .node-version
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version-file: '.node-version'
           cache: npm
-      - name: Setup Rust (stable)
-        uses: dtolnay/rust-toolchain@stable
+      - name: Install the Rust toolchain of rust-toolchain.toml
+        run: rustup toolchain install --no-self-update
+      - name: Check the recorded toolchain versions
+        run: node scripts/check-toolchain.mjs node rust
       - name: Cargo cache
-        uses: Swatinem/rust-cache@v2
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
           workspaces: packages/validator-rust
       - name: Test
@@ -162,7 +191,7 @@ jobs:
         run: node scripts/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml
       - name: Preserve conformance evidence
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: conformance-evidence-validator-rust
           path: conformance-evidence/
@@ -170,40 +199,42 @@ jobs:
 
   docs-coverage:
     name: documentation gate
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       DOCS_BASE_PATH: /crudui/
     steps:
-      - uses: actions/checkout@v6
-      - name: Setup selected Node.js release line
-        uses: actions/setup-node@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - name: Setup the Node.js release of .node-version
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version-file: '.node-version'
           cache: npm
       - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
           php-version: '8.5'
-          tools: composer
+          tools: composer:2.10.3
       - name: Install PHP dependencies
         run: |
           composer --working-dir=packages/validator-php install --no-interaction --prefer-dist
           composer --working-dir=packages/generator-php install --no-interaction --prefer-dist
       - name: Setup Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
         with:
           go-version-file: '.go-version'
           cache-dependency-path: packages/validator-go/go.mod
-      - name: Setup Rust (stable)
-        uses: dtolnay/rust-toolchain@stable
+      - name: Install the Rust toolchain of rust-toolchain.toml
+        run: rustup toolchain install --no-self-update
       - name: Cargo cache
-        uses: Swatinem/rust-cache@v2
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
           workspaces: packages/validator-rust
       - name: Install the recorded npm into the checkout
         run: |
           node scripts/install-npm.mjs
           echo "$PWD/.tools/npm/node_modules/.bin" >> "$GITHUB_PATH"
+      - name: Check the recorded toolchain versions
+        run: node scripts/check-toolchain.mjs node npm go rust php composer
       - name: Install workspace dependencies
         run: npm ci --strict-allow-scripts
       - name: Install PHP API documentation generator
@@ -213,7 +244,7 @@ jobs:
         run: make docs-check
       - name: Upload documentation web
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4.0.0
         with:
           path: docs/.web/dist
 
@@ -221,7 +252,7 @@ jobs:
     name: Deploy documentation to GitHub Pages
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     needs: docs-coverage
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       pages: write
       id-token: write
@@ -234,44 +265,46 @@ jobs:
     steps:
       - name: Deploy documentation web
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5
 
   cross-check-console:
     name: cross-check console gateway
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       CRUDUI_CONFORMANCE_EVIDENCE: ${{ github.workspace }}/conformance-evidence
     steps:
-      - uses: actions/checkout@v6
-      - name: Setup selected Node.js release line
-        uses: actions/setup-node@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - name: Setup the Node.js release of .node-version
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version-file: '.node-version'
           cache: npm
       - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
           php-version: '8.5'
-          tools: composer
+          tools: composer:2.10.3
       - name: Install PHP dependencies
         run: composer --working-dir=packages/validator-php install --no-interaction --prefer-dist
       - name: Setup Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
         with:
           go-version-file: '.go-version'
           cache-dependency-path: |
             packages/validator-go/go.mod
             examples/cross-check-console/validators/go/go.mod
-      - name: Setup Rust (stable)
-        uses: dtolnay/rust-toolchain@stable
+      - name: Install the Rust toolchain of rust-toolchain.toml
+        run: rustup toolchain install --no-self-update
       - name: Cargo cache
-        uses: Swatinem/rust-cache@v2
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
           workspaces: examples/cross-check-console/validators/rust
       - name: Install the recorded npm into the checkout
         run: |
           node scripts/install-npm.mjs
           echo "$PWD/.tools/npm/node_modules/.bin" >> "$GITHUB_PATH"
+      - name: Check the recorded toolchain versions
+        run: node scripts/check-toolchain.mjs node npm go rust php composer
       - name: Install workspace dependencies
         run: npm ci --strict-allow-scripts
       - name: Build the packages and the PHP extension
@@ -287,7 +320,7 @@ jobs:
         run: npm run manifest:test
       - name: Preserve conformance evidence
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: conformance-evidence-cross-check-console
           path: conformance-evidence/
@@ -295,11 +328,11 @@ jobs:
 
   cli:
     name: command-line interface
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6
-      - name: Setup selected Node.js release line
-        uses: actions/setup-node@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - name: Setup the Node.js release of .node-version
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version-file: '.node-version'
           cache: npm
@@ -307,6 +340,8 @@ jobs:
         run: |
           node scripts/install-npm.mjs
           echo "$PWD/.tools/npm/node_modules/.bin" >> "$GITHUB_PATH"
+      - name: Check the recorded toolchain versions
+        run: node scripts/check-toolchain.mjs node npm
       - name: Install workspace dependencies
         run: npm ci --strict-allow-scripts
       - name: Build the packages
@@ -318,15 +353,16 @@ jobs:
 
   form-runtime:
     name: Form instances and data injection
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       CRUDUI_CONFORMANCE_EVIDENCE: ${{ github.workspace }}/conformance-evidence
-      PUPPETEER_EXECUTABLE_PATH: /opt/google/chrome/chrome
-      PUPPETEER_SKIP_DOWNLOAD: 'true'
+      # The Chrome and Firefox builds that puppeteer pins, in the checkout (scripts/install-browsers.mjs).
+      PUPPETEER_CACHE_DIR: ${{ github.workspace }}/.tools/puppeteer
+      CHROME_DEVEL_SANDBOX: /usr/local/sbin/chrome-devel-sandbox
     steps:
-      - uses: actions/checkout@v6
-      - name: Setup selected Node.js release line
-        uses: actions/setup-node@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - name: Setup the Node.js release of .node-version
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version-file: '.node-version'
           cache: npm
@@ -334,10 +370,12 @@ jobs:
         run: |
           node scripts/install-npm.mjs
           echo "$PWD/.tools/npm/node_modules/.bin" >> "$GITHUB_PATH"
+      - name: Check the recorded toolchain versions
+        run: node scripts/check-toolchain.mjs node npm
       - name: Install workspace dependencies
         run: npm ci --strict-allow-scripts
-      - name: Install WebKit for the browser checks
-        run: npx playwright install --with-deps webkit
+      - name: Install the browsers that Puppeteer and Playwright pin
+        run: node scripts/install-browsers.mjs chrome firefox webkit --with-deps --chrome-sandbox
       - name: Verify sandboxed Chrome
         run: node scripts/check-ci-browser.mjs
       - if: ${{ !cancelled() }}
@@ -348,7 +386,7 @@ jobs:
         run: npm run test:forms
       - name: Preserve conformance evidence
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: conformance-evidence-form-runtime
           path: conformance-evidence/
@@ -356,31 +394,36 @@ jobs:
 
   form-comparison:
     name: Form comparison runner regressions
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
-      PUPPETEER_EXECUTABLE_PATH: /opt/google/chrome/chrome
-      PUPPETEER_SKIP_DOWNLOAD: 'true'
+      # The Chrome and Firefox builds that puppeteer pins, in the checkout (scripts/install-browsers.mjs).
+      PUPPETEER_CACHE_DIR: ${{ github.workspace }}/.tools/puppeteer
+      CHROME_DEVEL_SANDBOX: /usr/local/sbin/chrome-devel-sandbox
     steps:
-      - uses: actions/checkout@v6
-      - name: Setup selected Node.js release line
-        uses: actions/setup-node@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - name: Setup the Node.js release of .node-version
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version-file: '.node-version'
           cache: npm
       - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
           php-version: '8.5'
-          tools: composer
+          tools: composer:2.10.3
       - name: Install the recorded npm into the checkout
         run: |
           node scripts/install-npm.mjs
           echo "$PWD/.tools/npm/node_modules/.bin" >> "$GITHUB_PATH"
+      - name: Check the recorded toolchain versions
+        run: node scripts/check-toolchain.mjs node npm php composer
       - name: Install workspace and PHP dependencies
         run: |
           npm ci --strict-allow-scripts
           composer --working-dir=packages/validator-php install --no-interaction --prefer-dist
           composer --working-dir=packages/generator-php install --no-interaction --prefer-dist
+      - name: Install the browsers that Puppeteer pins
+        run: node scripts/install-browsers.mjs chrome --chrome-sandbox
       - name: Verify sandboxed Chrome
         run: node scripts/check-ci-browser.mjs
       - name: Test report policy, browser jobs and source tree
@@ -389,38 +432,41 @@ jobs:
 
   form-comparison-pipeline:
     name: Record stores and the canonical flow
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
-      PUPPETEER_EXECUTABLE_PATH: /opt/google/chrome/chrome
-      PUPPETEER_SKIP_DOWNLOAD: 'true'
+      # The Chrome and Firefox builds that puppeteer pins, in the checkout (scripts/install-browsers.mjs).
+      PUPPETEER_CACHE_DIR: ${{ github.workspace }}/.tools/puppeteer
+      CHROME_DEVEL_SANDBOX: /usr/local/sbin/chrome-devel-sandbox
       PHP_EXTENSION_PHP_CONFIG: /usr/bin/php-config8.5
     steps:
-      - uses: actions/checkout@v6
-      - name: Setup selected Node.js release line
-        uses: actions/setup-node@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - name: Setup the Node.js release of .node-version
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version-file: '.node-version'
           cache: npm
       - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
           php-version: '8.5'
-          tools: composer
+          tools: composer:2.10.3
       - name: Setup Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
         with:
           go-version-file: '.go-version'
           cache-dependency-path: examples/form-comparison/servers/go/go.mod
-      - name: Setup Rust (stable)
-        uses: dtolnay/rust-toolchain@stable
+      - name: Install the Rust toolchain of rust-toolchain.toml
+        run: rustup toolchain install --no-self-update
       - name: Cargo cache
-        uses: Swatinem/rust-cache@v2
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
           workspaces: examples/form-comparison/servers/rust
       - name: Install the recorded npm into the checkout
         run: |
           node scripts/install-npm.mjs
           echo "$PWD/.tools/npm/node_modules/.bin" >> "$GITHUB_PATH"
+      - name: Check the recorded toolchain versions
+        run: node scripts/check-toolchain.mjs node npm go rust php composer
       - name: Install workspace and PHP dependencies
         run: |
           npm ci --strict-allow-scripts
@@ -432,6 +478,8 @@ jobs:
         run: |
           sudo apt-get install -y --no-install-recommends nginx
           php-fpm -v && nginx -v
+      - name: Install the browsers that Puppeteer pins
+        run: node scripts/install-browsers.mjs chrome --chrome-sandbox
       - name: Verify sandboxed Chrome
         run: node scripts/check-ci-browser.mjs
       - name: Test the five record stores and the canonical flow
@@ -440,14 +488,15 @@ jobs:
 
   package-browser:
     name: Packages, public builds and browser inspector
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
-      PUPPETEER_EXECUTABLE_PATH: /opt/google/chrome/chrome
-      PUPPETEER_SKIP_DOWNLOAD: 'true'
+      # The Chrome and Firefox builds that puppeteer pins, in the checkout (scripts/install-browsers.mjs).
+      PUPPETEER_CACHE_DIR: ${{ github.workspace }}/.tools/puppeteer
+      CHROME_DEVEL_SANDBOX: /usr/local/sbin/chrome-devel-sandbox
     steps:
-      - uses: actions/checkout@v6
-      - name: Setup selected Node.js release line
-        uses: actions/setup-node@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - name: Setup the Node.js release of .node-version
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version-file: '.node-version'
           cache: npm
@@ -455,8 +504,12 @@ jobs:
         run: |
           node scripts/install-npm.mjs
           echo "$PWD/.tools/npm/node_modules/.bin" >> "$GITHUB_PATH"
+      - name: Check the recorded toolchain versions
+        run: node scripts/check-toolchain.mjs node npm
       - name: Install workspace dependencies
         run: npm ci --strict-allow-scripts
+      - name: Install the browsers that Puppeteer pins
+        run: node scripts/install-browsers.mjs chrome --chrome-sandbox
       - name: Verify sandboxed Chrome
         run: node scripts/check-ci-browser.mjs
       - name: Pack and test package installs
@@ -471,38 +524,39 @@ jobs:
 
   native-generators:
     name: Native generation and PHP API (${{ matrix.php }})
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       CRUDUI_CONFORMANCE_EVIDENCE: ${{ github.workspace }}/conformance-evidence
-      PUPPETEER_EXECUTABLE_PATH: /opt/google/chrome/chrome
-      PUPPETEER_SKIP_DOWNLOAD: 'true'
+      # The Chrome and Firefox builds that puppeteer pins, in the checkout (scripts/install-browsers.mjs).
+      PUPPETEER_CACHE_DIR: ${{ github.workspace }}/.tools/puppeteer
+      CHROME_DEVEL_SANDBOX: /usr/local/sbin/chrome-devel-sandbox
     strategy:
       fail-fast: false
       matrix:
         php: ['8.4', '8.5']
     steps:
-      - uses: actions/checkout@v6
-      - name: Setup selected Node.js release line
-        uses: actions/setup-node@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - name: Setup the Node.js release of .node-version
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version-file: '.node-version'
           cache: npm
-      - uses: shivammathur/setup-php@v2
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
           php-version: ${{ matrix.php }}
-          tools: composer
+          tools: composer:2.10.3
       - name: Setup Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
         with:
           go-version-file: '.go-version'
           cache-dependency-path: |
             packages/generator-go/go.mod
             tests/native-generators/programs/go/go.mod
             tools/bench/go/go.mod
-      - name: Setup Rust (stable)
-        uses: dtolnay/rust-toolchain@stable
+      - name: Install the Rust toolchain of rust-toolchain.toml
+        run: rustup toolchain install --no-self-update
       - name: Cargo cache
-        uses: Swatinem/rust-cache@v2
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
           workspaces: |
             packages/generator-rust
@@ -512,11 +566,15 @@ jobs:
         run: |
           node scripts/install-npm.mjs
           echo "$PWD/.tools/npm/node_modules/.bin" >> "$GITHUB_PATH"
+      - name: Check the recorded toolchain versions
+        run: node scripts/check-toolchain.mjs node npm go rust php composer
       - name: Install dependencies
         run: |
           npm ci --strict-allow-scripts
           composer --working-dir=packages/validator-php install --no-interaction --prefer-dist
           composer --working-dir=packages/generator-php install --no-interaction --prefer-dist
+      - name: Install the browsers that Puppeteer pins
+        run: node scripts/install-browsers.mjs chrome --chrome-sandbox
       - name: Verify sandboxed Chrome
         run: node scripts/check-ci-browser.mjs
       - name: Build and test native packages
@@ -529,7 +587,7 @@ jobs:
         run: npm run test:bench
       - name: Preserve comparison report
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: native-generators-php-${{ matrix.php }}
           path: .git/native-generators/report.json
@@ -537,7 +595,7 @@ jobs:
           if-no-files-found: error
       - name: Preserve conformance evidence
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: conformance-evidence-native-php-${{ matrix.php }}
           path: conformance-evidence/
@@ -547,16 +605,18 @@ jobs:
     name: conformance evidence against the standard
     needs: [validator-js, validator-php, validator-go, validator-rust, cross-check-console, form-runtime, native-generators]
     if: ${{ !cancelled() }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6
-      - name: Setup selected Node.js release line
-        uses: actions/setup-node@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - name: Setup the Node.js release of .node-version
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version-file: '.node-version'
           cache: npm
+      - name: Check the recorded toolchain versions
+        run: node scripts/check-toolchain.mjs node
       - name: Collect the evidence of every suite
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           pattern: conformance-evidence-*
           path: conformance-evidence

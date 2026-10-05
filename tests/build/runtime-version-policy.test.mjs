@@ -6,6 +6,9 @@ import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
 
+import { recordedToolchain, toolchainMismatches } from '../../scripts/check-toolchain.mjs';
+import { makeDryRun } from './make-dry-run.mjs';
+
 const repository = fileURLToPath(new URL('../..', import.meta.url));
 const ignoredDirectories = new Set(['.git', 'node_modules', 'target', 'vendor']);
 
@@ -24,32 +27,6 @@ async function findContainerDefinitions(directory = repository) {
   }
   return files;
 }
-
-async function selectedNodeMajor() {
-  const value = (await readFile(path.join(repository, '.node-version'), 'utf8')).trim();
-  assert.match(value, /^\d+$/, '.node-version must contain one Node.js major');
-  const major = Number(value);
-  assert.equal(major % 2, 0, 'The selected Node.js major must be an LTS-designated line');
-  return value;
-}
-
-async function selectedGoRelease() {
-  const value = (await readFile(path.join(repository, '.go-version'), 'utf8')).trim();
-  assert.match(value, /^\d+\.\d+$/,
-    '.go-version must contain one Go major and minor release');
-  return value;
-}
-
-test('CI selects the tracked Node.js line', async () => {
-  const workflow = await readFile(path.join(repository, '.github/workflows/ci.yml'), 'utf8');
-  const setupCount = [...workflow.matchAll(/uses: actions\/setup-node@/g)].length;
-  const versionFileCount = [...workflow.matchAll(/node-version-file:\s*['"]?\.node-version['"]?/g)]
-    .length;
-  assert.ok(setupCount > 0, 'CI must configure Node.js');
-  assert.equal(versionFileCount, setupCount,
-    'Every setup-node step must read .node-version');
-  assert.doesNotMatch(workflow, /node-version:\s*['"]?\d/);
-});
 
 /** The exact npm release that `packageManager` of package.json records. */
 async function recordedNpm() {
@@ -104,77 +81,159 @@ test('container definitions and the Linux style check install the recorded npm',
   assert.deepEqual(violations, []);
 });
 
-test('container definitions select the tracked Node.js major channel', async () => {
-  const major = await selectedNodeMajor();
-  const definitions = await findContainerDefinitions();
-  const nodeStages = [];
-  for (const definition of definitions) {
-    const source = await readFile(definition, 'utf8');
-    for (const match of source.matchAll(/^FROM\s+node:([^\s]+)(?:\s|$)/gm)) {
-      nodeStages.push({ definition: path.relative(repository, definition), tag: match[1] });
+const read = file => readFile(path.join(repository, file), 'utf8');
+
+/** Every workflow file with its parsed content. */
+async function workflows() {
+  const directory = path.join(repository, '.github/workflows');
+  return Promise.all((await readdir(directory)).filter(name => /\.ya?ml$/.test(name)).map(async file => ({ file, text: await read(`.github/workflows/${file}`), workflow: parse(await read(`.github/workflows/${file}`)) })));
+}
+
+test('the checkout records one exact version of every tool', async () => {
+  const recorded = recordedToolchain(repository);
+  assert.match(recorded.node, /^\d+\.\d+\.\d+$/);
+  assert.equal(Number(recorded.node.split('.')[0]) % 2, 0, 'the Node.js release must be of an even, LTS-designated major');
+  const toolchain = await read('rust-toolchain.toml');
+  assert.match(toolchain, /^profile = "minimal"$/m);
+  assert.match(toolchain, /^components = \["rustfmt", "clippy"\]$/m);
+  const config = JSON.parse(await read('config/toolchain.json'));
+  assert.match(config.node['linux-x64.tar.gz'], /^[0-9a-f]{64}$/, 'config/toolchain.json records the SHA-256 of the Linux x64 archive of the Node.js release');
+});
+
+// PHP joins this list with C7.2-1, when the machine runs the recorded PHP release.
+test('every tool runs at the version that the checkout records', () => {
+  assert.deepEqual(toolchainMismatches(['node', 'npm', 'go', 'rust', 'composer'], { root: repository }), []);
+});
+
+test('a tool at another version fails with its record, the expected and the running version and the fix', () => {
+  const recorded = recordedToolchain(repository);
+  const outputs = { node: 'v1.2.3\n', rustc: 'rustc 1.0.0 (abc 2020-01-01)\n', php: '8.4.1\n' };
+  const run = command => (command === 'go' ? { status: 1, stdout: '', stderr: 'go: not found' } : { status: 0, stdout: outputs[command] ?? '', stderr: '' });
+  assert.deepEqual(toolchainMismatches(['node', 'rust', 'php', 'go'], { root: repository, run }), [
+    `node: 1.2.3 runs here and .node-version records ${recorded.node}; fix: install node ${recorded.node}`,
+    `rust: 1.0.0 runs here and rust-toolchain.toml records ${recorded.rust}; fix: make install (rustup toolchain install --no-self-update)`,
+    `php: 8.4.1 runs here and config/toolchain.json php records ${recorded.php.find(release => release.startsWith('8.4.'))}; fix: install php ${recorded.php.find(release => release.startsWith('8.4.'))}`,
+    'go: `go env GOVERSION` failed (status 1): go: not found',
+  ]);
+});
+
+test('every go.mod names the recorded Go release as its toolchain', async () => {
+  const { go } = recordedToolchain(repository);
+  const files = spawnSync('git', ['ls-files', '--cached', '--others', '--exclude-standard', '*go.mod'], { cwd: repository, encoding: 'utf8' }).stdout.split('\n').filter(Boolean);
+  assert.ok(files.length > 0);
+  const violations = [];
+  for (const file of files) {
+    const lines = [...(await read(file)).matchAll(/^toolchain (\S+)$/gm)].map(match => match[1]);
+    if (lines.length !== 1 || lines[0] !== `go${go}`) violations.push(`${file}: toolchain ${lines.join(', ') || 'missing'}, .go-version records ${go}`);
+  }
+  assert.deepEqual(violations, []);
+});
+
+test('make installs nothing on its own and make install installs the Rust toolchain', async () => {
+  const makefile = await read('Makefile');
+  assert.match(makefile, /^export RUSTUP_AUTO_INSTALL := 0$/m);
+  assert.match(makefile, /^export GOTOOLCHAIN := local$/m);
+  const install = makeDryRun(repository, 'install');
+  assert.equal(install.status, 0, install.stderr);
+  assert.ok(install.stdout.split('\n').includes('rustup toolchain install --no-self-update'), install.stdout);
+});
+
+test('every workflow runs on ubuntu-24.04 with actions named by commit SHA and no auto-install', async () => {
+  const violations = [];
+  for (const { file, text, workflow } of await workflows()) {
+    if (workflow.env?.RUSTUP_AUTO_INSTALL !== '0' || workflow.env?.GOTOOLCHAIN !== 'local') violations.push(`${file}: env must set RUSTUP_AUTO_INSTALL: '0' and GOTOOLCHAIN: local`);
+    for (const [id, job] of Object.entries(workflow.jobs)) {
+      if (job['runs-on'] !== 'ubuntu-24.04') violations.push(`${file} ${id}: runs-on ${job['runs-on']}`);
+    }
+    for (const line of text.split('\n').filter(entry => /^\s*(?:- )?uses:/.test(entry))) {
+      if (!/uses: [\w.-]+\/[\w.-]+@[0-9a-f]{40} # v?\d+\.\d+\.\d+$/.test(line)) violations.push(`${file}: ${line.trim()} is not named by the commit SHA of a release with the release in a comment`);
     }
   }
-  assert.ok(nodeStages.length > 0, 'At least one Node.js container stage is required');
-  assert.deepEqual(
-    nodeStages.filter(stage => !stage.tag.startsWith(`${major}-`)),
-    [],
-    `Node.js stages must use the ${major} major channel: ${JSON.stringify(nodeStages, null, 2)}`,
-  );
+  assert.deepEqual(violations, []);
 });
 
-test('CI selects the tracked Go release line', async () => {
-  const workflow = await readFile(path.join(repository, '.github/workflows/ci.yml'), 'utf8');
-  const setupCount = [...workflow.matchAll(/uses: actions\/setup-go@/g)].length;
-  const versionFileCount = [...workflow.matchAll(/go-version-file:\s*['"]?\.go-version['"]?/g)]
-    .length;
-  assert.ok(setupCount > 0, 'CI must configure Go');
-  assert.equal(versionFileCount, setupCount,
-    'Every setup-go step must read .go-version');
-  assert.doesNotMatch(workflow, /go-version:\s*['"]?\d/);
-});
-
-test('container definitions select the tracked Go release line', async () => {
-  const release = await selectedGoRelease();
-  const definitions = await findContainerDefinitions();
-  const goStages = [];
-  for (const definition of definitions) {
-    const source = await readFile(definition, 'utf8');
-    for (const match of source.matchAll(/^FROM\s+golang:([^\s]+)(?:\s|$)/gm)) {
-      goStages.push({ definition: path.relative(repository, definition), tag: match[1] });
+test('every CI job sets up the recorded toolchains and checks the tools it set up', async () => {
+  const recorded = recordedToolchain(repository);
+  const minors = recorded.php.map(release => release.split('.').slice(0, 2).join('.'));
+  const violations = [];
+  for (const { file, workflow } of await workflows()) {
+    for (const [id, job] of Object.entries(workflow.jobs)) {
+      const steps = job.steps ?? [];
+      if (!steps.some(step => String(step.uses ?? '').startsWith('actions/checkout@'))) continue;
+      const tools = ['node'];
+      let checked;
+      steps.forEach((step, index) => {
+        const uses = String(step.uses ?? '');
+        const run = String(step.run ?? '');
+        if (uses.startsWith('actions/setup-node@') && step.with?.['node-version-file'] !== '.node-version') violations.push(`${file} ${id}: setup-node must read .node-version`);
+        if (uses.startsWith('actions/setup-go@')) {
+          tools.push('go');
+          if (step.with?.['go-version-file'] !== '.go-version') violations.push(`${file} ${id}: setup-go must read .go-version`);
+        }
+        if (uses.startsWith('shivammathur/setup-php@')) {
+          tools.push('php', 'composer');
+          const versions = step.with?.['php-version'] === '${{ matrix.php }}' ? job.strategy.matrix.php.map(String) : [String(step.with?.['php-version'])];
+          for (const version of versions) if (!minors.includes(version)) violations.push(`${file} ${id}: PHP ${version} has no exact release in config/toolchain.json`);
+          if (step.with?.tools !== `composer:${recorded.composer}`) violations.push(`${file} ${id}: setup-php must install composer:${recorded.composer}`);
+        }
+        if (/rust-toolchain|dtolnay/.test(uses)) violations.push(`${file} ${id}: ${uses} selects a Rust toolchain; run rustup toolchain install --no-self-update`);
+        if (run.split('\n').includes('rustup toolchain install --no-self-update')) tools.push('rust');
+        if (run.split('\n').includes('node scripts/install-npm.mjs')) tools.push('npm');
+        const check = /^node scripts\/check-toolchain\.mjs (.+)$/m.exec(run);
+        if (check) checked = { tools: check[1].split(' '), index };
+      });
+      if (!checked) violations.push(`${file} ${id}: no step runs node scripts/check-toolchain.mjs`);
+      else if ([...checked.tools].sort().join(' ') !== [...tools].sort().join(' ')) violations.push(`${file} ${id}: checks ${checked.tools.join(' ')}, sets up ${tools.join(' ')}`);
     }
   }
-  assert.ok(goStages.length > 0, 'At least one Go container stage is required');
-  assert.deepEqual(
-    goStages.filter(stage => !stage.tag.startsWith(`${release}-`)),
-    [],
-    `Go stages must use the ${release} release line: ${JSON.stringify(goStages, null, 2)}`,
-  );
+  assert.deepEqual(violations, []);
 });
 
-test('CI selects the stable Rust toolchain channel', async () => {
-  const workflow = await readFile(path.join(repository, '.github/workflows/ci.yml'), 'utf8');
-  const setupCount = [...workflow.matchAll(/uses: dtolnay\/rust-toolchain@/g)].length;
-  const stableCount = [...workflow.matchAll(/uses: dtolnay\/rust-toolchain@stable/g)].length;
-  assert.ok(setupCount > 0, 'CI must configure Rust');
-  assert.equal(stableCount, setupCount,
-    'Every Rust toolchain step must select the stable channel');
-});
-
-test('container definitions select the stable Rust major channel', async () => {
+test('container stages name their images by exact tag and digest and install Debian packages of one date', async () => {
+  const recorded = recordedToolchain(repository);
+  const prefixes = { node: `${recorded.node}-`, golang: `${recorded.go}-`, rust: `${recorded.rust}-` };
   const definitions = await findContainerDefinitions();
-  const rustStages = [];
+  assert.ok(definitions.length > 0);
+  const violations = [];
   for (const definition of definitions) {
+    const name = path.relative(repository, definition);
     const source = await readFile(definition, 'utf8');
-    for (const match of source.matchAll(/^FROM\s+rust:([^\s]+)(?:\s|$)/gm)) {
-      rustStages.push({ definition: path.relative(repository, definition), tag: match[1] });
+    for (const [, image, tag, digest] of source.matchAll(/^FROM\s+([^\s:@]+):([^\s@]+)(?:@(sha256:[0-9a-f]{64}))?/gm)) {
+      if (!digest) violations.push(`${name}: FROM ${image}:${tag} has no digest`);
+      if (prefixes[image] && !tag.startsWith(prefixes[image])) violations.push(`${name}: ${image}:${tag} is not the recorded release ${prefixes[image].slice(0, -1)}`);
     }
+    if (/apt-get update/.test(source) && !/snapshot\.debian\.org\/archive\/debian\/\d{8}T\d{6}Z/.test(source)) violations.push(`${name}: apt-get reads the live Debian archive`);
+    if (!/RUSTUP_AUTO_INSTALL=0/.test(source) || !/GOTOOLCHAIN=local/.test(source)) violations.push(`${name}: the image must set RUSTUP_AUTO_INSTALL=0 and GOTOOLCHAIN=local`);
   }
-  assert.ok(rustStages.length > 0, 'At least one Rust container stage is required');
-  assert.deepEqual(
-    rustStages.filter(stage => !stage.tag.startsWith('1-')),
-    [],
-    `Rust stages must use the stable major channel: ${JSON.stringify(rustStages, null, 2)}`,
-  );
+  assert.deepEqual(violations, []);
+});
+
+test('the Linux style check installs the recorded Node.js archive and the pinned browsers', async () => {
+  const script = await read('scripts/test-form-styles-linux.sh');
+  assert.doesNotMatch(script, /latest|@stable|playwright install chrome/);
+  assert.match(script, /https:\/\/nodejs\.org\/dist\/v\$NODE_VERSION\/\$tarball/);
+  assert.match(script, /sha256sum -c/);
+  assert.match(script, /NODE_VERSION=\$\(cat "\$ROOT\/\.node-version"\)/);
+  assert.match(script, /node scripts\/install-browsers\.mjs chrome firefox --chrome-sandbox/);
+});
+
+test('no browser of a release channel or of the machine is installed or launched', async () => {
+  const files = spawnSync('git', ['ls-files', '--cached', '--others', '--exclude-standard', 'scripts', 'tests', '.github', 'Makefile'], { cwd: repository, encoding: 'utf8' }).stdout.split('\n').filter(file => file && !file.endsWith('runtime-version-policy.test.mjs'));
+  const violations = [];
+  for (const file of files) {
+    let source;
+    try { source = await read(file); } catch { continue; }
+    source.split('\n').forEach((line, index) => {
+      if (/browsers install \S+@(?:stable|latest|beta|dev|canary)\b|\/opt\/google\/chrome|\/Applications\/Firefox|\/usr\/bin\/firefox|CRUDUI_FIREFOX_EXECUTABLE/.test(line)) violations.push(`${file}:${index + 1}: ${line.trim()}`);
+    });
+  }
+  assert.deepEqual(violations, []);
+});
+
+test('the declared contract commands run in a shell without login files', async () => {
+  const runner = await read('scripts/run-contract-tests.mjs');
+  assert.match(runner, /args: \['-c', command\]/);
+  assert.doesNotMatch(runner, /'-lc'|'-l'/);
 });
 
 async function composerManifests(directory = repository) {

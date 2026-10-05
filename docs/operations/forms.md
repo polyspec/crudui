@@ -135,9 +135,9 @@ use jsdom; they do not establish external editor or browser file-picker behavior
 WebKit: sticky header stacking, the level label and its `data-crudui-stuck` fallback, one-border
 seams, row card edges and focus scrolling, each in a page, a scrolling box and a frame. Every
 engine runs the same scenarios; Chromium and Firefox are driven by Puppeteer, WebKit by
-Playwright. Firefox is found at `CRUDUI_FIREFOX_EXECUTABLE` or the platform's install path, and
-WebKit is installed with `npx playwright install --with-deps webkit`. A missing browser fails the
-run; no engine is skipped. The [browser validation](validation.md#browser-validation) check of
+Playwright, each at the build that the locked package pins; `node scripts/install-browsers.mjs
+chrome firefox webkit` installs them (on Linux with `--with-deps` for WebKit). A missing browser fails
+the run with the command that installs it; no engine is skipped. The [browser validation](validation.md#browser-validation) check of
 `packages/form-binding/tests/browser.test.ts` runs in the same three engines.
 `tests/viewport.test.mjs` places the expected HTML of the 432 shared render cases at 360 and
 1280 CSS pixels and requires no horizontal overflow of the document, and

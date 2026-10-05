@@ -56,8 +56,8 @@ PHP 검사가 소스보다 오래된 복사본을 읽지 않습니다. 통과한
 
 ## Apple container
 
-컨테이너 정의에는 PHP 8.4와 개발 헤더, Node 26·Go 1.27 릴리스 계열, Rust 안정
-채널, Composer, Chromium이 포함됩니다. 전체 저장소를 빌드 컨텍스트로 사용합니다.
+컨테이너 정의에는 PHP 8.4와 개발 헤더, checkout이 기록한 Node.js·Go·Rust 릴리스(각 이미지는
+digest로 지정), 한 날짜의 Debian snapshot에서 받은 Composer와 Chromium이 포함됩니다. 전체 저장소를 빌드 컨텍스트로 사용합니다.
 호스트에서 생성한 의존성과 바이너리는 제외하며, 이미지 안에서 패키지 잠금 파일로
 의존성을 설치합니다.
 

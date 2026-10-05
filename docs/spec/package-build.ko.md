@@ -132,46 +132,57 @@ Git 메타데이터가 없는 컨테이너 빌드는 Composer 실행 전에 저�
 
 ## 런타임과 의존성 버전
 
-릴리스 후보는 LTS 채널을 제공하는 런타임의 최신 활성 LTS 릴리스를 사용합니다.
-Node.js는 활성 LTS 또는 다음 LTS로 지정된 최신 짝수 안정 메이저를 사용합니다.
-따라서 다음 LTS 메이저는 Current 상태에서도 사용할 수 있고 홀수 메이저는
-제외합니다. LTS 채널이 없는 런타임과 도구는 프로젝트가 지원하는 최신 안정
-릴리스를 사용합니다. 명세가 명시적으로 요구하지 않는 프리릴리스 버전은
-사용하지 않습니다.
+저장소를 빌드하거나 설치하거나 검사하는 모든 도구는 checkout이 기록한 정확한 버전 하나로
+local, CI, 컨테이너 이미지에서 실행되므로, 같은 tree는 모든 날짜와 machine에서 같은 결과를
+냅니다. 새 릴리스는 그 기록을 바꿔 채택하고, 검사는 그 뒤 모든 곳에서 그 릴리스를 요구합니다.
+릴리스는 기록을 바꿀 때 고릅니다. LTS 채널을 제공하는 런타임은 최신 활성 LTS 릴리스를,
+Node.js는 활성 LTS 또는 다음 LTS로 지정된 최신 짝수 안정 메이저를, 다른 도구는 프로젝트가
+지원하는 최신 안정 릴리스를 사용합니다. 명세가 명시적으로 요구하지 않는 프리릴리스 버전은
+사용하지 않습니다. 어떤 실행도 채널의 최신 릴리스를 registry에 묻지 않고, 어떤 도구도 스스로
+다른 버전을 설치하지 않습니다.
 
-저장소 실행 설정은 정확한 패치 릴리스 대신 릴리스 채널을 선택합니다.
-`.node-version`은 선택한 Node.js 메이저를 기록하고 `.go-version`은 선택한 Go
-메이저·마이너 릴리스를 기록합니다. CI는 이 파일들을 읽습니다. Node.js와 Go
-컨테이너 단계는 해당 릴리스 계열의 이미지 태그를 사용합니다. Rust CI는 안정
-툴체인을 선택하고 Rust 컨테이너 단계는 정확한 패치 릴리스 대신 안정 메이저 채널을
-사용합니다. npm은 예외입니다. 루트 `package.json`의 `packageManager`가 정확한 npm
-릴리스 하나를 기록합니다. 설치하고 패키징하고 스크립트를 실행하는 npm이 그 결과를
-바꾸기 때문이며, `pack --json` report가 npm 11의 배열에서 npm 12의 object로 바뀐 것이
-그 예입니다. `node scripts/install-npm.mjs`는 정확히 그 릴리스를 checkout의 무시되는 directory
-`.tools/npm`에 설치하며, 다른 모든 checkout이 쓰는 machine의 npm에는 설치하지 않습니다.
-Makefile, npm을 시작하는 모든 script, 모든 CI job은 `.tools/npm/node_modules/.bin`을 `PATH`의 맨 앞에
-둡니다. 컨테이너 이미지는 같은 릴리스를 그 이미지의 npm으로 설치합니다.
-새 npm 릴리스는 `packageManager`를 바꿔서 채택합니다. 후보 빌드는 이 채널을 한 번
-해석하고 결과 이미지와 런타임 버전을 검증 근거에 기록합니다. 이후 빌드는 적용
-가능한 새 릴리스를 사용하고 새 검증 근거를 생성합니다. 패키지 잠금 파일은 해석한
-패키지 버전을 기록하며 런타임 릴리스를 선택하지 않습니다.
+- `.node-version`은 정확한 Node.js 릴리스를 기록하고 CI가 그것을 읽습니다.
+- 루트 `package.json`의 `packageManager`는 정확한 npm 릴리스를 기록합니다. 설치하고 패키징하고
+  스크립트를 실행하는 npm이 그 결과를 바꾸기 때문이며, `pack --json` report가 npm 11의 배열에서
+  npm 12의 object로 바뀐 것이 그 예입니다. `node scripts/install-npm.mjs`는 정확히 그 릴리스를
+  checkout의 무시되는 directory `.tools/npm`에 설치하며, 다른 모든 checkout이 쓰는
+  machine의 npm에는 설치하지 않습니다. Makefile, npm을 시작하는 모든 script, 모든 CI job은
+  `.tools/npm/node_modules/.bin`을 `PATH`의 맨 앞에 둡니다. 컨테이너 이미지는 같은 릴리스를 그
+  이미지의 npm으로 설치합니다.
+- `.go-version`은 정확한 Go 릴리스를 기록하고 CI가 그것을 읽습니다. 모든 `go.mod`는 그 릴리스를
+  `toolchain` 줄에 적고, Makefile, CI, 이미지가 설정하는 `GOTOOLCHAIN=local`은 go가 다른
+  toolchain을 내려받지 못하게 합니다.
+- `rust-toolchain.toml`은 정확한 Rust 릴리스를 profile `minimal`과 component `rustfmt`,
+  `clippy`와 함께 기록합니다. Makefile, CI, 이미지는 `RUSTUP_AUTO_INSTALL=0`을 설정하므로, 설치된
+  toolchain이 없는 cargo는 그것을 설치하는 대신 rustup의 메시지로 실패합니다. `make install`과 CI는
+  `rustup toolchain install --no-self-update`로 그것을 설치합니다.
+- `config/toolchain.json`은 `php`에 검사하는 각 PHP minor의 정확한 PHP 릴리스를, `composer`에
+  정확한 Composer 릴리스를, `node`에 Node.js 릴리스의 Linux x64 archive SHA-256을 기록합니다.
+- `node scripts/check-toolchain.mjs <tool>...`은 기록한 버전으로 실행되지 않는 모든 지정 도구에 대해
+  실패하며 기록, 기대한 버전, 실행 중인 버전, 해결 방법을 밝힙니다. 모든 CI job은 자신이 설치한
+  도구에 대해 그것을 실행하고, `make toolchain-check`는 모든 도구에 대해 실행합니다.
 
-GitHub 호스팅 CI는 각 공식 JavaScript action의 현재 안정 메이저 릴리스를
-사용합니다. 네이티브 보고서 업로드는 action 런타임으로 Node.js 24를 사용하는
-`actions/upload-artifact@v7`을 사용합니다. 러너가 실행 중 런타임을 교체하더라도
-지원 종료된 Node.js 런타임을 선언한 action은 허용하지 않습니다.
+컨테이너 단계는 이미지를 정확한 tag와 digest로 지정하고, 이미지의 Debian 패키지는 기록한 한
+날짜의 `snapshot.debian.org`에서 받으므로 정의 하나는 모든 날짜에 같은 file을 설치합니다. 패키지
+잠금 파일은 해석한 패키지 버전을 기록하며 런타임 릴리스를 선택하지 않습니다.
 
-Linux CI 브라우저 작업은 러너가 설치한 정규 Chrome 실행 파일
-`/opt/google/chrome/chrome`을 사용합니다. `PUPPETEER_EXECUTABLE_PATH`는 이 정규
-파일을 지정하며 Puppeteer 브라우저 다운로드는 비활성화합니다. 테스트 실행 전에
-사전 검사는 브라우저와 모든 상위 경로 구성요소가 심볼릭 링크를 해석하지 않는 정규
-파일시스템 항목인지 확인합니다. 사전 검사는 sandbox 비활성화 인자 없이 Chrome을
-시작하고 `chrome://sandbox`가 `You are adequately sandboxed.`를 보고하도록
-요구합니다. 이 상태에는 namespace 또는 SUID 1차 계층, PID·network namespace와
-Seccomp-BPF가 필요합니다. 조건 하나라도 실패하면 작업이 실패합니다. 실패한
-sandbox 조건은 평가 문구 또는 `chrome://sandbox` 행, 보고된 값과 필요한 값을
-오류에 표시합니다. CI 브라우저
-검사는 `--no-sandbox`와 `--disable-setuid-sandbox`를 사용하지 않습니다.
+GitHub 호스팅 CI는 `ubuntu-24.04`에서 실행되고, 모든 action을 한 릴리스의 commit SHA로 지정하며
+그 릴리스를 주석에 적습니다. 네이티브 보고서 업로드는 action 런타임으로 Node.js 24를 사용하는
+`actions/upload-artifact` 7을 사용합니다. 러너가 실행 중 런타임을 교체하더라도 지원 종료된
+Node.js 런타임을 선언한 action은 허용하지 않습니다.
+
+브라우저 검사는 잠긴 `puppeteer`가 고정한 build의 Chrome과 Firefox, 잠긴 `playwright`가 고정한
+build의 WebKit을 실행합니다. `node scripts/install-browsers.mjs <chrome|firefox|webkit>...`가
+그것들을 설치하며, machine의 브라우저나 릴리스 채널의 브라우저는 사용하지 않습니다. Linux CI
+브라우저 작업은 Puppeteer의 cache를 checkout의 `.tools/puppeteer`(`PUPPETEER_CACHE_DIR`)에 두고, 그
+Chrome의 set-user-ID sandbox helper를 `CHROME_DEVEL_SANDBOX`가 지정하는
+`/usr/local/sbin/chrome-devel-sandbox`에 설치합니다. 테스트 실행 전에 사전 검사는 브라우저와 모든
+상위 경로 구성요소가 심볼릭 링크를 해석하지 않는 정규 파일시스템 항목인지 확인합니다. 사전 검사는
+sandbox 비활성화 인자 없이 Chrome을 시작하고 `chrome://sandbox`가
+`You are adequately sandboxed.`를 보고하도록 요구합니다. 이 상태에는 namespace 또는 SUID 1차
+계층, PID·network namespace와 Seccomp-BPF가 필요합니다. 조건 하나라도 실패하면 작업이 실패합니다.
+실패한 sandbox 조건은 평가 문구 또는 `chrome://sandbox` 행, 보고된 값과 필요한 값을 오류에
+표시합니다. CI 브라우저 검사는 `--no-sandbox`와 `--disable-setuid-sandbox`를 사용하지 않습니다.
 
 Git에서 추적하는 모든 npm 잠금 파일은 유지 관리 대상 의존성 그래프입니다. 루트
 설치의 `npm ls --all`은 잘못되거나 누락되거나 충돌하는 의존성 없이 상태 0을

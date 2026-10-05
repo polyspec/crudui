@@ -145,50 +145,68 @@ inferred root-version value.
 
 ## Runtime and dependency versions
 
-Release candidates use the latest active LTS release for runtimes that publish
-an LTS channel. Node.js uses the newest even-numbered stable major designated as
-the active or next LTS release. This permits the next LTS major while it has
-Current status and excludes odd-numbered releases. Runtimes and tools without an
-LTS channel use the latest stable release supported by the project. Pre-release
-versions are excluded unless a specification explicitly requires one.
+Every tool that builds, installs or checks the repository runs at one exact
+version that the checkout records, locally, in CI and in the container images,
+so the same tree gives the same result on every date and machine. A newer
+release is adopted by changing its record, which the checks then require
+everywhere. Releases are chosen when the record changes: runtimes that publish an
+LTS channel use their latest active LTS release, Node.js its newest even-numbered
+stable major designated as the active or next LTS release, and other tools their
+latest stable release supported by the project. Pre-release versions are excluded
+unless a specification explicitly requires one. No run queries a registry for the
+latest release of a channel, and no tool installs another version on its own.
 
-Repository execution definitions select a release channel instead of an exact
-patch release. `.node-version` records the selected Node.js major, and
-`.go-version` records the selected Go major and minor release. CI reads these
-files. Node.js and Go container stages use the corresponding release line in
-their image tags. Rust CI selects the stable toolchain, and Rust container stages
-use the stable major channel instead of an exact patch release. npm is the
-exception: `packageManager` of the root `package.json` records one exact npm
-release, because the npm that installs, packs and runs the scripts changes their
-results, as the `pack --json` report changed from an array in npm 11 to an object
-in npm 12. `node scripts/install-npm.mjs` installs exactly that release into the
-ignored directory `.tools/npm` of the checkout and never into the machine, whose
-npm every other checkout uses. The Makefile, every script that starts
-npm and every CI job put `.tools/npm/node_modules/.bin` first on `PATH`; a
-container image installs the same release as the npm of its image.
-A newer npm release is adopted by changing `packageManager`. A candidate build resolves these channels once and
-records the resulting image and runtime versions in its verification evidence. A
-later build adopts a newer applicable release and produces new evidence. Package
-lock files record resolved package versions; they do not select a runtime
-release.
+- `.node-version` records the exact Node.js release, which CI reads.
+- `packageManager` of the root `package.json` records the exact npm release,
+  because the npm that installs, packs and runs the scripts changes their results,
+  as the `pack --json` report changed from an array in npm 11 to an object in
+  npm 12. `node scripts/install-npm.mjs` installs exactly that release into the
+  ignored directory `.tools/npm` of the checkout and never into the machine, whose
+  npm every other checkout uses. The Makefile, every script that
+  starts npm and every CI job put `.tools/npm/node_modules/.bin` first on `PATH`;
+  a container image installs the same release as the npm of its image.
+- `.go-version` records the exact Go release, which CI reads. Every `go.mod`
+  names it in its `toolchain` line, and `GOTOOLCHAIN=local`, which the Makefile,
+  CI and the images set, keeps go from downloading another toolchain.
+- `rust-toolchain.toml` records the exact Rust release with the profile `minimal`
+  and the components `rustfmt` and `clippy`. The Makefile, CI and the images set
+  `RUSTUP_AUTO_INSTALL=0`, so a cargo without the installed toolchain fails with
+  rustup's message instead of installing it; `make install` and CI install it
+  with `rustup toolchain install --no-self-update`.
+- `config/toolchain.json` records the exact PHP release of each tested PHP minor
+  in `php`, the exact Composer release in `composer`, and the SHA-256 of the
+  Linux x64 archive of the Node.js release in `node`.
+- `node scripts/check-toolchain.mjs <tool>...` fails for every named tool that
+  does not run at its recorded version and names the record, the expected and the
+  running version, and the fix. Every CI job runs it for the tools that it set up;
+  `make toolchain-check` runs it for all of them.
 
-GitHub-hosted CI uses the current stable major release of each official
-JavaScript action. Native report upload uses `actions/upload-artifact@v7`, whose
-action runtime is Node.js 24. An action that declares a deprecated Node.js
-runtime is not accepted even when the runner replaces that runtime during
-execution.
+A container stage names its image by an exact tag and its digest, and the
+Debian packages of an image come from `snapshot.debian.org` at one recorded date,
+so a definition installs the same files on every date. Package lock files record
+resolved package versions; they do not select a runtime release.
 
-Linux CI browser jobs use the regular Chrome executable installed by the runner
-at `/opt/google/chrome/chrome`. They set `PUPPETEER_EXECUTABLE_PATH` to that
-canonical file and disable Puppeteer's browser download. Before tests start, a
-preflight requires the browser and every parent path component to be regular
-filesystem entries with no symbolic-link resolution. The preflight launches
-Chrome without sandbox-disabling arguments and requires `chrome://sandbox` to
-report `You are adequately sandboxed.` This status requires a namespace or SUID
-first layer, PID and network namespaces, and Seccomp-BPF. Any failed condition
-fails the job. A failed sandbox condition names the evaluation or the
-`chrome://sandbox` row, its reported value and the required value. CI browser checks do not use `--no-sandbox` or
-`--disable-setuid-sandbox`.
+GitHub-hosted CI runs on `ubuntu-24.04` and names every action by the commit SHA
+of one release, with the release in a comment. Native report upload uses
+`actions/upload-artifact` 7, whose action runtime is Node.js 24. An action that
+declares a deprecated Node.js runtime is not accepted even when the runner
+replaces that runtime during execution.
+
+The browser checks run Chrome and Firefox at the builds that the locked
+`puppeteer` pins and WebKit at the build that the locked `playwright` pins;
+`node scripts/install-browsers.mjs <chrome|firefox|webkit>...` installs them, and
+no browser of the machine or of a release channel is used. Linux CI browser jobs
+keep the cache of Puppeteer in `.tools/puppeteer` of the checkout
+(`PUPPETEER_CACHE_DIR`) and install the set-user-ID sandbox helper of that
+Chrome at `/usr/local/sbin/chrome-devel-sandbox`, which `CHROME_DEVEL_SANDBOX`
+names. Before tests start, a preflight requires the browser and every parent path
+component to be regular filesystem entries with no symbolic-link resolution. The
+preflight launches Chrome without sandbox-disabling arguments and requires
+`chrome://sandbox` to report `You are adequately sandboxed.` This status requires
+a namespace or SUID first layer, PID and network namespaces, and Seccomp-BPF. Any
+failed condition fails the job. A failed sandbox condition names the evaluation
+or the `chrome://sandbox` row, its reported value and the required value. CI
+browser checks do not use `--no-sandbox` or `--disable-setuid-sandbox`.
 
 Every Git-tracked npm lock file is a maintained dependency graph. The root
 installation must make `npm ls --all` return status 0 without invalid, missing or

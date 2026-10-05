@@ -3,8 +3,9 @@ import test from 'node:test';
 
 import { checkCiBrowser } from '../../scripts/check-ci-browser.mjs';
 
-const executablePath = '/opt/google/chrome/chrome';
-const sandboxPath = '/opt/google/chrome/chrome-sandbox';
+// The Chrome that puppeteer pins, in the cache of Puppeteer in the checkout of a CI job.
+const executablePath = '/work/.tools/puppeteer/chrome/linux-154.0.8037.57/chrome-linux64/chrome';
+const sandboxPath = '/usr/local/sbin/chrome-devel-sandbox';
 const adequateSandbox = {
   evaluation: 'You are adequately sandboxed.',
   rows: {
@@ -70,7 +71,9 @@ test('CI browser preflight verifies regular executable files and starts Chrome',
 
   assert.deepEqual(result, { executablePath });
   assert.deepEqual(inspected, [
-    '/opt', '/opt/google', '/opt/google/chrome', executablePath,
+    '/work', '/work/.tools', '/work/.tools/puppeteer', '/work/.tools/puppeteer/chrome',
+    '/work/.tools/puppeteer/chrome/linux-154.0.8037.57', '/work/.tools/puppeteer/chrome/linux-154.0.8037.57/chrome-linux64',
+    executablePath,
   ]);
   assert.deepEqual(launched, [{ headless: true, executablePath }]);
   assert.deepEqual(instance.events, [

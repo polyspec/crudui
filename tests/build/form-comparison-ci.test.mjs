@@ -18,7 +18,7 @@ test('CI runs the complete form comparison regression suite', async () => {
   const workflow = await readFile(path.join(repository, '.github/workflows/ci.yml'), 'utf8');
   const job = workflowJob(workflow, 'form-comparison');
 
-  assert.match(job, /runs-on:\s*ubuntu-latest/);
+  assert.match(job, /runs-on:\s*ubuntu-24\.04/);
   assert.match(job, /uses: actions\/checkout@/);
   assert.match(job, /uses: actions\/setup-node@/);
   assert.match(job, /node-version-file:\s*['"]?\.node-version['"]?/);
@@ -47,7 +47,7 @@ test('CI builds and runs the five record stores and the canonical flow', async (
   assert.match(job, /PHP_EXTENSION_PHP_CONFIG:\s*\/usr\/bin\/php-config8\.5/);
   assert.match(job, /uses: actions\/setup-go@/);
   assert.match(job, /go-version-file:\s*['"]?\.go-version['"]?/);
-  assert.match(job, /uses: dtolnay\/rust-toolchain@stable/);
+  assert.match(job, /run: rustup toolchain install --no-self-update/);
   assert.match(job, /workspaces: examples\/form-comparison\/servers\/rust/);
   assert.match(job, /composer --working-dir=packages\/generator-php install --no-interaction --prefer-dist/);
   assert.match(job, /run:\s*npm run test:form-comparison:pipeline(?:\s|$)/);
@@ -83,27 +83,25 @@ test('native job caches the generator packages and the programs that run them', 
 test('native report upload uses the current Node.js 24 artifact action', async () => {
   const workflow = await readFile(path.join(repository, '.github/workflows/ci.yml'), 'utf8');
   const job = workflowJob(workflow, 'native-generators');
-  const versions = [...job.matchAll(/uses:\s*actions\/upload-artifact@([^\s]+)/g)]
-    .map(match => match[1]);
+  const versions = [...job.matchAll(/uses:\s*actions\/upload-artifact@([^\n]+)/g)]
+    .map(match => match[1].trim());
 
   assert.ok(versions.length > 0, 'The native job uploads its report');
-  assert.deepEqual(versions.filter(version => version !== 'v7'), []);
+  assert.deepEqual(versions.filter(version => !/^[0-9a-f]{40} # v7\.\d+\.\d+$/.test(version)), []);
 });
 
-test('browser CI jobs select the regular sandboxed Chrome executable', async () => {
+test('browser CI jobs run the sandboxed Chrome that puppeteer pins', async () => {
   const workflow = await readFile(path.join(repository, '.github/workflows/ci.yml'), 'utf8');
   const failures = [];
   for (const name of ['form-runtime', 'form-comparison', 'form-comparison-pipeline', 'package-browser', 'native-generators']) {
     const job = workflowJob(workflow, name);
-    if (!/PUPPETEER_EXECUTABLE_PATH:\s*\/opt\/google\/chrome\/chrome/.test(job)) {
-      failures.push(`${name}: missing regular Chrome executable`);
-    }
-    if (!/PUPPETEER_SKIP_DOWNLOAD:\s*['"]true['"]/.test(job)) {
-      failures.push(`${name}: Puppeteer browser download is enabled`);
-    }
-    if (!/run:\s*node scripts\/check-ci-browser\.mjs(?:\s|$)/.test(job)) {
-      failures.push(`${name}: missing sandboxed Chrome preflight`);
-    }
+    if (!/PUPPETEER_CACHE_DIR:\s*\$\{\{ github\.workspace \}\}\/\.tools\/puppeteer\n/.test(job)) failures.push(`${name}: the cache of Puppeteer is not .tools/puppeteer of the checkout`);
+    if (!/CHROME_DEVEL_SANDBOX:\s*\/usr\/local\/sbin\/chrome-devel-sandbox\n/.test(job)) failures.push(`${name}: CHROME_DEVEL_SANDBOX does not name the installed helper`);
+    if (/PUPPETEER_EXECUTABLE_PATH|PUPPETEER_SKIP_DOWNLOAD/.test(job)) failures.push(`${name}: selects a browser outside the pinned build`);
+    const install = job.search(/run:\s*node scripts\/install-browsers\.mjs chrome\b[^\n]*--chrome-sandbox/);
+    const preflight = job.search(/run:\s*node scripts\/check-ci-browser\.mjs(?:\s|$)/);
+    if (install === -1) failures.push(`${name}: missing installation of the pinned Chrome with its sandbox helper`);
+    if (preflight === -1 || preflight < install) failures.push(`${name}: missing sandboxed Chrome preflight after the installation`);
     if (/--no-sandbox|--disable-setuid-sandbox/.test(job)) {
       failures.push(`${name}: disables the Chrome sandbox`);
     }

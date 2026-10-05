@@ -1,16 +1,14 @@
 // The browser engines the repository's browser checks run in: Chromium and Firefox through
-// Puppeteer, WebKit through Playwright. A browser that cannot start fails the run with the
-// reason; no engine is ever skipped.
-import { existsSync } from 'node:fs';
+// Puppeteer, WebKit through Playwright, each at the build that the locked package pins
+// (scripts/install-browsers.mjs). A browser that cannot start fails the run with the reason and the
+// command that installs it; no engine is ever skipped.
 import { webkit } from 'playwright';
 import puppeteer from 'puppeteer';
 
-/** The Firefox executable: CRUDUI_FIREFOX_EXECUTABLE, or the platform's installed Firefox. */
-function firefoxExecutable() {
-  const candidates = [process.env.CRUDUI_FIREFOX_EXECUTABLE, '/Applications/Firefox.app/Contents/MacOS/firefox', '/usr/bin/firefox'].filter(Boolean);
-  const found = candidates.find(candidate => existsSync(candidate));
-  if (!found) throw new Error(`Firefox is required for the browser checks; set CRUDUI_FIREFOX_EXECUTABLE (looked in ${candidates.join(', ')})`);
-  return found;
+/** Launches a browser of Puppeteer at its pinned build, or fails with the command that installs it. */
+async function launchPinned(browser) {
+  try { return await puppeteer.launch({ headless: true, browser }); }
+  catch (error) { throw new Error(`${browser} is required at the build that puppeteer pins; install it with \`node scripts/install-browsers.mjs ${browser}\`:\n${error.message}`, { cause: error }); }
 }
 
 /**
@@ -20,17 +18,17 @@ function firefoxExecutable() {
  */
 export const engineDrivers = {
   chromium: {
-    launch: () => puppeteer.launch({ headless: true }),
+    launch: () => launchPinned('chrome'),
     open: async (browser, viewport) => { const page = await browser.newPage(); await page.setViewport(viewport); return page; },
   },
   firefox: {
-    launch: () => puppeteer.launch({ headless: true, browser: 'firefox', executablePath: firefoxExecutable() }),
+    launch: () => launchPinned('firefox'),
     open: async (browser, viewport) => { const page = await browser.newPage(); await page.setViewport(viewport); return page; },
   },
   webkit: {
     launch: async () => {
       try { return await webkit.launch({ headless: true }); }
-      catch (error) { throw new Error(`WebKit is required for the browser checks; install it with \`npx playwright install --with-deps webkit\`:\n${error.message}`, { cause: error }); }
+      catch (error) { throw new Error(`WebKit is required for the browser checks; install it with \`node scripts/install-browsers.mjs webkit\` (on Linux with --with-deps):\n${error.message}`, { cause: error }); }
     },
     // A Playwright page opened from the browser owns its context and closes it with itself.
     open: (browser, viewport) => browser.newPage({ viewport }),

@@ -14,11 +14,13 @@ npm run test:build:repeat
 npm run test:packages
 ```
 
-`test:runtimes`는 `.node-version`에 짝수 Node.js 메이저 하나를 요구하고
-`.go-version`에 Go 메이저·마이너 릴리스 하나를 요구합니다. CI는 두 파일을 읽고
-모든 Node.js·Go 컨테이너 단계는 해당 릴리스 계열을 사용합니다. Rust CI와
-컨테이너 단계는 안정 Rust 채널을 선택합니다. 검사는 정확한 런타임 패치 릴리스를
-거부합니다. `package.json`의 `packageManager`는 정확한 npm 릴리스 하나를 기록합니다. 검사는 실행 중인
+`test:runtimes`는 모든 도구의 정확한 릴리스 하나를 요구합니다. Node.js는 `.node-version`에, Go는
+`.go-version`과 모든 `go.mod`의 `toolchain` 줄에, Rust는 `rust-toolchain.toml`에, PHP와 Composer는
+`config/toolchain.json`에 기록하며, 실행 중인 Node.js, npm, Go, Rust, Composer가 그 릴리스이기를 요구합니다
+(`scripts/check-toolchain.mjs`). 모든 CI job은 `ubuntu-24.04`에서 실행되고, action을 commit SHA로 지정하며,
+기록한 릴리스를 설치하고 자신이 설치한 도구를 검사합니다. 모든 컨테이너 단계는 이미지를 tag와 digest로
+지정하고 한 날짜의 snapshot에서 Debian 패키지를 설치합니다. 릴리스 채널이나 machine의 브라우저는 쓰지 않습니다.
+`package.json`의 `packageManager`는 정확한 npm 릴리스 하나를 기록합니다. 검사는 실행 중인
 npm, workflow step, 컨테이너 정의가 다른 릴리스를 고르면 실패하며, `node scripts/install-npm.mjs`가
 그 릴리스를 checkout의 `.tools/npm`에 설치합니다. `tests/build/checkout-npm.test.mjs`는 script, make 대상, CI step이
 npm을 machine에 설치할 때, make, npm을 시작하는 script, CI job이 `.tools/npm/node_modules/.bin`을 `PATH`의 맨 앞에
