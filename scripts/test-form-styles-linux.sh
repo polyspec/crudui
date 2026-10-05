@@ -10,18 +10,24 @@
 # since the cache mount keeps no symbolic links. Chrome is at the path the CI runner has, and
 # the tests run as the image's unprivileged user, as Chrome's sandbox requires.
 #
-# The image is removed after the run when this run pulled it.
+# The image takes about 10 GB and every checkout of the user account uses the same one, so a run
+# keeps it. The container runs under the user-wide holder lock of the image
+# (scripts/holder-lock.mjs): a second run is refused with the holder's checkout, pid and process
+# start time. `--remove-image` removes the image under the same lock, so it is refused while a
+# check runs.
 #
 # It uses the `container` command line tool on macOS, or `docker` elsewhere; set
 # CRUDUI_CONTAINER to choose. Extra arguments replace the test files to run.
 #
 #   make test-form-styles-linux
 #   sh scripts/test-form-styles-linux.sh tests/form-styles.test.mjs
+#   make remove-form-styles-image
 set -eu
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 VERSION=$(node -p "require('$ROOT/node_modules/playwright/package.json').version")
 IMAGE="mcr.microsoft.com/playwright:v$VERSION-noble"
+LOCK=$(node "$ROOT/scripts/holder-lock.mjs" user-lock-file "playwright-v$VERSION-noble")
 NODE_LINE=$(cat "$ROOT/.node-version")
 CACHE="$ROOT/node_modules/.cache/crudui/linux-styles"
 mkdir -p "$CACHE"
@@ -56,17 +62,14 @@ chown -R pwuser /work
 exec setpriv --reuid=pwuser --regid=pwuser --init-groups env HOME=/tmp/pwuser node scripts/run-tests.mjs node -- "$@"
 '
 
-# The image takes about 10 GB; a run that pulled it removes it again, success or not, and an image
-# that was already present is left alone.
-if "$TOOL" image inspect "$IMAGE" >/dev/null 2>&1; then PULLED=no; else PULLED=yes; fi
-remove_pulled_image() {
-  if [ "$PULLED" = yes ]; then
-    if [ "$TOOL" = container ]; then container image delete "$IMAGE" >/dev/null; else docker image rm "$IMAGE" >/dev/null; fi
-  fi
-}
-trap remove_pulled_image EXIT
+if [ "$*" = --remove-image ]; then
+  if [ "$TOOL" = container ]; then REMOVE="image delete"; else REMOVE="image rm"; fi
+  # shellcheck disable=SC2086
+  exec node "$ROOT/scripts/holder-lock.mjs" hold "$LOCK" -- "$TOOL" $REMOVE "$IMAGE"
+fi
 
-"$TOOL" run --rm $PLATFORM --memory 8g --cpus 4 \
+exec node "$ROOT/scripts/holder-lock.mjs" hold "$LOCK" -- \
+  "$TOOL" run --rm $PLATFORM --memory 8g --cpus 4 \
   --mount "type=bind,source=$ROOT,target=/repo,readonly" \
   --mount "type=bind,source=$CACHE,target=/cache" \
   -e "NODE_LINE=$NODE_LINE" \

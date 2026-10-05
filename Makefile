@@ -8,7 +8,7 @@
 # machine-absolute paths). `make docs` run twice yields identical output.
 
 .DEFAULT_GOAL := help
-.PHONY: help docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-extension test-native test-native-suites test-validators test-form-binding conformance format-check deploy deploy-verify github-settings github-settings-check ci test-form-styles-linux
+.PHONY: help docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-extension test-native test-native-suites test-validators test-form-binding conformance format-check deploy deploy-verify github-settings github-settings-check ci test-form-styles-linux remove-form-styles-image
 .NOTPARALLEL: docs docs-web docs-dev docs-preview docs-check docs-verify-idempotent
 
 # Validator benchmark iteration counts (override on the command line, e.g.
@@ -42,6 +42,7 @@ help: ## 타겟 설명
 	@echo "  make format-check          Fail when any Rust crate or Go file is not formatted"
 	@echo "  make ci                    Run every command of the CI workflow in order"
 	@echo "  make test-form-styles-linux  Run the stylesheet layout checks on Linux in the Playwright image"
+	@echo "  make remove-form-styles-image  Remove that Playwright image unless a check holds it"
 	@echo "  make deploy                Deploy the comparison service from the current tree"
 	@echo "  make deploy-verify         Verify the deployed comparison service"
 	@echo "  make github-settings       Apply the repository settings in .github/repository.json"
@@ -262,6 +263,9 @@ CI_COMMANDS = \
 # part of `make ci`, which runs the workflow commands on this machine.
 test-form-styles-linux: ## Run the stylesheet layout checks on Linux in the Playwright image
 	sh scripts/test-form-styles-linux.sh
+
+remove-form-styles-image: ## Remove that Playwright image unless a check holds it
+	sh scripts/test-form-styles-linux.sh --remove-image
 
 ci: ## Run every command of the CI workflow in order
 	rm -rf "$(CONFORMANCE_EVIDENCE)"

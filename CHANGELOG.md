@@ -1,5 +1,14 @@
 # Changes
 
+## 2026-10-05 — A kept Playwright image under a holder lock (C3.3)
+
+- `make test-form-styles-linux` keeps the Playwright image. A run that pulled the image removed it
+  at its exit, also while a run of another checkout still used it. The container now
+  runs under the user-wide holder lock of the image, so a second run is refused with the holder's
+  checkout, pid and process start time. `make remove-form-styles-image` removes the image under the
+  same lock and is refused while a check runs. `node scripts/holder-lock.mjs user-lock-file <name>`
+  prints the path of a user-wide lock.
+
 ## 2026-10-05 — Holder locks of single resources (C3.2)
 
 - `scripts/holder-lock.mjs` holds a resource that only one run may use at a time. The lock file's

@@ -161,8 +161,10 @@ save/load checks are separate from validator package tests.
 the custom properties of the stylesheet (`tests/style-properties.test.mjs`).
 `make test-form-styles-linux` runs the same checks on Linux in the official Playwright image of
 the pinned version, as the CI job does, so an engine difference on Linux is found before a push.
-The image takes about 10 GB: a run that pulled it removes it when it ends, successful or not, and
-leaves an image that was already present.
+The image takes about 10 GB and every checkout of the user account uses the same one, so a run
+keeps it, and its container runs under the user-wide holder lock of the image (see
+[Shared resources](#shared-resources)). `make remove-form-styles-image` removes the image under the
+same lock and is refused while a check runs.
 
 Record the revision, commands, results and deployment status in
 [feature status](../features.md). A test result applies to the code and inputs
@@ -193,3 +195,10 @@ The lock of a resource of one checkout is `var/locks/<name>.lock` in that checko
 resource that every checkout of the user account shares is `~/.local/state/crudui/locks/<name>.lock`.
 `tests/build/holder-lock.test.mjs`, run by `npm run test:runtimes`, checks the record, the refusal,
 concurrent runs, the report and the removal of a lock whose holder no longer runs, and the release.
+
+| Resource | Use by one run |
+|---|---|
+| Snapshots of `make docs-verify-idempotent` | A directory from `mktemp -d`, removed at the run's exit |
+| Playwright image of `make test-form-styles-linux` | User-wide lock `playwright-v<version>-noble`; the run keeps the image, and `make remove-form-styles-image` removes it under the lock |
+
+`tests/build/shared-resources.test.mjs`, run by `npm run test:runtimes`, checks each row.
