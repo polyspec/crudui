@@ -9,6 +9,7 @@ use CRUDUI\Form;
 use CRUDUI\FormError;
 use CRUDUI\Generator;
 use stdClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 final class FormTest extends TestCase
 {
@@ -434,9 +435,8 @@ final class FormTest extends TestCase
      * Value limits (docs/spec/input-text.md): an object that contains itself, a reference cycle
      * and a list shared forty levels deep fail in the input walk. Each shape is one test within the
      * per-test limit, which a walk that grows with the tree a value denotes never meets.
-     *
-     * @dataProvider limitProvider
      */
+    #[DataProvider('limitProvider')]
     public function testValuesBeyondTheLimitsFail(string $shape): void
     {
         $object = new stdClass();

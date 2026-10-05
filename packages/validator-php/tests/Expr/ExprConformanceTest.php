@@ -10,6 +10,7 @@ use CRUDUI\Validator\Expr\Expression;
 use CRUDUI\Validator\Expr\Node;
 use CRUDUI\Validator\Expr\ParseError;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 require_once __DIR__ . '/../../../../tests/conformance/evidence.php';
 
@@ -46,9 +47,9 @@ final class ExprConformanceTest extends TestCase
     /**
      * Run the three stages of one fixture entry and record one result for it.
      *
-     * @dataProvider fixtureProvider
      * @param array<string, mixed> $spec
      */
+    #[DataProvider('fixtureProvider')]
     public function testExpressionMatchesFixture(array $spec): void
     {
         $passed = false;

@@ -11,6 +11,7 @@ use CRUDUI\Validator\Support\Text;
 use CRUDUI\Validator\Validate\FormInputError;
 use PHPUnit\Framework\TestCase;
 use stdClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 require_once __DIR__ . '/../../../../tests/conformance/evidence.php';
 
@@ -47,7 +48,7 @@ final class TextValidityConformanceTest extends TestCase
         }
     }
 
-    /** @dataProvider fixtureProvider */
+    #[DataProvider('fixtureProvider')]
     public function testInputTextMatchesFixture(string $feature, stdClass $case): void
     {
         self::assertFalse((new \ReflectionClass(Validator::class))->isInternal(), 'PHPUnit evidence proves the pure PHP runtime, not the native extension');
@@ -111,9 +112,8 @@ final class TextValidityConformanceTest extends TestCase
      * Value limits (docs/spec/input-text.md): the cases of tests/fixtures/text-validity/value-graphs.json
      * each finish within the runner's per-test limit; a walk that grows with the tree a value
      * denotes (2^40 nodes) does not.
-     *
-     * @dataProvider graphProvider
      */
+    #[DataProvider('graphProvider')]
     public function testValueGraphMatchesFixture(stdClass $case): void
     {
         $inputs = ['spec' => $case->spec, 'files' => $case->files ?? null, 'data' => $case->data];

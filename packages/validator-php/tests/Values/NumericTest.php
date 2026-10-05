@@ -8,6 +8,7 @@ use CRUDUI\Validator\Values\InvalidRuleParameter;
 use CRUDUI\Validator\Values\NumberText;
 use CRUDUI\Validator\Values\Numeric;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * Numeric values, exact step multiples, digits, counts and numeric parameters
@@ -73,7 +74,7 @@ final class NumericTest extends TestCase
         ];
     }
 
-    /** @dataProvider multiples */
+    #[DataProvider('multiples')]
     public function testExactMultiples(float $value, float $step, bool $expected): void
     {
         self::assertSame($expected, Numeric::isMultiple($value, $step));

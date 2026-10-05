@@ -12,6 +12,7 @@ use CRUDUI\Generator\Messages;
 use CRUDUI\Generator\Rendering;
 use CRUDUI\Generator\Value;
 use stdClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 final class RenderingConformanceTest extends TestCase
 {
@@ -30,7 +31,7 @@ final class RenderingConformanceTest extends TestCase
         return $out;
     }
 
-    /** @dataProvider forms */
+    #[DataProvider('forms')]
     public function testFormLayoutMatchesTheSharedFixture(stdClass $case): void
     {
         try {

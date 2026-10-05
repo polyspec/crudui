@@ -1,5 +1,11 @@
 # Changes
 
+## 2026-10-06 — PHPUnit 13 (C5.8-10)
+
+- validator-php and generator-php test with PHPUnit 13.4.1, and their 18 data providers are declared
+  with the attribute `#[DataProvider(...)]`, since PHPUnit 12 removed the `@dataProvider` annotation.
+  Both suites run the same 763 and 311 cases as with PHPUnit 10.5.
+
 ## 2026-10-06 — Checks that read the files of the checkout (C7.14)
 
 - ESLint ignores every path that Git ignores, and the checks that walked the tree with their own lists

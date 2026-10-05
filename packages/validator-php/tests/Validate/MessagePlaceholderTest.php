@@ -6,6 +6,7 @@ namespace CRUDUI\Validator\Tests\Validate;
 
 use CRUDUI\Validator;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * Message placeholders (docs/spec/validation-rules.md, "Numbers"): `{0}` and `{1}` are replaced
@@ -26,7 +27,7 @@ final class MessagePlaceholderTest extends TestCase
         ];
     }
 
-    /** @dataProvider messages */
+    #[DataProvider('messages')]
     public function testPlaceholdersOfTheRuleParametersOnly(string $rules, string $value, string $expected): void
     {
         $rule = array_key_first((array) json_decode($rules));

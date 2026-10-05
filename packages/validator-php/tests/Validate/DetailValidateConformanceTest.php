@@ -7,6 +7,7 @@ namespace CRUDUI\Validator\Tests\Validate;
 use CRUDUI\Validator\Compose\ComposeLoadError;
 use CRUDUI\Validator;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 require_once __DIR__ . '/../../../../tests/conformance/evidence.php';
 
@@ -52,9 +53,9 @@ final class DetailValidateConformanceTest extends TestCase
     }
 
     /**
-     * @dataProvider fixtureProvider
      * @param array<string, mixed> $case
      */
+    #[DataProvider('fixtureProvider')]
     public function testDetailEngineMatchesFixture(array $case): void
     {
         self::assertFalse((new \ReflectionClass(Validator::class))->isInternal(), 'PHPUnit evidence proves the pure PHP runtime, not the native extension');

@@ -7,6 +7,7 @@ namespace CRUDUI\Generator\Tests;
 use PHPUnit\Framework\TestCase;
 use CRUDUI\Generator\Numbers;
 use CRUDUI\Generator;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 final class NumbersTest extends TestCase
 {
@@ -15,7 +16,7 @@ final class NumbersTest extends TestCase
         return [[2.5, 0, '3'], [-2.5, 0, '-3'], [1.005, 2, '1.00'], [2.675, 2, '2.67'], [1.25, 1, '1.3'], [-1.25, 1, '-1.3'], [1.0E+21, 2, '1e+21'], [-0.0, 2, '0.00'], [-0.001, 2, '-0.00'], [0.3, 20, '0.29999999999999998890'], [1.0000000000000001E+18, 0, '1000000000000000128'], [4.940656458412465E-324, 2, '0.00']];
     }
 
-    /** @dataProvider fixedCases */
+    #[DataProvider('fixedCases')]
     public function testFixedUsesExactBinaryValue(float $number, int $places, string $expected): void
     {
         self::assertSame($expected, Numbers::fixed($number, $places));
