@@ -57,25 +57,40 @@ function signal(pid, name) {
 
 /**
  * Stop one step's whole process tree: its process group and every descendant, which a
- * descendant that left the group (Chromium's helpers) would otherwise survive.
+ * descendant that left the group (Chromium's helpers) would otherwise survive. The stop resolves
+ * when the step's process has exited and its output pipes have closed: a pipe closes when every
+ * process that holds it has ended, so no killed descendant that holds the step's output still runs.
+ * SIGKILL cannot be ignored, so the pipes close at once; when they stay open for the grace after
+ * the kill, a process outside the tree holds them, and the stop fails and says so.
  */
 export async function killProcessTree(child, graceMs = stepTerminationGraceMs) {
-  if (child.exitCode !== null || child.signalCode !== null) return;
-  const exited = new Promise(resolve => child.once('exit', resolve));
-  const tree = processTree(child.pid, await processTable());
+  // 'close' follows the exit of the process and the end of every output pipe of it.
+  const closed = new Promise(resolve => child.once('close', resolve));
+  const ended = child.exitCode !== null || child.signalCode !== null;
+  if (ended && child.stdout?.readableEnded !== false && child.stderr?.readableEnded !== false) return;
+  const exited = ended ? Promise.resolve() : new Promise(resolve => child.once('exit', resolve));
+  const tree = ended ? [] : processTree(child.pid, await processTable());
   signal(-child.pid, 'SIGTERM');
   for (const pid of tree) signal(pid, 'SIGTERM');
   let timer;
-  const graceful = await Promise.race([
-    exited.then(() => true),
-    new Promise(resolve => { timer = setTimeout(() => resolve(false), graceMs); }),
+  await Promise.race([
+    exited,
+    new Promise(resolve => { timer = setTimeout(resolve, graceMs); }),
   ]);
   clearTimeout(timer);
   // Descendants may outlive the leader, so the recorded tree is killed either way.
-  const remaining = processTree(child.pid, await processTable().catch(() => []));
+  const remaining = ended ? [] : processTree(child.pid, await processTable().catch(() => []));
   for (const pid of new Set([...tree, ...remaining])) signal(pid, 'SIGKILL');
   signal(-child.pid, 'SIGKILL');
-  if (!graceful) await exited;
+  const held = await Promise.race([
+    closed.then(() => false),
+    new Promise(resolve => { timer = setTimeout(() => resolve(true), graceMs); }),
+  ]);
+  clearTimeout(timer);
+  if (held) {
+    throw new Error(`process ${child.pid} was killed with its tree, and its output was still open ${graceMs} ms later: `
+      + 'a process that left its tree holds the output and still runs');
+  }
 }
 
 function prefixLines(stream, prefix, write, onLine) {

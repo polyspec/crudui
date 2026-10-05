@@ -133,3 +133,37 @@ test('stops a whole process tree whose group holds only exited processes', async
     await ended;
   }
 });
+
+/** Whether `pid` runs: listed by ps and not a zombie that only waits for its parent. */
+async function runs(pid) {
+  try {
+    const { stdout } = await execFileAsync('ps', ['-o', 'stat=', '-p', String(pid)]);
+    return stdout.trim() !== '' && !stdout.trim().startsWith('Z');
+  } catch (error) {
+    if (error.code === 1) return false;
+    throw error;
+  }
+}
+
+test('a stopped process tree is gone when the stop resolves', async () => {
+  // The child ends at SIGTERM; the grandchild leaves the group, ignores SIGTERM and holds the standard output of the
+  // child, so only SIGKILL ends it, after the child has ended.
+  const source = [
+    "const { spawn } = require('node:child_process');",
+    // The grandchild prints its pid once it ignores SIGTERM.
+    "spawn(process.execPath, ['-e', \"process.on('SIGTERM', () => {}); console.log('grandchild ' + process.pid); setInterval(() => {}, 1000)\"], { detached: true, stdio: ['ignore', 'inherit', 'ignore'] });",
+    "setInterval(() => {}, 1000);",
+  ].join('\n');
+  // The end of the grandchild races the return of a stop that does not wait for it, so ten trees are stopped.
+  for (let run = 0; run < 10; run++) {
+    const child = spawn(process.execPath, ['-e', source], { stdio: ['ignore', 'pipe', 'inherit'], detached: true });
+    const line = await new Promise(resolve => child.stdout.setEncoding('utf8').once('data', resolve));
+    child.stdout.resume();
+    const grandchild = Number(/grandchild (\d+)/.exec(line)[1]);
+    assert.equal(await runs(grandchild), true);
+    await killProcessTree(child, 100);
+    // Every process that held the output has ended, so the output has ended, and the grandchild runs no more.
+    assert.equal(child.stdout.readableEnded, true, `run ${run}: the output of the tree had not ended when the stop resolved`);
+    assert.equal(await runs(grandchild), false, `run ${run}: the grandchild ${grandchild} still runs after the stop resolved`);
+  }
+});

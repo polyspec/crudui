@@ -1,5 +1,14 @@
 # Changes
 
+## 2026-10-05 — A stopped process tree is gone when the stop ends (C7.10)
+
+- `killProcessTree` of the form comparison step runner resolves when the step's process has exited
+  and its output pipes have closed, which happens when every process that holds them has ended; it
+  returned right after it sent SIGKILL, so a later step could meet a process of the stopped one. When
+  the output stays open after the kill, a process outside the tree holds it and the stop fails with
+  that cause. The local server test waits for the end of a Unix socket connection instead of a FIFO,
+  whose blocking open kept the test file alive beyond its timeout when the stand-in did not start.
+
 ## 2026-10-05 — Servers on the ports they take, and locked shared steps (C7.11)
 
 - Every server of the form comparison binds its address, port 0 included, and names the address it

@@ -1,5 +1,13 @@
 # 변경 기록
 
+## 2026-10-05 — 중지가 끝나면 사라진 process tree (C7.10)
+
+- form comparison step runner의 `killProcessTree`는 step의 process가 끝나고 그 output pipe가 닫히면 끝나며, pipe는 그것을 가진
+  모든 process가 끝나면 닫힙니다. 이전에는 SIGKILL을 보낸 직후 반환했으므로 다음 step이 멈춘 step의 process를 만날 수 있었습니다.
+  kill 뒤에도 output이 열려 있으면 tree 밖의 process가 그것을 가진 것이고 중지는 그 원인으로 실패합니다. local server test는
+  FIFO 대신 Unix socket 연결의 끝을 기다립니다. FIFO의 막히는 open은 stand-in이 시작하지 않으면 test file을 timeout 너머까지
+  붙잡았습니다.
+
 ## 2026-10-05 — 자신이 잡은 port의 server와 lock된 공유 단계 (C7.11)
 
 - form comparison의 모든 server는 port 0을 포함한 자기 주소에 bind하고 준비 줄 `CRUDUI_READY {server} {host}:{port}`에 잡은
