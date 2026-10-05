@@ -1,5 +1,12 @@
 # 변경 기록
 
+## 2026-10-05 — engine test의 하나의 compiler 명령 (C5.4)
+
+- `packages/php-ext/tests/engine.test.mjs`의 모든 C program은 math library를 link하는 `compileAndRunEngineProgram`으로
+  compile됩니다. template test와 value test는 compiler 명령을 따로 썼고, `-lm`이 없는 template test는 Linux에서
+  `undefined reference to 'log10'`로 실패했습니다. macOS는 math 함수를 system library에 둡니다. file의 case는 file에
+  compiler 명령이 둘 이상이거나 그 명령이 `-lm`을 link하지 않으면 실패합니다.
+
 ## 2026-10-05 — 긴 C string의 문자 상수 (C5.3)
 
 - `packages/php-ext/tests/engine.test.mjs`의 `cString`은 4000 byte보다 긴 값의 각 byte를 octal escape의 문자 상수로
