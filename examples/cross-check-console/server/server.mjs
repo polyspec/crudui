@@ -26,7 +26,7 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import yaml from 'js-yaml';
+import { load as loadYaml } from 'js-yaml';
 
 import { getEngine } from './engine.mjs';
 import { validateAll, validateAllDetail, validateAllList } from './validate-runner.mjs';
@@ -95,7 +95,7 @@ export function coerceSpec(spec) {
   if (typeof spec === 'string') {
     let parsed;
     try {
-      parsed = yaml.load(spec);
+      parsed = loadYaml(spec);
     } catch (e) {
       throw new Error('Spec YAML parse error: ' + e.message, { cause: e });
     }

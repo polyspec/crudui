@@ -28,7 +28,7 @@
  * Contract details and example provenance live in README.md / examples.js.
  */
 
-import yaml from 'js-yaml';
+import { load as loadYaml } from 'js-yaml';
 import { examples, defaultExampleId } from './examples.js';
 import { listExamples, defaultListExampleId } from './examples.js';
 import { detailExamples, defaultDetailExampleId } from './examples.js';
@@ -113,7 +113,7 @@ const state = {
 /** Parse the YAML spec. Returns { ok, value?, error? }. */
 function parseSpec() {
   try {
-    const value = yaml.load(state.specText);
+    const value = loadYaml(state.specText);
     if (value === null || value === undefined) {
       return { ok: false, error: 'empty document' };
     }
@@ -137,7 +137,7 @@ function parseData() {
 /** Parse the list-spec YAML. Returns { ok, value?, error? }. */
 function parseListSpec() {
   try {
-    const value = yaml.load(state.listSpecText);
+    const value = loadYaml(state.listSpecText);
     if (value === null || value === undefined) {
       return { ok: false, error: 'empty document' };
     }
@@ -166,7 +166,7 @@ function parseRows() {
 /** Parse the detail specification YAML. Returns { ok, value?, error? }. */
 function parseDetailSpec() {
   try {
-    const value = yaml.load(state.detailSpecText);
+    const value = loadYaml(state.detailSpecText);
     if (value === null || value === undefined) {
       return { ok: false, error: 'empty document' };
     }

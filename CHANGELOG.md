@@ -1,5 +1,12 @@
 # Changes
 
+## 2026-10-06 — js-yaml 5 with the YAML 1.2 core schema (C5.8-6)
+
+- The cli and the cross-check console use js-yaml 5.4.2 through its named `load` export. Its default
+  schema is the YAML 1.2 core schema, as the `yaml` package of `scripts/check-schema.mjs` reads it: a
+  date-like value stays a string and `<<` is a plain key, where js-yaml 4 read a `Date` and merged. A
+  case of each path pins it.
+
 ## 2026-10-06 — jsdom 30 in the whole tree (C5.8-5)
 
 - The root and generator-react use jsdom 30.1.2, the release of form-binding, so one major of jsdom
