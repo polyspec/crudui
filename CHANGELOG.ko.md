@@ -1,5 +1,10 @@
 # 변경 기록
 
+## 2026-10-06 — tree 전체의 jsdom 30 (C5.8-5)
+
+- root와 generator-react는 form-binding의 release인 jsdom 30.1.2를 쓰므로, tree에서 29.1.1과 30.1.2 대신 jsdom의 major 하나만
+  실행됩니다.
+
 ## 2026-10-06 — Vitest event로 밝히는 실패한 Vitest hook (C5.8-4-1)
 
 - Vitest reporter는 시작했고 그 file이나 suite가 실패하기 전에 끝나지 않은 hook에 대해 `<hook name> hook of <entity>
