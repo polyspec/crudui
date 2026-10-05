@@ -1,5 +1,16 @@
 # Changes
 
+## 2026-10-05 — Shared outputs published by rename (C7.6)
+
+- The PHP extension builder compiles into a directory of its process, links `<module>.so.<pid>`, loads
+  and checks it and renames it to the module path; it removed `.build` and `modules` first and linked
+  in place, so a PHP process could load a missing or partial module. The OrderedJSON checkout is made
+  beside its directory and renamed into place. Every package build writes into `dist.next`
+  (`CRUDUI_DIST`) and `scripts/package-dist.mjs` replaces `dist` with it under the `dist` lock, so a
+  reader never sees the `dist` that `tsup --clean` emptied; a failed build leaves `dist`. The build
+  stamp of `require-current-build` is written and renamed. `tests/build/atomic-publish.test.mjs` keeps
+  every shared output on that form.
+
 ## 2026-10-05 — Checks that read only what they or their preparation create (C7.5)
 
 - `make test-php-extension` reinstalls the validator copy of generator-php before its tests, which

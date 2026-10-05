@@ -315,10 +315,14 @@ concurrent runs, the report and the removal of a lock whose holder no longer run
 | Snapshots of `make docs-verify-idempotent` | A directory from `mktemp -d`, removed at the run's exit |
 | Playwright image of `make test-form-styles-linux` | User-wide lock `playwright-v<version>-noble`; the run keeps the image, and `make remove-form-styles-image` removes it under the lock |
 | Comparison deployment of `make deploy` and `make deploy-verify` | User-wide lock `form-comparison-deployment`, taken before any other step |
-| `dist` of each built package | Checkout lock `dist-<package folder>`, held by the package's whole build and by every pack |
+| `dist` of each built package | Checkout lock `dist-<package folder>`, held by the package's whole build and by every pack; the build writes `dist.next` and replaces `dist` with it |
+| The build stamp, the PHP modules and their build records, the OrderedJSON checkout, `.tools/npm` | Written to a path of the run and renamed into place (`tests/build/atomic-publish.test.mjs`) |
 
 The build script of every built package is `node ../../scripts/package-dist.mjs build '<command>'`,
-which runs the build command under the package's `dist` lock. `node scripts/package-dist.mjs pack
+which runs the build command under the package's `dist` lock. The command writes into `dist.next`,
+which `CRUDUI_DIST` names, and a complete build replaces `dist` with two renames, so a test or a
+program that reads `dist` during a build finds the previous output or the new one, never an emptied
+directory; a failed build leaves `dist` as it was. `node scripts/package-dist.mjs pack
 <package directory> <destination directory>` checks under the same lock that `dist` holds output
 and runs `npm pack`, whose JSON report it prints on standard output; the package install check and
 repositories that install CRUDUI archives pack through it, so a pack never reads a `dist` that a

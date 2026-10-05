@@ -19,7 +19,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 import {
-  acquireReported, checkoutLockFile, holdWhileRunning, repositoryRoot, runCommand,
+  acquireReported, checkoutLockFile, repositoryRoot, runCommand,
 } from './holder-lock.mjs';
 import { useCheckoutNpm } from './checkout-npm.mjs';
 
@@ -34,9 +34,29 @@ function packageFolder(directory) {
 
 const distLockFile = folder => checkoutLockFile(`dist-${folder}`);
 
+/**
+ * Build the package of the working directory under its `dist` lock. The build command writes into `dist.next`, which
+ * CRUDUI_DIST names, and a complete build replaces `dist` with two renames, so a reader of `dist` finds the previous
+ * output or the new one, never an emptied or partly written directory. A failed build leaves `dist` as it was.
+ */
 async function build(command) {
-  const folder = packageFolder(process.cwd());
-  return holdWhileRunning(distLockFile(folder), '/bin/sh', ['-c', command]);
+  const directory = process.cwd();
+  const folder = packageFolder(directory);
+  const [dist, next, old] = ['dist', 'dist.next', 'dist.old'].map(name => path.join(directory, name));
+  const lock = acquireReported(distLockFile(folder), { command: `build ${command}` });
+  try {
+    for (const stale of [next, old]) fs.rmSync(stale, { recursive: true, force: true });
+    const status = await runCommand('/bin/sh', ['-c', command], { cwd: directory, env: { ...process.env, CRUDUI_DIST: 'dist.next' } });
+    if (status !== 0) return status;
+    assert.ok(fs.existsSync(next) && fs.readdirSync(next).length > 0, `${command} wrote no output into ${next}; write the build into $CRUDUI_DIST`);
+    if (fs.existsSync(dist)) fs.renameSync(dist, old);
+    fs.renameSync(next, dist);
+    fs.rmSync(old, { recursive: true, force: true });
+    return 0;
+  } finally {
+    fs.rmSync(next, { recursive: true, force: true });
+    lock.release();
+  }
 }
 
 async function pack(directory, destination) {

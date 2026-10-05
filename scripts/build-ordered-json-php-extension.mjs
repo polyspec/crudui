@@ -10,12 +10,10 @@ import {
 } from './php-extension-builder.mjs';
 
 const generatedPaths = [
-  '.build',
   '.libs',
   'autom4te.cache',
   'build',
   'include',
-  'modules',
   'Makefile',
   'Makefile.fragments',
   'Makefile.objects',

@@ -11,7 +11,7 @@
  * its output streams as it runs (scripts/run-command.mjs).
  */
 import { createHash } from 'node:crypto';
-import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, readdir, rename, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -82,7 +82,9 @@ if (recorded && recorded.inputs === current.inputs && recorded.outputs === curre
     throw error;
   }
   await mkdir(path.dirname(STAMP), { recursive: true });
-  await writeFile(STAMP, `${JSON.stringify(await state(), null, 2)}\n`);
+  // Another run reads the stamp at any time, so it is written to a file of this process and renamed into place.
+  await writeFile(`${STAMP}.${process.pid}`, `${JSON.stringify(await state(), null, 2)}\n`);
+  await rename(`${STAMP}.${process.pid}`, STAMP);
   lines.pass(id);
 }
 lines.close('build');

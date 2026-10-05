@@ -56,6 +56,8 @@ export default tseslint.config(
       '**/vendor/**',
       '**/target/**',
       '**/dist/**',
+      '**/dist.next/**',
+      '**/dist.old/**',
       '**/out/**',
       '**/.svelte-kit/**',
       '**/coverage/**',

@@ -1,5 +1,15 @@
 # 변경 기록
 
+## 2026-10-05 — rename으로 게시하는 공유 출력 (C7.6)
+
+- PHP extension builder는 자기 process의 directory에 compile하고 `<module>.so.<pid>`로 link한 뒤 load하여 검사하고
+  module 경로로 rename합니다. 이전에는 먼저 `.build`와 `modules`를 지우고 제자리에 link했으므로 PHP process가 없거나
+  일부만 쓰인 module을 load할 수 있었습니다. OrderedJSON checkout은 그 directory 옆에 만든 뒤 제자리로 rename합니다.
+  모든 package build는 `dist.next`(`CRUDUI_DIST`)에 쓰고 `scripts/package-dist.mjs`는 `dist` lock 아래에서 그것으로
+  `dist`를 바꾸므로, 읽는 쪽은 `tsup --clean`이 비운 `dist`를 보지 않습니다. 실패한 build는 `dist`를 남깁니다.
+  `require-current-build`의 build stamp는 쓴 뒤 rename합니다. `tests/build/atomic-publish.test.mjs`는 모든 공유 출력을
+  그 형식으로 유지합니다.
+
 ## 2026-10-05 — 자신이나 준비 단계가 만든 것만 읽는 검사 (C7.5)
 
 - `make test-php-extension`은 generator-php의 vendor directory를 load하는 test 전에 그 validator 복사본을 다시 설치합니다.

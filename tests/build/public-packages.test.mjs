@@ -262,7 +262,7 @@ test('declaration builds emit no files when a public type is invalid', () => {
   } finally { rmSync(temporary, { recursive: true, force: true }); }
 });
 
-const skippedDirectories = new Set(['node_modules', 'vendor', 'target', 'dist', '.git']);
+const skippedDirectories = new Set(['node_modules', 'vendor', 'target', 'dist', 'dist.next', 'dist.old', '.git']);
 function* files(directory) {
   for (const entry of readdirSync(directory, { withFileTypes: true })) {
     if (skippedDirectories.has(entry.name)) continue;
