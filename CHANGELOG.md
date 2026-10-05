@@ -1,5 +1,12 @@
 # Changes
 
+## 2026-10-05 — Setup contract of the local pipeline stack (C2.7-2)
+
+- `check-verification.test.mjs` checks that the pipeline and record store tests start and stop
+  their stack and browser through `setup` and `teardown` of `scripts/test-progress/hooks.mjs` and
+  register no hook of their own. It required the `browser-start` and `browser-close` limits that
+  C2.7-1 removed from the pipeline test.
+
 ## 2026-10-05 — Readiness wait on the state file itself (C2.4-1)
 
 - The readiness wait of the form comparison watches the build state file itself
