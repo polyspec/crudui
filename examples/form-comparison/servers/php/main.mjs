@@ -3,9 +3,13 @@
 // it and forwards `/api/` requests over FastCGI.
 //   node servers/php/main.mjs {host:port} {run directory} -- {php-fpm arguments}
 // The server name, data directory and the other FORM_* settings reach api.php through the
-// environment. The line `CRUDUI_READY {server}` follows once both processes accept requests.
+// environment. The line `CRUDUI_READY {server} {host:port}` follows once both processes accept requests.
+// This program binds the address itself, also port 0, and nginx takes over that listening socket
+// (nginx reads inherited sockets from the variable NGINX), so no other process can take the port
+// between its choice and nginx's start.
 import { spawn } from 'node:child_process';
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import net from 'node:net';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -33,7 +37,7 @@ const readyLines = { 'php-fpm': /NOTICE: ready to handle connections/, nginx: /\
 
 const json = value => JSON.stringify(value).replaceAll('\\', '\\\\').replaceAll("'", "\\'");
 
-async function configure() {
+async function configure({ address: host, port }) {
   await rm(runDirectory, { recursive: true, force: true });
   await mkdir(path.join(runDirectory, 'nginx'), { recursive: true });
   await writeFile(path.join(runDirectory, 'fpm.conf'), [
@@ -51,7 +55,6 @@ async function configure() {
     'decorate_workers_output = no',
     '',
   ].join('\n'));
-  const [host, port] = [address.slice(0, address.lastIndexOf(':')), address.slice(address.lastIndexOf(':') + 1)];
   // Every benchmark response of a PHP server names its JSON processor; record responses do not.
   const failure = (status, message, benchmark) => `default_type 'application/json; charset=utf-8'; `
     + `add_header Cache-Control no-store always; return ${status} '${json({
@@ -110,8 +113,10 @@ let stopping = false;
  * Start one process, copy its standard error, and resolve when it writes its readiness line. A
  * start has no time limit; a process that fails or exits stops the server with its reason.
  */
-function run(name, command, args) {
-  const child = spawn(command, args, { stdio: ['ignore', 'inherit', 'pipe'] });
+function run(name, command, args, { inherited } = {}) {
+  const child = inherited === undefined
+    ? spawn(command, args, { stdio: ['ignore', 'inherit', 'pipe'] })
+    : spawn(command, args, { stdio: ['ignore', 'inherit', 'pipe', inherited], env: { ...process.env, NGINX: '3;' } });
   child.once('error', error => stop(`${name} failed to start: ${error.message}`));
   child.once('exit', (code, signal) => { if (!stopping) stop(`${name} exited: ${signal ?? code}`); });
   children.push(child);
@@ -144,11 +149,20 @@ function stop(reason) {
 process.on('SIGTERM', () => stop());
 process.on('SIGINT', () => stop());
 
+// The listening socket of the server; it never accepts here, and nginx receives it as file descriptor 3.
+const listener = net.createServer(socket => socket.destroy());
 try {
-  await configure();
+  await new Promise((resolve, reject) => listener.once('error', reject)
+    .listen(Number(address.slice(address.lastIndexOf(':') + 1)), address.slice(0, address.lastIndexOf(':')), resolve));
+  const bound = listener.address();
+  await configure(bound);
   await run('php-fpm', 'php-fpm', ['-F', '-O', '-y', path.join(runDirectory, 'fpm.conf'), ...fpmArguments]);
-  await run('nginx', 'nginx', ['-e', 'stderr', '-p', runDirectory, '-c', path.join(runDirectory, 'nginx.conf')]);
-  process.stdout.write(`CRUDUI_READY ${server}\n`);
+  const nginxReady = run('nginx', 'nginx', ['-e', 'stderr', '-p', runDirectory, '-c', path.join(runDirectory, 'nginx.conf')],
+    { inherited: listener._handle.fd });
+  // nginx holds its own copy of the socket; this process closes its copy so only nginx accepts.
+  listener.close();
+  await nginxReady;
+  process.stdout.write(`CRUDUI_READY ${server} ${bound.address}:${bound.port}\n`);
 } catch (error) {
   stop(error.message);
 }

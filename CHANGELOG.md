@@ -1,5 +1,16 @@
 # Changes
 
+## 2026-10-05 — Servers on the ports they take, and locked shared steps (C7.11)
+
+- Every server of the form comparison binds its address, port 0 included, and names the address it
+  took on its readiness line `CRUDUI_READY {server} {host}:{port}`; the PHP launcher passes its bound
+  socket to nginx, which reads it from the variable `NGINX`. The local stacks start every server on
+  `127.0.0.1:0` and reach it on the announced address; `freePort` probed a port and released it to a
+  later process, which another process could take in between.
+- The reinstall of the generator-php vendor runs under the checkout lock `composer-generator-php` in
+  make, the local servers and the comparison build, and the guard of `make ci` holds the checkout
+  lock `full-run`, so two runs of one checkout never reinstall or decide from one record at once.
+
 ## 2026-10-05 — Shared outputs published by rename (C7.6)
 
 - The PHP extension builder compiles into a directory of its process, links `<module>.so.<pid>`, loads

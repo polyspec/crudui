@@ -71,10 +71,11 @@ export function serverProcess(server, { cruduiModuleSha256 } = {}) {
         FORM_ORDERED_JSON_PHP_SOURCE: `${orderedJsonDirectory}/php/src/OrderedJson.php`,
         ...(server === 'php-ext' ? { FORM_CRUDUI_MODULE_SHA256: cruduiModuleSha256 } : {}),
       },
+      // Every server names the address it took on its readiness line.
       ready: {
         stream: 'stdout',
-        pattern: new RegExp(`^CRUDUI_READY ${server}$`, 'm'),
-        example: `CRUDUI_READY ${server}`,
+        pattern: new RegExp(`^CRUDUI_READY ${server} ${address.replaceAll('.', '\\.')}$`, 'm'),
+        example: `CRUDUI_READY ${server} ${address}`,
       },
     };
   }
@@ -83,7 +84,7 @@ export function serverProcess(server, { cruduiModuleSha256 } = {}) {
     command: path.join(binaryDirectory, server),
     args: [address, dataDirectory, publicDirectory, sourceIdentityFile],
     environment: {},
-    ready: streamReadiness(server, 'CRUDUI_READY ' + server),
+    ready: streamReadiness(server, `CRUDUI_READY ${server} ${address}`),
   };
 }
 
@@ -102,7 +103,7 @@ export function publicServerProcess() {
       CRUDUI_CROSS_CHECK_GO_VALIDATOR: path.join(binaryDirectory, 'validator-go'),
       CRUDUI_CROSS_CHECK_RUST_VALIDATOR: path.join(binaryDirectory, 'validator-rust'),
     },
-    ready: streamReadiness('public', 'CRUDUI_READY public'),
+    ready: streamReadiness('public', `CRUDUI_READY public 0.0.0.0:${publicPort}`),
   };
 }
 

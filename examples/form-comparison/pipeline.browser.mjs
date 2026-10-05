@@ -11,7 +11,7 @@ import puppeteer from 'puppeteer';
 import { setup, teardown } from '../../scripts/test-progress/hooks.mjs';
 
 import {
-  exampleDirectory, freePort, prepareRecordServers, publicServerDefinition, recordServerProcess, repositoryRoot,
+  exampleDirectory, prepareRecordServers, publicServerDefinition, recordServerProcess, repositoryRoot,
   startProcess,
 } from './src/local-servers.mjs';
 import {
@@ -42,22 +42,17 @@ setup('stack start', async () => {
   assert.equal(build.status, 'passed', `public build ${build.status}`);
   const source = await sourceIdentity(repositoryRoot);
   await writeFile(path.join(publicDirectory, 'source.json'), JSON.stringify(source) + '\n');
-  const ports = {};
-  const definitions = [];
-  for (const server of recordServers.filter(name => name !== 'js')) {
-    const definition = await recordServerProcess(server, { port: await freePort(), dataDirectory, publicDirectory, prepared });
-    definitions.push(definition);
-    ports[server] = Number(definition.address.split(':')[1]);
-  }
-  const publicServer = publicServerDefinition({ port: await freePort(), dataDirectory, publicDirectory, ports });
-  // Every process holds the start limit; the public server forwards to the others only per request.
-  const started = await Promise.allSettled([
-    ...definitions.map(definition => startProcess(definition)),
-    startProcess(publicServer, { ipc: true, message: { status: 'ready', cycle: 1, source, error: null } }),
-  ]);
+  // Every record server takes a port of the system and names it on its readiness line; the public
+  // server starts with those ports and forwards to the others per request.
+  const servers = recordServers.filter(name => name !== 'js');
+  const definitions = await Promise.all(servers.map(server => recordServerProcess(server, { dataDirectory, publicDirectory, prepared })));
+  const started = await Promise.allSettled(definitions.map(definition => startProcess(definition)));
   processes.push(...started.filter(result => result.status === 'fulfilled').map(result => result.value));
   const failed = started.find(result => result.status === 'rejected');
   if (failed) throw failed.reason;
+  const ports = Object.fromEntries(servers.map((server, index) => [server, started[index].value.port]));
+  const publicServer = publicServerDefinition({ dataDirectory, publicDirectory, ports });
+  processes.push(await startProcess(publicServer, { ipc: true, message: { status: 'ready', cycle: 1, source, error: null } }));
   origin = processes.at(-1).origin;
 });
 

@@ -9,7 +9,7 @@ import { describe, test } from 'node:test';
 
 import { setup, teardown } from '../../scripts/test-progress/hooks.mjs';
 
-import { freePort, prepareRecordServers, recordPublicDirectory, recordServerProcess, startProcess } from './src/local-servers.mjs';
+import { prepareRecordServers, recordPublicDirectory, recordServerProcess, startProcess } from './src/local-servers.mjs';
 import { recordClient, recordContractCases, recordServers, recordStoreName } from './src/record-contract.mjs';
 
 // One contract case, including a server restart; the process start alone measured 79 to 96 ms.
@@ -35,7 +35,7 @@ for (const server of recordServers) {
     const dataDirectory = () => path.join(root, `data-${server}`);
     async function start() {
       const definition = await recordServerProcess(server, {
-        port: await freePort(), dataDirectory: dataDirectory(), publicDirectory, prepared,
+        dataDirectory: dataDirectory(), publicDirectory, prepared,
       });
       running = await startProcess(definition);
     }

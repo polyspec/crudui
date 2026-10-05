@@ -34,10 +34,12 @@ test('reinstalls the Composer copies when the PHP validator or manifests change'
     'packages/generator-php/composer.json', 'packages/generator-php/composer.lock']) {
     assert.deepEqual(summary([file]), { targets: ['composer'], restarts: [], supervisor: false });
   }
-  // `install` keeps a path repository's copy while the lock is unchanged, so the copy is reinstalled.
+  // `install` keeps a path repository's copy while the lock is unchanged, so the copy is reinstalled, under the
+  // checkout lock of the vendor directory.
   const composer = buildTargets.find(target => target.id === 'composer');
-  assert.deepEqual(composer.steps.at(-1).args,
-    ['--working-dir=packages/generator-php', 'reinstall', 'crudui/validator', '--no-interaction']);
+  assert.equal(composer.steps.at(-1).command, 'node');
+  assert.deepEqual(composer.steps.at(-1).args, ['scripts/holder-lock.mjs', 'hold', '/workspace/build/tree/var/locks/composer-generator-php.lock', '--',
+    'composer', '--working-dir=packages/generator-php', 'reinstall', 'crudui/validator', '--no-interaction']);
 });
 
 test('rebuilds and restarts only the affected native server', () => {

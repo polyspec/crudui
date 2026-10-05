@@ -124,8 +124,9 @@ export const buildTargets = Object.freeze([
         '--prefer-dist']),
       step('composer', ['--working-dir=packages/generator-php', 'install', '--no-interaction',
         '--prefer-dist']),
-      step('composer', ['--working-dir=packages/generator-php', 'reinstall', 'crudui/validator',
-        '--no-interaction']),
+      // Under the checkout lock of the vendor directory, as make reinstalls it.
+      step('node', ['scripts/holder-lock.mjs', 'hold', path.join(treeDirectory, 'var/locks/composer-generator-php.lock'), '--',
+        'composer', '--working-dir=packages/generator-php', 'reinstall', 'crudui/validator', '--no-interaction']),
     ],
     restarts: [],
   },

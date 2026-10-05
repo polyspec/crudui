@@ -33,14 +33,13 @@ test('a process that exits without stopping its local servers stops them', async
     `require('node:fs').writeFileSync(${JSON.stringify(pidFile)}, String(process.pid));`,
     `require('node:fs').openSync(${JSON.stringify(pipe)}, 'w');`,
     "const [host, port] = process.argv[1].split(':');",
-    "require('node:http').createServer((request, response) => response.end('ok'))",
-    "  .listen(Number(port), host, () => console.log('CRUDUI_READY stand-in'));",
+    "const server = require('node:http').createServer((request, response) => response.end('ok'));",
+    "server.listen(Number(port), host, () => console.log('CRUDUI_READY stand-in 127.0.0.1:' + server.address().port));",
   ].join('\n');
   const script = path.join(directory, 'stack.mjs');
   await writeFile(script, [
-    `import { freePort, startProcess } from ${JSON.stringify(localServers)};`,
-    'const address = `127.0.0.1:${await freePort()}`;',
-    `await startProcess({ server: 'stand-in', address, command: process.execPath, args: ['-e', ${JSON.stringify(server)}, address], environment: {}, ready: /^CRUDUI_READY stand-in$/m }, { write: () => {} });`,
+    `import { anyLoopbackPort, startProcess } from ${JSON.stringify(localServers)};`,
+    `await startProcess({ server: 'stand-in', address: anyLoopbackPort, command: process.execPath, args: ['-e', ${JSON.stringify(server)}, anyLoopbackPort], environment: {}, ready: /^CRUDUI_READY stand-in (127\\.0\\.0\\.1:\\d+)$/m }, { write: () => {} });`,
     // The process ends without stopping the server, as a forced exit after a failed hook does.
     'process.exit(0);',
   ].join('\n'));
@@ -50,4 +49,34 @@ test('a process that exits without stopping its local servers stops them', async
   const exited = new Promise(resolve => stack.once('exit', resolve));
   assert.equal(await exited, 0);
   await gone;
+});
+
+// A server takes a port of the system and names it on its readiness line, so no port is chosen
+// before the server that listens on it; startProcess reaches the server on the named address.
+test('a server on port 0 is reached on the address that its readiness line names', async () => {
+  const { anyLoopbackPort, startProcess } = await import(localServers);
+  const server = [
+    "const server = require('node:http').createServer((request, response) => response.end('ok'));",
+    "server.listen(0, '127.0.0.1', () => console.log('CRUDUI_READY stand-in 127.0.0.1:' + server.address().port));",
+  ].join('\n');
+  const running = await startProcess({ server: 'stand-in', address: anyLoopbackPort, command: process.execPath, args: ['-e', server], environment: {}, ready: /^CRUDUI_READY stand-in (127\.0\.0\.1:\d+)$/m }, { write: () => {} });
+  try {
+    assert.match(running.origin, /^http:\/\/127\.0\.0\.1:\d+$/);
+    assert.notEqual(running.port, 0);
+    assert.equal(await (await fetch(`${running.origin}/`)).text(), 'ok');
+  } finally {
+    await running.stop();
+  }
+});
+
+test('no program reserves a port by listening and closing before another process binds it', async () => {
+  const { execFileSync } = await import('node:child_process');
+  const files = execFileSync('git', ['ls-files', '*.mjs', '*.js'], { cwd: path.join(import.meta.dirname, '../../..'), encoding: 'utf8' }).split('\n').filter(Boolean);
+  const violations = [];
+  for (const file of files) {
+    let source;
+    try { source = await readFile(path.join(import.meta.dirname, '../../..', file), 'utf8'); } catch { continue; }
+    if (/\bfreePort\b|listen\(0,[^\n]*\n[^\n]*\.address\(\)[^\n]*\n[^\n]*\.close\(/.test(source)) violations.push(file);
+  }
+  assert.deepEqual(violations, []);
 });

@@ -6,7 +6,6 @@ import assert from 'node:assert/strict';
 import { execFile, fork, spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { copyFile, mkdir, readFile, writeFile } from 'node:fs/promises';
-import { createServer } from 'node:net';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
@@ -30,14 +29,13 @@ function progress(write, text) {
   write(`[local-servers] ${text}\n`);
 }
 
-/** Reserve a free loopback port. */
-export async function freePort() {
-  const server = createServer();
-  await new Promise((resolve, reject) => server.once('error', reject).listen(0, '127.0.0.1', resolve));
-  const { port } = server.address();
-  await new Promise(resolve => server.close(resolve));
-  return port;
-}
+/**
+ * The readiness line of a server: every server binds its address, port 0 included, and names the
+ * address it took, so no port is chosen before the server that listens on it.
+ */
+const readyLine = server => new RegExp(`^CRUDUI_READY ${server} (127\\.0\\.0\\.1:\\d+)$`, 'm');
+/** The loopback address on which a local server takes a port of the system. */
+export const anyLoopbackPort = '127.0.0.1:0';
 
 async function orderedJsonCheckout(write) {
   try {
@@ -71,8 +69,10 @@ export async function prepareRecordServers({ buildDirectory, write = text => pro
   const step = (id, command, args, cwd = repositoryRoot, environment = {}) =>
     ({ id, command, args, cwd, environment });
   const results = await runStages([[
-    step('composer-validator', 'composer',
-      ['--working-dir=packages/generator-php', 'reinstall', 'crudui/validator', '--no-interaction']),
+    // Under the checkout lock of the vendor directory, as make reinstalls it.
+    step('composer-validator', process.execPath, [path.join(repositoryRoot, 'scripts/holder-lock.mjs'), 'hold',
+      path.join(repositoryRoot, 'var/locks/composer-generator-php.lock'), '--',
+      'composer', '--working-dir=packages/generator-php', 'reinstall', 'crudui/validator', '--no-interaction']),
     step('crudui-php-extension', process.execPath, ['scripts/build-crudui-php-extension.mjs']),
     step('ordered-json-php-extension', process.execPath, ['scripts/build-ordered-json-php-extension.mjs',
       '--source', path.join(localOrderedJsonDirectory, 'php-extension/src')]),
@@ -121,9 +121,9 @@ async function phpExtensionArguments(name) {
  * its public directory and the source identity file; PHP takes them from its environment, which
  * PHP-FPM passes on to api.php.
  */
-export async function recordServerProcess(server, { port, dataDirectory, publicDirectory, prepared }) {
+export async function recordServerProcess(server, { dataDirectory, publicDirectory, prepared }) {
   assert.ok(recordServers.includes(server), `Unknown record server: ${server}`);
-  const address = `127.0.0.1:${port}`;
+  const address = anyLoopbackPort;
   const sourceFile = path.join(publicDirectory, 'source.json');
   if (server === 'php' || server === 'php-ext') {
     const common = [...await phpExtensionArguments('mbstring'), ...await phpExtensionArguments('dom')];
@@ -143,7 +143,7 @@ export async function recordServerProcess(server, { port, dataDirectory, publicD
           FORM_CRUDUI_MODULE_SHA256: createHash('sha256').update(await readFile(prepared.cruduiModule)).digest('hex'),
         } : {}),
       },
-      ready: new RegExp(`^CRUDUI_READY ${server}$`, 'm'),
+      ready: readyLine(server),
     };
   }
   const programArguments = [address, dataDirectory, publicDirectory, sourceFile];
@@ -151,12 +151,12 @@ export async function recordServerProcess(server, { port, dataDirectory, publicD
     return {
       server, address, command: process.execPath,
       args: [path.join(exampleDirectory, 'servers/javascript/main.mjs'), ...programArguments],
-      environment: {}, ready: /^CRUDUI_READY js$/m,
+      environment: {}, ready: readyLine('js'),
     };
   }
   return {
     server, address, command: prepared.binaries[server], args: programArguments, environment: {},
-    ready: new RegExp(`^CRUDUI_READY ${server}$`, 'm'),
+    ready: readyLine(server),
   };
 }
 
@@ -171,8 +171,8 @@ process.on('exit', () => {
 });
 
 /**
- * Start one process and wait for its readiness line, then require that it answers on the requested
- * address. A process start is a long operation without a time limit: it prints a line with its
+ * Start one process and wait for its readiness line, then require that it answers on the address
+ * that the line names. A process start is a long operation without a time limit: it prints a line with its
  * elapsed time every heartbeat while it waits, and a process that exits before its readiness fails
  * with its output.
  */
@@ -190,6 +190,7 @@ export async function startProcess(definition, { write = text => process.stdout.
   startedGroups.add(child.pid);
   child.once('exit', () => startedGroups.delete(child.pid));
   let output = '';
+  let address;
   const ready = new Promise((resolve, reject) => {
     const timer = setInterval(() => progress(write,
       `${definition.server}: waiting for readiness (${formatDuration(performance.now() - started)})`), stepHeartbeatMs);
@@ -197,7 +198,8 @@ export async function startProcess(definition, { write = text => process.stdout.
       const text = chunk.toString();
       output += text;
       for (const line of text.split('\n').filter(Boolean)) write(`[${definition.server}] ${line}\n`);
-      if (definition.ready.test(output)) { clearInterval(timer); resolve(); }
+      const announced = definition.ready.exec(output);
+      if (announced) { clearInterval(timer); address = announced[1]; resolve(); }
     };
     child.stdout.on('data', onData);
     child.stderr.on('data', onData);
@@ -209,14 +211,14 @@ export async function startProcess(definition, { write = text => process.stdout.
   });
   try {
     await ready;
-    const origin = `http://${definition.address}`;
+    const origin = `http://${address}`;
     try {
       await fetch(`${origin}/`, { signal: AbortSignal.timeout(5_000) });
     } catch (error) {
-      throw new Error(`${definition.server} announced readiness but does not listen on ${definition.address}`, { cause: error });
+      throw new Error(`${definition.server} announced readiness on ${address} but does not listen there`, { cause: error });
     }
-    progress(write, `${definition.server}: ready in ${formatDuration(performance.now() - started)}`);
-    return { child, origin, stop: () => killProcessTree(child, 2_000) };
+    progress(write, `${definition.server}: ready on ${address} in ${formatDuration(performance.now() - started)}`);
+    return { child, origin, address, port: Number(address.slice(address.lastIndexOf(':') + 1)), stop: () => killProcessTree(child, 2_000) };
   } catch (error) {
     await killProcessTree(child, 1_000);
     throw error;
@@ -228,11 +230,11 @@ export async function startProcess(definition, { write = text => process.stdout.
  * port of every native record server, and receives the build state from its parent over IPC as it
  * does from the supervisor.
  */
-export function publicServerDefinition({ port, dataDirectory, publicDirectory, ports }) {
-  const address = `127.0.0.1:${port}`;
+export function publicServerDefinition({ dataDirectory, publicDirectory, ports }) {
+  const address = anyLoopbackPort;
   return {
     server: 'public', address, command: process.execPath,
     args: [path.join(exampleDirectory, 'server.mjs'), address, dataDirectory, publicDirectory, JSON.stringify(ports)],
-    environment: {}, ready: /^CRUDUI_READY public$/m,
+    environment: {}, ready: readyLine('public'),
   };
 }

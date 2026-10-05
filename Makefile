@@ -196,8 +196,9 @@ build-php-extension:
 	node scripts/build-crudui-php-extension.mjs
 
 test-php-extension: build-php-extension
-	# api.test.mjs loads the vendor directory of generator-php, which installs the validator as a copy; refresh it first.
-	composer --working-dir=packages/generator-php reinstall crudui/validator --no-interaction
+	# api.test.mjs loads the vendor directory of generator-php, which installs the validator as a copy; refresh it first,
+	# under the checkout lock of that vendor directory, so two runs never reinstall it at once.
+	node scripts/holder-lock.mjs hold "$(CURDIR)/var/locks/composer-generator-php.lock" -- composer --working-dir=packages/generator-php reinstall crudui/validator --no-interaction
 	node scripts/run-tests.mjs node -- tests/native-generators/php-extension-builder.test.mjs packages/php-ext/tests/engine.test.mjs packages/php-ext/tests/api.test.mjs
 
 # Both suites run even when the first fails, so one run reports every failure; any failure fails the target.
@@ -208,8 +209,9 @@ test-native:
 	exit $$status
 
 test-native-suites: build-php-extension
-	# generator-php installs the validator as a copy; refresh it from source before any check loads it.
-	composer --working-dir=packages/generator-php reinstall crudui/validator --no-interaction
+	# generator-php installs the validator as a copy; refresh it from source before any check loads it, under the
+	# checkout lock of that vendor directory, so two runs never reinstall it at once.
+	node scripts/holder-lock.mjs hold "$(CURDIR)/var/locks/composer-generator-php.lock" -- composer --working-dir=packages/generator-php reinstall crudui/validator --no-interaction
 	@status=0; \
 	node scripts/run-tests.mjs phpunit --cwd packages/generator-php || status=1; \
 	node scripts/run-tests.mjs go --cwd packages/generator-go -- -race ./... || status=1; \
