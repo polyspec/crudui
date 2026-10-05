@@ -1,5 +1,12 @@
 # Changes
 
+## 2026-10-05 — Route of the comparison service under x-containerctl (C2.18)
+
+- The Compose definition of the comparison service lists its domain under
+  `x-containerctl.domains`, and the deployment check reads the `domains` and `urls` of
+  `containerctl status --json`. containerctl routes only those domains, so the
+  `containerctl.domain` label left the service internal and `make deploy` failed at the route.
+
 ## 2026-10-05 — Chromium of the comparison image (C2.17)
 
 - The comparison toolchain image installs `chromium` and `chromium-sandbox`

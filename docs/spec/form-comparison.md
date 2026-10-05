@@ -816,7 +816,7 @@ has the tag of the current Containerfile content. It writes
 - the named volumes `crudui-comparison-build` at `/workspace/build` and
   `crudui-comparison-cache` at `/workspace/cache`;
 - the deployment `data` directory at `/data` and `results` directory at `/results`;
-- the `containerctl.domain: crudui.test` label.
+- `x-containerctl.domains: [crudui.test]`, the domain containerctl routes to the service.
 
 The definition gives the service eight processors and 8 GB, which the four
 simultaneous browser checks need. It contains no commit, archive or image digest,

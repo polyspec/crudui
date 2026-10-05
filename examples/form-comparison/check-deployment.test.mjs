@@ -41,7 +41,9 @@ test('renders one deterministic deployment that mounts the repository read-only'
   const first = renderDeploymentCompose({ repositoryRoot, imageReference });
   assert.equal(renderDeploymentCompose({ repositoryRoot, imageReference }), first);
   assert.match(first, new RegExp(`^    image: ${imageReference}$`, 'm'));
-  assert.match(first, /^ {6}containerctl\.domain: crudui\.test$/m);
+  // containerctl routes a service only to the domains it lists under x-containerctl.domains.
+  assert.match(first, /^ {4}x-containerctl:\n {6}domains: \["crudui\.test"\]$/m);
+  assert.doesNotMatch(first, /containerctl\.domain:/);
   const volumes = first.split('\n').filter(line => line.startsWith('      - '))
     .map(line => JSON.parse(line.slice('      - '.length)));
   assert.deepEqual(volumes, [
