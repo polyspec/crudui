@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { measuredLimitMs, runUnit, runUnits } from './unit-pool.mjs';
+import { measuredLimitMs, runOperation, runUnit, runUnits } from './unit-pool.mjs';
 
 const sleep = (milliseconds, signal) => new Promise((resolve, reject) => {
   const timer = setTimeout(resolve, milliseconds);
@@ -63,4 +63,20 @@ test('a unit limit is three times its slowest measurement, rounded up to five se
   assert.equal(measuredLimitMs(3_334), 15_000);
   assert.equal(measuredLimitMs(26_347), 80_000);
   assert.throws(() => measuredLimitMs(0), /measured duration/);
+});
+
+test('an operation has no limit and reports its start, heartbeat and result', async () => {
+  const lines = [];
+  // The operation ends only after it has seen its first heartbeat line.
+  let heard;
+  const heartbeat = new Promise(resolve => { heard = resolve; });
+  const result = await runOperation({ id: 'browser-start', run: async () => { await heartbeat; return 'browser'; } },
+    { write: text => { lines.push(text); if (/running/.test(text)) heard(); }, heartbeatMs: 10, label: 'check' });
+  assert.deepEqual([result.status, result.value, result.timeoutMs], ['passed', 'browser', undefined]);
+  assert.match(lines[0], /^\[check\] browser-start: started\n$/);
+  assert.ok(lines.some(line => /^\[check\] browser-start: running \d+ms\n$/.test(line)), lines.join(''));
+  assert.match(lines.at(-1), /^\[check\] browser-start: passed in \d+ms\n$/);
+  const failed = await runOperation({ id: 'browser-close', run: () => { throw new Error('close refused'); } }, { write: () => {} });
+  assert.equal(failed.status, 'failed');
+  assert.match(failed.error, /close refused/);
 });

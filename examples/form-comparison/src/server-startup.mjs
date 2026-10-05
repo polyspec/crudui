@@ -4,10 +4,7 @@ import { phpClassNames, phpClassProvenanceFailure } from './php-provenance.mjs';
 import { formServers } from './runtime-paths.mjs';
 import { serverPorts, treeDirectory } from './server-layout.mjs';
 import { sameSourceIdentity } from './source-identity.mjs';
-import { formatDuration, killProcessTree, stepTerminationGraceMs } from './step-runner.mjs';
-
-/** A started process announces readiness within this limit (the record servers measured 0.07 to 0.44 s). */
-export const processStartLimitMs = 30_000;
+import { formatDuration, killProcessTree, stepHeartbeatMs, stepTerminationGraceMs } from './step-runner.mjs';
 
 /** One health request answers within this limit (each answers in milliseconds). */
 export const healthRequestLimitMs = 10_000;
@@ -21,10 +18,11 @@ export function stopChild(child, graceMs = stepTerminationGraceMs) {
 }
 
 /**
- * Resolve after one child process publishes its listening-socket event, and fail when it does not
- * within its limit.
+ * Resolve after one child process publishes its listening-socket event, and fail when it exits or
+ * fails before it. A process start is a long operation without a time limit; while it waits, a line
+ * with its elapsed time is printed every heartbeat.
  */
-export function waitForChildReadiness(child, ready, limitMs = processStartLimitMs) {
+export function waitForChildReadiness(child, ready, { write = text => process.stdout.write(text), heartbeatMs = stepHeartbeatMs } = {}) {
   assert.ok(ready && typeof ready.server === 'string', 'Child readiness requires a server');
   assert.ok(['stdout', 'stderr'].includes(ready.stream),
     'Child readiness requires stdout or stderr');
@@ -37,10 +35,11 @@ export function waitForChildReadiness(child, ready, limitMs = processStartLimitM
   return new Promise((resolve, reject) => {
     let received = '';
     let settled = false;
-    const timer = setTimeout(() => complete(reject, new Error(
-      `${ready.server} published no readiness within ${formatDuration(limitMs)}`)), limitMs);
+    const started = performance.now();
+    const waiting = setInterval(() => write(`[startup] ${ready.server}: waiting for readiness `
+      + `(${formatDuration(performance.now() - started)})\n`), heartbeatMs);
     function cleanup() {
-      clearTimeout(timer);
+      clearInterval(waiting);
       output.off('data', onData);
       child.off('error', onError);
       child.off('exit', onExit);

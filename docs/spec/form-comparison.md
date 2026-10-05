@@ -224,10 +224,10 @@ of `src/record-contract.mjs` against all five servers started from the checkout,
 its own timeout. Both local checks first build the server programs, each as a step with its own
 limit: the OrderedJSON checkout at `.form-comparison/sources/ordered-json` (the path the Go and
 Rust manifests name), both PHP extensions, the PHP validator copy, the Go binary and the Rust
-debug binary. The local stack then starts its five processes at the same time, each with the
-process start limit, and its browser with the measured browser start limit. The test hook that
-runs these operations has no limit of its own, because each operation holds one and prints its
-progress. `npm run test:form-comparison:pipeline` runs both, and the CI job
+debug binary. The local stack then starts its five processes at the same time and its browser.
+A process start and the browser start are long operations without a limit: each ends at its
+readiness event or its launch and prints a line with its elapsed time every 15 seconds while it
+waits. The test hooks that run these operations are setups without a limit. `npm run test:form-comparison:pipeline` runs both, and the CI job
 `form-comparison-pipeline` runs that command.
 
 ## Progress, limits and scope
@@ -241,7 +241,8 @@ supervisor's build cycles and every verification check.
    step name, and a line that says passed, failed, timed out or stalled with the
    duration. Nested units report the same way, as progress lines of the form
    `[label] unit: started|running|passed|failed|timed out`: each build target,
-   each browser report, each check phase, the browser start and close, each
+   each browser report, each check phase, the browser start and close (long operations without a
+   limit), each
    canonical flow combination and every wait, including the wait for a build cycle.
 2. **Every unit holds its own limit, sized from its measured duration, and no run
    has a total limit.** A unit's limit is three times its slowest measured
@@ -381,14 +382,13 @@ It requires the published identity and, for the PHP extension, the digest of the
 supervisor as a process message. `/api/health` returns `{"status": "ok",
 "servers": [...]}` only for a ready cycle. At every change the supervisor also
 replaces the build state file `state/build-state.json` with the cycle number, status, identity,
-error and `progress`. While a cycle builds, `progress` names the step it runs, its target and the
-limit that step holds: a startup step or the source identity (60 seconds each, file work measured
-at 0.3 and 1.1 seconds on the host), each build target's step (the target's limit plus the
-5-second termination grace), each restart (the grace plus the 30-second process start limit) and
-the health requests (10 seconds each). `progress.at` is renewed every 15 seconds; it shows that
-the supervisor is alive and is not build progress. Every wait of the supervisor holds a limit: a
-child that publishes no readiness within the start limit fails the cycle and is stopped, each
-health request is aborted at its limit, and a stopped process gets `SIGTERM` and, after the grace,
+error and `progress`. While a cycle builds, `progress` names the step it runs and its target: a
+startup step, the source identity, each build target's step, each restart and the health requests.
+It holds no limit. `progress.at` is renewed every 15 seconds; it shows that the supervisor is alive
+and is not build progress. A restart waits for the child's readiness event without a limit and
+prints a line every 15 seconds while it waits; a child that exits or fails before its readiness
+fails the cycle and is stopped. Each health request is a check with its own limit (10 seconds).
+A stopped process gets `SIGTERM` and, after the grace,
 `SIGKILL` for its whole tree, so a process that ignores `SIGTERM` cannot hold a restart, a reload
 or the shutdown. A failed
 build keeps the previous processes running and reports `failed` with the error. It
@@ -694,11 +694,12 @@ at the same time. An initialization report, measured at 32.4 seconds at most, ge
 page work before, between and after reports, measured at 1.9 seconds, gets 10,000
 (`browserReportMeasurementsMs` in `src/browser-job.mjs`). The units around the
 report job hold their own limits as well (`browserUnitMeasurementsMs` in
-`browser-report-policy.mjs`): the browser start (0.7 seconds) and close (0.1
-seconds) and the main page (1.8 seconds) get 10,000 milliseconds each; the
+`browser-report-policy.mjs`): the main page (1.8 seconds) gets 10,000 milliseconds; the
 interaction checks, the frame-document checks and the artifacts took 26.3 seconds
-together, and until each is measured on its own each gets 80,000. A server report
-records the status, duration and limit of these units under `units`. While a unit
+together, and until each is measured on its own each gets 80,000. The browser start and close are
+long operations without a limit (`runOperation` of `src/unit-pool.mjs`) that print the same
+progress lines. A server report records the status, duration and limit of these units, and the
+status and duration of the browser start and close, under `units`. While a unit
 runs, the check prints its progress line with its elapsed time every 15 seconds,
 and it prints each completed report with its result and duration. A unit that
 reaches its limit fails the run with that unit's name and its elapsed time, and the
@@ -757,14 +758,10 @@ with the Chromium sandbox enabled, against the build of the current tree. It wai
 for the current build cycle by reading the build state file at its start and at every replacement
 of the file, which the supervisor makes by renaming each new state over it; the wait watches the
 file itself and watches the new file before each read, and requires it
-to be ready; a failed cycle fails the wait. It reads the file on no timer: a timer runs only at the
-moment one of the limits below ends or a progress line is due. The wait (`build-readiness`) has no total limit. Progress is
-the step, identified by cycle, target and step, never the heartbeat: one step may hold the wait
-for its own limit plus the 45-second inactivity limit, and a step still named after that stops the
-wait as `stalled` even while its heartbeat is renewed. Apart from that, a `progress.at` that is not
-renewed for 45 seconds stops the wait as `stalled`, which also bounds a missing file or a stopped
-supervisor. The wait prints its progress line with its elapsed time and the current step every
-15 seconds. The public server needs the built packages, so it cannot report a cold build;
+to be ready; a failed cycle, or a file that cannot be watched, read or parsed, fails the wait. It
+reads the file on no timer. Waiting for a build is a long operation, so the wait
+(`build-readiness`) has no limit: it prints every new step it reads and, every 15 seconds, a line
+with its elapsed time and the state it last read. The public server needs the built packages, so it cannot report a cold build;
 the file comes from the supervisor, which runs from the start. It clears `/results`, records the identity in
 `results/source.json` and runs these stages in order, stopping at the first stage
 with a failed step:

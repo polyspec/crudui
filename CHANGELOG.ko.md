@@ -1,5 +1,13 @@
 # 변경 기록
 
+## 2026-10-05 — 한도 없는 form comparison 대기 (C2.13-1)
+
+- build readiness 대기에는 비활동 한도와 step 한도가 없습니다. 이 source가 ready이면 끝나고, 실패한
+  주기나 감시·읽기·해석할 수 없는 state file에서 실패하며, 새 step마다와 15초마다 줄을 출력합니다.
+  supervisor는 `limitMs` 없이 `progress`를 게시합니다. process start는 30초 한도 없이 readiness
+  event를 기다리며 15초마다 줄을 출력합니다. browser 검사와 pipeline 검사의 browser start와 close는
+  `runOperation`으로 한도 없이 실행하고, browser report의 unit은 자기 한도를 유지합니다.
+
 ## 2026-10-05 — benchmark를 실패시키는 version 명령 실패 (C2.14)
 
 - `tools/bench/run.js`는 version 명령이 실패하거나 version을 출력하지 않으면 명령, 실패, 출력과 함께

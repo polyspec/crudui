@@ -1,5 +1,14 @@
 # Changes
 
+## 2026-10-05 — Waits of the form comparison without limits (C2.13-1)
+
+- The build readiness wait has no inactivity or step limit: it ends when this source is ready,
+  fails on a failed cycle or a state file that cannot be watched, read or parsed, and prints every
+  new step and a line every 15 seconds. The supervisor publishes `progress` without `limitMs`. A
+  process start waits for its readiness event without the 30-second limit and prints a line every
+  15 seconds. The browser start and close of the browser and pipeline checks run through
+  `runOperation` without a limit; the units of a browser report keep their limits.
+
 ## 2026-10-05 — Failed version commands fail the benchmark (C2.14)
 
 - `tools/bench/run.js` fails with the command, its failure and its output when a version command

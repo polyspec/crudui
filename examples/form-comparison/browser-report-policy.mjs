@@ -72,12 +72,11 @@ export function browserJobReportCount() {
  * The slowest durations of the units of one browser check outside its report job, measured in the
  * deployed verification of 2026-09-16. The main page took at most 1.8 s from the run start to the
  * report job. The interactions, frame documents and artifacts took at most 26.3 s together after
- * the job; until each is measured on its own, each takes that bound. Starting and closing
- * Chromium took 0.7 s and 0.1 s.
+ * the job; until each is measured on its own, each takes that bound. Starting and closing Chromium
+ * are long operations without a limit, not units.
  */
 export const browserUnitMeasurementsMs = Object.freeze({
-  'browser-start': 700, 'main-page': 1_804, interactions: 26_347, 'frame-documents': 26_347,
-  artifacts: 26_347, 'browser-close': 100,
+  'main-page': 1_804, interactions: 26_347, 'frame-documents': 26_347, artifacts: 26_347,
 });
 
 /** Each unit's limit from its measurement (`measuredLimitMs`). */

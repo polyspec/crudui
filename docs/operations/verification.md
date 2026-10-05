@@ -90,8 +90,8 @@ process, one PHP extension process, one Go process and one Rust process from the
 The PHP extension process loads both `ordered_json.so` and `crudui.so`.
 
 The verification command runs inside the container as the unprivileged user with
-the Chromium sandbox enabled. It waits for the current build cycle as one unit, printing its
-elapsed time every 15 seconds within a limit of ten minutes, and requires it to be ready. It then runs
+the Chromium sandbox enabled. It waits for the current build cycle without a time limit, printing
+each new build step and its elapsed time every 15 seconds, and requires it to be ready. It then runs
 the checks of the deployed services: the processor modes, which load the extensions this
 container built, the generation and persistence checks against the four running native servers,
 and the canonical flow check of the deployed page for all 40 combinations. It does not repeat the source suite, the

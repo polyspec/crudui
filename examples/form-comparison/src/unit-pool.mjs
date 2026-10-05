@@ -1,7 +1,8 @@
 // In-process units with their own limits: a check that consists of independent units (the
-// pipeline combinations, the phases of a browser check, the build readiness wait) runs each one
-// with its own timeout and reports its start, its elapsed time every heartbeat and its result
-// with the duration. No limit covers a whole run; the step that runs such a check is stopped when
+// pipeline combinations, the phases of a browser check) runs each one with its own timeout and
+// reports its start, its elapsed time every heartbeat and its result with the duration. A long
+// operation inside such a check (a browser launch or close) runs through `runOperation` with the
+// same lines and no limit. No limit covers a whole run; the step that runs such a check is stopped when
 // it reports no progress (step-runner.mjs).
 import assert from 'node:assert/strict';
 
@@ -51,6 +52,35 @@ export async function runUnit(unit, options = {}) {
   write(`[${label}] ${unit.id}: ${detail}\n`);
   return {
     id: unit.id, status: outcome.status, durationMs, timeoutMs: unit.timeoutMs,
+    ...(outcome.status === 'passed' && outcome.value !== undefined ? { value: outcome.value } : {}),
+    ...(outcome.status === 'failed' ? { error: String(outcome.error?.stack ?? outcome.error) } : {}),
+  };
+}
+
+/**
+ * Run one long operation (a browser launch, a browser close) to its end without a time limit. It
+ * prints the same start, heartbeat and result lines as a unit, and its result or error decides it.
+ */
+export async function runOperation({ id, run }, options = {}) {
+  assert.match(id ?? '', /^[a-z0-9][a-z0-9/-]*$/, 'An operation requires a lowercase id');
+  assert.equal(typeof run, 'function', `${id}: an operation requires an action`);
+  const write = options.write ?? (text => process.stdout.write(text));
+  const heartbeatMs = options.heartbeatMs ?? stepHeartbeatMs;
+  const label = options.label ?? 'operation';
+  const started = performance.now();
+  const elapsed = () => formatDuration(performance.now() - started);
+  write(`[${label}] ${id}: started\n`);
+  const heartbeat = setInterval(() => write(`[${label}] ${id}: running ${elapsed()}\n`), heartbeatMs);
+  const outcome = await Promise.resolve().then(run).then(
+    value => ({ status: 'passed', value }),
+    error => ({ status: 'failed', error }),
+  );
+  clearInterval(heartbeat);
+  const durationMs = performance.now() - started;
+  write(`[${label}] ${id}: ${outcome.status === 'passed' ? `passed in ${formatDuration(durationMs)}`
+    : `failed after ${formatDuration(durationMs)}: ${outcome.error?.stack ?? outcome.error}`}\n`);
+  return {
+    id, status: outcome.status, durationMs,
     ...(outcome.status === 'passed' && outcome.value !== undefined ? { value: outcome.value } : {}),
     ...(outcome.status === 'failed' ? { error: String(outcome.error?.stack ?? outcome.error) } : {}),
   };
