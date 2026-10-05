@@ -17,7 +17,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "node ../../scripts/package-dist.mjs build 'svelte-package -i src -o dist'",
+    "build": "node ../../scripts/package-dist.mjs build 'svelte-package -i src -o \"$CRUDUI_DIST\"'",
     "test": "status=0; node ../../scripts/run-tests.mjs vitest --cwd packages/generator-svelte || status=1; node ../../scripts/run-tests.mjs vitest --cwd packages/generator-svelte --config vitest.client.config.ts || status=1; exit $status",
     "typecheck": "svelte-check --tsconfig ./tsconfig.json"
   },

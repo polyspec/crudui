@@ -6,7 +6,7 @@ import test from 'node:test';
 
 const root = path.resolve(import.meta.dirname, '../..');
 const ignoredDirectories = new Set([
-  '.git', '.svelte-kit', 'dist', 'node_modules', 'target', 'vendor',
+  '.git', '.svelte-kit', 'dist', 'dist.next', 'dist.old', 'node_modules', 'target', 'vendor',
 ]);
 
 function viteConfigurationFiles(directory, base = directory) {

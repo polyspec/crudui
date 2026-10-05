@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import assert from 'node:assert/strict';
-import { lstat, mkdir, readdir, rm, writeFile } from 'node:fs/promises';
+import { lstat, mkdir, readdir, rename, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import {
@@ -353,6 +353,10 @@ function validateDescriptor(descriptor) {
     'Minimum PHP version is required');
   assert.ok(Array.isArray(descriptor.loadChecks) && descriptor.loadChecks.length > 0,
     'PHP module load checks are required');
+  for (const directory of [descriptor.buildDirectory ?? '.build', descriptor.outputDirectory ?? 'modules']) {
+    assert.ok(!descriptor.generatedPaths.includes(directory),
+      'The build publishes ' + directory + ' by rename and never removes it; remove it from the generated paths');
+  }
 }
 
 function declaredSource(root, relative) {
@@ -406,78 +410,90 @@ export async function buildPhpExtension(descriptor, options = {}) {
   }
   await cleanGeneratedPaths(sourceRoot, descriptor.generatedPaths);
 
+  // A PHP process can load the module while a build runs, and two builds can run at once: the objects go to a directory
+  // of this process, the module is linked to a name of this process, loaded and checked, and renamed to its path.
   const buildDirectory = declaredSource(sourceRoot, descriptor.buildDirectory ?? '.build');
-  const objectDirectory = path.join(buildDirectory, 'objects');
+  const runDirectory = path.join(buildDirectory, 'run-' + process.pid);
+  const objectDirectory = path.join(runDirectory, 'objects');
   const moduleDirectory = declaredSource(sourceRoot, descriptor.outputDirectory ?? 'modules');
+  await rm(runDirectory, { recursive: true, force: true });
   await Promise.all([
     mkdir(objectDirectory, { recursive: true }),
     mkdir(moduleDirectory, { recursive: true }),
   ]);
   await assertRegularPath(objectDirectory, 'directory');
   await assertRegularPath(moduleDirectory, 'directory');
-
-  const commandEnvironment = { ...environment };
-  const platformCompileArguments = [];
-  const platformLinkArguments = [];
-  let deploymentTarget = null;
-  if (platform === 'darwin') {
-    deploymentTarget = macosDeploymentTarget(environment);
-    commandEnvironment.MACOSX_DEPLOYMENT_TARGET = deploymentTarget;
-    platformCompileArguments.push('-mmacosx-version-min=' + deploymentTarget);
-    platformLinkArguments.push('-mmacosx-version-min=' + deploymentTarget);
-  }
-
-  const definitions = [...(descriptor.definitions ?? [])];
-  if (php.zts) definitions.push('ZTS=1');
-  if (php.debug) definitions.push('ZEND_DEBUG=1');
-  const compileArguments = [
-    '-std=c11', '-fPIC', '-O2', '-Wall', '-Wextra', '-Werror', '-D_GNU_SOURCE',
-    ...(descriptor.compilerArguments ?? []),
-    ...platformCompileArguments,
-    ...php.includeArguments,
-    ...(descriptor.includeDirectories ?? []).map(directory =>
-      '-I' + declaredSource(sourceRoot, directory)),
-    ...definitions.map(definition => '-D' + definition),
-  ];
-  const objects = descriptor.sources.map((source, index) =>
-    path.join(objectDirectory, String(index) + '-' + path.basename(source, path.extname(source)) + '.o'));
-  await Promise.all(descriptor.sources.map((source, index) => run(tools.compiler, [
-    ...compileArguments,
-    '-c', declaredSource(sourceRoot, source),
-    '-o', objects[index],
-  ], { cwd: sourceRoot, environment: commandEnvironment })));
-  await assertGeneratedTree(objectDirectory);
-
   const module = path.join(moduleDirectory, descriptor.moduleName + '.so');
-  const libraries = platform === 'darwin'
-    ? descriptor.macosLibraries ?? []
-    : descriptor.linuxLibraries ?? [];
-  const linkArguments = platform === 'darwin'
-    ? ['-bundle', '-undefined', 'dynamic_lookup', ...platformLinkArguments,
-      '-o', module, ...objects, ...libraries]
-    : ['-shared', '-o', module, ...objects, ...libraries];
-  await run(tools.compiler, linkArguments, {
-    cwd: sourceRoot,
-    environment: commandEnvironment,
-  });
-  await assertRegularPath(module, 'file');
+  const linked = module + '.' + process.pid;
+  try {
 
-  const loaded = await run(php.executable,
-    ['-n', '-d', 'extension=' + module, '--ri', descriptor.moduleName],
-    { capture: true, environment: commandEnvironment });
-  for (const pattern of descriptor.loadChecks) {
-    assert.match(loaded.stdout, pattern,
-      'PHP module load output does not satisfy ' + descriptor.moduleName);
+    const commandEnvironment = { ...environment };
+    const platformCompileArguments = [];
+    const platformLinkArguments = [];
+    let deploymentTarget = null;
+    if (platform === 'darwin') {
+      deploymentTarget = macosDeploymentTarget(environment);
+      commandEnvironment.MACOSX_DEPLOYMENT_TARGET = deploymentTarget;
+      platformCompileArguments.push('-mmacosx-version-min=' + deploymentTarget);
+      platformLinkArguments.push('-mmacosx-version-min=' + deploymentTarget);
+    }
+
+    const definitions = [...(descriptor.definitions ?? [])];
+    if (php.zts) definitions.push('ZTS=1');
+    if (php.debug) definitions.push('ZEND_DEBUG=1');
+    const compileArguments = [
+      '-std=c11', '-fPIC', '-O2', '-Wall', '-Wextra', '-Werror', '-D_GNU_SOURCE',
+      ...(descriptor.compilerArguments ?? []),
+      ...platformCompileArguments,
+      ...php.includeArguments,
+      ...(descriptor.includeDirectories ?? []).map(directory =>
+        '-I' + declaredSource(sourceRoot, directory)),
+      ...definitions.map(definition => '-D' + definition),
+    ];
+    const objects = descriptor.sources.map((source, index) =>
+      path.join(objectDirectory, String(index) + '-' + path.basename(source, path.extname(source)) + '.o'));
+    await Promise.all(descriptor.sources.map((source, index) => run(tools.compiler, [
+      ...compileArguments,
+      '-c', declaredSource(sourceRoot, source),
+      '-o', objects[index],
+    ], { cwd: sourceRoot, environment: commandEnvironment })));
+    await assertGeneratedTree(objectDirectory);
+
+    const libraries = platform === 'darwin'
+      ? descriptor.macosLibraries ?? []
+      : descriptor.linuxLibraries ?? [];
+    const linkArguments = platform === 'darwin'
+      ? ['-bundle', '-undefined', 'dynamic_lookup', ...platformLinkArguments,
+        '-o', linked, ...objects, ...libraries]
+      : ['-shared', '-o', linked, ...objects, ...libraries];
+    await run(tools.compiler, linkArguments, {
+      cwd: sourceRoot,
+      environment: commandEnvironment,
+    });
+    await assertRegularPath(linked, 'file');
+
+    const loaded = await run(php.executable,
+      ['-n', '-d', 'extension=' + linked, '--ri', descriptor.moduleName],
+      { capture: true, environment: commandEnvironment });
+    for (const pattern of descriptor.loadChecks) {
+      assert.match(loaded.stdout, pattern,
+        'PHP module load output does not satisfy ' + descriptor.moduleName);
+    }
+    await rename(linked, module);
+
+    const manifest = path.join(buildDirectory, 'build.json');
+    await writeFile(manifest + '.' + process.pid, JSON.stringify({
+      module: descriptor.moduleName,
+      platform,
+      php: { executable: php.executable, version: php.version },
+      tools,
+      macosDeploymentTarget: deploymentTarget,
+    }, null, 2) + '\n');
+    await rename(manifest + '.' + process.pid, manifest);
+  } finally {
+    await rm(linked, { force: true });
+    await rm(runDirectory, { recursive: true, force: true });
   }
-
-  const manifest = path.join(buildDirectory, 'build.json');
-  await writeFile(manifest, JSON.stringify({
-    module: descriptor.moduleName,
-    platform,
-    php: { executable: php.executable, version: php.version },
-    tools,
-    macosDeploymentTarget: deploymentTarget,
-  }, null, 2) + '\n');
   await assertGeneratedTree(buildDirectory);
   await assertGeneratedTree(moduleDirectory);
   process.stdout.write('PHP extension built and loaded: ' + module + '\n');

@@ -201,8 +201,8 @@ export function holdUntilExit(lockFile) {
  * SIGHUP of this process go to the command, so a lock holder releases its lock after the command
  * has ended.
  */
-export async function runCommand(command, args, { cwd } = {}) {
-  const child = spawn(command, args, { stdio: 'inherit', cwd });
+export async function runCommand(command, args, { cwd, env } = {}) {
+  const child = spawn(command, args, { stdio: 'inherit', cwd, env });
   const forward = signal => child.kill(signal);
   const signals = ['SIGINT', 'SIGTERM', 'SIGHUP'];
   for (const signal of signals) process.on(signal, forward);

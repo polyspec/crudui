@@ -1,5 +1,5 @@
 import { execFile } from 'node:child_process';
-import { mkdir, rm } from 'node:fs/promises';
+import { mkdir, rename, rm, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { promisify } from 'node:util';
 
@@ -25,31 +25,43 @@ async function defaultGit(directory, args) {
 
 /**
  * Check out one pinned OrderedJSON monorepo revision. Required language packages must exist in
- * that tree; the PHP extension build adds only untracked outputs.
+ * that tree; the PHP extension build adds only untracked outputs. The checkout is made in a
+ * directory of this process beside `directory` and renamed into place when it is complete, so a
+ * reader finds the previous checkout or the new one, never a partial tree; a failed checkout leaves
+ * the previous one.
  */
 export async function installOrderedJson(directory, git = defaultGit) {
   if (!path.isAbsolute(directory)) throw new Error('OrderedJSON needs an absolute directory');
-  // The named build volume may contain a checkout created by an older repository layout.
-  // Recreate only this dedicated source directory so no stale Git index or ignored file remains.
-  await rm(directory, { recursive: true, force: true });
-  await mkdir(directory, { recursive: true });
-  await git(directory, ['init', '--quiet']);
+  const next = `${directory}.next-${process.pid}`;
+  // A fresh directory, so no Git index or ignored file of an older checkout remains.
+  await rm(next, { recursive: true, force: true });
+  await mkdir(next, { recursive: true });
   try {
-    await git(directory, ['cat-file', '-e', orderedJsonRevision + '^{commit}']);
-  } catch {
-    await git(directory, ['fetch', '--quiet', '--depth=1', orderedJsonRepository,
-      orderedJsonRevision]);
-  }
-  await git(directory, ['checkout', '--quiet', '--detach', orderedJsonRevision]);
-  const changes = await git(directory, ['status', '--porcelain', '--untracked-files=no',
-    '--no-renames']);
-  if (changes.trim()) throw new Error('The OrderedJSON checkout contains tracked changes');
-  for (const [name, file] of Object.entries(orderedJsonPackages)) {
+    await git(next, ['init', '--quiet']);
     try {
-      await git(directory, ['cat-file', '-e', orderedJsonRevision + ':' + file]);
+      await git(next, ['cat-file', '-e', orderedJsonRevision + '^{commit}']);
     } catch {
-      throw new Error(`OrderedJSON package is missing from the pinned monorepo: ${name}`);
+      await git(next, ['fetch', '--quiet', '--depth=1', orderedJsonRepository,
+        orderedJsonRevision]);
     }
+    await git(next, ['checkout', '--quiet', '--detach', orderedJsonRevision]);
+    const changes = await git(next, ['status', '--porcelain', '--untracked-files=no',
+      '--no-renames']);
+    if (changes.trim()) throw new Error('The OrderedJSON checkout contains tracked changes');
+    for (const [name, file] of Object.entries(orderedJsonPackages)) {
+      try {
+        await git(next, ['cat-file', '-e', orderedJsonRevision + ':' + file]);
+      } catch {
+        throw new Error(`OrderedJSON package is missing from the pinned monorepo: ${name}`);
+      }
+    }
+    const old = `${directory}.old-${process.pid}`;
+    const present = await stat(directory).then(() => true, error => { if (error.code === 'ENOENT') return false; throw error; });
+    if (present) await rename(directory, old);
+    await rename(next, directory);
+    await rm(old, { recursive: true, force: true });
+  } finally {
+    await rm(next, { recursive: true, force: true });
   }
   return { repository: orderedJsonRepository, version: orderedJsonVersion, commit: orderedJsonRevision,
     packages: { ...orderedJsonPackages } };

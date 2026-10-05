@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {
-  chmod, mkdir, mkdtemp, readFile, realpath, rm, symlink, writeFile,
+  chmod, mkdir, mkdtemp, readdir, readFile, realpath, rm, symlink, writeFile,
 } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -8,6 +8,7 @@ import test from 'node:test';
 
 import {
   assertRegularPath,
+  buildPhpExtension,
   cleanGeneratedPaths,
   readPhpMetadata,
   resolveHomebrewPhpConfig,
@@ -234,3 +235,57 @@ test('generated path cleanup removes declared regular trees', async t => {
   await assert.rejects(readFile(output, 'utf8'), error => error.code === 'ENOENT');
 });
 
+
+// A PHP server can load the module while a build runs, and two builds of one checkout can run at once: the build
+// compiles into a directory of its process, links a module of its process, checks that this module loads, and renames
+// it to the module path, so a reader finds the previous module or the new one, never a missing or partial file.
+test('a build publishes the module by renaming the checked module of its process', async t => {
+  const root = await temporaryDirectory(t);
+  const prefix = path.join(root, 'php');
+  const include = path.join(prefix, 'include', 'php');
+  await mkdir(include, { recursive: true });
+  await mkdir(path.join(prefix, 'bin'));
+  const phpConfig = await executable(path.join(prefix, 'bin', 'php-config'));
+  const php = await executable(path.join(prefix, 'bin', 'php'));
+  const compiler = await executable(path.join(root, 'cc'));
+  const source = path.join(root, 'extension');
+  await mkdir(path.join(source, 'modules'), { recursive: true });
+  await writeFile(path.join(source, 'module.c'), 'int x;\n');
+  const published = path.join(source, 'modules', 'sample.so');
+  await writeFile(published, 'previous module\n');
+  const values = { '--prefix': prefix, '--includes': '-I' + include, '--include-dir': include, '--vernum': '80511', '--php-binary': php };
+  const calls = [];
+  const run = async (file, args) => {
+    calls.push([file, ...args]);
+    if (file === phpConfig) return { stdout: values[args[0]] + '\n', stderr: '' };
+    if (file === php && args.includes('-r')) return { stdout: '[80511,8,false,false]', stderr: '' };
+    if (file === php) {
+      // The module that PHP loads exists and the published module is still the previous one.
+      const module = args.find(arg => arg.startsWith('extension=')).slice('extension='.length);
+      assert.equal(await readFile(module, 'utf8'), 'linked module\n');
+      assert.equal(await readFile(published, 'utf8'), 'previous module\n');
+      return { stdout: 'sample support => enabled\n', stderr: '' };
+    }
+    if (file === compiler) {
+      const output = args[args.indexOf('-o') + 1];
+      await writeFile(output, args.includes('-c') ? 'object\n' : 'linked module\n');
+      return { stdout: '', stderr: '' };
+    }
+    throw new Error('Unexpected command: ' + file);
+  };
+  const result = await buildPhpExtension({
+    moduleName: 'sample', sourceRoot: source, sources: ['module.c'], generatedPaths: ['build'],
+    minimumPhpVersion: 80400, loadChecks: [/sample support => enabled/],
+  }, { run, platform: 'linux', tools: { phpConfig, compiler }, environment: {} });
+
+  const link = calls.find(call => call[0] === compiler && call.includes('-shared'));
+  const linked = link[link.indexOf('-o') + 1];
+  assert.equal(linked, `${published}.${process.pid}`);
+  assert.equal(result.module, published);
+  assert.equal(await readFile(published, 'utf8'), 'linked module\n');
+  assert.deepEqual(await readdir(path.join(source, 'modules')), ['sample.so']);
+  // The objects of the run are in a directory of its process, which the build removes.
+  const compile = calls.find(call => call[0] === compiler && call.includes('-c'));
+  assert.match(compile[compile.indexOf('-o') + 1], new RegExp(`/\\.build/run-${process.pid}/objects/0-module\\.o$`));
+  assert.deepEqual((await readdir(path.join(source, '.build'))).sort(), ['build.json']);
+});

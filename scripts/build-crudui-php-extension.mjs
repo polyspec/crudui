@@ -13,12 +13,10 @@ const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const repositoryRoot = path.resolve(scriptDirectory, '..');
 
 const generatedPaths = [
-  '.build',
   '.libs',
   'autom4te.cache',
   'build',
   'include',
-  'modules',
   'Makefile',
   'Makefile.fragments',
   'Makefile.objects',

@@ -115,15 +115,42 @@ function fixtureCheckout() {
     name: '@crudui/dist-lock-fixture', version: '0.0.0', private: true, type: 'module', files: ['dist'],
     scripts: { build: "node ../../scripts/package-dist.mjs build 'node build.mjs'" },
   }, null, 2)}\n`);
+  // The build writes into the directory that CRUDUI_DIST names, as every package build does (scripts/package-dist.mjs);
+  // BUILD_VALUE sets the output, BUILD_FAIL fails the build after it wrote, and BUILD_SEEN records the dist it saw.
   fs.writeFileSync(path.join(packageDirectory, 'build.mjs'), [
     "import fs from 'node:fs';",
-    "fs.rmSync('dist', { recursive: true, force: true });",
-    "fs.mkdirSync('dist');",
-    "fs.writeFileSync('dist/index.js', 'export default 1;\\n');",
+    "const out = process.env.CRUDUI_DIST;",
+    "if (process.env.BUILD_SEEN) fs.writeFileSync(process.env.BUILD_SEEN, fs.existsSync('dist') ? fs.readdirSync('dist').map(name => name + '=' + fs.readFileSync('dist/' + name, 'utf8')).join(',') : 'none');",
+    "fs.rmSync(out, { recursive: true, force: true });",
+    "fs.mkdirSync(out);",
+    "fs.writeFileSync(out + '/index.js', `export default ${process.env.BUILD_VALUE ?? 1};\\n`);",
+    "if (process.env.BUILD_FAIL) process.exit(3);",
     '',
   ].join('\n'));
   return { checkout, packageDirectory, lockFile: path.join(checkout, 'var/locks', 'dist-fixture.lock') };
 }
+
+test('a package build replaces dist with its complete output, and a failed build leaves dist', () => {
+  const { checkout, packageDirectory } = fixtureCheckout();
+  const build = env => spawnSync('npm', ['run', 'build'], { cwd: packageDirectory, encoding: 'utf8', env: { ...process.env, ...env } });
+  const seen = path.join(checkout, 'seen');
+  const dist = () => fs.readFileSync(path.join(packageDirectory, 'dist/index.js'), 'utf8');
+  try {
+    assert.equal(build({ BUILD_VALUE: '1' }).status, 0);
+    assert.equal(dist(), 'export default 1;\n');
+    // While the second build writes, dist still holds the first output.
+    const second = build({ BUILD_VALUE: '2', BUILD_SEEN: seen });
+    assert.equal(second.status, 0, second.stderr);
+    assert.equal(fs.readFileSync(seen, 'utf8'), 'index.js=export default 1;\n');
+    assert.equal(dist(), 'export default 2;\n');
+    const failed = build({ BUILD_VALUE: '3', BUILD_FAIL: '1' });
+    assert.equal(failed.status, 3, failed.stderr);
+    assert.equal(dist(), 'export default 2;\n');
+    assert.deepEqual(fs.readdirSync(packageDirectory).filter(name => name.startsWith('dist')).sort(), ['dist']);
+  } finally {
+    fs.rmSync(checkout, { recursive: true, force: true });
+  }
+});
 
 test('a build and a pack of a package refuse while another run holds its dist', () => {
   const { checkout, packageDirectory, lockFile } = fixtureCheckout();
