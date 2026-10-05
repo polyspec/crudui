@@ -159,7 +159,12 @@ packaged files. The package build of a project compiles components for its brows
 
 Run `npm run test:packages` to build and pack all JavaScript packages, install
 them into an isolated install project, check exported files and declarations,
-and compile a production application using all three form components. A passing
+and compile a production application using all three form components. The install
+project installs with `npm ci --offline` from a lock that `scripts/install-lock.mjs`
+derives from the root `package-lock.json`: the packed packages as `file:` tarballs and
+the root lock entries of every registry package that npm resolves for the install project, so
+it installs the releases of the root lock from the npm cache of `make install` and
+resolves no range against a registry. A passing
 check removes the temporary install project. A failing check keeps it with
 `failure.log` and prints its path.
 
