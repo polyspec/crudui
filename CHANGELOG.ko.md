@@ -1,5 +1,14 @@
 # 변경 기록
 
+## 2026-10-05 — holder lock 아래에서 유지하는 Playwright image (C3.3)
+
+- `make test-form-styles-linux`는 Playwright image를 남겨 둡니다. 전에는 image를 받은 실행이 끝날 때,
+  다른 checkout의 실행이 아직 image를 쓰는 동안에도 image를 지웠습니다. 이제 container는
+  image의 user 범위 holder lock 아래에서 실행되므로, 두 번째 실행은 holder의 checkout, pid, process
+  시작 시각과 함께 거부됩니다. `make remove-form-styles-image`는 같은 lock 아래에서 image를 지우고 check가
+  실행되는 동안에는 거부됩니다. `node scripts/holder-lock.mjs user-lock-file <name>`은 user 범위 lock의
+  path를 출력합니다.
+
 ## 2026-10-05 — 하나뿐인 resource의 holder lock (C3.2)
 
 - `scripts/holder-lock.mjs`는 한 번에 한 실행만 쓸 수 있는 resource를 잡습니다. lock file의 record는

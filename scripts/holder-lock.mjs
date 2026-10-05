@@ -13,6 +13,7 @@
  *
  *   node scripts/holder-lock.mjs hold <lock file> -- <command> [arguments...]
  *   node scripts/holder-lock.mjs remove-dead <lock file>
+ *   node scripts/holder-lock.mjs user-lock-file <name>
  */
 import assert from 'node:assert/strict';
 import { execFileSync, spawn } from 'node:child_process';
@@ -186,9 +187,12 @@ async function main(argv) {
   } else if (operation === 'remove-dead' && lockFile && argv.length === 2) {
     const record = removeDeadLock(lockFile);
     process.stdout.write(`lock: removed ${lockFile} of ${describeHolder(record)}, which is not running\n`);
+  } else if (operation === 'user-lock-file' && /^[A-Za-z0-9._-]+$/.test(lockFile ?? '') && argv.length === 2) {
+    process.stdout.write(`${userLockFile(lockFile)}\n`);
   } else {
     throw new Error('Usage: node scripts/holder-lock.mjs hold <lock file> -- <command> [arguments...]\n'
-      + '       node scripts/holder-lock.mjs remove-dead <lock file>');
+      + '       node scripts/holder-lock.mjs remove-dead <lock file>\n'
+      + '       node scripts/holder-lock.mjs user-lock-file <name>');
   }
 }
 
