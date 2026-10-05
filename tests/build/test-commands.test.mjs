@@ -10,6 +10,7 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 import { Linter } from 'eslint';
+import { parse } from 'yaml';
 
 import nodeTestRules from '../../scripts/lint/node-test-rules.mjs';
 import {
@@ -113,7 +114,7 @@ test('a CI step runs tests when its command reaches the test runner', () => {
   for (const command of [
     'npm run test:runtimes', 'npm test -w @crudui/validator', 'composer --working-dir=packages/validator-php test',
     'node scripts/run-tests.mjs go --cwd packages/validator-go -- ./...', 'make docs-check', 'make test-native',
-    'npm test --prefix examples/cross-check-console/server', 'npm run manifest:test', 'npm run test:build && npm run test:build:repeat',
+    'npm test --prefix examples/cross-check-console/server', 'npm run manifest:test', 'npm run test:build', 'npm run test:build:repeat',
   ]) assert.equal(runsTests(command, project), true, command);
   for (const command of [
     'node scripts/install-npm.mjs && npm ci --strict-allow-scripts', 'npm run build', 'npm run lint', 'npm run typecheck',
@@ -187,6 +188,65 @@ test('a Makefile target runs every check after an earlier check failed', () => {
     'unrecorded: the checks of one line do not each set status=1 and exit with it',
   ]);
   assert.deepEqual(stoppingRecipes(declaredCommands()), []);
+});
+
+// A command of a package script or a CI step that stops at a failing check: a check in an `&&` chain with a later
+// step, or several checks of which one does not record its failure with `|| status=1` before the command exits with the
+// collected status. Preparation steps before the first check may stop the command; an `&&` chain whose later steps read
+// the result of the earlier ones holds no check before its last step, as a build before its test.
+const SCRIPT_CHECK = new RegExp(`${CHECK.source}|\\btsc --noEmit\\b`);
+function stoppingCommand(command, project, directory = '.') {
+  const isCheck = step => SCRIPT_CHECK.test(step) || runsTests(step, project, directory);
+  const violations = [];
+  const statements = command.split(/;|\n/).map(statement => statement.trim()).filter(Boolean);
+  let checks = 0;
+  let collected = true;
+  for (const statement of statements) {
+    const steps = statement.replace(/\s*\|\|\s*(?:status=1|exit \d+)$/, '').split('&&').map(step => step.trim());
+    const first = steps.findIndex(isCheck);
+    if (first === -1) continue;
+    checks += steps.filter(isCheck).length;
+    for (const later of steps.slice(first + 1)) violations.push(`\`${later}\` runs only when \`${steps[first]}\` passed`);
+    if (!/\|\|\s*status=1$/.test(statement)) collected = false;
+  }
+  if (checks > 1 && (!collected || !/(?:^|;\s*)status=0\s*;/.test(command) || !/exit \$\$?status$/.test(command.trim()))) {
+    violations.push('the checks do not each set status=1 and the command does not exit with the collected status');
+  }
+  return violations;
+}
+
+test('a package script or a CI step runs every check after an earlier check failed', () => {
+  const project = declaredCommands();
+  const fixture = { ...project, npm: { '.': { 'test:a': 'node scripts/run-tests.mjs node -- a.test.mjs' } } };
+  assert.deepEqual(stoppingCommand('npm run build && node scripts/run-tests.mjs node -- a.test.mjs', fixture), []);
+  assert.deepEqual(stoppingCommand('node scripts/run-tests.mjs node -- a.test.mjs && npm run test:a', fixture), [
+    '`npm run test:a` runs only when `node scripts/run-tests.mjs node -- a.test.mjs` passed',
+    'the checks do not each set status=1 and the command does not exit with the collected status',
+  ]);
+  assert.deepEqual(stoppingCommand('npm run build || exit 1; status=0; npm run test:a || status=1; node scripts/check-documents.mjs || status=1; exit $status', fixture), []);
+  assert.deepEqual(stoppingCommand('status=0; npm run test:a; node scripts/check-documents.mjs || status=1; exit $status', fixture), [
+    'the checks do not each set status=1 and the command does not exit with the collected status',
+  ]);
+  assert.deepEqual(stoppingCommand('tsc --noEmit && tsc --noEmit --project tests.json', fixture), [
+    '`tsc --noEmit --project tests.json` runs only when `tsc --noEmit` passed',
+    'the checks do not each set status=1 and the command does not exit with the collected status',
+  ]);
+
+  const violations = [];
+  for (const file of tracked.filter(name => name.endsWith('package.json'))) {
+    for (const [script, command] of Object.entries(JSON.parse(read(file)).scripts ?? {})) {
+      for (const violation of stoppingCommand(command, project, path.posix.dirname(file))) violations.push(`${file} ${script}: ${violation}`);
+    }
+  }
+  for (const file of tracked.filter(name => name.startsWith('.github/workflows/'))) {
+    for (const [id, job] of Object.entries(parse(read(file)).jobs ?? {})) {
+      for (const step of job.steps ?? []) {
+        if (typeof step.run !== 'string') continue;
+        for (const violation of stoppingCommand(step.run, project)) violations.push(`${file} ${id} ${step.name ?? step.run.split('\n')[0]}: ${violation}`);
+      }
+    }
+  }
+  assert.deepEqual(violations, []);
 });
 
 // A CI step runs either tests, whose cases each hold their own timeout in the test runner, or a

@@ -34,6 +34,10 @@ prerequisite에서 멈추므로 Makefile 대상은 테스트를 실행하는 대
 대상의 첫 검사를 실행하는 recipe 줄은 그 대상의 마지막 줄이며 `make docs-check-documents`와 `make format-check`처럼
 각 검사를 `|| status=1`로 실행하고 `exit $$status`로 끝납니다. build나 install 같은 그 앞의 준비 줄은 여전히 대상을
 멈추며, `make docs-verify-idempotent`처럼 뒤 단계가 앞 단계의 결과를 읽는 `&&` 연결은 하나의 검사입니다.
+package script와 CI step도 같은 규칙을 따릅니다. 독립된 여러 검사는 `status=0; <check> || status=1; ...; exit $status`로
+실행하며, `npm run test:forms`와 `npm run test:form-comparison:pipeline`은 `node scripts/require-current-build.mjs || exit 1`
+뒤에 그렇게 합니다. `&&` 연결은 검사 뒤에 단계를 두지 않고, CI step은 검사 하나를 실행합니다.
+`scripts/run-contract-tests.mjs`는 앞의 명령이 실패한 뒤에도 선언된 모든 명령을 실행하고 마지막 명령 뒤에 실패합니다.
 
 `make ci`는 `docs/plans/execution-checklist.md`의 작업 중 `[~]`인 것이 없을 때, 커밋된 tree마다 한 번 실행됩니다. 어떤 명령보다
 먼저 `scripts/full-run.mjs`를 시작하며, 이 guard는 판단을 이유와 함께 출력하고(`[full-run] run: ...` 또는 `[full-run]
@@ -200,6 +204,8 @@ hook입니다. test는 browser를 launch하지 않고 setup이 launch한 browser
 - Makefile 대상이 테스트를 실행하는 대상을 prerequisite로 둡니다.
 - 대상의 첫 검사를 실행하는 줄 뒤에 recipe 줄이 있거나, 검사가 `|| exit`로 recipe를 끝내거나, 그 줄의 검사가 다음
   검사 전에 `status=1`을 설정하지 않습니다.
+- package script나 CI step이 `&&` 연결에서 검사 뒤에 단계를 두거나, 여러 검사 중 하나가 모은 상태로 끝나기 전에
+  `status=1`을 설정하지 않습니다.
 
 ## 장기 작업의 명령
 

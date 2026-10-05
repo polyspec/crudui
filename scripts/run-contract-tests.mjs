@@ -2,7 +2,8 @@
 /**
  * Execute the test commands declared by the CRUDUI contract manifest. Each command runs its own
  * tests, each with its own timeout, and runs to its end without a limit over them
- * (scripts/run-command.mjs); a failed command fails the run.
+ * (scripts/run-command.mjs). Every command runs, also after an earlier one failed, and a failed
+ * command fails the run after the last command.
  */
 import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
@@ -39,6 +40,8 @@ if (commands.size === 0) {
   lines.close('manifest:test');
   process.exit(1);
 }
+// Every declared command runs, also after an earlier one failed, so one run reports every failure.
+const failed = [];
 for (const [command, owners] of commands) {
   const id = `${owners.join(', ')}: ${command}`;
   lines.start(id, { group: true });
@@ -46,9 +49,8 @@ for (const [command, owners] of commands) {
   const failure = failureOf(result);
   if (failure) {
     lines.fail(id, result.elapsedMs, failure);
-    lines.close('manifest:test');
-    process.exit(result.status || 1);
-  }
-  lines.pass(id, result.elapsedMs);
+    failed.push(id);
+  } else lines.pass(id, result.elapsedMs);
 }
-lines.close(`manifest:test: ${commands.size} declared commands`);
+lines.close(`manifest:test: ${commands.size} declared commands${failed.length ? `, failed: ${failed.join('; ')}` : ''}`);
+process.exitCode = failed.length ? 1 : 0;

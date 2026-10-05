@@ -37,7 +37,12 @@ that runs the first check of a target is its last line and runs each check with 
 ending with `exit $$status`, as `make docs-check-documents` and `make format-check` do. Preparation
 lines before it, such as a build or an install, still stop the target, and a chain joined by `&&`
 whose later steps read the result of the earlier ones, as in `make docs-verify-idempotent`, is one
-check.
+check. A package script and a CI step follow the same rule: several independent checks run as
+`status=0; <check> || status=1; ...; exit $status`, as `npm run test:forms` and
+`npm run test:form-comparison:pipeline` do after `node scripts/require-current-build.mjs || exit 1`,
+an `&&` chain puts no step after a check, and a CI step runs one check.
+`scripts/run-contract-tests.mjs` runs every declared command, also after an earlier one failed, and
+fails after the last one.
 
 `make ci` runs once per committed tree, when no task of `docs/plans/execution-checklist.md` is
 `[~]`. Before any command it starts `scripts/full-run.mjs`, which prints its decision with the
@@ -228,7 +233,9 @@ validator test or a PHP extension engine fixture reads a clock.
 - a TypeScript package has no `typecheck` script, or CI does not run `npm run typecheck`.
 - a Makefile target takes a target that runs tests as a prerequisite;
 - a recipe line follows the line that runs the first check of its target, a check ends the recipe
-  with `|| exit`, or a check of that line does not set `status=1` before the next check.
+  with `|| exit`, or a check of that line does not set `status=1` before the next check;
+- a package script or a CI step puts a step after a check in an `&&` chain, or runs several checks
+  of which one does not set `status=1` before the command exits with the collected status.
 
 ## Commands of long operations
 
