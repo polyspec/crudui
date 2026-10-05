@@ -1,5 +1,10 @@
 # Changes
 
+## 2026-10-05 — Change signal of every deployment (C2.10-2)
+
+- `make deploy` signals the supervisor before it waits for the build in either mode: containerctl
+  also reuses an unchanged container whose supervisor started from an earlier checkout.
+
 ## 2026-10-05 — Service port answered from the supervisor's start (C2.13-3)
 
 - The comparison supervisor listens on port 8080 from its start and answers 503 with the build
