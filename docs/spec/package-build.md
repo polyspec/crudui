@@ -88,7 +88,7 @@ alone does not generate that package output.
   repeated builds compare the output of every one of them; a check whose package list differs
   from that record fails.
 - Install verification packs each workspace from its package directory. The
-  current stable npm `pack --json` result contains exactly one package record.
+  `pack --json` result of the recorded npm release contains exactly one package record.
   The record reports the same package name and one archive filename.
 - React's exported stylesheet exists and matches its declared source stylesheet.
 - Repeated builds preserve the public API and produce the same artifacts for
@@ -157,8 +157,13 @@ patch release. `.node-version` records the selected Node.js major, and
 `.go-version` records the selected Go major and minor release. CI reads these
 files. Node.js and Go container stages use the corresponding release line in
 their image tags. Rust CI selects the stable toolchain, and Rust container stages
-use the stable major channel instead of an exact patch release. CI installs the
-current stable npm release. A candidate build resolves these channels once and
+use the stable major channel instead of an exact patch release. npm is the
+exception: `packageManager` of the root `package.json` records one exact npm
+release, because the npm that installs, packs and runs the scripts changes their
+results, as the `pack --json` report changed from an array in npm 11 to an object
+in npm 12. `node scripts/install-npm.mjs` installs exactly that release; CI and
+the container images run it or install the same release, and local runs use it.
+A newer npm release is adopted by changing `packageManager`. A candidate build resolves these channels once and
 records the resulting image and runtime versions in its verification evidence. A
 later build adopts a newer applicable release and produces new evidence. Package
 lock files record resolved package versions; they do not select a runtime

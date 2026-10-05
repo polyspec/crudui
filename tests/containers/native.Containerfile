@@ -6,6 +6,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     php8.4-cli php8.4-dev php8.4-mbstring php8.4-xml composer \
     build-essential git ca-certificates unzip chromium \
     && rm -rf /var/lib/apt/lists/*
+# The npm release that packageManager of package.json records (tests/build/runtime-version-policy.test.mjs).
+RUN npm install -g npm@12.2.0
 COPY --from=rust /usr/local/cargo /usr/local/cargo
 COPY --from=rust /usr/local/rustup /usr/local/rustup
 COPY --from=go /usr/local/go /usr/local/go

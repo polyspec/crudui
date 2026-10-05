@@ -17,8 +17,10 @@ npm run test:packages
 `test:runtimes`는 `.node-version`에 짝수 Node.js 메이저 하나를 요구하고
 `.go-version`에 Go 메이저·마이너 릴리스 하나를 요구합니다. CI는 두 파일을 읽고
 모든 Node.js·Go 컨테이너 단계는 해당 릴리스 계열을 사용합니다. Rust CI와
-컨테이너 단계는 안정 Rust 채널을 선택합니다. 검사는 정확한 런타임 패치 릴리스와
-숫자 npm 릴리스를 거부합니다. CI는 현재 안정 npm 릴리스를 설치합니다. 런타임
+컨테이너 단계는 안정 Rust 채널을 선택합니다. 검사는 정확한 런타임 패치 릴리스를
+거부합니다. `package.json`의 `packageManager`는 정확한 npm 릴리스 하나를 기록합니다. 검사는 실행 중인
+npm, workflow step, 컨테이너 정의가 다른 릴리스를 고르면 실패하며, `node scripts/install-npm.mjs`가
+그 릴리스를 설치합니다. 런타임
 검사는 프로세스 `PATH`에 Cargo가 없는 환경에서 저장소의 Rust Node.js 진입점을
 실행합니다. 각 진입점은 하나의 toolchain 기록에서 Cargo, rustc, rustdoc을 해석하고
 해석한 컴파일러 경로를 Cargo에 전달해야 합니다.

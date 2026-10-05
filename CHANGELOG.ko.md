@@ -1,5 +1,13 @@
 # 변경 기록
 
+## 2026-10-05 — local, CI, image의 하나의 npm release (C5.2-2)
+
+- `package.json`의 `packageManager`는 npm 12.2.0을 기록하고, `node scripts/install-npm.mjs`는 정확히 그 release를
+  설치합니다. 모든 CI job은 npm보다 먼저 이것을 실행하고, native test image와 비교 서비스 image는 같은 release를
+  설치합니다. CI는 `npm i -g npm@latest`를 실행했으므로 그 npm이 registry에 따라 바뀌었고, npm 12가 local npm 11에서
+  통과한 test를 깨뜨렸습니다. `tests/build/runtime-version-policy.test.mjs`는 실행 중인 npm, workflow step, container
+  정의가 다른 release를 고르면 실패합니다.
+
 ## 2026-10-05 — 실패 뒤에도 실행하는 recipe의 모든 검사 (C5.10)
 
 - `make docs-check-documents`와 `make format-check`는 recipe의 모든 검사를 `|| status=1`로 실행하고 모은 상태로 끝납니다.

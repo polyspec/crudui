@@ -65,6 +65,7 @@
   "author": "",
   "license": "MIT",
   "type": "commonjs",
+  "packageManager": "npm@12.2.0",
   "bugs": {
     "url": "https://github.com/polyspec/crudui/issues"
   },
