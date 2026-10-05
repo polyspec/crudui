@@ -30,6 +30,14 @@ full builds), `make owner-check` and the full run `make ci` run in CI after the 
 requires a local check before a push or a commit; the pre-push hook only refuses a push while a
 checklist task is `[~]` (below). `make ci` and `make owner-check` remain available on request.
 
+Every step of the workflows runs a make target: the installs (`make install-npm`,
+`make install-node-modules`, `make install-composer`, `make install-rust`, `make install-crates`,
+`make install-browsers BROWSERS="..."`), the tool check (`make toolchain-check TOOLS="..."`) and each
+check (`make test-runtimes`, `make lint`, `make test-forms` and the others of `CI_COMMANDS`), so the
+recipes start every tool with the offline settings, `$(NPM)` and the toolchains of the checkout.
+`tests/build/ci-local.test.mjs` fails for a step that starts node, npm, npx, cargo, go, php,
+composer, rustup, python3 or sh without make.
+
 `make ci` runs every checking command of the CI workflow in the workflow's order, collects the
 conformance evidence and checks it as the final CI job does; `tests/build/ci-local.test.mjs` fails
 when the list differs from `.github/workflows/ci.yml`.

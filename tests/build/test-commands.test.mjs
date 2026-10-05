@@ -88,7 +88,8 @@ test('every TypeScript package declares a typecheck that CI runs', () => {
   const missing = packages.filter(directory => !JSON.parse(read(`${directory}/package.json`)).scripts?.typecheck);
   assert.deepEqual(missing, []);
   const ci = tracked.filter(file => file.startsWith('.github/workflows/')).flatMap(file => projectCommands(file, read(file)).map(item => item.command));
-  assert.ok(ci.includes('npm run typecheck'), 'CI does not run npm run typecheck');
+  assert.ok(ci.includes('make typecheck'), 'CI does not run make typecheck');
+  assert.deepEqual(makeTargets(read('Makefile')).typecheck?.commands, ['$(NPM) run typecheck']);
 });
 
 /** The npm scripts, Composer scripts, workspaces and Makefile targets the repository declares. */
@@ -112,13 +113,12 @@ function declaredCommands() {
 test('a CI step runs tests when its command reaches the test runner', () => {
   const project = declaredCommands();
   for (const command of [
-    'npm run test:runtimes', 'npm test -w @crudui/validator', 'composer --working-dir=packages/validator-php test',
-    'node scripts/run-tests.mjs go --cwd packages/validator-go -- ./...', 'make docs-check', 'make test-native',
-    'npm test --prefix examples/cross-check-console/server', 'npm run manifest:test', 'npm run test:build', 'npm run test:build:repeat',
+    'make test-runtimes', 'make test-validator-js', 'make test-validator-php', 'make test-validator-go', 'make docs-check', 'make test-native',
+    'make test-cross-check', 'make manifest-test', 'make test-build', 'make test-build-repeat',
   ]) assert.equal(runsTests(command, project), true, command);
   for (const command of [
-    'node scripts/install-npm.mjs && npm ci --strict-allow-scripts', 'npm run build', 'npm run lint', 'npm run typecheck',
-    'make build-php-extension', 'node scripts/check-ci-browser.mjs', 'node scripts/check-conformance.mjs',
+    'make install-node-modules install-composer', 'make build', 'make lint', 'make typecheck',
+    'make build-php-extension', 'make check-ci-browser', 'make check-conformance',
   ]) assert.equal(runsTests(command, project), false, command);
 });
 

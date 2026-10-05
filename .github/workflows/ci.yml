@@ -33,9 +33,7 @@ jobs:
           node-version-file: '.node-version'
           cache: npm
       - name: Install the recorded npm into the checkout
-        run: |
-          node scripts/install-npm.mjs
-          echo "$PWD/.tools/npm/node_modules/.bin" >> "$GITHUB_PATH"
+        run: make install-npm
       # The runtime checks compare every running tool with the version that the checkout records.
       - name: Setup PHP
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
@@ -48,30 +46,30 @@ jobs:
           go-version-file: '.go-version'
           cache: false
       - name: Install the Rust toolchain of rust-toolchain.toml
-        run: rustup toolchain install --no-self-update
+        run: make install-rust
       - name: Setup Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.9'
       - name: Check the recorded toolchain versions
-        run: node scripts/check-toolchain.mjs node npm go rust php python composer
+        run: make toolchain-check TOOLS="node npm go rust php python composer"
       - name: Install workspace dependencies
-        run: npm ci --strict-allow-scripts
+        run: make install-node-modules
       - name: Verify exact runtime versions and test standards
         if: ${{ !cancelled() }}
-        run: npm run test:runtimes
+        run: make test-runtimes
       - name: Verify dependency graph and advisories
         if: ${{ !cancelled() }}
-        run: npm run test:dependencies
+        run: make test-dependencies
       - name: Build
         if: ${{ !cancelled() }}
-        run: npm run build
+        run: make build
       - name: Lint
         if: ${{ !cancelled() }}
-        run: npm run lint
+        run: make lint
       - name: Type-check
         if: ${{ !cancelled() }}
-        run: npm run typecheck
+        run: make typecheck
       - name: Test the processor checks of tests/ordered-json
         if: ${{ !cancelled() }}
         run: make test-ordered-json
@@ -89,16 +87,14 @@ jobs:
           node-version-file: '.node-version'
           cache: npm
       - name: Install the recorded npm into the checkout
-        run: |
-          node scripts/install-npm.mjs
-          echo "$PWD/.tools/npm/node_modules/.bin" >> "$GITHUB_PATH"
+        run: make install-npm
       - name: Check the recorded toolchain versions
-        run: node scripts/check-toolchain.mjs node npm
+        run: make toolchain-check TOOLS="node npm"
       - name: Install workspace dependencies
-        run: npm ci --strict-allow-scripts
+        run: make install-node-modules
       - name: Test
         if: ${{ !cancelled() }}
-        run: npm test -w @crudui/validator
+        run: make test-validator-js
       - name: Preserve conformance evidence
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -129,12 +125,12 @@ jobs:
           php-version: ${{ matrix.php }}
           tools: composer:2.10.3
       - name: Check the recorded toolchain versions
-        run: node scripts/check-toolchain.mjs node php composer
+        run: make toolchain-check TOOLS="node php composer"
       - name: Install PHP dependencies
-        run: composer --working-dir=packages/validator-php install --no-interaction --prefer-dist
+        run: make install-composer
       - name: Test
         if: ${{ !cancelled() }}
-        run: composer --working-dir=packages/validator-php test
+        run: make test-validator-php
       - name: Preserve conformance evidence
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -161,10 +157,10 @@ jobs:
           go-version-file: '.go-version'
           cache-dependency-path: packages/validator-go/go.mod
       - name: Check the recorded toolchain versions
-        run: node scripts/check-toolchain.mjs node go
+        run: make toolchain-check TOOLS="node go"
       - name: Test
         if: ${{ !cancelled() }}
-        run: node scripts/run-tests.mjs go --cwd packages/validator-go -- ./...
+        run: make test-validator-go
       - name: Preserve conformance evidence
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -186,16 +182,18 @@ jobs:
           node-version-file: '.node-version'
           cache: npm
       - name: Install the Rust toolchain of rust-toolchain.toml
-        run: rustup toolchain install --no-self-update
+        run: make install-rust
       - name: Check the recorded toolchain versions
-        run: node scripts/check-toolchain.mjs node rust
+        run: make toolchain-check TOOLS="node rust"
       - name: Cargo cache
         uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
           workspaces: packages/validator-rust
+      - name: Download the crates of every Cargo.lock
+        run: make install-crates
       - name: Test
         if: ${{ !cancelled() }}
-        run: node scripts/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml
+        run: make test-validator-rust
       - name: Preserve conformance evidence
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -222,30 +220,26 @@ jobs:
           php-version: '8.5'
           tools: composer:2.10.3
       - name: Install PHP dependencies
-        run: |
-          composer --working-dir=packages/validator-php install --no-interaction --prefer-dist
-          composer --working-dir=packages/generator-php install --no-interaction --prefer-dist
+        run: make install-composer
       - name: Setup Go
         uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
         with:
           go-version-file: '.go-version'
           cache-dependency-path: packages/validator-go/go.mod
       - name: Install the Rust toolchain of rust-toolchain.toml
-        run: rustup toolchain install --no-self-update
+        run: make install-rust
       - name: Cargo cache
         uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
           workspaces: packages/validator-rust
       - name: Install the recorded npm into the checkout
-        run: |
-          node scripts/install-npm.mjs
-          echo "$PWD/.tools/npm/node_modules/.bin" >> "$GITHUB_PATH"
+        run: make install-npm
       - name: Check the recorded toolchain versions
-        run: node scripts/check-toolchain.mjs node npm go rust php composer
+        run: make toolchain-check TOOLS="node npm go rust php composer"
       - name: Install workspace dependencies
-        run: npm ci --strict-allow-scripts
+        run: make install-node-modules
       - name: Install PHP API documentation generator
-        run: sh scripts/install-phpdocumentor.sh
+        run: make install-phpdocumentor
       - name: Download the crates of every Cargo.lock
         run: make install-crates
       - name: Documentation gate (documents and libraries in four languages)
@@ -294,7 +288,7 @@ jobs:
           php-version: '8.5'
           tools: composer:2.10.3
       - name: Install PHP dependencies
-        run: composer --working-dir=packages/validator-php install --no-interaction --prefer-dist
+        run: make install-composer
       - name: Setup Go
         uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
         with:
@@ -303,30 +297,30 @@ jobs:
             packages/validator-go/go.mod
             examples/cross-check-console/validators/go/go.mod
       - name: Install the Rust toolchain of rust-toolchain.toml
-        run: rustup toolchain install --no-self-update
+        run: make install-rust
       - name: Cargo cache
         uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
           workspaces: examples/cross-check-console/validators/rust
       - name: Install the recorded npm into the checkout
-        run: |
-          node scripts/install-npm.mjs
-          echo "$PWD/.tools/npm/node_modules/.bin" >> "$GITHUB_PATH"
+        run: make install-npm
       - name: Check the recorded toolchain versions
-        run: node scripts/check-toolchain.mjs node npm go rust php composer
+        run: make toolchain-check TOOLS="node npm go rust php composer"
       - name: Install workspace dependencies
-        run: npm ci --strict-allow-scripts
+        run: make install-node-modules
       - name: Build the packages and the PHP extension
         if: ${{ !cancelled() }}
         run: make build-php-extension
         env:
           PHP_EXTENSION_PHP_CONFIG: /usr/bin/php-config8.5
+      - name: Download the crates of every Cargo.lock
+        run: make install-crates
       - name: Gateway conformance
         if: ${{ !cancelled() }}
-        run: npm test --prefix examples/cross-check-console/server
+        run: make test-cross-check
       - name: Feature verification commands
         if: ${{ !cancelled() }}
-        run: npm run manifest:test
+        run: make manifest-test
       - name: Preserve conformance evidence
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -346,19 +340,17 @@ jobs:
           node-version-file: '.node-version'
           cache: npm
       - name: Install the recorded npm into the checkout
-        run: |
-          node scripts/install-npm.mjs
-          echo "$PWD/.tools/npm/node_modules/.bin" >> "$GITHUB_PATH"
+        run: make install-npm
       - name: Check the recorded toolchain versions
-        run: node scripts/check-toolchain.mjs node npm
+        run: make toolchain-check TOOLS="node npm"
       - name: Install workspace dependencies
-        run: npm ci --strict-allow-scripts
+        run: make install-node-modules
       - name: Build the packages
         if: ${{ !cancelled() }}
-        run: node scripts/require-current-build.mjs
+        run: make require-build
       - name: Test
         if: ${{ !cancelled() }}
-        run: npm test -w @crudui/cli
+        run: make test-cli
 
   form-runtime:
     name: Form instances and data injection
@@ -376,23 +368,21 @@ jobs:
           node-version-file: '.node-version'
           cache: npm
       - name: Install the recorded npm into the checkout
-        run: |
-          node scripts/install-npm.mjs
-          echo "$PWD/.tools/npm/node_modules/.bin" >> "$GITHUB_PATH"
+        run: make install-npm
       - name: Check the recorded toolchain versions
-        run: node scripts/check-toolchain.mjs node npm
+        run: make toolchain-check TOOLS="node npm"
       - name: Install workspace dependencies
-        run: npm ci --strict-allow-scripts
+        run: make install-node-modules
       - name: Install the browsers that Puppeteer and Playwright pin
-        run: node scripts/install-browsers.mjs chrome firefox webkit --with-deps --chrome-sandbox
+        run: make install-browsers BROWSERS="chrome firefox webkit --with-deps --chrome-sandbox"
       - name: Verify sandboxed Chrome
-        run: node scripts/check-ci-browser.mjs
+        run: make check-ci-browser
       - if: ${{ !cancelled() }}
-        run: npm run manifest:check
+        run: make manifest-check
       - if: ${{ !cancelled() }}
-        run: npm run manifest:docs:check
+        run: make manifest-docs-check
       - if: ${{ !cancelled() }}
-        run: npm run test:forms
+        run: make test-forms
       - name: Preserve conformance evidence
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -421,23 +411,18 @@ jobs:
           php-version: '8.5'
           tools: composer:2.10.3
       - name: Install the recorded npm into the checkout
-        run: |
-          node scripts/install-npm.mjs
-          echo "$PWD/.tools/npm/node_modules/.bin" >> "$GITHUB_PATH"
+        run: make install-npm
       - name: Check the recorded toolchain versions
-        run: node scripts/check-toolchain.mjs node npm php composer
+        run: make toolchain-check TOOLS="node npm php composer"
       - name: Install workspace and PHP dependencies
-        run: |
-          npm ci --strict-allow-scripts
-          composer --working-dir=packages/validator-php install --no-interaction --prefer-dist
-          composer --working-dir=packages/generator-php install --no-interaction --prefer-dist
+        run: make install-node-modules install-composer
       - name: Install the browsers that Puppeteer pins
-        run: node scripts/install-browsers.mjs chrome --chrome-sandbox
+        run: make install-browsers BROWSERS="chrome --chrome-sandbox"
       - name: Verify sandboxed Chrome
-        run: node scripts/check-ci-browser.mjs
+        run: make check-ci-browser
       - name: Test report policy, browser jobs and source tree
         if: ${{ !cancelled() }}
-        run: npm run test:form-comparison
+        run: make test-form-comparison
 
   form-comparison-pipeline:
     name: Record stores and the canonical flow
@@ -465,22 +450,17 @@ jobs:
           go-version-file: '.go-version'
           cache-dependency-path: examples/form-comparison/servers/go/go.mod
       - name: Install the Rust toolchain of rust-toolchain.toml
-        run: rustup toolchain install --no-self-update
+        run: make install-rust
       - name: Cargo cache
         uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
           workspaces: examples/form-comparison/servers/rust
       - name: Install the recorded npm into the checkout
-        run: |
-          node scripts/install-npm.mjs
-          echo "$PWD/.tools/npm/node_modules/.bin" >> "$GITHUB_PATH"
+        run: make install-npm
       - name: Check the recorded toolchain versions
-        run: node scripts/check-toolchain.mjs node npm go rust php composer
+        run: make toolchain-check TOOLS="node npm go rust php composer"
       - name: Install workspace and PHP dependencies
-        run: |
-          npm ci --strict-allow-scripts
-          composer --working-dir=packages/validator-php install --no-interaction --prefer-dist
-          composer --working-dir=packages/generator-php install --no-interaction --prefer-dist
+        run: make install-node-modules install-composer
       - name: Install nginx
         # The PHP record servers run on PHP-FPM behind nginx (examples/form-comparison/servers/php);
         # setup-php provides php-fpm on the PATH.
@@ -488,14 +468,14 @@ jobs:
           sudo apt-get install -y --no-install-recommends nginx
           php-fpm -v && nginx -v
       - name: Install the browsers that Puppeteer pins
-        run: node scripts/install-browsers.mjs chrome --chrome-sandbox
+        run: make install-browsers BROWSERS="chrome --chrome-sandbox"
       - name: Verify sandboxed Chrome
-        run: node scripts/check-ci-browser.mjs
+        run: make check-ci-browser
       - name: Install the pinned OrderedJSON checkout
-        run: make install-ordered-json
+        run: make install-crates
       - name: Test the five record stores and the canonical flow
         if: ${{ !cancelled() }}
-        run: npm run test:form-comparison:pipeline
+        run: make test-form-comparison-pipeline
 
   package-browser:
     name: Packages, public builds and browser inspector
@@ -512,29 +492,27 @@ jobs:
           node-version-file: '.node-version'
           cache: npm
       - name: Install the recorded npm into the checkout
-        run: |
-          node scripts/install-npm.mjs
-          echo "$PWD/.tools/npm/node_modules/.bin" >> "$GITHUB_PATH"
+        run: make install-npm
       - name: Check the recorded toolchain versions
-        run: node scripts/check-toolchain.mjs node npm
+        run: make toolchain-check TOOLS="node npm"
       - name: Install workspace dependencies
-        run: npm ci --strict-allow-scripts
+        run: make install-node-modules
       - name: Install the browsers that Puppeteer pins
-        run: node scripts/install-browsers.mjs chrome --chrome-sandbox
+        run: make install-browsers BROWSERS="chrome --chrome-sandbox"
       - name: Verify sandboxed Chrome
-        run: node scripts/check-ci-browser.mjs
+        run: make check-ci-browser
       - name: Pack and test package installs
         if: ${{ !cancelled() }}
-        run: npm run test:packages
+        run: make test-packages
       - name: Test public package exports and types
         if: ${{ !cancelled() }}
-        run: npm run test:build
+        run: make test-build
       - name: Test reproducible builds
         if: ${{ !cancelled() }}
-        run: npm run test:build:repeat
+        run: make test-build-repeat
       - name: Test the form inspector
         if: ${{ !cancelled() }}
-        run: npm run test:inspector
+        run: make test-inspector
 
   native-generators:
     name: Native generation and PHP API (${{ matrix.php }})
@@ -568,7 +546,7 @@ jobs:
             tests/native-generators/programs/go/go.mod
             tools/bench/go/go.mod
       - name: Install the Rust toolchain of rust-toolchain.toml
-        run: rustup toolchain install --no-self-update
+        run: make install-rust
       - name: Cargo cache
         uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
@@ -577,20 +555,15 @@ jobs:
             tests/native-generators/programs/rust
             tools/bench/rust
       - name: Install the recorded npm into the checkout
-        run: |
-          node scripts/install-npm.mjs
-          echo "$PWD/.tools/npm/node_modules/.bin" >> "$GITHUB_PATH"
+        run: make install-npm
       - name: Check the recorded toolchain versions
-        run: node scripts/check-toolchain.mjs node npm go rust php composer
+        run: make toolchain-check TOOLS="node npm go rust php composer"
       - name: Install dependencies
-        run: |
-          npm ci --strict-allow-scripts
-          composer --working-dir=packages/validator-php install --no-interaction --prefer-dist
-          composer --working-dir=packages/generator-php install --no-interaction --prefer-dist
+        run: make install-node-modules install-composer
       - name: Install the browsers that Puppeteer pins
-        run: node scripts/install-browsers.mjs chrome --chrome-sandbox
+        run: make install-browsers BROWSERS="chrome --chrome-sandbox"
       - name: Verify sandboxed Chrome
-        run: node scripts/check-ci-browser.mjs
+        run: make check-ci-browser
       - name: Download the crates of every Cargo.lock
         run: make install-crates
       - name: Build and test native packages
@@ -600,7 +573,7 @@ jobs:
           PHP_EXTENSION_PHP_CONFIG: /usr/bin/php-config${{ matrix.php }}
       - name: Test the benchmark drivers
         if: ${{ !cancelled() }}
-        run: npm run test:bench
+        run: make test-bench
       - name: Preserve comparison report
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -630,7 +603,7 @@ jobs:
           node-version-file: '.node-version'
           cache: npm
       - name: Check the recorded toolchain versions
-        run: node scripts/check-toolchain.mjs node
+        run: make toolchain-check TOOLS="node"
       - name: Collect the evidence of every suite
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
@@ -639,6 +612,6 @@ jobs:
           merge-multiple: true
       - name: Check the evidence
         if: ${{ !cancelled() }}
-        run: node scripts/check-conformance.mjs
+        run: make check-conformance
         env:
           CRUDUI_CONFORMANCE_EVIDENCE: conformance-evidence

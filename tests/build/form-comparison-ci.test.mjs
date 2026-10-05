@@ -24,17 +24,9 @@ test('CI runs the complete form comparison regression suite', async () => {
   assert.match(job, /node-version-file:\s*['"]?\.node-version['"]?/);
   assert.match(job, /uses: shivammathur\/setup-php@/);
   assert.match(job, /php-version:\s*['"]?8\.5['"]?/);
-  assert.match(job, /node scripts\/install-npm\.mjs\n\s*echo "\$PWD\/\.tools\/npm\/node_modules\/\.bin" >> "\$GITHUB_PATH"/);
-  assert.match(job, /npm ci --strict-allow-scripts/);
-  assert.match(
-    job,
-    /composer --working-dir=packages\/validator-php install --no-interaction --prefer-dist/,
-  );
-  assert.match(
-    job,
-    /composer --working-dir=packages\/generator-php install --no-interaction --prefer-dist/,
-  );
-  assert.match(job, /run:\s*npm run test:form-comparison(?:\s|$)/);
+  assert.match(job, /run: make install-npm\n/);
+  assert.match(job, /run: make install-node-modules install-composer\n/);
+  assert.match(job, /run:\s*make test-form-comparison(?:\s|$)/);
 });
 
 test('CI builds and runs the five record stores and the canonical flow', async () => {
@@ -47,10 +39,12 @@ test('CI builds and runs the five record stores and the canonical flow', async (
   assert.match(job, /PHP_EXTENSION_PHP_CONFIG:\s*\/usr\/bin\/php-config8\.5/);
   assert.match(job, /uses: actions\/setup-go@/);
   assert.match(job, /go-version-file:\s*['"]?\.go-version['"]?/);
-  assert.match(job, /run: rustup toolchain install --no-self-update/);
+  assert.match(job, /run: make install-rust\n/);
+  // The Rust record server builds from the OrderedJSON checkout, which make install-crates installs before the crates.
+  assert.match(job, /run: make install-crates\n/);
   assert.match(job, /workspaces: examples\/form-comparison\/servers\/rust/);
-  assert.match(job, /composer --working-dir=packages\/generator-php install --no-interaction --prefer-dist/);
-  assert.match(job, /run:\s*npm run test:form-comparison:pipeline(?:\s|$)/);
+  assert.match(job, /run: make install-node-modules install-composer\n/);
+  assert.match(job, /run:\s*make test-form-comparison-pipeline(?:\s|$)/);
   const scripts = JSON.parse(await readFile(path.join(repository, 'package.json'), 'utf8')).scripts;
   assert.match(scripts['test:form-comparison:pipeline'], /examples\/form-comparison\/record-stores\.test\.mjs/);
   assert.match(scripts['test:form-comparison:pipeline'], /examples\/form-comparison\/pipeline\.browser\.mjs/);
@@ -98,8 +92,8 @@ test('browser CI jobs run the sandboxed Chrome that puppeteer pins', async () =>
     if (!/PUPPETEER_CACHE_DIR:\s*\$\{\{ github\.workspace \}\}\/\.tools\/puppeteer\n/.test(job)) failures.push(`${name}: the cache of Puppeteer is not .tools/puppeteer of the checkout`);
     if (!/CHROME_DEVEL_SANDBOX:\s*\/usr\/local\/sbin\/chrome-devel-sandbox\n/.test(job)) failures.push(`${name}: CHROME_DEVEL_SANDBOX does not name the installed helper`);
     if (/PUPPETEER_EXECUTABLE_PATH|PUPPETEER_SKIP_DOWNLOAD/.test(job)) failures.push(`${name}: selects a browser outside the pinned build`);
-    const install = job.search(/run:\s*node scripts\/install-browsers\.mjs chrome\b[^\n]*--chrome-sandbox/);
-    const preflight = job.search(/run:\s*node scripts\/check-ci-browser\.mjs(?:\s|$)/);
+    const install = job.search(/run:\s*make install-browsers BROWSERS="chrome\b[^\n]*--chrome-sandbox"/);
+    const preflight = job.search(/run:\s*make check-ci-browser(?:\s|$)/);
     if (install === -1) failures.push(`${name}: missing installation of the pinned Chrome with its sandbox helper`);
     if (preflight === -1 || preflight < install) failures.push(`${name}: missing sandboxed Chrome preflight after the installation`);
     if (/--no-sandbox|--disable-setuid-sandbox/.test(job)) {

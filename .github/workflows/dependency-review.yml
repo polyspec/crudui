@@ -30,17 +30,15 @@ jobs:
         with:
           node-version-file: '.node-version'
       - name: Install the recorded npm into the checkout
-        run: |
-          node scripts/install-npm.mjs
-          echo "$PWD/.tools/npm/node_modules/.bin" >> "$GITHUB_PATH"
+        run: make install-npm
       - name: Setup PHP
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
           php-version: '8.5'
           tools: composer:2.10.3
       - name: Install the Rust toolchain of rust-toolchain.toml
-        run: rustup toolchain install --no-self-update
+        run: make install-rust
       - name: Check the recorded toolchain versions
-        run: node scripts/check-toolchain.mjs node npm rust php composer
+        run: make toolchain-check TOOLS="node npm rust php composer"
       - name: Review the dependencies
         run: make dependency-review

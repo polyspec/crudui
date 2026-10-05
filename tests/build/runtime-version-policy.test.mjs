@@ -45,8 +45,9 @@ test('every workflow job installs the recorded npm before it runs npm', async ()
         if (typeof step.run !== 'string') continue;
         for (const command of step.run.split(/\n|&&/).map(text => text.trim()).filter(Boolean)) {
           if (/\bnpm@|\bnpm (?:i|install) (?:-g|--global)\b/.test(command)) violations.push(`${file} ${id}: \`${command}\` selects an npm release`);
-          if (command === 'node scripts/install-npm.mjs') installed = true;
-          else if (/^npm\b/.test(command) && !installed) violations.push(`${file} ${id}: \`${command}\` runs before node scripts/install-npm.mjs`);
+          // make install-node-modules installs the recorded npm first (its prerequisite install-npm).
+          if (/^make\b.*\binstall-(?:npm|node-modules)\b/.test(command)) installed = true;
+          else if (/^npm\b/.test(command) && !installed) violations.push(`${file} ${id}: \`${command}\` runs before make install-npm`);
         }
       }
     }
@@ -203,12 +204,12 @@ test('every CI job sets up the recorded toolchains and checks the tools it set u
           if (String(step.with?.['python-version']) !== recorded.python) violations.push(`${file} ${id}: setup-python must install the recorded minor ${recorded.python}`);
         }
         if (/rust-toolchain|dtolnay/.test(uses)) violations.push(`${file} ${id}: ${uses} selects a Rust toolchain; run rustup toolchain install --no-self-update`);
-        if (run.split('\n').includes('rustup toolchain install --no-self-update')) tools.push('rust');
-        if (run.split('\n').includes('node scripts/install-npm.mjs')) tools.push('npm');
-        const check = /^node scripts\/check-toolchain\.mjs (.+)$/m.exec(run);
-        if (check) checked = { tools: check[1].split(' '), index };
+        if (/^make\b.*\binstall-rust\b/m.test(run)) tools.push('rust');
+        if (/^make\b.*\binstall-(?:npm|node-modules)\b/m.test(run) && !tools.includes('npm')) tools.push('npm');
+        const check = /^make toolchain-check TOOLS=(?:"([^"]+)"|(\S+))$/m.exec(run);
+        if (check) checked = { tools: (check[1] ?? check[2]).split(' '), index };
       });
-      if (!checked) violations.push(`${file} ${id}: no step runs node scripts/check-toolchain.mjs`);
+      if (!checked) violations.push(`${file} ${id}: no step runs make toolchain-check`);
       else if ([...checked.tools].sort().join(' ') !== [...tools].sort().join(' ')) violations.push(`${file} ${id}: checks ${checked.tools.join(' ')}, sets up ${tools.join(' ')}`);
     }
   }

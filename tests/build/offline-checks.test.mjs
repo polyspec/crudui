@@ -1,6 +1,6 @@
 // The checks run offline, and only the install targets download (docs/spec/package-build.md, "Offline checks"): the
 // Makefile exports the offline settings of cargo, go, npm and Composer, and `$(ONLINE)` lifts them for the recipe lines
-// of install, install-crates, install-ordered-json, install-cargo-audit and dependency-review alone. cargo answers a missing crate offline with "retry
+// of the install targets and dependency-review alone. cargo answers a missing crate offline with "retry
 // without --offline"; every target that runs cargo depends on cargo-downloads-check (scripts/check-cargo-downloads.mjs),
 // which names the lock and `run make install` instead, so under make -k a target whose crates are missing does not run.
 // A target runs cargo when a recipe line runs `run-tests.mjs cargo` or `run-rust-command.mjs` with a command other than
@@ -19,7 +19,7 @@ import { ROOT, trackedFiles } from '../../scripts/tracked-files.mjs';
 
 const SELF = 'tests/build/offline-checks.test.mjs';
 const CHECK = 'cargo-downloads-check';
-const DOWNLOADS = ['install', 'install-crates', 'install-ordered-json', 'install-cargo-audit', 'dependency-review'];
+const DOWNLOADS = ['install-npm', 'install-node-modules', 'install-composer', 'install-phpdocumentor', 'install-browsers', 'install-crates', 'install-ordered-json', 'install-cargo-audit', 'dependency-review'];
 const read = file => readFileSync(path.join(ROOT, file), 'utf8');
 const makefile = read('Makefile');
 
@@ -29,25 +29,33 @@ function variable(name) {
   return match ? match[1].replace(/\\\n/g, ' ') : '';
 }
 
-/** The files that run cargo: those that start scripts/run-rust-command.mjs, and those that import or name such a file. */
+/** The files that run cargo: those that start scripts/run-rust-command.mjs, and those that import such a file. */
 function cargoFiles() {
   const sources = trackedFiles(ROOT).filter(file => /\.(?:mjs|js)$/.test(file) && file !== SELF);
   const texts = new Map(sources.map(file => [file, read(file)]));
-  const found = new Set(['scripts/run-rust-command.mjs']);
+  const ENTRY = 'scripts/run-rust-command.mjs';
+  // The test runner starts cargo only for `run-tests.mjs cargo`, which a command names, and scripts/test-commands.mjs
+  // reads commands without running them.
+  const readers = new Set(['scripts/run-tests.mjs', 'scripts/test-commands.mjs']);
+  const found = new Set([ENTRY]);
   for (let added = true; added;) {
     added = false;
     for (const [file, text] of texts) {
-      if (found.has(file)) continue;
-      const imports = [...text.matchAll(/(?:from|import\()\s*'(\.[^']+)'/g)].some(([, specifier]) => found.has(path.posix.normalize(path.posix.join(path.posix.dirname(file), specifier))));
-      const names = [...found].some(target => text.includes(`${target}'`) || text.includes(`'${path.posix.basename(target)}'`) && path.posix.dirname(target) === path.posix.dirname(file));
+      if (found.has(file) || readers.has(file)) continue;
+      const test = /\.test\.mjs$/.test(file);
+      // The tests of the entry point import it and run it with stub toolchains.
+      const imports = [...text.matchAll(/(?:from|import\()\s*'(\.[^']+)'/g)].some(([, specifier]) => {
+        const target = path.posix.normalize(path.posix.join(path.posix.dirname(file), specifier));
+        return found.has(target) && !(test && target === ENTRY);
+      });
+      // A program starts cargo by the path of the entry point; a test that names it copies it into a fixture.
+      const names = !test && text.includes('run-rust-command.mjs');
       if (imports || names) {
         found.add(file);
         added = true;
       }
     }
   }
-  // The test runner starts cargo only for `run-tests.mjs cargo`, which a command names.
-  found.delete('scripts/run-tests.mjs');
   return found;
 }
 
@@ -107,7 +115,7 @@ test('every target that runs cargo depends on cargo-downloads-check', () => {
   // make ci and make rerun-failed start the guard scripts/full-run.mjs before any step (tests/build/full-run.test.mjs);
   // the targets of make that their commands run depend on the check.
   const missing = Object.entries(targets)
-    .filter(([name]) => ![...DOWNLOADS, CHECK, 'ci', 'rerun-failed'].includes(name))
+    .filter(([name]) => ![...DOWNLOADS, 'install', CHECK, 'ci', 'rerun-failed'].includes(name))
     .filter(([, rule]) => rule.commands.some(command => runsCargo(command)))
     .map(([name]) => name)
     .filter(name => !depends(name))

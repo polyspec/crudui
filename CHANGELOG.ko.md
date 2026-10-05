@@ -1,5 +1,10 @@
 # 변경 기록
 
+## 2026-10-06 — make를 거치는 CI (C7.17)
+
+- workflow의 모든 step이 make 대상을 실행하므로 Makefile의 offline 설정, checkout npm, download 검사가 CI에 적용됩니다.
+  설치 대상, `make toolchain-check TOOLS=...`, 검사 명령마다의 대상이 그것이며, `make ci`는 이를 같은 순서로 실행합니다.
+
 ## 2026-10-06 — offline 검사 (C7.16)
 
 - Makefile은 cargo, go, npm, Composer를 offline으로 실행하고, install 대상과 의존성 review만 download합니다.
