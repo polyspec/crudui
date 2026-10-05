@@ -27,3 +27,7 @@ Depends on: none. CI has failed on every push since 2026-09-25 while `make ci` p
 ## Wave 6
 
 Depends on: none. AGENTS and the testing guide state that a push happens only when every active task is done, and nothing enforced it: a push with a task in progress reached GitHub, where CI runs the full suite on the pushed tree. Git does not version hooks, and `core.hooksPath` is a setting of each clone, so a hook works only where a clone installed it, and `git push --no-verify` or another clone passes without it. GitHub cannot refuse a push by the content of a file; a workflow fails after the push is accepted.
+
+## Wave 7
+
+Depends on: none. Results depended on the date, the machine or the order of runs: dry runs of make whose output differs between GNU Make 3.81 and 4, release channels instead of exact toolchain versions, runs that pass without a test case or a command, chains that stop at the first failed suite, checks that read output another command left behind, outputs written in place while another run reads them, ports probed before use, an install that replaces the machine npm, failures without the command, path or limit, no mechanical choice of the owning checks of a change, and a process tree that is killed but not awaited. Defects of this kind are fixed as a class in every repository, with one rule per class in AGENTS.
