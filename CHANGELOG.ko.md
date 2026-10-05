@@ -1,5 +1,10 @@
 # 변경 기록
 
+## 2026-10-06 — 모든 CI job의 보고서 (C7.18)
+
+- 모든 CI job은 각 대상을 끝까지 실행하는 `make ci-targets`로 검사를 실행하고, 각 대상의 log와 실패한 대상마다의 첫
+  실패 줄을 담은 summary를 올리며, summary는 job summary에도 갑니다.
+
 ## 2026-10-06 — checklist 문구 (C7.15-1)
 
 - C7.15와 C7.16 행은 writing 검사가 거부하는 단어 없이 pre-push hook과 문서 job을 서술합니다. 그 단어는 CI의 문서

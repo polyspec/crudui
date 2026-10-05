@@ -55,25 +55,16 @@ jobs:
         run: make toolchain-check TOOLS="node npm go rust php python composer"
       - name: Install workspace dependencies
         run: make install-node-modules
-      - name: Verify exact runtime versions and test standards
+      - name: Run the checks and write their report
         if: ${{ !cancelled() }}
-        run: make test-runtimes
-      - name: Verify dependency graph and advisories
+        run: make ci-targets TARGETS="test-runtimes test-dependencies build lint typecheck test-ordered-json"
+      - name: Upload the report of the checks
         if: ${{ !cancelled() }}
-        run: make test-dependencies
-      - name: Build
-        if: ${{ !cancelled() }}
-        run: make build
-      - name: Lint
-        if: ${{ !cancelled() }}
-        run: make lint
-      - name: Type-check
-        if: ${{ !cancelled() }}
-        run: make typecheck
-      - name: Test the processor checks of tests/ordered-json
-        if: ${{ !cancelled() }}
-        run: make test-ordered-json
-
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: report-build-lint
+          path: var/report/ci-targets
+          if-no-files-found: error
   validator-js:
     name: validator · JavaScript
     runs-on: ubuntu-24.04
@@ -92,9 +83,16 @@ jobs:
         run: make toolchain-check TOOLS="node npm"
       - name: Install workspace dependencies
         run: make install-node-modules
-      - name: Test
+      - name: Run the checks and write their report
         if: ${{ !cancelled() }}
-        run: make test-validator-js
+        run: make ci-targets TARGETS="test-validator-js"
+      - name: Upload the report of the checks
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: report-validator-js
+          path: var/report/ci-targets
+          if-no-files-found: error
       - name: Preserve conformance evidence
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -128,9 +126,16 @@ jobs:
         run: make toolchain-check TOOLS="node php composer"
       - name: Install PHP dependencies
         run: make install-composer
-      - name: Test
+      - name: Run the checks and write their report
         if: ${{ !cancelled() }}
-        run: make test-validator-php
+        run: make ci-targets TARGETS="test-validator-php"
+      - name: Upload the report of the checks
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: report-validator-php-${{ matrix.php }}
+          path: var/report/ci-targets
+          if-no-files-found: error
       - name: Preserve conformance evidence
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -158,9 +163,16 @@ jobs:
           cache-dependency-path: packages/validator-go/go.mod
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node go"
-      - name: Test
+      - name: Run the checks and write their report
         if: ${{ !cancelled() }}
-        run: make test-validator-go
+        run: make ci-targets TARGETS="test-validator-go"
+      - name: Upload the report of the checks
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: report-validator-go
+          path: var/report/ci-targets
+          if-no-files-found: error
       - name: Preserve conformance evidence
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -191,9 +203,16 @@ jobs:
           workspaces: packages/validator-rust
       - name: Download the crates of every Cargo.lock
         run: make install-crates
-      - name: Test
+      - name: Run the checks and write their report
         if: ${{ !cancelled() }}
-        run: make test-validator-rust
+        run: make ci-targets TARGETS="test-validator-rust"
+      - name: Upload the report of the checks
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: report-validator-rust
+          path: var/report/ci-targets
+          if-no-files-found: error
       - name: Preserve conformance evidence
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -242,9 +261,16 @@ jobs:
         run: make install-phpdocumentor
       - name: Download the crates of every Cargo.lock
         run: make install-crates
-      - name: Documentation gate (documents and libraries in four languages)
+      - name: Run the checks and write their report
         if: ${{ !cancelled() }}
-        run: make docs-check
+        run: make ci-targets TARGETS="docs-check"
+      - name: Upload the report of the checks
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: report-docs-coverage
+          path: var/report/ci-targets
+          if-no-files-found: error
       - name: Upload documentation web
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4.0.0
@@ -274,6 +300,7 @@ jobs:
     name: cross-check console gateway
     runs-on: ubuntu-24.04
     env:
+      PHP_EXTENSION_PHP_CONFIG: /usr/bin/php-config8.5
       CRUDUI_CONFORMANCE_EVIDENCE: ${{ github.workspace }}/conformance-evidence
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
@@ -308,19 +335,18 @@ jobs:
         run: make toolchain-check TOOLS="node npm go rust php composer"
       - name: Install workspace dependencies
         run: make install-node-modules
-      - name: Build the packages and the PHP extension
-        if: ${{ !cancelled() }}
-        run: make build-php-extension
-        env:
-          PHP_EXTENSION_PHP_CONFIG: /usr/bin/php-config8.5
       - name: Download the crates of every Cargo.lock
         run: make install-crates
-      - name: Gateway conformance
+      - name: Run the checks and write their report
         if: ${{ !cancelled() }}
-        run: make test-cross-check
-      - name: Feature verification commands
+        run: make ci-targets TARGETS="build-php-extension test-cross-check manifest-test"
+      - name: Upload the report of the checks
         if: ${{ !cancelled() }}
-        run: make manifest-test
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: report-cross-check-console
+          path: var/report/ci-targets
+          if-no-files-found: error
       - name: Preserve conformance evidence
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -345,13 +371,16 @@ jobs:
         run: make toolchain-check TOOLS="node npm"
       - name: Install workspace dependencies
         run: make install-node-modules
-      - name: Build the packages
+      - name: Run the checks and write their report
         if: ${{ !cancelled() }}
-        run: make require-build
-      - name: Test
+        run: make ci-targets TARGETS="require-build test-cli"
+      - name: Upload the report of the checks
         if: ${{ !cancelled() }}
-        run: make test-cli
-
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: report-cli
+          path: var/report/ci-targets
+          if-no-files-found: error
   form-runtime:
     name: Form instances and data injection
     runs-on: ubuntu-24.04
@@ -377,12 +406,16 @@ jobs:
         run: make install-browsers BROWSERS="chrome firefox webkit --with-deps --chrome-sandbox"
       - name: Verify sandboxed Chrome
         run: make check-ci-browser
-      - if: ${{ !cancelled() }}
-        run: make manifest-check
-      - if: ${{ !cancelled() }}
-        run: make manifest-docs-check
-      - if: ${{ !cancelled() }}
-        run: make test-forms
+      - name: Run the checks and write their report
+        if: ${{ !cancelled() }}
+        run: make ci-targets TARGETS="manifest-check manifest-docs-check test-forms"
+      - name: Upload the report of the checks
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: report-form-runtime
+          path: var/report/ci-targets
+          if-no-files-found: error
       - name: Preserve conformance evidence
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -420,10 +453,16 @@ jobs:
         run: make install-browsers BROWSERS="chrome --chrome-sandbox"
       - name: Verify sandboxed Chrome
         run: make check-ci-browser
-      - name: Test report policy, browser jobs and source tree
+      - name: Run the checks and write their report
         if: ${{ !cancelled() }}
-        run: make test-form-comparison
-
+        run: make ci-targets TARGETS="test-form-comparison"
+      - name: Upload the report of the checks
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: report-form-comparison
+          path: var/report/ci-targets
+          if-no-files-found: error
   form-comparison-pipeline:
     name: Record stores and the canonical flow
     runs-on: ubuntu-24.04
@@ -473,10 +512,16 @@ jobs:
         run: make check-ci-browser
       - name: Install the pinned OrderedJSON checkout
         run: make install-crates
-      - name: Test the five record stores and the canonical flow
+      - name: Run the checks and write their report
         if: ${{ !cancelled() }}
-        run: make test-form-comparison-pipeline
-
+        run: make ci-targets TARGETS="test-form-comparison-pipeline"
+      - name: Upload the report of the checks
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: report-form-comparison-pipeline
+          path: var/report/ci-targets
+          if-no-files-found: error
   package-browser:
     name: Packages, public builds and browser inspector
     runs-on: ubuntu-24.04
@@ -501,23 +546,21 @@ jobs:
         run: make install-browsers BROWSERS="chrome --chrome-sandbox"
       - name: Verify sandboxed Chrome
         run: make check-ci-browser
-      - name: Pack and test package installs
+      - name: Run the checks and write their report
         if: ${{ !cancelled() }}
-        run: make test-packages
-      - name: Test public package exports and types
+        run: make ci-targets TARGETS="test-packages test-build test-build-repeat test-inspector"
+      - name: Upload the report of the checks
         if: ${{ !cancelled() }}
-        run: make test-build
-      - name: Test reproducible builds
-        if: ${{ !cancelled() }}
-        run: make test-build-repeat
-      - name: Test the form inspector
-        if: ${{ !cancelled() }}
-        run: make test-inspector
-
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: report-package-browser
+          path: var/report/ci-targets
+          if-no-files-found: error
   native-generators:
     name: Native generation and PHP API (${{ matrix.php }})
     runs-on: ubuntu-24.04
     env:
+      PHP_EXTENSION_PHP_CONFIG: /usr/bin/php-config${{ matrix.php }}
       CRUDUI_CONFORMANCE_EVIDENCE: ${{ github.workspace }}/conformance-evidence
       # The Chrome and Firefox builds that puppeteer pins, in the checkout (scripts/install-browsers.mjs).
       PUPPETEER_CACHE_DIR: ${{ github.workspace }}/.tools/puppeteer
@@ -566,14 +609,16 @@ jobs:
         run: make check-ci-browser
       - name: Download the crates of every Cargo.lock
         run: make install-crates
-      - name: Build and test native packages
+      - name: Run the checks and write their report
         if: ${{ !cancelled() }}
-        run: make test-native
-        env:
-          PHP_EXTENSION_PHP_CONFIG: /usr/bin/php-config${{ matrix.php }}
-      - name: Test the benchmark drivers
+        run: make ci-targets TARGETS="test-native test-bench"
+      - name: Upload the report of the checks
         if: ${{ !cancelled() }}
-        run: make test-bench
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: report-native-generators-${{ matrix.php }}
+          path: var/report/ci-targets
+          if-no-files-found: error
       - name: Preserve comparison report
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -595,6 +640,8 @@ jobs:
     needs: [validator-js, validator-php, validator-go, validator-rust, cross-check-console, form-runtime, native-generators]
     if: ${{ !cancelled() }}
     runs-on: ubuntu-24.04
+    env:
+      CRUDUI_CONFORMANCE_EVIDENCE: conformance-evidence
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
       - name: Setup the Node.js release of .node-version
@@ -610,8 +657,13 @@ jobs:
           pattern: conformance-evidence-*
           path: conformance-evidence
           merge-multiple: true
-      - name: Check the evidence
+      - name: Run the checks and write their report
         if: ${{ !cancelled() }}
-        run: make check-conformance
-        env:
-          CRUDUI_CONFORMANCE_EVIDENCE: conformance-evidence
+        run: make ci-targets TARGETS="check-conformance"
+      - name: Upload the report of the checks
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: report-conformance
+          path: var/report/ci-targets
+          if-no-files-found: error

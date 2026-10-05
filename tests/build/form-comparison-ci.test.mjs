@@ -26,7 +26,7 @@ test('CI runs the complete form comparison regression suite', async () => {
   assert.match(job, /php-version:\s*['"]?8\.5['"]?/);
   assert.match(job, /run: make install-npm\n/);
   assert.match(job, /run: make install-node-modules install-composer\n/);
-  assert.match(job, /run:\s*make test-form-comparison(?:\s|$)/);
+  assert.match(job, /run: make ci-targets TARGETS="test-form-comparison"\n/);
 });
 
 test('CI builds and runs the five record stores and the canonical flow', async () => {
@@ -44,7 +44,7 @@ test('CI builds and runs the five record stores and the canonical flow', async (
   assert.match(job, /run: make install-crates\n/);
   assert.match(job, /workspaces: examples\/form-comparison\/servers\/rust/);
   assert.match(job, /run: make install-node-modules install-composer\n/);
-  assert.match(job, /run:\s*make test-form-comparison-pipeline(?:\s|$)/);
+  assert.match(job, /run: make ci-targets TARGETS="test-form-comparison-pipeline"\n/);
   const scripts = JSON.parse(await readFile(path.join(repository, 'package.json'), 'utf8')).scripts;
   assert.match(scripts['test:form-comparison:pipeline'], /examples\/form-comparison\/record-stores\.test\.mjs/);
   assert.match(scripts['test:form-comparison:pipeline'], /examples\/form-comparison\/pipeline\.browser\.mjs/);

@@ -38,9 +38,10 @@ workflow의 모든 step은 make 대상을 실행합니다. 설치(`make install-
 작업처럼 검사합니다. `tests/build/ci-local.test.mjs`는 이 목록이 `.github/workflows/ci.yml`과 다르면
 실패합니다.
 
-실패는 이후 검사를 멈추지 않으므로 한 번의 실행이 모든 실패를 보고합니다. 검사 명령을 실행하는 워크플로
-단계는 모두 `if: ${{ !cancelled() }}`를 가지므로 실패한 단계가 그 작업의 이후 검사를 건너뛰게 하지 않습니다.
-`tests/build/ci-local.test.mjs`는 그것이 없는 검사 단계마다 작업과 단계를 적고 실패합니다. make는 처음 실패한
+실패는 이후 검사를 멈추지 않으므로 한 번의 실행이 모든 실패를 보고합니다. 각 CI job은 검사를 한 step,
+`make ci-targets TARGETS="..."`로 실행하고 이것은 모든 대상을 끝까지 실행하며, 그 step은 `if: ${{ !cancelled() }}`를
+가지므로 실패한 준비 단계가 그 job의 검사를 건너뛰게 하지 않습니다. `tests/build/ci-local.test.mjs`는 그것이 없는
+검사 단계마다 작업과 단계를 적고 실패합니다. make는 처음 실패한
 prerequisite에서 멈추므로 Makefile 대상은 테스트를 실행하는 대상을 prerequisite로 두지 않습니다.
 `make test-native`와 `make docs-check`처럼 여러 테스트 대상을 실행하는 대상은 각각을
 `$(MAKE) <target> || status=1`로 실행하고 모은 상태로 끝납니다. make는 처음 실패한 recipe 줄에서도 멈추므로,
@@ -49,7 +50,7 @@ prerequisite에서 멈추므로 Makefile 대상은 테스트를 실행하는 대
 멈추며, `make docs-verify-idempotent`처럼 뒤 단계가 앞 단계의 결과를 읽는 `&&` 연결은 하나의 검사입니다.
 package script와 CI step도 같은 규칙을 따릅니다. 독립된 여러 검사는 `status=0; <check> || status=1; ...; exit $status`로
 실행하며, `npm run test:forms`와 `npm run test:form-comparison:pipeline`은 `node scripts/require-current-build.mjs || exit 1`
-뒤에 그렇게 합니다. `&&` 연결은 검사 뒤에 단계를 두지 않고, CI step은 검사 하나를 실행합니다.
+뒤에 그렇게 합니다. `&&` 연결은 검사 뒤에 단계를 두지 않습니다.
 `scripts/run-contract-tests.mjs`는 앞의 명령이 실패한 뒤에도 선언된 모든 명령을 실행하고 마지막 명령 뒤에 실패합니다.
 
 `make ci`는 `docs/plans/execution-checklist.md`의 작업 중 `[~]`인 것이 없을 때, 커밋된 tree마다 한 번 실행됩니다. 어떤 명령보다
@@ -272,6 +273,18 @@ holder lock 아래에서 실행됩니다([함께 쓰는 resource](#함께-쓰는
 [기능 상태](../features.ko.md)에 리비전·명령·결과·배포 상태를 기록합니다. 테스트
 결과는 실제로 실행한 코드와 입력에 적용됩니다. 검사 수만으로 범위나 배포가
 증명되지는 않습니다.
+
+## 보고서
+
+모든 CI job은 각 실패의 이유를 남깁니다. `make ci-targets TARGETS="..."`(`scripts/ci-targets.mjs`)는 각 대상을
+`make -k <target>`로 끝까지, 앞의 대상이 실패한 뒤에도 실행하고, 그 출력을 출력하며
+`var/report/ci-targets/targets/<target>.log`에 씁니다. `summary.md`는 각 대상을 결과와 시간과 함께, 실패한 대상마다 그
+첫 실패 줄과 log를 밝히며(`scripts/target-report.mjs`), 같은 글이 GitHub Actions의 job summary로 갑니다. 실행은 lock
+`var/report/ci-targets.lock`을 잡으므로 두 실행이 한 보고서를 쓰지 않고, 대상이 실패하면 status 1로 끝납니다. 각 job은
+`var/report/ci-targets`를 artifact `report-<job>`(matrix job은 PHP minor를 붙임)으로 `if: ${{ !cancelled() }}`와
+`if-no-files-found: error`로 올립니다. `tests/build/ci-local.test.mjs`는 `make ci-targets` 밖에서 검사를 실행하거나
+보고서를 올리지 않는 job에서 실패하고, `tests/build/target-report.test.mjs`는 실패하는 probe 대상과 통과하는 probe
+대상을 실행해 두 log, summary의 실패 줄, job summary를 확인합니다.
 
 ## 함께 쓰는 resource
 

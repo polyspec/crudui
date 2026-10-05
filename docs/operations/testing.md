@@ -42,10 +42,10 @@ composer, rustup, python3 or sh without make.
 conformance evidence and checks it as the final CI job does; `tests/build/ci-local.test.mjs` fails
 when the list differs from `.github/workflows/ci.yml`.
 
-A failure never stops the later checks, so one run reports every failure. Each workflow step that
-runs a checking command has `if: ${{ !cancelled() }}`, so a failed step does not skip the later
-checks of its job; `tests/build/ci-local.test.mjs` fails with the job and the step of each checking
-step without it. A Makefile target never takes a target that runs tests as a prerequisite, because
+A failure never stops the later checks, so one run reports every failure. Each CI job runs its
+checks in one step, `make ci-targets TARGETS="..."`, which runs every target to its end, and that
+step has `if: ${{ !cancelled() }}`, so a failed preparation does not skip the checks of its job;
+`tests/build/ci-local.test.mjs` fails with the job and the step of each checking step without it. A Makefile target never takes a target that runs tests as a prerequisite, because
 make stops at the first prerequisite that fails; a target that runs several test targets, such as
 `make test-native` and `make docs-check`, runs each with `$(MAKE) <target> || status=1` and exits
 with the collected status. Make also stops at the first recipe line that fails, so the recipe line
@@ -56,7 +56,7 @@ whose later steps read the result of the earlier ones, as in `make docs-verify-i
 check. A package script and a CI step follow the same rule: several independent checks run as
 `status=0; <check> || status=1; ...; exit $status`, as `npm run test:forms` and
 `npm run test:form-comparison:pipeline` do after `node scripts/require-current-build.mjs || exit 1`,
-an `&&` chain puts no step after a check, and a CI step runs one check.
+and an `&&` chain puts no step after a check.
 `scripts/run-contract-tests.mjs` runs every declared command, also after an earlier one failed, and
 fails after the last one.
 
@@ -309,6 +309,20 @@ same lock and is refused while a check runs.
 Record the revision, commands, results and deployment status in
 [feature status](../features.md). A test result applies to the code and inputs
 actually executed. Test counts alone do not establish coverage or deployment.
+
+## Reports
+
+Every CI job leaves the reason of each failure. `make ci-targets TARGETS="..."`
+(`scripts/ci-targets.mjs`) runs each target as `make -k <target>` to its end, also after an earlier
+target failed, prints its output and writes it to `var/report/ci-targets/targets/<target>.log`;
+`summary.md` names each target with its result and time and, for each failed target, its first
+failure lines and its log (`scripts/target-report.mjs`), and the same text goes to the job summary of
+GitHub Actions. The run holds the lock `var/report/ci-targets.lock`, so two runs never write one
+report, and ends with status 1 when a target failed. Each job uploads `var/report/ci-targets` as the
+artifact `report-<job>` (with the PHP minor of a matrix job) under `if: ${{ !cancelled() }}` with
+`if-no-files-found: error`. `tests/build/ci-local.test.mjs` fails for a job that runs a check outside
+`make ci-targets` or uploads no report, and `tests/build/target-report.test.mjs` runs a failing and a
+passing probe target and finds both logs, the failure line in the summary and the job summary.
 
 ## Shared resources
 

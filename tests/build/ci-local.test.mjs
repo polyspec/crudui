@@ -24,7 +24,10 @@ export function workflowCommands(workflow) {
       if (typeof step.run !== 'string') continue;
       for (const line of step.run.split('\n').map((text) => text.trim()).filter(Boolean)) {
         for (const command of line.split(' && ')) {
-          if (!preparation.some((pattern) => pattern.test(command))) commands.push(command);
+          // make ci-targets runs each target of TARGETS as make -k <target> (scripts/ci-targets.mjs).
+          const targets = /^make ci-targets TARGETS="([^"]+)"$/.exec(command);
+          if (targets) commands.push(...targets[1].split(' ').map((target) => `make ${target}`));
+          else if (!preparation.some((pattern) => pattern.test(command))) commands.push(command);
         }
       }
     }
@@ -93,6 +96,55 @@ test('a workflow step starts every tool through a make target', async () => {
   const violations = [];
   for (const file of ['ci.yml', 'dependency-review.yml', 'push-gate.yml']) {
     violations.push(...stepsOutsideMake(parse(await read(`.github/workflows/${file}`))).map(line => `${file} ${line}`));
+  }
+  assert.deepEqual(violations, []);
+});
+
+/**
+ * The jobs of a workflow that run a check outside make ci-targets, or run checks without uploading their report under
+ * `if: ${{ !cancelled() }}` with `if-no-files-found: error`, as `job: problem`.
+ */
+export function jobsWithoutReport(workflow) {
+  const violations = [];
+  for (const [id, job] of Object.entries(workflow.jobs)) {
+    const steps = job.steps ?? [];
+    const runners = steps.filter((step) => /^make ci-targets TARGETS="[^"]+"$/.test(String(step.run ?? '').trim()));
+    for (const step of steps) {
+      if (typeof step.run !== 'string' || runners.includes(step)) continue;
+      if (workflowCommands({ jobs: { [id]: { steps: [step] } } }).length) violations.push(`${id}: ${step.name ?? step.run} runs a check outside make ci-targets`);
+    }
+    if (runners.length === 0) continue;
+    const index = steps.indexOf(runners.at(-1));
+    const upload = steps.slice(index + 1).find((step) => String(step.uses ?? '').startsWith('actions/upload-artifact@') && step.with?.path === 'var/report/ci-targets');
+    if (!upload) violations.push(`${id}: uploads no report of var/report/ci-targets after its checks`);
+    else {
+      if (String(upload.if ?? '').replace(/\s+/g, ' ').trim() !== '${{ !cancelled() }}') violations.push(`${id}: the report upload does not run after a failure`);
+      if (upload.with['if-no-files-found'] !== 'error') violations.push(`${id}: the report upload does not fail without a report`);
+    }
+  }
+  return violations;
+}
+
+test('every job runs its checks through make ci-targets and uploads their report', async () => {
+  assert.deepEqual(jobsWithoutReport({ jobs: {
+    a: { steps: [{ run: 'make install-npm' }, { run: 'make lint', if: '${{ !cancelled() }}' }] },
+    b: { steps: [{ run: 'make ci-targets TARGETS="lint"', if: '${{ !cancelled() }}' }] },
+    c: { steps: [{ run: 'make ci-targets TARGETS="lint"' }, { uses: 'actions/upload-artifact@x', if: 'always()', with: { path: 'var/report/ci-targets' } }] },
+    d: { steps: [{ run: 'make ci-targets TARGETS="lint"' }, { uses: 'actions/upload-artifact@x', if: '${{ !cancelled() }}', with: { path: 'var/report/ci-targets', 'if-no-files-found': 'error' } }] },
+  } }), [
+    'a: make lint runs a check outside make ci-targets',
+    'b: uploads no report of var/report/ci-targets after its checks',
+    'c: the report upload does not run after a failure',
+    'c: the report upload does not fail without a report',
+  ]);
+  const violations = [];
+  for (const file of ['ci.yml', 'dependency-review.yml', 'push-gate.yml']) {
+    const workflow = parse(await read(`.github/workflows/${file}`));
+    violations.push(...jobsWithoutReport(workflow).map((line) => `${file} ${line}`));
+    // The report artifact of each job, and of each matrix entry, has a name of its own.
+    const names = Object.values(workflow.jobs).flatMap((job) => (job.steps ?? [])
+      .filter((step) => step.with?.path === 'var/report/ci-targets').map((step) => step.with.name));
+    assert.equal(new Set(names).size, names.length, `${file}: report names ${names.join(', ')}`);
   }
   assert.deepEqual(violations, []);
 });
