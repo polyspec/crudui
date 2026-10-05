@@ -38,7 +38,7 @@ HOOKS_PATH := $(shell [ "$$(git config core.hooksPath)" = .githooks ] || git con
 help: ## 타겟 설명
 	@echo "CRUDUI docs — make targets:"
 	@echo ""
-	@echo "  make install               Install the recorded npm, the npm and Composer dependencies, the Rust toolchain and phpDocumentor"
+	@echo "  make install               Install the recorded npm, the npm and Composer dependencies, the Rust toolchain, cargo-audit and phpDocumentor"
 	@echo "  make toolchain-check       Fail when a tool does not run at the version that the checkout records"
 	@echo "  make dependency-review     Ask the registries for newer stable releases and advisories; RECORD=1 records, UPDATE=1 updates first"
 	@echo "  make owner-check           Run the owner checks of the changed paths (scripts/owner-checks.json); PATHS or BASE select the paths"
@@ -83,18 +83,19 @@ help: ## 타겟 설명
 	@echo ""
 
 # The npm of packageManager into .tools/npm, the dependencies of the lock files, the Rust toolchain of
-# rust-toolchain.toml and the phpDocumentor release that scripts/install-phpdocumentor.sh checks by its SHA-256. Node.js, Go, PHP and Composer are installed at the versions of .node-version, .go-version and
+# rust-toolchain.toml, the cargo-audit release of config/toolchain.json into .tools/cargo-audit and the phpDocumentor release that scripts/install-phpdocumentor.sh checks by its SHA-256. Node.js, Go, PHP and Composer are installed at the versions of .node-version, .go-version and
 # config/toolchain.json by the machine's package manager; `make toolchain-check` names every tool at another version.
-install: ## Install the recorded npm, the npm and Composer dependencies, the Rust toolchain and phpDocumentor
+install: ## Install the recorded npm, the npm and Composer dependencies, the Rust toolchain, cargo-audit and phpDocumentor
 	node scripts/install-npm.mjs
 	$(NPM) ci --strict-allow-scripts
 	composer --working-dir=packages/validator-php install --no-interaction --prefer-dist
 	composer --working-dir=packages/generator-php install --no-interaction --prefer-dist
 	rustup toolchain install --no-self-update
+	node scripts/install-cargo-audit.mjs
 	sh scripts/install-phpdocumentor.sh
 
 # The dependency review (docs/spec/package-build.md, "Dependency review"): it asks the registries for the latest stable
-# release of every registry dependency and for the advisories of every lock. RECORD=1 writes config/dependency-review.json,
+# release of every registry dependency and for the advisories of every npm, Composer and Cargo lock. RECORD=1 writes config/dependency-review.json,
 # which `npm run test:dependencies` compares with the checkout without a network; UPDATE=1 updates first. No check runs it;
 # the scheduled workflow .github/workflows/dependency-review.yml runs it every day.
 dependency-review: ## Ask the registries for newer stable releases and advisories; RECORD=1 records the review, UPDATE=1 updates first

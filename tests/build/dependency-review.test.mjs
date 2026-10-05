@@ -2,6 +2,7 @@
 // config/dependency-review.json, never by a registry: each case builds a checkout with npm workspaces and a Composer
 // package, and a stub composer stands for `composer validate`, so no case reaches a network.
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import { chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -25,6 +26,11 @@ const exception = (manifest, name) => ({
 function checkout(t) {
   const root = mkdtempSync(path.join(tmpdir(), 'crudui-dependency-review-'));
   t.after(() => rmSync(root, { recursive: true, force: true }));
+  // The Cargo locks are the Cargo.lock files of the checkout that Git does not ignore.
+  execFileSync('git', ['init', '--quiet'], { cwd: root });
+  write(root, '.gitignore', '/target/\n');
+  write(root, 'rust/Cargo.lock', 'version = 4\n');
+  write(root, 'target/copy/Cargo.lock', 'version = 4\n');
   write(root, 'package.json', {
     name: 'fixture', workspaces: ['packages/*'],
     dependencies: { left: '^1.0.0' },
@@ -54,7 +60,7 @@ function checkout(t) {
   write(root, 'config/dependency-policy.json', { schema: 1, composerManifests: ['php/composer.json'], exceptions: [] });
   write(root, 'config/dependency-review.json', {
     schema: 1, reviewed: '2026-10-05T00:00:00.000Z',
-    locks: ['package-lock.json', 'php/composer.lock'].map(lock => ({ lock, sha256: digest(root, lock), advisories: [] })),
+    locks: ['package-lock.json', 'php/composer.lock', 'rust/Cargo.lock'].map(lock => ({ lock, sha256: digest(root, lock), advisories: [] })),
     dependencies: [
       { ecosystem: 'npm', manifest: 'package.json', package: 'left', version: '1.4.0', latest: '1.4.0' },
       { ecosystem: 'npm', manifest: 'packages/kit/package.json', package: 'left', version: '2.1.0', latest: '2.1.0' },
@@ -87,7 +93,7 @@ test('the registry dependencies are the dependencies and devDependencies of ever
   ]);
   // Peer, URL and local dependencies and platform requirements are not registry dependencies.
   assert.deepEqual(state.local.map(item => `${item.manifest} ${item.package}`), ['package.json @scope/kit', 'php/composer.json fixture/local']);
-  assert.deepEqual(state.locks, ['package-lock.json', 'php/composer.lock']);
+  assert.deepEqual(state.locks, ['package-lock.json', 'php/composer.lock', 'rust/Cargo.lock']);
   assert.deepEqual(findings(root), []);
 });
 
@@ -128,10 +134,18 @@ test('an exception needs a reason, a removal condition and verification and name
 
 test('an advisory recorded at the review of a lock fails until an update records a review without it', t => {
   const root = checkout(t);
+  write(root, 'rust/Cargo.lock', 'version = 4\n# changed\n');
+  write(root, 'tools/Cargo.lock', 'version = 4\n');
+  assert.deepEqual(findings(root), ['record rust/Cargo.lock', 'record tools/Cargo.lock']);
+  write(root, 'rust/Cargo.lock', 'version = 4\n');
+  rmSync(path.join(root, 'tools'), { recursive: true });
   edit(root, 'config/dependency-review.json', record => {
     record.locks[1].advisories.push({ package: 'vendor/unit', version: '13.4.1', id: 'PKSA-0000', severity: 'high', title: 'a known advisory', url: 'https://example.test/advisory' });
   });
-  assert.deepEqual(findings(root), ['advisory php/composer.lock vendor/unit 13.4.1']);
+  edit(root, 'config/dependency-review.json', record => {
+    record.locks[2].advisories.push({ package: 'crate', version: '1.0.0', id: 'RUSTSEC-2026-0001', severity: 'unmaintained', title: 'crate is unmaintained', url: 'https://rustsec.org/advisories/RUSTSEC-2026-0001' });
+  });
+  assert.deepEqual(findings(root), ['advisory php/composer.lock vendor/unit 13.4.1', 'advisory rust/Cargo.lock crate 1.0.0']);
   assert.match(findingLine(check(root, { composer: path.join(root, 'composer') })[0]), /found advisory PKSA-0000 \(high\) a known advisory https:\/\/example\.test\/advisory\. Rule: .*\. Fix: make dependency-review UPDATE=1/);
 });
 
@@ -154,13 +168,14 @@ test('the review plan raises a workspace dependency in its workspace and keeps t
       { ecosystem: 'npm', manifest: 'package.json', package: 'right', kind: 'dependencies', spec: '3.0.0', latest: '3.1.0' },
       { ecosystem: 'composer', manifest: 'php/composer.json', package: 'vendor/unit', kind: 'require-dev', spec: '^13.0', latest: '14.0.0' },
     ],
-    advisories: [{ lock: 'php/composer.lock', package: 'vendor/unit' }],
+    advisories: [{ lock: 'php/composer.lock', package: 'vendor/unit' }, { lock: 'rust/Cargo.lock', package: 'crate' }, { lock: 'rust/Cargo.lock', package: 'other' }],
   });
   assert.deepEqual(plan.map(step => `${step.cwd}: ${step.command} ${step.args.join(' ')}`), [
     '.: npm install --workspace packages/kit --save-dev left@^3.0.0',
     '.: npm install --save --save-exact right@3.1.0',
     'php: composer require --dev --update-with-dependencies --no-interaction vendor/unit:^14.0.0',
     'php: composer update --with-dependencies --no-interaction vendor/unit',
+    'rust: cargo update -p crate -p other',
   ]);
 });
 

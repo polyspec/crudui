@@ -1,5 +1,11 @@
 # 변경 기록
 
+## 2026-10-06 — Cargo lock의 RustSec 보안 권고 (C5.8-1)
+
+- 의존성 review는 `make install`이 `.tools/cargo-audit`에 설치하는 cargo-audit 0.22.2로 Cargo lock 6개의 보안
+  권고를 RustSec에서 읽고 각 lock을 sha256과 함께 기록합니다. `npm run test:dependencies`는 review 뒤에 바뀌었거나
+  review 때 보안 권고가 있던 Cargo lock에서 실패합니다.
+
 ## 2026-10-06 — 의존성 review (C5.8)
 
 - `npm run test:dependencies`는 registry에 `npm audit`을 실행하는 대신 `config/dependency-review.json`에

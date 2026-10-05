@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "comment": "Written by make dependency-review RECORD=1 (scripts/dependency-review.mjs) from the registries; npm run test:dependencies compares the checkout with it without a network.",
-  "reviewed": "2026-10-05T17:22:56.907Z",
+  "reviewed": "2026-10-05T17:32:23.114Z",
   "locks": [
     {
       "lock": "package-lock.json",
@@ -16,6 +16,36 @@
     {
       "lock": "packages/generator-php/composer.lock",
       "sha256": "85d07ff924d9d1734796bdfcb741b79009bf6e48e0df18a75f2b3efa892f138f",
+      "advisories": []
+    },
+    {
+      "lock": "examples/cross-check-console/validators/rust/Cargo.lock",
+      "sha256": "46cd8098509ea806c9d4305a55608a8420b6d5f044074485403453ead2108059",
+      "advisories": []
+    },
+    {
+      "lock": "examples/form-comparison/servers/rust/Cargo.lock",
+      "sha256": "3c58101887d5e4261e990a4f0f1e0f0da86a959b57d6e9acf0f7d9604a39e68f",
+      "advisories": []
+    },
+    {
+      "lock": "packages/generator-rust/Cargo.lock",
+      "sha256": "fd4b2924482c85427dbde6317042f6df2c96e9e486b9c113a49c480cfb9b80cc",
+      "advisories": []
+    },
+    {
+      "lock": "packages/validator-rust/Cargo.lock",
+      "sha256": "a9408e1bc0750714ac1ed8c80653eb3d2ba869e39e11caaf4817cfa371c9228b",
+      "advisories": []
+    },
+    {
+      "lock": "tests/native-generators/programs/rust/Cargo.lock",
+      "sha256": "7024a16fc3b57358c8a4847cfea479b318db7cc3cd5ce5d02a388efe37b89782",
+      "advisories": []
+    },
+    {
+      "lock": "tools/bench/rust/Cargo.lock",
+      "sha256": "3d8be0abd07e370ed0fc68be7f54d80b22e980f5513929646714084bfec99841",
       "advisories": []
     }
   ],

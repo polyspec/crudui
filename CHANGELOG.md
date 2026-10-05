@@ -1,5 +1,11 @@
 # Changes
 
+## 2026-10-06 — RustSec advisories of the Cargo locks (C5.8-1)
+
+- The dependency review reads the advisories of the six Cargo locks from RustSec with cargo-audit
+  0.22.2, which `make install` installs into `.tools/cargo-audit`, and records each lock with its sha256;
+  `npm run test:dependencies` fails for a Cargo lock changed after its review or with an advisory at it.
+
 ## 2026-10-06 — Dependency review (C5.8)
 
 - `npm run test:dependencies` compares the dependencies with the review recorded in

@@ -9,9 +9,15 @@
 // of this repository (an npm workspace or a Composer path repository) is built from the checkout, and a Composer
 // platform requirement (`php`, `ext-*`, ...) names the runtime: "latest stable release" has no meaning for them, so
 // they are not registry dependencies. The check reads a package of this repository against its lock entry.
+//
+// The locks are package-lock.json, the composer.lock of each Composer manifest and every Cargo.lock of the checkout;
+// the review records the sha256 and the advisories of each. A Cargo lock has no registry dependencies in the review:
+// its advisories come from RustSec.
 import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
+
+import { trackedFiles } from './tracked-files.mjs';
 
 export const POLICY = 'config/dependency-policy.json';
 export const RECORD = 'config/dependency-review.json';
@@ -59,6 +65,12 @@ export function stableDescending(versions) {
 
 /** The key of a dependency in the policy and the record. */
 export const dependencyKey = ({ ecosystem, manifest, package: name }) => `${ecosystem}:${manifest}:${name}`;
+
+/** The Cargo locks of the checkout: every Cargo.lock that is tracked or new and not ignored. */
+export const cargoLocks = root => trackedFiles(root).filter(file => path.posix.basename(file) === 'Cargo.lock');
+
+/** The ecosystem of a lock: npm, composer or cargo. */
+export const lockEcosystem = lock => ({ 'package-lock.json': 'npm', 'composer.lock': 'composer', 'Cargo.lock': 'cargo' })[path.posix.basename(lock)];
 
 /** The npm manifests of the checkout: the root package.json and the package.json of each workspace directory. */
 export function npmManifests(root) {
@@ -131,5 +143,6 @@ export function readState(root, policy) {
       }
     }
   }
+  locks.push(...cargoLocks(root));
   return { dependencies, local, locks, manifests, npmLock: lock };
 }
