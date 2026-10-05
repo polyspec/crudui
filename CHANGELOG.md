@@ -1,5 +1,11 @@
 # Changes
 
+## 2026-10-05 — Reuse of a routed comparison container (C2.18-1)
+
+- The deployment reuses a running comparison container only when containerctl routes
+  `crudui.test` to it; otherwise it applies the definition with containerctl. A changed route was
+  never applied because the image of the running container matched.
+
 ## 2026-10-05 — Route of the comparison service under x-containerctl (C2.18)
 
 - The Compose definition of the comparison service lists its domain under
