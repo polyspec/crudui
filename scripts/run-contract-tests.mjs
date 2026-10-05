@@ -33,6 +33,12 @@ for (const feature of features) {
 
 // Each declared command prints its own tests; this runner prints the command around them.
 const lines = createProgress({ write: text => process.stdout.write(text) });
+// A selection without a command checks nothing, so it fails.
+if (commands.size === 0) {
+  lines.line(`✖ manifest:test: ran no command: the selected features declare no verification command (${features.map(feature => feature.id).join(', ') || 'no feature'})`);
+  lines.close('manifest:test');
+  process.exit(1);
+}
 for (const [command, owners] of commands) {
   const id = `${owners.join(', ')}: ${command}`;
   lines.start(id, { group: true });

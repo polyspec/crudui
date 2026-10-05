@@ -276,10 +276,11 @@ building the image again.
 ### Toolchain image
 
 `examples/form-comparison/Containerfile` defines one image: the Node.js, Go and Rust
-releases that the checkout records, each stage image by its digest, Git, PHP 8.4
-(CLI, development headers, mbstring and XML), Composer, the C build tools, tini,
-and the pinned Chromium with its sandbox, the Debian packages from the snapshot
-of one date. No instruction
+releases that the checkout records, each stage image by its digest, the PHP
+release of the newest tested minor from its `php` fpm image (CLI, php-fpm,
+development headers, mbstring and XML), Composer from its image, Git, nginx, the C
+build tools, tini, and the pinned Chromium with its sandbox, the Debian packages
+from the snapshot of one date. No instruction
 copies or reads the repository, and no build step depends on it. The image tag is
 the first 16 hexadecimal characters of the SHA-256 digest of the Containerfile
 content, so the image is built again only when that file changes. The container
@@ -424,8 +425,9 @@ each required executable once before compilation. Relative paths, symbolic links
 missing tools, multiple discovery results and PHP installation mismatches fail
 the build. A failed command does not select another executable or build path.
 Generated build and module paths contain only regular files and directories.
-The Linux toolchain declares its versioned `php-config` file and selects the C
-compiler from one installed Debian `gcc` package record.
+The Linux toolchain declares the `php-config` of its PHP image,
+`/usr/local/bin/php-config`, and selects the C compiler from one installed Debian
+`gcc` package record.
 
 The host commands resolve the container executable from one installed package
 record. The record identifies one versioned installation directory and one regular

@@ -72,7 +72,7 @@ test('container definitions and the Linux style check install the recorded npm',
     const source = await readFile(definition, 'utf8');
     if (!/^FROM node:/m.test(source)) continue;
     const name = path.relative(repository, definition);
-    const installs = [...source.matchAll(/npm install -g npm@(\S+)/g)].map(match => match[1]);
+    const installs = [...source.matchAll(/npm(?:-cli\.js)? install -g npm@(\S+)/g)].map(match => match[1]);
     if (installs.length !== 1 || installs[0] !== recorded) violations.push(`${name} installs npm ${installs.join(', ') || 'from its image'}, package.json records ${recorded}`);
   }
   const styles = await readFile(path.join(repository, 'scripts/test-form-styles-linux.sh'), 'utf8');
@@ -294,13 +294,25 @@ test('the declared PHP range is the range CI tests, and containers use the newes
     }
   }
 
-  const stages = [];
+  // The PHP of every container: the tag of a php stage and the minor of an apt package php8.N-*.
+  const { php: releases, composer: composerRelease } = recordedToolchain(repository);
+  const release = releases.find(value => value.startsWith(`${newest}.`));
+  assert.ok(release, `config/toolchain.json records no exact release of the newest tested line ${newest}`);
+  const found = [];
+  const violations = [];
   for (const definition of await findContainerDefinitions()) {
+    const name = path.relative(repository, definition);
     const source = await readFile(definition, 'utf8');
-    for (const match of source.matchAll(/^FROM\s+php:([^\s]+)(?:\s|$)/gm)) {
-      stages.push({ definition: path.relative(repository, definition), tag: match[1] });
+    for (const [, tag] of source.matchAll(/^FROM\s+php:([^\s@]+)/gm)) {
+      found.push(`${name}: php:${tag}`);
+      if (!tag.startsWith(`${release}-`)) violations.push(`${name}: php:${tag} is not the recorded release ${release}`);
     }
+    for (const [, minor] of source.matchAll(/\bphp(\d+\.\d+)-[a-z]+/g)) {
+      found.push(`${name}: php${minor}`);
+      violations.push(`${name}: the apt package php${minor} has no exact release; use the php:${release} stage`);
+    }
+    if (/composer/.test(source) && !new RegExp(`^FROM composer:${composerRelease.replaceAll('.', '\\.')}@sha256:[0-9a-f]{64} AS composer$`, 'm').test(source)) violations.push(`${name}: Composer is not the recorded ${composerRelease} of its image`);
   }
-  assert.deepEqual(stages.filter((stage) => !stage.tag.startsWith(`${newest}-`)), [],
-    `PHP container stages must use the newest tested line ${newest}`);
+  assert.ok(found.length > 0, 'no container definition installs PHP; the check reads the php stages and php8.N apt packages');
+  assert.deepEqual(violations, [], `found: ${found.join(', ')}`);
 });

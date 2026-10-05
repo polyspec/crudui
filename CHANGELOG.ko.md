@@ -1,5 +1,14 @@
 # 변경 기록
 
+## 2026-10-05 — 아무것도 검사하지 않는 실행의 실패 (C7.3)
+
+- `scripts/run-tests.mjs`는 test case가 하나도 통과, 실패, 시간 초과하지 않은 go, cargo, phpunit 실행을, Vitest
+  reporter는 그런 vitest 실행을 `ran no test case`로 실패시킵니다. `scripts/run-contract-tests.mjs`는 선택한 feature가
+  verification 명령을 선언하지 않으면 `ran no command`로 실패합니다. 이런 실행은 아무것도 검사하지 않고 통과했습니다.
+- container 정의의 PHP 검사는 `php` 단계와 `php8.N-*` package를 읽고 빈 목록에 대해 실패합니다. 이전 검사는 두
+  image가 Debian PHP 8.4를 설치하는 동안 하나도 없는 `FROM php:` 단계를 돌았습니다. 이제 두 image는 PHP를 기록한
+  8.5.11의 `php` image에서, Composer를 `composer` 2.10.3 image에서 각각 digest로 받고, PHP extension build는
+  `/usr/local/bin/php-config`를 씁니다.
 ## 2026-10-05 — Tailwind style 검사의 보이는 page 하나 (C5.11)
 
 - `tests/tailwind-styles.test.mjs`는 `crudui.css`와 Tailwind 판의 style을 engine과 너비마다 page 하나에서 계산하며, 그

@@ -5,7 +5,7 @@ import {
 } from './server-layout.mjs';
 import { formServers } from './runtime-paths.mjs';
 
-const phpConfig = '/usr/bin/php-config8.4';
+const phpConfig = '/usr/local/bin/php-config';
 const example = 'examples/form-comparison';
 const javascriptPackages =
   /^packages\/(?:validator-ts|generator-(?:core|html|react|vue|svelte))\//;
