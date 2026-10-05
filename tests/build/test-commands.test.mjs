@@ -88,7 +88,7 @@ test('every TypeScript package declares a typecheck that CI runs', () => {
   const missing = packages.filter(directory => !JSON.parse(read(`${directory}/package.json`)).scripts?.typecheck);
   assert.deepEqual(missing, []);
   const ci = tracked.filter(file => file.startsWith('.github/workflows/')).flatMap(file => projectCommands(file, read(file)).map(item => item.command));
-  assert.ok(ci.includes('make typecheck'), 'CI does not run make typecheck');
+  assert.ok(ci.some(command => /^make ci-targets TARGETS="(?:[\w-]+ )*typecheck(?: [\w-]+)*"$/.test(command)), 'CI does not run make typecheck');
   assert.deepEqual(makeTargets(read('Makefile')).typecheck?.commands, ['$(NPM) run typecheck']);
 });
 

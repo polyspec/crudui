@@ -1,5 +1,11 @@
 # Changes
 
+## 2026-10-06 — A report for every CI job (C7.18)
+
+- Every CI job runs its checks with `make ci-targets`, which runs each target to its end, and uploads
+  the log of each target with a summary of the first failure lines of each failed one, which also goes
+  to the job summary.
+
 ## 2026-10-06 — Checklist wording (C7.15-1)
 
 - The rows C7.15 and C7.16 describe the pre-push hook and the documentation job without the word
