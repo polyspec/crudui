@@ -134,6 +134,10 @@ public directory and the source identity file: the Go and Rust binaries and
 the way PHP runs in production: `servers/php/main.mjs {address} {run directory} -- {php-fpm
 arguments}` writes both configurations into the run directory, starts `php-fpm` and `nginx` from
 the `PATH`, prints its readiness line once both accept connections and stops both when it stops.
+It learns that from their own log lines on standard error, without a time limit and without
+connection attempts: PHP-FPM writes `NOTICE: ready to handle connections` after it listens on its
+socket, and nginx, at the `notice` log level, writes `start worker processes` after it opened its
+listening socket.
 nginx passes `/api/` requests to `api.php` over FastCGI, answers every other path with a JSON 404,
 and ends a request body above 2 MiB with the JSON 413 of the contract before PHP reads it; the
 data and public directories reach `api.php` as `FORM_DATA_DIRECTORY` and
