@@ -1,5 +1,17 @@
 # Changes
 
+## 2026-10-05 — Holder locks of single resources (C3.2)
+
+- `scripts/holder-lock.mjs` holds a resource that only one run may use at a time. The lock file's
+  record names the checkout, the pid and the process start time of the holder, the time and the
+  command; it is written completely and linked to the lock path, so the lock is taken atomically.
+  A held lock refuses with the holder's record. A lock whose holder process no longer runs, or
+  whose pid belongs to a process with another start time, is reported and kept until
+  `node scripts/holder-lock.mjs remove-dead <lock file>` removes it; the command refuses a running
+  holder. Only the holder releases the lock. `hold` runs a command while holding the lock. Locks of
+  one checkout are under `var/locks/`, locks that every checkout shares under
+  `~/.local/state/crudui/locks/`. `tests/build/holder-lock.test.mjs` runs in `npm run test:runtimes`.
+
 ## 2026-10-05 — A snapshot directory per documentation run (C3.1)
 
 - `make docs-verify-idempotent` writes its two snapshots and their difference to a directory that

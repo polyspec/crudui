@@ -158,3 +158,28 @@ HTML 원문·DOM·스타일·입력 상태·반복 주입·브라우저 상호�
 [기능 상태](../features.ko.md)에 리비전·명령·결과·배포 상태를 기록합니다. 테스트
 결과는 실제로 실행한 코드와 입력에 적용됩니다. 검사 수만으로 범위나 배포가
 증명되지는 않습니다.
+
+## 함께 쓰는 resource
+
+다른 checkout의 실행이 한 기기에서 동시에 실행됩니다. 한 실행이 소유할 수 있는 resource는 그
+실행을 위해 만듭니다: `mktemp -d`나 `mkdtemp`의 임시 directory, operating system이 정하는 port, 실행의
+식별자를 담은 이름입니다. 기기나 checkout에 하나뿐인 resource는 `scripts/holder-lock.mjs`의 holder lock
+아래에서 씁니다.
+
+- 한 번에 한 실행만 lock을 잡습니다. lock file은 holder의 record를 담습니다: lock을 잡은 code의
+  checkout, pid, 그 process의 시작 시각, lock을 잡은 시각, command, random token입니다. record는 전용
+  file에 모두 쓴 뒤 lock path로 link하고, lock이 있으면 link가 실패하므로, lock은 atomic하게 잡히고
+  읽는 쪽은 일부만 쓰인 record를 보지 않습니다.
+- lock이 잡혀 있으면 실행은 holder의 record와 함께 실패합니다.
+- holder process가 더 이상 실행되지 않거나 그 pid가 시작 시각이 다른 process의 것이 된 lock은 record와
+  함께 보고하고 남겨 둡니다. `node scripts/holder-lock.mjs remove-dead <lock file>`로 명시적으로
+  지우며, 이 command는 실행 중인 holder를 거부합니다.
+- holder만 lock을 해제합니다. 해제는 먼저 record의 token을 확인합니다.
+- `node scripts/holder-lock.mjs hold <lock file> -- <command>`는 lock을 잡은 채 command를 실행하고,
+  SIGINT, SIGTERM, SIGHUP을 전달하며, command가 끝나면 lock을 해제하고 그 status로 끝납니다. 획득과
+  해제를 출력합니다.
+
+한 checkout의 resource lock은 그 checkout의 `var/locks/<name>.lock`이고, user account의 모든 checkout이
+함께 쓰는 resource의 lock은 `~/.local/state/crudui/locks/<name>.lock`입니다.
+`npm run test:runtimes`가 실행하는 `tests/build/holder-lock.test.mjs`는 record, 거부, 동시 실행,
+holder가 더 이상 실행되지 않는 lock의 보고와 제거, 해제를 확인합니다.

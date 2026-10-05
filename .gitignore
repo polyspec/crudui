@@ -53,6 +53,9 @@ docs/public/api/
 tools/bin/phpDocumentor.phar
 tools/bin/.phpdoc-cache/
 
+# Holder locks of this checkout (scripts/holder-lock.mjs)
+/var/
+
 # Local verification reports
 .verification/
 .form-comparison/

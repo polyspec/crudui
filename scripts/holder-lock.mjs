@@ -1,0 +1,200 @@
+#!/usr/bin/env node
+/*
+ * Holder locks of resources that only one run may use at a time (docs/operations/testing.md,
+ * "Shared resources").
+ *
+ * A lock is one file. Its record names the holder: the checkout of the code that took it, the
+ * holder's pid, the start time of that process, the time the lock was taken, the command and a
+ * random token. The record is written completely to a private file and linked to the lock path;
+ * the link fails when the lock exists, so taking a lock is atomic and a reader never sees a
+ * partial record. A run that finds the lock held is refused with the holder's record. A lock whose
+ * holder process no longer runs is reported and stays in place; `remove-dead` removes it
+ * explicitly. Only the holder releases its lock: the release checks the token first.
+ *
+ *   node scripts/holder-lock.mjs hold <lock file> -- <command> [arguments...]
+ *   node scripts/holder-lock.mjs remove-dead <lock file>
+ */
+import assert from 'node:assert/strict';
+import { execFileSync, spawn } from 'node:child_process';
+import { randomBytes } from 'node:crypto';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const script = fileURLToPath(import.meta.url);
+export const repositoryRoot = path.resolve(path.dirname(script), '..');
+
+/** The lock file of a resource of this checkout. */
+export function checkoutLockFile(name) {
+  return path.join(repositoryRoot, 'var/locks', `${name}.lock`);
+}
+
+/** The lock file of a resource of the user account, which every checkout shares. */
+export function userLockFile(name) {
+  return path.join(os.homedir(), '.local/state/crudui/locks', `${name}.lock`);
+}
+
+/** The start time of a running process as `ps` prints it, or null when no such process runs. */
+export function processStart(pid) {
+  try {
+    process.kill(pid, 0);
+  } catch (error) {
+    if (error.code === 'ESRCH') return null;
+    if (error.code !== 'EPERM') throw error;
+  }
+  try {
+    return execFileSync('/bin/ps', ['-o', 'lstart=', '-p', String(pid)], {
+      encoding: 'utf8', env: { ...process.env, LC_ALL: 'C' }, stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim() || null;
+  } catch (error) {
+    if (error.status === 1) return null;
+    throw error;
+  }
+}
+
+/** Whether the process that wrote the record still runs; a reused pid has another start time. */
+export function holderRunning(record) {
+  return processStart(record.pid) === record.processStart;
+}
+
+export function describeHolder(record) {
+  return `pid ${record.pid} (process started ${record.processStart}) of checkout ${record.checkout}, `
+    + `held since ${record.acquired} for ${JSON.stringify(record.command)}`;
+}
+
+export class HolderLockRefused extends Error {
+  constructor(message, record) {
+    super(message);
+    this.name = 'HolderLockRefused';
+    this.record = record;
+  }
+}
+
+/** Read and check a lock record; a record that cannot be read is an error, never a free lock. */
+export function readLockRecord(lockFile) {
+  const text = fs.readFileSync(lockFile, 'utf8');
+  let record;
+  try {
+    record = JSON.parse(text);
+  } catch {
+    throw new Error(`Lock file ${lockFile} holds no lock record: ${JSON.stringify(text)}`);
+  }
+  for (const [field, type] of [['checkout', 'string'], ['pid', 'number'], ['processStart', 'string'],
+    ['acquired', 'string'], ['command', 'string'], ['token', 'string']]) {
+    assert.equal(typeof record?.[field], type, `Lock file ${lockFile} has no ${field}: ${text}`);
+  }
+  return record;
+}
+
+function refusal(lockFile, record) {
+  if (holderRunning(record)) {
+    return new HolderLockRefused(`${lockFile} is held by ${describeHolder(record)}; `
+      + 'the holder releases it when its run ends', record);
+  }
+  return new HolderLockRefused(`${lockFile} is held by ${describeHolder(record)}, which is not `
+    + `running; remove the lock with: node ${script} remove-dead ${lockFile}`, record);
+}
+
+/**
+ * Take the lock or throw HolderLockRefused with the holder's record. Returns the handle whose
+ * `release()` removes the lock.
+ */
+export function acquireHolderLock(lockFile, { command = process.argv.slice(1).join(' ') } = {}) {
+  assert.ok(path.isAbsolute(lockFile), `Lock file must be absolute: ${lockFile}`);
+  fs.mkdirSync(path.dirname(lockFile), { recursive: true });
+  const start = processStart(process.pid);
+  assert.ok(start, `The start time of process ${process.pid} is unknown`);
+  const record = {
+    checkout: repositoryRoot, pid: process.pid, processStart: start,
+    acquired: new Date().toISOString(), command, token: randomBytes(16).toString('hex'),
+  };
+  const written = `${lockFile}.${process.pid}.${record.token}`;
+  fs.writeFileSync(written, `${JSON.stringify(record)}\n`, { flag: 'wx' });
+  try {
+    fs.linkSync(written, lockFile);
+  } catch (error) {
+    if (error.code !== 'EEXIST') throw error;
+    throw refusal(lockFile, readLockRecord(lockFile));
+  } finally {
+    fs.unlinkSync(written);
+  }
+  return {
+    lockFile,
+    record,
+    release() {
+      const current = readLockRecord(lockFile);
+      assert.equal(current.token, record.token,
+        `${lockFile} was replaced while this run held it; it now names ${describeHolder(current)}`);
+      fs.unlinkSync(lockFile);
+    },
+  };
+}
+
+/**
+ * Remove a lock whose holder no longer runs, and return its record. A running holder is refused.
+ * The lock is renamed aside before its record is checked again, so a lock that a new holder took
+ * in the meantime is put back instead of removed.
+ */
+export function removeDeadLock(lockFile) {
+  assert.ok(path.isAbsolute(lockFile), `Lock file must be absolute: ${lockFile}`);
+  const record = readLockRecord(lockFile);
+  if (holderRunning(record)) throw refusal(lockFile, record);
+  const aside = `${lockFile}.removing.${process.pid}.${randomBytes(8).toString('hex')}`;
+  fs.renameSync(lockFile, aside);
+  const moved = readLockRecord(aside);
+  if (moved.token !== record.token) {
+    try {
+      fs.linkSync(aside, lockFile);
+    } catch (error) {
+      throw new Error(`${lockFile} was taken by ${describeHolder(moved)} during the removal and a `
+        + `third run took it before it was restored; the record of the second holder is in ${aside}`,
+      { cause: error });
+    }
+    fs.unlinkSync(aside);
+    throw refusal(lockFile, moved);
+  }
+  fs.unlinkSync(aside);
+  return record;
+}
+
+/** Run a command while holding the lock; the exit status is the command's. */
+export async function holdWhileRunning(lockFile, command, args) {
+  const lock = acquireHolderLock(lockFile, { command: [command, ...args].join(' ') });
+  process.stderr.write(`lock: acquired ${lockFile} (pid ${process.pid})\n`);
+  const child = spawn(command, args, { stdio: 'inherit' });
+  const forward = signal => child.kill(signal);
+  const signals = ['SIGINT', 'SIGTERM', 'SIGHUP'];
+  for (const signal of signals) process.on(signal, forward);
+  const status = await new Promise(resolve => {
+    child.on('error', error => {
+      process.stderr.write(`lock: ${command} did not start: ${error.message}\n`);
+      resolve(127);
+    });
+    child.on('exit', (code, signal) => resolve(code ?? 128 + os.constants.signals[signal]));
+  });
+  for (const signal of signals) process.off(signal, forward);
+  lock.release();
+  process.stderr.write(`lock: released ${lockFile}\n`);
+  return status;
+}
+
+async function main(argv) {
+  const [operation, lockFile, separator, command, ...args] = argv;
+  if (operation === 'hold' && lockFile && separator === '--' && command) {
+    process.exitCode = await holdWhileRunning(lockFile, command, args);
+  } else if (operation === 'remove-dead' && lockFile && argv.length === 2) {
+    const record = removeDeadLock(lockFile);
+    process.stdout.write(`lock: removed ${lockFile} of ${describeHolder(record)}, which is not running\n`);
+  } else {
+    throw new Error('Usage: node scripts/holder-lock.mjs hold <lock file> -- <command> [arguments...]\n'
+      + '       node scripts/holder-lock.mjs remove-dead <lock file>');
+  }
+}
+
+if (process.argv[1] && path.resolve(process.argv[1]) === script) {
+  main(process.argv.slice(2)).catch(error => {
+    process.stderr.write(`lock: ${error.message}\n`);
+    process.exitCode = 1;
+  });
+}
