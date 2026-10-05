@@ -8,7 +8,7 @@ const read = (file) => readFile(new URL(`../../${file}`, import.meta.url), 'utf8
 
 // Steps that prepare a runner rather than check the repository.
 const preparation = [
-  /^npm i -g npm@latest/,
+  /^node scripts\/install-npm\.mjs$/,
   /^npm ci\b/,
   /^composer --working-dir=\S+ install\b/,
   /^sh scripts\/install-phpdocumentor\.sh$/,

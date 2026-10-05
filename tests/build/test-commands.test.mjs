@@ -116,7 +116,7 @@ test('a CI step runs tests when its command reaches the test runner', () => {
     'npm test --prefix examples/cross-check-console/server', 'npm run manifest:test', 'npm run test:build && npm run test:build:repeat',
   ]) assert.equal(runsTests(command, project), true, command);
   for (const command of [
-    'npm i -g npm@latest && npm ci --strict-allow-scripts', 'npm run build', 'npm run lint', 'npm run typecheck',
+    'node scripts/install-npm.mjs && npm ci --strict-allow-scripts', 'npm run build', 'npm run lint', 'npm run typecheck',
     'make build-php-extension', 'node scripts/check-ci-browser.mjs', 'node scripts/check-conformance.mjs',
   ]) assert.equal(runsTests(command, project), false, command);
 });

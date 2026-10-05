@@ -18,8 +18,9 @@ npm run test:packages
 one Go major and minor release in `.go-version`. CI reads both files, and every
 Node.js and Go container stage uses the corresponding release line. Rust CI and
 container stages select the stable Rust channel. The check rejects exact runtime
-patch releases and numeric npm releases. CI installs the current stable npm
-release. The runtime checks run repository Rust Node.js entry points without
+patch releases. `packageManager` of `package.json` records one exact npm release;
+the check fails when the running npm, a workflow step or a container definition
+selects another release, and `node scripts/install-npm.mjs` installs it. The runtime checks run repository Rust Node.js entry points without
 Cargo on the process `PATH`. Each entry point must resolve Cargo, rustc and
 rustdoc from one toolchain record and supply the resolved compiler paths to
 Cargo.

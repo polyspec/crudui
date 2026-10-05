@@ -1,5 +1,14 @@
 # Changes
 
+## 2026-10-05 — One npm release locally, in CI and in the images (C5.2-2)
+
+- `packageManager` of `package.json` records npm 12.2.0, and `node scripts/install-npm.mjs`
+  installs exactly that release. Every CI job runs it before npm, and the native test and comparison
+  images install the same release. CI ran `npm i -g npm@latest`, so its npm changed with the
+  registry: npm 12 broke a test that passed with npm 11 locally.
+  `tests/build/runtime-version-policy.test.mjs` fails when the running npm, a workflow step or a
+  container definition selects another release.
+
 ## 2026-10-05 — Every check of a recipe after a failure (C5.10)
 
 - `make docs-check-documents` and `make format-check` run every check of their recipes with

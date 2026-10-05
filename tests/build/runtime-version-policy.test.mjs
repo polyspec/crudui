@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { test } from 'node:test';
@@ -39,7 +40,7 @@ async function selectedGoRelease() {
   return value;
 }
 
-test('CI selects the tracked Node.js line and current npm stable channel', async () => {
+test('CI selects the tracked Node.js line', async () => {
   const workflow = await readFile(path.join(repository, '.github/workflows/ci.yml'), 'utf8');
   const setupCount = [...workflow.matchAll(/uses: actions\/setup-node@/g)].length;
   const versionFileCount = [...workflow.matchAll(/node-version-file:\s*['"]?\.node-version['"]?/g)]
@@ -48,8 +49,59 @@ test('CI selects the tracked Node.js line and current npm stable channel', async
   assert.equal(versionFileCount, setupCount,
     'Every setup-node step must read .node-version');
   assert.doesNotMatch(workflow, /node-version:\s*['"]?\d/);
-  assert.doesNotMatch(workflow, /npm@\d+(?:\.\d+)*/);
-  assert.match(workflow, /npm@latest/);
+});
+
+/** The exact npm release that `packageManager` of package.json records. */
+async function recordedNpm() {
+  const manifest = JSON.parse(await readFile(path.join(repository, 'package.json'), 'utf8'));
+  const match = /^npm@(\d+\.\d+\.\d+)$/.exec(manifest.packageManager ?? '');
+  assert.ok(match, `package.json must record one exact npm release as packageManager npm@<major>.<minor>.<patch>; it records ${manifest.packageManager}`);
+  return match[1];
+}
+
+test('the npm that runs here is the release that package.json records', async () => {
+  const recorded = await recordedNpm();
+  const running = spawnSync(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['--version'], { encoding: 'utf8' });
+  assert.equal(running.error, undefined, running.error?.message);
+  assert.equal(running.stdout.trim(), recorded,
+    `npm ${running.stdout.trim()} runs here and package.json records npm ${recorded}; fix: node scripts/install-npm.mjs`);
+});
+
+test('every workflow job installs the recorded npm before it runs npm', async () => {
+  await recordedNpm();
+  const directory = path.join(repository, '.github/workflows');
+  const violations = [];
+  for (const file of (await readdir(directory)).filter(name => /\.ya?ml$/.test(name))) {
+    const workflow = parse(await readFile(path.join(directory, file), 'utf8'));
+    for (const [id, job] of Object.entries(workflow.jobs ?? {})) {
+      let installed = false;
+      for (const step of job.steps ?? []) {
+        if (typeof step.run !== 'string') continue;
+        for (const command of step.run.split(/\n|&&/).map(text => text.trim()).filter(Boolean)) {
+          if (/\bnpm@|\bnpm (?:i|install) (?:-g|--global)\b/.test(command)) violations.push(`${file} ${id}: \`${command}\` selects an npm release`);
+          if (command === 'node scripts/install-npm.mjs') installed = true;
+          else if (/^npm\b/.test(command) && !installed) violations.push(`${file} ${id}: \`${command}\` runs before node scripts/install-npm.mjs`);
+        }
+      }
+    }
+  }
+  assert.deepEqual(violations, []);
+});
+
+test('container definitions and the Linux style check install the recorded npm', async () => {
+  const recorded = await recordedNpm();
+  const violations = [];
+  for (const definition of await findContainerDefinitions()) {
+    const source = await readFile(definition, 'utf8');
+    if (!/^FROM node:/m.test(source)) continue;
+    const name = path.relative(repository, definition);
+    const installs = [...source.matchAll(/npm install -g npm@(\S+)/g)].map(match => match[1]);
+    if (installs.length !== 1 || installs[0] !== recorded) violations.push(`${name} installs npm ${installs.join(', ') || 'from its image'}, package.json records ${recorded}`);
+  }
+  const styles = await readFile(path.join(repository, 'scripts/test-form-styles-linux.sh'), 'utf8');
+  const install = styles.indexOf('node scripts/install-npm.mjs');
+  if (install === -1 || install > styles.indexOf('npm ci')) violations.push('scripts/test-form-styles-linux.sh runs npm ci before node scripts/install-npm.mjs');
+  assert.deepEqual(violations, []);
 });
 
 test('container definitions select the tracked Node.js major channel', async () => {

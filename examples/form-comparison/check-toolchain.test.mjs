@@ -16,7 +16,8 @@ test('builds one toolchain image without repository source', () => {
   for (const line of instructions.filter(line => line.startsWith('COPY '))) {
     assert.match(line, /^COPY --from=(?:go|rust) \/usr\/local\/\S+ \/usr\/local\/\S+$/);
   }
-  const runs = instructions.filter(line => line.startsWith('RUN ')).join('\n');
+  // The npm release that package.json records is part of the toolchain, not a build of the source.
+  const runs = instructions.filter(line => line.startsWith('RUN ') && !/^RUN npm install -g npm@\d+\.\d+\.\d+$/.test(line)).join('\n');
   assert.doesNotMatch(runs,
     /npm (?:ci|install|run)|composer (?:install|--working-dir)|cargo |go (?:build|test)|scripts\/|examples\/|packages\//);
   assert.doesNotMatch(containerfile,
