@@ -1,5 +1,10 @@
 # 변경 기록
 
+## 2026-10-06 — 기록하는 test stub의 첫 실행 시간 (C7.13-1)
+
+- `tests/build/checkout-npm.test.mjs`와 `tests/build/install-browsers.test.mjs`의 stub case는 각 stub 첫 실행의 경과
+  시간을 기록하므로, 그 증거를 기다리는 C7.13의 30초 정지가 재발하면 스스로 설명됩니다.
+
 ## 2026-10-06 — minor 릴리스로 고정한 Python (C7.12)
 
 - `config/toolchain.json`은 `tests/ordered-json`의 test를 실행하는 Python 3.9를 기록하고, `node scripts/check-toolchain.mjs

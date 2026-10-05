@@ -1,5 +1,11 @@
 # Changes
 
+## 2026-10-06 — The first execution time of test stubs logged (C7.13-1)
+
+- The stub cases of `tests/build/checkout-npm.test.mjs` and `tests/build/install-browsers.test.mjs` log
+  the elapsed time of the first execution of each stub, so a recurrence of the 30 s stall of C7.13,
+  which waits for that evidence, explains itself.
+
 ## 2026-10-06 — Python pinned by its minor release (C7.12)
 
 - `config/toolchain.json` records Python 3.9, which runs the tests of `tests/ordered-json`, and

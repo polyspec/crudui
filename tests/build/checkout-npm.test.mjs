@@ -16,6 +16,12 @@ import { makeTargets } from '../../scripts/test-commands.mjs';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
 // An npm command that records its arguments and, for `install --prefix <p> npm@<v>`, installs a stub npm <v> there.
+// macOS may spend a long time on the first execution of a newly written executable (C7.13); each case logs the
+// elapsed time of the call that first executes its stub, so a stall explains itself.
+function logFirstExecution(name, started) {
+  process.stderr.write(`[stub] the first execution of ${name} ended in ${Math.round(performance.now() - started)} ms\n`);
+}
+
 function stubNpm(t) {
   const directory = mkdtempSync(path.join(tmpdir(), 'crudui-npm-'));
   t.after(() => rmSync(directory, { recursive: true, force: true }));
@@ -39,7 +45,9 @@ test('install-npm installs the recorded npm into .tools/npm of the checkout and 
   const root = mkdtempSync(path.join(tmpdir(), 'crudui-checkout-'));
   t.after(() => rmSync(root, { recursive: true, force: true }));
   const printed = [];
+  const started = performance.now();
   const first = await installNpm({ root, recorded: '12.2.0', npm: npm.program, print: line => printed.push(line) });
+  logFirstExecution(npm.program, started);
   assert.deepEqual(first, { installed: true, release: '12.2.0' });
   const [call] = npm.calls();
   assert.match(call, /^install --prefix \S+\/\.tools\/npm\.next-\S+ --no-audit --no-fund npm@12\.2\.0$/);
@@ -63,7 +71,9 @@ test('install-npm fails with the expected and the installed release', async t =>
   writeFileSync(npm.program, readFileSync(npm.program, 'utf8').replace('version=${argument#npm@}', 'version=11.0.0'));
   const root = mkdtempSync(path.join(tmpdir(), 'crudui-checkout-'));
   t.after(() => rmSync(root, { recursive: true, force: true }));
+  const started = performance.now();
   await assert.rejects(installNpm({ root, recorded: '12.2.0', npm: npm.program }), /holds npm 11\.0\.0 and its command prints 11\.0\.0; expected 12\.2\.0/);
+  logFirstExecution(npm.program, started);
   assert.equal(existsSync(path.join(root, '.tools', 'npm')), false);
   assert.deepEqual(readdirSync(path.join(root, '.tools')), []);
 });

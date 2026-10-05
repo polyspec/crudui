@@ -37,7 +37,10 @@ test('the helper command with its two operands writes the helper file', t => {
   writeFileSync(source, 'helper\n');
   const helper = path.join(directory, 'chrome-devel-sandbox');
   const command = installCommands(['chrome'], { chromeSandbox: true, root: false }).at(-1);
+  // macOS may spend a long time on the first execution of a newly written executable (C7.13); the case logs it.
+  const started = performance.now();
   const run = spawnSync(path.join(directory, command.command), [...command.args, source, helper], { encoding: 'utf8' });
+  process.stderr.write(`[stub] the first execution of ${path.join(directory, command.command)} ended in ${Math.round(performance.now() - started)} ms\n`);
   assert.equal(run.status, 0, run.stderr);
   assert.deepEqual(readFileSync(log, 'utf8').trim().split('\n'), [...command.args, source, helper]);
   assert.equal(existsSync(helper), true);
