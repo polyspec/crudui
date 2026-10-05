@@ -24,6 +24,7 @@ function step(command, args, cwd = treeDirectory, environment = {}) {
 export const supervisorFiles = Object.freeze([
   `${example}/supervisor.mjs`,
   `${example}/src/build-targets.mjs`,
+  `${example}/src/change-requests.mjs`,
   `${example}/src/ordered-json-source.mjs`,
   `${example}/src/php-provenance.mjs`,
   `${example}/src/process-output.mjs`,

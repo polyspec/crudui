@@ -1,5 +1,16 @@
 # Changes
 
+## 2026-10-05 — Source changes published from the host (C2.10)
+
+- The form comparison supervisor compares the mounted repository at every `SIGUSR2` instead of
+  once per second. The host's source watcher `source-events.mjs` (`make deploy-watch`) subscribes
+  to the file events of the working tree and for every event runs `source-changed.mjs` in the
+  container, which signals the process id the supervisor records in `state/supervisor.pid`.
+  Signals during a comparison, and events during a delivery, make one more run after it
+  (`src/change-requests.mjs`). The heartbeat that rewrote the state file every 15 seconds is
+  removed. `tests/build/test-commands.test.mjs` fails on a program that sleeps or runs an interval
+  that prints no progress line.
+
 ## 2026-10-05 — PHP record server ready on its processes' lines (C2.15)
 
 - `servers/php/main.mjs` is ready when PHP-FPM writes `NOTICE: ready to handle connections` and

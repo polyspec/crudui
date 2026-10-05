@@ -13,6 +13,8 @@ export const binaryDirectory = path.join(buildDirectory, 'bin');
 export const stateDirectory = path.join(buildDirectory, 'state');
 /** The supervisor's current build state, replaced at every change and progress report. */
 export const buildStateFile = path.join(stateDirectory, 'build-state.json');
+/** The process id of the running supervisor, which source-changed.mjs signals. */
+export const supervisorProcessFile = path.join(stateDirectory, 'supervisor.pid');
 export const cargoTargetDirectory = path.join(buildDirectory, 'cargo-target');
 /** Container-owned cache volume for package managers and compilers. */
 export const cacheDirectory = '/workspace/cache';

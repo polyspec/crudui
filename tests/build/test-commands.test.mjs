@@ -177,3 +177,24 @@ test('the reproducible build test compares recorded builds within the default te
   assert.doesNotMatch(command, /--timeout/, 'test:build:repeat keeps the 30-second timeout of each test');
   assert.doesNotMatch(read('tests/build/reproducible-build.test.mjs'), /npm', \['run', 'build'\]/, 'the test runs no build');
 });
+
+// A program waits for the event of what it waits for (AGENTS): a process exit, a readiness line, a
+// file event, a signal. It never sleeps in a loop and never re-reads a state on an interval. A
+// timer may only print progress lines, so every `setInterval` callback of a program writes a line.
+test('no program waits in an interval loop', () => {
+  const sleep = /new Promise\(\(?resolve\)? => setTimeout\(resolve, (?!0\))/;
+  const files = execFileSync('git', ['ls-files', '--cached', '--others', '--exclude-standard', '*.mjs', '*.js', '*.cjs', '*.ts'], { cwd: ROOT, encoding: 'utf8' })
+    .split('\n').filter(file => file && existsSync(path.join(ROOT, file)))
+    .filter(file => !/(?:\.test\.[cm]?[jt]s|\.browser\.mjs)$|(?:^|\/)tests?\//.test(file));
+  const loops = [];
+  for (const file of files) {
+    const lines = read(file).split('\n');
+    lines.forEach((line, index) => {
+      if (sleep.test(line)) loops.push(`${file}:${index + 1}: sleeps`);
+      if (/\bsetInterval\(/.test(line) && !/\b(?:write|progress|line)\(/.test(lines.slice(index, index + 12).join('\n'))) {
+        loops.push(`${file}:${index + 1}: an interval that prints no progress line`);
+      }
+    });
+  }
+  assert.deepEqual(loops, []);
+});

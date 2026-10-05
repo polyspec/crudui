@@ -80,7 +80,16 @@ command prints the supervisor's build targets as they run. The health check wait
 six minutes, sized from the measured start of 58 seconds, not containerctl's 30
 minute maximum.
 
-A source change needs no command. The supervisor copies the changed files into the
+A source change is published by the source watcher, which runs in a terminal of the host while the
+service follows the working tree:
+
+```sh
+make deploy-watch
+```
+
+It prints every file event and every signal it delivers to the supervisor, has no time limit, and
+ends with the error of a failed watch or delivery. Without it, the service keeps the last tree it
+compared. At every signal the supervisor copies the changed files into the
 build tree, rebuilds only the affected target and restarts only the affected server.
 PHP source changes apply on the next request. A supervisor-module change reloads the
 supervisor process inside the existing container and preserves all volumes.
