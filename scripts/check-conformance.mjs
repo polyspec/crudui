@@ -80,13 +80,67 @@ export function checkConformance({ features, registry, cases, families, evidence
   return problems;
 }
 
-/** Group the missing and failed cases by feature, fixture and runtime for a readable report. */
-export function summarize(problems) {
+/*
+ * The suites that record evidence, each with the command that runs it and the runtimes it proves
+ * (docs/spec/conformance.md, "Suite runs"). A run record matches a suite when its program, its
+ * tool and its working directory are those declared and its arguments hold the declared argument.
+ */
+export const evidenceSuites = [
+  { name: 'validator JavaScript', run: { program: 'scripts/run-tests.mjs', tool: 'vitest', cwd: 'packages/validator-ts' }, runtimes: ['javascript'] },
+  { name: 'validator PHP', run: { program: 'scripts/run-tests.mjs', tool: 'phpunit', cwd: 'packages/validator-php' }, runtimes: ['php'] },
+  { name: 'validator Go', run: { program: 'scripts/run-tests.mjs', tool: 'go', cwd: 'packages/validator-go' }, runtimes: ['go'] },
+  { name: 'validator Rust', run: { program: 'scripts/run-tests.mjs', tool: 'cargo', argument: 'packages/validator-rust/Cargo.toml' }, runtimes: ['rust'] },
+  { name: 'HTML renderer', run: { program: 'scripts/run-tests.mjs', tool: 'vitest', cwd: 'packages/generator-html' }, runtimes: ['javascript-html', 'javascript-dom'] },
+  { name: 'React renderer', run: { program: 'scripts/run-tests.mjs', tool: 'vitest', cwd: 'packages/generator-react' }, runtimes: ['react'] },
+  { name: 'Vue renderer', run: { program: 'scripts/run-tests.mjs', tool: 'vitest', cwd: 'packages/generator-vue' }, runtimes: ['vue'] },
+  { name: 'Svelte renderer', run: { program: 'scripts/run-tests.mjs', tool: 'vitest', cwd: 'packages/generator-svelte' }, runtimes: ['svelte'] },
+  { name: 'PHP extension', run: { program: 'scripts/run-tests.mjs', tool: 'node', argument: 'packages/php-ext/tests/engine.test.mjs' }, runtimes: ['php-native'] },
+  { name: 'native generators', run: { program: 'tests/native-generators/run.mjs' }, runtimes: ['javascript', 'javascript-html', 'php', 'go', 'rust', 'php-native'] },
+];
+
+/**
+ * The state of each suite from the run records: `did not run`, `did not finish`, `ended with
+ * failure (exit <status>)` or `passed`. The latest record of each command decides, and a suite run
+ * by several commands takes the worst state of them.
+ *
+ * @param {typeof evidenceSuites} suites
+ * @param {Array<{program: string, tool: string|null, cwd: string, args: string[], started: string, status: number|null}>} runs
+ * @returns {Map<string, string>}
+ */
+export function suiteStates(suites, runs) {
+  const states = new Map();
+  for (const suite of suites) {
+    const { program, tool, cwd, argument } = suite.run;
+    const latest = new Map();
+    for (const record of runs) {
+      if (record.program !== program || (tool !== undefined && record.tool !== tool)
+        || (cwd !== undefined && record.cwd !== cwd) || (argument !== undefined && !record.args.includes(argument))) continue;
+      const command = JSON.stringify([record.tool, record.cwd, record.args]);
+      if (!latest.has(command) || latest.get(command).started < record.started) latest.set(command, record);
+    }
+    const ends = [...latest.values()];
+    const unfinished = ends.some(record => record.status === null);
+    const failed = ends.find(record => record.status !== null && record.status !== 0);
+    states.set(suite.name, ends.length === 0 ? 'did not run' : unfinished ? 'did not finish'
+      : failed ? `ended with failure (exit ${failed.status})` : 'passed');
+  }
+  return states;
+}
+
+/**
+ * Group the missing and failed cases by feature, fixture and runtime for a readable report, each
+ * group with the state of every suite that proves its runtime.
+ */
+export function summarize(problems, { suites = [], runs = [] } = {}) {
+  const states = suiteStates(suites, runs);
   const groups = new Map();
   for (const [state, list] of [['missing', problems.missing], ['failed', problems.failed]]) {
     for (const item of list) {
       const id = `${item.feature} · ${item.fixture} · ${item.runtime}`;
-      const group = groups.get(id) ?? { id, missing: [], failed: [] };
+      const group = groups.get(id) ?? {
+        id, runtime: item.runtime, missing: [], failed: [],
+        suites: suites.filter(suite => suite.runtimes.includes(item.runtime)).map(suite => ({ name: suite.name, state: states.get(suite.name) })),
+      };
       group[state].push(item.case);
       groups.set(id, group);
     }
@@ -118,7 +172,14 @@ async function readEvidence(directory) {
     const text = await readFile(path.join(directory, file), 'utf8');
     for (const line of text.split('\n').filter(Boolean)) evidence.push(JSON.parse(line));
   }
-  return { evidence, files: files.length };
+  return { evidence, files: files.filter(name => name.endsWith('.jsonl')).length };
+}
+
+async function readRuns(directory) {
+  let files = [];
+  try { files = await readdir(path.join(directory, 'runs')); } catch (error) { if (error.code !== 'ENOENT') throw error; }
+  return Promise.all(files.filter(name => name.endsWith('.json')).sort()
+    .map(async file => JSON.parse(await readFile(path.join(directory, 'runs', file), 'utf8'))));
 }
 
 async function main() {
@@ -134,19 +195,21 @@ async function main() {
   const families = (await readdir(path.join(ROOT, 'tests/fixtures'), { withFileTypes: true }))
     .filter(entry => entry.isDirectory()).map(entry => `tests/fixtures/${entry.name}`).sort();
   const { evidence, files } = await readEvidence(path.resolve(directory));
+  const runs = await readRuns(path.resolve(directory));
   const problems = checkConformance({ features, registry, cases, families, evidence });
   const lines = createProgress({ write: text => process.stdout.write(text) });
   const out = text => lines.line(text);
   lines.start('conformance: evidence against contracts/features.json', { group: true });
-  out(`conformance: ${evidence.length} evidence records from ${files} files`);
+  out(`conformance: ${evidence.length} evidence records from ${files} files, ${runs.length} suite runs`);
   for (const item of problems.undeclaredFixtures) out(`✖ ${item.feature} names ${item.fixture}, which is not a registered case fixture`);
   for (const family of problems.unregisteredFamilies) out(`✖ ${family} has no registered fixture`);
   for (const fixture of problems.unprovenFixtures) out(`✖ ${fixture} is proven by no feature`);
-  for (const group of summarize(problems)) {
+  for (const group of summarize(problems, { suites: evidenceSuites, runs })) {
     const parts = [];
     if (group.missing.length) parts.push(`${group.missing.length} missing (${group.missing.slice(0, 3).join(', ')}${group.missing.length > 3 ? ', …' : ''})`);
     if (group.failed.length) parts.push(`${group.failed.length} failed (${group.failed.slice(0, 3).join(', ')}${group.failed.length > 3 ? ', …' : ''})`);
-    out(`✖ ${group.id}: ${parts.join(', ')}`);
+    const suites = group.suites.map(suite => `suite ${suite.name} ${suite.state}`).join('; ');
+    out(`✖ ${group.id}: ${parts.join(', ')}${suites ? ` — ${suites}` : ''}`);
   }
   const undeclared = new Map();
   for (const item of problems.undeclaredEvidence) {
