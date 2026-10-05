@@ -1,5 +1,13 @@
 # 변경 기록
 
+## 2026-10-05 — 작업 상태로만 쓰는 작업 상태 표시 (C4.1)
+
+- 작업 상태 표시는 execution checklist에서 작업 행 마지막 칸 첫머리의 상태로만 쓰입니다. checklist의 범례와 C2.1-2의
+  문장이 inline code로 표시를 적었으므로, 표시를 세는 도구가 존재하지 않는 진행 중 작업을 셌습니다. 이제
+  `scripts/check-documents.mjs`는 두 언어에서 다른 표시에 대해 실패하고 그 file, 줄, 열을 적습니다. 범례는 없어졌고, AGENTS가
+  상태를 정의하며, 문장은 상태를 말로 적습니다. `scripts/checklist-markers.test.mjs`는 변경 전 `ERR_MODULE_NOT_FOUND`로
+  실패했고, 그 fixture는 이전 문서 검사를 통과했습니다.
+
 ## 2026-10-05 — 전체 실행의 guard (C2.1-2)
 
 - `make ci`는 어떤 명령보다 먼저 guard `scripts/full-run.mjs`를 시작합니다. AGENTS는 전체 suite를 활성 작업이 모두 끝났을 때 정확히 한
