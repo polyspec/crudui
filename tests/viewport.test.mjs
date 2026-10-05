@@ -5,7 +5,7 @@
 // horizontally on its own.
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { test } from 'node:test';
+import { describe, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { engineDrivers, engines } from './browser-engines.mjs';
 import { setup, teardown } from '../scripts/test-progress/hooks.mjs';
@@ -47,22 +47,21 @@ function measure(html) {
   return problems;
 }
 
+// One page per engine and width holds the stylesheet; every shared render case is its own test
+// with the runner's timeout of a test.
 for (const engine of engines) {
   for (const width of widths) {
-    test(`${engine} at ${width} px: every shared render case fits the viewport`, { timeout: 300000 }, async t => {
-      const started = performance.now();
-      const page = await engineDrivers[engine].open(browsers[engine], { width, height: 800 });
-      try {
+    describe(`${engine} at ${width} px`, () => {
+      let page;
+      setup(`${engine} ${width} px page open`, async () => {
+        page = await engineDrivers[engine].open(browsers[engine], { width, height: 800 });
         await page.setContent(`<!doctype html><html><head><meta name="viewport" content="width=device-width"><style>${stylesheet}</style></head><body style="margin:0"></body></html>`);
-        const failures = [];
-        for (const item of cases) {
-          const problems = await page.mainFrame().evaluate(measure, item.html);
-          if (problems.length > 0) failures.push(`${item.name}: ${problems.join('; ')}`);
-        }
-        t.diagnostic(`${engine} ${width} px: ${cases.length} cases, ${failures.length} failed, ${Math.round(performance.now() - started)} ms`);
-        assert.deepEqual(failures, []);
-      } finally {
-        await page.close();
+      });
+      teardown(`${engine} ${width} px page close`, () => page?.close());
+      for (const item of cases) {
+        test(`${item.name} fits the viewport`, async () => {
+          assert.deepEqual(await page.mainFrame().evaluate(measure, item.html), []);
+        });
       }
     });
   }

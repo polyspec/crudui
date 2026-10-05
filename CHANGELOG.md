@@ -1,5 +1,12 @@
 # Changes
 
+## 2026-10-05 — One test per render case in the viewport and Tailwind checks (C2.11)
+
+- `tests/viewport.test.mjs` and `tests/tailwind-styles.test.mjs` open the pages of each engine and
+  width in a setup of a suite and run every one of the 432 shared render cases as its own test with
+  the runner's timeout of 30 seconds. Each engine and width ran all cases inside one test with a
+  timeout of 300 or 600 seconds and printed only its start and end.
+
 ## 2026-10-05 — Reproducible build in a logged step (C2.12)
 
 - `npm run test:build:repeat` builds the packages twice with `scripts/repeat-build.mjs`, a logged

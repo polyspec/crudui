@@ -1,5 +1,12 @@
 # 변경 기록
 
+## 2026-10-05 — viewport와 Tailwind 검사의 render case별 test (C2.11)
+
+- `tests/viewport.test.mjs`와 `tests/tailwind-styles.test.mjs`는 각 engine과 폭의 page를 suite의
+  setup에서 열고, 432개 공유 render case를 각각 runner의 30초 timeout을 가진 test로 실행합니다. 전에는
+  engine과 폭마다 모든 case를 300초나 600초 timeout의 test 하나 안에서 실행하고 시작과 끝만
+  출력했습니다.
+
 ## 2026-10-05 — log를 남기는 단계의 재현 가능한 build (C2.12)
 
 - `npm run test:build:repeat`는 `scripts/repeat-build.mjs`로 package를 두 번 build합니다. 이는 시간
