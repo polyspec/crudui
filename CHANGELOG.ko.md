@@ -1,5 +1,10 @@
 # 변경 기록
 
+## 2026-10-06 — hiddenPaths의 public build test (C8.1-1)
+
+- public build test는 `contracts/features.json`이 선언하는 대로 `@crudui/validator`의 export 중에 `hiddenPaths`를
+  기대하고, build된 ESM과 CommonJS entry로 그 결과를 검사합니다.
+
 ## 2026-10-06 — 문서화한 검증 결과 type (C8.3-1)
 
 - `@crudui/validator`의 interface `ValidationResult`가 자기 문서 주석을 가지고 `ListValidationResult`의 주석은 하나이므로,

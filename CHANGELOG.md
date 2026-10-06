@@ -1,5 +1,11 @@
 # Changes
 
+## 2026-10-06 — Public build test of hiddenPaths (C8.1-1)
+
+- The public build test expects `hiddenPaths` among the exports of `@crudui/validator`, as
+  `contracts/features.json` declares it, and checks its result through the built ESM and CommonJS
+  entries.
+
 ## 2026-10-06 — Documented validation result type (C8.3-1)
 
 - The interface `ValidationResult` of `@crudui/validator` has its own documentation comment, and

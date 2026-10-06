@@ -141,6 +141,7 @@
 | ID | 작업 | Verification | 상태 |
 |---|---|---|---|
 | C8.1 | 브라우저 바인딩이 표시를 갱신한다. 변경마다 `@crudui/validator`의 새 export `hiddenPaths(spec, data)`로 `design.show`에 따른 각 노드의 `hidden` 속성을 쓰고, 숨게 된 노드와 그 안의 노드의 오류를 지우며, 값은 바꾸지 않는다 | `make test-form-binding`, `make test-validator-js` | [o] |
+| C8.1-1 | public build test에서 `@crudui/validator`의 public export `hiddenPaths`를 검사한다. C8.1이 이를 public entry와 `contracts/features.json`에 추가했지만 `tests/build/public-packages.test.mjs`는 C8.1 이전의 export 목록을 유지했으므로 C8.5에서 `make test-build`가 실패했다. test는 이제 계약의 export를 기대하고 build된 ESM과 CommonJS entry로 `hiddenPaths`를 호출한다 | `make test-build` | [o] |
 | C8.2 | 반복 그룹의 필드에서 위로 올라가는 상대 경로를 행을 한 단계로 하여 결정한다. 행 안의 `..x`는 행 키가 무엇이든 collection 옆의 필드를 읽으며, 검증기 다섯 개와 렌더러가 같다. expression 계약의 경로 결정을 고치고 공유 사례를 추가한다 | `make test-validators`, `make test-php-extension`, `npm test -w @crudui/generator-core` | [o] |
 | C8.3 | 검증기 다섯 개가 검증 결과와 함께 숨은 필드의 데이터 경로를 돌려주어, 서버가 숨은 가지의 값을 저장하지 않을 수 있게 한다 | `make test-validators`, `make test-php-extension` | [o] |
 | C8.3-1 | `@crudui/validator`의 interface `ValidationResult`를 문서화한다. C8.3이 `ValidationResult`의 주석과 interface 사이에 `ListValidationResult`를 넣어 그 주석이 `ListValidationResult`를 두 번 설명하고 `ValidationResult`에는 주석이 없었으므로, C8.5에서 `make docs-check`의 문서 coverage 검사가 `ValidationResult (Interface) ... does not have any documentation`으로 실패했다 | `make docs-check` | [o] |
