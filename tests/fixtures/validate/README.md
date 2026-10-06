@@ -4,7 +4,7 @@
 
 `cases.json` contains the shared form validation cases for TypeScript, PHP, the PHP extension, Go
 and Rust. Each case provides `name`, `note`, `spec`, `data`, optional `files`, and either
-`expected` or `expectFailure`. `expected` is the complete `{ valid, errors }` result, and every
+`expected` or `expectFailure`. `expected` is the complete `{ valid, errors, hidden }` result, and every
 error has `path`, `field`, `rule`, `message` and `value`. `expectFailure` is
 `{ code, message, at }`: a composition failure's `at` is its trace joined with `.`, and an input
 failure's `at` is empty.

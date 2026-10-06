@@ -16,7 +16,8 @@ result, err := validate.ValidateJSON(specJSON, dataJSON, files, basepath)
 
 - `validate.ValidateJSON(spec, data []byte, files map[string][]byte, basepath string)`
   composes the form specification, rejects forbidden keys and validates `data`.
-  It returns a `ValidationResult` with `Valid` and `Errors`; each error has
+  It returns a `ValidationResult` with `Valid`, `Errors` and `Hidden`, the data paths of the fields
+  that `design.show` hides; each error has
   `path`, `field`, `rule`, `message` and `value`.
 - `validate.ValidateListJSON(spec, files, basepath)` composes a list
   specification and rejects forbidden keys. A list has no rows, so a clean load

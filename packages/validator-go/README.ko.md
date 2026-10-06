@@ -15,8 +15,8 @@ result, err := validate.ValidateJSON(specJSON, dataJSON, files, basepath)
 ```
 
 - `validate.ValidateJSON(spec, data []byte, files map[string][]byte, basepath string)`는
-  폼 명세를 조합하고 금지 키를 거부한 뒤 `data`를 검증합니다. `Valid`와
-  `Errors`를 가진 `ValidationResult`를 반환하며, 각 오류는 `path`, `field`,
+  폼 명세를 조합하고 금지 키를 거부한 뒤 `data`를 검증합니다. `Valid`, `Errors`,
+  그리고 `design.show`가 숨기는 필드의 데이터 경로인 `Hidden`을 가진 `ValidationResult`를 반환하며, 각 오류는 `path`, `field`,
   `rule`, `message`, `value`를 가집니다.
 - `validate.ValidateListJSON(spec, files, basepath)`는 목록 명세를 조합하고 금지
   키를 거부합니다. 목록에는 행이 없으므로 깨끗하게 로드되면 유효한 결과입니다.

@@ -1,5 +1,11 @@
 # Changes
 
+## 2026-10-06 — Hidden paths in the documents of the validation result (C8.3-5)
+
+- The READMEs of the TypeScript, Go and Rust validators, the PHP extension specification, the
+  fixture specification and the README of the shared validation cases state the form validation
+  result as `valid`, `errors` and `hidden`.
+
 ## 2026-10-06 — Native form fixture inventory of 188 cases (C8.4-1)
 
 - The native generator suite expects the 188 form cases of `tests/fixtures/form-render/cases.json`,
