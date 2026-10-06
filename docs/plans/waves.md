@@ -39,3 +39,7 @@ Depends on: none. A field or a group declares `design.show` with a condition on 
 ## Wave 9
 
 Depends on: none. The polyspec repositories name their packages after the organization: template publishes `polyspec/template` with the namespace `Polyspec\Template\`, `@polyspec/template-workspace` and the crate `polyspec-template`, and hyper `polyspec/hyper`, `Polyspec\Hyper\` and `@polyspec/hyper`. CRUDUI named its npm packages `@crudui/*`, its Composer packages `crudui/generator` and `crudui/validator`, its PHP classes under `CRUDUI\` and its crates `crudui-generator` and `crudui-validator`, so the polyspec packages followed two conventions. CRUDUI follows the convention of template and hyper.
+
+## Wave 10
+
+Depends on: none. The form comparison takes OrderedJSON from the branch `main` of `polyspec/ordered-json` and uses the package names of that branch.

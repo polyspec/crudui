@@ -39,3 +39,7 @@
 ## Wave 9
 
 의존: 없음. polyspec 저장소는 패키지 이름을 조직 이름으로 짓는다. template은 `polyspec/template`과 namespace `Polyspec\Template\`, `@polyspec/template-workspace`, crate `polyspec-template`을, hyper는 `polyspec/hyper`, `Polyspec\Hyper\`, `@polyspec/hyper`를 쓴다. CRUDUI는 npm 패키지를 `@crudui/*`로, Composer 패키지를 `crudui/generator`와 `crudui/validator`로, PHP 클래스를 `CRUDUI\` 아래에, crate를 `crudui-generator`와 `crudui-validator`로 지었으므로, polyspec 패키지에는 두 규칙이 섞여 있었다. CRUDUI는 template과 hyper의 규칙을 따른다.
+
+## Wave 10
+
+의존: 없음. 폼 비교는 OrderedJSON을 `polyspec/ordered-json`의 branch `main`에서 받고 그 branch의 package 이름을 쓴다.
