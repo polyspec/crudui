@@ -1,5 +1,11 @@
 # Changes
 
+## 2026-10-06 — Documented validation result type (C8.3-1)
+
+- The interface `ValidationResult` of `@crudui/validator` has its own documentation comment, and
+  `ListValidationResult` has one comment, so the documentation coverage of `validator-ts` passes
+  again.
+
 ## 2026-10-06 — Changes reach main through pull requests and the merge queue (C6.2)
 
 - Every change reaches `main` through a pull request and the merge queue: publish a branch with `git

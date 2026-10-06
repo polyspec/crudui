@@ -1,5 +1,10 @@
 # 변경 기록
 
+## 2026-10-06 — 문서화한 검증 결과 type (C8.3-1)
+
+- `@crudui/validator`의 interface `ValidationResult`가 자기 문서 주석을 가지고 `ListValidationResult`의 주석은 하나이므로,
+  `validator-ts`의 문서 coverage가 다시 통과합니다.
+
 ## 2026-10-06 — pull request와 merge queue로 main에 도달하는 변경 (C6.2)
 
 - 모든 변경은 pull request와 merge queue를 거쳐 `main`에 도달합니다. branch는 `git push`, `gh pr create`, `gh pr
