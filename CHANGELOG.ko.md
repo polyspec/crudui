@@ -1,5 +1,10 @@
 # 변경 기록
 
+## 2026-10-06 — 188개 사례의 native 폼 fixture 목록 (C8.4-1)
+
+- native generator suite는 `design.show`의 행 부모 사례와 literal identifier 사례를 포함한
+  `tests/fixtures/form-render/cases.json`의 폼 사례 188개를 기대하고, 각 사례를 모든 native target에서 실행합니다.
+
 ## 2026-10-06 — cross-check 검증기 process의 단일 응답 (C8.3-4)
 
 - cross-check console의 PHP 검증기 process는 다른 process와 `validators/README.md`처럼 폼에 `{ valid, errors }`를

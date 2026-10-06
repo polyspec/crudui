@@ -1,5 +1,11 @@
 # Changes
 
+## 2026-10-06 — Native form fixture inventory of 188 cases (C8.4-1)
+
+- The native generator suite expects the 188 form cases of `tests/fixtures/form-render/cases.json`,
+  with the row parent and literal identifier cases of `design.show`, and runs each of them on every
+  native target.
+
 ## 2026-10-06 — One response of the cross-check validator processes (C8.3-4)
 
 - The PHP validator process of the cross-check console writes `{ valid, errors }` for a form, as
