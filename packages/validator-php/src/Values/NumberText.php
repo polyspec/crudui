@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Validator\Values;
+namespace Polyspec\Crudui\Validator\Values;
 
 /**
  * Write a finite double as ECMAScript Number.prototype.toString does: the fewest

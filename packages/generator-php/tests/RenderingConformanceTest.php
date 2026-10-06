@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Generator\Tests;
+namespace Polyspec\Crudui\Generator\Tests;
 
 use PHPUnit\Framework\TestCase;
-use CRUDUI\Generator;
-use CRUDUI\Generator\Buttons;
-use CRUDUI\Generator\FormRender;
-use CRUDUI\Generator\Messages;
-use CRUDUI\Generator\Rendering;
-use CRUDUI\Generator\Value;
+use Polyspec\Crudui\Generator;
+use Polyspec\Crudui\Generator\Buttons;
+use Polyspec\Crudui\Generator\FormRender;
+use Polyspec\Crudui\Generator\Messages;
+use Polyspec\Crudui\Generator\Rendering;
+use Polyspec\Crudui\Generator\Value;
 use stdClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 
@@ -86,7 +86,7 @@ final class RenderingConformanceTest extends TestCase
                     $value = '';
                 }
                 if ($attribute->name === 'style') {
-                    $value = \CRUDUI\Generator\Style::canonical($value) ?? '';
+                    $value = \Polyspec\Crudui\Generator\Style::canonical($value) ?? '';
                 }
                 if (in_array($attribute->name, ['class', 'style'], true) && $value === '') {
                     continue;

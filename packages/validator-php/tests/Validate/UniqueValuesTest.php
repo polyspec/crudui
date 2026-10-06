@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Validator\Tests\Validate;
+namespace Polyspec\Crudui\Validator\Tests\Validate;
 
-use CRUDUI\Validator;
+use Polyspec\Crudui\Validator;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -39,7 +39,7 @@ final class UniqueValuesTest extends TestCase
 
     public function testRowsBelongToOneValidation(): void
     {
-        $validator = new \CRUDUI\Validator\Validate\Validator(['type' => 'group', 'properties' => [
+        $validator = new \Polyspec\Crudui\Validator\Validate\Validator(['type' => 'group', 'properties' => [
             'rows' => ['type' => 'group', 'multiple' => true, 'properties' => [
                 'code' => ['type' => 'text', 'validate' => ['unique' => true]],
             ]],

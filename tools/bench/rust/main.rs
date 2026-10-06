@@ -11,7 +11,7 @@
 //! Args: --iters N, --warmup N, --spec NAME, --fixtures DIR. The counts follow
 //! the rule of ../arguments.js.
 
-use crudui_validator::validate::Validator;
+use polyspec_crudui_validator::validate::Validator;
 use serde_json::Value;
 use std::fs;
 use std::path::Path;

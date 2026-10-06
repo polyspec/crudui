@@ -1,12 +1,12 @@
-# @crudui/generator-html
+# @polyspec/crudui-generator-html
 
 [한국어](README.ko.md).
 
 Framework-independent HTML rendering for CRUDUI form instances, lists and details.
 
 ```ts
-import { compileForm, createForm } from '@crudui/generator-core';
-import { renderForm } from '@crudui/generator-html';
+import { compileForm, createForm } from '@polyspec/crudui-generator-core';
+import { renderForm } from '@polyspec/crudui-generator-html';
 
 const template = compileForm({ type: 'group', properties: { name: { type: 'text' } } });
 const form = createForm(template, { name: 'Example' });
@@ -17,7 +17,7 @@ The renderer consumes evaluated core models and returns HTML. `renderForm(form, 
 the [complete form](../../docs/spec/form-runtime.md#complete-form): with `options.action` it
 creates the `form` element and the `options.hidden` inputs, and it places `options.formErrors`
 and `options.errors`; without options it returns the `crudui-form` block. It does not bind
-browser events, validate data or load records. Use `connectForm` from `@crudui/generator-core`
+browser events, validate data or load records. Use `connectForm` from `@polyspec/crudui-generator-core`
 on the `crudui-form` element after inserting the markup when browser editing is required.
 
 Data owned outside a form instance through `bindForm` renders as the same markup with

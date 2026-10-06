@@ -2,7 +2,7 @@
   Test host that renders the list or detail a store names and updates it in place.
 -->
 <script>
-  import { buildDetail, buildList } from '@crudui/generator-core';
+  import { buildDetail, buildList } from '@polyspec/crudui-generator-core';
   import List from '../src/components/List.svelte';
   import Detail from '../src/components/Detail.svelte';
 

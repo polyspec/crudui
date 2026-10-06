@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Validator\Compose;
+namespace Polyspec\Crudui\Validator\Compose;
 
-use CRUDUI\Validator\Support\JsonValue;
+use Polyspec\Crudui\Validator\Support\JsonValue;
 
 /**
  * $ref resolution expands base inheritance before other composition (SPEC §5).

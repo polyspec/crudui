@@ -4,7 +4,7 @@
  *
  * A page with the HTML renderer renders the session with `renderForm` and
  * `renderOutline`, connects the markup with `connectForm` and `connectOutline` from
- * @crudui/generator-core, and on every change patches the new markup into the page with
+ * @polyspec/crudui-generator-core, and on every change patches the new markup into the page with
  * `patchContent` and synchronizes the controls (tests/form-styles.test.mjs mounts it the same
  * way in a browser). The React, Vue and Svelte
  * form tests run the same scenario modules over their components.
@@ -14,7 +14,7 @@ import { expect, test } from 'vitest';
 import {
   compileForm, connectForm, connectOutline, createForm, patchContent,
   type FormInstance,
-} from '@crudui/generator-core';
+} from '@polyspec/crudui-generator-core';
 import { renderForm, renderOutline } from './index';
 // @ts-expect-error Shared browser lifecycle across all renderers.
 import { spec, data, exerciseSessionDom } from '../../../tests/fixtures/form-session/scenario.mjs';

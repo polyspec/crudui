@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { flushSync } from 'react-dom';
 import { createRoot, hydrateRoot } from 'react-dom/client';
-import { bindButtons, bindForm, formDescription, formMessages } from '@crudui/generator-core';
+import { bindButtons, bindForm, formDescription, formMessages } from '@polyspec/crudui-generator-core';
 import { FormFields } from '#react/FormFields';
 import { OutlineView } from '#react/Outline';
 import { DataPanel } from '#react/DataView';

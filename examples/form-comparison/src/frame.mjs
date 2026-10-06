@@ -1,4 +1,4 @@
-import { connectStickyHeaders } from '@crudui/generator-core';
+import { connectStickyHeaders } from '@polyspec/crudui-generator-core';
 import { hydrateView, hydration, mountView } from '#adapter';
 import { formValidation } from './form-validation.mjs';
 import { bindFormController } from './bind-form-controller.mjs';

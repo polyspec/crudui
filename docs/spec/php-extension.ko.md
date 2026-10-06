@@ -21,7 +21,7 @@
 ## 공개 클래스와 로딩
 
 PHP 패키지와 확장은 같은 공개 클래스를 제공합니다.
-`CRUDUI\Generator`, `CRUDUI\Validator`, `CRUDUI\Form`을 사용합니다.
+`Polyspec\Crudui\Generator`, `Polyspec\Crudui\Validator`, `Polyspec\Crudui\Form`을 사용합니다.
 메서드 이름, 매개변수 이름, 타입, 기본값, 반환값, 예외 타입이 같습니다.
 구현에 따라 API 호출이 바뀌지 않습니다.
 
@@ -54,14 +54,14 @@ PHP 패키지와 확장은 같은 공개 클래스를 제공합니다.
 
 | API | 동작 |
 | --- | --- |
-| `CRUDUI\Generator::compileForm(spec, options)` | 데이터 없이 JSON으로 직렬화할 수 있는 폼 템플릿을 컴파일합니다. |
-| `CRUDUI\Generator::bindForm(template, data, options)` | 템플릿과 데이터를 수정하지 않고 필드 모델을 계산합니다. |
-| `new CRUDUI\Form(template, data, options)` | 독립적인 폼 인스턴스를 생성합니다. |
+| `Polyspec\Crudui\Generator::compileForm(spec, options)` | 데이터 없이 JSON으로 직렬화할 수 있는 폼 템플릿을 컴파일합니다. |
+| `Polyspec\Crudui\Generator::bindForm(template, data, options)` | 템플릿과 데이터를 수정하지 않고 필드 모델을 계산합니다. |
+| `new Polyspec\Crudui\Form(template, data, options)` | 독립적인 폼 인스턴스를 생성합니다. |
 | `$form->setData(data)` | 인스턴스 데이터를 교체하고 필드를 다시 계산합니다. |
 | `$form->getData()` | 복사된 전송 데이터를 반환합니다. |
 | `$form->addRow`, `copyRow`, `removeRow`, `moveRow`, `rekeyRow` | 폼 런타임에 정의된 행 작업을 수행합니다. |
-| `CRUDUI\Generator::renderForm(form, options)` | 인스턴스의 [완전한 폼](form-runtime.ko.md#완전한-폼) HTML을 반환합니다. |
-| `CRUDUI\Generator::sequenceRowKey(seq)` | 저장된 시퀀스를 행 키로 변환합니다. |
+| `Polyspec\Crudui\Generator::renderForm(form, options)` | 인스턴스의 [완전한 폼](form-runtime.ko.md#완전한-폼) HTML을 반환합니다. |
+| `Polyspec\Crudui\Generator::sequenceRowKey(seq)` | 저장된 시퀀스를 행 키로 변환합니다. |
 
 컴파일은 공용 컴파일러와 같은 `files`, `basepath`, `keyPrefix` 입력을
 받습니다. 바인딩과 인스턴스는 `language`, `idPrefix`, `keyPrefix`,
@@ -80,27 +80,27 @@ HTML 생성은 지원하는 필드 타입과 레이아웃을 모두 포함합니
 생성된 템플릿과 전송 데이터는 React, Vue, Svelte에서도 동작합니다.
 
 목록 생성은 JavaScript 렌더러와 같은 목록 명세와 표·카드 출력 계약을
-따릅니다. `CRUDUI\Generator::buildList`는 평가한 목록 모델을 반환하고,
-`CRUDUI\Generator::renderList`는 목록 명세, 표시할 행, 렌더링 옵션을 받습니다.
+따릅니다. `Polyspec\Crudui\Generator::buildList`는 평가한 목록 모델을 반환하고,
+`Polyspec\Crudui\Generator::renderList`는 목록 명세, 표시할 행, 렌더링 옵션을 받습니다.
 
 ## 검증과 PHP 값
 
-`CRUDUI\Validator::validate(spec, data, options)`는 전송 데이터를 검증하고
+`Polyspec\Crudui\Validator::validate(spec, data, options)`는 전송 데이터를 검증하고
 `valid`, `errors`, 그리고 `design.show`가 숨기는 필드의 데이터 경로인 `hidden`을
 반환합니다([평가](validation-rules.ko.md#평가)). 오류 항목은 `path`, `field`, `rule`,
-`message`, `value`를 유지합니다. `CRUDUI\Validator::validateList(spec, options)`는
-목록 명세를, `CRUDUI\Validator::validateDetail(spec, options)`는 상세 명세를 검사합니다. 조합 입력은 명시적인 `files` 맵과 `basepath`를
+`message`, `value`를 유지합니다. `Polyspec\Crudui\Validator::validateList(spec, options)`는
+목록 명세를, `Polyspec\Crudui\Validator::validateDetail(spec, options)`는 상세 명세를 검사합니다. 조합 입력은 명시적인 `files` 맵과 `basepath`를
 사용합니다. 명세, 조합, 데이터 형태 실패는 예외를 발생시키며 검증 결과로
 처리하지 않습니다. 검증은 공용 규칙과 적합성 검사 사례를 사용합니다.
 
-조합 오류는 `CRUDUI\Validator\Compose\ComposeLoadError`를 사용합니다. 형태가
+조합 오류는 `Polyspec\Crudui\Validator\Compose\ComposeLoadError`를 사용합니다. 형태가
 잘못된 제출 데이터는 `message`로 생성하는
-`CRUDUI\Validator\Validate\FormInputError`를 발생시키며 `getErrorCode()`는
+`Polyspec\Crudui\Validator\Validate\FormInputError`를 발생시키며 `getErrorCode()`는
 `INVALID_FORM_INPUT`을 반환합니다. 비어 있지 않은 순차 루트 배열은 합성 전에 이
 예외를 발생시킵니다. 메시지는 [검증 절차](../operations/validation.ko.md)에서
 정의합니다.
 생성기 동작 오류는 `errorCode`, `message`, 선택적 `path`로 생성하는
-`CRUDUI\FormError`를 사용하며 `getErrorCode()`와 `getPath()`가 동작의
+`Polyspec\Crudui\FormError`를 사용하며 `getErrorCode()`와 `getPath()`가 동작의
 오류 정보를 반환합니다. 지원하지 않는 필드는 `UNSUPPORTED_FIELD_TYPE`,
 그 밖의 잘못된 폼 작업은 `INVALID_FORM_INPUT`을 사용합니다. 지원하는 필드를
 생성하는 중 실패하면 `INTERNAL_ERROR`를 사용합니다. PHP 인수 타입 위반은
@@ -116,7 +116,7 @@ JSON 입력 경계에서는 `json_decode($json, false, 512, JSON_THROW_ON_ERROR)
 내부 API 호출에서는 연관 배열을 계속 사용할 수 있습니다.
 `json_decode`는 쌍이 없는 서로게이트 이스케이프가 있는 JSON 텍스트를 거부합니다. 대신
 [입력 텍스트](input-text.ko.md) 실패를 보고하려면 같은 값을 반환하고 그 텍스트를 검사용으로
-보존하는 `CRUDUI\Validator\Support\JsonText::decode`로 디코딩합니다.
+보존하는 `Polyspec\Crudui\Validator\Support\JsonText::decode`로 디코딩합니다.
 객체로 정해진 옵션 `files`, `data`에도 빈 PHP 배열을 허용합니다.
 반환하는 레코드 객체와 캐시 템플릿은 `stdClass`를 사용하고 목록은 배열을
 사용합니다. 양방향 변환에서 객체 항목 순서와 행 키를 유지합니다.
@@ -125,7 +125,7 @@ JSON 입력 경계에서는 `json_decode($json, false, 512, JSON_THROW_ON_ERROR)
 멤버 이름, 값 한도를 넘은 값은 메서드의 다른 검사보다 먼저 [입력 텍스트](input-text.ko.md)
 규칙대로 실패합니다. 어떤 검사도 순회하지 않는 변환 값이 같은 한도를 넘으면
 `Recursive or excessively nested PHP value`로 실패합니다. 검증에서는
-`InvalidArgumentException`, 생성에서는 코드가 `INVALID_FORM_INPUT`인 `CRUDUI\FormError`입니다.
+`InvalidArgumentException`, 생성에서는 코드가 `INVALID_FORM_INPUT`인 `Polyspec\Crudui\FormError`입니다.
 
 확장은 숨김 식별자나 순서 필드를 추가하지 않습니다. 폼 전송과 순서 보존
 JSON 전송은 같은 키 기반 레코드를 전송합니다. JSON 파싱과 직렬화는

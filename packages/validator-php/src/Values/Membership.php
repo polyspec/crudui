@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Validator\Values;
+namespace Polyspec\Crudui\Validator\Values;
 
 /**
  * The member set of `in`: a list (each element as is), a choice list (the value of each

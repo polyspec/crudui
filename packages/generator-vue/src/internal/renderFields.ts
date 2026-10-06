@@ -1,7 +1,7 @@
 import { createSSRApp } from 'vue';
 import { renderToString } from 'vue/server-renderer';
 import { FormFields } from '../components/FormFields.js';
-import { bindButtons, bindForm, formDescription, formMessages, type FormTemplate, type BindFormOptions } from '@crudui/generator-core';
+import { bindButtons, bindForm, formDescription, formMessages, type FormTemplate, type BindFormOptions } from '@polyspec/crudui-generator-core';
 
 /** Render evaluated fields for layout conformance fixtures. */
 export async function renderFields(template: FormTemplate, options: BindFormOptions & { data?: Record<string, unknown> } = {}): Promise<string> {

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { createApp, h, nextTick, shallowRef } from 'vue';
 import { expect, it } from 'vitest';
-import { buildDetail, buildList } from '@crudui/generator-core';
+import { buildDetail, buildList } from '@polyspec/crudui-generator-core';
 import { List } from '../src/components/List';
 import { Detail } from '../src/components/Detail';
 import { exerciseViewRerender } from '../../../tests/fixtures/view-session/rerender.mjs';

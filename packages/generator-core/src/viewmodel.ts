@@ -10,7 +10,7 @@ import {
 } from './util';
 import { declaredAttributes, resolveDesign, type ResolvedDesign } from './design';
 import { makeContext } from './expr';
-import { FormInputError } from '@crudui/validator';
+import { FormInputError } from '@polyspec/crudui-validator';
 import { UnsupportedFieldTypeError } from './errors';
 import { CHOICE_LIST_EXPECTED, checkChoiceAppearance, choicePairs, isChoiceList } from './choice-list';
 import type { Translate } from './content';

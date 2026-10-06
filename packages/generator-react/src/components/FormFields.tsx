@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { formButtonsHtml, type ButtonVM, type FormMessages, type NodeVM } from '@crudui/generator-core';
-import type { FormRenderModel } from '@crudui/generator-core/internal';
+import { formButtonsHtml, type ButtonVM, type FormMessages, type NodeVM } from '@polyspec/crudui-generator-core';
+import type { FormRenderModel } from '@polyspec/crudui-generator-core/internal';
 import { Node, NodeErrorsContext } from './Node';
 import { RawContainer } from './raw';
 

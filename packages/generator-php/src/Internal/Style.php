@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Generator;
+namespace Polyspec\Crudui\Generator;
 
 /** Parse CSS declarations without splitting quoted or nested values. */
 final class Style

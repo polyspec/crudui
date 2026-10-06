@@ -3,7 +3,7 @@
   the detail has any, and the definition list.
 -->
 <script lang="ts">
-  import type { DetailViewModel, DetailFieldVM, CellDisplay } from '@crudui/generator-core';
+  import type { DetailViewModel, DetailFieldVM, CellDisplay } from '@polyspec/crudui-generator-core';
   import { patched, firstMarkup } from './raw.js';
   import Actions from './Actions.svelte';
 

@@ -1,12 +1,12 @@
-# @crudui/form-binding
+# @polyspec/crudui-form-binding
 
 [한국어](README.ko.md).
 
 Browser validation of a server-rendered CRUDUI form with the specification the server validates it
-with. The package runs only in a browser and depends on `@crudui/validator`.
+with. The package runs only in a browser and depends on `@polyspec/crudui-validator`.
 
 ```ts
-import { bindForm } from '@crudui/form-binding';
+import { bindForm } from '@polyspec/crudui-form-binding';
 
 const spec = JSON.parse(document.querySelector('#member-spec')!.textContent!);
 const binding = bindForm(document.querySelector('form')!, spec, { keyPrefix: 'form' });

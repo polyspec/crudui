@@ -19,7 +19,7 @@ The package root exports `validate(spec, data, options?)`. Options accept `files
 the in-memory file set.
 
 ```js
-import { validate } from '@crudui/validator';
+import { validate } from '@polyspec/crudui-validator';
 
 const spec = {
   type: 'group',
@@ -33,7 +33,7 @@ if (result.valid || result.errors[0]?.rule !== 'required') {
 
 ## PHP
 
-`CRUDUI\Validator::validate` accepts the specification, data,
+`Polyspec\Crudui\Validator::validate` accepts the specification, data,
 optional virtual files, an optional loader and a base path. Its result exposes
 `valid`, `errors` and `toArray()`.
 
@@ -41,7 +41,7 @@ optional virtual files, an optional loader and a base path. Its result exposes
 <?php
 require 'packages/validator-php/vendor/autoload.php';
 
-use CRUDUI\Validator;
+use Polyspec\Crudui\Validator;
 
 $spec = [
     'type' => 'group',
@@ -85,11 +85,11 @@ func main() {
 ## Rust
 
 The crate root exports `validate` and `ValidateOptions`. Options accept virtual
-files, a loader and a base path. Run the example with the `crudui-validator`
+files, a loader and a base path. Run the example with the `polyspec-crudui-validator`
 crate and `serde_json` dependencies.
 
 ```rust
-use crudui_validator::{validate, ValidateOptions};
+use polyspec_crudui_validator::{validate, ValidateOptions};
 use serde_json::json;
 
 fn main() {
@@ -119,7 +119,7 @@ error markup and the timing. The server still validates every submission it rece
 3. Bind the parsed `form` element with the same key prefix and the page's texts:
 
 ```js
-import { bindForm } from '@crudui/form-binding';
+import { bindForm } from '@polyspec/crudui-form-binding';
 
 const texts = { 'email.required': 'Enter your email address.', invalid: 'Check the marked fields.' };
 const spec = JSON.parse(document.querySelector('#member-spec').textContent);
@@ -136,7 +136,7 @@ form from script with `form.requestSubmit()`: `form.submit()` fires no `submit` 
 binding does not validate it. Call `binding.dispose()` before the page removes the form.
 The binding also shows and hides the fields and groups that declare `design.show` as the data
 changes ([display](../spec/form-runtime.md#display)), without changing a value;
-`hiddenPaths(spec, data)` of `@crudui/validator` returns the hidden paths for other scripts.
+`hiddenPaths(spec, data)` of `@polyspec/crudui-validator` returns the hidden paths for other scripts.
 
 Run the binding checks, including the check in Chromium, Firefox and WebKit, from the repository
 root:

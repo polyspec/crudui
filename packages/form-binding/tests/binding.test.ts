@@ -1,6 +1,6 @@
 // Timing, error display, submission and options of the browser validation binding
 // (form-runtime.md, "Browser validation").
-import { validate } from '@crudui/validator';
+import { validate } from '@polyspec/crudui-validator';
 import { describe, expect, it } from 'vitest';
 
 import { bindForm } from '../src/index';

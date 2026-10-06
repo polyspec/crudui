@@ -12,7 +12,7 @@ mod common;
 const FEATURE: &str = "compileForm";
 const FIXTURE: &str = "tests/fixtures/compose/cases.json";
 
-use crudui_validator::compose::{compose_properties, compose_spec, ComposeOptions, MemoryLoader};
+use polyspec_crudui_validator::compose::{compose_properties, compose_spec, ComposeOptions, MemoryLoader};
 use serde_json::{Map, Value};
 use std::path::{Path, PathBuf};
 

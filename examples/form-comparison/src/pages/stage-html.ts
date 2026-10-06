@@ -1,6 +1,6 @@
 // The canonical page with the framework-independent HTML renderer. The renderer writes no
 // framework anchors, so it adopts server-rendered markup as it is.
-import { bindButtons, bindForm, connectForm, formDescription, formMessages, patchContent } from '@crudui/generator-core';
+import { bindButtons, bindForm, connectForm, formDescription, formMessages, patchContent } from '@polyspec/crudui-generator-core';
 import { renderDetail, renderForm, renderFormView, renderList } from '#html';
 
 export function list(container, spec, rows, options, hydrate) {

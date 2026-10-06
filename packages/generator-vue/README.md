@@ -1,4 +1,4 @@
-# @crudui/generator-vue
+# @polyspec/crudui-generator-vue
 
 [한국어](README.ko.md).
 
@@ -6,8 +6,8 @@ Vue rendering for form instances, lists and details.
 
 ```ts
 import { h } from 'vue';
-import { buildList, compileForm, createForm } from '@crudui/generator-core';
-import { Form, List, renderForm, renderList } from '@crudui/generator-vue';
+import { buildList, compileForm, createForm } from '@polyspec/crudui-generator-core';
+import { Form, List, renderForm, renderList } from '@polyspec/crudui-generator-vue';
 
 const template = compileForm({
   type: 'group', properties: { name: { type: 'text' } },
@@ -28,14 +28,14 @@ per form. `renderForm(form, options)` returns a promise of the same markup for s
 accepts the same `options` prop.
 
 `List(vm, layout)` and `Detail(vm)` return VNodes for models built with `buildList(spec, rows, options)`
-and `buildDetail(spec, record, options)` of `@crudui/generator-core`.
+and `buildDetail(spec, record, options)` of `@polyspec/crudui-generator-core`.
 `renderList(spec, rows, options)` and `renderDetail(spec, record, options)` return promises of
 strings. Server rendering uses `vue/server-renderer`, which the `vue` peer dependency provides.
 
 The package entry exports components and render functions (`Form`, `List`, `Detail`, `Widget`,
 `Outline`, `DataView`, `nodeVNode`, `controlsVNode`, `outlineVNode`, `dataVNode`) and `renderForm`,
 `renderList` and `renderDetail`. Compilation, form instances, models and error classes come from
-`@crudui/generator-core`; this package does not re-export them.
+`@polyspec/crudui-generator-core`; this package does not re-export them.
 
 - [Runtime contract](../../docs/spec/form-runtime.md)
 - [Form operations](../../docs/operations/forms.md)

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Validator;
+namespace Polyspec\Crudui\Validator;
 
-use CRUDUI\Validator\Compose\ComposeLoadError;
+use Polyspec\Crudui\Validator\Compose\ComposeLoadError;
 
 /**
  * Recursive forbidden meta-key scan (SPEC §6) — the runtime half of the

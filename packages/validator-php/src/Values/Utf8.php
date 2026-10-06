@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Validator\Values;
+namespace Polyspec\Crudui\Validator\Values;
 
 /**
  * Code point access to UTF-8 text.

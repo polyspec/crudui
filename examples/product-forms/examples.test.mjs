@@ -7,9 +7,9 @@ import path from 'node:path';
 import test from 'node:test';
 import { JSDOM } from 'jsdom';
 import YAML from 'yaml';
-import { validate } from '@crudui/validator';
-import { compileForm, createForm } from '@crudui/generator-core';
-import { renderForm } from '@crudui/generator-html';
+import { validate } from '@polyspec/crudui-validator';
+import { compileForm, createForm } from '@polyspec/crudui-generator-core';
+import { renderForm } from '@polyspec/crudui-generator-html';
 
 const directory = import.meta.dirname;
 const yaml = name => YAML.parse(readFileSync(path.join(directory, name), 'utf8'));

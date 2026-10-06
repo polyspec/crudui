@@ -95,7 +95,7 @@ distinct from `valid:false`. Only real server faults use 4xx/5xx with `{ error }
 
 The [validator processes](validators/README.md) are small programs of this console
 that call each language's public validator API. The Go and Rust programs must be
-compiled first, and the JavaScript program imports the built `@crudui/validator`.
+compiled first, and the JavaScript program imports the built `@polyspec/crudui-validator`.
 `npm run build:validators` builds the JavaScript packages first when their output is
 not current. The three generators load from TypeScript
 source via an in-process Vite SSR loader at gateway startup.

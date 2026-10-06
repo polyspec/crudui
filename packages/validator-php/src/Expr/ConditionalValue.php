@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Validator\Expr;
+namespace Polyspec\Crudui\Validator\Expr;
 
 /**
  * The value a conditional parameter resolves to in a row context: a condition map selects the

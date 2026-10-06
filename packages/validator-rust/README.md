@@ -2,13 +2,13 @@
 
 [한국어](README.ko.md).
 
-The `crudui-validator` package is version `0.0.1`. It is a library; it installs
+The `polyspec-crudui-validator` package is version `0.0.1`. It is a library; it installs
 no command.
 
 ## API
 
 ```rust
-use crudui_validator::{validate, validate_detail, validate_list, ValidateOptions};
+use polyspec_crudui_validator::{validate, validate_detail, validate_list, ValidateOptions};
 
 let result = validate(&spec, &data, &ValidateOptions::default())?;
 ```

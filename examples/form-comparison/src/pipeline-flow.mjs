@@ -7,7 +7,7 @@
 // pool.
 import assert from 'node:assert/strict';
 
-import { buildList } from '@crudui/generator-core';
+import { buildList } from '@polyspec/crudui-generator-core';
 
 import {
   pageAddress, recordClients, recordInitializations, recordModes, recordServers, recordSpecs,

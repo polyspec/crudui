@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Validator\Tests\Expr;
+namespace Polyspec\Crudui\Validator\Tests\Expr;
 
 use PHPUnit\Framework\TestCase;
-use CRUDUI\Validator\Expr\Expression;
-use CRUDUI\Validator\Support\NumberValue;
+use Polyspec\Crudui\Validator\Expr\Expression;
+use Polyspec\Crudui\Validator\Support\NumberValue;
 use PHPUnit\Framework\Attributes\DataProvider;
 
 final class NumberValueTest extends TestCase

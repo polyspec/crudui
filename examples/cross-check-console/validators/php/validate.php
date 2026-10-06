@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 require __DIR__ . '/../../../../packages/validator-php/vendor/autoload.php';
 
-use CRUDUI\Validator;
-use CRUDUI\Validator\Compose\ComposeLoadError;
-use CRUDUI\Validator\Support\JsonText;
-use CRUDUI\Validator\Support\Text;
-use CRUDUI\Validator\Validate\FormInputError;
+use Polyspec\Crudui\Validator;
+use Polyspec\Crudui\Validator\Compose\ComposeLoadError;
+use Polyspec\Crudui\Validator\Support\JsonText;
+use Polyspec\Crudui\Validator\Support\Text;
+use Polyspec\Crudui\Validator\Validate\FormInputError;
 
 /*
  * PHP validator process of the cross-check console. It reads one JSON request on
- * standard input, calls the public API of crudui/validator and writes one JSON
+ * standard input, calls the public API of polyspec/crudui-validator and writes one JSON
  * response on standard output with the exit status; ../README.md defines the
  * contract. With the native extension loaded, the same program runs the
  * extension's classes. A result exits 0 with {valid, errors}. A load or input

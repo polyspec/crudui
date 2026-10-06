@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Validator\Tests\Values;
+namespace Polyspec\Crudui\Validator\Tests\Values;
 
-use CRUDUI\Validator\Values\InvalidRuleParameter;
-use CRUDUI\Validator\Values\NumberText;
-use CRUDUI\Validator\Values\Numeric;
+use Polyspec\Crudui\Validator\Values\InvalidRuleParameter;
+use Polyspec\Crudui\Validator\Values\NumberText;
+use Polyspec\Crudui\Validator\Values\Numeric;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
 

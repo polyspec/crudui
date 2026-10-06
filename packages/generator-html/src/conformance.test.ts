@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest';
 import {
   bindButtons, bindForm, compileForm, createForm, formDescription, formMessages,
   type CompileFormOptions, type CreateFormOptions,
-} from '@crudui/generator-core';
+} from '@polyspec/crudui-generator-core';
 import { renderForm, renderFormView } from './index';
 // @ts-expect-error shared JavaScript fixture normalizer
 import { normalizeHtml } from '../../../tests/fixtures/form-render/normalize.mjs';

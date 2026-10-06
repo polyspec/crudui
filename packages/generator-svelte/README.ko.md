@@ -1,12 +1,12 @@
-# @crudui/generator-svelte
+# @polyspec/crudui-generator-svelte
 
 [English](README.md).
 
 Svelte에서 폼 인스턴스, 목록, 상세를 렌더링합니다.
 
 ```ts
-import { compileForm, createForm } from '@crudui/generator-core';
-import { renderForm, renderList } from '@crudui/generator-svelte';
+import { compileForm, createForm } from '@polyspec/crudui-generator-core';
+import { renderForm, renderList } from '@polyspec/crudui-generator-svelte';
 
 const template = compileForm({
   type: 'group', properties: { name: { type: 'text' } },
@@ -23,12 +23,12 @@ const listHtml = renderList(listSpec, [{ name: 'Ada' }], { language: 'en' });
 `options`는 이를 [완전한 폼](../../docs/spec/form-runtime.ko.md#완전한-폼)으로 만들며 `Form`도 같은 `options` 속성을 받습니다.
 
 `List`는 `vm`과 `layout` 속성을, `Detail`은 `vm` 속성을 받으며, 모델은
-`@crudui/generator-core`의 `buildList(spec, rows, options)`와 `buildDetail(spec, record, options)`로 만듭니다.
+`@polyspec/crudui-generator-core`의 `buildList(spec, rows, options)`와 `buildDetail(spec, record, options)`로 만듭니다.
 `renderList(spec, rows, options)`와 `renderDetail(spec, record, options)`는 문자열을 반환합니다.
 
 패키지 진입점은 컴포넌트(`Form`, `List`, `Detail`, `Node`, `Controls`, `Widget`, `Outline`,
 `OutlineView`, `DataView`, `DataPanel`)와 렌더 함수 `renderForm`, `renderList`, `renderDetail`을
-내보냅니다. 컴파일, 폼 인스턴스, 모델과 오류 클래스는 `@crudui/generator-core`에서 가져오며
+내보냅니다. 컴파일, 폼 인스턴스, 모델과 오류 클래스는 `@polyspec/crudui-generator-core`에서 가져오며
 이 패키지는 이를 다시 내보내지 않습니다.
 
 이 패키지는 `svelte` 내보내기 조건으로 Svelte 컴포넌트를 배포합니다. 서버에서도

@@ -1,4 +1,4 @@
-import { connectForm, connectOutline, createForm, patchContent } from '@crudui/generator-core';
+import { connectForm, connectOutline, createForm, patchContent } from '@polyspec/crudui-generator-core';
 import { renderData, renderForm, renderOutline } from '#html';
 
 /** The markup renderer writes no framework anchors, so it adopts the server-rendered nodes. */

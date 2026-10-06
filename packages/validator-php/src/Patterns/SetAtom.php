@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Validator\Patterns;
+namespace Polyspec\Crudui\Validator\Patterns;
 
-use CRUDUI\Validator\Values\CodePointSet;
+use Polyspec\Crudui\Validator\Values\CodePointSet;
 
 /**
  * An atom matching one code point of a set: a literal, an escape, a shorthand, `.`,

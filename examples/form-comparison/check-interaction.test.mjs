@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-import { compileForm, createForm } from '@crudui/generator-core';
-import { renderForm } from '@crudui/generator-html';
+import { compileForm, createForm } from '@polyspec/crudui-generator-core';
+import { renderForm } from '@polyspec/crudui-generator-html';
 import { JSDOM } from 'jsdom';
 
 import { interactionCombinations, rowActionSelector } from './check-interaction.mjs';

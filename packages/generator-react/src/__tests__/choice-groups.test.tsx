@@ -6,8 +6,8 @@
 import React from 'react';
 import { render } from '@testing-library/react';
 import { describe, expect, test } from 'vitest';
-import { compileForm, createForm } from '@crudui/generator-core';
-import { renderForm as htmlForm } from '@crudui/generator-html';
+import { compileForm, createForm } from '@polyspec/crudui-generator-core';
+import { renderForm as htmlForm } from '@polyspec/crudui-generator-html';
 import { Form } from '../components/Form';
 import { renderForm } from '../server';
 

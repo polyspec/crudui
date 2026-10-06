@@ -63,8 +63,8 @@ test('the extension stops converting a value at the value limits', () => {
     '$shared = "x";',
     'for ($i = 0; $i < 40; $i++) $shared = [$shared, $shared];',
     '$button = (object) ["tag" => "a", "text" => "", "attrs" => new stdClass(), "extra" => $shared];',
-    'try { CRUDUI\\Generator::formButtonsHtml([$button]); echo "converted"; }',
-    'catch (CRUDUI\\FormError $error) { echo $error->getErrorCode(), " ", $error->getMessage(); }',
+    'try { Polyspec\\Crudui\\Generator::formButtonsHtml([$button]); echo "converted"; }',
+    'catch (Polyspec\\Crudui\\FormError $error) { echo $error->getErrorCode(), " ", $error->getMessage(); }',
   ].join('\n');
   const result = spawnSync(phpBinary, ['-n', '-d', `extension=${extension}`, '-r', script], { encoding: 'utf8', timeout: 20000 });
   assert.equal(result.error, undefined);

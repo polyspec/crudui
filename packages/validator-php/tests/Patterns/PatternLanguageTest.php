@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Validator\Tests\Patterns;
+namespace Polyspec\Crudui\Validator\Tests\Patterns;
 
-use CRUDUI\Validator\Patterns\PatternParameter;
-use CRUDUI\Validator\Patterns\PatternParser;
-use CRUDUI\Validator\Patterns\PatternSyntaxError;
-use CRUDUI\Validator\Patterns\WholeMatchPattern;
-use CRUDUI\Validator\Values\CodePointSet;
-use CRUDUI\Validator\Values\InvalidRuleParameter;
-use CRUDUI\Validator\Values\UnicodeData;
+use Polyspec\Crudui\Validator\Patterns\PatternParameter;
+use Polyspec\Crudui\Validator\Patterns\PatternParser;
+use Polyspec\Crudui\Validator\Patterns\PatternSyntaxError;
+use Polyspec\Crudui\Validator\Patterns\WholeMatchPattern;
+use Polyspec\Crudui\Validator\Values\CodePointSet;
+use Polyspec\Crudui\Validator\Values\InvalidRuleParameter;
+use Polyspec\Crudui\Validator\Values\UnicodeData;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 

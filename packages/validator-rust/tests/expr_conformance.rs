@@ -11,7 +11,7 @@ mod common;
 const FEATURE: &str = "validate";
 const FIXTURE: &str = "tests/fixtures/expr/cases.json";
 
-use crudui_validator::expr::Expression;
+use polyspec_crudui_validator::expr::Expression;
 use serde_json::Value;
 use std::path::{Path, PathBuf};
 
@@ -198,7 +198,7 @@ fn expression_fixture_matches() {
 
 #[test]
 fn condition_map_resolves_in_declaration_order() {
-    use crudui_validator::expr::condition_map;
+    use polyspec_crudui_validator::expr::condition_map;
 
     let entries = vec![
         (".tier == 'gold'".to_string(), Value::from("premium")),
@@ -245,7 +245,7 @@ fn condition_map_resolves_in_declaration_order() {
 
 #[test]
 fn condition_map_default_does_not_short_circuit() {
-    use crudui_validator::expr::condition_map;
+    use polyspec_crudui_validator::expr::condition_map;
 
     let entries = vec![
         ("true".to_string(), Value::from("fallback")),

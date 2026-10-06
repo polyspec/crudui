@@ -1,8 +1,8 @@
-import core = require('@crudui/generator-core');
-import generator = require('@crudui/generator-react');
-import html = require('@crudui/generator-html');
-import validator = require('@crudui/validator');
-import vue = require('@crudui/generator-vue');
+import core = require('@polyspec/crudui-generator-core');
+import generator = require('@polyspec/crudui-generator-react');
+import html = require('@polyspec/crudui-generator-html');
+import validator = require('@polyspec/crudui-validator');
+import vue = require('@polyspec/crudui-generator-vue');
 import React = require('react');
 
 const spec = { type: 'group', properties: { name: { type: 'text' } } };

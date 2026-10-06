@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Validator\Compose;
+namespace Polyspec\Crudui\Validator\Compose;
 
 /**
  * File loader for $ref resolution. Port of validator-ts/src/compose/loader.ts.

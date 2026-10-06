@@ -421,7 +421,7 @@ its default.
 
 ## Styles
 
-`@crudui/generator-core/crudui.css` is the only stylesheet a form needs: slot
+`@polyspec/crudui-generator-core/crudui.css` is the only stylesheet a form needs: slot
 layout, row cards, widgets, control icons, sticky headers, the structure map and the
 data view. Every rule is scoped to a crudui block, including box sizing and hiding
 `[hidden]` elements, and none depends on page styles or a CSS framework. The page
@@ -475,7 +475,7 @@ checks every case at both widths in Chromium, Firefox and WebKit.
 ### Tailwind CSS
 
 A page styled with Tailwind CSS 4 uses
-`@crudui/generator-core/crudui.tailwind.css` in place of `crudui.css`, and imports it after
+`@polyspec/crudui-generator-core/crudui.tailwind.css` in place of `crudui.css`, and imports it after
 `tailwindcss`. The file holds the rules of `crudui.css` unchanged inside the cascade layer
 `components`, so a utility class of the page, which lies in the later layer `utilities`,
 overrides a CRUDUI rule. The markup is the same for both files. `packages/generator-core/scripts/write-tailwind-styles.mjs`

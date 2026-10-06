@@ -1,8 +1,8 @@
-use crudui_generator::{
+use polyspec_crudui_generator::{
     compile_form, render_detail, render_form, render_list, sequence_row_key, BindOptions,
     CompileOptions, DetailOptions, Form, ListOptions,
 };
-use crudui_validator::validate::{validate, ValidateOptions};
+use polyspec_crudui_validator::validate::{validate, ValidateOptions};
 use serde_json::{json, Value};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {

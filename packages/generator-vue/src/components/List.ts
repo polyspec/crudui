@@ -3,7 +3,7 @@
  *
  * The read sister of Form (SPEC §9). It consumes the core's already-built
  * `ListViewModel` (compose + design eval + condition maps + i18n + cell render,
- * all done ONCE in @crudui/generator-core buildList) and assembles a genuine
+ * all done ONCE in @polyspec/crudui-generator-core buildList) and assembles a genuine
  * Vue 3 vnode tree — a `<table>` (default) or a `.crudui-list__cards` card grid. It
  * RECOMPUTES NOTHING: every header label, sortable flag, cell display payload,
  * resolved class/style and action script is already evaluated by the core. eval
@@ -28,7 +28,7 @@ import type {
   CellVM,
   ActionVM,
   CellDisplay,
-} from '@crudui/generator-core';
+} from '@polyspec/crudui-generator-core';
 
 // ---------------------------------------------------------------------------
 // class/style helpers (resolved design → vnode props)

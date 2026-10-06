@@ -1,4 +1,4 @@
-use crudui_validator::compose::ComposeLoadError;
+use polyspec_crudui_validator::compose::ComposeLoadError;
 
 /// A failed form compilation, binding or instance operation.
 #[derive(Debug, Clone)]

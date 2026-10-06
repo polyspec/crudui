@@ -68,7 +68,7 @@ async function bootEngine() {
   // The renderers import generator-core from its installed entry; loading that entry through the
   // same server gives the public API and the error classes the renderers throw.
   const [core, htmlMod, reactServer, svelteMod, vueMod, vueListMod, normMod] = await Promise.all([
-    vite.ssrLoadModule(realpathSync(fileURLToPath(import.meta.resolve('@crudui/generator-core')))),
+    vite.ssrLoadModule(realpathSync(fileURLToPath(import.meta.resolve('@polyspec/crudui-generator-core')))),
     vite.ssrLoadModule(path.resolve(ROOT, 'packages/generator-html/src/index.ts')),
     vite.ssrLoadModule(path.resolve(ROOT, 'packages/generator-react/src/server.ts')),
     vite.ssrLoadModule(path.resolve(ROOT, 'packages/generator-svelte/src/index.ts')),

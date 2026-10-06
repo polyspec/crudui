@@ -5,11 +5,11 @@
  * form, list and detail case, so a byte change in either renderer fails here.
  */
 import { describe, expect, test } from 'vitest';
-import { compileForm, createForm } from '@crudui/generator-core';
+import { compileForm, createForm } from '@polyspec/crudui-generator-core';
 import { renderDetail, renderForm, renderList } from '../server';
 import {
   renderDetail as htmlDetail, renderForm as htmlForm, renderList as htmlList,
-} from '@crudui/generator-html';
+} from '@polyspec/crudui-generator-html';
 import formCases from '../../../../tests/fixtures/form-render/cases.json';
 import listCases from '../../../../tests/fixtures/list-render/cases.json';
 import detailCases from '../../../../tests/fixtures/detail-render/cases.json';

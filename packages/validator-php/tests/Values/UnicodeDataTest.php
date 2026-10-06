@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Validator\Tests\Values;
+namespace Polyspec\Crudui\Validator\Tests\Values;
 
-use CRUDUI\Validator\Values\UnicodeData;
-use CRUDUI\Validator\Values\Whitespace;
+use Polyspec\Crudui\Validator\Values\UnicodeData;
+use Polyspec\Crudui\Validator\Values\Whitespace;
 use PHPUnit\Framework\TestCase;
 
 /**

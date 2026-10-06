@@ -143,7 +143,7 @@ fn options(ctx: &WidgetContext<'_>, multi: bool, choice: bool) -> Vec<Value> {
                 }
             })
             .collect::<Vec<_>>(),
-        Some(v) if multi && crudui_validator::expr::is_truthy(v) => vec![js_string(v)],
+        Some(v) if multi && polyspec_crudui_validator::expr::is_truthy(v) => vec![js_string(v)],
         _ if multi => Vec::new(),
         _ => vec![ctx.value()],
     };

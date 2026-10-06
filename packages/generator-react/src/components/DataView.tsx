@@ -1,5 +1,5 @@
 import * as React from 'react';
-import type { FormInstance, FormMessages } from '@crudui/generator-core';
+import type { FormInstance, FormMessages } from '@polyspec/crudui-generator-core';
 
 /** Props for the stateless data view. */
 export interface DataPanelProps {

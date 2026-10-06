@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Validator\Tests\Validate;
+namespace Polyspec\Crudui\Validator\Tests\Validate;
 
-use CRUDUI\Validator;
+use Polyspec\Crudui\Validator;
 use PHPUnit\Framework\TestCase;
 
 /**

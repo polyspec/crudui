@@ -35,7 +35,7 @@ test('a direct test tool call is found in each command form', () => {
   for (const command of [
     'node scripts/run-tests.mjs node -- tests/a.test.mjs', 'node scripts/run-tests.mjs vitest --workspace packages/generator-core',
     'npm run test:forms', 'node scripts/run-rust-command.mjs build --release', 'composer install', 'go build ./...',
-    'npm run build && npm test -w @crudui/generator-html', 'composer --working-dir=packages/generator-php test',
+    'npm run build && npm test -w @polyspec/crudui-generator-html', 'composer --working-dir=packages/generator-php test',
   ]) assert.deepEqual(directTestTools(command), [], command);
 });
 

@@ -1,6 +1,6 @@
 /** Runtime interface text shared by every renderer and implementation. */
 
-import { FormInputError } from '@crudui/validator';
+import { FormInputError } from '@polyspec/crudui-validator';
 import type { Language } from './content';
 import { FORM_MESSAGES } from './interface-messages';
 

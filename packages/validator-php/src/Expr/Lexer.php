@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Validator\Expr;
+namespace Polyspec\Crudui\Validator\Expr;
 
 /**
  * CRUDUI expression lexer (expressions.md §1, JS Lexer parity).

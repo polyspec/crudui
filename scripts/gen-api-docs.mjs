@@ -60,7 +60,7 @@ async function genTypeScript() {
     const args = [
       '--options', join(ROOT, 'scripts/typedoc.base.json'),
       '--tsconfig', svelte ? join(ROOT, 'scripts/tsconfig.svelte-docs.json') : join(pkgDir, 'tsconfig.build.json'),
-      '--name', pkg === 'validator-ts' ? '@crudui/validator' : `@crudui/${pkg}`,
+      '--name', pkg === 'validator-ts' ? '@polyspec/crudui-validator' : `@polyspec/crudui-${pkg}`,
       '--out', output,
       '--entryPointStrategy', 'resolve',
       ...(svelte ? ['--disableSources'] : []),
@@ -96,13 +96,13 @@ async function genRust() {
   cleanDirectory(output);
   await run(process.execPath, [
     RUST_COMMAND, 'doc', '--locked', '--no-deps',
-    '-p', 'crudui-validator', '-p', 'crudui-generator',
+    '-p', 'polyspec-crudui-validator', '-p', 'polyspec-crudui-generator',
   ], pkgDir);
-  requireOutput(join(generated, 'crudui_validator/index.html'));
-  requireOutput(join(generated, 'crudui_generator/index.html'));
+  requireOutput(join(generated, 'polyspec_crudui_validator/index.html'));
+  requireOutput(join(generated, 'polyspec_crudui_generator/index.html'));
   cpSync(generated, output, { recursive: true });
   writeFileSync(join(API_DIR, 'rust.md'),
-    '# Rust API\n\n- [Validator](/api/rust/crudui_validator/index.html)\n- [Generator](/api/rust/crudui_generator/index.html)\n');
+    '# Rust API\n\n- [Validator](/api/rust/polyspec_crudui_validator/index.html)\n- [Generator](/api/rust/polyspec_crudui_generator/index.html)\n');
 }
 
 async function genPhp() {

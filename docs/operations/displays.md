@@ -42,16 +42,16 @@ A detail neither checks nor uses `page`, `total` and `layout`. In TypeScript,
 
 ## JavaScript
 
-`@crudui/generator-core` exports `buildList(spec, rows, options)` and
-`buildDetail(spec, record, options)`. `@crudui/generator-html` exports
+`@polyspec/crudui-generator-core` exports `buildList(spec, rows, options)` and
+`buildDetail(spec, record, options)`. `@polyspec/crudui-generator-html` exports
 `renderList(spec, rows, options)` and `renderDetail(spec, record, options)`, which return HTML
-strings with image preload links before the list or detail. `@crudui/validator` exports
+strings with image preload links before the list or detail. `@polyspec/crudui-validator` exports
 `validateList(spec, options)` and `validateDetail(spec, options)`.
 
 ```js
-import { buildDetail, buildList } from '@crudui/generator-core';
-import { renderDetail, renderList } from '@crudui/generator-html';
-import { validateDetail, validateList } from '@crudui/validator';
+import { buildDetail, buildList } from '@polyspec/crudui-generator-core';
+import { renderDetail, renderList } from '@polyspec/crudui-generator-html';
+import { validateDetail, validateList } from '@polyspec/crudui-validator';
 
 const listSpec = {
   pagination: true,
@@ -76,18 +76,18 @@ server rendering and components:
 
 | Package | Server rendering | Components |
 | --- | --- | --- |
-| `@crudui/generator-react/server` | `renderList` and `renderDetail` return strings | `<List vm layout />`, `<Detail vm />` from `@crudui/generator-react` |
-| `@crudui/generator-vue` | `renderList` and `renderDetail` return promises | `List(vm, layout)` and `Detail(vm)` return VNodes |
-| `@crudui/generator-svelte` | `renderList` and `renderDetail` return strings | `List` with `vm` and `layout` props, `Detail` with a `vm` prop |
+| `@polyspec/crudui-generator-react/server` | `renderList` and `renderDetail` return strings | `<List vm layout />`, `<Detail vm />` from `@polyspec/crudui-generator-react` |
+| `@polyspec/crudui-generator-vue` | `renderList` and `renderDetail` return promises | `List(vm, layout)` and `Detail(vm)` return VNodes |
+| `@polyspec/crudui-generator-svelte` | `renderList` and `renderDetail` return strings | `List` with `vm` and `layout` props, `Detail` with a `vm` prop |
 
 A component receives a model built with `buildList` or `buildDetail`. The render functions
 take the same options as the HTML renderer.
 
 ## PHP and the PHP extension
 
-`CRUDUI\Generator::buildList($spec, $rows, $options)` returns the evaluated list model. `CRUDUI\Generator::renderList($spec, $rows, $options)` renders rows,
+`Polyspec\Crudui\Generator::buildList($spec, $rows, $options)` returns the evaluated list model. `Polyspec\Crudui\Generator::renderList($spec, $rows, $options)` renders rows,
 `Generator::renderDetail($spec, $record, $options)` renders one record and
-`Generator::buildDetail($spec, $record, $options)` returns the detail model. `CRUDUI\Validator::validateList($spec, $options)` and
+`Generator::buildDetail($spec, $record, $options)` returns the detail model. `Polyspec\Crudui\Validator::validateList($spec, $options)` and
 `Validator::validateDetail($spec, $options)` validate structure. Generation options are
 `language`, `data`, `page`, `total`, `layout`, `files` and `basepath`; validation options are
 `files` and `basepath`. Run the example from the repository root:
@@ -96,8 +96,8 @@ take the same options as the HTML renderer.
 <?php
 require 'packages/generator-php/vendor/autoload.php';
 
-use CRUDUI\Generator;
-use CRUDUI\Validator;
+use Polyspec\Crudui\Generator;
+use Polyspec\Crudui\Validator;
 
 $listSpec = json_decode('{"pagination":true,"columns":{"name":{"field":"name","label":"Name"}}}', false, 512, JSON_THROW_ON_ERROR);
 $rows = [json_decode('{"name":"Ada"}', false, 512, JSON_THROW_ON_ERROR)];
@@ -110,7 +110,7 @@ $detailModel = Generator::buildDetail($detailSpec, $rows[0], ['language' => 'en'
 $detailHtml = Generator::renderDetail($detailSpec, $rows[0], ['language' => 'en']);
 ```
 
-The `crudui` extension registers the same `CRUDUI\Generator` and `CRUDUI\Validator` classes and
+The `crudui` extension registers the same `Polyspec\Crudui\Generator` and `Polyspec\Crudui\Validator` classes and
 methods. The same code returns the same HTML and models with the extension loaded, for example
 with `php -d "extension=$(pwd)/packages/php-ext/modules/crudui.so"`. The
 [PHP API contract](../spec/php-extension.md) defines which PHP values are objects.
@@ -178,17 +178,17 @@ Run it in a module that requires the generator and validator modules.
 
 ## Rust
 
-The `crudui-generator` crate exports `build_list`, `render_list`, `build_detail`,
+The `polyspec-crudui-generator` crate exports `build_list`, `render_list`, `build_detail`,
 `render_detail`, `ListOptions` and `DetailOptions`. `ListOptions` has the fields `files`,
 `loader`, `basepath`, `language`, `data`, `page`, `total` and `layout`; `data`, `page`, `total`
-and `layout` are JSON values, and the default language is `ko`. The `crudui-validator` crate
+and `layout` are JSON values, and the default language is `ko`. The `polyspec-crudui-validator` crate
 exports `validate_list` with `ValidateListOptions` and `validate_detail` with
 `ValidateDetailOptions` (`files`, `loader`, `basepath`). A structure failure is
 `Err(ComposeLoadError)`.
 
 ```rust
-use crudui_generator::{build_detail, render_detail, render_list, DetailOptions, ListOptions};
-use crudui_validator::{validate_detail, validate_list, ValidateDetailOptions, ValidateListOptions};
+use polyspec_crudui_generator::{build_detail, render_detail, render_list, DetailOptions, ListOptions};
+use polyspec_crudui_validator::{validate_detail, validate_list, ValidateDetailOptions, ValidateListOptions};
 use serde_json::json;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -280,7 +280,7 @@ gateway, including the list and detail endpoints.
 Run the structure validation cases of each validator from the repository root:
 
 ```sh
-npm test -w @crudui/validator -- src/validate-list/validate-list.conformance.test.ts src/validate-detail/validate-detail.conformance.test.ts
+npm test -w @polyspec/crudui-validator -- src/validate-list/validate-list.conformance.test.ts src/validate-detail/validate-detail.conformance.test.ts
 node scripts/run-tests.mjs phpunit --cwd packages/validator-php -- --filter 'ListValidateConformanceTest|DetailValidateConformanceTest'
 node scripts/run-tests.mjs go --cwd packages/validator-go -- ./validator/validate -run 'TestValidateListMatchesFixture|TestValidateDetailMatchesFixture'
 node scripts/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml --test list_validity_conformance --test detail_validity_conformance

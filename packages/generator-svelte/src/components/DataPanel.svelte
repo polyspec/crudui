@@ -2,7 +2,7 @@
   Render current data markup directly from the data.
 -->
 <script lang="ts">
-  import type { FormMessages } from '@crudui/generator-core';
+  import type { FormMessages } from '@polyspec/crudui-generator-core';
 
   let { data, messages }: { data: unknown; messages: FormMessages } = $props();
 </script>

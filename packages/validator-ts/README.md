@@ -1,4 +1,4 @@
-# @crudui/validator
+# @polyspec/crudui-validator
 
 [한국어](README.ko.md).
 
@@ -35,7 +35,7 @@ A load or input failure is thrown, never returned as `valid: false`. The
 [validation procedure](../../docs/operations/validation.md) shows usage in every
 language.
 
-The `@crudui/validator/internal` entry serves CRUDUI's own packages and is not
+The `@polyspec/crudui-validator/internal` entry serves CRUDUI's own packages and is not
 public API. The package installs no command.
 
 ## Test
@@ -43,6 +43,6 @@ public API. The package installs no command.
 From the repository root:
 
 ```sh
-npm test -w @crudui/validator                  # full suite (vitest)
-npm test -w @crudui/validator -- conformance   # conformance test files only
+npm test -w @polyspec/crudui-validator                  # full suite (vitest)
+npm test -w @polyspec/crudui-validator -- conformance   # conformance test files only
 ```

@@ -1,5 +1,5 @@
 import { renderFields } from '../internal/renderFields';
-import { ComposeLoadError, FormInputError, UnsupportedFieldTypeError, compileForm } from '@crudui/generator-core';
+import { ComposeLoadError, FormInputError, UnsupportedFieldTypeError, compileForm } from '@polyspec/crudui-generator-core';
 /**
  * form-render conformance — React reference verification.
  *

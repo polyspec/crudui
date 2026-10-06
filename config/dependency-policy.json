@@ -14,7 +14,7 @@
       "removalCondition": "Remove the exception when the React renderer runs widget scripts without <script> elements in client rendering and the 24 cases of tests/widget-script-runs.test.mjs pass with the latest React release.",
       "verification": [
         "node scripts/run-tests.mjs node --timeout 120 -- tests/widget-script-runs.test.mjs",
-        "npm test -w @crudui/generator-react"
+        "npm test -w @polyspec/crudui-generator-react"
       ]
     },
     {
@@ -25,7 +25,7 @@
       "removalCondition": "Remove the exception when the React renderer runs widget scripts without <script> elements in client rendering and the 24 cases of tests/widget-script-runs.test.mjs pass with the latest React release.",
       "verification": [
         "node scripts/run-tests.mjs node --timeout 120 -- tests/widget-script-runs.test.mjs",
-        "npm test -w @crudui/generator-react"
+        "npm test -w @polyspec/crudui-generator-react"
       ]
     },
     {
@@ -36,7 +36,7 @@
       "removalCondition": "Remove the exception when the React renderer runs widget scripts without <script> elements in client rendering and the 24 cases of tests/widget-script-runs.test.mjs pass with the latest React release.",
       "verification": [
         "node scripts/run-tests.mjs node --timeout 120 -- tests/widget-script-runs.test.mjs",
-        "npm test -w @crudui/generator-react"
+        "npm test -w @polyspec/crudui-generator-react"
       ]
     },
     {
@@ -47,7 +47,7 @@
       "removalCondition": "Remove the exception when the React renderer runs widget scripts without <script> elements in client rendering and the 24 cases of tests/widget-script-runs.test.mjs pass with the latest React release.",
       "verification": [
         "node scripts/run-tests.mjs node --timeout 120 -- tests/widget-script-runs.test.mjs",
-        "npm test -w @crudui/generator-react"
+        "npm test -w @polyspec/crudui-generator-react"
       ]
     }
   ]

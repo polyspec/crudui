@@ -53,7 +53,7 @@ test('documentation build preserves page routes, titles, links and public files'
     '',
     '## 0. Processing',
     '',
-    '## @crudui/validator',
+    '## @polyspec/crudui-validator',
     '',
     '## CELL_FORMATS',
     '',
@@ -96,7 +96,7 @@ test('documentation build preserves page routes, titles, links and public files'
   assert.match(guide, /<title>Guide &amp; usage \| CRUDUI<\/title>/);
   assert.match(guide, /<h1 id="guide-usage">Guide &amp; usage<\/h1>/);
   assert.match(guide, /<h2 id="0-processing">0\. Processing<\/h2>/);
-  assert.match(guide, /<h2 id="crudui-validator">@crudui\/validator<\/h2>/);
+  assert.match(guide, /<h2 id="polyspec-crudui-validator">@polyspec\/crudui-validator<\/h2>/);
   assert.match(guide, /<h2 id="cell-formats">CELL_FORMATS<\/h2>/);
   assert.match(guide, /<h2 id="install-1">Install<\/h2>/);
   // Hangul keeps its composed syllables; only combining marks of decomposed Latin letters are removed.

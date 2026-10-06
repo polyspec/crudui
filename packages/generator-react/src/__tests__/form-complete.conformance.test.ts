@@ -5,7 +5,7 @@
  * fails with the declared code and message.
  */
 import { describe, expect, test } from 'vitest';
-import { compileForm, createForm } from '@crudui/generator-core';
+import { compileForm, createForm } from '@polyspec/crudui-generator-core';
 import { renderForm } from '../server';
 import fixtureCases from '../../../../tests/fixtures/form-complete/cases.json';
 import { provesConformance } from '../../../../tests/conformance/evidence.mjs';

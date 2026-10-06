@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Validator\Expr;
+namespace Polyspec\Crudui\Validator\Expr;
 
 /**
  * Condition-map resolver (expressions.md §8). A thin wrapper over the

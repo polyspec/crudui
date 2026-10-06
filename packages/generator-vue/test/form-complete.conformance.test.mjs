@@ -8,7 +8,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, test, expect } from 'vitest';
-import { compileForm, createForm } from '@crudui/generator-core';
+import { compileForm, createForm } from '@polyspec/crudui-generator-core';
 import { normalizeHtml } from '../../../tests/fixtures/form-render/normalize.mjs';
 import { renderForm } from '../src/ssr.ts';
 import { provesConformance } from '../../../tests/conformance/evidence.mjs';

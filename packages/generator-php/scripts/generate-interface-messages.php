@@ -41,7 +41,7 @@ $source = <<<'PHP'
 
 declare(strict_types=1);
 
-namespace CRUDUI\Generator;
+namespace Polyspec\Crudui\Generator;
 
 /**
  * Interface message tables for all supported languages (ko, en, ja, zh).

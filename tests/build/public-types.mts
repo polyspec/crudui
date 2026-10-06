@@ -2,17 +2,17 @@ import {
   compileForm, createForm, createRowKey, sequenceRowKey,
   type ButtonVM, type FormConnection, type FormTemplate, type FormInstance,
   type FormSnapshot, type NodeVM,
-} from '@crudui/generator-core';
-import { Form, type AnyWidget, type ListProps } from '@crudui/generator-react';
-import { renderForm, renderList, type RenderListOptions } from '@crudui/generator-html';
+} from '@polyspec/crudui-generator-core';
+import { Form, type AnyWidget, type ListProps } from '@polyspec/crudui-generator-react';
+import { renderForm, renderList, type RenderListOptions } from '@polyspec/crudui-generator-html';
 import {
   validate, validateDetail, validateList, type ComposeErrorCode, type FileLoader, type FileSet,
   type ValidateDetailOptions, type ValidateListOptions, type ValidateOptions, type ValidationError,
   type ListValidationResult, type ValidationResult,
-} from '@crudui/validator';
-import { bindForm, type FormBinding, type FormBindingOptions } from '@crudui/form-binding';
-import { Form as VueForm, renderForm as renderVueForm, type AnyWidget as VueAnyWidget } from '@crudui/generator-vue';
-import { Form as SvelteForm, renderForm as renderSvelteForm } from '@crudui/generator-svelte';
+} from '@polyspec/crudui-validator';
+import { bindForm, type FormBinding, type FormBindingOptions } from '@polyspec/crudui-form-binding';
+import { Form as VueForm, renderForm as renderVueForm, type AnyWidget as VueAnyWidget } from '@polyspec/crudui-generator-vue';
+import { Form as SvelteForm, renderForm as renderSvelteForm } from '@polyspec/crudui-generator-svelte';
 import { createElement, type ReactElement } from 'react';
 
 const spec = { type: 'group', properties: { name: { type: 'text' } } };

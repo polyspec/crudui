@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Generator;
+namespace Polyspec\Crudui\Generator;
 
-use CRUDUI\FormError;
-use CRUDUI\Validator\Support\Text;
+use Polyspec\Crudui\FormError;
+use Polyspec\Crudui\Validator\Support\Text;
 use stdClass;
 
 /** Input text and value limit checks of the generator operations (docs/spec/input-text.md). */

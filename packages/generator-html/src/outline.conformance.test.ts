@@ -8,7 +8,7 @@
 
 import { readFileSync } from 'node:fs';
 import { describe, expect, test } from 'vitest';
-import { bindForm, compileForm, formMessages } from '@crudui/generator-core';
+import { bindForm, compileForm, formMessages } from '@polyspec/crudui-generator-core';
 // @ts-expect-error — shared JS normalizer (cross-framework).
 import { normalizeHtml } from '../../../tests/fixtures/form-render/normalize.mjs';
 import { renderDataPanel, renderOutlineView } from './index';

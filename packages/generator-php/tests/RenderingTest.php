@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Generator\Tests;
+namespace Polyspec\Crudui\Generator\Tests;
 
 use PHPUnit\Framework\TestCase;
-use CRUDUI\Form;
-use CRUDUI\Generator;
-use CRUDUI\Generator\Style;
+use Polyspec\Crudui\Form;
+use Polyspec\Crudui\Generator;
+use Polyspec\Crudui\Generator\Style;
 
 final class RenderingTest extends TestCase
 {

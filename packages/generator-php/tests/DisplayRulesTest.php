@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Generator\Tests;
+namespace Polyspec\Crudui\Generator\Tests;
 
-use CRUDUI\FormError;
-use CRUDUI\Generator;
-use CRUDUI\Validator\Compose\ComposeLoadError;
+use Polyspec\Crudui\FormError;
+use Polyspec\Crudui\Generator;
+use Polyspec\Crudui\Validator\Compose\ComposeLoadError;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 use PHPUnit\Framework\Attributes\DataProvider;

@@ -3,7 +3,7 @@
 // selected server rendered, with the stage data of the document; under CSR it requests the JSON of
 // the selected server and renders the view itself. The form submits its native fields to the
 // selected server.
-import { compileForm, createForm } from '@crudui/generator-core';
+import { compileForm, createForm } from '@polyspec/crudui-generator-core';
 
 import * as client from '#stage';
 import { bindFormController } from '../bind-form-controller.mjs';

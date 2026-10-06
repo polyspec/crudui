@@ -1,7 +1,7 @@
 /**
  * Browser validation of a server-rendered complete form (form-runtime.md, "Browser validation").
  */
-import { FormInputError, hiddenPaths, validate, type ValidationError, type ValidationResult } from '@crudui/validator';
+import { FormInputError, hiddenPaths, validate, type ValidationError, type ValidationResult } from '@polyspec/crudui-validator';
 
 import { collectData } from './data.js';
 import { containsFile, dataControls, isControl, nodeOf, nodePath, nodesByPath } from './nodes.js';

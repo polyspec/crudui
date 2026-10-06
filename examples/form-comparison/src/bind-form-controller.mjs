@@ -1,7 +1,7 @@
 import {
   bindForm, canUndo, emptyHistory, initialView, recordChange, rekeyRowView, removeRowView,
   resolveAction, setAllExpandedView, toggleRowView, undoChange,
-} from '@crudui/generator-core';
+} from '@polyspec/crudui-generator-core';
 
 const inputSegments = name => name.match(/[^[\]]+/g)?.slice(1) ?? [];
 const pathSegments = path => path.split('.').filter(Boolean);

@@ -142,7 +142,7 @@ function scannedFiles(root) {
 
 // A relative specifier in an import, export, require, dynamic import or Vitest module mock.
 const relativeSpecifier = /(?:\bfrom\s*|\bimport\s*\(\s*|\brequire\s*\(\s*|\bimport\s+|\bvi\.(?:mock|doMock|unmock|doUnmock)\s*\(\s*)(['"`])(\.\.?\/[^'"`\s]*)\1/g;
-const moduleSpecifier = /(?:\bfrom\s*|\bimport\s*\(\s*|\brequire\s*\(\s*|\bimport\s+)(['"`])(@crudui\/[^'"`\s]+)\1/g;
+const moduleSpecifier = /(?:\bfrom\s*|\bimport\s*\(\s*|\brequire\s*\(\s*|\bimport\s+)(['"`])(@polyspec\/crudui-[^'"`\s]+)\1/g;
 
 /** Check the manifest of the repository at `root`; returns the failures and the checked counts. */
 export function checkContractManifest(root) {
@@ -267,7 +267,7 @@ export function checkContractManifest(root) {
   for (const file of scannedFiles(root).sort(byCodeUnit)) {
     if (packageCode(file)) continue;
     const text = readFileSync(resolve(root, file), 'utf8');
-    if (!text.includes('@crudui/')) continue;
+    if (!text.includes('@polyspec/crudui-')) continue;
     const imported = new Set([...text.matchAll(moduleSpecifier)].map((match) => match[2]).filter((specifier) => internal.has(specifier)));
     for (const specifier of [...imported].sort(byCodeUnit)) errors.push(`${file} imports the internal entry ${specifier}`);
   }

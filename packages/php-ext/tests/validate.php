@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-use CRUDUI\Validator;
-use CRUDUI\Validator\Compose\ComposeLoadError;
-use CRUDUI\Validator\Support\JsonText;
-use CRUDUI\Validator\Validate\FormInputError;
+use Polyspec\Crudui\Validator;
+use Polyspec\Crudui\Validator\Compose\ComposeLoadError;
+use Polyspec\Crudui\Validator\Support\JsonText;
+use Polyspec\Crudui\Validator\Validate\FormInputError;
 
 $native = ($argv[1] ?? '') === 'native';
 if (isset($argv[2])) require $argv[2];

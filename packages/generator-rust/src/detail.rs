@@ -1,6 +1,6 @@
 //! Read-only detail models and HTML rendering.
 
-use crudui_validator::compose::member_ordered;
+use polyspec_crudui_validator::compose::member_ordered;
 use serde_json::{json, Value};
 
 use crate::list::{actions_html, build_display, cell_html, ListContext, ListOptions};

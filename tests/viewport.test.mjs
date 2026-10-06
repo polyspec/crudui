@@ -1,4 +1,4 @@
-// Viewport checks for the core stylesheet (@crudui/generator-core/crudui.css) in Chromium, Firefox
+// Viewport checks for the core stylesheet (@polyspec/crudui-generator-core/crudui.css) in Chromium, Firefox
 // and WebKit (form markup contract, viewport widths): at 360 and 1280 CSS pixels the expected HTML
 // of every case of the shared render fixtures causes no horizontal overflow of the document, and
 // every control and action lies within the viewport, except inside an element that scrolls

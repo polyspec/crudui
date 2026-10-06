@@ -1,5 +1,5 @@
 {
-  "name": "@crudui/generator-core",
+  "name": "@polyspec/crudui-generator-core",
   "version": "0.0.1",
   "description": "Shared form compilation, data binding, expression evaluation and list models",
   "main": "dist/index.js",
@@ -43,7 +43,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@crudui/validator": "0.0.1"
+    "@polyspec/crudui-validator": "0.0.1"
   },
   "devDependencies": {
     "@types/node": "^26.6.4",

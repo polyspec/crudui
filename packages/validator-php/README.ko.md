@@ -14,7 +14,7 @@ composer test --working-dir=packages/validator-php
 ```php
 require 'packages/validator-php/vendor/autoload.php';
 
-use CRUDUI\Validator;
+use Polyspec\Crudui\Validator;
 
 $spec = json_decode('{"type":"group","properties":{"name":{"type":"text","validate":{"required":true}}}}');
 $result = Validator::validate($spec, ['name' => 'Ada']);
@@ -28,8 +28,8 @@ assert($result->valid);
 명세의 합성과 메타데이터를 검사하며 레코드 데이터는 검증하지 않습니다. 두 메서드
 모두 로드에 성공하면 `{ valid: true, errors: [] }`를 반환합니다.
 옵션은 `files` 객체와 `basepath`를 받습니다. 합성 실패는
-`CRUDUI\Validator\Compose\ComposeLoadError`를 발생시킵니다. 형태가 잘못된 제출
-데이터는 코드 `INVALID_FORM_INPUT`인 `CRUDUI\Validator\Validate\FormInputError`를
+`Polyspec\Crudui\Validator\Compose\ComposeLoadError`를 발생시킵니다. 형태가 잘못된 제출
+데이터는 코드 `INVALID_FORM_INPUT`인 `Polyspec\Crudui\Validator\Validate\FormInputError`를
 발생시킵니다.
 `getCompositionTrace()`는 명세 경로를 반환하고, `getTrace()`는 예외 스택을
 반환합니다.
@@ -40,7 +40,7 @@ assert($result->valid);
 오류 값을 포함하여 중첩 객체, 배열과 `null`을 구분합니다. 잘못된 UTF-8 문자열과
 객체 키는 검증 전에 `InvalidArgumentException`을 발생시킵니다.
 
-공개 클래스는 `CRUDUI\Validator`입니다. 네이티브 확장이 클래스를 등록하면
+공개 클래스는 `Polyspec\Crudui\Validator`입니다. 네이티브 확장이 클래스를 등록하면
 PHP는 해당 구현을 사용하며, 그렇지 않으면 Composer가 PHP 클래스를 자동으로
 로드합니다. [PHP API 계약](../../docs/spec/php-extension.ko.md)이 메서드 일치와
 로딩 동작을 정의합니다. 내부 합성과 표현식 모듈은

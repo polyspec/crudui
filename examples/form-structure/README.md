@@ -9,7 +9,7 @@ be copied. The form declares a cancel link and a save button.
 
 The page has three columns:
 
-- **Structure map** — `renderOutline` output from `@crudui/generator-html`,
+- **Structure map** — `renderOutline` output from `@polyspec/crudui-generator-html`,
   connected with `connectOutline`. It expands or collapses every row, undoes and
   redoes changes, and focuses the first control of a selected row in the form.
 - **Form** — `renderForm` output, connected with `connectForm` for input and row
@@ -31,9 +31,9 @@ only lays out the columns.
 
 ## Run
 
-The preview imports the built `@crudui/generator-core` and
-`@crudui/generator-html` packages, and the core package imports the built
-`@crudui/validator`, so build them first. From the repository root:
+The preview imports the built `@polyspec/crudui-generator-core` and
+`@polyspec/crudui-generator-html` packages, and the core package imports the built
+`@polyspec/crudui-validator`, so build them first. From the repository root:
 
 ```sh
 npm install

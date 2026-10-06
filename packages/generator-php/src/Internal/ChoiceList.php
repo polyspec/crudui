@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Generator;
+namespace Polyspec\Crudui\Generator;
 
-use CRUDUI\FormError;
+use Polyspec\Crudui\FormError;
 use stdClass;
 
 /** Read choice lists: `items` arrays of value and label pairs kept in list order. */

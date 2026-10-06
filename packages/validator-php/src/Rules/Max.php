@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Validator\Rules;
+namespace Polyspec\Crudui\Validator\Rules;
 
-use CRUDUI\Validator\Expr\FieldPath;
-use CRUDUI\Validator\Values\InvalidRuleParameter;
-use CRUDUI\Validator\Values\Numeric;
+use Polyspec\Crudui\Validator\Expr\FieldPath;
+use Polyspec\Crudui\Validator\Values\InvalidRuleParameter;
+use Polyspec\Crudui\Validator\Values\Numeric;
 
 /**
  * Inclusive upper bound: a numeric value not above the bound passes; any other value fails.

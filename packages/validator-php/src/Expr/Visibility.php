@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Validator\Expr;
+namespace Polyspec\Crudui\Validator\Expr;
 
 /**
  * `design.show` resolves like a conditional parameter in the field's row context

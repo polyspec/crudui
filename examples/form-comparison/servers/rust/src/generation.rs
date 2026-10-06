@@ -8,10 +8,10 @@ use axum::{
     http::{Method, StatusCode},
     response::{IntoResponse, Response},
 };
-use crudui_generator::{
+use polyspec_crudui_generator::{
     compile_form, render_form, BindOptions, CompileOptions, Form, FormTemplate,
 };
-use crudui_validator::compose::{ComposeResult, FileLoader, LoadedDoc, MemoryLoader};
+use polyspec_crudui_validator::compose::{ComposeResult, FileLoader, LoadedDoc, MemoryLoader};
 use serde_json::{json, Map, Value};
 use std::cell::Cell;
 

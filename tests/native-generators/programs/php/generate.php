@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 require __DIR__ . '/../../../../packages/generator-php/vendor/autoload.php';
 
-use CRUDUI\Form;
-use CRUDUI\FormError;
-use CRUDUI\Generator;
-use CRUDUI\Validator\Compose\ComposeLoadError;
-use CRUDUI\Validator\Support\JsonText;
+use Polyspec\Crudui\Form;
+use Polyspec\Crudui\FormError;
+use Polyspec\Crudui\Generator;
+use Polyspec\Crudui\Validator\Compose\ComposeLoadError;
+use Polyspec\Crudui\Validator\Support\JsonText;
 
 /*
  * PHP generator process of the native generator conformance suite. It reads one JSON
- * request on standard input, calls the public API of crudui/generator and writes one
+ * request on standard input, calls the public API of polyspec/crudui-generator and writes one
  * JSON value on standard output; ../../README.md defines the protocol. With the native
  * extension loaded, the same program runs the extension's classes.
  */

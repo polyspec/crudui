@@ -2,7 +2,7 @@ import * as React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { act, render } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import { buildList, compileForm, createForm } from '@crudui/generator-core';
+import { buildList, compileForm, createForm } from '@polyspec/crudui-generator-core';
 import { Form } from '../components/Form';
 import { List } from '../components/List';
 import { inputProps, plainProps, resolvedStyleProps, styleObject } from '../components/attrs';

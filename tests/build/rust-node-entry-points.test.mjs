@@ -64,7 +64,7 @@ fs.appendFileSync(process.env.RUST_COMMAND_LOG, JSON.stringify({
   args, cwd: process.cwd(), rustc: process.env.RUSTC, rustdoc: process.env.RUSTDOC,
 }) + '\n');
 if (process.env.TEST_RUSTDOC_OUTPUT) {
-  for (const crate of ['crudui_validator', 'crudui_generator']) {
+  for (const crate of ['polyspec_crudui_validator', 'polyspec_crudui_generator']) {
     const directory = path.join(process.env.TEST_RUSTDOC_OUTPUT, crate);
     fs.mkdirSync(directory, { recursive: true });
     fs.writeFileSync(path.join(directory, 'index.html'), crate + '\n');
@@ -160,7 +160,7 @@ test('Rust API generation uses one resolved toolchain', t => {
   assert.equal(result.status, 0, result.stdout + result.stderr);
   assert.deepEqual(commands(tools.commandLog), [{
     args: [
-      'doc', '--locked', '--no-deps', '-p', 'crudui-validator', '-p', 'crudui-generator',
+      'doc', '--locked', '--no-deps', '-p', 'polyspec-crudui-validator', '-p', 'polyspec-crudui-generator',
     ],
     cwd: path.join(root, 'packages/generator-rust'),
     rustc: tools.rustc,

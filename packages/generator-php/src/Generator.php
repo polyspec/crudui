@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI;
+namespace Polyspec\Crudui;
 
-use CRUDUI\Generator\Binding;
-use CRUDUI\Generator\Buttons;
-use CRUDUI\Generator\Details;
-use CRUDUI\Generator\FormRender;
-use CRUDUI\Generator\InputText;
-use CRUDUI\Generator\Lists;
-use CRUDUI\Generator\Rendering;
-use CRUDUI\Generator\Template;
+use Polyspec\Crudui\Generator\Binding;
+use Polyspec\Crudui\Generator\Buttons;
+use Polyspec\Crudui\Generator\Details;
+use Polyspec\Crudui\Generator\FormRender;
+use Polyspec\Crudui\Generator\InputText;
+use Polyspec\Crudui\Generator\Lists;
+use Polyspec\Crudui\Generator\Rendering;
+use Polyspec\Crudui\Generator\Template;
 use stdClass;
 
 /** Compile form structures, bind values and render forms or lists. */

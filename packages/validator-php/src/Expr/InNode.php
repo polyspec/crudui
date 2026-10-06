@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Validator\Expr;
+namespace Polyspec\Crudui\Validator\Expr;
 
 /**
  * Membership test: value [not] in list. `list` is a Literal-node array; whether

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Validator\Patterns;
+namespace Polyspec\Crudui\Validator\Patterns;
 
 /**
  * A node of a recognized CRUDUI pattern.

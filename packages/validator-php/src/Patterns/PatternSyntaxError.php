@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Validator\Patterns;
+namespace Polyspec\Crudui\Validator\Patterns;
 
 /**
  * A pattern outside the CRUDUI pattern language, with its reason and code point offset.

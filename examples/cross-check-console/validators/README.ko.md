@@ -8,15 +8,15 @@
 
 | 프로세스 | 프로그램 | 라이브러리 진입점 |
 | --- | --- | --- |
-| JavaScript | `js/validate.mjs` | `@crudui/validator`의 `validate`, `validateList`, `validateDetail` |
-| PHP | `php/validate.php` | `CRUDUI\Validator::validate`, `validateList`, `validateDetail` |
+| JavaScript | `js/validate.mjs` | `@polyspec/crudui-validator`의 `validate`, `validateList`, `validateDetail` |
+| PHP | `php/validate.php` | `Polyspec\Crudui\Validator::validate`, `validateList`, `validateDetail` |
 | PHP 확장 | `php -d extension=… php/validate.php` | 확장의 클래스로 실행하는 같은 PHP 프로그램 |
 | Go | `go/`(자체 `go.mod`를 가진 모듈) | `validate.ValidateJSON`, `ValidateListJSON`, `ValidateDetailJSON` |
-| Rust | `rust/`(크레이트 `polyspec-crudui-cross-check-validator`) | `crudui_validator::validate`, `validate_list`, `validate_detail` |
+| Rust | `rust/`(크레이트 `polyspec-crudui-cross-check-validator`) | `polyspec_crudui_validator::validate`, `validate_list`, `validate_detail` |
 
 `../server`에서 `npm run build:validators`를 실행하면 Go 프로그램을 `go/validate`로, Rust
 프로그램을 `rust/target/release/polyspec-crudui-cross-check-validator`로 빌드합니다. JavaScript 프로그램은
-빌드된 `@crudui/validator` 패키지를 import합니다. PHP 프로그램은 `packages/validator-php`의
+빌드된 `@polyspec/crudui-validator` 패키지를 import합니다. PHP 프로그램은 `packages/validator-php`의
 Composer 자동 로더를 불러옵니다. 배포 환경은 `CRUDUI_CROSS_CHECK_GO_VALIDATOR`와
 `CRUDUI_CROSS_CHECK_RUST_VALIDATOR`로 다른 Go·Rust 실행 파일을 지정할 수 있습니다.
 

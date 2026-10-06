@@ -1,7 +1,7 @@
 /** Evaluate list declarations and supplied records for framework renderers. */
 
-import { FormInputError, type FileLoader } from '@crudui/validator';
-import { checkedComposition, composeProperties, MemoryLoader, scanForbiddenKeys } from '@crudui/validator/internal';
+import { FormInputError, type FileLoader } from '@polyspec/crudui-validator';
+import { checkedComposition, composeProperties, MemoryLoader, scanForbiddenKeys } from '@polyspec/crudui-validator/internal';
 import { checkArgumentText, DISPLAY_OPTIONS } from './input-text';
 import { makeTranslate, type Language, type LocalizedText } from './content';
 import { LIST_MESSAGES } from './interface-messages';

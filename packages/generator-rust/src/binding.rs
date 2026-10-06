@@ -422,7 +422,7 @@ impl Binding<'_> {
         let language = self.language;
         let label = spec
             .get("label")
-            .filter(|v| crudui_validator::expr::is_truthy(v))
+            .filter(|v| polyspec_crudui_validator::expr::is_truthy(v))
             .map(|v| translate(Some(v), language))
             .filter(|v| !v.is_empty());
         let description = Some(translate(spec.get("description"), language));

@@ -6,8 +6,8 @@ rust-version = "1.89"
 publish = false
 
 [dependencies]
-crudui-generator = { path = "../../../../packages/generator-rust" }
-crudui-validator = { path = "../../../../packages/validator-rust" }
+polyspec-crudui-generator = { path = "../../../../packages/generator-rust" }
+polyspec-crudui-validator = { path = "../../../../packages/validator-rust" }
 ordered-json = { path = "../../../../.form-comparison/sources/ordered-json/rust", version = "0.0.1" }
 serde_json = { version = "1", features = ["preserve_order"] }
 axum = { version = "0.8.9", features = ["multipart"] }

@@ -1,5 +1,5 @@
 import { createApp, createSSRApp, h, nextTick } from 'vue';
-import { createForm } from '@crudui/generator-core';
+import { createForm } from '@polyspec/crudui-generator-core';
 import { Form } from '#vue/Form';
 import { Outline } from '#vue/Outline';
 import { DataView } from '#vue/DataView';

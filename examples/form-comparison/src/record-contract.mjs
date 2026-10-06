@@ -6,10 +6,10 @@ import assert from 'node:assert/strict';
 import { readFile, writeFile } from 'node:fs/promises';
 import http from 'node:http';
 
-import { compileForm, createForm } from '@crudui/generator-core';
-import { renderDetail, renderForm, renderList } from '@crudui/generator-html';
+import { compileForm, createForm } from '@polyspec/crudui-generator-core';
+import { renderDetail, renderForm, renderList } from '@polyspec/crudui-generator-html';
 import { JSDOM } from 'jsdom';
-import { hiddenPaths, validate } from '@crudui/validator';
+import { hiddenPaths, validate } from '@polyspec/crudui-validator';
 
 import customerRecords from '../fixtures/customer-records.json' with { type: 'json' };
 import customerSpecs from '../fixtures/customer-specs.json' with { type: 'json' };

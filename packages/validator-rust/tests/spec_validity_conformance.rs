@@ -17,7 +17,7 @@ mod common;
 const FEATURE: &str = "validate";
 const FIXTURE: &str = "tests/fixtures/spec-validity/cases.json";
 
-use crudui_validator::validate::{validate, ValidateOptions};
+use polyspec_crudui_validator::validate::{validate, ValidateOptions};
 use serde_json::Value;
 use std::path::{Path, PathBuf};
 

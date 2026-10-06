@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Validator\Values;
+namespace Polyspec\Crudui\Validator\Values;
 
 /**
  * Empty values: a missing value or null, a string that is empty after trimming,

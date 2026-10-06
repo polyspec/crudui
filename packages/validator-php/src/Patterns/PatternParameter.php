@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Validator\Patterns;
+namespace Polyspec\Crudui\Validator\Patterns;
 
-use CRUDUI\Validator\Values\InvalidRuleParameter;
+use Polyspec\Crudui\Validator\Values\InvalidRuleParameter;
 
 /**
  * The parameter of `pattern` or `match`: a string in the CRUDUI pattern language.

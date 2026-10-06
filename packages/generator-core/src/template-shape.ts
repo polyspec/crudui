@@ -1,6 +1,6 @@
 /** The compiled form template shape every template input must have (docs/spec/form-runtime.md). */
 
-import { FormInputError } from '@crudui/validator';
+import { FormInputError } from '@polyspec/crudui-validator';
 
 import type { FormTemplate } from './form';
 

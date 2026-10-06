@@ -2,8 +2,8 @@
 
 [한국어](README.ko.md).
 
-The `crudui` extension provides `CRUDUI\Generator`, `CRUDUI\Validator` and
-`CRUDUI\Form` in the PHP process. The C module registers the PHP classes and
+The `crudui` extension provides `Polyspec\Crudui\Generator`, `Polyspec\Crudui\Validator` and
+`Polyspec\Crudui\Form` in the PHP process. The C module registers the PHP classes and
 converts PHP values directly to its ordered value model.
 
 The [PHP API specification](../../docs/spec/php-extension.md) defines methods,

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Validator\Values;
+namespace Polyspec\Crudui\Validator\Values;
 
 /**
  * Whitespace: exactly the code points with the Unicode White_Space property

@@ -27,7 +27,7 @@ static form_object *form_from_object(zend_object *object)
 static ps_form *require_form(zend_object *object)
 {
     ps_form *form = form_from_object(object)->form;
-    if (!form) zend_throw_error(NULL, "CRUDUI\\Form is not initialized");
+    if (!form) zend_throw_error(NULL, "Polyspec\\Crudui\\Form is not initialized");
     return form;
 }
 
@@ -124,7 +124,7 @@ static void call_three(zval *first, zval *second, bool second_is_object, zval *o
     ps_value_free(input);
 }
 
-PHP_METHOD(CRUDUI_Generator, compileForm)
+PHP_METHOD(Polyspec_Crudui_Generator, compileForm)
 {
     zval *spec, *options = NULL;
     ZEND_PARSE_PARAMETERS_START(1, 2)
@@ -138,7 +138,7 @@ PHP_METHOD(CRUDUI_Generator, compileForm)
     call_two(spec, options, true, ps_compile_form, return_value);
 }
 
-PHP_METHOD(CRUDUI_Generator, bindForm)
+PHP_METHOD(Polyspec_Crudui_Generator, bindForm)
 {
     zval *template, *data = NULL, *options = NULL;
     ZEND_PARSE_PARAMETERS_START(1, 3)
@@ -151,7 +151,7 @@ PHP_METHOD(CRUDUI_Generator, bindForm)
     call_three(template, data, true, options, true, false, ps_bind_form, return_value);
 }
 
-PHP_METHOD(CRUDUI_Generator, bindButtons)
+PHP_METHOD(Polyspec_Crudui_Generator, bindButtons)
 {
     zval *template, *data = NULL, *options = NULL;
     ZEND_PARSE_PARAMETERS_START(1, 3)
@@ -169,7 +169,7 @@ static bool standard_object(zval *value)
     return Z_TYPE_P(value) == IS_OBJECT && instanceof_function(Z_OBJCE_P(value), zend_standard_class_def);
 }
 
-PHP_METHOD(CRUDUI_Generator, formButtonsHtml)
+PHP_METHOD(Polyspec_Crudui_Generator, formButtonsHtml)
 {
     zval *buttons;
     ZEND_PARSE_PARAMETERS_START(1, 1) Z_PARAM_ARRAY(buttons) ZEND_PARSE_PARAMETERS_END();
@@ -192,7 +192,7 @@ PHP_METHOD(CRUDUI_Generator, formButtonsHtml)
     if (input) { crudui_return(ps_form_buttons_html(input), return_value); ps_value_free(input); }
 }
 
-PHP_METHOD(CRUDUI_Generator, renderList)
+PHP_METHOD(Polyspec_Crudui_Generator, renderList)
 {
     zval *spec, *rows, *options = NULL;
     ZEND_PARSE_PARAMETERS_START(2, 3)
@@ -210,7 +210,7 @@ PHP_METHOD(CRUDUI_Generator, renderList)
     call_three(spec, rows, false, options, true, true, ps_render_list, return_value);
 }
 
-PHP_METHOD(CRUDUI_Generator, buildList)
+PHP_METHOD(Polyspec_Crudui_Generator, buildList)
 {
     zval *spec, *rows = NULL, *options = NULL;
     ZEND_PARSE_PARAMETERS_START(1, 3)
@@ -258,17 +258,17 @@ static void call_detail(INTERNAL_FUNCTION_PARAMETERS, ps_result (*operation)(con
     call_three(spec, record, true, options, true, true, operation, return_value);
 }
 
-PHP_METHOD(CRUDUI_Generator, renderDetail)
+PHP_METHOD(Polyspec_Crudui_Generator, renderDetail)
 {
     call_detail(INTERNAL_FUNCTION_PARAM_PASSTHRU, ps_render_detail);
 }
 
-PHP_METHOD(CRUDUI_Generator, buildDetail)
+PHP_METHOD(Polyspec_Crudui_Generator, buildDetail)
 {
     call_detail(INTERNAL_FUNCTION_PARAM_PASSTHRU, ps_build_detail);
 }
 
-PHP_METHOD(CRUDUI_Validator, validate)
+PHP_METHOD(Polyspec_Crudui_Validator, validate)
 {
     zval *spec, *data, *options = NULL;
     ZEND_PARSE_PARAMETERS_START(2, 3)
@@ -289,7 +289,7 @@ PHP_METHOD(CRUDUI_Validator, validate)
     call_three(spec, data, true, options, false, false, ps_validate, return_value);
 }
 
-PHP_METHOD(CRUDUI_Validator, validateList)
+PHP_METHOD(Polyspec_Crudui_Validator, validateList)
 {
     zval *spec, *options = NULL;
     ZEND_PARSE_PARAMETERS_START(1, 2)
@@ -302,7 +302,7 @@ PHP_METHOD(CRUDUI_Validator, validateList)
     call_two(spec, options, false, ps_validate_list, return_value);
 }
 
-PHP_METHOD(CRUDUI_Validator, validateDetail)
+PHP_METHOD(Polyspec_Crudui_Validator, validateDetail)
 {
     zval *spec, *options = NULL;
     ZEND_PARSE_PARAMETERS_START(1, 2)
@@ -315,7 +315,7 @@ PHP_METHOD(CRUDUI_Validator, validateDetail)
     call_two(spec, options, false, ps_validate_detail, return_value);
 }
 
-PHP_METHOD(CRUDUI_Generator, sequenceRowKey)
+PHP_METHOD(Polyspec_Crudui_Generator, sequenceRowKey)
 {
     zend_string *string = NULL;
     zend_long integer;
@@ -327,13 +327,13 @@ PHP_METHOD(CRUDUI_Generator, sequenceRowKey)
     if (input) { crudui_return(ps_sequence_key(input), return_value); ps_value_free(input); }
 }
 
-PHP_METHOD(CRUDUI_Generator, createRowKey)
+PHP_METHOD(Polyspec_Crudui_Generator, createRowKey)
 {
     ZEND_PARSE_PARAMETERS_NONE();
     crudui_return(ps_create_key(), return_value);
 }
 
-PHP_METHOD(CRUDUI_Generator, renderForm)
+PHP_METHOD(Polyspec_Crudui_Generator, renderForm)
 {
     zend_object *object;
     zval *options = NULL;
@@ -351,7 +351,7 @@ PHP_METHOD(CRUDUI_Generator, renderForm)
     ps_value_free(render);
 }
 
-PHP_METHOD(CRUDUI_Form, __construct)
+PHP_METHOD(Polyspec_Crudui_Form, __construct)
 {
     (void)return_value;
     zval *template, *data = NULL, *options = NULL;
@@ -382,7 +382,7 @@ PHP_METHOD(CRUDUI_Form, __construct)
 }
 
 #define FORM_READER(name, member) \
-PHP_METHOD(CRUDUI_Form, name) { \
+PHP_METHOD(Polyspec_Crudui_Form, name) { \
     ZEND_PARSE_PARAMETERS_NONE(); \
     ps_form *form = require_form(Z_OBJ_P(ZEND_THIS)); \
     if (form) crudui_return(ps_form_read(form, member), return_value); \
@@ -394,7 +394,7 @@ FORM_READER(getRevision, 3)
 FORM_READER(getButtons, 5)
 FORM_READER(getDescription, 7)
 
-PHP_METHOD(CRUDUI_Form, getMessages)
+PHP_METHOD(Polyspec_Crudui_Form, getMessages)
 {
     ZEND_PARSE_PARAMETERS_NONE();
     ps_form *form = require_form(Z_OBJ_P(ZEND_THIS));
@@ -438,7 +438,7 @@ static void apply_form(zend_object *object, uint8_t method, size_t count, zval *
     ps_value_free(arguments);
 }
 
-PHP_METHOD(CRUDUI_Form, getValue)
+PHP_METHOD(Polyspec_Crudui_Form, getValue)
 {
     zend_string *path;
     ZEND_PARSE_PARAMETERS_START(1, 1) Z_PARAM_STR(path) ZEND_PARSE_PARAMETERS_END();
@@ -446,14 +446,14 @@ PHP_METHOD(CRUDUI_Form, getValue)
     apply_form(Z_OBJ_P(ZEND_THIS), 0, 1, (zval *[]){&value}, (bool[]){false}, return_value);
 }
 
-PHP_METHOD(CRUDUI_Form, setData)
+PHP_METHOD(Polyspec_Crudui_Form, setData)
 {
     zval *data;
     ZEND_PARSE_PARAMETERS_START(1, 1) Z_PARAM_ARRAY_OR_OBJECT(data) ZEND_PARSE_PARAMETERS_END();
     apply_form(Z_OBJ_P(ZEND_THIS), 1, 1, (zval *[]){data}, (bool[]){true}, return_value);
 }
 
-PHP_METHOD(CRUDUI_Form, setValue)
+PHP_METHOD(Polyspec_Crudui_Form, setValue)
 {
     zend_string *path;
     zval *data, value;
@@ -462,7 +462,7 @@ PHP_METHOD(CRUDUI_Form, setValue)
     apply_form(Z_OBJ_P(ZEND_THIS), 2, 2, (zval *[]){&value, data}, (bool[]){false, false}, return_value);
 }
 
-PHP_METHOD(CRUDUI_Form, addRow)
+PHP_METHOD(Polyspec_Crudui_Form, addRow)
 {
     zend_string *path;
     zval *options = NULL, value;
@@ -471,7 +471,7 @@ PHP_METHOD(CRUDUI_Form, addRow)
     apply_form(Z_OBJ_P(ZEND_THIS), 3, 2, (zval *[]){&value, options}, (bool[]){false, true}, return_value);
 }
 
-PHP_METHOD(CRUDUI_Form, copyRow)
+PHP_METHOD(Polyspec_Crudui_Form, copyRow)
 {
     zend_string *path, *key;
     zval *options = NULL, p, k;
@@ -480,7 +480,7 @@ PHP_METHOD(CRUDUI_Form, copyRow)
     apply_form(Z_OBJ_P(ZEND_THIS), 4, 3, (zval *[]){&p, &k, options}, (bool[]){false, false, true}, return_value);
 }
 
-PHP_METHOD(CRUDUI_Form, removeRow)
+PHP_METHOD(Polyspec_Crudui_Form, removeRow)
 {
     zend_string *path, *key;
     zval p, k;
@@ -489,7 +489,7 @@ PHP_METHOD(CRUDUI_Form, removeRow)
     apply_form(Z_OBJ_P(ZEND_THIS), 5, 2, (zval *[]){&p, &k}, (bool[]){false, false}, return_value);
 }
 
-PHP_METHOD(CRUDUI_Form, moveRow)
+PHP_METHOD(Polyspec_Crudui_Form, moveRow)
 {
     zend_string *path, *key;
     zend_long index;
@@ -499,7 +499,7 @@ PHP_METHOD(CRUDUI_Form, moveRow)
     apply_form(Z_OBJ_P(ZEND_THIS), 6, 3, (zval *[]){&p, &k, &i}, (bool[]){false, false, false}, return_value);
 }
 
-PHP_METHOD(CRUDUI_Form, rekeyRow)
+PHP_METHOD(Polyspec_Crudui_Form, rekeyRow)
 {
     zend_string *path, *old_key, *new_key;
     zval p, o, n;
@@ -512,12 +512,12 @@ PHP_MINIT_FUNCTION(crudui)
 {
     (void)type;
     (void)module_number;
-    crudui_form_error_ce = register_class_CRUDUI_FormError(spl_ce_RuntimeException);
-    crudui_compose_error_ce = register_class_CRUDUI_Validator_Compose_ComposeLoadError(spl_ce_RuntimeException);
-    crudui_input_error_ce = register_class_CRUDUI_Validator_Validate_FormInputError(spl_ce_RuntimeException);
-    crudui_generator_ce = register_class_CRUDUI_Generator();
-    crudui_validator_ce = register_class_CRUDUI_Validator();
-    crudui_form_ce = register_class_CRUDUI_Form();
+    crudui_form_error_ce = register_class_Polyspec_Crudui_FormError(spl_ce_RuntimeException);
+    crudui_compose_error_ce = register_class_Polyspec_Crudui_Validator_Compose_ComposeLoadError(spl_ce_RuntimeException);
+    crudui_input_error_ce = register_class_Polyspec_Crudui_Validator_Validate_FormInputError(spl_ce_RuntimeException);
+    crudui_generator_ce = register_class_Polyspec_Crudui_Generator();
+    crudui_validator_ce = register_class_Polyspec_Crudui_Validator();
+    crudui_form_ce = register_class_Polyspec_Crudui_Form();
     crudui_form_ce->create_object = create_form_object;
     crudui_form_ce->ce_flags |= ZEND_ACC_NOT_SERIALIZABLE;
     memcpy(&form_handlers, zend_get_std_object_handlers(), sizeof(form_handlers));

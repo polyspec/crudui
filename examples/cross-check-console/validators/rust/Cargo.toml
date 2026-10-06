@@ -5,7 +5,7 @@ edition = "2021"
 publish = false
 
 [dependencies]
-crudui-validator = { path = "../../../../packages/validator-rust" }
+polyspec-crudui-validator = { path = "../../../../packages/validator-rust" }
 serde_json = { version = "1", features = ["preserve_order", "float_roundtrip"] }
 
 [profile.release]

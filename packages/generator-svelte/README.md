@@ -1,12 +1,12 @@
-# @crudui/generator-svelte
+# @polyspec/crudui-generator-svelte
 
 [한국어](README.ko.md).
 
 Svelte rendering for form instances, lists and details.
 
 ```ts
-import { compileForm, createForm } from '@crudui/generator-core';
-import { renderForm, renderList } from '@crudui/generator-svelte';
+import { compileForm, createForm } from '@polyspec/crudui-generator-core';
+import { renderForm, renderList } from '@polyspec/crudui-generator-svelte';
 
 const template = compileForm({
   type: 'group', properties: { name: { type: 'text' } },
@@ -24,13 +24,13 @@ per form. `renderForm(form, options)` returns the same markup as a string for se
 accepts the same `options` prop.
 
 `List` takes `vm` and `layout` props and `Detail` takes a `vm` prop, with models built by
-`buildList(spec, rows, options)` and `buildDetail(spec, record, options)` of `@crudui/generator-core`.
+`buildList(spec, rows, options)` and `buildDetail(spec, record, options)` of `@polyspec/crudui-generator-core`.
 `renderList(spec, rows, options)` and `renderDetail(spec, record, options)` return strings.
 
 The package entry exports components (`Form`, `List`, `Detail`, `Node`, `Controls`, `Widget`,
 `Outline`, `OutlineView`, `DataView`, `DataPanel`) and the render functions `renderForm`,
 `renderList` and `renderDetail`. Compilation, form instances, models and error classes come from
-`@crudui/generator-core`; this package does not re-export them.
+`@polyspec/crudui-generator-core`; this package does not re-export them.
 
 The package publishes Svelte components under the `svelte` export condition. Load it through a
 Svelte-aware bundler such as Vite with `@sveltejs/vite-plugin-svelte`, including on the server

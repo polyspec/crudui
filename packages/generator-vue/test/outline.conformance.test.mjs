@@ -11,7 +11,7 @@ import fs from 'node:fs';
 import { createSSRApp } from 'vue';
 import { renderToString } from 'vue/server-renderer';
 import { describe, expect, test } from 'vitest';
-import { bindForm, compileForm, formMessages } from '@crudui/generator-core';
+import { bindForm, compileForm, formMessages } from '@polyspec/crudui-generator-core';
 import { normalizeHtml } from '../../../tests/fixtures/form-render/normalize.mjs';
 import { dataVNode, outlineVNode } from '../src/index.ts';
 import { provesConformance } from '../../../tests/conformance/evidence.mjs';

@@ -1,6 +1,6 @@
 import { defineComponent, h, onMounted, onBeforeUnmount, onUpdated, shallowRef, watch, type PropType } from 'vue';
-import { connectForm, type FormInstance, type FormRenderOptions } from '@crudui/generator-core';
-import { formRenderModel } from '@crudui/generator-core/internal';
+import { connectForm, type FormInstance, type FormRenderOptions } from '@polyspec/crudui-generator-core';
+import { formRenderModel } from '@polyspec/crudui-generator-core/internal';
 import { FormFields } from './FormFields.js';
 
 /** The interactive adapter over a shared, data-independent form template. */

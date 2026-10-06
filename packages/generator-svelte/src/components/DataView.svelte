@@ -3,7 +3,7 @@
 -->
 <script lang="ts">
   import { untrack } from 'svelte';
-  import type { FormInstance } from '@crudui/generator-core';
+  import type { FormInstance } from '@polyspec/crudui-generator-core';
   import DataPanel from './DataPanel.svelte';
 
   let { form }: { form: FormInstance } = $props();

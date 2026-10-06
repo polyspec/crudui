@@ -4,32 +4,32 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "fd11fd58f77a9eda5350064a0eab0e48",
+    "content-hash": "8f685fe75b3e8a34e67e2b022cbf0873",
     "packages": [
         {
-            "name": "crudui/validator",
+            "name": "polyspec/crudui-validator",
             "version": "0.0.1",
             "dist": {
                 "type": "path",
                 "url": "../validator-php",
-                "reference": "ba1232027c370c8d63aa8f8498dd86fb8d8ef564"
+                "reference": "578be59c90c672f1000f0bc536c02bcf80b06d6e"
             },
             "require": {
                 "php": "^8.4"
             },
             "require-dev": {
-                "phpunit/phpunit": "^10.0"
+                "phpunit/phpunit": "^13.4.1"
             },
             "type": "library",
             "autoload": {
                 "psr-4": {
-                    "CRUDUI\\Validator\\": "src/",
-                    "CRUDUI\\": "src/Public/"
+                    "Polyspec\\Crudui\\Validator\\": "src/",
+                    "Polyspec\\Crudui\\": "src/Public/"
                 }
             },
             "autoload-dev": {
                 "psr-4": {
-                    "CRUDUI\\Validator\\Tests\\": "tests/"
+                    "Polyspec\\Crudui\\Validator\\Tests\\": "tests/"
                 }
             },
             "scripts": {

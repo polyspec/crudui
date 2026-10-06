@@ -1,5 +1,14 @@
 # Changes
 
+## 2026-10-06 — Package names of the polyspec repositories (C9.1)
+
+- The packages follow the naming of template and hyper: the npm packages are `@polyspec/crudui-*`
+  (`@polyspec/crudui-validator`, `@polyspec/crudui-generator-html` and the others), the Composer
+  packages `polyspec/crudui-generator` and `polyspec/crudui-validator` with the PHP namespace
+  `Polyspec\Crudui\`, also for the classes of the PHP extension, and the crates
+  `polyspec-crudui-generator` and `polyspec-crudui-validator`. Imports, `use` statements and
+  dependencies name the new packages; the earlier names are gone.
+
 ## 2026-10-06 — Hidden paths in the documents of the validation result (C8.3-5)
 
 - The READMEs of the TypeScript, Go and Rust validators, the PHP extension specification, the

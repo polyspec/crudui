@@ -14,7 +14,7 @@ composer install --working-dir=packages/generator-php
 composer test --working-dir=packages/generator-php
 ```
 
-Composer 경로 저장소는 인접 패키지의 `crudui/validator`를 `vendor/`에 복사합니다.
+Composer 경로 저장소는 인접 패키지의 `polyspec/crudui-validator`를 `vendor/`에 복사합니다.
 64비트 PHP 8.4 이상과 `mbstring`이 필요합니다. 개발 검사는 DOM을 포함하여
 PHPUnit이 사용하는 확장도 필요합니다.
 
@@ -23,8 +23,8 @@ PHPUnit이 사용하는 확장도 필요합니다.
 ```php
 require 'packages/generator-php/vendor/autoload.php';
 
-use CRUDUI\Form;
-use CRUDUI\Generator;
+use Polyspec\Crudui\Form;
+use Polyspec\Crudui\Generator;
 
 $spec = json_decode('{"type":"group","properties":{"name":{"type":"text","label":"Name"}}}');
 $template = Generator::compileForm($spec, ['keyPrefix' => 'form']);
@@ -83,10 +83,10 @@ decode해야 합니다. `true` 연관 배열 모드는 빈 객체와 배열의 �
 `new stdClass()`를 사용합니다. 객체 인수에는 연관 배열을, API가 루트 객체 타입을 정한
 인수에는 빈 배열을 빈 루트 객체로 전달할 수 있습니다.
 
-합성 실패는 `CRUDUI\Validator\Compose\ComposeLoadError`를 발생시킵니다.
+합성 실패는 `Polyspec\Crudui\Validator\Compose\ComposeLoadError`를 발생시킵니다.
 `getCompositionTrace()`는 `getTrace()`가 반환하는 예외 스택과 별도로
 명세 경로를 반환합니다.
-생성 실패는 `CRUDUI\FormError`를 발생시키며, `getErrorCode()`와 `getPath()`가
+생성 실패는 `Polyspec\Crudui\FormError`를 발생시키며, `getErrorCode()`와 `getPath()`가
 오류 코드와 필드 경로를 반환합니다. 지원하지 않는 필드는
 `UNSUPPORTED_FIELD_TYPE`, 그 외 잘못된 생성 입력은 `INVALID_FORM_INPUT`을 사용합니다.
 잘못된 공개 인수 타입은 `TypeError`를 발생시킵니다.

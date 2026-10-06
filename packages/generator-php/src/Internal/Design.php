@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Generator;
+namespace Polyspec\Crudui\Generator;
 
-use CRUDUI\Validator\Expr\Expression;
-use CRUDUI\Validator\Expr\TernaryNode;
-use CRUDUI\Validator\Expr\Visibility;
+use Polyspec\Crudui\Validator\Expr\Expression;
+use Polyspec\Crudui\Validator\Expr\TernaryNode;
+use Polyspec\Crudui\Validator\Expr\Visibility;
 use stdClass;
 
 /** Evaluate visibility and appearance with the shared expression engine and visibility rule. */

@@ -7,7 +7,7 @@ import {
   type FormMessages,
   type OutlineRow,
   type OutlineState,
-} from '@crudui/generator-core';
+} from '@polyspec/crudui-generator-core';
 import { controlsVNode } from './Node.js';
 
 function textActionVNode(name: string, label: string, disabled = false): VNode {

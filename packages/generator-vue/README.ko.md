@@ -1,4 +1,4 @@
-# @crudui/generator-vue
+# @polyspec/crudui-generator-vue
 
 [English](README.md).
 
@@ -6,8 +6,8 @@ Vue에서 폼 인스턴스, 목록, 상세를 렌더링합니다.
 
 ```ts
 import { h } from 'vue';
-import { buildList, compileForm, createForm } from '@crudui/generator-core';
-import { Form, List, renderForm, renderList } from '@crudui/generator-vue';
+import { buildList, compileForm, createForm } from '@polyspec/crudui-generator-core';
+import { Form, List, renderForm, renderList } from '@polyspec/crudui-generator-vue';
 
 const template = compileForm({
   type: 'group', properties: { name: { type: 'text' } },
@@ -26,7 +26,7 @@ const list = List(buildList(listSpec, rows, { language: 'en' }), 'table');
 생성합니다. `renderForm(form, options)`은 서버 렌더링용으로 같은 마크업을 담은 프로미스를 반환합니다.
 `options`는 이를 [완전한 폼](../../docs/spec/form-runtime.ko.md#완전한-폼)으로 만들며 `Form`도 같은 `options` 속성을 받습니다.
 
-`List(vm, layout)`와 `Detail(vm)`은 `@crudui/generator-core`의 `buildList(spec, rows, options)`와
+`List(vm, layout)`와 `Detail(vm)`은 `@polyspec/crudui-generator-core`의 `buildList(spec, rows, options)`와
 `buildDetail(spec, record, options)`로 만든 모델의 VNode를 반환합니다.
 `renderList(spec, rows, options)`와 `renderDetail(spec, record, options)`는 문자열 프로미스를
 반환합니다. 서버 렌더링은 `vue` 피어 의존성이 제공하는 `vue/server-renderer`를 사용합니다.
@@ -34,7 +34,7 @@ const list = List(buildList(listSpec, rows, { language: 'en' }), 'table');
 패키지 진입점은 컴포넌트와 렌더 함수(`Form`, `List`, `Detail`, `Widget`, `Outline`, `DataView`,
 `nodeVNode`, `controlsVNode`, `outlineVNode`, `dataVNode`), 그리고 `renderForm`, `renderList`,
 `renderDetail`을 내보냅니다. 컴파일, 폼 인스턴스, 모델과 오류 클래스는
-`@crudui/generator-core`에서 가져오며 이 패키지는 이를 다시 내보내지 않습니다.
+`@polyspec/crudui-generator-core`에서 가져오며 이 패키지는 이를 다시 내보내지 않습니다.
 
 - [런타임 계약](../../docs/spec/form-runtime.ko.md)
 - [폼 운영](../../docs/operations/forms.ko.md)

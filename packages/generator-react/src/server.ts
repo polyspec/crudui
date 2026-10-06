@@ -6,8 +6,8 @@ import {
   type BuildListOptions,
   type FormInstance,
   type FormRenderOptions,
-} from '@crudui/generator-core';
-import { buildListLayout } from '@crudui/generator-core/internal';
+} from '@polyspec/crudui-generator-core';
+import { buildListLayout } from '@polyspec/crudui-generator-core/internal';
 import { Form, List, Detail } from './index';
 
 /** Render the current form instance as the complete form (form-runtime.md, "Complete form"). */

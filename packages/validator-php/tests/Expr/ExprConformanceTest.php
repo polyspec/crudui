@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Validator\Tests\Expr;
+namespace Polyspec\Crudui\Validator\Tests\Expr;
 
-use CRUDUI\Validator\Expr\ConditionMap;
-use CRUDUI\Validator\Expr\Evaluator;
-use CRUDUI\Validator\Expr\Expression;
-use CRUDUI\Validator\Expr\Node;
-use CRUDUI\Validator\Expr\ParseError;
+use Polyspec\Crudui\Validator\Expr\ConditionMap;
+use Polyspec\Crudui\Validator\Expr\Evaluator;
+use Polyspec\Crudui\Validator\Expr\Expression;
+use Polyspec\Crudui\Validator\Expr\Node;
+use Polyspec\Crudui\Validator\Expr\ParseError;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
 

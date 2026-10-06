@@ -86,7 +86,7 @@ for (const mode of ['import', 'require']) {
     const internals = Object.fromEntries(declared.packages
       .filter(({ entries }) => entries['./internal'])
       .map(({ name, entries }) => [name, [...entries['./internal'].exports].sort()]));
-    assert.deepEqual(Object.keys(internals).sort(), ['@crudui/generator-core', '@crudui/validator']);
+    assert.deepEqual(Object.keys(internals).sort(), ['@polyspec/crudui-generator-core', '@polyspec/crudui-validator']);
     const loaded = {};
     for (const [name, expected] of Object.entries(internals)) {
       const pkg = packages.find(({ manifest }) => manifest.name === name);
@@ -97,9 +97,9 @@ for (const mode of ['import', 'require']) {
       assert.deepEqual(names, expected, internalName);
       loaded[name] = entry;
     }
-    assert.deepEqual((await entryNames('@crudui/validator'))[1], ['ComposeLoadError', 'FormInputError', 'hiddenPaths', 'validate', 'validateDetail', 'validateList']);
+    assert.deepEqual((await entryNames('@polyspec/crudui-validator'))[1], ['ComposeLoadError', 'FormInputError', 'hiddenPaths', 'validate', 'validateDetail', 'validateList']);
     // An error raised inside the internal entry is the class the public entry exports.
-    assert.throws(() => new loaded['@crudui/validator'].MemoryLoader({}).load('missing.yml'), validator.ComposeLoadError);
+    assert.throws(() => new loaded['@polyspec/crudui-validator'].MemoryLoader({}).load('missing.yml'), validator.ComposeLoadError);
     assert.equal(core.ComposeLoadError, validator.ComposeLoadError);
     assert.equal(core.FormInputError, validator.FormInputError);
     for (const name of ['compileForm', 'createForm', 'createRowKey', 'sequenceRowKey']) {
@@ -225,12 +225,12 @@ test('public type entries and their declaration graph compile in ESM and CommonJ
 });
 
 test('generator-core exposes the only form stylesheet through the public crudui.css export', () => {
-  const pkg = packages.find(({ manifest }) => manifest.name === '@crudui/generator-core');
+  const pkg = packages.find(({ manifest }) => manifest.name === '@polyspec/crudui-generator-core');
   const path = realpathSync(resolve(pkg.directory, pkg.manifest.exports['./crudui.css']));
   assert.equal(realpathSync(require.resolve(`${pkg.manifest.name}/crudui.css`)), path);
   assert.equal(realpathSync(fileURLToPath(import.meta.resolve(`${pkg.manifest.name}/crudui.css`))), path);
   assert.ok(readFileSync(path).length > 0, 'public stylesheet must not be empty');
-  for (const other of packages.filter(({ manifest }) => manifest.name !== '@crudui/generator-core')) {
+  for (const other of packages.filter(({ manifest }) => manifest.name !== '@polyspec/crudui-generator-core')) {
     assert.ok(!Object.keys(other.manifest.exports ?? {}).some(key => key.endsWith('.css')), `${other.manifest.name} must not export a stylesheet`);
   }
 });

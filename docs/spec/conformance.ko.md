@@ -11,9 +11,9 @@
 
 | 키 | 구현 |
 | --- | --- |
-| `javascript` | `@crudui/validator`와 `@crudui/generator-core` 모델 |
-| `javascript-html` | `@crudui/generator-html` 문자열 렌더러 |
-| `javascript-dom` | `@crudui/generator-html` 마크업 위의 `@crudui/generator-core` DOM 바인딩 |
+| `javascript` | `@polyspec/crudui-validator`와 `@polyspec/crudui-generator-core` 모델 |
+| `javascript-html` | `@polyspec/crudui-generator-html` 문자열 렌더러 |
+| `javascript-dom` | `@polyspec/crudui-generator-html` 마크업 위의 `@polyspec/crudui-generator-core` DOM 바인딩 |
 | `react`, `vue`, `svelte` | 프레임워크 패키지 |
 | `php`, `go`, `rust` | 서버 라이브러리 |
 | `php-native` | PHP C 확장 |

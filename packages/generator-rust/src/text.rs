@@ -3,13 +3,13 @@
 //!
 //! A Rust `String` is always a sequence of Unicode scalar values, so the value
 //! operations need no check. A caller that decodes JSON text with
-//! [`JsonText`](crudui_validator::text::JsonText) passes its parts here, in the
+//! [`JsonText`](polyspec_crudui_validator::text::JsonText) passes its parts here, in the
 //! order each operation checks them, before decoding them into values.
 
-use crudui_validator::text::{check_inputs, check_specification};
-use crudui_validator::validate::ValidateError;
+use polyspec_crudui_validator::text::{check_inputs, check_specification};
+use polyspec_crudui_validator::validate::ValidateError;
 
-pub use crudui_validator::text::{JsonString, JsonText, JsonTextError};
+pub use polyspec_crudui_validator::text::{JsonString, JsonText, JsonTextError};
 
 use crate::error::{FormError, FormResult};
 

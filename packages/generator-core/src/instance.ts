@@ -1,4 +1,4 @@
-import { FormInputError } from '@crudui/validator';
+import { FormInputError } from '@polyspec/crudui-validator';
 import { bindForm, copyFormValue, formDescription, type BindFormOptions, type FormFieldTemplate, type FormTemplate } from './form';
 import { bindButtons, type ButtonVM } from './buttons';
 import { formMessages, type FormMessages } from './messages';

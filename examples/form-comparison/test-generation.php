@@ -47,17 +47,17 @@ equalGeneration($data, $rendered['data'], 'Rendering must retain row order and e
 checkGeneration($rendered['revision'] === 0, 'Initial rendering must start at revision zero');
 checkGeneration(str_contains($rendered['html'], 'name="form[companies][__0000000000007__][stores][__0000000000042__][name]"'), 'Rendering must produce native nested control names');
 equalGeneration($provenance, $rendered['generator'], 'Rendering must include provenance');
-$injected = new CRUDUI\Form(json_decode($cached), ['companies' => new stdClass()], ['language' => 'en']);
+$injected = new Polyspec\Crudui\Form(json_decode($cached), ['companies' => new stdClass()], ['language' => 'en']);
 foreach ([1, 2] as $pass) {
     $injected->setData($data);
     equalGeneration($rendered['data'], $injected->getData(), 'Injection must retain original data');
     equalGeneration($rendered['fields'], $injected->getFields(), 'Injection must produce identical complete models');
-    equalGeneration($rendered['html'], CRUDUI\Generator::renderForm($injected), 'Injection must produce identical HTML');
+    equalGeneration($rendered['html'], Polyspec\Crudui\Generator::renderForm($injected), 'Injection must produce identical HTML');
 }
-equalGeneration((object) ['valid' => true, 'errors' => [], 'hidden' => []], CRUDUI\Validator::validate($spec, $data, ['files' => $files]), 'Public validation must accept valid data');
+equalGeneration((object) ['valid' => true, 'errors' => [], 'hidden' => []], Polyspec\Crudui\Validator::validate($spec, $data, ['files' => $files]), 'Public validation must accept valid data');
 $invalid = json_decode(json_encode($data, JSON_THROW_ON_ERROR));
 $invalid->companies->__0000000000005__->name = '';
-checkGeneration(CRUDUI\Validator::validate($spec, $invalid, ['files' => $files])->valid === false, 'Public validation must reject missing required values');
+checkGeneration(Polyspec\Crudui\Validator::validate($spec, $invalid, ['files' => $files])->valid === false, 'Public validation must reject missing required values');
 
 foreach ([(object) ['spec' => []], (object) ['spec' => $spec, 'options' => null]] as $request) {
     $rejected = false;
@@ -82,7 +82,7 @@ $frame = $frameHead . '<html>' . $frameMiddle . '<div id="form-view"></div></mai
 $payloadPattern = '#<script type="application/json" id="crudui-ssr">(.*?)</script></body></html>$#sD';
 foreach (['ko', 'en'] as $language) {
     $html = $generation->ssrFrame($frame, $resolved, $ssrData, $language, FormJson::encode(...));
-    $expected = $generation->render((object) ['template' => json_decode(json_encode(CRUDUI\Generator::compileForm($resolved, ['keyPrefix' => 'form']), JSON_THROW_ON_ERROR)), 'data' => $ssrData, 'options' => (object) ['language' => $language]]);
+    $expected = $generation->render((object) ['template' => json_decode(json_encode(Polyspec\Crudui\Generator::compileForm($resolved, ['keyPrefix' => 'form']), JSON_THROW_ON_ERROR)), 'data' => $ssrData, 'options' => (object) ['language' => $language]]);
     checkGeneration(substr_count($html, '<div id="form-view">') === 1, 'SSR must keep one form view');
     $viewStart = strpos($html, '<div id="form-view">') + strlen('<div id="form-view">');
     $viewEnd = strpos($html, '</div></main>', $viewStart);

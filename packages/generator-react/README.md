@@ -1,13 +1,13 @@
-# @crudui/generator-react
+# @polyspec/crudui-generator-react
 
 [한국어](README.ko.md).
 
 React rendering for form instances, lists and details.
 
 ```tsx
-import { buildList, compileForm, createForm } from '@crudui/generator-core';
-import { Form, List } from '@crudui/generator-react';
-import { renderForm, renderList } from '@crudui/generator-react/server';
+import { buildList, compileForm, createForm } from '@polyspec/crudui-generator-core';
+import { Form, List } from '@polyspec/crudui-generator-react';
+import { renderForm, renderList } from '@polyspec/crudui-generator-react/server';
 
 const template = compileForm({
   type: 'group', properties: { name: { type: 'text' } },
@@ -28,13 +28,13 @@ per form. `renderForm(form, options)` returns the same markup as a string for se
 accepts the same `options` prop.
 
 `List` and `Detail` render models built with `buildList(spec, rows, options)` and
-`buildDetail(spec, record, options)` of `@crudui/generator-core`. `renderList(spec, rows, options)` and
+`buildDetail(spec, record, options)` of `@polyspec/crudui-generator-core`. `renderList(spec, rows, options)` and
 `renderDetail(spec, record, options)` return strings.
 
 The component entry exports `Form`, `List`, `Detail`, `Cell`, `Node`, `Controls`,
 `Widget`, `Outline`, `OutlineView`, `DataView`, `DataPanel`). The server entry exports
 `renderForm`, `renderList` and `renderDetail`. Compilation, form instances, models and error classes come from
-`@crudui/generator-core`; this package does not re-export them.
+`@polyspec/crudui-generator-core`; this package does not re-export them.
 
 - [Runtime contract](../../docs/spec/form-runtime.md)
 - [Form operations](../../docs/operations/forms.md)

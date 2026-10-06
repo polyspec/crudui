@@ -24,7 +24,7 @@ import type {
   ColumnVM,
   ActionVM,
   ListRowVM,
-} from '@crudui/generator-core';
+} from '@polyspec/crudui-generator-core';
 import { Cell } from './Cell';
 import { resolvedStyleProps, styleObject } from './attrs';
 import { escAttr, escText, RawContainer } from './raw';

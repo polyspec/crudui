@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-use CRUDUI\Form;
-use CRUDUI\Generator;
-use CRUDUI\Validator;
+use Polyspec\Crudui\Form;
+use Polyspec\Crudui\Generator;
+use Polyspec\Crudui\Validator;
 
 /** Generate current forms and verify the loaded PHP implementation. */
 final class FormGeneration
@@ -42,7 +42,7 @@ final class FormGeneration
             Form::class => ['source' => 'packages/generator-php/src/Form.php'],
             Validator::class => [
                 'source' => 'packages/validator-php/src/Public/Validator.php',
-                'package' => 'crudui/validator',
+                'package' => 'polyspec/crudui-validator',
                 'installed' => 'src/Public/Validator.php',
             ],
         ];

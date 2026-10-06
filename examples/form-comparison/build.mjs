@@ -62,10 +62,10 @@ const packageAliases = {
   '#svelte': path.join(source, 'packages/generator-svelte/src/components'),
   '#html': path.join(source, 'packages/generator-html/src/index.ts'),
   // Each internal entry precedes its main entry, whose alias also matches its subpaths.
-  '@crudui/generator-core/internal': path.join(source, 'packages/generator-core/src/internal.ts'),
-  '@crudui/generator-core': path.join(source, 'packages/generator-core/src/index.ts'),
-  '@crudui/validator/internal': path.join(source, 'packages/validator-ts/src/internal.ts'),
-  '@crudui/validator': path.join(source, 'packages/validator-ts/src/index.ts'),
+  '@polyspec/crudui-generator-core/internal': path.join(source, 'packages/generator-core/src/internal.ts'),
+  '@polyspec/crudui-generator-core': path.join(source, 'packages/generator-core/src/index.ts'),
+  '@polyspec/crudui-validator/internal': path.join(source, 'packages/validator-ts/src/internal.ts'),
+  '@polyspec/crudui-validator': path.join(source, 'packages/validator-ts/src/index.ts'),
 };
 // Svelte modules own reactive state, which lives in a runes module.
 const moduleExtension = { react: 'tsx', vue: 'ts', svelte: 'svelte.ts', html: 'ts' };

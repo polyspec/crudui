@@ -5,7 +5,7 @@
  * markup from `bindForm`, `bindButtons` and `formDescription` for a template without an `action`.
  */
 import { describe, expect, test } from 'vitest';
-import { bindButtons, bindForm, compileForm, createForm, formDescription, formMessages } from '@crudui/generator-core';
+import { bindButtons, bindForm, compileForm, createForm, formDescription, formMessages } from '@polyspec/crudui-generator-core';
 import { renderForm, renderFormView } from './index';
 import fixtureCases from '../../../tests/fixtures/form-complete/cases.json';
 import { provesConformance } from '../../../tests/conformance/evidence.mjs';

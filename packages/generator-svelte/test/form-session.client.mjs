@@ -1,6 +1,6 @@
 import { mount, unmount, tick } from 'svelte';
 import { expect, it } from 'vitest';
-import { compileForm, createForm } from '@crudui/generator-core';
+import { compileForm, createForm } from '@polyspec/crudui-generator-core';
 import Form from '../src/components/Form.svelte';
 import { spec, data, exerciseSessionDom } from '../../../tests/fixtures/form-session/scenario.mjs';
 import { compareInitialization, compareServerTakeover } from '../../../tests/fixtures/form-session/initialization.mjs';

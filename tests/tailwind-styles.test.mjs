@@ -1,5 +1,5 @@
 // The Tailwind version of the core stylesheet (form markup contract, Tailwind CSS): compiled with the
-// theme and the utilities of Tailwind CSS, @crudui/generator-core/crudui.tailwind.css gives every
+// theme and the utilities of Tailwind CSS, @polyspec/crudui-generator-core/crudui.tailwind.css gives every
 // element of the expected HTML of every shared render fixture the same computed style, without custom
 // properties, as crudui.css at 360 and 1280 CSS pixels in Chromium, Firefox and WebKit.
 import assert from 'node:assert/strict';

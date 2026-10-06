@@ -12,11 +12,11 @@ use axum::{
     routing::any,
     Router,
 };
-use crudui_generator::{
+use polyspec_crudui_generator::{
     compile_form, render_detail, render_form, render_list, BindOptions, CompileOptions,
     DetailOptions, Form, ListOptions,
 };
-use crudui_validator::validate::{validate, ValidateOptions};
+use polyspec_crudui_validator::validate::{validate, ValidateOptions};
 use serde_json::{json, Number, Value};
 use std::{
     fs::{self, OpenOptions},
@@ -513,7 +513,7 @@ async fn view(State(server): State<Arc<Server>>, request: Request) -> Result<Res
     let mut specs = specs(&server)?;
     let query = selection.query();
     let language = selection.language.clone();
-    let render = |error: crudui_generator::FormError| internal(error.to_string());
+    let render = |error: polyspec_crudui_generator::FormError| internal(error.to_string());
     let (html, data) = match (view.as_str(), &selection.id) {
         ("list", None) => {
             append_link(

@@ -85,8 +85,8 @@ test('a make target whose tests load the generator-php vendor reinstalls the val
     rule.commands.forEach((command, index) => {
       const files = /run-tests\.mjs node(?: --timeout \d+)? -- (.+?)(?: \|\||;|$)/.exec(command)?.[1].split(/\s+/) ?? [];
       const reads = files.filter(file => file.endsWith('.mjs')).some(file => readFileSync(path.join(repository, file), 'utf8').includes('generator-php/vendor'));
-      const reinstalled = rule.commands.slice(0, index).some(line => line.includes('composer --working-dir=packages/generator-php reinstall crudui/validator'));
-      if (reads && !reinstalled) violations.push(`${name}: \`${command}\` loads packages/generator-php/vendor without reinstalling crudui/validator first`);
+      const reinstalled = rule.commands.slice(0, index).some(line => line.includes('composer --working-dir=packages/generator-php reinstall polyspec/crudui-validator'));
+      if (reads && !reinstalled) violations.push(`${name}: \`${command}\` loads packages/generator-php/vendor without reinstalling polyspec/crudui-validator first`);
     });
   }
   assert.deepEqual(violations, []);
@@ -102,7 +102,7 @@ test('every reinstall of the generator-php vendor runs under its checkout lock',
     let source;
     try { source = readFileSync(path.join(repository, file), 'utf8'); } catch { continue; }
     // A reinstall and the hold of the lock that starts it, in the same command (the 300 characters before it).
-    for (const match of source.matchAll(/reinstall['",\s]+crudui\/validator/g)) {
+    for (const match of source.matchAll(/reinstall['",\s]+polyspec\/crudui-validator/g)) {
       if (/\.test\.mjs$/.test(file)) continue;
       const statement = source.slice(Math.max(0, match.index - 300), match.index).split(/\bstep\(|\n\t/).at(-1);
       if (!/holder-lock\.mjs['"),\s]{0,6}hold\b/.test(statement)) violations.push(`${file}: ${source.slice(match.index - 60, match.index + 30).replace(/\s+/g, ' ')}`);

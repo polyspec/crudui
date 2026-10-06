@@ -22,8 +22,8 @@ import {
   WIDGET_KINDS,
   WIDGET_CANONICAL,
   WIDGET_LAYOUTS,
-} from '@crudui/generator-core/internal';
-import { FORBIDDEN_META_KEYS, getRuleNames } from '@crudui/validator/internal';
+} from '@polyspec/crudui-generator-core/internal';
+import { FORBIDDEN_META_KEYS, getRuleNames } from '@polyspec/crudui-validator/internal';
 
 descTest('describe is a drift-0 projection of the code single-source-of-truth', () => {
   const r = describe();

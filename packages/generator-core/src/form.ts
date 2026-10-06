@@ -1,7 +1,7 @@
-import { FormInputError, type FileLoader } from '@crudui/validator';
+import { FormInputError, type FileLoader } from '@polyspec/crudui-validator';
 import {
   checkOptionText, checkedComposition, composeProperties, isMultiple, isNumberRange, isStep, MemoryLoader,
-} from '@crudui/validator/internal';
+} from '@polyspec/crudui-validator/internal';
 import { checkDeclaredAttributes } from './design';
 import { checkBindText } from './input-text';
 import { makeTranslate, type Language } from './content';

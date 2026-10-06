@@ -1,5 +1,5 @@
 {
-  "name": "@crudui/cli",
+  "name": "@polyspec/crudui-cli",
   "version": "0.0.1",
   "private": true,
   "description": "Specification catalog, static checking and descriptions for CRUDUI.",
@@ -16,8 +16,8 @@
     "test": "node ../../scripts/require-current-build.mjs && node ../../scripts/run-tests.mjs vitest --cwd packages/cli"
   },
   "dependencies": {
-    "@crudui/generator-core": "0.0.1",
-    "@crudui/validator": "0.0.1"
+    "@polyspec/crudui-generator-core": "0.0.1",
+    "@polyspec/crudui-validator": "0.0.1"
   },
   "devDependencies": {
     "ajv": "^8.20.0",

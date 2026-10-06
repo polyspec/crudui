@@ -1,7 +1,7 @@
 /** List HTML rendering with Vue's server renderer. */
 
-import { type BuildListOptions } from '@crudui/generator-core';
-import { buildListLayout } from '@crudui/generator-core/internal';
+import { type BuildListOptions } from '@polyspec/crudui-generator-core';
+import { buildListLayout } from '@polyspec/crudui-generator-core/internal';
 import { List, type ListLayout } from './components/List.js';
 
 /** Options for a CRUDUI list SSR render. */

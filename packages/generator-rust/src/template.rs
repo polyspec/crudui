@@ -1,9 +1,9 @@
 use crate::{FormError, FormResult};
-use crudui_validator::compose::{
+use polyspec_crudui_validator::compose::{
     compose_properties, member_ordered, member_ordered_map, ComposeOptions, FileLoader,
     MemoryLoader,
 };
-use crudui_validator::validate::numeric;
+use polyspec_crudui_validator::validate::numeric;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 

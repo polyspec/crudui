@@ -1,6 +1,6 @@
 /**
  * React components for CRUDUI forms, lists and details. Forms are
- * compiled and created with `@crudui/generator-core`.
+ * compiled and created with `@polyspec/crudui-generator-core`.
  */
 
 // Node, widget, structure map and data view rendering.

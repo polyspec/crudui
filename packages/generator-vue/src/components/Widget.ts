@@ -27,8 +27,8 @@
  */
 
 import { h, type VNode } from 'vue';
-import type { WidgetModel, OptionModel, Affix, Attrs } from '@crudui/generator-core';
-import type { UnsupportedVM } from '@crudui/generator-core';
+import type { WidgetModel, OptionModel, Affix, Attrs } from '@polyspec/crudui-generator-core';
+import type { UnsupportedVM } from '@polyspec/crudui-generator-core';
 import { plainProps } from './attrs.js';
 import {
   rawVoid,

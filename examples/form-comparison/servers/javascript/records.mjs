@@ -6,9 +6,9 @@ import { randomBytes } from 'node:crypto';
 import { readFile, rename, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
-import { compileForm, createForm } from '@crudui/generator-core';
-import { renderDetail, renderForm, renderList } from '@crudui/generator-html';
-import { FormInputError, validate } from '@crudui/validator';
+import { compileForm, createForm } from '@polyspec/crudui-generator-core';
+import { renderDetail, renderForm, renderList } from '@polyspec/crudui-generator-html';
+import { FormInputError, validate } from '@polyspec/crudui-validator';
 
 import {
   formData, linkedSpecs, recordClients, recordLanguages, recordModes, recordsPerPage, recordViews,

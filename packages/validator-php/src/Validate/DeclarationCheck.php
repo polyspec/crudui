@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Validator\Validate;
+namespace Polyspec\Crudui\Validator\Validate;
 
-use CRUDUI\Validator\Compose\ComposeLoadError;
+use Polyspec\Crudui\Validator\Compose\ComposeLoadError;
 
 /**
  * Check the declared rule names and parameters of a composed field map: fields in

@@ -1,7 +1,7 @@
 //! The row-level `unique` check: duplicates belong to one validation, and the rows are walked once
 //! per validation.
 
-use crudui_validator::validate::{validate, ValidateOptions};
+use polyspec_crudui_validator::validate::{validate, ValidateOptions};
 use serde_json::{json, Map, Value};
 
 fn spec() -> Value {

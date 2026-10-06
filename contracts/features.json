@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "packages": [
     {
-      "name": "@crudui/generator-core",
+      "name": "@polyspec/crudui-generator-core",
       "path": "packages/generator-core",
       "layer": "model",
       "entries": {
@@ -66,7 +66,7 @@
       }
     },
     {
-      "name": "@crudui/generator-html",
+      "name": "@polyspec/crudui-generator-html",
       "path": "packages/generator-html",
       "layer": "renderer",
       "entries": {
@@ -86,7 +86,7 @@
       }
     },
     {
-      "name": "@crudui/generator-react",
+      "name": "@polyspec/crudui-generator-react",
       "path": "packages/generator-react",
       "layer": "renderer",
       "entries": {
@@ -117,7 +117,7 @@
       }
     },
     {
-      "name": "@crudui/generator-vue",
+      "name": "@polyspec/crudui-generator-vue",
       "path": "packages/generator-vue",
       "layer": "renderer",
       "entries": {
@@ -142,7 +142,7 @@
       }
     },
     {
-      "name": "@crudui/generator-svelte",
+      "name": "@polyspec/crudui-generator-svelte",
       "path": "packages/generator-svelte",
       "layer": "renderer",
       "entries": {
@@ -167,7 +167,7 @@
       }
     },
     {
-      "name": "@crudui/form-binding",
+      "name": "@polyspec/crudui-form-binding",
       "path": "packages/form-binding",
       "layer": "validation",
       "entries": {
@@ -180,7 +180,7 @@
       }
     },
     {
-      "name": "@crudui/validator",
+      "name": "@polyspec/crudui-validator",
       "path": "packages/validator-ts",
       "layer": "validation",
       "entries": {
@@ -384,7 +384,7 @@
   "features": [
     {
       "id": "compileForm",
-      "owner": "@crudui/generator-core",
+      "owner": "@polyspec/crudui-generator-core",
       "signature": "compileForm(spec, options?) -> FormTemplate",
       "input": "group form specification",
       "output": "immutable data-independent form template",
@@ -419,21 +419,21 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "npm test -w @crudui/generator-core -- src/form.test.ts"
+          "command": "npm test -w @polyspec/crudui-generator-core -- src/form.test.ts"
         },
         {
           "id": "test-2",
-          "command": "npm test -w @crudui/generator-react -- src/__tests__/form-render.conformance.test.ts"
+          "command": "npm test -w @polyspec/crudui-generator-react -- src/__tests__/form-render.conformance.test.ts"
         },
         {
           "id": "test-3",
-          "command": "npm test -w @crudui/generator-core -- src/input-text.test.ts"
+          "command": "npm test -w @polyspec/crudui-generator-core -- src/input-text.test.ts"
         }
       ]
     },
     {
       "id": "bindForm",
-      "owner": "@crudui/generator-core",
+      "owner": "@polyspec/crudui-generator-core",
       "signature": "bindForm(template, data, options?) -> NodeVM[]",
       "input": "compiled template and record data",
       "output": "evaluated nodes of the recursive form grammar",
@@ -469,21 +469,21 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "npm test -w @crudui/generator-core -- src/form.test.ts"
+          "command": "npm test -w @polyspec/crudui-generator-core -- src/form.test.ts"
         },
         {
           "id": "test-2",
-          "command": "npm test -w @crudui/generator-react -- src/__tests__/form-render.conformance.test.ts"
+          "command": "npm test -w @polyspec/crudui-generator-react -- src/__tests__/form-render.conformance.test.ts"
         },
         {
           "id": "test-3",
-          "command": "npm test -w @crudui/generator-core -- src/input-text.test.ts"
+          "command": "npm test -w @polyspec/crudui-generator-core -- src/input-text.test.ts"
         }
       ]
     },
     {
       "id": "bindButtons",
-      "owner": "@crudui/generator-core",
+      "owner": "@polyspec/crudui-generator-core",
       "signature": "bindButtons(template, data?, options?) -> ButtonVM[]",
       "input": "compiled template with root buttons, record data and language",
       "output": "form buttons with text, element and ordered attributes; one submit button when the spec declares none",
@@ -512,13 +512,13 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "npm test -w @crudui/generator-core -- src/node.test.ts"
+          "command": "npm test -w @polyspec/crudui-generator-core -- src/node.test.ts"
         }
       ]
     },
     {
       "id": "formButtonsHtml",
-      "owner": "@crudui/generator-core",
+      "owner": "@polyspec/crudui-generator-core",
       "signature": "formButtonsHtml(buttons) -> string",
       "input": "evaluated form buttons",
       "output": "button and anchor markup that every renderer inserts into the form footer controls group",
@@ -546,13 +546,13 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "npm test -w @crudui/generator-core -- src/node.test.ts"
+          "command": "npm test -w @polyspec/crudui-generator-core -- src/node.test.ts"
         }
       ]
     },
     {
       "id": "createForm",
-      "owner": "@crudui/generator-core",
+      "owner": "@polyspec/crudui-generator-core",
       "signature": "createForm(template, data?, options?) -> FormInstance",
       "input": "compiled template and keyed record data",
       "output": "independent editable form instance",
@@ -588,21 +588,21 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "npm test -w @crudui/generator-core -- src/form.test.ts"
+          "command": "npm test -w @polyspec/crudui-generator-core -- src/form.test.ts"
         },
         {
           "id": "test-2",
-          "command": "npm test -w @crudui/generator-core -- src/form.test.ts"
+          "command": "npm test -w @polyspec/crudui-generator-core -- src/form.test.ts"
         },
         {
           "id": "test-3",
-          "command": "npm test -w @crudui/generator-core -- src/input-text.test.ts"
+          "command": "npm test -w @polyspec/crudui-generator-core -- src/input-text.test.ts"
         }
       ]
     },
     {
       "id": "renderForm",
-      "owner": "@crudui/generator-html",
+      "owner": "@polyspec/crudui-generator-html",
       "signature": "renderForm(form, options?) -> string",
       "input": "editable form instance and complete form options",
       "output": "crudui-form block, or the complete form with form element, hidden inputs and errors",
@@ -645,25 +645,25 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "npm test -w @crudui/generator-html -- src/conformance.test.ts"
+          "command": "npm test -w @polyspec/crudui-generator-html -- src/conformance.test.ts"
         },
         {
           "id": "test-2",
-          "command": "npm test -w @crudui/generator-react -- src/__tests__/form-render.conformance.test.ts"
+          "command": "npm test -w @polyspec/crudui-generator-react -- src/__tests__/form-render.conformance.test.ts"
         },
         {
           "id": "test-3",
-          "command": "npm test -w @crudui/generator-html -- src/form-complete.conformance.test.ts"
+          "command": "npm test -w @polyspec/crudui-generator-html -- src/form-complete.conformance.test.ts"
         },
         {
           "id": "test-4",
-          "command": "npm test -w @crudui/generator-react -- src/__tests__/form-complete.conformance.test.ts"
+          "command": "npm test -w @polyspec/crudui-generator-react -- src/__tests__/form-complete.conformance.test.ts"
         }
       ]
     },
     {
       "id": "renderList",
-      "owner": "@crudui/generator-html",
+      "owner": "@polyspec/crudui-generator-html",
       "signature": "renderList(spec, rows, options?) -> string",
       "input": "list specification and supplied rows",
       "output": "table or card HTML fragment",
@@ -697,17 +697,17 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "npm test -w @crudui/generator-html -- src/list-conformance.test.ts"
+          "command": "npm test -w @polyspec/crudui-generator-html -- src/list-conformance.test.ts"
         },
         {
           "id": "test-2",
-          "command": "npm test -w @crudui/generator-react -- src/__tests__/list-render.conformance.test.ts"
+          "command": "npm test -w @polyspec/crudui-generator-react -- src/__tests__/list-render.conformance.test.ts"
         }
       ]
     },
     {
       "id": "buildList",
-      "owner": "@crudui/generator-core",
+      "owner": "@polyspec/crudui-generator-core",
       "signature": "buildList(spec, rows, options?) -> ListViewModel",
       "input": "list specification and supplied rows",
       "output": "list view model with columns, rows, pagination, sort, actions, empty state, description and design",
@@ -740,17 +740,17 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "npm test -w @crudui/generator-core -- src/list.test.ts"
+          "command": "npm test -w @polyspec/crudui-generator-core -- src/list.test.ts"
         },
         {
           "id": "test-2",
-          "command": "npm test -w @crudui/generator-core -- src/input-text.test.ts"
+          "command": "npm test -w @polyspec/crudui-generator-core -- src/input-text.test.ts"
         }
       ]
     },
     {
       "id": "buildDetail",
-      "owner": "@crudui/generator-core",
+      "owner": "@polyspec/crudui-generator-core",
       "signature": "buildDetail(spec, record, options?) -> DetailViewModel",
       "input": "detail specification and one supplied record",
       "output": "ordered read-only display fields",
@@ -789,17 +789,17 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "npm test -w @crudui/generator-core -- src/detail.test.ts"
+          "command": "npm test -w @polyspec/crudui-generator-core -- src/detail.test.ts"
         },
         {
           "id": "test-2",
-          "command": "npm test -w @crudui/generator-core -- src/input-text.test.ts"
+          "command": "npm test -w @polyspec/crudui-generator-core -- src/input-text.test.ts"
         }
       ]
     },
     {
       "id": "renderDetail",
-      "owner": "@crudui/generator-html",
+      "owner": "@polyspec/crudui-generator-html",
       "signature": "renderDetail(spec, record, options?) -> string",
       "input": "detail specification and one supplied record",
       "output": "read-only detail HTML fragment",
@@ -841,17 +841,17 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "npm test -w @crudui/generator-html -- src/detail-conformance.test.ts"
+          "command": "npm test -w @polyspec/crudui-generator-html -- src/detail-conformance.test.ts"
         },
         {
           "id": "test-2",
-          "command": "npm test -w @crudui/generator-react -- src/__tests__/detail-render.conformance.test.ts"
+          "command": "npm test -w @polyspec/crudui-generator-react -- src/__tests__/detail-render.conformance.test.ts"
         }
       ]
     },
     {
       "id": "validateDetail",
-      "owner": "@crudui/validator",
+      "owner": "@polyspec/crudui-validator",
       "signature": "validateDetail(spec, options?) -> ValidationResult",
       "input": "detail specification",
       "output": "structure validation result",
@@ -892,21 +892,21 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "npm test -w @crudui/validator -- src/detail-metaschema.conformance.test.ts"
+          "command": "npm test -w @polyspec/crudui-validator -- src/detail-metaschema.conformance.test.ts"
         },
         {
           "id": "test-2",
-          "command": "npm test -w @crudui/validator -- src/validate-detail/validate-detail.conformance.test.ts"
+          "command": "npm test -w @polyspec/crudui-validator -- src/validate-detail/validate-detail.conformance.test.ts"
         },
         {
           "id": "test-3",
-          "command": "npm test -w @crudui/validator -- src/text/text-validity.conformance.test.ts"
+          "command": "npm test -w @polyspec/crudui-validator -- src/text/text-validity.conformance.test.ts"
         }
       ]
     },
     {
       "id": "connectForm",
-      "owner": "@crudui/generator-core",
+      "owner": "@polyspec/crudui-generator-core",
       "signature": "connectForm(element, form) -> FormConnection",
       "input": "HTML host containing renderer output and form instance",
       "output": "event connection with disconnect and sync",
@@ -941,17 +941,17 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "npm test -w @crudui/generator-core -- src/widget-controls.test.ts"
+          "command": "npm test -w @polyspec/crudui-generator-core -- src/widget-controls.test.ts"
         },
         {
           "id": "test-2",
-          "command": "npm test -w @crudui/generator-core -- src/form.test.ts"
+          "command": "npm test -w @polyspec/crudui-generator-core -- src/form.test.ts"
         }
       ]
     },
     {
       "id": "patchContent",
-      "owner": "@crudui/generator-core",
+      "owner": "@polyspec/crudui-generator-core",
       "signature": "patchContent(element, html) -> void",
       "input": "a mounted element and newly rendered markup",
       "output": "the element's content equal to the markup, keeping every node the markup still contains",
@@ -979,17 +979,17 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "npm test -w @crudui/generator-core -- src/patch.test.ts"
+          "command": "npm test -w @polyspec/crudui-generator-core -- src/patch.test.ts"
         },
         {
           "id": "test-2",
-          "command": "npm test -w @crudui/generator-html -- src/form-session.test.ts"
+          "command": "npm test -w @polyspec/crudui-generator-html -- src/form-session.test.ts"
         }
       ]
     },
     {
       "id": "updateView",
-      "owner": "@crudui/generator-core",
+      "owner": "@polyspec/crudui-generator-core",
       "signature": "list or detail rendered again from a new model -> the mounted view",
       "input": "a mounted list or detail and a newly built view model",
       "output": "the mounted view equal to the new model, keeping every element node the new markup still contains",
@@ -1020,17 +1020,17 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "npm test -w @crudui/generator-html -- src/view-session.test.ts"
+          "command": "npm test -w @polyspec/crudui-generator-html -- src/view-session.test.ts"
         },
         {
           "id": "test-2",
-          "command": "npm test -w @crudui/generator-react -- src/__tests__/View.test.tsx"
+          "command": "npm test -w @polyspec/crudui-generator-react -- src/__tests__/View.test.tsx"
         }
       ]
     },
     {
       "id": "buildOutline",
-      "owner": "@crudui/generator-core",
+      "owner": "@polyspec/crudui-generator-core",
       "signature": "buildOutline(nodes) -> OutlineRow[]",
       "input": "evaluated nodes",
       "output": "the form rows, each with its nested rows and the row controls placed in the map",
@@ -1061,13 +1061,13 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "npm test -w @crudui/generator-core -- src/node.test.ts"
+          "command": "npm test -w @polyspec/crudui-generator-core -- src/node.test.ts"
         }
       ]
     },
     {
       "id": "connectOutline",
-      "owner": "@crudui/generator-core",
+      "owner": "@polyspec/crudui-generator-core",
       "signature": "connectOutline(element, form, formElement) -> FormConnection",
       "input": "rendered structure map, form instance and rendered form host",
       "output": "event connection that runs map actions and focuses the selected form row",
@@ -1095,13 +1095,13 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "npm test -w @crudui/generator-core -- src/node.test.ts"
+          "command": "npm test -w @polyspec/crudui-generator-core -- src/node.test.ts"
         }
       ]
     },
     {
       "id": "runAction",
-      "owner": "@crudui/generator-core",
+      "owner": "@polyspec/crudui-generator-core",
       "signature": "resolveAction(button) -> ActionTarget | undefined; runAction(form, target) -> ActionResult | undefined",
       "input": "form instance and an action target from resolveAction(button)",
       "output": "the row, collection or view action applied to the instance and the row that receives focus",
@@ -1135,13 +1135,13 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "npm test -w @crudui/generator-core -- src/node.test.ts"
+          "command": "npm test -w @polyspec/crudui-generator-core -- src/node.test.ts"
         }
       ]
     },
     {
       "id": "viewState",
-      "owner": "@crudui/generator-core",
+      "owner": "@polyspec/crudui-generator-core",
       "signature": "initialView() -> ViewState; toggleRowView | removeRowView | rekeyRowView(view, ...) -> ViewState; setAllExpandedView(nodes, expanded) -> ViewState; collapsibleRows(nodes) -> string[]",
       "input": "current view state, row paths and evaluated nodes",
       "output": "new view state with collapsed row paths",
@@ -1173,13 +1173,13 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "npm test -w @crudui/generator-core -- src/node.test.ts"
+          "command": "npm test -w @polyspec/crudui-generator-core -- src/node.test.ts"
         }
       ]
     },
     {
       "id": "formHistory",
-      "owner": "@crudui/generator-core",
+      "owner": "@polyspec/crudui-generator-core",
       "signature": "emptyHistory() -> History; recordChange(history, previous, path?) -> History; canUndo | canRedo(history) -> boolean; undoChange(history, current) -> UndoResult; redoChange(history, current) -> RedoResult",
       "input": "current history, the record before a change and the edited path",
       "output": "history with at most 100 records in each direction and the restored record",
@@ -1211,13 +1211,13 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "npm test -w @crudui/generator-core -- src/node.test.ts"
+          "command": "npm test -w @polyspec/crudui-generator-core -- src/node.test.ts"
         }
       ]
     },
     {
       "id": "validate",
-      "owner": "@crudui/validator",
+      "owner": "@polyspec/crudui-validator",
       "signature": "validate(spec, data, options?) -> ValidationResult",
       "input": "specification and submitted keyed data",
       "output": "valid flag and complete error entries",
@@ -1253,17 +1253,17 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "npm test -w @crudui/validator -- src/validate.conformance.test.ts src/forbidden-scan.conformance.test.ts"
+          "command": "npm test -w @polyspec/crudui-validator -- src/validate.conformance.test.ts src/forbidden-scan.conformance.test.ts"
         },
         {
           "id": "test-2",
-          "command": "npm test -w @crudui/validator -- src/text/text-validity.conformance.test.ts"
+          "command": "npm test -w @polyspec/crudui-validator -- src/text/text-validity.conformance.test.ts"
         }
       ]
     },
     {
       "id": "validateList",
-      "owner": "@crudui/validator",
+      "owner": "@polyspec/crudui-validator",
       "signature": "validateList(spec, options?) -> ValidationResult",
       "input": "list specification",
       "output": "valid flag, or the composition or forbidden-key load error",
@@ -1295,11 +1295,11 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "npm test -w @crudui/validator -- src/validate-list/validate-list.conformance.test.ts"
+          "command": "npm test -w @polyspec/crudui-validator -- src/validate-list/validate-list.conformance.test.ts"
         },
         {
           "id": "test-2",
-          "command": "npm test -w @crudui/validator -- src/text/text-validity.conformance.test.ts"
+          "command": "npm test -w @polyspec/crudui-validator -- src/text/text-validity.conformance.test.ts"
         }
       ]
     }

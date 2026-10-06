@@ -10,7 +10,7 @@ const files = readdirSync(source).filter((file) => file.endsWith('.ts'));
 const read = (file: string) => readFileSync(new URL(file, source), 'utf8');
 
 it('names only the classes of the error slots, and only in slots.ts', () => {
-  const named = new Map(files.map((file) => [file, [...new Set(read(file).match(/(?<![\w-])(?:crudui-[a-z0-9_-]+|valid-target[a-z-]*)/g) ?? [])].sort()]));
+  const named = new Map(files.map((file) => [file, [...new Set(read(file).match(/(?<![\w/-])(?:crudui-[a-z0-9_-]+|valid-target[a-z-]*)/g) ?? [])].sort()]));
   expect(Object.fromEntries([...named].filter(([, names]) => names.length))).toStrictEqual({
     'slots.ts': ['crudui-form__body', 'crudui-form__error', 'crudui-form__errors', 'crudui-node__body', 'crudui-node__error', 'crudui-node__errors'],
   });

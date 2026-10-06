@@ -1,6 +1,6 @@
 /** Undo history rules of form instances, also exported for data kept outside a form instance. */
 
-import { FormInputError } from '@crudui/validator';
+import { FormInputError } from '@polyspec/crudui-validator';
 
 /** Maximum number of records kept for undo. */
 export const HISTORY_LIMIT = 100;

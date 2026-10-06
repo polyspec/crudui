@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Validator\Support;
+namespace Polyspec\Crudui\Validator\Support;
 
-use CRUDUI\Validator\Compose\ComposeLoadError;
+use Polyspec\Crudui\Validator\Compose\ComposeLoadError;
 use stdClass;
 
 /**

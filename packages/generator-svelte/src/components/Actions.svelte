@@ -3,7 +3,7 @@
   action, and nothing when there are no actions.
 -->
 <script lang="ts">
-  import type { ActionVM } from '@crudui/generator-core';
+  import type { ActionVM } from '@polyspec/crudui-generator-core';
   import { actionHtml, hasActions } from './list.js';
   import { patched, firstMarkup } from './raw.js';
 

@@ -94,11 +94,11 @@ import { createRoot } from 'react-dom/client';
 import { createApp, h } from 'vue';
 import { mount } from 'svelte';
 import { compileForm, createForm, validate } from './api';
-import { Form as ReactForm, type AnyWidget as ReactAnyWidget } from '@crudui/generator-react';
-import { Form as VueForm, type AnyWidget as VueAnyWidget } from '@crudui/generator-vue';
-import { Form as SvelteForm } from '@crudui/generator-svelte';
-import { renderForm } from '@crudui/generator-html';
-import { bindForm } from '@crudui/form-binding';
+import { Form as ReactForm, type AnyWidget as ReactAnyWidget } from '@polyspec/crudui-generator-react';
+import { Form as VueForm, type AnyWidget as VueAnyWidget } from '@polyspec/crudui-generator-vue';
+import { Form as SvelteForm } from '@polyspec/crudui-generator-svelte';
+import { renderForm } from '@polyspec/crudui-generator-html';
+import { bindForm } from '@polyspec/crudui-form-binding';
 type FrameworkWidgetTypes = [ReactAnyWidget, VueAnyWidget];
 const frameworkWidgetTypes: FrameworkWidgetTypes | undefined = undefined;
 void frameworkWidgetTypes;
@@ -120,13 +120,13 @@ document.getElementById('binding')!.innerHTML = renderForm(
 );
 bindForm(document.querySelector<HTMLFormElement>('#binding form')!, bindingSpec, { keyPrefix: 'form' });
 `);
-  writeFileSync(join(directory, 'api.ts'), `export { compileForm, createForm } from '@crudui/generator-core';\nexport { validate } from '@crudui/validator';\n`);
+  writeFileSync(join(directory, 'api.ts'), `export { compileForm, createForm } from '@polyspec/crudui-generator-core';\nexport { validate } from '@polyspec/crudui-validator';\n`);
   writeFileSync(join(directory, 'index.html'), '<!doctype html><html><head><title>Package verification</title><link rel="icon" href="data:,"></head><body><div id="react"></div><div id="vue"></div><div id="svelte"></div><div id="binding"></div><script type="module" src="/main.ts"></script></body></html>');
   writeFileSync(join(directory, 'vite.config.mjs'), `import { defineConfig } from 'vite';\nimport { svelte } from '@sveltejs/vite-plugin-svelte';\nexport default defineConfig({ plugins: [svelte()] });\n`);
   await step('install the packages of the install project', 120000,
     async () => writeFileSync(join(directory, 'install.log'), await run('npm', ['ci', '--offline'])));
   await step('verify package exports', 10000, () => {
-  for (const name of Object.keys(dependencies).filter(name => name.startsWith('@crudui/'))) {
+  for (const name of Object.keys(dependencies).filter(name => name.startsWith('@polyspec/crudui-'))) {
     const base = join(directory, 'node_modules', name);
     const manifest = JSON.parse(readFileSync(join(base, 'package.json'), 'utf8'));
     const check = value => {
@@ -148,11 +148,11 @@ const html = [
 if (!html.every(part => part.includes('Ada'))) throw new Error('server rendering lost the data');`;
   const installRequire = createRequire(join(directory, 'package.json'));
   const { preview } = await step('render on the server from the installed entries', 60000, async () => {
-  for (const name of ['@crudui/generator-react/server', '@crudui/generator-vue']) {
-    await run('node', ['--input-type=module', '-e', `const core = await import('@crudui/generator-core');const m = await import('${name}');${rendering}`]);
-    await run('node', ['-e', `(async () => { const core = require('@crudui/generator-core');const m = require('${name}');${rendering} })().catch(error => { console.error(error); process.exit(1); });`]);
+  for (const name of ['@polyspec/crudui-generator-react/server', '@polyspec/crudui-generator-vue']) {
+    await run('node', ['--input-type=module', '-e', `const core = await import('@polyspec/crudui-generator-core');const m = await import('${name}');${rendering}`]);
+    await run('node', ['-e', `(async () => { const core = require('@polyspec/crudui-generator-core');const m = require('${name}');${rendering} })().catch(error => { console.error(error); process.exit(1); });`]);
   }
-  writeFileSync(join(directory, 'render.mjs'), `import * as core from '@crudui/generator-core';\nimport * as m from '@crudui/generator-svelte';\nexport async function render() {${rendering}\n}\n`);
+  writeFileSync(join(directory, 'render.mjs'), `import * as core from '@polyspec/crudui-generator-core';\nimport * as m from '@polyspec/crudui-generator-svelte';\nexport async function render() {${rendering}\n}\n`);
   const vite = await import(pathToFileURL(installRequire.resolve('vite')).href);
   const renderer = await vite.createServer({ root: directory, logLevel: 'silent', server: { middlewareMode: true } });
   try {

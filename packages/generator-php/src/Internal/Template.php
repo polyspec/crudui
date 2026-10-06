@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Generator;
+namespace Polyspec\Crudui\Generator;
 
-use CRUDUI\FormError;
-use CRUDUI\Validator\Compose\Compose;
-use CRUDUI\Validator\Compose\MemoryLoader;
-use CRUDUI\Validator\Values\InvalidRuleParameter;
-use CRUDUI\Validator\Values\Numeric;
+use Polyspec\Crudui\FormError;
+use Polyspec\Crudui\Validator\Compose\Compose;
+use Polyspec\Crudui\Validator\Compose\MemoryLoader;
+use Polyspec\Crudui\Validator\Values\InvalidRuleParameter;
+use Polyspec\Crudui\Validator\Values\Numeric;
 use stdClass;
 
 /** Compose field structures independently of instance data. */

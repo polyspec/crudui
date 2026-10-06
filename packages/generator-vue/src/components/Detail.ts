@@ -1,7 +1,7 @@
 /** CRUDUI Vue read-only detail component backed by the shared detail model. */
 
 import { Fragment, h, type VNode } from 'vue';
-import type { DetailViewModel, DetailFieldVM } from '@crudui/generator-core';
+import type { DetailViewModel, DetailFieldVM } from '@polyspec/crudui-generator-core';
 import { actionsVNode, cellDisplayVNode } from './List.js';
 import { rawContainer } from './raw.js';
 

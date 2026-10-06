@@ -385,7 +385,7 @@ href, design, behavior }` 목록이고 `type`은 `submit`, `reset`, `button`, `l
 
 ## 스타일
 
-`@crudui/generator-core/crudui.css`는 폼에 필요한 유일한 스타일시트로 슬롯 배치, 행 카드,
+`@polyspec/crudui-generator-core/crudui.css`는 폼에 필요한 유일한 스타일시트로 슬롯 배치, 행 카드,
 위젯, 컨트롤 아이콘, 고정 헤더, 구조 맵, 현재 데이터 보기를 정의합니다. box-sizing과
 `[hidden]` 요소 숨김을 포함한 모든 규칙은 crudui 블록 범위 안에 있으며 페이지 스타일이나 CSS
 프레임워크에 기대지 않습니다. 페이지는 자기 레이아웃만 스타일링하고 crudui 블록 안은 건드리지
@@ -437,7 +437,7 @@ Firefox, WebKit에서 모든 case를 두 폭으로 검사합니다.
 ### Tailwind CSS
 
 Tailwind CSS 4로 꾸미는 page는 `crudui.css` 대신
-`@crudui/generator-core/crudui.tailwind.css`를 쓰고, 이 file을 `tailwindcss` 뒤에 import합니다. 이
+`@polyspec/crudui-generator-core/crudui.tailwind.css`를 쓰고, 이 file을 `tailwindcss` 뒤에 import합니다. 이
 file은 `crudui.css`의 rule을 바꾸지 않고 cascade layer `components` 안에 담습니다. 그래서 더 뒤의 layer
 `utilities`에 있는 page의 utility class가 CRUDUI rule보다 우선합니다. markup은 두 file에서
 같습니다. `packages/generator-core/scripts/write-tailwind-styles.mjs`가 `crudui.css`에서 이 file을 쓰고,

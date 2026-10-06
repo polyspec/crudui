@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Validator\Rules;
+namespace Polyspec\Crudui\Validator\Rules;
 
-use CRUDUI\Validator\Expr\FieldPath;
-use CRUDUI\Validator\Patterns\PatternParameter;
-use CRUDUI\Validator\Values\CanonicalText;
-use CRUDUI\Validator\Values\InvalidRuleParameter;
+use Polyspec\Crudui\Validator\Expr\FieldPath;
+use Polyspec\Crudui\Validator\Patterns\PatternParameter;
+use Polyspec\Crudui\Validator\Values\CanonicalText;
+use Polyspec\Crudui\Validator\Values\InvalidRuleParameter;
 
 /**
  * Whole-value pattern rule, registered as both `pattern` and `match`.

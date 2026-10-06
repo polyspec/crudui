@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Generator\Tests;
+namespace Polyspec\Crudui\Generator\Tests;
 
-use CRUDUI\FormError;
-use CRUDUI\Generator;
+use Polyspec\Crudui\FormError;
+use Polyspec\Crudui\Generator;
 use PHPUnit\Framework\TestCase;
 
 /** Public button binding and markup match the JavaScript output byte for byte. */

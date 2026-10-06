@@ -6,7 +6,7 @@ import {
   type FormMessages,
   type OutlineRow,
   type OutlineState,
-} from '@crudui/generator-core';
+} from '@polyspec/crudui-generator-core';
 import { Controls } from './Controls';
 
 function TextAction({ name, label, disabled = false }: { name: string; label: string; disabled?: boolean }): React.ReactElement {

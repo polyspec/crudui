@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Validator\Validate;
+namespace Polyspec\Crudui\Validator\Validate;
 
 /**
  * CRUDUI validation result — { valid, errors, hidden } (SPEC G-B). Port of the JS

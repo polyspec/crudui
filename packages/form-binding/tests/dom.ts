@@ -1,6 +1,6 @@
 // Server-rendered forms parsed into a jsdom document, as a browser receives them.
-import { compileForm, createForm } from '@crudui/generator-core';
-import { renderForm } from '@crudui/generator-html';
+import { compileForm, createForm } from '@polyspec/crudui-generator-core';
+import { renderForm } from '@polyspec/crudui-generator-html';
 import { JSDOM } from 'jsdom';
 
 /** The render options of `renderForm` that the tests pass. */

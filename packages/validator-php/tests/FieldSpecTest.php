@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Validator\Tests;
+namespace Polyspec\Crudui\Validator\Tests;
 
-use CRUDUI\Validator\FieldSpec;
-use CRUDUI\Validator\Validate\Validator;
+use Polyspec\Crudui\Validator\FieldSpec;
+use Polyspec\Crudui\Validator\Validate\Validator;
 use PHPUnit\Framework\TestCase;
 
 /**

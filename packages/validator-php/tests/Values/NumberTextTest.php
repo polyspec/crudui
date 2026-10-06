@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Validator\Tests\Values;
+namespace Polyspec\Crudui\Validator\Tests\Values;
 
-use CRUDUI\Validator\Values\CanonicalText;
-use CRUDUI\Validator\Values\NumberText;
+use Polyspec\Crudui\Validator\Values\CanonicalText;
+use Polyspec\Crudui\Validator\Values\NumberText;
 use PHPUnit\Framework\TestCase;
 
 /**

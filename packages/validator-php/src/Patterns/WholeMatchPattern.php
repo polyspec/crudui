@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Validator\Patterns;
+namespace Polyspec\Crudui\Validator\Patterns;
 
 /**
  * A CRUDUI pattern compiled to its NFA, matching whole texts.

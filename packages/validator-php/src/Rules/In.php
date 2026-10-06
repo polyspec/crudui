@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Validator\Rules;
+namespace Polyspec\Crudui\Validator\Rules;
 
-use CRUDUI\Validator\Expr\FieldPath;
-use CRUDUI\Validator\Values\InvalidRuleParameter;
-use CRUDUI\Validator\Values\Membership;
+use Polyspec\Crudui\Validator\Expr\FieldPath;
+use Polyspec\Crudui\Validator\Values\InvalidRuleParameter;
+use Polyspec\Crudui\Validator\Values\Membership;
 
 /**
  * Membership validation rule: the value is one of the declared members.

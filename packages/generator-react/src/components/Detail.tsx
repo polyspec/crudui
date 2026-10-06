@@ -1,7 +1,7 @@
 /** CRUDUI React read-only detail component backed by the shared DetailViewModel. */
 
 import * as React from 'react';
-import type { DetailViewModel, DetailFieldVM } from '@crudui/generator-core';
+import type { DetailViewModel, DetailFieldVM } from '@polyspec/crudui-generator-core';
 import { CellBody } from './Cell';
 import { styleObject } from './attrs';
 import { RawContainer } from './raw';

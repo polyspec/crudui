@@ -13,8 +13,8 @@
  * display RAW, script/style chrome, and behavior on* attrs pass through `{@html}`.
  */
 
-import type { WidgetModel, OptionModel, Affix, Attrs } from '@crudui/generator-core';
-import type { UnsupportedVM } from '@crudui/generator-core';
+import type { WidgetModel, OptionModel, Affix, Attrs } from '@polyspec/crudui-generator-core';
+import type { UnsupportedVM } from '@polyspec/crudui-generator-core';
 import { rawVoid, rawElement, rawOptions, serializeAttrs, escAttr, escText } from './raw.js';
 
 export type AnyWidget = WidgetModel | UnsupportedVM;

@@ -10,7 +10,7 @@
 import * as React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, test } from 'vitest';
-import { bindForm, compileForm, formMessages } from '@crudui/generator-core';
+import { bindForm, compileForm, formMessages } from '@polyspec/crudui-generator-core';
 import { DataPanel, OutlineView } from '../index';
 // @ts-expect-error — shared JS normalizer (cross-framework).
 import { normalizeHtml } from '../../../../tests/fixtures/form-render/normalize.mjs';

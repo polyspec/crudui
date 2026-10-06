@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 require __DIR__ . '/../vendor/autoload.php';
-use CRUDUI\Form;
-use CRUDUI\Generator;
-use CRUDUI\Validator;
-use CRUDUI\Validator\Validate\FormInputError;
+use Polyspec\Crudui\Form;
+use Polyspec\Crudui\Generator;
+use Polyspec\Crudui\Validator;
+use Polyspec\Crudui\Validator\Validate\FormInputError;
 
 $path = getenv('CRUDUI_DATA_FILE');
 if ($path === false || $path === '') {

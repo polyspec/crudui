@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Validator\Tests\Compose;
+namespace Polyspec\Crudui\Validator\Tests\Compose;
 
-use CRUDUI\Validator\Compose\Compose;
-use CRUDUI\Validator\Compose\ComposeLoadError;
-use CRUDUI\Validator\Compose\MemoryLoader;
-use CRUDUI\Validator\Compose\Ref;
+use Polyspec\Crudui\Validator\Compose\Compose;
+use Polyspec\Crudui\Validator\Compose\ComposeLoadError;
+use Polyspec\Crudui\Validator\Compose\MemoryLoader;
+use Polyspec\Crudui\Validator\Compose\Ref;
 use PHPUnit\Framework\TestCase;
 
 /**

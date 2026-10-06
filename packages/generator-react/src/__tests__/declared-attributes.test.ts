@@ -4,7 +4,7 @@
  * React's own placement of `style`, `name`, `checked` and `value`, and follow `hidden` on a node.
  */
 import { describe, expect, test } from 'vitest';
-import { compileForm } from '@crudui/generator-core';
+import { compileForm } from '@polyspec/crudui-generator-core';
 import { renderFields } from '../internal/renderFields';
 
 const render = (field: Record<string, unknown>, data: Record<string, unknown> = {}) =>

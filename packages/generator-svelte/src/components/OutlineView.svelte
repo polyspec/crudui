@@ -3,7 +3,7 @@
   The nodes come from `bindForm`.
 -->
 <script lang="ts">
-  import { buildOutline, type FormMessages, type OutlineRow, type OutlineState } from '@crudui/generator-core';
+  import { buildOutline, type FormMessages, type OutlineRow, type OutlineState } from '@polyspec/crudui-generator-core';
   import Controls from './Controls.svelte';
 
   let { state, messages, root = $bindable() }: { state: OutlineState; messages: FormMessages; root?: HTMLDivElement } = $props();

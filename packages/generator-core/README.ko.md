@@ -1,11 +1,11 @@
-# @crudui/generator-core
+# @polyspec/crudui-generator-core
 
 [English](README.md).
 
 프레임워크에 의존하지 않는 폼 컴파일, 편집 세션, 목록 평가를 제공합니다.
 
 ```ts
-import { compileForm, createForm } from '@crudui/generator-core';
+import { compileForm, createForm } from '@polyspec/crudui-generator-core';
 
 const template = compileForm({
   type: 'group', properties: { name: { type: 'text' } },
@@ -23,9 +23,9 @@ session.setData({ name: 'Example' });
 `buildDetail`, `buildOutline`), 브라우저 연결(`connectForm`, `connectOutline`,
 `connectStickyHeaders`, `patchContent`, `resolveAction`, `runAction`), API가 던지는
 오류(`ComposeLoadError`, `FormInputError`, `UnsupportedFieldTypeError`)를 내보냅니다. 스타일시트는
-`@crudui/generator-core/crudui.css`입니다.
+`@polyspec/crudui-generator-core/crudui.css`입니다.
 
-`@crudui/generator-core/internal`은 CRUDUI 렌더러 패키지가 공유하는 도우미입니다. 공개 API로
+`@polyspec/crudui-generator-core/internal`은 CRUDUI 렌더러 패키지가 공유하는 도우미입니다. 공개 API로
 지원하지 않으며 렌더러와 함께 바뀝니다.
 
 - [런타임 계약](../../docs/spec/form-runtime.ko.md)

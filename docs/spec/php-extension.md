@@ -23,7 +23,7 @@ process.
 ## Public classes and loading
 
 The PHP packages and extension provide the same public classes:
-`CRUDUI\Generator`, `CRUDUI\Validator` and `CRUDUI\Form`.
+`Polyspec\Crudui\Generator`, `Polyspec\Crudui\Validator` and `Polyspec\Crudui\Form`.
 Method names, parameter names, types, defaults, return values and exception types
 are identical. API calls do not change with the implementation.
 
@@ -56,14 +56,14 @@ keyed nested collections, defaults, labels, selection values and display rules.
 
 | API | Operation |
 | --- | --- |
-| `CRUDUI\Generator::compileForm(spec, options)` | Compile a data-independent, JSON-serializable form template. |
-| `CRUDUI\Generator::bindForm(template, data, options)` | Evaluate field models without modifying the template or data. |
-| `new CRUDUI\Form(template, data, options)` | Create an independent form instance. |
+| `Polyspec\Crudui\Generator::compileForm(spec, options)` | Compile a data-independent, JSON-serializable form template. |
+| `Polyspec\Crudui\Generator::bindForm(template, data, options)` | Evaluate field models without modifying the template or data. |
+| `new Polyspec\Crudui\Form(template, data, options)` | Create an independent form instance. |
 | `$form->setData(data)` | Replace instance data and reevaluate fields. |
 | `$form->getData()` | Return detached submission data. |
 | `$form->addRow`, `copyRow`, `removeRow`, `moveRow`, `rekeyRow` | Apply the row operations defined by the form runtime. |
-| `CRUDUI\Generator::renderForm(form, options)` | Return the instance's [complete form](form-runtime.md#complete-form) HTML. |
-| `CRUDUI\Generator::sequenceRowKey(seq)` | Format a saved sequence as a row key. |
+| `Polyspec\Crudui\Generator::renderForm(form, options)` | Return the instance's [complete form](form-runtime.md#complete-form) HTML. |
+| `Polyspec\Crudui\Generator::sequenceRowKey(seq)` | Format a saved sequence as a row key. |
 
 Compilation accepts the same `files`, `basepath` and `keyPrefix` inputs as the
 shared compiler. Binding and instances accept `language`, `idPrefix`,
@@ -82,27 +82,27 @@ and record restoration preserve this equality. The cached template is unchanged.
 The generated template and submission data also work with React, Vue and Svelte.
 
 List generation follows the same list specification and table/card output
-contract as the JavaScript renderers. `CRUDUI\Generator::buildList` returns the
-evaluated list model, and `CRUDUI\Generator::renderList` receives a list
+contract as the JavaScript renderers. `Polyspec\Crudui\Generator::buildList` returns the
+evaluated list model, and `Polyspec\Crudui\Generator::renderList` receives a list
 specification, display rows and rendering options.
 
 ## Validation and PHP values
 
-`CRUDUI\Validator::validate(spec, data, options)` validates submitted data and returns
+`Polyspec\Crudui\Validator::validate(spec, data, options)` validates submitted data and returns
 `valid`, `errors` and `hidden`, the data paths of the fields that `design.show` hides
 ([evaluation](validation-rules.md#evaluation)). Error entries preserve `path`, `field`, `rule`, `message`
-and `value`. `CRUDUI\Validator::validateList(spec, options)` checks a list specification and
-`CRUDUI\Validator::validateDetail(spec, options)` checks a detail specification.
+and `value`. `Polyspec\Crudui\Validator::validateList(spec, options)` checks a list specification and
+`Polyspec\Crudui\Validator::validateDetail(spec, options)` checks a detail specification.
 Composition inputs use an explicit `files` map and `basepath`.
 Specification, composition and data-shape failures raise exceptions; they are not
 validation results. Validation uses the shared rules and conformance cases.
 
-Composition errors use `CRUDUI\Validator\Compose\ComposeLoadError`. Submitted data
-with the wrong shape raises `CRUDUI\Validator\Validate\FormInputError`, constructed
+Composition errors use `Polyspec\Crudui\Validator\Compose\ComposeLoadError`. Submitted data
+with the wrong shape raises `Polyspec\Crudui\Validator\Validate\FormInputError`, constructed
 with `message`; `getErrorCode()` returns `INVALID_FORM_INPUT`. A non-empty
 sequential root array raises it before composition; the
 [validation procedure](../operations/validation.md) defines the messages. Generator
-operation errors use `CRUDUI\FormError`, constructed with `errorCode`, `message`
+operation errors use `Polyspec\Crudui\FormError`, constructed with `errorCode`, `message`
 and optional `path`; `getErrorCode()` and `getPath()` return the operation details.
 Unsupported fields use `UNSUPPORTED_FIELD_TYPE`; other invalid form operations
 use `INVALID_FORM_INPUT`. A failure while constructing a supported field uses
@@ -118,7 +118,7 @@ sequential numeric keys appear as arrays. Associative arrays remain valid for
 internal API calls when the caller already knows that the value is an object.
 `json_decode` refuses JSON text with an unpaired surrogate escape. To report the
 [input text](input-text.md) failure instead, decode with
-`CRUDUI\Validator\Support\JsonText::decode`, which returns the same values and keeps
+`Polyspec\Crudui\Validator\Support\JsonText::decode`, which returns the same values and keeps
 that text for the check.
 The fixed object options `files` and `data` also accept an empty PHP array.
 Returned record objects and cached templates use `stdClass`; lists use arrays.
@@ -130,7 +130,7 @@ member names that are not valid UTF-8, and values beyond the value limits, fail
 as the [input text](input-text.md) rule defines, before any other check of the
 method. A converted value that no check walks and that passes the same limits
 fails with `Recursive or excessively nested PHP value`: an
-`InvalidArgumentException` from validation and a `CRUDUI\FormError` with code
+`InvalidArgumentException` from validation and a `Polyspec\Crudui\FormError` with code
 `INVALID_FORM_INPUT` from generation.
 
 The extension does not introduce hidden identity or ordering fields. Form

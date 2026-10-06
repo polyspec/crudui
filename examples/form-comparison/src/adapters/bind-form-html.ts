@@ -1,4 +1,4 @@
-import { bindButtons, bindForm, formDescription, formMessages, patchContent } from '@crudui/generator-core';
+import { bindButtons, bindForm, formDescription, formMessages, patchContent } from '@polyspec/crudui-generator-core';
 import { renderDataPanel, renderFormView, renderOutlineView } from '#html';
 
 /** The markup renderer writes no framework anchors, so it adopts the server-rendered nodes. */

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Generator;
+namespace Polyspec\Crudui\Generator;
 
-use CRUDUI\FormError;
+use Polyspec\Crudui\FormError;
 use stdClass;
 
 /** Bind compiled fields to data as nodes of the recursive form grammar. */

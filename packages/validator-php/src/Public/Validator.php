@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI;
+namespace Polyspec\Crudui;
 
-use CRUDUI\Validator\Compose\Compose;
-use CRUDUI\Validator\Compose\MemoryLoader;
-use CRUDUI\Validator\Compose\Patch;
-use CRUDUI\Validator\Compose\Ref;
-use CRUDUI\Validator\ForbiddenScan;
-use CRUDUI\Validator\Support\JsonValue;
-use CRUDUI\Validator\Support\Text;
-use CRUDUI\Validator\Validate\FormInputError;
-use CRUDUI\Validator\Validate\Validator as DataValidator;
+use Polyspec\Crudui\Validator\Compose\Compose;
+use Polyspec\Crudui\Validator\Compose\MemoryLoader;
+use Polyspec\Crudui\Validator\Compose\Patch;
+use Polyspec\Crudui\Validator\Compose\Ref;
+use Polyspec\Crudui\Validator\ForbiddenScan;
+use Polyspec\Crudui\Validator\Support\JsonValue;
+use Polyspec\Crudui\Validator\Support\Text;
+use Polyspec\Crudui\Validator\Validate\FormInputError;
+use Polyspec\Crudui\Validator\Validate\Validator as DataValidator;
 use stdClass;
 
 /** Compose specifications and validate submitted data or list declarations. */
