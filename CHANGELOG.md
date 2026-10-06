@@ -1,5 +1,11 @@
 # Changes
 
+## 2026-10-06 — PHP API pages of the polyspec namespace (C9.1-1)
+
+- The API documentation requires the phpDocumentor pages of `Polyspec\Crudui\`
+  (`classes/Polyspec-Crudui-Generator.html` and the pages of `Validator`, `Form` and `FormError`), so
+  `make docs-check-documents` passes again; the package name check refuses the page form `CRUDUI-`.
+
 ## 2026-10-06 — Package names of the polyspec repositories (C9.1)
 
 - The packages follow the naming of template and hyper: the npm packages are `@polyspec/crudui-*`
