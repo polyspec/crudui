@@ -66,9 +66,6 @@ export interface MessagesSpec {
 // ============================================================================
 
 /**
- * Validation result
- */
-/**
  * The result of checking a list or detail declaration: whether it is valid and its errors.
  */
 export interface ListValidationResult {
@@ -78,6 +75,10 @@ export interface ListValidationResult {
   errors: ValidationError[];
 }
 
+/**
+ * The result of validating form data: whether it is valid, its errors and the data paths
+ * that `design.show` hides.
+ */
 export interface ValidationResult {
   /** True when every field passed validation; false if any error was collected. */
   valid: boolean;
