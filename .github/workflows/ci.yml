@@ -1,17 +1,20 @@
-# Build, validation, rendering and documentation checks.
+# Build, validation, rendering and documentation checks of every pull request and of every merge group of the merge
+# queue. The ruleset main of .github/repository.json requires every job of this workflow, and the merge queue moves main
+# to the merge group commit only after they passed on it (docs/operations/repository.md). The documentation web of main
+# is deployed by .github/workflows/pages.yml.
 
 name: CI
 
 on:
-  push:
-    branches: [main]
   pull_request:
+  merge_group:
   workflow_dispatch:
 
-# The runners are few: a new push to a ref cancels the run of its previous push (tests/build/ci-local.test.mjs).
+# The runners are few: a new push to a pull request cancels the run of its previous push. Each merge group has a ref of
+# its own (gh-readonly-queue/main/pr-<number>-<sha>), and its run is never cancelled (tests/build/ci-local.test.mjs).
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
@@ -272,30 +275,6 @@ jobs:
           name: report-docs-coverage
           path: var/report/ci-targets
           if-no-files-found: error
-      - name: Upload documentation web
-        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-        uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4.0.0
-        with:
-          path: docs/.web/dist
-
-  deploy-docs:
-    name: Deploy documentation to GitHub Pages
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-    needs: docs-coverage
-    runs-on: ubuntu-24.04
-    permissions:
-      pages: write
-      id-token: write
-    concurrency:
-      group: github-pages
-      cancel-in-progress: false
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy documentation web
-        id: deployment
-        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5
 
   cross-check-console:
     name: cross-check console gateway

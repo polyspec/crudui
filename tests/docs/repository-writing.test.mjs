@@ -98,8 +98,8 @@ test('maintained repository prose describes current operations directly', () => 
   assert.deepEqual(failures, [], failures.join('\n'));
 });
 
-test('documentation web output is wired in CI and repository ignores', () => {
-  const workflow = readFileSync(path.join(repository, '.github', 'workflows', 'ci.yml'), 'utf8');
+test('documentation web output is wired in the Pages workflow and repository ignores', () => {
+  const workflow = readFileSync(path.join(repository, '.github', 'workflows', 'pages.yml'), 'utf8');
   const ignore = readFileSync(path.join(repository, '.gitignore'), 'utf8');
   const oldName = String.fromCharCode(115, 105, 116, 101);
   const oldWorkflowPath = ['docs', `.${oldName}`, 'dist'].join('/');

@@ -18,7 +18,7 @@
   제목(끝 마침표 없음), 빈 줄, 72자 부근 개행한 본문(무엇을·왜 변경했는지), 선택적 꼬리말. 타입은
   feat, fix, docs, style, refactor, test, chore 중 하나다.
 - 개발하는 동안에는 바뀐 것을 소유한 unit test, 곧 그 Red와 Green case만 실행합니다. end-to-end 검사(browser,
-  container, form comparison, native와 cross-check suite, 전체 build), `make owner-check`, 전체 실행 `make ci`는 push 뒤에
+  container, form comparison, native와 cross-check suite, 전체 build), `make owner-check`, 전체 실행 `make ci`는 pull request의
   CI에서 실행하며, push나 commit 전에 local 검사를 요구하는 규칙은 없습니다. CI가 보고한 실패는 다른 결함처럼
   작업을 얻습니다. 모든 테스트는 자신의 실행·완료·성공·실패와 경과 시간을 출력합니다. 각 test case는
   짧은 검증 단위이며 자기 timeout을 가지고, 전체 일괄 timeout은 쓰지 않습니다. 장기 작업(build,
@@ -36,7 +36,22 @@
   적습니다. 모든 `make` 실행은 Makefile을 읽을 때 `core.hooksPath`를 `.githooks`로 설정합니다. `make hooks`는 hook을
   설치하고 검사하며, `make hooks-check`는 hook이 설치되지 않은 동안 실패합니다. `.github/workflows/push-gate.yml`의 job
   `push-gate`는 push되는 모든 commit과 pull request에 `node scripts/push-gate.mjs commit <sha>`를 실행하고, hook을 거치지
-  않은 push에 같은 message로 실패합니다.
+  않은 push에 같은 message로 실패합니다. 이어서 Node.js만으로 문서와 checklist 규칙을 검사하는 `make records-check`를
+  실행하므로, 그 규칙을 어긴 commit도 실패합니다.
+- owner와 모든 agent의 변경은 pull request와 merge queue를 거쳐서만 `main`에 도달하며, 이 저장소의 어떤 명령도 `main`을
+  push하지 않습니다. branch는 GitHub의 표준 명령이나 GitHub UI로 게시합니다.
+
+  ```sh
+  git push origin HEAD:refs/heads/<branch>
+  gh pr create --base main --head <branch> --fill
+  gh pr merge <branch> --auto --rebase
+  ```
+
+  `.github/repository.json`의 ruleset `main`은 승인 없는 pull request, merge 방식 `REBASE`의 merge queue, 선형 이력,
+  job `push-gate`와 `.github/workflows/ci.yml`의 모든 job의 check를 요구하고, `main`의 force-push와 삭제를 거부하며
+  bypass actor가 없으므로, GitHub는 `main`으로의 직접 push를 관리자에게도 거부합니다. rebase는 merge된 commit에 새
+  hash를 주므로, `git pull --rebase`가 queue가 merge한 local commit을 버립니다. `make github-settings`는 선언을
+  적용하고, `make github-settings-check`는 저장소가 선언과 다르면 실패합니다(`docs/operations/repository.md`).
 - 계약은 `docs/spec/`, 구현·배포 상태는 `docs/features.md`, 절차는
   `docs/operations/`, 계획된 작업과 그 검증·완료는 `docs/plans/execution-checklist.md`,
   실제 변경은 `CHANGELOG.md`에서 관리합니다. 모든 변경은 checklist의 작업 하나에 속하며,

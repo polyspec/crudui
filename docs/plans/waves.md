@@ -26,7 +26,7 @@ Depends on: none. CI has failed on every push since 2026-09-25 while `make ci` p
 
 ## Wave 6
 
-Depends on: none. AGENTS and the testing guide state that a push happens only when every active task is done, and nothing enforced it: a push with a task in progress reached GitHub, where CI runs the full suite on the pushed tree. Git does not version hooks, and `core.hooksPath` is a setting of each clone, so a hook works only where a clone installed it, and `git push --no-verify` or another clone passes without it. GitHub cannot refuse a push by the content of a file; a workflow fails after the push is accepted.
+Depends on: none. AGENTS and the testing guide state that a push happens only when every active task is done, and nothing enforced it: a push with a task in progress reached GitHub, where CI runs the full suite on the pushed tree. Git does not version hooks, and `core.hooksPath` is a setting of each clone, so a hook works only where a clone installed it, and `git push --no-verify` or another clone passes without it. GitHub cannot refuse a push by the content of a file; a workflow fails after the push is accepted. A ruleset of a branch can require a check that passed on the pushed commit, so a commit can reach `main` only after its check passed on another branch.
 
 ## Wave 7
 

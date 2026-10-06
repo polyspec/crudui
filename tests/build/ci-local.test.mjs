@@ -94,7 +94,7 @@ test('a workflow step starts every tool through a make target', async () => {
     { name: 'nginx', run: 'sudo apt-get install -y nginx\nphp-fpm -v && nginx -v' },
   ] } } }), ['a: install: node scripts/install-npm.mjs', 'a: test: FOO=1 xvfb-run npm test']);
   const violations = [];
-  for (const file of ['ci.yml', 'dependency-review.yml', 'push-gate.yml']) {
+  for (const file of ['ci.yml', 'dependency-review.yml', 'pages.yml', 'push-gate.yml']) {
     violations.push(...stepsOutsideMake(parse(await read(`.github/workflows/${file}`))).map(line => `${file} ${line}`));
   }
   assert.deepEqual(violations, []);
@@ -138,7 +138,7 @@ test('every job runs its checks through make ci-targets and uploads their report
     'c: the report upload does not fail without a report',
   ]);
   const violations = [];
-  for (const file of ['ci.yml', 'dependency-review.yml', 'push-gate.yml']) {
+  for (const file of ['ci.yml', 'dependency-review.yml', 'pages.yml', 'push-gate.yml']) {
     const workflow = parse(await read(`.github/workflows/${file}`));
     violations.push(...jobsWithoutReport(workflow).map((line) => `${file} ${line}`));
     // The report artifact of each job, and of each matrix entry, has a name of its own.
@@ -149,13 +149,29 @@ test('every job runs its checks through make ci-targets and uploads their report
   assert.deepEqual(violations, []);
 });
 
-// The runners are few: a new push to a ref stops the CI run of its previous push. The push check runs on every pushed
-// commit and keeps its runs.
-test('a new push stops the CI run of the previous push of its ref, and the push check keeps every run', async () => {
+// The runners are few: a new push to a pull request stops the CI run of its previous push. A merge group has a ref of its
+// own and its run is never stopped, and the push check runs on every pushed commit and keeps its runs.
+test('a new push stops the CI run of the previous push of its pull request, and no other run is stopped', async () => {
   assert.deepEqual(parse(await read('.github/workflows/ci.yml')).concurrency, {
-    group: '${{ github.workflow }}-${{ github.ref }}', 'cancel-in-progress': true,
+    group: '${{ github.workflow }}-${{ github.ref }}', 'cancel-in-progress': "${{ github.event_name == 'pull_request' }}",
   });
   assert.equal(parse(await read('.github/workflows/push-gate.yml')).concurrency, undefined);
+  assert.deepEqual(parse(await read('.github/workflows/pages.yml')).concurrency, { group: 'github-pages', 'cancel-in-progress': false });
+});
+
+// main receives a commit only from the merge queue (.github/repository.json): CI runs on pull requests and merge groups,
+// the push check also on every pushed branch except the branches of the queue, which it checks as merge groups, and the
+// documentation web is built and deployed from main.
+test('CI runs on pull requests and merge groups, and Pages deploys main', async () => {
+  assert.deepEqual(parse(await read('.github/workflows/ci.yml')).on, { pull_request: null, merge_group: null, workflow_dispatch: null });
+  assert.deepEqual(parse(await read('.github/workflows/push-gate.yml')).on, {
+    push: { 'branches-ignore': ['gh-readonly-queue/**'] }, pull_request: null, merge_group: null,
+  });
+  const pages = parse(await read('.github/workflows/pages.yml'));
+  assert.deepEqual(pages.on, { push: { branches: ['main'] }, workflow_dispatch: null });
+  assert.equal(pages.jobs.deploy.environment.name, 'github-pages');
+  assert.equal(pages.jobs.deploy.needs, 'docs-web');
+  assert.doesNotMatch(await read('.github/workflows/ci.yml'), /refs\/heads\/main|deploy-pages|upload-pages-artifact/);
 });
 
 test('every checking step of the CI workflow runs after an earlier failure', async () => {

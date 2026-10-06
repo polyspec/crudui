@@ -1,5 +1,13 @@
 # 변경 기록
 
+## 2026-10-06 — pull request와 merge queue로 main에 도달하는 변경 (C6.2)
+
+- 모든 변경은 pull request와 merge queue를 거쳐 `main`에 도달합니다. branch는 `git push`, `gh pr create`, `gh pr
+  merge --auto --rebase`로 게시합니다. 이제 `.github/repository.json`에 선언하고 `make github-settings`로 적용하는
+  ruleset `main`은 pull request, `REBASE` 방식의 merge queue, 선형 이력, `push-gate`와 모든 CI job의 check를
+  요구하며, 설정은 auto-merge를 켜고 merge된 branch를 지웁니다. CI는 pull request와 merge group에서 실행되고,
+  `.github/workflows/pages.yml`이 `main`의 문서 웹을 배포합니다.
+
 ## 2026-10-06 — 표시 전환의 공유 사례 (C8.5)
 
 - 공유 검증 사례가 검증기 다섯 개에서 표시 전환의 서버 결과를 고정합니다. 형제가 전환하는 그룹 subtree와 그

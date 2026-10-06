@@ -1,14 +1,19 @@
-# The push check of every pushed commit and pull request (AGENTS.md, docs/operations/testing.md). The pre-push hook
-# .githooks/pre-push refuses a push while a checklist task is [~]; a push past the hook, from a clone without it or
-# with the hook skipped, reaches GitHub, and this job fails for it with the same message. It checks the pushed commit
-# (the head commit of a pull request): its checklist has no task in progress, and it tracks the hook as an executable
-# file. The check needs Node.js alone and installs no dependency.
+# The push check of every pushed branch, pull request and merge group (AGENTS.md, docs/operations/testing.md). The
+# pre-push hook .githooks/pre-push refuses a push while a checklist task is [~]; a push past the hook, from a clone
+# without it or with the hook skipped, reaches GitHub, and this job fails for it with the same message. It checks the
+# pushed commit (the head commit of a pull request, the commit of a merge group): its checklist has no task in progress,
+# and it tracks the hook as an executable file. The branches of the merge queue are checked as merge groups, not as
+# pushes. It also runs make records-check, the document and checklist rules, which read no network and no history. The
+# ruleset main of .github/repository.json requires this job, so a commit that breaks them cannot reach main. The check
+# needs Node.js alone and installs no dependency.
 
 name: Push check
 
 on:
   push:
+    branches-ignore: ['gh-readonly-queue/**']
   pull_request:
+  merge_group:
 
 permissions:
   contents: read
@@ -33,9 +38,9 @@ jobs:
           node-version-file: '.node-version'
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS=node
-      - name: Refuse a commit with a task in progress
+      - name: Refuse a commit with a task in progress or broken records
         if: ${{ !cancelled() }}
-        run: make ci-targets TARGETS="push-gate-check"
+        run: make ci-targets TARGETS="push-gate-check records-check"
       - name: Upload the report of the checks
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

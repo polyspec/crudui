@@ -26,7 +26,7 @@
 
 ## Wave 6
 
-의존: 없음. AGENTS와 testing 안내는 모든 진행 중 작업이 끝났을 때만 push한다고 정하지만, 이를 강제하는 것이 없었다. 진행 중 작업이 있는 push가 GitHub에 도달했고, GitHub의 CI는 push된 tree에서 full suite를 실행한다. Git은 hook을 version 관리하지 않고 `core.hooksPath`는 clone마다의 설정이므로, hook은 그것을 설치한 clone에서만 동작하며 `git push --no-verify`나 다른 clone은 hook 없이 push한다. GitHub은 file의 내용으로 push를 거부할 수 없고, workflow는 push가 받아들여진 뒤에 실패한다.
+의존: 없음. AGENTS와 testing 안내는 모든 진행 중 작업이 끝났을 때만 push한다고 정하지만, 이를 강제하는 것이 없었다. 진행 중 작업이 있는 push가 GitHub에 도달했고, GitHub의 CI는 push된 tree에서 full suite를 실행한다. Git은 hook을 version 관리하지 않고 `core.hooksPath`는 clone마다의 설정이므로, hook은 그것을 설치한 clone에서만 동작하며 `git push --no-verify`나 다른 clone은 hook 없이 push한다. GitHub은 file의 내용으로 push를 거부할 수 없고, workflow는 push가 받아들여진 뒤에 실패한다. branch의 ruleset은 push된 commit에서 통과한 check를 요구할 수 있으므로, commit은 다른 branch에서 그 check를 통과한 뒤에만 `main`에 도달할 수 있다.
 
 ## Wave 7
 

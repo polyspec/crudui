@@ -1,5 +1,14 @@
 # Changes
 
+## 2026-10-06 — Changes reach main through pull requests and the merge queue (C6.2)
+
+- Every change reaches `main` through a pull request and the merge queue: publish a branch with `git
+  push`, `gh pr create` and `gh pr merge --auto --rebase`. The ruleset `main`, now declared in
+  `.github/repository.json` and applied by `make github-settings`, requires a pull request, the merge
+  queue with the method `REBASE`, a linear history and the checks of `push-gate` and of every CI job;
+  the settings enable auto-merge and delete merged branches. CI runs on pull requests and merge
+  groups, and `.github/workflows/pages.yml` deploys the documentation web of `main`.
+
 ## 2026-10-06 — Shared cases of display switching (C8.5)
 
 - Shared validation cases fix the server result of display switching in the five validators: a
