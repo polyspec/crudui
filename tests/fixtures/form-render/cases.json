@@ -5405,5 +5405,33 @@
       "language": "en"
     },
     "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"mode\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:mode\">Mode</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"mode\" data-rule-name=\"mode\" id=\"crudui:mode\" name=\"mode\" type=\"text\" value=\"off\"></div></div></div><div class=\"crudui-node crudui-node--collection\" data-field-path=\"variants\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Variants</span><span class=\"crudui-node__count\">Rows: 2</span></div><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__opt_b2__\"><div class=\"crudui-node__header\"><button aria-controls=\"crudui:variants.__opt_b2__:body\" aria-expanded=\"true\" aria-label=\"Expand or collapse\" class=\"crudui-action\" data-crudui-action=\"toggle-row\" type=\"button\"></button><span class=\"crudui-node__label\">Variants</span><span class=\"crudui-node__number\">1</span><span class=\"crudui-node__summary\" hidden=\"\">Collapsed</span></div><div class=\"crudui-node__body\" id=\"crudui:variants.__opt_b2__:body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"variants.__opt_b2__.name\" hidden=\"\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:variants.__opt_b2__.name\">Name</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"name\" data-rule-name=\"variants[][name]\" id=\"crudui:variants.__opt_b2__.name\" name=\"variants[__opt_b2__][name]\" type=\"text\" value=\"Blue\"></div></div></div><div class=\"crudui-node crudui-node--field\" data-field-path=\"variants.__opt_b2__.price\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:variants.__opt_b2__.price\">Price</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"price\" data-rule-name=\"variants[][price]\" id=\"crudui:variants.__opt_b2__.price\" name=\"variants[__opt_b2__][price]\" step=\"any\" type=\"number\" value=\"2\"></div></div></div></div></div><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__opt_a1__\"><div class=\"crudui-node__header\"><button aria-controls=\"crudui:variants.__opt_a1__:body\" aria-expanded=\"true\" aria-label=\"Expand or collapse\" class=\"crudui-action\" data-crudui-action=\"toggle-row\" type=\"button\"></button><span class=\"crudui-node__label\">Variants</span><span class=\"crudui-node__number\">2</span><span class=\"crudui-node__summary\" hidden=\"\">Collapsed</span></div><div class=\"crudui-node__body\" id=\"crudui:variants.__opt_a1__:body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"variants.__opt_a1__.name\" hidden=\"\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:variants.__opt_a1__.name\">Name</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"name\" data-rule-name=\"variants[][name]\" id=\"crudui:variants.__opt_a1__.name\" name=\"variants[__opt_a1__][name]\" type=\"text\" value=\"Red\"></div></div></div><div class=\"crudui-node crudui-node--field\" data-field-path=\"variants.__opt_a1__.price\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:variants.__opt_a1__.price\">Price</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"price\" data-rule-name=\"variants[][price]\" id=\"crudui:variants.__opt_a1__.price\" name=\"variants[__opt_a1__][price]\" step=\"any\" type=\"number\" value=\"1\"></div></div></div></div></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "design-show-literal-identifier-visible",
+    "note": "A design.show string that parses but is not a condition expression, such as a bare name, is a literal: the field renders without the hidden attribute.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "mode": {
+          "type": "text",
+          "label": "Mode"
+        },
+        "note": {
+          "type": "text",
+          "label": "Note",
+          "design": {
+            "show": "mode"
+          }
+        }
+      }
+    },
+    "data": {
+      "mode": "",
+      "note": "kept"
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"mode\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:mode\">Mode</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"mode\" data-rule-name=\"mode\" id=\"crudui:mode\" name=\"mode\" type=\"text\" value=\"\"></div></div></div><div class=\"crudui-node crudui-node--field\" data-field-path=\"note\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:note\">Note</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"note\" data-rule-name=\"note\" id=\"crudui:note\" name=\"note\" type=\"text\" value=\"kept\"></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
   }
 ]

@@ -3,27 +3,38 @@
 
 use serde_json::Value;
 
-use crate::expr::{condition_map, Expression};
+use super::rules::is_condition_expression;
+use super::validator::has_ternary_regex;
+use crate::expr::{condition_map, Evaluator, Expression, Node};
 
-/// Whether a `design.show` value shows its field. Only a value that resolves to
-/// `false` hides it: a literal `false`, a valid expression that does not hold, or a
-/// condition map that selects `false`. A missing value, `null` and a condition map
-/// that selects nothing show it. `path` is the field's data path, row keys
-/// included.
+/// Whether a `design.show` value shows its field. The value resolves like a
+/// conditional parameter: a condition map selects its value, a ternary its branch
+/// and a condition expression that parses completely its value; any other string
+/// and any other value is a literal. Only a value that resolves to `false` hides
+/// the field, so a missing value, `null`, a condition map that selects nothing and
+/// a literal string show it. `path` is the field's data path, row keys included,
+/// and `row_keys` the positions of the row keys in it.
 pub fn show(value: Option<&Value>, data: &Value, path: &[String], row_keys: &[usize]) -> bool {
-    match value {
-        None => true,
+    let resolved = match value {
+        None => return true,
         Some(Value::Object(map)) => {
             let entries: Vec<(String, Value)> =
                 map.iter().map(|(k, v)| (k.clone(), v.clone())).collect();
-            condition_map::resolve(&entries, data, path, row_keys) != Some(Value::Bool(false))
+            condition_map::resolve(&entries, data, path, row_keys).unwrap_or(Value::Null)
         }
-        // A string that is not a valid expression is a literal.
-        Some(Value::String(expression)) => {
-            Expression::evaluate(expression, data, path, row_keys).unwrap_or(true)
-        }
-        Some(literal) => *literal != Value::Bool(false),
-    }
+        Some(Value::String(expression)) => match Expression::parse(expression) {
+            Ok(node @ Node::Ternary { .. }) => {
+                Evaluator::new(data, path, row_keys).evaluate_value(&node)
+            }
+            Ok(_) if is_condition_expression(expression) && !has_ternary_regex(expression) => {
+                Expression::evaluate_value(expression, data, path, row_keys)
+                    .unwrap_or(Value::Bool(false))
+            }
+            _ => return true,
+        },
+        Some(literal) => literal.clone(),
+    };
+    resolved != Value::Bool(false)
 }
 
 /// Whether a field is visible: its `design` object's `show` shows it. A field
