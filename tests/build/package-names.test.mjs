@@ -56,6 +56,8 @@ test('every package of packages/ has the name of the polyspec convention', () =>
 const OLD_NAMES = [
   ['npm scope @crudui', /@crudui\//g],
   ['PHP namespace CRUDUI', /\bCRUDUI\\/g],
+  // phpDocumentor writes the page of a class as its namespace joined by hyphens: classes/CRUDUI-Generator.html.
+  ['PHP API page CRUDUI-', /\bCRUDUI-(?:\$\{|Generator\b|Validator\b|Form)/g],
   ['Composer package crudui/', /(?<![@\w])crudui\\?\/(?:validator|generator)\b/g],
   ['Rust crate crudui-', /(?<![\w/-])crudui-(?:validator|generator)\b/g],
   ['Rust library crudui_', /(?<!\w)crudui_(?:validator|generator)(?!_ce)\b/g],

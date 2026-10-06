@@ -116,7 +116,7 @@ async function genPhp() {
       '--cache-folder', cache, '--title', 'CRUDUI PHP API', '--no-interaction']);
     requireOutput(join(output, 'index.html'));
     for (const name of ['Generator', 'Validator', 'Form', 'FormError']) {
-      requireOutput(join(output, 'classes', `CRUDUI-${name}.html`));
+      requireOutput(join(output, 'classes', `Polyspec-Crudui-${name}.html`));
     }
   } finally {
     rmSync(cache, { recursive: true, force: true });

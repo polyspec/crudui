@@ -1,5 +1,11 @@
 # 변경 기록
 
+## 2026-10-06 — polyspec namespace의 PHP API page (C9.1-1)
+
+- API 문서는 `Polyspec\Crudui\`의 phpDocumentor page(`classes/Polyspec-Crudui-Generator.html`과
+  `Validator`, `Form`, `FormError`의 page)를 요구하므로 `make docs-check-documents`가 다시 통과합니다.
+  package 이름 검사는 page 형태 `CRUDUI-`를 거부합니다.
+
 ## 2026-10-06 — polyspec 저장소의 패키지 이름 (C9.1)
 
 - 패키지는 template과 hyper의 이름 규칙을 따릅니다. npm 패키지는 `@polyspec/crudui-*`
