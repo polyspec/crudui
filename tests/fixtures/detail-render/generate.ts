@@ -15,7 +15,7 @@
  */
 
 import { renderDetail } from '../../../packages/generator-react/src/server';
-import type { BuildDetailOptions } from '@crudui/generator-core';
+import type { BuildDetailOptions } from '@polyspec/crudui-generator-core';
 // @ts-expect-error — JS normalizer shared across the CRUDUI fixture harness.
 import { normalizeHtml } from '../form-render/normalize.mjs';
 // @ts-expect-error — shared JS preload link helper.

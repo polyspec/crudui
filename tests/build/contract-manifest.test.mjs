@@ -23,7 +23,7 @@ function feature(id, owner, signature) {
   };
 }
 
-/** Two packages: `@crudui/core` with a public and an internal entry, and `@crudui/view` using both. */
+/** Two packages: `@polyspec/crudui-core` with a public and an internal entry, and `@polyspec/crudui-view` using both. */
 function repository() {
   return {
     manifest: {
@@ -32,27 +32,27 @@ function repository() {
       supportValues: ['pass', 'partial', 'unsupported'],
       packages: [
         {
-          name: '@crudui/core', path: 'packages/core', layer: 'model',
+          name: '@polyspec/crudui-core', path: 'packages/core', layer: 'model',
           entries: {
             '.': { visibility: 'public', exports: ['Session', 'close', 'compile', 'open', 'renamed'] },
             './internal': { visibility: 'internal', exports: ['layout'] },
           },
         },
         {
-          name: '@crudui/view', path: 'packages/view', layer: 'renderer',
+          name: '@polyspec/crudui-view', path: 'packages/view', layer: 'renderer',
           entries: { '.': { visibility: 'public', exports: ['Widget', 'render'] } },
         },
       ],
-      features: [feature('compile', '@crudui/core', 'compile(spec) -> Template; open | close(template) -> Session')],
+      features: [feature('compile', '@polyspec/crudui-core', 'compile(spec) -> Template; open | close(template) -> Session')],
       examples: [],
       fixtures: [],
     },
     files: {
       'fixture.json': '{}\n',
       'check.test.mjs': '\n',
-      'guide.md': "# Guide\n\n```js\nimport { compile } from '@crudui/core';\n```\n",
+      'guide.md': "# Guide\n\n```js\nimport { compile } from '@polyspec/crudui-core';\n```\n",
       'packages/core/package.json': JSON.stringify({
-        name: '@crudui/core',
+        name: '@polyspec/crudui-core',
         exports: {
           '.': { types: './dist/index.d.ts', import: './dist/index.mjs', require: './dist/index.js' },
           './internal': { types: './dist/internal.d.ts', import: './dist/internal.mjs', require: './dist/internal.js' },
@@ -82,18 +82,18 @@ function repository() {
       'packages/core/src/internal.ts': "export { layout } from './layout';\n",
       'packages/core/src/layout.ts': 'export function layout(): string { return "table"; }\n',
       'packages/view/package.json': JSON.stringify({
-        name: '@crudui/view',
+        name: '@polyspec/crudui-view',
         exports: { '.': { types: './dist/index.d.ts', svelte: './dist/index.js' } },
       }),
       'packages/view/src/index.ts': [
-        "import { layout } from '@crudui/core/internal';",
-        "export type { Session } from '@crudui/core';",
+        "import { layout } from '@polyspec/crudui-core/internal';",
+        "export type { Session } from '@polyspec/crudui-core';",
         "export { default as Widget } from './Widget.svelte';",
         'export function render(): string { return layout(); }',
         '',
       ].join('\n'),
       'packages/view/src/Widget.svelte': '<p>widget</p>\n',
-      'examples/app/main.mjs': "import { compile } from '@crudui/core';\nimport { render } from '@crudui/view';\n",
+      'examples/app/main.mjs': "import { compile } from '@polyspec/crudui-core';\nimport { render } from '@polyspec/crudui-view';\n",
     },
   };
 }
@@ -127,19 +127,19 @@ test('a synthetic repository with exact entries passes', () => {
 
 test('a package.json code entry without a manifest entry fails', () => {
   assert.deepEqual(errorsFor(repo => { delete core(repo).entries['./internal']; }), [
-    '@crudui/core: package.json code entry "./internal" is not declared in the manifest',
+    '@polyspec/crudui-core: package.json code entry "./internal" is not declared in the manifest',
   ]);
 });
 
 test('a manifest entry without a package.json code entry fails', () => {
   assert.deepEqual(errorsFor(repo => { core(repo).entries['./extra'] = { visibility: 'internal', exports: [] }; }), [
-    '@crudui/core: manifest entry "./extra" is not a package.json code entry',
+    '@polyspec/crudui-core: manifest entry "./extra" is not a package.json code entry',
   ]);
 });
 
 test('a package.json code entry without a source entry file fails', () => {
   assert.deepEqual(errorsFor(repo => { repo.files['packages/core/src/internal.ts'] = undefined; }), [
-    '@crudui/core: package.json entry "./internal" has no source file for ./dist/internal.mjs',
+    '@polyspec/crudui-core: package.json entry "./internal" has no source file for ./dist/internal.mjs',
   ]);
 });
 
@@ -147,14 +147,14 @@ test('value exports that differ from the declaration fail in both directions', (
   assert.deepEqual(errorsFor(repo => {
     core(repo).entries['.'].exports = ['Session', 'Template', 'close', 'compile', 'open'];
   }), [
-    '@crudui/core ".": exported but not declared: renamed',
-    '@crudui/core ".": declared but not exported: Template',
+    '@polyspec/crudui-core ".": exported but not declared: renamed',
+    '@polyspec/crudui-core ".": declared but not exported: Template',
   ]);
 });
 
 test('a declared export list must be sorted', () => {
   assert.deepEqual(errorsFor(repo => { core(repo).entries['.'].exports = ['compile', 'close', 'open', 'renamed', 'Session']; }), [
-    '@crudui/core ".": exports must be sorted: Session, close, compile, open, renamed',
+    '@polyspec/crudui-core ".": exports must be sorted: Session, close, compile, open, renamed',
   ]);
 });
 
@@ -163,7 +163,7 @@ test('an export that cannot be resolved fails', () => {
     repo.files['packages/core/src/index.ts'] += "export { missing } from './compile';\n";
     core(repo).entries['.'].exports = ['Session', 'close', 'compile', 'missing', 'open', 'renamed'];
   }), [
-    '@crudui/core ".": export cannot be resolved: missing',
+    '@polyspec/crudui-core ".": export cannot be resolved: missing',
   ]);
 });
 
@@ -171,14 +171,14 @@ test('a function in an implemented feature signature must be a public export of 
   assert.deepEqual(errorsFor(repo => {
     repo.manifest.features[0].signature += '; layout() -> string; session.render() -> string';
   }), [
-    'compile: signature function layout is not a public "." export of @crudui/core',
+    'compile: signature function layout is not a public "." export of @polyspec/crudui-core',
   ]);
   assert.deepEqual(errorsFor(repo => { core(repo).entries['.'].visibility = 'internal'; }), [
-    'compile: signature function close is not a public "." export of @crudui/core',
-    'compile: signature function compile is not a public "." export of @crudui/core',
-    'compile: signature function open is not a public "." export of @crudui/core',
-    'examples/app/main.mjs imports the internal entry @crudui/core',
-    'guide.md imports the internal entry @crudui/core',
+    'compile: signature function close is not a public "." export of @polyspec/crudui-core',
+    'compile: signature function compile is not a public "." export of @polyspec/crudui-core',
+    'compile: signature function open is not a public "." export of @polyspec/crudui-core',
+    'examples/app/main.mjs imports the internal entry @polyspec/crudui-core',
+    'guide.md imports the internal entry @polyspec/crudui-core',
   ]);
   assert.deepEqual(errorsFor(repo => {
     repo.manifest.features[0].status = 'planned';
@@ -188,16 +188,16 @@ test('a function in an implemented feature signature must be a public export of 
 
 test('only CRUDUI package code imports an internal entry', () => {
   assert.deepEqual(errorsFor(repo => {
-    repo.files['examples/app/main.mjs'] += "const { layout } = await import('@crudui/core/internal');\n";
-    repo.files['tests/app.test.mjs'] = "const internal = require('@crudui/core/internal');\n";
-    repo.files['guide.md'] += "\n```ts\nimport { layout } from '@crudui/core/internal';\n```\n";
-    repo.files['packages/view/README.md'] = "```ts\nimport { layout } from \"@crudui/core/internal\";\n```\n";
-    repo.files['packages/view/src/view.test.ts'] = "import { layout } from '@crudui/core/internal';\n";
+    repo.files['examples/app/main.mjs'] += "const { layout } = await import('@polyspec/crudui-core/internal');\n";
+    repo.files['tests/app.test.mjs'] = "const internal = require('@polyspec/crudui-core/internal');\n";
+    repo.files['guide.md'] += "\n```ts\nimport { layout } from '@polyspec/crudui-core/internal';\n```\n";
+    repo.files['packages/view/README.md'] = "```ts\nimport { layout } from \"@polyspec/crudui-core/internal\";\n```\n";
+    repo.files['packages/view/src/view.test.ts'] = "import { layout } from '@polyspec/crudui-core/internal';\n";
   }), [
-    'examples/app/main.mjs imports the internal entry @crudui/core/internal',
-    'guide.md imports the internal entry @crudui/core/internal',
-    'packages/view/README.md imports the internal entry @crudui/core/internal',
-    'tests/app.test.mjs imports the internal entry @crudui/core/internal',
+    'examples/app/main.mjs imports the internal entry @polyspec/crudui-core/internal',
+    'guide.md imports the internal entry @polyspec/crudui-core/internal',
+    'packages/view/README.md imports the internal entry @polyspec/crudui-core/internal',
+    'tests/app.test.mjs imports the internal entry @polyspec/crudui-core/internal',
   ]);
 });
 

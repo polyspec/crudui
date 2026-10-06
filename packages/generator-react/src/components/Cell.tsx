@@ -17,7 +17,7 @@
  */
 
 import * as React from 'react';
-import type { CellVM } from '@crudui/generator-core';
+import type { CellVM } from '@polyspec/crudui-generator-core';
 import { resolvedStyleProps, styleObject } from './attrs';
 import { RawContainer } from './raw';
 

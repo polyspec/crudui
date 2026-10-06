@@ -4,7 +4,7 @@
  * rendered list or detail into the page with `patchContent`.
  */
 import { expect, test } from 'vitest';
-import { patchContent } from '@crudui/generator-core';
+import { patchContent } from '@polyspec/crudui-generator-core';
 import { renderDetail, renderList } from './index';
 // @ts-expect-error Shared view assertions across all renderers.
 import { exerciseViewRerender } from '../../../tests/fixtures/view-session/rerender.mjs';

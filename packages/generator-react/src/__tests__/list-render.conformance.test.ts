@@ -17,7 +17,7 @@
  */
 
 import { describe, test, expect } from 'vitest';
-import { ComposeLoadError } from '@crudui/generator-core';
+import { ComposeLoadError } from '@polyspec/crudui-generator-core';
 import { renderList } from '../server';
 // @ts-expect-error — shared JS normalizer (cross-framework).
 import { normalizeHtml } from '../../../../tests/fixtures/form-render/normalize.mjs';

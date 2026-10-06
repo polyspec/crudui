@@ -68,8 +68,8 @@ node tests/native-generators/run.mjs --extension /absolute/crudui.so \
 선택 내용을 기록하므로 선택 실행을 전체 실행으로 오인하지 않습니다.
 
 검사기의 build 단계가 Go와 Rust 실행 파일을 빌드합니다. `PHP`, `GO`, `CARGO`로 해당 설치 명령을
-지정할 수 있습니다. 확장은 네이티브 `CRUDUI\Generator`, `CRUDUI\Validator`,
-`CRUDUI\Form` 클래스를 등록해야 합니다. Reflection으로 세 클래스가 네이티브
+지정할 수 있습니다. 확장은 네이티브 `Polyspec\Crudui\Generator`, `Polyspec\Crudui\Validator`,
+`Polyspec\Crudui\Form` 클래스를 등록해야 합니다. Reflection으로 세 클래스가 네이티브
 PHP에서는 내부 클래스이고 순수 PHP에서는 사용자 정의 클래스인지 확인합니다.
 PHP 메서드 서명과 수명 검사는 별도로 관리합니다. 검사 중 소스와 빌드 산출물의
 해시가 유지되어야 하며 보고서는 시작과 종료 시점의 입력 목록을 기록합니다.
@@ -121,10 +121,10 @@ PHP의 `date.timezone`을 모두 설정하고 날짜/날짜시간/목록의 명�
 
 | 대상 | 프로그램 | 라이브러리 |
 | --- | --- | --- |
-| `javascript`, `html` | [`javascript.mjs`](javascript.mjs)(`--renderer html`은 HTML 렌더러 선택) | `@crudui/generator-core`와 `@crudui/generator-react` 또는 `@crudui/generator-html` |
-| `php`, `php-native` | [`programs/php/generate.php`](programs/php/generate.php) | `packages/generator-php`의 Composer 오토로더로 불러온 `crudui/generator`. 확장을 불러오면 확장의 클래스 |
+| `javascript`, `html` | [`javascript.mjs`](javascript.mjs)(`--renderer html`은 HTML 렌더러 선택) | `@polyspec/crudui-generator-core`와 `@polyspec/crudui-generator-react` 또는 `@polyspec/crudui-generator-html` |
+| `php`, `php-native` | [`programs/php/generate.php`](programs/php/generate.php) | `packages/generator-php`의 Composer 오토로더로 불러온 `polyspec/crudui-generator`. 확장을 불러오면 확장의 클래스 |
 | `go` | [`programs/go`](programs/go/main.go)(자체 `go.mod`를 가진 모듈) | `packages/generator-go` |
-| `rust` | [`programs/rust`](programs/rust/src/main.rs)(크레이트 `polyspec-crudui-native-generator`) | `crudui-generator` |
+| `rust` | [`programs/rust`](programs/rust/src/main.rs)(크레이트 `polyspec-crudui-native-generator`) | `polyspec-crudui-generator` |
 
 검사기는 Go 프로그램을 빌드 디렉터리에 빌드하고, Rust 프로그램은 `programs/rust`에서
 `cargo build --locked`로 빌드합니다. 형식과 정적 검사는 다음과 같습니다.
@@ -167,5 +167,5 @@ node scripts/run-rust-command.mjs clippy --locked --all-targets --manifest-path 
 [입력 텍스트](../../docs/spec/input-text.ko.md) 실패나 성공을 요구합니다. 각 프로그램은 디코딩하면서
 그 텍스트를 보존합니다. JavaScript는 `JSON.parse`, PHP는 `JsonText::decode`, Go는
 `generator.DecodeJSON`과 템플릿 디코딩 전의 `generator.CheckBindText`, Rust는 `JsonText`를 씁니다.
-Rust는 `JsonText`의 형태로 프로토콜 규칙을 검사하고, `crudui_generator::text`가 각 연산의 텍스트를
+Rust는 `JsonText`의 형태로 프로토콜 규칙을 검사하고, `polyspec_crudui_generator::text`가 각 연산의 텍스트를
 먼저 검사합니다. 마지막 검사는 UTF-8이 아닌 표준 입력을 보냅니다.

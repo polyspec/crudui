@@ -4,7 +4,7 @@
 -->
 <script lang="ts">
   import { untrack } from 'svelte';
-  import { connectOutline, type FormInstance } from '@crudui/generator-core';
+  import { connectOutline, type FormInstance } from '@polyspec/crudui-generator-core';
   import OutlineView from './OutlineView.svelte';
 
   let { form, formElement }: { form: FormInstance; formElement?: HTMLElement } = $props();

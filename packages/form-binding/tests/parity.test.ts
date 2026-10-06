@@ -4,7 +4,7 @@
 // binding collects that data from the form, so its validation result is the fixture's result.
 import { readFileSync } from 'node:fs';
 
-import type { ValidationResult } from '@crudui/validator';
+import type { ValidationResult } from '@polyspec/crudui-validator';
 import { describe, expect, it } from 'vitest';
 
 import { collectData } from '../src/data';

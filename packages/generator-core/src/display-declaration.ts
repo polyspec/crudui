@@ -1,6 +1,6 @@
 /** Declaration rules of composed list and detail specifications (docs/spec/display-formats.md). */
 
-import { FormInputError } from '@crudui/validator';
+import { FormInputError } from '@polyspec/crudui-validator';
 import { checkDesignDeclaration } from './form';
 import { CHOICE_LIST_EXPECTED, choicePairs, isChoiceList } from './choice-list';
 

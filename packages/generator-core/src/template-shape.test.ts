@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { FormInputError } from '@crudui/validator';
+import { FormInputError } from '@polyspec/crudui-validator';
 import { bindButtons, bindForm, compileForm, createForm } from './index';
 
 const compiled = () => JSON.parse(JSON.stringify(compileForm({ type: 'group', properties: { name: { type: 'text' } } })));

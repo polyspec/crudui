@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Validator\Validate;
+namespace Polyspec\Crudui\Validator\Validate;
 
 /** Submitted form data whose shape does not match the specification. */
 final class FormInputError extends \RuntimeException

@@ -1,4 +1,4 @@
-import { renderForm } from '@crudui/generator-html';
+import { renderForm } from '@polyspec/crudui-generator-html';
 import { data, companyKey, storeKey } from './scenario.mjs';
 import { domSnapshot, formSnapshot } from '../../form-inspector/form-snapshot.mjs';
 

@@ -56,15 +56,15 @@ React `Form`은 호스트가 제출 컨트롤을 소유할 때 `renderButtons={f
 속성 순서는 이 계약에 포함되지 않습니다. 프레임워크와 브라우저 엔진은 속성을 서로 다른
 순서로 만들므로 바인딩은 속성을 재배치하지 않고, 이 비교는 파싱한 DOM을 사용합니다.
 
-문자열 렌더러는 React 서버 렌더링(`@crudui/generator-react/server`의 `renderForm`, `renderList`),
-HTML 렌더러(`@crudui/generator-html`), PHP, PHP 확장, Go, Rust 생성기입니다. 같은 인스턴스나
+문자열 렌더러는 React 서버 렌더링(`@polyspec/crudui-generator-react/server`의 `renderForm`, `renderList`),
+HTML 렌더러(`@polyspec/crudui-generator-html`), PHP, PHP 확장, Go, Rust 생성기입니다. 같은 인스턴스나
 목록에서 이들은 같은 바이트를 만듭니다. React 서버 렌더링이 기준이므로 그 직렬화가 형식입니다.
 `readOnly`, `autoComplete` 같은 속성 이름, `/>`로 닫는 빈 요소, 다른 속성 뒤에 오는 input의
 `name`, `checked`, `value`, 반복된 속성은 처음 위치에 마지막 값을 두고 `property:value`를 `;`로
 이은 `style` 속성, 목록의 이미지 사전 로드 링크가 여기에 포함됩니다. 네이티브 생성 검사는 모든
 문자열 렌더러를 기준과 바이트 단위로 비교합니다.
 
-`@crudui/generator-html` 패키지는 React, Vue, Svelte 없이 같은 평가 인스턴스와
+`@polyspec/crudui-generator-html` 패키지는 React, Vue, Svelte 없이 같은 평가 인스턴스와
 목록 모델을 HTML 문자열로 렌더링합니다. `renderForm(form, options)`은
 [완전한 폼](#완전한-폼)을 반환합니다. 이를 페이지에 삽입한 뒤 그 `crudui-form`
 요소에 `connectForm`을 호출할 수 있습니다. `renderFormView(fields, buttons, messages, options,
@@ -258,8 +258,8 @@ Rust는 옵션을 순서 있는 JSON 객체로 받습니다.
 
 ## 브라우저 검증
 
-`@crudui/form-binding`(`packages/form-binding`)은 서버가 렌더링한 폼을 서버가 적용하는 규칙으로
-브라우저에서 검증합니다. 브라우저에서만 실행되는 ESM 패키지이며 `@crudui/validator`에 의존합니다.
+`@polyspec/crudui-form-binding`(`packages/form-binding`)은 서버가 렌더링한 폼을 서버가 적용하는 규칙으로
+브라우저에서 검증합니다. 브라우저에서만 실행되는 ESM 패키지이며 `@polyspec/crudui-validator`에 의존합니다.
 서버가 최종 권한을 가집니다. 바인딩은 오류를 더 일찍 보여 주고 유효하지 않다고 판단한 제출을
 멈추며, 서버는 받은 모든 제출을 검증합니다.
 
@@ -373,7 +373,7 @@ Rust는 옵션을 순서 있는 JSON 객체로 받습니다.
 바인딩은 노드의 표시 여부를 데이터에 맞게 유지하며, 같은 데이터에 대해 렌더러가 쓰는 것과 같게 씁니다.
 그래서 `design.show`가 다른 필드를 읽는 필드나 그룹은 사용자가 입력하는 동안 나타나고 사라집니다.
 바인딩할 때와 폼 컨트롤의 `input` 또는 `change` 이벤트마다 검증하기 전에, [데이터](#데이터)에서 설명한
-대로 데이터를 만들고 `@crudui/validator`의 `hiddenPaths(spec, data)`를 읽습니다. 이 목록은 `design.show`가
+대로 데이터를 만들고 `@polyspec/crudui-validator`의 `hiddenPaths(spec, data)`를 읽습니다. 이 목록은 `design.show`가
 데이터에 대해 `false`로 결정되는 필드의 데이터 경로를 선언 순서로 담으며, 그룹 행의 필드는 행 키 아래
 경로를 가지고, 숨은 필드 안의 필드도 포함합니다. `data-field-path`가 있는 노드는 경로가 그 목록에 있을 때만
 `hidden` 속성을 가지며, 행 노드와 lang item은 자신의 속성을 유지합니다. 노드가 숨겨지면 바인딩은 그 노드와

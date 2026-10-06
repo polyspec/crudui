@@ -375,7 +375,7 @@ carries that server's name, and every line, warnings included, is kept.
 PHP reads its sources on every request, so a PHP source change needs no build or
 restart; only the installed Composer copies are replaced. `composer install` keeps the
 validator's path-repository copy while the lock is unchanged, so the build reinstalls that copy
-(`composer reinstall crudui/validator`). A `.gitignore` change
+(`composer reinstall polyspec/crudui-validator`). A `.gitignore` change
 synchronizes the whole tree. A change to a supervisor module reloads that process in
 the existing container and preserves all volumes. The supervisor is the only child of the
 container's init process, so it stops its servers and replaces its own process image with the
@@ -548,7 +548,7 @@ to survive; Svelte hydrates only markup its own server renderer wrote, which car
 its own nodes. The right frame (`initialization=csr`) is the built frame page: the
 framework mounts the form without data before it requests the saved record, then injects
 the record into the existing form. A frame URL without `lang`, `server` and
-`initialization` fails. Frames load `@crudui/generator-core/crudui.css` before the page
+`initialization` fails. Frames load `@polyspec/crudui-generator-core/crudui.css` before the page
 stylesheet, so computed CSS is compared with the grammar styles; the page stylesheet
 does not style anything inside `#view`. Inside that compared element each frame renders
 the form in `#form-view` and the browser-only structure map and data view in

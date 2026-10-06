@@ -7,7 +7,7 @@
  */
 
 import * as React from 'react';
-import type { NodeVM } from '@crudui/generator-core';
+import type { NodeVM } from '@polyspec/crudui-generator-core';
 import { Widget, widgetRootRaw } from './Widget';
 import { resolvedStyleProps, styleObject } from './attrs';
 import { Controls } from './Controls';

@@ -1,5 +1,5 @@
 import { defineComponent, h, onBeforeUnmount, shallowRef, watch, type PropType, type VNode } from 'vue';
-import type { FormInstance, FormMessages } from '@crudui/generator-core';
+import type { FormInstance, FormMessages } from '@polyspec/crudui-generator-core';
 
 /** Current data markup, rendered directly from the data. */
 export function dataVNode(data: unknown, messages: FormMessages): VNode {

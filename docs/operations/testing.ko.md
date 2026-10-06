@@ -121,11 +121,11 @@ checklist, link, changelog, 문장, example과 fixture README test로, Node.js�
 ```sh
 composer --working-dir=packages/validator-php install
 npm run build
-npm test --workspace @crudui/validator
+npm test --workspace @polyspec/crudui-validator
 composer --working-dir=packages/validator-php test
 node scripts/run-tests.mjs go --cwd packages/validator-go -- ./...
 node scripts/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml
-npm test --workspace @crudui/cli
+npm test --workspace @polyspec/crudui-cli
 npm run test:forms
 npm run test:packages
 make docs-check

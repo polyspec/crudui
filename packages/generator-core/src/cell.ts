@@ -21,9 +21,9 @@
  * never called.
  */
 
-import { FormInputError } from '@crudui/validator';
+import { FormInputError } from '@polyspec/crudui-validator';
 import { choicePairs, isChoiceList } from './choice-list';
-import type { PathContext } from '@crudui/validator/internal';
+import type { PathContext } from '@polyspec/crudui-validator/internal';
 import { evalAppearance } from './expr';
 import type { Translate, LocalizedText } from './content';
 import { getValueByPath } from './util';

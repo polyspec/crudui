@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Generator\Tests;
+namespace Polyspec\Crudui\Generator\Tests;
 
-use CRUDUI\Generator;
+use Polyspec\Crudui\Generator;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 

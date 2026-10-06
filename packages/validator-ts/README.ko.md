@@ -1,4 +1,4 @@
-# @crudui/validator
+# @polyspec/crudui-validator
 
 [English](README.md).
 
@@ -33,7 +33,7 @@ JavaScript와 TypeScript에서 CRUDUI 폼 데이터를 검증하고 목록·상�
 [검증 절차](../../docs/operations/validation.ko.md)는 모든 언어의 사용법을
 보여 줍니다.
 
-`@crudui/validator/internal` 엔트리는 CRUDUI 자체 패키지용이며 공개
+`@polyspec/crudui-validator/internal` 엔트리는 CRUDUI 자체 패키지용이며 공개
 API가 아닙니다. 패키지는 명령을 설치하지 않습니다.
 
 ## 테스트
@@ -41,6 +41,6 @@ API가 아닙니다. 패키지는 명령을 설치하지 않습니다.
 저장소 루트에서 실행합니다.
 
 ```sh
-npm test -w @crudui/validator                  # full suite (vitest)
-npm test -w @crudui/validator -- conformance   # conformance test files only
+npm test -w @polyspec/crudui-validator                  # full suite (vitest)
+npm test -w @polyspec/crudui-validator -- conformance   # conformance test files only
 ```

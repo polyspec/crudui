@@ -1,4 +1,4 @@
-import { ComposeLoadError, FormInputError, UnsupportedFieldTypeError, compileForm } from '@crudui/generator-core';
+import { ComposeLoadError, FormInputError, UnsupportedFieldTypeError, compileForm } from '@polyspec/crudui-generator-core';
 /**
  * form-render conformance — Vue 3 SSR vs the shared 3-framework parity fixture.
  *
@@ -14,7 +14,7 @@ import { ComposeLoadError, FormInputError, UnsupportedFieldTypeError, compileFor
  * assertions or fixtures; fix the Vue generator if it disagrees.
  *
  * The CRUDUI generator is loaded from TypeScript source via the package's createRequire
- * realm + tsx (Vitest transforms TS); the validator is the linked @crudui/validator.
+ * realm + tsx (Vitest transforms TS); the validator is the linked @polyspec/crudui-validator.
  */
 
 import fs from 'node:fs';

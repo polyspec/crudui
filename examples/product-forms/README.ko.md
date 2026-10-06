@@ -32,7 +32,7 @@
 
 ## 실행
 
-테스트는 빌드된 `@crudui/validator`, `@crudui/generator-core`, `@crudui/generator-html`
+테스트는 빌드된 `@polyspec/crudui-validator`, `@polyspec/crudui-generator-core`, `@polyspec/crudui-generator-html`
 패키지를 가져옵니다. 저장소 루트에서 실행합니다.
 
 ```sh

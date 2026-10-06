@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Validator\Tests\Validate;
+namespace Polyspec\Crudui\Validator\Tests\Validate;
 
-use CRUDUI\Validator\Compose\ComposeLoadError;
-use CRUDUI\Validator\Validate\FormInputError;
-use CRUDUI\Validator;
+use Polyspec\Crudui\Validator\Compose\ComposeLoadError;
+use Polyspec\Crudui\Validator\Validate\FormInputError;
+use Polyspec\Crudui\Validator;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
 

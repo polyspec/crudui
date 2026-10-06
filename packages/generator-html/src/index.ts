@@ -20,12 +20,12 @@ import {
   type OptionModel,
   type UnsupportedVM,
   type WidgetModel,
-} from '@crudui/generator-core';
-import { buildListLayout, formRenderModel, optionSections, parseStyle, type FormRenderModel } from '@crudui/generator-core/internal';
+} from '@polyspec/crudui-generator-core';
+import { buildListLayout, formRenderModel, optionSections, parseStyle, type FormRenderModel } from '@polyspec/crudui-generator-core/internal';
 
 type AnyWidget = WidgetModel | UnsupportedVM;
 
-export type { BuildListOptions, BuildDetailOptions, FormInstance, ListViewModel, DetailViewModel } from '@crudui/generator-core';
+export type { BuildListOptions, BuildDetailOptions, FormInstance, ListViewModel, DetailViewModel } from '@polyspec/crudui-generator-core';
 
 /** Options for framework-independent list HTML rendering. */
 export interface RenderListOptions extends BuildListOptions {

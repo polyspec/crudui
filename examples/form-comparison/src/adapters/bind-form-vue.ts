@@ -1,5 +1,5 @@
 import { createApp, createSSRApp, nextTick, shallowRef } from 'vue';
-import { bindButtons, bindForm, formDescription, formMessages } from '@crudui/generator-core';
+import { bindButtons, bindForm, formDescription, formMessages } from '@polyspec/crudui-generator-core';
 import { FormFields } from '#vue/FormFields';
 import { outlineVNode } from '#vue/Outline';
 import { dataVNode } from '#vue/DataView';

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Validator\Tests\Validate;
+namespace Polyspec\Crudui\Validator\Tests\Validate;
 
 use PHPUnit\Framework\TestCase;
-use CRUDUI\Validator;
+use Polyspec\Crudui\Validator;
 use stdClass;
 
 final class PublicApiTest extends TestCase
@@ -26,7 +26,7 @@ final class PublicApiTest extends TestCase
 
     public function testCompositionTraceIsSeparateFromTheExceptionStack(): void
     {
-        $error = new \CRUDUI\Validator\Compose\ComposeLoadError('REF_CYCLE', 'Reference cycle', ['a', 'b', 'a']);
+        $error = new \Polyspec\Crudui\Validator\Compose\ComposeLoadError('REF_CYCLE', 'Reference cycle', ['a', 'b', 'a']);
         self::assertSame(['a', 'b', 'a'], $error->getCompositionTrace());
         self::assertSame('REF_CYCLE', $error->getErrorCode());
         self::assertSame('REF_CYCLE', $error->code);
@@ -90,8 +90,8 @@ final class PublicApiTest extends TestCase
     {
         $reflection = new \ReflectionClass(Validator::class);
         self::assertFalse($reflection->isInternal());
-        self::assertFalse(class_exists('CRUDUI\Validator\Validate\Validate'));
-        self::assertFalse(class_exists('CRUDUI\Validator\Validate\ListValidate'));
+        self::assertFalse(class_exists('Polyspec\Crudui\Validator\Validate\Validate'));
+        self::assertFalse(class_exists('Polyspec\Crudui\Validator\Validate\ListValidate'));
         self::assertSame(['spec', 'data', 'options'], array_map(static fn ($parameter) => $parameter->getName(), $reflection->getMethod('validate')->getParameters()));
     }
 
@@ -101,7 +101,7 @@ final class PublicApiTest extends TestCase
             try {
                 Validator::validate(json_decode($case['spec']), [], ['files' => $case['files']]);
                 self::fail('Array must not be accepted as a composition object');
-            } catch (\CRUDUI\Validator\Compose\ComposeLoadError $error) {
+            } catch (\Polyspec\Crudui\Validator\Compose\ComposeLoadError $error) {
                 self::assertSame($case['code'], $error->getErrorCode());
             }
         }

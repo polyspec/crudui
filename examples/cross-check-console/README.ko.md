@@ -92,7 +92,7 @@ GET  /                  → static console (client/)
 
 [검증기 프로세스](validators/README.ko.md)는 각 언어의 공개 검증기 API를 호출하는 이
 콘솔의 작은 프로그램입니다. Go와 Rust 프로그램은 먼저 컴파일해야 하고, JavaScript
-프로그램은 빌드된 `@crudui/validator`를 import합니다. `npm run build:validators`는
+프로그램은 빌드된 `@polyspec/crudui-validator`를 import합니다. `npm run build:validators`는
 JavaScript 패키지 출력이 최신이 아니면 먼저 빌드합니다. 세
 생성기는 게이트웨이 시작 시 프로세스 안의 Vite SSR 로더로 TypeScript 소스에서
 불러옵니다.

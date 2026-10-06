@@ -2,7 +2,7 @@
 
 [한국어](cli.ko.md).
 
-The private `@crudui/cli` workspace provides `describe`, `list-widgets`, `check`
+The private `@polyspec/crudui-cli` workspace provides `describe`, `list-widgets`, `check`
 and `explain`. Install dependencies and build the packages from the repository
 root before running commands:
 
@@ -13,9 +13,9 @@ npm ci --strict-allow-scripts
 npm run build
 ```
 
-The CLI runs through `tsx` and imports only package entries: `@crudui/validator`,
-`@crudui/generator-core` and their `internal` entries, which resolve to the built
-packages. Rebuild after changing package source. `npm test --workspace @crudui/cli`
+The CLI runs through `tsx` and imports only package entries: `@polyspec/crudui-validator`,
+`@polyspec/crudui-generator-core` and their `internal` entries, which resolve to the built
+packages. Rebuild after changing package source. `npm test --workspace @polyspec/crudui-cli`
 builds the packages first when their output is not current, and CI runs the same
 build before the tests.
 
@@ -52,6 +52,6 @@ The catalog contains `meta`, `widgets`, `layouts`, `rules`, `slots`, `buckets`,
 shape is defined by [DescribeResult](../../packages/cli/src/describe.ts).
 Do not maintain a separate copied widget or rule catalog.
 
-Run `npm run manifest:check` to verify package, feature, fixture, test and document links. Run `npm run manifest:test` to execute the commands declared by the feature manifest. Run `npm test --workspace @crudui/cli` to check catalog consistency, static
+Run `npm run manifest:check` to verify package, feature, fixture, test and document links. Run `npm run manifest:test` to execute the commands declared by the feature manifest. Run `npm test --workspace @polyspec/crudui-cli` to check catalog consistency, static
 checking and descriptions. Implementation and deployment results belong in
 [feature status](../features.md).

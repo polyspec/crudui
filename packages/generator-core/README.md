@@ -1,11 +1,11 @@
-# @crudui/generator-core
+# @polyspec/crudui-generator-core
 
 [한국어](README.ko.md).
 
 Framework-independent form compilation, editable sessions and list evaluation.
 
 ```ts
-import { compileForm, createForm } from '@crudui/generator-core';
+import { compileForm, createForm } from '@polyspec/crudui-generator-core';
 
 const template = compileForm({
   type: 'group', properties: { name: { type: 'text' } },
@@ -23,9 +23,9 @@ The package entry is the public API: form compilation and binding (`compileForm`
 detail and structure-map models (`buildList`, `buildDetail`, `buildOutline`), browser binding
 (`connectForm`, `connectOutline`, `connectStickyHeaders`, `patchContent`, `resolveAction`,
 `runAction`) and the errors it throws (`ComposeLoadError`, `FormInputError`,
-`UnsupportedFieldTypeError`). The stylesheet is `@crudui/generator-core/crudui.css`.
+`UnsupportedFieldTypeError`). The stylesheet is `@polyspec/crudui-generator-core/crudui.css`.
 
-`@crudui/generator-core/internal` holds helpers shared by CRUDUI's renderer packages. It is not
+`@polyspec/crudui-generator-core/internal` holds helpers shared by CRUDUI's renderer packages. It is not
 public API and changes with the renderers.
 
 - [Runtime contract](../../docs/spec/form-runtime.md)

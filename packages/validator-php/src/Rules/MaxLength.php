@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Validator\Rules;
+namespace Polyspec\Crudui\Validator\Rules;
 
-use CRUDUI\Validator\Expr\FieldPath;
-use CRUDUI\Validator\Values\InvalidRuleParameter;
-use CRUDUI\Validator\Values\LengthLimit;
+use Polyspec\Crudui\Validator\Expr\FieldPath;
+use Polyspec\Crudui\Validator\Values\InvalidRuleParameter;
+use Polyspec\Crudui\Validator\Values\LengthLimit;
 
 /**
  * Maximum length validation rule on the code points of the canonical text.

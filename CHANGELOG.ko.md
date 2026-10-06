@@ -1,5 +1,13 @@
 # 변경 기록
 
+## 2026-10-06 — polyspec 저장소의 패키지 이름 (C9.1)
+
+- 패키지는 template과 hyper의 이름 규칙을 따릅니다. npm 패키지는 `@polyspec/crudui-*`
+  (`@polyspec/crudui-validator`, `@polyspec/crudui-generator-html` 등)이고, Composer 패키지는
+  `polyspec/crudui-generator`와 `polyspec/crudui-validator`이며 PHP 확장의 클래스를 포함해 PHP namespace는
+  `Polyspec\Crudui\`이고, crate는 `polyspec-crudui-generator`와 `polyspec-crudui-validator`입니다. import,
+  `use` 문, 의존성은 새 패키지 이름을 쓰며, 이전 이름은 남지 않습니다.
+
 ## 2026-10-06 — 검증 결과 문서의 숨은 경로 (C8.3-5)
 
 - TypeScript, Go, Rust 검증기의 README, PHP 확장 명세, fixture 명세, 공유 검증 사례의 README는 폼 검증 결과를

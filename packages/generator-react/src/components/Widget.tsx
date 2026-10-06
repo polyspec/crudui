@@ -19,9 +19,9 @@
  */
 
 import * as React from 'react';
-import type { WidgetModel, OptionModel, Affix, Attrs } from '@crudui/generator-core';
-import { optionSections } from '@crudui/generator-core/internal';
-import type { UnsupportedVM } from '@crudui/generator-core';
+import type { WidgetModel, OptionModel, Affix, Attrs } from '@polyspec/crudui-generator-core';
+import { optionSections } from '@polyspec/crudui-generator-core/internal';
+import type { UnsupportedVM } from '@polyspec/crudui-generator-core';
 import { inputProps, plainProps, resolvedStyleProps, styleObject } from './attrs';
 import {
   hasEventAttr,

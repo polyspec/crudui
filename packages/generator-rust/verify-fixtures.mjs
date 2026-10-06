@@ -12,7 +12,7 @@ import { runRustCommand } from '../../scripts/run-rust-command.mjs';
 
 const packageRoot = dirname(fileURLToPath(import.meta.url));
 const repositoryRoot = resolve(packageRoot, '../..');
-const temporary = await mkdtemp(join(tmpdir(), 'crudui-generator-rust-'));
+const temporary = await mkdtemp(join(tmpdir(), 'polyspec-crudui-generator-rust-'));
 const output = join(temporary, 'fixtures.json');
 let server;
 try {
@@ -34,8 +34,8 @@ try {
     resolve: {
       alias: {
         // The internal entry precedes the main entry, whose alias also matches its subpaths.
-        '@crudui/validator/internal': join(repositoryRoot, 'packages/validator-ts/src/internal.ts'),
-        '@crudui/validator': join(repositoryRoot, 'packages/validator-ts/src/index.ts'),
+        '@polyspec/crudui-validator/internal': join(repositoryRoot, 'packages/validator-ts/src/internal.ts'),
+        '@polyspec/crudui-validator': join(repositoryRoot, 'packages/validator-ts/src/index.ts'),
       },
     },
   });

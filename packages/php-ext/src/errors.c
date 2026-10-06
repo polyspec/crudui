@@ -30,7 +30,7 @@ void crudui_input_failure(const char *message)
     zend_string_release(text);
 }
 
-PHP_METHOD(CRUDUI_Validator_Validate_FormInputError, __construct)
+PHP_METHOD(Polyspec_Crudui_Validator_Validate_FormInputError, __construct)
 {
     (void)return_value;
     zend_string *message;
@@ -75,7 +75,7 @@ void crudui_invalid_value(const char *message, bool form_error)
     zend_string_release(text);
 }
 
-PHP_METHOD(CRUDUI_FormError, __construct)
+PHP_METHOD(Polyspec_Crudui_FormError, __construct)
 {
     (void)return_value;
     zend_string *code, *message, *path = NULL;
@@ -91,7 +91,7 @@ PHP_METHOD(CRUDUI_FormError, __construct)
     zval_ptr_dtor(&detail);
 }
 
-PHP_METHOD(CRUDUI_Validator_Compose_ComposeLoadError, __construct)
+PHP_METHOD(Polyspec_Crudui_Validator_Compose_ComposeLoadError, __construct)
 {
     (void)return_value;
     zend_string *code, *message;
@@ -114,37 +114,37 @@ static void return_property(zend_class_entry *ce, zend_object *object, const cha
     if (!EG(exception)) ZVAL_COPY(return_value, value);
 }
 
-PHP_METHOD(CRUDUI_FormError, getErrorCode)
+PHP_METHOD(Polyspec_Crudui_FormError, getErrorCode)
 {
     ZEND_PARSE_PARAMETERS_NONE();
     return_property(crudui_form_error_ce, Z_OBJ_P(ZEND_THIS), ZEND_STRL("errorCode"), return_value);
 }
 
-PHP_METHOD(CRUDUI_FormError, getPath)
+PHP_METHOD(Polyspec_Crudui_FormError, getPath)
 {
     ZEND_PARSE_PARAMETERS_NONE();
     return_property(crudui_form_error_ce, Z_OBJ_P(ZEND_THIS), ZEND_STRL("path"), return_value);
 }
 
-PHP_METHOD(CRUDUI_Validator_Validate_FormInputError, getErrorCode)
+PHP_METHOD(Polyspec_Crudui_Validator_Validate_FormInputError, getErrorCode)
 {
     ZEND_PARSE_PARAMETERS_NONE();
     return_property(crudui_input_error_ce, Z_OBJ_P(ZEND_THIS), ZEND_STRL("errorCode"), return_value);
 }
 
-PHP_METHOD(CRUDUI_Validator_Compose_ComposeLoadError, getErrorCode)
+PHP_METHOD(Polyspec_Crudui_Validator_Compose_ComposeLoadError, getErrorCode)
 {
     ZEND_PARSE_PARAMETERS_NONE();
     return_property(crudui_compose_error_ce, Z_OBJ_P(ZEND_THIS), ZEND_STRL("errorCode"), return_value);
 }
 
-PHP_METHOD(CRUDUI_Validator_Compose_ComposeLoadError, getCompositionTrace)
+PHP_METHOD(Polyspec_Crudui_Validator_Compose_ComposeLoadError, getCompositionTrace)
 {
     ZEND_PARSE_PARAMETERS_NONE();
     return_property(crudui_compose_error_ce, Z_OBJ_P(ZEND_THIS), ZEND_STRL("compositionTrace"), return_value);
 }
 
-PHP_METHOD(CRUDUI_Validator_Compose_ComposeLoadError, __get)
+PHP_METHOD(Polyspec_Crudui_Validator_Compose_ComposeLoadError, __get)
 {
     zend_string *name;
     ZEND_PARSE_PARAMETERS_START(1, 1) Z_PARAM_STR(name) ZEND_PARSE_PARAMETERS_END();
@@ -152,14 +152,14 @@ PHP_METHOD(CRUDUI_Validator_Compose_ComposeLoadError, __get)
         return_property(crudui_compose_error_ce, Z_OBJ_P(ZEND_THIS), ZEND_STRL("errorCode"), return_value);
     } else {
         zend_string *message = zend_string_concat2(
-            ZEND_STRL("Undefined property: CRUDUI\\Validator\\Compose\\ComposeLoadError::$"),
+            ZEND_STRL("Undefined property: Polyspec\\Crudui\\Validator\\Compose\\ComposeLoadError::$"),
             ZSTR_VAL(name), ZSTR_LEN(name));
         throw_message(spl_ce_OutOfRangeException, zend_ce_exception, message);
         zend_string_release(message);
     }
 }
 
-PHP_METHOD(CRUDUI_Validator_Compose_ComposeLoadError, __isset)
+PHP_METHOD(Polyspec_Crudui_Validator_Compose_ComposeLoadError, __isset)
 {
     zend_string *name;
     ZEND_PARSE_PARAMETERS_START(1, 1) Z_PARAM_STR(name) ZEND_PARSE_PARAMETERS_END();

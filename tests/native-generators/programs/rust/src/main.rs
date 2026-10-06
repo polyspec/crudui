@@ -1,13 +1,13 @@
 //! Rust generator process of the native generator conformance suite. It reads one JSON request
-//! on standard input, calls the public API of crudui-generator and writes one JSON value on
+//! on standard input, calls the public API of polyspec-crudui-generator and writes one JSON value on
 //! standard output; ../../README.md defines the protocol.
 
 use std::io::{self, Read};
 
-use crudui_generator::text::{
+use polyspec_crudui_generator::text::{
     check_bind, check_compile_form, check_display, check_form_method, JsonText,
 };
-use crudui_generator::{
+use polyspec_crudui_generator::{
     bind_buttons, bind_form, build_detail, build_list, compile_form, form_buttons_html, list_rows,
     render_detail, render_form, render_list, AddRowOptions, BindOptions, CompileOptions,
     DetailOptions, Form, FormError, FormResult, FormTemplate, ListOptions,

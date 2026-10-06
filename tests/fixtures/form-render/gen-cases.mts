@@ -1,4 +1,4 @@
-import { compileForm } from '@crudui/generator-core';
+import { compileForm } from '@polyspec/crudui-generator-core';
 /**
  * Fixture generator for the form-render NEW-WIDGET cases. Runs the React CRUDUI
  * generator (the reference) over each new spec, normalizes through the SHARED

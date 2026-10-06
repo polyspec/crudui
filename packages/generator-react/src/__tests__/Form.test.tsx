@@ -1,7 +1,7 @@
 import React from 'react';
 import { act, render } from '@testing-library/react';
 import { expect, it } from 'vitest';
-import { compileForm, createForm } from '@crudui/generator-core';
+import { compileForm, createForm } from '@polyspec/crudui-generator-core';
 import { Form } from '../components/Form';
 // @ts-expect-error Shared browser lifecycle across all frameworks.
 import { spec, data, exerciseSessionDom } from '../../../../tests/fixtures/form-session/scenario.mjs';

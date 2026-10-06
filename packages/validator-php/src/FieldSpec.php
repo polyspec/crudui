@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Validator;
+namespace Polyspec\Crudui\Validator;
 
 /**
  * CRUDUI canonical FieldSpec model. SINGLE SOURCE OF TRUTH (SPEC §3).

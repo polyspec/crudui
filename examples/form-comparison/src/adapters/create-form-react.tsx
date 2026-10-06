@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { flushSync } from 'react-dom';
 import { createRoot, hydrateRoot } from 'react-dom/client';
-import { createForm } from '@crudui/generator-core';
+import { createForm } from '@polyspec/crudui-generator-core';
 import { Form } from '#react/Form';
 import { Outline } from '#react/Outline';
 import { DataView } from '#react/DataView';

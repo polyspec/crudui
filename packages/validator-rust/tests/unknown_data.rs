@@ -1,4 +1,4 @@
-use crudui_validator::{validate, ValidateOptions};
+use polyspec_crudui_validator::{validate, ValidateOptions};
 use serde_json::json;
 
 #[test]

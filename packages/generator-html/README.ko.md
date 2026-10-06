@@ -1,12 +1,12 @@
-# @crudui/generator-html
+# @polyspec/crudui-generator-html
 
 [English](README.md).
 
 CRUDUI 폼 인스턴스와 목록·상세를 프레임워크 없이 HTML로 렌더링합니다.
 
 ```ts
-import { compileForm, createForm } from '@crudui/generator-core';
-import { renderForm } from '@crudui/generator-html';
+import { compileForm, createForm } from '@polyspec/crudui-generator-core';
+import { renderForm } from '@polyspec/crudui-generator-html';
 
 const template = compileForm({ type: 'group', properties: { name: { type: 'text' } } });
 const form = createForm(template, { name: 'Example' });
@@ -18,7 +18,7 @@ renderer는 평가된 core 모델을 소비하고 HTML을 반환합니다. `rend
 `options.hidden` input을 만들고 `options.formErrors`와 `options.errors`를 배치합니다. 옵션이 없으면
 `crudui-form` 블록을 반환합니다. 브라우저 이벤트를 연결하거나 데이터를 검증하거나 레코드를 로드하지
 않습니다. 브라우저 편집이 필요하면 마크업을 삽입한 뒤 `crudui-form` 요소에
-`@crudui/generator-core`의 `connectForm`을 사용합니다.
+`@polyspec/crudui-generator-core`의 `connectForm`을 사용합니다.
 
 데이터를 `bindForm`으로 직접 관리할 때는
 `renderFormView(bindForm(template, data, options), bindButtons(template, data, options), formMessages(language), renderOptions, formDescription(template, options))`로

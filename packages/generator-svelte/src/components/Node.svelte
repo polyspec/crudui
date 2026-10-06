@@ -8,7 +8,7 @@
 -->
 <script lang="ts">
   import { getContext } from 'svelte';
-  import type { NodeVM } from '@crudui/generator-core';
+  import type { NodeVM } from '@polyspec/crudui-generator-core';
   import Controls from './Controls.svelte';
   import Header from './Header.svelte';
   import Widget from './Widget.svelte';

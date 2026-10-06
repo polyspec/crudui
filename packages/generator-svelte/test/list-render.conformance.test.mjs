@@ -22,7 +22,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, test, expect } from 'vitest';
-import { ComposeLoadError } from '@crudui/generator-core';
+import { ComposeLoadError } from '@polyspec/crudui-generator-core';
 import { renderList } from '../src/index.ts';
 import { normalizeHtml } from '../../../tests/fixtures/form-render/normalize.mjs';
 import { provesConformance } from '../../../tests/conformance/evidence.mjs';

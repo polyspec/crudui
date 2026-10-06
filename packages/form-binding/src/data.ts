@@ -2,7 +2,7 @@
  * The data a native submission of the rendered form sends, as a server receives it after decoding
  * the bracketed control names (form-runtime.md, "Data").
  */
-import { FormInputError } from '@crudui/validator';
+import { FormInputError } from '@polyspec/crudui-validator';
 
 import { dataControls, type Control } from './nodes.js';
 

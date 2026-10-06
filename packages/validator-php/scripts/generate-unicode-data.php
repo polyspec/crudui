@@ -43,7 +43,7 @@ $source = <<<PHP
 
 declare(strict_types=1);
 
-namespace CRUDUI\\Validator\\Values;
+namespace Polyspec\\Crudui\\Validator\\Values;
 
 /**
  * The Unicode data of the validation rules: inclusive code point ranges written as

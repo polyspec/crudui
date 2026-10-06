@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Validator\Patterns;
+namespace Polyspec\Crudui\Validator\Patterns;
 
-use CRUDUI\Validator\Values\CodePointSet;
-use CRUDUI\Validator\Values\Utf8;
+use Polyspec\Crudui\Validator\Values\CodePointSet;
+use Polyspec\Crudui\Validator\Values\Utf8;
 
 /**
  * A Thompson NFA that matches whole texts. It is simulated state set by state set:

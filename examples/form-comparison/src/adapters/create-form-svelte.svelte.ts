@@ -1,5 +1,5 @@
 import { flushSync, mount, unmount } from 'svelte';
-import { createForm } from '@crudui/generator-core';
+import { createForm } from '@polyspec/crudui-generator-core';
 import Form from '#svelte/Form.svelte';
 import Outline from '#svelte/Outline.svelte';
 import DataView from '#svelte/DataView.svelte';

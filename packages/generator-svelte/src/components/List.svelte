@@ -2,7 +2,7 @@
   Render an evaluated list model as a table or cards with display cells and row actions.
 -->
 <script lang="ts">
-  import type { ListViewModel } from '@crudui/generator-core';
+  import type { ListViewModel } from '@polyspec/crudui-generator-core';
   import {
     headerClass,
     headerStyle,
@@ -30,7 +30,7 @@
      (text/date/number/choice-label) renders as escaped text; the structured
      variants render real elements. An `html` display is its host's own raw content
      (see the hosts below). -->
-{#snippet cellDisplay(d: import('@crudui/generator-core').CellDisplay)}
+{#snippet cellDisplay(d: import('@polyspec/crudui-generator-core').CellDisplay)}
   {#if typeof d === 'string'}
     {d}
   {:else if d.kind === 'badge'}

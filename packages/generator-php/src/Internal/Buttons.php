@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Generator;
+namespace Polyspec\Crudui\Generator;
 
-use CRUDUI\FormError;
+use Polyspec\Crudui\FormError;
 use stdClass;
 
 /** Form buttons: the actions a spec declares with root buttons, rendered in the form footer. */

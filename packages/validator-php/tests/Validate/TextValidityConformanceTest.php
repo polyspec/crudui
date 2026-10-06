@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Validator\Tests\Validate;
+namespace Polyspec\Crudui\Validator\Tests\Validate;
 
-use CRUDUI\Validator;
-use CRUDUI\Validator\Compose\ComposeLoadError;
-use CRUDUI\Validator\Support\JsonText;
-use CRUDUI\Validator\Support\Text;
-use CRUDUI\Validator\Validate\FormInputError;
+use Polyspec\Crudui\Validator;
+use Polyspec\Crudui\Validator\Compose\ComposeLoadError;
+use Polyspec\Crudui\Validator\Support\JsonText;
+use Polyspec\Crudui\Validator\Support\Text;
+use Polyspec\Crudui\Validator\Validate\FormInputError;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 use PHPUnit\Framework\Attributes\DataProvider;

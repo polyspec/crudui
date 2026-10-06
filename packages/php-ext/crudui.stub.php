@@ -2,7 +2,7 @@
 
 /** @generate-class-entries */
 
-namespace CRUDUI {
+namespace Polyspec\Crudui {
     final class Generator {
         public static function compileForm(array|\stdClass $spec, array $options = []): \stdClass {}
         public static function bindForm(\stdClass $template, array|\stdClass $data = [], array $options = []): array {}
@@ -48,7 +48,7 @@ namespace CRUDUI {
     }
 }
 
-namespace CRUDUI\Validator\Compose {
+namespace Polyspec\Crudui\Validator\Compose {
     final class ComposeLoadError extends \RuntimeException {
         private readonly string $errorCode;
         private readonly array $compositionTrace;
@@ -60,7 +60,7 @@ namespace CRUDUI\Validator\Compose {
     }
 }
 
-namespace CRUDUI\Validator\Validate {
+namespace Polyspec\Crudui\Validator\Validate {
     final class FormInputError extends \RuntimeException {
         private readonly string $errorCode;
         public function __construct(string $message) {}

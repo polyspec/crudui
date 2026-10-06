@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Validator\Tests\Values;
+namespace Polyspec\Crudui\Validator\Tests\Values;
 
-use CRUDUI\Validator\Values\EmptyValue;
-use CRUDUI\Validator\Values\InvalidRuleParameter;
-use CRUDUI\Validator\Values\LengthLimit;
-use CRUDUI\Validator\Values\Membership;
-use CRUDUI\Validator\Values\Utf8;
-use CRUDUI\Validator\Values\Whitespace;
+use Polyspec\Crudui\Validator\Values\EmptyValue;
+use Polyspec\Crudui\Validator\Values\InvalidRuleParameter;
+use Polyspec\Crudui\Validator\Values\LengthLimit;
+use Polyspec\Crudui\Validator\Values\Membership;
+use Polyspec\Crudui\Validator\Values\Utf8;
+use Polyspec\Crudui\Validator\Values\Whitespace;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 

@@ -15,8 +15,8 @@
  */
 
 import * as React from 'react';
-import { patchContent, type Attrs, type OptionModel } from '@crudui/generator-core';
-import { optionSections } from '@crudui/generator-core/internal';
+import { patchContent, type Attrs, type OptionModel } from '@polyspec/crudui-generator-core';
+import { optionSections } from '@polyspec/crudui-generator-core/internal';
 
 function escAttr(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');

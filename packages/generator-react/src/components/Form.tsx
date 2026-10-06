@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { connectForm, type FormInstance, type FormRenderOptions } from '@crudui/generator-core';
-import { formRenderModel } from '@crudui/generator-core/internal';
+import { connectForm, type FormInstance, type FormRenderOptions } from '@polyspec/crudui-generator-core';
+import { formRenderModel } from '@polyspec/crudui-generator-core/internal';
 import { FormFields } from './FormFields';
 
 /** Props of the interactive form. */

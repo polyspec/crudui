@@ -1,7 +1,7 @@
-use crudui_validator::compose::{
+use polyspec_crudui_validator::compose::{
     compose_properties, member_ordered, ComposeOptions, FileLoader, MemoryLoader,
 };
-use crudui_validator::scan_forbidden_keys;
+use polyspec_crudui_validator::scan_forbidden_keys;
 use serde_json::{json, Map, Value};
 
 use crate::choice_list::{choice_label, is_choice_list};

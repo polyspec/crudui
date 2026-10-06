@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Generator\Tests\Internal;
+namespace Polyspec\Crudui\Generator\Tests\Internal;
 
-use CRUDUI\Generator\InterfaceMessages;
+use Polyspec\Crudui\Generator\InterfaceMessages;
 use PHPUnit\Framework\TestCase;
 
 /**

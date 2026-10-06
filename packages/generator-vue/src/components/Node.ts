@@ -7,7 +7,7 @@
  */
 
 import { h, type VNode } from 'vue';
-import type { ControlsVM, NodeVM } from '@crudui/generator-core';
+import type { ControlsVM, NodeVM } from '@polyspec/crudui-generator-core';
 import { Widget, widgetRootRaw } from './Widget.js';
 import { rawContainer } from './raw.js';
 

@@ -1,5 +1,5 @@
 import { flushSync, mount, unmount } from 'svelte';
-import { bindButtons, bindForm, formDescription, formMessages } from '@crudui/generator-core';
+import { bindButtons, bindForm, formDescription, formMessages } from '@polyspec/crudui-generator-core';
 import FormFields from '#svelte/FormFields.svelte';
 import OutlineView from '#svelte/OutlineView.svelte';
 import DataPanel from '#svelte/DataPanel.svelte';

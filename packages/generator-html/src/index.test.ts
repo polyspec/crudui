@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { compileForm, createForm } from '@crudui/generator-core';
+import { compileForm, createForm } from '@polyspec/crudui-generator-core';
 import { renderForm, renderList } from './index';
 
 describe('framework-independent form rendering', () => {

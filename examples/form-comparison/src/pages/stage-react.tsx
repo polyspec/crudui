@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { flushSync } from 'react-dom';
 import { createRoot, hydrateRoot } from 'react-dom/client';
-import { bindButtons, bindForm, buildDetail, buildList, formDescription, formMessages } from '@crudui/generator-core';
+import { bindButtons, bindForm, buildDetail, buildList, formDescription, formMessages } from '@polyspec/crudui-generator-core';
 import { Detail } from '#react/Detail';
 import { Form } from '#react/Form';
 import { FormFields } from '#react/FormFields';

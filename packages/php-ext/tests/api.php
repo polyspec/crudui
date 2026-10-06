@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-use CRUDUI\Form;
-use CRUDUI\FormError;
-use CRUDUI\Generator;
-use CRUDUI\Validator;
-use CRUDUI\Validator\Compose\ComposeLoadError;
-use CRUDUI\Validator\Validate\FormInputError;
+use Polyspec\Crudui\Form;
+use Polyspec\Crudui\FormError;
+use Polyspec\Crudui\Generator;
+use Polyspec\Crudui\Validator;
+use Polyspec\Crudui\Validator\Compose\ComposeLoadError;
+use Polyspec\Crudui\Validator\Validate\FormInputError;
 
 $native = ($argv[1] ?? '') === 'native';
 if (isset($argv[2])) require $argv[2];

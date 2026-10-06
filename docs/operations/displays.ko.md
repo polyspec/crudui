@@ -41,16 +41,16 @@
 
 ## JavaScript
 
-`@crudui/generator-core`는 `buildList(spec, rows, options)`와
-`buildDetail(spec, record, options)`를 내보냅니다. `@crudui/generator-html`은
+`@polyspec/crudui-generator-core`는 `buildList(spec, rows, options)`와
+`buildDetail(spec, record, options)`를 내보냅니다. `@polyspec/crudui-generator-html`은
 `renderList(spec, rows, options)`와 `renderDetail(spec, record, options)`를 내보내며, 이 함수는
-목록이나 상세 앞에 이미지 preload 링크를 쓴 HTML 문자열을 반환합니다. `@crudui/validator`는
+목록이나 상세 앞에 이미지 preload 링크를 쓴 HTML 문자열을 반환합니다. `@polyspec/crudui-validator`는
 `validateList(spec, options)`와 `validateDetail(spec, options)`를 내보냅니다.
 
 ```js
-import { buildDetail, buildList } from '@crudui/generator-core';
-import { renderDetail, renderList } from '@crudui/generator-html';
-import { validateDetail, validateList } from '@crudui/validator';
+import { buildDetail, buildList } from '@polyspec/crudui-generator-core';
+import { renderDetail, renderList } from '@polyspec/crudui-generator-html';
+import { validateDetail, validateList } from '@polyspec/crudui-validator';
 
 const listSpec = {
   pagination: true,
@@ -75,18 +75,18 @@ React, Vue, Svelte 패키지는 `buildList`와 `buildDetail`을 다시 내보내
 
 | 패키지 | 서버 렌더링 | 컴포넌트 |
 | --- | --- | --- |
-| `@crudui/generator-react/server` | `renderList`와 `renderDetail`이 문자열을 반환 | `@crudui/generator-react`의 `<List vm layout />`, `<Detail vm />` |
-| `@crudui/generator-vue` | `renderList`와 `renderDetail`이 Promise를 반환 | `List(vm, layout)`와 `Detail(vm)`이 VNode를 반환 |
-| `@crudui/generator-svelte` | `renderList`와 `renderDetail`이 문자열을 반환 | `vm`, `layout` 속성을 받는 `List`, `vm` 속성을 받는 `Detail` |
+| `@polyspec/crudui-generator-react/server` | `renderList`와 `renderDetail`이 문자열을 반환 | `@polyspec/crudui-generator-react`의 `<List vm layout />`, `<Detail vm />` |
+| `@polyspec/crudui-generator-vue` | `renderList`와 `renderDetail`이 Promise를 반환 | `List(vm, layout)`와 `Detail(vm)`이 VNode를 반환 |
+| `@polyspec/crudui-generator-svelte` | `renderList`와 `renderDetail`이 문자열을 반환 | `vm`, `layout` 속성을 받는 `List`, `vm` 속성을 받는 `Detail` |
 
 컴포넌트는 `buildList`나 `buildDetail`로 만든 모델을 받습니다. 렌더 함수는 HTML 렌더러와 같은
 옵션을 받습니다.
 
 ## PHP와 PHP 확장
 
-`CRUDUI\Generator::buildList($spec, $rows, $options)`는 평가한 목록 모델을 반환하고, `CRUDUI\Generator::renderList($spec, $rows, $options)`는 행을 렌더링하며,
+`Polyspec\Crudui\Generator::buildList($spec, $rows, $options)`는 평가한 목록 모델을 반환하고, `Polyspec\Crudui\Generator::renderList($spec, $rows, $options)`는 행을 렌더링하며,
 `Generator::renderDetail($spec, $record, $options)`는 레코드 하나를 렌더링하며,
-`Generator::buildDetail($spec, $record, $options)`는 상세 모델을 반환합니다. `CRUDUI\Validator::validateList($spec, $options)`와
+`Generator::buildDetail($spec, $record, $options)`는 상세 모델을 반환합니다. `Polyspec\Crudui\Validator::validateList($spec, $options)`와
 `Validator::validateDetail($spec, $options)`는 구조를 검증합니다. 생성 옵션은 `language`,
 `data`, `page`, `total`, `layout`, `files`, `basepath`이고 검증 옵션은 `files`와 `basepath`입니다.
 예제는 저장소 루트에서 실행합니다.
@@ -95,8 +95,8 @@ React, Vue, Svelte 패키지는 `buildList`와 `buildDetail`을 다시 내보내
 <?php
 require 'packages/generator-php/vendor/autoload.php';
 
-use CRUDUI\Generator;
-use CRUDUI\Validator;
+use Polyspec\Crudui\Generator;
+use Polyspec\Crudui\Validator;
 
 $listSpec = json_decode('{"pagination":true,"columns":{"name":{"field":"name","label":"Name"}}}', false, 512, JSON_THROW_ON_ERROR);
 $rows = [json_decode('{"name":"Ada"}', false, 512, JSON_THROW_ON_ERROR)];
@@ -109,7 +109,7 @@ $detailModel = Generator::buildDetail($detailSpec, $rows[0], ['language' => 'en'
 $detailHtml = Generator::renderDetail($detailSpec, $rows[0], ['language' => 'en']);
 ```
 
-`crudui` 확장은 같은 `CRUDUI\Generator`, `CRUDUI\Validator` 클래스와 메서드를 등록합니다.
+`crudui` 확장은 같은 `Polyspec\Crudui\Generator`, `Polyspec\Crudui\Validator` 클래스와 메서드를 등록합니다.
 `php -d "extension=$(pwd)/packages/php-ext/modules/crudui.so"`처럼 확장을 로드해도 같은 코드가
 같은 HTML과 모델을 반환합니다. [PHP API 계약](../spec/php-extension.ko.md)은 어떤 PHP 값이
 객체인지 정의합니다.
@@ -176,16 +176,16 @@ func main() {
 
 ## Rust
 
-`crudui-generator` 크레이트는 `build_list`, `render_list`, `build_detail`, `render_detail`,
+`polyspec-crudui-generator` 크레이트는 `build_list`, `render_list`, `build_detail`, `render_detail`,
 `ListOptions`, `DetailOptions`를 내보냅니다. `ListOptions` 필드는 `files`, `loader`, `basepath`,
 `language`, `data`, `page`, `total`, `layout`이며, `data`, `page`, `total`, `layout`은 JSON 값이고
-기본 언어는 `ko`입니다. `crudui-validator` 크레이트는 `ValidateListOptions`를 받는
+기본 언어는 `ko`입니다. `polyspec-crudui-validator` 크레이트는 `ValidateListOptions`를 받는
 `validate_list`와 `ValidateDetailOptions`(`files`, `loader`, `basepath`)를 받는
 `validate_detail`을 내보냅니다. 구조 실패는 `Err(ComposeLoadError)`입니다.
 
 ```rust
-use crudui_generator::{build_detail, render_detail, render_list, DetailOptions, ListOptions};
-use crudui_validator::{validate_detail, validate_list, ValidateDetailOptions, ValidateListOptions};
+use polyspec_crudui_generator::{build_detail, render_detail, render_list, DetailOptions, ListOptions};
+use polyspec_crudui_validator::{validate_detail, validate_list, ValidateDetailOptions, ValidateListOptions};
 use serde_json::json;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -275,7 +275,7 @@ JavaScript, HTML 렌더러, PHP, PHP 확장, Go, Rust의 원본 목록과 상세
 저장소 루트에서 각 검증기의 구조 검증 사례를 실행합니다.
 
 ```sh
-npm test -w @crudui/validator -- src/validate-list/validate-list.conformance.test.ts src/validate-detail/validate-detail.conformance.test.ts
+npm test -w @polyspec/crudui-validator -- src/validate-list/validate-list.conformance.test.ts src/validate-detail/validate-detail.conformance.test.ts
 node scripts/run-tests.mjs phpunit --cwd packages/validator-php -- --filter 'ListValidateConformanceTest|DetailValidateConformanceTest'
 node scripts/run-tests.mjs go --cwd packages/validator-go -- ./validator/validate -run 'TestValidateListMatchesFixture|TestValidateDetailMatchesFixture'
 node scripts/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml --test list_validity_conformance --test detail_validity_conformance

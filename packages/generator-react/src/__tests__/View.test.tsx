@@ -1,7 +1,7 @@
 import React from 'react';
 import { act, render } from '@testing-library/react';
 import { expect, it } from 'vitest';
-import { buildDetail, buildList } from '@crudui/generator-core';
+import { buildDetail, buildList } from '@polyspec/crudui-generator-core';
 import { List } from '../components/List';
 import { Detail } from '../components/Detail';
 // @ts-expect-error Shared view assertions across frameworks.

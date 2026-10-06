@@ -4,8 +4,8 @@
  * declared attributes, with the bytes of the HTML renderer.
  */
 import { describe, expect, test } from 'vitest';
-import { compileForm, createForm } from '@crudui/generator-core';
-import { renderForm as htmlForm } from '@crudui/generator-html';
+import { compileForm, createForm } from '@polyspec/crudui-generator-core';
+import { renderForm as htmlForm } from '@polyspec/crudui-generator-html';
 import { renderForm } from '../server';
 
 const form = (field: Record<string, unknown>) =>

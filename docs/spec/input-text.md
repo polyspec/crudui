@@ -138,12 +138,12 @@ rule, so each runtime reads JSON text with a decoder that keeps it:
   replaces them. `compose.DecodeRawMembers` splits an object without decoding its values.
   `generator.CheckBindText` checks a decoded template before `FormTemplate` decoding, whose JSON
   encoding would replace invalid text.
-- PHP: `CRUDUI\Validator\Support\JsonText::decode` returns what
+- PHP: `Polyspec\Crudui\Validator\Support\JsonText::decode` returns what
   `json_decode($json, false, 512, JSON_THROW_ON_ERROR)` returns and keeps an escaped surrogate as
   its three bytes. The class has no dependencies.
-- Rust: `crudui_validator::text::JsonText` reads the text without replacing anything.
+- Rust: `polyspec_crudui_validator::text::JsonText` reads the text without replacing anything.
   `validate_text`, `validate_list_text` and `validate_detail_text` run the validation entries
-  over it, and `crudui_generator::text` holds the checks of the generation entries.
+  over it, and `polyspec_crudui_generator::text` holds the checks of the generation entries.
 
 JSON text is UTF-8. A program that reads a JSON request rejects input that is not UTF-8 as
 invalid JSON before decoding it.

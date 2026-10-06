@@ -12,9 +12,9 @@ export that lists them.
 
 | Key | Implementation |
 | --- | --- |
-| `javascript` | `@crudui/validator` and the `@crudui/generator-core` model |
-| `javascript-html` | the `@crudui/generator-html` string renderer |
-| `javascript-dom` | the `@crudui/generator-core` DOM binding over `@crudui/generator-html` markup |
+| `javascript` | `@polyspec/crudui-validator` and the `@polyspec/crudui-generator-core` model |
+| `javascript-html` | the `@polyspec/crudui-generator-html` string renderer |
+| `javascript-dom` | the `@polyspec/crudui-generator-core` DOM binding over `@polyspec/crudui-generator-html` markup |
 | `react`, `vue`, `svelte` | the framework packages |
 | `php`, `go`, `rust` | the server libraries |
 | `php-native` | the PHP C extension |

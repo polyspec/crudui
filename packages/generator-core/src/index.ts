@@ -44,10 +44,10 @@ export type { FormMessages } from './messages';
 export type { WidgetModel, WidgetCtx, Attrs, Affix, OptionModel, OptionGroupModel } from './widget';
 
 // Errors the API throws.
-export { ComposeLoadError } from '@crudui/validator';
+export { ComposeLoadError } from '@polyspec/crudui-validator';
 export { UnsupportedFieldTypeError } from './errors';
 /** Invalid generator input (code `INVALID_FORM_INPUT`), shared with the validator. */
-export { FormInputError } from '@crudui/validator';
+export { FormInputError } from '@polyspec/crudui-validator';
 export type { ResolvedDesign, ResolvedNode } from './design';
 export type { Language, LocalizedText } from './content';
 

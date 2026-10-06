@@ -61,7 +61,7 @@ attributes in different orders, so the bindings never rearrange attributes and t
 comparisons use the parsed DOM.
 
 The string renderers are React's server rendering (`renderForm` and `renderList` of
-`@crudui/generator-react/server`), the HTML renderer (`@crudui/generator-html`) and the PHP, PHP
+`@polyspec/crudui-generator-react/server`), the HTML renderer (`@polyspec/crudui-generator-html`) and the PHP, PHP
 extension, Go and Rust generators. For the same instance or list they produce the same bytes.
 React's server rendering is the reference, so its serialization is the format: attribute
 names such as `readOnly` and `autoComplete`, void elements closed with `/>`, an input's
@@ -70,7 +70,7 @@ names such as `readOnly` and `autoComplete`, void elements closed with `/>`, an 
 last value, and the list's image preload links. The native generation check compares every
 string renderer with the reference byte for byte.
 
-The `@crudui/generator-html` package renders the same evaluated instance and list
+The `@polyspec/crudui-generator-html` package renders the same evaluated instance and list
 models as HTML strings without React, Vue or Svelte. `renderForm(form, options)` returns
 the [complete form](#complete-form); it is inserted into a page, which may then call
 `connectForm` on its `crudui-form` element. `renderFormView(fields, buttons, messages,
@@ -280,9 +280,9 @@ a list array as a list. Go and Rust take the options as an ordered JSON object.
 
 ## Browser validation
 
-`@crudui/form-binding` (`packages/form-binding`) validates a server-rendered form in the browser
+`@polyspec/crudui-form-binding` (`packages/form-binding`) validates a server-rendered form in the browser
 with the rules the server applies. It is an ESM package that runs only in a browser and depends on
-`@crudui/validator`. The server stays authoritative: the binding shows errors earlier and stops a
+`@polyspec/crudui-validator`. The server stays authoritative: the binding shows errors earlier and stops a
 submission it finds invalid, and the server validates every submission it receives.
 
 `bindForm(form, spec, options)` connects one parsed `form` element that holds one
@@ -409,7 +409,7 @@ The binding keeps the visibility of the nodes current with the data, as the rend
 for the same data, so a field or a group whose `design.show` reads another field appears and
 disappears while the user edits. When it binds and after every `input` or `change` event of a
 control of the form, before it validates, it builds the data as described in [data](#data) and
-reads `hiddenPaths(spec, data)` of `@crudui/validator`: the data paths of the fields whose
+reads `hiddenPaths(spec, data)` of `@polyspec/crudui-validator`: the data paths of the fields whose
 `design.show` resolves to `false` against the data, in declaration order, each field of a group
 row under the row's key, the fields inside a hidden field included. A node with `data-field-path`
 has the `hidden` attribute exactly when its path is in that list; a row node and a lang item keep

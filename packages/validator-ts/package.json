@@ -1,5 +1,5 @@
 {
-  "name": "@crudui/validator",
+  "name": "@polyspec/crudui-validator",
   "version": "0.0.1",
   "description": "Form validation library based on crudui YAML definitions",
   "main": "dist/index.js",

@@ -1,4 +1,4 @@
-// Browser layout checks for the core stylesheet (@crudui/generator-core/crudui.css) in Chromium,
+// Browser layout checks for the core stylesheet (@polyspec/crudui-generator-core/crudui.css) in Chromium,
 // Firefox and WebKit. jsdom has no layout, so sticky stacking and focus scrolling are verified in
 // real browsers. Every check runs the same way in a page, in a scrolling box and in a frame, and
 // every engine runs the same scenario through one engine adapter.
@@ -39,8 +39,8 @@ const siblingData = { [levels[0]]: { [key]: { ...levelData(0)[key], name: 'ACME'
 
 const browserSource = `
 import '/packages/generator-core/styles/crudui.css';
-import { compileForm, connectForm, connectOutline, createForm, patchContent } from '@crudui/generator-core';
-import { renderForm, renderOutline } from '@crudui/generator-html';
+import { compileForm, connectForm, connectOutline, createForm, patchContent } from '@polyspec/crudui-generator-core';
+import { renderForm, renderOutline } from '@polyspec/crudui-generator-html';
 
 const element = document.getElementById('form');
 const outline = document.getElementById('outline');
@@ -87,7 +87,7 @@ setup('server start and browser launch', async () => {
   cacheDirectory = await mkdtemp(join(tmpdir(), 'crudui-form-styles-'));
   server = await createServer({
     root, configFile: false, logLevel: 'error', cacheDir: cacheDirectory,
-    optimizeDeps: { noDiscovery: true, include: ['@crudui/generator-core', '@crudui/generator-html'] },
+    optimizeDeps: { noDiscovery: true, include: ['@polyspec/crudui-generator-core', '@polyspec/crudui-generator-html'] },
     server: { host: '127.0.0.1', port: 0 },
     plugins: [{
       name: 'form-styles-test',

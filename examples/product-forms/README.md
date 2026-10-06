@@ -37,8 +37,8 @@ sections that would fail if they were shown
 
 ## Run
 
-The test imports the built `@crudui/validator`, `@crudui/generator-core` and
-`@crudui/generator-html` packages. From the repository root:
+The test imports the built `@polyspec/crudui-validator`, `@polyspec/crudui-generator-core` and
+`@polyspec/crudui-generator-html` packages. From the repository root:
 
 ```sh
 npm run build

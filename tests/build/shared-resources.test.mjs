@@ -112,7 +112,7 @@ function fixtureCheckout() {
   const packageDirectory = path.join(checkout, 'packages', 'fixture');
   fs.mkdirSync(packageDirectory, { recursive: true });
   fs.writeFileSync(path.join(packageDirectory, 'package.json'), `${JSON.stringify({
-    name: '@crudui/dist-lock-fixture', version: '0.0.0', private: true, type: 'module', files: ['dist'],
+    name: '@polyspec/crudui-dist-lock-fixture', version: '0.0.0', private: true, type: 'module', files: ['dist'],
     scripts: { build: "node ../../scripts/package-dist.mjs build 'node build.mjs'" },
   }, null, 2)}\n`);
   // The build writes into the directory that CRUDUI_DIST names, as every package build does (scripts/package-dist.mjs);
@@ -179,7 +179,7 @@ test('a build and a pack of a package refuse while another run holds its dist', 
     }
     const packed = pack();
     assert.equal(packed.status, 0, packed.stderr);
-    const report = packReport(packed.stdout, '@crudui/dist-lock-fixture');
+    const report = packReport(packed.stdout, '@polyspec/crudui-dist-lock-fixture');
     assert.ok(report.files.some(entry => entry.path === 'dist/index.js'), 'The archive holds the built dist');
     assert.deepEqual(fs.readdirSync(destination), [report.filename]);
     assert.equal(fs.existsSync(lockFile), false);

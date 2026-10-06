@@ -61,6 +61,20 @@ Cargo 경로를 실행하고 `RUSTC`와 `RUSTDOC`에 해석된 컴파일러 경�
 실행하기 전에 validator를 빌드합니다. 의존성 설치만으로는 해당 패키지 출력이
 생성되지 않습니다.
 
+## 패키지 이름
+
+패키지는 template, hyper와 같은 polyspec 저장소의 이름 규칙을 따릅니다.
+
+| 언어 | 이름 |
+|---|---|
+| npm | `@polyspec/crudui-<name>`: `@polyspec/crudui-cli`, `@polyspec/crudui-form-binding`, `@polyspec/crudui-generator-core`, `@polyspec/crudui-generator-html`, `@polyspec/crudui-generator-react`, `@polyspec/crudui-generator-svelte`, `@polyspec/crudui-generator-vue`, `@polyspec/crudui-validator`. 비공개 workspace root는 `@polyspec/crudui-workspace`입니다 |
+| Composer | `polyspec/crudui-generator`와 `polyspec/crudui-validator`이며 PHP namespace는 `Polyspec\Crudui\`입니다. 클래스는 `Polyspec\Crudui\Generator`, `Polyspec\Crudui\Validator`, `Polyspec\Crudui\Form`, `Polyspec\Crudui\FormError`이고, 내부 namespace는 `Polyspec\Crudui\Generator\`와 `Polyspec\Crudui\Validator\`입니다. PHP 확장도 같은 클래스를 등록합니다 |
+| Rust | crate `polyspec-crudui-generator`와 `polyspec-crudui-validator`, library `polyspec_crudui_generator`와 `polyspec_crudui_validator` |
+| Go | module `github.com/polyspec/crudui/packages/generator-go`와 `github.com/polyspec/crudui/packages/validator-go` |
+
+`tests/build/package-names.test.mjs`는 이 이름을 요구하고, 유지되는 파일이 이전 형태의 이름으로 패키지를 가리키면
+실패합니다. 변경 기록, 체크리스트, wave 설명은 각 항목이 기록한 이름을 유지합니다.
+
 ## 인수 기준
 
 - `npm ci --strict-allow-scripts`는 고정된 의존성을 설치하고 `npm run build`는
@@ -68,12 +82,12 @@ Cargo 경로를 실행하고 `RUSTC`와 `RUSTDOC`에 해석된 컴파일러 경�
   빌드를 의존성 순서로 실행한다.
 - validator·generator-core·generator-html·generator-react는 패키지 소스 경로 import 없이 공개
   CommonJS·ES 모듈 export로 로드된다.
-- `@crudui/form-binding`은 ES 모듈 export로만 로드된다. 선언은 ES 모듈 형식이며, Node.js와
+- `@polyspec/crudui-form-binding`은 ES 모듈 export로만 로드된다. 선언은 ES 모듈 형식이며, Node.js와
   TypeScript 모두 CommonJS 프로젝트에 이 패키지를 해석하지 않는다.
-- `@crudui/generator-vue`는 `"type": "module"`을 선언하고 ES 모듈·CommonJS export로 로드된다.
+- `@polyspec/crudui-generator-vue`는 `"type": "module"`을 선언하고 ES 모듈·CommonJS export로 로드된다.
   선언은 ES 모듈 형식이고 상대 import는 `.js` 파일을 가리키므로, 엄격한 `NodeNext` ES 모듈·CommonJS
   프로젝트가 이 선언으로 컴파일된다.
-- `@crudui/generator-svelte`는 `svelte` export로 로드된다. 선언은 ES 모듈 형식이고 상대 import는
+- `@polyspec/crudui-generator-svelte`는 `svelte` export로 로드된다. 선언은 ES 모듈 형식이고 상대 import는
   `.js` 파일이나 `.svelte` 파일을 가리킨다. Svelte 도구처럼 `.svelte` 파일 import를 그 옆의
   `.svelte.d.ts` 선언으로 해석하면, 엄격한 `NodeNext` ES 모듈 프로젝트가 이 선언으로 컴파일된다.
 - 엄격한 설치 검사는 공개 타입과 모든 하위 선언 import를 해석한다.

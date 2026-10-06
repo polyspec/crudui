@@ -1,4 +1,4 @@
-import type { FormInstance, FormRenderOptions } from '@crudui/generator-core';
+import type { FormInstance, FormRenderOptions } from '@polyspec/crudui-generator-core';
 import { Form } from './components/Form.js';
 
 /** Render the current form instance as the complete form (form-runtime.md, "Complete form"). */

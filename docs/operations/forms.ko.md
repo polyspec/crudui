@@ -27,8 +27,8 @@ npm run build
 ## 데이터 로드 전 구성
 
 ```tsx
-import { compileForm, createForm, sequenceRowKey } from '@crudui/generator-core';
-import { Form } from '@crudui/generator-react';
+import { compileForm, createForm, sequenceRowKey } from '@polyspec/crudui-generator-core';
+import { Form } from '@polyspec/crudui-generator-react';
 
 const template = compileForm({
   type: 'group',
@@ -55,7 +55,7 @@ const submission = form.getData();
 공유 캐시에는 템플릿을 저장하고 렌더링할 폼마다 독립적인 폼 인스턴스를 생성합니다.
 레코드 로드가 완료되면 `setData`를 호출합니다. Vue와 Svelte도 `form` 속성을
 받습니다. 프레임워크 패키지는 동일한 코어 함수를 제공합니다.
-React는 `@crudui/generator-react/server`에서 SSR용 `renderForm(form)`을 내보냅니다.
+React는 `@polyspec/crudui-generator-react/server`에서 SSR용 `renderForm(form)`을 내보냅니다.
 Vue와 Svelte는 패키지 진입점에서 렌더 함수를 내보내며 Vue는 Promise를 반환합니다.
 `$ref` 파일은 렌더링 전에 컴파일합니다.
 
@@ -64,8 +64,8 @@ Vue와 Svelte는 패키지 진입점에서 렌더 함수를 내보내며 Vue는 
 오류를 그대로 전달하거나 자체 문구로 바꿔 전달합니다.
 
 ```ts
-import { validate } from '@crudui/validator';
-import { renderForm } from '@crudui/generator-html';
+import { validate } from '@polyspec/crudui-validator';
+import { renderForm } from '@polyspec/crudui-generator-html';
 
 const result = validate(spec, submitted);
 const form = createForm(template, submitted, { language: 'en' });
@@ -85,8 +85,8 @@ Rust는 `render_form(&form, Some(&options))`를 순서 있는 JSON 객체로 호
 프레임워크에 독립적인 HTML은 동등한 renderer 패키지를 사용합니다.
 
 ```ts
-import { connectForm, patchContent } from '@crudui/generator-core';
-import { renderForm, renderList } from '@crudui/generator-html';
+import { connectForm, patchContent } from '@polyspec/crudui-generator-core';
+import { renderForm, renderList } from '@polyspec/crudui-generator-html';
 
 patchContent(host, renderForm(form));
 const connection = connectForm(host, form);
@@ -105,7 +105,7 @@ const listHtml = renderList(listSpec, rows, { layout: 'table' });
 HTML renderer는 fragment를 반환하며 외부 `form` 요소를 만들거나 브라우저 이벤트를
 연결하거나 데이터를 검증하거나 레코드를 로드하지 않습니다.
 
-`@crudui/validator`의 `validate(spec, submission)`로 원본 명세에 대해 `submission`을 검증합니다.
+`@polyspec/crudui-validator`의 `validate(spec, submission)`로 원본 명세에 대해 `submission`을 검증합니다.
 서버가 저장된 seq를 생성하면 해당 컬렉션 경로의 키를 변경합니다.
 데이터 객체 전체에서 토큰을 치환하지 않습니다.
 
@@ -113,7 +113,7 @@ HTML renderer는 fragment를 반환하며 외부 `form` 요소를 만들거나 �
 
 ```sh
 npm run test:forms
-npm test -w @crudui/validator
+npm test -w @polyspec/crudui-validator
 make docs-check
 ```
 

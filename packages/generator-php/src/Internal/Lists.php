@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Generator;
+namespace Polyspec\Crudui\Generator;
 
-use CRUDUI\FormError;
-use CRUDUI\Validator\Compose\Compose;
-use CRUDUI\Validator\ForbiddenScan;
-use CRUDUI\Validator\Support\NumberValue;
+use Polyspec\Crudui\FormError;
+use Polyspec\Crudui\Validator\Compose\Compose;
+use Polyspec\Crudui\Validator\ForbiddenScan;
+use Polyspec\Crudui\Validator\Support\NumberValue;
 use stdClass;
 
 /** Compose list declarations, evaluate supplied rows and render table or card HTML. */

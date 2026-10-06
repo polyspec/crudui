@@ -1,11 +1,11 @@
 [package]
-name = "crudui-validator"
+name = "polyspec-crudui-validator"
 version = "0.0.1"
 edition = "2021"
 license = "MIT"
 
 [lib]
-name = "crudui_validator"
+name = "polyspec_crudui_validator"
 path = "src/lib.rs"
 
 [dependencies]

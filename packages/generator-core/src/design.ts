@@ -19,8 +19,8 @@
  * literal, expression, or condition map. eval is never called.
  */
 
-import { FormInputError } from '@crudui/validator';
-import type { PathContext } from '@crudui/validator/internal';
+import { FormInputError } from '@polyspec/crudui-validator';
+import type { PathContext } from '@polyspec/crudui-validator/internal';
 import { evalShow, evalAppearance } from './expr';
 
 /** Resolved class+style for one DOM node. */

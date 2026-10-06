@@ -2,10 +2,10 @@ import assert from 'node:assert/strict';
 import path from 'node:path';
 
 const classFiles = Object.freeze({
-  'CRUDUI\\Generator': 'packages/generator-php/src/Generator.php',
-  'CRUDUI\\Form': 'packages/generator-php/src/Form.php',
-  'CRUDUI\\Validator':
-    'packages/generator-php/vendor/crudui/validator/src/Public/Validator.php',
+  'Polyspec\\Crudui\\Generator': 'packages/generator-php/src/Generator.php',
+  'Polyspec\\Crudui\\Form': 'packages/generator-php/src/Form.php',
+  'Polyspec\\Crudui\\Validator':
+    'packages/generator-php/vendor/polyspec/crudui-validator/src/Public/Validator.php',
 });
 
 export const phpClassNames = Object.freeze(Object.keys(classFiles));

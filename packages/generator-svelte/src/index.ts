@@ -1,11 +1,11 @@
 /**
  * Svelte components and server rendering for CRUDUI forms, lists and details. Forms are
- * compiled and created with `@crudui/generator-core`.
+ * compiled and created with `@polyspec/crudui-generator-core`.
  */
 
 import { render } from 'svelte/server';
-import { buildDetail, type BuildListOptions, type BuildDetailOptions, type FormInstance, type FormRenderOptions } from '@crudui/generator-core';
-import { buildListLayout } from '@crudui/generator-core/internal';
+import { buildDetail, type BuildListOptions, type BuildDetailOptions, type FormInstance, type FormRenderOptions } from '@polyspec/crudui-generator-core';
+import { buildListLayout } from '@polyspec/crudui-generator-core/internal';
 import Form from './components/Form.svelte';
 import List from './components/List.svelte';
 import Detail from './components/Detail.svelte';

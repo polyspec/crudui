@@ -6,7 +6,7 @@
  * groups of choices (docs/spec/schema.md, "Choice groups").
  */
 
-import { FormInputError } from '@crudui/validator';
+import { FormInputError } from '@polyspec/crudui-validator';
 import { styleString } from './css';
 import { checkDeclaredAttributes } from './design';
 

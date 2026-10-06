@@ -1,4 +1,4 @@
-import { validate as validateForm } from '@crudui/validator';
+import { validate as validateForm } from '@polyspec/crudui-validator';
 
 /** Connect the public validator to form error display. */
 export function formValidation(view, output, spec, text) {

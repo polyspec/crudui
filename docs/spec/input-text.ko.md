@@ -131,12 +131,12 @@ JSON 텍스트를 런타임 값으로 변환할 때 모든 깊이에서 객체�
   `compose.DecodeRawMembers`는 값을 디코딩하지 않고 객체를 멤버로 나눕니다.
   `generator.CheckBindText`는 `FormTemplate` 디코딩 전에 디코딩된 템플릿을 검사합니다.
   `FormTemplate`의 JSON 인코딩은 잘못된 텍스트를 바꾸기 때문입니다.
-- PHP: `CRUDUI\Validator\Support\JsonText::decode`는
+- PHP: `Polyspec\Crudui\Validator\Support\JsonText::decode`는
   `json_decode($json, false, 512, JSON_THROW_ON_ERROR)`와 같은 값을 반환하고, 이스케이프된
   서로게이트를 3바이트로 보존합니다. 이 클래스는 의존성이 없습니다.
-- Rust: `crudui_validator::text::JsonText`는 아무것도 바꾸지 않고 텍스트를 읽습니다.
+- Rust: `polyspec_crudui_validator::text::JsonText`는 아무것도 바꾸지 않고 텍스트를 읽습니다.
   `validate_text`, `validate_list_text`, `validate_detail_text`는 이 값으로 검증 진입점을 실행하고,
-  `crudui_generator::text`는 생성 진입점의 검사를 제공합니다.
+  `polyspec_crudui_generator::text`는 생성 진입점의 검사를 제공합니다.
 
 JSON 텍스트는 UTF-8입니다. JSON 요청을 읽는 프로그램은 디코딩 전에 UTF-8이 아닌 입력을 잘못된
 JSON으로 거부합니다.

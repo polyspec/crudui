@@ -1,7 +1,7 @@
 use crate::util::{js_string, segments};
-use crudui_validator::expr::condition_map;
-use crudui_validator::expr::{is_truthy, Evaluator, Expression, Node};
-use crudui_validator::validate::rules::is_condition_expression;
+use polyspec_crudui_validator::expr::condition_map;
+use polyspec_crudui_validator::expr::{is_truthy, Evaluator, Expression, Node};
+use polyspec_crudui_validator::validate::rules::is_condition_expression;
 use serde_json::{json, Value};
 
 fn resolve_map(value: &Value, data: &Value, path: &[String], rows: &[usize]) -> Value {
@@ -16,7 +16,7 @@ fn resolve_map(value: &Value, data: &Value, path: &[String], rows: &[usize]) -> 
 
 /// Form visibility, resolved as the validator resolves it, so a server skips exactly
 /// the rules of the fields the form hides.
-pub(crate) use crudui_validator::validate::visibility::show;
+pub(crate) use polyspec_crudui_validator::validate::visibility::show;
 
 /// A conditional flag other than visibility: a condition map that selects nothing,
 /// and an invalid expression, are false.

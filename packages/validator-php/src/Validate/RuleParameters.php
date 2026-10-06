@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Validator\Validate;
+namespace Polyspec\Crudui\Validator\Validate;
 
-use CRUDUI\Validator\Compose\ComposeLoadError;
-use CRUDUI\Validator\Expr\Expression;
-use CRUDUI\Validator\Expr\GroupNode;
-use CRUDUI\Validator\Expr\LiteralNode;
-use CRUDUI\Validator\Expr\Node;
-use CRUDUI\Validator\Expr\TernaryNode;
-use CRUDUI\Validator\Patterns\PatternParameter;
-use CRUDUI\Validator\Values\InvalidRuleParameter;
-use CRUDUI\Validator\Values\LengthLimit;
-use CRUDUI\Validator\Values\Membership;
-use CRUDUI\Validator\Values\Numeric;
+use Polyspec\Crudui\Validator\Compose\ComposeLoadError;
+use Polyspec\Crudui\Validator\Expr\Expression;
+use Polyspec\Crudui\Validator\Expr\GroupNode;
+use Polyspec\Crudui\Validator\Expr\LiteralNode;
+use Polyspec\Crudui\Validator\Expr\Node;
+use Polyspec\Crudui\Validator\Expr\TernaryNode;
+use Polyspec\Crudui\Validator\Patterns\PatternParameter;
+use Polyspec\Crudui\Validator\Values\InvalidRuleParameter;
+use Polyspec\Crudui\Validator\Values\LengthLimit;
+use Polyspec\Crudui\Validator\Values\Membership;
+use Polyspec\Crudui\Validator\Values\Numeric;
 
 /**
  * Rule parameter checks. Declared parameters are checked when the specification

@@ -56,11 +56,11 @@ import { createSSRApp, h } from 'vue';
 import { renderToString as renderVue } from 'vue/server-renderer';
 import { render as renderSvelte } from 'svelte/server';
 import { writable } from 'svelte/store';
-import { buildList, compileForm, createForm } from '@crudui/generator-core';
-import { renderForm as htmlForm, renderList as htmlList } from '@crudui/generator-html';
-import { Form as ReactForm, List as ReactList } from '@crudui/generator-react';
-import { Form as VueForm, List as VueList } from '@crudui/generator-vue';
-import { Form as SvelteForm } from '@crudui/generator-svelte';
+import { buildList, compileForm, createForm } from '@polyspec/crudui-generator-core';
+import { renderForm as htmlForm, renderList as htmlList } from '@polyspec/crudui-generator-html';
+import { Form as ReactForm, List as ReactList } from '@polyspec/crudui-generator-react';
+import { Form as VueForm, List as VueList } from '@polyspec/crudui-generator-vue';
+import { Form as SvelteForm } from '@polyspec/crudui-generator-svelte';
 import ViewHost from '${viewHost}';
 ${shared}
 export async function render(adapter) {
@@ -94,11 +94,11 @@ import { flushSync } from 'react-dom';
 import { createApp, createSSRApp, h, shallowRef } from 'vue';
 import { hydrate, mount } from 'svelte';
 import { writable } from 'svelte/store';
-import { buildList, compileForm, connectForm, createForm, patchContent } from '@crudui/generator-core';
-import { renderForm as htmlForm, renderList as htmlList } from '@crudui/generator-html';
-import { Form as ReactForm, List as ReactList } from '@crudui/generator-react';
-import { Form as VueForm, List as VueList } from '@crudui/generator-vue';
-import { Form as SvelteForm } from '@crudui/generator-svelte';
+import { buildList, compileForm, connectForm, createForm, patchContent } from '@polyspec/crudui-generator-core';
+import { renderForm as htmlForm, renderList as htmlList } from '@polyspec/crudui-generator-html';
+import { Form as ReactForm, List as ReactList } from '@polyspec/crudui-generator-react';
+import { Form as VueForm, List as VueList } from '@polyspec/crudui-generator-vue';
+import { Form as SvelteForm } from '@polyspec/crudui-generator-svelte';
 import ViewHost from '${viewHost}';
 ${shared}
 const parameters = new URLSearchParams(location.search);
@@ -182,7 +182,7 @@ setup('server start and browser launch', async () => {
     root, configFile: false, logLevel: 'error', cacheDir: cacheDirectory,
     optimizeDeps: {
       noDiscovery: true,
-      include: ['react', 'react-dom', 'react-dom/client', 'vue', '@crudui/generator-core', '@crudui/generator-html', '@crudui/generator-react', '@crudui/generator-vue'],
+      include: ['react', 'react-dom', 'react-dom/client', 'vue', '@polyspec/crudui-generator-core', '@polyspec/crudui-generator-html', '@polyspec/crudui-generator-react', '@polyspec/crudui-generator-vue'],
     },
     server: { host: '127.0.0.1', port: 0 },
     plugins: [svelte({ configFile: false }), {

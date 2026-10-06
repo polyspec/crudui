@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Validator\Tests\Support;
+namespace Polyspec\Crudui\Validator\Tests\Support;
 
-use CRUDUI\Validator\Support\JsonValue;
+use Polyspec\Crudui\Validator\Support\JsonValue;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 use PHPUnit\Framework\Attributes\DataProvider;

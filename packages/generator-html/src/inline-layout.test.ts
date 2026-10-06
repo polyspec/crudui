@@ -3,7 +3,7 @@
  * modifiers of the node model on the node roots.
  */
 import { describe, expect, test } from 'vitest';
-import { compileForm, createForm } from '@crudui/generator-core';
+import { compileForm, createForm } from '@polyspec/crudui-generator-core';
 import { renderForm } from './index';
 
 const render = (properties: Record<string, unknown>) =>

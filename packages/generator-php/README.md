@@ -14,7 +14,7 @@ composer install --working-dir=packages/generator-php
 composer test --working-dir=packages/generator-php
 ```
 
-The Composer path repository copies `crudui/validator` from the adjacent
+The Composer path repository copies `polyspec/crudui-validator` from the adjacent
 package into `vendor/`. 64-bit PHP 8.4 or newer and `mbstring` are required.
 Development tests also require the extensions used by PHPUnit, including DOM.
 
@@ -23,8 +23,8 @@ Development tests also require the extensions used by PHPUnit, including DOM.
 ```php
 require 'packages/generator-php/vendor/autoload.php';
 
-use CRUDUI\Form;
-use CRUDUI\Generator;
+use Polyspec\Crudui\Form;
+use Polyspec\Crudui\Generator;
 
 $spec = json_decode('{"type":"group","properties":{"name":{"type":"text","label":"Name"}}}');
 $template = Generator::compileForm($spec, ['keyPrefix' => 'form']);
@@ -86,10 +86,10 @@ list. Use `new stdClass()` for an explicit empty object. An associative array is
 accepted for an object argument, and an empty array for an empty root object argument,
 whose type is fixed by its API.
 
-Composition failures raise `CRUDUI\Validator\Compose\ComposeLoadError`.
+Composition failures raise `Polyspec\Crudui\Validator\Compose\ComposeLoadError`.
 Its `getCompositionTrace()` returns specification paths separately from the
 exception stack returned by `getTrace()`.
-Generation failures raise `CRUDUI\FormError`; `getErrorCode()` and `getPath()`
+Generation failures raise `Polyspec\Crudui\FormError`; `getErrorCode()` and `getPath()`
 return the error code and field path. Unsupported fields use
 `UNSUPPORTED_FIELD_TYPE`; other invalid generation input uses `INVALID_FORM_INPUT`.
 Invalid public argument types raise `TypeError`.

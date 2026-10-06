@@ -1,11 +1,11 @@
 /**
  * JavaScript validator process of the cross-check console. It reads one JSON request on standard
- * input, calls the public API of `@crudui/validator` and writes one JSON response on standard
+ * input, calls the public API of `@polyspec/crudui-validator` and writes one JSON response on standard
  * output with the exit status. The request and response contract is in ../README.md and is the
  * same for the PHP, Go and Rust programs in this directory.
  */
 
-import { validate, validateList, validateDetail, ComposeLoadError, FormInputError } from '@crudui/validator';
+import { validate, validateList, validateDetail, ComposeLoadError, FormInputError } from '@polyspec/crudui-validator';
 
 /** Write one JSON line and exit with the given status. */
 function emit(value, status) {

@@ -1,6 +1,6 @@
 /** Input text checks of the form operations (docs/spec/input-text.md). */
 
-import { checkInputText, checkOptionText } from '@crudui/validator/internal';
+import { checkInputText, checkOptionText } from '@polyspec/crudui-validator/internal';
 
 /** Options of a form binding or instance, in code point order of their names. */
 const BIND_OPTIONS = ['idPrefix', 'keyPrefix', 'language', 'unsupported'];

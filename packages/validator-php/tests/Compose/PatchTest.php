@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Validator\Tests\Compose;
+namespace Polyspec\Crudui\Validator\Tests\Compose;
 
-use CRUDUI\Validator\Compose\ComposeLoadError;
-use CRUDUI\Validator\Compose\Patch;
+use Polyspec\Crudui\Validator\Compose\ComposeLoadError;
+use Polyspec\Crudui\Validator\Compose\Patch;
 use PHPUnit\Framework\TestCase;
 
 /**

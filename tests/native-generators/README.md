@@ -72,7 +72,7 @@ selection so a filtered run is not mistaken for a complete one.
 
 Go and Rust executables are built by the build step of the suite. `PHP`, `GO` and `CARGO` can select
 the corresponding installed commands. The extension must register native
-`CRUDUI\Generator`, `CRUDUI\Validator` and `CRUDUI\Form` classes. Reflection
+`Polyspec\Crudui\Generator`, `Polyspec\Crudui\Validator` and `Polyspec\Crudui\Form` classes. Reflection
 requires all three classes to be internal for native PHP and user-defined for
 pure PHP. PHP signature and lifetime checks are maintained separately. Source
 and built artifact hashes must remain unchanged throughout the run; the report
@@ -128,10 +128,10 @@ programs; each one calls only its package's public API.
 
 | Target | Program | Library |
 | --- | --- | --- |
-| `javascript`, `html` | [`javascript.mjs`](javascript.mjs) (`--renderer html` selects the HTML renderer) | `@crudui/generator-core` with `@crudui/generator-react` or `@crudui/generator-html` |
-| `php`, `php-native` | [`programs/php/generate.php`](programs/php/generate.php) | `crudui/generator` through the Composer autoloader of `packages/generator-php`; with the extension loaded, the extension's classes |
+| `javascript`, `html` | [`javascript.mjs`](javascript.mjs) (`--renderer html` selects the HTML renderer) | `@polyspec/crudui-generator-core` with `@polyspec/crudui-generator-react` or `@polyspec/crudui-generator-html` |
+| `php`, `php-native` | [`programs/php/generate.php`](programs/php/generate.php) | `polyspec/crudui-generator` through the Composer autoloader of `packages/generator-php`; with the extension loaded, the extension's classes |
 | `go` | [`programs/go`](programs/go/main.go) (module with its own `go.mod`) | `packages/generator-go` |
-| `rust` | [`programs/rust`](programs/rust/src/main.rs) (crate `polyspec-crudui-native-generator`) | `crudui-generator` |
+| `rust` | [`programs/rust`](programs/rust/src/main.rs) (crate `polyspec-crudui-native-generator`) | `polyspec-crudui-generator` |
 
 The suite builds the Go program into its build directory and the Rust program with
 `cargo build --locked` in `programs/rust`. Their formatting and static checks:
@@ -174,7 +174,7 @@ The `text` checks send every case of
 [input text](../../docs/spec/input-text.md) failure or success. Each program keeps that text
 while decoding: JavaScript with `JSON.parse`, PHP with `JsonText::decode`, Go with
 `generator.DecodeJSON` and `generator.CheckBindText` before template decoding, and Rust with
-`JsonText`, whose shape serves the protocol rules while `crudui_generator::text` checks each
+`JsonText`, whose shape serves the protocol rules while `polyspec_crudui_generator::text` checks each
 operation's text first. A last check sends standard input that is not UTF-8.
 Error code, message and location must match in every implementation, as must preserved
 state.

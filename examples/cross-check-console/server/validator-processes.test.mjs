@@ -62,7 +62,7 @@ function expectResponses(input, expected) {
 
 /** Whether each validator class the PHP program uses is internal (native) under PHP arguments. */
 function validatorClassesInternal(args) {
-  const classes = ['CRUDUI\\Validator', 'CRUDUI\\Validator\\Compose\\ComposeLoadError', 'CRUDUI\\Validator\\Validate\\FormInputError'];
+  const classes = ['Polyspec\\Crudui\\Validator', 'Polyspec\\Crudui\\Validator\\Compose\\ComposeLoadError', 'Polyspec\\Crudui\\Validator\\Validate\\FormInputError'];
   const source = `echo json_encode(array_map(fn ($c) => class_exists($c, false) && (new ReflectionClass($c))->isInternal(), ${JSON.stringify(classes)}));`;
   const run = spawnSync('php', [...args, '-r', source], { encoding: 'utf8', timeout: 10000 });
   expect(run.error).toBeUndefined();

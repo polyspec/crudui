@@ -8,15 +8,15 @@ the packages provide the validator library functions instead.
 
 | Process | Program | Library entry points |
 | --- | --- | --- |
-| JavaScript | `js/validate.mjs` | `validate`, `validateList` and `validateDetail` of `@crudui/validator` |
-| PHP | `php/validate.php` | `CRUDUI\Validator::validate`, `validateList` and `validateDetail` |
+| JavaScript | `js/validate.mjs` | `validate`, `validateList` and `validateDetail` of `@polyspec/crudui-validator` |
+| PHP | `php/validate.php` | `Polyspec\Crudui\Validator::validate`, `validateList` and `validateDetail` |
 | PHP extension | `php -d extension=… php/validate.php` | the same PHP program, served by the extension's classes |
 | Go | `go/` (module with its own `go.mod`) | `validate.ValidateJSON`, `ValidateListJSON` and `ValidateDetailJSON` |
-| Rust | `rust/` (crate `polyspec-crudui-cross-check-validator`) | `crudui_validator::validate`, `validate_list` and `validate_detail` |
+| Rust | `rust/` (crate `polyspec-crudui-cross-check-validator`) | `polyspec_crudui_validator::validate`, `validate_list` and `validate_detail` |
 
 `npm run build:validators` in `../server` builds the Go program to `go/validate` and the Rust
 program to `rust/target/release/polyspec-crudui-cross-check-validator`. The JavaScript program imports the
-built `@crudui/validator` package. The PHP program loads the Composer autoloader of
+built `@polyspec/crudui-validator` package. The PHP program loads the Composer autoloader of
 `packages/validator-php`. A deployment can name other Go and Rust executables with
 `CRUDUI_CROSS_CHECK_GO_VALIDATOR` and `CRUDUI_CROSS_CHECK_RUST_VALIDATOR`.
 

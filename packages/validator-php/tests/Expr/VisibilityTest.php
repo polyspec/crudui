@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Validator\Tests\Expr;
+namespace Polyspec\Crudui\Validator\Tests\Expr;
 
-use CRUDUI\Validator\Expr\Visibility;
+use Polyspec\Crudui\Validator\Expr\Visibility;
 use PHPUnit\Framework\TestCase;
 
 /**

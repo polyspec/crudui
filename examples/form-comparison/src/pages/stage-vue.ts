@@ -1,7 +1,7 @@
 // The canonical page with the Vue components. An SSR application hydrates the server-rendered
 // nodes; a CSR application mounts its own.
 import { createApp, createSSRApp, h, nextTick, shallowRef } from 'vue';
-import { bindButtons, bindForm, buildDetail, buildList, formDescription, formMessages } from '@crudui/generator-core';
+import { bindButtons, bindForm, buildDetail, buildList, formDescription, formMessages } from '@polyspec/crudui-generator-core';
 import { failOnErrors } from '../vue-errors.mjs';
 import { Detail } from '#vue/Detail';
 import { Form } from '#vue/Form';

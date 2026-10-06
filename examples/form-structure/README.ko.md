@@ -8,7 +8,7 @@
 
 페이지는 세 열로 구성됩니다.
 
-- **구조 맵** — `@crudui/generator-html`의 `renderOutline` 출력을 `connectOutline`으로
+- **구조 맵** — `@polyspec/crudui-generator-html`의 `renderOutline` 출력을 `connectOutline`으로
   연결합니다. 모든 행을 펼치거나 접고, 변경을 실행취소·실행복귀하며, 선택한 행의 첫 컨트롤로
   폼 안의 포커스를 옮깁니다.
 - **폼** — `renderForm` 출력을 `connectForm`으로 연결해 입력과 추가·복사·이동·제거
@@ -29,8 +29,8 @@
 
 ## 실행
 
-미리보기는 빌드된 `@crudui/generator-core`와 `@crudui/generator-html` 패키지를
-가져오고 core 패키지는 빌드된 `@crudui/validator`를 가져오므로 먼저 빌드합니다.
+미리보기는 빌드된 `@polyspec/crudui-generator-core`와 `@polyspec/crudui-generator-html` 패키지를
+가져오고 core 패키지는 빌드된 `@polyspec/crudui-validator`를 가져오므로 먼저 빌드합니다.
 저장소 루트에서 실행합니다.
 
 ```sh

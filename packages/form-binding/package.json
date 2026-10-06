@@ -1,5 +1,5 @@
 {
-  "name": "@crudui/form-binding",
+  "name": "@polyspec/crudui-form-binding",
   "version": "0.0.1",
   "description": "Browser validation of server-rendered CRUDUI forms",
   "type": "module",
@@ -24,11 +24,11 @@
   "keywords": ["form", "validation", "browser", "yaml"],
   "license": "MIT",
   "dependencies": {
-    "@crudui/validator": "0.0.1"
+    "@polyspec/crudui-validator": "0.0.1"
   },
   "devDependencies": {
-    "@crudui/generator-core": "0.0.1",
-    "@crudui/generator-html": "0.0.1",
+    "@polyspec/crudui-generator-core": "0.0.1",
+    "@polyspec/crudui-generator-html": "0.0.1",
     "@types/jsdom": "^30.0.0",
     "@types/node": "^26.6.4",
     "esbuild": "^0.28.2",

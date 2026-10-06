@@ -38,8 +38,8 @@ const browserSource = `
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { flushSync } from 'react-dom';
-import { compileForm, createForm, buildList } from '@crudui/generator-core';
-import { Form, List } from '@crudui/generator-react';
+import { compileForm, createForm, buildList } from '@polyspec/crudui-generator-core';
+import { Form, List } from '@polyspec/crudui-generator-react';
 
 let root, form;
 const element = document.getElementById('form');
@@ -75,7 +75,7 @@ setup('server start and browser launch', async () => {
     root, configFile: false, logLevel: 'error', cacheDir: cacheDirectory,
     optimizeDeps: {
       noDiscovery: true,
-      include: ['react', 'react-dom', 'react-dom/client', '@crudui/generator-core', '@crudui/generator-react'],
+      include: ['react', 'react-dom', 'react-dom/client', '@polyspec/crudui-generator-core', '@polyspec/crudui-generator-react'],
     },
     server: { host: '127.0.0.1', port: 0 },
     plugins: [{

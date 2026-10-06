@@ -2,9 +2,9 @@
 
 [English](README.md).
 
-`crudui-generator`는 Rust 프로세스에서 폼 구조를 컴파일하고, 순서를 유지하는
+`polyspec-crudui-generator`는 Rust 프로세스에서 폼 구조를 컴파일하고, 순서를 유지하는
 레코드 데이터를 바인딩하고, 폼 인스턴스를 관리하고, 폼·목록·읽기 전용 상세 HTML을 렌더링합니다.
-스펙 조합과 표현식에는 `crudui-validator`를 사용합니다.
+스펙 조합과 표현식에는 `polyspec-crudui-validator`를 사용합니다.
 
 ## 사용
 
@@ -12,7 +12,7 @@
 생성기와 검증기를 추가합니다. 생성기의 Cargo 매니페스트는 검증기 의존성을 선언합니다.
 
 ```rust
-use crudui_generator::{compile_form, render_form, BindOptions, CompileOptions, Form};
+use polyspec_crudui_generator::{compile_form, render_form, BindOptions, CompileOptions, Form};
 use serde_json::json;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {

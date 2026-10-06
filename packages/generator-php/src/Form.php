@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI;
+namespace Polyspec\Crudui;
 
-use CRUDUI\Generator\Binding;
-use CRUDUI\Generator\Buttons;
-use CRUDUI\Generator\InputText;
-use CRUDUI\Generator\Messages;
-use CRUDUI\Generator\Missing;
-use CRUDUI\Generator\Template;
-use CRUDUI\Generator\Value;
+use Polyspec\Crudui\Generator\Binding;
+use Polyspec\Crudui\Generator\Buttons;
+use Polyspec\Crudui\Generator\InputText;
+use Polyspec\Crudui\Generator\Messages;
+use Polyspec\Crudui\Generator\Missing;
+use Polyspec\Crudui\Generator\Template;
+use Polyspec\Crudui\Generator\Value;
 use stdClass;
 
 /** Editable data and evaluated fields for one compiled structure. */

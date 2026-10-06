@@ -227,7 +227,7 @@ test('row operations focus the affected row after rendering', async () => {
 
 test('view state, history and focus retention match a createForm instance', async () => {
   const { JSDOM } = await import('jsdom');
-  const { bindForm, compileForm, createForm } = await import('@crudui/generator-core');
+  const { bindForm, compileForm, createForm } = await import('@polyspec/crudui-generator-core');
   const { window } = new JSDOM('<div id="view"></div>');
   const { document } = window;
   const element = document.querySelector('#view');

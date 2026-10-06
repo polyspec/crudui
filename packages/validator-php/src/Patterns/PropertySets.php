@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Validator\Patterns;
+namespace Polyspec\Crudui\Validator\Patterns;
 
-use CRUDUI\Validator\Values\CodePointSet;
-use CRUDUI\Validator\Values\UnicodeData;
-use CRUDUI\Validator\Values\Whitespace;
+use Polyspec\Crudui\Validator\Values\CodePointSet;
+use Polyspec\Crudui\Validator\Values\UnicodeData;
+use Polyspec\Crudui\Validator\Values\Whitespace;
 
 /**
  * The shared code point sets of the pattern language, built once from the embedded

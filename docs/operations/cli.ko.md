@@ -2,7 +2,7 @@
 
 [English](cli.md).
 
-비공개 `@crudui/cli` 워크스페이스는 `describe`, `list-widgets`, `check`,
+비공개 `@polyspec/crudui-cli` 워크스페이스는 `describe`, `list-widgets`, `check`,
 `explain`을 제공합니다. 명령을 실행하기 전에 저장소 루트에서 의존성을 설치하고
 패키지를 빌드합니다.
 
@@ -13,9 +13,9 @@ npm ci --strict-allow-scripts
 npm run build
 ```
 
-CLI는 `tsx`로 실행하며 패키지 엔트리만 import합니다. `@crudui/validator`,
-`@crudui/generator-core`와 각 `internal` 엔트리는 빌드된 패키지로 해석됩니다.
-패키지 소스를 변경하면 다시 빌드합니다. `npm test --workspace @crudui/cli`는
+CLI는 `tsx`로 실행하며 패키지 엔트리만 import합니다. `@polyspec/crudui-validator`,
+`@polyspec/crudui-generator-core`와 각 `internal` 엔트리는 빌드된 패키지로 해석됩니다.
+패키지 소스를 변경하면 다시 빌드합니다. `npm test --workspace @polyspec/crudui-cli`는
 패키지 출력이 최신이 아니면 먼저 빌드하며, CI도 테스트 전에 같은 빌드를
 실행합니다.
 
@@ -51,5 +51,5 @@ npm run manifest:check
 전체 형식은 [DescribeResult](../../packages/cli/src/describe.ts)에 정의합니다.
 위젯이나 규칙 목록의 별도 복사본을 관리하지 않습니다.
 
-`npm run manifest:check`로 패키지·기능·fixture·테스트·문서 연결을 검사합니다. `npm run manifest:test`로 feature manifest에 선언된 테스트 명령을 실행합니다. `npm test --workspace @crudui/cli`로 목록 일치·정적 검사·설명을 검사합니다.
+`npm run manifest:check`로 패키지·기능·fixture·테스트·문서 연결을 검사합니다. `npm run manifest:test`로 feature manifest에 선언된 테스트 명령을 실행합니다. `npm test --workspace @polyspec/crudui-cli`로 목록 일치·정적 검사·설명을 검사합니다.
 구현과 배포 결과는 [기능 상태](../features.ko.md)에서 관리합니다.

@@ -24,17 +24,17 @@ function phpProvenance() {
     nativeCRUDUI: false,
     moduleSha256: null,
     classes: {
-      'CRUDUI\\Generator': {
+      'Polyspec\\Crudui\\Generator': {
         internal: false, extension: null,
         file: '/workspace/build/tree/packages/generator-php/src/Generator.php',
       },
-      'CRUDUI\\Form': {
+      'Polyspec\\Crudui\\Form': {
         internal: false, extension: null,
         file: '/workspace/build/tree/packages/generator-php/src/Form.php',
       },
-      'CRUDUI\\Validator': {
+      'Polyspec\\Crudui\\Validator': {
         internal: false, extension: null,
-        file: '/workspace/build/tree/packages/generator-php/vendor/crudui/validator/src/Public/Validator.php',
+        file: '/workspace/build/tree/packages/generator-php/vendor/polyspec/crudui-validator/src/Public/Validator.php',
       },
     },
   };
@@ -64,12 +64,12 @@ test('rejects generator provenance for another source identity', () => {
 test('rejects PHP class files outside the selected candidate locations', () => {
   for (const file of [
     '/workspace/build/tree/packages/validator-php/src/Public/Validator.php',
-    '/workspace/source/packages/generator-php/vendor/crudui/validator/src/Public/Validator.php',
+    '/workspace/source/packages/generator-php/vendor/polyspec/crudui-validator/src/Public/Validator.php',
   ]) {
     const actual = phpProvenance();
-    actual.classes['CRUDUI\\Validator'].file = file;
+    actual.classes['Polyspec\\Crudui\\Validator'].file = file;
     assert.throws(() => assertGenerationProvenance(
-      actual, 'php', source, sourceDirectory), /CRUDUI\\Validator\.file/);
+      actual, 'php', source, sourceDirectory), /Polyspec\\Crudui\\Validator\.file/);
   }
 });
 

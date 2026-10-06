@@ -28,7 +28,7 @@ import { extname } from 'node:path';
 
 import { load as loadYaml } from 'js-yaml';
 
-import { composeSpec, MemoryLoader, parseJsonDocument } from '@crudui/validator/internal';
+import { composeSpec, MemoryLoader, parseJsonDocument } from '@polyspec/crudui-validator/internal';
 import { describe, type DescribeResult, type RuleEntry } from './describe.ts';
 
 export interface ExplainOptions {

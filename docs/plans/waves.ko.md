@@ -6,7 +6,7 @@
 
 ## Wave 1
 
-의존: 없음. `@crudui/generator-core/crudui.css`는 CRUDUI block의 유일한 stylesheet이고, 좁은 viewport를 위한 rule이 없다. form, list, detail을 phone 폭으로 여는 test도 없다. Tailwind CSS로 꾸미는 page는 CRUDUI style을 그 Tailwind build와 theme으로 build할 수 없다. CRUDUI는 고유 stylesheet와 Tailwind 버전을 함께 내고, 설치하는 쪽이 둘 중 하나를 고른다.
+의존: 없음. `@polyspec/crudui-generator-core/crudui.css`는 CRUDUI block의 유일한 stylesheet이고, 좁은 viewport를 위한 rule이 없다. form, list, detail을 phone 폭으로 여는 test도 없다. Tailwind CSS로 꾸미는 page는 CRUDUI style을 그 Tailwind build와 theme으로 build할 수 없다. CRUDUI는 고유 stylesheet와 Tailwind 버전을 함께 내고, 둘 중 어느 것이든 CRUDUI block을 꾸민다.
 
 ## Wave 2
 
@@ -35,3 +35,7 @@
 ## Wave 8
 
 의존: 없음. 필드나 그룹은 다른 필드에 대한 조건으로 `design.show`를 선언하고, 검증기 다섯 개는 숨은 필드와 그 안의 모든 규칙을 건너뛰므로, 부모 값이 끈 가지에는 필수 필드가 없다. 빈 곳이 넷 남아 있다. 브라우저 바인딩은 현재 데이터로 검증하지만 서버가 쓴 `hidden` 속성을 유지하므로, 필드는 새 페이지에서만 나타나거나 사라지고, 보이는 필드의 규칙이 건너뛰어지며, 숨은 노드에 오류가 남는다. 반복 그룹의 필드에서 위로 올라가는 상대 경로는 행 키를 별도의 단계로 세므로, 행 안의 `..x`는 옆의 필드 대신 collection의 멤버를 읽고, 결과가 키의 모양에 따라 달라진다. 서버는 제출된 값 중 어느 것이 숨은 필드의 값인지 알 수 없다. Rust 검증기는 `design.show` 문자열을 다른 런타임의 expression 검사 없이 expression으로 결정한다. 부모는 자식의 `design.show`로 자식을 전환하고, 숨은 가지는 검증하지도 바꾸지도 않으며, 이 빈 곳은 모든 런타임에서 공유 사례와 함께 메운다.
+
+## Wave 9
+
+의존: 없음. polyspec 저장소는 패키지 이름을 조직 이름으로 짓는다. template은 `polyspec/template`과 namespace `Polyspec\Template\`, `@polyspec/template-workspace`, crate `polyspec-template`을, hyper는 `polyspec/hyper`, `Polyspec\Hyper\`, `@polyspec/hyper`를 쓴다. CRUDUI는 npm 패키지를 `@crudui/*`로, Composer 패키지를 `crudui/generator`와 `crudui/validator`로, PHP 클래스를 `CRUDUI\` 아래에, crate를 `crudui-generator`와 `crudui-validator`로 지었으므로, polyspec 패키지에는 두 규칙이 섞여 있었다. CRUDUI는 template과 hyper의 규칙을 따른다.

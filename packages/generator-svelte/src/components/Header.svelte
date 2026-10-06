@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { NodeVM } from '@crudui/generator-core';
+  import type { NodeVM } from '@polyspec/crudui-generator-core';
   import Controls from './Controls.svelte';
   import { classes } from './field.js';
 

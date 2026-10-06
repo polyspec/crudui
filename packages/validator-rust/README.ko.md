@@ -2,13 +2,13 @@
 
 [English](README.md).
 
-`crudui-validator` 패키지 버전은 `0.0.1`입니다. 라이브러리이며 명령을 설치하지
+`polyspec-crudui-validator` 패키지 버전은 `0.0.1`입니다. 라이브러리이며 명령을 설치하지
 않습니다.
 
 ## API
 
 ```rust
-use crudui_validator::{validate, validate_detail, validate_list, ValidateOptions};
+use polyspec_crudui_validator::{validate, validate_detail, validate_list, ValidateOptions};
 
 let result = validate(&spec, &data, &ValidateOptions::default())?;
 ```

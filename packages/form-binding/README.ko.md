@@ -1,12 +1,12 @@
-# @crudui/form-binding
+# @polyspec/crudui-form-binding
 
 [English](README.md).
 
 서버가 렌더링한 CRUDUI 폼을 서버가 검증할 때 쓰는 스펙으로 브라우저에서 검증합니다. 이 패키지는
-브라우저에서만 실행되며 `@crudui/validator`에 의존합니다.
+브라우저에서만 실행되며 `@polyspec/crudui-validator`에 의존합니다.
 
 ```ts
-import { bindForm } from '@crudui/form-binding';
+import { bindForm } from '@polyspec/crudui-form-binding';
 
 const spec = JSON.parse(document.querySelector('#member-spec')!.textContent!);
 const binding = bindForm(document.querySelector('form')!, spec, { keyPrefix: 'form' });

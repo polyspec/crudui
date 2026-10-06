@@ -14,7 +14,7 @@ composer test --working-dir=packages/validator-php
 ```php
 require 'packages/validator-php/vendor/autoload.php';
 
-use CRUDUI\Validator;
+use Polyspec\Crudui\Validator;
 
 $spec = json_decode('{"type":"group","properties":{"name":{"type":"text","validate":{"required":true}}}}');
 $result = Validator::validate($spec, ['name' => 'Ada']);
@@ -28,8 +28,8 @@ checks list specification composition and metadata; it does not validate rows.
 `$ref` and `$patch` on the root and the `fields` map, and metadata; it does not
 validate a record. Both return `{ valid: true, errors: [] }` on a clean load.
 Options accept a `files` object and `basepath`. Composition failures raise
-`CRUDUI\Validator\Compose\ComposeLoadError`. Submitted data with the wrong shape
-raises `CRUDUI\Validator\Validate\FormInputError` with code `INVALID_FORM_INPUT`.
+`Polyspec\Crudui\Validator\Compose\ComposeLoadError`. Submitted data with the wrong shape
+raises `Polyspec\Crudui\Validator\Validate\FormInputError` with code `INVALID_FORM_INPUT`.
 `getCompositionTrace()` returns the specification paths; `getTrace()` returns
 the exception stack.
 
@@ -40,7 +40,7 @@ objects require `new stdClass()`. Nested objects, arrays and `null` remain
 distinct, including error values. Invalid UTF-8 strings and object keys raise
 `InvalidArgumentException` before validation.
 
-The public class is `CRUDUI\Validator`. If the native extension registers the
+The public class is `Polyspec\Crudui\Validator`. If the native extension registers the
 class, PHP uses that implementation; otherwise Composer autoloads the PHP class.
 The [PHP API contract](../../docs/spec/php-extension.md) defines method equality
 and loading behavior. Internal composition and expression modules are shared

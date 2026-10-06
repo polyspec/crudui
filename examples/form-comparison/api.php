@@ -185,18 +185,18 @@ function recordView(RecordStore $store, string $view): never
     if ($view === 'list') {
         $rows = RecordStore::page($records, $query['page']);
         if ($rows === null) recordFailure(404, 'Page not found');
-        $html = \CRUDUI\Generator::renderList($specs->list, $rows, ['language' => $language, 'layout' => 'table', 'page' => $query['page'], 'total' => count($records)]);
+        $html = \Polyspec\Crudui\Generator::renderList($specs->list, $rows, ['language' => $language, 'layout' => 'table', 'page' => $query['page'], 'total' => count($records)]);
         $data = ['page' => $query['page'], 'perPage' => RecordStore::PER_PAGE, 'total' => count($records), 'records' => $rows];
     } else {
         $record = RecordStore::find($records, $query['id']);
         if ($record === null) recordFailure(404, 'Record not found');
         if ($view === 'detail') {
-            $html = \CRUDUI\Generator::renderDetail($specs->detail, $record, ['language' => $language]);
+            $html = \Polyspec\Crudui\Generator::renderDetail($specs->detail, $record, ['language' => $language]);
         } else {
-            $template = \CRUDUI\Generator::compileForm($specs->form, ['keyPrefix' => 'form']);
-            $form = new \CRUDUI\Form($template, RecordStore::formData($record), ['language' => $language]);
+            $template = \Polyspec\Crudui\Generator::compileForm($specs->form, ['keyPrefix' => 'form']);
+            $form = new \Polyspec\Crudui\Form($template, RecordStore::formData($record), ['language' => $language]);
             $html = '<form id="record-form" method="post" action="/api/' . $query['server'] . '/records/' . $record->id . '" '
-                . 'enctype="multipart/form-data">' . \CRUDUI\Generator::renderForm($form) . '</form>';
+                . 'enctype="multipart/form-data">' . \Polyspec\Crudui\Generator::renderForm($form) . '</form>';
         }
         $data = ['record' => $record];
     }
@@ -254,14 +254,14 @@ function recordRoute(string $path): never
         $submitted = recordSubmission();
         if ($submitted->id !== $id) recordFailure(400, 'The submitted id differs from the path id');
         $specs = FormJson::decode((string) file_get_contents(FORM_PUBLIC_DIRECTORY . '/customer-specs.json'));
-        $validation = \CRUDUI\Validator::validate($specs->form, $submitted);
+        $validation = \Polyspec\Crudui\Validator::validate($specs->form, $submitted);
         if ($validation->valid !== true) respond(422, ['validation' => $validation], true);
         $record = $store->save($id, $submitted);
         if ($record === null) recordFailure(404, 'Record not found');
         respond(200, ['record' => $record, 'validation' => $validation], true);
     } catch (LengthException $error) {
         recordFailure(413, $error->getMessage());
-    } catch (InvalidArgumentException | JsonException | UnexpectedValueException | \CRUDUI\FormError $error) {
+    } catch (InvalidArgumentException | JsonException | UnexpectedValueException | \Polyspec\Crudui\FormError $error) {
         recordFailure(400, $error->getMessage());
     } catch (Throwable $error) {
         recordFailure(500, $error->getMessage());
@@ -318,18 +318,18 @@ try {
         $received = nativeForm();
     } else respond(415, ['error' => 'Expected a form or JSON request']);
     $normalized = FormRepository::submission($received, $native);
-    $validation = (array) \CRUDUI\Validator::validate($spec, $normalized);
+    $validation = (array) \Polyspec\Crudui\Validator::validate($spec, $normalized);
     $result = ['transport' => $contentType, 'jsonProcessor' => 'ordered-json', 'validatorSource' => 'current', 'received' => $received, 'normalized' => $normalized, 'validation' => $validation, 'generator' => $generation->provenance()];
     if ($action === 'validate') respond(200, $result);
     if (!$validation['valid']) respond(422, $result);
     respond(200, [...$result, ...$repo->save(FormJson::arrays($normalized))]);
 } catch (LengthException $error) {
     respond(413, ['error' => $error->getMessage()]);
-} catch (\CRUDUI\FormError $error) {
+} catch (\Polyspec\Crudui\FormError $error) {
     respond(400, ['error' => $error->getMessage(), 'code' => $error->getErrorCode(), 'at' => $error->getPath()]);
-} catch (\CRUDUI\Validator\Compose\ComposeLoadError $error) {
+} catch (\Polyspec\Crudui\Validator\Compose\ComposeLoadError $error) {
     respond(400, ['error' => $error->getMessage(), 'code' => $error->getErrorCode(), 'trace' => $error->getCompositionTrace()]);
-} catch (\CRUDUI\Validator\Validate\FormInputError $error) {
+} catch (\Polyspec\Crudui\Validator\Validate\FormInputError $error) {
     respond(400, ['error' => $error->getMessage(), 'code' => $error->getErrorCode(), 'at' => '']);
 } catch (InvalidArgumentException | JsonException | UnexpectedValueException | TypeError $error) {
     respond(400, ['error' => $error->getMessage()]);

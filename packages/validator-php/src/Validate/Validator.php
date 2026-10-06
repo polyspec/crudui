@@ -2,38 +2,38 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Validator\Validate;
+namespace Polyspec\Crudui\Validator\Validate;
 
-use CRUDUI\Validator\Rules\Required;
-use CRUDUI\Validator\Rules\Email;
-use CRUDUI\Validator\Rules\MinLength;
-use CRUDUI\Validator\Rules\MaxLength;
-use CRUDUI\Validator\Rules\Min;
-use CRUDUI\Validator\Rules\Max;
-use CRUDUI\Validator\Rules\Pattern;
-use CRUDUI\Validator\Rules\In;
-use CRUDUI\Validator\Rules\Range;
-use CRUDUI\Validator\Rules\RangeLength;
-use CRUDUI\Validator\Rules\Number;
-use CRUDUI\Validator\Rules\Digits;
-use CRUDUI\Validator\Rules\EqualTo;
-use CRUDUI\Validator\Rules\NotEqual;
-use CRUDUI\Validator\Rules\Date;
-use CRUDUI\Validator\Rules\DateISO;
-use CRUDUI\Validator\Rules\EndDate;
-use CRUDUI\Validator\Rules\Url;
-use CRUDUI\Validator\Rules\Accept;
-use CRUDUI\Validator\Rules\MinCount;
-use CRUDUI\Validator\Rules\MaxCount;
-use CRUDUI\Validator\Rules\Step;
-use CRUDUI\Validator\Rules\RuleInterface;
-use CRUDUI\Validator\Expr\Expression;
-use CRUDUI\Validator\Expr\ConditionalValue;
-use CRUDUI\Validator\Expr\FieldPath;
-use CRUDUI\Validator\Expr\Visibility;
-use CRUDUI\Validator\Values\CanonicalText;
-use CRUDUI\Validator\Values\EmptyValue;
-use CRUDUI\Validator\Values\NumberText;
+use Polyspec\Crudui\Validator\Rules\Required;
+use Polyspec\Crudui\Validator\Rules\Email;
+use Polyspec\Crudui\Validator\Rules\MinLength;
+use Polyspec\Crudui\Validator\Rules\MaxLength;
+use Polyspec\Crudui\Validator\Rules\Min;
+use Polyspec\Crudui\Validator\Rules\Max;
+use Polyspec\Crudui\Validator\Rules\Pattern;
+use Polyspec\Crudui\Validator\Rules\In;
+use Polyspec\Crudui\Validator\Rules\Range;
+use Polyspec\Crudui\Validator\Rules\RangeLength;
+use Polyspec\Crudui\Validator\Rules\Number;
+use Polyspec\Crudui\Validator\Rules\Digits;
+use Polyspec\Crudui\Validator\Rules\EqualTo;
+use Polyspec\Crudui\Validator\Rules\NotEqual;
+use Polyspec\Crudui\Validator\Rules\Date;
+use Polyspec\Crudui\Validator\Rules\DateISO;
+use Polyspec\Crudui\Validator\Rules\EndDate;
+use Polyspec\Crudui\Validator\Rules\Url;
+use Polyspec\Crudui\Validator\Rules\Accept;
+use Polyspec\Crudui\Validator\Rules\MinCount;
+use Polyspec\Crudui\Validator\Rules\MaxCount;
+use Polyspec\Crudui\Validator\Rules\Step;
+use Polyspec\Crudui\Validator\Rules\RuleInterface;
+use Polyspec\Crudui\Validator\Expr\Expression;
+use Polyspec\Crudui\Validator\Expr\ConditionalValue;
+use Polyspec\Crudui\Validator\Expr\FieldPath;
+use Polyspec\Crudui\Validator\Expr\Visibility;
+use Polyspec\Crudui\Validator\Values\CanonicalText;
+use Polyspec\Crudui\Validator\Values\EmptyValue;
+use Polyspec\Crudui\Validator\Values\NumberText;
 
 /**
  * CRUDUI form validator — SPEC §2 G5→§3→§2 G1. Port of
@@ -43,8 +43,8 @@ use CRUDUI\Validator\Values\NumberText;
  * validate/design/behavior/options role slots) AFTER the compose pass has
  * expanded $ref/$patch into a single spec (Validate::run runs compose first).
  * It does NOT re-implement the rule semantics or the expression engine — it CALLS
- * the rule instances (CRUDUI\Validator\Rules) and the CRUDUI expression engine
- * (CRUDUI\Validator\Expr). The logic here is:
+ * the rule instances (Polyspec\Crudui\Validator\Rules) and the CRUDUI expression engine
+ * (Polyspec\Crudui\Validator\Expr). The logic here is:
  *   (a) reading the `validate` slot,
  *   (b) evaluating a rule value that is an expression OR a condition map (G1 —
  *       the condition is the value's expression, never a separate if/when key),
@@ -115,7 +115,7 @@ final class Validator
     /**
      * @param array<string, mixed> $composedSpec a composed CRUDUI root spec — a group
      *        with `properties` (already free of $ref/$patch and forbidden keys).
-     * @throws \CRUDUI\Validator\Compose\ComposeLoadError when a declared rule name or parameter is invalid
+     * @throws \Polyspec\Crudui\Validator\Compose\ComposeLoadError when a declared rule name or parameter is invalid
      */
     public function __construct(array $composedSpec)
     {
@@ -549,7 +549,7 @@ final class Validator
      * @param list<string> $declarationPath
      * @param array<string, string>|null $messages
      * @param array<string, mixed> $allData
-     * @throws \CRUDUI\Validator\Compose\ComposeLoadError when a selected param is invalid
+     * @throws \Polyspec\Crudui\Validator\Compose\ComposeLoadError when a selected param is invalid
      */
     private function runRule(
         string $ruleName,

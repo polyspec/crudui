@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Generator;
+namespace Polyspec\Crudui\Generator;
 
-use CRUDUI\FormError;
-use CRUDUI\Validator\Support\JsonValue;
+use Polyspec\Crudui\FormError;
+use Polyspec\Crudui\Validator\Support\JsonValue;
 use stdClass;
 
 /** Preserve JSON values and resolve form paths and presentation strings. */

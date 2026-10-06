@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI;
+namespace Polyspec\Crudui;
 
 /** Report a generation failure with its stable code and field path. */
 final class FormError extends \RuntimeException

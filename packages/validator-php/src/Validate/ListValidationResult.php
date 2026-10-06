@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Validator\Validate;
+namespace Polyspec\Crudui\Validator\Validate;
 
 /**
  * CRUDUI list-spec validation result — { valid, errors } (SPEC §9). Read sister of

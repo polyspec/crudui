@@ -1,6 +1,6 @@
 /** CRUDUI Svelte node helpers: class and style values for the node grammar (no markup). */
 
-import type { NodeVM } from '@crudui/generator-core';
+import type { NodeVM } from '@polyspec/crudui-generator-core';
 
 /** Join non-empty class names. */
 export function classes(...parts: Array<string | undefined | false>): string {

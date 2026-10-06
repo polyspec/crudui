@@ -1,6 +1,6 @@
 /** Detail HTML rendering with Vue's server renderer. */
 
-import { buildDetail, type BuildDetailOptions } from '@crudui/generator-core';
+import { buildDetail, type BuildDetailOptions } from '@polyspec/crudui-generator-core';
 import { Detail } from './components/Detail.js';
 
 /** Options for a CRUDUI detail SSR render. */

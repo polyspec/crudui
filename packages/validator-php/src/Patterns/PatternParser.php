@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Validator\Patterns;
+namespace Polyspec\Crudui\Validator\Patterns;
 
-use CRUDUI\Validator\Values\CodePointSet;
-use CRUDUI\Validator\Values\Utf8;
+use Polyspec\Crudui\Validator\Values\CodePointSet;
+use Polyspec\Crudui\Validator\Values\Utf8;
 
 /**
  * Recognize the CRUDUI pattern language. A pattern outside the language raises a

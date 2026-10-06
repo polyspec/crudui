@@ -68,18 +68,32 @@ imports load the validator through the public package entry, so local commands
 and CI tests build the validator before running the CLI. Dependency installation
 alone does not generate that package output.
 
+## Package names
+
+The packages follow the naming of the polyspec repositories, as template and hyper do:
+
+| Language | Name |
+|---|---|
+| npm | `@polyspec/crudui-<name>`: `@polyspec/crudui-cli`, `@polyspec/crudui-form-binding`, `@polyspec/crudui-generator-core`, `@polyspec/crudui-generator-html`, `@polyspec/crudui-generator-react`, `@polyspec/crudui-generator-svelte`, `@polyspec/crudui-generator-vue`, `@polyspec/crudui-validator`; the private workspace root is `@polyspec/crudui-workspace` |
+| Composer | `polyspec/crudui-generator` and `polyspec/crudui-validator`, with the PHP namespace `Polyspec\Crudui\`: the classes `Polyspec\Crudui\Generator`, `Polyspec\Crudui\Validator`, `Polyspec\Crudui\Form` and `Polyspec\Crudui\FormError`, the internal namespaces `Polyspec\Crudui\Generator\` and `Polyspec\Crudui\Validator\`; the PHP extension registers the same classes |
+| Rust | the crates `polyspec-crudui-generator` and `polyspec-crudui-validator`, with the libraries `polyspec_crudui_generator` and `polyspec_crudui_validator` |
+| Go | the modules `github.com/polyspec/crudui/packages/generator-go` and `github.com/polyspec/crudui/packages/validator-go` |
+
+`tests/build/package-names.test.mjs` requires these names and fails for a maintained file that names a package
+by an earlier form; the changelog, the checklist and the wave descriptions keep the names that their entries recorded.
+
 ## Acceptance
 
 - `npm ci --strict-allow-scripts` installs the pinned dependencies, and `npm run build` executes the
   declared validator and generator builds in dependency order.
 - The validator, generator-core, generator-html and generator-react load through their public
   CommonJS and ES module exports without importing package source paths.
-- `@crudui/form-binding` loads only through its ES module export. Its declarations are in ES
+- `@polyspec/crudui-form-binding` loads only through its ES module export. Its declarations are in ES
   module format, and neither Node.js nor TypeScript resolves the package for a CommonJS project.
-- `@crudui/generator-vue` declares `"type": "module"` and loads through its ES module and
+- `@polyspec/crudui-generator-vue` declares `"type": "module"` and loads through its ES module and
   CommonJS exports. Its declarations are in ES module format and their relative imports name `.js`
   files, so strict `NodeNext` ES module and CommonJS projects compile against them.
-- `@crudui/generator-svelte` loads through its `svelte` export. Its declarations are in ES module
+- `@polyspec/crudui-generator-svelte` loads through its `svelte` export. Its declarations are in ES module
   format, and their relative imports name `.js` files or `.svelte` files. A strict `NodeNext` ES
   module project compiles against them when an import of a `.svelte` file resolves to the
   `.svelte.d.ts` declaration beside it, as the Svelte toolchain resolves it.

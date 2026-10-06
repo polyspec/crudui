@@ -9,8 +9,8 @@ import { fileURLToPath } from 'node:url';
 
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { Node } from '@crudui/generator-react';
-import { buildDetail } from '@crudui/generator-core';
+import { Node } from '@polyspec/crudui-generator-react';
+import { buildDetail } from '@polyspec/crudui-generator-core';
 
 import { buildTargets } from '../../../examples/form-comparison/src/build-targets.mjs';
 import { dateCases, dateListSpec, imageCase, numberCases, urlCase } from '../../../tests/native-generators/cases.mjs';

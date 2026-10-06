@@ -1,5 +1,5 @@
 {
-  "name": "@crudui/generator-vue",
+  "name": "@polyspec/crudui-generator-vue",
   "version": "0.0.1",
   "description": "Vue 3 form builder component library based on crudui YAML definitions",
   "main": "dist/index.cjs",
@@ -37,7 +37,7 @@
     "vue": "^3.4.0"
   },
   "dependencies": {
-    "@crudui/generator-core": "0.0.1"
+    "@polyspec/crudui-generator-core": "0.0.1"
   },
   "devDependencies": {
     "@types/node": "^26.6.4",

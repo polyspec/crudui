@@ -3,7 +3,7 @@ import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-import { validateDetail, validateList } from '@crudui/validator';
+import { validateDetail, validateList } from '@polyspec/crudui-validator';
 
 import { editedCompanies, firstStore, pipelineCombinations, scoreCellText, stageContent } from './pipeline-flow.mjs';
 import {

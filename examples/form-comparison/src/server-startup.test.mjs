@@ -47,7 +47,7 @@ test('accepts current Composer and native PHP implementations', () => {
 
 test('rejects the repository validator source in PHP health', () => {
   const value = phpHealth('php');
-  value.generator.classes['CRUDUI\\Validator'].file =
+  value.generator.classes['Polyspec\\Crudui\\Validator'].file =
     '/workspace/build/tree/packages/validator-php/src/Public/Validator.php';
   assert.equal(serverReady('php', true, value, expected, expectedSignatures), false);
 });
@@ -62,28 +62,28 @@ test('rejects incomplete or inconsistent PHP provenance', () => {
     value => { value.generator.nativeCRUDUI = true; },
     value => { value.generator.moduleSha256 = moduleSha256; },
     value => { value.generator.composerAutoload = false; },
-    value => { delete value.generator.classes['CRUDUI\\Form']; },
-    value => { value.generator.classes['CRUDUI\\Generator'].file = '/workspace/source/packages/generator-php/src/Generator.php'; },
+    value => { delete value.generator.classes['Polyspec\\Crudui\\Form']; },
+    value => { value.generator.classes['Polyspec\\Crudui\\Generator'].file = '/workspace/source/packages/generator-php/src/Generator.php'; },
   ]) {
     const value = phpHealth('php');
     mutate(value);
     assert.equal(serverReady('php', true, value, expected, expectedSignatures), false);
   }
   const native = phpHealth('php-ext');
-  native.generator.classes['CRUDUI\\Validator'].internal = false;
+  native.generator.classes['Polyspec\\Crudui\\Validator'].internal = false;
   assert.equal(serverReady('php-ext', true, native, expected, expectedSignatures), false);
   for (const mutate of [
     value => { value.generator.moduleSha256 = '0'.repeat(64); },
     value => { value.generator.source.commit = 'b'.repeat(40); },
     value => { value.generator.composerAutoload = true; },
-    value => { delete value.generator.signatures['CRUDUI\\Form']; },
+    value => { delete value.generator.signatures['Polyspec\\Crudui\\Form']; },
   ]) {
     const value = phpHealth('php-ext');
     mutate(value);
     assert.equal(serverReady('php-ext', true, value, expected, expectedSignatures), false);
   }
   const signatures = phpHealth('php-ext');
-  signatures.generator.signatures['CRUDUI\\Generator'].method.return = 'int';
+  signatures.generator.signatures['Polyspec\\Crudui\\Generator'].method.return = 'int';
   assert.equal(serverReady('php-ext', true, signatures, expected, expectedSignatures), false);
   assert.equal(serverReady('php-ext', true, phpHealth('php-ext'), expected), false);
 });

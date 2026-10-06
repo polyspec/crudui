@@ -12,7 +12,7 @@ const FIXTURE: &str = "tests/fixtures/list-validity/cases.json";
 
 use std::path::{Path, PathBuf};
 
-use crudui_validator::list::{validate_list, ValidateListOptions};
+use polyspec_crudui_validator::list::{validate_list, ValidateListOptions};
 use serde_json::Value;
 
 fn fixture_path() -> PathBuf {

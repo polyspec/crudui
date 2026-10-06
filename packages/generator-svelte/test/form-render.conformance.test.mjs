@@ -1,5 +1,5 @@
 import { renderFields } from '../src/internal/renderFields.ts';
-import { ComposeLoadError, FormInputError, UnsupportedFieldTypeError, compileForm } from '@crudui/generator-core';
+import { ComposeLoadError, FormInputError, UnsupportedFieldTypeError, compileForm } from '@polyspec/crudui-generator-core';
 /**
  * Verify Svelte SSR against the shared three-framework form fixtures.
  *

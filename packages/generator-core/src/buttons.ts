@@ -1,6 +1,6 @@
 /** Form buttons: the actions a spec declares with root `buttons`, rendered in the form footer. */
 
-import { FormInputError } from '@crudui/validator';
+import { FormInputError } from '@polyspec/crudui-validator';
 
 import { makeTranslate, type Language } from './content';
 import { styleString } from './css';

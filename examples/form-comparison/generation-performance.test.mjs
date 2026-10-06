@@ -56,7 +56,7 @@ function composerCandidate(t, record) {
   const generatorSource = path.join(root, 'packages/generator-php/src');
   const vendor = path.join(root, 'packages/generator-php/vendor');
   const composer = path.join(vendor, 'composer');
-  const installedValidator = path.join(vendor, 'crudui/validator/src/Public');
+  const installedValidator = path.join(vendor, 'polyspec/crudui-validator/src/Public');
   const validatorSource = path.join(root, 'packages/validator-php/src/Public');
   for (const directory of [generatorSource, composer, installedValidator, validatorSource]) {
     mkdirSync(directory, { recursive: true });
@@ -81,9 +81,9 @@ final class ClassLoader
     public function loadClass(string $class): void
     {
         $files = [
-            'CRUDUI\\Generator' => dirname($this->vendor) . '/src/Generator.php',
-            'CRUDUI\\Form' => dirname($this->vendor) . '/src/Form.php',
-            'CRUDUI\\Validator' => $this->vendor . '/crudui/validator/src/Public/Validator.php',
+            'Polyspec\\Crudui\\Generator' => dirname($this->vendor) . '/src/Generator.php',
+            'Polyspec\\Crudui\\Form' => dirname($this->vendor) . '/src/Form.php',
+            'Polyspec\\Crudui\\Validator' => $this->vendor . '/polyspec/crudui-validator/src/Public/Validator.php',
         ];
         if (isset($files[$class])) require $files[$class];
     }
@@ -99,9 +99,9 @@ return $loader;
 function writeComposerRecord(composer, record, installDirectory) {
   let packageRecord = '';
   if (record === 'valid') {
-    packageRecord = `'crudui/validator' => ['install_path' => ${JSON.stringify(installDirectory)}],`;
+    packageRecord = `'polyspec/crudui-validator' => ['install_path' => ${JSON.stringify(installDirectory)}],`;
   } else if (record === 'malformed') {
-    packageRecord = `'crudui/validator' => ['install_path' => null],`;
+    packageRecord = `'polyspec/crudui-validator' => ['install_path' => null],`;
   }
   writeFileSync(path.join(composer, 'installed.php'), `<?php
 return ['versions' => [${packageRecord}]];
@@ -127,13 +127,13 @@ test('uses the Composer-installed validator copy from the build tree', () => {
   const result = php([
     '$generation=new FormGeneration("php",', JSON.stringify(library), ',$source,null);',
     'echo json_encode(["generator"=>$generation->provenance(),',
-    '"validatorInstall"=>realpath(Composer\\InstalledVersions::getInstallPath("crudui/validator"))],JSON_THROW_ON_ERROR);',
+    '"validatorInstall"=>realpath(Composer\\InstalledVersions::getInstallPath("polyspec/crudui-validator"))],JSON_THROW_ON_ERROR);',
   ].join(''));
   assert.equal(result.error, undefined);
   assert.equal(result.signal, null);
   assert.equal(result.status, 0, result.stderr + '\n' + result.stdout);
   const report = JSON.parse(result.stdout);
-  const installedFile = report.generator.classes['CRUDUI\\Validator'].file;
+  const installedFile = report.generator.classes['Polyspec\\Crudui\\Validator'].file;
   assert.equal(installedFile, path.join(report.validatorInstall, 'src/Public/Validator.php'));
   assert.deepEqual(
     readFileSync(installedFile),
@@ -145,21 +145,21 @@ test('rejects a missing Composer validator package record', t => {
   const candidate = composerCandidate(t, 'missing');
   const result = constructFrom(candidate.root);
   assert.notEqual(result.status, 0);
-  assert.match(result.stderr + result.stdout, /Missing Composer package record: crudui\/validator/);
+  assert.match(result.stderr + result.stdout, /Missing Composer package record: polyspec\/crudui-validator/);
 });
 
 test('rejects a malformed Composer validator package record', t => {
   const candidate = composerCandidate(t, 'malformed');
   const result = constructFrom(candidate.root);
   assert.notEqual(result.status, 0);
-  assert.match(result.stderr + result.stdout, /Malformed Composer package record: crudui\/validator/);
+  assert.match(result.stderr + result.stdout, /Malformed Composer package record: polyspec\/crudui-validator/);
 });
 
 test('uses the selected generator record with another Composer installation', () => {
   const result = php([
     'require ', JSON.stringify(path.join(library, 'packages/generator-php/vendor/autoload.php')), ';',
-    'class_exists(CRUDUI\\Generator::class);class_exists(CRUDUI\\Form::class);',
-    'class_exists(CRUDUI\\Validator::class);',
+    'class_exists(Polyspec\\Crudui\\Generator::class);class_exists(Polyspec\\Crudui\\Form::class);',
+    'class_exists(Polyspec\\Crudui\\Validator::class);',
     'require ', JSON.stringify(path.join(library, 'packages/validator-php/vendor/autoload.php')), ';',
     'new FormGeneration("php",', JSON.stringify(library), ',$source,null);echo "ok\\n";',
   ].join(''));

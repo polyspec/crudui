@@ -1,5 +1,5 @@
 {
-    "name": "crudui/validator",
+    "name": "polyspec/crudui-validator",
     "description": "PHP validator for crudui system - validates form data against YAML specifications",
     "type": "library",
     "license": "MIT",
@@ -16,13 +16,13 @@
     },
     "autoload": {
         "psr-4": {
-            "CRUDUI\\Validator\\": "src/",
-            "CRUDUI\\": "src/Public/"
+            "Polyspec\\Crudui\\Validator\\": "src/",
+            "Polyspec\\Crudui\\": "src/Public/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "CRUDUI\\Validator\\Tests\\": "tests/"
+            "Polyspec\\Crudui\\Validator\\Tests\\": "tests/"
         }
     },
     "scripts": {

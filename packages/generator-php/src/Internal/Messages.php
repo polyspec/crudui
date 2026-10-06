@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Generator;
+namespace Polyspec\Crudui\Generator;
 
-use CRUDUI\FormError;
+use Polyspec\Crudui\FormError;
 
 /** Runtime interface text shared by every renderer and implementation. */
 final class Messages

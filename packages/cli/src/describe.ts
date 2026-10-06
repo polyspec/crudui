@@ -35,7 +35,7 @@ import {
   WIDGET_CANONICAL,
   CELL_FORMATS,
   CELL_FORMAT_DEFAULT,
-} from '@crudui/generator-core/internal';
+} from '@polyspec/crudui-generator-core/internal';
 import {
   getRuleNames,
   ARRAY_LEVEL_RULES,
@@ -46,7 +46,7 @@ import {
   FORBIDDEN_META_KEYS,
   FORBIDDEN_META_KEY_PATTERN,
   scanForbiddenKeys,
-} from '@crudui/validator/internal';
+} from '@polyspec/crudui-validator/internal';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(HERE, '../../..');

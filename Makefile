@@ -174,7 +174,7 @@ lint: ## Lint the repository
 typecheck: ## Type-check every TypeScript package
 	$(NPM) run typecheck
 test-validator-js: ## The TypeScript validator suite
-	$(NPM) test -w @crudui/validator
+	$(NPM) test -w @polyspec/crudui-validator
 test-validator-php: ## The PHP validator suite
 	composer --working-dir=packages/validator-php test
 test-validator-go: ## The Go validator suite
@@ -188,7 +188,7 @@ manifest-test: cargo-downloads-check ## The verification commands of the feature
 require-build: ## Build the packages when their sources or output changed
 	node scripts/require-current-build.mjs
 test-cli: ## The command-line interface suite
-	$(NPM) test -w @crudui/cli
+	$(NPM) test -w @polyspec/crudui-cli
 manifest-check: ## The feature contract manifest
 	$(NPM) run manifest:check
 manifest-docs-check: ## The generated feature contract documents
@@ -328,7 +328,7 @@ build-php-extension:
 test-php-extension: build-php-extension
 	# api.test.mjs loads the vendor directory of generator-php, which installs the validator as a copy; refresh it first,
 	# under the checkout lock of that vendor directory, so two runs never reinstall it at once.
-	node scripts/holder-lock.mjs hold "$(CURDIR)/var/locks/composer-generator-php.lock" -- composer --working-dir=packages/generator-php reinstall crudui/validator --no-interaction
+	node scripts/holder-lock.mjs hold "$(CURDIR)/var/locks/composer-generator-php.lock" -- composer --working-dir=packages/generator-php reinstall polyspec/crudui-validator --no-interaction
 	node scripts/run-tests.mjs node -- tests/native-generators/php-extension-builder.test.mjs packages/php-ext/tests/engine.test.mjs packages/php-ext/tests/api.test.mjs
 
 # Both suites run even when the first fails, so one run reports every failure; any failure fails the target.
@@ -341,7 +341,7 @@ test-native:
 test-native-suites: cargo-downloads-check build-php-extension
 	# generator-php installs the validator as a copy; refresh it from source before any check loads it, under the
 	# checkout lock of that vendor directory, so two runs never reinstall it at once.
-	node scripts/holder-lock.mjs hold "$(CURDIR)/var/locks/composer-generator-php.lock" -- composer --working-dir=packages/generator-php reinstall crudui/validator --no-interaction
+	node scripts/holder-lock.mjs hold "$(CURDIR)/var/locks/composer-generator-php.lock" -- composer --working-dir=packages/generator-php reinstall polyspec/crudui-validator --no-interaction
 	@status=0; \
 	node scripts/run-tests.mjs phpunit --cwd packages/generator-php || status=1; \
 	node scripts/run-tests.mjs go --cwd packages/generator-go -- -race ./... || status=1; \
@@ -364,7 +364,7 @@ test-validators: cargo-downloads-check
 # WebKit. It reads the built validator and renderers.
 test-form-binding:
 	node scripts/require-current-build.mjs
-	$(NPM) test -w @crudui/form-binding
+	$(NPM) test -w @polyspec/crudui-form-binding
 
 # Every suite that records conformance evidence, then the check of that evidence against
 # contracts/features.json (docs/spec/conformance.md). Every suite runs even when an earlier one

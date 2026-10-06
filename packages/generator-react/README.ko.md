@@ -1,13 +1,13 @@
-# @crudui/generator-react
+# @polyspec/crudui-generator-react
 
 [English](README.md).
 
 React에서 폼 인스턴스, 목록, 상세를 렌더링합니다.
 
 ```tsx
-import { buildList, compileForm, createForm } from '@crudui/generator-core';
-import { Form, List } from '@crudui/generator-react';
-import { renderForm, renderList } from '@crudui/generator-react/server';
+import { buildList, compileForm, createForm } from '@polyspec/crudui-generator-core';
+import { Form, List } from '@polyspec/crudui-generator-react';
+import { renderForm, renderList } from '@polyspec/crudui-generator-react/server';
 
 const template = compileForm({
   type: 'group', properties: { name: { type: 'text' } },
@@ -26,14 +26,14 @@ const list = <List vm={buildList(listSpec, rows, { language: 'en' })} layout="ta
 생성합니다. `renderForm(form, options)`은 서버 렌더링용으로 같은 마크업을 문자열로 반환합니다.
 `options`는 이를 [완전한 폼](../../docs/spec/form-runtime.ko.md#완전한-폼)으로 만들며 `Form`도 같은 `options` 속성을 받습니다.
 
-`List`와 `Detail`은 `@crudui/generator-core`의 `buildList(spec, rows, options)`와
+`List`와 `Detail`은 `@polyspec/crudui-generator-core`의 `buildList(spec, rows, options)`와
 `buildDetail(spec, record, options)`로 만든 모델을 렌더링합니다. `renderList(spec, rows, options)`와
 `renderDetail(spec, record, options)`는 문자열을 반환합니다.
 
 컴포넌트 진입점은 `Form`, `List`, `Detail`, `Cell`, `Node`, `Controls`, `Widget`,
 `Outline`, `OutlineView`, `DataView`, `DataPanel`을 내보냅니다. 서버 진입점은
 `renderForm`, `renderList`, `renderDetail`을 내보냅니다. 컴파일, 폼 인스턴스, 모델과 오류 클래스는
-`@crudui/generator-core`에서 가져오며 이 패키지는 이를 다시 내보내지 않습니다.
+`@polyspec/crudui-generator-core`에서 가져오며 이 패키지는 이를 다시 내보내지 않습니다.
 
 - [런타임 계약](../../docs/spec/form-runtime.ko.md)
 - [폼 운영](../../docs/operations/forms.ko.md)

@@ -6,7 +6,7 @@ Each section holds the dependencies and the background of one wave of [the execu
 
 ## Wave 1
 
-Depends on: none. `@crudui/generator-core/crudui.css` is the only stylesheet of the CRUDUI blocks, and it has no rule for a narrow viewport: no test opens a form, a list or a detail at the width of a phone. A page styled with Tailwind CSS cannot build the CRUDUI styles with its Tailwind build and theme. CRUDUI ships its own stylesheet and a Tailwind version, and an installation chooses one of them.
+Depends on: none. `@polyspec/crudui-generator-core/crudui.css` is the only stylesheet of the CRUDUI blocks, and it has no rule for a narrow viewport: no test opens a form, a list or a detail at the width of a phone. A page styled with Tailwind CSS cannot build the CRUDUI styles with its Tailwind build and theme. CRUDUI ships its own stylesheet and a Tailwind version, and either one styles the CRUDUI blocks.
 
 ## Wave 2
 
@@ -35,3 +35,7 @@ Depends on: none. Results depended on the date, the machine or the order of runs
 ## Wave 8
 
 Depends on: none. A field or a group declares `design.show` with a condition on another field, and the five validators skip every rule of a hidden field and of everything it contains, so a branch that a parent value switches off has no required field. Four gaps remain. The browser binding validates with the current data but keeps the `hidden` attribute that the server wrote, so a field appears or disappears only after a new page, rules of a visible field are skipped and errors stay on hidden nodes. A relative path that moves up from a field of a repeated group counts the row key as a level of its own, so `..x` in a row reads a member of the collection instead of a field beside it, and the result depends on the shape of the key. A server cannot tell which submitted values belong to hidden fields. The Rust validator resolves a `design.show` string as an expression without the expression check of the other runtimes. A parent switches its children by the `design.show` of the children, a hidden branch is not validated and not changed, and these gaps are closed in all runtimes with shared cases.
+
+## Wave 9
+
+Depends on: none. The polyspec repositories name their packages after the organization: template publishes `polyspec/template` with the namespace `Polyspec\Template\`, `@polyspec/template-workspace` and the crate `polyspec-template`, and hyper `polyspec/hyper`, `Polyspec\Hyper\` and `@polyspec/hyper`. CRUDUI named its npm packages `@crudui/*`, its Composer packages `crudui/generator` and `crudui/validator`, its PHP classes under `CRUDUI\` and its crates `crudui-generator` and `crudui-validator`, so the polyspec packages followed two conventions. CRUDUI follows the convention of template and hyper.

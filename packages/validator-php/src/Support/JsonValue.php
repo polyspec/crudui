@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Validator\Support;
+namespace Polyspec\Crudui\Validator\Support;
 
 use stdClass;
 

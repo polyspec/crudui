@@ -19,7 +19,7 @@
 
 declare(strict_types=1);
 
-use CRUDUI\Validator\Validate\Validator;
+use Polyspec\Crudui\Validator\Validate\Validator;
 
 $FIXTURES = __DIR__ . '/fixtures';
 

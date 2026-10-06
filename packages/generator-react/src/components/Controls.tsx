@@ -1,5 +1,5 @@
 import * as React from 'react';
-import type { ControlsVM } from '@crudui/generator-core';
+import type { ControlsVM } from '@polyspec/crudui-generator-core';
 
 /** Render one control group of `data-crudui-action` buttons. */
 export function Controls({ controls }: { controls: ControlsVM }): React.ReactElement {

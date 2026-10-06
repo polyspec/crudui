@@ -3,7 +3,7 @@
  * switch role, the switch class and the declared attributes of the field.
  */
 import { describe, expect, test } from 'vitest';
-import { compileForm } from '@crudui/generator-core';
+import { compileForm } from '@polyspec/crudui-generator-core';
 import { normalizeHtml } from '../../../tests/fixtures/form-render/normalize.mjs';
 import { renderFields } from '../src/internal/renderFields.ts';
 

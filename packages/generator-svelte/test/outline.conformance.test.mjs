@@ -9,7 +9,7 @@
 import fs from 'node:fs';
 import { render } from 'svelte/server';
 import { describe, expect, test } from 'vitest';
-import { bindForm, compileForm, formMessages } from '@crudui/generator-core';
+import { bindForm, compileForm, formMessages } from '@polyspec/crudui-generator-core';
 import { normalizeHtml } from '../../../tests/fixtures/form-render/normalize.mjs';
 import { DataPanel, OutlineView } from '../src/index.ts';
 import { provesConformance } from '../../../tests/conformance/evidence.mjs';

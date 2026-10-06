@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Validator\Tests\Expr;
+namespace Polyspec\Crudui\Validator\Tests\Expr;
 
-use CRUDUI\Validator\Expr\Expression;
+use Polyspec\Crudui\Validator\Expr\Expression;
 use PHPUnit\Framework\TestCase;
 
 /**

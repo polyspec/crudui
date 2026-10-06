@@ -27,8 +27,8 @@ No container is required when these toolchains are available locally.
 ## Build before loading data
 
 ```tsx
-import { compileForm, createForm, sequenceRowKey } from '@crudui/generator-core';
-import { Form } from '@crudui/generator-react';
+import { compileForm, createForm, sequenceRowKey } from '@polyspec/crudui-generator-core';
+import { Form } from '@polyspec/crudui-generator-react';
 
 const template = compileForm({
   type: 'group',
@@ -55,7 +55,7 @@ const submission = form.getData();
 Keep the template in the shared cache and create an independent form instance for
 each rendered form. Call `setData` when a record load finishes. Vue and Svelte
 also accept the `form` prop. Framework packages export the same core functions.
-React exports `renderForm(form)` from `@crudui/generator-react/server`; Vue and
+React exports `renderForm(form)` from `@polyspec/crudui-generator-react/server`; Vue and
 Svelte export their rendering functions from their package entries. Vue returns a promise.
 Compile `$ref` files before rendering.
 
@@ -65,8 +65,8 @@ rest of the page writes no part of the form itself. Pass the validation result's
 with replacement texts:
 
 ```ts
-import { validate } from '@crudui/validator';
-import { renderForm } from '@crudui/generator-html';
+import { validate } from '@polyspec/crudui-validator';
+import { renderForm } from '@polyspec/crudui-generator-html';
 
 const result = validate(spec, submitted);
 const form = createForm(template, submitted, { language: 'en' });
@@ -86,8 +86,8 @@ object. Connect a browser binding to the `crudui-form` element, not to the `form
 For framework-independent HTML, use the peer renderer package:
 
 ```ts
-import { connectForm, patchContent } from '@crudui/generator-core';
-import { renderForm, renderList } from '@crudui/generator-html';
+import { connectForm, patchContent } from '@polyspec/crudui-generator-core';
+import { renderForm, renderList } from '@polyspec/crudui-generator-html';
 
 patchContent(host, renderForm(form));
 const connection = connectForm(host, form);
@@ -107,7 +107,7 @@ as well: markup set through `innerHTML` never runs its scripts.
 The HTML renderer returns fragments and does not create the outer `form` element,
 bind browser events, validate data or load records.
 
-Validate `submission` with `validate(spec, submission)` from `@crudui/validator`
+Validate `submission` with `validate(spec, submission)` from `@polyspec/crudui-validator`
 and the original spec. The server assigns saved sequences; apply each returned key to its specific
 collection path. Never replace a token across the entire data object.
 
@@ -115,7 +115,7 @@ collection path. Never replace a token across the entire data object.
 
 ```sh
 npm run test:forms
-npm test -w @crudui/validator
+npm test -w @polyspec/crudui-validator
 make docs-check
 ```
 

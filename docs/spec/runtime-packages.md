@@ -47,8 +47,8 @@ implementation. Go rendering does not depend on Rust, PHP or Node at runtime.
 PHP rendering does not require its native extension. Rust rendering does not
 require the PHP host.
 
-`@crudui/generator-react` exports components without loading `react-dom/server`.
-`@crudui/generator-react/server` exports `renderForm`, `renderList` and
+`@polyspec/crudui-generator-react` exports components without loading `react-dom/server`.
+`@polyspec/crudui-generator-react/server` exports `renderForm`, `renderList` and
 `renderDetail` for server-only string rendering. The component entry does not
 export those server functions.
 
@@ -79,8 +79,8 @@ levels in JavaScript, the HTML renderer, the PHP library, Go, Rust and the PHP e
 the `buildDetail` model with its member order, and the `renderDetail` HTML byte for byte
 with React's server rendering.
 
-Both PHP implementations use the classes `CRUDUI\Generator`,
-`CRUDUI\Validator` and `CRUDUI\Form`. The
+Both PHP implementations use the classes `Polyspec\Crudui\Generator`,
+`Polyspec\Crudui\Validator` and `Polyspec\Crudui\Form`. The
 [PHP API contract](php-extension.md) defines the common methods and
 loading order. The extension registers these classes when enabled. Without the
 extension, Composer autoloads the PHP classes. Examples use the same calls in

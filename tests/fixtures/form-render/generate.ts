@@ -1,6 +1,6 @@
 import { renderFields } from '../../../packages/generator-react/src/internal/renderFields';
-import type { BindFormOptions, CompileFormOptions } from '@crudui/generator-core';
-import { ComposeLoadError, compileForm } from '@crudui/generator-core';
+import type { BindFormOptions, CompileFormOptions } from '@polyspec/crudui-generator-core';
+import { ComposeLoadError, compileForm } from '@polyspec/crudui-generator-core';
 /**
  * Generates shared form-render fixtures for four languages and three frameworks.
  *

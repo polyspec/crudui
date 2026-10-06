@@ -142,7 +142,7 @@ const phpCLI = path.join(programs, 'php/generate.php');
 const phpLiteral = value => "'" + value.replace(/\\/g, '\\\\').replace(/'/g, "\\'") + "'";
 function phpProvenanceSource(autoload) {
   const load = autoload ? `require ${phpLiteral(path.join(ROOT, 'packages/generator-php/vendor/autoload.php'))};` : '';
-  return `${load}$out=[];foreach(['generator'=>'CRUDUI\\Generator','validator'=>'CRUDUI\\Validator','form'=>'CRUDUI\\Form'] as $key=>$class){$out[$key]=class_exists($class,false) ? (new ReflectionClass($class))->isInternal() : ${autoload ? '((new ReflectionClass($class))->isInternal())' : 'null'};}echo json_encode($out);`;
+  return `${load}$out=[];foreach(['generator'=>'Polyspec\\Crudui\\Generator','validator'=>'Polyspec\\Crudui\\Validator','form'=>'Polyspec\\Crudui\\Form'] as $key=>$class){$out[$key]=class_exists($class,false) ? (new ReflectionClass($class))->isInternal() : ${autoload ? '((new ReflectionClass($class))->isInternal())' : 'null'};}echo json_encode($out);`;
 }
 // A target's `build` is a long operation without a time limit; its `probe` is a short check of the
 // program it runs.

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Generator\Tests;
+namespace Polyspec\Crudui\Generator\Tests;
 
 use PHPUnit\Framework\TestCase;
-use CRUDUI\Generator\Numbers;
-use CRUDUI\Generator;
+use Polyspec\Crudui\Generator\Numbers;
+use Polyspec\Crudui\Generator;
 use PHPUnit\Framework\Attributes\DataProvider;
 
 final class NumbersTest extends TestCase
@@ -47,7 +47,7 @@ final class NumbersTest extends TestCase
             try {
                 Numbers::fixed(1.0, $places);
                 self::fail('Invalid precision must fail');
-            } catch (\CRUDUI\FormError $error) {
+            } catch (\Polyspec\Crudui\FormError $error) {
                 self::assertSame('INVALID_FORM_INPUT', $error->getErrorCode());
                 self::assertSame('Number decimals must be between 0 and 100', $error->getMessage());
             }

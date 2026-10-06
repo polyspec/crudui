@@ -17,7 +17,7 @@
 집합보다 우선합니다.
 
 ```js
-import { validate } from '@crudui/validator';
+import { validate } from '@polyspec/crudui-validator';
 
 const spec = {
   type: 'group',
@@ -31,14 +31,14 @@ if (result.valid || result.errors[0]?.rule !== 'required') {
 
 ## PHP
 
-`CRUDUI\Validator::validate`은 스펙, 데이터, 선택적 가상 파일,
+`Polyspec\Crudui\Validator::validate`은 스펙, 데이터, 선택적 가상 파일,
 선택적 로더와 기준 경로를 받습니다. 결과는 `valid`, `errors`, `toArray()`를 제공합니다.
 
 ```php
 <?php
 require 'packages/validator-php/vendor/autoload.php';
 
-use CRUDUI\Validator;
+use Polyspec\Crudui\Validator;
 
 $spec = [
     'type' => 'group',
@@ -82,11 +82,11 @@ func main() {
 ## Rust
 
 크레이트 루트는 `validate`와 `ValidateOptions`를 export합니다. 옵션은 가상 파일,
-로더와 기준 경로를 받습니다. 예제는 `crudui-validator` 크레이트와
+로더와 기준 경로를 받습니다. 예제는 `polyspec-crudui-validator` 크레이트와
 `serde_json` 의존성을 사용해 실행합니다.
 
 ```rust
-use crudui_validator::{validate, ValidateOptions};
+use polyspec_crudui_validator::{validate, ValidateOptions};
 use serde_json::json;
 
 fn main() {
@@ -115,7 +115,7 @@ fn main() {
 3. 같은 키 접두사와 페이지 문구로 파싱된 `form` 요소를 연결합니다.
 
 ```js
-import { bindForm } from '@crudui/form-binding';
+import { bindForm } from '@polyspec/crudui-form-binding';
 
 const texts = { 'email.required': 'Enter your email address.', invalid: 'Check the marked fields.' };
 const spec = JSON.parse(document.querySelector('#member-spec').textContent);
@@ -132,7 +132,7 @@ const binding = bindForm(document.querySelector('#member-form'), spec, {
 발생시키지 않으므로 바인딩이 검증하지 않습니다. 페이지가 폼을 제거하기 전에 `binding.dispose()`를
 호출합니다.
 바인딩은 데이터가 바뀌면 `design.show`를 선언한 필드와 그룹도 값을 바꾸지 않고 보이거나 숨깁니다
-([표시](../spec/form-runtime.ko.md#표시)). `@crudui/validator`의 `hiddenPaths(spec, data)`는 다른 스크립트에
+([표시](../spec/form-runtime.ko.md#표시)). `@polyspec/crudui-validator`의 `hiddenPaths(spec, data)`는 다른 스크립트에
 숨은 경로를 반환합니다.
 
 Chromium, Firefox, WebKit 검사를 포함한 바인딩 검사는 저장소 루트에서 실행합니다.

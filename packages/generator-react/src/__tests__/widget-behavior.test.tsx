@@ -2,7 +2,7 @@ import * as React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { act, fireEvent, render } from '@testing-library/react';
 import { afterEach, beforeEach, expect, it } from 'vitest';
-import { compileForm, createForm } from '@crudui/generator-core';
+import { compileForm, createForm } from '@polyspec/crudui-generator-core';
 import { Form } from '../components/Form';
 // @ts-expect-error Shared widget host across frameworks.
 import { installWidgetHost } from '../../../../tests/fixtures/form-session/typing.mjs';

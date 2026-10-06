@@ -39,7 +39,7 @@ test('reinstalls the Composer copies when the PHP validator or manifests change'
   const composer = buildTargets.find(target => target.id === 'composer');
   assert.equal(composer.steps.at(-1).command, 'node');
   assert.deepEqual(composer.steps.at(-1).args, ['scripts/holder-lock.mjs', 'hold', '/workspace/build/tree/var/locks/composer-generator-php.lock', '--',
-    'composer', '--working-dir=packages/generator-php', 'reinstall', 'crudui/validator', '--no-interaction']);
+    'composer', '--working-dir=packages/generator-php', 'reinstall', 'polyspec/crudui-validator', '--no-interaction']);
 });
 
 test('rebuilds and restarts only the affected native server', () => {

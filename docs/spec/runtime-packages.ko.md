@@ -47,8 +47,8 @@ PHP 구현을 자동 로드합니다. [PHP API 계약](php-extension.ko.md)은 �
 PHP 렌더링은 네이티브 확장을 필수로 요구하지 않습니다. Rust 렌더링은
 PHP 호스트를 요구하지 않습니다.
 
-`@crudui/generator-react`는 `react-dom/server`를 불러오지 않고 컴포넌트를
-내보냅니다. `@crudui/generator-react/server`는 서버 전용 문자열 렌더링 함수
+`@polyspec/crudui-generator-react`는 `react-dom/server`를 불러오지 않고 컴포넌트를
+내보냅니다. `@polyspec/crudui-generator-react/server`는 서버 전용 문자열 렌더링 함수
 `renderForm`, `renderList`, `renderDetail`을 내보냅니다. 컴포넌트 진입점은
 이 서버 함수를 내보내지 않습니다.
 
@@ -78,8 +78,8 @@ PHP 호스트를 요구하지 않습니다.
 PHP 라이브러리, Go, Rust, PHP 확장에서 두 수준으로 비교합니다. 멤버 순서를 포함한 `buildDetail`
 모델과, React 서버 렌더링과 바이트 단위로 같은 `renderDetail` HTML입니다.
 
-두 PHP 구현 모두 `CRUDUI\Generator`, `CRUDUI\Validator`,
-`CRUDUI\Form` 클래스를 사용합니다.
+두 PHP 구현 모두 `Polyspec\Crudui\Generator`, `Polyspec\Crudui\Validator`,
+`Polyspec\Crudui\Form` 클래스를 사용합니다.
 [PHP API 계약](php-extension.ko.md)은 공용 메서드와 로딩 순서를
 정의합니다. 활성화된 확장은 이 클래스를 등록합니다. 확장이 없으면
 Composer가 PHP 클래스를 자동 로드합니다. 예제는 두 설정에서 같은 호출을

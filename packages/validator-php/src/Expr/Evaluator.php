@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CRUDUI\Validator\Expr;
+namespace Polyspec\Crudui\Validator\Expr;
 
-use CRUDUI\Validator\Values\CanonicalText;
+use Polyspec\Crudui\Validator\Values\CanonicalText;
 
 /**
  * CRUDUI expression evaluator (expressions.md §5/§6/§7, JS PathResolver parity).
@@ -500,7 +500,7 @@ final class Evaluator
             return [$value ? 1.0 : 0.0, true];
         }
         if (is_string($value)) {
-            $number = \CRUDUI\Validator\Support\NumberValue::parseString($value);
+            $number = \Polyspec\Crudui\Validator\Support\NumberValue::parseString($value);
             return $number === null ? [0.0, false] : [$number, true];
         }
         return [0.0, false];

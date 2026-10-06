@@ -1,4 +1,4 @@
-// Custom properties of the core stylesheet (@crudui/generator-core/crudui.css): one rule with
+// Custom properties of the core stylesheet (@polyspec/crudui-generator-core/crudui.css): one rule with
 // zero specificity declares every themable property for every crudui block, and no other rule
 // writes a color, so a page themes the form, structure map, data view, list and detail by setting
 // the properties on the blocks.

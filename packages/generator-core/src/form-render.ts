@@ -4,7 +4,7 @@
  * model this module builds, so each one checks the options and places errors the same way.
  */
 
-import { FormInputError } from '@crudui/validator';
+import { FormInputError } from '@polyspec/crudui-validator';
 import type { NodeVM } from './viewmodel';
 
 /** The submission target of the form element; each member overrides the template's `action`. */

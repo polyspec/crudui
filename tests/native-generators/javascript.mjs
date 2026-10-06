@@ -1,7 +1,7 @@
 import { pathToFileURL } from 'node:url';
-import { compileForm, bindForm, bindButtons, formButtonsHtml, buildList, buildDetail, createForm, FormInputError } from '@crudui/generator-core';
-import * as react from '@crudui/generator-react/server';
-import * as html from '@crudui/generator-html';
+import { compileForm, bindForm, bindButtons, formButtonsHtml, buildList, buildDetail, createForm, FormInputError } from '@polyspec/crudui-generator-core';
+import * as react from '@polyspec/crudui-generator-react/server';
+import * as html from '@polyspec/crudui-generator-html';
 
 const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 const own = (value, key) => Object.prototype.hasOwnProperty.call(value, key);

@@ -3,7 +3,7 @@
   without whitespace between them; see Node.svelte.
 -->
 <script lang="ts">
-  import type { ControlsVM } from '@crudui/generator-core';
+  import type { ControlsVM } from '@polyspec/crudui-generator-core';
 
   let { controls }: { controls: ControlsVM } = $props();
 </script>

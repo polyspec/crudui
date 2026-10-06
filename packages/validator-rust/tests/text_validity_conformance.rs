@@ -9,7 +9,7 @@ use std::path::PathBuf;
 
 use serde_json::{json, Value};
 
-use crudui_validator::text::{self, JsonString, JsonText};
+use polyspec_crudui_validator::text::{self, JsonString, JsonText};
 
 fn fixture(feature: &str) -> (String, Vec<JsonText>) {
     let relative = format!("tests/fixtures/text-validity/{feature}/cases.json");
@@ -27,7 +27,7 @@ fn fixture(feature: &str) -> (String, Vec<JsonText>) {
     }
 }
 
-fn outcome(result: Result<Value, crudui_validator::ValidateError>) -> Value {
+fn outcome(result: Result<Value, polyspec_crudui_validator::ValidateError>) -> Value {
     match result {
         Ok(value) => value,
         Err(error) => json!({"code": error.code(), "message": error.message(), "at": error.at()}),
@@ -155,7 +155,7 @@ fn json_text_locates_invalid_text() {
     );
     let error = text::check_specification(None, Some(&named)).unwrap_err();
     match error {
-        crudui_validator::ValidateError::Load(load_error) => {
+        polyspec_crudui_validator::ValidateError::Load(load_error) => {
             assert_eq!(load_error.code.as_str(), "INVALID_TEXT");
             assert_eq!(load_error.trace.join("."), "a");
         }

@@ -1,7 +1,7 @@
 /** Build the read-only detail model from the shared list display engine. */
 
-import { FormInputError } from '@crudui/validator';
-import { checkedComposition } from '@crudui/validator/internal';
+import { FormInputError } from '@polyspec/crudui-validator';
+import { checkedComposition } from '@polyspec/crudui-validator/internal';
 import { buildDisplay, type ActionVM, type BuildListOptions, type CellVM } from './list';
 import { checkArgumentText, DISPLAY_OPTIONS } from './input-text';
 import type { ResolvedDesign } from './design';

@@ -4,7 +4,7 @@
  * after the field's control attributes, and design.group on the choices element.
  */
 import { describe, expect, test } from 'vitest';
-import { compileForm, createForm } from '@crudui/generator-core';
+import { compileForm, createForm } from '@polyspec/crudui-generator-core';
 import { renderForm } from './index';
 
 const render = (field: Record<string, unknown>, data: Record<string, unknown> = {}) =>
