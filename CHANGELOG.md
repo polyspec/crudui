@@ -1,5 +1,12 @@
 # Changes
 
+## 2026-10-06 — Shared cases of display switching (C8.5)
+
+- Shared validation cases fix the server result of display switching in the five validators: a
+  group subtree with its required fields switched by a sibling, two nested groups switched by the
+  same value, and groups inside repeated rows switched by their row and by the value beside the
+  collection.
+
 ## 2026-10-06 — Rust visibility like the other runtimes (C8.4)
 
 - The Rust validator, and the Rust renderer that uses its visibility, resolve `design.show` as a

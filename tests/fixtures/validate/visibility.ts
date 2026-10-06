@@ -374,6 +374,63 @@ export const VISIBILITY_CASES: Array<WrittenCase | FailingCase> = [
     hidden: ['items.__a__.note'],
     expected: result(),
   },
+  // Display switching: a parent value switches a subtree and its required fields on and off.
+  ...([['off', 'b', [], ['details']], ['on', 'a', [error('details.name', 'required', ''), error('details.inner.code', 'required', '')], []]] as const)
+    .map(([state, kind, errors, hidden]): WrittenCase => ({
+      name: `switch-group-subtree-${state}`,
+      note: 'a group whose design.show reads a sibling switches every rule of its subtree, a nested group included.',
+      spec: { type: 'group', properties: {
+        kind: { type: 'text' },
+        details: { type: 'group', design: { show: ".kind == 'a'" }, properties: {
+          name: { type: 'text', validate: { required: true } },
+          inner: { type: 'group', properties: { code: { type: 'text', validate: { required: true } } } },
+        } },
+      } },
+      data: { kind, details: { name: '', inner: { code: '' } } },
+      hidden: [...hidden],
+      expected: result(...errors),
+    })),
+  ...([['off', ['outer', 'outer.inner'], []], ['on', ['outer.inner'], []], ['deep', [], [error('outer.inner.code', 'required', '')]]] as const)
+    .map(([mode, hidden, errors]): WrittenCase => ({
+      name: `switch-nested-levels-${mode}`,
+      note: "two nested groups switched by the same parent value: the inner group reads it with '..', and its required field applies only when both groups are shown.",
+      spec: { type: 'group', properties: {
+        mode: { type: 'text' },
+        outer: { type: 'group', design: { show: ".mode != 'off'" }, properties: {
+          inner: { type: 'group', design: { show: "..mode == 'deep'" }, properties: {
+            code: { type: 'text', validate: { required: true } },
+          } },
+        } },
+      } },
+      data: { mode, outer: { inner: { code: '' } } },
+      hidden: [...hidden],
+      expected: result(...errors),
+    })),
+  ...([
+    ['strict', ['rows.r2.extra'], [error('rows.r1.extra.note', 'required', ''), error('rows.r1.extra.flag.code', 'required', '')]],
+    ['loose', ['rows.r1.extra.flag', 'rows.r2.extra', 'rows.r2.extra.flag'], [error('rows.r1.extra.note', 'required', '')]],
+  ] as const).map(([mode, hidden, errors]): WrittenCase => ({
+    name: `switch-rows-${mode}`,
+    note: "in each row a group is switched by the kind of its row, and a group inside it by the value beside the collection, read with '...' because the row is one level.",
+    spec: { type: 'group', properties: {
+      mode: { type: 'text' },
+      rows: { type: 'group', multiple: true, properties: {
+        kind: { type: 'text' },
+        extra: { type: 'group', design: { show: ".kind == 'x'" }, properties: {
+          note: { type: 'text', validate: { required: true } },
+          flag: { type: 'group', design: { show: "...mode == 'strict'" }, properties: {
+            code: { type: 'text', validate: { required: true } },
+          } },
+        } },
+      } },
+    } },
+    data: { mode, rows: {
+      r2: { kind: 'y', extra: { note: '', flag: { code: '' } } },
+      r1: { kind: 'x', extra: { note: '', flag: { code: '' } } },
+    } },
+    hidden: [...hidden],
+    expected: result(...errors),
+  })),
   {
     name: 'visibility-hidden-value-still-read',
     note: 'A hidden field reports nothing, but equalTo and a required condition elsewhere read its kept value.',
