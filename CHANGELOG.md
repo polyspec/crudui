@@ -1,5 +1,12 @@
 # Changes
 
+## 2026-10-06 — Rust visibility like the other runtimes (C8.4)
+
+- The Rust validator, and the Rust renderer that uses its visibility, resolve `design.show` as a
+  conditional parameter: a string is an expression only when it is a condition expression that
+  parses completely, so `enabled` is a literal that shows the field, and a ternary gives its branch
+  value, so a branch `0` is not false.
+
 ## 2026-10-06 — Hidden paths in the validation result (C8.3)
 
 - The validation result of the five validators holds `hidden`, the data paths of the fields whose

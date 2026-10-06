@@ -149,6 +149,22 @@ export const VISIBILITY_CASES: Array<WrittenCase | FailingCase> = [
     expected: result(error('literal', 'required', '')),
   },
   {
+    name: 'visibility-show-literal-identifier',
+    note: "A design.show string that is not a condition expression is a literal even when it parses: 'enabled' is a literal and shows the field, and a ternary whose branch is 0 resolves to 0, which is not false.",
+    spec: {
+      type: 'group',
+      properties: {
+        enabled: { type: 'text' },
+        word: { type: 'text', design: { show: 'enabled' }, validate: { required: true } },
+        zero: { type: 'text', design: { show: ".enabled == 1 ? true : 0" }, validate: { required: true } },
+        off: { type: 'text', design: { show: ".enabled == 1 ? true : false" }, validate: { required: true } },
+      },
+    },
+    data: { enabled: 0, word: '', zero: '', off: '' },
+    hidden: ['off'],
+    expected: result(error('word', 'required', ''), error('zero', 'required', '')),
+  },
+  {
     name: 'visibility-hidden-data-shape',
     note: 'The data shape is an input contract, checked whether or not the field is visible.',
     spec: {

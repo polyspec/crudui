@@ -274,6 +274,14 @@ export const WRITTEN_CASES = [
     expected_html: html,
   })),
   {
+    name: 'design-show-literal-identifier-visible',
+    note: 'A design.show string that parses but is not a condition expression, such as a bare name, is a literal: the field renders without the hidden attribute.',
+    spec: G({ mode: { type: 'text', label: 'Mode' }, note: { type: 'text', label: 'Note', design: { show: 'mode' } } }),
+    data: { mode: '', note: 'kept' },
+    options: { language: 'en' },
+    expected_html: VISIBLE_NOTE.replace('value="off"', 'value=""'),
+  },
+  {
     name: 'design-show-literal-string-visible',
     note: 'A design.show string that is not a valid expression is a literal and only false hides: the field renders without the hidden attribute.',
     spec: G({ mode: { type: 'text', label: 'Mode' }, note: { type: 'text', label: 'Note', design: { show: '.mode == (' } } }),

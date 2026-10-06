@@ -838,7 +838,7 @@ fn field_name(path: &[String]) -> String {
 // ---------------------------------------------------------------------------
 
 /// JS `/\?[^:]*:/` test: a '?' that has a ':' somewhere after it.
-fn has_ternary_regex(s: &str) -> bool {
+pub(crate) fn has_ternary_regex(s: &str) -> bool {
     if let Some(q) = s.find('?') {
         return s[q + 1..].contains(':');
     }

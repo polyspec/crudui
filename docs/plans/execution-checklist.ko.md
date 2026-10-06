@@ -142,5 +142,5 @@
 | C8.1 | 브라우저 바인딩이 표시를 갱신한다. 변경마다 `@crudui/validator`의 새 export `hiddenPaths(spec, data)`로 `design.show`에 따른 각 노드의 `hidden` 속성을 쓰고, 숨게 된 노드와 그 안의 노드의 오류를 지우며, 값은 바꾸지 않는다 | `make test-form-binding`, `make test-validator-js` | [o] |
 | C8.2 | 반복 그룹의 필드에서 위로 올라가는 상대 경로를 행을 한 단계로 하여 결정한다. 행 안의 `..x`는 행 키가 무엇이든 collection 옆의 필드를 읽으며, 검증기 다섯 개와 렌더러가 같다. expression 계약의 경로 결정을 고치고 공유 사례를 추가한다 | `make test-validators`, `make test-php-extension`, `npm test -w @crudui/generator-core` | [o] |
 | C8.3 | 검증기 다섯 개가 검증 결과와 함께 숨은 필드의 데이터 경로를 돌려주어, 서버가 숨은 가지의 값을 저장하지 않을 수 있게 한다 | `make test-validators`, `make test-php-extension` | [o] |
-| C8.4 | Rust 검증기가 다른 런타임처럼 condition expression일 때만 `design.show` 문자열을 expression으로 결정한다. 공유 사례 `show: "enabled"`를 추가한다 | `make test-validator-rust` | [ ] |
+| C8.4 | Rust 검증기가 다른 런타임처럼 condition expression일 때만 `design.show` 문자열을 expression으로 결정한다. 공유 사례 `show: "enabled"`를 추가한다 | `make test-validator-rust` | [o] |
 | C8.5 | 부모 값이 켜고 끄는 필수 필드의 공유 검증 사례를 추가한다. 그룹 subtree, 두 단계 중첩 그룹, 반복 행 안의 전환, 행의 부모를 읽는 전환 | `make test-validators`, `make test-php-extension` | [ ] |
