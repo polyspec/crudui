@@ -23,7 +23,7 @@ Composer 의존성을 설치하며 PHP·Go·Cargo를 `PATH`에서 실행할 수 
 `npm run test:runtimes`가 실행하는 `tests/build/rust-release-profile.test.mjs`가 이를 검사합니다.
 
 개발하는 동안에는 바뀐 것을 소유한 unit test, 곧 그 Red와 Green case만 실행합니다. end-to-end 검사(browser,
-container, form comparison, native와 cross-check suite, 전체 build), `make owner-check`, 전체 실행 `make ci`는 push 뒤에
+container, form comparison, native와 cross-check suite, 전체 build), `make owner-check`, 전체 실행 `make ci`는 pull request의
 CI에서 실행하며, push나 commit 전에 local 검사를 요구하는 규칙은 없습니다. pre-push hook은 checklist 작업이 `[~]`인
 동안 push를 거부할 뿐입니다(아래). `make ci`와 `make owner-check`는 요청할 때 실행할 수 있습니다.
 
@@ -79,7 +79,7 @@ scripts/check-conformance.mjs`가 읽는, 통과한 명령의 적합성 증거�
 `make ci`와 같이 거부되고, record가 없을 때, record가 다른 tree의 것일 때, 그 tree의 전체 실행이 통과했을 때도 거부됩니다. 각 재실행을
 record의 `reruns`에 쓰고, 모든 명령이 통과하면 그 tree의 결과는 `passed`가 됩니다.
 
-CI workflow는 `main`으로의 push마다 같은 명령을 job에서 실행하고 `make ci`는 실행하지 않으므로 guard는 CI 실행을 판단하지 않습니다.
+CI workflow는 pull request와 merge group마다 같은 명령을 job에서 실행하고 `make ci`는 실행하지 않으므로 guard는 CI 실행을 판단하지 않습니다.
 CI처럼 새 checkout에는 record가 없으므로, 그곳에서 `make ci`는 `[~]` 작업이 없고 tree가 깨끗하면 실행됩니다.
 
 요청하면 `make owner-check`는 바뀐 경로를 소유한 검사를 실행합니다. 경로는 commit되지 않은 변경과 새 file,
@@ -107,11 +107,14 @@ Git은 hook을 version 관리하지 않습니다. 모든 `make` 실행은 Makefi
 실행하며, `make hooks-check`도 이것을 실행합니다. 이 검사는 `core.hooksPath`가 `.githooks`가 아니거나 `.githooks/pre-push`가 실행
 가능한 file이 아니면 실패하고 해결 방법을 적습니다. `make ci`의 guard도 같은 이유로 거부합니다.
 
-hook이 없는 clone이나 hook을 건너뛴 push도 GitHub에 도달합니다. `.github/workflows/push-gate.yml`의 job `push-gate`는 모든 branch로의
-push와 모든 pull request에서 실행되어, push된 commit(pull request의 head commit)을 checkout하고
+hook이 없는 clone이나 hook을 건너뛴 push도 GitHub에 도달합니다. `.github/workflows/push-gate.yml`의 job `push-gate`는 merge queue의 branch를 뺀 모든 branch로의
+push, 모든 pull request, 모든 merge group에서 실행되어, push된 commit(pull request의 head commit, merge group의 commit)을 checkout하고
 `node scripts/push-gate.mjs commit HEAD`를 실행합니다. 이 job은 그 commit의 checklist에 진행 중인 작업이 있을 때, commit에 checklist가 없을 때, commit이
 `.githooks/pre-push`를 실행 가능한 file(mode `100755`)로 추적하지 않을 때 실패하며, 거부 내용을 progress line으로, 각 줄을 error
-annotation으로, 그리고 job summary에 출력합니다.
+annotation으로, 그리고 job summary에 출력합니다. 같은 step은 `make records-check`도 실행합니다. `scripts/check-documents.mjs`와
+checklist, link, changelog, 문장, example과 fixture README test로, Node.js만 필요하고 network와 이력을 읽지 않습니다. 그래서
+문서나 checklist 규칙을 어긴 commit은 ruleset `main`이 요구하는 check에 실패합니다([저장소 설정](repository.ko.md#main-게시)).
+`make docs-check-documents`는 나머지 문서 검사와 함께 `make records-check`를 실행합니다.
 
 개별 명령은 다음과 같습니다.
 

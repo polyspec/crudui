@@ -22,7 +22,7 @@
   type is one of feat, fix, docs, style, refactor, test or chore.
 - During development, run only the unit tests that own the change: its Red and Green cases. End-to-end
   checks (browsers, containers, the form comparison, the native and cross-check suites, full builds),
-  `make owner-check` and the full run `make ci` run in CI after the push, and no rule requires a local
+  `make owner-check` and the full run `make ci` run in CI on the pull request, and no rule requires a local
   check before a push or a commit. A failure that CI reports gets a task like any other defect.
   Every test reports its own running, completion, success or failure with
   its elapsed time. Each test case is a short verification unit and has its own timeout; a
@@ -43,7 +43,25 @@
   installs and checks the hook, and `make hooks-check` fails while it is not installed. The job
   `push-gate` of `.github/workflows/push-gate.yml` runs `node scripts/push-gate.mjs commit <sha>`
   on every pushed commit and pull request and fails with the same message for a push that passed
-  no hook.
+  no hook; it then runs `make records-check`, the document and checklist rules with Node.js alone,
+  so a commit that breaks them fails it too.
+- Every change reaches `main` through a pull request and the merge queue, the owner's and every
+  agent's alike; no command of this repository pushes `main`. Publish a branch with the standard
+  commands of GitHub, or with the GitHub UI:
+
+  ```sh
+  git push origin HEAD:refs/heads/<branch>
+  gh pr create --base main --head <branch> --fill
+  gh pr merge <branch> --auto --rebase
+  ```
+
+  The ruleset `main` of `.github/repository.json` requires a pull request without approval, the
+  merge queue with the method `REBASE`, a linear history and the checks of the job `push-gate` and of
+  every job of `.github/workflows/ci.yml`, refuses a force-push and a deletion of `main` and has no
+  bypass actor, so GitHub refuses a direct push to `main`, from an administrator too. The rebase
+  gives the merged commits new hashes, so `git pull --rebase` drops the local commits that the queue
+  merged. `make github-settings` applies the declaration, and `make github-settings-check` fails
+  when the repository differs from it (`docs/operations/repository.md`).
 - Keep contracts in `docs/spec/`, implementation and deployment status in
   `docs/features.md`, procedures in `docs/operations/`, planned tasks with their
   verification and completion in `docs/plans/execution-checklist.md`, and actual

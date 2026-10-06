@@ -10,7 +10,8 @@
     "allow_squash_merge": true,
     "allow_merge_commit": true,
     "allow_rebase_merge": true,
-    "delete_branch_on_merge": false
+    "allow_auto_merge": true,
+    "delete_branch_on_merge": true
   },
   "actions": {
     "enabled": true,
@@ -27,7 +28,144 @@
   },
   "environments": {
     "github-pages": {
-      "deploymentBranches": ["main"]
+      "deploymentBranches": [
+        "main"
+      ]
     }
+  },
+  "ruleset": {
+    "name": "main",
+    "target": "branch",
+    "enforcement": "active",
+    "bypass_actors": [],
+    "conditions": {
+      "ref_name": {
+        "include": [
+          "refs/heads/main"
+        ],
+        "exclude": []
+      }
+    },
+    "rules": [
+      {
+        "type": "deletion"
+      },
+      {
+        "type": "non_fast_forward"
+      },
+      {
+        "type": "required_linear_history"
+      },
+      {
+        "type": "pull_request",
+        "parameters": {
+          "required_approving_review_count": 0,
+          "dismiss_stale_reviews_on_push": false,
+          "require_code_owner_review": false,
+          "require_last_push_approval": false,
+          "required_review_thread_resolution": false,
+          "require_extra_approval_for_unattributed_changes": false,
+          "required_reviewers": [],
+          "dismissal_restriction": {
+            "enabled": false,
+            "allowed_actors": []
+          },
+          "allowed_merge_methods": [
+            "merge",
+            "squash",
+            "rebase"
+          ]
+        }
+      },
+      {
+        "type": "merge_queue",
+        "parameters": {
+          "merge_method": "REBASE",
+          "grouping_strategy": "ALLGREEN",
+          "max_entries_to_build": 5,
+          "min_entries_to_merge": 1,
+          "max_entries_to_merge": 5,
+          "min_entries_to_merge_wait_minutes": 0,
+          "check_response_timeout_minutes": 360
+        }
+      },
+      {
+        "type": "required_status_checks",
+        "parameters": {
+          "strict_required_status_checks_policy": false,
+          "do_not_enforce_on_create": false,
+          "required_status_checks": [
+            {
+              "context": "push-gate",
+              "integration_id": 15368
+            },
+            {
+              "context": "build, lint and types",
+              "integration_id": 15368
+            },
+            {
+              "context": "validator · JavaScript",
+              "integration_id": 15368
+            },
+            {
+              "context": "validator · PHP (8.4)",
+              "integration_id": 15368
+            },
+            {
+              "context": "validator · PHP (8.5)",
+              "integration_id": 15368
+            },
+            {
+              "context": "validator · Go",
+              "integration_id": 15368
+            },
+            {
+              "context": "validator · Rust",
+              "integration_id": 15368
+            },
+            {
+              "context": "documentation gate",
+              "integration_id": 15368
+            },
+            {
+              "context": "cross-check console gateway",
+              "integration_id": 15368
+            },
+            {
+              "context": "command-line interface",
+              "integration_id": 15368
+            },
+            {
+              "context": "Form instances and data injection",
+              "integration_id": 15368
+            },
+            {
+              "context": "Form comparison runner regressions",
+              "integration_id": 15368
+            },
+            {
+              "context": "Record stores and the canonical flow",
+              "integration_id": 15368
+            },
+            {
+              "context": "Packages, public builds and browser inspector",
+              "integration_id": 15368
+            },
+            {
+              "context": "Native generation and PHP API (8.4)",
+              "integration_id": 15368
+            },
+            {
+              "context": "Native generation and PHP API (8.5)",
+              "integration_id": 15368
+            },
+            {
+              "context": "conformance evidence against the standard",
+              "integration_id": 15368
+            }
+          ]
+        }
+      }
+    ]
   }
 }

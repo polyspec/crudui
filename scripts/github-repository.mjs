@@ -1,11 +1,14 @@
 #!/usr/bin/env node
 /**
- * Apply or check the GitHub repository settings declared in .github/repository.json.
+ * Apply or check the GitHub repository settings declared in .github/repository.json, the ruleset of `main` included.
  *
  *   node scripts/github-repository.mjs apply   change only what differs (idempotent)
  *   node scripts/github-repository.mjs check   change nothing; fail when anything differs
  *
- * Requires an authenticated `gh`. Every read and write goes through `gh api`.
+ * The ruleset requires a pull request, the merge queue and the checks of the push check and the CI workflow on `main`,
+ * so every change reaches `main` through a pull request and the merge queue; this script publishes nothing
+ * (docs/operations/repository.md). Requires an authenticated `gh` with administration rights on the repository. Every
+ * read and write goes through `gh api`.
  */
 import { execFile } from 'node:child_process';
 import { readFile } from 'node:fs/promises';
@@ -39,6 +42,63 @@ async function expectOk(api, method, path, body) {
 
 const pick = (object, keys) => Object.fromEntries(keys.map((key) => [key, object?.[key] ?? null]));
 const differs = (actual, wanted) => JSON.stringify(actual) !== JSON.stringify(wanted);
+
+/** JSON with the keys of every object sorted, so two values compare by content. */
+function canonical(value) {
+  const sorted = (entry) => {
+    if (Array.isArray(entry)) return entry.map(sorted);
+    if (entry !== null && typeof entry === 'object') {
+      return Object.fromEntries(Object.keys(entry).sort().map((key) => [key, sorted(entry[key])]));
+    }
+    return entry;
+  };
+  return JSON.stringify(sorted(value) ?? null);
+}
+
+const byCanonical = (a, b) => (canonical(a) < canonical(b) ? -1 : canonical(a) > canonical(b) ? 1 : 0);
+
+/**
+ * The fields of a ruleset that the declaration sets, in an order-free form: the rules, the required checks, the merge
+ * methods and the bypass actors sorted. Fields that GitHub adds (id, source, _links, timestamps) are not compared.
+ */
+export function rulesetFields(ruleset, keys) {
+  const picked = pick(ruleset, keys);
+  if (Array.isArray(picked.bypass_actors)) picked.bypass_actors = [...picked.bypass_actors].sort(byCanonical);
+  if (Array.isArray(picked.rules)) {
+    picked.rules = picked.rules.map((rule) => {
+      const parameters = { ...rule.parameters };
+      for (const key of ['required_status_checks', 'allowed_merge_methods']) {
+        if (Array.isArray(parameters[key])) parameters[key] = [...parameters[key]].sort(byCanonical);
+      }
+      return rule.parameters ? { ...rule, parameters } : rule;
+    }).sort(byCanonical);
+  }
+  return JSON.parse(canonical(picked));
+}
+
+/** The change of the ruleset of the declared name, or none; fails when the name is not unique. Reads only. */
+async function rulesetChanges(declaration, api) {
+  const repo = `repos/${declaration.repository}`;
+  const { ruleset } = declaration;
+  const listed = (await expectOk(api, 'GET', `${repo}/rulesets?includes_parents=false&per_page=100`)) ?? [];
+  const named = listed.filter((entry) => entry.name === ruleset.name);
+  if (named.length > 1) {
+    throw new Error(`${declaration.repository} has ${named.length} rulesets named ${ruleset.name} (ids ${named.map((entry) => entry.id).join(', ')}); delete all but one`);
+  }
+  if (named.length === 0) {
+    return [{ what: `ruleset ${ruleset.name}`, actual: null, wanted: ruleset.name, method: 'POST', path: `${repo}/rulesets`, body: ruleset }];
+  }
+  const live = await expectOk(api, 'GET', `${repo}/rulesets/${named[0].id}`);
+  const keys = Object.keys(ruleset);
+  const actual = rulesetFields(live, keys);
+  const wanted = rulesetFields(ruleset, keys);
+  const fields = keys.filter((key) => canonical(actual[key]) !== canonical(wanted[key]));
+  if (fields.length === 0) return [];
+  return [{
+    what: `ruleset ${ruleset.name} (${fields.join(', ')})`, actual: pick(actual, fields), wanted: pick(wanted, fields),
+    method: 'PUT', path: `${repo}/rulesets/${named[0].id}`, body: ruleset,
+  }];
+}
 
 /**
  * Compare the declaration with the live repository and return the changes, each with a
@@ -102,6 +162,7 @@ export async function plan(declaration, api) {
       }
     }
   }
+  changes.push(...await rulesetChanges(declaration, api));
   return changes;
 }
 

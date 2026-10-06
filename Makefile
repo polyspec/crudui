@@ -29,7 +29,7 @@ export GOPROXY := off
 export npm_config_offline := true
 export COMPOSER_DISABLE_NETWORK := 1
 ONLINE := env -u CARGO_NET_OFFLINE -u GOPROXY -u npm_config_offline -u COMPOSER_DISABLE_NETWORK
-.PHONY: help ci-targets push-gate-check install install-npm install-node-modules install-composer install-rust install-phpdocumentor install-browsers check-ci-browser test-runtimes test-dependencies build lint typecheck test-validator-js test-validator-php test-validator-go test-validator-rust test-cross-check manifest-test require-build test-cli manifest-check manifest-docs-check test-forms test-form-comparison test-form-comparison-pipeline test-packages test-build test-build-repeat test-inspector test-bench check-conformance install-crates install-ordered-json install-cargo-audit cargo-downloads-check dependency-review toolchain-check owner-check test-ordered-json docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-extension test-native test-native-suites test-validators test-form-binding conformance format-check deploy deploy-verify deploy-watch github-settings github-settings-check hooks hooks-check ci rerun-failed test-form-styles-linux remove-form-styles-image
+.PHONY: help ci-targets push-gate-check install install-npm install-node-modules install-composer install-rust install-phpdocumentor install-browsers check-ci-browser test-runtimes test-dependencies build lint typecheck test-validator-js test-validator-php test-validator-go test-validator-rust test-cross-check manifest-test require-build test-cli manifest-check manifest-docs-check test-forms test-form-comparison test-form-comparison-pipeline test-packages test-build test-build-repeat test-inspector test-bench check-conformance install-crates install-ordered-json install-cargo-audit cargo-downloads-check dependency-review toolchain-check owner-check test-ordered-json docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-extension test-native test-native-suites test-validators test-form-binding conformance format-check deploy deploy-verify deploy-watch github-settings github-settings-check records-check hooks hooks-check ci rerun-failed test-form-styles-linux remove-form-styles-image
 .NOTPARALLEL: docs docs-web docs-dev docs-preview docs-check docs-verify-idempotent
 
 # Validator benchmark iteration counts (override on the command line, e.g.
@@ -78,8 +78,9 @@ help: ## 타겟 설명
 	@echo "  make deploy                Deploy the comparison service from the current tree"
 	@echo "  make deploy-verify         Verify the deployed comparison service"
 	@echo "  make deploy-watch          Publish working-tree changes to the comparison service"
-	@echo "  make github-settings       Apply the repository settings in .github/repository.json"
+	@echo "  make github-settings       Apply the repository settings and the ruleset main in .github/repository.json"
 	@echo "  make github-settings-check Fail when the repository settings differ from the declaration"
+	@echo "  make records-check         The document and checklist rules that need Node.js alone"
 	@echo ""
 	@echo "CRUDUI validator benchmark — make targets:"
 	@echo ""
@@ -254,8 +255,8 @@ docs-check-documents: cargo-downloads-check
 	@status=0; \
 	$(NPM) run manifest:check || status=1; \
 	$(NPM) run manifest:docs:check || status=1; \
-	node scripts/check-documents.mjs || status=1; \
-	node scripts/run-tests.mjs node -- scripts/checklist-markers.test.mjs scripts/documentation-links.test.mjs scripts/gen-api-docs.test.mjs scripts/check-doc-coverage.test.mjs scripts/php-doc-coverage.test.mjs || status=1; \
+	$(MAKE) --no-print-directory records-check || status=1; \
+	node scripts/run-tests.mjs node -- scripts/gen-api-docs.test.mjs scripts/check-doc-coverage.test.mjs scripts/php-doc-coverage.test.mjs || status=1; \
 	$(NPM) run test:docs || status=1; \
 	$(NPM) run docs:build || status=1; \
 	exit $$status
@@ -407,12 +408,23 @@ deploy-verify: ## Verify the deployed comparison service
 deploy-watch: ## Publish working-tree changes to the comparison service
 	node examples/form-comparison/source-events.mjs
 
-# GitHub repository settings declared in .github/repository.json (docs/operations/repository.md).
+# GitHub repository settings declared in .github/repository.json (docs/operations/repository.md), the ruleset main
+# included: every change reaches main through a pull request and the merge queue. These targets act on the repository on
+# GitHub, so neither make ci nor a CI job runs them.
 github-settings: ## Apply the declared repository settings (idempotent)
 	node scripts/github-repository.mjs apply
 
 github-settings-check: ## Fail when the repository settings differ from the declaration
 	node scripts/github-repository.mjs check
+
+# The document and checklist rules that need Node.js alone and read no network: the job push-gate runs them on every
+# pushed commit, so the check that the ruleset main requires fails a commit that breaks them. Both commands run even
+# when the first fails.
+records-check: ## Check the document pairs, links, changelog, writing and checklist rules with Node.js alone
+	@status=0; \
+	node scripts/check-documents.mjs || status=1; \
+	node scripts/run-tests.mjs node --timeout 10 -- scripts/checklist-markers.test.mjs scripts/documentation-links.test.mjs tests/docs/changelog.test.mjs tests/docs/repository-writing.test.mjs tests/docs/candidate-verification-procedure.test.mjs tests/docs/example-readmes.test.mjs tests/docs/fixture-readmes.test.mjs || status=1; \
+	exit $$status
 
 # The pre-push hook of every push (scripts/push-gate.mjs): `make hooks` installs it, `make hooks-check` fails while
 # core.hooksPath is not .githooks or the hook is not an executable file.

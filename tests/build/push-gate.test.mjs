@@ -1,8 +1,10 @@
 // Tests the push check (`scripts/push-gate.mjs`): the tracked pre-push hook .githooks/pre-push refuses a push while the
 // checklist of a pushed commit or of the working tree has a task in progress, and also when it cannot read a pushed
 // checklist; `make` installs the hook, `hooks-check` fails while it is not installed; the CI command `commit <sha>`
-// fails for a commit with a task in progress or without the executable hook. Each case pushes to a temporary bare
-// repository from a temporary checkout that holds the push check, the guard, the Makefile and the hook of this checkout.
+// fails for a commit with a task in progress or without the executable hook. Each of these cases pushes to a temporary
+// bare repository from a temporary checkout that holds the push check, the guard, the Makefile and the hook of this
+// checkout. The step of the job `push-gate` also runs `make records-check`, and the last case runs that step in a copy
+// of this checkout without its ignored files, so it fails a checklist that breaks the document rules with Node.js alone.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { chmodSync, copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -169,4 +171,55 @@ test('CI: commit <sha> fails for a task in progress or a missing hook and passes
   const none = run(directory, 'node', 'scripts/push-gate.mjs', 'commit', 'HEAD');
   assert.equal(none.status, 1, none.stdout);
   assert.match(none.stdout, /does not track \.githooks\/pre-push/);
+});
+
+// The step of the job `push-gate` that runs its checks: `make ci-targets TARGETS="..."`.
+function pushGateStep() {
+  const workflow = readFileSync(path.join(ROOT, '.github/workflows/push-gate.yml'), 'utf8');
+  const steps = [...workflow.matchAll(/^ {8}run: (make ci-targets TARGETS="[^"]+")$/gm)].map(match => match[1]);
+  assert.equal(steps.length, 1, `the job push-gate runs ${steps.length} make ci-targets steps`);
+  return steps[0];
+}
+
+// A copy of the tracked and new files of this checkout, committed into a repository of its own, without the ignored
+// files: no node_modules, no .tools, as the job `push-gate` checks out a commit and installs nothing.
+function copyOfCheckout(t) {
+  const base = mkdtempSync(path.join(tmpdir(), 'crudui-push-gate-records-'));
+  t.after(() => rmSync(base, { recursive: true, force: true }));
+  const listed = spawnSync('git', ['ls-files', '-z', '--cached', '--others', '--exclude-standard'], { cwd: ROOT, encoding: 'utf8' });
+  assert.equal(listed.status, 0, listed.stderr);
+  for (const file of listed.stdout.split('\0').filter(Boolean)) {
+    let source;
+    try {
+      source = readFileSync(path.join(ROOT, file));
+    } catch (cause) {
+      if (cause.code === 'ENOENT') continue; // deleted in the working tree
+      throw cause;
+    }
+    mkdirSync(path.dirname(path.join(base, file)), { recursive: true });
+    writeFileSync(path.join(base, file), source);
+  }
+  chmodSync(path.join(base, '.githooks/pre-push'), 0o755);
+  git(base, 'init', '--quiet', '--initial-branch=main');
+  git(base, 'config', 'core.hooksPath', '.githooks');
+  git(base, 'add', '.');
+  git(base, 'commit', '--quiet', '-m', 'copy');
+  return base;
+}
+
+test('the job push-gate fails a commit whose checklist breaks the document rules, with Node.js alone', t => {
+  const directory = copyOfCheckout(t);
+  const step = pushGateStep();
+  const clean = run(directory, 'sh', '-c', step);
+  assert.equal(clean.status, 0, `${step}\n${clean.stdout}${clean.stderr}`);
+
+  // A marker outside a task state: no task is [~], so the check of tasks passes and the document rules fail.
+  for (const file of [CHECKLIST, CHECKLIST.replace(/\.md$/, '.ko.md')]) {
+    writeFileSync(path.join(directory, file), `${readFileSync(path.join(directory, file), 'utf8')}| C99.1 | Write [x] the printer | \`make test-ts\` | [ ] |\n`);
+  }
+  git(directory, 'commit', '--quiet', '-am', 'broken marker');
+  const broken = run(directory, 'sh', '-c', step);
+  assert.notEqual(broken.status, 0, `${step} passed a broken checklist\n${broken.stdout}`);
+  assert.match(broken.stdout + broken.stderr, /execution-checklist\.md:\d+:\d+: state marker \[x\] outside a task state/);
+  assert.match(readFileSync(path.join(directory, 'var/report/ci-targets/summary.md'), 'utf8'), /records-check \| failed/);
 });

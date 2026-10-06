@@ -1,0 +1,95 @@
+# The documentation web of main on GitHub Pages (docs/operations/repository.md). The merge queue moves main only to a
+# commit whose checks passed in .github/workflows/ci.yml, so this workflow builds the documentation web of that commit
+# and deploys it; the environment github-pages deploys only from main (.github/repository.json).
+
+name: Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One deployment at a time; a newer push to main waits for the running deployment instead of stopping it.
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+# The toolchains of the checkout at their recorded versions (docs/spec/package-build.md): rustup installs nothing on the
+# first cargo, and go never downloads the toolchain of a go.mod.
+env:
+  RUSTUP_AUTO_INSTALL: '0'
+  GOTOOLCHAIN: local
+
+jobs:
+  docs-web:
+    name: documentation web
+    runs-on: ubuntu-24.04
+    env:
+      DOCS_BASE_PATH: /crudui/
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - name: Setup the Node.js release of .node-version
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version-file: '.node-version'
+          cache: npm
+      - name: Setup PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: '8.5'
+          tools: composer:2.10.3
+      - name: Install PHP dependencies
+        run: make install-composer
+      - name: Setup Go
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        with:
+          go-version-file: '.go-version'
+          cache-dependency-path: packages/validator-go/go.mod
+      - name: Install the Rust toolchain of rust-toolchain.toml
+        run: make install-rust
+      - name: Cargo cache
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        with:
+          workspaces: packages/validator-rust
+      - name: Install the recorded npm into the checkout
+        run: make install-npm
+      - name: Check the recorded toolchain versions
+        run: make toolchain-check TOOLS="node npm go rust php composer"
+      - name: Install workspace dependencies
+        run: make install-node-modules
+      - name: Install PHP API documentation generator
+        run: make install-phpdocumentor
+      - name: Download the crates of every Cargo.lock
+        run: make install-crates
+      - name: Build the documentation web and write its report
+        if: ${{ !cancelled() }}
+        run: make ci-targets TARGETS="docs-web"
+      - name: Upload the report of the build
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: report-docs-web
+          path: var/report/ci-targets
+          if-no-files-found: error
+      - name: Upload documentation web
+        uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4.0.0
+        with:
+          path: docs/.web/dist
+
+  deploy:
+    name: Deploy documentation to GitHub Pages
+    needs: docs-web
+    runs-on: ubuntu-24.04
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy documentation web
+        id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5

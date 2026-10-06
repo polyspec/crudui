@@ -26,7 +26,7 @@ Every crate that declares a release profile sets `strip = "none"`;
 
 During development, run only the unit tests that own the change: its Red and Green cases.
 End-to-end checks (browsers, containers, the form comparison, the native and cross-check suites,
-full builds), `make owner-check` and the full run `make ci` run in CI after the push, and no rule
+full builds), `make owner-check` and the full run `make ci` run in CI on the pull request, and no rule
 requires a local check before a push or a commit; the pre-push hook only refuses a push while a
 checklist task is `[~]` (below). `make ci` and `make owner-check` remain available on request.
 
@@ -95,7 +95,7 @@ no record, when the record belongs to another tree and when the full run of the 
 writes each rerun into `reruns` of the record; when every command has passed, the result of the tree
 becomes `passed`.
 
-The CI workflow runs the same commands in its jobs on each push to `main` and does not run `make
+The CI workflow runs the same commands in its jobs on each pull request and each merge group and does not run `make
 ci`, so the guard does not decide CI runs. A new checkout, as in CI, has no record, so `make ci`
 runs there when no task is `[~]` and the tree is clean.
 
@@ -132,12 +132,17 @@ it fails while `core.hooksPath` is not `.githooks` or `.githooks/pre-push` is no
 file, and names the fix. The guard of `make ci` refuses for the same reasons.
 
 A clone without the hook, or a push that skips it, still reaches GitHub. The job `push-gate` of
-`.github/workflows/push-gate.yml` runs on every push to any branch and on every pull request,
-checks out the pushed commit (the head commit of a pull request) and runs
+`.github/workflows/push-gate.yml` runs on every push to any branch but the branches of the merge
+queue, on every pull request and on every merge group, checks out the pushed commit (the head
+commit of a pull request, the commit of a merge group) and runs
 `node scripts/push-gate.mjs commit HEAD`. It fails while the checklist of that commit has a task in
 progress, when the commit has no checklist and when it does not track `.githooks/pre-push` as an
 executable file (mode `100755`); it prints the refusal through the progress lines, each line as an
-error annotation, and in the job summary.
+error annotation, and in the job summary. The same step runs `make records-check`: `scripts/check-documents.mjs`
+and the checklist, link, changelog, writing, example and fixture README tests, which need Node.js alone and read
+neither the network nor the history, so a commit that breaks the document or checklist rules fails the check that
+the ruleset `main` requires ([Repository settings](repository.md#publishing-main)). `make docs-check-documents`
+runs `make records-check` with the rest of its document checks.
 
 The individual commands are:
 
