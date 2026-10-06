@@ -8,7 +8,7 @@ import { renderForm, renderList, type RenderListOptions } from '@crudui/generato
 import {
   validate, validateDetail, validateList, type ComposeErrorCode, type FileLoader, type FileSet,
   type ValidateDetailOptions, type ValidateListOptions, type ValidateOptions, type ValidationError,
-  type ValidationResult,
+  type ListValidationResult, type ValidationResult,
 } from '@crudui/validator';
 import { bindForm, type FormBinding, type FormBindingOptions } from '@crudui/form-binding';
 import { Form as VueForm, renderForm as renderVueForm, type AnyWidget as VueAnyWidget } from '@crudui/generator-vue';
@@ -23,10 +23,11 @@ const view: ReactElement = createElement(Form, { form: session });
 const html: string = renderForm(session);
 const list: string = renderList({ columns: { name: { field: 'name' } } }, [{ name: 'Build check' }], {} satisfies RenderListOptions);
 const options: ValidateOptions = {};
-const result = validate(spec, session.getData(), options);
+const result: ValidationResult = validate(spec, session.getData(), options);
 const valid: boolean = result.valid;
-const listResult: ValidationResult = validateList({ columns: {} }, {} satisfies ValidateListOptions);
-const detailResult: ValidationResult = validateDetail({ fields: {} }, {} satisfies ValidateDetailOptions);
+const hidden: string[] = result.hidden;
+const listResult: ListValidationResult = validateList({ columns: {} }, {} satisfies ValidateListOptions);
+const detailResult: ListValidationResult = validateDetail({ fields: {} }, {} satisfies ValidateDetailOptions);
 const randomKey: string = createRowKey();
 const savedKey: string = sequenceRowKey('42');
 const bindingOptions: FormBindingOptions = { keyPrefix: 'form' };
@@ -41,4 +42,4 @@ type PublicTypes = [
 ];
 const publicTypes: PublicTypes | undefined = undefined;
 
-export { template, session, snapshot, view, html, list, valid, listResult, detailResult, randomKey, savedKey, bind, vueView, vueHtml, svelteView, svelteHtml, publicTypes };
+export { template, session, snapshot, view, html, list, valid, hidden, listResult, detailResult, randomKey, savedKey, bind, vueView, vueHtml, svelteView, svelteHtml, publicTypes };

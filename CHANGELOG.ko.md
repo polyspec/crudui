@@ -1,5 +1,10 @@
 # 변경 기록
 
+## 2026-10-06 — 검증 결과의 public type (C8.3-2)
+
+- build된 package의 public type 검사는 ESM과 CommonJS에서 `validateList`와 `validateDetail`의 결과를
+  `ListValidationResult`에 대입하고 `validate`의 `ValidationResult`에서 `hidden`을 읽습니다.
+
 ## 2026-10-06 — hiddenPaths의 public build test (C8.1-1)
 
 - public build test는 `contracts/features.json`이 선언하는 대로 `@crudui/validator`의 export 중에 `hiddenPaths`를

@@ -13,10 +13,11 @@ const view: React.ReactElement = React.createElement(generator.Form, { form: ses
 const rendered: string = html.renderForm(session);
 const list: string = html.renderList({ columns: { name: { field: 'name' } } }, [{ name: 'Build check' }], {});
 const options: validator.ValidateOptions = {};
-const result = validator.validate(spec, session.getData(), options);
+const result: validator.ValidationResult = validator.validate(spec, session.getData(), options);
 const valid: boolean = result.valid;
-const listResult: validator.ValidationResult = validator.validateList({ columns: {} }, {} satisfies validator.ValidateListOptions);
-const detailResult: validator.ValidationResult = validator.validateDetail({ fields: {} }, {} satisfies validator.ValidateDetailOptions);
+const hidden: string[] = result.hidden;
+const listResult: validator.ListValidationResult = validator.validateList({ columns: {} }, {} satisfies validator.ValidateListOptions);
+const detailResult: validator.ListValidationResult = validator.validateDetail({ fields: {} }, {} satisfies validator.ValidateDetailOptions);
 const randomKey: string = core.createRowKey();
 const savedKey: string = core.sequenceRowKey('42');
 const vueView = vue.Form;
@@ -28,4 +29,4 @@ type PublicTypes = [
 ];
 const publicTypes: PublicTypes | undefined = undefined;
 
-export { template, session, snapshot, view, rendered, list, valid, listResult, detailResult, randomKey, savedKey, vueView, vueHtml, publicTypes };
+export { template, session, snapshot, view, rendered, list, valid, hidden, listResult, detailResult, randomKey, savedKey, vueView, vueHtml, publicTypes };
