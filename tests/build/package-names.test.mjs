@@ -51,6 +51,33 @@ test('every package of packages/ has the name of the polyspec convention', () =>
   }
 });
 
+// The programs of examples/, tests/ and tools/ are packages of this repository too: every tracked manifest names
+// its package by the convention, so a private npm package is `@polyspec/crudui-<name>`, a crate and its binaries
+// `polyspec-crudui-<name>`, and a Go module `github.com/polyspec/crudui/<directory>`.
+test('every tracked manifest names its package by the polyspec convention', () => {
+  const failures = [];
+  for (const file of tracked) {
+    const name = path.posix.basename(file);
+    const directory = path.posix.dirname(file);
+    if (name === 'package.json') {
+      const manifest = JSON.parse(read(file));
+      if (manifest.name !== undefined && !/^@polyspec\/crudui-[a-z0-9-]+$/.test(manifest.name)) failures.push(`${file}: ${manifest.name}`);
+    } else if (name === 'composer.json') {
+      const manifest = JSON.parse(read(file));
+      if (!/^polyspec\/crudui-[a-z0-9-]+$/.test(manifest.name)) failures.push(`${file}: ${manifest.name}`);
+    } else if (name === 'Cargo.toml') {
+      const manifest = read(file);
+      const names = [...manifest.matchAll(/^\[(package|\[bin\])\]\nname = "([^"]+)"/gm)].map(match => match[2]);
+      assert.ok(names.length > 0, `${file}: no package name`);
+      for (const crate of names) if (!/^polyspec-crudui-[a-z0-9-]+$/.test(crate)) failures.push(`${file}: ${crate}`);
+    } else if (name === 'go.mod') {
+      const module = /^module (\S+)$/m.exec(read(file))?.[1];
+      if (module !== `github.com/polyspec/crudui/${directory}`) failures.push(`${file}: ${module}`);
+    }
+  }
+  assert.deepEqual(failures, []);
+});
+
 // The forms of the names before the convention. A C identifier of the extension (crudui_validator_ce) is not a
 // package name.
 const OLD_NAMES = [
