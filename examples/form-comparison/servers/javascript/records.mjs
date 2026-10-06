@@ -341,7 +341,7 @@ export function recordStore({ server = 'js', dataDirectory, publicDirectory }) {
       }
       stored[index] = saved;
       await write(stored);
-      return { status: 200, body: { record: saved, validation: { valid: true, errors: [] } } };
+      return { status: 200, body: { record: saved, validation } };
     });
   }
 

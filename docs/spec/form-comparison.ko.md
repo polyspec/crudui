@@ -69,7 +69,7 @@ id 순서로 담습니다. 파일이 없으면 첫 읽기에서 고정 데이터
 | --- | --- | --- |
 | `GET /api/records?page={n}` | 200 `{ page, perPage: 20, total, records }`: id 순서의 `n`쪽 | 질의가 부호·앞자리 0 없는 1 이상의 십진 정수 `page` 하나가 아니면 400 `Expected one page parameter`, 마지막 쪽을 넘으면 404 `Page not found` |
 | `GET /api/records/{id}` | 200 `{ record }` | 저장되지 않은 id(`0`과 앞자리 0이 있는 id 포함)는 404 `Record not found` |
-| `POST /api/records/{id}` | 200 `{ record, validation: { valid: true, errors: [] } }` | 아래 참조 |
+| `POST /api/records/{id}` | 200 `{ record, validation: { valid: true, errors: [], hidden } }` | 아래 참조 |
 | `POST /api/records/reset` | 200 `{ total: 45 }`, 저장소가 고정 데이터와 같아짐 | 본문이 있는 요청은 400 |
 | `GET /api/records/view/{view}?…` | 200 `{ view, html, data }` | 아래 참조 |
 
@@ -89,8 +89,9 @@ id 순서로 담습니다. 파일이 없으면 첫 읽기에서 고정 데이터
 문자열이 아닌 항목·행 키가 아닌 키·`""`나 `"1"`이 아닌 `enabled`·경로와 다른 `id`에 400으로
 응답합니다. 2 MiB를 넘는 본문은 제한을 넘는 즉시 413으로 응답하고 더 읽지 않으며 연결을 닫으므로,
 클라이언트가 큰 본문을 선언하고 천천히 보내 서버를 붙잡을 수 없습니다. 그다음 자기 검증기와 `form` 명세로
-제출을 검증하며, 잘못된 제출에는 검증기 결과를 담은 422 `{ validation }`으로 응답합니다. 올바른
-제출은 이전 레코드에 제출한 `name`, `status`, `joined`, `relation.name`, `markup`, `companies`(행은
+제출을 검증하고, 검증기 결과를 member `valid`, `errors`, `hidden`을 바꾸지 않은 채 `validation`으로
+응답합니다([검증 결과](validation-rules.ko.md#평가)). 잘못된 제출에는 422 `{ validation }`으로 응답합니다.
+올바른 제출에는 200으로 응답하며, 이전 레코드에 제출한 `name`, `status`, `joined`, `relation.name`, `markup`, `companies`(행은
 제출 순서와 제출한 키를 유지하고, 스토어의 `detail`은 숨겨진 동안에도 유지)와 십진 문자열이
 나타내는 JSON 숫자 `score`를 넣어 저장하며, `id`와 `avatar`는 저장된 값을
 유지합니다. 어떤 실패도 저장 파일을 바꾸지 않습니다. 레코드 목록으로 읽을 수 없는 저장 파일은

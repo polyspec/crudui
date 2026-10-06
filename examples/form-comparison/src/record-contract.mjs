@@ -9,7 +9,7 @@ import http from 'node:http';
 import { compileForm, createForm } from '@crudui/generator-core';
 import { renderDetail, renderForm, renderList } from '@crudui/generator-html';
 import { JSDOM } from 'jsdom';
-import { validate } from '@crudui/validator';
+import { hiddenPaths, validate } from '@crudui/validator';
 
 import customerRecords from '../fixtures/customer-records.json' with { type: 'json' };
 import customerSpecs from '../fixtures/customer-specs.json' with { type: 'json' };
@@ -88,6 +88,11 @@ export function savedRecord(previous, data) {
 /** The validation result of one submission, as the reference validator reports it. */
 export function expectedValidation(data) {
   return validate(recordSpecs().form, data);
+}
+
+/** The validation result of a valid submission: no error and the paths that `design.show` hides. */
+export function passedValidation(data) {
+  return { valid: true, errors: [], hidden: hiddenPaths(recordSpecs().form, data) };
 }
 
 /**
@@ -267,7 +272,7 @@ export const recordContractCases = Object.freeze([
       assert.equal(result.status, 200, result.text);
       const expected = savedRecord(recordFixture()[21], data);
       assert.deepEqual(result.json, {
-        record: expected, validation: { valid: true, errors: [] }, server: client.server,
+        record: expected, validation: passedValidation(data), server: client.server,
       });
       const records = recordFixture();
       records[21] = expected;
@@ -299,8 +304,10 @@ export const recordContractCases = Object.freeze([
       assert.equal(result.status, 200, result.text);
       const expected = savedRecord(recordFixture()[23], data);
       assert.deepEqual(result.json, {
-        record: expected, validation: { valid: true, errors: [] }, server: client.server,
+        record: expected, validation: passedValidation(data), server: client.server,
       });
+      assert.ok(result.json.validation.hidden.includes(`companies.${firstKey}.stores.${storeKey}.detail`),
+        'the validation result names the hidden notes of the unchecked store');
       const stored = (await client.storeRecords())[23];
       assert.deepEqual(stored, expected, 'the store keeps the rows, their keys and order and the hidden notes');
       assert.deepEqual(Object.keys(stored.companies), Object.keys(data.companies), 'row order');

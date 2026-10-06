@@ -1,5 +1,13 @@
 # 변경 기록
 
+## 2026-10-06 — form comparison 레코드 저장의 숨은 경로 (C8.3-3)
+
+- form comparison의 모든 record server는 저장에 검증기 결과를 `valid`, `errors`, `hidden`을 바꾸지 않은 채
+  `validation`으로 응답합니다. JavaScript server는 통과한 결과를 더 이상 `{ valid: true, errors: [] }`로 바꾸지 않고,
+  Go와 Rust server는 자신이 만드는 결과에 `hidden`을 추가하며, 벤치마크 저장과 검증의 응답에도 추가합니다.
+- record contract는 모든 저장과 검증 응답에서 `hidden`을 기대하고, 레코드 24의 저장은 그 안에서 체크 해제된
+  스토어의 메모를 가리킵니다.
+
 ## 2026-10-06 — 검증 결과의 public type (C8.3-2)
 
 - build된 package의 public type 검사는 ESM과 CommonJS에서 `validateList`와 `validateDetail`의 결과를

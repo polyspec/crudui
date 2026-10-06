@@ -7,8 +7,8 @@ import { validateDetail, validateList } from '@crudui/validator';
 
 import { editedCompanies, firstStore, pipelineCombinations, scoreCellText, stageContent } from './pipeline-flow.mjs';
 import {
-  expectedStageHtml, expectedValidation, formData, pageAddress, recordClients, recordFixture,
-  recordModes, recordServers, recordSpecs, savedRecord, selectionQuery, stageSpecs,
+  expectedStageHtml, expectedValidation, formData, pageAddress, passedValidation, recordClients,
+  recordFixture, recordModes, recordServers, recordSpecs, savedRecord, selectionQuery, stageSpecs,
 } from './record-contract.mjs';
 import { pipelineServers } from './runtime-paths.mjs';
 
@@ -23,7 +23,7 @@ test('the shared fixture holds 45 records in id order that pass their own form',
   for (const record of records) {
     assert.deepEqual(Object.keys(record), ['id', 'name', 'status', 'joined', 'score', 'relation', 'avatar', 'markup', 'companies']);
     assert.equal(typeof record.score, 'number');
-    assert.deepEqual(expectedValidation(formData(record)), { valid: true, errors: [] }, `record ${record.id}`);
+    assert.deepEqual(expectedValidation(formData(record)), passedValidation(formData(record)), `record ${record.id}`);
     assert.deepEqual(savedRecord(record, formData(record)), record, `record ${record.id} round-trips through its form`);
   }
 });

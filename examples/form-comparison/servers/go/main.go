@@ -221,7 +221,7 @@ func (s server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	for _, item := range result.Errors {
 		errors = append(errors, record("path", item.Path, "field", item.Field, "rule", item.Rule, "message", item.Message, "value", valueAt(data, item.Path)))
 	}
-	response := record("transport", kind, "jsonProcessor", "ordered-json", "validatorSource", "current", "received", received, "normalized", data, "validation", record("valid", result.Valid, "errors", errors))
+	response := record("transport", kind, "jsonProcessor", "ordered-json", "validatorSource", "current", "received", received, "normalized", data, "validation", record("valid", result.Valid, "errors", errors, "hidden", result.Hidden))
 	if action == "validate" {
 		writeJSON(w, 200, response)
 		return

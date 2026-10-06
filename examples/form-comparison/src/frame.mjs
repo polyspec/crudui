@@ -405,8 +405,11 @@ const checks = [
     equal(storeName(stores(companies()[0])[0]).closest('[data-field-path]').hidden, true, 'required field is hidden by design');
     // A field hidden by its specification skips its rules; the server decides with its own
     // specification, where the field is shown, so it still rejects the empty name.
-    const hiddenClient = validation.validate(driver.getData());
-    same(hiddenClient, { valid: true, errors: [] }, 'a hidden required field skips its rules');
+    const hiddenData = driver.getData();
+    const hiddenNames = Object.entries(hiddenData.companies).flatMap(([company, row]) =>
+      Object.keys(row.stores).map(store => `companies.${company}.stores.${store}.name`));
+    const hiddenClient = validation.validate(hiddenData);
+    same(hiddenClient, { valid: true, errors: [], hidden: hiddenNames }, 'a hidden required field skips its rules');
     const hiddenSave = await submit('save');
     equal(hiddenSave.status, 422, 'the server rejects the field its own specification shows');
     same(hiddenSave.validation, client, 'server validation follows the server specification');

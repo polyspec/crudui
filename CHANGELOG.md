@@ -1,5 +1,14 @@
 # Changes
 
+## 2026-10-06 — Hidden paths in the record saves of the form comparison (C8.3-3)
+
+- Every record server of the form comparison answers a save with the validator's result as
+  `validation`, `valid`, `errors` and `hidden` unchanged: the JavaScript server no longer replaces a
+  passed result with `{ valid: true, errors: [] }`, and the Go and Rust servers add `hidden` to the
+  result that they build, also in the response of the benchmark save and validation.
+- The record contract expects `hidden` in every save and validation response, and the save of
+  record 24 names the notes of the unchecked store in it.
+
 ## 2026-10-06 — Public types of the validation results (C8.3-2)
 
 - The public type check of the built packages assigns the results of `validateList` and
