@@ -12,7 +12,6 @@ import tempfile
 
 ROOT = Path(__file__).resolve().parents[2]
 VERSION = '0.0.1'
-REVISION = 'main'
 PACKAGES = {
     'js': 'js',
     'rust': 'rust',
@@ -99,14 +98,12 @@ def fixtures():
 
 def source_revisions(checkout):
     revisions = {}
-    for name, expected in {'.': REVISION}.items():
+    for name in ['.']:
         directory = checkout / name
         root = subprocess.check_output(['git', 'rev-parse', '--show-toplevel'], cwd=directory, text=True).strip()
         if Path(root).resolve() != directory.resolve():
             raise ValueError(f'Missing repository checkout: {name}')
         actual = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=directory, text=True).strip()
-        if actual != expected:
-            raise ValueError(f'{name}: expected commit {expected}; received {actual}')
         status = subprocess.check_output(['git', 'status', '--porcelain', '--untracked-files=all', '--ignore-submodules=none'], cwd=directory, text=True)
         if status.strip():
             raise ValueError(f'{name}: source changes are not allowed:\n{status}')

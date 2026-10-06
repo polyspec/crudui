@@ -150,9 +150,9 @@ version = "0.0.1"
 dependencies = [
  "axum",
  "form_urlencoded",
- "ordered-json",
  "polyspec-crudui-generator",
  "polyspec-crudui-validator",
+ "polyspec-ordered-json",
  "ryu-js",
  "serde_json",
  "tempfile",
@@ -519,10 +519,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50"
 
 [[package]]
-name = "ordered-json"
-version = "0.0.1"
-
-[[package]]
 name = "percent-encoding"
 version = "2.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -554,6 +550,15 @@ name = "polyspec-crudui-validator"
 version = "0.0.1"
 dependencies = [
  "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "polyspec-ordered-json"
+version = "0.0.1"
+dependencies = [
+ "serde",
+ "serde_ignored",
  "serde_json",
 ]
 
@@ -675,6 +680,16 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 3.0.5",
+]
+
+[[package]]
+name = "serde_ignored"
+version = "0.1.14"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "115dffd5f3853e06e746965a20dcbae6ee747ae30b543d91b0e089668bb07798"
+dependencies = [
+ "serde",
+ "serde_core",
 ]
 
 [[package]]

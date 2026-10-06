@@ -1,5 +1,12 @@
 # Changes
 
+## 2026-10-06 — OrderedJSON from the branch main (C10.1)
+
+- The comparison takes OrderedJSON from the branch `main` of `polyspec/ordered-json`: `make install-ordered-json`
+  checks out its head, the root `package.json` names `@polyspec/ordered-json` from that checkout, and the record
+  servers use the PHP namespace `Polyspec\OrderedJson`, the Go module `github.com/polyspec/ordered-json/go` and the
+  crate `polyspec-ordered-json`.
+
 ## 2026-10-06 — PHP API pages of the polyspec namespace (C9.1-1)
 
 - The API documentation requires the phpDocumentor pages of `Polyspec\Crudui\`

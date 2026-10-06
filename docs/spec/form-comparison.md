@@ -322,10 +322,10 @@ directory. Ignored files, including the host's `node_modules`, `vendor` and buil
 outputs, are never copied. A manifest records the copied paths. A path removed from
 the repository is removed from the build tree; build outputs, which the manifest
 never lists, remain. The supervisor recreates that exact checkout directory to remove stale
-contents, then checks out one pinned `polyspec/ordered-json` monorepo revision
+contents, then checks out the head of the branch `main` of the `polyspec/ordered-json` monorepo
 into `.form-comparison/sources/ordered-json` inside the build tree. The five implementation
 package directories (`go/`, `js/`, `php/`,
-`php-extension/` and `rust/`) must exist at that revision; they are not separate
+`php-extension/` and `rust/`) must exist in that checkout; they are not separate
 repositories or submodules.
 
 ### Natural application
@@ -356,7 +356,7 @@ their processes. A target also runs when a target it depends on runs.
 | --- | --- | --- | --- |
 | `npm-dependencies` | root `package.json`, `package-lock.json`, package manifests | | public |
 | `javascript-packages` | the TypeScript validator and generator packages, root `tsconfig` files | `npm-dependencies` | |
-| `ordered-json-javascript` | the pinned checkout's `js/` package copied to `node_modules/ordered-json` | `npm-dependencies` | |
+| `ordered-json-javascript` | the checkout's `js/` package copied to `node_modules/@polyspec/ordered-json` | `npm-dependencies` | |
 | `frames` | the example `build.mjs`, `public/`, `src/`, `viewer/` and `fixtures/`, the TypeScript packages, the form snapshot module | `npm-dependencies`, `ordered-json-javascript` | |
 | `browser-matrix` | `src/runtime-paths.json` | | public, Go, Rust |
 | `public-server` | `server.mjs`, `servers/javascript/`, `src/json.mjs`, `src/record-contract.mjs`, `src/runtime-paths.mjs` | | public |
@@ -368,7 +368,7 @@ their processes. A target also runs when a target it depends on runs.
 
 Each target runs to its end without a time limit and reports its start, its elapsed
 time while it runs and its duration when it finishes; a target whose step fails fails
-the cycle. The Git calls of the source comparison and of the pinned OrderedJSON
+the cycle. The Git calls of the source comparison and of the OrderedJSON
 checkout hold no time limit either. Each server's output
 carries that server's name, and every line, warnings included, is kept.
 

@@ -287,7 +287,7 @@ A check reads no network. The Makefile exports `CARGO_NET_OFFLINE=true`,
 recipe and the commands that it starts; only the download targets `install`,
 `install-crates`, `install-ordered-json`, `install-cargo-audit` and
 `dependency-review` lift them with `$(ONLINE)`. `make install-crates` downloads the
-crates of every Cargo.lock after the pinned OrderedJSON checkout
+crates of every Cargo.lock after the OrderedJSON checkout
 (`.form-comparison/sources/ordered-json`) that the lock of the Rust record server
 reads, and `make install` runs it. Every target that runs cargo depends on
 `make cargo-downloads-check` (`scripts/check-cargo-downloads.mjs`), which runs

@@ -1,4 +1,4 @@
-import { parseBytes, stringify, Value } from 'ordered-json';
+import { parseBytes, stringify, Value } from '@polyspec/ordered-json';
 
 function number(value) {
   if (!Number.isFinite(value) || (Number.isInteger(value) && !Number.isSafeInteger(value))) {

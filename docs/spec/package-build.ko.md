@@ -250,7 +250,7 @@ database에서 읽습니다(모든 취약점과 unmaintained, unsound, yanked cr
 `CARGO_NET_OFFLINE=true`, `GOPROXY=off`, `npm_config_offline=true`,
 `COMPOSER_DISABLE_NETWORK=1`을 export하고, download 대상인 `install`, `install-crates`,
 `install-ordered-json`, `install-cargo-audit`, `dependency-review`만 `$(ONLINE)`으로 이를
-풉니다. `make install-crates`는 Rust record server의 lock이 읽는 고정된 OrderedJSON
+풉니다. `make install-crates`는 Rust record server의 lock이 읽는 OrderedJSON
 checkout(`.form-comparison/sources/ordered-json`) 다음에 모든 Cargo.lock의 crate를
 download하고, `make install`이 이를 실행합니다. cargo를 실행하는 모든 대상은
 `make cargo-downloads-check`(`scripts/check-cargo-downloads.mjs`)에 의존합니다. 이 검사는

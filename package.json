@@ -77,10 +77,11 @@
     "puppeteer": "^25.12.0"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@polyspec/crudui-generator-core": "0.0.1",
     "@polyspec/crudui-generator-html": "0.0.1",
     "@polyspec/crudui-validator": "0.0.1",
-    "@eslint/js": "^10.0.1",
+    "@polyspec/ordered-json": "file:.form-comparison/sources/ordered-json/js",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@tailwindcss/node": "4.3.3",
     "@types/react": "^19.3.0",
@@ -94,7 +95,6 @@
     "js-yaml": "^5.4.2",
     "jsdom": "30.1.2",
     "markdown-it": "15.0.2",
-    "ordered-json": "https://codeload.github.com/polyspec/ordered-json/tar.gz/main",
     "parse5": "^8.0.1",
     "playwright": "^1.63.0",
     "postcss": "^8.5.29",

@@ -4,9 +4,8 @@
 defines the required data shapes and order. [Feature status](../features.md)
 records verification separately from runtime deployment.
 
-The check uses one explicit checkout of
-[OrderedJSON](https://github.com/polyspec/ordered-json)
-version `0.0.1`. The five implementations
+The check uses one explicit checkout of the branch `main` of
+[OrderedJSON](https://github.com/polyspec/ordered-json), version `0.0.1`. The five implementations
 are package directories in that monorepo:
 
 | Package | Manifest |
@@ -17,8 +16,8 @@ are package directories in that monorepo:
 | `php` | `php/composer.json` |
 | `php-extension` | `php-extension/composer.json` |
 
-The checker requires an absolute path, the exact monorepo revision and clean source
-before and after execution. PHP uses the `OrderedJson` namespace;
+The checker requires an absolute path to a repository checkout and clean source
+before and after execution. PHP uses the `Polyspec\OrderedJson` namespace;
 the native target is `php-extension` and loads `ordered_json.so`.
 
 Set `ORDERED_JSON_SOURCE` to an absolute checkout path. Run from the CRUDUI root
@@ -26,8 +25,7 @@ with Node, PHP, PHP extension build tools, Go, Rust and Python installed:
 
 ```sh
 ORDERED_JSON_SOURCE=/absolute/path/to/ordered-json
-git clone --no-checkout https://github.com/polyspec/ordered-json "$ORDERED_JSON_SOURCE"
-git -C "$ORDERED_JSON_SOURCE" checkout main
+git clone --branch main https://github.com/polyspec/ordered-json "$ORDERED_JSON_SOURCE"
 make test-ordered-json
 python3 "$ORDERED_JSON_SOURCE/scripts/verify.py"
 python3 tests/ordered-json/check.py "$ORDERED_JSON_SOURCE"
@@ -47,7 +45,7 @@ and obtain their commands. Run these checks sequentially. An ordinary extension
 build and a PIE artifact check must not run concurrently in the same checkout.
 
 Reports are saved as `.verification/ordered-json/ordered-json-<timestamp>.json`.
-They include the monorepo revision, package paths, checker and fixture hashes,
+They include the commit of the checkout, package paths, checker and fixture hashes,
 runtime versions, native module hash, build warnings and individual results.
 Previous reports remain available. All five implementations and all 50 results
 are required. A missing response, malformed output, process failure or failed
