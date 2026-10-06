@@ -134,6 +134,9 @@ The binding validates a changed field when it loses focus and on every later cha
 form on submit; an invalid form is not sent and focus moves to its first invalid control. Send a
 form from script with `form.requestSubmit()`: `form.submit()` fires no `submit` event, so the
 binding does not validate it. Call `binding.dispose()` before the page removes the form.
+The binding also shows and hides the fields and groups that declare `design.show` as the data
+changes ([display](../spec/form-runtime.md#display)), without changing a value;
+`hiddenPaths(spec, data)` of `@crudui/validator` returns the hidden paths for other scripts.
 
 Run the binding checks, including the check in Chromium, Firefox and WebKit, from the repository
 root:

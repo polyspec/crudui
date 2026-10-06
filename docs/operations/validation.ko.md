@@ -131,6 +131,9 @@ const binding = bindForm(document.querySelector('#member-form'), spec, {
 스크립트로 폼을 보낼 때는 `form.requestSubmit()`을 씁니다. `form.submit()`은 `submit` 이벤트를
 발생시키지 않으므로 바인딩이 검증하지 않습니다. 페이지가 폼을 제거하기 전에 `binding.dispose()`를
 호출합니다.
+바인딩은 데이터가 바뀌면 `design.show`를 선언한 필드와 그룹도 값을 바꾸지 않고 보이거나 숨깁니다
+([표시](../spec/form-runtime.ko.md#표시)). `@crudui/validator`의 `hiddenPaths(spec, data)`는 다른 스크립트에
+숨은 경로를 반환합니다.
 
 Chromium, Firefox, WebKit 검사를 포함한 바인딩 검사는 저장소 루트에서 실행합니다.
 
