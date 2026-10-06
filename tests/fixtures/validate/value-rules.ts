@@ -21,6 +21,8 @@ export interface AuthoredCase {
   failure?: { code: string; message: string; at: string };
   /** The complete result record, when the outcomes cannot state it. */
   expected?: { valid: boolean; errors: unknown[] };
+  /** The data paths of the fields whose design.show resolves to false, for a case that declares design.show. */
+  hidden?: string[];
 }
 
 const WHITESPACE = [

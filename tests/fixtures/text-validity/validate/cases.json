@@ -16,7 +16,8 @@
     },
     "expect": {
       "valid": true,
-      "errors": []
+      "errors": [],
+      "hidden": []
     }
   },
   {

@@ -21,8 +21,9 @@
 - `template`. `spec`에서 컴파일한 템플릿 대신 JSON 텍스트로 주는 템플릿입니다
 - `action`. 생성한 폼에 대한 `{ method, args }` 호출 하나이며, 그 결과가 기대값입니다
 
-`expect`는 실패 `{ code, message, at }`이거나 통과하는 케이스의 결과입니다. 검증 연산은 검증 결과
-`{ valid, errors }`, 생성 연산은 `"pass"`입니다. 올바른 서로게이트 쌍과 U+E000부터 U+FFFF까지의
+`expect`는 실패 `{ code, message, at }`이거나 통과하는 케이스의 결과입니다. `validate`는 검증 결과
+`{ valid, errors, hidden }`, `validateList`와 `validateDetail`은 `{ valid, errors }`, 생성 연산은
+`"pass"`입니다. 올바른 서로게이트 쌍과 U+E000부터 U+FFFF까지의
 문자를 쓴 케이스는 올바른 텍스트가 통과하는지, 멤버가 코드 포인트 순서를 따르는지 확인합니다.
 
 ## 값 그래프

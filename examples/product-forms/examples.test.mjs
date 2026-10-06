@@ -21,6 +21,8 @@ const productForm = yaml('product-form.yml');
 const required = (path, value) => ({ path, field: path.split('.').pop(), rule: 'required', message: 'This field is required.', value });
 const error = (path, rule, message, value) => ({ path, field: path.split('.').pop(), rule, message, value });
 const generated = 'options.combined.generated';
+/** The sections that design.show hides while the combined option type is chosen. */
+const combinedHidden = ['options.single', 'options.free'];
 
 /** The five errors of option-invalid.json: rows are traversed in sorted key order. */
 const optionErrors = [
@@ -32,19 +34,19 @@ const optionErrors = [
 ];
 
 test('option form: hidden sections skip their rules and visible combination rows are valid', () => {
-  assert.deepEqual(validate(optionForm, json('option-valid.json'), { files }), { valid: true, errors: [] });
+  assert.deepEqual(validate(optionForm, json('option-valid.json'), { files }), { valid: true, errors: [], hidden: combinedHidden });
 });
 
 test('option form: every combination row is validated under its data key', () => {
-  assert.deepEqual(validate(optionForm, json('option-invalid.json'), { files }), { valid: false, errors: optionErrors });
+  assert.deepEqual(validate(optionForm, json('option-invalid.json'), { files }), { valid: false, errors: optionErrors, hidden: combinedHidden });
 });
 
 test('option form: switching the option type hides and shows the kept combination values', () => {
   const data = json('option-invalid.json');
   data.options.mode = 'single';
-  assert.deepEqual(validate(optionForm, data, { files }), { valid: true, errors: [] });
+  assert.deepEqual(validate(optionForm, data, { files }), { valid: true, errors: [], hidden: ['options.combined', 'options.free'] });
   data.options.mode = 'combined';
-  assert.deepEqual(validate(optionForm, data, { files }), { valid: false, errors: optionErrors });
+  assert.deepEqual(validate(optionForm, data, { files }), { valid: false, errors: optionErrors, hidden: combinedHidden });
 });
 
 test('option form: missing combination data is zero rows and fails only the count rule', () => {
@@ -52,11 +54,21 @@ test('option form: missing combination data is zero rows and fails only the coun
   assert.deepEqual(validate(optionForm, data, { files }), {
     valid: false,
     errors: [error(generated, 'mincount', 'Please select at least 1 items.', null)],
+    // The stock of the hidden single section is hidden too: its stock mode is not tracked.
+    hidden: ['options.single', 'options.single.stock', 'options.free'],
   });
 });
 
 test('product form: hidden sections, rows and nested groups skip their rules', () => {
-  assert.deepEqual(validate(productForm, json('product-valid.json'), { files }), { valid: true, errors: [] });
+  assert.deepEqual(validate(productForm, json('product-valid.json'), { files }), {
+    valid: true,
+    errors: [],
+    hidden: [
+      'visibility.schedule', 'pricing.discount_value', 'attributes.__attr_1__.values', 'attributes.__attr_2__.value',
+      ...combinedHidden, 'shipping.fee', 'shipping.regions.__region_south__.surcharge', 'shipping.returns.days',
+      'shipping.returns.address',
+    ],
+  });
 });
 
 test('product form: visible fields report their first error in declaration order', () => {
@@ -73,6 +85,10 @@ test('product form: visible fields report their first error in declaration order
       required('shipping.returns.address.line1', ''),
       error('shipping.returns.address.postal_code', 'pattern', 'Please enter a valid format.', '123'),
       error('seo.slug', 'pattern', 'Please enter a valid format.', 'Canvas Tote'),
+    ],
+    hidden: [
+      'attributes.__attr_1__.values', 'attributes.__attr_2__.value', ...combinedHidden, 'shipping.rates',
+      'shipping.regions.__region_south__.surcharge',
     ],
   });
 });

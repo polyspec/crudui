@@ -136,7 +136,9 @@ final class Validator
             $errors = [];
             $this->validateProperties($this->properties, $data, [], [], [], $data, $errors);
 
-            return new ValidationResult(count($errors) === 0, array_values($errors));
+            $hidden = [];
+            $this->collectHidden($this->properties, $data, [], [], $data, $hidden);
+            return new ValidationResult(count($errors) === 0, array_values($errors), $hidden);
         } finally {
             // The duplicates belong to this validation.
             $this->duplicatesByField = [];
@@ -270,6 +272,49 @@ final class Validator
                 $this->validateMultipleFieldRules($field, $fieldValue, $fieldPath, $rowKeys, $fieldDeclaration, $allData, $errors);
             } else {
                 $this->validateFieldRules($field, $fieldValue, $fieldPath, $rowKeys, $fieldDeclaration, $allData, $errors);
+            }
+        }
+    }
+
+    /**
+     * Append the data paths of the fields whose design.show resolves to false, in declaration
+     * order, each field of a group row under the row's key and the fields inside a hidden field
+     * included (validation-rules.md, "Evaluation"). Data of another shape is read as missing.
+     *
+     * @param array<string, mixed> $properties
+     * @param array<array-key, mixed> $data
+     * @param list<string> $currentPath
+     * @param list<int> $rowKeys positions of the row keys in $currentPath
+     * @param array<string, mixed> $allData
+     * @param list<string> $hidden
+     */
+    private function collectHidden(array $properties, array $data, array $currentPath, array $rowKeys, array $allData, array &$hidden): void
+    {
+        foreach ($properties as $propertyKey => $field) {
+            if (!is_array($field) && !$field instanceof \stdClass) {
+                continue;
+            }
+            $field = (array) $field;
+            $fieldName = (string) $propertyKey;
+            $fieldPath = [...$currentPath, $fieldName];
+            if (!Visibility::shown(Visibility::declared($field), $allData, $fieldPath, $rowKeys)) {
+                $hidden[] = implode('.', $fieldPath);
+            }
+            $children = $this->childProperties($field);
+            if (($field['type'] ?? null) !== 'group' || $children === null) {
+                continue;
+            }
+            $value = $data[$fieldName] ?? null;
+            if (!$this->isMultiple($field)) {
+                $this->collectHidden($children, self::isObject($value) ? (array) $value : [], $fieldPath, $rowKeys, $allData, $hidden);
+                continue;
+            }
+            $rows = self::isObject($value) ? (array) $value : [];
+            $keys = array_map('strval', array_keys($rows));
+            sort($keys, SORT_STRING);
+            foreach ($keys as $key) {
+                $row = $rows[$key];
+                $this->collectHidden($children, self::isObject($row) ? (array) $row : [], [...$fieldPath, $key], [...$rowKeys, \count($fieldPath)], $allData, $hidden);
             }
         }
     }

@@ -53,13 +53,16 @@ impl ValidationError {
     }
 }
 
-/// The validation result (JS `{ valid, errors }`).
+/// The validation result (JS `{ valid, errors, hidden }`).
 #[derive(Debug, Clone, PartialEq)]
 pub struct ValidationResult {
     /// True iff there are no errors.
     pub valid: bool,
     /// Errors in traversal/declaration order (never reordered).
     pub errors: Vec<ValidationError>,
+    /// Data paths of the fields whose `design.show` resolves to false, in
+    /// declaration order (validation rules, "Evaluation").
+    pub hidden: Vec<String>,
 }
 
 // ---------------------------------------------------------------------------
@@ -136,9 +139,12 @@ impl Validator {
             false,
             &mut errors,
         )?;
+        let mut hidden = Vec::new();
+        collect_hidden(&self.properties, data, &[], &[], data, &mut hidden);
         Ok(ValidationResult {
             valid: errors.is_empty(),
             errors,
+            hidden,
         })
     }
 
@@ -712,6 +718,54 @@ pub(crate) fn selectable_literals(rule_name: &str, rule_value: &Value) -> Vec<Va
 /// Whether a parameter disables its rule (`false` or `null`).
 pub(crate) fn is_disabled(parameter: &Value) -> bool {
     matches!(parameter, Value::Bool(false) | Value::Null)
+}
+
+/// Append the data paths of the fields whose `design.show` resolves to false, in
+/// declaration order, each field of a group row under the row's key and the fields
+/// inside a hidden field included. Data of another shape is read as missing.
+fn collect_hidden(
+    properties: &Map<String, Value>,
+    data: &Value,
+    current_path: &[String],
+    row_keys: &[usize],
+    all_data: &Value,
+    hidden: &mut Vec<String>,
+) {
+    for (name, field) in properties {
+        if !field.is_object() {
+            continue;
+        }
+        let mut field_path = current_path.to_vec();
+        field_path.push(name.clone());
+        if !is_visible(field, all_data, &field_path, row_keys) {
+            hidden.push(path_to_string(&field_path));
+        }
+        let Some(children) = is_group_with_properties(field) else {
+            continue;
+        };
+        let empty = Value::Object(Map::new());
+        let value = data
+            .get(name)
+            .filter(|value| value.is_object())
+            .unwrap_or(&empty);
+        if !is_multiple(field) {
+            collect_hidden(children, value, &field_path, row_keys, all_data, hidden);
+            continue;
+        }
+        let rows = value.as_object().expect("an object");
+        let mut keys: Vec<&String> = rows.keys().collect();
+        keys.sort();
+        for key in keys {
+            let mut row_path = field_path.clone();
+            row_path.push(key.clone());
+            let mut row_rows = row_keys.to_vec();
+            row_rows.push(field_path.len());
+            let row = Some(&rows[key.as_str()])
+                .filter(|row| row.is_object())
+                .unwrap_or(&empty);
+            collect_hidden(children, row, &row_path, &row_rows, all_data, hidden);
+        }
+    }
 }
 
 /// The member declarations of a group field the validator descends into.

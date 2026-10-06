@@ -83,7 +83,40 @@ func (v *Validator) Validate(data any) (ValidationResult, error) {
 	if err := v.validateProperties(v.properties, root, nil, nil, nil, root, call, false, &errors); err != nil {
 		return ValidationResult{}, err
 	}
-	return ValidationResult{Valid: len(errors) == 0, Errors: errors}, nil
+	hidden := []string{}
+	v.collectHidden(v.properties, root, nil, nil, root, &hidden)
+	return ValidationResult{Valid: len(errors) == 0, Errors: errors, Hidden: hidden}, nil
+}
+
+// collectHidden appends the data paths of the fields whose design.show resolves
+// to false, in declaration order, each field of a group row under the row's key
+// and the fields inside a hidden field included. Data of another shape is read
+// as missing.
+func (v *Validator) collectHidden(properties *compose.OMap, data map[string]any, currentPath []string, rowKeys []int, allData map[string]any, hidden *[]string) {
+	for _, name := range properties.Keys() {
+		raw, _ := properties.Get(name)
+		field, ok := raw.(*compose.OMap)
+		if !ok || field == nil {
+			continue
+		}
+		fieldPath := appendPath(currentPath, name)
+		if !v.fieldVisible(field, fieldPath, rowKeys, allData) {
+			*hidden = append(*hidden, pathToString(fieldPath))
+		}
+		children := childProperties(field)
+		if fieldType(field) != "group" || children == nil {
+			continue
+		}
+		value, _ := data[name].(map[string]any)
+		if !fieldIsMultiple(field) {
+			v.collectHidden(children, value, fieldPath, rowKeys, allData, hidden)
+			continue
+		}
+		for _, key := range sortedKeys(value) {
+			row, _ := value[key].(map[string]any)
+			v.collectHidden(children, row, appendPath(fieldPath, key), appendRowKey(rowKeys, len(fieldPath)), allData, hidden)
+		}
+	}
 }
 
 // fieldRun is one field (or one element of a repeated field) being validated.

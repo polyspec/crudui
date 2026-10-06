@@ -2,7 +2,7 @@
 
 import { composeProperties, MemoryLoader, type FileLoader } from '../compose/index';
 import { composeRoot } from '../compose-root';
-import type { FileSet, ValidationResult } from '../types';
+import type { FileSet, ListValidationResult } from '../types';
 import { scanForbiddenKeys } from '../forbidden-scan';
 import { checkOptionText, checkedComposition } from '../text/index';
 
@@ -24,7 +24,7 @@ function isObject(value: unknown): value is Record<string, unknown> {
 export function validateDetail(
   spec: Record<string, unknown>,
   options: ValidateDetailOptions = {},
-): ValidationResult {
+): ListValidationResult {
   // Input text is checked first: the specification and files, then the options.
   const checked = checkedComposition(spec, options);
   checkOptionText(options, ['basepath']);

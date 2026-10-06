@@ -56,6 +56,23 @@ expression (a literal) is visible. The shape of the data is an
 input contract and is checked for hidden fields too. Visibility
 depends on the data alone, so a server reaches the same result as the form that showed it.
 
+The validation result holds, besides `valid` and `errors`, the member `hidden`: the data paths of
+the fields whose `design.show` resolves to `false` against the data, in declaration order, each
+field of a group row under the row's key and the fields inside a hidden field included, the list
+that the [browser binding](form-runtime.md#display) reads with `hiddenPaths`. A path names the
+field and everything it contains, so a server that stores the data can leave the values at these
+paths unstored; the validator changes no value. For the fields below, the data
+`{ "is_display": 0, "display": { "code": "abc1" } }` gives `hidden` the list `["display"]`.
+
+```yaml
+is_display: { type: text }
+display:
+  type: group
+  design: { show: ".is_display == 1" }
+  properties:
+    code: { type: text, validate: { required: true } }
+```
+
 Form data contains only fields declared in the corresponding `properties` map. This applies to
 the root, each group and each repeated group row, including hidden groups. A condition or rule
 reference to data must name a declared field. Unknown object members fail as input errors before

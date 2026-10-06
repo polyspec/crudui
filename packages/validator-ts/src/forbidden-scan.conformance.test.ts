@@ -9,7 +9,7 @@
  * real load path (`validate` = compose → forbidden-scan → validate) against
  * the same fixture PHP / Go / Rust load.
  *
- * Each `engine: "pass"` case must return `{ valid: true, errors: [] }`. Each
+ * Each `engine: "pass"` case must return `{ valid: true, errors: [], hidden: [] }`. Each
  * `engine: { code, at }` case must throw a `ComposeLoadError` whose `code` is
  * `code` AND whose path (`trace`, dotted) equals `at` — the depth is
  * load-bearing, so the path is asserted, not just the code. The case `files` are
@@ -65,7 +65,7 @@ describe('forbidden-scan — clean specs pass the load path', () => {
   for (const c of cases.filter((x) => x.engine === 'pass')) {
     test(c.name, () =>
       proves(c.name, () => {
-        expect(run(c)).toStrictEqual({ valid: true, errors: [] });
+        expect(run(c)).toStrictEqual({ valid: true, errors: [], hidden: [] });
       }));
   }
 });

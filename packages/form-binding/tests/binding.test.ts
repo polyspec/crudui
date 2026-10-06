@@ -189,13 +189,13 @@ describe('errors', () => {
       properties: { photo: { type: 'file', validate: { required: true } }, name: { type: 'text', validate: { required: true } } },
     };
     const { form } = renderedForm(fileSpec, { name: 'Ada' });
-    expect(bindForm(form, fileSpec, { keyPrefix: 'form' }).validate()).toStrictEqual({ valid: true, errors: [] });
+    expect(bindForm(form, fileSpec, { keyPrefix: 'form' }).validate()).toStrictEqual({ valid: true, errors: [], hidden: [] });
     expect(nodeErrors(node(form, 'photo'))).toStrictEqual([]);
   });
 
   it('leaves the hidden inputs of the form element out of the data', () => {
     const { binding } = setup({ email: 'ada@example.com', name: 'Ada', agree: '1' }, { hidden: { _csrf: 'token' } });
-    expect(binding.validate()).toStrictEqual({ valid: true, errors: [] });
+    expect(binding.validate()).toStrictEqual({ valid: true, errors: [], hidden: [] });
   });
 
   it('fails on an error whose path names no node', () => {

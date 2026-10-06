@@ -820,11 +820,71 @@ static bool validate_properties(const ps_value *properties, const ps_value *data
     free(path); return true;
 }
 
-static ps_result validation_result(ps_value *errors)
+/*
+ * Append the data path of each field whose design.show resolves to false, in declaration order,
+ * each field of a group row under the row's key and the fields inside a hidden field included
+ * (docs/spec/validation-rules.md, "Evaluation"); data of another shape is read as missing. path
+ * holds length segments and room for two more; false on allocation failure.
+ */
+static bool collect_hidden(const ps_value *properties, const ps_value *data, validation_context *context,
+                           ps_text *path, size_t length, ps_value *hidden)
+{
+    if (!properties || properties->kind != PS_OBJECT) return true;
+    if (!reserve_row_keys(context, length + 2)) return false;
+    for (size_t i = 0; i < ps_size(properties); ++i) {
+        ps_text name = ps_key(properties, i); const ps_value *field = ps_at(properties, i);
+        if (!field || field->kind != PS_OBJECT) continue;
+        path[length] = name; context->row_keys[length] = false;
+        int hides = hidden_field(field, context, path, length + 1);
+        if (hides < 0) return false;
+        if (hides) {
+            ps_chars full = ps_dotted_path(path, length + 1, (ps_text){NULL, 0});
+            bool ok = full.bytes && ps_append(hidden, ps_text_value(ps_view(full)));
+            free(full.bytes);
+            if (!ok) return false;
+        }
+        const ps_value *children = ps_get(field, "properties");
+        if (!ps_is_string(ps_get(field, "type"), "group") || !children || children->kind != PS_OBJECT) continue;
+        const ps_value *value = data && data->kind == PS_OBJECT ? ps_get_text(data, name) : NULL;
+        if (value && value->kind != PS_OBJECT) value = NULL;
+        ps_text *child_path = malloc((length + 3) * sizeof(*child_path));
+        if (!child_path) return false;
+        memcpy(child_path, path, (length + 1) * sizeof(*child_path));
+        bool ok = true;
+        if (!repeated_field(field)) {
+            ok = collect_hidden(children, value, context, child_path, length + 1, hidden);
+        } else if (value) {
+            size_t count = 0; ps_text *keys = sorted_row_keys(value, &count);
+            ok = keys != NULL;
+            ps_text *row_path = ok ? malloc((length + 4) * sizeof(*row_path)) : NULL;
+            ok = ok && row_path;
+            for (size_t j = 0; ok && j < count; ++j) {
+                const ps_value *row = ps_get_text(value, keys[j]);
+                memcpy(row_path, path, (length + 1) * sizeof(*row_path));
+                row_path[length + 1] = keys[j];
+                ok = reserve_row_keys(context, length + 4);
+                if (ok) { context->row_keys[length] = false; context->row_keys[length + 1] = true; }
+                ok = ok && collect_hidden(children, row && row->kind == PS_OBJECT ? row : NULL, context,
+                                          row_path, length + 2, hidden);
+            }
+            free(row_path); free(keys);
+        }
+        free(child_path);
+        if (!ok) return false;
+    }
+    return true;
+}
+
+/* The result of a validation: valid, the errors and, for a form, the hidden paths (NULL for a declaration). */
+static ps_result validation_result(ps_value *errors, ps_value *hidden)
 {
     ps_value *result = ps_object_value(); bool valid = ps_size(errors) == 0;
     if (!result || !ps_set(result, "valid", ps_bool_value(valid)) || !ps_set(result, "errors", errors)) {
-        ps_value_free(result); ps_value_free(errors); return ps_fail("internal", "INTERNAL_ERROR", "Validation failed", "");
+        ps_value_free(result); ps_value_free(errors); ps_value_free(hidden);
+        return ps_fail("internal", "INTERNAL_ERROR", "Validation failed", "");
+    }
+    if (hidden && !ps_set(result, "hidden", hidden)) {
+        ps_value_free(result); return ps_fail("internal", "INTERNAL_ERROR", "Validation failed", "");
     }
     return ps_ok(result);
 }
@@ -909,17 +969,21 @@ static ps_result validate_form(const ps_value *spec, const ps_value *data, const
     if (error) { ps_pattern_cache_free(patterns); ps_value_free(properties); return (ps_result){NULL, error}; }
     validation_context context = {data, ps_array_value(), NULL, NULL, 0, patterns, NULL, 0, ps_object_value(), NULL, 0};
     bool valid = context.errors && context.unique_positions && validate_properties(properties, data, &context, NULL, 0, 0, false);
+    ps_value *hidden = valid ? ps_array_value() : NULL;
+    ps_text *hidden_path = valid ? malloc(2 * sizeof(*hidden_path)) : NULL;
+    bool collected = hidden && hidden_path && collect_hidden(properties, data, &context, hidden_path, 0, hidden);
+    free(hidden_path);
     free(context.declaration);
     free(context.row_keys);
     release_unique_rows(&context);
     ps_pattern_cache_free(patterns);
     ps_value_free(properties);
-    if (!valid) {
-        ps_value_free(context.errors);
+    if (!valid || !collected) {
+        ps_value_free(context.errors); ps_value_free(hidden);
         if (context.failure) return (ps_result){NULL, context.failure};
         return ps_fail("internal", "INTERNAL_ERROR", "Validation failed", "");
     }
-    return validation_result(context.errors);
+    return validation_result(context.errors, hidden);
 }
 
 /* Compose a list or detail root; NULL with *error unset means an internal failure. */
@@ -945,7 +1009,7 @@ static ps_result finish_view(ps_value *composed, ps_value *error)
     if (!error) error = ps_scan_forbidden(composed, NULL, 0);
     ps_value_free(composed);
     if (error) return (ps_result){NULL, error};
-    return validation_result(ps_array_value());
+    return validation_result(ps_array_value(), NULL);
 }
 
 static ps_result validate_list(const ps_value *spec, const ps_value *options)

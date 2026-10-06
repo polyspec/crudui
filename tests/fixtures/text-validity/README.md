@@ -22,8 +22,8 @@ A case has `name`, `note` and `expect`, and the inputs of its operation:
 - `action`, one `{ method, args }` call on a created form, whose result is the expectation.
 
 `expect` is the failure `{ code, message, at }`, or the result of a case that passes: the
-validation result `{ valid, errors }` for the validation operations and `"pass"` for the
-generation operations. Cases with valid surrogate pairs and characters from U+E000 to U+FFFF
+validation result `{ valid, errors, hidden }` for `validate`, `{ valid, errors }` for
+`validateList` and `validateDetail`, and `"pass"` for the generation operations. Cases with valid surrogate pairs and characters from U+E000 to U+FFFF
 check that valid text passes and that members follow code point order.
 
 ## Value graphs

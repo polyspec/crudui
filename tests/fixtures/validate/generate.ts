@@ -938,6 +938,17 @@ function build(c: CaseSpec): Record<string, unknown> {
 }
 
 /**
+ * The hidden paths of a written case: the stated list, or none for a specification without
+ * design.show. A case that declares design.show states its list, so the list comes from the
+ * specification, not from a runtime.
+ */
+function hiddenOf(name: string, spec: unknown, hidden: string[] | undefined): string[] {
+  if (hidden !== undefined) return hidden;
+  if (JSON.stringify(spec).includes('"show"')) throw new Error(`${name} declares design.show and must state its hidden paths`);
+  return [];
+}
+
+/**
  * A case whose outcome the specification states: the result record is written from the stated
  * outcomes with each rule's default message, never from a runtime's answer.
  */
@@ -948,7 +959,7 @@ function authored(c: AuthoredCase): Record<string, unknown> {
     return base;
   }
   if (c.expected) {
-    base.expected = c.expected;
+    base.expected = { ...c.expected, hidden: hiddenOf(c.name, c.spec, c.hidden) };
     return base;
   }
   const errors = [];
@@ -959,14 +970,16 @@ function authored(c: AuthoredCase): Record<string, unknown> {
     const message = (outcome.params ?? []).reduce<string>((text, param, index) => text.replace(`{${index}}`, String(param)), template);
     errors.push({ path: field, field, rule: outcome.rule, message, value: c.data[field] ?? null });
   }
-  base.expected = { valid: errors.length === 0, errors };
+  base.expected = { valid: errors.length === 0, errors, hidden: hiddenOf(c.name, c.spec, c.hidden) };
   return base;
 }
 
 /** A case whose complete result record is written from the specification. */
 function written(c: WrittenCase | FailingCase): Record<string, unknown> {
   const { name, note, spec, data } = c;
-  return 'expectFailure' in c ? { name, note, spec, data, expectFailure: c.expectFailure } : { name, note, spec, data, expected: c.expected };
+  return 'expectFailure' in c
+    ? { name, note, spec, data, expectFailure: c.expectFailure }
+    : { name, note, spec, data, expected: { ...c.expected, hidden: hiddenOf(name, spec, c.hidden) } };
 }
 
 const out = [...SPECS.map(build), ...AUTHORED_CASES.map(authored), ...VISIBILITY_CASES.map(written), ...NUMERIC_CASES.map(written)];

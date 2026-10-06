@@ -79,7 +79,7 @@ export function bindForm(form: HTMLFormElement, spec: Record<string, unknown>, o
       if (!node) throw new FormInputError(`Unknown error path: ${error.path}`);
       return !containsFile(node);
     });
-    const result: ValidationResult = errors.length === raw.errors.length ? raw : { valid: errors.length === 0, errors };
+    const result: ValidationResult = errors.length === raw.errors.length ? raw : { valid: errors.length === 0, errors, hidden: raw.hidden };
     const messages = new Map<HTMLElement, string[]>();
     for (const error of errors) {
       const node = nodes.get(error.path)!;

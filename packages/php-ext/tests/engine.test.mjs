@@ -610,7 +610,7 @@ function sourceForValidation() {
       name: `spec:${fixture.name}`,
       operation: 'ps_validate',
       inputs: [fixture.spec, {}, fixture.files === undefined ? {} : { files: fixture.files }],
-      expected: { valid: true, errors: [] },
+      expected: { valid: true, errors: [], hidden: [] },
       error,
     });
   }

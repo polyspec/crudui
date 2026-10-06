@@ -49,7 +49,8 @@ foreach (['spec-validity','list-validity','detail-validity'] as $family) {
                 'list-validity' => Validator::validateList($case->spec,$options),
                 'detail-validity' => Validator::validateDetail($case->spec,$options),
             };
-            if (json_encode($actual,JSON_THROW_ON_ERROR) !== '{"valid":true,"errors":[]}') throw new RuntimeException($case->name.': clean load result differs');
+            $clean = $family === 'spec-validity' ? '{"valid":true,"errors":[],"hidden":[]}' : '{"valid":true,"errors":[]}';
+            if (json_encode($actual,JSON_THROW_ON_ERROR) !== $clean) throw new RuntimeException($case->name.': clean load result differs');
             if ($expectation instanceof stdClass) throw new RuntimeException($case->name.': expected a composition error');
             $results[] = ['case'=>$family.':'.$case->name,'result'=>$actual];
         } catch (ComposeLoadError $error) {
