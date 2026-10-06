@@ -1,5 +1,10 @@
 # 변경 기록
 
+## 2026-10-06 — cross-check 검증기 process의 단일 응답 (C8.3-4)
+
+- cross-check console의 PHP 검증기 process는 다른 process와 `validators/README.md`처럼 폼에 `{ valid, errors }`를
+  쓰고, input text 사례는 모든 process에서 그 응답을 기대합니다.
+
 ## 2026-10-06 — form comparison 레코드 저장의 숨은 경로 (C8.3-3)
 
 - form comparison의 모든 record server는 저장에 검증기 결과를 `valid`, `errors`, `hidden`을 바꾸지 않은 채
