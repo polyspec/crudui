@@ -355,7 +355,7 @@ func (s server) saveRecord(w http.ResponseWriter, r *http.Request, id string) (*
 	for _, item := range result.Errors {
 		errorList = append(errorList, record("path", item.Path, "field", item.Field, "rule", item.Rule, "message", item.Message, "value", valueAt(form, item.Path)))
 	}
-	validation := record("valid", result.Valid, "errors", errorList)
+	validation := record("valid", result.Valid, "errors", errorList, "hidden", result.Hidden)
 	if !result.Valid {
 		return record("validation", validation), nil
 	}

@@ -691,9 +691,11 @@ async fn saves_store_the_submitted_members_in_fixture_order() {
         let mut records = customer_records();
         let previous = records[21].clone();
         let expected = json!({"id":"22","name":data["name"],"status":"blocked","joined":"2027-02-28","score":9021.25,"relation":{"name":data["relation"]["name"]},"avatar":previous["avatar"],"markup":"<em>saved</em>","companies":data["companies"]});
+        // The store `__0000000000176__` of record 22 is unchecked, so `design.show` hides its notes.
+        let hidden = json!(["companies.__0000000000177__.stores.__0000000000176__.detail"]);
         assert_eq!(
             response,
-            json!({"record":expected,"validation":{"valid":true,"errors":[]},"server":"rust"})
+            json!({"record":expected,"validation":{"valid":true,"errors":[],"hidden":hidden},"server":"rust"})
         );
         let stored = json::decode_values(&store(&server)).unwrap();
         assert_eq!(

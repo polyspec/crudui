@@ -77,7 +77,7 @@ script or comment element in any interpretation. Every failure is
 | --- | --- | --- |
 | `GET /api/records?page={n}` | 200 `{ page, perPage: 20, total, records }`: page `n` in id order | 400 `Expected one page parameter` unless the query is exactly one `page`, a decimal integer from 1 without sign or leading zero; 404 `Page not found` beyond the last page |
 | `GET /api/records/{id}` | 200 `{ record }` | 404 `Record not found` for an id that is not stored, including `0` and an id with a leading zero |
-| `POST /api/records/{id}` | 200 `{ record, validation: { valid: true, errors: [] } }` | below |
+| `POST /api/records/{id}` | 200 `{ record, validation: { valid: true, errors: [], hidden } }` | below |
 | `POST /api/records/reset` | 200 `{ total: 45 }`; the store equals the fixture | 400 for a request with a body |
 | `GET /api/records/view/{view}?…` | 200 `{ view, html, data }` | below |
 
@@ -100,8 +100,9 @@ that is not a row key, an `enabled` other than `""` or `"1"`, or an `id` other t
 id. A body over 2 MiB is answered with 413 as soon as it passes the limit: the server reads no
 further and closes the connection, so a client cannot hold it by declaring a large body and
 sending it slowly. It then validates the submission with its own validator and the
-`form` specification; an invalid submission answers 422 `{ validation }` with the validator's
-result. A valid submission stores the previous record with the submitted `name`, `status`,
+`form` specification and answers with the validator's result as `validation`, its members
+`valid`, `errors` and `hidden` unchanged ([validation result](validation-rules.md#evaluation)); an
+invalid submission answers 422 `{ validation }`. A valid submission answers 200 and stores the previous record with the submitted `name`, `status`,
 `joined`, `relation.name`, `markup` and `companies` (its rows in submitted order with their
 submitted keys; a store's `detail` is kept while it is hidden), and `score` as the JSON number
 its decimal text denotes; `id` and `avatar` keep their stored values. No failure changes the store file. A store

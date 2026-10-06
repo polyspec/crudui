@@ -373,7 +373,7 @@ async fn save(server: &Server, id: &str, request: Request) -> Result<Response> {
     let validation = validate(&specs(server)?["form"], &data, &ValidateOptions::default())
         .map_err(|e| internal(e.to_string()))?;
     let errors: Vec<Value> = validation.errors.iter().map(|e| e.to_value()).collect();
-    let validation = json!({"valid":validation.valid,"errors":errors});
+    let validation = json!({"valid":validation.valid,"errors":errors,"hidden":validation.hidden});
     if validation["valid"] != true {
         return reply(
             StatusCode::UNPROCESSABLE_ENTITY,

@@ -245,7 +245,7 @@ async fn handle(
         .iter()
         .map(|error| error.to_value())
         .collect();
-    let mut result = json!({"transport":kind,"jsonProcessor":"ordered-json","validatorSource":"current","received":received,"normalized":data,"validation":{"valid":validation.valid,"errors":errors}});
+    let mut result = json!({"transport":kind,"jsonProcessor":"ordered-json","validatorSource":"current","received":received,"normalized":data,"validation":{"valid":validation.valid,"errors":errors,"hidden":validation.hidden}});
     if action == "validate" {
         return reply(StatusCode::OK, result);
     }

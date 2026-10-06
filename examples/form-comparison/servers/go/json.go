@@ -110,6 +110,12 @@ func toJSON(value any) (*orderedjson.Value, error) {
 			items[index] = item
 		}
 		return toJSON(items)
+	case []string:
+		items := make([]any, len(value))
+		for index, item := range value {
+			items[index] = item
+		}
+		return toJSON(items)
 	case []any:
 		items := make([]*orderedjson.Value, 0, len(value))
 		for _, child := range value {

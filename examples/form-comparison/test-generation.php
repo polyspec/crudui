@@ -54,7 +54,7 @@ foreach ([1, 2] as $pass) {
     equalGeneration($rendered['fields'], $injected->getFields(), 'Injection must produce identical complete models');
     equalGeneration($rendered['html'], CRUDUI\Generator::renderForm($injected), 'Injection must produce identical HTML');
 }
-equalGeneration((object) ['valid' => true, 'errors' => []], CRUDUI\Validator::validate($spec, $data, ['files' => $files]), 'Public validation must accept valid data');
+equalGeneration((object) ['valid' => true, 'errors' => [], 'hidden' => []], CRUDUI\Validator::validate($spec, $data, ['files' => $files]), 'Public validation must accept valid data');
 $invalid = json_decode(json_encode($data, JSON_THROW_ON_ERROR));
 $invalid->companies->__0000000000005__->name = '';
 checkGeneration(CRUDUI\Validator::validate($spec, $invalid, ['files' => $files])->valid === false, 'Public validation must reject missing required values');
