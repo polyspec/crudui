@@ -1,5 +1,12 @@
 # 변경 기록
 
+## 2026-10-06 — branch main의 OrderedJSON (C10.1)
+
+- 비교는 OrderedJSON을 `polyspec/ordered-json`의 branch `main`에서 받습니다. `make install-ordered-json`은 그
+  head를 체크아웃하고, root `package.json`은 그 체크아웃의 `@polyspec/ordered-json`을 적으며, record server는 PHP
+  namespace `Polyspec\OrderedJson`, Go module `github.com/polyspec/ordered-json/go`, crate
+  `polyspec-ordered-json`을 씁니다.
+
 ## 2026-10-06 — polyspec namespace의 PHP API page (C9.1-1)
 
 - API 문서는 `Polyspec\Crudui\`의 phpDocumentor page(`classes/Polyspec-Crudui-Generator.html`과

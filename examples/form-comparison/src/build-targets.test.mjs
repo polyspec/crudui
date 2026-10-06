@@ -105,7 +105,7 @@ test('reinstalls JavaScript dependencies and rebuilds what depends on them', () 
     { targets: ['frames'], restarts: [], supervisor: false });
 });
 
-test('installs the pinned monorepo JavaScript package before building frames', () => {
+test('installs the monorepo JavaScript package before building frames', () => {
   assert.deepEqual(summary(['scripts/install-ordered-json-js.mjs']), {
     targets: ['ordered-json-javascript', 'frames'], restarts: [], supervisor: false,
   });

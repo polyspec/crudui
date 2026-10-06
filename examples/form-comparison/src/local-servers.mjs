@@ -11,7 +11,6 @@ import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 
 import { recordFixtureFile, recordServers, recordSpecsFile } from './record-contract.mjs';
-import { orderedJsonRevision } from './ordered-json-source.mjs';
 import { orderedJsonPresent } from '../install-ordered-json.mjs';
 import { sourceIdentity } from './source-tree.mjs';
 import { formatDuration, killProcessTree, runStages, stepHeartbeatMs } from './step-runner.mjs';
@@ -20,7 +19,7 @@ const execFileAsync = promisify(execFile);
 export const exampleDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const repositoryRoot = path.resolve(exampleDirectory, '../..');
 /**
- * The host checkout of the pinned OrderedJSON monorepo. The Go and Rust server manifests name this
+ * The host checkout of the OrderedJSON monorepo. The Go and Rust server manifests name this
  * path relative to the repository root, as the build tree does.
  */
 export const localOrderedJsonDirectory = path.join(repositoryRoot, '.form-comparison/sources/ordered-json');
@@ -41,10 +40,10 @@ export const anyLoopbackPort = '127.0.0.1:0';
 async function orderedJsonCheckout(write) {
   // The checkout is a download of make install; a check reads it and downloads nothing.
   if (!await orderedJsonPresent(localOrderedJsonDirectory)) {
-    throw new Error(`the OrderedJSON checkout ${localOrderedJsonDirectory} is missing or not at ${orderedJsonRevision}; `
+    throw new Error(`the OrderedJSON checkout ${localOrderedJsonDirectory} is missing or has tracked changes; `
       + 'run make install-ordered-json (make install runs it), which downloads it');
   }
-  progress(write, `ordered-json checkout: ${orderedJsonRevision} present`);
+  progress(write, 'ordered-json checkout: present');
 }
 
 /**

@@ -490,7 +490,7 @@ jobs:
         run: make install-browsers BROWSERS="chrome --chrome-sandbox"
       - name: Verify sandboxed Chrome
         run: make check-ci-browser
-      - name: Install the pinned OrderedJSON checkout
+      - name: Install the OrderedJSON checkout
         run: make install-crates
       - name: Run the checks and write their report
         if: ${{ !cancelled() }}

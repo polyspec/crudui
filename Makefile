@@ -104,7 +104,7 @@ install: install-node-modules install-composer install-rust install-crates insta
 install-npm: ## Install the npm release of packageManager into .tools/npm
 	$(ONLINE) node scripts/install-npm.mjs
 
-install-node-modules: install-npm ## Install the npm dependencies of package-lock.json with their approved install scripts
+install-node-modules: install-npm install-ordered-json ## Install the npm dependencies of package-lock.json with their approved install scripts
 	$(ONLINE) $(NPM) ci --strict-allow-scripts
 
 install-composer: ## Install the Composer dependencies of validator-php and generator-php
@@ -130,9 +130,9 @@ check-ci-browser: ## Check that the pinned Chrome runs sandboxed
 install-crates: install-ordered-json ## Download the crates of every Cargo.lock
 	$(ONLINE) node scripts/check-cargo-downloads.mjs --fetch
 
-# The pinned OrderedJSON checkout of the comparison record servers (examples/form-comparison/install-ordered-json.mjs);
+# The OrderedJSON checkout of the comparison record servers (examples/form-comparison/install-ordered-json.mjs);
 # the Cargo lock of the Rust record server reads it.
-install-ordered-json: ## Install the pinned OrderedJSON checkout of the comparison record servers
+install-ordered-json: ## Install the OrderedJSON checkout of the comparison record servers
 	$(ONLINE) node examples/form-comparison/install-ordered-json.mjs
 
 # The cargo-audit release of config/toolchain.json in .tools/cargo-audit, which the dependency review runs.

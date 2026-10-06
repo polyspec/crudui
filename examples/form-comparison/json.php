@@ -10,7 +10,7 @@ if (!str_starts_with($orderedJsonSource, '/') || !is_file($orderedJsonSource)) {
 }
 require_once $orderedJsonSource;
 
-use OrderedJson\Value;
+use Polyspec\OrderedJson\Value;
 
 /** Require the configured JSON and CRUDUI extension modes. */
 function phpServerMode(): string
@@ -28,14 +28,15 @@ final class FormJson
 {
     public static function decode(string $source): mixed
     {
-        return self::data(phpServerMode() === 'php-ext'
-            ? OrderedJson\parseNative($source)
-            : OrderedJson\parse($source, useNative: false));
+        // The PHP package parses with the ordered_json extension exactly when it is loaded, which
+        // phpServerMode() requires for php-ext and forbids for php.
+        phpServerMode();
+        return self::data(\Polyspec\OrderedJson\parse($source));
     }
 
     public static function encode(mixed $data): string
     {
-        return OrderedJson\stringify(self::value($data));
+        return \Polyspec\OrderedJson\stringify(self::value($data));
     }
 
     /** Convert objects only after request shape validation has completed. */

@@ -66,7 +66,7 @@ try {
     $rejected = false;
     try {
         $repo->read();
-    } catch (OrderedJson\ParseError) {
+    } catch (\Polyspec\OrderedJson\ParseError) {
         $rejected = true;
     }
     check($rejected && file_get_contents($file) === '{invalid',

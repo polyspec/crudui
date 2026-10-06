@@ -6,9 +6,9 @@ import test from 'node:test';
 
 import {
   installOrderedJson,
+  orderedJsonBranch,
   orderedJsonPackages,
   orderedJsonRepository,
-  orderedJsonRevision,
   orderedJsonVersion,
 } from './ordered-json-source.mjs';
 
@@ -21,7 +21,7 @@ async function withDirectory(run) {
   }
 }
 
-test('installs one pinned monorepo and verifies every package path', { timeout: 1000 }, () =>
+test('installs the head of the monorepo branch main and verifies every package path', { timeout: 1000 }, () =>
   withDirectory(async directory => {
     const target = path.join(directory, 'ordered-json');
     await mkdir(target);
@@ -31,7 +31,6 @@ test('installs one pinned monorepo and verifies every package path', { timeout: 
       calls.push({ cwd, args });
       // The previous checkout stays in place while the new one is made beside it.
       assert.equal(await readFile(path.join(target, 'previous'), 'utf8'), 'previous checkout\n');
-      if (args[0] === 'cat-file' && args[2]?.endsWith('^{commit}')) throw new Error('missing object');
       return '';
     };
 
@@ -40,20 +39,22 @@ test('installs one pinned monorepo and verifies every package path', { timeout: 
     assert.deepEqual(result, {
       repository: orderedJsonRepository,
       version: orderedJsonVersion,
-      commit: orderedJsonRevision,
+      branch: orderedJsonBranch,
       packages: { ...orderedJsonPackages },
     });
     assert.equal(calls.some(({ args }) => args[0] === 'submodule'), false);
     assert.deepEqual(calls.map(({ args }) => args[0]), [
-      'init', 'cat-file', 'fetch', 'checkout', 'status',
+      'init', 'fetch', 'checkout', 'status',
       ...Object.keys(orderedJsonPackages).map(() => 'cat-file'),
     ]);
+    assert.deepEqual(calls[1].args, ['fetch', '--quiet', '--depth=1', orderedJsonRepository, 'main']);
+    assert.deepEqual(calls[2].args, ['checkout', '--quiet', '--detach', 'FETCH_HEAD']);
     assert.deepEqual([...new Set(calls.map(({ cwd }) => cwd))], [`${target}.next-${process.pid}`]);
     assert.deepEqual(await readdir(directory), ['ordered-json']);
     assert.deepEqual(await readdir(target), []);
   }));
 
-test('rejects a pinned monorepo missing a required package', { timeout: 1000 }, () =>
+test('rejects a monorepo branch missing a required package', { timeout: 1000 }, () =>
   withDirectory(async directory => {
     const git = async (_cwd, args) => {
       if (args[0] === 'cat-file' && args[2]?.endsWith('php/composer.json')) {
@@ -65,7 +66,7 @@ test('rejects a pinned monorepo missing a required package', { timeout: 1000 }, 
     await mkdir(target);
     await writeFile(path.join(target, 'previous'), 'previous checkout\n');
     await assert.rejects(() => installOrderedJson(target, git),
-      /missing from the pinned monorepo: php/);
+      /missing from the monorepo branch main: php/);
     // A failed checkout leaves the previous one and no directory of its own.
     assert.deepEqual(await readdir(directory), ['ordered-json']);
     assert.equal(await readFile(path.join(target, 'previous'), 'utf8'), 'previous checkout\n');

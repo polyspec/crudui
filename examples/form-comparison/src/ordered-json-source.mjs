@@ -7,7 +7,7 @@ const execFileAsync = promisify(execFile);
 
 export const orderedJsonRepository = 'https://github.com/polyspec/ordered-json';
 export const orderedJsonVersion = '0.0.1';
-export const orderedJsonRevision = 'main';
+export const orderedJsonBranch = 'main';
 export const orderedJsonPackages = Object.freeze({
   go: 'go/go.mod',
   js: 'js/package.json',
@@ -24,8 +24,8 @@ async function defaultGit(directory, args) {
 }
 
 /**
- * Check out one pinned OrderedJSON monorepo revision. Required language packages must exist in
- * that tree; the PHP extension build adds only untracked outputs. The checkout is made in a
+ * Check out the head of the OrderedJSON monorepo branch `main`. Required language packages must
+ * exist in that tree; the PHP extension build adds only untracked outputs. The checkout is made in a
  * directory of this process beside `directory` and renamed into place when it is complete, so a
  * reader finds the previous checkout or the new one, never a partial tree; a failed checkout leaves
  * the previous one.
@@ -38,21 +38,16 @@ export async function installOrderedJson(directory, git = defaultGit) {
   await mkdir(next, { recursive: true });
   try {
     await git(next, ['init', '--quiet']);
-    try {
-      await git(next, ['cat-file', '-e', orderedJsonRevision + '^{commit}']);
-    } catch {
-      await git(next, ['fetch', '--quiet', '--depth=1', orderedJsonRepository,
-        orderedJsonRevision]);
-    }
-    await git(next, ['checkout', '--quiet', '--detach', orderedJsonRevision]);
+    await git(next, ['fetch', '--quiet', '--depth=1', orderedJsonRepository, orderedJsonBranch]);
+    await git(next, ['checkout', '--quiet', '--detach', 'FETCH_HEAD']);
     const changes = await git(next, ['status', '--porcelain', '--untracked-files=no',
       '--no-renames']);
     if (changes.trim()) throw new Error('The OrderedJSON checkout contains tracked changes');
     for (const [name, file] of Object.entries(orderedJsonPackages)) {
       try {
-        await git(next, ['cat-file', '-e', orderedJsonRevision + ':' + file]);
+        await git(next, ['cat-file', '-e', 'HEAD:' + file]);
       } catch {
-        throw new Error(`OrderedJSON package is missing from the pinned monorepo: ${name}`);
+        throw new Error(`OrderedJSON package is missing from the monorepo branch ${orderedJsonBranch}: ${name}`);
       }
     }
     const old = `${directory}.old-${process.pid}`;
@@ -63,6 +58,6 @@ export async function installOrderedJson(directory, git = defaultGit) {
   } finally {
     await rm(next, { recursive: true, force: true });
   }
-  return { repository: orderedJsonRepository, version: orderedJsonVersion, commit: orderedJsonRevision,
+  return { repository: orderedJsonRepository, version: orderedJsonVersion, branch: orderedJsonBranch,
     packages: { ...orderedJsonPackages } };
 }

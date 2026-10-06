@@ -281,9 +281,9 @@ supervisor를 실행합니다.
 `node_modules`, `vendor`, 빌드 산출물을 포함한 무시 파일은 복사하지 않습니다. 매니페스트가
 복사한 경로를 기록합니다. 저장소에서 제거한 경로는 빌드 트리에서도 제거하며, 매니페스트에
 기록되지 않는 빌드 산출물은 유지합니다. supervisor는 해당 체크아웃 디렉터리의 오래된
-디렉터리를 다시 만들어 오래된 내용을 제거한 뒤 `polyspec/ordered-json` 모노레포의 고정 리비전 하나를 빌드 트리의
+디렉터리를 다시 만들어 오래된 내용을 제거한 뒤 `polyspec/ordered-json` 모노레포의 브랜치 `main` 최신 커밋을 빌드 트리의
 `.form-comparison/sources/ordered-json`에 체크아웃합니다.
-다섯 구현 패키지 디렉터리(`go/`, `js/`, `php/`, `php-extension/`, `rust/`)는 그 리비전에
+다섯 구현 패키지 디렉터리(`go/`, `js/`, `php/`, `php-extension/`, `rust/`)는 그 체크아웃에
 존재해야 하며, 별도 저장소나 submodule이 아닙니다.
 
 ### 자연 적용
@@ -310,7 +310,7 @@ supervisor를 실행합니다.
 | --- | --- | --- | --- |
 | `npm-dependencies` | 루트 `package.json`, `package-lock.json`, 패키지 매니페스트 | | 공개 서버 |
 | `javascript-packages` | TypeScript 검증기·생성기 패키지, 루트 `tsconfig` 파일 | `npm-dependencies` | |
-| `ordered-json-javascript` | 고정 체크아웃의 `js/` 패키지를 `node_modules/ordered-json`에 복사 | `npm-dependencies` | |
+| `ordered-json-javascript` | 체크아웃의 `js/` 패키지를 `node_modules/@polyspec/ordered-json`에 복사 | `npm-dependencies` | |
 | `frames` | 예제의 `build.mjs`, `public/`, `src/`, `viewer/`, `fixtures/`, TypeScript 패키지, 폼 스냅샷 모듈 | `npm-dependencies`, `ordered-json-javascript` | |
 | `browser-matrix` | `src/runtime-paths.json` | | 공개 서버, Go, Rust |
 | `public-server` | `server.mjs`, `servers/javascript/`, `src/json.mjs`, `src/record-contract.mjs`, `src/runtime-paths.mjs` | | 공개 서버 |
@@ -321,7 +321,7 @@ supervisor를 실행합니다.
 | `rust-server` | `target/`을 제외한 `servers/rust/`, Rust 생성기·검증기 | | Rust |
 
 각 대상은 시간 한도 없이 끝까지 실행하며 시작, 실행 중 경과 시간, 완료 소요 시간을 보고합니다.
-단계가 실패한 대상은 주기를 실패시킵니다. 소스 비교와 고정한 OrderedJSON 체크아웃의 Git 호출도
+단계가 실패한 대상은 주기를 실패시킵니다. 소스 비교와 OrderedJSON 체크아웃의 Git 호출도
 시간 한도를 가지지 않습니다. 각 서버의 출력에는 그 서버
 이름을 붙이고, 경고를 포함한 모든 줄을 남깁니다.
 
