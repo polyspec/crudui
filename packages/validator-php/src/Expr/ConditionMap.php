@@ -27,11 +27,12 @@ final class ConditionMap
      * @param array<string, mixed> $map ordered expr => value
      * @param array<string, mixed> $formData
      * @param list<string>         $currentPath
+     * @param list<int>            $rowKeys positions of the row keys in $currentPath
      */
-    public static function resolve(array|\stdClass $map, array|\stdClass $formData, array $currentPath = []): mixed
+    public static function resolve(array|\stdClass $map, array|\stdClass $formData, array $currentPath = [], array $rowKeys = []): mixed
     {
         $map = (array) $map;
-        $evaluator = new Evaluator($formData, $currentPath);
+        $evaluator = new Evaluator($formData, $currentPath, $rowKeys);
 
         foreach ($map as $expr => $value) {
             // The default key is matched by literal text, not by evaluation, so

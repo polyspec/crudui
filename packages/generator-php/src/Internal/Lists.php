@@ -182,11 +182,11 @@ final class Lists
         $columnSpecs = [];
         foreach ($columns as $key => $raw) {
             $raw = (object) $raw;
-            $design = Design::resolve($raw->design ?? null, $data, []);
+            $design = Design::resolve($raw->design ?? null, $data, [], []);
             if (!$design->show) {
                 continue;
             }
-            $columnModels[] = (object) ['key' => (string) $key, 'field' => is_string($raw->field ?? null) ? $raw->field : '', 'label' => property_exists($raw, 'label') ? Value::translate($raw->label, $language) : (string) $key, 'format' => self::format($raw->format ?? null), 'sortable' => Design::flag($raw->sortable ?? null, $data, []), 'design' => $design];
+            $columnModels[] = (object) ['key' => (string) $key, 'field' => is_string($raw->field ?? null) ? $raw->field : '', 'label' => property_exists($raw, 'label') ? Value::translate($raw->label, $language) : (string) $key, 'format' => self::format($raw->format ?? null), 'sortable' => Design::flag($raw->sortable ?? null, $data, [], []), 'design' => $design];
             $columnSpecs[] = $raw;
         }
         $rowModels = [];
@@ -200,7 +200,7 @@ final class Lists
                 $path = $column->field;
                 $value = $path !== '' ? Value::path($row, $path) : Missing::Value;
                 // A model is JSON: a path absent from the row is null, and the member is always present.
-                $cells[] = Value::record(['format' => $column->format, 'value' => $value === Missing::Value ? null : $value, 'display' => self::display($column->format, $value, $row, Value::segments($path), $language), 'design' => Design::resolve($columnSpecs[$i]->design ?? null, $row, Value::segments($path))]);
+                $cells[] = Value::record(['format' => $column->format, 'value' => $value === Missing::Value ? null : $value, 'display' => self::display($column->format, $value, $row, Value::segments($path), $language), 'design' => Design::resolve($columnSpecs[$i]->design ?? null, $row, Value::segments($path), [])]);
             }
             $rowModels[] = (object) ['cells' => $cells];
         }
@@ -243,7 +243,7 @@ final class Lists
         // An absent or null empty uses the interface message; a declared text is used as declared.
         $declaredEmpty = $spec->empty ?? null;
         $empty = $declaredEmpty === null ? self::messages($language)['emptyList'] : Value::translate($declaredEmpty, $language);
-        return Value::record(['columns' => $columnModels, 'rows' => $rowModels, 'pagination' => (object) $pagination, 'sort' => $sort, 'actions' => $actions, 'empty' => $empty, 'description' => Value::translate($spec->description ?? null, $language), 'design' => Design::resolve($spec->design ?? null, $data, [])]);
+        return Value::record(['columns' => $columnModels, 'rows' => $rowModels, 'pagination' => (object) $pagination, 'sort' => $sort, 'actions' => $actions, 'empty' => $empty, 'description' => Value::translate($spec->description ?? null, $language), 'design' => Design::resolve($spec->design ?? null, $data, [], [])]);
     }
 
     /**
@@ -408,7 +408,7 @@ final class Lists
                 return (object) ['kind' => 'badge', 'variant' => Value::scalar($variant), 'label' => $text];
             case 'link':
                 $href = $options->href ?? null;
-                $href = is_string($href) ? $href : ($href instanceof stdClass ? Design::appearance($href, $row, $path) : '');
+                $href = is_string($href) ? $href : ($href instanceof stdClass ? Design::appearance($href, $row, $path, []) : '');
                 return Value::record(['kind' => 'link', 'href' => self::interpolate($href, $row, $value), 'text' => isset($options->text) && $options->text !== '' ? Value::translate($options->text, $language) : $text, 'target' => is_string($options->target ?? null) && $options->target !== '' ? $options->target : Missing::Value]);
             case 'choice-label':
                 $items = $options->items ?? null;

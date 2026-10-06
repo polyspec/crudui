@@ -5,13 +5,13 @@ import (
 	"regexp"
 )
 
-func evalCondition(s string, data map[string]any, path []string) bool {
-	v, e := expr.Evaluate(s, data, path)
+func evalCondition(s string, data map[string]any, path []string, rowKeys []int) bool {
+	v, e := expr.Evaluate(s, data, path, rowKeys)
 	return e == nil && v
 }
-func conditionMap(o *Object, data map[string]any, path []string) any {
+func conditionMap(o *Object, data map[string]any, path []string, rowKeys []int) any {
 	for _, k := range o.Keys() {
-		if k != "true" && evalCondition(k, data, path) {
+		if k != "true" && evalCondition(k, data, path, rowKeys) {
 			return read(o, k)
 		}
 	}
@@ -27,17 +27,17 @@ func conditionMap(o *Object, data map[string]any, path []string) any {
 // other string is a literal.
 // Only a resolved false hides; a missing show, a map that selects nothing and a
 // literal string are visible.
-func evalShow(v any, data map[string]any, path []string) bool {
+func evalShow(v any, data map[string]any, path []string, rowKeys []int) bool {
 	if v == nil || isAbsent(v) {
 		return true
 	}
-	return resolveParameter(v, data, path) != false
+	return resolveParameter(v, data, path, rowKeys) != false
 }
 
 // resolveParameter resolves a conditional parameter value.
-func resolveParameter(v any, data map[string]any, path []string) any {
+func resolveParameter(v any, data map[string]any, path []string, rowKeys []int) any {
 	if o := object(v); o != nil {
-		return conditionMap(o, data, path)
+		return conditionMap(o, data, path, rowKeys)
 	}
 	s, ok := v.(string)
 	if !ok {
@@ -45,12 +45,12 @@ func resolveParameter(v any, data map[string]any, path []string) any {
 	}
 	if ast, e := expr.Parse(s); e == nil {
 		if _, ok := ast.(*expr.TernaryNode); ok {
-			x, _ := expr.EvaluateValue(s, data, path)
+			x, _ := expr.EvaluateValue(s, data, path, rowKeys)
 			return x
 		}
 	}
 	if _, e := expr.Parse(s); e == nil && expr.IsConditionExpression(s) && !ternaryTextRE.MatchString(s) {
-		x, _ := expr.EvaluateValue(s, data, path)
+		x, _ := expr.EvaluateValue(s, data, path, rowKeys)
 		return x
 	}
 	return s
@@ -58,12 +58,12 @@ func resolveParameter(v any, data map[string]any, path []string) any {
 
 // evalFlag resolves a boolean flag such as a list column's sortable: a
 // condition map that selects nothing, and a failed condition, are false.
-func evalFlag(v any, data map[string]any, path []string) bool {
+func evalFlag(v any, data map[string]any, path []string, rowKeys []int) bool {
 	if o := object(v); o != nil {
-		return truthy(conditionMap(o, data, path))
+		return truthy(conditionMap(o, data, path, rowKeys))
 	}
 	if s, ok := v.(string); ok {
-		return evalCondition(s, data, path)
+		return evalCondition(s, data, path, rowKeys)
 	}
 	return truthy(v)
 }
@@ -73,12 +73,12 @@ var ternaryTextRE = regexp.MustCompile(`\?[^:]*:`)
 // evalAppearance resolves an appearance setting such as design.class: a
 // condition map selects its value, a ternary its branch and a condition
 // expression that parses completely its result; any other string is literal text.
-func evalAppearance(v any, data map[string]any, path []string) string {
+func evalAppearance(v any, data map[string]any, path []string, rowKeys []int) string {
 	if v == nil || isAbsent(v) {
 		return ""
 	}
 	if o := object(v); o != nil {
-		x := conditionMap(o, data, path)
+		x := conditionMap(o, data, path, rowKeys)
 		if x == nil || isAbsent(x) {
 			return ""
 		}
@@ -90,7 +90,7 @@ func evalAppearance(v any, data map[string]any, path []string) string {
 	}
 	if ast, e := expr.Parse(s); e == nil {
 		if _, ok := ast.(*expr.TernaryNode); ok {
-			x, _ := expr.EvaluateValue(s, data, path)
+			x, _ := expr.EvaluateValue(s, data, path, rowKeys)
 			if x == nil {
 				return ""
 			}
@@ -98,7 +98,7 @@ func evalAppearance(v any, data map[string]any, path []string) string {
 		}
 	}
 	if _, e := expr.Parse(s); e == nil && expr.IsConditionExpression(s) && !ternaryTextRE.MatchString(s) {
-		x, e := expr.EvaluateValue(s, data, path)
+		x, e := expr.EvaluateValue(s, data, path, rowKeys)
 		if e != nil || x == nil || x == false {
 			return ""
 		}
@@ -106,10 +106,10 @@ func evalAppearance(v any, data map[string]any, path []string) string {
 	}
 	return s
 }
-func resolveNode(v any, data map[string]any, path []string) *Object {
-	return NewObject("class", evalAppearance(read(v, "class"), data, path), "style", evalAppearance(read(v, "style"), data, path))
+func resolveNode(v any, data map[string]any, path []string, rowKeys []int) *Object {
+	return NewObject("class", evalAppearance(read(v, "class"), data, path, rowKeys), "style", evalAppearance(read(v, "style"), data, path, rowKeys))
 }
-func resolveDesign(v any, data map[string]any, path []string) *Object {
+func resolveDesign(v any, data map[string]any, path []string, rowKeys []int) *Object {
 	d := NewObject("show", true, "main", NewObject("class", "", "style", ""))
 	for _, k := range []string{"label", "wrapper", "group", "prepend"} {
 		d.Set(k, NewObject("class", "", "style", ""))
@@ -117,10 +117,10 @@ func resolveDesign(v any, data map[string]any, path []string) *Object {
 	if object(v) == nil {
 		return d
 	}
-	d.Set("show", evalShow(read(v, "show"), data, path))
-	d.Set("main", resolveNode(v, data, path))
+	d.Set("show", evalShow(read(v, "show"), data, path, rowKeys))
+	d.Set("main", resolveNode(v, data, path, rowKeys))
 	for _, k := range []string{"label", "wrapper", "group", "prepend"} {
-		d.Set(k, resolveNode(read(v, k), data, path))
+		d.Set(k, resolveNode(read(v, k), data, path, rowKeys))
 	}
 	return d
 }

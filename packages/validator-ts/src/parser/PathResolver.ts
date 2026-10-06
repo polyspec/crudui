@@ -36,37 +36,13 @@ export function resolvePathSegments(
   let basePath: string[];
 
   if (relative) {
-    // Remove current field name and go up 'levelsUp' levels
-    // . = 0 levels up (sibling)
-    // .. = 1 level up (parent's sibling)
-    // ... = 2 levels up (grandparent's sibling)
-    //
-    // When the condition is attached to a group node (display_switch on a
-    // group), the group itself acts as the scope boundary: both "." and ".."
-    // resolve to the group's siblings (fixture: display-switch-nested-001).
-    const effectiveLevelsUp = context.groupNode
-      ? Math.max(0, levelsUp - 1)
-      : levelsUp;
-
+    // The current field is one level and each further dot moves one more level up; a row key
+    // and the name of its collection leave together (expressions.md, "Evaluation").
     basePath = [...currentPath];
-
-    // Remove the current field name itself
-    if (basePath.length > 0) {
-      basePath.pop();
-    }
-
-    // Go up additional levels; array indices do not count as a level
-    // (PHP PathResolver::resolveRelativePath parity)
-    for (let i = 0; i < effectiveLevelsUp; i++) {
-      while (
-        basePath.length > 0 &&
-        /^\d+$/.test(basePath[basePath.length - 1]!)
-      ) {
-        basePath.pop();
-      }
-      if (basePath.length > 0) {
-        basePath.pop();
-      }
+    const rowKeys = context.rowKeys ?? [];
+    for (let level = 0; level <= levelsUp && basePath.length > 0; level++) {
+      const leaving = rowKeys.includes(basePath.length - 1) ? 2 : 1;
+      basePath.length = Math.max(0, basePath.length - leaving);
     }
   } else {
     // Absolute path starts from root
@@ -573,9 +549,9 @@ function coerceNumber(value: unknown): number {
  * Resolve a simple field reference expression to its value.
  *
  * Supports:
- * - ".field" / "..field" relative references (PHP PathResolver::resolveExpression parity)
- * - "a.b.c" absolute-ish references with wildcard support
- * - bare "field" sibling lookup (PHP PathResolver::resolve parity)
+ * - ".field" / "..field" relative references, a row being one level
+ * - "a.b.c" references from the data root with wildcard support
+ * - a bare "field", resolved as ".field"
  */
 export function resolveFieldReference(
   expression: string,
@@ -588,18 +564,18 @@ export function resolveFieldReference(
 
   const formData = context.formData as Record<string, unknown>;
 
-  // Count leading dots
+  // Count leading dots; a bare name without dots is the field beside the current one, as `.name`.
   let dots = 0;
   while (dots < trimmed.length && trimmed[dots] === '.') {
     dots++;
   }
 
-  if (dots > 0) {
+  if (dots > 0 || !trimmed.includes('.')) {
     const fieldPath = trimmed.slice(dots);
     const pathNode: PathNode = {
       type: 'Path',
       relative: true,
-      levelsUp: dots - 1,
+      levelsUp: Math.max(0, dots - 1),
       segments: parsePathString(fieldPath).map((s) =>
         s === '*'
           ? ({ type: 'wildcard' } as const)
@@ -615,22 +591,12 @@ export function resolveFieldReference(
     return getValueByPath(formData, resolved);
   }
 
-  // Path with dots inside (e.g., "common.is_display") - resolve from root
-  if (trimmed.includes('.')) {
-    let segments = parsePathString(trimmed);
-    if (hasWildcard(segments)) {
-      segments = replaceWildcardWithIndex(segments, context.currentPath);
-    }
-    return getValueByPath(formData, segments);
+  // A path with dots inside (e.g., "common.is_display") resolves from the root.
+  let segments = parsePathString(trimmed);
+  if (hasWildcard(segments)) {
+    segments = replaceWildcardWithIndex(segments, context.currentPath);
   }
-
-  // Bare field name - look in the same group as the current field
-  if (context.currentPath.length > 0) {
-    const siblingPath = [...context.currentPath.slice(0, -1), trimmed];
-    return getValueByPath(formData, siblingPath);
-  }
-
-  return getValueByPath(formData, [trimmed]);
+  return getValueByPath(formData, segments);
 }
 
 // ============================================================================

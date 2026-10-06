@@ -243,7 +243,9 @@ ps_chars ps_format_count(const char *template, size_t count);
 /* Replace the first {page} in a page label. */
 ps_chars ps_format_page(const char *template, size_t page);
 
-ps_value *ps_design(const ps_value *design, const ps_value *data, ps_text path);
+/* The design of a node at path; rows holds the positions of the row keys in the path. */
+ps_value *ps_design(const ps_value *design, const ps_value *data, ps_text path,
+                    const size_t *rows, size_t row_count);
 bool ps_widget_supported(ps_text type);
 /* Whether a field type renders the choices layout (choice and multichoice and their aliases). */
 bool ps_widget_choices(ps_text type);
@@ -287,11 +289,18 @@ ps_chars ps_render_form(const ps_value *fields, const ps_value *buttons, const c
 /* Every interface text as an object keyed by message name. */
 ps_value *ps_form_messages_value(const ps_form_messages *messages);
 
+/*
+ * Expressions evaluated at current_path; row_keys, when not NULL, holds for each segment of the
+ * path whether it is a row key, so a row is one level of a relative path (docs/spec/expressions.md,
+ * "Evaluation"). ps_relative_base: the length of the prefix of a path of path_length segments that
+ * a relative path with levels_up further dots starts from.
+ */
+size_t ps_relative_base(const bool *row_keys, size_t path_length, size_t levels_up);
 ps_value *ps_expression_value(ps_text expression, const ps_value *data,
-                              const ps_text *current_path, size_t path_length,
+                              const ps_text *current_path, const bool *row_keys, size_t path_length,
                               bool *parsed);
 bool ps_expression_truth(ps_text expression, const ps_value *data,
-                         const ps_text *current_path, size_t path_length,
+                         const ps_text *current_path, const bool *row_keys, size_t path_length,
                          bool *parsed);
 /*
  * The literal values a ternary expression can return, through nested ternaries and parentheses,
@@ -300,7 +309,7 @@ bool ps_expression_truth(ps_text expression, const ps_value *data,
  */
 ps_value *ps_expression_literals(ps_text expression, bool *parsed);
 ps_value *ps_condition_value(const ps_value *map, const ps_value *data,
-                             const ps_text *current_path, size_t path_length);
+                             const ps_text *current_path, const bool *row_keys, size_t path_length);
 /*
  * A conditional declaration resolved in the row context (docs/spec/validation-rules.md,
  * "Conditional parameters"): a condition map selects its first matching value or its true default
@@ -309,13 +318,13 @@ ps_value *ps_condition_value(const ps_value *map, const ps_value *data,
  * (or for a NULL declaration).
  */
 ps_value *ps_resolve_conditional(const ps_value *declared, const ps_value *data,
-                                 const ps_text *current_path, size_t path_length);
+                                 const ps_text *current_path, const bool *row_keys, size_t path_length);
 /*
  * Visibility of design.show: only a value that resolves to false hides; a missing show is visible.
  * *failed is set when the resolution cannot be allocated.
  */
 bool ps_shown(const ps_value *show, const ps_value *data,
-              const ps_text *current_path, size_t path_length, bool *failed);
+              const ps_text *current_path, const bool *row_keys, size_t path_length, bool *failed);
 
 /*
  * Values (whitespace.c, canonical.c; docs/spec/validation-rules.md, "Values").

@@ -24,7 +24,8 @@ token is `EOF`. AST fields are:
 
 A path segment has type `identifier` with a string value, `wildcard` without a
 value, or `index` with a numeric value. Data contexts contain `data`, optional
-`currentPath`, expected `value` and expected `truthy`.
+`currentPath`, optional `rowKeys` (the zero-based positions of the row keys in
+`currentPath`), expected `value` and expected `truthy`.
 
 The cases cover relative and wildcard paths, comparisons, membership, logical
 precedence, nested ternaries, path comparisons, boolean conversion, an unclosed

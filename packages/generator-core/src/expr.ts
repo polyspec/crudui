@@ -14,12 +14,16 @@ import {
  */
 export type Evaluated<V = unknown> = V | string | Record<string, unknown>;
 
-/** Build the engine PathContext for a field at `currentPath` over `formData`. */
+/**
+ * Build the engine PathContext for a field at `currentPath` over `formData`; `rowKeys` are the
+ * positions of the row keys in the path, so a row is one level of a relative path.
+ */
 export function makeContext(
   currentPath: string[],
-  formData: Record<string, unknown>
+  formData: Record<string, unknown>,
+  rowKeys: readonly number[] = []
 ): PathContext {
-  return { currentPath, formData };
+  return { currentPath, rowKeys, formData };
 }
 
 function evalConditionBool(expression: string, context: PathContext): boolean {

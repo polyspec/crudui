@@ -27,7 +27,7 @@ final class Buttons
         foreach ($template->buttons as $button) {
             $button = Value::object($button);
             $type = $button->type;
-            $design = Design::resolve($button->design ?? null, $data, []);
+            $design = Design::resolve($button->design ?? null, $data, [], []);
             $attrs = new stdClass();
             if ($type !== 'link') {
                 $attrs->type = $type;

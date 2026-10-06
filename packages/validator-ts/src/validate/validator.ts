@@ -283,7 +283,7 @@ export class Validator {
     this.checkDeclaredParameters(this.properties, []);
     this.run = { uniqueDuplicates: new Map() };
     const errors: ValidationError[] = [];
-    this.validateProperties(this.properties, data, [], [], data, errors);
+    this.validateProperties(this.properties, data, [], [], [], data, errors);
     return { valid: errors.length === 0, errors };
   }
 
@@ -294,7 +294,7 @@ export class Validator {
    */
   hiddenPaths(data: Record<string, unknown>): string[] {
     const hidden: string[] = [];
-    this.collectHidden(this.properties, data, [], data, hidden);
+    this.collectHidden(this.properties, data, [], [], data, hidden);
     return hidden;
   }
 
@@ -302,6 +302,7 @@ export class Validator {
     properties: Record<string, ComposedField>,
     data: Record<string, unknown>,
     currentPath: string[],
+    rowKeys: number[],
     allData: Record<string, unknown>,
     hidden: string[]
   ): void {
@@ -310,7 +311,7 @@ export class Validator {
         continue;
       }
       const fieldPath = [...currentPath, name];
-      if (this.isHidden(field, { currentPath: fieldPath, formData: allData })) {
+      if (this.isHidden(field, { currentPath: fieldPath, rowKeys, formData: allData })) {
         hidden.push(pathToString(fieldPath));
       }
       const children = this.childProperties(field);
@@ -319,13 +320,13 @@ export class Validator {
       }
       const value = data[name];
       if (!this.isMultiple(field)) {
-        this.collectHidden(children, isPlainObject(value) ? value : {}, fieldPath, allData, hidden);
+        this.collectHidden(children, isPlainObject(value) ? value : {}, fieldPath, rowKeys, allData, hidden);
         continue;
       }
       const rows = isPlainObject(value) ? value : {};
       for (const key of Object.keys(rows).sort()) {
         const row = rows[key];
-        this.collectHidden(children, isPlainObject(row) ? row : {}, [...fieldPath, key], allData, hidden);
+        this.collectHidden(children, isPlainObject(row) ? row : {}, [...fieldPath, key], [...rowKeys, fieldPath.length], allData, hidden);
       }
     }
   }
@@ -377,6 +378,7 @@ export class Validator {
     properties: Record<string, ComposedField>,
     data: Record<string, unknown>,
     currentPath: string[],
+    rowKeys: number[],
     declarationPath: string[],
     allData: Record<string, unknown>,
     errors: ValidationError[],
@@ -401,7 +403,7 @@ export class Validator {
       // A hidden field and every field it contains are not evaluated; its value
       // is kept for conditions and references elsewhere. The data shape is an
       // input contract, so hidden data is still traversed for shape checks.
-      const hidden = insideHidden || this.isHidden(field, { currentPath: fieldPath, formData: allData });
+      const hidden = insideHidden || this.isHidden(field, { currentPath: fieldPath, rowKeys, formData: allData });
 
       const childProps = this.childProperties(field);
 
@@ -427,10 +429,10 @@ export class Validator {
                 `Group data must be an object: ${pathToString([...fieldPath, key])}`
               );
             }
-            this.validateProperties(childProps, row, [...fieldPath, key], fieldDeclaration, allData, errors, hidden);
+            this.validateProperties(childProps, row, [...fieldPath, key], [...rowKeys, fieldPath.length], fieldDeclaration, allData, errors, hidden);
           }
           if (!hidden) {
-            this.validateFieldRules(field, fieldValue, fieldPath, fieldDeclaration, allData, errors);
+            this.validateFieldRules(field, fieldValue, fieldPath, rowKeys, fieldDeclaration, allData, errors);
           }
         } else {
           if (present && !isPlainObject(fieldValue)) {
@@ -442,13 +444,14 @@ export class Validator {
             childProps,
             present ? (fieldValue as Record<string, unknown>) : {},
             fieldPath,
+            rowKeys,
             fieldDeclaration,
             allData,
             errors,
             hidden
           );
           if (!hidden) {
-            this.validateFieldRules(field, fieldValue, fieldPath, fieldDeclaration, allData, errors);
+            this.validateFieldRules(field, fieldValue, fieldPath, rowKeys, fieldDeclaration, allData, errors);
           }
         }
       } else if (hidden) {
@@ -460,12 +463,13 @@ export class Validator {
           field,
           fieldValue as Record<string, unknown> | undefined,
           fieldPath,
+          rowKeys,
           fieldDeclaration,
           allData,
           errors
         );
       } else {
-        this.validateFieldRules(field, fieldValue, fieldPath, fieldDeclaration, allData, errors);
+        this.validateFieldRules(field, fieldValue, fieldPath, rowKeys, fieldDeclaration, allData, errors);
       }
     }
   }
@@ -509,6 +513,7 @@ export class Validator {
     field: ComposedField,
     values: Record<string, unknown> | undefined,
     fieldPath: string[],
+    rowKeys: number[],
     declarationPath: string[],
     allData: Record<string, unknown>,
     errors: ValidationError[]
@@ -518,7 +523,7 @@ export class Validator {
 
     // 1. Array-level rules in declaration order; first error wins for the field.
     if (rules) {
-      const context: PathContext = { currentPath: fieldPath, formData: allData };
+      const context: PathContext = { currentPath: fieldPath, rowKeys, formData: allData };
       for (const [ruleName, ruleValue] of Object.entries(rules)) {
         if (!ARRAY_LEVEL_RULES.includes(ruleName)) {
           continue;
@@ -553,6 +558,7 @@ export class Validator {
         field,
         value,
         [...fieldPath, key],
+        [...rowKeys, fieldPath.length],
         declarationPath,
         allData,
         errors
@@ -565,11 +571,12 @@ export class Validator {
     field: ComposedField,
     value: unknown,
     itemPath: string[],
+    rowKeys: number[],
     declarationPath: string[],
     allData: Record<string, unknown>,
     errors: ValidationError[]
   ): void {
-    const context: PathContext = { currentPath: itemPath, formData: allData };
+    const context: PathContext = { currentPath: itemPath, rowKeys, formData: allData };
     const messages = fieldMessages(field);
     const rules = normalizeValidateSlot(field.validate);
 
@@ -602,11 +609,12 @@ export class Validator {
     field: ComposedField,
     value: unknown,
     fieldPath: string[],
+    rowKeys: number[],
     declarationPath: string[],
     allData: Record<string, unknown>,
     errors: ValidationError[]
   ): void {
-    const context: PathContext = { currentPath: fieldPath, formData: allData };
+    const context: PathContext = { currentPath: fieldPath, rowKeys, formData: allData };
     const messages = fieldMessages(field);
     const rules = normalizeValidateSlot(field.validate);
 
@@ -712,6 +720,7 @@ export class Validator {
       // The rule reads `spec.type`/`spec.messages` only; pass the CRUDUI field as-is.
       spec: field as { type: string },
       pathSegments: context.currentPath,
+      rowKeys: context.rowKeys ?? [],
       ruleParam: effectiveParam,
       messages,
       ruleName,

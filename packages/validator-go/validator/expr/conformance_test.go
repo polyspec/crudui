@@ -23,6 +23,7 @@ import (
 type fixtureCase struct {
 	Data        map[string]any `json:"data"`
 	CurrentPath []string       `json:"currentPath"`
+	RowKeys     []int          `json:"rowKeys"`
 	Value       any            `json:"value"`
 	Truthy      bool           `json:"truthy"`
 }
@@ -114,7 +115,7 @@ func checkAST(t *testing.T, spec fixtureSpec) {
 
 func checkEvaluation(t *testing.T, spec fixtureSpec) {
 	for i, c := range spec.Cases {
-		val, err := EvaluateValue(spec.Expr, c.Data, c.CurrentPath)
+		val, err := EvaluateValue(spec.Expr, c.Data, c.CurrentPath, c.RowKeys)
 		if err != nil {
 			t.Fatalf("evaluateValue error [%s] case %d: %v", spec.Expr, i, err)
 		}
@@ -122,7 +123,7 @@ func checkEvaluation(t *testing.T, spec fixtureSpec) {
 			t.Errorf("value mismatch [%s] case %d: expected %#v got %#v", spec.Expr, i, c.Value, val)
 		}
 
-		truthy, err := Evaluate(spec.Expr, c.Data, c.CurrentPath)
+		truthy, err := Evaluate(spec.Expr, c.Data, c.CurrentPath, c.RowKeys)
 		if err != nil {
 			t.Fatalf("evaluate error [%s] case %d: %v", spec.Expr, i, err)
 		}

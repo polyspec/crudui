@@ -126,7 +126,16 @@ impl Validator {
             data,
             unique_duplicates: RefCell::new(HashMap::new()),
         };
-        self.validate_properties(&self.properties, data, &[], &[], &run, false, &mut errors)?;
+        self.validate_properties(
+            &self.properties,
+            data,
+            &[],
+            &[],
+            &[],
+            &run,
+            false,
+            &mut errors,
+        )?;
         Ok(ValidationResult {
             valid: errors.is_empty(),
             errors,
@@ -146,6 +155,7 @@ impl Validator {
         properties: &Map<String, Value>,
         data: &Value,
         current_path: &[String],
+        row_keys: &[usize],
         declaration_path: &[String],
         run: &Run<'_>,
         hidden: bool,
@@ -181,7 +191,7 @@ impl Validator {
             let declaration = declaration.as_slice();
             // The rules of a hidden field and of everything it contains are not
             // evaluated; the data shape is checked all the same.
-            let hidden = hidden || !is_visible(field, all_data, &field_path);
+            let hidden = hidden || !is_visible(field, all_data, &field_path, row_keys);
             let present = data.get(property_key);
             let field_value = present.cloned().unwrap_or(Value::Null);
 
@@ -215,10 +225,13 @@ impl Validator {
                                 ))
                                 .into());
                             }
+                            let mut row_rows = row_keys.to_vec();
+                            row_rows.push(field_path.len());
                             self.validate_properties(
                                 child_props,
                                 row,
                                 &row_path,
+                                &row_rows,
                                 declaration,
                                 run,
                                 hidden,
@@ -231,6 +244,7 @@ impl Validator {
                             field,
                             &field_value,
                             &field_path,
+                            row_keys,
                             declaration,
                             run,
                             errors,
@@ -249,6 +263,7 @@ impl Validator {
                         child_props,
                         nested,
                         &field_path,
+                        row_keys,
                         declaration,
                         run,
                         hidden,
@@ -259,6 +274,7 @@ impl Validator {
                             field,
                             &field_value,
                             &field_path,
+                            row_keys,
                             declaration,
                             run,
                             errors,
@@ -279,6 +295,7 @@ impl Validator {
                     &field_value,
                     rows,
                     &field_path,
+                    row_keys,
                     declaration,
                     run,
                     errors,
@@ -288,6 +305,7 @@ impl Validator {
                     field,
                     &field_value,
                     &field_path,
+                    row_keys,
                     declaration,
                     run,
                     errors,
@@ -309,6 +327,7 @@ impl Validator {
         values: &Value,
         rows: &Map<String, Value>,
         field_path: &[String],
+        row_keys: &[usize],
         declaration: &[String],
         run: &Run<'_>,
         errors: &mut Vec<ValidationError>,
@@ -328,6 +347,7 @@ impl Validator {
                     rule_value,
                     values,
                     field_path,
+                    row_keys,
                     declaration,
                     messages,
                     run,
@@ -348,7 +368,17 @@ impl Validator {
         for (key, value) in entries {
             let mut item_path = field_path.to_vec();
             item_path.push(key);
-            self.validate_element_rules(field, value, &item_path, declaration, run, errors)?;
+            let mut item_rows = row_keys.to_vec();
+            item_rows.push(field_path.len());
+            self.validate_element_rules(
+                field,
+                value,
+                &item_path,
+                &item_rows,
+                declaration,
+                run,
+                errors,
+            )?;
         }
         Ok(())
     }
@@ -359,6 +389,7 @@ impl Validator {
         field: &Value,
         value: &Value,
         item_path: &[String],
+        row_keys: &[usize],
         declaration: &[String],
         run: &Run<'_>,
         errors: &mut Vec<ValidationError>,
@@ -366,7 +397,9 @@ impl Validator {
         let messages = field.get("messages");
         let rules = normalize_validate_slot(field);
 
-        if self.run_implicit_number(field, rules, value, item_path, messages, run, errors)? {
+        if self.run_implicit_number(
+            field, rules, value, item_path, row_keys, messages, run, errors,
+        )? {
             return Ok(());
         }
         let rules = match rules {
@@ -382,6 +415,7 @@ impl Validator {
                 rule_value,
                 value,
                 item_path,
+                row_keys,
                 declaration,
                 messages,
                 run,
@@ -405,6 +439,7 @@ impl Validator {
         field: &Value,
         value: &Value,
         field_path: &[String],
+        row_keys: &[usize],
         declaration: &[String],
         run: &Run<'_>,
         errors: &mut Vec<ValidationError>,
@@ -412,7 +447,9 @@ impl Validator {
         let messages = field.get("messages");
         let rules = normalize_validate_slot(field);
 
-        if self.run_implicit_number(field, rules, value, field_path, messages, run, errors)? {
+        if self.run_implicit_number(
+            field, rules, value, field_path, row_keys, messages, run, errors,
+        )? {
             return Ok(());
         }
         let rules = match rules {
@@ -425,6 +462,7 @@ impl Validator {
                 rule_value,
                 value,
                 field_path,
+                row_keys,
                 declaration,
                 messages,
                 run,
@@ -451,6 +489,7 @@ impl Validator {
         rules: Option<&Map<String, Value>>,
         value: &Value,
         path: &[String],
+        row_keys: &[usize],
         messages: Option<&Value>,
         run: &Run<'_>,
         errors: &mut Vec<ValidationError>,
@@ -467,6 +506,7 @@ impl Validator {
             &Value::Bool(true),
             value,
             path,
+            row_keys,
             &[],
             messages,
             run,
@@ -498,12 +538,14 @@ impl Validator {
         rule_value: &Value,
         value: &Value,
         current_path: &[String],
+        row_keys: &[usize],
         declaration: &[String],
         messages: Option<&Value>,
         run: &Run<'_>,
     ) -> Result<Option<String>, ValidateError> {
         let all_data = run.data;
-        let effective = self.resolve_rule_value(rule_name, rule_value, current_path, all_data);
+        let effective =
+            self.resolve_rule_value(rule_name, rule_value, current_path, row_keys, all_data);
 
         // A false/null effective param disables the rule.
         if is_disabled(&effective) {
@@ -526,6 +568,7 @@ impl Validator {
             messages,
             rule_name,
             path_segments: current_path,
+            row_keys,
             form_data: all_data,
             run,
         };
@@ -538,18 +581,19 @@ impl Validator {
         rule_name: &str,
         rule_value: &Value,
         current_path: &[String],
+        row_keys: &[usize],
         all_data: &Value,
     ) -> Value {
         match resolution(rule_name, rule_value) {
             Resolution::Verbatim | Resolution::Literal => rule_value.clone(),
             Resolution::ConditionMap(map) => {
-                self.resolve_condition_map(map, current_path, all_data)
+                self.resolve_condition_map(map, current_path, row_keys, all_data)
             }
             Resolution::Ternary(node) => {
-                Evaluator::new(all_data, current_path).evaluate_value(&node)
+                Evaluator::new(all_data, current_path, row_keys).evaluate_value(&node)
             }
             Resolution::Expression(expression) => {
-                evaluate_expression_value(expression, all_data, current_path)
+                evaluate_expression_value(expression, all_data, current_path, row_keys)
             }
         }
     }
@@ -560,13 +604,14 @@ impl Validator {
         &self,
         map: &Map<String, Value>,
         current_path: &[String],
+        row_keys: &[usize],
         all_data: &Value,
     ) -> Value {
         for (key, val) in map {
             if key == "true" {
                 continue;
             }
-            if evaluate_condition(key, all_data, current_path) {
+            if evaluate_condition(key, all_data, current_path, row_keys) {
                 return val.clone();
             }
         }
@@ -681,16 +726,23 @@ pub(crate) fn is_group_with_properties(field: &Value) -> Option<&Map<String, Val
 // expression engine adapters (JS evaluateCondition / evaluateExpressionValue).
 // ---------------------------------------------------------------------------
 
-fn evaluate_condition(expression: &str, form_data: &Value, current_path: &[String]) -> bool {
-    Expression::evaluate(expression, form_data, current_path).unwrap_or(false)
+fn evaluate_condition(
+    expression: &str,
+    form_data: &Value,
+    current_path: &[String],
+    row_keys: &[usize],
+) -> bool {
+    Expression::evaluate(expression, form_data, current_path, row_keys).unwrap_or(false)
 }
 
 fn evaluate_expression_value(
     expression: &str,
     form_data: &Value,
     current_path: &[String],
+    row_keys: &[usize],
 ) -> Value {
-    Expression::evaluate_value(expression, form_data, current_path).unwrap_or(Value::Bool(false))
+    Expression::evaluate_value(expression, form_data, current_path, row_keys)
+        .unwrap_or(Value::Bool(false))
 }
 
 // ---------------------------------------------------------------------------

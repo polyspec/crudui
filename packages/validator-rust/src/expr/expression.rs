@@ -35,9 +35,10 @@ impl Expression {
         expression: &str,
         form_data: &Value,
         current_path: &[String],
+        row_keys: &[usize],
     ) -> Result<bool, ParseError> {
         let ast = Self::parse(expression)?;
-        Ok(Evaluator::new(form_data, current_path).evaluate(&ast))
+        Ok(Evaluator::new(form_data, current_path, row_keys).evaluate(&ast))
     }
 
     /// Evaluate to the raw value (class/style/number/null call site).
@@ -45,8 +46,9 @@ impl Expression {
         expression: &str,
         form_data: &Value,
         current_path: &[String],
+        row_keys: &[usize],
     ) -> Result<Value, ParseError> {
         let ast = Self::parse(expression)?;
-        Ok(Evaluator::new(form_data, current_path).evaluate_value(&ast))
+        Ok(Evaluator::new(form_data, current_path, row_keys).evaluate_value(&ast))
     }
 }

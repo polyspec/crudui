@@ -9991,6 +9991,368 @@
     }
   },
   {
+    "name": "visibility-row-parent-a",
+    "note": "in a field of a group row, '..' reads the field beside the collection for design.show, a conditional parameter and a field reference, whatever the row key is.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "mode": {
+          "type": "text"
+        },
+        "strict": {
+          "type": "text"
+        },
+        "code": {
+          "type": "text"
+        },
+        "items": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "note": {
+              "type": "text",
+              "design": {
+                "show": "..mode == 'on'"
+              },
+              "validate": {
+                "required": true
+              }
+            },
+            "level": {
+              "type": "text",
+              "validate": {
+                "required": "..strict == 1"
+              }
+            },
+            "copy": {
+              "type": "text",
+              "validate": {
+                "equalTo": "..code"
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "mode": "on",
+      "strict": 1,
+      "code": "abc",
+      "items": {
+        "__a__": {
+          "note": "",
+          "level": "",
+          "copy": "abd"
+        }
+      }
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "items.__a__.note",
+          "field": "note",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": ""
+        },
+        {
+          "path": "items.__a__.level",
+          "field": "level",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": ""
+        },
+        {
+          "path": "items.__a__.copy",
+          "field": "copy",
+          "rule": "equalTo",
+          "message": "Please enter the same value again.",
+          "value": "abd"
+        }
+      ]
+    }
+  },
+  {
+    "name": "visibility-row-parent-7",
+    "note": "in a field of a group row, '..' reads the field beside the collection for design.show, a conditional parameter and a field reference, whatever the row key is.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "mode": {
+          "type": "text"
+        },
+        "strict": {
+          "type": "text"
+        },
+        "code": {
+          "type": "text"
+        },
+        "items": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "note": {
+              "type": "text",
+              "design": {
+                "show": "..mode == 'on'"
+              },
+              "validate": {
+                "required": true
+              }
+            },
+            "level": {
+              "type": "text",
+              "validate": {
+                "required": "..strict == 1"
+              }
+            },
+            "copy": {
+              "type": "text",
+              "validate": {
+                "equalTo": "..code"
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "mode": "on",
+      "strict": 1,
+      "code": "abc",
+      "items": {
+        "7": {
+          "note": "",
+          "level": "",
+          "copy": "abd"
+        }
+      }
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "items.7.note",
+          "field": "note",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": ""
+        },
+        {
+          "path": "items.7.level",
+          "field": "level",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": ""
+        },
+        {
+          "path": "items.7.copy",
+          "field": "copy",
+          "rule": "equalTo",
+          "message": "Please enter the same value again.",
+          "value": "abd"
+        }
+      ]
+    }
+  },
+  {
+    "name": "visibility-row-parent-r1",
+    "note": "in a field of a group row, '..' reads the field beside the collection for design.show, a conditional parameter and a field reference, whatever the row key is.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "mode": {
+          "type": "text"
+        },
+        "strict": {
+          "type": "text"
+        },
+        "code": {
+          "type": "text"
+        },
+        "items": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "note": {
+              "type": "text",
+              "design": {
+                "show": "..mode == 'on'"
+              },
+              "validate": {
+                "required": true
+              }
+            },
+            "level": {
+              "type": "text",
+              "validate": {
+                "required": "..strict == 1"
+              }
+            },
+            "copy": {
+              "type": "text",
+              "validate": {
+                "equalTo": "..code"
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "mode": "on",
+      "strict": 1,
+      "code": "abc",
+      "items": {
+        "r1": {
+          "note": "",
+          "level": "",
+          "copy": "abd"
+        }
+      }
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "items.r1.note",
+          "field": "note",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": ""
+        },
+        {
+          "path": "items.r1.level",
+          "field": "level",
+          "rule": "required",
+          "message": "This field is required.",
+          "value": ""
+        },
+        {
+          "path": "items.r1.copy",
+          "field": "copy",
+          "rule": "equalTo",
+          "message": "Please enter the same value again.",
+          "value": "abd"
+        }
+      ]
+    }
+  },
+  {
+    "name": "reference-nested-group",
+    "note": "a field reference resolves as a relative expression path: '.a' in a group reads the field of the group and '..a' the field beside the group.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "a": {
+          "type": "text"
+        },
+        "g": {
+          "type": "group",
+          "properties": {
+            "a": {
+              "type": "text"
+            },
+            "same": {
+              "type": "text",
+              "validate": {
+                "equalTo": ".a"
+              }
+            },
+            "other": {
+              "type": "text",
+              "validate": {
+                "notEqual": "..a"
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "a": "root",
+      "g": {
+        "a": "1",
+        "same": "1",
+        "other": "root"
+      }
+    },
+    "expected": {
+      "valid": false,
+      "errors": [
+        {
+          "path": "g.other",
+          "field": "other",
+          "rule": "notEqual",
+          "message": "Please enter a different value.",
+          "value": "root"
+        }
+      ]
+    }
+  },
+  {
+    "name": "visibility-row-parent-off",
+    "note": "the same row with the parent values off: '..mode' hides the note, '..strict' makes the level optional and '..code' matches the copy.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "mode": {
+          "type": "text"
+        },
+        "strict": {
+          "type": "text"
+        },
+        "code": {
+          "type": "text"
+        },
+        "items": {
+          "type": "group",
+          "multiple": true,
+          "properties": {
+            "note": {
+              "type": "text",
+              "design": {
+                "show": "..mode == 'on'"
+              },
+              "validate": {
+                "required": true
+              }
+            },
+            "level": {
+              "type": "text",
+              "validate": {
+                "required": "..strict == 1"
+              }
+            },
+            "copy": {
+              "type": "text",
+              "validate": {
+                "equalTo": "..code"
+              }
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "mode": "off",
+      "strict": 0,
+      "code": "abc",
+      "items": {
+        "__a__": {
+          "note": "",
+          "level": "",
+          "copy": "abc"
+        }
+      }
+    },
+    "expected": {
+      "valid": true,
+      "errors": []
+    }
+  },
+  {
     "name": "visibility-hidden-value-still-read",
     "note": "A hidden field reports nothing, but equalTo and a required condition elsewhere read its kept value.",
     "spec": {

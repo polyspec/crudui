@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace CRUDUI\Validator\Rules;
 
+use CRUDUI\Validator\Expr\FieldPath;
 use CRUDUI\Validator\Values\Whitespace;
 
 /**
@@ -68,7 +69,7 @@ class Accept implements RuleInterface
     /**
      * Validate that a file has an acceptable MIME type or extension.
      */
-    public function validate(mixed $value, mixed $param, array $allData, string $path): bool
+    public function validate(mixed $value, mixed $param, array $allData, FieldPath $path): bool
     {
         if ($param === null || $param === false) {
             return true;

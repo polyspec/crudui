@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace CRUDUI\Validator\Rules;
 
+use CRUDUI\Validator\Expr\FieldPath;
 use CRUDUI\Validator\Values\InvalidRuleParameter;
 use CRUDUI\Validator\Values\LengthLimit;
 
@@ -18,7 +19,7 @@ class MaxLength implements RuleInterface
      *
      * @throws InvalidRuleParameter when the limit is not an integer from 0 to 9007199254740991
      */
-    public function validate(mixed $value, mixed $param, array $allData, string $path): bool
+    public function validate(mixed $value, mixed $param, array $allData, FieldPath $path): bool
     {
         $limit = LengthLimit::single('maxlength', $param);
         $length = LengthLimit::lengthOf($value);

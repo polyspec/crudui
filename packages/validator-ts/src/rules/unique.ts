@@ -90,13 +90,14 @@ function extractFieldValues(items: unknown[], fieldName: string): unknown[] {
 function itemPassesCondition(
   condition: string,
   itemFieldPath: string[],
+  rowKeys: readonly number[],
   allData: Record<string, unknown>
 ): boolean {
   try {
     const ast = parseCondition(condition);
     return evaluateCondition(
       ast,
-      { currentPath: itemFieldPath, formData: allData },
+      { currentPath: itemFieldPath, rowKeys, formData: allData },
       'CURRENT'
     );
   } catch {
@@ -109,7 +110,7 @@ function itemPassesCondition(
  */
 export const uniqueRule: RuleDefinition = {
   validate(context: ValidationContext): string | null {
-    const { value, ruleParam, messages, allData, pathSegments, run } = context;
+    const { value, ruleParam, messages, allData, pathSegments, rowKeys, run } = context;
 
     // Skip if rule is disabled
     if (ruleParam === false || ruleParam === null || ruleParam === undefined) {
@@ -133,7 +134,7 @@ export const uniqueRule: RuleDefinition = {
         valuesToCheck = [];
         for (const [key, element] of entries) {
           const itemPath = [...pathSegments, key];
-          if (!itemPassesCondition(ruleParam as string, itemPath, allData)) {
+          if (!itemPassesCondition(ruleParam as string, itemPath, [...rowKeys, pathSegments.length], allData)) {
             continue;
           }
           if (!isEmpty(element)) {
@@ -183,7 +184,7 @@ export const uniqueRule: RuleDefinition = {
     // the current item is excluded from the uniqueness check entirely
     if (
       isFilterCondition &&
-      !itemPassesCondition(ruleParam as string, pathSegments, allData)
+      !itemPassesCondition(ruleParam as string, pathSegments, rowKeys, allData)
     ) {
       return null;
     }
@@ -209,7 +210,7 @@ export const uniqueRule: RuleDefinition = {
         }
         if (
           isFilterCondition &&
-          !itemPassesCondition(ruleParam as string, [...containerPath, key, fieldName], allData)
+          !itemPassesCondition(ruleParam as string, [...containerPath, key, fieldName], rowKeys, allData)
         ) {
           continue;
         }

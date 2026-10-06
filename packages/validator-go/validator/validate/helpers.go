@@ -71,11 +71,11 @@ func getValueBySegments(data any, path []string) any {
 // resolveFieldReference resolves a field-reference param to its value, mirroring
 // JS resolveFieldReference:
 //
-//   - ".field" / "..field" relative (levelsUp = leadingDots-1); array indices do
-//     not count as a level.
-//   - "a.b.c" absolute-ish (dots inside, no leading dot) from root.
-//   - bare "field" sibling lookup within the current group.
-func resolveFieldReference(expression string, currentPath []string, formData map[string]any) any {
+//   - ".field" / "..field" relative (levelsUp = leadingDots-1), a row being one
+//     level.
+//   - "a.b.c" (dots inside, no leading dot) from the root.
+//   - a bare "field", resolved as ".field".
+func resolveFieldReference(expression string, currentPath []string, rowKeys []int, formData map[string]any) any {
 	trimmed := trimText(expression)
 	if trimmed == "" {
 		return nil
@@ -86,35 +86,15 @@ func resolveFieldReference(expression string, currentPath []string, formData map
 		dots++
 	}
 
-	if dots > 0 {
-		fieldPath := trimmed[dots:]
+	if dots > 0 || !strings.Contains(trimmed, ".") {
 		levelsUp := dots - 1
-
-		base := append([]string{}, currentPath...)
-		if len(base) > 0 {
-			base = base[:len(base)-1] // drop current field name
+		if levelsUp < 0 {
+			levelsUp = 0
 		}
-		for i := 0; i < levelsUp; i++ {
-			for len(base) > 0 && isNumericKey(base[len(base)-1]) {
-				base = base[:len(base)-1]
-			}
-			if len(base) > 0 {
-				base = base[:len(base)-1]
-			}
-		}
-		base = append(base, parsePathString(fieldPath)...)
-		return getValueBySegments(formData, base)
+		base := expr.RelativeBase(currentPath, rowKeys, levelsUp)
+		return getValueBySegments(formData, append(base, parsePathString(trimmed[dots:])...))
 	}
-
-	if strings.Contains(trimmed, ".") {
-		return getValueBySegments(formData, parsePathString(trimmed))
-	}
-
-	if len(currentPath) > 0 {
-		sibling := append(append([]string{}, currentPath[:len(currentPath)-1]...), trimmed)
-		return getValueBySegments(formData, sibling)
-	}
-	return getValueBySegments(formData, []string{trimmed})
+	return getValueBySegments(formData, parsePathString(trimmed))
 }
 
 // conditionOpRE matches an infix comparison/logical/membership operator with
@@ -150,8 +130,8 @@ func isConditionExpression(value string) bool {
 // itemPassesCondition evaluates a filter condition as if validating the same field
 // on a given item path (JS itemPassesCondition). A parse / evaluation error is
 // false (the item does not pass).
-func itemPassesCondition(condition string, itemFieldPath []string, formData map[string]any) bool {
-	ok, err := expr.Evaluate(condition, formData, itemFieldPath)
+func itemPassesCondition(condition string, itemFieldPath []string, rowKeys []int, formData map[string]any) bool {
+	ok, err := expr.Evaluate(condition, formData, itemFieldPath, rowKeys)
 	if err != nil {
 		return false
 	}

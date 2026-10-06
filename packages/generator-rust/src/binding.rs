@@ -418,7 +418,7 @@ impl Binding<'_> {
     /// Build the node for one composed field.
     fn field(&self, field: &FieldTemplate, path: &str, scope: &Scope) -> FormResult<Value> {
         let spec = Value::Object(field.spec.clone());
-        let design = resolve_design(spec.get("design"), self.data, path);
+        let design = resolve_design(spec.get("design"), self.data, path, &scope.row_segments);
         let language = self.language;
         let label = spec
             .get("label")
@@ -645,9 +645,14 @@ impl Binding<'_> {
     ) -> FormResult<Value> {
         let messages = self.messages;
         let row_path = format!("{collection}.{key}");
-        let design = resolve_design(spec.get("design"), self.data, &row_path);
         let mut inner = scope.clone();
         inner.row_segments.push(segments(collection).len());
+        let design = resolve_design(
+            spec.get("design"),
+            self.data,
+            &row_path,
+            &inner.row_segments,
+        );
         inner.row_numbers.push(index + 1);
         inner.sticky_depth += usize::from(settings.sticky);
         let mut row = Map::new();
@@ -768,7 +773,12 @@ impl Binding<'_> {
             .iter()
             .map(|code| {
                 let lang_path = format!("{path}.{}", js_string(code));
-                let lang_design = resolve_design(spec.get("design"), self.data, &lang_path);
+                let lang_design = resolve_design(
+                    spec.get("design"),
+                    self.data,
+                    &lang_path,
+                    &scope.row_segments,
+                );
                 Ok(json!({
                     "kind": "lang-item",
                     "lang": code,

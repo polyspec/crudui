@@ -113,15 +113,16 @@ final class ExprConformanceTest extends TestCase
         foreach ($spec['cases'] as $i => $case) {
             $data = $case['data'];
             $currentPath = $case['currentPath'] ?? [];
+            $rowKeys = $case['rowKeys'] ?? [];
 
-            $value = Expression::evaluateValue($spec['expr'], $data, $currentPath);
+            $value = Expression::evaluateValue($spec['expr'], $data, $currentPath, $rowKeys);
             $this->assertTrue(
                 self::valueEquals($case['value'], $value),
                 "value mismatch [{$spec['expr']}] case {$i}: expected "
                     . json_encode($case['value']) . ' got ' . json_encode($value),
             );
 
-            $truthy = Expression::evaluate($spec['expr'], $data, $currentPath);
+            $truthy = Expression::evaluate($spec['expr'], $data, $currentPath, $rowKeys);
             $this->assertSame(
                 $case['truthy'],
                 $truthy,

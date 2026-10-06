@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace CRUDUI\Validator\Rules;
 
+use CRUDUI\Validator\Expr\FieldPath;
 use CRUDUI\Validator\Values\Whitespace;
 
 /**
@@ -15,7 +16,7 @@ class Date implements RuleInterface
     /**
      * Validate that a value is a valid date.
      */
-    public function validate(mixed $value, mixed $param, array $allData, string $path): bool
+    public function validate(mixed $value, mixed $param, array $allData, FieldPath $path): bool
     {
         if ($param === false) {
             return true;

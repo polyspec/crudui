@@ -165,7 +165,9 @@ fn cell_display(
         "link" => {
             let href = match options.get("href") {
                 Some(Value::String(template)) => template.clone(),
-                Some(value @ Value::Object(_)) => appearance(Some(value), row, &segments(path)),
+                Some(value @ Value::Object(_)) => {
+                    appearance(Some(value), row, &segments(path), &[])
+                }
                 _ => String::new(),
             };
             let caption = options.get("text").filter(|v| !v.is_null() && **v != "");
@@ -345,11 +347,11 @@ pub(crate) fn build_display(
     check_display_declarations(spec, own, members)?;
     let mut visible = Vec::new();
     for (key, raw) in &columns {
-        let design = resolve_design(raw.get("design"), context, "");
+        let design = resolve_design(raw.get("design"), context, "", &[]);
         if design["show"] == false {
             continue;
         }
-        visible.push(json!({"key":key,"field":raw["field"].as_str().unwrap_or(""),"label":raw.get("label").map(|v|translate(Some(v),&options.language)).unwrap_or_else(||key.clone()),"format":format(raw.get("format")),"sortable":raw.get("sortable").filter(|v|!v.is_null()).is_some_and(|v|flag(Some(v),context,&[])),"design":design}));
+        visible.push(json!({"key":key,"field":raw["field"].as_str().unwrap_or(""),"label":raw.get("label").map(|v|translate(Some(v),&options.language)).unwrap_or_else(||key.clone()),"format":format(raw.get("format")),"sortable":raw.get("sortable").filter(|v|!v.is_null()).is_some_and(|v|flag(Some(v),context,&[],&[])),"design":design}));
     }
     let bound_rows = rows.iter().map(|row| {
         let cells = visible.iter().map(|column| {
@@ -357,7 +359,7 @@ pub(crate) fn build_display(
             let value = if path.is_empty() {None} else {value_at(row,path)};
             let raw = &columns[column["key"].as_str().unwrap()];
             // A model is JSON: a path absent from the row is null, and the member is always present.
-            Ok(json!({"format":column["format"],"value":value.cloned().unwrap_or(Value::Null),"display":cell_display(&column["format"],value,row,path,&options.language)?,"design":resolve_design(raw.get("design"),row,path)}))
+            Ok(json!({"format":column["format"],"value":value.cloned().unwrap_or(Value::Null),"display":cell_display(&column["format"],value,row,path,&options.language)?,"design":resolve_design(raw.get("design"),row,path,&[])}))
         }).collect::<FormResult<Vec<_>>>()?;
         Ok(json!({"cells":cells}))
     }).collect::<FormResult<Vec<_>>>()?;
@@ -416,7 +418,7 @@ pub(crate) fn build_display(
     };
     result["empty"] = empty_text.into();
     result["description"] = translate(spec.get("description"), &options.language).into();
-    result["design"] = resolve_design(spec.get("design"), context, "");
+    result["design"] = resolve_design(spec.get("design"), context, "", &[]);
     Ok(result)
 }
 

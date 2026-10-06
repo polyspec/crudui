@@ -28,8 +28,8 @@ type ConditionEntry struct {
 // matched by text, not by evaluation, so it never short-circuits an earlier real
 // condition. Returns (value, nil) on a default fallthrough miss with no default
 // key present.
-func ResolveConditionMap(entries []ConditionEntry, formData map[string]any, currentPath []string) (any, error) {
-	evaluator := NewEvaluator(formData, currentPath)
+func ResolveConditionMap(entries []ConditionEntry, formData map[string]any, currentPath []string, rowKeys []int) (any, error) {
+	evaluator := NewEvaluator(formData, currentPath, rowKeys)
 
 	var defaultValue any
 	hasDefault := false

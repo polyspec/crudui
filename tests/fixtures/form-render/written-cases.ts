@@ -39,6 +39,14 @@ const LITERAL_STYLE_NOTE = VISIBLE_NOTE.replace(
   'name="note" style="font-family: Made in Script" type="text"'
 );
 
+// A field of a group row whose design.show reads the field beside the collection with `..`
+// (docs/spec/expressions.md, Evaluation): the row is one level of the relative path.
+const MODE_NODE = (value: string) => VISIBLE_NOTE
+  .slice(VISIBLE_NOTE.indexOf('<div class="crudui-node crudui-node--field" data-field-path="mode">'), VISIBLE_NOTE.indexOf('<div class="crudui-node crudui-node--field" data-field-path="note">'))
+  .replace('value="off"', `value="${value}"`);
+const ROW_PARENT = (value: string) => GROUP_ROWS.replace('<div class="crudui-form__body">', `<div class="crudui-form__body">${MODE_NODE(value)}`);
+const ROW_PARENT_HIDDEN = ROW_PARENT('off').replace(/data-field-path="variants\.(__opt_[ab][12]__)\.name">/g, 'data-field-path="variants.$1.name" hidden="">');
+
 // Choice lists (docs/spec/schema.md, Choice lists): options in list order for any values.
 const FOOTER_EN = '<div class="crudui-form__footer"><div aria-label="Form actions" class="crudui-controls" role="group"><button class="crudui-action crudui-action--text" type="submit">Save</button></div></div></div>';
 const field = (path: string, label: string, body: string, labelFor = true) =>
@@ -251,6 +259,20 @@ export const WRITTEN_CASES = [
     options: { language: 'en' },
     expected_html: HIDDEN_GROUP,
   },
+  ...([['on', ROW_PARENT('on')], ['off', ROW_PARENT_HIDDEN]] as const).map(([mode, html]) => ({
+    name: `design-show-row-parent-${mode}`,
+    note: "design.show '..mode' of a field of a group row reads the field beside the collection: the row and its key are one level, so the name of every row is shown when mode is on and hidden when it is off.",
+    spec: G({
+      mode: { type: 'text', label: 'Mode' },
+      variants: {
+        type: 'group', label: 'Variants', multiple: 'only',
+        properties: { name: { type: 'text', label: 'Name', design: { show: "..mode == 'on'" } }, price: { type: 'number', label: 'Price' } },
+      },
+    }),
+    data: { mode, variants: { __opt_b2__: { name: 'Blue', price: 2 }, __opt_a1__: { name: 'Red', price: 1 } } },
+    options: { language: 'en' },
+    expected_html: html,
+  })),
   {
     name: 'design-show-literal-string-visible',
     note: 'A design.show string that is not a valid expression is a literal and only false hides: the field renders without the hidden attribute.',

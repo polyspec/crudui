@@ -34,6 +34,7 @@ const FIXTURE = path.resolve(
 interface FixtureCase {
   data: Record<string, unknown>;
   currentPath?: string[];
+  rowKeys?: number[];
   value: unknown;
   truthy: boolean;
 }
@@ -125,6 +126,7 @@ function canon(v: unknown): unknown {
 function ctx(c: FixtureCase): PathContext {
   return {
     currentPath: c.currentPath ?? [],
+    rowKeys: c.rowKeys ?? [],
     formData: c.data,
   };
 }

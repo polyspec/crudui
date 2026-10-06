@@ -184,7 +184,7 @@ func buildDisplay(spec *Object, rows []*Object, options ListOptions, paths displ
 	cols := []*Object{}
 	for _, key := range columns.Keys() {
 		raw := object(read(columns, key))
-		d := resolveDesign(read(raw, "design"), lookup, nil)
+		d := resolveDesign(read(raw, "design"), lookup, nil, nil)
 		if !truthy(read(d, "show")) {
 			continue
 		}
@@ -194,7 +194,7 @@ func buildDisplay(spec *Object, rows []*Object, options ListOptions, paths displ
 		}
 		sort := false
 		if v := read(raw, "sortable"); v != nil && !isAbsent(v) {
-			sort = evalFlag(v, lookup, nil)
+			sort = evalFlag(v, lookup, nil, nil)
 		}
 		cols = append(cols, NewObject("key", key, "field", stringAt(raw, "field"), "label", label, "format", normalizeFormat(read(raw, "format")), "sortable", sort, "design", d))
 	}
@@ -219,7 +219,7 @@ func buildDisplay(spec *Object, rows []*Object, options ListOptions, paths displ
 				value = v
 			}
 			cell := NewObject("format", format, "value", value, "display", display)
-			cell.Set("design", resolveDesign(read(read(columns, stringAt(col, "key")), "design"), rowLookup, parsePath(field)))
+			cell.Set("design", resolveDesign(read(read(columns, stringAt(col, "key")), "design"), rowLookup, parsePath(field), nil))
 			cells = append(cells, cell)
 		}
 		rowModels = append(rowModels, NewObject("cells", cells))
@@ -284,7 +284,7 @@ func buildDisplay(spec *Object, rows []*Object, options ListOptions, paths displ
 		out.Set("empty", translate(empty, options.Language))
 	}
 	out.Set("description", translate(read(spec, "description"), options.Language))
-	out.Set("design", resolveDesign(read(spec, "design"), lookup, nil))
+	out.Set("design", resolveDesign(read(spec, "design"), lookup, nil, nil))
 	return out, nil
 }
 
@@ -367,7 +367,7 @@ func renderCell(format *Object, value any, row *Object, lookup map[string]any, p
 		if h, ok := raw.(string); ok {
 			href = h
 		} else if object(raw) != nil {
-			href = evalAppearance(raw, lookup, path)
+			href = evalAppearance(raw, lookup, path, nil)
 		}
 		text := s
 		if v := read(o, "text"); v != nil && !isAbsent(v) && v != "" {

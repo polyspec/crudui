@@ -10,9 +10,9 @@ static ps_chars empty_string(void)
 
 /* Only a design.show that resolves to false hides a field; *failed reports an allocation failure. */
 static bool show_value(const ps_value *value, const ps_value *data,
-                       const ps_text *path, size_t path_length, bool *failed)
+                       const ps_text *path, const bool *row_keys, size_t path_length, bool *failed)
 {
-    return ps_shown(value, data, path, path_length, failed);
+    return ps_shown(value, data, path, row_keys, path_length, failed);
 }
 
 static bool ternary_text(ps_text value)
@@ -22,11 +22,11 @@ static bool ternary_text(ps_text value)
 }
 
 static ps_chars appearance(const ps_value *value, const ps_value *data,
-                           const ps_text *path, size_t path_length)
+                           const ps_text *path, const bool *row_keys, size_t path_length)
 {
     if (!value || value->kind == PS_NULL) return empty_string();
     if (value->kind == PS_OBJECT) {
-        ps_value *selected = ps_condition_value(value, data, path, path_length);
+        ps_value *selected = ps_condition_value(value, data, path, row_keys, path_length);
         if (!selected) return (ps_chars){NULL, 0};
         ps_chars result = selected->kind == PS_NULL ? empty_string() : ps_js_string(selected);
         ps_value_free(selected); return result;
@@ -35,7 +35,7 @@ static ps_chars appearance(const ps_value *value, const ps_value *data,
         ps_text text = ps_string(value);
         if (ternary_text(text)) {
             bool parsed = false;
-            ps_value *selected = ps_expression_value(text, data, path, path_length, &parsed);
+            ps_value *selected = ps_expression_value(text, data, path, row_keys, path_length, &parsed);
             if (parsed) {
                 ps_chars result = !selected || selected->kind == PS_NULL
                     ? empty_string() : ps_js_string(selected);
@@ -45,7 +45,7 @@ static ps_chars appearance(const ps_value *value, const ps_value *data,
         }
         if (ps_condition_expression(text) && !ternary_text(text)) {
             bool parsed = false;
-            ps_value *selected = ps_expression_value(text, data, path, path_length, &parsed);
+            ps_value *selected = ps_expression_value(text, data, path, row_keys, path_length, &parsed);
             /* A string that does not parse completely is literal text. */
             if (!parsed) { ps_value_free(selected); return ps_copy(text); }
             if (!selected || selected->kind == PS_NULL ||
@@ -61,13 +61,13 @@ static ps_chars appearance(const ps_value *value, const ps_value *data,
 }
 
 static ps_value *design_node(const ps_value *value, const ps_value *data,
-                             const ps_text *path, size_t path_length)
+                             const ps_text *path, const bool *row_keys, size_t path_length)
 {
     const ps_value *object = value && value->kind == PS_OBJECT ? value : NULL;
     ps_chars class_name = appearance(object ? ps_get(object, "class") : NULL,
-                                     data, path, path_length);
+                                     data, path, row_keys, path_length);
     ps_chars style = appearance(object ? ps_get(object, "style") : NULL,
-                                data, path, path_length);
+                                data, path, row_keys, path_length);
     ps_value *node = ps_object_value();
     if (!class_name.bytes || !style.bytes || !node ||
         !ps_set(node, "class", ps_text_value(ps_view(class_name))) ||
@@ -84,25 +84,29 @@ static bool set_owned(ps_value *object, const char *key, ps_value **value)
     return ps_set(object, key, owned);
 }
 
-ps_value *ps_design(const ps_value *design, const ps_value *data, ps_text path)
+ps_value *ps_design(const ps_value *design, const ps_value *data, ps_text path,
+                    const size_t *rows, size_t row_count)
 {
     const ps_value *object = design && design->kind == PS_OBJECT ? design : NULL;
     size_t path_length = 0;
     ps_text *path_parts = NULL;
     if (!ps_path_parts(path, &path_parts, &path_length)) return NULL;
+    bool *row_keys = calloc(path_length ? path_length : 1, sizeof(*row_keys));
+    if (!row_keys) { free(path_parts); return NULL; }
+    for (size_t i = 0; i < row_count; ++i) if (rows[i] < path_length) row_keys[rows[i]] = true;
     ps_value *result = ps_object_value();
-    ps_value *main = design_node(object, data, path_parts, path_length);
+    ps_value *main = design_node(object, data, path_parts, row_keys, path_length);
     ps_value *label = design_node(object ? ps_get(object, "label") : NULL, data,
-                                  path_parts, path_length);
+                                  path_parts, row_keys, path_length);
     ps_value *wrapper = design_node(object ? ps_get(object, "wrapper") : NULL, data,
-                                    path_parts, path_length);
+                                    path_parts, row_keys, path_length);
     ps_value *group = design_node(object ? ps_get(object, "group") : NULL, data,
-                                  path_parts, path_length);
+                                  path_parts, row_keys, path_length);
     ps_value *prepend = design_node(object ? ps_get(object, "prepend") : NULL, data,
-                                    path_parts, path_length);
+                                    path_parts, row_keys, path_length);
     bool failed = false;
     ps_value *show = ps_bool_value(show_value(object ? ps_get(object, "show") : NULL,
-                                              data, path_parts, path_length, &failed));
+                                              data, path_parts, row_keys, path_length, &failed));
     bool ok = !failed && result && main && label && wrapper && group && prepend && show;
     if (ok) ok = set_owned(result, "show", &show);
     if (ok) ok = set_owned(result, "main", &main);
@@ -116,5 +120,5 @@ ps_value *ps_design(const ps_value *design, const ps_value *data, ps_text path)
         ps_value_free(wrapper); ps_value_free(group); ps_value_free(prepend);
         result = NULL;
     }
-    free(path_parts); return result;
+    free(path_parts); free(row_keys); return result;
 }

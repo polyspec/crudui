@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace CRUDUI\Validator\Rules;
 
+use CRUDUI\Validator\Expr\FieldPath;
+
 /**
  * Interface for validation rules.
  */
@@ -15,8 +17,8 @@ interface RuleInterface
      * @param mixed $value The value to validate
      * @param mixed $param The rule parameter (e.g., min length, pattern, etc.)
      * @param array $allData All form data (for cross-field validation)
-     * @param string $path The current field path (dot notation)
+     * @param FieldPath $path The data path of the value with the positions of its row keys
      * @return bool True if valid, false otherwise
      */
-    public function validate(mixed $value, mixed $param, array $allData, string $path): bool;
+    public function validate(mixed $value, mixed $param, array $allData, FieldPath $path): bool;
 }

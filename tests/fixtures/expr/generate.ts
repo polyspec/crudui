@@ -80,14 +80,15 @@ function buildAst(expr: string): unknown {
 }
 
 // ---------------------------------------------------------------------------
-// Case specs: { name, expr, dataCases: [{data, currentPath?, groupNode?}] }
+// Case specs: { name, expr, dataCases: [{data, currentPath?, rowKeys?}] }
 // Expected value/truthy are computed by the real engine below.
 // ---------------------------------------------------------------------------
 
 interface DataSpec {
   data: Record<string, unknown>;
   currentPath?: string[];
-  groupNode?: boolean;
+  /** Positions of the row keys in currentPath (expressions.md, relative paths). */
+  rowKeys?: number[];
 }
 interface CaseSpec {
   name: string;
@@ -112,6 +113,41 @@ const SPECS: CaseSpec[] = [
     dataCases: [
       { data: { x: 'on', group: { self: 1 } }, currentPath: ['group', 'self'] },
       { data: { group: { self: 1 } }, currentPath: ['group', 'self'] },
+    ],
+  },
+  // A row of a repeated field is one level, whatever its key; only a row key position is a row.
+  {
+    name: 'path-row-sibling',
+    expr: ".x == 'row'",
+    dataCases: [
+      { data: { x: 'root', items: { __k__: { x: 'row', name: 1 } } }, currentPath: ['items', '__k__', 'name'], rowKeys: [1] },
+    ],
+  },
+  {
+    name: 'path-row-parent',
+    expr: "..x == 'root'",
+    dataCases: ['__0000000000001__', '7', 'r1'].map((key) => (
+      { data: { x: 'root', items: { x: 'collection', [key]: { x: 'row', name: 1 } } }, currentPath: ['items', key, 'name'], rowKeys: [1] })),
+  },
+  {
+    name: 'path-row-nested-parent',
+    expr: "..x == 'group'",
+    dataCases: [
+      { data: { x: 'root', group: { x: 'group', items: { 7: { name: 1 } } } }, currentPath: ['group', 'items', '7', 'name'], rowKeys: [2] },
+    ],
+  },
+  {
+    name: 'path-row-value-sibling',
+    expr: ".x == 'root'",
+    dataCases: [
+      { data: { x: 'root', tags: { x: 'collection', __k__: 'a' } }, currentPath: ['tags', '__k__'], rowKeys: [1] },
+    ],
+  },
+  {
+    name: 'path-numeric-field-parent',
+    expr: "..x == 'group'",
+    dataCases: [
+      { data: { x: 'root', group: { x: 'group', 7: { name: 1 } } }, currentPath: ['group', '7', 'name'] },
     ],
   },
   {
@@ -435,12 +471,13 @@ const out = SPECS.map((spec) => {
     const ctx: PathContext = {
       currentPath: dc.currentPath ?? [],
       formData: dc.data,
-      ...(dc.groupNode ? { groupNode: true } : {}),
+      ...(dc.rowKeys ? { rowKeys: dc.rowKeys } : {}),
     };
     const value = normalize(evaluateExpressionValue(parsed, ctx, 'CURRENT'));
     const truthy = evaluateCondition(parsed, ctx, 'CURRENT');
     const entry: Record<string, unknown> = { data: dc.data };
     if (dc.currentPath && dc.currentPath.length > 0) entry.currentPath = dc.currentPath;
+    if (dc.rowKeys) entry.rowKeys = dc.rowKeys;
     entry.value = value;
     entry.truthy = truthy;
     return entry;

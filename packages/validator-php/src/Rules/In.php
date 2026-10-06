@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace CRUDUI\Validator\Rules;
 
+use CRUDUI\Validator\Expr\FieldPath;
 use CRUDUI\Validator\Values\InvalidRuleParameter;
 use CRUDUI\Validator\Values\Membership;
 
@@ -17,7 +18,7 @@ class In implements RuleInterface
      *
      * @throws InvalidRuleParameter when the parameter is not a valid member set
      */
-    public function validate(mixed $value, mixed $param, array $allData, string $path): bool
+    public function validate(mixed $value, mixed $param, array $allData, FieldPath $path): bool
     {
         if ($param === false) {
             return true;

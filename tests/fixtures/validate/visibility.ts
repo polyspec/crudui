@@ -272,6 +272,77 @@ export const VISIBILITY_CASES: Array<WrittenCase | FailingCase> = [
       error('items.__c__.note', 'required', ''),
     ),
   },
+  // A row is one level of a relative path, whatever its key (expressions.md, "Evaluation").
+  ...['__a__', '7', 'r1'].map((key): WrittenCase => ({
+    name: `visibility-row-parent-${key.replace(/_/g, '')}`,
+    note: "in a field of a group row, '..' reads the field beside the collection for design.show, a conditional parameter and a field reference, whatever the row key is.",
+    spec: {
+      type: 'group',
+      properties: {
+        mode: { type: 'text' },
+        strict: { type: 'text' },
+        code: { type: 'text' },
+        items: {
+          type: 'group',
+          multiple: true,
+          properties: {
+            note: { type: 'text', design: { show: "..mode == 'on'" }, validate: { required: true } },
+            level: { type: 'text', validate: { required: '..strict == 1' } },
+            copy: { type: 'text', validate: { equalTo: '..code' } },
+          },
+        },
+      },
+    },
+    data: { mode: 'on', strict: 1, code: 'abc', items: { [key]: { note: '', level: '', copy: 'abd' } } },
+    expected: result(
+      error(`items.${key}.note`, 'required', ''),
+      error(`items.${key}.level`, 'required', ''),
+      error(`items.${key}.copy`, 'equalTo', 'abd'),
+    ),
+  })),
+  {
+    name: 'reference-nested-group',
+    note: "a field reference resolves as a relative expression path: '.a' in a group reads the field of the group and '..a' the field beside the group.",
+    spec: {
+      type: 'group',
+      properties: {
+        a: { type: 'text' },
+        g: {
+          type: 'group',
+          properties: {
+            a: { type: 'text' },
+            same: { type: 'text', validate: { equalTo: '.a' } },
+            other: { type: 'text', validate: { notEqual: '..a' } },
+          },
+        },
+      },
+    },
+    data: { a: 'root', g: { a: '1', same: '1', other: 'root' } },
+    expected: result(error('g.other', 'notEqual', 'root')),
+  },
+  {
+    name: 'visibility-row-parent-off',
+    note: "the same row with the parent values off: '..mode' hides the note, '..strict' makes the level optional and '..code' matches the copy.",
+    spec: {
+      type: 'group',
+      properties: {
+        mode: { type: 'text' },
+        strict: { type: 'text' },
+        code: { type: 'text' },
+        items: {
+          type: 'group',
+          multiple: true,
+          properties: {
+            note: { type: 'text', design: { show: "..mode == 'on'" }, validate: { required: true } },
+            level: { type: 'text', validate: { required: '..strict == 1' } },
+            copy: { type: 'text', validate: { equalTo: '..code' } },
+          },
+        },
+      },
+    },
+    data: { mode: 'off', strict: 0, code: 'abc', items: { __a__: { note: '', level: '', copy: 'abc' } } },
+    expected: result(),
+  },
   {
     name: 'visibility-hidden-value-still-read',
     note: 'A hidden field reports nothing, but equalTo and a required condition elsewhere read its kept value.',

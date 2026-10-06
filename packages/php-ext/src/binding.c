@@ -481,7 +481,7 @@ static ps_value *build_row(const ps_value *field, const ps_value *spec,
     const ps_form_messages *messages = context->messages;
     ps_chars row_path = ps_join_path(collection_path, key);
     ps_value *row_design = row_path.bytes
-        ? ps_design(member(spec, "design"), context->data, ps_view(row_path)) : NULL;
+        ? ps_design(member(spec, "design"), context->data, ps_view(row_path), segments, scope->count + 1) : NULL;
     numbers[scope->count] = index + 1;
     row_scope inner = {segments, numbers, scope->count + 1,
                        scope->sticky_depth + (settings->sticky ? 1 : 0), scope->inline_layout};
@@ -654,7 +654,7 @@ static ps_value *build_lang(const ps_value *spec, ps_text path, const ps_value *
         ps_text code = listed ? ps_string(code_value) : ps_fixed(defaults[i]);
         ps_chars lang_path = ps_join_path(path, code);
         ps_value *lang_design = lang_path.bytes
-            ? ps_design(member(spec, "design"), context->data, ps_view(lang_path)) : NULL;
+            ? ps_design(member(spec, "design"), context->data, ps_view(lang_path), scope->segments, scope->count) : NULL;
         const ps_value *value = lang_path.bytes ? ps_path(context->data, ps_view(lang_path)) : NULL;
         ps_value *widget = lang_design
             ? build_widget(spec, value, ps_view(lang_path), lang_design, context, scope, error) : NULL;
@@ -683,7 +683,7 @@ static ps_value *build_field(const ps_value *field, ps_text path,
     const ps_value *spec = member(field, "spec");
     if (!spec || spec->kind != PS_OBJECT) return NULL;
     ps_chars type = field_type(spec);
-    ps_value *design = type.bytes ? ps_design(member(spec, "design"), context->data, path) : NULL;
+    ps_value *design = type.bytes ? ps_design(member(spec, "design"), context->data, path, scope->segments, scope->count) : NULL;
     ps_chars label = {NULL, 0}, description = {NULL, 0};
     ps_value *model = NULL;
     if (type.bytes && design && translated(member(spec, "label"), context->language, &label) &&
@@ -908,7 +908,7 @@ ps_value *ps_bind_buttons(const ps_value *template, const ps_value *data, ps_tex
         bool link = ps_text_is(type, "link");
         const char *fallback = ps_text_is(type, "submit") ? messages->submit
             : ps_text_is(type, "reset") ? messages->reset : "";
-        ps_value *design = ps_design(member(spec, "design"), data, PS_TEXT(""));
+        ps_value *design = ps_design(member(spec, "design"), data, PS_TEXT(""), NULL, 0);
         const ps_value *main_node = member(design, "main");
         ps_text extra = string_member(main_node, "class");
         ps_chars style = ps_style_string(string_member(main_node, "style"));

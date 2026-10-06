@@ -127,6 +127,418 @@
     ]
   },
   {
+    "name": "path-row-sibling",
+    "expr": ".x == 'row'",
+    "tokens": [
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "x",
+        "literal": "x"
+      },
+      {
+        "type": "EQ",
+        "value": "==",
+        "literal": null
+      },
+      {
+        "type": "STRING",
+        "value": "'row'",
+        "literal": "row"
+      },
+      {
+        "type": "EOF",
+        "value": "",
+        "literal": null
+      }
+    ],
+    "ast": {
+      "type": "Binary",
+      "operator": "==",
+      "left": {
+        "type": "Path",
+        "relative": true,
+        "levelsUp": 0,
+        "segments": [
+          {
+            "type": "identifier",
+            "value": "x"
+          }
+        ]
+      },
+      "right": {
+        "type": "Literal",
+        "valueType": "string",
+        "value": "row"
+      }
+    },
+    "cases": [
+      {
+        "data": {
+          "x": "root",
+          "items": {
+            "__k__": {
+              "x": "row",
+              "name": 1
+            }
+          }
+        },
+        "currentPath": [
+          "items",
+          "__k__",
+          "name"
+        ],
+        "rowKeys": [
+          1
+        ],
+        "value": true,
+        "truthy": true
+      }
+    ]
+  },
+  {
+    "name": "path-row-parent",
+    "expr": "..x == 'root'",
+    "tokens": [
+      {
+        "type": "DOT_DOT",
+        "value": "..",
+        "literal": 2
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "x",
+        "literal": "x"
+      },
+      {
+        "type": "EQ",
+        "value": "==",
+        "literal": null
+      },
+      {
+        "type": "STRING",
+        "value": "'root'",
+        "literal": "root"
+      },
+      {
+        "type": "EOF",
+        "value": "",
+        "literal": null
+      }
+    ],
+    "ast": {
+      "type": "Binary",
+      "operator": "==",
+      "left": {
+        "type": "Path",
+        "relative": true,
+        "levelsUp": 1,
+        "segments": [
+          {
+            "type": "identifier",
+            "value": "x"
+          }
+        ]
+      },
+      "right": {
+        "type": "Literal",
+        "valueType": "string",
+        "value": "root"
+      }
+    },
+    "cases": [
+      {
+        "data": {
+          "x": "root",
+          "items": {
+            "x": "collection",
+            "__0000000000001__": {
+              "x": "row",
+              "name": 1
+            }
+          }
+        },
+        "currentPath": [
+          "items",
+          "__0000000000001__",
+          "name"
+        ],
+        "rowKeys": [
+          1
+        ],
+        "value": true,
+        "truthy": true
+      },
+      {
+        "data": {
+          "x": "root",
+          "items": {
+            "7": {
+              "x": "row",
+              "name": 1
+            },
+            "x": "collection"
+          }
+        },
+        "currentPath": [
+          "items",
+          "7",
+          "name"
+        ],
+        "rowKeys": [
+          1
+        ],
+        "value": true,
+        "truthy": true
+      },
+      {
+        "data": {
+          "x": "root",
+          "items": {
+            "x": "collection",
+            "r1": {
+              "x": "row",
+              "name": 1
+            }
+          }
+        },
+        "currentPath": [
+          "items",
+          "r1",
+          "name"
+        ],
+        "rowKeys": [
+          1
+        ],
+        "value": true,
+        "truthy": true
+      }
+    ]
+  },
+  {
+    "name": "path-row-nested-parent",
+    "expr": "..x == 'group'",
+    "tokens": [
+      {
+        "type": "DOT_DOT",
+        "value": "..",
+        "literal": 2
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "x",
+        "literal": "x"
+      },
+      {
+        "type": "EQ",
+        "value": "==",
+        "literal": null
+      },
+      {
+        "type": "STRING",
+        "value": "'group'",
+        "literal": "group"
+      },
+      {
+        "type": "EOF",
+        "value": "",
+        "literal": null
+      }
+    ],
+    "ast": {
+      "type": "Binary",
+      "operator": "==",
+      "left": {
+        "type": "Path",
+        "relative": true,
+        "levelsUp": 1,
+        "segments": [
+          {
+            "type": "identifier",
+            "value": "x"
+          }
+        ]
+      },
+      "right": {
+        "type": "Literal",
+        "valueType": "string",
+        "value": "group"
+      }
+    },
+    "cases": [
+      {
+        "data": {
+          "x": "root",
+          "group": {
+            "x": "group",
+            "items": {
+              "7": {
+                "name": 1
+              }
+            }
+          }
+        },
+        "currentPath": [
+          "group",
+          "items",
+          "7",
+          "name"
+        ],
+        "rowKeys": [
+          2
+        ],
+        "value": true,
+        "truthy": true
+      }
+    ]
+  },
+  {
+    "name": "path-row-value-sibling",
+    "expr": ".x == 'root'",
+    "tokens": [
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "x",
+        "literal": "x"
+      },
+      {
+        "type": "EQ",
+        "value": "==",
+        "literal": null
+      },
+      {
+        "type": "STRING",
+        "value": "'root'",
+        "literal": "root"
+      },
+      {
+        "type": "EOF",
+        "value": "",
+        "literal": null
+      }
+    ],
+    "ast": {
+      "type": "Binary",
+      "operator": "==",
+      "left": {
+        "type": "Path",
+        "relative": true,
+        "levelsUp": 0,
+        "segments": [
+          {
+            "type": "identifier",
+            "value": "x"
+          }
+        ]
+      },
+      "right": {
+        "type": "Literal",
+        "valueType": "string",
+        "value": "root"
+      }
+    },
+    "cases": [
+      {
+        "data": {
+          "x": "root",
+          "tags": {
+            "x": "collection",
+            "__k__": "a"
+          }
+        },
+        "currentPath": [
+          "tags",
+          "__k__"
+        ],
+        "rowKeys": [
+          1
+        ],
+        "value": true,
+        "truthy": true
+      }
+    ]
+  },
+  {
+    "name": "path-numeric-field-parent",
+    "expr": "..x == 'group'",
+    "tokens": [
+      {
+        "type": "DOT_DOT",
+        "value": "..",
+        "literal": 2
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "x",
+        "literal": "x"
+      },
+      {
+        "type": "EQ",
+        "value": "==",
+        "literal": null
+      },
+      {
+        "type": "STRING",
+        "value": "'group'",
+        "literal": "group"
+      },
+      {
+        "type": "EOF",
+        "value": "",
+        "literal": null
+      }
+    ],
+    "ast": {
+      "type": "Binary",
+      "operator": "==",
+      "left": {
+        "type": "Path",
+        "relative": true,
+        "levelsUp": 1,
+        "segments": [
+          {
+            "type": "identifier",
+            "value": "x"
+          }
+        ]
+      },
+      "right": {
+        "type": "Literal",
+        "valueType": "string",
+        "value": "group"
+      }
+    },
+    "cases": [
+      {
+        "data": {
+          "x": "root",
+          "group": {
+            "7": {
+              "name": 1
+            },
+            "x": "group"
+          }
+        },
+        "currentPath": [
+          "group",
+          "7",
+          "name"
+        ],
+        "value": true,
+        "truthy": true
+      }
+    ]
+  },
+  {
     "name": "path-wildcard-array",
     "expr": "items.*.y",
     "tokens": [

@@ -348,7 +348,7 @@ function sourceForFixtures() {
 }
 
 test('PHP extension engine compiles every shared form fixture', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  assert.equal(fixtures.length, 185,
+  assert.equal(fixtures.length, 187,
     'Review C template coverage when the shared fixture inventory changes');
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-compile-'));
   try {
@@ -462,8 +462,8 @@ function sourceForFixtures() {
       lines.push('  {', `  /* ${fixture.name} */`, '  int ok = 1;');
       const data = builder.emit({});
       lines.push('  bool parsed_value = true, parsed_truth = true;');
-      lines.push(`  ps_value *actual = ps_expression_value(${cText(fixture.expr)}, ${data}, NULL, 0, &parsed_value);`);
-      lines.push(`  ps_expression_truth(${cText(fixture.expr)}, ${data}, NULL, 0, &parsed_truth);`);
+      lines.push(`  ps_value *actual = ps_expression_value(${cText(fixture.expr)}, ${data}, NULL, NULL, 0, &parsed_value);`);
+      lines.push(`  ps_expression_truth(${cText(fixture.expr)}, ${data}, NULL, NULL, 0, &parsed_truth);`);
       lines.push('  if (parsed_value || parsed_truth || actual) {');
       lines.push(`    ok = 0; print_text("expression parsed: ", ${cText(fixture.name)});`);
       lines.push('  }');
@@ -479,15 +479,18 @@ function sourceForFixtures() {
       const expected = builder.emit(example.value);
       const pathItems = example.currentPath ?? [];
       const currentPath = `path${caseIndex}`;
+      const rowKeys = `rows${caseIndex}`;
       if (pathItems.length) {
         lines.push(`  const ps_text ${currentPath}[] = {${pathItems.map(cText).join(', ')}};`);
+        lines.push(`  const bool ${rowKeys}[] = {${pathItems.map((_, index) => ((example.rowKeys ?? []).includes(index) ? 'true' : 'false')).join(', ')}};`);
       } else {
         lines.push(`  const ps_text *${currentPath} = NULL;`);
+        lines.push(`  const bool *${rowKeys} = NULL;`);
       }
       lines.push('  bool parsed_value = false;');
-      lines.push(`  ps_value *actual = ps_expression_value(${cText(fixture.expr)}, ${data}, ${currentPath}, ${pathItems.length}, &parsed_value);`);
+      lines.push(`  ps_value *actual = ps_expression_value(${cText(fixture.expr)}, ${data}, ${currentPath}, ${rowKeys}, ${pathItems.length}, &parsed_value);`);
       lines.push('  bool parsed_truth = false;');
-      lines.push(`  bool truth = ps_expression_truth(${cText(fixture.expr)}, ${data}, ${currentPath}, ${pathItems.length}, &parsed_truth);`);
+      lines.push(`  bool truth = ps_expression_truth(${cText(fixture.expr)}, ${data}, ${currentPath}, ${rowKeys}, ${pathItems.length}, &parsed_truth);`);
       lines.push(`  if (!parsed_value || !parsed_truth || !actual || !ps_equal(actual, ${expected}) || truth != ${example.truthy}) {`);
       lines.push(`    ok = 0; print_text("expression result differs: ", ${cText(`${fixture.name} case ${caseIndex}`)});`);
       lines.push('  }');
@@ -502,9 +505,9 @@ function sourceForFixtures() {
 }
 
 test('PHP extension engine evaluates every shared expression fixture', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  assert.equal(fixtures.length, 49,
+  assert.equal(fixtures.length, 54,
     'Review C expression coverage when the shared fixture inventory changes');
-  assert.equal(fixtures.reduce((total, fixture) => total + (fixture.cases?.length ?? 0), 0), 85,
+  assert.equal(fixtures.reduce((total, fixture) => total + (fixture.cases?.length ?? 0), 0), 92,
     'Review C expression coverage when the shared fixture cases change');
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-expression-'));
   let output = '';
@@ -632,9 +635,9 @@ function sourceForValidation() {
 }
 
 test('PHP extension engine validates all shared form, list and detail cases', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  assert.equal(validationCases.length, 296,
+  assert.equal(validationCases.length, 301,
     'Review extension validation coverage when the shared validation cases change');
-  assert.equal(validationCases.length + specCases.length + listCases.length + detailCases.length, 363,
+  assert.equal(validationCases.length + specCases.length + listCases.length + detailCases.length, 368,
     'Review extension validation coverage when the shared fixture inventory changes');
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-extension-validation-'));
   let output = '';
@@ -821,11 +824,11 @@ function sourceForValidationAllocationFailures() {
   });
   const uniqueRowsData = builder.emit({ rows: { first: { code: 'a' }, second: { code: 'a' } } });
   builder.lines.push(
-    `  int status = verify_validation_allocation_failures(${repeatedGroupProperties}, ${repeatedGroupData}, 7);`,
+    `  int status = verify_validation_allocation_failures(${repeatedGroupProperties}, ${repeatedGroupData}, 8);`,
     '  if (status) return status;',
-    `  status = verify_validation_allocation_failures(${repeatedFieldProperties}, ${repeatedFieldData}, 5);`,
+    `  status = verify_validation_allocation_failures(${repeatedFieldProperties}, ${repeatedFieldData}, 6);`,
     '  if (status) return 10 + status;',
-    `  status = verify_validation_allocation_failures(${uniqueRowsProperties}, ${uniqueRowsData}, 16);`,
+    `  status = verify_validation_allocation_failures(${uniqueRowsProperties}, ${uniqueRowsData}, 17);`,
     '  if (status) return 20 + status;',
     `  ps_value_free(${uniqueRowsProperties}); ps_value_free(${uniqueRowsData});`,
     `  ps_value_free(${repeatedGroupProperties}); ps_value_free(${repeatedGroupData});`,
@@ -869,7 +872,7 @@ function sourceForValidationAllocationFailures() {
     '    const ps_value *properties, const ps_value *data, size_t allocation_count)',
     '{',
     '  for (size_t fail_at = 1; fail_at <= allocation_count; ++fail_at) {',
-    '    validation_context context = {data, ps_array_value(), NULL, NULL, 0, NULL, NULL, 0, ps_object_value()};',
+    '    validation_context context = {data, ps_array_value(), NULL, NULL, 0, NULL, NULL, 0, ps_object_value(), NULL, 0};',
     '    if (!context.errors || !context.unique_positions) return 1;',
     '    validation_allocation_index = 0;',
     '    validation_fail_at = fail_at;',
@@ -878,11 +881,12 @@ function sourceForValidationAllocationFailures() {
     '    validation_fail_at = 0;',
     '    ps_value_free(context.errors);',
     '    free(context.declaration);',
+    '    free(context.row_keys);',
     '    release_unique_rows(&context);',
     '    if (!validation_allocation_failed) return 2;',
     '    if (result) return 3;',
     '  }',
-    '  validation_context context = {data, ps_array_value(), NULL, NULL, 0, NULL, NULL, 0, ps_object_value()};',
+    '  validation_context context = {data, ps_array_value(), NULL, NULL, 0, NULL, NULL, 0, ps_object_value(), NULL, 0};',
     '  if (!context.errors || !context.unique_positions) return 4;',
     '  validation_allocation_index = 0;',
     '  validation_fail_at = allocation_count + 1;',
@@ -891,6 +895,7 @@ function sourceForValidationAllocationFailures() {
     '  validation_fail_at = 0;',
     '  ps_value_free(context.errors);',
     '  free(context.declaration);',
+    '  free(context.row_keys);',
     '  release_unique_rows(&context);',
     '  return result && !validation_allocation_failed ? 0 : 5;',
     '}',
@@ -1557,9 +1562,9 @@ function sourceForFixtures() {
 }
 
 test('PHP extension engine binds every shared form fixture without changing inputs', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  assert.equal(fixtures.length, 185,
+  assert.equal(fixtures.length, 187,
     'Review C binding coverage when the shared fixture inventory changes');
-  assert.equal(bindFixtures.length, 159,
+  assert.equal(bindFixtures.length, 161,
     'Review C binding coverage when compilation error fixtures change');
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-bind-'));
   try {
@@ -1740,9 +1745,9 @@ function sourceForFixtures() {
 }
 
 test('PHP extension engine renders successful shared form fixtures and edge cases as exact HTML', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  assert.equal(fixtures.length, 185,
+  assert.equal(fixtures.length, 187,
     'Review C rendering coverage when the shared fixture inventory changes');
-  assert.equal(renderFixtures.length, 134,
+  assert.equal(renderFixtures.length, 136,
     'Review C rendering coverage when successful fixtures change');
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-render-'));
   try {

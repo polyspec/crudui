@@ -76,13 +76,13 @@ func TestShowUsesTheValidatorVisibilityRule(t *testing.T) {
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			if got := evalShow(c.value, data, nil); got != c.show {
+			if got := evalShow(c.value, data, nil, nil); got != c.show {
 				t.Fatalf("show = %v, want %v", got, c.show)
 			}
 			if c.value == nil {
 				return
 			}
-			if got := evalFlag(c.value, data, nil); got != c.flag {
+			if got := evalFlag(c.value, data, nil, nil); got != c.flag {
 				t.Fatalf("flag = %v, want %v", got, c.flag)
 			}
 		})
