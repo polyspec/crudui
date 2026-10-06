@@ -1,5 +1,14 @@
 # 변경 기록
 
+## 2026-10-07 — polyspec 규칙의 프로그램 이름 (C9.2)
+
+- `examples/`, `tests/`, `tools/`의 프로그램은 package 이름 규칙을 따릅니다. cross-check console server는 npm package
+  `@polyspec/crudui-cross-check-console`이고, crate와 binary는 `polyspec-crudui-cross-check-validator`,
+  `polyspec-crudui-form-comparison`, `polyspec-crudui-native-generator`, `polyspec-crudui-bench`이며, Go benchmark
+  driver는 module `github.com/polyspec/crudui/tools/bench/go`입니다.
+- `tests/build/package-names.test.mjs`는 추적하는 모든 `package.json`, `composer.json`, `Cargo.toml`, `go.mod`에 이
+  규칙을 요구합니다.
+
 ## 2026-10-06 — branch main의 OrderedJSON (C10.1)
 
 - 비교는 OrderedJSON을 `polyspec/ordered-json`의 branch `main`에서 받습니다. `make install-ordered-json`은 그

@@ -72,6 +72,11 @@ Cargo 경로를 실행하고 `RUSTC`와 `RUSTDOC`에 해석된 컴파일러 경�
 | Rust | crate `polyspec-crudui-generator`와 `polyspec-crudui-validator`, library `polyspec_crudui_generator`와 `polyspec_crudui_validator` |
 | Go | module `github.com/polyspec/crudui/packages/generator-go`와 `github.com/polyspec/crudui/packages/validator-go` |
 
+`examples/`, `tests/`, `tools/`의 프로그램도 같은 규칙을 따릅니다. 비공개 npm package는
+`@polyspec/crudui-cross-check-console`이고, crate는 `polyspec-crudui-cross-check-validator`,
+`polyspec-crudui-form-comparison`, `polyspec-crudui-native-generator`, `polyspec-crudui-bench`이며 binary도 같은
+이름입니다. 각 `go.mod`의 module은 `github.com/polyspec/crudui/<directory>`입니다.
+
 `tests/build/package-names.test.mjs`는 이 이름을 요구하고, 유지되는 파일이 이전 형태의 이름으로 패키지를 가리키면
 실패합니다. 변경 기록, 체크리스트, wave 설명은 각 항목이 기록한 이름을 유지합니다.
 

@@ -79,6 +79,11 @@ The packages follow the naming of the polyspec repositories, as template and hyp
 | Rust | the crates `polyspec-crudui-generator` and `polyspec-crudui-validator`, with the libraries `polyspec_crudui_generator` and `polyspec_crudui_validator` |
 | Go | the modules `github.com/polyspec/crudui/packages/generator-go` and `github.com/polyspec/crudui/packages/validator-go` |
 
+The programs of `examples/`, `tests/` and `tools/` follow the same convention: the private npm package
+`@polyspec/crudui-cross-check-console`, the crates `polyspec-crudui-cross-check-validator`,
+`polyspec-crudui-form-comparison`, `polyspec-crudui-native-generator` and `polyspec-crudui-bench` with binaries of the
+same names, and for each `go.mod` the module `github.com/polyspec/crudui/<directory>`.
+
 `tests/build/package-names.test.mjs` requires these names and fails for a maintained file that names a package
 by an earlier form; the changelog, the checklist and the wave descriptions keep the names that their entries recorded.
 

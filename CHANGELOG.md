@@ -1,5 +1,14 @@
 # Changes
 
+## 2026-10-07 — Program names of the polyspec convention (C9.2)
+
+- The programs of `examples/`, `tests/` and `tools/` follow the package naming: the cross-check console server is the
+  npm package `@polyspec/crudui-cross-check-console`, the crates and binaries are `polyspec-crudui-cross-check-validator`,
+  `polyspec-crudui-form-comparison`, `polyspec-crudui-native-generator` and `polyspec-crudui-bench`, and the Go benchmark
+  driver is the module `github.com/polyspec/crudui/tools/bench/go`.
+- `tests/build/package-names.test.mjs` requires the convention of every tracked `package.json`, `composer.json`,
+  `Cargo.toml` and `go.mod`.
+
 ## 2026-10-06 — OrderedJSON from the branch main (C10.1)
 
 - The comparison takes OrderedJSON from the branch `main` of `polyspec/ordered-json`: `make install-ordered-json`
