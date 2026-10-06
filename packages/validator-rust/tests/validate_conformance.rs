@@ -58,12 +58,16 @@ fn load_cases() -> Vec<Value> {
         .clone()
 }
 
-/// Build the `{ valid, errors }` value shape from a result for ordered comparison.
+/// Build the `{ valid, errors, hidden }` value shape from a result for ordered comparison.
 fn result_to_value(result: &crudui_validator::validate::ValidationResult) -> Value {
     let errors: Vec<Value> = result.errors.iter().map(|e| e.to_value()).collect();
     let mut m = Map::new();
     m.insert("valid".to_string(), Value::Bool(result.valid));
     m.insert("errors".to_string(), Value::Array(errors));
+    m.insert(
+        "hidden".to_string(),
+        Value::Array(result.hidden.iter().cloned().map(Value::String).collect()),
+    );
     Value::Object(m)
 }
 

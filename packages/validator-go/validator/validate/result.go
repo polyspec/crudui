@@ -48,11 +48,24 @@ type ValidationError struct {
 	Value any `json:"value"`
 }
 
-// ValidationResult is the outcome: valid plus the collected errors.
+// ValidationResult is the outcome of validating data: valid, the collected
+// errors and the hidden paths.
 type ValidationResult struct {
 	// Valid reports whether Errors is empty.
 	Valid bool `json:"valid"`
 	// Errors is the flat list of failures in traversal order.
+	Errors []ValidationError `json:"errors"`
+	// Hidden lists the data paths of the fields whose design.show resolves to
+	// false, in declaration order (validation-rules.md, "Evaluation").
+	Hidden []string `json:"hidden"`
+}
+
+// ListValidationResult is the outcome of checking a list or detail declaration:
+// valid plus the collected errors.
+type ListValidationResult struct {
+	// Valid reports whether Errors is empty.
+	Valid bool `json:"valid"`
+	// Errors is the flat list of failures.
 	Errors []ValidationError `json:"errors"`
 }
 

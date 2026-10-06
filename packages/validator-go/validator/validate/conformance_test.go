@@ -49,6 +49,7 @@ func failureOf(err error) *failureRecord {
 type expectedResult struct {
 	Valid  bool              `json:"valid"`
 	Errors []json.RawMessage `json:"errors"`
+	Hidden []string          `json:"hidden"`
 }
 
 func loadValidateFixtures(t *testing.T) []validateCase {
@@ -109,6 +110,10 @@ func TestValidateMatchesFixture(t *testing.T) {
 
 			if err != nil {
 				t.Fatalf("expected success, got error: %v", err)
+			}
+
+			if !reflect.DeepEqual(result.Hidden, c.Expected.Hidden) {
+				t.Errorf("hidden mismatch: expected %q, got %q", c.Expected.Hidden, result.Hidden)
 			}
 
 			if result.Valid != c.Expected.Valid {

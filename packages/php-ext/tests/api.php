@@ -381,7 +381,7 @@ foreach ([101, -1, 1e200, -1e200] as $places) {
 }
 
 $validation = Validator::validate($spec, $data);
-same((object)['valid'=>true,'errors'=>[]], $validation, 'Native validation rejected valid data');
+same((object)['valid'=>true,'errors'=>[],'hidden'=>[]], $validation, 'Native validation rejected valid data');
 same($validation, Validator::validate($spec, $data, ['files'=>[]]), 'Empty files map changed validation');
 same((object)['valid'=>true,'errors'=>[]], Validator::validateList((object)['columns'=>(object)['name'=>(object)['field'=>'name']]]), 'List validation failed');
 for ($index=0; $index<300; $index++) {

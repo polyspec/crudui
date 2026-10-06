@@ -106,7 +106,7 @@ func (c textCase) valueInputs(t *testing.T) (*compose.OMap, Options) {
 }
 
 // textOutcome is the failure {code, message, at} or the validation result.
-func textOutcome(result ValidationResult, err error) any {
+func textOutcome(result any, err error) any {
 	var load *compose.ComposeLoadError
 	if errors.As(err, &load) {
 		return map[string]any{"code": string(load.Code), "message": load.Message, "at": strings.Join(load.Trace, ".")}
@@ -140,8 +140,8 @@ func checkTextOutcome(t *testing.T, c textCase, label string, got any) {
 
 func TestInputTextMatchesFixture(t *testing.T) {
 	type entry struct {
-		json  func(c textCase, files map[string][]byte, basepath string) (ValidationResult, error)
-		value func(spec *compose.OMap, data any, opts Options) (ValidationResult, error)
+		json  func(c textCase, files map[string][]byte, basepath string) (any, error)
+		value func(spec *compose.OMap, data any, opts Options) (any, error)
 	}
 	decodeData := func(t *testing.T, c textCase) (json.RawMessage, any) {
 		raw, ok := c["data"]
@@ -156,24 +156,26 @@ func TestInputTextMatchesFixture(t *testing.T) {
 	}
 	features := map[string]entry{
 		"validate": {
-			json: func(c textCase, files map[string][]byte, basepath string) (ValidationResult, error) {
+			json: func(c textCase, files map[string][]byte, basepath string) (any, error) {
 				return ValidateJSON(c["spec"], c["data"], files, basepath)
 			},
-			value: Validate,
+			value: func(spec *compose.OMap, data any, opts Options) (any, error) {
+				return Validate(spec, data, opts)
+			},
 		},
 		"validateList": {
-			json: func(c textCase, files map[string][]byte, basepath string) (ValidationResult, error) {
+			json: func(c textCase, files map[string][]byte, basepath string) (any, error) {
 				return ValidateListJSON(c["spec"], files, basepath)
 			},
-			value: func(spec *compose.OMap, _ any, opts Options) (ValidationResult, error) {
+			value: func(spec *compose.OMap, _ any, opts Options) (any, error) {
 				return ValidateList(spec, opts)
 			},
 		},
 		"validateDetail": {
-			json: func(c textCase, files map[string][]byte, basepath string) (ValidationResult, error) {
+			json: func(c textCase, files map[string][]byte, basepath string) (any, error) {
 				return ValidateDetailJSON(c["spec"], files, basepath)
 			},
-			value: func(spec *compose.OMap, _ any, opts Options) (ValidationResult, error) {
+			value: func(spec *compose.OMap, _ any, opts Options) (any, error) {
 				return ValidateDetail(spec, opts)
 			},
 		},

@@ -37,7 +37,8 @@
           "message": "End date must be after the start date.",
           "value": "2026-01-01"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -70,7 +71,8 @@
     },
     "expected": {
       "valid": true,
-      "errors": []
+      "errors": [],
+      "hidden": []
     }
   },
   {
@@ -103,7 +105,8 @@
     },
     "expected": {
       "valid": true,
-      "errors": []
+      "errors": [],
+      "hidden": []
     }
   },
   {
@@ -135,7 +138,8 @@
           "message": "This field is required.",
           "value": null
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -198,7 +202,8 @@
           "message": "This field is required.",
           "value": null
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -239,7 +244,8 @@
           "message": "End date must be after the start date.",
           "value": "2026-01-01"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -280,7 +286,8 @@
           "message": "End date must be after the start date.",
           "value": "2026-01-01"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -313,7 +320,8 @@
     },
     "expected": {
       "valid": true,
-      "errors": []
+      "errors": [],
+      "hidden": []
     }
   },
   {
@@ -346,7 +354,8 @@
     },
     "expected": {
       "valid": true,
-      "errors": []
+      "errors": [],
+      "hidden": []
     }
   },
   {
@@ -376,7 +385,8 @@
     },
     "expected": {
       "valid": true,
-      "errors": []
+      "errors": [],
+      "hidden": []
     }
   },
   {
@@ -406,7 +416,8 @@
     },
     "expected": {
       "valid": true,
-      "errors": []
+      "errors": [],
+      "hidden": []
     }
   },
   {
@@ -444,7 +455,8 @@
           "message": "Please enter a value greater than or equal to 7.",
           "value": "5"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -474,7 +486,8 @@
     },
     "expected": {
       "valid": true,
-      "errors": []
+      "errors": [],
+      "hidden": []
     }
   },
   {
@@ -508,7 +521,8 @@
     },
     "expected": {
       "valid": true,
-      "errors": []
+      "errors": [],
+      "hidden": []
     }
   },
   {
@@ -550,7 +564,8 @@
           "message": "Please enter a value greater than or equal to 7.",
           "value": "5"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -585,7 +600,8 @@
     },
     "expected": {
       "valid": true,
-      "errors": []
+      "errors": [],
+      "hidden": []
     }
   },
   {
@@ -628,7 +644,8 @@
           "message": "Please select a valid option.",
           "value": "オン"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -670,7 +687,8 @@
     },
     "expected": {
       "valid": true,
-      "errors": []
+      "errors": [],
+      "hidden": []
     }
   },
   {
@@ -712,7 +730,8 @@
     },
     "expected": {
       "valid": true,
-      "errors": []
+      "errors": [],
+      "hidden": []
     }
   },
   {
@@ -749,7 +768,8 @@
           "message": "This field is required.",
           "value": ""
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -790,7 +810,8 @@
           "message": "Please enter a valid email address.",
           "value": "invalid-b"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -827,7 +848,8 @@
             "__0000000000001__": "same"
           }
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -862,7 +884,8 @@
             "__0000000000001__": "one"
           }
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -906,7 +929,8 @@
     },
     "expected": {
       "valid": true,
-      "errors": []
+      "errors": [],
+      "hidden": []
     }
   },
   {
@@ -959,7 +983,8 @@
           "message": "This field is required.",
           "value": ""
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -993,7 +1018,8 @@
           "message": "This field is required.",
           "value": ""
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -1019,7 +1045,8 @@
     },
     "expected": {
       "valid": true,
-      "errors": []
+      "errors": [],
+      "hidden": []
     }
   },
   {
@@ -1056,7 +1083,8 @@
           "message": "Please enter a value greater than or equal to 10.",
           "value": 5
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -1085,7 +1113,8 @@
     },
     "expected": {
       "valid": true,
-      "errors": []
+      "errors": [],
+      "hidden": []
     }
   },
   {
@@ -1119,7 +1148,8 @@
           "message": "Please enter a value greater than or equal to 10.",
           "value": 5
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -1145,7 +1175,8 @@
     },
     "expected": {
       "valid": true,
-      "errors": []
+      "errors": [],
+      "hidden": []
     }
   },
   {
@@ -1182,7 +1213,8 @@
           "message": "Please enter a valid email address.",
           "value": "bad"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -1233,7 +1265,8 @@
           "message": "This field is required.",
           "value": ""
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -1271,7 +1304,8 @@
           "message": "Please enter only digits.",
           "value": "abc"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -1309,7 +1343,8 @@
             "tag_b": "a"
           }
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -1345,7 +1380,8 @@
             "tag_a": "a"
           }
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -1388,7 +1424,8 @@
           "message": "This field is required.",
           "value": ""
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -1438,7 +1475,8 @@
           "message": "This field is required.",
           "value": ""
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -1468,7 +1506,8 @@
           "message": "Please enter a valid number.",
           "value": "Infinity"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -1508,7 +1547,8 @@
     },
     "expected": {
       "valid": true,
-      "errors": []
+      "errors": [],
+      "hidden": []
     }
   },
   {
@@ -1556,7 +1596,8 @@
           "message": "Values must be unique.",
           "value": "dup"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -1586,7 +1627,8 @@
           "message": "Please enter a valid format.",
           "value": "ftp://x"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -1616,7 +1658,8 @@
           "message": "Please upload a file with a valid format.",
           "value": "snapshot.gif"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -1647,7 +1690,8 @@
           "message": "This field is required.",
           "value": ""
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -1669,7 +1713,8 @@
     },
     "expected": {
       "valid": true,
-      "errors": []
+      "errors": [],
+      "hidden": []
     }
   },
   {
@@ -1702,7 +1747,8 @@
           "message": "Name please",
           "value": ""
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -1722,7 +1768,8 @@
     },
     "expected": {
       "valid": true,
-      "errors": []
+      "errors": [],
+      "hidden": []
     }
   },
   {
@@ -1756,7 +1803,8 @@
           "message": "Please enter the same value again.",
           "value": "other"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -1782,7 +1830,8 @@
     },
     "expected": {
       "valid": true,
-      "errors": []
+      "errors": [],
+      "hidden": []
     }
   },
   {
@@ -1816,7 +1865,8 @@
           "message": "This field is required.",
           "value": ""
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -1847,7 +1897,8 @@
     },
     "expected": {
       "valid": true,
-      "errors": []
+      "errors": [],
+      "hidden": []
     }
   },
   {
@@ -1886,7 +1937,8 @@
           "message": "Please select a valid option.",
           "value": "미사용"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -1912,7 +1964,8 @@
     },
     "expected": {
       "valid": true,
-      "errors": []
+      "errors": [],
+      "hidden": []
     }
   },
   {
@@ -1944,7 +1997,8 @@
     },
     "expected": {
       "valid": true,
-      "errors": []
+      "errors": [],
+      "hidden": []
     }
   },
   {
@@ -1979,7 +2033,8 @@
           "message": "This field is required.",
           "value": ""
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -2634,7 +2689,8 @@
           "message": "This field is required.",
           "value": "　\t   "
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -2705,7 +2761,8 @@
     },
     "expected": {
       "valid": true,
-      "errors": []
+      "errors": [],
+      "hidden": []
     }
   },
   {
@@ -2798,7 +2855,8 @@
           "message": "Please enter no more than 0 characters.",
           "value": "﻿"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -2973,7 +3031,8 @@
     },
     "expected": {
       "valid": true,
-      "errors": []
+      "errors": [],
+      "hidden": []
     }
   },
   {
@@ -3084,7 +3143,8 @@
           "message": "Please enter a value between 2 and 3 characters.",
           "value": 1234
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -3279,7 +3339,8 @@
           "message": "Please enter at least 2 characters.",
           "value": "a"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -3317,7 +3378,8 @@
           "message": "Please enter at least 4 characters.",
           "value": "abc"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -3370,7 +3432,8 @@
     },
     "expected": {
       "valid": true,
-      "errors": []
+      "errors": [],
+      "hidden": []
     }
   },
   {
@@ -3596,7 +3659,8 @@
             "z"
           ]
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -3698,7 +3762,8 @@
           "message": "Please select a valid option.",
           "value": "c"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -3778,7 +3843,8 @@
           "message": "Please select a valid option.",
           "value": "y"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -3884,7 +3950,8 @@
             "b"
           ]
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -4039,7 +4106,8 @@
             "a"
           ]
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -4097,7 +4165,8 @@
           "message": "Please select a valid option.",
           "value": 1
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -4143,7 +4212,8 @@
           "message": "Please select a valid option.",
           "value": "q"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -4305,7 +4375,8 @@
           "message": "Please select a valid option.",
           "value": 2
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -4380,7 +4451,8 @@
           "message": "Please select a valid option.",
           "value": "3"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -4723,7 +4795,8 @@
           "message": "Please select a valid option.",
           "value": 8
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -4788,7 +4861,8 @@
           "message": "Please select a valid option.",
           "value": "c"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -5441,7 +5515,8 @@
           "message": "Please enter a valid format.",
           "value": "az"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -5492,7 +5567,8 @@
           "message": "Please enter a valid format.",
           "value": "\nx"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -5529,7 +5605,8 @@
           "message": "Please enter a valid format.",
           "value": "abc"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -5601,7 +5678,8 @@
           "message": "Please enter a valid format.",
           "value": "1é"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -5673,7 +5751,8 @@
           "message": "Please enter a valid format.",
           "value": "a\u0000b"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -5738,7 +5817,8 @@
           "message": "Please enter a valid format.",
           "value": "x- "
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -5810,7 +5890,8 @@
           "message": "Please enter a valid format.",
           "value": "axyb"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -5847,7 +5928,8 @@
           "message": "Please enter a valid format.",
           "value": "x\tA😀A/-"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -5898,7 +5980,8 @@
           "message": "Please enter a valid format.",
           "value": "d"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -5963,7 +6046,8 @@
           "message": "Please enter a valid format.",
           "value": "A한1"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -6021,7 +6105,8 @@
           "message": "Please enter a valid format.",
           "value": "ababccccf"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -6058,7 +6143,8 @@
           "message": "Please enter a valid format.",
           "value": "A"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -6116,7 +6202,8 @@
           "message": "Please enter a valid format.",
           "value": "1x"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -6167,7 +6254,8 @@
           "message": "Please enter a valid format.",
           "value": "ac"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -6211,7 +6299,8 @@
           "message": "Please enter a valid format.",
           "value": "x"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -6263,7 +6352,8 @@
             "a": "a"
           }
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -6307,7 +6397,8 @@
           "message": "Please enter a valid format.",
           "value": "aaa"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -6344,7 +6435,8 @@
           "message": "Please enter a valid format.",
           "value": "b"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -6381,7 +6473,8 @@
           "message": "Please enter a valid format.",
           "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -6418,7 +6511,8 @@
           "message": "Please enter a valid format.",
           "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -6469,7 +6563,8 @@
           "message": "Please enter a valid format.",
           "value": "한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한한1"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -6506,7 +6601,8 @@
           "message": "Please enter a valid format.",
           "value": "a꟎࢏꟎"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -6557,7 +6653,8 @@
           "message": "Please enter a valid format.",
           "value": "ab"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -6594,7 +6691,8 @@
           "message": "Please enter a valid format.",
           "value": "a"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -6631,7 +6729,8 @@
           "message": "Please enter a valid format.",
           "value": "x"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -6660,7 +6759,8 @@
     },
     "expected": {
       "valid": true,
-      "errors": []
+      "errors": [],
+      "hidden": []
     }
   },
   {
@@ -6711,7 +6811,8 @@
           "message": "Please enter a valid format.",
           "value": "X"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -6761,7 +6862,8 @@
     },
     "expected": {
       "valid": true,
-      "errors": []
+      "errors": [],
+      "hidden": []
     }
   },
   {
@@ -6798,7 +6900,8 @@
           "message": "Please enter a valid format.",
           "value": "abc"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -8431,7 +8534,8 @@
           "message": "Pattern message.",
           "value": "x"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -8470,7 +8574,8 @@
             "__0000000000003__": "a"
           }
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -8496,7 +8601,8 @@
     },
     "expected": {
       "valid": true,
-      "errors": []
+      "errors": [],
+      "hidden": []
     }
   },
   {
@@ -8522,7 +8628,8 @@
     },
     "expected": {
       "valid": true,
-      "errors": []
+      "errors": [],
+      "hidden": []
     }
   },
   {
@@ -8550,7 +8657,8 @@
     },
     "expected": {
       "valid": true,
-      "errors": []
+      "errors": [],
+      "hidden": []
     }
   },
   {
@@ -8589,7 +8697,8 @@
             "__0000000000003__": 2
           }
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -8615,7 +8724,8 @@
     },
     "expected": {
       "valid": true,
-      "errors": []
+      "errors": [],
+      "hidden": []
     }
   },
   {
@@ -8647,7 +8757,8 @@
     },
     "expected": {
       "valid": true,
-      "errors": []
+      "errors": [],
+      "hidden": []
     }
   },
   {
@@ -8700,7 +8811,8 @@
             ]
           }
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -8736,7 +8848,8 @@
     },
     "expected": {
       "valid": true,
-      "errors": []
+      "errors": [],
+      "hidden": []
     }
   },
   {
@@ -8791,7 +8904,8 @@
             }
           }
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -8817,7 +8931,8 @@
     },
     "expected": {
       "valid": true,
-      "errors": []
+      "errors": [],
+      "hidden": []
     }
   },
   {
@@ -8855,7 +8970,8 @@
     },
     "expected": {
       "valid": true,
-      "errors": []
+      "errors": [],
+      "hidden": []
     }
   },
   {
@@ -8922,7 +9038,8 @@
             }
           }
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -8960,7 +9077,8 @@
     },
     "expected": {
       "valid": true,
-      "errors": []
+      "errors": [],
+      "hidden": []
     }
   },
   {
@@ -9016,7 +9134,8 @@
           "message": "Values must be unique.",
           "value": "x"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -9047,7 +9166,8 @@
           "message": "Enter a number.",
           "value": "abc"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -9380,7 +9500,8 @@
     },
     "expected": {
       "valid": true,
-      "errors": []
+      "errors": [],
+      "hidden": []
     }
   },
   {
@@ -9419,7 +9540,8 @@
           "message": "This field is required.",
           "value": ""
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -9452,7 +9574,8 @@
           "message": "This field is required.",
           "value": ""
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -9569,7 +9692,15 @@
     },
     "expected": {
       "valid": true,
-      "errors": []
+      "errors": [],
+      "hidden": [
+        "name",
+        "code",
+        "title",
+        "amount",
+        "contact",
+        "tags"
+      ]
     }
   },
   {
@@ -9698,7 +9829,8 @@
             "__t1__": "one"
           }
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -9755,6 +9887,9 @@
           "message": "This field is required.",
           "value": ""
         }
+      ],
+      "hidden": [
+        "hidden"
       ]
     }
   },
@@ -9821,6 +9956,10 @@
           "message": "This field is required.",
           "value": ""
         }
+      ],
+      "hidden": [
+        "defaulted",
+        "matched"
       ]
     }
   },
@@ -9924,7 +10063,11 @@
     },
     "expected": {
       "valid": true,
-      "errors": []
+      "errors": [],
+      "hidden": [
+        "details",
+        "rows"
+      ]
     }
   },
   {
@@ -9987,6 +10130,9 @@
           "message": "This field is required.",
           "value": ""
         }
+      ],
+      "hidden": [
+        "items.__a__.note"
       ]
     }
   },
@@ -10070,7 +10216,8 @@
           "message": "Please enter the same value again.",
           "value": "abd"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -10153,7 +10300,8 @@
           "message": "Please enter the same value again.",
           "value": "abd"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -10236,7 +10384,8 @@
           "message": "Please enter the same value again.",
           "value": "abd"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -10288,7 +10437,8 @@
           "message": "Please enter a different value.",
           "value": "root"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -10349,7 +10499,10 @@
     },
     "expected": {
       "valid": true,
-      "errors": []
+      "errors": [],
+      "hidden": [
+        "items.__a__.note"
+      ]
     }
   },
   {
@@ -10403,6 +10556,9 @@
           "message": "This field is required.",
           "value": ""
         }
+      ],
+      "hidden": [
+        "secret"
       ]
     }
   },
@@ -10448,7 +10604,8 @@
     },
     "expected": {
       "valid": true,
-      "errors": []
+      "errors": [],
+      "hidden": []
     }
   },
   {
@@ -10493,7 +10650,10 @@
     },
     "expected": {
       "valid": true,
-      "errors": []
+      "errors": [],
+      "hidden": [
+        "display"
+      ]
     }
   },
   {
@@ -10553,7 +10713,8 @@
           "message": "This field is required.",
           "value": ""
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -10611,7 +10772,8 @@
           "message": "This field is required.",
           "value": ""
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -10643,7 +10805,8 @@
     "data": {},
     "expected": {
       "valid": true,
-      "errors": []
+      "errors": [],
+      "hidden": []
     }
   },
   {
@@ -10689,7 +10852,8 @@
           "message": "This field is required.",
           "value": null
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -10732,7 +10896,8 @@
           "message": "Please select at least 1 items.",
           "value": null
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -10775,7 +10940,8 @@
           "message": "This field is required.",
           "value": null
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -10818,7 +10984,8 @@
           "message": "Please select at least 1 items.",
           "value": null
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -10863,7 +11030,8 @@
           "message": "This field is required.",
           "value": {}
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -10955,7 +11123,8 @@
     },
     "expected": {
       "valid": true,
-      "errors": []
+      "errors": [],
+      "hidden": []
     }
   },
   {
@@ -11217,7 +11386,8 @@
             "a": 1
           }
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -11252,7 +11422,8 @@
     },
     "expected": {
       "valid": true,
-      "errors": []
+      "errors": [],
+      "hidden": []
     }
   },
   {
@@ -11274,7 +11445,8 @@
     },
     "expected": {
       "valid": true,
-      "errors": []
+      "errors": [],
+      "hidden": []
     }
   },
   {
@@ -11339,7 +11511,8 @@
           "message": "Please enter a value greater than or equal to 5.",
           "value": "4.999"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -11390,7 +11563,8 @@
           "message": "Please enter a value less than or equal to 5.",
           "value": 6
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -11460,7 +11634,8 @@
           "message": "Please enter a value between 1 and 5.",
           "value": 5.5
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -11533,7 +11708,8 @@
           "message": "Please enter a value greater than or equal to 1.",
           "value": true
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -11563,7 +11739,8 @@
           "message": "Please enter a value less than or equal to 10.",
           "value": "1e3"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -11606,7 +11783,8 @@
           "message": "Please enter a value between -0.5 and 0.5.",
           "value": "-0.75"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -11774,7 +11952,8 @@
           "message": "Please enter a value between 0 and 1.",
           "value": true
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -11860,7 +12039,8 @@
           "message": "Please enter a value that is a multiple of 0.1.",
           "value": "1.0000000001"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -11897,7 +12077,8 @@
           "message": "Please enter a value that is a multiple of 2e-7.",
           "value": 3e-7
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -11941,7 +12122,8 @@
           "message": "Please enter a value that is a multiple of 100000000000000000000.",
           "value": "1.05e21"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -11978,7 +12160,8 @@
           "message": "Please enter a value that is a multiple of 5.",
           "value": "ten"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -12015,7 +12198,8 @@
           "message": "Please enter a value that is a multiple of 0.25.",
           "value": "1.8"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -12178,7 +12362,8 @@
           "message": "Please enter only digits.",
           "value": "1 2"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -12309,7 +12494,8 @@
             "b": 2
           }
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -12400,7 +12586,8 @@
           "message": "Please select a valid option.",
           "value": "0x64"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -12444,7 +12631,8 @@
           "message": "Please enter a value greater than or equal to 5.5.",
           "value": 1
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -12474,7 +12662,8 @@
           "message": "Please enter a value greater than or equal to 1e+21.",
           "value": 1
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -12510,7 +12699,8 @@
           "message": "2..4 (2 to 4)",
           "value": 9
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -12543,7 +12733,8 @@
           "message": "at least 3, not {1}",
           "value": 1
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -12591,7 +12782,8 @@
           "message": "Please select a valid option.",
           "value": " 100"
         }
-      ]
+      ],
+      "hidden": []
     }
   },
   {
@@ -13022,7 +13214,8 @@
           "message": "Please enter a value greater than or equal to 4.",
           "value": "3"
         }
-      ]
+      ],
+      "hidden": []
     }
   }
 ]

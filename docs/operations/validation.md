@@ -147,9 +147,11 @@ make test-form-binding
 
 ## Results and failures
 
-A validation result contains a boolean and a flat error list. Each error identifies
-`path`, `field`, `rule` and `message`, with `value` when available. A required-input
-failure is a validation result.
+A validation result contains `valid`, a boolean, `errors`, a flat error list, and `hidden`, the
+data paths of the fields that `design.show` hides ([visibility](../spec/validation-rules.md#evaluation)).
+Each error identifies `path`, `field`, `rule` and `message`, with `value` when available. A
+required-input failure is a validation result. A server that stores the submitted data can leave
+the values at the `hidden` paths, and everything below them, unstored.
 
 Two failures produce no validation result. A missing composition reference, a
 forbidden schema key, a rule name that is not registered (`UNKNOWN_RULE`) or a rule

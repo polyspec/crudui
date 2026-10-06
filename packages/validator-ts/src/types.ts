@@ -68,11 +68,26 @@ export interface MessagesSpec {
 /**
  * Validation result
  */
+/**
+ * The result of checking a list or detail declaration: whether it is valid and its errors.
+ */
+export interface ListValidationResult {
+  /** True when the declaration passed; false if any error was collected. */
+  valid: boolean;
+  /** List of all errors found; empty when `valid` is true. */
+  errors: ValidationError[];
+}
+
 export interface ValidationResult {
   /** True when every field passed validation; false if any error was collected. */
   valid: boolean;
   /** List of all validation errors found; empty when `valid` is true. */
   errors: ValidationError[];
+  /**
+   * Data paths of the fields whose `design.show` resolves to `false`, in declaration order
+   * (validation-rules.md, "Evaluation"); a path names the field and everything it contains.
+   */
+  hidden: string[];
 }
 
 /**

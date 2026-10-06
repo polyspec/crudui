@@ -55,7 +55,7 @@ fn input_text_matches_fixture() {
                 let basepath = case.get("options").and_then(|options| options.get("basepath"));
                 let actual = outcome(match feature {
                     "validate" => text::validate_text(spec, case.get("data"), files, basepath).map(|result| {
-                        json!({"valid": result.valid, "errors": result.errors.iter().map(|e| e.to_value()).collect::<Vec<_>>()})
+                        json!({"valid": result.valid, "errors": result.errors.iter().map(|e| e.to_value()).collect::<Vec<_>>(), "hidden": result.hidden})
                     }),
                     "validateList" => text::validate_list_text(spec, files, basepath).map(|()| clean()),
                     _ => text::validate_detail_text(spec, files, basepath).map(|()| clean()),
@@ -292,7 +292,7 @@ fn value_graph_limits() {
 
         let actual = match result {
             Ok(validation_result) => {
-                json!({"valid": validation_result.valid, "errors": validation_result.errors.iter().map(|e| e.to_value()).collect::<Vec<_>>()})
+                json!({"valid": validation_result.valid, "errors": validation_result.errors.iter().map(|e| e.to_value()).collect::<Vec<_>>(), "hidden": validation_result.hidden})
             }
             Err(error) => {
                 json!({"code": error.code(), "message": error.message(), "at": error.at()})

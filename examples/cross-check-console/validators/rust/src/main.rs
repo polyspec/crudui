@@ -98,6 +98,7 @@ fn main() {
                     ValidationResult {
                         valid: true,
                         errors: Vec::new(),
+                        hidden: Vec::new(),
                     }
                 })
             }
@@ -105,6 +106,7 @@ fn main() {
                 .map(|()| ValidationResult {
                     valid: true,
                     errors: Vec::new(),
+                    hidden: Vec::new(),
                 }),
             _ => text::validate_text(spec, doc.get("data"), present("files"), present("basepath")),
         };
@@ -139,6 +141,7 @@ fn main() {
             Ok(()) => emit_result(&ValidationResult {
                 valid: true,
                 errors: Vec::new(),
+                hidden: Vec::new(),
             }),
             // A composition failure produces no validation result.
             Err(err) => failure(&err.message, err.code.as_str(), &err.trace.join(".")),

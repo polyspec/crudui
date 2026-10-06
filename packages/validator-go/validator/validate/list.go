@@ -32,15 +32,15 @@ import (
 
 // ValidateList runs composition and forbidden-key scanning over a
 // list-spec given as the engine value model (*compose.OMap). It returns a clean
-// ValidationResult (valid:true, no errors) when the list composes and scans clean
+// ListValidationResult (valid:true, no errors) when the list composes and scans clean
 // — a list carries no rows, so there is no DATA pass to produce field errors. An
 // unresolved composition or a forbidden meta key at any depth returns a
 // *compose.ComposeLoadError (the caller distinguishes a LOAD failure from a
 // validation result), identical to the form path.
-func ValidateList(spec *compose.OMap, opts Options) (ValidationResult, error) {
+func ValidateList(spec *compose.OMap, opts Options) (ListValidationResult, error) {
 	// Input text is checked first (docs/spec/input-text.md).
 	if err := checkText(spec, opts); err != nil {
-		return ValidationResult{}, err
+		return ListValidationResult{}, err
 	}
 	if spec == nil {
 		spec = compose.NewOMap()
@@ -55,7 +55,7 @@ func ValidateList(spec *compose.OMap, opts Options) (ValidationResult, error) {
 	// ComposeProperties the form properties layer uses.
 	composed, err := composeRootAndFieldMap(spec, "columns", loader, composeOpts)
 	if err != nil {
-		return ValidationResult{}, err
+		return ListValidationResult{}, err
 	}
 
 	// Pass 1c (G5): compose the search form-spec reference. search is INPUT (SPEC
@@ -66,7 +66,7 @@ func ValidateList(spec *compose.OMap, opts Options) (ValidationResult, error) {
 		if sm, isMap := s.(*compose.OMap); isMap {
 			expandedSearch, serr := compose.ComposeSpec(sm, loader, composeOpts)
 			if serr != nil {
-				return ValidationResult{}, serr
+				return ListValidationResult{}, serr
 			}
 			composed.Set("search", expandedSearch)
 		}
@@ -79,37 +79,37 @@ func ValidateList(spec *compose.OMap, opts Options) (ValidationResult, error) {
 	// LOAD failure. The trace starts at the list root key (columns.<name>…), as
 	// in every implementation and the shared list-validity fixture.
 	if scanErr := model.ScanForbiddenKeys(composed, nil); scanErr != nil {
-		return ValidationResult{}, scanErr
+		return ListValidationResult{}, scanErr
 	}
 
 	// A list has no rows → no DATA pass. A clean list is valid with no errors. The
 	// emitted shape matches the form path (Errors is [] not nil at the wire).
-	return ValidationResult{Valid: true, Errors: nil}, nil
+	return ListValidationResult{Valid: true, Errors: nil}, nil
 }
 
 // ValidateListJSON decodes a raw JSON list-spec (compose.DecodeOrdered so
 // declaration order survives) and the optional { key: rawJSON } file set, then
 // runs ValidateList. Mirrors ValidateJSON (the form entry) for the CLI / gateway
 // subprocess wire. A list carries no data, so there is no data argument.
-func ValidateListJSON(specJSON []byte, filesJSON map[string][]byte, basepath string) (ValidationResult, error) {
+func ValidateListJSON(specJSON []byte, filesJSON map[string][]byte, basepath string) (ListValidationResult, error) {
 	specAny, err := compose.DecodeOrdered(specJSON)
 	if err != nil {
-		return ValidationResult{}, fmt.Errorf("validate-list: spec decode: %w", err)
+		return ListValidationResult{}, fmt.Errorf("validate-list: spec decode: %w", err)
 	}
 	spec, ok := specAny.(*compose.OMap)
 	if !ok {
-		return ValidationResult{}, fmt.Errorf("validate-list: spec is not an object")
+		return ListValidationResult{}, fmt.Errorf("validate-list: spec is not an object")
 	}
 
 	files := FileSet{}
 	for k, raw := range filesJSON {
 		docAny, derr := compose.DecodeOrdered(raw)
 		if derr != nil {
-			return ValidationResult{}, fmt.Errorf("validate-list: file %q decode: %w", k, derr)
+			return ListValidationResult{}, fmt.Errorf("validate-list: file %q decode: %w", k, derr)
 		}
 		doc, isMap := docAny.(*compose.OMap)
 		if !isMap {
-			return ValidationResult{}, fmt.Errorf("validate-list: file %q is not an object", k)
+			return ListValidationResult{}, fmt.Errorf("validate-list: file %q is not an object", k)
 		}
 		files[k] = doc
 	}

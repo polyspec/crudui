@@ -48,6 +48,11 @@ export interface WrittenCase {
   spec: Record<string, unknown>;
   data: Record<string, unknown>;
   expected: { valid: boolean; errors: ErrorRecord[] };
+  /**
+   * The data paths of the fields whose design.show resolves to false, stated for every case whose
+   * specification declares design.show (validation-rules.md, "Evaluation").
+   */
+  hidden?: string[];
 }
 
 /** One error record: the field is the last path segment. */
@@ -127,6 +132,7 @@ export const VISIBILITY_CASES: Array<WrittenCase | FailingCase> = [
       },
     },
     data: { mode: 'off', unselected: '' },
+    hidden: [],
     expected: result(error('unselected', 'required', '')),
   },
   {
@@ -139,6 +145,7 @@ export const VISIBILITY_CASES: Array<WrittenCase | FailingCase> = [
       },
     },
     data: { literal: '' },
+    hidden: [],
     expected: result(error('literal', 'required', '')),
   },
   {
@@ -158,6 +165,7 @@ export const VISIBILITY_CASES: Array<WrittenCase | FailingCase> = [
     note: 'A field whose design.show resolves to false is hidden: none of its rules run (required, pattern, lengths, the implicit number check, email, mincount) and it reports no error. Its value is kept.',
     spec: { type: 'group', properties: { enabled: { type: 'checkbox' }, ...failingFields('.enabled') } },
     data: { enabled: 0, ...failingValues },
+    hidden: ['name', 'code', 'title', 'amount', 'contact', 'tags'],
     expected: result(),
   },
   {
@@ -165,6 +173,7 @@ export const VISIBILITY_CASES: Array<WrittenCase | FailingCase> = [
     note: 'The same fields with design.show resolving to true are visible, and each reports its first failing rule in declaration order.',
     spec: { type: 'group', properties: { enabled: { type: 'checkbox' }, ...failingFields('.enabled') } },
     data: { enabled: 1, ...failingValues },
+    hidden: [],
     expected: result(
       error('name', 'required', ''),
       error('code', 'pattern', 'x!'),
@@ -186,6 +195,7 @@ export const VISIBILITY_CASES: Array<WrittenCase | FailingCase> = [
       },
     },
     data: { hidden: '', shown: '', plain: '' },
+    hidden: ['hidden'],
     expected: result(error('shown', 'required', ''), error('plain', 'required', '')),
   },
   {
@@ -201,6 +211,7 @@ export const VISIBILITY_CASES: Array<WrittenCase | FailingCase> = [
       },
     },
     data: { mode: 'off', defaulted: '', matched: '', visible: '' },
+    hidden: ['defaulted', 'matched'],
     expected: result(error('visible', 'required', '')),
   },
   {
@@ -242,6 +253,7 @@ export const VISIBILITY_CASES: Array<WrittenCase | FailingCase> = [
       details: { name: '', always: '', inner: { code: 'abc' }, items: { __i1__: { code: '' } } },
       rows: { __r1__: { label: '' } },
     },
+    hidden: ['details', 'rows'],
     expected: result(),
   },
   {
@@ -267,6 +279,7 @@ export const VISIBILITY_CASES: Array<WrittenCase | FailingCase> = [
         __c__: { kind: 'custom', note: '' },
       },
     },
+    hidden: ['items.__a__.note'],
     expected: result(
       error('items.__b__.note', 'minlength', 'x', 2),
       error('items.__c__.note', 'required', ''),
@@ -294,6 +307,7 @@ export const VISIBILITY_CASES: Array<WrittenCase | FailingCase> = [
       },
     },
     data: { mode: 'on', strict: 1, code: 'abc', items: { [key]: { note: '', level: '', copy: 'abd' } } },
+    hidden: [],
     expected: result(
       error(`items.${key}.note`, 'required', ''),
       error(`items.${key}.level`, 'required', ''),
@@ -341,6 +355,7 @@ export const VISIBILITY_CASES: Array<WrittenCase | FailingCase> = [
       },
     },
     data: { mode: 'off', strict: 0, code: 'abc', items: { __a__: { note: '', level: '', copy: 'abc' } } },
+    hidden: ['items.__a__.note'],
     expected: result(),
   },
   {
@@ -355,6 +370,7 @@ export const VISIBILITY_CASES: Array<WrittenCase | FailingCase> = [
       },
     },
     data: { secret: 'open', confirm: 'other', reason: '' },
+    hidden: ['secret'],
     expected: result(error('confirm', 'equalTo', 'other'), error('reason', 'required', '')),
   },
   {
@@ -362,6 +378,7 @@ export const VISIBILITY_CASES: Array<WrittenCase | FailingCase> = [
     note: 'Step 1 of 3: the flag is 1, the group is shown and its values are valid.',
     spec: toggleSpec,
     data: { is_display: '1', display: { code: 'ABC', title: 'Hello' } },
+    hidden: [],
     expected: result(),
   },
   {
@@ -369,6 +386,7 @@ export const VISIBILITY_CASES: Array<WrittenCase | FailingCase> = [
     note: 'Step 2 of 3: the flag is 0, the group is hidden, and a pattern-violating code and a missing required title report nothing.',
     spec: toggleSpec,
     data: { is_display: '0', display: invalidDisplay },
+    hidden: ['display'],
     expected: result(),
   },
   {
@@ -376,6 +394,7 @@ export const VISIBILITY_CASES: Array<WrittenCase | FailingCase> = [
     note: 'Step 3 of 3: the flag is 1 again, and the values kept while the group was hidden are validated.',
     spec: toggleSpec,
     data: { is_display: '1', display: invalidDisplay },
+    hidden: [],
     expected: result(error('display.code', 'pattern', 'abc1'), error('display.title', 'required', '')),
   },
   {

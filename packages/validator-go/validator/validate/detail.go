@@ -22,13 +22,13 @@ import (
 )
 
 // ValidateDetail composes and forbidden-scans a detail-spec. It returns a clean
-// ValidationResult (valid:true, no errors) when the detail composes and scans
+// ListValidationResult (valid:true, no errors) when the detail composes and scans
 // clean. An unresolved composition or a forbidden meta key returns a
 // *compose.ComposeLoadError.
-func ValidateDetail(spec *compose.OMap, opts Options) (ValidationResult, error) {
+func ValidateDetail(spec *compose.OMap, opts Options) (ListValidationResult, error) {
 	// Input text is checked first (docs/spec/input-text.md).
 	if err := checkText(spec, opts); err != nil {
-		return ValidationResult{}, err
+		return ListValidationResult{}, err
 	}
 	if spec == nil {
 		spec = compose.NewOMap()
@@ -40,35 +40,35 @@ func ValidateDetail(spec *compose.OMap, opts Options) (ValidationResult, error) 
 
 	composed, err := composeRootAndFieldMap(spec, "fields", loader, composeOpts)
 	if err != nil {
-		return ValidationResult{}, err
+		return ListValidationResult{}, err
 	}
 	if scanErr := model.ScanForbiddenKeys(composed, nil); scanErr != nil {
-		return ValidationResult{}, scanErr
+		return ListValidationResult{}, scanErr
 	}
-	return ValidationResult{Valid: true, Errors: nil}, nil
+	return ListValidationResult{Valid: true, Errors: nil}, nil
 }
 
 // ValidateDetailJSON decodes a raw JSON detail-spec and the optional
 // { key: rawJSON } file set, then runs ValidateDetail. A detail carries no data.
-func ValidateDetailJSON(specJSON []byte, filesJSON map[string][]byte, basepath string) (ValidationResult, error) {
+func ValidateDetailJSON(specJSON []byte, filesJSON map[string][]byte, basepath string) (ListValidationResult, error) {
 	specAny, err := compose.DecodeOrdered(specJSON)
 	if err != nil {
-		return ValidationResult{}, fmt.Errorf("validate-detail: spec decode: %w", err)
+		return ListValidationResult{}, fmt.Errorf("validate-detail: spec decode: %w", err)
 	}
 	spec, ok := specAny.(*compose.OMap)
 	if !ok {
-		return ValidationResult{}, fmt.Errorf("validate-detail: spec is not an object")
+		return ListValidationResult{}, fmt.Errorf("validate-detail: spec is not an object")
 	}
 
 	files := FileSet{}
 	for k, raw := range filesJSON {
 		docAny, derr := compose.DecodeOrdered(raw)
 		if derr != nil {
-			return ValidationResult{}, fmt.Errorf("validate-detail: file %q decode: %w", k, derr)
+			return ListValidationResult{}, fmt.Errorf("validate-detail: file %q decode: %w", k, derr)
 		}
 		doc, isMap := docAny.(*compose.OMap)
 		if !isMap {
-			return ValidationResult{}, fmt.Errorf("validate-detail: file %q is not an object", k)
+			return ListValidationResult{}, fmt.Errorf("validate-detail: file %q is not an object", k)
 		}
 		files[k] = doc
 	}

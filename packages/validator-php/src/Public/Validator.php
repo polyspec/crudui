@@ -19,7 +19,8 @@ use stdClass;
 final class Validator
 {
     /**
-     * Return object validation results. Invalid input text raises ComposeLoadError in the
+     * Return the validation result object { valid, errors, hidden }, where hidden lists the data
+     * paths of the fields that design.show hides. Invalid input text raises ComposeLoadError in the
      * specification and files and FormInputError elsewhere, before any other check. Root data
      * that is a non-empty list raises
      * FormInputError before composition; composition failures raise
@@ -53,7 +54,7 @@ final class Validator
             }
         }
         $result = (new DataValidator(['type' => 'group', 'properties' => $properties]))->validate((array) $data);
-        return (object) ['valid' => $result->valid, 'errors' => array_map(static fn ($error) => JsonValue::copy((object) $error), $result->errors)];
+        return (object) ['valid' => $result->valid, 'errors' => array_map(static fn ($error) => JsonValue::copy((object) $error), $result->errors), 'hidden' => $result->hidden];
     }
 
     /** Validate list composition and metadata without validating row data. */

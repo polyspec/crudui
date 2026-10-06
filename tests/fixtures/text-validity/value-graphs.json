@@ -5,7 +5,7 @@
     "spec": { "type": "group", "properties": { "list": { "type": "text" } } },
     "data": { "list": null },
     "graph": { "at": ["data", "list"], "shape": "doubled", "size": 10, "leaf": "x" },
-    "expect": { "valid": true, "errors": [] }
+    "expect": { "valid": true, "errors": [], "hidden": [] }
   },
   {
     "name": "shared-list-beyond-node-limit",
@@ -54,7 +54,7 @@
     "spec": { "type": "group", "properties": { "list": { "type": "text" } } },
     "data": { "list": null },
     "graph": { "at": ["data", "list"], "shape": "chain", "size": 511, "leaf": "x" },
-    "expect": { "valid": true, "errors": [] }
+    "expect": { "valid": true, "errors": [], "hidden": [] }
   },
   {
     "name": "nesting-beyond-limit",
@@ -70,7 +70,7 @@
     "spec": { "type": "group", "properties": { "list": { "type": "text" } } },
     "data": { "list": null },
     "graph": { "at": ["data", "list"], "shape": "flat", "size": 999998, "leaf": "x" },
-    "expect": { "valid": true, "errors": [] }
+    "expect": { "valid": true, "errors": [], "hidden": [] }
   },
   {
     "name": "nodes-beyond-limit",

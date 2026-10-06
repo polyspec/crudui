@@ -7,4 +7,4 @@ export { validateDetail } from './validate-detail/index';
 export type { ValidateDetailOptions } from './validate-detail/index';
 export { ComposeLoadError } from './compose/index';
 export type { ComposeErrorCode, FileLoader, LoadedDoc } from './compose/index';
-export type { FileSet, ValidationError, ValidationResult } from './types';
+export type { FileSet, ListValidationResult, ValidationError, ValidationResult } from './types';

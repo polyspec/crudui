@@ -284,7 +284,7 @@ export class Validator {
     this.run = { uniqueDuplicates: new Map() };
     const errors: ValidationError[] = [];
     this.validateProperties(this.properties, data, [], [], [], data, errors);
-    return { valid: errors.length === 0, errors };
+    return { valid: errors.length === 0, errors, hidden: this.hiddenPaths(data) };
   }
 
   /**

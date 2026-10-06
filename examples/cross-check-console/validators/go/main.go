@@ -62,10 +62,13 @@ func main() {
 
 	// Mode dispatch. list and detail run compose → forbidden-scan only (no DATA
 	// pass): they carry no input data.
-	var result validate.ValidationResult
+	// The console contract is { valid, errors } for every mode.
+	var result validate.ListValidationResult
 	switch req.Mode {
 	case "form":
-		result, err = validate.ValidateJSON(req.Spec, req.Data, req.Files, req.Basepath)
+		var form validate.ValidationResult
+		form, err = validate.ValidateJSON(req.Spec, req.Data, req.Files, req.Basepath)
+		result = validate.ListValidationResult{Valid: form.Valid, Errors: form.Errors}
 	case "list":
 		result, err = validate.ValidateListJSON(req.Spec, req.Files, req.Basepath)
 	case "detail":

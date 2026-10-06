@@ -1,5 +1,11 @@
 # 변경 기록
 
+## 2026-10-06 — 검증 결과의 숨은 경로 (C8.3)
+
+- 검증기 다섯 개의 검증 결과는 `design.show`가 false로 결정되는 필드의 데이터 경로 `hidden`을 담으므로,
+  서버는 숨은 가지의 값을 저장하지 않을 수 있습니다. `validateList`와 `validateDetail`의 결과는
+  `{ valid, errors }`를 유지하며, TypeScript와 Go 검증기는 이를 `ListValidationResult`라고 부릅니다.
+
 ## 2026-10-06 — 상대 경로에서 행은 한 단계 (C8.2)
 
 - 상대 경로, 조건부 매개변수, 필드 참조(`equalTo`, `notEqual`, `enddate`)는 검증기 다섯 개와

@@ -1,5 +1,12 @@
 # Changes
 
+## 2026-10-06 — Hidden paths in the validation result (C8.3)
+
+- The validation result of the five validators holds `hidden`, the data paths of the fields whose
+  `design.show` resolves to false, so a server can leave the values of a hidden branch unstored; the
+  results of `validateList` and `validateDetail` keep `{ valid, errors }`, which the TypeScript
+  validator names `ListValidationResult` and the Go validator `ListValidationResult`.
+
 ## 2026-10-06 — A row is one level of a relative path (C8.2)
 
 - A relative path, a conditional parameter and a field reference (`equalTo`, `notEqual`,

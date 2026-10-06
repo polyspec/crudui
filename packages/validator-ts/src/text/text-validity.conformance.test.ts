@@ -133,6 +133,6 @@ describe('input text helpers', () => {
     });
     // A loader replaces the files, which are then not read.
     expect(outcome(() => validate({ type: 'group', properties: {} }, {}, { loader, files: { '\ud800': {} } })))
-      .toStrictEqual({ valid: true, errors: [] });
+      .toStrictEqual({ valid: true, errors: [], hidden: [] });
   });
 });
