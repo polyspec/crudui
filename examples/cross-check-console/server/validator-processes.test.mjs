@@ -111,7 +111,8 @@ describe('validator processes — input text cases', () => {
         if (c.expect.code) expect(input).toMatch(/\\ud[89a-f][0-9a-f]{2}/);
         const expected = c.expect.code
           ? { exit: 2, output: { error: c.expect.message, code: c.expect.code, at: c.expect.at } }
-          : { exit: 0, output: c.expect };
+          // The console contract is { valid, errors } for every mode.
+          : { exit: 0, output: { valid: c.expect.valid, errors: c.expect.errors } };
         expectResponses(input, expected);
       }, 60000);
     }

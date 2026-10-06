@@ -1,5 +1,11 @@
 # Changes
 
+## 2026-10-06 — One response of the cross-check validator processes (C8.3-4)
+
+- The PHP validator process of the cross-check console writes `{ valid, errors }` for a form, as
+  the other processes do and `validators/README.md` states, and the input text cases expect that
+  response from every process.
+
 ## 2026-10-06 — Hidden paths in the record saves of the form comparison (C8.3-3)
 
 - Every record server of the form comparison answers a save with the validator's result as

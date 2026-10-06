@@ -81,7 +81,10 @@ try {
                 ?? Text::inputFailure([['data', $data], ['options.basepath', $basepath]]);
             throw new FormInputError($failure ?? 'Form data must be an object');
         }
-        $output = Validator::validate($request->spec, $data, $options);
+        // The console contract is { valid, errors } for every mode, so the form result leaves out
+        // its hidden paths.
+        $result = Validator::validate($request->spec, $data, $options);
+        $output = ['valid' => $result->valid, 'errors' => $result->errors];
     }
 } catch (ComposeLoadError $error) {
     emit(['error' => $error->getMessage(), 'code' => $error->getErrorCode(), 'at' => implode('.', $error->getCompositionTrace())], 2);
