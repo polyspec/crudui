@@ -36,15 +36,38 @@ enum Resolved {
 pub struct Evaluator<'a> {
     form_data: &'a Value,
     current_path: &'a [String],
+    row_keys: &'a [usize],
+}
+
+/// The path that a relative path with `levels_up` further dots starts from: the
+/// current field is one level and each further dot moves one more level up, and
+/// a row key leaves together with the name of its collection (expressions.md,
+/// "Evaluation").
+pub fn relative_base(current_path: &[String], row_keys: &[usize], levels_up: usize) -> Vec<String> {
+    let mut base = current_path.to_vec();
+    for _ in 0..=levels_up {
+        if base.is_empty() {
+            break;
+        }
+        let leaving = if row_keys.contains(&(base.len() - 1)) {
+            2
+        } else {
+            1
+        };
+        base.truncate(base.len().saturating_sub(leaving));
+    }
+    base
 }
 
 impl<'a> Evaluator<'a> {
-    /// Build an evaluator over the full form data and the path of the field
-    /// carrying the condition (including the field name itself).
-    pub fn new(form_data: &'a Value, current_path: &'a [String]) -> Self {
+    /// Build an evaluator over the full form data, the path of the field
+    /// carrying the condition (including the field name itself) and the
+    /// positions of the row keys in that path.
+    pub fn new(form_data: &'a Value, current_path: &'a [String], row_keys: &'a [usize]) -> Self {
         Evaluator {
             form_data,
             current_path,
+            row_keys,
         }
     }
 
@@ -224,23 +247,7 @@ impl<'a> Evaluator<'a> {
         };
 
         let mut base_path: Vec<String> = if relative {
-            let mut bp: Vec<String> = self.current_path.to_vec();
-
-            // Remove the current field name itself.
-            if !bp.is_empty() {
-                bp.pop();
-            }
-
-            // Ascend levelsUp parents; array indices do not count as a level.
-            for _ in 0..levels_up.max(0) {
-                while bp.last().map(|s| is_numeric_segment(s)).unwrap_or(false) {
-                    bp.pop();
-                }
-                if !bp.is_empty() {
-                    bp.pop();
-                }
-            }
-            bp
+            relative_base(self.current_path, self.row_keys, levels_up.max(0) as usize)
         } else {
             Vec::new()
         };

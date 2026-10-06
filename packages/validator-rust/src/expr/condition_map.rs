@@ -27,12 +27,13 @@ pub fn resolve(
     entries: &[(String, Value)],
     form_data: &Value,
     current_path: &[String],
+    row_keys: &[usize],
 ) -> Option<Value> {
     for (expr, value) in entries {
         if expr == DEFAULT_KEY {
             continue;
         }
-        if Expression::evaluate(expr, form_data, current_path).unwrap_or(false) {
+        if Expression::evaluate(expr, form_data, current_path, row_keys).unwrap_or(false) {
             return Some(value.clone());
         }
     }

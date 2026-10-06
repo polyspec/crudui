@@ -35,11 +35,33 @@ final class Evaluator
      * @param array<string, mixed> $formData full form data tree (assoc arrays)
      * @param list<string>         $currentPath path of the field carrying the
      *                              condition, including the field name itself
+     * @param list<int>            $rowKeys     positions of the row keys in $currentPath
      */
     public function __construct(
         private readonly array|\stdClass $formData,
         private readonly array $currentPath = [],
+        private readonly array $rowKeys = [],
     ) {
+    }
+
+    /**
+     * The value of a field reference of a rule parameter (`equalTo`, `notEqual`, `enddate`):
+     * a relative path resolves as a relative expression path, a dotted name from the data root,
+     * and a bare name beside the current field.
+     */
+    public function reference(string $expression): mixed
+    {
+        $trimmed = trim($expression);
+        if ($trimmed === '') {
+            return null;
+        }
+        $dots = strspn($trimmed, '.');
+        $relative = $dots > 0 || !str_contains($trimmed, '.');
+        $segments = array_map(
+            static fn (string $part): PathSegment => $part === '*' ? PathSegment::wildcard() : PathSegment::identifier($part),
+            array_values(array_filter(explode('.', substr($trimmed, $dots)), static fn (string $part): bool => $part !== '')),
+        );
+        return $this->resolvePath(new PathNode($relative, max(0, $dots - 1), $segments));
     }
 
     /**
@@ -222,23 +244,12 @@ final class Evaluator
     private function resolvePathSegments(PathNode $node): array
     {
         if ($node->relative) {
-            // groupNode handling (JS effectiveLevelsUp) is not reachable from the
-            // shared fixture; the lexical levels are taken verbatim.
+            // The current field is one level and each further dot moves one more level up; a row
+            // key and the name of its collection leave together (expressions.md, "Evaluation").
             $basePath = $this->currentPath;
-
-            // Remove the current field name itself.
-            if (count($basePath) > 0) {
-                array_pop($basePath);
-            }
-
-            // Ascend levelsUp parents; array indices do not count as a level.
-            for ($i = 0; $i < $node->levelsUp; $i++) {
-                while (count($basePath) > 0 && self::isNumericSegment($basePath[count($basePath) - 1])) {
-                    array_pop($basePath);
-                }
-                if (count($basePath) > 0) {
-                    array_pop($basePath);
-                }
+            for ($level = 0; $level <= $node->levelsUp && $basePath !== []; $level++) {
+                $leaving = \in_array(\count($basePath) - 1, $this->rowKeys, true) ? 2 : 1;
+                $basePath = \array_slice($basePath, 0, max(0, \count($basePath) - $leaving));
             }
         } else {
             $basePath = [];

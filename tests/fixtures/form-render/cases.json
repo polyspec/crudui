@@ -5309,5 +5309,101 @@
       "code": "INVALID_FORM_INPUT",
       "message": "Invalid items at region: expected value and label pairs with distinct string or number values"
     }
+  },
+  {
+    "name": "design-show-row-parent-on",
+    "note": "design.show '..mode' of a field of a group row reads the field beside the collection: the row and its key are one level, so the name of every row is shown when mode is on and hidden when it is off.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "mode": {
+          "type": "text",
+          "label": "Mode"
+        },
+        "variants": {
+          "type": "group",
+          "label": "Variants",
+          "multiple": "only",
+          "properties": {
+            "name": {
+              "type": "text",
+              "label": "Name",
+              "design": {
+                "show": "..mode == 'on'"
+              }
+            },
+            "price": {
+              "type": "number",
+              "label": "Price"
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "mode": "on",
+      "variants": {
+        "__opt_b2__": {
+          "name": "Blue",
+          "price": 2
+        },
+        "__opt_a1__": {
+          "name": "Red",
+          "price": 1
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"mode\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:mode\">Mode</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"mode\" data-rule-name=\"mode\" id=\"crudui:mode\" name=\"mode\" type=\"text\" value=\"on\"></div></div></div><div class=\"crudui-node crudui-node--collection\" data-field-path=\"variants\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Variants</span><span class=\"crudui-node__count\">Rows: 2</span></div><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__opt_b2__\"><div class=\"crudui-node__header\"><button aria-controls=\"crudui:variants.__opt_b2__:body\" aria-expanded=\"true\" aria-label=\"Expand or collapse\" class=\"crudui-action\" data-crudui-action=\"toggle-row\" type=\"button\"></button><span class=\"crudui-node__label\">Variants</span><span class=\"crudui-node__number\">1</span><span class=\"crudui-node__summary\" hidden=\"\">Collapsed</span></div><div class=\"crudui-node__body\" id=\"crudui:variants.__opt_b2__:body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"variants.__opt_b2__.name\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:variants.__opt_b2__.name\">Name</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"name\" data-rule-name=\"variants[][name]\" id=\"crudui:variants.__opt_b2__.name\" name=\"variants[__opt_b2__][name]\" type=\"text\" value=\"Blue\"></div></div></div><div class=\"crudui-node crudui-node--field\" data-field-path=\"variants.__opt_b2__.price\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:variants.__opt_b2__.price\">Price</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"price\" data-rule-name=\"variants[][price]\" id=\"crudui:variants.__opt_b2__.price\" name=\"variants[__opt_b2__][price]\" step=\"any\" type=\"number\" value=\"2\"></div></div></div></div></div><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__opt_a1__\"><div class=\"crudui-node__header\"><button aria-controls=\"crudui:variants.__opt_a1__:body\" aria-expanded=\"true\" aria-label=\"Expand or collapse\" class=\"crudui-action\" data-crudui-action=\"toggle-row\" type=\"button\"></button><span class=\"crudui-node__label\">Variants</span><span class=\"crudui-node__number\">2</span><span class=\"crudui-node__summary\" hidden=\"\">Collapsed</span></div><div class=\"crudui-node__body\" id=\"crudui:variants.__opt_a1__:body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"variants.__opt_a1__.name\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:variants.__opt_a1__.name\">Name</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"name\" data-rule-name=\"variants[][name]\" id=\"crudui:variants.__opt_a1__.name\" name=\"variants[__opt_a1__][name]\" type=\"text\" value=\"Red\"></div></div></div><div class=\"crudui-node crudui-node--field\" data-field-path=\"variants.__opt_a1__.price\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:variants.__opt_a1__.price\">Price</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"price\" data-rule-name=\"variants[][price]\" id=\"crudui:variants.__opt_a1__.price\" name=\"variants[__opt_a1__][price]\" step=\"any\" type=\"number\" value=\"1\"></div></div></div></div></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "design-show-row-parent-off",
+    "note": "design.show '..mode' of a field of a group row reads the field beside the collection: the row and its key are one level, so the name of every row is shown when mode is on and hidden when it is off.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "mode": {
+          "type": "text",
+          "label": "Mode"
+        },
+        "variants": {
+          "type": "group",
+          "label": "Variants",
+          "multiple": "only",
+          "properties": {
+            "name": {
+              "type": "text",
+              "label": "Name",
+              "design": {
+                "show": "..mode == 'on'"
+              }
+            },
+            "price": {
+              "type": "number",
+              "label": "Price"
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "mode": "off",
+      "variants": {
+        "__opt_b2__": {
+          "name": "Blue",
+          "price": 2
+        },
+        "__opt_a1__": {
+          "name": "Red",
+          "price": 1
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"mode\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:mode\">Mode</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"mode\" data-rule-name=\"mode\" id=\"crudui:mode\" name=\"mode\" type=\"text\" value=\"off\"></div></div></div><div class=\"crudui-node crudui-node--collection\" data-field-path=\"variants\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Variants</span><span class=\"crudui-node__count\">Rows: 2</span></div><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__opt_b2__\"><div class=\"crudui-node__header\"><button aria-controls=\"crudui:variants.__opt_b2__:body\" aria-expanded=\"true\" aria-label=\"Expand or collapse\" class=\"crudui-action\" data-crudui-action=\"toggle-row\" type=\"button\"></button><span class=\"crudui-node__label\">Variants</span><span class=\"crudui-node__number\">1</span><span class=\"crudui-node__summary\" hidden=\"\">Collapsed</span></div><div class=\"crudui-node__body\" id=\"crudui:variants.__opt_b2__:body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"variants.__opt_b2__.name\" hidden=\"\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:variants.__opt_b2__.name\">Name</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"name\" data-rule-name=\"variants[][name]\" id=\"crudui:variants.__opt_b2__.name\" name=\"variants[__opt_b2__][name]\" type=\"text\" value=\"Blue\"></div></div></div><div class=\"crudui-node crudui-node--field\" data-field-path=\"variants.__opt_b2__.price\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:variants.__opt_b2__.price\">Price</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"price\" data-rule-name=\"variants[][price]\" id=\"crudui:variants.__opt_b2__.price\" name=\"variants[__opt_b2__][price]\" step=\"any\" type=\"number\" value=\"2\"></div></div></div></div></div><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__opt_a1__\"><div class=\"crudui-node__header\"><button aria-controls=\"crudui:variants.__opt_a1__:body\" aria-expanded=\"true\" aria-label=\"Expand or collapse\" class=\"crudui-action\" data-crudui-action=\"toggle-row\" type=\"button\"></button><span class=\"crudui-node__label\">Variants</span><span class=\"crudui-node__number\">2</span><span class=\"crudui-node__summary\" hidden=\"\">Collapsed</span></div><div class=\"crudui-node__body\" id=\"crudui:variants.__opt_a1__:body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"variants.__opt_a1__.name\" hidden=\"\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:variants.__opt_a1__.name\">Name</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"name\" data-rule-name=\"variants[][name]\" id=\"crudui:variants.__opt_a1__.name\" name=\"variants[__opt_a1__][name]\" type=\"text\" value=\"Red\"></div></div></div><div class=\"crudui-node crudui-node--field\" data-field-path=\"variants.__opt_a1__.price\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:variants.__opt_a1__.price\">Price</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"price\" data-rule-name=\"variants[][price]\" id=\"crudui:variants.__opt_a1__.price\" name=\"variants[__opt_a1__][price]\" step=\"any\" type=\"number\" value=\"1\"></div></div></div></div></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
   }
 ]

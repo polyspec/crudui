@@ -17,10 +17,11 @@ final class Visibility
      * Whether a field with this `design.show` value is visible.
      *
      * @param list<string> $path the field's path, row keys included
+     * @param list<int> $rowKeys positions of the row keys in $path
      */
-    public static function shown(mixed $show, array|\stdClass $data, array $path): bool
+    public static function shown(mixed $show, array|\stdClass $data, array $path, array $rowKeys = []): bool
     {
-        return ConditionalValue::resolve($show, $data, $path) !== false;
+        return ConditionalValue::resolve($show, $data, $path, $rowKeys) !== false;
     }
 
     /**

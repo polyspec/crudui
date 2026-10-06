@@ -149,11 +149,21 @@ fn expression_fixture_matches() {
                             .collect()
                     })
                     .unwrap_or_default();
+                let row_keys: Vec<usize> = case
+                    .get("rowKeys")
+                    .and_then(Value::as_array)
+                    .map(|a| {
+                        a.iter()
+                            .filter_map(Value::as_u64)
+                            .map(|x| x as usize)
+                            .collect()
+                    })
+                    .unwrap_or_default();
 
                 let exp_value = case.get("value").cloned().unwrap_or(Value::Null);
                 let exp_truthy = case.get("truthy").and_then(Value::as_bool).unwrap_or(false);
 
-                match Expression::evaluate_value(expr, &data, &current_path) {
+                match Expression::evaluate_value(expr, &data, &current_path, &row_keys) {
                     Ok(value) if !value_equals(&exp_value, &value) => failures.push(format!(
                         "[{}] value mismatch case {}: `{}` data={} expected={} got={}",
                         name, i, expr, data, exp_value, value
@@ -162,7 +172,7 @@ fn expression_fixture_matches() {
                     Err(e) => failures.push(format!("[{}] eval_value case {}: {}", name, i, e)),
                 }
 
-                match Expression::evaluate(expr, &data, &current_path) {
+                match Expression::evaluate(expr, &data, &current_path, &row_keys) {
                     Ok(truthy) if truthy != exp_truthy => failures.push(format!(
                         "[{}] truthy mismatch case {}: `{}` data={} expected={} got={}",
                         name, i, expr, data, exp_truthy, truthy
@@ -198,22 +208,37 @@ fn condition_map_resolves_in_declaration_order() {
 
     let cp = vec!["x".to_string()];
     assert_eq!(
-        condition_map::resolve(&entries, &serde_json::json!({"tier":"gold","x":1}), &cp),
+        condition_map::resolve(
+            &entries,
+            &serde_json::json!({"tier":"gold","x":1}),
+            &cp,
+            &[]
+        ),
         Some(Value::from("premium"))
     );
     assert_eq!(
-        condition_map::resolve(&entries, &serde_json::json!({"tier":"silver","x":1}), &cp),
+        condition_map::resolve(
+            &entries,
+            &serde_json::json!({"tier":"silver","x":1}),
+            &cp,
+            &[]
+        ),
         Some(Value::from("standard"))
     );
     assert_eq!(
-        condition_map::resolve(&entries, &serde_json::json!({"tier":"bronze","x":1}), &cp),
+        condition_map::resolve(
+            &entries,
+            &serde_json::json!({"tier":"bronze","x":1}),
+            &cp,
+            &[]
+        ),
         Some(Value::from("basic"))
     );
 
     // No default key, no match -> None.
     let no_default = vec![(".a == 1".to_string(), Value::from("one"))];
     assert_eq!(
-        condition_map::resolve(&no_default, &serde_json::json!({"a":9,"x":1}), &cp),
+        condition_map::resolve(&no_default, &serde_json::json!({"a":9,"x":1}), &cp, &[]),
         None
     );
 }
@@ -228,11 +253,21 @@ fn condition_map_default_does_not_short_circuit() {
     ];
     let cp = vec!["x".to_string()];
     assert_eq!(
-        condition_map::resolve(&entries, &serde_json::json!({"tier":"gold","x":1}), &cp),
+        condition_map::resolve(
+            &entries,
+            &serde_json::json!({"tier":"gold","x":1}),
+            &cp,
+            &[]
+        ),
         Some(Value::from("premium"))
     );
     assert_eq!(
-        condition_map::resolve(&entries, &serde_json::json!({"tier":"none","x":1}), &cp),
+        condition_map::resolve(
+            &entries,
+            &serde_json::json!({"tier":"none","x":1}),
+            &cp,
+            &[]
+        ),
         Some(Value::from("fallback"))
     );
 }
@@ -245,7 +280,8 @@ fn ternary_returns_raw_branch_value() {
         Expression::evaluate_value(
             ".big ? 'huge' : 'tiny'",
             &serde_json::json!({"big":true,"x":1}),
-            &cp
+            &cp,
+            &[]
         )
         .unwrap(),
         Value::from("huge")
@@ -254,7 +290,8 @@ fn ternary_returns_raw_branch_value() {
         Expression::evaluate_value(
             ".a ? 'A' : .b ? 'B' : 'C'",
             &serde_json::json!({"a":false,"b":true,"x":1}),
-            &cp
+            &cp,
+            &[]
         )
         .unwrap(),
         Value::from("B")
@@ -263,7 +300,8 @@ fn ternary_returns_raw_branch_value() {
         Expression::evaluate_value(
             ".show == 1 ? 1 : null",
             &serde_json::json!({"show":0,"x":1}),
-            &cp
+            &cp,
+            &[]
         )
         .unwrap(),
         Value::Null

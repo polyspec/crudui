@@ -28,12 +28,35 @@ import (
 type Evaluator struct {
 	formData    map[string]any
 	currentPath []string
+	rowKeys     []int
 }
 
-// NewEvaluator binds form data and the current field path (the path of the field
-// carrying the condition, including its own name).
-func NewEvaluator(formData map[string]any, currentPath []string) *Evaluator {
-	return &Evaluator{formData: formData, currentPath: currentPath}
+// NewEvaluator binds form data, the current field path (the path of the field
+// carrying the condition, including its own name) and the positions of the row
+// keys in that path.
+func NewEvaluator(formData map[string]any, currentPath []string, rowKeys []int) *Evaluator {
+	return &Evaluator{formData: formData, currentPath: currentPath, rowKeys: rowKeys}
+}
+
+// RelativeBase returns the path that a relative path with levelsUp further dots
+// starts from: the current field is one level and each further dot moves one more
+// level up, and a row key leaves together with the name of its collection
+// (expressions.md, "Evaluation").
+func RelativeBase(currentPath []string, rowKeys []int, levelsUp int) []string {
+	base := append([]string{}, currentPath...)
+	for level := 0; level <= levelsUp && len(base) > 0; level++ {
+		leaving := 1
+		for _, position := range rowKeys {
+			if position == len(base)-1 {
+				leaving = 2
+			}
+		}
+		if leaving > len(base) {
+			leaving = len(base)
+		}
+		base = base[:len(base)-leaving]
+	}
+	return base
 }
 
 // Evaluate evaluates a node to a boolean condition result (JS evaluateCondition).
@@ -237,24 +260,7 @@ func (e *Evaluator) resolvePathSegments(node *PathNode) []string {
 	var basePath []string
 
 	if node.Relative {
-		// groupNode handling (JS effectiveLevelsUp) is not reachable from the
-		// shared fixture; lexical levels are taken verbatim.
-		basePath = append(basePath, e.currentPath...)
-
-		// Remove the current field name itself.
-		if len(basePath) > 0 {
-			basePath = basePath[:len(basePath)-1]
-		}
-
-		// Ascend levelsUp parents; array indices do not count as a level.
-		for i := 0; i < node.LevelsUp; i++ {
-			for len(basePath) > 0 && isNumericSegment(basePath[len(basePath)-1]) {
-				basePath = basePath[:len(basePath)-1]
-			}
-			if len(basePath) > 0 {
-				basePath = basePath[:len(basePath)-1]
-			}
-		}
+		basePath = RelativeBase(e.currentPath, e.rowKeys, node.LevelsUp)
 	} else {
 		basePath = []string{}
 	}

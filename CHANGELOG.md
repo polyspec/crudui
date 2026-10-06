@@ -1,5 +1,13 @@
 # Changes
 
+## 2026-10-06 — A row is one level of a relative path (C8.2)
+
+- A relative path, a conditional parameter and a field reference (`equalTo`, `notEqual`,
+  `enddate`) treat a row of a repeated field as one level in the five validators and the eight
+  renderers: in a field of a group row `..x` reads the field beside the collection whatever the
+  row key is, and a field named with digits is not a row key. The runtimes pass the positions of
+  the row keys with the path; a bare field reference resolves as `.name`.
+
 ## 2026-10-06 — Live display in the browser binding (C8.1)
 
 - The browser binding sets the `hidden` attribute of every node from its `design.show` against

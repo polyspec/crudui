@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace CRUDUI\Validator\Rules;
 
+use CRUDUI\Validator\Expr\FieldPath;
 use CRUDUI\Validator\Patterns\PatternParameter;
 use CRUDUI\Validator\Values\CanonicalText;
 use CRUDUI\Validator\Values\InvalidRuleParameter;
@@ -25,7 +26,7 @@ class Pattern implements RuleInterface
      *
      * @throws InvalidRuleParameter when the parameter is not a pattern in the language
      */
-    public function validate(mixed $value, mixed $param, array $allData, string $path): bool
+    public function validate(mixed $value, mixed $param, array $allData, FieldPath $path): bool
     {
         $pattern = PatternParameter::compile($this->rule, $param);
         $text = CanonicalText::of($value);

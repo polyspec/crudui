@@ -26,6 +26,8 @@ import (
 type ruleContext struct {
 	// pathSegments is the field's path (its own name included).
 	pathSegments []string
+	// rowKeys are the positions of the row keys in pathSegments.
+	rowKeys []int
 	// formData is the whole decoded form (map[string]any / []any / scalars).
 	formData map[string]any
 	// call is the state of the validation the rule runs in.
@@ -303,7 +305,7 @@ func ruleUnique(value any, ruleParam any, ctx ruleContext) (string, bool) {
 		case isFilter:
 			for i, el := range arr {
 				itemPath := append(append([]string{}, ctx.pathSegments...), keys[i])
-				if !itemPassesCondition(paramStr, itemPath, ctx.formData) {
+				if !itemPassesCondition(paramStr, itemPath, appendRowKey(ctx.rowKeys, len(ctx.pathSegments)), ctx.formData) {
 					continue
 				}
 				if !isEmpty(el) {
@@ -351,7 +353,7 @@ func ruleUnique(value any, ruleParam any, ctx ruleContext) (string, bool) {
 	if isEmpty(value) {
 		return "", false
 	}
-	if isFilter && !itemPassesCondition(paramStr, ctx.pathSegments, ctx.formData) {
+	if isFilter && !itemPassesCondition(paramStr, ctx.pathSegments, ctx.rowKeys, ctx.formData) {
 		return "", false
 	}
 
@@ -392,7 +394,7 @@ func ruleUnique(value any, ruleParam any, ctx ruleContext) (string, bool) {
 			}
 			if isFilter {
 				siblingPath := append(append([]string{}, containerPath...), e.key, fieldName)
-				if !itemPassesCondition(paramStr, siblingPath, ctx.formData) {
+				if !itemPassesCondition(paramStr, siblingPath, ctx.rowKeys, ctx.formData) {
 					continue
 				}
 			}
@@ -474,7 +476,7 @@ func ruleEqualTo(value any, ruleParam any, ctx ruleContext) (string, bool) {
 	if isEmpty(value) {
 		return "", false
 	}
-	target := resolveFieldReference(jsString(ruleParam), ctx.pathSegments, ctx.formData)
+	target := resolveFieldReference(jsString(ruleParam), ctx.pathSegments, ctx.rowKeys, ctx.formData)
 	if !strictEquals(value, target) {
 		return ctx.msg("equalTo", "Please enter the same value again."), true
 	}
@@ -515,7 +517,7 @@ func ruleNotEqual(value any, ruleParam any, ctx ruleContext) (string, bool) {
 		compare = jsString(ruleParam)
 	}
 	if strings.HasPrefix(compare, ".") {
-		target := resolveFieldReference(compare, ctx.pathSegments, ctx.formData)
+		target := resolveFieldReference(compare, ctx.pathSegments, ctx.rowKeys, ctx.formData)
 		if jsString(value) == jsString(target) {
 			return ctx.msg("notEqual", "Please enter a different value."), true
 		}
@@ -578,7 +580,7 @@ func ruleEndDate(value any, ruleParam any, ctx ruleContext) (string, bool) {
 	if !ok {
 		startRef = jsString(ruleParam)
 	}
-	startVal := resolveFieldReference(startRef, ctx.pathSegments, ctx.formData)
+	startVal := resolveFieldReference(startRef, ctx.pathSegments, ctx.rowKeys, ctx.formData)
 	if isEmpty(startVal) {
 		return "", false
 	}

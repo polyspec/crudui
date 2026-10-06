@@ -143,22 +143,22 @@ func Parse(expression string) (node Node, err error) {
 }
 
 // Evaluate evaluates an expression to a truthy boolean (show/display call site).
-func Evaluate(expression string, formData map[string]any, currentPath []string) (bool, error) {
+func Evaluate(expression string, formData map[string]any, currentPath []string, rowKeys []int) (bool, error) {
 	ast, err := Parse(expression)
 	if err != nil {
 		return false, err
 	}
-	return NewEvaluator(formData, currentPath).Evaluate(ast), nil
+	return NewEvaluator(formData, currentPath, rowKeys).Evaluate(ast), nil
 }
 
 // EvaluateValue evaluates an expression to its raw value (class/style/number/null
 // call site).
-func EvaluateValue(expression string, formData map[string]any, currentPath []string) (any, error) {
+func EvaluateValue(expression string, formData map[string]any, currentPath []string, rowKeys []int) (any, error) {
 	ast, err := Parse(expression)
 	if err != nil {
 		return nil, err
 	}
-	return NewEvaluator(formData, currentPath).EvaluateValue(ast), nil
+	return NewEvaluator(formData, currentPath, rowKeys).EvaluateValue(ast), nil
 }
 
 // ClearCache clears the parsed-AST cache.

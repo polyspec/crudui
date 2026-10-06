@@ -4,14 +4,14 @@ use crudui_validator::expr::{is_truthy, Evaluator, Expression, Node};
 use crudui_validator::validate::rules::is_condition_expression;
 use serde_json::{json, Value};
 
-fn resolve_map(value: &Value, data: &Value, path: &[String]) -> Value {
+fn resolve_map(value: &Value, data: &Value, path: &[String], rows: &[usize]) -> Value {
     let entries = value
         .as_object()
         .expect("condition map")
         .iter()
         .map(|(k, v)| (k.clone(), v.clone()))
         .collect::<Vec<_>>();
-    condition_map::resolve(&entries, data, path).unwrap_or(Value::Null)
+    condition_map::resolve(&entries, data, path, rows).unwrap_or(Value::Null)
 }
 
 /// Form visibility, resolved as the validator resolves it, so a server skips exactly
@@ -20,11 +20,11 @@ pub(crate) use crudui_validator::validate::visibility::show;
 
 /// A conditional flag other than visibility: a condition map that selects nothing,
 /// and an invalid expression, are false.
-pub(crate) fn flag(value: Option<&Value>, data: &Value, path: &[String]) -> bool {
+pub(crate) fn flag(value: Option<&Value>, data: &Value, path: &[String], rows: &[usize]) -> bool {
     match value {
         None | Some(Value::Null) => true,
-        Some(Value::Object(_)) => is_truthy(&resolve_map(value.unwrap(), data, path)),
-        Some(Value::String(s)) => Expression::evaluate(s, data, path).unwrap_or(false),
+        Some(Value::Object(_)) => is_truthy(&resolve_map(value.unwrap(), data, path, rows)),
+        Some(Value::String(s)) => Expression::evaluate(s, data, path, rows).unwrap_or(false),
         Some(v) => is_truthy(v),
     }
 }
@@ -32,11 +32,16 @@ pub(crate) fn flag(value: Option<&Value>, data: &Value, path: &[String]) -> bool
 /// An appearance setting such as `design.class`: a condition map selects its value, a
 /// ternary its branch and a condition expression that parses completely its result; any
 /// other string is literal text.
-pub(crate) fn appearance(value: Option<&Value>, data: &Value, path: &[String]) -> String {
+pub(crate) fn appearance(
+    value: Option<&Value>,
+    data: &Value,
+    path: &[String],
+    rows: &[usize],
+) -> String {
     match value {
         None | Some(Value::Null) => String::new(),
         Some(Value::Object(_)) => {
-            let result = resolve_map(value.unwrap(), data, path);
+            let result = resolve_map(value.unwrap(), data, path, rows);
             if result.is_null() {
                 String::new()
             } else {
@@ -45,7 +50,7 @@ pub(crate) fn appearance(value: Option<&Value>, data: &Value, path: &[String]) -
         }
         Some(Value::String(s)) => {
             if let Ok(node @ Node::Ternary { .. }) = Expression::parse(s) {
-                let result = Evaluator::new(data, path).evaluate_value(&node);
+                let result = Evaluator::new(data, path, rows).evaluate_value(&node);
                 return if result.is_null() {
                     String::new()
                 } else {
@@ -54,7 +59,7 @@ pub(crate) fn appearance(value: Option<&Value>, data: &Value, path: &[String]) -
             }
             if Expression::parse(s).is_ok() && is_condition_expression(s) && !has_ternary_text(s) {
                 let result =
-                    Expression::evaluate_value(s, data, path).unwrap_or(Value::Bool(false));
+                    Expression::evaluate_value(s, data, path, rows).unwrap_or(Value::Bool(false));
                 return if result.is_null() || result == false {
                     String::new()
                 } else {
@@ -71,17 +76,23 @@ fn has_ternary_text(s: &str) -> bool {
     s.find('?').is_some_and(|i| s[i..].contains(':'))
 }
 
-pub(crate) fn resolve_design(design: Option<&Value>, data: &Value, path: &str) -> Value {
+/// The design of a node at `path`; `rows` are the positions of the row keys in the path.
+pub(crate) fn resolve_design(
+    design: Option<&Value>,
+    data: &Value,
+    path: &str,
+    rows: &[usize],
+) -> Value {
     let empty = json!({});
     let design = design.filter(|v| v.is_object()).unwrap_or(&empty);
     let path = segments(path);
     let node = |value: &Value| {
         json!({
-            "class": appearance(value.get("class"),data,&path),
-            "style": appearance(value.get("style"),data,&path),
+            "class": appearance(value.get("class"),data,&path,rows),
+            "style": appearance(value.get("style"),data,&path,rows),
         })
     };
-    json!({"show": show(design.get("show"),data,&path), "main": node(design),
+    json!({"show": show(design.get("show"),data,&path,rows), "main": node(design),
         "label": node(&design["label"]), "wrapper": node(&design["wrapper"]),
         "group": node(&design["group"]), "prepend": node(&design["prepend"])})
 }

@@ -27,7 +27,7 @@ export function getValueByPath(
 /**
  * Resolve a rule param that references another field (relative or absolute).
  * Shares the relative-path semantics of condition expressions:
- * ".x" = sibling, "..x" = parent group's sibling (array indices skipped).
+ * ".x" = sibling, "..x" = parent group's sibling, a row being one level.
  */
 export function resolveFieldParam(
   param: string,
@@ -35,6 +35,7 @@ export function resolveFieldParam(
 ): unknown {
   return resolveFieldReference(param, {
     currentPath: context.pathSegments,
+    rowKeys: context.rowKeys,
     formData: context.allData,
   });
 }

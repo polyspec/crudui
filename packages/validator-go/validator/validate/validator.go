@@ -80,7 +80,7 @@ func (v *Validator) Validate(data any) (ValidationResult, error) {
 	}
 	var errors []ValidationError
 	call := &callState{uniqueDuplicates: map[string]map[string]bool{}}
-	if err := v.validateProperties(v.properties, root, nil, nil, root, call, false, &errors); err != nil {
+	if err := v.validateProperties(v.properties, root, nil, nil, nil, root, call, false, &errors); err != nil {
 		return ValidationResult{}, err
 	}
 	return ValidationResult{Valid: len(errors) == 0, Errors: errors}, nil
@@ -92,6 +92,8 @@ type fieldRun struct {
 	field *compose.OMap
 	// path is the data path, row keys included.
 	path []string
+	// rowKeys are the positions of the row keys in path.
+	rowKeys []int
 	// declaration is the declaration path, without row keys.
 	declaration []string
 	// allData is the whole form.
@@ -118,7 +120,7 @@ func (r fieldRun) report(errors *[]ValidationError, rule, message string, value 
 // validateProperties recurses a properties map (SPEC §3; JS validateProperties).
 // Inside a hidden field (hidden is true) no rule runs, but the data shape is
 // still checked.
-func (v *Validator) validateProperties(properties *compose.OMap, data map[string]any, currentPath, declaration []string, allData map[string]any, call *callState, hidden bool, errors *[]ValidationError) error {
+func (v *Validator) validateProperties(properties *compose.OMap, data map[string]any, currentPath []string, rowKeys []int, declaration []string, allData map[string]any, call *callState, hidden bool, errors *[]ValidationError) error {
 	for _, name := range sortedKeys(data) {
 		if !properties.Has(name) {
 			return &FormInputError{Message: "Unknown form data field: " + pathToString(appendPath(currentPath, name))}
@@ -133,7 +135,7 @@ func (v *Validator) validateProperties(properties *compose.OMap, data map[string
 
 		fieldName := propertyKey
 		isMultiple := fieldIsMultiple(field)
-		run := fieldRun{field: field, path: appendPath(currentPath, fieldName), declaration: appendPath(declaration, fieldName), allData: allData, call: call}
+		run := fieldRun{field: field, path: appendPath(currentPath, fieldName), rowKeys: rowKeys, declaration: appendPath(declaration, fieldName), allData: allData, call: call}
 		fieldPath := run.path
 		fieldValue, present := data[fieldName]
 
@@ -148,7 +150,7 @@ func (v *Validator) validateProperties(properties *compose.OMap, data map[string
 			}
 		}
 		// A hidden field's rules and its descendants' rules are not evaluated.
-		fieldHidden := hidden || !v.fieldVisible(field, fieldPath, allData)
+		fieldHidden := hidden || !v.fieldVisible(field, fieldPath, rowKeys, allData)
 
 		if fieldType(field) == "group" && childProps != nil {
 			if isMultiple {
@@ -162,7 +164,7 @@ func (v *Validator) validateProperties(properties *compose.OMap, data map[string
 					if !ok {
 						return &FormInputError{Message: "Group data must be an object: " + pathToString(rowPath)}
 					}
-					if err := v.validateProperties(childProps, row, rowPath, run.declaration, allData, call, fieldHidden, errors); err != nil {
+					if err := v.validateProperties(childProps, row, rowPath, appendRowKey(rowKeys, len(fieldPath)), run.declaration, allData, call, fieldHidden, errors); err != nil {
 						return err
 					}
 				}
@@ -176,7 +178,7 @@ func (v *Validator) validateProperties(properties *compose.OMap, data map[string
 			if present && !isObject(fieldValue) {
 				return &FormInputError{Message: "Group data must be an object: " + pathToString(fieldPath)}
 			}
-			if err := v.validateProperties(childProps, asMap(fieldValue), fieldPath, run.declaration, allData, call, fieldHidden, errors); err != nil {
+			if err := v.validateProperties(childProps, asMap(fieldValue), fieldPath, rowKeys, run.declaration, allData, call, fieldHidden, errors); err != nil {
 				return err
 			}
 			if !fieldHidden {
@@ -208,13 +210,13 @@ func (v *Validator) validateProperties(properties *compose.OMap, data map[string
 // branch and a condition expression its result. Only a resolved false hides the
 // field; a field without design.show, and a condition map that selects nothing,
 // are visible.
-func (v *Validator) fieldVisible(field *compose.OMap, path []string, allData map[string]any) bool {
+func (v *Validator) fieldVisible(field *compose.OMap, path []string, rowKeys []int, allData map[string]any) bool {
 	design, ok := fieldDesign(field)
 	if !ok || !design.Has("show") {
 		return true
 	}
 	show, _ := design.Get("show")
-	resolved, _ := v.resolveRuleValue("show", show, path, allData)
+	resolved, _ := v.resolveRuleValue("show", show, path, rowKeys, allData)
 	return resolved != false
 }
 
@@ -252,6 +254,7 @@ func (v *Validator) validateMultipleFieldRules(run fieldRun, values map[string]a
 	for _, key := range sortedKeys(values) {
 		element := run
 		element.path = appendPath(run.path, key)
+		element.rowKeys = appendRowKey(run.rowKeys, len(run.path))
 		if err := v.runFieldRules(element, values[key], errors, func(rule string) bool { return !arrayLevelRules[rule] }); err != nil {
 			return err
 		}
@@ -308,7 +311,7 @@ func (v *Validator) runFieldRules(run fieldRun, value any, errors *[]ValidationE
 // (false/null), else calls the rule fn (JS runRule). Returns (message, failed),
 // or the load failure of a selected param outside its definition.
 func (v *Validator) runRule(run fieldRun, ruleName string, ruleValue any, value any) (string, bool, error) {
-	effective, selected := v.resolveRuleValue(ruleName, ruleValue, run.path, run.allData)
+	effective, selected := v.resolveRuleValue(ruleName, ruleValue, run.path, run.rowKeys, run.allData)
 
 	if selected {
 		if perr := v.checkParameter(ruleName, effective); perr != nil {
@@ -329,6 +332,7 @@ func (v *Validator) runRule(run fieldRun, ruleName string, ruleValue any, value 
 
 	ctx := ruleContext{
 		pathSegments: run.path,
+		rowKeys:      run.rowKeys,
 		formData:     run.allData,
 		call:         run.call,
 		messages:     fieldMessages(run.field),
@@ -376,18 +380,18 @@ func isValidExpression(expression string) bool {
 //     first truthy key's value; else the "true" key; else nil (disabled).
 //   - a string: a value-returning ternary, or a plain condition expression.
 //   - anything else: a literal param.
-func (v *Validator) resolveRuleValue(ruleName string, ruleValue any, path []string, allData map[string]any) (any, bool) {
+func (v *Validator) resolveRuleValue(ruleName string, ruleValue any, path []string, rowKeys []int, allData map[string]any) (any, bool) {
 	if !isConditionalRuleValue(ruleName, ruleValue) {
 		return ruleValue, false
 	}
 	switch value := ruleValue.(type) {
 	case *compose.OMap:
-		return resolveConditionMap(value, path, allData), true
+		return resolveConditionMap(value, path, rowKeys, allData), true
 	case string:
 		if node, ok := parseTernary(value); ok {
-			return expr.NewEvaluator(allData, path).EvaluateValue(node), true
+			return expr.NewEvaluator(allData, path, rowKeys).EvaluateValue(node), true
 		}
-		return evaluateExpressionValue(value, path, allData), true
+		return evaluateExpressionValue(value, path, rowKeys, allData), true
 	}
 	return ruleValue, false
 }
@@ -395,12 +399,12 @@ func (v *Validator) resolveRuleValue(ruleName string, ruleValue any, path []stri
 // resolveConditionMap evaluates a condition map (expressions.md §8): keys in
 // declaration order, first truthy key's value wins; else the "true" key; else nil
 // (rule disabled). JS resolveConditionMap.
-func resolveConditionMap(m *compose.OMap, path []string, allData map[string]any) any {
+func resolveConditionMap(m *compose.OMap, path []string, rowKeys []int, allData map[string]any) any {
 	for _, key := range m.Keys() {
 		if key == expr.DefaultKey {
 			continue // default evaluated last
 		}
-		if evaluateCondition(key, path, allData) {
+		if evaluateCondition(key, path, rowKeys, allData) {
 			val, _ := m.Get(key)
 			return val
 		}
@@ -427,8 +431,8 @@ func parseTernary(expression string) (expr.Node, bool) {
 
 // evaluateCondition evaluates a condition string to a boolean (JS
 // evaluateCondition wrapper — a parse/eval error is false).
-func evaluateCondition(expression string, path []string, allData map[string]any) bool {
-	ok, err := expr.Evaluate(expression, allData, path)
+func evaluateCondition(expression string, path []string, rowKeys []int, allData map[string]any) bool {
+	ok, err := expr.Evaluate(expression, allData, path, rowKeys)
 	if err != nil {
 		return false
 	}
@@ -437,8 +441,8 @@ func evaluateCondition(expression string, path []string, allData map[string]any)
 
 // evaluateExpressionValue evaluates a plain expression to its value (JS
 // evaluateExpressionValue wrapper — a parse/eval error is false).
-func evaluateExpressionValue(expression string, path []string, allData map[string]any) any {
-	val, err := expr.EvaluateValue(expression, allData, path)
+func evaluateExpressionValue(expression string, path []string, rowKeys []int, allData map[string]any) any {
+	val, err := expr.EvaluateValue(expression, allData, path, rowKeys)
 	if err != nil {
 		return false
 	}
@@ -551,4 +555,9 @@ func asMap(v any) map[string]any {
 		return m
 	}
 	return map[string]any{}
+}
+
+// appendRowKey returns the row key positions of a path extended by a row key at position.
+func appendRowKey(rowKeys []int, position int) []int {
+	return append(append([]int{}, rowKeys...), position)
 }

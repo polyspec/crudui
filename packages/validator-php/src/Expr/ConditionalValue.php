@@ -16,11 +16,12 @@ final class ConditionalValue
 {
     /**
      * @param list<string> $path the row context, row keys included
+     * @param list<int> $rowKeys positions of the row keys in $path
      */
-    public static function resolve(mixed $value, array|\stdClass $data, array $path): mixed
+    public static function resolve(mixed $value, array|\stdClass $data, array $path, array $rowKeys = []): mixed
     {
         if ($value instanceof \stdClass || (\is_array($value) && $value !== [] && !array_is_list($value))) {
-            return self::select((array) $value, $data, $path);
+            return self::select((array) $value, $data, $path, $rowKeys);
         }
         if (!\is_string($value)) {
             return $value;
@@ -32,14 +33,14 @@ final class ConditionalValue
         }
         if ($node instanceof TernaryNode) {
             try {
-                return Expression::evaluateValue($value, $data, $path);
+                return Expression::evaluateValue($value, $data, $path, $rowKeys);
             } catch (\Throwable) {
                 return $value;
             }
         }
         if (Expression::isConditionExpression($value) && preg_match('/\?[^:]*:/', $value) !== 1) {
             try {
-                return Expression::evaluateValue($value, $data, $path);
+                return Expression::evaluateValue($value, $data, $path, $rowKeys);
             } catch (\Throwable) {
                 return false;
             }
@@ -50,22 +51,26 @@ final class ConditionalValue
     /**
      * @param array<array-key, mixed> $map
      * @param list<string> $path
+     * @param list<int> $rowKeys
      */
-    private static function select(array $map, array|\stdClass $data, array $path): mixed
+    private static function select(array $map, array|\stdClass $data, array $path, array $rowKeys): mixed
     {
         foreach ($map as $condition => $value) {
-            if ((string) $condition !== ConditionMap::DEFAULT_KEY && self::matches((string) $condition, $data, $path)) {
+            if ((string) $condition !== ConditionMap::DEFAULT_KEY && self::matches((string) $condition, $data, $path, $rowKeys)) {
                 return $value;
             }
         }
         return \array_key_exists(ConditionMap::DEFAULT_KEY, $map) ? $map[ConditionMap::DEFAULT_KEY] : null;
     }
 
-    /** @param list<string> $path */
-    private static function matches(string $condition, array|\stdClass $data, array $path): bool
+    /**
+     * @param list<string> $path
+     * @param list<int> $rowKeys
+     */
+    private static function matches(string $condition, array|\stdClass $data, array $path, array $rowKeys): bool
     {
         try {
-            return Expression::evaluate($condition, $data, $path);
+            return Expression::evaluate($condition, $data, $path, $rowKeys);
         } catch (\Throwable) {
             return false;
         }

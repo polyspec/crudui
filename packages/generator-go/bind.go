@@ -260,7 +260,7 @@ func labelTarget(w *Object) string {
 }
 func buildField(f FieldTemplate, path string, s bindState) (*Object, error) {
 	spec := f.Spec
-	d := resolveDesign(read(spec, "design"), s.lookup, parsePath(path))
+	d := resolveDesign(read(spec, "design"), s.lookup, parsePath(path), s.rows)
 	label, description := "", ""
 	if truthy(read(spec, "label")) {
 		label = translate(read(spec, "label"), s.language)
@@ -401,7 +401,7 @@ func buildCollection(f FieldTemplate, path string, d *Object, label, description
 func buildRow(f FieldTemplate, collectionPath, key string, index, count int, item, label string, m *multiple, s bindState) (*Object, error) {
 	msg := s.messages
 	rowPath := collectionPath + "." + key
-	rd := resolveDesign(read(f.Spec, "design"), s.lookup, parsePath(rowPath))
+	rd := resolveDesign(read(f.Spec, "design"), s.lookup, parsePath(rowPath), append(append([]int{}, s.rows...), len(parsePath(collectionPath))))
 	sticky := m.header == "sticky"
 	rowState := s
 	rowState.rows = append(append([]int{}, s.rows...), len(parsePath(collectionPath)))
@@ -504,7 +504,7 @@ func buildLang(spec *Object, path string, d *Object, label, description string, 
 	children := []*Object{}
 	for _, code := range langs {
 		p := path + "." + jsString(code)
-		ld := resolveDesign(read(spec, "design"), s.lookup, parsePath(p))
+		ld := resolveDesign(read(spec, "design"), s.lookup, parsePath(p), s.rows)
 		w, e := makeWidget(spec, getPath(s.data, p), p, ld, s)
 		if e != nil {
 			return nil, e

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace CRUDUI\Validator\Rules;
 
+use CRUDUI\Validator\Expr\FieldPath;
+
 /**
  * Email format validation rule.
  */
@@ -12,7 +14,7 @@ class Email implements RuleInterface
     /**
      * Validate that a value is a valid email address.
      */
-    public function validate(mixed $value, mixed $param, array $allData, string $path): bool
+    public function validate(mixed $value, mixed $param, array $allData, FieldPath $path): bool
     {
         if ($param === false) {
             return true;

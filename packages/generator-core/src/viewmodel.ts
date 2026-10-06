@@ -351,7 +351,7 @@ export function buildField(
   state: BuildState,
   children: readonly FormFieldTemplate[]
 ): NodeVM {
-  const design = resolveDesign(spec.design, makeContext(parsePathString(path), state.data));
+  const design = resolveDesign(spec.design, makeContext(parsePathString(path), state.data, state.rowSegments));
   const label = spec.label ? state.t(spec.label as never) : undefined;
   const description = spec.description ? state.t(spec.description as never) : undefined;
   const multiple = resolveMultiple(spec);
@@ -494,7 +494,7 @@ function buildRow(
 ): NodeVM {
   const messages = state.messages;
   const rowPath = `${collectionPath}.${key}`;
-  const rowDesign = resolveDesign(spec.design, makeContext(parsePathString(rowPath), state.data));
+  const rowDesign = resolveDesign(spec.design, makeContext(parsePathString(rowPath), state.data, [...(state.rowSegments ?? []), parsePathString(collectionPath).length]));
   const numbers = [...(state.rowNumbers ?? []), index + 1];
   const sticky = settings.header === 'sticky';
   const rowState: BuildState = {
@@ -584,7 +584,7 @@ function buildLang(
     body: nodeBody(joinClass(lang.groupClass)),
     children: lang.langs.map((code) => {
       const langPath = `${path}.${code}`;
-      const langDesign = resolveDesign(spec.design, makeContext(parsePathString(langPath), state.data));
+      const langDesign = resolveDesign(spec.design, makeContext(parsePathString(langPath), state.data, state.rowSegments));
       return {
         kind: 'lang-item' as const,
         lang: code,

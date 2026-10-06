@@ -56,7 +56,7 @@ typedef struct { token *tokens; size_t length; size_t current; bool valid; size_
 
 /* The most nodes on a path from the root of a syntax tree to a leaf; a deeper expression does not parse. */
 #define MAX_EXPRESSION_DEPTH 64
-typedef struct { const ps_value *data; const ps_text *path; size_t path_length; } evaluator;
+typedef struct { const ps_value *data; const ps_text *path; const bool *rows; size_t path_length; } evaluator;
 typedef struct { ps_value *value; bool wildcard; } resolved_value;
 
 static bool push_token(lexer_output *output, token item)
@@ -552,13 +552,7 @@ static bool evaluate_node(const expression_node *, const evaluator *);
 static resolved_value resolve_path_node(const expression_node *node, const evaluator *eval)
 {
     size_t base = 0;
-    if (node->data.path.relative) {
-        base = eval->path_length; if (base) base--;
-        for (size_t level = 0; level < node->data.path.levels_up; ++level) {
-            while (base && numeric_segment(eval->path[base - 1])) base--;
-            if (base) base--;
-        }
-    }
+    if (node->data.path.relative) base = ps_relative_base(eval->rows, eval->path_length, node->data.path.levels_up);
     size_t length = base + node->data.path.length;
     ps_text *segments = calloc(length ? length : 1, sizeof(*segments));
     if (!segments) return (resolved_value){ps_null_value(), false};
@@ -703,26 +697,36 @@ static ps_value *evaluate_value_node(const expression_node *node, const evaluato
         ? branch_value(node->data.ternary.yes, eval) : branch_value(node->data.ternary.no, eval);
 }
 
+size_t ps_relative_base(const bool *row_keys, size_t path_length, size_t levels_up)
+{
+    size_t base = path_length;
+    for (size_t level = 0; level <= levels_up && base; ++level) {
+        size_t leaving = row_keys && row_keys[base - 1] ? 2 : 1;
+        base = base > leaving ? base - leaving : 0;
+    }
+    return base;
+}
+
 ps_value *ps_expression_value(ps_text expression, const ps_value *data,
-                              const ps_text *current_path, size_t path_length,
+                              const ps_text *current_path, const bool *row_keys, size_t path_length,
                               bool *parsed)
 {
     lexer_output tokens = tokenize(expression);
     expression_node *node = parse_expression(&tokens);
     if (parsed) *parsed = node != NULL;
-    evaluator eval = {data, current_path, path_length};
+    evaluator eval = {data, current_path, row_keys, path_length};
     ps_value *value = node ? evaluate_value_node(node, &eval) : NULL;
     free_node(node); free_tokens(&tokens); return value;
 }
 
 bool ps_expression_truth(ps_text expression, const ps_value *data,
-                         const ps_text *current_path, size_t path_length,
+                         const ps_text *current_path, const bool *row_keys, size_t path_length,
                          bool *parsed)
 {
     lexer_output tokens = tokenize(expression);
     expression_node *node = parse_expression(&tokens);
     if (parsed) *parsed = node != NULL;
-    evaluator eval = {data, current_path, path_length};
+    evaluator eval = {data, current_path, row_keys, path_length};
     bool value = node ? evaluate_node(node, &eval) : false;
     free_node(node); free_tokens(&tokens); return value;
 }
@@ -757,7 +761,7 @@ ps_value *ps_expression_literals(ps_text expression, bool *parsed)
 }
 
 ps_value *ps_condition_value(const ps_value *map, const ps_value *data,
-                             const ps_text *current_path, size_t path_length)
+                             const ps_text *current_path, const bool *row_keys, size_t path_length)
 {
     if (!map || map->kind != PS_OBJECT) return ps_null_value();
     const ps_value *fallback = NULL;
@@ -765,20 +769,20 @@ ps_value *ps_condition_value(const ps_value *map, const ps_value *data,
         ps_text condition = ps_key(map, i);
         if (ps_text_is(condition, "true")) { fallback = ps_at(map, i); continue; }
         bool parsed = false;
-        if (ps_expression_truth(condition, data, current_path, path_length, &parsed) && parsed)
+        if (ps_expression_truth(condition, data, current_path, row_keys, path_length, &parsed) && parsed)
             return ps_value_clone(ps_at(map, i));
     }
     return fallback ? ps_value_clone(fallback) : ps_null_value();
 }
 
 ps_value *ps_resolve_conditional(const ps_value *declared, const ps_value *data,
-                                 const ps_text *current_path, size_t path_length)
+                                 const ps_text *current_path, const bool *row_keys, size_t path_length)
 {
     if (!declared) return NULL;
-    if (declared->kind == PS_OBJECT) return ps_condition_value(declared, data, current_path, path_length);
+    if (declared->kind == PS_OBJECT) return ps_condition_value(declared, data, current_path, row_keys, path_length);
     if (declared->kind == PS_STRING && ps_condition_expression(ps_string(declared))) {
         bool parsed = false;
-        ps_value *value = ps_expression_value(ps_string(declared), data, current_path, path_length, &parsed);
+        ps_value *value = ps_expression_value(ps_string(declared), data, current_path, row_keys, path_length, &parsed);
         if (parsed) return value;
         ps_value_free(value);
     }
@@ -786,11 +790,11 @@ ps_value *ps_resolve_conditional(const ps_value *declared, const ps_value *data,
 }
 
 bool ps_shown(const ps_value *show, const ps_value *data,
-              const ps_text *current_path, size_t path_length, bool *failed)
+              const ps_text *current_path, const bool *row_keys, size_t path_length, bool *failed)
 {
     *failed = false;
     if (!show) return true;
-    ps_value *resolved = ps_resolve_conditional(show, data, current_path, path_length);
+    ps_value *resolved = ps_resolve_conditional(show, data, current_path, row_keys, path_length);
     if (!resolved) { *failed = true; return true; }
     bool shown = resolved->kind != PS_BOOL || resolved->data.boolean;
     ps_value_free(resolved);

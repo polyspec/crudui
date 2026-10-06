@@ -58,7 +58,7 @@ pub(crate) fn button_models(
         .iter()
         .map(|button| {
             let kind = button.get("type").and_then(Value::as_str).unwrap_or("");
-            let design = resolve_design(button.get("design"), data, "");
+            let design = resolve_design(button.get("design"), data, "", &[]);
             let tag = if kind == "link" { "a" } else { "button" };
             let mut attrs = Map::new();
             if kind != "link" {

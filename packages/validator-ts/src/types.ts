@@ -110,6 +110,8 @@ export interface ValidationContext {
   };
   /** Parsed path segments */
   pathSegments: string[];
+  /** Positions of the row keys in `pathSegments` (expressions.md, "Evaluation"). */
+  rowKeys: readonly number[];
   /** Rule parameter value */
   ruleParam: unknown;
   /** Custom messages */
@@ -381,11 +383,10 @@ export interface PathContext {
   /** Complete form data */
   formData: Record<string, unknown>;
   /**
-   * True when the condition being evaluated is attached to a group node
-   * (e.g., display_switch on a group). Affects relative path resolution:
-   * both "." and ".." resolve to the group's siblings.
+   * Positions of the row keys in `currentPath`: a row key and the name of its collection are one
+   * level of a relative path (expressions.md, "Evaluation").
    */
-  groupNode?: boolean;
+  rowKeys?: readonly number[];
 }
 
 /**

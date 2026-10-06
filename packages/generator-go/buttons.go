@@ -88,7 +88,7 @@ func bindButtons(buttons []*Object, data *Object, language string, m formMessage
 	out := make([]*Object, 0, len(buttons))
 	for _, button := range buttons {
 		kind := stringAt(button, "type")
-		design := resolveDesign(read(button, "design"), lookup, []string{})
+		design := resolveDesign(read(button, "design"), lookup, []string{}, nil)
 		tag, attrs := "button", NewObject()
 		if kind == "link" {
 			tag = "a"

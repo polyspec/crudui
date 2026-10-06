@@ -128,7 +128,7 @@ static const ps_value *column_value(const ps_value *row, ps_text field)
 
 static bool visible_column(const ps_value *column, const ps_value *data, ps_value **design)
 {
-    *design = ps_design(member(column, "design"), data, PS_TEXT(""));
+    *design = ps_design(member(column, "design"), data, PS_TEXT(""), NULL, 0);
     return *design && bool_member(*design, "show");
 }
 
@@ -138,12 +138,12 @@ static bool sortable_column(const ps_value *column, const ps_value *data)
     if (!sortable || sortable->kind == PS_NULL) return false;
     if (sortable->kind == PS_STRING) {
         bool parsed = false;
-        bool result = ps_expression_truth(ps_string(sortable), data, NULL, 0, &parsed);
+        bool result = ps_expression_truth(ps_string(sortable), data, NULL, NULL, 0, &parsed);
         return parsed && result;
     }
     /* A condition map that selects nothing is false. */
     if (sortable->kind == PS_OBJECT) {
-        ps_value *selected = ps_condition_value(sortable, data, NULL, 0);
+        ps_value *selected = ps_condition_value(sortable, data, NULL, NULL, 0);
         bool result = ps_truthy(selected);
         ps_value_free(selected);
         return result;
@@ -805,7 +805,7 @@ static ps_value *cell_display(const list_column *column, const ps_value *row,
         const ps_value *href_template = member(options, "href");
         ps_value *selected = NULL, *href = NULL;
         if (href_template && href_template->kind == PS_OBJECT)
-            selected = ps_condition_value(href_template, row, NULL, 0);
+            selected = ps_condition_value(href_template, row, NULL, NULL, 0);
         else selected = href_template ? ps_value_clone(href_template) : ps_string_value("");
         bool ok = selected && interpolated_value(selected, row, value, &href);
         ps_value_free(selected);
@@ -964,7 +964,7 @@ static bool evaluate_cell(list_context *context, const list_column *column,
                           ps_value **display, ps_value **design)
 {
     *value = column_value(row, column->field);
-    *design = ps_design(member(column->column, "design"), row, column->field);
+    *design = ps_design(member(column->column, "design"), row, column->field, NULL, 0);
     *display = *design ? cell_display(column, row, *value, context->language, &context->failure) : NULL;
     if (*display) return true;
     ps_value_free(*design);
@@ -1136,7 +1136,7 @@ static bool append_cards(list_context *context, const list_column *columns, size
         if (!article || !ps_html_attr_string(article, "class", "crudui-list__card") ||
             !write_element_start(&context->output, "article", article)) return false;
         for (size_t i = 0; i < count; ++i) {
-            ps_value *design = ps_design(member(columns[i].column, "design"), row, columns[i].field);
+            ps_value *design = ps_design(member(columns[i].column, "design"), row, columns[i].field, NULL, 0);
             ps_chars base = value_class("crudui-list__cell crudui-value crudui-value--", columns[i].type);
             ps_value *host = ps_object_value();
             ps_chars label = column_label(&columns[i], context->language);
@@ -1374,7 +1374,7 @@ static bool append_description(list_context *context)
 
 static bool render_list(list_context *context, list_column *columns, size_t count)
 {
-    ps_value *design = ps_design(member(context->spec, "design"), context->data, PS_TEXT(""));
+    ps_value *design = ps_design(member(context->spec, "design"), context->data, PS_TEXT(""), NULL, 0);
     bool ok = append_container_start(context, "div", "crudui-list", design) && append_description(context) &&
         append_toolbar(context, "crudui-list");
     if (ok) ok = !ps_size(context->rows) ? append_empty(context)
@@ -1678,7 +1678,7 @@ static ps_value *list_model(list_session *session)
                 ok = ps_set(pagination, "buttons", pagination_buttons(context->language, &state));
             }
         }
-        design = ps_design(member(context->spec, "design"), context->data, PS_TEXT(""));
+        design = ps_design(member(context->spec, "design"), context->data, PS_TEXT(""), NULL, 0);
         ok = ok && design && set_value(model, "columns", &columns) && set_value(model, "rows", &row_models) &&
             set_value(model, "pagination", &pagination);
         const ps_value *sort = member(context->spec, "sort");
@@ -1776,7 +1776,7 @@ static ps_value *detail_model(list_session *session, const ps_value *record)
         ps_value_free(display); ps_value_free(cell_design);
     }
     if (ok) {
-        design = ps_design(member(context->spec, "design"), context->data, PS_TEXT(""));
+        design = ps_design(member(context->spec, "design"), context->data, PS_TEXT(""), NULL, 0);
         ok = design && append_actions_model(context, actions) && set_value(model, "fields", &fields) &&
             set_value(model, "actions", &actions) && set_value(model, "design", &design);
     }

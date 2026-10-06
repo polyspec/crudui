@@ -24,7 +24,8 @@ TypeScript·PHP·Go·Rust와 PHP 확장은 `cases.json`을 불러옵니다. 각 
 
 경로 세그먼트는 문자열 값을 가진 `identifier`, 값이 없는 `wildcard`, 숫자 값을
 가진 `index` 타입입니다. 데이터 컨텍스트는 `data`, 선택적인 `currentPath`,
-기대 `value`, 기대 `truthy`를 포함합니다.
+선택적인 `rowKeys`(`currentPath`에서 행 키의 0부터 시작하는 위치), 기대 `value`, 기대
+`truthy`를 포함합니다.
 
 사례는 상대·와일드카드 경로, 비교, 포함 검사, 논리 우선순위, 중첩 삼항식,
 경로 비교, 불리언 변환, 닫히지 않은 목록, 중첩 한도를 검사합니다. 한도

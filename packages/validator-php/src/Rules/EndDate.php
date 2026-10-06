@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace CRUDUI\Validator\Rules;
 
+use CRUDUI\Validator\Expr\FieldPath;
 use CRUDUI\Validator\Values\Whitespace;
 
-use CRUDUI\Validator\PathResolver;
 
 /**
  * End Date validation rule.
@@ -17,7 +17,7 @@ class EndDate implements RuleInterface
     /**
      * Validate that an end date is after or equal to the start date.
      */
-    public function validate(mixed $value, mixed $param, array $allData, string $path): bool
+    public function validate(mixed $value, mixed $param, array $allData, FieldPath $path): bool
     {
         if ($param === null || $param === '') {
             return true;
@@ -31,7 +31,7 @@ class EndDate implements RuleInterface
 
         // Get the start date field path
         $startDatePath = (string)$param;
-        $startDateValue = (new PathResolver())->resolveExpression($startDatePath, $path, $allData);
+        $startDateValue = $path->reference($startDatePath, $allData);
 
         // Skip if start date is empty
         if ($startDateValue === null || $startDateValue === '') {

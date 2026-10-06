@@ -29,6 +29,7 @@ use CRUDUI\Validator\Rules\Step;
 use CRUDUI\Validator\Rules\RuleInterface;
 use CRUDUI\Validator\Expr\Expression;
 use CRUDUI\Validator\Expr\ConditionalValue;
+use CRUDUI\Validator\Expr\FieldPath;
 use CRUDUI\Validator\Expr\Visibility;
 use CRUDUI\Validator\Values\CanonicalText;
 use CRUDUI\Validator\Values\EmptyValue;
@@ -133,7 +134,7 @@ final class Validator
     {
         try {
             $errors = [];
-            $this->validateProperties($this->properties, $data, [], [], $data, $errors);
+            $this->validateProperties($this->properties, $data, [], [], [], $data, $errors);
 
             return new ValidationResult(count($errors) === 0, array_values($errors));
         } finally {
@@ -190,6 +191,7 @@ final class Validator
         array $properties,
         array $data,
         array $currentPath,
+        array $rowKeys,
         array $declarationPath,
         array $allData,
         array &$errors,
@@ -218,7 +220,7 @@ final class Validator
             // A field hidden by design.show has no rules evaluated, nor has anything it
             // contains; its data shape is still checked. Its value stays in the data, where
             // conditions elsewhere still read it.
-            $fieldHidden = $hidden || !Visibility::shown(Visibility::declared($field), $allData, $fieldPath);
+            $fieldHidden = $hidden || !Visibility::shown(Visibility::declared($field), $allData, $fieldPath, $rowKeys);
 
             $childProps = $this->childProperties($field);
 
@@ -243,21 +245,21 @@ final class Validator
                             if (!self::isObject($row)) {
                                 throw new FormInputError('Group data must be an object: ' . implode('.', $rowPath));
                             }
-                            $this->validateProperties($childProps, (array) $row, $rowPath, $fieldDeclaration, $allData, $errors, $fieldHidden);
+                            $this->validateProperties($childProps, (array) $row, $rowPath, [...$rowKeys, \count($fieldPath)], $fieldDeclaration, $allData, $errors, $fieldHidden);
                         }
                     }
                     // Missing data is an empty collection: it has no rows, and the
                     // collection rules still evaluate it.
                     if (!$fieldHidden) {
-                        $this->validateFieldRules($field, $fieldValue, $fieldPath, $fieldDeclaration, $allData, $errors);
+                        $this->validateFieldRules($field, $fieldValue, $fieldPath, $rowKeys, $fieldDeclaration, $allData, $errors);
                     }
                 } else {
                     if ($present && !self::isObject($fieldValue)) {
                         throw new FormInputError('Group data must be an object: ' . implode('.', $fieldPath));
                     }
-                    $this->validateProperties($childProps, $present ? (array) $fieldValue : [], $fieldPath, $fieldDeclaration, $allData, $errors, $fieldHidden);
+                    $this->validateProperties($childProps, $present ? (array) $fieldValue : [], $fieldPath, $rowKeys, $fieldDeclaration, $allData, $errors, $fieldHidden);
                     if (!$fieldHidden) {
-                        $this->validateFieldRules($field, $fieldValue, $fieldPath, $fieldDeclaration, $allData, $errors);
+                        $this->validateFieldRules($field, $fieldValue, $fieldPath, $rowKeys, $fieldDeclaration, $allData, $errors);
                     }
                 }
             } elseif ($fieldHidden) {
@@ -265,9 +267,9 @@ final class Validator
             } elseif ($isMultiple && $present) {
                 // Repeated scalar field: collection rules on the keyed object, the
                 // rest on each row value.
-                $this->validateMultipleFieldRules($field, $fieldValue, $fieldPath, $fieldDeclaration, $allData, $errors);
+                $this->validateMultipleFieldRules($field, $fieldValue, $fieldPath, $rowKeys, $fieldDeclaration, $allData, $errors);
             } else {
-                $this->validateFieldRules($field, $fieldValue, $fieldPath, $fieldDeclaration, $allData, $errors);
+                $this->validateFieldRules($field, $fieldValue, $fieldPath, $rowKeys, $fieldDeclaration, $allData, $errors);
             }
         }
     }
@@ -349,6 +351,7 @@ final class Validator
         array $field,
         array|\stdClass $values,
         array $fieldPath,
+        array $rowKeys,
         array $declarationPath,
         array $allData,
         array &$errors,
@@ -362,7 +365,7 @@ final class Validator
                 if (!in_array($ruleName, self::ARRAY_LEVEL_RULES, true)) {
                     continue;
                 }
-                $error = $this->runRule($ruleName, $ruleValue, $values, $fieldPath, $declarationPath, $messages, $allData);
+                $error = $this->runRule($ruleName, $ruleValue, $values, $fieldPath, $rowKeys, $declarationPath, $messages, $allData);
                 if ($error !== null) {
                     $errors[$this->pathKey($fieldPath)] = $this->makeError($fieldPath, $ruleName, $error, $values);
                     return;
@@ -374,7 +377,7 @@ final class Validator
         $values = (array) $values;
         ksort($values, SORT_STRING);
         foreach ($values as $i => $value) {
-            $this->validateElementRules($field, $value, [...$fieldPath, (string) $i], $declarationPath, $allData, $errors);
+            $this->validateElementRules($field, $value, [...$fieldPath, (string) $i], [...$rowKeys, \count($fieldPath)], $declarationPath, $allData, $errors);
         }
     }
 
@@ -390,6 +393,7 @@ final class Validator
         array $field,
         mixed $value,
         array $itemPath,
+        array $rowKeys,
         array $declarationPath,
         array $allData,
         array &$errors,
@@ -397,7 +401,7 @@ final class Validator
         $messages = $this->fieldMessages($field);
         $rules = $this->normalizeValidateSlot($field['validate'] ?? null);
 
-        if ($this->runImplicitNumber($field, $rules, $value, $itemPath, $declarationPath, $messages, $allData, $errors)) {
+        if ($this->runImplicitNumber($field, $rules, $value, $itemPath, $rowKeys, $declarationPath, $messages, $allData, $errors)) {
             return;
         }
         if ($rules === null) {
@@ -407,7 +411,7 @@ final class Validator
             if (in_array($ruleName, self::ARRAY_LEVEL_RULES, true)) {
                 continue;
             }
-            $error = $this->runRule($ruleName, $ruleValue, $value, $itemPath, $declarationPath, $messages, $allData);
+            $error = $this->runRule($ruleName, $ruleValue, $value, $itemPath, $rowKeys, $declarationPath, $messages, $allData);
             if ($error !== null) {
                 $errors[$this->pathKey($itemPath)] = $this->makeError($itemPath, $ruleName, $error, $value);
                 break;
@@ -427,6 +431,7 @@ final class Validator
         array $field,
         mixed $value,
         array $fieldPath,
+        array $rowKeys,
         array $declarationPath,
         array $allData,
         array &$errors,
@@ -434,14 +439,14 @@ final class Validator
         $messages = $this->fieldMessages($field);
         $rules = $this->normalizeValidateSlot($field['validate'] ?? null);
 
-        if ($this->runImplicitNumber($field, $rules, $value, $fieldPath, $declarationPath, $messages, $allData, $errors)) {
+        if ($this->runImplicitNumber($field, $rules, $value, $fieldPath, $rowKeys, $declarationPath, $messages, $allData, $errors)) {
             return;
         }
         if ($rules === null) {
             return;
         }
         foreach ($rules as $ruleName => $ruleValue) {
-            $error = $this->runRule($ruleName, $ruleValue, $value, $fieldPath, $declarationPath, $messages, $allData);
+            $error = $this->runRule($ruleName, $ruleValue, $value, $fieldPath, $rowKeys, $declarationPath, $messages, $allData);
             if ($error !== null) {
                 $errors[$this->pathKey($fieldPath)] = $this->makeError($fieldPath, $ruleName, $error, $value);
                 break;
@@ -466,6 +471,7 @@ final class Validator
         ?array $rules,
         mixed $value,
         array $path,
+        array $rowKeys,
         array $declarationPath,
         ?array $messages,
         array $allData,
@@ -477,7 +483,7 @@ final class Validator
         if ($rules !== null && array_key_exists('number', $rules)) {
             return false;
         }
-        $error = $this->runRule('number', true, $value, $path, $declarationPath, $messages, $allData);
+        $error = $this->runRule('number', true, $value, $path, $rowKeys, $declarationPath, $messages, $allData);
         if ($error !== null) {
             $errors[$this->pathKey($path)] = $this->makeError($path, 'number', $error, $value);
             return true;
@@ -505,11 +511,12 @@ final class Validator
         mixed $ruleValue,
         mixed $value,
         array $path,
+        array $rowKeys,
         array $declarationPath,
         ?array $messages,
         array $allData,
     ): ?string {
-        $effectiveParam = $this->resolveRuleValue($ruleName, $ruleValue, $path, $allData);
+        $effectiveParam = $this->resolveRuleValue($ruleName, $ruleValue, $path, $rowKeys, $allData);
 
         // A false/null effective param disables the rule (VALIDATION-RULES §3).
         if ($effectiveParam === false || $effectiveParam === null) {
@@ -533,7 +540,7 @@ final class Validator
         // unique with a filter/field-reference param needs the CRUDUI expression
         // engine and the array path form. Run the CRUDUI native unique here (JS rules/unique parity).
         if ($ruleName === 'unique') {
-            $ok = $this->validateUnique($value, $effectiveParam, $path, $allData);
+            $ok = $this->validateUnique($value, $effectiveParam, $path, $rowKeys, $allData);
             return $ok ? null : $this->buildMessage('unique', $effectiveParam, $messages);
         }
 
@@ -543,7 +550,7 @@ final class Validator
             throw new \LogicException('Rule ' . $ruleName . ' is not registered');
         }
 
-        $ok = $rule->validate($value, $effectiveParam, $allData, $this->pathToString($path));
+        $ok = $rule->validate($value, $effectiveParam, $allData, new FieldPath($path, $rowKeys));
         if ($ok) {
             return null;
         }
@@ -565,6 +572,7 @@ final class Validator
         string $ruleName,
         mixed $ruleValue,
         array $path,
+        array $rowKeys,
         array $allData,
     ): mixed {
         // Verbatim-param rules: never evaluate (field reference / literal / regex /
@@ -574,7 +582,7 @@ final class Validator
             return $ruleValue;
         }
 
-        return ConditionalValue::resolve($ruleValue, $allData, $path);
+        return ConditionalValue::resolve($ruleValue, $allData, $path, $rowKeys);
     }
 
     // =========================================================================
@@ -593,6 +601,7 @@ final class Validator
         mixed $value,
         mixed $ruleParam,
         array $pathSegments,
+        array $rowKeys,
         array $allData,
     ): bool {
         if ($ruleParam === false || $ruleParam === null) {
@@ -607,7 +616,7 @@ final class Validator
             if ($isFilterCondition) {
                 foreach ($value as $i => $element) {
                     $itemPath = [...$pathSegments, (string) $i];
-                    if (!$this->itemPassesCondition($ruleParam, $itemPath, $allData)) {
+                    if (!$this->itemPassesCondition($ruleParam, $itemPath, [...$rowKeys, \count($pathSegments)], $allData)) {
                         continue;
                     }
                     if (!EmptyValue::is($element)) {
@@ -659,7 +668,7 @@ final class Validator
         }
 
         // A filter condition that excludes the current item drops it entirely.
-        if ($isFilterCondition && !$this->itemPassesCondition($ruleParam, $pathSegments, $allData)) {
+        if ($isFilterCondition && !$this->itemPassesCondition($ruleParam, $pathSegments, $rowKeys, $allData)) {
             return true;
         }
 
@@ -679,7 +688,7 @@ final class Validator
                 }
                 $key = (string) $key;
                 if ($isFilterCondition
-                    && !$this->itemPassesCondition($ruleParam, [...$containerPath, $key, $fieldName], $allData)) {
+                    && !$this->itemPassesCondition($ruleParam, [...$containerPath, $key, $fieldName], $rowKeys, $allData)) {
                     continue;
                 }
                 $itemValueKey = $this->canonicalKey($itemValue);
@@ -703,10 +712,10 @@ final class Validator
      * @param list<string> $itemFieldPath
      * @param array<string, mixed> $allData
      */
-    private function itemPassesCondition(string $condition, array $itemFieldPath, array $allData): bool
+    private function itemPassesCondition(string $condition, array $itemFieldPath, array $rowKeys, array $allData): bool
     {
         try {
-            return Expression::evaluate($condition, $allData, $itemFieldPath);
+            return Expression::evaluate($condition, $allData, $itemFieldPath, $rowKeys);
         } catch (\Throwable) {
             return false;
         }

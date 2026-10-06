@@ -110,8 +110,23 @@ numbers. A string uses its leading numeric part, or zero when no number is
 available. This condition conversion is separate from numeric validation rules.
 
 A relative `.field` resolves beside the current field. `..field` moves one parent
-level further; each additional dot moves one additional level. An unprefixed
-path resolves from the data root. Missing values are false in a condition.
+level further; each additional dot moves one additional level. A row of a repeated
+field is one level: its row key and the name of its collection are left together.
+In a field of a group row, `.field` reads a field of the same row and `..field` the
+field beside the collection; for a value of a repeated field, `.field` reads the
+field beside the collection. The evaluator receives with the current path the
+positions of its row keys, which the runtime that builds the path knows from the
+specification, so a segment is a row key only at such a position, whatever its
+text: `__0000000000001__`, `7` and `r1` resolve alike, and a field named `7` is not
+a row key. An unprefixed path resolves from the data root.
+
+| Current path | Row keys | `.x` | `..x` |
+| --- | --- | --- | --- |
+| `a.b` | none | `a.x` | `x` |
+| `items.__k__.name` | `__k__` | `items.__k__.x` | `x` |
+| `group.items.7.name` | `7` | `group.items.7.x` | `group.x` |
+| `tags.__k__` (a value of the repeated field `tags`) | `__k__` | `x` | `x`: the root has no parent |
+ Missing values are false in a condition.
 Default field values are prepared by form binding; the expression evaluator does
 not load a specification to find defaults.
 

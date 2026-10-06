@@ -13,6 +13,7 @@
 use serde_json::Value;
 use std::collections::HashSet;
 
+use crate::expr::evaluator::relative_base;
 use crate::expr::Expression;
 
 use super::canonical::{canonical_text, number_text};
@@ -43,6 +44,8 @@ pub struct RuleContext<'a> {
     pub rule_name: &'a str,
     /// The absolute path segments of the current field (for relative path refs).
     pub path_segments: &'a [String],
+    /// The positions of the row keys in `path_segments`.
+    pub row_keys: &'a [usize],
     /// The full form data tree (for path-reference rules and `unique` siblings).
     pub form_data: &'a Value,
     /// The state of the validation the rule runs in.
@@ -496,7 +499,7 @@ fn rule_equal_to(ctx: &RuleContext) -> Option<String> {
         Value::String(s) => s.clone(),
         other => js_string(other),
     };
-    let target = resolve_field_reference(&param, ctx.path_segments, ctx.form_data);
+    let target = resolve_field_reference(&param, ctx.path_segments, ctx.row_keys, ctx.form_data);
     if !strict_eq(ctx.value, target) {
         return Some(
             message_override(ctx.messages, "equalTo")
@@ -516,7 +519,7 @@ fn rule_not_equal(ctx: &RuleContext) -> Option<String> {
     }
     let compare = match ctx.rule_param {
         Value::String(s) if s.starts_with('.') => {
-            resolve_field_reference(s, ctx.path_segments, ctx.form_data)
+            resolve_field_reference(s, ctx.path_segments, ctx.row_keys, ctx.form_data)
         }
         other => other,
     };
@@ -691,7 +694,7 @@ fn rule_enddate(ctx: &RuleContext) -> Option<String> {
     let param = js_string(ctx.rule_param);
     let start_value = if param.starts_with('.') {
         // Relative path resolution (JS enddate relative handling).
-        resolve_field_reference(&param, ctx.path_segments, ctx.form_data)
+        resolve_field_reference(&param, ctx.path_segments, ctx.row_keys, ctx.form_data)
     } else {
         // Absolute dotted path from root.
         let segments: Vec<String> = param
@@ -987,7 +990,9 @@ fn rule_unique(ctx: &RuleContext) -> Option<String> {
             for (key, element) in &entries {
                 let mut item_path = ctx.path_segments.to_vec();
                 item_path.push(key.clone());
-                if !item_passes_condition(cond, &item_path, ctx.form_data) {
+                let mut item_rows = ctx.row_keys.to_vec();
+                item_rows.push(ctx.path_segments.len());
+                if !item_passes_condition(cond, &item_path, &item_rows, ctx.form_data) {
                     continue;
                 }
                 if !is_empty(element) {
@@ -1036,7 +1041,7 @@ fn rule_unique(ctx: &RuleContext) -> Option<String> {
     }
     // If a filter condition exists and the current item fails it, skip entirely.
     if let Some(cond) = filter_condition {
-        if !item_passes_condition(cond, ctx.path_segments, ctx.form_data) {
+        if !item_passes_condition(cond, ctx.path_segments, ctx.row_keys, ctx.form_data) {
             return None;
         }
     }
@@ -1074,7 +1079,7 @@ fn rule_unique(ctx: &RuleContext) -> Option<String> {
                 let mut sibling_path: Vec<String> = container_path.to_vec();
                 sibling_path.push(key.clone());
                 sibling_path.push(field_name.clone());
-                if !item_passes_condition(cond, &sibling_path, ctx.form_data) {
+                if !item_passes_condition(cond, &sibling_path, ctx.row_keys, ctx.form_data) {
                     continue;
                 }
             }
@@ -1160,8 +1165,13 @@ fn are_all_unique(values: &[&Value]) -> bool {
     true
 }
 
-fn item_passes_condition(condition: &str, item_field_path: &[String], form_data: &Value) -> bool {
-    Expression::evaluate(condition, form_data, item_field_path).unwrap_or(false)
+fn item_passes_condition(
+    condition: &str,
+    item_field_path: &[String],
+    row_keys: &[usize],
+    form_data: &Value,
+) -> bool {
+    Expression::evaluate(condition, form_data, item_field_path, row_keys).unwrap_or(false)
 }
 
 // ---------------------------------------------------------------------------
@@ -1259,11 +1269,13 @@ pub fn get_value_by_path<'a>(data: &'a Value, path: &[String]) -> &'a Value {
     current
 }
 
-/// Resolve a field-reference expression to its value (JS `resolveFieldReference`).
-/// Supports `.x` / `..x` relatives, dotted absolute, and bare sibling lookup.
+/// Resolve a field-reference expression to its value (JS `resolveFieldReference`):
+/// `.x` / `..x` relatives with a row as one level, a dotted path from the root and
+/// a bare name resolved as `.name`.
 pub fn resolve_field_reference<'a>(
     expression: &str,
     current_path: &[String],
+    row_keys: &[usize],
     form_data: &'a Value,
 ) -> &'a Value {
     let trimmed = expression.trim();
@@ -1274,52 +1286,23 @@ pub fn resolve_field_reference<'a>(
     // Count leading dots.
     let dots = trimmed.chars().take_while(|c| *c == '.').count();
 
-    if dots > 0 {
-        let field_path = &trimmed[dots..];
-        let segments: Vec<String> = field_path
+    if dots > 0 || !trimmed.contains('.') {
+        let segments = trimmed[dots..]
             .split('.')
             .filter(|s| !s.is_empty())
-            .map(String::from)
-            .collect();
-        // relative=true, levelsUp = dots-1; array indices do not count as a level.
-        let levels_up = dots - 1;
-        let mut base: Vec<String> = current_path.to_vec();
-        if !base.is_empty() {
-            base.pop(); // remove current field name
-        }
-        for _ in 0..levels_up {
-            while base
-                .last()
-                .map(|s| !s.is_empty() && s.bytes().all(|b| b.is_ascii_digit()))
-                .unwrap_or(false)
-            {
-                base.pop();
-            }
-            if !base.is_empty() {
-                base.pop();
-            }
-        }
+            .map(String::from);
+        let mut base = relative_base(current_path, row_keys, dots.saturating_sub(1));
         base.extend(segments);
         return get_value_by_path(form_data, &base);
     }
 
-    // Dotted absolute path.
-    if trimmed.contains('.') {
-        let segments: Vec<String> = trimmed
-            .split('.')
-            .filter(|s| !s.is_empty())
-            .map(String::from)
-            .collect();
-        return get_value_by_path(form_data, &segments);
-    }
-
-    // Bare field name: sibling in the current group.
-    if !current_path.is_empty() {
-        let mut sibling: Vec<String> = current_path[..current_path.len() - 1].to_vec();
-        sibling.push(trimmed.to_string());
-        return get_value_by_path(form_data, &sibling);
-    }
-    get_value_by_path(form_data, &[trimmed.to_string()])
+    // A dotted path resolves from the root.
+    let segments: Vec<String> = trimmed
+        .split('.')
+        .filter(|s| !s.is_empty())
+        .map(String::from)
+        .collect();
+    get_value_by_path(form_data, &segments)
 }
 
 #[cfg(test)]

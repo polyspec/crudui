@@ -49,7 +49,7 @@ final class Binding
     public static function field(stdClass $field, string $path, stdClass $data, array $state): stdClass
     {
         $spec = $field->spec;
-        $design = Design::resolve($spec->design ?? null, $data, Value::segments($path));
+        $design = Design::resolve($spec->design ?? null, $data, Value::segments($path), $state['rowSegments']);
         $label = Value::truthy($spec->label ?? null) ? Value::translate($spec->label, $state['language']) : Missing::Value;
         $description = Value::truthy($spec->description ?? null) ? Value::translate($spec->description, $state['language']) : Missing::Value;
         $multiple = self::multiple($spec);
@@ -206,7 +206,7 @@ final class Binding
         $messages = $state['messages'];
         $label = $label === '' ? Missing::Value : $label;
         $rowPath = $collectionPath . '.' . $key;
-        $rowDesign = Design::resolve($spec->design ?? null, $data, Value::segments($rowPath));
+        $rowDesign = Design::resolve($spec->design ?? null, $data, Value::segments($rowPath), [...$state['rowSegments'], count(Value::segments($collectionPath))]);
         $numbers = [...$state['rowNumbers'], $index + 1];
         $sticky = $settings['header'] === 'sticky';
         $rowState = ['rowSegments' => [...$state['rowSegments'], count(Value::segments($collectionPath))], 'rowNumbers' => $numbers, 'stickyDepth' => $state['stickyDepth'] + ($sticky ? 1 : 0)] + $state;
@@ -258,7 +258,7 @@ final class Binding
         $children = [];
         foreach ($codes as $code) {
             $langPath = $path . '.' . Value::string($code);
-            $langDesign = Design::resolve($spec->design ?? null, $data, Value::segments($langPath));
+            $langDesign = Design::resolve($spec->design ?? null, $data, Value::segments($langPath), $state['rowSegments']);
             $children[] = (object) ['kind' => 'lang-item', 'lang' => $code, 'className' => '', 'hidden' => false, 'header' => (object) ['className' => '', 'label' => $code], 'body' => self::body(), 'widget' => Widget::evaluate($spec, Value::path($data, $langPath), $langPath, $langDesign, $state, $state['rowSegments'])];
         }
         $header = self::header(['label' => $label, 'description' => $description, 'title' => $title], $design);
