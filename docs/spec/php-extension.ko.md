@@ -86,7 +86,8 @@ HTML 생성은 지원하는 필드 타입과 레이아웃을 모두 포함합니
 ## 검증과 PHP 값
 
 `CRUDUI\Validator::validate(spec, data, options)`는 전송 데이터를 검증하고
-`valid`와 `errors`를 반환합니다. 오류 항목은 `path`, `field`, `rule`,
+`valid`, `errors`, 그리고 `design.show`가 숨기는 필드의 데이터 경로인 `hidden`을
+반환합니다([평가](validation-rules.ko.md#평가)). 오류 항목은 `path`, `field`, `rule`,
 `message`, `value`를 유지합니다. `CRUDUI\Validator::validateList(spec, options)`는
 목록 명세를, `CRUDUI\Validator::validateDetail(spec, options)`는 상세 명세를 검사합니다. 조합 입력은 명시적인 `files` 맵과 `basepath`를
 사용합니다. 명세, 조합, 데이터 형태 실패는 예외를 발생시키며 검증 결과로

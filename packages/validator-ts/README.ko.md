@@ -10,7 +10,8 @@ JavaScript와 TypeScript에서 CRUDUI 폼 데이터를 검증하고 목록·상�
 패키지 루트는 다음을 export합니다.
 
 - `validate(spec, data, options?)`는 폼 명세를 조합하고 금지 키를 거부한 뒤
-  `data`를 검증합니다. `{ valid, errors }`를 반환하며 각 오류는 `path`,
+  `data`를 검증합니다. `{ valid, errors, hidden }`을 반환하며, `hidden`은 `design.show`가 숨기는
+  필드의 데이터 경로 목록입니다. 각 오류는 `path`,
   `field`, `rule`, `message`, `value`를 포함합니다. `design.show`가 `false`로
   결정되는 필드는 숨겨지며 그 필드와 그 안의 모든 필드의 규칙을 건너뜁니다(데이터 형태는 계속 검사합니다).
   데이터가 없는 반복 필드는 빈 컬렉션입니다.

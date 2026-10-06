@@ -19,7 +19,7 @@ contract.
 
 The validation fixture is an array. Each entry has `name`, `spec` and `data`;
 optional `files` supplies composition inputs. `note` describes the case.
-`expected` contains the complete `{ valid, errors }` result. A load or input
+`expected` contains the complete `{ valid, errors, hidden }` result. A load or input
 failure case instead uses `expectFailure: { code, message, at }`; each case
 declares exactly one of the two. A load failure's `at` is its composition trace
 joined with `.`, and an input failure's `at` is empty.

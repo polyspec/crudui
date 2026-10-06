@@ -1,5 +1,10 @@
 # 변경 기록
 
+## 2026-10-06 — 검증 결과 문서의 숨은 경로 (C8.3-5)
+
+- TypeScript, Go, Rust 검증기의 README, PHP 확장 명세, fixture 명세, 공유 검증 사례의 README는 폼 검증 결과를
+  `valid`, `errors`, `hidden`으로 적습니다.
+
 ## 2026-10-06 — 188개 사례의 native 폼 fixture 목록 (C8.4-1)
 
 - native generator suite는 `design.show`의 행 부모 사례와 literal identifier 사례를 포함한

@@ -89,7 +89,8 @@ specification, display rows and rendering options.
 ## Validation and PHP values
 
 `CRUDUI\Validator::validate(spec, data, options)` validates submitted data and returns
-`valid` and `errors`. Error entries preserve `path`, `field`, `rule`, `message`
+`valid`, `errors` and `hidden`, the data paths of the fields that `design.show` hides
+([evaluation](validation-rules.md#evaluation)). Error entries preserve `path`, `field`, `rule`, `message`
 and `value`. `CRUDUI\Validator::validateList(spec, options)` checks a list specification and
 `CRUDUI\Validator::validateDetail(spec, options)` checks a detail specification.
 Composition inputs use an explicit `files` map and `basepath`.

@@ -15,7 +15,8 @@ let result = validate(&spec, &data, &ValidateOptions::default())?;
 
 - `validate(&spec, &data, &ValidateOptions)` composes the form specification,
   checks forbidden keys and validation-rule parameters and validates `data`. It
-  returns a `ValidationResult` with `valid` and `errors`; each error contains
+  returns a `ValidationResult` with `valid`, `errors` and `hidden`, the data paths of the fields
+  that `design.show` hides; each error contains
   `path`, `field`, `rule`, `message` and `value`.
 - `validate_list(&spec, &ValidateListOptions)` checks list structure and
   `validate_detail(&spec, &ValidateDetailOptions)` checks detail structure,

@@ -10,7 +10,8 @@ JavaScript and TypeScript.
 The package root exports:
 
 - `validate(spec, data, options?)` composes the form specification, rejects
-  forbidden keys and validates `data`. It returns `{ valid, errors }`; each error
+  forbidden keys and validates `data`. It returns `{ valid, errors, hidden }`, where `hidden`
+  lists the data paths of the fields that `design.show` hides; each error
   has `path`, `field`, `rule`, `message` and `value`. A field whose
   `design.show` resolves to `false` is hidden and its rules, and those of every
   field it contains, are skipped (their data shape is still checked); missing repeated data is an empty collection.

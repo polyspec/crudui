@@ -4,7 +4,7 @@
 
 `cases.json`은 TypeScript, PHP, PHP 확장, Go, Rust가 공유하는 폼 검증 사례입니다. 각 사례는 `name`,
 `note`, `spec`, `data`, 선택적인 `files`, 그리고 `expected` 또는 `expectFailure`를 제공합니다.
-`expected`는 `{ valid, errors }` 전체 결과이며 모든 오류는 `path`, `field`, `rule`, `message`,
+`expected`는 `{ valid, errors, hidden }` 전체 결과이며 모든 오류는 `path`, `field`, `rule`, `message`,
 `value`를 가집니다. `expectFailure`는 `{ code, message, at }`입니다. 합성 실패의 `at`은 합성 경로를
 `.`으로 이은 값이고 입력 실패의 `at`은 빈 문자열입니다.
 

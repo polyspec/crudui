@@ -14,8 +14,8 @@ let result = validate(&spec, &data, &ValidateOptions::default())?;
 ```
 
 - `validate(&spec, &data, &ValidateOptions)`는 폼 명세를 구성하고 금지 키와 검증
-  규칙 매개변수를 검사한 다음 `data`를 검증합니다. `valid`와 `errors`를 가진
-  `ValidationResult`를 반환하며, 각 오류는 `path`, `field`, `rule`, `message`,
+  규칙 매개변수를 검사한 다음 `data`를 검증합니다. `valid`, `errors`, 그리고
+  `design.show`가 숨기는 필드의 데이터 경로인 `hidden`을 가진 `ValidationResult`를 반환하며, 각 오류는 `path`, `field`, `rule`, `message`,
   `value`를 포함합니다.
 - `validate_list(&spec, &ValidateListOptions)`는 목록 구조를,
   `validate_detail(&spec, &ValidateDetailOptions)`는 `fields` 맵을 포함한 상세
