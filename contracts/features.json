@@ -189,6 +189,7 @@
           "exports": [
             "ComposeLoadError",
             "FormInputError",
+            "hiddenPaths",
             "validate",
             "validateDetail",
             "validateList"

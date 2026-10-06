@@ -1,5 +1,12 @@
 # Changes
 
+## 2026-10-06 — Live display in the browser binding (C8.1)
+
+- The browser binding sets the `hidden` attribute of every node from its `design.show` against
+  the current data when it binds and after every change, removes the errors of a node that becomes
+  hidden and of the nodes inside it, and changes no value; `hiddenPaths(spec, data)` of
+  `@crudui/validator` returns the hidden paths.
+
 ## 2026-10-06 — One CI run per ref (C7.19)
 
 - A new push to a ref cancels the CI run of its previous push; the push check still runs for every

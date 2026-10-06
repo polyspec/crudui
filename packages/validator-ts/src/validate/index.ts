@@ -69,6 +69,33 @@ export function validate(
   if (data === null || typeof data !== 'object' || Array.isArray(data)) {
     throw new FormInputError('Form data must be an object');
   }
+  return new Validator({ type: 'group', properties: composedProperties(spec, checked, options) }).validate(data);
+}
+
+/**
+ * The data paths of the fields whose `design.show` resolves to `false` against `data`
+ * (form-runtime.md, "Display"), as validation resolves them. The specification is composed
+ * without files, as the browser binding sends it.
+ *
+ * @throws {ComposeLoadError} when composition cannot be resolved.
+ * @throws {FormInputError} when the data is not an object.
+ */
+export function hiddenPaths(spec: Record<string, unknown>, data: unknown): string[] {
+  const checked = checkedComposition(spec, {});
+  checkInputText([['data', data]]);
+  if (data === null || typeof data !== 'object' || Array.isArray(data)) {
+    throw new FormInputError('Form data must be an object');
+  }
+  return new Validator({ type: 'group', properties: composedProperties(spec, checked, {}) })
+    .hiddenPaths(data as Record<string, unknown>);
+}
+
+/** The composed `properties` of a root specification or a properties composition entry, scanned for forbidden keys. */
+function composedProperties(
+  spec: Record<string, unknown>,
+  checked: FileLoader | undefined,
+  options: ValidateOptions
+): Record<string, unknown> {
   const loader: FileLoader =
     checked ?? new MemoryLoader(options.files ?? {});
   const opts = options.basepath ? { basepath: options.basepath } : {};
@@ -105,5 +132,5 @@ export function validate(
     if (key in spec) scanForbiddenKeys((spec as Record<string, unknown>)[key], [key]);
   }
 
-  return new Validator({ type: 'group', properties }).validate(data);
+  return properties;
 }

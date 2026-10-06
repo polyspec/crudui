@@ -1,7 +1,7 @@
 /**
  * Browser validation of a server-rendered complete form (form-runtime.md, "Browser validation").
  */
-import { FormInputError, validate, type ValidationError, type ValidationResult } from '@crudui/validator';
+import { FormInputError, hiddenPaths, validate, type ValidationError, type ValidationResult } from '@crudui/validator';
 
 import { collectData } from './data.js';
 import { containsFile, dataControls, isControl, nodeOf, nodePath, nodesByPath } from './nodes.js';
@@ -44,7 +44,8 @@ function checkedOptions(options: unknown): FormBindingOptions {
 /**
  * Validate a server-rendered form in the browser with the specification the server validates it
  * with: a changed node when its control loses focus and on every later change, and the whole form
- * on submit, where an invalid form is not submitted.
+ * on submit, where an invalid form is not submitted. The `hidden` attribute of every node follows
+ * its `design.show` against the data when the form binds and after every change.
  *
  * @param form - The parsed `form` element that holds one complete form.
  * @param spec - The specification the server validates the form with, its composition resolved.
@@ -106,12 +107,34 @@ export function bindForm(form: HTMLFormElement, spec: Record<string, unknown>, o
     return { result, failing: [...messages.keys()] };
   };
 
+  /**
+   * Write the `hidden` attribute of every node with a data path from `design.show` against the
+   * data, and remove the errors of each node that becomes hidden and of the nodes inside it.
+   */
+  const display = () => {
+    const hidden = new Set(hiddenPaths(spec, collectData(body, keyPrefix)));
+    const controls = dataControls(body);
+    for (const node of body.querySelectorAll<HTMLElement>('[data-field-path]')) {
+      const hide = hidden.has(node.getAttribute('data-field-path')!);
+      if (hide === node.hidden) continue;
+      node.hidden = hide;
+      if (!hide) continue;
+      for (const inner of [node, ...node.querySelectorAll<HTMLElement>('[data-field-path], [data-crudui-row-key]')]) {
+        writeNodeErrors(inner, []);
+      }
+      for (const control of controls) {
+        if (node.contains(control)) control.removeAttribute('aria-invalid');
+      }
+    }
+  };
+
   const pathOf = (target: EventTarget | null): string | undefined =>
     isControl(body, target) ? nodePath(nodeOf(body, target)!) : undefined;
 
   const onChange = (event: Event) => {
     const path = pathOf(event.target);
     if (path === undefined) return;
+    display();
     if (whole || validated.has(path)) run(false);
     else changed.add(path);
   };
@@ -147,6 +170,7 @@ export function bindForm(form: HTMLFormElement, spec: Record<string, unknown>, o
   // The rules decide validity: the browser's constraint validation would stop a submission first.
   const addedNoValidate = !form.noValidate;
   form.noValidate = true;
+  display();
   form.addEventListener('input', onChange);
   form.addEventListener('change', onChange);
   form.addEventListener('focusout', onFocusOut);

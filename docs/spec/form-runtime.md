@@ -403,6 +403,25 @@ select whose options are loaded from a dynamic source (`items` with `model`). Th
 binding reads neither class: it finds controls by their `name` and node, and validates a dynamic
 source select with the value selected when it validates.
 
+### Display
+
+The binding keeps the visibility of the nodes current with the data, as the renderers write it
+for the same data, so a field or a group whose `design.show` reads another field appears and
+disappears while the user edits. When it binds and after every `input` or `change` event of a
+control of the form, before it validates, it builds the data as described in [data](#data) and
+reads `hiddenPaths(spec, data)` of `@crudui/validator`: the data paths of the fields whose
+`design.show` resolves to `false` against the data, in declaration order, each field of a group
+row under the row's key, the fields inside a hidden field included. A node with `data-field-path`
+has the `hidden` attribute exactly when its path is in that list; a row node and a lang item keep
+theirs. When a node becomes hidden, the binding removes the errors of that node and of every node
+inside it, with the `aria-invalid` of their controls, because validation evaluates no rule of a
+hidden field. The binding changes no value: the controls of a hidden node keep their values and
+take part in the data, as they do in a submission.
+
+`hiddenPaths` resolves every condition as validation resolves it and reads data of another shape
+as missing; it fails with a `FormInputError` for data that is not an object and with a
+`ComposeLoadError` for a specification whose composition cannot be resolved without files.
+
 ## Cache and execution limits
 
 The reusable cache artifact is the compiled form structure. A filled HTML string

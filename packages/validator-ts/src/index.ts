@@ -1,5 +1,5 @@
 /** CRUDUI form, list and detail validation. */
-export { validate, FormInputError } from './validate/index';
+export { validate, hiddenPaths, FormInputError } from './validate/index';
 export type { ValidateOptions } from './validate/index';
 export { validateList } from './validate-list/index';
 export type { ValidateListOptions } from './validate-list/index';

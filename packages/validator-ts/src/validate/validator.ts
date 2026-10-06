@@ -287,6 +287,49 @@ export class Validator {
     return { valid: errors.length === 0, errors };
   }
 
+  /**
+   * The data paths of the fields whose `design.show` resolves to `false` against `data`, in
+   * declaration order, each field of a group row under the row's key and the fields inside a
+   * hidden field included (form-runtime.md, "Display"). Data of another shape is read as missing.
+   */
+  hiddenPaths(data: Record<string, unknown>): string[] {
+    const hidden: string[] = [];
+    this.collectHidden(this.properties, data, [], data, hidden);
+    return hidden;
+  }
+
+  private collectHidden(
+    properties: Record<string, ComposedField>,
+    data: Record<string, unknown>,
+    currentPath: string[],
+    allData: Record<string, unknown>,
+    hidden: string[]
+  ): void {
+    for (const [name, field] of Object.entries(properties)) {
+      if (!field || typeof field !== 'object') {
+        continue;
+      }
+      const fieldPath = [...currentPath, name];
+      if (this.isHidden(field, { currentPath: fieldPath, formData: allData })) {
+        hidden.push(pathToString(fieldPath));
+      }
+      const children = this.childProperties(field);
+      if (field.type !== 'group' || !children) {
+        continue;
+      }
+      const value = data[name];
+      if (!this.isMultiple(field)) {
+        this.collectHidden(children, isPlainObject(value) ? value : {}, fieldPath, allData, hidden);
+        continue;
+      }
+      const rows = isPlainObject(value) ? value : {};
+      for (const key of Object.keys(rows).sort()) {
+        const row = rows[key];
+        this.collectHidden(children, isPlainObject(row) ? row : {}, [...fieldPath, key], allData, hidden);
+      }
+    }
+  }
+
   // =========================================================================
   // Declared parameters (validation-rules.md, "Parameter errors").
   // =========================================================================
