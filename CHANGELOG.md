@@ -1,5 +1,11 @@
 # Changes
 
+## 2026-10-06 — Public types of the validation results (C8.3-2)
+
+- The public type check of the built packages assigns the results of `validateList` and
+  `validateDetail` to `ListValidationResult` and reads `hidden` of the `ValidationResult` of
+  `validate`, in ESM and in CommonJS.
+
 ## 2026-10-06 — Public build test of hiddenPaths (C8.1-1)
 
 - The public build test expects `hiddenPaths` among the exports of `@crudui/validator`, as
