@@ -97,7 +97,7 @@ for (const mode of ['import', 'require']) {
       assert.deepEqual(names, expected, internalName);
       loaded[name] = entry;
     }
-    assert.deepEqual((await entryNames('@crudui/validator'))[1], ['ComposeLoadError', 'FormInputError', 'validate', 'validateDetail', 'validateList']);
+    assert.deepEqual((await entryNames('@crudui/validator'))[1], ['ComposeLoadError', 'FormInputError', 'hiddenPaths', 'validate', 'validateDetail', 'validateList']);
     // An error raised inside the internal entry is the class the public entry exports.
     assert.throws(() => new loaded['@crudui/validator'].MemoryLoader({}).load('missing.yml'), validator.ComposeLoadError);
     assert.equal(core.ComposeLoadError, validator.ComposeLoadError);
@@ -119,6 +119,9 @@ for (const mode of ['import', 'require']) {
     const result = validator.validate(spec, session.getData());
     assert.equal(typeof result.valid, 'boolean');
     assert.ok(Array.isArray(result.errors));
+    const switched = { type: 'group', properties: { on: { type: 'text' }, name: { type: 'text', design: { show: '.on == "1"' } } } };
+    assert.deepEqual(validator.hiddenPaths(switched, { on: '0', name: '' }), ['name']);
+    assert.deepEqual(validator.hiddenPaths(switched, { on: '1', name: '' }), []);
     const React = require('react');
     const { renderToString } = require('react-dom/server');
     const reactHtml = renderToString(React.createElement(generator.Form, { form: session }));
