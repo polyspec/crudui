@@ -4,6 +4,14 @@
 
 ## 0.0.2
 
+### 2026-10-07 — OrderedJSON from the released tag v0.0.2 (C11.4-2)
+
+- The comparison takes OrderedJSON from the tag `v0.0.2` of `polyspec/ordered-json`, which has a GitHub Release:
+  `orderedJsonVersion` of `examples/form-comparison/src/ordered-json-source.mjs` is 0.0.2 and
+  `make install-ordered-json` checks out `v0.0.2`.
+- The Rust record server, its `Cargo.lock`, the `package-lock.json` entry of `@polyspec/ordered-json`, the processor
+  check of `tests/ordered-json`, the documents and `config/dependency-review.json` name 0.0.2.
+
 ### 2026-10-07 — Dependency review of the 0.0.2 locks (C11.4-1)
 
 - `config/dependency-review.json` records the review of the 9 locks with the 0.0.2 entries of the packages of the
