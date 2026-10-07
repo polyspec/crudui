@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.0.3
+
 ### 2026-10-07 — 저장소 밖에서 설치되는 게시 manifest (C11.5)
 
 - 게시되는 manifest는 `packages/`의 package manifest이며 바꾸지 않고 pack합니다. scope `@polyspec`와 vendor `polyspec`의

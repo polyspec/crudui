@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.0.3
+
 ### 2026-10-07 — Published manifests that install outside the repository (C11.5)
 
 - The published manifests are the package manifests of `packages/`, packed unchanged. Each names every dependency of

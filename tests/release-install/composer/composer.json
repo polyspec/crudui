@@ -3,7 +3,7 @@
     "type": "project",
     "require": {
         "php": "^8.4",
-        "polyspec/crudui-generator": "0.0.2"
+        "polyspec/crudui-generator": "0.0.3"
     },
     "repositories": [
         {
