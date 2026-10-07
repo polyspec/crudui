@@ -145,22 +145,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7f8f80099a98041a3d1622845c271458a2d73e688351bf3cb999266764b81d48"
 
 [[package]]
-name = "polyspec-crudui-form-comparison"
-version = "0.0.2"
-dependencies = [
- "axum",
- "form_urlencoded",
- "polyspec-crudui-generator",
- "polyspec-crudui-validator",
- "polyspec-ordered-json",
- "ryu-js",
- "serde_json",
- "tempfile",
- "tokio",
- "tower",
-]
-
-[[package]]
 name = "encoding_rs"
 version = "0.8.41"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -531,6 +515,22 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a89322df9ebe1c1578d689c92318e070967d1042b512afbe49518723f4e6d5cd"
 
 [[package]]
+name = "polyspec-crudui-form-comparison"
+version = "0.0.2"
+dependencies = [
+ "axum",
+ "form_urlencoded",
+ "polyspec-crudui-generator",
+ "polyspec-crudui-validator",
+ "polyspec-ordered-json",
+ "ryu-js",
+ "serde_json",
+ "tempfile",
+ "tokio",
+ "tower",
+]
+
+[[package]]
 name = "polyspec-crudui-generator"
 version = "0.0.2"
 dependencies = [
@@ -555,7 +555,7 @@ dependencies = [
 
 [[package]]
 name = "polyspec-ordered-json"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "serde",
  "serde_ignored",

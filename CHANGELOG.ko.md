@@ -4,6 +4,14 @@
 
 ## 0.0.2
 
+### 2026-10-07 — release된 tag v0.0.2의 OrderedJSON (C11.4-2)
+
+- 비교는 OrderedJSON을 GitHub Release가 있는 `polyspec/ordered-json`의 tag `v0.0.2`에서 받습니다.
+  `examples/form-comparison/src/ordered-json-source.mjs`의 `orderedJsonVersion`은 0.0.2이고
+  `make install-ordered-json`은 `v0.0.2`를 체크아웃합니다.
+- Rust record server, 그 `Cargo.lock`, `@polyspec/ordered-json`의 `package-lock.json` 항목,
+  `tests/ordered-json`의 processor 검사, 문서와 `config/dependency-review.json`은 0.0.2를 적습니다.
+
 ### 2026-10-07 — 0.0.2 lock의 dependency review (C11.4-1)
 
 - `config/dependency-review.json`은 repository package의 0.0.2 항목을 가진 lock 9개의 review를 기록하며,

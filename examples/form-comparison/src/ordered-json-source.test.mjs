@@ -44,7 +44,7 @@ function fakeGit(calls, heads = {}) {
 
 test('declares the tag of the OrderedJSON version', () => {
   assert.equal(orderedJsonTag, `v${orderedJsonVersion}`);
-  assert.equal(orderedJsonTag, 'v0.0.1');
+  assert.equal(orderedJsonTag, 'v0.0.2');
 });
 
 test('installs the tag of the monorepo and verifies its commit and every package path', { timeout: 1000 }, () =>
