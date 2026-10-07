@@ -6,7 +6,8 @@ vi.mock('node:child_process', () => ({ spawnSync }));
 import { validateAll, validateAllList } from './validate-runner.mjs';
 
 const request = { spec: { type: 'group', properties: {} }, data: {} };
-const result = { valid: true, errors: [] };
+const result = { valid: true, errors: [], hidden: [] };
+const listResult = { valid: true, errors: [] };
 const error = { path: 'name', field: 'name', rule: 'required', message: 'Required.', value: '' };
 const failure = { code: 'REF_FILE_NOT_FOUND', message: 'Missing specification.', at: 'Missing.yml' };
 const failureWire = { error: failure.message, code: failure.code, at: failure.at };
@@ -23,11 +24,31 @@ describe('validator process responses', () => {
 
   test.each([null, false, 0, '', [], {}])('preserves error value %j', async value => {
     const errors = [{ ...error, value }];
-    spawnSync.mockReturnValue({ status: 0, stdout: JSON.stringify({ valid: false, errors }), stderr: '' });
+    spawnSync.mockReturnValue({ status: 0, stdout: JSON.stringify({ valid: false, errors, hidden: [] }), stderr: '' });
     const actual = await validateAll(request);
     expect(actual.results.every(item => item.ok && item.valid === false)).toBe(true);
     for (const item of actual.results) expect(item.errors).toEqual(errors);
     expect(actual.idempotent).toBe(true);
+  });
+
+  test('keeps the hidden paths of a form result', async () => {
+    spawnSync.mockReturnValue({ status: 0, stdout: JSON.stringify({ ...result, hidden: ['a', 'b.0.c'] }), stderr: '' });
+    const actual = await validateAll(request);
+    for (const item of actual.results) expect(item.hidden).toStrictEqual(['a', 'b.0.c']);
+    expect(actual.idempotent).toBe(true);
+  });
+
+  test('accepts a list result without hidden paths', async () => {
+    spawnSync.mockReturnValue({ status: 0, stdout: JSON.stringify(listResult), stderr: '' });
+    const actual = await validateAllList(request);
+    expect(actual.results.every(item => item.ok && !Object.hasOwn(item, 'hidden'))).toBe(true);
+    expect(actual.idempotent).toBe(true);
+  });
+
+  test('rejects a list result with hidden paths', async () => {
+    spawnSync.mockReturnValue({ status: 0, stdout: JSON.stringify(result), stderr: '' });
+    const actual = await validateAllList(request);
+    expect(actual.results.every(item => item.ok === false)).toBe(true);
   });
 
   test.each([
@@ -42,15 +63,18 @@ describe('validator process responses', () => {
 
   test.each([
     ['missing result fields', {}],
-    ['string validity', { valid: 'false', errors: [] }],
-    ['missing errors', { valid: true }],
-    ['invalid errors', { valid: false, errors: {} }],
-    ['incomplete error', { valid: false, errors: [{ rule: 'required' }] }],
-    ['missing error value', { valid: false, errors: [{ ...error, value: undefined }] }],
-    ['numeric error path', { valid: false, errors: [{ ...error, path: 1 }] }],
-    ['null error', { valid: false, errors: [null] }],
-    ['valid result with errors', { valid: true, errors: [error] }],
-    ['invalid result without errors', { valid: false, errors: [] }],
+    ['string validity', { valid: 'false', errors: [], hidden: [] }],
+    ['missing errors', { valid: true, hidden: [] }],
+    ['missing hidden paths', listResult],
+    ['hidden paths that are not an array', { ...result, hidden: 'a' }],
+    ['a hidden path that is not a string', { ...result, hidden: [1] }],
+    ['invalid errors', { valid: false, errors: {}, hidden: [] }],
+    ['incomplete error', { valid: false, errors: [{ rule: 'required' }], hidden: [] }],
+    ['missing error value', { valid: false, errors: [{ ...error, value: undefined }], hidden: [] }],
+    ['numeric error path', { valid: false, errors: [{ ...error, path: 1 }], hidden: [] }],
+    ['null error', { valid: false, errors: [null], hidden: [] }],
+    ['valid result with errors', { valid: true, errors: [error], hidden: [] }],
+    ['invalid result without errors', { valid: false, errors: [], hidden: [] }],
     ['request error combined with validation', { ...result, error: 'failed' }],
     ['failure without exit 2', failureWire],
   ])('rejects %s with exit 0', async (_, response) => {

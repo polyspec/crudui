@@ -70,7 +70,8 @@ function respond(raw) {
     message: item.message,
     value: item.value ?? null,
   }));
-  return [{ valid: result.valid, errors }, 0];
+  // A form result lists its hidden paths; a list or detail result has none.
+  return [mode === 'form' ? { valid: result.valid, errors, hidden: result.hidden } : { valid: result.valid, errors }, 0];
 }
 
 readStdin().then(

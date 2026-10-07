@@ -38,7 +38,7 @@ Each program writes one JSON line to standard output and exits with one of three
 
 | Exit | Output | Meaning |
 | --- | --- | --- |
-| `0` | exactly `{ "valid", "errors" }`; each error has `path`, `field`, `rule`, `message` and `value` | a validation result |
+| `0` | exactly `{ "valid", "errors", "hidden" }` in `form` mode and exactly `{ "valid", "errors" }` in the `list` and `detail` modes; each error has `path`, `field`, `rule`, `message` and `value`, and `hidden` lists the data paths of the hidden fields in the validator's order | a validation result |
 | `2` | exactly `{ "error", "code", "at" }` | a load failure (`ComposeLoadError`) or an input failure (`INVALID_FORM_INPUT`); `at` is the composition trace joined with `.`, or empty for an input failure |
 | `1` | exactly `{ "error" }` | a malformed request |
 

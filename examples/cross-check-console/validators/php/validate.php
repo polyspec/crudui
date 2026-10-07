@@ -15,7 +15,8 @@ use Polyspec\Crudui\Validator\Validate\FormInputError;
  * standard input, calls the public API of polyspec/crudui-validator and writes one JSON
  * response on standard output with the exit status; ../README.md defines the
  * contract. With the native extension loaded, the same program runs the
- * extension's classes. A result exits 0 with {valid, errors}. A load or input
+ * extension's classes. A form result exits 0 with {valid, errors, hidden}, a
+ * list or detail result with {valid, errors}. A load or input
  * failure exits 2 with {error, code, at}. A malformed request exits 1 with
  * exactly {error}. The request is checked in this order:
  *  1. stdin is not UTF-8 or not valid JSON     → "Request must be valid JSON"
@@ -81,10 +82,8 @@ try {
                 ?? Text::inputFailure([['data', $data], ['options.basepath', $basepath]]);
             throw new FormInputError($failure ?? 'Form data must be an object');
         }
-        // The console contract is { valid, errors } for every mode, so the form result leaves out
-        // its hidden paths.
         $result = Validator::validate($request->spec, $data, $options);
-        $output = ['valid' => $result->valid, 'errors' => $result->errors];
+        $output = ['valid' => $result->valid, 'errors' => $result->errors, 'hidden' => $result->hidden];
     }
 } catch (ComposeLoadError $error) {
     emit(['error' => $error->getMessage(), 'code' => $error->getErrorCode(), 'at' => implode('.', $error->getCompositionTrace())], 2);

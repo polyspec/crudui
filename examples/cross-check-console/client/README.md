@@ -131,7 +131,7 @@ shared:
   languages/frameworks and an empty "intentional-divergence" slot.
 - Fixture export (per tab): serializes the current run into the matching
   `cases.json` shape, one case per language/framework — form validate
-  `{name,note,spec,data,expected:{valid,errors}}`, form-render
+  `{name,note,spec,data,expected:{valid,errors,hidden}}`, form-render
   `{name,note,spec,data,options,expected_html}`, and list
   `{name,note,spec,rows,options,expected_html|expected_error}`, and detail
   `{name,note,spec,record,options,expected_html|expectError}`. Paste an exported

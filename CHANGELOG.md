@@ -1,5 +1,14 @@
 # Changes
 
+## 2026-10-07 — Hidden paths in the cross-check form export (C8.3-6)
+
+- The validator processes of the cross-check console answer a form with `{ valid, errors, hidden }`, as `validate` of
+  each validator returns it, and a list or detail with `{ valid, errors }`. The gateway requires `hidden` of a form
+  result, returns it with each language result of `POST /api/validate` and compares it in order across the languages.
+- The fixture export of the form tab writes `expected` as `{ valid, errors, hidden }`, with the errors and hidden paths
+  in the order of the validator, so an exported case has the shape of `tests/fixtures/validate/cases.json`;
+  `server/fixture-export.test.mjs` compares exported cases with the shared cases.
+
 ## 2026-10-07 — Build, encoding and dependency review of the OrderedJSON tag (C10.3)
 
 - The OrderedJSON PHP module is compiled from the C sources that the `config.m4` of the tag checkout declares, and
