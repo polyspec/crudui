@@ -1,19 +1,24 @@
 #!/usr/bin/env node
-// The release of a pushed tag, run by .github/workflows/release.yml through make (AGENTS.md, "Releases"):
+// The release of a pushed tag, run by .github/workflows/release.yml through make in this order (AGENTS.md, "Releases"):
 //
-//   `node scripts/release.mjs check`     the tagged commit is on main, its check runs `push-gate` and `ci-passed`
-//                                        concluded success, every package file that the tag covers has the version of
-//                                        the tag, and CHANGELOG.md has the section `## X.Y.Z`
-//   `node scripts/release.mjs assets`    writes the archive of every package that the tag covers to var/release/assets
-//   `node scripts/release.mjs publish`   creates the GitHub Release of the tag with the section `## X.Y.Z` of
-//                                        CHANGELOG.md as its notes and the archives of var/release/assets
+//   `node scripts/release.mjs verify TAG`     the tagged commit is on main and its check runs `push-gate` and
+//                                             `ci-passed` concluded success
+//   `node scripts/release.mjs versions TAG`   every package file that the tag covers has the version of the tag, and
+//                                             CHANGELOG.md has the section `## X.Y.Z`
+//   `node scripts/release.mjs assets TAG`     builds the JavaScript packages (`make build`) and writes the archive of
+//                                             every package that the tag covers to var/release/assets
+//   `node scripts/release.mjs publish TAG`    creates the GitHub Release of the tag with the section `## X.Y.Z` of
+//                                             CHANGELOG.md as its notes and the archives of var/release/assets
 //
-// The tag, the commit and the repository come from GITHUB_REF_NAME, GITHUB_SHA and GITHUB_REPOSITORY. A tag `vX.Y.Z`
-// covers every package.json, composer.json, Cargo.toml, VERSION and pyproject.toml of the repository; a tag
-// `<directory>/vX.Y.Z` names the Go module of that directory and covers the package files inside it. The archives are
-// `<package>-<version>.tgz` from `npm pack`, `<vendor>-<package>-<version>.zip` from `git archive` of a Composer
-// package directory and `<crate>-<version>.crate` from `cargo package` of every package of `packages/` that is not
-// private; a Go module needs no archive. The checks do not run the tests again: the check runs of the commit hold them.
+// The tag comes from the argument, which the make targets take from the environment variable TAG; the commit is the
+// commit of the tag, and `verify` reads the repository from GITHUB_REPOSITORY. A tag `vX.Y.Z` covers every
+// package.json, composer.json, Cargo.toml, VERSION and pyproject.toml of the repository; a tag `<directory>/vX.Y.Z`
+// names the Go module of that directory, covers the package files inside it, and builds and attaches nothing. The
+// release assets are npm tarballs and Composer zips only: `<package>-<version>.tgz` from `npm pack` and
+// `<vendor>-<package>-<version>.zip` from `git archive` of a Composer package directory, for every package of
+// `packages/` that is not private. A crate is not released as an archive; it is consumed by git tag, because
+// `cargo package` rewrites git dependencies into crates.io requirements that do not resolve. The checks do not run the
+// tests again: the check runs of the commit hold them.
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -25,7 +30,15 @@ const ROOT = path.resolve(import.meta.dirname, '..');
 export const REQUIRED_CHECKS = ['push-gate', 'ci-passed'];
 export const PACKAGE_FILES = ['package.json', 'composer.json', 'Cargo.toml', 'VERSION', 'pyproject.toml'];
 const OUTPUT = 'var/release';
-const USAGE = 'Usage: node scripts/release.mjs check | assets | publish (with GITHUB_REF_NAME, GITHUB_SHA and GITHUB_REPOSITORY)';
+const OPERATIONS = ['verify', 'versions', 'assets', 'publish'];
+const USAGE = 'Usage: node scripts/release.mjs verify | versions | assets | publish <tag> (verify with GITHUB_REPOSITORY)';
+/** How a tag vX.Y.Z releases each kind of package file of `packages/`. */
+export const RELEASES = {
+  'package.json': 'npm tarball',
+  'composer.json': 'Composer zip',
+  'Cargo.toml': 'not released as an archive; consumed by git tag',
+};
+const ARCHIVES = { 'package.json': ['npm', 'tgz'], 'composer.json': ['composer', 'zip'] };
 
 /** The parts of a release tag: `vX.Y.Z` or `<directory>/vX.Y.Z`. */
 export function parseTag(tag) {
@@ -116,26 +129,40 @@ export function versionProblems({ tag, files, read }) {
   return problems;
 }
 
-/** The archives of a tag: every package of `packages/` that is not private, none for a Go module tag. */
+/** How a tag vX.Y.Z releases each package file of `packages/`: by RELEASES, or `private` for a package that is not published. */
+export function releaseManifests({ files, read }) {
+  return Object.fromEntries(coveredFiles('', files)
+    .filter((file) => /^packages\/[^/]+\/[^/]+$/.test(file) && RELEASES[path.posix.basename(file)])
+    .map((file) => [file, packageManifest(file, read(file)).published ? RELEASES[path.posix.basename(file)] : 'private']));
+}
+
+/** The archives of a tag: an npm tarball or a Composer zip of every package of `packages/` that is not private, none for a Go module tag. */
 export function releaseAssets({ tag, files, read }) {
   const { directory, version } = parseTag(tag);
   if (directory !== '') return [];
-  const kinds = { 'package.json': ['npm', 'tgz'], 'composer.json': ['composer', 'zip'], 'Cargo.toml': ['cargo', 'crate'] };
-  return coveredFiles('', files)
-    .filter((file) => /^packages\/[^/]+\/[^/]+$/.test(file) && kinds[path.posix.basename(file)])
-    .map((file) => ({ file, manifest: packageManifest(file, read(file)) }))
-    .filter(({ manifest }) => manifest.published)
-    .map(({ file, manifest }) => {
-      const [kind, extension] = kinds[path.posix.basename(file)];
-      return { kind, directory: path.posix.dirname(file), name: manifest.name, file: assetName(manifest.name, version, extension) };
+  return Object.entries(releaseManifests({ files, read }))
+    .filter(([file]) => ARCHIVES[path.posix.basename(file)])
+    .filter(([, release]) => release !== 'private')
+    .map(([file]) => {
+      const [kind, extension] = ARCHIVES[path.posix.basename(file)];
+      const { name } = packageManifest(file, read(file));
+      return { kind, directory: path.posix.dirname(file), name, file: assetName(name, version, extension) };
     });
 }
 
-/** Write the archive of every asset into `output`. */
-export async function buildAssets({ root, sha, assets, output, run, log }) {
+/**
+ * Build the JavaScript packages (`make build`) and write the archive of every asset into `output`. A Go module tag
+ * builds and attaches nothing: `output` stays empty and no command runs.
+ */
+export async function buildAssets({ root, tag, sha, assets, output, run, log }) {
   fs.rmSync(output, { recursive: true, force: true });
   fs.mkdirSync(output, { recursive: true });
-  const cargoTarget = path.join(path.dirname(output), 'cargo');
+  if (parseTag(tag).directory !== '') {
+    log(`release: ${tag} is a Go module tag, which builds and attaches nothing`);
+    return [];
+  }
+  const built = await run('make', ['build']);
+  if (built.status !== 0) throw new Error(`make build exited ${built.status}: ${built.stderr.trim()}`);
   for (const asset of assets) {
     const target = path.join(output, asset.file);
     log(`release: ${asset.kind} ${asset.name} -> ${path.relative(root, target)}`);
@@ -144,14 +171,9 @@ export async function buildAssets({ root, sha, assets, output, run, log }) {
     if (asset.kind === 'npm') {
       result = await run(process.execPath, [path.join(root, 'scripts/package-dist.mjs'), 'pack', path.join(root, asset.directory), output]);
       if (result.status === 0) source = path.join(output, packReport(result.stdout, asset.name).filename);
-    } else if (asset.kind === 'composer') {
+    } else {
       result = await run('git', ['archive', '--format=zip', `--output=${target}`, `${sha}:${asset.directory}`]);
       source = target;
-    } else {
-      // --exclude-lockfile: a crate that depends on another crate of this repository by path and version packs before
-      // that crate is published, and no registry is read.
-      result = await run('cargo', ['package', '--no-verify', '--exclude-lockfile', '--manifest-path', path.join(root, asset.directory, 'Cargo.toml'), '--target-dir', cargoTarget]);
-      source = path.join(cargoTarget, 'package', asset.file);
     }
     if (result.status !== 0) throw new Error(`the archive of ${asset.name} (${asset.directory}) failed: exit ${result.status}: ${result.stderr.trim()}`);
     if (!fs.existsSync(source)) throw new Error(`the archive of ${asset.name} is missing: expected ${source}`);
@@ -181,28 +203,30 @@ function spawn(command, args, options = {}) {
   return { status: result.status ?? 1, stdout: result.stdout, stderr: result.stderr };
 }
 
-async function main([operation, ...rest]) {
-  const environment = Object.fromEntries(['GITHUB_REF_NAME', 'GITHUB_SHA', 'GITHUB_REPOSITORY'].map((name) => [name, process.env[name]]));
-  const missing = Object.entries(environment).filter(([, value]) => !value).map(([name]) => name);
-  if (!['check', 'assets', 'publish'].includes(operation) || rest.length > 0 || missing.length > 0) {
-    throw new Error(missing.length > 0 ? `${missing.join(', ')} not set. ${USAGE}` : USAGE);
-  }
-  const { GITHUB_REF_NAME: tag, GITHUB_SHA: sha, GITHUB_REPOSITORY: repository } = environment;
+async function main([operation, tag, ...rest]) {
+  if (!OPERATIONS.includes(operation) || !tag || rest.length > 0) throw new Error(USAGE);
+  parseTag(tag);
+  const repository = process.env.GITHUB_REPOSITORY;
+  if (operation === 'verify' && !repository) throw new Error(`GITHUB_REPOSITORY not set. ${USAGE}`);
+  const resolved = spawn('git', ['rev-parse', '--verify', `refs/tags/${tag}^{commit}`]);
+  if (resolved.status !== 0) throw new Error(`git rev-parse refs/tags/${tag} exited ${resolved.status}: ${resolved.stderr.trim()}`);
+  const sha = resolved.stdout.trim();
   const read = (file) => fs.readFileSync(path.join(ROOT, file), 'utf8');
   const listed = spawn('git', ['ls-files', '-z']);
   if (listed.status !== 0) throw new Error(`git ls-files exited ${listed.status}: ${listed.stderr.trim()}`);
   const files = listed.stdout.split('\0').filter(Boolean);
   const output = path.join(ROOT, OUTPUT, 'assets');
   const log = (line) => process.stderr.write(`${line}\n`);
-  if (operation === 'check') {
-    log(`release: checking ${tag} at ${sha} of ${repository}`);
-    const problems = [...await commitProblems({ sha, repository, run: spawn }), ...versionProblems({ tag, files, read })];
+  if (operation === 'verify' || operation === 'versions') {
+    log(`release: ${operation} ${tag} at ${sha}`);
+    const problems = operation === 'verify' ? await commitProblems({ sha, repository, run: spawn }) : versionProblems({ tag, files, read });
     for (const problem of problems) log(`::error::release ${tag}: ${problem}`);
-    log(problems.length === 0 ? `release: ${tag} is on main, its checks ${REQUIRED_CHECKS.join(' and ')} succeeded and every version is ${parseTag(tag).version}` : `release: ${problems.length} problems`);
+    const passed = operation === 'verify' ? `${tag} is on main and its checks ${REQUIRED_CHECKS.join(' and ')} succeeded` : `every version of ${tag} is ${parseTag(tag).version} and CHANGELOG.md has its section`;
+    log(problems.length === 0 ? `release: ${passed}` : `release: ${problems.length} problems`);
     return problems.length === 0 ? 0 : 1;
   }
   if (operation === 'assets') {
-    const written = await buildAssets({ root: ROOT, sha, assets: releaseAssets({ tag, files, read }), output, run: spawn, log });
+    const written = await buildAssets({ root: ROOT, tag, sha, assets: releaseAssets({ tag, files, read }), output, run: spawn, log });
     log(`release: ${written.length} archives in ${path.relative(ROOT, output)}`);
     return 0;
   }

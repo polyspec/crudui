@@ -99,10 +99,11 @@
   dependency의 version을 X.Y.Z로 정하고, `CHANGELOG.md`와 `CHANGELOG.ko.md`의 `## Unreleased`를 `## X.Y.Z`로 바꾼 뒤
   그 위에 빈 `## Unreleased`를 새로 씁니다. Composer manifest는 version을 선언하지 않고 Composer가 tag에서 읽습니다.
 - 그다음 maintainer가 merge된 commit에 tag를 달아 push합니다. `.github/workflows/release.yml`은
-  `make release-check`, `make release-assets`, `make release-publish`(`scripts/release.mjs`)를 실행해, commit이 `main`에
-  있고 check `push-gate`와 `ci-passed`가 success로 끝났는지, 모든 package 파일의 version이 tag와 같은지, section
-  `## X.Y.Z`가 있는지 확인하고, 그 section을 notes로, `packages/`의 npm, Composer, Cargo archive를 첨부해 GitHub
-  Release를 만듭니다(`docs/operations/repository.md`).
+  `make release-verify`, `make release-versions`, `make release-assets`, `make release-publish`(`scripts/release.mjs`)를
+  실행해, commit이 `main`에 있고 check `push-gate`와 `ci-passed`가 success로 끝났는지, 모든 package 파일의 version이
+  tag와 같은지, section `## X.Y.Z`가 있는지 확인하고, 그 section을 notes로, `packages/`의 npm tarball과 Composer zip을
+  첨부해 GitHub Release를 만듭니다. crate는 archive로 release하지 않고 git tag로 사용합니다. Go module tag는 아무것도
+  build하거나 첨부하지 않습니다(`docs/operations/repository.md`).
 
 # Checklist
 
