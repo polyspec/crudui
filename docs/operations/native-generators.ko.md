@@ -33,8 +33,8 @@ PHP 생성기 검사, PHP·네이티브 PHP 대상의 공용 검사를 실행하
 각 런타임은 패키지의 공개 API를 호출하는
 [`tests/native-generators/programs`](../../tests/native-generators/README.ko.md#프로그램)의
 프로그램으로 응답하며, 패키지는 라이브러리만 배포합니다.
-확장 빌드는 `php-config`에서 PHP 실행 파일, 헤더, 빌드 플래그를 읽고 C 바인딩을
-컴파일한 뒤 Cargo 잠금 파일의 Rust 출력을 직접 연결합니다. `phpize`, Autoconf,
+확장 빌드는 `php-config`에서 PHP 실행 파일, 헤더, 빌드 플래그를 읽고
+`packages/php-ext/src`의 C 소스를 컴파일합니다. `phpize`, Autoconf,
 libtool은 필요하지 않습니다. 도구 발견은 상대경로, 심볼릭 링크, 여러 결과를
 거부합니다. 명시한 도구 경로는 정규 실행 파일을 식별해야 합니다.
 Debian 계열 Linux에서 컴파일러 발견은 설치된 `gcc` 패키지 기록을 읽고 정규 target
