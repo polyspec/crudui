@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { readFile, readdir } from 'node:fs/promises';
 import { test } from 'node:test';
 
 import { parse } from 'yaml';
@@ -159,9 +159,26 @@ test('a new push stops the CI run of the previous push of its pull request, and 
   assert.deepEqual(parse(await read('.github/workflows/pages.yml')).concurrency, { group: 'github-pages', 'cancel-in-progress': false });
 });
 
-// main receives a commit only from the merge queue (.github/repository.json): CI runs on pull requests and merge groups,
-// the push check also on every pushed branch except the branches of the queue, which it checks as merge groups, and the
-// documentation web is built and deployed from main.
+// main receives a commit only from the merge queue (.github/repository.json): CI runs on pull requests, merge groups and
+// manual runs, the push check also on every pushed branch except the branches of the queue, which it checks as merge
+// groups, the documentation web is built and deployed from main and on a manual run, and the dependency review runs on
+// its schedule and on a manual run. No other workflow exists, and each declares exactly these lines.
+const TRIGGERS = {
+  'ci.yml': 'on:\n  pull_request:\n  merge_group:\n  workflow_dispatch:\n',
+  'push-gate.yml': "on:\n  push:\n    branches-ignore: ['gh-readonly-queue/**']\n  pull_request:\n  merge_group:\n",
+  'pages.yml': 'on:\n  push:\n    branches: [main]\n  workflow_dispatch:\n',
+  'dependency-review.yml': "on:\n  schedule:\n    - cron: '17 3 * * *'\n  workflow_dispatch:\n",
+};
+
+test('each workflow declares exactly its triggers', async () => {
+  const names = (await readdir(new URL('../../.github/workflows/', import.meta.url))).filter(name => /\.ya?ml$/.test(name)).sort();
+  assert.deepEqual(names, Object.keys(TRIGGERS).sort());
+  for (const [name, block] of Object.entries(TRIGGERS)) {
+    const declared = /^on:\n(?: .*\n)+/m.exec(await read(`.github/workflows/${name}`))?.[0] ?? '';
+    assert.equal(declared, block, `.github/workflows/${name}`);
+  }
+});
+
 test('CI runs on pull requests and merge groups, and Pages deploys main', async () => {
   assert.deepEqual(parse(await read('.github/workflows/ci.yml')).on, { pull_request: null, merge_group: null, workflow_dispatch: null });
   assert.deepEqual(parse(await read('.github/workflows/push-gate.yml')).on, {

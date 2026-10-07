@@ -1,5 +1,13 @@
 # 변경 기록
 
+## 2026-10-07 — 정확한 workflow trigger (C6.2-1)
+
+- `.github/workflows/ci.yml`은 모든 pull request, merge group, 수동 실행(`workflow_dispatch`)에서,
+  `.github/workflows/push-gate.yml`은 `gh-readonly-queue/**` 밖의 모든 push, pull request, merge group에서,
+  `.github/workflows/pages.yml`은 `main` push와 수동 실행에서, `.github/workflows/dependency-review.yml`은 일정과 수동
+  실행에서 실행되며, 다른 workflow는 없습니다.
+- `tests/build/ci-local.test.mjs`는 각 workflow의 `on:` block을 정확히 요구하고 다른 workflow가 없을 것을 요구합니다.
+
 ## 2026-10-07 — tag v0.0.1의 OrderedJSON (C10.2)
 
 - 비교는 OrderedJSON을 `polyspec/ordered-json`의 tag `v0.0.1`에서 받습니다. `make install-ordered-json`은 tag의

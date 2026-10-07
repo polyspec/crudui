@@ -1,5 +1,13 @@
 # Changes
 
+## 2026-10-07 — Exact workflow triggers (C6.2-1)
+
+- `.github/workflows/ci.yml` runs on every pull request, merge group and manual run (`workflow_dispatch`),
+  `.github/workflows/push-gate.yml` on every push outside `gh-readonly-queue/**`, pull request and merge group,
+  `.github/workflows/pages.yml` on a push to `main` and a manual run, and `.github/workflows/dependency-review.yml` on its
+  schedule and a manual run; no other workflow exists.
+- `tests/build/ci-local.test.mjs` requires the `on:` block of each workflow exactly and no other workflow.
+
 ## 2026-10-07 — OrderedJSON from the tag v0.0.1 (C10.2)
 
 - The comparison takes OrderedJSON from the tag `v0.0.1` of `polyspec/ordered-json`: `make install-ordered-json`
