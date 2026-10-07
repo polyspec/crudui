@@ -18,7 +18,6 @@ the lock file with npm. Review the resulting graph and run the checks below.
 Review install-script changes and use `npm install-scripts approve <package>` to
 update the independent graph's root `allowScripts` field with exact versions.
 Run `npm rebuild` to execute newly approved scripts in an existing installation.
-Container images install `unzip` for Puppeteer's browser archive extraction.
 
 PHP with Composer dependencies, Go and Rust are needed for four-language checks.
 Install PHP dependencies with `composer install` in `packages/validator-php`.

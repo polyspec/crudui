@@ -129,10 +129,6 @@ approval check and fails before installation when any lifecycle script is not
 covered by an exact approval.
 Workspace packages use the root lock file and do not maintain package-level lock
 files.
-Container builds install platform dependencies through the package manager.
-Container build contexts exclude every generated package output directory. A
-container build does not import extension objects, native modules or other build
-output from the host workspace.
 The root development dependencies include the shared test runner so that testing
 integrations installed at the root can resolve it through normal module lookup.
 Every repository-root Node.js entry point invoked by a build or test target
@@ -158,14 +154,11 @@ Library manifests do not declare their release version. Git repository metadata
 provides release versions. A project that resolves one local path repository
 declares the exact package version in that repository's `options.versions` map,
 and its requirement uses the same version.
-Container builds without Git metadata declare `COMPOSER_ROOT_VERSION` with the
-repository package version before running Composer. They do not use Composer's
-inferred root-version value.
 
 ## Runtime and dependency versions
 
 Every tool that builds, installs or checks the repository runs at one exact
-version that the checkout records, locally, in CI and in the container images,
+version that the checkout records, locally and in CI,
 so the same tree gives the same result on every date and machine. A newer
 release is adopted by changing its record, which the checks then require
 everywhere. Releases are chosen when the record changes: runtimes that publish an
@@ -182,13 +175,12 @@ latest release of a channel, and no tool installs another version on its own.
   npm 12. `node scripts/install-npm.mjs` installs exactly that release into the
   ignored directory `.tools/npm` of the checkout and never into the machine, whose
   npm every other checkout uses. The Makefile, every script that
-  starts npm and every CI job put `.tools/npm/node_modules/.bin` first on `PATH`;
-  a container image installs the same release as the npm of its image.
+  starts npm and every CI job put `.tools/npm/node_modules/.bin` first on `PATH`.
 - `.go-version` records the exact Go release, which CI reads. Every `go.mod`
-  names it in its `toolchain` line, and `GOTOOLCHAIN=local`, which the Makefile,
-  CI and the images set, keeps go from downloading another toolchain.
+  names it in its `toolchain` line, and `GOTOOLCHAIN=local`, which the Makefile
+  and CI set, keeps go from downloading another toolchain.
 - `rust-toolchain.toml` records the exact Rust release with the profile `minimal`
-  and the components `rustfmt` and `clippy`. The Makefile, CI and the images set
+  and the components `rustfmt` and `clippy`. The Makefile and CI set
   `RUSTUP_AUTO_INSTALL=0`, so a cargo without the installed toolchain fails with
   rustup's message instead of installing it; `make install` and CI install it
   with `rustup toolchain install --no-self-update`.
@@ -199,20 +191,14 @@ latest release of a channel, and no tool installs another version on its own.
   setup-php and Homebrew cannot install the same patch: the checks compare the
   major and minor of the running PHP, and the patch that a run ran on is its
   evidence, which `node scripts/check-toolchain.mjs` prints and
-  `var/full-run.json` records with the other running releases. A container image
-  keeps an exact tag with its digest, which reproduces by digest, and takes
-  PHP from the `php` image of a release of the newest tested minor and
-  Composer from the `composer` image of its recorded release, because Debian has
-  no package of either release; no image installs a `php8.N-*` package.
+  `var/full-run.json` records with the other running releases.
 - `node scripts/check-toolchain.mjs <tool>...` fails for every named tool that
   does not run at its recorded version and names the record, the expected and the
   running version, and the fix; it prints the running release of every named tool. Every CI job runs it for the tools that it set up;
   `make toolchain-check` runs it for all of them.
 
-A container stage names its image by an exact tag and its digest, and the
-Debian packages of an image come from `snapshot.debian.org` at one recorded date,
-so a definition installs the same files on every date. Package lock files record
-resolved package versions; they do not select a runtime release.
+The repository tracks no container definition: Linux runs on the CI runners. Package lock files
+record resolved package versions; they do not select a runtime release.
 
 GitHub-hosted CI runs on `ubuntu-24.04` and names every action by the commit SHA
 of one release, with the release in a comment. Native report upload uses

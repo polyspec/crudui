@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### 2026-10-07 — native suite의 컨테이너 정의 제거 (C7.20-3)
+
+- `tests/containers/native.Containerfile`, `.dockerignore`, native generator의 Apple container 절차, package build
+  명세의 container build 규칙을 제거했습니다. CI job `php-engine`, `native-generators`, `php-api`가 native suite를
+  Linux runner에서 실행합니다.
+- `tests/build/runtime-version-policy.test.mjs`는 tracked 컨테이너 정의가 있으면 실패하고,
+  `tests/docs/repository-writing.test.mjs`의 case는 checklist와 change log가 아닌 문서의 code가 macOS의 container
+  CLI, Docker, Podman을 실행하면 실패합니다.
+
 ### 2026-10-07 — CI runner의 Linux 스타일 검사 (C7.20-2)
 
 - `make test-form-styles-linux`, `make remove-form-styles-image`, `scripts/test-form-styles-linux.sh`를 제거했습니다.

@@ -149,6 +149,25 @@ test('no tracked tool, Makefile line or workflow invokes a container tool of a d
   assert.deepEqual(failures, [], failures.join('\n'));
 });
 
+test('no document instructs running a container tool of a development machine', () => {
+  const failures = [];
+  // A document instructs a command in a code block or an inline code span.
+  for (const file of trackedFiles().filter(file => file.endsWith('.md') && !historyFiles.has(file))) {
+    const lines = readFileSync(path.join(repository, file), 'utf8').split('\n');
+    let block = false;
+    for (const [index, line] of lines.entries()) {
+      if (/^\s*```/.test(line)) { block = !block; continue; }
+      const code = block ? [line] : [...line.matchAll(/`([^`\n]+)`/g)].map(match => match[1]);
+      for (const command of code) {
+        for (const [label, pattern] of containerInvocations) {
+          if (pattern.test(command)) failures.push(`${file}:${index + 1}: instructs ${label}`);
+        }
+      }
+    }
+  }
+  assert.deepEqual(failures, [], failures.join('\n'));
+});
+
 test('documentation web output is wired in the Pages workflow and repository ignores', () => {
   const workflow = readFileSync(path.join(repository, '.github', 'workflows', 'pages.yml'), 'utf8');
   const ignore = readFileSync(path.join(repository, '.gitignore'), 'utf8');

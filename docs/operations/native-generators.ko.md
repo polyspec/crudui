@@ -60,27 +60,6 @@ PHP 검사가 소스보다 오래된 복사본을 읽지 않습니다. 통과한
 함수는 전달된 선택자와 인수를 검사합니다. 외부 편집기 구현을 설치하거나 검증하는
 검사는 아닙니다.
 
-## Apple container
-
-컨테이너 정의는 `config/toolchain.json`이 가장 새로 검사한 minor에 기록한 PHP 릴리스의 `php`
-이미지이며, 개발 헤더와 `/usr/local/bin/php-config`, checkout이 기록한 Node.js·Go·Rust·Composer
-릴리스(각 이미지는 digest로 지정), 한 날짜의 Debian snapshot에서 받은 Chromium을 포함합니다. 전체 저장소를 빌드 컨텍스트로 사용합니다.
-호스트에서 생성한 의존성과 바이너리는 제외하며, 이미지 안에서 패키지 잠금 파일로
-의존성을 설치합니다.
-
-```sh
-container build --cpus 4 --memory 4g \
-  --file tests/containers/native.Containerfile \
-  --tag localhost/crudui-native-check:0.0.1 .
-container run --rm --cpus 4 --memory 4g \
-  localhost/crudui-native-check:0.0.1
-```
-
-이미지의 기본 명령은 `make test-native`입니다. 보고서를 보존하려면 `--rm` 없이
-이름을 지정한 컨테이너를 실행하고, 제거하기 전에 `/tmp/crudui-native-report.json`과
-`/tmp/crudui-native-php-report.json`을 복사합니다. 이미지 빌드 성공은 컴파일과 모듈 로드를 확인하며, 검사 명령은 보고서에
-기록된 비교를 확인합니다.
-
 ## HTTP와 브라우저 검증
 
 패키지 예제는 각 언어의 라이브러리 사용을 보여 줍니다.

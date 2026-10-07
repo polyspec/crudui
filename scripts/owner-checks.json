@@ -21,7 +21,6 @@
     { "paths": ["examples/form-comparison/**"], "scripts": ["test:form-comparison"] },
     { "paths": ["examples/form-comparison/servers/**", "examples/form-comparison/*.php", "examples/form-comparison/record-stores.test.mjs", "examples/form-comparison/pipeline.browser.mjs", "examples/form-comparison/src/{local-servers,record-contract,pipeline-flow,step-runner,ordered-json-source}.mjs"], "scripts": ["test:form-comparison:pipeline"] },
     { "paths": ["examples/form-comparison/servers/**", "examples/form-comparison/*.php", "examples/form-comparison/src/**", "examples/form-comparison/public/**", "examples/form-comparison/build.mjs", "examples/form-comparison/server.mjs", "examples/form-comparison/local-verification.mjs", "examples/form-comparison/check*.mjs", "examples/form-comparison/test-php-modes.mjs", "examples/form-comparison/verification-evidence.mjs", "examples/form-comparison/browser-report-policy.mjs", "examples/form-comparison/persistence-report.mjs"], "scripts": ["test:form-comparison:checks"] },
-    { "paths": ["tests/containers/**"], "targets": ["test-php-engine"], "tests": ["tests/build/runtime-version-policy.test.mjs", "tests/build/checkout-npm.test.mjs"] },
     { "paths": ["examples/cross-check-console/**"], "prefixes": ["examples/cross-check-console/server"] },
     { "paths": ["examples/product-forms/**", "examples/README*.md", "tests/*.test.mjs", "tests/browser-engines.*", "tests/form-markup/**"], "scripts": ["test:forms"] },
     { "paths": ["tests/fixtures/**"], "scripts": ["test:forms"], "targets": ["test-validators", "test-native"] },
@@ -59,7 +58,7 @@
     { "paths": ["scripts/release.mjs"], "tests": ["tests/build/release.test.mjs", "tests/build/ci-local.test.mjs"] },
     { "paths": ["Makefile"], "tests": ["tests/build/offline-checks.test.mjs", "tests/build/make-dry-run.test.mjs", "tests/build/full-run.test.mjs", "tests/build/push-gate.test.mjs", "tests/build/make-tool-path.test.mjs", "tests/build/php-extensions.test.mjs", "tests/build/checkout-npm.test.mjs", "tests/build/runtime-version-policy.test.mjs", "tests/build/ci-local.test.mjs", "tests/build/owner-check.test.mjs"] },
     { "paths": [".github/workflows/**"], "tests": ["tests/build/ci-local.test.mjs", "tests/build/runtime-version-policy.test.mjs", "tests/build/form-comparison-ci.test.mjs", "tests/build/checkout-npm.test.mjs", "tests/build/push-gate.test.mjs"] },
-    { "paths": [".gitignore", ".dockerignore"], "targets": ["test-php-engine"], "tests": ["tests/build/lint-coverage.test.mjs", "tests/build/checkout-npm.test.mjs"] }
+    { "paths": [".gitignore"], "targets": ["test-php-engine"], "tests": ["tests/build/lint-coverage.test.mjs", "tests/build/checkout-npm.test.mjs"] }
   ],
   "inputs": {
     "make test-validators": ["packages/validator-{php,go,rust}/**", "tests/fixtures/**", "schema/crudui.schema.json", "contracts/unicode-properties.json"],
