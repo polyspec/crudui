@@ -102,7 +102,8 @@
   `make release-verify`, `make release-versions`, `make release-assets`, `make release-publish`(`scripts/release.mjs`)를
   실행해, commit이 `main`에 있고 check `push-gate`와 `ci-passed`가 success로 끝났는지, 모든 package 파일의 version이
   tag와 같은지, section `## X.Y.Z`가 있는지 확인하고, 그 section을 notes로, `packages/`의 npm tarball과 Composer zip을
-  첨부해 GitHub Release를 만듭니다. crate는 archive로 release하지 않고 git tag로 사용합니다. Go module tag는 아무것도
+  첨부해 GitHub Release를 만듭니다. release 본문 한도인 125000자를 넘는 section은 tag의 `CHANGELOG.md` section을
+  link하는 한 줄로 대신합니다. crate는 archive로 release하지 않고 git tag로 사용합니다. Go module tag는 아무것도
   build하거나 첨부하지 않습니다(`docs/operations/repository.md`).
 
 # Checklist

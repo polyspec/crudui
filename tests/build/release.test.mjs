@@ -6,7 +6,8 @@ import path from 'node:path';
 import { test } from 'node:test';
 
 import {
-  assetName, buildAssets, changelogSection, commitProblems, parseTag, publish, releaseAssets, releaseManifests, versionProblems,
+  assetName, buildAssets, changelogSection, commitProblems, NOTES_LIMIT, parseTag, publish, releaseAssets, releaseManifests, releaseNotes,
+  versionProblems,
 } from '../../scripts/release.mjs';
 
 const ROOT = path.resolve(import.meta.dirname, '../..');
@@ -188,6 +189,33 @@ test('the GitHub Release of a tag carries its change log section and its archive
     await publish({ root: work, tag: 'packages/go/v1.2.3', output, run: go.run, read });
     assert.deepEqual(go.calls, [['gh', 'release', 'create', 'packages/go/v1.2.3', '--verify-tag', '--title', 'packages/go/v1.2.3', '--notes-file', notes]]);
     await assert.rejects(publish({ root: work, tag: 'v9.9.9', output, run, read }), /CHANGELOG\.md: no section ## 9\.9\.9/);
+  } finally {
+    fs.rmSync(work, { recursive: true, force: true });
+  }
+});
+
+test('the notes are the change log section up to 125000 characters, and one line linking CHANGELOG.md above it', () => {
+  assert.equal(NOTES_LIMIT, 125000);
+  const whole = '\u{1F600}'.repeat(NOTES_LIMIT);
+  assert.equal(releaseNotes({ section: whole, tag: 'v0.0.2' }), whole);
+  const line = 'The changes of 0.0.2 are listed in [CHANGELOG.md](https://github.com/polyspec/crudui/blob/v0.0.2/CHANGELOG.md#002).';
+  assert.equal(releaseNotes({ section: `${whole}x`, tag: 'v0.0.2' }), line);
+  assert.equal(releaseNotes({ section: 'x'.repeat(360629), tag: 'packages/generator-go/v0.0.2' }),
+    'The changes of 0.0.2 are listed in [CHANGELOG.md](https://github.com/polyspec/crudui/blob/packages/generator-go/v0.0.2/CHANGELOG.md#002).');
+});
+
+test('a change log section over the limit is published as the one line linking CHANGELOG.md', async () => {
+  const work = fs.mkdtempSync(path.join(os.tmpdir(), 'release-publish-'));
+  try {
+    const output = path.join(work, 'release/assets');
+    const long = `# Changes\n\n## Unreleased\n\n## 1.2.3\n\n${'- Text.\n'.repeat(20000)}\n## 1.2.2\n`;
+    const read = (file) => ({ 'CHANGELOG.md': long })[file];
+    const { run, calls } = fakeRun({ gh: {} });
+    await publish({ root: work, tag: 'packages/go/v1.2.3', output, run, read });
+    const notes = path.join(work, 'release/notes.md');
+    assert.deepEqual(calls, [['gh', 'release', 'create', 'packages/go/v1.2.3', '--verify-tag', '--title', 'packages/go/v1.2.3', '--notes-file', notes]]);
+    assert.equal(fs.readFileSync(notes, 'utf8'),
+      'The changes of 1.2.3 are listed in [CHANGELOG.md](https://github.com/polyspec/crudui/blob/packages/go/v1.2.3/CHANGELOG.md#123).\n');
   } finally {
     fs.rmSync(work, { recursive: true, force: true });
   }

@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### 2026-10-07 — GitHub 본문 한도 안의 release notes (C11.3)
+
+- `make release-publish`는 `CHANGELOG.md`의 section `## X.Y.Z`가 GitHub release 본문 한도인 125000자 이하이면
+  release notes로 쓰고, 아니면 tag의 `CHANGELOG.md` section을 link하는 한 줄
+  `https://github.com/polyspec/crudui/blob/<tag>/CHANGELOG.md#<점을 뺀 version>`을 씁니다.
+- `tests/build/release.test.mjs`는 정확히 125000자인 section을 그대로, 더 긴 section을 한 줄로 쓰도록
+  `vX.Y.Z` tag와 Go module tag에 대해 요구합니다.
+
 ## 0.0.1
 
 ### 2026-10-07 — native suite의 컨테이너 정의 제거 (C7.20-3)
