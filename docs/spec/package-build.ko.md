@@ -212,7 +212,11 @@ sandbox 비활성화 인자 없이 Chrome을 시작하고 `chrome://sandbox`가
 
 Git에서 추적하는 모든 npm 잠금 파일은 유지 관리 대상 의존성 그래프입니다. 루트
 설치의 `npm ls --all`은 잘못되거나 누락되거나 충돌하는 의존성 없이 상태 0을
-반환해야 합니다. 각 그래프의
+반환해야 합니다. 루트 잠금 파일은 한 version이 범위를 만족하는 package를 한 version으로
+담습니다. `tests/build/dependency-health.test.mjs`는 잠금 파일이 두 version으로 설치하는
+package 가운데, 각 사본을 읽는 package들이 선언한 모든 범위를 그중 한 version이 만족하는
+package에서 실패하며, 각 package는 자기 위치에서 위로 가장 가까운 `node_modules`의 사본을
+읽습니다. 각 그래프의
 `npm ci --dry-run --strict-allow-scripts`는 성공해야 합니다. npm은 package를
 npm registry, workspace 또는 make 대상이 설치한 checkout 디렉터리에서 설치합니다. 루트
 매니페스트가 `file:`로 연결하는 OrderedJSON tag checkout이 그런 디렉터리입니다. 어떤
@@ -239,7 +243,8 @@ database에서 읽습니다(모든 취약점과 unmaintained, unsound, yanked cr
 `make install-cargo-audit`은
 `config/toolchain.json`의 cargo-audit release를 `.tools/cargo-audit`에 설치합니다. `RECORD=1`은 review를 각 잠금 파일의 sha256과 함께
 `config/dependency-review.json`에 쓰고, `UPDATE=1`은 먼저 더 새로운 의존성을 manifest의 범위
-연산자를 유지한 채 올립니다. 예약된 workflow `.github/workflows/dependency-review.yml`이
+연산자를 유지한 채 올리고, `npm install --workspace`가 루트가 설치한 release를 남긴 채 올린
+release를 그 옆에 추가하므로 npm 갱신 뒤에 `npm dedupe`를 실행합니다. 예약된 workflow `.github/workflows/dependency-review.yml`이
 매일 review를 실행하며, 어떤 검사나 gating CI job도 이를 실행하지 않습니다.
 
 `npm run test:dependencies`는 checkout의 file만 읽고(`scripts/check-dependencies.mjs`) 각

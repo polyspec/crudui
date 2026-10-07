@@ -1,5 +1,14 @@
 # Changes
 
+## 2026-10-07 — One installed version of each npm package (C5.8-11)
+
+- `make dependency-review UPDATE=1` runs `npm dedupe` after its npm updates, so a package that one version satisfies
+  is installed at one version after a workspace raised it.
+- The dependency graph check fails for a package that `package-lock.json` installs at two versions when one of them
+  satisfies every range of the packages loading either copy.
+- The lock installs magic-string 1.4.3 for `@sveltejs/vite-plugin-svelte` and the hoisted undici-types 8.9.0 for
+  `@types/jsdom`; the review records the lock.
+
 ## 2026-10-07 — Hidden paths in the cross-check form export (C8.3-6)
 
 - The validator processes of the cross-check console answer a form with `{ valid, errors, hidden }`, as `validate` of

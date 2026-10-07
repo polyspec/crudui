@@ -164,3 +164,154 @@ export function readState(root, policy) {
   locks.push(...cargoLocks(root));
   return { dependencies, local, tagged, locks, manifests, npmLock: lock };
 }
+
+// npm version ranges (https://docs.npmjs.com/cli/v11/using-npm/semver): `||` joins comparator sets, a set holds
+// comparators joined by spaces, and `^`, `~`, `x` and partial versions and hyphen ranges reduce to `<`, `<=`, `>`, `>=`
+// and `=`. A prerelease satisfies a set only when a comparator of the set names a prerelease of the same release.
+const NPM_VERSION = /^v?(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?(?:\+[0-9A-Za-z.-]+)?$/;
+const NPM_PARTIAL = /^(<=|>=|<|>|=|\^|~>?|)v?(\*|x|X|\d+)(?:\.(\*|x|X|\d+))?(?:\.(\*|x|X|\d+))?(?:-([0-9A-Za-z.-]+))?(?:\+[0-9A-Za-z.-]+)?$/;
+
+/** A parsed npm version `{ release: [major, minor, patch], pre: [...] }`, or null. */
+function npmVersion(text) {
+  const match = String(text).match(NPM_VERSION);
+  return match ? { release: match.slice(1, 4).map(Number), pre: match[4] ? match[4].split('.') : [] } : null;
+}
+
+/** The order of two parsed npm versions: negative, zero or positive. */
+function npmCompare(left, right) {
+  for (let index = 0; index < 3; index += 1) {
+    if (left.release[index] !== right.release[index]) return left.release[index] - right.release[index];
+  }
+  if (!left.pre.length || !right.pre.length) return right.pre.length - left.pre.length;
+  for (let index = 0; index < Math.max(left.pre.length, right.pre.length); index += 1) {
+    const a = left.pre[index];
+    const b = right.pre[index];
+    if (a === undefined || b === undefined) return a === undefined ? -1 : 1;
+    if (a === b) continue;
+    const numeric = [a, b].map(item => /^\d+$/.test(item));
+    if (numeric[0] && numeric[1]) return Number(a) - Number(b);
+    if (numeric[0] !== numeric[1]) return numeric[0] ? -1 : 1;
+    return a < b ? -1 : 1;
+  }
+  return 0;
+}
+
+const comparator = (operator, release, pre = []) => ({ operator, version: { release, pre } });
+const below = release => comparator('<', release, ['0']);
+
+/** The comparators of one term of a comparator set, or null when the term is not a version range term. */
+function npmTerm(term) {
+  const match = term.match(NPM_PARTIAL);
+  if (!match) return null;
+  const [, operator, ...parts] = match;
+  const wild = parts.slice(0, 3).map(part => part === undefined || /^[*xX]$/.test(part));
+  const [major, minor, patch] = parts.slice(0, 3).map(part => (part === undefined || /^[*xX]$/.test(part) ? 0 : Number(part)));
+  const pre = parts[3] ? parts[3].split('.') : [];
+  const level = wild[0] ? 0 : wild[1] ? 1 : wild[2] ? 2 : 3;
+  const floor = [major, minor, patch];
+  const next = level === 1 ? [major + 1, 0, 0] : [major, minor + 1, 0];
+  if (operator === '' || operator === '=') {
+    if (level === 0) return [];
+    if (level === 3) return [comparator('=', floor, pre)];
+    return [comparator('>=', floor), below(next)];
+  }
+  if (operator === '^') {
+    if (level === 0) return [];
+    const ceiling = major > 0 || level === 1 ? [major + 1, 0, 0] : minor > 0 || level === 2 ? [0, minor + 1, 0] : [0, 0, patch + 1];
+    return [comparator('>=', floor, pre), below(ceiling)];
+  }
+  if (operator.startsWith('~')) {
+    if (level === 0) return [];
+    return [comparator('>=', floor, pre), below(level === 1 ? [major + 1, 0, 0] : [major, minor + 1, 0])];
+  }
+  if (level === 0) return operator === '<' || operator === '>' ? [below([0, 0, 0])] : [];
+  if (level === 3) return [comparator(operator, floor, pre)];
+  if (operator === '>') return [comparator('>=', next)];
+  if (operator === '>=') return [comparator('>=', floor)];
+  if (operator === '<') return [below(floor)];
+  return [below(next)];
+}
+
+/** The comparator sets of an npm range, or null when the specification is not a version range. */
+function npmRange(range) {
+  const text = String(range).replace(/^npm:(?:@[^/@]+\/)?[^@]+@/, '').trim();
+  const sets = [];
+  for (const alternative of text.split('||')) {
+    const set = alternative.trim();
+    const hyphen = set.match(/^(\S+)\s+-\s+(\S+)$/);
+    const terms = hyphen
+      ? [`>=${hyphen[1]}`, `<=${hyphen[2]}`]
+      : set.replace(/(<=|>=|<|>|=|\^|~>?)\s+/g, '$1').split(/\s+/).filter(Boolean);
+    const comparators = [];
+    for (const term of terms) {
+      const parsed = npmTerm(term);
+      if (!parsed) return null;
+      comparators.push(...parsed);
+    }
+    sets.push(comparators);
+  }
+  return sets;
+}
+
+/** Whether `version` satisfies the npm range `range`; null for a specification that is not a version range. */
+export function npmSatisfies(version, range) {
+  const sets = npmRange(range);
+  const parsed = npmVersion(version);
+  if (!sets || !parsed) return null;
+  return sets.some(set => set.every(({ operator, version: bound }) => {
+    const order = npmCompare(parsed, bound);
+    return { '<': order < 0, '<=': order <= 0, '>': order > 0, '>=': order >= 0, '=': order === 0 }[operator];
+  }) && (!parsed.pre.length || set.some(({ version: bound }) => bound.pre.length > 0
+    && bound.release.every((part, index) => part === parsed.release[index]))));
+}
+
+/** The lock location of the copy of `name` that a package at `location` loads: the nearest `node_modules` upward. */
+function npmResolve(packages, location, name) {
+  const parts = location ? location.split('/') : [];
+  for (let length = parts.length; length >= 0; length -= 1) {
+    const candidate = [...parts.slice(0, length), 'node_modules', name].join('/');
+    if (packages[candidate]) return candidate;
+  }
+  return null;
+}
+
+/**
+ * The packages of an npm lock (lockfileVersion 3) installed at two versions although one of the two versions satisfies
+ * every range that the packages loading either copy declare: their dependencies, optional and development
+ * dependencies and required peer dependencies. Each package that loads a copy finds it in the nearest `node_modules`
+ * upward from its own location. One line per package.
+ */
+export function npmDuplicates(lock) {
+  const packages = lock.packages ?? {};
+  const copies = new Map();
+  for (const [location, entry] of Object.entries(packages)) {
+    for (const kind of ['dependencies', 'optionalDependencies', 'devDependencies', 'peerDependencies']) {
+      for (const [name, range] of Object.entries(entry[kind] ?? {})) {
+        if (kind === 'peerDependencies' && entry.peerDependenciesMeta?.[name]?.optional) continue;
+        const copy = npmResolve(packages, location, name);
+        if (!copy || packages[copy].link || !npmVersion(packages[copy].version) || !npmRange(range)) continue;
+        if (!copies.has(name)) copies.set(name, new Map());
+        const loaders = copies.get(name);
+        if (!loaders.has(copy)) loaders.set(copy, []);
+        loaders.get(copy).push({ range, from: location === '' ? 'the root' : location });
+      }
+    }
+  }
+  const lines = [];
+  for (const name of [...copies.keys()].sort()) {
+    const located = [...copies.get(name)].map(([copy, loaders]) => ({ version: packages[copy].version, loaders }));
+    const found = located.flatMap((left, index) => located.slice(index + 1).map(right => [left, right]))
+      .filter(([left, right]) => left.version !== right.version)
+      .map(([left, right]) => {
+        const [low, high] = [left, right].sort((a, b) => npmCompare(npmVersion(a.version), npmVersion(b.version)));
+        const loaders = [...left.loaders, ...right.loaders];
+        const single = [high.version, low.version].find(version => loaders.every(({ range }) => npmSatisfies(version, range)));
+        return single && { low: low.version, high: high.version, single, loaders };
+      })
+      .find(Boolean);
+    if (!found) continue;
+    const declared = found.loaders.map(({ range, from }) => `${range} of ${from}`);
+    lines.push(`${name} is installed at ${found.low} and ${found.high}, and ${found.single} satisfies every range: ${declared.slice(0, -1).join(', ')} and ${declared.at(-1)}`);
+  }
+  return lines;
+}

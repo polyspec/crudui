@@ -12,7 +12,9 @@
 // lock, and the locked and latest stable version of every registry dependency. The check scripts/check-dependencies.mjs
 // compares the checkout with that record without a network.
 // --update first raises every newer dependency without an exception to its latest stable release, keeping the range
-// operator of its manifest, and updates the packages with an advisory; then it reviews and records again.
+// operator of its manifest, and updates the packages with an advisory; `npm dedupe` then installs one version of each
+// npm package that one version satisfies, since an install for one workspace keeps the release of the root; then it
+// reviews and records again.
 // The advisories of the Cargo locks come from cargo-audit of the checkout (scripts/install-cargo-audit.mjs, which
 // `make install-cargo-audit` runs) and the RustSec advisory database.
 import { spawnSync } from 'node:child_process';
@@ -220,6 +222,7 @@ export function updatePlan({ newer, advisories: found }) {
     }
   }
   if (found.some(advisory => advisory.lock === NPM_LOCK)) plan.push({ command: 'npm', args: ['audit', 'fix'], cwd: '.' });
+  if (plan.some(step => step.command === 'npm')) plan.push({ command: 'npm', args: ['dedupe'], cwd: '.' });
   const affected = new Map();
   for (const advisory of found.filter(item => item.lock !== NPM_LOCK)) {
     if (!affected.has(advisory.lock)) affected.set(advisory.lock, new Set());

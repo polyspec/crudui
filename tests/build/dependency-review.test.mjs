@@ -205,9 +205,17 @@ test('the review plan raises a workspace dependency in its workspace and keeps t
     '.: npm install --workspace packages/kit --save-dev left@^3.0.0',
     '.: npm install --save --save-exact right@3.1.0',
     'php: composer require --dev --update-with-dependencies --no-interaction vendor/unit:^14.0.0',
+    '.: npm dedupe',
     'php: composer update --with-dependencies --no-interaction vendor/unit',
     'rust: cargo update -p crate -p other',
   ]);
+});
+
+test('the review plan installs one version of each npm package after its npm updates', () => {
+  const advisory = updatePlan({ newer: [], advisories: [{ lock: 'package-lock.json', package: 'left' }] });
+  assert.deepEqual(advisory.map(step => `${step.cwd}: ${step.command} ${step.args.join(' ')}`), ['.: npm audit fix', '.: npm dedupe']);
+  const cargo = updatePlan({ newer: [], advisories: [{ lock: 'rust/Cargo.lock', package: 'crate' }] });
+  assert.deepEqual(cargo.map(step => `${step.cwd}: ${step.command} ${step.args.join(' ')}`), ['rust: cargo update -p crate']);
 });
 
 test('the checks of test:dependencies run no registry query', () => {

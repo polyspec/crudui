@@ -1,5 +1,14 @@
 # 변경 기록
 
+## 2026-10-07 — npm package마다 하나의 설치 version (C5.8-11)
+
+- `make dependency-review UPDATE=1`은 npm 갱신 뒤에 `npm dedupe`를 실행하므로, workspace가 올린 뒤에도 한 version이
+  만족하는 package는 한 version으로 설치됩니다.
+- 의존성 그래프 검사는 `package-lock.json`이 두 version으로 설치하는 package 가운데 한 version이 두 사본을 읽는
+  package들의 모든 범위를 만족하는 package에서 실패합니다.
+- 잠금 파일은 `@sveltejs/vite-plugin-svelte`에 magic-string 1.4.3을, `@types/jsdom`에 hoist된 undici-types 8.9.0을
+  설치하며 review는 잠금 파일을 기록합니다.
+
 ## 2026-10-07 — cross-check 폼 내보내기의 숨은 경로 (C8.3-6)
 
 - cross-check console의 검증기 process는 각 validator의 `validate`가 돌려주는 대로 폼에 `{ valid, errors, hidden }`,
