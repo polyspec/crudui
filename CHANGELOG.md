@@ -4,6 +4,13 @@
 
 ## 0.0.3
 
+### 2026-10-07 — OrderedJSON from the released tag v0.0.3 (C11.6-2)
+
+- The comparison takes OrderedJSON from the tag `v0.0.3` of `polyspec/ordered-json`: `orderedJsonVersion` of
+  `examples/form-comparison/src/ordered-json-source.mjs` is 0.0.3 and `make install-ordered-json` checks out `v0.0.3`.
+- The Rust record server, its `Cargo.lock`, the `package-lock.json` entry of `@polyspec/ordered-json`, the processor
+  check of `tests/ordered-json`, the documents and `config/dependency-review.json` name 0.0.3.
+
 ### 2026-10-07 — The install of the release archives in CI (C11.6-1)
 
 - The CI job `build-lint` runs `make release-install-head`: it writes the archives of `HEAD` at the version of

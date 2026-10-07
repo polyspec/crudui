@@ -42,7 +42,7 @@
 
 ## Wave 10
 
-의존: 없음. 폼 비교는 OrderedJSON을 `polyspec/ordered-json`의 tag `v0.0.2`에서 받고 그 tree의 package 이름을 쓴다. version 0.1까지 polyspec 저장소는 다른 polyspec 저장소에 그 저장소의 GitHub tag로 의존한다.
+의존: 없음. 폼 비교는 OrderedJSON을 `polyspec/ordered-json`의 tag `v0.0.3`에서 받고 그 tree의 package 이름을 쓴다. version 0.1까지 polyspec 저장소는 다른 polyspec 저장소에 그 저장소의 GitHub tag로 의존한다.
 
 ## Wave 11
 

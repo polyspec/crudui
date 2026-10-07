@@ -299,7 +299,7 @@ reads, and `make install` runs it. Every target that runs cargo depends on
 error line of cargo and `run make install, which downloads them`, instead of cargo's
 advice to retry without `--offline`. The comparison pipeline reads the OrderedJSON
 checkout and fails when it is missing, has tracked changes or is at another commit than the tag
-`v0.0.2`, naming
+`v0.0.3`, naming
 `make install-ordered-json`; it downloads nothing. The Go modules of the checkout
 require only modules of the checkout through `replace`, so Go reads no module
 proxy.
