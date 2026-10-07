@@ -36,7 +36,7 @@ targets, in CI once for each PHP release. Each runtime answers through
 a program in [`tests/native-generators/programs`](../../tests/native-generators/README.md#programs)
 that calls its package's public API; the packages publish libraries only.
 The extension build reads the PHP executable, headers and build flags from
-`php-config`, compiles the C binding and links Cargo's locked Rust output directly.
+`php-config` and compiles the C sources of the extension in `packages/php-ext/src`.
 It does not require `phpize`, Autoconf or libtool. Tool discovery rejects relative
 paths, symbolic links and multiple results. Explicit tool paths must identify
 regular executable files.
