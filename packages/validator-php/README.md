@@ -5,14 +5,14 @@
 Compose specifications, evaluate expressions and validate data in PHP.
 
 ```sh
-composer install --working-dir=packages/validator-php
+composer install
 composer test --working-dir=packages/validator-php
 ```
 
 ## Public API
 
 ```php
-require 'packages/validator-php/vendor/autoload.php';
+require 'vendor/autoload.php';
 
 use Polyspec\Crudui\Validator;
 

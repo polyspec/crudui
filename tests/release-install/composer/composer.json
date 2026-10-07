@@ -1,0 +1,17 @@
+{
+    "name": "polyspec/crudui-release-install",
+    "type": "project",
+    "require": {
+        "php": "^8.4",
+        "polyspec/crudui-generator": "0.0.2"
+    },
+    "repositories": [
+        {
+            "type": "artifact",
+            "url": "archives"
+        },
+        {
+            "packagist.org": false
+        }
+    ]
+}

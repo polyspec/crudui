@@ -290,7 +290,7 @@ import만 사용합니다. 소스 검증은 해당 모듈을 HTTP로 제공해 i
 `crudui.so`와 `ordered_json.so`를 로드하고 PHP 프로세스는 두 확장을 로드하지
 않습니다.
 PHP 프로세스는 체크아웃의
-`packages/generator-php/vendor/composer/installed.php`에서 검증기 설치
+`vendor/composer/installed.php`에서 검증기 설치
 디렉터리를 읽습니다. 이 파일은 선택한 생성기 오토로더의 설치 패키지 기록입니다. 다른
 Composer 설치가 등록한 기록은 패키지 선택에 영향을 주지 않습니다. 기록 파일, 설치
 디렉터리, 검증기 클래스는 심볼릭 링크가 없는 일반 경로를 사용해야 합니다. 검증기

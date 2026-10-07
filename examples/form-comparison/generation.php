@@ -32,7 +32,7 @@ final class FormGeneration
             || !($source->changes === null || (is_string($source->changes) && preg_match('/^[a-f0-9]{64}$/D', $source->changes)))) {
             throw new RuntimeException('Invalid source identity');
         }
-        if (!$native) require_once $sourceRoot . '/packages/generator-php/vendor/autoload.php';
+        if (!$native) require_once $sourceRoot . '/vendor/autoload.php';
         $composerAutoload = self::composerAutoloadRegistered();
         if ($composerAutoload === $native) throw new RuntimeException('Composer autoloader state does not match the selected server');
         $classes = [];
@@ -166,7 +166,7 @@ final class FormGeneration
         $expectedFile = $sourceFile;
         if (isset($files['package'], $files['installed'])) {
             $vendorDirectory = self::regularDirectory(
-                $sourceRoot . '/packages/generator-php/vendor',
+                $sourceRoot . '/vendor',
                 'candidate Composer vendor directory',
             );
             $installDirectory = self::composerPackageDirectory($files['package'], $vendorDirectory);

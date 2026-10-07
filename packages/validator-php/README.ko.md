@@ -5,14 +5,14 @@
 PHP에서 명세를 합성하고, 표현식을 평가하고, 데이터를 검증합니다.
 
 ```sh
-composer install --working-dir=packages/validator-php
+composer install
 composer test --working-dir=packages/validator-php
 ```
 
 ## 공개 API
 
 ```php
-require 'packages/validator-php/vendor/autoload.php';
+require 'vendor/autoload.php';
 
 use Polyspec\Crudui\Validator;
 

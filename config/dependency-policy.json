@@ -1,9 +1,8 @@
 {
   "schema": 1,
-  "comment": "The exception policy of the dependency review (docs/spec/package-build.md, \"Dependency review\"), read by scripts/check-dependencies.mjs and scripts/dependency-review.mjs: the Composer manifests whose requirements are reviewed besides the npm manifests of the root and its workspaces, and each registry dependency kept below the latest stable release of its review, with its reason, removal condition and verification commands.",
+  "comment": "The exception policy of the dependency review (docs/spec/package-build.md, \"Dependency review\"), read by scripts/check-dependencies.mjs and scripts/dependency-review.mjs: the Composer manifests whose requirements and locks are reviewed besides the npm manifests of the root and its workspaces (the development root composer.json, whose lock resolves the published Composer packages of packages/), and each registry dependency kept below the latest stable release of its review, with its reason, removal condition and verification commands.",
   "composerManifests": [
-    "packages/validator-php/composer.json",
-    "packages/generator-php/composer.json"
+    "composer.json"
   ],
   "exceptions": [
     {

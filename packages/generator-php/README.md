@@ -10,7 +10,7 @@ forms, lists or read-only details in PHP. Rendering and validation run in the PH
 From the repository root:
 
 ```sh
-composer install --working-dir=packages/generator-php
+composer install
 composer test --working-dir=packages/generator-php
 ```
 
@@ -21,7 +21,7 @@ Development tests also require the extensions used by PHPUnit, including DOM.
 ## Form API
 
 ```php
-require 'packages/generator-php/vendor/autoload.php';
+require 'vendor/autoload.php';
 
 use Polyspec\Crudui\Form;
 use Polyspec\Crudui\Generator;

@@ -112,7 +112,7 @@ byte-identical input, and fixture construction stays out of the timed path.
 ## Prerequisites
 
 - `node` (validator-ts `dist/` built: `cd packages/validator-ts && npm run build`)
-- `php` with `packages/validator-php/vendor` installed (`composer install`)
+- `php` with `vendor/` installed (`composer install`)
 - `go`
 - `cargo` (on `$HOME/.cargo/bin`; `make bench` prepends it to `PATH`)
 

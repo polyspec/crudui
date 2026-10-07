@@ -36,7 +36,7 @@ if (result.valid || result.errors[0]?.rule !== 'required') {
 
 ```php
 <?php
-require 'packages/validator-php/vendor/autoload.php';
+require 'vendor/autoload.php';
 
 use Polyspec\Crudui\Validator;
 

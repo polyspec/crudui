@@ -93,7 +93,7 @@ React, Vue, Svelte 패키지는 `buildList`와 `buildDetail`을 다시 내보내
 
 ```php
 <?php
-require 'packages/generator-php/vendor/autoload.php';
+require 'vendor/autoload.php';
 
 use Polyspec\Crudui\Generator;
 use Polyspec\Crudui\Validator;

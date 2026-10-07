@@ -45,17 +45,18 @@
     { "paths": ["scripts/run-rust-command.mjs", "scripts/tool-resolution.mjs"], "tests": ["tests/build/rust-node-entry-points.test.mjs", "tests/build/make-tool-path.test.mjs"] },
     { "paths": ["scripts/php-extension-builder.mjs", "scripts/build-crudui-php-extension.mjs", "scripts/build-ordered-json-php-extension.mjs"], "targets": ["test-php-engine", "test-php-api"], "tests": ["tests/build/atomic-publish.test.mjs", "tests/build/php-extensions.test.mjs"] },
     { "paths": ["scripts/check-documents.mjs", "scripts/checklist-markers*.mjs", "scripts/documentation-links*.mjs"], "targets": ["docs-check-documents"] },
+    { "paths": ["scripts/php-package-autoload.php"], "targets": ["test-validators", "test-native", "docs-check"] },
     { "paths": ["scripts/check-doc-coverage*.mjs", "scripts/php-doc-coverage.*", "scripts/gen-api-docs*.mjs", "scripts/typedoc.*.json", "scripts/tsconfig.svelte-docs.json", "scripts/fixtures/typedoc/**", "scripts/install-phpdocumentor.sh", "scripts/docs-web/**"], "targets": ["docs-check"] },
     { "paths": ["scripts/check-packages.mjs", "scripts/install-lock.mjs"], "scripts": ["test:packages"], "tests": ["tests/build/install-lock.test.mjs"] },
     { "paths": ["scripts/github-repository.mjs", ".github/repository.json"], "tests": ["tests/build/github-repository.test.mjs", "tests/build/ci-local.test.mjs"] },
     { "paths": ["scripts/tracked-files.mjs"], "scripts": ["lint", "manifest:check"], "tests": ["tests/build/tracked-files.test.mjs", "tests/build/lint-coverage.test.mjs", "tests/build/contract-manifest.test.mjs", "tests/build/runtime-version-policy.test.mjs", "tests/build/public-packages.test.mjs", "tests/build/vite-config.test.mjs", "tests/build/php-extensions.test.mjs"] },
     { "paths": ["scripts/owner-check.mjs", "scripts/owner-checks.json"], "tests": ["tests/build/owner-check.test.mjs"] },
-    { "paths": ["scripts/dependency-state.mjs", "scripts/check-dependencies.mjs", "scripts/dependency-review.mjs", "scripts/install-cargo-audit.mjs", "config/dependency-policy.json", "config/dependency-review.json", "packages/*/package.json", "packages/{validator,generator}-php/composer.{json,lock}"], "scripts": ["test:dependencies"] },
+    { "paths": ["scripts/dependency-state.mjs", "scripts/check-dependencies.mjs", "scripts/dependency-review.mjs", "scripts/install-cargo-audit.mjs", "config/dependency-policy.json", "config/dependency-review.json", "packages/*/package.json", "packages/{validator,generator}-php/composer.json", "composer.{json,lock}"], "scripts": ["test:dependencies"], "targets": ["test-validators", "test-native"], "tests": ["tests/build/release.test.mjs"] },
     { "paths": ["package.json", "package-lock.json", ".npmrc"], "scripts": ["test:dependencies"], "tests": ["tests/build/runtime-version-policy.test.mjs", "tests/build/checkout-npm.test.mjs"] },
     { "paths": ["scripts/check-cargo-downloads.mjs", "examples/form-comparison/install-ordered-json.mjs"], "tests": ["tests/build/offline-checks.test.mjs"] },
     { "paths": ["scripts/ci-targets.mjs", "scripts/target-report.mjs"], "tests": ["tests/build/target-report.test.mjs", "tests/build/ci-local.test.mjs"] },
     { "paths": ["scripts/ci-passed.mjs"], "tests": ["tests/build/ci-passed.test.mjs", "tests/build/ci-local.test.mjs"] },
-    { "paths": ["scripts/release.mjs"], "tests": ["tests/build/release.test.mjs", "tests/build/ci-local.test.mjs"] },
+    { "paths": ["scripts/release.mjs", "scripts/release-install.mjs", "tests/release-install/**"], "tests": ["tests/build/release.test.mjs", "tests/build/ci-local.test.mjs"] },
     { "paths": ["Makefile"], "tests": ["tests/build/offline-checks.test.mjs", "tests/build/make-dry-run.test.mjs", "tests/build/full-run.test.mjs", "tests/build/push-gate.test.mjs", "tests/build/make-tool-path.test.mjs", "tests/build/php-extensions.test.mjs", "tests/build/checkout-npm.test.mjs", "tests/build/runtime-version-policy.test.mjs", "tests/build/ci-local.test.mjs", "tests/build/owner-check.test.mjs"] },
     { "paths": [".github/workflows/**"], "tests": ["tests/build/ci-local.test.mjs", "tests/build/runtime-version-policy.test.mjs", "tests/build/form-comparison-ci.test.mjs", "tests/build/checkout-npm.test.mjs", "tests/build/push-gate.test.mjs"] },
     { "paths": [".gitignore"], "targets": ["test-php-engine"], "tests": ["tests/build/lint-coverage.test.mjs", "tests/build/checkout-npm.test.mjs"] }
@@ -68,6 +69,6 @@
     "npm run test:bench": ["tools/bench/**"],
     "npm test --prefix examples/cross-check-console/server": ["examples/cross-check-console/**", "packages/validator-{ts,php,go,rust}/**"],
     "make docs-check": ["docs/**", "*.md"],
-    "npm run test:dependencies": ["package.json", "package-lock.json", "packages/*/package.json", "packages/{validator,generator}-php/composer.{json,lock}", "config/dependency-{policy,review}.json"]
+    "npm run test:dependencies": ["package.json", "package-lock.json", "packages/*/package.json", "packages/{validator,generator}-php/composer.json", "composer.{json,lock}", "config/dependency-{policy,review}.json"]
   }
 }

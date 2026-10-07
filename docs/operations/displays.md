@@ -94,7 +94,7 @@ take the same options as the HTML renderer.
 
 ```php
 <?php
-require 'packages/generator-php/vendor/autoload.php';
+require 'vendor/autoload.php';
 
 use Polyspec\Crudui\Generator;
 use Polyspec\Crudui\Validator;

@@ -21,6 +21,13 @@
 // `packages/` that is not private. A crate is not released as an archive; it is consumed by git tag, because
 // `cargo package` rewrites git dependencies into crates.io requirements that do not resolve. The checks do not run the
 // tests again: the check runs of the commit hold them.
+//
+// A release archive installs without the repository tree, beside the other archives that it depends on. The published
+// manifests are the package manifests of `packages/`, packed unchanged: each names every dependency of the npm scope
+// `@polyspec` and the Composer vendor `polyspec` by its exact released version, and a `composer.json` declares its
+// `version` and no `repositories`; development resolution is in the root package.json (npm workspaces) and the root
+// composer.json (path repositories), which are not published. `assets` fails when a packed manifest differs from its
+// package manifest or has a problem of manifestProblems.
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -56,6 +63,46 @@ export function parseTag(tag) {
 /** The archive file name of a package: `@scope/` is written `scope-` and a Composer `vendor/` `vendor-`. */
 export function assetName(name, version, extension) {
   return `${name.replace(/^@/, '').replace('/', '-')}-${version}.${extension}`;
+}
+
+/** The dependency fields of a packed `package.json` that a consumer installs. */
+export const NPM_DEPENDENCY_FIELDS = ['dependencies', 'peerDependencies', 'optionalDependencies'];
+const NPM_SCOPE = '@polyspec/';
+const COMPOSER_VENDOR = 'polyspec/';
+const EXACT_VERSION = /^\d+\.\d+\.\d+$/;
+
+/** How a dependency on a polyspec package fails to install beside the release archives, or null for an exact version. */
+function dependencyForm(constraint) {
+  const text = String(constraint);
+  if (EXACT_VERSION.test(text)) return null;
+  if (/^[a-z][a-z0-9+.-]*:\/\//i.test(text)) return 'a URL';
+  if (/^(file|link|workspace|portal):/.test(text)) return 'a path of the repository';
+  if (/^(git(\+[a-z]+)?|github|gitlab|bitbucket|ssh):|^git@|^[\w.-]+\/[\w.-]+(#.*)?$/.test(text)) return 'a git source';
+  if (/@dev\b|^dev-|-dev$/.test(text)) return 'a development version';
+  return 'a range, not the exact released version';
+}
+
+/**
+ * The problems of a packed manifest: a dependency of the scope `@polyspec` or the vendor `polyspec` that is not an exact
+ * version (a URL, a path, a git source, a range or a development version), and in a `composer.json` a `repositories`
+ * entry or a `version` that is not an exact version.
+ */
+export function manifestProblems(kind, manifest) {
+  const problems = [];
+  const fields = kind === 'npm' ? NPM_DEPENDENCY_FIELDS : ['require', 'require-dev'];
+  const prefix = kind === 'npm' ? NPM_SCOPE : COMPOSER_VENDOR;
+  for (const field of fields) {
+    for (const [name, constraint] of Object.entries(manifest[field] ?? {})) {
+      if (!name.startsWith(prefix)) continue;
+      const form = dependencyForm(constraint);
+      if (form) problems.push(`${manifest.name}: ${field} ${name} ${JSON.stringify(constraint)} is ${form}`);
+    }
+  }
+  if (kind === 'composer') {
+    if (manifest.repositories !== undefined) problems.push(`${manifest.name}: repositories ${JSON.stringify(manifest.repositories)} exist only in the repository`);
+    if (!EXACT_VERSION.test(manifest.version ?? '')) problems.push(`${manifest.name}: version ${manifest.version ?? '(none)'} is no release version`);
+  }
+  return problems;
 }
 
 /** The value of `key` in the table `[table]` of a TOML text, for the plain string values of package manifests. */
@@ -167,13 +214,54 @@ export function releaseAssets({ tag, files, read }) {
     });
 }
 
+/** The output of a command, or an error naming the command, its exit status and its standard error. */
+async function output(run, command, args, options) {
+  const result = await run(command, args, options);
+  if (result.status !== 0) throw new Error(`${command} ${args.join(' ')} exited ${result.status}: ${result.stderr.trim()}`);
+  return result.stdout;
+}
+
+/** The packed manifest text of a release archive: `package/package.json` of an npm tarball, `composer.json` of a Composer zip. */
+export async function packedManifestText({ kind, file, run }) {
+  return kind === 'npm'
+    ? output(run, 'tar', ['-xzOf', file, 'package/package.json'])
+    : output(run, 'unzip', ['-p', file, 'composer.json']);
+}
+
+/** The manifest file of an asset: `package.json` of an npm package, `composer.json` of a Composer package. */
+const manifestFile = (kind) => (kind === 'npm' ? 'package.json' : 'composer.json');
+
 /**
- * Build the JavaScript packages (`make build`) and write the archive of every asset into `output`. A Go module tag
- * builds and attaches nothing: `output` stays empty and no command runs.
+ * The problems of the packed manifests of the archives of `output`: a packed manifest that differs from the package
+ * manifest of its directory under `root`, and the problems of manifestProblems.
  */
-export async function buildAssets({ root, tag, sha, assets, output, run, log }) {
-  fs.rmSync(output, { recursive: true, force: true });
-  fs.mkdirSync(output, { recursive: true });
+export async function assetProblems({ root, assets, output: directory, run }) {
+  const problems = [];
+  for (const asset of assets) {
+    const file = manifestFile(asset.kind);
+    const source = fs.readFileSync(path.join(root, asset.directory, file), 'utf8');
+    const packed = await packedManifestText({ kind: asset.kind, file: path.join(directory, asset.file), run });
+    if (packed !== source) problems.push(`${asset.file}: the packed ${file} differs from ${asset.directory}/${file}`);
+    problems.push(...manifestProblems(asset.kind, JSON.parse(packed)));
+  }
+  return problems;
+}
+
+/** The problems of the published manifests of `packages/` that a tag releases (manifestProblems). */
+export function publishedProblems({ files, read }) {
+  return releaseAssets({ tag: 'v0.0.0', files, read })
+    .flatMap(({ kind, directory }) => manifestProblems(kind, JSON.parse(read(`${directory}/${manifestFile(kind)}`)))
+      .map((problem) => `${directory}/${manifestFile(kind)}: ${problem}`));
+}
+
+/**
+ * Build the JavaScript packages (`make build`) and write the archive of every asset into `output`: `npm pack` of an npm
+ * package and `git archive` of a Composer package directory; fail when a packed manifest has a problem of manifestProblems. A Go
+ * module tag builds and attaches nothing: `output` stays empty and no command runs.
+ */
+export async function buildAssets({ root, tag, sha, assets, output: directory, run, log }) {
+  fs.rmSync(directory, { recursive: true, force: true });
+  fs.mkdirSync(directory, { recursive: true });
   if (parseTag(tag).directory !== '') {
     log(`release: ${tag} is a Go module tag, which builds and attaches nothing`);
     return [];
@@ -181,22 +269,25 @@ export async function buildAssets({ root, tag, sha, assets, output, run, log }) 
   const built = await run('make', ['build']);
   if (built.status !== 0) throw new Error(`make build exited ${built.status}: ${built.stderr.trim()}`);
   for (const asset of assets) {
-    const target = path.join(output, asset.file);
+    const target = path.join(directory, asset.file);
     log(`release: ${asset.kind} ${asset.name} -> ${path.relative(root, target)}`);
-    let result;
-    let source;
-    if (asset.kind === 'npm') {
-      result = await run(process.execPath, [path.join(root, 'scripts/package-dist.mjs'), 'pack', path.join(root, asset.directory), output]);
-      if (result.status === 0) source = path.join(output, packReport(result.stdout, asset.name).filename);
-    } else {
-      result = await run('git', ['archive', '--format=zip', `--output=${target}`, `${sha}:${asset.directory}`]);
-      source = target;
+    try {
+      if (asset.kind === 'npm') {
+        const packed = await output(run, process.execPath, [path.join(root, 'scripts/package-dist.mjs'), 'pack', path.join(root, asset.directory), directory]);
+        const source = path.join(directory, packReport(packed, asset.name).filename);
+        if (!fs.existsSync(source)) throw new Error(`the archive is missing: expected ${source}`);
+        if (source !== target) fs.renameSync(source, target);
+      } else {
+        await output(run, 'git', ['archive', '--format=zip', `--output=${target}`, `${sha}:${asset.directory}`]);
+      }
+    } catch (error) {
+      throw new Error(`the archive of ${asset.name} (${asset.directory}) failed: ${error.message}`, { cause: error });
     }
-    if (result.status !== 0) throw new Error(`the archive of ${asset.name} (${asset.directory}) failed: exit ${result.status}: ${result.stderr.trim()}`);
-    if (!fs.existsSync(source)) throw new Error(`the archive of ${asset.name} is missing: expected ${source}`);
-    if (source !== target) fs.renameSync(source, target);
+    if (!fs.existsSync(target)) throw new Error(`the archive of ${asset.name} is missing: expected ${target}`);
   }
-  return assets.map((asset) => path.join(output, asset.file));
+  const problems = await assetProblems({ root, assets, output: directory, run });
+  if (problems.length > 0) throw new Error(`the packed manifests are not the published package manifests:\n${problems.join('\n')}`);
+  return assets.map((asset) => path.join(directory, asset.file));
 }
 
 /**
@@ -228,8 +319,11 @@ async function main([operation, tag, ...rest]) {
   parseTag(tag);
   const repository = process.env.GITHUB_REPOSITORY;
   if (operation === 'verify' && !repository) throw new Error(`GITHUB_REPOSITORY not set. ${USAGE}`);
-  const resolved = spawn('git', ['rev-parse', '--verify', `refs/tags/${tag}^{commit}`]);
-  if (resolved.status !== 0) throw new Error(`git rev-parse refs/tags/${tag} exited ${resolved.status}: ${resolved.stderr.trim()}`);
+  // RELEASE_COMMIT names the commit of `assets` before its tag exists, for the archives that the fixture locks of
+  // `make release-install-lock` read; every other operation reads the commit of the tag.
+  const ref = operation === 'assets' && process.env.RELEASE_COMMIT ? `${process.env.RELEASE_COMMIT}^{commit}` : `refs/tags/${tag}^{commit}`;
+  const resolved = spawn('git', ['rev-parse', '--verify', ref]);
+  if (resolved.status !== 0) throw new Error(`git rev-parse ${ref} exited ${resolved.status}: ${resolved.stderr.trim()}`);
   const sha = resolved.stdout.trim();
   const read = (file) => fs.readFileSync(path.join(ROOT, file), 'utf8');
   const listed = spawn('git', ['ls-files', '-z']);

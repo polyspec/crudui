@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+### 2026-10-07 — 저장소 밖에서 설치되는 게시 manifest (C11.5)
+
+- 게시되는 manifest는 `packages/`의 package manifest이며 바꾸지 않고 pack합니다. scope `@polyspec`와 vendor `polyspec`의
+  의존성은 모두 정확한 version이고, `packages/generator-php/composer.json`과 `packages/validator-php/composer.json`은
+  `version`을 선언하며 `repositories`는 없습니다.
+- 개발 해석은 root `composer.json`(`polyspec/crudui-workspace`, 게시하지 않음)에 있습니다. `packages/validator-php`의
+  `path` repository, `autoload`로 읽는 생성기 source, root의 `composer.lock`과 `vendor/`가 있으며 PHPUnit, PHP check,
+  PHP server가 그것을 load합니다. `scripts/php-package-autoload.php`는 test하는 package의 class를 source 디렉터리에서
+  load합니다.
+- `make release-assets`는 package manifest와 다르거나, 그런 의존성을 URL, 경로, git 출처, 범위, 개발 version으로 적거나,
+  `repositories`가 있거나 `version`이 없는 `composer.json`인 pack된 manifest를 하나씩 적어 실패하고,
+  `tests/build/release.test.mjs`는 저장소의 게시되는 manifest에 같은 check를 적용합니다.
+- release를 만들기 전 release workflow의 step인 `make release-install-check`는 저장소 밖 임시 디렉터리에서
+  `tests/release-install`의 사용자 fixture로 archive를 설치합니다. 빈 cache와 닿지 않는 registry의 scope `@polyspec`로
+  `npm ci`를, 빈 `COMPOSER_HOME`과 `COMPOSER_CACHE_DIR`로 `artifact` repository에서 `composer install`을 실행합니다.
+  `make release-install-lock`은 archive에서 fixture lock을 다시 만듭니다.
+- `docs/operations/repository.ko.md`는 npm과 Composer로 release archive를 설치하는 방법과 개발 해석을 적습니다.
+
 ## 0.0.2
 
 ### 2026-10-07 — release된 tag v0.0.2의 OrderedJSON (C11.4-2)

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-require __DIR__ . '/../../../../packages/validator-php/vendor/autoload.php';
+require __DIR__ . '/../../../../vendor/autoload.php';
 
 use Polyspec\Crudui\Validator;
 use Polyspec\Crudui\Validator\Compose\ComposeLoadError;

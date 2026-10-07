@@ -7,8 +7,7 @@ packages/*/package-lock.json
 
 # Composer dependencies
 examples/**/vendor/
-packages/validator-php/vendor/
-packages/generator-php/vendor/
+/vendor/
 packages/generator-php/.phpunit.cache/
 packages/generator-php/.phpunit.result.cache
 

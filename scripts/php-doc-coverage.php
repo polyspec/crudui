@@ -6,11 +6,12 @@ declare(strict_types=1);
  * Return missing documentation or unresolved source declarations in a package.
  *
  * @param string $srcDir Absolute package source directory.
+ * @param string|null $autoload Composer autoload file; vendor/autoload.php of the development root when null.
  * @return string[] Source or documentation failures, sorted by name.
  */
-function crudui_php_doc_gaps(string $srcDir): array
+function crudui_php_doc_gaps(string $srcDir, ?string $autoload = null): array
 {
-    $autoload = dirname($srcDir) . '/vendor/autoload.php';
+    $autoload ??= __DIR__ . '/../vendor/autoload.php';
     if (!is_file($autoload)) {
         throw new RuntimeException('Composer autoload is required: ' . $autoload);
     }
@@ -100,6 +101,9 @@ if (PHP_SAPI === 'cli' && isset($argv[0]) && realpath($argv[0]) === realpath(__F
             if ($directory === false) {
                 throw new RuntimeException('Source directory is missing: ' . $package);
             }
+            // The classes of the package load from its source directory ahead of the development root vendor/.
+            require_once __DIR__ . '/php-package-autoload.php';
+            crudui_package_autoload(dirname($directory));
             $gaps = crudui_php_doc_gaps($directory);
             if ($gaps !== []) {
                 throw new RuntimeException(implode("\n  ", $gaps));

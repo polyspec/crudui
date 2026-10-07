@@ -1,0 +1,10 @@
+{
+  "name": "@polyspec/crudui-release-install",
+  "version": "0.0.2",
+  "private": true,
+  "dependencies": {
+    "@polyspec/crudui-generator-html": "file:polyspec-crudui-generator-html-0.0.2.tgz",
+    "@polyspec/crudui-generator-core": "file:polyspec-crudui-generator-core-0.0.2.tgz",
+    "@polyspec/crudui-validator": "file:polyspec-crudui-validator-0.0.2.tgz"
+  }
+}

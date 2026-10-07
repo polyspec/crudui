@@ -323,7 +323,7 @@ implement the same compile, render, validation, persistence and SSR request cont
 generator and validator. The PHP extension process loads `crudui.so` and
 `ordered_json.so`; the PHP process loads neither extension.
 The PHP process reads the validator installation directory from
-`packages/generator-php/vendor/composer/installed.php` in the checkout.
+`vendor/composer/installed.php` in the checkout.
 This file is the authoritative installed-package record for the selected
 generator autoloader. Records registered by other Composer installations do not
 affect package selection. The record file, installation directory and validator

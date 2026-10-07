@@ -141,7 +141,7 @@ const rustBinary = path.join(programs, 'rust/target/debug/polyspec-crudui-native
 const phpCLI = path.join(programs, 'php/generate.php');
 const phpLiteral = value => "'" + value.replace(/\\/g, '\\\\').replace(/'/g, "\\'") + "'";
 function phpProvenanceSource(autoload) {
-  const load = autoload ? `require ${phpLiteral(path.join(ROOT, 'packages/generator-php/vendor/autoload.php'))};` : '';
+  const load = autoload ? `require ${phpLiteral(path.join(ROOT, 'vendor/autoload.php'))};` : '';
   return `${load}$out=[];foreach(['generator'=>'Polyspec\\Crudui\\Generator','validator'=>'Polyspec\\Crudui\\Validator','form'=>'Polyspec\\Crudui\\Form'] as $key=>$class){$out[$key]=class_exists($class,false) ? (new ReflectionClass($class))->isInternal() : ${autoload ? '((new ReflectionClass($class))->isInternal())' : 'null'};}echo json_encode($out);`;
 }
 // A target's `build` is a long operation without a time limit; its `probe` is a short check of the
@@ -150,7 +150,7 @@ const targets = [
   { name: 'javascript', command: process.execPath, args: [path.join(ROOT, 'tests/native-generators/javascript.mjs')] },
   { name: 'html', command: process.execPath, args: [path.join(ROOT, 'tests/native-generators/javascript.mjs'), '--renderer', 'html'] },
   { name: 'php', command: process.env.PHP ?? 'php', args: [phpCLI], probe: async () => {
-    await stat(path.join(ROOT, 'packages/generator-php/vendor/autoload.php'));
+    await stat(path.join(ROOT, 'vendor/autoload.php'));
     const result = await execute(process.env.PHP ?? 'php', ['-r', phpProvenanceSource(true)]);
     assert.equal(result.status, 0, result.stderr); assert.equal(result.signal, null);
     assert.equal(result.stderr, '', 'PHP class inspection produced diagnostics');

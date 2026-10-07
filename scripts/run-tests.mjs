@@ -42,7 +42,7 @@ export function parseArguments(argv) {
 }
 
 /** The command of a tool with its progress and timeout arguments. */
-export function toolCommand({ tool, timeoutSeconds, cwd, args }) {
+export function toolCommand({ tool, timeoutSeconds, args }) {
   const milliseconds = String(timeoutSeconds * 1000);
   switch (tool) {
     case 'node':
@@ -67,7 +67,9 @@ export function toolCommand({ tool, timeoutSeconds, cwd, args }) {
         args: [path.join(ROOT, 'scripts/run-rust-command.mjs'), 'test', ...splitCargo(args).cargo, '--', '--test-threads=1', ...splitCargo(args).harness],
       };
     case 'phpunit':
-      return { command: path.join(cwd, 'vendor/bin/phpunit'), args: ['--teamcity', ...args] };
+      // PHPUnit of the root vendor directory, which the development root composer.json installs; COMPOSER_VENDOR_DIR,
+      // the vendor directory setting of Composer, names another one.
+      return { command: path.join(vendorDirectory(), 'bin/phpunit'), args: ['--teamcity', ...args] };
   }
   throw new Error(USAGE);
 }
@@ -206,14 +208,19 @@ export function phpunitEvents(progress) {
   };
 }
 
+/** The Composer vendor directory of the development root: COMPOSER_VENDOR_DIR, or vendor/ of the repository. */
+function vendorDirectory() {
+  return path.resolve(ROOT, process.env.COMPOSER_VENDOR_DIR || 'vendor');
+}
+
 /** The command that installs the program of a tool that cannot start. */
-export function installFix({ tool, cwd }) {
+export function installFix({ tool }) {
   return {
     node: 'install the Node.js release of .node-version',
     vitest: 'npm ci --strict-allow-scripts',
     go: 'install the Go release of .go-version',
     cargo: 'install the Node.js release of .node-version',
-    phpunit: `composer --working-dir=${cwd} install --no-interaction --prefer-dist`,
+    phpunit: `composer install --no-interaction --prefer-dist (in ${ROOT})`,
   }[tool];
 }
 

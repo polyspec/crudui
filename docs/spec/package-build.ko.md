@@ -252,8 +252,9 @@ release를 그 옆에 추가하므로 npm 갱신 뒤에 `npm dedupe`를 실행�
 검사는 network를 읽지 않습니다. Makefile은 모든 recipe와 그것이 시작하는 명령에
 `CARGO_NET_OFFLINE=true`, `GOPROXY=off`, `npm_config_offline=true`,
 `COMPOSER_DISABLE_NETWORK=1`을 export하고, download 대상인 `install`, `install-crates`,
-`install-ordered-json`, `install-cargo-audit`, `dependency-review`만 `$(ONLINE)`으로 이를
-풉니다. `make install-crates`는 Rust record server의 lock이 읽는 OrderedJSON
+`install-ordered-json`, `install-cargo-audit`, `dependency-review`와, lock이 고정한 제3자
+package를 내려받는 release archive의 사용자 설치 `release-install-check`,
+`release-install-lock`만 `$(ONLINE)`으로 이를 풉니다. `make install-crates`는 Rust record server의 lock이 읽는 OrderedJSON
 checkout(`.form-comparison/sources/ordered-json`) 다음에 모든 Cargo.lock의 crate를
 download하고, `make install`이 이를 실행합니다. cargo를 실행하는 모든 대상은
 `make cargo-downloads-check`(`scripts/check-cargo-downloads.mjs`)에 의존합니다. 이 검사는
@@ -298,8 +299,9 @@ GitHub Pages는 `main`의 CI 문서 작업이 성공한 뒤 검사한 웹를
 
 ## PHP 의존성
 
-PHP 검증기는 실행·테스트 의존성을 `composer.json`에 선언합니다.
-`composer.lock`은 확정된 버전을 기록합니다. Composer가 `vendor/`를 설치하며
+각 PHP package의 게시되는 `composer.json`은 실행·테스트 의존성을 선언하고, 개발
+root `composer.json`이 두 package를 해석하며 그 `composer.lock`이 확정된 버전을
+기록합니다. Composer가 root에 `vendor/`를 설치하며
 이 생성 디렉터리는 Git에서 제외합니다. 새 체크아웃은 PHP 검증·테스트·문서
 검사를 실행하기 전에 의존성을 설치해야 합니다. CI는 로컬 개발과 같은 설치
 명령을 사용합니다.
