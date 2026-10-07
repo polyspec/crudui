@@ -68,7 +68,7 @@ try {
   for (const folder of packages) {
     const source = join(root, 'packages', folder);
     const manifest = JSON.parse(readFileSync(join(source, 'package.json'), 'utf8'));
-    assert.equal(manifest.version, '0.0.2', manifest.name);
+    assert.equal(manifest.version, '0.0.3', manifest.name);
     const tarball = await packPackage(source, directory, manifest.name, run);
     dependencies[manifest.name] = `file:${tarball}`;
     packed[manifest.name] = { directory: `packages/${folder}`, tarball, manifest };
