@@ -404,10 +404,13 @@ const checks = [
     await mount(data, hiddenSpec);
     equal(storeName(stores(companies()[0])[0]).closest('[data-field-path]').hidden, true, 'required field is hidden by design');
     // A field hidden by its specification skips its rules; the server decides with its own
-    // specification, where the field is shown, so it still rejects the empty name.
+    // specification, where the field is shown, so it still rejects the empty name. The paths that
+    // the record already hides, a store's `detail` while `enabled` is off, stay hidden after the
+    // name of their store.
     const hiddenData = driver.getData();
     const hiddenNames = Object.entries(hiddenData.companies).flatMap(([company, row]) =>
-      Object.keys(row.stores).map(store => `companies.${company}.stores.${store}.name`));
+      Object.keys(row.stores).flatMap(store => [`companies.${company}.stores.${store}.name`,
+        ...[`companies.${company}.stores.${store}.detail`].filter(detail => client.hidden.includes(detail))]));
     const hiddenClient = validation.validate(hiddenData);
     same(hiddenClient, { valid: true, errors: [], hidden: hiddenNames }, 'a hidden required field skips its rules');
     const hiddenSave = await submit('save');

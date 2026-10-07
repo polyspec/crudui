@@ -306,3 +306,11 @@ export function pipelineResetUnits(origin) {
     },
   }));
 }
+
+/** The combination units of one run against one origin. */
+export function pipelineUnits({ browser, origin }) {
+  return pipelineCombinations().map(combination => ({
+    id: combination.id, timeoutMs: pipelineUnitLimitMs,
+    run: signal => runPipelineCombination({ browser, origin, combination, signal }),
+  }));
+}
