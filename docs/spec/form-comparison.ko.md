@@ -549,8 +549,8 @@ PHP-FPM은 `enable_post_data_reading=0`으로 실행하므로 PHP 서버는 다�
 
 ## 로컬 검증
 
-`examples/form-comparison/local-verification.mjs`(`make test-form-comparison-checks`, CI 작업
-`form-comparison-checks`)는 정본 흐름 검사처럼 체크아웃에서 로컬 구성 하나를 빌드합니다. 레코드 서버
+`examples/form-comparison/local-verification.mjs`(`make test-form-comparison-checks`)는 정본 흐름 검사처럼
+체크아웃에서 로컬 구성 하나를 빌드합니다. 레코드 서버
 프로그램, 공개 디렉터리, 네이티브 레코드 서버 네 개, 공개 서버이며, 각각 시스템이 정한 127.0.0.1의 port에서
 로컬 프로세스로 실행합니다. 결과 디렉터리의 `source.json`에 식별자를 기록한 뒤 다음 단계를 순서대로
 실행하며 실패한 단계가 있는 첫 단계에서 멈춥니다.
@@ -574,3 +574,13 @@ PHP-FPM은 `enable_post_data_reading=0`으로 실행하므로 PHP 서버는 다�
 입력 보고서(모든 프레임워크, 렌더링 경로, 간격이 성공하고 페이지 오류가 없음)가 이 계약의 모든 개수와 성공
 조건을 충족하고 보고서가 그 식별자를 명시하도록 요구합니다. 서버는 실패한 경우에도 실행이 끝날 때
 멈춥니다. 실패한 실행은 결과 디렉터리를 남기고 그 경로를 출력합니다.
+
+CI는 같은 검사를 두 부분으로 나누어 각각 한 번 실행합니다. CI 작업 `form-comparison-browser`는 네이티브
+서버(`php`, `php-ext`, `go`, `rust`)마다 작업 하나를 두므로 각 브라우저 검사가 runner를 혼자 씁니다. 그
+서버를 `FORM_SERVERS`로 지정한 `make test-form-comparison-browser`가 실행기를 `--servers`로 실행하며, 실행기는
+로컬 구성을 시작하고 그 서버의 브라우저 검사(5단계)만 실행하고, 작업은 그 서버의 보고서를 올립니다. CI 작업
+`form-comparison-checks`는 네 작업 뒤에 실행되어 보고서를 내려받고 `make test-form-comparison-summary`를
+실행하며, 이는 실행기를 `--browser-reports`로 실행합니다. 실행기는 자기 로컬 구성을 시작하고 나머지 단계(1~4,
+6, 7)와 근거 검사를 실행하며, 브라우저 집계는 내려받은 보고서 네 개를 읽습니다. 이 실행들의 공개 서버는 모두
+주소 `FORM_ADDRESS`(`--address`, 127.0.0.1:47100)를 쓰므로 보고서 네 개가 집계가 요구하는 origin을 명시하고,
+모든 보고서가 같은 트리의 소스 식별자를 명시합니다. 검사, 보고서, 제한 시간은 단일 실행과 같습니다.

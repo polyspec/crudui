@@ -18,8 +18,8 @@ import * as browserPolicy from './browser-report-policy.mjs';
 import * as pipelineCheck from './check-pipeline.mjs';
 import { pipelineReport } from './check-pipeline.mjs';
 import { pipelineCombinations } from './src/pipeline-flow.mjs';
-import { formFrameworks, formRenderingPaths } from './src/runtime-paths.mjs';
-import { verificationStages } from './local-verification.mjs';
+import { formFrameworks, formRenderingPaths, formServers } from './src/runtime-paths.mjs';
+import { publicAddress, selectedServers, takeBrowserReports, verificationStages } from './local-verification.mjs';
 
 const source = { commit: 'a'.repeat(40), changes: 'c'.repeat(64) };
 const generationCheckIds = [
@@ -105,6 +105,7 @@ async function evidenceFixture(t) {
 }
 
 const stackOrigin = 'http://127.0.0.1:41000';
+const formServerIds = () => [...formServers];
 const prepared = {
   orderedJsonModule: '/run/sources/ordered-json/php-extension/src/modules/ordered_json.so',
   cruduiModule: '/checkout/packages/php-ext/modules/crudui.so',
@@ -139,6 +140,41 @@ test('verifies the local stack in stages, against the origin of its public serve
   assert.deepEqual(byId.typing.environment, { FORM_COMPARISON_RESULTS: '/run/results' });
   // No check reaches a container, a fixed port or a fixed directory of a deployment.
   assert.doesNotMatch(JSON.stringify(checks), /\/workspace|"\/results|"\/data|:8080|container/);
+});
+
+test('splits the verification into the browser checks of selected servers and every other check', async t => {
+  const options = { origin: stackOrigin, results: '/run/results', data: '/run/data', prepared, library: '/checkout' };
+  const full = verificationStages(options).flat();
+  const browser = verificationStages({ ...options, servers: ['php'] });
+  assert.deepEqual(browser.map(stage => stage.map(step => step.id)), [['browser-php']]);
+  assert.deepEqual(browser[0][0], full.find(step => step.id === 'browser-php'));
+  const rest = verificationStages({ ...options, browserReports: true });
+  assert.deepEqual(rest.map(stage => stage.map(step => step.id)), [
+    ['php-modes'], ['generation'], ['persistence'], ['pipeline'], ['browser-summary'], ['typing'],
+  ]);
+  // The four browser jobs and the summary together run every check of the full run, each once, unchanged.
+  const parts = [...formServerIds().flatMap(server => verificationStages({ ...options, servers: [server] }).flat()), ...rest.flat()];
+  assert.deepEqual(parts.map(step => step.id).sort(), full.map(step => step.id).sort());
+  for (const step of parts) assert.deepEqual(step, full.find(item => item.id === step.id));
+  assert.throws(() => verificationStages({ ...options, servers: ['php'], browserReports: true }), /not both/);
+
+  assert.deepEqual(selectedServers('php-ext,rust'), ['php-ext', 'rust']);
+  for (const list of ['', 'js', 'php,php', 'php,node']) assert.throws(() => selectedServers(list), /--servers/, list);
+  assert.equal(publicAddress('127.0.0.1:47100'), '127.0.0.1:47100');
+  assert.equal(publicAddress(), '127.0.0.1:0');
+  assert.throws(() => publicAddress('0.0.0.0:47100'), /--address/);
+
+  // The summary reads the report of every server; a missing report fails before any check.
+  const reports = await mkdtemp(path.join(tmpdir(), 'crudui-browser-reports-'));
+  const results = await mkdtemp(path.join(tmpdir(), 'crudui-results-'));
+  t.after(() => Promise.all([reports, results].map(directory => rm(directory, { recursive: true, force: true }))));
+  for (const server of formServerIds()) await writeFile(path.join(reports, `report-${server}.json`), JSON.stringify({ server }));
+  await takeBrowserReports(reports, results);
+  for (const server of formServerIds()) {
+    assert.deepEqual(JSON.parse(await readFile(path.join(results, `report-${server}.json`), 'utf8')), { server });
+  }
+  await rm(path.join(reports, 'report-go.json'));
+  await assert.rejects(takeBrowserReports(reports, results), /ENOENT/);
 });
 
 test('no browser run has a budget or a summed limit; every unit limit comes from a measurement', () => {

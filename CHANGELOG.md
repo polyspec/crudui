@@ -4,6 +4,16 @@
 
 ## 0.0.3
 
+### 2026-10-07 — The browser checks of each form server in a CI job of its own (C11.6-3)
+
+- The CI job `form-comparison-browser` runs the browser checks of the form comparison in one job per server (`php`,
+  `php-ext`, `go`, `rust`) with `make test-form-comparison-browser`; each job has the runner to itself and uploads the
+  report of its server.
+- The CI job `form-comparison-checks` runs after them with `make test-form-comparison-summary`: the PHP modes,
+  generation, persistence, the canonical flow, the browser summary of the four reports, typing and the evidence, each
+  once. `local-verification.mjs` takes `--servers`, `--browser-reports` and `--address`; the checks, reports and limits
+  are unchanged, and `make test-form-comparison-checks` still runs every check in one run.
+
 ### 2026-10-07 — OrderedJSON from the released tag v0.0.3 (C11.6-2)
 
 - The comparison takes OrderedJSON from the tag `v0.0.3` of `polyspec/ordered-json`: `orderedJsonVersion` of
