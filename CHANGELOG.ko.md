@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+### 2026-10-07 — 세 CI job의 native suite (C12.1-1)
+
+- native suite는 세 CI job에서 실행됩니다. `php-engine`은 PHP 확장의 C 엔진 test인 `make test-php-engine`을
+  Node.js와 C compiler로 한 번 실행하고, `native-generators`는 Go·Rust 생성기 test, protocol·widget test,
+  JavaScript·HTML·Go·Rust 대상의 공용 suite인 `make test-native-generators`와 `make test-bench`를 한 번 실행하며,
+  `php-api`는 `crudui.so` build, 그 builder·API test, PHP 생성기 test, PHP·네이티브 PHP 대상의 공용 suite인
+  `make test-php-api`를 PHP 8.4와 8.5에서 실행합니다. `make test-native`는 세 대상을 실행하고,
+  `PHP_NATIVE_REPORT`는 PHP 대상의 보고서를 지정합니다.
+- job `conformance`는 각 job의 증거 artifact를 별도 디렉터리에 내려받고, `scripts/check-conformance.mjs`는
+  디렉터리와 하위 디렉터리의 증거와 실행 기록을 읽으므로 한 job의 증거 파일이 다른 job의 같은 이름 파일을
+  덮어쓰지 않습니다.
+
 ### 2026-10-07 — release step, Go module tag, archive (C11.1-4)
 
 - `.github/workflows/release.yml`은 tag `v*`와 `**/v*`에서 실행됩니다. tag filter에서 `*`는 `/`와 맞지 않으므로

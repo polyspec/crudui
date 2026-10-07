@@ -67,4 +67,7 @@ compared with the fixture's normalized HTML, where only differences a framework 
 normalized.
 
 `make conformance` clears the directory, runs every suite that records evidence and runs the
-check. CI uploads each job's evidence and runs the check once over all of it.
+check. CI uploads each job's evidence under an artifact name of its own and runs the check once
+over all of it: the conformance job downloads each artifact into a directory of its own, and the
+check reads the evidence files and the `runs/` records of the directory and of its subdirectories,
+so no file of one job replaces a file of the same name from another job.

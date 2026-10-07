@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 
-import { checkConformance, evidenceSuites, suiteStates, summarize } from '../../scripts/check-conformance.mjs';
+import { checkConformance, evidenceSuites, readEvidence, readRuns, suiteStates, summarize } from '../../scripts/check-conformance.mjs';
 import { recordConformance } from '../conformance/evidence.mjs';
 
 const ROOT = path.resolve(import.meta.dirname, '../..');
@@ -98,6 +98,29 @@ const suites = [
   { name: 'Svelte renderer', run: { program: 'scripts/run-tests.mjs', tool: 'vitest', cwd: 'packages/generator-svelte' }, runtimes: ['svelte'] },
 ];
 const run = (fields, started, status) => ({ tool: null, cwd: '.', args: [], ...fields, started, status });
+
+// CI downloads the evidence of each job into a directory of its own, so files of two jobs with the same name, such as
+// php-<pid>.jsonl of processes with the same id on two runners, are both read.
+test('the check reads the evidence and the run records of every subdirectory', async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-evidence-jobs-'));
+  try {
+    for (const [job, name] of [['conformance-evidence-php-api-8.4', 'a'], ['conformance-evidence-php-api-8.5', 'b']]) {
+      await mkdir(path.join(directory, job, 'runs'), { recursive: true });
+      await writeFile(path.join(directory, job, 'php-1234.jsonl'), `${JSON.stringify(record('php', name))}\n`);
+      await writeFile(path.join(directory, job, 'runs', '1234-0a.json'), `${JSON.stringify(run({ program: 'tests/native-generators/run.mjs' }, '2026-10-07T10:00:00.000Z', 0))}\n`);
+      await writeFile(path.join(directory, job, 'runs', '1234-0b.json.partial'), '{');
+    }
+    await writeFile(path.join(directory, 'javascript-1234.jsonl'), `${JSON.stringify(record('javascript', 'a'))}\n`);
+    const { evidence, files } = await readEvidence(directory);
+    assert.equal(files, 3);
+    assert.deepEqual(evidence.map(item => `${item.runtime} ${item.case}`).sort(), ['javascript a', 'php a', 'php b']);
+    assert.equal((await readRuns(directory)).length, 2);
+    assert.deepEqual(await readEvidence(path.join(directory, 'missing')), { evidence: [], files: 0 });
+    assert.deepEqual(await readRuns(path.join(directory, 'missing')), []);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
 
 test('missing evidence names each suite of its runtime that did not run, did not finish or failed', () => {
   const runs = [

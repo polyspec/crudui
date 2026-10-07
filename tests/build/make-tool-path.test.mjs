@@ -54,7 +54,7 @@ test('test-native runs the Rust tests through the test runner', {
     /^node\tscripts\/run-tests\.mjs cargo -- --locked --manifest-path packages\/generator-rust\/Cargo\.toml$/m);
 });
 
-test('test-native runs the native suites after the PHP extension tests fail, and fails', {
+test('test-native runs the generator and PHP API parts after the PHP engine tests fail, and fails', {
   skip: process.platform === 'win32',
 }, async t => {
   const directory = await mkdtemp(path.join(await realpath(os.tmpdir()), 'crudui-make-status-'));
@@ -68,7 +68,7 @@ test('test-native runs the native suites after the PHP extension tests fail, and
   await Promise.all(['composer', 'go', 'npm', 'sh'].map(command => (
     writeExecutable(path.join(commandDirectory, command))
   )));
-  // The PHP extension test command fails; every other command succeeds.
+  // The PHP engine test command fails; every other command succeeds.
   await writeFile(path.join(commandDirectory, 'node'), [
     '#!/bin/sh',
     'printf \'%s\t%s\n\' "${0##*/}" "$*" >> "$COMMAND_LOG"',
@@ -92,8 +92,10 @@ test('test-native runs the native suites after the PHP extension tests fail, and
   assert.equal(result.error, undefined, result.error?.message);
   assert.notEqual(result.status, 0, [result.stdout, result.stderr].join('\n'));
   const commands = await readFile(commandLog, 'utf8');
-  assert.match(commands, /^node\ttests\/native-generators\/run\.mjs --extension /m,
-    `the native suites did not run:\n${commands}`);
+  assert.match(commands, /^node\ttests\/native-generators\/run\.mjs --target javascript,html,go,rust /m,
+    `the generator part did not run:\n${commands}`);
+  assert.match(commands, /^node\ttests\/native-generators\/run\.mjs --extension \S+ --target php,php-native /m,
+    `the PHP API part did not run:\n${commands}`);
 });
 
 test('the Rust command entry point executes regular toolchain files', {

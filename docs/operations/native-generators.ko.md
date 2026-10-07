@@ -25,7 +25,12 @@ make docs-check
 
 `make test-native`는 JavaScript 패키지를 빌드한 다음 확장을 빌드하고 로드하며,
 생성기 패키지 검사 및 JavaScript 기준 구현(React 서버 렌더링), JavaScript HTML 렌더러, PHP,
-Go, Rust, 네이티브 PHP 비교를 실행합니다. 각 런타임은 패키지의 공개 API를 호출하는
+Go, Rust, 네이티브 PHP 비교를 실행합니다. CI가 세 job으로 실행하는 세 부분으로 이루어집니다.
+`make test-php-engine`은 확장의 C 엔진을 C 컴파일러와 그 sanitizer로 컴파일해 검사하며 PHP가 필요 없습니다.
+`make test-native-generators`는 Go·Rust 생성기 검사, 프로토콜·위젯 검사, JavaScript·HTML·Go·Rust 대상의
+공용 검사를 실행하며 PHP가 필요 없습니다. `make test-php-api`는 확장을 빌드하고 로드한 뒤 빌더·API 검사,
+PHP 생성기 검사, PHP·네이티브 PHP 대상의 공용 검사를 실행하며, CI에서는 PHP 릴리스마다 한 번 실행합니다.
+각 런타임은 패키지의 공개 API를 호출하는
 [`tests/native-generators/programs`](../../tests/native-generators/README.ko.md#프로그램)의
 프로그램으로 응답하며, 패키지는 라이브러리만 배포합니다.
 확장 빌드는 `php-config`에서 PHP 실행 파일, 헤더, 빌드 플래그를 읽고 C 바인딩을
@@ -42,9 +47,10 @@ PHP API 검사는 Composer 클래스, Composer 없는 확장, Composer를 함께
 HTML과 각 거부의 코드·메시지·위치 전체를 비교합니다. 실행 전후 입력 해시를 기록하고
 입력이 변경되면 실패합니다.
 
-기본 보고서는 Git 디렉터리의 `native-generators/report.json`이며 `git rev-parse --git-path`로
-결정하므로 worktree에서도 동작합니다. `NATIVE_REPORT`로 다른 보고서 경로를 지정합니다.
-`make test-native`는 어떤 검사보다 먼저 `packages/generator-php`의 검증기 복사본을 다시 설치하므로
+기본 보고서는 Git 디렉터리의 `native-generators/report.json`(JavaScript, HTML, Go, Rust 대상)과
+`native-generators/report-php.json`(PHP, 네이티브 PHP 대상)이며 `git rev-parse --git-path`로
+결정하므로 worktree에서도 동작합니다. `NATIVE_REPORT`와 `PHP_NATIVE_REPORT`로 다른 보고서 경로를 지정합니다.
+`make test-php-api`는 어떤 PHP 검사보다 먼저 `packages/generator-php`의 검증기 복사본을 다시 설치하므로
 PHP 검사가 소스보다 오래된 복사본을 읽지 않습니다. 통과한 실행은 임시 빌드 디렉터리를 삭제합니다. 실패한
 실행은 디렉터리를 남기고 경로를 출력하며 보고서의 `buildDirectory`에 기록합니다. [검사 절차](../../tests/native-generators/README.ko.md)는
 명시적인 확장 경로를 사용하는 직접 실행과 비교 프로토콜을 설명합니다. 실행 파일이나
@@ -71,8 +77,8 @@ container run --rm --cpus 4 --memory 4g \
 ```
 
 이미지의 기본 명령은 `make test-native`입니다. 보고서를 보존하려면 `--rm` 없이
-이름을 지정한 컨테이너를 실행하고, 제거하기 전에 `/tmp/crudui-native-report.json`을
-복사합니다. 이미지 빌드 성공은 컴파일과 모듈 로드를 확인하며, 검사 명령은 보고서에
+이름을 지정한 컨테이너를 실행하고, 제거하기 전에 `/tmp/crudui-native-report.json`과
+`/tmp/crudui-native-php-report.json`을 복사합니다. 이미지 빌드 성공은 컴파일과 모듈 로드를 확인하며, 검사 명령은 보고서에
 기록된 비교를 확인합니다.
 
 ## HTTP와 브라우저 검증

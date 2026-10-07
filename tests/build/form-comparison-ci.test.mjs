@@ -57,7 +57,7 @@ test('CI builds and runs the five record stores and the canonical flow', async (
 
 test('native PHP matrix passes the selected regular php-config path', async () => {
   const workflow = await readFile(path.join(repository, '.github/workflows/ci.yml'), 'utf8');
-  const job = workflowJob(workflow, 'native-generators');
+  const job = workflowJob(workflow, 'php-api');
 
   assert.match(job, /php:\s*\['8\.4', '8\.5'\]/);
   assert.match(
@@ -76,12 +76,14 @@ test('native job caches the generator packages and the programs that run them', 
 
 test('native report upload uses the current Node.js 24 artifact action', async () => {
   const workflow = await readFile(path.join(repository, '.github/workflows/ci.yml'), 'utf8');
-  const job = workflowJob(workflow, 'native-generators');
-  const versions = [...job.matchAll(/uses:\s*actions\/upload-artifact@([^\n]+)/g)]
-    .map(match => match[1].trim());
+  for (const name of ['php-engine', 'native-generators', 'php-api']) {
+    const job = workflowJob(workflow, name);
+    const versions = [...job.matchAll(/uses:\s*actions\/upload-artifact@([^\n]+)/g)]
+      .map(match => match[1].trim());
 
-  assert.ok(versions.length > 0, 'The native job uploads its report');
-  assert.deepEqual(versions.filter(version => !/^[0-9a-f]{40} # v7\.\d+\.\d+$/.test(version)), []);
+    assert.ok(versions.length > 0, `The native job ${name} uploads its report`);
+    assert.deepEqual(versions.filter(version => !/^[0-9a-f]{40} # v7\.\d+\.\d+$/.test(version)), []);
+  }
 });
 
 test('browser CI jobs run the sandboxed Chrome that puppeteer pins', async () => {

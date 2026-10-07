@@ -26,7 +26,13 @@ make docs-check
 
 `make test-native` builds the JavaScript packages, builds and loads the extension,
 runs generator package tests and compares the JavaScript reference (React server rendering),
-the JavaScript HTML renderer, PHP, Go, Rust and native PHP. Each runtime answers through
+the JavaScript HTML renderer, PHP, Go, Rust and native PHP. It runs three parts, which CI runs
+in three jobs: `make test-php-engine` compiles and tests the C engine of the extension with the C
+compiler and its sanitizers and needs no PHP; `make test-native-generators` runs the Go and Rust
+generator tests, the protocol and widget tests and the shared suite for the JavaScript, HTML, Go
+and Rust targets and needs no PHP; `make test-php-api` builds and loads the extension and runs its
+builder and API tests, the PHP generator tests and the shared suite for the PHP and native PHP
+targets, in CI once for each PHP release. Each runtime answers through
 a program in [`tests/native-generators/programs`](../../tests/native-generators/README.md#programs)
 that calls its package's public API; the packages publish libraries only.
 The extension build reads the PHP executable, headers and build flags from
@@ -46,9 +52,11 @@ suite compares templates, evaluated fields, data, row operations, original HTML
 and each rejection's complete code, message and location. It records hashes
 before and after execution and fails if an input changes.
 
-The default report is `native-generators/report.json` in the Git directory, resolved with
-`git rev-parse --git-path`, so it also works in a worktree. `NATIVE_REPORT` selects another
-report path. Before any check, `make test-native` reinstalls the validator copy in
+The default reports are `native-generators/report.json` of the JavaScript, HTML, Go and Rust
+targets and `native-generators/report-php.json` of the PHP and native PHP targets in the Git
+directory, resolved with `git rev-parse --git-path`, so they also work in a worktree.
+`NATIVE_REPORT` and `PHP_NATIVE_REPORT` select other report paths. Before any PHP check,
+`make test-php-api` reinstalls the validator copy in
 `packages/generator-php`, so the PHP checks never load a copy older than its source. A passing run removes its temporary build directory. A failing
 run keeps it, prints its path and records it as `buildDirectory` in the report. The [suite procedure](../../tests/native-generators/README.md)
 describes direct invocation with an explicit extension path and the comparison
@@ -79,8 +87,8 @@ container run --rm --cpus 4 --memory 4g \
 ```
 
 The image's default command runs `make test-native`. For a retained report, run a
-named container without `--rm` and copy `/tmp/crudui-native-report.json` before
-removing that container. A successful image build establishes compilation and
+named container without `--rm` and copy `/tmp/crudui-native-report.json` and
+`/tmp/crudui-native-php-report.json` before removing that container. A successful image build establishes compilation and
 module loading; the test command establishes the recorded comparisons.
 
 ## HTTP and browser verification

@@ -3,10 +3,14 @@ import { execFileSync } from 'node:child_process';
 import { readFile, readdir } from 'node:fs/promises';
 import path from 'node:path';
 import { test } from 'node:test';
+import { fileURLToPath } from 'node:url';
 
 import { parse } from 'yaml';
 
+import { makeDryRun } from './make-dry-run.mjs';
+
 const read = (file) => readFile(new URL(`../../${file}`, import.meta.url), 'utf8');
+const ROOT = fileURLToPath(new URL('../..', import.meta.url));
 
 // Steps that prepare a runner rather than check the repository.
 const preparation = [
@@ -61,6 +65,52 @@ test('the last CI job ci-passed needs every other job and runs always', async ()
   assert.equal(job['runs-on'], 'ubuntu-24.04');
   assert.deepEqual(job.steps.filter((step) => step.run !== undefined && !/^make toolchain-check\b/.test(step.run)).map((step) => step.run),
     ["make ci-passed RESULTS='${{ toJSON(needs) }}'"]);
+});
+
+// The native suites run in three jobs: the C engine of the PHP extension and the generators of the JavaScript, HTML, Go
+// and Rust targets once, and the PHP API for each PHP release of the matrix; make test-native runs the three parts.
+const NATIVE_JOBS = {
+  'php-engine': { targets: 'test-php-engine', tools: ['actions/checkout', 'actions/setup-node'] },
+  'native-generators': { targets: 'test-native-generators test-bench', tools: ['actions/checkout', 'actions/setup-node', 'shivammathur/setup-php', 'actions/setup-go', 'Swatinem/rust-cache'] },
+  'php-api': { targets: 'test-php-api', tools: ['actions/checkout', 'actions/setup-node', 'shivammathur/setup-php'], php: ['8.4', '8.5'] },
+};
+
+test('the native suites run in three jobs, the PHP API once for each PHP release, and make test-native runs all three', async () => {
+  const workflow = parse(await read('.github/workflows/ci.yml'));
+  for (const [id, expected] of Object.entries(NATIVE_JOBS)) {
+    const job = workflow.jobs[id];
+    assert.ok(job, `the CI workflow has the job ${id}`);
+    assert.deepEqual(job.steps.map((step) => step.run).filter((run) => /^make ci-targets\b/.test(run ?? '')), [`make ci-targets TARGETS="${expected.targets}"`], id);
+    const tools = job.steps.map((step) => String(step.uses ?? '').split('@')[0])
+      .filter((uses) => uses && !['actions/upload-artifact', 'actions/cache'].includes(uses));
+    assert.deepEqual(tools, expected.tools, id);
+    assert.deepEqual(job.strategy?.matrix?.php, expected.php, id);
+  }
+  const run = makeDryRun(ROOT, 'test-native');
+  assert.equal(run.status, 0, run.stderr);
+  const commands = run.stdout.split('\n');
+  for (const command of [
+    /^node scripts\/run-tests\.mjs node -- packages\/php-ext\/tests\/engine\.test\.mjs$/,
+    /^node tests\/native-generators\/run\.mjs --target javascript,html,go,rust --report "[^"]+report\.json" \|\| status=1; \\$/,
+    /^node tests\/native-generators\/run\.mjs --extension "[^"]+crudui\.so" --target php,php-native --report "[^"]+report-php\.json" \|\| status=1; \\$/,
+  ]) assert.equal(commands.filter((line) => command.test(line.trim())).length, 1, `${command}\n${run.stdout}`);
+});
+
+// Each job preserves its conformance evidence under a name of its own, and the conformance job downloads each artifact
+// into a directory of its own, so no evidence file of one job replaces a file of another.
+test('every evidence artifact has a name of its own and the conformance job reads each from its own directory', async () => {
+  const workflow = parse(await read('.github/workflows/ci.yml'));
+  const uploads = Object.entries(workflow.jobs).flatMap(([id, job]) => (job.steps ?? [])
+    .filter((step) => step.with?.path === 'conformance-evidence/')
+    .flatMap((step) => (job.strategy?.matrix?.php ?? [undefined])
+      .map((php) => ({ id, name: php === undefined ? step.with.name : step.with.name.replaceAll('${{ matrix.php }}', php) }))));
+  const names = uploads.map((upload) => upload.name);
+  assert.equal(new Set(names).size, names.length, names.join(', '));
+  assert.ok(names.every((name) => /^conformance-evidence-[\w.-]+$/.test(name)), names.join(', '));
+  const conformance = workflow.jobs.conformance;
+  assert.deepEqual([...conformance.needs].sort(), [...new Set(uploads.map((upload) => upload.id))].sort());
+  const download = conformance.steps.find((step) => String(step.uses ?? '').startsWith('actions/download-artifact@'));
+  assert.deepEqual(download.with, { pattern: 'conformance-evidence-*', path: 'conformance-evidence' });
 });
 
 test('make ci runs every checking command of the CI workflow, in the same order', async () => {

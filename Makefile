@@ -29,7 +29,7 @@ export GOPROXY := off
 export npm_config_offline := true
 export COMPOSER_DISABLE_NETWORK := 1
 ONLINE := env -u CARGO_NET_OFFLINE -u GOPROXY -u npm_config_offline -u COMPOSER_DISABLE_NETWORK
-.PHONY: help ci-targets ci-passed release-verify release-versions release-assets release-publish push-gate-check install install-npm install-node-modules install-composer install-rust install-phpdocumentor install-browsers check-ci-browser test-runtimes test-dependencies build lint typecheck test-validator-js test-validator-php test-validator-go test-validator-rust test-cross-check manifest-test require-build test-cli manifest-check manifest-docs-check test-forms test-form-comparison test-form-comparison-pipeline test-packages test-build test-build-repeat test-inspector test-bench check-conformance install-crates install-ordered-json install-cargo-audit cargo-downloads-check dependency-review toolchain-check owner-check test-ordered-json docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-extension test-native test-native-suites test-validators test-form-binding conformance format-check deploy deploy-verify deploy-watch github-settings github-settings-check records-check hooks hooks-check ci rerun-failed test-form-styles-linux remove-form-styles-image
+.PHONY: help ci-targets ci-passed release-verify release-versions release-assets release-publish push-gate-check install install-npm install-node-modules install-composer install-rust install-phpdocumentor install-browsers check-ci-browser test-runtimes test-dependencies build lint typecheck test-validator-js test-validator-php test-validator-go test-validator-rust test-cross-check manifest-test require-build test-cli manifest-check manifest-docs-check test-forms test-form-comparison test-form-comparison-pipeline test-packages test-build test-build-repeat test-inspector test-bench check-conformance install-crates install-ordered-json install-cargo-audit cargo-downloads-check dependency-review toolchain-check owner-check test-ordered-json docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-engine test-native-generators test-php-api test-native test-validators test-form-binding conformance format-check deploy deploy-verify deploy-watch github-settings github-settings-check records-check hooks hooks-check ci rerun-failed test-form-styles-linux remove-form-styles-image
 .NOTPARALLEL: docs docs-web docs-dev docs-preview docs-check docs-verify-idempotent
 
 # Validator benchmark iteration counts (override on the command line, e.g.
@@ -37,8 +37,10 @@ ONLINE := env -u CARGO_NET_OFFLINE -u GOPROXY -u npm_config_offline -u COMPOSER_
 BENCH_ITERS  ?= 50000
 BENCH_WARMUP ?= 5000
 PHP_EXTENSION ?= $(CURDIR)/packages/php-ext/modules/crudui.so
-# Reports live in the Git directory, which is a file-referenced directory in a worktree.
+# Reports live in the Git directory, which is a file-referenced directory in a worktree: NATIVE_REPORT of the JavaScript,
+# HTML, Go and Rust targets and PHP_NATIVE_REPORT of the PHP and native PHP targets of tests/native-generators/run.mjs.
 NATIVE_REPORT ?= $(shell git rev-parse --git-path native-generators/report.json)
+PHP_NATIVE_REPORT ?= $(shell git rev-parse --git-path native-generators/report-php.json)
 CONFORMANCE_EVIDENCE ?= $(abspath $(shell git rev-parse --git-path conformance-evidence))
 # Every make run installs the tracked Git hooks: it sets core.hooksPath to .githooks when the setting differs, so the
 # pre-push hook .githooks/pre-push refuses a push while a checklist task is [~] (scripts/push-gate.mjs, AGENTS.md).
@@ -65,8 +67,10 @@ help: ## 타겟 설명
 	@echo "  make docs-check-libs       라이브러리 packages/* 만 검사"
 	@echo "  make docs-verify-idempotent  docs 를 2회 생성하고 diff 가 비는지 검증"
 	@echo "  make build-php-extension   Build and load the native PHP module"
-	@echo "  make test-php-extension    Test the native PHP engine, its builder and its PHP API"
-	@echo "  make test-native           Test PHP, Go, Rust and native PHP generation"
+	@echo "  make test-php-engine       Test the C engine of the native PHP module with the C compiler and its sanitizers"
+	@echo "  make test-native-generators  Test the Go and Rust generators and compare JavaScript, HTML, Go and Rust generation"
+	@echo "  make test-php-api          Build the native PHP module, test its builder and PHP API and compare PHP and native PHP generation"
+	@echo "  make test-native           Run test-php-engine, test-native-generators and test-php-api"
 	@echo "  make test-validators       Test the JavaScript, PHP, Go and Rust validators"
 	@echo "  make test-form-binding     Test the browser validation binding, its markup parity and three browsers"
 	@echo "  make conformance           Run every conformance suite and check the evidence against the standard"
@@ -330,30 +334,42 @@ build-php-extension:
 	node scripts/require-current-build.mjs
 	node scripts/build-crudui-php-extension.mjs
 
-test-php-extension: build-php-extension
-	# api.test.mjs loads the vendor directory of generator-php, which installs the validator as a copy; refresh it first,
-	# under the checkout lock of that vendor directory, so two runs never reinstall it at once.
-	node scripts/holder-lock.mjs hold "$(CURDIR)/var/locks/composer-generator-php.lock" -- composer --working-dir=packages/generator-php reinstall polyspec/crudui-validator --no-interaction
-	node scripts/run-tests.mjs node -- tests/native-generators/php-extension-builder.test.mjs packages/php-ext/tests/engine.test.mjs packages/php-ext/tests/api.test.mjs
+# The native suites in three parts, which CI runs in three jobs (.github/workflows/ci.yml) and test-native runs in one
+# command. test-php-engine compiles the C engine of the PHP extension with the C compiler and its sanitizers and needs
+# no PHP; test-native-generators runs the Go and Rust generator suites, the widget and protocol tests and the shared
+# suite for the JavaScript, HTML, Go and Rust targets and needs no PHP; test-php-api builds and loads the extension and
+# runs the PHP generator suite, the PHP API tests and the shared suite for the PHP and native PHP targets, once for each
+# PHP release of the CI matrix. Within a part every suite runs even when an earlier one fails, so one run reports every
+# failure; any failure fails the target.
+test-php-engine:
+	node scripts/require-current-build.mjs
+	node scripts/run-tests.mjs node -- packages/php-ext/tests/engine.test.mjs
 
-# Both suites run even when the first fails, so one run reports every failure; any failure fails the target.
-test-native:
+test-native-generators: cargo-downloads-check
+	node scripts/require-current-build.mjs
 	@status=0; \
-	$(MAKE) --no-print-directory test-php-extension || status=1; \
-	$(MAKE) --no-print-directory test-native-suites || status=1; \
-	exit $$status
-
-test-native-suites: cargo-downloads-check build-php-extension
-	# generator-php installs the validator as a copy; refresh it from source before any check loads it, under the
-	# checkout lock of that vendor directory, so two runs never reinstall it at once.
-	node scripts/holder-lock.mjs hold "$(CURDIR)/var/locks/composer-generator-php.lock" -- composer --working-dir=packages/generator-php reinstall polyspec/crudui-validator --no-interaction
-	@status=0; \
-	node scripts/run-tests.mjs phpunit --cwd packages/generator-php || status=1; \
 	node scripts/run-tests.mjs go --cwd packages/generator-go -- -race ./... || status=1; \
 	node scripts/run-tests.mjs cargo -- --locked --manifest-path packages/generator-rust/Cargo.toml || status=1; \
 	node scripts/run-tests.mjs node -- tests/native-generators/protocol.test.mjs || status=1; \
 	node scripts/run-tests.mjs node --timeout 60 -- tests/widget-scripts.test.mjs || status=1; \
-	node tests/native-generators/run.mjs --extension "$(PHP_EXTENSION)" --report "$(NATIVE_REPORT)" || status=1; \
+	node tests/native-generators/run.mjs --target javascript,html,go,rust --report "$(NATIVE_REPORT)" || status=1; \
+	exit $$status
+
+test-php-api: build-php-extension
+	# generator-php installs the validator as a copy; refresh it from source before any check loads it, under the
+	# checkout lock of that vendor directory, so two runs never reinstall it at once.
+	node scripts/holder-lock.mjs hold "$(CURDIR)/var/locks/composer-generator-php.lock" -- composer --working-dir=packages/generator-php reinstall polyspec/crudui-validator --no-interaction
+	@status=0; \
+	node scripts/run-tests.mjs node -- tests/native-generators/php-extension-builder.test.mjs packages/php-ext/tests/api.test.mjs || status=1; \
+	node scripts/run-tests.mjs phpunit --cwd packages/generator-php || status=1; \
+	node tests/native-generators/run.mjs --extension "$(PHP_EXTENSION)" --target php,php-native --report "$(PHP_NATIVE_REPORT)" || status=1; \
+	exit $$status
+
+test-native:
+	@status=0; \
+	$(MAKE) --no-print-directory test-php-engine || status=1; \
+	$(MAKE) --no-print-directory test-native-generators || status=1; \
+	$(MAKE) --no-print-directory test-php-api || status=1; \
 	exit $$status
 
 test-validators: cargo-downloads-check
@@ -379,8 +395,7 @@ conformance: cargo-downloads-check
 	@status=0; \
 	export CRUDUI_CONFORMANCE_EVIDENCE="$(CONFORMANCE_EVIDENCE)"; \
 	$(MAKE) --no-print-directory test-validators || status=1; \
-	$(MAKE) --no-print-directory test-php-extension || status=1; \
-	$(MAKE) --no-print-directory test-native-suites || status=1; \
+	$(MAKE) --no-print-directory test-native || status=1; \
 	$(NPM) run test:forms || status=1; \
 	$(NPM) test --prefix examples/cross-check-console/server || status=1; \
 	node scripts/check-conformance.mjs || status=1; \
@@ -503,8 +518,10 @@ CI_COMMANDS = \
 	'make test-build' \
 	'make test-build-repeat' \
 	'make test-inspector' \
-	'make test-native' \
+	'make test-php-engine' \
+	'make test-native-generators' \
 	'make test-bench' \
+	'make test-php-api' \
 	'make check-conformance'
 # The stylesheet layout checks as the Linux CI runner runs them (WebKit, Chromium and Firefox in
 # the Playwright image of the pinned version), through `container` on macOS or `docker`. It is not

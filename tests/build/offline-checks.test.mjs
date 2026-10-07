@@ -79,6 +79,10 @@ function runsCargo(command, directory = '.', seen = new Set()) {
     const found = directories.find(dir => manifestOf(dir).name === workspace);
     if (found && script(found, 'test')) return true;
   }
+  // tests/native-generators/run.mjs builds the Rust program only for its target rust, which runs when --target names it
+  // or when no --target selects the targets.
+  const nativeTargets = /\btests\/native-generators\/run\.mjs\b[^;|&]*?--target (\S+)/.exec(command);
+  if (nativeTargets && !nativeTargets[1].replace(/["']/g, '').split(',').includes('rust')) command = command.replace(/\S*tests\/native-generators\/run\.mjs\b/, '');
   // `run-rust-command.mjs fmt` formats sources and reads no crate.
   return command.replace(/\S*run-rust-command\.mjs fmt\b/g, '').split(/[\s'"]+/).some(token => {
     const file = path.posix.normalize(path.posix.join(directory, token.replace(/^\$\(CURDIR\)\//, '')));
@@ -107,6 +111,9 @@ test('every target that runs cargo depends on cargo-downloads-check', () => {
   const targets = makeTargets(makefile);
   assert.deepEqual(targets[CHECK]?.commands, ['node scripts/check-cargo-downloads.mjs']);
   assert.ok(CARGO_FILES.has('scripts/gen-api-docs.mjs') && CARGO_FILES.has('tools/bench/run.js'), 'the cargo files must include the API documentation and the benchmark');
+  assert.equal(runsCargo('node tests/native-generators/run.mjs --report r.json'), true);
+  assert.equal(runsCargo('node tests/native-generators/run.mjs --target javascript,rust --report r.json'), true);
+  assert.equal(runsCargo('node tests/native-generators/run.mjs --extension "$(PHP_EXTENSION)" --target php,php-native --report r.json'), false);
   const depends = (name, seen = new Set()) => {
     if (seen.has(name) || !targets[name]) return false;
     seen.add(name);

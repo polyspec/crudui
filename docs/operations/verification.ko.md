@@ -23,9 +23,11 @@ make docs-check
 의존성을 기록된 review와 대조합니다. 새 review는 `make dependency-review RECORD=1`이 기록합니다
 (docs/spec/package-build.md).
 `npm run typecheck`는 모든 TypeScript 패키지의 타입을 검사합니다. `make test-validators`는
-TypeScript, PHP, Go, Rust 검증기 테스트 모음을 실행합니다. `make test-native`는 PHP 확장을
-빌드하고 엔진·빌더·API 테스트(`make test-php-extension`)를 실행한 뒤 PHP, Go, Rust, 공통
-프로토콜, 생성기 검사와 Chromium 위젯·시간대 검사를 실행합니다.
+TypeScript, PHP, Go, Rust 검증기 테스트 모음을 실행합니다. `make test-native`는 세 부분을
+실행합니다. PHP 확장의 C 엔진 테스트(`make test-php-engine`), Go·Rust 생성기 테스트, 공통 프로토콜,
+Chromium 위젯 검사와 JavaScript·HTML·Go·Rust 대상의 공통 생성기 검사(`make test-native-generators`),
+그리고 PHP 확장 빌드, 그 빌더·API 테스트, PHP 생성기 테스트와 시간대 검사를 포함한 PHP·네이티브 PHP
+대상의 공통 생성기 검사(`make test-php-api`)입니다.
 `npm run test:form-comparison:pipeline`은 이 트리에서 다섯 레코드 서버(`.form-comparison/sources/ordered-json`의
 OrderedJSON 체크아웃, 두 PHP 확장, Go 바이너리, Rust 바이너리)를 빌드하고, 다섯 서버 모두에
 레코드 저장소 HTTP 계약을 실행하고, Go·Rust 서버 테스트를 실행한 뒤, 로컬 구성에서 서버·
