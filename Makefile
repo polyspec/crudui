@@ -29,7 +29,7 @@ export GOPROXY := off
 export npm_config_offline := true
 export COMPOSER_DISABLE_NETWORK := 1
 ONLINE := env -u CARGO_NET_OFFLINE -u GOPROXY -u npm_config_offline -u COMPOSER_DISABLE_NETWORK
-.PHONY: help ci-targets push-gate-check install install-npm install-node-modules install-composer install-rust install-phpdocumentor install-browsers check-ci-browser test-runtimes test-dependencies build lint typecheck test-validator-js test-validator-php test-validator-go test-validator-rust test-cross-check manifest-test require-build test-cli manifest-check manifest-docs-check test-forms test-form-comparison test-form-comparison-pipeline test-packages test-build test-build-repeat test-inspector test-bench check-conformance install-crates install-ordered-json install-cargo-audit cargo-downloads-check dependency-review toolchain-check owner-check test-ordered-json docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-extension test-native test-native-suites test-validators test-form-binding conformance format-check deploy deploy-verify deploy-watch github-settings github-settings-check records-check hooks hooks-check ci rerun-failed test-form-styles-linux remove-form-styles-image
+.PHONY: help ci-targets ci-passed push-gate-check install install-npm install-node-modules install-composer install-rust install-phpdocumentor install-browsers check-ci-browser test-runtimes test-dependencies build lint typecheck test-validator-js test-validator-php test-validator-go test-validator-rust test-cross-check manifest-test require-build test-cli manifest-check manifest-docs-check test-forms test-form-comparison test-form-comparison-pipeline test-packages test-build test-build-repeat test-inspector test-bench check-conformance install-crates install-ordered-json install-cargo-audit cargo-downloads-check dependency-review toolchain-check owner-check test-ordered-json docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-extension test-native test-native-suites test-validators test-form-binding conformance format-check deploy deploy-verify deploy-watch github-settings github-settings-check records-check hooks hooks-check ci rerun-failed test-form-styles-linux remove-form-styles-image
 .NOTPARALLEL: docs docs-web docs-dev docs-preview docs-check docs-verify-idempotent
 
 # Validator benchmark iteration counts (override on the command line, e.g.
@@ -81,6 +81,7 @@ help: ## 타겟 설명
 	@echo "  make github-settings       Apply the repository settings and the ruleset main in .github/repository.json"
 	@echo "  make github-settings-check Fail when the repository settings differ from the declaration"
 	@echo "  make records-check         The document and checklist rules that need Node.js alone"
+	@echo "  make ci-passed             Fail unless every job of RESULTS, the toJSON(needs) of the CI job ci-passed, succeeded"
 	@echo ""
 	@echo "CRUDUI validator benchmark — make targets:"
 	@echo ""
@@ -434,6 +435,12 @@ hooks: ## Install the tracked Git hooks (.githooks) and check them
 
 hooks-check: ## Fail when the pre-push hook is not installed
 	node scripts/push-gate.mjs hooks-check
+
+# The last job ci-passed of .github/workflows/ci.yml: RESULTS holds toJSON(needs), the results of every other job of the
+# workflow, and the target fails unless each one is success (scripts/ci-passed.mjs). The ruleset main of
+# .github/repository.json requires this check and push-gate.
+ci-passed: ## Fail unless every job of RESULTS, the toJSON(needs) of the job ci-passed, succeeded
+	node scripts/ci-passed.mjs
 
 # The push check of .github/workflows/push-gate.yml: the checked-out commit has no checklist task in progress and tracks
 # the hook.

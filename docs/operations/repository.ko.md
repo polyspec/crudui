@@ -30,7 +30,7 @@ merge group, 수동 실행에서, `.github/workflows/push-gate.yml`은 `gh-reado
 저장소에는 요청을 보내지 않고, 새 저장소는 선언대로 맞춘 뒤 두 번째 실행에서 아무 요청도 보내지
 않으며, 선언하지 않은 배포 브랜치는 제거합니다. rule, check, merge 방식의 순서는 차이가 아니고, 다른
 ruleset은 id로 교체하되 다른 이름의 ruleset은 그대로 두며, 같은 이름의 ruleset이 둘이면 실패합니다. 또한
-ruleset의 check가 push check와 CI workflow의 job, matrix 항목마다 하나와 같아야 합니다.
+ruleset의 check가 정확히 `push-gate`와 `ci-passed`이고 각각 job 하나의 check여야 합니다.
 
 ## main 게시
 
@@ -54,8 +54,12 @@ ruleset `main`은 enforcement `active`로 `refs/heads/main`에 적용되고 bypa
 - `required_linear_history`, `non_fast_forward`, `deletion`: `main`에 merge commit, force-push, 삭제를
   허용하지 않습니다.
 - `required_status_checks`: `.github/workflows/push-gate.yml`의 check `push-gate`와
-  `.github/workflows/ci.yml`의 모든 job의 check(matrix 항목마다 하나)로, 모두 GitHub Actions app(integration
-  15368)의 check입니다.
+  `.github/workflows/ci.yml`의 check `ci-passed`로, 둘 다 GitHub Actions app(integration 15368)의 check입니다.
+  `ci-passed`는 CI workflow의 마지막 job으로, 다른 모든 job을 needs로 두고 `if: ${{ always() }}`로 실행되며
+  `make ci-passed RESULTS='${{ toJSON(needs) }}'`를 실행합니다. 이 target은 needs의 job 결과가 모두 `success`가
+  아니면 실패하므로 실패, 취소, 건너뜀 job이 모두 이 check를 실패시키고, CI job을 추가하거나 이름을 바꿔도
+  ruleset은 바뀌지 않습니다. `tests/build/ci-local.test.mjs`는 이 job이 마지막 job이고 `needs`에 다른 모든 job이
+  있기를 요구합니다.
 
 `git push origin <commit>:main`으로 직접 push하면 `GH013: Repository rule violations found`로 거부됩니다.
 pre-push hook은 branch push에서 실행됩니다. `gh pr merge --auto`는 pull request에서 필수 check가 통과하면 그

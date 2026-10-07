@@ -1,7 +1,8 @@
 # Build, validation, rendering and documentation checks of every pull request and of every merge group of the merge
-# queue. The ruleset main of .github/repository.json requires every job of this workflow, and the merge queue moves main
-# to the merge group commit only after they passed on it (docs/operations/repository.md). The documentation web of main
-# is deployed by .github/workflows/pages.yml.
+# queue. The last job ci-passed needs every other job and fails unless each of them succeeded; the ruleset main of
+# .github/repository.json requires it and push-gate, and the merge queue moves main to the merge group commit only after
+# they passed on it (docs/operations/repository.md). The documentation web of main is deployed by
+# .github/workflows/pages.yml.
 
 name: CI
 
@@ -647,3 +648,17 @@ jobs:
           name: report-conformance
           path: var/report/ci-targets
           if-no-files-found: error
+  ci-passed:
+    if: ${{ always() }}
+    needs: [build-lint, validator-js, validator-php, validator-go, validator-rust, docs-coverage, cross-check-console, cli, form-runtime, form-comparison, form-comparison-pipeline, package-browser, native-generators, conformance]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - name: Setup the Node.js release of .node-version
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version-file: '.node-version'
+      - name: Check the recorded toolchain versions
+        run: make toolchain-check TOOLS=node
+      - name: Fail unless every other job succeeded
+        run: make ci-passed RESULTS='${{ toJSON(needs) }}'
