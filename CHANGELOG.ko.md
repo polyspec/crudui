@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.0.2
+
 ### 2026-10-07 — GitHub 본문 한도 안의 release notes (C11.3)
 
 - `make release-publish`는 `CHANGELOG.md`의 section `## X.Y.Z`가 GitHub release 본문 한도인 125000자 이하이면
