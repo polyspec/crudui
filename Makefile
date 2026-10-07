@@ -22,14 +22,15 @@ export RUSTUP_AUTO_INSTALL := 0
 export GOTOOLCHAIN := local
 # A check reads no network (docs/spec/package-build.md, "Offline checks"): every recipe and the scripts that it starts
 # run cargo, go, npm and Composer offline, so a missing download fails at once instead of reaching a registry in one run
-# and not in another. The targets that download, install-crates, install-ordered-json, install-cargo-audit and
-# dependency-review, and the downloads of install run their commands with $(ONLINE); cargo-downloads-check names make install for a missing crate.
+# and not in another. The targets that download, install-crates, install-ordered-json, install-cargo-audit,
+# dependency-review and the consumer installs release-install-check and release-install-lock, and the downloads of install
+# run their commands with $(ONLINE); cargo-downloads-check names make install for a missing crate.
 export CARGO_NET_OFFLINE := true
 export GOPROXY := off
 export npm_config_offline := true
 export COMPOSER_DISABLE_NETWORK := 1
 ONLINE := env -u CARGO_NET_OFFLINE -u GOPROXY -u npm_config_offline -u COMPOSER_DISABLE_NETWORK
-.PHONY: help ci-targets ci-passed release-verify release-versions release-assets release-publish push-gate-check install install-npm install-node-modules install-composer install-rust install-phpdocumentor install-browsers check-ci-browser test-runtimes test-dependencies build lint typecheck test-validator-js test-validator-php test-validator-go test-validator-rust test-cross-check manifest-test require-build test-cli manifest-check manifest-docs-check test-forms test-form-comparison test-form-comparison-pipeline test-form-comparison-checks test-packages test-build test-build-repeat test-inspector test-bench check-conformance install-crates install-ordered-json install-cargo-audit cargo-downloads-check dependency-review toolchain-check owner-check test-ordered-json docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-engine test-native-generators test-php-api test-native test-validators test-form-binding conformance format-check github-settings github-settings-check records-check hooks hooks-check ci rerun-failed
+.PHONY: help ci-targets ci-passed release-verify release-versions release-assets release-install-check release-install-lock release-publish push-gate-check install install-npm install-node-modules install-composer install-rust install-phpdocumentor install-browsers check-ci-browser test-runtimes test-dependencies build lint typecheck test-validator-js test-validator-php test-validator-go test-validator-rust test-cross-check manifest-test require-build test-cli manifest-check manifest-docs-check test-forms test-form-comparison test-form-comparison-pipeline test-form-comparison-checks test-packages test-build test-build-repeat test-inspector test-bench check-conformance install-crates install-ordered-json install-cargo-audit cargo-downloads-check dependency-review toolchain-check owner-check test-ordered-json docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-engine test-native-generators test-php-api test-native test-validators test-form-binding conformance format-check github-settings github-settings-check records-check hooks hooks-check ci rerun-failed
 .NOTPARALLEL: docs docs-web docs-dev docs-preview docs-check docs-verify-idempotent
 
 # Validator benchmark iteration counts (override on the command line, e.g.
@@ -84,6 +85,8 @@ help: ## 타겟 설명
 	@echo "  make release-verify        Check that the commit of TAG is on main and passed push-gate and ci-passed"
 	@echo "  make release-versions      Check the version of TAG in every package file and the change log section"
 	@echo "  make release-assets        Build the packages and write the npm and Composer archives of TAG to var/release/assets"
+	@echo "  make release-install-check Install the archives of var/release/assets from the consumer fixtures"
+	@echo "  make release-install-lock  Write the consumer fixtures and regenerate their locks from var/release/assets"
 	@echo "  make release-publish       Create the GitHub Release of TAG with its change log section and archives"
 	@echo ""
 	@echo "CRUDUI validator benchmark — make targets:"
@@ -111,9 +114,10 @@ install-npm: ## Install the npm release of packageManager into .tools/npm
 install-node-modules: install-npm install-ordered-json ## Install the npm dependencies of package-lock.json with their approved install scripts
 	$(ONLINE) $(NPM) ci --strict-allow-scripts
 
-install-composer: ## Install the Composer dependencies of validator-php and generator-php
-	$(ONLINE) composer --working-dir=packages/validator-php install --no-interaction --prefer-dist
-	$(ONLINE) composer --working-dir=packages/generator-php install --no-interaction --prefer-dist
+# The development root composer.json, never published, resolves the Composer packages of packages/: its path
+# repository installs polyspec/crudui-validator as a copy into vendor/, and its autoload reads the generator sources.
+install-composer: ## Install the Composer dependencies of the development root composer.json into vendor/
+	$(ONLINE) composer install --no-interaction --prefer-dist
 
 install-rust: ## Install the Rust toolchain of rust-toolchain.toml
 	rustup toolchain install --no-self-update
@@ -353,9 +357,9 @@ test-native-generators: cargo-downloads-check
 	exit $$status
 
 test-php-api: build-php-extension
-	# generator-php installs the validator as a copy; refresh it from source before any check loads it, under the
+	# The root vendor/ holds the validator as a copy; refresh it from source before any check loads it, under the
 	# checkout lock of that vendor directory, so two runs never reinstall it at once.
-	node scripts/holder-lock.mjs hold "$(CURDIR)/var/locks/composer-generator-php.lock" -- composer --working-dir=packages/generator-php reinstall polyspec/crudui-validator --no-interaction
+	node scripts/holder-lock.mjs hold "$(CURDIR)/var/locks/composer-vendor.lock" -- composer reinstall polyspec/crudui-validator --no-interaction
 	@status=0; \
 	node scripts/run-tests.mjs node -- tests/native-generators/php-extension-builder.test.mjs packages/php-ext/tests/api.test.mjs || status=1; \
 	node scripts/run-tests.mjs phpunit --cwd packages/generator-php || status=1; \
@@ -463,6 +467,17 @@ release-versions: ## Check the version of TAG in every package file that it cove
 release-assets: ## Build the packages and write the npm and Composer archives of TAG to var/release/assets
 	$(if $(TAG),,$(error make $@ needs TAG=<tag>, a tag vX.Y.Z or <directory>/vX.Y.Z))
 	node scripts/release.mjs assets "$$TAG"
+
+# The install of the archives of var/release/assets as a consumer installs them, from the fixtures of
+# tests/release-install (scripts/release-install.mjs): npm ci and composer install with empty caches and the scope
+# @polyspec on an unreachable registry. release-install-lock writes the fixtures of the version of package.json and
+# regenerates their locks from the archives; `make release-assets TAG=vX.Y.Z RELEASE_COMMIT=HEAD` writes the archives
+# of a release commit before its tag exists.
+release-install-check: ## Install the archives of var/release/assets from the consumer fixtures of tests/release-install
+	$(ONLINE) node scripts/release-install.mjs check
+
+release-install-lock: ## Write the consumer fixtures of tests/release-install and regenerate their locks from var/release/assets
+	$(ONLINE) node scripts/release-install.mjs lock
 
 release-publish: ## Create the GitHub Release of TAG with its change log section and archives
 	$(if $(TAG),,$(error make $@ needs TAG=<tag>, a tag vX.Y.Z or <directory>/vX.Y.Z))

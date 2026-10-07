@@ -2,11 +2,12 @@
 # that the ruleset main requires, through a pull request and the merge queue; the maintainer tags a commit of main as
 # vX.Y.Z, or <directory>/vX.Y.Z for a Go module in a subdirectory, after the pull request that sets the version. In a
 # tag filter * does not match /, so '**/v*' covers the tag packages/<directory>/vX.Y.Z of a Go module at any depth. The
-# job runs no test again, and its last four steps run in this order: make release-verify requires the commit on main
+# job runs no test again, and its last five steps run in this order: make release-verify requires the commit on main
 # with the check runs push-gate and ci-passed concluded success; make release-versions the version of the tag in every
 # package file that it covers and the section ## X.Y.Z of CHANGELOG.md; make release-assets builds the JavaScript
 # packages and writes the npm tarballs and Composer zips (a crate is not released as an archive; it is consumed by git
-# tag), and a Go module tag builds and attaches nothing; make release-publish creates the release with that section as
+# tag), and a Go module tag builds and attaches nothing; make release-install-check installs the archives from the
+# consumer fixtures of tests/release-install with empty caches (scripts/release-install.mjs); make release-publish creates the release with that section as
 # its notes (scripts/release.mjs). TAG reaches the make targets through the environment, never as shell text.
 
 name: Release
@@ -40,6 +41,11 @@ jobs:
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version-file: '.node-version'
+      - name: Setup PHP and Composer
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: '8.5'
+          tools: composer:2.10.3
       - name: Cache the npm packages of package-lock.json
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
@@ -48,7 +54,7 @@ jobs:
       - name: Install the recorded npm into the checkout
         run: make install-npm
       - name: Check the recorded toolchain versions
-        run: make toolchain-check TOOLS="node npm"
+        run: make toolchain-check TOOLS="node npm php composer"
       - name: Install workspace dependencies
         run: make install-node-modules
       - name: Check that the tagged commit is on main and passed its checks
@@ -57,5 +63,7 @@ jobs:
         run: make release-versions
       - name: Build the JavaScript packages and write the package archives
         run: make release-assets
+      - name: Install the archives from the consumer fixtures with empty caches
+        run: make release-install-check
       - name: Create the GitHub Release with the archives
         run: make release-publish

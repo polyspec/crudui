@@ -111,7 +111,7 @@ function bench_spec(string $dir, string $name, int $iters, int $warmup): array
 }
 
 $args = parse_args($argv);
-require_once __DIR__ . '/../../packages/validator-php/vendor/autoload.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
 $specs = $args['spec'] !== null ? [$args['spec']] : ['contact', 'large'];
 foreach ($specs as $name) {
     $r = bench_spec($FIXTURES, $name, $args['iters'], $args['warmup']);

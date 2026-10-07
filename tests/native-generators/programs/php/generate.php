@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-require __DIR__ . '/../../../../packages/generator-php/vendor/autoload.php';
+require __DIR__ . '/../../../../vendor/autoload.php';
 
 use Polyspec\Crudui\Form;
 use Polyspec\Crudui\FormError;

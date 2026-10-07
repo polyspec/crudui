@@ -5,7 +5,7 @@ const classFiles = Object.freeze({
   'Polyspec\\Crudui\\Generator': 'packages/generator-php/src/Generator.php',
   'Polyspec\\Crudui\\Form': 'packages/generator-php/src/Form.php',
   'Polyspec\\Crudui\\Validator':
-    'packages/generator-php/vendor/polyspec/crudui-validator/src/Public/Validator.php',
+    'vendor/polyspec/crudui-validator/src/Public/Validator.php',
 });
 
 export const phpClassNames = Object.freeze(Object.keys(classFiles));

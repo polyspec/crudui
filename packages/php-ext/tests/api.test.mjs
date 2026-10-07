@@ -11,7 +11,7 @@ import { recordConformance } from '../../../tests/conformance/evidence.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 const extension = resolve(root, process.env.PHP_EXTENSION ?? 'packages/php-ext/modules/crudui.so');
-const autoload = resolve(root, 'packages/generator-php/vendor/autoload.php');
+const autoload = resolve(root, 'vendor/autoload.php');
 const phpBinary = process.env.PHP ?? 'php';
 
 function mbstring() {

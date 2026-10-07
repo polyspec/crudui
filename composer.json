@@ -1,0 +1,37 @@
+{
+    "name": "polyspec/crudui-workspace",
+    "description": "Development root of the Composer packages of packages/; never published",
+    "type": "project",
+    "license": "MIT",
+    "require": {
+        "php": "^8.4",
+        "php-64bit": "^8.2",
+        "ext-mbstring": "*",
+        "polyspec/crudui-validator": "0.0.2"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.4.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "Polyspec\\Crudui\\Generator\\": "packages/generator-php/src/Internal/",
+            "Polyspec\\Crudui\\": "packages/generator-php/src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Polyspec\\Crudui\\Generator\\Tests\\": "packages/generator-php/tests/",
+            "Polyspec\\Crudui\\Validator\\Tests\\": "packages/validator-php/tests/"
+        }
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "packages/validator-php",
+            "options": {
+                "symlink": false
+            }
+        }
+    ],
+    "minimum-stability": "stable"
+}

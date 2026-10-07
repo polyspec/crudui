@@ -1,6 +1,6 @@
 // The checks run offline, and only the install targets download (docs/spec/package-build.md, "Offline checks"): the
 // Makefile exports the offline settings of cargo, go, npm and Composer, and `$(ONLINE)` lifts them for the recipe lines
-// of the install targets and dependency-review alone. cargo answers a missing crate offline with "retry
+// of the install targets, dependency-review and the consumer installs of the release archives alone. cargo answers a missing crate offline with "retry
 // without --offline"; every target that runs cargo depends on cargo-downloads-check (scripts/check-cargo-downloads.mjs),
 // which names the lock and `run make install` instead, so under make -k a target whose crates are missing does not run.
 // A target runs cargo when a recipe line runs `run-tests.mjs cargo` or `run-rust-command.mjs` with a command other than
@@ -19,7 +19,9 @@ import { ROOT, trackedFiles } from '../../scripts/tracked-files.mjs';
 
 const SELF = 'tests/build/offline-checks.test.mjs';
 const CHECK = 'cargo-downloads-check';
-const DOWNLOADS = ['install-npm', 'install-node-modules', 'install-composer', 'install-phpdocumentor', 'install-browsers', 'install-crates', 'install-ordered-json', 'install-cargo-audit', 'dependency-review'];
+const DOWNLOADS = ['install-npm', 'install-node-modules', 'install-composer', 'install-phpdocumentor', 'install-browsers', 'install-crates', 'install-ordered-json', 'install-cargo-audit', 'dependency-review',
+  // The consumer installs of the release archives, which download the third-party packages that their locks pin.
+  'release-install-check', 'release-install-lock'];
 const read = file => readFileSync(path.join(ROOT, file), 'utf8');
 const makefile = read('Makefile');
 
@@ -100,7 +102,7 @@ test('the Makefile runs cargo, go, npm and Composer offline, and only the instal
   const online = Object.entries(targets).filter(([, rule]) => rule.commands.some(command => command.includes('$(ONLINE)'))).map(([name]) => name).sort();
   assert.deepEqual(online, [...DOWNLOADS].sort());
   // Every recipe line of an install target that downloads runs with $(ONLINE).
-  const downloading = /\b(?:install-npm\.mjs|ci --strict-allow-scripts|composer\b.*\binstall\b|install-cargo-audit\.mjs|check-cargo-downloads\.mjs --fetch|install-ordered-json\.mjs|dependency-review\.mjs)/;
+  const downloading = /\b(?:install-npm\.mjs|ci --strict-allow-scripts|composer\b.*\binstall\b|install-cargo-audit\.mjs|check-cargo-downloads\.mjs --fetch|install-ordered-json\.mjs|dependency-review\.mjs|release-install\.mjs)/;
   const offline = Object.entries(targets).flatMap(([name, rule]) => rule.commands
     .filter(command => downloading.test(command) && !command.includes('$(ONLINE)'))
     .map(command => `${name}: ${command}`));

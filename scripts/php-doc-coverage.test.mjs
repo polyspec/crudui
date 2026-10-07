@@ -13,9 +13,9 @@ function check(source, options = {}) {
   try {
     mkdirSync(join(root, 'src')); mkdirSync(join(root, 'vendor'));
     writeFileSync(join(root, 'src/Example.php'), source);
-    if (options.autoload !== false) writeFileSync(join(root, 'vendor/autoload.php'), options.autoload ?? "<?php require __DIR__ . '/../src/Example.php';");
+    if (options.autoload !== false) writeFileSync(join(root, 'vendor', 'autoload.php'), options.autoload ?? "<?php require __DIR__ . '/../src/Example.php';");
     if (options.other) writeFileSync(join(root, 'Other.php'), options.other);
-    const command = `require ${literal(checker)}; echo json_encode(crudui_php_doc_gaps(${literal(join(root, 'src'))}));`;
+    const command = `require ${literal(checker)}; echo json_encode(crudui_php_doc_gaps(${literal(join(root, 'src'))}, ${literal(join(root, 'vendor', 'autoload.php'))}));`;
     return spawnSync(process.env.PHP ?? 'php', ['-r', command], { encoding: 'utf8' });
   } finally { rmSync(root, { recursive: true }); }
 }

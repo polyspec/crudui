@@ -2,6 +2,27 @@
 
 ## Unreleased
 
+### 2026-10-07 — Published manifests that install outside the repository (C11.5)
+
+- The published manifests are the package manifests of `packages/`, packed unchanged. Each names every dependency of
+  the scope `@polyspec` and the vendor `polyspec` by its exact version; `packages/generator-php/composer.json` and
+  `packages/validator-php/composer.json` declare their `version` and no `repositories`.
+- Development resolution is in the root `composer.json` (`polyspec/crudui-workspace`, never published): a `path`
+  repository of `packages/validator-php`, the generator sources by `autoload`, and `composer.lock` and `vendor/` at the
+  root, which PHPUnit, the PHP checks and the PHP servers load. `scripts/php-package-autoload.php` loads the classes of
+  the tested package from its source directory.
+- `make release-assets` fails with each packed manifest that differs from its package manifest, names such a
+  dependency by a URL, a path, a git source, a range or a development version, or is a `composer.json` with
+  `repositories` or without `version`; `tests/build/release.test.mjs` applies the same check to the published
+  manifests of the repository.
+- `make release-install-check`, a step of the release workflow before the release is created, installs the archives
+  from the consumer fixtures of `tests/release-install` in a temporary directory outside the repository: `npm ci` with
+  an empty cache and the scope `@polyspec` on an unreachable registry, and `composer install` from an `artifact`
+  repository with an empty `COMPOSER_HOME` and `COMPOSER_CACHE_DIR`. `make release-install-lock` regenerates the
+  fixture locks from the archives.
+- `docs/operations/repository.md` states the install of the release archives with npm and Composer and the
+  development resolution.
+
 ## 0.0.2
 
 ### 2026-10-07 — OrderedJSON from the released tag v0.0.2 (C11.4-2)

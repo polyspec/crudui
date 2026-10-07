@@ -161,7 +161,7 @@ runs `make records-check` with the rest of its document checks.
 The individual commands are:
 
 ```sh
-composer --working-dir=packages/validator-php install
+composer install
 npm run build
 npm test --workspace @polyspec/crudui-validator
 composer --working-dir=packages/validator-php test

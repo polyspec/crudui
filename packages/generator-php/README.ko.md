@@ -10,7 +10,7 @@ PHP에서 폼·목록·읽기 전용 상세를 렌더링합니다. 렌더링과 
 저장소 루트에서 실행합니다.
 
 ```sh
-composer install --working-dir=packages/generator-php
+composer install
 composer test --working-dir=packages/generator-php
 ```
 
@@ -21,7 +21,7 @@ PHPUnit이 사용하는 확장도 필요합니다.
 ## 폼 API
 
 ```php
-require 'packages/generator-php/vendor/autoload.php';
+require 'vendor/autoload.php';
 
 use Polyspec\Crudui\Form;
 use Polyspec\Crudui\Generator;

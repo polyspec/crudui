@@ -10,8 +10,7 @@ PHP 네이티브 확장을 실행합니다. 네이티브 모듈의
 
 ```sh
 node scripts/require-current-build.mjs
-generator_php=packages/generator-php
-composer install --working-dir="$generator_php"
+composer install
 node scripts/run-tests.mjs node --timeout 10 -- tests/native-generators/protocol.test.mjs
 node tests/native-generators/run.mjs \
   --extension /absolute/path/to/crudui.so \

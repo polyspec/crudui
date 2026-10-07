@@ -104,7 +104,7 @@ try {
   }
   const unexpectedAutoload = run('php-ext', [
     ...extensions('php-ext'), '-r',
-    `require ${JSON.stringify(path.join(library, 'packages/generator-php/vendor/autoload.php'))}; require ${JSON.stringify(path.join(directory, 'generation.php'))}; new FormGeneration("php-ext",${JSON.stringify(library)},${source},${JSON.stringify(moduleSha256)});`,
+    `require ${JSON.stringify(path.join(library, 'vendor/autoload.php'))}; require ${JSON.stringify(path.join(directory, 'generation.php'))}; new FormGeneration("php-ext",${JSON.stringify(library)},${source},${JSON.stringify(moduleSha256)});`,
   ]);
   assert.notEqual(unexpectedAutoload.status, 0, 'Native PHP with Composer must fail');
   assert.match(diagnostics(unexpectedAutoload), /Composer autoloader state does not match/);

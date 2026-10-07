@@ -54,7 +54,7 @@ function composerCandidate(t, record) {
   const root = mkdtempSync(path.join(regularTemporaryRoot(), 'crudui-form-generation-'));
   t.after(() => rmSync(root, { recursive: true, force: true }));
   const generatorSource = path.join(root, 'packages/generator-php/src');
-  const vendor = path.join(root, 'packages/generator-php/vendor');
+  const vendor = path.join(root, 'vendor');
   const composer = path.join(vendor, 'composer');
   const installedValidator = path.join(vendor, 'polyspec/crudui-validator/src/Public');
   const validatorSource = path.join(root, 'packages/validator-php/src/Public');
@@ -81,8 +81,8 @@ final class ClassLoader
     public function loadClass(string $class): void
     {
         $files = [
-            'Polyspec\\Crudui\\Generator' => dirname($this->vendor) . '/src/Generator.php',
-            'Polyspec\\Crudui\\Form' => dirname($this->vendor) . '/src/Form.php',
+            'Polyspec\\Crudui\\Generator' => dirname($this->vendor) . '/packages/generator-php/src/Generator.php',
+            'Polyspec\\Crudui\\Form' => dirname($this->vendor) . '/packages/generator-php/src/Form.php',
             'Polyspec\\Crudui\\Validator' => $this->vendor . '/polyspec/crudui-validator/src/Public/Validator.php',
         ];
         if (isset($files[$class])) require $files[$class];
@@ -155,12 +155,11 @@ test('rejects a malformed Composer validator package record', t => {
   assert.match(result.stderr + result.stdout, /Malformed Composer package record: polyspec\/crudui-validator/);
 });
 
-test('uses the selected generator record with another Composer installation', () => {
+test('uses the selected generator record with the Composer installation of the checkout', () => {
   const result = php([
-    'require ', JSON.stringify(path.join(library, 'packages/generator-php/vendor/autoload.php')), ';',
+    'require ', JSON.stringify(path.join(library, 'vendor/autoload.php')), ';',
     'class_exists(Polyspec\\Crudui\\Generator::class);class_exists(Polyspec\\Crudui\\Form::class);',
     'class_exists(Polyspec\\Crudui\\Validator::class);',
-    'require ', JSON.stringify(path.join(library, 'packages/validator-php/vendor/autoload.php')), ';',
     'new FormGeneration("php",', JSON.stringify(library), ',$source,null);echo "ok\\n";',
   ].join(''));
   assert.equal(result.error, undefined);
@@ -172,7 +171,7 @@ test('uses the selected generator record with another Composer installation', ()
 test('rejects a Composer validator package outside the candidate vendor directory', t => {
   const candidate = composerCandidate(t, 'valid');
   const composer = path.join(
-    candidate.root, 'packages/generator-php/vendor/composer',
+    candidate.root, 'vendor/composer',
   );
   writeComposerRecord(
     composer, 'valid', path.join(candidate.root, 'packages/validator-php'),

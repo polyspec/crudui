@@ -348,23 +348,21 @@ test('Composer path repositories install local packages as copies', () => {
   assert.deepEqual(failures, []);
 });
 
-test('Composer package versions come from repository metadata', () => {
+test('a published Composer package declares its version, and the development root requires that version', () => {
   const failures = [];
   for (const filename of trackedComposerFiles('composer.json')) {
     const manifest = JSON.parse(readFileSync(path.join(root, filename), 'utf8'));
-    if (filename.startsWith('packages/') && !filename.includes('/vendor/')
-      && manifest.type === 'library' && Object.hasOwn(manifest, 'version')) {
-      failures.push(`${filename}: library declares its own version`);
+    if (filename.startsWith('packages/') && !filename.includes('/vendor/') && manifest.type === 'library') {
+      if (!/^\d+\.\d+\.\d+$/.test(manifest.version ?? '')) failures.push(`${filename}: the published package declares no version X.Y.Z`);
+      if (Object.hasOwn(manifest, 'repositories')) failures.push(`${filename}: the published package declares repositories`);
     }
     for (const [index, repository] of (manifest.repositories ?? []).entries()) {
       if (repository.type !== 'path' || repository.url.includes('*')) continue;
       const targetFile = path.resolve(path.dirname(path.join(root, filename)),
         repository.url, 'composer.json');
       const target = JSON.parse(readFileSync(targetFile, 'utf8'));
-      const version = repository.options?.versions?.[target.name];
-      if (!/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(version ?? '')
-        || manifest.require?.[target.name] !== version) {
-        failures.push(`${filename}:repositories[${index}] does not declare the required version`);
+      if (manifest.require?.[target.name] !== target.version) {
+        failures.push(`${filename}:repositories[${index}] requires ${target.name} ${manifest.require?.[target.name]}, which declares ${target.version}`);
       }
     }
   }

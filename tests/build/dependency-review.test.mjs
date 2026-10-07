@@ -54,6 +54,7 @@ function checkout(t) {
     },
   });
   write(root, 'php/composer.json', { name: 'fixture/php', require: { php: '^8.4', 'ext-mbstring': '*', 'fixture/local': '0.0.1' }, 'require-dev': { 'vendor/unit': '^13.0' } });
+  write(root, 'local/composer.json', { name: 'fixture/local', version: '0.0.1', description: 'A local package.', license: 'MIT', require: { php: '^8.4' } });
   write(root, 'php/composer.lock', { packages: [{ name: 'fixture/local', version: '0.0.1', dist: { type: 'path', url: '../local' } }], 'packages-dev': [{ name: 'vendor/unit', version: '13.4.1' }] });
   write(root, 'composer', '#!/bin/sh\nexit 0\n');
   chmodSync(path.join(root, 'composer'), 0o755);
@@ -155,6 +156,7 @@ test('the npm lock records every manifest, a package of this repository is requi
   write(root, 'composer', '#!/bin/sh\necho "The lock file is not up to date with the latest changes in composer.json." >&2\nexit 2\n');
   assert.deepEqual(findings(root), [
     'composerLock php/composer.json',
+    'composerPackage local/composer.json',
     'local package.json @scope/kit',
     'npmLock package-lock.json packages/kit devDependencies right',
   ]);

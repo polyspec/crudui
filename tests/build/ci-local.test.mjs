@@ -338,9 +338,9 @@ test('CI runs on pull requests and merge groups, and Pages deploys main', async 
 // The release of a pushed tag checks the commit, the versions and the change log before it builds and packs anything,
 // and creates the release last: after the setup steps, the job ends with exactly the four release targets in this
 // order, and a failed step stops the job (scripts/release.mjs).
-const RELEASE_STEPS = ['make release-verify', 'make release-versions', 'make release-assets', 'make release-publish'];
+const RELEASE_STEPS = ['make release-verify', 'make release-versions', 'make release-assets', 'make release-install-check', 'make release-publish'];
 
-test('the release workflow checks the tag, writes the archives and creates the release in this order', async () => {
+test('the release workflow checks the tag, writes and installs the archives and creates the release in this order', async () => {
   const workflow = parse(await read('.github/workflows/release.yml'));
   assert.deepEqual(workflow.permissions, { contents: 'write' });
   assert.deepEqual(Object.keys(workflow.jobs), ['release']);
@@ -349,8 +349,8 @@ test('the release workflow checks the tag, writes the archives and creates the r
   assert.equal(job.env.TAG, '${{ github.ref_name }}', 'the tag reaches the make targets through the environment');
   assert.equal(job.steps[0].with['fetch-depth'], 0, 'origin/main is fetched for git merge-base --is-ancestor');
   const runs = job.steps.filter((step) => step.run !== undefined).map((step) => step.run);
-  assert.deepEqual(runs, ['make install-npm', 'make toolchain-check TOOLS="node npm"', 'make install-node-modules', ...RELEASE_STEPS]);
-  assert.deepEqual(runs.slice(-4), RELEASE_STEPS);
+  assert.deepEqual(runs, ['make install-npm', 'make toolchain-check TOOLS="node npm php composer"', 'make install-node-modules', ...RELEASE_STEPS]);
+  assert.deepEqual(runs.slice(-5), RELEASE_STEPS);
   assert.deepEqual(runs.filter((run) => /\brelease-|\bbuild\b/.test(run)), RELEASE_STEPS, 'the build runs inside make release-assets');
   const makefile = await read('Makefile');
   for (const step of ['verify', 'versions', 'assets', 'publish']) {

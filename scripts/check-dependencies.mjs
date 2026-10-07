@@ -18,6 +18,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const RULES = {
   policy: `${POLICY} names its Composer manifests and declares each exception for a registry dependency with a reason, a removal condition and verification commands`,
   composerLock: 'each Composer lock is current for its manifest, as composer validate --strict reads it without a network',
+  composerPackage: 'each published Composer manifest of packages/ is valid, as composer validate reads it without a lock and without a network',
   local: 'a package of this repository is required at its own version and locked at it',
   tagged: 'a polyspec package taken from a GitHub tag is linked to the checkout of its tag, has the version of that tag and is locked at it',
   npmLock: `${NPM_LOCK} records the dependencies of every npm manifest`,
@@ -65,6 +66,17 @@ export function check(root, { composer = 'composer' } = {}) {
     if (validate.error || validate.status !== 0) {
       const output = `${validate.error?.message ?? ''}\n${validate.stdout ?? ''}\n${validate.stderr ?? ''}`.split('\n').map(line => line.trim()).filter(Boolean).join(' ');
       add('composerLock', manifestPath, `composer validate --strict failed: ${output}`, `run composer update --lock in ${directory}`);
+    }
+  }
+
+  // The published Composer manifests have no lock: the development root composer.json resolves them.
+  for (const manifestPath of state.local.filter(item => item.ecosystem === 'composer').map(item => path.posix.join(path.posix.dirname(item.manifest), item.directory, 'composer.json'))) {
+    const validate = spawnSync(composer, ['validate', '--no-check-lock', '--no-check-publish', '--no-interaction'], {
+      cwd: path.join(root, path.posix.dirname(manifestPath)), encoding: 'utf8', env: { ...process.env, COMPOSER_DISABLE_NETWORK: '1' },
+    });
+    if (validate.error || validate.status !== 0) {
+      const output = `${validate.error?.message ?? ''}\n${validate.stdout ?? ''}\n${validate.stderr ?? ''}`.split('\n').map(line => line.trim()).filter(Boolean).join(' ');
+      add('composerPackage', manifestPath, `composer validate failed: ${output}`, `fix ${manifestPath}`);
     }
   }
 

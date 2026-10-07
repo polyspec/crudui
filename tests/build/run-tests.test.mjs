@@ -304,9 +304,11 @@ test('a test that outlives its timeout names the command, the limit and the elap
 test('a tool that cannot start names its path and the command that installs it', async () => {
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-run-tests-'));
   try {
-    const run = await runAsync([path.join(ROOT, 'scripts/run-tests.mjs'), 'phpunit', '--cwd', directory]);
+    const vendor = path.join(directory, 'vendor');
+    const run = await runAsync([path.join(ROOT, 'scripts/run-tests.mjs'), 'phpunit', '--cwd', directory], { env: { ...process.env, COMPOSER_VENDOR_DIR: vendor } });
     assert.notEqual(run.status, 0);
-    assert.match(run.stdout + run.stderr, new RegExp(`cannot start ${directory.replaceAll('/', '\\/')}\\/vendor\\/bin\\/phpunit: spawn [^\\n]*ENOENT; fix: composer --working-dir=${directory.replaceAll('/', '\\/')} install --no-interaction --prefer-dist`));
+    assert.ok((run.stdout + run.stderr).includes(`cannot start ${vendor}/bin/phpunit: spawn `), run.stdout + run.stderr);
+    assert.ok((run.stdout + run.stderr).includes(`ENOENT; fix: composer install --no-interaction --prefer-dist (in ${ROOT})`), run.stdout + run.stderr);
   } finally {
     await rm(directory, { recursive: true, force: true });
   }

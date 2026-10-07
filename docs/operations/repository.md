@@ -90,9 +90,9 @@ Every commit of `main` passed the checks of the ruleset through the merge queue,
 pull request carries a tag; the maintainer creates and pushes it.
 
 1. The pull request `chore(release): Release X.Y.Z (#<task ID>)` sets the version of every `package.json`,
-   `Cargo.toml`, `VERSION` and `pyproject.toml` of the repository, and of every dependency on a package of the
-   repository, to X.Y.Z, and renames `## Unreleased` of `CHANGELOG.md` and `CHANGELOG.ko.md` to `## X.Y.Z` below a new
-   empty `## Unreleased`. The Composer manifests declare no version; Composer reads it from the tag.
+   `composer.json` of `packages/`, `Cargo.toml`, `VERSION` and `pyproject.toml` of the repository, and of every
+   dependency on a package of the repository, to X.Y.Z, regenerates the locks, and renames `## Unreleased` of
+   `CHANGELOG.md` and `CHANGELOG.ko.md` to `## X.Y.Z` below a new empty `## Unreleased`.
 2. After the merge queue merged it, the maintainer tags that commit of `main` and pushes the tag:
 
    ```sh
@@ -102,9 +102,9 @@ pull request carries a tag; the maintainer creates and pushes it.
 
 3. `.github/workflows/release.yml` runs on the pushed tag (`tags: ['v*', '**/v*']`: in a tag filter `*` does not
    match `/`, so `**/v*` covers `packages/<directory>/vX.Y.Z`), with the token permission `contents: write`. After the
-   setup steps (`make install-npm`, `make toolchain-check TOOLS="node npm"`, `make install-node-modules`) its last four
-   steps run `scripts/release.mjs` through make in this order, each with the tag of the environment variable `TAG`,
-   which the recipe passes as `"$$TAG"`:
+   setup steps (`make install-npm`, `make toolchain-check TOOLS="node npm php composer"`,
+   `make install-node-modules`) its last five steps run through make in this order; the steps of `scripts/release.mjs`
+   take the tag of the environment variable `TAG`, which the recipe passes as `"$$TAG"`:
    - `make release-verify` requires the commit of the tag on `origin/main` (`git merge-base --is-ancestor`) and the
      check runs `push-gate` and `ci-passed` of the commit completed with conclusion `success`
      (`gh api repos/<owner>/<repo>/commits/<sha>/check-runs`); it fails with each missing or failed check;
@@ -112,10 +112,18 @@ pull request carries a tag; the maintainer creates and pushes it.
      `## X.Y.Z` of `CHANGELOG.md`; it fails with the file and both versions;
    - `make release-assets` runs `make build` and writes the archives of `packages/` to `var/release/assets`: `npm pack`
      of every npm package that is not private and `git archive` of every Composer package directory as a zip, each
-     named `<package>-<version>.<extension>` with `@scope/` and `vendor/` written `scope-` and `vendor-`. The release
+     named `<package>-<version>.<extension>` with `@scope/` and `vendor/` written `scope-` and `vendor-`. An archive
+     installs beside the other archives without the repository tree. The published manifests are the package
+     manifests of `packages/`, packed unchanged (see "Package manifests and development resolution"). The step fails
+     with each packed manifest that differs from its package manifest, that names a dependency of the scope
+     `@polyspec` or the vendor `polyspec` by a URL, a path (`file:`, `link:`, `workspace:`), a git source (`git`,
+     `github:`, ssh), a range or a development version (`@dev`), or that is a `composer.json` with `repositories` or
+     without `version`. The release
      assets are npm tarballs and Composer zips only: a crate is not released as an archive; it is consumed by git tag,
      because `cargo package` rewrites git dependencies into crates.io requirements that do not resolve. A Go module
      tag builds and attaches nothing;
+   - `make release-install-check` installs the archives from the consumer fixtures of `tests/release-install` (see
+     below);
    - `make release-publish` runs `gh release create <tag> --verify-tag --title <tag> --notes-file <section ## X.Y.Z>`
      with the archives. GitHub accepts a release body of at most 125000 characters; a longer section is replaced by
      the line `The changes of X.Y.Z are listed in [CHANGELOG.md](https://github.com/polyspec/crudui/blob/<tag>/CHANGELOG.md#XYZ).`,
@@ -125,3 +133,88 @@ pull request carries a tag; the maintainer creates and pushes it.
 change log section, a check run that is missing, in progress or failed, a commit outside `main`, the archive names and
 commands, a Go module tag that runs no command, and the release command; it also requires one version in every package
 file of the repository and lists how a tag releases each package file of `packages/`.
+It checks each refused form of a published dependency, a packed manifest that differs from its package manifest and the
+published manifests of the repository, and that the consumer fixtures of `tests/release-install` name the archives of
+the version of `package.json`.
+
+`make release-install-check` (`scripts/release-install.mjs check`), the step of the release workflow between
+`make release-assets` and `make release-publish`, installs the archives of `var/release/assets` as a consumer does, in a
+temporary directory outside the repository: it copies the fixture `tests/release-install/npm` (`package.json` with the
+tarballs as `file:` dependencies, and `package-lock.json`) with the tarballs and runs `npm ci` with an empty cache and
+the scope `@polyspec` on the unreachable registry `http://127.0.0.1:9/`, and it copies the fixture
+`tests/release-install/composer` (`composer.json` with an `artifact` repository of the zips, and `composer.lock`) with
+the zips and runs `composer install` with an empty `COMPOSER_HOME` and `COMPOSER_CACHE_DIR`. The polyspec packages come
+only from the archives; a third-party package is downloaded only as its lock pins it, by its exact version and digest.
+`make release-install-lock` writes the fixtures of the version of `package.json` and regenerates their locks from the
+archives, with each polyspec archive locked by name and version, without `integrity` in npm and with an empty
+`shasum` in Composer, and each third-party package by its exact version and digest; the release commit
+runs it after `make release-assets TAG=vX.Y.Z RELEASE_COMMIT=HEAD`, which writes the archives before the tag exists.
+
+### Package manifests and development resolution
+
+The `package.json` and `composer.json` of each published package of `packages/` is the manifest that its archive
+publishes. It names every dependency of the scope `@polyspec` or the vendor `polyspec` by its exact version, and a
+`composer.json` declares its `version`, which an `artifact` repository reads, and no `repositories`.
+
+Development resolution is in the two root manifests, which are never published:
+
+- the root `package.json` (`@polyspec/crudui-workspace`, private) lists `packages/*` under `workspaces`; npm links a
+  workspace package whose version satisfies the exact version that another package requires, and
+  `package-lock.json` records the links. A package of another polyspec repository is supplied only at this root:
+  `@polyspec/ordered-json` is the root dependency `file:.form-comparison/sources/ordered-json/js`, the checkout of the
+  tag that `orderedJsonVersion` of `examples/form-comparison/src/ordered-json-source.mjs` records;
+- the root `composer.json` (`polyspec/crudui-workspace`, type `project`) has a `path` repository of
+  `packages/validator-php` with `symlink: false` and requires `polyspec/crudui-validator` at its exact version; its
+  `autoload` reads the generator sources of `packages/generator-php/src` and its `autoload-dev` the tests of both PHP
+  packages. `composer.lock` beside it records the resolution, and `make install-composer` installs `vendor/` at the
+  root, which PHPUnit, the PHP checks and the PHP servers load. The validator in `vendor/` is a copy, which
+  `make test-php-api` and the comparison servers reinstall from source under the checkout lock
+  `var/locks/composer-vendor.lock` before they load it. The PHPUnit bootstrap `scripts/php-package-autoload.php` loads
+  `vendor/` and, ahead of it, the classes of the package of the working directory from its source directory.
+
+`make test-dependencies` validates the root `composer.json` and its lock with `composer validate --strict`, and each
+published `composer.json` with `composer validate --no-check-lock`, since a published package has no lock.
+
+### Installing the release archives
+
+A consumer downloads the archives that it needs from the GitHub Release of a tag and installs them together, without a
+registry:
+
+- npm: list every tarball in `package.json` as a `file:` dependency, then run `npm install`. A dependency that an
+  archive declares at an exact version is satisfied by the tarball of that package installed beside it.
+
+  ```json
+  {
+    "dependencies": {
+      "@polyspec/crudui-generator-html": "file:vendor/polyspec-crudui-generator-html-X.Y.Z.tgz",
+      "@polyspec/crudui-generator-core": "file:vendor/polyspec-crudui-generator-core-X.Y.Z.tgz",
+      "@polyspec/crudui-validator": "file:vendor/polyspec-crudui-validator-X.Y.Z.tgz"
+    }
+  }
+  ```
+
+- Composer: put the zips in one directory and name it in an `artifact` repository; the zips resolve each other by name
+  and version. A `package` repository entry per zip URL works the same way.
+
+  ```json
+  {
+    "require": { "polyspec/crudui-generator": "X.Y.Z" },
+    "repositories": [
+      { "type": "artifact", "url": "vendor/polyspec" }
+    ]
+  }
+  ```
+
+  A `package` repository entry for one zip:
+
+  ```json
+  {
+    "type": "package",
+    "package": {
+      "name": "polyspec/crudui-validator",
+      "version": "X.Y.Z",
+      "dist": { "type": "zip", "url": "https://github.com/polyspec/crudui/releases/download/vX.Y.Z/polyspec-crudui-validator-X.Y.Z.zip" },
+      "autoload": { "psr-4": { "Polyspec\\Crudui\\Validator\\": "src/", "Polyspec\\Crudui\\": "src/Public/" } }
+    }
+  }
+  ```

@@ -132,7 +132,7 @@ checklist, link, changelog, 문장, example과 fixture README test로, Node.js�
 개별 명령은 다음과 같습니다.
 
 ```sh
-composer --working-dir=packages/validator-php install
+composer install
 npm run build
 npm test --workspace @polyspec/crudui-validator
 composer --working-dir=packages/validator-php test

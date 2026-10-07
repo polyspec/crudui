@@ -1,0 +1,101 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
+        "This file is @generated automatically"
+    ],
+    "content-hash": "3d8eb3d63321806f8be86c27bf90e9cf",
+    "packages": [
+        {
+            "name": "polyspec/crudui-generator",
+            "version": "0.0.2",
+            "dist": {
+                "type": "zip",
+                "url": "archives/polyspec-crudui-generator-0.0.2.zip",
+                "shasum": ""
+            },
+            "require": {
+                "ext-mbstring": "*",
+                "php": "^8.4",
+                "php-64bit": "^8.2",
+                "polyspec/crudui-validator": "0.0.2"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^13.4.1"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Polyspec\\Crudui\\Generator\\": "src/Internal/",
+                    "Polyspec\\Crudui\\": "src/"
+                }
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "Polyspec\\Crudui\\Generator\\Tests\\": "tests/"
+                }
+            },
+            "scripts": {
+                "test": [
+                    "node ../../scripts/run-tests.mjs phpunit --cwd packages/generator-php"
+                ]
+            },
+            "license": [
+                "MIT"
+            ],
+            "description": "Form templates, editable data and HTML rendering for CRUDUI"
+        },
+        {
+            "name": "polyspec/crudui-validator",
+            "version": "0.0.2",
+            "dist": {
+                "type": "zip",
+                "url": "archives/polyspec-crudui-validator-0.0.2.zip",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.4"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^13.4.1"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Polyspec\\Crudui\\Validator\\": "src/",
+                    "Polyspec\\Crudui\\": "src/Public/"
+                }
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "Polyspec\\Crudui\\Validator\\Tests\\": "tests/"
+                }
+            },
+            "scripts": {
+                "test": [
+                    "node ../../scripts/run-tests.mjs phpunit --cwd packages/validator-php"
+                ]
+            },
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "CRUDUI Team"
+                }
+            ],
+            "description": "PHP validator for crudui system - validates form data against YAML specifications"
+        }
+    ],
+    "packages-dev": [],
+    "aliases": [],
+    "minimum-stability": "stable",
+    "stability-flags": {},
+    "prefer-stable": false,
+    "prefer-lowest": false,
+    "platform": {
+        "php": "^8.4"
+    },
+    "platform-dev": {},
+    "plugin-api-version": "2.9.0"
+}

@@ -17,8 +17,7 @@
 node scripts/install-npm.mjs
 export PATH="$PWD/.tools/npm/node_modules/.bin:$PATH"
 npm ci --strict-allow-scripts
-composer install --working-dir=packages/validator-php --no-interaction --prefer-dist
-composer install --working-dir=packages/generator-php --no-interaction --prefer-dist
+composer install --no-interaction --prefer-dist
 make test-native
 make docs-check
 ```

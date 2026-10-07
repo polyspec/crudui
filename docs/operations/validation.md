@@ -39,7 +39,7 @@ optional virtual files, an optional loader and a base path. Its result exposes
 
 ```php
 <?php
-require 'packages/validator-php/vendor/autoload.php';
+require 'vendor/autoload.php';
 
 use Polyspec\Crudui\Validator;
 

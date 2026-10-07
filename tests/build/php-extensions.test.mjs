@@ -75,26 +75,27 @@ test('an optional extension used without its requirement is reported', async () 
   }
 });
 
-// generator-php installs the validator as a copy, so a target whose tests load the vendor directory of generator-php
-// refreshes that copy from source before them; otherwise the tests read a copy that an earlier run installed.
-test('a make target whose tests load the generator-php vendor reinstalls the validator copy first', async () => {
+// The development root composer.json installs the validator as a copy into vendor/, so a target whose tests load that
+// vendor directory refreshes the copy from source before them; otherwise the tests read a copy that an earlier run
+// installed.
+test('a make target whose tests load the root vendor reinstalls the validator copy first', async () => {
   const { makeTargets } = await import('../../scripts/test-commands.mjs');
   const targets = makeTargets(await readFile(path.join(repository, 'Makefile'), 'utf8'));
   const violations = [];
   for (const [name, rule] of Object.entries(targets)) {
     rule.commands.forEach((command, index) => {
       const files = /run-tests\.mjs node(?: --timeout \d+)? -- (.+?)(?: \|\||;|$)/.exec(command)?.[1].split(/\s+/) ?? [];
-      const reads = files.filter(file => file.endsWith('.mjs')).some(file => readFileSync(path.join(repository, file), 'utf8').includes('generator-php/vendor'));
-      const reinstalled = rule.commands.slice(0, index).some(line => line.includes('composer --working-dir=packages/generator-php reinstall polyspec/crudui-validator'));
-      if (reads && !reinstalled) violations.push(`${name}: \`${command}\` loads packages/generator-php/vendor without reinstalling polyspec/crudui-validator first`);
+      const reads = files.filter(file => file.endsWith('.mjs')).some(file => /vendor\/(autoload\.php|polyspec\/crudui-validator)/.test(readFileSync(path.join(repository, file), 'utf8')));
+      const reinstalled = rule.commands.slice(0, index).some(line => line.includes('composer reinstall polyspec/crudui-validator'));
+      if (reads && !reinstalled) violations.push(`${name}: \`${command}\` loads vendor/ without reinstalling polyspec/crudui-validator first`);
     });
   }
   assert.deepEqual(violations, []);
 });
 
-// Two runs of one checkout must not reinstall the vendor directory of generator-php at once, so every reinstall runs
-// under the checkout lock of that directory.
-test('every reinstall of the generator-php vendor runs under its checkout lock', async () => {
+// Two runs of one checkout must not reinstall the root vendor directory at once, so every reinstall runs under the
+// checkout lock of that directory.
+test('every reinstall of the root vendor runs under its checkout lock', async () => {
   const { execFileSync } = await import('node:child_process');
   const files = execFileSync('git', ['ls-files', 'Makefile', '*.mjs', '*.yml', '*.sh'], { cwd: repository, encoding: 'utf8' }).split('\n').filter(Boolean);
   const violations = [];

@@ -288,7 +288,9 @@ A check reads no network. The Makefile exports `CARGO_NET_OFFLINE=true`,
 `GOPROXY=off`, `npm_config_offline=true` and `COMPOSER_DISABLE_NETWORK=1` for every
 recipe and the commands that it starts; only the download targets `install`,
 `install-crates`, `install-ordered-json`, `install-cargo-audit` and
-`dependency-review` lift them with `$(ONLINE)`. `make install-crates` downloads the
+`dependency-review`, and the consumer installs of the release archives
+`release-install-check` and `release-install-lock`, which download the
+third-party packages that their locks pin, lift them with `$(ONLINE)`. `make install-crates` downloads the
 crates of every Cargo.lock after the OrderedJSON checkout
 (`.form-comparison/sources/ordered-json`) that the lock of the Rust record server
 reads, and `make install` runs it. Every target that runs cargo depends on
@@ -340,8 +342,10 @@ after the CI documentation job succeeds on `main`.
 
 ## PHP dependencies
 
-The PHP validator declares runtime and test dependencies in `composer.json`.
-`composer.lock` records their resolved versions. Composer installs `vendor/`;
+The published `composer.json` of each PHP package declares its runtime and test
+dependencies; the development root `composer.json` resolves both packages, and
+its `composer.lock` records their resolved versions. Composer installs `vendor/`
+at the root;
 that generated directory is excluded from Git. A clean checkout must install
 these dependencies before invoking PHP validation, tests or documentation checks.
 CI uses the same installation command as local development.
