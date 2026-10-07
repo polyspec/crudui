@@ -1,0 +1,55 @@
+# The GitHub Release of a pushed tag (AGENTS.md, docs/operations/repository.md). Every commit of main passed the checks
+# that the ruleset main requires, through a pull request and the merge queue; the maintainer tags a commit of main as
+# vX.Y.Z, or <directory>/vX.Y.Z for a Go module in a subdirectory, after the pull request that sets the version. The job
+# runs no test again: make release-check requires the commit on main with the check runs push-gate and ci-passed
+# concluded success, the version of the tag in every package file that it covers and the section ## X.Y.Z of
+# CHANGELOG.md; make release-assets packs the npm, Composer and Cargo packages, and make release-publish creates the
+# release with that section as its notes (scripts/release.mjs).
+
+name: Release
+
+on:
+  push:
+    tags: ['v*', '*/v*']
+
+permissions:
+  contents: write
+
+# The toolchains of the checkout at their recorded versions (docs/spec/package-build.md): rustup installs nothing on the
+# first cargo, and go never downloads the toolchain of a go.mod.
+env:
+  RUSTUP_AUTO_INSTALL: '0'
+  GOTOOLCHAIN: local
+
+jobs:
+  release:
+    name: release
+    runs-on: ubuntu-24.04
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      # The whole history, so origin/main is present for git merge-base --is-ancestor.
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          fetch-depth: 0
+      - name: Setup the Node.js release of .node-version
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version-file: '.node-version'
+          cache: npm
+      - name: Install the recorded npm into the checkout
+        run: make install-npm
+      - name: Install the Rust toolchain of rust-toolchain.toml
+        run: make install-rust
+      - name: Check the recorded toolchain versions
+        run: make toolchain-check TOOLS="node npm rust"
+      - name: Check the tagged commit, its checks, the versions and the change log
+        run: make release-check
+      - name: Install workspace dependencies
+        run: make install-node-modules
+      - name: Build the JavaScript packages
+        run: make build
+      - name: Write the package archives
+        run: make release-assets
+      - name: Create the GitHub Release with the archives
+        run: make release-publish
