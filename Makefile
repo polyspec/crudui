@@ -29,7 +29,7 @@ export GOPROXY := off
 export npm_config_offline := true
 export COMPOSER_DISABLE_NETWORK := 1
 ONLINE := env -u CARGO_NET_OFFLINE -u GOPROXY -u npm_config_offline -u COMPOSER_DISABLE_NETWORK
-.PHONY: help ci-targets ci-passed push-gate-check install install-npm install-node-modules install-composer install-rust install-phpdocumentor install-browsers check-ci-browser test-runtimes test-dependencies build lint typecheck test-validator-js test-validator-php test-validator-go test-validator-rust test-cross-check manifest-test require-build test-cli manifest-check manifest-docs-check test-forms test-form-comparison test-form-comparison-pipeline test-packages test-build test-build-repeat test-inspector test-bench check-conformance install-crates install-ordered-json install-cargo-audit cargo-downloads-check dependency-review toolchain-check owner-check test-ordered-json docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-extension test-native test-native-suites test-validators test-form-binding conformance format-check deploy deploy-verify deploy-watch github-settings github-settings-check records-check hooks hooks-check ci rerun-failed test-form-styles-linux remove-form-styles-image
+.PHONY: help ci-targets ci-passed release-check release-assets release-publish push-gate-check install install-npm install-node-modules install-composer install-rust install-phpdocumentor install-browsers check-ci-browser test-runtimes test-dependencies build lint typecheck test-validator-js test-validator-php test-validator-go test-validator-rust test-cross-check manifest-test require-build test-cli manifest-check manifest-docs-check test-forms test-form-comparison test-form-comparison-pipeline test-packages test-build test-build-repeat test-inspector test-bench check-conformance install-crates install-ordered-json install-cargo-audit cargo-downloads-check dependency-review toolchain-check owner-check test-ordered-json docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-extension test-native test-native-suites test-validators test-form-binding conformance format-check deploy deploy-verify deploy-watch github-settings github-settings-check records-check hooks hooks-check ci rerun-failed test-form-styles-linux remove-form-styles-image
 .NOTPARALLEL: docs docs-web docs-dev docs-preview docs-check docs-verify-idempotent
 
 # Validator benchmark iteration counts (override on the command line, e.g.
@@ -82,6 +82,9 @@ help: ## 타겟 설명
 	@echo "  make github-settings-check Fail when the repository settings differ from the declaration"
 	@echo "  make records-check         The document and checklist rules that need Node.js alone"
 	@echo "  make ci-passed             Fail unless every job of RESULTS, the toJSON(needs) of the CI job ci-passed, succeeded"
+	@echo "  make release-check         Check a pushed tag: its commit on main, its checks, the versions and the change log"
+	@echo "  make release-assets        Write the npm, Composer and Cargo archives of the tag to var/release/assets"
+	@echo "  make release-publish       Create the GitHub Release of the tag with its change log section and archives"
 	@echo ""
 	@echo "CRUDUI validator benchmark — make targets:"
 	@echo ""
@@ -441,6 +444,21 @@ hooks-check: ## Fail when the pre-push hook is not installed
 # .github/repository.json requires this check and push-gate.
 ci-passed: ## Fail unless every job of RESULTS, the toJSON(needs) of the job ci-passed, succeeded
 	node scripts/ci-passed.mjs
+
+# The release of a pushed tag, run by .github/workflows/release.yml in this order (scripts/release.mjs, AGENTS.md): the tag,
+# its commit and the repository come from GITHUB_REF_NAME, GITHUB_SHA and GITHUB_REPOSITORY, and gh reads GH_TOKEN.
+# release-check requires the commit on origin/main with the check runs push-gate and ci-passed concluded success, the
+# version of the tag in every package file that the tag covers and the section ## X.Y.Z of CHANGELOG.md; release-assets
+# writes the npm, Composer and Cargo archives of packages/ to var/release/assets after make build; release-publish
+# creates the GitHub Release with that section as its notes.
+release-check: ## Check the tagged commit, its checks push-gate and ci-passed, the versions and the change log section
+	node scripts/release.mjs check
+
+release-assets: ## Write the npm, Composer and Cargo archives of the tag to var/release/assets
+	node scripts/release.mjs assets
+
+release-publish: ## Create the GitHub Release of the tag with its change log section and archives
+	node scripts/release.mjs publish
 
 # The push check of .github/workflows/push-gate.yml: the checked-out commit has no checklist task in progress and tracks
 # the hook.

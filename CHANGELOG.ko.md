@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### 2026-10-07 — main tag의 GitHub Release (C11.1-3)
+
+- `.github/workflows/release.yml`은 push된 tag `vX.Y.Z` 또는 `<디렉터리>/vX.Y.Z`에서 실행됩니다. `make release-check`는
+  commit이 `main`에 있고 그 check run `push-gate`와 `ci-passed`가 `success`로 끝났으며, tag가 덮는 모든 package
+  파일의 version이 tag와 같고 `CHANGELOG.md`에 section `## X.Y.Z`가 있기를 요구합니다. `make release-assets`는
+  `packages/`의 npm, Composer, Cargo archive를 `<package>-<version>.<확장자>` 이름으로 쓰고, `make release-publish`는
+  그 section을 notes로, archive를 첨부해 GitHub Release를 만듭니다. Go module tag에는 archive가 없습니다.
+- AGENTS와 `docs/operations/repository.md`는 version을 올리는 pull request, maintainer가 merge된 commit에 다는 tag,
+  release workflow로 이루어진 release 절차를 적습니다.
+
 ### 2026-10-07 — CI workflow의 완료 check 하나 (C11.1-2)
 
 - `.github/workflows/ci.yml`의 마지막 job `ci-passed`는 다른 모든 job을 needs로 두고 `if: ${{ always() }}`로

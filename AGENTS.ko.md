@@ -90,6 +90,20 @@
   필요한 경우에만 해당 프로젝트를 명시합니다.
 - 개인 선호와 대화 맥락은 저장소 외부에 보관합니다.
 
+# Release
+
+- release는 merge queue로 ruleset의 check를 통과한 `main` commit의 tag입니다. 저장소는 `vX.Y.Z`, 디렉터리의 Go
+  module은 `<디렉터리>/vX.Y.Z`입니다. pull request는 tag를 싣지 않고, tag는 maintainer만 만들고 옮기고 push합니다.
+- version을 올리는 pull request `chore(release): Release X.Y.Z (#<작업 ID>)`가 먼저 옵니다. 이 pull request는
+  저장소의 모든 `package.json`, `Cargo.toml`, `VERSION`, `pyproject.toml`의 version과 저장소 package에 대한 모든
+  dependency의 version을 X.Y.Z로 정하고, `CHANGELOG.md`와 `CHANGELOG.ko.md`의 `## Unreleased`를 `## X.Y.Z`로 바꾼 뒤
+  그 위에 빈 `## Unreleased`를 새로 씁니다. Composer manifest는 version을 선언하지 않고 Composer가 tag에서 읽습니다.
+- 그다음 maintainer가 merge된 commit에 tag를 달아 push합니다. `.github/workflows/release.yml`은
+  `make release-check`, `make release-assets`, `make release-publish`(`scripts/release.mjs`)를 실행해, commit이 `main`에
+  있고 check `push-gate`와 `ci-passed`가 success로 끝났는지, 모든 package 파일의 version이 tag와 같은지, section
+  `## X.Y.Z`가 있는지 확인하고, 그 section을 notes로, `packages/`의 npm, Composer, Cargo archive를 첨부해 GitHub
+  Release를 만듭니다(`docs/operations/repository.md`).
+
 # Checklist
 
 - 이 저장소의 checklist는 `docs/plans/execution-checklist.md` 하나다. 작업을 하위 항목으로 나누거나

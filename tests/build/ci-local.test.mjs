@@ -111,7 +111,7 @@ test('a workflow step starts every tool through a make target', async () => {
     { name: 'nginx', run: 'sudo apt-get install -y nginx\nphp-fpm -v && nginx -v' },
   ] } } }), ['a: install: node scripts/install-npm.mjs', 'a: test: FOO=1 xvfb-run npm test']);
   const violations = [];
-  for (const file of ['ci.yml', 'dependency-review.yml', 'pages.yml', 'push-gate.yml']) {
+  for (const file of ['ci.yml', 'dependency-review.yml', 'pages.yml', 'push-gate.yml', 'release.yml']) {
     violations.push(...stepsOutsideMake(parse(await read(`.github/workflows/${file}`))).map(line => `${file} ${line}`));
   }
   assert.deepEqual(violations, []);
@@ -178,13 +178,15 @@ test('a new push stops the CI run of the previous push of its pull request, and 
 
 // main receives a commit only from the merge queue (.github/repository.json): CI runs on pull requests, merge groups and
 // manual runs, the push check also on every pushed branch except the branches of the queue, which it checks as merge
-// groups, the documentation web is built and deployed from main and on a manual run, and the dependency review runs on
-// its schedule and on a manual run. No other workflow exists, and each declares exactly these lines.
+// groups, the documentation web is built and deployed from main and on a manual run, the dependency review runs on its
+// schedule and on a manual run, and the release runs on a pushed tag vX.Y.Z or <directory>/vX.Y.Z. No other workflow
+// exists, and each declares exactly these lines.
 const TRIGGERS = {
   'ci.yml': 'on:\n  pull_request:\n  merge_group:\n  workflow_dispatch:\n',
   'push-gate.yml': "on:\n  push:\n    branches-ignore: ['gh-readonly-queue/**']\n  pull_request:\n  merge_group:\n",
   'pages.yml': 'on:\n  push:\n    branches: [main]\n  workflow_dispatch:\n',
   'dependency-review.yml': "on:\n  schedule:\n    - cron: '17 3 * * *'\n  workflow_dispatch:\n",
+  'release.yml': "on:\n  push:\n    tags: ['v*', '*/v*']\n",
 };
 
 test('each workflow declares exactly its triggers', async () => {
@@ -206,6 +208,22 @@ test('CI runs on pull requests and merge groups, and Pages deploys main', async 
   assert.equal(pages.jobs.deploy.environment.name, 'github-pages');
   assert.equal(pages.jobs.deploy.needs, 'docs-web');
   assert.doesNotMatch(await read('.github/workflows/ci.yml'), /refs\/heads\/main|deploy-pages|upload-pages-artifact/);
+});
+
+// The release of a pushed tag checks the commit, the versions and the change log before it builds and packs anything,
+// and creates the release last; a failed step stops the job (scripts/release.mjs).
+test('the release workflow checks the tag, writes the archives and creates the release in this order', async () => {
+  const workflow = parse(await read('.github/workflows/release.yml'));
+  assert.deepEqual(workflow.permissions, { contents: 'write' });
+  assert.deepEqual(Object.keys(workflow.jobs), ['release']);
+  const job = workflow.jobs.release;
+  assert.equal(job.env.GH_TOKEN, '${{ github.token }}');
+  assert.equal(job.steps[0].with['fetch-depth'], 0, 'origin/main is fetched for git merge-base --is-ancestor');
+  assert.deepEqual(job.steps.filter((step) => step.run !== undefined).map((step) => step.run), [
+    'make install-npm', 'make install-rust', 'make toolchain-check TOOLS="node npm rust"', 'make release-check',
+    'make install-node-modules', 'make build', 'make release-assets', 'make release-publish',
+  ]);
+  assert.ok(job.steps.every((step) => step.if === undefined), 'no step runs after a failed one');
 });
 
 test('every checking step of the CI workflow runs after an earlier failure', async () => {

@@ -24,7 +24,7 @@ make github-settings-check
 실행(`workflow_dispatch`)의 문서를 build해 배포합니다. `.github/workflows/ci.yml`은 모든 pull request,
 merge group, 수동 실행에서, `.github/workflows/push-gate.yml`은 `gh-readonly-queue/**` 밖의 branch로의
 모든 push, 모든 pull request, 모든 merge group에서, `.github/workflows/dependency-review.yml`은 일정과 수동
-실행에서 실행되며, 다른 workflow는 없습니다. 설정은 GitHub 화면이 아니라 선언을 고치고 명령을 실행해 바꾸므로 선언이 곧 기록입니다.
+실행에서, `.github/workflows/release.yml`은 push된 tag `v*` 또는 `*/v*`에서([release](#release)) 실행되며, 다른 workflow는 없습니다. 설정은 GitHub 화면이 아니라 선언을 고치고 명령을 실행해 바꾸므로 선언이 곧 기록입니다.
 
 `tests/build/github-repository.test.mjs`는 메모리 안의 저장소로 명령을 검사합니다. 선언과 같은
 저장소에는 요청을 보내지 않고, 새 저장소는 선언대로 맞춘 뒤 두 번째 실행에서 아무 요청도 보내지
@@ -69,3 +69,39 @@ pull request를 merge queue에 넣습니다. queue는 그것을 `main` 위로 re
 request는 queue에서 빠지고 `main`은 움직이지 않습니다. merge group의 CI 실행은 취소되지 않습니다. group마다
 자기 ref가 있고 `cancel-in-progress`는 pull request에만 적용되기 때문입니다. rebase는 merge된 commit에 새
 hash를 주므로, `git pull --rebase`가 queue가 merge한 local commit을 버립니다.
+
+## Release
+
+release는 `main` commit의 tag입니다. 저장소는 `vX.Y.Z`이고, 디렉터리의 Go module은 `<디렉터리>/vX.Y.Z`이며 그
+module path는 `github.com/polyspec/crudui/<디렉터리>`입니다(`tests/build/package-names.test.mjs`). `main`의 모든
+commit은 merge queue로 ruleset의 check를 통과했으므로 release는 test를 다시 실행하지 않습니다. pull request는 tag를
+싣지 않고, maintainer가 tag를 만들어 push합니다.
+
+1. pull request `chore(release): Release X.Y.Z (#<작업 ID>)`는 저장소의 모든 `package.json`, `Cargo.toml`,
+   `VERSION`, `pyproject.toml`의 version과 저장소 package에 대한 모든 dependency의 version을 X.Y.Z로 정하고,
+   `CHANGELOG.md`와 `CHANGELOG.ko.md`의 `## Unreleased`를 `## X.Y.Z`로 바꾼 뒤 그 위에 빈 `## Unreleased`를 새로
+   씁니다. Composer manifest는 version을 선언하지 않고 Composer가 tag에서 읽습니다.
+2. merge queue가 merge한 뒤 maintainer가 `main`의 그 commit에 tag를 달아 push합니다:
+
+   ```sh
+   git tag vX.Y.Z <main의 commit>
+   git push origin vX.Y.Z
+   ```
+
+3. `.github/workflows/release.yml`은 push된 tag에서 token 권한 `contents: write`로 실행되고, make로
+   `scripts/release.mjs`를 실행합니다.
+   - `make release-check`는 commit이 `origin/main`에 있는지(`git merge-base --is-ancestor`), commit의 check run
+     `push-gate`와 `ci-passed`가 conclusion `success`로 끝났는지(`gh api repos/<owner>/<repo>/commits/<sha>/check-runs`),
+     tag가 덮는 모든 package 파일의 version이 tag와 같은지, `CHANGELOG.md`에 section `## X.Y.Z`가 있는지 확인하고,
+     빠졌거나 실패한 check마다, 그리고 파일과 두 version을 적어 실패합니다.
+   - `make install-node-modules`와 `make build`가 npm package를 build하고, `make release-assets`는 `packages/`의
+     archive를 `var/release/assets`에 씁니다. private이 아닌 npm package마다 `npm pack`, Composer package 디렉터리마다
+     zip `git archive`, crate마다 `cargo package --no-verify --exclude-lockfile`을 실행하고, 이름은
+     `<package>-<version>.<확장자>`이며 `@scope/`와 `vendor/`는 `scope-`, `vendor-`로 씁니다. Go module tag는 archive를
+     쓰지 않습니다.
+   - `make release-publish`는 archive와 함께
+     `gh release create <tag> --verify-tag --title <tag> --notes-file <section ## X.Y.Z>`를 실행합니다.
+
+`tests/build/release.test.mjs`는 명령 fake로 script를 검사합니다. tag와 다른 version, 빠진 변경 기록 section, 없거나
+진행 중이거나 실패한 check run, `main` 밖의 commit, archive 이름과 명령, release 명령을 확인하고, 저장소의 모든
+package 파일이 version 하나를 갖기를 요구합니다.

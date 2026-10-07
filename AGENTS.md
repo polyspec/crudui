@@ -103,6 +103,21 @@
   when its identity, API or path is required by the current contract or procedure.
 - Keep personal preferences and conversation context outside the repository.
 
+# Releases
+
+- A release is a tag of a commit of `main`, which passed the checks of the ruleset through the merge queue: `vX.Y.Z`
+  for the repository, `<directory>/vX.Y.Z` for the Go module of that directory. No pull request carries a tag, and
+  only the maintainer creates, moves or pushes one.
+- The version-bump pull request `chore(release): Release X.Y.Z (#<task ID>)` comes first: it sets the version of every
+  `package.json`, `Cargo.toml`, `VERSION` and `pyproject.toml` of the repository, and of every dependency on a package
+  of the repository, to X.Y.Z, and renames `## Unreleased` of `CHANGELOG.md` and `CHANGELOG.ko.md` to `## X.Y.Z` below
+  a new empty `## Unreleased`. A Composer manifest declares no version; Composer reads it from the tag.
+- The maintainer then tags the merged commit and pushes the tag. `.github/workflows/release.yml` runs
+  `make release-check`, `make release-assets` and `make release-publish` (`scripts/release.mjs`): it requires the commit
+  on `main` with the checks `push-gate` and `ci-passed` concluded success, the version of the tag in every package file
+  and the section `## X.Y.Z`, and creates the GitHub Release with that section as its notes and the npm, Composer and
+  Cargo archives of `packages/` (`docs/operations/repository.md`).
+
 # Checklist
 
 - This repository has one checklist, `docs/plans/execution-checklist.md`. Split a task into

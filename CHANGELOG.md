@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### 2026-10-07 — GitHub Releases from tags of main (C11.1-3)
+
+- `.github/workflows/release.yml` runs on a pushed tag `vX.Y.Z` or `<directory>/vX.Y.Z`: `make release-check` requires
+  the commit on `main`, its check runs `push-gate` and `ci-passed` concluded `success`, the version of the tag in every
+  package file that the tag covers and the section `## X.Y.Z` of `CHANGELOG.md`; `make release-assets` writes the npm,
+  Composer and Cargo archives of `packages/`, named `<package>-<version>.<extension>`; `make release-publish` creates
+  the GitHub Release with that section as its notes and the archives. A Go module tag has no archive.
+- AGENTS and `docs/operations/repository.md` state the release procedure: the version-bump pull request, the tag of the
+  merged commit by the maintainer and the release workflow.
+
 ### 2026-10-07 — One completion check of the CI workflow (C11.1-2)
 
 - The last job `ci-passed` of `.github/workflows/ci.yml` needs every other job, runs under `if: ${{ always() }}` and

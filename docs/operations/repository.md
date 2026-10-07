@@ -28,7 +28,8 @@ repository created again from the same history is configured by pushing `main` a
 `main` receives and of a manual run (`workflow_dispatch`). `.github/workflows/ci.yml` runs on every
 pull request, merge group and manual run, `.github/workflows/push-gate.yml` on every push to a
 branch outside `gh-readonly-queue/**`, every pull request and every merge group, and
-`.github/workflows/dependency-review.yml` on its schedule and on a manual run; no other workflow
+`.github/workflows/dependency-review.yml` on its schedule and on a manual run, and
+`.github/workflows/release.yml` on a pushed tag `v*` or `*/v*` ([releases](#releases)); no other workflow
 exists. Change a setting by editing the declaration and running the command, never through
 the GitHub interface, so the declaration stays the record.
 
@@ -80,3 +81,40 @@ failed check removes the pull request from the queue, and `main` does not move. 
 workflow for a merge group is never cancelled: each group has a ref of its own, and
 `cancel-in-progress` holds only for pull requests. The rebase gives the merged commits new hashes;
 `git pull --rebase` drops the local commits that the queue merged.
+
+## Releases
+
+A release is a tag of a commit of `main`: `vX.Y.Z` for the repository, or `<directory>/vX.Y.Z` for the Go module of
+that directory, whose module path is `github.com/polyspec/crudui/<directory>` (`tests/build/package-names.test.mjs`).
+Every commit of `main` passed the checks of the ruleset through the merge queue, so the release runs no test again. No
+pull request carries a tag; the maintainer creates and pushes it.
+
+1. The pull request `chore(release): Release X.Y.Z (#<task ID>)` sets the version of every `package.json`,
+   `Cargo.toml`, `VERSION` and `pyproject.toml` of the repository, and of every dependency on a package of the
+   repository, to X.Y.Z, and renames `## Unreleased` of `CHANGELOG.md` and `CHANGELOG.ko.md` to `## X.Y.Z` below a new
+   empty `## Unreleased`. The Composer manifests declare no version; Composer reads it from the tag.
+2. After the merge queue merged it, the maintainer tags that commit of `main` and pushes the tag:
+
+   ```sh
+   git tag vX.Y.Z <commit of main>
+   git push origin vX.Y.Z
+   ```
+
+3. `.github/workflows/release.yml` runs on the pushed tag, with the token permission `contents: write`, and runs
+   `scripts/release.mjs` through make:
+   - `make release-check` requires the commit on `origin/main` (`git merge-base --is-ancestor`), the check runs
+     `push-gate` and `ci-passed` of the commit completed with conclusion `success`
+     (`gh api repos/<owner>/<repo>/commits/<sha>/check-runs`), the version of the tag in every package file that the
+     tag covers and the section `## X.Y.Z` of `CHANGELOG.md`; it fails with each missing or failed check, and with the
+     file and both versions;
+   - `make install-node-modules` and `make build` build the npm packages, and `make release-assets` writes the
+     archives of `packages/` to `var/release/assets`: `npm pack` of every npm package that is not private, `git archive`
+     of every Composer package directory as a zip, and `cargo package --no-verify --exclude-lockfile` of every crate,
+     each named `<package>-<version>.<extension>` with `@scope/` and `vendor/` written `scope-` and `vendor-`; a Go
+     module tag writes no archive;
+   - `make release-publish` runs `gh release create <tag> --verify-tag --title <tag> --notes-file <section ## X.Y.Z>`
+     with the archives.
+
+`tests/build/release.test.mjs` checks the script with command fakes: a version that differs from the tag, a missing
+change log section, a check run that is missing, in progress or failed, a commit outside `main`, the archive names and
+commands, and the release command; it also requires one version in every package file of the repository.
