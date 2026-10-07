@@ -7,7 +7,7 @@ Implementation, verification and publication are recorded in
 ## Scope and modules
 
 The `crudui` PHP extension provides form generation and validation in the PHP
-process. Its package is `packages/php-ext`, with version `0.0.1`.
+process. Its package is `packages/php-ext`, with version `0.0.2`.
 The extension implements the form generator and validator in C.
 
 Generation separates structure compilation, data binding, form instances and

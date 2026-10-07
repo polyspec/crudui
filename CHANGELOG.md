@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.0.2
+
 ### 2026-10-07 — Release notes within the body limit of GitHub (C11.3)
 
 - `make release-publish` writes the section `## X.Y.Z` of `CHANGELOG.md` as the release notes when it has at most
