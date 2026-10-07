@@ -238,7 +238,11 @@ browser checks do not use `--no-sandbox` or `--disable-setuid-sandbox`.
 
 Every Git-tracked npm lock file is a maintained dependency graph. The root
 installation must make `npm ls --all` return status 0 without invalid, missing or
-conflicting dependencies. `npm ci --dry-run --strict-allow-scripts` must succeed
+conflicting dependencies. The root lock file holds one version of a package wherever
+one version satisfies the ranges: `tests/build/dependency-health.test.mjs` fails for a
+package that the lock file installs at two versions when one of them satisfies every
+range that the packages loading either copy declare, each package loading the copy in
+the nearest `node_modules` upward from its location. `npm ci --dry-run --strict-allow-scripts` must succeed
 for each graph.
 npm installs a package from the npm registry, from a workspace or from a checkout
 directory that a make target installs, such as the OrderedJSON tag checkout that the
@@ -273,7 +277,9 @@ cargo-audit release of `config/toolchain.json` into
 `.tools/cargo-audit`.
 `RECORD=1` writes the review with the sha256 of each lock to
 `config/dependency-review.json`, and `UPDATE=1` first raises each newer dependency
-in its manifest, keeping its range operator. The scheduled workflow
+in its manifest, keeping its range operator, and after the npm updates runs
+`npm dedupe`, because `npm install --workspace` keeps the release that the root
+installs and adds the raised release beside it. The scheduled workflow
 `.github/workflows/dependency-review.yml` runs the review every day; no check and
 no gating CI job runs it.
 

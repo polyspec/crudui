@@ -1,11 +1,11 @@
 {
   "schema": 1,
   "comment": "Written by make dependency-review RECORD=1 (scripts/dependency-review.mjs) from the registries; npm run test:dependencies compares the checkout with it without a network.",
-  "reviewed": "2026-10-07T03:45:48.346Z",
+  "reviewed": "2026-10-07T06:36:51.071Z",
   "locks": [
     {
       "lock": "package-lock.json",
-      "sha256": "562406c49e771e96cfcbc50a0d60aa9d7b5492333e49673f4fd3fe1d4ee9f3d8",
+      "sha256": "36dab0a22bbee219ee61c56d95e39f747cb98e134b369603df076a64bf5680cf",
       "advisories": []
     },
     {

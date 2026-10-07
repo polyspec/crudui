@@ -6,6 +6,7 @@ import path from 'node:path';
 import test from 'node:test';
 
 import { check, findingLine } from '../../scripts/check-dependencies.mjs';
+import { npmDuplicates, npmSatisfies } from '../../scripts/dependency-state.mjs';
 import { makeTargets, nodeTestArguments } from '../../scripts/test-commands.mjs';
 
 const root = path.resolve(import.meta.dirname, '../..');
@@ -171,6 +172,56 @@ test('installed packages form one valid dependency graph', () => {
     result.report.error?.summary,
     result.stderr,
   ].filter(Boolean).join('\n'));
+  // npm ci installs the lock, so a package that the lock holds twice is installed twice.
+  const lock = JSON.parse(readFileSync(path.join(root, 'package-lock.json'), 'utf8'));
+  assert.deepEqual(npmDuplicates(lock), []);
+});
+
+/** A lock in which a workspace raised svelte while the root kept the hoisted release. */
+const duplicateLock = () => ({
+  lockfileVersion: 3,
+  packages: {
+    '': { name: 'fixture', workspaces: ['packages/*'], devDependencies: { svelte: '^5.57.1', left: '^1.0.0', '@scope/kit': '0.0.1' } },
+    'node_modules/@scope/kit': { resolved: 'packages/kit', link: true },
+    'node_modules/svelte': { version: '5.57.1', dev: true },
+    'node_modules/left': { version: '1.4.0', dev: true },
+    'node_modules/plugin': { version: '6.0.0', dev: true, peerDependencies: { svelte: '^5.0.0', left: '>=1' }, peerDependenciesMeta: { left: { optional: true } } },
+    'packages/kit': { name: '@scope/kit', version: '0.0.1', devDependencies: { svelte: '^5.57.2', left: '^2.0.0', plugin: '^6.0.0' } },
+    'packages/kit/node_modules/svelte': { version: '5.57.2', dev: true },
+    'packages/kit/node_modules/left': { version: '2.1.0', dev: true },
+  },
+});
+
+test('a package installed at two versions that one installed version satisfies fails the dependency graph', () => {
+  assert.deepEqual(npmDuplicates(duplicateLock()), [
+    'svelte is installed at 5.57.1 and 5.57.2, and 5.57.2 satisfies every range: ^5.57.1 of the root, ^5.0.0 of node_modules/plugin and ^5.57.2 of packages/kit',
+  ]);
+});
+
+test('a package installed at two versions that no single version satisfies passes the dependency graph', () => {
+  const lock = duplicateLock();
+  lock.packages['packages/kit'].devDependencies.svelte = '~5.57.2';
+  lock.packages[''].devDependencies.svelte = '5.57.1';
+  assert.deepEqual(npmDuplicates(lock), []);
+  delete lock.packages['packages/kit/node_modules/svelte'];
+  lock.packages[''].devDependencies.svelte = '^5.57.1';
+  assert.deepEqual(npmDuplicates(lock), []);
+});
+
+test('npm version ranges select the versions that npm selects', () => {
+  const cases = [
+    ['1.2.3', '^1.0.0', true], ['2.0.0', '^1.0.0', false], ['2.0.0-rc.1', '^1.0.0', false],
+    ['0.2.5', '^0.2.3', true], ['0.3.0', '^0.2.3', false], ['0.0.4', '^0.0.3', false], ['1.9.0', '^1.x', true],
+    ['1.2.9', '~1.2.3', true], ['1.3.0', '~1.2.3', false], ['1.9.0', '~1', true], ['1.3.0', '~>1.2', false],
+    ['3.0.0', '>=2.1.0 <3.0.0', false], ['2.5.0', '>= 2.1.0 < 3', true], ['5.1.0', '>=5', true], ['4.9.9', '>5', false],
+    ['6.0.0', '>5', true], ['5.0.0', '<=5', true], ['5.9.0', '<=5', true], ['6.0.0', '<=5', false], ['5.0.0', '<5', false],
+    ['1.2.3', '1.2.3', true], ['1.2.4', '=1.2.3', false], ['1.2.9', '1.2.x', true], ['1.3.0', '1.2', false], ['7.0.0', '*', true],
+    ['7.0.0', '', true], ['7.0.0-beta.1', '*', false], ['1.2.3-beta.2', '^1.2.3-beta.1', true], ['1.2.4-beta.2', '^1.2.3-beta.1', false],
+    ['1.2.3', '^1.2.3-beta.1', true], ['2.3.0', '1.0.0 - 2.3', true], ['2.4.0', '1.0.0 - 2.3', false],
+    ['3.1.0', '^2.0.0 || ^3.0.0', true], ['4.0.0', '^2.0.0 || ^3.0.0', false], ['4.2.0', 'npm:other@^4.0.0', true],
+    ['1.0.0', 'file:../local', null], ['1.0.0', 'latest', null], ['1.0.0', 'https://example.test/a.tgz', null],
+  ];
+  assert.deepEqual(cases.map(([version, range]) => [version, range, npmSatisfies(version, range)]), cases);
 });
 
 test('workspace packages use the root dependency lock file', () => {
