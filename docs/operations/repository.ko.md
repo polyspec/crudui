@@ -131,7 +131,9 @@ fixture `tests/release-install/composer`(zip의 `artifact` repository를 둔 `co
 오고, 제3자 package는 lock이 정확한 version과 digest로 고정한 대로만 내려받습니다. `make release-install-lock`은
 `package.json` version의 fixture를 쓰고 archive에서 lock을 다시 만들며, polyspec archive는 이름과 version으로만(npm은 `integrity` 없이,
 Composer는 빈 `shasum`으로), 제3자 package는 정확한 version과 digest로 lock합니다. release commit은 tag 전에 archive를 쓰는 `make release-assets TAG=vX.Y.Z RELEASE_COMMIT=HEAD`
-뒤에 그것을 실행합니다.
+뒤에 그것을 실행합니다. CI job `build-lint`는 tag 전에 같은 설치를 실행합니다. `make release-install-head`은
+`package.json` version의 `HEAD` archive를 `make release-assets`처럼 쓰고 `scripts/release-install.mjs check`를
+실행합니다.
 
 ### Package manifest와 개발 해석
 

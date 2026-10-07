@@ -56,7 +56,7 @@
     { "paths": ["scripts/check-cargo-downloads.mjs", "examples/form-comparison/install-ordered-json.mjs"], "tests": ["tests/build/offline-checks.test.mjs"] },
     { "paths": ["scripts/ci-targets.mjs", "scripts/target-report.mjs"], "tests": ["tests/build/target-report.test.mjs", "tests/build/ci-local.test.mjs"] },
     { "paths": ["scripts/ci-passed.mjs"], "tests": ["tests/build/ci-passed.test.mjs", "tests/build/ci-local.test.mjs"] },
-    { "paths": ["scripts/release.mjs", "scripts/release-install.mjs", "tests/release-install/**"], "tests": ["tests/build/release.test.mjs", "tests/build/ci-local.test.mjs"] },
+    { "paths": ["scripts/release.mjs", "scripts/release-install.mjs", "tests/release-install/**"], "targets": ["release-install-head"], "tests": ["tests/build/release.test.mjs", "tests/build/ci-local.test.mjs"] },
     { "paths": ["Makefile"], "tests": ["tests/build/offline-checks.test.mjs", "tests/build/make-dry-run.test.mjs", "tests/build/full-run.test.mjs", "tests/build/push-gate.test.mjs", "tests/build/make-tool-path.test.mjs", "tests/build/php-extensions.test.mjs", "tests/build/checkout-npm.test.mjs", "tests/build/runtime-version-policy.test.mjs", "tests/build/ci-local.test.mjs", "tests/build/owner-check.test.mjs"] },
     { "paths": [".github/workflows/**"], "tests": ["tests/build/ci-local.test.mjs", "tests/build/runtime-version-policy.test.mjs", "tests/build/form-comparison-ci.test.mjs", "tests/build/checkout-npm.test.mjs", "tests/build/push-gate.test.mjs"] },
     { "paths": [".gitignore"], "targets": ["test-php-engine"], "tests": ["tests/build/lint-coverage.test.mjs", "tests/build/checkout-npm.test.mjs"] }

@@ -21,7 +21,7 @@ const SELF = 'tests/build/offline-checks.test.mjs';
 const CHECK = 'cargo-downloads-check';
 const DOWNLOADS = ['install-npm', 'install-node-modules', 'install-composer', 'install-phpdocumentor', 'install-browsers', 'install-crates', 'install-ordered-json', 'install-cargo-audit', 'dependency-review',
   // The consumer installs of the release archives, which download the third-party packages that their locks pin.
-  'release-install-check', 'release-install-lock'];
+  'release-install-check', 'release-install-lock', 'release-install-head'];
 const read = file => readFileSync(path.join(ROOT, file), 'utf8');
 const makefile = read('Makefile');
 

@@ -30,7 +30,7 @@ export GOPROXY := off
 export npm_config_offline := true
 export COMPOSER_DISABLE_NETWORK := 1
 ONLINE := env -u CARGO_NET_OFFLINE -u GOPROXY -u npm_config_offline -u COMPOSER_DISABLE_NETWORK
-.PHONY: help ci-targets ci-passed release-verify release-versions release-assets release-install-check release-install-lock release-publish push-gate-check install install-npm install-node-modules install-composer install-rust install-phpdocumentor install-browsers check-ci-browser test-runtimes test-dependencies build lint typecheck test-validator-js test-validator-php test-validator-go test-validator-rust test-cross-check manifest-test require-build test-cli manifest-check manifest-docs-check test-forms test-form-comparison test-form-comparison-pipeline test-form-comparison-checks test-packages test-build test-build-repeat test-inspector test-bench check-conformance install-crates install-ordered-json install-cargo-audit cargo-downloads-check dependency-review toolchain-check owner-check test-ordered-json docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-engine test-native-generators test-php-api test-native test-validators test-form-binding conformance format-check github-settings github-settings-check records-check hooks hooks-check ci rerun-failed
+.PHONY: help ci-targets ci-passed release-verify release-versions release-assets release-install-check release-install-lock release-install-head release-publish push-gate-check install install-npm install-node-modules install-composer install-rust install-phpdocumentor install-browsers check-ci-browser test-runtimes test-dependencies build lint typecheck test-validator-js test-validator-php test-validator-go test-validator-rust test-cross-check manifest-test require-build test-cli manifest-check manifest-docs-check test-forms test-form-comparison test-form-comparison-pipeline test-form-comparison-checks test-packages test-build test-build-repeat test-inspector test-bench check-conformance install-crates install-ordered-json install-cargo-audit cargo-downloads-check dependency-review toolchain-check owner-check test-ordered-json docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-engine test-native-generators test-php-api test-native test-validators test-form-binding conformance format-check github-settings github-settings-check records-check hooks hooks-check ci rerun-failed
 .NOTPARALLEL: docs docs-web docs-dev docs-preview docs-check docs-verify-idempotent
 
 # Validator benchmark iteration counts (override on the command line, e.g.
@@ -86,6 +86,7 @@ help: ## 타겟 설명
 	@echo "  make release-versions      Check the version of TAG in every package file and the change log section"
 	@echo "  make release-assets        Build the packages and write the npm and Composer archives of TAG to var/release/assets"
 	@echo "  make release-install-check Install the archives of var/release/assets from the consumer fixtures"
+	@echo "  make release-install-head  Write the archives of HEAD and install them from the consumer fixtures"
 	@echo "  make release-install-lock  Write the consumer fixtures and regenerate their locks from var/release/assets"
 	@echo "  make release-publish       Create the GitHub Release of TAG with its change log section and archives"
 	@echo ""
@@ -476,6 +477,12 @@ release-assets: ## Build the packages and write the npm and Composer archives of
 release-install-check: ## Install the archives of var/release/assets from the consumer fixtures of tests/release-install
 	$(ONLINE) node scripts/release-install.mjs check
 
+# The same install in CI, before any tag: the archives of HEAD at the version of package.json, written as
+# release-assets writes them, then release-install-check.
+release-install-head: ## Write the archives of HEAD at the version of package.json and install them from the consumer fixtures
+	RELEASE_COMMIT=HEAD node scripts/release.mjs assets "v$$(node -p "require('./package.json').version")"
+	$(ONLINE) node scripts/release-install.mjs check
+
 release-install-lock: ## Write the consumer fixtures of tests/release-install and regenerate their locks from var/release/assets
 	$(ONLINE) node scripts/release-install.mjs lock
 
@@ -498,6 +505,7 @@ CI_COMMANDS = \
 	'make lint' \
 	'make typecheck' \
 	'make test-ordered-json' \
+	'make release-install-head' \
 	'make test-validator-js' \
 	'make test-validator-php' \
 	'make test-validator-go' \

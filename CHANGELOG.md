@@ -4,6 +4,13 @@
 
 ## 0.0.3
 
+### 2026-10-07 — The install of the release archives in CI (C11.6-1)
+
+- The CI job `build-lint` runs `make release-install-head`: it writes the archives of `HEAD` at the version of
+  `package.json` as `make release-assets` writes them and installs them from the consumer fixtures of
+  `tests/release-install` with `scripts/release-install.mjs check`, so a broken archive fails CI before a tag. The
+  release workflow keeps `make release-install-check`.
+
 ### 2026-10-07 — Published manifests that install outside the repository (C11.5)
 
 - The published manifests are the package manifests of `packages/`, packed unchanged. Each names every dependency of
