@@ -19,7 +19,9 @@ const preparation = [
 /** The checking commands of the workflow, in job and step order. */
 export function workflowCommands(workflow) {
   const commands = [];
-  for (const job of Object.values(workflow.jobs)) {
+  for (const [id, job] of Object.entries(workflow.jobs)) {
+    // The completion job reads the results of the other jobs and checks no part of the tree.
+    if (id === 'ci-passed') continue;
     for (const step of job.steps ?? []) {
       if (typeof step.run !== 'string') continue;
       for (const line of step.run.split('\n').map((text) => text.trim()).filter(Boolean)) {
@@ -43,6 +45,21 @@ export function makeCommands(makefile) {
     .map((line) => line.trim().replace(/ \\$/, '').replace(/^'|'$/g, ''))
     .flatMap((line) => line.split(' && '));
 }
+
+// The ruleset main requires the check ci-passed (.github/repository.json): the last job of the CI workflow needs every
+// other job, runs after a failed, cancelled or skipped one, and fails unless each of them succeeded.
+test('the last CI job ci-passed needs every other job and runs always', async () => {
+  const workflow = parse(await read('.github/workflows/ci.yml'));
+  const ids = Object.keys(workflow.jobs);
+  assert.equal(ids.at(-1), 'ci-passed', 'ci-passed is the last job of .github/workflows/ci.yml');
+  const job = workflow.jobs['ci-passed'];
+  assert.equal(job.name, undefined, 'the check carries the job id ci-passed');
+  assert.equal(job.if, '${{ always() }}');
+  assert.deepEqual(job.needs, ids.slice(0, -1));
+  assert.equal(job['runs-on'], 'ubuntu-24.04');
+  assert.deepEqual(job.steps.filter((step) => step.run !== undefined && !/^make toolchain-check\b/.test(step.run)).map((step) => step.run),
+    ["make ci-passed RESULTS='${{ toJSON(needs) }}'"]);
+});
 
 test('make ci runs every checking command of the CI workflow, in the same order', async () => {
   const workflow = workflowCommands(parse(await read('.github/workflows/ci.yml')));

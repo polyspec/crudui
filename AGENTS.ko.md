@@ -49,7 +49,8 @@
   ```
 
   `.github/repository.json`의 ruleset `main`은 승인 없는 pull request, merge 방식 `REBASE`의 merge queue, 선형 이력,
-  job `push-gate`와 `.github/workflows/ci.yml`의 모든 job의 check를 요구하고, `main`의 force-push와 삭제를 거부하며
+  check `push-gate`, 그리고 `.github/workflows/ci.yml`의 다른 모든 job을 needs로 두고 그 job이 모두 성공해야만 성공하는 마지막 job
+  `ci-passed`의 check를 요구하고, `main`의 force-push와 삭제를 거부하며
   bypass actor가 없으므로, GitHub는 `main`으로의 직접 push를 관리자에게도 거부합니다. rebase는 merge된 commit에 새
   hash를 주므로, `git pull --rebase`가 queue가 merge한 local commit을 버립니다. `make github-settings`는 선언을
   적용하고, `make github-settings-check`는 저장소가 선언과 다르면 실패합니다(`docs/operations/repository.md`).

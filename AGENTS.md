@@ -57,8 +57,9 @@
   ```
 
   The ruleset `main` of `.github/repository.json` requires a pull request without approval, the
-  merge queue with the method `REBASE`, a linear history and the checks of the job `push-gate` and of
-  every job of `.github/workflows/ci.yml`, refuses a force-push and a deletion of `main` and has no
+  merge queue with the method `REBASE`, a linear history and the checks `push-gate` and `ci-passed`, the
+  last job of `.github/workflows/ci.yml`, which needs every other job of it and fails unless each of them
+  succeeded, refuses a force-push and a deletion of `main` and has no
   bypass actor, so GitHub refuses a direct push to `main`, from an administrator too. The rebase
   gives the merged commits new hashes, so `git pull --rebase` drops the local commits that the queue
   merged. `make github-settings` applies the declaration, and `make github-settings-check` fails

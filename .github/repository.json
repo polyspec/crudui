@@ -100,67 +100,7 @@
               "integration_id": 15368
             },
             {
-              "context": "build, lint and types",
-              "integration_id": 15368
-            },
-            {
-              "context": "validator · JavaScript",
-              "integration_id": 15368
-            },
-            {
-              "context": "validator · PHP (8.4)",
-              "integration_id": 15368
-            },
-            {
-              "context": "validator · PHP (8.5)",
-              "integration_id": 15368
-            },
-            {
-              "context": "validator · Go",
-              "integration_id": 15368
-            },
-            {
-              "context": "validator · Rust",
-              "integration_id": 15368
-            },
-            {
-              "context": "documentation gate",
-              "integration_id": 15368
-            },
-            {
-              "context": "cross-check console gateway",
-              "integration_id": 15368
-            },
-            {
-              "context": "command-line interface",
-              "integration_id": 15368
-            },
-            {
-              "context": "Form instances and data injection",
-              "integration_id": 15368
-            },
-            {
-              "context": "Form comparison runner regressions",
-              "integration_id": 15368
-            },
-            {
-              "context": "Record stores and the canonical flow",
-              "integration_id": 15368
-            },
-            {
-              "context": "Packages, public builds and browser inspector",
-              "integration_id": 15368
-            },
-            {
-              "context": "Native generation and PHP API (8.4)",
-              "integration_id": 15368
-            },
-            {
-              "context": "Native generation and PHP API (8.5)",
-              "integration_id": 15368
-            },
-            {
-              "context": "conformance evidence against the standard",
+              "context": "ci-passed",
               "integration_id": 15368
             }
           ]

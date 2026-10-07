@@ -130,7 +130,7 @@ test('an environment branch that is not declared is removed', async () => {
   assert.deepEqual(state.environments['github-pages'].branches.map((branch) => branch.name), ['main']);
 });
 
-test('the ruleset main requires a pull request, the merge queue and every check of the push check and the CI workflow', async () => {
+test('the ruleset main requires a pull request, the merge queue and the checks push-gate and ci-passed', async () => {
   const { ruleset } = declaration;
   assert.equal(ruleset.enforcement, 'active');
   assert.deepEqual(ruleset.bypass_actors, []);
@@ -144,20 +144,19 @@ test('the ruleset main requires a pull request, the merge queue and every check 
   assert.equal(rules.merge_queue.check_response_timeout_minutes, 360);
   for (const key of ['allow_rebase_merge', 'allow_auto_merge', 'delete_branch_on_merge']) assert.equal(declaration.settings[key], true, key);
 
-  // The check run of a job carries its name, a matrix job one per entry with the value in place of the expression.
+  // The ruleset requires exactly the push check and the completion job ci-passed of the CI workflow, which needs every
+  // other CI job (tests/build/ci-local.test.mjs); the check run of a job carries its name, or its id without one.
+  const required = ['push-gate', 'ci-passed'];
+  // 15368 is the GitHub Actions app, so a check of the same name from another app does not satisfy the rule.
+  assert.deepEqual(rules.required_status_checks.required_status_checks, required.map((context) => ({ context, integration_id: 15368 })));
   const checks = [];
   for (const file of ['push-gate.yml', 'ci.yml']) {
     const workflow = parse(await readFile(new URL(`../../.github/workflows/${file}`, import.meta.url), 'utf8'));
-    for (const job of Object.values(workflow.jobs)) {
-      const matrix = Object.entries(job.strategy?.matrix ?? {});
-      assert.ok(matrix.length <= 1, `${job.name}: one matrix dimension`);
-      if (matrix.length === 0) checks.push(job.name);
-      else for (const value of matrix[0][1]) checks.push(job.name.replace(`\${{ matrix.${matrix[0][0]} }}`, value));
-    }
+    for (const [id, job] of Object.entries(workflow.jobs)) checks.push({ file, id, name: job.name ?? id });
   }
-  assert.ok(checks.every((name) => !name.includes('${{')), checks.join(', '));
-  // 15368 is the GitHub Actions app, so a check of the same name from another app does not satisfy the rule.
-  assert.deepEqual(rules.required_status_checks.required_status_checks, checks.map((context) => ({ context, integration_id: 15368 })));
+  for (const [index, file] of ['push-gate.yml', 'ci.yml'].entries()) {
+    assert.deepEqual(checks.filter(({ name }) => name === required[index]).map(({ file: found, id }) => `${found} ${id}`), [`${file} ${required[index]}`]);
+  }
   assert.equal(rules.required_status_checks.strict_required_status_checks_policy, false);
 });
 

@@ -36,8 +36,8 @@ the GitHub interface, so the declaration stays the record.
 matching repository receives no request, a new repository is brought to the declaration and a
 second run sends nothing, an undeclared deployment branch is removed, the order of rules, checks and
 merge methods is not a difference, a ruleset that differs is replaced by its id and another ruleset
-is kept, and two rulesets of the name fail. It also requires the checks of the ruleset to be the jobs
-of the push check and of the CI workflow, one per matrix entry.
+is kept, and two rulesets of the name fail. It also requires the checks of the ruleset to be exactly
+`push-gate` and `ci-passed`, each the check of one job.
 
 ## Publishing main
 
@@ -64,8 +64,12 @@ binds administrators too. Its rules:
 - `required_linear_history`, `non_fast_forward` and `deletion`: no merge commit, no force-push and
   no deletion of `main`;
 - `required_status_checks`: the check `push-gate` of `.github/workflows/push-gate.yml` and the check
-  of every job of `.github/workflows/ci.yml`, one per matrix entry, all of the GitHub Actions app
-  (integration 15368).
+  `ci-passed` of `.github/workflows/ci.yml`, both of the GitHub Actions app (integration 15368).
+  `ci-passed` is the last job of the CI workflow: it needs every other job, runs under
+  `if: ${{ always() }}` and runs `make ci-passed RESULTS='${{ toJSON(needs) }}'`, which fails unless
+  every needed job has the result `success`, so a failed, cancelled or skipped job fails it, and a
+  new or renamed CI job needs no change of the ruleset. `tests/build/ci-local.test.mjs` requires it
+  as the last job with every other job in `needs`.
 
 A direct `git push origin <commit>:main` is refused with `GH013: Repository rule violations found`.
 The pre-push hook runs on the push of the branch. `gh pr merge --auto` adds the pull request to the

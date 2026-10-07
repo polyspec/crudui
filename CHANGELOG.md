@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### 2026-10-07 — One completion check of the CI workflow (C11.1-2)
+
+- The last job `ci-passed` of `.github/workflows/ci.yml` needs every other job, runs under `if: ${{ always() }}` and
+  runs `make ci-passed RESULTS='${{ toJSON(needs) }}'`, which fails unless every needed job has the result `success`;
+  a failed, cancelled or skipped job fails it.
+- The ruleset `main` of `.github/repository.json` requires exactly the checks `push-gate` and `ci-passed`, so a new or
+  renamed CI job needs no change of the ruleset.
+
 ### 2026-10-07 — Changes of the coming release under Unreleased (C11.1-1)
 
 - `CHANGELOG.md` and `CHANGELOG.ko.md` start with the section `## Unreleased`, which holds every entry as a heading
