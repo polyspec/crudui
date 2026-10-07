@@ -9,7 +9,7 @@ import {
   assetName, buildAssets, changelogSection, commitProblems, manifestProblems, NOTES_LIMIT, parseTag, publish, publishedProblems,
   releaseAssets, releaseManifests, releaseNotes, versionProblems,
 } from '../../scripts/release.mjs';
-import { fixtureManifests, NPM_PACKAGES } from '../../scripts/release-install.mjs';
+import { check as installCheck, fixtureManifests, NPM_PACKAGES } from '../../scripts/release-install.mjs';
 
 const ROOT = path.resolve(import.meta.dirname, '../..');
 const SHA = 'a'.repeat(40);
@@ -257,6 +257,23 @@ test('the consumer fixtures of tests/release-install name the archives of the ve
     ['polyspec/crudui-generator', version, `archives/${assetName('polyspec/crudui-generator', version, 'zip')}`],
     ['polyspec/crudui-validator', version, `archives/${assetName('polyspec/crudui-validator', version, 'zip')}`],
   ]);
+});
+
+// A Go module tag <directory>/vX.Y.Z builds and attaches no archive (release-assets), so its install check names the tag
+// and installs nothing; it never reads the archives of another release from the assets directory.
+test('the install check of a Go module tag installs nothing and names the tag', () => {
+  const empty = fs.mkdtempSync(path.join(os.tmpdir(), 'crudui-release-install-test-'));
+  const lines = [];
+  const write = process.stderr.write;
+  process.stderr.write = (text) => { lines.push(String(text)); return true; };
+  try {
+    installCheck({ assets: empty, fixtures: empty, tag: 'packages/generator-go/v0.0.3' });
+  } finally {
+    process.stderr.write = write;
+    fs.rmSync(empty, { recursive: true, force: true });
+  }
+  assert.deepEqual(lines, ['release-install: packages/generator-go/v0.0.3 is a Go module tag, which releases no archive to install\n']);
+  assert.throws(() => installCheck({ assets: empty, fixtures: empty, tag: 'packages/generator-go/0.0.3' }), /is not vX\.Y\.Z or <directory>\/vX\.Y\.Z/);
 });
 
 test('the GitHub Release of a tag carries its change log section and its archives', async () => {

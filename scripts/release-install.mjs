@@ -20,7 +20,7 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 import { useCheckoutNpm } from './checkout-npm.mjs';
-import { assetName } from './release.mjs';
+import { assetName, parseTag } from './release.mjs';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
 const FIXTURES = path.join(ROOT, 'tests/release-install');
@@ -83,8 +83,16 @@ function projects(work, assets, release) {
   return { npm, composer };
 }
 
-/** Install the fixtures from the archives and check the installed versions. */
-export function check({ assets = ASSETS, fixtures = FIXTURES } = {}) {
+/**
+ * Install the fixtures from the archives and check the installed versions. `tag` is the tag of the release when the
+ * release workflow runs the check: a Go module tag <directory>/vX.Y.Z builds and attaches no archive (release-assets),
+ * so the check names the tag and installs nothing.
+ */
+export function check({ assets = ASSETS, fixtures = FIXTURES, tag } = {}) {
+  if (tag !== undefined && parseTag(tag).directory) {
+    process.stderr.write(`release-install: ${tag} is a Go module tag, which releases no archive to install\n`);
+    return;
+  }
   const release = version();
   const work = fs.mkdtempSync(path.join(os.tmpdir(), 'crudui-release-install-'));
   try {
@@ -142,8 +150,9 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   useCheckoutNpm();
   try {
     if (operation === 'check' && process.argv.length === 3) check();
+    else if (operation === 'check' && process.argv.length === 4) check({ tag: process.argv[3] });
     else if (operation === 'lock' && process.argv.length === 3) lock();
-    else throw new Error('Usage: node scripts/release-install.mjs check | lock');
+    else throw new Error('Usage: node scripts/release-install.mjs check [TAG] | lock');
   } catch (error) {
     process.stderr.write(`::error::release-install: ${error.message}\n`);
     process.exitCode = 1;

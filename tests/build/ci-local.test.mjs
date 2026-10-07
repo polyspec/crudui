@@ -356,6 +356,8 @@ test('the release workflow checks the tag, writes and installs the archives and 
   for (const step of ['verify', 'versions', 'assets', 'publish']) {
     assert.match(makefile, new RegExp(`^release-${step}:.*\\n(?:\\t.*\\n)*\\tnode scripts/release\\.mjs ${step} "\\$\\$TAG"\\n`, 'm'), `make release-${step} passes "$$TAG"`);
   }
+  assert.match(makefile, /^release-install-check:.*\n(?:\t.*\n)*\t\$\(ONLINE\) node scripts\/release-install\.mjs check "\$\$TAG"\n/m,
+    'make release-install-check passes "$$TAG", so a Go module tag installs nothing');
   assert.ok(job.steps.every((step) => step.if === undefined), 'no step runs after a failed one');
 });
 

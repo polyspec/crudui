@@ -123,8 +123,9 @@ commit은 merge queue로 ruleset의 check를 통과했으므로 release는 test�
 `tests/release-install`의 사용자 fixture가 `package.json` version의 archive를 적는지 확인합니다.
 
 release workflow에서 `make release-assets`와 `make release-publish` 사이의 step인 `make release-install-check`
-(`scripts/release-install.mjs check`)는 `var/release/assets`의 archive를 사용자처럼 저장소 밖 임시 디렉터리에서
-설치합니다. fixture `tests/release-install/npm`(tarball을 `file:` 의존성으로 적은 `package.json`과 `package-lock.json`)을
+(`scripts/release-install.mjs check "$TAG"`)는 tag `TAG`의 archive를 `var/release/assets`에서 사용자처럼 저장소 밖 임시
+디렉터리에 설치합니다. Go module tag `<directory>/vX.Y.Z`는 archive를 release하지 않으므로, 이 검사는 그 tag를 밝히고
+아무것도 설치하지 않습니다. fixture `tests/release-install/npm`(tarball을 `file:` 의존성으로 적은 `package.json`과 `package-lock.json`)을
 tarball과 함께 복사하고 빈 cache와 닿지 않는 registry `http://127.0.0.1:9/`의 scope `@polyspec`로 `npm ci`를 실행하며,
 fixture `tests/release-install/composer`(zip의 `artifact` repository를 둔 `composer.json`과 `composer.lock`)를 zip과 함께
 복사하고 빈 `COMPOSER_HOME`과 `COMPOSER_CACHE_DIR`로 `composer install`을 실행합니다. polyspec package는 archive에서만
