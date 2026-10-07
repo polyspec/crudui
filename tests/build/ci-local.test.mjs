@@ -113,6 +113,56 @@ test('every evidence artifact has a name of its own and the conformance job read
   assert.deepEqual(download.with, { pattern: 'conformance-evidence-*', path: 'conformance-evidence' });
 });
 
+// The cache of setup-node saved the npm directory of the job that finished first under the key of package-lock.json,
+// also of a job that installs no npm package, so every later job restored an empty directory. A job that installs the
+// npm packages restores and saves ~/.npm with actions/cache under the key of package-lock.json before it installs npm;
+// a job that installs none caches nothing.
+const NPM_CACHE = { path: '~/.npm', key: "npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}" };
+
+/** The jobs of a workflow whose npm cache differs from that rule, as `job: problem`. */
+export function npmCacheViolations(workflow) {
+  const violations = [];
+  for (const [id, job] of Object.entries(workflow.jobs)) {
+    const steps = job.steps ?? [];
+    const uses = (prefix) => steps.filter((step) => String(step.uses ?? '').startsWith(prefix));
+    for (const step of uses('actions/setup-node@')) if (step.with?.cache !== undefined) violations.push(`${id}: setup-node caches ${step.with.cache}`);
+    const caches = uses('actions/cache@').filter((step) => step.with?.path === NPM_CACHE.path);
+    const installs = steps.some((step) => /^make (?:[\w-]+ )*install-node-modules\b/.test(String(step.run ?? '')));
+    if (!installs) {
+      if (caches.length) violations.push(`${id}: caches ~/.npm without installing the npm packages`);
+      continue;
+    }
+    if (caches.length !== 1) { violations.push(`${id}: installs the npm packages without one cache of ~/.npm`); continue; }
+    if (caches[0].with.key !== NPM_CACHE.key) violations.push(`${id}: the npm cache key is ${caches[0].with.key}`);
+    const npm = steps.findIndex((step) => /^make (?:[\w-]+ )*install-npm\b/.test(String(step.run ?? '')) || /^make (?:[\w-]+ )*install-node-modules\b/.test(String(step.run ?? '')));
+    if (steps.indexOf(caches[0]) > npm) violations.push(`${id}: the npm cache is restored after npm installs`);
+  }
+  return violations;
+}
+
+test('a job that installs the npm packages caches ~/.npm by package-lock.json, and setup-node caches nothing', async () => {
+  const cache = { uses: 'actions/cache@x', with: NPM_CACHE };
+  assert.deepEqual(npmCacheViolations({ jobs: {
+    a: { steps: [{ uses: 'actions/setup-node@x', with: { cache: 'npm' } }, { run: 'make install-npm' }] },
+    b: { steps: [{ run: 'make install-npm' }, { run: 'make install-node-modules install-composer' }] },
+    c: { steps: [{ run: 'make install-npm' }, cache, { run: 'make install-node-modules' }] },
+    d: { steps: [cache, { run: 'make install-composer' }] },
+    e: { steps: [{ uses: 'actions/cache@x', with: { ...NPM_CACHE, key: 'npm' } }, { run: 'make install-node-modules' }] },
+    f: { steps: [cache, { run: 'make install-npm' }, { run: 'make install-node-modules' }] },
+  } }), [
+    'a: setup-node caches npm',
+    'b: installs the npm packages without one cache of ~/.npm',
+    'c: the npm cache is restored after npm installs',
+    'd: caches ~/.npm without installing the npm packages',
+    'e: the npm cache key is npm',
+  ]);
+  const violations = [];
+  for (const file of ['ci.yml', 'dependency-review.yml', 'pages.yml', 'push-gate.yml', 'release.yml']) {
+    violations.push(...npmCacheViolations(parse(await read(`.github/workflows/${file}`))).map((line) => `${file} ${line}`));
+  }
+  assert.deepEqual(violations, []);
+});
+
 test('make ci runs every checking command of the CI workflow, in the same order', async () => {
   const workflow = workflowCommands(parse(await read('.github/workflows/ci.yml')));
   const local = makeCommands(await read('Makefile'));

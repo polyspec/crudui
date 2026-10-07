@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### 2026-10-07 — npm cache by package-lock.json (C12.1-2)
+
+- Every job of the CI, Pages and release workflows that installs the npm packages restores and saves `~/.npm` with
+  `actions/cache` under the key of the runner system, its architecture and the hash of `package-lock.json`, before it
+  installs npm; `setup-node` caches nothing, because its cache saved the npm directory of the job that finished first,
+  also of a job that installs no npm package, and every job restored 700 bytes.
+
 ### 2026-10-07 — Native suites in three CI jobs (C12.1-1)
 
 - The native suites run in three CI jobs: `php-engine` runs `make test-php-engine`, the C engine tests of the PHP

@@ -88,6 +88,13 @@ native suite는 세 CI job에서 실행되므로 어떤 job도 다른 runtime이
 `make test-php-api`를 실행합니다. `make test-native`는 세 대상을 한 명령으로 실행합니다
 (`docs/operations/native-generators.ko.md`).
 
+npm package를 설치하는 모든 job은 npm을 설치하기 전에 `actions/cache`로 `~/.npm`을 key
+`npm-<system>-<architecture>-<package-lock.json의 hash>`로 복원하고 저장하며, `setup-node`는 아무것도 cache하지
+않습니다. 그 cache는 먼저 끝난 job의 npm 디렉터리를, npm package를 설치하지 않는 job의 것도 저장했으므로 이후 모든
+job이 700 byte를 복원했습니다. 실행은 자기 ref와 `main`의 cache를 읽으므로 `.github/workflows/pages.yml`이 `main`에서
+같은 key로 저장한 cache를 모든 pull request와 merge group이 씁니다. `Swatinem/rust-cache`의 Cargo cache는 job, Rust
+toolchain, workspace의 Cargo lock으로 된 key를 가지며, job id마다 그런 key가 하나입니다.
+
 요청하면 `make owner-check`는 바뀐 경로를 소유한 검사를 실행합니다. 경로는 commit되지 않은 변경과 새 file,
 `PATHS`의 경로, 또는 `BASE` 뒤에 바뀐 경로입니다. `scripts/owner-checks.json`은 경로 glob마다 그것을 소유한 make 대상,
 root npm script, workspace와 package directory의 test script, node test file을, 검사마다 그것이 읽는 경로(`inputs`)를
