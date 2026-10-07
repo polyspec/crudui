@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### 2026-10-07 — CI runner의 Linux 스타일 검사 (C7.20-2)
+
+- `make test-form-styles-linux`, `make remove-form-styles-image`, `scripts/test-form-styles-linux.sh`를 제거했습니다.
+  CI job `form-runtime`이 스타일시트 배치 검사를 Linux runner에서 고정한 Chromium, Firefox, WebKit build로
+  실행합니다.
+- `tests/docs/repository-writing.test.mjs`의 case는 tracked tool, Makefile 줄, workflow가 macOS의 container CLI,
+  Docker, Podman을 호출하면 실패합니다.
+
 ### 2026-10-07 — CI에서 로컬 구성에 대해 실행하는 폼 비교 검사 (C7.20-1)
 
 - `make test-form-comparison-checks`(`examples/form-comparison/local-verification.mjs`)는 네이티브 레코드 서버 네 개와

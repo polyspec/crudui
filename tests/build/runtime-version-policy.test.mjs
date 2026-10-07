@@ -65,9 +65,6 @@ test('container definitions and the Linux style check install the recorded npm',
     const installs = [...source.matchAll(/npm(?:-cli\.js)? install -g npm@(\S+)/g)].map(match => match[1]);
     if (installs.length !== 1 || installs[0] !== recorded) violations.push(`${name} installs npm ${installs.join(', ') || 'from its image'}, package.json records ${recorded}`);
   }
-  const styles = await readFile(path.join(repository, 'scripts/test-form-styles-linux.sh'), 'utf8');
-  const install = styles.indexOf('node scripts/install-npm.mjs');
-  if (install === -1 || install > styles.indexOf('npm ci')) violations.push('scripts/test-form-styles-linux.sh runs npm ci before node scripts/install-npm.mjs');
   assert.deepEqual(violations, []);
 });
 
@@ -233,15 +230,6 @@ test('container stages name their images by exact tag and digest and install Deb
     if (!/RUSTUP_AUTO_INSTALL=0/.test(source) || !/GOTOOLCHAIN=local/.test(source)) violations.push(`${name}: the image must set RUSTUP_AUTO_INSTALL=0 and GOTOOLCHAIN=local`);
   }
   assert.deepEqual(violations, []);
-});
-
-test('the Linux style check installs the recorded Node.js archive and the pinned browsers', async () => {
-  const script = await read('scripts/test-form-styles-linux.sh');
-  assert.doesNotMatch(script, /latest|@stable|playwright install chrome/);
-  assert.match(script, /https:\/\/nodejs\.org\/dist\/v\$NODE_VERSION\/\$tarball/);
-  assert.match(script, /sha256sum -c/);
-  assert.match(script, /NODE_VERSION=\$\(cat "\$ROOT\/\.node-version"\)/);
-  assert.match(script, /node scripts\/install-browsers\.mjs chrome firefox --chrome-sandbox/);
 });
 
 test('no browser of a release channel or of the machine is installed or launched', async () => {

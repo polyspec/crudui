@@ -29,7 +29,7 @@ export GOPROXY := off
 export npm_config_offline := true
 export COMPOSER_DISABLE_NETWORK := 1
 ONLINE := env -u CARGO_NET_OFFLINE -u GOPROXY -u npm_config_offline -u COMPOSER_DISABLE_NETWORK
-.PHONY: help ci-targets ci-passed release-verify release-versions release-assets release-publish push-gate-check install install-npm install-node-modules install-composer install-rust install-phpdocumentor install-browsers check-ci-browser test-runtimes test-dependencies build lint typecheck test-validator-js test-validator-php test-validator-go test-validator-rust test-cross-check manifest-test require-build test-cli manifest-check manifest-docs-check test-forms test-form-comparison test-form-comparison-pipeline test-form-comparison-checks test-packages test-build test-build-repeat test-inspector test-bench check-conformance install-crates install-ordered-json install-cargo-audit cargo-downloads-check dependency-review toolchain-check owner-check test-ordered-json docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-engine test-native-generators test-php-api test-native test-validators test-form-binding conformance format-check github-settings github-settings-check records-check hooks hooks-check ci rerun-failed test-form-styles-linux remove-form-styles-image
+.PHONY: help ci-targets ci-passed release-verify release-versions release-assets release-publish push-gate-check install install-npm install-node-modules install-composer install-rust install-phpdocumentor install-browsers check-ci-browser test-runtimes test-dependencies build lint typecheck test-validator-js test-validator-php test-validator-go test-validator-rust test-cross-check manifest-test require-build test-cli manifest-check manifest-docs-check test-forms test-form-comparison test-form-comparison-pipeline test-form-comparison-checks test-packages test-build test-build-repeat test-inspector test-bench check-conformance install-crates install-ordered-json install-cargo-audit cargo-downloads-check dependency-review toolchain-check owner-check test-ordered-json docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-engine test-native-generators test-php-api test-native test-validators test-form-binding conformance format-check github-settings github-settings-check records-check hooks hooks-check ci rerun-failed
 .NOTPARALLEL: docs docs-web docs-dev docs-preview docs-check docs-verify-idempotent
 
 # Validator benchmark iteration counts (override on the command line, e.g.
@@ -77,8 +77,6 @@ help: ## 타겟 설명
 	@echo "  make format-check          Fail when any Rust crate or Go file is not formatted"
 	@echo "  make ci                    Run every command of the CI workflow in order, once per tree (scripts/full-run.mjs)"
 	@echo "  make rerun-failed          Rerun the commands of make ci that did not pass on the current tree"
-	@echo "  make test-form-styles-linux  Run the stylesheet layout checks on Linux in the Playwright image"
-	@echo "  make remove-form-styles-image  Remove that Playwright image unless a check holds it"
 	@echo "  make github-settings       Apply the repository settings and the ruleset main in .github/repository.json"
 	@echo "  make github-settings-check Fail when the repository settings differ from the declaration"
 	@echo "  make records-check         The document and checklist rules that need Node.js alone"
@@ -510,14 +508,6 @@ CI_COMMANDS = \
 	'make test-bench' \
 	'make test-php-api' \
 	'make check-conformance'
-# The stylesheet layout checks as the Linux CI runner runs them (WebKit, Chromium and Firefox in
-# the Playwright image of the pinned version), through `container` on macOS or `docker`. It is not
-# part of `make ci`, which runs the workflow commands on this machine.
-test-form-styles-linux: ## Run the stylesheet layout checks on Linux in the Playwright image
-	sh scripts/test-form-styles-linux.sh
-
-remove-form-styles-image: ## Remove that Playwright image unless a check holds it
-	sh scripts/test-form-styles-linux.sh --remove-image
 
 # `make ci` runs CI_COMMANDS through the guard scripts/full-run.mjs, which refuses while a checklist task is [~], while
 # tracked changes are uncommitted or when var/full-run.json records a run of the current tree, removes the conformance

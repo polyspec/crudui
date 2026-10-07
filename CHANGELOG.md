@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### 2026-10-07 — Linux style checks on the CI runner (C7.20-2)
+
+- `make test-form-styles-linux`, `make remove-form-styles-image` and `scripts/test-form-styles-linux.sh` are removed;
+  the CI job `form-runtime` runs the stylesheet layout checks on its Linux runner with the pinned Chromium, Firefox and
+  WebKit builds.
+- A case of `tests/docs/repository-writing.test.mjs` fails for a tracked tool, a Makefile line or a workflow that
+  invokes the container CLI of macOS, Docker or Podman.
+
 ### 2026-10-07 — Form comparison checks against a local stack in CI (C7.20-1)
 
 - `make test-form-comparison-checks` (`examples/form-comparison/local-verification.mjs`) starts the four native record
