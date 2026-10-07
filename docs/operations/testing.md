@@ -336,12 +336,9 @@ checks. JSON order and HTTP save/load checks are separate from validator package
 
 `npm run test:forms` checks the stylesheet layout in Chromium, Firefox and WebKit on the host and
 the custom properties of the stylesheet (`tests/style-properties.test.mjs`).
-`make test-form-styles-linux` runs the same checks on Linux in the official Playwright image of
-the pinned version, as the CI job does after a push, when an engine difference on Linux needs a local run.
-The image takes about 10 GB and every checkout of the user account uses the same one, so a run
-keeps it, and its container runs under the user-wide holder lock of the image (see
-[Shared resources](#shared-resources)). `make remove-form-styles-image` removes the image under the
-same lock and is refused while a check runs.
+The CI job `form-runtime` runs the same checks on its Linux runner, `ubuntu-24.04`, with the
+Chromium and Firefox builds that Puppeteer pins and the WebKit build that Playwright pins, installed
+by `make install-browsers`; an engine difference on Linux shows in that job.
 
 Record the revision, commands, results and deployment status in
 [feature status](../features.md). A test result applies to the code and inputs
@@ -390,7 +387,6 @@ concurrent runs, the report and the removal of a lock whose holder no longer run
 | Resource | Use by one run |
 |---|---|
 | Snapshots of `make docs-verify-idempotent` | A directory from `mktemp -d`, removed at the run's exit |
-| Playwright image of `make test-form-styles-linux` | User-wide lock `playwright-v<version>-noble`; the run keeps the image, and `make remove-form-styles-image` removes it under the lock |
 | `dist` of each built package | Checkout lock `dist-<package folder>`, held by the package's whole build and by every pack; the build writes `dist.next` and replaces `dist` with it |
 | The build stamp, the PHP modules and their build records, the OrderedJSON checkout, `.tools/npm` | Written to a path of the run and renamed into place (`tests/build/atomic-publish.test.mjs`) |
 
@@ -405,6 +401,6 @@ repositories that install CRUDUI archives pack through it, so a pack never reads
 build has emptied. On Linux the lock reads the start time of a process from `/proc`, since minimal
 container images have no `ps`.
 
-`tests/build/shared-resources.test.mjs`, run by `npm run test:runtimes`, checks the documentation,
-image and `dist` rows; it checks the `dist` lock on a fixture package that it builds in a temporary
+`tests/build/shared-resources.test.mjs`, run by `npm run test:runtimes`, checks the documentation
+and `dist` rows; it checks the `dist` lock on a fixture package that it builds in a temporary
 checkout, so it reads no build output of the repository and runs before `npm run build`.

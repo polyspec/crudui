@@ -294,12 +294,9 @@ refresh 검사를 실행합니다. `php-config`가 있는 PHP, Composer, Go, Rus
 
 `npm run test:forms`는 호스트에서 Chromium, Firefox, WebKit의 스타일시트 배치와 스타일시트의
 사용자 정의 속성(`tests/style-properties.test.mjs`)을 검사합니다.
-`make test-form-styles-linux`는 CI 작업처럼 고정된 버전의 공식 Playwright 이미지에서 같은 검사를 Linux로
-실행합니다. CI 작업은 push 뒤에 이를 실행하며, Linux에서만 드러나는 엔진 차이를 local에서 확인해야 할 때 씁니다. 이미지는 약 10GB이고 user
-account의 모든 checkout이 같은 이미지를 쓰므로 실행은 이미지를 남겨 두며, container는 이미지의 user 범위
-holder lock 아래에서 실행됩니다([함께 쓰는 resource](#함께-쓰는-resource) 참고).
-`make remove-form-styles-image`는 같은 lock 아래에서 이미지를 지우고, check가 실행되는 동안에는
-거부됩니다.
+CI job `form-runtime`은 같은 검사를 Linux runner `ubuntu-24.04`에서 `make install-browsers`가 설치한,
+Puppeteer가 고정한 Chromium·Firefox build와 Playwright가 고정한 WebKit build로 실행합니다. Linux에서만
+드러나는 엔진 차이는 그 job에서 보입니다.
 
 [기능 상태](../features.ko.md)에 리비전·명령·결과·배포 상태를 기록합니다. 테스트
 결과는 실제로 실행한 코드와 입력에 적용됩니다. 검사 수만으로 범위나 배포가
@@ -345,7 +342,6 @@ holder가 더 이상 실행되지 않는 lock의 보고와 제거, 해제를 확
 | Resource | 한 실행의 사용 |
 |---|---|
 | `make docs-verify-idempotent`의 snapshot | `mktemp -d`의 directory, 실행이 끝날 때 지움 |
-| `make test-form-styles-linux`의 Playwright image | user 범위 lock `playwright-v<version>-noble`; 실행은 image를 남기고, `make remove-form-styles-image`가 lock 아래에서 지움 |
 | build되는 각 package의 `dist` | checkout lock `dist-<package folder>`, package build 전체와 모든 pack이 잡음; build는 `dist.next`에 쓰고 그것으로 `dist`를 바꿈 |
 | build stamp, PHP module과 그 build 기록, OrderedJSON checkout, `.tools/npm` | 실행의 경로에 쓴 뒤 제자리로 rename(`tests/build/atomic-publish.test.mjs`) |
 
@@ -359,6 +355,6 @@ archive를 설치하는 repository는 이것으로 pack하므로, build가 비�
 Linux에서 lock은 process 시작 시각을 `/proc`에서 읽습니다. 최소 container image에는 `ps`가 없기
 때문입니다.
 
-`npm run test:runtimes`가 실행하는 `tests/build/shared-resources.test.mjs`는 documentation, image,
+`npm run test:runtimes`가 실행하는 `tests/build/shared-resources.test.mjs`는 documentation,
 `dist` 행을 확인합니다. `dist` lock은 임시 checkout에서 build하는 fixture package로 확인하므로 저장소의 build
 결과물을 읽지 않고 `npm run build`보다 먼저 실행됩니다.

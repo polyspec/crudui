@@ -118,6 +118,37 @@ test('no tracked tool, Makefile line, workflow or document names a container too
   assert.deepEqual(failures, [], failures.join('\n'));
 });
 
+// The command line tools that run containers on a development machine: the container CLI of macOS,
+// Docker and Podman. No tracked tool, Makefile line or workflow invokes one; the checks run on the
+// machine or the CI runner itself.
+const containerCli = ['contain', 'er'].join('');
+const containerInvocations = [
+  ['the container CLI', new RegExp(`(?:^\\s*|[;&|(]\\s*|\\$\\(\\s*|['"\`]|\\b(?:exec|sudo|env)\\s+)${containerCli} (?:build|run|exec|image|images|list|ls|inspect|logs|system|start|stop|rm|delete|create|pull|push|builder)\\b`)],
+  ['the container CLI', new RegExp(`command -v ${containerCli}\\b|libexec/${containerCli}\\b|brew [^\\n]*\\b${containerCli}\\b`)],
+  ['Docker', new RegExp(`\\b${['dock', 'er'].join('')}\\b`, 'i')],
+  ['Podman', new RegExp(`\\b${['pod', 'man'].join('')}\\b`, 'i')],
+];
+const toolFile = file => file === 'Makefile' || /^\.github\/workflows\/[^/]+\.ya?ml$/.test(file)
+  || sourceExtensions.has(path.extname(file));
+
+test('no tracked tool, Makefile line or workflow invokes a container tool of a development machine', () => {
+  assert.equal(containerInvocations[0][1].test('TOOL=x; container run --rm image'), true);
+  assert.equal(containerInvocations[1][1].test('command -v container >/dev/null'), true);
+  assert.equal(containerInvocations[0][1].test('// the view container holds the form'), false);
+  assert.equal(containerInvocations[0][1].test('// minimal container images have no ps'), false);
+  const failures = [];
+  // This file names the tools in its patterns and cases.
+  for (const file of trackedFiles().filter(file => toolFile(file) && file !== 'tests/docs/repository-writing.test.mjs')) {
+    const lines = readFileSync(path.join(repository, file), 'utf8').split('\n');
+    for (const [index, line] of lines.entries()) {
+      for (const [label, pattern] of containerInvocations) {
+        if (pattern.test(line)) failures.push(`${file}:${index + 1}: invokes ${label}`);
+      }
+    }
+  }
+  assert.deepEqual(failures, [], failures.join('\n'));
+});
+
 test('documentation web output is wired in the Pages workflow and repository ignores', () => {
   const workflow = readFileSync(path.join(repository, '.github', 'workflows', 'pages.yml'), 'utf8');
   const ignore = readFileSync(path.join(repository, '.gitignore'), 'utf8');
