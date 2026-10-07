@@ -4,6 +4,12 @@
 
 ## 0.0.2
 
+### 2026-10-07 — Dependency review of the 0.0.2 locks (C11.4-1)
+
+- `config/dependency-review.json` records the review of the 9 locks with the 0.0.2 entries of the packages of the
+  repository, written by `make dependency-review RECORD=1`; it found no newer stable release without an exception and
+  no advisory, and `make test-dependencies` compares the checkout with it.
+
 ### 2026-10-07 — Release notes within the body limit of GitHub (C11.3)
 
 - `make release-publish` writes the section `## X.Y.Z` of `CHANGELOG.md` as the release notes when it has at most
