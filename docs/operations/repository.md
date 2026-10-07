@@ -149,6 +149,8 @@ only from the archives; a third-party package is downloaded only as its lock pin
 archives, with each polyspec archive locked by name and version, without `integrity` in npm and with an empty
 `shasum` in Composer, and each third-party package by its exact version and digest; the release commit
 runs it after `make release-assets TAG=vX.Y.Z RELEASE_COMMIT=HEAD`, which writes the archives before the tag exists.
+The CI job `build-lint` runs the same install before any tag: `make release-install-head` writes the archives of `HEAD`
+at the version of `package.json` as `make release-assets` writes them and runs `scripts/release-install.mjs check`.
 
 ### Package manifests and development resolution
 

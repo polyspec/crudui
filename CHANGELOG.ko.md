@@ -4,6 +4,12 @@
 
 ## 0.0.3
 
+### 2026-10-07 — CI의 release archive 설치 (C11.6-1)
+
+- CI job `build-lint`는 `make release-install-head`을 실행합니다. `package.json` version의 `HEAD` archive를
+  `make release-assets`처럼 쓰고 `scripts/release-install.mjs check`로 `tests/release-install`의 사용자 fixture에서
+  설치하므로, 깨진 archive는 tag 전에 CI에서 실패합니다. release workflow는 `make release-install-check`를 유지합니다.
+
 ### 2026-10-07 — 저장소 밖에서 설치되는 게시 manifest (C11.5)
 
 - 게시되는 manifest는 `packages/`의 package manifest이며 바꾸지 않고 pack합니다. scope `@polyspec`와 vendor `polyspec`의
