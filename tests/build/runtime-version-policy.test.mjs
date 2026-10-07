@@ -55,17 +55,8 @@ test('every workflow job installs the recorded npm before it runs npm', async ()
   assert.deepEqual(violations, []);
 });
 
-test('container definitions and the Linux style check install the recorded npm', async () => {
-  const recorded = await recordedNpm();
-  const violations = [];
-  for (const definition of await findContainerDefinitions()) {
-    const source = await readFile(definition, 'utf8');
-    if (!/^FROM node:/m.test(source)) continue;
-    const name = path.relative(repository, definition);
-    const installs = [...source.matchAll(/npm(?:-cli\.js)? install -g npm@(\S+)/g)].map(match => match[1]);
-    if (installs.length !== 1 || installs[0] !== recorded) violations.push(`${name} installs npm ${installs.join(', ') || 'from its image'}, package.json records ${recorded}`);
-  }
-  assert.deepEqual(violations, []);
+test('the checkout tracks no container definition: Linux runs on the CI runners', async () => {
+  assert.deepEqual((await findContainerDefinitions()).map(file => path.relative(repository, file)), []);
 });
 
 const read = file => readFile(path.join(repository, file), 'utf8');
@@ -213,25 +204,6 @@ test('every CI job sets up the recorded toolchains and checks the tools it set u
   assert.deepEqual(violations, []);
 });
 
-test('container stages name their images by exact tag and digest and install Debian packages of one date', async () => {
-  const recorded = recordedToolchain(repository);
-  const prefixes = { node: `${recorded.node}-`, golang: `${recorded.go}-`, rust: `${recorded.rust}-` };
-  const definitions = await findContainerDefinitions();
-  assert.ok(definitions.length > 0);
-  const violations = [];
-  for (const definition of definitions) {
-    const name = path.relative(repository, definition);
-    const source = await readFile(definition, 'utf8');
-    for (const [, image, tag, digest] of source.matchAll(/^FROM\s+([^\s:@]+):([^\s@]+)(?:@(sha256:[0-9a-f]{64}))?/gm)) {
-      if (!digest) violations.push(`${name}: FROM ${image}:${tag} has no digest`);
-      if (prefixes[image] && !tag.startsWith(prefixes[image])) violations.push(`${name}: ${image}:${tag} is not the recorded release ${prefixes[image].slice(0, -1)}`);
-    }
-    if (/apt-get update/.test(source) && !/snapshot\.debian\.org\/archive\/debian\/\d{8}T\d{6}Z/.test(source)) violations.push(`${name}: apt-get reads the live Debian archive`);
-    if (!/RUSTUP_AUTO_INSTALL=0/.test(source) || !/GOTOOLCHAIN=local/.test(source)) violations.push(`${name}: the image must set RUSTUP_AUTO_INSTALL=0 and GOTOOLCHAIN=local`);
-  }
-  assert.deepEqual(violations, []);
-});
-
 test('no browser of a release channel or of the machine is installed or launched', async () => {
   const files = spawnSync('git', ['ls-files', '--cached', '--others', '--exclude-standard', 'scripts', 'tests', '.github', 'Makefile'], { cwd: repository, encoding: 'utf8' }).stdout.split('\n').filter(file => file && !file.endsWith('runtime-version-policy.test.mjs'));
   const violations = [];
@@ -264,7 +236,7 @@ function phpMinors(lowest, newest) {
   return Array.from({ length: highMinor - lowMinor + 1 }, (_, i) => `${lowMajor}.${lowMinor + i}`);
 }
 
-test('the declared PHP range is the range CI tests, and containers use the newest tested line', async () => {
+test('the declared PHP range is the range CI tests, and config/toolchain.json records its newest line', async () => {
   const workflow = parse(await readFile(path.join(repository, '.github/workflows/ci.yml'), 'utf8'));
   const composer = await composerManifests();
   assert.ok(composer.length > 0, 'At least one Composer manifest is required');
@@ -300,27 +272,5 @@ test('the declared PHP range is the range CI tests, and containers use the newes
         `${name} tests a PHP package and must run on every line from ${lowest} to ${newest}`);
     }
   }
-
-  // The PHP of every container: the tag of a php stage and the minor of an apt package php8.N-*.
-  // An image keeps its exact tag with its digest, which reproduces by digest; its minor is the newest recorded one.
-  const { php: minors, composer: composerRelease } = recordedToolchain(repository);
-  assert.ok(minors.includes(newest), `config/toolchain.json does not record the newest tested minor ${newest}`);
-  const release = newest;
-  const found = [];
-  const violations = [];
-  for (const definition of await findContainerDefinitions()) {
-    const name = path.relative(repository, definition);
-    const source = await readFile(definition, 'utf8');
-    for (const [, tag] of source.matchAll(/^FROM\s+php:([^\s@]+)/gm)) {
-      found.push(`${name}: php:${tag}`);
-      if (!new RegExp(`^${release.replace('.', '\\.')}\\.\\d+-`).test(tag)) violations.push(`${name}: php:${tag} is not an exact release of the minor ${release}`);
-    }
-    for (const [, minor] of source.matchAll(/\bphp(\d+\.\d+)-[a-z]+/g)) {
-      found.push(`${name}: php${minor}`);
-      violations.push(`${name}: the apt package php${minor} has no exact release; use the php:${release} stage`);
-    }
-    if (/composer/.test(source) && !new RegExp(`^FROM composer:${composerRelease.replaceAll('.', '\\.')}@sha256:[0-9a-f]{64} AS composer$`, 'm').test(source)) violations.push(`${name}: Composer is not the recorded ${composerRelease} of its image`);
-  }
-  assert.ok(found.length > 0, 'no container definition installs PHP; the check reads the php stages and php8.N apt packages');
-  assert.deepEqual(violations, [], `found: ${found.join(', ')}`);
+  assert.ok(recordedToolchain(repository).php.includes(newest), `config/toolchain.json does not record the newest tested minor ${newest}`);
 });

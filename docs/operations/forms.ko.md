@@ -18,7 +18,6 @@ npm run build
 설치 스크립트 변경을 검토하고 `npm install-scripts approve <package>`로 독립
 그래프의 루트 `allowScripts` 필드에 정확한 버전을 기록합니다.
 기존 설치에서 새로 승인한 스크립트를 실행하려면 `npm rebuild`를 실행합니다.
-컨테이너 이미지는 Puppeteer 브라우저 압축 해제를 위해 `unzip`을 설치합니다.
 
 4개 언어 검증에는 Composer 의존성을 설치한 PHP, Go, Rust가 필요합니다.
 `packages/validator-php`에서 `composer install`로 PHP 의존성을 설치합니다.

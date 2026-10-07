@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### 2026-10-07 — No container definition for the native suites (C7.20-3)
+
+- `tests/containers/native.Containerfile`, `.dockerignore`, the Apple container procedure of the native generators and
+  the container-build rules of the package build specification are removed; the CI jobs `php-engine`,
+  `native-generators` and `php-api` run the native suites on their Linux runners.
+- `tests/build/runtime-version-policy.test.mjs` fails for a tracked container definition, and a case of
+  `tests/docs/repository-writing.test.mjs` fails for a document, other than the checklists and the change logs, whose
+  code runs the container CLI of macOS, Docker or Podman.
+
 ### 2026-10-07 — Linux style checks on the CI runner (C7.20-2)
 
 - `make test-form-styles-linux`, `make remove-form-styles-image` and `scripts/test-form-styles-linux.sh` are removed;

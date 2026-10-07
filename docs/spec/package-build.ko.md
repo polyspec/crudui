@@ -119,9 +119,6 @@ Cargo 경로를 실행하고 `RUSTC`와 `RUSTDOC`에 해석된 컴파일러 경�
 사용하며, 생명주기 스크립트에 정확한 승인이 없으면 설치 전에 실패합니다.
 워크스페이스 패키지는 루트 잠금 파일을 사용하며 패키지별 잠금 파일을 관리하지
 않습니다.
-컨테이너 빌드는 패키지 관리자를 통해 플랫폼 의존성을 설치합니다.
-컨테이너 빌드 컨텍스트는 모든 생성 패키지 출력 디렉터리를 제외합니다. 컨테이너 빌드는
-호스트 작업공간의 확장 객체, 네이티브 모듈 또는 다른 빌드 출력을 가져오지 않습니다.
 루트 개발 의존성은 공통 테스트 실행기를 포함하며, 루트에 설치된 테스트
 연동 패키지는 일반적인 모듈 해석으로 해당 실행기를 로드합니다.
 빌드 또는 테스트 대상이 실행하는 저장소 루트 Node.js 진입점은 직접 import하는
@@ -145,14 +142,11 @@ Cargo 경로를 실행하고 `RUSTC`와 `RUSTDOC`에 해석된 컴파일러 경�
 릴리스 버전을 제공합니다. 로컬 경로 저장소 하나를 해석하는 프로젝트는 저장소의
 `options.versions` 매핑에 정확한 패키지 버전을 선언하며, 의존성 요구사항은 같은 버전을
 사용합니다.
-Git 메타데이터가 없는 컨테이너 빌드는 Composer 실행 전에 저장소 패키지 버전을
-`COMPOSER_ROOT_VERSION`으로 선언합니다. Composer가 추정한 루트 버전 값은 사용하지
-않습니다.
 
 ## 런타임과 의존성 버전
 
 저장소를 빌드하거나 설치하거나 검사하는 모든 도구는 checkout이 기록한 정확한 버전 하나로
-local, CI, 컨테이너 이미지에서 실행되므로, 같은 tree는 모든 날짜와 machine에서 같은 결과를
+local과 CI에서 실행되므로, 같은 tree는 모든 날짜와 machine에서 같은 결과를
 냅니다. 새 릴리스는 그 기록을 바꿔 채택하고, 검사는 그 뒤 모든 곳에서 그 릴리스를 요구합니다.
 릴리스는 기록을 바꿀 때 고릅니다. LTS 채널을 제공하는 런타임은 최신 활성 LTS 릴리스를,
 Node.js는 활성 LTS 또는 다음 LTS로 지정된 최신 짝수 안정 메이저를, 다른 도구는 프로젝트가
@@ -166,13 +160,12 @@ Node.js는 활성 LTS 또는 다음 LTS로 지정된 최신 짝수 안정 메이
   npm 12의 object로 바뀐 것이 그 예입니다. `node scripts/install-npm.mjs`는 정확히 그 릴리스를
   checkout의 무시되는 directory `.tools/npm`에 설치하며, 다른 모든 checkout이 쓰는
   machine의 npm에는 설치하지 않습니다. Makefile, npm을 시작하는 모든 script, 모든 CI job은
-  `.tools/npm/node_modules/.bin`을 `PATH`의 맨 앞에 둡니다. 컨테이너 이미지는 같은 릴리스를 그
-  이미지의 npm으로 설치합니다.
+  `.tools/npm/node_modules/.bin`을 `PATH`의 맨 앞에 둡니다.
 - `.go-version`은 정확한 Go 릴리스를 기록하고 CI가 그것을 읽습니다. 모든 `go.mod`는 그 릴리스를
-  `toolchain` 줄에 적고, Makefile, CI, 이미지가 설정하는 `GOTOOLCHAIN=local`은 go가 다른
+  `toolchain` 줄에 적고, Makefile과 CI가 설정하는 `GOTOOLCHAIN=local`은 go가 다른
   toolchain을 내려받지 못하게 합니다.
 - `rust-toolchain.toml`은 정확한 Rust 릴리스를 profile `minimal`과 component `rustfmt`,
-  `clippy`와 함께 기록합니다. Makefile, CI, 이미지는 `RUSTUP_AUTO_INSTALL=0`을 설정하므로, 설치된
+  `clippy`와 함께 기록합니다. Makefile과 CI는 `RUSTUP_AUTO_INSTALL=0`을 설정하므로, 설치된
   toolchain이 없는 cargo는 그것을 설치하는 대신 rustup의 메시지로 실패합니다. `make install`과 CI는
   `rustup toolchain install --no-self-update`로 그것을 설치합니다.
 - `config/toolchain.json`은 `php`에 검사하는 PHP minor 릴리스를, `python`에 `tests/ordered-json`의 test
@@ -180,17 +173,14 @@ Node.js는 활성 LTS 또는 다음 LTS로 지정된 최신 짝수 안정 메이
   `node`에 Node.js 릴리스의 Linux x64 archive SHA-256을 기록합니다. setup-php와 Homebrew는 같은 patch를 설치할
   수 없으므로 PHP는 minor 릴리스로 고정합니다. 검사는 실행 중인 PHP의 major와 minor를 비교하고, 실행이 쓴 patch는
   그 실행의 evidence이며 `node scripts/check-toolchain.mjs`가 출력하고 `var/full-run.json`이 다른 실행 중인 릴리스와
-  함께 기록합니다. 컨테이너 이미지는 digest로 재현되는 정확한 tag와 digest를 유지하며, Debian에 그 릴리스의
-  패키지가 없으므로 PHP를 가장 새로 검사한 minor의 릴리스인 `php` 이미지에서, Composer를 기록 릴리스의 `composer` 이미지에서 받으며, 어떤 이미지도 `php8.N-*` 패키지를
-  설치하지 않습니다.
+  함께 기록합니다.
 - `node scripts/check-toolchain.mjs <tool>...`은 기록한 버전으로 실행되지 않는 모든 지정 도구에 대해
   실패하며 기록, 기대한 버전, 실행 중인 버전, 해결 방법을 밝히고, 지정한 모든 도구의 실행 중인 릴리스를
   출력합니다. 모든 CI job은 자신이 설치한
   도구에 대해 그것을 실행하고, `make toolchain-check`는 모든 도구에 대해 실행합니다.
 
-컨테이너 단계는 이미지를 정확한 tag와 digest로 지정하고, 이미지의 Debian 패키지는 기록한 한
-날짜의 `snapshot.debian.org`에서 받으므로 정의 하나는 모든 날짜에 같은 file을 설치합니다. 패키지
-잠금 파일은 해석한 패키지 버전을 기록하며 런타임 릴리스를 선택하지 않습니다.
+저장소는 컨테이너 정의를 두지 않습니다. Linux는 CI runner에서 실행됩니다. 패키지 잠금 파일은 해석한
+패키지 버전을 기록하며 런타임 릴리스를 선택하지 않습니다.
 
 GitHub 호스팅 CI는 `ubuntu-24.04`에서 실행되고, 모든 action을 한 릴리스의 commit SHA로 지정하며
 그 릴리스를 주석에 적습니다. 네이티브 보고서 업로드는 action 런타임으로 Node.js 24를 사용하는

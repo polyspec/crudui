@@ -51,7 +51,6 @@ function trackedInstallDefinitionFiles() {
   assert.equal(result.status, 0, result.stderr);
   return result.stdout.trim().split('\n').filter((filename) => (
     (/^\.github\/workflows\/.*\.ya?ml$/).test(filename)
-      || (/(?:^|\/)[^/]*(?:Containerfile|Dockerfile)$/).test(filename)
   )).sort();
 }
 
@@ -314,7 +313,7 @@ test('form comparison commands use the root npm dependency graph', () => {
   assert.deepEqual(failures, []);
 });
 
-test('CI and container clean installs enforce script approvals', () => {
+test('CI clean installs enforce script approvals', () => {
   const failures = [];
   for (const filename of trackedInstallDefinitionFiles()) {
     const lines = readFileSync(path.join(root, filename), 'utf8').split('\n');
@@ -324,18 +323,6 @@ test('CI and container clean installs enforce script approvals', () => {
       }
     }
   }
-  assert.deepEqual(failures, []);
-});
-
-test('container Composer installs declare the repository package version', () => {
-  const version = JSON.parse(readFileSync(path.join(root, 'package.json'), 'utf8')).version;
-  const failures = trackedInstallDefinitionFiles().filter((filename) => {
-    if (!/(?:^|\/)[^/]*(?:Containerfile|Dockerfile)$/.test(filename)) return false;
-    const source = readFileSync(path.join(root, filename), 'utf8');
-    return /\bcomposer(?:\s+--[^\s]+)*\s+install\b/.test(source)
-      && !new RegExp('\\bCOMPOSER_ROOT_VERSION=' + version.replaceAll('.', '\\.')
-        + '\\b').test(source);
-  });
   assert.deepEqual(failures, []);
 });
 

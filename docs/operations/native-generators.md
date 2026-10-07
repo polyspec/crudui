@@ -67,30 +67,6 @@ Browser widget checks execute generated selectors and callbacks in Chromium.
 Host editor functions verify their received selectors and arguments; these tests
 do not install or verify the external editor implementations.
 
-## Apple container
-
-The container definition is the `php` image of the PHP release that
-`config/toolchain.json` records for the newest tested minor, with its development
-headers and `/usr/local/bin/php-config`, the Node.js, Go, Rust and Composer
-releases that the checkout records, each image by its digest, and Chromium from
-the Debian snapshot of one date.
-Build from the complete repository context. Generated host dependencies and
-binaries are excluded. Dependencies are installed from the package lock files
-inside the image.
-
-```sh
-container build --cpus 4 --memory 4g \
-  --file tests/containers/native.Containerfile \
-  --tag localhost/crudui-native-check:0.0.1 .
-container run --rm --cpus 4 --memory 4g \
-  localhost/crudui-native-check:0.0.1
-```
-
-The image's default command runs `make test-native`. For a retained report, run a
-named container without `--rm` and copy `/tmp/crudui-native-report.json` and
-`/tmp/crudui-native-php-report.json` before removing that container. A successful image build establishes compilation and
-module loading; the test command establishes the recorded comparisons.
-
 ## HTTP and browser verification
 
 Package examples demonstrate each language's library. The

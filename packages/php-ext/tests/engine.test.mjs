@@ -2276,17 +2276,11 @@ test('PHP extension engine value model preserves order and owns independent valu
 {
 const root = new URL('../../../', import.meta.url);
 const files = Object.fromEntries([
-  '.dockerignore',
   'Makefile',
-  'tests/containers/native.Containerfile',
   'packages/php-ext/README.md',
   'packages/php-ext/README.ko.md',
   'scripts/build-crudui-php-extension.mjs',
 ].map(filename => [filename, readFileSync(new URL(filename, root), 'utf8')]));
-
-function normalized(source) {
-  return source.replace(/\s+/g, ' ');
-}
 
 test('PHP modules use the shared builder through explicit entry points', { timeout: ENGINE_INSPECTION_BUDGET }, async () => {
   const common = 'scripts/php-extension-builder.mjs';
@@ -2295,20 +2289,6 @@ test('PHP modules use the shared builder through explicit entry points', { timeo
   for (const filename of [common, crudui, orderedJson]) await access(new URL(filename, root));
 
   assert.match(files.Makefile, /node scripts\/build-crudui-php-extension\.mjs/);
-  assert.match(files['tests/containers/native.Containerfile'],
-    /node scripts\/build-crudui-php-extension\.mjs/);
-  assert.match(files['tests/containers/native.Containerfile'],
-    /PHP_EXTENSION_PHP_CONFIG=\/usr\/local\/bin\/php-config/);
-  assert.equal(
-    files['tests/containers/native.Containerfile']
-      .match(/\/usr\/local\/bin\/php-config/g)?.length,
-    1,
-    'The native container must declare php-config once',
-  );
-
-  assert.doesNotMatch(normalized(files['tests/containers/native.Containerfile']),
-    /--cc \/usr\/bin\/gcc-14/);
-
   for (const removed of [
     'packages/php-ext/config.m4',
     'scripts/build-php-extension.sh',
@@ -2316,11 +2296,6 @@ test('PHP modules use the shared builder through explicit entry points', { timeo
   ]) {
     await assert.rejects(access(new URL(removed, root)));
   }
-});
-
-test('container context excludes direct PHP extension build output', { timeout: ENGINE_INSPECTION_BUDGET }, () => {
-  assert.match(files['.dockerignore'], /^packages\/php-ext\/\.build\/$/m);
-  assert.match(files['.dockerignore'], /^packages\/php-ext\/modules\/?$/m);
 });
 
 test('PHP extension instructions use the current direct build entry point', { timeout: ENGINE_INSPECTION_BUDGET }, () => {
