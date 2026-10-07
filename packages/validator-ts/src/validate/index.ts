@@ -52,7 +52,7 @@ export interface ValidateOptions {
  * @param data the form data to validate; root and group data are objects and
  *        repeated data is a keyed object.
  * @param options compose loader / file set / basepath.
- * @returns `{ valid, errors }`.
+ * @returns `{ valid, errors, hidden }`.
  * @throws {ComposeLoadError} when composition cannot be resolved.
  * @throws {FormInputError} when submitted data has the wrong shape.
  */

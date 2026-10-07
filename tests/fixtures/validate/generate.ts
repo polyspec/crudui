@@ -2,7 +2,7 @@
  * Shared-fixture generator for the 4-language CRUDUI validator (SPEC §2 pipeline).
  *
  * Runs the JS reference CRUDUI validator for real and dumps, per case, the
- * validation result (`expected = { valid, errors }`) or the failure record
+ * validation result (`expected = { valid, errors, hidden }`) or the failure record
  * (`expectFailure = { code, message, at }`) when composition cannot be resolved
  * or submitted data has the wrong shape. The PHP, C extension, Go and Rust
  * engines load the SAME `cases.json` and must reproduce it exactly.
@@ -14,14 +14,14 @@
  * prove cross-language equality.
  *
  * Fixture format (per the task contract):
- *   { name, spec, data, expected: { valid, errors } }             — validation result
+ *   { name, spec, data, expected: { valid, errors, hidden } }             — validation result
  *   { name, spec, data, expectFailure: { code, message, at } }    — load or input failure
  *
  * `spec`   : a CRUDUI root spec. Inline `{ type:'group', properties:{…} }`, or a
  *            composition entry (`files` + `$ref`/`$patch`).
  * `files`  : optional virtual file set `$ref` resolves against (`{ key: doc }`).
  * `data`   : the form data validated against the (composed) spec.
- * `expected`: `{ valid, errors[] }` — first-error-per-field, declaration order.
+ * `expected`: `{ valid, errors[], hidden[] }` — first-error-per-field, declaration order.
  * `expectFailure`: a ComposeLoadError (`at` = trace joined with `.`) or a
  *            FormInputError (`at` = "").
  *
