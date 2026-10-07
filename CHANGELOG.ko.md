@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.0.1
+
 ### 2026-10-07 — native suite의 컨테이너 정의 제거 (C7.20-3)
 
 - `tests/containers/native.Containerfile`, `.dockerignore`, native generator의 Apple container 절차, package build

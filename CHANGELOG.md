@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.0.1
+
 ### 2026-10-07 — No container definition for the native suites (C7.20-3)
 
 - `tests/containers/native.Containerfile`, `.dockerignore`, the Apple container procedure of the native generators and
