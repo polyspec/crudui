@@ -1,6 +1,16 @@
 # Changes
 
-## 2026-10-07 — One installed version of each npm package (C5.8-11)
+## Unreleased
+
+### 2026-10-07 — Changes of the coming release under Unreleased (C11.1-1)
+
+- `CHANGELOG.md` and `CHANGELOG.ko.md` start with the section `## Unreleased`, which holds every entry as a heading
+  `### <date> — <title> (<task ID>)`; the release of X.Y.Z names that section `## X.Y.Z` and writes a new empty
+  `## Unreleased` above it.
+- `tests/docs/changelog.test.mjs` requires `## Unreleased` as the first section, every other section `## X.Y.Z` and
+  older than the one above it, every entry inside a section, and the same sections and entries in both files.
+
+### 2026-10-07 — One installed version of each npm package (C5.8-11)
 
 - `make dependency-review UPDATE=1` runs `npm dedupe` after its npm updates, so a package that one version satisfies
   is installed at one version after a workspace raised it.
@@ -9,7 +19,7 @@
 - The lock installs magic-string 1.4.3 for `@sveltejs/vite-plugin-svelte` and the hoisted undici-types 8.9.0 for
   `@types/jsdom`; the review records the lock.
 
-## 2026-10-07 — Hidden paths in the cross-check form export (C8.3-6)
+### 2026-10-07 — Hidden paths in the cross-check form export (C8.3-6)
 
 - The validator processes of the cross-check console answer a form with `{ valid, errors, hidden }`, as `validate` of
   each validator returns it, and a list or detail with `{ valid, errors }`. The gateway requires `hidden` of a form
@@ -18,7 +28,7 @@
   in the order of the validator, so an exported case has the shape of `tests/fixtures/validate/cases.json`;
   `server/fixture-export.test.mjs` compares exported cases with the shared cases.
 
-## 2026-10-07 — Build, encoding and dependency review of the OrderedJSON tag (C10.3)
+### 2026-10-07 — Build, encoding and dependency review of the OrderedJSON tag (C10.3)
 
 - The OrderedJSON PHP module is compiled from the C sources that the `config.m4` of the tag checkout declares, and
   PHP loads it as `ordered_json`; a failed command reports the output in which PHP writes a startup failure.
@@ -28,7 +38,7 @@
   npm manifest declares a URL or Git dependency, and `.npmrc` sets `allow-remote=none` and `allow-git=none`.
 - js-yaml 5.4.3, vite 8.3.3 and svelte 5.57.2; the review records every lock.
 
-## 2026-10-07 — Exact workflow triggers (C6.2-1)
+### 2026-10-07 — Exact workflow triggers (C6.2-1)
 
 - `.github/workflows/ci.yml` runs on every pull request, merge group and manual run (`workflow_dispatch`),
   `.github/workflows/push-gate.yml` on every push outside `gh-readonly-queue/**`, pull request and merge group,
@@ -36,14 +46,14 @@
   schedule and a manual run; no other workflow exists.
 - `tests/build/ci-local.test.mjs` requires the `on:` block of each workflow exactly and no other workflow.
 
-## 2026-10-07 — OrderedJSON from the tag v0.0.1 (C10.2)
+### 2026-10-07 — OrderedJSON from the tag v0.0.1 (C10.2)
 
 - The comparison takes OrderedJSON from the tag `v0.0.1` of `polyspec/ordered-json`: `make install-ordered-json`
   checks out the commit of the tag, keeps a checkout at that commit without tracked changes and replaces any other
   one, and the local pipeline refuses a checkout at another commit than the tag, naming the tag.
 - Until version 0.1, a polyspec repository depends on another polyspec repository through a GitHub tag of it.
 
-## 2026-10-07 — Program names of the polyspec convention (C9.2)
+### 2026-10-07 — Program names of the polyspec convention (C9.2)
 
 - The programs of `examples/`, `tests/` and `tools/` follow the package naming: the cross-check console server is the
   npm package `@polyspec/crudui-cross-check-console`, the crates and binaries are `polyspec-crudui-cross-check-validator`,
@@ -52,20 +62,20 @@
 - `tests/build/package-names.test.mjs` requires the convention of every tracked `package.json`, `composer.json`,
   `Cargo.toml` and `go.mod`.
 
-## 2026-10-06 — OrderedJSON from the branch main (C10.1)
+### 2026-10-06 — OrderedJSON from the branch main (C10.1)
 
 - The comparison takes OrderedJSON from the branch `main` of `polyspec/ordered-json`: `make install-ordered-json`
   checks out its head, the root `package.json` names `@polyspec/ordered-json` from that checkout, and the record
   servers use the PHP namespace `Polyspec\OrderedJson`, the Go module `github.com/polyspec/ordered-json/go` and the
   crate `polyspec-ordered-json`.
 
-## 2026-10-06 — PHP API pages of the polyspec namespace (C9.1-1)
+### 2026-10-06 — PHP API pages of the polyspec namespace (C9.1-1)
 
 - The API documentation requires the phpDocumentor pages of `Polyspec\Crudui\`
   (`classes/Polyspec-Crudui-Generator.html` and the pages of `Validator`, `Form` and `FormError`), so
   `make docs-check-documents` passes again; the package name check refuses the page form `CRUDUI-`.
 
-## 2026-10-06 — Package names of the polyspec repositories (C9.1)
+### 2026-10-06 — Package names of the polyspec repositories (C9.1)
 
 - The packages follow the naming of template and hyper: the npm packages are `@polyspec/crudui-*`
   (`@polyspec/crudui-validator`, `@polyspec/crudui-generator-html` and the others), the Composer
@@ -74,25 +84,25 @@
   `polyspec-crudui-generator` and `polyspec-crudui-validator`. Imports, `use` statements and
   dependencies name the new packages; the earlier names are gone.
 
-## 2026-10-06 — Hidden paths in the documents of the validation result (C8.3-5)
+### 2026-10-06 — Hidden paths in the documents of the validation result (C8.3-5)
 
 - The READMEs of the TypeScript, Go and Rust validators, the PHP extension specification, the
   fixture specification and the README of the shared validation cases state the form validation
   result as `valid`, `errors` and `hidden`.
 
-## 2026-10-06 — Native form fixture inventory of 188 cases (C8.4-1)
+### 2026-10-06 — Native form fixture inventory of 188 cases (C8.4-1)
 
 - The native generator suite expects the 188 form cases of `tests/fixtures/form-render/cases.json`,
   with the row parent and literal identifier cases of `design.show`, and runs each of them on every
   native target.
 
-## 2026-10-06 — One response of the cross-check validator processes (C8.3-4)
+### 2026-10-06 — One response of the cross-check validator processes (C8.3-4)
 
 - The PHP validator process of the cross-check console writes `{ valid, errors }` for a form, as
   the other processes do and `validators/README.md` states, and the input text cases expect that
   response from every process.
 
-## 2026-10-06 — Hidden paths in the record saves of the form comparison (C8.3-3)
+### 2026-10-06 — Hidden paths in the record saves of the form comparison (C8.3-3)
 
 - Every record server of the form comparison answers a save with the validator's result as
   `validation`, `valid`, `errors` and `hidden` unchanged: the JavaScript server no longer replaces a
@@ -101,25 +111,25 @@
 - The record contract expects `hidden` in every save and validation response, and the save of
   record 24 names the notes of the unchecked store in it.
 
-## 2026-10-06 — Public types of the validation results (C8.3-2)
+### 2026-10-06 — Public types of the validation results (C8.3-2)
 
 - The public type check of the built packages assigns the results of `validateList` and
   `validateDetail` to `ListValidationResult` and reads `hidden` of the `ValidationResult` of
   `validate`, in ESM and in CommonJS.
 
-## 2026-10-06 — Public build test of hiddenPaths (C8.1-1)
+### 2026-10-06 — Public build test of hiddenPaths (C8.1-1)
 
 - The public build test expects `hiddenPaths` among the exports of `@crudui/validator`, as
   `contracts/features.json` declares it, and checks its result through the built ESM and CommonJS
   entries.
 
-## 2026-10-06 — Documented validation result type (C8.3-1)
+### 2026-10-06 — Documented validation result type (C8.3-1)
 
 - The interface `ValidationResult` of `@crudui/validator` has its own documentation comment, and
   `ListValidationResult` has one comment, so the documentation coverage of `validator-ts` passes
   again.
 
-## 2026-10-06 — Changes reach main through pull requests and the merge queue (C6.2)
+### 2026-10-06 — Changes reach main through pull requests and the merge queue (C6.2)
 
 - Every change reaches `main` through a pull request and the merge queue: publish a branch with `git
   push`, `gh pr create` and `gh pr merge --auto --rebase`. The ruleset `main`, now declared in
@@ -128,28 +138,28 @@
   the settings enable auto-merge and delete merged branches. CI runs on pull requests and merge
   groups, and `.github/workflows/pages.yml` deploys the documentation web of `main`.
 
-## 2026-10-06 — Shared cases of display switching (C8.5)
+### 2026-10-06 — Shared cases of display switching (C8.5)
 
 - Shared validation cases fix the server result of display switching in the five validators: a
   group subtree with its required fields switched by a sibling, two nested groups switched by the
   same value, and groups inside repeated rows switched by their row and by the value beside the
   collection.
 
-## 2026-10-06 — Rust visibility like the other runtimes (C8.4)
+### 2026-10-06 — Rust visibility like the other runtimes (C8.4)
 
 - The Rust validator, and the Rust renderer that uses its visibility, resolve `design.show` as a
   conditional parameter: a string is an expression only when it is a condition expression that
   parses completely, so `enabled` is a literal that shows the field, and a ternary gives its branch
   value, so a branch `0` is not false.
 
-## 2026-10-06 — Hidden paths in the validation result (C8.3)
+### 2026-10-06 — Hidden paths in the validation result (C8.3)
 
 - The validation result of the five validators holds `hidden`, the data paths of the fields whose
   `design.show` resolves to false, so a server can leave the values of a hidden branch unstored; the
   results of `validateList` and `validateDetail` keep `{ valid, errors }`, which the TypeScript
   validator names `ListValidationResult` and the Go validator `ListValidationResult`.
 
-## 2026-10-06 — A row is one level of a relative path (C8.2)
+### 2026-10-06 — A row is one level of a relative path (C8.2)
 
 - A relative path, a conditional parameter and a field reference (`equalTo`, `notEqual`,
   `enddate`) treat a row of a repeated field as one level in the five validators and the eight
@@ -157,52 +167,52 @@
   row key is, and a field named with digits is not a row key. The runtimes pass the positions of
   the row keys with the path; a bare field reference resolves as `.name`.
 
-## 2026-10-06 — Live display in the browser binding (C8.1)
+### 2026-10-06 — Live display in the browser binding (C8.1)
 
 - The browser binding sets the `hidden` attribute of every node from its `design.show` against
   the current data when it binds and after every change, removes the errors of a node that becomes
   hidden and of the nodes inside it, and changes no value; `hiddenPaths(spec, data)` of
   `@crudui/validator` returns the hidden paths.
 
-## 2026-10-06 — One CI run per ref (C7.19)
+### 2026-10-06 — One CI run per ref (C7.19)
 
 - A new push to a ref cancels the CI run of its previous push; the push check still runs for every
   pushed commit.
 
-## 2026-10-06 — Full run in a fresh clone (C5.7)
+### 2026-10-06 — Full run in a fresh clone (C5.7)
 
 - `make ci` runs its commands in `var/full-run/clone`, a fresh clone of the committed commit after
   `make install`, so no ignored output of the working tree reaches a check.
 
-## 2026-10-06 — Stub stall closed with its evidence (C7.13)
+### 2026-10-06 — Stub stall closed with its evidence (C7.13)
 
 - The 30 s stall of the stub programs did not recur in 12 CI runs and 3 local runs; their first
   executions took up to 81 ms on Linux and up to 979 ms on macOS, and the logging stays.
 
-## 2026-10-06 — Offline package install (C7.16-1)
+### 2026-10-06 — Offline package install (C7.16-1)
 
 - The install project of `npm run test:packages` installs with `npm ci --offline` from a lock that
   `scripts/install-lock.mjs` derives from the root lock, so it installs the releases of the root lock
   and resolves no range against a registry.
 
-## 2026-10-06 — A report for every CI job (C7.18)
+### 2026-10-06 — A report for every CI job (C7.18)
 
 - Every CI job runs its checks with `make ci-targets`, which runs each target to its end, and uploads
   the log of each target with a summary of the first failure lines of each failed one, which also goes
   to the job summary.
 
-## 2026-10-06 — Checklist wording (C7.15-1)
+### 2026-10-06 — Checklist wording (C7.15-1)
 
 - The rows C7.15 and C7.16 describe the pre-push hook and the documentation job without the word
   that the writing check refuses, which failed the documentation job of CI.
 
-## 2026-10-06 — CI through make (C7.17)
+### 2026-10-06 — CI through make (C7.17)
 
 - Every step of the workflows runs a make target, so the offline settings, the checkout npm and the
   downloads check of the Makefile apply to CI: the install targets, `make toolchain-check TOOLS=...`
   and one target for each checking command, which `make ci` runs in the same order.
 
-## 2026-10-06 — Offline checks (C7.16)
+### 2026-10-06 — Offline checks (C7.16)
 
 - The Makefile runs cargo, go, npm and Composer offline, and only the install targets and the
   dependency review download. `make install-crates` downloads the crates of every Cargo.lock, and a
@@ -210,19 +220,19 @@
   The comparison pipeline reads the OrderedJSON checkout of `make install-ordered-json` instead of
   fetching it.
 
-## 2026-10-06 — Unit tests in development, every other check in CI (C7.15)
+### 2026-10-06 — Unit tests in development, every other check in CI (C7.15)
 
 - Development runs the unit tests that own a change; end-to-end checks, `make owner-check` and
   `make ci` run in CI after the push, and no rule requires a local check before a commit or a push.
   The pre-push hook still refuses a push while a checklist task is in progress.
 
-## 2026-10-06 — RustSec advisories of the Cargo locks (C5.8-1)
+### 2026-10-06 — RustSec advisories of the Cargo locks (C5.8-1)
 
 - The dependency review reads the advisories of the six Cargo locks from RustSec with cargo-audit
   0.22.2, which `make install` installs into `.tools/cargo-audit`, and records each lock with its sha256;
   `npm run test:dependencies` fails for a Cargo lock changed after its review or with an advisory at it.
 
-## 2026-10-06 — Dependency review (C5.8)
+### 2026-10-06 — Dependency review (C5.8)
 
 - `npm run test:dependencies` compares the dependencies with the review recorded in
   `config/dependency-review.json` instead of running `npm audit` against the registry, so the same tree
@@ -231,13 +241,13 @@
   workflow runs it every day. React 19.2.8 is kept by a recorded exception (C5.8-2-1), and
   typescript-eslint moves to 8.71.1, the release that the first review found.
 
-## 2026-10-06 — PHPUnit 13 (C5.8-10)
+### 2026-10-06 — PHPUnit 13 (C5.8-10)
 
 - validator-php and generator-php test with PHPUnit 13.4.1, and their 18 data providers are declared
   with the attribute `#[DataProvider(...)]`, since PHPUnit 12 removed the `@dataProvider` annotation.
   Both suites run the same 763 and 311 cases as with PHPUnit 10.5.
 
-## 2026-10-06 — Checks that read the files of the checkout (C7.14)
+### 2026-10-06 — Checks that read the files of the checkout (C7.14)
 
 - ESLint ignores every path that Git ignores, and the checks that walked the tree with their own lists
   of skipped directory names read the tracked files through `scripts/tracked-files.mjs`: a copy of a
@@ -245,35 +255,35 @@
   could change the other checks. `tests/build/tracked-files.test.mjs` fails for a new list of skipped
   directory names.
 
-## 2026-10-06 — jest-dom 7 (C5.8-9)
+### 2026-10-06 — jest-dom 7 (C5.8-9)
 
 - generator-react tests with `@testing-library/jest-dom` 7.0.1; it stayed at 6.9.1 because 6.10.0 was
   deprecated as a minor release with breaking changes, which 7 publishes as a major.
 
-## 2026-10-06 — @sveltejs/package 3 (C5.8-8)
+### 2026-10-06 — @sveltejs/package 3 (C5.8-8)
 
 - generator-svelte packages its components with `@sveltejs/package` 3.0.0; the 57 files of its `dist`
   are identical to those of 2.5.8.
 
-## 2026-10-06 — Node.js type definitions of the running major (C5.8-7)
+### 2026-10-06 — Node.js type definitions of the running major (C5.8-7)
 
 - The six TypeScript workspaces use `@types/node` 26.6.4, the major of the recorded Node.js 26.8.1;
   they described Node.js 25. `tests/build/runtime-version-policy.test.mjs` fails for an `@types/node`
   range of another major than `.node-version`.
 
-## 2026-10-06 — js-yaml 5 with the YAML 1.2 core schema (C5.8-6)
+### 2026-10-06 — js-yaml 5 with the YAML 1.2 core schema (C5.8-6)
 
 - The cli and the cross-check console use js-yaml 5.4.2 through its named `load` export. Its default
   schema is the YAML 1.2 core schema, as the `yaml` package of `scripts/check-schema.mjs` reads it: a
   date-like value stays a string and `<<` is a plain key, where js-yaml 4 read a `Date` and merged. A
   case of each path pins it.
 
-## 2026-10-06 — jsdom 30 in the whole tree (C5.8-5)
+### 2026-10-06 — jsdom 30 in the whole tree (C5.8-5)
 
 - The root and generator-react use jsdom 30.1.2, the release of form-binding, so one major of jsdom
   runs in the tree instead of 29.1.1 beside 30.1.2.
 
-## 2026-10-06 — Failed Vitest hooks named from the events of Vitest (C5.8-4-1)
+### 2026-10-06 — Failed Vitest hooks named from the events of Vitest (C5.8-4-1)
 
 - The Vitest reporter prints `<hook name> hook of <entity> started and failed` for a hook that started
   and did not end before its file or suite failed, and the runner case asserts the hook name and the
@@ -281,20 +291,20 @@
   5.0.3 sends no `onHookEnd` for a failed hook and batches its events, so neither the elapsed time nor
   the failure kind is asserted.
 
-## 2026-10-06 — The first execution time of test stubs logged (C7.13-1)
+### 2026-10-06 — The first execution time of test stubs logged (C7.13-1)
 
 - The stub cases of `tests/build/checkout-npm.test.mjs` and `tests/build/install-browsers.test.mjs` log
   the elapsed time of the first execution of each stub, so a recurrence of the 30 s stall of C7.13,
   which waits for that evidence, explains itself.
 
-## 2026-10-06 — Python pinned by its minor release (C7.12)
+### 2026-10-06 — Python pinned by its minor release (C7.12)
 
 - `config/toolchain.json` records Python 3.9, which runs the tests of `tests/ordered-json`, and
   `node scripts/check-toolchain.mjs python` compares the running major and minor and prints the patch.
   The build-lint job of CI sets it up with `actions/setup-python` by commit SHA and runs
   `make test-ordered-json`, which `make ci` runs too; no command ran those tests before C7.9.
 
-## 2026-10-06 — PHP pinned by its minor release (C7.2-3)
+### 2026-10-06 — PHP pinned by its minor release (C7.2-3)
 
 - `config/toolchain.json` records the PHP minors 8.4 and 8.5, and `node scripts/check-toolchain.mjs`
   compares the major and minor of the running PHP with them; setup-php and Homebrew cannot install the
@@ -302,13 +312,13 @@
   check prints the running release of every tool and `var/full-run.json` records them. The container
   images keep their exact tags with digests. The local check now covers PHP, which closes C7.2-1.
 
-## 2026-10-06 — The Chrome sandbox helper installed by one command (C7.2-4)
+### 2026-10-06 — The Chrome sandbox helper installed by one command (C7.2-4)
 
 - `scripts/install-browsers.mjs` installs the sandbox helper with `sudo install -o root -g root -m 4755
   <chrome_sandbox> /usr/local/sbin/chrome-devel-sandbox`. It put `install` twice into the command, so
   every browser job of CI failed at the browser installation and Chrome aborted without its helper.
 
-## 2026-10-05 — The owner check before every commit (C7.9)
+### 2026-10-05 — The owner check before every commit (C7.9)
 
 - `make owner-check` runs the checks that `scripts/owner-checks.json` declares as owners of the changed
   paths: make targets, root npm scripts, the test scripts of workspaces and package directories and
@@ -319,7 +329,7 @@
   chosen by hand. `make test-ordered-json` runs the Python unit tests of `tests/ordered-json`, which no
   command ran, and `make install` installs phpDocumentor, which `make docs-check` reads.
 
-## 2026-10-05 — Failures that name what failed and why (C7.8)
+### 2026-10-05 — Failures that name what failed and why (C7.8)
 
 - A test that outlives its timeout prints its elapsed time, its limit and the command that the runner
   stops; the other limits of the checks name their command, limit and elapsed time too.
@@ -329,7 +339,7 @@
   names the path and the error; `tests/build/failure-messages.test.mjs` fails for a read that drops
   them.
 
-## 2026-10-05 — A stopped process tree is gone when the stop ends (C7.10)
+### 2026-10-05 — A stopped process tree is gone when the stop ends (C7.10)
 
 - `killProcessTree` of the form comparison step runner resolves when the step's process has exited
   and its output pipes have closed, which happens when every process that holds them has ended; it
@@ -338,7 +348,7 @@
   that cause. The local server test waits for the end of a Unix socket connection instead of a FIFO,
   whose blocking open kept the test file alive beyond its timeout when the stand-in did not start.
 
-## 2026-10-05 — Servers on the ports they take, and locked shared steps (C7.11)
+### 2026-10-05 — Servers on the ports they take, and locked shared steps (C7.11)
 
 - Every server of the form comparison binds its address, port 0 included, and names the address it
   took on its readiness line `CRUDUI_READY {server} {host}:{port}`; the PHP launcher passes its bound
@@ -349,7 +359,7 @@
   make, the local servers and the comparison build, and the guard of `make ci` holds the checkout
   lock `full-run`, so two runs of one checkout never reinstall or decide from one record at once.
 
-## 2026-10-05 — Shared outputs published by rename (C7.6)
+### 2026-10-05 — Shared outputs published by rename (C7.6)
 
 - The PHP extension builder compiles into a directory of its process, links `<module>.so.<pid>`, loads
   and checks it and renames it to the module path; it removed `.build` and `modules` first and linked
@@ -360,7 +370,7 @@
   stamp of `require-current-build` is written and renamed. `tests/build/atomic-publish.test.mjs` keeps
   every shared output on that form.
 
-## 2026-10-05 — Checks that read only what they or their preparation create (C7.5)
+### 2026-10-05 — Checks that read only what they or their preparation create (C7.5)
 
 - `make test-php-extension` reinstalls the validator copy of generator-php before its tests, which
   load that vendor directory; only `make test-native-suites` refreshed it. `test:build` runs
@@ -370,7 +380,7 @@
   `CARGO_TARGET_DIR` outside the checkout of its directory, because cargo judges freshness by
   modification times and reuses the outputs of another checkout.
 
-## 2026-10-05 — Every check of a script after a failure (C7.4)
+### 2026-10-05 — Every check of a script after a failure (C7.4)
 
 - `test:forms`, `test:form-comparison`, `test:form-comparison:pipeline`, `docs:check:all`, the `test`
   script of generator-svelte and the `typecheck` script of form-binding run each independent check
@@ -381,7 +391,7 @@
   every declared command and fails after the last one. `tests/build/test-commands.test.mjs` fails
   for a package script or a CI step that stops at a failing check.
 
-## 2026-10-05 — Runs that check nothing fail (C7.3)
+### 2026-10-05 — Runs that check nothing fail (C7.3)
 
 - `scripts/run-tests.mjs` fails a go, cargo or phpunit run and the Vitest reporter fails a vitest run
   in which no test case passed, failed or ran out of time, with `ran no test case`;
@@ -392,7 +402,7 @@
   both images installed the Debian PHP 8.4. Both images now take PHP from the `php` image of the
   recorded 8.5.11 and Composer from the `composer` 2.10.3 image, each by digest, and the PHP
   extension builds use `/usr/local/bin/php-config`.
-## 2026-10-05 — One visible page for the Tailwind style checks (C5.11)
+### 2026-10-05 — One visible page for the Tailwind style checks (C5.11)
 
 - `tests/tailwind-styles.test.mjs` computes the styles of `crudui.css` and of the Tailwind version in
   one page per engine and width, which holds both stylesheets and applies one with its `media`. The
@@ -400,13 +410,13 @@
   memory pressure a call on the hidden Chromium page waited up to 44.2 s on page-ins, past the timeout
   of a case. Each call now fails unless its page is visible and only the requested stylesheet applies.
 
-## 2026-10-05 — The toolchain image test with the digest stages (C7.2-2)
+### 2026-10-05 — The toolchain image test with the digest stages (C7.2-2)
 
 - `examples/form-comparison/check-toolchain.test.mjs` requires the stages of the comparison image as
   the recorded releases with their digests. C7.2 changed the stages and was committed while this test
   still required the release lines.
 
-## 2026-10-05 — Exact toolchain versions everywhere (C7.2)
+### 2026-10-05 — Exact toolchain versions everywhere (C7.2)
 
 - The specification records exact versions instead of release channels, which made the toolchain of
   a run depend on its date. `.node-version` is 26.8.1, `.go-version` 1.27.0 with a `toolchain` line in
@@ -423,13 +433,13 @@
   check downloads the Node.js archive of `.node-version` and checks its SHA-256.
   `scripts/run-contract-tests.mjs` runs `sh -c` instead of a login shell.
 
-## 2026-10-05 — The checkout npm module in the copies of the tests (C7.7-1)
+### 2026-10-05 — The checkout npm module in the copies of the tests (C7.7-1)
 
 - `tests/build/rust-node-entry-points.test.mjs` and `tests/build/run-command.test.mjs` copy
   `scripts/checkout-npm.mjs` with the scripts that import it since C7.7, which failed to load
   without it in their temporary checkouts.
 
-## 2026-10-05 — npm of the checkout, not of the machine (C7.7)
+### 2026-10-05 — npm of the checkout, not of the machine (C7.7)
 
 - `node scripts/install-npm.mjs` installs the npm release of `packageManager` into the ignored
   `.tools/npm` of the checkout with `npm install --prefix` into a temporary directory that it renames
@@ -441,7 +451,7 @@
   the directory to `GITHUB_PATH` before its first npm command. `tests/build/checkout-npm.test.mjs`
   fails for any other form.
 
-## 2026-10-05 — Make dry runs that read the same on every make (C7.1)
+### 2026-10-05 — Make dry runs that read the same on every make (C7.1)
 
 - Tests read the commands of a Makefile target through `makeDryRun` of `tests/build/make-dry-run.mjs`,
   which runs `make --no-print-directory -n` with `MAKEFLAGS=w` and without the variables of a parent
@@ -449,7 +459,7 @@
   `tests/build/full-run.test.mjs` failed there. `tests/build/make-dry-run.test.mjs` fails for a dry
   run of make outside the helper.
 
-## 2026-10-05 — React kept at 19.2.8 (C5.8-2-1)
+### 2026-10-05 — React kept at 19.2.8 (C5.8-2-1)
 
 - React and React DOM are pinned to 19.2.8. React 19.3.0 reports a browser error for the `<script>`
   elements of widget scripts that the React renderer renders, so the React cases of
@@ -457,18 +467,18 @@
   is retried when the React renderer runs widget scripts without `<script>` elements in client
   rendering.
 
-## 2026-10-05 — Vitest 5 (C5.8-4)
+### 2026-10-05 — Vitest 5 (C5.8-4)
 
 - The root and the eight workspaces test with Vitest 5.0.3. Vitest 5 prints a failed hook with the
   `Error:` prefix of its stack, and the runner case for a timed-out Vitest hook accepts it.
 
-## 2026-10-05 — TypeScript 7 for the workspace compilers (C5.8-3)
+### 2026-10-05 — TypeScript 7 for the workspace compilers (C5.8-3)
 
 - The seven TypeScript workspaces build and type-check with TypeScript 7.0.2. typescript-eslint,
   typedoc, svelte-check and `@sveltejs/package` declare peer ranges below 7, so they keep the
   TypeScript 6.0.3 that npm installs at the root as their peer.
 
-## 2026-10-05 — Dependencies at the latest release of their major (C5.8-2)
+### 2026-10-05 — Dependencies at the latest release of their major (C5.8-2)
 
 - 19 npm dependencies of the root and workspace manifests and PHPUnit in both Composer packages are
   raised to the latest stable release of their locked major, among them `puppeteer` 25.12.0,
@@ -477,7 +487,7 @@
   script approval names `puppeteer@25.12.0`. `@testing-library/jest-dom` stays at 6.9.1 because its
   publisher deprecated 6.10.0 as a minor release with breaking changes.
 
-## 2026-10-05 — One npm release locally, in CI and in the images (C5.2-2)
+### 2026-10-05 — One npm release locally, in CI and in the images (C5.2-2)
 
 - `packageManager` of `package.json` records npm 12.2.0, and `node scripts/install-npm.mjs`
   installs exactly that release. Every CI job runs it before npm, and the native test and comparison
@@ -486,7 +496,7 @@
   `tests/build/runtime-version-policy.test.mjs` fails when the running npm, a workflow step or a
   container definition selects another release.
 
-## 2026-10-05 — Every check of a recipe after a failure (C5.10)
+### 2026-10-05 — Every check of a recipe after a failure (C5.10)
 
 - `make docs-check-documents` and `make format-check` run every check of their recipes with
   `|| status=1` and exit with the collected status. Make stops at the first recipe line that fails,
@@ -495,7 +505,7 @@
   other crates and gofmt. `tests/build/test-commands.test.mjs` fails for a recipe line after the
   first check of its target, for `|| exit` in a check and for a check that does not set `status=1`.
 
-## 2026-10-05 — Every registered node:test case runs or its file fails (C5.9)
+### 2026-10-05 — Every registered node:test case runs or its file fails (C5.9)
 
 - `scripts/run-tests.mjs` preloads `scripts/test-progress/load-check.mjs` into every `node:test`
   file's process, which fails a file whose process ends before its module finished evaluating, and
@@ -507,7 +517,7 @@
   `--test-name-pattern` the file passed while no case ran. engine.test now reads its fixtures
   synchronously and imports the Unicode data generator statically.
 
-## 2026-10-05 — The npm pack report of npm 12 (C5.2-1)
+### 2026-10-05 — The npm pack report of npm 12 (C5.2-1)
 
 - The dist lock test of `tests/build/shared-resources.test.mjs` reads the `npm pack` report through
   `packReport` of `scripts/package-install-pack.mjs`, which reads the array of npm 11 and the
@@ -515,7 +525,7 @@
   name. With npm 12, which CI installs as the latest npm, the test failed with `TypeError: object
   is not iterable`, which does not say what was expected.
 
-## 2026-10-05 — Pushes refused while a task is in progress (C6.1)
+### 2026-10-05 — Pushes refused while a task is in progress (C6.1)
 
 - The tracked pre-push hook `.githooks/pre-push` runs `node scripts/push-gate.mjs hook`, which
   reads the checklist of every pushed commit and of the working tree with `activeItems` of
@@ -529,7 +539,7 @@
   on every pushed commit and pull request and fails for a commit with a task in progress, without
   the checklist or without the executable hook, so a push past the hook fails it.
 
-## 2026-10-05 — A comma locale written with warnings (C5.6)
+### 2026-10-05 — A comma locale written with warnings (C5.6)
 
 - The engine tests report the build of the comma locale on Linux by its result: `localedef -c`
   exits with status 1 when it writes the locale with warnings, and the step printed
@@ -538,7 +548,7 @@
   other than 0 fails the build. A case of `packages/php-ext/tests/engine.test.mjs` runs the build
   with a stub `localedef`.
 
-## 2026-10-05 — The suites behind missing conformance evidence (C5.5)
+### 2026-10-05 — The suites behind missing conformance evidence (C5.5)
 
 - `scripts/check-conformance.mjs` names, for each feature, fixture and runtime with missing or
   failing evidence, every suite that proves the runtime with its state: did not run, did not
@@ -549,7 +559,7 @@
   `185 missing` for each runtime when the native suite did not run and did not say why. The count
   of evidence files no longer includes the `runs` directory.
 
-## 2026-10-05 — One compiler command for the engine tests (C5.4)
+### 2026-10-05 — One compiler command for the engine tests (C5.4)
 
 - Every C program of `packages/php-ext/tests/engine.test.mjs` compiles through
   `compileAndRunEngineProgram`, which links the math library. The template and value tests wrote
@@ -558,7 +568,7 @@
   the file fails when the file holds more than one compiler command or when that command does not
   link `-lm`.
 
-## 2026-10-05 — Character constants in long C strings (C5.3)
+### 2026-10-05 — Character constants in long C strings (C5.3)
 
 - `cString` of `packages/php-ext/tests/engine.test.mjs` writes each byte of a value longer than
   4000 bytes as a character constant with an octal escape. It wrote the bytes as integers, so a
@@ -566,7 +576,7 @@
   `-Werror=overflow`; Apple clang accepts both forms. A case of the file fails for an integer above
   127 in the initializer and decodes the constants back to the bytes of the value.
 
-## 2026-10-05 — A dist lock test without build output (C5.2)
+### 2026-10-05 — A dist lock test without build output (C5.2)
 
 - `tests/build/shared-resources.test.mjs` checks the `dist` lock on a fixture package that it
   builds and packs in a temporary checkout. CI runs `npm run test:runtimes` before `npm run build`,
@@ -574,7 +584,7 @@
   `dist` of an earlier build. In a worktree without build output the test failed before the change
   and passes after it.
 
-## 2026-10-05 — Every check after a failure (C5.1)
+### 2026-10-05 — Every check after a failure (C5.1)
 
 - Every workflow step that runs a checking command has `if: ${{ !cancelled() }}`, and `make
   test-native` and `make docs-check` run each of their test targets with `$(MAKE) <target> ||
@@ -589,7 +599,7 @@
   lines of `test-native` and checked an empty list; it follows prerequisites and `$(MAKE)` targets
   and fails for an empty list.
 
-## 2026-10-05 — A checklist of headings and task tables (C4.1-2)
+### 2026-10-05 — A checklist of headings and task tables (C4.1-2)
 
 - The execution checklist holds only headings and task tables, and `scripts/check-documents.mjs`
   fails for any other line with its file, line and column. The checklist held a translation link, a
@@ -598,14 +608,14 @@
   dependencies and the background of the waves are in `docs/plans/waves.md`, which each wave heading
   links. The case of `scripts/checklist-markers.test.mjs` failed before the change.
 
-## 2026-10-05 — Task list states as state markers (C4.1-1)
+### 2026-10-05 — Task list states as state markers (C4.1-1)
 
 - `scripts/check-documents.mjs` also fails for an x or a capital X between brackets in the
   execution checklist that is not the state of a task row, because a Markdown reader takes these
   forms as task list states. The case of `scripts/checklist-markers.test.mjs` failed before the
   change, because the check reported neither form.
 
-## 2026-10-05 — Task state markers only as task states (C4.1)
+### 2026-10-05 — Task state markers only as task states (C4.1)
 
 - A task state marker appears in the execution checklist only as the state of a task row, at the
   start of its last cell. The legend of the checklist and the text of C2.1-2 wrote markers in inline
@@ -615,7 +625,7 @@
   in words. `scripts/checklist-markers.test.mjs` failed with `ERR_MODULE_NOT_FOUND` before the
   change, and its fixture passed the former document check.
 
-## 2026-10-05 — Guard of the full run (C2.1-2)
+### 2026-10-05 — Guard of the full run (C2.1-2)
 
 - `make ci` starts the guard `scripts/full-run.mjs` before any command. AGENTS states that the full
   suite runs exactly once, when every active task is done, and nothing enforced it: `make ci`
@@ -629,51 +639,51 @@
   failed with `ERR_MODULE_NOT_FOUND` before the change; its 11 cases pass with stub commands after
   it.
 
-## 2026-10-05 — Local servers stopped at the exit of their test process (C2.19)
+### 2026-10-05 — Local servers stopped at the exit of their test process (C2.19)
 
 - The local stack of the form comparison tests stops the process groups of the servers it started
   when its test process exits without stopping them. A pipeline test whose stop hook timed out and
   whose process was forced to exit left its record servers running for hours.
 
-## 2026-10-05 — Change signal of every deployment (C2.10-2)
+### 2026-10-05 — Change signal of every deployment (C2.10-2)
 
 - `make deploy` signals the supervisor before it waits for the build in either mode: containerctl
   also reuses an unchanged container whose supervisor started from an earlier checkout.
 
-## 2026-10-05 — Service port answered from the supervisor's start (C2.13-3)
+### 2026-10-05 — Service port answered from the supervisor's start (C2.13-3)
 
 - The comparison supervisor listens on port 8080 from its start and answers 503 with the build
   state until it hands the port to the public server. containerctl checks the service port within
   one minute of the container start; without the healthcheck that C2.13-2 removed, a first build of
   empty volumes outlasted that minute and `make deploy` failed at the connection.
 
-## 2026-10-05 — Change signal of a reusing deployment (C2.10-1)
+### 2026-10-05 — Change signal of a reusing deployment (C2.10-1)
 
 - `make deploy` signals the running supervisor before it waits for the build when it reuses the
   container, so a new commit is compared without the source watcher; it waited on the previous
   commit's ready state. `make deploy-watch` stops at `SIGINT` or `SIGTERM` with a line that says
   how many signals it delivered.
 
-## 2026-10-05 — Reuse of a routed comparison container (C2.18-1)
+### 2026-10-05 — Reuse of a routed comparison container (C2.18-1)
 
 - The deployment reuses a running comparison container only when containerctl routes
   `crudui.test` to it; otherwise it applies the definition with containerctl. A changed route was
   never applied because the image of the running container matched.
 
-## 2026-10-05 — Route of the comparison service under x-containerctl (C2.18)
+### 2026-10-05 — Route of the comparison service under x-containerctl (C2.18)
 
 - The Compose definition of the comparison service lists its domain under
   `x-containerctl.domains`, and the deployment check reads the `domains` and `urls` of
   `containerctl status --json`. containerctl routes only those domains, so the
   `containerctl.domain` label left the service internal and `make deploy` failed at the route.
 
-## 2026-10-05 — Chromium of the comparison image (C2.17)
+### 2026-10-05 — Chromium of the comparison image (C2.17)
 
 - The comparison toolchain image installs `chromium` and `chromium-sandbox`
   `154.0.8037.92-1~deb13u1`. Debian replaced the pinned `153.0.8010.47-2~deb13u1`, so the image
   build of `make deploy` failed.
 
-## 2026-10-05 — Steps of the form comparison without limits (C2.13-2)
+### 2026-10-05 — Steps of the form comparison without limits (C2.13-2)
 
 - A step of the form comparison runs to its end and is decided by its exit status: the step
   runner rejects a total or inactivity limit, and the build targets, the verification checks,
@@ -682,14 +692,14 @@
   for the build state of the checkout instead. The Git calls of the source comparison and of the
   OrderedJSON checkout hold no timeout. The units inside a check keep their own limits.
 
-## 2026-10-05 — Process tree stops of exited groups (C2.16)
+### 2026-10-05 — Process tree stops of exited groups (C2.16)
 
 - `killProcessTree` of the form comparison completes when the group of the stopped process holds
   only exited processes: a group signal answered with EPERM, as macOS answers for a group whose
   processes have exited but are not yet reaped, leaves nothing to stop. The stop failed with
   `kill EPERM` after it had killed the tree.
 
-## 2026-10-05 — Source changes published from the host (C2.10)
+### 2026-10-05 — Source changes published from the host (C2.10)
 
 - The form comparison supervisor compares the mounted repository at every `SIGUSR2` instead of
   once per second. The host's source watcher `source-events.mjs` (`make deploy-watch`) subscribes
@@ -700,13 +710,13 @@
   removed. `tests/build/test-commands.test.mjs` fails on a program that sleeps or runs an interval
   that prints no progress line.
 
-## 2026-10-05 — PHP record server ready on its processes' lines (C2.15)
+### 2026-10-05 — PHP record server ready on its processes' lines (C2.15)
 
 - `servers/php/main.mjs` is ready when PHP-FPM writes `NOTICE: ready to handle connections` and
   nginx, at the `notice` log level, writes `start worker processes`, and copies their standard
   error. It tried a connection every 20 ms and failed after a start limit of 10 seconds.
 
-## 2026-10-05 — Waits of the form comparison without limits (C2.13-1)
+### 2026-10-05 — Waits of the form comparison without limits (C2.13-1)
 
 - The build readiness wait has no inactivity or step limit: it ends when this source is ready,
   fails on a failed cycle or a state file that cannot be watched, read or parsed, and prints every
@@ -715,14 +725,14 @@
   15 seconds. The browser start and close of the browser and pipeline checks run through
   `runOperation` without a limit; the units of a browser report keep their limits.
 
-## 2026-10-05 — Failed version commands fail the benchmark (C2.14)
+### 2026-10-05 — Failed version commands fail the benchmark (C2.14)
 
 - `tools/bench/run.js` fails with the command, its failure and its output when a version command
   fails or prints no version, and `results.md` records the versions of the tools of the backends
   that ran. A failed version was recorded as `unavailable` and an empty one as `unknown`, and the
   versions of all four tools were queried for every run.
 
-## 2026-10-05 — Package builds and packs under the lock of dist (C3.5)
+### 2026-10-05 — Package builds and packs under the lock of dist (C3.5)
 
 - Every built package's build script is `node ../../scripts/package-dist.mjs build '<command>'`,
   which holds the checkout lock `dist-<package folder>` for the whole build. `tsup --clean` and
@@ -733,7 +743,7 @@
   and the boot time of `/proc/stat`, since the toolchain image of the comparison, which builds the
   packages, has no `ps`; other systems use `ps`.
 
-## 2026-10-05 — A holder lock of the comparison deployment (C3.4)
+### 2026-10-05 — A holder lock of the comparison deployment (C3.4)
 
 - `make deploy` and `make deploy-verify` take the user-wide holder lock `form-comparison-deployment`
   before any other step and release it when they exit. The deployment is one Compose project
@@ -744,7 +754,7 @@
   `examples/form-comparison/check-deployment-lock.test.mjs` runs in
   `npm run test:form-comparison:source`.
 
-## 2026-10-05 — A kept Playwright image under a holder lock (C3.3)
+### 2026-10-05 — A kept Playwright image under a holder lock (C3.3)
 
 - `make test-form-styles-linux` keeps the Playwright image. A run that pulled the image removed it
   at its exit, also while a run of another checkout still used it. The container now
@@ -753,7 +763,7 @@
   same lock and is refused while a check runs. `node scripts/holder-lock.mjs user-lock-file <name>`
   prints the path of a user-wide lock.
 
-## 2026-10-05 — Holder locks of single resources (C3.2)
+### 2026-10-05 — Holder locks of single resources (C3.2)
 
 - `scripts/holder-lock.mjs` holds a resource that only one run may use at a time. The lock file's
   record names the checkout, the pid and the process start time of the holder, the time and the
@@ -765,7 +775,7 @@
   one checkout are under `var/locks/`, locks that every checkout shares under
   `~/.local/state/crudui/locks/`. `tests/build/holder-lock.test.mjs` runs in `npm run test:runtimes`.
 
-## 2026-10-05 — A snapshot directory per documentation run (C3.1)
+### 2026-10-05 — A snapshot directory per documentation run (C3.1)
 
 - `make docs-verify-idempotent` writes its two snapshots and their difference to a directory that
   the run creates with `mktemp -d` and removes at its exit. It used the fixed paths
@@ -774,20 +784,20 @@
   `tests/build/shared-resources.test.mjs`, run by `npm run test:runtimes`, fails on a Makefile line
   with a fixed path under `/tmp`.
 
-## 2026-10-05 — Stage steps that meet through a pipe (C2.9-1)
+### 2026-10-05 — Stage steps that meet through a pipe (C2.9-1)
 
 - The two steps of one stage in the step runner test open the two ends of a named pipe, so the
   stage ends only when both run at the same time. They waited for each other's file through a
   directory watch, whose event stream on macOS starts late and lost a file in 4 of 10 runs.
 
-## 2026-10-05 — Setup contract of the local pipeline stack (C2.7-2)
+### 2026-10-05 — Setup contract of the local pipeline stack (C2.7-2)
 
 - `check-verification.test.mjs` checks that the pipeline and record store tests start and stop
   their stack and browser through `setup` and `teardown` of `scripts/test-progress/hooks.mjs` and
   register no hook of their own. It required the `browser-start` and `browser-close` limits that
   C2.7-1 removed from the pipeline test.
 
-## 2026-10-05 — Readiness wait on the state file itself (C2.4-1)
+### 2026-10-05 — Readiness wait on the state file itself (C2.4-1)
 
 - The readiness wait of the form comparison watches the build state file itself
   (`watchStateFile`), whose watch is registered when it returns, and at every replacement watches
@@ -795,14 +805,14 @@
   after `fs.watch` returns, so a replacement made right after the wait started could be lost; the
   real-file case failed in 5 of 10 loaded runs and passes in 20 of 20.
 
-## 2026-10-05 — One test per render case in the viewport and Tailwind checks (C2.11)
+### 2026-10-05 — One test per render case in the viewport and Tailwind checks (C2.11)
 
 - `tests/viewport.test.mjs` and `tests/tailwind-styles.test.mjs` open the pages of each engine and
   width in a setup of a suite and run every one of the 432 shared render cases as its own test with
   the runner's timeout of 30 seconds. Each engine and width ran all cases inside one test with a
   timeout of 300 or 600 seconds and printed only its start and end.
 
-## 2026-10-05 — Reproducible build in a logged step (C2.12)
+### 2026-10-05 — Reproducible build in a logged step (C2.12)
 
 - `npm run test:build:repeat` builds the packages twice with `scripts/repeat-build.mjs`, a logged
   step without a time limit that records the path and SHA-256 digest of every output file of the
@@ -810,7 +820,7 @@
   records with each other and with the current output under the 30-second timeout of each test; it
   ran both builds inside one test case through a blocking `execFileSync` under 120 seconds.
 
-## 2026-10-05 — Native generator checks in one pool (C2.8)
+### 2026-10-05 — Native generator checks in one pool (C2.8)
 
 - `tests/native-generators/run.mjs` builds the Go and Rust programs once in a build step before
   any check, with the output of the build tool, a line every five seconds and no time limit; the
@@ -821,7 +831,7 @@
   html, php and php-native targets start an interpreter for every request, so the suite took 962.5
   seconds, almost all in checks; the same 4428 checks now pass in 199.8 seconds.
 
-## 2026-10-05 — Setups without a hook timeout (C2.7-1)
+### 2026-10-05 — Setups without a hook timeout (C2.7-1)
 
 - `scripts/test-progress/hooks.mjs` replaces `scripts/test-progress/teardown.mjs` and adds `setup`,
   a `before` hook of a file, a suite or a test with the timeout `Infinity` that ends when its
@@ -833,7 +843,7 @@
   time with the one-second protocol timeout its protocol timeout tests need. The Vitest `beforeAll`
   hooks of the cross-check console server and the form binding have the timeout `Infinity`.
 
-## 2026-10-05 — Causal checks instead of elapsed-time bounds (C2.9)
+### 2026-10-05 — Causal checks instead of elapsed-time bounds (C2.9)
 
 - No test bounds an elapsed time; `tests/build/test-commands.test.mjs` fails on an `assert.ok` that
   compares an elapsed time with anything but 0. The runner timeout and hook cases of
@@ -843,7 +853,7 @@
   one stage each end only when the other's file exists, and the oversized save relies on its 413 and
   the case's own timeout. Ten assertions bounded the wall-clock time between 0.5 and 20 seconds.
 
-## 2026-10-05 — Teardowns without a hook timeout (C2.7)
+### 2026-10-05 — Teardowns without a hook timeout (C2.7)
 
 - `teardown` of `scripts/test-progress/teardown.mjs` registers a browser close, a server stop or a
   directory removal as an `after` hook of a file or of a test with the timeout `Infinity`. It ends
@@ -857,7 +867,7 @@
   the inspector test out of 30 seconds while every test passed. `tests/build/teardown.test.mjs`
   runs a teardown of 1.5 seconds under a test timeout of one second.
 
-## 2026-10-05 — Commands of long operations without a limit (C2.3-1)
+### 2026-10-05 — Commands of long operations without a limit (C2.3-1)
 
 - `scripts/run-command.mjs` replaces `scripts/bounded-command.mjs`. It runs a command to its exit
   without a time limit, takes the exit status as the result, and stops the processes the command
@@ -871,7 +881,7 @@
   `tests/build/run-command.test.mjs` replaces `tests/build/bounded-commands.test.mjs` and checks the
   stop of a left-behind child through the close of the script's output instead of a bound on time.
 
-## 2026-10-05 — CI without time limits (C2.2-1)
+### 2026-10-05 — CI without time limits (C2.2-1)
 
 - The CI workflow has no `timeout-minutes`. A step runs tests, whose cases hold their own timeouts
   in `scripts/run-tests.mjs`, or a long operation (checkout, toolchain setup, install, build, lint,
@@ -880,7 +890,7 @@
   `deploy-docs` and `conformance` jobs. `tests/build/test-commands.test.mjs` fails on a job or a
   step with `timeout-minutes`; it required one on every step that runs no tests.
 
-## 2026-10-05 — Long operations without a timeout (C2.1-1)
+### 2026-10-05 — Long operations without a timeout (C2.1-1)
 
 - AGENTS gives a long operation (a build, an install, a toolchain setup, a browser close, a server
   stop, a whole suite) detailed step logs and no timeout, no inactivity limit included; its result
@@ -888,7 +898,7 @@
   keeps its own timeout. The rule of C2.1 gave a long operation step logs in addition to its own
   timeout, so a normal run that took longer than its limit failed.
 
-## 2026-10-05 — Build readiness on change events (C2.4)
+### 2026-10-05 — Build readiness on change events (C2.4)
 
 - `readyBuild` of `examples/form-comparison/verify-tree.mjs` reads the build state file at its
   start and at every change event of the file's directory (`fs.watch`); it reread the file every
@@ -898,7 +908,7 @@
   a file rewritten every 20 ms and bounds on wall-clock time. With the event loop blocked 350 ms
   of every 400 ms, the former cases failed and the new ones pass.
 
-## 2026-10-05 — Built benchmark drivers in the driver test (C2.3)
+### 2026-10-05 — Built benchmark drivers in the driver test (C2.3)
 
 - `npm run test:bench` builds the packages, then the Go and Rust benchmark drivers with
   `tools/bench/build-drivers.mjs`, which prints each build with its elapsed time and stops it at
@@ -909,7 +919,7 @@
   or runs a driver through `run`, and `tests/build/bounded-commands.test.mjs` stops a driver build
   that never ends at its limit.
 
-## 2026-10-05 — CI time limits of setup steps only (C2.2)
+### 2026-10-05 — CI time limits of setup steps only (C2.2)
 
 - No CI job that runs tests and no step that runs tests has `timeout-minutes`; the test runner
   bounds each test. Every other step of such a job (checkout, toolchains, installs, builds,
@@ -919,7 +929,7 @@
   and listed 13 jobs when the case was added. `test:form-comparison:pipeline` builds through
   `scripts/require-current-build.mjs`, which bounds the build.
 
-## 2026-10-05 — PHPUnit counts of the test runner (C2.5)
+### 2026-10-05 — PHPUnit counts of the test runner (C2.5)
 
 - The PHPUnit mode of `scripts/run-tests.mjs` counts only tests. A `testSuiteFinished` message
   carries no location, so the finish of a test class or a data provider method was counted as a
@@ -928,7 +938,7 @@
   summary with its warnings, are printed; they were dropped. `tests/build/run-tests.test.mjs`
   failed on both before the change.
 
-## 2026-10-05 — Test rules of the repository (C2.1)
+### 2026-10-05 — Test rules of the repository (C2.1)
 
 - AGENTS runs only the Red and Green tests that own a change while a task is in development, and
   the full suite exactly once, when every active task of the checklist is done; it ran the full
@@ -937,7 +947,7 @@
   document or a public API document changed, and the Verification column of the checklist names
   the commands that own a task. The checklist lists wave 2.
 
-## 2026-10-04 — Export of the Tailwind version (C1.5)
+### 2026-10-04 — Export of the Tailwind version (C1.5)
 
 - `@crudui/generator-core` exports `./crudui.tailwind.css`. The feature status lists
   `viewport-widths` and `tailwind-styles`, and the operations document states the viewport and
@@ -945,7 +955,7 @@
   passes; its first run failed `npm run lint` and `npm run test:runtimes` on the new tests and
   script, which C1.4-1 corrected.
 
-## 2026-10-04 — Tailwind version of the styles (C1.4)
+### 2026-10-04 — Tailwind version of the styles (C1.4)
 
 - `packages/generator-core/styles/crudui.tailwind.css` holds the rules of `crudui.css` in the
   cascade layer `components`. `packages/generator-core/scripts/write-tailwind-styles.mjs` writes it,
@@ -956,7 +966,7 @@
   It failed with `Can't resolve` before the file existed. Tailwind CSS and `@tailwindcss/node` 4.3.3
   are development dependencies of the repository.
 
-## 2026-10-04 — Specification of the Tailwind version (C1.3)
+### 2026-10-04 — Specification of the Tailwind version (C1.3)
 
 - The form markup contract specifies `crudui.tailwind.css`: the rules of `crudui.css` inside the
   cascade layer `components` of Tailwind CSS 4, generated from `crudui.css` and checked against
@@ -964,7 +974,7 @@
   second stylesheet written with `@apply`; it is amended, because two hand-written copies of the
   rules could differ. The file is not implemented yet (C1.4).
 
-## 2026-10-04 — Lists that fit a narrow viewport (C1.2)
+### 2026-10-04 — Lists that fit a narrow viewport (C1.2)
 
 - `.crudui-list` scrolls horizontally on its own, so a table wider than the viewport, such as the
   list case `format-number-shortest` with its long numbers, no longer widens the page. At 360 CSS
@@ -974,14 +984,14 @@
   horizontal overflow of the document and every control and action inside the viewport; it failed
   on that case before the change.
 
-## 2026-10-04 — Viewport widths of the stylesheet (C1.1)
+### 2026-10-04 — Viewport widths of the stylesheet (C1.1)
 
 - The form markup contract states the viewport widths of `crudui.css`: at 360 and 1280 CSS
   pixels the expected HTML of every shared render fixture causes no horizontal overflow of the
   document, and every control and action lies within the viewport except inside an element that
   scrolls horizontally on its own. The stylesheet had no rule for a narrow viewport.
 
-## 2026-10-04 — NodeNext declarations of the Svelte renderer
+### 2026-10-04 — NodeNext declarations of the Svelte renderer
 
 - `@crudui/generator-svelte` declares `"type": "module"`, and the public type test
   (`tests/build/public-packages.test.mjs`) did not compile the package. The test now resolves the
@@ -994,7 +1004,7 @@
   relative imports of the package's `.svelte` and `.ts` source files now name `.js` files. The
   published JavaScript and Svelte files differ only in these import paths.
 
-## 2026-10-04 — NodeNext declarations of the Vue renderer
+### 2026-10-04 — NodeNext declarations of the Vue renderer
 
 - `@crudui/generator-vue` declares `"type": "module"`, so TypeScript reads its declarations as ES
   modules, but their relative imports had no file extension. A strict `NodeNext` project failed
@@ -1007,7 +1017,7 @@
   relative imports of the package source now name `.js` files. The JavaScript output of the
   `import` and `require` exports is byte-identical to the output before the change.
 
-## 2026-10-04 — Release checks of the browser validation binding
+### 2026-10-04 — Release checks of the browser validation binding
 
 - The package install check (`scripts/check-packages.mjs`), the public package test
   (`tests/build/public-packages.test.mjs`) and the reproducible build test
@@ -1035,7 +1045,7 @@
   the three engines. CI no longer installs the Playwright Chromium, which no check uses, and the
   package no longer declares `playwright`.
 
-## 2026-10-04 — Browser validation of server-rendered forms
+### 2026-10-04 — Browser validation of server-rendered forms
 
 - `@crudui/form-binding` (`packages/form-binding`) validates a server-rendered complete form in the
   browser with the specification the server validates it with. A form rendered on the server was
@@ -1065,7 +1075,7 @@
   for an invalid submission and submits the corrected form. CI installs the Playwright Chromium
   with WebKit.
 
-## 2026-10-04 — Choice groups
+### 2026-10-04 — Choice groups
 
 - The choice list of a `select`, `dropdown` or `selectbox` field may contain groups, each a label
   and one or more value and label pairs, mixed with plain choices in written order. A list is a
@@ -1082,7 +1092,7 @@
   pass the shared validation cases `value-in-choice-groups*`. The PHP extension engine test counts
   the current fixture inventory and links the units the engine programs use.
 
-## 2026-10-04 — Choice appearance
+### 2026-10-04 — Choice appearance
 
 - A choice in the choice list of a `choice` or `multichoice` field may declare `class` and `style`
   for its label and `attributes` for its input, with the declared attribute rules, and the field's
@@ -1096,7 +1106,7 @@
 - React, Vue, Svelte, the HTML renderer, PHP, the PHP extension, Go and Rust write the appearance in
   the shared form cases `choice-appearance-*` and reject the nine written appearance cases.
 
-## 2026-10-04 — Range fields
+### 2026-10-04 — Range fields
 
 - A `range` field renders a `crudui-widget crudui-widget--range` widget: the prepend affix, a range
   input with `min`, `max` and `step` from its literal `validate.range` and `validate.step`, a
@@ -1108,7 +1118,7 @@
   in the shared form cases `range-*` and reject the eight written range cases; the TypeScript, PHP,
   PHP extension, Go and Rust validators pass the shared validation case `range-field-values`.
 
-## 2026-10-04 — Inline and line layouts
+### 2026-10-04 — Inline and line layouts
 
 - A group declares `design.layout`: `inline` makes every field node inside it one row of a label
   column of `--crudui-label-width` and a control column with the control, the description and the
@@ -1124,7 +1134,7 @@
   the shared form cases `inline-layout-*` and reject the six written layout cases. The typed
   specification models of the PHP, Go and Rust validators accept `design.layout`.
 
-## 2026-10-04 — Declared attributes of controls and nodes
+### 2026-10-04 — Declared attributes of controls and nodes
 
 - A form field declares `data-*` and `aria-*` attributes for its control with `design.attributes`
   and for its node root with `design.wrapper.attributes`. `compileForm` rejects a value that is not
@@ -1139,7 +1149,7 @@
   shared form cases `control-attributes-*`. The JSON Schema, the TypeScript types and the typed
   specification models of the PHP, Go and Rust validators accept the declarations.
 
-## 2026-10-04 — Button fields render as buttons
+### 2026-10-04 — Button fields render as buttons
 
 - A `button` or `action` field renders one `button` element with `type="button"`, the class
   `crudui-action crudui-action--text` and the `design.class` class, the `design.style` style, the
@@ -1153,7 +1163,7 @@
   the shared form cases `button-empty`, `action-alias`, `button-behavior-onclick` and
   `control-attributes-file-display-button`.
 
-## 2026-10-04 — Switcher fields render as switches
+### 2026-10-04 — Switcher fields render as switches
 
 - A `switcher` field renders a switch: its checkbox model has `role: "switch"` after `checked` and
   the control class `valid-target crudui-input crudui-input--switch` before the `design.class`
@@ -1165,7 +1175,7 @@
 - React, Vue, Svelte, the HTML renderer, PHP, the PHP extension, Go and Rust write the switch in the
   shared form cases `switcher-bare` and `control-attributes-checkbox`.
 
-## 2026-10-02 — Script actions run on click
+### 2026-10-02 — Script actions run on click
 
 - A list or detail script action writes its script in `onclick` of its button, so the script runs
   when the button is clicked. It wrote the script in `on{name}`, for example `onremove` for the
@@ -1177,7 +1187,7 @@
   WebKit for the HTML, React, Vue and Svelte renderers, rendered in the browser and rendered on
   the server and hydrated, and requires one run of its script per click.
 
-## 2026-10-02 — Hook failures are printed with their file
+### 2026-10-02 — Hook failures are printed with their file
 
 - The test runner prints every failure of a `node --test` or Vitest run with its test file and
   elapsed time, including a hook that fails or runs out of time. `node --test` reports a timed-out
@@ -1192,7 +1202,7 @@
 - `tests/build/run-tests.test.mjs`, run by `npm run test:runtimes`, runs a timed-out after hook of
   a file under `node --test` and of a file and a suite under Vitest.
 
-## 2026-10-02 — Linear-time checks read no clock
+### 2026-10-02 — Linear-time checks read no clock
 
 - The linear-time checks of the validators and of the PHP extension engine read no clock. They
   compared elapsed times with a limit or with each other, so they failed under a machine load
@@ -1218,7 +1228,7 @@
   the close exceeded the default limit of 30 seconds at a load average of 100 and failed
   `npm run test:forms` after all 61 checks passed.
 
-## 2026-10-02 — Action behavior members are event attributes
+### 2026-10-02 — Action behavior members are event attributes
 
 - A list or detail action writes each declared `behavior` member as the attribute of that name:
   `behavior.onclick` writes `onclick`. Every renderer prefixed `on` to the member name, so
@@ -1230,7 +1240,7 @@
   list and detail case `action-behavior-events`, a link and a button with string and object
   entries.
 
-## 2026-10-02 — Form and list descriptions and detail actions
+### 2026-10-02 — Form and list descriptions and detail actions
 
 - The `crudui-form` block writes the translated root `description` as
   `<p class="crudui-form__description">` before the form errors and the body. A form root accepted
@@ -1252,7 +1262,7 @@
   the new elements, and React, Vue, Svelte, the HTML renderer, PHP, the PHP extension, Go and Rust
   render the shared form, complete form, list and detail cases.
 
-## 2026-10-02 — Choice lists keep their written order
+### 2026-10-02 — Choice lists keep their written order
 
 - `items` accepts a choice list, an array of `{ "value": …, "label": … }` objects whose choices
   keep the list order for any values. A value-to-label map lists integer-like values first in
@@ -1273,7 +1283,7 @@
 - The HTML renderer, React, Vue, Svelte, PHP, the PHP extension, Go and Rust render the shared
   choice list cases, and JavaScript, PHP, the PHP extension, Go and Rust validate them.
 
-## 2026-10-02 — Form connection compares sanitized defaults
+### 2026-10-02 — Form connection compares sanitized defaults
 
 - `connectForm` compares a text control with its rendered default after the browser sanitizes
   that default as it sanitizes a value. Chromium reads a datetime default `2026-09-09T00:00:00`
@@ -1281,7 +1291,7 @@
   the instance value with the browser's form of it.
 - The browser timezone case of the widget script checks covers it in Chromium.
 
-## 2026-10-02 — renderForm writes the complete form
+### 2026-10-02 — renderForm writes the complete form
 
 - `renderForm(form, options)` writes the complete form that a server sends, so the server
   writes no part of a form. `options.action` adds a `form` element with `action`, `encType` and
@@ -1299,7 +1309,7 @@
 - The shared complete form cases are compared byte for byte in React, the HTML renderer, PHP,
   the PHP extension, Go and Rust, and after normalization in Vue and Svelte.
 
-## 2026-10-02 — A single-choice field rejects a list
+### 2026-10-02 — A single-choice field rejects a list
 
 - A field of type `select`, `dropdown`, `selectbox`, `choice` or `radio` without `lang` holds one
   value. Validation fails with `INVALID_FORM_INPUT` and `Choice data must be a single value:
@@ -1309,7 +1319,7 @@
 - JavaScript, PHP, the PHP extension, Go and Rust run the shared list, empty list, object,
   hidden, repeated row, group row, declaration order and accepted value cases.
 
-## 2026-10-02 — An empty membership list allows no value
+### 2026-10-02 — An empty membership list allows no value
 
 - An `in` rule with an empty list or an empty map is valid and matches no value, so a field
   whose choice list is empty passes an empty value and fails every other value. The rule
@@ -1319,7 +1329,7 @@
 - JavaScript, PHP, the PHP extension, Go and Rust run the shared empty list, empty map and
   required cases.
 
-## 2026-10-01 — Form connection keeps values entered before it
+### 2026-10-01 — Form connection keeps values entered before it
 
 - `connectForm` reads every control that differs from its rendered default before it
   synchronizes the controls, so values that a visitor entered into server markup before the
@@ -1327,7 +1337,7 @@
 - The HTML renderer form session case enters text into server markup before the connection
   and verifies the controls and the session values.
 
-## 2026-09-26 — React component and server entries have separate exports
+### 2026-09-26 — React component and server entries have separate exports
 
 - `@crudui/generator-react` exports React components without loading `react-dom/server`.
   `@crudui/generator-react/server` exports `renderForm`, `renderList` and `renderDetail` for
@@ -1335,39 +1345,39 @@
 - React package cases and the installed package check verify both entries and their
   CJS and ESM exports.
 
-## 2026-09-26 — Rust validator declares its license
+### 2026-09-26 — Rust validator declares its license
 
 - The Rust validator manifest declares MIT, the license declared by the project, so dependency
   license checks can read the validator's license directly.
 
-## 2026-09-26 — Form validation rejects undeclared submitted fields
+### 2026-09-26 — Form validation rejects undeclared submitted fields
 
 - Form validation fails with `INVALID_FORM_INPUT` when root, group or repeated group row data
   contains a member without a declared field. It reports the first unknown member in code point
   order at that object. Condition inputs are declared as fields in the shared cases.
 - JavaScript, PHP, the PHP extension, Go and Rust run the same root, group and row cases.
 
-## 2026-09-26 — Rust JSON text validation retains object member values
+### 2026-09-26 — Rust JSON text validation retains object member values
 
 - Rust JSON text conversion associates each object member name with its own value and keeps
   declaration order at every depth. Reversed associations previously let required and length
   rules pass on the wrong input.
 - Rust cases check direct validation and nested object conversion.
 
-## 2026-09-26 — Documentation build excludes generated site files
+### 2026-09-26 — Documentation build excludes generated site files
 
 - The documentation builder and source watcher exclude generated `docs/.site/` files. A generated
   Rust documentation license has Markdown syntax without a page heading and must remain an asset.
 - Documentation build and watcher cases check the exclusion.
 
-## 2026-09-26 — JSON specification readers reject repeated member names
+### 2026-09-26 — JSON specification readers reject repeated member names
 
 - The specification JSON reader rejects repeated decoded object member names before validation,
   including names written with different escape sequences. Repeated names otherwise replace input
   without an error. The CLI and Rust JSON text parser use this rule.
 - Parser, CLI and Rust cases cover nested objects, arrays, escaped names and valid documents.
 
-## 2026-09-25 — The stylesheet themes lists and details and exposes its colors and sizes
+### 2026-09-25 — The stylesheet themes lists and details and exposes its colors and sizes
 
 - `crudui.css` declares the defaults of the `--crudui-*` custom properties in one rule with zero
   specificity, `:where(.crudui-form, .crudui-outline, .crudui-data, .crudui-list, .crudui-detail)`.
@@ -1383,7 +1393,7 @@
 - `tests/style-properties.test.mjs`, part of `npm run test:forms`, checks the property rule, that
   every property a rule reads is declared and that no other rule writes a color.
 
-## 2026-09-24 — The CI browser preflight names the failed sandbox condition
+### 2026-09-24 — The CI browser preflight names the failed sandbox condition
 
 - `scripts/check-ci-browser.mjs` fails an inadequate `chrome://sandbox` evaluation with
   `Chrome sandbox evaluation is "<value>"; expected "You are adequately sandboxed."` and an
@@ -1393,7 +1403,7 @@
   `tests/build/ci-browser.test.mjs` failed.
 - `tests/build/ci-browser.test.mjs` checks the error for each required sandbox row.
 
-## 2026-09-24 — Lists and details reject invalid declarations at render
+### 2026-09-24 — Lists and details reject invalid declarations at render
 
 - `buildList`, `buildDetail`, `renderList` and `renderDetail` in JavaScript, the HTML renderer,
   PHP, the PHP extension, Go and Rust check the list and detail declaration shape
@@ -1415,14 +1425,14 @@
   runtime runs them through the native generator suite. The list and detail validity cases are
   also built by `buildList` and `buildDetail`.
 
-## 2026-09-22 — Choice inputs pass pointer activation to their labels
+### 2026-09-22 — Choice inputs pass pointer activation to their labels
 
 - Visually hidden radio and checkbox inputs now retain a native hit target with transparent
   rendering, so both direct input activation and their associated visible labels work without
   changing keyboard focus or native form semantics. Browser automation and mouse users can
   therefore activate every choice through the same accessible controls.
 
-## 2026-09-19 — Hardened responses, one selection source, reported Vue errors
+### 2026-09-19 — Hardened responses, one selection source, reported Vue errors
 
 - Every response of the public server now carries `X-Content-Type-Options: nosniff`, every JSON
   body escapes `<`, `>` and `&` as Unicode escapes, and a 405 answers with an `Allow` header
@@ -1441,7 +1451,7 @@
   the page as a script error like every other view's failure, through `src/vue-errors.mjs`; Vue
   logged it to the console and continued before.
 
-## 2026-09-19 — The record form shows a failed save
+### 2026-09-19 — The record form shows a failed save
 
 - The canonical page's form submitted its fields and handled 200 and 422, but a failed request or
   another answer left the page without a message: the promise rejected with no handler, the page
@@ -1452,7 +1462,7 @@
   values, and leaves the form submittable again. `docs/spec/form-comparison.md` states the
   behavior.
 
-## 2026-09-19 — One source for the interface text
+### 2026-09-19 — One source for the interface text
 
 - The interface text was copied by hand into the TypeScript, Go, Rust, PHP and PHP extension
   generators, and nothing checked that the copies agreed: the Korean undo label was 실행취소 in
@@ -1479,7 +1489,7 @@
   nonzero exit code failed the step without a line saying why. `run-tests.mjs` now prints a
   failure line naming the signal or exit code.
 
-## 2026-09-19 — Compare unique values as JSON values, bound caches and Rust value limits
+### 2026-09-19 — Compare unique values as JSON values, bound caches and Rust value limits
 
 - `unique` compared values differently across runtimes: TypeScript and PHP took the text `"[1]"`
   for the list `[1]`, TypeScript and the extension let object member order count, PHP let `1`
@@ -1506,7 +1516,7 @@
   the body and keeps hop-by-hop headers to the server's connection; a test forwards forty
   oversized uploads to a server that answers early as nginx does.
 
-## 2026-09-18 — Bound loops and costs that inputs control
+### 2026-09-18 — Bound loops and costs that inputs control
 
 - The PHP record servers ran on PHP's built-in server, which reads a whole request body before
   it runs the script, so they took any body a client declared while the other servers stop at
@@ -1586,7 +1596,7 @@
 - The tests that removed rows until none were left now run at most the starting count of passes
   and require each pass to remove one row.
 
-## 2026-09-18 — Accept the form data the library produces
+### 2026-09-18 — Accept the form data the library produces
 
 - Form data leaves out a field that holds no value, such as an untouched field of a new row, and
   the servers answered 400 to such a JSON submission, so the benchmark's JSON save of a new row
@@ -1599,7 +1609,7 @@
   `form` in JSON, exactly `form[...]` and the completion field in a native form. The Rust server
   had accepted other members in both, the Go server in both and the PHP servers in JSON.
 
-## 2026-09-18 — Show the repeated companies form in the canonical record
+### 2026-09-18 — Show the repeated companies form in the canonical record
 
 - The canonical page's form had become seven flat fields when list, detail and form were joined
   into one customer record, and the repeated form was left only on the benchmark screen. The
@@ -1619,7 +1629,7 @@
   server's one companies shape function. A malformed or unreadable file answers 500 on list,
   record, view and save and is kept byte for byte; reset replaces any store file with the fixture.
 
-## 2026-09-17 — Link the canonical page from list to saved list on every server and client
+### 2026-09-17 — Link the canonical page from list to saved list on every server and client
 
 - The public root is one canonical page: list → detail → form → save → refreshed list, for the
   `js`, `php`, `php-ext`, `go` and `rust` servers, the `html`, `react`, `vue` and `svelte` clients,
@@ -1680,13 +1690,13 @@
   generator grouped `1e+21` as `1e,+21`. Both now write numbers as JavaScript does; the shared list
   case `format-number-shortest` checks every runtime.
 
-## 2026-09-17 — Remove the Linux style-check image a run pulled
+### 2026-09-17 — Remove the Linux style-check image a run pulled
 
 `make test-form-styles-linux` needs the Playwright image of the pinned version, about 10 GB. A run
 that pulled the image now removes it when it ends, successful or not, and leaves an image that was
 already present; the testing procedure describes the command.
 
-## 2026-09-17 — Lint every JavaScript, TypeScript and Svelte source
+### 2026-09-17 — Lint every JavaScript, TypeScript and Svelte source
 
 - `npm run lint` ran `eslint packages` and its configuration skipped every `.js` and `.mjs` file,
   every test and every Svelte component, so examples, tests, scripts, tools and the root
@@ -1707,7 +1717,7 @@ already present; the testing procedure describes the command.
 - The Svelte generator's `{@html}` output and the heading slug's control character class are
   exempt from their rules only on those lines, with the reason written beside each.
 
-## 2026-09-17 — Reject rule names that are not registered rules
+### 2026-09-17 — Reject rule names that are not registered rules
 
 - A `validate` key that is not a registered rule was skipped, so a misspelled rule silently turned
   its check off, and the schema kept other rule names open for rules no runtime can register any
@@ -1729,7 +1739,7 @@ already present; the testing procedure describes the command.
   specification, including nested row paths, hidden fields, check order and `messages`, and one
   case for the `match` and `pattern` messages; the shared validation cases grow to 250.
 
-## 2026-09-17 — Compare generated field models with member order in the comparison example
+### 2026-09-17 — Compare generated field models with member order in the comparison example
 
 - The generation check of `examples/form-comparison` compared object member order only in
   attributes, extra settings and record data, so the deployed comparison could accept field models
@@ -1739,7 +1749,7 @@ already present; the testing procedure describes the command.
 - `check-generation.test.mjs` shows that rendered forms whose models, widgets or data differ only
   in member order are rejected.
 
-## 2026-09-17 — Reject text that is not Unicode scalar values in every runtime
+### 2026-09-17 — Reject text that is not Unicode scalar values in every runtime
 
 - Text in specifications and data is a sequence of Unicode scalar values
   ([input text](docs/spec/input-text.md)). An unpaired surrogate in a JavaScript string, bytes
@@ -1759,7 +1769,7 @@ already present; the testing procedure describes the command.
   the PHP extension, the cross-check console's five processes and the native generator programs
   run it and record conformance evidence; the programs reject standard input that is not UTF-8.
 
-## 2026-09-17 — Read appearance strings that are not complete expressions as literal text
+### 2026-09-17 — Read appearance strings that are not complete expressions as literal text
 
 - `design.class`, `design.style` and the other appearance settings follow the rule `design.show`
   already follows: a string is an expression only when it parses completely under the expression
@@ -1769,7 +1779,7 @@ already present; the testing procedure describes the command.
 - Two written form cases cover the literal class and style strings; the shared form cases grow to
   103.
 
-## 2026-09-17 — Hidden fields, data-only rows and one numeric reading in every runtime
+### 2026-09-17 — Hidden fields, data-only rows and one numeric reading in every runtime
 
 - A field whose `design.show` resolves to `false` against the data is hidden: validation skips its
   rules and every rule inside it, reports no error for it, and keeps its value, so a setting switched
@@ -1802,7 +1812,7 @@ already present; the testing procedure describes the command.
   `examples/product-forms` shows an option-combination form and a large product form in the current
   grammar, validated and rendered by a test.
 
-## 2026-09-17 — Accept only the compiled template shape and order widget members
+### 2026-09-17 — Accept only the compiled template shape and order widget members
 
 - `bindForm`, `bindButtons` and form instances in every runtime (JavaScript, PHP library and
   extension, Go, Rust) accept only a template with exactly the shape `compileForm` produces:
@@ -1814,7 +1824,7 @@ already present; the testing procedure describes the command.
   has `display` before `file`. The native generator comparison checks member order and 69
   template shape requests; the form runtime and PHP extension specifications say so.
 
-## 2026-09-17 — Scroll a moved focus the same way in every engine
+### 2026-09-17 — Scroll a moved focus the same way in every engine
 
 - The CI job "Form instances and data injection" failed in WebKit on Linux: after an Add row
   action the new row's input ended below the sticky footer (709 px against a 644 px limit in a
@@ -1831,7 +1841,7 @@ already present; the testing procedure describes the command.
   checks on Linux as the CI runner does, in the Playwright image of the pinned version, through
   `container` on macOS or `docker`; it is not part of `make ci`.
 
-## 2026-09-17 — Check the stylesheet layout in WebKit
+### 2026-09-17 — Check the stylesheet layout in WebKit
 
 - `tests/form-styles.test.mjs` runs its sticky header, level label, seam, row card and focus
   scenarios in WebKit as well as Chromium and Firefox. One engine adapter launches each browser
@@ -1844,7 +1854,7 @@ already present; the testing procedure describes the command.
 - `playwright` is a root development dependency, and the CI job that runs `npm run test:forms`
   installs WebKit with `npx playwright install --with-deps webkit` and has a 15 minute limit.
 
-## 2026-09-17 — Run the CI workflow locally and fix what its first run found
+### 2026-09-17 — Run the CI workflow locally and fix what its first run found
 
 - `make ci` runs every checking command of `.github/workflows/ci.yml` in order and checks the
   conformance evidence; `tests/build/ci-local.test.mjs` fails when the list differs from the workflow.
@@ -1856,7 +1866,7 @@ already present; the testing procedure describes the command.
   use brace initializers. `tests/build/php-extensions.test.mjs` fails when a PHP package uses an
   optional extension (mbstring, ctype, iconv, intl, bcmath, gmp, sodium, dom) without requiring it.
 
-## 2026-09-17 — Declare the repository settings and deploy through make
+### 2026-09-17 — Declare the repository settings and deploy through make
 
 - `.github/repository.json` declares the GitHub repository settings: homepage, repository features
   and merge methods, the Actions policy and default workflow permissions, vulnerability alerts and
@@ -1867,7 +1877,7 @@ already present; the testing procedure describes the command.
 - `make deploy` and `make deploy-verify` run the comparison-service deployment and its verification;
   the verification procedure names them.
 
-## 2026-09-17 — Keep command programs out of the published packages
+### 2026-09-17 — Keep command programs out of the published packages
 
 The per-language validator and generator programs were only the process boundary of the
 cross-check console and the native generator suite, yet they shipped inside the packages
@@ -1893,7 +1903,7 @@ cross-check console and the native generator suite, yet they shipped inside the 
   `src/main.rs` in a Rust crate).
 - `make format-check` covers new files that are not yet committed and skips deleted ones.
 
-## 2026-09-17 — Remove the legacy layer
+### 2026-09-17 — Remove the legacy layer
 
 The legacy layer kept an old field model (`rules`, `messages`, `display_switch`/`display_target`)
 running beside CRUDUI, but it reproduced no fixed old behaviour: the TypeScript legacy validator ran
@@ -1925,7 +1935,7 @@ with no alias, fallback or replacement entry.
 - `docs/spec/legacy-schema.md` and `docs/spec/legacy-visibility.md` are removed, and the testing,
   schema, fixture, example and feature documents describe only the current layer.
 
-## 2026-09-17 — Package entries declared with their exact exports
+### 2026-09-17 — Package entries declared with their exact exports
 
 `contracts/features.json` listed a few names per package, and the manifest check only looked for
 each name somewhere in the package source. generator-core's entry exported 64 values, the React, Vue
@@ -1953,7 +1963,7 @@ lists every entry.
 - The `formHistory`, `viewState` and `runAction` signatures name every function of the feature;
   features that listed the nonexistent `FormError` list `FormInputError`.
 
-## 2026-09-17 — PHP 8.4 and later, tested on every declared line
+### 2026-09-17 — PHP 8.4 and later, tested on every declared line
 
 The PHP packages declared `^8.2`, but CI ran them only on PHP 8.4 and 8.5, and the rendering
 conformance test needs PHP 8.4's HTML5 parser. `crudui/validator` and `crudui/generator` now require
@@ -1962,7 +1972,7 @@ conformance test needs PHP 8.4's HTML5 parser. `crudui/validator` and `crudui/ge
 when a job that tests a PHP package does not cover every line of the declared range, or when a PHP
 container is not on the newest tested line.
 
-## 2026-09-17 — One definition of values and patterns in every validator
+### 2026-09-17 — One definition of values and patterns in every validator
 
 The JavaScript, PHP, PHP extension, Go and Rust validators disagreed on whitespace, on what a
 length counts, on `in` and on what a pattern means. `docs/spec/validation-rules.md` now defines
@@ -1995,7 +2005,7 @@ them once, and every validator applies that definition:
 - Removed: delimiter handling in patterns, partial matches, translation to regular-expression
   engines, language trimming functions and integer casts of length limits.
 
-## 2026-09-17 — Expose form buttons in every runtime
+### 2026-09-17 — Expose form buttons in every runtime
 
 The feature standard declared `bindButtons` and `formButtonsHtml` for every server runtime, but only
 JavaScript exposed them. The PHP library and the PHP extension add `Generator::bindButtons` and
@@ -2008,7 +2018,7 @@ or `onclick`) and otherwise fails with `Form buttons must be a list` or
 `Form buttons must be evaluated button objects`. The native runner compares both operations for
 every form fixture and the rejected shapes in every runtime.
 
-## 2026-09-17 — Enforce the test command standard
+### 2026-09-17 — Enforce the test command standard
 
 - Every test runs through `node scripts/run-tests.mjs <node|vitest|go|cargo|phpunit>`. The runner
   prints each test as it starts, a line every five seconds while it runs, and its result with the
@@ -2038,7 +2048,7 @@ every form fixture and the rejected shapes in every runtime.
 - `npm run typecheck` checks every TypeScript package, including Vue; a React outline test that did
   not pass `canRedo` now does.
 
-## 2026-09-17 — Check conformance evidence against the feature standard
+### 2026-09-17 — Check conformance evidence against the feature standard
 
 `contracts/features.json` is the one standard: each feature declares its supporting runtimes and
 the shared fixtures that prove it, and the manifest registers every fixture. Tests record one
@@ -2064,7 +2074,7 @@ closed these gaps:
   without a sort declaration has none.
 - The feature verification command of `createForm` ran a fixture module with no tests.
 
-## 2026-09-17 — Keep rendered nodes in the HTML renderer and show sticky labels everywhere
+### 2026-09-17 — Keep rendered nodes in the HTML renderer and show sticky labels everywhere
 
 - `patchContent(element, html)` from `@crudui/generator-core` replaces an element's content with new
   markup and keeps every node the markup still contains (matched by row key, field path, id, or a
@@ -2081,7 +2091,7 @@ closed these gaps:
   nothing. The Chromium checks run with and without scroll-state support in a page, a scrolling box
   and a frame, and assert that Chromium never receives the attribute.
 
-## 2026-09-17 — Render the same pagination in every server runtime
+### 2026-09-17 — Render the same pagination in every server runtime
 
 The PHP library, the PHP extension, Go and Rust rendered pagination differently from JavaScript:
 the PHP library wrote `disabled="1"` and did not clamp the page to the last page, and all four
@@ -2095,7 +2105,7 @@ defaults, the supplied `total`, and `pageCount`). A `pagination` declaration is 
 fixture grew from 42 to 57 cases with the boundary pages and the declaration errors, and the
 native runner compares the pagination model of enabled, declared and disabled paging.
 
-## 2026-09-17 — Repair the failing CI jobs
+### 2026-09-17 — Repair the failing CI jobs
 
 The last three pushes failed CI. The Svelte header and node components had whitespace between
 sibling blocks, which Svelte kept as text; they are written without it again. The root package
@@ -2103,27 +2113,27 @@ now declares `@crudui/generator-html`, which the form comparison example imports
 comparison source suite builds it. The PHP extension API test expected the old pagination markup.
 Rust and Go sources that did not match `rustfmt` and `gofmt` are formatted.
 
-## 2026-09-16 — Add bidirectional form history
+### 2026-09-16 — Add bidirectional form history
 
 - Form instances now expose `redo()` and snapshots report `canRedo`.
 - Outline controls now render both undo and redo with direction-specific availability.
 - A new data change after undo clears the redo history.
 
-## 2026-09-16 — Render CRUDUI pagination controls in CSR and SSR
+### 2026-09-16 — Render CRUDUI pagination controls in CSR and SSR
 
 - List renderers now emit previous, numbered and next page buttons from the shared pagination model.
 - The resolved current page defaults to 1, exposes `aria-current="page"`, and disables boundary controls.
 - The pipeline example now uses CRUDUI pagination output for both SSR and CSR; its manual page navigation was removed.
 - The pipeline page documents the injected `page` and `total` contract beside the runtime controls.
 
-## 2026-09-16 — Put sticky state on the header container
+### 2026-09-16 — Put sticky state on the header container
 
 Sticky nodes now render a `crudui-node__header-container` around their header in
 every renderer. The wrapper owns `position: sticky` and `container-type: scroll-state`,
 so header descendants can respond to the wrapper's stuck state without changing the
 header slot or its own styles.
 
-## 2026-09-16 — A sticky seam is one border wide wherever a row rests
+### 2026-09-16 — A sticky seam is one border wide wherever a row rests
 
 A sticky row has no top border of its own. Its card top edge is drawn inside the header
 container, the box that pins, and goes while the container is stuck, when the line of the
@@ -2137,7 +2147,7 @@ stood one border below that line, drawing the seam as two borders at the positio
 meets it. The layout checks assert the line, the missing row border and the edge in both states,
 with the query and with the marking.
 
-## 2026-09-16 — Exercise every validator fixture in the cross-check gateway
+### 2026-09-16 — Exercise every validator fixture in the cross-check gateway
 
 The cross-check gateway test now executes all 64 shared form-validation fixtures through
 JavaScript, PHP, Go and Rust. Its idempotency signature treats JSON object member order inside
@@ -2157,48 +2167,48 @@ Added an executable conformance matrix. It checks that declared pass targets, sh
 counts, gateway test links and native operations remain complete. The matrix check runs in
 `test:runtimes`, so a missing test or unsupported execution path fails mechanically.
 
-## 2026-09-16 — Keep framework container markers out of content comparisons
+### 2026-09-16 — Keep framework container markers out of content comparisons
 
 The form comparison now compares each view container's rendered contents while preserving
 framework-owned container markers. Vue adapters retain Vue's `data-v-app` marker after CSR mount;
 the comparison no longer requires adapters to remove it.
 
-## 2026-09-16 — Isolate and stabilize initialization comparisons
+### 2026-09-16 — Isolate and stabilize initialization comparisons
 
 The benchmark resets the CSR repository before its initialization stages and uses the same
 deterministic generated-row sequence for the `added` stage in both columns. Vue hydration now
 passes the hydration flag to its mount operation, and the comparison preserves Vue's CSR marker
 outside the rendered-content contract.
 
-## 2026-09-16 — Publish the benchmark run source identity
+### 2026-09-16 — Publish the benchmark run source identity
 
 The benchmark job result now includes the source identity read from `/source.json`. The server
 report can therefore validate the complete tree identity before accepting its child reports.
 
-## 2026-09-16 — Publish initialization source identity under the verifier contract
+### 2026-09-16 — Publish initialization source identity under the verifier contract
 
 The dedicated benchmark now stores the frame's complete source identity in the initialization
 report's `source` field. It no longer labels that object as `commit`, so report policy can compare
 initialization, scenario and server identities consistently.
 
-## 2026-09-16 — Make browser validation input clearing deterministic
+### 2026-09-16 — Make browser validation input clearing deterministic
 
 The browser verifier now uses the input element's standard selection API before deleting its value.
 It no longer depends on Chromium's platform-sensitive multi-click or key-combination behavior.
 
-## 2026-09-16 — Preserve canonical pagination metadata in native adapters
+### 2026-09-16 — Preserve canonical pagination metadata in native adapters
 
 The PHP, Go and Rust pipeline adapters now forward the canonical `page` and `total` options to
 their renderers. A page containing five rows therefore still reports the canonical total of 45.
 
-## 2026-09-16 — Preserve benchmark query selection and accept the mounted initialization stage
+### 2026-09-16 — Preserve benchmark query selection and accept the mounted initialization stage
 
 The benchmark-console redirect now preserves its query string, so each verifier job reaches the
 selected server and framework. The frame initialization contract explicitly accepts the `mounted`
 stage published by the browser runtime. The full current-tree browser verification remains failed
 because its validation and source-identity checks did not pass; no passing result is claimed.
 
-## 2026-09-16 — Make the canonical example use CRUDUI-generated pipeline features
+### 2026-09-16 — Make the canonical example use CRUDUI-generated pipeline features
 
 The previous root implementation was incorrect: parent-side stage buttons and hand-written list
 and detail markup simulated navigation without exercising CRUDUI list links, detail links, form
@@ -2206,25 +2216,25 @@ submission or persistence. The canonical example now renders list and detail out
 CRUDUI renderer and uses real HTTP navigation. The old simulation path is removed rather than
 retained as a compatibility path.
 
-## 2026-09-16 — Run comparison verification on the benchmark entry
+### 2026-09-16 — Run comparison verification on the benchmark entry
 
 Browser verification now opens `/benchmark-console/`, where the comparison console owns its
 readiness and job API. The canonical root remains the page pipeline and is not
 required to expose benchmark internals.
 
-## 2026-09-16 — Remove retired public route artifacts during builds
+### 2026-09-16 — Remove retired public route artifacts during builds
 
 Persistent build volumes now remove the retired `public/displays/` output before copying current
 public assets. This prevents an older generated route from remaining accessible after the source
 directory is deleted.
 
-## 2026-09-16 — Make the root example a single CRUD pipeline
+### 2026-09-16 — Make the root example a single CRUD pipeline
 
 The public root now presents List → Detail → Form → Save → List refresh in one page, with links
 between the stages and explicit client, server and CSR/SSR selectors. The benchmark entry is
 separate at `/benchmark/`. The obsolete `/displays/` route and its public files were removed.
 
-## 2026-09-16 — Reuse the existing comparison container during source sync
+### 2026-09-16 — Reuse the existing comparison container during source sync
 
 The comparison deployment now separates first-time bootstrap from source synchronization. A
 running container with the expected image and exact mounts is inspected and reused; normal source
@@ -2232,20 +2242,20 @@ changes do not call `containerctl down`, recreate the container, or reconnect bu
 or results volumes. The public pipeline forwards list and detail rendering to the selected native
 PHP, PHP extension, Go, or Rust generator instead of rendering those requests in Node.
 
-## 2026-09-16 — Correct the canonical display entry and renderer scope
+### 2026-09-16 — Correct the canonical display entry and renderer scope
 
 The first `/displays/` implementation exposed the internal Cross-Check Console as the public
 entry. That was incorrect. `/displays/` now serves a user-facing List/Detail page that renders
 the framework-independent HTML output through the same public process. Cross-check render
 matrices now include HTML alongside React, Vue and Svelte, so parity covers four renderers.
 
-## 2026-09-15 — Add the canonical list and detail entry
+### 2026-09-15 — Add the canonical list and detail entry
 
 The canonical `crudui.test` entry now links to `/displays/`, which serves the user-facing list and
 detail example through the same public process as the form comparison. The internal Cross-Check
 Console is not exposed as the canonical display page.
 
-## 2026-09-15 — Use the shared allocator for empty native button text
+### 2026-09-15 — Use the shared allocator for empty native button text
 
 The PHP extension now creates omitted button content with its shared string allocator, so
 strict GCC builds do not depend on the non-standard `strdup` declaration.
@@ -2253,23 +2263,23 @@ strict GCC builds do not depend on the non-standard `strdup` declaration.
 The deployed comparison tree then passed 450 generation, 120 persistence and
 7,008 browser checks with zero failures.
 
-## 2026-09-15 — Fix the native optional list input path
+### 2026-09-15 — Fix the native optional list input path
 
 The PHP extension now initializes and validates the optional `buildList` rows argument before
 calling the shared operation, so GCC's required warnings do not reject the native build.
 
-## 2026-09-15 — Install the pinned OrderedJSON JavaScript package
+### 2026-09-15 — Install the pinned OrderedJSON JavaScript package
 
 The comparison build now copies the pinned monorepo `js/` package into its build-tree
 `node_modules` before building frames, so all five runtimes use the same revision.
 
-## 2026-09-15 — Remove the obsolete validator benchmark
+### 2026-09-15 — Remove the obsolete validator benchmark
 
 The unused TypeScript benchmark that exercised the legacy validator and silently
 substituted a small specification has been removed. `make bench` is the only
 repository benchmark and requires its explicit shared fixture inputs.
 
-## 2026-09-15 — Define display markup and validation error order
+### 2026-09-15 — Define display markup and validation error order
 
 List and detail renderers now use the documented `crudui-list` and `crudui-detail`
 block grammar. Format kinds use `crudui-value--TYPE`; badge variants and boolean
@@ -2277,51 +2287,51 @@ state use data attributes. Validation traverses keyed object entries in sorted k
 order for the same first-error result in all five implementations, while data and
 rendered row order retain input member order.
 
-## 2026-09-15 — Use explicit ORM display paths
+### 2026-09-15 — Use explicit ORM display paths
 
 Display substitutions now use `{=path}`; legacy `{.path}` substitutions are removed. List and
 detail `field` and `sort.field` paths no longer have a leading dot, so object members and
 associative-array keys use one path contract. The naming change makes ORM relationship paths
 explicit and prevents literal URL or file-extension dots from being parsed as substitutions.
 
-## 2026-09-15 — Remove the field button text fallback
+### 2026-09-15 — Remove the field button text fallback
 
 Button and action fields now read control text only from `content`; the old field
 `text` fallback has been removed from all five generators.
 
-## 2026-09-15 — Pin the OrderedJSON comparison source to the updated commit
+### 2026-09-15 — Pin the OrderedJSON comparison source to the updated commit
 
 The comparison source remains version `0.0.1` and uses a clean
 `polyspec/ordered-json` checkout.
 
-## 2026-09-15 — Exclude operator-local editor settings from comparison source
+### 2026-09-15 — Exclude operator-local editor settings from comparison source
 
 Comparison source identity and synchronization exclude operator-local editor settings.
 
 [한국어](CHANGELOG.ko.md).
 
-## 2026-09-15 — Pin the OrderedJSON comparison source to its monorepo
+### 2026-09-15 — Pin the OrderedJSON comparison source to its monorepo
 
 The form-comparison supervisor and cross-language checker now use one immutable
 `polyspec/ordered-json` commit. JavaScript, Go, PHP, PHP extension and Rust are
 verified as package directories within that checkout; submodule revisions and
 submodule updates are no longer part of the source contract.
 
-## 2026-09-15 — Report progress and enforce per-test limits in verification runners
+### 2026-09-15 — Report progress and enforce per-test limits in verification runners
 
 The native generator, PHP extension engine, package, and PHPUnit verification
 runners now report active work with elapsed time and stop an individual check at
 its own measured timeout. Native checks can select targets and checks, and package
 builds are reused only when their source and output digests still match.
 
-## 2026-09-15 — Use GitHub-compatible documentation heading anchors
+### 2026-09-15 — Use GitHub-compatible documentation heading anchors
 
 The documentation web now generates heading anchors without adding an underscore
 to headings that start with a digit. Repository-relative document links therefore
 use the same fragments as GitHub source pages. The web build test and the package
 build specification in English and Korean record this rule.
 
-## 2026-09-15 — Check every repository specification meant to be valid against the meta-schema
+### 2026-09-15 — Check every repository specification meant to be valid against the meta-schema
 
 `scripts/check-schema.mjs` checked the validity cases only, so specifications the repository relies
 on as valid failed the meta-schema without any check noticing. Each failure was decided from the
@@ -2363,7 +2373,7 @@ valid each failed the check. The regenerated cases, the TypeScript conformance f
 (175 tests) and type checking, the Go validate and compose packages, the PHP compose and validation
 filters (144 tests), the Rust fixture tests and the documentation tests passed.
 
-## 2026-09-15 — Type every validation rule and reject forbidden keys at every depth in the meta-schema
+### 2026-09-15 — Type every validation rule and reject forbidden keys at every depth in the meta-schema
 
 The validators register 24 rules (`pattern` shares `match`), while the form meta-schema declared only
 `required`, `email` and `match`, and applied the forbidden key names only where it listed an object's
@@ -2392,7 +2402,7 @@ changed only those three and accepted none newly. `scripts/check-schema.mjs` pas
 four TypeScript meta-schema and forbidden-scan conformance files passed 77 tests, the CLI suite passed
 37 tests, and the documentation writing and fixture README tests and lint passed.
 
-## 2026-09-15 — Give every shared fixture family a README in both languages
+### 2026-09-15 — Give every shared fixture family a README in both languages
 
 Six more fixture families under `tests/fixtures` had no README: compose, form-outline, form-session,
 specs, translate and validate. Each has `README.md` and `README.ko.md` stating the case fields, what
@@ -2404,7 +2414,7 @@ files. The translate generator header repeated a word and a Makefile comment des
 documentation check with "now"; both are corrected. The documentation tests (25) and
 `make docs-check` passed.
 
-## 2026-09-15 — Hold every runtime to one structure validity case contract
+### 2026-09-15 — Hold every runtime to one structure validity case contract
 
 The form specification cases recorded only the engine result, as `expect: "ok"` or
 `{error_code, at_path}`, while the list and detail cases recorded the meta-schema result in `expect`
@@ -2432,7 +2442,7 @@ Changing a list case's `engine`, or putting a forbidden key in its composition f
 Rust tests fail. `check-schema.mjs` passed 103 checks, and TypeScript (1,677 tests), PHP (1,539), the Go
 and Rust suites, the PHP extension validation of 115 cases and the gateway suite (204) passed.
 
-## 2026-09-15 — Give every example a README in both languages
+### 2026-09-15 — Give every example a README in both languages
 
 `examples/form-structure` had no README and the cross-check console had no Korean README, so the
 preview's purpose and start command were written nowhere. Every directory under `examples/` has
@@ -2444,7 +2454,7 @@ data and `crudui.css`, and a headless browser rendered 57 nodes with the stored 
 README gives the Rust command its build script runs, `cargo build --locked --release --bin validate`.
 The example README and writing tests passed.
 
-## 2026-09-15 — Show lists and details in the package examples and document their operation
+### 2026-09-15 — Show lists and details in the package examples and document their operation
 
 The package examples rendered forms only, no operations document described lists and details, and
 the four documentation indexes listed different documents. The [examples contract](docs/spec/examples.md)
@@ -2469,7 +2479,7 @@ linked its name to the detail and the detail linked the email with `mailto:`. Th
 Go and Rust code blocks of the operations document ran, and the React and Vue README snippets
 rendered their data from the built packages.
 
-## 2026-09-15 — Render and validate details in the cross-check console
+### 2026-09-15 — Render and validate details in the cross-check console
 
 The console compared form and list rendering and validated lists and details, but it could not
 render a detail. It now fans a detail specification and one record out to React, Vue and Svelte
@@ -2479,7 +2489,7 @@ pattern while the conformance checks use the shared helper; it now uses that hel
 README described a list load failure as a `LOAD-ERROR` cell, which the page shows as `FAILURE`.
 The gateway suite passed 204 tests.
 
-## 2026-09-15 — Check list and detail designs as form designs are checked
+### 2026-09-15 — Check list and detail designs as form designs are checked
 
 Lists and details have no compile step, so an unknown `design` key in a list, a column, a detail or a
 field was ignored in every runtime; the detail case fixed earlier today styled its cell with such a
@@ -2495,7 +2505,7 @@ Go and Rust at the same time, so they are recorded in one commit.
 
 Both changes were verified together; the results follow the member order entry.
 
-## 2026-09-15 — Use one member order for specification objects in every runtime
+### 2026-09-15 — Use one member order for specification objects in every runtime
 
 JavaScript receives a specification as plain objects, which list array-index member names such as
 `10` first in ascending numeric order; PHP, the PHP extension, Go and Rust kept the order in which
@@ -2527,7 +2537,7 @@ suites, the gateway suite passed 204 tests, and build, lint, formatting, the doc
 (25) and the documentation web checks passed. The working tree for these checks also held changes
 committed after this one.
 
-## 2026-09-15 — Lint every TypeScript package without warnings
+### 2026-09-15 — Lint every TypeScript package without warnings
 
 `npm run lint` covered only the validator, HTML renderer and React sources, so the core, Vue, Svelte
 and CLI packages and the validator benchmarks were never linted, and warnings did not fail the
@@ -2544,7 +2554,7 @@ Lint passed with no warnings, and the CLI (37 tests), core (112) and Svelte (393
 passed. The validator benchmarks are still outside type checking and measure the legacy validator;
 that remains open.
 
-## 2026-09-15 — Import the Vue server renderer through the vue peer dependency
+### 2026-09-15 — Import the Vue server renderer through the vue peer dependency
 
 `@crudui/generator-vue` imported `@vue/server-renderer`, a development dependency outside its declared
 `vue` peer dependency. The build did not treat it as external, so the built entry carried a 2.2 MB
@@ -2560,7 +2570,7 @@ Vue packages through both `import` and `require`, and from the Svelte package th
 `react-dom/server` and Svelte imports `svelte/server`, both covered by their peer dependencies. The
 Vue suite passed 396 tests and `npm run test:packages` passed.
 
-## 2026-09-15 — Keep Korean heading anchors on the documentation web
+### 2026-09-15 — Keep Korean heading anchors on the documentation web
 
 The documentation web built heading ids from NFKD text. NFKD decomposes Hangul syllables into jamo,
 so a Korean heading such as `목록 모델` received an id that no Korean fragment link could match.
@@ -2568,7 +2578,7 @@ Heading ids are composed again after combining marks are removed: Hangul keeps i
 accented Latin letters still lose their marks. The web build test covers a Korean heading, a
 fragment link to it and `Café`. The web build suite passed 11 tests.
 
-## 2026-09-15 — Compare expected PHP signatures without losing empty objects
+### 2026-09-15 — Compare expected PHP signatures without losing empty objects
 
 Candidate verification stopped in the PHP modes check with `Public PHP and extension
 signatures must match`, although both PHP implementations declare the same methods. The check
@@ -2578,7 +2588,7 @@ expected `{}` became `[]` and no longer matched the reflected `{}`. The check no
 expected signatures as objects and compares them exactly. Locally, the pure PHP signatures written
 and read back as objects compared equal, and the associative round trip reproduced the mismatch.
 
-## 2026-09-15 — Reject unknown keys in the buckets the schema closes
+### 2026-09-15 — Reject unknown keys in the buckets the schema closes
 
 The schema closes `multiple`, `lang`, `design`, its nodes and `behavior`, but form compilation
 stated that it did not check unknown keys there, and the typed models disagreed with the schema
@@ -2604,7 +2614,7 @@ including input checks). Validator tests passed in JavaScript (1642), Go, PHP (1
 the console suite passed 166 of 166; the meta-schema check passed 80 fixture checks; test:forms,
 lint, format-check, manifest:test, test:docs and docs-check passed.
 
-## 2026-09-15 — Build and install what checks run before running them
+### 2026-09-15 — Build and install what checks run before running them
 
 Three findings recorded during the form structure work stayed open because they needed a rule,
 and one shared case contradicted the schema:
@@ -2628,7 +2638,7 @@ JavaScript (24), Go, PHP (23), Rust and the PHP extension (585 API checks in eac
 configurations, 113 validation cases, engine 24 with one existing skip). test:forms, lint,
 format-check, manifest:test, test:docs and docs-check passed.
 
-## 2026-09-15 — Enforce the detail input order and keep the rules in the libraries
+### 2026-09-15 — Enforce the detail input order and keep the rules in the libraries
 
 The display format specification lists the detail input rules in order, but every shared detail
 case broke one rule at a time, so the order was never checked. Adding cases that break two rules
@@ -2650,7 +2660,7 @@ only for an object specification. Three shared cases break two rules each.
 The detail cases grew to 28. `make test-native` passed 241 of 241 checks in each of the six
 targets (1447 including input checks).
 
-## 2026-09-15 — Validate detail specifications in every language
+### 2026-09-15 — Validate detail specifications in every language
 
 `validateDetail` existed only in JavaScript, its feature was recorded as partial, and the shared
 detail validity cases were two meta-schema cases that no engine read. Go, PHP, the PHP extension
@@ -2693,7 +2703,7 @@ validity cases and nineteen request cases in all four languages. The meta-schema
 fixture checks, `make test-native` passed 238 of 238 in each of six targets, and lint,
 format-check, test:forms, manifest:test, test:docs and docs-check passed.
 
-## 2026-09-15 — Resolve content text by one rule in every runtime
+### 2026-09-15 — Resolve content text by one rule in every runtime
 
 The schema defines content as a string or a language map whose entries are strings, but no
 specification said how a runtime turns it into text, and measuring the six targets with values
@@ -2722,7 +2732,7 @@ The detail cases grew to 25. `make test-native` passed 238 of 238 checks in each
 targets (1429 including input checks), and the measurement script for format details reported the
 same result in all six targets.
 
-## 2026-09-15 — Replace the list pageMeta option with page and total, and give JavaScript input errors their code
+### 2026-09-15 — Replace the list pageMeta option with page and total, and give JavaScript input errors their code
 
 The list option `pageMeta` carried the caller's current page and total record count, but its name
 said neither, and its members had no value rule: any value became a `data-page` or `data-total`
@@ -2760,7 +2770,7 @@ The list cases grew to 39 and the detail cases to 24. `make test-native` passed 
 in each of the JavaScript, HTML, PHP, Go, Rust and PHP extension targets (1423 including input
 checks), and the gateway suite passed 135 of 135 with the Go and Rust validator commands rebuilt.
 
-## 2026-09-15 — Document display formats and hold every runtime to one input rule
+### 2026-09-15 — Document display formats and hold every runtime to one input rule
 
 The formats a list column or detail field can declare were described only by the schema and
 the implementations. [Display formats](docs/spec/display-formats.md) now lists each format, its
@@ -2794,7 +2804,7 @@ and PHP extension targets passed 228 of 228 checks each (1369 including input ch
 measurement scripts for list input (14 inputs) and format details (19 inputs) reported the same
 result in all six targets.
 
-## 2026-09-15 — Keep contract verification commands to package checks
+### 2026-09-15 — Keep contract verification commands to package checks
 
 CI failed in the form instance job: `npm run manifest:test` runs every
 verification command in the contract manifest, and the detail contracts declared `make test-native` for
@@ -2807,7 +2817,7 @@ The two detail contracts now declare only their package checks, like the others.
 test and the HTML and React detail conformance tests passed through `run-contract-tests.mjs`,
 and `make docs-check` and `npm run test:docs` passed.
 
-## 2026-09-15 — Enforce detail views at the same level in every runtime
+### 2026-09-15 — Enforce detail views at the same level in every runtime
 
 Detail views existed in JavaScript and Go only, and nothing compared their output. Three
 commits added PHP and Rust detail rendering and raw-HTML detail cases to the native runner,
@@ -2848,7 +2858,7 @@ HTML renderer each passed the 19 detail conformance cases, the Go and Rust gener
 passed, and `npm run lint`, `npm run test:docs`, the core, React and HTML type checks,
 `make docs-check` and `npm run test:forms` passed.
 
-## 2026-09-15 — Share the preload link helper between list and detail fixtures
+### 2026-09-15 — Share the preload link helper between list and detail fixtures
 
 Framework conformance compares a rendered list without the image preload links that React's
 server rendering and the HTML renderer write before it; the native generator suite compares the
@@ -2860,7 +2870,7 @@ and the React and HTML list conformance tests.
 Regenerating the list fixture produced identical bytes, and the React and HTML list conformance
 tests passed.
 
-## 2026-09-15 — Build generator-core with its declared library
+### 2026-09-15 — Build generator-core with its declared library
 
 Every CI job failed in `npm run build`: `detail.ts` called `Object.hasOwn`,
 which the package's declared TypeScript library does not include. That commit was described as
@@ -2874,7 +2884,7 @@ stay: they are correct and tested, and the remaining detail work follows as its 
 `npm run build`, `npm run lint`, `npm run test:docs`, `make docs-check` and the core detail
 tests passed.
 
-## 2026-09-15 — Keep the script URL expression through lint
+### 2026-09-15 — Keep the script URL expression through lint
 
 CI failed on the HTML renderer: `no-control-regex` rejected the script-URL expression the
 HTML renderer takes from the reference renderer, which skips the control characters a URL may
@@ -2884,7 +2894,7 @@ The expression stays as the reference renderer writes it, with the rule disabled
 and a comment saying why the control characters are deliberate. `npm run lint` passes and the
 HTML renderer passed 207 tests.
 
-## 2026-09-15 — Record the candidate verification of the server-rendered frame
+### 2026-09-15 — Record the candidate verification of the server-rendered frame
 
 Candidate verification passed. Generation verification passed 450 of 450
 results across 899 HTTP requests, which now include the built frame document, the SSR form
@@ -2897,7 +2907,7 @@ and 64 frame-document checks. PHP completed in 340,871 milliseconds, the PHP ext
 
 The feature record now states these results, the source archive digest and the image digest.
 
-## 2026-09-15 — Apply the rendered-node rule to the column comparison
+### 2026-09-15 — Apply the rendered-node rule to the column comparison
 
 Candidate verification failed again for Vue, 16 of 168 comparisons in each Vue initialization
 report: the hydrated column kept the server's style attribute text
@@ -2914,7 +2924,7 @@ declaration block. The frame's hydration check and the page's column comparison 
 
 The form inspector tests passed 20 tests.
 
-## 2026-09-15 — Compare what the view containers hold
+### 2026-09-15 — Compare what the view containers hold
 
 Candidate verification of the frame document change failed for Vue in both rendering paths:
 18 of 168 comparisons in each Vue initialization report, with the first difference on the form
@@ -2931,7 +2941,7 @@ records the Vue mark and where hydration is enforced.
 
 The form inspector tests passed 19 tests.
 
-## 2026-09-15 — State which runtimes implement detail views
+### 2026-09-15 — State which runtimes implement detail views
 
 The runtime operation table named `Generator::buildDetail`, `build_detail` and their render
 counterparts for the PHP library, Rust and the PHP extension. None of those six symbols
@@ -2948,7 +2958,7 @@ expected HTML.
 
 `make docs-check` passed.
 
-## 2026-09-15 — Load the public browser modules with their imports
+### 2026-09-15 — Load the public browser modules with their imports
 
 Candidate verification of the frame document change failed in the container: the source check
 that loads the public frame readiness module in Chromium read the file and imported it from a
@@ -2965,7 +2975,7 @@ with that reason instead of waiting for the no-progress limit.
 The four Chromium source checks passed, comparison source checks passed 150 tests and
 `make docs-check` passed.
 
-## 2026-09-15 — Serve the SSR column as a server-rendered frame document
+### 2026-09-15 — Serve the SSR column as a server-rendered frame document
 
 The comparison page's `ssr` column was not server-rendered. Its frame document contained an
 empty form view, the browser requested `render`, wrote the returned HTML into the page and
@@ -3009,7 +3019,7 @@ requests, 912 scenario checks); they now state the current totals.
 
 Comparison source checks passed 149 tests and `make docs-check` passed.
 
-## 2026-09-15 — Render only grammar nodes in Vue components
+### 2026-09-15 — Render only grammar nodes in Vue components
 
 Measured in jsdom, Vue `createSSRApp` hydration of the server markup for the shared session
 form replaced the input elements and reported 40 mismatches: the server markup had no node
@@ -3023,7 +3033,7 @@ markup kept every element with no mismatch, and the rendered form, structure map
 contained no comment node on the `createForm` path (empty, after injection and with every row
 collapsed) or the `bindForm` path. `npm test -w @crudui/generator-vue` passed 342 tests.
 
-## 2026-09-15 — Make the HTML renderer match the string renderer format
+### 2026-09-15 — Make the HTML renderer match the string renderer format
 
 The string renderers were meant to produce the same bytes, but the check never included the
 HTML renderer: the native generation check compared PHP, the PHP extension, Go and Rust with
@@ -3050,7 +3060,7 @@ Go, Rust and native PHP). `npm run test:forms` passed (core 110, HTML 207, React
 Svelte 339 and 10, Chromium 17), `npm run test:form-comparison:source` passed 141 and `:browser`
 4, and `make docs-check` passed.
 
-## 2026-09-15 — Write float fixture values as C double literals
+### 2026-09-15 — Write float fixture values as C double literals
 
 `make test-native` stopped in the PHP extension engine test "list rendering has no undefined
 behavior findings": the generated C fixture wrote `ps_float_value(1000000000000000100)`, and
@@ -3066,7 +3076,7 @@ so an integral value became a C integer literal. It now writes a C double litera
 passed 22 tests; the address sanitizer test is skipped outside Linux by its declared
 platform condition and runs in the Linux CI job.
 
-## 2026-09-15 — Keep the comparison page on one screen
+### 2026-09-15 — Keep the comparison page on one screen
 
 After deployment, real Safari pressed Expand all inside the left frame, moved the
 pointer to the page header and ran the repeated injection comparison for PHP, React and
@@ -3092,7 +3102,7 @@ moved the pointer to the page header and ran the repeated injection comparison f
 and bindForm: 168/168 matched. With the pointer resting over the left frame, the comparison
 stopped with the pointer message and produced no result.
 
-## 2026-09-15 — Capture comparisons only while the pointer is outside the frames
+### 2026-09-15 — Capture comparisons only while the pointer is outside the frames
 
 After deployment, real Safari driven by safaridriver repeated the procedure that
 reproduced the focus outline difference: a real pointer press on Expand all inside the left
@@ -3119,7 +3129,7 @@ the frame's state each time.
 `npm run test:form-comparison:source` passed 141 and `:browser` 4, and `make docs-check`
 passed.
 
-## 2026-09-15 — Set whether scripted focus is visible
+### 2026-09-15 — Set whether scripted focus is visible
 
 In Safari, the repeated injection comparison for PHP, React and bindForm on the deployed
 page failed `expanded-all`, `undone`, `empty` and `restored` on CSS only: focus was on
@@ -3151,7 +3161,7 @@ focused toggle; with it all pass.
 Chromium 17), `npm run test:form-comparison:source` passed 141 and `:browser` 3, and `make
 docs-check` passed.
 
-## 2026-09-14 — State that the comparison storage lock covers one browser
+### 2026-09-14 — State that the comparison storage lock covers one browser
 
 While a Playwright WebKit comparison ran against the deployment, a check in Safari
 did not finish, so the two runs shared the saved records although each page held its own
@@ -3161,7 +3171,7 @@ deployment read and replace the records without it, so checks from different bro
 not run at the same time. The servers keep one record store per server, rendering path and
 framework; separating stores per run was considered and not adopted.
 
-## 2026-09-14 — Mark unavailable actions with aria-disabled
+### 2026-09-14 — Mark unavailable actions with aria-disabled
 
 In Safari, the repeated injection comparison on the deployed page reported
 `restored` with CSS and focus differences: the left column kept focus, with its focus
@@ -3200,7 +3210,7 @@ mouse click on any button leaves focus on the body in WebKit, including Expand a
 changes no data; that is WebKit's mouse behaviour, the same in both columns, and not a
 rendering result.
 
-## 2026-09-14 — Run one comparison storage operation at a time
+### 2026-09-14 — Run one comparison storage operation at a time
 
 On the deployed page, pressing Run checks in the left and right frames at the same
 time failed several checks in both frames with "Check error". Run in one frame alone, the
@@ -3220,7 +3230,7 @@ not replace the result list being written.
 `npm run test:form-comparison:source` passed 141 tests, including the lock's two tests,
 `npm run test:form-comparison:browser` passed 3 and `make docs-check` passed.
 
-## 2026-09-14 — Query the collection again after an empty-collection addition
+### 2026-09-14 — Query the collection again after an empty-collection addition
 
 The candidate run, the first to build and run the HTML frames, passed generation
 (386 results, 547 requests) and then failed 4 of the 1,744 PHP checks: the `empty` scenario
@@ -3238,32 +3248,32 @@ That run used a separate git worktree of the commit, because candidate preparati
 start in a checkout with uncommitted changes.
 `npm run test:form-comparison:source` passed 139 tests.
 
-## 2026-09-14 — Add Go detail model and SSR rendering
+### 2026-09-14 — Add Go detail model and SSR rendering
 
 The Go generator now provides `BuildDetail` and `RenderDetail`, reusing the
 existing ordered display and composition path used by `BuildList`. The command
 adapter accepts a single object record for the `renderDetail` operation.
 
-## 2026-09-14 — Add Svelte detail rendering
+### 2026-09-14 — Add Svelte detail rendering
 
 The Svelte generator now exports the shared read-only `Detail` component and
 `renderDetail` SSR entry point. Its display branches consume the core detail
 model and preserve the existing raw HTML display boundary.
 
-## 2026-09-14 — Add Vue detail rendering
+### 2026-09-14 — Add Vue detail rendering
 
 The Vue generator now exports the shared `Detail` component and asynchronous
 `renderDetail` SSR entry point. It consumes the core detail model and the
 existing list cell display mapping.
 
-## 2026-09-14 — Add React detail rendering
+### 2026-09-14 — Add React detail rendering
 
 The React generator now exports the shared `Detail` component and
 `renderDetail`, reading the core detail model and existing cell display
 components. The output remains read-only and performs no data access or
 duplicate display evaluation.
 
-## 2026-09-14 — Add the CRUDUI detail specification and shared read model
+### 2026-09-14 — Add the CRUDUI detail specification and shared read model
 
 CRUDUI now defines a `Detail` declaration with ordered read-only display fields.
 The core exports `buildDetail`, which delegates composition, conditions,
@@ -3272,7 +3282,7 @@ generator exports `renderDetail`. The TypeScript validator and schema checks
 cover the new entry point. Other runtime generators remain incomplete and the
 feature is recorded as partial.
 
-## 2026-09-14 — Compare the HTML renderer on the comparison page
+### 2026-09-14 — Compare the HTML renderer on the comparison page
 
 The comparison page rendered the client columns with React, Vue and Svelte only;
 `@crudui/generator-html`, the framework-independent renderer, was never part of the
@@ -3305,7 +3315,7 @@ job 3), `npm run test:runtimes` (20), `make docs-check`, the Go server tests and
 server tests (4) passed. The frames, including the HTML frames, are built and run
 against the four servers only by the candidate verification.
 
-## 2026-09-14 — Render a bindForm form with the HTML renderer
+### 2026-09-14 — Render a bindForm form with the HTML renderer
 
 React, Vue and Svelte render a form owned through `bindForm` with the
 stateless `FormFields`, but `@crudui/generator-html` could render a form only from a
@@ -3321,7 +3331,7 @@ path as well. That includes the missing-data case the instance path skips, becau
 @crudui/generator-html` passed 206 tests (116 before, plus 90 bindForm cases),
 `npm run build -w @crudui/generator-html` succeeded and `make docs-check` passed.
 
-## 2026-09-14 — Correct the runtime contract on attribute order
+### 2026-09-14 — Correct the runtime contract on attribute order
 
 The form runtime specification still required the restored HTML string to match
 "including attribute order" and said the shared DOM binding places a checkbox's `checked`
@@ -3333,7 +3343,7 @@ byte-identical HTML is checked separately.
 
 `make docs-check` passed.
 
-## 2026-09-14 — Derive the browser report counts from the matrix
+### 2026-09-14 — Derive the browser report counts from the matrix
 
 After the browser matrix moved to one file, the server report policy still wrote its
 report counts as numbers: 18 reports in a browser job, 12 scenario reports, 6
@@ -3345,7 +3355,7 @@ plus initialization reports) gives the job size to `check.mjs` and the report te
 
 `npm run test:form-comparison:source` passed 139 tests.
 
-## 2026-09-14 — Define the comparison browser matrix once
+### 2026-09-14 — Define the comparison browser matrix once
 
 The comparison page's servers, rendering paths, frameworks, transports, initializations
 and API actions were written in `runtime-paths.mjs` and again in the browser report
@@ -3369,7 +3379,7 @@ read files, and was replaced by the separate function.
 tests, the Rust server tests (4), `php -l` for the changed PHP files and `make format-check`
 passed; `browserMatrix()` read the rendering paths, frameworks and actions from the file.
 
-## 2026-09-14 — Keep one form snapshot module
+### 2026-09-14 — Keep one form snapshot module
 
 `form-snapshot.mjs` and its test existed twice with identical content:
 `tests/form-inspector/` (the original) and a copy in `examples/form-comparison/src/`. A
@@ -3382,7 +3392,7 @@ CI job keep covering it.
 `node --test tests/form-inspector/form-snapshot.test.mjs` passed 18 tests and
 `npm run test:form-comparison` passed with the original in its source checks.
 
-## 2026-09-14 — Compare browser DOM without attribute order and remove the code that forced it
+### 2026-09-14 — Compare browser DOM without attribute order and remove the code that forced it
 
 Running the comparison page's complete check in Safari failed `ssr/restoration`
 and `csr/restoration` in the `html` category for Vue with `bindForm` on all four servers,
@@ -3418,7 +3428,7 @@ Svelte 338 and 10 client tests, 14 Chromium and naming checks),
 `npm run test:build` (9), `npm run test:dependencies` (12), `npm run test:runtimes` (20)
 and `make docs-check` passed.
 
-## 2026-09-14 — Build the validator before generator-core in the form comparison checks
+### 2026-09-14 — Build the validator before generator-core in the form comparison checks
 
 The next `main` CI run failed the same job again, one step earlier: building
 `@crudui/generator-core` stopped with `Cannot find module '@crudui/validator'`, because
@@ -3429,7 +3439,7 @@ generator-core, the same order `test:forms` uses. With both `packages/validator-
 and `packages/generator-core/dist` removed, `npm run test:form-comparison:source` built
 both packages and passed 140 tests.
 
-## 2026-09-14 — Run the form suite's Chromium checks with the sandboxed CI Chrome
+### 2026-09-14 — Run the form suite's Chromium checks with the sandboxed CI Chrome
 
 The same `main` CI run also failed the "Form instances and data injection" job: the six
 Chromium style checks that this branch added to `npm run test:forms` could not launch
@@ -3442,7 +3452,7 @@ and checks that `tests/form-styles.test.mjs` never disables the sandbox. Against
 previous workflow the policy test failed with the three missing settings of
 `form-runtime`; with the change `npm run test:runtimes` passed 20 tests.
 
-## 2026-09-14 — Build generator-core before the form comparison source checks
+### 2026-09-14 — Build generator-core before the form comparison source checks
 
 After the merge into `main`, the CI job "Form comparison runner regressions" failed:
 `examples/form-comparison/src/bind-form-controller.test.mjs` could not load
@@ -3456,7 +3466,7 @@ comparison sources import, before running, as `test:forms` builds its packages.
 With `packages/generator-core/dist` removed, `npm run test:form-comparison:source`
 built the package and passed 140 tests.
 
-## 2026-09-14 — Record the screen-sized frame candidate run and its deployment
+### 2026-09-14 — Record the screen-sized frame candidate run and its deployment
 
 `node examples/form-comparison/candidate-verification.mjs` passed: PHP, the
 PHP extension, Go and Rust each passed 1,452 checks with no failure, and the browser
@@ -3470,7 +3480,7 @@ both showing their level labels, while the department and Busan headers, not stu
 hide theirs. A measurement taken right after scrolling, before the page rendered,
 still read the labels as hidden; measured again after rendering they showed.
 
-## 2026-09-14 — Size the comparison frames to the screen
+### 2026-09-14 — Size the comparison frames to the screen
 
 After sticky rows became CSS only, the comparison page still behaved differently from a
 page. The cause was its layout, not script: each frame was fixed at 1,450 px on a
@@ -3484,7 +3494,7 @@ selection.
 
 The generator-core tests (108) and `npm run test:form-comparison:source` (140) passed.
 
-## 2026-09-14 — Record the CSS-only sticky candidate run and its deployment
+### 2026-09-14 — Record the CSS-only sticky candidate run and its deployment
 
 `node examples/form-comparison/candidate-verification.mjs` passed. PHP,
 the PHP extension, Go and Rust each passed 1,452 checks with no failure, and the
@@ -3502,7 +3512,7 @@ sticky rows and no `data-crudui-stuck`, `data-crudui-current` or published lengt
 and after scrolling the SSR frame the company header sits on its line with its label
 shown while the not yet stuck Busan header hides its label.
 
-## 2026-09-14 — Make sticky rows CSS only and remove scroll measuring
+### 2026-09-14 — Make sticky rows CSS only and remove scroll measuring
 
 Sticky rows did not behave the same in a frame as in a page because the browser
 binding measured the scroll position in script: `connectRows` decided which rows were
@@ -3539,7 +3549,7 @@ style checks (6: two in each host) passed. The last `make docs-check` run first 
 because the disk was full while rebuilding the Rust crates; after removing the stopped
 candidate container, image and directory it passed.
 
-## 2026-09-14 — Take over sticky rows identically in React
+### 2026-09-14 — Take over sticky rows identically in React
 
 A candidate run failed in `browser-php`: the SSR takeover in React
 differed on the first sticky row, whose style the server writes as
@@ -3563,7 +3573,7 @@ Svelte 338 and 10 client tests), `npm run test:form-comparison:source`,
 `npm run test:build`, `npm run test:dependencies`, `make docs-check` and the Chromium
 style checks (5) passed.
 
-## 2026-09-14 — Count the content after the form in the trailing space
+### 2026-09-14 — Count the content after the form in the trailing space
 
 The trailing space after the form ignored the content that already follows the form in
 its scroll container. In the comparison frame, where the results follow the form, it
@@ -3580,7 +3590,7 @@ Two Chromium checks cover it: 60 px of content after a form in a scrolling box, 
 the end row stopped 60 px past its line before the change (27 px against 87 px), and
 600 px of content, where no space is added and the content scrolls to its end.
 
-## 2026-09-14 — Apply the sticky rules in any scroll container and declare sticky rows in the comparison example
+### 2026-09-14 — Apply the sticky rules in any scroll container and declare sticky rows in the comparison example
 
 The comparison page showed no sticky headers because its example specification did
 not declare `multiple.header: sticky`; the local preview declared it, so the same
@@ -3608,7 +3618,7 @@ stopping with it on its 87 px line.
   and the published height. Before the change it failed with the end row at −193 px
   against its 87 px line.
 
-## 2026-09-13 — Record the passing SSR/CSR candidate run and its deployment
+### 2026-09-13 — Record the passing SSR/CSR candidate run and its deployment
 
 `node examples/form-comparison/candidate-verification.mjs` passed. PHP,
 the PHP extension, Go and Rust each passed 1,452 checks with no failure, including
@@ -3621,7 +3631,7 @@ deployed it at `https://crudui.test/` and passed the identical reapplication. In
 browser the page shows the SSR and CSR columns (side by side above 1,000 px wide)
 with 8/8 comparisons matching for PHP, React and bindForm.
 
-## 2026-09-13 — Use the SSR and CSR column names in the browser interaction checks
+### 2026-09-13 — Use the SSR and CSR column names in the browser interaction checks
 
 A candidate run failed in `browser-php` before any interaction ran: the
 interaction check still looked for the frame with `initialization=data`, and the initial
@@ -3630,7 +3640,7 @@ The interaction check now uses the `ssr` frame, the initial mount check the `csr
 and the report test fixture the `ssr` column. These checks run only inside the candidate
 container, so the local source checks (140 passed) did not reveal the old names.
 
-## 2026-09-13 — Restore the React form session tests removed with the legacy UI
+### 2026-09-13 — Restore the React form session tests removed with the legacy UI
 
 An earlier change deleted `packages/generator-react/src/__tests__/Form.test.tsx` together with
 the legacy FormBuilder test in the same file, so React stopped running the shared
@@ -3638,7 +3648,7 @@ initialization, session DOM, control and focus scenarios that Vue and Svelte run
 file is restored without the legacy test and also runs `compareServerTakeover`.
 React passes 350 tests.
 
-## 2026-09-13 — Make Vue and Svelte take over server-rendered forms without changing them
+### 2026-09-13 — Make Vue and Svelte take over server-rendered forms without changing them
 
 The first candidate run failed in the SSR column. Vue keeps comment nodes as
 anchors for conditional blocks, and Svelte 5 kept the whitespace between sibling
@@ -3657,7 +3667,7 @@ and its browser DOM equal the other renderers'.
 `npm run test:build`, `npm run test:dependencies`, `make docs-check` and `svelte-check`
 passed. The candidate verification is recorded in a separate entry.
 
-## 2026-09-13 — Compare server-side and client-side rendering on the comparison page
+### 2026-09-13 — Compare server-side and client-side rendering on the comparison page
 
 The comparison page showed two client-side columns, "create with data" and "mount,
 then inject data", so it never showed that the server languages and the browser
@@ -3681,7 +3691,7 @@ The form comparison source checks passed 140, the Go and Rust comparison server 
 passed, and `make docs-check` passed. The SSR takeover itself runs only in the
 four-server candidate verification, recorded in a separate entry.
 
-## 2026-09-13 — Record the passing four-server candidate runs for crudui.css and the legacy removal
+### 2026-09-13 — Record the passing four-server candidate runs for crudui.css and the legacy removal
 
 `node examples/form-comparison/candidate-verification.mjs` passed for form
 styling with `crudui.css` alone and for the tree after removing the legacy UI paths
@@ -3689,7 +3699,7 @@ and fixing the build and dependency checks). In each run PHP, the PHP extension,
 and Rust passed 1,452 checks with no failure, the browser verification recorded
 5,808 checks with no failure, and the command returned status 0.
 
-## 2026-09-13 — Fix the build and dependency checks that CI runs
+### 2026-09-13 — Fix the build and dependency checks that CI runs
 
 `npm run test:build` and `npm run test:dependencies` were failing, and the form
 suites used during this work did not run them:
@@ -3707,7 +3717,7 @@ suites used during this work did not run them:
 `npm run test:build`, `npm run test:dependencies` and `npm run test:runtimes` passed,
 as did every `tests/build` and `tests/docs` test (67).
 
-## 2026-09-13 — Remove the Bootstrap-based legacy UI paths
+### 2026-09-13 — Remove the Bootstrap-based legacy UI paths
 
 The legacy form components and the earlier rendering comparisons were
 built on Bootstrap and are replaced by the node grammar and `crudui.css`. They are
@@ -3741,7 +3751,7 @@ and visibility documents stopped linking the removed React sources. The same run
 showed that the declaration compile check in `tests/build/public-packages.test.mjs`
 and two dependency and pack checks were already failing; the next entry fixes them.
 
-## 2026-09-13 — Style a form with crudui.css alone: widgets use the crudui grammar instead of Bootstrap
+### 2026-09-13 — Style a form with crudui.css alone: widgets use the crudui grammar instead of Bootstrap
 
 Widget markup still used the Bootstrap vocabulary
 (`form-control`, `form-select`, `input-group`, `input-group-text`, `btn`,
@@ -3779,7 +3789,7 @@ preview loads two stylesheets, its own layout and `crudui.css`, and renders inpu
 selects, textareas, checkboxes, language frames, the structure map and the footer
 buttons without Bootstrap.
 
-## 2026-09-13 — Format every Rust crate and Go file, and check it with `make format-check`
+### 2026-09-13 — Format every Rust crate and Go file, and check it with `make format-check`
 
 No check ran rustfmt or gofmt, so formatting drifted: five Rust crates had 62
 rustfmt differences (54 in generator-rust, including code from the recent form
@@ -3796,7 +3806,7 @@ all its test targets, the comparison Rust server 4, `go test` for the legacy Go
 validator and the Go test runner passed, the legacy Rust API and the Rust bench
 built, and `make test-native` passed all 976 generator checks.
 
-## 2026-09-13 — Record the passing four-server candidate run for the buttons and scrolling changes
+### 2026-09-13 — Record the passing four-server candidate run for the buttons and scrolling changes
 
 `node examples/form-comparison/candidate-verification.mjs --ref <commit>` passed:
 PHP, the PHP extension, Go and Rust each passed 1,452 checks with no failure, the
@@ -3806,7 +3816,7 @@ rendering nothing while scrolling and the two comparison fixes
 the earlier runs found: one run failed in the PHP generation test
 and the next failed in the reference compilation check; both are fixed.
 
-## 2026-09-13 — Scrolling renders nothing: the current row is no longer instance state
+### 2026-09-13 — Scrolling renders nothing: the current row is no longer instance state
 
 Scrolling past a row made it current, and `connectForm` then called
 `selectRow`, which published a new snapshot. The views re-render on every
@@ -3834,7 +3844,7 @@ passed 108, 116, 705, 348 and 349 tests with the regenerated structure map fixtu
 the Svelte client 10, the Node checks (normalizer, styles and naming) 11, the form
 comparison source checks 140 and its Chromium checks 3, and `make docs-check` passed.
 
-## 2026-09-13 — Check the markup naming rules and the collapse and undo DOM paths
+### 2026-09-13 — Check the markup naming rules and the collapse and undo DOM paths
 
 The class naming rules of the form markup (N1–N3: `crudui-{block}`,
 `__{element}`, `--{modifier}` with its block, parts inside a node header, nodes
@@ -3848,7 +3858,7 @@ with `aria-controls`, and undoes an edit, checking the control and instance valu
 The naming check passed 2 tests, and React, Vue and Svelte ran the extended scenario
 in their 705, 348 and 349 passing tests.
 
-## 2026-09-13 — Form buttons in a pinned footer, and the space after the form outside it
+### 2026-09-13 — Form buttons in a pinned footer, and the space after the form outside it
 
 Specs declare form buttons at the root (`buttons`, with a submission `action`), but
 the schema rejected them and compilation kept only `properties`, so declared save,
@@ -3897,7 +3907,7 @@ comparison server tests passed, and `make docs-check` passed. In Chrome the end 
 stopped 0.2px from its line without a minimum height, and the space after the form was
 a 200px margin outside it.
 
-## 2026-09-13 — Show only form rows in the structure map
+### 2026-09-13 — Show only form rows in the structure map
 
 The structure map repeated every level twice: a collection line with its count
 (for example "Stores 2") and then the row lines, each with its own guide line, and
@@ -3918,7 +3928,7 @@ Chrome the map lists only rows with one indentation step per level. The four-ser
 candidate run for the previous change passed 1,452 checks per server
 (5,808 browser checks) with no failure.
 
-## 2026-09-13 — Align rows to their sticky line and follow the scroll with the current row
+### 2026-09-13 — Align rows to their sticky line and follow the scroll with the current row
 
 Sticky rows now follow rules derived from one value instead of computed offsets.
 The row root carries `--crudui-sticky-depth` (moved from the header style in all
@@ -3950,7 +3960,7 @@ generator checks after the depth moved to the row root in all five implementatio
 reached the end without any backward jump, kept the focus, made 판교점 current and
 stopped its top 0.2px from its aligned position.
 
-## 2026-09-13 — Stack sticky row headers at their exact height
+### 2026-09-13 — Stack sticky row headers at their exact height
 
 Sticky row headers (`multiple.header: sticky`) stack by offsetting each level by
 `--crudui-node-header-height`, but a header's real height was its padding, content
@@ -3973,7 +3983,7 @@ check timed out waiting for the outermost stuck header before the detection chan
 In Chrome the preview pinned all five levels in order with their labels and no
 overlap.
 
-## 2026-09-13 — Fix comparison checks that failed the four-server candidate run
+### 2026-09-13 — Fix comparison checks that failed the four-server candidate run
 
 The first candidate run of the initialization comparison failed 36 of 1,452 PHP
 checks, and the other servers did not run. The empty-collection scenario step
@@ -3990,7 +4000,7 @@ The candidate run then passed: PHP, the PHP extension, Go and Rust each
 passed 1,452 checks with no failure, 5,808 browser checks in total, and the command
 returned status 0.
 
-## 2026-09-13 — Compare the two initialization paths side by side
+### 2026-09-13 — Compare the two initialization paths side by side
 
 The form comparison page now puts the two initialization paths in two columns:
 the left frame creates the form with its data, and the right frame mounts an
@@ -4029,7 +4039,7 @@ and the Chromium checks passed 3. `make docs-check` passed after documenting the
 `UndoResult` type, a type-only change made after the native run. The full
 candidate run with the four servers had not run when this change was committed.
 
-## 2026-09-13 — Move focus to the affected row after row operations
+### 2026-09-13 — Move focus to the affected row after row operations
 
 Row operations previously kept the active control, its text selection and the
 scroll positions, and a pointer press on a row button was prevented from moving
@@ -4053,7 +4063,7 @@ re-render replaces. The automation tab did not scroll the window, so actual
 viewport placement was not measured there. The comparison page focus checks move
 to the same rule in the next change.
 
-## 2026-09-13 — Render forms as recursive nodes with row cards
+### 2026-09-13 — Render forms as recursive nodes with row cards
 
 Every form renderer (HTML, React, Vue, Svelte, PHP, Go, Rust and the C PHP
 extension) now produces one recursive node grammar instead of per-shape wrappers.
@@ -4103,7 +4113,7 @@ Svelte 345 and ten normalizer checks. Form comparison source checks passed 137,
 the cross-check console passed 117 after rebuilding the Go and Rust validator
 binaries, and `make docs-check` passed.
 
-## 2026-09-13 — Remove check directories after passing runs
+### 2026-09-13 — Remove check directories after passing runs
 
 `tests/native-generators/run.mjs` created a `crudui-native-generators-*` build
 directory on every run and never removed it. `scripts/check-packages.mjs` left a
@@ -4116,7 +4126,7 @@ other test files already removed their temporary directories.
 `npm run test:packages` passed and left no install project. `make docs-check`
 passed.
 
-## 2026-09-13 — Reject wrong multiple and design value types at compilation
+### 2026-09-13 — Reject wrong multiple and design value types at compilation
 
 Form compilation in TypeScript, PHP, Go, Rust and the C PHP extension previously
 ignored a wrong value type in `multiple` and `design`: row settings with the wrong
@@ -4140,7 +4150,7 @@ API checks per configuration and 100 validation cases in each PHP implementation
 generator-core passed its typecheck and 89 tests; `npm run test:forms` and
 `make docs-check` passed.
 
-## 2026-09-13 — Reject generator data with the wrong shape at its full path
+### 2026-09-13 — Reject generator data with the wrong shape at its full path
 
 `bindForm` and editable instances in TypeScript, PHP, Go, Rust and the C PHP
 extension now apply the validators' data shape rules. Root data that is not an
@@ -4162,7 +4172,7 @@ API checks per configuration and 100 validation cases in each PHP implementation
 generator-core passed its typecheck and 88 tests, the form comparison controller
 passed 5 tests, and `npm run test:forms` and `make docs-check` passed.
 
-## 2026-09-13 — Compare generator error messages across implementations
+### 2026-09-13 — Compare generator error messages across implementations
 
 The native generator suite compared only error code and location, and its README
 allowed messages to differ by language. That contradicts the requirement that all
@@ -4183,7 +4193,7 @@ The stricter comparison found 12 existing differences, now fixed:
 `make test-native` passed 786 generator checks, 361 PHP API checks per
 configuration and 100 validation cases in each PHP implementation.
 
-## 2026-09-13 — Report validator load and input failures identically
+### 2026-09-13 — Report validator load and input failures identically
 
 The TypeScript, PHP, C PHP extension, Go and Rust validators reject submitted
 data with the wrong shape as an input failure instead of skipping it or
@@ -4223,7 +4233,7 @@ cross-check console 117 tests passed. `make test-native` passed 786 generator
 checks, 361 PHP API checks per configuration and 100 validation cases in each PHP
 implementation. `make docs-check` passed.
 
-## 2026-09-13 — Bind repeated rows from keyed objects only
+### 2026-09-13 — Bind repeated rows from keyed objects only
 
 `bindForm` in TypeScript, PHP, Go, Rust and the C PHP extension creates repeated
 rows only from keyed objects. Missing collection data creates one row keyed
@@ -4239,7 +4249,7 @@ normalizer 10). `make test-native` passed 786 generator checks, including new
 checks that require identical rejection code, message and path in all five
 implementations. `make docs-check` passed.
 
-## 2026-09-13 — Align repeated-row declarations across schema, validators and CLI
+### 2026-09-13 — Align repeated-row declarations across schema, validators and CLI
 
 `multiple.min` is declared in the TypeScript, Go and Rust specification models,
 accepted by the PHP `multiple` bucket and reported by `crudui explain` and
@@ -4252,7 +4262,7 @@ Schema checks (58 cases), TypeScript validator tests (1606), PHP validator
 tests (1446), Go and Rust validator tests, CLI tests (37) and `make docs-check`
 passed.
 
-## 2026-09-13 — Add framework-independent HTML rendering and executable feature contracts
+### 2026-09-13 — Add framework-independent HTML rendering and executable feature contracts
 
 `@crudui/generator-html` renders current form and list view models as HTML
 fragments without framework dependencies. It supports table and card lists,
@@ -4270,7 +4280,7 @@ and 20 list conformance cases. Public package exports, declarations, install
 builds, API documentation and `make docs-check` passed. The package is not
 deployed.
 
-## 2026-09-12 — Publish static documentation through GitHub Pages
+### 2026-09-12 — Publish static documentation through GitHub Pages
 
 The documentation build supports `DOCS_BASE_PATH` and generates explicit static
 HTML links for English, Korean and API documents. Development, preview and 404
@@ -4282,26 +4292,26 @@ then deploys the generated documentation web to `https://polyspec.github.io/crud
 `DOCS_BASE_PATH=/crudui/`. Browser checks passed for desktop and mobile layouts,
 Korean navigation, stylesheets and nested 404 pages.
 
-## 2026-09-11 — Name the comparison deployment command explicitly
+### 2026-09-11 — Name the comparison deployment command explicitly
 
 The local comparison deployment entry point is now named
 `examples/form-comparison/comparison-deployment.mjs`. Verification procedures,
 examples and tests use the explicit comparison deployment name.
 
-## 2026-09-11 — Make native C fixtures compile with Linux toolchains
+### 2026-09-11 — Make native C fixtures compile with Linux toolchains
 
 `packages/php-ext/tests/engine.test.mjs` now links `libm` when compiling native
 fixtures and emits cleanup statements separately from guard clauses. The C
 engine fixtures compile with the warning-as-error settings used by the PHP 8.4
 and 8.5 CI jobs.
 
-## 2026-09-11 — Build JavaScript prerequisites before native tests
+### 2026-09-11 — Build JavaScript prerequisites before native tests
 
 `make test-native` now builds the workspace JavaScript packages before running
 the C extension engine tests. The native test target provides the built React
 generator package required by the engine rendering fixtures in a clean checkout.
 
-## 2026-09-11 — Complete the independent C PHP extension
+### 2026-09-11 — Complete the independent C PHP extension
 
 The PHP extension now implements its form and validation engine in C. The
 engine owns ordered values and performs composition, expression evaluation,
@@ -4321,7 +4331,7 @@ and timezone checks. `npm run test:form-comparison` passed 136 source, 10
 library and 3 browser-job checks. `make docs-check` passed. The extension and
 comparison service are not deployed.
 
-## 2026-09-11 — Render form fields in C
+### 2026-09-11 — Render form fields in C
 
 The C extension renders evaluated form fields as server HTML. The renderer
 supports leaf, group, repeated and language field structures and all current
@@ -4335,7 +4345,7 @@ and two additional escaping and CSS cases. The same cases passed with strict C11
 compiler warnings and undefined-behavior instrumentation. These changes are not
 deployed.
 
-## 2026-09-11 — Bind form fields in C
+### 2026-09-11 — Bind form fields in C
 
 The C extension binds compiled templates to record data without changing either
 input. Binding resolves presentation rules, translated content, repeated rows,
@@ -4350,7 +4360,7 @@ for all 91 compilable shared form fixtures, confirmed input immutability and
 completed the same cases with undefined-behavior instrumentation. These changes
 are not deployed.
 
-## 2026-09-11 — Evaluate form expressions in C
+### 2026-09-11 — Evaluate form expressions in C
 
 The C extension resolves object and array paths and evaluates literals, relative
 paths, wildcards, comparisons, membership, boolean operations and ternary
@@ -4361,7 +4371,7 @@ The focused C check passed all 38 shared expression specifications and their 77
 evaluation cases with strict compiler warnings. The cases cover expression
 values and boolean results. These changes are not deployed.
 
-## 2026-09-11 — Compile form templates in C
+### 2026-09-11 — Compile form templates in C
 
 The C extension composes explicit in-memory files, applies ordered references and
 patches, detects reference cycles and returns composition error codes and traces.
@@ -4374,7 +4384,7 @@ form fixtures with the same ordered templates or errors as the JavaScript
 implementation. The C sources compile with strict C11 warnings. These changes are
 not deployed.
 
-## 2026-09-11 — Add the C extension value model
+### 2026-09-11 — Add the C extension value model
 
 The C extension engine stores nulls, booleans, integers, finite numbers, UTF-8
 strings, arrays and ordered objects without PHP or Rust data structures. Values
@@ -4388,7 +4398,7 @@ behavior checks. The macOS memory inspector reported zero leaks. The independent
 C extension source check excludes declared build output and continues to reject
 Rust source and Cargo files in the package. These changes are not deployed.
 
-## 2026-09-11 — Use the Node.js 24 artifact action
+### 2026-09-11 — Use the Node.js 24 artifact action
 
 Native PHP 8.4 and 8.5 CI jobs upload their comparison reports with
 `actions/upload-artifact@v7`. This action declares the Node.js 24 runtime. The
@@ -4399,7 +4409,7 @@ missing-file failure behavior remain unchanged.
 The CI configuration regression suite requires the current artifact action and
 passed all four checks. These changes are not deployed.
 
-## 2026-09-11 — Enforce npm 12 and sandboxed Chrome CI
+### 2026-09-11 — Enforce npm 12 and sandboxed Chrome CI
 
 The npm dependency policy permits a URL dependency only when the root manifest
 declares it directly and pins it to an immutable source revision. Dependency
@@ -4419,7 +4429,7 @@ inspector and CSS, form-comparison regression, documentation coverage and PHP 8.
 and 8.5 native generation and PHP API checks. No job failed or was cancelled.
 These changes are not deployed.
 
-## 2026-09-11 — Verify clean CI installations
+### 2026-09-11 — Verify clean CI installations
 
 Repository-root form-comparison and cross-check commands declare their direct
 JavaScript dependencies in the root manifest. Form comparison uses the root npm
@@ -4439,7 +4449,7 @@ package checks passed nine cases, repeated builds passed one case, and the form
 inspector passed 18 unit and six browser CSS checks. Cross-check rendering passed
 33 cases. These changes are not deployed.
 
-## 2026-09-11 — Preserve Svelte editable controls
+### 2026-09-11 — Preserve Svelte editable controls
 
 The Svelte generator renders ordinary input and textarea controls as stable DOM
 elements. Session value updates retain each element, focus and text selection.
@@ -4462,7 +4472,7 @@ cases in each PHP implementation, 19 protocol checks, the 766/766 generator repo
 and five Chromium widget and timezone checks. The generator report SHA-256 is
 `16ab371b3691429ca4e2c1a3eaa3c35fb7209861abd5759f16efea6c1a19aa5d`.
 
-## 2026-09-11 — Verify explicit browser and PHP inputs
+### 2026-09-11 — Verify explicit browser and PHP inputs
 
 The Chromium widget check disables Vite dependency discovery and optimizes only
 the five declared React and CRUDUI packages. It fails on page exceptions, HTTP
@@ -4494,7 +4504,7 @@ directory and must not be a symbolic link. Candidate tests do not require Git
 metadata or write under the extracted source directory. The candidate fixture
 location regression check and all ten PHP construction checks passed.
 
-## 2026-09-11 — Build PHP extensions directly
+### 2026-09-11 — Build PHP extensions directly
 
 One PHP extension builder compiles and loads the CRUDUI and OrderedJSON
 modules. Separate entry points declare each module's sources, outputs, platform
@@ -4513,7 +4523,7 @@ both modules successfully. The PHP API check passed 352 checks in each of three
 configurations and 94 validation cases in each implementation. Six builder and
 entry-point regression checks passed.
 
-## 2026-09-11 — Use explicit browser completion signals
+### 2026-09-11 — Use explicit browser completion signals
 
 The form-comparison runner subscribes to the main-page and frame readiness
 messages before navigation. The interaction and typing verifiers reserve each UI
@@ -4541,7 +4551,7 @@ The documentation suite passed 15 checks. A development-server check returned
 HTTP status 200, rebuilt once for one source event and returned status 0 after
 `SIGINT`.
 
-## 2026-09-11 — Resolve the native Cargo command path
+### 2026-09-11 — Resolve the native Cargo command path
 
 The `test-native` target supplies its expanded `PATH` when it starts Cargo. GNU
 Make 3.81 now resolves Cargo from the directory added by the Makefile when that
@@ -4553,7 +4563,7 @@ The regression check and all eight runtime policy checks passed. The complete
 tests, all Go package tests, 20 Rust tests, 19 protocol checks, the 766/766
 generator report and three Chromium widget and timezone checks.
 
-## 2026-09-11 — Verify local comparison deployment
+### 2026-09-11 — Verify local comparison deployment
 
 The repository verifies candidate metadata, generation, persistence, browser
 reports, the exact local image tag and image digest before generating the local
@@ -4573,7 +4583,7 @@ Compose output, data preservation, certificate authority loading, identical
 reapplication changes and cleanup path boundaries. Deployment has not been
 performed for this change.
 
-## 2026-09-10 — Declare native test dependencies
+### 2026-09-10 — Declare native test dependencies
 
 Repository-root build and test entry points declare every directly imported
 third-party package in the root manifest. The dependency check reads the Node.js
@@ -4586,7 +4596,7 @@ status 0 with PHP 8.5.10 and passed 160 PHP tests, all Go package tests, 20 Rust
 tests, 19 protocol checks, the 766/766 generator report and three Chromium widget
 and timezone checks.
 
-## 2026-09-10 — Enforce dependency install-script approvals
+### 2026-09-10 — Enforce dependency install-script approvals
 
 Each independently installed npm graph records exact-version approvals for all
 dependency lifecycle scripts. Workspace packages use the root lock file. Clean
@@ -4598,7 +4608,7 @@ The three browser examples built successfully, the parity suite passed seven
 of seven tests, the runtime policy and package-build suites passed seven of seven
 tests each, and the complete documentation check passed.
 
-## 2026-09-10 — Current candidate verification
+### 2026-09-10 — Current candidate verification
 
 The cross-framework lock files resolve the current package
 releases allowed by their manifests. Clean `npm ci` and `npm audit` runs reported
@@ -4617,7 +4627,7 @@ Go in 200,691 milliseconds and Rust in 200,500 milliseconds. The aggregate recor
 `complete: true`, `passed: true`, `failedChecks: 0` and
 `performancePassed: true`. Packages and the comparison service were not deployed.
 
-## 2026-09-10 — Complete public TypeScript API types
+### 2026-09-10 — Complete public TypeScript API types
 
 Package entry points export every named type referenced by their public
 TypeScript declarations. Form and list validation use one public file-set type.
@@ -4625,7 +4635,7 @@ TypeDoc validation warnings now fail API generation and documentation coverage.
 Two unexported-type regression checks, six public declaration checks and the
 isolated five-package install check passed.
 
-## 2026-09-10 — Selected runtime channels
+### 2026-09-10 — Selected runtime channels
 
 `.node-version`, CI and Node.js container stages select Node.js 26 as the next
 LTS release line without fixing a patch release. `.go-version`, CI and Go
@@ -4634,7 +4644,7 @@ stages select the stable Rust channel. CI installs the current stable npm
 release. All six runtime policy checks passed. Package lock files continue to
 record resolved package versions.
 
-## 2026-09-10 — Four-server candidate verification
+### 2026-09-10 — Four-server candidate verification
 
 The candidate image verifies one committed source archive before extraction and
 runs the complete source suite as the unprivileged user before starting PHP, the
@@ -4648,7 +4658,7 @@ mount-before-load checks and 24 static-document checks. Every server completed
 below the 900,000 millisecond limit. The aggregate recorded zero failures and
 `passed: true`. Packages and the comparison service were not deployed.
 
-## 2026-09-09 — CI package and documentation checks
+### 2026-09-09 — CI package and documentation checks
 
 The documentation CI job installs both PHP package dependency graphs before
 running `make docs-check`. A package and browser job packs the five JavaScript
@@ -4661,7 +4671,7 @@ passed locally. Native PHP output through the three framework browsers remains a
 separate comparison-environment verification and was not established by this CI
 change. No remote CI run or deployment was performed.
 
-## 2026-09-09 — Current and retained comparison documentation
+### 2026-09-09 — Current and retained comparison documentation
 
 The feature status now separates implemented native packages from the pending
 four-server integration. The verification procedure requires an explicit library
@@ -4673,7 +4683,7 @@ server tests and 12 React, Vue and Svelte frame production builds passed locally
 The candidate image's complete four-server HTTP, browser and storage verification
 remains pending and not deployed. The retained running image was not replaced.
 
-## 2026-09-09 — OrderedJSON implementation submodules
+### 2026-09-09 — OrderedJSON implementation submodules
 
 The processor checker uses the pinned OrderedJSON common repository and all five
 implementation submodules. It uses the current registry API, PHP namespace and
@@ -4684,7 +4694,7 @@ The official processor checks passed 575 cases; the CRUDUI checks passed all
 50 cases. Five checker unit tests passed and two invalid source inputs were
 rejected. These results verify JSON processing, not browser or storage integration.
 
-## 2026-09-09 — Native form generators and common PHP APIs
+### 2026-09-09 — Native form generators and common PHP APIs
 
 PHP, Go and Rust provide form compilation, data binding, editable instances,
 form and list HTML, CLI adapters and HTTP examples. The CRUDUI PHP extension
@@ -4712,7 +4722,7 @@ This establishes native package verification, not the separate four-server
 comparison integration. No package publication or comparison deployment was
 performed.
 
-## 2026-09-09 — Validator CLI responses
+### 2026-09-09 — Validator CLI responses
 
 The comparison console checks process exit status, JSON response types, all
 five error fields and consistency between validity and errors. It preserves
@@ -4724,7 +4734,7 @@ Eight initial regressions failed before the fix. All 116 console tests passed,
 including 35 response checks and execution of the four language CLIs.
 `make docs-check` passed. These are local checks; no deployment was performed.
 
-## 2026-09-09 — Runtime package contracts
+### 2026-09-09 — Runtime package contracts
 
 The runtime contract defines form generation, SSR and validation requirements
 for JavaScript, PHP, Go, Rust and the PHP extension. The PHP API contract specifies
@@ -4736,13 +4746,13 @@ Feature status distinguishes these requirements from implemented packages.
 The comparison documentation identifies native JSON parsing separately from
 native CRUDUI generation and validation. `make docs-check` passed.
 
-## 2026-09-09 — Legacy translation identifiers
+### 2026-09-09 — Legacy translation identifiers
 
 Internal translation variables describe the translated field or schema value.
 The naming contract covers file names, public APIs and internal identifiers.
 The validator package build, all 1,606 validator tests and `make docs-check` passed.
 
-## 2026-09-09 — CLI dependency build
+### 2026-09-09 — CLI dependency build
 
 CLI CI builds the validator package before running tests. Local instructions
 include the same prerequisite, and documentation checks include the CLI README
@@ -4752,13 +4762,13 @@ Removing validator output reproduced the missing-package failure. Rebuilding it
 passed all 37 CLI tests, the four documented commands and two failure exit-code
 checks. `make docs-check` passed.
 
-## 2026-09-09 — Dependency update procedure
+### 2026-09-09 — Dependency update procedure
 
 Scheduled dependency update pull requests are disabled. Dependency updates are
 prepared locally and include the applicable package and documentation checks.
 `make docs-check` passed.
 
-## 2026-09-09 — Comparison environment verification
+### 2026-09-09 — Comparison environment verification
 
 All four HTTP targets passed 120 current browser scenarios and 30 current
 interaction checks each, with no page errors. The image installs locked PHP dependencies and passed 240 HTTP checks and PHP
@@ -4766,7 +4776,7 @@ processor-mode checks. The external Compose environment serves local HTTPS
 through `containerctl`; repeated `up` calls passed eight state and response
 comparisons. English and Korean procedures describe the environment lifecycle.
 
-## 2026-09-09 — Dependency installation and generated outputs
+### 2026-09-09 — Dependency installation and generated outputs
 
 PHP CI jobs install dependencies from `composer.lock`. The PHP `vendor/`
 directory and the compiled Go CLI executable are excluded from Git. Package CI
@@ -4777,7 +4787,7 @@ A clean Composer installation reproduced all 26 dependency versions and source
 references. PHP passed 1,418 tests; four-language legacy comparison passed 1,074
 cases; the cross-check console passed 81 tests. Documentation checks passed.
 
-## 2026-09-09 — Public API descriptions
+### 2026-09-09 — Public API descriptions
 
 Public form and list API comments describe the current operations and error
 results. The runtime contract uses form-instance terminology; legacy validator
@@ -4786,7 +4796,7 @@ options type. The five edited files produce identical executable JavaScript.
 Package exports, strict install types, production rendering and repeat-build
 checks passed.
 
-## 2026-09-09 — End-date field references
+### 2026-09-09 — End-date field references
 
 TypeScript, PHP and Rust preserve `enddate` field-reference parameters, matching
 Go. Dotted start-date paths no longer become boolean conditions that skip date
@@ -4800,7 +4810,7 @@ The current rule contract is maintained in English and Korean under `docs/spec/`
 It replaces the mixed current/legacy rule document and separates registration,
 parameter evaluation and verification evidence.
 
-## 2026-09-09 — Legacy comparison correctness
+### 2026-09-09 — Legacy comparison correctness
 
 The comparison runner loads the explicit JavaScript legacy entry and rebuilds
 selected Go and Rust legacy executables. It rejects process failures, unreadable
@@ -4810,7 +4820,7 @@ fix and passed afterward. All four implementations passed 1,074 legacy cases.
 Default test commands include the runner regressions. English and Korean testing
 instructions distinguish current conformance from legacy comparison.
 
-## 2026-09-09 — Test fixture contract
+### 2026-09-09 — Test fixture contract
 
 The English and Korean fixture contract distinguishes current validation,
 composition, expressions, rendering and legacy cases. It documents complete
@@ -4818,7 +4828,7 @@ validation results separately from load failures and removes outdated counts
 from the format specification. The current and legacy TypeScript conformance
 checks passed 1,124 cases. Documentation checks and the strict web build passed.
 
-## 2026-09-09 — CLI composition failures and documentation
+### 2026-09-09 — CLI composition failures and documentation
 
 `check` reports unresolved composition instead of checking uncomposed input as a
 substitute. The missing-reference regression failed before the fix and passed
@@ -4826,7 +4836,7 @@ afterward; all 37 CLI tests passed. The English and Korean CLI guide describes
 the four registered commands. Package descriptions no longer list unimplemented
 commands, and the unimplemented MCP proposal is removed.
 
-## 2026-09-09 — Schema documentation consolidation
+### 2026-09-09 — Schema documentation consolidation
 
 Current schema and expression contracts use their existing authoritative documents.
 A separate English and Korean legacy schema describes the explicit legacy field
@@ -4834,7 +4844,7 @@ model. The duplicate root schema and condition-parser documents are removed;
 references use the appropriate current or legacy contract. The legacy example
 passed valid-input and custom required-message checks.
 
-## 2026-09-09 — Legacy visibility contract
+### 2026-09-09 — Legacy visibility contract
 
 The English and Korean legacy visibility contract separates validator conditions
 from renderer presentation. It documents map-form renderer processing and links
@@ -4842,13 +4852,13 @@ to the current schema's independent visibility and validation settings. The
 duplicate visibility guide is removed. The selected TypeScript legacy
 display-switch checks passed 84 cases.
 
-## 2026-09-09 — Documentation web navigation
+### 2026-09-09 — Documentation web navigation
 
 The web uses English navigation with a Korean index link. Generated API navigation
 includes the shared generator core. Documentation checks, the strict web build
 and generated navigation destination checks passed.
 
-## 2026-09-09 — Data validation guide
+### 2026-09-09 — Data validation guide
 
 The validation guide documents the current JavaScript, PHP, Go and Rust entry
 points with `validate` rules. It separates schema loading, input failures,
@@ -4856,14 +4866,14 @@ visibility and transport processing. The outdated API guide is removed and
 navigation uses the English guide with a Korean translation. All four code
 examples executed successfully and detected the expected required-input failure.
 
-## 2026-09-09 — Svelte generated output
+### 2026-09-09 — Svelte generated output
 
 Git excludes Svelte's temporary `.svelte-kit` output. The 117 generated files are
 removed from tracking. Building without the preceding directory passed, as did
 packaged exports, install type checking, the production build and browser checks
 for React, Vue and Svelte.
 
-## 2026-09-09 — Public API documentation generation
+### 2026-09-09 — Public API documentation generation
 
 API generation fails when a required tool fails or its output is missing.
 TypeScript checks all five public package entries, including Svelte component
@@ -4875,20 +4885,20 @@ Eight generator failure tests, documentation checks, Svelte's 345 server tests
 and 3 mounted tests passed. Two complete documentation generations produced
 identical output, including native HTML assets. The strict web build passed.
 
-## 2026-09-09 — Documentation link validation
+### 2026-09-09 — Documentation link validation
 
 The web checks internal links during builds. TypeDoc generates relative links
 and package index pages. Existing repository files outside the web resolve to
 GitHub source URLs; missing files fail. Five link tests run in `make docs-check`.
 The strict web build, document checks and generated HTML link checks passed.
 
-## 2026-09-09 — Maintained documentation navigation
+### 2026-09-09 — Maintained documentation navigation
 
 The documentation web links to the maintained expression contract. Documentation maintenance
 instructions identify the current example index checked by `make docs-check`.
 The document checks and static web build passed.
 
-## 2026-09-09 — Shared AST evaluation for ternary parameters
+### 2026-09-09 — Shared AST evaluation for ternary parameters
 
 Form appearance and TypeScript, PHP, Go and Rust validation parameters evaluate
 complete ternary ASTs. Selected field paths, nested true branches and quoted
@@ -4904,26 +4914,26 @@ operator precedence and condition-map defaults. CLI descriptions use this contra
 All four validator suites, all form suites, 36 CLI tests and documentation checks
 passed. These results do not update the preserved external browser comparison.
 
-## 2026-09-09 — Current API and fixture descriptions
+### 2026-09-09 — Current API and fixture descriptions
 
 Console documentation uses the current rendering API name. Composition and
 rendering fixture descriptions state their behavior without implementation-version
 labels. All 23 targeted composition tests passed; fixture inputs and expected
 results are unchanged.
 
-## 2026-09-09 — Repository-local form inspection and JSON order checks
+### 2026-09-09 — Repository-local form inspection and JSON order checks
 
 Package tests use repository-local
 form inspection and JSON order checks. All 50 JSON order cases and the complete
 form test suite passed.
 
-## 2026-09-09 — Reusable form inspector
+### 2026-09-09 — Reusable form inspector
 
 The form inspector and its Node and browser checks are maintained under
 `tests/form-inspector/`. Framework initialization tests use that module directly.
 All 18 Node checks and six browser checks passed after relocation.
 
-## 2026-09-09 — Bundled example specifications and nested data
+### 2026-09-09 — Bundled example specifications and nested data
 
 The Bootstrap example includes product and repeated-form specifications in its
 static build. Controlled pages apply complete form data instead of assigning
@@ -4931,14 +4941,14 @@ dotted paths as top-level keys. The example build and browser checks for
 contact, registration, product and repeated forms passed, including nested
 product data and rejection of an unintended dotted key.
 
-## 2026-09-09 — Controlled legacy React updates
+### 2026-09-09 — Controlled legacy React updates
 
 Legacy form change notifications execute outside React state updater functions.
 Consecutive field changes preserve prior values and notify the controlled parent
 once per change. The regression failed before the fix. All 692 React tests and
 the package build passed after the fix.
 
-## 2026-09-09 — Legacy example layout and builds
+### 2026-09-09 — Legacy example layout and builds
 
 Legacy examples use `examples/legacy`. Imports, package references, build contexts,
 tests and documentation use the relocated paths. Container builds install and
@@ -4951,13 +4961,13 @@ checks passed. Linux images for the frontend examples, Node, PHP, Go and Rust bu
 All four server images passed valid and invalid HTTP cases. PHP Apache routing
 and its document root passed. Frontend browser verification remains pending.
 
-## 2026-09-09 — Repeated-field schema
+### 2026-09-09 — Repeated-field schema
 
 The declaration schema accepts `multiple.min` and describes collection-key row
 identity without hidden fields. Schema validation passed 56 fixtures, including
 minimum-count acceptance and rejection of a nonnumeric minimum.
 
-## 2026-09-09 — Current comparison image
+### 2026-09-09 — Current comparison image
 
 The comparison image builds the library source with normal dependency
 installation. The image installs the browser archive extractor and resolves
@@ -4966,7 +4976,7 @@ The local comparison environment runs PHP, PHP extension, Go and Rust.
 All 240 HTTP checks and PHP processor-mode checks passed. Browser comparison
 is in progress for this source and dependency graph.
 
-## 2026-09-09 — Dependency installation and package checks
+### 2026-09-09 — Dependency installation and package checks
 
 The workspace lock file resolves declared dependency ranges and includes native
 packages for supported platforms. The root declares Vitest for shared test
@@ -4979,13 +4989,13 @@ Form checks passed: core 26, React 691, Vue 344, Svelte 345 and 3 mounted checks
 and 6 HTML normalizer checks. JavaScript validation passed 1,579 tests.
 These results do not establish deployment of the comparison environment.
 
-## 2026-09-09 — Field error descriptions
+### 2026-09-09 — Field error descriptions
 
 Unsupported field errors identify the field type and path. Current test names
 use unversioned operation names. Core checks passed: 26 tests. Documentation
 checks passed.
 
-## 2026-09-09 — Independent PHP extension target
+### 2026-09-09 — Independent PHP extension target
 
 PHP extension execution uses a separate process, repository and server identifier.
 The native processor is required in extension mode and prohibited in PHP mode.
@@ -4996,7 +5006,7 @@ processor-mode assertions. Both PHP codec modes and rejection of missing or
 unexpected extensions passed. Full extension browser verification remains pending.
 The main comparison container has not yet been replaced with this image.
 
-## 2026-09-09 — Empty collection browser checks
+### 2026-09-09 — Empty collection browser checks
 
 Browser checks locate the collection containing the focused button through its
 field wrapper. The current renderer no longer uses wrapper name attributes.
@@ -5006,20 +5016,20 @@ comparisons and 30 current-runtime pointer/keyboard interaction checks
 (108 across all comparison modes), with no page errors.
 Retained source HTML differences remain recorded as failures.
 
-## 2026-09-09 — Shared SSR comparison instance
+### 2026-09-09 — Shared SSR comparison instance
 
 The cross-check console creates one form instance for the three renderers.
 Generated row keys are identical across framework outputs when repeat data is
 missing. Console checks passed: 81 tests, including the generated-key comparison.
 
-## 2026-09-09 — Comparison server entries
+### 2026-09-09 — Comparison server entries
 
 Current PHP, Go and Rust servers use unversioned validator entries. Retained
 Go and Rust servers build from a pinned server-source archive. The comparison
 container uses the library source. All 180 HTTP persistence checks passed.
 Browser lifecycle verification is in progress. No package was published.
 
-## 2026-09-09 — Comparison browser entries
+### 2026-09-09 — Comparison browser entries
 
 Comparison browser builds select current and retained source entries explicitly.
 Current collection checks use field paths. The build requires an explicit
@@ -5027,7 +5037,7 @@ absolute workspace path. All twelve browser bundles built successfully.
 Server integration and lifecycle verification remain pending; the running
 comparison environment has not been replaced.
 
-## 2026-09-09 — Public declaration builds
+### 2026-09-09 — Public declaration builds
 
 TypeScript package builds generate JavaScript with the bundler and declarations
 with the TypeScript compiler. Public entries include the declared legacy exports.
@@ -5041,7 +5051,7 @@ identical output paths and SHA-256 digests. An isolated package install passed
 type checking, production build and three-framework browser checks. Runtime
 source files were unchanged by this build change. Packages were not published.
 
-## 2026-09-08 — Form instances and input controls
+### 2026-09-08 — Form instances and input controls
 
 The form API prepares templates with `compileForm`, creates editable instances
 with `createForm`, renders `Form` components and accepts an instance in
@@ -5057,7 +5067,7 @@ Go and Rust tests, 42 console tests, 18 inspector tests, Svelte type checking,
 package install compilation/build and documentation checks passed.
 The running comparison container has not been updated to this source.
 
-## 2026-09-08 — Record restoration HTML
+### 2026-09-08 — Record restoration HTML
 
 The shared DOM binding places an existing `checked` attribute after the input's
 other attributes. Initial rendering and record restoration now use the same
@@ -5086,7 +5096,7 @@ All 2,160 exported HTML snapshots match the recorded strings. Deployment: the
 local container uses the verified source; all 52 example files, the DOM binding source and
 served metadata match the verified source. No package was published.
 
-## 2026-09-08 — Form initialization inspector
+### 2026-09-08 — Form initialization inspector
 
 Added initial-data creation and post-mount injection comparison using the parsed
 browser DOM, unmodified HTML, live/default controls, ordered fields, computed CSS,
@@ -5113,7 +5123,7 @@ JSON omits indentation because the indented DOM records exceed the runtime strin
 limit; snapshot content is unchanged. Deployment is the local Apple container at
 `localhost:4317`; no package publication or remote deployment.
 
-## 2026-09-07 — Empty collection merge
+### 2026-09-07 — Empty collection merge
 
 Merged the empty-collection correction into `main`, retaining stable row keys and
 focus handling. Empty collection Add buttons have an accessible label in React,
@@ -5128,7 +5138,7 @@ Vue 342, Svelte 345 and Svelte client 1). The regression tests use `compileForm`
 and `bindForm`. Deployment: no package publication; the local comparison
 continues to use its existing pinned sources.
 
-## 2026-09-07 — PHP, Go and Rust form persistence
+### 2026-09-07 — PHP, Go and Rust form persistence
 
 Added independent Go and Rust servers alongside PHP for native form and JSON
 submission, existing CRUDUI validation, atomic JSON storage and hierarchy reload.
@@ -5154,7 +5164,7 @@ Rust Clippy and `make docs-check` passed. Earlier failed reports were preserved.
 Deployment: local Apple container at `localhost:4317`, using PHP 8.4.24,
 Go 1.27.0, Rust 1.98.0 and Node 26.8.1. No package publication or remote deployment.
 
-## 2026-09-07 — Original-controller typing
+### 2026-09-07 — Original-controller typing
 
 The original example controller could overwrite newer input with an earlier
 rendered value and temporarily lose focus when a framework replaced an input.
@@ -5167,7 +5177,7 @@ Immediate and settled text, focus and caret checks passed; no browser page error
 occurred. Library source snapshots are unchanged. Deployment is the local Apple
 container at `localhost:4317`; no package or remote deployment was published.
 
-## 2026-09-07 — Form comparison naming
+### 2026-09-07 — Form comparison naming
 
 Applied consistent CRUDUI example names to paths, source, documentation and
 container commands.
@@ -5183,7 +5193,7 @@ occurred. Unchanged original keyed diagnostics remain 17/19 and array diagnostic
 Deployment: local Apple container at `localhost:4317`; no package publication or
 remote deployment.
 
-## 2026-09-07 — Form and ordered JSON transmission
+### 2026-09-07 — Form and ordered JSON transmission
 
 Each form can select native multipart or JSON transmission. Both formats run
 the same existing JavaScript/PHP validation and repository save. The JSON path
@@ -5208,7 +5218,7 @@ their existing failures remain recorded and the complete runner returns status 1
 Deployment: local Apple container at `localhost:4317`; no package publication or
 remote deployment. Comparison sources and previous reports remain available.
 
-## 2026-09-07 — JSON processor contract verification
+### 2026-09-07 — JSON processor contract verification
 
 Added a reproducible check against ordered-json for document member
 order, nested 13-character row data and empty collection types. All five
@@ -5216,7 +5226,7 @@ implementations passed ten transport fixtures and the processor's 115 common
 cases. The fixtures verify JSON representation; browser behavior and runtime JSON
 integration did not change. The local comparison remains available.
 
-## 2026-09-07 — Empty collection correction and browser validation
+### 2026-09-07 — Empty collection correction and browser validation
 
 - Added the corrected original source to the primary comparison with the current
   runtime. The unchanged original keyed and array diagnostics remain
@@ -5239,7 +5249,7 @@ complete runner returns status 1. Existing shared validation cases passed in
 TypeScript, PHP, Go and Rust. `make docs-check` passed.
 Deployment: local Apple container at `localhost:4317`; packages not published.
 
-## 2026-09-07 — Focus during native typing
+### 2026-09-07 — Focus during native typing
 
 Ignore unchanged input/change events before capturing focus. A native change
 event during input replacement previously cleared the pending focus state in
@@ -5249,7 +5259,7 @@ Verification: full Chrome checks retained the complete typed value and input
 focus in React, Vue and Svelte. Shared mounted DOM checks and core type checking
 passed. Deployment: local comparison environment; packages not published.
 
-## 2026-09-07 — Focus after adding to an empty collection
+### 2026-09-07 — Focus after adding to an empty collection
 
 The browser binding identifies the empty collection's Add button by its wrapper.
 After the first row replaces that button, it restores focus to the Add button in
@@ -5259,7 +5269,7 @@ Verification: the shared mounted DOM scenario and real Chrome empty-collection
 keyboard checks passed in React, Vue and Svelte; core type checking passed.
 Deployment: local comparison environment; packages not published.
 
-## 2026-09-07 — Focus during row operations
+### 2026-09-07 — Focus during row operations
 
 Row button pointer activation preserves input focus. DOM synchronization restores
 text selection and ancestor scroll positions with `preventScroll`. Keyboard
@@ -5268,7 +5278,7 @@ checks passed in React, Vue and Svelte. Real browser pointer and keyboard checks
 passed in all three frameworks. Deployment: running in the local form comparison example;
 packages not published.
 
-## 2026-09-07 — Browser comparison and PHP persistence
+### 2026-09-07 — Browser comparison and PHP persistence
 
 - Added an Apple container environment for React, Vue, Svelte and PHP at
   `localhost:4317`, with exact original and current Git source snapshots.
@@ -5305,7 +5315,7 @@ errors occurred. The comparison runner returned status 1 for recorded failures.
 [Feature status](docs/features.md) records the current code's results.
 Deployment: local Apple container; packages not published and no remote deployment.
 
-## 2026-09-07 — Compiled forms and 13-character row keys
+### 2026-09-07 — Compiled forms and 13-character row keys
 
 - Added immutable, JSON-cacheable form templates and separate data binding.
 - Added editable sessions with late data injection and scoped nested row addition,
@@ -5332,7 +5342,7 @@ Console SSR 32 tests, CLI 35 tests, lint, type checking and `make docs-check`
 passed. API generation, schema generation and the documentation web build
 passed. Deployment: not deployed.
 
-## 2026-09-07 — Schema generation
+### 2026-09-07 — Schema generation
 
 Removed the unnecessary `ignoreDeprecations: "6.0"` compiler setting because the
 schema generator's bundled TypeScript compiler rejects it. TypeScript type

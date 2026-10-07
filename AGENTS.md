@@ -12,7 +12,8 @@
   and branch. If removal is impossible, first add a numbered sub-item to the owning checklist with
   the cause and exact removal condition.
 - Update the corresponding `.ko.md` files with the same information.
-- Record each completed feature in `CHANGELOG.md` in the same commit that completes it, and keep
+- Record each completed feature in `CHANGELOG.md` and `CHANGELOG.ko.md` in the same commit that completes
+  it, as an entry `### <date> — <title> (<task ID>)` at the top of the section `## Unreleased`, and keep
   uncommitted changes within one feature. A received instruction is triaged first: finish the
   feature in progress unless the instruction is explicit and urgent, then place the new work by
   priority before starting it.
