@@ -25,7 +25,11 @@ The remote holds `main` and the branches of open pull requests; a merged branch 
 repository created again from the same history is configured by pushing `main` and running
 `make github-settings`; the documentation web is then published by the next run of
 `.github/workflows/pages.yml`, which builds and deploys the documentation of every commit that
-`main` receives. Change a setting by editing the declaration and running the command, never through
+`main` receives and of a manual run (`workflow_dispatch`). `.github/workflows/ci.yml` runs on every
+pull request, merge group and manual run, `.github/workflows/push-gate.yml` on every push to a
+branch outside `gh-readonly-queue/**`, every pull request and every merge group, and
+`.github/workflows/dependency-review.yml` on its schedule and on a manual run; no other workflow
+exists. Change a setting by editing the declaration and running the command, never through
 the GitHub interface, so the declaration stays the record.
 
 `tests/build/github-repository.test.mjs` checks the command against an in-memory repository: a

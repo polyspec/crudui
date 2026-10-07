@@ -95,8 +95,8 @@ no record, when the record belongs to another tree and when the full run of the 
 writes each rerun into `reruns` of the record; when every command has passed, the result of the tree
 becomes `passed`.
 
-The CI workflow runs the same commands in its jobs on each pull request and each merge group and does not run `make
-ci`, so the guard does not decide CI runs. A new checkout, as in CI, has no record, so `make ci`
+The CI workflow runs the same commands in its jobs on each pull request, each merge group and each manual run
+(`workflow_dispatch`) and does not run `make ci`, so the guard does not decide CI runs. A new checkout, as in CI, has no record, so `make ci`
 runs there when no task is `[~]` and the tree is clean.
 
 On request, `make owner-check` runs the checks that own the changed paths: the uncommitted

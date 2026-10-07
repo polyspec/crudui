@@ -79,7 +79,7 @@ scripts/check-conformance.mjs`가 읽는, 통과한 명령의 적합성 증거�
 `make ci`와 같이 거부되고, record가 없을 때, record가 다른 tree의 것일 때, 그 tree의 전체 실행이 통과했을 때도 거부됩니다. 각 재실행을
 record의 `reruns`에 쓰고, 모든 명령이 통과하면 그 tree의 결과는 `passed`가 됩니다.
 
-CI workflow는 pull request와 merge group마다 같은 명령을 job에서 실행하고 `make ci`는 실행하지 않으므로 guard는 CI 실행을 판단하지 않습니다.
+CI workflow는 pull request, merge group, 수동 실행(`workflow_dispatch`)마다 같은 명령을 job에서 실행하고 `make ci`는 실행하지 않으므로 guard는 CI 실행을 판단하지 않습니다.
 CI처럼 새 checkout에는 record가 없으므로, 그곳에서 `make ci`는 `[~]` 작업이 없고 tree가 깨끗하면 실행됩니다.
 
 요청하면 `make owner-check`는 바뀐 경로를 소유한 검사를 실행합니다. 경로는 commit되지 않은 변경과 새 file,

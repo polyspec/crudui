@@ -20,8 +20,11 @@ make github-settings-check
 
 원격에는 `main`과 열린 pull request의 branch만 있으며, merge된 branch는 지워집니다. 같은 이력으로 저장소를
 다시 만들면 `main`을 푸시하고 `make github-settings`를 실행해 설정하며, 문서 웹은 이어지는
-`.github/workflows/pages.yml` 실행이 게시합니다. 이 workflow는 `main`이 받는 모든 commit의 문서를 build해
-배포합니다. 설정은 GitHub 화면이 아니라 선언을 고치고 명령을 실행해 바꾸므로 선언이 곧 기록입니다.
+`.github/workflows/pages.yml` 실행이 게시합니다. 이 workflow는 `main`이 받는 모든 commit과 수동
+실행(`workflow_dispatch`)의 문서를 build해 배포합니다. `.github/workflows/ci.yml`은 모든 pull request,
+merge group, 수동 실행에서, `.github/workflows/push-gate.yml`은 `gh-readonly-queue/**` 밖의 branch로의
+모든 push, 모든 pull request, 모든 merge group에서, `.github/workflows/dependency-review.yml`은 일정과 수동
+실행에서 실행되며, 다른 workflow는 없습니다. 설정은 GitHub 화면이 아니라 선언을 고치고 명령을 실행해 바꾸므로 선언이 곧 기록입니다.
 
 `tests/build/github-repository.test.mjs`는 메모리 안의 저장소로 명령을 검사합니다. 선언과 같은
 저장소에는 요청을 보내지 않고, 새 저장소는 선언대로 맞춘 뒤 두 번째 실행에서 아무 요청도 보내지
