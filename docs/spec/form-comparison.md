@@ -231,7 +231,8 @@ first run of the implemented flow; until that measurement it is 60 seconds. Befo
 combinations run, each server's store is reset through the public API, one unit per server.
 
 The combinations run against a local stack built from the checkout
-(`pipeline.browser.mjs`, one test per combination). `record-stores.test.mjs` runs the HTTP contract cases
+(`pipeline.browser.mjs`, one test per combination) and, in the local verification below, through
+`check-pipeline.mjs`. `record-stores.test.mjs` runs the HTTP contract cases
 of `src/record-contract.mjs` against all five servers started from the checkout, each case with
 its own timeout. Both local checks first build the server programs, each as a step without a time
 limit that prints its progress: the OrderedJSON checkout at `.form-comparison/sources/ordered-json` (the path the Go and
@@ -246,29 +247,29 @@ stops their process groups at its exit, so no server outlives the run. `npm run 
 
 ## Progress, limits and scope
 
-Three rules hold for every command in this contract: the local builds, the local stack and
-every check.
+Three rules hold for every command in this contract: the local builds, the local stack, the local
+verification and every check.
 
 1. **A run reports what it is doing while it runs.** No check waits with only a
    start and an end. Every step prints a start line, a line with its elapsed time
    every 15 seconds while it runs, its output under its step name, and a line that
    says passed or failed with the duration. Nested units report the same way, as progress lines of the form
    `[label] unit: started|running|passed|failed|timed out`: each build step,
-   each browser report, the browser start and close (long operations without a limit), each
+   each browser report, each check phase, the browser start and close (long operations without a limit), each
    canonical flow combination and every wait.
-2. **A long operation holds no time limit; a unit holds its own.** A step, such as a build,
-   a process start, a browser start or close and every wait are long operations: each
+2. **A long operation holds no time limit; a unit holds its own.** A step, such as a build or
+   a verification check, a process start, a browser start or close and every wait are long operations: each
    runs to its end, its exit status, readiness event or result decides it, and it
    holds neither a total limit nor an inactivity limit. A unit, such as a browser
-   report or a canonical flow combination, is a short verification and
+   report, a check phase or a canonical flow combination, is a short verification and
    holds its own limit, three times its slowest measured duration, rounded up to five
    seconds and at least ten seconds (`measuredLimitMs`); the code names the
    measurement it comes from. A stopped process tree, its process group and every
    descendant that left the group, gets `SIGTERM` and, after the grace, `SIGKILL`, and
    a stopped check closes its browser on `SIGTERM` instead of waiting for `SIGKILL`.
 3. **A check runs where it belongs.** CI runs the source suite, the record-store contract, the Go
-   and Rust server tests and the canonical flow check. During development only the tests of the
-   changed code run.
+   and Rust server tests, the canonical flow check and the local verification. During development
+   only the tests of the changed code run.
 
 ## Source identity
 
@@ -332,7 +333,8 @@ rejects a missing or malformed selected package record, an external installation
 directory or a different installed file.
 Every PHP provenance response from health, generation and SSR reports `Generator`
 and `Form` from the generator source directory and `Validator` from the selected
-Composer installation directory.
+Composer installation directory. Result verification uses one class location contract and
+accepts only these reported locations.
 
 The public API accepts only
 `/api/{server}/{action}/{renderingPath}/{framework}`. A stack runs
@@ -380,7 +382,7 @@ framework hydrates the form with the same template and data. Hydration must leav
 parsed form DOM unchanged: every element, attribute value and text in child order.
 Attribute order is not part of the DOM (React sets `type`, `value` and `name` after
 other input attributes), so it is not compared; the string renderers' byte-identical
-HTML is checked by the native generation checks. A `style` attribute is a CSS declaration
+HTML is checked by the generation and native generation checks. A `style` attribute is a CSS declaration
 block, so it is compared as the CSS object model serializes its declarations: React
 writes a sticky row's `--crudui-sticky-depth:0` as `--crudui-sticky-depth: 0;`. The comparison leaves out the nodes frameworks
 keep as rendering anchors, which render nothing: comments (Vue) and empty text nodes
@@ -534,7 +536,7 @@ same saved records. An operation started from the page changes them only while i
 holds one origin lock (`navigator.locks`): a frame button or form submission, the
 comparison button and the complete check. An operation started while another holds
 the lock does not run and reports that another check or save is running. Checks
-that the complete check calls directly run inside the operation
+that the complete check or the verifier calls directly run inside the operation
 that already holds the lock. The lock belongs to one browser: other browsers, other
 people and automated runs against the same server also read and replace these
 records without it, so checks from different browsers must not run at the same time.
@@ -545,7 +547,9 @@ main page viewport; the frame and the page scroll only as far as needed.
 Frame-document checks cover both initialization documents of every rendering path and
 framework. A CSR document must be the built frame page with empty views and no payload,
 and an SSR document must be that same page with only the three insertions; the pages
-behind all four servers' documents are compared by SHA-256.
+behind all four servers' documents are compared by SHA-256. Generation verification
+checks Korean and English SSR output for every server and framework, and that every
+server rejects the same wrong SSR queries with the same message.
 
 ## Runner and reports
 
@@ -560,31 +564,97 @@ from the deployed verification of 2026-09-16, with the four browser checks runni
 at the same time. An initialization report, measured at 32.4 seconds at most, gets
 100,000 milliseconds; a scenario report, measured at 2.2 seconds, gets 10,000; the
 page work before, between and after reports, measured at 1.9 seconds, gets 10,000
-(`browserReportMeasurementsMs` in `src/browser-job.mjs`). The browser start and close are
+(`browserReportMeasurementsMs` in `src/browser-job.mjs`). The units around the
+report job hold their own limits as well (`browserUnitMeasurementsMs` in
+`browser-report-policy.mjs`): the main page (1.8 seconds) gets 10,000 milliseconds; the
+interaction checks, the frame-document checks and the artifacts took 26.3 seconds
+together, and until each is measured on its own each gets 80,000. The browser start and close are
 long operations without a limit (`runOperation` of `src/unit-pool.mjs`) that print the same
-progress lines. While a unit
+progress lines. A server report records the status, duration and limit of these units, and the
+status and duration of the browser start and close, under `units`. While a unit
 runs, the check prints its progress line with its elapsed time every 15 seconds,
 and it prints each completed report with its result and duration. A unit that
 reaches its limit fails the run with that unit's name and its elapsed time, and the
 failure retains the current state and every completed report. The browser check as
 a whole has no limit, no summed limit and no duration budget.
 
+A complete server report requires a browser job of 24 reports: 16 scenario
+reports with 19 checks each and eight initialization reports with 168 comparison
+results each. It also requires 80 interaction checks, eight mount-before-load checks
+of the `csr` frame, 16 frame-document checks, no browser or page errors, one
+and one source identity shared by the report and every scenario and initialization
+report. The report records its duration; the duration is not a pass condition.
+Fields named `passed` must be booleans. Missing activity,
+initialization stages or timing evidence makes the report incomplete.
+
+The four-server aggregate requires one complete report from every server. It
+requires 1,216 successful scenario checks, 5,376 successful initialization
+comparisons, 320 successful interaction checks, 32
+successful mount checks, 64 successful frame-document checks, equal frame pages behind
+every server's documents. Any failed,
+missing, malformed or unequal result sets `passed: false` and returns status 1.
+Only a complete aggregate with zero failures returns status 0.
+
+
 ## Additional verification
+
+Generation verification requires 450 successful results, 899 HTTP requests and
+all 32 server/rendering-path/framework combinations. Repository verification
+checks atomic updates, locking, position-based loading, parent ownership,
+rejection without file changes, complete deletion and sequence allocation. Type
+verification checks the same scalar and collection rules in every server.
 
 PHP-FPM runs with `enable_post_data_reading=0`, so the PHP servers read the request body
 themselves, as the other servers do: one parser for urlencoded and multipart bodies rejects a
 repeated field, a name that is both a value and a group, a malformed name and a file part with
-400. The record-store case `save-stops-reading-an-oversized-request` gets its 413 from nginx before
-PHP runs, and
+400. The persistence check's `request-size-limit` and the record-store case
+`save-stops-reading-an-oversized-request` get their 413 from nginx before PHP runs, and
 the browser `shape` check's native form with 10,001 fields gets 400 for its additional fields.
 
-Fast source tests reproduce protocol timeout behavior,
+Fast source tests reproduce report-policy failures, protocol timeout behavior,
 each report's own limit and the progress it reports, the step runner's run to the end
 and process-tree stop, source identity, snapshot differences, generation cache behavior and
 request-count changes, the unit runner's limits and progress, the record resource's
-fixture and links, and the canonical page's declared controls. Pull request and `main` push CI runs
-`npm run test:form-comparison` so browser-job, source-tree and
-generation-performance regressions block integration, and
+fixture and links, and the canonical page's declared controls. These tests do not
+replace the local verification. Pull request and `main` push CI runs
+`npm run test:form-comparison` so report-policy, browser-job, source-tree and
+generation-performance regressions block integration,
 `npm run test:form-comparison:pipeline` so the record-store contract of all five
 servers, the Go and Rust server tests and the canonical flow check of all 40
-combinations block integration.
+combinations block integration, and `npm run test:form-comparison:checks` so the local
+verification below blocks integration.
+
+## Local verification
+
+`examples/form-comparison/local-verification.mjs` (`make test-form-comparison-checks`, the CI job
+`form-comparison-checks`) builds one local stack from the checkout, as the canonical flow check
+does: the record server programs, the public directory, the four native record servers and the
+public server, each a local process on a port of 127.0.0.1 that the system assigns. It records the
+identity in `source.json` of its results directory and runs these stages in order, stopping at the
+first stage with a failed step:
+
+1. the PHP processor modes, which load the `crudui.so` and `ordered_json.so` of this run
+   (`test-php-modes.mjs`);
+2. generation against the four native servers through the public server (`check-generation.mjs`);
+3. persistence against the four native servers, reading their files in the stack's data directory
+   (`check-servers.mjs`);
+4. the canonical flow check of the stack's page for all 40 combinations (`check-pipeline.mjs`;
+   units with their own limits);
+5. browser verification for PHP, the PHP extension, Go and Rust, the four at the same time
+   (`check.mjs` with the interaction checks of `check-interaction.mjs`; units with their own limits);
+6. the browser aggregate of this run's four reports (`check-browser-reports.mjs`);
+7. the typing check of every framework and rendering path at key delays of 0, 10 and 50
+   milliseconds (`check-typing.mjs`), after the browser checks, since it edits the PHP records of
+   the frames.
+
+Each stage's steps run to their end without a time limit and print their progress. The four
+browser checks run at the same time because each one drives its own browser process, with its own
+focus, selection and scroll, against its own server and its own stored records.
+
+It then requires the checkout's identity to be unchanged. The evidence check
+(`verification-evidence.mjs`) requires the generation report, the persistence report, the
+canonical flow report (`pipeline.json`: 40 passed combinations and five passed store resets), the
+browser aggregate and the typing report (every framework, rendering path and delay passed, no page
+error) to satisfy every count and pass condition in this contract, and the reports to name that
+identity. The servers stop at the end of the run, also after a failure; a failed run keeps its
+results directory and prints its path.

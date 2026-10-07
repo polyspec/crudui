@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### 2026-10-07 — CI에서 로컬 구성에 대해 실행하는 폼 비교 검사 (C7.20-1)
+
+- `make test-form-comparison-checks`(`examples/form-comparison/local-verification.mjs`)는 네이티브 레코드 서버 네 개와
+  공개 서버를 시스템이 정한 127.0.0.1 port의 local process로 시작하고, 그 구성에 PHP 처리 모드, 생성·저장·정본 흐름
+  검사, 서버 네 개의 브라우저 검사와 상호작용 검사, 브라우저 집계, 입력 검사를 실행합니다. 모든 보고서의 근거를
+  확인한 뒤 서버를 멈춥니다. CI job `form-comparison-checks`가 이를 실행하고 `ci-passed`가 그 job을 필요로 합니다.
+- `check-servers.mjs`는 `--origin`, `--data`, `--report`를 받고, 검사의 unit test가 다시 source suite에서 실행됩니다.
+- 비교 프레임의 시나리오 검사 `serverInvalid`는 `enabled`가 꺼진 스토어에 대해 검증기가 숨김으로 보고하는 `detail`
+  경로를 기대합니다.
+
 ### 2026-10-07 — 개발 기기의 container 도구 없는 비교 검사 (C7.20)
 
 - `make deploy`, `make deploy-verify`, `make deploy-watch`와 이들만 쓰던 code를 제거했습니다. 비교 서비스의

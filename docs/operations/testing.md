@@ -326,8 +326,13 @@ and the Rust binary), starts each one as a local process on a free port of 127.0
 record-store HTTP contract against all five, runs the Go and Rust server tests and runs the
 canonical List → Detail → Form → Save → List refresh check for all 40 server, client and
 initialization combinations against that local stack; it needs PHP with `php-config`, Composer, Go,
-Rust and Chrome. The [form comparison](../spec/form-comparison.md) defines the record resource, the
-page and that check. JSON order and HTTP save/load checks are separate from validator package tests.
+Rust and Chrome. `npm run test:form-comparison:checks` (`make test-form-comparison-checks`) starts
+the same local stack and runs the PHP processor modes, the generation, persistence and canonical
+flow checks, the browser checks of the four native servers with their interaction checks, the
+browser aggregate and the typing check against it, checks the evidence and stops the servers
+([local verification](../spec/form-comparison.md#local-verification)). The
+[form comparison](../spec/form-comparison.md) defines the record resource, the page and those
+checks. JSON order and HTTP save/load checks are separate from validator package tests.
 
 `npm run test:forms` checks the stylesheet layout in Chromium, Firefox and WebKit on the host and
 the custom properties of the stylesheet (`tests/style-properties.test.mjs`).

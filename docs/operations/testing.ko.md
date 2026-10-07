@@ -285,7 +285,11 @@ OrderedJSON 체크아웃, 두 PHP 확장, Go 바이너리, Rust 바이너리)를
 로컬 프로세스로 시작하고, 다섯 서버 모두에 레코드 저장소 HTTP 계약을 실행하고, Go·Rust 서버 테스트를 실행한
 뒤, 그 로컬 구성에서 서버·클라이언트·초기화 방식 40개 조합의 정본 List → Detail → Form → Save → List
 refresh 검사를 실행합니다. `php-config`가 있는 PHP, Composer, Go, Rust, Chrome이 필요합니다.
-[폼 비교](../spec/form-comparison.ko.md)가 레코드 리소스, 페이지와 그 검사를 정의합니다. JSON 순서와 HTTP
+`npm run test:form-comparison:checks`(`make test-form-comparison-checks`)는 같은 로컬 구성을 시작하고, 그
+구성에 PHP 처리 모드, 생성·저장·정본 흐름 검사, 네이티브 서버 네 개의 브라우저 검사와 상호작용 검사,
+브라우저 집계, 입력 검사를 실행하고, 근거를 확인한 뒤 서버를 멈춥니다
+([로컬 검증](../spec/form-comparison.ko.md#로컬-검증)).
+[폼 비교](../spec/form-comparison.ko.md)가 레코드 리소스, 페이지와 그 검사들을 정의합니다. JSON 순서와 HTTP
 저장·로드 검사는 검증기 패키지 테스트와 별도입니다.
 
 `npm run test:forms`는 호스트에서 Chromium, Firefox, WebKit의 스타일시트 배치와 스타일시트의

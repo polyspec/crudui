@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+### 2026-10-07 — Form comparison checks against a local stack in CI (C7.20-1)
+
+- `make test-form-comparison-checks` (`examples/form-comparison/local-verification.mjs`) starts the four native record
+  servers and the public server as local processes on ports of 127.0.0.1 that the system assigns and runs against them
+  the PHP processor modes, the generation, persistence and canonical flow checks, the browser checks of the four
+  servers with their interaction checks, the browser aggregate and the typing check; it checks the evidence of every
+  report and stops the servers. The CI job `form-comparison-checks` runs it, and `ci-passed` needs it.
+- `check-servers.mjs` takes `--origin`, `--data` and `--report`, and the unit tests of the checks run in the source
+  suite again.
+- The scenario check `serverInvalid` of the comparison frame expects the `detail` paths that the validator reports
+  hidden for a store whose `enabled` is off.
+
 ### 2026-10-07 — Comparison checks without a container tool of a development machine (C7.20)
 
 - `make deploy`, `make deploy-verify` and `make deploy-watch` are removed with the code that served only them: the

@@ -225,3 +225,35 @@ export function publicServerDefinition({ dataDirectory, publicDirectory, ports }
     environment: {}, ready: readyLine('public'),
   };
 }
+
+/**
+ * Build and start one local stack under `root`: the record server programs, the public directory
+ * (`build.mjs`), the four native record servers and the public server, which is also the
+ * JavaScript record server. Every server takes a port of the system on 127.0.0.1 and names it on
+ * its readiness line; the public server starts with those ports. `processes` receives every
+ * started process, also when a later start fails, so the caller stops them. Returns the origin of
+ * the public server and the directories and builds of the stack.
+ */
+export async function startLocalStack({ root, processes, write = text => process.stdout.write(text) }) {
+  const publicDirectory = path.join(root, 'public');
+  const dataDirectory = path.join(root, 'data');
+  await mkdir(dataDirectory, { recursive: true });
+  const prepared = await prepareRecordServers({ buildDirectory: path.join(root, 'bin'), write });
+  const [build] = await runStages([[{
+    id: 'public-build', command: process.execPath,
+    args: [path.join(exampleDirectory, 'build.mjs'), publicDirectory], cwd: repositoryRoot, environment: {},
+  }]], { label: 'local-servers', write });
+  assert.equal(build.status, 'passed', `public build ${build.status}`);
+  const source = await sourceIdentity(repositoryRoot);
+  await writeFile(path.join(publicDirectory, 'source.json'), JSON.stringify(source) + '\n');
+  const servers = recordServers.filter(name => name !== 'js');
+  const definitions = await Promise.all(servers.map(server => recordServerProcess(server, { dataDirectory, publicDirectory, prepared })));
+  const started = await Promise.allSettled(definitions.map(definition => startProcess(definition, { write })));
+  processes.push(...started.filter(result => result.status === 'fulfilled').map(result => result.value));
+  const failed = started.find(result => result.status === 'rejected');
+  if (failed) throw failed.reason;
+  const ports = Object.fromEntries(servers.map((server, index) => [server, started[index].value.port]));
+  const publicServer = publicServerDefinition({ dataDirectory, publicDirectory, ports });
+  processes.push(await startProcess(publicServer, { write, ipc: true, message: { status: 'ready', cycle: 1, source, error: null } }));
+  return { origin: processes.at(-1).origin, publicDirectory, dataDirectory, prepared, source };
+}

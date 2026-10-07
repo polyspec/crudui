@@ -21,8 +21,8 @@
 | generator-rust | Rust 폼 생성과 SSR | implemented | passed | not-deployed | [런타임 계약](spec/runtime-packages.ko.md) |
 | generator-html | 프레임워크 독립 폼·목록 HTML 렌더링 | implemented | passed | not-deployed | [기능 계약](spec/feature-contracts.ko.md) |
 | php-extension | PHP 네이티브 폼 생성과 검증 | implemented | passed | not-deployed | [확장 계약](spec/php-extension.ko.md) |
-| server-template-browser | 서버에서 컴파일한 직렬화 템플릿으로 현재 keyed 브라우저 인스턴스 생성 | implemented | passed | not-deployed | [2026-09-19 비교 검증](#2026-09-19-비교-검증) |
-| native-generation-integration | 현재 네 서버의 생성·SSR·전송·저장·브라우저 통합 | implemented | passed | not-deployed | [2026-09-19 비교 검증](#2026-09-19-비교-검증) |
+| server-template-browser | 서버에서 컴파일한 직렬화 템플릿으로 현재 keyed 브라우저 인스턴스 생성 | implemented | passed | not-deployed | [로컬 검증](spec/form-comparison.ko.md#로컬-검증)(`make test-form-comparison-checks`, CI 작업 `form-comparison-checks`): [`check.mjs`](../examples/form-comparison/check.mjs)의 초기화 보고서 |
+| native-generation-integration | 현재 네 서버의 생성·SSR·전송·저장·브라우저 통합 | implemented | passed | not-deployed | [로컬 검증](spec/form-comparison.ko.md#로컬-검증)(`make test-form-comparison-checks`, CI 작업 `form-comparison-checks`): [`check-generation.mjs`](../examples/form-comparison/check-generation.mjs), [`check-servers.mjs`](../examples/form-comparison/check-servers.mjs), [`check-pipeline.mjs`](../examples/form-comparison/check-pipeline.mjs), [`check.mjs`](../examples/form-comparison/check.mjs) |
 | expressions | 공통 표현식 문법과 불리언 변환 | implemented | passed | not-deployed | [표현식 계약](spec/expressions.ko.md) |
 | cli | 목록·정적 검사·스펙 설명 | implemented | passed | not-deployed | [CLI 절차](operations/cli.ko.md) |
 | unique-json-members | 명세 JSON 텍스트에서 반복된 디코딩 객체 멤버 이름 거부 | implemented | passed | not-deployed | [입력 텍스트 계약](spec/input-text.ko.md), [파서 테스트](../packages/validator-ts/src/text/json.test.ts) |
@@ -51,9 +51,9 @@
 | form-rows | 중첩 행 작업 범위와 저장 후 seq 키 적용 | implemented | passed | not-deployed | [코어 테스트](../packages/generator-core/src/form.test.ts) |
 | form-empty-rendering | 병합 런타임의 명시적인 빈 컬렉션 출력 | implemented | passed | not-deployed | [빈 컬렉션 검사](../packages/generator-core/src/empty-collections.test.ts) |
 | form-browser | 세 프레임워크의 데이터 주입과 행 작업 | implemented | passed | not-deployed | [공용 DOM 사례](../tests/fixtures/form-session/scenario.mjs) |
-| form-typing | 안정적인 편집 컨트롤의 기본 입력 갱신, 포커스와 렌더러 완료 | implemented | passed | not-deployed | [2026-09-19 비교 검증](#2026-09-19-비교-검증) |
+| form-typing | 안정적인 편집 컨트롤의 기본 입력 갱신, 포커스와 렌더러 완료 | implemented | passed | not-deployed | [로컬 검증](spec/form-comparison.ko.md#로컬-검증)(`make test-form-comparison-checks`, CI 작업 `form-comparison-checks`): [`check-typing.mjs`](../examples/form-comparison/check-typing.mjs) |
 | form-empty-focus | 빈 컬렉션의 첫 행 생성 후 포커스 | implemented | passed | not-deployed | [공통 DOM 사례](../tests/fixtures/form-session/scenario.mjs) |
-| form-focus | 행 작업 후 대상 행으로 포커스 이동 | implemented | passed | not-deployed | [2026-09-19 비교 검증](#2026-09-19-비교-검증) |
+| form-focus | 행 작업 후 대상 행으로 포커스 이동 | implemented | passed | not-deployed | [로컬 검증](spec/form-comparison.ko.md#로컬-검증)(`make test-form-comparison-checks`, CI 작업 `form-comparison-checks`): [`check-interaction.mjs`](../examples/form-comparison/check-interaction.mjs)의 상호작용 검사 |
 | form-markup | 다섯 구현의 재귀 폼 노드, 목록·상세 표시 블록, 행 카드, 인터페이스 문구 | implemented | passed | not-deployed | [폼 마크업](spec/form-markup.ko.md), [표시 형식](spec/display-formats.ko.md) |
 | crudui-details | 읽기 전용 상세 명세, 모델, 프레임워크 독립 HTML 렌더링과 구조 검증 | implemented | passed | not-deployed | [명세](spec/schema.ko.md), [표시 형식](spec/display-formats.ko.md), [기능 계약](spec/feature-contracts.ko.md), [공용 상세 고정 데이터](../tests/fixtures/detail-render/README.ko.md), [네이티브 비교](../tests/native-generators/README.ko.md), [상세 검증 사례](../tests/fixtures/detail-validity/cases.json) |
 | form-view-state | 레코드 데이터와 분리된 행 접기, 병합 실행취소·실행복귀 이력 | implemented | passed | not-deployed | [노드 테스트](../packages/generator-core/src/node.test.ts) |
