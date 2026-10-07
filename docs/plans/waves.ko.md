@@ -43,3 +43,7 @@
 ## Wave 10
 
 의존: 없음. 폼 비교는 OrderedJSON을 `polyspec/ordered-json`의 tag `v0.0.1`에서 받고 그 tree의 package 이름을 쓴다. version 0.1까지 polyspec 저장소는 다른 polyspec 저장소에 그 저장소의 GitHub tag로 의존한다.
+
+## Wave 11
+
+의존: 없음. 모든 변경은 pull request와 merge queue로 `main`에 들어가므로 `main`의 모든 commit은 필수 check를 통과했다. release는 `main` commit의 tag `vX.Y.Z`, 하위 디렉터리의 Go module이면 `<디렉터리>/vX.Y.Z`이고, maintainer가 version을 정하는 pull request 다음에 tag를 만들며 pull request는 tag를 싣지 않는다. ruleset `main`은 check `push-gate`와 CI workflow의 완료 check `ci-passed` 하나를 요구하므로 CI job을 추가하거나 이름을 바꿔도 ruleset은 바뀌지 않는다. 변경 기록은 다음 release의 변경을 `## Unreleased` 아래에 두고, release pull request가 그 section 이름을 `## X.Y.Z`로 바꾼다.

@@ -1,6 +1,16 @@
 # 변경 기록
 
-## 2026-10-07 — npm package마다 하나의 설치 version (C5.8-11)
+## Unreleased
+
+### 2026-10-07 — 다음 release의 변경을 담는 Unreleased (C11.1-1)
+
+- `CHANGELOG.md`와 `CHANGELOG.ko.md`는 section `## Unreleased`로 시작하고, 그 section은 모든 항목을 heading
+  `### <날짜> — <제목> (<작업 ID>)`으로 담습니다. X.Y.Z release는 그 section 이름을 `## X.Y.Z`로 바꾸고 그 위에
+  빈 `## Unreleased`를 새로 씁니다.
+- `tests/docs/changelog.test.mjs`는 첫 section `## Unreleased`, 나머지 section이 모두 `## X.Y.Z`이고 위 section보다
+  오래된 것, 모든 항목이 section 안에 있는 것, 두 파일의 section과 항목이 같은 것을 요구합니다.
+
+### 2026-10-07 — npm package마다 하나의 설치 version (C5.8-11)
 
 - `make dependency-review UPDATE=1`은 npm 갱신 뒤에 `npm dedupe`를 실행하므로, workspace가 올린 뒤에도 한 version이
   만족하는 package는 한 version으로 설치됩니다.
@@ -9,7 +19,7 @@
 - 잠금 파일은 `@sveltejs/vite-plugin-svelte`에 magic-string 1.4.3을, `@types/jsdom`에 hoist된 undici-types 8.9.0을
   설치하며 review는 잠금 파일을 기록합니다.
 
-## 2026-10-07 — cross-check 폼 내보내기의 숨은 경로 (C8.3-6)
+### 2026-10-07 — cross-check 폼 내보내기의 숨은 경로 (C8.3-6)
 
 - cross-check console의 검증기 process는 각 validator의 `validate`가 돌려주는 대로 폼에 `{ valid, errors, hidden }`,
   목록과 상세에 `{ valid, errors }`로 응답합니다. gateway는 폼 결과의 `hidden`을 요구하고 `POST /api/validate`의 각 언어
@@ -18,7 +28,7 @@
   써서 내보낸 사례가 `tests/fixtures/validate/cases.json` 형태를 가집니다. `server/fixture-export.test.mjs`는 내보낸
   사례를 공용 사례와 비교합니다.
 
-## 2026-10-07 — OrderedJSON tag의 build, encoding, 의존성 review (C10.3)
+### 2026-10-07 — OrderedJSON tag의 build, encoding, 의존성 review (C10.3)
 
 - OrderedJSON PHP module은 tag checkout의 `config.m4`가 선언한 C source로 compile되고 PHP는 그것을 `ordered_json`으로
   load합니다. 실패한 명령은 PHP가 startup 실패를 쓰는 출력을 보고합니다.
@@ -28,7 +38,7 @@
   URL 또는 Git 의존성을 선언하지 않고 `.npmrc`는 `allow-remote=none`과 `allow-git=none`을 선언합니다.
 - js-yaml 5.4.3, vite 8.3.3, svelte 5.57.2를 사용하며 review는 모든 lock을 기록합니다.
 
-## 2026-10-07 — 정확한 workflow trigger (C6.2-1)
+### 2026-10-07 — 정확한 workflow trigger (C6.2-1)
 
 - `.github/workflows/ci.yml`은 모든 pull request, merge group, 수동 실행(`workflow_dispatch`)에서,
   `.github/workflows/push-gate.yml`은 `gh-readonly-queue/**` 밖의 모든 push, pull request, merge group에서,
@@ -36,14 +46,14 @@
   실행에서 실행되며, 다른 workflow는 없습니다.
 - `tests/build/ci-local.test.mjs`는 각 workflow의 `on:` block을 정확히 요구하고 다른 workflow가 없을 것을 요구합니다.
 
-## 2026-10-07 — tag v0.0.1의 OrderedJSON (C10.2)
+### 2026-10-07 — tag v0.0.1의 OrderedJSON (C10.2)
 
 - 비교는 OrderedJSON을 `polyspec/ordered-json`의 tag `v0.0.1`에서 받습니다. `make install-ordered-json`은 tag의
   commit을 체크아웃하고, 그 commit에 있고 tracked change가 없는 체크아웃은 유지하며 다른 체크아웃은 교체하고, local
   pipeline은 tag와 다른 commit의 체크아웃을 tag를 밝히며 거부합니다.
 - version 0.1까지 polyspec 저장소는 다른 polyspec 저장소에 그 저장소의 GitHub tag로 의존합니다.
 
-## 2026-10-07 — polyspec 규칙의 프로그램 이름 (C9.2)
+### 2026-10-07 — polyspec 규칙의 프로그램 이름 (C9.2)
 
 - `examples/`, `tests/`, `tools/`의 프로그램은 package 이름 규칙을 따릅니다. cross-check console server는 npm package
   `@polyspec/crudui-cross-check-console`이고, crate와 binary는 `polyspec-crudui-cross-check-validator`,
@@ -52,20 +62,20 @@
 - `tests/build/package-names.test.mjs`는 추적하는 모든 `package.json`, `composer.json`, `Cargo.toml`, `go.mod`에 이
   규칙을 요구합니다.
 
-## 2026-10-06 — branch main의 OrderedJSON (C10.1)
+### 2026-10-06 — branch main의 OrderedJSON (C10.1)
 
 - 비교는 OrderedJSON을 `polyspec/ordered-json`의 branch `main`에서 받습니다. `make install-ordered-json`은 그
   head를 체크아웃하고, root `package.json`은 그 체크아웃의 `@polyspec/ordered-json`을 적으며, record server는 PHP
   namespace `Polyspec\OrderedJson`, Go module `github.com/polyspec/ordered-json/go`, crate
   `polyspec-ordered-json`을 씁니다.
 
-## 2026-10-06 — polyspec namespace의 PHP API page (C9.1-1)
+### 2026-10-06 — polyspec namespace의 PHP API page (C9.1-1)
 
 - API 문서는 `Polyspec\Crudui\`의 phpDocumentor page(`classes/Polyspec-Crudui-Generator.html`과
   `Validator`, `Form`, `FormError`의 page)를 요구하므로 `make docs-check-documents`가 다시 통과합니다.
   package 이름 검사는 page 형태 `CRUDUI-`를 거부합니다.
 
-## 2026-10-06 — polyspec 저장소의 패키지 이름 (C9.1)
+### 2026-10-06 — polyspec 저장소의 패키지 이름 (C9.1)
 
 - 패키지는 template과 hyper의 이름 규칙을 따릅니다. npm 패키지는 `@polyspec/crudui-*`
   (`@polyspec/crudui-validator`, `@polyspec/crudui-generator-html` 등)이고, Composer 패키지는
@@ -73,22 +83,22 @@
   `Polyspec\Crudui\`이고, crate는 `polyspec-crudui-generator`와 `polyspec-crudui-validator`입니다. import,
   `use` 문, 의존성은 새 패키지 이름을 쓰며, 이전 이름은 남지 않습니다.
 
-## 2026-10-06 — 검증 결과 문서의 숨은 경로 (C8.3-5)
+### 2026-10-06 — 검증 결과 문서의 숨은 경로 (C8.3-5)
 
 - TypeScript, Go, Rust 검증기의 README, PHP 확장 명세, fixture 명세, 공유 검증 사례의 README는 폼 검증 결과를
   `valid`, `errors`, `hidden`으로 적습니다.
 
-## 2026-10-06 — 188개 사례의 native 폼 fixture 목록 (C8.4-1)
+### 2026-10-06 — 188개 사례의 native 폼 fixture 목록 (C8.4-1)
 
 - native generator suite는 `design.show`의 행 부모 사례와 literal identifier 사례를 포함한
   `tests/fixtures/form-render/cases.json`의 폼 사례 188개를 기대하고, 각 사례를 모든 native target에서 실행합니다.
 
-## 2026-10-06 — cross-check 검증기 process의 단일 응답 (C8.3-4)
+### 2026-10-06 — cross-check 검증기 process의 단일 응답 (C8.3-4)
 
 - cross-check console의 PHP 검증기 process는 다른 process와 `validators/README.md`처럼 폼에 `{ valid, errors }`를
   쓰고, input text 사례는 모든 process에서 그 응답을 기대합니다.
 
-## 2026-10-06 — form comparison 레코드 저장의 숨은 경로 (C8.3-3)
+### 2026-10-06 — form comparison 레코드 저장의 숨은 경로 (C8.3-3)
 
 - form comparison의 모든 record server는 저장에 검증기 결과를 `valid`, `errors`, `hidden`을 바꾸지 않은 채
   `validation`으로 응답합니다. JavaScript server는 통과한 결과를 더 이상 `{ valid: true, errors: [] }`로 바꾸지 않고,
@@ -96,22 +106,22 @@
 - record contract는 모든 저장과 검증 응답에서 `hidden`을 기대하고, 레코드 24의 저장은 그 안에서 체크 해제된
   스토어의 메모를 가리킵니다.
 
-## 2026-10-06 — 검증 결과의 public type (C8.3-2)
+### 2026-10-06 — 검증 결과의 public type (C8.3-2)
 
 - build된 package의 public type 검사는 ESM과 CommonJS에서 `validateList`와 `validateDetail`의 결과를
   `ListValidationResult`에 대입하고 `validate`의 `ValidationResult`에서 `hidden`을 읽습니다.
 
-## 2026-10-06 — hiddenPaths의 public build test (C8.1-1)
+### 2026-10-06 — hiddenPaths의 public build test (C8.1-1)
 
 - public build test는 `contracts/features.json`이 선언하는 대로 `@crudui/validator`의 export 중에 `hiddenPaths`를
   기대하고, build된 ESM과 CommonJS entry로 그 결과를 검사합니다.
 
-## 2026-10-06 — 문서화한 검증 결과 type (C8.3-1)
+### 2026-10-06 — 문서화한 검증 결과 type (C8.3-1)
 
 - `@crudui/validator`의 interface `ValidationResult`가 자기 문서 주석을 가지고 `ListValidationResult`의 주석은 하나이므로,
   `validator-ts`의 문서 coverage가 다시 통과합니다.
 
-## 2026-10-06 — pull request와 merge queue로 main에 도달하는 변경 (C6.2)
+### 2026-10-06 — pull request와 merge queue로 main에 도달하는 변경 (C6.2)
 
 - 모든 변경은 pull request와 merge queue를 거쳐 `main`에 도달합니다. branch는 `git push`, `gh pr create`, `gh pr
   merge --auto --rebase`로 게시합니다. 이제 `.github/repository.json`에 선언하고 `make github-settings`로 적용하는
@@ -119,90 +129,90 @@
   요구하며, 설정은 auto-merge를 켜고 merge된 branch를 지웁니다. CI는 pull request와 merge group에서 실행되고,
   `.github/workflows/pages.yml`이 `main`의 문서 웹을 배포합니다.
 
-## 2026-10-06 — 표시 전환의 공유 사례 (C8.5)
+### 2026-10-06 — 표시 전환의 공유 사례 (C8.5)
 
 - 공유 검증 사례가 검증기 다섯 개에서 표시 전환의 서버 결과를 고정합니다. 형제가 전환하는 그룹 subtree와 그
   필수 필드, 같은 값이 전환하는 두 단계 중첩 그룹, 행과 collection 옆의 값이 전환하는 반복 행 안의 그룹입니다.
 
-## 2026-10-06 — 다른 런타임과 같은 Rust 표시 여부 (C8.4)
+### 2026-10-06 — 다른 런타임과 같은 Rust 표시 여부 (C8.4)
 
 - Rust 검증기와 그 표시 여부를 쓰는 Rust 렌더러는 `design.show`를 조건부 매개변수처럼 결정합니다. 문자열은
   완전히 파싱되는 condition expression일 때만 expression이므로 `enabled`는 필드를 보이는 리터럴이고, 삼항식은
   분기 값을 주므로 분기 `0`은 false가 아닙니다.
 
-## 2026-10-06 — 검증 결과의 숨은 경로 (C8.3)
+### 2026-10-06 — 검증 결과의 숨은 경로 (C8.3)
 
 - 검증기 다섯 개의 검증 결과는 `design.show`가 false로 결정되는 필드의 데이터 경로 `hidden`을 담으므로,
   서버는 숨은 가지의 값을 저장하지 않을 수 있습니다. `validateList`와 `validateDetail`의 결과는
   `{ valid, errors }`를 유지하며, TypeScript와 Go 검증기는 이를 `ListValidationResult`라고 부릅니다.
 
-## 2026-10-06 — 상대 경로에서 행은 한 단계 (C8.2)
+### 2026-10-06 — 상대 경로에서 행은 한 단계 (C8.2)
 
 - 상대 경로, 조건부 매개변수, 필드 참조(`equalTo`, `notEqual`, `enddate`)는 검증기 다섯 개와
   렌더러 여덟 개에서 반복 필드의 행을 한 단계로 다룹니다. 그룹 행의 필드에서 `..x`는 행 키가 무엇이든
   collection 옆의 필드를 읽고, 숫자 이름의 필드는 행 키가 아닙니다. 런타임은 경로와 함께 행 키의 위치를
   넘기며, 점이 없는 필드 참조는 `.name`으로 결정됩니다.
 
-## 2026-10-06 — 브라우저 바인딩의 즉시 표시 (C8.1)
+### 2026-10-06 — 브라우저 바인딩의 즉시 표시 (C8.1)
 
 - 브라우저 바인딩은 바인딩할 때와 변경마다 현재 데이터에 대한 `design.show`로 모든 노드의 `hidden`
   속성을 쓰고, 숨게 된 노드와 그 안의 노드의 오류를 지우며, 값은 바꾸지 않습니다.
   `@crudui/validator`의 `hiddenPaths(spec, data)`는 숨은 경로를 반환합니다.
 
-## 2026-10-06 — ref마다 CI 실행 하나 (C7.19)
+### 2026-10-06 — ref마다 CI 실행 하나 (C7.19)
 
 - ref의 새 push는 이전 push의 CI 실행을 취소하고, push 검사는 여전히 push된 모든 commit에 실행됩니다.
 
-## 2026-10-06 — 새 clone에서의 전체 실행 (C5.7)
+### 2026-10-06 — 새 clone에서의 전체 실행 (C5.7)
 
 - `make ci`는 `make install` 뒤의 commit된 commit의 새 clone인 `var/full-run/clone`에서 명령을 실행하므로, working
   tree의 무시되는 출력이 검사에 닿지 않습니다.
 
-## 2026-10-06 — 근거와 함께 닫은 stub stall (C7.13)
+### 2026-10-06 — 근거와 함께 닫은 stub stall (C7.13)
 
 - stub program의 30 s stall은 CI 실행 12번과 local 실행 3번에서 재발하지 않았습니다. 첫 실행은 Linux에서 최대 81 ms,
   macOS에서 최대 979 ms였고, 기록은 남습니다.
 
-## 2026-10-06 — offline 패키지 설치 (C7.16-1)
+### 2026-10-06 — offline 패키지 설치 (C7.16-1)
 
 - `npm run test:packages`의 설치 프로젝트는 `scripts/install-lock.mjs`가 루트 lock에서 만든 lock으로
   `npm ci --offline`을 실행해 설치하므로, 루트 lock의 release를 설치하고 registry에 range를 묻지 않습니다.
 
-## 2026-10-06 — 모든 CI job의 보고서 (C7.18)
+### 2026-10-06 — 모든 CI job의 보고서 (C7.18)
 
 - 모든 CI job은 각 대상을 끝까지 실행하는 `make ci-targets`로 검사를 실행하고, 각 대상의 log와 실패한 대상마다의 첫
   실패 줄을 담은 summary를 올리며, summary는 job summary에도 갑니다.
 
-## 2026-10-06 — checklist 문구 (C7.15-1)
+### 2026-10-06 — checklist 문구 (C7.15-1)
 
 - C7.15와 C7.16 행은 writing 검사가 거부하는 단어 없이 pre-push hook과 문서 job을 서술합니다. 그 단어는 CI의 문서
   job을 실패시켰습니다.
 
-## 2026-10-06 — make를 거치는 CI (C7.17)
+### 2026-10-06 — make를 거치는 CI (C7.17)
 
 - workflow의 모든 step이 make 대상을 실행하므로 Makefile의 offline 설정, checkout npm, download 검사가 CI에 적용됩니다.
   설치 대상, `make toolchain-check TOOLS=...`, 검사 명령마다의 대상이 그것이며, `make ci`는 이를 같은 순서로 실행합니다.
 
-## 2026-10-06 — offline 검사 (C7.16)
+### 2026-10-06 — offline 검사 (C7.16)
 
 - Makefile은 cargo, go, npm, Composer를 offline으로 실행하고, install 대상과 의존성 review만 download합니다.
   `make install-crates`는 모든 Cargo.lock의 crate를 download하며, cargo를 실행하는 대상은 crate가 없으면 먼저 lock과
   `run make install`과 함께 실패합니다. comparison pipeline은 OrderedJSON checkout을 fetch하는 대신
   `make install-ordered-json`의 checkout을 읽습니다.
 
-## 2026-10-06 — 개발은 unit test, 다른 모든 검사는 CI (C7.15)
+### 2026-10-06 — 개발은 unit test, 다른 모든 검사는 CI (C7.15)
 
 - 개발은 변경을 소유한 unit test를 실행하고, end-to-end 검사, `make owner-check`, `make ci`는 push 뒤에 CI에서
   실행하며, commit이나 push 전에 local 검사를 요구하는 규칙은 없습니다. pre-push hook은 checklist 작업이 진행 중인
   동안 여전히 push를 거부합니다.
 
-## 2026-10-06 — Cargo lock의 RustSec 보안 권고 (C5.8-1)
+### 2026-10-06 — Cargo lock의 RustSec 보안 권고 (C5.8-1)
 
 - 의존성 review는 `make install`이 `.tools/cargo-audit`에 설치하는 cargo-audit 0.22.2로 Cargo lock 6개의 보안
   권고를 RustSec에서 읽고 각 lock을 sha256과 함께 기록합니다. `npm run test:dependencies`는 review 뒤에 바뀌었거나
   review 때 보안 권고가 있던 Cargo lock에서 실패합니다.
 
-## 2026-10-06 — 의존성 review (C5.8)
+### 2026-10-06 — 의존성 review (C5.8)
 
 - `npm run test:dependencies`는 registry에 `npm audit`을 실행하는 대신 `config/dependency-review.json`에
   기록된 review와 의존성을 대조하므로, 같은 tree는 어느 날이든 같은 결과를 냅니다. `make dependency-review`는
@@ -210,64 +220,64 @@
   예약된 workflow가 이를 매일 실행합니다. React 19.2.8은 기록된 예외로 유지되고(C5.8-2-1), typescript-eslint는
   첫 review가 찾은 8.71.1로 올라갑니다.
 
-## 2026-10-06 — PHPUnit 13 (C5.8-10)
+### 2026-10-06 — PHPUnit 13 (C5.8-10)
 
 - validator-php와 generator-php는 PHPUnit 13.4.1로 test하고, PHPUnit 12가 `@dataProvider` annotation을 없앴으므로 data
   provider 18개를 attribute `#[DataProvider(...)]`로 선언합니다. 두 suite는 PHPUnit 10.5와 같은 763개, 311개 case를 실행합니다.
 
-## 2026-10-06 — checkout의 file을 읽는 검사 (C7.14)
+### 2026-10-06 — checkout의 file을 읽는 검사 (C7.14)
 
 - ESLint는 Git이 무시하는 모든 경로를 무시하고, 건너뛸 directory 이름 목록을 각자 두고 tree를 돌던 검사는
   `scripts/tracked-files.mjs`로 추적된 file을 읽습니다. 무시되는 `var/` 아래의 `dist` 복사본은 `npm run lint`를 실패시켰고,
   무시되는 directory 아래의 남은 file이 다른 검사를 바꿀 수 있었습니다. `tests/build/tracked-files.test.mjs`는 건너뛸
   directory 이름 목록이 새로 생기면 실패합니다.
 
-## 2026-10-06 — jest-dom 7 (C5.8-9)
+### 2026-10-06 — jest-dom 7 (C5.8-9)
 
 - generator-react는 `@testing-library/jest-dom` 7.0.1로 test합니다. 6.10.0이 breaking change가 있는 minor로 deprecated되어
   6.9.1에 머물렀고, 7은 그 변경을 major로 게시합니다.
 
-## 2026-10-06 — @sveltejs/package 3 (C5.8-8)
+### 2026-10-06 — @sveltejs/package 3 (C5.8-8)
 
 - generator-svelte는 `@sveltejs/package` 3.0.0으로 component를 package합니다. 그 `dist`의 57개 file은 2.5.8의 것과 같습니다.
 
-## 2026-10-06 — 실행 major의 Node.js type 정의 (C5.8-7)
+### 2026-10-06 — 실행 major의 Node.js type 정의 (C5.8-7)
 
 - TypeScript workspace 6개는 기록된 Node.js 26.8.1의 major인 `@types/node` 26.6.4를 씁니다. 이전에는 Node.js 25를
   기술했습니다. `tests/build/runtime-version-policy.test.mjs`는 `.node-version`과 다른 major의 `@types/node` range에 대해
   실패합니다.
 
-## 2026-10-06 — YAML 1.2 core schema의 js-yaml 5 (C5.8-6)
+### 2026-10-06 — YAML 1.2 core schema의 js-yaml 5 (C5.8-6)
 
 - cli와 cross-check console은 이름 있는 `load` export로 js-yaml 5.4.2를 씁니다. 그 기본 schema는 `scripts/check-schema.mjs`의
   `yaml` package처럼 YAML 1.2 core schema입니다. 날짜 모양의 값은 문자열로 남고 `<<`는 평범한 key이며, js-yaml 4는 `Date`를
   읽고 병합했습니다. 각 경로의 case가 이것을 고정합니다.
 
-## 2026-10-06 — tree 전체의 jsdom 30 (C5.8-5)
+### 2026-10-06 — tree 전체의 jsdom 30 (C5.8-5)
 
 - root와 generator-react는 form-binding의 release인 jsdom 30.1.2를 쓰므로, tree에서 29.1.1과 30.1.2 대신 jsdom의 major 하나만
   실행됩니다.
 
-## 2026-10-06 — Vitest event로 밝히는 실패한 Vitest hook (C5.8-4-1)
+### 2026-10-06 — Vitest event로 밝히는 실패한 Vitest hook (C5.8-4-1)
 
 - Vitest reporter는 시작했고 그 file이나 suite가 실패하기 전에 끝나지 않은 hook에 대해 `<hook name> hook of <entity>
   started and failed`를 출력하고, runner case는 Vitest 4에서 5로 문구가 바뀐 Vitest message 대신 hook 이름과 실패한 entity를
   단언합니다. Vitest 5.0.3은 실패한 hook에 `onHookEnd`를 보내지 않고 event를 묶어 보내므로 경과 시간도 실패 종류도
   단언하지 않습니다.
 
-## 2026-10-06 — 기록하는 test stub의 첫 실행 시간 (C7.13-1)
+### 2026-10-06 — 기록하는 test stub의 첫 실행 시간 (C7.13-1)
 
 - `tests/build/checkout-npm.test.mjs`와 `tests/build/install-browsers.test.mjs`의 stub case는 각 stub 첫 실행의 경과
   시간을 기록하므로, 그 증거를 기다리는 C7.13의 30초 정지가 재발하면 스스로 설명됩니다.
 
-## 2026-10-06 — minor 릴리스로 고정한 Python (C7.12)
+### 2026-10-06 — minor 릴리스로 고정한 Python (C7.12)
 
 - `config/toolchain.json`은 `tests/ordered-json`의 test를 실행하는 Python 3.9를 기록하고, `node scripts/check-toolchain.mjs
   python`은 실행 중인 major와 minor를 비교하고 patch를 출력합니다. CI의 build-lint job은 commit SHA로 지정한
   `actions/setup-python`으로 그것을 설치하고 `make test-ordered-json`을 실행하며, `make ci`도 그것을 실행합니다. C7.9 전에는
   어떤 명령도 그 test를 실행하지 않았습니다.
 
-## 2026-10-06 — minor 릴리스로 고정한 PHP (C7.2-3)
+### 2026-10-06 — minor 릴리스로 고정한 PHP (C7.2-3)
 
 - `config/toolchain.json`은 PHP minor 8.4와 8.5를 기록하고, `node scripts/check-toolchain.mjs`는 실행 중인 PHP의 major와
   minor를 그것과 비교합니다. setup-php와 Homebrew는 같은 patch를 설치할 수 없으므로 정확한 patch 기록은 둘 중 하나에서
@@ -275,13 +285,13 @@
   그것을 기록합니다. container image는 digest가 있는 정확한 tag를 유지합니다. local 검사가 이제 PHP를 다루므로 C7.2-1이
   닫힙니다.
 
-## 2026-10-06 — 명령 하나로 설치하는 Chrome sandbox helper (C7.2-4)
+### 2026-10-06 — 명령 하나로 설치하는 Chrome sandbox helper (C7.2-4)
 
 - `scripts/install-browsers.mjs`는 sandbox helper를 `sudo install -o root -g root -m 4755 <chrome_sandbox>
   /usr/local/sbin/chrome-devel-sandbox`로 설치합니다. 이전에는 명령에 `install`을 두 번 넣었으므로 CI의 모든 browser
   job이 browser 설치에서 실패했고 Chrome은 helper 없이 중단했습니다.
 
-## 2026-10-05 — 모든 commit 전의 owner check (C7.9)
+### 2026-10-05 — 모든 commit 전의 owner check (C7.9)
 
 - `make owner-check`는 `scripts/owner-checks.json`이 바뀐 경로의 owner로 선언한 검사를 실행합니다. make 대상, root npm
   script, workspace와 package directory의 test script, node test file이며 full suite는 실행하지 않습니다. owner가 없는
@@ -290,14 +300,14 @@
   소유 검사를 손으로 골랐으므로 AGENTS는 이것을 commit 전의 검사로 정합니다. `make test-ordered-json`은 어떤 명령도 실행하지
   않던 `tests/ordered-json`의 Python unit test를 실행하고, `make install`은 `make docs-check`가 읽는 phpDocumentor를 설치합니다.
 
-## 2026-10-05 — 무엇이 왜 실패했는지 밝히는 실패 (C7.8)
+### 2026-10-05 — 무엇이 왜 실패했는지 밝히는 실패 (C7.8)
 
 - timeout을 넘긴 test는 경과 시간, 한도, runner가 멈추는 명령을 출력하고, 검사의 다른 한도도 명령, 한도, 경과 시간을
   밝힙니다. `scripts/run-tests.mjs`는 시작할 수 없는 tool을 처리되지 않은 오류로 끝나는 대신 그 경로, 오류, 설치 명령으로
   보고하고, test case를 실행하지 않은 Go package는 통과 대신 `ran no test case`로 보고합니다. Rust program과 test의 모든
   file 읽기는 경로와 오류를 밝히며, `tests/build/failure-messages.test.mjs`는 그것을 버리는 읽기에 대해 실패합니다.
 
-## 2026-10-05 — 중지가 끝나면 사라진 process tree (C7.10)
+### 2026-10-05 — 중지가 끝나면 사라진 process tree (C7.10)
 
 - form comparison step runner의 `killProcessTree`는 step의 process가 끝나고 그 output pipe가 닫히면 끝나며, pipe는 그것을 가진
   모든 process가 끝나면 닫힙니다. 이전에는 SIGKILL을 보낸 직후 반환했으므로 다음 step이 멈춘 step의 process를 만날 수 있었습니다.
@@ -305,7 +315,7 @@
   FIFO 대신 Unix socket 연결의 끝을 기다립니다. FIFO의 막히는 open은 stand-in이 시작하지 않으면 test file을 timeout 너머까지
   붙잡았습니다.
 
-## 2026-10-05 — 자신이 잡은 port의 server와 lock된 공유 단계 (C7.11)
+### 2026-10-05 — 자신이 잡은 port의 server와 lock된 공유 단계 (C7.11)
 
 - form comparison의 모든 server는 port 0을 포함한 자기 주소에 bind하고 준비 줄 `CRUDUI_READY {server} {host}:{port}`에 잡은
   주소를 밝힙니다. PHP launcher는 bind한 socket을 nginx에 넘기고, nginx는 변수 `NGINX`에서 그것을 읽습니다. local stack은
@@ -315,7 +325,7 @@
   `make ci`의 guard는 checkout lock `full-run`을 잡으므로, 한 checkout의 두 실행은 동시에 다시 설치하거나 같은 record로 정하지
   않습니다.
 
-## 2026-10-05 — rename으로 게시하는 공유 출력 (C7.6)
+### 2026-10-05 — rename으로 게시하는 공유 출력 (C7.6)
 
 - PHP extension builder는 자기 process의 directory에 compile하고 `<module>.so.<pid>`로 link한 뒤 load하여 검사하고
   module 경로로 rename합니다. 이전에는 먼저 `.build`와 `modules`를 지우고 제자리에 link했으므로 PHP process가 없거나
@@ -325,7 +335,7 @@
   `require-current-build`의 build stamp는 쓴 뒤 rename합니다. `tests/build/atomic-publish.test.mjs`는 모든 공유 출력을
   그 형식으로 유지합니다.
 
-## 2026-10-05 — 자신이나 준비 단계가 만든 것만 읽는 검사 (C7.5)
+### 2026-10-05 — 자신이나 준비 단계가 만든 것만 읽는 검사 (C7.5)
 
 - `make test-php-extension`은 generator-php의 vendor directory를 load하는 test 전에 그 validator 복사본을 다시 설치합니다.
   이전에는 `make test-native-suites`만 그것을 새로 했습니다. `test:build`는 exports로 package를 load하는 test 전에
@@ -333,7 +343,7 @@
   실패합니다. 그 test는 그 script만 쓰는 기록을 읽었습니다. `scripts/run-rust-command.mjs`는 그 directory의 checkout 밖의
   `CARGO_TARGET_DIR`을 거부합니다. cargo는 수정 시각으로 최신 여부를 판단하므로 다른 checkout의 출력을 다시 씁니다.
 
-## 2026-10-05 — 실패 뒤에도 실행되는 script의 모든 검사 (C7.4)
+### 2026-10-05 — 실패 뒤에도 실행되는 script의 모든 검사 (C7.4)
 
 - `test:forms`, `test:form-comparison`, `test:form-comparison:pipeline`, `docs:check:all`, generator-svelte의 `test`
   script, form-binding의 `typecheck` script는 독립된 각 검사를 `|| status=1`로 실행하고 모은 상태로 끝납니다. 이전에는
@@ -343,7 +353,7 @@
   마지막 명령 뒤에 실패합니다. `tests/build/test-commands.test.mjs`는 실패한 검사에서 멈추는 package script나 CI step에
   대해 실패합니다.
 
-## 2026-10-05 — 아무것도 검사하지 않는 실행의 실패 (C7.3)
+### 2026-10-05 — 아무것도 검사하지 않는 실행의 실패 (C7.3)
 
 - `scripts/run-tests.mjs`는 test case가 하나도 통과, 실패, 시간 초과하지 않은 go, cargo, phpunit 실행을, Vitest
   reporter는 그런 vitest 실행을 `ran no test case`로 실패시킵니다. `scripts/run-contract-tests.mjs`는 선택한 feature가
@@ -352,19 +362,19 @@
   image가 Debian PHP 8.4를 설치하는 동안 하나도 없는 `FROM php:` 단계를 돌았습니다. 이제 두 image는 PHP를 기록한
   8.5.11의 `php` image에서, Composer를 `composer` 2.10.3 image에서 각각 digest로 받고, PHP extension build는
   `/usr/local/bin/php-config`를 씁니다.
-## 2026-10-05 — Tailwind style 검사의 보이는 page 하나 (C5.11)
+### 2026-10-05 — Tailwind style 검사의 보이는 page 하나 (C5.11)
 
 - `tests/tailwind-styles.test.mjs`는 `crudui.css`와 Tailwind 판의 style을 engine과 너비마다 page 하나에서 계산하며, 그
   page는 두 stylesheet를 담고 `media`로 하나를 적용합니다. test는 한 browser에서 page 둘을 열었고 첫 page는 Chromium과
   Firefox에서 hidden이었으며, memory 압박에서 hidden Chromium page의 호출은 page-in을 최대 44.2 s 기다려 case의 timeout을
   넘겼습니다. 이제 각 호출은 page가 보이고 요청한 stylesheet만 적용될 때만 진행합니다.
 
-## 2026-10-05 — digest 단계를 받아들이는 toolchain image test (C7.2-2)
+### 2026-10-05 — digest 단계를 받아들이는 toolchain image test (C7.2-2)
 
 - `examples/form-comparison/check-toolchain.test.mjs`는 비교 image의 단계를 digest가 있는 기록한 release로 요구합니다.
   C7.2는 단계를 바꿨고, 이 test가 여전히 release 계열을 요구하는 동안 commit되었습니다.
 
-## 2026-10-05 — 모든 곳의 정확한 toolchain version (C7.2)
+### 2026-10-05 — 모든 곳의 정확한 toolchain version (C7.2)
 
 - specification은 release channel 대신 정확한 version을 기록합니다. channel은 실행의 toolchain을 그 날짜에 따라
   달라지게 했습니다. `.node-version`은 26.8.1, `.go-version`은 모든 `go.mod`의 `toolchain` 줄과 함께 1.27.0,
@@ -379,12 +389,12 @@
   함께 실행됩니다. Linux style 검사는 `.node-version`의 Node.js archive를 받아 SHA-256을 검사합니다.
   `scripts/run-contract-tests.mjs`는 login shell 대신 `sh -c`를 실행합니다.
 
-## 2026-10-05 — test 복사본의 checkout npm module (C7.7-1)
+### 2026-10-05 — test 복사본의 checkout npm module (C7.7-1)
 
 - `tests/build/rust-node-entry-points.test.mjs`와 `tests/build/run-command.test.mjs`는 C7.7부터 그것을 import하는
   script와 함께 `scripts/checkout-npm.mjs`를 복사합니다. 그것이 없는 임시 checkout에서 script가 load에 실패했습니다.
 
-## 2026-10-05 — machine이 아닌 checkout의 npm (C7.7)
+### 2026-10-05 — machine이 아닌 checkout의 npm (C7.7)
 
 - `node scripts/install-npm.mjs`는 `packageManager`의 npm release를 `npm install --prefix`로 임시 directory에
   설치한 뒤 제자리로 rename하여 checkout의 무시되는 `.tools/npm`에 두고, `npm install --global`은 실행하지 않습니다.
@@ -394,31 +404,31 @@
   script는 `scripts/checkout-npm.mjs`의 `useCheckoutNpm`을 호출하고, 모든 CI job은 첫 npm 명령 전에 그 directory를
   `GITHUB_PATH`에 더합니다. `tests/build/checkout-npm.test.mjs`는 다른 모든 형식에 대해 실패합니다.
 
-## 2026-10-05 — 모든 make에서 같게 읽히는 make dry run (C7.1)
+### 2026-10-05 — 모든 make에서 같게 읽히는 make dry run (C7.1)
 
 - test는 Makefile 대상의 명령을 `tests/build/make-dry-run.mjs`의 `makeDryRun`으로 읽습니다. 이것은 `MAKEFLAGS=w`를 설정하고
   상위 make의 변수를 지운 채 `make --no-print-directory -n`을 실행합니다. 다른 make 안의 GNU Make 4는 명령 앞뒤에
   `Entering directory` 줄을 출력했으므로 `tests/build/full-run.test.mjs`가 그곳에서 실패했습니다.
   `tests/build/make-dry-run.test.mjs`는 helper 밖의 make dry run에 대해 실패합니다.
 
-## 2026-10-05 — 19.2.8에 둔 React (C5.8-2-1)
+### 2026-10-05 — 19.2.8에 둔 React (C5.8-2-1)
 
 - React와 React DOM을 19.2.8로 고정합니다. React 19.3.0은 React renderer가 render하는 widget script의 `<script>` 요소에
   browser 오류를 보고하므로, C5.8-2가 React를 올린 뒤 `tests/widget-script-runs.test.mjs`의 React case가 세 browser에서
   실패했습니다. 갱신은 React renderer가 client render에서 `<script>` 요소 없이 widget script를 실행하게 되면 다시
   시도합니다.
 
-## 2026-10-05 — Vitest 5 (C5.8-4)
+### 2026-10-05 — Vitest 5 (C5.8-4)
 
 - root와 workspace 8개는 Vitest 5.0.3으로 test합니다. Vitest 5는 실패한 hook을 stack의 `Error:` 접두어와 함께 출력하며,
   제한 시간을 넘긴 Vitest hook에 대한 runner case는 그 접두어를 받아들입니다.
 
-## 2026-10-05 — workspace compiler의 TypeScript 7 (C5.8-3)
+### 2026-10-05 — workspace compiler의 TypeScript 7 (C5.8-3)
 
 - TypeScript workspace 7개는 TypeScript 7.0.2로 build하고 type 검사를 합니다. typescript-eslint, typedoc, svelte-check,
   `@sveltejs/package`는 7보다 낮은 peer range를 선언하므로 npm이 root에 그 peer로 설치하는 TypeScript 6.0.3을 씁니다.
 
-## 2026-10-05 — 자기 major의 최신 release로 올린 의존성 (C5.8-2)
+### 2026-10-05 — 자기 major의 최신 release로 올린 의존성 (C5.8-2)
 
 - root와 workspace manifest의 npm 의존성 19개와 두 Composer package의 PHPUnit을 잠긴 major의 최신 stable release로
   올렸습니다. `puppeteer` 25.12.0, `eslint` 10.12.0, `react`와 `react-dom` 19.3.0, `vite` 8.3.2, PHPUnit 10.5.66이
@@ -426,7 +436,7 @@
   `puppeteer@25.12.0`을 밝힙니다. `@testing-library/jest-dom`은 게시자가 6.10.0을 breaking change가 있는 minor
   release로 deprecated했으므로 6.9.1에 남습니다.
 
-## 2026-10-05 — local, CI, image의 하나의 npm release (C5.2-2)
+### 2026-10-05 — local, CI, image의 하나의 npm release (C5.2-2)
 
 - `package.json`의 `packageManager`는 npm 12.2.0을 기록하고, `node scripts/install-npm.mjs`는 정확히 그 release를
   설치합니다. 모든 CI job은 npm보다 먼저 이것을 실행하고, native test image와 비교 서비스 image는 같은 release를
@@ -434,14 +444,14 @@
   통과한 test를 깨뜨렸습니다. `tests/build/runtime-version-policy.test.mjs`는 실행 중인 npm, workflow step, container
   정의가 다른 release를 고르면 실패합니다.
 
-## 2026-10-05 — 실패 뒤에도 실행하는 recipe의 모든 검사 (C5.10)
+### 2026-10-05 — 실패 뒤에도 실행하는 recipe의 모든 검사 (C5.10)
 
 - `make docs-check-documents`와 `make format-check`는 recipe의 모든 검사를 `|| status=1`로 실행하고 모은 상태로 끝납니다.
   make는 처음 실패한 recipe 줄에서 멈추므로, `npm run manifest:check`가 실패하면 다른 문서 검사, 문서 test, 문서 build를
   건너뛰었고, rustfmt와 다른 첫 Rust crate는 다른 crate와 gofmt를 건너뛰게 했습니다. `tests/build/test-commands.test.mjs`는
   대상의 첫 검사 뒤의 recipe 줄, 검사의 `|| exit`, `status=1`을 설정하지 않는 검사에 대해 실패합니다.
 
-## 2026-10-05 — 등록된 node:test case는 실행되거나 file이 실패합니다 (C5.9)
+### 2026-10-05 — 등록된 node:test case는 실행되거나 file이 실패합니다 (C5.9)
 
 - `scripts/run-tests.mjs`는 모든 `node:test` file의 process에 `scripts/test-progress/load-check.mjs`를 preload하며, 이
   module은 module의 evaluation이 끝나기 전에 process가 끝난 file을 실패시킵니다. node reporter는 case를 하나도 보고하지
@@ -451,14 +461,14 @@
   case가 혼자 실행되었고 `--test-name-pattern`을 주면 case가 실행되지 않았는데 file이 통과했습니다. engine.test는 이제
   fixture를 동기로 읽고 Unicode data generator를 정적으로 import합니다.
 
-## 2026-10-05 — npm 12의 npm pack report (C5.2-1)
+### 2026-10-05 — npm 12의 npm pack report (C5.2-1)
 
 - `tests/build/shared-resources.test.mjs`의 dist lock test는 `scripts/package-install-pack.mjs`의 `packReport`로
   `npm pack` report를 읽습니다. `packReport`는 npm 11의 배열과 npm 12의 package 이름을 key로 하는 object를 읽고, 기대한
   archive 수와 package 이름으로 실패합니다. CI가 최신 npm으로 설치하는 npm 12에서 test는 무엇을 기대했는지 말하지 않는
   `TypeError: object is not iterable`로 실패했습니다.
 
-## 2026-10-05 — 작업이 진행 중인 동안 거부되는 push (C6.1)
+### 2026-10-05 — 작업이 진행 중인 동안 거부되는 push (C6.1)
 
 - 추적되는 pre-push hook `.githooks/pre-push`는 `node scripts/push-gate.mjs hook`을 실행합니다. 이 entry는 push되는 모든
   commit과 working tree의 checklist를 `scripts/full-run.mjs`의 `activeItems`로 읽고, 작업이 `[~]`인 동안 각 작업의 ID와
@@ -470,14 +480,14 @@
   `node scripts/push-gate.mjs commit`을 실행하고, 진행 중인 작업이 있거나 checklist가 없거나 실행 가능한 hook이 없는 commit에
   실패하므로, hook을 거치지 않은 push는 이 job을 실패시킵니다.
 
-## 2026-10-05 — 경고와 함께 쓰인 comma locale (C5.6)
+### 2026-10-05 — 경고와 함께 쓰인 comma locale (C5.6)
 
 - engine test는 Linux의 comma locale build를 그 결과로 보고합니다. `localedef -c`는 경고와 함께 locale을 쓰면 status 1로
   끝나고, step은 test가 통과하기 전에 `comma locale: compiling: failed (1)`을 출력했습니다. 이제 `LC_NUMERIC`이 쓰인
   status 1은 `wrote the locale with warnings (exit 1)`로 보고되고, 0이 아닌 다른 status는 build를 실패시킵니다.
   `packages/php-ext/tests/engine.test.mjs`의 case는 stub `localedef`로 build를 실행합니다.
 
-## 2026-10-05 — 빠진 conformance evidence의 suite (C5.5)
+### 2026-10-05 — 빠진 conformance evidence의 suite (C5.5)
 
 - `scripts/check-conformance.mjs`는 evidence가 빠졌거나 실패한 기능, fixture, runtime마다 그 runtime을 증명하는 모든
   suite를 상태와 함께 적습니다. 상태는 실행되지 않음, 끝나지 않음, 종료 상태와 함께 실패로 끝남, 통과입니다.
@@ -486,28 +496,28 @@
   runtime을 선언합니다. 이전 검사는 native suite가 실행되지 않았을 때 runtime마다 `185 missing`을 보고했고 이유를 말하지
   않았습니다. evidence file 수는 더 이상 `runs` directory를 세지 않습니다.
 
-## 2026-10-05 — engine test의 하나의 compiler 명령 (C5.4)
+### 2026-10-05 — engine test의 하나의 compiler 명령 (C5.4)
 
 - `packages/php-ext/tests/engine.test.mjs`의 모든 C program은 math library를 link하는 `compileAndRunEngineProgram`으로
   compile됩니다. template test와 value test는 compiler 명령을 따로 썼고, `-lm`이 없는 template test는 Linux에서
   `undefined reference to 'log10'`로 실패했습니다. macOS는 math 함수를 system library에 둡니다. file의 case는 file에
   compiler 명령이 둘 이상이거나 그 명령이 `-lm`을 link하지 않으면 실패합니다.
 
-## 2026-10-05 — 긴 C string의 문자 상수 (C5.3)
+### 2026-10-05 — 긴 C string의 문자 상수 (C5.3)
 
 - `packages/php-ext/tests/engine.test.mjs`의 `cString`은 4000 byte보다 긴 값의 각 byte를 octal escape의 문자 상수로
   씁니다. 이전에는 byte를 정수로 써서 127보다 큰 UTF-8 byte가 `char`를 초기화했고, GCC는 render fixture를
   `-Werror=overflow`로 실패시켰습니다. Apple clang은 두 형식을 모두 받아들입니다. file의 case는 initializer에 127보다
   큰 정수가 있으면 실패하고 문자 상수를 값의 byte로 되돌려 비교합니다.
 
-## 2026-10-05 — build 결과물 없이 실행하는 dist lock test (C5.2)
+### 2026-10-05 — build 결과물 없이 실행하는 dist lock test (C5.2)
 
 - `tests/build/shared-resources.test.mjs`는 임시 checkout에서 build하고 pack하는 fixture package로 `dist` lock을
   확인합니다. CI는 `npm run build`보다 먼저 `npm run test:runtimes`를 실행하고, test는
   `packages/generator-html/dist`에 대한 `ENOENT`로 실패했으며 local 실행은 이전 build의 `dist`를 읽었습니다. build
   결과물이 없는 worktree에서 test는 변경 전에 실패했고 변경 후 통과합니다.
 
-## 2026-10-05 — 실패 뒤에도 실행하는 모든 검사 (C5.1)
+### 2026-10-05 — 실패 뒤에도 실행하는 모든 검사 (C5.1)
 
 - 검사 명령을 실행하는 모든 workflow step은 `if: ${{ !cancelled() }}`를 가지며, `make test-native`와 `make docs-check`는
   각 test 대상을 `$(MAKE) <target> || status=1`로 실행하고 모은 상태로 끝납니다. CI는 step 하나가 실패한 뒤
@@ -518,20 +528,20 @@
   test 명령이 실패할 때 `make test-native`를 실행합니다. `tests/build/dependency-health.test.mjs`의 native import 검사는
   `test-native`의 recipe 줄만 읽어 빈 목록을 검사했습니다. 이제 prerequisite와 `$(MAKE)` 대상을 따라가고 빈 목록이면 실패합니다.
 
-## 2026-10-05 — 제목과 작업 table만 둔 checklist (C4.1-2)
+### 2026-10-05 — 제목과 작업 table만 둔 checklist (C4.1-2)
 
 - execution checklist에는 제목과 작업 table만 있고, `scripts/check-documents.mjs`는 다른 줄에 대해 file, 줄, 열을 적고
   실패합니다. checklist에는 번역 link, 내용을 설명하는 문단, 사용법 규칙, wave마다 의존과 배경을 적은 문단이 있었고
   그런 문장을 작업과 구별하는 검사가 없었습니다. 규칙은 AGENTS에, wave의 의존과 배경은 각 wave 제목이 link하는
   `docs/plans/waves.md`에 있습니다. `scripts/checklist-markers.test.mjs`의 case는 변경 전에 실패했습니다.
 
-## 2026-10-05 — 상태 표시로 다루는 task list 상태 (C4.1-1)
+### 2026-10-05 — 상태 표시로 다루는 task list 상태 (C4.1-1)
 
 - `scripts/check-documents.mjs`는 execution checklist에서 작업 행의 상태가 아닌 대괄호 안의 x나 대문자 X에 대해서도
   실패합니다. Markdown reader가 이 형식을 task list 상태로 읽기 때문입니다. `scripts/checklist-markers.test.mjs`의
   case는 검사가 두 형식을 보고하지 않아 변경 전에 실패했습니다.
 
-## 2026-10-05 — 작업 상태로만 쓰는 작업 상태 표시 (C4.1)
+### 2026-10-05 — 작업 상태로만 쓰는 작업 상태 표시 (C4.1)
 
 - 작업 상태 표시는 execution checklist에서 작업 행 마지막 칸 첫머리의 상태로만 쓰입니다. checklist의 범례와 C2.1-2의
   문장이 inline code로 표시를 적었으므로, 표시를 세는 도구가 존재하지 않는 진행 중 작업을 셌습니다. 이제
@@ -539,7 +549,7 @@
   상태를 정의하며, 문장은 상태를 말로 적습니다. `scripts/checklist-markers.test.mjs`는 변경 전 `ERR_MODULE_NOT_FOUND`로
   실패했고, 그 fixture는 이전 문서 검사를 통과했습니다.
 
-## 2026-10-05 — 전체 실행의 guard (C2.1-2)
+### 2026-10-05 — 전체 실행의 guard (C2.1-2)
 
 - `make ci`는 어떤 명령보다 먼저 guard `scripts/full-run.mjs`를 시작합니다. AGENTS는 전체 suite를 활성 작업이 모두 끝났을 때 정확히 한
   번 실행한다고 적지만 이를 강제하는 것이 없었습니다. `make ci`는 진행 중인 작업이 있을 때, 커밋되지 않은 변경이 있을 때, 이미 검증한 tree에서도 명령을
@@ -549,47 +559,47 @@
   다시 실행하고 통과한 명령의 적합성 증거를 유지합니다. `tests/build/full-run.test.mjs`는 변경 전 `ERR_MODULE_NOT_FOUND`로 실패했고,
   변경 뒤 그 11개 case가 stub 명령으로 통과합니다.
 
-## 2026-10-05 — test process 종료 시 멈추는 local server (C2.19)
+### 2026-10-05 — test process 종료 시 멈추는 local server (C2.19)
 
 - form comparison test의 local stack은 test process가 server를 멈추지 않고 종료하면 시작한 server의
   process group을 멈춥니다. stop hook이 시간 초과되고 process가 강제 종료된 pipeline test가 record
   server를 몇 시간 동안 남겼습니다.
 
-## 2026-10-05 — 모든 배포의 변경 신호 (C2.10-2)
+### 2026-10-05 — 모든 배포의 변경 신호 (C2.10-2)
 
 - `make deploy`는 어느 mode에서든 빌드를 기다리기 전에 supervisor에 신호합니다. containerctl도 이전
   checkout에서 시작한 supervisor의 바뀌지 않은 container를 재사용하기 때문입니다.
 
-## 2026-10-05 — supervisor 시작부터 답하는 서비스 port (C2.13-3)
+### 2026-10-05 — supervisor 시작부터 답하는 서비스 port (C2.13-3)
 
 - comparison supervisor는 시작부터 port 8080에서 listen하고, 공개 서버에 port를 넘길 때까지 빌드 상태와
   함께 503으로 답합니다. containerctl은 container 시작 후 1분 안에 서비스 port를 확인하므로, C2.13-2가
   없앤 healthcheck 없이는 빈 볼륨의 첫 빌드가 그 1분을 넘겨 `make deploy`가 연결에서 실패했습니다.
 
-## 2026-10-05 — 재사용하는 배포의 변경 신호 (C2.10-1)
+### 2026-10-05 — 재사용하는 배포의 변경 신호 (C2.10-1)
 
 - container를 재사용하는 `make deploy`는 빌드를 기다리기 전에 실행 중인 supervisor에 신호하므로, 새
   commit을 source 감시기 없이 비교합니다. 전에는 이전 commit의 ready 상태에서 기다렸습니다.
   `make deploy-watch`는 `SIGINT`나 `SIGTERM`에서 전달한 신호 수를 적은 줄과 함께 멈춥니다.
 
-## 2026-10-05 — route된 comparison container의 재사용 (C2.18-1)
+### 2026-10-05 — route된 comparison container의 재사용 (C2.18-1)
 
 - 배포는 containerctl이 `crudui.test`를 route할 때만 실행 중인 comparison container를 재사용하고,
   아니면 containerctl로 정의를 적용합니다. 전에는 실행 중인 container의 image가 같아서 바뀐 route가
   적용되지 않았습니다.
 
-## 2026-10-05 — x-containerctl 아래의 comparison service route (C2.18)
+### 2026-10-05 — x-containerctl 아래의 comparison service route (C2.18)
 
 - comparison service의 Compose 정의는 domain을 `x-containerctl.domains`에 적고, 배포 검사는
   `containerctl status --json`의 `domains`와 `urls`를 읽습니다. containerctl은 그 domain만 route하므로
   `containerctl.domain` label은 service를 internal로 남겼고 `make deploy`가 route에서 실패했습니다.
 
-## 2026-10-05 — comparison image의 Chromium (C2.17)
+### 2026-10-05 — comparison image의 Chromium (C2.17)
 
 - comparison toolchain image는 `chromium`과 `chromium-sandbox` `154.0.8037.92-1~deb13u1`을 설치합니다.
   Debian이 고정한 `153.0.8010.47-2~deb13u1`을 교체해서 `make deploy`의 image build가 실패했습니다.
 
-## 2026-10-05 — 한도 없는 form comparison step (C2.13-2)
+### 2026-10-05 — 한도 없는 form comparison step (C2.13-2)
 
 - form comparison의 step은 끝까지 실행하고 종료 상태로 판정합니다. step runner는 전체 한도나 비활동
   한도를 거부하고, build target, verification 검사, local build, host verification, deployment step은
@@ -597,13 +607,13 @@
   배포는 대신 checkout의 build 상태를 기다립니다. 소스 비교와 OrderedJSON checkout의 Git 호출에는
   timeout이 없습니다. 검사 안의 단위는 자기 한도를 유지합니다.
 
-## 2026-10-05 — 종료된 group의 process tree 멈춤 (C2.16)
+### 2026-10-05 — 종료된 group의 process tree 멈춤 (C2.16)
 
 - form comparison의 `killProcessTree`는 멈춘 process의 group에 종료된 process만 남아 있어도
   완료합니다. macOS가 종료되었지만 아직 회수되지 않은 group에 답하는 EPERM은 멈출 것이 없음을
   뜻합니다. 전에는 tree를 kill한 뒤 `kill EPERM`으로 실패했습니다.
 
-## 2026-10-05 — host에서 게시하는 source 변경 (C2.10)
+### 2026-10-05 — host에서 게시하는 source 변경 (C2.10)
 
 - form comparison supervisor는 1초마다가 아니라 `SIGUSR2`마다 mount된 저장소를 비교합니다. host의
   source 감시기 `source-events.mjs`(`make deploy-watch`)는 working tree의 file event를 구독하고 event마다
@@ -613,13 +623,13 @@
   `tests/build/test-commands.test.mjs`는 sleep하거나 진행 줄을 출력하지 않는 interval을 실행하는
   program에서 실패합니다.
 
-## 2026-10-05 — process 줄로 ready가 되는 PHP record server (C2.15)
+### 2026-10-05 — process 줄로 ready가 되는 PHP record server (C2.15)
 
 - `servers/php/main.mjs`는 PHP-FPM이 `NOTICE: ready to handle connections`를, `notice` log level의
   nginx가 `start worker processes`를 쓰면 ready가 되고, 그 standard error를 복사합니다. 전에는 20 ms마다
   연결을 시도하고 10초 start 한도 뒤에 실패했습니다.
 
-## 2026-10-05 — 한도 없는 form comparison 대기 (C2.13-1)
+### 2026-10-05 — 한도 없는 form comparison 대기 (C2.13-1)
 
 - build readiness 대기에는 비활동 한도와 step 한도가 없습니다. 이 source가 ready이면 끝나고, 실패한
   주기나 감시·읽기·해석할 수 없는 state file에서 실패하며, 새 step마다와 15초마다 줄을 출력합니다.
@@ -627,13 +637,13 @@
   event를 기다리며 15초마다 줄을 출력합니다. browser 검사와 pipeline 검사의 browser start와 close는
   `runOperation`으로 한도 없이 실행하고, browser report의 unit은 자기 한도를 유지합니다.
 
-## 2026-10-05 — benchmark를 실패시키는 version 명령 실패 (C2.14)
+### 2026-10-05 — benchmark를 실패시키는 version 명령 실패 (C2.14)
 
 - `tools/bench/run.js`는 version 명령이 실패하거나 version을 출력하지 않으면 명령, 실패, 출력과 함께
   실패하고, `results.md`는 실행된 backend의 도구 version을 기록합니다. 전에는 실패한 version을
   `unavailable`, 빈 출력을 `unknown`으로 기록했고, 모든 실행에서 네 도구의 version을 조회했습니다.
 
-## 2026-10-05 — dist lock 아래의 package build와 pack (C3.5)
+### 2026-10-05 — dist lock 아래의 package build와 pack (C3.5)
 
 - build되는 모든 package의 build script는 `node ../../scripts/package-dist.mjs build '<command>'`이며,
   build 내내 checkout lock `dist-<package folder>`를 잡습니다. `tsup --clean`과 `svelte-package`는
@@ -645,7 +655,7 @@
   시각에서 읽습니다. package를 build하는 comparison의 toolchain image에는 `ps`가 없기 때문입니다. 다른
   system은 `ps`를 씁니다.
 
-## 2026-10-05 — comparison deployment의 holder lock (C3.4)
+### 2026-10-05 — comparison deployment의 holder lock (C3.4)
 
 - `make deploy`와 `make deploy-verify`는 다른 step보다 먼저 user 범위 holder lock
   `form-comparison-deployment`를 잡고 끝날 때 해제합니다. deployment는 user account에 하나뿐인 Compose
@@ -655,7 +665,7 @@
   `process.exit` 뒤에도 lock을 해제합니다. `examples/form-comparison/check-deployment-lock.test.mjs`는
   `npm run test:form-comparison:source`에서 실행됩니다.
 
-## 2026-10-05 — holder lock 아래에서 유지하는 Playwright image (C3.3)
+### 2026-10-05 — holder lock 아래에서 유지하는 Playwright image (C3.3)
 
 - `make test-form-styles-linux`는 Playwright image를 남겨 둡니다. 전에는 image를 받은 실행이 끝날 때,
   다른 checkout의 실행이 아직 image를 쓰는 동안에도 image를 지웠습니다. 이제 container는
@@ -664,7 +674,7 @@
   실행되는 동안에는 거부됩니다. `node scripts/holder-lock.mjs user-lock-file <name>`은 user 범위 lock의
   path를 출력합니다.
 
-## 2026-10-05 — 하나뿐인 resource의 holder lock (C3.2)
+### 2026-10-05 — 하나뿐인 resource의 holder lock (C3.2)
 
 - `scripts/holder-lock.mjs`는 한 번에 한 실행만 쓸 수 있는 resource를 잡습니다. lock file의 record는
   holder의 checkout, pid, process 시작 시각, 시각과 command를 밝힙니다. record는 모두 쓴 뒤 lock path로
@@ -676,7 +686,7 @@
   `~/.local/state/crudui/locks/` 아래에 있습니다. `tests/build/holder-lock.test.mjs`는
   `npm run test:runtimes`에서 실행됩니다.
 
-## 2026-10-05 — documentation 실행마다 따로 쓰는 snapshot directory (C3.1)
+### 2026-10-05 — documentation 실행마다 따로 쓰는 snapshot directory (C3.1)
 
 - `make docs-verify-idempotent`는 두 snapshot과 그 차이를 실행이 `mktemp -d`로 만들고 끝날 때 지우는
   directory에 씁니다. 전에는 고정 path `/tmp/crudui-docs-run1`, `/tmp/crudui-docs-run2`,
@@ -684,33 +694,33 @@
   썼습니다. `npm run test:runtimes`가 실행하는 `tests/build/shared-resources.test.mjs`는 `/tmp` 아래의
   고정 path를 쓰는 Makefile 줄에서 실패합니다.
 
-## 2026-10-05 — pipe로 만나는 stage step (C2.9-1)
+### 2026-10-05 — pipe로 만나는 stage step (C2.9-1)
 
 - step runner test에서 한 stage의 두 step은 named pipe의 두 끝을 열므로, stage는 둘이 동시에 실행될
   때만 끝납니다. 전에는 directory watch로 서로의 file을 기다렸고, macOS에서 그 event stream은 늦게
   시작해 10번 중 4번 file을 잃었습니다.
 
-## 2026-10-05 — local pipeline stack의 setup 계약 (C2.7-2)
+### 2026-10-05 — local pipeline stack의 setup 계약 (C2.7-2)
 
 - `check-verification.test.mjs`는 pipeline과 record store test가 `scripts/test-progress/hooks.mjs`의
   `setup`과 `teardown`으로 stack과 browser를 시작하고 멈추며 자기 hook을 등록하지 않는지 확인합니다.
   전에는 C2.7-1이 pipeline test에서 없앤 `browser-start`와 `browser-close` 한도를 요구했습니다.
 
-## 2026-10-05 — state file 자체를 감시하는 readiness 대기 (C2.4-1)
+### 2026-10-05 — state file 자체를 감시하는 readiness 대기 (C2.4-1)
 
 - form comparison의 readiness 대기는 build state file 자체를 감시하며(`watchStateFile`), 그 watch는
   돌아올 때 등록되어 있고, 교체될 때마다 읽기 전에 새 file을 감시합니다. 전에는 file의 directory를
   감시했고, macOS에서 그 event stream은 `fs.watch`가 돌아온 뒤에 시작하므로 대기 시작 직후의 교체를
   잃을 수 있었습니다. 실제 file case는 부하에서 10번 중 5번 실패했고, 이제 20번 모두 통과합니다.
 
-## 2026-10-05 — viewport와 Tailwind 검사의 render case별 test (C2.11)
+### 2026-10-05 — viewport와 Tailwind 검사의 render case별 test (C2.11)
 
 - `tests/viewport.test.mjs`와 `tests/tailwind-styles.test.mjs`는 각 engine과 폭의 page를 suite의
   setup에서 열고, 432개 공유 render case를 각각 runner의 30초 timeout을 가진 test로 실행합니다. 전에는
   engine과 폭마다 모든 case를 300초나 600초 timeout의 test 하나 안에서 실행하고 시작과 끝만
   출력했습니다.
 
-## 2026-10-05 — log를 남기는 단계의 재현 가능한 build (C2.12)
+### 2026-10-05 — log를 남기는 단계의 재현 가능한 build (C2.12)
 
 - `npm run test:build:repeat`는 `scripts/repeat-build.mjs`로 package를 두 번 build합니다. 이는 시간
   한도 없이 log를 남기는 단계로, 각 build 뒤에 공개 package의 모든 산출물 file 경로와 SHA-256을
@@ -718,7 +728,7 @@
   30초 timeout 아래에서 비교합니다. 전에는 막는 `execFileSync`로 두 build를 120초 test case 하나 안에서
   실행했습니다.
 
-## 2026-10-05 — 하나의 pool에서 실행하는 native generator check (C2.8)
+### 2026-10-05 — 하나의 pool에서 실행하는 native generator check (C2.8)
 
 - `tests/native-generators/run.mjs`는 어떤 check보다 먼저 build 단계에서 Go와 Rust 프로그램을 한 번
   build하며, build 도구의 출력, 5초마다의 줄과 함께 시간 한도 없이 실행합니다. 300초와 900초의 준비
@@ -728,7 +738,7 @@
   차례로 실행되었고 javascript, html, php, php-native target은 요청마다 interpreter를 시작하므로
   suite는 962.5초가 걸렸고 거의 모두 check에 들었습니다. 같은 4428개 check가 이제 199.8초에 통과합니다.
 
-## 2026-10-05 — hook timeout 없는 setup (C2.7-1)
+### 2026-10-05 — hook timeout 없는 setup (C2.7-1)
 
 - `scripts/test-progress/hooks.mjs`가 `scripts/test-progress/teardown.mjs`를 대신하며 `setup`을
   더합니다. 이는 timeout이 `Infinity`인 파일, suite, test의 `before` hook으로, launch, start, compile이
@@ -739,7 +749,7 @@
   필요로 하는 1초 protocol timeout으로 한 번 더 connect합니다. cross-check console
   server와 form binding의 Vitest `beforeAll` hook은 timeout `Infinity`를 가집니다.
 
-## 2026-10-05 — 경과 시간 한도 대신 원인 확인 (C2.9)
+### 2026-10-05 — 경과 시간 한도 대신 원인 확인 (C2.9)
 
 - 어떤 test도 경과 시간에 한도를 두지 않습니다. `tests/build/test-commands.test.mjs`는 경과 시간을
   0이 아닌 값과 비교하는 `assert.ok`에서 실패합니다. `tests/build/run-tests.test.mjs`의 runner timeout
@@ -748,7 +758,7 @@
   멈춤으로만 끝나고, 한 stage의 두 step은 서로의 file이 생겨야만 끝나며, 너무 큰 저장은 413과 case
   자신의 timeout에 의존합니다. assertion 10개가 wall-clock 시간을 0.5초에서 20초 사이로 제한했습니다.
 
-## 2026-10-05 — hook timeout 없는 teardown (C2.7)
+### 2026-10-05 — hook timeout 없는 teardown (C2.7)
 
 - `scripts/test-progress/teardown.mjs`의 `teardown`은 browser close, server stop, directory 삭제를
   timeout이 `Infinity`인 파일이나 test의 `after` hook으로 등록합니다. close가 resolve되거나 process가
@@ -760,7 +770,7 @@
   pipeline test의 server stop이 10초를, inspector test의 browser close가 30초를 넘었습니다.
   `tests/build/teardown.test.mjs`는 1.5초 걸리는 teardown을 1초 test timeout으로 실행합니다.
 
-## 2026-10-05 — 한도 없는 장기 작업의 명령 (C2.3-1)
+### 2026-10-05 — 한도 없는 장기 작업의 명령 (C2.3-1)
 
 - `scripts/run-command.mjs`가 `scripts/bounded-command.mjs`를 대신합니다. 명령을 시간 한도 없이
   종료까지 실행하고, 종료 상태를 결과로 삼으며, 명령이 끝나면 그 process group에 남긴 process를
@@ -773,7 +783,7 @@
   `tests/build/run-command.test.mjs`가 `tests/build/bounded-commands.test.mjs`를 대신하며, 남은 자식의
   멈춤을 시간 한도 대신 script 출력의 close로 확인합니다.
 
-## 2026-10-05 — 시간 한도 없는 CI (C2.2-1)
+### 2026-10-05 — 시간 한도 없는 CI (C2.2-1)
 
 - CI workflow에는 `timeout-minutes`가 없습니다. step은 test를 실행하거나(각 case는
   `scripts/run-tests.mjs`에서 자기 timeout을 가집니다) 장기 작업(checkout, toolchain setup, install,
@@ -783,7 +793,7 @@
   `tests/build/test-commands.test.mjs`는 `timeout-minutes`를 가진 job이나 step에서 실패합니다. 전에는
   test를 실행하지 않는 모든 step에 그것을 요구했습니다.
 
-## 2026-10-05 — timeout 없는 장기 작업 (C2.1-1)
+### 2026-10-05 — timeout 없는 장기 작업 (C2.1-1)
 
 - AGENTS는 장기 작업(build, install, toolchain setup, browser close, server stop, 전체 suite)에
   상세 step log를 두고 timeout을 두지 않으며, 출력 없음 한도도 두지 않습니다. 그 결과와 오류가
@@ -791,7 +801,7 @@
   C2.1의 rule은 장기 작업에 자기 timeout에 더해 step log를 두게 해서, 한도보다 오래 걸린 정상
   실행이 실패했습니다.
 
-## 2026-10-05 — 변경 event로 기다리는 build readiness (C2.4)
+### 2026-10-05 — 변경 event로 기다리는 build readiness (C2.4)
 
 - `examples/form-comparison/verify-tree.mjs`의 `readyBuild`는 build state file을 시작할 때와 file
   directory의 변경 event(`fs.watch`)마다 읽습니다. 전에는 1초마다 다시 읽었습니다. timer는 inactivity
@@ -800,7 +810,7 @@
   명시적인 event와 fake clock으로 상태를 바꿉니다. event loop를 400 ms마다 350 ms씩 막으면 이전 case는
   실패했고 새 case는 통과합니다.
 
-## 2026-10-05 — driver test에서 build된 benchmark driver 실행 (C2.3)
+### 2026-10-05 — driver test에서 build된 benchmark driver 실행 (C2.3)
 
 - `npm run test:bench`는 package를 build한 뒤 `tools/bench/build-drivers.mjs`로 Go와 Rust benchmark
   driver를 build합니다. 이 script는 각 build를 경과 시간과 함께 출력하고 600초에서 process group째
@@ -810,7 +820,7 @@
   test가 자기 timeout을 두거나 `run`으로 driver를 실행하면 실패하고, `tests/build/bounded-commands.test.mjs`는
   끝나지 않는 driver build를 한도에서 멈춥니다.
 
-## 2026-10-05 — setup step에만 두는 CI 시간 한도 (C2.2)
+### 2026-10-05 — setup step에만 두는 CI 시간 한도 (C2.2)
 
 - test를 실행하는 CI job과 step에는 `timeout-minutes`가 없습니다. test runner가 각 test를
   제한합니다. 그런 job의 다른 step(checkout, toolchain, install, build, upload)은 5분이나 10분 한도를
@@ -819,7 +829,7 @@
   job 한도를 요구했고, case를 더했을 때 13개 job을 나열했습니다. `test:form-comparison:pipeline`은 build를
   제한하는 `scripts/require-current-build.mjs`로 build합니다.
 
-## 2026-10-05 — test runner의 PHPUnit 개수 (C2.5)
+### 2026-10-05 — test runner의 PHPUnit 개수 (C2.5)
 
 - `scripts/run-tests.mjs`의 PHPUnit mode는 test만 셉니다. `testSuiteFinished` message에는
   location이 없어서 test class나 data provider method의 끝이 통과한 test로 세어졌습니다.
@@ -827,7 +837,7 @@
   `Test file "..." not found`나 warning을 담은 요약처럼 TeamCity message가 아닌 줄을 출력합니다. 전에는
   버려졌습니다. `tests/build/run-tests.test.mjs`는 변경 전에 두 가지 모두에서 실패했습니다.
 
-## 2026-10-05 — 저장소의 test rule (C2.1)
+### 2026-10-05 — 저장소의 test rule (C2.1)
 
 - AGENTS는 작업을 개발하는 동안 바뀐 것을 소유한 Red와 Green test만 실행하고, full suite는
   checklist의 활성 작업이 모두 끝났을 때 정확히 한 번 실행합니다. 전에는 feature가 끝날 때마다
@@ -835,14 +845,14 @@
   timeout을 대신했습니다. `make docs-check`는 문서나 공개 API 문서가 바뀌었을 때만 실행하고,
   checklist의 Verification 열은 작업을 소유한 명령을 적습니다. checklist에 wave 2를 적었습니다.
 
-## 2026-10-04 — Tailwind 버전의 export (C1.5)
+### 2026-10-04 — Tailwind 버전의 export (C1.5)
 
 - `@crudui/generator-core`는 `./crudui.tailwind.css`를 export합니다. feature status에
   `viewport-widths`와 `tailwind-styles`를 적고, operations 문서에 viewport test와 Tailwind test, 그리고
   `crudui.css`를 바꾼 뒤의 재생성을 적었습니다. full suite(`make ci`)가 통과합니다. 첫 실행은 새 test와
   script에서 `npm run lint`와 `npm run test:runtimes`가 실패했고, C1.4-1이 고쳤습니다.
 
-## 2026-10-04 — style의 Tailwind 버전 (C1.4)
+### 2026-10-04 — style의 Tailwind 버전 (C1.4)
 
 - `packages/generator-core/styles/crudui.tailwind.css`는 `crudui.css`의 rule을 cascade layer
   `components`에 담습니다. `packages/generator-core/scripts/write-tailwind-styles.mjs`가 이 file을 쓰고,
@@ -852,7 +862,7 @@
   style을 `crudui.css`와 비교합니다. 다른 element는 없습니다. file이 없을 때는 `Can't resolve`로
   실패했습니다. Tailwind CSS와 `@tailwindcss/node` 4.3.3은 저장소의 development dependency입니다.
 
-## 2026-10-04 — Tailwind 버전의 명세 (C1.3)
+### 2026-10-04 — Tailwind 버전의 명세 (C1.3)
 
 - form markup contract에 `crudui.tailwind.css`를 명세했습니다. `crudui.css`의 rule을 Tailwind CSS 4의
   cascade layer `components`에 담고, `crudui.css`에서 생성하고 그것과 대조하며, 360과 1280 px에서
@@ -860,7 +870,7 @@
   요구했는데, 손으로 쓴 rule 두 벌은 서로 어긋날 수 있으므로 고쳤습니다. file은 아직 구현되지
   않았습니다(C1.4).
 
-## 2026-10-04 — 좁은 viewport에 맞는 list (C1.2)
+### 2026-10-04 — 좁은 viewport에 맞는 list (C1.2)
 
 - `.crudui-list`는 스스로 가로로 scroll하므로, 긴 숫자를 담은 list case `format-number-shortest`처럼
   viewport보다 넓은 table이 더 이상 page를 넓히지 않습니다. 360 CSS pixel에서 그 case는 Chromium,
@@ -869,14 +879,14 @@
   문서의 가로 overflow가 없고 모든 control과 action이 viewport 안에 있는지 확인합니다. 변경 전에는 그
   case에서 실패했습니다.
 
-## 2026-10-04 — stylesheet의 viewport 폭 (C1.1)
+### 2026-10-04 — stylesheet의 viewport 폭 (C1.1)
 
 - form markup contract에 `crudui.css`의 viewport 폭을 적었습니다. 360과 1280 CSS pixel에서 모든 공유
   render fixture의 expected HTML은 문서의 가로 overflow를 만들지 않고, 스스로 가로로 scroll하는
   element 안을 빼면 모든 control과 action이 viewport 안에 있습니다. stylesheet에는 좁은 viewport를 위한
   rule이 없었습니다.
 
-## 2026-10-04 — Svelte 렌더러의 NodeNext 선언
+### 2026-10-04 — Svelte 렌더러의 NodeNext 선언
 
 - `@crudui/generator-svelte`는 `"type": "module"`을 선언하지만 공개 타입 테스트
   (`tests/build/public-packages.test.mjs`)가 이 패키지를 컴파일하지 않았습니다. 이제 테스트는 ES 모듈
@@ -888,7 +898,7 @@
   실패했습니다. 이제 패키지의 `.svelte`·`.ts` 소스 파일의 상대 import는 `.js` 파일을 가리킵니다.
   게시되는 JavaScript·Svelte 파일은 이 import 경로만 다릅니다.
 
-## 2026-10-04 — Vue 렌더러의 NodeNext 선언
+### 2026-10-04 — Vue 렌더러의 NodeNext 선언
 
 - `@crudui/generator-vue`는 `"type": "module"`을 선언하므로 TypeScript는 선언을 ES 모듈로 읽지만,
   선언의 상대 import에 파일 확장자가 없었습니다. 엄격한 `NodeNext` 프로젝트는 `dist/index.d.ts`에서
@@ -901,7 +911,7 @@
   소스의 상대 import는 이제 `.js` 파일을 가리킵니다. `import`·`require` export의 JavaScript 출력은
   변경 전 출력과 바이트 단위로 같습니다.
 
-## 2026-10-04 — 브라우저 검증 바인딩의 릴리스 검사
+### 2026-10-04 — 브라우저 검증 바인딩의 릴리스 검사
 
 - 패키지 설치 검사(`scripts/check-packages.mjs`), 공개 패키지 테스트
   (`tests/build/public-packages.test.mjs`), 재현 가능한 빌드 테스트
@@ -926,7 +936,7 @@
   기록합니다. 사례는 세 엔진에서 통과합니다. CI는 어떤 검사도 쓰지 않는 Playwright Chromium을 더 이상
   설치하지 않고, 패키지는 `playwright`를 더 이상 선언하지 않습니다.
 
-## 2026-10-04 — 서버가 렌더링한 폼의 브라우저 검증
+### 2026-10-04 — 서버가 렌더링한 폼의 브라우저 검증
 
 - `@crudui/form-binding`(`packages/form-binding`)은 서버가 렌더링한 완전한 폼을 서버가 검증할 때 쓰는
   스펙으로 브라우저에서 검증합니다. 서버에서 렌더링한 폼은 요청 뒤에만 검증되었으므로 사용자는 왕복이
@@ -953,7 +963,7 @@
   Chromium에서 바뀐 필드를 벗어난 뒤 오류를 보이고 유효하지 않은 제출은 요청을 보내지 않으며 고친
   폼은 제출하는지 검사합니다. CI는 WebKit과 함께 Playwright Chromium을 설치합니다.
 
-## 2026-10-04 — 선택지 그룹
+### 2026-10-04 — 선택지 그룹
 
 - `select`, `dropdown`, `selectbox` 필드의 선택 목록은 레이블과 하나 이상의 값·레이블 쌍으로 이루어진
   그룹을 일반 선택지와 함께 쓴 순서대로 담을 수 있습니다. 요소에 `value`나 `choices` 멤버가 있으면 선택
@@ -969,7 +979,7 @@
   `value-in-choice-groups*`를 통과합니다. PHP extension engine test는 현재 고정 데이터 수를 세고 engine
   프로그램이 쓰는 단위를 링크합니다.
 
-## 2026-10-04 — 선택지 모양
+### 2026-10-04 — 선택지 모양
 
 - `choice`나 `multichoice` 필드의 선택 목록에 있는 선택지는 선언 속성 규칙에 따라 레이블의 `class`와
   `style`, input의 `attributes`를 선언할 수 있고, 필드의 `design.group`은 `crudui-choices` 요소에
@@ -981,7 +991,7 @@
 - React, Vue, Svelte, HTML 렌더러, PHP, PHP extension, Go, Rust는 공유 폼 case `choice-appearance-*`에서
   모양을 쓰고 작성된 모양 case 아홉 개를 거부합니다.
 
-## 2026-10-04 — range 필드
+### 2026-10-04 — range 필드
 
 - `range` 필드는 `crudui-widget crudui-widget--range` widget을 렌더링합니다. prepend affix, 리터럴
   `validate.range`와 `validate.step`에서 온 `min`, `max`, `step`을 가진 range input, 현재 값을 보이는
@@ -993,7 +1003,7 @@
   widget을 쓰고 작성된 range case 여덟 개를 거부하며, TypeScript, PHP, PHP extension, Go, Rust 검증기는
   공유 검증 case `range-field-values`를 통과합니다.
 
-## 2026-10-04 — inline 배치와 line 배치
+### 2026-10-04 — inline 배치와 line 배치
 
 - group은 `design.layout`을 선언합니다. `inline`은 그 안의 모든 필드 노드를 `--crudui-label-width`
   레이블 열과 컨트롤, 설명, 오류를 담는 컨트롤 열의 한 줄로 만들고, `line`은 group의 자식 노드를 나란히
@@ -1006,7 +1016,7 @@
   배치를 쓰고 작성된 배치 case 여섯 개를 거부합니다. PHP, Go, Rust 검증기의 타입 명세 모델이
   `design.layout`을 받습니다.
 
-## 2026-10-04 — 컨트롤과 노드의 선언 속성
+### 2026-10-04 — 컨트롤과 노드의 선언 속성
 
 - 폼 필드는 `design.attributes`로 컨트롤의 `data-*`, `aria-*` 속성을, `design.wrapper.attributes`로 노드
   루트의 속성을 선언합니다. `compileForm`은 객체가 아닌 값, 규칙 밖이거나 CRUDUI가 쓰는 이름, 문자열이
@@ -1018,7 +1028,7 @@
 - React, Vue, Svelte, HTML 렌더러, PHP, PHP extension, Go, Rust는 공유 폼 case `control-attributes-*`에서
   이를 씁니다. JSON Schema, TypeScript 타입, PHP, Go, Rust 검증기의 타입 명세 모델이 선언을 받습니다.
 
-## 2026-10-04 — button 필드는 button으로 렌더링됨
+### 2026-10-04 — button 필드는 button으로 렌더링됨
 
 - `button` 또는 `action` 필드는 `type="button"`, class `crudui-action crudui-action--text`와
   `design.class` class, `design.style` style, 컨트롤 id, behavior event 속성, 선언 속성, 그리고
@@ -1032,7 +1042,7 @@
   `action-alias`, `button-behavior-onclick`, `control-attributes-file-display-button`에서 button을
   씁니다.
 
-## 2026-10-04 — switcher 필드는 스위치로 렌더링됨
+### 2026-10-04 — switcher 필드는 스위치로 렌더링됨
 
 - `switcher` 필드는 스위치를 렌더링합니다. checkbox 모델은 `checked` 뒤에 `role: "switch"`를 갖고, 컨트롤
   class는 `design.class` class 앞에 `valid-target crudui-input crudui-input--switch`를 가지며, 모든
@@ -1043,7 +1053,7 @@
 - React, Vue, Svelte, HTML 렌더러, PHP, PHP extension, Go, Rust는 공유 폼 case `switcher-bare`와
   `control-attributes-checkbox`에서 스위치를 씁니다.
 
-## 2026-10-02 — 스크립트 동작은 click에서 실행됨
+### 2026-10-02 — 스크립트 동작은 click에서 실행됨
 
 - 목록과 상세의 스크립트 동작은 스크립트를 button의 `onclick`에 쓰므로, button을 누르면 스크립트가
   실행됩니다. 이전에는 스크립트를 `on{name}`에 썼습니다. 예를 들어 동작 `remove`는 button이 발생시키지
@@ -1055,7 +1065,7 @@
   브라우저에서 렌더링한 경우와 서버에서 렌더링한 뒤 하이드레이션한 경우에 목록 스크립트 동작을 두 번
   누르고, 누를 때마다 스크립트가 한 번 실행되기를 요구합니다.
 
-## 2026-10-02 — hook 실패는 파일과 함께 출력됨
+### 2026-10-02 — hook 실패는 파일과 함께 출력됨
 
 - test runner는 실패하거나 제한 시간을 넘긴 hook을 포함해 `node --test`와 Vitest 실행의 모든 실패를
   test 파일과 경과 시간과 함께 출력합니다. `node --test`는 파일의 제한 시간을 넘긴 after hook을 테스트
@@ -1069,7 +1079,7 @@
 - `npm run test:runtimes`가 실행하는 `tests/build/run-tests.test.mjs`는 `node --test`에서 파일의
   제한 시간을 넘긴 after hook을, Vitest에서 파일과 suite의 제한 시간을 넘긴 after hook을 실행합니다.
 
-## 2026-10-02 — 선형 시간 검사는 시계를 읽지 않음
+### 2026-10-02 — 선형 시간 검사는 시계를 읽지 않음
 
 - validator와 PHP extension engine의 선형 시간 검사는 시계를 읽지 않습니다. 이 검사들은 경과 시간을
   제한값이나 서로와 비교하여 기계의 load average가 28에서 38일 때 실패하고 단독으로는 통과했으며,
@@ -1092,7 +1102,7 @@
 - stylesheet layout 검사는 세 browser를 120초 hook 제한 안에 닫습니다. load average 100에서 닫기가
   기본 제한 30초를 넘어 61개 검사가 모두 통과한 뒤 `npm run test:forms`가 실패했습니다.
 
-## 2026-10-02 — 동작 behavior 멤버는 event attribute
+### 2026-10-02 — 동작 behavior 멤버는 event attribute
 
 - 목록과 상세 동작은 선언한 `behavior` 멤버를 각각 같은 이름의 attribute로 씁니다.
   `behavior.onclick`은 `onclick`을 씁니다. 모든 renderer가 멤버 이름 앞에 `on`을 붙여
@@ -1103,7 +1113,7 @@
 - React, Vue, Svelte, HTML renderer, PHP, PHP extension, Go, Rust가 문자열 항목과 객체 항목을 가진
   링크와 버튼의 공유 목록·상세 case `action-behavior-events`를 렌더합니다.
 
-## 2026-10-02 — 폼과 목록의 설명, 상세 동작
+### 2026-10-02 — 폼과 목록의 설명, 상세 동작
 
 - `crudui-form` 블록은 번역한 루트 `description`을 폼 오류와 본문 앞의
   `<p class="crudui-form__description">`으로 씁니다. 폼 루트는 `description`을 받았지만 어떤 렌더러도
@@ -1123,7 +1133,7 @@
   React, Vue, Svelte, HTML renderer, PHP, PHP 확장, Go, Rust가 공유 폼, 완전한 폼, 목록, 상세 사례를
   렌더링합니다.
 
-## 2026-10-02 — 선택 목록이 작성한 순서를 유지
+### 2026-10-02 — 선택 목록이 작성한 순서를 유지
 
 - `items`는 값에 관계없이 목록 순서를 유지하는 `{ "value": …, "label": … }` 객체의 배열인 선택 목록을
   받습니다. 값과 라벨의 맵은 정수 형태의 값을 오름차순으로 먼저 나열하므로 `{ "1": "Yes", "0": "No" }`가
@@ -1141,14 +1151,14 @@
 - HTML renderer, React, Vue, Svelte, PHP, PHP 확장, Go, Rust가 공유 선택 목록 사례를 렌더링하고,
   JavaScript, PHP, PHP 확장, Go, Rust가 이를 검증합니다.
 
-## 2026-10-02 — 폼 연결이 정규화한 기본값과 비교
+### 2026-10-02 — 폼 연결이 정규화한 기본값과 비교
 
 - `connectForm`은 텍스트 컨트롤을 브라우저가 값처럼 정규화한 렌더 기본값과 비교합니다. Chromium은
   datetime 기본값 `2026-09-09T00:00:00`을 `2026-09-09T00:00`으로 읽으므로 연결이 이런 컨트롤을 모두
   편집으로 읽고 인스턴스 값을 브라우저 형태로 바꿨습니다.
 - 위젯 스크립트 검사의 브라우저 시간대 사례가 Chromium에서 이를 검사합니다.
 
-## 2026-10-02 — renderForm이 완전한 폼을 씀
+### 2026-10-02 — renderForm이 완전한 폼을 씀
 
 - `renderForm(form, options)`는 서버가 보내는 완전한 폼을 쓰므로 서버는 폼의 어떤 부분도 직접
   쓰지 않습니다. `options.action`은 옵션이나 템플릿 `action`에서 가져온 `action`, `encType`, `method`를
@@ -1165,7 +1175,7 @@
 - 공유 완전한 폼 사례를 React, HTML renderer, PHP, PHP 확장, Go, Rust에서 바이트 단위로, Vue와
   Svelte에서 정규화 뒤에 비교합니다.
 
-## 2026-10-02 — 단일 선택 필드가 목록을 거부
+### 2026-10-02 — 단일 선택 필드가 목록을 거부
 
 - `lang`이 없는 `select`, `dropdown`, `selectbox`, `choice`, `radio` 형식의 필드는 값 하나를 가집니다.
   그 데이터나 반복 필드의 행이 배열이나 객체이면 숨긴 필드도 포함해 검증이 `INVALID_FORM_INPUT`과
@@ -1174,7 +1184,7 @@
 - JavaScript, PHP, PHP 확장, Go, Rust가 공유하는 목록, 빈 목록, 객체, 숨긴 필드, 반복 행, 그룹 행,
   선언 순서, 허용 값 사례를 실행합니다.
 
-## 2026-10-02 — 빈 포함 목록은 어떤 값도 허용하지 않음
+### 2026-10-02 — 빈 포함 목록은 어떤 값도 허용하지 않음
 
 - 빈 목록이나 빈 맵을 가진 `in` 규칙은 유효하며 어떤 값과도 일치하지 않습니다. 그래서 선택 목록이 빈
   필드는 빈 값을 통과시키고 그 밖의 모든 값을 실패시킵니다. 이전에는 이 규칙이 `INVALID_RULE_PARAMETER`로
@@ -1182,52 +1192,52 @@
 - JSON Schema가 빈 `in` 목록과 맵을 받습니다.
 - JavaScript, PHP, PHP 확장, Go, Rust가 공유하는 빈 목록, 빈 맵, 필수 입력 사례를 실행합니다.
 
-## 2026-10-01 — 폼 연결 전에 입력한 값을 유지
+### 2026-10-01 — 폼 연결 전에 입력한 값을 유지
 
 - `connectForm`은 control을 동기화하기 전에 렌더된 기본값과 다른 control을 읽습니다. 그래서
   클라이언트가 폼을 연결하기 전에 방문자가 서버 markup에 입력한 값이 control과 폼 세션에 남습니다.
 - HTML renderer 폼 세션 사례가 연결 전에 서버 markup에 텍스트를 입력하고 control과 세션 값을
   검증합니다.
 
-## 2026-09-26 — React 컴포넌트와 서버 진입점의 export 분리
+### 2026-09-26 — React 컴포넌트와 서버 진입점의 export 분리
 
 - `@crudui/generator-react`는 `react-dom/server`를 불러오지 않고 React 컴포넌트를 내보냅니다.
   `@crudui/generator-react/server`는 문자열 렌더링 함수 `renderForm`, `renderList`, `renderDetail`을
   내보냅니다. 컴포넌트 진입점은 이 함수를 내보내지 않습니다.
 - React 패키지 사례와 설치된 패키지 검사는 두 진입점 및 CJS·ESM export를 검증합니다.
 
-## 2026-09-26 — Rust 검증기가 라이선스를 선언
+### 2026-09-26 — Rust 검증기가 라이선스를 선언
 
 - Rust 검증기 매니페스트가 프로젝트에서 선언한 MIT 라이선스를 명시해 의존성 라이선스 검사가
   검증기의 라이선스를 직접 읽을 수 있습니다.
 
-## 2026-09-26 — 폼 검증이 선언되지 않은 제출 필드를 거부
+### 2026-09-26 — 폼 검증이 선언되지 않은 제출 필드를 거부
 
 - 루트·그룹·반복 그룹 행 데이터에 선언된 필드가 없는 멤버가 있으면 폼 검증은
   `INVALID_FORM_INPUT`으로 실패합니다. 해당 객체에서 코드 포인트 순서의 첫 미선언 멤버를
   보고합니다. 공유 사례의 조건 입력은 필드로 선언합니다.
 - JavaScript, PHP, PHP 확장, Go, Rust가 동일한 루트·그룹·행 사례를 실행합니다.
 
-## 2026-09-26 — Rust JSON 텍스트 검증이 객체 멤버 값을 유지
+### 2026-09-26 — Rust JSON 텍스트 검증이 객체 멤버 값을 유지
 
 - Rust JSON 텍스트 변환은 모든 깊이에서 객체 멤버 이름을 해당 값과 연결하고 선언 순서를
   유지합니다. 이전의 뒤바뀐 연결은 필수·길이 규칙이 잘못된 입력을 검사하게 했습니다.
 - Rust 사례가 직접 검증과 중첩 객체 변환을 검사합니다.
 
-## 2026-09-26 — 문서 빌드가 생성된 사이트 파일을 제외
+### 2026-09-26 — 문서 빌드가 생성된 사이트 파일을 제외
 
 - 문서 빌더와 소스 감시기는 생성된 `docs/.site/` 파일을 제외합니다. 생성된 Rust 문서의
   라이선스 파일은 페이지 제목이 없는 Markdown 문법을 가지며 자산으로 유지해야 합니다.
 - 문서 빌드와 감시기 사례가 제외 동작을 검사합니다.
 
-## 2026-09-26 — JSON 명세 리더가 반복된 멤버 이름을 거부
+### 2026-09-26 — JSON 명세 리더가 반복된 멤버 이름을 거부
 
 - 명세 JSON 리더는 다른 이스케이프 표기로 쓴 이름을 포함해 디코딩한 객체 멤버 이름이
   반복되면 검증 전에 오류로 처리합니다. 반복된 이름은 그렇지 않으면 오류 없이 입력을 교체합니다.
   CLI와 Rust JSON 텍스트 파서에 이 규칙을 적용합니다.
 - 파서, CLI, Rust 사례가 중첩 객체, 배열, 이스케이프 이름과 유효한 문서를 검사합니다.
 
-## 2026-09-25 — 스타일시트가 목록과 상세에 테마를 적용하고 색과 크기를 속성으로 공개
+### 2026-09-25 — 스타일시트가 목록과 상세에 테마를 적용하고 색과 크기를 속성으로 공개
 
 - `crudui.css`는 `--crudui-*` 사용자 정의 속성의 기본값을 명시도 0인 규칙 하나
   `:where(.crudui-form, .crudui-outline, .crudui-data, .crudui-list, .crudui-detail)`에 선언합니다.
@@ -1241,7 +1251,7 @@
 - `npm run test:forms`에 포함된 `tests/style-properties.test.mjs`는 속성 규칙, 규칙이 읽는 모든
   속성이 선언되었는지, 다른 규칙이 색을 쓰지 않는지 검사합니다.
 
-## 2026-09-24 — CI 브라우저 사전 검사가 실패한 sandbox 조건을 표시
+### 2026-09-24 — CI 브라우저 사전 검사가 실패한 sandbox 조건을 표시
 
 - `scripts/check-ci-browser.mjs`는 적절하지 않은 `chrome://sandbox` 평가를
   `Chrome sandbox evaluation is "<value>"; expected "You are adequately sandboxed."`로, 적절하지
@@ -1251,7 +1261,7 @@
   실패했습니다.
 - `tests/build/ci-browser.test.mjs`는 필요한 sandbox 행마다 오류를 검사합니다.
 
-## 2026-09-24 — 목록과 상세가 렌더링 시 잘못된 선언을 거부
+### 2026-09-24 — 목록과 상세가 렌더링 시 잘못된 선언을 거부
 
 - JavaScript, HTML 렌더러, PHP, PHP 확장, Go, Rust의 `buildList`, `buildDetail`, `renderList`,
   `renderDetail`은 목록과 상세 선언의 형태를 검사합니다
@@ -1269,14 +1279,14 @@
 - 공용 목록·상세 렌더링 고정 데이터가 선언 오류 사례를 정의하고, 모든 런타임이 네이티브 생성기
   검사로 이를 실행합니다. 목록·상세 유효성 사례도 `buildList`와 `buildDetail`로 만듭니다.
 
-## 2026-09-22 — 선택 input의 포인터 입력을 label로 전달
+### 2026-09-22 — 선택 input의 포인터 입력을 label로 전달
 
 - 시각적으로 숨긴 radio·checkbox input은 이제 투명하게 렌더링하면서 native hit target을
   유지합니다. 키보드 focus와 native form 의미를 바꾸지 않고 input 자체와 연결된 화면의
   label 모두 포인터 입력을 받을 수 있습니다. 따라서 브라우저 자동화와 마우스 사용자가
   같은 접근 가능한 control로 모든 선택지를 활성화할 수 있습니다.
 
-## 2026-09-19 — 응답 경화, 하나의 선택 원본, Vue 오류 보고
+### 2026-09-19 — 응답 경화, 하나의 선택 원본, Vue 오류 보고
 
 - 공개 서버의 모든 응답이 이제 `X-Content-Type-Options: nosniff`를 가지고, 모든 JSON 본문은
   `<`, `>`, `&`를 유니코드 이스케이프로 적으며, 405는 대상이 받는 메서드를 적은 `Allow` 헤더로
@@ -1295,7 +1305,7 @@
   실패처럼 페이지가 스크립트 오류로 실패합니다(`src/vue-errors.mjs`). 전에는 Vue가 콘솔에 적고
   계속 진행했습니다.
 
-## 2026-09-19 — 레코드 폼이 저장 실패를 보여 줍니다
+### 2026-09-19 — 레코드 폼이 저장 실패를 보여 줍니다
 
 - 정본 페이지의 폼은 필드를 제출해 200과 422를 처리했지만, 요청 실패나 다른 응답에서는 아무
   메시지 없이 페이지가 그대로 남았습니다. 프라미스를 처리하는 핸들러가 없어 브라우저 콘솔에만
@@ -1305,7 +1315,7 @@
   그대로 두며, 폼을 다시 제출할 수 있게 둡니다. `docs/spec/form-comparison.md`가 이 동작을
   규정합니다.
 
-## 2026-09-19 — 화면 문구의 원본을 하나로
+### 2026-09-19 — 화면 문구의 원본을 하나로
 
 - 화면 문구는 TypeScript, Go, Rust, PHP, PHP 확장 생성기에 손으로 복사돼 있었고, 복사본이 같은지
   확인하는 장치가 없었습니다. 실행취소의 한국어 문구가 TypeScript에서는 실행취소, 나머지 넷에서는
@@ -1327,7 +1337,7 @@
 - `node --test`나 Vitest가 통과 요약을 출력한 뒤 신호나 0이 아닌 종료 코드로 끝나면, 이유를 알리는 줄
   없이 단계가 실패했습니다. 이제 `run-tests.mjs`가 그 신호나 종료 코드를 실패 줄로 출력합니다.
 
-## 2026-09-19 — unique를 JSON 값으로 비교, 캐시와 Rust 값 한도 제한
+### 2026-09-19 — unique를 JSON 값으로 비교, 캐시와 Rust 값 한도 제한
 
 - `unique`는 런타임마다 값을 다르게 비교했습니다. TypeScript와 PHP는 텍스트 `"[1]"`을 목록 `[1]`로 보았고,
   TypeScript와 확장은 객체 항목 순서를 따졌으며, PHP는 `1`과 `1.0`을 다르게 보고 실수를 14자리로 적어
@@ -1347,7 +1357,7 @@
   닫혀 백 번에 몇 번은 413을 읽지 못하고 EPIPE로 실패했습니다. 이제 포워더는 나머지 본문을 읽어 버리고
   홉 단위 헤더는 서버 쪽 연결에만 남깁니다. 테스트가 nginx처럼 먼저 답하는 서버로 큰 업로드 40개를 넘깁니다.
 
-## 2026-09-18 — 입력이 좌우하는 반복과 비용 제한
+### 2026-09-18 — 입력이 좌우하는 반복과 비용 제한
 
 - PHP 레코드 서버는 스크립트를 실행하기 전에 요청 본문 전체를 읽는 PHP 내장 서버에서 돌아서, 다른 서버가
   2 MiB에서 멈추는 동안 클라이언트가 선언한 본문을 모두 받았습니다. 이제 PHP를 운영 환경에서 실행하는
@@ -1422,7 +1432,7 @@
 - 행이 남지 않을 때까지 지우던 테스트는 이제 시작할 때의 개수만큼만 반복하고 매 반복에서 행이 하나
   지워졌음을 요구합니다.
 
-## 2026-09-18 — 라이브러리가 만드는 폼 데이터 수용
+### 2026-09-18 — 라이브러리가 만드는 폼 데이터 수용
 
 - 폼 데이터는 새 행에서 건드리지 않은 칸처럼 값이 없는 필드를 빼는데, 서버가 그런 JSON 제출에 400으로
   응답해 벤치마크에서 새 행을 JSON으로 저장하면 실패했습니다. 이제 모든 서버가 JSON과 네이티브 제출 모두에서
@@ -1433,7 +1443,7 @@
   정확히 `form[...]`과 완료 필드입니다. Rust와 Go 서버는 두 형식 모두에서, PHP 서버는 JSON에서
   다른 항목도 받아들였습니다.
 
-## 2026-09-18 — 정본 레코드에 반복 회사 폼 표시
+### 2026-09-18 — 정본 레코드에 반복 회사 폼 표시
 
 - 목록·상세·폼을 고객 레코드 하나로 잇는 과정에서 정본 페이지의 폼이 평면 필드 7개가 되었고, 반복 폼은
   벤치마크 화면에만 남았습니다. 이제 고객 레코드는 `companies`를 가집니다. 회사·스토어·부서가 행 복사·
@@ -1450,7 +1460,7 @@
   폼의 형태입니다. 형태가 잘못되었거나 읽을 수 없는 파일은 목록·레코드·뷰·저장에 500으로 응답하고 바이트
   그대로 유지되며, 초기화는 어떤 저장 파일이든 초기 데이터로 바꿉니다.
 
-## 2026-09-17 — 모든 서버와 클라이언트에서 목록부터 저장 후 목록까지 이어지는 정본 페이지
+### 2026-09-17 — 모든 서버와 클라이언트에서 목록부터 저장 후 목록까지 이어지는 정본 페이지
 
 - 공개 루트는 목록 → 상세 → 폼 → 저장 → 갱신된 목록으로 이어지는 정본 페이지 하나입니다. `js`, `php`,
   `php-ext`, `go`, `rust` 서버, `html`, `react`, `vue`, `svelte` 클라이언트, CSR과 SSR, `bindForm`과
@@ -1506,13 +1516,13 @@
   둘 다 이제 JavaScript와 같이 숫자를 쓰며, 공유 목록 사례 `format-number-shortest`가 모든 런타임을
   검사합니다.
 
-## 2026-09-17 — Linux 스타일 검사가 받은 이미지 제거
+### 2026-09-17 — Linux 스타일 검사가 받은 이미지 제거
 
 `make test-form-styles-linux`는 고정된 버전의 Playwright 이미지(약 10GB)가 필요합니다. 이미지를 받은 실행은
 이제 성공 여부와 관계없이 끝날 때 이미지를 지우고, 이미 있던 이미지는 남겨 둡니다. 테스트 절차 문서가 이
 명령을 설명합니다.
 
-## 2026-09-17 — 모든 JavaScript, TypeScript, Svelte 소스 린트
+### 2026-09-17 — 모든 JavaScript, TypeScript, Svelte 소스 린트
 
 - `npm run lint`는 `eslint packages`를 실행했고 설정은 모든 `.js`·`.mjs` 파일, 모든 테스트, 모든 Svelte
   컴포넌트를 건너뛰었기 때문에, 예제, 테스트, 스크립트, 도구, 루트 설정은 CI에서도 `make ci`에서도 린트되지
@@ -1530,7 +1540,7 @@
 - Svelte 생성기의 `{@html}` 출력과 제목 슬러그의 제어 문자 클래스는 해당 줄에서만 규칙에서 제외하고,
   각 줄 옆에 이유를 적습니다.
 
-## 2026-09-17 — 등록된 규칙이 아닌 규칙 이름 거부
+### 2026-09-17 — 등록된 규칙이 아닌 규칙 이름 거부
 
 - 등록된 규칙이 아닌 `validate` 키는 건너뛰었기 때문에 철자가 틀린 규칙이 검사를 조용히 껐고, 스키마는
   더 이상 어떤 런타임도 등록할 수 없는 규칙을 위해 다른 규칙 이름을 열어 두었습니다. 이제 그런 이름은
@@ -1550,7 +1560,7 @@
   작성한 사례 12개로 바뀌고, `match`와 `pattern` 메시지 사례 1개가 추가되어 공용 검증 사례는 250개가
   됩니다.
 
-## 2026-09-17 — 비교 예제에서 생성된 필드 모델을 멤버 순서까지 비교
+### 2026-09-17 — 비교 예제에서 생성된 필드 모델을 멤버 순서까지 비교
 
 - `examples/form-comparison`의 생성 검사는 속성, 추가 설정, 레코드 데이터에서만 객체 멤버 순서를
   비교했기 때문에, 배포된 비교가 런타임마다 멤버 순서가 다른 필드 모델을 통과시킬 수 있었습니다.
@@ -1559,7 +1569,7 @@
 - `check-generation.test.mjs`는 모델, 위젯, 데이터가 멤버 순서만 다른 렌더링 폼이 거부됨을
   보여 줍니다.
 
-## 2026-09-17 — 모든 런타임에서 유니코드 스칼라 값이 아닌 텍스트 거부
+### 2026-09-17 — 모든 런타임에서 유니코드 스칼라 값이 아닌 텍스트 거부
 
 - 명세와 데이터의 텍스트는 유니코드 스칼라 값의 나열입니다
   ([입력 텍스트](docs/spec/input-text.ko.md)). JavaScript 문자열의 쌍이 없는 서로게이트, PHP·Go·C
@@ -1578,7 +1588,7 @@
   확장, 교차 검증 콘솔의 다섯 프로세스, 네이티브 생성기 프로그램이 이를 실행하고 적합성 증거를
   기록하며, 프로그램은 UTF-8이 아닌 표준 입력을 거부합니다.
 
-## 2026-09-17 — 완전한 표현식이 아닌 외형 문자열을 리터럴 텍스트로 읽기
+### 2026-09-17 — 완전한 표현식이 아닌 외형 문자열을 리터럴 텍스트로 읽기
 
 - `design.class`, `design.style`과 다른 외형 설정은 `design.show`가 이미 따르는 규칙을 따릅니다.
   문자열은 표현식 문법으로 끝까지 파싱될 때만 표현식이고 그 밖의 문자열은 리터럴 텍스트입니다.
@@ -1587,7 +1597,7 @@
   렌더링됩니다.
 - 작성한 폼 사례 두 개가 리터럴 클래스와 스타일 문자열을 다루며, 공유 폼 사례는 103개가 됩니다.
 
-## 2026-09-17 — 모든 런타임의 숨김 필드, 데이터 전용 행, 하나의 숫자 해석
+### 2026-09-17 — 모든 런타임의 숨김 필드, 데이터 전용 행, 하나의 숫자 해석
 
 - 데이터에 대해 `design.show`가 `false`로 해석되는 필드는 숨겨진 필드입니다. 검증은 그 필드와 내부의 모든
   규칙을 건너뛰고 오류를 보고하지 않으며 값은 유지하므로, 꺼 둔 설정은 값을 유지하다가 다시 켜면 다시
@@ -1613,7 +1623,7 @@
 - 공용 검증 사례는 238개로 늘었고 폼, 목록, 구조 맵, 세션 사례가 추가되었으며, `examples/product-forms`는
   옵션 조합 폼과 큰 상품 폼을 현재 문법으로 보여 주고 검사에서 검증·렌더링합니다.
 
-## 2026-09-17 — 컴파일된 템플릿 형태만 받고 위젯 멤버 순서 통일
+### 2026-09-17 — 컴파일된 템플릿 형태만 받고 위젯 멤버 순서 통일
 
 - 모든 런타임(JavaScript, PHP 라이브러리와 확장, Go, Rust)의 `bindForm`, `bindButtons`와 폼
   인스턴스는 `compileForm`이 만드는 형태와 정확히 같은 템플릿만 받습니다. `kind`, `fields`,
@@ -1625,7 +1635,7 @@
   `file`보다 앞섭니다. 네이티브 생성기 비교는 멤버 순서와 템플릿 형태 요청 69개를 검사하며, 폼
   런타임과 PHP 확장 명세가 이를 설명합니다.
 
-## 2026-09-17 — 옮긴 포커스를 모든 엔진에서 같게 스크롤
+### 2026-09-17 — 옮긴 포커스를 모든 엔진에서 같게 스크롤
 
 - CI 작업 "Form instances and data injection"이 Linux의 WebKit에서 실패했습니다. 행 추가 작업
   뒤 새 행의 입력이 고정 푸터 아래에 놓였습니다(700px 페이지에서 한계 644px에 대해 709px,
@@ -1642,7 +1652,7 @@
   이미지에서 macOS의 `container` 또는 `docker`로 스타일시트 레이아웃 검사를 CI 러너처럼 Linux에서
   실행합니다. `make ci`에는 포함되지 않습니다.
 
-## 2026-09-17 — WebKit에서 스타일시트 레이아웃 검사
+### 2026-09-17 — WebKit에서 스타일시트 레이아웃 검사
 
 - `tests/form-styles.test.mjs`가 sticky 헤더, 단계 레이블, 이음매, 행 카드, 포커스 시나리오를
   Chromium, Firefox와 함께 WebKit에서도 실행합니다. 엔진 어댑터 하나가 각 브라우저를
@@ -1655,7 +1665,7 @@
 - `playwright`가 루트 개발 의존성이 되었고, `npm run test:forms`를 실행하는 CI 작업은
   `npx playwright install --with-deps webkit`으로 WebKit을 설치하며 제한 시간은 15분입니다.
 
-## 2026-09-17 — CI 워크플로를 로컬에서 실행하고 첫 실행에서 드러난 문제 수정
+### 2026-09-17 — CI 워크플로를 로컬에서 실행하고 첫 실행에서 드러난 문제 수정
 
 - `make ci`는 `.github/workflows/ci.yml`의 모든 검사 명령을 순서대로 실행하고 적합성 증거를
   검사합니다. `tests/build/ci-local.test.mjs`는 이 목록이 워크플로와 다르면 실패합니다.
@@ -1666,7 +1676,7 @@
   초기화를 씁니다. `tests/build/php-extensions.test.mjs`는 PHP 패키지가 선택 확장(mbstring, ctype,
   iconv, intl, bcmath, gmp, sodium, dom)을 요구하지 않고 쓰면 실패합니다.
 
-## 2026-09-17 — 저장소 설정 선언과 make 배포
+### 2026-09-17 — 저장소 설정 선언과 make 배포
 
 - `.github/repository.json`이 GitHub 저장소 설정을 선언합니다. 홈페이지, 저장소 기능과 병합 방식,
   Actions 허용 범위와 워크플로 기본 권한, 취약점 알림과 자동 보안 수정, Pages 빌드 방식, `main`에서만
@@ -1676,7 +1686,7 @@
 - `make deploy`와 `make deploy-verify`는 비교 서비스 배포와 그 검증을 실행하며, 검증 절차 문서도 이
   명령을 적습니다.
 
-## 2026-09-17 — 배포 패키지에서 명령 프로그램 제외
+### 2026-09-17 — 배포 패키지에서 명령 프로그램 제외
 
 언어별 검증기·생성기 프로그램은 교차 검증 콘솔과 native 생성기 검사의 프로세스 경계일 뿐인데 패키지
 안에 들어 있었습니다(`packages/validator-go/cmd/validate`, `packages/validator-php/bin/validate.php`,
@@ -1699,7 +1709,7 @@ Rust `validate`·`generate` 실행 파일, `packages/generator-go/cmd/generate`,
   `src/main.rs`).
 - `make format-check`는 아직 커밋하지 않은 새 파일도 검사하고 삭제된 파일은 건너뜁니다.
 
-## 2026-09-17 — 레거시 계층 제거
+### 2026-09-17 — 레거시 계층 제거
 
 레거시 계층은 이전 필드 모델(`rules`, `messages`, `display_switch`/`display_target`)을 CRUDUI와
 나란히 실행했지만 고정된 이전 동작을 재현하지 않았습니다. TypeScript 레거시 검증기는 현재 규칙
@@ -1728,7 +1738,7 @@ Rust `validate`·`generate` 실행 파일, `packages/generator-go/cmd/generate`,
 - `docs/spec/legacy-schema.md`와 `docs/spec/legacy-visibility.md`를 제거했고, 테스트·스키마·고정
   데이터·예제·기능 문서는 현재 계층만 설명합니다.
 
-## 2026-09-17 — 패키지 진입점과 정확한 export 선언
+### 2026-09-17 — 패키지 진입점과 정확한 export 선언
 
 `contracts/features.json`은 패키지마다 이름 몇 개만 적었고, manifest 검사는 각 이름이 패키지
 소스 어딘가에 있는지만 확인했습니다. generator-core 진입점은 값 64개를 내보냈고, React·Vue·Svelte
@@ -1754,7 +1764,7 @@ TypeScript 컴파일러로 값 export를 읽고, 선언되지 않았거나 없�
 - `formHistory`, `viewState`, `runAction`의 signature는 기능의 모든 함수를 적습니다.
   존재하지 않는 `FormError`를 적었던 기능은 `FormInputError`를 적습니다.
 
-## 2026-09-17 — PHP 8.4 이상, 선언한 모든 버전에서 검사
+### 2026-09-17 — PHP 8.4 이상, 선언한 모든 버전에서 검사
 
 PHP 패키지는 `^8.2`를 선언했지만 CI는 PHP 8.4와 8.5에서만 실행했고, 렌더링 적합성 검사는 PHP 8.4의
 HTML5 파서가 필요합니다. `crudui/validator`와 `crudui/generator`는 이제 `^8.4`를
@@ -1762,7 +1772,7 @@ HTML5 파서가 필요합니다. `crudui/validator`와 `crudui/generator`는 이
 PHP 패키지를 검사하는 작업이 선언 범위의 모든 버전을 다루지 않거나, PHP 컨테이너가 가장 최신 검사
 버전이 아니면 실패합니다.
 
-## 2026-09-17 — 모든 검증기의 값·패턴 정의 통일
+### 2026-09-17 — 모든 검증기의 값·패턴 정의 통일
 
 JavaScript·PHP·PHP 확장·Go·Rust 검증기는 공백, 길이가 세는 대상, `in`, 패턴의 의미가 서로
 달랐습니다. 이제 `docs/spec/validation-rules.md`가 이를 한 번 정의하고 모든 검증기가 그 정의를
@@ -1792,7 +1802,7 @@ JavaScript·PHP·PHP 확장·Go·Rust 검증기는 공백, 길이가 세는 대�
   모두에서 실행됩니다.
 - 제거: 패턴 구분자 처리, 부분 매칭, 정규식 엔진 번역, 언어별 trim 함수, 길이 한계의 정수 변환.
 
-## 2026-09-17 — 모든 런타임의 폼 버튼 공개
+### 2026-09-17 — 모든 런타임의 폼 버튼 공개
 
 기능 기준은 모든 서버 런타임에 `bindButtons`와 `formButtonsHtml`을 선언했지만 JavaScript만 공개하고
 있었습니다. PHP 라이브러리와 PHP 확장은 `Generator::bindButtons`와 `Generator::formButtonsHtml`을, Go는
@@ -1803,7 +1813,7 @@ JavaScript·PHP·PHP 확장·Go·Rust 검증기는 공백, 길이가 세는 대�
 않으면 `Form buttons must be a list` 또는 `Form buttons must be evaluated button objects`로 실패합니다.
 native 실행기가 모든 폼 fixture에서 두 연산과, 모든 런타임에서 거부되는 형태를 비교합니다.
 
-## 2026-09-17 — 테스트 명령 표준 강제
+### 2026-09-17 — 테스트 명령 표준 강제
 
 - 모든 테스트는 `node scripts/run-tests.mjs <node|vitest|go|cargo|phpunit>`로 실행합니다. 실행기는
   테스트마다 시작, 실행 중 5초마다 한 줄, 경과 시간을 포함한 결과를 출력하고 테스트마다 자체
@@ -1829,7 +1839,7 @@ native 실행기가 모든 폼 fixture에서 두 연산과, 모든 런타임에�
 - `npm run typecheck`가 Vue를 포함한 모든 TypeScript 패키지를 검사하며, `canRedo`를 넘기지 않던
   React 개요 테스트를 고쳤습니다.
 
-## 2026-09-17 — 기능 기준에 대한 적합성 증거 검사
+### 2026-09-17 — 기능 기준에 대한 적합성 증거 검사
 
 `contracts/features.json`이 하나의 기준입니다. 각 기능은 지원 런타임과 그 기능을 증명하는 공용
 fixture를 선언하고, 매니페스트는 모든 fixture를 등록합니다. 테스트는 fixture 사례와 기능마다 증거
@@ -1853,7 +1863,7 @@ fixture를 선언하고, 매니페스트는 모든 fixture를 등록합니다. �
   멤버가 없습니다.
 - `createForm`의 기능 검증 명령이 테스트가 없는 fixture 모듈을 실행하고 있었습니다.
 
-## 2026-09-17 — HTML 렌더러의 노드 유지와 모든 브라우저의 스티키 배지
+### 2026-09-17 — HTML 렌더러의 노드 유지와 모든 브라우저의 스티키 배지
 
 - `@crudui/generator-core`의 `patchContent(element, html)`은 요소의 내용을 새 마크업으로 바꾸되 새
   마크업에도 있는 노드(행 키, 필드 경로, id, 컨트롤 이름과 값으로 대응)를 모두 유지합니다. HTML
@@ -1868,7 +1878,7 @@ fixture를 선언하고, 매니페스트는 모든 fixture를 등록합니다. �
   검사가 scroll-state 지원·미지원 상태로 페이지, 스크롤 박스, 프레임에서 실행되며 Chromium에는 속성이
   붙지 않음을 확인합니다.
 
-## 2026-09-17 — 모든 서버 런타임의 같은 페이지네이션
+### 2026-09-17 — 모든 서버 런타임의 같은 페이지네이션
 
 PHP 라이브러리, PHP 확장, Go, Rust가 JavaScript와 다른 페이지네이션을 출력했습니다. PHP 라이브러리는
 `disabled="1"`을 쓰고 페이지를 마지막 페이지로 맞추지 않았으며, 네 런타임 모두 범위가 제한된 번호 대신
@@ -1880,33 +1890,33 @@ PHP 라이브러리, PHP 확장, Go, Rust가 JavaScript와 다른 페이지네�
 객체이며, 스키마의 `per_page`는 1 이상의 정수입니다. 목록 fixture는 경계 페이지와 선언 오류를 더해
 42개에서 57개가 되었고, native 실행기가 켜짐·선언·꺼짐 상태의 페이지네이션 모델을 비교합니다.
 
-## 2026-09-17 — 실패하던 CI 작업 복구
+### 2026-09-17 — 실패하던 CI 작업 복구
 
 최근 세 번의 push가 CI에서 실패했습니다. Svelte 헤더와 노드 컴포넌트에 형제 블록 사이 공백이 있어
 Svelte가 텍스트로 유지했으며, 공백 없이 다시 작성했습니다. 루트 패키지는 폼 비교 예제가 가져오는
 `@crudui/generator-html`을 선언하고, 폼 비교 소스 검사가 이를 빌드합니다. PHP 확장 API 검사는 이전
 페이지네이션 마크업을 기대하고 있었습니다. `rustfmt`와 `gofmt`에 맞지 않던 Rust·Go 소스를 정리했습니다.
 
-## 2026-09-16 — 양방향 폼 이력 추가
+### 2026-09-16 — 양방향 폼 이력 추가
 
 - 폼 인스턴스는 `redo()`를 제공하고 스냅숏은 `canRedo`를 보고합니다.
 - 개요 컨트롤은 실행 취소와 다시 실행을 방향별 사용 가능 여부와 함께 모두 렌더링합니다.
 - 실행 취소 뒤에 새 데이터 변경이 생기면 다시 실행 이력을 비웁니다.
 
-## 2026-09-16 — CSR과 SSR에서 CRUDUI 페이지 컨트롤 렌더링
+### 2026-09-16 — CSR과 SSR에서 CRUDUI 페이지 컨트롤 렌더링
 
 - 목록 렌더러는 공용 페이지 모델에서 이전, 번호, 다음 페이지 버튼을 출력합니다.
 - 결정된 현재 페이지의 기본값은 1이며 `aria-current="page"`를 표시하고 경계 컨트롤을 비활성화합니다.
 - 파이프라인 예제는 SSR과 CSR 모두 CRUDUI 페이지 출력을 쓰며, 직접 만든 페이지 이동을 제거했습니다.
 - 파이프라인 페이지는 주입되는 `page`와 `total` 계약을 런타임 컨트롤 옆에 설명합니다.
 
-## 2026-09-16 — sticky 상태를 헤더 컨테이너에 두기
+### 2026-09-16 — sticky 상태를 헤더 컨테이너에 두기
 
 sticky 노드는 모든 렌더러에서 헤더를 감싸는 `crudui-node__header-container`를 렌더링합니다.
 감싸는 요소가 `position: sticky`와 `container-type: scroll-state`를 가지므로, 헤더 슬롯이나 헤더 자체의
 스타일을 바꾸지 않고도 헤더의 하위 요소가 감싸는 요소의 고정 상태에 반응할 수 있습니다.
 
-## 2026-09-16 — 행이 머무는 어느 위치에서나 sticky 이음매는 테두리 한 겹
+### 2026-09-16 — 행이 머무는 어느 위치에서나 sticky 이음매는 테두리 한 겹
 
 고정 행은 자신의 위쪽 테두리를 갖지 않습니다. 카드의 위쪽 선은 고정되는 박스인 헤더 컨테이너
 안에서 그려지고, 컨테이너가 고정되는 동안에는 사라져 바로 위 컨테이너의 선이 이음매가 됩니다.
@@ -1919,7 +1929,7 @@ sticky 노드는 모든 렌더러에서 헤더를 감싸는 `crudui-node__header
 이음매가 두 겹으로 그려졌습니다. 레이아웃 검사는 고정선, 행의 위쪽 테두리 없음, 두 상태의
 위쪽 선을 쿼리와 표시 방식 모두에서 확인합니다.
 
-## 2026-09-16 — 교차 검사 게이트웨이에서 모든 검증 fixture 실행
+### 2026-09-16 — 교차 검사 게이트웨이에서 모든 검증 fixture 실행
 
 교차 검사 게이트웨이가 공용 폼 검증 fixture 64개를 JavaScript·PHP·Go·Rust 모두로
 실행합니다. 멱등 서명은 오류 값 내부 JSON 객체 멤버 순서를 비의미적으로 처리하고 배열
@@ -1938,90 +1948,90 @@ Rust validator 릴리스 프로필은 Cargo의 debuginfo strip 단계를 명시�
 gateway 검사 연결, native 연산 범위가 완전한지 검사하며, `test:runtimes`에 포함되어 누락된
 검사나 지원되지 않는 실행 경로가 있으면 기계적으로 실패합니다.
 
-## 2026-09-16 — 프레임워크 표시를 보존하는 초기화 비교
+### 2026-09-16 — 프레임워크 표시를 보존하는 초기화 비교
 
 폼 비교가 각 뷰 컨테이너의 렌더링된 내용만 비교하고 프레임워크가 소유한 컨테이너 표시를
 보존합니다. Vue 어댑터는 CSR 마운트 뒤 `data-v-app`를 제거하지 않습니다.
 
-## 2026-09-16 — 초기화 비교를 격리하고 안정화
+### 2026-09-16 — 초기화 비교를 격리하고 안정화
 
 벤치마크가 CSR 초기화 단계를 시작하기 전에 저장소를 reset하고 두 열의 `added` 단계에서
 같은 결정적 신규 행 순서를 사용합니다. Vue hydration은 mount 작업에 hydration 인자를
 전달하고 비교기는 CSR의 프레임워크 표시를 렌더링 내용과 분리합니다.
 
-## 2026-09-16 — 벤치마크 실행 소스 식별자 게시
+### 2026-09-16 — 벤치마크 실행 소스 식별자 게시
 
 벤치마크 작업 결과가 `/source.json`에서 읽은 소스 식별자를 포함합니다. 따라서 서버 보고서가
 하위 보고서를 승인하기 전에 전체 트리 식별자를 검증할 수 있습니다.
 
-## 2026-09-16 — 검증기 계약에 맞춰 초기화 소스 식별자 게시
+### 2026-09-16 — 검증기 계약에 맞춰 초기화 소스 식별자 게시
 
 전용 벤치마크가 프레임의 완전한 소스 식별자를 초기화 보고서의 `source` 필드에 기록합니다.
 더 이상 그 객체를 `commit`으로 기록하지 않으므로 초기화·시나리오·서버 식별자를 일관되게
 비교할 수 있습니다.
 
-## 2026-09-16 — 브라우저 검증 입력 비우기를 결정적으로 변경
+### 2026-09-16 — 브라우저 검증 입력 비우기를 결정적으로 변경
 
 브라우저 검증기가 입력 요소의 표준 선택 API로 검증 입력을 선택한 뒤 값을 삭제합니다.
 Chromium의 플랫폼에 따라 달라지는 다중 클릭이나 키 조합 동작에 더 이상 의존하지 않습니다.
 
-## 2026-09-16 — 네이티브 어댑터에서 정본 페이지 메타데이터 보존
+### 2026-09-16 — 네이티브 어댑터에서 정본 페이지 메타데이터 보존
 
 PHP·Go·Rust 파이프라인 어댑터가 정본의 `page`와 `total` 옵션을 각 렌더러에 전달합니다.
 따라서 다섯 행인 마지막 페이지도 정본 전체 개수 45를 보고합니다.
 
-## 2026-09-16 — 벤치마크 쿼리 선택과 마운트 초기화 단계 보존
+### 2026-09-16 — 벤치마크 쿼리 선택과 마운트 초기화 단계 보존
 
 benchmark-console redirect가 쿼리 문자열을 보존하므로 각 검증 작업이 선택한 서버와
 프레임워크에 도달합니다. 프레임 초기화 계약은 브라우저 런타임이 게시하는 `mounted` 단계를
 명시적으로 허용합니다. 현재 트리의 전체 브라우저 검증은 검증과 소스 식별자 검사에 실패했으므로
 통과 결과로 기록하지 않습니다.
 
-## 2026-09-16 — 정본 예제가 CRUDUI가 생성한 파이프라인 기능 사용
+### 2026-09-16 — 정본 예제가 CRUDUI가 생성한 파이프라인 기능 사용
 
 이전 루트 구현은 잘못되어 있었습니다. 부모 쪽 단계 버튼과 직접 작성한 목록·상세 마크업이 CRUDUI 목록
 링크, 상세 링크, 폼 제출, 영속 저장을 거치지 않고 이동을 흉내 냈습니다. 정본 예제는 이제 목록과 상세
 출력을 CRUDUI 렌더러로 렌더링하고 실제 HTTP 이동을 사용합니다. 예전 흉내 경로는 호환 경로로 남기지 않고
 제거했습니다.
 
-## 2026-09-16 — 비교 검증을 벤치마크 진입점에서 실행
+### 2026-09-16 — 비교 검증을 벤치마크 진입점에서 실행
 
 브라우저 검증은 이제 비교 콘솔이 readiness와 작업 API를 소유하는 `/benchmark-console/`을
 엽니다. 정본 루트는 페이지 파이프라인으로 유지하며 벤치마크 내부 계약을 노출하지
 않습니다.
 
-## 2026-09-16 — 빌드 중 폐기된 공개 경로 산출물 제거
+### 2026-09-16 — 빌드 중 폐기된 공개 경로 산출물 제거
 
 지속되는 빌드 볼륨에서 현재 공개 자산을 복사하기 전에 폐기된 `public/displays/` 산출물을
 제거합니다. 소스 디렉터리를 삭제한 뒤에도 이전 생성 경로가 남는 문제를 막습니다.
 
-## 2026-09-16 — 루트 예제를 하나의 CRUD 파이프라인으로 구성
+### 2026-09-16 — 루트 예제를 하나의 CRUD 파이프라인으로 구성
 
 공개 루트가 List → Detail → Form → Save → List refresh를 한 페이지에서 제공하며 단계 간
 링크와 클라이언트·서버·CSR/SSR 선택을 명시합니다. 벤치마크 진입점은 `/benchmark/`로
 분리했습니다. 사용하지 않는 `/displays/` 경로와 공개 파일을 제거했습니다.
 
-## 2026-09-16 — 소스 동기화 중 기존 비교 컨테이너 재사용
+### 2026-09-16 — 소스 동기화 중 기존 비교 컨테이너 재사용
 
 비교 배포는 최초 부트스트랩과 소스 동기화를 구분합니다. 기대한 이미지와 정확한 마운트로 실행 중인
 컨테이너는 검사한 뒤 재사용하며, 일반적인 소스 변경은 `containerctl down`을 호출하거나 컨테이너를 다시
 만들거나 빌드·캐시·데이터·결과 볼륨을 다시 연결하지 않습니다. 공개 파이프라인은 목록과 상세 렌더링을
 Node에서 처리하지 않고 선택한 네이티브 PHP, PHP 확장, Go, Rust 생성기로 전달합니다.
 
-## 2026-09-16 — 정본 표시 진입 화면과 렌더러 범위 수정
+### 2026-09-16 — 정본 표시 진입 화면과 렌더러 범위 수정
 
 첫 `/displays/` 구현은 내부 Cross-Check Console을 공개 진입 화면으로 노출했습니다. 이는
 잘못된 구현입니다. 이제 `/displays/`는 같은 public 프로세스에서 프레임워크 독립 HTML 결과를
 표시하는 사용자용 목록·상세 화면을 제공합니다. 비교 매트릭스에도 React·Vue·Svelte와 함께
 HTML을 포함하여 parity 대상이 네 렌더러가 되었습니다.
 
-## 2026-09-15 — 정본 목록·상세 진입점 추가
+### 2026-09-15 — 정본 목록·상세 진입점 추가
 
 정본 `crudui.test` 진입점이 `/displays/`로 연결됩니다. 이 경로는 폼 비교와 같은 public
 프로세스에서 기존 목록·상세 검증 및 렌더링 콘솔을 제공하며 다른 서버나 배포를
 만들지 않습니다.
 
-## 2026-09-15 — 네이티브 빈 버튼 텍스트에 공용 할당기 사용
+### 2026-09-15 — 네이티브 빈 버튼 텍스트에 공용 할당기 사용
 
 PHP 확장은 생략된 버튼 content를 공용 문자열 할당기로 생성하므로 엄격한 GCC 빌드가
 비표준 `strdup` 선언에 의존하지 않습니다.
@@ -2029,72 +2039,72 @@ PHP 확장은 생략된 버튼 content를 공용 문자열 할당기로 생성�
 이후 비교 배포한 트리에서 생성 450개, 저장 120개, 브라우저 7,008개 검사를
 실패 없이 통과했습니다.
 
-## 2026-09-15 — 네이티브 선택 목록 입력 경로 수정
+### 2026-09-15 — 네이티브 선택 목록 입력 경로 수정
 
 PHP 확장은 공유 연산을 호출하기 전에 선택적인 `buildList` rows 인자를 초기화하고 검증하므로
 GCC의 필수 경고가 네이티브 빌드를 거부하지 않습니다.
 
-## 2026-09-15 — 고정된 OrderedJSON JavaScript 패키지 설치
+### 2026-09-15 — 고정된 OrderedJSON JavaScript 패키지 설치
 
 비교 빌드는 프레임을 빌드하기 전에 고정된 모노레포의 `js/` 패키지를 빌드 트리의
 `node_modules`에 복사하므로 다섯 런타임이 같은 리비전을 사용합니다.
 
-## 2026-09-15 — 오래된 검증 벤치마크 제거
+### 2026-09-15 — 오래된 검증 벤치마크 제거
 
 레거시 검증기를 실행하고 작은 명세로 조용히 대체하던 사용하지 않는 TypeScript 벤치마크를
 제거했습니다. 저장소 벤치마크는 `make bench` 하나이며 명시적인 공용 fixture 입력을 요구합니다.
 
-## 2026-09-15 — 표시 마크업과 검증 오류 순서 정의
+### 2026-09-15 — 표시 마크업과 검증 오류 순서 정의
 
 목록·상세 렌더러가 문서화한 `crudui-list`·`crudui-detail` 블록 문법을 사용합니다.
 표시 형식은 `crudui-value--TYPE`를 사용하며 배지 변형과 불리언 상태는 데이터 속성으로
 기록합니다. 다섯 검증 구현은 첫 오류 결과를 같게 하기 위해 키 기반 객체 항목을 키 정렬
 순서로 순회합니다. 데이터와 렌더링 행 순서는 입력 멤버 순서를 유지합니다.
 
-## 2026-09-15 — 명시적 ORM 표시 경로 사용
+### 2026-09-15 — 명시적 ORM 표시 경로 사용
 
 표시 치환을 `{=path}`로 통일하고 기존 `{.path}` 치환을 제거했습니다. 목록과 상세의
 `field`와 `sort.field`에서 앞의 점을 제거하여 객체 멤버와 연관 배열 키가 하나의 경로 계약을
 사용합니다. ORM 관계 경로를 명시하고 URL·파일 확장자의 점이 치환으로 해석되지 않도록 하기
 위한 네이밍 변경입니다.
 
-## 2026-09-15 — 필드 버튼 텍스트 fallback 제거
+### 2026-09-15 — 필드 버튼 텍스트 fallback 제거
 
 button·action 필드는 이제 `content`에서만 컨트롤 텍스트를 읽으며 다섯 생성기의
 기존 필드 `text` fallback을 제거했습니다.
 
-## 2026-09-15 — OrderedJSON 비교 소스를 변경된 커밋에 고정
+### 2026-09-15 — OrderedJSON 비교 소스를 변경된 커밋에 고정
 
 비교 소스 버전은 `0.0.1`로 유지하고 깨끗한
 `polyspec/ordered-json` checkout을 사용합니다.
 
-## 2026-09-15 — 비교 소스에서 운영자 로컬 편집기 설정 제외
+### 2026-09-15 — 비교 소스에서 운영자 로컬 편집기 설정 제외
 
 비교 source identity와 동기화에서 운영자 로컬 편집기 설정을 제외합니다.
 
 [English](CHANGELOG.md).
 
-## 2026-09-15 — OrderedJSON 비교 소스를 모노레포에 고정
+### 2026-09-15 — OrderedJSON 비교 소스를 모노레포에 고정
 
 form-comparison supervisor와 다언어 검증기가 이제 `polyspec/ordered-json`의
 변경 불가능한 커밋 하나를 사용합니다. JavaScript, Go, PHP, PHP 확장, Rust는
 하나의 체크아웃 안의 패키지 디렉터리로 검증하며, submodule 리비전과 submodule
 갱신은 소스 계약에 포함하지 않습니다.
 
-## 2026-09-15 — 검증 러너의 진행 상황을 출력하고 테스트별 제한을 적용
+### 2026-09-15 — 검증 러너의 진행 상황을 출력하고 테스트별 제한을 적용
 
 native 생성기, PHP 확장 엔진, 패키지 및 PHPUnit 검증 러너가 실행 중 작업과
 경과 시간을 출력하고 각 검사를 자체 측정 제한 시간에 중단합니다. native
 검사는 대상과 검사를 선택할 수 있으며 패키지 빌드는 소스·출력 digest가
 일치할 때만 기존 결과를 재사용합니다.
 
-## 2026-09-15 — GitHub와 호환되는 문서 제목 앵커 사용
+### 2026-09-15 — GitHub와 호환되는 문서 제목 앵커 사용
 
 문서 웹이 숫자로 시작하는 제목에 밑줄을 추가하지 않고 제목 앵커를
 생성합니다. 따라서 저장소 상대 문서 링크가 GitHub 소스 페이지와 같은 조각을
 사용합니다. 웹 빌드 테스트와 영·한 패키지 빌드 명세에 이 규칙을 기록했습니다.
 
-## 2026-09-15 — 유효해야 하는 저장소의 모든 명세를 메타스키마로 검사
+### 2026-09-15 — 유효해야 하는 저장소의 모든 명세를 메타스키마로 검사
 
 `scripts/check-schema.mjs`는 검증 사례만 검사했으므로 저장소가 유효하다고 의존하는 명세가 메타스키마를 통과하지
 못해도 어떤 검사도 알아채지 못했습니다. 실패마다 명세 문서와 모든 런타임을 근거로 판정했습니다.
@@ -2125,7 +2135,7 @@ native 생성기, PHP 확장 엔진, 패키지 및 PHPUnit 검증 러너가 실�
 면제 사례를 유효하게 바꾸면 각각 검사가 실패했습니다. 재생성한 사례, 그 사례를 읽는 TypeScript 적합성 파일(175건)과
 타입 검사, Go validate·compose 패키지, PHP compose·검증 필터(144건), Rust 사례 테스트, 문서 검사가 통과했습니다.
 
-## 2026-09-15 — 메타스키마에서 모든 검증 규칙의 형식을 정하고 모든 깊이의 금지 키 거부
+### 2026-09-15 — 메타스키마에서 모든 검증 규칙의 형식을 정하고 모든 깊이의 금지 키 거부
 
 검증기는 규칙 24개(`pattern`은 `match`와 구현 공유)를 등록하지만 폼 메타스키마는 `required`, `email`, `match`만
 선언했고, 객체의 속성 이름을 나열한 위치에서만 금지 키 이름을 적용했습니다. 형식을 정하지 않은 값은 검사하지 않아
@@ -2148,7 +2158,7 @@ TypeScript와 Go는 문자열이 아닌 패턴을 건너뛰어 그런 선언은 
 `scripts/check-schema.mjs`는 103건을 통과했고, TypeScript 메타스키마와 금지 키 적합성 파일 네 개는 77건, CLI 검사는
 37건을 통과했으며, 문서 작성 검사, 사례 README 검사, 린트가 통과했습니다.
 
-## 2026-09-15 — 모든 공용 사례 종류에 두 언어 README 제공
+### 2026-09-15 — 모든 공용 사례 종류에 두 언어 README 제공
 
 `tests/fixtures` 아래 사례 종류 중 compose, form-outline, form-session, specs, translate, validate 여섯 개에도
 README가 없었습니다. 이제 각 종류에 사례 필드, 사례가 검사하는 내용, 결과 비교 방식, 사례를 읽는 테스트, 재생성 명령 또는 직접
@@ -2157,7 +2167,7 @@ README가 없었습니다. 이제 각 종류에 사례 필드, 사례가 검사�
 운영 문서는 사례 파일 대신 검증 사례 README를 링크합니다. translate 생성기 머리 주석의 반복 단어와 문서 검사를
 "now"로 설명한 Makefile 주석을 바로잡았습니다. 문서 검사(25건)와 `make docs-check`가 통과했습니다.
 
-## 2026-09-15 — 모든 런타임에 하나의 구조 검증 사례 계약 적용
+### 2026-09-15 — 모든 런타임에 하나의 구조 검증 사례 계약 적용
 
 폼 명세 사례는 엔진 결과만 `expect: "ok"` 또는 `{error_code, at_path}`로 기록했고, 목록과 상세 사례는 메타스키마
 결과를 `expect`와 `reason`에, 엔진 결과를 `engine`에 기록했습니다. 테스트도 서로 다른 필드를 읽었습니다.
@@ -2180,7 +2190,7 @@ README가 없었습니다. 이제 각 종류에 사례 필드, 사례가 검사�
 103건을 통과했고, TypeScript(1,677건), PHP(1,539건), Go와 Rust 검사, PHP 확장의 검증 사례 115건, 게이트웨이
 검사(204건)가 통과했습니다.
 
-## 2026-09-15 — 모든 예제에 두 언어 README 제공
+### 2026-09-15 — 모든 예제에 두 언어 README 제공
 
 `examples/form-structure`에는 README가 없었고 교차 검증 콘솔에는 한국어 README가 없어, 미리보기의 목적과 실행
 명령이 어디에도 적혀 있지 않았습니다. 이제 `examples/` 아래 모든 디렉터리에 서로 링크하는 `README.md`와
@@ -2190,7 +2200,7 @@ README가 없었습니다. 이제 각 종류에 사례 필드, 사례가 검사�
 노드 57개를 렌더링했습니다. 콘솔 README는 빌드 스크립트가 실행하는 Rust 명령
 `cargo build --locked --release --bin validate`를 안내합니다. 예제 README 검사와 문서 작성 검사가 통과했습니다.
 
-## 2026-09-15 — 패키지 예제에서 목록과 상세를 보여 주고 운영 문서 작성
+### 2026-09-15 — 패키지 예제에서 목록과 상세를 보여 주고 운영 문서 작성
 
 패키지 예제는 폼만 렌더링했고, 목록과 상세를 설명하는 운영 문서가 없었으며, 문서 색인 네 개가 서로 다른 문서를
 나열했습니다. 이제 [예제 계약](docs/spec/examples.ko.md)은 현재 예제가 폼, 목록, 상세를 모두 다루도록 요구합니다. Go
@@ -2209,7 +2219,7 @@ Go 예제 테스트가 통과했습니다. Rust 예제는 실행되어 폼 블�
 링크했습니다. 운영 문서의 JavaScript, PHP, Go, Rust 코드 블록이 실행되었고, React와 Vue README 예제는 빌드된
 패키지에서 데이터를 렌더링했습니다.
 
-## 2026-09-15 — 교차 검증 콘솔에서 상세 렌더링과 검증
+### 2026-09-15 — 교차 검증 콘솔에서 상세 렌더링과 검증
 
 콘솔은 폼과 목록 렌더링을 비교하고 목록과 상세를 검증했지만 상세를 렌더링하지 못했습니다. 이제
 `POST /api/render-detail`로 상세 명세와 레코드 하나를 React, Vue, Svelte에 보내고, 모든 공용 상세 사례를 검사에서
@@ -2217,7 +2227,7 @@ Go 예제 테스트가 통과했습니다. Rust 예제는 실행되어 폼 블�
 적합성 검사는 공용 헬퍼를 사용했습니다. 이제 콘솔도 그 헬퍼를 사용합니다. 클라이언트 README는 목록 로드 실패를
 `LOAD-ERROR` 셀로 설명했지만 페이지는 `FAILURE`로 표시합니다. 게이트웨이 검사는 204건을 통과했습니다.
 
-## 2026-09-15 — 목록과 상세 design을 폼 design과 같이 검사
+### 2026-09-15 — 목록과 상세 design을 폼 design과 같이 검사
 
 목록과 상세에는 컴파일 단계가 없어 목록, 열, 상세, 필드의 알 수 없는 `design` 키를 모든 런타임이 무시했고, 오늘 앞서
 고친 상세 사례도 그래서 그런 키로 셀을 꾸몄습니다. 이제 [표시 형식](docs/spec/display-formats.ko.md)은 입력 규칙과 조합
@@ -2229,7 +2239,7 @@ design을 열이나 필드보다 먼저 검사합니다. JavaScript, Go, Rust, P
 
 두 변경은 함께 검증했으며 결과는 멤버 순서 항목 끝에 적습니다.
 
-## 2026-09-15 — 모든 런타임에서 명세 객체에 하나의 멤버 순서 사용
+### 2026-09-15 — 모든 런타임에서 명세 객체에 하나의 멤버 순서 사용
 
 JavaScript는 명세를 일반 객체로 받아 `10` 같은 배열 인덱스 멤버 이름을 먼저 숫자 오름차순으로 나열하고, PHP,
 PHP 확장, Go, Rust는 작성한 순서를 유지했습니다. `b`, `10`, `a`로 작성한 필드로 여섯 대상을 측정하자
@@ -2253,7 +2263,7 @@ Rust는 `null`을 썼습니다. 이제 모든 오류가 `value`를 가지며 없
 PHP 1,539건과 Go, Rust 검사를 통과했고, 게이트웨이 검사는 204건을 통과했으며, 빌드, 린트, 포맷, 문서 검사(25건),
 문서 웹 검사가 통과했습니다. 이 검사를 실행한 작업 트리에는 이 커밋 뒤에 커밋한 변경도 함께 있었습니다.
 
-## 2026-09-15 — 모든 TypeScript 패키지를 경고 없이 린트
+### 2026-09-15 — 모든 TypeScript 패키지를 경고 없이 린트
 
 `npm run lint`는 검증기, HTML 렌더러, React 소스만 검사했으므로 core, Vue, Svelte, CLI 패키지와 검증기 벤치마크는
 린트된 적이 없었고 경고도 명령을 실패시키지 않았습니다. 이제 `packages`를 `--max-warnings 0`으로 린트합니다. 넓힌
@@ -2267,7 +2277,7 @@ CLI는 하나의 타입 노드로 스키마 정의를 읽고, 쓰지 않는 코�
 린트는 경고 없이 통과했고 CLI(37건), core(112건), Svelte(393건과 10건) 검사가 통과했습니다. 검증기 벤치마크는 여전히
 타입 검사 밖에 있고 레거시 검증기를 측정하며, 이는 남은 작업입니다.
 
-## 2026-09-15 — Vue 서버 렌더러를 vue 피어 의존성으로 가져오기
+### 2026-09-15 — Vue 서버 렌더러를 vue 피어 의존성으로 가져오기
 
 `@crudui/generator-vue`는 선언한 `vue` 피어 의존성 밖의 개발 의존성 `@vue/server-renderer`를 가져왔습니다. 빌드가
 이를 외부 모듈로 다루지 않아 빌드된 진입점에 2.2MB 번들 사본이 들어갔고, 그 ES 모듈에는 이름 있는 내보내기가 없어
@@ -2281,14 +2291,14 @@ CLI는 하나의 타입 노드로 스키마 정의를 읽고, 쓰지 않는 코�
 `svelte/server`를 가져오며 둘 다 피어 의존성에 포함됩니다. Vue 검사는 396건을 통과했고 `npm run test:packages`가
 통과했습니다.
 
-## 2026-09-15 — 문서 웹에서 한국어 제목 앵커 유지
+### 2026-09-15 — 문서 웹에서 한국어 제목 앵커 유지
 
 문서 웹은 NFKD로 정규화한 텍스트에서 제목 id를 만들었습니다. NFKD는 한글 음절을 자모로 분해하므로 `목록 모델`
 같은 한국어 제목은 어떤 한국어 조각 링크와도 맞지 않는 id를 받았습니다. 이제 결합 부호를 제거한 뒤 다시 조합해 한글은
 음절을 유지하고, 악센트가 있는 라틴 문자는 계속 부호를 잃습니다. 웹 빌드 테스트는 한국어 제목, 그 제목으로 가는
 조각 링크, `Café`를 다룹니다. 웹 빌드 검사는 11건을 통과했습니다.
 
-## 2026-09-15 — 빈 객체를 잃지 않고 기대 PHP 시그니처 비교
+### 2026-09-15 — 빈 객체를 잃지 않고 기대 PHP 시그니처 비교
 
 후보 검증은 두 PHP 구현이 같은 메서드를 선언하는데도 PHP 모드 검사에서
 `Public PHP and extension signatures must match`로 멈췄습니다. 검사는 기대 시그니처를 연관 배열로 디코딩했고,
@@ -2296,7 +2306,7 @@ CLI는 하나의 타입 노드로 스키마 정의를 읽고, 쓰지 않는 코�
 기대값 `{}`가 `[]`가 되어 리플렉션한 `{}`와 맞지 않았습니다. 이제 검사는 기대 시그니처를 객체로 디코딩해 그대로
 비교합니다. 로컬에서 순수 PHP 시그니처를 객체로 쓰고 다시 읽으면 같았고, 연관 배열 왕복은 불일치를 재현했습니다.
 
-## 2026-09-15 — 스키마가 닫은 버킷의 알 수 없는 키 거부
+### 2026-09-15 — 스키마가 닫은 버킷의 알 수 없는 키 거부
 
 스키마는 `multiple`, `lang`, `design`과 그 노드, `behavior`를 닫지만, 폼 컴파일은 그 안의 알 수 없는 키를 검사하지
 않는다고 명시했고 타입 모델은 스키마와도 서로와도 달랐습니다. Rust는 여덟 버킷 모두에 알 수 없는 키를 보존했고,
@@ -2319,7 +2329,7 @@ TypeScript는 `multiple`과 `lang`을 열었으며, Go는 `options`를 제외한
 JavaScript(1642건), Go, PHP(1529건), Rust(73건)에서 통과했고, 콘솔 검사는 166건 중 166건, 메타 스키마 검사는 80건을
 통과했으며, test:forms, lint, format-check, manifest:test, test:docs, docs-check가 통과했습니다.
 
-## 2026-09-15 — 검사가 실행하는 대상을 실행 전에 빌드하고 설치
+### 2026-09-15 — 검사가 실행하는 대상을 실행 전에 빌드하고 설치
 
 폼 구조 작업 중 기록한 발견 세 가지는 규칙이 필요해 열려 있었고, 공용 사례 하나는 스키마와 맞지 않았습니다.
 - `make test-native`는 보고서를 `.git/native-generators`에 썼는데, `.git`이 파일인 Git worktree에서는 이 경로를
@@ -2339,7 +2349,7 @@ JavaScript(1642건), Go, PHP(1529건), Rust(73건)에서 통과했고, 콘솔 �
 113건, 기존 건너뜀 하나와 함께 엔진 24건)에서 통과했습니다. test:forms, lint, format-check, manifest:test,
 test:docs, docs-check가 통과했습니다.
 
-## 2026-09-15 — 상세 입력 순서를 강제하고 규칙을 라이브러리에 유지
+### 2026-09-15 — 상세 입력 순서를 강제하고 규칙을 라이브러리에 유지
 
 표시 형식 명세는 상세 입력 규칙을 순서대로 나열하지만 공용 상세 사례는 한 번에 규칙 하나만 어겨 순서가 검사된 적이
 없었습니다. 규칙 두 개를 함께 어기는 사례를 추가하자 네이티브 러너의 JavaScript 프로토콜 어댑터와 Go, PHP 생성기
@@ -2357,7 +2367,7 @@ C 라이브러리가 이 순서로 검사하고, JavaScript 어댑터는 해석�
 상세 사례는 28건입니다. `make test-native`에서 여섯 대상이 각각 241건 중 241건을 통과했습니다(입력 불변 검사
 포함 1447건).
 
-## 2026-09-15 — 모든 언어에서 상세 명세 검증
+### 2026-09-15 — 모든 언어에서 상세 명세 검증
 
 `validateDetail`은 JavaScript에만 있었고 기능 상태는 부분 구현이었으며, 공용 상세 검증 사례는 어떤 엔진도 읽지
 않는 메타 스키마 사례 두 건이었습니다. 이제 Go, PHP, PHP 확장, Rust도 JavaScript처럼 상세 명세를 검증합니다.
@@ -2391,7 +2401,7 @@ JavaScript 검증기 검사 1642건 중 1642건, Go 검증기 패키지, Rust 73
 166건 중 166건을 통과했습니다. 메타 스키마 검사는 80건을 통과했고, `make test-native`는 여섯 대상에서 각각
 238건 중 238건을 통과했으며, lint, format-check, test:forms, manifest:test, test:docs, docs-check가 통과했습니다.
 
-## 2026-09-15 — 모든 런타임에서 하나의 규칙으로 콘텐츠 텍스트 결정
+### 2026-09-15 — 모든 런타임에서 하나의 규칙으로 콘텐츠 텍스트 결정
 
 스키마는 콘텐츠를 문자열이나 항목이 문자열인 언어 맵으로 정의하지만, 런타임이 이를 텍스트로 바꾸는 방법은
 어느 명세에도 없었습니다. 그 형태를 벗어난 값으로 여섯 대상을 측정하자 다섯 가지 동작이 드러났습니다.
@@ -2414,7 +2424,7 @@ C 확장의 링크 문구는 다른 런타임과 같은 경우에만 대체합�
 상세 사례는 25건입니다. `make test-native`에서 여섯 대상이 각각 238건 중 238건을 통과했고(입력 불변 검사 포함
 1429건), 형식 세부 동작 측정 스크립트는 여섯 대상에서 같은 결과를 보고했습니다.
 
-## 2026-09-15 — 목록 pageMeta 옵션을 page와 total로 바꾸고 JavaScript 입력 오류에 코드 부여
+### 2026-09-15 — 목록 pageMeta 옵션을 page와 total로 바꾸고 JavaScript 입력 오류에 코드 부여
 
 목록 옵션 `pageMeta`는 호출자가 주는 현재 페이지와 전체 레코드 수를 담았지만 이름이 둘 중 무엇도 말하지 않았고,
 멤버에 값 규칙이 없어 어떤 값이든 `data-page`·`data-total` 속성이 되었으며 공용 사례는 숫자만 다뤘습니다. 이제
@@ -2446,7 +2456,7 @@ JavaScript 생성기는 입력 오류를 코드 없는 `TypeError`로 던져 게
 각각 237건 중 237건을 통과했고(입력 불변 검사 포함 1423건), Go·Rust 검증기 명령을 다시 빌드한 뒤 게이트웨이
 검사가 135건 중 135건을 통과했습니다.
 
-## 2026-09-15 — 표시 형식을 문서화하고 모든 런타임에 하나의 입력 규칙을 강제
+### 2026-09-15 — 표시 형식을 문서화하고 모든 런타임에 하나의 입력 규칙을 강제
 
 목록 열과 상세 필드가 선언할 수 있는 형식은 스키마와 구현에만 드러나 있었습니다.
 [표시 형식](docs/spec/display-formats.ko.md)은 형식마다 옵션과 기본값, 입력 규칙과 메시지, 마크업을 정리하며
@@ -2475,7 +2485,7 @@ JavaScript 생성기는 입력 오류를 코드 없는 `TypeError`로 던져 게
 불변 검사 포함 1369건). 목록 입력(14개)과 형식 세부 동작(19개) 측정 스크립트는 여섯 대상에서 같은 결과를
 보고했습니다.
 
-## 2026-09-15 — 계약 검증 명령을 패키지 검사로 유지
+### 2026-09-15 — 계약 검증 명령을 패키지 검사로 유지
 
 폼 인스턴스 CI 작업이 실패했습니다. `npm run manifest:test`는 계약 목록의 모든 검증 명령을
 실행하는데, `buildDetail`과 `renderDetail`의 계약이 `make test-native`를 선언했습니다. 이 작업에는 네이티브 PHP
@@ -2486,7 +2496,7 @@ JavaScript 생성기는 입력 오류를 코드 없는 `TypeError`로 던져 게
 두 상세 계약도 다른 계약처럼 패키지 검사만 선언합니다. `run-contract-tests.mjs`로 코어 상세 검사와 HTML·React
 상세 적합성 검사가 통과했고 `make docs-check`와 `npm run test:docs`가 통과했습니다.
 
-## 2026-09-15 — 모든 런타임에서 상세 보기를 같은 수준으로 강제
+### 2026-09-15 — 모든 런타임에서 상세 보기를 같은 수준으로 강제
 
 상세 보기는 JavaScript와 Go에만 있었고 그 출력을 비교하는 검사가 없었습니다. 세 커밋이 PHP·Rust 상세 렌더링과 네이티브 러너의 원본 HTML 상세 사례, PHP JSON 경계 문서를
 추가했습니다. 그 상태에는 네 가지 빈틈이 있었습니다. 러너는 HTML만 비교했고, 러너가 모든 사례를
@@ -2521,7 +2531,7 @@ Linux 전용 검사 1개는 건너뛰었습니다. React, Vue, Svelte, HTML 렌�
 통과했고, Go와 Rust 생성기 검사, `npm run lint`, `npm run test:docs`, 코어·React·HTML 타입 검사,
 `make docs-check`, `npm run test:forms`가 통과했습니다.
 
-## 2026-09-15 — 목록과 상세 고정 데이터가 preload 링크 도우미를 공유
+### 2026-09-15 — 목록과 상세 고정 데이터가 preload 링크 도우미를 공유
 
 프레임워크 적합성 검사는 React 서버 렌더링과 HTML 렌더러가 목록 앞에 쓰는 이미지 preload 링크를
 제외하고 목록을 비교하며, 네이티브 생성기 검사는 전체 HTML을 비교합니다. 이 규칙은 목록 전용 이름인
@@ -2531,7 +2541,7 @@ Linux 전용 검사 1개는 건너뛰었습니다. React, Vue, Svelte, HTML 렌�
 
 목록 고정 데이터를 다시 생성해도 바이트가 같았고 React와 HTML 목록 적합성 검사가 통과했습니다.
 
-## 2026-09-15 — generator-core를 선언한 라이브러리로 빌드
+### 2026-09-15 — generator-core를 선언한 라이브러리로 빌드
 
 모든 CI 작업이 `npm run build`에서 실패했습니다. `detail.ts`가 패키지가 선언한
 TypeScript 라이브러리에 없는 `Object.hasOwn`을 호출했습니다. 그 커밋은 변경 기록 문구 수정으로
@@ -2544,7 +2554,7 @@ TypeScript 라이브러리에 없는 `Object.hasOwn`을 호출했습니다. 그 
 검증되었으므로 유지하며, 남은 상세 작업은 별도 변경으로 이어갑니다. `npm run build`, `npm run lint`,
 `npm run test:docs`, `make docs-check`, 코어 상세 검사가 통과했습니다.
 
-## 2026-09-15 — 스크립트 URL 정규식을 lint에서 유지
+### 2026-09-15 — 스크립트 URL 정규식을 lint에서 유지
 
 CI가 HTML 렌더러에서 실패했습니다. 기준 렌더러에서 이식한 스크립트 URL 정규식을
 `no-control-regex`가 거부했습니다. 이 정규식은 URL이 스킴 글자 사이에 숨길 수 있는 제어 문자를
@@ -2553,7 +2563,7 @@ CI가 HTML 렌더러에서 실패했습니다. 기준 렌더러에서 이식한 
 정규식은 기준 렌더러가 쓰는 그대로 두고, 해당 줄에만 규칙을 끄면서 제어 문자가 의도된 것임을
 주석으로 밝혔습니다. `npm run lint`가 통과하고 HTML 렌더러 검사 207개가 통과했습니다.
 
-## 2026-09-15 — 서버 렌더링 프레임의 후보 검증 결과 기록
+### 2026-09-15 — 서버 렌더링 프레임의 후보 검증 결과 기록
 
 후보 검증이 통과했습니다. 생성 검증은 HTTP 요청 899개에서 결과 450개를 모두
 통과했고, 여기에는 빌드된 프레임 문서, 레코드 페이로드가 있는 SSR 폼 HTML, 조합마다 거부해야 하는
@@ -2565,7 +2575,7 @@ SSR 쿼리 10개가 포함됩니다. PHP 두 모드는 각각 생성 검사 62�
 
 기능 기록에 이 결과와 소스 아카이브 digest, 이미지 digest를 적었습니다.
 
-## 2026-09-15 — 열 비교에 렌더링 노드 규칙 적용
+### 2026-09-15 — 열 비교에 렌더링 노드 규칙 적용
 
 후보 검증이 Vue에서 다시 실패했습니다. Vue 초기화 보고서마다 비교 168개 중 16개가 실패했고,
 하이드레이션한 열은 서버의 style 속성 원문(`--crudui-sticky-depth:0`)을 유지한 반면 마운트한 열은
@@ -2581,7 +2591,7 @@ Vue가 계산한 선언 블록(`--crudui-sticky-depth: 0;`)을 가지고 있었�
 
 폼 인스펙터 검사 20개가 통과했습니다.
 
-## 2026-09-15 — 비교 대상을 뷰 컨테이너가 담은 것으로 정의
+### 2026-09-15 — 비교 대상을 뷰 컨테이너가 담은 것으로 정의
 
 프레임 문서 변경의 후보 검증이 Vue 두 렌더링 경로에서 실패했습니다. Vue 초기화 보고서마다 비교
 168개 중 18개가 실패했고 첫 차이는 폼 뷰 요소 자체였습니다. `csr` 열의 컨테이너에는
@@ -2597,7 +2607,7 @@ DOM이 그대로인지 확인하고, React·Vue·HTML 렌더러에서는 서버�
 
 폼 인스펙터 검사 19개가 통과했습니다.
 
-## 2026-09-15 — 상세 보기를 구현한 런타임을 사실대로 기술
+### 2026-09-15 — 상세 보기를 구현한 런타임을 사실대로 기술
 
 런타임 동작 표는 PHP 라이브러리, Rust, PHP 확장에 `Generator::buildDetail`, `build_detail`과
 렌더링 대응 심볼을 적어두고 있었습니다. 그 여섯 심볼은 존재하지 않습니다. 상세 보기는 JavaScript
@@ -2612,7 +2622,7 @@ DOM이 그대로인지 확인하고, React·Vue·HTML 렌더러에서는 서버�
 
 `make docs-check`가 통과했습니다.
 
-## 2026-09-15 — 공개 브라우저 모듈을 import까지 함께 로드
+### 2026-09-15 — 공개 브라우저 모듈을 import까지 함께 로드
 
 프레임 문서 변경의 후보 검증이 컨테이너에서 실패했습니다. 공개 프레임 준비 모듈을 Chromium에서
 로드하는 소스 검사가 파일을 읽어 `data:` URL로 import했기 때문에, 이 모듈이 새로 가지게 된 공용
@@ -2626,7 +2636,7 @@ DOM이 그대로인지 확인하고, React·Vue·HTML 렌더러에서는 서버�
 
 Chromium 소스 검사 4개, 비교 소스 검사 150개, `make docs-check`가 통과했습니다.
 
-## 2026-09-15 — SSR 열을 서버가 렌더링한 프레임 문서로 제공
+### 2026-09-15 — SSR 열을 서버가 렌더링한 프레임 문서로 제공
 
 비교 페이지의 `ssr` 열은 서버 렌더링이 아니었습니다. 프레임 문서에는 빈 폼 뷰만 있었고,
 브라우저가 `render`를 요청해 받은 HTML을 페이지에 넣은 뒤 그 위에 프레임워크를 마운트했습니다.
@@ -2664,7 +2674,7 @@ Chromium 소스 검사 4개, 비교 소스 검사 150개, `make docs-check`가 �
 
 비교 소스 검사 149개와 `make docs-check`가 통과했습니다.
 
-## 2026-09-15 — Vue 컴포넌트가 문법 노드만 렌더링
+### 2026-09-15 — Vue 컴포넌트가 문법 노드만 렌더링
 
 jsdom에서 측정한 결과, 공용 세션 폼의 서버 마크업을 Vue `createSSRApp`로 하이드레이트하면 입력
 요소가 교체되고 불일치 40건이 보고되었습니다. Vue가 주석을 기대하는 자리에 서버 마크업에는 노드가
@@ -2677,7 +2687,7 @@ jsdom에서 측정한 결과, 공용 세션 폼의 서버 마크업을 Vue `crea
 경로에서 렌더링한 폼, 구조 맵, 데이터 보기에 주석 노드가 없었습니다. `npm test -w
 @crudui/generator-vue`가 테스트 342개를 통과했습니다.
 
-## 2026-09-15 — HTML 렌더러를 문자열 렌더러 형식에 맞춤
+### 2026-09-15 — HTML 렌더러를 문자열 렌더러 형식에 맞춤
 
 문자열 렌더러는 같은 바이트를 만들어야 했지만 검사에는 HTML 렌더러가 없었습니다. 네이티브 생성
 검사는 PHP, PHP 확장, Go, Rust만 React 서버 렌더링과 비교했습니다. 폼 고정 데이터 90개를 바이트
@@ -2700,7 +2710,7 @@ React 속성 이름, input의 `style`, `name`, `checked`, `value`를 마지막�
 통과했습니다. `npm run test:forms`(core 110, HTML 207, React 352, Vue 342, Svelte 339·10, Chromium 17),
 `npm run test:form-comparison:source` 141개와 `:browser` 4개, `make docs-check`가 통과했습니다.
 
-## 2026-09-15 — 실수 고정 데이터 값을 C double 리터럴로 작성
+### 2026-09-15 — 실수 고정 데이터 값을 C double 리터럴로 작성
 
 `make test-native`가 PHP 확장 엔진 테스트 "list rendering has no undefined behavior findings"에서
 멈췄습니다. 생성된 C 고정 데이터가 `ps_float_value(1000000000000000100)`을 썼고, Apple clang 21이
@@ -2716,7 +2726,7 @@ JavaScript는 이를 `1000000000000000100`으로 출력합니다.
 sanitizer 테스트는 선언된 플랫폼 조건에 따라 Linux 밖에서 건너뛰며 Linux CI 작업에서
 실행됩니다.
 
-## 2026-09-15 — 비교 페이지를 한 화면에 고정
+### 2026-09-15 — 비교 페이지를 한 화면에 고정
 
 배포 뒤 실제 Safari에서 왼쪽 프레임 안의 모두 펼치기를 누르고 포인터를 페이지 머리글로 옮긴 뒤
 PHP, React, bindForm 반복 주입 비교를 실행했습니다. 168/168 대신 비교 3개 뒤에 포인터 안내로
@@ -2739,7 +2749,7 @@ PHP, React, bindForm 반복 주입 비교를 실행했습니다. 168/168 대신 
 뒤 PHP, React, bindForm 반복 주입 비교를 실행한 결과 168/168 일치했습니다. 포인터를 왼쪽 프레임 위에
 둔 채 시작하면 비교는 결과 없이 포인터 안내로 멈췄습니다.
 
-## 2026-09-15 — 포인터가 프레임 밖에 있을 때만 비교를 캡처
+### 2026-09-15 — 포인터가 프레임 밖에 있을 때만 비교를 캡처
 
 배포 뒤, safaridriver로 실행한 실제 Safari에서 포커스 테두리 차이를 재현했던 절차를
 반복했습니다. 왼쪽 프레임 안의 모두 펼치기를 실제 포인터로 누른 뒤 PHP, React, bindForm 반복 주입
@@ -2763,7 +2773,7 @@ PHP, React, bindForm 반복 주입 비교를 실행했습니다. 168/168 대신 
 
 `npm run test:form-comparison:source` 141개와 `:browser` 4개, `make docs-check`가 통과했습니다.
 
-## 2026-09-15 — 스크립트 포커스의 표시 여부를 명시
+### 2026-09-15 — 스크립트 포커스의 표시 여부를 명시
 
 Safari에서 배포된 페이지의 PHP, React, bindForm 반복 주입 비교가 `expanded-all`,
 `undone`, `empty`, `restored`에서 CSS만 실패했습니다. 두 열 모두 같은 버튼에 포커스가 있었지만
@@ -2792,7 +2802,7 @@ Chromium 검사는 포인터로 누른 펼치기/접기 버튼을 테두리 없�
 `npm run test:forms`(core 110, HTML 207, React 352, Vue 342, Svelte 339·10, Chromium 17), `npm run
 test:form-comparison:source` 141개와 `:browser` 3개, `make docs-check`가 통과했습니다.
 
-## 2026-09-14 — 비교 저장소 잠금이 브라우저 하나에만 적용됨을 명시
+### 2026-09-14 — 비교 저장소 잠금이 브라우저 하나에만 적용됨을 명시
 
 Playwright WebKit 비교가 배포에 대해 실행되는 동안 Safari 검사가 끝나지 않았습니다. 각
 페이지가 자기 저장소 잠금을 가졌어도 두 실행은 같은 저장 레코드를 썼습니다. `navigator.locks`의
@@ -2801,7 +2811,7 @@ Playwright WebKit 비교가 배포에 대해 실행되는 동안 Safari 검사�
 명시합니다. 서버는 서버·렌더링 경로·프레임워크마다 레코드 저장소 하나를 유지하며, 실행마다 저장소를
 분리하는 안은 검토했지만 채택하지 않았습니다.
 
-## 2026-09-14 — 사용할 수 없는 조작을 aria-disabled로 표시
+### 2026-09-14 — 사용할 수 없는 조작을 aria-disabled로 표시
 
 Safari에서 배포된 페이지의 반복 주입 비교가 `restored`의 CSS와 포커스 차이를
 보고했습니다. 왼쪽 열은 비활성화된 되돌리기 버튼에 포커스와 포커스 테두리가 남았고 오른쪽 열은
@@ -2836,7 +2846,7 @@ test:form-comparison:source`(141)와 `:browser`(3), `make docs-check`, `make for
 클릭하면 포커스가 body로 가며, 데이터를 바꾸지 않는 모두 펼치기도 같습니다. 이는 두 열에서 같은
 WebKit의 마우스 동작이며 렌더링 결과가 아닙니다.
 
-## 2026-09-14 — 비교 저장소 작업을 한 번에 하나만 실행
+### 2026-09-14 — 비교 저장소 작업을 한 번에 하나만 실행
 
 배포된 페이지에서 왼쪽과 오른쪽 프레임의 검사 실행을 동시에 누르자 두 프레임 모두 여러
 검사가 "검사 오류"로 실패했습니다. 한 프레임만 실행하면 같은 검사가 19/19 통과했습니다. 두 프레임과
@@ -2853,7 +2863,7 @@ origin 잠금 하나(`src/storage-lock.mjs`)를 가진 동안에만 레코드를
 `npm run test:form-comparison:source`가 잠금 테스트 2개를 포함한 141개, `npm run
 test:form-comparison:browser`가 3개를 통과했고 `make docs-check`가 통과했습니다.
 
-## 2026-09-14 — 빈 컬렉션 추가 뒤 컬렉션을 다시 조회
+### 2026-09-14 — 빈 컬렉션 추가 뒤 컬렉션을 다시 조회
 
 HTML 프레임을 처음 빌드해 실행한 후보 검증은 생성 검증(결과 386개, 요청 547개)을 통과한 뒤
 PHP 검사 1,744개 중 4개에서 실패했습니다. 두 렌더링 경로와 두 전송 방식의 HTML 렌더러 `empty` 시나리오가
@@ -2868,30 +2878,30 @@ PHP 검사 1,744개 중 4개에서 실패했습니다. 두 렌더링 경로와 �
 후보 준비는 커밋되지 않은 변경이 있는 checkout에서 시작을 거부하므로, 그 실행은 해당 커밋의 별도
 git worktree에서 진행했습니다. `npm run test:form-comparison:source`가 테스트 139개를 통과했습니다.
 
-## 2026-09-14 — Go 상세 모델과 SSR 렌더링 추가
+### 2026-09-14 — Go 상세 모델과 SSR 렌더링 추가
 
 Go 생성기가 `BuildList`에서 사용하는 기존 순서 보존 표시·합성 경로를 재사용하는
 `BuildDetail`과 `RenderDetail`을 제공합니다. 명령 어댑터는 `renderDetail` 작업에
 객체 레코드 하나를 받습니다.
 
-## 2026-09-14 — Svelte 상세 렌더링 추가
+### 2026-09-14 — Svelte 상세 렌더링 추가
 
 Svelte 생성기가 공용 읽기 전용 `Detail` 컴포넌트와 `renderDetail` SSR 진입점을
 제공합니다. 표시 분기는 코어 상세 모델을 소비하며 기존 raw HTML 표시 경계를
 유지합니다.
 
-## 2026-09-14 — Vue 상세 렌더링 추가
+### 2026-09-14 — Vue 상세 렌더링 추가
 
 Vue 생성기가 공용 `Detail` 컴포넌트와 비동기 `renderDetail` SSR 진입점을
 제공합니다. 코어 상세 모델과 기존 목록 셀 표시 매핑을 소비합니다.
 
-## 2026-09-14 — React 상세 렌더링 추가
+### 2026-09-14 — React 상세 렌더링 추가
 
 React 생성기가 공용 `Detail` 컴포넌트와 `renderDetail`을 제공합니다. 코어 상세
 모델과 기존 셀 표시 컴포넌트를 소비하며, 출력은 읽기 전용이고 데이터 조회나
 중복 표시 평가를 수행하지 않습니다.
 
-## 2026-09-14 — CRUDUI 상세 명세와 공용 읽기 모델 추가
+### 2026-09-14 — CRUDUI 상세 명세와 공용 읽기 모델 추가
 
 CRUDUI에 순서가 있는 읽기 전용 표시 필드를 갖는 `Detail` 선언을 추가했습니다.
 코어는 기존 목록 엔진에 합성, 조건, 지역화, 표시 형식 처리를 위임하는
@@ -2899,7 +2909,7 @@ CRUDUI에 순서가 있는 읽기 전용 표시 필드를 갖는 `Detail` 선언
 검증기와 스키마 검사가 새 진입점을 확인합니다. 다른 런타임 생성기는 아직
 미완성이며 기능 상태는 partial로 기록했습니다.
 
-## 2026-09-14 — 비교 페이지에서 HTML 렌더러 비교
+### 2026-09-14 — 비교 페이지에서 HTML 렌더러 비교
 
 비교 페이지는 클라이언트 열을 React, Vue, Svelte로만 렌더링했고, 프레임워크와 무관한 렌더러인
 `@crudui/generator-html`은 브라우저 행렬에 포함된 적이 없었습니다. 이제 `html`이
@@ -2924,7 +2934,7 @@ CRUDUI에 순서가 있는 읽기 전용 표시 필드를 갖는 `Detail` 선언
 `npm run test:runtimes`(20), `make docs-check`, Go 서버 테스트, Rust 서버 테스트 4개가 통과했습니다. HTML
 프레임을 포함한 프레임은 후보 검증에서만 빌드되어 네 서버와 함께 실행됩니다.
 
-## 2026-09-14 — HTML 렌더러로 bindForm 폼 렌더링
+### 2026-09-14 — HTML 렌더러로 bindForm 폼 렌더링
 
 React, Vue, Svelte는 `bindForm`으로 관리하는 폼을 상태 없는 `FormFields`로 렌더링하지만,
 `@crudui/generator-html`은 `createForm` 인스턴스로만 폼을 렌더링할 수 있었습니다(`renderForm(form)`).
@@ -2938,7 +2948,7 @@ HTML 렌더러의 적합성 테스트는 렌더링 가능한 모든 폼 사례�
 `npm test -w @crudui/generator-html`이 테스트 206개(기존 116개와 bindForm 사례 90개)를 통과했고,
 `npm run build -w @crudui/generator-html`이 성공했으며 `make docs-check`가 통과했습니다.
 
-## 2026-09-14 — 속성 순서에 관한 런타임 계약 정정
+### 2026-09-14 — 속성 순서에 관한 런타임 계약 정정
 
 폼 런타임 명세는 여전히 복원한 HTML 문자열이 "속성 순서까지" 같아야 하고 공통 DOM 바인딩이
 checkbox의 `checked` 속성을 마지막에 둔다고 적고 있었습니다. 이는 이미 정정한 기준이며 이를
@@ -2948,7 +2958,7 @@ checkbox의 `checked` 속성을 마지막에 둔다고 적고 있었습니다. �
 
 `make docs-check`가 통과했습니다.
 
-## 2026-09-14 — 브라우저 보고서 개수를 행렬에서 계산
+### 2026-09-14 — 브라우저 보고서 개수를 행렬에서 계산
 
 브라우저 행렬을 한 파일로 옮긴 뒤에도 서버 보고서 정책은 보고서 개수를 숫자로 적었습니다. 브라우저
 작업의 보고서 18개, 시나리오 보고서 12개, 초기화 보고서 6개, 상호작용 검사 60개, 로드 전 마운트·정적
@@ -2959,7 +2969,7 @@ checkbox의 `checked` 속성을 마지막에 둔다고 적고 있었습니다. �
 
 `npm run test:form-comparison:source`가 테스트 139개를 통과했습니다.
 
-## 2026-09-14 — 비교 브라우저 행렬을 한 곳에서 정의
+### 2026-09-14 — 비교 브라우저 행렬을 한 곳에서 정의
 
 비교 페이지의 서버, 렌더링 경로, 프레임워크, 전송 방식, 초기화 경로, API 작업이 `runtime-paths.mjs`에
 적혀 있고, 브라우저 보고서 정책, 후보 검증·준비·시작 검사, 프레임, 배포 헬스체크, PHP API와 생성기,
@@ -2979,7 +2989,7 @@ PHP API는 새 `matrix.php`의 `browserMatrix()`로 경로를 검사하고 PHP �
 테스트 4개, 바꾼 PHP 파일의 `php -l`, `make format-check`가 통과했고, `browserMatrix()`가 파일에서 렌더링
 경로·프레임워크·작업을 읽었습니다.
 
-## 2026-09-14 — 폼 스냅숏 모듈 하나만 유지
+### 2026-09-14 — 폼 스냅숏 모듈 하나만 유지
 
 `form-snapshot.mjs`와 그 테스트가 같은 내용으로 두 벌 있었습니다. 원본인 `tests/form-inspector/`와
 `examples/form-comparison/src/`의 복사본입니다. 변경을 두 곳에 해야 했고, 비교 검사는 복사본 테스트를,
@@ -2990,7 +3000,7 @@ CI 네이티브 작업은 원본 테스트를 실행했습니다. 복사본과 �
 `node --test tests/form-inspector/form-snapshot.test.mjs`가 테스트 18개를 통과했고,
 `npm run test:form-comparison`이 원본을 소스 검사에 포함해 통과했습니다.
 
-## 2026-09-14 — 속성 순서 없이 브라우저 DOM을 비교하고 순서를 강제하던 코드 제거
+### 2026-09-14 — 속성 순서 없이 브라우저 DOM을 비교하고 순서를 강제하던 코드 제거
 
 비교 페이지의 전체 검사를 Safari로 실행하자 네 서버 모두 Vue `bindForm`의
 `ssr/restoration`과 `csr/restoration`이 `html` 범주에서 실패했고, 파싱 DOM을 포함한 다른 범주는
@@ -3020,7 +3030,7 @@ DOM(요소, 속성 이름과 값, 텍스트, 자식 순서)이 같아야 합니�
 브라우저 작업 3), `npm run test:build`(9), `npm run test:dependencies`(12),
 `npm run test:runtimes`(20), `make docs-check`가 통과했습니다.
 
-## 2026-09-14 — 폼 비교 검사에서 generator-core보다 검증기를 먼저 빌드
+### 2026-09-14 — 폼 비교 검사에서 generator-core보다 검증기를 먼저 빌드
 
 다음 `main` CI 실행에서 같은 작업이 한 단계 앞에서 다시 실패했습니다. `@crudui/generator-core`
 빌드가 `Cannot find module '@crudui/validator'`로 멈췄는데, generator-core의 선언이 빌드되지 않은
@@ -3030,7 +3040,7 @@ generator-core보다 먼저 `build:validator`를 실행합니다. `packages/vali
 `packages/generator-core/dist`를 모두 지운 상태에서 `npm run test:form-comparison:source`가 두 패키지를
 빌드하고 테스트 140개를 통과했습니다.
 
-## 2026-09-14 — 폼 검사의 Chromium 검사를 CI 샌드박스 Chrome으로 실행
+### 2026-09-14 — 폼 검사의 Chromium 검사를 CI 샌드박스 Chrome으로 실행
 
 같은 `main` CI 실행에서 "Form instances and data injection" 작업도 실패했습니다. 이 브랜치가
 `npm run test:forms`에 추가한 Chromium 스타일 검사 6개가 브라우저를 실행하지 못했습니다("No usable
@@ -3042,7 +3052,7 @@ Puppeteer 다운로드 Chrome을 사용했고, 다른 브라우저 작업은 `/o
 `form-runtime`의 빠진 설정 세 가지로 실패했고, 변경 후 `npm run test:runtimes`가 테스트 20개를
 통과했습니다.
 
-## 2026-09-14 — 폼 비교 소스 검사 전에 generator-core 빌드
+### 2026-09-14 — 폼 비교 소스 검사 전에 generator-core 빌드
 
 `main`에 머지한 뒤 CI 작업 "Form comparison runner regressions"가 실패했습니다.
 `examples/form-comparison/src/bind-form-controller.test.mjs`가
@@ -3055,7 +3065,7 @@ Puppeteer 다운로드 Chrome을 사용했고, 다른 브라우저 작업은 `/o
 `packages/generator-core/dist`를 지운 상태에서 `npm run test:form-comparison:source`가 패키지를
 빌드하고 테스트 140개를 통과했습니다.
 
-## 2026-09-14 — 화면 높이 프레임 후보 검증과 배포 기록
+### 2026-09-14 — 화면 높이 프레임 후보 검증과 배포 기록
 
 `node examples/form-comparison/candidate-verification.mjs`가 통과했습니다. PHP,
 PHP 확장, Go, Rust가 각각 검사 1,452개를 실패 없이 통과했고, 브라우저 검증은 검사 5,808개를
@@ -3067,7 +3077,7 @@ PHP 확장, Go, Rust가 각각 검사 1,452개를 실패 없이 통과했고, �
 숨깁니다. 스크롤 직후 페이지가 렌더링되기 전에 잰 값은 레이블을 여전히 숨김으로 읽었고, 렌더링 뒤
 다시 재자 표시되었습니다.
 
-## 2026-09-14 — 비교 프레임 높이를 화면에 맞춤
+### 2026-09-14 — 비교 프레임 높이를 화면에 맞춤
 
 고정 행이 CSS만으로 동작하게 된 뒤에도 비교 페이지는 일반 페이지와 다르게 동작했습니다. 원인은
 스크립트가 아니라 배치였습니다. 각 프레임이 798px 화면에서 1,450px로 고정되어 페이지와 프레임이
@@ -3079,7 +3089,7 @@ PHP 확장, Go, Rust가 각각 검사 1,452개를 실패 없이 통과했고, �
 
 generator-core 테스트(108)와 `npm run test:form-comparison:source`(140)가 통과했습니다.
 
-## 2026-09-14 — CSS 전용 고정 행 후보 검증과 배포 기록
+### 2026-09-14 — CSS 전용 고정 행 후보 검증과 배포 기록
 
 `node examples/form-comparison/candidate-verification.mjs`가 통과했습니다. PHP,
 PHP 확장, Go, Rust가 각각 검사 1,452개를 실패 없이 통과했고, 브라우저 검증은 검사 5,808개를
@@ -3094,7 +3104,7 @@ PHP 확장, Go, Rust가 각각 검사 1,452개를 실패 없이 통과했고, �
 게시 길이가 없고, SSR 프레임을 스크롤하면 회사 헤더가 고정선에 붙어 레이블을 보이며 아직 고정되지
 않은 Busan 헤더는 레이블을 숨깁니다.
 
-## 2026-09-14 — 고정 행을 CSS만으로 동작하게 하고 스크롤 측정 제거
+### 2026-09-14 — 고정 행을 CSS만으로 동작하게 하고 스크롤 측정 제거
 
 고정 행이 프레임에서 페이지와 같게 동작하지 않은 것은 브라우저 바인딩이 스크롤 위치를 스크립트로
 측정했기 때문입니다. `connectRows`가 경계 사각형으로 고정 행과 현재 행을 정하고 계산된 폼 뒤
@@ -3125,7 +3135,7 @@ PHP 확장, Go, Rust가 각각 검사 1,452개를 실패 없이 통과했고, �
 통과했습니다. 마지막 `make docs-check`는 Rust 크레이트를 다시 빌드하다 디스크가 가득 차 먼저
 실패했고, 멈춘 후보 컨테이너·이미지·디렉터리를 지운 뒤 통과했습니다.
 
-## 2026-09-14 — React에서 고정 행을 동일하게 넘겨받기
+### 2026-09-14 — React에서 고정 행을 동일하게 넘겨받기
 
 한 후보 검증은 `browser-php`에서 실패했습니다. React의 SSR 인계가 첫 고정 행에서 달랐는데,
 서버는 그 style을 `--crudui-sticky-depth:0`으로, React는 `--crudui-sticky-depth: 0;`으로 씁니다.
@@ -3145,7 +3155,7 @@ PHP 확장, Go, Rust가 각각 검사 1,452개를 실패 없이 통과했고, �
 클라이언트 10), `npm run test:form-comparison:source`, `npm run test:build`,
 `npm run test:dependencies`, `make docs-check`, Chromium 스타일 검사 5개가 통과했습니다.
 
-## 2026-09-14 — 폼 뒤 여백에 폼 뒤 내용 반영
+### 2026-09-14 — 폼 뒤 여백에 폼 뒤 내용 반영
 
 폼 뒤 여백은 스크롤 컨테이너에서 이미 폼 뒤에 있는 내용을 무시했습니다. 결과 영역이 폼 뒤에
 있는 비교 프레임에서는 1,037px(프레임 1,448px에서 끝 행 범위 362px와 푸터 49px를 뺀 값)을
@@ -3159,7 +3169,7 @@ Chromium 검사 두 개가 이를 확인합니다. 스크롤 박스 안 폼 뒤�
 끝 행이 고정선을 60px 지나쳤고(87px 대신 27px), 600px 내용이면 여백 없이 그 내용 끝까지
 스크롤됩니다.
 
-## 2026-09-14 — 모든 스크롤 컨테이너에 고정 규칙 적용, 비교 예제에 고정 행 선언
+### 2026-09-14 — 모든 스크롤 컨테이너에 고정 규칙 적용, 비교 예제에 고정 행 선언
 
 비교 페이지에 고정 헤더가 나오지 않은 것은 예제 스펙이 `multiple.header: sticky`를 선언하지
 않았기 때문입니다. 로컬 미리보기는 선언했으므로 같은 생성기가 두 예제에서 다르게 동작했습니다.
@@ -3181,7 +3191,7 @@ Chromium 검사 두 개가 이를 확인합니다. 스크롤 박스 안 폼 뒤�
   고정선에서 멈추고 현재 행이 됨, 게시된 높이를 확인합니다. 변경 전에는 끝 행이 87px 고정선 대신
   −193px에 있어 실패했습니다.
 
-## 2026-09-13 — SSR/CSR 후보 검증 통과와 배포 기록
+### 2026-09-13 — SSR/CSR 후보 검증 통과와 배포 기록
 
 `node examples/form-comparison/candidate-verification.mjs`가 통과했습니다. PHP,
 PHP 확장, Go, Rust가 각각 검사 1,452개를 실패 없이 통과했고, 여기에는 서버·렌더링 경로·
@@ -3192,7 +3202,7 @@ PHP 확장, Go, Rust가 각각 검사 1,452개를 실패 없이 통과했고, �
 `https://crudui.test/`에 배포하고 동일 재적용 검사를 통과했습니다. 브라우저에서 페이지는 SSR과
 CSR 열(너비 1,000px 초과 시 좌우)을 보여 주며 PHP·React·bindForm에서 비교 8/8이 일치합니다.
 
-## 2026-09-13 — 브라우저 상호작용 검사에 SSR·CSR 열 이름 사용
+### 2026-09-13 — 브라우저 상호작용 검사에 SSR·CSR 열 이름 사용
 
 한 후보 검증은 상호작용이 실행되기 전에 `browser-php`에서 실패했습니다. 상호작용 검사는
 여전히 `initialization=data` 프레임을, 초기 마운트 검사는 `initialization=inject` 프레임을
@@ -3200,14 +3210,14 @@ CSR 열(너비 1,000px 초과 시 좌우)을 보여 주며 PHP·React·bindForm�
 검사는 `csr` 프레임, 보고서 테스트 픽스처는 `ssr` 열을 사용합니다. 이 검사들은 후보 컨테이너
 안에서만 실행되므로 로컬 소스 검사(140개 통과)는 옛 이름을 드러내지 못했습니다.
 
-## 2026-09-13 — 레거시 UI와 함께 삭제된 React 폼 세션 테스트 복원
+### 2026-09-13 — 레거시 UI와 함께 삭제된 React 폼 세션 테스트 복원
 
 앞선 변경이 레거시 FormBuilder 테스트와 함께 같은 파일의
 `packages/generator-react/src/__tests__/Form.test.tsx` 전체를 삭제해, Vue와 Svelte가 실행하는
 공유 초기화·세션 DOM·컨트롤·포커스 시나리오를 React는 실행하지 않게 되었습니다. 레거시 테스트를
 뺀 파일을 복원하고 `compareServerTakeover`도 실행합니다. React는 테스트 350개를 통과합니다.
 
-## 2026-09-13 — Vue와 Svelte가 서버 렌더링 폼을 바꾸지 않고 넘겨받기
+### 2026-09-13 — Vue와 Svelte가 서버 렌더링 폼을 바꾸지 않고 넘겨받기
 
 첫 후보 검증은 SSR 열에서 실패했습니다. Vue는 조건 블록의 기준점으로 주석 노드를
 두고, Svelte 5는 템플릿 형제 요소 사이 공백을 텍스트 노드로 남기고 빈 텍스트 기준점을 두었으며
@@ -3223,7 +3233,7 @@ textarea·checkbox는 서버용 속성·텍스트와 `defaultValue`/`defaultChec
 `npm run test:dependencies`, `make docs-check`, `svelte-check`가 통과했습니다. 후보 검증은 별도
 항목에 기록합니다.
 
-## 2026-09-13 — 비교 페이지에서 서버 렌더링과 클라이언트 렌더링 비교
+### 2026-09-13 — 비교 페이지에서 서버 렌더링과 클라이언트 렌더링 비교
 
 비교 페이지는 "데이터와 함께 생성"과 "마운트 후 데이터 주입"이라는 두 클라이언트 열을 보여
 주었으므로, 서버 언어와 브라우저 프레임워크가 같은 폼을 렌더링한다는 점을 드러내지
@@ -3241,14 +3251,14 @@ HTML을 비교했고 속성 순서에서만 실패했습니다. React는 input�
 폼 비교 소스 검사 140개와 Go·Rust 비교 서버 테스트, `make docs-check`가 통과했습니다. SSR
 인계 자체는 네 서버 후보 검증에서만 실행되며 별도 항목에 기록합니다.
 
-## 2026-09-13 — crudui.css와 레거시 제거의 네 서버 후보 검증 통과 기록
+### 2026-09-13 — crudui.css와 레거시 제거의 네 서버 후보 검증 통과 기록
 
 `node examples/form-comparison/candidate-verification.mjs`가 `crudui.css`만으로 폼
 스타일링한 트리와 레거시 UI 경로 제거, 빌드·의존성 검사 수정 후의 트리에서 통과했습니다. 두 실행
 모두 PHP, PHP 확장, Go, Rust가 각각 검사 1,452개를 실패 없이 통과했고, 브라우저 검증은 검사
 5,808개를 실패 없이 기록했으며 명령은 상태 0을 반환했습니다.
 
-## 2026-09-13 — CI가 실행하는 빌드·의존성 검사 수정
+### 2026-09-13 — CI가 실행하는 빌드·의존성 검사 수정
 
 `npm run test:build`와 `npm run test:dependencies`가 실패하고 있었으며, 이번 작업에서 사용한
 폼 검사 묶음은 이를 실행하지 않았습니다.
@@ -3265,7 +3275,7 @@ HTML을 비교했고 속성 순서에서만 실패했습니다. React는 input�
 `npm run test:build`, `npm run test:dependencies`, `npm run test:runtimes`와 `tests/build`,
 `tests/docs`의 테스트 67개가 모두 통과했습니다.
 
-## 2026-09-13 — Bootstrap 기반 레거시 UI 경로 제거
+### 2026-09-13 — Bootstrap 기반 레거시 UI 경로 제거
 
 레거시 폼 컴포넌트와 이전 렌더링 비교는 Bootstrap 위에 만들어졌고, 노드 문법과
 `crudui.css`로 대체되었습니다. 현재 경로 옆에 두지 않고 제거합니다.
@@ -3292,7 +3302,7 @@ React 소스를 더 이상 링크하지 않게 한 뒤 `make docs-check`가 통�
 `tests/build/public-packages.test.mjs`의 선언 컴파일 검사와 의존성·pack 검사 두 개가 이미 실패하고
 있었음이 드러났으며, 다음 항목에서 고칩니다.
 
-## 2026-09-13 — crudui.css만으로 폼 스타일링: 위젯은 Bootstrap 대신 crudui 문법 사용
+### 2026-09-13 — crudui.css만으로 폼 스타일링: 위젯은 Bootstrap 대신 crudui 문법 사용
 
 위젯 마크업은 Bootstrap 어휘(`form-control`, `form-select`,
 `input-group`, `input-group-text`, `btn`, `btn-group`, `btn-check`, `btn-switch`,
@@ -3323,7 +3333,7 @@ React, Vue, Svelte가 테스트 108, 116, 705, 348, 349개를, Svelte 클라이�
 미리보기는 자기 레이아웃과 `crudui.css` 두 스타일시트만 불러오며 Bootstrap 없이 입력, select,
 textarea, 체크박스, 언어 테두리, 구조 맵, 푸터 버튼을 그립니다.
 
-## 2026-09-13 — 모든 Rust 크레이트와 Go 파일 포맷 정리, `make format-check`로 검사
+### 2026-09-13 — 모든 Rust 크레이트와 Go 파일 포맷 정리, `make format-check`로 검사
 
 rustfmt나 gofmt를 실행하는 검사가 없어 포맷이 어긋나 있었습니다. Rust 크레이트 다섯 개에
 rustfmt 차이 62곳(최근 폼 변경 코드를 포함해 generator-rust에 54곳), Go 파일 두 개에 gofmt 차이가
@@ -3338,7 +3348,7 @@ format-check`는 추적 중인 모든 `Cargo.toml`에 대해 공용 Rust 명령 
 통과했으며, 레거시 Rust API와 Rust 벤치가 빌드되었고, `make test-native`가 생성기 검사 976개를
 모두 통과했습니다.
 
-## 2026-09-13 — 버튼·스크롤 변경의 네 서버 후보 검증 통과 기록
+### 2026-09-13 — 버튼·스크롤 변경의 네 서버 후보 검증 통과 기록
 
 `node examples/form-comparison/candidate-verification.mjs --ref <commit>`가 통과했습니다.
 PHP, PHP 확장, Go, Rust가 각각 검사 1,452개를 실패 없이 통과했고, 브라우저 검증은 검사 5,808개를
@@ -3347,7 +3357,7 @@ PHP, PHP 확장, Go, Rust가 각각 검사 1,452개를 실패 없이 통과했�
 포함합니다. 한 검증은 PHP 생성 테스트에서, 다음 검증은 참조
 컴파일 검사에서 실패했고 둘 다 수정했습니다.
 
-## 2026-09-13 — 스크롤은 아무것도 렌더링하지 않음: 현재 행은 더 이상 인스턴스 상태가 아님
+### 2026-09-13 — 스크롤은 아무것도 렌더링하지 않음: 현재 행은 더 이상 인스턴스 상태가 아님
 
 스크롤로 행을 지나면 그 행이 현재 행이 되고, `connectForm`이 `selectRow`를 호출해 새
 스냅숏을 게시했습니다. 화면은 스냅숏마다 다시 렌더링되므로, 스크롤하며 행 경계를
@@ -3372,7 +3382,7 @@ generator-core, HTML, React, Vue, Svelte가 테스트 108, 116, 705, 348, 349개
 클라이언트가 10개, Node 검사(정규화, 스타일, 명명)가 11개, 폼 비교 소스 검사가 140개, Chromium
 검사가 3개를 통과했고 `make docs-check`가 통과했습니다.
 
-## 2026-09-13 — 마크업 명명 규칙과 접기·되돌리기 DOM 경로 검사
+### 2026-09-13 — 마크업 명명 규칙과 접기·되돌리기 DOM 경로 검사
 
 폼 마크업의 클래스 명명 규칙(N1–N3: `crudui-{block}`, `__{element}`, 블록과 함께 쓰는
 `--{modifier}`, 헤더 안의 부품, 본문 안의 노드)은 문서에만 있고 검사하지 않았습니다. 이제
@@ -3385,7 +3395,7 @@ test:forms`가 이를 실행합니다. 공유 DOM 시나리오는 모든 행을 
 명명 검사가 테스트 2개를 통과했고, React, Vue, Svelte가 확장한 시나리오를 포함해 각각 705,
 348, 349개 테스트를 통과했습니다.
 
-## 2026-09-13 — 고정 푸터의 폼 버튼, 폼 바깥에 생기는 끝 여백
+### 2026-09-13 — 고정 푸터의 폼 버튼, 폼 바깥에 생기는 끝 여백
 
 스펙은 루트에 폼 버튼(`buttons`와 제출 대상 `action`)을 선언하지만, 스키마가 이를 거부했고
 컴파일은 `properties`만 보존해 선언한 저장·취소·이전 버튼이 사라졌습니다. 이제 버튼은 다섯
@@ -3423,7 +3433,7 @@ Svelte 클라이언트가 10개, 정규화가 6개, Chromium 스타일 검사가
 통과했습니다. Chrome에서 끝 행은 최소 높이 없이 고정선에서 0.2px 떨어져 멈췄고, 폼 뒤 공간은
 폼 바깥의 200px 여백이었습니다.
 
-## 2026-09-13 — 구조 맵에 폼의 행만 표시
+### 2026-09-13 — 구조 맵에 폼의 행만 표시
 
 구조 맵은 단계마다 개수가 붙은 컬렉션 줄(예: "스토어 2개")과 그 아래 행 줄을 따로
 보여 주었고, 줄마다 가이드선이 붙었으며 빈 컬렉션도 나열했습니다. 이제 규칙 하나를
@@ -3439,7 +3449,7 @@ Vue, Svelte가 116, 705, 348, 349개를 통과했습니다. 폼 비교 소스 �
 맵은 단계마다 한 번씩 들여쓴 행만 보여 줍니다. 직전 변경의 네 서버 후보 검증은 서버마다
 검사 1,452개(브라우저 검사 5,808개)를 실패 없이 통과했습니다.
 
-## 2026-09-13 — 행을 고정선에 정렬하고 현재 행이 스크롤을 따르게 함
+### 2026-09-13 — 행을 고정선에 정렬하고 현재 행이 스크롤을 따르게 함
 
 고정 행은 계산한 오프셋 대신 값 하나에서 나온 규칙을 따릅니다. 행 루트가
 `--crudui-sticky-depth`를 가지며(다섯 구현 모두 헤더 스타일에서 옮김), 고정선은 그 값에
@@ -3466,7 +3476,7 @@ node 검사 9개를 통과했습니다. node 검사에는 Chromium 검사 3개�
 스크롤하면 거꾸로 튀지 않고 끝에 도달했고, 포커스가 유지되었으며, 판교점이 현재 행이 되고
 그 상단이 정렬 위치와 0.2px 차이로 멈췄습니다.
 
-## 2026-09-13 — 고정 행 헤더를 정확한 높이로 쌓기
+### 2026-09-13 — 고정 행 헤더를 정확한 높이로 쌓기
 
 고정 행 헤더(`multiple.header: sticky`)는 단계마다 `--crudui-node-header-height`만큼
 내려 쌓습니다. 그런데 헤더의 실제 높이는 패딩, 내용, 아래 테두리의 합이었습니다.
@@ -3487,7 +3497,7 @@ node 검사 7개를 통과했으며 새 Chromium 검사가 포함됩니다. 이 
 가장 바깥의 고정 헤더를 기다리다 시간 초과로 실패했습니다. Chrome의 미리보기에서 다섯
 단계가 라벨과 함께 겹침 없이 차례로 고정되었습니다.
 
-## 2026-09-13 — 네 서버 후보 검증에서 실패한 비교 검사 수정
+### 2026-09-13 — 네 서버 후보 검증에서 실패한 비교 검사 수정
 
 초기화 비교의 첫 후보 검증에서 PHP 검사 1,452개 중 36개가 실패했고 다른 서버는
 실행되지 않았습니다. 빈 컬렉션 사례 단계는 행 안에 있는 컬렉션의 추가 버튼을
@@ -3501,7 +3511,7 @@ node 검사 7개를 통과했으며 새 Chromium 검사가 포함됩니다. 이 
 이후 후보 검증이 통과했습니다. PHP, PHP 확장, Go, Rust가 각각 검사 1,452개를
 실패 없이 통과해 브라우저 검사가 모두 5,808개였고, 명령은 상태 0으로 끝났습니다.
 
-## 2026-09-13 — 두 초기화 경로를 좌우로 비교
+### 2026-09-13 — 두 초기화 경로를 좌우로 비교
 
 폼 비교 페이지가 두 초기화 경로를 두 열로 보여 줍니다. 왼쪽 프레임은 데이터와 함께
 폼을 생성하고, 오른쪽 프레임은 빈 폼을 마운트한 뒤 데이터를 주입합니다. API
@@ -3533,7 +3543,7 @@ Vue, Svelte는 상태 없는 `OutlineView`와 `DataPanel`(Vue: `outlineVNode`, `
 네이티브 검사 뒤의 타입 전용 변경입니다. 네 서버를 사용하는 전체 후보 검증은 이 변경을
 커밋할 때 실행하지 않았습니다.
 
-## 2026-09-13 — 행 작업 후 대상 행으로 포커스 이동
+### 2026-09-13 — 행 작업 후 대상 행으로 포커스 이동
 
 이전에는 행 작업이 활성 입력, 텍스트 선택, 스크롤 위치를 유지했고, 행 버튼을 포인터로
 누를 때 포커스 이동을 막았습니다. 이제 런타임은 기준 폼의 포커스 규칙을 따릅니다.
@@ -3554,7 +3564,7 @@ form-structure 미리보기에서 추가 뒤 새 행, 제거 뒤 이전 행으�
 위치는 측정하지 못했습니다. 비교 페이지의 포커스 검사는 다음 변경에서 같은 규칙으로
 바뀝니다.
 
-## 2026-09-13 — 폼을 행 카드가 있는 재귀 노드로 렌더링
+### 2026-09-13 — 폼을 행 카드가 있는 재귀 노드로 렌더링
 
 모든 폼 렌더러(HTML, React, Vue, Svelte, PHP, Go, Rust, C PHP 확장)가 형태별 래퍼
 대신 하나의 재귀 노드 문법을 출력합니다. 필드, 그룹, 컬렉션, 행, 언어 필드, 언어
@@ -3595,7 +3605,7 @@ DOM 사례, 교차 검증 콘솔은 속성으로 요소를 선택합니다.
 정규화 10개 검사를 통과했습니다. 폼 비교 페이지 소스 검사 137개, Go·Rust 검증기
 바이너리를 다시 빌드한 뒤 교차 검증 콘솔 117개, `make docs-check`가 통과했습니다.
 
-## 2026-09-13 — 통과한 검사의 임시 디렉터리 삭제
+### 2026-09-13 — 통과한 검사의 임시 디렉터리 삭제
 
 `tests/native-generators/run.mjs`는 실행마다 `crudui-native-generators-*` 빌드
 디렉터리를 만들고 삭제하지 않았습니다. `scripts/check-packages.mjs`도 실행마다
@@ -3608,7 +3618,7 @@ DOM 사례, 교차 검증 콘솔은 속성으로 요소를 선택합니다.
 `npm run test:packages`가 통과하고 설치 프로젝트를 남기지 않았습니다.
 `make docs-check`가 통과했습니다.
 
-## 2026-09-13 — 잘못된 multiple·design 값 형식을 컴파일에서 거부
+### 2026-09-13 — 잘못된 multiple·design 값 형식을 컴파일에서 거부
 
 TypeScript, PHP, Go, Rust와 C PHP 확장의 폼 컴파일은 `multiple`과 `design`의 값
 형식이 잘못되어도 무시했습니다. 형식이 잘못된 행 설정은 버려지고 잘못된 design은
@@ -3628,7 +3638,7 @@ C 템플릿은 엔진 검사에서 값·오류·합성 모듈과만 링크되므
 각 PHP 구현의 검증 사례 100개를 통과했습니다. generator-core 타입 검사와 89개
 검사, `npm run test:forms`, `make docs-check`가 통과했습니다.
 
-## 2026-09-13 — 형태가 잘못된 생성기 데이터를 전체 경로로 거부
+### 2026-09-13 — 형태가 잘못된 생성기 데이터를 전체 경로로 거부
 
 TypeScript, PHP, Go, Rust와 C PHP 확장의 `bindForm`과 편집 인스턴스는 검증기와
 같은 데이터 형태 규칙을 적용합니다. 객체가 아닌 루트 데이터는
@@ -3649,7 +3659,7 @@ TypeScript, PHP, Go, Rust와 C PHP 확장의 `bindForm`과 편집 인스턴스�
 검사, 폼 비교 컨트롤러 5개 검사, `npm run test:forms`, `make docs-check`가
 통과했습니다.
 
-## 2026-09-13 — 구현 간 생성기 오류 메시지 비교
+### 2026-09-13 — 구현 간 생성기 오류 메시지 비교
 
 네이티브 생성기 검사는 오류 코드와 위치만 비교했고 README는 언어마다 메시지가
 달라도 된다고 허용했습니다. 모든 구현이 동일해야 한다는 요구와 모순되므로 코드,
@@ -3669,7 +3679,7 @@ JavaScript와 전체 기록으로 비교합니다.
 `make test-native`가 생성기 검사 786개, 구성별 PHP API 검사 361개, 각 PHP 구현의
 검증 사례 100개를 통과했습니다.
 
-## 2026-09-13 — 검증기 로드 실패와 입력 실패를 동일하게 보고
+### 2026-09-13 — 검증기 로드 실패와 입력 실패를 동일하게 보고
 
 TypeScript, PHP, C PHP 확장, Go, Rust 검증기는 형태가 잘못된 제출 데이터를 건너뛰거나
 변환하지 않고 입력 실패로 거부합니다. 루트 데이터는 객체여야 하며 합성 전에
@@ -3704,7 +3714,7 @@ TypeScript 검증기 1618, PHP 검증기 1458, `go test ./...`, `cargo test`, �
 PHP API 검사 361개, 각 PHP 구현의 검증 사례 100개를 통과했습니다.
 `make docs-check`가 통과했습니다.
 
-## 2026-09-13 — 반복 행을 키 기반 객체에서만 바인딩
+### 2026-09-13 — 반복 행을 키 기반 객체에서만 바인딩
 
 TypeScript, PHP, Go, Rust와 C PHP extension의 `bindForm`은 키 기반 객체에서만
 반복 행을 생성합니다. 컬렉션 데이터가 없으면 `__0000000000000__` 키를 가진 행
@@ -3719,7 +3729,7 @@ Svelte 345, 정규화 10). `make test-native`가 786개 생성기 검사를 통�
 다섯 구현의 거부 코드·메시지·경로가 같아야 하는 새 검사를 포함합니다.
 `make docs-check`가 통과했습니다.
 
-## 2026-09-13 — 스키마·검증기·CLI의 반복 행 선언 정렬
+### 2026-09-13 — 스키마·검증기·CLI의 반복 행 선언 정렬
 
 `multiple.min`을 TypeScript, Go, Rust 명세 모델에 선언하고 PHP `multiple`
 버킷이 허용하며 `crudui explain`과 `crudui describe`가 표시합니다. JSON
@@ -3731,7 +3741,7 @@ Svelte 345, 정규화 10). `make test-native`가 786개 생성기 검사를 통�
 스키마 검사 58개, TypeScript 검증기 테스트 1606개, PHP 검증기 테스트 1446개,
 Go·Rust 검증기 테스트, CLI 테스트 37개와 `make docs-check`가 통과했습니다.
 
-## 2026-09-13 — 프레임워크 독립 HTML 렌더링과 실행 가능한 기능 계약 추가
+### 2026-09-13 — 프레임워크 독립 HTML 렌더링과 실행 가능한 기능 계약 추가
 
 `@crudui/generator-html`은 프레임워크 의존성 없이 현재 폼·목록 view model을
 HTML fragment로 렌더링합니다. 표·카드 목록, 현재 필드 구조, 위젯 레이아웃,
@@ -3748,7 +3758,7 @@ HTML renderer 패키지 검사 110개가 통과했으며 폼 적합성 87개와 
 20개를 포함합니다. 공개 패키지 export, 선언, 설치 빌드, API 문서와
 `make docs-check`가 통과했습니다. 패키지는 배포하지 않았습니다.
 
-## 2026-09-12 — GitHub Pages로 정적 문서 게시
+### 2026-09-12 — GitHub Pages로 정적 문서 게시
 
 문서 빌드는 `DOCS_BASE_PATH`를 지원하고 영어·한국어·API 문서에 명시적인
 정적 HTML 링크를 생성합니다. 개발·미리보기·404 페이지는 같은 URL 접두
@@ -3759,25 +3769,25 @@ HTML renderer 패키지 검사 110개가 통과했으며 폼 적합성 87개와 
 `make docs-verify-idempotent`가 통과했습니다. 데스크톱·모바일 화면, 한국어
 탐색, 스타일시트와 중첩 경로의 404 페이지 브라우저 검사도 통과했습니다.
 
-## 2026-09-11 — 비교 배포 명령 이름 명확화
+### 2026-09-11 — 비교 배포 명령 이름 명확화
 
 로컬 비교 배포 진입점 이름을
 `examples/form-comparison/comparison-deployment.mjs`로 변경했습니다. 검증 절차,
 예제와 테스트가 명확한 비교 배포 이름을 사용합니다.
 
-## 2026-09-11 — Linux 도구 모음에서 네이티브 C fixture 컴파일
+### 2026-09-11 — Linux 도구 모음에서 네이티브 C fixture 컴파일
 
 `packages/php-ext/tests/engine.test.mjs`는 이제 네이티브 fixture를 컴파일할 때
 `libm`을 연결하고 guard clause와 정리 문장을 별도 문장으로 출력합니다. C 엔진
 fixture는 PHP 8.4 및 8.5 CI 작업에서 사용하는 경고 오류 설정으로 컴파일됩니다.
 
-## 2026-09-11 — 네이티브 검사 전 JavaScript 의존성 빌드
+### 2026-09-11 — 네이티브 검사 전 JavaScript 의존성 빌드
 
 `make test-native`는 이제 C 확장 엔진 검사 전에 작업공간 JavaScript 패키지를
 빌드합니다. 네이티브 검사 대상은 깨끗한 체크아웃에서도 엔진 렌더링 fixture가
 필요로 하는 빌드된 React 생성기 패키지를 제공합니다.
 
-## 2026-09-11 — 독립 C PHP 확장 완성
+### 2026-09-11 — 독립 C PHP 확장 완성
 
 PHP 확장이 폼과 검증 엔진을 C로 구현합니다. 엔진은 순서를 보존하는 값을 직접
 관리하며 확장 프로세스 안에서 조합, 표현식 평가, 템플릿 컴파일, 데이터 바인딩,
@@ -3795,7 +3805,7 @@ macOS에서 C 엔진 검사 30개 중 29개가 통과했고 Linux 전용 주소 
 10개와 browser-job 검사 3개를 통과했습니다. `make docs-check`도 통과했습니다.
 확장과 비교 서비스는 배포하지 않았습니다.
 
-## 2026-09-11 — C에서 폼 필드 렌더링
+### 2026-09-11 — C에서 폼 필드 렌더링
 
 C 확장은 평가한 폼 필드를 서버 HTML로 렌더링합니다. 렌더러는 leaf, group, 반복,
 언어 필드 구조와 현재 위젯 레이아웃 전체를 지원합니다. 컨트롤 속성 순서, 불투명
@@ -3807,7 +3817,7 @@ C 전용 검사는 성공하는 공통 폼 fixture 90개와 추가 escaping 및 
 정확한 HTML이 일치하는지 확인했습니다. 같은 사례는 엄격한 C11 컴파일러 경고와
 정의되지 않은 동작 검사를 통과했습니다. 이 변경은 배포하지 않았습니다.
 
-## 2026-09-11 — C에서 폼 필드 바인딩
+### 2026-09-11 — C에서 폼 필드 바인딩
 
 C 확장은 컴파일한 템플릿을 레코드 데이터에 바인딩하며 두 입력을 변경하지
 않습니다. 바인딩은 표시 규칙, 번역 콘텐츠, 반복 행, 언어 필드, 체크박스 상태와
@@ -3821,7 +3831,7 @@ C 확장은 컴파일한 템플릿을 레코드 데이터에 바인딩하며 두
 모델 전체가 일치하는지 확인하고 입력 불변성을 검사했으며, 같은 사례를 정의되지
 않은 동작 검사와 함께 완료했습니다. 이 변경은 배포하지 않았습니다.
 
-## 2026-09-11 — C에서 폼 표현식 평가
+### 2026-09-11 — C에서 폼 표현식 평가
 
 C 확장은 객체와 배열 경로를 확인하고 리터럴, 상대 경로, 와일드카드, 비교, 포함,
 논리 연산과 삼항 표현식을 평가합니다. 조건 맵은 선언 순서에 따라 처음 일치하는
@@ -3832,7 +3842,7 @@ C 전용 검사는 공통 표현식 명세 38개와 평가 사례 77개를 엄�
 기준으로 모두 통과했습니다. 사례는 표현식 값과 논리 결과를 검사합니다. 이 변경은
 배포하지 않았습니다.
 
-## 2026-09-11 — C에서 폼 템플릿 컴파일
+### 2026-09-11 — C에서 폼 템플릿 컴파일
 
 C 확장은 명시적인 메모리 파일을 조합하고 선언 순서를 유지하여 참조와 패치를
 적용하며 참조 순환을 검출하고 조합 오류 코드와 경로를 반환합니다. 폼 컴파일은
@@ -3843,7 +3853,7 @@ C 전용 검사는 공통 조합 20개를 모두 통과했고 공통 폼 fixture
 JavaScript 구현과 동일한 순서의 템플릿 또는 오류를 생성했습니다. C 소스는 엄격한
 C11 경고 기준으로 컴파일됩니다. 이 변경은 배포하지 않았습니다.
 
-## 2026-09-11 — C 확장 값 모델 추가
+### 2026-09-11 — C 확장 값 모델 추가
 
 C 확장 엔진은 PHP나 Rust 데이터 구조를 사용하지 않고 null, 불리언, 정수,
 유한한 수, UTF-8 문자열, 배열, 순서 있는 객체를 저장합니다. 각 값은 문자열,
@@ -3856,7 +3866,7 @@ C 전용 검사는 순서, 교체, 깊은 복사, 배열, UTF-8, 숫자 비교�
 제외하고 패키지의 Rust 소스와 Cargo 파일을 계속 거부합니다. 이 변경은 배포하지
 않았습니다.
 
-## 2026-09-11 — Node.js 24 artifact action 사용
+### 2026-09-11 — Node.js 24 artifact action 사용
 
 네이티브 PHP 8.4·8.5 CI 작업은 `actions/upload-artifact@v7`으로 비교 보고서를
 업로드합니다. 이 action은 Node.js 24 런타임을 선언합니다. 이전 action은 Node.js
@@ -3867,7 +3877,7 @@ C 전용 검사는 순서, 교체, 깊은 복사, 배열, UTF-8, 숫자 비교�
 CI 설정 회귀 스위트는 현재 artifact action을 요구하며 검사 4개를 모두
 통과했습니다. 이 변경은 배포되지 않았습니다.
 
-## 2026-09-11 — npm 12 및 sandbox가 활성화된 Chrome CI 적용
+### 2026-09-11 — npm 12 및 sandbox가 활성화된 Chrome CI 적용
 
 npm 의존성 정책은 루트 매니페스트가 직접 선언하고 변경되지 않는 소스 리비전에
 고정한 URL 의존성만 허용합니다. 의존성 검증은 다른 의존성이 추가한 URL 의존성을
@@ -3885,7 +3895,7 @@ export와 타입, 반복 빌드, 브라우저 inspector와 CSS, 폼 비교 회�
 PHP 8.4·8.5 네이티브 생성과 PHP API 검사를 포함합니다. 실패하거나 취소된 작업은
 없습니다. 이 변경은 배포되지 않았습니다.
 
-## 2026-09-11 — 깨끗한 CI 설치 검증
+### 2026-09-11 — 깨끗한 CI 설치 검증
 
 저장소 루트의 폼 비교·교차 검사 명령은 직접 사용하는 JavaScript 의존성을 루트
 매니페스트에 선언합니다. 폼 비교는 루트 npm 그래프를 사용하며 교차 검사 렌더러는
@@ -3903,7 +3913,7 @@ Vite와 Svelte 플러그인을 패키지 이름으로 해석합니다. 패키지
 1개, 폼 검사기 단위 검사 18개와 브라우저 CSS 검사 6개가 통과했습니다. 교차 검사
 렌더링 33개가 통과했습니다. 이 변경은 배포하지 않았습니다.
 
-## 2026-09-11 — Svelte 편집 컨트롤 유지
+### 2026-09-11 — Svelte 편집 컨트롤 유지
 
 Svelte 생성기는 일반 input과 textarea 컨트롤을 안정적인 DOM 요소로 렌더링합니다.
 폼 인스턴스 값이 갱신되어도 각 요소, 포커스와 텍스트 선택을 유지합니다. 문자열
@@ -3925,7 +3935,7 @@ PHP 생성기 검사 160개, 모든 Go 패키지 검사, Rust 생성기 검사 2
 보고서 SHA-256은
 `16ab371b3691429ca4e2c1a3eaa3c35fb7209861abd5759f16efea6c1a19aa5d`입니다.
 
-## 2026-09-11 — 명시적인 브라우저·PHP 입력 검증
+### 2026-09-11 — 명시적인 브라우저·PHP 입력 검증
 
 Chromium 위젯 검사는 Vite 의존성 탐색을 비활성화하고 명시한 React·CRUDUI 패키지
 5개만 최적화합니다. 모든 검사 단계에서 페이지 예외, HTTP 오류 응답, 요청 실패,
@@ -3953,7 +3963,7 @@ JSON 변환, 저장, 검증, 공개 시그니처, 처리 모드 검사를 통과
 검사 데이터를 쓰지 않습니다. 후보 검사 데이터 위치 회귀 검사와 PHP 생성 검사 10개가
 모두 통과했습니다.
 
-## 2026-09-11 — PHP 확장 직접 빌드
+### 2026-09-11 — PHP 확장 직접 빌드
 
 PHP 확장 빌더 하나가 CRUDUI과 OrderedJSON 모듈을 컴파일하고 로드합니다. 별도
 진입점은 각 모듈의 소스, 출력, 플랫폼 라이브러리, 로드 검사를 선언합니다. 후보 이미지는
@@ -3969,7 +3979,7 @@ Rustup은 선택한 도구 체인 하나의 정규 Cargo와 rustc 파일을 식�
 성공했습니다. PHP API 검사는 세 구성에서 각각 352개를 통과했고 구현별 검증 사례
 94개를 통과했습니다. 빌더와 진입점 회귀 검사 6개가 통과했습니다.
 
-## 2026-09-11 — 명시적인 브라우저 완료 신호 사용
+### 2026-09-11 — 명시적인 브라우저 완료 신호 사용
 
 폼 비교 실행기는 탐색 전에 메인 페이지와 프레임 준비 메시지를 구독합니다. 상호작용과
 타이핑 검증기는 각 UI 작업을 실행 전에 예약하고 해당 작업의 완료를 기다립니다. React와
@@ -3991,7 +4001,7 @@ Svelte는 `flushSync`로 동기 갱신을 완료하며 Vue는 `nextTick` 완료�
 반환했고 소스 이벤트 한 번에 빌드 한 번을 실행했으며 `SIGINT` 후 종료 상태 0을
 반환했습니다.
 
-## 2026-09-11 — 네이티브 Cargo 명령 경로 수정
+### 2026-09-11 — 네이티브 Cargo 명령 경로 수정
 
 `test-native` 타깃은 Cargo를 시작할 때 확장한 `PATH`를 전달합니다. GNU Make
 3.81은 시작 환경에 해당 디렉터리가 없어도 Makefile이 추가한 디렉터리에서 Cargo를
@@ -4003,7 +4013,7 @@ Svelte는 `flushSync`로 동기 갱신을 완료하며 Vue는 `nextTick` 완료�
 검사, Rust 검사 20개, 프로토콜 검사 19개, 생성기 보고서 766/766과 Chromium
 위젯·시간대 검사 3개가 통과했습니다.
 
-## 2026-09-11 — 로컬 비교 배포 검증
+### 2026-09-11 — 로컬 비교 배포 검증
 
 저장소는 로컬 비교 Compose 파일을 생성하기 전에 후보 메타데이터, 생성·저장·브라우저
 보고서, 정확한 로컬 이미지 태그와 이미지 digest를 검사합니다. 배포는 기존 데이터를
@@ -4019,7 +4029,7 @@ Svelte는 `flushSync`로 동기 갱신을 완료하며 Vue는 `nextTick` 완료�
 인증 기관 로드, 동일 설정 재적용 변경과 정리 경로 제한을 포함합니다. 이 변경의 배포는
 아직 실행하지 않았습니다.
 
-## 2026-09-10 — 네이티브 검사 의존성 선언
+### 2026-09-10 — 네이티브 검사 의존성 선언
 
 저장소 루트 빌드·검사 진입점은 직접 import하는 모든 외부 패키지를 루트
 매니페스트에 선언합니다. 의존성 검사는 `make test-native`가 실행하는 Node.js
@@ -4031,7 +4041,7 @@ Svelte는 `flushSync`로 동기 갱신을 완료하며 Vue는 `nextTick` 완료�
 검사 19개, 생성기 보고서 766/766과 Chromium 위젯·시간대 검사 3개가
 통과했습니다.
 
-## 2026-09-10 — 의존성 설치 스크립트 승인 적용
+### 2026-09-10 — 의존성 설치 스크립트 승인 적용
 
 독립적으로 설치하는 각 npm 그래프는 모든 의존성 생명주기 스크립트의 승인을
 정확한 버전으로 기록합니다. 워크스페이스 패키지는 루트 잠금 파일을 사용합니다.
@@ -4042,7 +4052,7 @@ CI와 컨테이너 빌드의 새 설치는 `--strict-allow-scripts`를 사용하
 3개가 빌드됐고 parity 검사 7/7, 런타임 정책 검사 7/7, 패키지 빌드 검사 7/7과
 전체 문서 검사가 통과했습니다.
 
-## 2026-09-10 — 현재 후보 검증
+### 2026-09-10 — 현재 후보 검증
 
 교차 프레임워크와 레거시 클라이언트 잠금 파일은 각 매니페스트가 허용하는 현재
 패키지 릴리스를 해석합니다. 깨끗한 `npm ci`와 `npm audit` 실행은 취약점 0개를
@@ -4062,14 +4072,14 @@ JSON 검사 3개를 통과했습니다.
 `failedChecks: 0`, `performancePassed: true`를 기록합니다. 패키지와 비교 서비스는
 배포하지 않았습니다.
 
-## 2026-09-10 — 완전한 공개 TypeScript API 타입
+### 2026-09-10 — 완전한 공개 TypeScript API 타입
 
 패키지 진입점은 공개 TypeScript 선언이 참조하는 이름 있는 타입을 모두 export합니다.
 폼·목록 검증은 공개 파일 집합 타입 하나를 사용합니다. TypeDoc 검증 경고가 있으면
 API 생성과 문서 커버리지가 실패합니다. export되지 않은 타입 회귀 검사 2개, 공개
 선언 검사 6개와 격리한 다섯 패키지 설치 검사가 통과했습니다.
 
-## 2026-09-10 — 선택한 런타임 채널
+### 2026-09-10 — 선택한 런타임 채널
 
 `.node-version`, CI와 Node.js 컨테이너 단계는 정확한 패치 릴리스를 고정하지 않고
 다음 LTS 릴리스 계열인 Node.js 26을 선택합니다. `.go-version`, CI와 Go 컨테이너
@@ -4077,7 +4087,7 @@ API 생성과 문서 커버리지가 실패합니다. export되지 않은 타입
 채널을 선택합니다. CI는 현재 안정 npm 릴리스를 설치합니다. 런타임 정책 검사
 6개가 모두 통과했습니다. 패키지 잠금 파일은 해석한 패키지 버전을 계속 기록합니다.
 
-## 2026-09-10 — 네 서버 후보 검증
+### 2026-09-10 — 네 서버 후보 검증
 
 후보 이미지는 커밋한 소스 아카이브 하나를 압축 해제 전에 검증하고 PHP, PHP
 확장, Go, Rust 서버를 시작하기 전에 비특권 사용자로 전체 소스 검사를
@@ -4090,7 +4100,7 @@ API 생성과 문서 커버리지가 실패합니다. export되지 않은 타입
 집계는 실패 0개와 `passed: true`를 기록했습니다. 패키지와 비교 서비스는
 배포하지 않았습니다.
 
-## 2026-09-09 — CI 패키지·문서 검사
+### 2026-09-09 — CI 패키지·문서 검사
 
 문서 CI 작업은 `make docs-check`를 실행하기 전에 두 PHP 패키지의 의존성을
 모두 설치합니다. 패키지·브라우저 작업은 JavaScript 패키지 다섯 개를 격리한
@@ -4102,7 +4112,7 @@ API 생성과 문서 커버리지가 실패합니다. export되지 않은 타입
 검증으로 남아 있으며 이 CI 변경으로 확인하지 않았습니다. 원격 CI 실행이나
 배포는 수행하지 않았습니다.
 
-## 2026-09-09 — 현재·보존 비교 문서
+### 2026-09-09 — 현재·보존 비교 문서
 
 기능 상태는 구현된 네이티브 패키지와 pending인 네 서버 통합을 구분합니다. 검증
 절차는 라이브러리 경로와 커밋을 명시적으로 받고, 현재 PHP·PHP 확장·Go·Rust 대상과
@@ -4113,7 +4123,7 @@ build 12개가 로컬에서 통과했습니다. 후보 이미지의 네 서버 �
 검증은 계속 pending이며 배포하지 않았습니다. 실행 중인 보존 이미지는 교체하지
 않았습니다.
 
-## 2026-09-09 — OrderedJSON 구현 하위 모듈
+### 2026-09-09 — OrderedJSON 구현 하위 모듈
 
 처리기 검사기는 고정한 OrderedJSON 공통 저장소와 구현 하위 모듈 다섯 개를
 사용합니다. 현재 registry API, PHP 네임스페이스와 확장 이름을 사용하며,
@@ -4124,7 +4134,7 @@ build 12개가 로컬에서 통과했습니다. 후보 이미지의 네 서버 �
 검사기 단위 테스트 5개가 통과했고 잘못된 소스 입력 2개를 거부했습니다.
 이 결과는 JSON 처리 검증이며 브라우저나 저장 통합 검증은 아닙니다.
 
-## 2026-09-09 — 네이티브 폼 생성기와 공통 PHP API
+### 2026-09-09 — 네이티브 폼 생성기와 공통 PHP API
 
 PHP·Go·Rust는 폼 컴파일, 데이터 바인딩, 편집 인스턴스, 폼·목록 HTML,
 CLI 어댑터와 HTTP 예제를 제공합니다. CRUDUI PHP 확장은 PHP 패키지와
@@ -4150,7 +4160,7 @@ PHP·Go·Rust 패키지 검사, PHP API·검증 검사, 프로토콜 검사 19�
 이 결과는 네이티브 패키지 검증이며 별도 네 서버 비교 통합 검증은 아닙니다.
 패키지 게시와 비교 환경 배포는 실행하지 않았습니다.
 
-## 2026-09-09 — 검증기 CLI 응답
+### 2026-09-09 — 검증기 CLI 응답
 
 비교 콘솔은 프로세스 종료 상태, JSON 응답 타입, 오류 필드 다섯 개,
 유효 여부와 오류의 일관성을 검사합니다. 누락된 필드를 채우거나 잘못된
@@ -4162,7 +4172,7 @@ PHP·Go·Rust 패키지 검사, PHP API·검증 검사, 프로토콜 검사 19�
 CLI 실행을 포함한 콘솔 검사 116개가 모두 통과했습니다.
 `make docs-check`가 통과했습니다. 로컬 검사 결과이며 배포는 실행하지 않았습니다.
 
-## 2026-09-09 — 런타임 패키지 계약
+### 2026-09-09 — 런타임 패키지 계약
 
 런타임 계약은 JavaScript, PHP, Go, Rust, PHP 확장의 폼 생성, SSR, 검증
 요구사항을 정의합니다. PHP API 계약은 공통 `CRUDUI\Generator`,
@@ -4174,14 +4184,14 @@ CLI 실행을 포함한 콘솔 검사 116개가 모두 통과했습니다.
 비교 문서는 네이티브 JSON 파싱과 네이티브 CRUDUI 생성·검증을 구분합니다.
 `make docs-check`가 통과했습니다.
 
-## 2026-09-09 — 구형 스펙 변환 식별자
+### 2026-09-09 — 구형 스펙 변환 식별자
 
 내부 변환 변수는 변환된 필드나 스키마 값을 설명합니다.
 명명 계약은 파일명·공개 API·내부 식별자에 적용합니다.
 validator 패키지 빌드, validator 검사 1,606개와 `make docs-check`가 모두
 통과했습니다.
 
-## 2026-09-09 — CLI 의존성 빌드
+### 2026-09-09 — CLI 의존성 빌드
 
 CLI CI는 테스트 전에 validator 패키지를 빌드합니다. 로컬 실행 절차도 같은
 선행 작업을 포함하며 문서 검사는 CLI README와 한국어 번역을 포함합니다.
@@ -4190,13 +4200,13 @@ validator 출력을 제거해 패키지 누락 실패를 재현했습니다. 다
 CLI 검사 37개, 문서의 명령 네 가지와 실패 종료 코드 검사 두 가지가
 통과했습니다. `make docs-check`를 통과했습니다.
 
-## 2026-09-09 — 의존성 업데이트 절차
+### 2026-09-09 — 의존성 업데이트 절차
 
 예약된 의존성 업데이트 풀 리퀘스트를 사용하지 않습니다. 의존성 업데이트는
 로컬에서 준비하고 관련 패키지 검사와 문서 검사를 포함합니다.
 `make docs-check`를 통과했습니다.
 
-## 2026-09-09 — 비교 환경 검증
+### 2026-09-09 — 비교 환경 검증
 
 HTTP 대상 네 가지는 각각 현재 브라우저 시나리오 120개와 현재
 상호작용 검사 30개를 통과했으며 페이지 오류는 없었습니다. 이미지는
@@ -4205,7 +4215,7 @@ HTTP 대상 네 가지는 각각 현재 브라우저 시나리오 120개와 현�
 반복한 `up`은 상태·응답 비교 8개를 통과했습니다. 영어·한국어 절차는 환경
 수명 주기를 설명합니다.
 
-## 2026-09-09 — 의존성 설치와 생성 파일
+### 2026-09-09 — 의존성 설치와 생성 파일
 
 PHP CI 작업은 `composer.lock`으로 의존성을 설치합니다. PHP `vendor/` 디렉터리와
 컴파일한 Go CLI 실행 파일은 Git에서 제외합니다. 패키지 CI 작업은 필요한 폼
@@ -4216,7 +4226,7 @@ PHP CI 작업은 `composer.lock`으로 의존성을 설치합니다. PHP `vendor
 1,418개, 네 언어 구형 비교 사례 1,074개, 공용 검증 콘솔 검사 81개가
 통과했습니다. 문서 검사가 통과했습니다.
 
-## 2026-09-09 — 공개 API 설명
+### 2026-09-09 — 공개 API 설명
 
 공개 폼·목록 API 주석은 현재 동작과 오류 결과를 설명합니다. 런타임 계약은
 폼 인스턴스 용어를 사용하며 구형 검증기 예제는 명시적인 legacy 진입점을 import합니다. 사용하지 않는 Vue
@@ -4224,7 +4234,7 @@ PHP CI 작업은 `composer.lock`으로 의존성을 설치합니다. PHP `vendor
 실행 JavaScript는 동일합니다. 패키지 export·엄격한 설치 타입·프로덕션 렌더링·
 반복 빌드 검사가 통과했습니다.
 
-## 2026-09-09 — 종료일 필드 참조
+### 2026-09-09 — 종료일 필드 참조
 
 TypeScript·PHP·Rust는 Go와 같이 `enddate` 필드 참조 매개변수를 유지합니다.
 점으로 구분한 시작일 경로를 날짜 비교가 생략되는 불리언 조건으로 변환하지 않습니다.
@@ -4236,7 +4246,7 @@ PHP 검사 1,418개와 Go·Rust 패키지 검사가 통과했습니다.
 현재 규칙 계약은 `docs/spec/`에서 영어·한국어로 관리합니다. 현재·구형 규칙이
 혼재한 문서를 대체하고 등록·매개변수 평가·검증 근거를 구분합니다.
 
-## 2026-09-09 — 구형 비교 정확성
+### 2026-09-09 — 구형 비교 정확성
 
 비교 실행기는 명시적인 JavaScript legacy 진입점을 로드하고 선택한 Go·Rust 구형
 실행 파일을 다시 빌드합니다. 프로세스 실패·읽을 수 없는 스위트·사례 기대값과
@@ -4245,55 +4255,55 @@ PHP 검사 1,418개와 Go·Rust 패키지 검사가 통과했습니다.
 구형 사례 1,074개를 통과했습니다. 기본 테스트 명령에 실행기 회귀 검사를
 포함합니다. 영어·한국어 테스트 절차는 현재 적합성과 구형 비교를 구분합니다.
 
-## 2026-09-09 — 테스트 사례 계약
+### 2026-09-09 — 테스트 사례 계약
 
 영어·한국어 사례 계약은 현재 검증·조합·표현식·렌더링·구형 사례를 구분합니다.
 전체 검증 결과와 로드 실패를 별도로 설명하고 형식 명세에서 오래된 검사 수를
 제거했습니다. 현재·구형 TypeScript 적합성 검사 1,124개가 통과했습니다.
 문서 검사와 엄격한 웹 빌드가 통과했습니다.
 
-## 2026-09-09 — CLI 조합 실패와 문서
+### 2026-09-09 — CLI 조합 실패와 문서
 
 `check`는 조합 전 입력 검사로 대체하지 않고 해결되지 않은 조합을 오류로
 반환합니다. 참조 누락 회귀 검사는 수정 전에 실패했고 수정 후 통과했으며
 CLI 검사 37개가 모두 통과했습니다. 영어·한국어 CLI 안내는 등록된 명령 4개를
 설명합니다. 패키지 설명에서 미구현 명령을 제거하고 미구현 MCP 제안을 제거했습니다.
 
-## 2026-09-09 — 스키마 문서 통합
+### 2026-09-09 — 스키마 문서 통합
 
 현재 스키마와 표현식 계약은 기존 문서를 사용합니다. 별도의 영어·한국어
 구형 스키마는 명시적인 legacy 필드 모델을 설명합니다. 중복된 루트 스키마와
 조건식 파서 문서를 제거하고 참조를 해당하는 현재 또는 구형 계약으로 변경했습니다.
 구형 예제의 정상 입력과 사용자 지정 필수 메시지 검사가 통과했습니다.
 
-## 2026-09-09 — 구형 표시 계약
+### 2026-09-09 — 구형 표시 계약
 
 영어·한국어 구형 표시 계약은 검증기 조건과 렌더러 표시를 구분합니다.
 렌더러의 맵 형식 처리를 설명하고 표시와 검증이 독립적인 현재 스키마 설정으로
 연결합니다. 중복 표시 안내를 제거했습니다. 선택한 TypeScript 구형
 display-switch 검사 84개가 통과했습니다.
 
-## 2026-09-09 — 문서 웹 탐색
+### 2026-09-09 — 문서 웹 탐색
 
 웹은 영어 탐색 메뉴와 한국어 색인 링크를 제공합니다. 생성 API 탐색에
 공통 생성기 core를 포함합니다. 문서 검사·엄격한 웹 빌드·생성된 탐색 링크의
 대상 검사가 통과했습니다.
 
-## 2026-09-09 — 데이터 검증 안내
+### 2026-09-09 — 데이터 검증 안내
 
 검증 안내는 `validate` 규칙을 사용하는 현재 JavaScript·PHP·Go·Rust 진입점을
 설명합니다. 스키마 로드·입력 실패·표시 여부·전송 처리를 구분합니다. 오래된 API
 안내를 제거하고 탐색 링크를 영어 안내와 한국어 번역으로 변경했습니다.
 네 코드 예제는 모두 실행에 성공했고 예상한 필수 입력 실패를 확인했습니다.
 
-## 2026-09-09 — Svelte 생성 출력
+### 2026-09-09 — Svelte 생성 출력
 
 Git은 Svelte의 임시 `.svelte-kit` 출력을 제외합니다. 생성 파일 117개를
 추적 대상에서 제거했습니다. 이전 디렉터리가 없는 상태에서 빌드가 통과했고,
 패키지 export·설치 타입 검사·프로덕션 빌드·React·Vue·Svelte 브라우저 검사도
 통과했습니다.
 
-## 2026-09-09 — 공개 API 문서 생성
+### 2026-09-09 — 공개 API 문서 생성
 
 필수 도구가 실패하거나 출력이 없으면 API 생성이 실패합니다.
 TypeScript는 Svelte 컴포넌트 선언을 포함한 공개 패키지 진입점 5개를
@@ -4304,20 +4314,20 @@ TypeScript는 Svelte 컴포넌트 선언을 포함한 공개 패키지 진입점
 통과했습니다. 전체 문서를 두 번 생성한 결과는 네이티브 HTML 자산을 포함해
 동일했습니다. 엄격한 웹 빌드가 통과했습니다.
 
-## 2026-09-09 — 문서 링크 검증
+### 2026-09-09 — 문서 링크 검증
 
 웹 빌드는 내부 링크를 검사합니다. TypeDoc은 상대 링크와 패키지 색인
 페이지를 생성합니다. 웹 밖의 실제 저장소 파일은 GitHub 소스 URL로
 연결하며 파일이 없으면 실패합니다. `make docs-check`는 링크 검사 5개를
 실행합니다. 엄격한 웹 빌드, 문서 검사, 생성된 HTML 링크 검사가 통과했습니다.
 
-## 2026-09-09 — 현재 문서 탐색
+### 2026-09-09 — 현재 문서 탐색
 
 문서 웹은 현재 표현식 계약으로 연결합니다. 문서 관리 절차는
 `make docs-check`가 검사하는 현재 예제 색인을 명시합니다.
 문서 검사와 정적 웹 빌드가 통과했습니다.
 
-## 2026-09-09 — 삼항식 매개변수의 공통 AST 평가
+### 2026-09-09 — 삼항식 매개변수의 공통 AST 평가
 
 폼 표시와 TypeScript·PHP·Go·Rust 검증 매개변수는 완전한 삼항식 AST를 평가합니다.
 선택한 필드 경로, 중첩된 참 분기, 따옴표 문자열의 이스케이프는 별도 문자열
@@ -4331,39 +4341,39 @@ TypeScript는 Svelte 컴포넌트 선언을 포함한 공개 패키지 진입점
 이 계약을 사용합니다. 네 검증기 전체 테스트, 전체 폼 테스트, CLI 검사 36개와
 문서 검사가 통과했습니다. 이 결과가 보존한 외부 브라우저 비교를 갱신하지는 않습니다.
 
-## 2026-09-09 — 현재 API와 고정 사례 설명
+### 2026-09-09 — 현재 API와 고정 사례 설명
 
 콘솔 문서는 현재 렌더링 API 이름을 사용합니다. 조합·렌더링 고정 사례 설명은
 구현 버전 표기 없이 동작을 설명합니다. 관련 조합 테스트 23개가 모두
 통과했으며 고정 사례의 입력과 기대 결과는 변경하지 않았습니다.
 
-## 2026-09-09 — 저장소 내부 폼 검사와 JSON 순서 검사
+### 2026-09-09 — 저장소 내부 폼 검사와 JSON 순서 검사
 
 패키지 테스트는 저장소 내부 폼 검사기와 JSON 순서
 검사를 사용합니다. JSON 순서 사례 50개와 전체 폼 테스트가
 통과했습니다.
 
-## 2026-09-09 — 재사용 폼 검사기
+### 2026-09-09 — 재사용 폼 검사기
 
 폼 검사기와 Node·브라우저 검사는 `tests/form-inspector/`에서 관리합니다.
 프레임워크 초기화 테스트는 해당 모듈을 직접 사용합니다.
 경로 변경 후 Node 검사 18개와 브라우저 검사 6개가 모두 통과했습니다.
 
-## 2026-09-09 — 예제 명세 포함과 중첩 데이터
+### 2026-09-09 — 예제 명세 포함과 중첩 데이터
 
 Bootstrap 예제는 정적 빌드에 상품·반복 폼 명세를 포함합니다. 부모가 데이터를
 관리하는 페이지는 점으로 구분된 경로를 최상위 키로 설정하지 않고 전체 폼
 데이터를 적용합니다. 예제 빌드와 문의·가입·상품·반복 폼의 브라우저
 검사가 통과했으며 상품 중첩 데이터와 잘못된 점 경로 키의 미생성을 확인했습니다.
 
-## 2026-09-09 — 부모가 데이터를 관리하는 레거시 React 갱신
+### 2026-09-09 — 부모가 데이터를 관리하는 레거시 React 갱신
 
 레거시 폼 변경 알림은 React 상태 갱신 함수 밖에서 실행합니다. 연속 필드
 변경은 이전 값을 보존하고 변경마다 데이터를 관리하는 부모에게 한 번 알립니다.
 회귀 검사는 수정 전에 실패했습니다. 수정 후 React 검사 692개와 패키지
 빌드가 통과했습니다.
 
-## 2026-09-09 — 레거시 예제 구조와 빌드
+### 2026-09-09 — 레거시 예제 구조와 빌드
 
 레거시 예제는 `examples/legacy`를 사용합니다. import, 패키지 참조, 빌드 컨텍스트,
 테스트와 문서는 이동한 경로를 사용합니다. 컨테이너 빌드는 패키지 명령으로
@@ -4376,13 +4386,13 @@ Bootstrap 예제는 정적 빌드에 상품·반복 폼 명세를 포함합니�
 서버 이미지 네 가지 모두 HTTP 유효·무효 사례가 통과했습니다. PHP Apache
 라우팅과 문서 루트도 통과했습니다. 프론트엔드 브라우저 검증은 남아 있습니다.
 
-## 2026-09-09 — 반복 필드 스키마
+### 2026-09-09 — 반복 필드 스키마
 
 선언 스키마는 `multiple.min`을 허용하며 숨김 필드 없이 컬렉션 키로 행을
 식별하는 구조를 설명합니다. 최소 개수 허용과 숫자가 아닌 최솟값의 거부를
 포함한 스키마 고정 사례 56개가 통과했습니다.
 
-## 2026-09-09 — 현재 비교 이미지
+### 2026-09-09 — 현재 비교 이미지
 
 비교 이미지는 정상 의존성 설치로 라이브러리 소스를 빌드합니다.
 이미지는 브라우저 압축 해제 도구를 설치하며 작업 공간 잠금 파일로
@@ -4391,7 +4401,7 @@ Bootstrap 예제는 정적 빌드에 상품·반복 폼 명세를 포함합니�
 HTTP 검사 240개와 PHP 처리 모드 검사가 모두 통과했습니다.
 이 소스와 의존성 그래프의 브라우저 비교는 진행 중입니다.
 
-## 2026-09-09 — 의존성 설치와 패키지 검사
+### 2026-09-09 — 의존성 설치와 패키지 검사
 
 작업 공간 잠금 파일은 선언된 의존성 범위를 해석하며 지원 플랫폼의 네이티브
 패키지를 포함합니다. 루트는 공통 테스트 연동을 위해 Vitest를 선언합니다.
@@ -4404,13 +4414,13 @@ npm 설치 스크립트 승인은 검토한 패키지 버전을 명시합니다.
 HTML 정규화 검사 6개가 통과했습니다. JavaScript 검증 1,579개가 통과했습니다.
 이 결과는 비교 환경의 배포를 확인하는 근거가 아닙니다.
 
-## 2026-09-09 — 필드 오류 설명
+### 2026-09-09 — 필드 오류 설명
 
 지원하지 않는 필드 오류는 필드 타입과 경로를 명시합니다. 현재 검사 이름은
 버전 없는 동작 이름을 사용합니다. 코어 검사 26개와 문서 검사가
 통과했습니다.
 
-## 2026-09-09 — 독립된 PHP 확장 대상
+### 2026-09-09 — 독립된 PHP 확장 대상
 
 PHP 확장 실행은 별도 프로세스·저장소·서버 식별자를 사용합니다. 확장 모드는
 네이티브 처리기를 필수로 요구하며 PHP 모드는 확장 사용을 금지합니다.
@@ -4421,7 +4431,7 @@ PHP 확장 실행은 별도 프로세스·저장소·서버 식별자를 사용�
 통과했습니다. 확장의 전체 브라우저 검증은 남아 있습니다. 기본 비교
 컨테이너는 아직 이 이미지로 교체하지 않았습니다.
 
-## 2026-09-09 — 빈 컬렉션 브라우저 검사
+### 2026-09-09 — 빈 컬렉션 브라우저 검사
 
 브라우저 검사는 필드 래퍼로 포커스된 버튼의 컬렉션을 확인합니다. 현재
 렌더러는 래퍼의 name 속성을 사용하지 않습니다. 서버 세 가지·프레임워크
@@ -4429,27 +4439,27 @@ PHP 확장 실행은 별도 프로세스·저장소·서버 식별자를 사용�
 PHP 실행에서는 현재 초기화 비교 6개와 현재 런타임 포인터·키보드 동작 검사
 30개(비교 모드 전체 108개)가 통과했고 페이지 오류는 없었습니다. 보존된 소스의 HTML 차이는 실패로 유지합니다.
 
-## 2026-09-09 — SSR 비교 인스턴스 공유
+### 2026-09-09 — SSR 비교 인스턴스 공유
 
 교차 검사 콘솔은 세 렌더러에 사용할 폼 인스턴스를 하나 생성합니다.
 반복 데이터가 없을 때 생성되는 행 키가 프레임워크 출력 간에 동일합니다.
 생성된 키 비교를 포함한 콘솔 검사 81개가 통과했습니다.
 
-## 2026-09-09 — 비교 서버 진입점
+### 2026-09-09 — 비교 서버 진입점
 
 현재 PHP·Go·Rust 서버는 버전 없는 검증 진입점을 사용합니다. 보존된
 Go·Rust 서버는 고정된 서버 소스 아카이브에서 빌드합니다. 비교 컨테이너는
 라이브러리 소스를 사용합니다. HTTP 저장 검사 180개가 모두
 통과했습니다. 브라우저 동작 검증은 진행 중입니다. 패키지는 게시하지 않았습니다.
 
-## 2026-09-09 — 비교 브라우저 진입점
+### 2026-09-09 — 비교 브라우저 진입점
 
 비교 브라우저 빌드는 현재 소스와 보존된 소스의 진입점을 명시적으로 선택합니다.
 현재 컬렉션 검사는 필드 경로를 사용합니다. 빌드에는 작업 공간의 절대 경로를
 명시해야 합니다. 브라우저 번들 12개가 모두 빌드되었습니다.
 서버 통합과 저장·재로드 검증은 남아 있으며 실행 중인 비교 환경은 교체하지 않았습니다.
 
-## 2026-09-09 — 공개 타입 선언 빌드
+### 2026-09-09 — 공개 타입 선언 빌드
 
 TypeScript 패키지 빌드는 번들러로 JavaScript를 생성하고 TypeScript 컴파일러로
 타입 선언을 생성합니다. 공개 진입점에는 선언된 legacy export를 포함합니다.
@@ -4463,7 +4473,7 @@ TypeScript 패키지 빌드는 번들러로 JavaScript를 생성하고 TypeScrip
 통과했습니다. 이번 빌드 변경에서 런타임 소스 파일은 변경하지 않았습니다.
 패키지는 게시하지 않았습니다.
 
-## 2026-09-08 — 폼 인스턴스와 입력 요소
+### 2026-09-08 — 폼 인스턴스와 입력 요소
 
 폼 API는 `compileForm`으로 템플릿을 준비하고 `createForm`으로 편집 인스턴스를
 생성합니다. `Form` 컴포넌트로 표시하며 `renderForm`도 인스턴스를 받습니다.
@@ -4479,7 +4489,7 @@ Go·Rust 검사, 콘솔 검사 42개, 검사기 검사 18개, Svelte 타입 검�
 패키지 설치 컴파일·빌드, 문서 검사가 통과했습니다.
 실행 중인 비교 컨테이너에는 이 소스를 반영하지 않았습니다.
 
-## 2026-09-08 — 레코드 복원 HTML
+### 2026-09-08 — 레코드 복원 HTML
 
 공통 DOM 바인딩은 기존 `checked` 속성을 입력의 다른 속성 다음에 배치합니다.
 최초 렌더링과 레코드 복원은 입력 요소를 교체하지 않고 같은 속성 순서를 사용합니다.
@@ -4506,7 +4516,7 @@ Go·Rust 검사, 콘솔 검사 42개, 검사기 검사 18개, Svelte 타입 검�
 바인딩 소스와 제공하는 메타데이터가 검증한 소스와 일치합니다. 패키지는 게시하지
 않았습니다.
 
-## 2026-09-08 — 폼 초기화 검사기
+### 2026-09-08 — 폼 초기화 검사기
 
 파싱한 브라우저 DOM, HTML 원문, 현재·기본 컨트롤, 순서를 유지한 필드, 계산된
 CSS, 포커스와 저장 레코드로 초기 데이터 생성과 마운트 후 주입을 비교합니다.
@@ -4532,7 +4542,7 @@ React·Vue의 HTML 원문 속성 순서 차이 24개를 유지했으며 현재 D
 스냅샷 내용은 유지합니다. 배포 대상은 `localhost:4317`의 로컬 Apple container이며
 패키지 게시와 원격 배포는 실행하지 않았습니다.
 
-## 2026-09-07 — 빈 컬렉션 수정 병합
+### 2026-09-07 — 빈 컬렉션 수정 병합
 
 빈 컬렉션 수정을 `main`에 병합하고 안정적인 행 키와 포커스 처리를 유지했습니다.
 React, Vue, Svelte의 빈 컬렉션 추가 버튼에 접근성 레이블을 적용했습니다.
@@ -4547,7 +4557,7 @@ Svelte 345개, Svelte 클라이언트 1개)가 통과했습니다. 회귀 검사
 `compileForm`과 `bindForm`을 사용합니다. 배포: 패키지를 게시하지 않았으며
 로컬 비교 예제는 기존 고정 소스를 계속 사용합니다.
 
-## 2026-09-07 — PHP·Go·Rust 폼 영속 저장
+### 2026-09-07 — PHP·Go·Rust 폼 영속 저장
 
 PHP와 함께 네이티브 폼·JSON 제출, 기존 CRUDUI 검증, 원자적 JSON 저장, 계층 재로드를
 수행하는 독립된 Go·Rust 서버를 추가했습니다. 서버와 소스 리비전마다 독립된
@@ -4571,7 +4581,7 @@ JavaScript·PHP 변환 검사, PHP 저장소 검사, Go 정적 검사, Rust Clip
 배포: PHP 8.4.24, Go 1.27.0, Rust 1.98.0, Node 26.8.1을 사용하는
 `localhost:4317`의 로컬 Apple container. 패키지 게시와 원격 배포는 수행하지 않았습니다.
 
-## 2026-09-07 — 원본 컨트롤러 타이핑
+### 2026-09-07 — 원본 컨트롤러 타이핑
 
 원본 예제 컨트롤러가 이전 렌더링 값으로 새 입력을 덮어쓰고, 프레임워크의 input
 교체 시 일시적으로 포커스를 잃는 문제가 있었습니다. 새 입력으로 대체된 입력
@@ -4584,7 +4594,7 @@ JavaScript·PHP 변환 검사, PHP 저장소 검사, Go 정적 검사, Rust Clip
 변경하지 않았습니다. 배포는 `localhost:4317`의 로컬 Apple container이며 패키지
 게시와 원격 배포는 수행하지 않았습니다.
 
-## 2026-09-07 — 폼 비교 명칭
+### 2026-09-07 — 폼 비교 명칭
 
 경로, 소스, 문서, 컨테이너 명령에 CRUDUI 예제 명칭을 일관되게
 적용했습니다. 비교용 라이브러리와 테스트 파일의 내용은
@@ -4598,7 +4608,7 @@ JavaScript·PHP 변환 검사, 두 저장소 검사와 `make docs-check`가 통�
 배포: `localhost:4317`의 로컬 Apple container. 패키지 게시와 원격 배포는 수행하지
 않았습니다.
 
-## 2026-09-07 — 폼과 순서 유지 JSON 전송
+### 2026-09-07 — 폼과 순서 유지 JSON 전송
 
 각 폼에서 네이티브 multipart 또는 JSON 전송을 선택합니다. 두 형식은 같은 기존
 JavaScript·PHP 검증과 저장소 저장을 실행합니다. JSON 경로는 요청·응답과 저장
@@ -4620,7 +4630,7 @@ Go, Rust 검증 적합성과 `make docs-check`도 통과했습니다. 브라우�
 배포: `localhost:4317`의 로컬 Apple container. 패키지 게시와 원격 배포는 수행하지
 않았습니다. 비교 소스와 이전 보고서는 계속 제공합니다.
 
-## 2026-09-07 — JSON 처리기 계약 검증
+### 2026-09-07 — JSON 처리기 계약 검증
 
 ordered-json의 문서 멤버 순서, 중첩된 13자리 행 데이터, 빈 컬렉션
 자료형을 재현 가능한 검사로 추가했습니다. 다섯 구현에서 전송 고정 데이터 10개와
@@ -4628,7 +4638,7 @@ ordered-json의 문서 멤버 순서, 중첩된 13자리 행 데이터, 빈 컬�
 브라우저 동작과 런타임 JSON 연동은 변경하지 않았습니다. 로컬 비교 환경은 계속
 제공합니다.
 
-## 2026-09-07 — 빈 컬렉션 수정과 브라우저 검증
+### 2026-09-07 — 빈 컬렉션 수정과 브라우저 검증
 
 - 수정한 원본 소스와 현재 런타임을 주 비교로 추가했습니다.
   수정 전 원본 키 예제와 배열 진단은 실제 실패 결과와 함께 계속 선택할 수 있습니다.
@@ -4649,7 +4659,7 @@ TypeScript, PHP, Go, Rust에서 통과했습니다. `make docs-check`도 통과�
 배포: `localhost:4317`의 로컬 Apple container이며 패키지는 게시하지 않았습니다.
 비교 소스와 이전 보고서는 검토를 위해 유지합니다.
 
-## 2026-09-07 — 실제 타이핑 중 포커스
+### 2026-09-07 — 실제 타이핑 중 포커스
 
 값이 변경되지 않은 input/change 이벤트는 포커스를 저장하기 전에 제외합니다.
 Vue와 Svelte에서 input 교체 중 발생한 change 이벤트가 복원할 포커스 정보를
@@ -4659,7 +4669,7 @@ Vue와 Svelte에서 input 교체 중 발생한 change 이벤트가 복원할 포
 유지했습니다. 공통 마운트 DOM 검사와 코어 타입 검사도 통과했습니다.
 배포: 로컬 비교 환경이며 패키지는 게시하지 않았습니다.
 
-## 2026-09-07 — 빈 컬렉션에 추가한 후 포커스
+### 2026-09-07 — 빈 컬렉션에 추가한 후 포커스
 
 브라우저 바인딩은 빈 컬렉션의 추가 버튼을 해당 wrapper로 식별합니다. 첫 행 생성으로
 버튼이 교체되면 같은 컬렉션의 추가 버튼으로 `preventScroll`을 사용해 포커스를 복원합니다.
@@ -4668,7 +4678,7 @@ Vue와 Svelte에서 input 교체 중 발생한 change 이벤트가 복원할 포
 Vue, Svelte에서 통과했고 코어 타입 검사도 통과했습니다.
 배포: 로컬 비교 환경이며 패키지는 게시하지 않았습니다.
 
-## 2026-09-07 — 행 연산의 포커스 유지
+### 2026-09-07 — 행 연산의 포커스 유지
 
 포인터로 행 버튼을 실행할 때 입력 포커스를 유지합니다. DOM 동기화는 `preventScroll`로
 텍스트 선택과 상위 요소의 스크롤 위치를 복원합니다. 키보드 실행은 기존 버튼의 포커스를
@@ -4676,7 +4686,7 @@ Vue, Svelte에서 통과했고 코어 타입 검사도 통과했습니다.
 세 프레임워크의 실제 브라우저 포인터와 키보드 검사가 통과했습니다.
 배포: 로컬 폼 비교 예제에서 실행 중이며 패키지는 게시하지 않았습니다.
 
-## 2026-09-07 — 브라우저 비교와 PHP 영속 저장
+### 2026-09-07 — 브라우저 비교와 PHP 영속 저장
 
 - 정확한 원본과 현재 Git 소스를 사용하는 React, Vue, Svelte, PHP의
   Apple container 환경을 `localhost:4317`에 추가했습니다.
@@ -4714,7 +4724,7 @@ Vue, Svelte에서 통과했고 코어 타입 검사도 통과했습니다.
 배포: 로컬 Apple container이며 패키지 게시와 원격 배포는 수행하지 않았습니다.
 비교 자료와 이전 결과는 검토할 수 있도록 유지합니다.
 
-## 2026-09-07 — 컴파일된 폼과 13자리 행 키
+### 2026-09-07 — 컴파일된 폼과 13자리 행 키
 
 - 변경 불가능한 JSON 캐시용 폼 템플릿과 별도 데이터 바인딩을 추가했습니다.
 - 지연 데이터 주입과 경로별 중첩 행 추가, 복사, 제거, 정렬, 저장된 seq 키 변경을
@@ -4738,7 +4748,7 @@ TypeScript 검증기 1,579개, PHP 적합성 61개, Go와 Rust 공유 검증이 
 이 실행에는 CRUDUI 공유 검증 사례 43개가 포함됩니다. 콘솔 SSR 32개, CLI 35개, 린트, 타입 검사, `make docs-check`가 통과했습니다.
 API 생성, 스키마 생성, 문서 웹 빌드가 통과했습니다. 배포: 미배포.
 
-## 2026-09-07 — 스키마 생성
+### 2026-09-07 — 스키마 생성
 
 스키마 생성기에 포함된 TypeScript 컴파일러가 거부하는 불필요한
 `ignoreDeprecations: "6.0"` 설정을 제거했습니다. TypeScript 타입 검사, 예제 3개를

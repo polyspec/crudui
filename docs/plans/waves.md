@@ -43,3 +43,7 @@ Depends on: none. The polyspec repositories name their packages after the organi
 ## Wave 10
 
 Depends on: none. The form comparison takes OrderedJSON from the tag `v0.0.1` of `polyspec/ordered-json` and uses the package names of that tree. Until version 0.1, a polyspec repository depends on another polyspec repository through a GitHub tag of it.
+
+## Wave 11
+
+Depends on: none. Every change reaches `main` through a pull request and the merge queue, so every commit of `main` passed the required checks. A release is a tag `vX.Y.Z` of a commit of `main`, or `<directory>/vX.Y.Z` for a Go module in a subdirectory; the maintainer creates the tag after the pull request that sets the version, and no pull request carries a tag. The ruleset `main` requires the check `push-gate` and one completion check `ci-passed` of the CI workflow, so a new or renamed CI job needs no change of the ruleset. The change log keeps the changes of the coming release under `## Unreleased`, which the release pull request names `## X.Y.Z`.
