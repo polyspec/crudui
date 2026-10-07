@@ -6,9 +6,11 @@
 // Scope: a registry dependency is an entry of `dependencies` or `devDependencies` of the root package.json or of a
 // workspace package.json, or of `require` or `require-dev` of a Composer manifest that config/dependency-policy.json
 // names, that a registry resolves. Peer dependencies are not read. A URL dependency names its source itself, a package
-// of this repository (an npm workspace or a Composer path repository) is built from the checkout, and a Composer
-// platform requirement (`php`, `ext-*`, ...) names the runtime: "latest stable release" has no meaning for them, so
-// they are not registry dependencies. The check reads a package of this repository against its lock entry.
+// of this repository (an npm workspace or a Composer path repository) is built from the checkout, a polyspec package
+// taken from a GitHub tag (the js package of the OrderedJSON checkout, linked with `file:`) is the release of that tag,
+// and a Composer platform requirement (`php`, `ext-*`, ...) names the runtime: "latest stable release" has no meaning
+// for them, so they are not registry dependencies. The check reads a package of this repository and a tagged package
+// against its lock entry.
 //
 // The locks are package-lock.json, the composer.lock of each Composer manifest and every Cargo.lock of the checkout;
 // the review records the sha256 and the advisories of each. A Cargo lock has no registry dependencies in the review:
@@ -17,6 +19,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
+import { orderedJsonCheckout, orderedJsonRepository, orderedJsonTag, orderedJsonVersion } from '../examples/form-comparison/src/ordered-json-source.mjs';
 import { trackedFiles } from './tracked-files.mjs';
 
 export const POLICY = 'config/dependency-policy.json';
@@ -25,6 +28,11 @@ export const NPM_MANIFEST = 'package.json';
 export const NPM_LOCK = 'package-lock.json';
 
 const LOCAL_SPEC = /^(file|link|workspace):/;
+
+/** The polyspec packages taken from a GitHub tag: the npm package directory of each tag checkout. */
+export const TAGGED_NPM_PACKAGES = Object.freeze([
+  { directory: `${orderedJsonCheckout}/js`, repository: orderedJsonRepository, tag: orderedJsonTag, version: orderedJsonVersion },
+]);
 const URL_SPEC = /^(?!npm:)[A-Za-z][A-Za-z0-9+.-]*:|^[^@/][^/]*\/[^/]/;
 const PLATFORM_REQUIREMENT = /^(php(-64bit|-ipv6|-zts|-debug)?|hhvm|ext-.+|lib-.+|composer(-plugin-api|-runtime-api)?)$/;
 
@@ -100,6 +108,7 @@ export function npmLockEntry(lock, directory, name) {
 export function readState(root, policy) {
   const dependencies = [];
   const local = [];
+  const tagged = [];
   const locks = [NPM_LOCK];
 
   const lock = readJson(root, NPM_LOCK);
@@ -112,6 +121,15 @@ export function readState(root, policy) {
         if (LOCAL_SPEC.test(spec) || entry?.link) {
           const target = entry?.link ? entry.resolved : null;
           const targetManifest = target && existsSync(path.join(root, target, NPM_MANIFEST)) ? readJson(root, `${target}/${NPM_MANIFEST}`) : null;
+          const release = TAGGED_NPM_PACKAGES.find(item => spec === `file:${item.directory}` || target === item.directory);
+          if (release) {
+            tagged.push({
+              ecosystem: 'npm', manifest: manifestPath, package: name, spec, kind, directory: target, release,
+              lockVersion: target ? lock.packages?.[target]?.version ?? null : null,
+              version: targetManifest?.version ?? null, name: targetManifest?.name ?? null,
+            });
+            continue;
+          }
           local.push({
             ecosystem: 'npm', manifest: manifestPath, package: name, spec, kind, directory: target,
             lockVersion: target ? lock.packages?.[target]?.version ?? null : null,
@@ -144,5 +162,5 @@ export function readState(root, policy) {
     }
   }
   locks.push(...cargoLocks(root));
-  return { dependencies, local, locks, manifests, npmLock: lock };
+  return { dependencies, local, tagged, locks, manifests, npmLock: lock };
 }

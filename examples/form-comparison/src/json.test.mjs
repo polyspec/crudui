@@ -5,11 +5,16 @@ import { encodeJson, decodeJson } from './json.mjs';
 const bytes = source => new TextEncoder().encode(source);
 
 test('ordered JSON retains nested identity order, empty types and scalar values', () => {
-  const source = '{"form":{"companies":{"__0000000000005__":{"stores":{}},"__abcde01234567__":{"stores":{"__0000000000007__":{"departments":{}}}},"__0000000000001__":{"stores":{}}}},"items":[{},[],false,null,1.25,"서울"]}';
+  // OrderedJSON writes a constructed string with every code unit outside printable ASCII as a \u escape, so the
+  // encoded text spells 서울 as \uc11c\uc6b8 whether the decoded source spelled it in UTF-8 or with escapes.
+  const source = '{"form":{"companies":{"__0000000000005__":{"stores":{}},"__abcde01234567__":{"stores":{"__0000000000007__":{"departments":{}}}},"__0000000000001__":{"stores":{}}}},"items":[{},[],false,null,1.25,"\\uc11c\\uc6b8"]}';
   const data = decodeJson(bytes(source));
   assert.deepEqual(Object.keys(data.form.companies), ['__0000000000005__', '__abcde01234567__', '__0000000000001__']);
   assert.equal(encodeJson(data), source);
   assert.deepEqual(data.items, [{}, [], false, null, 1.25, '서울']);
+  const utf8 = decodeJson(bytes(source.replace('\\uc11c\\uc6b8', '서울')));
+  assert.deepEqual(utf8, data);
+  assert.equal(encodeJson(utf8), source);
   assert.equal(Object.hasOwn(decodeJson(bytes('{"__proto__":{"value":"own"}}')), '__proto__'), true);
 });
 

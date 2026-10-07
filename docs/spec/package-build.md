@@ -240,10 +240,12 @@ Every Git-tracked npm lock file is a maintained dependency graph. The root
 installation must make `npm ls --all` return status 0 without invalid, missing or
 conflicting dependencies. `npm ci --dry-run --strict-allow-scripts` must succeed
 for each graph.
-A URL dependency may be fetched only when the root manifest declares it directly.
-The project npm configuration sets `allow-remote=root`; npm rejects URL
-dependencies introduced by dependencies. The manifest pins each permitted URL to
-an immutable source revision, and the lock file records its integrity.
+npm installs a package from the npm registry, from a workspace or from a checkout
+directory that a make target installs, such as the OrderedJSON tag checkout that the
+root manifest links with `file:`. No manifest declares a URL or Git dependency, every
+registry package of the lock file records its SHA-512 integrity, and the project npm
+configuration sets `allow-remote=none` and `allow-git=none`, so npm rejects a URL or
+Git source that a dependency introduces.
 A tool with no secure compatible stable release is replaced. Dependency overrides
 and audit exclusions do not satisfy these checks. Unused build and documentation
 dependencies are removed.
@@ -257,7 +259,10 @@ registry dependencies: the `dependencies` and `devDependencies` of the root
 Composer packages that `config/dependency-policy.json` names
 (`packages/validator-php` and `packages/generator-php`). Peer dependencies, URL
 dependencies, packages of this repository and Composer platform requirements are
-outside the review by definition. `make dependency-review` asks the registries for
+outside the review by definition. A polyspec package taken from a GitHub tag is the
+release of that tag: the check requires the root manifest to link it to the checkout of
+the tag, the checkout to have the version of the tag and the lock file to record that
+version. `make dependency-review` asks the registries for
 the latest stable release of each registry dependency that its publisher has not
 deprecated, and for the advisories of `package-lock.json` (moderate, high and
 critical), of each `composer.lock` (every advisory and abandoned package) and of

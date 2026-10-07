@@ -1,5 +1,15 @@
 # 변경 기록
 
+## 2026-10-07 — OrderedJSON tag의 build, encoding, 의존성 review (C10.3)
+
+- OrderedJSON PHP module은 tag checkout의 `config.m4`가 선언한 C source로 compile되고 PHP는 그것을 `ordered_json`으로
+  load합니다. 실패한 명령은 PHP가 startup 실패를 쓰는 출력을 보고합니다.
+- encode한 form 문자열은 OrderedJSON `v0.0.1`이 구성한 문자열을 쓰는 대로 출력 가능한 ASCII 밖의 모든 code unit을
+  `\u` escape로 씁니다.
+- 의존성 검사는 `@polyspec/ordered-json`이 tag checkout에 tag의 버전으로 연결될 것을 요구합니다. 어떤 npm 매니페스트도
+  URL 또는 Git 의존성을 선언하지 않고 `.npmrc`는 `allow-remote=none`과 `allow-git=none`을 선언합니다.
+- js-yaml 5.4.3, vite 8.3.3, svelte 5.57.2를 사용하며 review는 모든 lock을 기록합니다.
+
 ## 2026-10-07 — 정확한 workflow trigger (C6.2-1)
 
 - `.github/workflows/ci.yml`은 모든 pull request, merge group, 수동 실행(`workflow_dispatch`)에서,

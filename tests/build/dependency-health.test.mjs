@@ -219,43 +219,40 @@ test('root example imports are declared by the root package', () => {
   assert.deepEqual(failures, []);
 });
 
-test('root URL dependencies permit only root npm remote fetches', () => {
-  const manifest = JSON.parse(readFileSync(path.join(root, 'package.json'), 'utf8'));
+test('npm installs only registry packages and linked directories, and fetches no URL or Git source', () => {
+  // A package comes from the npm registry, from a workspace or from a checkout that a make target installed, such
+  // as the OrderedJSON tag checkout that the root package.json links with file:; npm fetches no URL or Git source.
   const lock = JSON.parse(readFileSync(path.join(root, 'package-lock.json'), 'utf8'));
-  const remoteDependencies = [
+  const remote = /^(?:[A-Za-z][A-Za-z0-9+.-]*:\/\/|git(?:\+[a-z]+)?:|github:|gitlab:|bitbucket:|gist:|[^@./][^/:]*\/[^/])/;
+  const manifests = ['.', ...workspacePackageDirectories()].map((directory) => [
+    directory, JSON.parse(readFileSync(path.join(root, directory, 'package.json'), 'utf8'))]);
+  const remoteDependencies = manifests.flatMap(([directory, manifest]) => [
     ...Object.entries(manifest.dependencies ?? {}),
     ...Object.entries(manifest.devDependencies ?? {}),
     ...Object.entries(manifest.optionalDependencies ?? {}),
-  ].filter(([, specifier]) => /^https?:\/\//.test(specifier));
-  assert.ok(remoteDependencies.length > 0, 'root package must declare a URL dependency');
-  for (const [packageName, specifier] of remoteDependencies) {
-    assert.match(specifier, /[0-9a-f]{40}(?:[/?#]|$)/,
-      `${packageName}: URL dependency must identify one source revision`);
-    const locked = lock.packages?.[`node_modules/${packageName}`];
-    assert.equal(locked?.resolved, specifier,
-      `${packageName}: lock file must retain the declared URL`);
-    assert.match(locked?.integrity ?? '', /^sha512-[A-Za-z0-9+/]+={0,2}$/,
-      `${packageName}: lock file must record SHA-512 integrity`);
-  }
+  ].filter(([, specifier]) => remote.test(specifier) && !specifier.startsWith('npm:'))
+    .map(([packageName, specifier]) => `${directory}: ${packageName} ${specifier}`));
+  assert.deepEqual(remoteDependencies, []);
 
-  const workspaceRemoteDependencies = workspacePackageDirectories().flatMap((directory) => {
-    const workspace = JSON.parse(readFileSync(path.join(root, directory, 'package.json'), 'utf8'));
-    return [
-      ...Object.entries(workspace.dependencies ?? {}),
-      ...Object.entries(workspace.devDependencies ?? {}),
-      ...Object.entries(workspace.optionalDependencies ?? {}),
-    ].filter(([, specifier]) => /^https?:\/\//.test(specifier))
-      .map(([packageName]) => `${directory}: ${packageName}`);
+  const registry = 'https://registry.npmjs.org/';
+  const unexpected = Object.entries(lock.packages ?? {}).flatMap(([location, entry]) => {
+    if (location === '' || !location.includes('node_modules/')) return [];
+    if (entry.link) {
+      const target = path.resolve(root, entry.resolved ?? '');
+      return target.startsWith(root + path.sep) ? [] : [`${location}: links ${entry.resolved}`];
+    }
+    if (!entry.resolved?.startsWith(registry)) return [`${location}: resolves ${entry.resolved ?? 'nothing'}`];
+    return /^sha512-[A-Za-z0-9+/]+={0,2}$/.test(entry.integrity ?? '') ? [] : [`${location}: no SHA-512 integrity`];
   });
-  assert.deepEqual(workspaceRemoteDependencies, []);
+  assert.deepEqual(unexpected, []);
 
   const configFile = path.join(root, '.npmrc');
   const config = existsSync(configFile) ? readFileSync(configFile, 'utf8') : '';
-  const policies = config.split('\n').flatMap((line) => {
-    const match = line.match(/^\s*allow-remote\s*=\s*([^#;\s]+)\s*(?:[#;].*)?$/);
-    return match ? [match[1]] : [];
-  });
-  assert.deepEqual(policies, ['root']);
+  const settings = Object.fromEntries(config.split('\n').flatMap((line) => {
+    const match = line.match(/^\s*(allow-remote|allow-git)\s*=\s*([^#;\s]+)\s*(?:[#;].*)?$/);
+    return match ? [[match[1], match[2]]] : [];
+  }));
+  assert.deepEqual(settings, { 'allow-remote': 'none', 'allow-git': 'none' });
 });
 
 test('form comparison commands use the root npm dependency graph', () => {

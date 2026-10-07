@@ -19,6 +19,7 @@ export const RULES = {
   policy: `${POLICY} names its Composer manifests and declares each exception for a registry dependency with a reason, a removal condition and verification commands`,
   composerLock: 'each Composer lock is current for its manifest, as composer validate --strict reads it without a network',
   local: 'a package of this repository is required at its own version and locked at it',
+  tagged: 'a polyspec package taken from a GitHub tag is linked to the checkout of its tag, has the version of that tag and is locked at it',
   npmLock: `${NPM_LOCK} records the dependencies of every npm manifest`,
   record: 'every registry dependency and every lock has an entry in the review record that matches the committed manifests and locks',
   latest: 'a registry dependency is locked at the latest stable release known at its review, unless the policy holds an exception for it',
@@ -77,6 +78,16 @@ export function check(root, { composer = 'composer' } = {}) {
     } else if (item.lockVersion !== item.version) {
       add('local', subject, `the lock records version ${item.lockVersion}, the manifest requires ${item.version}`, `run composer update --lock in ${path.posix.dirname(item.manifest)}`);
     }
+  }
+
+  for (const item of state.tagged) {
+    const subject = `${item.manifest} ${item.package}`;
+    const { directory, repository, tag, version } = item.release;
+    if (item.spec !== `file:${directory}`) add('tagged', subject, `the manifest requires ${item.spec}, the checkout of ${repository} ${tag} is ${directory}`, `require file:${directory} and run npm install`);
+    else if (item.directory !== directory) add('tagged', subject, `${NPM_LOCK} links it to ${item.directory ?? 'no directory'}, the checkout of ${repository} ${tag} is ${directory}`, 'run npm install');
+    else if (item.version !== version) add('tagged', subject, `${directory} has version ${item.version ?? 'none'}, the tag ${tag} has version ${version}`, 'make install-ordered-json');
+    else if (item.name !== item.package) add('tagged', subject, `${directory} is the package ${item.name ?? 'without a name'}`, `require the package that ${directory} names and run npm install`);
+    else if (item.lockVersion !== version) add('tagged', subject, `${NPM_LOCK} records version ${item.lockVersion ?? 'none'}, the tag ${tag} has version ${version}`, 'run npm install');
   }
 
   for (const { directory, manifest: manifestPath } of state.manifests) {

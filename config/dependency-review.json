@@ -1,51 +1,51 @@
 {
   "schema": 1,
   "comment": "Written by make dependency-review RECORD=1 (scripts/dependency-review.mjs) from the registries; npm run test:dependencies compares the checkout with it without a network.",
-  "reviewed": "2026-10-05T17:32:23.114Z",
+  "reviewed": "2026-10-07T03:45:48.346Z",
   "locks": [
     {
       "lock": "package-lock.json",
-      "sha256": "2501d86ee5c10167497a95b6c959fb693ae075cb3baba9ae2cc74a2517e31766",
+      "sha256": "562406c49e771e96cfcbc50a0d60aa9d7b5492333e49673f4fd3fe1d4ee9f3d8",
       "advisories": []
     },
     {
       "lock": "packages/validator-php/composer.lock",
-      "sha256": "d1f8b253624ac96a110444b7cfa40da968f4892c617d6df1dcad5c732aca1af5",
+      "sha256": "6544cb7741e2c0a0db3f93d382ba2c9adaaf77f7c25a53bcf464738c5213d384",
       "advisories": []
     },
     {
       "lock": "packages/generator-php/composer.lock",
-      "sha256": "85d07ff924d9d1734796bdfcb741b79009bf6e48e0df18a75f2b3efa892f138f",
+      "sha256": "4206c387ea77e429e06a7ff96a328eab6acc6c4f4c6c3c65054861ca02e4feb9",
       "advisories": []
     },
     {
       "lock": "examples/cross-check-console/validators/rust/Cargo.lock",
-      "sha256": "46cd8098509ea806c9d4305a55608a8420b6d5f044074485403453ead2108059",
+      "sha256": "3e89f95ef172f4c15007c71e787062de7ea152d18ece7538a1baea2ead59a5e9",
       "advisories": []
     },
     {
       "lock": "examples/form-comparison/servers/rust/Cargo.lock",
-      "sha256": "3c58101887d5e4261e990a4f0f1e0f0da86a959b57d6e9acf0f7d9604a39e68f",
+      "sha256": "30cc271b605b19a83be2d9f7dced35f9917253056b49ed717e077a4e06e212f9",
       "advisories": []
     },
     {
       "lock": "packages/generator-rust/Cargo.lock",
-      "sha256": "fd4b2924482c85427dbde6317042f6df2c96e9e486b9c113a49c480cfb9b80cc",
+      "sha256": "3cfad639587a9e2aea2a2617e5fcf46eb83c31213d98312d91f33405647d9528",
       "advisories": []
     },
     {
       "lock": "packages/validator-rust/Cargo.lock",
-      "sha256": "a9408e1bc0750714ac1ed8c80653eb3d2ba869e39e11caaf4817cfa371c9228b",
+      "sha256": "b89128a647ba3d6da8c4fe85def92e85d2d346965f3800e70c330e47c5100bd2",
       "advisories": []
     },
     {
       "lock": "tests/native-generators/programs/rust/Cargo.lock",
-      "sha256": "7024a16fc3b57358c8a4847cfea479b318db7cc3cd5ce5d02a388efe37b89782",
+      "sha256": "281009e22130e3bcd93896e12a39077b43039bf254292451f25baf4b5c1dffdd",
       "advisories": []
     },
     {
       "lock": "tools/bench/rust/Cargo.lock",
-      "sha256": "3d8be0abd07e370ed0fc68be7f54d80b22e980f5513929646714084bfec99841",
+      "sha256": "9f478ed7778f6ba2d7c003454946ec4ba1f19b108c1b968ac3fa7e086d6da297",
       "advisories": []
     }
   ],
@@ -138,8 +138,8 @@
       "ecosystem": "npm",
       "manifest": "package.json",
       "package": "js-yaml",
-      "version": "5.4.2",
-      "latest": "5.4.2"
+      "version": "5.4.3",
+      "latest": "5.4.3"
     },
     {
       "ecosystem": "npm",
@@ -222,8 +222,8 @@
       "ecosystem": "npm",
       "manifest": "package.json",
       "package": "vite",
-      "version": "8.3.2",
-      "latest": "8.3.2"
+      "version": "8.3.3",
+      "latest": "8.3.3"
     },
     {
       "ecosystem": "npm",
@@ -257,8 +257,8 @@
       "ecosystem": "npm",
       "manifest": "packages/cli/package.json",
       "package": "js-yaml",
-      "version": "5.4.2",
-      "latest": "5.4.2"
+      "version": "5.4.3",
+      "latest": "5.4.3"
     },
     {
       "ecosystem": "npm",
@@ -516,8 +516,8 @@
       "ecosystem": "npm",
       "manifest": "packages/generator-svelte/package.json",
       "package": "svelte",
-      "version": "5.57.1",
-      "latest": "5.57.1"
+      "version": "5.57.2",
+      "latest": "5.57.2"
     },
     {
       "ecosystem": "npm",
@@ -537,8 +537,8 @@
       "ecosystem": "npm",
       "manifest": "packages/generator-svelte/package.json",
       "package": "vite",
-      "version": "8.3.2",
-      "latest": "8.3.2"
+      "version": "8.3.3",
+      "latest": "8.3.3"
     },
     {
       "ecosystem": "npm",
