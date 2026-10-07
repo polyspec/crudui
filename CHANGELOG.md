@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### 2026-10-07 — Release notes within the body limit of GitHub (C11.3)
+
+- `make release-publish` writes the section `## X.Y.Z` of `CHANGELOG.md` as the release notes when it has at most
+  125000 characters, the limit of a GitHub release body, and otherwise one line that links the section of
+  `CHANGELOG.md` at the tag, `https://github.com/polyspec/crudui/blob/<tag>/CHANGELOG.md#<version without dots>`.
+- `tests/build/release.test.mjs` requires a section of exactly 125000 characters kept whole and a longer one written
+  as the line, for a tag `vX.Y.Z` and a Go module tag.
+
 ## 0.0.1
 
 ### 2026-10-07 — No container definition for the native suites (C7.20-3)

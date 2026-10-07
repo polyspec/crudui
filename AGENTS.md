@@ -116,7 +116,8 @@
   `make release-verify`, `make release-versions`, `make release-assets` and `make release-publish`
   (`scripts/release.mjs`): it requires the commit on `main` with the checks `push-gate` and `ci-passed` concluded
   success, the version of the tag in every package file and the section `## X.Y.Z`, and creates the GitHub Release with
-  that section as its notes and the npm tarballs and Composer zips of `packages/`. A crate is not released as an
+  that section as its notes and the npm tarballs and Composer zips of `packages/`. A section over 125000 characters,
+  the limit of a release body, is replaced by one line that links the section of `CHANGELOG.md` at the tag. A crate is not released as an
   archive; it is consumed by git tag. A Go module tag builds and attaches nothing (`docs/operations/repository.md`).
 
 # Checklist

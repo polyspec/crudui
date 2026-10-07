@@ -8,7 +8,9 @@
 //   `node scripts/release.mjs assets TAG`     builds the JavaScript packages (`make build`) and writes the archive of
 //                                             every package that the tag covers to var/release/assets
 //   `node scripts/release.mjs publish TAG`    creates the GitHub Release of the tag with the section `## X.Y.Z` of
-//                                             CHANGELOG.md as its notes and the archives of var/release/assets
+//                                             CHANGELOG.md as its notes and the archives of var/release/assets; a
+//                                             section over 125000 characters, the limit of a release body, is
+//                                             replaced by one line that links it
 //
 // The tag comes from the argument, which the make targets take from the environment variable TAG; the commit is the
 // commit of the tag, and `verify` reads the repository from GITHUB_REPOSITORY. A tag `vX.Y.Z` covers every
@@ -39,6 +41,10 @@ export const RELEASES = {
   'Cargo.toml': 'not released as an archive; consumed by git tag',
 };
 const ARCHIVES = { 'package.json': ['npm', 'tgz'], 'composer.json': ['composer', 'zip'] };
+/** The longest body of a GitHub Release, in characters. */
+export const NOTES_LIMIT = 125000;
+const REPOSITORY_URL = 'https://github.com/polyspec/crudui';
+const CHANGELOG = 'CHANGELOG.md';
 
 /** The parts of a release tag: `vX.Y.Z` or `<directory>/vX.Y.Z`. */
 export function parseTag(tag) {
@@ -90,6 +96,17 @@ export function changelogSection(text, version) {
   if (start === -1) return null;
   const end = lines.findIndex((line, index) => index > start && /^## /.test(line));
   return lines.slice(start + 1, end === -1 ? undefined : end).join('\n').trim();
+}
+
+/**
+ * The notes of the release of a tag: the change log section when it has at most NOTES_LIMIT characters, otherwise one
+ * line that links the section `## X.Y.Z` of CHANGELOG.md at the tag, whose anchor is the version without its dots.
+ */
+export function releaseNotes({ section, tag }) {
+  if ([...section].length <= NOTES_LIMIT) return section;
+  const { version } = parseTag(tag);
+  const ref = tag.split('/').map(encodeURIComponent).join('/');
+  return `The changes of ${version} are listed in [${CHANGELOG}](${REPOSITORY_URL}/blob/${ref}/${CHANGELOG}#${version.replaceAll('.', '')}).`;
 }
 
 /** The problems of the commit of a tag: not on main, or a required check run that is missing or did not succeed. */
@@ -182,14 +199,17 @@ export async function buildAssets({ root, tag, sha, assets, output, run, log }) 
   return assets.map((asset) => path.join(output, asset.file));
 }
 
-/** Create the GitHub Release of the tag with the change log section as its notes and the archives of `output`. */
+/**
+ * Create the GitHub Release of the tag with the archives of `output` and the change log section as its notes, or the
+ * line of releaseNotes that links the section when it is longer than NOTES_LIMIT.
+ */
 export async function publish({ root, tag, output, run, read }) {
   const { version } = parseTag(tag);
-  const notes = changelogSection(read('CHANGELOG.md'), version);
-  if (notes === null) throw new Error(`CHANGELOG.md: no section ## ${version}, tag ${tag} has ${version}`);
+  const section = changelogSection(read(CHANGELOG), version);
+  if (section === null) throw new Error(`CHANGELOG.md: no section ## ${version}, tag ${tag} has ${version}`);
   const notesFile = path.join(path.dirname(output), 'notes.md');
   fs.mkdirSync(path.dirname(notesFile), { recursive: true });
-  fs.writeFileSync(notesFile, `${notes}\n`);
+  fs.writeFileSync(notesFile, `${releaseNotes({ section, tag })}\n`);
   const assets = fs.existsSync(output) ? fs.readdirSync(output).sort().map((file) => path.join(output, file)) : [];
   if (parseTag(tag).directory === '' && assets.length === 0) throw new Error(`${path.relative(root, output)} holds no archive for ${tag}; run make release-assets first`);
   const result = await run('gh', ['release', 'create', tag, '--verify-tag', '--title', tag, '--notes-file', notesFile, ...assets]);

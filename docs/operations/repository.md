@@ -117,7 +117,9 @@ pull request carries a tag; the maintainer creates and pushes it.
      because `cargo package` rewrites git dependencies into crates.io requirements that do not resolve. A Go module
      tag builds and attaches nothing;
    - `make release-publish` runs `gh release create <tag> --verify-tag --title <tag> --notes-file <section ## X.Y.Z>`
-     with the archives.
+     with the archives. GitHub accepts a release body of at most 125000 characters; a longer section is replaced by
+     the line `The changes of X.Y.Z are listed in [CHANGELOG.md](https://github.com/polyspec/crudui/blob/<tag>/CHANGELOG.md#XYZ).`,
+     whose anchor is the version without its dots.
 
 `tests/build/release.test.mjs` checks the script with command fakes: a version that differs from the tag, a missing
 change log section, a check run that is missing, in progress or failed, a commit outside `main`, the archive names and

@@ -103,7 +103,10 @@ commit은 merge queue로 ruleset의 check를 통과했으므로 release는 test�
      tarball과 Composer zip뿐입니다. crate는 archive로 release하지 않고 git tag로 사용합니다. `cargo package`는 git
      의존성을 해석되지 않는 crates.io 요구로 바꾸기 때문입니다. Go module tag는 아무것도 build하거나 첨부하지 않습니다.
    - `make release-publish`는 archive와 함께
-     `gh release create <tag> --verify-tag --title <tag> --notes-file <section ## X.Y.Z>`를 실행합니다.
+     `gh release create <tag> --verify-tag --title <tag> --notes-file <section ## X.Y.Z>`를 실행합니다. GitHub는
+     125000자까지의 release 본문을 받으므로, 더 긴 section은 한 줄
+     `The changes of X.Y.Z are listed in [CHANGELOG.md](https://github.com/polyspec/crudui/blob/<tag>/CHANGELOG.md#XYZ).`로
+     대신하며, anchor는 점을 뺀 version입니다.
 
 `tests/build/release.test.mjs`는 명령 fake로 script를 검사합니다. tag와 다른 version, 빠진 변경 기록 section, 없거나
 진행 중이거나 실패한 check run, `main` 밖의 commit, archive 이름과 명령, 명령을 실행하지 않는 Go module tag, release
