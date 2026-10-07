@@ -2,7 +2,8 @@
  * Execute the JavaScript, PHP, Go and Rust validator processes and compare their results.
  * Each process receives JSON on stdin and has a ten-second timeout. Responses
  * must match the exit status and JSON contract. Data errors preserve path,
- * field, rule, message and value; load and input failures use failure.
+ * field, rule, message and value; a form result carries its hidden paths; load
+ * and input failures use failure.
  */
 
 import path from 'node:path';
@@ -32,6 +33,7 @@ export const validatorProcesses = Object.freeze({
  *
  * @param {object} req { spec, data, files?, basepath? }
  * @returns {Promise<{results: object[], idempotent: boolean, mismatch: object|null}>}
+ *   Each result of a form validation holds `hidden`.
  */
 export async function validateAll(req) {
   const payload = {
@@ -88,7 +90,8 @@ function fanOut(payload) {
 /**
  * Execute a validator process and check its exit status and response fields. Every
  * language uses the same responses:
- *   validation result:     exit 0, stdout { valid, errors:[5-field] }
+ *   form result:           exit 0, stdout exactly { valid, errors:[5-field], hidden:[path] }
+ *   list or detail result: exit 0, stdout exactly { valid, errors:[5-field] }
  *   load or input failure: exit 2, stdout exactly { error, code, at }
  *   malformed request:     exit 1, stdout { error }
  */
@@ -146,10 +149,13 @@ function runProcess(lang, payload) {
   if (proc.status !== 0) {
     return processFail(lang, ms, proc.stderr || parsed.error || `${lang} validator exited ${proc.status}`);
   }
+  const form = (payload.mode ?? 'form') === 'form';
+  const members = form ? 'errors,hidden,valid' : 'errors,valid';
   if (typeof parsed.valid !== 'boolean' || !Array.isArray(parsed.errors) ||
       !parsed.errors.every(isValidationError) ||
       parsed.valid !== (parsed.errors.length === 0) ||
-      Object.keys(parsed).length !== 2) {
+      (form && !(Array.isArray(parsed.hidden) && parsed.hidden.every(item => typeof item === 'string'))) ||
+      Object.keys(parsed).sort().join(',') !== members) {
     return processFail(lang, ms, `invalid ${lang} validation response`);
   }
 
@@ -158,6 +164,7 @@ function runProcess(lang, payload) {
     ok: true,
     valid: parsed.valid,
     errors: parsed.errors,
+    ...(form ? { hidden: parsed.hidden } : {}),
     ms,
     failure: null,
   };
@@ -194,7 +201,7 @@ function stableValue(value) {
   return value;
 }
 
-/** Stable comparison signature: the complete failure record, or valid + sorted errors. */
+/** Stable comparison signature: the complete failure record, or valid + sorted errors + hidden paths in order. */
 export function signature(r) {
   if (!r.ok) return `__error__:${r.error || ''}`;
   if (r.failure) return `failure:${r.failure.code}|${r.failure.message}|${r.failure.at}`;
@@ -203,7 +210,8 @@ export function signature(r) {
       [b.path, b.field, b.rule, b.message].join('|'))
   );
   const key = sorted.map((e) => `${e.path}|${e.field}|${e.rule}|${e.message}|${JSON.stringify(stableValue(e.value))}`);
-  return `valid=${r.valid}#${key.join(';')}`;
+  const hidden = Array.isArray(r.hidden) ? `#hidden=${JSON.stringify(r.hidden)}` : '';
+  return `valid=${r.valid}#${key.join(';')}${hidden}`;
 }
 
 /** Compare every required validator, including execution failures. */
@@ -231,6 +239,7 @@ export function compareIdempotency(results) {
         valid: r.valid,
         failure: r.failure,
         errors: r.errors,
+        ...(Object.hasOwn(r, 'hidden') ? { hidden: r.hidden } : {}),
         error: r.error ?? null,
       })),
     },

@@ -1,5 +1,14 @@
 # 변경 기록
 
+## 2026-10-07 — cross-check 폼 내보내기의 숨은 경로 (C8.3-6)
+
+- cross-check console의 검증기 process는 각 validator의 `validate`가 돌려주는 대로 폼에 `{ valid, errors, hidden }`,
+  목록과 상세에 `{ valid, errors }`로 응답합니다. gateway는 폼 결과의 `hidden`을 요구하고 `POST /api/validate`의 각 언어
+  결과에 담아 돌려주며 언어 사이에서 순서대로 비교합니다.
+- 폼 탭의 fixture 내보내기는 `expected`를 오류와 hidden path를 validator의 순서대로 담은 `{ valid, errors, hidden }`으로
+  써서 내보낸 사례가 `tests/fixtures/validate/cases.json` 형태를 가집니다. `server/fixture-export.test.mjs`는 내보낸
+  사례를 공용 사례와 비교합니다.
+
 ## 2026-10-07 — OrderedJSON tag의 build, encoding, 의존성 review (C10.3)
 
 - OrderedJSON PHP module은 tag checkout의 `config.m4`가 선언한 C source로 compile되고 PHP는 그것을 `ordered_json`으로

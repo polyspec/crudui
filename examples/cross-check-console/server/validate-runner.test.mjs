@@ -15,7 +15,7 @@
  *       fixture case and assert real four-language agreement (idempotent:true).
  *
  * The envelope shape under test is the gateway's own contract (validate-runner
- * runProcess output): { lang, ok, valid, errors:[5-field], ms, failure }.
+ * runProcess output): { lang, ok, valid, errors:[5-field], hidden?, ms, failure }.
  */
 
 import { describe, test, expect } from 'vitest';
@@ -107,6 +107,19 @@ describe('compareIdempotency — TAMPER (fake-divergent injection)', () => {
     // The other three must share a single group.
     const others = mismatch.groups.find((g) => g.langs.includes('js'));
     expect(others.langs.sort()).toEqual(['js', 'php', 'rust']);
+  });
+
+  test('one language with different hidden paths → idempotent:false, that language isolated', () => {
+    const results = [
+      { ...env('js', { valid: true }), hidden: ['a'] },
+      { ...env('php', { valid: true }), hidden: ['a'] },
+      { ...env('go', { valid: true }), hidden: [] }, // <-- TAMPERED
+      { ...env('rust', { valid: true }), hidden: ['a'] },
+    ];
+    const { idempotent, mismatch } = compareIdempotency(results);
+    expect(idempotent).toBe(false);
+    expect(mismatch.groups.find((g) => g.langs.includes('go')).langs).toEqual(['go']);
+    expect(mismatch.detail.find((d) => d.lang === 'go').hidden).toEqual([]);
   });
 
   test('one language with the same failure code but a different message → idempotent:false, that language isolated', () => {

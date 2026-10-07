@@ -38,7 +38,7 @@ Composer 자동 로더를 불러옵니다. 배포 환경은 `CRUDUI_CROSS_CHECK_
 
 | 종료 상태 | 출력 | 의미 |
 | --- | --- | --- |
-| `0` | 정확히 `{ "valid", "errors" }`, 각 오류는 `path`, `field`, `rule`, `message`, `value`를 가짐 | 검증 결과 |
+| `0` | `form` mode에서는 정확히 `{ "valid", "errors", "hidden" }`, `list`와 `detail` mode에서는 정확히 `{ "valid", "errors" }`. 각 오류는 `path`, `field`, `rule`, `message`, `value`를 가지며 `hidden`은 숨겨진 field의 data path를 validator의 순서대로 나열 | 검증 결과 |
 | `2` | 정확히 `{ "error", "code", "at" }` | 로드 실패(`ComposeLoadError`) 또는 입력 실패(`INVALID_FORM_INPUT`). `at`은 합성 경로를 `.`으로 연결한 값이며 입력 실패에서는 빈 문자열 |
 | `1` | 정확히 `{ "error" }` | 잘못된 요청 |
 

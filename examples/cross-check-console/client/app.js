@@ -33,6 +33,7 @@ import { examples, defaultExampleId } from './examples.js';
 import { listExamples, defaultListExampleId } from './examples.js';
 import { detailExamples, defaultDetailExampleId } from './examples.js';
 import { docSections, listDocSections, detailDocSections } from './doc.js';
+import { validateCases } from './fixture-export.js';
 
 // Gateway base. Same origin when the gateway serves this client statically;
 // override with ?api=http://host:port for split deploys.
@@ -246,6 +247,7 @@ function validateSignature(entry) {
   return JSON.stringify({
     valid: Boolean(entry.valid),
     errors: normalizeErrors(entry.errors),
+    hidden: entry.hidden ?? null,
   });
 }
 
@@ -435,7 +437,7 @@ async function runDetail() {
 
 // ---------------------------------------------------------------------------
 // Fixture export — current (spec,data,options,results) → cases.json shapes.
-// validate case: {name,note,spec,data,expected:{valid,errors}}
+// validate case: {name,note,spec,data,expected:{valid,errors,hidden}} (./fixture-export.js)
 // form-render case: {name,note,spec,data,options,expected_html}
 // Downloaded via the App.tsx Blob pattern.
 // ---------------------------------------------------------------------------
@@ -451,15 +453,7 @@ function buildFixtureExport() {
 
   // validate cases: one entry per language so a divergent run is captured per-lang.
   if (state.validate && Array.isArray(state.validate.results)) {
-    out.validate = state.validate.results.map((r) => ({
-      name: `${name}--${r.lang}`,
-      note: `exported from cross-check console (lang=${r.lang}, idempotent=${state.validate.idempotent})`,
-      spec: specObj,
-      data: dataObj,
-      ...(r.failure
-        ? { expectFailure: r.failure }
-        : { expected: { valid: Boolean(r.valid), errors: normalizeErrors(r.errors) } }),
-    }));
+    out.validate = validateCases({ name, spec: specObj, data: dataObj, run: state.validate });
   }
 
   // form-render cases: one per framework, expected_html = normalized.

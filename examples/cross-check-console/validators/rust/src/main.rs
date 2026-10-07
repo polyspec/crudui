@@ -111,7 +111,7 @@ fn main() {
             _ => text::validate_text(spec, doc.get("data"), present("files"), present("basepath")),
         };
         match result {
-            Ok(result) => emit_result(&result),
+            Ok(result) => emit_result(&result, mode == "form"),
             Err(err) => failure(err.message(), err.code(), &err.at()),
         }
     }
@@ -138,11 +138,14 @@ fn main() {
         };
         match result {
             // A list or detail has no data: a clean structure is valid.
-            Ok(()) => emit_result(&ValidationResult {
-                valid: true,
-                errors: Vec::new(),
-                hidden: Vec::new(),
-            }),
+            Ok(()) => emit_result(
+                &ValidationResult {
+                    valid: true,
+                    errors: Vec::new(),
+                    hidden: Vec::new(),
+                },
+                false,
+            ),
             // A composition failure produces no validation result.
             Err(err) => failure(&err.message, err.code.as_str(), &err.trace.join(".")),
         }
@@ -161,19 +164,28 @@ fn main() {
     };
 
     match validate(&spec, &data, &options) {
-        Ok(result) => emit_result(&result),
+        Ok(result) => emit_result(&result, mode == "form"),
         // Load and input failures produce no validation result.
         Err(err) => failure(err.message(), err.code(), &err.at()),
     }
 }
 
-/// Serialize a successful run to the `{ valid, errors }` contract on stdout.
-fn emit_result(result: &ValidationResult) -> ! {
+/// Write a successful run on stdout: `{ valid, errors, hidden }` for a form,
+/// `{ valid, errors }` for a list or detail.
+fn emit_result(result: &ValidationResult, form: bool) -> ! {
     let errors: Vec<Value> = result.errors.iter().map(|e| e.to_value()).collect();
-    let obj = serde_json::json!({
-        "valid": result.valid,
-        "errors": errors,
-    });
+    let obj = if form {
+        serde_json::json!({
+            "valid": result.valid,
+            "errors": errors,
+            "hidden": result.hidden,
+        })
+    } else {
+        serde_json::json!({
+            "valid": result.valid,
+            "errors": errors,
+        })
+    };
     write_line(&obj);
     std::process::exit(0);
 }

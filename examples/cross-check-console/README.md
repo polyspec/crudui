@@ -60,7 +60,7 @@ toggle) so its OWN judgement can be re-checked against the source data. See
 
 ```
 POST /api/validate      { spec, data, files?, basepath? }
-  → 200 { results:[{lang,ok,valid,errors,ms,failure}], idempotent, mismatch }
+  → 200 { results:[{lang,ok,valid,errors,hidden,ms,failure}], idempotent, mismatch }
 
 POST /api/validate-list { listSpec | spec, files?, basepath? }   # no data — a list has no rows
   → 200 { results:[{lang,ok,valid,errors,ms,failure}], idempotent, mismatch }
@@ -199,7 +199,8 @@ Each tab serializes its current run into the matching `cases.json` shape and
 downloads it, one case per language/framework:
 
 - form tab → `tests/fixtures/{validate,form-render}/cases.json` shapes: validate
-  `{name,note,spec,data,expected:{valid,errors}}` (or `expectFailure:{code,message,at}`) and form-render
+  `{name,note,spec,data,expected:{valid,errors,hidden}}` (or `expectFailure:{code,message,at}`), with the
+  errors and hidden paths in the order of each validator, and form-render
   `{name,note,spec,data,options,expected_html}` (or `{expected_error}`).
 - list tab → `tests/fixtures/list-render/cases.json` shape:
   `{name,note,spec,rows,options,expected_html|expected_error}`. `spec` carries the
@@ -207,6 +208,12 @@ downloads it, one case per language/framework:
   reader ignores that slot exactly as the live renderers do.
 - detail tab → `tests/fixtures/detail-render/cases.json` shape:
   `{name,note,spec,record,options,expected_html|expectError:{code,message}}`.
+
+`client/fixture-export.js` builds the validate cases, and a process that answered
+neither a result nor a failure record gives no case. `server/fixture-export.test.mjs`
+runs shared validation cases through the four validator processes and requires each
+exported case to state the `spec`, `data` and `expected` or `expectFailure` of the
+shared case.
 
 Add an exported divergent case to the automated checks (the shared
 `tests/fixtures/*/cases.json` conformance suites) to retain it as a regression test.
@@ -276,7 +283,7 @@ server/
   package.json        start + build:validators scripts
 validators/           validator processes: js/validate.mjs, php/validate.php, go/, rust/ and
                       requests.json (request contract cases); see validators/README.md
-client/               no-build console (index.html + app.js + examples.js + doc.js + styles.css);
+client/               no-build console (index.html + app.js + examples.js + doc.js + fixture-export.js + styles.css);
                       three tabs (form, list, detail) over the six endpoints
 ```
 

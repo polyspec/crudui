@@ -161,7 +161,8 @@
       "exit": 0,
       "output": {
         "valid": true,
-        "errors": []
+        "errors": [],
+        "hidden": []
       }
     }
   },
@@ -173,7 +174,8 @@
       "exit": 0,
       "output": {
         "valid": true,
-        "errors": []
+        "errors": [],
+        "hidden": []
       }
     }
   },
@@ -431,7 +433,8 @@
       "exit": 0,
       "output": {
         "valid": true,
-        "errors": []
+        "errors": [],
+        "hidden": []
       }
     }
   },
@@ -502,7 +505,8 @@
             "message": "This field is required.",
             "value": ""
           }
-        ]
+        ],
+        "hidden": []
       }
     }
   },

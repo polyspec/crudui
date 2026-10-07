@@ -5,8 +5,8 @@
  * program with the native extension loaded. Each process receives the raw request text on stdin;
  * its exit status and its complete stdout JSON object must equal the expected response:
  *   - every case in ../validators/requests.json (request rules, their order and messages);
- *   - every form case in tests/fixtures/validate/cases.json (exit 0 with exactly
- *     `{ valid, errors }`, or exit 2 with exactly `{ error, code, at }`);
+ *   - every form case in tests/fixtures/validate/cases.json (exit 0 with exactly its `expected`
+ *     `{ valid, errors, hidden }`, or exit 2 with exactly `{ error, code, at }`);
  *   - every list and detail case in tests/fixtures/{list,detail}-validity/cases.json with
  *     non-object `data`, which those modes ignore;
  *   - every validation case in tests/fixtures/text-validity, whose unpaired surrogate escapes each
@@ -91,7 +91,7 @@ describe('validator processes — form validation cases', () => {
       const request = { spec: c.spec, data: c.data, files: c.files ?? {}, basepath: c.basepath ?? '' };
       const expected = c.expectFailure
         ? { exit: 2, output: { error: c.expectFailure.message, code: c.expectFailure.code, at: c.expectFailure.at } }
-        : { exit: 0, output: { valid: c.expected.valid, errors: c.expected.errors } };
+        : { exit: 0, output: c.expected };
       expectResponses(JSON.stringify(request), expected);
     }, 60000);
   }
@@ -111,8 +111,8 @@ describe('validator processes — input text cases', () => {
         if (c.expect.code) expect(input).toMatch(/\\ud[89a-f][0-9a-f]{2}/);
         const expected = c.expect.code
           ? { exit: 2, output: { error: c.expect.message, code: c.expect.code, at: c.expect.at } }
-          // The console contract is { valid, errors } for every mode.
-          : { exit: 0, output: { valid: c.expect.valid, errors: c.expect.errors } };
+          // A form result is { valid, errors, hidden }; a list or detail result is { valid, errors }.
+          : { exit: 0, output: c.expect };
         expectResponses(input, expected);
       }, 60000);
     }

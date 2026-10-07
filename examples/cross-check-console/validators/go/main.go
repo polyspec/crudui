@@ -61,14 +61,13 @@ func main() {
 	}
 
 	// Mode dispatch. list and detail run compose → forbidden-scan only (no DATA
-	// pass): they carry no input data.
-	// The console contract is { valid, errors } for every mode.
+	// pass): they carry no input data. A form result is { valid, errors, hidden };
+	// a list or detail result is { valid, errors }.
+	var form validate.ValidationResult
 	var result validate.ListValidationResult
 	switch req.Mode {
 	case "form":
-		var form validate.ValidationResult
 		form, err = validate.ValidateJSON(req.Spec, req.Data, req.Files, req.Basepath)
-		result = validate.ListValidationResult{Valid: form.Valid, Errors: form.Errors}
 	case "list":
 		result, err = validate.ValidateListJSON(req.Spec, req.Files, req.Basepath)
 	case "detail":
@@ -89,12 +88,19 @@ func main() {
 		return
 	}
 
-	// result.Errors is nil when valid; emit [] not null so the stdout shape is
-	// stable across languages.
+	// Errors is nil when valid; emit [] not null so the stdout shape is stable
+	// across languages.
+	if form.Errors == nil {
+		form.Errors = []validate.ValidationError{}
+	}
 	if result.Errors == nil {
 		result.Errors = []validate.ValidationError{}
 	}
-	out, err := json.Marshal(result)
+	var output any = result
+	if req.Mode == "form" {
+		output = form
+	}
+	out, err := json.Marshal(output)
 	if err != nil {
 		fatal(fmt.Sprintf("failed to marshal result: %v", err))
 		return

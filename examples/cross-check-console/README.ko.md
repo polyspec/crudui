@@ -57,7 +57,7 @@ Node HTTP 게이트웨이가 자동 적합성 검사와 같은 CRUDUI 진입점�
 
 ```
 POST /api/validate      { spec, data, files?, basepath? }
-  → 200 { results:[{lang,ok,valid,errors,ms,failure}], idempotent, mismatch }
+  → 200 { results:[{lang,ok,valid,errors,hidden,ms,failure}], idempotent, mismatch }
 
 POST /api/validate-list { listSpec | spec, files?, basepath? }   # no data — a list has no rows
   → 200 { results:[{lang,ok,valid,errors,ms,failure}], idempotent, mismatch }
@@ -187,7 +187,8 @@ bindForm fixture의 고정 바이트와 비교하지 않습니다.
 케이스 하나를 만듭니다.
 
 - 폼 탭 → `tests/fixtures/{validate,form-render}/cases.json` 형태: validate는
-  `{name,note,spec,data,expected:{valid,errors}}`(또는 `expectFailure:{code,message,at}`),
+  `{name,note,spec,data,expected:{valid,errors,hidden}}`(또는 `expectFailure:{code,message,at}`)이며 오류와
+  hidden path는 각 validator의 순서를 따르고,
   form-render는 `{name,note,spec,data,options,expected_html}`(또는 `{expected_error}`).
 - 목록 탭 → `tests/fixtures/list-render/cases.json` 형태:
   `{name,note,spec,rows,options,expected_html|expected_error}`. `spec`은 목록 명세를
@@ -195,6 +196,11 @@ bindForm fixture의 고정 바이트와 비교하지 않습니다.
   그 슬롯을 무시합니다.
 - 상세 탭 → `tests/fixtures/detail-render/cases.json` 형태:
   `{name,note,spec,record,options,expected_html|expectError:{code,message}}`.
+
+`client/fixture-export.js`가 validate 케이스를 만들며, 결과도 실패 기록도 답하지 않은
+프로세스는 케이스를 만들지 않습니다. `server/fixture-export.test.mjs`는 공용 검증 케이스를 네
+validator 프로세스로 실행하고, 내보낸 각 케이스가 공용 케이스의 `spec`, `data`, `expected` 또는
+`expectFailure`를 그대로 담는지 검사합니다.
 
 내보낸 어긋난 케이스를 자동 검사(공용 `tests/fixtures/*/cases.json` 적합성 스위트)에 추가하면 회귀
 테스트로 유지됩니다.
@@ -264,7 +270,7 @@ server/
   package.json        start + build:validators scripts
 validators/           validator processes: js/validate.mjs, php/validate.php, go/, rust/ and
                       requests.json (request contract cases); see validators/README.ko.md
-client/               no-build console (index.html + app.js + examples.js + doc.js + styles.css);
+client/               no-build console (index.html + app.js + examples.js + doc.js + fixture-export.js + styles.css);
                       three tabs (form, list, detail) over the six endpoints
 ```
 
