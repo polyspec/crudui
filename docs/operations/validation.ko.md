@@ -180,5 +180,5 @@ make test-form-binding
 
 데이터 검증은 HTTP 디코딩, 저장 또는 전송 순서를 구현하지 않습니다.
 해당 작업은 [ordered JSON 절차](ordered-json.ko.md)와
-[전송 검증 절차](verification.ko.md)를 따릅니다. 전체 심볼 참조는
+[폼 검사](testing.ko.md#폼과-보고서)를 따릅니다. 전체 심볼 참조는
 `make docs-api`로 생성합니다. [문서 절차](documentation.ko.md)를 참고합니다.

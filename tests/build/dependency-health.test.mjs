@@ -307,16 +307,10 @@ test('npm installs only registry packages and linked directories, and fetches no
 });
 
 test('form comparison commands use the root npm dependency graph', () => {
-  const container = readFileSync(
-    path.join(root, 'examples/form-comparison/Containerfile'), 'utf8',
-  );
   const failures = [
     'examples/form-comparison/package.json',
     'examples/form-comparison/package-lock.json',
   ].filter((filename) => existsSync(path.join(root, filename)));
-  if (/npm ci[^\n]*--prefix examples\/form-comparison/.test(container)) {
-    failures.push('examples/form-comparison/Containerfile: nested npm install');
-  }
   assert.deepEqual(failures, []);
 });
 

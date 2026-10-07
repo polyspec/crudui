@@ -52,7 +52,7 @@ files unchanged in the public directory as `customer-records.json` and `customer
 and every server reads them from there. No program keeps its own copy of the records.
 
 **Store.** Every server owns one persistent store, `records-{server}.json` in its data
-directory (`/data` in the container). The file holds the records array in id order, with the
+directory. The file holds the records array in id order, with the
 member order of the fixture. A missing file is seeded from the fixture on its first read; an
 unreadable or malformed file fails the request with 500 and is not replaced. A file is malformed
 unless it is a JSON array of records with exactly the fixture's members in order, `score` a number
@@ -199,6 +199,9 @@ The document carries its whole selection on `<html data-pipeline-selection="…"
 script fails before it renders when any member differs from the URL selection: a stale document
 of another selection fails instead of taking over foreign stage markup.
 
+The canonical page takes every SSR stage from the selected server and every record from that
+server's store; the public server renders a stage only when `js` is selected.
+
 ## Canonical flow check
 
 `src/pipeline-flow.mjs` checks this page for 40 combinations: five servers, four clients and
@@ -227,9 +230,8 @@ context. The limit of one combination is ten times the slowest combination measu
 first run of the implemented flow; until that measurement it is 60 seconds. Before the
 combinations run, each server's store is reset through the public API, one unit per server.
 
-The same combinations run against a local stack built from the checkout
-(`pipeline.browser.mjs`, one test per combination) and, in tree verification, against the
-deployed service (`check-pipeline.mjs`). `record-stores.test.mjs` runs the HTTP contract cases
+The combinations run against a local stack built from the checkout
+(`pipeline.browser.mjs`, one test per combination). `record-stores.test.mjs` runs the HTTP contract cases
 of `src/record-contract.mjs` against all five servers started from the checkout, each case with
 its own timeout. Both local checks first build the server programs, each as a step without a time
 limit that prints its progress: the OrderedJSON checkout at `.form-comparison/sources/ordered-json` (the path the Go and
@@ -244,188 +246,45 @@ stops their process groups at its exit, so no server outlives the run. `npm run 
 
 ## Progress, limits and scope
 
-Three rules hold for every command in this contract: the deployment, the
-supervisor's build cycles and every verification check.
+Three rules hold for every command in this contract: the local builds, the local stack and
+every check.
 
 1. **A run reports what it is doing while it runs.** No check waits with only a
    start and an end. Every step prints a start line, a line with its elapsed time
    every 15 seconds while it runs, its output under its step name, and a line that
    says passed or failed with the duration. Nested units report the same way, as progress lines of the form
-   `[label] unit: started|running|passed|failed|timed out`: each build target,
-   each browser report, each check phase, the browser start and close (long operations without a
-   limit), each
-   canonical flow combination and every wait, including the wait for a build cycle.
-2. **A long operation holds no time limit; a unit holds its own.** A step (a build
-   target, a verification check, the host's tree verification, a deployment step),
+   `[label] unit: started|running|passed|failed|timed out`: each build step,
+   each browser report, the browser start and close (long operations without a limit), each
+   canonical flow combination and every wait.
+2. **A long operation holds no time limit; a unit holds its own.** A step, such as a build,
    a process start, a browser start or close and every wait are long operations: each
    runs to its end, its exit status, readiness event or result decides it, and it
    holds neither a total limit nor an inactivity limit. A unit, such as a browser
-   report, a check phase or a canonical flow combination, is a short verification and
+   report or a canonical flow combination, is a short verification and
    holds its own limit, three times its slowest measured duration, rounded up to five
    seconds and at least ten seconds (`measuredLimitMs`); the code names the
    measurement it comes from. A stopped process tree, its process group and every
    descendant that left the group, gets `SIGTERM` and, after the grace, `SIGKILL`, and
    a stopped check closes its browser on `SIGTERM` instead of waiting for `SIGKILL`.
-3. **A check runs where it belongs.** Tree verification covers the deployed
-   services alone. The host and CI run the source suite, the Go and Rust server
-   tests and the ordered JSON tests; repeating them inside the container would
-   verify no build output of that container. During development only the tests of
-   the changed code run, and the complete verification runs once at the end.
+3. **A check runs where it belongs.** CI runs the source suite, the record-store contract, the Go
+   and Rust server tests and the canonical flow check. During development only the tests of the
+   changed code run.
 
-## Source and environment
-
-The comparison runs one long-running toolchain container. The repository is
-mounted read-only at `/workspace/source`, and the image contains no repository
-source. A source change, committed or not, applies to the running service without
-building the image again.
-
-### Toolchain image
-
-`examples/form-comparison/Containerfile` defines one image: the Node.js, Go and Rust
-releases that the checkout records, each stage image by its digest, the PHP
-release of the newest tested minor from its `php` fpm image (CLI, php-fpm,
-development headers, mbstring and XML), Composer from its image, Git, nginx, the C
-build tools, tini, and the pinned Chromium with its sandbox, the Debian packages
-from the snapshot of one date. No instruction
-copies or reads the repository, and no build step depends on it. The image tag is
-the first 16 hexadecimal characters of the SHA-256 digest of the Containerfile
-content, so the image is built again only when that file changes. The container
-starts as root only to give the two volume roots to the unprivileged `node` user.
-It then runs the supervisor as that user.
-
-tini is process 1. Builds, the Git comparison and browser checks leave orphans the
-supervisor never started: esbuild, Git, Chromium and its crash handler. Process 1
-adopts them, and a process 1 that does not reap them keeps every one as a zombie
-for the life of the container. The command is one command, so tini is process 1
-however the runtime combines an entrypoint and a command.
-
-### Build volumes
-
-Build outputs never enter the host tree, because host (macOS) and container
-(Linux) binaries differ. The container owns two named volumes:
-
-- `/workspace/build` holds the build tree, the npm dependencies and package builds,
-  the Composer installations, the PHP extension builds, the Cargo target, the Go
-  and Rust server binaries and the public directory with the built frame pages;
-- `/workspace/cache` holds the npm, Composer, Go and Cargo caches.
-
-`/data` keeps the saved records and `/results` the verification reports. Both are
-directories of the deployment.
-
-The build tree `/workspace/build/tree` holds the files Git shows in the mounted
-repository: tracked files and untracked files that are not ignored, except the
-operator-local editor settings. It exists
-because npm, the PHP extension builder and the Cargo and Go path dependencies write
-next to their sources. The read-only mount rejects those writes, and the container
-runtime cannot create a volume mountpoint inside a read-only mount that lacks the
-directory. Ignored files, including the host's `node_modules`, `vendor` and build
-outputs, are never copied. A manifest records the copied paths. A path removed from
-the repository is removed from the build tree; build outputs, which the manifest
-never lists, remain. The supervisor keeps the checkout `.form-comparison/sources/ordered-json`
-inside the build tree when its HEAD is the commit of the tag `v0.0.1` of the
-`polyspec/ordered-json` monorepo and it has no tracked changes; otherwise it recreates that
-directory from a fresh checkout of the tag and requires the HEAD of that checkout to be the
-commit of the tag. The five implementation
-package directories (`go/`, `js/`, `php/`,
-`php-extension/` and `rust/`) must exist in that checkout; they are not separate
-repositories or submodules.
-
-### Natural application
-
-One supervisor, `examples/form-comparison/supervisor.mjs`, runs in the container.
-At start it records its process id and listens on the service port 8080, where it answers every
-request with 503 and the build state until the public server starts: containerctl connects to that
-port within a minute of the container start, and the first build of empty volumes takes longer.
-It then synchronizes the build tree, builds every target and starts the public
-server (which is also the JavaScript record server) and the four native API servers
-(PHP, the PHP extension, Go and Rust). File events from the macOS host do not reach the
-Linux container through the VM file share, so a host process publishes them: the source watcher
-(`source-events.mjs`, run by `make deploy-watch`) subscribes to the file events of the working tree
-(`fs.watch`, recursive: FSEvents on macOS) and, for every event, runs `source-changed.mjs` in the
-container (`container exec`), which sends `SIGUSR2` to the process id the supervisor recorded in
-`state/supervisor.pid`. Events during a delivery make one more delivery after it. The watcher has
-no time limit, prints its start, every event and every delivery, ends with the error of a failed
-watch or delivery, and at `SIGINT` or `SIGTERM` closes its watch and prints its stop. A deployment
-sends the same signal before it waits for the build, because the checkout may have changed since
-the last signal and containerctl reuses an unchanged container whose supervisor started from an
-earlier checkout. At every signal the supervisor compares the mounted repository with Git:
-the checked-out commit and the size and modification time of every uncommitted path; a signal
-during a comparison makes one more comparison after it, and no comparison runs on a timer. It copies only the changed paths,
-runs only the targets whose inputs changed, in the order below, and restarts only
-their processes. A target also runs when a target it depends on runs.
-
-| Target | Inputs | Depends on | Restarts |
-| --- | --- | --- | --- |
-| `npm-dependencies` | root `package.json`, `package-lock.json`, package manifests | | public |
-| `javascript-packages` | the TypeScript validator and generator packages, root `tsconfig` files | `npm-dependencies` | |
-| `ordered-json-javascript` | the checkout's `js/` package copied to `node_modules/@polyspec/ordered-json` | `npm-dependencies` | |
-| `frames` | the example `build.mjs`, `public/`, `src/`, `viewer/` and `fixtures/`, the TypeScript packages, the form snapshot module | `npm-dependencies`, `ordered-json-javascript` | |
-| `browser-matrix` | `src/runtime-paths.json` | | public, Go, Rust |
-| `public-server` | `server.mjs`, `servers/javascript/`, `src/json.mjs`, `src/record-contract.mjs`, `src/runtime-paths.mjs` | | public |
-| `composer` | `packages/validator-php/`, the generator Composer manifest and lock | | |
-| `crudui-php-extension` | `packages/php-ext/`, the CRUDUI and shared extension build scripts | | PHP extension |
-| `ordered-json-php-extension` | the OrderedJSON and shared extension build scripts | | PHP extension |
-| `go-server` | `servers/go/`, the Go generator and validator | | Go |
-| `rust-server` | `servers/rust/` except `target/`, the Rust generator and validator | | Rust |
-
-Each target runs to its end without a time limit and reports its start, its elapsed
-time while it runs and its duration when it finishes; a target whose step fails fails
-the cycle. The Git calls of the source comparison and of the OrderedJSON
-checkout hold no time limit either. Each server's output
-carries that server's name, and every line, warnings included, is kept.
-
-PHP reads its sources on every request, so a PHP source change needs no build or
-restart; only the installed Composer copies are replaced. `composer install` keeps the
-validator's path-repository copy while the lock is unchanged, so the build reinstalls that copy
-(`composer reinstall polyspec/crudui-validator`). A `.gitignore` change
-synchronizes the whole tree. A change to a supervisor module reloads that process in
-the existing container and preserves all volumes. The supervisor is the only child of the
-container's init process, so it stops its servers and replaces its own process image with the
-new supervisor (`process.execve`), keeping its process id; exiting would stop the container.
-
-### Source identity
+## Source identity
 
 The source identity of a tree is its checked-out commit and the SHA-256 digest of
 its uncommitted changes. The digest covers every path `git status` reports,
 including untracked files other than operator-local editor settings, in sorted order: the path and the digest of its content,
 or its deletion. A tree without uncommitted changes has `changes: null`. Identity
-comparison ignores inode, device and change times, which differ between the host
-and the container view of the same files.
+comparison ignores inode, device and change times.
 
-After a build cycle the supervisor writes the identity to `source.json` in the
-public directory. The PHP, Go and Rust servers read that file on every health,
-generation and SSR response. The main page and the frames fetch it when they load.
+The local stack writes the identity to `source.json` in the public directory. The PHP, Go and Rust
+servers read that file on every health, generation and SSR response. The main page and the frames fetch it when they load.
 No build embeds a commit.
 
-### Build cycles
+## Builds and browser readiness
 
-A build cycle is `building`, `ready` or `failed`. After it
-rebuilds and restarts, the supervisor sends one health request to each API server.
-It requires the published identity and, for the PHP extension, the digest of the
-`crudui.so` it built and loaded. The public server receives each state from the
-supervisor as a process message. `/api/health` returns `{"status": "ok",
-"servers": [...]}` only for a ready cycle. At every change the supervisor also
-replaces the build state file `state/build-state.json` with the cycle number, status, identity,
-error and `progress`. While a cycle builds, `progress` names the step it runs and its target: a
-startup step, the source identity, each build target's step, each restart and the health requests.
-It holds no limit. `progress.at` is renewed every 15 seconds; it shows that the supervisor is alive
-and is not build progress. A restart waits for the child's readiness event without a limit and
-prints a line every 15 seconds while it waits; a child that exits or fails before its readiness
-fails the cycle and is stopped. Each health request is a check with its own limit (10 seconds).
-A stopped process gets `SIGTERM` and, after the grace,
-`SIGKILL` for its whole tree, so a process that ignores `SIGTERM` cannot hold a restart, a reload
-or the shutdown. A failed
-build keeps the previous processes running and reports `failed` with the error. It
-does not select another build.
-
-Each child server publishes one readiness event after binding its listening
-socket. The supervisor waits for that event before it requests health. Startup and
-verification use no sleep interval, retry loop or periodic health request; the
-only intervals are the progress lines of a running step, which report elapsed time and never
-decide that something is ready; the source comparison runs at the change signals above.
-
-The supervisor uses one PHP extension builder for `crudui.so` and
-`ordered_json.so`. Each extension has an explicit build entry point and declares
+One PHP extension builder builds `crudui.so` and `ordered_json.so`. Each extension has an explicit build entry point and declares
 its sources, module name, output directory and load check. The builder reads the
 PHP executable, headers and build flags from one `php-config` executable and
 compiles both modules directly without `phpize`, Autoconf or libtool. It resolves
@@ -433,15 +292,6 @@ each required executable once before compilation. Relative paths, symbolic links
 missing tools, multiple discovery results and PHP installation mismatches fail
 the build. A failed command does not select another executable or build path.
 Generated build and module paths contain only regular files and directories.
-The Linux toolchain declares the `php-config` of its PHP image,
-`/usr/local/bin/php-config`, and selects the C compiler from one installed Debian
-`gcc` package record.
-
-The host commands resolve the container executable from one installed package
-record. The record identifies one versioned installation directory and one regular
-executable file. Relative paths, symbolic links, missing records, multiple
-matching records and alternate command providers are rejected. Runtime resolution
-does not try another path after an invalid result.
 
 The form-comparison CI job installs the root npm graph and the Composer graphs
 for the PHP validator and generator before it runs the source and generator
@@ -470,29 +320,24 @@ This section and the next three describe the benchmark console's form matrix; th
 canonical page uses the record resource above. PHP, the PHP extension, Go and Rust
 implement the same compile, render, validation, persistence and SSR request contract. Each server uses its own
 generator and validator. The PHP extension process loads `crudui.so` and
-`ordered_json.so`; the PHP process loads neither extension. The supervisor rejects
-an unexpected class source, module digest or source identity.
+`ordered_json.so`; the PHP process loads neither extension.
 The PHP process reads the validator installation directory from
-`packages/generator-php/vendor/composer/installed.php` in the build tree.
+`packages/generator-php/vendor/composer/installed.php` in the checkout.
 This file is the authoritative installed-package record for the selected
 generator autoloader. Records registered by other Composer installations do not
 affect package selection. The record file, installation directory and validator
 class must use regular paths without symbolic links. The validator class must
-match the corresponding source file in the build tree. The process
+match the corresponding source file in the checkout. The process
 rejects a missing or malformed selected package record, an external installation
 directory or a different installed file.
 Every PHP provenance response from health, generation and SSR reports `Generator`
 and `Form` from the generator source directory and `Validator` from the selected
-Composer installation directory. Startup and result verification use one class
-location contract and accept only these reported locations after the source
-comparison has passed.
-When startup rejects a health response, the failure identifies the server and
-the first response field that does not meet this contract.
+Composer installation directory.
 
 The public API accepts only
-`/api/{server}/{action}/{renderingPath}/{framework}`. The public process starts
+`/api/{server}/{action}/{renderingPath}/{framework}`. A stack runs
 exactly one PHP process, one PHP extension process, one Go process and one Rust
-process. It forwards each accepted request to the selected process as
+process. The public process forwards each accepted request to the selected process as
 `/api/{action}/{renderingPath}/{framework}`. The API contains no implementation
 revision or data-shape segment. `bindForm` and `createForm` select the rendering
 and editing path. Keyed objects define repeated instance data and do not select
@@ -535,7 +380,7 @@ framework hydrates the form with the same template and data. Hydration must leav
 parsed form DOM unchanged: every element, attribute value and text in child order.
 Attribute order is not part of the DOM (React sets `type`, `value` and `name` after
 other input attributes), so it is not compared; the string renderers' byte-identical
-HTML is checked by the generation and native generation checks. A `style` attribute is a CSS declaration
+HTML is checked by the native generation checks. A `style` attribute is a CSS declaration
 block, so it is compared as the CSS object model serializes its declarations: React
 writes a sticky row's `--crudui-sticky-depth:0` as `--crudui-sticky-depth: 0;`. The comparison leaves out the nodes frameworks
 keep as rendering anchors, which render nothing: comments (Vue) and empty text nodes
@@ -689,9 +534,9 @@ same saved records. An operation started from the page changes them only while i
 holds one origin lock (`navigator.locks`): a frame button or form submission, the
 comparison button and the complete check. An operation started while another holds
 the lock does not run and reports that another check or save is running. Checks
-that the complete check or the verifier calls directly run inside the operation
+that the complete check calls directly run inside the operation
 that already holds the lock. The lock belongs to one browser: other browsers, other
-people and automated runs against the same deployment also read and replace these
+people and automated runs against the same server also read and replace these
 records without it, so checks from different browsers must not run at the same time.
 
 Pointer and keyboard checks verify that a row addition focuses the first input of
@@ -700,9 +545,7 @@ main page viewport; the frame and the page scroll only as far as needed.
 Frame-document checks cover both initialization documents of every rendering path and
 framework. A CSR document must be the built frame page with empty views and no payload,
 and an SSR document must be that same page with only the three insertions; the pages
-behind all four servers' documents are compared by SHA-256. Generation verification
-checks Korean and English SSR output for every server and framework, and that every
-server rejects the same wrong SSR queries with the same message.
+behind all four servers' documents are compared by SHA-256.
 
 ## Runner and reports
 
@@ -717,163 +560,31 @@ from the deployed verification of 2026-09-16, with the four browser checks runni
 at the same time. An initialization report, measured at 32.4 seconds at most, gets
 100,000 milliseconds; a scenario report, measured at 2.2 seconds, gets 10,000; the
 page work before, between and after reports, measured at 1.9 seconds, gets 10,000
-(`browserReportMeasurementsMs` in `src/browser-job.mjs`). The units around the
-report job hold their own limits as well (`browserUnitMeasurementsMs` in
-`browser-report-policy.mjs`): the main page (1.8 seconds) gets 10,000 milliseconds; the
-interaction checks, the frame-document checks and the artifacts took 26.3 seconds
-together, and until each is measured on its own each gets 80,000. The browser start and close are
+(`browserReportMeasurementsMs` in `src/browser-job.mjs`). The browser start and close are
 long operations without a limit (`runOperation` of `src/unit-pool.mjs`) that print the same
-progress lines. A server report records the status, duration and limit of these units, and the
-status and duration of the browser start and close, under `units`. While a unit
+progress lines. While a unit
 runs, the check prints its progress line with its elapsed time every 15 seconds,
 and it prints each completed report with its result and duration. A unit that
 reaches its limit fails the run with that unit's name and its elapsed time, and the
 failure retains the current state and every completed report. The browser check as
 a whole has no limit, no summed limit and no duration budget.
 
-A complete server report requires a browser job of 24 reports: 16 scenario
-reports with 19 checks each and eight initialization reports with 168 comparison
-results each. It also requires 80 interaction checks, eight mount-before-load checks
-of the `csr` frame, 16 frame-document checks, no browser or page errors, one
-and one source identity shared by the report and every scenario and initialization
-report. The report records its duration; the duration is not a pass condition.
-Fields named `passed` must be booleans. Missing activity,
-initialization stages or timing evidence makes the report incomplete.
-
-The four-server aggregate requires one complete report from every server. It
-requires 1,216 successful scenario checks, 5,376 successful initialization
-comparisons, 320 successful interaction checks, 32
-successful mount checks, 64 successful frame-document checks, equal frame pages behind
-every server's documents. Any failed,
-missing, malformed or unequal result sets `passed: false` and returns status 1.
-Only a complete aggregate with zero failures returns status 0.
-
 ## Additional verification
-
-Generation verification requires 450 successful results, 899 HTTP requests and
-all 32 server/rendering-path/framework combinations. Repository verification
-checks atomic updates, locking, position-based loading, parent ownership,
-rejection without file changes, complete deletion and sequence allocation. Type
-verification checks the same scalar and collection rules in every server.
 
 PHP-FPM runs with `enable_post_data_reading=0`, so the PHP servers read the request body
 themselves, as the other servers do: one parser for urlencoded and multipart bodies rejects a
 repeated field, a name that is both a value and a group, a malformed name and a file part with
-400. The persistence check's `request-size-limit` gets its 413 from nginx before PHP runs, and
+400. The record-store case `save-stops-reading-an-oversized-request` gets its 413 from nginx before
+PHP runs, and
 the browser `shape` check's native form with 10,001 fields gets 400 for its additional fields.
 
-Fast source tests reproduce report-policy failures, protocol timeout behavior,
+Fast source tests reproduce protocol timeout behavior,
 each report's own limit and the progress it reports, the step runner's run to the end
-and process-tree stop, the dropped PHP access lines, source identity and build-target selection,
-build tree synchronization, snapshot differences, generation cache behavior and
+and process-tree stop, source identity, snapshot differences, generation cache behavior and
 request-count changes, the unit runner's limits and progress, the record resource's
-fixture and links, and the canonical page's declared controls. These tests do not
-replace tree verification. Pull request and `main` push CI runs
-`npm run test:form-comparison` so report-policy, browser-job, source-tree and
+fixture and links, and the canonical page's declared controls. Pull request and `main` push CI runs
+`npm run test:form-comparison` so browser-job, source-tree and
 generation-performance regressions block integration, and
 `npm run test:form-comparison:pipeline` so the record-store contract of all five
 servers, the Go and Rust server tests and the canonical flow check of all 40
 combinations block integration.
-
-## Tree verification
-
-Verification runs inside the running comparison container as the `node` user,
-with the Chromium sandbox enabled, against the build of the current tree. It waits
-for the current build cycle by reading the build state file at its start and at every replacement
-of the file, which the supervisor makes by renaming each new state over it; the wait watches the
-file itself and watches the new file before each read, and requires it
-to be ready; a failed cycle, or a file that cannot be watched, read or parsed, fails the wait. It
-reads the file on no timer. Waiting for a build is a long operation, so the wait
-(`build-readiness`) has no limit: it prints every new step it reads and, every 15 seconds, a line
-with its elapsed time and the state it last read. The public server needs the built packages, so it cannot report a cold build;
-the file comes from the supervisor, which runs from the start. It clears `/results`, records the identity in
-`results/source.json` and runs these stages in order, stopping at the first stage
-with a failed step:
-
-1. the PHP processor modes, which load the `crudui.so` and `ordered_json.so` this
-   container built (measured at 1 second);
-2. generation against the four running native servers (measured at 7 seconds);
-3. persistence against the four running native servers (measured at 2 seconds);
-4. the canonical flow check of the deployed page for all 40 combinations
-   (`check-pipeline.mjs`; units with their own limits);
-5. browser verification for PHP, the PHP extension, Go and Rust, the four at the
-   same time (units with their own limits; one run measured at 316 seconds);
-6. the browser aggregate of this run's four reports.
-
-Each stage's steps run to their end without a time limit and print their progress.
-
-Each step verifies the deployed build: an extension this container compiled, a
-running server or a built frame page. The source suite, the Go and Rust server
-tests and the ordered JSON tests read no build output of this container, so the
-host and CI own them and verification does not repeat them.
-
-The four browser checks run at the same time because each one drives its own
-browser process, with its own focus, selection and scroll, against its own server
-and its own stored records; nothing one check measures reaches another. They need
-the processors for it: one check occupies about one processor, so the deployment
-gives the container eight.
-
-It then requires the same build cycle and identity. A source change during
-verification fails the run. Every report records the identity. The evidence check
-requires the generation report, persistence report, canonical flow report
-(`pipeline.json`: 40 passed combinations and five passed store resets) and browser
-aggregate to name that identity and to satisfy every count and pass condition in
-this contract. The
-host command requires the evidence identity to equal the checkout's identity both
-before and after the run. Evidence contains no image digest or archive hash.
-Verification uses the deployment's `/data`, as any automated run against the
-deployment does, so checks from other browsers must not run at the same time.
-
-## Deployment
-
-The local comparison service at `crudui.test` is the long-running toolchain
-container. The deployment command builds the toolchain image only when no image
-has the tag of the current Containerfile content. It writes
-`.form-comparison/deployment/compose.yaml` with:
-
-- that image;
-- the repository root mounted read-only at `/workspace/source`;
-- the named volumes `crudui-comparison-build` at `/workspace/build` and
-  `crudui-comparison-cache` at `/workspace/cache`;
-- the deployment `data` directory at `/data` and `results` directory at `/results`;
-- `x-containerctl.domains: [crudui.test]`, the domain containerctl routes to the service.
-
-The definition gives the service eight processors and 8 GB, which the four
-simultaneous browser checks need. It contains no commit, archive or image digest,
-so a source change never changes it.
-
-The definition declares no healthcheck. containerctl would wait for a declared health within
-the start period plus the retries times the interval and timeout, and the first start of empty
-volumes installs and builds everything, a long operation without a time limit. containerctl
-therefore returns once the container runs, and the deployment command waits for the build of this
-checkout through the build state (`ready-build.mjs` in the container), which prints every build
-step it reads and has no limit. While containerctl applies the definition, the deployment command
-prints the supervisor's build progress from the start of the container. Neither applying the
-definition nor building the image holds a time limit.
-
-Before it applies the definition, the command preserves the saved records of the
-active service in `.form-comparison/deployment/data` without overwriting different
-files. After applying the definition with containerctl, it uses the explicit
-containerctl CA to request the HTTPS home page, health response, `source.json` and
-one saved-data response. It verifies the route, certificate, image, mounts, stored
-files, that the container cannot write the mounted repository and that the served
-identity equals the checkout's identity. If the reuse condition passes, it does not
-apply the definition again and retains the container identity, creation and start
-times, image, mounts, route, certificate, identity, stored files and response bytes.
-Any change or failed request makes deployment verification fail. `/data` and the
-build volumes remain across applications.
-
-After deployment verification succeeds, the command removes comparison images that
-no container uses, including per-commit images of the removed archive procedure,
-and the retired `.form-comparison/candidates` and `.form-comparison/results`
-directories. `.form-comparison/sources` holds the host's OrderedJSON checkout that the
-local record-store and canonical flow checks build from, and it remains. It records the image, Compose digest, data
-preservation and both snapshots in `.form-comparison/deployment/verification.json`.
-## Deployment lifecycle invariant
-
-A running container with the expected image and exact source, build, cache, data and results
-mounts is reused. Source synchronization must not call `containerctl down`, recreate the container,
-restart the service, or reconnect volumes. `containerctl up` is a bootstrap operation for an absent
-or incompatible container only. The canonical page takes every SSR stage from the selected server
-and every record from that server's store; the public server renders a stage only when `js` is
-selected.

@@ -94,9 +94,10 @@ module loading; the test command establishes the recorded comparisons.
 ## HTTP and browser verification
 
 Package examples demonstrate each language's library. The
-[form verification procedure](verification.md) defines the separate PHP,
-native PHP, Go and Rust HTTP targets with React, Vue, Svelte and the HTML renderer. Verify both form
-and ordered JSON submission, invalid requests, persistence and reload.
+[form comparison](../spec/form-comparison.md) defines the JavaScript, PHP, native PHP, Go and Rust
+record servers with the HTML, React, Vue and Svelte clients. Its record-store HTTP contract sends
+multipart, URL-encoded and JSON saves and invalid requests to every server and reads the saved
+records back, also after a restart ([form checks](testing.md#forms-and-reports)).
 
 A browser-generated form with a PHP, Go or Rust validation endpoint does not
 establish server rendering. A server rendering result must identify the runtime

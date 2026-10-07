@@ -21,9 +21,8 @@
 | generator-rust | Rust 폼 생성과 SSR | implemented | passed | not-deployed | [런타임 계약](spec/runtime-packages.ko.md) |
 | generator-html | 프레임워크 독립 폼·목록 HTML 렌더링 | implemented | passed | not-deployed | [기능 계약](spec/feature-contracts.ko.md) |
 | php-extension | PHP 네이티브 폼 생성과 검증 | implemented | passed | not-deployed | [확장 계약](spec/php-extension.ko.md) |
-| server-template-browser | 서버에서 컴파일한 직렬화 템플릿으로 현재 keyed 브라우저 인스턴스 생성 | implemented | passed | not-deployed | [폼 검증 절차](operations/verification.ko.md) |
-| native-generation-integration | 현재 네 서버의 생성·SSR·전송·저장·브라우저 통합 | implemented | passed | not-deployed | [폼 검증 절차](operations/verification.ko.md) |
-| comparison-deployment | 마운트한 저장소 트리의 로컬 비교 배포, 데이터 보존과 동일 설정 재적용 | implemented | passed | deployed | [폼 검증 절차](operations/verification.ko.md) |
+| server-template-browser | 서버에서 컴파일한 직렬화 템플릿으로 현재 keyed 브라우저 인스턴스 생성 | implemented | passed | not-deployed | [2026-09-19 비교 검증](#2026-09-19-비교-검증) |
+| native-generation-integration | 현재 네 서버의 생성·SSR·전송·저장·브라우저 통합 | implemented | passed | not-deployed | [2026-09-19 비교 검증](#2026-09-19-비교-검증) |
 | expressions | 공통 표현식 문법과 불리언 변환 | implemented | passed | not-deployed | [표현식 계약](spec/expressions.ko.md) |
 | cli | 목록·정적 검사·스펙 설명 | implemented | passed | not-deployed | [CLI 절차](operations/cli.ko.md) |
 | unique-json-members | 명세 JSON 텍스트에서 반복된 디코딩 객체 멤버 이름 거부 | implemented | passed | not-deployed | [입력 텍스트 계약](spec/input-text.ko.md), [파서 테스트](../packages/validator-ts/src/text/json.test.ts) |
@@ -52,9 +51,9 @@
 | form-rows | 중첩 행 작업 범위와 저장 후 seq 키 적용 | implemented | passed | not-deployed | [코어 테스트](../packages/generator-core/src/form.test.ts) |
 | form-empty-rendering | 병합 런타임의 명시적인 빈 컬렉션 출력 | implemented | passed | not-deployed | [빈 컬렉션 검사](../packages/generator-core/src/empty-collections.test.ts) |
 | form-browser | 세 프레임워크의 데이터 주입과 행 작업 | implemented | passed | not-deployed | [공용 DOM 사례](../tests/fixtures/form-session/scenario.mjs) |
-| form-typing | 안정적인 편집 컨트롤의 기본 입력 갱신, 포커스와 렌더러 완료 | implemented | passed | not-deployed | [브라우저 상호작용 검사](operations/verification.ko.md) |
+| form-typing | 안정적인 편집 컨트롤의 기본 입력 갱신, 포커스와 렌더러 완료 | implemented | passed | not-deployed | [2026-09-19 비교 검증](#2026-09-19-비교-검증) |
 | form-empty-focus | 빈 컬렉션의 첫 행 생성 후 포커스 | implemented | passed | not-deployed | [공통 DOM 사례](../tests/fixtures/form-session/scenario.mjs) |
-| form-focus | 행 작업 후 대상 행으로 포커스 이동 | implemented | passed | not-deployed | [브라우저 상호작용 검사](operations/verification.ko.md) |
+| form-focus | 행 작업 후 대상 행으로 포커스 이동 | implemented | passed | not-deployed | [2026-09-19 비교 검증](#2026-09-19-비교-검증) |
 | form-markup | 다섯 구현의 재귀 폼 노드, 목록·상세 표시 블록, 행 카드, 인터페이스 문구 | implemented | passed | not-deployed | [폼 마크업](spec/form-markup.ko.md), [표시 형식](spec/display-formats.ko.md) |
 | crudui-details | 읽기 전용 상세 명세, 모델, 프레임워크 독립 HTML 렌더링과 구조 검증 | implemented | passed | not-deployed | [명세](spec/schema.ko.md), [표시 형식](spec/display-formats.ko.md), [기능 계약](spec/feature-contracts.ko.md), [공용 상세 고정 데이터](../tests/fixtures/detail-render/README.ko.md), [네이티브 비교](../tests/native-generators/README.ko.md), [상세 검증 사례](../tests/fixtures/detail-validity/cases.json) |
 | form-view-state | 레코드 데이터와 분리된 행 접기, 병합 실행취소·실행복귀 이력 | implemented | passed | not-deployed | [노드 테스트](../packages/generator-core/src/node.test.ts) |
@@ -66,10 +65,10 @@
 | docs-pages | 영어·한국어·API 페이지를 제공하는 정적 문서 | implemented | passed | deployed | [페이지 검사](../tests/docs/web-build.test.mjs), [게시 절차](operations/documentation.ko.md), [게시 웹](https://polyspec.github.io/crudui/) |
 | ordered-json-check | 언어별 JSON 문서 순서 검증 | implemented | passed | not-deployed | [처리기 검사](../tests/ordered-json/check.py) |
 
-## 현재 비교 배포 검증
+## 2026-09-19 비교 검증
 
 2026-09-19에 비교 배포 검증이 5분 20초 만에 실패 0건으로 끝났습니다.
-현재 `main` 트리가 비교 배포에서 제공되고 있습니다. PHP, PHP 확장, Go, Rust가 생성 450개, 저장
+PHP, PHP 확장, Go, Rust가 생성 450개, 저장
 120개, 브라우저 7,008개 검사를 통과했고, 정본 흐름은 서버 다섯 개, 클라이언트 네 개, 두 초기화의 40개
 조합을 모두 통과했으며 실패는 없었습니다. 검증은 기본값이 아닌 레코드를 담은 저장소에서 시작했으므로 모든
 초기화 열은 자기가 초기화한 레코드를 불러왔습니다. 모든 브라우저 보고서와 단계는 각자의 제한 안에 완료했고
@@ -118,7 +117,7 @@ Rust 1.98.0에서 다음 검사를 통과했습니다.
 적합성은 증거로 검사합니다. 공용 fixture를 실행하는 모든 검사가 통과한 기능·fixture 사례·런타임을
 기록하고, `make conformance`(와 CI의 마지막 작업)가 그 증거를 `contracts/features.json`과 비교합니다.
 지원한다고 선언한 런타임에 선언된 사례마다 통과 기록이 없으면 실패합니다. 기준은
-[적합성](spec/conformance.ko.md)에 정의되어 있습니다. 패키지, PHP 확장, 비교 서비스는 배포하지
+[적합성](spec/conformance.ko.md)에 정의되어 있습니다. 패키지와 PHP 확장은 배포하지
 않았습니다.
 
 ## 보존 폼 비교 결과
@@ -148,11 +147,6 @@ CSS, 입력 상태와 행 연산을 포함합니다. 근거는 외부 비교 작
 변경했으며 실행 JavaScript는 동일합니다. 생성된 PHP 의존성과 Go 실행 파일은
 Git에서 제거했습니다. 새 이미지는 같은 잠금 버전의 PHP 의존성을 설치하고
 서버 실행 파일을 소스에서 빌드합니다.
-
-현재 배포는 이미지와 마운트 계약이 일치하는 실행 중인 비교 컨테이너를 재사용합니다.
-소스 동기화는 컨테이너 검사 결과·프로젝트 경로·프록시 상태·인증서·저장 파일·HTML·
-상태·로드 응답을 보존합니다. 컨테이너 생성은 초기 구성 또는 이미지·마운트 계약이
-명시적으로 변경된 경우로 제한합니다.
 
 보존된 비교 구현에는 진단 실패가 있습니다. 실패는 보고서에 유지되며 전체
 비교 실행기는 0이 아닌 상태로 종료합니다. 현재 구현의 통과가 보존된 구현의

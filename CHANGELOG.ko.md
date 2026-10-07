@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+### 2026-10-07 — 개발 기기의 container 도구 없는 비교 검사 (C7.20)
+
+- `make deploy`, `make deploy-verify`, `make deploy-watch`와 이들만 쓰던 code를 제거했습니다. 비교 서비스의
+  Compose 정의, 그 supervisor와 toolchain image, source watcher, tree verification과 그것만 실행한 검사, container
+  runtime 해석, build target, 그 test와 배포 운영 문서가 대상입니다. `make test-form-comparison`과
+  `make test-form-comparison-pipeline`은 기준을 유지합니다. 모든 레코드 서버를 127.0.0.1의 빈 port에서 local
+  process로 시작하고, 서버를 비교한 뒤 멈춥니다. 폼 비교 명세는 레코드 리소스, 정본 페이지, 정본 흐름 검사를
+  유지하고, 테스트 절차가 폼 검사를 설명합니다.
+- `tests/docs/repository-writing.test.mjs`의 case는 checklist와 change log가 아닌 tracked file이 개발 기기의
+  container 도구를 지명하면 실패합니다.
+
 ### 2026-10-07 — package-lock.json에 따른 npm cache (C12.1-2)
 
 - CI, Pages, release workflow에서 npm package를 설치하는 모든 job은 npm을 설치하기 전에 `actions/cache`로

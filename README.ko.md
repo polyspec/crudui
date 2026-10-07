@@ -38,7 +38,6 @@ npm run test:forms
 - [네이티브 PHP 패키지](packages/php-ext/README.ko.md)
 - [기능과 배포 상태](docs/features.ko.md)
 - [개발과 검증](docs/operations/forms.ko.md)
-- [폼·전송 검증](docs/operations/verification.ko.md)
 - [문서 관리](docs/operations/documentation.ko.md)
 - [변경 기록](CHANGELOG.ko.md)
 - [개발 규칙](AGENTS.ko.md)

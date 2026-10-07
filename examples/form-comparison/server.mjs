@@ -29,7 +29,7 @@ for (const server of formServers) {
 }
 const jsRecords = recordStore({ server: 'js', dataDirectory, publicDirectory });
 
-// The supervisor sends its state after every change; this process never reads it from disk.
+// The parent process sends the build state over IPC; this process never reads it from disk.
 let state = { status: 'building', cycle: 0, source: null, error: null };
 process.on('message', message => {
   state = message;

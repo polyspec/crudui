@@ -187,6 +187,6 @@ optional; see the [expression contract](../spec/expressions.md).
 
 Data validation does not implement HTTP decoding, persistence or transport order.
 Follow the [ordered JSON procedure](ordered-json.md) and
-[transport verification procedure](verification.md) for those operations.
+[form checks](testing.md#forms-and-reports) for those operations.
 Complete symbol references are generated with `make docs-api`; see the
 [documentation procedure](documentation.md).

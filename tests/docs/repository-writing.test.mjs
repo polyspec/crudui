@@ -98,6 +98,26 @@ test('maintained repository prose describes current operations directly', () => 
   assert.deepEqual(failures, [], failures.join('\n'));
 });
 
+// The container tools of a development machine. A tracked file names none of them: the checks run their servers as
+// local processes, and CI runs on its own runners. The checklist and the change log keep their history.
+const developmentContainerTools = [['container', 'ctl'].join('')];
+const historyFiles = new Set([
+  'CHANGELOG.md', 'CHANGELOG.ko.md', 'docs/plans/execution-checklist.md', 'docs/plans/execution-checklist.ko.md',
+]);
+
+test('no tracked tool, Makefile line, workflow or document names a container tool of a development machine', () => {
+  const failures = [];
+  for (const file of trackedFiles().filter(file => !historyFiles.has(file))) {
+    const lines = readFileSync(path.join(repository, file), 'utf8').split('\n');
+    for (const [index, line] of lines.entries()) {
+      for (const tool of developmentContainerTools) {
+        if (line.toLowerCase().includes(tool)) failures.push(`${file}:${index + 1}: names ${tool}`);
+      }
+    }
+  }
+  assert.deepEqual(failures, [], failures.join('\n'));
+});
+
 test('documentation web output is wired in the Pages workflow and repository ignores', () => {
   const workflow = readFileSync(path.join(repository, '.github', 'workflows', 'pages.yml'), 'utf8');
   const ignore = readFileSync(path.join(repository, '.gitignore'), 'utf8');

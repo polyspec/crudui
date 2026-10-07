@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+### 2026-10-07 — Comparison checks without a container tool of a development machine (C7.20)
+
+- `make deploy`, `make deploy-verify` and `make deploy-watch` are removed with the code that served only them: the
+  Compose definition of the comparison service, its supervisor and toolchain image, the source watcher, the tree
+  verification with the checks that only it ran, the container runtime resolution, the build targets, their tests and
+  the operations page of the deployment. `make test-form-comparison` and `make test-form-comparison-pipeline` keep
+  their standard: they start every record server as a local process on a free port of 127.0.0.1, compare the servers
+  and stop them. The form comparison specification keeps the record resource, the canonical page and the canonical
+  flow check, and the testing procedure describes the form checks.
+- A case of `tests/docs/repository-writing.test.mjs` fails for a tracked file, other than the checklists and the change
+  logs, that names a container tool of a development machine.
+
 ### 2026-10-07 — npm cache by package-lock.json (C12.1-2)
 
 - Every job of the CI, Pages and release workflows that installs the npm packages restores and saves `~/.npm` with

@@ -13,6 +13,6 @@
 | [Rust 패키지 예제](../packages/generator-rust/examples/form.rs) | 레코드 하나로 렌더링한 폼·목록·상세를 담은 HTML 문서 하나 |
 
 [목록과 상세 절차](../docs/operations/displays.ko.md)는 패키지 예제의 목록·상세 출력과 실행
-명령을 설명합니다. [검증 절차](../docs/operations/verification.ko.md)에 따라 패키지 검사와 보존한 외부 브라우저·서버 비교를
-실행합니다. 검증과 로컬 배포 상태는
+명령을 설명합니다. [폼 검사](../docs/operations/testing.ko.md#폼과-보고서)가 브라우저·서버 비교를
+실행합니다. 검증과 배포 상태는
 [기능 상태](../docs/features.ko.md)에 기록합니다.

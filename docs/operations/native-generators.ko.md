@@ -84,9 +84,10 @@ container run --rm --cpus 4 --memory 4g \
 ## HTTP와 브라우저 검증
 
 패키지 예제는 각 언어의 라이브러리 사용을 보여 줍니다.
-[폼 검증 절차](verification.ko.md)는 PHP, 네이티브 PHP, Go, Rust의 개별 HTTP
-대상과 React, Vue, Svelte, HTML 렌더러 검사를 정의합니다. 폼과 순서 보존 JSON 전송, 잘못된 요청,
-저장과 재조회를 모두 검증합니다.
+[폼 비교](../spec/form-comparison.ko.md)는 JavaScript, PHP, 네이티브 PHP, Go, Rust 레코드 서버와
+HTML, React, Vue, Svelte 클라이언트를 정의합니다. 그 레코드 저장소 HTTP 계약은 multipart, URL-encoded,
+JSON 저장과 잘못된 요청을 모든 서버에 보내고, 저장한 레코드를 재시작 뒤에도 다시 읽습니다
+([폼 검사](testing.ko.md#폼과-보고서)).
 
 브라우저에서 생성한 폼과 PHP, Go, Rust 검증 엔드포인트만으로는 서버 렌더링이
 확인되지 않습니다. 서버 렌더링 결과에는 컴파일, 바인딩, 렌더링을 실행한 런타임을

@@ -2,7 +2,7 @@
 
 [한국어](README.ko.md).
 
-The canonical `crudui.test` entry page is the full CRUDUI feature pipeline: List → Detail → Form →
+The canonical entry page is the full CRUDUI feature pipeline: List → Detail → Form →
 Save → List refresh. CRUDUI generates the list, detail, links and form flow; the page does not
 simulate stages with external buttons. It selects JavaScript reference, PHP, PHP extension, Go or
 Rust; HTML, React, Vue or Svelte; and CSR or SSR. The separate benchmark screen is `/benchmark/`;
@@ -26,30 +26,20 @@ edit, save, copy, move, add, structure map and focus stages in turn, and a list 
 compares every stage: raw HTML, DOM, attributes, control state, computed CSS,
 submitted fields, data, focus and save responses.
 
-Run the source checks from the repository root:
+Run the checks from the repository root:
 
 ```sh
-npm run test:form-comparison
-make docs-check
+make test-form-comparison
+make test-form-comparison-pipeline
 ```
 
-The comparison service runs the current repository tree in one long-running
-toolchain container at `https://crudui.test`. The repository is mounted read-only,
-build outputs stay in container volumes, and source changes apply without building
-the image again. Apply the deployment and verify the tree it runs:
+The pipeline check builds the five record servers from this tree, starts each one as a local
+process on a free port of 127.0.0.1, compares their record stores through one HTTP contract,
+runs the canonical flow for all 40 server, client and initialization combinations against them
+and stops them. Every server names the source identity: the checked-out commit and a digest of
+the uncommitted changes.
 
-```sh
-node examples/form-comparison/comparison-deployment.mjs
-node examples/form-comparison/verification.mjs
-```
-
-The supervisor rebuilds only the target a change affects and restarts only the
-affected server. Every server, frame and report names the source identity: the
-checked-out commit and a digest of the uncommitted changes.
-
-The [verification procedure](../../docs/operations/verification.md) defines
-deployment, natural application, HTTP checks, sequential browser checks and report
-aggregation. The [form verification contract](../../docs/spec/form-comparison.md)
-defines the toolchain image, build volumes, build targets, source identity, required
-matrix, evidence and pass criteria. [Feature status](../../docs/features.md) records
+The [form checks](../../docs/operations/testing.md#forms-and-reports) describe the commands, and
+the [form verification contract](../../docs/spec/form-comparison.md) defines the record resource,
+the canonical page and the canonical flow check. [Feature status](../../docs/features.md) records
 verified code separately from deployment.

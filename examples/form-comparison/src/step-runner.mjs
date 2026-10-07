@@ -93,12 +93,11 @@ export async function killProcessTree(child, graceMs = stepTerminationGraceMs) {
   }
 }
 
-function prefixLines(stream, prefix, write, onLine) {
+function prefixLines(stream, prefix, write) {
   let pending = '';
   stream.setEncoding('utf8');
   function emit(line) {
     write(`${prefix}${line}\n`);
-    onLine(line);
   }
   stream.on('data', chunk => {
     pending += chunk;
@@ -114,7 +113,7 @@ function prefixLines(stream, prefix, write, onLine) {
 
 /**
  * Validate one step definition: an id, a command and its arguments. A step is a long operation (a
- * build, a check made of units, a deployment step) and holds no limit, so a step that declares a
+ * build, a check made of units) and holds no limit, so a step that declares a
  * total or an inactivity limit is rejected.
  */
 export function assertStep(step) {
@@ -125,8 +124,6 @@ export function assertStep(step) {
     `${step.id}: a step runs to its end and holds no time limit`);
   return step;
 }
-
-const running = new Set();
 
 /**
  * Run one step to its end and stream its progress: a start line, a line with the elapsed time at
@@ -145,12 +142,9 @@ export async function runStep(step, options = {}) {
     cwd: step.cwd, env: { ...process.env, ...step.environment },
     stdio: ['ignore', 'pipe', 'pipe'], detached: true,
   });
-  const entry = { child, step };
-  running.add(entry);
-  const onLine = options.onLine ?? (() => {});
   const output = Promise.all([
-    prefixLines(child.stdout, `[${step.id}] `, write, onLine),
-    prefixLines(child.stderr, `[${step.id}] `, write, onLine),
+    prefixLines(child.stdout, `[${step.id}] `, write),
+    prefixLines(child.stderr, `[${step.id}] `, write),
   ]);
   const heartbeat = setInterval(() => write(`[${label}] ${step.id}: running ${elapsed()}\n`),
     heartbeatMs);
@@ -159,7 +153,6 @@ export async function runStep(step, options = {}) {
     child.once('exit', (exitCode, exitSignal) => resolve([exitCode, exitSignal, null]));
   });
   clearInterval(heartbeat);
-  running.delete(entry);
   if (!error) await output;
   const durationMs = performance.now() - started;
   const status = code === 0 ? 'passed' : 'failed';
@@ -182,15 +175,4 @@ export async function runStages(stages, options = {}) {
     if (stageResults.some(result => result.status !== 'passed')) break;
   }
   return results;
-}
-
-/** Stop every running step's process tree when this process is asked to stop. */
-export function stopStepsOnSignal({ write = text => process.stderr.write(text) } = {}) {
-  for (const name of ['SIGTERM', 'SIGINT']) {
-    process.once(name, async () => {
-      write(`${name}: stopping ${running.size} running step(s)\n`);
-      await Promise.all([...running].map(({ child }) => killProcessTree(child, 1_000)));
-      process.exit(name === 'SIGINT' ? 130 : 143);
-    });
-  }
 }
