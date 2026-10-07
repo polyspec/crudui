@@ -667,6 +667,7 @@ and the job uploads that server's report. The CI job `form-comparison-checks` ru
 jobs, downloads their reports and runs `make test-form-comparison-summary`, which runs the runner
 with `--browser-reports`: it starts a local stack of its own and runs every other stage (1 to 4, 6
 and 7) and the evidence check, the browser aggregate reading the four downloaded reports. Every
-public server of these runs takes the address `FORM_ADDRESS` (`--address`, 127.0.0.1:47100), so
-the four reports name the origin that the aggregate requires, and every report names the source
-identity of the same tree. The checks, reports and limits are those of the single run.
+server of these runs takes a port of the system, so runs at the same time do not collide. The
+aggregate requires every report to name the scheme and host of its own origin, whose port differs
+by run, and the source identity of the same tree. The checks, reports and limits are those of the
+single run.

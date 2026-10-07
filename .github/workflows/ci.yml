@@ -533,7 +533,7 @@ jobs:
           path: var/report/ci-targets
           if-no-files-found: error
   # The browser checks of each form server in a job of its own, which has the runner to itself; each job starts a local
-  # stack whose public server takes the address FORM_ADDRESS of the Makefile and keeps the report of its server.
+  # stack whose servers take ports of the system and keeps the report of its server.
   form-comparison-browser:
     name: Form comparison browser checks against a local stack (${{ matrix.server }})
     runs-on: ubuntu-24.04

@@ -212,15 +212,14 @@ test-form-comparison-checks: cargo-downloads-check ## The PHP modes, generation,
 	$(NPM) run test:form-comparison:checks
 # The same checks in two parts, as CI runs them: test-form-comparison-browser runs the browser checks of the servers of
 # FORM_SERVERS against a local stack and keeps their reports in FORM_BROWSER_REPORTS; test-form-comparison-summary runs
-# every other check against a local stack of its own and summarizes those reports. Both public servers take
-# FORM_ADDRESS, the origin that every browser report names.
+# every other check against a local stack of its own and summarizes those reports. Every public server takes a port of
+# the system, so runs at the same time do not collide; the summary requires the scheme and host of every report.
 FORM_SERVERS ?= php,php-ext,go,rust
 FORM_BROWSER_REPORTS ?= $(CURDIR)/var/form-comparison/browser
-FORM_ADDRESS ?= 127.0.0.1:47100
 test-form-comparison-browser: cargo-downloads-check ## The browser checks of the servers of FORM_SERVERS against a local stack
-	$(NPM) run test:form-comparison:checks -- --servers $(FORM_SERVERS) --results $(FORM_BROWSER_REPORTS) --address $(FORM_ADDRESS)
+	$(NPM) run test:form-comparison:checks -- --servers $(FORM_SERVERS) --results $(FORM_BROWSER_REPORTS)
 test-form-comparison-summary: cargo-downloads-check ## Every other check against a local stack, with the browser reports of FORM_BROWSER_REPORTS
-	$(NPM) run test:form-comparison:checks -- --browser-reports $(FORM_BROWSER_REPORTS) --address $(FORM_ADDRESS)
+	$(NPM) run test:form-comparison:checks -- --browser-reports $(FORM_BROWSER_REPORTS)
 test-packages: ## The package install check
 	$(NPM) run test:packages
 test-build: ## The public builds

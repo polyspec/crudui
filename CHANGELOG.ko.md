@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### 2026-10-07 — form comparison 실행의 system port (C11.6-5)
+
+- `make test-form-comparison-browser`와 `make test-form-comparison-summary`는 모든 서버를 system이 정한 port에서
+  시작하므로 동시에 실행해도 충돌하지 않는다. `FORM_ADDRESS`와 `local-verification.mjs`의 `--address`는 제거되었다.
+- 브라우저 요약은 모든 보고서에 port를 뺀 자기 origin의 scheme과 host, 그리고 같은 트리의 소스 식별자를 요구한다.
+
 ### 2026-10-07 — Go module tag의 archive 설치 검사 (C11.6-4)
 
 - `make release-install-check`는 release의 tag를 받는다. archive를 release하지 않는 Go module tag

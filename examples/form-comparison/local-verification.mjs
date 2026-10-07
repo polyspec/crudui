@@ -3,14 +3,14 @@
 // on ports of 127.0.0.1 that the system assigns, the checks run against them in stages, the
 // evidence is checked, and the servers stop. Usage:
 //   node examples/form-comparison/local-verification.mjs [--results /absolute/results]
-//     [--servers php,php-ext,go,rust | --browser-reports /absolute/reports] [--address 127.0.0.1:port]
+//     [--servers php,php-ext,go,rust | --browser-reports /absolute/reports]
 // Without `--results` the reports go to a directory of the run under the system temporary
 // directory, which is removed after a passing run and kept, with its path printed, after a failure.
 // `--servers` selects the browser checks of those servers and runs only them. `--browser-reports`
 // runs every other check and takes the browser report of each server from that directory, which
-// runs with `--servers` wrote. `--address` is the address of the public server, by default a port
-// of the system; the browser summary requires that every browser report names its origin, so runs
-// whose reports one summary reads take one address.
+// runs with `--servers` wrote. Every server of a run takes a port of the system, so runs at the
+// same time do not collide; the browser summary requires the scheme and host of its own origin in
+// every browser report, whose port is that of the run that wrote it.
 import assert from 'node:assert/strict';
 import { copyFile, mkdir, mkdtemp, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -18,7 +18,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 
-import { anyLoopbackPort, exampleDirectory, repositoryRoot, startLocalStack } from './src/local-servers.mjs';
+import { exampleDirectory, repositoryRoot, startLocalStack } from './src/local-servers.mjs';
 import { formServers } from './src/runtime-paths.mjs';
 import { sameSourceIdentity } from './src/source-identity.mjs';
 import { sourceIdentity } from './src/source-tree.mjs';
@@ -74,12 +74,6 @@ export function selectedServers(list) {
   return servers;
 }
 
-/** The address of `--address`: a port of 127.0.0.1, or a port of the system without it. */
-export function publicAddress(value = anyLoopbackPort) {
-  assert.match(value, /^127\.0\.0\.1:\d{1,5}$/, '--address is 127.0.0.1:<port>');
-  return value;
-}
-
 /** Copy the browser report of each server from `directory` into `results` for the browser summary. */
 export async function takeBrowserReports(directory, results) {
   for (const server of formServers) {
@@ -91,7 +85,7 @@ async function main() {
   stopStepsOnSignal();
   const { values } = parseArgs({ options: {
     results: { type: 'string' }, servers: { type: 'string' },
-    'browser-reports': { type: 'string' }, address: { type: 'string' },
+    'browser-reports': { type: 'string' },
   } });
   assert.ok(values.results === undefined || path.isAbsolute(values.results), '--results must be an absolute path');
   const browserReports = values['browser-reports'];
@@ -99,7 +93,6 @@ async function main() {
   assert.ok(values.servers === undefined || browserReports === undefined, '--servers and --browser-reports exclude each other');
   const servers = values.servers === undefined ? undefined : selectedServers(values.servers);
   assert.ok(servers === undefined || values.results !== undefined, '--servers keeps its reports in --results');
-  const address = publicAddress(values.address);
   const startedAt = new Date().toISOString();
   const startedClock = performance.now();
   const root = await mkdtemp(path.join(tmpdir(), 'crudui-verification-'));
@@ -115,7 +108,7 @@ async function main() {
     lines.start('local stack', { group: true });
     let stack;
     try {
-      stack = await startLocalStack({ root, processes, address });
+      stack = await startLocalStack({ root, processes });
     } catch (error) {
       lines.fail('local stack', undefined, error.message);
       throw error;

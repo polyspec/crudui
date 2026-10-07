@@ -217,7 +217,8 @@ export async function startProcess(definition, { write = text => process.stdout.
  * The public server of a local stack. It takes its address, data directory, public directory and the
  * port of every native record server, and receives the build state from its parent over IPC.
  */
-export function publicServerDefinition({ dataDirectory, publicDirectory, ports, address = anyLoopbackPort }) {
+export function publicServerDefinition({ dataDirectory, publicDirectory, ports }) {
+  const address = anyLoopbackPort;
   return {
     server: 'public', address, command: process.execPath,
     args: [path.join(exampleDirectory, 'server.mjs'), address, dataDirectory, publicDirectory, JSON.stringify(ports)],
@@ -229,11 +230,11 @@ export function publicServerDefinition({ dataDirectory, publicDirectory, ports, 
  * Build and start one local stack under `root`: the record server programs, the public directory
  * (`build.mjs`), the four native record servers and the public server, which is also the
  * JavaScript record server. Every server takes a port of the system on 127.0.0.1 and names it on
- * its readiness line; the public server starts with those ports, on `address` when one is given.
- * `processes` receives every started process, also when a later start fails, so the caller stops
- * them. Returns the origin of the public server and the directories and builds of the stack.
+ * its readiness line; the public server starts with those ports. `processes` receives every
+ * started process, also when a later start fails, so the caller stops them. Returns the origin of
+ * the public server and the directories and builds of the stack.
  */
-export async function startLocalStack({ root, processes, address = anyLoopbackPort, write = text => process.stdout.write(text) }) {
+export async function startLocalStack({ root, processes, write = text => process.stdout.write(text) }) {
   const publicDirectory = path.join(root, 'public');
   const dataDirectory = path.join(root, 'data');
   await mkdir(dataDirectory, { recursive: true });
@@ -252,7 +253,7 @@ export async function startLocalStack({ root, processes, address = anyLoopbackPo
   const failed = started.find(result => result.status === 'rejected');
   if (failed) throw failed.reason;
   const ports = Object.fromEntries(servers.map((server, index) => [server, started[index].value.port]));
-  const publicServer = publicServerDefinition({ dataDirectory, publicDirectory, ports, address });
+  const publicServer = publicServerDefinition({ dataDirectory, publicDirectory, ports });
   processes.push(await startProcess(publicServer, { write, ipc: true, message: { status: 'ready', cycle: 1, source, error: null } }));
   return { origin: processes.at(-1).origin, publicDirectory, dataDirectory, prepared, source };
 }

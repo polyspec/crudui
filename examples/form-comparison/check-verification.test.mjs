@@ -19,7 +19,7 @@ import * as pipelineCheck from './check-pipeline.mjs';
 import { pipelineReport } from './check-pipeline.mjs';
 import { pipelineCombinations } from './src/pipeline-flow.mjs';
 import { formFrameworks, formRenderingPaths, formServers } from './src/runtime-paths.mjs';
-import { publicAddress, selectedServers, takeBrowserReports, verificationStages } from './local-verification.mjs';
+import { selectedServers, takeBrowserReports, verificationStages } from './local-verification.mjs';
 
 const source = { commit: 'a'.repeat(40), changes: 'c'.repeat(64) };
 const generationCheckIds = [
@@ -160,9 +160,6 @@ test('splits the verification into the browser checks of selected servers and ev
 
   assert.deepEqual(selectedServers('php-ext,rust'), ['php-ext', 'rust']);
   for (const list of ['', 'js', 'php,php', 'php,node']) assert.throws(() => selectedServers(list), /--servers/, list);
-  assert.equal(publicAddress('127.0.0.1:47100'), '127.0.0.1:47100');
-  assert.equal(publicAddress(), '127.0.0.1:0');
-  assert.throws(() => publicAddress('0.0.0.0:47100'), /--address/);
 
   // The summary reads the report of every server; a missing report fails before any check.
   const reports = await mkdtemp(path.join(tmpdir(), 'crudui-browser-reports-'));
