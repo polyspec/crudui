@@ -4,6 +4,14 @@
 
 ## 0.0.3
 
+### 2026-10-07 — release된 tag v0.0.3의 OrderedJSON (C11.6-2)
+
+- 비교는 OrderedJSON을 `polyspec/ordered-json`의 tag `v0.0.3`에서 받습니다.
+  `examples/form-comparison/src/ordered-json-source.mjs`의 `orderedJsonVersion`은 0.0.3이고
+  `make install-ordered-json`은 `v0.0.3`을 체크아웃합니다.
+- Rust record server, 그 `Cargo.lock`, `@polyspec/ordered-json`의 `package-lock.json` 항목, `tests/ordered-json`의
+  processor check, 문서, `config/dependency-review.json`은 0.0.3을 적습니다.
+
 ### 2026-10-07 — CI의 release archive 설치 (C11.6-1)
 
 - CI job `build-lint`는 `make release-install-head`을 실행합니다. `package.json` version의 `HEAD` archive를

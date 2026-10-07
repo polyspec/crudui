@@ -4,8 +4,8 @@
 defines the required data shapes and order. [Feature status](../features.md)
 records verification separately from runtime deployment.
 
-The check uses one explicit checkout of the tag `v0.0.2` of
-[OrderedJSON](https://github.com/polyspec/ordered-json), version `0.0.2`. The five implementations
+The check uses one explicit checkout of the tag `v0.0.3` of
+[OrderedJSON](https://github.com/polyspec/ordered-json), version `0.0.3`. The five implementations
 are package directories in that monorepo:
 
 | Package | Manifest |
@@ -25,7 +25,7 @@ with Node, PHP, PHP extension build tools, Go, Rust and Python installed:
 
 ```sh
 ORDERED_JSON_SOURCE=/absolute/path/to/ordered-json
-git clone --depth 1 --branch v0.0.2 https://github.com/polyspec/ordered-json "$ORDERED_JSON_SOURCE"
+git clone --depth 1 --branch v0.0.3 https://github.com/polyspec/ordered-json "$ORDERED_JSON_SOURCE"
 make test-ordered-json
 python3 "$ORDERED_JSON_SOURCE/scripts/verify.py"
 python3 tests/ordered-json/check.py "$ORDERED_JSON_SOURCE"

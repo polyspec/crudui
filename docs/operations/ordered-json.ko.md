@@ -5,7 +5,7 @@
 배포를 구분해 기록합니다.
 
 검사는
-[OrderedJSON](https://github.com/polyspec/ordered-json) 버전 `0.0.2`의 tag `v0.0.2`를
+[OrderedJSON](https://github.com/polyspec/ordered-json) 버전 `0.0.3`의 tag `v0.0.3`를
 명시적으로 체크아웃합니다.
 다섯 구현은 이 모노레포의 패키지 디렉터리입니다.
 
@@ -26,7 +26,7 @@
 
 ```sh
 ORDERED_JSON_SOURCE=/absolute/path/to/ordered-json
-git clone --depth 1 --branch v0.0.2 https://github.com/polyspec/ordered-json "$ORDERED_JSON_SOURCE"
+git clone --depth 1 --branch v0.0.3 https://github.com/polyspec/ordered-json "$ORDERED_JSON_SOURCE"
 make test-ordered-json
 python3 "$ORDERED_JSON_SOURCE/scripts/verify.py"
 python3 tests/ordered-json/check.py "$ORDERED_JSON_SOURCE"

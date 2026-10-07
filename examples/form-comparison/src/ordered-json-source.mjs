@@ -6,7 +6,7 @@ import { promisify } from 'node:util';
 const execFileAsync = promisify(execFile);
 
 export const orderedJsonRepository = 'https://github.com/polyspec/ordered-json';
-export const orderedJsonVersion = '0.0.2';
+export const orderedJsonVersion = '0.0.3';
 export const orderedJsonTag = `v${orderedJsonVersion}`;
 /** The checkout of the tag, relative to the repository root; the root package.json links its js package. */
 export const orderedJsonCheckout = '.form-comparison/sources/ordered-json';
