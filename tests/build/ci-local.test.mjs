@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import { readFile, readdir } from 'node:fs/promises';
+import path from 'node:path';
 import { test } from 'node:test';
 
 import { parse } from 'yaml';
@@ -179,14 +181,15 @@ test('a new push stops the CI run of the previous push of its pull request, and 
 // main receives a commit only from the merge queue (.github/repository.json): CI runs on pull requests, merge groups and
 // manual runs, the push check also on every pushed branch except the branches of the queue, which it checks as merge
 // groups, the documentation web is built and deployed from main and on a manual run, the dependency review runs on its
-// schedule and on a manual run, and the release runs on a pushed tag vX.Y.Z or <directory>/vX.Y.Z. No other workflow
-// exists, and each declares exactly these lines.
+// schedule and on a manual run, and the release runs on a pushed tag vX.Y.Z or <directory>/vX.Y.Z at any depth: in a
+// tag filter * does not match /, so **/v* covers packages/<directory>/vX.Y.Z. No other workflow exists, and each
+// declares exactly these lines.
 const TRIGGERS = {
   'ci.yml': 'on:\n  pull_request:\n  merge_group:\n  workflow_dispatch:\n',
   'push-gate.yml': "on:\n  push:\n    branches-ignore: ['gh-readonly-queue/**']\n  pull_request:\n  merge_group:\n",
   'pages.yml': 'on:\n  push:\n    branches: [main]\n  workflow_dispatch:\n',
   'dependency-review.yml': "on:\n  schedule:\n    - cron: '17 3 * * *'\n  workflow_dispatch:\n",
-  'release.yml': "on:\n  push:\n    tags: ['v*', '*/v*']\n",
+  'release.yml': "on:\n  push:\n    tags: ['v*', '**/v*']\n",
 };
 
 test('each workflow declares exactly its triggers', async () => {
@@ -196,6 +199,28 @@ test('each workflow declares exactly its triggers', async () => {
     const declared = /^on:\n(?: .*\n)+/m.exec(await read(`.github/workflows/${name}`))?.[0] ?? '';
     assert.equal(declared, block, `.github/workflows/${name}`);
   }
+});
+
+/** Whether a GitHub tag filter matches a tag: `**` matches any characters, `*` any characters but `/`. */
+function tagFilterMatches(filter, tag) {
+  const source = filter.split('**').map((part) => part.split('*').map((text) => text.replace(/[.+?^${}()|[\]\\]/g, '\\$&')).join('[^/]*')).join('.*');
+  return new RegExp(`^${source}$`).test(tag);
+}
+
+/** The tags of a release that none of `filters` matches: vX.Y.Z and <directory>/vX.Y.Z of every tracked Go module. */
+function unmatchedReleaseTags(filters, goModules) {
+  const tags = ['v1.2.3', ...goModules.map((file) => `${path.posix.dirname(file)}/v1.2.3`)];
+  return tags.filter((tag) => !filters.some((filter) => tagFilterMatches(filter, tag)));
+}
+
+test('the release trigger matches vX.Y.Z and the tag of every Go module of packages/', async () => {
+  const goModules = execFileSync('git', ['ls-files', 'packages/*/go.mod'], { cwd: new URL('../..', import.meta.url), encoding: 'utf8' }).split('\n').filter(Boolean);
+  assert.ok(goModules.length > 0);
+  const { tags } = parse(await read('.github/workflows/release.yml')).on.push;
+  assert.deepEqual(unmatchedReleaseTags(tags, goModules), []);
+  // In a tag filter * does not match /, so the filter of one level */v* misses packages/<directory>/vX.Y.Z.
+  assert.deepEqual(unmatchedReleaseTags(['v*', '*/v*'], goModules), goModules.map((file) => `${path.posix.dirname(file)}/v1.2.3`));
+  assert.ok(tagFilterMatches('**/v*', 'packages/validator-go/v0.1.0') && !tagFilterMatches('v*', 'go/v0.1.0'));
 });
 
 test('CI runs on pull requests and merge groups, and Pages deploys main', async () => {
@@ -211,18 +236,26 @@ test('CI runs on pull requests and merge groups, and Pages deploys main', async 
 });
 
 // The release of a pushed tag checks the commit, the versions and the change log before it builds and packs anything,
-// and creates the release last; a failed step stops the job (scripts/release.mjs).
+// and creates the release last: after the setup steps, the job ends with exactly the four release targets in this
+// order, and a failed step stops the job (scripts/release.mjs).
+const RELEASE_STEPS = ['make release-verify', 'make release-versions', 'make release-assets', 'make release-publish'];
+
 test('the release workflow checks the tag, writes the archives and creates the release in this order', async () => {
   const workflow = parse(await read('.github/workflows/release.yml'));
   assert.deepEqual(workflow.permissions, { contents: 'write' });
   assert.deepEqual(Object.keys(workflow.jobs), ['release']);
   const job = workflow.jobs.release;
   assert.equal(job.env.GH_TOKEN, '${{ github.token }}');
+  assert.equal(job.env.TAG, '${{ github.ref_name }}', 'the tag reaches the make targets through the environment');
   assert.equal(job.steps[0].with['fetch-depth'], 0, 'origin/main is fetched for git merge-base --is-ancestor');
-  assert.deepEqual(job.steps.filter((step) => step.run !== undefined).map((step) => step.run), [
-    'make install-npm', 'make install-rust', 'make toolchain-check TOOLS="node npm rust"', 'make release-check',
-    'make install-node-modules', 'make build', 'make release-assets', 'make release-publish',
-  ]);
+  const runs = job.steps.filter((step) => step.run !== undefined).map((step) => step.run);
+  assert.deepEqual(runs, ['make install-npm', 'make toolchain-check TOOLS="node npm"', 'make install-node-modules', ...RELEASE_STEPS]);
+  assert.deepEqual(runs.slice(-4), RELEASE_STEPS);
+  assert.deepEqual(runs.filter((run) => /\brelease-|\bbuild\b/.test(run)), RELEASE_STEPS, 'the build runs inside make release-assets');
+  const makefile = await read('Makefile');
+  for (const step of ['verify', 'versions', 'assets', 'publish']) {
+    assert.match(makefile, new RegExp(`^release-${step}:.*\\n(?:\\t.*\\n)*\\tnode scripts/release\\.mjs ${step} "\\$\\$TAG"\\n`, 'm'), `make release-${step} passes "$$TAG"`);
+  }
   assert.ok(job.steps.every((step) => step.if === undefined), 'no step runs after a failed one');
 });
 

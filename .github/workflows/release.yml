@@ -1,16 +1,19 @@
 # The GitHub Release of a pushed tag (AGENTS.md, docs/operations/repository.md). Every commit of main passed the checks
 # that the ruleset main requires, through a pull request and the merge queue; the maintainer tags a commit of main as
-# vX.Y.Z, or <directory>/vX.Y.Z for a Go module in a subdirectory, after the pull request that sets the version. The job
-# runs no test again: make release-check requires the commit on main with the check runs push-gate and ci-passed
-# concluded success, the version of the tag in every package file that it covers and the section ## X.Y.Z of
-# CHANGELOG.md; make release-assets packs the npm, Composer and Cargo packages, and make release-publish creates the
-# release with that section as its notes (scripts/release.mjs).
+# vX.Y.Z, or <directory>/vX.Y.Z for a Go module in a subdirectory, after the pull request that sets the version. In a
+# tag filter * does not match /, so '**/v*' covers the tag packages/<directory>/vX.Y.Z of a Go module at any depth. The
+# job runs no test again, and its last four steps run in this order: make release-verify requires the commit on main
+# with the check runs push-gate and ci-passed concluded success; make release-versions the version of the tag in every
+# package file that it covers and the section ## X.Y.Z of CHANGELOG.md; make release-assets builds the JavaScript
+# packages and writes the npm tarballs and Composer zips (a crate is not released as an archive; it is consumed by git
+# tag), and a Go module tag builds and attaches nothing; make release-publish creates the release with that section as
+# its notes (scripts/release.mjs). TAG reaches the make targets through the environment, never as shell text.
 
 name: Release
 
 on:
   push:
-    tags: ['v*', '*/v*']
+    tags: ['v*', '**/v*']
 
 permissions:
   contents: write
@@ -26,6 +29,7 @@ jobs:
     name: release
     runs-on: ubuntu-24.04
     env:
+      TAG: ${{ github.ref_name }}
       GH_TOKEN: ${{ github.token }}
     steps:
       # The whole history, so origin/main is present for git merge-base --is-ancestor.
@@ -39,17 +43,15 @@ jobs:
           cache: npm
       - name: Install the recorded npm into the checkout
         run: make install-npm
-      - name: Install the Rust toolchain of rust-toolchain.toml
-        run: make install-rust
       - name: Check the recorded toolchain versions
-        run: make toolchain-check TOOLS="node npm rust"
-      - name: Check the tagged commit, its checks, the versions and the change log
-        run: make release-check
+        run: make toolchain-check TOOLS="node npm"
       - name: Install workspace dependencies
         run: make install-node-modules
-      - name: Build the JavaScript packages
-        run: make build
-      - name: Write the package archives
+      - name: Check that the tagged commit is on main and passed its checks
+        run: make release-verify
+      - name: Check the versions and the change log section of the tag
+        run: make release-versions
+      - name: Build the JavaScript packages and write the package archives
         run: make release-assets
       - name: Create the GitHub Release with the archives
         run: make release-publish

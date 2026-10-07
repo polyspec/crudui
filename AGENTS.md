@@ -113,10 +113,11 @@
   of the repository, to X.Y.Z, and renames `## Unreleased` of `CHANGELOG.md` and `CHANGELOG.ko.md` to `## X.Y.Z` below
   a new empty `## Unreleased`. A Composer manifest declares no version; Composer reads it from the tag.
 - The maintainer then tags the merged commit and pushes the tag. `.github/workflows/release.yml` runs
-  `make release-check`, `make release-assets` and `make release-publish` (`scripts/release.mjs`): it requires the commit
-  on `main` with the checks `push-gate` and `ci-passed` concluded success, the version of the tag in every package file
-  and the section `## X.Y.Z`, and creates the GitHub Release with that section as its notes and the npm, Composer and
-  Cargo archives of `packages/` (`docs/operations/repository.md`).
+  `make release-verify`, `make release-versions`, `make release-assets` and `make release-publish`
+  (`scripts/release.mjs`): it requires the commit on `main` with the checks `push-gate` and `ci-passed` concluded
+  success, the version of the tag in every package file and the section `## X.Y.Z`, and creates the GitHub Release with
+  that section as its notes and the npm tarballs and Composer zips of `packages/`. A crate is not released as an
+  archive; it is consumed by git tag. A Go module tag builds and attaches nothing (`docs/operations/repository.md`).
 
 # Checklist
 

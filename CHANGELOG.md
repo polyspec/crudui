@@ -2,13 +2,24 @@
 
 ## Unreleased
 
+### 2026-10-07 — Release steps, Go module tags and archives (C11.1-4)
+
+- `.github/workflows/release.yml` runs on the tags `v*` and `**/v*`: in a tag filter `*` does not match `/`, so
+  `**/v*` covers the Go module tags `packages/<directory>/vX.Y.Z`. The job sets `TAG: ${{ github.ref_name }}` and ends
+  with `make release-verify`, `make release-versions`, `make release-assets` and `make release-publish`, whose recipes
+  pass the tag as `"$$TAG"`; `make release-assets` runs `make build`, and a Go module tag builds and attaches nothing.
+- The release assets are npm tarballs and Composer zips only. A crate is not released as an archive; it is consumed by
+  git tag, because `cargo package` rewrites git dependencies into crates.io requirements that do not resolve.
+  `tests/build/release.test.mjs` lists how a tag releases each package file of `packages/`.
+
 ### 2026-10-07 — GitHub Releases from tags of main (C11.1-3)
 
-- `.github/workflows/release.yml` runs on a pushed tag `vX.Y.Z` or `<directory>/vX.Y.Z`: `make release-check` requires
-  the commit on `main`, its check runs `push-gate` and `ci-passed` concluded `success`, the version of the tag in every
-  package file that the tag covers and the section `## X.Y.Z` of `CHANGELOG.md`; `make release-assets` writes the npm,
-  Composer and Cargo archives of `packages/`, named `<package>-<version>.<extension>`; `make release-publish` creates
-  the GitHub Release with that section as its notes and the archives. A Go module tag has no archive.
+- `.github/workflows/release.yml` runs on a pushed tag `vX.Y.Z` or `<directory>/vX.Y.Z`: `make release-verify` requires
+  the commit on `main` and its check runs `push-gate` and `ci-passed` concluded `success`, `make release-versions` the
+  version of the tag in every package file that the tag covers and the section `## X.Y.Z` of `CHANGELOG.md`;
+  `make release-assets` writes the npm and Composer archives of `packages/`, named `<package>-<version>.<extension>`;
+  `make release-publish` creates the GitHub Release with that section as its notes and the archives. A Go module tag
+  has no archive.
 - AGENTS and `docs/operations/repository.md` state the release procedure: the version-bump pull request, the tag of the
   merged commit by the maintainer and the release workflow.
 

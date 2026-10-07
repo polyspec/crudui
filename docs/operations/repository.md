@@ -29,7 +29,7 @@ repository created again from the same history is configured by pushing `main` a
 pull request, merge group and manual run, `.github/workflows/push-gate.yml` on every push to a
 branch outside `gh-readonly-queue/**`, every pull request and every merge group, and
 `.github/workflows/dependency-review.yml` on its schedule and on a manual run, and
-`.github/workflows/release.yml` on a pushed tag `v*` or `*/v*` ([releases](#releases)); no other workflow
+`.github/workflows/release.yml` on a pushed tag `v*` or `**/v*` ([releases](#releases)); no other workflow
 exists. Change a setting by editing the declaration and running the command, never through
 the GitHub interface, so the declaration stays the record.
 
@@ -100,21 +100,26 @@ pull request carries a tag; the maintainer creates and pushes it.
    git push origin vX.Y.Z
    ```
 
-3. `.github/workflows/release.yml` runs on the pushed tag, with the token permission `contents: write`, and runs
-   `scripts/release.mjs` through make:
-   - `make release-check` requires the commit on `origin/main` (`git merge-base --is-ancestor`), the check runs
-     `push-gate` and `ci-passed` of the commit completed with conclusion `success`
-     (`gh api repos/<owner>/<repo>/commits/<sha>/check-runs`), the version of the tag in every package file that the
-     tag covers and the section `## X.Y.Z` of `CHANGELOG.md`; it fails with each missing or failed check, and with the
-     file and both versions;
-   - `make install-node-modules` and `make build` build the npm packages, and `make release-assets` writes the
-     archives of `packages/` to `var/release/assets`: `npm pack` of every npm package that is not private, `git archive`
-     of every Composer package directory as a zip, and `cargo package --no-verify --exclude-lockfile` of every crate,
-     each named `<package>-<version>.<extension>` with `@scope/` and `vendor/` written `scope-` and `vendor-`; a Go
-     module tag writes no archive;
+3. `.github/workflows/release.yml` runs on the pushed tag (`tags: ['v*', '**/v*']`: in a tag filter `*` does not
+   match `/`, so `**/v*` covers `packages/<directory>/vX.Y.Z`), with the token permission `contents: write`. After the
+   setup steps (`make install-npm`, `make toolchain-check TOOLS="node npm"`, `make install-node-modules`) its last four
+   steps run `scripts/release.mjs` through make in this order, each with the tag of the environment variable `TAG`,
+   which the recipe passes as `"$$TAG"`:
+   - `make release-verify` requires the commit of the tag on `origin/main` (`git merge-base --is-ancestor`) and the
+     check runs `push-gate` and `ci-passed` of the commit completed with conclusion `success`
+     (`gh api repos/<owner>/<repo>/commits/<sha>/check-runs`); it fails with each missing or failed check;
+   - `make release-versions` requires the version of the tag in every package file that the tag covers and the section
+     `## X.Y.Z` of `CHANGELOG.md`; it fails with the file and both versions;
+   - `make release-assets` runs `make build` and writes the archives of `packages/` to `var/release/assets`: `npm pack`
+     of every npm package that is not private and `git archive` of every Composer package directory as a zip, each
+     named `<package>-<version>.<extension>` with `@scope/` and `vendor/` written `scope-` and `vendor-`. The release
+     assets are npm tarballs and Composer zips only: a crate is not released as an archive; it is consumed by git tag,
+     because `cargo package` rewrites git dependencies into crates.io requirements that do not resolve. A Go module
+     tag builds and attaches nothing;
    - `make release-publish` runs `gh release create <tag> --verify-tag --title <tag> --notes-file <section ## X.Y.Z>`
      with the archives.
 
 `tests/build/release.test.mjs` checks the script with command fakes: a version that differs from the tag, a missing
 change log section, a check run that is missing, in progress or failed, a commit outside `main`, the archive names and
-commands, and the release command; it also requires one version in every package file of the repository.
+commands, a Go module tag that runs no command, and the release command; it also requires one version in every package
+file of the repository and lists how a tag releases each package file of `packages/`.

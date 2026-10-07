@@ -2,12 +2,23 @@
 
 ## Unreleased
 
+### 2026-10-07 — release step, Go module tag, archive (C11.1-4)
+
+- `.github/workflows/release.yml`은 tag `v*`와 `**/v*`에서 실행됩니다. tag filter에서 `*`는 `/`와 맞지 않으므로
+  `**/v*`가 Go module tag `packages/<디렉터리>/vX.Y.Z`를 덮습니다. job은 `TAG: ${{ github.ref_name }}`을 두고
+  `make release-verify`, `make release-versions`, `make release-assets`, `make release-publish`로 끝나며, 그 recipe는
+  tag를 `"$$TAG"`로 넘깁니다. `make release-assets`는 `make build`를 실행하고, Go module tag는 아무것도 build하거나
+  첨부하지 않습니다.
+- release asset은 npm tarball과 Composer zip뿐입니다. crate는 archive로 release하지 않고 git tag로 사용합니다.
+  `cargo package`는 git 의존성을 해석되지 않는 crates.io 요구로 바꾸기 때문입니다. `tests/build/release.test.mjs`는
+  tag가 `packages/`의 package 파일마다 어떻게 release하는지 적습니다.
+
 ### 2026-10-07 — main tag의 GitHub Release (C11.1-3)
 
-- `.github/workflows/release.yml`은 push된 tag `vX.Y.Z` 또는 `<디렉터리>/vX.Y.Z`에서 실행됩니다. `make release-check`는
-  commit이 `main`에 있고 그 check run `push-gate`와 `ci-passed`가 `success`로 끝났으며, tag가 덮는 모든 package
-  파일의 version이 tag와 같고 `CHANGELOG.md`에 section `## X.Y.Z`가 있기를 요구합니다. `make release-assets`는
-  `packages/`의 npm, Composer, Cargo archive를 `<package>-<version>.<확장자>` 이름으로 쓰고, `make release-publish`는
+- `.github/workflows/release.yml`은 push된 tag `vX.Y.Z` 또는 `<디렉터리>/vX.Y.Z`에서 실행됩니다. `make release-verify`는
+  commit이 `main`에 있고 그 check run `push-gate`와 `ci-passed`가 `success`로 끝났기를, `make release-versions`는 tag가
+  덮는 모든 package 파일의 version이 tag와 같고 `CHANGELOG.md`에 section `## X.Y.Z`가 있기를 요구합니다.
+  `make release-assets`는 `packages/`의 npm, Composer archive를 `<package>-<version>.<확장자>` 이름으로 쓰고, `make release-publish`는
   그 section을 notes로, archive를 첨부해 GitHub Release를 만듭니다. Go module tag에는 archive가 없습니다.
 - AGENTS와 `docs/operations/repository.md`는 version을 올리는 pull request, maintainer가 merge된 commit에 다는 tag,
   release workflow로 이루어진 release 절차를 적습니다.

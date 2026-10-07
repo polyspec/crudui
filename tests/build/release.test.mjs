@@ -6,7 +6,7 @@ import path from 'node:path';
 import { test } from 'node:test';
 
 import {
-  assetName, buildAssets, changelogSection, commitProblems, parseTag, publish, releaseAssets, versionProblems,
+  assetName, buildAssets, changelogSection, commitProblems, parseTag, publish, releaseAssets, releaseManifests, versionProblems,
 } from '../../scripts/release.mjs';
 
 const ROOT = path.resolve(import.meta.dirname, '../..');
@@ -54,7 +54,6 @@ test('a tag is vX.Y.Z or <directory>/vX.Y.Z', () => {
 test('an archive is named <package>-<version>.<extension> with @scope/ written scope-', () => {
   assert.equal(assetName('@polyspec/crudui-validator', '1.2.3', 'tgz'), 'polyspec-crudui-validator-1.2.3.tgz');
   assert.equal(assetName('polyspec/crudui-validator', '1.2.3', 'zip'), 'polyspec-crudui-validator-1.2.3.zip');
-  assert.equal(assetName('polyspec-crudui-validator', '1.2.3', 'crate'), 'polyspec-crudui-validator-1.2.3.crate');
 });
 
 test('every package file that the tag covers has the version of the tag', () => {
@@ -115,15 +114,20 @@ test('the commit of a tag is on main and its checks push-gate and ci-passed succ
   ]);
 });
 
-test('a vX.Y.Z tag archives every package of packages/ that is not private', () => {
+test('a vX.Y.Z tag archives every npm and Composer package of packages/ that is not private, and no crate', () => {
+  assert.deepEqual(releaseManifests(tree(manifests('1.2.3'))), {
+    'packages/js/package.json': 'npm tarball',
+    'packages/cli/package.json': 'private',
+    'packages/php/composer.json': 'Composer zip',
+    'packages/rust/Cargo.toml': 'not released as an archive; consumed by git tag',
+  });
   assert.deepEqual(releaseAssets({ tag: 'v1.2.3', ...tree(manifests('1.2.3')) }), [
     { kind: 'npm', directory: 'packages/js', name: '@polyspec/x-js', file: 'polyspec-x-js-1.2.3.tgz' },
     { kind: 'composer', directory: 'packages/php', name: 'polyspec/x-php', file: 'polyspec-x-php-1.2.3.zip' },
-    { kind: 'cargo', directory: 'packages/rust', name: 'polyspec-x', file: 'polyspec-x-1.2.3.crate' },
   ]);
 });
 
-test('the archives are written by npm pack, git archive and cargo package under their release names', async () => {
+test('the archives are written after make build by npm pack and git archive under their release names', async () => {
   const work = fs.mkdtempSync(path.join(os.tmpdir(), 'release-assets-'));
   try {
     const output = path.join(work, 'release/assets');
@@ -134,25 +138,31 @@ test('the archives are written by npm pack, git archive and cargo package under 
         return { stdout: JSON.stringify([{ name: '@polyspec/x-js', filename: 'polyspec-x-js-1.2.3.tgz' }]) };
       },
       git: (args) => { fs.writeFileSync(args[2].slice('--output='.length), 'zip'); return {}; },
-      cargo: (args) => {
-        const target = args[args.indexOf('--target-dir') + 1];
-        fs.mkdirSync(path.join(target, 'package'), { recursive: true });
-        fs.writeFileSync(path.join(target, 'package/polyspec-x-1.2.3.crate'), 'crate');
-        return {};
-      },
+      make: {},
     });
-    const written = await buildAssets({ root: work, sha: SHA, assets, output, run, log: () => {} });
-    assert.deepEqual(written.map((file) => path.basename(file)), ['polyspec-x-js-1.2.3.tgz', 'polyspec-x-php-1.2.3.zip', 'polyspec-x-1.2.3.crate']);
-    assert.deepEqual(fs.readdirSync(output).sort(), ['polyspec-x-1.2.3.crate', 'polyspec-x-js-1.2.3.tgz', 'polyspec-x-php-1.2.3.zip']);
+    const written = await buildAssets({ root: work, tag: 'v1.2.3', sha: SHA, assets, output, run, log: () => {} });
+    assert.deepEqual(written.map((file) => path.basename(file)), ['polyspec-x-js-1.2.3.tgz', 'polyspec-x-php-1.2.3.zip']);
+    assert.deepEqual(fs.readdirSync(output).sort(), ['polyspec-x-js-1.2.3.tgz', 'polyspec-x-php-1.2.3.zip']);
     assert.deepEqual(calls.map(([command, ...args]) => [command === process.execPath ? 'node' : command, ...args.map((arg) => arg.replace(work, '<work>'))]), [
+      ['make', 'build'],
       ['node', '<work>/scripts/package-dist.mjs', 'pack', '<work>/packages/js', '<work>/release/assets'],
       ['git', 'archive', '--format=zip', '--output=<work>/release/assets/polyspec-x-php-1.2.3.zip', `${SHA}:packages/php`],
-      ['cargo', 'package', '--no-verify', '--exclude-lockfile', '--manifest-path', '<work>/packages/rust/Cargo.toml', '--target-dir', '<work>/release/cargo'],
     ]);
 
-    const broken = fakeRun({ cargo: { status: 101, stderr: 'error: failed to prepare local package\n' } });
-    await assert.rejects(buildAssets({ root: work, sha: SHA, assets: assets.slice(2), output, run: broken.run, log: () => {} }),
-      /the archive of polyspec-x \(packages\/rust\) failed: exit 101: error: failed to prepare local package/);
+    const unbuilt = fakeRun({ make: { status: 2, stderr: 'make: *** [build] Error 1\n' } });
+    await assert.rejects(buildAssets({ root: work, tag: 'v1.2.3', sha: SHA, assets, output, run: unbuilt.run, log: () => {} }),
+      /make build exited 2: make: \*\*\* \[build\] Error 1/);
+    assert.deepEqual(unbuilt.calls, [['make', 'build']]);
+
+    const broken = fakeRun({ make: {}, git: { status: 128, stderr: 'fatal: not a tree object\n' } });
+    await assert.rejects(buildAssets({ root: work, tag: 'v1.2.3', sha: SHA, assets: assets.slice(1), output, run: broken.run, log: () => {} }),
+      /the archive of polyspec\/x-php \(packages\/php\) failed: exit 128: fatal: not a tree object/);
+
+    fs.writeFileSync(path.join(output, 'stale.tgz'), 'stale');
+    const go = fakeRun({});
+    assert.deepEqual(await buildAssets({ root: work, tag: 'packages/go/v1.2.3', sha: SHA, assets: [], output, run: go.run, log: () => {} }), []);
+    assert.deepEqual(go.calls, [], 'a Go module tag builds and attaches nothing');
+    assert.deepEqual(fs.readdirSync(output), []);
   } finally {
     fs.rmSync(work, { recursive: true, force: true });
   }
@@ -189,11 +199,26 @@ test('the package files of this repository have one version, and its archives ar
   const { version } = JSON.parse(read('package.json'));
   const changelog = changelogSection(read('CHANGELOG.md'), version) === null ? [`CHANGELOG.md: no section ## ${version}, tag v${version} has ${version}`] : [];
   assert.deepEqual(versionProblems({ tag: `v${version}`, files, read }), changelog);
+  assert.deepEqual(releaseManifests({ files, read }), {
+    'packages/cli/package.json': 'private',
+    'packages/form-binding/package.json': 'npm tarball',
+    'packages/generator-core/package.json': 'npm tarball',
+    'packages/generator-html/package.json': 'npm tarball',
+    'packages/generator-php/composer.json': 'Composer zip',
+    'packages/generator-react/package.json': 'npm tarball',
+    'packages/generator-rust/Cargo.toml': 'not released as an archive; consumed by git tag',
+    'packages/generator-svelte/package.json': 'npm tarball',
+    'packages/generator-vue/package.json': 'npm tarball',
+    'packages/validator-php/composer.json': 'Composer zip',
+    'packages/validator-rust/Cargo.toml': 'not released as an archive; consumed by git tag',
+    'packages/validator-ts/package.json': 'npm tarball',
+  });
   assert.deepEqual(releaseAssets({ tag: `v${version}`, files, read }).map(({ file }) => file).sort(), [
-    `polyspec-crudui-form-binding-${version}.tgz`, `polyspec-crudui-generator-${version}.crate`, `polyspec-crudui-generator-${version}.zip`,
+    `polyspec-crudui-form-binding-${version}.tgz`, `polyspec-crudui-generator-${version}.zip`,
     `polyspec-crudui-generator-core-${version}.tgz`, `polyspec-crudui-generator-html-${version}.tgz`,
     `polyspec-crudui-generator-react-${version}.tgz`, `polyspec-crudui-generator-svelte-${version}.tgz`,
-    `polyspec-crudui-generator-vue-${version}.tgz`, `polyspec-crudui-validator-${version}.crate`,
-    `polyspec-crudui-validator-${version}.tgz`, `polyspec-crudui-validator-${version}.zip`,
+    `polyspec-crudui-generator-vue-${version}.tgz`, `polyspec-crudui-validator-${version}.tgz`,
+    `polyspec-crudui-validator-${version}.zip`,
   ]);
+  assert.ok(releaseAssets({ tag: `v${version}`, files, read }).every(({ file }) => /\.(tgz|zip)$/.test(file)), 'the release assets are npm tarballs and Composer zips only');
 });
