@@ -95,6 +95,26 @@ test('passes only a complete four-server verification with zero failures', () =>
   assert.deepEqual(summary.verification.bindForm.initializations, { total: expected.initializations, failed: 0 });
 });
 
+// Each browser report comes from a local stack of its own on a port of the system: the summary
+// requires the scheme and host of its origin and the source identity in every report, not the port.
+test('passes reports of other ports and rejects another scheme, host or source', () => {
+  const ports = completeReports();
+  browserServers.forEach((server, index) => { ports[server].origin = `http://127.0.0.1:${41001 + index}`; });
+  const summary = summarizeBrowserReports(ports, 'http://127.0.0.1:42000', source);
+  assert.equal(summary.passed, true);
+  assert.equal(summary.origin, 'http://127.0.0.1:42000');
+
+  for (const other of ['http://localhost:8080', 'https://127.0.0.1:8080', 'http://127.0.0.2:8080']) {
+    const reports = completeReports();
+    reports.go.origin = other;
+    assert.throws(() => summarizeBrowserReports(reports, origin, source), /go verification: report origin/, other);
+  }
+  const otherSource = completeReports();
+  otherSource.rust.origin = 'http://127.0.0.1:41009';
+  otherSource.rust.source = { ...source, commit: 'e'.repeat(40) };
+  assert.throws(() => summarizeBrowserReports(otherSource, origin, source), /rust verification: source identity/);
+});
+
 test('rejects a missing server report', () => {
   const reports = completeReports();
   delete reports.rust;

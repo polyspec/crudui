@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### 2026-10-07 — Ports of the system for the form comparison runs (C11.6-5)
+
+- `make test-form-comparison-browser` and `make test-form-comparison-summary` start every server on a port of the
+  system, so runs at the same time do not collide; `FORM_ADDRESS` and `--address` of `local-verification.mjs` are
+  removed.
+- The browser summary requires the scheme and host of its origin in every report, without the port, and the source
+  identity of the same tree.
+
 ### 2026-10-07 — The archive install check of a Go module tag (C11.6-4)
 
 - `make release-install-check` takes the tag of the release: for a Go module tag `<directory>/vX.Y.Z`, which releases

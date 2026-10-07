@@ -72,6 +72,30 @@ test('a server on port 0 is reached on the address that its readiness line names
   }
 });
 
+// Two verification runs at the same time each start the public server of a local stack: each takes
+// a port of the system, so both start and answer on ports of their own.
+test('the public servers of two local stacks start at the same time on ports of their own', async t => {
+  const { formServers } = await import('./runtime-paths.mjs');
+  const { publicServerDefinition, startProcess } = await import(localServers);
+  const root = await mkdtemp(path.join(tmpdir(), 'crudui-public-servers-'));
+  const running = [];
+  t.after(async () => {
+    await Promise.all(running.map(server => server.stop()));
+    await rm(root, { recursive: true, force: true });
+  });
+  const ports = Object.fromEntries(formServers.map((server, index) => [server, 1 + index]));
+  const definitions = ['first', 'second'].map(run => publicServerDefinition({
+    dataDirectory: path.join(root, run, 'data'), publicDirectory: path.join(root, run, 'public'), ports,
+  }));
+  const started = await Promise.allSettled(definitions.map(definition => startProcess(definition,
+    { write: () => {}, ipc: true, message: { status: 'ready', cycle: 1, source: null, error: null } })));
+  running.push(...started.filter(result => result.status === 'fulfilled').map(result => result.value));
+  assert.deepEqual(started.map(result => result.status), ['fulfilled', 'fulfilled'],
+    started.map(result => result.reason?.message).filter(Boolean).join('\n'));
+  assert.notEqual(running[0].port, running[1].port);
+  for (const server of running) assert.match(server.origin, /^http:\/\/127\.0\.0\.1:\d+$/);
+});
+
 test('no program reserves a port by listening and closing before another process binds it', async () => {
   const { execFileSync } = await import('node:child_process');
   const files = execFileSync('git', ['ls-files', '*.mjs', '*.js'], { cwd: path.join(import.meta.dirname, '../../..'), encoding: 'utf8' }).split('\n').filter(Boolean);

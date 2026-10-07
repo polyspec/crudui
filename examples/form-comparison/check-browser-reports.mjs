@@ -22,6 +22,16 @@ function origin(value) {
   return parsed.origin;
 }
 
+/**
+ * The scheme and host of an origin without its port: every browser report comes from a local stack
+ * of its own, whose servers take ports of the system, so the reports of one summary share the
+ * scheme and host of its origin and differ in their ports.
+ */
+function originHost(value) {
+  const parsed = new URL(origin(value));
+  return `${parsed.protocol}//${parsed.hostname}`;
+}
+
 function aggregate(summaries) {
   return Object.fromEntries(browserPaths.map(renderingPath => [renderingPath,
     Object.fromEntries(['scenarios', 'initializations', 'interactions', 'mounts', 'documents'].map(section =>
@@ -60,11 +70,12 @@ export function summarizeBrowserReports(reports, expectedOrigin, expectedSource)
   reports = structuredClone(reports);
   applyFrameDocumentAgreement(reports);
   const normalizedOrigin = origin(expectedOrigin);
+  const expectedHost = originHost(normalizedOrigin);
   const verification = [];
   const serverRuns = [];
   for (const server of browserServers) {
     const report = reports[server];
-    assert.equal(report.origin, normalizedOrigin, `${server} verification: report origin`);
+    assert.equal(originHost(report.origin), expectedHost, `${server} verification: report origin`);
     assert.ok(sameSourceIdentity(report.source, expectedSource), `${server} verification: source identity`);
     const summary = verifyServerReport(report, server);
     verification.push(summary);

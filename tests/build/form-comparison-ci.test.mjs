@@ -84,15 +84,16 @@ test('CI runs the browser checks of each form server in a job of its own and eve
     assert.equal(job.env.PHP_EXTENSION_PHP_CONFIG, '/usr/bin/php-config8.5');
     assert.ok(job.steps.some(step => step.run === 'make install-crates'));
   }
-  // Both parts start their public server on one address and share one report directory.
+  // Both parts share one report directory, and each run takes ports of the system, so runs at the same time do not collide.
   const dryRun = target => makeDryRun(repository, target);
   const browserRun = dryRun('test-form-comparison-browser');
   const summaryRun = dryRun('test-form-comparison-summary');
   assert.equal(browserRun.status, 0, browserRun.stderr);
   assert.equal(summaryRun.status, 0, summaryRun.stderr);
   const reports = path.join(repository, 'var/form-comparison/browser');
-  assert.match(browserRun.stdout, new RegExp(`run test:form-comparison:checks -- --servers php,php-ext,go,rust --results ${reports} --address 127\\.0\\.0\\.1:47100$`, 'm'));
-  assert.match(summaryRun.stdout, new RegExp(`run test:form-comparison:checks -- --browser-reports ${reports} --address 127\\.0\\.0\\.1:47100$`, 'm'));
+  assert.match(browserRun.stdout, new RegExp(`run test:form-comparison:checks -- --servers php,php-ext,go,rust --results ${reports}$`, 'm'));
+  assert.match(summaryRun.stdout, new RegExp(`run test:form-comparison:checks -- --browser-reports ${reports}$`, 'm'));
+  for (const run of [browserRun, summaryRun]) assert.doesNotMatch(run.stdout, /--address|FORM_ADDRESS/);
 });
 
 test('native PHP matrix passes the selected regular php-config path', async () => {
