@@ -62,7 +62,8 @@ ordinary JavaScript objects; the form conversion rejects such a change. Existing
 integer index properties and retain their insertion order in the current session.
 
 The form and JSON transmission choices run the same validator and repository.
-Run the [browser and PHP persistence checks](verification.md) for runtime integration:
-they execute both transmission choices, actual input and button actions,
-invalid-request rejection, equivalent stored data and fresh reloads. The
+The [form checks](testing.md#forms-and-reports) cover runtime integration: the record-store
+HTTP contract sends multipart, URL-encoded and JSON saves and invalid requests to every record
+server, and the canonical flow check types into and saves the form of every server, client and
+initialization and reloads the list. The
 processor-only result remains separate from these integration results.

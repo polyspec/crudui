@@ -278,9 +278,15 @@ npm test
 
 ## 폼과 보고서
 
-HTML 원문·DOM·스타일·입력 상태·반복 주입·브라우저 상호작용에는
-[폼 검증 절차](verification.ko.md)를 사용합니다. JSON 순서와 HTTP 저장·로드
-검사는 검증기 패키지 테스트와 별도입니다.
+`npm run test:inspector`는 폼 스냅샷과 브라우저 검사기 테스트를 실행하며, 검사하는 폼을 바꾸지 않고
+HTML 원문, 파싱한 DOM, 계산된 스타일, 실제 입력 상태를 비교합니다.
+`npm run test:form-comparison:pipeline`은 이 트리에서 다섯 레코드 서버(`.form-comparison/sources/ordered-json`의
+OrderedJSON 체크아웃, 두 PHP 확장, Go 바이너리, Rust 바이너리)를 빌드하고, 각 서버를 127.0.0.1의 빈 포트에서
+로컬 프로세스로 시작하고, 다섯 서버 모두에 레코드 저장소 HTTP 계약을 실행하고, Go·Rust 서버 테스트를 실행한
+뒤, 그 로컬 구성에서 서버·클라이언트·초기화 방식 40개 조합의 정본 List → Detail → Form → Save → List
+refresh 검사를 실행합니다. `php-config`가 있는 PHP, Composer, Go, Rust, Chrome이 필요합니다.
+[폼 비교](../spec/form-comparison.ko.md)가 레코드 리소스, 페이지와 그 검사를 정의합니다. JSON 순서와 HTTP
+저장·로드 검사는 검증기 패키지 테스트와 별도입니다.
 
 `npm run test:forms`는 호스트에서 Chromium, Firefox, WebKit의 스타일시트 배치와 스타일시트의
 사용자 정의 속성(`tests/style-properties.test.mjs`)을 검사합니다.
@@ -336,7 +342,6 @@ holder가 더 이상 실행되지 않는 lock의 보고와 제거, 해제를 확
 |---|---|
 | `make docs-verify-idempotent`의 snapshot | `mktemp -d`의 directory, 실행이 끝날 때 지움 |
 | `make test-form-styles-linux`의 Playwright image | user 범위 lock `playwright-v<version>-noble`; 실행은 image를 남기고, `make remove-form-styles-image`가 lock 아래에서 지움 |
-| `make deploy`와 `make deploy-verify`의 comparison deployment | user 범위 lock `form-comparison-deployment`, 다른 step보다 먼저 잡음 |
 | build되는 각 package의 `dist` | checkout lock `dist-<package folder>`, package build 전체와 모든 pack이 잡음; build는 `dist.next`에 쓰고 그것으로 `dist`를 바꿈 |
 | build stamp, PHP module과 그 build 기록, OrderedJSON checkout, `.tools/npm` | 실행의 경로에 쓴 뒤 제자리로 rename(`tests/build/atomic-publish.test.mjs`) |
 
@@ -347,11 +352,9 @@ output을 보며 비워진 directory는 보지 않습니다. 실패한 build는 
 <package directory> <destination directory>`는 같은 lock 아래에서 `dist`에 output이 있는지 확인하고
 `npm pack`을 실행하며, 그 JSON report를 standard output에 출력합니다. package install check와 CRUDUI
 archive를 설치하는 repository는 이것으로 pack하므로, build가 비운 `dist`를 읽는 pack은 없습니다.
-Linux에서 lock은 process 시작 시각을 `/proc`에서 읽습니다. comparison의 toolchain image 같은 최소
-container image에는 `ps`가 없기 때문입니다.
+Linux에서 lock은 process 시작 시각을 `/proc`에서 읽습니다. 최소 container image에는 `ps`가 없기
+때문입니다.
 
 `npm run test:runtimes`가 실행하는 `tests/build/shared-resources.test.mjs`는 documentation, image,
 `dist` 행을 확인합니다. `dist` lock은 임시 checkout에서 build하는 fixture package로 확인하므로 저장소의 build
 결과물을 읽지 않고 `npm run build`보다 먼저 실행됩니다.
-`npm run test:form-comparison:source`가 실행하는 `examples/form-comparison/check-deployment-lock.test.mjs`는
-deployment를 확인합니다.

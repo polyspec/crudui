@@ -21,9 +21,8 @@ Tests and deployment are recorded separately. `pending` is not a passing result.
 | generator-rust | Rust form generation and SSR | implemented | passed | not-deployed | [Runtime contract](spec/runtime-packages.md) |
 | generator-html | Framework-independent form and list HTML rendering | implemented | passed | not-deployed | [Feature contract](spec/feature-contracts.md) |
 | php-extension | Native PHP form generation and validation | implemented | passed | not-deployed | [Extension contract](spec/php-extension.md) |
-| server-template-browser | Current keyed browser instances from serialized server-compiled templates | implemented | passed | not-deployed | [Form verification procedure](operations/verification.md) |
-| native-generation-integration | Current four-server generation, SSR, transport, persistence and browser integration | implemented | passed | not-deployed | [Form verification procedure](operations/verification.md) |
-| comparison-deployment | Local comparison deployment of the mounted repository tree, data preservation and identical reapplication | implemented | passed | deployed | [Form verification procedure](operations/verification.md) |
+| server-template-browser | Current keyed browser instances from serialized server-compiled templates | implemented | passed | not-deployed | [Comparison verification of 2026-09-19](#comparison-verification-of-2026-09-19) |
+| native-generation-integration | Current four-server generation, SSR, transport, persistence and browser integration | implemented | passed | not-deployed | [Comparison verification of 2026-09-19](#comparison-verification-of-2026-09-19) |
 | expressions | Shared expression grammar and boolean conversion | implemented | passed | not-deployed | [Expression contract](spec/expressions.md) |
 | cli | Catalog, static checks and specification descriptions | implemented | passed | not-deployed | [CLI procedure](operations/cli.md) |
 | unique-json-members | Reject repeated decoded JSON member names in specification text | implemented | passed | not-deployed | [Input text contract](spec/input-text.md), [parser tests](../packages/validator-ts/src/text/json.test.ts) |
@@ -52,9 +51,9 @@ Tests and deployment are recorded separately. `pending` is not a passing result.
 | form-rows | Scoped nested row operations and saved sequence keys | implemented | passed | not-deployed | [Core tests](../packages/generator-core/src/form.test.ts) |
 | form-empty-rendering | Explicit empty collection rendering in the merged runtime | implemented | passed | not-deployed | [Empty collection tests](../packages/generator-core/src/empty-collections.test.ts) |
 | form-browser | Data injection and row actions in three frameworks | implemented | passed | not-deployed | [Shared DOM scenario](../tests/fixtures/form-session/scenario.mjs) |
-| form-typing | Native input updates with stable editable controls, focus and renderer completion | implemented | passed | not-deployed | [Browser interaction checks](operations/verification.md) |
+| form-typing | Native input updates with stable editable controls, focus and renderer completion | implemented | passed | not-deployed | [Comparison verification of 2026-09-19](#comparison-verification-of-2026-09-19) |
 | form-empty-focus | Focus after an empty collection creates its first row | implemented | passed | not-deployed | [Shared DOM scenario](../tests/fixtures/form-session/scenario.mjs) |
-| form-focus | Focus movement to the affected row after row operations | implemented | passed | not-deployed | [Browser interaction checks](operations/verification.md) |
+| form-focus | Focus movement to the affected row after row operations | implemented | passed | not-deployed | [Comparison verification of 2026-09-19](#comparison-verification-of-2026-09-19) |
 | form-markup | Recursive form nodes, list/detail display blocks, row cards and interface messages in five implementations | implemented | passed | not-deployed | [Form markup](spec/form-markup.md), [display formats](spec/display-formats.md) |
 | crudui-details | Read-only detail specification, model, framework-independent HTML rendering and structure validation | implemented | passed | not-deployed | [Specification](spec/schema.md), [display formats](spec/display-formats.md), [feature contract](spec/feature-contracts.md), [shared detail fixture](../tests/fixtures/detail-render/README.md), [native comparison](../tests/native-generators/README.md), [detail validity cases](../tests/fixtures/detail-validity/cases.json) |
 | form-view-state | Row collapse and merged undo/redo history outside record data | implemented | passed | not-deployed | [Node tests](../packages/generator-core/src/node.test.ts) |
@@ -66,10 +65,10 @@ Tests and deployment are recorded separately. `pending` is not a passing result.
 | docs-pages | Static documentation with English, Korean and API pages | implemented | passed | deployed | [Page tests](../tests/docs/web-build.test.mjs), [publication procedure](operations/documentation.md), [published web](https://polyspec.github.io/crudui/) |
 | ordered-json-check | Cross-language JSON document-order verification | implemented | passed | not-deployed | [Processor checks](../tests/ordered-json/check.py) |
 
-## Current comparison deployment verification
+## Comparison verification of 2026-09-19
 
 On 2026-09-19 the comparison deployment verification ran in 5m20s with zero failures.
-The current `main` tree is served by the comparison deployment. PHP, PHP extension, Go and Rust
+PHP, PHP extension, Go and Rust
 passed 450 generation checks, 120 persistence checks and 7,008 browser checks, and the canonical
 flow passed all 40 combinations of five servers, four clients and both initializations, with zero
 failures. The run started from repositories holding non-default records, so every initialization
@@ -122,8 +121,8 @@ PHP 8.5.10, Node.js 26.8.1, Go 1.27.0 and Rust 1.98.1:
 Conformance is checked from evidence. Every suite that runs a shared fixture records which feature,
 fixture case and runtime passed, and `make conformance` (and the final CI job) compares that evidence
 with `contracts/features.json`: a supported runtime without a passing record for every declared case
-fails. [Conformance](spec/conformance.md) defines the standard. The packages, the PHP extension and
-the comparison service are not deployed.
+fails. [Conformance](spec/conformance.md) defines the standard. The packages and the PHP extension
+are not deployed.
 
 ## Retained form comparison results
 
@@ -152,12 +151,6 @@ Between the library tree and the verified tree, five TypeScript files changed
 only API comments and an unused type import; their executable JavaScript is identical. Generated PHP
 dependencies and the Go binary were removed from Git. The new image installs the
 same locked PHP dependency versions and builds the server binaries from source.
-
-The current deployment reuses the running comparison container when its image and
-mount contract match. Source synchronization preserves container inspection,
-project routes, proxy state, certificates, stored files, HTML, health and load
-responses. Container creation is limited to bootstrap or an explicit image/mount
-contract change.
 
 Retained comparison implementations have diagnostic failures. Their failures
 remain in the reports and cause the complete comparison runner to return a

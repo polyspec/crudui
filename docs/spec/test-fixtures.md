@@ -63,5 +63,5 @@ not require Git metadata and do not write scratch fixtures under the extracted
 source directory. Each test creates a unique directory and removes it after the
 test completes.
 
-[Form verification](../operations/verification.md) defines the separate rendering,
-DOM, style, control-state and browser interaction checks.
+The [form checks](../operations/testing.md#forms-and-reports) run the separate rendering, DOM,
+style, control-state and canonical flow checks.

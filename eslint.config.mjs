@@ -33,10 +33,8 @@ const browserFiles = [
 // Node programs and tests that also hand functions to a browser page
 // (page.evaluate) or render into a DOM environment (jsdom).
 const nodeAndBrowserFiles = [
-  'examples/form-comparison/check-interaction.mjs',
   'examples/form-comparison/check-typing.mjs',
   'examples/form-comparison/src/save-form.test.mjs',
-  'examples/form-comparison/check.mjs',
   'examples/form-comparison/src/browser-job.browser.mjs',
   'examples/form-comparison/src/main-page-readiness.mjs',
   'examples/form-comparison/src/pipeline-flow.mjs',

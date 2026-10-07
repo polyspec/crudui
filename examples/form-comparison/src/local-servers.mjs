@@ -1,7 +1,6 @@
 // Local server processes for the source-level record checks and the local run of the pipeline
 // check: the five record servers and the public server, started from this checkout with their own
-// ports, data directory and public directory. The container starts the same programs with the same
-// arguments (docs/spec/form-comparison.md, "Record servers").
+// ports, data directory and public directory (docs/spec/form-comparison.md, "Record servers").
 import assert from 'node:assert/strict';
 import { execFile, fork, spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -216,8 +215,7 @@ export async function startProcess(definition, { write = text => process.stdout.
 
 /**
  * The public server of a local stack. It takes its address, data directory, public directory and the
- * port of every native record server, and receives the build state from its parent over IPC as it
- * does from the supervisor.
+ * port of every native record server, and receives the build state from its parent over IPC.
  */
 export function publicServerDefinition({ dataDirectory, publicDirectory, ports }) {
   const address = anyLoopbackPort;

@@ -12,7 +12,7 @@ if (process.argv.length !== 3 || !path.isAbsolute(process.argv[2])) {
   throw new Error('Usage: node build.mjs /absolute/public-directory');
 }
 const publicDirectory = process.argv[2];
-// The repository that contains this script; the supervisor runs it from the build tree.
+// The repository that contains this script.
 const source = path.resolve(exampleDirectory, '../..');
 const require = createRequire(path.join(source, 'packages/generator-svelte/package.json'));
 const { build } = await import(pathToFileURL(require.resolve('vite')));

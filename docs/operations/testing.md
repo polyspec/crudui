@@ -318,9 +318,16 @@ npm test
 
 ## Forms and reports
 
-Use the [form verification procedure](verification.md) for raw HTML, DOM, styles,
-control state, repeated injection and browser interactions. JSON order and HTTP
-save/load checks are separate from validator package tests.
+`npm run test:inspector` runs the form snapshot and browser inspector tests, which compare raw HTML,
+parsed DOM, computed styles and live control state without modifying the inspected form.
+`npm run test:form-comparison:pipeline` builds the five record servers from this tree (the
+OrderedJSON checkout at `.form-comparison/sources/ordered-json`, both PHP extensions, the Go binary
+and the Rust binary), starts each one as a local process on a free port of 127.0.0.1, runs the
+record-store HTTP contract against all five, runs the Go and Rust server tests and runs the
+canonical List → Detail → Form → Save → List refresh check for all 40 server, client and
+initialization combinations against that local stack; it needs PHP with `php-config`, Composer, Go,
+Rust and Chrome. The [form comparison](../spec/form-comparison.md) defines the record resource, the
+page and that check. JSON order and HTTP save/load checks are separate from validator package tests.
 
 `npm run test:forms` checks the stylesheet layout in Chromium, Firefox and WebKit on the host and
 the custom properties of the stylesheet (`tests/style-properties.test.mjs`).
@@ -379,7 +386,6 @@ concurrent runs, the report and the removal of a lock whose holder no longer run
 |---|---|
 | Snapshots of `make docs-verify-idempotent` | A directory from `mktemp -d`, removed at the run's exit |
 | Playwright image of `make test-form-styles-linux` | User-wide lock `playwright-v<version>-noble`; the run keeps the image, and `make remove-form-styles-image` removes it under the lock |
-| Comparison deployment of `make deploy` and `make deploy-verify` | User-wide lock `form-comparison-deployment`, taken before any other step |
 | `dist` of each built package | Checkout lock `dist-<package folder>`, held by the package's whole build and by every pack; the build writes `dist.next` and replaces `dist` with it |
 | The build stamp, the PHP modules and their build records, the OrderedJSON checkout, `.tools/npm` | Written to a path of the run and renamed into place (`tests/build/atomic-publish.test.mjs`) |
 
@@ -392,10 +398,8 @@ directory; a failed build leaves `dist` as it was. `node scripts/package-dist.mj
 and runs `npm pack`, whose JSON report it prints on standard output; the package install check and
 repositories that install CRUDUI archives pack through it, so a pack never reads a `dist` that a
 build has emptied. On Linux the lock reads the start time of a process from `/proc`, since minimal
-container images such as the toolchain image of the comparison have no `ps`.
+container images have no `ps`.
 
 `tests/build/shared-resources.test.mjs`, run by `npm run test:runtimes`, checks the documentation,
 image and `dist` rows; it checks the `dist` lock on a fixture package that it builds in a temporary
-checkout, so it reads no build output of the repository and runs before `npm run build`;
-`examples/form-comparison/check-deployment-lock.test.mjs`, run by
-`npm run test:form-comparison:source`, checks the deployment.
+checkout, so it reads no build output of the repository and runs before `npm run build`.

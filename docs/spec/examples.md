@@ -6,7 +6,7 @@ Current examples use unversioned public APIs. `examples/cross-check-console`
 compares validation and rendering results across implementations. Form usage is
 defined in [form operations](../operations/forms.md).
 
-The canonical local example entry is [`https://crudui.test/`](https://crudui.test/). It is one
+The canonical local example entry is the root page of the public server. It is one
 page for one customer record: List → Detail → Form → Save → List refresh. Its list, detail and
 form use one record specification and one shared fixture of 45 records, and every selectable
 server (JavaScript, PHP, PHP extension, Go and Rust) keeps its own persistent store of those
@@ -48,8 +48,3 @@ Reusable form inspection and JSON order checks are maintained under
 
 Frontend examples import repository-local specifications during the example
 build. The resulting static build includes its form specifications.
-
-The external comparison environment uses Compose for its image, resources,
-mounts and startup health check. `containerctl up` reuses unchanged containers
-and serves local HTTPS. Repeated application of the same configuration must
-preserve storage, routes and HTTP responses.

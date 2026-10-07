@@ -10,7 +10,6 @@
 - [Feature contracts](spec/feature-contracts.md)
 - [Form development and verification](operations/forms.md)
 - [List and detail development and verification](operations/displays.md)
-- [Form and transport verification](operations/verification.md)
 - [Repository settings](operations/repository.md)
 - [Documentation maintenance](operations/documentation.md)
 - [Expression grammar](spec/expressions.md)

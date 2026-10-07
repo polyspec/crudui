@@ -108,7 +108,7 @@ test('a lock of a holder that no longer runs is reported and kept until removed 
   const pid = await deadPid();
   const record = {
     checkout: '/elsewhere/crudui', pid, processStart: 'Mon Oct  5 10:00:00 2026',
-    acquired: '2026-10-05T01:00:00.000Z', command: 'make deploy', token: 'dead',
+    acquired: '2026-10-05T01:00:00.000Z', command: 'make test-form-styles-linux', token: 'dead',
   };
   fs.writeFileSync(file, `${JSON.stringify(record)}\n`);
   assert.throws(() => acquireHolderLock(file), error => {

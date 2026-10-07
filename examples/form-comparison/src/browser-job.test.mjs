@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
-  browserReportLimitMs, browserReportLimitsMs, collectBrowserJob, createBrowserJob,
+  browserReportLimitMs, browserReportLimitsMs, browserReportMeasurementsMs, collectBrowserJob, createBrowserJob,
 } from './browser-job.mjs';
+import { measuredLimitMs } from './unit-pool.mjs';
 
 test('starts the matrix without waiting for all reports', async () => {
   const events = [];
@@ -151,6 +152,13 @@ test('gives each report the limit of its kind and none to the whole run', () => 
   assert.equal(browserReportLimitMs(null), browserReportLimitsMs.transition);
   for (const limit of Object.values(browserReportLimitsMs)) {
     assert.ok(Number.isSafeInteger(limit) && limit > 0 && limit <= 100_000);
+  }
+  // Three times the slowest measurement, rounded up to five seconds, at least ten seconds.
+  assert.equal(measuredLimitMs(32_415), 100_000);
+  assert.equal(measuredLimitMs(1_804), 10_000);
+  assert.deepEqual(Object.keys(browserReportLimitsMs).sort(), Object.keys(browserReportMeasurementsMs).sort());
+  for (const [id, measured] of Object.entries(browserReportMeasurementsMs)) {
+    assert.equal(browserReportLimitsMs[id], measuredLimitMs(measured), `report ${id}: limit from its measurement`);
   }
 });
 

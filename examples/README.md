@@ -13,7 +13,7 @@
 | [Rust package example](../packages/generator-rust/examples/form.rs) | One HTML document with a form, a list and details rendered from one record |
 
 The [list and detail procedure](../docs/operations/displays.md) describes the package
-examples' list and detail output and their commands. Use the
-[verification procedures](../docs/operations/verification.md) to
-run package checks and the preserved external browser and server comparison. Verification and
-local deployment status are recorded in [feature status](../docs/features.md).
+examples' list and detail output and their commands. The
+[form checks](../docs/operations/testing.md#forms-and-reports) run the browser and server
+comparison. Verification and deployment status are recorded in
+[feature status](../docs/features.md).

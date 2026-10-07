@@ -38,7 +38,6 @@ and Korean guides, specifications and generated API references.
 - [Native PHP package](packages/php-ext/README.md)
 - [Feature and deployment status](docs/features.md)
 - [Development and verification](docs/operations/forms.md)
-- [Form and transport verification](docs/operations/verification.md)
 - [Documentation maintenance](docs/operations/documentation.md)
 - [Changes](CHANGELOG.md)
 - [Development rules](AGENTS.md)

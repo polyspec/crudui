@@ -29,7 +29,7 @@ export GOPROXY := off
 export npm_config_offline := true
 export COMPOSER_DISABLE_NETWORK := 1
 ONLINE := env -u CARGO_NET_OFFLINE -u GOPROXY -u npm_config_offline -u COMPOSER_DISABLE_NETWORK
-.PHONY: help ci-targets ci-passed release-verify release-versions release-assets release-publish push-gate-check install install-npm install-node-modules install-composer install-rust install-phpdocumentor install-browsers check-ci-browser test-runtimes test-dependencies build lint typecheck test-validator-js test-validator-php test-validator-go test-validator-rust test-cross-check manifest-test require-build test-cli manifest-check manifest-docs-check test-forms test-form-comparison test-form-comparison-pipeline test-packages test-build test-build-repeat test-inspector test-bench check-conformance install-crates install-ordered-json install-cargo-audit cargo-downloads-check dependency-review toolchain-check owner-check test-ordered-json docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-engine test-native-generators test-php-api test-native test-validators test-form-binding conformance format-check deploy deploy-verify deploy-watch github-settings github-settings-check records-check hooks hooks-check ci rerun-failed test-form-styles-linux remove-form-styles-image
+.PHONY: help ci-targets ci-passed release-verify release-versions release-assets release-publish push-gate-check install install-npm install-node-modules install-composer install-rust install-phpdocumentor install-browsers check-ci-browser test-runtimes test-dependencies build lint typecheck test-validator-js test-validator-php test-validator-go test-validator-rust test-cross-check manifest-test require-build test-cli manifest-check manifest-docs-check test-forms test-form-comparison test-form-comparison-pipeline test-packages test-build test-build-repeat test-inspector test-bench check-conformance install-crates install-ordered-json install-cargo-audit cargo-downloads-check dependency-review toolchain-check owner-check test-ordered-json docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-engine test-native-generators test-php-api test-native test-validators test-form-binding conformance format-check github-settings github-settings-check records-check hooks hooks-check ci rerun-failed test-form-styles-linux remove-form-styles-image
 .NOTPARALLEL: docs docs-web docs-dev docs-preview docs-check docs-verify-idempotent
 
 # Validator benchmark iteration counts (override on the command line, e.g.
@@ -79,9 +79,6 @@ help: ## 타겟 설명
 	@echo "  make rerun-failed          Rerun the commands of make ci that did not pass on the current tree"
 	@echo "  make test-form-styles-linux  Run the stylesheet layout checks on Linux in the Playwright image"
 	@echo "  make remove-form-styles-image  Remove that Playwright image unless a check holds it"
-	@echo "  make deploy                Deploy the comparison service from the current tree"
-	@echo "  make deploy-verify         Verify the deployed comparison service"
-	@echo "  make deploy-watch          Publish working-tree changes to the comparison service"
 	@echo "  make github-settings       Apply the repository settings and the ruleset main in .github/repository.json"
 	@echo "  make github-settings-check Fail when the repository settings differ from the declaration"
 	@echo "  make records-check         The document and checklist rules that need Node.js alone"
@@ -415,19 +412,6 @@ format-check:
 	if [ $$status -eq 0 ]; then echo "[make] format-check: Rust crates and Go files are formatted"; fi; \
 	exit $$status
 
-# The comparison service in its long-running container (docs/operations/verification.md).
-# Deployment is idempotent: it recreates nothing that already matches the tree.
-deploy: ## Deploy the comparison service from the current tree
-	node examples/form-comparison/comparison-deployment.mjs
-
-deploy-verify: ## Verify the deployed comparison service
-	node examples/form-comparison/verification.mjs
-
-# The host's source watcher: it signals the supervisor of the comparison service at every file
-# event of the working tree, and runs until it is stopped or a watch or delivery fails.
-deploy-watch: ## Publish working-tree changes to the comparison service
-	node examples/form-comparison/source-events.mjs
-
 # GitHub repository settings declared in .github/repository.json (docs/operations/repository.md), the ruleset main
 # included: every change reaches main through a pull request and the merge queue. These targets act on the repository on
 # GitHub, so neither make ci nor a CI job runs them.
@@ -443,7 +427,7 @@ github-settings-check: ## Fail when the repository settings differ from the decl
 records-check: ## Check the document pairs, links, changelog, writing and checklist rules with Node.js alone
 	@status=0; \
 	node scripts/check-documents.mjs || status=1; \
-	node scripts/run-tests.mjs node --timeout 10 -- scripts/checklist-markers.test.mjs scripts/documentation-links.test.mjs tests/docs/changelog.test.mjs tests/docs/repository-writing.test.mjs tests/docs/candidate-verification-procedure.test.mjs tests/docs/example-readmes.test.mjs tests/docs/fixture-readmes.test.mjs || status=1; \
+	node scripts/run-tests.mjs node --timeout 10 -- scripts/checklist-markers.test.mjs scripts/documentation-links.test.mjs tests/docs/changelog.test.mjs tests/docs/repository-writing.test.mjs tests/docs/example-readmes.test.mjs tests/docs/fixture-readmes.test.mjs || status=1; \
 	exit $$status
 
 # The pre-push hook of every push (scripts/push-gate.mjs): `make hooks` installs it, `make hooks-check` fails while

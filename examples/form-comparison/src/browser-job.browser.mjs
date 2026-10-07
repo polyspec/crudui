@@ -10,7 +10,7 @@ import { setup, teardown } from '../../../scripts/test-progress/hooks.mjs';
 
 const mediaTypes = { '.mjs': 'text/javascript', '.json': 'application/json' };
 
-/** Serve the public modules over HTTP, as the deployment does, so their imports resolve. */
+/** Serve the public modules over HTTP, as the public server does, so their imports resolve. */
 async function publicModules(t) {
   const server = createServer((request, response) => {
     const name = new URL(request.url, 'http://127.0.0.1').pathname.slice(1);

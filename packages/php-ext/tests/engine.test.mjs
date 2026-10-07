@@ -12,7 +12,6 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { Node } from '@polyspec/crudui-generator-react';
 import { buildDetail } from '@polyspec/crudui-generator-core';
 
-import { buildTargets } from '../../../examples/form-comparison/src/build-targets.mjs';
 import { dateCases, dateListSpec, imageCase, numberCases, urlCase } from '../../../tests/native-generators/cases.mjs';
 import { dispatch, errorRecord } from '../../../tests/native-generators/javascript.mjs';
 import { recordConformance } from '../../../tests/conformance/evidence.mjs';
@@ -2279,7 +2278,6 @@ const root = new URL('../../../', import.meta.url);
 const files = Object.fromEntries([
   '.dockerignore',
   'Makefile',
-  'examples/form-comparison/Containerfile',
   'tests/containers/native.Containerfile',
   'packages/php-ext/README.md',
   'packages/php-ext/README.ko.md',
@@ -2294,19 +2292,7 @@ test('PHP modules use the shared builder through explicit entry points', { timeo
   const common = 'scripts/php-extension-builder.mjs';
   const crudui = 'scripts/build-crudui-php-extension.mjs';
   const orderedJson = 'scripts/build-ordered-json-php-extension.mjs';
-  const comparisonTarget = id => buildTargets.find(target => target.id === id);
-  const cruduiTarget = comparisonTarget('crudui-php-extension');
-  const orderedJsonTarget = comparisonTarget('ordered-json-php-extension');
-  for (const [target, filenames] of [
-    [cruduiTarget, [common, crudui]], [orderedJsonTarget, [common, orderedJson]],
-  ]) {
-    for (const filename of filenames) {
-      await access(new URL(filename, root));
-      assert.ok(target.inputs.includes(filename),
-        'The form comparison ' + target.id + ' build must rebuild when ' + filename + ' changes');
-    }
-    assert.deepEqual(target.restarts, ['php-ext']);
-  }
+  for (const filename of [common, crudui, orderedJson]) await access(new URL(filename, root));
 
   assert.match(files.Makefile, /node scripts\/build-crudui-php-extension\.mjs/);
   assert.match(files['tests/containers/native.Containerfile'],
@@ -2320,20 +2306,6 @@ test('PHP modules use the shared builder through explicit entry points', { timeo
     'The native container must declare php-config once',
   );
 
-  // The comparison toolchain image contains no source; its supervisor builds both modules
-  // from the mounted repository with the declared php-config.
-  const commandLine = step => [step.command, ...step.args].join(' ');
-  assert.deepEqual(cruduiTarget.steps.map(commandLine),
-    ['node scripts/build-crudui-php-extension.mjs --php-config /usr/local/bin/php-config']);
-  assert.deepEqual(orderedJsonTarget.steps.map(commandLine), [
-    'node scripts/build-ordered-json-php-extension.mjs --php-config /usr/local/bin/php-config'
-      + ' --source /workspace/build/tree/.form-comparison/sources/ordered-json/php-extension/src',
-  ]);
-  const toolchain = normalized(files['examples/form-comparison/Containerfile']);
-  assert.doesNotMatch(toolchain, /scripts\/build-|phpize|autoconf|libtool/i);
-  for (const step of [...cruduiTarget.steps, ...orderedJsonTarget.steps]) {
-    assert.doesNotMatch(commandLine(step), /phpize|autoconf|libtool|--cc /i);
-  }
   assert.doesNotMatch(normalized(files['tests/containers/native.Containerfile']),
     /--cc \/usr\/bin\/gcc-14/);
 
@@ -2342,7 +2314,6 @@ test('PHP modules use the shared builder through explicit entry points', { timeo
     'scripts/build-php-extension.sh',
     'scripts/build-php-extension.mjs',
   ]) {
-    assert.equal(buildTargets.some(target => target.inputs.includes(removed)), false);
     await assert.rejects(access(new URL(removed, root)));
   }
 });
@@ -2376,8 +2347,6 @@ test('CRUDUI PHP extension package contains one C implementation', { timeout: EN
   await inspect(sourceRoot);
   prohibited.sort();
   assert.deepEqual(prohibited, []);
-  assert.equal(buildTargets.find(target => target.id === 'crudui-php-extension').steps
-    .some(step => step.command === 'cargo'), false);
   assert.doesNotMatch(
     files['scripts/build-crudui-php-extension.mjs'],
     /\b(?:cargo|rustc|rustdoc|Rust)\b/,
