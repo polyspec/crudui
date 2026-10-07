@@ -4,6 +4,12 @@
 
 ## 0.0.2
 
+### 2026-10-07 — 0.0.2 lock의 dependency review (C11.4-1)
+
+- `config/dependency-review.json`은 repository package의 0.0.2 항목을 가진 lock 9개의 review를 기록하며,
+  `make dependency-review RECORD=1`이 썼습니다. 예외 없는 더 새 stable release와 advisory는 없고,
+  `make test-dependencies`가 checkout을 이 기록과 비교합니다.
+
 ### 2026-10-07 — GitHub 본문 한도 안의 release notes (C11.3)
 
 - `make release-publish`는 `CHANGELOG.md`의 section `## X.Y.Z`가 GitHub release 본문 한도인 125000자 이하이면
