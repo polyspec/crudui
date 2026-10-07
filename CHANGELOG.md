@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+### 2026-10-07 — Native suites in three CI jobs (C12.1-1)
+
+- The native suites run in three CI jobs: `php-engine` runs `make test-php-engine`, the C engine tests of the PHP
+  extension, once with Node.js and the C compiler; `native-generators` runs `make test-native-generators`, the Go and
+  Rust generator tests, the protocol and widget tests and the shared suite of the JavaScript, HTML, Go and Rust
+  targets, and `make test-bench` once; `php-api` runs `make test-php-api`, the build of `crudui.so`, its builder and API
+  tests, the PHP generator tests and the shared suite of the PHP and native PHP targets, for PHP 8.4 and 8.5.
+  `make test-native` runs the three targets, and `PHP_NATIVE_REPORT` names the report of the PHP targets.
+- The job `conformance` downloads the evidence artifact of each job into a directory of its own, and
+  `scripts/check-conformance.mjs` reads the evidence and the run records of the directory and its subdirectories, so
+  no evidence file of one job replaces a file of the same name from another.
+
 ### 2026-10-07 — Release steps, Go module tags and archives (C11.1-4)
 
 - `.github/workflows/release.yml` runs on the tags `v*` and `**/v*`: in a tag filter `*` does not match `/`, so

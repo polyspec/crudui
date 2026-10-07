@@ -95,6 +95,7 @@ export const evidenceSuites = [
   { name: 'Vue renderer', run: { program: 'scripts/run-tests.mjs', tool: 'vitest', cwd: 'packages/generator-vue' }, runtimes: ['vue'] },
   { name: 'Svelte renderer', run: { program: 'scripts/run-tests.mjs', tool: 'vitest', cwd: 'packages/generator-svelte' }, runtimes: ['svelte'] },
   { name: 'PHP extension', run: { program: 'scripts/run-tests.mjs', tool: 'node', argument: 'packages/php-ext/tests/engine.test.mjs' }, runtimes: ['php-native'] },
+  { name: 'PHP extension API', run: { program: 'scripts/run-tests.mjs', tool: 'node', argument: 'packages/php-ext/tests/api.test.mjs' }, runtimes: ['php-native'] },
   { name: 'native generators', run: { program: 'tests/native-generators/run.mjs' }, runtimes: ['javascript', 'javascript-html', 'php', 'go', 'rust', 'php-native'] },
 ];
 
@@ -164,22 +165,30 @@ async function fixtureCases(fixture) {
   return fixture.cases;
 }
 
-async function readEvidence(directory) {
+/**
+ * The files of `directory` and of its subdirectories as paths relative to it, sorted; none when it does not exist. CI
+ * downloads the evidence of each job into a directory of its own, so two files of the same name from two jobs are both
+ * read.
+ */
+async function filesBelow(directory) {
+  try { return (await readdir(directory, { recursive: true })).sort(); } catch (error) { if (error.code === 'ENOENT') return []; throw error; }
+}
+
+/** The evidence records of every `.jsonl` file of `directory` and its subdirectories, and the number of those files. */
+export async function readEvidence(directory) {
   const evidence = [];
-  let files = [];
-  try { files = await readdir(directory); } catch (error) { if (error.code !== 'ENOENT') throw error; }
-  for (const file of files.filter(name => name.endsWith('.jsonl')).sort()) {
+  const files = (await filesBelow(directory)).filter(name => name.endsWith('.jsonl'));
+  for (const file of files) {
     const text = await readFile(path.join(directory, file), 'utf8');
     for (const line of text.split('\n').filter(Boolean)) evidence.push(JSON.parse(line));
   }
-  return { evidence, files: files.filter(name => name.endsWith('.jsonl')).length };
+  return { evidence, files: files.length };
 }
 
-async function readRuns(directory) {
-  let files = [];
-  try { files = await readdir(path.join(directory, 'runs')); } catch (error) { if (error.code !== 'ENOENT') throw error; }
-  return Promise.all(files.filter(name => name.endsWith('.json')).sort()
-    .map(async file => JSON.parse(await readFile(path.join(directory, 'runs', file), 'utf8'))));
+/** The run records of every `runs/` directory of `directory` and its subdirectories. */
+export async function readRuns(directory) {
+  const files = (await filesBelow(directory)).filter(name => name.endsWith('.json') && path.basename(path.dirname(name)) === 'runs');
+  return Promise.all(files.map(async file => JSON.parse(await readFile(path.join(directory, file), 'utf8'))));
 }
 
 async function main() {

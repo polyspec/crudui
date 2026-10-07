@@ -22,10 +22,12 @@ Every command must return status 0 for the same source tree before tree
 verification. `npm run test:dependencies` verifies package declarations and install
 policy, and compares the dependencies with their recorded review without a registry query;
 `make dependency-review RECORD=1` records a new review (docs/spec/package-build.md). `npm run typecheck` type-checks every TypeScript package. `make test-validators`
-runs the TypeScript, PHP, Go and Rust validator suites. `make test-native` builds the PHP
-extension, runs its engine, builder and API tests (`make test-php-extension`) and runs the PHP,
-Go, Rust, shared protocol and generator checks, including the Chromium widget and timezone
-checks. `npm run test:form-comparison:pipeline` builds the five record servers from this tree
+runs the TypeScript, PHP, Go and Rust validator suites. `make test-native` runs its three
+parts: the C engine tests of the PHP extension (`make test-php-engine`); the Go and Rust generator
+tests, the shared protocol, the Chromium widget checks and the shared generator checks of the
+JavaScript, HTML, Go and Rust targets (`make test-native-generators`); and the build of the PHP
+extension, its builder and API tests, the PHP generator tests and the shared generator checks of
+the PHP and native PHP targets, including the timezone checks (`make test-php-api`). `npm run test:form-comparison:pipeline` builds the five record servers from this tree
 (the OrderedJSON checkout at `.form-comparison/sources/ordered-json`, both PHP extensions, the Go
 binary and the Rust binary), runs the record-store HTTP contract against all five, runs the Go and
 Rust server tests and runs the canonical List → Detail → Form → Save → List refresh check for all

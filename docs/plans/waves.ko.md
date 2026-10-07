@@ -47,3 +47,7 @@
 ## Wave 11
 
 의존: 없음. 모든 변경은 pull request와 merge queue로 `main`에 들어가므로 `main`의 모든 commit은 필수 check를 통과했다. release는 `main` commit의 tag `vX.Y.Z`, 하위 디렉터리의 Go module이면 `<디렉터리>/vX.Y.Z`이고, maintainer가 version을 정하는 pull request 다음에 tag를 만들며 pull request는 tag를 싣지 않는다. ruleset `main`은 check `push-gate`와 CI workflow의 완료 check `ci-passed` 하나를 요구하므로 CI job을 추가하거나 이름을 바꿔도 ruleset은 바뀌지 않는다. 변경 기록은 다음 release의 변경을 `## Unreleased` 아래에 두고, release pull request가 그 section 이름을 `## X.Y.Z`로 바꾼다.
+
+## Wave 12
+
+의존: 없음. CI workflow에서 가장 긴 job이 check `ci-passed`가 끝나는 때를 정한다. job `Native generation and PHP API`는 matrix의 두 PHP release마다 모든 native suite를 실행했고, 거기에는 matrix의 PHP release가 필요 없는 PHP 확장의 C 엔진 test, JavaScript, HTML, Go, Rust 대상의 생성기, benchmark driver도 들어 있었다. `setup-node`의 cache는 모든 job에서 npm package 700 byte를 복원했다.

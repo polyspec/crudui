@@ -99,6 +99,12 @@ The CI workflow runs the same commands in its jobs on each pull request, each me
 (`workflow_dispatch`) and does not run `make ci`, so the guard does not decide CI runs. A new checkout, as in CI, has no record, so `make ci`
 runs there when no task is `[~]` and the tree is clean.
 
+The native suites run in three CI jobs, so no job waits for a suite that another runtime needs:
+`php-engine` runs `make test-php-engine` once with Node.js and the C compiler, `native-generators`
+runs `make test-native-generators` and `make test-bench` once, and `php-api` runs `make test-php-api`
+for each PHP release of its matrix. `make test-native` runs the three targets in one command
+(`docs/operations/native-generators.md`).
+
 On request, `make owner-check` runs the checks that own the changed paths: the uncommitted
 changes and new files, the paths of `PATHS`, or the paths changed since `BASE`. `scripts/owner-checks.json`
 names, for globs of paths, the make targets, the root npm scripts, the test scripts of workspaces and

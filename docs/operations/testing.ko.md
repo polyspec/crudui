@@ -82,6 +82,12 @@ record의 `reruns`에 쓰고, 모든 명령이 통과하면 그 tree의 결과�
 CI workflow는 pull request, merge group, 수동 실행(`workflow_dispatch`)마다 같은 명령을 job에서 실행하고 `make ci`는 실행하지 않으므로 guard는 CI 실행을 판단하지 않습니다.
 CI처럼 새 checkout에는 record가 없으므로, 그곳에서 `make ci`는 `[~]` 작업이 없고 tree가 깨끗하면 실행됩니다.
 
+native suite는 세 CI job에서 실행되므로 어떤 job도 다른 runtime이 필요한 suite를 기다리지 않습니다.
+`php-engine`은 Node.js와 C compiler로 `make test-php-engine`을 한 번, `native-generators`는
+`make test-native-generators`와 `make test-bench`를 한 번 실행하고, `php-api`는 matrix의 PHP release마다
+`make test-php-api`를 실행합니다. `make test-native`는 세 대상을 한 명령으로 실행합니다
+(`docs/operations/native-generators.ko.md`).
+
 요청하면 `make owner-check`는 바뀐 경로를 소유한 검사를 실행합니다. 경로는 commit되지 않은 변경과 새 file,
 `PATHS`의 경로, 또는 `BASE` 뒤에 바뀐 경로입니다. `scripts/owner-checks.json`은 경로 glob마다 그것을 소유한 make 대상,
 root npm script, workspace와 package directory의 test script, node test file을, 검사마다 그것이 읽는 경로(`inputs`)를
