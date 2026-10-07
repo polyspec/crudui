@@ -105,6 +105,14 @@ runs `make test-native-generators` and `make test-bench` once, and `php-api` run
 for each PHP release of its matrix. `make test-native` runs the three targets in one command
 (`docs/operations/native-generators.md`).
 
+Every job that installs the npm packages restores and saves `~/.npm` with `actions/cache` under the
+key `npm-<system>-<architecture>-<hash of package-lock.json>` before it installs npm, and `setup-node`
+caches nothing: its cache saved the npm directory of the job that finished first, also of a job that
+installs no npm package, and every later job restored 700 bytes. A run reads the caches of its own
+ref and of `main`, so the cache that `.github/workflows/pages.yml` saves on `main` under the same key
+serves every pull request and merge group. The Cargo cache of `Swatinem/rust-cache` has a key of its
+job, the Rust toolchain and the Cargo locks of its workspaces; each job id has one such key.
+
 On request, `make owner-check` runs the checks that own the changed paths: the uncommitted
 changes and new files, the paths of `PATHS`, or the paths changed since `BASE`. `scripts/owner-checks.json`
 names, for globs of paths, the make targets, the root npm scripts, the test scripts of workspaces and

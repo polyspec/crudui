@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### 2026-10-07 — package-lock.json에 따른 npm cache (C12.1-2)
+
+- CI, Pages, release workflow에서 npm package를 설치하는 모든 job은 npm을 설치하기 전에 `actions/cache`로
+  `~/.npm`을 runner system, architecture, `package-lock.json` hash의 key로 복원하고 저장합니다. `setup-node`는
+  아무것도 cache하지 않습니다. 그 cache는 먼저 끝난 job의 npm 디렉터리를, npm package를 설치하지 않는 job의
+  것도 저장했으므로 모든 job이 700 byte를 복원했습니다.
+
 ### 2026-10-07 — 세 CI job의 native suite (C12.1-1)
 
 - native suite는 세 CI job에서 실행됩니다. `php-engine`은 PHP 확장의 C 엔진 test인 `make test-php-engine`을
