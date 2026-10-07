@@ -485,8 +485,9 @@ release-assets: ## Build the packages and write the npm and Composer archives of
 # @polyspec on an unreachable registry. release-install-lock writes the fixtures of the version of package.json and
 # regenerates their locks from the archives; `make release-assets TAG=vX.Y.Z RELEASE_COMMIT=HEAD` writes the archives
 # of a release commit before its tag exists.
-release-install-check: ## Install the archives of var/release/assets from the consumer fixtures of tests/release-install
-	$(ONLINE) node scripts/release-install.mjs check
+release-install-check: ## Install the archives of TAG from var/release/assets with the consumer fixtures of tests/release-install
+	$(if $(TAG),,$(error make $@ needs TAG=<tag>, a tag vX.Y.Z or <directory>/vX.Y.Z))
+	$(ONLINE) node scripts/release-install.mjs check "$$TAG"
 
 # The same install in CI, before any tag: the archives of HEAD at the version of package.json, written as
 # release-assets writes them, then release-install-check.

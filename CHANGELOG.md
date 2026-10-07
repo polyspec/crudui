@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### 2026-10-07 — The archive install check of a Go module tag (C11.6-4)
+
+- `make release-install-check` takes the tag of the release: for a Go module tag `<directory>/vX.Y.Z`, which releases
+  no archive, it names the tag and installs nothing, and for a tag `vX.Y.Z` it installs the archives of the tag.
+
 ## 0.0.3
 
 ### 2026-10-07 — The browser checks of each form server in a CI job of its own (C11.6-3)

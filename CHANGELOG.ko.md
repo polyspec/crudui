@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### 2026-10-07 — Go module tag의 archive 설치 검사 (C11.6-4)
+
+- `make release-install-check`는 release의 tag를 받는다. archive를 release하지 않는 Go module tag
+  `<directory>/vX.Y.Z`이면 그 tag를 밝히고 아무것도 설치하지 않으며, tag `vX.Y.Z`이면 그 tag의 archive를 설치한다.
+
 ## 0.0.3
 
 ### 2026-10-07 — 폼 서버마다 자기 CI 작업에서 실행하는 브라우저 검사 (C11.6-3)

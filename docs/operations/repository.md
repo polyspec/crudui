@@ -137,8 +137,10 @@ It checks each refused form of a published dependency, a packed manifest that di
 published manifests of the repository, and that the consumer fixtures of `tests/release-install` name the archives of
 the version of `package.json`.
 
-`make release-install-check` (`scripts/release-install.mjs check`), the step of the release workflow between
-`make release-assets` and `make release-publish`, installs the archives of `var/release/assets` as a consumer does, in a
+`make release-install-check` (`scripts/release-install.mjs check "$TAG"`), the step of the release workflow between
+`make release-assets` and `make release-publish`, installs the archives of the tag `TAG` from `var/release/assets` as a
+consumer does; a Go module tag `<directory>/vX.Y.Z` releases no archive, so for it the check names the tag and installs
+nothing. The install runs in a
 temporary directory outside the repository: it copies the fixture `tests/release-install/npm` (`package.json` with the
 tarballs as `file:` dependencies, and `package-lock.json`) with the tarballs and runs `npm ci` with an empty cache and
 the scope `@polyspec` on the unreachable registry `http://127.0.0.1:9/`, and it copies the fixture
