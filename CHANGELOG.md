@@ -1,5 +1,12 @@
 # Changes
 
+## 2026-10-07 — OrderedJSON from the tag v0.0.1 (C10.2)
+
+- The comparison takes OrderedJSON from the tag `v0.0.1` of `polyspec/ordered-json`: `make install-ordered-json`
+  checks out the commit of the tag, keeps a checkout at that commit without tracked changes and replaces any other
+  one, and the local pipeline refuses a checkout at another commit than the tag, naming the tag.
+- Until version 0.1, a polyspec repository depends on another polyspec repository through a GitHub tag of it.
+
 ## 2026-10-07 — Program names of the polyspec convention (C9.2)
 
 - The programs of `examples/`, `tests/` and `tools/` follow the package naming: the cross-check console server is the

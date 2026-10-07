@@ -42,4 +42,4 @@ Depends on: none. The polyspec repositories name their packages after the organi
 
 ## Wave 10
 
-Depends on: none. The form comparison takes OrderedJSON from the branch `main` of `polyspec/ordered-json` and uses the package names of that branch.
+Depends on: none. The form comparison takes OrderedJSON from the tag `v0.0.1` of `polyspec/ordered-json` and uses the package names of that tree. Until version 0.1, a polyspec repository depends on another polyspec repository through a GitHub tag of it.
