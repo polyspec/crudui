@@ -103,7 +103,9 @@ export function runCommand(executable, args, options = {}) {
         return;
       }
       const result = signal ?? code ?? 'unknown';
-      const detail = capture && stderr.trim() ? ': ' + stderr.trim() : '';
+      // A program such as PHP reports a startup failure on its standard output.
+      const output = stderr.trim() || stdout.trim();
+      const detail = capture && output ? ': ' + output : '';
       reject(new Error('Command failed (' + result + '): '
         + commandText(executable, args) + detail));
     });

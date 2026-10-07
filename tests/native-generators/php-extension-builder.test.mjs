@@ -289,3 +289,17 @@ test('a build publishes the module by renaming the checked module of its process
   assert.match(compile[compile.indexOf('-o') + 1], new RegExp(`/\\.build/run-${process.pid}/objects/0-module\\.o$`));
   assert.deepEqual((await readdir(path.join(source, '.build'))).sort(), ['build.json']);
 });
+
+test('the OrderedJSON module is built from the sources its config.m4 declares', async () => {
+  const { declaredExtensionSources } = await import('../../scripts/build-ordered-json-php-extension.mjs');
+  assert.deepEqual(declaredExtensionSources(
+    'if test "$PHP_ORDERED_JSON" != "no"; then\n'
+    + '  PHP_NEW_EXTENSION([ordered_json], [ordered_json.c hydrate.c], [$ext_shared])\nfi\n'),
+  ['ordered_json.c', 'hydrate.c']);
+  assert.throws(() => declaredExtensionSources('PHP_NEW_EXTENSION([other], [other.c], [$ext_shared])'),
+    /declare the module ordered_json/);
+  assert.throws(() => declaredExtensionSources('PHP_ARG_ENABLE([ordered-json])'),
+    /exactly one PHP_NEW_EXTENSION/);
+  assert.throws(() => declaredExtensionSources('PHP_NEW_EXTENSION([ordered_json], [../outside.c], [$ext_shared])'),
+    /C file beside it/);
+});

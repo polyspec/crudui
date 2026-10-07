@@ -213,11 +213,12 @@ sandbox 비활성화 인자 없이 Chrome을 시작하고 `chrome://sandbox`가
 Git에서 추적하는 모든 npm 잠금 파일은 유지 관리 대상 의존성 그래프입니다. 루트
 설치의 `npm ls --all`은 잘못되거나 누락되거나 충돌하는 의존성 없이 상태 0을
 반환해야 합니다. 각 그래프의
-`npm ci --dry-run --strict-allow-scripts`는 성공해야 합니다. URL 의존성은 루트
-매니페스트가 직접 선언한 경우에만 가져올 수 있습니다. 프로젝트 npm 설정은
-`allow-remote=root`를 선언하며 의존성이 추가한 URL 의존성은 npm이 거부합니다.
-매니페스트는 허용한 각 URL을 변경되지 않는 소스 리비전에 고정하고 잠금 파일은
-무결성을 기록합니다. 호환되는 안전한 안정
+`npm ci --dry-run --strict-allow-scripts`는 성공해야 합니다. npm은 package를
+npm registry, workspace 또는 make 대상이 설치한 checkout 디렉터리에서 설치합니다. 루트
+매니페스트가 `file:`로 연결하는 OrderedJSON tag checkout이 그런 디렉터리입니다. 어떤
+매니페스트도 URL 또는 Git 의존성을 선언하지 않고, 잠금 파일의 모든 registry package는
+SHA-512 무결성을 기록하며, 프로젝트 npm 설정은 `allow-remote=none`과 `allow-git=none`을
+선언하므로 의존성이 추가한 URL 또는 Git 소스는 npm이 거부합니다. 호환되는 안전한 안정
 릴리스가 없는 도구는 교체합니다. 의존성 override와 audit 제외는 이 기준을
 충족하지 않습니다. 사용하지 않는 빌드·문서 의존성은 제거합니다.
 
@@ -228,7 +229,9 @@ tree는 언제나 같은 결과를 냅니다. review 대상은 registry 의존�
 `package.json`의 `dependencies`와 `devDependencies`, 그리고 `config/dependency-policy.json`이
 지정한 Composer package(`packages/validator-php`, `packages/generator-php`)의 `require`와
 `require-dev`입니다. peer 의존성, URL 의존성, 이 저장소의 package와 Composer platform 요구
-사항은 정의상 review 밖에 있습니다. `make dependency-review`는 각 registry 의존성에 대해
+사항은 정의상 review 밖에 있습니다. GitHub tag에서 가져온 polyspec package는 그 tag의
+release입니다. 검사는 루트 매니페스트가 그 package를 tag의 checkout에 연결하고, checkout이
+tag의 버전을 가지며, 잠금 파일이 그 버전을 기록할 것을 요구합니다. `make dependency-review`는 각 registry 의존성에 대해
 게시자가 deprecated로 표시하지 않은 최신 안정 release를, 그리고 `package-lock.json`(moderate,
 high, critical)과 각 `composer.lock`(모든 보안 권고와 abandoned package)의 보안 권고를
 registry에 묻고, checkout의 모든 Cargo lock의 보안 권고를 cargo-audit으로 RustSec advisory

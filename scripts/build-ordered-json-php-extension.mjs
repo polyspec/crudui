@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
@@ -29,11 +31,29 @@ const generatedPaths = [
   'configure~',
   'confdefs.h',
   'libtool',
-  'ordered_json.dep',
   'ordered_json.la',
-  'ordered_json.lo',
   'run-tests.php',
 ];
+
+const moduleName = 'ordered_json';
+
+/**
+ * Read the C sources of the module from the PHP_NEW_EXTENSION declaration of its config.m4. The
+ * module must be declared once, under its name, with sources in the directory of config.m4.
+ */
+export function declaredExtensionSources(configText) {
+  const declarations = [...configText.matchAll(/PHP_NEW_EXTENSION\(\s*\[?([A-Za-z0-9_]+)\]?\s*,\s*\[([^\]]*)\]/g)];
+  assert.equal(declarations.length, 1, 'config.m4 must declare exactly one PHP_NEW_EXTENSION');
+  const [, name, list] = declarations[0];
+  assert.equal(name, moduleName, 'config.m4 must declare the module ' + moduleName);
+  const sources = list.trim().split(/\s+/).filter(Boolean);
+  assert.ok(sources.length > 0, 'config.m4 must declare the sources of ' + moduleName);
+  for (const source of sources) {
+    assert.match(source, /^[A-Za-z0-9_-]+\.c$/, 'config.m4 source must be a C file beside it: ' + source);
+  }
+  assert.equal(new Set(sources).size, sources.length, 'config.m4 must declare each source once');
+  return sources;
+}
 
 function arguments_(values) {
   const { values: options } = parseArgs({
@@ -64,15 +84,21 @@ export async function buildOrderedJsonPhpExtension(sourceRoot, options = {}) {
   const environment = options.environment ?? process.env;
   const phpConfig = options.phpConfig
     ?? await selectedPhpConfig(undefined, environment);
+  const sources = declaredExtensionSources(
+    await readFile(path.join(sourceRoot, 'config.m4'), 'utf8'));
+  const objectPaths = sources.flatMap(source => {
+    const stem = path.basename(source, '.c');
+    return [stem + '.dep', stem + '.lo'];
+  });
   return buildPhpExtension({
     sourceRoot,
-    moduleName: 'ordered_json',
+    moduleName,
     minimumPhpVersion: 80200,
     require64Bit: false,
-    sources: ['ordered_json.c'],
+    sources,
     compilerArguments: ['-Wno-unused-parameter'],
     definitions: ['COMPILE_DL_ORDERED_JSON=1', 'ZEND_COMPILE_DL_EXT=1'],
-    generatedPaths,
+    generatedPaths: [...generatedPaths, ...objectPaths],
     buildDirectory: '.build',
     outputDirectory: 'modules',
     linuxLibraries: [],

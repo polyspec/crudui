@@ -1,5 +1,15 @@
 # Changes
 
+## 2026-10-07 — Build, encoding and dependency review of the OrderedJSON tag (C10.3)
+
+- The OrderedJSON PHP module is compiled from the C sources that the `config.m4` of the tag checkout declares, and
+  PHP loads it as `ordered_json`; a failed command reports the output in which PHP writes a startup failure.
+- An encoded form string writes every code unit outside printable ASCII as a `\u` escape, as OrderedJSON `v0.0.1`
+  writes a constructed string.
+- The dependency check requires `@polyspec/ordered-json` to be linked to the tag checkout at the version of the tag. No
+  npm manifest declares a URL or Git dependency, and `.npmrc` sets `allow-remote=none` and `allow-git=none`.
+- js-yaml 5.4.3, vite 8.3.3 and svelte 5.57.2; the review records every lock.
+
 ## 2026-10-07 — Exact workflow triggers (C6.2-1)
 
 - `.github/workflows/ci.yml` runs on every pull request, merge group and manual run (`workflow_dispatch`),

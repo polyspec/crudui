@@ -9,7 +9,7 @@ import path from 'node:path';
 import test from 'node:test';
 
 import { check, findingLine } from '../../scripts/check-dependencies.mjs';
-import { digest, readState } from '../../scripts/dependency-state.mjs';
+import { TAGGED_NPM_PACKAGES, digest, readState } from '../../scripts/dependency-state.mjs';
 import { updatePlan } from '../../scripts/dependency-review.mjs';
 import { ROOT } from '../../scripts/tracked-files.mjs';
 
@@ -159,6 +159,37 @@ test('the npm lock records every manifest, a package of this repository is requi
     'npmLock package-lock.json packages/kit devDependencies right',
   ]);
   assert.match(findingLine(check(root, { composer: path.join(root, 'composer') })[0]), /composer validate --strict failed: The lock file is not up to date .*Fix: run composer update --lock in php\.$/);
+});
+
+test('a package taken from a GitHub tag is linked to the checkout of its tag at the version of that tag', t => {
+  const root = checkout(t);
+  const [{ directory, version }] = TAGGED_NPM_PACKAGES;
+  write(root, `${directory}/package.json`, { name: '@polyspec/ordered-json', version });
+  edit(root, 'package.json', manifest => { manifest.devDependencies['@polyspec/ordered-json'] = `file:${directory}`; });
+  edit(root, 'package-lock.json', lock => {
+    lock.packages[''].devDependencies['@polyspec/ordered-json'] = `file:${directory}`;
+    lock.packages['node_modules/@polyspec/ordered-json'] = { resolved: directory, link: true };
+    lock.packages[directory] = { name: '@polyspec/ordered-json', version, dev: true };
+  });
+  const state = readState(root, read(root, 'config/dependency-policy.json'));
+  // A tagged package is neither a registry dependency nor a package of this repository.
+  assert.deepEqual(state.tagged.map(item => `${item.manifest} ${item.package}`), ['package.json @polyspec/ordered-json']);
+  assert.deepEqual(state.local.map(item => `${item.manifest} ${item.package}`), ['package.json @scope/kit', 'php/composer.json fixture/local']);
+  assert.equal(state.dependencies.some(item => item.package === '@polyspec/ordered-json'), false);
+  assert.deepEqual(findings(root), []);
+
+  write(root, `${directory}/package.json`, { name: '@polyspec/ordered-json', version: '9.9.9' });
+  assert.deepEqual(findings(root), ['tagged package.json @polyspec/ordered-json']);
+  assert.match(findingLine(check(root, { composer: path.join(root, 'composer') })[0]),
+    new RegExp(`has version 9\\.9\\.9, the tag v${version.replaceAll('.', '\\.')} has version ${version.replaceAll('.', '\\.')}\\..*Fix: make install-ordered-json\\.$`));
+  write(root, `${directory}/package.json`, { name: '@polyspec/ordered-json', version });
+  edit(root, 'package-lock.json', lock => { lock.packages[directory].version = '9.9.9'; });
+  assert.deepEqual(findings(root), ['tagged package.json @polyspec/ordered-json']);
+  edit(root, 'package-lock.json', lock => {
+    lock.packages[directory].version = version;
+    lock.packages['node_modules/@polyspec/ordered-json'].resolved = 'elsewhere/js';
+  });
+  assert.deepEqual(findings(root), ['tagged package.json @polyspec/ordered-json']);
 });
 
 test('the review plan raises a workspace dependency in its workspace and keeps the range operator', () => {
