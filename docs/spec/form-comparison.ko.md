@@ -280,9 +280,10 @@ supervisor를 실행합니다.
 없는 읽기 전용 마운트 안에 볼륨 마운트 지점을 만들지 못하므로 빌드 트리를 둡니다. 호스트의
 `node_modules`, `vendor`, 빌드 산출물을 포함한 무시 파일은 복사하지 않습니다. 매니페스트가
 복사한 경로를 기록합니다. 저장소에서 제거한 경로는 빌드 트리에서도 제거하며, 매니페스트에
-기록되지 않는 빌드 산출물은 유지합니다. supervisor는 해당 체크아웃 디렉터리의 오래된
-디렉터리를 다시 만들어 오래된 내용을 제거한 뒤 `polyspec/ordered-json` 모노레포의 브랜치 `main` 최신 커밋을 빌드 트리의
-`.form-comparison/sources/ordered-json`에 체크아웃합니다.
+기록되지 않는 빌드 산출물은 유지합니다. supervisor는 빌드 트리의 체크아웃
+`.form-comparison/sources/ordered-json`의 HEAD가 `polyspec/ordered-json` 모노레포의 tag `v0.0.1`의
+commit이고 tracked change가 없으면 그 체크아웃을 유지하고, 그렇지 않으면 tag의 새 체크아웃으로 그
+디렉터리를 다시 만들며 그 체크아웃의 HEAD가 tag의 commit이어야 합니다.
 다섯 구현 패키지 디렉터리(`go/`, `js/`, `php/`, `php-extension/`, `rust/`)는 그 체크아웃에
 존재해야 하며, 별도 저장소나 submodule이 아닙니다.
 

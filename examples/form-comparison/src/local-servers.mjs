@@ -12,6 +12,7 @@ import { promisify } from 'node:util';
 
 import { recordFixtureFile, recordServers, recordSpecsFile } from './record-contract.mjs';
 import { orderedJsonPresent } from '../install-ordered-json.mjs';
+import { orderedJsonTag } from './ordered-json-source.mjs';
 import { sourceIdentity } from './source-tree.mjs';
 import { formatDuration, killProcessTree, runStages, stepHeartbeatMs } from './step-runner.mjs';
 
@@ -40,7 +41,7 @@ export const anyLoopbackPort = '127.0.0.1:0';
 async function orderedJsonCheckout(write) {
   // The checkout is a download of make install; a check reads it and downloads nothing.
   if (!await orderedJsonPresent(localOrderedJsonDirectory)) {
-    throw new Error(`the OrderedJSON checkout ${localOrderedJsonDirectory} is missing or has tracked changes; `
+    throw new Error(`the OrderedJSON checkout ${localOrderedJsonDirectory} is missing, has tracked changes or is not at the tag ${orderedJsonTag}; `
       + 'run make install-ordered-json (make install runs it), which downloads it');
   }
   progress(write, 'ordered-json checkout: present');

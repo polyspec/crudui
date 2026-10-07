@@ -1,5 +1,12 @@
 # 변경 기록
 
+## 2026-10-07 — tag v0.0.1의 OrderedJSON (C10.2)
+
+- 비교는 OrderedJSON을 `polyspec/ordered-json`의 tag `v0.0.1`에서 받습니다. `make install-ordered-json`은 tag의
+  commit을 체크아웃하고, 그 commit에 있고 tracked change가 없는 체크아웃은 유지하며 다른 체크아웃은 교체하고, local
+  pipeline은 tag와 다른 commit의 체크아웃을 tag를 밝히며 거부합니다.
+- version 0.1까지 polyspec 저장소는 다른 polyspec 저장소에 그 저장소의 GitHub tag로 의존합니다.
+
 ## 2026-10-07 — polyspec 규칙의 프로그램 이름 (C9.2)
 
 - `examples/`, `tests/`, `tools/`의 프로그램은 package 이름 규칙을 따릅니다. cross-check console server는 npm package

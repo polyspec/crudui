@@ -321,9 +321,11 @@ runtime cannot create a volume mountpoint inside a read-only mount that lacks th
 directory. Ignored files, including the host's `node_modules`, `vendor` and build
 outputs, are never copied. A manifest records the copied paths. A path removed from
 the repository is removed from the build tree; build outputs, which the manifest
-never lists, remain. The supervisor recreates that exact checkout directory to remove stale
-contents, then checks out the head of the branch `main` of the `polyspec/ordered-json` monorepo
-into `.form-comparison/sources/ordered-json` inside the build tree. The five implementation
+never lists, remain. The supervisor keeps the checkout `.form-comparison/sources/ordered-json`
+inside the build tree when its HEAD is the commit of the tag `v0.0.1` of the
+`polyspec/ordered-json` monorepo and it has no tracked changes; otherwise it recreates that
+directory from a fresh checkout of the tag and requires the HEAD of that checkout to be the
+commit of the tag. The five implementation
 package directories (`go/`, `js/`, `php/`,
 `php-extension/` and `rust/`) must exist in that checkout; they are not separate
 repositories or submodules.
