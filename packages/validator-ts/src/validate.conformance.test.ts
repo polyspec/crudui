@@ -2,7 +2,7 @@
  * CRUDUI validator conformance — JS reference verification.
  *
  * The shared fixture tests/fixtures/validate/cases.json is declared to be the JS
- * reference CRUDUI validator's own output (`{ valid, errors }`, or a failure
+ * reference CRUDUI validator's own output (`{ valid, errors, hidden }`, or a failure
  * record). This test RE-VERIFIES that claim by running the real engine
  * (`validate` = compose → traverse → validate-slot evaluation) against the
  * same fixture the PHP, C extension, Go and Rust engines load, with type-strict
@@ -73,7 +73,7 @@ function failureRecord(error: unknown): FailureRecord | undefined {
   return undefined;
 }
 
-describe('validate — result cases reproduce { valid, errors } bit-for-bit', () => {
+describe('validate — result cases reproduce { valid, errors, hidden } bit-for-bit', () => {
   for (const c of cases.filter((x) => x.expected)) {
     test(c.name, () =>
       proves(c.name, () => {

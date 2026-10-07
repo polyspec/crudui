@@ -1,7 +1,7 @@
 //! CRUDUI validation-engine conformance (SPEC §2 pipeline, G-B 4-language idempotence).
 //!
 //! The shared fixture tests/fixtures/validate/cases.json defines the validation
-//! result (`expected = { valid, errors }`) or the exact failure record of a load
+//! result (`expected = { valid, errors, hidden }`) or the exact failure record of a load
 //! or input failure (`expectFailure = { code, message, at }`).
 //!
 //! errors are compared IN ORDER (declaration / traversal order), key by key:
