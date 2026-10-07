@@ -30,7 +30,7 @@ export GOPROXY := off
 export npm_config_offline := true
 export COMPOSER_DISABLE_NETWORK := 1
 ONLINE := env -u CARGO_NET_OFFLINE -u GOPROXY -u npm_config_offline -u COMPOSER_DISABLE_NETWORK
-.PHONY: help ci-targets ci-passed release-verify release-versions release-assets release-install-check release-install-lock release-install-head release-publish push-gate-check install install-npm install-node-modules install-composer install-rust install-phpdocumentor install-browsers check-ci-browser test-runtimes test-dependencies build lint typecheck test-validator-js test-validator-php test-validator-go test-validator-rust test-cross-check manifest-test require-build test-cli manifest-check manifest-docs-check test-forms test-form-comparison test-form-comparison-pipeline test-form-comparison-checks test-packages test-build test-build-repeat test-inspector test-bench check-conformance install-crates install-ordered-json install-cargo-audit cargo-downloads-check dependency-review toolchain-check owner-check test-ordered-json docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-engine test-native-generators test-php-api test-native test-validators test-form-binding conformance format-check github-settings github-settings-check records-check hooks hooks-check ci rerun-failed
+.PHONY: help ci-targets ci-passed release-verify release-versions release-assets release-install-check release-install-lock release-install-head release-publish push-gate-check install install-npm install-node-modules install-composer install-rust install-phpdocumentor install-browsers check-ci-browser test-runtimes test-dependencies build lint typecheck test-validator-js test-validator-php test-validator-go test-validator-rust test-cross-check manifest-test require-build test-cli manifest-check manifest-docs-check test-forms test-form-comparison test-form-comparison-pipeline test-form-comparison-checks test-form-comparison-browser test-form-comparison-summary test-packages test-build test-build-repeat test-inspector test-bench check-conformance install-crates install-ordered-json install-cargo-audit cargo-downloads-check dependency-review toolchain-check owner-check test-ordered-json docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-engine test-native-generators test-php-api test-native test-validators test-form-binding conformance format-check github-settings github-settings-check records-check hooks hooks-check ci rerun-failed
 .NOTPARALLEL: docs docs-web docs-dev docs-preview docs-check docs-verify-idempotent
 
 # Validator benchmark iteration counts (override on the command line, e.g.
@@ -210,6 +210,17 @@ test-form-comparison-pipeline: cargo-downloads-check ## The record stores and th
 	$(NPM) run test:form-comparison:pipeline
 test-form-comparison-checks: cargo-downloads-check ## The PHP modes, generation, persistence, flow, browser and typing checks against a local stack
 	$(NPM) run test:form-comparison:checks
+# The same checks in two parts, as CI runs them: test-form-comparison-browser runs the browser checks of the servers of
+# FORM_SERVERS against a local stack and keeps their reports in FORM_BROWSER_REPORTS; test-form-comparison-summary runs
+# every other check against a local stack of its own and summarizes those reports. Both public servers take
+# FORM_ADDRESS, the origin that every browser report names.
+FORM_SERVERS ?= php,php-ext,go,rust
+FORM_BROWSER_REPORTS ?= $(CURDIR)/var/form-comparison/browser
+FORM_ADDRESS ?= 127.0.0.1:47100
+test-form-comparison-browser: cargo-downloads-check ## The browser checks of the servers of FORM_SERVERS against a local stack
+	$(NPM) run test:form-comparison:checks -- --servers $(FORM_SERVERS) --results $(FORM_BROWSER_REPORTS) --address $(FORM_ADDRESS)
+test-form-comparison-summary: cargo-downloads-check ## Every other check against a local stack, with the browser reports of FORM_BROWSER_REPORTS
+	$(NPM) run test:form-comparison:checks -- --browser-reports $(FORM_BROWSER_REPORTS) --address $(FORM_ADDRESS)
 test-packages: ## The package install check
 	$(NPM) run test:packages
 test-build: ## The public builds
@@ -521,7 +532,8 @@ CI_COMMANDS = \
 	'make test-forms' \
 	'make test-form-comparison' \
 	'make test-form-comparison-pipeline' \
-	'make test-form-comparison-checks' \
+	'make test-form-comparison-browser' \
+	'make test-form-comparison-summary' \
 	'make test-packages' \
 	'make test-build' \
 	'make test-build-repeat' \

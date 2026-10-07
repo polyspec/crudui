@@ -330,7 +330,10 @@ Rust and Chrome. `npm run test:form-comparison:checks` (`make test-form-comparis
 the same local stack and runs the PHP processor modes, the generation, persistence and canonical
 flow checks, the browser checks of the four native servers with their interaction checks, the
 browser aggregate and the typing check against it, checks the evidence and stops the servers
-([local verification](../spec/form-comparison.md#local-verification)). The
+([local verification](../spec/form-comparison.md#local-verification)). `make test-form-comparison-browser`
+(the browser checks of the servers of `FORM_SERVERS`, reports in `FORM_BROWSER_REPORTS`) and
+`make test-form-comparison-summary` (every other check, with those reports) run the same checks in
+the two parts that CI runs, the first in one CI job per server. The
 [form comparison](../spec/form-comparison.md) defines the record resource, the page and those
 checks. JSON order and HTTP save/load checks are separate from validator package tests.
 

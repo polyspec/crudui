@@ -532,8 +532,89 @@ jobs:
           name: report-form-comparison-pipeline
           path: var/report/ci-targets
           if-no-files-found: error
+  # The browser checks of each form server in a job of its own, which has the runner to itself; each job starts a local
+  # stack whose public server takes the address FORM_ADDRESS of the Makefile and keeps the report of its server.
+  form-comparison-browser:
+    name: Form comparison browser checks against a local stack (${{ matrix.server }})
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        server: [php, php-ext, go, rust]
+    env:
+      # The Chrome and Firefox builds that puppeteer pins, in the checkout (scripts/install-browsers.mjs).
+      PUPPETEER_CACHE_DIR: ${{ github.workspace }}/.tools/puppeteer
+      CHROME_DEVEL_SANDBOX: /usr/local/sbin/chrome-devel-sandbox
+      PHP_EXTENSION_PHP_CONFIG: /usr/bin/php-config8.5
+      FORM_SERVERS: ${{ matrix.server }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - name: Setup the Node.js release of .node-version
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version-file: '.node-version'
+      - name: Cache the npm packages of package-lock.json
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.npm
+          key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+      - name: Setup PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
+        with:
+          php-version: '8.5'
+          tools: composer:2.10.3
+      - name: Setup Go
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        with:
+          go-version-file: '.go-version'
+          cache-dependency-path: examples/form-comparison/servers/go/go.mod
+      - name: Install the Rust toolchain of rust-toolchain.toml
+        run: make install-rust
+      - name: Cargo cache
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+        with:
+          workspaces: examples/form-comparison/servers/rust
+      - name: Install the recorded npm into the checkout
+        run: make install-npm
+      - name: Check the recorded toolchain versions
+        run: make toolchain-check TOOLS="node npm go rust php composer"
+      - name: Install workspace and PHP dependencies
+        run: make install-node-modules install-composer
+      - name: Install nginx
+        # The PHP record servers run on PHP-FPM behind nginx (examples/form-comparison/servers/php);
+        # setup-php provides php-fpm on the PATH.
+        run: |
+          sudo apt-get install -y --no-install-recommends nginx
+          php-fpm -v && nginx -v
+      - name: Install the browsers that Puppeteer pins
+        run: make install-browsers BROWSERS="chrome --chrome-sandbox"
+      - name: Verify sandboxed Chrome
+        run: make check-ci-browser
+      - name: Install the OrderedJSON checkout
+        run: make install-crates
+      - name: Run the checks and write their report
+        if: ${{ !cancelled() }}
+        run: make ci-targets TARGETS="test-form-comparison-browser"
+      - name: Upload the report of the checks
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: report-form-comparison-browser-${{ matrix.server }}
+          path: var/report/ci-targets
+          if-no-files-found: error
+      - name: Upload the browser report of the server
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: form-comparison-browser-${{ matrix.server }}
+          path: var/form-comparison/browser
+          if-no-files-found: error
+  # Every other check of the form comparison once, against a local stack of its own at the same address: the PHP modes,
+  # generation, persistence, the canonical flow, the browser summary of the four reports of form-comparison-browser,
+  # typing and the evidence of all reports.
   form-comparison-checks:
     name: Form comparison checks against a local stack
+    needs: form-comparison-browser
     runs-on: ubuntu-24.04
     env:
       # The Chrome and Firefox builds that puppeteer pins, in the checkout (scripts/install-browsers.mjs).
@@ -585,9 +666,15 @@ jobs:
         run: make check-ci-browser
       - name: Install the OrderedJSON checkout
         run: make install-crates
+      - name: Download the browser reports of the four servers
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: form-comparison-browser-*
+          path: var/form-comparison/browser
+          merge-multiple: true
       - name: Run the checks and write their report
         if: ${{ !cancelled() }}
-        run: make ci-targets TARGETS="test-form-comparison-checks"
+        run: make ci-targets TARGETS="test-form-comparison-summary"
       - name: Upload the report of the checks
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -848,7 +935,7 @@ jobs:
           if-no-files-found: error
   ci-passed:
     if: ${{ always() }}
-    needs: [build-lint, validator-js, validator-php, validator-go, validator-rust, docs-coverage, cross-check-console, cli, form-runtime, form-comparison, form-comparison-pipeline, form-comparison-checks, package-browser, php-engine, native-generators, php-api, conformance]
+    needs: [build-lint, validator-js, validator-php, validator-go, validator-rust, docs-coverage, cross-check-console, cli, form-runtime, form-comparison, form-comparison-pipeline, form-comparison-browser, form-comparison-checks, package-browser, php-engine, native-generators, php-api, conformance]
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0

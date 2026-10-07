@@ -4,6 +4,16 @@
 
 ## 0.0.3
 
+### 2026-10-07 — 폼 서버마다 자기 CI 작업에서 실행하는 브라우저 검사 (C11.6-3)
+
+- CI 작업 `form-comparison-browser`는 폼 비교의 브라우저 검사를 서버(`php`, `php-ext`, `go`, `rust`)마다 작업
+  하나에서 `make test-form-comparison-browser`로 실행합니다. 각 작업은 runner를 혼자 쓰고 그 서버의 보고서를
+  올립니다.
+- CI 작업 `form-comparison-checks`는 그 뒤에 `make test-form-comparison-summary`로 PHP 처리 모드, 생성, 저장, 정본
+  흐름, 보고서 네 개의 브라우저 집계, 입력, 근거를 각각 한 번 실행합니다. `local-verification.mjs`는
+  `--servers`, `--browser-reports`, `--address`를 받습니다. 검사, 보고서, 한도는 바뀌지 않으며
+  `make test-form-comparison-checks`는 여전히 모든 검사를 한 실행에서 실행합니다.
+
 ### 2026-10-07 — release된 tag v0.0.3의 OrderedJSON (C11.6-2)
 
 - 비교는 OrderedJSON을 `polyspec/ordered-json`의 tag `v0.0.3`에서 받습니다.

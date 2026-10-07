@@ -288,7 +288,9 @@ refresh 검사를 실행합니다. `php-config`가 있는 PHP, Composer, Go, Rus
 `npm run test:form-comparison:checks`(`make test-form-comparison-checks`)는 같은 로컬 구성을 시작하고, 그
 구성에 PHP 처리 모드, 생성·저장·정본 흐름 검사, 네이티브 서버 네 개의 브라우저 검사와 상호작용 검사,
 브라우저 집계, 입력 검사를 실행하고, 근거를 확인한 뒤 서버를 멈춥니다
-([로컬 검증](../spec/form-comparison.ko.md#로컬-검증)).
+([로컬 검증](../spec/form-comparison.ko.md#로컬-검증)). `make test-form-comparison-browser`(`FORM_SERVERS`
+서버의 브라우저 검사, 보고서는 `FORM_BROWSER_REPORTS`)와 `make test-form-comparison-summary`(그 보고서를 쓰는
+나머지 검사)는 같은 검사를 CI가 실행하는 두 부분으로 실행하며, 앞의 것은 서버마다 CI 작업 하나에서 실행합니다.
 [폼 비교](../spec/form-comparison.ko.md)가 레코드 리소스, 페이지와 그 검사들을 정의합니다. JSON 순서와 HTTP
 저장·로드 검사는 검증기 패키지 테스트와 별도입니다.
 
