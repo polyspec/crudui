@@ -34,8 +34,8 @@ workflow의 모든 step은 make 대상을 실행합니다. 설치(`make install-
 `tests/build/ci-local.test.mjs`는 make 없이 node, npm, npx, cargo, go, php, composer, rustup, python3, sh를 시작하는 step에서
 실패합니다.
 
-`make ci`는 CI 워크플로의 모든 검사 명령을 워크플로 순서대로 실행하고, 적합성 증거를 모아 CI의 마지막
-작업처럼 검사합니다. `tests/build/ci-local.test.mjs`는 이 목록이 `.github/workflows/ci.yml`과 다르면
+`make ci`는 `conformance-reset`을 실행한 뒤 `CI_TARGETS`의 모든 대상을 워크플로 순서대로 실행하고, 적합성 증거를 모아
+CI의 마지막 작업처럼 검사합니다. `tests/build/ci-local.test.mjs`는 이 목록이 `.github/workflows/ci.yml`과 다르면
 실패합니다.
 
 실패는 이후 검사를 멈추지 않으므로 한 번의 실행이 모든 실패를 보고합니다. 각 CI job은 검사를 한 step,
@@ -53,33 +53,28 @@ package script와 CI step도 같은 규칙을 따릅니다. 독립된 여러 검
 뒤에 그렇게 합니다. `&&` 연결은 검사 뒤에 단계를 두지 않습니다.
 `scripts/run-contract-tests.mjs`는 앞의 명령이 실패한 뒤에도 선언된 모든 명령을 실행하고 마지막 명령 뒤에 실패합니다.
 
-`make ci`는 `docs/plans/execution-checklist.md`의 작업 중 `[~]`인 것이 없을 때, 커밋된 tree마다 한 번 실행됩니다. 어떤 명령보다
-먼저 `scripts/full-run.mjs`를 시작하며, 이 guard는 판단을 이유와 함께 출력하고(`[full-run] run: ...` 또는 `[full-run]
-refuse: ...`) 다음의 경우 status 1로 거부합니다. checklist의 작업 행이 `[~]`이면 활성 ID를 작업과 함께 나열하며 거부합니다. pre-push hook이
-설치되지 않았으면(`node scripts/push-gate.mjs hooks-check`, 아래) 거부합니다. 추적 파일에 커밋되지
-않은 변경이 있으면(`git status --porcelain --untracked-files=no`) 거부합니다. 전체 실행은 커밋된 tree를 검증하기 때문입니다.
-`var/full-run.json`이 현재 tree(`git rev-parse HEAD^{tree}`)의 전체 실행을 기록하고 있으면 그 실행을 commit, 시작 시각, 결과와
-함께 밝히며 거부합니다. `incomplete` record의 process가 아직 실행 중이면 거부합니다.
+`make ci`는 `docs/plans/execution-checklist.md`의 작업 중 `[~]`인 것이 없을 때, 커밋된 tree마다 한 번 실행됩니다. 어떤 대상보다
+먼저 `scripts/kit/full-run.mjs`를 시작하며, 이 guard는 판단을 이유와 함께 출력하고 다음의 경우 status 1로 거부합니다. checklist의
+작업 행이 `[~]`이면 활성 ID를 작업과 함께 나열하며 거부합니다. checklist를 읽을 수 없으면 거부합니다. pre-push hook이
+설치되지 않았으면(`make hooks-check`, 아래) 거부합니다. 추적 파일에 커밋되지 않은 변경이 있거나 무시되지 않는 새 file이 있으면
+거부합니다. 전체 실행은 그 둘을 담지 않는 커밋된 tree를 검증하기 때문입니다. `var/full-run.json`이 현재 tree(`git rev-parse HEAD^{tree}`)의
+전체 실행을 기록하고 있으면 그 실행을 commit, 시작 시각, 결과와 함께 밝히며 거부합니다. `incomplete` record의 process가 아직 실행 중이면
+거부합니다. guard는 첫 읽기부터 마지막 쓰기까지 lock `var/full-run.lock`을 잡습니다.
 
-명령은 commit된 commit의 새 clone인 `var/full-run/clone`에서 실행됩니다. guard는 checkout을 그곳에 clone하고 commit을
-checkout한 뒤 그곳에서 `make install`을 실행하므로, working tree의 무시되는 build 출력, 실행 기록, 추적되지 않는 file은 검사에
-닿지 않습니다. 같은 commit의 rerun은 설치가 끝난 clone을 다시 쓰고, 실패한 `make install`은 어떤 명령보다 먼저 실행을
-멈추고 clone과 commit을 밝힙니다.
+대상은 커밋된 commit의 working tree에서 실행됩니다. 전체 실행은 이전 실행의 적합성 증거를 지우는 `conformance-reset`을 실행한 뒤,
+`CI_TARGETS`의 각 대상을 `make -k <target>`으로 끝까지, 대상이 실패한 뒤에도 계속 실행합니다. 각 대상의 시작과 결과를 경과 시간과 함께
+출력하고 각 대상의 출력을 `var/report/full-run/targets/<target>.log`에 씁니다. 어떤 대상에도 시간 제한이 없습니다. 각 대상의 앞뒤에
+`var/full-run.json`을 씁니다. 이 record는 tree, commit, process와 그 시작 시각, 시작과 끝 시각, 결과(마지막 대상이 끝날 때까지
+`incomplete`, 그다음 `passed` 또는 `failed`), 그리고 각 대상의 상태(`pending`, `running`, `passed`, `failed`), 시각, 실패한 대상의 마지막 출력
+줄을 담습니다. 따라서 멈춘 실행은 실행 중이던 대상과 함께 `incomplete`로 기록되어 남습니다. `var/`는 Git이 무시하므로 checkout과
+worktree마다 자기 record를 가집니다. tree를 바꾸는 commit은 `[~]` 작업이 없을 때 새 전체 실행을 허용합니다.
 
-guard의 target은 `CI_COMMANDS`의 명령 하나이며 그 text로 이름을 붙입니다. 전체 실행은 이전 실행의 적합성 증거를 지우고, 각 명령을 `sh -c`로
-끝까지 실행하며, 명령이 실패한 뒤에도 계속하고, `[full-run] start <command> (<n>/<total>)`와 `[full-run] <command>
-passed|failed in <seconds> s`를 출력합니다. 어떤 명령에도 시간 제한이 없습니다. 각 명령의 앞뒤에 `var/full-run.json`을 씁니다. 이
-record는 tree, commit, process, 시작과 끝 시각, 결과(마지막 명령이 끝날 때까지 `incomplete`, 그다음 `passed` 또는 `failed`),
-실패한 명령, 그리고 각 명령의 상태(`pending`, `running`, `passed`, `failed`), 시각, 경과 millisecond를 담습니다. 따라서 멈춘 실행은
-실행 중이던 명령과 함께 `incomplete`로 기록되어 남습니다. `var/`는 Git이 무시하므로 checkout과 worktree마다 자기 record를 가집니다.
-tree를 바꾸는 commit은 `[~]` 작업이 없을 때 새 전체 실행을 허용합니다.
-
-`make rerun-failed`는 현재 tree에서 통과하지 못한 명령, 즉 실패한 명령과 `incomplete` 실행이 끝내지 못한 명령만 다시 실행합니다. `node
-scripts/check-conformance.mjs`가 읽는, 통과한 명령의 적합성 증거는 유지합니다. 진행 중인 작업, 커밋되지 않은 변경, 실행 중인 process에 대해서는
+`make rerun-failed`는 현재 tree에서 통과하지 못한 대상, 즉 실패한 대상과 `incomplete` 실행이 끝내지 못한 대상만 다시 실행합니다. `node
+scripts/check-conformance.mjs`가 읽는, 통과한 대상의 적합성 증거는 유지합니다. 진행 중인 작업, 커밋되지 않은 변경, 실행 중인 process에 대해서는
 `make ci`와 같이 거부되고, record가 없을 때, record가 다른 tree의 것일 때, 그 tree의 전체 실행이 통과했을 때도 거부됩니다. 각 재실행을
-record의 `reruns`에 쓰고, 모든 명령이 통과하면 그 tree의 결과는 `passed`가 됩니다.
+record의 `reruns`에 쓰고, 모든 대상이 통과하면 그 tree의 결과는 `passed`가 됩니다.
 
-CI workflow는 pull request, merge group, 수동 실행(`workflow_dispatch`)마다 같은 명령을 job에서 실행하고 `make ci`는 실행하지 않으므로 guard는 CI 실행을 판단하지 않습니다.
+CI workflow는 pull request, merge group, 수동 실행(`workflow_dispatch`)마다 같은 대상을 job에서 실행하고 `make ci`는 실행하지 않으므로 guard는 CI 실행을 판단하지 않습니다.
 CI처럼 새 checkout에는 record가 없으므로, 그곳에서 `make ci`는 `[~]` 작업이 없고 tree가 깨끗하면 실행됩니다.
 
 native suite는 세 CI job에서 실행되므로 어떤 job도 다른 runtime이 필요한 suite를 기다리지 않습니다.
@@ -109,20 +104,20 @@ GNU Make 3.81과 GNU Make 4는 다른 make 안에서도 명령만 출력합니�
 실패합니다.
 
 push는 checklist에 `[~]` 작업이 없을 때만 합니다. 추적되는 pre-push hook `.githooks/pre-push`는 Git이 push하는 ref와 함께
-`node scripts/push-gate.mjs hook`을 실행합니다. 이 검사는 push되는 모든 commit의 checklist(`git show <sha>:docs/plans/execution-checklist.md`)와
-working tree의 checklist를 guard의 `activeItems`로 읽고, 그중 하나에 진행 중인 작업이 있으면 status 1로 push를 거부합니다. 이 검사는 `push
-refused: checklist tasks are in progress`, 작업마다 push되는 ref와 commit 또는 `working tree`, 그 ID와 제목을 적은 줄, 이유, 해결 방법을
-출력합니다. 해결 방법은 작업을 완료하거나, 그 원인과 재시도 조건과 함께 `[!]`로 표시하는 것입니다. checklist가 없는 push commit, Git 오류,
-검사 자체의 오류도 그 원인을 적으며 push를 거부합니다. 삭제되는 ref는 commit을 push하지 않으므로 working tree만으로 검사합니다.
+`node scripts/kit/push-gate.mjs hook`을 실행합니다. 이 검사는 push되는 모든 commit의 checklist(`git show <sha>:docs/plans/execution-checklist.md`)와
+working tree의 checklist를 읽고, 그중 하나에 진행 중인 작업이 있으면 status 1로 push를 거부합니다. 이 검사는 그런 작업마다 file, ID, 제목을 push되는
+ref와 commit 또는 `working tree`와 함께 출력하고, push를 막는 상태(`[~]`)와 막지 않는 상태(`[ ]`, `[o]`, `[!]`)를 밝힙니다. 작업을 완료하거나, 그 원인과
+재시도 조건과 함께 `[!]`로 표시합니다. checklist가 없는 push commit, 잘못된 hook 입력 줄, 읽을 수 없는 checklist, Git 오류도 그 원인을 적으며 push를
+거부합니다. 삭제되는 ref는 commit을 push하지 않으므로 working tree만으로 검사합니다.
 
-Git은 hook을 version 관리하지 않습니다. 모든 `make` 실행은 Makefile을 읽을 때 설정이 다르면 `core.hooksPath`를 `.githooks`로 설정하므로,
-어떤 make target이든 실행한 checkout에는 hook이 있습니다. `make hooks`는 hook을 설치하고 `node scripts/push-gate.mjs hooks-check`를
-실행하며, `make hooks-check`도 이것을 실행합니다. 이 검사는 `core.hooksPath`가 `.githooks`가 아니거나 `.githooks/pre-push`가 실행
-가능한 file이 아니면 실패하고 해결 방법을 적습니다. `make ci`의 guard도 같은 이유로 거부합니다.
+Git은 hook을 version 관리하지 않습니다. make 실행은 checkout이 `.githooks/pre-push`를 추적하면 `core.hooksPath`를 `.githooks`로 설정하므로(`scripts/kit/kit.mk`),
+어떤 make target이든 실행한 checkout에는 hook이 있습니다. `make hooks`(`node scripts/kit/git-hooks.mjs install`)는 `core.hooksPath`를 설정하고 hook을 쓰고 실행 가능하게
+하며, `make hooks-check`는 `core.hooksPath`가 `.githooks`가 아니거나 `.githooks/pre-push`가 없거나 실행 가능한 file이 아니거나 도구의 hook과 다른 내용이면
+실패하고 해결 방법을 적습니다. `make ci`의 guard도 같은 이유로 거부합니다.
 
 hook이 없는 clone이나 hook을 건너뛴 push도 GitHub에 도달합니다. `.github/workflows/push-gate.yml`의 job `push-gate`는 merge queue의 branch를 뺀 모든 branch로의
 push, 모든 pull request, 모든 merge group에서 실행되어, push된 commit(pull request의 head commit, merge group의 commit)을 checkout하고
-`node scripts/push-gate.mjs commit HEAD`를 실행합니다. 이 job은 그 commit의 checklist에 진행 중인 작업이 있을 때, commit에 checklist가 없을 때, commit이
+`node scripts/kit/push-gate.mjs commit HEAD`를 실행합니다. 이 job은 그 commit의 checklist에 진행 중인 작업이 있을 때, commit에 checklist가 없을 때, commit이
 `.githooks/pre-push`를 실행 가능한 file(mode `100755`)로 추적하지 않을 때 실패하며, 거부 내용을 progress line으로, 각 줄을 error
 annotation으로, 그리고 job summary에 출력합니다. 같은 step은 `make records-check`도 실행합니다. `scripts/check-documents.mjs`와
 checklist, link, changelog, 문장, example과 fixture README test로, Node.js만 필요하고 network와 이력을 읽지 않습니다. 그래서
@@ -304,21 +299,21 @@ Puppeteer가 고정한 Chromium·Firefox build와 Playwright가 고정한 WebKit
 
 ## 보고서
 
-모든 CI job은 각 실패의 이유를 남깁니다. `make ci-targets TARGETS="..."`(`scripts/ci-targets.mjs`)는 각 대상을
+모든 CI job은 각 실패의 이유를 남깁니다. `make ci-targets TARGETS="..."`(`scripts/kit/ci-targets.mjs`)는 각 대상을
 `make -k <target>`로 끝까지, 앞의 대상이 실패한 뒤에도 실행하고, 그 출력을 출력하며
 `var/report/ci-targets/targets/<target>.log`에 씁니다. `summary.md`는 각 대상을 결과와 시간과 함께, 실패한 대상마다 그
-첫 실패 줄과 log를 밝히며(`scripts/target-report.mjs`), 같은 글이 GitHub Actions의 job summary로 갑니다. 실행은 lock
+첫 실패 줄과 log를 밝히며(`scripts/kit/target-report.mjs`), 같은 글이 GitHub Actions의 job summary로 갑니다. 실행은 lock
 `var/report/ci-targets.lock`을 잡으므로 두 실행이 한 보고서를 쓰지 않고, 대상이 실패하면 status 1로 끝납니다. 각 job은
 `var/report/ci-targets`를 artifact `report-<job>`(matrix job은 PHP minor를 붙임)으로 `if: ${{ !cancelled() }}`와
 `if-no-files-found: error`로 올립니다. `tests/build/ci-local.test.mjs`는 `make ci-targets` 밖에서 검사를 실행하거나
-보고서를 올리지 않는 job에서 실패하고, `tests/build/target-report.test.mjs`는 실패하는 probe 대상과 통과하는 probe
+보고서를 올리지 않는 job에서 실패하고, `tests/kit/ci.test.mjs`는 실패하는 probe 대상과 통과하는 probe
 대상을 실행해 두 log, summary의 실패 줄, job summary를 확인합니다.
 
 ## 함께 쓰는 resource
 
 다른 checkout의 실행이 한 기기에서 동시에 실행됩니다. 한 실행이 소유할 수 있는 resource는 그
 실행을 위해 만듭니다: `mktemp -d`나 `mkdtemp`의 임시 directory, operating system이 정하는 port, 실행의
-식별자를 담은 이름입니다. 기기나 checkout에 하나뿐인 resource는 `scripts/holder-lock.mjs`의 holder lock
+식별자를 담은 이름입니다. 기기나 checkout에 하나뿐인 resource는 `scripts/kit/holder-lock.mjs`의 holder lock
 아래에서 씁니다.
 
 - 한 번에 한 실행만 lock을 잡습니다. lock file은 holder의 record를 담습니다: lock을 잡은 code의
@@ -327,17 +322,15 @@ Puppeteer가 고정한 Chromium·Firefox build와 Playwright가 고정한 WebKit
   읽는 쪽은 일부만 쓰인 record를 보지 않습니다.
 - lock이 잡혀 있으면 실행은 holder의 record와 함께 실패합니다.
 - holder process가 더 이상 실행되지 않거나 그 pid가 시작 시각이 다른 process의 것이 된 lock은 record와
-  함께 보고하고 남겨 둡니다. `node scripts/holder-lock.mjs remove-dead <lock file>`로 명시적으로
+  함께 보고하고 남겨 둡니다. `node scripts/kit/holder-lock.mjs clear <lock file>`로 명시적으로
   지우며, 이 command는 실행 중인 holder를 거부합니다.
 - holder만 lock을 해제합니다. 해제는 먼저 record의 token을 확인합니다.
-- `node scripts/holder-lock.mjs hold <lock file> -- <command>`는 lock을 잡은 채 command를 실행하고,
+- `node scripts/kit/holder-lock.mjs run <lock file> -- <command>`는 lock을 잡은 채 command를 실행하고,
   SIGINT, SIGTERM, SIGHUP을 전달하며, command가 끝나면 lock을 해제하고 그 status로 끝납니다. 획득과
   해제를 출력합니다.
 
-한 checkout의 resource lock은 그 checkout의 `var/locks/<name>.lock`이고, user account의 모든 checkout이
-함께 쓰는 resource의 lock은 `~/.local/state/crudui/locks/<name>.lock`입니다.
-`npm run test:runtimes`가 실행하는 `tests/build/holder-lock.test.mjs`는 record, 거부, 동시 실행,
-holder가 더 이상 실행되지 않는 lock의 보고와 제거, 해제를 확인합니다.
+한 checkout의 resource lock은 그 checkout의 `var/locks/<name>.lock`이며, lock file은 절대 경로로 줍니다.
+`tests/kit/holder-lock.test.mjs`는 record, 거부, 동시 실행, holder가 더 이상 실행되지 않는 lock의 제거, 해제를 확인합니다.
 
 | Resource | 한 실행의 사용 |
 |---|---|

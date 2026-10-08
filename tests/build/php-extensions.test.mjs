@@ -107,7 +107,7 @@ test('every reinstall of the root vendor runs under its checkout lock', async ()
     for (const match of source.matchAll(/reinstall['",\s]+polyspec\/crudui-validator/g)) {
       if (/\.test\.mjs$/.test(file)) continue;
       const statement = source.slice(Math.max(0, match.index - 300), match.index).split(/\bstep\(|\n\t/).at(-1);
-      if (!/holder-lock\.mjs['"),\s]{0,6}hold\b/.test(statement)) violations.push(`${file}: ${source.slice(match.index - 60, match.index + 30).replace(/\s+/g, ' ')}`);
+      if (!/holder-lock\.mjs['"),\s]{0,6}run\b/.test(statement)) violations.push(`${file}: ${source.slice(match.index - 60, match.index + 30).replace(/\s+/g, ' ')}`);
     }
   }
   assert.deepEqual(violations, []);

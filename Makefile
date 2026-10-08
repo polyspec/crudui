@@ -30,7 +30,7 @@ export GOPROXY := off
 export npm_config_offline := true
 export COMPOSER_DISABLE_NETWORK := 1
 ONLINE := env -u CARGO_NET_OFFLINE -u GOPROXY -u npm_config_offline -u COMPOSER_DISABLE_NETWORK
-.PHONY: help ci-targets ci-passed release-verify release-versions release-assets release-install-check release-install-lock release-install-head release-publish push-gate-check install install-node-modules install-composer install-rust install-phpdocumentor install-browsers check-ci-browser test-runtimes test-dependencies build lint typecheck test-validator-js test-validator-php test-validator-go test-validator-rust test-validator-python test-generator-python test-cross-check manifest-test require-build test-cli manifest-check manifest-docs-check test-forms test-form-comparison test-form-comparison-pipeline test-form-comparison-checks test-form-comparison-browser test-form-comparison-summary test-packages test-build test-build-repeat test-inspector test-bench check-conformance install-crates install-ordered-json owner-check test-ordered-json docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-engine test-native-generators test-php-api test-native test-validators test-form-binding conformance format-check github-settings github-settings-check records-check hooks hooks-check ci rerun-failed
+.PHONY: help release-verify release-versions release-assets release-install-check release-install-lock release-install-head release-publish install install-node-modules install-composer install-rust install-phpdocumentor install-browsers check-ci-browser test-runtimes test-dependencies build lint typecheck test-validator-js test-validator-php test-validator-go test-validator-rust test-validator-python test-generator-python test-cross-check manifest-test require-build test-cli manifest-check manifest-docs-check test-forms test-form-comparison test-form-comparison-pipeline test-form-comparison-checks test-form-comparison-browser test-form-comparison-summary test-packages test-build test-build-repeat test-inspector test-bench check-conformance install-crates install-ordered-json owner-check test-ordered-json docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-engine test-native-generators test-php-api test-native test-validators test-form-binding conformance format-check records-check ci conformance-reset
 .NOTPARALLEL: docs docs-web docs-dev docs-preview docs-check docs-verify-idempotent
 
 # The tools that every polyspec repository shares are vendored copies in scripts/kit (kit.json, .kit/kit.lock.json);
@@ -47,10 +47,6 @@ PHP_EXTENSION ?= $(CURDIR)/packages/php-ext/modules/crudui.so
 NATIVE_REPORT ?= $(shell git rev-parse --git-path native-generators/report.json)
 PHP_NATIVE_REPORT ?= $(shell git rev-parse --git-path native-generators/report-php.json)
 CONFORMANCE_EVIDENCE ?= $(abspath $(shell git rev-parse --git-path conformance-evidence))
-# Every make run installs the tracked Git hooks: it sets core.hooksPath to .githooks when the setting differs, so the
-# pre-push hook .githooks/pre-push refuses a push while a checklist task is [~] (scripts/push-gate.mjs, AGENTS.md).
-HOOKS_PATH := $(shell [ "$$(git config core.hooksPath)" = .githooks ] || git config core.hooksPath .githooks; git config core.hooksPath)
-
 help: ## 타겟 설명
 	@echo "CRUDUI docs — make targets:"
 	@echo ""
@@ -81,12 +77,9 @@ help: ## 타겟 설명
 	@echo "  make test-form-binding     Test the browser validation binding, its markup parity and three browsers"
 	@echo "  make conformance           Run every conformance suite and check the evidence against the standard"
 	@echo "  make format-check          Fail when any Rust crate or Go file is not formatted"
-	@echo "  make ci                    Run every command of the CI workflow in order, once per tree (scripts/full-run.mjs)"
-	@echo "  make rerun-failed          Rerun the commands of make ci that did not pass on the current tree"
-	@echo "  make github-settings       Apply the repository settings and the ruleset main in .github/repository.json"
-	@echo "  make github-settings-check Fail when the repository settings differ from the declaration"
+	@echo "  make ci                    Run every target of the CI workflow in order, once per tree (scripts/kit/full-run.mjs)"
+	@echo "  make rerun-failed          Rerun the targets of make ci that did not pass on the current tree"
 	@echo "  make records-check         The document and checklist rules that need Node.js alone"
-	@echo "  make ci-passed             Fail unless every job of RESULTS, the toJSON(needs) of the CI job ci-passed, succeeded"
 	@echo "  make release-verify        Check that the commit of TAG is on main and passed push-gate and ci-passed"
 	@echo "  make release-versions      Check the version of TAG in every package file and the change log section"
 	@echo "  make release-assets        Build the packages and write the npm and Composer archives of TAG to var/release/assets"
@@ -147,13 +140,7 @@ install-crates: install-ordered-json cargo-downloads-fetch ## Download the crate
 install-ordered-json: ## Install the OrderedJSON checkout of the comparison record servers
 	$(ONLINE) node examples/form-comparison/install-ordered-json.mjs
 
-# Every CI job runs its checks through ci-targets (scripts/ci-targets.mjs): each target of TARGETS runs as make -k to its
-# end, also after an earlier one failed, and var/report/ci-targets holds the log of each target and summary.md with the
-# first failure lines of each failed one, which the job uploads and writes to its job summary.
-ci-targets: ## Run the targets of TARGETS to their end and write var/report/ci-targets
-	node scripts/ci-targets.mjs var/report/ci-targets $(TARGETS)
-
-# The checking commands of the CI workflow, one target each (CI_COMMANDS).
+# The checking commands of the CI workflow, one target each (CI_TARGETS).
 test-runtimes: ## Exact runtime versions and test standards
 	$(NPM) run test:runtimes
 test-dependencies: ## The dependency graph, the dependency policy and its recorded review
@@ -360,7 +347,7 @@ test-native-generators: cargo-downloads-check
 test-php-api: build-php-extension
 	# The root vendor/ holds the validator as a copy; refresh it from source before any check loads it, under the
 	# checkout lock of that vendor directory, so two runs never reinstall it at once.
-	node scripts/holder-lock.mjs hold "$(CURDIR)/var/locks/composer-vendor.lock" -- composer reinstall polyspec/crudui-validator --no-interaction
+	node scripts/kit/holder-lock.mjs run "$(CURDIR)/var/locks/composer-vendor.lock" -- composer reinstall polyspec/crudui-validator --no-interaction
 	@status=0; \
 	node tests/conformance/run-suite.mjs node -- tests/native-generators/php-extension-builder.test.mjs packages/php-ext/tests/api.test.mjs || status=1; \
 	node scripts/kit/run-tests.mjs phpunit --cwd packages/generator-php || status=1; \
@@ -417,38 +404,13 @@ format-check:
 	if [ $$status -eq 0 ]; then echo "[make] format-check: Rust crates and Go files are formatted"; fi; \
 	exit $$status
 
-# GitHub repository settings declared in .github/repository.json (docs/operations/repository.md), the ruleset main
-# included: every change reaches main through a pull request and the merge queue. These targets act on the repository on
-# GitHub, so neither make ci nor a CI job runs them.
-github-settings: ## Apply the declared repository settings (idempotent)
-	node scripts/github-repository.mjs apply
-
-github-settings-check: ## Fail when the repository settings differ from the declaration
-	node scripts/github-repository.mjs check
-
 # The document and checklist rules that need Node.js alone and read no network: the job push-gate runs them on every
-# pushed commit, so the check that the ruleset main requires fails a commit that breaks them. Both commands run even
-# when the first fails.
+# pushed commit. Both commands run even when the first fails.
 records-check: ## Check the document pairs, links, changelog, writing and checklist rules with Node.js alone
 	@status=0; \
 	node scripts/check-documents.mjs || status=1; \
 	node scripts/kit/run-tests.mjs node --timeout 10 -- scripts/checklist-markers.test.mjs scripts/documentation-links.test.mjs tests/docs/changelog.test.mjs tests/docs/repository-writing.test.mjs tests/docs/example-readmes.test.mjs tests/docs/fixture-readmes.test.mjs || status=1; \
 	exit $$status
-
-# The pre-push hook of every push (scripts/push-gate.mjs): `make hooks` installs it, `make hooks-check` fails while
-# core.hooksPath is not .githooks or the hook is not an executable file.
-hooks: ## Install the tracked Git hooks (.githooks) and check them
-	git config core.hooksPath .githooks
-	node scripts/push-gate.mjs hooks-check
-
-hooks-check: ## Fail when the pre-push hook is not installed
-	node scripts/push-gate.mjs hooks-check
-
-# The last job ci-passed of .github/workflows/ci.yml: RESULTS holds toJSON(needs), the results of every other job of the
-# workflow, and the target fails unless each one is success (scripts/ci-passed.mjs). The ruleset main of
-# .github/repository.json requires this check and push-gate.
-ci-passed: ## Fail unless every job of RESULTS, the toJSON(needs) of the job ci-passed, succeeded
-	node scripts/ci-passed.mjs
 
 # The release of a pushed tag, run by .github/workflows/release.yml in this order (scripts/release.mjs, AGENTS.md). The
 # workflow sets TAG in the environment and each recipe passes it as "$$TAG", so the name of a tag never becomes shell
@@ -491,57 +453,55 @@ release-publish: ## Create the GitHub Release of TAG with its change log section
 	$(if $(TAG),,$(error make $@ needs TAG=<tag>, a tag vX.Y.Z or <directory>/vX.Y.Z))
 	node scripts/release.mjs publish "$$TAG"
 
-# The push check of .github/workflows/push-gate.yml: the checked-out commit has no checklist task in progress and tracks
-# the hook.
-push-gate-check: ## Fail when the checked-out commit has a checklist task in progress or does not track the pre-push hook
-	node scripts/push-gate.mjs commit HEAD
+# Every target the CI workflow runs after installing tools and dependencies, in workflow order, with the conformance
+# evidence collected and checked like the final CI job (tests/build/ci-local.test.mjs keeps this list equal to
+# .github/workflows/ci.yml).
+CI_TARGETS = \
+	test-runtimes \
+	test-dependencies \
+	build \
+	lint \
+	typecheck \
+	test-ordered-json \
+	release-install-head \
+	test-validator-js \
+	test-validator-php \
+	test-validator-go \
+	test-validator-rust \
+	test-validator-python \
+	test-generator-python \
+	docs-check \
+	build-php-extension \
+	test-cross-check \
+	manifest-test \
+	require-build \
+	test-cli \
+	manifest-check \
+	manifest-docs-check \
+	test-forms \
+	test-form-comparison \
+	test-form-comparison-pipeline \
+	test-form-comparison-browser \
+	test-form-comparison-summary \
+	test-packages \
+	test-build \
+	test-build-repeat \
+	test-inspector \
+	test-php-engine \
+	test-native-generators \
+	test-bench \
+	test-php-api \
+	check-conformance
 
-# Every command the CI workflow runs after installing tools and dependencies, in workflow order,
-# with the conformance evidence collected and checked like the final CI job
-# (tests/build/ci-local.test.mjs keeps this list equal to .github/workflows/ci.yml).
-CI_COMMANDS = \
-	'make test-runtimes' \
-	'make test-dependencies' \
-	'make build' \
-	'make lint' \
-	'make typecheck' \
-	'make test-ordered-json' \
-	'make release-install-head' \
-	'make test-validator-js' \
-	'make test-validator-php' \
-	'make test-validator-go' \
-	'make test-validator-rust' \
-	'make test-validator-python' \
-	'make test-generator-python' \
-	'make docs-check' \
-	'make build-php-extension' \
-	'make test-cross-check' \
-	'make manifest-test' \
-	'make require-build' \
-	'make test-cli' \
-	'make manifest-check' \
-	'make manifest-docs-check' \
-	'make test-forms' \
-	'make test-form-comparison' \
-	'make test-form-comparison-pipeline' \
-	'make test-form-comparison-browser' \
-	'make test-form-comparison-summary' \
-	'make test-packages' \
-	'make test-build' \
-	'make test-build-repeat' \
-	'make test-inspector' \
-	'make test-php-engine' \
-	'make test-native-generators' \
-	'make test-bench' \
-	'make test-php-api' \
-	'make check-conformance'
+# `make ci` runs conformance-reset and CI_TARGETS through the guard scripts/kit/full-run.mjs, which refuses while a
+# checklist task is [~], while tracked changes are uncommitted or when var/full-run.json records a run of the current tree,
+# runs each target as make -k to its end and records its result; `make rerun-failed` (scripts/kit/kit.mk) reruns the
+# targets of the current tree that did not pass and keeps the evidence of those that passed.
+ci: ## Run every target of the CI workflow in order through the guard: once per tree, when no checklist task is [~]
+	CRUDUI_CONFORMANCE_EVIDENCE="$(CONFORMANCE_EVIDENCE)" node scripts/kit/full-run.mjs run conformance-reset $(CI_TARGETS)
 
-# `make ci` runs CI_COMMANDS through the guard scripts/full-run.mjs, which refuses while a checklist task is [~], while
-# tracked changes are uncommitted or when var/full-run.json records a run of the current tree, removes the conformance
-# evidence of earlier runs, runs each command with `sh -c` to its end and records its result; `make rerun-failed` reruns
-# the commands of the current tree that did not pass and keeps the evidence of those that passed.
-ci: ## Run every command of the CI workflow in order through the guard: once per tree, when no checklist task is [~]
-	CRUDUI_CONFORMANCE_EVIDENCE="$(CONFORMANCE_EVIDENCE)" node scripts/full-run.mjs run $(CI_COMMANDS)
+# The conformance evidence of earlier runs; the first target of a full run, which a rerun repeats only when it failed.
+conformance-reset: ## Remove the conformance evidence of earlier runs
+	rm -rf "$(CONFORMANCE_EVIDENCE)"
 
-rerun-failed: ## Rerun only the commands of make ci that did not pass on the current tree
-	CRUDUI_CONFORMANCE_EVIDENCE="$(CONFORMANCE_EVIDENCE)" node scripts/full-run.mjs rerun-failed
+rerun-failed: export CRUDUI_CONFORMANCE_EVIDENCE := $(CONFORMANCE_EVIDENCE)

@@ -37,5 +37,5 @@ test('a dry run under a parent make prints only the commands of the target', () 
   assert.equal(run.status, 0, run.stderr);
   const lines = run.stdout.split('\n').filter(Boolean);
   assert.equal(lines.length, 1, run.stdout);
-  assert.match(lines[0], /node scripts\/full-run\.mjs rerun-failed$/);
+  assert.match(lines[0], /node scripts\/kit\/full-run\.mjs rerun-failed$/);
 });

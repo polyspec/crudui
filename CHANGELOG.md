@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### 2026-10-09 — Gates and CI report tools of kit (C14.1-3)
+
+- `config/checklist.json` declares `docs/plans/execution-checklist.md` with its Korean twin and the hook `pre-push`; `.githooks/pre-push` is the hook that `make hooks` writes (`scripts/kit/git-hooks.mjs`) and runs `scripts/kit/push-gate.mjs`. `make ci` starts `scripts/kit/full-run.mjs` with `conformance-reset`, which removes the conformance evidence of earlier runs, and the make targets of `CI_TARGETS`; a full run no longer runs in a fresh clone of the commit.
+- `scripts/package-dist.mjs` and the record servers of the form comparison take the lock of `var/locks` from `scripts/kit/holder-lock.mjs`, whose commands are `run` and `clear`; the lock of the user account (`userLockFile`) is removed. `scripts/push-gate.mjs`, `scripts/full-run.mjs`, `scripts/holder-lock.mjs`, `scripts/ci-targets.mjs`, `scripts/ci-passed.mjs`, `scripts/target-report.mjs` and their tests are removed.
+
 ### 2026-10-09 — Toolchain, dependency and test runner tools of kit (C14.1-2)
 
 - `config/toolchain.json` follows `scripts/kit/schema/toolchain.schema.json`; `make install-tools` installs npm, Go and cargo-audit into `var/tools`, and the Makefile puts `var/tools/bin` first on `PATH`. `scripts/install-npm.mjs`, `scripts/checkout-npm.mjs`, `scripts/check-toolchain.mjs`, `scripts/check-cargo-downloads.mjs` and `scripts/install-cargo-audit.mjs` are removed.

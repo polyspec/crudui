@@ -4,7 +4,7 @@
  * (docs/operations/testing.md, "Shared resources").
  *
  * A package build empties `dist` before it writes the new output, and a pack reads `dist`. Both run
- * under the checkout lock `dist-<package folder>` (scripts/holder-lock.mjs), so a pack never reads a
+ * under the checkout lock `dist-<package folder>` (scripts/kit/holder-lock.mjs), so a pack never reads a
  * `dist` that a build has emptied or only partly written; a run that finds the lock held is refused
  * with the holder's record.
  *
@@ -18,9 +18,24 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 
-import {
-  acquireReported, checkoutLockFile, repositoryRoot, runCommand,
-} from './holder-lock.mjs';
+import { acquireHolderLock, runCommand } from './kit/holder-lock.mjs';
+import { ROOT as repositoryRoot } from './kit/paths.mjs';
+
+/** The lock file of a resource of this checkout. */
+const checkoutLockFile = name => path.join(repositoryRoot, 'var/locks', `${name}.lock`);
+
+/** Take the lock of `lockFile` for this checkout and print the acquisition and, on release, the release on standard error. */
+function acquireReported(lockFile, { command }) {
+  const lock = acquireHolderLock(lockFile, { checkout: repositoryRoot, command });
+  process.stderr.write(`lock: acquired ${lockFile} (process ${process.pid})\n`);
+  return {
+    ...lock,
+    release() {
+      lock.release();
+      process.stderr.write(`lock: released ${lockFile}\n`);
+    },
+  };
+}
 
 /** The folder of a package directory of this checkout. */
 function packageFolder(directory) {
@@ -45,7 +60,8 @@ async function build(command) {
   const lock = acquireReported(distLockFile(folder), { command: `build ${command}` });
   try {
     for (const stale of [next, old]) fs.rmSync(stale, { recursive: true, force: true });
-    const status = await runCommand('/bin/sh', ['-c', command], { cwd: directory, env: { ...process.env, CRUDUI_DIST: 'dist.next' } });
+    process.env.CRUDUI_DIST = 'dist.next';
+    const status = await runCommand('/bin/sh', ['-c', command], { cwd: directory });
     if (status !== 0) return status;
     assert.ok(fs.existsSync(next) && fs.readdirSync(next).length > 0, `${command} wrote no output into ${next}; write the build into $CRUDUI_DIST`);
     if (fs.existsSync(dist)) fs.renameSync(dist, old);

@@ -38,8 +38,8 @@ recipes start every tool with the offline settings, `$(NPM)` and the toolchains 
 `tests/build/ci-local.test.mjs` fails for a step that starts node, npm, npx, cargo, go, php,
 composer, rustup, python3 or sh without make.
 
-`make ci` runs every checking command of the CI workflow in the workflow's order, collects the
-conformance evidence and checks it as the final CI job does; `tests/build/ci-local.test.mjs` fails
+`make ci` runs `conformance-reset` and then every target of `CI_TARGETS` in the workflow's order, collects
+the conformance evidence and checks it as the final CI job does; `tests/build/ci-local.test.mjs` fails
 when the list differs from `.github/workflows/ci.yml`.
 
 A failure never stops the later checks, so one run reports every failure. Each CI job runs its
@@ -61,41 +61,36 @@ and an `&&` chain puts no step after a check.
 fails after the last one.
 
 `make ci` runs once per committed tree, when no task of `docs/plans/execution-checklist.md` is
-`[~]`. Before any command it starts `scripts/full-run.mjs`, which prints its decision with the
-reason (`[full-run] run: ...` or `[full-run] refuse: ...`) and refuses with status 1 while a task
-row of the checklist is `[~]`, listing each active ID with its task; while the pre-push hook is not
-installed (`node scripts/push-gate.mjs hooks-check`, below); while tracked files have
-uncommitted changes (`git status --porcelain --untracked-files=no`), because a full run verifies a
-committed tree; when `var/full-run.json` records a full run of the current tree (`git rev-parse
-HEAD^{tree}`), naming that run with its commit, its start time and its result; and while the process
-of an `incomplete` record still runs.
+`[~]`. Before any target it starts `scripts/kit/full-run.mjs`, which prints its decision with the
+reason and refuses with status 1 while a task row of the checklist is `[~]`, listing each active ID
+with its task; while the checklist cannot be read; while the pre-push hook is not installed
+(`make hooks-check`, below); while tracked files have uncommitted changes or new files are not
+ignored, because a full run verifies a committed tree, which holds neither; when `var/full-run.json`
+records a full run of the current tree (`git rev-parse HEAD^{tree}`), naming that run with its
+commit, its start time and its result; and while the process of an `incomplete` record still runs.
+The guard holds the lock `var/full-run.lock` from its first read to its last write.
 
-The commands run in `var/full-run/clone`, a fresh clone of the committed commit: the guard clones
-the checkout into it, checks out the commit and runs `make install` there, so no ignored build
-output, run record or untracked file of the working tree reaches a check. A rerun of the same commit
-reuses the clone when its installs completed; a failed `make install` stops the run before any
-command and names the clone and the commit.
+The targets run in the working tree of the committed commit. A full run runs `conformance-reset`,
+which removes the conformance evidence of earlier runs, then each target of `CI_TARGETS` as
+`make -k <target>` to its end, also after a target fails. It prints the start and the result of
+each target with the elapsed time and writes the output of each target to
+`var/report/full-run/targets/<target>.log`; no target has a time limit. It writes `var/full-run.json`
+before and after each target: the tree, the commit, the process and its start time, the start and
+end times, the result (`incomplete` until the last target ends, then `passed` or `failed`), and each
+target with its status (`pending`, `running`, `passed`, `failed`), its times and, for a failed target,
+its last output lines. A run that is stopped therefore stays recorded as `incomplete`, with the
+target that was running. `var/` is ignored by Git, so each checkout and worktree has its own record.
+A commit that changes the tree permits a new full run when no task is `[~]`.
 
-A target of the guard is one command of `CI_COMMANDS`, named by its text. A full run removes the
-conformance evidence of earlier runs, runs each command with `sh -c` to its end, also after a
-command fails, and prints `[full-run] start <command> (<n>/<total>)` and `[full-run] <command>
-passed|failed in <seconds> s`; no command has a time limit. It writes `var/full-run.json` before and
-after each command: the tree, the commit, the process, the start and end times, the result
-(`incomplete` until the last command ends, then `passed` or `failed`), the failed commands and each
-command with its status (`pending`, `running`, `passed`, `failed`), its times and its elapsed
-milliseconds. A run that is stopped therefore stays recorded as `incomplete`, with the command that
-was running. `var/` is ignored by Git, so each checkout and worktree has its own record. A commit
-that changes the tree permits a new full run when no task is `[~]`.
-
-`make rerun-failed` reruns only the commands of the current tree that did not pass: the failed
-commands and the commands that an `incomplete` run did not finish. It keeps the conformance evidence
-of the commands that passed, which `node scripts/check-conformance.mjs` reads. It is refused like
+`make rerun-failed` reruns only the targets of the current tree that did not pass: the failed
+targets and the targets that an `incomplete` run did not finish. It keeps the conformance evidence
+of the targets that passed, which `node scripts/check-conformance.mjs` reads. It is refused like
 `make ci` for a task in progress, uncommitted changes and a running process, and also when there is
 no record, when the record belongs to another tree and when the full run of the tree passed. It
-writes each rerun into `reruns` of the record; when every command has passed, the result of the tree
+writes each rerun into `reruns` of the record; when every target has passed, the result of the tree
 becomes `passed`.
 
-The CI workflow runs the same commands in its jobs on each pull request, each merge group and each manual run
+The CI workflow runs the same targets in its jobs on each pull request, each merge group and each manual run
 (`workflow_dispatch`) and does not run `make ci`, so the guard does not decide CI runs. A new checkout, as in CI, has no record, so `make ci`
 runs there when no task is `[~]` and the tree is clean.
 
@@ -130,26 +125,28 @@ also inside another make, print only the commands. `tests/build/make-dry-run.tes
 run of make outside it.
 
 A push happens only when no task of the checklist is `[~]`. The tracked pre-push hook
-`.githooks/pre-push` runs `node scripts/push-gate.mjs hook` with the refs that Git pushes. The check
+`.githooks/pre-push` runs `node scripts/kit/push-gate.mjs hook` with the refs that Git pushes. The check
 reads the checklist of every pushed commit (`git show <sha>:docs/plans/execution-checklist.md`) and
-of the working tree with `activeItems` of the guard, and refuses the push with status 1 while one of
-them has a task in progress. It prints `push refused: checklist tasks are in progress`, one line per
-task with the pushed ref and commit or `working tree`, its ID and its title, the reason and the
-remedy: complete the task, or mark it `[!]` with its cause and retry condition. A pushed commit
-without the checklist, a Git error and an error of the check also refuse the push, naming the cause; a
-deleted ref pushes no commit and is checked by the working tree alone.
+of the working tree, and refuses the push with status 1 while one of them has a task in progress.
+It prints the file, the ID and the title of each such task with the pushed ref and commit or
+`working tree`, and states which states block a push (`[~]`) and which do not (`[ ]`, `[o]`, `[!]`);
+complete the task, or mark it `[!]` with its cause and retry condition. A pushed commit without the
+checklist, a malformed line of the hook input, a checklist that cannot be read and a Git error also
+refuse the push, naming the cause; a deleted ref pushes no commit and is checked by the working tree
+alone.
 
-Git does not version hooks. Every `make` run sets `core.hooksPath` to `.githooks` when it reads the
-Makefile and the setting differs, so a checkout that runs any make target has the hook. `make hooks`
-installs it and runs `node scripts/push-gate.mjs hooks-check`, which `make hooks-check` also runs:
-it fails while `core.hooksPath` is not `.githooks` or `.githooks/pre-push` is not an executable
-file, and names the fix. The guard of `make ci` refuses for the same reasons.
+Git does not version hooks. A make run sets `core.hooksPath` to `.githooks` when the checkout tracks
+`.githooks/pre-push` (`scripts/kit/kit.mk`), so a checkout that runs any make target has the hook.
+`make hooks` (`node scripts/kit/git-hooks.mjs install`) sets `core.hooksPath`, writes the hook and makes
+it executable, and `make hooks-check` fails while `core.hooksPath` is not `.githooks` or
+`.githooks/pre-push` is missing, is not an executable file or has other content than the hook of the
+tool, and names the fix. The guard of `make ci` refuses for the same reasons.
 
 A clone without the hook, or a push that skips it, still reaches GitHub. The job `push-gate` of
 `.github/workflows/push-gate.yml` runs on every push to any branch but the branches of the merge
 queue, on every pull request and on every merge group, checks out the pushed commit (the head
 commit of a pull request, the commit of a merge group) and runs
-`node scripts/push-gate.mjs commit HEAD`. It fails while the checklist of that commit has a task in
+`node scripts/kit/push-gate.mjs commit HEAD`. It fails while the checklist of that commit has a task in
 progress, when the commit has no checklist and when it does not track `.githooks/pre-push` as an
 executable file (mode `100755`); it prints the refusal through the progress lines, each line as an
 error annotation, and in the job summary. The same step runs `make records-check`: `scripts/check-documents.mjs`
@@ -348,15 +345,15 @@ actually executed. Test counts alone do not establish coverage or deployment.
 ## Reports
 
 Every CI job leaves the reason of each failure. `make ci-targets TARGETS="..."`
-(`scripts/ci-targets.mjs`) runs each target as `make -k <target>` to its end, also after an earlier
+(`scripts/kit/ci-targets.mjs`) runs each target as `make -k <target>` to its end, also after an earlier
 target failed, prints its output and writes it to `var/report/ci-targets/targets/<target>.log`;
 `summary.md` names each target with its result and time and, for each failed target, its first
-failure lines and its log (`scripts/target-report.mjs`), and the same text goes to the job summary of
+failure lines and its log (`scripts/kit/target-report.mjs`), and the same text goes to the job summary of
 GitHub Actions. The run holds the lock `var/report/ci-targets.lock`, so two runs never write one
 report, and ends with status 1 when a target failed. Each job uploads `var/report/ci-targets` as the
 artifact `report-<job>` (with the PHP minor of a matrix job) under `if: ${{ !cancelled() }}` with
 `if-no-files-found: error`. `tests/build/ci-local.test.mjs` fails for a job that runs a check outside
-`make ci-targets` or uploads no report, and `tests/build/target-report.test.mjs` runs a failing and a
+`make ci-targets` or uploads no report, and `tests/kit/ci.test.mjs` runs a failing and a
 passing probe target and finds both logs, the failure line in the summary and the job summary.
 
 ## Shared resources
@@ -364,7 +361,7 @@ passing probe target and finds both logs, the failure line in the summary and th
 Runs of different checkouts run on one machine at the same time. A resource that one
 run can own is created for that run: a temporary directory from `mktemp -d` or `mkdtemp`, a port
 the operating system assigns, or a name that contains the run's identity. A resource that is single
-for the machine or the checkout is used under a holder lock of `scripts/holder-lock.mjs`:
+for the machine or the checkout is used under a holder lock of `scripts/kit/holder-lock.mjs`:
 
 - One run holds the lock at a time. The lock file holds the holder's record: the checkout of the
   code that took it, the pid, the start time of that process, the time the lock was taken, the
@@ -374,16 +371,15 @@ for the machine or the checkout is used under a holder lock of `scripts/holder-l
 - A run that finds the lock held fails with the holder's record.
 - A lock whose holder process no longer runs, or whose pid now belongs to a process with another
   start time, is reported with its record and kept. Remove it explicitly with
-  `node scripts/holder-lock.mjs remove-dead <lock file>`, which refuses a running holder.
+  `node scripts/kit/holder-lock.mjs clear <lock file>`, which refuses a running holder.
 - Only the holder releases the lock; the release checks the token of the record first.
-- `node scripts/holder-lock.mjs hold <lock file> -- <command>` runs a command while holding the
+- `node scripts/kit/holder-lock.mjs run <lock file> -- <command>` runs a command while holding the
   lock, passes SIGINT, SIGTERM and SIGHUP to it, releases the lock when it exits and exits with its
   status. It prints the acquisition and the release.
 
-The lock of a resource of one checkout is `var/locks/<name>.lock` in that checkout; the lock of a
-resource that every checkout of the user account shares is `~/.local/state/crudui/locks/<name>.lock`.
-`tests/build/holder-lock.test.mjs`, run by `npm run test:runtimes`, checks the record, the refusal,
-concurrent runs, the report and the removal of a lock whose holder no longer runs, and the release.
+The lock of a resource of one checkout is `var/locks/<name>.lock` in that checkout, and a lock file
+is given as an absolute path. `tests/kit/holder-lock.test.mjs` checks the record, the refusal,
+concurrent runs and the removal of a lock whose holder no longer runs, and the release.
 
 | Resource | Use by one run |
 |---|---|

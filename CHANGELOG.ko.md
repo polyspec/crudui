@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### 2026-10-09 — kit의 gate와 CI 보고 도구 (C14.1-3)
+
+- `config/checklist.json`은 `docs/plans/execution-checklist.md`와 그 한국어 twin, hook `pre-push`를 선언한다. `.githooks/pre-push`는 `make hooks`가 쓰는 hook(`scripts/kit/git-hooks.mjs`)이며 `scripts/kit/push-gate.mjs`를 실행한다. `make ci`는 이전 실행의 적합성 증거를 지우는 `conformance-reset`과 `CI_TARGETS`의 make 대상을 가지고 `scripts/kit/full-run.mjs`를 시작하며, 전체 실행은 더 이상 commit의 새 clone에서 실행되지 않는다.
+- `scripts/package-dist.mjs`와 form comparison의 record server는 `var/locks`의 lock을 `scripts/kit/holder-lock.mjs`에서 가져온다. 그 명령은 `run`과 `clear`이며, user account의 lock(`userLockFile`)은 제거했다. `scripts/push-gate.mjs`, `scripts/full-run.mjs`, `scripts/holder-lock.mjs`, `scripts/ci-targets.mjs`, `scripts/ci-passed.mjs`, `scripts/target-report.mjs`와 그 test를 제거했다.
+
 ### 2026-10-09 — kit의 toolchain, 의존성, test runner 도구 (C14.1-2)
 
 - `config/toolchain.json`은 `scripts/kit/schema/toolchain.schema.json`을 따른다. `make install-tools`가 npm, Go, cargo-audit을 `var/tools`에 설치하고, Makefile은 `var/tools/bin`을 `PATH`의 맨 앞에 둔다. `scripts/install-npm.mjs`, `scripts/checkout-npm.mjs`, `scripts/check-toolchain.mjs`, `scripts/check-cargo-downloads.mjs`, `scripts/install-cargo-audit.mjs`를 제거했다.
