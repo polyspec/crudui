@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-08 — generator 패키지 초기화 module의 타입 주석과 두 package의 strict 검사 (C13.1-17-11)
+
+- `Generator` 연산과 그 도우미에 매개변수와 반환 타입이 있다. `mypy --strict`가 `packages/validator-python/src`(파일 15개)와 `packages/generator-python/src`(파일 21개) 모두에서 종료 코드 0이다. validator suite는 test 23개, generator suite는 test 11개가 통과한다.
+
 ### 2026-10-08 — form module의 타입 주석 (C13.1-17-10)
 
 - `packages/generator-python`의 module `form`에 매개변수와 반환 타입이 있고 `mypy --strict` 오류가 없다. generator 단위 test 11개가 통과하고, native Python 검사는 종료 코드 0이다.

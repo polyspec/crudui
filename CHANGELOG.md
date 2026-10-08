@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-08 — Type hints of the generator package initializer and the strict check of both packages (C13.1-17-11)
+
+- The `Generator` operations and their helpers have parameter and return types. `mypy --strict` exits 0 on both `packages/validator-python/src` (15 files) and `packages/generator-python/src` (21 files). The validator suite passes 23 tests and the generator suite 11 tests.
+
 ### 2026-10-08 — Type hints of the form module (C13.1-17-10)
 
 - The module `form` of `packages/generator-python` has parameter and return types with no `mypy --strict` error. The generator unit tests pass (11 tests), and the native Python checks exit 0.
