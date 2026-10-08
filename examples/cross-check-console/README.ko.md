@@ -3,21 +3,21 @@
 [English](README.md).
 
 Node HTTP 게이트웨이가 자동 적합성 검사와 같은 CRUDUI 진입점을 별도의 호출 경로로
-실행합니다. 임의의 명세와 데이터를 받아 네 검증기와 세 SSR 생성기 사이의 일치나
+실행합니다. 임의의 명세와 데이터를 받아 다섯 검증기와 세 SSR 생성기 사이의 일치나
 차이를 보여 줍니다.
 
 한 프로세스(`server/server.mjs`)가 맡는 역할은 다음과 같습니다.
 
-- `POST /api/validate` — 4개 언어 CRUDUI 폼 검증 팬아웃. 네 언어 모두(JS 포함)
+- `POST /api/validate` — 5개 언어 CRUDUI 폼 검증 팬아웃. 다섯 언어 모두(JS 포함)
   stdin JSON [검증기 프로세스](validators/README.ko.md)로 실행합니다. 순서는
   compose → forbidden-scan → validate입니다. 게이트웨이는 검증기를 하나도 import하지
-  않는 순수 오케스트레이터이며 특권 경로가 없으므로 네 언어가 완전히 대칭입니다.
-- `POST /api/validate-list` — 4개 언어 CRUDUI 목록 구조 검증 팬아웃. `/api/validate`의
-  검증 짝입니다(SPEC §9). 같은 네 프로세스가 `mode:"list"`로 분기합니다(목록 트리에 대한
+  않는 순수 오케스트레이터이며 특권 경로가 없으므로 다섯 언어가 완전히 대칭입니다.
+- `POST /api/validate-list` — 5개 언어 CRUDUI 목록 구조 검증 팬아웃. `/api/validate`의
+  검증 짝입니다(SPEC §9). 같은 다섯 프로세스가 `mode:"list"`로 분기합니다(목록 트리에 대한
   compose → forbidden-scan). 목록은 행을 담지 않으므로(행은 주입되며 DB와 무관)
   데이터 단계가 없고 `data`를 생략합니다. 금지된 메타 키는 같은 `failure` 기록으로
   나타납니다.
-- `POST /api/validate-detail` — 4개 언어 CRUDUI 상세 구조 검증 팬아웃. 네 프로세스가
+- `POST /api/validate-detail` — 5개 언어 CRUDUI 상세 구조 검증 팬아웃. 다섯 프로세스가
   `mode:"detail"`로 분기합니다(루트와 `fields` 맵의 compose → forbidden-scan). 상세
   검증은 레코드를 담지 않으므로 `data`를 생략합니다.
 - `POST /api/render` — 3개 프레임워크 CRUDUI 폼 SSR. React와 Svelte(동기), Vue(비동기)
@@ -37,18 +37,18 @@ Node HTTP 게이트웨이가 자동 적합성 검사와 같은 CRUDUI 진입점�
 
 ## 독립 검증인 이유
 
-적합성 검사(네 검증기의 `tests/fixtures/validate` 테스트와 세 `form-render.conformance` 테스트, 목록
-렌더링 적합성, 4개 언어 목록 구조 적합성)는 vitest, go test, cargo test, PHP 워커로
+적합성 검사(다섯 검증기의 `tests/fixtures/validate` 테스트와 세 `form-render.conformance` 테스트, 목록
+렌더링 적합성, 5개 언어 목록 구조 적합성)는 vitest, go test, cargo test, PHP 워커로
 고정 픽스처에 대해 CRUDUI 엔진을 실행합니다. 콘솔은 같은 CRUDUI 함수를 HTTP
 게이트웨이로 자유로운 실시간 입력에 대해 실행합니다. 엔진은 같고 래퍼가 다르므로 한
 경로의 버그가 다른 경로의 버그를 가릴 수 없습니다. JS의 프로세스 내 import를 없애 이
-성질이 강해졌습니다. 이제 JS도 PHP·Go·Rust와 똑같이 별도 프로세스로 실행하므로 게이트웨이 안에서
-우대받는 언어가 없고, 4개 언어 일치는 특권 호출 경로의 부산물이 아니라 엔진의
+성질이 강해졌습니다. 이제 JS도 PHP·Go·Rust·Python과 똑같이 별도 프로세스로 실행하므로 게이트웨이 안에서
+우대받는 언어가 없고, 5개 언어 일치는 특권 호출 경로의 부산물이 아니라 엔진의
 결정성입니다. 실시간으로 보고된 차이는 픽스처 케이스로 내보내 적합성 모음에 회귀
 테스트로 추가할 수 있습니다.
 
 콘솔은 서버의 판정을 신뢰하지 않습니다. 실행할 때마다 원시 항목별 결과에서
-`idempotent`(4개 언어 일치)와 `parity`(3개 프레임워크 일치)를 다시 계산하고, 언어별·
+`idempotent`(5개 언어 일치)와 `parity`(3개 프레임워크 일치)를 다시 계산하고, 언어별·
 프레임워크별 원시 바이트를 보여 주므로(raw 토글) 콘솔 자신의 판정을 원본 데이터와
 대조해 다시 확인할 수 있습니다.
 [콘솔 측 판정 재계산](#콘솔-측-판정-재계산)을 참고하세요.
@@ -122,12 +122,12 @@ http://localhost:4000 을 열고 예제를 고른 뒤 명세와 데이터를 편
 콘솔에는 여섯 엔드포인트를 다루는 세 탭이 있습니다. 패널은 DOM을 공유하지 않으며,
 탭 전환은 어떤 `<main>`을 보일지만 바꿉니다.
 
-- **폼 탭** — `POST /api/validate`(4개 언어 폼 검증)와 `POST /api/render`(3개
+- **폼 탭** — `POST /api/validate`(5개 언어 폼 검증)와 `POST /api/render`(3개
   프레임워크 폼 SSR)를 병렬로 호출합니다. 명세 편집기, 데이터 편집기, `unsupported`
   토글, 픽스처 내보내기가 있습니다.
-- **목록 탭** — 세 행렬을 위에서 아래로 쌓아 폼 탭처럼 검증(4개 언어) → 렌더링(3개
+- **목록 탭** — 세 행렬을 위에서 아래로 쌓아 폼 탭처럼 검증(5개 언어) → 렌더링(3개
   프레임워크) 순서로 읽힙니다.
-  1. `POST /api/validate-list` — 4개 언어 목록 구조 검증(compose → forbidden-scan,
+  1. `POST /api/validate-list` — 5개 언어 목록 구조 검증(compose → forbidden-scan,
      행 없음). 폼 탭과 같은 일치 행렬로 그리며, 금지된 메타 키는 같은 `failure`
      셀로 나타납니다.
   2. `listSpec.search`의 `POST /api/render` — 내장된 `search` 슬롯은 폼 명세이며,
@@ -142,8 +142,8 @@ http://localhost:4000 을 열고 예제를 고른 뒤 명세와 데이터를 편
   목록 명세 편집기와 행 편집기는 각각 초록/빨강 파싱 배지를 달며, 파싱에 실패하면 목록
   실행 버튼이 비활성화됩니다. `search` 폼 명세를 재사용하므로 같은 `search(form-spec)`가
   폼 탭이 직접 실행하는 폼 엔드포인트를 거쳐 왕복합니다.
-- **상세 탭** — 두 행렬, 검증(4개 언어) → 렌더링(3개 프레임워크):
-  1. `POST /api/validate-detail` — 4개 언어 상세 구조 검증(compose → forbidden-scan,
+- **상세 탭** — 두 행렬, 검증(5개 언어) → 렌더링(3개 프레임워크):
+  1. `POST /api/validate-detail` — 5개 언어 상세 구조 검증(compose → forbidden-scan,
      레코드는 검증하지 않음). 같은 일치 행렬로 그립니다.
   2. `POST /api/render-detail` — 주입한 레코드에 대한 3개 프레임워크 상세 SSR. 같은
      일치 행렬로 그립니다.
@@ -168,12 +168,12 @@ http://localhost:4000 을 열고 예제를 고른 뒤 명세와 데이터를 편
   달라서 다른 프레임워크가 렌더링할 때 한 프레임워크가 예외를 던지면 조용히 빠지지 않고
   일치 깨짐이 됩니다). 렌더링한 프레임워크가 둘 미만이면 판정 불가(null)입니다.
 
-게이트웨이 테스트는 공용 검증 fixture 전체를 네 검증 언어로 실행하고, 폼 렌더 fixture
+게이트웨이 테스트는 공용 검증 fixture 전체를 다섯 검증 언어로 실행하고, 폼 렌더 fixture
 전체를 HTML·React·Svelte·Vue로 실행하며, 목록·상세 렌더 fixture 전체도 같은 네 렌더러로
 실행합니다. 데이터가 없는 반복 필드의 public form instance fixture 한 건은 네 렌더러
 멱등성과 생성 행 키 계약을 검사합니다. public instance는 무작위 식별자를 생성해야 하므로
 bindForm fixture의 고정 바이트와 비교하지 않습니다.
-`server/validator-processes.test.mjs`는 모든 요청 사례와 폼·목록·상세 검증 사례를 다섯
+`server/validator-processes.test.mjs`는 모든 요청 사례와 폼·목록·상세 검증 사례를 여섯
 [검증기 프로세스](validators/README.ko.md)에 보내 종료 상태와 응답 전체를 비교합니다.
 
 어긋난 실행은 문제가 된 열을 빨갛게 칠하고 항목별 차이 표(어느 언어·프레임워크가 어떤
@@ -208,12 +208,12 @@ validator 프로세스로 실행하고, 내보낸 각 케이스가 공용 케이
 ## 로컬 curl 스모크 테스트
 
 ```bash
-# validate: conditional required fires → all 4 langs invalid@email:required
+# validate: conditional required fires → all 5 langs invalid@email:required
 curl -s -X POST localhost:4000/api/validate -H 'Content-Type: application/json' \
   -d '{"spec":{"type":"group","properties":{"subscribe":{"type":"checkbox"},"email":{"type":"email","validate":{"required":".subscribe"}}}},"data":{"subscribe":true,"email":""}}'
 # → idempotent:true, every lang valid:false with required@email
 
-# validate: unresolved $ref → load failure in all 4 langs (NOT valid:false)
+# validate: unresolved $ref → load failure in all 5 langs (NOT valid:false)
 curl -s -X POST localhost:4000/api/validate -H 'Content-Type: application/json' \
   -d '{"spec":{"type":"group","properties":{"$ref":"Missing.yml"}},"data":{}}'
 # → idempotent:true, every lang failure.code REF_FILE_NOT_FOUND
@@ -228,17 +228,17 @@ curl -s -X POST localhost:4000/api/render -H 'Content-Type: application/json' \
   -d '{"spec":{"type":"group","properties":{"x":{"type":"totally-unknown-widget"}}},"options":{"unsupported":"throw"}}'
 # → parity:true, every fw error.code UNSUPPORTED_FIELD_TYPE
 
-# validate-list: clean list STRUCTURE → all 4 langs valid:true (no data pass)
+# validate-list: clean list STRUCTURE → all 5 langs valid:true (no data pass)
 curl -s -X POST localhost:4000/api/validate-list -H 'Content-Type: application/json' \
   -d '{"listSpec":{"columns":{"name":{"field":"name","label":{"ko":"이름","en":"Name"}}}}}'
 # → idempotent:true, every lang valid:true (mode:list, compose → forbidden-scan)
 
-# validate-list: unresolved column $ref in a list → load failure in all 4 langs
+# validate-list: unresolved column $ref in a list → load failure in all 5 langs
 curl -s -X POST localhost:4000/api/validate-list -H 'Content-Type: application/json' \
   -d '{"listSpec":{"columns":{"$ref":"Missing.yml"}}}'
 # → idempotent:true, every lang failure.code REF_FILE_NOT_FOUND
 
-# validate-detail: a forbidden meta key on a field → the same load failure in all 4 langs
+# validate-detail: a forbidden meta key on a field → the same load failure in all 5 langs
 curl -s -X POST localhost:4000/api/validate-detail -H 'Content-Type: application/json' \
   -d '{"detailSpec":{"fields":{"name":{"field":"name","show_if":".admin"}}}}'
 # → idempotent:true, every lang failure.code FORBIDDEN_META_KEY at fields.name.show_if
@@ -265,10 +265,10 @@ curl -s -X POST localhost:4000/api/render-detail -H 'Content-Type: application/j
 server/
   server.mjs          gateway: routes (validate, validate-list, validate-detail, render, render-list, render-detail) + CORS + always-200 + static serving
   engine.mjs          one Vite SSR boot → loads the 3 CRUDUI form, list and detail RENDER entries (render only)
-  validate-runner.mjs all 4 langs via spawnSync validator processes (zero privileged path); validateAll + validateAllList (mode:list) + validateAllDetail (mode:detail); idempotency verdict
+  validate-runner.mjs all 5 langs via spawnSync validator processes (zero privileged path); validateAll + validateAllList (mode:list) + validateAllDetail (mode:detail); idempotency verdict
   render-runner.mjs   HTML/React/Svelte/Vue in-process SSR; renderAll + renderAllList + renderAllDetail; parity verdict
   package.json        start + build:validators scripts
-validators/           validator processes: js/validate.mjs, php/validate.php, go/, rust/ and
+validators/           validator processes: js/validate.mjs, php/validate.php, go/, rust/, python/ and
                       requests.json (request contract cases); see validators/README.ko.md
 client/               no-build console (index.html + app.js + examples.js + doc.js + fixture-export.js + styles.css);
                       three tabs (form, list, detail) over the six endpoints

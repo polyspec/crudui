@@ -13,11 +13,12 @@ the packages provide the validator library functions instead.
 | PHP extension | `php -d extension=… php/validate.php` | the same PHP program, served by the extension's classes |
 | Go | `go/` (module with its own `go.mod`) | `validate.ValidateJSON`, `ValidateListJSON` and `ValidateDetailJSON` |
 | Rust | `rust/` (crate `polyspec-crudui-cross-check-validator`) | `polyspec_crudui_validator::validate`, `validate_list` and `validate_detail` |
+| Python | `python/validate.py` | `validate`, `validateList` and `validateDetail` of `polyspec.crudui.validator` |
 
 `npm run build:validators` in `../server` builds the Go program to `go/validate` and the Rust
 program to `rust/target/release/polyspec-crudui-cross-check-validator`. The JavaScript program imports the
 built `@polyspec/crudui-validator` package. The PHP program loads the Composer autoloader of
-`packages/validator-php`. A deployment can name other Go and Rust executables with
+`packages/validator-php`. The Python program imports `packages/validator-python`. A deployment can name other Go and Rust executables with
 `CRUDUI_CROSS_CHECK_GO_VALIDATOR` and `CRUDUI_CROSS_CHECK_RUST_VALIDATOR`.
 
 ## Request
@@ -60,8 +61,8 @@ In form mode, `data` that is present and not an object, `null` included, is the 
 A request may write an unpaired surrogate as a JSON escape, such as `"\ud800"`. Each program
 decodes it without replacing it, so the validator reports the [input text](../../../docs/spec/input-text.md)
 failure (exit `2`) of the specification, a file, the data or the base path, in the validator's
-order and after the rules above. The PHP program applies the text rules that precede the data
-shape rule itself when `data` is not an object, because its API takes only an object.
+order and after the rules above. The PHP and Python programs apply the text rules that precede the data
+shape rule itself when `data` is not an object, because their APIs take only an object.
 
 ## Tests
 
@@ -70,7 +71,7 @@ shape rule itself when `data` is not an object, because its API takes only an ob
 standard output. `scripts/check-schema.mjs` checks the specification of every accepted request
 against the meta-schema.
 
-[`../server/validator-processes.test.mjs`](../server/validator-processes.test.mjs) runs the five
+[`../server/validator-processes.test.mjs`](../server/validator-processes.test.mjs) runs the six
 processes on every request case and on every case of
 [`tests/fixtures/validate`](../../../tests/fixtures/validate/README.md),
 [`tests/fixtures/list-validity`](../../../tests/fixtures/list-validity/README.md) and

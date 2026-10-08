@@ -39,7 +39,7 @@ import { validateCases } from './fixture-export.js';
 // override with ?api=http://host:port for split deploys.
 const API_BASE = new URLSearchParams(location.search).get('api') || '';
 
-const VALIDATE_LANGS = ['js', 'php', 'go', 'rust'];
+const VALIDATE_LANGS = ['js', 'php', 'go', 'rust', 'python'];
 const RENDER_FWS = ['html', 'react', 'vue', 'svelte'];
 
 const LANG_COLOR = {
@@ -47,6 +47,7 @@ const LANG_COLOR = {
   php: '#777bb4',
   go: '#00add8',
   rust: '#dea584',
+  python: '#3776ab',
 };
 const FW_COLOR = {
   html: '#e34f26',
