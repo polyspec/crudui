@@ -7,18 +7,18 @@ __all__ = ['canonical', 'declarations', 'rendered']
 _COMMENT = re.compile(r'/\*.*?\*/', re.DOTALL)
 
 
-def declarations(style):
+def declarations(style: str) -> list[tuple[str, str]]:
     """Complete property and value pairs in declaration order."""
-    out = []
+    out: list[tuple[str, str]] = []
     start = 0
     colon = None
     quote = None
     escape = False
     comment = False
-    stack = []
+    stack: list[str] = []
     length = len(style)
 
-    def finish(end):
+    def finish(end: int) -> None:
         nonlocal start, colon
         if colon is not None:
             prop = _COMMENT.sub(' ', style[start:colon]).strip()
@@ -82,7 +82,7 @@ def declarations(style):
     return out
 
 
-def canonical(style):
+def canonical(style: object) -> str | None:
     """Declaration spacing normalized, values and duplicate properties retained."""
     if not isinstance(style, str):
         return None
@@ -92,19 +92,19 @@ def canonical(style):
     return '; '.join(f'{prop}: {value}' for prop, value in parsed)
 
 
-def _dash_lower(match):
+def _dash_lower(match: re.Match[str]) -> str:
     return match.group(1).upper()
 
 
-def _dash_property(match):
+def _dash_property(match: re.Match[str]) -> str:
     return '-' + match.group(0).lower()
 
 
-def rendered(style):
+def rendered(style: object) -> str | None:
     """Final property values in their first insertion order."""
     if not isinstance(style, str):
         return None
-    properties = {}
+    properties: dict[str, str] = {}
     for prop, value in declarations(style):
         if not prop.startswith('--'):
             key = re.sub('-([a-z])', _dash_lower, prop)
