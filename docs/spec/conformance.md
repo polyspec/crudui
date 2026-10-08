@@ -39,10 +39,13 @@ fails when:
 - a supported runtime has no evidence, or failing evidence, for a case of a fixture its feature
   names;
 - evidence exists for a feature, fixture, runtime or case the standard does not declare, such as
-  a test for a runtime declared `unsupported`;
+  a test for a runtime declared `unsupported`, or a case outside the fixture of a partial runtime;
 - a directory under `tests/fixtures` has no registered fixture, or a registered case fixture is
   proven by no feature;
 - a feature names a fixture that is not a registered case fixture.
+
+A `partial` runtime is measured by the cases it records: each recorded case must pass, and no case
+is required, because the shared fixtures do not state which cases a partial runtime supports.
 
 ## Suite runs
 
@@ -52,7 +55,10 @@ a suite that records evidence also leaves a run record in `runs/` of the evidenc
 [`tests/native-generators/run.mjs`](../../tests/native-generators/run.mjs) for itself, through
 [`tests/conformance/runs.mjs`](../../tests/conformance/runs.mjs). A record
 `{"program", "tool", "cwd", "args", "started", "status"}` is written with `status` `null` when the run
-starts and again with the exit status when its process exits, so a stopped run keeps `null`.
+starts and again with the exit status when its process exits, so a stopped run keeps `null`. The
+Python suites write theirs through [`tests/conformance/runner.py`](../../tests/conformance/runner.py),
+which names itself as the program of each record, so the record does not depend on the Python
+executable that runs the suite.
 
 `evidenceSuites` of the check declares each suite with the command that runs it and the runtimes it
 proves. For each feature, fixture and runtime with missing or failing evidence, the check names every

@@ -32,6 +32,8 @@ export function checkConformance({ features, registry, cases, families, evidence
     recorded.set(id, (recorded.get(id) ?? true) && item.passed === true);
   }
   const required = new Set();
+  // The cases of a partial runtime: each recorded case must pass, and no case is required.
+  const optional = new Set();
   const declared = new Map();
   const problems = {
     undeclaredFixtures: [], unregisteredFamilies: [], unprovenFixtures: [], missing: [], failed: [], undeclaredEvidence: [],
@@ -45,9 +47,14 @@ export function checkConformance({ features, registry, cases, families, evidence
         continue;
       }
       for (const [runtime, support] of Object.entries(feature.support)) {
-        if (support !== 'pass') continue;
+        if (support !== 'pass' && support !== 'partial') continue;
         for (const name of names) {
           const id = key(feature.id, fixture, runtime, name);
+          if (support === 'partial') {
+            optional.add(id);
+            if (recorded.get(id) === false) problems.failed.push({ feature: feature.id, fixture, runtime, case: name });
+            continue;
+          }
           required.add(id);
           if (!recorded.has(id)) problems.missing.push({ feature: feature.id, fixture, runtime, case: name });
           else if (!recorded.get(id)) problems.failed.push({ feature: feature.id, fixture, runtime, case: name });
@@ -66,14 +73,14 @@ export function checkConformance({ features, registry, cases, families, evidence
   const reported = new Set();
   for (const item of evidence) {
     const id = key(item.feature, item.fixture, item.runtime, item.case);
-    if (required.has(id) || reported.has(id)) continue;
+    if (required.has(id) || optional.has(id) || reported.has(id)) continue;
     reported.add(id);
     const feature = declared.get(item.feature);
     const support = feature?.support[item.runtime];
     const reason = !feature ? 'unknown feature'
       : !feature.fixtures.includes(item.fixture) ? 'fixture not declared by the feature'
         : support === undefined ? 'runtime not declared by the feature'
-          : support !== 'pass' ? `runtime declared ${support}`
+          : support === 'unsupported' ? 'runtime declared unsupported'
             : 'case not in the fixture';
     problems.undeclaredEvidence.push({ ...item, reason });
   }
@@ -88,6 +95,7 @@ export function checkConformance({ features, registry, cases, families, evidence
 export const evidenceSuites = [
   { name: 'validator JavaScript', run: { program: 'scripts/run-tests.mjs', tool: 'vitest', cwd: 'packages/validator-ts' }, runtimes: ['javascript'] },
   { name: 'validator PHP', run: { program: 'scripts/run-tests.mjs', tool: 'phpunit', cwd: 'packages/validator-php' }, runtimes: ['php'] },
+  { name: 'validator Python', run: { program: 'tests/conformance/runner.py', tool: 'unittest', cwd: 'packages/validator-python/tests' }, runtimes: ['python'] },
   { name: 'validator Go', run: { program: 'scripts/run-tests.mjs', tool: 'go', cwd: 'packages/validator-go' }, runtimes: ['go'] },
   { name: 'validator Rust', run: { program: 'scripts/run-tests.mjs', tool: 'cargo', argument: 'packages/validator-rust/Cargo.toml' }, runtimes: ['rust'] },
   { name: 'HTML renderer', run: { program: 'scripts/run-tests.mjs', tool: 'vitest', cwd: 'packages/generator-html' }, runtimes: ['javascript-html', 'javascript-dom'] },
@@ -96,6 +104,7 @@ export const evidenceSuites = [
   { name: 'Svelte renderer', run: { program: 'scripts/run-tests.mjs', tool: 'vitest', cwd: 'packages/generator-svelte' }, runtimes: ['svelte'] },
   { name: 'PHP extension', run: { program: 'scripts/run-tests.mjs', tool: 'node', argument: 'packages/php-ext/tests/engine.test.mjs' }, runtimes: ['php-native'] },
   { name: 'PHP extension API', run: { program: 'scripts/run-tests.mjs', tool: 'node', argument: 'packages/php-ext/tests/api.test.mjs' }, runtimes: ['php-native'] },
+  { name: 'generator Python', run: { program: 'tests/conformance/runner.py', tool: 'unittest', cwd: 'packages/generator-python/tests' }, runtimes: ['python'] },
   { name: 'native generators', run: { program: 'tests/native-generators/run.mjs' }, runtimes: ['javascript', 'javascript-html', 'php', 'go', 'rust', 'php-native'] },
 ];
 

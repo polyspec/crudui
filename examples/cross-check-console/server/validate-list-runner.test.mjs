@@ -2,19 +2,19 @@
  * Gateway VALIDATE-LIST verdict — the read sister of validate-runner.test.mjs.
  *
  * `validateAllList(req)` is the exact function the live gateway's POST
- * /api/validate-list calls: it fans one list-spec STRUCTURE across the four
+ * /api/validate-list calls: it fans one list-spec STRUCTURE across the five
  * validator processes in `mode:list` (compose → forbidden-scan, SPEC §9 — no DATA pass, a list
- * carries no rows), then reduces the four per-language envelopes to the verdict
+ * carries no rows), then reduces the five per-language envelopes to the verdict
  * via the SAME compareIdempotency the form path uses. A clean load is
  * { valid:true, errors:[] }; a forbidden meta key / unresolved $ref surfaces as
- * the SAME failure record as the form path, so the four agree on a load failure
+ * the SAME failure record as the form path, so the five agree on a load failure
  * as much as on a clean structure.
  *
  * Two layers:
  *   (1) verdict reuse — validateAllList reduces through compareIdempotency, the
  *       exact comparator the form runner's unit suite already locks. No re-test
  *       of the comparator here (it is shared); the focus is the real list fan-out.
- *   (2) real 4-language list fan-out over representative list-validity fixture
+ *   (2) real 5-language list fan-out over representative list-validity fixture
  *       cases — the SAME cases.json the JS list conformance suite loads. An
  *       engine:"pass" case must agree on valid:true (idempotent); an
  *       engine:{code, at} case must agree on the SAME failure code and location
@@ -36,7 +36,7 @@ const LIST_VALIDITY_FIXTURE = path.resolve(ROOT, 'tests/fixtures/list-validity/c
 
 const allCases = JSON.parse(fs.readFileSync(LIST_VALIDITY_FIXTURE, 'utf8'));
 
-// The four-language engine has no shape opinion (no enum/required/closure): only
+// The five-language engine has no shape opinion (no enum/required/closure): only
 // compose + forbidden-scan. So the engine verdict is keyed off `engine`, NOT
 // `expect`: engine:"pass" → clean load (valid:true); engine:{code,at} → a load
 // failure carrying that code and location. A `clean` case is any engine:"pass"
@@ -47,7 +47,7 @@ const loadFailCases = allCases.filter((c) => c.engine && typeof c.engine === 'ob
 
 describe('validateAllList — real 4-language list fan-out (clean structure → idempotent valid:true)', () => {
   for (const c of cleanCases) {
-    test(`${c.name} — four engines agree on a clean load (idempotent, valid:true)`, async () => {
+    test(`${c.name} — five engines agree on a clean load (idempotent, valid:true)`, async () => {
       const out = await validateAllList({ spec: c.spec, files: c.files ?? {}, basepath: '' });
 
       // Every engine must have run (ok). A missing Go/Rust binary surfaces here.
@@ -59,7 +59,7 @@ describe('validateAllList — real 4-language list fan-out (clean structure → 
       expect(out.results.every((r) => r.valid === true)).toBe(true);
       expect(out.results.every((r) => r.errors.length === 0)).toBe(true);
 
-      // The four collapse to one verdict.
+      // The five collapse to one verdict.
       expect(out.idempotent, JSON.stringify(out.mismatch)).toBe(true);
     }, 60000);
   }
@@ -67,7 +67,7 @@ describe('validateAllList — real 4-language list fan-out (clean structure → 
 
 describe('validateAllList — real 4-language list fan-out (forbidden meta key → idempotent load failure)', () => {
   for (const c of loadFailCases) {
-    test(`${c.name} — four engines agree on the SAME failure ${c.engine.code} at ${c.engine.at} (idempotent, never a silent valid:true)`, async () => {
+    test(`${c.name} — five engines agree on the SAME failure ${c.engine.code} at ${c.engine.at} (idempotent, never a silent valid:true)`, async () => {
       const out = await validateAllList({ spec: c.spec, files: c.files ?? {}, basepath: '' });
 
       // Every engine must have run; a load failure is a result, not a crash.

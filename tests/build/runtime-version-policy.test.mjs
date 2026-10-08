@@ -166,6 +166,9 @@ test('every workflow runs on ubuntu-24.04 with actions named by commit SHA and n
 test('every CI job sets up the recorded toolchains and checks the tools it set up', async () => {
   const recorded = recordedToolchain(repository);
   const minors = recorded.php;
+  const pyproject = await readFile(path.join(repository, 'packages/validator-python/pyproject.toml'), 'utf8');
+  const pythonMinimum = /^requires-python = ">=(\d+\.\d+)"$/m.exec(pyproject)?.[1];
+  assert.ok(pythonMinimum, 'packages/validator-python/pyproject.toml names requires-python = ">=X.Y"');
   const violations = [];
   for (const { file, workflow } of await workflows()) {
     for (const [id, job] of Object.entries(workflow.jobs)) {
@@ -189,7 +192,11 @@ test('every CI job sets up the recorded toolchains and checks the tools it set u
         }
         if (uses.startsWith('actions/setup-python@')) {
           tools.push('python');
-          if (String(step.with?.['python-version']) !== recorded.python) violations.push(`${file} ${id}: setup-python must install the recorded minor ${recorded.python}`);
+          const versions = step.with?.['python-version'] === '${{ matrix.python }}' ? job.strategy.matrix.python.map(String) : [String(step.with?.['python-version'])];
+          if (!versions.includes(recorded.python)) violations.push(`${file} ${id}: setup-python must install the recorded minor ${recorded.python}`);
+          for (const version of versions) {
+            if (version !== recorded.python && version !== pythonMinimum) violations.push(`${file} ${id}: setup-python installs ${version}, which is neither the recorded minor ${recorded.python} nor the minimum ${pythonMinimum} of requires-python`);
+          }
         }
         if (/rust-toolchain|dtolnay/.test(uses)) violations.push(`${file} ${id}: ${uses} selects a Rust toolchain; run rustup toolchain install --no-self-update`);
         if (/^make\b.*\binstall-rust\b/m.test(run)) tools.push('rust');

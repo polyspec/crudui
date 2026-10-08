@@ -35,9 +35,12 @@ JavaScript는 모델과 문자열 렌더러가 별도 패키지이므로 서버 
 실패합니다.
 
 - 지원 런타임에 기능이 지정한 fixture 사례의 증거가 없거나 실패한 증거가 있을 때
-- 기준이 선언하지 않은 기능, fixture, 런타임, 사례의 증거가 있을 때(예: `unsupported`로 선언한 런타임의 테스트)
+- 기준이 선언하지 않은 기능, fixture, 런타임, 사례의 증거가 있을 때(예: `unsupported`로 선언한 런타임의 테스트, `partial` 런타임의 fixture 밖 사례)
 - `tests/fixtures` 아래 디렉터리에 등록된 fixture가 없거나, 등록된 사례 fixture를 증명하는 기능이 없을 때
 - 기능이 등록된 사례 fixture가 아닌 fixture를 지정할 때
+
+`partial` 런타임은 기록한 사례로 측정합니다. 기록된 사례마다 통과해야 하고 요구되는 사례는 없습니다. 공용 fixture가
+부분 런타임이 지원하는 사례를 정하지 않기 때문입니다.
 
 ## Suite 실행
 
@@ -47,7 +50,9 @@ suite의 실행은 증거 디렉터리의 `runs/`에 실행 기록도 남깁니�
 [`tests/native-generators/run.mjs`](../../tests/native-generators/run.mjs)는 자신의 기록을
 [`tests/conformance/runs.mjs`](../../tests/conformance/runs.mjs)로 씁니다. 기록
 `{"program", "tool", "cwd", "args", "started", "status"}`는 실행이 시작할 때 `status`를 `null`로 써지고,
-process가 끝날 때 종료 상태로 다시 써지므로 멈춘 실행은 `null`을 유지합니다.
+process가 끝날 때 종료 상태로 다시 써지므로 멈춘 실행은 `null`을 유지합니다. Python suite는
+[`tests/conformance/runner.py`](../../tests/conformance/runner.py)로 기록을 쓰며, 각 기록의 program은 그 runner
+자신이므로 suite를 실행하는 Python 실행 파일에 따라 달라지지 않습니다.
 
 검사의 `evidenceSuites`는 suite마다 그것을 실행하는 명령과 증명하는 런타임을 선언합니다. 증거가 빠졌거나
 실패한 기능, fixture, 런타임마다 검사는 그 런타임을 증명하는 모든 suite를 상태와 함께 적습니다. 명령에 맞는

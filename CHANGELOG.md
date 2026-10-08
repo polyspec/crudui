@@ -2,6 +2,247 @@
 
 ## Unreleased
 
+### 2026-10-08 — Evidence of partial runtimes in the conformance check (C13.1-32)
+
+- `scripts/check-conformance.mjs` accepts the recorded cases of a `partial` runtime: each recorded case must pass, and no case is required. A case outside the fixture of a partial runtime is still reported. The CI job `conformance evidence against the standard` no longer rejects the Python evidence of `createForm`.
+
+### 2026-10-08 — Python conformance suites in the evidence check (C13.1-31)
+
+- `scripts/check-conformance.mjs` declares the suites `validator Python` and `generator Python`, which run through `tests/conformance/runner.py` and prove the runtime `python`. The test `every runtime that a feature supports is proven by a declared suite` passes.
+
+### 2026-10-08 — Python suite run records with the runner exit status (C13.1-33)
+
+- `tests/conformance/runner.py` runs the unittest suite of one test directory and writes its run record with the program `tests/conformance/runner.py` and the exit status of the suite. The make targets `test-validator-python` and `test-generator-python` run it, so the run record of each Python suite is no longer `did not finish`.
+- `tests/conformance/runs.py` takes the program, tool, directory and arguments of a run from its caller, and `tests/conformance/evidence.py` no longer records a run at import.
+
+### 2026-10-08 — Stale-pin check deferred to the version-bump pull request (C13.1-23)
+
+- The release check of stale git pins in `pyproject.toml` is not added to `feat/python-C13.1`. The pin `v0.0.4` of `packages/generator-python` names a tag that is created after the version-bump pull request merges, so the check belongs to that pull request. The row C13.1-23 is open and waits for it.
+
+### 2026-10-08 — Node.js setup and Python matrix in the python CI job (C13.1-30)
+
+- The CI job `python` sets up the Node.js release of `.node-version` and checks `node python` with `make toolchain-check`, because its `make ci-targets` run needs Node.js. The toolchain policy test accepts the lowest `requires-python` minor (3.11) as a matrix leg beside the recorded minor.
+
+### 2026-10-08 — Python module names in the generator script docstrings (C13.1-29)
+
+- The docstrings of `packages/generator-python/scripts/generate_interface_messages.py` and `packages/validator-python/scripts/generate_unicode_data.py` name their modules by dotted names, so the package-name rule passes in the CI job `build, lint and types`.
+
+### 2026-10-08 — Python target in the native command of the make-tool-path test (C13.1-28)
+
+- `tests/build/make-tool-path.test.mjs` expects the target list `javascript,html,go,rust,python` of `make test-native`, the list that the Makefile runs, so the test passes in the CI job `build, lint and types`.
+
+### 2026-10-08 — Python 3.11 import of the validator resolver (C13.1-27)
+
+- `packages/validator-python/src/polyspec/crudui/validator/resolver.py` imports the alias `Node` from `parser` and defines the alias `Context` above the annotations that name it, so Python 3.11 imports the module. The CI job `python` failed on 3.11 with `NameError: name 'Node' is not defined`. The validator and generator suites pass on Python 3.11.
+
+### 2026-10-08 — Python implementation of the validator and the generator (C13.1)
+
+- `polyspec-crudui-validator` and `polyspec-crudui-generator` are implemented in Python with the standing of the other language implementations: the shared fixtures run in the Python unit tests with evidence, the feature contracts state the Python support, the CI workflow runs the Python suites in a `python` job, and both packages pass `mypy --strict`.
+
+### 2026-10-08 — Done marker of C13.1-11 restored (C13.1-22)
+
+- The status cell of C13.1-11 holds the done marker in both checklists, and `scripts/check-documents.mjs` passes, exit 0.
+
+### 2026-10-08 — Type hints of the Python packages (C13.1-17)
+
+- Every public definition of `packages/validator-python` and `packages/generator-python` has parameter and return types: the AST count of public definitions without annotations is 0 in both packages. Both packages pass `mypy --strict` with exit 0.
+
+### 2026-10-08 — Type hints of the generator package initializer and the strict check of both packages (C13.1-17-11)
+
+- The `Generator` operations and their helpers have parameter and return types. `mypy --strict` exits 0 on both `packages/validator-python/src` (15 files) and `packages/generator-python/src` (21 files). The validator suite passes 23 tests and the generator suite 11 tests.
+
+### 2026-10-08 — Type hints of the form module (C13.1-17-10)
+
+- The module `form` of `packages/generator-python` has parameter and return types with no `mypy --strict` error. The generator unit tests pass (11 tests), and the native Python checks exit 0.
+
+### 2026-10-08 — Type hints of the binding module (C13.1-17-9)
+
+- The module `binding` of `packages/generator-python` has parameter and return types with no `mypy --strict` error. The generator unit tests pass (11 tests), and the native Python checks exit 0.
+
+### 2026-10-08 — Type hints of the details and form render modules (C13.1-17-8)
+
+- The modules `details` and `form_render` of `packages/generator-python` have parameter and return types with no `mypy --strict` error. The generator unit tests pass (11 tests), and the native Python checks exit 0.
+
+### 2026-10-08 — Type hints of the lists module (C13.1-17-7)
+
+- The module `lists` of `packages/generator-python` has parameter and return types with no `mypy --strict` error. The generator unit tests pass (11 tests), and the native Python checks pass 741 cases, exit 0.
+
+### 2026-10-08 — Type hints of the widget module (C13.1-17-6)
+
+- The module `widget` of `packages/generator-python` has parameter and return types with no `mypy --strict` error. A date or date-time value that is not a string is no longer passed to the date parser; it stays the value of the control. The generator unit tests pass: 11 tests.
+
+### 2026-10-08 — Type hints of the rendering and display declaration modules (C13.1-17-5)
+
+- The modules `rendering` and `display_declaration` of `packages/generator-python` have parameter and return types with no `mypy --strict` error. The generator unit tests pass: 11 tests.
+
+### 2026-10-08 — Type hints of the buttons and choice list modules (C13.1-17-4)
+
+- The modules `buttons` and `choice_list` of `packages/generator-python` have parameter and return types with no `mypy --strict` error. The generator unit tests pass: 11 tests.
+
+### 2026-10-08 — Type hints of the value, design and template modules (C13.1-17-3)
+
+- The modules `value`, `design` and `template` of `packages/generator-python` have parameter and return types with no `mypy --strict` error. The generator unit tests pass: 11 tests.
+
+### 2026-10-08 — Type hints of the foundation generator modules (C13.1-17-2)
+
+- The modules `errors`, `messages`, `input_text`, `numbers`, `dates` and `style` of `packages/generator-python` have parameter and return types with no `mypy --strict` error. The generator unit tests pass: 11 tests.
+
+### 2026-10-08 — Type hints of the validator package (C13.1-17-1)
+
+- Every function of `packages/validator-python/src` has parameter and return types, and the package passes `mypy --strict` with exit 0 (15 source files). The validator unit tests pass: 23 tests. The changes are committed under C13.1-17.
+
+### 2026-10-08 — Generator behavior kept from an earlier session (C13.1-21)
+
+- The generator modules `binding`, `lists`, `value`, `widget`, `__init__`, `dates` and `style` carry the behavior left uncommitted by an earlier session, committed apart from their type annotations. At this state the generator unit tests pass (11 tests) and `node tests/native-generators/run.mjs --target python` reports 741 passed, exit 0.
+
+### 2026-10-08 — Python job in the CI workflow (C13.1-7)
+
+- The `python` job of the CI workflow has a matrix of 3.11 and the recorded release 3.14, runs the validator and generator unit tests through make targets listed in `CI_COMMANDS`, preserves the conformance evidence of the recorded release, and is needed by `conformance` and `ci-passed`. The CI command mapping test passes 15 tests, exit 0. The job itself runs in CI after the push.
+
+### 2026-10-08 — CI mapping test of the native command with the Python target (C13.1-7-3)
+
+- The CI mapping test pins the native generator command of `make test-native-generators` with the python target. `tests/build/ci-local.test.mjs` passes 15 tests, exit 0.
+
+### 2026-10-08 — Python version and feature support of the packages (C13.1-6)
+
+- `.python-version` names Python 3.14 and the recorded toolchain names the same release; the CI workflow sets up 3.14 for the Python job; the owner checks map `.python-version` and the Python package paths; the feature contracts give the Python support of each feature (C13.1-6-1). `make toolchain-check TOOLS=python` exit 0, `make test-ordered-json` exit 0, `tests/build/contract-manifest.test.mjs` 12 passed. `tests/build/runtime-version-policy.test.mjs` fails in this environment on the npm version (`make install-npm` installs the recorded release) and on the Rust toolchain on PATH, not on the Python version.
+
+### 2026-10-08 — Python support of the feature contracts (C13.1-6-1)
+
+- The feature contracts give the Python support of each feature from the recorded evidence: 12 features `pass` (every case of their JSON fixtures has a passing Python record, 0 mismatches), `createForm` is `partial`, four outline and session features are `unsupported` and four client-side features are not applicable. The feature documents and the README pairs name the Python packages; `scripts/check-documents.mjs` passes, exit 0.
+
+### 2026-10-08 — State markers kept out of the record text (C13.1-20)
+
+- The records of C13.1-10 and C13.1-11 write the state markers as words, and `scripts/check-documents.mjs` passes its 53 document pairs, exit 0.
+
+### 2026-10-08 — Python program in the native generator checks (C13.1-7-2)
+
+- The native generator checks run the Python program: `node tests/native-generators/run.mjs --target python` reports 741 passed, exit 0. `make test-native-generators` includes the python target; in this environment that make target stops at its cargo prerequisite check before the checks run.
+
+### 2026-10-08 — Form.setData rejects data that is not an object (C13.1-19)
+
+- `Form.setData` fails with `INVALID_FORM_INPUT` and `Form data must be an object` for data that is not an object. The native generator checks of the Python target pass: 741 passed, exit 0, including `action-failure-keeps-state`.
+
+### 2026-10-08 — Conformance evidence of the Python unit tests (C13.1-7-1)
+
+- The Python unit tests record the conformance evidence of each shared case they run: 1637 records, none failed. Records are written only when CRUDUI_CONFORMANCE_EVIDENCE names a directory.
+
+### 2026-10-08 — Python validator in the cross-check console (C13.1-5)
+
+- The cross-check console runs the Python validator process beside the JavaScript, PHP, Go and Rust processes, and its request comparison requires the five to agree. The server test suite passes: 1267 tests, exit 0.
+
+### 2026-10-08 — Records name commits by checklist id (C13.1-18)
+
+- The records of C13.1-1, C13.1-2, C13.1-3, C13.1-4, C13.1-10 and C13.1-11 name each commit by the checklist id of the task it implements.
+
+### 2026-10-08 — PHP extension built for the architecture of its PHP executable (C13.1-16)
+
+- The PHP extension builder reads the architecture of the PHP executable with
+  `lipo -archs` and passes it with `-arch` to the compile and link commands.
+  The builder fails when the linked module has another architecture.
+  Red: the architecture unit test failed on the missing export. Green: the
+  architecture unit test passes (5 tests in `tests/build/php-extensions.test.mjs`),
+  `make build-php-extension` builds an arm64 module that loads, and the
+  cross-check vitest suite passes: 1267 tests, including the `php-native` process.
+
+### 2026-10-08 — Scope of the form-outline fixture for Python (C13.1-15)
+
+- The row C13.1 declares `tests/fixtures/form-outline` out of scope of the Python
+  validator and generator: the reference products of C13.1 do not read it.
+
+### 2026-10-08 — Python version file in the wave plans (C13.1-14)
+
+- The wave plans state that `.python-version` does not exist until C13.1-6 is done.
+
+### 2026-10-08 — Validator test file count in the checklist (C13.1-13)
+
+- The row C13.1-2 counts the five validator test files that `discover` selects
+  with the pattern `test_*.py`.
+
+### 2026-10-08 — Validator public names in the shared camelCase surface (C13.1-12)
+
+- `polyspec.crudui.validator` exports `validateList`, `validateDetail` and
+  `hiddenPaths`, the names of the shared surface, in place of `validate_list`,
+  `validate_detail` and `hidden_paths`. The validator unit tests pass: 23 tests.
+
+### 2026-10-08 — Recorded facts of the committed Python history (C13.1-11)
+
+- The rows C13.1-1, C13.1-3 and C13.1-4 record that no commit adds a `[~]` line
+  for C13.1-1 to C13.1-4 before its `[o]`, the committer of the commits
+  the C13.1-1 fix commit, the C13.1-3 package commit and the C13.1-4 test commit, and the body of the C13.1-1 fix commit, which
+  describes the names before its fix.
+
+### 2026-10-08 — Recorded import cause of the committed Python trees (C13.1-10)
+
+- The rows C13.1-2 and C13.1-4 record that the test directory of
+  `packages/validator-python` and of `packages/generator-python` was added by
+  the commit that verifies it. Before those commits the directory does not
+  exist, and the discover command raises `ImportError: Start directory is not
+  importable`.
+
+### 2026-10-08 — Dependencies of the Python generator (C13.1-9)
+
+- `packages/generator-python` no longer declares `polyspec-ordered-json`: no
+  generator module imports it. It declares `polyspec-crudui-validator` by the
+  tag URL `v0.0.4` of this repository, `packages/validator-python`, because
+  the generator imports `polyspec.crudui.validator` at run time.
+
+### 2026-10-08 — Python generator defects found in the review (C13.1-8)
+
+- `Form` binds the one initial row of missing repeated data under the key
+  `__0000000000000__`, as `bindForm` and the `empty-collections` contract
+  state, instead of a random row key. Red: the `multiple-leaf-empty-placeholder`
+  case failed with the key `__0a592ccb0f808__`. Green: the form-render test
+  passes all 137 result cases through `createForm` and `renderForm`.
+- The text-validity test reads `FormError.path` as the `at` member of a
+  generation failure.
+- The conformance normalizer has no branch whose two arms are the same.
+- The unit tests of `packages/generator-python` pass: 11 tests.
+
+### 2026-10-08 — The Python generator on the shared fixtures (C13.1-4)
+
+- The unit tests of `packages/generator-python` read the shared fixtures and
+  compare every case with the recorded expectation: `form-render` (188: 137
+  results as parsed normalized trees and 51 failures), `list-render` (157),
+  `detail-render` (62), `form-complete` (28) and the `compileForm` (7),
+  `bindForm` (9), `createForm` (15), `buildList` (11) and `buildDetail` (6)
+  files of `text-validity`.
+
+### 2026-10-08 — The Python generator package (C13.1-3)
+
+- `packages/generator-python` publishes `polyspec-crudui-generator` as the
+  namespace package `polyspec.crudui.generator` for Python 3.11 and newer, over
+  `polyspec-crudui-validator`: template compilation, field binding, buttons,
+  the form instance with its row operations, list and detail models, the
+  widget, style and rendering internals and the value helpers. `Generator`
+  exposes `compileForm`, `bindForm`, `bindButtons`, `formButtonsHtml`,
+  `createForm`, `renderForm`, `renderList`, `buildList`, `renderDetail`,
+  `buildDetail`, `sequenceRowKey` and `createRowKey` beside `Form` and
+  `FormError`.
+- The validator text module gains the message-returning `specificationFailure`,
+  `inputFailure` and `optionEntries` helpers, which the generator wraps in its
+  `FormError` of code `INVALID_FORM_INPUT`.
+
+### 2026-10-08 — The Python validator on the shared fixtures (C13.1-2)
+
+- The unit tests of `packages/validator-python` read the shared fixtures and reproduce every
+  recorded case: `validate` (309: 178 results and 131 failures with `code`, `message` and `at`),
+  `expr` (54), `compose` (20), `spec-validity` (34), `list-validity` (20), `detail-validity` (13)
+  and the `validate`, `validateList` and `validateDetail` files of `text-validity` with the 12
+  value graphs built with shared and self-containing containers.
+
+### 2026-10-08 — The Python validator package (C13.1-1)
+
+- `packages/validator-python` publishes `polyspec-crudui-validator` as the namespace package
+  `polyspec.crudui.validator` for Python 3.11 and newer, with the standard library only: the
+  composition engine, the forbidden-key scan, the input text and value limit checks, the pattern
+  language recognizer and matcher over the Unicode 16.0.0 data of the contract, the condition
+  parser, the path resolver, the value definitions with the ECMAScript number text, the 24
+  validation rules and the field traversal.
+- `validate`, `hiddenPaths`, `validateList` and `validateDetail` answer the shared results;
+  `ComposeLoadError` and `FormInputError` carry the failure codes and traces of the other
+  implementations.
+
 ### 2026-10-07 — Ports of the system for the form comparison runs (C11.6-5)
 
 - `make test-form-comparison-browser` and `make test-form-comparison-summary` start every server on a port of the
