@@ -4,6 +4,11 @@ The evaluated buttons render in the form footer as one markup string every
 renderer inserts into the footer controls group.
 """
 
+from collections.abc import Mapping
+from typing import Any
+
+from polyspec.crudui.validator.jsvalue import JsonValue
+
 from .errors import FormError
 from .messages import for_language
 from .value import MISSING, object_value, record, string, style_value, translate
@@ -16,21 +21,22 @@ DEFAULT_BUTTONS = [{'type': 'submit'}]
 _ATTRIBUTES = ('type', 'class', 'style', 'name', 'value', 'href', 'onclick')
 
 
-def _script(behavior, action):
+def _script(behavior: object, action: str) -> str | None:
     entry = behavior.get(action) if isinstance(behavior, dict) else None
     script = entry.get('script') if isinstance(entry, dict) else entry
     return script if isinstance(script, str) and script != '' else None
 
 
-def bind(template, data, language):
+def bind(template: dict[str, Any], data: JsonValue, language: str) -> list[dict[str, Any]]:
     """The template buttons for a record, in declaration order."""
     messages = for_language(language)
-    buttons = []
+    buttons: list[dict[str, Any]] = []
     for declared in template['buttons']:
         button = object_value(declared)
         button_type = button['type']
+        assert isinstance(button_type, str)  # compile checks the type of every button
         design = design_resolve(button.get('design'), data, [], [])
-        attrs = {}
+        attrs: dict[str, str] = {}
         if button_type != 'link':
             attrs['type'] = button_type
         attrs['class'] = ' '.join(
@@ -40,8 +46,9 @@ def bind(template, data, language):
         if style is not None:
             attrs['style'] = style
         for name in ('name', 'value', 'href'):
-            if isinstance(button.get(name), str):
-                attrs[name] = button[name]
+            declared_text = button.get(name)
+            if isinstance(declared_text, str):
+                attrs[name] = declared_text
         onclick = _script(button.get('behavior'), 'onclick')
         if onclick is not None:
             attrs['onclick'] = onclick
@@ -54,7 +61,7 @@ def bind(template, data, language):
     return buttons
 
 
-def bind_public(template, data, options):
+def bind_public(template: object, data: object, options: Mapping[str, Any]) -> list[dict[str, Any]]:
     """Evaluate public input with the same template, data and option checks as form binding."""
     from .binding import language
     from .template import checked
@@ -62,7 +69,7 @@ def bind_public(template, data, options):
     return bind(checked(template), object_value(data), language(options))
 
 
-def html_public(buttons):
+def html_public(buttons: object) -> str:
     """Markup of public input after checking that every element is an evaluated button."""
     if not isinstance(buttons, list):
         raise FormError('INVALID_FORM_INPUT', 'Form buttons must be a list')
@@ -72,7 +79,7 @@ def html_public(buttons):
     return html(buttons)
 
 
-def _evaluated(button):
+def _evaluated(button: object) -> bool:
     """Whether a value has the tag, text and string attributes that the markup reads."""
     if (
         not isinstance(button, dict)
@@ -87,7 +94,7 @@ def _evaluated(button):
     return True
 
 
-def html(buttons):
+def html(buttons: list[dict[str, Any]]) -> str:
     """The markup of the form buttons."""
     out = ''
     for button in buttons:
