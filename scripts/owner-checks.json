@@ -41,7 +41,7 @@
     { "paths": ["scripts/require-current-build.mjs", "scripts/run-command.mjs"], "tests": ["tests/build/run-command.test.mjs", "tests/build/atomic-publish.test.mjs"] },
     { "paths": ["scripts/install-npm.mjs", "scripts/checkout-npm.mjs"], "tests": ["tests/build/checkout-npm.test.mjs", "tests/build/runtime-version-policy.test.mjs"] },
     { "paths": ["scripts/install-browsers.mjs", "scripts/check-ci-browser.mjs"], "tests": ["tests/build/install-browsers.test.mjs", "tests/build/ci-browser.test.mjs", "tests/build/form-comparison-ci.test.mjs", "tests/build/runtime-version-policy.test.mjs"] },
-    { "paths": ["scripts/check-toolchain.mjs", "config/toolchain.json", ".node-version", ".go-version", "rust-toolchain.toml"], "tests": ["tests/build/runtime-version-policy.test.mjs", "tests/build/shared-resources.test.mjs"] },
+    { "paths": ["scripts/check-toolchain.mjs", "config/toolchain.json", ".node-version", ".python-version", ".go-version", "rust-toolchain.toml"], "tests": ["tests/build/runtime-version-policy.test.mjs", "tests/build/shared-resources.test.mjs"] },
     { "paths": ["scripts/run-rust-command.mjs", "scripts/tool-resolution.mjs"], "tests": ["tests/build/rust-node-entry-points.test.mjs", "tests/build/make-tool-path.test.mjs"] },
     { "paths": ["scripts/php-extension-builder.mjs", "scripts/build-crudui-php-extension.mjs", "scripts/build-ordered-json-php-extension.mjs"], "targets": ["test-php-engine", "test-php-api"], "tests": ["tests/build/atomic-publish.test.mjs", "tests/build/php-extensions.test.mjs"] },
     { "paths": ["scripts/check-documents.mjs", "scripts/checklist-markers*.mjs", "scripts/documentation-links*.mjs"], "targets": ["docs-check-documents"] },
