@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-08 — Type hints of the lists module (C13.1-17-7)
+
+- The module `lists` of `packages/generator-python` has parameter and return types with no `mypy --strict` error. The generator unit tests pass (11 tests), and the native Python checks pass 741 cases, exit 0.
+
 ### 2026-10-08 — Type hints of the widget module (C13.1-17-6)
 
 - The module `widget` of `packages/generator-python` has parameter and return types with no `mypy --strict` error. A date or date-time value that is not a string is no longer passed to the date parser; it stays the value of the control. The generator unit tests pass: 11 tests.
