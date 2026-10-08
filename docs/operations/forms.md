@@ -122,7 +122,7 @@ make docs-check
 Run the server validation cases from the repository root:
 
 ```sh
-node scripts/kit/run-tests.mjs phpunit --cwd packages/validator-php -- --filter ValidateConformanceTest
+COMPOSER_VENDOR_DIR=../../vendor node scripts/kit/run-tests.mjs phpunit --cwd packages/validator-php -- --filter ValidateConformanceTest
 node scripts/kit/run-tests.mjs go --cwd packages/validator-go -- ./validator/validate
 node scripts/kit/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml --test validate_conformance
 ```

@@ -1,6 +1,6 @@
 # 폼 개발과 검증
 <!-- doc-id: docs-operations-forms -->
-<!-- source-sha256: c14273231b7e2a3cc1bf4a9d000789fbc6ecaff555357b3453b01a3ad902d80d -->
+<!-- source-sha256: f53a6d017d9716089e8cdd3077125784e1257e4cd02092fc3c2348a45e230849 -->
 
 [English](forms.md). 계약은 [폼 런타임](../spec/form-runtime.ko.md)에 정의합니다.
 
@@ -121,7 +121,7 @@ make docs-check
 서버 검증 사례는 저장소 루트에서 실행합니다.
 
 ```sh
-node scripts/kit/run-tests.mjs phpunit --cwd packages/validator-php -- --filter ValidateConformanceTest
+COMPOSER_VENDOR_DIR=../../vendor node scripts/kit/run-tests.mjs phpunit --cwd packages/validator-php -- --filter ValidateConformanceTest
 node scripts/kit/run-tests.mjs go --cwd packages/validator-go -- ./validator/validate
 node scripts/kit/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml --test validate_conformance
 ```

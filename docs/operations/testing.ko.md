@@ -1,6 +1,6 @@
 # 테스트 실행
 <!-- doc-id: docs-operations-testing -->
-<!-- source-sha256: a30ecddd57a7d20b3d272dd5c532ac4c2a6183cf4bf168ebf2d14a24b3bc2666 -->
+<!-- source-sha256: aade04d1307d918086a6af945424df593cfc2e806f9575d8d586c7cddd6c3b68 -->
 
 [English](testing.md).
 
@@ -93,12 +93,12 @@ job이 700 byte를 복원했습니다. 실행은 자기 ref와 `main`의 cache�
 toolchain, workspace의 Cargo lock으로 된 key를 가지며, job id마다 그런 key가 하나입니다.
 
 요청하면 `make owner-check`는 바뀐 경로를 소유한 검사를 실행합니다. 경로는 commit되지 않은 변경과 새 file,
-`PATHS`의 경로, 또는 `BASE` 뒤에 바뀐 경로입니다. `scripts/owner-checks.json`은 경로 glob마다 그것을 소유한 make 대상,
+`PATHS`의 경로, 또는 `BASE` 뒤에 바뀐 경로입니다. `config/owner-checks.json`은 경로 glob마다 그것을 소유한 make 대상,
 root npm script, workspace와 package directory의 test script, node test file을, 검사마다 그것이 읽는 경로(`inputs`)를
-밝힙니다. `scripts/owner-check.mjs`는 어떤 규칙도 소유하지 않는 경로, 경로가 없는 glob, full suite 대상, 알 수 없는
+밝힙니다. `scripts/kit/owner-check.mjs`는 어떤 규칙도 소유하지 않는 경로, 경로가 없는 glob, full suite 대상, 알 수 없는
 script나 test, 그리고 경로의 규칙이 그 검사를 고르지 않는데 검사가 읽는 경로에 대해 어떤 검사보다 먼저 실패합니다. 고른
-모든 검사를 하나가 실패한 뒤에도 실행하며 full suite는 실행하지 않습니다. `tests/build/owner-check.test.mjs`는 선택,
-거부, repository의 선언을 확인합니다.
+모든 검사를 하나가 실패한 뒤에도 실행하며 full suite는 실행하지 않습니다. `make owner-validate`는 repository의 선언을 확인하고,
+`tests/kit/owner-check.test.mjs`는 선택과 거부를 확인합니다.
 
 Makefile 대상의 명령을 읽는 test는 `tests/build/make-dry-run.mjs`의 `makeDryRun`을 실행합니다. 이것은 `MAKEFLAGS=w`를 설정하고
 상위 make의 `MAKELEVEL`, `GNUMAKEFLAGS`, `MAKEFILES`, `MFLAGS`를 지운 채 `make --no-print-directory -n <target>`을 실행하므로,
@@ -144,7 +144,9 @@ make docs-check
 검증기 패키지 검사는
 [사례 계약](../spec/test-fixtures.ko.md)의 공통 사례를 실행합니다. 구현 간 일치뿐
 아니라 기대 검증 결과 또는 전체 실패 기록을 비교합니다. 패키지 검사는 export 파일,
-선언·설치 컴파일·프로덕션 렌더링을 확인합니다.
+선언·설치 컴파일·프로덕션 렌더링을 확인합니다. PHP 검사는 개발 root의 `composer install`이 설치하는 root `vendor/`의 PHPUnit을
+실행합니다. Composer script와 make 대상이 `COMPOSER_VENDOR_DIR=../../vendor`를 설정하고, `scripts/kit/run-tests.mjs phpunit`은 `--cwd`를
+기준으로 그 값에서 vendor directory를 읽습니다.
 
 ## 린트
 

@@ -1,8 +1,14 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 818d9a84128db028370a8defd42eeb9727a87b7c2de8d6e4b85f57f732e28ef1 -->
+<!-- source-sha256: ed91c791d8b18cb33fb7ab5ae59e36c84532ba827374da0b67d3af71df2651dc -->
 
 ## Unreleased
+
+### 2026-10-09 — kit의 owner 검사와 0.x workflow의 규칙 (C14.1-6)
+
+- `config/owner-checks.json`은 추적되는 모든 경로의 owner를 선언하며(`make owner-validate`) vendored copy(`make kit-check`, `make kit-test`), 설정 file, `scripts/repository-files.mjs`의 owner를 둔다. 대상 `owner-check`는 `cargo-downloads-check`를 prerequisite로 가진다. `scripts/owner-check.mjs`, `scripts/owner-checks.json`, owner 검사의 test를 제거했다.
+- PHP 검사는 `scripts/kit/run-tests.mjs phpunit`이 기본으로 `<cwd>/vendor`를 읽으므로, Composer script와 make 대상의 `COMPOSER_VENDOR_DIR=../../vendor`로 root `vendor/`의 PHPUnit을 실행한다. `composer.lock`은 바뀐 `packages/validator-php`의 script를 기록한다.
+- `AGENTS.md`와 `AGENTS.ko.md`는 `main`을 checklist의 모든 row가 `[o]`일 때 한 번 push하고, tag는 commit에서 CI check `ci-passed`가 성공한 뒤에 만들며, 공유 도구는 polyspec/kit의 vendored copy로 polyspec/kit에서만 바뀌고, 이 저장소는 다른 저장소와 `config/*.json`에서만 다르다고 적는다. pull request, merge queue, ruleset의 규칙을 뺐다.
 
 ### 2026-10-09 — release 도구와 0.x workflow (C14.1-5)
 

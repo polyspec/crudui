@@ -25,6 +25,6 @@
         }
     },
     "scripts": {
-        "test": "node ../../scripts/kit/run-tests.mjs phpunit --cwd packages/generator-php"
+        "test": "COMPOSER_VENDOR_DIR=../../vendor node ../../scripts/kit/run-tests.mjs phpunit --cwd packages/generator-php"
     }
 }

@@ -30,7 +30,7 @@ export GOPROXY := off
 export npm_config_offline := true
 export COMPOSER_DISABLE_NETWORK := 1
 ONLINE := env -u CARGO_NET_OFFLINE -u GOPROXY -u npm_config_offline -u COMPOSER_DISABLE_NETWORK
-.PHONY: help release-assets install install-node-modules install-composer install-rust install-phpdocumentor install-browsers check-ci-browser test-runtimes test-dependencies build lint typecheck test-validator-js test-validator-php test-validator-go test-validator-rust test-validator-python test-generator-python test-cross-check manifest-test require-build test-cli manifest-check manifest-docs-check test-forms test-form-comparison test-form-comparison-pipeline test-form-comparison-checks test-form-comparison-browser test-form-comparison-summary test-packages test-build test-build-repeat test-inspector test-bench check-conformance install-crates install-ordered-json owner-check test-ordered-json docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-engine test-native-generators test-php-api test-native test-validators test-form-binding conformance format-check records-check ci conformance-reset
+.PHONY: help release-assets install install-node-modules install-composer install-rust install-phpdocumentor install-browsers check-ci-browser test-runtimes test-dependencies build lint typecheck test-validator-js test-validator-php test-validator-go test-validator-rust test-validator-python test-generator-python test-cross-check manifest-test require-build test-cli manifest-check manifest-docs-check test-forms test-form-comparison test-form-comparison-pipeline test-form-comparison-checks test-form-comparison-browser test-form-comparison-summary test-packages test-build test-build-repeat test-inspector test-bench check-conformance install-crates install-ordered-json test-ordered-json docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-engine test-native-generators test-php-api test-native test-validators test-form-binding conformance format-check records-check ci conformance-reset
 .NOTPARALLEL: docs docs-web docs-dev docs-preview docs-check docs-verify-idempotent
 
 # The tools that every polyspec repository shares are vendored copies in scripts/kit (kit.json, .kit/kit.lock.json);
@@ -56,7 +56,7 @@ help: ## 타겟 설명
 	@echo "  make toolchain-check       Fail when a tool does not run at the version that the checkout records"
 	@echo "  make dependency-review     Ask the registries for newer stable releases and advisories; RECORD=1 records, UPDATE=1 updates first"
 	@echo "  make dependency-policy-check  Check the manifests and locks against config/dependency-policy.json and the review record"
-	@echo "  make owner-check           Run the owner checks of the changed paths (scripts/owner-checks.json); PATHS or BASE select the paths"
+	@echo "  make owner-check           Run the owner checks of the changed paths (config/owner-checks.json); PATHS or BASE select the paths"
 	@echo "  make test-ordered-json     Test the processor checks of tests/ordered-json without an OrderedJSON checkout"
 	@echo "  make docs                  전체 문서 생성 (API doc 멀티언어 + JSON schema 검사 + 정적 웹)"
 	@echo "  make docs-api              Generate API references for all languages"
@@ -203,10 +203,9 @@ test-bench: cargo-downloads-check ## The benchmark drivers
 check-conformance: ## The conformance evidence against contracts/features.json
 	node scripts/check-conformance.mjs
 
-# The checks that own the changed paths (scripts/owner-checks.json): the paths of PATHS, the paths changed since BASE, or
-# the uncommitted changes and the new files that are not ignored. It never runs the full suite.
-owner-check: cargo-downloads-check ## Run the owner checks of the changed paths: PATHS, the paths since BASE, or the uncommitted changes
-	node scripts/owner-check.mjs $(if $(PATHS),--paths "$(PATHS)") $(if $(BASE),--base "$(BASE)")
+# The owner checks run the checks of the changed paths (config/owner-checks.json), some of which run cargo; make -k skips
+# them while a crate is missing.
+owner-check: cargo-downloads-check
 
 # The unit tests of the processor checks of tests/ordered-json (docs/operations/ordered-json.md); the checks themselves need
 # an OrderedJSON checkout and run by hand.
@@ -343,7 +342,7 @@ test-php-api: build-php-extension
 	node scripts/kit/holder-lock.mjs run "$(CURDIR)/var/locks/composer-vendor.lock" -- composer reinstall polyspec/crudui-validator --no-interaction
 	@status=0; \
 	node tests/conformance/run-suite.mjs node -- tests/native-generators/php-extension-builder.test.mjs packages/php-ext/tests/api.test.mjs || status=1; \
-	node scripts/kit/run-tests.mjs phpunit --cwd packages/generator-php || status=1; \
+	COMPOSER_VENDOR_DIR=../../vendor node scripts/kit/run-tests.mjs phpunit --cwd packages/generator-php || status=1; \
 	node tests/native-generators/run.mjs --extension "$(PHP_EXTENSION)" --target php,php-native --report "$(PHP_NATIVE_REPORT)" || status=1; \
 	exit $$status
 
@@ -357,7 +356,7 @@ test-native:
 test-validators: cargo-downloads-check
 	@status=0; \
 	node tests/conformance/run-suite.mjs vitest --cwd packages/validator-ts || status=1; \
-	node tests/conformance/run-suite.mjs phpunit --cwd packages/validator-php || status=1; \
+	COMPOSER_VENDOR_DIR=../../vendor node tests/conformance/run-suite.mjs phpunit --cwd packages/validator-php || status=1; \
 	node tests/conformance/run-suite.mjs go --cwd packages/validator-go -- ./... || status=1; \
 	node tests/conformance/run-suite.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml || status=1; \
 	exit $$status

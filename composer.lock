@@ -12,7 +12,7 @@
             "dist": {
                 "type": "path",
                 "url": "packages/validator-php",
-                "reference": "dadb0f1f30cca0dbe9f9eea01a60b61d0168e335"
+                "reference": "5e56156e022cf298be9f33c1c5f84107dc685b43"
             },
             "require": {
                 "php": "^8.4"
@@ -34,7 +34,7 @@
             },
             "scripts": {
                 "test": [
-                    "node ../../scripts/kit/run-tests.mjs phpunit --cwd packages/validator-php"
+                    "COMPOSER_VENDOR_DIR=../../vendor node ../../tests/conformance/run-suite.mjs phpunit --cwd packages/validator-php"
                 ]
             },
             "license": [

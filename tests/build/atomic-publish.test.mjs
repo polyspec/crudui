@@ -15,7 +15,7 @@ const publications = [
   { output: 'the build stamp', file: 'scripts/require-current-build.mjs', staging: /writeFile\(`\$\{STAMP\}\.\$\{process\.pid\}`/, publish: /rename\(`\$\{STAMP\}\.\$\{process\.pid\}`, STAMP\)/ },
   { output: 'the PHP module', file: 'scripts/php-extension-builder.mjs', staging: /const linked = module \+ '\.' \+ process\.pid;/, publish: /await rename\(linked, module\);/ },
   { output: 'the PHP build manifest', file: 'scripts/php-extension-builder.mjs', staging: /writeFile\(manifest \+ '\.' \+ process\.pid,/, publish: /rename\(manifest \+ '\.' \+ process\.pid, manifest\)/ },
-  { output: 'a package dist', file: 'scripts/package-dist.mjs', staging: /CRUDUI_DIST: 'dist\.next'/, publish: /fs\.renameSync\(next, dist\);/ },
+  { output: 'a package dist', file: 'scripts/package-dist.mjs', staging: /process\.env\.CRUDUI_DIST = 'dist\.next'/, publish: /fs\.renameSync\(next, dist\);/ },
   { output: 'the OrderedJSON checkout', file: 'examples/form-comparison/src/ordered-json-source.mjs', staging: /const next = `\$\{directory\}\.next-\$\{process\.pid\}`;/, publish: /await rename\(next, directory\);/ },
 ];
 
