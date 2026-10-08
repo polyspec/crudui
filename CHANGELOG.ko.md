@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-08 — validator와 generator의 Python 구현 (C13.1)
+
+- `polyspec-crudui-validator`와 `polyspec-crudui-generator`를 다른 언어 구현과 같은 자격으로 Python에 구현한다. 공통 fixture는 증거를 남기며 Python 단위 test에서 실행되고, 기능 계약은 Python 지원을 적고, CI 워크플로의 `python` job이 Python suite를 실행하며, 두 package는 `mypy --strict`를 통과한다.
+
 ### 2026-10-08 — C13.1-11의 완료 표기 복구 (C13.1-22)
 
 - 두 체크리스트에서 C13.1-11의 상태 칸이 완료 표기를 담고, `scripts/check-documents.mjs`가 통과한다(종료 코드 0).
