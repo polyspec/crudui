@@ -8,6 +8,7 @@ import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 import { trackedFiles } from '../../scripts/tracked-files.mjs';
+import { assertMachoArchitecture, machoArchitectures } from '../../scripts/php-extension-builder.mjs';
 
 const repository = fileURLToPath(new URL('../..', import.meta.url));
 
@@ -110,4 +111,18 @@ test('every reinstall of the root vendor runs under its checkout lock', async ()
     }
   }
   assert.deepEqual(violations, []);
+});
+
+test('a PHP extension module has the architecture its PHP executable reports', async () => {
+  const reports = architecture => async (executable, args) => {
+    assert.equal(executable, '/usr/bin/lipo');
+    assert.deepEqual(args, ['-archs', '/opt/php/bin/php']);
+    return { stdout: architecture + '\n' };
+  };
+  assert.deepEqual(await machoArchitectures('/opt/php/bin/php', { run: reports('arm64') }), ['arm64']);
+  await assertMachoArchitecture('/opt/php/bin/php', 'arm64', { run: reports('arm64') });
+  await assert.rejects(
+    assertMachoArchitecture('/opt/php/bin/php', 'arm64', { run: reports('x86_64') }),
+    /x86_64/,
+  );
 });
