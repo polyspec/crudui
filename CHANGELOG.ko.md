@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-08 — evidence 검사의 Python conformance suite (C13.1-31)
+
+- `scripts/check-conformance.mjs`는 `tests/conformance/runner.py`로 실행되고 런타임 `python`을 증명하는 suite `validator Python`과 `generator Python`을 선언한다. Test `every runtime that a feature supports is proven by a declared suite`가 통과한다.
+
 ### 2026-10-08 — Python suite 실행 기록의 runner 종료 상태 (C13.1-33)
 
 - `tests/conformance/runner.py`는 test directory 하나의 unittest suite를 실행하고, program이 `tests/conformance/runner.py`이며 suite의 종료 상태를 담은 실행 기록을 쓴다. make target `test-validator-python`과 `test-generator-python`이 이 runner를 실행하므로 각 Python suite의 실행 기록은 더 이상 `did not finish`로 남지 않는다.
