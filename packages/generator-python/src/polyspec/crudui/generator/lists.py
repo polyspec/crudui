@@ -37,11 +37,9 @@ def build_public(spec, rows, options):
     return build(object_value(spec), rows, options, 'list', 'columns')
 
 
-def _is_object(value, fixed=False):
-    """A dictionary; an empty list is the empty object only where the type is fixed."""
-    if isinstance(value, dict):
-        return True
-    return fixed and value == []
+def _is_object(value):
+    """A dictionary."""
+    return isinstance(value, dict)
 
 
 def _check_input(spec, rows, options):
@@ -436,7 +434,16 @@ def _display(format_value, value, row, path, language):
         if date is None:
             return text
         pattern = options.get('pattern') if isinstance(options.get('pattern'), str) and options['pattern'] != '' else 'YYYY-MM-DD'
-        return pattern.replace('YYYY', date.strftime('%Y')).replace('MM', date.strftime('%m')).replace('DD', date.strftime('%d')).replace('HH', date.strftime('%H')).replace('mm', date.strftime('%M')).replace('ss', date.strftime('%S'))
+        year, month, day, hour, minute, second = dates_module.parts_utc(date)
+        year_text = f'{year:04d}' if year >= 0 else f'-{-year:04d}'
+        return (
+            pattern.replace('YYYY', year_text)
+            .replace('MM', f'{month:02d}')
+            .replace('DD', f'{day:02d}')
+            .replace('HH', f'{hour:02d}')
+            .replace('mm', f'{minute:02d}')
+            .replace('ss', f'{second:02d}')
+        )
     if kind == 'number':
         from polyspec.crudui.validator.jsvalue import js_number
 
@@ -536,7 +543,7 @@ def render_cell(cell, tag, base):
         if kind == 'badge':
             body = render_element(
                 'span',
-                {**({'data-crudui-variant': display['variant']} if display['variant'] != '' else {}), 'class': 'crudui-badge'},
+                {'class': 'crudui-badge', **({'data-crudui-variant': display['variant']} if display['variant'] != '' else {})},
                 render_text(display['label']),
             )
         elif kind == 'link':

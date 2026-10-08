@@ -64,7 +64,7 @@ def declarations(style):
             index += 1
             continue
         if char in ')]}':
-            if stack and stack[-1] == {'(': ')', '[': ']', '{': '}'}[char]:
+            if stack and {'(': ')', '[': ']', '{': '}'}[stack[-1]] == char:
                 stack.pop()
             index += 1
             continue

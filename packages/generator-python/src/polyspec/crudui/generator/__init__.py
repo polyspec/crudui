@@ -88,6 +88,7 @@ class Generator:
     def renderList(spec, rows, options=None):
         """Supplied list rows with the table or card layout."""
         options = options or {}
+        rows = [] if rows is None else rows
         _display_checks(spec, ('rows', rows), options)
         return _list_render(spec, rows, options)
 
@@ -95,8 +96,9 @@ class Generator:
     def buildList(spec, rows=None, options=None):
         """One read-only list model from supplied rows."""
         options = options or {}
-        _display_checks(spec, ('rows', rows or []), options)
-        return _list_build(spec, rows or [], options)
+        rows = [] if rows is None else rows
+        _display_checks(spec, ('rows', rows), options)
+        return _list_build(spec, rows, options)
 
     @staticmethod
     def renderDetail(spec, record=None, options=None):

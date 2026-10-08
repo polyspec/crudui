@@ -77,11 +77,7 @@ def _deep_copy(value):
 
 def object_value(value):
     """A root record as a JSON object: a dictionary, never a list."""
-    if isinstance(value, list):
-        if value:
-            raise FormError('INVALID_FORM_INPUT', 'Expected an object')
-        return {}
-    if not _is_object(value):
+    if isinstance(value, list) or not _is_object(value):
         raise FormError('INVALID_FORM_INPUT', 'Expected an object')
     return _copy(value)
 
