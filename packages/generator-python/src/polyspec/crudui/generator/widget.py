@@ -8,13 +8,17 @@ asks for one.
 
 import json
 import re
+from collections.abc import Mapping
+from typing import Any
+
+from polyspec.crudui.validator.jsvalue import JsonValue
 
 from .choice_list import appearances as choice_appearances
 from .choice_list import check_appearance, is_choice_list, pairs
 from .design import declared as design_declared
 from .errors import FormError
 from .numbers import number_string
-from .value import MISSING, classes, control_id, display, get, leaf, name as value_name, record, rule, scalar, string, style_value, translate, truthy
+from .value import MISSING, Value, classes, control_id, display, get, leaf, name as value_name, record, rule, scalar, string, style_value, translate, truthy
 
 __all__ = ['evaluate']
 
@@ -38,11 +42,11 @@ _MEMBERS = (
 )
 
 
-def evaluate(spec, value, path, design, options, rows):
+def evaluate(spec: dict[str, Any], value: Value, path: str, design: dict[str, Any], options: Mapping[str, Any], rows: list[int]) -> dict[str, Any]:
     """A supported widget model, or the report of an unsupported field type."""
     field_type = string(spec.get('type', ''))
     kind = _KINDS.get(field_type.lower())
-    items = spec.get('items')
+    items: Any = spec.get('items')
     if is_choice_list(items):
         # Only the choices of a choice or multichoice field declare their appearance.
         appearance = kind in ('choice', 'multichoice')
@@ -95,7 +99,7 @@ def evaluate(spec, value, path, design, options, rows):
             option['id'] = f'{context.id}:{index}'
     # Declared control attributes follow the attributes crudui writes on the control.
     attributes = design_declared(spec.get('design'), False)
-    if attributes is not MISSING:
+    if isinstance(attributes, dict):
         if model['layout'] == 'choices':
             if 'input' in model.get('extra', {}):
                 model['extra']['option'] = attributes
@@ -106,7 +110,7 @@ def evaluate(spec, value, path, design, options, rows):
     return model
 
 
-def _js(value):
+def _js(value: object) -> str:
     """A JavaScript string literal, with `<` escaped."""
     return json.dumps(value, ensure_ascii=False).replace('<', '\\u003c')
 
@@ -114,7 +118,7 @@ def _js(value):
 class _Widget:
     """The evaluation of one field control."""
 
-    def __init__(self, spec, value, path, design, options, rows):
+    def __init__(self, spec: dict[str, Any], value: Value, path: str, design: dict[str, Any], options: Mapping[str, Any], rows: list[int]) -> None:
         self.spec = spec
         self.value = value
         self.path = path
@@ -125,34 +129,34 @@ class _Widget:
         self.name = value_name(path, self.state.get('keyPrefix'))
         self.language = self.state.get('language', 'ko')
 
-    def t(self, value):
+    def t(self, value: JsonValue) -> str:
         return translate(value, self.language)
 
-    def opt(self, key, default=None):
+    def opt(self, key: str, default: str | None = None) -> Any:
         options = self.spec.get('options')
         value = options.get(key) if isinstance(options, dict) else None
         return default if value is None else scalar(value)
 
-    def data(self):
+    def data(self) -> dict[str, str]:
         return {
             'data-name': leaf(self.path, self.rows),
             'data-rule-name': rule(self.path, self.rows),
             'data-default': scalar(self.spec.get('default')),
         }
 
-    def main(self, base):
+    def main(self, base: str) -> str:
         return classes(base, self.design['main']['class'])
 
-    def style(self):
+    def style(self) -> dict[str, str]:
         style = style_value(self.design['main']['style'])
         return {} if style is None else {'style': style}
 
-    def placeholder(self):
+    def placeholder(self) -> dict[str, str]:
         text = self.t(self.spec.get('placeholder'))
         return {} if text == '' else {'placeholder': text}
 
-    def behavior(self):
-        out = {}
+    def behavior(self) -> dict[str, str]:
+        out: dict[str, str] = {}
         behavior = self.spec.get('behavior')
         if not isinstance(behavior, dict):
             return out
@@ -162,7 +166,7 @@ class _Widget:
                 out[action] = script
         return out
 
-    def affix(self, kind):
+    def affix(self, kind: str) -> object:
         text = self.t(self.spec.get(kind))
         if text == '':
             return MISSING
@@ -175,24 +179,24 @@ class _Widget:
             })
         return record({'text': text, 'class': 'crudui-widget__affix'})
 
-    def affixes(self):
+    def affixes(self) -> dict[str, object]:
         return {'prepend': self.affix('prepend'), 'append': self.affix('append')}
 
-    def display_value(self):
+    def display_value(self) -> Value:
         return display(self.value, get(self.spec, 'default'))
 
-    def model(self, kind, layout, attrs, extra=None):
+    def model(self, kind: str, layout: str, attrs: Mapping[str, Any], extra: Mapping[str, Any] | None = None) -> dict[str, Any]:
         """A widget model with its members in output order."""
         members = {'kind': kind, 'layout': layout, 'attrs': dict(attrs), **(extra or {})}
         order = [member for member in _MEMBERS if member in members]
         return record({key: members[key] for key in (*order, *members)} if set(members) <= set(_MEMBERS) else members)
 
-    def input(self, kind):
+    def input(self, kind: str) -> dict[str, Any]:
         from . import dates as dates_module
 
         attr_type = {'datetime': 'datetime-local', 'dummy-input': 'text'}.get(kind, kind)
         value = scalar(self.value) if kind == 'password' else self.display_value()
-        if kind in ('date', 'datetime'):
+        if kind in ('date', 'datetime') and isinstance(value, str):
             parsed = dates_module.parse_utc(value)
             if parsed is not None:
                 value = dates_module.format_utc(parsed, kind == 'datetime')
@@ -214,7 +218,7 @@ class _Widget:
         bare = kind in ('password', 'hidden', 'datetime')
         return self.model(kind, 'bare' if bare else 'widget', attrs, {'tag': 'input', **({} if bare else self.affixes())})
 
-    def range_input(self):
+    def range_input(self) -> dict[str, Any]:
         """A range input with the bounds and the step of its required validate declarations."""
         value = self.display_value()
         validate = self.spec['validate']
@@ -232,7 +236,7 @@ class _Widget:
         }
         return self.model('range', 'range', attrs, {'tag': 'input', 'text': value, **self.affixes()})
 
-    def textarea(self):
+    def textarea(self) -> dict[str, Any]:
         return self.model(
             'textarea',
             'widget',
@@ -247,11 +251,11 @@ class _Widget:
             {'tag': 'textarea', 'text': self.display_value(), **self.affixes()},
         )
 
-    def dynamic(self):
+    def dynamic(self) -> bool:
         items = self.spec.get('items')
         return isinstance(items, dict) and 'model' in items
 
-    def source(self):
+    def source(self) -> dict[str, str]:
         items = self.spec['items']
         return {
             'data-source-model': scalar(items.get('model')),
@@ -262,8 +266,8 @@ class _Widget:
             ),
         }
 
-    def items(self):
-        items = self.spec.get('items')
+    def items(self) -> list[list[Any]]:
+        items: Any = self.spec.get('items')
         if is_choice_list(items):
             return [[value, label] for value, label in pairs(items, True, True) or []]
         if self.dynamic() or not isinstance(items, (dict, list)):
@@ -277,7 +281,7 @@ class _Widget:
                 out.append([str(key), label])
         return out
 
-    def options(self, choice=False):
+    def options(self, choice: bool = False) -> list[dict[str, Any]]:
         effective = scalar(self.spec.get('default')) if self.value is MISSING else scalar(self.value)
         default = self.spec.get('default')
         out = []
@@ -290,7 +294,7 @@ class _Widget:
             })
         return out
 
-    def select(self, kind):
+    def select(self, kind: str) -> dict[str, Any]:
         from .choice_list import groups as group_list
 
         dynamic = self.dynamic()
@@ -356,7 +360,7 @@ class _Widget:
             {'tag': 'select', 'source': source, 'options': options, **self.affixes(), 'script': script, 'styleChrome': style},
         )
 
-    def choices(self, kind):
+    def choices(self, kind: str) -> dict[str, Any]:
         radio = kind == 'choice'
         # The choices element: its classes, then the class and style of design.group.
         group_style = style_value(self.design['group']['style'])
@@ -401,7 +405,7 @@ class _Widget:
             {'source': None, 'options': options, 'itemLabelClass': label_class, 'extra': {'input': shared}},
         )
 
-    def file(self, kind):
+    def file(self, kind: str) -> dict[str, Any]:
         cover = kind == 'cover'
         file = {'type': 'file', 'class': self.main('valid-target crudui-input crudui-input--file')}
         for size in ('max_width', 'min_width', 'max_height', 'min_height', 'preview_max_width', 'preview_max_height'):
@@ -426,7 +430,7 @@ class _Widget:
         extra['file'] = file
         return self.model(kind, 'file', {}, {'prepend': self.affix('prepend'), 'extra': extra})
 
-    def display(self, kind):
+    def display(self, kind: str) -> dict[str, Any]:
         from .choice_list import pairs as choice_pairs
 
         if kind == 'image-viewer':
@@ -466,7 +470,7 @@ class _Widget:
         attrs = {**attrs, **self.style()}
         return self.model('dummy', 'display', attrs, {'tag': 'div', 'rawHtml': html})
 
-    def editor(self, kind):
+    def editor(self, kind: str) -> dict[str, Any]:
         tagify = kind in ('tagify', 'tagify2')
         height = self.opt('height', '300')
         base = {
@@ -525,7 +529,7 @@ class _Widget:
             },
         )
 
-    def button(self):
+    def button(self) -> dict[str, Any]:
         """A button element with the content text; behavior scripts are its event attributes."""
         text = self.t(self.spec['content']) if 'content' in self.spec else ''
         attrs = {
