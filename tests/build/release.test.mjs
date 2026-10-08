@@ -73,6 +73,18 @@ test('every package file that the tag covers has the version of the tag', () => 
   ]);
 });
 
+test('a Python manifest pins this repository at the version of the tag, and another repository at any version', () => {
+  const files = manifests('1.2.3');
+  files['packages/py/pyproject.toml'] = '[project]\nname = "x-py"\nversion = "1.2.3"\ndependencies = [\n'
+    + '  "x-core @ git+https://github.com/polyspec/crudui@v1.2.2#subdirectory=packages/core",\n'
+    + '  "y-core @ git+https://github.com/polyspec/template@v0.0.5#subdirectory=packages/template-python",\n]\n';
+  assert.deepEqual(versionProblems({ tag: 'v1.2.3', ...tree(files) }), [
+    'packages/py/pyproject.toml: dependencies git+https://github.com/polyspec/crudui@v1.2.2 pins this repository at 1.2.2, tag v1.2.3 has 1.2.3',
+  ]);
+  files['packages/py/pyproject.toml'] = files['packages/py/pyproject.toml'].replace('@v1.2.2', '@v1.2.3');
+  assert.deepEqual(versionProblems({ tag: 'v1.2.3', ...tree(files) }), []);
+});
+
 test('the tag needs the section ## X.Y.Z of CHANGELOG.md, which holds its notes', () => {
   const files = { ...manifests('1.2.4'), 'CHANGELOG.md': CHANGELOG };
   assert.deepEqual(versionProblems({ tag: 'v1.2.4', ...tree(files) }), ['CHANGELOG.md: no section ## 1.2.4, tag v1.2.4 has 1.2.4']);

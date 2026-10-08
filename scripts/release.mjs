@@ -188,6 +188,13 @@ export function versionProblems({ tag, files, read }) {
     const manifest = packageManifest(file, read(file));
     if (!manifest.versioned) continue;
     if (manifest.version !== version) problems.push(`${file}: version ${manifest.version ?? '(none)'}, tag ${tag} has ${version}`);
+    if (path.posix.basename(file) === 'pyproject.toml') {
+      // A Python dependency on this repository names its tag; the tag of the release pins the version it releases.
+      const pin = new RegExp(`${REPOSITORY_URL.replaceAll('.', '\\.')}@v(\\d+\\.\\d+\\.\\d+)\\b`, 'g');
+      for (const [, pinned] of read(file).matchAll(pin)) {
+        if (pinned !== version) problems.push(`${file}: dependencies git+${REPOSITORY_URL}@v${pinned} pins this repository at ${pinned}, tag ${tag} has ${version}`);
+      }
+    }
   }
   if (changelogSection(read('CHANGELOG.md'), version) === null) problems.push(`CHANGELOG.md: no section ## ${version}, tag ${tag} has ${version}`);
   return problems;
