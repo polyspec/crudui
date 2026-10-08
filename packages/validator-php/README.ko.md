@@ -1,4 +1,6 @@
 # CRUDUI PHP 검증기
+<!-- doc-id: packages-validator-php-readme -->
+<!-- source-sha256: 10254e502929a7c1df30917cbeb13a112cd0b7d4cd8f4e744b57f84a4577fbfc -->
 
 [English](README.md).
 

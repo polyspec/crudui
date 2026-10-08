@@ -1,4 +1,6 @@
 # CRUDUI PHP 생성기
+<!-- doc-id: packages-generator-php-readme -->
+<!-- source-sha256: 66b1ba2ed4b8db7d00e0fe40af1a84fd58a73bac036b3f215b6a082513caf2bf -->
 
 [English](README.md).
 

@@ -1,4 +1,6 @@
 # 빈 반복 컬렉션
+<!-- doc-id: docs-spec-empty-collections -->
+<!-- source-sha256: 2a009d1b03afe2835c8ed008300b4c3c04c5ecdced9fef38ae8aec0d0e1ff75f -->
 
 [English](empty-collections.md).
 

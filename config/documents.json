@@ -1,0 +1,50 @@
+{
+  "schema": 1,
+  "include": [
+    "**/*.md"
+  ],
+  "exclude": [
+    "tests/kit/**",
+    "examples/cross-check-console/client/README.md",
+    "tools/bench/README.md"
+  ],
+  "statusTables": [
+    {
+      "path": "docs/features.md",
+      "idPattern": "[a-z][a-z0-9-]*",
+      "cells": 6,
+      "columns": [
+        {
+          "index": 2,
+          "enum": [
+            "not-started",
+            "in-progress",
+            "implemented"
+          ]
+        },
+        {
+          "index": 3,
+          "enum": [
+            "pending",
+            "passed",
+            "failed"
+          ]
+        },
+        {
+          "index": 4,
+          "enum": [
+            "not-deployed",
+            "deployed"
+          ]
+        },
+        {
+          "index": 5,
+          "pattern": "\\]\\([^)]+\\)"
+        }
+      ]
+    }
+  ],
+  "changelogs": [
+    "CHANGELOG.md"
+  ]
+}

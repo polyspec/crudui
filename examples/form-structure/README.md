@@ -1,4 +1,5 @@
 # Form structure preview
+<!-- doc-id: examples-form-structure-readme -->
 
 [한국어](README.ko.md).
 

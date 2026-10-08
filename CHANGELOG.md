@@ -1,8 +1,14 @@
 # Changes
+<!-- doc-id: changelog -->
 
 ## Unreleased
 
-### 2026-10-09 — Gates and CI report tools of kit (C14.1-3)
+### 2026-10-09 — Document check and commit message rules of kit (C14.1-4)
+
+- `config/documents.json` selects the Markdown documents of the repository (75 pairs), the status table of `docs/features.md` and `CHANGELOG.md`; `config/commits.json` declares the types, the 50 characters of a subject and the 72 characters of a body line. Each English document and its Korean twin hold the marker `<!-- doc-id: <path of the English file> -->`, and the Korean twin holds `<!-- source-sha256: <sha256 of the English file> -->`, which `scripts/generate-feature-contract-docs.mjs` writes for the generated feature contract pages. `scripts/check-documents.mjs`, `scripts/checklist-markers.mjs` and its test are removed.
+- The check found four differences between the English and the Korean documents, which are corrected: the code blocks of `examples/cross-check-console/README.md` named three frameworks and the old README link, the Korean release command named `<main의 commit>`, a link text of `docs/spec/form-markup.ko.md` broke across a line, and `tests/build/README` linked two headings that do not exist.
+
+### 2026-10-09 — Push check, full run and CI report tools of kit (C14.1-3)
 
 - `config/checklist.json` declares `docs/plans/execution-checklist.md` with its Korean twin and the hook `pre-push`; `.githooks/pre-push` is the hook that `make hooks` writes (`scripts/kit/git-hooks.mjs`) and runs `scripts/kit/push-gate.mjs`. `make ci` starts `scripts/kit/full-run.mjs` with `conformance-reset`, which removes the conformance evidence of earlier runs, and the make targets of `CI_TARGETS`; a full run no longer runs in a fresh clone of the commit.
 - `scripts/package-dist.mjs` and the record servers of the form comparison take the lock of `var/locks` from `scripts/kit/holder-lock.mjs`, whose commands are `run` and `clear`; the lock of the user account (`userLockFile`) is removed. `scripts/push-gate.mjs`, `scripts/full-run.mjs`, `scripts/holder-lock.mjs`, `scripts/ci-targets.mjs`, `scripts/ci-passed.mjs`, `scripts/target-report.mjs` and their tests are removed.

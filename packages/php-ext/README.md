@@ -1,4 +1,5 @@
 # Native PHP generation and validation
+<!-- doc-id: packages-php-ext-readme -->
 
 [한국어](README.ko.md).
 

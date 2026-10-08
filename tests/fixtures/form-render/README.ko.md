@@ -1,4 +1,6 @@
 # 폼 렌더링 고정 사례
+<!-- doc-id: tests-fixtures-form-render-readme -->
+<!-- source-sha256: d8f888f22f2e41d15689151d6cb6c845d6d6a8fd447d7bd15b32f0be69f8dd84 -->
 
 [English](README.md).
 

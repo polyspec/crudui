@@ -1,4 +1,5 @@
 # Test fixtures
+<!-- doc-id: docs-spec-test-fixtures -->
 
 [한국어](test-fixtures.ko.md).
 

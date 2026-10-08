@@ -1,4 +1,6 @@
 # 목록과 상세 개발과 검증
+<!-- doc-id: docs-operations-displays -->
+<!-- source-sha256: a4b0580ceea3320794b4fb0a535b67d25d682222d35ac15a3549a065ce58cb3e -->
 
 [English](displays.md). [표시 형식](../spec/display-formats.ko.md)은 각 형식, 허용 입력과
 마크업을 정의합니다. [명세 구조](../spec/schema.ko.md)는 목록과 상세 필드와

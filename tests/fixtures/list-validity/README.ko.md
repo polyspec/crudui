@@ -1,4 +1,6 @@
 # 목록 유효성 고정 데이터
+<!-- doc-id: tests-fixtures-list-validity-readme -->
+<!-- source-sha256: 7ee2ca7c521f6031d99e326accfdbffc895d02880bdac41ebb4977c3f44fb88c -->
 
 [English](README.md).
 

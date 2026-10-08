@@ -1,4 +1,5 @@
 # CRUDUI PHP generator
+<!-- doc-id: packages-generator-php-readme -->
 
 [한국어](README.ko.md).
 

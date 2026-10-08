@@ -1,4 +1,6 @@
 # 스키마 검증
+<!-- doc-id: docs-operations-schema-validation -->
+<!-- source-sha256: bcaa57442ce890d5b5fe44b744685a7d8062d978554b556d121dcfcfd8c3fd37 -->
 
 [English](schema-validation.md).
 

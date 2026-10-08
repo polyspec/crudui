@@ -1,4 +1,6 @@
 # 검증 고정 데이터
+<!-- doc-id: tests-fixtures-validate-readme -->
+<!-- source-sha256: 07dbc6aec4c175d8328419196d293f2218fdec1a40891d6e2413b9eae59ed55e -->
 
 [English](README.md).
 

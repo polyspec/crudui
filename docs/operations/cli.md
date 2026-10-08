@@ -1,4 +1,5 @@
 # Specification CLI
+<!-- doc-id: docs-operations-cli -->
 
 [한국어](cli.ko.md).
 

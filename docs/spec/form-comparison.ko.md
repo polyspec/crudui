@@ -1,4 +1,6 @@
 # 폼 검증
+<!-- doc-id: docs-spec-form-comparison -->
+<!-- source-sha256: 95f81d746b9b8ca095c36691407845cd9146bc4a5c2fbfc898cced2bfbe5995e -->
 
 [English](form-comparison.md).
 

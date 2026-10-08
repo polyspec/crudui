@@ -1,4 +1,6 @@
 # JSON 문서 순서 검증
+<!-- doc-id: docs-operations-ordered-json -->
+<!-- source-sha256: e4dd13a9edb1a221cd12ae84ebecbe93189cd898569669f118ad0e9d32ee9847 -->
 
 [English](ordered-json.md). [폼 런타임 계약](../spec/form-runtime.ko.md)은 필요한
 데이터 형태와 순서를 정의합니다. [기능 상태](../features.ko.md)는 검증과 런타임

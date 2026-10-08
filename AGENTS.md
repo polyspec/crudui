@@ -1,4 +1,5 @@
 # Development
+<!-- doc-id: agents -->
 
 - Update the authoritative specification before changing behavior or direction.
 - Name branches `{type}/{shortname}-{checklist ID}` and worktrees

@@ -3,7 +3,8 @@
 // repository, and the real repository must pass.
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -244,4 +245,14 @@ test('a named error of an implemented feature is a built-in error or a public CR
     repo.manifest.features[0].status = 'planned';
     repo.manifest.features[0].errors = ['LaterError'];
   }), []);
+});
+
+// make documents-check requires the same doc-id in both pages and the sha256 of the English page in the Korean page; the
+// generator of the pages (scripts/generate-feature-contract-docs.mjs) writes both.
+test('the generated feature contract pages hold the markers that make documents-check requires', () => {
+  const english = readFileSync(path.join(ROOT, 'docs/spec/feature-contracts.md'));
+  const korean = readFileSync(path.join(ROOT, 'docs/spec/feature-contracts.ko.md'), 'utf8');
+  assert.match(english.toString('utf8'), /^# Feature contracts\n<!-- doc-id: docs-spec-feature-contracts -->\n/);
+  assert.match(korean, /^# 기능 계약\n<!-- doc-id: docs-spec-feature-contracts -->\n/);
+  assert.ok(korean.includes(`<!-- source-sha256: ${createHash('sha256').update(english).digest('hex')} -->\n`));
 });

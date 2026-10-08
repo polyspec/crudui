@@ -1,4 +1,5 @@
 # List rendering fixtures
+<!-- doc-id: tests-fixtures-list-render-readme -->
 
 [한국어](README.ko.md).
 

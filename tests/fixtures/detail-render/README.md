@@ -1,4 +1,5 @@
 # Detail rendering fixtures
+<!-- doc-id: tests-fixtures-detail-render-readme -->
 
 [한국어](README.ko.md).
 

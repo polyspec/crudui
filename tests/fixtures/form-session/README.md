@@ -1,4 +1,5 @@
 # Form session scenarios
+<!-- doc-id: tests-fixtures-form-session-readme -->
 
 [한국어](README.ko.md).
 

@@ -1,4 +1,6 @@
 # 테스트 실행
+<!-- doc-id: docs-operations-testing -->
+<!-- source-sha256: a9bc9ec1505a289739a9e90eff3dde7931f03f1b478428caecacb8009415ff24 -->
 
 [English](testing.md).
 
@@ -119,8 +121,8 @@ hook이 없는 clone이나 hook을 건너뛴 push도 GitHub에 도달합니다. 
 push, 모든 pull request, 모든 merge group에서 실행되어, push된 commit(pull request의 head commit, merge group의 commit)을 checkout하고
 `node scripts/kit/push-gate.mjs commit HEAD`를 실행합니다. 이 job은 그 commit의 checklist에 진행 중인 작업이 있을 때, commit에 checklist가 없을 때, commit이
 `.githooks/pre-push`를 실행 가능한 file(mode `100755`)로 추적하지 않을 때 실패하며, 거부 내용을 progress line으로, 각 줄을 error
-annotation으로, 그리고 job summary에 출력합니다. 같은 step은 `make records-check`도 실행합니다. `scripts/check-documents.mjs`와
-checklist, link, changelog, 문장, example과 fixture README test로, Node.js만 필요하고 network와 이력을 읽지 않습니다. 그래서
+annotation으로, 그리고 job summary에 출력합니다. 같은 step은 `make records-check`도 실행합니다. `make documents-check`
+(`scripts/kit/check-documents.mjs`, `config/documents.json`)와 link, changelog, 문장, example과 fixture README test로, Node.js만 필요하고 network와 이력을 읽지 않습니다. 그래서
 문서나 checklist 규칙을 어긴 commit은 ruleset `main`이 요구하는 check에 실패합니다([저장소 설정](repository.ko.md#main-게시)).
 `make docs-check-documents`는 나머지 문서 검사와 함께 `make records-check`를 실행합니다.
 

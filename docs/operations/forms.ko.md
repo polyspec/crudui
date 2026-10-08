@@ -1,4 +1,6 @@
 # 폼 개발과 검증
+<!-- doc-id: docs-operations-forms -->
+<!-- source-sha256: c14273231b7e2a3cc1bf4a9d000789fbc6ecaff555357b3453b01a3ad902d80d -->
 
 [English](forms.md). 계약은 [폼 런타임](../spec/form-runtime.ko.md)에 정의합니다.
 

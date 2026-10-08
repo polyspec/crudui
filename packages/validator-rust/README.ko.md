@@ -1,4 +1,6 @@
 # CRUDUI Rust 검증기
+<!-- doc-id: packages-validator-rust-readme -->
+<!-- source-sha256: df9396449da15842be913b03741436db656f90460e456135b1424753607e4316 -->
 
 [English](README.md).
 

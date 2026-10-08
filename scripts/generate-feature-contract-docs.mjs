@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
@@ -10,7 +11,10 @@ const rows = manifest.features.map((feature) => {
 }).join('\n');
 const entries = manifest.packages.flatMap((pkg) => Object.entries(pkg.entries).map(([entry, { visibility, exports }]) =>
   `| \`${pkg.name}\` | \`${entry}\` | ${visibility} | ${exports.map((name) => `\`${name}\``).join(', ')} |`)).join('\n');
+// The markers of `make documents-check`: both pages hold the same doc-id, and the Korean page holds the sha256 of the English page.
+const DOC_ID = '<!-- doc-id: docs-spec-feature-contracts -->';
 const english = `# Feature contracts
+${DOC_ID}
 
 [한국어](feature-contracts.ko.md).
 
@@ -31,6 +35,8 @@ ${entries}
 Run \`npm run manifest:check\` to validate structure and links. Run \`npm run manifest:test\` to execute the declared test commands.
 `;
 const korean = `# 기능 계약
+${DOC_ID}
+<!-- source-sha256: ${createHash('sha256').update(english).digest('hex')} -->
 
 [English](feature-contracts.md).
 

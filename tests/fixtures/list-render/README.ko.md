@@ -1,4 +1,6 @@
 # 목록 렌더링 고정 데이터
+<!-- doc-id: tests-fixtures-list-render-readme -->
+<!-- source-sha256: 1b39bae9585d29902520066a1c5ab5f6c2f705045acc7c00517e9a571f4ecf29 -->
 
 [English](README.md).
 

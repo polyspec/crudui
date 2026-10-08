@@ -1,4 +1,5 @@
 # CRUDUI Go generator
+<!-- doc-id: packages-generator-go-readme -->
 
 [한국어](README.ko.md).
 

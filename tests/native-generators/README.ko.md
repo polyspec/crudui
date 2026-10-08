@@ -1,4 +1,6 @@
 # 네이티브 생성기 적합성 검사
+<!-- doc-id: tests-native-generators-readme -->
+<!-- source-sha256: ff75ebdc4fbca85ced5b9f639fee61be4901a78c1d5264cb1b93872a1e734775 -->
 
 [English](README.md).
 

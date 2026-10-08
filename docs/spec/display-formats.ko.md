@@ -1,4 +1,6 @@
 # 표시 형식
+<!-- doc-id: docs-spec-display-formats -->
+<!-- source-sha256: d3250d007237c194de904c6b0d8236a36a6c00b65042b8e0a77b88ecbd30ae82 -->
 
 [English](display-formats.md).
 

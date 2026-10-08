@@ -1,4 +1,6 @@
 # 완전한 폼 고정 데이터
+<!-- doc-id: tests-fixtures-form-complete-readme -->
+<!-- source-sha256: 9001dab5e88e4d793225bd82ce0c04689af5ca11c047b884669140964698f4f9 -->
 
 [English](README.md).
 

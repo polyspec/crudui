@@ -1,4 +1,5 @@
 # Examples
+<!-- doc-id: docs-spec-examples -->
 
 [한국어](examples.ko.md).
 

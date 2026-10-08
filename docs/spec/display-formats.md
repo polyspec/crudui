@@ -1,4 +1,5 @@
 # Display formats
+<!-- doc-id: docs-spec-display-formats -->
 
 [한국어](display-formats.ko.md).
 

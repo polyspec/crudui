@@ -1,4 +1,6 @@
 # @polyspec/crudui-generator-core
+<!-- doc-id: packages-generator-core-readme -->
+<!-- source-sha256: 8cd51faa6fec5f21b7bde4222b95992ed8e6f27f9e8d6718591988628f1f39a6 -->
 
 [English](README.md).
 

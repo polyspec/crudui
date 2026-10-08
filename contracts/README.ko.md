@@ -1,4 +1,6 @@
 # CRUDUI 계약 manifest
+<!-- doc-id: contracts-readme -->
+<!-- source-sha256: d8d9178e9d176fb10d4a658be05fa09cb3df637c3d38deafd2e9867626c325bd -->
 
 [English](README.md).
 

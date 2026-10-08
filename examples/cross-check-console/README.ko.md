@@ -1,4 +1,6 @@
 # 교차 검사 콘솔
+<!-- doc-id: examples-cross-check-console-readme -->
+<!-- source-sha256: f59a737f1a061dcf629fdf2af847c70cc63fd4aeb00671a2fccb687b84804d24 -->
 
 [English](README.md).
 
@@ -269,7 +271,7 @@ server/
   render-runner.mjs   HTML/React/Svelte/Vue in-process SSR; renderAll + renderAllList + renderAllDetail; parity verdict
   package.json        start + build:validators scripts
 validators/           validator processes: js/validate.mjs, php/validate.php, go/, rust/, python/ and
-                      requests.json (request contract cases); see validators/README.ko.md
+                      requests.json (request contract cases); see validators/README.md
 client/               no-build console (index.html + app.js + examples.js + doc.js + fixture-export.js + styles.css);
                       three tabs (form, list, detail) over the six endpoints
 ```

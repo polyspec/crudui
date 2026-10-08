@@ -1,4 +1,6 @@
 # 구조 지도와 데이터 보기 고정 데이터
+<!-- doc-id: tests-fixtures-form-outline-readme -->
+<!-- source-sha256: 3763ab603fdac79d1490563225e961dc785c1027ca2f0875633cdcbebbe573bc -->
 
 [English](README.md).
 

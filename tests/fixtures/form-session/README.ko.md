@@ -1,4 +1,6 @@
 # 폼 세션 시나리오
+<!-- doc-id: tests-fixtures-form-session-readme -->
+<!-- source-sha256: 5b015a65e16a724d59f5067157b7c19633c4050a8fea9dc134ce3d960a10a6ad -->
 
 [English](README.md).
 

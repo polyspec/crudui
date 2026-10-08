@@ -1,4 +1,6 @@
 # 폼 마크업
+<!-- doc-id: docs-spec-form-markup -->
+<!-- source-sha256: 80fa904ecd2d5249e83081a7c533805d04b4e07f459e21898459f5c39ef5e7d6 -->
 
 [English](form-markup.md). 이 문서는 평가된 폼 노드의 렌더링 방식을 정의합니다.
 React, Vue, Svelte, HTML 렌더러와 네이티브 렌더러는 같은 마크업을 생성합니다.
@@ -24,8 +26,8 @@ React, Vue, Svelte, HTML 렌더러와 네이티브 렌더러는 같은 마크업
 클래스를 가리키면 바인딩의 테스트가 실패합니다. 렌더러가 이 슬롯에 data 속성을 쓰면 이 예외는
 끝납니다.
 위젯도 같은 형태를 따릅니다. 렌더러가 그 밖에 쓰는 클래스는 규칙이 값을 검사하는 컨트롤을 표시하는
-`valid-target`, 동적 소스를 가진 select를 표시하는 `valid-target-async`([브라우저
-검증](form-runtime.ko.md#브라우저-검증) 참조), 에디터 호스트 `tinymcearea`, `summernote`,
+`valid-target`, 동적 소스를 가진 select를 표시하는 `valid-target-async`
+([브라우저 검증](form-runtime.ko.md#브라우저-검증) 참조), 에디터 호스트 `tinymcearea`, `summernote`,
 `contentjs`, `tuiarea`, 그리고 스펙이 `design`으로 선언한 클래스뿐입니다.
 
 ## 블록과 속성

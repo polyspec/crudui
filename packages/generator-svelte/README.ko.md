@@ -1,4 +1,6 @@
 # @polyspec/crudui-generator-svelte
+<!-- doc-id: packages-generator-svelte-readme -->
+<!-- source-sha256: 0d4fe2f657feefac5d5e985203d48f673462a6e12e3692732b7bc68497c439aa -->
 
 [English](README.md).
 

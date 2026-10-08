@@ -1,4 +1,6 @@
 # 상세 유효성 고정 데이터
+<!-- doc-id: tests-fixtures-detail-validity-readme -->
+<!-- source-sha256: 56a0192eb75eb1783f3b2b9456a4aa2d0cde45fdbe61a464dfc18b07d1fdde1c -->
 
 [English](README.md).
 

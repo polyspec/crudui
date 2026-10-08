@@ -1,4 +1,6 @@
 # 입력 텍스트
+<!-- doc-id: docs-spec-input-text -->
+<!-- source-sha256: a4615e01004e14397dede945c641d91d8b344b01fc01985e3cbeb0788b1d44ff -->
 
 [English](input-text.md).
 

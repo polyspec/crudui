@@ -1,4 +1,5 @@
 # Form rendering fixtures
+<!-- doc-id: tests-fixtures-form-render-readme -->
 
 [한국어](README.ko.md).
 

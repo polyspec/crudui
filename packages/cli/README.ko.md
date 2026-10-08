@@ -1,4 +1,6 @@
 # @polyspec/crudui-cli
+<!-- doc-id: packages-cli-readme -->
+<!-- source-sha256: 0f0f9a775f1773284531443760c17aa412c4e3df4988d377178ab76d0cfdc1aa -->
 
 [English](README.md).
 

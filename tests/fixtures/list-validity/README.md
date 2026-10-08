@@ -1,4 +1,5 @@
 # List validity fixtures
+<!-- doc-id: tests-fixtures-list-validity-readme -->
 
 [한국어](README.ko.md).
 

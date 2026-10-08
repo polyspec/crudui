@@ -1,4 +1,6 @@
 # CRUDUI 문서
+<!-- doc-id: docs-index -->
+<!-- source-sha256: 7949a06c474e993a10853845d0e7626bf2414d693490a69115faaf3fa071c259 -->
 
 [English](index.md).
 

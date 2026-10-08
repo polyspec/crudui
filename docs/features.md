@@ -1,4 +1,5 @@
 # Feature status
+<!-- doc-id: docs-features -->
 
 [한국어](features.ko.md). Contracts are defined in [spec](spec/form-runtime.md).
 Tests and deployment are recorded separately. `pending` is not a passing result.

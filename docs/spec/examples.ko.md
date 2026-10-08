@@ -1,4 +1,6 @@
 # 예제
+<!-- doc-id: docs-spec-examples -->
+<!-- source-sha256: 956e947fccd242869487b3b2d0b719e7da0f31021207b297cb88438fea6979b2 -->
 
 [English](examples.md).
 

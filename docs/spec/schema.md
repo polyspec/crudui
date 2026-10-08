@@ -1,4 +1,5 @@
 # Specification structure
+<!-- doc-id: docs-spec-schema -->
 
 [한국어](schema.ko.md). This document defines field and list declarations.
 Form instances, repeated row keys and caching are defined in

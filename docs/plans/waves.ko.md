@@ -1,4 +1,6 @@
 # Wave 배경
+<!-- doc-id: docs-plans-waves -->
+<!-- source-sha256: 3a7c50fbc345a4191449c13ea889fe30c860623f753b8cd2abe80e46c370bfed -->
 
 [English](waves.md).
 
@@ -58,4 +60,4 @@
 
 ## Wave 14
 
-의존: 없음. 저장소는 모든 polyspec 저장소가 공유하는 도구를 polyspec/kit v0.0.4의 vendored copy(`scripts/kit`, `tests/kit`, `kit.json`, `.kit/kit.lock.json`)로 가져오고, 다른 저장소와 `config/*.json`에서만 다르다. kit이 제공하는 이 저장소의 도구(dependency review와 gate, toolchain install과 check, test runner, push gate, full-run guard, holder lock, document와 owner check, CI report 도구, release 도구)는 제거한다. 0.x workflow에는 pull request, merge queue, ruleset이 없다. 작업은 row마다 로컬에서 commit하고, 모든 row가 `[o]`일 때 `main`을 한 번 push하며, tag는 main CI의 `ci-passed`가 성공한 뒤에만 만든다.
+의존: 없음. 저장소는 모든 polyspec 저장소가 공유하는 도구를 polyspec/kit v0.0.4의 vendored copy(`scripts/kit`, `tests/kit`, `kit.json`, `.kit/kit.lock.json`)로 가져오고, 다른 저장소와 `config/*.json`에서만 다르다. kit이 제공하는 이 저장소의 도구(dependency review와 그 검사, toolchain install과 check, test runner, push 검사, full-run guard, holder lock, document와 owner check, CI report 도구, release 도구)는 제거한다. 0.x workflow에는 pull request, merge queue, ruleset이 없다. 작업은 row마다 로컬에서 commit하고, 모든 row가 `[o]`일 때 `main`을 한 번 push하며, tag는 main CI의 `ci-passed`가 성공한 뒤에만 만든다.

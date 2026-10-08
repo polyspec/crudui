@@ -4,6 +4,8 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import test from 'node:test';
 
+import { isVendored } from '../../scripts/repository-files.mjs';
+
 const repository = path.resolve(import.meta.dirname, '../..');
 const excludedPrefixes = [
   'docs/api/',
@@ -30,6 +32,8 @@ function trackedFiles() {
   assert.equal(result.status, 0, result.stderr);
   return result.stdout.split('\0').filter(Boolean)
     .filter(file => !excludedPrefixes.some(prefix => file.startsWith(prefix)))
+    // The vendored copy of polyspec/kit is written and checked in polyspec/kit.
+    .filter(file => !isVendored(file))
     .filter(file => existsSync(path.join(repository, file)));
 }
 

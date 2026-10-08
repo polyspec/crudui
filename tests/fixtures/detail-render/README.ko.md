@@ -1,4 +1,6 @@
 # 상세 렌더링 고정 데이터
+<!-- doc-id: tests-fixtures-detail-render-readme -->
+<!-- source-sha256: 83bfa86680e860ec0ddebf67b8eb723e0459ca9b82c6e9ea58d0fa4e5d70d96a -->
 
 [English](README.md).
 

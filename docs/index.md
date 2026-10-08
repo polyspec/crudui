@@ -1,4 +1,5 @@
 # CRUDUI documentation
+<!-- doc-id: docs-index -->
 
 [한국어](index.ko.md).
 

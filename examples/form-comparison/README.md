@@ -1,4 +1,5 @@
 # CRUDUI canonical examples and form verification
+<!-- doc-id: examples-form-comparison-readme -->
 
 [한국어](README.ko.md).
 

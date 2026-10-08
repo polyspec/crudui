@@ -1,4 +1,6 @@
 # 상품 폼
+<!-- doc-id: examples-product-forms-readme -->
+<!-- source-sha256: d55f6ea3ef0bb262354754f66b800ae094a7d2b20f67705057674544e5c711cb -->
 
 [English](README.md).
 

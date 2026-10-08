@@ -1,4 +1,6 @@
 # 검증기 프로세스
+<!-- doc-id: examples-cross-check-console-validators-readme -->
+<!-- source-sha256: de4a10b400597dfc8256b97eaade3b43d0095eb4c0847215e26be2abd761847b -->
 
 [English](README.md).
 

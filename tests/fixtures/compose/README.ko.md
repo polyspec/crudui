@@ -1,4 +1,6 @@
 # 합성 고정 데이터
+<!-- doc-id: tests-fixtures-compose-readme -->
+<!-- source-sha256: 523a511d4d92b80645f751d3877483aff6e6610fdaea671665a26a32eeb81b7b -->
 
 [English](README.md).
 

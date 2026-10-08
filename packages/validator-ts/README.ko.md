@@ -1,4 +1,6 @@
 # @polyspec/crudui-validator
+<!-- doc-id: packages-validator-ts-readme -->
+<!-- source-sha256: 453bad2106ecc415993439b5b1595229fd28b62ac34aba297039e54f193b8f59 -->
 
 [English](README.md).
 

@@ -1,4 +1,5 @@
 # Repository settings
+<!-- doc-id: docs-operations-repository -->
 
 [한국어](repository.ko.md).
 
