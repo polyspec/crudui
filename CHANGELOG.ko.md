@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-08 — cross-check console의 Python validator (C13.1-5)
+
+- cross-check console은 Python validator 프로세스를 JavaScript, PHP, Go, Rust 프로세스와 함께 실행하며, 요청 비교는 다섯 프로세스의 일치를 요구한다. 서버 test 스위트가 1267개 test로 통과한다(종료 코드 0).
+
 ### 2026-10-08 — 기록이 커밋을 체크리스트 id로 가리킨다 (C13.1-18)
 
 - C13.1-1, C13.1-2, C13.1-3, C13.1-4, C13.1-10, C13.1-11의 기록은 각 커밋을 구현하는 과제의 체크리스트 id로 가리킨다.
