@@ -3,7 +3,7 @@
     "8.4",
     "8.5"
   ],
-  "python": "3.9",
+  "python": "3.14",
   "composer": "2.10.3",
   "cargoAudit": "0.22.2",
   "node": {
