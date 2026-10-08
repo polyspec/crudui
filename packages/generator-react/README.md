@@ -1,4 +1,5 @@
 # @polyspec/crudui-generator-react
+<!-- doc-id: packages-generator-react-readme -->
 
 [한국어](README.ko.md).
 

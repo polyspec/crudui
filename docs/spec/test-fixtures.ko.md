@@ -1,4 +1,6 @@
 # 테스트 사례
+<!-- doc-id: docs-spec-test-fixtures -->
+<!-- source-sha256: 2485ac9e05baf30f779430cbce5e4b22cf2770c5d89e4fd58e19cf07d6aebb9e -->
 
 [English](test-fixtures.md).
 

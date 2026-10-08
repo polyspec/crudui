@@ -1,4 +1,5 @@
 # CRUDUI Rust validator
+<!-- doc-id: packages-validator-rust-readme -->
 
 [한국어](README.ko.md).
 

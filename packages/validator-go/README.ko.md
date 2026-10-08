@@ -1,4 +1,6 @@
 # validator-go
+<!-- doc-id: packages-validator-go-readme -->
+<!-- source-sha256: 3b900325fa1c495c2c0536901ce69c196b2d2273b05f4e146c5e29f38a8c2787 -->
 
 [English](README.md).
 

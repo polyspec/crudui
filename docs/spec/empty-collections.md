@@ -1,4 +1,5 @@
 # Empty repeated collections
+<!-- doc-id: docs-spec-empty-collections -->
 
 [한국어](empty-collections.ko.md).
 

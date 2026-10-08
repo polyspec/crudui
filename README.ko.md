@@ -1,4 +1,6 @@
 # CRUDUI
+<!-- doc-id: readme -->
+<!-- source-sha256: 18ed37b865864a6c5a1408cd6a544a5cf58b85f14b8afa576ec100b1d72c8db2 -->
 
 [English](README.md).
 

@@ -1,4 +1,6 @@
 # CRUDUI Go 생성기
+<!-- doc-id: packages-generator-go-readme -->
+<!-- source-sha256: 5110611b0075441b46c933292103ed905a500422271a24bb34fe35c35f20405f -->
 
 [English](README.md).
 

@@ -1,4 +1,6 @@
 # 문서 관리
+<!-- doc-id: docs-operations-documentation -->
+<!-- source-sha256: aa873c08c0fbba4f9e9281e8ed8e72db64ae1bd79babe5b10e4e009caccd8cf0 -->
 
 [English](documentation.md).
 
@@ -65,11 +67,12 @@ HTML은 `docs/public/api/`에서 웹에 포함합니다. 반복 생성 검사는
 Go 참조는 조합·표현식·검증을 포함해 `validator/`
 아래의 모든 패키지를 설명합니다.
 
-번역과 링크 검사는 저장소 안내 문서, 생성기 패키지 README, 예제 색인, 기능 상태와
-`docs/spec/`, `docs/operations/`, `docs/plans/`의 모든 문서에 적용합니다.
-이 디렉터리 밖의 기존 참조 문서는 번역 검사 대상에 포함하지 않습니다.
-검사는 번역 파일 사이의 코드 예제와 상태 항목을 비교하며 본문의 의미 일치는
-검토로 확인합니다.
+`make documents-check`(`scripts/kit/check-documents.mjs`, `config/documents.json`)는 `tests/kit/**`(polyspec/kit의 vendored test),
+`examples/cross-check-console/client/README.md`, `tools/bench/README.md`를 뺀 저장소의 모든 Markdown 문서를 검사합니다. 각 영어 문서에는
+한국어 twin `.ko.md`가 있고, 두 file은 같은 marker `<!-- doc-id: <id> -->`를 가집니다. id는 `.md`를 뺀 영어 file의 경로를 소문자로 하고
+단어 사이를 `-`로 이은 것입니다. 한국어 file은 영어 file의 sha256인 `<!-- source-sha256: <sha256> -->`도 가지며, 영어 문서를 바꾼 뒤에는 한국어
+twin을 검토하고 marker를 `shasum -a 256 <영어 file>`의 출력으로 설정합니다. 검사는 명시한 section anchor, fenced code block(info string과 내용),
+상대 link와 anchor, 기능 상태 table(`docs/features.md`), `CHANGELOG.md`를 비교하며 본문의 의미 일치는 검토로 확인합니다.
 
 ## GitHub Pages
 

@@ -1,4 +1,5 @@
 # View session scenarios
+<!-- doc-id: tests-fixtures-view-session-readme -->
 
 [한국어](README.ko.md).
 

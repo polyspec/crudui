@@ -1,4 +1,5 @@
 # Structure map and data view fixtures
+<!-- doc-id: tests-fixtures-form-outline-readme -->
 
 [한국어](README.ko.md).
 

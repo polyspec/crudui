@@ -1,4 +1,6 @@
 # PHP 네이티브 생성과 검증
+<!-- doc-id: packages-php-ext-readme -->
+<!-- source-sha256: 7b9fc3a21edee67036486d735e4741b7ab5d2e8a4a895cfc941ffbe9474e569f -->
 
 [English](README.md).
 

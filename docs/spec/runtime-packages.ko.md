@@ -1,4 +1,6 @@
 # 런타임 패키지
+<!-- doc-id: docs-spec-runtime-packages -->
+<!-- source-sha256: 52c0b85dd9e95c439f875750747c79560990b457d66b0a1539b339a554dbc8dc -->
 
 [English](runtime-packages.md).
 구현과 검증 결과는 [기능 상태](../features.ko.md)에 기록합니다.

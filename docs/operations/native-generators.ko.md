@@ -1,4 +1,6 @@
 # 네이티브 생성기 검사
+<!-- doc-id: docs-operations-native-generators -->
+<!-- source-sha256: 9c01b048a4ddd8a2d7b9437ee9cd43010e2f2c1b890cf74f04b2558718e94386 -->
 
 [English](native-generators.md).
 

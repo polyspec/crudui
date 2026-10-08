@@ -1,4 +1,5 @@
 # CRUDUI JSON Schema
+<!-- doc-id: schema-readme -->
 
 [한국어](README.ko.md).
 

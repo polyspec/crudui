@@ -1,4 +1,5 @@
 # CRUDUI Rust generator
+<!-- doc-id: packages-generator-rust-readme -->
 
 [한국어](README.ko.md).
 

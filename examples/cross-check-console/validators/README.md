@@ -1,4 +1,5 @@
 # Validator processes
+<!-- doc-id: examples-cross-check-console-validators-readme -->
 
 [한국어](README.ko.md).
 

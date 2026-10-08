@@ -1,4 +1,5 @@
 # Feature contracts
+<!-- doc-id: docs-spec-feature-contracts -->
 
 [한국어](feature-contracts.ko.md).
 

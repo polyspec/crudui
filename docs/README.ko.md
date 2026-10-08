@@ -1,4 +1,6 @@
 # CRUDUI 문서
+<!-- doc-id: docs-readme -->
+<!-- source-sha256: 3bda27eee3a3104a67c740d207f853755f38c18572ebe8587cb8f8ddd2d6419a -->
 
 [English](README.md).
 

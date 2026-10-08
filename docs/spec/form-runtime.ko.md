@@ -1,4 +1,6 @@
 # 폼 구조와 데이터 바인딩
+<!-- doc-id: docs-spec-form-runtime -->
+<!-- source-sha256: 6d81713273da24618379db663b0e11b27532b2b3cac7d6f2e7615f75f99911b9 -->
 
 이 문서는 폼 런타임 계약을 정의합니다. [English](form-runtime.md).
 구현과 검증 상태는 [기능 상태](../features.ko.md)에 기록합니다.

@@ -1,4 +1,6 @@
 # 기능 상태
+<!-- doc-id: docs-features -->
+<!-- source-sha256: fc6b5e688b37e4ecdd48340e31779380076dd5a5536fc09f3d17cfd26fb1f9b9 -->
 
 [English](features.md). 계약은 [명세](spec/form-runtime.ko.md)에 정의합니다.
 테스트와 배포를 별도로 기록합니다. `pending`은 통과 결과가 아닙니다.

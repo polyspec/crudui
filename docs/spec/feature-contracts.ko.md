@@ -1,4 +1,6 @@
 # 기능 계약
+<!-- doc-id: docs-spec-feature-contracts -->
+<!-- source-sha256: 7e2130a03b790a3ccfe70bf0dfdd6cd22915baf58697b2326edecbe1ced1cc11 -->
 
 [English](feature-contracts.md).
 

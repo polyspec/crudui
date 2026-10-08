@@ -1,4 +1,5 @@
 # @polyspec/crudui-generator-svelte
+<!-- doc-id: packages-generator-svelte-readme -->
 
 [한국어](README.ko.md).
 

@@ -1,4 +1,5 @@
 # Test execution
+<!-- doc-id: docs-operations-testing -->
 
 [한국어](testing.ko.md).
 
@@ -149,8 +150,8 @@ commit of a pull request, the commit of a merge group) and runs
 `node scripts/kit/push-gate.mjs commit HEAD`. It fails while the checklist of that commit has a task in
 progress, when the commit has no checklist and when it does not track `.githooks/pre-push` as an
 executable file (mode `100755`); it prints the refusal through the progress lines, each line as an
-error annotation, and in the job summary. The same step runs `make records-check`: `scripts/check-documents.mjs`
-and the checklist, link, changelog, writing, example and fixture README tests, which need Node.js alone and read
+error annotation, and in the job summary. The same step runs `make records-check`: `make documents-check`
+(`scripts/kit/check-documents.mjs`, `config/documents.json`) and the link, changelog, writing, example and fixture README tests, which need Node.js alone and read
 neither the network nor the history, so a commit that breaks the document or checklist rules fails the check that
 the ruleset `main` requires ([Repository settings](repository.md#publishing-main)). `make docs-check-documents`
 runs `make records-check` with the rest of its document checks.

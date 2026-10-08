@@ -1,4 +1,6 @@
 # 검증 규칙
+<!-- doc-id: docs-spec-validation-rules -->
+<!-- source-sha256: 2ac8fd244edea143afeab3fdafb69a5454c7de0317891188d7b95c8eb37936ff -->
 
 [English](validation-rules.md).
 

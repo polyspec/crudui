@@ -1,4 +1,6 @@
 # CRUDUI Rust 생성기
+<!-- doc-id: packages-generator-rust-readme -->
+<!-- source-sha256: f928244caa2333c91a553779a4d77dc14145036aad628f3e087b9b8b6c9280b3 -->
 
 [English](README.md).
 

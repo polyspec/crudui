@@ -1,4 +1,5 @@
 # Runtime packages
+<!-- doc-id: docs-spec-runtime-packages -->
 
 [한국어](runtime-packages.ko.md).
 Implementation and verification are recorded in [feature status](../features.md).

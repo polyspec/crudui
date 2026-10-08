@@ -1,4 +1,5 @@
 # @polyspec/crudui-generator-core
+<!-- doc-id: packages-generator-core-readme -->
 
 [한국어](README.ko.md).
 

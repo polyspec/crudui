@@ -1,4 +1,5 @@
 # @polyspec/crudui-generator-vue
+<!-- doc-id: packages-generator-vue-readme -->
 
 [한국어](README.ko.md).
 

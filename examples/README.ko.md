@@ -1,4 +1,6 @@
 # CRUDUI 예제
+<!-- doc-id: examples-readme -->
+<!-- source-sha256: 5d9643bf482e6dfdd220a923c63a20aef7191dc8712591c3b57905d3bf865959 -->
 
 [English](README.md).
 

@@ -1,4 +1,5 @@
 # Validation rules
+<!-- doc-id: docs-spec-validation-rules -->
 
 [한국어](validation-rules.ko.md).
 

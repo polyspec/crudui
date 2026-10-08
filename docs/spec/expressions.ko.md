@@ -1,4 +1,6 @@
 # 표현식 문법
+<!-- doc-id: docs-spec-expressions -->
+<!-- source-sha256: 4ec7357dafb759ab0432fa7cd6c1fc8396bb886b5fa12e4ab8772344c10aa5d7 -->
 
 [English](expressions.md).
 

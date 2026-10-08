@@ -1,4 +1,5 @@
 # Schema validation
+<!-- doc-id: docs-operations-schema-validation -->
 
 [한국어](schema-validation.ko.md).
 

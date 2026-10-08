@@ -1,4 +1,6 @@
 # CRUDUI 정본 예제와 폼 검증
+<!-- doc-id: examples-form-comparison-readme -->
+<!-- source-sha256: d3db80768c02540c37d7cda4b9add11fcc934ac01ea6cf3ad2c66c2d090cb1b4 -->
 
 [English](README.md).
 

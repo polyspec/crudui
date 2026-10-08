@@ -1,4 +1,6 @@
 # 입력 텍스트 픽스처
+<!-- doc-id: tests-fixtures-text-validity-readme -->
+<!-- source-sha256: 1c573b7d7cde488835b08da4e4714d404dc63ec304b9e0fa7eb700f9e4e023e6 -->
 
 [English](README.md).
 

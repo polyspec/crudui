@@ -1,4 +1,5 @@
 # Native generation checks
+<!-- doc-id: docs-operations-native-generators -->
 
 [한국어](native-generators.ko.md).
 

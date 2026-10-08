@@ -1,8 +1,15 @@
 # 변경 기록
+<!-- doc-id: changelog -->
+<!-- source-sha256: 9def7901882f360a4c9e35bcf4b4603024a68201d573c19948a43fc152c3de81 -->
 
 ## Unreleased
 
-### 2026-10-09 — kit의 gate와 CI 보고 도구 (C14.1-3)
+### 2026-10-09 — kit의 document 검사와 commit message 규칙 (C14.1-4)
+
+- `config/documents.json`은 저장소의 Markdown 문서(75쌍), `docs/features.md`의 상태 table, `CHANGELOG.md`를 선택하고, `config/commits.json`은 type, subject 50자, body 한 줄 72자를 선언한다. 각 영어 문서와 한국어 twin은 marker `<!-- doc-id: <영어 file의 경로> -->`를 가지고, 한국어 twin은 `<!-- source-sha256: <영어 file의 sha256> -->`를 가지며, 생성되는 기능 계약 page의 marker는 `scripts/generate-feature-contract-docs.mjs`가 쓴다. `scripts/check-documents.mjs`, `scripts/checklist-markers.mjs`와 그 test를 제거했다.
+- 검사가 영어 문서와 한국어 문서의 차이 네 곳을 찾았고 바로잡았다. `examples/cross-check-console/README.md`의 code block이 framework 3개와 옛 README link를 적고 있었고, 한국어 release 명령이 `<main의 commit>`이었으며, `docs/spec/form-markup.ko.md`의 link 글이 줄바꿈으로 끊겼고, `tests/build/README`가 없는 제목 두 곳을 link했다.
+
+### 2026-10-09 — kit의 push 검사, 전체 실행, CI 보고 도구 (C14.1-3)
 
 - `config/checklist.json`은 `docs/plans/execution-checklist.md`와 그 한국어 twin, hook `pre-push`를 선언한다. `.githooks/pre-push`는 `make hooks`가 쓰는 hook(`scripts/kit/git-hooks.mjs`)이며 `scripts/kit/push-gate.mjs`를 실행한다. `make ci`는 이전 실행의 적합성 증거를 지우는 `conformance-reset`과 `CI_TARGETS`의 make 대상을 가지고 `scripts/kit/full-run.mjs`를 시작하며, 전체 실행은 더 이상 commit의 새 clone에서 실행되지 않는다.
 - `scripts/package-dist.mjs`와 form comparison의 record server는 `var/locks`의 lock을 `scripts/kit/holder-lock.mjs`에서 가져온다. 그 명령은 `run`과 `clear`이며, user account의 lock(`userLockFile`)은 제거했다. `scripts/push-gate.mjs`, `scripts/full-run.mjs`, `scripts/holder-lock.mjs`, `scripts/ci-targets.mjs`, `scripts/ci-passed.mjs`, `scripts/target-report.mjs`와 그 test를 제거했다.

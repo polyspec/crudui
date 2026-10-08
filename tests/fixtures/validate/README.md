@@ -1,4 +1,5 @@
 # Validation fixtures
+<!-- doc-id: tests-fixtures-validate-readme -->
 
 [한국어](README.ko.md).
 

@@ -1,4 +1,6 @@
 # 명세 유효성 고정 데이터
+<!-- doc-id: tests-fixtures-spec-validity-readme -->
+<!-- source-sha256: 3495e859ab707cd18895c690a6c12522afff55901025cdc61a26528cbb516fad -->
 
 [English](README.md).
 

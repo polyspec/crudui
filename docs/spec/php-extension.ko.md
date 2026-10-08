@@ -1,4 +1,6 @@
 # PHP 확장
+<!-- doc-id: docs-spec-php-extension -->
+<!-- source-sha256: 594717bd8162b86b1f35cafbc1470c00afacac9f531f4e960a7e578772d0887d -->
 
 [English](php-extension.md).
 구현, 검증, 패키지 게시 상태는 [기능 상태](../features.ko.md)에 기록합니다.

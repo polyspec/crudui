@@ -1,4 +1,5 @@
 # CRUDUI examples
+<!-- doc-id: examples-readme -->
 
 [한국어](README.ko.md).
 

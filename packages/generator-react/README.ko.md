@@ -1,4 +1,6 @@
 # @polyspec/crudui-generator-react
+<!-- doc-id: packages-generator-react-readme -->
+<!-- source-sha256: 4201c1c6b697b0a2968a12e618bbabf02aba7a1fb48785210adcb669cd81affb -->
 
 [English](README.md).
 

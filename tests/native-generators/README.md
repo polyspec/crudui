@@ -1,4 +1,5 @@
 # Native generator conformance
+<!-- doc-id: tests-native-generators-readme -->
 
 [한국어](README.ko.md).
 

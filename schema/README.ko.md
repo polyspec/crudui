@@ -1,4 +1,6 @@
 # CRUDUI JSON Schema
+<!-- doc-id: schema-readme -->
+<!-- source-sha256: 950ced77989db8ce0a8d91c71e5a87823f5899a68ce3e14f716e5455ccc5e2fb -->
 
 [English](README.md).
 

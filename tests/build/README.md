@@ -1,4 +1,5 @@
 # Package build checks
+<!-- doc-id: tests-build-readme -->
 
 [한국어](README.ko.md).
 
@@ -46,7 +47,7 @@ generator-react, generator-vue, generator-svelte and form-binding, checks the co
 exported stylesheet. Invalid public types must prevent declaration emission in
 all four TypeScript package configurations. It also checks that each script that runs other
 commands stops a command that never ends, with its whole process group, at the command's limit
-([command limits](../../docs/operations/testing.md#command-limits)).
+([command limits](../../docs/operations/testing.md#commands-of-long-operations)).
 
 `test:bench` checks that the JavaScript, PHP, Go and Rust benchmark drivers and
 `tools/bench/run.js` accept and reject the iteration counts of

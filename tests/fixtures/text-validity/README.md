@@ -1,4 +1,5 @@
 # Input text fixtures
+<!-- doc-id: tests-fixtures-text-validity-readme -->
 
 [한국어](README.ko.md).
 

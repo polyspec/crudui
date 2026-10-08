@@ -1,4 +1,5 @@
 # PHP extension
+<!-- doc-id: docs-spec-php-extension -->
 
 [한국어](php-extension.ko.md).
 Implementation, verification and publication are recorded in

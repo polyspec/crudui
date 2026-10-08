@@ -1,4 +1,5 @@
 # Composition fixtures
+<!-- doc-id: tests-fixtures-compose-readme -->
 
 [한국어](README.ko.md).
 

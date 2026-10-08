@@ -1,4 +1,6 @@
 # 폼 구조 미리보기
+<!-- doc-id: examples-form-structure-readme -->
+<!-- source-sha256: 2cc2f55ba803b85e19ec9e7c5ccbd057dd1a2ebc3d59e427256abf99fd0e4a4f -->
 
 [English](README.md).
 

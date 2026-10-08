@@ -1,4 +1,6 @@
 # @polyspec/crudui-form-binding
+<!-- doc-id: packages-form-binding-readme -->
+<!-- source-sha256: e5b0e95d7c2cd12b2970fc45e88ebf7aa63a30dce27e087c0fd7863b56e82f05 -->
 
 [English](README.md).
 

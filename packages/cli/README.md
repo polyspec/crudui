@@ -1,4 +1,5 @@
 # @polyspec/crudui-cli
+<!-- doc-id: packages-cli-readme -->
 
 [한국어](README.ko.md).
 

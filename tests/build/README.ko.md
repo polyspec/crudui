@@ -1,4 +1,6 @@
 # 패키지 빌드 검사
+<!-- doc-id: tests-build-readme -->
+<!-- source-sha256: 851cd042b670d959f4d2ee5ae2ba0827b5b12fee5d1d901ece07953d697c3ba2 -->
 
 [English](README.md).
 
@@ -44,7 +46,7 @@ validator·generator-core·generator-html·generator-react·generator-vue·gener
 컴파일하고 전체 선언 참조와 React가 export한 스타일시트를 검사합니다.
 네 TypeScript 패키지 설정 모두 공개 타입에 오류가 있으면 선언을 생성하지
 않아야 합니다. 또한 다른 명령을 실행하는 스크립트가 끝나지 않는 명령을 제한 시간에 프로세스 그룹째
-멈추는지 검사합니다([명령 제한 시간](../../docs/operations/testing.ko.md#명령-제한-시간)).
+멈추는지 검사합니다([명령 제한 시간](../../docs/operations/testing.ko.md#장기-작업의-명령)).
 
 `test:bench`는 JavaScript·PHP·Go·Rust 벤치마크 드라이버와 `tools/bench/run.js`가
 `tools/bench/iteration-arguments.json`의 반복 횟수를 같은 규칙과 같은 메시지로 받거나

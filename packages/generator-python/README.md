@@ -1,4 +1,5 @@
 # CRUDUI Python generator
+<!-- doc-id: packages-generator-python-readme -->
 
 [한국어](README.ko.md).
 

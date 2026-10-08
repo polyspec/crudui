@@ -1,4 +1,5 @@
 # Input text
+<!-- doc-id: docs-spec-input-text -->
 
 [한국어](input-text.ko.md).
 

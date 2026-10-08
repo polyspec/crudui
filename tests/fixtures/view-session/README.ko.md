@@ -1,4 +1,6 @@
 # 화면 세션 시나리오
+<!-- doc-id: tests-fixtures-view-session-readme -->
+<!-- source-sha256: 53c1f0cde4a38a797df006f16c44a49ddc2e5968ceab1bfc45a3a18da4e1505b -->
 
 [English](README.md).
 

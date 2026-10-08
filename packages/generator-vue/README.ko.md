@@ -1,4 +1,6 @@
 # @polyspec/crudui-generator-vue
+<!-- doc-id: packages-generator-vue-readme -->
+<!-- source-sha256: 08cf77098e91a768efefbdbc59f8aba62f1ef45cca0c3a23eba8949ad78dd477 -->
 
 [English](README.md).
 

@@ -1,4 +1,6 @@
 # 저장소 설정
+<!-- doc-id: docs-operations-repository -->
+<!-- source-sha256: 732ffe455059d1cf505009789716ec01fa1387b76a13f777d7ace1cad9b2ef19 -->
 
 [English](repository.md).
 
@@ -84,7 +86,7 @@ commit은 merge queue로 ruleset의 check를 통과했으므로 release는 test�
 2. merge queue가 merge한 뒤 maintainer가 `main`의 그 commit에 tag를 달아 push합니다:
 
    ```sh
-   git tag vX.Y.Z <main의 commit>
+   git tag vX.Y.Z <commit of main>
    git push origin vX.Y.Z
    ```
 

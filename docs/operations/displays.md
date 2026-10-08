@@ -1,4 +1,5 @@
 # List and detail development and verification
+<!-- doc-id: docs-operations-displays -->
 
 [한국어](displays.ko.md). [Display formats](../spec/display-formats.md) define each format, the
 accepted input and the markup. The [specification structure](../spec/schema.md#lists) defines

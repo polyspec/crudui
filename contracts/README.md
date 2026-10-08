@@ -1,4 +1,5 @@
 # CRUDUI contract manifest
+<!-- doc-id: contracts-readme -->
 
 [한국어](README.ko.md).
 

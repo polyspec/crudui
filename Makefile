@@ -408,8 +408,8 @@ format-check:
 # pushed commit. Both commands run even when the first fails.
 records-check: ## Check the document pairs, links, changelog, writing and checklist rules with Node.js alone
 	@status=0; \
-	node scripts/check-documents.mjs || status=1; \
-	node scripts/kit/run-tests.mjs node --timeout 10 -- scripts/checklist-markers.test.mjs scripts/documentation-links.test.mjs tests/docs/changelog.test.mjs tests/docs/repository-writing.test.mjs tests/docs/example-readmes.test.mjs tests/docs/fixture-readmes.test.mjs || status=1; \
+	$(MAKE) --no-print-directory documents-check || status=1; \
+	node scripts/kit/run-tests.mjs node --timeout 10 -- scripts/documentation-links.test.mjs tests/docs/changelog.test.mjs tests/docs/repository-writing.test.mjs tests/docs/example-readmes.test.mjs tests/docs/fixture-readmes.test.mjs || status=1; \
 	exit $$status
 
 # The release of a pushed tag, run by .github/workflows/release.yml in this order (scripts/release.mjs, AGENTS.md). The

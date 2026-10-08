@@ -1,4 +1,6 @@
 # 스펙 CLI
+<!-- doc-id: docs-operations-cli -->
+<!-- source-sha256: 2fc322e51c27dac8987653ab12900e1322cc5cbca8ca5caec6d14839c89c0f12 -->
 
 [English](cli.md).
 
