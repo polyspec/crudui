@@ -9,7 +9,7 @@ failure case raises the recorded code and message.
 import re
 import unittest
 
-from conformance import cases_of, failure_record, html_tree
+from conformance import cases_of, failure_record, html_tree, Proving
 
 _PRELOAD = re.compile(r'<link [^>]*rel="preload"[^>]*>')
 
@@ -35,7 +35,7 @@ class FormCompleteConformance(unittest.TestCase):
         generator = _generator()
         self.assertEqual(len(self.cases), 28)
         for case in self.cases:
-            with self.subTest(case=case['name']):
+            with self.subTest(case=case['name']), Proving(['renderForm'], 'tests/fixtures/form-complete/cases.json', case['name']) as proof:
                 form = generator.createForm(
                     generator.compileForm(case['spec']),
                     case['data'],
@@ -51,8 +51,10 @@ class FormCompleteConformance(unittest.TestCase):
                     record = failure_record(thrown)
                     self.assertEqual(record['code'], case['expectError']['code'])
                     self.assertEqual(record['message'], case['expectError']['message'])
+                    proof.passed = True
                     continue
                 self.assertEqual(generator.renderForm(form, case['render']), case['expected_html'])
+                proof.passed = True
 
 
 class ListRenderConformance(unittest.TestCase):
@@ -69,7 +71,7 @@ class ListRenderConformance(unittest.TestCase):
     def test_every_case_reproduces_its_expectation(self):
         self.assertEqual(len(self.cases), 157)
         for case in self.cases:
-            with self.subTest(case=case['name']):
+            with self.subTest(case=case['name']), Proving(['renderList', 'buildList'], 'tests/fixtures/list-render/cases.json', case['name']) as proof:
                 if 'expectError' in case:
                     thrown = None
                     try:
@@ -80,9 +82,11 @@ class ListRenderConformance(unittest.TestCase):
                     self.assertEqual(failure_record(thrown)['code'], case['expectError']['code'])
                     if 'message' in case['expectError']:
                         self.assertIn(case['expectError']['message'], failure_record(thrown)['message'])
+                    proof.passed = True
                     continue
                 actual = self.run_case(case)
                 self.assertEqual(html_tree(_without_preloads(actual)), html_tree(case['expected_html']))
+                proof.passed = True
 
 
 class DetailRenderConformance(unittest.TestCase):
@@ -99,7 +103,7 @@ class DetailRenderConformance(unittest.TestCase):
     def test_every_case_reproduces_its_expectation(self):
         self.assertEqual(len(self.cases), 62)
         for case in self.cases:
-            with self.subTest(case=case['name']):
+            with self.subTest(case=case['name']), Proving(['renderDetail', 'buildDetail'], 'tests/fixtures/detail-render/cases.json', case['name']) as proof:
                 if 'expectError' in case:
                     thrown = None
                     try:
@@ -110,9 +114,11 @@ class DetailRenderConformance(unittest.TestCase):
                     self.assertEqual(failure_record(thrown)['code'], case['expectError']['code'])
                     if 'message' in case['expectError']:
                         self.assertIn(case['expectError']['message'], failure_record(thrown)['message'])
+                    proof.passed = True
                     continue
                 actual = self.run_case(case)
                 self.assertEqual(html_tree(_without_preloads(actual)), html_tree(case['expected_html']))
+                proof.passed = True
 
 
 if __name__ == '__main__':

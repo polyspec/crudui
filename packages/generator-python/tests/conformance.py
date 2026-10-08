@@ -13,6 +13,11 @@ from html.parser import HTMLParser
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
+
+_CONFORMANCE = ROOT / 'tests' / 'conformance'
+if str(_CONFORMANCE) not in sys.path:
+    sys.path.insert(0, str(_CONFORMANCE))
+from evidence import Proving  # noqa: E402,F401  (records each shared case the Python suites run)
 FIXTURES = ROOT / 'tests' / 'fixtures'
 
 VALIDATOR_SOURCE = ROOT / 'packages' / 'validator-python' / 'src'
