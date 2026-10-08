@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### 2026-10-08 — Scope of the form-outline fixture for Python (C13.1-15)
+
+- The row C13.1 declares `tests/fixtures/form-outline` out of scope of the Python
+  validator and generator: the reference products of C13.1 do not read it.
+
 ### 2026-10-08 — Python version file in the wave plans (C13.1-14)
 
 - The wave plans state that `.python-version` does not exist until C13.1-6 is done.
