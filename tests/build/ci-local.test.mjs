@@ -43,13 +43,11 @@ export function workflowCommands(workflow) {
   return commands;
 }
 
-/** The commands `make ci` runs, split the same way. */
+/** The commands `make ci` runs: a make target for each word of CI_TARGETS. */
 export function makeCommands(makefile) {
-  const block = makefile.match(/^CI_COMMANDS = \\\n((?:\t'.*'(?: \\)?\n)+)/m);
-  assert.ok(block, 'the Makefile declares CI_COMMANDS');
-  return block[1].trim().split('\n')
-    .map((line) => line.trim().replace(/ \\$/, '').replace(/^'|'$/g, ''))
-    .flatMap((line) => line.split(' && '));
+  const block = makefile.match(/^CI_TARGETS = \\\n((?:\t[\w-]+(?: \\)?\n)+)/m);
+  assert.ok(block, 'the Makefile declares CI_TARGETS');
+  return block[1].trim().split('\n').map((line) => `make ${line.trim().replace(/ \\$/, '')}`);
 }
 
 // The ruleset main requires the check ci-passed (.github/repository.json): the last job of the CI workflow needs every
@@ -392,6 +390,6 @@ test('a workflow command missing from make ci is reported', () => {
     },
   });
   assert.deepEqual(workflow, ['make lint', 'make test-x', 'make test-y']);
-  const local = makeCommands("CI_COMMANDS = \\\n\t'make lint' \\\n\t'make test-x'\n");
+  const local = makeCommands('CI_TARGETS = \\\n\tlint \\\n\ttest-x\n');
   assert.notDeepEqual(local, workflow);
 });

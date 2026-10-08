@@ -124,7 +124,7 @@ test('every target that runs cargo depends on cargo-downloads-check', () => {
     seen.add(name);
     return targets[name].prerequisites.some(prerequisite => prerequisite === CHECK || depends(prerequisite, seen));
   };
-  // make ci and make rerun-failed start the guard scripts/full-run.mjs before any step (tests/build/full-run.test.mjs);
+  // make ci and make rerun-failed start the guard scripts/kit/full-run.mjs before any step (tests/kit/full-run.test.mjs);
   // the targets of make that their commands run depend on the check.
   const missing = Object.entries(targets)
     .filter(([name]) => ![...DOWNLOADS, 'install', CHECK, 'ci', 'rerun-failed'].includes(name))

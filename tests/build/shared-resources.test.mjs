@@ -6,7 +6,7 @@ import path from 'node:path';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
-import { acquireHolderLock } from '../../scripts/holder-lock.mjs';
+import { acquireHolderLock } from '../../scripts/kit/holder-lock.mjs';
 import { packReport } from '../../scripts/package-install-pack.mjs';
 
 const root = fileURLToPath(new URL('../..', import.meta.url));
@@ -50,7 +50,7 @@ test('every package build runs under the lock of its dist directory', () => {
 function fixtureCheckout() {
   const checkout = fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()), 'crudui-dist-lock-'));
   fs.mkdirSync(path.join(checkout, 'scripts/kit'), { recursive: true });
-  for (const script of ['package-dist.mjs', 'holder-lock.mjs', 'kit/test-progress.mjs', 'kit/time.mjs']) {
+  for (const script of ['package-dist.mjs', 'kit/holder-lock.mjs', 'kit/paths.mjs']) {
     fs.copyFileSync(path.join(root, 'scripts', script), path.join(checkout, 'scripts', script));
   }
   const packageDirectory = path.join(checkout, 'packages', 'fixture');
@@ -112,11 +112,11 @@ test('a build and a pack of a package refuse while another run holds its dist', 
     try {
       const refusedBuild = build();
       assert.notEqual(refusedBuild.status, 0, refusedBuild.stdout);
-      assert.match(refusedBuild.stderr, new RegExp(`${lockFile} is held by pid ${process.pid} \\(process started `));
+      assert.match(refusedBuild.stderr, new RegExp(`${lockFile} is held by process ${process.pid} \\(started `));
       assert.deepEqual(fs.readdirSync(path.join(packageDirectory, 'dist')).sort(), distBefore);
       const refused = pack();
       assert.equal(refused.status, 1, refused.stderr);
-      assert.match(refused.stderr, new RegExp(`${lockFile} is held by pid ${process.pid} `));
+      assert.match(refused.stderr, new RegExp(`${lockFile} is held by process ${process.pid} `));
       assert.deepEqual(fs.readdirSync(destination), []);
     } finally {
       lock.release();

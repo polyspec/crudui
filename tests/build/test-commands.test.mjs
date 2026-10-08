@@ -62,7 +62,8 @@ test('a script a test command starts prints through the shared progress lines', 
     const directory = path.dirname(file);
     for (const { name, command } of projectCommands(file, read(file))) {
       if (!isTestCommand(file, name)) continue;
-      for (const script of nodeScripts(command)) {
+      // The scripts of the vendored copy of polyspec/kit follow the rules of kit.
+      for (const script of nodeScripts(command).filter(name => !isVendored(name))) {
         const source = [path.join(ROOT, directory, script), path.join(ROOT, script)].find(candidate => existsSync(candidate));
         if (!source) violations.push(`${file} ${name}: ${script} does not exist`);
         else if (!/kit\/test-progress\.mjs['"]/.test(readFileSync(source, 'utf8'))) violations.push(`${file} ${name}: ${script} does not print through scripts/kit/test-progress.mjs`);

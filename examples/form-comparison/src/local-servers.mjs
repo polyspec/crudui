@@ -58,7 +58,7 @@ export async function prepareRecordServers({ buildDirectory, write = text => pro
     ({ id, command, args, cwd, environment });
   const results = await runStages([[
     // Under the checkout lock of the vendor directory, as make reinstalls it.
-    step('composer-validator', process.execPath, [path.join(repositoryRoot, 'scripts/holder-lock.mjs'), 'hold',
+    step('composer-validator', process.execPath, [path.join(repositoryRoot, 'scripts/kit/holder-lock.mjs'), 'run',
       path.join(repositoryRoot, 'var/locks/composer-vendor.lock'), '--',
       'composer', 'reinstall', 'polyspec/crudui-validator', '--no-interaction']),
     step('crudui-php-extension', process.execPath, ['scripts/build-crudui-php-extension.mjs']),
