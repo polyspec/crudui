@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-08 — Form.setData가 객체가 아닌 데이터를 거부한다 (C13.1-19)
+
+- `Form.setData`는 객체가 아닌 데이터에 대해 `INVALID_FORM_INPUT`과 `Form data must be an object`로 실패한다. Python 대상의 native generator 검사가 통과한다: 741건 통과, 종료 코드 0, `action-failure-keeps-state` 포함.
+
 ### 2026-10-08 — Python 단위 test의 conformance 증거 (C13.1-7-1)
 
 - Python 단위 test는 실행하는 공통 사례마다 conformance 증거를 기록한다. 기록은 1637건이고 실패한 기록은 없다. CRUDUI_CONFORMANCE_EVIDENCE가 디렉터리를 가리킬 때만 기록한다.
