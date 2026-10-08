@@ -113,7 +113,7 @@ test('the local pipeline stack has no summed hook limit and starts and stops in 
     const source = await readFile(new URL(file, import.meta.url), 'utf8');
     assert.doesNotMatch(source, /prepareLimitMs|stackStartLimitMs|pipelineBrowserLimitMs|\d_000 \+ \d/, `${file} sums no limits`);
     // The browser launch, the stack start and their stops are long operations without a hook limit.
-    assert.match(source, /from '\.\.\/\.\.\/scripts\/test-progress\/hooks\.mjs'/, `${file} uses setup and teardown`);
+    assert.match(source, /from '\.\.\/\.\.\/scripts\/kit\/test-hooks\.mjs'/, `${file} uses setup and teardown`);
     assert.doesNotMatch(source, /^\s*(?:before|after)\(/m, `${file} has no hook of its own`);
   }
   const stack = await readFile(new URL('../pipeline.browser.mjs', import.meta.url), 'utf8');

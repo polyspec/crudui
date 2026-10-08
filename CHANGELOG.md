@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-09 — Test of the local pipeline stack names the hook module of kit (C14.1-10)
+
+- `examples/form-comparison/src/local-servers.test.mjs` requires the import of `setup` and `teardown` from `scripts/kit/test-hooks.mjs`. The files already imported it since C14.1-2, but the pattern of the test named the removed `scripts/test-progress/hooks.mjs`, so the CI job `Form comparison runner regressions` failed; the other parts of that job (the library and the browser checks) passed.
+
 ### 2026-10-09 — Push check on branch pushes only (C14.1-9)
 
 - `push-gate.yml` starts on pushes to branches (`branches: ['**']`) and no longer on a tag push, which left a `push-gate` check run that had not completed on the tagged commit. `tests/build/ci-local.test.mjs` requires every workflow with a push trigger except `release.yml` to filter branches and `release.yml` to be the only one that starts on tags.

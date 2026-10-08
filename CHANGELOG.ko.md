@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: d9cc41fd46dbefe1d1e59d0f3c18f8c95e290b74d6b37d8f59b879d4667955cc -->
+<!-- source-sha256: 672900c7fa14335d851183e1ee8a2703738fcfdbc8a05b43a7996950bfb74004 -->
 
 ## Unreleased
+
+### 2026-10-09 — 로컬 pipeline stack test가 kit의 hook module을 이름으로 쓴다 (C14.1-10)
+
+- `examples/form-comparison/src/local-servers.test.mjs`는 `setup`과 `teardown`을 `scripts/kit/test-hooks.mjs`에서 import할 것을 요구한다. file은 C14.1-2부터 이미 그것을 import했지만 test의 pattern이 제거된 `scripts/test-progress/hooks.mjs`를 이름으로 써서 CI job `Form comparison runner regressions`가 실패했다. 그 job의 다른 부분(library와 browser 검사)은 통과했다.
 
 ### 2026-10-09 — branch push에서만 실행되는 push 검사 (C14.1-9)
 
