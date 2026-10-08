@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-09 — 0.0.4 consumer fixture lock (C13.1-35)
+
+- `tests/release-install`의 `package.json`, `package-lock.json`, `composer.json`과 `composer.lock`이 0.0.4 archive를 가리킨다. `make release-install-lock`이 `make release-assets TAG=v0.0.4 RELEASE_COMMIT=HEAD`의 archive에서 이 파일들을 썼으므로, consumer 설치 검사가 `package.json` version의 archive를 읽는다.
+
 ## 0.0.4
 
 ### 2026-10-09 — 릴리스 버전 검사의 오래된 git pin (C13.1-23)
