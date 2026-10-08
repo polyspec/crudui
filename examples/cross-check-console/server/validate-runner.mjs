@@ -1,5 +1,5 @@
 /**
- * Execute the JavaScript, PHP, Go and Rust validator processes and compare their results.
+ * Execute the JavaScript, PHP, Go, Rust and Python validator processes and compare their results.
  * Each process receives JSON on stdin and has a ten-second timeout. Responses
  * must match the exit status and JSON contract. Data errors preserve path,
  * field, rule, message and value; a form result carries its hidden paths; load
@@ -26,10 +26,11 @@ export const validatorProcesses = Object.freeze({
       ?? path.join(VALIDATORS, 'rust/target/release/polyspec-crudui-cross-check-validator'),
     args: [],
   },
+  python: { command: 'python3', args: [path.join(VALIDATORS, 'python/validate.py')] },
 });
 
 /**
- * Validate one request through the four validator processes.
+ * Validate one request through the five validator processes.
  *
  * @param {object} req { spec, data, files?, basepath? }
  * @returns {Promise<{results: object[], idempotent: boolean, mismatch: object|null}>}
@@ -46,7 +47,7 @@ export async function validateAll(req) {
 }
 
 /**
- * Validate list composition and forbidden keys through the four validator processes.
+ * Validate list composition and forbidden keys through the five validator processes.
  * List requests contain a specification and composition inputs, without row data.
  *
  * @param {object} req { spec, files?, basepath? }
@@ -63,7 +64,7 @@ export async function validateAllList(req) {
 }
 
 /**
- * Validate detail composition and forbidden keys through the four validator processes.
+ * Validate detail composition and forbidden keys through the five validator processes.
  * Detail requests contain a specification and composition inputs, without a record.
  *
  * @param {object} req { spec, files?, basepath? }
@@ -79,7 +80,7 @@ export async function validateAllDetail(req) {
   return fanOut(payload);
 }
 
-/** Execute the four validator processes on one payload and compare the results. */
+/** Execute the five validator processes on one payload and compare the results. */
 function fanOut(payload) {
   const results = Object.keys(validatorProcesses).map(lang => runProcess(lang, payload));
   const { idempotent, mismatch } = compareIdempotency(results);
@@ -216,7 +217,7 @@ export function signature(r) {
 
 /** Compare every required validator, including execution failures. */
 export function compareIdempotency(results) {
-  const expected = ['js', 'php', 'go', 'rust'];
+  const expected = ['js', 'php', 'go', 'rust', 'python'];
   const missing = expected.filter(lang => !results.some(result => result.lang === lang));
   const complete = results.length === expected.length && missing.length === 0 &&
     results.every(result => result.ok && expected.includes(result.lang));

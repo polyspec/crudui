@@ -94,6 +94,24 @@ export async function resolveDebianCompiler(options = {}) {
   return compilers[0];
 }
 
+/** The architectures of one Mach-O file, as `lipo -archs` names them. */
+export async function machoArchitectures(file, options = {}) {
+  const run = options.run ?? runCommand;
+  const environment = options.environment ?? process.env;
+  const result = await run('/usr/bin/lipo', ['-archs', file], { capture: true, environment });
+  const architectures = result.stdout.trim().split(/\s+/).filter(Boolean);
+  assert.ok(architectures.length > 0, 'lipo reports no architecture for ' + file);
+  return architectures;
+}
+
+/** Require one Mach-O file to have exactly the expected architecture. */
+export async function assertMachoArchitecture(file, expected, options = {}) {
+  const architectures = await machoArchitectures(file, options);
+  assert.deepEqual(architectures, [expected],
+    file + ' must have the architecture ' + expected + '; lipo reports ' + architectures.join(' '));
+  return expected;
+}
+
 /** Resolve every executable before a PHP extension build starts. */
 export async function resolvePhpBuildTools(options = {}) {
   const environment = options.environment ?? process.env;
@@ -431,11 +449,15 @@ export async function buildPhpExtension(descriptor, options = {}) {
     const platformCompileArguments = [];
     const platformLinkArguments = [];
     let deploymentTarget = null;
+    let targetArchitecture = null;
     if (platform === 'darwin') {
       deploymentTarget = macosDeploymentTarget(environment);
       commandEnvironment.MACOSX_DEPLOYMENT_TARGET = deploymentTarget;
-      platformCompileArguments.push('-mmacosx-version-min=' + deploymentTarget);
-      platformLinkArguments.push('-mmacosx-version-min=' + deploymentTarget);
+      // The module takes the architecture of the PHP executable. Without -arch, cc takes the
+      // architecture of the processes that start the build, which a translating wrapper changes.
+      [targetArchitecture] = await machoArchitectures(php.executable, { run, environment });
+      platformCompileArguments.push('-arch', targetArchitecture, '-mmacosx-version-min=' + deploymentTarget);
+      platformLinkArguments.push('-arch', targetArchitecture, '-mmacosx-version-min=' + deploymentTarget);
     }
 
     const definitions = [...(descriptor.definitions ?? [])];
@@ -471,6 +493,9 @@ export async function buildPhpExtension(descriptor, options = {}) {
       environment: commandEnvironment,
     });
     await assertRegularPath(linked, 'file');
+    if (platform === 'darwin') {
+      await assertMachoArchitecture(linked, targetArchitecture, { run, environment });
+    }
 
     const loaded = await run(php.executable,
       ['-n', '-d', 'extension=' + linked, '--ri', descriptor.moduleName],

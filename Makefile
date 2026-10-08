@@ -30,7 +30,7 @@ export GOPROXY := off
 export npm_config_offline := true
 export COMPOSER_DISABLE_NETWORK := 1
 ONLINE := env -u CARGO_NET_OFFLINE -u GOPROXY -u npm_config_offline -u COMPOSER_DISABLE_NETWORK
-.PHONY: help ci-targets ci-passed release-verify release-versions release-assets release-install-check release-install-lock release-install-head release-publish push-gate-check install install-npm install-node-modules install-composer install-rust install-phpdocumentor install-browsers check-ci-browser test-runtimes test-dependencies build lint typecheck test-validator-js test-validator-php test-validator-go test-validator-rust test-cross-check manifest-test require-build test-cli manifest-check manifest-docs-check test-forms test-form-comparison test-form-comparison-pipeline test-form-comparison-checks test-form-comparison-browser test-form-comparison-summary test-packages test-build test-build-repeat test-inspector test-bench check-conformance install-crates install-ordered-json install-cargo-audit cargo-downloads-check dependency-review toolchain-check owner-check test-ordered-json docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-engine test-native-generators test-php-api test-native test-validators test-form-binding conformance format-check github-settings github-settings-check records-check hooks hooks-check ci rerun-failed
+.PHONY: help ci-targets ci-passed release-verify release-versions release-assets release-install-check release-install-lock release-install-head release-publish push-gate-check install install-npm install-node-modules install-composer install-rust install-phpdocumentor install-browsers check-ci-browser test-runtimes test-dependencies build lint typecheck test-validator-js test-validator-php test-validator-go test-validator-rust test-validator-python test-generator-python test-cross-check manifest-test require-build test-cli manifest-check manifest-docs-check test-forms test-form-comparison test-form-comparison-pipeline test-form-comparison-checks test-form-comparison-browser test-form-comparison-summary test-packages test-build test-build-repeat test-inspector test-bench check-conformance install-crates install-ordered-json install-cargo-audit cargo-downloads-check dependency-review toolchain-check owner-check test-ordered-json docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-engine test-native-generators test-php-api test-native test-validators test-form-binding conformance format-check github-settings github-settings-check records-check hooks hooks-check ci rerun-failed
 .NOTPARALLEL: docs docs-web docs-dev docs-preview docs-check docs-verify-idempotent
 
 # Validator benchmark iteration counts (override on the command line, e.g.
@@ -190,6 +190,10 @@ test-validator-go: ## The Go validator suite
 	node scripts/run-tests.mjs go --cwd packages/validator-go -- ./...
 test-validator-rust: cargo-downloads-check ## The Rust validator suite
 	node scripts/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml
+test-validator-python: ## The Python validator suite
+	python3 tests/conformance/runner.py packages/validator-python/tests
+test-generator-python: ## The Python generator suite
+	python3 tests/conformance/runner.py packages/generator-python/tests
 test-cross-check: cargo-downloads-check ## The cross-check console gateway conformance
 	$(NPM) test --prefix examples/cross-check-console/server
 manifest-test: cargo-downloads-check ## The verification commands of the feature contracts
@@ -364,7 +368,7 @@ test-native-generators: cargo-downloads-check
 	node scripts/run-tests.mjs cargo -- --locked --manifest-path packages/generator-rust/Cargo.toml || status=1; \
 	node scripts/run-tests.mjs node -- tests/native-generators/protocol.test.mjs || status=1; \
 	node scripts/run-tests.mjs node --timeout 60 -- tests/widget-scripts.test.mjs || status=1; \
-	node tests/native-generators/run.mjs --target javascript,html,go,rust --report "$(NATIVE_REPORT)" || status=1; \
+	node tests/native-generators/run.mjs --target javascript,html,go,rust,python --report "$(NATIVE_REPORT)" || status=1; \
 	exit $$status
 
 test-php-api: build-php-extension
@@ -521,6 +525,8 @@ CI_COMMANDS = \
 	'make test-validator-php' \
 	'make test-validator-go' \
 	'make test-validator-rust' \
+	'make test-validator-python' \
+	'make test-generator-python' \
 	'make docs-check' \
 	'make build-php-extension' \
 	'make test-cross-check' \

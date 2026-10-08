@@ -181,3 +181,45 @@ test('the test runner and the native suite leave a run record with their exit st
     await rm(directory, { recursive: true, force: true });
   }
 });
+
+test('the Python runner leaves a run record with the exit status of its suite', async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-python-runs-'));
+  try {
+    const passing = path.join(directory, 'pass');
+    const failing = path.join(directory, 'fail');
+    await mkdir(passing);
+    await mkdir(failing);
+    await writeFile(path.join(passing, 'test_pass.py'), 'import unittest\n\n\nclass PassTest(unittest.TestCase):\n    def test_passes(self):\n        self.assertTrue(True)\n');
+    await writeFile(path.join(failing, 'test_fail.py'), 'import unittest\n\n\nclass FailTest(unittest.TestCase):\n    def test_fails(self):\n        self.assertTrue(False)\n');
+    const runner = path.join(ROOT, 'tests/conformance/runner.py');
+    const evidence = path.join(directory, 'evidence');
+    const env = { ...process.env, CRUDUI_CONFORMANCE_EVIDENCE: evidence };
+    const passed = spawnSync('python3', [runner, 'pass'], { cwd: directory, env, encoding: 'utf8' });
+    assert.equal(passed.status, 0, passed.stderr);
+    const failed = spawnSync('python3', [runner, 'fail'], { cwd: directory, env, encoding: 'utf8' });
+    assert.equal(failed.status, 1, failed.stderr);
+    const runs = await Promise.all((await readdir(path.join(evidence, 'runs'))).map(async file => (
+      JSON.parse(await readFile(path.join(evidence, 'runs', file), 'utf8')))));
+    const summary = runs.map(({ program, tool, cwd, args, status }) => ({ program, tool, cwd, args, status }))
+      .sort((left, right) => JSON.stringify(left).localeCompare(JSON.stringify(right)));
+    assert.deepEqual(summary, [
+      { program: 'tests/conformance/runner.py', tool: 'unittest', cwd: 'fail', args: ['fail'], status: 1 },
+      { program: 'tests/conformance/runner.py', tool: 'unittest', cwd: 'pass', args: ['pass'], status: 0 },
+    ]);
+    assert.ok(runs.every(item => !Number.isNaN(Date.parse(item.started))));
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
+test('a partial runtime is measured by the cases it records, and each recorded case must pass', () => {
+  const partial = { ...feature, support: { php: 'partial', go: 'unsupported' } };
+  const withPartial = { ...base, features: [partial] };
+  const proven = checkConformance({ ...withPartial, evidence: [record('php', 'a')] });
+  assert.deepEqual(proven, { undeclaredFixtures: [], unregisteredFamilies: [], unprovenFixtures: [], missing: [], failed: [], undeclaredEvidence: [] });
+  const failing = checkConformance({ ...withPartial, evidence: [record('php', 'a', false)] });
+  assert.deepEqual(failing.failed, [{ feature: 'renderList', fixture, runtime: 'php', case: 'a' }]);
+  assert.deepEqual(failing.undeclaredEvidence, []);
+  const outside = checkConformance({ ...withPartial, evidence: [record('php', 'c'), record('go', 'a')] });
+  assert.deepEqual(outside.undeclaredEvidence.map(item => item.reason), ['case not in the fixture', 'runtime declared unsupported']);
+});

@@ -1,9 +1,9 @@
 /**
  * Request and response contract of the console's validator processes (../validators/README.md).
  *
- * Five processes answer every request: the JavaScript, PHP, Go and Rust programs, and the PHP
- * program with the native extension loaded. Each process receives the raw request text on stdin;
- * its exit status and its complete stdout JSON object must equal the expected response:
+ * Six processes answer every request: the JavaScript, PHP, Go, Rust and Python programs, and
+ * the PHP program with the native extension loaded. Each process receives the raw request text
+ * on stdin; its exit status and its complete stdout JSON object must equal the expected response:
  *   - every case in ../validators/requests.json (request rules, their order and messages);
  *   - every form case in tests/fixtures/validate/cases.json (exit 0 with exactly its `expected`
  *     `{ valid, errors, hidden }`, or exit 2 with exactly `{ error, code, at }`);

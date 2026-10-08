@@ -2,6 +2,237 @@
 
 ## Unreleased
 
+### 2026-10-08 — conformance check의 partial 런타임 증거 (C13.1-32)
+
+- `scripts/check-conformance.mjs`는 `partial` 런타임이 기록한 사례를 받아들인다. 기록된 사례마다 통과해야 하고 요구되는 사례는 없다. Fixture 밖의 사례는 여전히 보고한다. CI job `conformance evidence against the standard`는 `createForm`의 Python 증거를 더 이상 거부하지 않는다.
+
+### 2026-10-08 — evidence 검사의 Python conformance suite (C13.1-31)
+
+- `scripts/check-conformance.mjs`는 `tests/conformance/runner.py`로 실행되고 런타임 `python`을 증명하는 suite `validator Python`과 `generator Python`을 선언한다. Test `every runtime that a feature supports is proven by a declared suite`가 통과한다.
+
+### 2026-10-08 — Python suite 실행 기록의 runner 종료 상태 (C13.1-33)
+
+- `tests/conformance/runner.py`는 test directory 하나의 unittest suite를 실행하고, program이 `tests/conformance/runner.py`이며 suite의 종료 상태를 담은 실행 기록을 쓴다. make target `test-validator-python`과 `test-generator-python`이 이 runner를 실행하므로 각 Python suite의 실행 기록은 더 이상 `did not finish`로 남지 않는다.
+- `tests/conformance/runs.py`는 실행의 program, tool, directory와 인자를 호출자에게서 받고, `tests/conformance/evidence.py`는 import할 때 실행을 기록하지 않는다.
+
+### 2026-10-08 — 버전 bump pull request로 옮긴 오래된 pin 검사 (C13.1-23)
+
+- `pyproject.toml`의 오래된 git pin을 검사하는 release 검사를 `feat/python-C13.1`에 추가하지 않는다. `packages/generator-python`의 pin `v0.0.4`가 가리키는 tag는 version bump pull request가 merge된 뒤에 만들어지므로, 검사는 그 pull request에 속한다. 행 C13.1-23은 열린 상태로 그 pull request를 기다린다.
+
+### 2026-10-08 — python CI job의 Node.js 설정과 Python matrix (C13.1-30)
+
+- CI job `python`은 `.node-version`의 Node.js release를 설정하고, `make ci-targets` 실행에 Node.js가 필요하므로 `make toolchain-check`로 `node python`을 검사한다. Toolchain policy test는 기록된 minor와 함께 `requires-python`의 가장 낮은 minor(3.11)를 matrix leg로 허용한다.
+
+### 2026-10-08 — Python generator 스크립트 docstring의 module 이름 (C13.1-29)
+
+- `packages/generator-python/scripts/generate_interface_messages.py`와 `packages/validator-python/scripts/generate_unicode_data.py`의 docstring은 module을 dotted 이름으로 적으므로, CI job `build, lint and types`에서 package 이름 규칙이 통과한다.
+
+### 2026-10-08 — make-tool-path 테스트의 native 명령 Python target (C13.1-28)
+
+- `tests/build/make-tool-path.test.mjs`는 `make test-native`가 실행하는 target 목록 `javascript,html,go,rust,python`을 기대하므로, CI job `build, lint and types`에서 테스트가 통과한다.
+
+### 2026-10-08 — Python 3.11에서 validator resolver의 import (C13.1-27)
+
+- `packages/validator-python/src/polyspec/crudui/validator/resolver.py`는 별칭 `Node`를 `parser`에서 import하고, 별칭 `Context`를 이를 이름으로 쓰는 타입 주석 위에서 정의하여 Python 3.11이 module을 import한다. CI job `python`은 3.11에서 `NameError: name 'Node' is not defined`로 실패했다. Validator와 generator suite는 Python 3.11에서 통과한다.
+
+### 2026-10-08 — validator와 generator의 Python 구현 (C13.1)
+
+- `polyspec-crudui-validator`와 `polyspec-crudui-generator`를 다른 언어 구현과 같은 자격으로 Python에 구현한다. 공통 fixture는 증거를 남기며 Python 단위 test에서 실행되고, 기능 계약은 Python 지원을 적고, CI 워크플로의 `python` job이 Python suite를 실행하며, 두 package는 `mypy --strict`를 통과한다.
+
+### 2026-10-08 — C13.1-11의 완료 표기 복구 (C13.1-22)
+
+- 두 체크리스트에서 C13.1-11의 상태 칸이 완료 표기를 담고, `scripts/check-documents.mjs`가 통과한다(종료 코드 0).
+
+### 2026-10-08 — Python package의 타입 주석 (C13.1-17)
+
+- `packages/validator-python`과 `packages/generator-python`의 모든 공개 정의에 매개변수와 반환 타입이 있다. 두 package의 공개 정의 중 주석이 없는 것의 AST 개수는 0이며, 두 package 모두 `mypy --strict`가 종료 코드 0으로 통과한다.
+
+### 2026-10-08 — generator 패키지 초기화 module의 타입 주석과 두 package의 strict 검사 (C13.1-17-11)
+
+- `Generator` 연산과 그 도우미에 매개변수와 반환 타입이 있다. `mypy --strict`가 `packages/validator-python/src`(파일 15개)와 `packages/generator-python/src`(파일 21개) 모두에서 종료 코드 0이다. validator suite는 test 23개, generator suite는 test 11개가 통과한다.
+
+### 2026-10-08 — form module의 타입 주석 (C13.1-17-10)
+
+- `packages/generator-python`의 module `form`에 매개변수와 반환 타입이 있고 `mypy --strict` 오류가 없다. generator 단위 test 11개가 통과하고, native Python 검사는 종료 코드 0이다.
+
+### 2026-10-08 — binding module의 타입 주석 (C13.1-17-9)
+
+- `packages/generator-python`의 module `binding`에 매개변수와 반환 타입이 있고 `mypy --strict` 오류가 없다. generator 단위 test 11개가 통과하고, native Python 검사는 종료 코드 0이다.
+
+### 2026-10-08 — details와 form render module의 타입 주석 (C13.1-17-8)
+
+- `packages/generator-python`의 module `details`, `form_render`에 매개변수와 반환 타입이 있고 `mypy --strict` 오류가 없다. generator 단위 test 11개가 통과하고, native Python 검사는 종료 코드 0이다.
+
+### 2026-10-08 — lists module의 타입 주석 (C13.1-17-7)
+
+- `packages/generator-python`의 module `lists`에 매개변수와 반환 타입이 있고 `mypy --strict` 오류가 없다. generator 단위 test 11개가 통과하고, native Python 검사 741건이 통과한다(종료 코드 0).
+
+### 2026-10-08 — widget module의 타입 주석 (C13.1-17-6)
+
+- `packages/generator-python`의 module `widget`에 매개변수와 반환 타입이 있고 `mypy --strict` 오류가 없다. 문자열이 아닌 날짜·날짜시각 값은 더 이상 날짜 파서에 넘기지 않고 control의 값으로 남는다. generator 단위 test 11개가 통과한다.
+
+### 2026-10-08 — rendering과 display declaration module의 타입 주석 (C13.1-17-5)
+
+- `packages/generator-python`의 module `rendering`, `display_declaration`에 매개변수와 반환 타입이 있고 `mypy --strict` 오류가 없다. generator 단위 test 11개가 통과한다.
+
+### 2026-10-08 — buttons와 choice list module의 타입 주석 (C13.1-17-4)
+
+- `packages/generator-python`의 module `buttons`, `choice_list`에 매개변수와 반환 타입이 있고 `mypy --strict` 오류가 없다. generator 단위 test 11개가 통과한다.
+
+### 2026-10-08 — value, design, template module의 타입 주석 (C13.1-17-3)
+
+- `packages/generator-python`의 module `value`, `design`, `template`에 매개변수와 반환 타입이 있고 `mypy --strict` 오류가 없다. generator 단위 test 11개가 통과한다.
+
+### 2026-10-08 — generator 기초 module의 타입 주석 (C13.1-17-2)
+
+- `packages/generator-python`의 module `errors`, `messages`, `input_text`, `numbers`, `dates`, `style`에 매개변수와 반환 타입이 있고 `mypy --strict` 오류가 없다. generator 단위 test 11개가 통과한다.
+
+### 2026-10-08 — validator package의 타입 주석 (C13.1-17-1)
+
+- `packages/validator-python/src`의 모든 함수에 매개변수와 반환 타입이 있으며, package는 `mypy --strict`를 종료 코드 0으로 통과한다(source 파일 15개). validator 단위 test 23개가 통과한다. 변경은 C13.1-17 아래 커밋되어 있다.
+
+### 2026-10-08 — 이전 세션에서 유지한 generator 동작 (C13.1-21)
+
+- generator module `binding`, `lists`, `value`, `widget`, `__init__`, `dates`, `style`은 이전 세션이 커밋하지 않은 동작을 타입 주석과 분리해 담는다. 이 상태에서 generator 단위 test 11개가 통과하고, `node tests/native-generators/run.mjs --target python`은 741건 통과, 종료 코드 0을 보고한다.
+
+### 2026-10-08 — CI workflow의 Python job (C13.1-7)
+
+- CI 워크플로의 `python` job은 3.11과 기록된 release 3.14의 matrix를 가지며, `CI_COMMANDS`에 적힌 make 대상으로 validator와 generator 단위 test를 실행하고, 기록된 release의 conformance 증거를 보존하며, `conformance`와 `ci-passed`가 필요로 한다. CI 명령 매핑 test가 15개 통과한다(종료 코드 0). job 자체는 push 후 CI에서 실행된다.
+
+### 2026-10-08 — Python 대상을 포함한 native 명령의 CI 매핑 test (C13.1-7-3)
+
+- CI 매핑 test는 Python 대상을 포함한 `make test-native-generators`의 native generator 명령을 고정한다. `tests/build/ci-local.test.mjs`가 test 15개를 통과한다(종료 코드 0).
+
+### 2026-10-08 — 패키지의 Python 버전과 기능 지원 (C13.1-6)
+
+- `.python-version`은 Python 3.14를 이르고, 기록된 toolchain도 같은 release를 적는다. CI 워크플로는 Python job에서 3.14를 설정하며, owner 검사는 `.python-version`과 Python package 경로를 짝짓고, 기능 계약은 기능마다 Python 지원을 적는다(C13.1-6-1). `make toolchain-check TOOLS=python` 종료 코드 0, `make test-ordered-json` 종료 코드 0, `tests/build/contract-manifest.test.mjs` 12건 통과. `tests/build/runtime-version-policy.test.mjs`는 이 환경에서 npm 버전(`make install-npm`이 기록된 release를 설치한다)과 PATH의 Rust toolchain으로 실패하며, Python 버전 때문이 아니다.
+
+### 2026-10-08 — 기능 계약의 Python 지원 (C13.1-6-1)
+
+- 기능 계약은 기록된 증거로 각 기능의 Python 지원을 적는다. 기능 12개는 `pass`다(JSON fixture의 모든 사례에 통과한 Python 기록이 있으며 불일치 0건). `createForm`은 `partial`, outline과 session 기능 4개는 `unsupported`, 클라이언트 전용 기능 4개는 해당 없음이다. 기능 문서와 README 짝은 Python package를 적으며, `scripts/check-documents.mjs`가 통과한다(종료 코드 0).
+
+### 2026-10-08 — 기록 본문에서 상태 표기를 뺀다 (C13.1-20)
+
+- C13.1-10과 C13.1-11의 기록은 상태 표기를 단어로 쓴다. `scripts/check-documents.mjs`가 문서 쌍 53개를 통과한다(종료 코드 0).
+
+### 2026-10-08 — native generator 검사의 Python 프로그램 (C13.1-7-2)
+
+- native generator 검사가 Python 프로그램을 실행한다. `node tests/native-generators/run.mjs --target python`은 741건 통과, 종료 코드 0을 보고한다. `make test-native-generators`에는 python 대상이 포함되며, 이 환경에서는 검사를 실행하기 전 cargo 사전 검사에서 멈춘다.
+
+### 2026-10-08 — Form.setData가 객체가 아닌 데이터를 거부한다 (C13.1-19)
+
+- `Form.setData`는 객체가 아닌 데이터에 대해 `INVALID_FORM_INPUT`과 `Form data must be an object`로 실패한다. Python 대상의 native generator 검사가 통과한다: 741건 통과, 종료 코드 0, `action-failure-keeps-state` 포함.
+
+### 2026-10-08 — Python 단위 test의 conformance 증거 (C13.1-7-1)
+
+- Python 단위 test는 실행하는 공통 사례마다 conformance 증거를 기록한다. 기록은 1637건이고 실패한 기록은 없다. CRUDUI_CONFORMANCE_EVIDENCE가 디렉터리를 가리킬 때만 기록한다.
+
+### 2026-10-08 — cross-check console의 Python validator (C13.1-5)
+
+- cross-check console은 Python validator 프로세스를 JavaScript, PHP, Go, Rust 프로세스와 함께 실행하며, 요청 비교는 다섯 프로세스의 일치를 요구한다. 서버 test 스위트가 1267개 test로 통과한다(종료 코드 0).
+
+### 2026-10-08 — 기록이 커밋을 체크리스트 id로 가리킨다 (C13.1-18)
+
+- C13.1-1, C13.1-2, C13.1-3, C13.1-4, C13.1-10, C13.1-11의 기록은 각 커밋을 구현하는 과제의 체크리스트 id로 가리킨다.
+
+### 2026-10-08 — PHP 실행 파일의 아키텍처로 빌드하는 PHP 확장 (C13.1-16)
+
+- PHP 확장 빌더는 PHP 실행 파일의 아키텍처를 `lipo -archs`로 읽어 컴파일과 링크
+  명령에 `-arch`로 넘긴다. 링크된 module의 아키텍처가 다르면 빌더가 실패한다.
+  Red: 아키텍처 단위 test가 없는 export로 실패했다. Green: 아키텍처 단위 test가
+  통과하고(`tests/build/php-extensions.test.mjs` 5개), `make build-php-extension`이
+  로드되는 arm64 module을 만들며, cross-check vitest가 1267개 test로 통과한다(`php-native`
+  프로세스 포함).
+
+### 2026-10-08 — Python의 form-outline fixture 범위 (C13.1-15)
+
+- C13.1 행은 `tests/fixtures/form-outline`을 Python validator와 generator의 범위 밖이라고
+  선언한다. C13.1의 기준 제품은 이를 읽지 않는다.
+
+### 2026-10-08 — 웨이브 계획의 Python 버전 파일 (C13.1-14)
+
+- 웨이브 계획은 `.python-version`이 C13.1-6이 완료될 때까지 없다고 적는다.
+
+### 2026-10-08 — 체크리스트의 validator test 파일 수 (C13.1-13)
+
+- C13.1-2 행은 패턴 `test_*.py`로 `discover`가 고르는 validator test 파일 다섯 개를 센다.
+
+### 2026-10-08 — 공통 camelCase 표면의 validator 공개 이름 (C13.1-12)
+
+- `polyspec.crudui.validator`는 `validate_list`, `validate_detail`, `hidden_paths` 대신
+  공통 표면의 이름인 `validateList`, `validateDetail`, `hiddenPaths`를 내보낸다.
+  validator 단위 test 23개가 통과한다.
+
+### 2026-10-08 — 커밋된 Python 이력의 기록 사실 (C13.1-11)
+
+- C13.1-1, C13.1-3, C13.1-4 행은 C13.1-1부터 C13.1-4까지 `[o]` 이전에 `[~]` 줄을
+  추가한 커밋이 없다는 사실, 커밋 the C13.1-1 fix commit, the C13.1-3 package commit, the C13.1-4 test commit의 committer,
+  수정 전의 이름을 설명하는 the C13.1-1 fix commit의 본문을 기록한다.
+
+### 2026-10-08 — 커밋된 Python tree의 import 원인 기록 (C13.1-10)
+
+- C13.1-2와 C13.1-4 행은 `packages/validator-python`과 `packages/generator-python`의
+  test 디렉터리를 그 검증 커밋이 추가했다고 기록한다. 그 커밋 이전에는 디렉터리가
+  없어, discover 명령이 `ImportError: Start directory is not importable`을 낸다.
+
+### 2026-10-08 — Python generator의 의존성 (C13.1-9)
+
+- `packages/generator-python`은 `polyspec-ordered-json`을 선언하지 않는다. 어떤
+  generator module도 그것을 import하지 않는다. generator가 실행 시
+  `polyspec.crudui.validator`를 import하므로 `polyspec-crudui-validator`를 이
+  저장소의 `packages/validator-python`의 tag URL `v0.0.4`로 선언한다.
+
+### 2026-10-08 — 검토에서 찾은 Python 생성기 결함 (C13.1-8)
+
+- `Form`은 결측 반복 데이터의 초기 행 하나를 무작위 행 키 대신 `bindForm`과
+  `empty-collections` 계약이 정한 키 `__0000000000000__`로 바인딩한다. Red: 사례
+  `multiple-leaf-empty-placeholder`가 키 `__0a592ccb0f808__`로 실패했다. Green:
+  form-render test가 137개 결과 사례를 `createForm`과 `renderForm`으로 통과한다.
+- text-validity test는 생성 실패의 `at` 값을 `FormError.path`로 읽는다.
+- conformance 정규화기에 양쪽 분기가 같은 분기가 없다.
+- `packages/generator-python` 단위 test 11개가 통과한다.
+
+### 2026-10-08 — 공통 fixture 위의 Python 생성기 (C13.1-4)
+
+- `packages/generator-python`의 단위 test가 공통 fixture를 읽어 모든 사례를
+  기록된 기대와 비교한다. `form-render`(188: 정규화 tree로 비교한 137개 결과와
+  51개 실패), `list-render`(157), `detail-render`(62), `form-complete`(28),
+  그리고 `text-validity`의 `compileForm`(7), `bindForm`(9), `createForm`(15),
+  `buildList`(11), `buildDetail`(6) 파일.
+
+### 2026-10-08 — Python 생성기 package (C13.1-3)
+
+- `packages/generator-python`은 Python 3.11 이상에서
+  `polyspec-crudui-validator` 위에 namespace package
+  `polyspec.crudui.generator`로 `polyspec-crudui-generator`를 내놓는다.
+  template compile, 필드 묶기, button, row 연산을 가진 form instance,
+  list·detail model, widget·style·렌더링 내부, 값 helper로 이루어진다.
+  `Generator`는 `compileForm`, `bindForm`, `bindButtons`, `formButtonsHtml`,
+  `createForm`, `renderForm`, `renderList`, `buildList`, `renderDetail`,
+  `buildDetail`, `sequenceRowKey`, `createRowKey`를 `Form`과 `FormError`와
+  함께 내놓는다.
+- 검증기 text module에 메시지를 반환하는 `specificationFailure`,
+  `inputFailure`, `optionEntries` helper가 더해지며, 생성기는 이를 code
+  `INVALID_FORM_INPUT`의 `FormError`로 감싼다.
+
+### 2026-10-08 — 공통 fixture 위의 Python 검증기 (C13.1-2)
+
+- `packages/validator-python`의 단위 test가 공통 fixture를 읽어 기록된 모든 사례를
+  재현한다. `validate`(309: 178개 결과와 `code`·`message`·`at`를 가진 131개 실패),
+  `expr`(54), `compose`(20), `spec-validity`(34), `list-validity`(20),
+  `detail-validity`(13), 그리고 `text-validity`의 `validate`·`validateList`·
+  `validateDetail` 파일과 공유·자기참조 container로 만든 12개 값 graph.
+
+### 2026-10-08 — Python 검증기 package (C13.1-1)
+
+- `packages/validator-python`은 Python 3.11 이상에서 표준 라이브러리만으로
+  `polyspec-crudui-validator`를 namespace package `polyspec.crudui.validator`로 내놓는다.
+  composition 엔진, 금지 key 검사, 입력 text·값 한도 검사, contract의 Unicode 16.0.0
+  데이터 위의 pattern 언어 recognizer와 matcher, 조건 parser, 경로 resolver, ECMAScript
+  숫자 text를 가진 값 정의, 24개 검증 rule, 필드 순회로 이루어진다.
+- `validate`, `hiddenPaths`, `validateList`, `validateDetail`이 공통 결과를 내놓고
+  `ComposeLoadError`와 `FormInputError`가 다른 구현과 같은 실패 code와 trace를 실었다.
+
 ### 2026-10-07 — form comparison 실행의 system port (C11.6-5)
 
 - `make test-form-comparison-browser`와 `make test-form-comparison-summary`는 모든 서버를 system이 정한 port에서

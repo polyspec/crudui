@@ -13,11 +13,13 @@
 | PHP 확장 | `php -d extension=… php/validate.php` | 확장의 클래스로 실행하는 같은 PHP 프로그램 |
 | Go | `go/`(자체 `go.mod`를 가진 모듈) | `validate.ValidateJSON`, `ValidateListJSON`, `ValidateDetailJSON` |
 | Rust | `rust/`(크레이트 `polyspec-crudui-cross-check-validator`) | `polyspec_crudui_validator::validate`, `validate_list`, `validate_detail` |
+| Python | `python/validate.py` | `polyspec.crudui.validator`의 `validate`, `validateList`, `validateDetail` |
 
 `../server`에서 `npm run build:validators`를 실행하면 Go 프로그램을 `go/validate`로, Rust
 프로그램을 `rust/target/release/polyspec-crudui-cross-check-validator`로 빌드합니다. JavaScript 프로그램은
 빌드된 `@polyspec/crudui-validator` 패키지를 import합니다. PHP 프로그램은 `packages/validator-php`의
-Composer 자동 로더를 불러옵니다. 배포 환경은 `CRUDUI_CROSS_CHECK_GO_VALIDATOR`와
+Composer 자동 로더를 불러옵니다. Python 프로그램은 `packages/validator-python`을
+import합니다. 배포 환경은 `CRUDUI_CROSS_CHECK_GO_VALIDATOR`와
 `CRUDUI_CROSS_CHECK_RUST_VALIDATOR`로 다른 Go·Rust 실행 파일을 지정할 수 있습니다.
 
 ## 요청
@@ -59,7 +61,7 @@ Composer 자동 로더를 불러옵니다. 배포 환경은 `CRUDUI_CROSS_CHECK_
 
 요청은 `"\ud800"`처럼 쌍이 없는 서로게이트를 JSON 이스케이프로 쓸 수 있습니다. 각 프로그램은 이를
 바꾸지 않고 디코딩하므로, 검증기가 위 규칙 다음에 검증기의 순서대로 명세, 파일, 데이터, 기본 경로의
-[입력 텍스트](../../../docs/spec/input-text.ko.md) 실패(종료 상태 `2`)를 보고합니다. PHP 프로그램은 API가
+[입력 텍스트](../../../docs/spec/input-text.ko.md) 실패(종료 상태 `2`)를 보고합니다. PHP와 Python 프로그램은 API가
 객체만 받으므로 `data`가 객체가 아닐 때 데이터 형태 규칙보다 앞선 텍스트 규칙을 직접 적용합니다.
 
 ## 검사
@@ -72,7 +74,7 @@ Composer 자동 로더를 불러옵니다. 배포 환경은 `CRUDUI_CROSS_CHECK_
 [`tests/fixtures/validate`](../../../tests/fixtures/validate/README.ko.md),
 [`tests/fixtures/list-validity`](../../../tests/fixtures/list-validity/README.ko.md),
 [`tests/fixtures/detail-validity`](../../../tests/fixtures/detail-validity/README.ko.md)의 모든 사례를
-다섯 프로세스에서 실행하고, 각 프로세스에 기대한 종료 상태와 응답 전체를 요구합니다. 목록과 상세
+여섯 프로세스에서 실행하고, 각 프로세스에 기대한 종료 상태와 응답 전체를 요구합니다. 목록과 상세
 실패는 `code`와 `at`을 비교하며, 메시지는 엔진마다 비어 있지 않은 자체 문구를 씁니다.
 
 ```sh

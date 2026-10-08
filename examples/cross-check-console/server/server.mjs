@@ -181,7 +181,7 @@ export async function handler(req, res) {
 
   // ---- POST /api/validate-list --------------------------------------------
   // The validate sister of /api/validate (SPEC §9): a list-spec STRUCTURE fans
-  // out across the four validator processes in `mode:list` (compose → forbidden-scan; no
+  // out across the five validator processes in `mode:list` (compose → forbidden-scan; no
   // DATA pass — a list carries no rows). Same HTTP contract as /api/validate —
   // a LOAD failure / valid:false is a result surface (200), only a real fan-out
   // fault is 5xx. The form validate path above is untouched (additive).
@@ -214,7 +214,7 @@ export async function handler(req, res) {
   }
 
   // ---- POST /api/validate-detail ------------------------------------------
-  // A detail specification structure fans out across the four validator processes in `mode:detail`
+  // A detail specification structure fans out across the five validator processes in `mode:detail`
   // (compose → forbidden-scan; no record is validated). The HTTP contract matches
   // /api/validate-list: a load failure or valid:false is a 200 result, and only a
   // fan-out fault is 5xx. `detailSpec` is the canonical key; `spec` is an alias.
