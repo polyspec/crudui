@@ -1,0 +1,179 @@
+"""Input text and value limit checks.
+
+Every string and object member name of a specification, a composition file and
+caller data is a sequence of Unicode scalar values. A Python string that
+contains an unpaired surrogate code unit is rejected before any other check of
+the operation; it is never replaced and never passed on.
+
+A value walked as the tree it denotes holds at most 1,000,000 nodes and nests
+at most 512 levels, so a value that contains itself is always beyond the
+limits. A container reached twice, through sharing, is walked at each place.
+"""
+
+from .compose_errors import ComposeLoadError
+from .errors import FormInputError
+from .jsvalue import compare_code_points, is_scalar_text
+
+__all__ = [
+    'INVALID_TEXT_MESSAGE',
+    'VALUE_LIMIT_MESSAGE',
+    'NESTING_LIMIT',
+    'NODE_LIMIT',
+    'check_input_text',
+    'check_option_text',
+    'check_specification_text',
+    'checked_composition',
+    'value_failure',
+]
+
+INVALID_TEXT_MESSAGE = 'Text must be Unicode scalar values'
+VALUE_LIMIT_MESSAGE = 'Recursive or excessively nested value'
+
+NESTING_LIMIT = 512
+NODE_LIMIT = 1_000_000
+
+
+class _Walk:
+    """One walk of a value as the tree it denotes."""
+
+    def __init__(self):
+        self.nodes = 0
+
+    def admit(self, value, depth):
+        """Count a node at `depth`; False when it takes the value beyond its limits."""
+        self.nodes += 1
+        if self.nodes > NODE_LIMIT:
+            return False
+        if depth >= NESTING_LIMIT and isinstance(value, (list, dict)):
+            return False
+        return True
+
+
+def _holds_failure(value, depth, walk):
+    if not walk.admit(value, depth):
+        return True
+    if isinstance(value, str):
+        return not is_scalar_text(value)
+    if isinstance(value, list):
+        return any(_holds_failure(item, depth + 1, walk) for item in value)
+    if not isinstance(value, dict):
+        return False
+    return any(
+        not is_scalar_text(key) or _holds_failure(value[key], depth + 1, walk)
+        for key in value
+    )
+
+
+def _first_failure(value, path, depth, walk):
+    """The first failure in walk order: items in index order, members in code point order."""
+    if not walk.admit(value, depth):
+        return 'limit'
+    if isinstance(value, str):
+        return None if is_scalar_text(value) else {'text': path}
+    if isinstance(value, list):
+        for index, item in enumerate(value):
+            found = _first_failure(item, [*path, str(index)], depth + 1, walk)
+            if found is not None:
+                return found
+        return None
+    if not isinstance(value, dict):
+        return None
+    # A member name is reported at its object; members follow in code point order of their names.
+    if not all(is_scalar_text(key) for key in value):
+        return {'text': path}
+    for key in sorted(value, key=_member_order):
+        found = _first_failure(value[key], [*path, key], depth + 1, walk)
+        if found is not None:
+            return found
+    return None
+
+
+def _member_order(key):
+    """Sort key placing every member name after the last, in code point order."""
+    return (1, [ord(character) for character in key])
+
+
+def value_failure(value):
+    """The first failure in `value`, or None: invalid text at its path or a limit."""
+    if _holds_failure(value, 0, _Walk()):
+        return _first_failure(value, [], 0, _Walk())
+    return None
+
+
+def _limit_failure(name):
+    return FormInputError(f'{VALUE_LIMIT_MESSAGE}: {name}')
+
+
+def check_specification_text(spec, files=None):
+    """Check a specification and the composition files the operation reads.
+
+    Invalid text is the load failure `INVALID_TEXT`, located at its
+    specification path or at the file name followed by its path in the file; an
+    invalid file name is located at the empty path. A value beyond its limits is
+    `INVALID_FORM_INPUT` naming `spec` or `files`.
+    """
+    for name, value in (('spec', spec), ('files', files)):
+        failure = value_failure(value)
+        if failure is None:
+            continue
+        if failure == 'limit':
+            raise _limit_failure(name)
+        raise ComposeLoadError('INVALID_TEXT', INVALID_TEXT_MESSAGE, failure['text'])
+
+
+def check_input_text(inputs):
+    """Check named caller values in order.
+
+    Invalid text is `INVALID_FORM_INPUT` naming the value and path, and a value
+    beyond its limits is `INVALID_FORM_INPUT` naming the value.
+    """
+    for name, value in inputs:
+        failure = value_failure(value)
+        if failure is None:
+            continue
+        if failure == 'limit':
+            raise _limit_failure(name)
+        raise FormInputError(f'{INVALID_TEXT_MESSAGE}: {".".join([name, *failure["text"]])}')
+
+
+def check_option_text(options, names):
+    """Check the present options named in `names`, given in code point order."""
+    if not isinstance(options, dict):
+        return
+    check_input_text([
+        (f'options.{name}', options[name])
+        for name in names
+        if name in options and options[name] is not None
+    ])
+
+
+class _CheckedLoader:
+    """A loader that checks each document it loads, located and named as a file."""
+
+    def __init__(self, loader):
+        self._loader = loader
+
+    def normalize(self, path, basepath):
+        return self._loader.normalize(path, basepath)
+
+    def load(self, key):
+        document = self._loader.load(key)
+        failure = value_failure(document)
+        if failure == 'limit':
+            raise _limit_failure('files')
+        if failure is not None:
+            raise ComposeLoadError('INVALID_TEXT', INVALID_TEXT_MESSAGE, [key, *failure['text']])
+        return document
+
+
+def checked_composition(spec, options):
+    """Check the specification side of an operation and return its loader.
+
+    The specification is checked first, then the files it reads; a custom loader
+    is wrapped so each document it loads is checked. The returned loader is the
+    one the operation composes with, or None when the files are read directly.
+    """
+    loader = options.get('loader') if isinstance(options, dict) else None
+    files = None if loader else (options.get('files') if isinstance(options, dict) else None)
+    check_specification_text(spec, files)
+    return _CheckedLoader(loader) if loader is not None else None

@@ -51,3 +51,7 @@ Depends on: none. Every change reaches `main` through a pull request and the mer
 ## Wave 12
 
 Depends on: none. The longest job of the CI workflow decides when the check `ci-passed` concludes. The job `Native generation and PHP API` ran every native suite for each of the two PHP releases of its matrix, also the C engine tests of the PHP extension, the generators of the JavaScript, HTML, Go and Rust targets and the benchmark drivers, which need no PHP release of the matrix. The cache of `setup-node` restored 700 bytes of npm packages in every job.
+
+## Wave 13
+
+Depends on: none. The repository names its implementations in TypeScript, Go, PHP, the PHP extension and Rust. Python joins them with the same standing: `polyspec-crudui-validator` and `polyspec-crudui-generator` under the PEP 420 namespace `polyspec`, the standard library only, `unittest` for the unit tests and the shared fixtures of `tests/fixtures` for the results, which every implementation answers identically. Python 3.11 is the oldest supported release and `.python-version` names the newest stable one.

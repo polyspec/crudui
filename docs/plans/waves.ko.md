@@ -51,3 +51,7 @@
 ## Wave 12
 
 의존: 없음. CI workflow에서 가장 긴 job이 check `ci-passed`가 끝나는 때를 정한다. job `Native generation and PHP API`는 matrix의 두 PHP release마다 모든 native suite를 실행했고, 거기에는 matrix의 PHP release가 필요 없는 PHP 확장의 C 엔진 test, JavaScript, HTML, Go, Rust 대상의 생성기, benchmark driver도 들어 있었다. `setup-node`의 cache는 모든 job에서 npm package 700 byte를 복원했다.
+
+## Wave 13
+
+의존: 없음. 저장소는 TypeScript, Go, PHP, PHP 확장, Rust로 구현을 이름한다. Python이 같은 자격으로 합류한다. PEP 420 namespace `polyspec` 아래 `polyspec-crudui-validator`와 `polyspec-crudui-generator`를 내놓고 표준 라이브러리만 쓰며, 단위 test는 `unittest`, 결과는 모든 구현이 같게 답하는 `tests/fixtures`의 공통 fixture로 검증한다. Python 3.11이 가장 오래된 지원 release이고 `.python-version`이 최신 안정 release를 이름한다.
