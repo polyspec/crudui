@@ -368,7 +368,7 @@ test-native-generators: cargo-downloads-check
 	node scripts/run-tests.mjs cargo -- --locked --manifest-path packages/generator-rust/Cargo.toml || status=1; \
 	node scripts/run-tests.mjs node -- tests/native-generators/protocol.test.mjs || status=1; \
 	node scripts/run-tests.mjs node --timeout 60 -- tests/widget-scripts.test.mjs || status=1; \
-	node tests/native-generators/run.mjs --target javascript,html,go,rust --report "$(NATIVE_REPORT)" || status=1; \
+	node tests/native-generators/run.mjs --target javascript,html,go,rust,python --report "$(NATIVE_REPORT)" || status=1; \
 	exit $$status
 
 test-php-api: build-php-extension
