@@ -1,21 +1,20 @@
-# Build, validation, rendering and documentation checks of every pull request and of every merge group of the merge
-# queue. The last job ci-passed needs every other job and fails unless each of them succeeded; the ruleset main of
-# .github/repository.json requires it and push-gate, and the merge queue moves main to the merge group commit only after
-# they passed on it (docs/operations/repository.md). The documentation web of main is deployed by
+# Build, validation, rendering and documentation checks of every push to main and of every manual run. The last job
+# ci-passed needs every other job and fails unless each of them succeeded; a release requires it and push-gate to have
+# succeeded for the tagged commit (docs/operations/repository.md). The documentation web of main is deployed by
 # .github/workflows/pages.yml.
 
 name: CI
 
 on:
-  pull_request:
-  merge_group:
+  push:
+    branches: [main]
   workflow_dispatch:
 
-# The runners are few: a new push to a pull request cancels the run of its previous push. Each merge group has a ref of
-# its own (gh-readonly-queue/main/pr-<number>-<sha>), and its run is never cancelled (tests/build/ci-local.test.mjs).
+# The run of a commit of main is never cancelled by a later push: a release requires the checks of its own commit
+# (tests/build/ci-local.test.mjs).
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  cancel-in-progress: false
 
 permissions:
   contents: read
@@ -66,7 +65,7 @@ jobs:
         run: make install-node-modules
       - name: Run the checks and write their report
         if: ${{ !cancelled() }}
-        run: make ci-targets TARGETS="test-runtimes test-dependencies build lint typecheck test-ordered-json release-install-head"
+        run: make ci-targets TARGETS="test-runtimes test-dependencies build lint typecheck test-ordered-json"
       - name: Upload the report of the checks
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

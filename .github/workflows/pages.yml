@@ -1,6 +1,5 @@
-# The documentation web of main on GitHub Pages (docs/operations/repository.md). The merge queue moves main only to a
-# commit whose checks passed in .github/workflows/ci.yml, so this workflow builds the documentation web of that commit
-# and deploys it; the environment github-pages deploys only from main (.github/repository.json).
+# The documentation web of main on GitHub Pages (docs/operations/repository.md). It builds the documentation web of each
+# commit that main receives and deploys it; the environment github-pages deploys only from main.
 
 name: Pages
 

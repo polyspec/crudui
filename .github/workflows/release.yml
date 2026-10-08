@@ -1,15 +1,14 @@
-# The GitHub Release of a pushed tag (AGENTS.md, docs/operations/repository.md). Every commit of main passed the checks
-# that the ruleset main requires, through a pull request and the merge queue; the maintainer tags a commit of main as
-# vX.Y.Z, or <directory>/vX.Y.Z for a Go module in a subdirectory, after the pull request that sets the version. In a
-# tag filter * does not match /, so '**/v*' covers the tag packages/<directory>/vX.Y.Z of a Go module at any depth. The
-# job runs no test again, and its last five steps run in this order: make release-verify requires the commit on main
-# with the check runs push-gate and ci-passed concluded success; make release-versions the version of the tag in every
-# package file that it covers and the section ## X.Y.Z of CHANGELOG.md; make release-assets builds the JavaScript
-# packages and writes the npm tarballs and Composer zips (a crate is not released as an archive; it is consumed by git
-# tag), and a Go module tag builds and attaches nothing; make release-install-check installs the archives of the tag from
-# the consumer fixtures of tests/release-install with empty caches, and for a Go module tag names the tag and installs
-# nothing (scripts/release-install.mjs); make release-publish creates the release with that section as
-# its notes (scripts/release.mjs). TAG reaches the make targets through the environment, never as shell text.
+# The GitHub Release of a pushed tag (AGENTS.md, docs/operations/repository.md). Every commit of main passed the full suite
+# of CI before the maintainer tagged it as vX.Y.Z, or <directory>/vX.Y.Z for a Go module in a subdirectory, after the commit
+# that sets the version. In a tag filter * does not match /, so '**/v*' covers the tag packages/<directory>/vX.Y.Z of a Go
+# module at any depth. The job runs no test again, and its last five steps run in this order: make release-verify requires
+# the commit on main with the check runs push-gate and ci-passed concluded success; make release-versions the version of
+# the tag in every manifest that the tag covers and the section ## X.Y.Z of CHANGELOG.md; make release-assets builds the
+# JavaScript packages and writes the npm tarballs and Composer zips (a crate and a Python package are not released as
+# archives; they are consumed by git tag), and a Go module tag builds and attaches nothing; make release-consumer installs
+# the archives of the tag in clean consumer projects with empty caches (tests/release-install); make release-publish
+# creates the release with that section as its notes (scripts/kit/release.mjs). TAG reaches the make targets through the
+# environment, never as shell text.
 
 name: Release
 
@@ -64,7 +63,7 @@ jobs:
         run: make release-versions
       - name: Build the JavaScript packages and write the package archives
         run: make release-assets
-      - name: Install the archives from the consumer fixtures with empty caches
-        run: make release-install-check
+      - name: Install the archives in clean consumer projects with empty caches
+        run: make release-consumer
       - name: Create the GitHub Release with the archives
         run: make release-publish

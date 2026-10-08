@@ -3,12 +3,13 @@
     "type": "project",
     "require": {
         "php": "^8.4",
-        "polyspec/crudui-generator": "0.0.4"
+        "polyspec/crudui-generator": "0.0.4",
+        "polyspec/crudui-validator": "0.0.4"
     },
     "repositories": [
         {
             "type": "artifact",
-            "url": "archives"
+            "url": "artifacts"
         },
         {
             "packagist.org": false

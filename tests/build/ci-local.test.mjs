@@ -50,8 +50,8 @@ export function makeCommands(makefile) {
   return block[1].trim().split('\n').map((line) => `make ${line.trim().replace(/ \\$/, '')}`);
 }
 
-// The ruleset main requires the check ci-passed (.github/repository.json): the last job of the CI workflow needs every
-// other job, runs after a failed, cancelled or skipped one, and fails unless each of them succeeded.
+// A release requires the check ci-passed of the tagged commit: the last job of the CI workflow needs every other job, runs
+// after a failed, cancelled or skipped one, and fails unless each of them succeeded.
 test('the last CI job ci-passed needs every other job and runs always', async () => {
   const workflow = parse(await read('.github/workflows/ci.yml'));
   const ids = Object.keys(workflow.jobs);
@@ -268,23 +268,22 @@ test('every job runs its checks through make ci-targets and uploads their report
 
 // The runners are few: a new push to a pull request stops the CI run of its previous push. A merge group has a ref of its
 // own and its run is never stopped, and the push check runs on every pushed commit and keeps its runs.
-test('a new push stops the CI run of the previous push of its pull request, and no other run is stopped', async () => {
+test('no run of a commit of main is stopped by a later push', async () => {
   assert.deepEqual(parse(await read('.github/workflows/ci.yml')).concurrency, {
-    group: '${{ github.workflow }}-${{ github.ref }}', 'cancel-in-progress': "${{ github.event_name == 'pull_request' }}",
+    group: '${{ github.workflow }}-${{ github.ref }}', 'cancel-in-progress': false,
   });
   assert.equal(parse(await read('.github/workflows/push-gate.yml')).concurrency, undefined);
   assert.deepEqual(parse(await read('.github/workflows/pages.yml')).concurrency, { group: 'github-pages', 'cancel-in-progress': false });
 });
 
-// main receives a commit only from the merge queue (.github/repository.json): CI runs on pull requests, merge groups and
-// manual runs, the push check also on every pushed branch except the branches of the queue, which it checks as merge
-// groups, the documentation web is built and deployed from main and on a manual run, the dependency review runs on its
-// schedule and on a manual run, and the release runs on a pushed tag vX.Y.Z or <directory>/vX.Y.Z at any depth: in a
-// tag filter * does not match /, so **/v* covers packages/<directory>/vX.Y.Z. No other workflow exists, and each
-// declares exactly these lines.
+// main receives a push of the maintainer while the version is 0.x: CI runs on a push to main and on a manual run, the
+// push check on every pushed branch, the documentation web is built and deployed from main and on a manual run, the
+// dependency review runs on its schedule and on a manual run, and the release runs on a pushed tag vX.Y.Z or
+// <directory>/vX.Y.Z at any depth: in a tag filter * does not match /, so **/v* covers packages/<directory>/vX.Y.Z. No
+// other workflow exists, and each declares exactly these lines.
 const TRIGGERS = {
-  'ci.yml': 'on:\n  pull_request:\n  merge_group:\n  workflow_dispatch:\n',
-  'push-gate.yml': "on:\n  push:\n    branches-ignore: ['gh-readonly-queue/**']\n  pull_request:\n  merge_group:\n",
+  'ci.yml': 'on:\n  push:\n    branches: [main]\n  workflow_dispatch:\n',
+  'push-gate.yml': 'on:\n  push:\n',
   'pages.yml': 'on:\n  push:\n    branches: [main]\n  workflow_dispatch:\n',
   'dependency-review.yml': "on:\n  schedule:\n    - cron: '17 3 * * *'\n  workflow_dispatch:\n",
   'release.yml': "on:\n  push:\n    tags: ['v*', '**/v*']\n",
@@ -321,11 +320,9 @@ test('the release trigger matches vX.Y.Z and the tag of every Go module of packa
   assert.ok(tagFilterMatches('**/v*', 'packages/validator-go/v0.1.0') && !tagFilterMatches('v*', 'go/v0.1.0'));
 });
 
-test('CI runs on pull requests and merge groups, and Pages deploys main', async () => {
-  assert.deepEqual(parse(await read('.github/workflows/ci.yml')).on, { pull_request: null, merge_group: null, workflow_dispatch: null });
-  assert.deepEqual(parse(await read('.github/workflows/push-gate.yml')).on, {
-    push: { 'branches-ignore': ['gh-readonly-queue/**'] }, pull_request: null, merge_group: null,
-  });
+test('CI runs on a push to main, the push check on every push, and Pages deploys main', async () => {
+  assert.deepEqual(parse(await read('.github/workflows/ci.yml')).on, { push: { branches: ['main'] }, workflow_dispatch: null });
+  assert.deepEqual(parse(await read('.github/workflows/push-gate.yml')).on, { push: null });
   const pages = parse(await read('.github/workflows/pages.yml'));
   assert.deepEqual(pages.on, { push: { branches: ['main'] }, workflow_dispatch: null });
   assert.equal(pages.jobs.deploy.environment.name, 'github-pages');
@@ -334,9 +331,9 @@ test('CI runs on pull requests and merge groups, and Pages deploys main', async 
 });
 
 // The release of a pushed tag checks the commit, the versions and the change log before it builds and packs anything,
-// and creates the release last: after the setup steps, the job ends with exactly the four release targets in this
-// order, and a failed step stops the job (scripts/release.mjs).
-const RELEASE_STEPS = ['make release-verify', 'make release-versions', 'make release-assets', 'make release-install-check', 'make release-publish'];
+// and creates the release last: after the setup steps, the job ends with exactly the five release targets in this
+// order, and a failed step stops the job (scripts/kit/release.mjs).
+const RELEASE_STEPS = ['make release-verify', 'make release-versions', 'make release-assets', 'make release-consumer', 'make release-publish'];
 
 test('the release workflow checks the tag, writes and installs the archives and creates the release in this order', async () => {
   const workflow = parse(await read('.github/workflows/release.yml'));
@@ -350,12 +347,14 @@ test('the release workflow checks the tag, writes and installs the archives and 
   assert.deepEqual(runs, ['make install-tools', 'make toolchain-check TOOLS="node npm php composer"', 'make install-node-modules', ...RELEASE_STEPS]);
   assert.deepEqual(runs.slice(-5), RELEASE_STEPS);
   assert.deepEqual(runs.filter((run) => /\brelease-|\bbuild\b/.test(run)), RELEASE_STEPS, 'the build runs inside make release-assets');
-  const makefile = await read('Makefile');
+  // The steps are the targets of scripts/kit/kit.mk, which take the tag from the environment variable TAG; the packages are
+  // built before the archives are written.
+  const kit = await read('scripts/kit/kit.mk');
   for (const step of ['verify', 'versions', 'assets', 'publish']) {
-    assert.match(makefile, new RegExp(`^release-${step}:.*\\n(?:\\t.*\\n)*\\tnode scripts/release\\.mjs ${step} "\\$\\$TAG"\\n`, 'm'), `make release-${step} passes "$$TAG"`);
+    assert.match(kit, new RegExp(`^release-${step}:.*\\n(?:\\t.*\\n)*\\tnode scripts/kit/release\\.mjs ${step} \\$\\(TAG\\)\\n`, 'm'), `make release-${step} takes the tag from TAG`);
   }
-  assert.match(makefile, /^release-install-check:.*\n(?:\t.*\n)*\t\$\(ONLINE\) node scripts\/release-install\.mjs check "\$\$TAG"\n/m,
-    'make release-install-check passes "$$TAG", so a Go module tag installs nothing');
+  assert.match(kit, /^release-consumer:.*\n(?:\t.*\n)*\tnode scripts\/kit\/release-consumer\.mjs install \$\(TAG\)\n/m, 'make release-consumer takes the tag from TAG');
+  assert.match(await read('Makefile'), /^release-assets: build$/m);
   assert.ok(job.steps.every((step) => step.if === undefined), 'no step runs after a failed one');
 });
 

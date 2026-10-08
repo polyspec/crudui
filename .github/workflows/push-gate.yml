@@ -1,19 +1,14 @@
-# The push check of every pushed branch, pull request and merge group (AGENTS.md, docs/operations/testing.md). The
-# pre-push hook .githooks/pre-push refuses a push while a checklist task is [~]; a push past the hook, from a clone
-# without it or with the hook skipped, reaches GitHub, and this job fails for it with the same message. It checks the
-# pushed commit (the head commit of a pull request, the commit of a merge group): its checklist has no task in progress,
-# and it tracks the hook as an executable file. The branches of the merge queue are checked as merge groups, not as
-# pushes. It also runs make records-check, the document and checklist rules, which read no network and no history. The
-# ruleset main of .github/repository.json requires this job, so a commit that breaks them cannot reach main. The check
-# needs Node.js alone and installs no dependency.
+# The push check of every pushed branch. The pre-push hook .githooks/pre-push refuses a push while a checklist task is [~];
+# a push past the hook, from a clone without it or with the hook skipped, reaches GitHub, and this job fails for it with
+# the same message. It checks the pushed commit: its checklist has no task in progress, and it tracks the hook as an
+# executable file. It also runs make records-check, the document and checklist rules, which read no network and no
+# history. A release requires this job, with ci-passed, to have succeeded for the tagged commit. The check needs Node.js
+# alone and installs no dependency.
 
 name: Push check
 
 on:
   push:
-    branches-ignore: ['gh-readonly-queue/**']
-  pull_request:
-  merge_group:
 
 permissions:
   contents: read
@@ -31,7 +26,7 @@ jobs:
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.sha }}
       - name: Setup selected Node.js release line
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
@@ -40,7 +35,7 @@ jobs:
         run: make toolchain-check TOOLS=node
       - name: Refuse a commit with a task in progress or broken records
         if: ${{ !cancelled() }}
-        run: make ci-targets TARGETS="push-gate-check records-check"
+        run: make ci-targets TARGETS="push-gate-commit records-check"
       - name: Upload the report of the checks
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

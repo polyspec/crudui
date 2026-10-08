@@ -1,8 +1,14 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 9def7901882f360a4c9e35bcf4b4603024a68201d573c19948a43fc152c3de81 -->
+<!-- source-sha256: 818d9a84128db028370a8defd42eeb9727a87b7c2de8d6e4b85f57f732e28ef1 -->
 
 ## Unreleased
+
+### 2026-10-09 — release 도구와 0.x workflow (C14.1-5)
+
+- `config/release.json`은 release의 archive 9개(`<package>-npm-<version>.tgz`인 npm package 7개, `<package>-php-<version>.zip`인 Composer package 2개), tag가 덮는 manifest, Go module `packages/generator-go`와 `packages/validator-go`, 사용자 project `tests/release-install/npm`과 `tests/release-install/composer`, crate 2개와 Python package 2개를 tag에서 설치하는 것을 선언한다. `make release-assets`는 package를 먼저 build하고, `release.yml`은 archive와 release 사이에서 `make release-consumer`를 실행한다. `scripts/release.mjs`, `scripts/release-install.mjs`와 그 test를 제거했고, `tests/build/python-git-pins.test.mjs`는 `pyproject.toml`에서 이 저장소를 가리키는 모든 git pin이 `package.json`의 version을 적을 것을 요구한다. 사용자 project `tests/release-install/npm`과 `tests/release-install/composer`는 0.0.4 archive를 kit의 형태로 적는다(`artifact` repository `artifacts`, language가 붙은 archive 이름, zip hash를 lock하지 않도록 smoke package가 된 `polyspec/crudui-validator`). `release-assets`, `release-consumer-lock`, `release-consumer`가 이 저장소에 없는 로컬 tag를 가진 scratch clone에서 이를 쓰고 검사했다.
+- version이 0.x인 동안 저장소에는 pull request, merge queue, ruleset이 없다. `ci.yml`은 `main`으로의 push와 수동 실행에서 실행되며 앞선 commit의 실행을 취소하지 않고, `push-gate.yml`은 모든 push에서 실행된다. `.github/repository.json`, `scripts/github-repository.mjs`, `tests/build/github-repository.test.mjs`를 제거했다. `docs/operations/repository.md`는 `main`의 push, workflow, release를 설명한다.
+- tag가 생기기 전에 `HEAD`의 archive를 설치하던 CI 대상 `release-install-head`를 제거했다. `scripts/kit/release.mjs assets`는 이미 있는 tag의 archive만 build하고, `make release-consumer`는 release가 만들어지기 전에 release workflow에서 실행된다.
 
 ### 2026-10-09 — kit의 document 검사와 commit message 규칙 (C14.1-4)
 

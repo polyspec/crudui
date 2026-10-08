@@ -87,7 +87,7 @@ The documentation URL is `https://polyspec.github.io/crudui/`. The repository's
 Pages publishing source is **GitHub Actions**. [CI](../../.github/workflows/ci.yml)
 runs `make docs-check` with `DOCS_BASE_PATH=/crudui/`, uploads `docs/.web/dist`,
 and deploys it to the `github-pages` environment. A `main` push or manual CI run
-on `main` publishes the web; pull requests only run checks.
+on `main` publishes the web.
 
 Preview the published path from the repository root:
 

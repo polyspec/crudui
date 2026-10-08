@@ -4,14 +4,14 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f47b180847996de26836b8772fe98fe2",
+    "content-hash": "92dbeefd06d4112dee43f3f40fe5ceaf",
     "packages": [
         {
             "name": "polyspec/crudui-generator",
             "version": "0.0.4",
             "dist": {
                 "type": "zip",
-                "url": "archives/polyspec-crudui-generator-0.0.4.zip",
+                "url": "artifacts/polyspec-crudui-generator-php-0.0.4.zip",
                 "shasum": ""
             },
             "require": {
@@ -37,7 +37,7 @@
             },
             "scripts": {
                 "test": [
-                    "node ../../scripts/run-tests.mjs phpunit --cwd packages/generator-php"
+                    "node ../../scripts/kit/run-tests.mjs phpunit --cwd packages/generator-php"
                 ]
             },
             "license": [
@@ -50,7 +50,7 @@
             "version": "0.0.4",
             "dist": {
                 "type": "zip",
-                "url": "archives/polyspec-crudui-validator-0.0.4.zip",
+                "url": "artifacts/polyspec-crudui-validator-php-0.0.4.zip",
                 "shasum": ""
             },
             "require": {
@@ -73,7 +73,7 @@
             },
             "scripts": {
                 "test": [
-                    "node ../../scripts/run-tests.mjs phpunit --cwd packages/validator-php"
+                    "node ../../tests/conformance/run-suite.mjs phpunit --cwd packages/validator-php"
                 ]
             },
             "license": [

@@ -1,0 +1,169 @@
+{
+  "schema": 1,
+  "repositoryUrl": "https://github.com/polyspec/crudui",
+  "changelog": "CHANGELOG.md",
+  "changelogTranslations": [
+    "CHANGELOG.ko.md"
+  ],
+  "checks": [
+    "push-gate",
+    "ci-passed"
+  ],
+  "packages": [
+    {
+      "kind": "npm",
+      "directory": "packages/form-binding",
+      "name": "@polyspec/crudui-form-binding"
+    },
+    {
+      "kind": "npm",
+      "directory": "packages/generator-core",
+      "name": "@polyspec/crudui-generator-core"
+    },
+    {
+      "kind": "npm",
+      "directory": "packages/generator-html",
+      "name": "@polyspec/crudui-generator-html"
+    },
+    {
+      "kind": "npm",
+      "directory": "packages/generator-react",
+      "name": "@polyspec/crudui-generator-react"
+    },
+    {
+      "kind": "npm",
+      "directory": "packages/generator-svelte",
+      "name": "@polyspec/crudui-generator-svelte"
+    },
+    {
+      "kind": "npm",
+      "directory": "packages/generator-vue",
+      "name": "@polyspec/crudui-generator-vue"
+    },
+    {
+      "kind": "npm",
+      "directory": "packages/validator-ts",
+      "name": "@polyspec/crudui-validator"
+    },
+    {
+      "kind": "composer",
+      "directory": "packages/generator-php",
+      "name": "polyspec/crudui-generator"
+    },
+    {
+      "kind": "composer",
+      "directory": "packages/validator-php",
+      "name": "polyspec/crudui-validator"
+    }
+  ],
+  "manifests": {
+    "package.json": "version",
+    "packages/cli/package.json": "version",
+    "examples/cross-check-console/server/package.json": "version",
+    "packages/form-binding/package.json": "archive",
+    "packages/generator-core/package.json": "archive",
+    "packages/generator-html/package.json": "archive",
+    "packages/generator-react/package.json": "archive",
+    "packages/generator-svelte/package.json": "archive",
+    "packages/generator-vue/package.json": "archive",
+    "packages/validator-ts/package.json": "archive",
+    "packages/generator-php/composer.json": "archive",
+    "packages/validator-php/composer.json": "archive",
+    "packages/generator-rust/Cargo.toml": "git-tag",
+    "packages/validator-rust/Cargo.toml": "git-tag",
+    "packages/generator-python/pyproject.toml": "git-tag",
+    "packages/validator-python/pyproject.toml": "git-tag",
+    "examples/cross-check-console/validators/rust/Cargo.toml": "version",
+    "examples/form-comparison/servers/rust/Cargo.toml": "version",
+    "tests/native-generators/programs/rust/Cargo.toml": "version",
+    "tools/bench/rust/Cargo.toml": "version"
+  },
+  "notReleased": {
+    "composer.json": "the development root of the Composer packages of packages/, never published; it declares no version",
+    "tests/release-install/npm/package.json": "the npm consumer project of the release archives",
+    "tests/release-install/composer/composer.json": "the Composer consumer project of the release archives",
+    "examples/cross-check-console/validators/go/go.mod": "an example module of this repository, resolved through replace and never tagged",
+    "examples/form-comparison/servers/go/go.mod": "an example module of this repository, resolved through replace and never tagged",
+    "tests/native-generators/programs/go/go.mod": "a test program module of this repository, resolved through replace and never tagged",
+    "tools/bench/go/go.mod": "a benchmark module of this repository, resolved through replace and never tagged"
+  },
+  "goModules": {
+    "packages/generator-go": "github.com/polyspec/crudui/packages/generator-go",
+    "packages/validator-go": "github.com/polyspec/crudui/packages/validator-go"
+  },
+  "consumers": {
+    "npm": {
+      "directory": "tests/release-install/npm",
+      "smoke": {
+        "@polyspec/crudui-generator-html": [
+          "node",
+          "-e",
+          "require('@polyspec/crudui-generator-html')"
+        ],
+        "@polyspec/crudui-generator-core": [
+          "node",
+          "-e",
+          "require('@polyspec/crudui-generator-core')"
+        ],
+        "@polyspec/crudui-validator": [
+          "node",
+          "-e",
+          "require('@polyspec/crudui-validator')"
+        ]
+      }
+    },
+    "composer": {
+      "directory": "tests/release-install/composer",
+      "smoke": {
+        "polyspec/crudui-generator": [
+          "php",
+          "-r",
+          "require 'vendor/autoload.php'; if (!class_exists('Polyspec\\\\Crudui\\\\Generator')) { exit(1); }"
+        ],
+        "polyspec/crudui-validator": [
+          "php",
+          "-r",
+          "require 'vendor/autoload.php'; if (!class_exists('Polyspec\\\\Crudui\\\\Validator')) { exit(1); }"
+        ]
+      }
+    }
+  },
+  "proof": {
+    "gitTag": {
+      "packages/validator-python/pyproject.toml": {
+        "kind": "python",
+        "name": "polyspec-crudui-validator",
+        "smoke": [
+          "python",
+          "-c",
+          "import polyspec.crudui.validator"
+        ]
+      },
+      "packages/generator-python/pyproject.toml": {
+        "kind": "python",
+        "name": "polyspec-crudui-generator",
+        "smoke": [
+          "python",
+          "-c",
+          "import polyspec.crudui.generator"
+        ]
+      },
+      "packages/validator-rust/Cargo.toml": {
+        "kind": "rust",
+        "name": "polyspec-crudui-validator",
+        "smoke": [
+          "cargo",
+          "check"
+        ]
+      },
+      "packages/generator-rust/Cargo.toml": {
+        "kind": "rust",
+        "name": "polyspec-crudui-generator",
+        "smoke": [
+          "cargo",
+          "check"
+        ]
+      }
+    }
+  }
+}
