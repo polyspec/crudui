@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- C13.1-38: the dependencies are at their latest stable release (puppeteer 25.13.0, playwright 1.64.0, vite 8.3.4), their install scripts are approved by exact version, and the review record is written again.
+- C13.1-37: the npm lock records the repository packages at 0.0.4 in its dependency entries, as the version bump requires.
 ### 2026-10-09 — Dependency review record of the 0.0.4 locks (C13.1-36)
 
 - `config/dependency-review.json` records the sha256 of the eight locks that the version bump changed, with no advisory. The review reports four newer stable releases without an exception (`puppeteer`, `playwright` and `vite`); they are raised in a separate change.

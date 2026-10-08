@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- C13.1-38: 의존성이 최신 stable release(puppeteer 25.13.0, playwright 1.64.0, vite 8.3.4)이고, install 스크립트는 정확한 version으로 승인되었으며, 리뷰 기록을 다시 썼습니다.
+- C13.1-37: npm lock이 저장소 패키지를 dependency 항목에서도 0.0.4로 기록합니다. version bump가 요구하는 대로입니다.
 ### 2026-10-09 — 0.0.4 lock의 dependency review 기록 (C13.1-36)
 
 - `config/dependency-review.json`이 version bump로 바뀐 lock 8개의 sha256을 advisory 없이 기록한다. review는 exception이 없는 newer stable release 4개(`puppeteer`, `playwright`, `vite`)를 보고하며, 이들은 별도 변경에서 올린다.

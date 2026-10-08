@@ -1,11 +1,11 @@
 {
   "schema": 1,
   "comment": "Written by make dependency-review RECORD=1 (scripts/dependency-review.mjs) from the registries; npm run test:dependencies compares the checkout with it without a network.",
-  "reviewed": "2026-10-08T16:14:50.723Z",
+  "reviewed": "2026-10-08T16:47:27.530Z",
   "locks": [
     {
       "lock": "package-lock.json",
-      "sha256": "bd760802a3700f4a77608a8595b11835bb9432e70ddee8c028d4b8c7f262106d",
+      "sha256": "b5da5952b32667ae0c6838eccc5ca34924b709ff9ee4fcdf44f133029c21cf1c",
       "advisories": []
     },
     {
@@ -49,7 +49,7 @@
       "ecosystem": "npm",
       "manifest": "package.json",
       "package": "puppeteer",
-      "version": "25.12.0",
+      "version": "25.13.0",
       "latest": "25.13.0"
     },
     {
@@ -161,7 +161,7 @@
       "ecosystem": "npm",
       "manifest": "package.json",
       "package": "playwright",
-      "version": "1.63.0",
+      "version": "1.64.0",
       "latest": "1.64.0"
     },
     {
@@ -217,7 +217,7 @@
       "ecosystem": "npm",
       "manifest": "package.json",
       "package": "vite",
-      "version": "8.3.3",
+      "version": "8.3.4",
       "latest": "8.3.4"
     },
     {
@@ -532,7 +532,7 @@
       "ecosystem": "npm",
       "manifest": "packages/generator-svelte/package.json",
       "package": "vite",
-      "version": "8.3.3",
+      "version": "8.3.4",
       "latest": "8.3.4"
     },
     {
