@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-08 — C13.1-11의 완료 표기 복구 (C13.1-22)
+
+- 두 체크리스트에서 C13.1-11의 상태 칸이 완료 표기를 담고, `scripts/check-documents.mjs`가 통과한다(종료 코드 0).
+
 ### 2026-10-08 — Python package의 타입 주석 (C13.1-17)
 
 - `packages/validator-python`과 `packages/generator-python`의 모든 공개 정의에 매개변수와 반환 타입이 있다. 두 package의 공개 정의 중 주석이 없는 것의 AST 개수는 0이며, 두 package 모두 `mypy --strict`가 종료 코드 0으로 통과한다.
