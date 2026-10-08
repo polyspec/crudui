@@ -24,14 +24,14 @@ from polyspec.crudui.validator import (  # noqa: E402
     ComposeLoadError,
     FormInputError,
     validate,
-    validate_detail,
-    validate_list,
+    validateDetail,
+    validateList,
 )
 
 ENTRIES = {
     'validate': lambda spec, data, options: validate(spec, data, options),
-    'validateList': lambda spec, data, options: validate_list(spec, options),
-    'validateDetail': lambda spec, data, options: validate_detail(spec, options),
+    'validateList': lambda spec, data, options: validateList(spec, options),
+    'validateDetail': lambda spec, data, options: validateDetail(spec, options),
 }
 
 

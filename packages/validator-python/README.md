@@ -19,9 +19,9 @@ assert result['valid']
 ```
 
 `validate(spec, data, options)` composes the specification, scans for
-unsupported metadata and validates submitted data. `validate_list` checks list
+unsupported metadata and validates submitted data. `validateList` checks list
 specification composition and metadata; it does not validate rows.
-`validate_detail` checks detail specification composition, including `$ref` and
+`validateDetail` checks detail specification composition, including `$ref` and
 `$patch` on the root and the `fields` map, and metadata; it does not validate a
 record. Both return `{'valid': True, 'errors': []}` on a clean load. Options
 accept `files`, a map of composition documents, and `basepath`. Composition

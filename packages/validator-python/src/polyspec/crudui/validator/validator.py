@@ -211,10 +211,10 @@ class Validator:
         return {
             'valid': len(errors) == 0,
             'errors': errors,
-            'hidden': self.hidden_paths(data),
+            'hidden': self.hiddenPaths(data),
         }
 
-    def hidden_paths(self, data):
+    def hiddenPaths(self, data):
         """The data paths of the fields whose `design.show` resolves to false.
 
         The paths come in declaration order, each field of a group row under
@@ -656,7 +656,7 @@ def validate(spec, data, options=None):
     return Validator({'type': 'group', 'properties': properties}).validate(data)
 
 
-def hidden_paths(spec, data):
+def hiddenPaths(spec, data):
     """The data paths of the fields whose `design.show` resolves to false against `data`.
 
     The specification is composed without files, as the browser binding sends
@@ -669,10 +669,10 @@ def hidden_paths(spec, data):
         raise FormInputError('Form data must be an object')
     ordered = ordered_value(spec)
     properties = _composed_properties(ordered, checked, {})
-    return Validator({'type': 'group', 'properties': properties}).hidden_paths(data)
+    return Validator({'type': 'group', 'properties': properties}).hiddenPaths(data)
 
 
-def validate_list(spec, options=None):
+def validateList(spec, options=None):
     """Validate a CRUDUI list specification's structure.
 
     The `columns` map and a `{ $ref, $patch }` `search` overlay expand through
@@ -702,7 +702,7 @@ def validate_list(spec, options=None):
     return {'valid': True, 'errors': []}
 
 
-def validate_detail(spec, options=None):
+def validateDetail(spec, options=None):
     """Validate a detail specification's composition and forbidden-key structure.
 
     The root composes exactly as a list root does; the `fields` map composes as

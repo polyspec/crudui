@@ -19,8 +19,8 @@ assert result['valid']
 ```
 
 `validate(spec, data, options)`는 명세를 compose하고 지원하지 않는 metadata를 검사한 뒤
-제출된 데이터를 검증한다. `validate_list`는 list 명세의 composition과 metadata를 검사하며
-행은 검증하지 않는다. `validate_detail`은 detail 명세의 composition을 root와 `fields`
+제출된 데이터를 검증한다. `validateList`는 list 명세의 composition과 metadata를 검사하며
+행은 검증하지 않는다. `validateDetail`은 detail 명세의 composition을 root와 `fields`
 map의 `$ref`, `$patch`까지 검사하고 metadata를 검사하며 record는 검증하지 않는다. 둘 다
 정상 적재면 `{'valid': True, 'errors': []}`를 반환한다. options는 `files`(composition
 문서의 map)와 `basepath`를 받는다. composition 실패는 `ComposeLoadError`를 일으키며
