@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-08 — Conformance evidence of the Python unit tests (C13.1-7-1)
+
+- The Python unit tests record the conformance evidence of each shared case they run: 1637 records, none failed. Records are written only when CRUDUI_CONFORMANCE_EVIDENCE names a directory.
+
 ### 2026-10-08 — Python validator in the cross-check console (C13.1-5)
 
 - The cross-check console runs the Python validator process beside the JavaScript, PHP, Go and Rust processes, and its request comparison requires the five to agree. The server test suite passes: 1267 tests, exit 0.

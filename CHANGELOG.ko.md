@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-08 — Python 단위 test의 conformance 증거 (C13.1-7-1)
+
+- Python 단위 test는 실행하는 공통 사례마다 conformance 증거를 기록한다. 기록은 1637건이고 실패한 기록은 없다. CRUDUI_CONFORMANCE_EVIDENCE가 디렉터리를 가리킬 때만 기록한다.
+
 ### 2026-10-08 — cross-check console의 Python validator (C13.1-5)
 
 - cross-check console은 Python validator 프로세스를 JavaScript, PHP, Go, Rust 프로세스와 함께 실행하며, 요청 비교는 다섯 프로세스의 일치를 요구한다. 서버 test 스위트가 1267개 test로 통과한다(종료 코드 0).
