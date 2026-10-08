@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-09 — Consumer fixture locks of 0.0.4 (C13.1-35)
+
+- `tests/release-install` names the 0.0.4 archives in its `package.json`, `package-lock.json`, `composer.json` and `composer.lock`. `make release-install-lock` wrote them from the archives of `make release-assets TAG=v0.0.4 RELEASE_COMMIT=HEAD`, so the consumer install check reads the archives of the version of `package.json`.
+
 ## 0.0.4
 
 ### 2026-10-09 — Stale git pins in the release version check (C13.1-23)
