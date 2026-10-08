@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-08 — Form.setData rejects data that is not an object (C13.1-19)
+
+- `Form.setData` fails with `INVALID_FORM_INPUT` and `Form data must be an object` for data that is not an object. The native generator checks of the Python target pass: 741 passed, exit 0, including `action-failure-keeps-state`.
+
 ### 2026-10-08 — Conformance evidence of the Python unit tests (C13.1-7-1)
 
 - The Python unit tests record the conformance evidence of each shared case they run: 1637 records, none failed. Records are written only when CRUDUI_CONFORMANCE_EVIDENCE names a directory.
