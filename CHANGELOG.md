@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-09 — Dependency review record of the 0.0.4 locks (C13.1-36)
+
+- `config/dependency-review.json` records the sha256 of the eight locks that the version bump changed, with no advisory. The review reports four newer stable releases without an exception (`puppeteer`, `playwright` and `vite`); they are raised in a separate change.
+
 ### 2026-10-09 — Consumer fixture locks of 0.0.4 (C13.1-35)
 
 - `tests/release-install` names the 0.0.4 archives in its `package.json`, `package-lock.json`, `composer.json` and `composer.lock`. `make release-install-lock` wrote them from the archives of `make release-assets TAG=v0.0.4 RELEASE_COMMIT=HEAD`, so the consumer install check reads the archives of the version of `package.json`.
