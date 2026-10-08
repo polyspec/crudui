@@ -8,9 +8,12 @@ before any row is evaluated.
 
 import math
 import re
+from collections.abc import Mapping
+from typing import Any, TypeGuard, cast
 
 from polyspec.crudui.validator.compose import compose_properties
 from polyspec.crudui.validator.forbidden import scan_forbidden_keys
+from polyspec.crudui.validator.jsvalue import JsonValue
 
 from . import dates as dates_module
 from .choice_list import is_choice_list, pairs
@@ -31,18 +34,18 @@ from .value import MISSING, classes, get, object_value, path as value_path, reco
 __all__ = ['actions_html', 'build', 'build_public', 'render', 'render_cell', 'safe_integer']
 
 
-def build_public(spec, rows, options):
+def build_public(spec: dict[str, Any], rows: Any, options: Mapping[str, Any]) -> dict[str, Any]:
     """One read-only list model from validated public inputs."""
     _check_input(spec, rows, options)
     return build(object_value(spec), rows, options, 'list', 'columns')
 
 
-def _is_object(value):
+def _is_object(value: object) -> TypeGuard[dict[str, Any]]:
     """A dictionary."""
     return isinstance(value, dict)
 
 
-def _check_input(spec, rows, options):
+def _check_input(spec: dict[str, Any], rows: Any, options: Mapping[str, Any]) -> None:
     """The list input in the order every runtime uses (docs/spec/display-formats.md)."""
     if isinstance(spec, list) or not _is_object(spec):
         raise FormError('INVALID_FORM_INPUT', 'List specification must be an object')
@@ -57,14 +60,15 @@ def _check_input(spec, rows, options):
     _count_options(options)
 
 
-def _option_object(options, key, message):
+def _option_object(options: Mapping[str, Any], key: str, message: str) -> dict[str, Any] | None:
     """An absent or null option is none; any other value must be an object."""
     value = options.get(key)
     if value is not None and not _is_object(value):
         raise FormError('INVALID_FORM_INPUT', message)
+    return value
 
 
-def actions_html(actions, block):
+def actions_html(actions: Any, block: str) -> str:
     """The actions of a list or detail: one action span per action.
 
     Each span holds a link or a button; the text is empty without actions.
@@ -94,7 +98,7 @@ def actions_html(actions, block):
     return render_element('div', {'class': f'{block}__actions'}, html)
 
 
-def render(spec, rows, options):
+def render(spec: dict[str, Any], rows: Any, options: Mapping[str, Any]) -> str:
     """Composed list columns, supplied rows, the description, actions and pagination."""
     _check_input(spec, rows, options)
     # An absent or null layout selects the table.
@@ -182,7 +186,7 @@ def render(spec, rows, options):
     return _preloads(vm) + render_element('div', attrs, body)
 
 
-def build(spec, rows, options, own, members):
+def build(spec: dict[str, Any], rows: Any, options: Mapping[str, Any], own: str, members: str) -> dict[str, Any]:
     """Ordered list and cell models from checked input.
 
     `own` is `list` or `detail` and `members` names the member map, `columns`
@@ -190,24 +194,24 @@ def build(spec, rows, options, own, members):
     """
     from .value import spec_value
 
-    spec = spec_value(spec)
+    spec = cast(Any, spec_value(spec))
     language = options.get('language', 'ko')
     _option_object(options, 'data', 'List context must be an object')
-    data = object_value(options.get('data') or {})
+    data: Any = object_value(options.get('data') or {})
     if not isinstance(spec.get(members), dict):
         raise FormError('INVALID_FORM_INPUT', f'Invalid {members} at {own}: expected an object')
     loader = template_loader(options)
     basepath = options.get('basepath', '')
-    columns = compose_properties(dict(spec[members]), loader, basepath)
+    columns: dict[str, Any] = compose_properties(dict(spec[members]), loader, basepath)
     search = spec.get('search')
     compose_search = own == 'list' and isinstance(search, dict) and ('$ref' in search or '$patch' in search)
     # The composed specification keeps the member order of the declared one.
-    composed = {}
+    composed: dict[str, Any] = {}
     for key, value in spec.items():
         if key == members:
             composed[key] = dict(columns)
         elif key == 'search' and compose_search:
-            composed[key] = dict(compose_properties(dict(search), loader, basepath))
+            composed[key] = dict(compose_properties(dict(cast(dict[str, Any], search)), loader, basepath))
         else:
             composed[key] = value
     spec = composed
@@ -215,8 +219,8 @@ def build(spec, rows, options, own, members):
     # specification orders them.
     scan_forbidden_keys(spec)
     check_display_declaration(spec, own, members)
-    column_models = []
-    column_specs = []
+    column_models: list[Any] = []
+    column_specs: list[Any] = []
     for key, raw in columns.items():
         raw = dict(raw)
         design = design_resolve(raw.get('design'), data, [], [])
@@ -239,12 +243,12 @@ def build(spec, rows, options, own, members):
         cells = []
         for index, column in enumerate(column_models):
             path = column['field']
-            value = value_path(row, path) if path != '' else MISSING
+            cell_value = value_path(row, path) if path != '' else MISSING
             # A model is JSON: a path absent from the row is null, and the member is always present.
             cells.append(record({
                 'format': column['format'],
-                'value': None if value is MISSING else value,
-                'display': _display(column['format'], value, row, segments(path), language),
+                'value': None if cell_value is MISSING else cell_value,
+                'display': _display(column['format'], cell_value, row, segments(path), language),
                 'design': design_resolve(column_specs[index].get('design'), row, segments(path), []),
             }))
         row_models.append({'cells': cells})
@@ -282,7 +286,7 @@ def build(spec, rows, options, own, members):
     # An absent or null empty uses the interface message; a declared text is used as declared.
     declared_empty = spec.get('empty')
     empty = _messages(language)['emptyList'] if declared_empty is None else translate(declared_empty, language)
-    return record({
+    model: dict[str, Any] = {
         'columns': column_models,
         'rows': row_models,
         'pagination': pagination,
@@ -291,10 +295,11 @@ def build(spec, rows, options, own, members):
         'empty': empty,
         'description': translate(spec.get('description'), language),
         'design': design_resolve(spec.get('design'), data, [], []),
-    })
+    }
+    return record(model)
 
 
-def safe_integer(value, minimum):
+def safe_integer(value: Any, minimum: int) -> int | None:
     """An int or float whose value is an integer from `minimum` to 2^53 - 1, as int; else None."""
     if isinstance(value, bool):
         return None
@@ -305,13 +310,13 @@ def safe_integer(value, minimum):
     return int(value)
 
 
-def _count_options(options):
+def _count_options(options: Mapping[str, Any]) -> dict[str, int | None]:
     """The page and total options, checked in that order.
 
     Absent or null is none; otherwise an integer from 1 (page) or 0 (total) to
     2^53 - 1.
     """
-    counts = {}
+    counts: dict[str, int | None] = {}
     for key, minimum, message in (
         ('page', 1, 'List page must be a positive integer'),
         ('total', 0, 'List total must be a nonnegative integer'),
@@ -327,13 +332,13 @@ def _count_options(options):
     return counts
 
 
-def _pagination(declared, counts, language):
+def _pagination(declared: Any, counts: Mapping[str, int | None], language: str) -> dict[str, Any]:
     """The pagination model in member order: enabled, then the enabled paging members."""
     enabled = declared is True or isinstance(declared, dict)
-    pagination = {'enabled': enabled}
+    pagination: dict[str, Any] = {'enabled': enabled}
     per_page = 20
     if enabled:
-        per_page = int(declared.get('per_page')) if isinstance(declared, dict) and 'per_page' in declared else 20
+        per_page = int(declared['per_page']) if isinstance(declared, dict) and 'per_page' in declared else 20
         pagination['perPage'] = per_page
         pagination['mode'] = declared.get('mode') if isinstance(declared, dict) and 'mode' in declared else 'pages'
         pagination['page'] = counts['page'] if counts['page'] is not None else 1
@@ -348,7 +353,7 @@ def _pagination(declared, counts, language):
         current = min(page_count, pagination['page']) if page_count > 0 else 1
         messages = _messages(language)
 
-        def button(role, page, label, is_current, disabled):
+        def button(role: str, page: Any, label: str, is_current: bool, disabled: bool) -> dict[str, Any]:
             return {'role': role, 'page': page, 'label': label, 'current': is_current, 'disabled': disabled}
 
         buttons = [button('previous', max(1, current - 1), messages['previousPage'], False, current <= 1 or page_count == 0)]
@@ -369,7 +374,7 @@ def _pagination(declared, counts, language):
     return pagination
 
 
-def _pagination_pages(page, page_count):
+def _pagination_pages(page: int, page_count: int) -> list[int]:
     """The bounded page-number window: every page up to seven pages.
 
     Otherwise the first, previous, current, next and last page.
@@ -384,12 +389,12 @@ def _pagination_pages(page, page_count):
     return out
 
 
-def _messages(language):
+def _messages(language: str) -> dict[str, str]:
     """The list interface text of a display language: its entry, else English."""
     return LIST.get(language, LIST['en'])
 
 
-def _preloads(vm):
+def _preloads(vm: Mapping[str, Any]) -> str:
     seen = set()
     html = ''
     for row in vm['rows']:
@@ -405,7 +410,7 @@ def _preloads(vm):
     return html
 
 
-def _node(base, design):
+def _node(base: Any, design: Any) -> dict[str, Any]:
     attrs = {'class': classes(base, design['class'])}
     style = style_value(design['style'])
     if style is not None:
@@ -413,7 +418,7 @@ def _node(base, design):
     return attrs
 
 
-def _format(format_value):
+def _format(format_value: object) -> Any:
     options = format_value if isinstance(format_value, dict) else {}
     if isinstance(format_value, str) and format_value != '':
         kind = format_value
@@ -424,7 +429,7 @@ def _format(format_value):
     return {'type': kind, 'options': options}
 
 
-def _display(format_value, value, row, path, language):
+def _display(format_value: Any, value: Any, row: Any, path: Any, language: str) -> Any:
     """One display cell of a column format."""
     options = format_value['options']
     text = scalar(value)
@@ -486,7 +491,7 @@ def _display(format_value, value, row, path, language):
             found = get(items, text)
             if found is not MISSING:
                 # A choice label is content: a string or a language map.
-                return translate(found, language)
+                return translate(cast(JsonValue, found), language)
         return text
     if kind == 'bool':
         if isinstance(value, bool):
@@ -497,11 +502,11 @@ def _display(format_value, value, row, path, language):
             truth = value not in ('', '0', 'false')
         else:
             truth = value is not None and value is not MISSING
-        label = get(options, 'true' if truth else 'false')
+        option_label: Any = get(options, 'true' if truth else 'false')
         return {
             'kind': 'bool',
             'value': truth,
-            'label': translate(label, language) if label is not MISSING and label is not None else ('true' if truth else 'false'),
+            'label': translate(option_label, language) if option_label is not MISSING and option_label is not None else ('true' if truth else 'false'),
             'as': options['as'] if isinstance(options.get('as'), str) and options['as'] != '' else 'text',
         }
     if kind == 'image':
@@ -523,9 +528,9 @@ def _display(format_value, value, row, path, language):
     return text
 
 
-def _interpolate(template, row, cell_value):
+def _interpolate(template: str, row: Any, cell_value: Any) -> str:
     """Replace `{=path}` references with the row's values."""
-    def replace(match):
+    def replace(match: re.Match[str]) -> str:
         path = match.group(0)[2:-1]
         value = cell_value if path == 'field' else value_path(row, path)
         return scalar(cell_value if value is MISSING else value)
@@ -533,7 +538,7 @@ def _interpolate(template, row, cell_value):
     return re.sub(r'\{=[A-Za-z_][\w.]*\}', replace, template, flags=re.ASCII)
 
 
-def render_cell(cell, tag, base):
+def render_cell(cell: Any, tag: str, base: Any) -> str:
     """One already-evaluated display cell for another read-only renderer."""
     display = cell['display']
     if isinstance(display, str):
