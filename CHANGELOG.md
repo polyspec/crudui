@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-09 — Vendored tools of polyspec/kit v0.0.8 (C14.1-7)
+
+- The vendored files are those of the tag `v0.0.8`. The mutation check copies every tracked manifest and lock, the policy schema accepts a root `composer.json` and `pyproject.toml`, `make install-tools TOOLS="..."` installs only the named tools, and `make documents-stamp` writes the `source-sha256` markers.
+
 ### 2026-10-09 — Rust toolchain before the tool install in CI jobs (C14.1-2-1)
 
 - Every job of `ci.yml`, `pages.yml`, `release.yml` and `dependency-review.yml` that runs `make install-tools` installs the Rust toolchain first (`make install-rust`) and checks `rust` with `make toolchain-check`, because `make install-tools` builds cargo-audit with the cargo of `rust-toolchain.toml`.
