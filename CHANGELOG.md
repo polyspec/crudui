@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### 2026-10-08 — PHP extension built for the architecture of its PHP executable (C13.1-16)
+
+- The PHP extension builder reads the architecture of the PHP executable with
+  `lipo -archs` and passes it with `-arch` to the compile and link commands.
+  The builder fails when the linked module has another architecture.
+  Red: the architecture unit test failed on the missing export. Green: the
+  architecture unit test passes (5 tests in `tests/build/php-extensions.test.mjs`),
+  `make build-php-extension` builds an arm64 module that loads, and the
+  cross-check vitest suite passes: 1267 tests, including the `php-native` process.
+
 ### 2026-10-08 — Scope of the form-outline fixture for Python (C13.1-15)
 
 - The row C13.1 declares `tests/fixtures/form-outline` out of scope of the Python
