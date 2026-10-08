@@ -4,7 +4,7 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import puppeteer from 'puppeteer';
 
-import { createProgress } from './test-progress/progress.mjs';
+import { createProgress } from './kit/test-progress.mjs';
 
 const forbiddenArguments = new Set(['--no-sandbox', '--disable-setuid-sandbox']);
 const adequateEvaluation = 'You are adequately sandboxed.';

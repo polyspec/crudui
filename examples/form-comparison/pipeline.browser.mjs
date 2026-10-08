@@ -8,7 +8,7 @@ import path from 'node:path';
 import { describe, test } from 'node:test';
 import puppeteer from 'puppeteer';
 
-import { setup, teardown } from '../../scripts/test-progress/hooks.mjs';
+import { setup, teardown } from '../../scripts/kit/test-hooks.mjs';
 
 import { startLocalStack } from './src/local-servers.mjs';
 import {

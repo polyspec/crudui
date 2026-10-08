@@ -49,8 +49,8 @@ test('every package build runs under the lock of its dist directory', () => {
  */
 function fixtureCheckout() {
   const checkout = fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()), 'crudui-dist-lock-'));
-  fs.mkdirSync(path.join(checkout, 'scripts/test-progress'), { recursive: true });
-  for (const script of ['package-dist.mjs', 'holder-lock.mjs', 'checkout-npm.mjs', 'test-progress/progress.mjs']) {
+  fs.mkdirSync(path.join(checkout, 'scripts/kit'), { recursive: true });
+  for (const script of ['package-dist.mjs', 'holder-lock.mjs', 'kit/test-progress.mjs', 'kit/time.mjs']) {
     fs.copyFileSync(path.join(root, 'scripts', script), path.join(checkout, 'scripts', script));
   }
   const packageDirectory = path.join(checkout, 'packages', 'fixture');

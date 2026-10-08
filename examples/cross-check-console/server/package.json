@@ -12,7 +12,7 @@
     "start": "node server.mjs",
     "dev": "node --watch server.mjs",
     "pretest": "npm run build:validators",
-    "test": "node ../../../scripts/run-tests.mjs vitest --cwd examples/cross-check-console/server --root . --dir ."
+    "test": "node ../../../scripts/kit/run-tests.mjs vitest --cwd examples/cross-check-console/server --root . --dir ."
   },
   "engines": {
     "node": ">=18.0.0"

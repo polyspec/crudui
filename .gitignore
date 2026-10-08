@@ -1,6 +1,6 @@
 # Dependencies
 node_modules/
-# The npm of this checkout (scripts/install-npm.mjs)
+# The browsers of this checkout (scripts/install-browsers.mjs)
 /.tools/
 # Workspace packages use the root dependency lock file.
 packages/*/package-lock.json
@@ -59,7 +59,7 @@ docs/public/api/
 tools/bin/phpDocumentor.phar
 tools/bin/.phpdoc-cache/
 
-# Holder locks of this checkout (scripts/holder-lock.mjs)
+# The tools (make install-tools), locks, records and reports of this checkout
 /var/
 
 # Local verification reports

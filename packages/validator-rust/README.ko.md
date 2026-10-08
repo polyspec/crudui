@@ -33,7 +33,7 @@ let result = validate(&spec, &data, &ValidateOptions::default())?;
 저장소 루트에서 실행합니다.
 
 ```sh
-node scripts/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml
-node scripts/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml --test list_validity_conformance
-node scripts/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml --test detail_validity_conformance
+node scripts/kit/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml
+node scripts/kit/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml --test list_validity_conformance
+node scripts/kit/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml --test detail_validity_conformance
 ```

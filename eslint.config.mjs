@@ -4,14 +4,16 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 import nodeTestRules from './scripts/lint/node-test-rules.mjs';
-import { ignoredPaths } from './scripts/tracked-files.mjs';
+import { vendoredPrefixes } from './scripts/repository-files.mjs';
+import { ignoredPaths } from './scripts/kit/tracked-files.mjs';
 
 const root = import.meta.dirname;
 
 // Every JavaScript, TypeScript, Vue and Svelte source the repository tracks is
 // linted with one rule set; tests/build/lint-coverage.test.mjs fails when a
-// tracked source is left out. Only the paths that Git ignores are ignored,
-// and the per-file settings below describe where code runs, not exceptions.
+// tracked source is left out. Only the paths that Git ignores and the vendored
+// copy of polyspec/kit are ignored, and the per-file settings below describe
+// where code runs, not exceptions.
 const sourceFiles = ['**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,vue,svelte}'];
 const svelteFiles = ['**/*.svelte', '**/*.svelte.js', '**/*.svelte.ts'];
 
@@ -57,6 +59,10 @@ export default tseslint.config(
     // Every path that Git ignores, as Git reports it for this checkout: installed and generated output, locks, run
     // records and the tools of the checkout. A file there is no source, so a stray copy under var/ never reaches lint.
     ignores: ignoredPaths(root).map(entry => (entry.endsWith('/') ? `${entry}**` : entry)),
+  },
+  {
+    // The vendored copy of polyspec/kit (kit.json): its files are changed and checked in polyspec/kit, never here.
+    ignores: vendoredPrefixes(root).filter(prefix => prefix.endsWith('/')).map(prefix => `${prefix}**`),
   },
   { files: sourceFiles },
   eslint.configs.recommended,

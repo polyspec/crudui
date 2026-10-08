@@ -27,7 +27,7 @@
         }
     },
     "scripts": {
-        "test": "node ../../scripts/run-tests.mjs phpunit --cwd packages/validator-php"
+        "test": "node ../../tests/conformance/run-suite.mjs phpunit --cwd packages/validator-php"
     },
     "minimum-stability": "stable"
 }

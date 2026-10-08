@@ -12,7 +12,7 @@ function environment(operation) {
   const root = realpathSync(mkdtempSync(join(tmpdir(), 'crudui-doc-check-')));
   try {
     for (const relative of ['scripts', 'bin', 'node_modules/.bin', 'packages/validator-go', 'packages/generator-go', 'packages/validator-rust', 'packages/generator-rust']) mkdirSync(join(root, relative), { recursive: true });
-    for (const file of ['check-doc-coverage.mjs', 'checkout-npm.mjs', 'run-rust-command.mjs', 'tool-resolution.mjs']) {
+    for (const file of ['check-doc-coverage.mjs', 'run-rust-command.mjs', 'tool-resolution.mjs']) {
       copyFileSync(new URL('./' + file, import.meta.url), join(root, 'scripts', file));
     }
     return operation(root);

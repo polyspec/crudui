@@ -17,7 +17,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import Ajv from 'ajv';
 import ts from 'typescript';
 
-import { trackedFiles } from './tracked-files.mjs';
+import { checkedFiles } from './kit/tracked-files.mjs';
 
 const scriptRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const schema = JSON.parse(readFileSync(resolve(scriptRoot, 'contracts/features.schema.json'), 'utf8'));
@@ -137,7 +137,7 @@ function signatureFunctions(signature) {
  * checkout that Git tracks or does not ignore, so installed and generated output never takes part.
  */
 function scannedFiles(root) {
-  return trackedFiles(root).filter(file => scannedExtensions.has(extname(file)));
+  return checkedFiles(root).filter(file => scannedExtensions.has(extname(file)));
 }
 
 // A relative specifier in an import, export, require, dynamic import or Vitest module mock.

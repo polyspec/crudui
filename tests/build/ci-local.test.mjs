@@ -90,7 +90,7 @@ test('the native suites run in three jobs, the PHP API once for each PHP release
   assert.equal(run.status, 0, run.stderr);
   const commands = run.stdout.split('\n');
   for (const command of [
-    /^node scripts\/run-tests\.mjs node -- packages\/php-ext\/tests\/engine\.test\.mjs$/,
+    /^node tests\/conformance\/run-suite\.mjs node -- packages\/php-ext\/tests\/engine\.test\.mjs$/,
     /^node tests\/native-generators\/run\.mjs --target javascript,html,go,rust,python --report "[^"]+report\.json" \|\| status=1; \\$/,
     /^node tests\/native-generators\/run\.mjs --extension "[^"]+crudui\.so" --target php,php-native --report "[^"]+report-php\.json" \|\| status=1; \\$/,
   ]) assert.equal(commands.filter((line) => command.test(line.trim())).length, 1, `${command}\n${run.stdout}`);
@@ -134,7 +134,7 @@ export function npmCacheViolations(workflow) {
     }
     if (caches.length !== 1) { violations.push(`${id}: installs the npm packages without one cache of ~/.npm`); continue; }
     if (caches[0].with.key !== NPM_CACHE.key) violations.push(`${id}: the npm cache key is ${caches[0].with.key}`);
-    const npm = steps.findIndex((step) => /^make (?:[\w-]+ )*install-npm\b/.test(String(step.run ?? '')) || /^make (?:[\w-]+ )*install-node-modules\b/.test(String(step.run ?? '')));
+    const npm = steps.findIndex((step) => /^make (?:[\w-]+ )*install-tools\b/.test(String(step.run ?? '')) || /^make (?:[\w-]+ )*install-node-modules\b/.test(String(step.run ?? '')));
     if (steps.indexOf(caches[0]) > npm) violations.push(`${id}: the npm cache is restored after npm installs`);
   }
   return violations;
@@ -143,12 +143,12 @@ export function npmCacheViolations(workflow) {
 test('a job that installs the npm packages caches ~/.npm by package-lock.json, and setup-node caches nothing', async () => {
   const cache = { uses: 'actions/cache@x', with: NPM_CACHE };
   assert.deepEqual(npmCacheViolations({ jobs: {
-    a: { steps: [{ uses: 'actions/setup-node@x', with: { cache: 'npm' } }, { run: 'make install-npm' }] },
-    b: { steps: [{ run: 'make install-npm' }, { run: 'make install-node-modules install-composer' }] },
-    c: { steps: [{ run: 'make install-npm' }, cache, { run: 'make install-node-modules' }] },
+    a: { steps: [{ uses: 'actions/setup-node@x', with: { cache: 'npm' } }, { run: 'make install-tools' }] },
+    b: { steps: [{ run: 'make install-tools' }, { run: 'make install-node-modules install-composer' }] },
+    c: { steps: [{ run: 'make install-tools' }, cache, { run: 'make install-node-modules' }] },
     d: { steps: [cache, { run: 'make install-composer' }] },
     e: { steps: [{ uses: 'actions/cache@x', with: { ...NPM_CACHE, key: 'npm' } }, { run: 'make install-node-modules' }] },
-    f: { steps: [cache, { run: 'make install-npm' }, { run: 'make install-node-modules' }] },
+    f: { steps: [cache, { run: 'make install-tools' }, { run: 'make install-node-modules' }] },
   } }), [
     'a: setup-node caches npm',
     'b: installs the npm packages without one cache of ~/.npm',
@@ -207,11 +207,11 @@ export function stepsOutsideMake(workflow) {
 
 test('a workflow step starts every tool through a make target', async () => {
   assert.deepEqual(stepsOutsideMake({ jobs: { a: { steps: [
-    { name: 'install', run: 'node scripts/install-npm.mjs\necho "$PWD" >> "$GITHUB_PATH"' },
+    { name: 'install', run: 'node scripts/kit/install-tools.mjs\necho "$PWD" >> "$GITHUB_PATH"' },
     { name: 'test', run: 'FOO=1 xvfb-run npm test && make lint' },
     { name: 'ok', run: 'make toolchain-check TOOLS="node npm"' },
     { name: 'nginx', run: 'sudo apt-get install -y nginx\nphp-fpm -v && nginx -v' },
-  ] } } }), ['a: install: node scripts/install-npm.mjs', 'a: test: FOO=1 xvfb-run npm test']);
+  ] } } }), ['a: install: node scripts/kit/install-tools.mjs', 'a: test: FOO=1 xvfb-run npm test']);
   const violations = [];
   for (const file of ['ci.yml', 'dependency-review.yml', 'pages.yml', 'push-gate.yml', 'release.yml']) {
     violations.push(...stepsOutsideMake(parse(await read(`.github/workflows/${file}`))).map(line => `${file} ${line}`));
@@ -246,7 +246,7 @@ export function jobsWithoutReport(workflow) {
 
 test('every job runs its checks through make ci-targets and uploads their report', async () => {
   assert.deepEqual(jobsWithoutReport({ jobs: {
-    a: { steps: [{ run: 'make install-npm' }, { run: 'make lint', if: '${{ !cancelled() }}' }] },
+    a: { steps: [{ run: 'make install-tools' }, { run: 'make lint', if: '${{ !cancelled() }}' }] },
     b: { steps: [{ run: 'make ci-targets TARGETS="lint"', if: '${{ !cancelled() }}' }] },
     c: { steps: [{ run: 'make ci-targets TARGETS="lint"' }, { uses: 'actions/upload-artifact@x', if: 'always()', with: { path: 'var/report/ci-targets' } }] },
     d: { steps: [{ run: 'make ci-targets TARGETS="lint"' }, { uses: 'actions/upload-artifact@x', if: '${{ !cancelled() }}', with: { path: 'var/report/ci-targets', 'if-no-files-found': 'error' } }] },
@@ -349,7 +349,7 @@ test('the release workflow checks the tag, writes and installs the archives and 
   assert.equal(job.env.TAG, '${{ github.ref_name }}', 'the tag reaches the make targets through the environment');
   assert.equal(job.steps[0].with['fetch-depth'], 0, 'origin/main is fetched for git merge-base --is-ancestor');
   const runs = job.steps.filter((step) => step.run !== undefined).map((step) => step.run);
-  assert.deepEqual(runs, ['make install-npm', 'make toolchain-check TOOLS="node npm php composer"', 'make install-node-modules', ...RELEASE_STEPS]);
+  assert.deepEqual(runs, ['make install-tools', 'make toolchain-check TOOLS="node npm php composer"', 'make install-node-modules', ...RELEASE_STEPS]);
   assert.deepEqual(runs.slice(-5), RELEASE_STEPS);
   assert.deepEqual(runs.filter((run) => /\brelease-|\bbuild\b/.test(run)), RELEASE_STEPS, 'the build runs inside make release-assets');
   const makefile = await read('Makefile');

@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### 2026-10-09 — Toolchain, dependency and test runner tools of kit (C14.1-2)
+
+- `config/toolchain.json` follows `scripts/kit/schema/toolchain.schema.json`; `make install-tools` installs npm, Go and cargo-audit into `var/tools`, and the Makefile puts `var/tools/bin` first on `PATH`. `scripts/install-npm.mjs`, `scripts/checkout-npm.mjs`, `scripts/check-toolchain.mjs`, `scripts/check-cargo-downloads.mjs` and `scripts/install-cargo-audit.mjs` are removed.
+- `config/dependency-policy.json` follows the kit shape: `composerPlatforms` names `./composer.json` with PHP `8.4.1` (the lowest PHP release that the locked PHPUnit 13.4.1 supports; `config.platform.php` of `composer.json` and `platform-overrides` of `composer.lock` record it), `taggedNpmPackages` names the OrderedJSON tag `v0.0.3`, and the four React exceptions keep their reason and removal condition. `make dependency-review RECORD=1` wrote `config/dependency-review.json` for the npm, Composer and Cargo locks: 85 registry dependencies and 8 locks, no advisory and the same versions as before. The six Go modules require only modules of the checkout through `replace`, so they add no Go dependency. `scripts/dependency-state.mjs`, `scripts/dependency-review.mjs` and `scripts/check-dependencies.mjs` are removed.
+- `scripts/kit/run-tests.mjs` and `scripts/kit/test-progress.mjs` replace `scripts/run-tests.mjs` and `scripts/test-progress`; `tests/conformance/run-suite.mjs` starts the runner for the suites of `scripts/check-conformance.mjs` and leaves their run record. ESLint and the repository rules do not read the vendored copy (`scripts/repository-files.mjs`).
+
 ### 2026-10-09 — Vendored tools of polyspec/kit v0.0.4 (C14.1-1)
 
 - `kit.json`, `.kit/kit.lock.json`, `scripts/kit` and `tests/kit` hold the files of the tag `v0.0.4`, and the Makefile includes `scripts/kit/kit.mk`. `make kit-sync KIT_TAG=v0.0.4` wrote the lock and printed `unchanged` on the second run; `make kit-test` passed 322 of 322 tests.

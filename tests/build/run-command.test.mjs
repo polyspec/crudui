@@ -13,7 +13,7 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const SHARED = ['scripts/run-command.mjs', 'scripts/checkout-npm.mjs', 'scripts/test-progress'];
+const SHARED = ['scripts/run-command.mjs', 'scripts/kit/test-progress.mjs', 'scripts/kit/time.mjs'];
 
 /** A sandbox with the listed repository files and a `bin` directory for stand-in programs. */
 function sandbox(t, files) {

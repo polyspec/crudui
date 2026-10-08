@@ -725,7 +725,7 @@ mod tests {
 
     /// An object of 100,000 distinct members, each found in constant time, is read within a
     /// second; comparing each member with every earlier one makes 5 * 10^9 comparisons and does
-    /// not end before the per-test timeout of scripts/run-tests.mjs.
+    /// not end before the per-test timeout of scripts/kit/run-tests.mjs.
     #[test]
     fn reading_many_members_ends() {
         JsonText::parse(&object(100_000)).unwrap();

@@ -8,10 +8,10 @@ recorded npm, the npm and Composer dependencies, the Rust toolchain of `rust-too
 crates of every Cargo.lock with the OrderedJSON checkout of the comparison (`make install-crates`) and
 the phpDocumentor release that `scripts/install-phpdocumentor.sh` checks by its SHA-256,
 and `make toolchain-check` names every tool that runs at another release with the expected one.
-Install the npm release that `packageManager` of `package.json`
-records into the checkout with `node scripts/install-npm.mjs`, which never changes the npm of the
-machine; make puts its `.tools/npm/node_modules/.bin` first on `PATH`, and a shell that runs npm
-itself puts it there with `export PATH="$PWD/.tools/npm/node_modules/.bin:$PATH"`. Install Node
+Install the npm and Go releases that the checkout declares, and cargo-audit, into the checkout
+with `make install-tools` (`scripts/kit/install-tools.mjs`), which never changes the tools of the
+machine; make puts their commands in `var/tools/bin` first on `PATH`, and a shell that runs npm
+itself puts them there with `export PATH="$PWD/var/tools/bin:$PATH"`. Install Node
 dependencies with `npm ci --strict-allow-scripts`, install the PHP package's Composer dependencies,
 and make PHP, Go and Cargo available on `PATH`, with `php-fpm` and `nginx` for the PHP record
 servers of the comparison example (Homebrew: `brew install php nginx`; Debian and Ubuntu:
@@ -30,7 +30,7 @@ full builds), `make owner-check` and the full run `make ci` run in CI on the pul
 requires a local check before a push or a commit; the pre-push hook only refuses a push while a
 checklist task is `[~]` (below). `make ci` and `make owner-check` remain available on request.
 
-Every step of the workflows runs a make target: the installs (`make install-npm`,
+Every step of the workflows runs a make target: the installs (`make install-tools`,
 `make install-node-modules`, `make install-composer`, `make install-rust`, `make install-crates`,
 `make install-browsers BROWSERS="..."`), the tool check (`make toolchain-check TOOLS="..."`) and each
 check (`make test-runtimes`, `make lint`, `make test-forms` and the others of `CI_COMMANDS`), so the
@@ -165,8 +165,8 @@ composer install
 npm run build
 npm test --workspace @polyspec/crudui-validator
 composer --working-dir=packages/validator-php test
-node scripts/run-tests.mjs go --cwd packages/validator-go -- ./...
-node scripts/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml
+node scripts/kit/run-tests.mjs go --cwd packages/validator-go -- ./...
+node scripts/kit/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml
 npm test --workspace @polyspec/crudui-cli
 npm run test:forms
 npm run test:packages
@@ -198,10 +198,10 @@ when the configuration ignores it or no configuration entry matches it.
 
 ## Test runner
 
-Every test runs through `scripts/run-tests.mjs`:
+Every test runs through `scripts/kit/run-tests.mjs`:
 
 ```sh
-node scripts/run-tests.mjs <node|vitest|go|cargo|phpunit> [--timeout <seconds>] [--cwd <directory>] [--] [<arguments>]
+node scripts/kit/run-tests.mjs <node|vitest|go|cargo|phpunit> [--timeout <seconds>] [--cwd <directory>] [--] [<arguments>]
 ```
 
 The runner prints each test's start, a line while it is still running, its result and its
@@ -219,7 +219,7 @@ Every registered case of a `node:test` file runs, or the file fails. `node --tes
 handle open cannot hold the run; a test that the module registers after that end never runs. Three
 checks close that gap:
 
-- The runner preloads `scripts/test-progress/load-check.mjs` into every test file's process. A
+- The runner preloads `scripts/kit/test-load-check.mjs` into every test file's process. A
   process that ends before its module finished evaluating, top-level `await`s included, fails the
   file with `the process ended before the module finished loading; tests registered later did not
   run`.
@@ -230,20 +230,18 @@ checks close that gap:
   is registered before the module's first wait and the first check does not depend on how long the
   earlier cases take.
 
-`tests/build/run-tests.test.mjs` runs files for the first two checks and
+`tests/kit/run-tests.test.mjs` runs files for the first two checks and
 `tests/build/test-commands.test.mjs` runs the lint rule on fixtures.
 
 Every failure of a run is printed with its test file and elapsed time, including a failure outside
 a test: a hook that fails or runs out of time and an error of a test file. A file or a suite whose
-hook fails is printed as failed with the cause, even when every test in it passed; for `node --test`
-the failed hook of a file is printed as `{file} › hook`. The summary line names the failed groups,
-so a run whose tests all passed and whose tool exits with a nonzero code shows the failure that
-caused the code. `tests/build/run-tests.test.mjs` runs a timed-out after hook under `node --test`
-and under Vitest.
+hook fails is printed as failed, even when every test in it passed. The summary line names the
+failed groups, so a run whose tests all passed and whose tool exits with a nonzero code shows the
+failure that caused the code. `tests/kit/run-tests.test.mjs` runs these cases.
 
 A setup (a browser launch, a server start, a stylesheet compile, a build) and a teardown (a
 browser close, a server stop, a directory removal) are long operations, not test cases. A
-`node:test` file registers them with `setup` and `teardown` of `scripts/test-progress/hooks.mjs`, a
+`node:test` file registers them with `setup` and `teardown` of `scripts/kit/test-hooks.mjs`, a
 `before` or `after` hook of the file, of a suite or of one test (`{ context: t }`) with the timeout
 `Infinity`: each ends when its operation settles (the browser launched, the server listens, the
 close resolved, the process exited), its error fails the file, and it prints its start, a line
@@ -277,9 +275,9 @@ validator test or a PHP extension engine fixture reads a clock.
 - a CI job or step has `timeout-minutes`. A step runs tests or a long operation (a checkout, a
   toolchain setup, an install, a build, a lint or type check, an upload, a deployment). The runner
   bounds each test case of a test step; a long operation prints its logs and has no time limit. A
-  step runs tests when its command calls `scripts/run-tests.mjs` or reaches, through npm scripts,
+  step runs tests when its command calls `scripts/kit/run-tests.mjs` or reaches, through npm scripts,
   Composer scripts and Makefile targets, a test command or the runner;
-- a script that a test command starts does not print through `scripts/test-progress/progress.mjs`;
+- a script that a test command starts does not print through `scripts/kit/test-progress.mjs`;
 - a `node:test` file is run by no project command;
 - a TypeScript package has no `typecheck` script, or CI does not run `npm run typecheck`.
 - a Makefile target takes a target that runs tests as a prerequisite;
@@ -391,7 +389,7 @@ concurrent runs, the report and the removal of a lock whose holder no longer run
 |---|---|
 | Snapshots of `make docs-verify-idempotent` | A directory from `mktemp -d`, removed at the run's exit |
 | `dist` of each built package | Checkout lock `dist-<package folder>`, held by the package's whole build and by every pack; the build writes `dist.next` and replaces `dist` with it |
-| The build stamp, the PHP modules and their build records, the OrderedJSON checkout, `.tools/npm` | Written to a path of the run and renamed into place (`tests/build/atomic-publish.test.mjs`) |
+| The build stamp, the PHP modules and their build records, the OrderedJSON checkout | Written to a path of the run and renamed into place (`tests/build/atomic-publish.test.mjs`) |
 
 The build script of every built package is `node ../../scripts/package-dist.mjs build '<command>'`,
 which runs the build command under the package's `dist` lock. The command writes into `dist.next`,

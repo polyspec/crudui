@@ -11,7 +11,7 @@ use PHPUnit\Framework\TestCase;
  * The unique rule walks the values of a collection once per validation (validation-rules.md).
  * Each test validates 25,000 distinct values, which a single walk checks within seconds; a check
  * that walks every earlier value again for each value makes 3 * 10^8 value visits and does not
- * end before the per-test timeout of scripts/run-tests.mjs, which fails the test. No test reads a
+ * end before the per-test timeout of scripts/kit/run-tests.mjs, which fails the test. No test reads a
  * clock, so the load of the machine cannot change a result.
  */
 final class UniqueManyValuesTest extends TestCase

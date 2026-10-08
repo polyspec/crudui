@@ -12,7 +12,7 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createProgress } from '../../../scripts/test-progress/progress.mjs';
+import { createProgress } from '../../../scripts/kit/test-progress.mjs';
 
 const lines = createProgress({ write: text => process.stdout.write(text) });
 const styles = resolve(dirname(fileURLToPath(import.meta.url)), '../styles');

@@ -10,7 +10,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createServer } from 'vite';
 import { engineDrivers, engines } from './browser-engines.mjs';
-import { setup, teardown } from '../scripts/test-progress/hooks.mjs';
+import { setup, teardown } from '../scripts/kit/test-hooks.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const entry = '/__crudui_form_styles__.mjs';

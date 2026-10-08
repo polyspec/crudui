@@ -8,13 +8,13 @@
 # machine-absolute paths). `make docs` run twice yields identical output.
 
 .DEFAULT_GOAL := help
-# The npm of this checkout (scripts/checkout-npm.mjs): `node scripts/install-npm.mjs` installs the release that
-# packageManager of package.json records into the ignored .tools/npm, and every command of make finds it first on PATH.
-# The npm of the machine is never changed.
-export PATH := $(CURDIR)/.tools/npm/node_modules/.bin:$(PATH)
+# The tools of this checkout: `make install-tools` (scripts/kit/install-tools.mjs) installs npm, Go and cargo-audit at the
+# releases that the checkout declares into the ignored var/tools, with their commands in var/tools/bin, and every command
+# of make finds them first on PATH. The tools of the machine are never changed.
+export PATH := $(CURDIR)/var/tools/bin:$(PATH)
 # GNU Make 3.81 looks up the program of a recipe line without shell syntax on the PATH that make started with, not on the
-# exported one, so every recipe starts npm by its path (tests/build/checkout-npm.test.mjs).
-NPM := $(CURDIR)/.tools/npm/node_modules/.bin/npm
+# exported one, so every recipe starts npm by its path (tests/build/tool-path.test.mjs).
+NPM := $(CURDIR)/var/tools/bin/npm
 # The exact toolchains of the checkout (docs/spec/package-build.md): rustup runs the toolchain of rust-toolchain.toml and
 # never installs one on the first cargo, which fails with rustup's message naming `rustup toolchain install`; go runs the
 # installed release and never downloads the toolchain of a go.mod. `make install` installs them.
@@ -22,15 +22,15 @@ export RUSTUP_AUTO_INSTALL := 0
 export GOTOOLCHAIN := local
 # A check reads no network (docs/spec/package-build.md, "Offline checks"): every recipe and the scripts that it starts
 # run cargo, go, npm and Composer offline, so a missing download fails at once instead of reaching a registry in one run
-# and not in another. The targets that download, install-crates, install-ordered-json, install-cargo-audit,
-# dependency-review and the consumer installs release-install-check and release-install-lock, and the downloads of install
-# run their commands with $(ONLINE); cargo-downloads-check names make install for a missing crate.
+# and not in another. The targets that download, install-tools, install-crates, install-ordered-json, dependency-review
+# and the consumer installs release-install-check and release-install-lock, and the downloads of install run their
+# commands with $(ONLINE); cargo-downloads-check (scripts/kit/kit.mk) names make install for a missing crate.
 export CARGO_NET_OFFLINE := true
 export GOPROXY := off
 export npm_config_offline := true
 export COMPOSER_DISABLE_NETWORK := 1
 ONLINE := env -u CARGO_NET_OFFLINE -u GOPROXY -u npm_config_offline -u COMPOSER_DISABLE_NETWORK
-.PHONY: help ci-targets ci-passed release-verify release-versions release-assets release-install-check release-install-lock release-install-head release-publish push-gate-check install install-npm install-node-modules install-composer install-rust install-phpdocumentor install-browsers check-ci-browser test-runtimes test-dependencies build lint typecheck test-validator-js test-validator-php test-validator-go test-validator-rust test-validator-python test-generator-python test-cross-check manifest-test require-build test-cli manifest-check manifest-docs-check test-forms test-form-comparison test-form-comparison-pipeline test-form-comparison-checks test-form-comparison-browser test-form-comparison-summary test-packages test-build test-build-repeat test-inspector test-bench check-conformance install-crates install-ordered-json install-cargo-audit cargo-downloads-check dependency-review toolchain-check owner-check test-ordered-json docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-engine test-native-generators test-php-api test-native test-validators test-form-binding conformance format-check github-settings github-settings-check records-check hooks hooks-check ci rerun-failed
+.PHONY: help ci-targets ci-passed release-verify release-versions release-assets release-install-check release-install-lock release-install-head release-publish push-gate-check install install-node-modules install-composer install-rust install-phpdocumentor install-browsers check-ci-browser test-runtimes test-dependencies build lint typecheck test-validator-js test-validator-php test-validator-go test-validator-rust test-validator-python test-generator-python test-cross-check manifest-test require-build test-cli manifest-check manifest-docs-check test-forms test-form-comparison test-form-comparison-pipeline test-form-comparison-checks test-form-comparison-browser test-form-comparison-summary test-packages test-build test-build-repeat test-inspector test-bench check-conformance install-crates install-ordered-json owner-check test-ordered-json docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-engine test-native-generators test-php-api test-native test-validators test-form-binding conformance format-check github-settings github-settings-check records-check hooks hooks-check ci rerun-failed
 .NOTPARALLEL: docs docs-web docs-dev docs-preview docs-check docs-verify-idempotent
 
 # The tools that every polyspec repository shares are vendored copies in scripts/kit (kit.json, .kit/kit.lock.json);
@@ -56,9 +56,10 @@ help: ## 타겟 설명
 	@echo ""
 	@echo "  make install               Install the recorded npm, the npm, Composer and Cargo dependencies, the Rust toolchain and phpDocumentor"
 	@echo "  make install-crates        Download the crates of every Cargo.lock and the OrderedJSON checkout that one reads"
-	@echo "  make install-cargo-audit   Install the cargo-audit release of config/toolchain.json into .tools/cargo-audit"
+	@echo "  make install-tools         Install the npm, Go and cargo-audit releases that the checkout declares into var/tools"
 	@echo "  make toolchain-check       Fail when a tool does not run at the version that the checkout records"
 	@echo "  make dependency-review     Ask the registries for newer stable releases and advisories; RECORD=1 records, UPDATE=1 updates first"
+	@echo "  make dependency-policy-check  Check the manifests and locks against config/dependency-policy.json and the review record"
 	@echo "  make owner-check           Run the owner checks of the changed paths (scripts/owner-checks.json); PATHS or BASE select the paths"
 	@echo "  make test-ordered-json     Test the processor checks of tests/ordered-json without an OrderedJSON checkout"
 	@echo "  make docs                  전체 문서 생성 (API doc 멀티언어 + JSON schema 검사 + 정적 웹)"
@@ -106,17 +107,16 @@ help: ## 타겟 설명
 	@echo "  주의: 절대시간은 머신 의존 — 같은 스펙 안에서 백엔드 간 비율만 비교하라."
 	@echo ""
 
-# The npm of packageManager into .tools/npm, the dependencies of the lock files, the Rust toolchain of
-# rust-toolchain.toml, the crates of every Cargo.lock, the OrderedJSON checkout of the comparison and the phpDocumentor release that scripts/install-phpdocumentor.sh checks by its SHA-256. Node.js, Go, PHP and Composer are installed at the versions of .node-version, .go-version and
-# config/toolchain.json by the machine's package manager; `make toolchain-check` names every tool at another version.
-install: install-node-modules install-composer install-rust install-crates install-phpdocumentor ## Install the recorded npm, the npm, Composer and Cargo dependencies, the Rust toolchain and phpDocumentor
+# The npm, Go and cargo-audit releases that the checkout declares into var/tools (install-tools of scripts/kit/kit.mk), the
+# dependencies of the lock files, the Rust toolchain of rust-toolchain.toml, the crates of every Cargo.lock, the OrderedJSON
+# checkout of the comparison and the phpDocumentor release that scripts/install-phpdocumentor.sh checks by its SHA-256.
+# Node.js, PHP, Python and Composer are installed at the versions of .node-version and config/toolchain.json by the
+# machine's package manager; `make toolchain-check` names every tool at another version.
+install: install-tools install-node-modules install-composer install-rust install-crates install-phpdocumentor ## Install the declared tools, the npm, Composer and Cargo dependencies, the Rust toolchain and phpDocumentor
 
 # The parts of make install, which the CI jobs run for what they check: every CI step runs a make target, so the recipes
 # start every tool with the offline settings, $(NPM) and the toolchains of the checkout.
-install-npm: ## Install the npm release of packageManager into .tools/npm
-	$(ONLINE) node scripts/install-npm.mjs
-
-install-node-modules: install-npm install-ordered-json ## Install the npm dependencies of package-lock.json with their approved install scripts
+install-node-modules: install-tools install-ordered-json ## Install the npm dependencies of package-lock.json with their approved install scripts
 	$(ONLINE) $(NPM) ci --strict-allow-scripts
 
 # The development root composer.json, never published, resolves the Composer packages of packages/: its path
@@ -140,34 +140,12 @@ check-ci-browser: ## Check that the pinned Chrome runs sandboxed
 
 # The crates of every Cargo.lock, after the OrderedJSON checkout that the lock of the Rust record server reads; a CI job
 # that runs a target with cargo-downloads-check runs it.
-install-crates: install-ordered-json ## Download the crates of every Cargo.lock
-	$(ONLINE) node scripts/check-cargo-downloads.mjs --fetch
+install-crates: install-ordered-json cargo-downloads-fetch ## Download the crates of every Cargo.lock
 
 # The OrderedJSON checkout of the comparison record servers (examples/form-comparison/install-ordered-json.mjs);
 # the Cargo lock of the Rust record server reads it.
 install-ordered-json: ## Install the OrderedJSON checkout of the comparison record servers
 	$(ONLINE) node examples/form-comparison/install-ordered-json.mjs
-
-# The cargo-audit release of config/toolchain.json in .tools/cargo-audit, which the dependency review runs.
-install-cargo-audit: ## Install the cargo-audit release of config/toolchain.json into .tools/cargo-audit
-	$(ONLINE) node scripts/install-cargo-audit.mjs
-
-# The crates of every Cargo.lock in the registry of CARGO_HOME; every target that runs cargo depends on it, and it names
-# make install for a missing crate instead of cargo's advice to retry without --offline.
-cargo-downloads-check: ## Check that the crates of every Cargo.lock are downloaded; names make install otherwise
-	node scripts/check-cargo-downloads.mjs
-
-# The dependency review (docs/spec/package-build.md, "Dependency review"): it asks the registries for the latest stable
-# release of every registry dependency and for the advisories of every npm, Composer and Cargo lock. RECORD=1 writes config/dependency-review.json,
-# which `npm run test:dependencies` compares with the checkout without a network; UPDATE=1 updates first. No check runs it;
-# the scheduled workflow .github/workflows/dependency-review.yml runs it every day.
-dependency-review: install-cargo-audit ## Ask the registries for newer stable releases and advisories; RECORD=1 records the review, UPDATE=1 updates first
-	$(ONLINE) node scripts/dependency-review.mjs $(if $(RECORD),--record) $(if $(UPDATE),--update)
-
-# TOOLS names the tools that a CI job set up.
-TOOLS ?= node npm go rust php python composer
-toolchain-check: ## Fail when a tool of TOOLS does not run at the version that the checkout records
-	node scripts/check-toolchain.mjs $(TOOLS)
 
 # Every CI job runs its checks through ci-targets (scripts/ci-targets.mjs): each target of TARGETS runs as make -k to its
 # end, also after an earlier one failed, and var/report/ci-targets holds the log of each target and summary.md with the
@@ -178,8 +156,12 @@ ci-targets: ## Run the targets of TARGETS to their end and write var/report/ci-t
 # The checking commands of the CI workflow, one target each (CI_COMMANDS).
 test-runtimes: ## Exact runtime versions and test standards
 	$(NPM) run test:runtimes
-test-dependencies: ## The dependency graph and its recorded review
-	$(NPM) run test:dependencies
+test-dependencies: ## The dependency graph, the dependency policy and its recorded review
+	@status=0; \
+	$(MAKE) --no-print-directory dependency-policy-check || status=1; \
+	$(MAKE) --no-print-directory dependency-policy-mutation-check || status=1; \
+	$(NPM) run test:dependencies || status=1; \
+	exit $$status
 build: ## Build the JavaScript packages
 	$(NPM) run build
 lint: ## Lint the repository
@@ -191,9 +173,9 @@ test-validator-js: ## The TypeScript validator suite
 test-validator-php: ## The PHP validator suite
 	composer --working-dir=packages/validator-php test
 test-validator-go: ## The Go validator suite
-	node scripts/run-tests.mjs go --cwd packages/validator-go -- ./...
+	node tests/conformance/run-suite.mjs go --cwd packages/validator-go -- ./...
 test-validator-rust: cargo-downloads-check ## The Rust validator suite
-	node scripts/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml
+	node tests/conformance/run-suite.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml
 test-validator-python: ## The Python validator suite
 	python3 tests/conformance/runner.py packages/validator-python/tests
 test-generator-python: ## The Python generator suite
@@ -285,7 +267,7 @@ docs-check-documents: cargo-downloads-check
 	$(NPM) run manifest:check || status=1; \
 	$(NPM) run manifest:docs:check || status=1; \
 	$(MAKE) --no-print-directory records-check || status=1; \
-	node scripts/run-tests.mjs node -- scripts/gen-api-docs.test.mjs scripts/check-doc-coverage.test.mjs scripts/php-doc-coverage.test.mjs || status=1; \
+	node scripts/kit/run-tests.mjs node -- scripts/gen-api-docs.test.mjs scripts/check-doc-coverage.test.mjs scripts/php-doc-coverage.test.mjs || status=1; \
 	$(NPM) run test:docs || status=1; \
 	$(NPM) run docs:build || status=1; \
 	exit $$status
@@ -348,7 +330,7 @@ bench-rust: cargo-downloads-check bench-fixtures ## Rust 검증기만 측정
 
 # The JavaScript packages are built only when their sources or output changed; the
 # extension build and the native suite both read the built packages. Every test runs through
-# scripts/run-tests.mjs, which prints each test with its elapsed time and gives it its own
+# scripts/kit/run-tests.mjs, which prints each test with its elapsed time and gives it its own
 # timeout.
 build-php-extension:
 	node scripts/require-current-build.mjs
@@ -363,15 +345,15 @@ build-php-extension:
 # failure; any failure fails the target.
 test-php-engine:
 	node scripts/require-current-build.mjs
-	node scripts/run-tests.mjs node -- packages/php-ext/tests/engine.test.mjs
+	node tests/conformance/run-suite.mjs node -- packages/php-ext/tests/engine.test.mjs
 
 test-native-generators: cargo-downloads-check
 	node scripts/require-current-build.mjs
 	@status=0; \
-	node scripts/run-tests.mjs go --cwd packages/generator-go -- -race ./... || status=1; \
-	node scripts/run-tests.mjs cargo -- --locked --manifest-path packages/generator-rust/Cargo.toml || status=1; \
-	node scripts/run-tests.mjs node -- tests/native-generators/protocol.test.mjs || status=1; \
-	node scripts/run-tests.mjs node --timeout 60 -- tests/widget-scripts.test.mjs || status=1; \
+	node scripts/kit/run-tests.mjs go --cwd packages/generator-go -- -race ./... || status=1; \
+	node scripts/kit/run-tests.mjs cargo -- --locked --manifest-path packages/generator-rust/Cargo.toml || status=1; \
+	node scripts/kit/run-tests.mjs node -- tests/native-generators/protocol.test.mjs || status=1; \
+	node scripts/kit/run-tests.mjs node --timeout 60 -- tests/widget-scripts.test.mjs || status=1; \
 	node tests/native-generators/run.mjs --target javascript,html,go,rust,python --report "$(NATIVE_REPORT)" || status=1; \
 	exit $$status
 
@@ -380,8 +362,8 @@ test-php-api: build-php-extension
 	# checkout lock of that vendor directory, so two runs never reinstall it at once.
 	node scripts/holder-lock.mjs hold "$(CURDIR)/var/locks/composer-vendor.lock" -- composer reinstall polyspec/crudui-validator --no-interaction
 	@status=0; \
-	node scripts/run-tests.mjs node -- tests/native-generators/php-extension-builder.test.mjs packages/php-ext/tests/api.test.mjs || status=1; \
-	node scripts/run-tests.mjs phpunit --cwd packages/generator-php || status=1; \
+	node tests/conformance/run-suite.mjs node -- tests/native-generators/php-extension-builder.test.mjs packages/php-ext/tests/api.test.mjs || status=1; \
+	node scripts/kit/run-tests.mjs phpunit --cwd packages/generator-php || status=1; \
 	node tests/native-generators/run.mjs --extension "$(PHP_EXTENSION)" --target php,php-native --report "$(PHP_NATIVE_REPORT)" || status=1; \
 	exit $$status
 
@@ -394,10 +376,10 @@ test-native:
 
 test-validators: cargo-downloads-check
 	@status=0; \
-	node scripts/run-tests.mjs vitest --cwd packages/validator-ts || status=1; \
-	node scripts/run-tests.mjs phpunit --cwd packages/validator-php || status=1; \
-	node scripts/run-tests.mjs go --cwd packages/validator-go -- ./... || status=1; \
-	node scripts/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml || status=1; \
+	node tests/conformance/run-suite.mjs vitest --cwd packages/validator-ts || status=1; \
+	node tests/conformance/run-suite.mjs phpunit --cwd packages/validator-php || status=1; \
+	node tests/conformance/run-suite.mjs go --cwd packages/validator-go -- ./... || status=1; \
+	node tests/conformance/run-suite.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml || status=1; \
 	exit $$status
 
 # The browser validation binding (docs/spec/form-runtime.md, "Browser validation"): data
@@ -450,7 +432,7 @@ github-settings-check: ## Fail when the repository settings differ from the decl
 records-check: ## Check the document pairs, links, changelog, writing and checklist rules with Node.js alone
 	@status=0; \
 	node scripts/check-documents.mjs || status=1; \
-	node scripts/run-tests.mjs node --timeout 10 -- scripts/checklist-markers.test.mjs scripts/documentation-links.test.mjs tests/docs/changelog.test.mjs tests/docs/repository-writing.test.mjs tests/docs/example-readmes.test.mjs tests/docs/fixture-readmes.test.mjs || status=1; \
+	node scripts/kit/run-tests.mjs node --timeout 10 -- scripts/checklist-markers.test.mjs scripts/documentation-links.test.mjs tests/docs/changelog.test.mjs tests/docs/repository-writing.test.mjs tests/docs/example-readmes.test.mjs tests/docs/fixture-readmes.test.mjs || status=1; \
 	exit $$status
 
 # The pre-push hook of every push (scripts/push-gate.mjs): `make hooks` installs it, `make hooks-check` fails while

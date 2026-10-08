@@ -50,7 +50,7 @@ final class PublicApiTest extends TestCase
 
     /**
      * 25,000 rows filtered by a condition are walked once, within seconds; a walk of every earlier
-     * row for each row does not end before the per-test timeout of scripts/run-tests.mjs.
+     * row for each row does not end before the per-test timeout of scripts/kit/run-tests.mjs.
      */
     public function testUniqueRowsAreWalkedOnce(): void
     {

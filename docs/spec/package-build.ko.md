@@ -157,27 +157,30 @@ Node.js는 활성 LTS 또는 다음 LTS로 지정된 최신 짝수 안정 메이
 - `.node-version`은 정확한 Node.js 릴리스를 기록하고 CI가 그것을 읽습니다.
 - 루트 `package.json`의 `packageManager`는 정확한 npm 릴리스를 기록합니다. 설치하고 패키징하고
   스크립트를 실행하는 npm이 그 결과를 바꾸기 때문이며, `pack --json` report가 npm 11의 배열에서
-  npm 12의 object로 바뀐 것이 그 예입니다. `node scripts/install-npm.mjs`는 정확히 그 릴리스를
-  checkout의 무시되는 directory `.tools/npm`에 설치하며, 다른 모든 checkout이 쓰는
-  machine의 npm에는 설치하지 않습니다. Makefile, npm을 시작하는 모든 script, 모든 CI job은
-  `.tools/npm/node_modules/.bin`을 `PATH`의 맨 앞에 둡니다.
+  npm 12의 object로 바뀐 것이 그 예입니다. `make install-tools`(`scripts/kit/install-tools.mjs`)는 정확히 그 릴리스를
+  checkout의 무시되는 directory `var/tools/npm`에 설치하며, 다른 모든 checkout이 쓰는
+  machine의 npm에는 설치하지 않습니다. Makefile은 `var/tools/bin`을 `PATH`의 맨 앞에 두고,
+  모든 CI job은 npm을 make 대상으로 시작합니다.
 - `.go-version`은 정확한 Go 릴리스를 기록하고 CI가 그것을 읽습니다. 모든 `go.mod`는 그 릴리스를
-  `toolchain` 줄에 적고, Makefile과 CI가 설정하는 `GOTOOLCHAIN=local`은 go가 다른
+  `toolchain` 줄에 적고, `config/toolchain.json`은 `make install-tools`가 `var/tools/go`에 설치하는
+  `toolchain` 줄을 가진 `go.mod`를 지정하며, Makefile과 CI가 설정하는 `GOTOOLCHAIN=local`은 go가 다른
   toolchain을 내려받지 못하게 합니다.
 - `rust-toolchain.toml`은 정확한 Rust 릴리스를 profile `minimal`과 component `rustfmt`,
   `clippy`와 함께 기록합니다. Makefile과 CI는 `RUSTUP_AUTO_INSTALL=0`을 설정하므로, 설치된
   toolchain이 없는 cargo는 그것을 설치하는 대신 rustup의 메시지로 실패합니다. `make install`과 CI는
   `rustup toolchain install --no-self-update`로 그것을 설치합니다.
 - `config/toolchain.json`은 `php`에 검사하는 PHP minor 릴리스를, `python`에 `tests/ordered-json`의 test
-  (`make test-ordered-json`)를 실행하는 Python의 minor 릴리스(PHP처럼 비교)를, `composer`에 정확한 Composer 릴리스를,
-  `node`에 Node.js 릴리스의 Linux x64 archive SHA-256을 기록합니다. setup-php와 Homebrew는 같은 patch를 설치할
+  (`make test-ordered-json`)를 실행하는 Python의 minor 릴리스(PHP처럼 비교)를, `composer`에 정확한 Composer 릴리스(`version`을 가진
+  object)를, `go`에 `toolchain` 줄이 Go 릴리스인 `go.mod`를, `cargoAudit`에 정확한 cargo-audit 릴리스를,
+  `node`에 Node.js 릴리스의 Linux x64 archive SHA-256을 기록합니다. 이 file은
+  `scripts/kit/schema/toolchain.schema.json` schema를 따르며 `make kit-check`가 이를 적용합니다. setup-php와 Homebrew는 같은 patch를 설치할
   수 없으므로 PHP는 minor 릴리스로 고정합니다. 검사는 실행 중인 PHP의 major와 minor를 비교하고, 실행이 쓴 patch는
-  그 실행의 evidence이며 `node scripts/check-toolchain.mjs`가 출력하고 `var/full-run.json`이 다른 실행 중인 릴리스와
+  그 실행의 evidence이며 `scripts/kit/check-toolchain.mjs`가 출력하고 `var/full-run.json`이 다른 실행 중인 릴리스와
   함께 기록합니다.
-- `node scripts/check-toolchain.mjs <tool>...`은 기록한 버전으로 실행되지 않는 모든 지정 도구에 대해
+- `make toolchain-check TOOLS="<tool>..."`(`scripts/kit/check-toolchain.mjs`)은 기록한 버전으로 실행되지 않는 모든 지정 도구에 대해
   실패하며 기록, 기대한 버전, 실행 중인 버전, 해결 방법을 밝히고, 지정한 모든 도구의 실행 중인 릴리스를
   출력합니다. 모든 CI job은 자신이 설치한
-  도구에 대해 그것을 실행하고, `make toolchain-check`는 모든 도구에 대해 실행합니다.
+  도구에 대해 그것을 실행하고, `TOOLS` 없는 `make toolchain-check`는 모든 도구에 대해 실행합니다.
 
 저장소는 컨테이너 정의를 두지 않습니다. Linux는 CI runner에서 실행됩니다. 패키지 잠금 파일은 해석한
 패키지 버전을 기록하며 런타임 릴리스를 선택하지 않습니다.
@@ -221,29 +224,33 @@ SHA-512 무결성을 기록하며, 프로젝트 npm 설정은 `allow-remote=none
 의존성은 검사가 registry에 묻는 결과가 아니라 review 때 알려진 상태로 판단하므로, 같은
 tree는 언제나 같은 결과를 냅니다. review 대상은 registry 의존성입니다. 루트와 각 workspace
 `package.json`의 `dependencies`와 `devDependencies`, 그리고 `config/dependency-policy.json`이
-지정한 Composer package(`packages/validator-php`, `packages/generator-php`)의 `require`와
-`require-dev`입니다. peer 의존성, URL 의존성, 이 저장소의 package와 Composer platform 요구
+지정한 Composer manifest(`config/dependency-policy.json`의 `composerPlatforms`가 지정하는 개발 root이며, schema `scripts/kit/schema/dependency-policy.schema.json`이
+`composer.json` 앞에 문자를 요구하므로 `./composer.json`으로 적습니다. 그 lock이 `packages/validator-php`, `packages/generator-php`를 해석합니다)의 `require`와 `require-dev`입니다. peer 의존성, URL 의존성, 이 저장소의 package와 Composer platform 요구
 사항은 정의상 review 밖에 있습니다. GitHub tag에서 가져온 polyspec package는 그 tag의
 release입니다. 검사는 루트 매니페스트가 그 package를 tag의 checkout에 연결하고, checkout이
-tag의 버전을 가지며, 잠금 파일이 그 버전을 기록할 것을 요구합니다. `make dependency-review`는 각 registry 의존성에 대해
+tag의 버전을 가지며, 잠금 파일이 그 버전을 기록할 것을 요구합니다. `make dependency-review`(`scripts/kit/dependency-review.mjs`)는 각 registry 의존성에 대해
 게시자가 deprecated로 표시하지 않은 최신 안정 release를, 그리고 `package-lock.json`(moderate,
 high, critical)과 각 `composer.lock`(모든 보안 권고와 abandoned package)의 보안 권고를
 registry에 묻고, checkout의 모든 Cargo lock의 보안 권고를 cargo-audit으로 RustSec advisory
-database에서 읽습니다(모든 취약점과 unmaintained, unsound, yanked crate). `make dependency-review`의 선행 대상인
-`make install-cargo-audit`은
-`config/toolchain.json`의 cargo-audit release를 `.tools/cargo-audit`에 설치합니다. `RECORD=1`은 review를 각 잠금 파일의 sha256과 함께
+database에서 읽습니다(모든 취약점과 unmaintained, unsound, yanked crate). `make install-tools`는
+`config/toolchain.json`의 cargo-audit release를 `var/tools/cargo-audit`에 설치합니다. checkout의 Go module은
+`replace`로 checkout의 module만 요구하므로 review는 Go 의존성과 `go.sum`을 기록하지 않습니다. `RECORD=1`은 review를 각 잠금 파일의 sha256과 함께
 `config/dependency-review.json`에 쓰고, `UPDATE=1`은 먼저 더 새로운 의존성을 manifest의 범위
 연산자를 유지한 채 올리고, `npm install --workspace`가 루트가 설치한 release를 남긴 채 올린
 release를 그 옆에 추가하므로 npm 갱신 뒤에 `npm dedupe`를 실행합니다. 예약된 workflow `.github/workflows/dependency-review.yml`이
 매일 review를 실행하며, 어떤 검사나 gating CI job도 이를 실행하지 않습니다.
 
-`npm run test:dependencies`는 checkout의 file만 읽고(`scripts/check-dependencies.mjs`) 각
-발견을 규칙과 고치는 방법과 함께 보고합니다. 잠금 파일이 review 뒤에 바뀌었거나, registry
+`make dependency-policy-check`(`scripts/kit/check-dependency-policy.mjs`)는 checkout의 file만 읽고 각
+발견을 규칙과 고치는 방법과 함께 보고합니다. `make dependency-policy-mutation-check`는 의존성 file 사본의 알려진 mutation을 검사가
+각각 거부할 것을 요구하고, `make test-dependencies`는 둘과 `npm run test:dependencies`를 실행합니다. 잠금 파일이 review 뒤에 바뀌었거나, registry
 의존성에 review 항목이 없거나 review가 기록한 것과 다른 version으로 잠겼거나, registry
 의존성이 예외 없이 review의 최신 안정 release보다 오래되었거나, 예외가 최신 release인 의존성을
 지정하거나, 잠금 파일에 review 때 보안 권고가 있었거나, `package-lock.json`이 manifest를
 기록하지 않거나, 이 저장소의 package를 그 자신의 version으로 요구하지 않거나, network 없는
-`composer validate --strict`가 최신이 아닌 Composer lock을 찾으면 실패합니다.
+`composer validate --strict`가 최신이 아닌 Composer lock을 찾거나, Composer manifest의 `config.platform.php` 또는 lock의
+`platform-overrides`가 `composerPlatforms` 항목의 `php`(`8.4.1`, 잠긴 PHPUnit이 지원하는 가장 낮은 PHP release)와 다르면 실패합니다.
+`config/dependency-policy.json`의 `taggedNpmPackages`는 루트 manifest가 `file:`로 연결하는 OrderedJSON tag를 기록하며,
+`tests/build/dependency-health.test.mjs` test는 이것이 `examples/form-comparison/src/ordered-json-source.mjs`의 tag와 같을 것을 요구합니다.
 `config/dependency-policy.json`의 예외는 ecosystem, manifest, package를 지정하고 재현된 이유,
 제거 조건, 검증 명령을 선언합니다.
 
@@ -252,12 +259,12 @@ release를 그 옆에 추가하므로 npm 갱신 뒤에 `npm dedupe`를 실행�
 검사는 network를 읽지 않습니다. Makefile은 모든 recipe와 그것이 시작하는 명령에
 `CARGO_NET_OFFLINE=true`, `GOPROXY=off`, `npm_config_offline=true`,
 `COMPOSER_DISABLE_NETWORK=1`을 export하고, download 대상인 `install`, `install-crates`,
-`install-ordered-json`, `install-cargo-audit`, `dependency-review`와, lock이 고정한 제3자
+`install-ordered-json`, `install-tools`, `dependency-review`와, lock이 고정한 제3자
 package를 내려받는 release archive의 사용자 설치 `release-install-check`,
 `release-install-lock`만 `$(ONLINE)`으로 이를 풉니다. `make install-crates`는 Rust record server의 lock이 읽는 OrderedJSON
 checkout(`.form-comparison/sources/ordered-json`) 다음에 모든 Cargo.lock의 crate를
 download하고, `make install`이 이를 실행합니다. cargo를 실행하는 모든 대상은
-`make cargo-downloads-check`(`scripts/check-cargo-downloads.mjs`)에 의존합니다. 이 검사는
+`make cargo-downloads-check`(`scripts/kit/check-cargo-downloads.mjs`)에 의존합니다. 이 검사는
 lock마다 `cargo fetch --locked --offline`을 실행하고, `--offline` 없이 다시 시도하라는 cargo의
 안내 대신 각 lock, cargo의 첫 오류 줄, `run make install, which downloads them`과 함께
 실패합니다. comparison pipeline은 OrderedJSON checkout을 읽고, 없거나 tracked change가 있거나 tag `v0.0.3`와 다른 commit이면

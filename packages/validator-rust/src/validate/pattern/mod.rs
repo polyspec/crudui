@@ -134,7 +134,7 @@ mod tests {
 
     /// Inputs that take exponential time in a backtracking engine: a linear matcher ends them within
     /// a second, and a backtracking one does not end before the per-test timeout of
-    /// scripts/run-tests.mjs.
+    /// scripts/kit/run-tests.mjs.
     #[test]
     fn matching_is_linear() {
         for (source, text) in [

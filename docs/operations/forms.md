@@ -7,8 +7,8 @@
 Run commands from the repository root. Install Node.js and npm, then run:
 
 ```sh
-node scripts/install-npm.mjs
-export PATH="$PWD/.tools/npm/node_modules/.bin:$PATH"
+make install-tools
+export PATH="$PWD/var/tools/bin:$PATH"
 npm ci --strict-allow-scripts
 npm run build
 ```
@@ -121,9 +121,9 @@ make docs-check
 Run the server validation cases from the repository root:
 
 ```sh
-node scripts/run-tests.mjs phpunit --cwd packages/validator-php -- --filter ValidateConformanceTest
-node scripts/run-tests.mjs go --cwd packages/validator-go -- ./validator/validate
-node scripts/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml --test validate_conformance
+node scripts/kit/run-tests.mjs phpunit --cwd packages/validator-php -- --filter ValidateConformanceTest
+node scripts/kit/run-tests.mjs go --cwd packages/validator-go -- ./validator/validate
+node scripts/kit/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml --test validate_conformance
 ```
 
 `test:forms` builds current packages and runs core, SSR and mounted DOM tests.

@@ -1,10 +1,9 @@
 {
-  "php": [
-    "8.4",
-    "8.5"
-  ],
+  "schema": 1,
+  "php": ["8.4", "8.5"],
   "python": "3.14",
-  "composer": "2.10.3",
+  "composer": { "version": "2.10.3" },
+  "go": { "mod": "packages/validator-go/go.mod" },
   "cargoAudit": "0.22.2",
   "node": {
     "linux-x64.tar.gz": "b2b76660fa4ded4e0b2a41ee3c0c651cd52ea8170ead91ebac1e147ac3d55643"

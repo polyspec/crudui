@@ -63,7 +63,7 @@ func TestComparisonKeyTypeDistinction(t *testing.T) {
 
 // TestUniqueManyValues checks 1,000,000 distinct values. A check that keys each value once ends
 // within a second; one that compares each value with every earlier one makes 5 * 10^11
-// comparisons and does not end before the per-test timeout of scripts/run-tests.mjs, which fails
+// comparisons and does not end before the per-test timeout of scripts/kit/run-tests.mjs, which fails
 // the test.
 func TestUniqueManyValues(t *testing.T) {
 	values := make([]any, 1_000_000)
@@ -105,7 +105,7 @@ func buildUniqueTestValues(count int) []any {
 // TestUniqueManyRows validates a repeated group of 200,000 rows whose field declares unique. The
 // rows are walked once per validation, which ends within seconds; a walk of every earlier row for
 // each row makes 2 * 10^10 row visits and does not end before the per-test timeout of
-// scripts/run-tests.mjs, which fails the test.
+// scripts/kit/run-tests.mjs, which fails the test.
 func TestUniqueManyRows(t *testing.T) {
 	decoded, err := compose.DecodeOrdered([]byte(`{"type":"group","properties":{"rows":{"type":"group","multiple":true,"properties":{"code":{"type":"text","validate":{"unique":true}}}}}}`))
 	if err != nil {

@@ -34,7 +34,7 @@
     { "paths": ["tests/conformance/**", "scripts/check-conformance.mjs"], "tests": ["tests/build/conformance-evidence.test.mjs"] },
     { "paths": ["tests/ordered-json/**"], "targets": ["test-ordered-json"] },
     { "paths": ["tools/bench/**"], "scripts": ["test:bench"], "tests": ["tests/build/rust-node-entry-points.test.mjs"] },
-    { "paths": ["scripts/run-tests.mjs", "scripts/test-progress/**"], "tests": ["tests/build/run-tests.test.mjs", "tests/build/failure-messages.test.mjs"] },
+    { "paths": ["scripts/kit/run-tests.mjs", "scripts/test-progress/**"], "tests": ["tests/build/run-tests.test.mjs", "tests/build/failure-messages.test.mjs"] },
     { "paths": ["scripts/test-commands.mjs", "scripts/lint/**", "eslint.config.mjs"], "scripts": ["lint"], "tests": ["tests/build/lint-coverage.test.mjs"] },
     { "paths": ["scripts/full-run.mjs"], "tests": ["tests/build/full-run.test.mjs", "tests/build/push-gate.test.mjs"] },
     { "paths": ["scripts/push-gate.mjs", ".githooks/**"], "tests": ["tests/build/push-gate.test.mjs", "tests/build/hooks.test.mjs"] },

@@ -10,7 +10,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { installOrderedJson, orderedJsonAtTag, orderedJsonTag } from './src/ordered-json-source.mjs';
-import { createProgress } from '../../scripts/test-progress/progress.mjs';
+import { createProgress } from '../../scripts/kit/test-progress.mjs';
 
 const directory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../.form-comparison/sources/ordered-json');
 

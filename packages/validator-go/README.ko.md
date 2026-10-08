@@ -35,6 +35,6 @@ result, err := validate.ValidateJSON(specJSON, dataJSON, files, basepath)
 저장소 루트에서 실행합니다.
 
 ```sh
-node scripts/run-tests.mjs go --cwd packages/validator-go -- ./...               # full suite
-node scripts/run-tests.mjs go --cwd packages/validator-go -- ./validator/...     # CRUDUI conformance
+node scripts/kit/run-tests.mjs go --cwd packages/validator-go -- ./...               # full suite
+node scripts/kit/run-tests.mjs go --cwd packages/validator-go -- ./validator/...     # CRUDUI conformance
 ```

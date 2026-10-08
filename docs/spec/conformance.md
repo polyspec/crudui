@@ -51,7 +51,8 @@ is required, because the shared fixtures do not state which cases a partial runt
 
 A missing case does not tell whether its suite failed, did not finish or did not run, so each run of
 a suite that records evidence also leaves a run record in `runs/` of the evidence directory:
-[`scripts/run-tests.mjs`](../../scripts/run-tests.mjs) for the test command it runs and
+[`tests/conformance/run-suite.mjs`](../../tests/conformance/run-suite.mjs) for the test command of a suite that it
+starts through [`scripts/kit/run-tests.mjs`](../../scripts/kit/run-tests.mjs) and
 [`tests/native-generators/run.mjs`](../../tests/native-generators/run.mjs) for itself, through
 [`tests/conformance/runs.mjs`](../../tests/conformance/runs.mjs). A record
 `{"program", "tool", "cwd", "args", "started", "status"}` is written with `status` `null` when the run

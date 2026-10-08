@@ -23,7 +23,7 @@ import { formServers } from './src/runtime-paths.mjs';
 import { sameSourceIdentity } from './src/source-identity.mjs';
 import { sourceIdentity } from './src/source-tree.mjs';
 import { formatDuration, runStages, stopStepsOnSignal } from './src/step-runner.mjs';
-import { createProgress } from '../../scripts/test-progress/progress.mjs';
+import { createProgress } from '../../scripts/kit/test-progress.mjs';
 import { verifyEvidence } from './verification-evidence.mjs';
 
 /** One check of the verification: a step that runs to its end and prints its progress. */

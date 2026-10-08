@@ -38,6 +38,6 @@ language.
 From the repository root:
 
 ```sh
-node scripts/run-tests.mjs go --cwd packages/validator-go -- ./...               # full suite
-node scripts/run-tests.mjs go --cwd packages/validator-go -- ./validator/...     # CRUDUI conformance
+node scripts/kit/run-tests.mjs go --cwd packages/validator-go -- ./...               # full suite
+node scripts/kit/run-tests.mjs go --cwd packages/validator-go -- ./validator/...     # CRUDUI conformance
 ```

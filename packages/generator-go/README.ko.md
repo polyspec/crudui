@@ -79,7 +79,7 @@ RFC 2822 값은 하나의 엄격한 파서로 처리하고 잘못되거나 지�
 저장소 루트에서 실행합니다.
 
 ```sh
-node scripts/run-tests.mjs go --cwd packages/generator-go -- ./...
+node scripts/kit/run-tests.mjs go --cwd packages/generator-go -- ./...
 go -C packages/generator-go run ./examples/server -data /tmp/crudui-go-record.json
 ```
 

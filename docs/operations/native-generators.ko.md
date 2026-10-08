@@ -14,8 +14,8 @@
 컴파일러를 설치합니다. 아래 컨테이너는 필요한 Linux 빌드 도구를 제공합니다.
 
 ```sh
-node scripts/install-npm.mjs
-export PATH="$PWD/.tools/npm/node_modules/.bin:$PATH"
+make install-tools
+export PATH="$PWD/var/tools/bin:$PATH"
 npm ci --strict-allow-scripts
 composer install --no-interaction --prefer-dist
 make test-native

@@ -1,7 +1,7 @@
 {
   "schema": 1,
-  "comment": "Written by make dependency-review RECORD=1 (scripts/dependency-review.mjs) from the registries; npm run test:dependencies compares the checkout with it without a network.",
-  "reviewed": "2026-10-08T16:47:27.530Z",
+  "comment": "Written by make dependency-review RECORD=1 (scripts/kit/dependency-review.mjs) from the registries; make dependency-policy-check compares the checkout with it without a network.",
+  "reviewed": "2026-10-08T21:42:30.594Z",
   "locks": [
     {
       "lock": "package-lock.json",
@@ -10,7 +10,7 @@
     },
     {
       "lock": "composer.lock",
-      "sha256": "3f08b22679ed2255db8bce0d51b3389e7a733b9495cd8db9fce547f2c0185bfe",
+      "sha256": "f076decee112fad5c5dd6bedd27d9cd4bb3dc8e9082f117890f6e2bfcb438351",
       "advisories": []
     },
     {
@@ -635,7 +635,7 @@
     },
     {
       "ecosystem": "composer",
-      "manifest": "composer.json",
+      "manifest": "./composer.json",
       "package": "phpunit/phpunit",
       "version": "13.4.1",
       "latest": "13.4.1"

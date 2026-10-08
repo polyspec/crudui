@@ -276,9 +276,9 @@ JavaScript, HTML 렌더러, PHP, PHP 확장, Go, Rust의 원본 목록과 상세
 
 ```sh
 npm test -w @polyspec/crudui-validator -- src/validate-list/validate-list.conformance.test.ts src/validate-detail/validate-detail.conformance.test.ts
-node scripts/run-tests.mjs phpunit --cwd packages/validator-php -- --filter 'ListValidateConformanceTest|DetailValidateConformanceTest'
-node scripts/run-tests.mjs go --cwd packages/validator-go -- ./validator/validate -run 'TestValidateListMatchesFixture|TestValidateDetailMatchesFixture'
-node scripts/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml --test list_validity_conformance --test detail_validity_conformance
+node scripts/kit/run-tests.mjs phpunit --cwd packages/validator-php -- --filter 'ListValidateConformanceTest|DetailValidateConformanceTest'
+node scripts/kit/run-tests.mjs go --cwd packages/validator-go -- ./validator/validate -run 'TestValidateListMatchesFixture|TestValidateDetailMatchesFixture'
+node scripts/kit/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml --test list_validity_conformance --test detail_validity_conformance
 ```
 
 현재 결과는 [기능 상태](../features.ko.md)와 [변경 기록](../../CHANGELOG.ko.md)에 기록합니다.

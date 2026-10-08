@@ -5,7 +5,7 @@ import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
 import puppeteer from 'puppeteer';
 
-import { setup, teardown } from '../../scripts/test-progress/hooks.mjs';
+import { setup, teardown } from '../../scripts/kit/test-hooks.mjs';
 
 const source = await readFile(new URL('./form-snapshot.mjs', import.meta.url), 'utf8');
 const moduleUrl = `data:text/javascript;base64,${Buffer.from(source).toString('base64')}`;

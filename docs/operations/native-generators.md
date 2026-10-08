@@ -15,8 +15,8 @@ Install Composer, Node, Go, Cargo and a C compiler. The container below provides
 a complete Linux toolchain.
 
 ```sh
-node scripts/install-npm.mjs
-export PATH="$PWD/.tools/npm/node_modules/.bin:$PATH"
+make install-tools
+export PATH="$PWD/var/tools/bin:$PATH"
 npm ci --strict-allow-scripts
 composer install --no-interaction --prefer-dist
 make test-native

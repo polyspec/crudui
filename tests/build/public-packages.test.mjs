@@ -8,7 +8,7 @@ import test from 'node:test';
 import { tmpdir } from 'node:os';
 import ts from 'typescript';
 
-import { trackedFiles } from '../../scripts/tracked-files.mjs';
+import { checkedFiles } from '../../scripts/kit/tracked-files.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const require = createRequire(import.meta.url);
@@ -270,7 +270,7 @@ test('declaration builds emit no files when a public type is invalid', () => {
 
 /** The files of a package directory that Git tracks or does not ignore, as absolute paths. */
 function* files(directory) {
-  for (const file of trackedFiles(directory)) yield resolve(directory, file);
+  for (const file of checkedFiles(directory)) yield resolve(directory, file);
 }
 
 /**
@@ -310,7 +310,7 @@ function publishedCommands(directory) {
 
 test('each command form in a published package is detected', () => {
   const temporary = mkdtempSync(resolve(tmpdir(), 'crudui-package-commands-'));
-  // The check reads the files of a Git checkout (scripts/tracked-files.mjs).
+  // The check reads the files of a Git checkout (scripts/kit/tracked-files.mjs).
   execFileSync('git', ['init', '--quiet'], { cwd: temporary });
   const make = (name, entries) => {
     const directory = resolve(temporary, name);
