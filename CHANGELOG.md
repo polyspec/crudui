@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-08 — Type hints of the validator package (C13.1-17-1)
+
+- Every function of `packages/validator-python/src` has parameter and return types, and the package passes `mypy --strict` with exit 0 (15 source files). The validator unit tests pass: 23 tests. The changes are committed under C13.1-17.
+
 ### 2026-10-08 — Generator behavior kept from an earlier session (C13.1-21)
 
 - The generator modules `binding`, `lists`, `value`, `widget`, `__init__`, `dates` and `style` carry the behavior left uncommitted by an earlier session, committed apart from their type annotations. At this state the generator unit tests pass (11 tests) and `node tests/native-generators/run.mjs --target python` reports 741 passed, exit 0.
