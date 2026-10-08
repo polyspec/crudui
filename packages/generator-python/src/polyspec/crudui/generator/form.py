@@ -8,6 +8,7 @@ both succeed, and the revision counts the successful updates.
 
 import re
 import secrets
+from typing import Any, NoReturn
 
 from .binding import bind as bind_fields
 from .binding import language as bind_language
@@ -25,7 +26,12 @@ _DIGITS = re.compile(r'^\d+$')
 _SEQUENCE = re.compile(r'^\d{1,13}$')
 
 
-def sequenceRowKey(sequence):
+def _copy(value: Any) -> Any:
+    """A detached copy of a dynamic record value."""
+    return copy_value(value)
+
+
+def sequenceRowKey(sequence: object) -> str:
     """A nonnegative sequence with thirteen decimal digits."""
     text = str(sequence)
     if _SEQUENCE.match(text) is None:
@@ -33,7 +39,7 @@ def sequenceRowKey(sequence):
     return f"__{text.zfill(13)}__"
 
 
-def createRowKey():
+def createRowKey() -> str:
     """A thirteen-character hexadecimal row key."""
     return f"__{secrets.token_hex(7)[:13]}__"
 
@@ -41,7 +47,7 @@ def createRowKey():
 class Form:
     """One instance over a compiled template."""
 
-    def __init__(self, template, data=None, options=None):
+    def __init__(self, template: Any, data: Any = None, options: Any = None) -> None:
         options = options or {}
         check_inputs([('template', template), ('data', data if data is not None else {})], options, ('idPrefix', 'keyPrefix', 'language', 'unsupported'))
         self._template = checked_template(template)
@@ -53,57 +59,57 @@ class Form:
 
     # -- Readers -------------------------------------------------------------
 
-    def getTemplate(self):
+    def getTemplate(self) -> Any:
         """A detached copy of the compiled template."""
-        return copy_value(self._template)
+        return _copy(self._template)
 
-    def getFields(self):
+    def getFields(self) -> Any:
         """Detached evaluated field models."""
-        return copy_value(self._fields)
+        return _copy(self._fields)
 
-    def getButtons(self):
+    def getButtons(self) -> Any:
         """Detached evaluated form buttons."""
-        return copy_value(self._buttons)
+        return _copy(self._buttons)
 
-    def getMessages(self):
+    def getMessages(self) -> Any:
         """The interface text for the instance language."""
         return for_language(self._language())
 
-    def getDescription(self):
+    def getDescription(self) -> Any:
         """The template's root description for the instance language; empty text when none."""
         return translate(self._template.get('description'), self._language())
 
-    def getRevision(self):
+    def getRevision(self) -> Any:
         """The number of successful data updates."""
         return self._revision
 
-    def getData(self):
+    def getData(self) -> Any:
         """Detached submission data."""
-        return copy_value(self._data)
+        return _copy(self._data)
 
-    def getValue(self, path):
+    def getValue(self, path: Any) -> Any:
         """A detached path value, or None when missing."""
         check_inputs([('path', path)])
         self._checked_path(path)
         value = value_path(self._data, path)
-        return None if value is MISSING else copy_value(value)
+        return None if value is MISSING else _copy(value)
 
     # -- Writers -------------------------------------------------------------
 
-    def setData(self, data):
+    def setData(self, data: Any) -> None:
         """Replace the record and reevaluate the fields atomically."""
         check_inputs([('data', data)])
         if not isinstance(data, dict):
             raise FormError('INVALID_FORM_INPUT', 'Form data must be an object')
         self._commit(self._normalize_fields(self._template['fields'], object_value(data)))
 
-    def setValue(self, path, value):
+    def setValue(self, path: Any, value: Any) -> None:
         """Replace one path value and reevaluate the fields atomically."""
         check_inputs([('path', path), ('value', value)])
-        data = self._put(self._data, self._checked_path(path), copy_value(value))
+        data = self._put(self._data, self._checked_path(path), _copy(value))
         self._commit(self._normalize_fields(self._template['fields'], data))
 
-    def addRow(self, path, options=None):
+    def addRow(self, path: Any, options: Any = None) -> Any:
         """Insert one supplied or defaulted row and return its key."""
         options = options or {}
         check_inputs([('path', path)], options, ('afterKey', 'key', 'value'))
@@ -125,7 +131,7 @@ class Form:
             index = members.index(options['afterKey']) + 1
         value = self._normalize_row(
             field,
-            copy_value(options['value']) if 'value' in options else MISSING,
+            _copy(options['value']) if 'value' in options else MISSING,
             '.'.join([*self._checked_path(path), key]),
         )
         items = list(rows.items())
@@ -135,7 +141,7 @@ class Form:
         self._commit(self._put(self._data, self._checked_path(path), following))
         return key
 
-    def copyRow(self, path, key, options=None):
+    def copyRow(self, path: Any, key: Any, options: Any = None) -> Any:
         """Copy current row values and regenerate nested repeated keys."""
         options = dict(options or {})
         check_inputs([('path', path), ('key', key)], options, ('afterKey', 'key'))
@@ -146,7 +152,7 @@ class Form:
         options['value'] = self._copy_row_value(field, rows[key])
         return self.addRow(path, options)
 
-    def removeRow(self, path, key):
+    def removeRow(self, path: Any, key: Any) -> None:
         """Remove one row while respecting the minimum count."""
         check_inputs([('path', path), ('key', key)])
         field, rows = self._editable_collection(path)
@@ -159,7 +165,7 @@ class Form:
         del following[key]
         self._commit(self._put(self._data, self._checked_path(path), following))
 
-    def moveRow(self, path, key, index):
+    def moveRow(self, path: Any, key: Any, index: Any) -> None:
         """Change row order without changing row identity."""
         check_inputs([('path', path), ('key', key)])
         _field, rows = self._editable_collection(path)
@@ -178,7 +184,7 @@ class Form:
         following.update(items[index:])
         self._commit(self._put(self._data, self._checked_path(path), following))
 
-    def rekeyRow(self, path, old_key, new_key):
+    def rekeyRow(self, path: Any, old_key: Any, new_key: Any) -> None:
         """Replace one row key and regenerate descendant field paths."""
         check_inputs([('path', path), ('oldKey', old_key), ('newKey', new_key)])
         _field, rows = self._editable_collection(path)
@@ -194,7 +200,7 @@ class Form:
 
     # -- Internals -----------------------------------------------------------
 
-    def _commit(self, data):
+    def _commit(self, data: Any) -> None:
         fields = bind_fields(self._template, data, self._options)
         buttons = buttons_module.bind(self._template, data, self._language())
         self._data = data
@@ -202,18 +208,18 @@ class Form:
         self._buttons = buttons
         self._revision += 1
 
-    def _language(self):
+    def _language(self) -> Any:
         return bind_language(self._options)
 
     @staticmethod
-    def _checked_path(path):
+    def _checked_path(path: Any) -> Any:
         parts = segments(path)
         if not parts or any(part in ('__proto__', 'prototype', 'constructor') for part in parts):
             Form._fail(f'Invalid form path: {path}')
         return parts
 
     @staticmethod
-    def _check_key(key):
+    def _check_key(key: Any) -> None:
         if (
             _KEY_PATTERN.match(key) is None
             or _DIGITS.match(key) is not None
@@ -222,7 +228,7 @@ class Form:
             Form._fail(f'Invalid row key: {key}; use sequenceRowKey for numeric ids')
 
     @staticmethod
-    def _put(data, path, value):
+    def _put(data: Any, path: Any, value: Any) -> Any:
         head, rest = path[0], path[1:]
         out = dict(data)
         if rest:
@@ -232,39 +238,39 @@ class Form:
         return out
 
     @staticmethod
-    def _repeats(field):
+    def _repeats(field: Any) -> bool:
         multiple = field['spec'].get('multiple')
         return multiple is True or Form._data_only(field) or isinstance(multiple, dict)
 
     @staticmethod
-    def _data_only(field):
+    def _data_only(field: Any) -> bool:
         """A `multiple: only` collection: its rows come only from the data."""
         multiple = field['spec'].get('multiple')
         return multiple == 'only' or (isinstance(multiple, dict) and multiple.get('only') is True)
 
     @staticmethod
-    def _fresh_key(used):
+    def _fresh_key(used: Any) -> str:
         for _attempt in range(100):
             key = createRowKey()
             if key not in used:
                 return key
         Form._fail('Unable to generate an unused row key')
 
-    def _normalize_fields(self, fields, value, path=''):
+    def _normalize_fields(self, fields: Any, value: Any, path: str = '') -> Any:
         """Normalize record data; `path` is the full data path, empty at the root."""
         if value is not MISSING and not isinstance(value, dict):
             self._fail('Form data must be an object' if path == '' else f'Group data must be an object: {path}')
-        data = {} if value is MISSING else copy_value(value)
+        data: dict[str, Any] = {} if value is MISSING else _copy(value)
         for field in fields:
             raw = get(data, field['name'])
             field_path = field['name'] if path == '' else f"{path}.{field['name']}"
             if self._repeats(field):
                 if raw is not MISSING and not isinstance(raw, dict):
                     self._fail(f'Repeated data must be a keyed object: {field_path}')
-                rows = {}
-                entries = (
+                rows: dict[Any, Any] = {}
+                entries: dict[str, Any] = (
                     raw
-                    if raw is not MISSING
+                    if isinstance(raw, dict)
                     else ({} if self._data_only(field) else {'__0000000000000__': MISSING})
                 )
                 for key, row in entries.items():
@@ -274,22 +280,22 @@ class Form:
             elif field['spec'].get('type') == 'group':
                 data[field['name']] = self._normalize_fields(field['children'], raw, field_path)
             elif raw is MISSING and 'default' in field['spec']:
-                data[field['name']] = copy_value(field['spec']['default'])
+                data[field['name']] = _copy(field['spec']['default'])
         return data
 
-    def _normalize_row(self, field, value, path):
+    def _normalize_row(self, field: Any, value: Any, path: str) -> Any:
         if field['spec'].get('type') == 'group':
             return self._normalize_fields(field['children'], value, path)
         if value is MISSING:
-            return copy_value(field['spec']['default']) if 'default' in field['spec'] else ''
-        return copy_value(value)
+            return _copy(field['spec']['default']) if 'default' in field['spec'] else ''
+        return _copy(value)
 
-    def _copy_row_value(self, field, value):
+    def _copy_row_value(self, field: Any, value: Any) -> Any:
         if field['spec'].get('type') == 'group':
-            return self._copy_children(field['children'], copy_value(value))
-        return copy_value(value)
+            return self._copy_children(field['children'], _copy(value))
+        return _copy(value)
 
-    def _copy_children(self, fields, value):
+    def _copy_children(self, fields: Any, value: Any) -> Any:
         for field in fields:
             raw = value.get(field['name'])
             if self._repeats(field) and isinstance(raw, dict):
@@ -304,14 +310,14 @@ class Form:
                 value[field['name']] = self._copy_children(field['children'], raw)
         return value
 
-    def _editable_collection(self, path):
+    def _editable_collection(self, path: Any) -> Any:
         """A collection whose rows the form may add, copy, remove, move or rekey."""
         field, rows = self._collection(path)
         if self._data_only(field):
             self._fail(f'Rows of {path} come only from data')
         return field, rows
 
-    def _collection(self, path):
+    def _collection(self, path: Any) -> Any:
         segments_list = self._checked_path(path)
         fields = self._template['fields']
         field = None
@@ -337,11 +343,11 @@ class Form:
         return field, rows
 
     @staticmethod
-    def _fail(message):
+    def _fail(message: str) -> NoReturn:
         raise FormError('INVALID_FORM_INPUT', message)
 
 
-def _scalar(value):
+def _scalar(value: Any) -> Any:
     from .value import scalar
 
     return scalar(value)
