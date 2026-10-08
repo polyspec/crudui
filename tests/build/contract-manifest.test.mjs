@@ -28,7 +28,7 @@ function repository() {
   return {
     manifest: {
       format: 'crudui/features-manifest',
-      version: '0.0.3',
+      version: '0.0.4',
       supportValues: ['pass', 'partial', 'unsupported'],
       packages: [
         {

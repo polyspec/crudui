@@ -532,7 +532,7 @@ PHP_MINFO_FUNCTION(crudui)
     (void)zend_module;
     php_info_print_table_start();
     php_info_print_table_row(2, "CRUDUI", "enabled");
-    php_info_print_table_row(2, "Version", "0.0.3");
+    php_info_print_table_row(2, "Version", "0.0.4");
     php_info_print_table_row(2, "Generation and validation", "native");
     php_info_print_table_end();
 }
@@ -544,7 +544,7 @@ static const zend_module_dep crudui_deps[] = {
 
 zend_module_entry crudui_module_entry = {
     STANDARD_MODULE_HEADER_EX, NULL, crudui_deps,
-    "crudui", NULL, PHP_MINIT(crudui), NULL, NULL, NULL, PHP_MINFO(crudui), "0.0.3", STANDARD_MODULE_PROPERTIES
+    "crudui", NULL, PHP_MINIT(crudui), NULL, NULL, NULL, PHP_MINFO(crudui), "0.0.4", STANDARD_MODULE_PROPERTIES
 };
 
 #ifdef COMPILE_DL_CRUDUI

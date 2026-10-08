@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.0.4
+
 ### 2026-10-09 — Stale git pins in the release version check (C13.1-23)
 
 - `scripts/release.mjs` rejects a `pyproject.toml` whose git pin `polyspec/crudui@vX.Y.Z` names a version other than the release version. The problem names the file, the pin and the tag, so `make release-versions` fails before the tag of a Python package release is created.
