@@ -4,21 +4,21 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "92dbeefd06d4112dee43f3f40fe5ceaf",
+    "content-hash": "7102c14c40a5b45f977796a2e7465e49",
     "packages": [
         {
             "name": "polyspec/crudui-generator",
-            "version": "0.0.4",
+            "version": "0.0.5",
             "dist": {
                 "type": "zip",
-                "url": "artifacts/polyspec-crudui-generator-php-0.0.4.zip",
+                "url": "artifacts/polyspec-crudui-generator-php-0.0.5.zip",
                 "shasum": ""
             },
             "require": {
                 "ext-mbstring": "*",
                 "php": "^8.4",
                 "php-64bit": "^8.2",
-                "polyspec/crudui-validator": "0.0.4"
+                "polyspec/crudui-validator": "0.0.5"
             },
             "require-dev": {
                 "phpunit/phpunit": "^13.4.1"
@@ -37,7 +37,7 @@
             },
             "scripts": {
                 "test": [
-                    "node ../../scripts/kit/run-tests.mjs phpunit --cwd packages/generator-php"
+                    "COMPOSER_VENDOR_DIR=../../vendor node ../../scripts/kit/run-tests.mjs phpunit --cwd packages/generator-php"
                 ]
             },
             "license": [
@@ -47,10 +47,10 @@
         },
         {
             "name": "polyspec/crudui-validator",
-            "version": "0.0.4",
+            "version": "0.0.5",
             "dist": {
                 "type": "zip",
-                "url": "artifacts/polyspec-crudui-validator-php-0.0.4.zip",
+                "url": "artifacts/polyspec-crudui-validator-php-0.0.5.zip",
                 "shasum": ""
             },
             "require": {
@@ -73,7 +73,7 @@
             },
             "scripts": {
                 "test": [
-                    "node ../../tests/conformance/run-suite.mjs phpunit --cwd packages/validator-php"
+                    "COMPOSER_VENDOR_DIR=../../vendor node ../../tests/conformance/run-suite.mjs phpunit --cwd packages/validator-php"
                 ]
             },
             "license": [

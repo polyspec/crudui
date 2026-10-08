@@ -8,7 +8,8 @@
 # archives; they are consumed by git tag), and a Go module tag builds and attaches nothing; make release-consumer installs
 # the archives of the tag in clean consumer projects with empty caches (tests/release-install); make release-publish
 # creates the release with that section as its notes (scripts/kit/release.mjs). TAG reaches the make targets through the
-# environment, never as shell text.
+# environment, never as shell text. A push of vX.Y.Z with the tags of the Go modules starts one run for each tag (docs/
+# operations/repository.md): the run of a Go module tag builds and installs no archive and does not wait for the other runs.
 
 name: Release
 

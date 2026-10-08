@@ -58,11 +58,15 @@ packages, the manifests that a tag covers and the Go modules are declared in `co
 
    ```sh
    git tag vX.Y.Z <commit of main>
-   git push origin vX.Y.Z
+   git tag packages/generator-go/vX.Y.Z <commit of main>
+   git tag packages/validator-go/vX.Y.Z <commit of main>
+   git push origin vX.Y.Z packages/generator-go/vX.Y.Z packages/validator-go/vX.Y.Z
    ```
 
-   For the Go modules the maintainer also pushes `packages/generator-go/vX.Y.Z` and `packages/validator-go/vX.Y.Z` at the
-   same commit (`make release-go-tags TAG=vX.Y.Z` checks them).
+   The three tags are pushed together (`make release-go-tags TAG=vX.Y.Z` checks them): `make release-verify` of `vX.Y.Z`
+   requires the Go module tags at the same commit, and the push starts one run of `release.yml` for each tag. GitHub starts
+   no run when more than three tags are pushed at once. The run of a Go module tag has no archive to build or install and
+   creates a GitHub Release of that tag without assets; it does not depend on the run of `vX.Y.Z`.
 4. `.github/workflows/release.yml` runs on the pushed tag (`tags: ['v*', '**/v*']`: in a tag filter `*` does not
    match `/`, so `**/v*` covers `packages/<directory>/vX.Y.Z`), with the token permission `contents: write`. After the
    setup steps (`make install-tools TOOLS="npm"`, `make toolchain-check TOOLS="node npm php composer"`,

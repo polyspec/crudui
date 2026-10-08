@@ -1,6 +1,6 @@
 # PHP 확장
 <!-- doc-id: docs-spec-php-extension -->
-<!-- source-sha256: 594717bd8162b86b1f35cafbc1470c00afacac9f531f4e960a7e578772d0887d -->
+<!-- source-sha256: 4977be6970a5662280bf17c749cd93747f6313cd7ae8c134ec06b69bb819df95 -->
 
 [English](php-extension.md).
 구현, 검증, 패키지 게시 상태는 [기능 상태](../features.ko.md)에 기록합니다.
@@ -8,7 +8,7 @@
 ## 범위와 모듈
 
 `crudui` PHP 확장은 PHP 프로세스에서 폼 생성과 검증을 제공합니다.
-패키지 경로는 `packages/php-ext`이고 버전은 `0.0.4`입니다.
+패키지 경로는 `packages/php-ext`이고 버전은 `0.0.5`입니다.
 확장은 C로 폼 생성기와 검증기를 구현합니다.
 
 생성은 구조 컴파일, 데이터 바인딩, 폼 인스턴스, HTML 렌더링을 분리합니다.

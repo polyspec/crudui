@@ -1,6 +1,6 @@
 # CRUDUI Rust 생성기
 <!-- doc-id: packages-generator-rust-readme -->
-<!-- source-sha256: f928244caa2333c91a553779a4d77dc14145036aad628f3e087b9b8b6c9280b3 -->
+<!-- source-sha256: 7d74d925f900175d505900cd3b55e13308b5d7f19536febb553ef328a6037aa0 -->
 
 [English](README.md).
 
@@ -10,7 +10,7 @@
 
 ## 사용
 
-패키지 버전은 `0.0.4`입니다. 저장소 개발 중에는 각 패키지 디렉터리의 명시적 경로로
+패키지 버전은 `0.0.5`입니다. 저장소 개발 중에는 각 패키지 디렉터리의 명시적 경로로
 생성기와 검증기를 추가합니다. 생성기의 Cargo 매니페스트는 검증기 의존성을 선언합니다.
 
 ```rust

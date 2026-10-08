@@ -1,8 +1,14 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 672900c7fa14335d851183e1ee8a2703738fcfdbc8a05b43a7996950bfb74004 -->
+<!-- source-sha256: 08ec2f01645b9d2c2e0ac908b721d789750ccca65c695ee77f2f4af767f5e112 -->
 
 ## Unreleased
+
+## 0.0.5
+
+### 2026-10-09 — 릴리스 0.0.5 (C14.2)
+
+- `config/release.json`이 적은 모든 manifest와 그 lock, `packages/generator-python`의 git pin, `contracts/features.json`, `packages/php-ext`의 module version이 0.0.5이다. tag가 release하지 않은 앞선 version 0.0.4의 section은 아래에 남는다. `tests/release-install`의 사용자 project는 0.0.5 archive를 적고, review 기록 `config/dependency-review.json`은 0.0.5 lock으로 쓴다. `docs/operations/repository.md`는 `vX.Y.Z`를 두 Go module의 tag와 함께 push하도록 적고, Go module tag의 실행은 archive를 build하거나 설치하지 않는다.
 
 ### 2026-10-09 — 로컬 pipeline stack test가 kit의 hook module을 이름으로 쓴다 (C14.1-10)
 

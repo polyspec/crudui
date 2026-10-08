@@ -1,6 +1,6 @@
 # 저장소
 <!-- doc-id: docs-operations-repository -->
-<!-- source-sha256: ba0fcd18daf9b6fc709ceb20d4d1018f714195821cc97780080b42365a7cc5a7 -->
+<!-- source-sha256: 89322c0c252015affea3e822de3e4606defc169a65b78b11cbb34e3fa476b470 -->
 
 [English](repository.md).
 
@@ -54,11 +54,15 @@ release는 `main` commit의 tag입니다. 저장소는 `vX.Y.Z`이고, 디렉터
 
    ```sh
    git tag vX.Y.Z <commit of main>
-   git push origin vX.Y.Z
+   git tag packages/generator-go/vX.Y.Z <commit of main>
+   git tag packages/validator-go/vX.Y.Z <commit of main>
+   git push origin vX.Y.Z packages/generator-go/vX.Y.Z packages/validator-go/vX.Y.Z
    ```
 
-   Go module은 같은 commit에 `packages/generator-go/vX.Y.Z`와 `packages/validator-go/vX.Y.Z`도 push합니다
-   (`make release-go-tags TAG=vX.Y.Z`가 이를 검사합니다).
+   tag 셋을 함께 push합니다(`make release-go-tags TAG=vX.Y.Z`가 검사합니다). `vX.Y.Z`의 `make release-verify`가 같은 commit의 Go module
+   tag를 요구하고, push는 tag마다 `release.yml` 실행 하나를 시작하기 때문입니다. GitHub는 한 번에 tag를 셋보다 많이 push하면
+   실행을 시작하지 않습니다. Go module tag의 실행은 build하거나 설치할 archive가 없고 asset 없는 그 tag의 GitHub Release를 만들며,
+   `vX.Y.Z`의 실행에 의존하지 않습니다.
 4. `.github/workflows/release.yml`은 push된 tag에서(`tags: ['v*', '**/v*']`. tag filter에서 `*`는 `/`와 맞지
    않으므로 `**/v*`가 `packages/<디렉터리>/vX.Y.Z`를 덮습니다) token 권한 `contents: write`로 실행됩니다. 준비
    step(`make install-tools TOOLS="npm"`, `make toolchain-check TOOLS="node npm php composer"`, `make install-node-modules`) 뒤의

@@ -1,12 +1,12 @@
 [package]
 name = "polyspec-crudui-generator"
-version = "0.0.4"
+version = "0.0.5"
 edition = "2021"
 license = "MIT"
 description = "CRUDUI form compilation, data binding and HTML rendering"
 
 [dependencies]
-polyspec-crudui-validator = { path = "../validator-rust", version = "0.0.4" }
+polyspec-crudui-validator = { path = "../validator-rust", version = "0.0.5" }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order"] }
 getrandom = "0.4"
