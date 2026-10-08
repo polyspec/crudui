@@ -149,6 +149,7 @@ function phpProvenanceSource(autoload) {
 const targets = [
   { name: 'javascript', command: process.execPath, args: [path.join(ROOT, 'tests/native-generators/javascript.mjs')] },
   { name: 'html', command: process.execPath, args: [path.join(ROOT, 'tests/native-generators/javascript.mjs'), '--renderer', 'html'] },
+  { name: 'python', command: process.env.PYTHON ?? 'python3', args: [path.join(ROOT, 'tests/native-generators/python.py')] },
   { name: 'php', command: process.env.PHP ?? 'php', args: [phpCLI], probe: async () => {
     await stat(path.join(ROOT, 'vendor/autoload.php'));
     const result = await execute(process.env.PHP ?? 'php', ['-r', phpProvenanceSource(true)]);
