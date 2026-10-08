@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### 2026-10-08 — Dependencies of the Python generator (C13.1-9)
+
+- `packages/generator-python` no longer declares `polyspec-ordered-json`: no
+  generator module imports it. It declares `polyspec-crudui-validator` by the
+  tag URL `v0.0.4` of this repository, `packages/validator-python`, because
+  the generator imports `polyspec.crudui.validator` at run time.
+
 ### 2026-10-08 — Python generator defects found in the review (C13.1-8)
 
 - `Form` binds the one initial row of missing repeated data under the key
