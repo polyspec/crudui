@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+### 2026-10-08 — The Python validator package (C13.1-1)
+
+- `packages/validator-python` publishes `polyspec-crudui-validator` as the namespace package
+  `polyspec.crudui.validator` for Python 3.11 and newer, with the standard library only: the
+  composition engine, the forbidden-key scan, the input text and value limit checks, the pattern
+  language recognizer and matcher over the Unicode 16.0.0 data of the contract, the condition
+  parser, the path resolver, the value definitions with the ECMAScript number text, the 24
+  validation rules and the field traversal.
+- `validate`, `hiddenPaths`, `validateList` and `validateDetail` answer the shared results;
+  `ComposeLoadError` and `FormInputError` carry the failure codes and traces of the other
+  implementations.
+
 ### 2026-10-07 — Ports of the system for the form comparison runs (C11.6-5)
 
 - `make test-form-comparison-browser` and `make test-form-comparison-summary` start every server on a port of the

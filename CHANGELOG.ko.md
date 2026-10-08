@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### 2026-10-08 — Python 검증기 package (C13.1-1)
+
+- `packages/validator-python`은 Python 3.11 이상에서 표준 라이브러리만으로
+  `polyspec-crudui-validator`를 namespace package `polyspec.crudui.validator`로 내놓는다.
+  composition 엔진, 금지 key 검사, 입력 text·값 한도 검사, contract의 Unicode 16.0.0
+  데이터 위의 pattern 언어 recognizer와 matcher, 조건 parser, 경로 resolver, ECMAScript
+  숫자 text를 가진 값 정의, 24개 검증 rule, 필드 순회로 이루어진다.
+- `validate`, `hiddenPaths`, `validateList`, `validateDetail`이 공통 결과를 내놓고
+  `ComposeLoadError`와 `FormInputError`가 다른 구현과 같은 실패 code와 trace를 실었다.
+
 ### 2026-10-07 — form comparison 실행의 system port (C11.6-5)
 
 - `make test-form-comparison-browser`와 `make test-form-comparison-summary`는 모든 서버를 system이 정한 port에서
