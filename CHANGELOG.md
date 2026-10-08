@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-08 — Type hints of the form module (C13.1-17-10)
+
+- The module `form` of `packages/generator-python` has parameter and return types with no `mypy --strict` error. The generator unit tests pass (11 tests), and the native Python checks exit 0.
+
 ### 2026-10-08 — Type hints of the binding module (C13.1-17-9)
 
 - The module `binding` of `packages/generator-python` has parameter and return types with no `mypy --strict` error. The generator unit tests pass (11 tests), and the native Python checks exit 0.
