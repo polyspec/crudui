@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### 2026-10-08 — 검토에서 찾은 Python 생성기 결함 (C13.1-8)
+
+- `Form`은 결측 반복 데이터의 초기 행 하나를 무작위 행 키 대신 `bindForm`과
+  `empty-collections` 계약이 정한 키 `__0000000000000__`로 바인딩한다. Red: 사례
+  `multiple-leaf-empty-placeholder`가 키 `__0a592ccb0f808__`로 실패했다. Green:
+  form-render test가 137개 결과 사례를 `createForm`과 `renderForm`으로 통과한다.
+- text-validity test는 생성 실패의 `at` 값을 `FormError.path`로 읽는다.
+- conformance 정규화기에 양쪽 분기가 같은 분기가 없다.
+- `packages/generator-python` 단위 test 11개가 통과한다.
+
 ### 2026-10-08 — 공통 fixture 위의 Python 생성기 (C13.1-4)
 
 - `packages/generator-python`의 단위 test가 공통 fixture를 읽어 모든 사례를
