@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-08 — 기록 본문에서 상태 표기를 뺀다 (C13.1-20)
+
+- C13.1-10과 C13.1-11의 기록은 상태 표기를 단어로 쓴다. `scripts/check-documents.mjs`가 문서 쌍 53개를 통과한다(종료 코드 0).
+
 ### 2026-10-08 — native generator 검사의 Python 프로그램 (C13.1-7-2)
 
 - native generator 검사가 Python 프로그램을 실행한다. `node tests/native-generators/run.mjs --target python`은 741건 통과, 종료 코드 0을 보고한다. `make test-native-generators`에는 python 대상이 포함되며, 이 환경에서는 검사를 실행하기 전 cargo 사전 검사에서 멈춘다.
