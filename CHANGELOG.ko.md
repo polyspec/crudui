@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-09 — polyspec/kit v0.0.4의 vendored 도구 (C14.1-1)
+
+- `kit.json`, `.kit/kit.lock.json`, `scripts/kit`, `tests/kit`가 tag `v0.0.4`의 파일을 담고, Makefile은 `scripts/kit/kit.mk`를 include한다. `make kit-sync KIT_TAG=v0.0.4`는 lock을 쓰고 두 번째 실행에서 `unchanged`를 출력했으며, `make kit-test`는 322개 test 중 322개가 통과했다.
+
 - C13.1-38: 의존성이 최신 stable release(puppeteer 25.13.0, playwright 1.64.0, vite 8.3.4)이고, install 스크립트는 정확한 version으로 승인되었으며, 리뷰 기록을 다시 썼습니다.
 - C13.1-37: npm lock이 저장소 패키지를 dependency 항목에서도 0.0.4로 기록합니다. version bump가 요구하는 대로입니다.
 ### 2026-10-09 — 0.0.4 lock의 dependency review 기록 (C13.1-36)

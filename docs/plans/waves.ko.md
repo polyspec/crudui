@@ -55,3 +55,7 @@
 ## Wave 13
 
 의존: 없음. 저장소는 TypeScript, Go, PHP, PHP 확장, Rust로 구현을 이름한다. Python이 같은 자격으로 합류한다. PEP 420 namespace `polyspec` 아래 `polyspec-crudui-validator`와 `polyspec-crudui-generator`를 내놓고 표준 라이브러리만 쓰며, 단위 test는 `unittest`, 결과는 모든 구현이 같게 답하는 `tests/fixtures`의 공통 fixture로 검증한다. Python 3.11이 가장 오래된 지원 release이고 `.python-version`은 최신 안정 release를 이름할 것이다. 이 파일은 C13.1-6이 아직 완료되지 않아 아직 없다.
+
+## Wave 14
+
+의존: 없음. 저장소는 모든 polyspec 저장소가 공유하는 도구를 polyspec/kit v0.0.4의 vendored copy(`scripts/kit`, `tests/kit`, `kit.json`, `.kit/kit.lock.json`)로 가져오고, 다른 저장소와 `config/*.json`에서만 다르다. kit이 제공하는 이 저장소의 도구(dependency review와 gate, toolchain install과 check, test runner, push gate, full-run guard, holder lock, document와 owner check, CI report 도구, release 도구)는 제거한다. 0.x workflow에는 pull request, merge queue, ruleset이 없다. 작업은 row마다 로컬에서 commit하고, 모든 row가 `[o]`일 때 `main`을 한 번 push하며, tag는 main CI의 `ci-passed`가 성공한 뒤에만 만든다.
