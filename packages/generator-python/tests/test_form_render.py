@@ -8,7 +8,7 @@ Binding the same template twice writes the same fields.
 
 import unittest
 
-from conformance import cases_of, failure_record, html_tree
+from conformance import cases_of, failure_record, html_tree, Proving, Proving
 
 
 class FormRenderConformance(unittest.TestCase):
@@ -33,7 +33,7 @@ class FormRenderConformance(unittest.TestCase):
         from polyspec.crudui.generator import Generator
 
         for case in self.results:
-            with self.subTest(case=case['name']):
+            with self.subTest(case=case['name']), Proving(['compileForm', 'bindForm', 'renderForm'], 'tests/fixtures/form-render/cases.json', case['name']) as proof:
                 options = case.get('options') or {}
                 template = Generator.compileForm(case['spec'], options)
                 data = case.get('data') or {}
@@ -43,13 +43,14 @@ class FormRenderConformance(unittest.TestCase):
                 # A new instance over the same template and data renders the same form.
                 again = Generator.renderForm(Generator.createForm(template, data, options))
                 self.assertEqual(actual, again)
+                proof.passed = True
 
     def test_failure_cases_raise_the_recorded_code(self):
         self.assertEqual(len(self.failures), 51)
         from polyspec.crudui.generator import Generator
 
         for case in self.failures:
-            with self.subTest(case=case['name']):
+            with self.subTest(case=case['name']), Proving(['compileForm', 'bindForm', 'renderForm'], 'tests/fixtures/form-render/cases.json', case['name']) as proof:
                 thrown = None
                 try:
                     self.render(case)
@@ -58,6 +59,7 @@ class FormRenderConformance(unittest.TestCase):
                 record = failure_record(thrown)
                 self.assertIsNotNone(record, f"{case['name']} must fail")
                 self.assertEqual(record['code'], case['expectError']['code'])
+                proof.passed = True
 
     def test_every_case_declares_exactly_one_expectation(self):
         for case in self.cases:

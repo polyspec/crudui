@@ -19,7 +19,7 @@ SOURCE = str(Path(__file__).resolve().parents[1] / 'src')
 if SOURCE not in sys.path:
     sys.path.insert(0, SOURCE)
 
-from conformance import FIXTURES, cases_of, failure_record  # noqa: E402
+from conformance import FIXTURES, cases_of, failure_record, Proving  # noqa: E402
 from polyspec.crudui.validator import (  # noqa: E402
     ComposeLoadError,
     FormInputError,
@@ -77,22 +77,25 @@ class TextValidityConformance(unittest.TestCase):
         cases = cases_of('text-validity', 'validate/cases.json')
         self.assertEqual(len(cases), 21)
         for case in cases:
-            with self.subTest(case=case['name']):
+            with self.subTest(case=case['name']), Proving(['validate'], 'tests/fixtures/text-validity/validate/cases.json', case['name']) as proof:
                 self.assertEqual(outcome(case, ENTRIES['validate']), case['expect'])
+                proof.passed = True
 
     def test_validate_list_cases(self):
         cases = cases_of('text-validity', 'validateList/cases.json')
         self.assertEqual(len(cases), 6)
         for case in cases:
-            with self.subTest(case=case['name']):
+            with self.subTest(case=case['name']), Proving(['validateList'], 'tests/fixtures/text-validity/validateList/cases.json', case['name']) as proof:
                 self.assertEqual(outcome(case, ENTRIES['validateList']), case['expect'])
+                proof.passed = True
 
     def test_validate_detail_cases(self):
         cases = cases_of('text-validity', 'validateDetail/cases.json')
         self.assertEqual(len(cases), 5)
         for case in cases:
-            with self.subTest(case=case['name']):
+            with self.subTest(case=case['name']), Proving(['validateDetail'], 'tests/fixtures/text-validity/validateDetail/cases.json', case['name']) as proof:
                 self.assertEqual(outcome(case, ENTRIES['validateDetail']), case['expect'])
+                proof.passed = True
 
     def test_value_graph_cases(self):
         cases = cases_of('text-validity', 'value-graphs.json')

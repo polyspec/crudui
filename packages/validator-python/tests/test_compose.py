@@ -15,7 +15,7 @@ SOURCE = str(Path(__file__).resolve().parents[1] / 'src')
 if SOURCE not in sys.path:
     sys.path.insert(0, SOURCE)
 
-from conformance import cases_of  # noqa: E402
+from conformance import cases_of, Proving  # noqa: E402
 from polyspec.crudui.validator.compose import MemoryLoader, compose_properties, compose_spec  # noqa: E402
 from polyspec.crudui.validator.compose_errors import ComposeLoadError  # noqa: E402
 
@@ -54,14 +54,15 @@ class ComposeConformance(unittest.TestCase):
         results = [case for case in self.cases if 'expected' in case]
         self.assertEqual(len(results), 13)
         for case in results:
-            with self.subTest(case=case['name']):
+            with self.subTest(case=case['name']), Proving(['compileForm'], 'tests/fixtures/compose/cases.json', case['name']) as proof:
                 self.assertEqual(canon(self.run_case(case)), canon(case['expected']))
+                proof.passed = True
 
     def test_error_cases_raise_the_recorded_code(self):
         errors = [case for case in self.cases if 'expectError' in case]
         self.assertEqual(len(errors), 7)
         for case in errors:
-            with self.subTest(case=case['name']):
+            with self.subTest(case=case['name']), Proving(['compileForm'], 'tests/fixtures/compose/cases.json', case['name']) as proof:
                 thrown = None
                 try:
                     self.run_case(case)
@@ -69,6 +70,7 @@ class ComposeConformance(unittest.TestCase):
                     thrown = error
                 self.assertIsNotNone(thrown, f"{case['name']} must fail to load")
                 self.assertEqual(thrown.code, case['expectError']['code'])
+                proof.passed = True
 
 
 if __name__ == '__main__':

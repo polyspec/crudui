@@ -10,7 +10,7 @@ from pathlib import Path
 
 sys_path_prefix = str(Path(__file__).resolve().parents[1] / 'src')
 
-from conformance import ROOT, cases_of, failure_record  # noqa: E402
+from conformance import ROOT, cases_of, failure_record, Proving  # noqa: E402
 
 
 def _load_validator():
@@ -50,13 +50,14 @@ class ValidateConformance(unittest.TestCase):
         self.assertEqual(len(self.cases), 309)
         self.assertEqual(len(self.result_cases), 178)
         for case in self.result_cases:
-            with self.subTest(case=case['name']):
+            with self.subTest(case=case['name']), Proving(['validate'], 'tests/fixtures/validate/cases.json', case['name']) as proof:
                 self.assertEqual(self.run_case(case), case['expected'])
+                proof.passed = True
 
     def test_load_and_input_failures_throw_the_exact_record(self):
         self.assertEqual(len(self.failure_cases), 131)
         for case in self.failure_cases:
-            with self.subTest(case=case['name']):
+            with self.subTest(case=case['name']), Proving(['validate'], 'tests/fixtures/validate/cases.json', case['name']) as proof:
                 thrown = None
                 try:
                     self.run_case(case)
@@ -66,6 +67,7 @@ class ValidateConformance(unittest.TestCase):
                     failure_record(thrown), f"{case['name']} must throw a validation failure"
                 )
                 self.assertEqual(failure_record(thrown), case['expectFailure'])
+                proof.passed = True
 
 
 if __name__ == '__main__':

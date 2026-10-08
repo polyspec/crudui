@@ -15,7 +15,7 @@ SOURCE = str(Path(__file__).resolve().parents[1] / 'src')
 if SOURCE not in sys.path:
     sys.path.insert(0, SOURCE)
 
-from conformance import cases_of  # noqa: E402
+from conformance import cases_of, Proving  # noqa: E402
 from polyspec.crudui.validator import (  # noqa: E402
     ComposeLoadError,
     validate,
@@ -53,15 +53,16 @@ class SpecValidityConformance(unittest.TestCase):
     def test_clean_specs_pass_the_load_path(self):
         self.assertEqual(len(self.clean), 20)
         for case in self.clean:
-            with self.subTest(case=case['name']):
+            with self.subTest(case=case['name']), Proving(['validate'], 'tests/fixtures/spec-validity/cases.json', case['name']) as proof:
                 self.assertEqual(
                     self.run_case(case), {'valid': True, 'errors': [], 'hidden': []}
                 )
+                proof.passed = True
 
     def test_a_forbidden_meta_key_at_any_depth_is_a_load_error(self):
         self.assertEqual(len(self.failing), 14)
         for case in self.failing:
-            with self.subTest(case=case['name']):
+            with self.subTest(case=case['name']), Proving(['validate'], 'tests/fixtures/spec-validity/cases.json', case['name']) as proof:
                 thrown = None
                 try:
                     self.run_case(case)
@@ -72,6 +73,7 @@ class SpecValidityConformance(unittest.TestCase):
                 # The depth is load-bearing, so the dotted trace is asserted, not
                 # just the code.
                 self.assertEqual('.'.join(thrown.trace), case['engine']['at'])
+                proof.passed = True
 
 
 class ListValidityConformance(unittest.TestCase):
@@ -97,18 +99,19 @@ class ListValidityConformance(unittest.TestCase):
     def test_clean_specs_load_without_validating_rows(self):
         self.assertEqual(len(self.clean), 16)
         for case in self.clean:
-            with self.subTest(case=case['name']):
+            with self.subTest(case=case['name']), Proving(['validateList'], 'tests/fixtures/list-validity/cases.json', case['name']) as proof:
                 # A meta-schema-only invalid case (required, enum,
                 # additionalProperties, anyOf) is the meta-schema's job, never
                 # this engine's, so it loads clean here.
                 self.assertEqual(
                     self.run_case(case), {'valid': True, 'errors': []}
                 )
+                proof.passed = True
 
     def test_failing_specs_raise_the_recorded_load_failure(self):
         self.assertEqual(len(self.failing), 4)
         for case in self.failing:
-            with self.subTest(case=case['name']):
+            with self.subTest(case=case['name']), Proving(['validateList'], 'tests/fixtures/list-validity/cases.json', case['name']) as proof:
                 thrown = None
                 try:
                     self.run_case(case)
@@ -117,6 +120,7 @@ class ListValidityConformance(unittest.TestCase):
                 self.assertIsNotNone(thrown, f"{case['name']} must fail to load")
                 self.assertEqual(thrown.code, case['engine']['code'])
                 self.assertEqual('.'.join(thrown.trace), case['engine']['at'])
+                proof.passed = True
 
 
 class DetailValidityConformance(unittest.TestCase):
@@ -142,15 +146,16 @@ class DetailValidityConformance(unittest.TestCase):
     def test_clean_specs_load_without_validating_the_record(self):
         self.assertEqual(len(self.clean), 6)
         for case in self.clean:
-            with self.subTest(case=case['name']):
+            with self.subTest(case=case['name']), Proving(['validateDetail'], 'tests/fixtures/detail-validity/cases.json', case['name']) as proof:
                 self.assertEqual(
                     self.run_case(case), {'valid': True, 'errors': []}
                 )
+                proof.passed = True
 
     def test_failing_specs_raise_the_recorded_load_failure(self):
         self.assertEqual(len(self.failing), 7)
         for case in self.failing:
-            with self.subTest(case=case['name']):
+            with self.subTest(case=case['name']), Proving(['validateDetail'], 'tests/fixtures/detail-validity/cases.json', case['name']) as proof:
                 thrown = None
                 try:
                     self.run_case(case)
@@ -159,6 +164,7 @@ class DetailValidityConformance(unittest.TestCase):
                 self.assertIsNotNone(thrown, f"{case['name']} must fail to load")
                 self.assertEqual(thrown.code, case['engine']['code'])
                 self.assertEqual('.'.join(thrown.trace), case['engine']['at'])
+                proof.passed = True
 
 
 if __name__ == '__main__':
