@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-08 — Python implementation of the validator and the generator (C13.1)
+
+- `polyspec-crudui-validator` and `polyspec-crudui-generator` are implemented in Python with the standing of the other language implementations: the shared fixtures run in the Python unit tests with evidence, the feature contracts state the Python support, the CI workflow runs the Python suites in a `python` job, and both packages pass `mypy --strict`.
+
 ### 2026-10-08 — Done marker of C13.1-11 restored (C13.1-22)
 
 - The status cell of C13.1-11 holds the done marker in both checklists, and `scripts/check-documents.mjs` passes, exit 0.
