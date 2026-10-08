@@ -1,6 +1,6 @@
 /**
  * The form tab's fixture export (../client/fixture-export.js) writes each language's validation
- * result in the shape of tests/fixtures/validate/cases.json: the cases below run through the four
+ * result in the shape of tests/fixtures/validate/cases.json: the cases below run through the five
  * validator processes, and every exported case states the `spec`, `data` and `expected` or
  * `expectFailure` of the shared case.
  */
@@ -36,7 +36,7 @@ describe('fixture export — form validation cases', () => {
     test(c.name, async () => {
       const run = await validateAll({ spec: c.spec, data: c.data, files: {}, basepath: '' });
       const exported = validateCases({ name: c.name, spec: c.spec, data: c.data, run });
-      expect(exported.map(item => item.name)).toStrictEqual(['js', 'php', 'go', 'rust'].map(lang => `${c.name}--${lang}`));
+      expect(exported.map(item => item.name)).toStrictEqual(['js', 'php', 'go', 'rust', 'python'].map(lang => `${c.name}--${lang}`));
       for (const item of exported) {
         expect(Object.keys(item).sort()).toStrictEqual(Object.keys(c).sort());
         expect(withoutLabels(item)).toStrictEqual(withoutLabels(c));
