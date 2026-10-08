@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-08 — Python version file in the wave plans (C13.1-14)
+
+- The wave plans state that `.python-version` does not exist until C13.1-6 is done.
+
 ### 2026-10-08 — Validator test file count in the checklist (C13.1-13)
 
 - The row C13.1-2 counts the five validator test files that `discover` selects
