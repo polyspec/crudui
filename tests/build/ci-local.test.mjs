@@ -91,7 +91,7 @@ test('the native suites run in three jobs, the PHP API once for each PHP release
   const commands = run.stdout.split('\n');
   for (const command of [
     /^node scripts\/run-tests\.mjs node -- packages\/php-ext\/tests\/engine\.test\.mjs$/,
-    /^node tests\/native-generators\/run\.mjs --target javascript,html,go,rust --report "[^"]+report\.json" \|\| status=1; \\$/,
+    /^node tests\/native-generators\/run\.mjs --target javascript,html,go,rust,python --report "[^"]+report\.json" \|\| status=1; \\$/,
     /^node tests\/native-generators\/run\.mjs --extension "[^"]+crudui\.so" --target php,php-native --report "[^"]+report-php\.json" \|\| status=1; \\$/,
   ]) assert.equal(commands.filter((line) => command.test(line.trim())).length, 1, `${command}\n${run.stdout}`);
 });
