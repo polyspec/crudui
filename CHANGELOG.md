@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-08 — Python 3.11 import of the validator resolver (C13.1-27)
+
+- `packages/validator-python/src/polyspec/crudui/validator/resolver.py` imports the alias `Node` from `parser` and defines the alias `Context` above the annotations that name it, so Python 3.11 imports the module. The CI job `python` failed on 3.11 with `NameError: name 'Node' is not defined`. The validator and generator suites pass on Python 3.11.
+
 ### 2026-10-08 — Python implementation of the validator and the generator (C13.1)
 
 - `polyspec-crudui-validator` and `polyspec-crudui-generator` are implemented in Python with the standing of the other language implementations: the shared fixtures run in the Python unit tests with evidence, the feature contracts state the Python support, the CI workflow runs the Python suites in a `python` job, and both packages pass `mypy --strict`.
