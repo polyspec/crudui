@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-08 — Python validator in the cross-check console (C13.1-5)
+
+- The cross-check console runs the Python validator process beside the JavaScript, PHP, Go and Rust processes, and its request comparison requires the five to agree. The server test suite passes: 1267 tests, exit 0.
+
 ### 2026-10-08 — Records name commits by checklist id (C13.1-18)
 
 - The records of C13.1-1, C13.1-2, C13.1-3, C13.1-4, C13.1-10 and C13.1-11 name each commit by the checklist id of the task it implements.
