@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-08 — Python program in the native generator checks (C13.1-7-2)
+
+- The native generator checks run the Python program: `node tests/native-generators/run.mjs --target python` reports 741 passed, exit 0. `make test-native-generators` includes the python target; in this environment that make target stops at its cargo prerequisite check before the checks run.
+
 ### 2026-10-08 — Form.setData rejects data that is not an object (C13.1-19)
 
 - `Form.setData` fails with `INVALID_FORM_INPUT` and `Form data must be an object` for data that is not an object. The native generator checks of the Python target pass: 741 passed, exit 0, including `action-failure-keeps-state`.
