@@ -9,10 +9,16 @@ deep is a parse error.
 """
 
 import re
+from typing import Any, TypeAlias, cast
 
 __all__ = ['MAX_EXPRESSION_DEPTH', 'ParseError', 'is_condition_expression', 'parse_condition']
 
 MAX_EXPRESSION_DEPTH = 64
+
+# A token of the lexer: its `type`, `value`, `literal` and `position`.
+Token: TypeAlias = dict[str, Any]
+# A node of the expression tree: its `type` and the members that type declares.
+Node: TypeAlias = dict[str, Any]
 
 _WHITESPACE = re.compile(r'\s')
 
@@ -20,7 +26,7 @@ _WHITESPACE = re.compile(r'\s')
 class ParseError(ValueError):
     """A condition expression that does not parse, with its source position."""
 
-    def __init__(self, message, position, context=None):
+    def __init__(self, message: str, position: dict[str, int], context: dict[str, Any] | None = None) -> None:
         context = context or {}
         parts = [message]
         parts.append(
@@ -43,7 +49,7 @@ class ParseError(ValueError):
         self.context = context
 
 
-def describe_token(token):
+def describe_token(token: Token) -> str:
     """A human-readable description of a token."""
     kind = token['type']
     value = token.get('value')
@@ -84,7 +90,7 @@ def describe_token(token):
     if kind == 'IDENTIFIER':
         return f'identifier "{value}"'
     if kind == 'DOT_DOT':
-        return f'dots ({"." * literal})'
+        return f'dots ({"." * cast(int, literal)})'
     return f'"{value}"'
 
 
@@ -111,13 +117,13 @@ class _Lexer:
         (':', 'COLON'),
     )
 
-    def __init__(self, source):
+    def __init__(self, source: str) -> None:
         self.source = source
         self.position = 0
         self.line = 1
         self.column = 1
 
-    def tokenize(self):
+    def tokenize(self) -> list[Token]:
         """Every token of the source, whitespace dropped, ending with EOF."""
         tokens = []
         while not self._at_end():
@@ -127,7 +133,7 @@ class _Lexer:
         tokens.append(self._token('EOF', '', None))
         return tokens
 
-    def _next_token(self):
+    def _next_token(self) -> Token:
         start = self.position
         if self._match_whitespace():
             return self._token('WHITESPACE', self.source[start:self.position], None)
@@ -163,7 +169,7 @@ class _Lexer:
         character = self._advance()
         return self._token('INVALID', character, None)
 
-    def _read_string(self):
+    def _read_string(self) -> Token:
         quote = self._advance()
         start = self.position
         value = ''
@@ -193,7 +199,7 @@ class _Lexer:
         self._advance()  # closing quote
         return self._token('STRING', quote + value + quote, value)
 
-    def _read_number(self):
+    def _read_number(self) -> Token:
         start = self.position
         if self._peek() == '-':
             self._advance()
@@ -212,7 +218,7 @@ class _Lexer:
         value = self.source[start:self.position]
         return self._token('NUMBER', value, float(value))
 
-    def _read_identifier(self):
+    def _read_identifier(self) -> Token:
         start = self.position
         while self._is_alpha_numeric(self._peek()):
             self._advance()
@@ -235,21 +241,21 @@ class _Lexer:
             self.position, self.line, self.column = saved
         return self._token('IDENTIFIER', value, value)
 
-    def _match_whitespace(self):
+    def _match_whitespace(self) -> bool:
         matched = False
         while not self._at_end() and _WHITESPACE.match(self._peek()):
             self._advance()
             matched = True
         return matched
 
-    def _peek(self):
+    def _peek(self) -> str:
         return self.source[self.position] if self.position < len(self.source) else '\0'
 
-    def _peek_next(self):
+    def _peek_next(self) -> str:
         next_position = self.position + 1
         return self.source[next_position] if next_position < len(self.source) else '\0'
 
-    def _advance(self):
+    def _advance(self) -> str:
         character = self._peek()
         self.position += 1
         if character == '\n':
@@ -259,20 +265,20 @@ class _Lexer:
             self.column += 1
         return character
 
-    def _at_end(self):
+    def _at_end(self) -> bool:
         return self.position >= len(self.source)
 
     @staticmethod
-    def _is_alpha(character):
+    def _is_alpha(character: str) -> bool:
         return 'a' <= character <= 'z' or 'A' <= character <= 'Z' or character == '_'
 
-    def _is_alpha_numeric(self, character):
+    def _is_alpha_numeric(self, character: str) -> bool:
         return self._is_alpha(character) or character.isdigit()
 
-    def _position_at(self, start):
+    def _position_at(self, start: int) -> dict[str, int]:
         return {'start': start, 'end': self.position, 'line': self.line, 'column': self.column}
 
-    def _token(self, kind, value, literal):
+    def _token(self, kind: str, value: str, literal: object) -> Token:
         return {
             'type': kind,
             'value': value,
@@ -289,16 +295,16 @@ class _Lexer:
 class _Parser:
     """The recursive-descent parser building the syntax tree."""
 
-    def __init__(self, tokens):
+    def __init__(self, tokens: list[Token]) -> None:
         self.tokens = tokens
         self.current = 0
-        self.partial_ast = None
+        self.partial_ast: Node | None = None
         # Nodes being parsed whose children are still open: each is an ancestor of what comes next.
         self.open = 0
         # Height of the node the last parse method returned.
         self.height = 0
 
-    def parse(self):
+    def parse(self) -> Node:
         expression = self._parse_ternary()
         self.partial_ast = expression
         if not self._at_end():
@@ -320,7 +326,7 @@ class _Parser:
         return expression
 
     # ternary_expression = or_expression [ "?" ternary_expression ":" ternary_expression ]
-    def _parse_ternary(self):
+    def _parse_ternary(self) -> Node:
         condition = self._parse_or()
         self.partial_ast = condition
         if self._match('QUESTION'):
@@ -359,7 +365,7 @@ class _Parser:
         return condition
 
     # or_expression = and_expression { "||" and_expression }
-    def _parse_or(self):
+    def _parse_or(self) -> Node:
         left = self._parse_and()
         height = self.height
         while self._match('OR'):
@@ -381,7 +387,7 @@ class _Parser:
         return left
 
     # and_expression = not_expression { "&&" not_expression }
-    def _parse_and(self):
+    def _parse_and(self) -> Node:
         left = self._parse_not()
         height = self.height
         while self._match('AND'):
@@ -403,7 +409,7 @@ class _Parser:
         return left
 
     # not_expression = "!" not_expression | comparison
-    def _parse_not(self):
+    def _parse_not(self) -> Node:
         if self._match('NOT'):
             start = self._previous()['position']['start']
             self._enter()
@@ -421,7 +427,7 @@ class _Parser:
         return self._parse_comparison()
 
     # comparison = primary [ comparison_op value | in_op value_list ]
-    def _parse_comparison(self):
+    def _parse_comparison(self) -> Node:
         left = self._parse_primary()
         left_height = self.height
         if self._match('IN', 'NOT_IN'):
@@ -461,7 +467,7 @@ class _Parser:
         return left
 
     # value_list = "[" value { "," value } "]" | value { "," value }
-    def _parse_value_list(self):
+    def _parse_value_list(self) -> list[Node]:
         values = []
         has_brackets = self._match('LBRACKET')
         values.append(self._parse_value_list_item())
@@ -484,7 +490,7 @@ class _Parser:
             )
         return values
 
-    def _parse_value_list_item(self):
+    def _parse_value_list_item(self) -> Node:
         token = self._peek()
         # For the "in" operator, unquoted identifiers are treated as strings.
         if self._match('IDENTIFIER'):
@@ -522,7 +528,7 @@ class _Parser:
             },
         )
 
-    def _parse_comparison_value(self):
+    def _parse_comparison_value(self) -> Node:
         """The right side of a comparison: a lone identifier is a string literal."""
         if self._check('IDENTIFIER'):
             current = self.current
@@ -540,7 +546,7 @@ class _Parser:
         return self._parse_primary()
 
     # primary = path | literal | "(" expression ")"
-    def _parse_primary(self):
+    def _parse_primary(self) -> Node:
         if self._match('LPAREN'):
             start = self._previous()['position']['start']
             self._enter()
@@ -601,7 +607,7 @@ class _Parser:
         )
 
     # path = relative_path | absolute_path
-    def _parse_path(self):
+    def _parse_path(self) -> Node:
         start = self._peek()['position']['start']
         relative = False
         levels_up = 0
@@ -660,20 +666,20 @@ class _Parser:
             'position': {'start': start, 'end': end},
         }
 
-    def _enter(self):
+    def _enter(self) -> None:
         """Open a node whose children follow; the tree is at least one level deeper."""
         self.open += 1
         if self.open >= MAX_EXPRESSION_DEPTH:
             self._too_deep()
 
-    def _node(self, child_height, node):
+    def _node(self, child_height: int, node: Node) -> Node:
         """Record a node whose tallest child has `child_height`."""
         self.height = child_height + 1
         if self.height > MAX_EXPRESSION_DEPTH:
             self._too_deep()
         return node
 
-    def _too_deep(self):
+    def _too_deep(self) -> bool:
         token = self._peek()
         raise ParseError(
             f'Expression is nested more than {MAX_EXPRESSION_DEPTH} levels deep',
@@ -685,37 +691,37 @@ class _Parser:
             },
         )
 
-    def _match(self, *types):
+    def _match(self, *types: str) -> bool:
         for kind in types:
             if self._check(kind):
                 self._advance()
                 return True
         return False
 
-    def _check(self, kind):
+    def _check(self, kind: str) -> bool:
         if self._at_end():
             return False
-        return self._peek()['type'] == kind
+        return bool(self._peek()['type'] == kind)
 
-    def _advance(self):
+    def _advance(self) -> Token:
         if not self._at_end():
             self.current += 1
         return self._previous()
 
-    def _at_end(self):
-        return self._peek()['type'] == 'EOF'
+    def _at_end(self) -> bool:
+        return bool(self._peek()['type'] == 'EOF')
 
-    def _peek(self):
+    def _peek(self) -> Token:
         return self.tokens[self.current]
 
-    def _previous(self):
+    def _previous(self) -> Token:
         return self.tokens[self.current - 1]
 
 
-_cache = {}
+_cache: dict[str, Node] = {}
 
 
-def parse_condition(expression):
+def parse_condition(expression: str) -> Node:
     """Parse a condition expression string into its syntax tree, cached by string.
 
     Raises `ParseError` when the expression is invalid.
@@ -739,7 +745,7 @@ _CONDITION_LOOKS = (
 )
 
 
-def is_condition_expression(value):
+def is_condition_expression(value: object) -> bool:
     """Whether a rule value is a condition expression: a string that looks like one."""
     if not isinstance(value, str):
         return False

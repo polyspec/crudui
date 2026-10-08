@@ -9,6 +9,7 @@ insertion order. This module writes and compares values exactly that way.
 
 import math
 import re
+from typing import TypeAlias, Union
 
 __all__ = [
     'compare_code_points',
@@ -23,6 +24,9 @@ __all__ = [
     'ordered_value',
 ]
 
+# A value of the JSON data model: null, boolean, number, string, array or object.
+JsonValue: TypeAlias = Union[None, bool, int, float, str, list['JsonValue'], dict[str, 'JsonValue']]
+
 _SURROGATE = re.compile('[\ud800-\udfff]')
 
 # Largest integer magnitude whose decimal text is its double's text.
@@ -31,7 +35,7 @@ _EXACT_INTEGER = 9007199254740992
 _ARRAY_INDEX = re.compile(r'^(?:0|[1-9][0-9]{0,9})$')
 
 
-def is_scalar_text(text):
+def is_scalar_text(text: object) -> bool:
     """Whether `text` has no unpaired surrogate code unit."""
     if not isinstance(text, str):
         return False
@@ -52,7 +56,7 @@ def is_scalar_text(text):
     return True
 
 
-def _rank(unit):
+def _rank(unit: int) -> int:
     """The order rank of one UTF-16 code unit: a surrogate ranks above U+FFFF."""
     if unit >= 0xe000:
         return unit - 0x800
@@ -61,7 +65,7 @@ def _rank(unit):
     return unit
 
 
-def _units(text):
+def _units(text: str) -> list[int]:
     """The UTF-16 code units of `text`."""
     units = []
     for character in text:
@@ -75,7 +79,7 @@ def _units(text):
     return units
 
 
-def compare_code_points(left, right):
+def compare_code_points(left: str, right: str) -> int:
     """Compare two strings in code point order, a surrogate pair above U+FFFF."""
     a = _units(left)
     b = _units(right)
@@ -87,12 +91,12 @@ def compare_code_points(left, right):
     return len(a) - len(b)
 
 
-def is_array_index(name):
+def is_array_index(name: object) -> bool:
     """Whether a member name is an array index: a canonical decimal integer 0..4294967294."""
     return isinstance(name, str) and _ARRAY_INDEX.match(name) is not None and int(name) <= 4294967294
 
 
-def ordered_members(members):
+def ordered_members(members: dict[str, JsonValue]) -> dict[str, JsonValue]:
     """A copy of one member map in specification member order, values untouched."""
     indexes = {name: value for name, value in members.items() if is_array_index(name)}
     names = {name: value for name, value in members.items() if not is_array_index(name)}
@@ -103,7 +107,7 @@ def ordered_members(members):
     return out
 
 
-def ordered_value(value):
+def ordered_value(value: JsonValue) -> JsonValue:
     """A copy of a value with every object in specification member order."""
     if isinstance(value, dict):
         return {name: ordered_value(child) for name, child in ordered_members(value).items()}
@@ -112,7 +116,7 @@ def ordered_value(value):
     return value
 
 
-def is_number(value):
+def is_number(value: object) -> bool:
     """Whether a value is a JSON number: an int (not a boolean) or a finite float."""
     if isinstance(value, bool):
         return False
@@ -121,7 +125,7 @@ def is_number(value):
     return isinstance(value, float) and math.isfinite(value)
 
 
-def number_text(number):
+def number_text(number: int | float) -> str:
     """Write a finite number as ECMAScript `Number.prototype.toString` does.
 
     The fewest significant digits that read back as the same double (the closest
@@ -141,7 +145,7 @@ def number_text(number):
     return sign + _layout(digits, exponent + 1)
 
 
-def _rounded(number, precision):
+def _rounded(number: float, precision: int) -> tuple[str, int]:
     """Correctly rounded significant digits at a precision: digits and the exponent of the first."""
     text = f'{number:.{precision - 1}e}'
     mantissa, _, power = text.partition('e')
@@ -149,12 +153,12 @@ def _rounded(number, precision):
     return whole + fraction, int(power)
 
 
-def _read(digits, exponent):
+def _read(digits: str, exponent: int) -> float:
     """The double a digit string reads as."""
     return float(f'{digits[0]}.{digits[1:]}e{exponent}')
 
 
-def _step(digits, exponent, direction):
+def _step(digits: str, exponent: int, direction: int) -> tuple[str, int]:
     """The adjacent decimal with the same number of significant digits."""
     width = len(digits)
     value = list(digits)
@@ -178,14 +182,14 @@ def _step(digits, exponent, direction):
     return ''.join(value), exponent
 
 
-def _stripped(digits, exponent):
+def _stripped(digits: str, exponent: int) -> tuple[str, int]:
     """Digits without trailing zeros, keeping at least one."""
     while len(digits) > 1 and digits.endswith('0'):
         digits = digits[:-1]
     return digits, exponent
 
 
-def _shortest(number):
+def _shortest(number: float) -> tuple[str, int]:
     """Shortest round-trip significant digits of a positive finite double."""
     for precision in range(1, 18):
         digits, exponent = _rounded(number, precision)
@@ -199,7 +203,7 @@ def _shortest(number):
     raise AssertionError(f'No 17-digit decimal reads back as {number:.17e}')
 
 
-def _layout(digits, point):
+def _layout(digits: str, point: int) -> str:
     """Lay digits out around the decimal point the ECMAScript way."""
     count = len(digits)
     if count <= point <= 21:
@@ -213,7 +217,7 @@ def _layout(digits, point):
     return f'{digits}{exponent}' if count == 1 else f'{digits[0]}.{digits[1:]}{exponent}'
 
 
-def js_string(value):
+def js_string(value: JsonValue) -> str:
     """Convert a value to text as JavaScript `String()` does."""
     if value is None:
         return 'null'
@@ -228,12 +232,12 @@ def js_string(value):
     return '[object Object]'
 
 
-def canonical_number(value):
+def canonical_number(value: int | float) -> str:
     """The canonical text of a number: integers within the exact range plainly."""
     return number_text(value)
 
 
-def js_parse_float(text):
+def js_parse_float(text: str) -> float:
     """JavaScript `parseFloat`: the leading numeric prefix, or NaN."""
     match = re.match(
         r'\s*[+-]?(?:Infinity|\d+(?:\.\d*)?(?:[eE][+-]?\d+)?|\.\d+(?:[eE][+-]?\d+)?)',
@@ -253,12 +257,19 @@ def js_parse_float(text):
 
 
 _NUMBER_DECIMAL = re.compile(
-    r'\s*[+-]?(?:Infinity|(?:(?:\d+|\.\d+|\d+\.\d*)(?:[eE][+-]?\d+)?))\s*$'
+    r'[+-]?(?:Infinity|(?:(?:\d+|\.\d+|\d+\.\d*)(?:[eE][+-]?\d+)?))$'
 )
-_NUMBER_HEX = re.compile(r'\s*0[xX][0-9a-fA-F]+\s*$')
+_NUMBER_RADIX = re.compile(r'0[xX][0-9a-fA-F]+$|0[bB][01]+$|0[oO][0-7]+$')
+# The white space `String.prototype.trim` and `Number` accept: the ECMAScript
+# white space and line terminators, including the byte order mark.
+_JS_SPACE = (
+    ' \t\n\v\f\r\u00a0\ufeff\u1680'
+    '\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a'
+    '\u2028\u2029\u202f\u205f\u3000'
+)
 
 
-def js_number(value):
+def js_number(value: JsonValue) -> float:
     """JavaScript `Number()`: the number a value converts to, or NaN."""
     if value is None:
         return 0.0
@@ -270,13 +281,14 @@ def js_number(value):
         except OverflowError:
             return math.inf if value > 0 else -math.inf
     if isinstance(value, str):
-        if value.strip() == '':
+        text = value.strip(_JS_SPACE)
+        if text == '':
             return 0.0
-        if _NUMBER_HEX.match(value):
-            return float(int(value.strip(), 16))
-        if not _NUMBER_DECIMAL.match(value):
+        if _NUMBER_RADIX.match(text):
+            return float(int(text, 0))
+        if not _NUMBER_DECIMAL.match(text):
             return math.nan
-        return js_parse_float(value)
+        return js_parse_float(text)
     if isinstance(value, list):
         if len(value) == 0:
             return 0.0

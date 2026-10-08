@@ -13,10 +13,12 @@ import json
 import re
 import urllib.parse
 from datetime import datetime, timezone
+from typing import Any, Callable, TypeAlias, cast
 
-from .parser import is_condition_expression, parse_condition
+from .jsvalue import JsonValue
+from .parser import Node, is_condition_expression, parse_condition
 from .pattern import PatternSyntaxError, compile_pattern
-from .resolver import evaluate_condition, get_value_by_path, parse_path_string, resolve_field_reference
+from .resolver import Value, evaluate_condition, get_value_by_path, parse_path_string, resolve_field_reference
 from .values import (
     canonical_text,
     code_point_length,
@@ -37,6 +39,11 @@ from .values import (
 )
 
 __all__ = ['get_rule', 'get_rule_names', 'rule_parameter_failure']
+
+# A rule's context: `value`, `ruleParam`, `messages`, `formData`, `currentPath`, `rowKeys` and `allData`, as the field layer builds it.
+RuleContext: TypeAlias = dict[str, Any]
+# A rule: it returns the failure message of a value, or None when the value passes.
+Rule: TypeAlias = Callable[[RuleContext], str | None]
 
 _EMAIL = re.compile(
     r"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@"
@@ -95,26 +102,32 @@ _EXTENSION_TO_MIME = {
 }
 
 
-def _messages(context):
+def _messages(context: RuleContext) -> dict[str, Any]:
     messages = context.get('messages')
     return messages if isinstance(messages, dict) else {}
 
 
-def _disabled(rule_param):
+def _message(context: RuleContext, key: str, default: str) -> str:
+    """The configured message of a rule, or its default."""
+    return cast(str, _messages(context).get(key, default))
+
+
+def _disabled(rule_param: object) -> bool:
     """A false, null or missing parameter disables a rule."""
     return rule_param is False or rule_param is None
 
 
-def _rule_required(context):
+def _rule_required(context: RuleContext) -> str | None:
     value, rule_param = context['value'], context['ruleParam']
     if rule_param is not True:
         return None
     if is_empty_value(value):
-        return _messages(context).get('required', 'This field is required.')
+        message: str = _message(context, 'required', 'This field is required.')
+        return message
     return None
 
 
-def _valid_email(value):
+def _valid_email(value: JsonValue) -> bool:
     if not isinstance(value, str):
         return False
     if _EMAIL.match(value) is None:
@@ -125,18 +138,19 @@ def _valid_email(value):
     return True
 
 
-def _rule_email(context):
+def _rule_email(context: RuleContext) -> str | None:
     value, rule_param = context['value'], context['ruleParam']
     if rule_param is not True:
         return None
     if is_empty_value(value):
         return None
     if not _valid_email(value):
-        return _messages(context).get('email', 'Please enter a valid email address.')
+        message: str = _message(context, 'email', 'Please enter a valid email address.')
+        return message
     return None
 
 
-def _valid_url(value):
+def _valid_url(value: JsonValue) -> bool:
     if not isinstance(value, str):
         return False
     trimmed = trim(value)
@@ -151,18 +165,19 @@ def _valid_url(value):
     return parsed.netloc != ''
 
 
-def _rule_url(context):
+def _rule_url(context: RuleContext) -> str | None:
     value, rule_param = context['value'], context['ruleParam']
     if rule_param is False:
         return None
     if is_empty_value(value):
         return None
     if not _valid_url(value):
-        return _messages(context).get('url', 'Please enter a valid URL.')
+        message: str = _message(context, 'url', 'Please enter a valid URL.')
+        return message
     return None
 
 
-def _rule_minlength(context):
+def _rule_minlength(context: RuleContext) -> str | None:
     value, rule_param = context['value'], context['ruleParam']
     if _disabled(rule_param):
         return None
@@ -172,12 +187,12 @@ def _rule_minlength(context):
         return None
     length = code_point_length(value)
     if length is None or length < rule_param:
-        message = _messages(context).get('minlength', 'Please enter at least {0} characters.')
+        message = _message(context, 'minlength', 'Please enter at least {0} characters.')
         return format_message(message, rule_param)
     return None
 
 
-def _rule_maxlength(context):
+def _rule_maxlength(context: RuleContext) -> str | None:
     value, rule_param = context['value'], context['ruleParam']
     if _disabled(rule_param):
         return None
@@ -187,12 +202,12 @@ def _rule_maxlength(context):
         return None
     length = code_point_length(value)
     if length is None or length > rule_param:
-        message = _messages(context).get('maxlength', 'Please enter no more than {0} characters.')
+        message = _message(context, 'maxlength', 'Please enter no more than {0} characters.')
         return format_message(message, rule_param)
     return None
 
 
-def _rule_rangelength(context):
+def _rule_rangelength(context: RuleContext) -> str | None:
     value, rule_param = context['value'], context['ruleParam']
     if _disabled(rule_param):
         return None
@@ -206,14 +221,14 @@ def _rule_rangelength(context):
     minimum, maximum = rule_param
     length = code_point_length(value)
     if length is None or length < minimum or length > maximum:
-        message = _messages(context).get(
+        message = _message(context, 
             'rangelength', 'Please enter a value between {0} and {1} characters.'
         )
         return format_message(message, minimum, maximum)
     return None
 
 
-def _rule_match(context):
+def _rule_match(context: RuleContext) -> str | None:
     value, rule_param = context['value'], context['ruleParam']
     rule_name = context.get('ruleName')
     if _disabled(rule_param):
@@ -234,7 +249,7 @@ def _rule_match(context):
     return None
 
 
-def _rule_number(context):
+def _rule_number(context: RuleContext) -> str | None:
     value, rule_param = context['value'], context['ruleParam']
     if _disabled(rule_param):
         return None
@@ -243,11 +258,12 @@ def _rule_number(context):
     if is_empty_value(value):
         return None
     if numeric_value(value) is None:
-        return _messages(context).get('number', 'Please enter a valid number.')
+        message: str = _message(context, 'number', 'Please enter a valid number.')
+        return message
     return None
 
 
-def _rule_digits(context):
+def _rule_digits(context: RuleContext) -> str | None:
     value, rule_param = context['value'], context['ruleParam']
     if _disabled(rule_param):
         return None
@@ -256,11 +272,12 @@ def _rule_digits(context):
     if is_empty_value(value):
         return None
     if not is_digits(value):
-        return _messages(context).get('digits', 'Please enter only digits.')
+        message: str = _message(context, 'digits', 'Please enter only digits.')
+        return message
     return None
 
 
-def _rule_min(context):
+def _rule_min(context: RuleContext) -> str | None:
     value, rule_param = context['value'], context['ruleParam']
     if _disabled(rule_param):
         return None
@@ -270,14 +287,14 @@ def _rule_min(context):
         return None
     number = numeric_value(value)
     if number is None or number < rule_param:
-        message = _messages(context).get(
+        message = _message(context, 
             'min', 'Please enter a value greater than or equal to {0}.'
         )
         return format_message(message, rule_param)
     return None
 
 
-def _rule_max(context):
+def _rule_max(context: RuleContext) -> str | None:
     value, rule_param = context['value'], context['ruleParam']
     if _disabled(rule_param):
         return None
@@ -287,14 +304,14 @@ def _rule_max(context):
         return None
     number = numeric_value(value)
     if number is None or number > rule_param:
-        message = _messages(context).get(
+        message = _message(context, 
             'max', 'Please enter a value less than or equal to {0}.'
         )
         return format_message(message, rule_param)
     return None
 
 
-def _rule_range(context):
+def _rule_range(context: RuleContext) -> str | None:
     value, rule_param = context['value'], context['ruleParam']
     if _disabled(rule_param):
         return None
@@ -308,12 +325,12 @@ def _rule_range(context):
     minimum, maximum = rule_param
     number = numeric_value(value)
     if number is None or number < minimum or number > maximum:
-        message = _messages(context).get('range', 'Please enter a value between {0} and {1}.')
+        message = _message(context, 'range', 'Please enter a value between {0} and {1}.')
         return format_message(message, minimum, maximum)
     return None
 
 
-def _rule_step(context):
+def _rule_step(context: RuleContext) -> str | None:
     value, rule_param = context['value'], context['ruleParam']
     if _disabled(rule_param):
         return None
@@ -323,14 +340,14 @@ def _rule_step(context):
         return None
     number = numeric_value(value)
     if number is None or not is_multiple(number, rule_param):
-        message = _messages(context).get(
+        message = _message(context, 
             'step', 'Please enter a value that is a multiple of {0}.'
         )
         return format_message(message, rule_param)
     return None
 
 
-def _resolve_field_param(param, context):
+def _resolve_field_param(param: JsonValue, context: RuleContext) -> Value:
     return resolve_field_reference(
         str(param),
         {
@@ -341,7 +358,7 @@ def _resolve_field_param(param, context):
     )
 
 
-def _rule_equal_to(context):
+def _rule_equal_to(context: RuleContext) -> str | None:
     value, rule_param = context['value'], context['ruleParam']
     if rule_param is None:
         return None
@@ -349,11 +366,12 @@ def _rule_equal_to(context):
         return None
     target = _resolve_field_param(rule_param, context)
     if not _same_value(value, target):
-        return _messages(context).get('equalTo', 'Please enter the same value again.')
+        message: str = _message(context, 'equalTo', 'Please enter the same value again.')
+        return message
     return None
 
 
-def _same_value(left, right):
+def _same_value(left: Value, right: Value) -> bool:
     """The strict equality of two data values: objects and lists by identity."""
     if isinstance(left, (dict, list)) or isinstance(right, (dict, list)):
         return left is right
@@ -364,7 +382,7 @@ def _same_value(left, right):
     return left == right
 
 
-def _rule_not_equal(context):
+def _rule_not_equal(context: RuleContext) -> str | None:
     value, rule_param = context['value'], context['ruleParam']
     if rule_param is None:
         return None
@@ -377,11 +395,12 @@ def _rule_not_equal(context):
     else:
         compare = rule_param
     if _same_value(value, compare):
-        return _messages(context).get('notEqual', 'Please enter a different value.')
+        message: str = _message(context, 'notEqual', 'Please enter a different value.')
+        return message
     return None
 
 
-def _rule_in(context):
+def _rule_in(context: RuleContext) -> str | None:
     value, rule_param = context['value'], context['ruleParam']
     if _disabled(rule_param):
         return None
@@ -391,11 +410,12 @@ def _rule_in(context):
     if is_empty_value(value):
         return None
     if not is_member(value, members):
-        return _messages(context).get('in', 'Please select a valid option.')
+        message: str = _message(context, 'in', 'Please select a valid option.')
+        return message
     return None
 
 
-def _parse_date(value):
+def _parse_date(value: Value) -> datetime | None:
     """The date a value names in an accepted layout, or None.
 
     Accepted layouts: `YYYY-MM-DD`, `MM/DD/YYYY`, `DD/MM/YYYY`, `YYYY/MM/DD`
@@ -428,22 +448,23 @@ def _parse_date(value):
     return None
 
 
-def _valid_date(value):
+def _valid_date(value: Value) -> bool:
     return _parse_date(value) is not None
 
 
-def _rule_date(context):
+def _rule_date(context: RuleContext) -> str | None:
     value, rule_param = context['value'], context['ruleParam']
     if rule_param is False:
         return None
     if is_empty_value(value):
         return None
     if not _valid_date(value):
-        return _messages(context).get('date', 'Please enter a valid date.')
+        message: str = _message(context, 'date', 'Please enter a valid date.')
+        return message
     return None
 
 
-def _valid_date_iso(value):
+def _valid_date_iso(value: Value) -> bool:
     if not isinstance(value, str):
         return False
     trimmed = trim(value)
@@ -457,21 +478,21 @@ def _valid_date_iso(value):
     return True
 
 
-def _rule_date_iso(context):
+def _rule_date_iso(context: RuleContext) -> str | None:
     value, rule_param = context['value'], context['ruleParam']
     if rule_param is False:
         return None
     if is_empty_value(value):
         return None
     if not _valid_date_iso(value):
-        message = _messages(context).get(
+        message = _message(context, 
             'dateISO', 'Please enter a valid date in ISO format (YYYY-MM-DD).'
         )
         return message
     return None
 
 
-def _rule_enddate(context):
+def _rule_enddate(context: RuleContext) -> str | None:
     value, rule_param = context['value'], context['ruleParam']
     if rule_param is None:
         return None
@@ -487,35 +508,36 @@ def _rule_enddate(context):
     if start is None:
         return None
     if end < start:
-        return _messages(context).get('enddate', 'End date must be after the start date.')
+        message: str = _message(context, 'enddate', 'End date must be after the start date.')
+        return message
     return None
 
 
-def _rule_mincount(context):
+def _rule_mincount(context: RuleContext) -> str | None:
     value, rule_param = context['value'], context['ruleParam']
     if _disabled(rule_param):
         return None
     if not is_length_limit(rule_param):
         raise TypeError('Invalid mincount parameter: expected an integer from 0 to 9007199254740991')
     if count_of(value) < rule_param:
-        message = _messages(context).get('mincount', 'Please select at least {0} items.')
+        message = _message(context, 'mincount', 'Please select at least {0} items.')
         return format_message(message, rule_param)
     return None
 
 
-def _rule_maxcount(context):
+def _rule_maxcount(context: RuleContext) -> str | None:
     value, rule_param = context['value'], context['ruleParam']
     if _disabled(rule_param):
         return None
     if not is_length_limit(rule_param):
         raise TypeError('Invalid maxcount parameter: expected an integer from 0 to 9007199254740991')
     if count_of(value) > rule_param:
-        message = _messages(context).get('maxcount', 'Please select no more than {0} items.')
+        message = _message(context, 'maxcount', 'Please select no more than {0} items.')
         return format_message(message, rule_param)
     return None
 
 
-def _canonical_key(value):
+def _canonical_key(value: JsonValue) -> str:
     """The canonical key of a value for `unique`: equal keys mean the same JSON value."""
     if value is None:
         return 'z'
@@ -536,7 +558,7 @@ def _canonical_key(value):
     return f'u{value}'
 
 
-def _all_unique(values):
+def _all_unique(values: list[JsonValue]) -> bool:
     seen = set()
     for value in values:
         key = _canonical_key(value)
@@ -546,7 +568,7 @@ def _all_unique(values):
     return True
 
 
-def _extract_field_values(items, field_name):
+def _extract_field_values(items: list[JsonValue], field_name: str) -> list[JsonValue]:
     values = []
     segments = parse_path_string(field_name)
     for item in items:
@@ -557,7 +579,7 @@ def _extract_field_values(items, field_name):
     return values
 
 
-def _item_passes(condition, item_field_path, row_keys, all_data):
+def _item_passes(condition: str, item_field_path: list[str], row_keys: list[int], all_data: JsonValue) -> bool:
     try:
         ast = parse_condition(condition)
         return evaluate_condition(
@@ -569,7 +591,7 @@ def _item_passes(condition, item_field_path, row_keys, all_data):
         return False
 
 
-def _rule_unique(context):
+def _rule_unique(context: RuleContext) -> str | None:
     value, rule_param = context['value'], context['ruleParam']
     all_data = context['allData']
     path_segments = context['pathSegments']
@@ -577,12 +599,12 @@ def _rule_unique(context):
     if _disabled(rule_param):
         return None
     is_filter = isinstance(rule_param, str) and is_condition_expression(rule_param)
-    error = _messages(context).get('unique', 'Values must be unique.')
+    error = _message(context, 'unique', 'Values must be unique.')
     if isinstance(value, (list, dict)):
         entries = list(value.items()) if isinstance(value, dict) else list(enumerate(value))
         if is_filter:
             # Only elements whose item context passes the condition participate.
-            values_to_check = []
+            values_to_check: list[JsonValue] = []
             for key, element in entries:
                 item_path = [*path_segments, str(key)]
                 if not _item_passes(
@@ -628,9 +650,9 @@ def _rule_unique(context):
     return error if item_key in duplicates else None
 
 
-def _row_duplicates(container, container_path, field_name, filter_condition, row_keys, all_data):
+def _row_duplicates(container: list[JsonValue] | dict[str, JsonValue], container_path: list[str], field_name: str, filter_condition: str | None, row_keys: list[int], all_data: JsonValue) -> set[str]:
     """The row keys whose `field_name` value an earlier row already holds."""
-    duplicates = set()
+    duplicates: set[str] = set()
     seen = set()
     entries = (
         [(str(index), item) for index, item in enumerate(container)]
@@ -655,7 +677,7 @@ def _row_duplicates(container, container_path, field_name, filter_condition, row
     return duplicates
 
 
-def parse_accept_param(param):
+def parse_accept_param(param: JsonValue) -> list[str]:
     """The allowed MIME types of an accept parameter."""
     accept_list = []
     if isinstance(param, str):
@@ -675,7 +697,7 @@ def parse_accept_param(param):
     return accept_list
 
 
-def matches_mime_type(mime_type, accept_list):
+def matches_mime_type(mime_type: str, accept_list: list[str]) -> bool:
     """Whether a MIME type matches the accept list, wildcards included."""
     normalized = mime_type.lower()
     for accept in accept_list:
@@ -691,7 +713,7 @@ def matches_mime_type(mime_type, accept_list):
     return False
 
 
-def matches_extension(filename, accept_list):
+def matches_extension(filename: str, accept_list: list[str]) -> bool:
     """Whether a filename's extension matches the accept list.
 
     A filename carries no MIME header, so the extension maps to its MIME types
@@ -714,7 +736,7 @@ def matches_extension(filename, accept_list):
     return False
 
 
-def _rule_accept(context):
+def _rule_accept(context: RuleContext) -> str | None:
     value, rule_param = context['value'], context['ruleParam']
     if rule_param is None or rule_param is False:
         return None
@@ -726,9 +748,11 @@ def _rule_accept(context):
     if isinstance(value, str):
         if '/' in value:
             if not matches_mime_type(value, accept_list):
-                return _messages(context).get('accept', 'Please upload a file with a valid format.')
+                message: str = _message(context, 'accept', 'Please upload a file with a valid format.')
+                return message
         elif not matches_extension(value, accept_list):
-            return _messages(context).get('accept', 'Please upload a file with a valid format.')
+            message = _message(context, 'accept', 'Please upload a file with a valid format.')
+            return message
         return None
     if isinstance(value, list):
         for item in value:
@@ -739,7 +763,8 @@ def _rule_accept(context):
                     name and matches_extension(name, accept_list)
                 )
                 if not valid:
-                    return _messages(context).get('accept', 'Please upload files with valid formats.')
+                    message = _message(context, 'accept', 'Please upload files with valid formats.')
+                    return message
         return None
     if isinstance(value, dict):
         mime = value.get('type') or value.get('mimeType') or ''
@@ -748,7 +773,8 @@ def _rule_accept(context):
             name and matches_extension(name, accept_list)
         )
         if not valid:
-            return _messages(context).get('accept', 'Please upload a file with a valid format.')
+            message = _message(context, 'accept', 'Please upload a file with a valid format.')
+            return message
         return None
     return None
 
@@ -799,17 +825,17 @@ _CHECKED_RULES = {
 }
 
 
-def get_rule(name):
+def get_rule(name: str) -> Rule | None:
     """The validation function of a registered rule name, or None."""
     return _RULES.get(name)
 
 
-def get_rule_names():
+def get_rule_names() -> list[str]:
     """Every registered rule name, in registration order."""
     return list(_RULES)
 
 
-def rule_parameter_failure(rule_name, param):
+def rule_parameter_failure(rule_name: str, param: object) -> tuple[str, str] | None:
     """The failure an effective (resolved) parameter of a rule causes, or None.
 
     `False` and `None` disable a rule and are never failures.
@@ -817,7 +843,7 @@ def rule_parameter_failure(rule_name, param):
     if param is False or param is None or rule_name not in _CHECKED_RULES:
         return None
 
-    def invalid(message):
+    def invalid(message: str) -> tuple[str, str]:
         return 'INVALID_RULE_PARAMETER', message
 
     if rule_name in ('minlength', 'maxlength', 'mincount', 'maxcount'):

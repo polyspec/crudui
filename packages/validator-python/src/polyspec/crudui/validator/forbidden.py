@@ -9,7 +9,10 @@ load failure (`ComposeLoadError`, code `FORBIDDEN_META_KEY`) with the dotted
 path to the offending key, never a validation result.
 """
 
+from collections.abc import Sequence
+
 from .compose_errors import ComposeLoadError
+from .jsvalue import JsonValue
 
 __all__ = ['FORBIDDEN_META_KEYS', 'scan_forbidden_keys']
 
@@ -33,16 +36,16 @@ FORBIDDEN_META_KEYS = (
 _FORBIDDEN = frozenset(FORBIDDEN_META_KEYS)
 
 
-def _is_x_comment_key(key):
+def _is_x_comment_key(key: str) -> bool:
     """Whether a key is an `x{key}` comment key: `x` followed by at least one more character."""
     return len(key) > 1 and ord(key[0]) == 0x78
 
 
-def _is_forbidden_key(key):
+def _is_forbidden_key(key: str) -> bool:
     return key in _FORBIDDEN or _is_x_comment_key(key)
 
 
-def scan_forbidden_keys(spec, root_path=()):
+def scan_forbidden_keys(spec: JsonValue, root_path: Sequence[str] = ()) -> None:
     """Recursively scan a composed specification for a forbidden meta key at any depth.
 
     The scan descends into every object value and every array element; map keys
@@ -52,7 +55,7 @@ def scan_forbidden_keys(spec, root_path=()):
     _walk(spec, list(root_path))
 
 
-def _walk(node, path):
+def _walk(node: JsonValue, path: list[str]) -> None:
     if isinstance(node, list):
         for index, item in enumerate(node):
             _walk(item, [*path, str(index)])

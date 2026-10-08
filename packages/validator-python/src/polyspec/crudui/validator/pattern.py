@@ -13,6 +13,8 @@ points of the text: time O(length x states), memory O(states), no
 backtracking and no recursion that depends on the text.
 """
 
+from typing import Any, Iterable, Literal, Sequence, TypeAlias
+
 from .unicode_data import GENERAL_CATEGORIES, SCRIPTS, WHITE_SPACE
 
 __all__ = [
@@ -27,6 +29,15 @@ __all__ = [
     'is_script',
 ]
 
+# A quantifier: its minimum, its maximum (None when unbounded) and whether it is lazy.
+Quantifier: TypeAlias = tuple[int, int | None, bool] | None
+# A parsed atom or class member: its kind and its parts, read by the matcher.
+Atom: TypeAlias = tuple[Any, ...]
+# A term: an atom with its quantifier.
+Term: TypeAlias = tuple[Atom, Quantifier]
+# The branches of an alternation, each a sequence of terms.
+Alternation: TypeAlias = list[list[Term]]
+
 QUANTIFIER_LIMIT = 1000
 SIZE_LIMIT = 1000
 DEPTH_LIMIT = 100
@@ -37,7 +48,7 @@ MAX_CODE_POINT = 0x10FFFF
 class PatternSyntaxError(ValueError):
     """A pattern outside the CRUDUI pattern language, with the offset of the invalid construct."""
 
-    def __init__(self, reason, offset):
+    def __init__(self, reason: str, offset: int) -> None:
         super().__init__(f'{reason} at {offset}')
         self.name = 'PatternSyntaxError'
         self.reason = reason
@@ -49,18 +60,18 @@ class CodePointSet:
 
     __slots__ = ('ranges',)
 
-    def __init__(self, ranges):
+    def __init__(self, ranges: list[int]) -> None:
         self.ranges = ranges
 
     @staticmethod
-    def of(*lists):
+    def of(*lists: Sequence[int]) -> 'CodePointSet':
         """The union of flat inclusive ranges in any order, possibly overlapping."""
-        pairs = []
+        pairs: list[tuple[int, int]] = []
         for one_list in lists:
             for index in range(0, len(one_list), 2):
                 pairs.append((one_list[index], one_list[index + 1]))
         pairs.sort()
-        merged = []
+        merged: list[int] = []
         for start, end in pairs:
             if merged and start <= merged[-1] + 1:
                 merged[-1] = max(merged[-1], end)
@@ -70,11 +81,11 @@ class CodePointSet:
         return CodePointSet(merged)
 
     @staticmethod
-    def union(sets):
+    def union(sets: Iterable['CodePointSet']) -> 'CodePointSet':
         """The union of several sets."""
         return CodePointSet.of(*(one_set.ranges for one_set in sets))
 
-    def complement(self):
+    def complement(self) -> 'CodePointSet':
         """Every code point from 0 to U+10FFFF outside this set."""
         result = []
         following = 0
@@ -88,7 +99,7 @@ class CodePointSet:
             result.append(MAX_CODE_POINT)
         return CodePointSet(result)
 
-    def has(self, code_point):
+    def has(self, code_point: int) -> bool:
         """Whether the set contains a code point."""
         low = 0
         high = len(self.ranges) // 2 - 1
@@ -111,23 +122,23 @@ ANY = CodePointSet.of([0x0A, 0x0A]).complement()
 SHORTHAND_SETS = {'digit': DIGIT, 'word': WORD, 'space': SPACE}
 
 
-def is_general_category(name):
+def is_general_category(name: str) -> bool:
     """Whether a name is a general category a pattern may use."""
     return name in GENERAL_CATEGORIES
 
 
-def is_script(name):
+def is_script(name: str) -> bool:
     """Whether a name is a script a pattern may use."""
     return name in SCRIPTS
 
 
-def property_set(name, script):
+def property_set(name: str, script: bool) -> 'CodePointSet':
     """The set of a general category or a script."""
     table = SCRIPTS if script else GENERAL_CATEGORIES
     return CodePointSet.of(table[name])
 
 
-def _cp(character):
+def _cp(character: str) -> int:
     return ord(character)
 
 
@@ -173,32 +184,32 @@ EQUALS = _cp('=')
 BANG = _cp('!')
 
 
-def _is_surrogate(code):
+def _is_surrogate(code: int) -> bool:
     return 0xD800 <= code <= 0xDFFF
 
 
-def _is_digit(code):
+def _is_digit(code: int | None) -> bool:
     return code is not None and 0x30 <= code <= 0x39
 
 
-def _is_hex(code):
+def _is_hex(code: int | None) -> bool:
     return code is not None and (_is_digit(code) or 0x41 <= code <= 0x46 or 0x61 <= code <= 0x66)
 
 
-def _is_name_start(code):
+def _is_name_start(code: int | None) -> bool:
     return code is not None and (0x41 <= code <= 0x5A or 0x61 <= code <= 0x7A or code == 0x5F)
 
 
-def _is_name_part(code):
+def _is_name_part(code: int | None) -> bool:
     return _is_name_start(code) or _is_digit(code)
 
 
-def _cap(size):
+def _cap(size: int) -> int:
     """Sizes above the limit are kept at limit + 1, so products never overflow."""
     return min(size, SIZE_LIMIT + 1)
 
 
-def _alternation_size(node):
+def _alternation_size(node: Alternation) -> int:
     size = 0
     for terms in node:
         for term in terms:
@@ -206,7 +217,7 @@ def _alternation_size(node):
     return size
 
 
-def _term_size(term):
+def _term_size(term: Term) -> int:
     """The size of a term: an atom is 1, a group its body; a quantified item is multiplied."""
     atom, quantifier = term
     item = _alternation_size(atom[1]) if atom[0] == 'group' else 1
@@ -219,17 +230,17 @@ def _term_size(term):
 class _Recognizer:
     """The reader of one pattern string."""
 
-    def __init__(self, pattern):
+    def __init__(self, pattern: str) -> None:
         self.source = [ord(character) for character in pattern]
         self.position = 0
-        self.group_names = set()
+        self.group_names: set[str] = set()
         self.depth = 0
 
-    def peek(self, offset=0):
+    def peek(self, offset: int = 0) -> int | None:
         index = self.position + offset
         return self.source[index] if index < len(self.source) else None
 
-    def recognize(self):
+    def recognize(self) -> Alternation:
         """The alternation tree of the pattern; leading `^` and trailing `$` add nothing."""
         length = len(self.source)
         if length == 0:
@@ -244,15 +255,15 @@ class _Recognizer:
             raise PatternSyntaxError('pattern too large', 0)
         return alternation
 
-    def _alternation(self):
+    def _alternation(self) -> Alternation:
         branches = [self._sequence()]
         while self.peek() == BAR:
             self.position += 1
             branches.append(self._sequence())
         return branches
 
-    def _sequence(self):
-        terms = []
+    def _sequence(self) -> list[Term]:
+        terms: list[Term] = []
         length = len(self.source)
         while self.position < length:
             code = self.source[self.position]
@@ -270,7 +281,7 @@ class _Recognizer:
             terms.append((atom, self._quantifier()))
         return terms
 
-    def _atom(self):
+    def _atom(self) -> Atom:
         start = self.position
         code = self.source[start]
         if code == OPEN_GROUP:
@@ -287,7 +298,7 @@ class _Recognizer:
         self.position += 1
         return ('char', code)
 
-    def _group(self):
+    def _group(self) -> Atom:
         start = self.position
         if self.depth == DEPTH_LIMIT:
             raise PatternSyntaxError('nesting too deep', start)
@@ -309,7 +320,7 @@ class _Recognizer:
         self.position += 1  # `)`
         return ('group', body)
 
-    def _group_name(self, group_start):
+    def _group_name(self, group_start: int) -> None:
         """`name>` after `(?<`."""
         name_start = self.position
         if not _is_name_start(self.peek()):
@@ -324,7 +335,7 @@ class _Recognizer:
             raise PatternSyntaxError('duplicate group name', group_start)
         self.group_names.add(name)
 
-    def _quantifier(self):
+    def _quantifier(self) -> Quantifier:
         """An optional quantifier with its optional lazy `?`."""
         start = self.position
         code = self.peek()
@@ -359,18 +370,20 @@ class _Recognizer:
             self.position += 1
         return (low, high, lazy)
 
-    def _bound(self, quantifier_start):
+    def _bound(self, quantifier_start: int) -> int:
         """A decimal bound of at most `QUANTIFIER_LIMIT`."""
         digits_start = self.position
         value = 0
-        while _is_digit(self.peek()):
-            value = min(value * 10 + (self.peek() - 0x30), QUANTIFIER_LIMIT + 1)
+        digit = self.peek()
+        while digit is not None and _is_digit(digit):
+            value = min(value * 10 + (digit - 0x30), QUANTIFIER_LIMIT + 1)
             self.position += 1
+            digit = self.peek()
         if self.position == digits_start or value > QUANTIFIER_LIMIT:
             raise PatternSyntaxError('invalid quantifier', quantifier_start)
         return value
 
-    def _escape(self, class_start):
+    def _escape(self, class_start: int | None) -> Atom:
         """An escape at the current `\\`.
 
         Inside a bracket class (`class_start` is the offset of its `[`), `\\D`,
@@ -393,9 +406,10 @@ class _Recognizer:
             self.position += 2
             return ('shorthand', shorthand, negated)
         if kind == _cp('x'):
-            if not _is_hex(self.peek(2)) or not _is_hex(self.peek(3)):
+            first_digit, second_digit = self.peek(2), self.peek(3)
+            if first_digit is None or second_digit is None or not _is_hex(first_digit) or not _is_hex(second_digit):
                 raise PatternSyntaxError('invalid escape', start)
-            value = int(chr(self.peek(2)) + chr(self.peek(3)), 16)
+            value = int(chr(first_digit) + chr(second_digit), 16)
             self.position += 4
             return ('char', value)
         if kind == _cp('u'):
@@ -404,15 +418,17 @@ class _Recognizer:
             return self._property(start, kind == _cp('P'))
         raise PatternSyntaxError('invalid escape', start)
 
-    def _code_point_escape(self, start):
+    def _code_point_escape(self, start: int) -> Atom:
         """`\\u{H...}`: 1-6 hexadecimal digits naming a Unicode scalar value."""
         if self.peek(2) != OPEN_BRACE:
             raise PatternSyntaxError('invalid escape', start)
         index = 3
         digits = ''
-        while _is_hex(self.peek(index)):
-            digits += chr(self.peek(index))
+        code = self.peek(index)
+        while code is not None and _is_hex(code):
+            digits += chr(code)
             index += 1
+            code = self.peek(index)
         if len(digits) < 1 or len(digits) > 6 or self.peek(index) != CLOSE_BRACE:
             raise PatternSyntaxError('invalid escape', start)
         value = int(digits, 16)
@@ -421,7 +437,7 @@ class _Recognizer:
         self.position += index + 1
         return ('char', value)
 
-    def _property(self, start, negated):
+    def _property(self, start: int, negated: bool) -> Atom:
         """`\\p{X}` or `\\P{X}` with a general category or `Script=Name`."""
         if self.peek(2) != OPEN_BRACE:
             raise PatternSyntaxError('invalid property', start)
@@ -432,7 +448,7 @@ class _Recognizer:
             raise PatternSyntaxError('invalid property', start)
         text = ''.join(chr(code) for code in self.source[self.position + 3:self.position + index])
         if is_general_category(text):
-            atom = ('property', negated, text, False)
+            atom: Atom = ('property', negated, text, False)
         elif text.startswith('Script=') and is_script(text[len('Script='):]):
             atom = ('property', negated, text[len('Script='):], True)
         else:
@@ -440,7 +456,7 @@ class _Recognizer:
         self.position += index + 1
         return atom
 
-    def _bracket_class(self):
+    def _bracket_class(self) -> Atom:
         """`[...]` or `[^...]` with at least one member."""
         start = self.position
         length = len(self.source)
@@ -449,7 +465,7 @@ class _Recognizer:
         if negated:
             self.position += 1
         first_member = self.position
-        members = []
+        members: list[Atom] = []
         while True:
             if self.position >= length:
                 raise PatternSyntaxError('unterminated class', length)
@@ -474,7 +490,7 @@ class _Recognizer:
             raise PatternSyntaxError('invalid class', start)
         return ('class', negated, members)
 
-    def _class_atom(self, class_start, first):
+    def _class_atom(self, class_start: int, first: bool) -> Atom:
         """One class member: a literal, an escape, a shorthand or a property."""
         code = self.peek()
         if code == OPEN_CLASS:
@@ -486,13 +502,13 @@ class _Recognizer:
             boundary = first or following == CLOSE_CLASS or following is None
             if not boundary:
                 raise PatternSyntaxError('invalid class', class_start)
-        if _is_surrogate(code):
+        if code is not None and _is_surrogate(code):
             raise PatternSyntaxError('unexpected character', self.position)
         self.position += 1
         return ('char', code)
 
 
-def _member_set(member):
+def _member_set(member: Atom) -> 'CodePointSet':
     """The set of one class member."""
     kind = member[0]
     if kind == 'char':
@@ -506,7 +522,7 @@ def _member_set(member):
     return one_set.complement() if negated else one_set
 
 
-def _atom_set(atom):
+def _atom_set(atom: Atom) -> 'CodePointSet':
     """The set of one atom that is not a group."""
     kind = atom[0]
     if kind == 'char':
@@ -529,33 +545,33 @@ CHAR, SPLIT, EPSILON, MATCH = 0, 1, 2, 3
 class _Builder:
     """The NFA under construction; states are compiled back to front."""
 
-    def __init__(self):
-        self.kinds = []
-        self.following = []
-        self.alternative = []
-        self.sets = []
-        self._atom_sets = {}
+    def __init__(self) -> None:
+        self.kinds: list[int] = []
+        self.following: list[int] = []
+        self.alternative: list[int] = []
+        self.sets: list[CodePointSet | None] = []
+        self._atom_sets: dict[int, CodePointSet] = {}
 
-    def state(self, kind, following, alternative=-1, one_set=None):
+    def state(self, kind: int, following: int, alternative: int = -1, one_set: CodePointSet | None = None) -> int:
         self.kinds.append(kind)
         self.following.append(following)
         self.alternative.append(alternative)
         self.sets.append(one_set)
         return len(self.kinds) - 1
 
-    def alternation(self, node, following):
+    def alternation(self, node: Alternation, following: int) -> int:
         start = self._sequence(node[-1], following)
         for index in range(len(node) - 2, -1, -1):
             start = self.state(SPLIT, self._sequence(node[index], following), start)
         return start
 
-    def _sequence(self, terms, following):
+    def _sequence(self, terms: list[Term], following: int) -> int:
         start = following
         for index in range(len(terms) - 1, -1, -1):
             start = self._term(terms[index], start)
         return start
 
-    def _term(self, term, following):
+    def _term(self, term: Term, following: int) -> int:
         atom, quantifier = term
         if quantifier is None:
             return self._item(atom, following)
@@ -577,7 +593,7 @@ class _Builder:
             start = self._item(atom, start)
         return start
 
-    def _item(self, atom, following):
+    def _item(self, atom: Atom, following: int) -> int:
         if atom[0] == 'group':
             return (
                 self.state(EPSILON, following)
@@ -594,7 +610,7 @@ class _Builder:
 class PatternMatcher:
     """A compiled pattern: whole-text matching in linear time."""
 
-    def __init__(self, pattern):
+    def __init__(self, pattern: str | Alternation) -> None:
         if isinstance(pattern, str):
             pattern = _Recognizer(pattern).recognize()
         builder = _Builder()
@@ -604,8 +620,8 @@ class PatternMatcher:
         self.following = builder.following
         self.alternative = builder.alternative
         self.sets = builder.sets
-        ids = {}
-        self.set_ids = []
+        ids: dict[int, int] = {}
+        self.set_ids: list[int] = []
         for one_set in self.sets:
             if one_set is None:
                 self.set_ids.append(-1)
@@ -617,17 +633,17 @@ class PatternMatcher:
         self.set_count = len(ids)
 
     @property
-    def state_count(self):
+    def state_count(self) -> int:
         """Number of NFA states."""
         return len(self.kinds)
 
-    def test(self, text):
+    def test(self, text: str) -> bool:
         """Whether the whole text matches."""
         count = len(self.kinds)
         marks = [-1] * count
         generation = 0
 
-        def close(states, out):
+        def close(states: Iterable[int], out: list[int]) -> None:
             """Add the epsilon closure of `states` to `out`, keeping CHAR and MATCH states."""
             stack = list(states)
             while stack:
@@ -644,7 +660,7 @@ class PatternMatcher:
                 else:
                     out.append(state)
 
-        current = []
+        current: list[int] = []
         close([self.start], current)
         set_step = [-1] * self.set_count
         set_member = [0] * self.set_count
@@ -655,27 +671,29 @@ class PatternMatcher:
             index += 1
             generation += 1
             step = generation
-            reached = []
+            reached: list[int] = []
             for state in current:
                 if self.kinds[state] != CHAR:
                     continue
                 identifier = self.set_ids[state]
                 if set_step[identifier] != step:
                     set_step[identifier] = step
-                    set_member[identifier] = 1 if self.sets[state].has(code_point) else 0
+                    one_set = self.sets[state]
+                    assert one_set is not None  # every CHAR state carries its set
+                    set_member[identifier] = 1 if one_set.has(code_point) else 0
                 if set_member[identifier] == 1:
                     reached.append(self.following[state])
-            following_states = []
+            following_states: list[int] = []
             if reached:
                 close(reached, following_states)
             current = following_states
         return self.accept in current
 
 
-_compiled = {}
+_compiled: dict[str, PatternMatcher] = {}
 
 
-def compile_pattern(pattern):
+def compile_pattern(pattern: str) -> 'PatternMatcher':
     """The compiled matcher of a pattern, compiled once per pattern string.
 
     Raises `PatternSyntaxError` when the pattern is outside the language.
