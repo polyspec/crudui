@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### 2026-10-08 — The Python generator on the shared fixtures (C13.1-4)
+
+- The unit tests of `packages/generator-python` read the shared fixtures and
+  compare every case with the recorded expectation: `form-render` (188: 137
+  results as parsed normalized trees and 51 failures), `list-render` (157),
+  `detail-render` (62), `form-complete` (28) and the `compileForm` (7),
+  `bindForm` (9), `createForm` (15), `buildList` (11) and `buildDetail` (6)
+  files of `text-validity`.
+
 ### 2026-10-08 — The Python generator package (C13.1-3)
 
 - `packages/generator-python` publishes `polyspec-crudui-generator` as the
