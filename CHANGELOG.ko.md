@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-08 — 버전 bump pull request로 옮긴 오래된 pin 검사 (C13.1-23)
+
+- `pyproject.toml`의 오래된 git pin을 검사하는 release 검사를 `feat/python-C13.1`에 추가하지 않는다. `packages/generator-python`의 pin `v0.0.4`가 가리키는 tag는 version bump pull request가 merge된 뒤에 만들어지므로, 검사는 그 pull request에 속한다. 행 C13.1-23은 열린 상태로 그 pull request를 기다린다.
+
 ### 2026-10-08 — python CI job의 Node.js 설정과 Python matrix (C13.1-30)
 
 - CI job `python`은 `.node-version`의 Node.js release를 설정하고, `make ci-targets` 실행에 Node.js가 필요하므로 `make toolchain-check`로 `node python`을 검사한다. Toolchain policy test는 기록된 minor와 함께 `requires-python`의 가장 낮은 minor(3.11)를 matrix leg로 허용한다.
