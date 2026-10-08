@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Write src/polyspec/crudui/generator/interface_messages.py from contracts/interface-messages.json.
+"""Write the module polyspec.crudui.generator.interface_messages from contracts/interface-messages.json.
 
     python3 packages/generator-python/scripts/generate_interface_messages.py
 """

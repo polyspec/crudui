@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-08 — Python generator 스크립트 docstring의 module 이름 (C13.1-29)
+
+- `packages/generator-python/scripts/generate_interface_messages.py`와 `packages/validator-python/scripts/generate_unicode_data.py`의 docstring은 module을 dotted 이름으로 적으므로, CI job `build, lint and types`에서 package 이름 규칙이 통과한다.
+
 ### 2026-10-08 — make-tool-path 테스트의 native 명령 Python target (C13.1-28)
 
 - `tests/build/make-tool-path.test.mjs`는 `make test-native`가 실행하는 target 목록 `javascript,html,go,rust,python`을 기대하므로, CI job `build, lint and types`에서 테스트가 통과한다.

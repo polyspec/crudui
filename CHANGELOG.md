@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-08 — Python module names in the generator script docstrings (C13.1-29)
+
+- The docstrings of `packages/generator-python/scripts/generate_interface_messages.py` and `packages/validator-python/scripts/generate_unicode_data.py` name their modules by dotted names, so the package-name rule passes in the CI job `build, lint and types`.
+
 ### 2026-10-08 — Python target in the native command of the make-tool-path test (C13.1-28)
 
 - `tests/build/make-tool-path.test.mjs` expects the target list `javascript,html,go,rust,python` of `make test-native`, the list that the Makefile runs, so the test passes in the CI job `build, lint and types`.
