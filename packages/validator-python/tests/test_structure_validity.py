@@ -19,8 +19,8 @@ from conformance import cases_of  # noqa: E402
 from polyspec.crudui.validator import (  # noqa: E402
     ComposeLoadError,
     validate,
-    validate_detail,
-    validate_list,
+    validateDetail,
+    validateList,
 )
 
 
@@ -83,7 +83,7 @@ class ListValidityConformance(unittest.TestCase):
         self.failing = [case for case in self.cases if isinstance(case['engine'], dict)]
 
     def run_case(self, case):
-        return validate_list(case['spec'], options_of(case))
+        return validateList(case['spec'], options_of(case))
 
     def test_every_case_declares_an_engine_expectation(self):
         for case in self.cases:
@@ -128,7 +128,7 @@ class DetailValidityConformance(unittest.TestCase):
         self.failing = [case for case in self.cases if isinstance(case['engine'], dict)]
 
     def run_case(self, case):
-        return validate_detail(case['spec'], options_of(case))
+        return validateDetail(case['spec'], options_of(case))
 
     def test_every_case_declares_an_engine_expectation(self):
         for case in self.cases:

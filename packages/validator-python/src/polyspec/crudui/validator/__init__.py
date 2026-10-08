@@ -9,14 +9,14 @@ raises `ComposeLoadError`; submitted data of the wrong shape or text raises
 
 from .compose_errors import ComposeLoadError
 from .errors import FormInputError
-from .validator import Validator, hidden_paths, validate, validate_detail, validate_list
+from .validator import Validator, hiddenPaths, validate, validateDetail, validateList
 
 __all__ = [
     'ComposeLoadError',
     'FormInputError',
     'Validator',
-    'hidden_paths',
+    'hiddenPaths',
     'validate',
-    'validate_detail',
-    'validate_list',
+    'validateDetail',
+    'validateList',
 ]
