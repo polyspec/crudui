@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### 2026-10-08 — Python의 form-outline fixture 범위 (C13.1-15)
+
+- C13.1 행은 `tests/fixtures/form-outline`을 Python validator와 generator의 범위 밖이라고
+  선언한다. C13.1의 기준 제품은 이를 읽지 않는다.
+
 ### 2026-10-08 — 웨이브 계획의 Python 버전 파일 (C13.1-14)
 
 - 웨이브 계획은 `.python-version`이 C13.1-6이 완료될 때까지 없다고 적는다.
