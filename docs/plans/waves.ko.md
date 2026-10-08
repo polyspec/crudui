@@ -54,4 +54,4 @@
 
 ## Wave 13
 
-의존: 없음. 저장소는 TypeScript, Go, PHP, PHP 확장, Rust로 구현을 이름한다. Python이 같은 자격으로 합류한다. PEP 420 namespace `polyspec` 아래 `polyspec-crudui-validator`와 `polyspec-crudui-generator`를 내놓고 표준 라이브러리만 쓰며, 단위 test는 `unittest`, 결과는 모든 구현이 같게 답하는 `tests/fixtures`의 공통 fixture로 검증한다. Python 3.11이 가장 오래된 지원 release이고 `.python-version`이 최신 안정 release를 이름한다.
+의존: 없음. 저장소는 TypeScript, Go, PHP, PHP 확장, Rust로 구현을 이름한다. Python이 같은 자격으로 합류한다. PEP 420 namespace `polyspec` 아래 `polyspec-crudui-validator`와 `polyspec-crudui-generator`를 내놓고 표준 라이브러리만 쓰며, 단위 test는 `unittest`, 결과는 모든 구현이 같게 답하는 `tests/fixtures`의 공통 fixture로 검증한다. Python 3.11이 가장 오래된 지원 release이고 `.python-version`은 최신 안정 release를 이름할 것이다. 이 파일은 C13.1-6이 아직 완료되지 않아 아직 없다.
