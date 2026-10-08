@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-08 — Records name commits by checklist id (C13.1-18)
+
+- The records of C13.1-1, C13.1-2, C13.1-3, C13.1-4, C13.1-10 and C13.1-11 name each commit by the checklist id of the task it implements.
+
 ### 2026-10-08 — PHP extension built for the architecture of its PHP executable (C13.1-16)
 
 - The PHP extension builder reads the architecture of the PHP executable with
@@ -36,7 +40,7 @@
 
 - The rows C13.1-1, C13.1-3 and C13.1-4 record that no commit adds a `[~]` line
   for C13.1-1 to C13.1-4 before its `[o]`, the committer of the commits
-  `5eec891f`, `61ebca4c` and `6812678a`, and the body of `5eec891f`, which
+  the C13.1-1 fix commit, the C13.1-3 package commit and the C13.1-4 test commit, and the body of the C13.1-1 fix commit, which
   describes the names before its fix.
 
 ### 2026-10-08 — Recorded import cause of the committed Python trees (C13.1-10)
