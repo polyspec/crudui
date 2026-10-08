@@ -7,8 +7,10 @@ and array type and rejects a value that a JSON document cannot hold.
 
 import re
 import urllib.parse
+from collections.abc import Collection
+from typing import Any, TypeAlias, TypeGuard, TypeVar, Union
 
-from polyspec.crudui.validator.jsvalue import ordered_value
+from polyspec.crudui.validator.jsvalue import JsonValue, ordered_value
 
 from .errors import FormError
 from .numbers import number_string
@@ -16,18 +18,26 @@ from .style import canonical
 
 __all__ = ['MISSING', 'classes', 'control_id', 'copy_value', 'display', 'element_id', 'get', 'leaf', 'name', 'object_value', 'path', 'record', 'rule', 'scalar', 'segments', 'spec_value', 'string', 'translate', 'truthy']
 
-# An absent value, separate from an explicit null.
-MISSING = object()
+class _Missing:
+    """The absent value: a marker distinct from every JSON value, including null."""
+
+
+MISSING = _Missing()
+
+# A value of a form path: a JSON value, or the absent marker.
+Value: TypeAlias = Union[JsonValue, _Missing]
+
+_T = TypeVar('_T')
 
 NESTING_LIMIT = 512
 NODE_LIMIT = 1_000_000
 
 
-def _is_object(value):
+def _is_object(value: object) -> TypeGuard[dict[str, Any]]:
     return isinstance(value, dict)
 
 
-def _is_json_value(value, depth, nodes):
+def _is_json_value(value: object, depth: int, nodes: list[int]) -> None:
     """Check one value against the JSON shapes and the value limits."""
     nodes[0] += 1
     if nodes[0] > NODE_LIMIT:
@@ -53,7 +63,7 @@ def _is_json_value(value, depth, nodes):
     raise ValueError(f'Unsupported value: {type(value).__name__}')
 
 
-def _checked(value, message):
+def _checked(value: _T, message: None) -> _T:
     nodes = [0]
     try:
         _is_json_value(value, 0, nodes)
@@ -62,12 +72,12 @@ def _checked(value, message):
     return value
 
 
-def _copy(value):
+def _copy(value: JsonValue) -> JsonValue:
     """A detached copy while preserving object and array types."""
     return _checked(_deep_copy(value), None)
 
 
-def _deep_copy(value):
+def _deep_copy(value: JsonValue) -> JsonValue:
     if isinstance(value, dict):
         return {key: _deep_copy(child) for key, child in value.items()}
     if isinstance(value, list):
@@ -75,38 +85,42 @@ def _deep_copy(value):
     return value
 
 
-def object_value(value):
+def object_value(value: object) -> dict[str, JsonValue]:
     """A root record as a JSON object: a dictionary, never a list."""
     if isinstance(value, list) or not _is_object(value):
         raise FormError('INVALID_FORM_INPUT', 'Expected an object')
-    return _copy(value)
+    copied = _copy(value)
+    assert isinstance(copied, dict)  # an object copy stays an object
+    return copied
 
 
-def spec_value(value):
+def spec_value(value: object) -> dict[str, JsonValue]:
     """A root specification or template in specification member order."""
-    return ordered_value(object_value(value))
+    ordered = ordered_value(object_value(value))
+    assert isinstance(ordered, dict)  # an object stays an object
+    return ordered
 
 
-def copy_value(value):
+def copy_value(value: JsonValue) -> JsonValue:
     """A detached JSON value while preserving object and array types."""
     return _checked(_deep_copy(value), None)
 
 
-def get(value, key):
+def get(value: Value, key: str) -> Value:
     """One own member, or the missing-value marker."""
     if isinstance(value, dict):
         return value[key] if key in value else MISSING
     return MISSING
 
 
-def path(value, path_text):
+def path(value: Value, path_text: str) -> Value:
     """A value through bracket or dot path segments."""
     for part in segments(path_text):
         value = get(value, part)
     return value
 
 
-def segments(path_text):
+def segments(path_text: str) -> list[str]:
     """Split a value path while retaining dots inside brackets."""
     parts = []
     current = ''
@@ -127,7 +141,7 @@ def segments(path_text):
     return parts
 
 
-def scalar(value):
+def scalar(value: object) -> str:
     """A scalar value for a form control; objects, arrays and null are empty."""
     if value is MISSING or value is None or isinstance(value, (list, dict)):
         return ''
@@ -138,7 +152,7 @@ def scalar(value):
     return str(value)
 
 
-def string(value):
+def string(value: object) -> str:
     """A value as expression string conversion writes it."""
     if value is MISSING:
         return 'undefined'
@@ -155,17 +169,17 @@ def string(value):
     return str(value)
 
 
-def truthy(value):
+def truthy(value: object) -> bool:
     """Condition truthiness with empty collections true."""
     return value is not MISSING and value is not None and value is not False and value != '' and value != 0
 
 
-def display(value, default):
+def display(value: Value, default: Value) -> str:
     """The default only when the field value is absent."""
     return scalar(default if value is MISSING and default is not None and not isinstance(default, (list, dict)) else value)
 
 
-def name(path_text, prefix=None):
+def name(path_text: str, prefix: str | None = None) -> str:
     """A field path as a bracketed submission name."""
     parts = segments(path_text)
     if prefix:
@@ -175,7 +189,7 @@ def name(path_text, prefix=None):
     return parts[0] + ''.join(f'[{part}]' for part in parts[1:])
 
 
-def rule(path_text, rows):
+def rule(path_text: str, rows: Collection[int]) -> str:
     """A validation rule name with anonymous repeated segments."""
     suffix = '[]' if path_text.endswith('[]') else ''
     parts = segments(path_text)
@@ -185,7 +199,7 @@ def rule(path_text, rows):
     return out + suffix
 
 
-def leaf(path_text, rows):
+def leaf(path_text: str, rows: Collection[int]) -> str:
     """The final field name, including repeated-value notation."""
     parts = segments(path_text)
     last = parts[-1] if parts else ''
@@ -195,7 +209,7 @@ def leaf(path_text, rows):
 _SAFE_ID = re.compile('^[A-Za-z0-9_-]$')
 
 
-def element_id(prefix, path_text):
+def element_id(prefix: str, path_text: str) -> str:
     """A field path as a structural element identifier."""
     clean = path_text.replace('[]', '').replace('][', '-').replace('[', '-').replace(']', '-')
     base = ''.join(
@@ -205,22 +219,22 @@ def element_id(prefix, path_text):
     return f'{prefix}-{base}' if prefix != '' else base
 
 
-def control_id(prefix, path_text):
+def control_id(prefix: str, path_text: str) -> str:
     """The instance prefix and complete field path as a control identifier."""
     return f'{_encode(prefix)}:{_encode(path_text)}'
 
 
-def _encode(value):
+def _encode(value: str) -> str:
     quoted = urllib.parse.quote(value, safe='')
     return quoted.replace('%21', '!').replace('%27', "'").replace('%28', '(').replace('%29', ')').replace('%2A', '*')
 
 
-def classes(*parts):
+def classes(*parts: str | None) -> str:
     """Class strings joined with normalized whitespace."""
     return re.sub(r'\s+', ' ', ' '.join(part for part in parts if part)).strip()
 
 
-def translate(text, language, default=''):
+def translate(text: JsonValue, language: str, default: str = '') -> str:
     """Content: a string is itself; a language map yields its first non-empty entry.
 
     The language, then `en`, then `ko`, then the first key supply the entry; any
@@ -232,16 +246,17 @@ def translate(text, language, default=''):
         return default
     keys = [language, 'en', 'ko', next(iter(text), None)]
     for key in keys:
-        if key is not None and isinstance(text.get(key), str) and text[key] != '':
-            return text[key]
+        entry = text.get(key) if key is not None else None
+        if isinstance(entry, str) and entry != '':
+            return entry
     return default
 
 
-def style_value(style):
+def style_value(style: object) -> str | None:
     """A declared style normalized for the evaluated model."""
     return canonical(style)
 
 
-def record(members):
+def record(members: dict[str, Value]) -> dict[str, Value]:
     """An object without the members marked absent."""
     return {key: value for key, value in members.items() if value is not MISSING}

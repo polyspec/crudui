@@ -10,12 +10,16 @@ without literal bounds.
 
 import re
 
+from collections.abc import Mapping
+from typing import Any, NoReturn, TypeGuard
+
 from polyspec.crudui.validator.compose import MemoryLoader, compose_properties
+from polyspec.crudui.validator.jsvalue import JsonValue
 from polyspec.crudui.validator.values import is_finite_number, is_multiple, is_number_range, is_step
 
 from . import messages as messages_module
 from .errors import FormError
-from .value import MISSING, copy_value, get, object_value, record, spec_value
+from .value import MISSING, Value, copy_value, get, object_value, record, spec_value
 
 __all__ = ['check_declared_attributes', 'check_design_declaration', 'checked', 'compile', 'loader']
 
@@ -33,16 +37,16 @@ _OWNED_ATTRIBUTE_NAMES = (
 _DECLARED_NAME = re.compile(r'\A(?:data|aria)-[a-z0-9][a-z0-9._-]*\Z')
 
 
-def _is_object(value):
+def _is_object(value: object) -> TypeGuard[dict[str, Any]]:
     return value is not None and isinstance(value, dict)
 
 
-def _condition_value(value):
+def _condition_value(value: object) -> bool:
     """A string, or a condition map: a non-empty object."""
     return isinstance(value, str) or (_is_object(value) and len(value) > 0)
 
 
-def _scalar_child(child):
+def _scalar_child(child: object) -> bool:
     """A child that renders one scalar value: not repeated, not a group, not a language field."""
     if not _is_object(child):
         return False
@@ -51,16 +55,18 @@ def _scalar_child(child):
     return child.get('type') != 'group' and 'properties' not in child and not repeated and not lang
 
 
-def compile(spec, options):
+def compile(spec: object, options: Mapping[str, Any]) -> dict[str, Value]:
     """Composed properties as a serializable ordered template."""
     spec = spec_value(spec)
-    if spec.get('type') != 'group' or not _is_object(spec.get('properties')):
+    group_properties = spec.get('properties')
+    if spec.get('type') != 'group' or not _is_object(group_properties):
         raise FormError('INVALID_FORM_INPUT', 'A form spec must be a group with properties')
     _check_form_declarations(spec)
     # The form root takes no layout; a group field declares it.
-    if _is_object(spec.get('design')) and 'layout' in spec['design']:
+    design = spec.get('design')
+    if _is_object(design) and 'layout' in design:
         raise FormError('INVALID_FORM_INPUT', 'Invalid design.layout at form: unknown key')
-    properties = compose_properties(dict(spec['properties']), loader(options), options.get('basepath', ''))
+    properties = compose_properties(dict(group_properties), loader(options), options.get('basepath', ''))
     return record({
         'kind': 'crudui/form-template',
         'keyPrefix': options.get('keyPrefix', MISSING) if 'keyPrefix' in options else MISSING,
@@ -71,7 +77,7 @@ def compile(spec, options):
     })
 
 
-def loader(options):
+def loader(options: Mapping[str, Any]) -> MemoryLoader:
     """The composition loader of the `files` option, each document in member order."""
     files = object_value(options.get('files') or {})
     maps = {}
@@ -82,8 +88,8 @@ def loader(options):
     return MemoryLoader(maps)
 
 
-def _fields(properties, parent=''):
-    out = []
+def _fields(properties: dict[str, Any], parent: str = '') -> list[JsonValue]:
+    out: list[JsonValue] = []
     for name, raw in properties.items():
         if not _is_object(raw):
             continue
@@ -103,18 +109,18 @@ def _fields(properties, parent=''):
     return out
 
 
-def _fail(key, path, expected):
+def _fail(key: str, path: str, expected: str) -> NoReturn:
     raise FormError('INVALID_FORM_INPUT', f'Invalid {key} at {path}: expected {expected}')
 
 
-def _closed(bucket, members, allowed, path):
+def _closed(bucket: str, members: dict[str, Any], allowed: tuple[str, ...], path: str) -> None:
     """Reject the first member, in member order, that `allowed` does not list."""
     for key in members:
         if key not in allowed:
             raise FormError('INVALID_FORM_INPUT', f'Invalid {bucket}.{key} at {path}: unknown key')
 
 
-def _check_form_declarations(spec):
+def _check_form_declarations(spec: dict[str, Any]) -> None:
     """Reject a wrong root action or buttons declaration."""
     if 'action' in spec:
         if not _is_object(spec['action']):
@@ -145,7 +151,7 @@ def _check_form_declarations(spec):
         _check_declarations(button, f'form.{key}', False)
 
 
-def _check_declarations(spec, path, field):
+def _check_declarations(spec: dict[str, Any], path: str, field: bool) -> None:
     """Reject a wrong value type or an unknown key in one field's declarations.
 
     Only a form field accepts declared attributes; buttons and the submission
@@ -175,7 +181,8 @@ def _check_declarations(spec, path, field):
             if 'title' in multiple:
                 if spec.get('type') != 'group':
                     _fail('multiple.title', path, 'a repeated group')
-                properties = spec.get('properties') if _is_object(spec.get('properties')) else {}
+                raw_properties = spec.get('properties')
+                properties: dict[str, Any] = raw_properties if _is_object(raw_properties) else {}
                 title = multiple['title']
                 if not isinstance(title, str) or title not in properties or not _scalar_child(properties[title]):
                     _fail('multiple.title', path, 'the name of a direct child field without multiple, properties or lang')
@@ -201,23 +208,26 @@ def _check_declarations(spec, path, field):
         _check_range_declaration(spec, path)
 
 
-def _check_range_declaration(spec, path):
+def _check_range_declaration(spec: dict[str, Any], path: str) -> None:
     """Reject a range field without literal bounds and a literal step whose multiple the minimum is.
 
     The slider moves from the minimum in steps.
     """
-    validate = spec.get('validate') if _is_object(spec.get('validate')) else {}
+    raw_validate = spec.get('validate')
+    validate: dict[str, Any] = raw_validate if _is_object(raw_validate) else {}
     bounds = validate.get('range')
     if not is_number_range(bounds):
         _fail('validate.range', path, '[minimum, maximum] finite numbers with minimum not above maximum')
+    assert isinstance(bounds, list)  # is_number_range accepts only a list
     step = validate.get('step')
     if not is_step(step):
         _fail('validate.step', path, 'a finite number above 0')
+    assert isinstance(step, (int, float))  # is_step accepts only a finite number
     if not is_multiple(bounds[0], step):
         _fail('validate.range', path, 'a minimum that is a multiple of validate.step')
 
 
-def _group_layouts(spec):
+def _group_layouts(spec: dict[str, Any]) -> list[str] | None:
     """The design.layout values a group field accepts.
 
     A repeated group has no line, and a field that is not a group has no
@@ -230,14 +240,14 @@ def _group_layouts(spec):
     return ['stacked', 'inline'] if repeated else ['stacked', 'inline', 'line']
 
 
-def _declared_attribute_name(name):
+def _declared_attribute_name(name: str) -> bool:
     """Whether a name is a data-* or aria-* name the renderer does not write itself."""
     if _DECLARED_NAME.match(name) is None or name in _OWNED_ATTRIBUTE_NAMES:
         return False
     return not name.startswith(_OWNED_ATTRIBUTE_PREFIXES)
 
 
-def check_declared_attributes(attributes, key, path):
+def check_declared_attributes(attributes: object, key: str, path: str) -> None:
     """Reject declared attributes that are not an object of permitted names to strings; names first."""
     if not _is_object(attributes):
         _fail(key, path, 'an object')
@@ -249,7 +259,7 @@ def check_declared_attributes(attributes, key, path):
             _fail(f'{key}.{name}', path, 'a string')
 
 
-def check_design_declaration(design, path, field=False, layouts=None):
+def check_design_declaration(design: object, path: str, field: bool = False, layouts: list[str] | None = None) -> None:
     """Reject a wrong value type or an unknown key in one declared design.
 
     A form field or button, a list or detail specification, or a list column or
@@ -260,6 +270,7 @@ def check_design_declaration(design, path, field=False, layouts=None):
         _fail('design', path, 'a boolean or an object')
     if not _is_object(design):
         return
+    allowed: tuple[str, ...]
     if layouts is not None:
         allowed = ('show', 'class', 'style', 'attributes', 'layout', 'label', 'wrapper', 'group', 'prepend')
     elif field:
@@ -291,7 +302,7 @@ def check_design_declaration(design, path, field=False, layouts=None):
             check_declared_attributes(values['attributes'], f'design.{node}.attributes', path)
 
 
-def checked(template):
+def checked(template: object) -> dict[str, Any]:
     """A copy of a template input, rejecting a value of another shape than compile produces.
 
     The template kind, a field list, a button object list, an optional string
@@ -299,7 +310,7 @@ def checked(template):
     and no other member; each field has exactly a string name, an object spec
     and a field list children.
     """
-    copy = spec_value(template)
+    copy: dict[str, Any] = spec_value(template)
     valid = (
         set(copy) <= {'kind', 'keyPrefix', 'fields', 'buttons', 'action', 'description'}
         and copy.get('kind') == 'crudui/form-template'
@@ -314,7 +325,7 @@ def checked(template):
     return copy
 
 
-def _field_list(fields):
+def _field_list(fields: object) -> bool:
     """A list of field templates."""
     if not isinstance(fields, list):
         return False
