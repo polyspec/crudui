@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-08 — Python conformance suites in the evidence check (C13.1-31)
+
+- `scripts/check-conformance.mjs` declares the suites `validator Python` and `generator Python`, which run through `tests/conformance/runner.py` and prove the runtime `python`. The test `every runtime that a feature supports is proven by a declared suite` passes.
+
 ### 2026-10-08 — Python suite run records with the runner exit status (C13.1-33)
 
 - `tests/conformance/runner.py` runs the unittest suite of one test directory and writes its run record with the program `tests/conformance/runner.py` and the exit status of the suite. The make targets `test-validator-python` and `test-generator-python` run it, so the run record of each Python suite is no longer `did not finish`.
