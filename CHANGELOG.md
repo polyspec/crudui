@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-08 — Type hints of the value, design and template modules (C13.1-17-3)
+
+- The modules `value`, `design` and `template` of `packages/generator-python` have parameter and return types with no `mypy --strict` error. The generator unit tests pass: 11 tests.
+
 ### 2026-10-08 — Type hints of the foundation generator modules (C13.1-17-2)
 
 - The modules `errors`, `messages`, `input_text`, `numbers`, `dates` and `style` of `packages/generator-python` have parameter and return types with no `mypy --strict` error. The generator unit tests pass: 11 tests.

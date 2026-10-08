@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-08 — value, design, template module의 타입 주석 (C13.1-17-3)
+
+- `packages/generator-python`의 module `value`, `design`, `template`에 매개변수와 반환 타입이 있고 `mypy --strict` 오류가 없다. generator 단위 test 11개가 통과한다.
+
 ### 2026-10-08 — generator 기초 module의 타입 주석 (C13.1-17-2)
 
 - `packages/generator-python`의 module `errors`, `messages`, `input_text`, `numbers`, `dates`, `style`에 매개변수와 반환 타입이 있고 `mypy --strict` 오류가 없다. generator 단위 test 11개가 통과한다.
