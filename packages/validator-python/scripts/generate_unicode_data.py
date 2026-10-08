@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Write src/polyspec/crudui/validator/unicode_data.py from contracts/unicode-properties.json.
+"""Write the module polyspec.crudui.validator.unicode_data from contracts/unicode-properties.json.
 
     python3 packages/validator-python/scripts/generate_unicode_data.py
 
