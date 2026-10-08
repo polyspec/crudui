@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-08 — conformance check의 partial 런타임 증거 (C13.1-32)
+
+- `scripts/check-conformance.mjs`는 `partial` 런타임이 기록한 사례를 받아들인다. 기록된 사례마다 통과해야 하고 요구되는 사례는 없다. Fixture 밖의 사례는 여전히 보고한다. CI job `conformance evidence against the standard`는 `createForm`의 Python 증거를 더 이상 거부하지 않는다.
+
 ### 2026-10-08 — evidence 검사의 Python conformance suite (C13.1-31)
 
 - `scripts/check-conformance.mjs`는 `tests/conformance/runner.py`로 실행되고 런타임 `python`을 증명하는 suite `validator Python`과 `generator Python`을 선언한다. Test `every runtime that a feature supports is proven by a declared suite`가 통과한다.

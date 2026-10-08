@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-08 — Evidence of partial runtimes in the conformance check (C13.1-32)
+
+- `scripts/check-conformance.mjs` accepts the recorded cases of a `partial` runtime: each recorded case must pass, and no case is required. A case outside the fixture of a partial runtime is still reported. The CI job `conformance evidence against the standard` no longer rejects the Python evidence of `createForm`.
+
 ### 2026-10-08 — Python conformance suites in the evidence check (C13.1-31)
 
 - `scripts/check-conformance.mjs` declares the suites `validator Python` and `generator Python`, which run through `tests/conformance/runner.py` and prove the runtime `python`. The test `every runtime that a feature supports is proven by a declared suite` passes.

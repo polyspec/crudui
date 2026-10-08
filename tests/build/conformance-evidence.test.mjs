@@ -211,3 +211,15 @@ test('the Python runner leaves a run record with the exit status of its suite', 
     await rm(directory, { recursive: true, force: true });
   }
 });
+
+test('a partial runtime is measured by the cases it records, and each recorded case must pass', () => {
+  const partial = { ...feature, support: { php: 'partial', go: 'unsupported' } };
+  const withPartial = { ...base, features: [partial] };
+  const proven = checkConformance({ ...withPartial, evidence: [record('php', 'a')] });
+  assert.deepEqual(proven, { undeclaredFixtures: [], unregisteredFamilies: [], unprovenFixtures: [], missing: [], failed: [], undeclaredEvidence: [] });
+  const failing = checkConformance({ ...withPartial, evidence: [record('php', 'a', false)] });
+  assert.deepEqual(failing.failed, [{ feature: 'renderList', fixture, runtime: 'php', case: 'a' }]);
+  assert.deepEqual(failing.undeclaredEvidence, []);
+  const outside = checkConformance({ ...withPartial, evidence: [record('php', 'c'), record('go', 'a')] });
+  assert.deepEqual(outside.undeclaredEvidence.map(item => item.reason), ['case not in the fixture', 'runtime declared unsupported']);
+});
