@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### 2026-10-08 — Validator public names in the shared camelCase surface (C13.1-12)
+
+- `polyspec.crudui.validator` exports `validateList`, `validateDetail` and
+  `hiddenPaths`, the names of the shared surface, in place of `validate_list`,
+  `validate_detail` and `hidden_paths`. The validator unit tests pass: 23 tests.
+
 ### 2026-10-08 — Recorded facts of the committed Python history (C13.1-11)
 
 - The rows C13.1-1, C13.1-3 and C13.1-4 record that no commit adds a `[~]` line
