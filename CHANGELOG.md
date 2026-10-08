@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-08 — Done marker of C13.1-11 restored (C13.1-22)
+
+- The status cell of C13.1-11 holds the done marker in both checklists, and `scripts/check-documents.mjs` passes, exit 0.
+
 ### 2026-10-08 — Type hints of the Python packages (C13.1-17)
 
 - Every public definition of `packages/validator-python` and `packages/generator-python` has parameter and return types: the AST count of public definitions without annotations is 0 in both packages. Both packages pass `mypy --strict` with exit 0.
