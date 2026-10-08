@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### 2026-10-08 — 커밋된 Python tree의 import 원인 기록 (C13.1-10)
+
+- C13.1-2와 C13.1-4 행은 `packages/validator-python`과 `packages/generator-python`의
+  test 디렉터리를 그 검증 커밋이 추가했다고 기록한다. 그 커밋 이전에는 디렉터리가
+  없어, discover 명령이 `ImportError: Start directory is not importable`을 낸다.
+
 ### 2026-10-08 — Python generator의 의존성 (C13.1-9)
 
 - `packages/generator-python`은 `polyspec-ordered-json`을 선언하지 않는다. 어떤

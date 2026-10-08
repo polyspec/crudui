@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### 2026-10-08 — Recorded import cause of the committed Python trees (C13.1-10)
+
+- The rows C13.1-2 and C13.1-4 record that the test directory of
+  `packages/validator-python` and of `packages/generator-python` was added by
+  the commit that verifies it. Before those commits the directory does not
+  exist, and the discover command raises `ImportError: Start directory is not
+  importable`.
+
 ### 2026-10-08 — Dependencies of the Python generator (C13.1-9)
 
 - `packages/generator-python` no longer declares `polyspec-ordered-json`: no
