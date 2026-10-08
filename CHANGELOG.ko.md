@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### 2026-10-08 — Python generator의 의존성 (C13.1-9)
+
+- `packages/generator-python`은 `polyspec-ordered-json`을 선언하지 않는다. 어떤
+  generator module도 그것을 import하지 않는다. generator가 실행 시
+  `polyspec.crudui.validator`를 import하므로 `polyspec-crudui-validator`를 이
+  저장소의 `packages/validator-python`의 tag URL `v0.0.4`로 선언한다.
+
 ### 2026-10-08 — 검토에서 찾은 Python 생성기 결함 (C13.1-8)
 
 - `Form`은 결측 반복 데이터의 초기 행 하나를 무작위 행 키 대신 `bindForm`과
