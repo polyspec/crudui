@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-08 — Python support of the feature contracts (C13.1-6-1)
+
+- The feature contracts give the Python support of each feature from the recorded evidence: 12 features `pass` (every case of their JSON fixtures has a passing Python record, 0 mismatches), `createForm` is `partial`, four outline and session features are `unsupported` and four client-side features are not applicable. The feature documents and the README pairs name the Python packages; `scripts/check-documents.mjs` passes, exit 0.
+
 ### 2026-10-08 — State markers kept out of the record text (C13.1-20)
 
 - The records of C13.1-10 and C13.1-11 write the state markers as words, and `scripts/check-documents.mjs` passes its 53 document pairs, exit 0.

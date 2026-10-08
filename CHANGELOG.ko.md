@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-08 — 기능 계약의 Python 지원 (C13.1-6-1)
+
+- 기능 계약은 기록된 증거로 각 기능의 Python 지원을 적는다. 기능 12개는 `pass`다(JSON fixture의 모든 사례에 통과한 Python 기록이 있으며 불일치 0건). `createForm`은 `partial`, outline과 session 기능 4개는 `unsupported`, 클라이언트 전용 기능 4개는 해당 없음이다. 기능 문서와 README 짝은 Python package를 적으며, `scripts/check-documents.mjs`가 통과한다(종료 코드 0).
+
 ### 2026-10-08 — 기록 본문에서 상태 표기를 뺀다 (C13.1-20)
 
 - C13.1-10과 C13.1-11의 기록은 상태 표기를 단어로 쓴다. `scripts/check-documents.mjs`가 문서 쌍 53개를 통과한다(종료 코드 0).
