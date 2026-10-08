@@ -30,7 +30,7 @@ def _outcome(run):
     except (ComposeLoadError, FormInputError, FormError) as error:
         if isinstance(error, ComposeLoadError):
             return {'code': error.code, 'message': str(error), 'at': '.'.join(error.trace)}
-        at = '' if not hasattr(error, 'path') else ''
+        at = error.path if isinstance(error, FormError) else ''
         return {'code': error.code, 'message': str(error), 'at': at}
     return 'pass'
 

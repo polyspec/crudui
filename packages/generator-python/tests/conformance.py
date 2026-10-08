@@ -106,12 +106,11 @@ def _normalize(node):
             if name in ('class', 'style') and value == '':
                 continue
             attributes[name] = value
-        preserve = child['tag'] in PRESERVE
         out.append(
             {
                 'tag': child['tag'],
                 'attributes': attributes,
-                'children': _normalize(child) if preserve or not preserve else _normalize(child),
+                'children': _normalize(child),
             }
         )
     return out

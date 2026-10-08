@@ -263,7 +263,7 @@ class Form:
                 entries = (
                     raw
                     if raw is not MISSING
-                    else ({} if self._data_only(field) else {self._fresh_key([]): MISSING})
+                    else ({} if self._data_only(field) else {'__0000000000000__': MISSING})
                 )
                 for key, row in entries.items():
                     self._check_key(str(key))

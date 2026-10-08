@@ -30,11 +30,6 @@ class FormRenderConformance(unittest.TestCase):
 
     def test_result_cases_reproduce_the_normalized_layout(self):
         self.assertEqual(len(self.results), 137)
-        from polyspec.crudui.generator import buttons as buttons_module
-        from polyspec.crudui.generator import form_render as form_render_module
-        from polyspec.crudui.generator import messages as messages_module
-        from polyspec.crudui.generator import rendering as rendering_module
-        from polyspec.crudui.generator import value as value_module
         from polyspec.crudui.generator import Generator
 
         for case in self.results:
@@ -42,18 +37,11 @@ class FormRenderConformance(unittest.TestCase):
                 options = case.get('options') or {}
                 template = Generator.compileForm(case['spec'], options)
                 data = case.get('data') or {}
-                fields = Generator.bindForm(template, data, options)
-                language = options.get('language', 'ko')
-                bound_buttons = buttons_module.bind(template, value_module.object_value(data), language)
-                messages = messages_module.for_language(language)
-                description = value_module.translate(template.get('description'), language)
-                actual = rendering_module.form(fields, bound_buttons, messages, form_render_module.EMPTY, description)
+                form = Generator.createForm(template, data, options)
+                actual = Generator.renderForm(form)
                 self.assertEqual(html_tree(actual), html_tree(case['expected_html']))
-                # Binding the same template again writes the same fields.
-                again = rendering_module.form(
-                    Generator.bindForm(template, data, options), bound_buttons, messages,
-                    form_render_module.EMPTY, description,
-                )
+                # A new instance over the same template and data renders the same form.
+                again = Generator.renderForm(Generator.createForm(template, data, options))
                 self.assertEqual(actual, again)
 
     def test_failure_cases_raise_the_recorded_code(self):
