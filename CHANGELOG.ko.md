@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-08 — generator 기초 module의 타입 주석 (C13.1-17-2)
+
+- `packages/generator-python`의 module `errors`, `messages`, `input_text`, `numbers`, `dates`, `style`에 매개변수와 반환 타입이 있고 `mypy --strict` 오류가 없다. generator 단위 test 11개가 통과한다.
+
 ### 2026-10-08 — validator package의 타입 주석 (C13.1-17-1)
 
 - `packages/validator-python/src`의 모든 함수에 매개변수와 반환 타입이 있으며, package는 `mypy --strict`를 종료 코드 0으로 통과한다(source 파일 15개). validator 단위 test 23개가 통과한다. 변경은 C13.1-17 아래 커밋되어 있다.

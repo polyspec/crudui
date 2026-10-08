@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-08 — Type hints of the foundation generator modules (C13.1-17-2)
+
+- The modules `errors`, `messages`, `input_text`, `numbers`, `dates` and `style` of `packages/generator-python` have parameter and return types with no `mypy --strict` error. The generator unit tests pass: 11 tests.
+
 ### 2026-10-08 — Type hints of the validator package (C13.1-17-1)
 
 - Every function of `packages/validator-python/src` has parameter and return types, and the package passes `mypy --strict` with exit 0 (15 source files). The validator unit tests pass: 23 tests. The changes are committed under C13.1-17.
