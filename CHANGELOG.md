@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-08 — Python version and feature support of the packages (C13.1-6)
+
+- `.python-version` names Python 3.14 and the recorded toolchain names the same release; the CI workflow sets up 3.14 for the Python job; the owner checks map `.python-version` and the Python package paths; the feature contracts give the Python support of each feature (C13.1-6-1). `make toolchain-check TOOLS=python` exit 0, `make test-ordered-json` exit 0, `tests/build/contract-manifest.test.mjs` 12 passed. `tests/build/runtime-version-policy.test.mjs` fails in this environment on the npm version (`make install-npm` installs the recorded release) and on the Rust toolchain on PATH, not on the Python version.
+
 ### 2026-10-08 — Python support of the feature contracts (C13.1-6-1)
 
 - The feature contracts give the Python support of each feature from the recorded evidence: 12 features `pass` (every case of their JSON fixtures has a passing Python record, 0 mismatches), `createForm` is `partial`, four outline and session features are `unsupported` and four client-side features are not applicable. The feature documents and the README pairs name the Python packages; `scripts/check-documents.mjs` passes, exit 0.

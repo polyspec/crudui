@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-08 — 패키지의 Python 버전과 기능 지원 (C13.1-6)
+
+- `.python-version`은 Python 3.14를 이르고, 기록된 toolchain도 같은 release를 적는다. CI 워크플로는 Python job에서 3.14를 설정하며, owner 검사는 `.python-version`과 Python package 경로를 짝짓고, 기능 계약은 기능마다 Python 지원을 적는다(C13.1-6-1). `make toolchain-check TOOLS=python` 종료 코드 0, `make test-ordered-json` 종료 코드 0, `tests/build/contract-manifest.test.mjs` 12건 통과. `tests/build/runtime-version-policy.test.mjs`는 이 환경에서 npm 버전(`make install-npm`이 기록된 release를 설치한다)과 PATH의 Rust toolchain으로 실패하며, Python 버전 때문이 아니다.
+
 ### 2026-10-08 — 기능 계약의 Python 지원 (C13.1-6-1)
 
 - 기능 계약은 기록된 증거로 각 기능의 Python 지원을 적는다. 기능 12개는 `pass`다(JSON fixture의 모든 사례에 통과한 Python 기록이 있으며 불일치 0건). `createForm`은 `partial`, outline과 session 기능 4개는 `unsupported`, 클라이언트 전용 기능 4개는 해당 없음이다. 기능 문서와 README 짝은 Python package를 적으며, `scripts/check-documents.mjs`가 통과한다(종료 코드 0).
