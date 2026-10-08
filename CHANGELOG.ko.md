@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-08 — make-tool-path 테스트의 native 명령 Python target (C13.1-28)
+
+- `tests/build/make-tool-path.test.mjs`는 `make test-native`가 실행하는 target 목록 `javascript,html,go,rust,python`을 기대하므로, CI job `build, lint and types`에서 테스트가 통과한다.
+
 ### 2026-10-08 — Python 3.11에서 validator resolver의 import (C13.1-27)
 
 - `packages/validator-python/src/polyspec/crudui/validator/resolver.py`는 별칭 `Node`를 `parser`에서 import하고, 별칭 `Context`를 이를 이름으로 쓰는 타입 주석 위에서 정의하여 Python 3.11이 module을 import한다. CI job `python`은 3.11에서 `NameError: name 'Node' is not defined`로 실패했다. Validator와 generator suite는 Python 3.11에서 통과한다.

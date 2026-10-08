@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-08 — Python target in the native command of the make-tool-path test (C13.1-28)
+
+- `tests/build/make-tool-path.test.mjs` expects the target list `javascript,html,go,rust,python` of `make test-native`, the list that the Makefile runs, so the test passes in the CI job `build, lint and types`.
+
 ### 2026-10-08 — Python 3.11 import of the validator resolver (C13.1-27)
 
 - `packages/validator-python/src/polyspec/crudui/validator/resolver.py` imports the alias `Node` from `parser` and defines the alias `Context` above the annotations that name it, so Python 3.11 imports the module. The CI job `python` failed on 3.11 with `NameError: name 'Node' is not defined`. The validator and generator suites pass on Python 3.11.
