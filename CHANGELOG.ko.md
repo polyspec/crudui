@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-08 — native generator 검사의 Python 프로그램 (C13.1-7-2)
+
+- native generator 검사가 Python 프로그램을 실행한다. `node tests/native-generators/run.mjs --target python`은 741건 통과, 종료 코드 0을 보고한다. `make test-native-generators`에는 python 대상이 포함되며, 이 환경에서는 검사를 실행하기 전 cargo 사전 검사에서 멈춘다.
+
 ### 2026-10-08 — Form.setData가 객체가 아닌 데이터를 거부한다 (C13.1-19)
 
 - `Form.setData`는 객체가 아닌 데이터에 대해 `INVALID_FORM_INPUT`과 `Form data must be an object`로 실패한다. Python 대상의 native generator 검사가 통과한다: 741건 통과, 종료 코드 0, `action-failure-keeps-state` 포함.
