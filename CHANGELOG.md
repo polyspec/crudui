@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-08 — Stale-pin check deferred to the version-bump pull request (C13.1-23)
+
+- The release check of stale git pins in `pyproject.toml` is not added to `feat/python-C13.1`. The pin `v0.0.4` of `packages/generator-python` names a tag that is created after the version-bump pull request merges, so the check belongs to that pull request. The row C13.1-23 is open and waits for it.
+
 ### 2026-10-08 — Node.js setup and Python matrix in the python CI job (C13.1-30)
 
 - The CI job `python` sets up the Node.js release of `.node-version` and checks `node python` with `make toolchain-check`, because its `make ci-targets` run needs Node.js. The toolchain policy test accepts the lowest `requires-python` minor (3.11) as a matrix leg beside the recorded minor.
