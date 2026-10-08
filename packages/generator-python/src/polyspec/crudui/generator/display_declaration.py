@@ -5,6 +5,8 @@ then, for a list, search, sort, actions, empty, description and pagination,
 and for a detail, actions (docs/spec/display-formats.md).
 """
 
+from typing import Any, NoReturn, TypeGuard
+
 from .choice_list import EXPECTED, is_choice_list, pairs
 from .errors import FormError
 from .template import check_design_declaration
@@ -25,26 +27,26 @@ _PAGINATION_MODES = ('pages', 'offset', 'cursor', 'none')
 _CONTENT = 'a string, a language map or null'
 
 
-def _is_object(value):
+def _is_object(value: object) -> TypeGuard[dict[str, Any]]:
     return isinstance(value, dict)
 
 
-def _expected(key, path, expected):
+def _expected(key: str, path: str, expected: str) -> NoReturn:
     raise FormError('INVALID_FORM_INPUT', f'Invalid {key} at {path}: expected {expected}')
 
 
-def _unknown(key, path):
+def _unknown(key: str, path: str) -> NoReturn:
     raise FormError('INVALID_FORM_INPUT', f'Invalid {key} at {path}: unknown key')
 
 
-def _closed(members, prefix, allowed, path):
+def _closed(members: dict[str, Any], prefix: str, allowed: tuple[str, ...], path: str) -> None:
     """Reject the first member, in member order, that `allowed` does not list."""
     for key in members:
         if key not in allowed:
             _unknown(prefix + key, path)
 
 
-def _is_content(value):
+def _is_content(value: object) -> bool:
     """A string, a language map (a non-empty object of strings or null) or null."""
     if value is None or isinstance(value, str):
         return True
@@ -53,11 +55,11 @@ def _is_content(value):
     return all(entry is None or isinstance(entry, str) for entry in value.values())
 
 
-def _is_condition_map(value):
+def _is_condition_map(value: object) -> bool:
     return _is_object(value) and bool(value)
 
 
-def check(spec, own, members):
+def check(spec: dict[str, Any], own: str, members: str) -> None:
     """Check a composed list or detail specification.
 
     `own` is `list` or `detail` and `members` names the member map, `columns`
@@ -97,7 +99,7 @@ def check(spec, own, members):
         _pagination(spec['pagination'], own)
 
 
-def _actions(actions, own):
+def _actions(actions: object, own: str) -> None:
     """The actions declaration of a list or detail, each action in member order."""
     if not _is_object(actions):
         _expected('actions', own, 'an object')
@@ -108,7 +110,7 @@ def _actions(actions, own):
         _action(name, action)
 
 
-def _format(format_value, path):
+def _format(format_value: object, path: str) -> None:
     """A cell format declaration at `path`."""
     if isinstance(format_value, (bool, str)):
         return
@@ -133,11 +135,11 @@ def _format(format_value, path):
         elif key == 'items':
             if not isinstance(value, (list, dict)):
                 _expected('format.items', path, 'an array or an object')
-            if is_choice_list(value) and pairs(value) is None:
+            if isinstance(value, list) and is_choice_list(value) and pairs(value) is None:
                 _expected('format.items', path, EXPECTED)
 
 
-def _member(name, member, own, members):
+def _member(name: str, member: object, own: str, members: str) -> None:
     """One column or field declaration."""
     if not _is_object(member):
         _expected(name, members, 'an object')
@@ -157,7 +159,7 @@ def _member(name, member, own, members):
             _expected('sortable', path, 'a boolean, an expression or a condition map')
 
 
-def _behavior_entry(event, entry, path):
+def _behavior_entry(event: str, entry: object, path: str) -> None:
     """One behavior entry of an action at `path`."""
     if isinstance(entry, str):
         return
@@ -170,7 +172,7 @@ def _behavior_entry(event, entry, path):
         _expected(f'behavior.{event}.script', path, 'a string')
 
 
-def _action(name, action):
+def _action(name: str, action: object) -> None:
     """One list or detail action at actions.<name>."""
     if isinstance(action, str):
         return
@@ -201,7 +203,7 @@ def _action(name, action):
         check_design_declaration(action['design'], path)
 
 
-def _pagination(pagination, path):
+def _pagination(pagination: object, path: str) -> None:
     """A wrong value type or an unknown key in the pagination declaration at `path`."""
     if not isinstance(pagination, bool) and not _is_object(pagination):
         _expected('pagination', path, 'a boolean or an object')
@@ -214,7 +216,7 @@ def _pagination(pagination, path):
         _expected('pagination.mode', path, 'pages, offset, cursor or none')
 
 
-def _safe_integer(value, minimum):
+def _safe_integer(value: object, minimum: int) -> int | None:
     from .lists import safe_integer
 
     return safe_integer(value, minimum)
