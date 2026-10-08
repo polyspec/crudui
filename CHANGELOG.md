@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-09 — Vendored tools of polyspec/kit v0.0.4 (C14.1-1)
+
+- `kit.json`, `.kit/kit.lock.json`, `scripts/kit` and `tests/kit` hold the files of the tag `v0.0.4`, and the Makefile includes `scripts/kit/kit.mk`. `make kit-sync KIT_TAG=v0.0.4` wrote the lock and printed `unchanged` on the second run; `make kit-test` passed 322 of 322 tests.
+
 - C13.1-38: the dependencies are at their latest stable release (puppeteer 25.13.0, playwright 1.64.0, vite 8.3.4), their install scripts are approved by exact version, and the review record is written again.
 - C13.1-37: the npm lock records the repository packages at 0.0.4 in its dependency entries, as the version bump requires.
 ### 2026-10-09 — Dependency review record of the 0.0.4 locks (C13.1-36)

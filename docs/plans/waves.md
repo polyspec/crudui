@@ -55,3 +55,7 @@ Depends on: none. The longest job of the CI workflow decides when the check `ci-
 ## Wave 13
 
 Depends on: none. The repository names its implementations in TypeScript, Go, PHP, the PHP extension and Rust. Python joins them with the same standing: `polyspec-crudui-validator` and `polyspec-crudui-generator` under the PEP 420 namespace `polyspec`, the standard library only, `unittest` for the unit tests and the shared fixtures of `tests/fixtures` for the results, which every implementation answers identically. Python 3.11 is the oldest supported release and `.python-version` will name the newest stable one; the file does not exist yet, because C13.1-6 is not done.
+
+## Wave 14
+
+Depends on: none. The repository takes the tools that every polyspec repository shares from polyspec/kit v0.0.4 as vendored copies in `scripts/kit` and `tests/kit` (`kit.json`, `.kit/kit.lock.json`) and differs from the other repositories only in `config/*.json`. The tools of this repository that kit provides are removed: the dependency review and its gate, the toolchain install and check, the test runner, the push gate, the full-run guard, the holder lock, the document and owner checks, the CI report tools and the release tool. The 0.x workflow has no pull request, merge queue or ruleset: work is committed locally per row, `main` is pushed once when every row is `[o]`, and a tag is created only after the main CI check `ci-passed` succeeded.
