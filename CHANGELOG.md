@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-08 — State markers kept out of the record text (C13.1-20)
+
+- The records of C13.1-10 and C13.1-11 write the state markers as words, and `scripts/check-documents.mjs` passes its 53 document pairs, exit 0.
+
 ### 2026-10-08 — Python program in the native generator checks (C13.1-7-2)
 
 - The native generator checks run the Python program: `node tests/native-generators/run.mjs --target python` reports 741 passed, exit 0. `make test-native-generators` includes the python target; in this environment that make target stops at its cargo prerequisite check before the checks run.
