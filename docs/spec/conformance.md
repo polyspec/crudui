@@ -39,10 +39,13 @@ fails when:
 - a supported runtime has no evidence, or failing evidence, for a case of a fixture its feature
   names;
 - evidence exists for a feature, fixture, runtime or case the standard does not declare, such as
-  a test for a runtime declared `unsupported`;
+  a test for a runtime declared `unsupported`, or a case outside the fixture of a partial runtime;
 - a directory under `tests/fixtures` has no registered fixture, or a registered case fixture is
   proven by no feature;
 - a feature names a fixture that is not a registered case fixture.
+
+A `partial` runtime is measured by the cases it records: each recorded case must pass, and no case
+is required, because the shared fixtures do not state which cases a partial runtime supports.
 
 ## Suite runs
 
