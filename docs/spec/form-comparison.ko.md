@@ -1,6 +1,6 @@
 # 폼 검증
 <!-- doc-id: docs-spec-form-comparison -->
-<!-- source-sha256: 95f81d746b9b8ca095c36691407845cd9146bc4a5c2fbfc898cced2bfbe5995e -->
+<!-- source-sha256: b8a34a9b7a2f47b16073c40ed22ecd3332e2220677ca803b38b83f424be57e83 -->
 
 [English](form-comparison.md).
 
@@ -542,7 +542,7 @@ PHP-FPM은 `enable_post_data_reading=0`으로 실행하므로 PHP 서버는 다�
 빠른 소스 검사는 보고서 정책 실패, 프로토콜 시간 제한 동작, 보고서별 제한 시간과 진행
 보고, 단계 실행기의 끝까지 실행과 프로세스 트리 정리, 소스 식별자, 스냅샷 차이, 생성 캐시 동작,
 요청 수 변경, 단위 실행기의 제한 시간과 진행 보고, 레코드 리소스의 고정 데이터와 링크, 정본 페이지가
-선언한 컨트롤을 재현합니다. 이 검사는 로컬 검증을 대체하지 않습니다. Pull request와 `main` push CI는
+선언한 컨트롤을 재현합니다. 이 검사는 로컬 검증을 대체하지 않습니다. `main` push CI는
 `npm run test:form-comparison`을 실행해 보고서 정책, 브라우저 작업, 소스 트리와 생성 성능
 회귀가 있으면 통합을 실패로 처리하고, `npm run test:form-comparison:pipeline`을 실행해 다섯
 서버의 레코드 저장소 계약, Go·Rust 서버 테스트, 40개 조합의 정본 흐름 검사가 실패하면 통합을

@@ -1,6 +1,6 @@
 # 문서 관리
 <!-- doc-id: docs-operations-documentation -->
-<!-- source-sha256: aa873c08c0fbba4f9e9281e8ed8e72db64ae1bd79babe5b10e4e009caccd8cf0 -->
+<!-- source-sha256: 2cd80c7440fa1233879e3489eb30f20d34690a9f4bb61dba2480edbc5c01dab1 -->
 
 [English](documentation.md).
 
@@ -80,7 +80,7 @@ twin을 검토하고 marker를 `shasum -a 256 <영어 file>`의 출력으로 설
 **GitHub Actions**입니다. [CI](../../.github/workflows/ci.yml)는
 `DOCS_BASE_PATH=/crudui/`로 `make docs-check`를 실행하고 `docs/.web/dist`를
 업로드한 뒤 `github-pages` 환경에 배포합니다. `main` 푸시 또는 `main`의 CI
-수동 실행은 웹을 게시하며 pull request는 검사만 실행합니다.
+수동 실행은 웹을 게시합니다.
 
 저장소 루트에서 게시 경로로 미리보기를 실행합니다.
 

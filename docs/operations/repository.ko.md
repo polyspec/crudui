@@ -1,142 +1,102 @@
-# 저장소 설정
+# 저장소
 <!-- doc-id: docs-operations-repository -->
-<!-- source-sha256: 732ffe455059d1cf505009789716ec01fa1387b76a13f777d7ace1cad9b2ef19 -->
+<!-- source-sha256: e43421d4765c4f52f35dd7ac0a614036067233c0290c948b4903fe4a0f0c3485 -->
 
 [English](repository.md).
 
-GitHub 저장소 설정은 [`.github/repository.json`](../../.github/repository.json)에 선언하고 멱등 명령
-하나로 적용합니다. 선언에는 홈페이지, 저장소 기능과 병합 방식, auto-merge와 merge된 branch의 삭제,
-Actions 허용 범위와 워크플로 토큰의 기본 권한, 취약점 알림과 자동 보안 수정, GitHub Pages 빌드 방식,
-`main`에서만 배포하는 `github-pages` 환경, ruleset `main`([main 게시](#main-게시))이 들어 있습니다.
-
-```sh
-make github-settings
-make github-settings-check
-```
-
-`make github-settings`는 모든 설정을 `gh api`로 읽고 다른 설정만 바꾼 뒤 다시 읽으며, 그래도 다른
-설정이 있으면 실패합니다. 이미 선언과 같은 저장소에서 실행하면 아무것도 바꾸지 않습니다.
-`make github-settings-check`는 아무것도 바꾸지 않고, 선언과 다른 설정이 있으면 그 설정과 현재 값,
-선언 값을 출력하며 실패합니다. 두 명령 모두 저장소 관리 권한이 있는 인증된 `gh`가 필요합니다. GitHub의
-저장소에 작용하므로 `make ci`와 CI job은 이 명령을 실행하지 않습니다.
-
-원격에는 `main`과 열린 pull request의 branch만 있으며, merge된 branch는 지워집니다. 같은 이력으로 저장소를
-다시 만들면 `main`을 푸시하고 `make github-settings`를 실행해 설정하며, 문서 웹은 이어지는
-`.github/workflows/pages.yml` 실행이 게시합니다. 이 workflow는 `main`이 받는 모든 commit과 수동
-실행(`workflow_dispatch`)의 문서를 build해 배포합니다. `.github/workflows/ci.yml`은 모든 pull request,
-merge group, 수동 실행에서, `.github/workflows/push-gate.yml`은 `gh-readonly-queue/**` 밖의 branch로의
-모든 push, 모든 pull request, 모든 merge group에서, `.github/workflows/dependency-review.yml`은 일정과 수동
-실행에서, `.github/workflows/release.yml`은 push된 tag `v*` 또는 `**/v*`에서([release](#release)) 실행되며, 다른 workflow는 없습니다. 설정은 GitHub 화면이 아니라 선언을 고치고 명령을 실행해 바꾸므로 선언이 곧 기록입니다.
-
-`tests/build/github-repository.test.mjs`는 메모리 안의 저장소로 명령을 검사합니다. 선언과 같은
-저장소에는 요청을 보내지 않고, 새 저장소는 선언대로 맞춘 뒤 두 번째 실행에서 아무 요청도 보내지
-않으며, 선언하지 않은 배포 브랜치는 제거합니다. rule, check, merge 방식의 순서는 차이가 아니고, 다른
-ruleset은 id로 교체하되 다른 이름의 ruleset은 그대로 두며, 같은 이름의 ruleset이 둘이면 실패합니다. 또한
-ruleset의 check가 정확히 `push-gate`와 `ci-passed`이고 각각 job 하나의 check여야 합니다.
+version이 0.x인 동안 변경이 `main`에 도달하는 방법, 실행되는 workflow, release를 만드는 방법입니다. pull request, merge queue,
+GitHub ruleset은 없습니다. 작업은 checklist row마다 commit하며 로컬에서 하고, maintainer가 `main`을 push합니다.
 
 ## main 게시
 
-모든 변경은 pull request와 merge queue를 거쳐서만 `main`에 도달하며, 이 저장소의 어떤 명령도 `main`을
-push하지 않습니다. branch는 GitHub의 표준 명령이나 GitHub UI로 게시합니다.
+`docs/plans/execution-checklist.md`의 각 작업은 unit test가 통과하면 changelog 항목과 함께 commit하고 row를 `[o]`로 바꿉니다.
+`main`은 모든 row가 `[o]`일 때 한 번 push합니다.
 
 ```sh
-git push origin HEAD:refs/heads/<branch>
-gh pr create --base main --head <branch> --fill
-gh pr merge <branch> --auto --rebase
+git push origin main
 ```
 
-ruleset `main`은 enforcement `active`로 `refs/heads/main`에 적용되고 bypass actor가 없으므로 관리자에게도
-적용됩니다. rule은 다음과 같습니다.
+pre-push hook `.githooks/pre-push`는 row가 `[~]`인 동안 push를 거부하고, `.github/workflows/push-gate.yml`의 job `push-gate`는
+그런 row가 있는 push된 commit에서 실패합니다([push 검사](testing.ko.md)). push는 `.github/workflows/ci.yml`을 시작하며, 이
+workflow는 전체 suite를 job에서 실행합니다. 마지막 job `ci-passed`는 다른 모든 job이 필요하고 각각이 성공하지 않으면 실패합니다.
+tag는 그것이 가리키는 commit에서 `ci-passed`와 `push-gate`가 성공한 뒤에만 만듭니다. agent의 branch와 worktree는
+`{type}/{shortname}-{task ID}`와 `{project}-{shortname}-{task ID}`로 이름 짓고 `main`에 merge되는 즉시 지웁니다.
 
-- `pull_request`: 변경은 pull request로 들어옵니다. 승인은 필요 없고 `merge`, `squash`, `rebase`를 모두
-  허용하므로, 어느 방식의 `gh pr merge --auto`도 pull request를 queue에 넣습니다.
-- `merge_queue`: merge queue는 `REBASE` 방식으로 merge하므로 pull request의 각 commit이 그대로 `main`의
-  commit이 됩니다. grouping 전략은 `ALLGREEN`이고, 한 번에 최대 5개를 build하고 merge하며 더 기다리지
-  않습니다. `check_response_timeout_minutes`는 GitHub의 최댓값인 360입니다.
-- `required_linear_history`, `non_fast_forward`, `deletion`: `main`에 merge commit, force-push, 삭제를
-  허용하지 않습니다.
-- `required_status_checks`: `.github/workflows/push-gate.yml`의 check `push-gate`와
-  `.github/workflows/ci.yml`의 check `ci-passed`로, 둘 다 GitHub Actions app(integration 15368)의 check입니다.
-  `ci-passed`는 CI workflow의 마지막 job으로, 다른 모든 job을 needs로 두고 `if: ${{ always() }}`로 실행되며
-  `make ci-passed RESULTS='${{ toJSON(needs) }}'`를 실행합니다. 이 target은 needs의 job 결과가 모두 `success`가
-  아니면 실패하므로 실패, 취소, 건너뜀 job이 모두 이 check를 실패시키고, CI job을 추가하거나 이름을 바꿔도
-  ruleset은 바뀌지 않습니다. `tests/build/ci-local.test.mjs`는 이 job이 마지막 job이고 `needs`에 다른 모든 job이
-  있기를 요구합니다.
+workflow는 다음과 같습니다.
 
-`git push origin <commit>:main`으로 직접 push하면 `GH013: Repository rule violations found`로 거부됩니다.
-pre-push hook은 branch push에서 실행됩니다. `gh pr merge --auto`는 pull request에서 필수 check가 통과하면 그
-pull request를 merge queue에 넣습니다. queue는 그것을 `main` 위로 rebase해 branch
-`gh-readonly-queue/main/pr-<number>-<sha>`의 merge group으로 만들고, 두 workflow가 그 commit에서
-실행되며(`merge_group`), check가 통과하면 `main`을 정확히 그 commit으로 옮깁니다. check가 실패하면 pull
-request는 queue에서 빠지고 `main`은 움직이지 않습니다. merge group의 CI 실행은 취소되지 않습니다. group마다
-자기 ref가 있고 `cancel-in-progress`는 pull request에만 적용되기 때문입니다. rebase는 merge된 commit에 새
-hash를 주므로, `git pull --rebase`가 queue가 merge한 local commit을 버립니다.
+- `.github/workflows/ci.yml`: `main`으로의 push와 수동 실행(`workflow_dispatch`). release가 자기 commit의 check를 요구하므로 나중의
+  push가 앞선 commit의 실행을 취소하지 않습니다.
+- `.github/workflows/push-gate.yml`: branch로의 모든 push.
+- `.github/workflows/pages.yml`: `main`으로의 push와 수동 실행. 문서 web을 build하여 `main`에서만 배포하는 environment `github-pages`에
+  배포합니다.
+- `.github/workflows/dependency-review.yml`: 예약된 시각과 수동 실행.
+- `.github/workflows/release.yml`: push된 tag `v*` 또는 `**/v*`([release](#release)).
+
+다른 workflow는 없습니다(`tests/build/ci-local.test.mjs`). GitHub의 저장소 설정(Pages source **GitHub Actions**, environment
+`github-pages`)은 GitHub 화면에서 정하며, 이 저장소의 어떤 명령도 이를 적용하지 않습니다.
 
 ## Release
 
-release는 `main` commit의 tag입니다. 저장소는 `vX.Y.Z`이고, 디렉터리의 Go module은 `<디렉터리>/vX.Y.Z`이며 그
-module path는 `github.com/polyspec/crudui/<디렉터리>`입니다(`tests/build/package-names.test.mjs`). `main`의 모든
-commit은 merge queue로 ruleset의 check를 통과했으므로 release는 test를 다시 실행하지 않습니다. pull request는 tag를
-싣지 않고, maintainer가 tag를 만들어 push합니다.
+release는 `main` commit의 tag입니다. 저장소는 `vX.Y.Z`이고, 디렉터리의 Go module(`packages/generator-go`,
+`packages/validator-go`)은 `<디렉터리>/vX.Y.Z`이며 그 module path는 `github.com/polyspec/crudui/<디렉터리>`입니다
+(`tests/build/package-names.test.mjs`). `main`의 모든 commit은 tag 전에 CI의 전체 suite를 통과했으므로 release는 test를 다시
+실행하지 않습니다. tag는 maintainer만 만들어 push합니다. tag가 release하는 package, 덮는 manifest, Go module은
+`config/release.json`(`scripts/kit/schema/release.schema.json`)에 선언합니다.
 
-1. pull request `chore(release): Release X.Y.Z (#<작업 ID>)`는 저장소의 모든 `package.json`, `packages/`의
-   `composer.json`, `Cargo.toml`, `VERSION`, `pyproject.toml`의 version과 저장소 package에 대한 모든 dependency의
-   version을 X.Y.Z로 정하고, lock을 다시 만들며, `CHANGELOG.md`와 `CHANGELOG.ko.md`의 `## Unreleased`를 `## X.Y.Z`로
-   바꾼 뒤 그 위에 빈 `## Unreleased`를 새로 씁니다.
-2. merge queue가 merge한 뒤 maintainer가 `main`의 그 commit에 tag를 달아 push합니다:
+1. push된 `main`의 CI가 성공한 뒤, commit `chore(release): Release X.Y.Z (#<작업 ID>)`는 `config/release.json`이 적은 모든
+   manifest(`package.json`, `packages/`의 `composer.json`, `Cargo.toml`, `pyproject.toml`)의 version과 저장소 package에 대한 모든
+   dependency와 git pin의 version을 X.Y.Z로 정하고, lock을 다시 만들며, `CHANGELOG.md`와 `CHANGELOG.ko.md`의 `## Unreleased`를
+   `## X.Y.Z`로 바꾼 뒤 그 위에 빈 `## Unreleased`를 새로 씁니다.
+2. 그 commit에서 `git tag vX.Y.Z`(로컬 tag), `make release-assets TAG=vX.Y.Z`, `make release-consumer-lock TAG=vX.Y.Z`(online)가
+   그 version의 archive에 대한 사용자 project `tests/release-install/npm`과 `tests/release-install/composer`의 manifest와 lock을
+   씁니다. 로컬 tag는 지우고 그 file을 commit합니다. 그다음 `make release-consumer TAG=vX.Y.Z`가 그것들로 archive를 설치합니다.
+3. push된 commit의 CI가 성공한 뒤 maintainer가 그 commit에 tag를 달아 push합니다:
 
    ```sh
    git tag vX.Y.Z <commit of main>
    git push origin vX.Y.Z
    ```
 
-3. `.github/workflows/release.yml`은 push된 tag에서(`tags: ['v*', '**/v*']`. tag filter에서 `*`는 `/`와 맞지
+   Go module은 같은 commit에 `packages/generator-go/vX.Y.Z`와 `packages/validator-go/vX.Y.Z`도 push합니다
+   (`make release-go-tags TAG=vX.Y.Z`가 이를 검사합니다).
+4. `.github/workflows/release.yml`은 push된 tag에서(`tags: ['v*', '**/v*']`. tag filter에서 `*`는 `/`와 맞지
    않으므로 `**/v*`가 `packages/<디렉터리>/vX.Y.Z`를 덮습니다) token 권한 `contents: write`로 실행됩니다. 준비
    step(`make install-tools`, `make toolchain-check TOOLS="node npm php composer"`, `make install-node-modules`) 뒤의
-   마지막 다섯 step은 이 순서로 make를 통해 실행되며, `scripts/release.mjs`의 step은 환경 변수 `TAG`의 tag를 recipe가
-   `"$$TAG"`로 넘겨 받습니다.
-   - `make release-verify`는 tag의 commit이 `origin/main`에 있는지(`git merge-base --is-ancestor`), commit의 check run
-     `push-gate`와 `ci-passed`가 conclusion `success`로 끝났는지(`gh api repos/<owner>/<repo>/commits/<sha>/check-runs`)
-     확인하고, 빠졌거나 실패한 check마다 적어 실패합니다.
-   - `make release-versions`는 tag가 덮는 모든 package 파일의 version이 tag와 같은지, `CHANGELOG.md`에 section
-     `## X.Y.Z`가 있는지 확인하고, 파일과 두 version을 적어 실패합니다.
-   - `make release-assets`는 `make build`를 실행하고 `packages/`의 archive를 `var/release/assets`에 씁니다. private이
-     아닌 npm package마다 `npm pack`, Composer package 디렉터리마다 zip `git archive`를 실행하고, 이름은
-     `<package>-<version>.<확장자>`이며 `@scope/`와 `vendor/`는 `scope-`, `vendor-`로 씁니다. archive는 저장소 tree
-     없이 다른 archive 옆에 설치됩니다. 게시되는 manifest는 `packages/`의 package manifest이며 바꾸지 않고
-     pack합니다("Package manifest와 개발 해석" 참고). 이 step은 package manifest와 다른 pack된 manifest, scope
-     `@polyspec`나 vendor `polyspec`의 의존성을 URL, 경로(`file:`, `link:`, `workspace:`), git 출처(`git`, `github:`,
-     ssh), 범위, 개발 version(`@dev`)으로 적은 pack된 manifest, `repositories`가 있거나 `version`이 없는
-     `composer.json`을 하나씩 적어 실패합니다. release asset은 npm
-     tarball과 Composer zip뿐입니다. crate는 archive로 release하지 않고 git tag로 사용합니다. `cargo package`는 git
-     의존성을 해석되지 않는 crates.io 요구로 바꾸기 때문입니다. Go module tag는 아무것도 build하거나 첨부하지 않습니다.
-   - `make release-install-check`는 `tests/release-install`의 사용자 fixture로 archive를 설치합니다(아래 참고).
+   마지막 다섯 step은 이 순서로 make를 통해 실행되며, `scripts/kit/release.mjs`의 step은 환경 변수 `TAG`의 tag를 받습니다.
+   - `make release-verify`는 tag의 commit이 `origin/main`에 있는지(`git merge-base --is-ancestor`), 모든 Go module의 tag
+     `<directory>/vX.Y.Z`가 같은 commit에 있는지, commit의 check run `push-gate`와 `ci-passed`가 conclusion `success`로
+     끝났는지(`gh api repos/<owner>/<repo>/commits/<sha>/check-runs`) 확인하고, 빠졌거나 실패한 check마다 적어 실패합니다.
+   - `make release-versions`는 `config/release.json`이 적은 모든 manifest의 version이 tag와 같은지, 모든 Go module의 module
+     path, `CHANGELOG.md`와 `CHANGELOG.ko.md`의 section `## X.Y.Z`가 있는지 확인하고, 파일과 두 version을 적어 실패합니다.
+   - `make release-assets`는 `make build`를 실행하고 `config/release.json`의 package archive를 `var/release/assets`에 씁니다.
+     release하는 npm package마다 `npm pack`, Composer package 디렉터리마다 zip `git archive`를 실행하고, 이름은
+     `<package>-<language>-<version>.<확장자>`이며 `@scope/`와 `vendor/`는 `scope-`, `vendor-`로 쓰고 language는 `npm` 또는
+     `php`입니다(`@polyspec/crudui-validator`는 `polyspec-crudui-validator-npm-X.Y.Z.tgz`, `polyspec/crudui-validator`는
+     `polyspec-crudui-validator-php-X.Y.Z.zip`). archive는 저장소 tree 없이 다른 archive 옆에 설치됩니다. 게시되는 manifest는
+     `packages/`의 package manifest이며 바꾸지 않고 pack합니다("Package manifest와 개발 해석" 참고). 이 step은 package
+     manifest와 다른 pack된 manifest, scope `@polyspec`나 vendor `polyspec`의 의존성을 정확한 version이 아닌 것으로 적은 pack된
+     manifest를 하나씩 적어 실패합니다. release asset은 npm tarball과 Composer zip뿐입니다. crate와 Python package는 archive로
+     release하지 않고 git tag로 사용합니다. Go module tag는 아무것도 build하거나 첨부하지 않습니다.
+   - `make release-consumer`는 archive를 저장소 밖의 깨끗한 project에 설치합니다(아래 참고).
    - `make release-publish`는 archive와 함께
      `gh release create <tag> --verify-tag --title <tag> --notes-file <section ## X.Y.Z>`를 실행합니다. GitHub는
-     125000자까지의 release 본문을 받으므로, 더 긴 section은 한 줄
-     `The changes of X.Y.Z are listed in [CHANGELOG.md](https://github.com/polyspec/crudui/blob/<tag>/CHANGELOG.md#XYZ).`로
-     대신하며, anchor는 점을 뺀 version입니다.
+     125000자까지의 release 본문을 받으므로, 더 긴 section은 tag 시점의 `CHANGELOG.md` section을 link하는 한 줄로 대신합니다.
 
-`tests/build/release.test.mjs`는 명령 fake로 script를 검사합니다. tag와 다른 version, 빠진 변경 기록 section, 없거나
-진행 중이거나 실패한 check run, `main` 밖의 commit, archive 이름과 명령, 명령을 실행하지 않는 Go module tag, release
-명령을 확인하고, 저장소의 모든 package 파일이 version 하나를 갖기를 요구하며 tag가 `packages/`의 package 파일마다
-어떻게 release하는지 적습니다.
-게시되는 의존성의 거부되는 형태, package manifest와 다른 pack된 manifest, 저장소의 게시되는 manifest를 확인하고,
-`tests/release-install`의 사용자 fixture가 `package.json` version의 archive를 적는지 확인합니다.
+`tests/kit/release.test.mjs`와 `tests/kit/release-go-tags.test.mjs`는 명령 fake로 도구를 검사하고,
+`tests/build/python-git-pins.test.mjs`는 `pyproject.toml`에서 이 저장소를 가리키는 모든 git pin이 `package.json`의 version을 적을 것을
+요구합니다. `make release-coverage`는 저장소의 모든 `package.json`, `composer.json`, `Cargo.toml`, `pyproject.toml`, `go.mod`가
+`config/release.json`에 분류되어 있을 것을 요구합니다.
 
-release workflow에서 `make release-assets`와 `make release-publish` 사이의 step인 `make release-install-check`
-(`scripts/release-install.mjs check "$TAG"`)는 tag `TAG`의 archive를 `var/release/assets`에서 사용자처럼 저장소 밖 임시
-디렉터리에 설치합니다. Go module tag `<directory>/vX.Y.Z`는 archive를 release하지 않으므로, 이 검사는 그 tag를 밝히고
-아무것도 설치하지 않습니다. fixture `tests/release-install/npm`(tarball을 `file:` 의존성으로 적은 `package.json`과 `package-lock.json`)을
-tarball과 함께 복사하고 빈 cache와 닿지 않는 registry `http://127.0.0.1:9/`의 scope `@polyspec`로 `npm ci`를 실행하며,
-fixture `tests/release-install/composer`(zip의 `artifact` repository를 둔 `composer.json`과 `composer.lock`)를 zip과 함께
-복사하고 빈 `COMPOSER_HOME`과 `COMPOSER_CACHE_DIR`로 `composer install`을 실행합니다. polyspec package는 archive에서만
-오고, 제3자 package는 lock이 정확한 version과 digest로 고정한 대로만 내려받습니다. `make release-install-lock`은
-`package.json` version의 fixture를 쓰고 archive에서 lock을 다시 만들며, polyspec archive는 이름과 version으로만(npm은 `integrity` 없이,
-Composer는 빈 `shasum`으로), 제3자 package는 정확한 version과 digest로 lock합니다. release commit은 tag 전에 archive를 쓰는 `make release-assets TAG=vX.Y.Z RELEASE_COMMIT=HEAD`
-뒤에 그것을 실행합니다. CI job `build-lint`는 tag 전에 같은 설치를 실행합니다. `make release-install-head`은
-`package.json` version의 `HEAD` archive를 `make release-assets`처럼 쓰고 `scripts/release-install.mjs check`를
-실행합니다.
+release workflow에서 `make release-assets`와 `make release-publish` 사이의 step인 `make release-consumer TAG=vX.Y.Z`
+(`scripts/kit/release-consumer.mjs`)는 tag의 archive를 `var/release/assets`에서 사용자처럼, 빈 npm과 Composer cache를 둔 저장소 밖의
+새 임시 디렉터리에 설치합니다. commit된 project는 `tests/release-install/npm`(tarball을 `file:` 의존성으로 적은 `package.json`과
+`package-lock.json`)과 `tests/release-install/composer`(zip의 `artifact` repository를 둔 `composer.json`과 `composer.lock`)이며,
+scope `@polyspec`은 닿지 않는 registry `http://127.0.0.1:9/`를 가리킵니다. polyspec package는 archive에서만 오고, 제3자 package는
+lock이 정확한 version과 digest로 고정한 대로만 내려받습니다. 설치된 모든 package는 tag의 version이어야 하고,
+`config/release.json`의 `consumers`가 적은 smoke 명령이 설치된 project에서 실행됩니다. Go module tag는 archive를 release하지 않으므로
+그것에는 아무것도 설치하지 않습니다. `make release-consumer-lock`은 archive에서 그 version의 manifest와 lock을 쓰며,
+polyspec archive는 이름과 version으로만(npm은 `integrity` 없이, Composer는 빈 `shasum`으로) lock합니다.
+그 version의 첫 release 전에는 file이 이전 version의 archive를 적고 있으며, 2번 step이 이를 씁니다.
 
 ### Package manifest와 개발 해석
 
@@ -173,9 +133,9 @@ Composer는 빈 `shasum`으로), 제3자 package는 정확한 version과 digest�
   ```json
   {
     "dependencies": {
-      "@polyspec/crudui-generator-html": "file:vendor/polyspec-crudui-generator-html-X.Y.Z.tgz",
-      "@polyspec/crudui-generator-core": "file:vendor/polyspec-crudui-generator-core-X.Y.Z.tgz",
-      "@polyspec/crudui-validator": "file:vendor/polyspec-crudui-validator-X.Y.Z.tgz"
+      "@polyspec/crudui-generator-html": "file:vendor/polyspec-crudui-generator-html-npm-X.Y.Z.tgz",
+      "@polyspec/crudui-generator-core": "file:vendor/polyspec-crudui-generator-core-npm-X.Y.Z.tgz",
+      "@polyspec/crudui-validator": "file:vendor/polyspec-crudui-validator-npm-X.Y.Z.tgz"
     }
   }
   ```
@@ -200,7 +160,7 @@ Composer는 빈 `shasum`으로), 제3자 package는 정확한 version과 digest�
     "package": {
       "name": "polyspec/crudui-validator",
       "version": "X.Y.Z",
-      "dist": { "type": "zip", "url": "https://github.com/polyspec/crudui/releases/download/vX.Y.Z/polyspec-crudui-validator-X.Y.Z.zip" },
+      "dist": { "type": "zip", "url": "https://github.com/polyspec/crudui/releases/download/vX.Y.Z/polyspec-crudui-validator-php-X.Y.Z.zip" },
       "autoload": { "psr-4": { "Polyspec\\Crudui\\Validator\\": "src/", "Polyspec\\Crudui\\": "src/Public/" } }
     }
   }

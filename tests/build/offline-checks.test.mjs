@@ -17,12 +17,11 @@ import { checkedFiles } from '../../scripts/kit/tracked-files.mjs';
 
 const SELF = 'tests/build/offline-checks.test.mjs';
 const CHECK = 'cargo-downloads-check';
-// The targets of scripts/kit/kit.mk that download: the vendored copy, the tools, the crates, the dependency review and the
-// proof of a release.
+// The targets of scripts/kit/kit.mk that download: the vendored copy, the tools, the crates, the dependency review, the
+// locks of the consumer projects and the proof of a release. release-consumer installs the archives of a release in clean
+// projects: the script lifts the offline settings itself (scripts/kit/release-consumer.mjs).
 const KIT_DOWNLOADS = ['kit-sync', 'install-tools', 'cargo-downloads-fetch', 'dependency-review', 'release-consumer-lock', 'release-proof'];
-const DOWNLOADS = [...KIT_DOWNLOADS, 'install-node-modules', 'install-composer', 'install-phpdocumentor', 'install-browsers', 'install-ordered-json',
-  // The consumer installs of the release archives, which download the third-party packages that their locks pin.
-  'release-install-check', 'release-install-lock', 'release-install-head'];
+const DOWNLOADS = [...KIT_DOWNLOADS, 'install-node-modules', 'install-composer', 'install-phpdocumentor', 'install-browsers', 'install-ordered-json'];
 const read = file => readFileSync(path.join(ROOT, file), 'utf8');
 const makefile = read('Makefile');
 // The targets of the Makefile and of the file that it includes.
@@ -105,7 +104,7 @@ test('the Makefile runs cargo, go, npm and Composer offline, and only the instal
   const online = Object.entries(targets).filter(([, rule]) => rule.commands.some(command => command.includes('$(ONLINE)'))).map(([name]) => name).sort();
   assert.deepEqual(online, [...DOWNLOADS].sort());
   // Every recipe line of an install target that downloads runs with $(ONLINE).
-  const downloading = /\b(?:kit-sync\.mjs|install-tools\.mjs|ci --strict-allow-scripts|composer\b.*\binstall\b|check-cargo-downloads\.mjs --fetch|install-ordered-json\.mjs|dependency-review\.mjs|release-install\.mjs|release-consumer\.mjs lock|release-proof\.mjs)/;
+  const downloading = /\b(?:kit-sync\.mjs|install-tools\.mjs|ci --strict-allow-scripts|composer\b.*\binstall\b|check-cargo-downloads\.mjs --fetch|install-ordered-json\.mjs|dependency-review\.mjs|release-consumer\.mjs lock|release-proof\.mjs)/;
   const offline = Object.entries(targets).flatMap(([name, rule]) => rule.commands
     .filter(command => downloading.test(command) && !command.includes('$(ONLINE)'))
     .map(command => `${name}: ${command}`));

@@ -1,6 +1,6 @@
 # 패키지 빌드
 <!-- doc-id: docs-spec-package-build -->
-<!-- source-sha256: 0031fa5becf3ef89ef1355168e2fbf7edf098ecaae6df513b0ab5ab4f7bb8bc7 -->
+<!-- source-sha256: 69335ba4f7df474bba8d8b4e6bd55a8981571544d1fd02f2c4abd7444d3107f9 -->
 
 [English](package-build.md).
 
@@ -262,8 +262,8 @@ release를 그 옆에 추가하므로 npm 갱신 뒤에 `npm dedupe`를 실행�
 `CARGO_NET_OFFLINE=true`, `GOPROXY=off`, `npm_config_offline=true`,
 `COMPOSER_DISABLE_NETWORK=1`을 export하고, download 대상인 `install`, `install-crates`,
 `install-ordered-json`, `install-tools`, `dependency-review`와, lock이 고정한 제3자
-package를 내려받는 release archive의 사용자 설치 `release-install-check`,
-`release-install-lock`만 `$(ONLINE)`으로 이를 풉니다. `make install-crates`는 Rust record server의 lock이 읽는 OrderedJSON
+package를 내려받는 release archive의 사용자 project lock `release-consumer-lock`만 `$(ONLINE)`으로 이를 풉니다.
+`release-consumer`는 script가 스스로 풉니다. `make install-crates`는 Rust record server의 lock이 읽는 OrderedJSON
 checkout(`.form-comparison/sources/ordered-json`) 다음에 모든 Cargo.lock의 crate를
 download하고, `make install`이 이를 실행합니다. cargo를 실행하는 모든 대상은
 `make cargo-downloads-check`(`scripts/kit/check-cargo-downloads.mjs`)에 의존합니다. 이 검사는

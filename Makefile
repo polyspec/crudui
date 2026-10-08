@@ -23,14 +23,14 @@ export GOTOOLCHAIN := local
 # A check reads no network (docs/spec/package-build.md, "Offline checks"): every recipe and the scripts that it starts
 # run cargo, go, npm and Composer offline, so a missing download fails at once instead of reaching a registry in one run
 # and not in another. The targets that download, install-tools, install-crates, install-ordered-json, dependency-review
-# and the consumer installs release-install-check and release-install-lock, and the downloads of install run their
-# commands with $(ONLINE); cargo-downloads-check (scripts/kit/kit.mk) names make install for a missing crate.
+# and release-consumer-lock, and the downloads of install run their commands with $(ONLINE); cargo-downloads-check
+# (scripts/kit/kit.mk) names make install for a missing crate.
 export CARGO_NET_OFFLINE := true
 export GOPROXY := off
 export npm_config_offline := true
 export COMPOSER_DISABLE_NETWORK := 1
 ONLINE := env -u CARGO_NET_OFFLINE -u GOPROXY -u npm_config_offline -u COMPOSER_DISABLE_NETWORK
-.PHONY: help release-verify release-versions release-assets release-install-check release-install-lock release-install-head release-publish install install-node-modules install-composer install-rust install-phpdocumentor install-browsers check-ci-browser test-runtimes test-dependencies build lint typecheck test-validator-js test-validator-php test-validator-go test-validator-rust test-validator-python test-generator-python test-cross-check manifest-test require-build test-cli manifest-check manifest-docs-check test-forms test-form-comparison test-form-comparison-pipeline test-form-comparison-checks test-form-comparison-browser test-form-comparison-summary test-packages test-build test-build-repeat test-inspector test-bench check-conformance install-crates install-ordered-json owner-check test-ordered-json docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-engine test-native-generators test-php-api test-native test-validators test-form-binding conformance format-check records-check ci conformance-reset
+.PHONY: help release-assets install install-node-modules install-composer install-rust install-phpdocumentor install-browsers check-ci-browser test-runtimes test-dependencies build lint typecheck test-validator-js test-validator-php test-validator-go test-validator-rust test-validator-python test-generator-python test-cross-check manifest-test require-build test-cli manifest-check manifest-docs-check test-forms test-form-comparison test-form-comparison-pipeline test-form-comparison-checks test-form-comparison-browser test-form-comparison-summary test-packages test-build test-build-repeat test-inspector test-bench check-conformance install-crates install-ordered-json owner-check test-ordered-json docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-engine test-native-generators test-php-api test-native test-validators test-form-binding conformance format-check records-check ci conformance-reset
 .NOTPARALLEL: docs docs-web docs-dev docs-preview docs-check docs-verify-idempotent
 
 # The tools that every polyspec repository shares are vendored copies in scripts/kit (kit.json, .kit/kit.lock.json);
@@ -80,13 +80,6 @@ help: ## 타겟 설명
 	@echo "  make ci                    Run every target of the CI workflow in order, once per tree (scripts/kit/full-run.mjs)"
 	@echo "  make rerun-failed          Rerun the targets of make ci that did not pass on the current tree"
 	@echo "  make records-check         The document and checklist rules that need Node.js alone"
-	@echo "  make release-verify        Check that the commit of TAG is on main and passed push-gate and ci-passed"
-	@echo "  make release-versions      Check the version of TAG in every package file and the change log section"
-	@echo "  make release-assets        Build the packages and write the npm and Composer archives of TAG to var/release/assets"
-	@echo "  make release-install-check Install the archives of var/release/assets from the consumer fixtures"
-	@echo "  make release-install-head  Write the archives of HEAD and install them from the consumer fixtures"
-	@echo "  make release-install-lock  Write the consumer fixtures and regenerate their locks from var/release/assets"
-	@echo "  make release-publish       Create the GitHub Release of TAG with its change log section and archives"
 	@echo ""
 	@echo "CRUDUI validator benchmark — make targets:"
 	@echo ""
@@ -412,46 +405,10 @@ records-check: ## Check the document pairs, links, changelog, writing and checkl
 	node scripts/kit/run-tests.mjs node --timeout 10 -- scripts/documentation-links.test.mjs tests/docs/changelog.test.mjs tests/docs/repository-writing.test.mjs tests/docs/example-readmes.test.mjs tests/docs/fixture-readmes.test.mjs || status=1; \
 	exit $$status
 
-# The release of a pushed tag, run by .github/workflows/release.yml in this order (scripts/release.mjs, AGENTS.md). The
-# workflow sets TAG in the environment and each recipe passes it as "$$TAG", so the name of a tag never becomes shell
-# text; verify reads the repository from GITHUB_REPOSITORY, and gh reads GH_TOKEN. release-verify requires the commit
-# of the tag on origin/main with the check runs push-gate and ci-passed concluded success; release-versions the version
-# of the tag in every package file that the tag covers and the section ## X.Y.Z of CHANGELOG.md; release-assets runs
-# make build and writes the npm tarballs and Composer zips of packages/ to var/release/assets, and a Go module tag
-# builds and attaches nothing; release-publish creates the GitHub Release with that section as its notes.
-release-verify: ## Check that the commit of TAG is on main and its checks push-gate and ci-passed succeeded
-	$(if $(TAG),,$(error make $@ needs TAG=<tag>, a tag vX.Y.Z or <directory>/vX.Y.Z))
-	node scripts/release.mjs verify "$$TAG"
-
-release-versions: ## Check the version of TAG in every package file that it covers and the change log section
-	$(if $(TAG),,$(error make $@ needs TAG=<tag>, a tag vX.Y.Z or <directory>/vX.Y.Z))
-	node scripts/release.mjs versions "$$TAG"
-
-release-assets: ## Build the packages and write the npm and Composer archives of TAG to var/release/assets
-	$(if $(TAG),,$(error make $@ needs TAG=<tag>, a tag vX.Y.Z or <directory>/vX.Y.Z))
-	node scripts/release.mjs assets "$$TAG"
-
-# The install of the archives of var/release/assets as a consumer installs them, from the fixtures of
-# tests/release-install (scripts/release-install.mjs): npm ci and composer install with empty caches and the scope
-# @polyspec on an unreachable registry. release-install-lock writes the fixtures of the version of package.json and
-# regenerates their locks from the archives; `make release-assets TAG=vX.Y.Z RELEASE_COMMIT=HEAD` writes the archives
-# of a release commit before its tag exists.
-release-install-check: ## Install the archives of TAG from var/release/assets with the consumer fixtures of tests/release-install
-	$(if $(TAG),,$(error make $@ needs TAG=<tag>, a tag vX.Y.Z or <directory>/vX.Y.Z))
-	$(ONLINE) node scripts/release-install.mjs check "$$TAG"
-
-# The same install in CI, before any tag: the archives of HEAD at the version of package.json, written as
-# release-assets writes them, then release-install-check.
-release-install-head: ## Write the archives of HEAD at the version of package.json and install them from the consumer fixtures
-	RELEASE_COMMIT=HEAD node scripts/release.mjs assets "v$$(node -p "require('./package.json').version")"
-	$(ONLINE) node scripts/release-install.mjs check
-
-release-install-lock: ## Write the consumer fixtures of tests/release-install and regenerate their locks from var/release/assets
-	$(ONLINE) node scripts/release-install.mjs lock
-
-release-publish: ## Create the GitHub Release of TAG with its change log section and archives
-	$(if $(TAG),,$(error make $@ needs TAG=<tag>, a tag vX.Y.Z or <directory>/vX.Y.Z))
-	node scripts/release.mjs publish "$$TAG"
+# The release steps are the targets of scripts/kit/kit.mk, run by .github/workflows/release.yml in this order: release-verify,
+# release-versions, release-assets, release-consumer, release-publish (docs/operations/repository.md, "Releases"). The
+# archives of the npm packages hold their dist directories, so the packages are built before the archives are written.
+release-assets: build
 
 # Every target the CI workflow runs after installing tools and dependencies, in workflow order, with the conformance
 # evidence collected and checked like the final CI job (tests/build/ci-local.test.mjs keeps this list equal to
@@ -463,7 +420,6 @@ CI_TARGETS = \
 	lint \
 	typecheck \
 	test-ordered-json \
-	release-install-head \
 	test-validator-js \
 	test-validator-php \
 	test-validator-go \

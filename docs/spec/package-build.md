@@ -302,9 +302,9 @@ A check reads no network. The Makefile exports `CARGO_NET_OFFLINE=true`,
 `GOPROXY=off`, `npm_config_offline=true` and `COMPOSER_DISABLE_NETWORK=1` for every
 recipe and the commands that it starts; only the download targets `install`, `install-tools`,
 `install-crates`, `install-ordered-json` and
-`dependency-review`, and the consumer installs of the release archives
-`release-install-check` and `release-install-lock`, which download the
-third-party packages that their locks pin, lift them with `$(ONLINE)`. `make install-crates` downloads the
+`dependency-review`, and the lock of the consumer projects of the release archives
+`release-consumer-lock`, which downloads the
+third-party packages that their locks pin, lift them with `$(ONLINE)`; `release-consumer` lifts the settings itself. `make install-crates` downloads the
 crates of every Cargo.lock after the OrderedJSON checkout
 (`.form-comparison/sources/ordered-json`) that the lock of the Rust record server
 reads, and `make install` runs it. Every target that runs cargo depends on

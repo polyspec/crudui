@@ -617,7 +617,7 @@ each report's own limit and the progress it reports, the step runner's run to th
 and process-tree stop, source identity, snapshot differences, generation cache behavior and
 request-count changes, the unit runner's limits and progress, the record resource's
 fixture and links, and the canonical page's declared controls. These tests do not
-replace the local verification. Pull request and `main` push CI runs
+replace the local verification. `main` push CI runs
 `npm run test:form-comparison` so report-policy, browser-job, source-tree and
 generation-performance regressions block integration,
 `npm run test:form-comparison:pipeline` so the record-store contract of all five
