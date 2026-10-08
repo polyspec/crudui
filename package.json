@@ -1,6 +1,6 @@
 {
   "name": "@polyspec/crudui-workspace",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "private": true,
   "description": "YAML-based form generation and validation system (Multi-language, Multi-framework)",
   "workspaces": [
@@ -79,9 +79,9 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@polyspec/crudui-generator-core": "0.0.3",
-    "@polyspec/crudui-generator-html": "0.0.3",
-    "@polyspec/crudui-validator": "0.0.3",
+    "@polyspec/crudui-generator-core": "0.0.4",
+    "@polyspec/crudui-generator-html": "0.0.4",
+    "@polyspec/crudui-validator": "0.0.4",
     "@polyspec/ordered-json": "file:.form-comparison/sources/ordered-json/js",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@tailwindcss/node": "4.3.3",

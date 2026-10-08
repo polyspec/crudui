@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.0.4
+
 ### 2026-10-09 — 릴리스 버전 검사의 오래된 git pin (C13.1-23)
 
 - `scripts/release.mjs`는 git pin `polyspec/crudui@vX.Y.Z`가 릴리스 버전이 아닌 version을 가리키는 `pyproject.toml`을 거부한다. 문제는 파일, pin과 tag를 알리므로 Python package 릴리스의 tag가 만들어지기 전에 `make release-versions`가 실패한다.
