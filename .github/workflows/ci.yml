@@ -231,6 +231,44 @@ jobs:
           path: conformance-evidence/
           if-no-files-found: error
 
+  python:
+    name: python · ${{ matrix.python }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.11', '3.14']
+    env:
+      CRUDUI_CONFORMANCE_EVIDENCE: ${{ github.workspace }}/conformance-evidence
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+      - name: Setup Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python }}
+      # The release of .python-version is the matrix leg 3.14; the recorded toolchain names that release.
+      - name: Check the recorded toolchain versions
+        if: ${{ matrix.python == '3.14' }}
+        run: make toolchain-check TOOLS="python"
+      - name: Run the checks and write their report
+        if: ${{ !cancelled() }}
+        run: make ci-targets TARGETS="test-validator-python test-generator-python"
+      - name: Upload the report of the checks
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: report-python-${{ matrix.python }}
+          path: var/report/ci-targets
+          if-no-files-found: error
+      # Both legs record the same evidence; the recorded release leg preserves it.
+      - name: Preserve conformance evidence
+        if: ${{ !cancelled() && matrix.python == '3.14' }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: conformance-evidence-python
+          path: conformance-evidence/
+          if-no-files-found: error
+
   docs-coverage:
     name: documentation gate
     runs-on: ubuntu-24.04
@@ -903,7 +941,7 @@ jobs:
 
   conformance:
     name: conformance evidence against the standard
-    needs: [validator-js, validator-php, validator-go, validator-rust, cross-check-console, form-runtime, php-engine, native-generators, php-api]
+    needs: [validator-js, validator-php, validator-go, validator-rust, python, cross-check-console, form-runtime, php-engine, native-generators, php-api]
     if: ${{ !cancelled() }}
     runs-on: ubuntu-24.04
     env:
@@ -935,7 +973,7 @@ jobs:
           if-no-files-found: error
   ci-passed:
     if: ${{ always() }}
-    needs: [build-lint, validator-js, validator-php, validator-go, validator-rust, docs-coverage, cross-check-console, cli, form-runtime, form-comparison, form-comparison-pipeline, form-comparison-browser, form-comparison-checks, package-browser, php-engine, native-generators, php-api, conformance]
+    needs: [build-lint, validator-js, validator-php, validator-go, validator-rust, python, docs-coverage, cross-check-console, cli, form-runtime, form-comparison, form-comparison-pipeline, form-comparison-browser, form-comparison-checks, package-browser, php-engine, native-generators, php-api, conformance]
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
