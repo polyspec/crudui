@@ -58,7 +58,7 @@ jobs:
         with:
           workspaces: packages/validator-rust
       - name: Install the declared tools into var/tools
-        run: make install-tools
+        run: make install-tools TOOLS="npm"
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm go rust php composer"
       - name: Install workspace dependencies

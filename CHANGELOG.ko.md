@@ -1,16 +1,17 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: a8972171750430192f46e8955aeb50e59eb24d8bbcf33b82ca66182eb2d30536 -->
+<!-- source-sha256: 3840972b7465e608b77021562ccb6dbfd2d11628e0807d47c64c1c82f657c1d1 -->
 
 ## Unreleased
+
+### 2026-10-09 — kit v0.0.8의 policy와 도구 선택 (C14.1-8)
+
+- `config/dependency-policy.json`은 `./` 없이 `composer.json`을 지정하고, `pythonManifests`는 `packages/validator-python`과 `packages/generator-python`의 `pyproject.toml`을 지정한다. 그 build 요구 `setuptools==84.0.0`은 최신 release이므로 review는 registry 의존성 87개와 lock 8개를 advisory 없이 기록한다. `make dependency-policy-check`와 `make dependency-policy-mutation-check`가 통과한다.
+- workflow job은 `make install-tools TOOLS="npm"`로 도구를 설치하고 `make install-node-modules`는 npm만 설치하며, dependency review job은 Rust toolchain을 설치한 뒤 `npm cargoAudit`을 설치한다. 도구 설치 앞의 Rust toolchain step은 필요하지 않다.
 
 ### 2026-10-09 — polyspec/kit v0.0.8의 vendored 도구 (C14.1-7)
 
 - vendored file은 tag `v0.0.8`의 것이다. mutation 검사는 추적되는 모든 manifest와 lock을 복사하고, policy schema는 root `composer.json`과 `pyproject.toml`을 받으며, `make install-tools TOOLS="..."`는 이름을 준 도구만 설치하고, `make documents-stamp`는 `source-sha256` marker를 쓴다.
-
-### 2026-10-09 — CI job의 tool 설치 앞의 Rust toolchain (C14.1-2-1)
-
-- `make install-tools`를 실행하는 `ci.yml`, `pages.yml`, `release.yml`, `dependency-review.yml`의 모든 job은 먼저 Rust toolchain을 설치하고(`make install-rust`) `make toolchain-check`로 `rust`를 검사한다. `make install-tools`가 `rust-toolchain.toml`의 cargo로 cargo-audit을 build하기 때문이다.
 
 ### 2026-10-09 — kit의 owner 검사와 0.x workflow의 규칙 (C14.1-6)
 

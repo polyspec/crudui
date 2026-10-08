@@ -65,7 +65,7 @@ packages, the manifests that a tag covers and the Go modules are declared in `co
    same commit (`make release-go-tags TAG=vX.Y.Z` checks them).
 4. `.github/workflows/release.yml` runs on the pushed tag (`tags: ['v*', '**/v*']`: in a tag filter `*` does not
    match `/`, so `**/v*` covers `packages/<directory>/vX.Y.Z`), with the token permission `contents: write`. After the
-   setup steps (`make install-rust`, `make install-tools`, `make toolchain-check TOOLS="node npm rust php composer"`,
+   setup steps (`make install-tools TOOLS="npm"`, `make toolchain-check TOOLS="node npm php composer"`,
    `make install-node-modules`) its last five steps run through make in this order; the steps of
    `scripts/kit/release.mjs` take the tag of the environment variable `TAG`:
    - `make release-verify` requires the commit of the tag on `origin/main` (`git merge-base --is-ancestor`), the tag

@@ -1,6 +1,6 @@
 # 테스트 실행
 <!-- doc-id: docs-operations-testing -->
-<!-- source-sha256: aade04d1307d918086a6af945424df593cfc2e806f9575d8d586c7cddd6c3b68 -->
+<!-- source-sha256: 4cb34a1a44189dc5c919efe22084fbb1ac904bf19c6c502910cb24ccb95bf1dd -->
 
 [English](testing.md).
 
@@ -8,7 +8,7 @@
 "런타임과 의존성 버전"). `make install`은 기록한 npm, npm과 Composer 의존성, `rust-toolchain.toml`의 Rust toolchain, comparison의 OrderedJSON checkout과
 모든 Cargo.lock의 crate(`make install-crates`),
 `scripts/install-phpdocumentor.sh`가 SHA-256으로 검사하는 phpDocumentor release를 설치하고, `make toolchain-check`는 다른 release로 실행되는 모든 도구를 기대한 release와 함께 밝힙니다.
-`make install-tools`(`scripts/kit/install-tools.mjs`)로 checkout이 선언한 npm과 Go release와 cargo-audit를
+`make install-tools`(`scripts/kit/install-tools.mjs`. `TOOLS="npm go cargoAudit"`가 설치할 도구를 지정하며, workflow job은 쓰는 도구만 설치합니다)로 checkout이 선언한 npm과 Go release와 cargo-audit를
 checkout에 설치하며, 이 명령은 machine의 도구를 바꾸지 않습니다. make는 `var/tools/bin`의 명령을
 `PATH`의 맨 앞에 두고, npm을 직접 실행하는 shell은 `export PATH="$PWD/var/tools/bin:$PATH"`로 그렇게
 합니다. `npm ci --strict-allow-scripts`로 Node 의존성을

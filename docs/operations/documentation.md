@@ -76,8 +76,8 @@ Markdown document of the repository except `tests/kit/**` (the vendored tests of
 has a Korean twin `.ko.md`, and both files hold the same marker `<!-- doc-id: <id> -->`, where the
 id is the path of the English file without `.md`, in lowercase, with `-` between words. The Korean
 file also holds `<!-- source-sha256: <sha256> -->`, the sha256 of the English file: after a change
-to an English document, review the Korean twin and set the marker to the output of
-`shasum -a 256 <English file>`. The check compares explicit section anchors, fenced code blocks
+to an English document, review the Korean twin and run `make documents-stamp`, which
+sets the marker of every Korean file to the sha256 of its English file. The check compares explicit section anchors, fenced code blocks
 (info string and content), relative links and anchors, the feature status table
 (`docs/features.md`) and `CHANGELOG.md`; prose equivalence requires review.
 

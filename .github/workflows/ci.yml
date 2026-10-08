@@ -40,10 +40,8 @@ jobs:
         with:
           path: ~/.npm
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
-      - name: Install the Rust toolchain of rust-toolchain.toml
-        run: make install-rust
       - name: Install the declared tools into var/tools
-        run: make install-tools
+        run: make install-tools TOOLS="npm"
       # The runtime checks compare every running tool with the version that the checkout records.
       - name: Setup PHP
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
@@ -55,6 +53,8 @@ jobs:
         with:
           go-version-file: '.go-version'
           cache: false
+      - name: Install the Rust toolchain of rust-toolchain.toml
+        run: make install-rust
       - name: Setup Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
@@ -89,12 +89,10 @@ jobs:
         with:
           path: ~/.npm
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
-      - name: Install the Rust toolchain of rust-toolchain.toml
-        run: make install-rust
       - name: Install the declared tools into var/tools
-        run: make install-tools
+        run: make install-tools TOOLS="npm"
       - name: Check the recorded toolchain versions
-        run: make toolchain-check TOOLS="node npm rust"
+        run: make toolchain-check TOOLS="node npm"
       - name: Install workspace dependencies
         run: make install-node-modules
       - name: Run the checks and write their report
@@ -309,7 +307,7 @@ jobs:
         with:
           workspaces: packages/validator-rust
       - name: Install the declared tools into var/tools
-        run: make install-tools
+        run: make install-tools TOOLS="npm"
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm go rust php composer"
       - name: Install workspace dependencies
@@ -367,7 +365,7 @@ jobs:
         with:
           workspaces: examples/cross-check-console/validators/rust
       - name: Install the declared tools into var/tools
-        run: make install-tools
+        run: make install-tools TOOLS="npm"
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm go rust php composer"
       - name: Install workspace dependencies
@@ -406,12 +404,10 @@ jobs:
         with:
           path: ~/.npm
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
-      - name: Install the Rust toolchain of rust-toolchain.toml
-        run: make install-rust
       - name: Install the declared tools into var/tools
-        run: make install-tools
+        run: make install-tools TOOLS="npm"
       - name: Check the recorded toolchain versions
-        run: make toolchain-check TOOLS="node npm rust"
+        run: make toolchain-check TOOLS="node npm"
       - name: Install workspace dependencies
         run: make install-node-modules
       - name: Run the checks and write their report
@@ -443,12 +439,10 @@ jobs:
         with:
           path: ~/.npm
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
-      - name: Install the Rust toolchain of rust-toolchain.toml
-        run: make install-rust
       - name: Install the declared tools into var/tools
-        run: make install-tools
+        run: make install-tools TOOLS="npm"
       - name: Check the recorded toolchain versions
-        run: make toolchain-check TOOLS="node npm rust"
+        run: make toolchain-check TOOLS="node npm"
       - name: Install workspace dependencies
         run: make install-node-modules
       - name: Install the browsers that Puppeteer and Playwright pin
@@ -496,12 +490,10 @@ jobs:
         with:
           php-version: '8.5'
           tools: composer:2.10.3
-      - name: Install the Rust toolchain of rust-toolchain.toml
-        run: make install-rust
       - name: Install the declared tools into var/tools
-        run: make install-tools
+        run: make install-tools TOOLS="npm"
       - name: Check the recorded toolchain versions
-        run: make toolchain-check TOOLS="node npm rust php composer"
+        run: make toolchain-check TOOLS="node npm php composer"
       - name: Install workspace and PHP dependencies
         run: make install-node-modules install-composer
       - name: Install the browsers that Puppeteer pins
@@ -554,7 +546,7 @@ jobs:
         with:
           workspaces: examples/form-comparison/servers/rust
       - name: Install the declared tools into var/tools
-        run: make install-tools
+        run: make install-tools TOOLS="npm"
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm go rust php composer"
       - name: Install workspace and PHP dependencies
@@ -624,7 +616,7 @@ jobs:
         with:
           workspaces: examples/form-comparison/servers/rust
       - name: Install the declared tools into var/tools
-        run: make install-tools
+        run: make install-tools TOOLS="npm"
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm go rust php composer"
       - name: Install workspace and PHP dependencies
@@ -698,7 +690,7 @@ jobs:
         with:
           workspaces: examples/form-comparison/servers/rust
       - name: Install the declared tools into var/tools
-        run: make install-tools
+        run: make install-tools TOOLS="npm"
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm go rust php composer"
       - name: Install workspace and PHP dependencies
@@ -749,12 +741,10 @@ jobs:
         with:
           path: ~/.npm
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
-      - name: Install the Rust toolchain of rust-toolchain.toml
-        run: make install-rust
       - name: Install the declared tools into var/tools
-        run: make install-tools
+        run: make install-tools TOOLS="npm"
       - name: Check the recorded toolchain versions
-        run: make toolchain-check TOOLS="node npm rust"
+        run: make toolchain-check TOOLS="node npm"
       - name: Install workspace dependencies
         run: make install-node-modules
       - name: Install the browsers that Puppeteer pins
@@ -790,12 +780,10 @@ jobs:
         with:
           path: ~/.npm
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
-      - name: Install the Rust toolchain of rust-toolchain.toml
-        run: make install-rust
       - name: Install the declared tools into var/tools
-        run: make install-tools
+        run: make install-tools TOOLS="npm"
       - name: Check the recorded toolchain versions
-        run: make toolchain-check TOOLS="node npm rust"
+        run: make toolchain-check TOOLS="node npm"
       - name: Install workspace dependencies
         run: make install-node-modules
       - name: Run the checks and write their report
@@ -859,7 +847,7 @@ jobs:
             tests/native-generators/programs/rust
             tools/bench/rust
       - name: Install the declared tools into var/tools
-        run: make install-tools
+        run: make install-tools TOOLS="npm"
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm go rust php composer"
       - name: Install dependencies
@@ -922,12 +910,10 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
           tools: composer:2.10.3
-      - name: Install the Rust toolchain of rust-toolchain.toml
-        run: make install-rust
       - name: Install the declared tools into var/tools
-        run: make install-tools
+        run: make install-tools TOOLS="npm"
       - name: Check the recorded toolchain versions
-        run: make toolchain-check TOOLS="node npm rust php composer"
+        run: make toolchain-check TOOLS="node npm php composer"
       - name: Install dependencies
         run: make install-node-modules install-composer
       - name: Run the checks and write their report

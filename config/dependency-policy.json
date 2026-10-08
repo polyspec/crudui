@@ -2,11 +2,14 @@
   "schema": 1,
   "composerPlatforms": [
     {
-      "manifest": "./composer.json",
+      "manifest": "composer.json",
       "php": "8.4.1"
     }
   ],
-  "pythonManifests": [],
+  "pythonManifests": [
+    "packages/generator-python/pyproject.toml",
+    "packages/validator-python/pyproject.toml"
+  ],
   "taggedNpmPackages": [
     {
       "directory": ".form-comparison/sources/ordered-json/js",
