@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-08 — Python job in the CI workflow (C13.1-7)
+
+- The `python` job of the CI workflow has a matrix of 3.11 and the recorded release 3.14, runs the validator and generator unit tests through make targets listed in `CI_COMMANDS`, preserves the conformance evidence of the recorded release, and is needed by `conformance` and `ci-passed`. The CI command mapping test passes 15 tests, exit 0. The job itself runs in CI after the push.
+
 ### 2026-10-08 — CI mapping test of the native command with the Python target (C13.1-7-3)
 
 - The CI mapping test pins the native generator command of `make test-native-generators` with the python target. `tests/build/ci-local.test.mjs` passes 15 tests, exit 0.
