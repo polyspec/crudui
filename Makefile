@@ -191,9 +191,9 @@ test-validator-go: ## The Go validator suite
 test-validator-rust: cargo-downloads-check ## The Rust validator suite
 	node scripts/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml
 test-validator-python: ## The Python validator suite
-	python3 -m unittest discover -s packages/validator-python/tests -p 'test_*.py'
+	python3 tests/conformance/runner.py packages/validator-python/tests
 test-generator-python: ## The Python generator suite
-	python3 -m unittest discover -s packages/generator-python/tests -p 'test_*.py'
+	python3 tests/conformance/runner.py packages/generator-python/tests
 test-cross-check: cargo-downloads-check ## The cross-check console gateway conformance
 	$(NPM) test --prefix examples/cross-check-console/server
 manifest-test: cargo-downloads-check ## The verification commands of the feature contracts

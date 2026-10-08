@@ -3,19 +3,14 @@
 A test that runs a shared fixture case records the feature it proves, the
 fixture, the runtime and the case. Nothing is written unless
 CRUDUI_CONFORMANCE_EVIDENCE names a directory; scripts/check-conformance.mjs
-reads it. The run record of the process that imports this module is written
-through tests/conformance/runs.py.
+reads it. The run record of the suite is written by tests/conformance/runner.py.
 """
 
 import json
 import os
 from pathlib import Path
 
-from runs import record_suite_run
-
 _DIRECTORY = os.environ.get('CRUDUI_CONFORMANCE_EVIDENCE')
-if _DIRECTORY:
-    record_suite_run()
 
 
 def record_conformance(feature, fixture, runtime, case, passed):

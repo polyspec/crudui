@@ -52,7 +52,10 @@ a suite that records evidence also leaves a run record in `runs/` of the evidenc
 [`tests/native-generators/run.mjs`](../../tests/native-generators/run.mjs) for itself, through
 [`tests/conformance/runs.mjs`](../../tests/conformance/runs.mjs). A record
 `{"program", "tool", "cwd", "args", "started", "status"}` is written with `status` `null` when the run
-starts and again with the exit status when its process exits, so a stopped run keeps `null`.
+starts and again with the exit status when its process exits, so a stopped run keeps `null`. The
+Python suites write theirs through [`tests/conformance/runner.py`](../../tests/conformance/runner.py),
+which names itself as the program of each record, so the record does not depend on the Python
+executable that runs the suite.
 
 `evidenceSuites` of the check declares each suite with the command that runs it and the runtimes it
 proves. For each feature, fixture and runtime with missing or failing evidence, the check names every
