@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### 2026-10-08 — Recorded facts of the committed Python history (C13.1-11)
+
+- The rows C13.1-1, C13.1-3 and C13.1-4 record that no commit adds a `[~]` line
+  for C13.1-1 to C13.1-4 before its `[o]`, the committer of the commits
+  `5eec891f`, `61ebca4c` and `6812678a`, and the body of `5eec891f`, which
+  describes the names before its fix.
+
 ### 2026-10-08 — Recorded import cause of the committed Python trees (C13.1-10)
 
 - The rows C13.1-2 and C13.1-4 record that the test directory of
