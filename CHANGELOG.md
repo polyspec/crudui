@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### 2026-10-08 — Python suite run records with the runner exit status (C13.1-33)
+
+- `tests/conformance/runner.py` runs the unittest suite of one test directory and writes its run record with the program `tests/conformance/runner.py` and the exit status of the suite. The make targets `test-validator-python` and `test-generator-python` run it, so the run record of each Python suite is no longer `did not finish`.
+- `tests/conformance/runs.py` takes the program, tool, directory and arguments of a run from its caller, and `tests/conformance/evidence.py` no longer records a run at import.
+
 ### 2026-10-08 — Stale-pin check deferred to the version-bump pull request (C13.1-23)
 
 - The release check of stale git pins in `pyproject.toml` is not added to `feat/python-C13.1`. The pin `v0.0.4` of `packages/generator-python` names a tag that is created after the version-bump pull request merges, so the check belongs to that pull request. The row C13.1-23 is open and waits for it.

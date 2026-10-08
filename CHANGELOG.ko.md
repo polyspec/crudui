@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### 2026-10-08 — Python suite 실행 기록의 runner 종료 상태 (C13.1-33)
+
+- `tests/conformance/runner.py`는 test directory 하나의 unittest suite를 실행하고, program이 `tests/conformance/runner.py`이며 suite의 종료 상태를 담은 실행 기록을 쓴다. make target `test-validator-python`과 `test-generator-python`이 이 runner를 실행하므로 각 Python suite의 실행 기록은 더 이상 `did not finish`로 남지 않는다.
+- `tests/conformance/runs.py`는 실행의 program, tool, directory와 인자를 호출자에게서 받고, `tests/conformance/evidence.py`는 import할 때 실행을 기록하지 않는다.
+
 ### 2026-10-08 — 버전 bump pull request로 옮긴 오래된 pin 검사 (C13.1-23)
 
 - `pyproject.toml`의 오래된 git pin을 검사하는 release 검사를 `feat/python-C13.1`에 추가하지 않는다. `packages/generator-python`의 pin `v0.0.4`가 가리키는 tag는 version bump pull request가 merge된 뒤에 만들어지므로, 검사는 그 pull request에 속한다. 행 C13.1-23은 열린 상태로 그 pull request를 기다린다.
