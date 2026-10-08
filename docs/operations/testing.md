@@ -110,14 +110,14 @@ serves every later run. The Cargo cache of `Swatinem/rust-cache` has a key of it
 job, the Rust toolchain and the Cargo locks of its workspaces; each job id has one such key.
 
 On request, `make owner-check` runs the checks that own the changed paths: the uncommitted
-changes and new files, the paths of `PATHS`, or the paths changed since `BASE`. `scripts/owner-checks.json`
+changes and new files, the paths of `PATHS`, or the paths changed since `BASE`. `config/owner-checks.json`
 names, for globs of paths, the make targets, the root npm scripts, the test scripts of workspaces and
 package directories and the node test files that own them, and for a check the paths that it reads
-(`inputs`). `scripts/owner-check.mjs` fails before any check runs for a path that no rule owns, a glob
+(`inputs`). `scripts/kit/owner-check.mjs` fails before any check runs for a path that no rule owns, a glob
 without a path, a target of the full suite, an unknown script or test, and a path that a check reads
 when no rule of the path selects that check; it runs every selected check, also after one failed, and
-never the full suite. `tests/build/owner-check.test.mjs` checks the selection, the refusals and the
-declaration of the repository.
+never the full suite. `make owner-validate` checks the declaration of the repository, and `tests/kit/owner-check.test.mjs`
+checks the selection and the refusals.
 
 A test that reads the commands of a Makefile target runs `makeDryRun` of
 `tests/build/make-dry-run.mjs`: `make --no-print-directory -n <target>` with `MAKEFLAGS=w` and without
@@ -171,7 +171,9 @@ make docs-check
 ```
 
 Validator package suites run the shared fixtures described in the
-[fixture contract](../spec/test-fixtures.md).
+[fixture contract](../spec/test-fixtures.md). The PHP suites run the PHPUnit of the root `vendor/`, which
+`composer install` of the development root installs: the Composer scripts and the make targets set
+`COMPOSER_VENDOR_DIR=../../vendor`, and `scripts/kit/run-tests.mjs phpunit` reads the vendor directory from it relative to `--cwd`.
 Compare the expected validation result or complete failure record, not only
 agreement between implementations. Package checks verify exported files, declarations,
 install compilation and production rendering.

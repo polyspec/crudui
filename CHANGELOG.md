@@ -3,6 +3,12 @@
 
 ## Unreleased
 
+### 2026-10-09 — Owner check of kit and the rules of the 0.x workflow (C14.1-6)
+
+- `config/owner-checks.json` declares the owner of every tracked path (`make owner-validate`), with owners for the vendored copy (`make kit-check`, `make kit-test`), the configuration files and `scripts/repository-files.mjs`; the target `owner-check` takes `cargo-downloads-check` as a prerequisite. `scripts/owner-check.mjs`, `scripts/owner-checks.json` and the test of the owner check are removed.
+- The PHP suites run the PHPUnit of the root `vendor/` through `COMPOSER_VENDOR_DIR=../../vendor` in the Composer scripts and the make targets, because `scripts/kit/run-tests.mjs phpunit` reads `<cwd>/vendor` by default; `composer.lock` records the changed script of `packages/validator-php`.
+- `AGENTS.md` and `AGENTS.ko.md` state that `main` is pushed once, when every checklist row is `[o]`, that a tag is created after the CI check `ci-passed` succeeded for the commit, that the shared tools are vendored copies of polyspec/kit that change only in polyspec/kit, and that the repository differs from the other repositories only in `config/*.json`. The rules of the pull request, the merge queue and the ruleset are removed.
+
 ### 2026-10-09 — Release tool and 0.x workflows (C14.1-5)
 
 - `config/release.json` declares the 9 archives of the release (7 npm packages as `<package>-npm-<version>.tgz`, 2 Composer packages as `<package>-php-<version>.zip`), the manifests that a tag covers, the Go modules `packages/generator-go` and `packages/validator-go`, the consumer projects `tests/release-install/npm` and `tests/release-install/composer`, and the install of the two crates and two Python packages from the tag. `make release-assets` builds the packages first, and `release.yml` runs `make release-consumer` between the archives and the release. `scripts/release.mjs`, `scripts/release-install.mjs` and their tests are removed; `tests/build/python-git-pins.test.mjs` requires every git pin on this repository in a `pyproject.toml` to name the version of `package.json`. The consumer projects `tests/release-install/npm` and `tests/release-install/composer` name the 0.0.4 archives in the form of the kit (the `artifact` repository `artifacts`, archive names with the language, `polyspec/crudui-validator` as a smoke package so that no zip hash is locked): `release-assets`, `release-consumer-lock` and `release-consumer` wrote and checked them in a scratch clone with a local tag, which this repository does not hold.

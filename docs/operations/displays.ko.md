@@ -1,6 +1,6 @@
 # 목록과 상세 개발과 검증
 <!-- doc-id: docs-operations-displays -->
-<!-- source-sha256: a4b0580ceea3320794b4fb0a535b67d25d682222d35ac15a3549a065ce58cb3e -->
+<!-- source-sha256: 3e1e4fcb280df24702fcff23c805abd4147b346125e76e3c7e1de49ba2d43e9e -->
 
 [English](displays.md). [표시 형식](../spec/display-formats.ko.md)은 각 형식, 허용 입력과
 마크업을 정의합니다. [명세 구조](../spec/schema.ko.md)는 목록과 상세 필드와
@@ -278,7 +278,7 @@ JavaScript, HTML 렌더러, PHP, PHP 확장, Go, Rust의 원본 목록과 상세
 
 ```sh
 npm test -w @polyspec/crudui-validator -- src/validate-list/validate-list.conformance.test.ts src/validate-detail/validate-detail.conformance.test.ts
-node scripts/kit/run-tests.mjs phpunit --cwd packages/validator-php -- --filter 'ListValidateConformanceTest|DetailValidateConformanceTest'
+COMPOSER_VENDOR_DIR=../../vendor node scripts/kit/run-tests.mjs phpunit --cwd packages/validator-php -- --filter 'ListValidateConformanceTest|DetailValidateConformanceTest'
 node scripts/kit/run-tests.mjs go --cwd packages/validator-go -- ./validator/validate -run 'TestValidateListMatchesFixture|TestValidateDetailMatchesFixture'
 node scripts/kit/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml --test list_validity_conformance --test detail_validity_conformance
 ```

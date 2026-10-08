@@ -32,7 +32,7 @@ export function workflowCommands(workflow) {
       if (typeof step.run !== 'string') continue;
       for (const line of step.run.split('\n').map((text) => text.trim()).filter(Boolean)) {
         for (const command of line.split(' && ')) {
-          // make ci-targets runs each target of TARGETS as make -k <target> (scripts/ci-targets.mjs).
+          // make ci-targets runs each target of TARGETS as make -k <target> (scripts/kit/ci-targets.mjs).
           const targets = /^make ci-targets TARGETS="([^"]+)"$/.exec(command);
           if (targets) commands.push(...targets[1].split(' ').map((target) => `make ${target}`));
           else if (!preparation.some((pattern) => pattern.test(command))) commands.push(command);

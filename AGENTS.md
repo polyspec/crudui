@@ -24,7 +24,7 @@
   type is one of feat, fix, docs, style, refactor, test or chore.
 - During development, run only the unit tests that own the change: its Red and Green cases. End-to-end
   checks (browsers, containers, the form comparison, the native and cross-check suites, full builds),
-  `make owner-check` and the full run `make ci` run in CI on the pull request, and no rule requires a local
+  `make owner-check` and the full run `make ci` run in CI on the push to `main`, and no rule requires a local
   check before a push or a commit. A failure that CI reports gets a task like any other defect.
   Every test reports its own running, completion, success or failure with
   its elapsed time. Each test case is a short verification unit and has its own timeout; a
@@ -33,38 +33,30 @@
   inactivity limit included: its success or failure is judged from its observed result and errors,
   and its end is the event of that result. A test that runs for tens of minutes, or that prints only
   its start and its end, is a defect.
-- `make ci` reproduces the CI workflow on this machine on request. Its guard `scripts/full-run.mjs`
+- `make ci` reproduces the CI workflow on this machine on request. Its guard `scripts/kit/full-run.mjs`
   runs it once per committed tree: it is refused while a task is `[~]`, while tracked changes are uncommitted, and when `var/full-run.json`
   records a full run of the current tree, and while the pre-push hook is not installed;
-  `make rerun-failed` reruns only the commands of the current tree that did not pass
+  `make rerun-failed` reruns only the targets of the current tree that did not pass
   (`docs/operations/testing.md`).
 - A push happens only when no task of the checklist is `[~]`, neither in a pushed commit nor in the
   working tree; this is the only check before a push, and it runs no test. The tracked pre-push hook `.githooks/pre-push` runs
-  `node scripts/push-gate.mjs hook`, which refuses such a push and names each task in progress.
-  Every `make` run sets `core.hooksPath` to `.githooks` when it reads the Makefile; `make hooks`
+  `node scripts/kit/push-gate.mjs hook`, which refuses such a push and names each task in progress.
+  Every `make` run sets `core.hooksPath` to `.githooks` when the checkout tracks the hook; `make hooks`
   installs and checks the hook, and `make hooks-check` fails while it is not installed. The job
-  `push-gate` of `.github/workflows/push-gate.yml` runs `node scripts/push-gate.mjs commit <sha>`
-  on every pushed commit and pull request and fails with the same message for a push that passed
-  no hook; it then runs `make records-check`, the document and checklist rules with Node.js alone,
-  so a commit that breaks them fails it too.
-- Every change reaches `main` through a pull request and the merge queue, the owner's and every
-  agent's alike; no command of this repository pushes `main`. Publish a branch with the standard
-  commands of GitHub, or with the GitHub UI:
-
-  ```sh
-  git push origin HEAD:refs/heads/<branch>
-  gh pr create --base main --head <branch> --fill
-  gh pr merge <branch> --auto --rebase
-  ```
-
-  The ruleset `main` of `.github/repository.json` requires a pull request without approval, the
-  merge queue with the method `REBASE`, a linear history and the checks `push-gate` and `ci-passed`, the
-  last job of `.github/workflows/ci.yml`, which needs every other job of it and fails unless each of them
-  succeeded, refuses a force-push and a deletion of `main` and has no
-  bypass actor, so GitHub refuses a direct push to `main`, from an administrator too. The rebase
-  gives the merged commits new hashes, so `git pull --rebase` drops the local commits that the queue
-  merged. `make github-settings` applies the declaration, and `make github-settings-check` fails
-  when the repository differs from it (`docs/operations/repository.md`).
+  `push-gate` of `.github/workflows/push-gate.yml` runs `make push-gate-commit` on every pushed commit and fails
+  with the same message for a push that passed no hook; it then runs `make records-check`, the document and
+  checklist rules with Node.js alone, so a commit that breaks them fails it too.
+- While the version is 0.x there is no pull request, merge queue or GitHub ruleset. Work is committed locally, one
+  checklist row per commit, and the owning unit tests pass before the row becomes `[o]`. `main` is pushed once, when every
+  row of the checklist is `[o]`. A tag is created only after the CI check `ci-passed` and the push check `push-gate`
+  succeeded for the commit on `main`; a release is made from that tag
+  (`docs/operations/repository.md`).
+- The shared tools are vendored copies of polyspec/kit in `scripts/kit` and `tests/kit` (`kit.json`,
+  `.kit/kit.lock.json`; `make kit-check` compares them with the lock). They are changed only in polyspec/kit and copied
+  again with `make kit-sync KIT_TAG=<tag>`, never edited here, and no copy of a kit tool exists in another path. This
+  repository differs from the other polyspec repositories only in `config/*.json` (`toolchain`, `dependency-policy`,
+  `dependency-review`, `checklist`, `documents`, `commits`, `owner-checks`, `release`) and in its own product code and
+  tests.
 - Keep contracts in `docs/spec/`, implementation and deployment status in
   `docs/features.md`, procedures in `docs/operations/`, planned tasks with their
   verification and completion in `docs/plans/execution-checklist.md`, and actual
@@ -91,7 +83,7 @@
   result would expose it. Confirm the intended failure before implementation,
   correct the cause, and confirm the same case and relevant use tests pass.
   Investigate a case that cannot expose the problem instead of weakening the criterion.
-- `scripts/owner-checks.json` declares the checks that own each path and the paths that each check
+- `config/owner-checks.json` declares the checks that own each path and the paths that each check
   reads; `make owner-check` runs the owners of the changed paths on request, never the full suite,
   and fails for a path that no rule owns and for a path that a check reads (`inputs`) when no rule
   of the path selects that check. A new path gets its owner in that file in the same change. Record
@@ -106,20 +98,22 @@
 
 # Releases
 
-- A release is a tag of a commit of `main`, which passed the checks of the ruleset through the merge queue: `vX.Y.Z`
-  for the repository, `<directory>/vX.Y.Z` for the Go module of that directory. No pull request carries a tag, and
-  only the maintainer creates, moves or pushes one.
-- The version-bump pull request `chore(release): Release X.Y.Z (#<task ID>)` comes first: it sets the version of every
-  `package.json`, `Cargo.toml`, `VERSION` and `pyproject.toml` of the repository, and of every dependency on a package
-  of the repository, to X.Y.Z, and renames `## Unreleased` of `CHANGELOG.md` and `CHANGELOG.ko.md` to `## X.Y.Z` below
-  a new empty `## Unreleased`. A Composer manifest declares no version; Composer reads it from the tag.
-- The maintainer then tags the merged commit and pushes the tag. `.github/workflows/release.yml` runs
-  `make release-verify`, `make release-versions`, `make release-assets` and `make release-publish`
-  (`scripts/release.mjs`): it requires the commit on `main` with the checks `push-gate` and `ci-passed` concluded
-  success, the version of the tag in every package file and the section `## X.Y.Z`, and creates the GitHub Release with
-  that section as its notes and the npm tarballs and Composer zips of `packages/`. A section over 125000 characters,
-  the limit of a release body, is replaced by one line that links the section of `CHANGELOG.md` at the tag. A crate is not released as an
-  archive; it is consumed by git tag. A Go module tag builds and attaches nothing (`docs/operations/repository.md`).
+- A release is a tag of a commit of `main`, which passed the full suite of CI: `vX.Y.Z` for the repository,
+  `<directory>/vX.Y.Z` for the Go module of that directory. Only the maintainer creates, moves or pushes a tag.
+- After the CI check `ci-passed` succeeded for the pushed `main`, the commit `chore(release): Release X.Y.Z (#<task ID>)`
+  comes first: it sets the version of every manifest that `config/release.json` lists (`package.json`, `Cargo.toml`,
+  `pyproject.toml`, the `composer.json` of `packages/`), and of every dependency and git pin on a package of the
+  repository, to X.Y.Z, and renames `## Unreleased` of `CHANGELOG.md` and `CHANGELOG.ko.md` to `## X.Y.Z` below a new
+  empty `## Unreleased`.
+- The maintainer then tags the commit and pushes the tag. `.github/workflows/release.yml` runs `make release-verify`,
+  `make release-versions`, `make release-assets`, `make release-consumer` and `make release-publish`
+  (`scripts/kit/release.mjs`): it requires the commit on `main` with the checks `push-gate` and `ci-passed` concluded
+  success, the version of the tag in every manifest and the section `## X.Y.Z`, installs the archives in clean projects,
+  and creates the GitHub Release with that section as its notes and the archives of `packages/`, named
+  `<package>-<language>-<version>.<extension>`, `npm` or `php` being the language. A section over 125000 characters,
+  the limit of a release body, is replaced by one line that links the section of `CHANGELOG.md` at the tag. A crate and a
+  Python package are not released as an archive; they are consumed by git tag. A Go module tag builds and attaches
+  nothing (`docs/operations/repository.md`).
 
 # Checklist
 
@@ -130,8 +124,8 @@
   A task is `[o]` only after its verification passed on the committed tree.
 - A task state marker, also an x or a capital X between brackets as Markdown task lists write it,
   appears in the checklist only as the state of a task row, at the start of its last cell. The checklist has no legend; its texts name states in words.
-  `scripts/check-documents.mjs` fails for any other marker and names its file, line and column.
-- The checklist holds only headings and task tables, and `scripts/check-documents.mjs` fails for any
+  `make documents-check` fails for any other marker and names its file, line and column.
+- The checklist holds only headings and task tables, and `make documents-check` fails for any
   other line with its file, line and column. Each wave is a heading `## Wave <n> — <title>`, whose
   wave name links the section `wave-<n>` of `docs/plans/waves.md`, followed by a table with the
   columns ID, Task, Verification and Status. A task ID has the form `C<wave>.<number>`, and a task
@@ -165,11 +159,11 @@ The same tree gives the same result on every date and machine, and a failed run 
 
 - Tools and dependencies: every tool runs at the exact release that the checkout records (`.node-version`,
   `.go-version`, `rust-toolchain.toml`, `config/toolchain.json`, `packageManager` of `package.json`), and
-  `node scripts/check-toolchain.mjs` fails for another; an image is named by its digest and its Debian packages by a
+  `make toolchain-check` fails for another; an image is named by its digest and its Debian packages by a
   snapshot date, an action by its commit SHA, a browser by the build that the locked package pins. No run queries a
   registry for a latest release or a channel, and no tool installs another release on its own
   (`RUSTUP_AUTO_INSTALL=0`, `GOTOOLCHAIN=local`). A tool of the repository is installed into the checkout
-  (`.tools`), never into the machine, which other checkouts share.
+  (`var/tools` by `make install-tools`), never into the machine, which other checkouts share.
 - Inputs: a check reads only outputs that it or its declared preparation creates in the same run (a build through
   `require-current-build`, a reinstalled copy, its own records), never the leftover of another command or run.
 - Publication: a shared output that another run may read is written to a path of its run and renamed into place.
@@ -184,8 +178,8 @@ The same tree gives the same result on every date and machine, and a failed run 
 - Assertions: a test asserts the structured result of an external tool (its exit status, report, events), never its
   human-readable output, whose wording changes with its version, its locale or a parent process; the commands of a
   Makefile target are read only through `makeDryRun` of `tests/build/make-dry-run.mjs`.
-- Owners: every path has an owner in `scripts/owner-checks.json`, with the paths that each check reads, and CI runs
+- Owners: every path has an owner in `config/owner-checks.json`, with the paths that each check reads, and CI runs
   every check after each push.
-- Shared resources: a resource that runs share is held by a lease (`scripts/holder-lock.mjs`) or each run uses a
+- Shared resources: a resource that runs share is held by a lease (`scripts/kit/holder-lock.mjs`) or each run uses a
   directory, name or port of its own; a port is taken by the server that listens on it (port 0) and announced, never
   probed before.
