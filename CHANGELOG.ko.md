@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-09 — 릴리스 버전 검사의 오래된 git pin (C13.1-23)
+
+- `scripts/release.mjs`는 git pin `polyspec/crudui@vX.Y.Z`가 릴리스 버전이 아닌 version을 가리키는 `pyproject.toml`을 거부한다. 문제는 파일, pin과 tag를 알리므로 Python package 릴리스의 tag가 만들어지기 전에 `make release-versions`가 실패한다.
+
 ### 2026-10-08 — conformance check의 partial 런타임 증거 (C13.1-32)
 
 - `scripts/check-conformance.mjs`는 `partial` 런타임이 기록한 사례를 받아들인다. 기록된 사례마다 통과해야 하고 요구되는 사례는 없다. Fixture 밖의 사례는 여전히 보고한다. CI job `conformance evidence against the standard`는 `createForm`의 Python 증거를 더 이상 거부하지 않는다.

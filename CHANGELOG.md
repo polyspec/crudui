@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-09 — Stale git pins in the release version check (C13.1-23)
+
+- `scripts/release.mjs` rejects a `pyproject.toml` whose git pin `polyspec/crudui@vX.Y.Z` names a version other than the release version. The problem names the file, the pin and the tag, so `make release-versions` fails before the tag of a Python package release is created.
+
 ### 2026-10-08 — Evidence of partial runtimes in the conformance check (C13.1-32)
 
 - `scripts/check-conformance.mjs` accepts the recorded cases of a `partial` runtime: each recorded case must pass, and no case is required. A case outside the fixture of a partial runtime is still reported. The CI job `conformance evidence against the standard` no longer rejects the Python evidence of `createForm`.
