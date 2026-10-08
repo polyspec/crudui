@@ -9,22 +9,24 @@ other string is literal text.
 """
 
 import re
+from typing import Any
 
+from polyspec.crudui.validator.jsvalue import JsonValue
 from polyspec.crudui.validator.parser import ParseError, is_condition_expression, parse_condition
 from polyspec.crudui.validator.resolver import evaluate_condition, evaluate_expression_value
 
-from .value import MISSING, get, string, truthy
+from .value import MISSING, Value, get, string, truthy
 
 __all__ = ['appearance', 'declared', 'flag', 'resolve', 'show']
 
 _TERNARY_COLON = re.compile(r'\?[^:]*:')
 
 
-def _context(data, path, rows):
+def _context(data: JsonValue, path: list[str], rows: list[int]) -> dict[str, Any]:
     return {'currentPath': path, 'rowKeys': rows, 'formData': data}
 
 
-def _condition(expression, data, path, rows, raw=False):
+def _condition(expression: str, data: JsonValue, path: list[str], rows: list[int], raw: bool = False) -> object:
     try:
         if raw:
             return evaluate_expression_value(parse_condition(expression), _context(data, path, rows))
@@ -33,14 +35,14 @@ def _condition(expression, data, path, rows, raw=False):
         return False
 
 
-def _condition_map(mapping, data, path, rows):
+def _condition_map(mapping: dict[str, JsonValue], data: JsonValue, path: list[str], rows: list[int]) -> JsonValue:
     for condition, value in mapping.items():
         if condition != 'true' and _condition(condition, data, path, rows):
             return value
     return mapping.get('true')
 
 
-def show(value, data, path, rows):
+def show(value: Value, data: JsonValue, path: list[str], rows: list[int]) -> bool:
     """Whether a field is visible: only a resolved false hides."""
     if value is MISSING:
         return True
@@ -48,7 +50,7 @@ def show(value, data, path, rows):
     return resolved is not False
 
 
-def flag(value, data, path, rows):
+def flag(value: Value, data: JsonValue, path: list[str], rows: list[int]) -> bool:
     """A boolean flag other than visibility.
 
     A missing value is false, a condition map that selects nothing is false
@@ -57,11 +59,11 @@ def flag(value, data, path, rows):
     if isinstance(value, dict):
         return truthy(_condition_map(value, data, path, rows))
     if isinstance(value, str):
-        return _condition(value, data, path, rows)
+        return bool(_condition(value, data, path, rows))
     return truthy(value)
 
 
-def _parses(value):
+def _parses(value: str) -> bool:
     try:
         parse_condition(value)
         return True
@@ -69,7 +71,7 @@ def _parses(value):
         return False
 
 
-def appearance(value, data, path, rows):
+def appearance(value: Value, data: JsonValue, path: list[str], rows: list[int]) -> str:
     """Appearance text from a literal, an expression or a condition map."""
     if value is MISSING or value is None:
         return ''
@@ -84,13 +86,13 @@ def appearance(value, data, path, rows):
         except (ParseError, ValueError, TypeError, ZeroDivisionError):
             pass
         if is_condition_expression(value) and _TERNARY_COLON.search(value) is None and _parses(value):
-            result = _condition(value, data, path, rows, True)
-            return '' if result is False or result is None else string(result)
+            evaluated: object = _condition(value, data, path, rows, True)
+            return '' if evaluated is False or evaluated is None else string(evaluated)
         return value
     return string(value)
 
 
-def _resolve(value, data, path, rows):
+def _resolve(value: Value, data: JsonValue, path: list[str], rows: list[int]) -> object:
     """The value a conditional parameter resolves to in a row context."""
     if isinstance(value, dict):
         return _condition_map(value, data, path, rows)
@@ -113,14 +115,14 @@ def _resolve(value, data, path, rows):
     return value
 
 
-def _node(value, data, path, rows):
+def _node(value: Value, data: JsonValue, path: list[str], rows: list[int]) -> dict[str, str]:
     return {
         'class': appearance(get(value, 'class'), data, path, rows),
         'style': appearance(get(value, 'style'), data, path, rows),
     }
 
 
-def resolve(design, data, path, rows):
+def resolve(design: Value, data: JsonValue, path: list[str], rows: list[int]) -> dict[str, Any]:
     """The visibility and named appearance nodes of one field."""
     design = design if isinstance(design, dict) else {}
     return {
@@ -133,7 +135,7 @@ def resolve(design, data, path, rows):
     }
 
 
-def declared(design, wrapper):
+def declared(design: Value, wrapper: bool) -> Value:
     """A copy of the declared control or node-root attributes, or the missing marker."""
     if wrapper and isinstance(design, dict):
         design = design.get('wrapper')
