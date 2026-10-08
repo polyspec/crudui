@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-08 — details와 form render module의 타입 주석 (C13.1-17-8)
+
+- `packages/generator-python`의 module `details`, `form_render`에 매개변수와 반환 타입이 있고 `mypy --strict` 오류가 없다. generator 단위 test 11개가 통과하고, native Python 검사는 종료 코드 0이다.
+
 ### 2026-10-08 — lists module의 타입 주석 (C13.1-17-7)
 
 - `packages/generator-python`의 module `lists`에 매개변수와 반환 타입이 있고 `mypy --strict` 오류가 없다. generator 단위 test 11개가 통과하고, native Python 검사 741건이 통과한다(종료 코드 0).

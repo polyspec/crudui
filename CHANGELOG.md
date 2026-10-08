@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-08 — Type hints of the details and form render modules (C13.1-17-8)
+
+- The modules `details` and `form_render` of `packages/generator-python` have parameter and return types with no `mypy --strict` error. The generator unit tests pass (11 tests), and the native Python checks exit 0.
+
 ### 2026-10-08 — Type hints of the lists module (C13.1-17-7)
 
 - The module `lists` of `packages/generator-python` has parameter and return types with no `mypy --strict` error. The generator unit tests pass (11 tests), and the native Python checks pass 741 cases, exit 0.
