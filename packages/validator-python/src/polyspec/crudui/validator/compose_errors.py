@@ -30,13 +30,15 @@ The codes:
   file that is not a sequence of Unicode scalar values; `trace` is its path.
 """
 
+from collections.abc import Sequence
+
 __all__ = ['ComposeLoadError']
 
 
 class ComposeLoadError(ValueError):
     """A specification that does not load: its composition, text or declarations fail."""
 
-    def __init__(self, code, message, trace=()):
+    def __init__(self, code: str, message: str, trace: Sequence[str] = ()) -> None:
         super().__init__(message)
         self.name = 'ComposeLoadError'
         self.code = code

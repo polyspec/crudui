@@ -10,9 +10,16 @@ at most 512 levels, so a value that contains itself is always beyond the
 limits. A container reached twice, through sharing, is walked at each place.
 """
 
+from collections.abc import Iterable, Mapping, Sequence
+from typing import Literal, TypeAlias, Union, cast
+
 from .compose_errors import ComposeLoadError
 from .errors import FormInputError
-from .jsvalue import compare_code_points, is_scalar_text
+from .jsvalue import JsonValue, compare_code_points, is_scalar_text
+from .loader import DocumentLoader
+
+# The failure of a value: 'limit' when it is beyond the limits, {'text': path} for invalid text at a path, None when clean.
+Failure: TypeAlias = Union[Literal['limit'], dict[str, list[str]], None]
 
 __all__ = [
     'INVALID_TEXT_MESSAGE',
@@ -39,10 +46,10 @@ NODE_LIMIT = 1_000_000
 class _Walk:
     """One walk of a value as the tree it denotes."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.nodes = 0
 
-    def admit(self, value, depth):
+    def admit(self, value: JsonValue, depth: int) -> bool:
         """Count a node at `depth`; False when it takes the value beyond its limits."""
         self.nodes += 1
         if self.nodes > NODE_LIMIT:
@@ -52,7 +59,7 @@ class _Walk:
         return True
 
 
-def _holds_failure(value, depth, walk):
+def _holds_failure(value: JsonValue, depth: int, walk: _Walk) -> bool:
     if not walk.admit(value, depth):
         return True
     if isinstance(value, str):
@@ -67,7 +74,7 @@ def _holds_failure(value, depth, walk):
     )
 
 
-def _first_failure(value, path, depth, walk):
+def _first_failure(value: JsonValue, path: list[str], depth: int, walk: _Walk) -> Failure:
     """The first failure in walk order: items in index order, members in code point order."""
     if not walk.admit(value, depth):
         return 'limit'
@@ -91,23 +98,23 @@ def _first_failure(value, path, depth, walk):
     return None
 
 
-def _member_order(key):
+def _member_order(key: str) -> tuple[int, list[int]]:
     """Sort key placing every member name after the last, in code point order."""
     return (1, [ord(character) for character in key])
 
 
-def value_failure(value):
+def value_failure(value: JsonValue) -> Failure:
     """The first failure in `value`, or None: invalid text at its path or a limit."""
     if _holds_failure(value, 0, _Walk()):
         return _first_failure(value, [], 0, _Walk())
     return None
 
 
-def _limit_failure(name):
+def _limit_failure(name: str) -> FormInputError:
     return FormInputError(f'{VALUE_LIMIT_MESSAGE}: {name}')
 
 
-def check_specification_text(spec, files=None):
+def check_specification_text(spec: JsonValue, files: JsonValue = None) -> None:
     """Check a specification and the composition files the operation reads.
 
     Invalid text is the load failure `INVALID_TEXT`, located at its
@@ -124,7 +131,7 @@ def check_specification_text(spec, files=None):
         raise ComposeLoadError('INVALID_TEXT', INVALID_TEXT_MESSAGE, failure['text'])
 
 
-def specification_failure(spec, files=None):
+def specification_failure(spec: JsonValue, files: JsonValue = None) -> str | None:
     """The failure message of a specification or its files, or None when clean.
 
     Invalid text raises the load failure `ComposeLoadError`, as a caller that
@@ -141,7 +148,7 @@ def specification_failure(spec, files=None):
     return None
 
 
-def input_failure(entries):
+def input_failure(entries: Iterable[tuple[str, JsonValue]]) -> str | None:
     """The failure message of the first invalid text among named caller values.
 
     The message names the value and its path, or names a value beyond its
@@ -157,7 +164,7 @@ def input_failure(entries):
     return None
 
 
-def option_entries(options, names):
+def option_entries(options: object, names: Sequence[str]) -> list[tuple[str, JsonValue]]:
     """The present options named in `names`, given in code point order, as named values."""
     if not isinstance(options, dict):
         return []
@@ -166,7 +173,7 @@ def option_entries(options, names):
     ]
 
 
-def check_input_text(inputs):
+def check_input_text(inputs: Iterable[tuple[str, JsonValue]]) -> None:
     """Check named caller values in order.
 
     Invalid text is `INVALID_FORM_INPUT` naming the value and path, and a value
@@ -181,7 +188,7 @@ def check_input_text(inputs):
         raise FormInputError(f'{INVALID_TEXT_MESSAGE}: {".".join([name, *failure["text"]])}')
 
 
-def check_option_text(options, names):
+def check_option_text(options: object, names: Sequence[str]) -> None:
     """Check the present options named in `names`, given in code point order."""
     check_input_text(option_entries(options, names))
 
@@ -189,13 +196,13 @@ def check_option_text(options, names):
 class _CheckedLoader:
     """A loader that checks each document it loads, located and named as a file."""
 
-    def __init__(self, loader):
+    def __init__(self, loader: DocumentLoader) -> None:
         self._loader = loader
 
-    def normalize(self, path, basepath):
+    def normalize(self, path: str, basepath: str) -> str:
         return self._loader.normalize(path, basepath)
 
-    def load(self, key):
+    def load(self, key: str) -> dict[str, JsonValue]:
         document = self._loader.load(key)
         failure = value_failure(document)
         if failure == 'limit':
@@ -205,7 +212,7 @@ class _CheckedLoader:
         return document
 
 
-def checked_composition(spec, options):
+def checked_composition(spec: JsonValue, options: object) -> DocumentLoader | None:
     """Check the specification side of an operation and return its loader.
 
     The specification is checked first, then the files it reads; a custom loader
@@ -215,4 +222,4 @@ def checked_composition(spec, options):
     loader = options.get('loader') if isinstance(options, dict) else None
     files = None if loader else (options.get('files') if isinstance(options, dict) else None)
     check_specification_text(spec, files)
-    return _CheckedLoader(loader) if loader is not None else None
+    return _CheckedLoader(cast(DocumentLoader, loader)) if loader is not None else None

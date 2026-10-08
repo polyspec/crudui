@@ -15,10 +15,13 @@ on the current resolution chain is a cycle.
 """
 
 import re
+from collections.abc import Mapping
 from copy import deepcopy
+from typing import TypeGuard
 
 from .compose_errors import ComposeLoadError
-from .jsvalue import ordered_members
+from .jsvalue import JsonValue, ordered_members
+from .loader import DocumentLoader
 
 __all__ = [
     'MemoryLoader',
@@ -41,17 +44,17 @@ class MemoryLoader:
     returns a detached copy of the document.
     """
 
-    def __init__(self, files):
+    def __init__(self, files: Mapping[str, dict[str, JsonValue]]) -> None:
         self.files = dict(files)
 
-    def normalize(self, path, basepath):
+    def normalize(self, path: str, basepath: str) -> str:
         if path.startswith('/'):
             return path
         if basepath:
             return basepath + '/' + path
         return path
 
-    def load(self, key):
+    def load(self, key: str) -> dict[str, JsonValue]:
         document = self.files.get(key)
         if document is None:
             raise ComposeLoadError('REF_FILE_NOT_FOUND', f'$ref file not found: {key}', [key])
@@ -59,19 +62,19 @@ class MemoryLoader:
         return deepcopy(document)
 
 
-def _is_object(value):
+def _is_object(value: object) -> TypeGuard[dict[str, JsonValue]]:
     return value is not None and isinstance(value, dict)
 
 
-def _merge(a, b):
+def _merge(a: dict[str, JsonValue], b: dict[str, JsonValue]) -> dict[str, JsonValue]:
     """A shallow merge in specification member order: `b` overrides `a` on a clash."""
     return ordered_members({**a, **b})
 
 
-def resolve_ref(value, basepath, loader, visiting=frozenset()):
+def resolve_ref(value: JsonValue, basepath: str, loader: DocumentLoader, visiting: frozenset[str] = frozenset()) -> dict[str, JsonValue]:
     """Resolve a `$ref` value (a string or a list of them) to one flattened properties map."""
     paths = _normalize_ref_value(value)
-    merged = {}
+    merged: dict[str, JsonValue] = {}
     for path in paths:
         resolved = _resolve_single_ref(path, basepath, loader, visiting)
         # A later entry overrides an earlier one on a key clash.
@@ -79,21 +82,23 @@ def resolve_ref(value, basepath, loader, visiting=frozenset()):
     return merged
 
 
-def _normalize_ref_value(value):
+def _normalize_ref_value(value: JsonValue) -> list[str]:
     if isinstance(value, str):
         return [value]
     if isinstance(value, list):
+        paths: list[str] = []
         for path in value:
             if not isinstance(path, str):
                 raise ComposeLoadError(
                     'REF_VALUE_TYPE', f'$ref array entries must be strings, got {type(path).__name__}'
                 )
-        return list(value)
+            paths.append(path)
+        return paths
     kind = 'null' if value is None else type(value).__name__
     raise ComposeLoadError('REF_VALUE_TYPE', f'$ref must be a string or an array of strings, got {kind}')
 
 
-def _resolve_single_ref(raw_path, basepath, loader, visiting):
+def _resolve_single_ref(raw_path: str, basepath: str, loader: DocumentLoader, visiting: frozenset[str]) -> dict[str, JsonValue]:
     original = raw_path
     path = raw_path
     detect_keys = ['properties']
@@ -114,7 +119,7 @@ def _resolve_single_ref(raw_path, basepath, loader, visiting):
         )
     document = ordered_members(loader.load(key))  # raises REF_FILE_NOT_FOUND when absent
     # Descend the detect keys.
-    node = document
+    node: JsonValue = document
     for detect_key in detect_keys:
         if _is_object(node) and detect_key in node:
             node = node[detect_key]
@@ -133,13 +138,13 @@ def _resolve_single_ref(raw_path, basepath, loader, visiting):
     return _expand_nested_refs(node, basepath, loader, visiting | {key})
 
 
-def _expand_nested_refs(node, basepath, loader, visiting):
+def _expand_nested_refs(node: dict[str, JsonValue], basepath: str, loader: DocumentLoader, visiting: frozenset[str]) -> dict[str, JsonValue]:
     """Expand `$ref` and merge `$patch` inside a resolved properties map."""
     if '$ref' not in node and '$patch' not in node:
         return node
-    base = {}
-    own = {}
-    patch = None
+    base: dict[str, JsonValue] = {}
+    own: dict[str, JsonValue] = {}
+    patch: JsonValue = None
     for key, value in node.items():
         if key == '$ref':
             # The ref merges onto whatever was declared before it.
@@ -155,13 +160,13 @@ def _expand_nested_refs(node, basepath, loader, visiting):
     return result
 
 
-def _split_path(path):
+def _split_path(path: str) -> list[str]:
     if path == '':
         raise ComposeLoadError('PATCH_SHAPE', '$patch path must be non-empty')
     return path.split('.')
 
 
-def _merge_value(existing, incoming):
+def _merge_value(existing: JsonValue, incoming: JsonValue) -> JsonValue:
     """Deep-merge leaf rule: two objects merge recursively, the incoming value otherwise wins."""
     if _is_object(existing) and _is_object(incoming):
         out = dict(existing)
@@ -171,7 +176,7 @@ def _merge_value(existing, incoming):
     return incoming
 
 
-def _set_deep_path(node, segments, value):
+def _set_deep_path(node: dict[str, JsonValue], segments: list[str], value: JsonValue) -> dict[str, JsonValue]:
     """Set a value at a deep path, creating intermediate objects."""
     head, rest = segments[0], segments[1:]
     out = dict(node)
@@ -189,7 +194,7 @@ def _set_deep_path(node, segments, value):
     return out
 
 
-def _remove_deep_path(node, segments):
+def _remove_deep_path(node: dict[str, JsonValue], segments: list[str]) -> dict[str, JsonValue]:
     """Delete a value at a deep path; a missing target is a load error."""
     head, rest = segments[0], segments[1:]
     if head not in node:
@@ -210,7 +215,7 @@ def _remove_deep_path(node, segments):
     return out
 
 
-def _remove_nested(base, spec):
+def _remove_nested(base: dict[str, JsonValue], spec: dict[str, JsonValue]) -> dict[str, JsonValue]:
     """Nested-map remove: recurse where both sides are objects, else unset the key."""
     out = dict(base)
     for key, sub in spec.items():
@@ -226,7 +231,7 @@ def _remove_nested(base, spec):
     return out
 
 
-def apply_patch(base, patch):
+def apply_patch(base: dict[str, JsonValue], patch: JsonValue) -> dict[str, JsonValue]:
     """Apply a `$patch` object to the `$ref`-expanded base.
 
     A deep-path entry sets its value at the dotted path; structured `add`,
@@ -246,12 +251,12 @@ def apply_patch(base, patch):
                 result = _set_deep_path(result, _split_path(path), item)
         elif key == 'remove':
             if isinstance(value, list):
-                for path in value:
-                    if not isinstance(path, str):
+                for entry in value:
+                    if not isinstance(entry, str):
                         raise ComposeLoadError(
                             'PATCH_SHAPE', '$patch.remove array entries must be strings'
                         )
-                    result = _remove_deep_path(result, _split_path(path))
+                    result = _remove_deep_path(result, _split_path(entry))
             elif _is_object(value):
                 result = _remove_nested(result, value)
             else:
@@ -264,13 +269,13 @@ def apply_patch(base, patch):
     return ordered_members(result)
 
 
-def compose_properties(properties, loader, opts=None):
+def compose_properties(properties: dict[str, JsonValue], loader: DocumentLoader, opts: Mapping[str, str] | None = None) -> dict[str, JsonValue]:
     """Compose a `properties` map: expand `$ref`, overlay `$patch`, recurse children."""
     opts = opts or {}
     basepath = opts.get('basepath', '')
-    base = {}
-    own = {}
-    patch = None
+    base: dict[str, JsonValue] = {}
+    own: dict[str, JsonValue] = {}
+    patch: JsonValue = None
     saw_patch = False
     for key, value in properties.items():
         if key == '$ref':
@@ -292,14 +297,14 @@ def compose_properties(properties, loader, opts=None):
     return result
 
 
-def compose_spec(spec, loader, opts=None):
+def compose_spec(spec: dict[str, JsonValue], loader: DocumentLoader, opts: Mapping[str, str] | None = None) -> dict[str, JsonValue]:
     """Compose a full field spec: its own `$ref`/`$patch`, then its `properties`."""
     opts = opts or {}
     basepath = opts.get('basepath', '')
     if '$ref' in spec or '$patch' in spec:
-        base = {}
-        own = {}
-        patch = None
+        base: dict[str, JsonValue] = {}
+        own: dict[str, JsonValue] = {}
+        patch: JsonValue = None
         for key, value in spec.items():
             if key == '$ref':
                 # A field-level `$ref` resolves a file's properties layer too.
@@ -320,7 +325,7 @@ def compose_spec(spec, loader, opts=None):
     return resolved
 
 
-def compose_root(spec, loader, opts=None):
+def compose_root(spec: dict[str, JsonValue], loader: DocumentLoader, opts: Mapping[str, str] | None = None) -> dict[str, JsonValue]:
     """Apply a list or detail root `$ref`/`$patch` with the shared composition primitives.
 
     Own keys written before `$ref` yield to the base; own keys written after it
@@ -331,9 +336,9 @@ def compose_root(spec, loader, opts=None):
     basepath = opts.get('basepath', '')
     if '$ref' not in spec and '$patch' not in spec:
         return dict(spec)
-    base = {}
-    own = {}
-    patch = None
+    base: dict[str, JsonValue] = {}
+    own: dict[str, JsonValue] = {}
+    patch: JsonValue = None
     for key, value in spec.items():
         if key == '$ref':
             base = _merge(own, resolve_ref(value, basepath, loader))

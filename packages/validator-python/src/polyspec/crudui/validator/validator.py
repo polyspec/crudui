@@ -26,17 +26,20 @@ Pipeline:
 """
 
 import re
+from collections.abc import Mapping
+from typing import Any, TypeGuard
 
 from .compose import MemoryLoader, compose_properties, compose_spec, compose_root
 from .compose_errors import ComposeLoadError
 from .errors import FormInputError
 from .forbidden import scan_forbidden_keys
-from .jsvalue import compare_code_points, ordered_value
-from .parser import is_condition_expression, parse_condition
+from .jsvalue import JsonValue, compare_code_points, ordered_value
+from .parser import Node, is_condition_expression, parse_condition
 from .resolver import evaluate_condition as _eval_condition
 from .resolver import evaluate_expression_value as _eval_value
-from .resolver import get_field_name, path_to_string
+from .resolver import Value, get_field_name, path_to_string
 from .rules import get_rule, rule_parameter_failure
+from .loader import DocumentLoader
 from .text import check_input_text, check_option_text, checked_composition
 
 __all__ = ['ARRAY_LEVEL_RULES', 'FormInputError', 'Validator', 'validate']
@@ -50,28 +53,37 @@ MEMBERSHIP_PARAM_RULES = ('in',)
 SINGLE_CHOICE_TYPES = frozenset(('select', 'dropdown', 'selectbox', 'choice', 'radio'))
 
 
-def _is_object(value):
+def _is_object(value: object) -> TypeGuard[dict[str, JsonValue]]:
     return value is not None and isinstance(value, dict)
 
 
-def _is_multiple_field(field):
+def _is_multiple_field(field: dict[str, JsonValue]) -> bool:
     """Whether a field repeats (`multiple: true`, `multiple: only` or an object)."""
     multiple = field.get('multiple')
     return multiple is True or multiple == 'only' or _is_object(multiple)
 
 
-def _is_single_choice(field):
+def _is_single_choice(field: dict[str, JsonValue]) -> bool:
     """Whether a field is a single-choice field: a single-choice type without `lang`."""
     lang = field.get('lang')
     return field.get('type') in SINGLE_CHOICE_TYPES and (lang is None or lang is False)
 
 
-def _assert_single_choice_data(value, path, repeated):
+def _ordered_spec(spec: dict[str, JsonValue]) -> dict[str, JsonValue]:
+    """A copy of a specification with every object in specification member order."""
+    ordered = ordered_value(spec)
+    assert isinstance(ordered, dict)  # an object stays an object
+    return ordered
+
+
+def _assert_single_choice_data(value: JsonValue, path: list[str], repeated: bool) -> None:
     """Reject an array or object as the value of a single-choice field.
 
     Rows of a repeated one are checked in sorted key order.
     """
+    entries: list[tuple[list[str], JsonValue]]
     if repeated:
+        assert _is_object(value)  # repeated data is a keyed object, checked before this call
         entries = [([*path, key], value[key]) for key in sorted(value)]
     else:
         entries = [(path, value)]
@@ -82,7 +94,7 @@ def _assert_single_choice_data(value, path, repeated):
             )
 
 
-def _normalize_validate_slot(slot):
+def _normalize_validate_slot(slot: JsonValue) -> dict[str, JsonValue] | None:
     """Normalize a polymorphic `validate` slot to a rule map.
 
     `false`, `true` and an absent slot carry no sub-rules; a non-object value
@@ -95,21 +107,21 @@ def _normalize_validate_slot(slot):
     return None
 
 
-def _field_messages(field):
+def _field_messages(field: dict[str, JsonValue]) -> dict[str, JsonValue] | None:
     """The per-field custom messages of the field's `messages` map."""
     messages = field.get('messages')
     return messages if isinstance(messages, dict) else None
 
 
-def _is_ternary(expression):
+def _is_ternary(expression: str) -> bool:
     """Whether a string parses as a complete ternary expression."""
     try:
-        return parse_condition(expression)['type'] == 'Ternary'
+        return bool(parse_condition(expression)['type'] == 'Ternary')
     except Exception:
         return False
 
 
-def _is_valid_expression(expression):
+def _is_valid_expression(expression: str) -> bool:
     """Whether a string parses as a complete expression; any other string is a literal."""
     try:
         parse_condition(expression)
@@ -118,7 +130,7 @@ def _is_valid_expression(expression):
         return False
 
 
-def _rule_value_form(rule_name, rule_value):
+def _rule_value_form(rule_name: str, rule_value: JsonValue) -> str:
     """How a declared rule value becomes the rule's effective parameter.
 
     Path-reference, literal-param, regex and membership rules keep their
@@ -149,7 +161,7 @@ def _rule_value_form(rule_name, rule_value):
     return 'literal'
 
 
-def _ternary_literals(node):
+def _ternary_literals(node: Node) -> list[JsonValue]:
     """Every literal branch of a ternary, through nested ternaries and groups."""
     kind = node['type']
     if kind == 'Ternary':
@@ -161,7 +173,7 @@ def _ternary_literals(node):
     return []
 
 
-def _declared_literals(rule_name, rule_value):
+def _declared_literals(rule_name: str, rule_value: JsonValue) -> list[JsonValue]:
     """The literals a declared rule value can make the effective parameter.
 
     The value itself, every value of a condition map and every literal branch
@@ -170,9 +182,9 @@ def _declared_literals(rule_name, rule_value):
     form = _rule_value_form(rule_name, rule_value)
     if form == 'literal':
         return [rule_value]
-    if form == 'conditionMap':
+    if form == 'conditionMap' and _is_object(rule_value):
         return list(rule_value.values())
-    if form == 'ternary':
+    if form == 'ternary' and isinstance(rule_value, str):
         return _ternary_literals(parse_condition(rule_value))
     return []
 
@@ -184,19 +196,19 @@ class _ValidationRun:
     keys whose `unique` value an earlier row already holds.
     """
 
-    def __init__(self):
-        self.unique_duplicates = {}
+    def __init__(self) -> None:
+        self.unique_duplicates: dict[str, set[str]] = {}
 
 
 class Validator:
     """The validator of one composed specification: a group with `properties`."""
 
-    def __init__(self, composed_spec):
+    def __init__(self, composed_spec: dict[str, JsonValue]) -> None:
         properties = composed_spec.get('properties')
-        self.properties = properties if _is_object(properties) else {}
+        self.properties: dict[str, JsonValue] = properties if _is_object(properties) else {}
         self.run = _ValidationRun()
 
-    def validate(self, data):
+    def validate(self, data: JsonValue) -> dict[str, Any]:
         """Validate `data` against the composed specification.
 
         Raises `FormInputError` when root, group or repeated data has the wrong
@@ -206,7 +218,7 @@ class Validator:
             raise FormInputError('Form data must be an object')
         self._check_declared_parameters(self.properties, [])
         self.run = _ValidationRun()
-        errors = []
+        errors: list[dict[str, Any]] = []
         self._validate_properties(self.properties, data, [], [], [], data, errors)
         return {
             'valid': len(errors) == 0,
@@ -214,18 +226,18 @@ class Validator:
             'hidden': self.hiddenPaths(data),
         }
 
-    def hiddenPaths(self, data):
+    def hiddenPaths(self, data: JsonValue) -> list[str]:
         """The data paths of the fields whose `design.show` resolves to false.
 
         The paths come in declaration order, each field of a group row under
         the row's key and the fields inside a hidden field included. Data of
         another shape is read as missing.
         """
-        hidden = []
+        hidden: list[str] = []
         self._collect_hidden(self.properties, data, [], [], data, hidden)
         return hidden
 
-    def _collect_hidden(self, properties, data, current_path, row_keys, all_data, hidden):
+    def _collect_hidden(self, properties: dict[str, JsonValue], data: JsonValue, current_path: list[str], row_keys: list[int], all_data: JsonValue, hidden: list[str]) -> None:
         for name, field in properties.items():
             if not _is_object(field):
                 continue
@@ -255,7 +267,7 @@ class Validator:
                     hidden,
                 )
 
-    def _check_declared_parameters(self, properties, declaration_path):
+    def _check_declared_parameters(self, properties: dict[str, JsonValue], declaration_path: list[str]) -> None:
         """Check every declared rule name and parameter before any value is validated.
 
         Fields come in declaration order (a group before its children), each
@@ -280,8 +292,9 @@ class Validator:
                 self._check_declared_parameters(child_properties, path)
 
     def _validate_properties(
-        self, properties, data, current_path, row_keys, declaration_path, all_data, errors, inside_hidden=False
-    ):
+        self, properties: dict[str, JsonValue], data: dict[str, JsonValue], current_path: list[str], row_keys: list[int],
+        declaration_path: list[str], all_data: JsonValue, errors: list[dict[str, Any]], inside_hidden: bool = False,
+    ) -> None:
         # Code point order, which a Python string holds natively; the input text
         # check has rejected every string that is not Unicode scalar values.
         for name in sorted(data):
@@ -319,7 +332,7 @@ class Validator:
                     # identical in every validation implementation. Row keys stay in
                     # paths. Missing data is an empty collection: no rows, and the
                     # collection rules still run.
-                    rows = field_value if present else {}
+                    rows: dict[str, JsonValue] = field_value if present and _is_object(field_value) else {}
                     for key in sorted(rows):
                         row = rows[key]
                         if not _is_object(row):
@@ -347,7 +360,7 @@ class Validator:
                         )
                     self._validate_properties(
                         children,
-                        field_value if present else {},
+                        field_value if present and _is_object(field_value) else {},
                         field_path,
                         row_keys,
                         field_declaration,
@@ -372,7 +385,7 @@ class Validator:
                     field, field_value, field_path, row_keys, field_declaration, all_data, errors
                 )
 
-    def _is_hidden(self, field, context):
+    def _is_hidden(self, field: dict[str, JsonValue], context: dict[str, Any]) -> bool:
         """Whether a field's `design.show` resolves to false in its row context.
 
         `design.show` resolves like a conditional parameter: a boolean, an
@@ -384,14 +397,15 @@ class Validator:
             return False
         return self._resolve_rule_value('show', design['show'], context) is False
 
-    def _child_properties(self, field):
+    def _child_properties(self, field: dict[str, JsonValue]) -> dict[str, JsonValue] | None:
         """The child field map of a group, or None."""
         properties = field.get('properties')
         return properties if _is_object(properties) else None
 
     def _validate_multiple_field_rules(
-        self, field, values, field_path, row_keys, declaration_path, all_data, errors
-    ):
+        self, field: dict[str, JsonValue], values: JsonValue, field_path: list[str], row_keys: list[int],
+        declaration_path: list[str], all_data: JsonValue, errors: list[dict[str, Any]],
+    ) -> None:
         """Collection rules and per-row rules for a repeated scalar field."""
         rules = _normalize_validate_slot(field.get('validate'))
         messages = _field_messages(field)
@@ -416,7 +430,7 @@ class Validator:
                     )
                     return
         # 2. Row rules in sorted row-key order (the error-order contract).
-        rows = values if values is not None else {}
+        rows: dict[str, JsonValue] = values if _is_object(values) else {}
         for key in sorted(rows):
             self._validate_element_rules(
                 field,
@@ -429,8 +443,9 @@ class Validator:
             )
 
     def _validate_element_rules(
-        self, field, value, item_path, row_keys, declaration_path, all_data, errors
-    ):
+        self, field: dict[str, JsonValue], value: JsonValue, item_path: list[str], row_keys: list[int],
+        declaration_path: list[str], all_data: JsonValue, errors: list[dict[str, Any]],
+    ) -> None:
         """Element-level rules for one element of a `multiple` field."""
         context = {'currentPath': item_path, 'rowKeys': row_keys, 'formData': all_data}
         messages = _field_messages(field)
@@ -456,8 +471,9 @@ class Validator:
                 break
 
     def _validate_field_rules(
-        self, field, value, field_path, row_keys, declaration_path, all_data, errors
-    ):
+        self, field: dict[str, JsonValue], value: JsonValue, field_path: list[str], row_keys: list[int],
+        declaration_path: list[str], all_data: JsonValue, errors: list[dict[str, Any]],
+    ) -> None:
         """All rules for a single (scalar or group-as-whole) field."""
         context = {'currentPath': field_path, 'rowKeys': row_keys, 'formData': all_data}
         messages = _field_messages(field)
@@ -481,8 +497,9 @@ class Validator:
                 break
 
     def _run_implicit_number(
-        self, field, rules, value, context, declaration_path, messages, path, errors
-    ):
+        self, field: dict[str, JsonValue], rules: dict[str, JsonValue] | None, value: JsonValue, context: dict[str, Any],
+        declaration_path: list[str], messages: dict[str, JsonValue] | None, path: list[str], errors: list[dict[str, Any]],
+    ) -> bool:
         """`type: number` runs an implicit `number` rule before everything else.
 
         It runs only when no explicit `number` rule is declared, and is
@@ -506,7 +523,10 @@ class Validator:
             return True
         return False
 
-    def _run_rule(self, rule_name, rule_value, value, context, declaration_path, field, messages):
+    def _run_rule(
+        self, rule_name: str, rule_value: JsonValue, value: JsonValue, context: dict[str, Any],
+        declaration_path: list[str], field: dict[str, JsonValue], messages: dict[str, JsonValue] | None,
+    ) -> str | None:
         """Run one rule: evaluate its (possibly conditional) value to the effective parameter,
         skip when the result disables the rule, else call the rule function."""
         effective_param = self._resolve_rule_value(rule_name, rule_value, context)
@@ -522,7 +542,7 @@ class Validator:
         if rule is None:
             # Rule names are checked when the specification loads.
             raise RuntimeError(f'Rule {rule_name} is not registered')
-        validation_context = {
+        validation_context: dict[str, Any] = {
             'path': path_to_string(context['currentPath']),
             'field': get_field_name(context['currentPath']),
             'value': value,
@@ -538,18 +558,18 @@ class Validator:
         }
         return rule(validation_context)
 
-    def _resolve_rule_value(self, rule_name, rule_value, context):
+    def _resolve_rule_value(self, rule_name: str, rule_value: JsonValue, context: dict[str, Any]) -> Value:
         """Resolve a rule value to the effective parameter."""
         form = _rule_value_form(rule_name, rule_value)
-        if form == 'conditionMap':
+        if form == 'conditionMap' and _is_object(rule_value):
             return self._resolve_condition_map(rule_value, context)
-        if form == 'ternary':
+        if form == 'ternary' and isinstance(rule_value, str):
             return self._evaluate_ternary(rule_value, context)
-        if form == 'expression':
+        if form == 'expression' and isinstance(rule_value, str):
             return self._evaluate_expression_value(rule_value, context)
         return rule_value
 
-    def _resolve_condition_map(self, condition_map, context):
+    def _resolve_condition_map(self, condition_map: dict[str, JsonValue], context: dict[str, Any]) -> JsonValue:
         """Evaluate a condition map: the value of the first truthy key in
         declaration order, then the `true` key, else None (rule disabled)."""
         for key in condition_map:
@@ -561,7 +581,7 @@ class Validator:
             return condition_map['true']
         return None
 
-    def _evaluate_ternary(self, expression, context):
+    def _evaluate_ternary(self, expression: str, context: dict[str, Any]) -> Value:
         """Evaluate a ternary; its selected branch value is the parameter.
 
         A ternary that cannot be evaluated remains the literal string.
@@ -571,20 +591,20 @@ class Validator:
         except Exception:
             return expression
 
-    def _evaluate_condition(self, expression, context):
+    def _evaluate_condition(self, expression: str, context: dict[str, Any]) -> bool:
         try:
             return _eval_condition(parse_condition(expression), context, 'CURRENT')
         except Exception:
             return False
 
-    def _evaluate_expression_value(self, expression, context):
+    def _evaluate_expression_value(self, expression: str, context: dict[str, Any]) -> Value:
         try:
             return _eval_value(parse_condition(expression), context, 'CURRENT')
         except Exception:
             return False
 
 
-def _assert_rule_parameter(rule_name, param, declaration_path):
+def _assert_rule_parameter(rule_name: str, param: object, declaration_path: list[str]) -> None:
     """Raise the load failure of an effective parameter outside the definitions."""
     failure = rule_parameter_failure(rule_name, param)
     if failure is not None:
@@ -592,23 +612,23 @@ def _assert_rule_parameter(rule_name, param, declaration_path):
         raise ComposeLoadError(code, message, declaration_path)
 
 
-def _assert_rule_name(rule_name, declaration_path):
+def _assert_rule_name(rule_name: str, declaration_path: list[str]) -> None:
     """Raise the load failure of a `validate` or `messages` key that is not a rule."""
     if get_rule(rule_name) is None:
         raise ComposeLoadError('UNKNOWN_RULE', f'Unknown rule: {rule_name}', declaration_path)
 
 
-def _files_loader(options):
+def _files_loader(options: Mapping[str, Any]) -> MemoryLoader:
     """The memory loader of the `files` option, each document in specification member order."""
     files = options.get('files') or {}
     return MemoryLoader(
-        {key: ordered_value(document) for key, document in files.items()}
+        {key: _ordered_spec(document) for key, document in files.items()}
         if isinstance(files, dict)
         else files
     )
 
 
-def _composed_properties(spec, checked, options):
+def _composed_properties(spec: dict[str, JsonValue], checked: DocumentLoader | None, options: Mapping[str, Any]) -> JsonValue:
     """The composed `properties` of a root specification, scanned for forbidden keys."""
     loader = checked if checked is not None else _files_loader(options)
     opts = {'basepath': options['basepath']} if options.get('basepath') else {}
@@ -618,6 +638,7 @@ def _composed_properties(spec, checked, options):
     # `properties`) composes as a properties map directly.
     has_own_properties = _is_object(spec.get('properties'))
     is_composition_entry = '$ref' in spec or '$patch' in spec
+    properties: JsonValue
     if is_composition_entry and not has_own_properties:
         properties = compose_properties(spec, loader, opts)
     else:
@@ -633,7 +654,7 @@ def _composed_properties(spec, checked, options):
     return properties
 
 
-def validate(spec, data, options=None):
+def validate(spec: dict[str, JsonValue], data: JsonValue, options: Mapping[str, Any] | None = None) -> dict[str, Any]:
     """Validate `data` against a CRUDUI specification.
 
     The specification may carry `$ref`/`$patch`; they are expanded first. Input
@@ -651,12 +672,12 @@ def validate(spec, data, options=None):
     check_option_text(options, ['basepath'])
     if not _is_object(data):
         raise FormInputError('Form data must be an object')
-    ordered = ordered_value(spec)
+    ordered = _ordered_spec(spec)
     properties = _composed_properties(ordered, checked, options)
     return Validator({'type': 'group', 'properties': properties}).validate(data)
 
 
-def hiddenPaths(spec, data):
+def hiddenPaths(spec: dict[str, JsonValue], data: JsonValue) -> list[str]:
     """The data paths of the fields whose `design.show` resolves to false against `data`.
 
     The specification is composed without files, as the browser binding sends
@@ -667,12 +688,12 @@ def hiddenPaths(spec, data):
     check_input_text([('data', data)])
     if not _is_object(data):
         raise FormInputError('Form data must be an object')
-    ordered = ordered_value(spec)
+    ordered = _ordered_spec(spec)
     properties = _composed_properties(ordered, checked, {})
     return Validator({'type': 'group', 'properties': properties}).hiddenPaths(data)
 
 
-def validateList(spec, options=None):
+def validateList(spec: dict[str, JsonValue], options: Mapping[str, Any] | None = None) -> dict[str, Any]:
     """Validate a CRUDUI list specification's structure.
 
     The `columns` map and a `{ $ref, $patch }` `search` overlay expand through
@@ -689,11 +710,12 @@ def validateList(spec, options=None):
     loader = checked if checked is not None else _files_loader(options)
     opts = {'basepath': options['basepath']} if options.get('basepath') else {}
 
-    composed = compose_root(ordered_value(spec), loader, opts)
-    if _is_object(composed.get('columns')):
+    composed = compose_root(_ordered_spec(spec), loader, opts)
+    columns = composed.get('columns')
+    if _is_object(columns):
         composed = {
             **composed,
-            'columns': compose_properties(composed['columns'], loader, opts),
+            'columns': compose_properties(columns, loader, opts),
         }
     search = composed.get('search')
     if _is_object(search) and ('$ref' in search or '$patch' in search):
@@ -702,7 +724,7 @@ def validateList(spec, options=None):
     return {'valid': True, 'errors': []}
 
 
-def validateDetail(spec, options=None):
+def validateDetail(spec: dict[str, JsonValue], options: Mapping[str, Any] | None = None) -> dict[str, Any]:
     """Validate a detail specification's composition and forbidden-key structure.
 
     The root composes exactly as a list root does; the `fields` map composes as
@@ -717,10 +739,11 @@ def validateDetail(spec, options=None):
     loader = checked if checked is not None else _files_loader(options)
     opts = {'basepath': options['basepath']} if options.get('basepath') else {}
 
-    composed = compose_root(ordered_value(spec), loader, opts)
-    if _is_object(composed.get('fields')):
+    composed = compose_root(_ordered_spec(spec), loader, opts)
+    fields = composed.get('fields')
+    if _is_object(fields):
         scan_forbidden_keys(
-            {**composed, 'fields': compose_properties(composed['fields'], loader, opts)}, []
+            {**composed, 'fields': compose_properties(fields, loader, opts)}, []
         )
     else:
         scan_forbidden_keys(composed, [])
