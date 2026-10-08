@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-08 — Type hints of the rendering and display declaration modules (C13.1-17-5)
+
+- The modules `rendering` and `display_declaration` of `packages/generator-python` have parameter and return types with no `mypy --strict` error. The generator unit tests pass: 11 tests.
+
 ### 2026-10-08 — Type hints of the buttons and choice list modules (C13.1-17-4)
 
 - The modules `buttons` and `choice_list` of `packages/generator-python` have parameter and return types with no `mypy --strict` error. The generator unit tests pass: 11 tests.
