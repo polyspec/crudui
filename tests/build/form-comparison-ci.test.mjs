@@ -29,7 +29,7 @@ test('CI runs the complete form comparison regression suite', async () => {
   assert.match(job, /node-version-file:\s*['"]?\.node-version['"]?/);
   assert.match(job, /uses: shivammathur\/setup-php@/);
   assert.match(job, /php-version:\s*['"]?8\.5['"]?/);
-  assert.match(job, /run: make install-tools\n/);
+  assert.match(job, /run: make install-tools TOOLS="npm"\n/);
   assert.match(job, /run: make install-node-modules install-composer\n/);
   assert.match(job, /run: make ci-targets TARGETS="test-form-comparison"\n/);
 });

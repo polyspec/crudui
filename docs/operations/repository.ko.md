@@ -1,6 +1,6 @@
 # 저장소
 <!-- doc-id: docs-operations-repository -->
-<!-- source-sha256: d997294aa5b12f1076e38067ae05f0e83b3893dc098cde4e426dd3bc5bec0a73 -->
+<!-- source-sha256: a4dcb8d6a0bda303586beb73c922ba37c6076650f53940ca38ee30a28500568a -->
 
 [English](repository.md).
 
@@ -61,7 +61,7 @@ release는 `main` commit의 tag입니다. 저장소는 `vX.Y.Z`이고, 디렉터
    (`make release-go-tags TAG=vX.Y.Z`가 이를 검사합니다).
 4. `.github/workflows/release.yml`은 push된 tag에서(`tags: ['v*', '**/v*']`. tag filter에서 `*`는 `/`와 맞지
    않으므로 `**/v*`가 `packages/<디렉터리>/vX.Y.Z`를 덮습니다) token 권한 `contents: write`로 실행됩니다. 준비
-   step(`make install-rust`, `make install-tools`, `make toolchain-check TOOLS="node npm rust php composer"`, `make install-node-modules`) 뒤의
+   step(`make install-tools TOOLS="npm"`, `make toolchain-check TOOLS="node npm php composer"`, `make install-node-modules`) 뒤의
    마지막 다섯 step은 이 순서로 make를 통해 실행되며, `scripts/kit/release.mjs`의 step은 환경 변수 `TAG`의 tag를 받습니다.
    - `make release-verify`는 tag의 commit이 `origin/main`에 있는지(`git merge-base --is-ancestor`), 모든 Go module의 tag
      `<directory>/vX.Y.Z`가 같은 commit에 있는지, commit의 check run `push-gate`와 `ci-passed`가 conclusion `success`로

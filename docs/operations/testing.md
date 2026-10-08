@@ -10,7 +10,7 @@ crates of every Cargo.lock with the OrderedJSON checkout of the comparison (`mak
 the phpDocumentor release that `scripts/install-phpdocumentor.sh` checks by its SHA-256,
 and `make toolchain-check` names every tool that runs at another release with the expected one.
 Install the npm and Go releases that the checkout declares, and cargo-audit, into the checkout
-with `make install-tools` (`scripts/kit/install-tools.mjs`), which never changes the tools of the
+with `make install-tools` (`scripts/kit/install-tools.mjs`; `TOOLS="npm go cargoAudit"` names the tools to install, and a workflow job installs only the ones it uses), which never changes the tools of the
 machine; make puts their commands in `var/tools/bin` first on `PATH`, and a shell that runs npm
 itself puts them there with `export PATH="$PWD/var/tools/bin:$PATH"`. Install Node
 dependencies with `npm ci --strict-allow-scripts`, install the PHP package's Composer dependencies,

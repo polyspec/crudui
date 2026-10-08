@@ -102,7 +102,8 @@ install: install-tools install-node-modules install-composer install-rust instal
 
 # The parts of make install, which the CI jobs run for what they check: every CI step runs a make target, so the recipes
 # start every tool with the offline settings, $(NPM) and the toolchains of the checkout.
-install-node-modules: install-tools install-ordered-json ## Install the npm dependencies of package-lock.json with their approved install scripts
+install-node-modules: install-ordered-json ## Install the npm dependencies of package-lock.json with their approved install scripts
+	$(MAKE) --no-print-directory install-tools TOOLS=npm
 	$(ONLINE) $(NPM) ci --strict-allow-scripts
 
 # The development root composer.json, never published, resolves the Composer packages of packages/: its path

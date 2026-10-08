@@ -1,6 +1,6 @@
 # 문서 관리
 <!-- doc-id: docs-operations-documentation -->
-<!-- source-sha256: 2cd80c7440fa1233879e3489eb30f20d34690a9f4bb61dba2480edbc5c01dab1 -->
+<!-- source-sha256: 226d5f6ce0fa1b9e61d8f2dc1d01b924b28969eea301e19ff98e2207d2a63d65 -->
 
 [English](documentation.md).
 
@@ -71,7 +71,7 @@ Go 참조는 조합·표현식·검증을 포함해 `validator/`
 `examples/cross-check-console/client/README.md`, `tools/bench/README.md`를 뺀 저장소의 모든 Markdown 문서를 검사합니다. 각 영어 문서에는
 한국어 twin `.ko.md`가 있고, 두 file은 같은 marker `<!-- doc-id: <id> -->`를 가집니다. id는 `.md`를 뺀 영어 file의 경로를 소문자로 하고
 단어 사이를 `-`로 이은 것입니다. 한국어 file은 영어 file의 sha256인 `<!-- source-sha256: <sha256> -->`도 가지며, 영어 문서를 바꾼 뒤에는 한국어
-twin을 검토하고 marker를 `shasum -a 256 <영어 file>`의 출력으로 설정합니다. 검사는 명시한 section anchor, fenced code block(info string과 내용),
+twin을 검토하고 `make documents-stamp`를 실행하며, 이것이 모든 한국어 file의 marker를 영어 file의 sha256으로 설정합니다. 검사는 명시한 section anchor, fenced code block(info string과 내용),
 상대 link와 anchor, 기능 상태 table(`docs/features.md`), `CHANGELOG.md`를 비교하며 본문의 의미 일치는 검토로 확인합니다.
 
 ## GitHub Pages
