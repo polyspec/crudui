@@ -1,10 +1,10 @@
 # CRUDUI Rust 검증기
 <!-- doc-id: packages-validator-rust-readme -->
-<!-- source-sha256: df9396449da15842be913b03741436db656f90460e456135b1424753607e4316 -->
+<!-- source-sha256: 02abe0cf87acc26c30851658f4a7c0bec736bb3df3dc64495d0fce36c691296a -->
 
 [English](README.md).
 
-`polyspec-crudui-validator` 패키지 버전은 `0.0.4`입니다. 라이브러리이며 명령을 설치하지
+`polyspec-crudui-validator` 패키지 버전은 `0.0.5`입니다. 라이브러리이며 명령을 설치하지
 않습니다.
 
 ## API

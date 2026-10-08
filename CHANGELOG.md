@@ -3,6 +3,12 @@
 
 ## Unreleased
 
+## 0.0.5
+
+### 2026-10-09 — Release 0.0.5 (C14.2)
+
+- The version is 0.0.5 in every manifest of `config/release.json` and in its locks, in the git pin of `packages/generator-python`, in `contracts/features.json` and in the module version of `packages/php-ext`. The section of the earlier version 0.0.4, which no tag released, stays below. The consumer projects of `tests/release-install` name the archives of 0.0.5, and the review record `config/dependency-review.json` is written for the locks of 0.0.5. `docs/operations/repository.md` pushes `vX.Y.Z` together with the tags of the two Go modules, and the run of a Go module tag builds and installs no archive.
+
 ### 2026-10-09 — Test of the local pipeline stack names the hook module of kit (C14.1-10)
 
 - `examples/form-comparison/src/local-servers.test.mjs` requires the import of `setup` and `teardown` from `scripts/kit/test-hooks.mjs`. The files already imported it since C14.1-2, but the pattern of the test named the removed `scripts/test-progress/hooks.mjs`, so the CI job `Form comparison runner regressions` failed; the other parts of that job (the library and the browser checks) passed.

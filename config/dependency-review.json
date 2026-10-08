@@ -1,46 +1,46 @@
 {
   "schema": 1,
   "comment": "Written by make dependency-review RECORD=1 (scripts/kit/dependency-review.mjs) from the registries; make dependency-policy-check compares the checkout with it without a network.",
-  "reviewed": "2026-10-08T22:19:51.584Z",
+  "reviewed": "2026-10-08T23:02:50.221Z",
   "locks": [
     {
       "lock": "package-lock.json",
-      "sha256": "b5da5952b32667ae0c6838eccc5ca34924b709ff9ee4fcdf44f133029c21cf1c",
+      "sha256": "af83d96ed64ecd5ef4c8d93440c56d811f46afaecfd65a448624e12864166432",
       "advisories": []
     },
     {
       "lock": "composer.lock",
-      "sha256": "d7626af9101017bd20a97b1d0d199bb71a4ca5842d7433416ba72d0b168ac7c0",
+      "sha256": "dc44149790e7e572c5480f51e605a32e2bab4bf0473d0a52631b6ff3c067ee20",
       "advisories": []
     },
     {
       "lock": "examples/cross-check-console/validators/rust/Cargo.lock",
-      "sha256": "684e1c149beded8e9903341e1a18b6b96d4020f05c326f169db8a2cecc52a2df",
+      "sha256": "824bd8ef534cc2ef33e00b86677062162c59e0c54c16d0ecc5e49aacb268f441",
       "advisories": []
     },
     {
       "lock": "examples/form-comparison/servers/rust/Cargo.lock",
-      "sha256": "2465e2ddde782f6e4d78c7f0ff468ef45babb1112c372dcdbbae4b928ed864f1",
+      "sha256": "4124d7b84a02f65f6c337f7994ce7a3fc8c5ff728c0c996098312cc6c9df9b0b",
       "advisories": []
     },
     {
       "lock": "packages/generator-rust/Cargo.lock",
-      "sha256": "c10645c95e7c28d43992f826fa7b2af8a9bfffea5b430a9f90a38f40e95c6137",
+      "sha256": "2361f0e2b9a060a96c8d91f1728793d1c97f465d77f466590324347e31f1c943",
       "advisories": []
     },
     {
       "lock": "packages/validator-rust/Cargo.lock",
-      "sha256": "87b2d82d2518ef404722176318a7d2da267c6c66ca290b158a801d5ad7dafbda",
+      "sha256": "93b564d63a8b9828779599d4fd530e40e273fc4924074d3f6a4ce060a9f57097",
       "advisories": []
     },
     {
       "lock": "tests/native-generators/programs/rust/Cargo.lock",
-      "sha256": "95815f1b3103bd68a20d49d3aa4bad9e4cc2d3add5304f170ea7fdedc0b5620a",
+      "sha256": "ced2748c2a1b7f5094fa2b1593e7e1a974d738c287a121c5df3581af8f6c3924",
       "advisories": []
     },
     {
       "lock": "tools/bench/rust/Cargo.lock",
-      "sha256": "5d75eb654c31d46aefdec64f3d1287d8f82731e8f518636932600496a82d93a1",
+      "sha256": "3bdce22cf8e2ea5b2e264dc93a1728f24e3263c5eac06489c9013974f20ffe39",
       "advisories": []
     }
   ],

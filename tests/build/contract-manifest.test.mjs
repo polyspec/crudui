@@ -29,7 +29,7 @@ function repository() {
   return {
     manifest: {
       format: 'crudui/features-manifest',
-      version: '0.0.4',
+      version: '0.0.5',
       supportValues: ['pass', 'partial', 'unsupported'],
       packages: [
         {

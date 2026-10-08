@@ -9,7 +9,7 @@ form instances and renders form, list and read-only detail HTML inside a Rust pr
 
 ## Use
 
-The package version is `0.0.4`. During repository development, add the generator
+The package version is `0.0.5`. During repository development, add the generator
 and validator with explicit paths to their package directories. The generator's
 Cargo manifest declares its validator dependency.
 
