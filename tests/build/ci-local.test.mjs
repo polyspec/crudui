@@ -283,7 +283,7 @@ test('no run of a commit of main is stopped by a later push', async () => {
 // other workflow exists, and each declares exactly these lines.
 const TRIGGERS = {
   'ci.yml': 'on:\n  push:\n    branches: [main]\n  workflow_dispatch:\n',
-  'push-gate.yml': 'on:\n  push:\n',
+  'push-gate.yml': "on:\n  push:\n    branches: ['**']\n",
   'pages.yml': 'on:\n  push:\n    branches: [main]\n  workflow_dispatch:\n',
   'dependency-review.yml': "on:\n  schedule:\n    - cron: '17 3 * * *'\n  workflow_dispatch:\n",
   'release.yml': "on:\n  push:\n    tags: ['v*', '**/v*']\n",
@@ -322,7 +322,7 @@ test('the release trigger matches vX.Y.Z and the tag of every Go module of packa
 
 test('CI runs on a push to main, the push check on every push, and Pages deploys main', async () => {
   assert.deepEqual(parse(await read('.github/workflows/ci.yml')).on, { push: { branches: ['main'] }, workflow_dispatch: null });
-  assert.deepEqual(parse(await read('.github/workflows/push-gate.yml')).on, { push: null });
+  assert.deepEqual(parse(await read('.github/workflows/push-gate.yml')).on, { push: { branches: ['**'] } });
   const pages = parse(await read('.github/workflows/pages.yml'));
   assert.deepEqual(pages.on, { push: { branches: ['main'] }, workflow_dispatch: null });
   assert.equal(pages.jobs.deploy.environment.name, 'github-pages');
@@ -391,4 +391,23 @@ test('a workflow command missing from make ci is reported', () => {
   assert.deepEqual(workflow, ['make lint', 'make test-x', 'make test-y']);
   const local = makeCommands('CI_TARGETS = \\\n\tlint \\\n\ttest-x\n');
   assert.notDeepEqual(local, workflow);
+});
+
+// A tag push starts every workflow whose push trigger has no branch filter. The release verifies that the checks named in
+// config/release.json succeeded for the tagged commit, so a workflow that creates such a check on a tag push leaves a run
+// that has not completed, and the release fails against it. Only release.yml starts on a tag; every other workflow that has
+// a push trigger starts on branch pushes only.
+test('only the release workflow starts on a tag push', async () => {
+  const violations = [];
+  for (const name of (await readdir(new URL('../../.github/workflows/', import.meta.url))).filter(file => /\.ya?ml$/.test(file))) {
+    const push = parse(await read(`.github/workflows/${name}`)).on?.push;
+    if (push === undefined) continue;
+    const filters = push ?? {};
+    if (name === 'release.yml') { if (!filters.tags?.length || filters.branches) violations.push(`${name}: must start on tags only`); continue; }
+    if (!Array.isArray(filters.branches) || filters.branches.length === 0) violations.push(`${name}: push has no branch filter, so a tag push starts it`);
+    if (filters.tags || filters['tags-ignore']) violations.push(`${name}: push names tags`);
+  }
+  assert.deepEqual(violations, []);
+  const { checks } = JSON.parse(await read('config/release.json'));
+  assert.deepEqual(checks, ['push-gate', 'ci-passed']);
 });

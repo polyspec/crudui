@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 3840972b7465e608b77021562ccb6dbfd2d11628e0807d47c64c1c82f657c1d1 -->
+<!-- source-sha256: d9cc41fd46dbefe1d1e59d0f3c18f8c95e290b74d6b37d8f59b879d4667955cc -->
 
 ## Unreleased
+
+### 2026-10-09 — branch push에서만 실행되는 push 검사 (C14.1-9)
+
+- `push-gate.yml`은 branch로의 push(`branches: ['**']`)에서 시작하며 tag push에서는 시작하지 않는다. tag push는 tag가 가리키는 commit에 완료되지 않은 `push-gate` check run을 남겼다. `tests/build/ci-local.test.mjs`는 `release.yml`을 뺀 push trigger의 workflow가 모두 branch를 거르고, tag에서 시작하는 것은 `release.yml`뿐일 것을 요구한다.
 
 ### 2026-10-09 — kit v0.0.8의 policy와 도구 선택 (C14.1-8)
 

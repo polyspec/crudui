@@ -1,6 +1,6 @@
 # Execution checklist
 <!-- doc-id: docs-plans-execution-checklist -->
-<!-- source-sha256: 0dd576d498a65db36c77ee0bb07af320b3e598b395685ee02236921bb3e40b01 -->
+<!-- source-sha256: 4d0bf6d6e0e00ca56a78124be7fe05078fcd780a449c6420890a919d0b2687e9 -->
 
 ## [Wave 1](waves.ko.md#wave-1) — 좁은 viewport를 위한 stylesheet와 stylesheet의 Tailwind 버전
 
@@ -280,3 +280,4 @@
 | C14.1-6 | owner 검사를 kit의 것으로 바꾸고 0.x workflow의 규칙을 적는다. `config/owner-checks.json`(`make owner-validate`가 검사)이 `scripts/owner-checks.json`을 대체하며 vendored copy, 설정 file, `scripts/repository-files.mjs`의 owner를 둔다. `AGENTS.md`와 `AGENTS.ko.md`는 `main`을 모든 row가 완료일 때 한 번 push하고, tag는 CI check `ci-passed` 뒤에 만들며, 공유 도구는 polyspec/kit에서만 바꾸고, 이 저장소는 `config/*.json`에서만 다르다고 적고 pull request, merge queue, ruleset 규칙을 뺀다. 제거: `scripts/owner-check.mjs`, `scripts/owner-checks.json`, owner 검사의 test | `make owner-validate`, `make documents-check`, `node scripts/kit/run-tests.mjs node -- tests/build/ci-local.test.mjs tests/build/test-commands.test.mjs` | [o] |
 | C14.1-7 | polyspec/kit v0.0.8을 vendor한다. 이 version은 dependency policy의 mutation 검사, policy schema의 root manifest, `make install-tools TOOLS`의 도구 선택을 고치고 `make documents-stamp`를 더한다. `make kit-sync KIT_TAG=v0.0.8`은 lock을 쓰고 두 번째 실행에서 `unchanged`를 출력한다 | `make kit-sync KIT_TAG=v0.0.8`, `make kit-check` | [o] |
 | C14.1-8 | kit v0.0.8의 수정을 사용한다. `composerPlatforms`는 `composer.json`을 지정하고 `pythonManifests`는 `packages/validator-python`과 `packages/generator-python`의 manifest를 지정하며(그 `setuptools==84.0.0` pin이 review에 들어가 registry 의존성은 87개), `make dependency-policy-mutation-check`가 통과하고, 모든 workflow job은 쓰는 도구만 설치한다(`make install-tools TOOLS="npm"`, dependency review job은 `make install-rust` 뒤에 `npm cargoAudit`). 그래서 어떤 job도 쓰지 않는 Go나 cargo-audit을 설치하지 않는다 | `make dependency-policy-check`, `make dependency-policy-mutation-check`, `node scripts/kit/run-tests.mjs node -- tests/build/ci-local.test.mjs tests/build/runtime-version-policy.test.mjs tests/build/form-comparison-ci.test.mjs` | [o] |
+| C14.1-9 | `push-gate.yml`을 branch push에서만 시작한다(`push: branches: ['**']`). tag push가 이 workflow를 시작해 tag가 가리키는 commit에 완료되지 않은 `push-gate` 실행을 남겼고 `make release-verify`가 이를 거부했다. Red: `tests/build/ci-local.test.mjs`의 test `only the release workflow starts on a tag push`가 `push-gate.yml`에서 실패한다. Green: 통과하며 tag에서 시작하는 workflow는 `release.yml`뿐이다 | `node scripts/kit/run-tests.mjs node -- tests/build/ci-local.test.mjs` | [o] |

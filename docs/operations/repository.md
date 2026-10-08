@@ -27,7 +27,7 @@ The workflows are:
 
 - `.github/workflows/ci.yml` on a push to `main` and on a manual run (`workflow_dispatch`); a later push never cancels the
   run of an earlier commit, because a release requires the checks of its own commit;
-- `.github/workflows/push-gate.yml` on every push to a branch;
+- `.github/workflows/push-gate.yml` on every push to a branch, never on a tag;
 - `.github/workflows/pages.yml` on a push to `main` and on a manual run: it builds the documentation web and deploys it to
   the environment `github-pages`, which deploys only from `main`;
 - `.github/workflows/dependency-review.yml` on its schedule and on a manual run;

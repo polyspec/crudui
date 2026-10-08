@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-09 — Push check on branch pushes only (C14.1-9)
+
+- `push-gate.yml` starts on pushes to branches (`branches: ['**']`) and no longer on a tag push, which left a `push-gate` check run that had not completed on the tagged commit. `tests/build/ci-local.test.mjs` requires every workflow with a push trigger except `release.yml` to filter branches and `release.yml` to be the only one that starts on tags.
+
 ### 2026-10-09 — Policy and tool selection with kit v0.0.8 (C14.1-8)
 
 - `config/dependency-policy.json` names `composer.json` without `./`, and `pythonManifests` names the `pyproject.toml` of `packages/validator-python` and `packages/generator-python`; their build requirement `setuptools==84.0.0` is at its latest release, so the review records 87 registry dependencies and 8 locks with no advisory. `make dependency-policy-check` and `make dependency-policy-mutation-check` pass.

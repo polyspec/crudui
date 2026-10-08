@@ -2,13 +2,15 @@
 # a push past the hook, from a clone without it or with the hook skipped, reaches GitHub, and this job fails for it with
 # the same message. It checks the pushed commit: its checklist has no task in progress, and it tracks the hook as an
 # executable file. It also runs make records-check, the document and checklist rules, which read no network and no
-# history. A release requires this job, with ci-passed, to have succeeded for the tagged commit. The check needs Node.js
+# history. It starts on branch pushes only: a tag push would leave a push-gate run that has not completed on the tagged
+# commit, and the release requires the check to have succeeded there. A release requires this job, with ci-passed, to have succeeded for the tagged commit. The check needs Node.js
 # alone and installs no dependency.
 
 name: Push check
 
 on:
   push:
+    branches: ['**']
 
 permissions:
   contents: read

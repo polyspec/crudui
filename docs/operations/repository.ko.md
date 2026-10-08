@@ -1,6 +1,6 @@
 # 저장소
 <!-- doc-id: docs-operations-repository -->
-<!-- source-sha256: a4dcb8d6a0bda303586beb73c922ba37c6076650f53940ca38ee30a28500568a -->
+<!-- source-sha256: ba0fcd18daf9b6fc709ceb20d4d1018f714195821cc97780080b42365a7cc5a7 -->
 
 [English](repository.md).
 
@@ -26,7 +26,7 @@ workflow는 다음과 같습니다.
 
 - `.github/workflows/ci.yml`: `main`으로의 push와 수동 실행(`workflow_dispatch`). release가 자기 commit의 check를 요구하므로 나중의
   push가 앞선 commit의 실행을 취소하지 않습니다.
-- `.github/workflows/push-gate.yml`: branch로의 모든 push.
+- `.github/workflows/push-gate.yml`: branch로의 모든 push(tag push에서는 실행되지 않음).
 - `.github/workflows/pages.yml`: `main`으로의 push와 수동 실행. 문서 web을 build하여 `main`에서만 배포하는 environment `github-pages`에
   배포합니다.
 - `.github/workflows/dependency-review.yml`: 예약된 시각과 수동 실행.
