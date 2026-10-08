@@ -16,7 +16,7 @@ test('includes the browser process check only in the complete runtime suite', as
   assert.ok(scripts['test:form-comparison:source'].includes('src/*.test.mjs'));
   assert.doesNotMatch(scripts['test:form-comparison:source'], /browser-job\.browser\.mjs|prepare\.test\.mjs/);
   assert.equal(scripts['test:form-comparison:browser'],
-    'node scripts/require-current-build.mjs && node scripts/run-tests.mjs node -- examples/form-comparison/src/browser-job.browser.mjs');
+    'node scripts/require-current-build.mjs && node scripts/kit/run-tests.mjs node -- examples/form-comparison/src/browser-job.browser.mjs');
 });
 
 test('generation fixtures use the canonical operating system temporary directory', async () => {

@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### 2026-10-09 — kit의 toolchain, 의존성, test runner 도구 (C14.1-2)
+
+- `config/toolchain.json`은 `scripts/kit/schema/toolchain.schema.json`을 따른다. `make install-tools`가 npm, Go, cargo-audit을 `var/tools`에 설치하고, Makefile은 `var/tools/bin`을 `PATH`의 맨 앞에 둔다. `scripts/install-npm.mjs`, `scripts/checkout-npm.mjs`, `scripts/check-toolchain.mjs`, `scripts/check-cargo-downloads.mjs`, `scripts/install-cargo-audit.mjs`를 제거했다.
+- `config/dependency-policy.json`은 kit 형태를 따른다. `composerPlatforms`는 PHP `8.4.1`(잠긴 PHPUnit 13.4.1이 지원하는 가장 낮은 PHP release이며 `composer.json`의 `config.platform.php`와 `composer.lock`의 `platform-overrides`가 이를 기록한다)과 `./composer.json`을 지정하고, `taggedNpmPackages`는 OrderedJSON tag `v0.0.3`을 지정하며, React 예외 4개는 reason과 removal condition을 유지한다. `make dependency-review RECORD=1`이 npm, Composer, Cargo lock의 `config/dependency-review.json`을 썼다. registry 의존성 85개와 lock 8개이며 advisory는 없고 version은 이전과 같다. Go module 6개는 `replace`로 checkout의 module만 요구하므로 Go 의존성을 더하지 않는다. `scripts/dependency-state.mjs`, `scripts/dependency-review.mjs`, `scripts/check-dependencies.mjs`를 제거했다.
+- `scripts/kit/run-tests.mjs`와 `scripts/kit/test-progress.mjs`가 `scripts/run-tests.mjs`와 `scripts/test-progress`를 대체한다. `tests/conformance/run-suite.mjs`는 `scripts/check-conformance.mjs`의 suite를 위해 runner를 시작하고 그 실행 기록을 남긴다. ESLint와 저장소 규칙은 vendored copy를 읽지 않는다(`scripts/repository-files.mjs`).
+
 ### 2026-10-09 — polyspec/kit v0.0.4의 vendored 도구 (C14.1-1)
 
 - `kit.json`, `.kit/kit.lock.json`, `scripts/kit`, `tests/kit`가 tag `v0.0.4`의 파일을 담고, Makefile은 `scripts/kit/kit.mk`를 include한다. `make kit-sync KIT_TAG=v0.0.4`는 lock을 쓰고 두 번째 실행에서 `unchanged`를 출력했으며, `make kit-test`는 322개 test 중 322개가 통과했다.

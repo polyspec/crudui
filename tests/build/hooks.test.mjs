@@ -1,4 +1,4 @@
-// A setup and a teardown (scripts/test-progress/hooks.mjs) are long operations: they have no hook
+// A setup and a teardown (scripts/kit/test-hooks.mjs) are long operations: they have no hook
 // timeout, so a launch or a close that takes longer than the timeout of a test case still ends by
 // its result. Each case runs a test file through the test runner with a one-second timeout per
 // test, and a setup or a teardown that resolves or fails after 1.5 seconds.
@@ -11,7 +11,7 @@ import test from 'node:test';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const HOOKS = pathToFileURL(path.join(ROOT, 'scripts/test-progress/hooks.mjs')).href;
+const HOOKS = pathToFileURL(path.join(ROOT, 'scripts/kit/test-hooks.mjs')).href;
 
 /** Run one test file with a one-second timeout per test; resolve with its exit status and output. */
 async function runFile(t, source) {
@@ -20,7 +20,7 @@ async function runFile(t, source) {
   const file = path.join(directory, 'hooks.test.mjs');
   await writeFile(file, source);
   return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, [path.join(ROOT, 'scripts/run-tests.mjs'), 'node', '--timeout', '1', '--', file], { stdio: ['ignore', 'pipe', 'pipe'] });
+    const child = spawn(process.execPath, [path.join(ROOT, 'scripts/kit/run-tests.mjs'), 'node', '--timeout', '1', '--', file], { stdio: ['ignore', 'pipe', 'pipe'] });
     let output = '';
     child.stdout.setEncoding('utf8').on('data', chunk => { output += chunk; });
     child.stderr.setEncoding('utf8').on('data', chunk => { output += chunk; });

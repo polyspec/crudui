@@ -10,7 +10,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { failureOf, runCommand } from './run-command.mjs';
-import { createProgress } from './test-progress/progress.mjs';
+import { createProgress } from './kit/test-progress.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const manifest = JSON.parse(readFileSync(resolve(root, 'contracts/features.json'), 'utf8'));

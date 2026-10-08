@@ -220,7 +220,7 @@ final class PatternLanguageTest extends TestCase
     /**
      * Inputs that take exponential time in a backtracking engine: a linear matcher ends them
      * within milliseconds, and a backtracking one does not end before the per-test timeout of
-     * scripts/run-tests.mjs.
+     * scripts/kit/run-tests.mjs.
      */
     public function testMatchingIsLinear(): void
     {

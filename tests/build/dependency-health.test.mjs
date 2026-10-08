@@ -5,8 +5,9 @@ import { builtinModules } from 'node:module';
 import path from 'node:path';
 import test from 'node:test';
 
-import { check, findingLine } from '../../scripts/check-dependencies.mjs';
-import { npmDuplicates, npmSatisfies } from '../../scripts/dependency-state.mjs';
+import { check, findingLine } from '../../scripts/kit/check-dependency-policy.mjs';
+import { npmDuplicates, npmSatisfies } from '../../scripts/kit/dependency-state.mjs';
+import { orderedJsonCheckout, orderedJsonRepository, orderedJsonTag, orderedJsonVersion } from '../../examples/form-comparison/src/ordered-json-source.mjs';
 import { makeTargets, nodeTestArguments } from '../../scripts/test-commands.mjs';
 
 const root = path.resolve(import.meta.dirname, '../..');
@@ -90,7 +91,7 @@ export function makeNodeEntrypoints(targets, target, seen = new Set()) {
 
 function nativeTestNodeEntrypoints() {
   const entrypoints = makeNodeEntrypoints(
-    makeTargets(readFileSync(path.join(root, 'Makefile'), 'utf8')), 'test-native',
+    makeTargets(['Makefile', 'scripts/kit/kit.mk'].map((file) => readFileSync(path.join(root, file), 'utf8')).join('\n')), 'test-native',
   );
   assert.notDeepEqual(entrypoints, [], 'make test-native runs no Node.js program');
   return entrypoints;
@@ -99,10 +100,10 @@ function nativeTestNodeEntrypoints() {
 test('the Node.js programs of a target include those of its prerequisites and sub-makes', () => {
   const targets = makeTargets([
     'all: build', '\t@status=0; $(MAKE) --no-print-directory suite || status=1; exit $$status',
-    'build:', '\tnode scripts/build.mjs', 'suite:', '\tnode scripts/run-tests.mjs node -- a.test.mjs b.test.mjs', '',
+    'build:', '\tnode scripts/build.mjs', 'suite:', '\tnode scripts/kit/run-tests.mjs node -- a.test.mjs b.test.mjs', '',
   ].join('\n'));
   assert.deepEqual(makeNodeEntrypoints(targets, 'all').sort(),
-    ['a.test.mjs', 'b.test.mjs', 'scripts/build.mjs', 'scripts/run-tests.mjs']);
+    ['a.test.mjs', 'b.test.mjs', 'scripts/build.mjs', 'scripts/kit/run-tests.mjs']);
   assert.deepEqual(makeNodeEntrypoints(makeTargets('empty:\n\techo\n'), 'empty'), []);
 });
 
@@ -369,9 +370,16 @@ test('a published Composer package declares its version, and the development roo
   assert.deepEqual(failures, []);
 });
 
+test('config/dependency-policy.json records the OrderedJSON tag that the comparison installs', () => {
+  const policy = JSON.parse(readFileSync(path.join(root, 'config/dependency-policy.json'), 'utf8'));
+  assert.deepEqual(policy.taggedNpmPackages, [{
+    directory: `${orderedJsonCheckout}/js`, repository: orderedJsonRepository, tag: orderedJsonTag, version: orderedJsonVersion, fix: 'make install-ordered-json',
+  }]);
+});
+
 test('the dependencies match their recorded review, without a registry query', () => {
-  // scripts/check-dependencies.mjs reads the manifests, the locks, config/dependency-policy.json and the review record
-  // config/dependency-review.json; `make dependency-review RECORD=1` writes the record from the registries.
+  // scripts/kit/check-dependency-policy.mjs reads the manifests, the locks, config/dependency-policy.json and the review
+  // record config/dependency-review.json; `make dependency-review RECORD=1` writes the record from the registries.
   assert.deepEqual(check(root).map(findingLine), []);
 });
 

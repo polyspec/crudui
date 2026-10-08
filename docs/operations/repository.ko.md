@@ -90,7 +90,7 @@ commit은 merge queue로 ruleset의 check를 통과했으므로 release는 test�
 
 3. `.github/workflows/release.yml`은 push된 tag에서(`tags: ['v*', '**/v*']`. tag filter에서 `*`는 `/`와 맞지
    않으므로 `**/v*`가 `packages/<디렉터리>/vX.Y.Z`를 덮습니다) token 권한 `contents: write`로 실행됩니다. 준비
-   step(`make install-npm`, `make toolchain-check TOOLS="node npm php composer"`, `make install-node-modules`) 뒤의
+   step(`make install-tools`, `make toolchain-check TOOLS="node npm php composer"`, `make install-node-modules`) 뒤의
    마지막 다섯 step은 이 순서로 make를 통해 실행되며, `scripts/release.mjs`의 step은 환경 변수 `TAG`의 tag를 recipe가
    `"$$TAG"`로 넘겨 받습니다.
    - `make release-verify`는 tag의 commit이 `origin/main`에 있는지(`git merge-base --is-ancestor`), commit의 check run

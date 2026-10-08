@@ -4,7 +4,7 @@
 // line while it is still running, and ends with its result and its elapsed time. A build has no
 // time limit: its exit status decides the result (scripts/run-command.mjs).
 import { failureOf, runCommand } from '../../scripts/run-command.mjs';
-import { createProgress } from '../../scripts/test-progress/progress.mjs';
+import { createProgress } from '../../scripts/kit/test-progress.mjs';
 import { compiledDrivers } from './drivers.mjs';
 
 const progress = createProgress({ write: text => process.stdout.write(text) });

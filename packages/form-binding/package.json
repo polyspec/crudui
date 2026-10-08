@@ -16,7 +16,7 @@
   "sideEffects": false,
   "scripts": {
     "build": "node ../../scripts/package-dist.mjs build 'tsup src/index.ts --format esm --clean --out-dir \"$CRUDUI_DIST\" && tsc --project tsconfig.build.json --outDir \"$CRUDUI_DIST\"'",
-    "test": "node ../../scripts/run-tests.mjs vitest --cwd packages/form-binding",
+    "test": "node ../../scripts/kit/run-tests.mjs vitest --cwd packages/form-binding",
     "typecheck": "status=0; tsc --noEmit || status=1; tsc --noEmit --project tsconfig.tests.json || status=1; exit $status",
     "lint": "eslint src tests",
     "prepublishOnly": "npm run build"

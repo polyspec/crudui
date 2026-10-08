@@ -12,7 +12,7 @@ checks to collect their actual results.
 ```sh
 node scripts/require-current-build.mjs
 composer install
-node scripts/run-tests.mjs node --timeout 10 -- tests/native-generators/protocol.test.mjs
+node scripts/kit/run-tests.mjs node --timeout 10 -- tests/native-generators/protocol.test.mjs
 node tests/native-generators/run.mjs \
   --extension /absolute/path/to/crudui.so \
   --report .git/native-generators/report.json

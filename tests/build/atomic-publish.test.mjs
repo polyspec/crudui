@@ -17,7 +17,6 @@ const publications = [
   { output: 'the PHP build manifest', file: 'scripts/php-extension-builder.mjs', staging: /writeFile\(manifest \+ '\.' \+ process\.pid,/, publish: /rename\(manifest \+ '\.' \+ process\.pid, manifest\)/ },
   { output: 'a package dist', file: 'scripts/package-dist.mjs', staging: /CRUDUI_DIST: 'dist\.next'/, publish: /fs\.renameSync\(next, dist\);/ },
   { output: 'the OrderedJSON checkout', file: 'examples/form-comparison/src/ordered-json-source.mjs', staging: /const next = `\$\{directory\}\.next-\$\{process\.pid\}`;/, publish: /await rename\(next, directory\);/ },
-  { output: 'the checkout npm', file: 'scripts/install-npm.mjs', staging: /mkdtempSync\(`\$\{prefix\}\.next-`\)/, publish: /renameSync\(next, prefix\);/ },
 ];
 
 test('every shared output is written to a path of its run and renamed into place', () => {

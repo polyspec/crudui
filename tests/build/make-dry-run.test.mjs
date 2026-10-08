@@ -7,13 +7,14 @@ import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
+import { isVendored } from '../../scripts/repository-files.mjs';
 import { makeDryRun, makeEnvironment } from './make-dry-run.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
 test('no test file runs a dry run of make outside the helper', () => {
   const files = spawnSync('git', ['ls-files', '--cached', '--others', '--exclude-standard', '*.mjs', '*.js', '*.ts'], { cwd: ROOT, encoding: 'utf8' })
-    .stdout.split('\n').filter(file => file && file !== 'tests/build/make-dry-run.mjs');
+    .stdout.split('\n').filter(file => file && file !== 'tests/build/make-dry-run.mjs' && !isVendored(file));
   const violations = [];
   for (const file of files) {
     let source;

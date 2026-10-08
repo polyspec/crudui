@@ -8,7 +8,7 @@ import { readFileSync } from 'node:fs';
 import { describe, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { engineDrivers, engines } from './browser-engines.mjs';
-import { setup, teardown } from '../scripts/test-progress/hooks.mjs';
+import { setup, teardown } from '../scripts/kit/test-hooks.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const stylesheet = readFileSync(`${root}packages/generator-core/styles/crudui.css`, 'utf8');

@@ -18,7 +18,7 @@
   ],
   "scripts": {
     "build": "node ../../scripts/package-dist.mjs build 'svelte-package -i src -o \"$CRUDUI_DIST\"'",
-    "test": "status=0; node ../../scripts/run-tests.mjs vitest --cwd packages/generator-svelte || status=1; node ../../scripts/run-tests.mjs vitest --cwd packages/generator-svelte --config vitest.client.config.ts || status=1; exit $status",
+    "test": "status=0; node ../../tests/conformance/run-suite.mjs vitest --cwd packages/generator-svelte || status=1; node ../../tests/conformance/run-suite.mjs vitest --cwd packages/generator-svelte --config vitest.client.config.ts || status=1; exit $status",
     "typecheck": "svelte-check --tsconfig ./tsconfig.json"
   },
   "keywords": [

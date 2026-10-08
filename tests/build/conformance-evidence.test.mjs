@@ -92,10 +92,10 @@ test('the JavaScript recorder appends one line per case only when an evidence di
 });
 
 const suites = [
-  { name: 'validator PHP', run: { program: 'scripts/run-tests.mjs', tool: 'phpunit', cwd: 'packages/validator-php' }, runtimes: ['php'] },
+  { name: 'validator PHP', run: { program: 'tests/conformance/run-suite.mjs', tool: 'phpunit', cwd: 'packages/validator-php' }, runtimes: ['php'] },
   { name: 'native generators', run: { program: 'tests/native-generators/run.mjs' }, runtimes: ['php', 'go'] },
-  { name: 'PHP extension', run: { program: 'scripts/run-tests.mjs', tool: 'node', argument: 'packages/php-ext/tests/engine.test.mjs' }, runtimes: ['php-native'] },
-  { name: 'Svelte renderer', run: { program: 'scripts/run-tests.mjs', tool: 'vitest', cwd: 'packages/generator-svelte' }, runtimes: ['svelte'] },
+  { name: 'PHP extension', run: { program: 'tests/conformance/run-suite.mjs', tool: 'node', argument: 'packages/php-ext/tests/engine.test.mjs' }, runtimes: ['php-native'] },
+  { name: 'Svelte renderer', run: { program: 'tests/conformance/run-suite.mjs', tool: 'vitest', cwd: 'packages/generator-svelte' }, runtimes: ['svelte'] },
 ];
 const run = (fields, started, status) => ({ tool: null, cwd: '.', args: [], ...fields, started, status });
 
@@ -124,12 +124,12 @@ test('the check reads the evidence and the run records of every subdirectory', a
 
 test('missing evidence names each suite of its runtime that did not run, did not finish or failed', () => {
   const runs = [
-    run({ program: 'scripts/run-tests.mjs', tool: 'phpunit', cwd: 'packages/validator-php' }, '2026-10-05T10:00:00.000Z', 1),
-    run({ program: 'scripts/run-tests.mjs', tool: 'phpunit', cwd: 'packages/validator-php' }, '2026-10-05T11:00:00.000Z', 0),
-    run({ program: 'scripts/run-tests.mjs', tool: 'node', args: ['packages/php-ext/tests/engine.test.mjs', 'packages/php-ext/tests/api.test.mjs'] }, '2026-10-05T10:00:00.000Z', null),
-    run({ program: 'scripts/run-tests.mjs', tool: 'vitest', cwd: 'packages/generator-svelte' }, '2026-10-05T10:00:00.000Z', 0),
-    run({ program: 'scripts/run-tests.mjs', tool: 'vitest', cwd: 'packages/generator-svelte', args: ['--config', 'vitest.client.config.ts'] }, '2026-10-05T10:01:00.000Z', 2),
-    run({ program: 'scripts/run-tests.mjs', tool: 'go', cwd: 'packages/generator-go' }, '2026-10-05T10:00:00.000Z', 1),
+    run({ program: 'tests/conformance/run-suite.mjs', tool: 'phpunit', cwd: 'packages/validator-php' }, '2026-10-05T10:00:00.000Z', 1),
+    run({ program: 'tests/conformance/run-suite.mjs', tool: 'phpunit', cwd: 'packages/validator-php' }, '2026-10-05T11:00:00.000Z', 0),
+    run({ program: 'tests/conformance/run-suite.mjs', tool: 'node', args: ['packages/php-ext/tests/engine.test.mjs', 'packages/php-ext/tests/api.test.mjs'] }, '2026-10-05T10:00:00.000Z', null),
+    run({ program: 'tests/conformance/run-suite.mjs', tool: 'vitest', cwd: 'packages/generator-svelte' }, '2026-10-05T10:00:00.000Z', 0),
+    run({ program: 'tests/conformance/run-suite.mjs', tool: 'vitest', cwd: 'packages/generator-svelte', args: ['--config', 'vitest.client.config.ts'] }, '2026-10-05T10:01:00.000Z', 2),
+    run({ program: 'tests/conformance/run-suite.mjs', tool: 'go', cwd: 'packages/generator-go' }, '2026-10-05T10:00:00.000Z', 1),
   ];
   assert.deepEqual(Object.fromEntries(suiteStates(suites, runs)), {
     'validator PHP': 'passed',
@@ -152,7 +152,7 @@ test('every runtime that a feature supports is proven by a declared suite', asyn
   assert.deepEqual([...supported].filter(runtime => !proven.has(runtime)).sort(), []);
 });
 
-test('the test runner and the native suite leave a run record with their exit status', async () => {
+test('the suite runner and the native suite leave a run record with their exit status', async () => {
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-suite-runs-'));
   try {
     const passing = path.join(directory, 'pass.test.mjs');
@@ -163,7 +163,7 @@ test('the test runner and the native suite leave a run record with their exit st
     const env = { ...process.env, CRUDUI_CONFORMANCE_EVIDENCE: evidence };
     delete env.NODE_TEST_CONTEXT;
     for (const file of [passing, failing]) {
-      spawnSync(process.execPath, [path.join(ROOT, 'scripts/run-tests.mjs'), 'node', '--', file], { cwd: ROOT, env, encoding: 'utf8' });
+      spawnSync(process.execPath, [path.join(ROOT, 'tests/conformance/run-suite.mjs'), 'node', '--', file], { cwd: ROOT, env, encoding: 'utf8' });
     }
     // The native suite records its run before it reads its arguments, so a usage error ends the run.
     spawnSync(process.execPath, [path.join(ROOT, 'tests/native-generators/run.mjs'), '--unknown'], { cwd: ROOT, env, encoding: 'utf8' });
@@ -172,8 +172,8 @@ test('the test runner and the native suite leave a run record with their exit st
     const summary = runs.map(({ program, tool, cwd, args, status }) => ({ program, tool, cwd, args, status }))
       .sort((left, right) => JSON.stringify(left).localeCompare(JSON.stringify(right)));
     assert.deepEqual(summary, [
-      { program: 'scripts/run-tests.mjs', tool: 'node', cwd: '.', args: [failing], status: 1 },
-      { program: 'scripts/run-tests.mjs', tool: 'node', cwd: '.', args: [passing], status: 0 },
+      { program: 'tests/conformance/run-suite.mjs', tool: 'node', cwd: '.', args: [failing], status: 1 },
+      { program: 'tests/conformance/run-suite.mjs', tool: 'node', cwd: '.', args: [passing], status: 0 },
       { program: 'tests/native-generators/run.mjs', tool: null, cwd: '.', args: ['--unknown'], status: 1 },
     ]);
     assert.ok(runs.every(item => !Number.isNaN(Date.parse(item.started))));

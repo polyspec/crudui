@@ -5,12 +5,12 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 
-import { trackedFiles } from '../../scripts/tracked-files.mjs';
+import { checkedFiles } from '../../scripts/kit/tracked-files.mjs';
 
 const root = path.resolve(import.meta.dirname, '../..');
 /** The Vite configuration files of the checkout at `directory` among its tracked files. */
 function viteConfigurationFiles(directory) {
-  return trackedFiles(directory).filter(file => /(?:^|\/)vite\.config\.[cm]?[jt]s$/.test(file)).sort();
+  return checkedFiles(directory).filter(file => /(?:^|\/)vite\.config\.[cm]?[jt]s$/.test(file)).sort();
 }
 
 test('ES module Vite configurations use native module paths', () => {

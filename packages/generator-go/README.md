@@ -81,7 +81,7 @@ instance prefix (`KeyPrefix: ""`) both omit that name segment.
 From the repository root:
 
 ```sh
-node scripts/run-tests.mjs go --cwd packages/generator-go -- ./...
+node scripts/kit/run-tests.mjs go --cwd packages/generator-go -- ./...
 go -C packages/generator-go run ./examples/server -data /tmp/crudui-go-record.json
 ```
 

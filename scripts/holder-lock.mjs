@@ -23,7 +23,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { createProgress } from './test-progress/progress.mjs';
+import { createProgress } from './kit/test-progress.mjs';
 
 const script = fileURLToPath(import.meta.url);
 export const repositoryRoot = path.resolve(path.dirname(script), '..');

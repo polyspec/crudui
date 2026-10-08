@@ -14,8 +14,8 @@ classes using native generation and validation.
 Run from the repository root:
 
 ```sh
-node scripts/install-npm.mjs
-export PATH="$PWD/.tools/npm/node_modules/.bin:$PATH"
+make install-tools
+export PATH="$PWD/var/tools/bin:$PATH"
 npm ci --strict-allow-scripts
 npm run build
 npm run test:forms

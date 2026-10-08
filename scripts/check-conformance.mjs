@@ -9,7 +9,7 @@ import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
-import { createProgress } from './test-progress/progress.mjs';
+import { createProgress } from './kit/test-progress.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -93,17 +93,17 @@ export function checkConformance({ features, registry, cases, families, evidence
  * tool and its working directory are those declared and its arguments hold the declared argument.
  */
 export const evidenceSuites = [
-  { name: 'validator JavaScript', run: { program: 'scripts/run-tests.mjs', tool: 'vitest', cwd: 'packages/validator-ts' }, runtimes: ['javascript'] },
-  { name: 'validator PHP', run: { program: 'scripts/run-tests.mjs', tool: 'phpunit', cwd: 'packages/validator-php' }, runtimes: ['php'] },
+  { name: 'validator JavaScript', run: { program: 'tests/conformance/run-suite.mjs', tool: 'vitest', cwd: 'packages/validator-ts' }, runtimes: ['javascript'] },
+  { name: 'validator PHP', run: { program: 'tests/conformance/run-suite.mjs', tool: 'phpunit', cwd: 'packages/validator-php' }, runtimes: ['php'] },
   { name: 'validator Python', run: { program: 'tests/conformance/runner.py', tool: 'unittest', cwd: 'packages/validator-python/tests' }, runtimes: ['python'] },
-  { name: 'validator Go', run: { program: 'scripts/run-tests.mjs', tool: 'go', cwd: 'packages/validator-go' }, runtimes: ['go'] },
-  { name: 'validator Rust', run: { program: 'scripts/run-tests.mjs', tool: 'cargo', argument: 'packages/validator-rust/Cargo.toml' }, runtimes: ['rust'] },
-  { name: 'HTML renderer', run: { program: 'scripts/run-tests.mjs', tool: 'vitest', cwd: 'packages/generator-html' }, runtimes: ['javascript-html', 'javascript-dom'] },
-  { name: 'React renderer', run: { program: 'scripts/run-tests.mjs', tool: 'vitest', cwd: 'packages/generator-react' }, runtimes: ['react'] },
-  { name: 'Vue renderer', run: { program: 'scripts/run-tests.mjs', tool: 'vitest', cwd: 'packages/generator-vue' }, runtimes: ['vue'] },
-  { name: 'Svelte renderer', run: { program: 'scripts/run-tests.mjs', tool: 'vitest', cwd: 'packages/generator-svelte' }, runtimes: ['svelte'] },
-  { name: 'PHP extension', run: { program: 'scripts/run-tests.mjs', tool: 'node', argument: 'packages/php-ext/tests/engine.test.mjs' }, runtimes: ['php-native'] },
-  { name: 'PHP extension API', run: { program: 'scripts/run-tests.mjs', tool: 'node', argument: 'packages/php-ext/tests/api.test.mjs' }, runtimes: ['php-native'] },
+  { name: 'validator Go', run: { program: 'tests/conformance/run-suite.mjs', tool: 'go', cwd: 'packages/validator-go' }, runtimes: ['go'] },
+  { name: 'validator Rust', run: { program: 'tests/conformance/run-suite.mjs', tool: 'cargo', argument: 'packages/validator-rust/Cargo.toml' }, runtimes: ['rust'] },
+  { name: 'HTML renderer', run: { program: 'tests/conformance/run-suite.mjs', tool: 'vitest', cwd: 'packages/generator-html' }, runtimes: ['javascript-html', 'javascript-dom'] },
+  { name: 'React renderer', run: { program: 'tests/conformance/run-suite.mjs', tool: 'vitest', cwd: 'packages/generator-react' }, runtimes: ['react'] },
+  { name: 'Vue renderer', run: { program: 'tests/conformance/run-suite.mjs', tool: 'vitest', cwd: 'packages/generator-vue' }, runtimes: ['vue'] },
+  { name: 'Svelte renderer', run: { program: 'tests/conformance/run-suite.mjs', tool: 'vitest', cwd: 'packages/generator-svelte' }, runtimes: ['svelte'] },
+  { name: 'PHP extension', run: { program: 'tests/conformance/run-suite.mjs', tool: 'node', argument: 'packages/php-ext/tests/engine.test.mjs' }, runtimes: ['php-native'] },
+  { name: 'PHP extension API', run: { program: 'tests/conformance/run-suite.mjs', tool: 'node', argument: 'packages/php-ext/tests/api.test.mjs' }, runtimes: ['php-native'] },
   { name: 'generator Python', run: { program: 'tests/conformance/runner.py', tool: 'unittest', cwd: 'packages/generator-python/tests' }, runtimes: ['python'] },
   { name: 'native generators', run: { program: 'tests/native-generators/run.mjs' }, runtimes: ['javascript', 'javascript-html', 'php', 'go', 'rust', 'php-native'] },
 ];

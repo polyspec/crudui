@@ -10,10 +10,9 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { useCheckoutNpm } from './checkout-npm.mjs';
 import { buildOutputs } from './package-outputs.mjs';
 import { failureOf, runCommand } from './run-command.mjs';
-import { createProgress } from './test-progress/progress.mjs';
+import { createProgress } from './kit/test-progress.mjs';
 
 /** The differences between the outputs of two builds, one line per file, in path order. */
 export function buildDifferences(first, second) {
@@ -29,7 +28,6 @@ export function buildDifferences(first, second) {
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  useCheckoutNpm();
   const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
   const lines = createProgress({ write: text => process.stdout.write(text) });
   const outputs = [];

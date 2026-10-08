@@ -7,7 +7,7 @@ import path from 'node:path';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
-import { trackedFiles } from '../../scripts/tracked-files.mjs';
+import { checkedFiles } from '../../scripts/kit/tracked-files.mjs';
 import { assertMachoArchitecture, machoArchitectures } from '../../scripts/php-extension-builder.mjs';
 
 const repository = fileURLToPath(new URL('../..', import.meta.url));
@@ -27,7 +27,7 @@ const optionalExtensions = [
 
 /** The PHP files of `directory` that Git tracks or does not ignore, as absolute paths. */
 async function phpFiles(directory) {
-  return trackedFiles(directory).filter(file => file.endsWith('.php')).map(file => path.join(directory, file));
+  return checkedFiles(directory).filter(file => file.endsWith('.php')).map(file => path.join(directory, file));
 }
 
 /** Extensions a package's shipped PHP uses without requiring them. */
@@ -85,7 +85,7 @@ test('a make target whose tests load the root vendor reinstalls the validator co
   const violations = [];
   for (const [name, rule] of Object.entries(targets)) {
     rule.commands.forEach((command, index) => {
-      const files = /run-tests\.mjs node(?: --timeout \d+)? -- (.+?)(?: \|\||;|$)/.exec(command)?.[1].split(/\s+/) ?? [];
+      const files = /(?:run-tests|run-suite)\.mjs node(?: --timeout \d+)? -- (.+?)(?: \|\||;|$)/.exec(command)?.[1].split(/\s+/) ?? [];
       const reads = files.filter(file => file.endsWith('.mjs')).some(file => /vendor\/(autoload\.php|polyspec\/crudui-validator)/.test(readFileSync(path.join(repository, file), 'utf8')));
       const reinstalled = rule.commands.slice(0, index).some(line => line.includes('composer reinstall polyspec/crudui-validator'));
       if (reads && !reinstalled) violations.push(`${name}: \`${command}\` loads vendor/ without reinstalling polyspec/crudui-validator first`);

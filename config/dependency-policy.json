@@ -1,8 +1,20 @@
 {
   "schema": 1,
-  "comment": "The exception policy of the dependency review (docs/spec/package-build.md, \"Dependency review\"), read by scripts/check-dependencies.mjs and scripts/dependency-review.mjs: the Composer manifests whose requirements and locks are reviewed besides the npm manifests of the root and its workspaces (the development root composer.json, whose lock resolves the published Composer packages of packages/), and each registry dependency kept below the latest stable release of its review, with its reason, removal condition and verification commands.",
-  "composerManifests": [
-    "composer.json"
+  "composerPlatforms": [
+    {
+      "manifest": "./composer.json",
+      "php": "8.4.1"
+    }
+  ],
+  "pythonManifests": [],
+  "taggedNpmPackages": [
+    {
+      "directory": ".form-comparison/sources/ordered-json/js",
+      "repository": "https://github.com/polyspec/ordered-json",
+      "tag": "v0.0.3",
+      "version": "0.0.3",
+      "fix": "make install-ordered-json"
+    }
   ],
   "exceptions": [
     {
@@ -12,7 +24,7 @@
       "reason": "React 19.3 renders the widget scripts of the React renderer as <script> elements in client rendering, which React does not execute: with React 19.3.0, 6 of the 24 cases of tests/widget-script-runs.test.mjs fail in Chromium, Firefox and WebKit with \"Encountered a script tag while rendering React component\" (C5.8-2-1).",
       "removalCondition": "Remove the exception when the React renderer runs widget scripts without <script> elements in client rendering and the 24 cases of tests/widget-script-runs.test.mjs pass with the latest React release.",
       "verification": [
-        "node scripts/run-tests.mjs node --timeout 120 -- tests/widget-script-runs.test.mjs",
+        "node scripts/kit/run-tests.mjs node --timeout 120 -- tests/widget-script-runs.test.mjs",
         "npm test -w @polyspec/crudui-generator-react"
       ]
     },
@@ -23,7 +35,7 @@
       "reason": "React 19.3 renders the widget scripts of the React renderer as <script> elements in client rendering, which React does not execute: with React 19.3.0, 6 of the 24 cases of tests/widget-script-runs.test.mjs fail in Chromium, Firefox and WebKit with \"Encountered a script tag while rendering React component\" (C5.8-2-1).",
       "removalCondition": "Remove the exception when the React renderer runs widget scripts without <script> elements in client rendering and the 24 cases of tests/widget-script-runs.test.mjs pass with the latest React release.",
       "verification": [
-        "node scripts/run-tests.mjs node --timeout 120 -- tests/widget-script-runs.test.mjs",
+        "node scripts/kit/run-tests.mjs node --timeout 120 -- tests/widget-script-runs.test.mjs",
         "npm test -w @polyspec/crudui-generator-react"
       ]
     },
@@ -34,7 +46,7 @@
       "reason": "React 19.3 renders the widget scripts of the React renderer as <script> elements in client rendering, which React does not execute: with React 19.3.0, 6 of the 24 cases of tests/widget-script-runs.test.mjs fail in Chromium, Firefox and WebKit with \"Encountered a script tag while rendering React component\" (C5.8-2-1).",
       "removalCondition": "Remove the exception when the React renderer runs widget scripts without <script> elements in client rendering and the 24 cases of tests/widget-script-runs.test.mjs pass with the latest React release.",
       "verification": [
-        "node scripts/run-tests.mjs node --timeout 120 -- tests/widget-script-runs.test.mjs",
+        "node scripts/kit/run-tests.mjs node --timeout 120 -- tests/widget-script-runs.test.mjs",
         "npm test -w @polyspec/crudui-generator-react"
       ]
     },
@@ -45,7 +57,7 @@
       "reason": "React 19.3 renders the widget scripts of the React renderer as <script> elements in client rendering, which React does not execute: with React 19.3.0, 6 of the 24 cases of tests/widget-script-runs.test.mjs fail in Chromium, Firefox and WebKit with \"Encountered a script tag while rendering React component\" (C5.8-2-1).",
       "removalCondition": "Remove the exception when the React renderer runs widget scripts without <script> elements in client rendering and the 24 cases of tests/widget-script-runs.test.mjs pass with the latest React release.",
       "verification": [
-        "node scripts/run-tests.mjs node --timeout 120 -- tests/widget-script-runs.test.mjs",
+        "node scripts/kit/run-tests.mjs node --timeout 120 -- tests/widget-script-runs.test.mjs",
         "npm test -w @polyspec/crudui-generator-react"
       ]
     }

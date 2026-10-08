@@ -1350,7 +1350,7 @@ mod tests {
 
     /// 100,000 distinct values are keyed once each within seconds; comparing each value with
     /// every earlier one makes 5 * 10^9 comparisons and does not end before the per-test timeout
-    /// of scripts/run-tests.mjs.
+    /// of scripts/kit/run-tests.mjs.
     #[test]
     fn test_unique_many_values() {
         let mut values: Vec<Value> = (0..100_000)

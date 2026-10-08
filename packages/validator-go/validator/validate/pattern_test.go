@@ -241,7 +241,7 @@ func TestPatternRepeatedAtomsShareOneSet(t *testing.T) {
 
 // TestPatternMatchingIsLinear matches inputs that take exponential or large polynomial time in
 // backtracking engines. A linear matcher ends them within milliseconds; a backtracking one does
-// not end before the per-test timeout of scripts/run-tests.mjs, which fails the test.
+// not end before the per-test timeout of scripts/kit/run-tests.mjs, which fails the test.
 func TestPatternMatchingIsLinear(t *testing.T) {
 	cases := []struct {
 		source string

@@ -3,7 +3,6 @@
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { useCheckoutNpm } from './checkout-npm.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const RUST_COMMAND = join(ROOT, 'scripts/run-rust-command.mjs');
@@ -25,7 +24,6 @@ function run(command, args, cwd = ROOT) {
   execFileSync(command, args, { cwd, stdio: 'inherit' });
 }
 
-useCheckoutNpm();
 if (want('ts')) {
   check('ts:build', () => run('npm', ['run', 'build']));
   if (results.at(-1).passed) for (const pkg of ['generator-core', 'validator-ts', 'generator-html', 'generator-react', 'generator-vue', 'generator-svelte', 'form-binding']) {

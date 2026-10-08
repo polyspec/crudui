@@ -17,7 +17,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { activeItems, CHECKLIST } from './full-run.mjs';
-import { createProgress } from './test-progress/progress.mjs';
+import { createProgress } from './kit/test-progress.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const USAGE = 'Usage: node scripts/push-gate.mjs hook | commit <rev> | hooks-check';

@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { describe, test } from 'node:test';
 
-import { setup, teardown } from '../../scripts/test-progress/hooks.mjs';
+import { setup, teardown } from '../../scripts/kit/test-hooks.mjs';
 
 import { prepareRecordServers, recordPublicDirectory, recordServerProcess, startProcess } from './src/local-servers.mjs';
 import { recordClient, recordContractCases, recordServers, recordStoreName } from './src/record-contract.mjs';

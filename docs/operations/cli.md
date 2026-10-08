@@ -7,8 +7,8 @@ and `explain`. Install dependencies and build the packages from the repository
 root before running commands:
 
 ```sh
-node scripts/install-npm.mjs
-export PATH="$PWD/.tools/npm/node_modules/.bin:$PATH"
+make install-tools
+export PATH="$PWD/var/tools/bin:$PATH"
 npm ci --strict-allow-scripts
 npm run build
 ```

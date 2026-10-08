@@ -172,13 +172,15 @@ latest release of a channel, and no tool installs another version on its own.
 - `packageManager` of the root `package.json` records the exact npm release,
   because the npm that installs, packs and runs the scripts changes their results,
   as the `pack --json` report changed from an array in npm 11 to an object in
-  npm 12. `node scripts/install-npm.mjs` installs exactly that release into the
-  ignored directory `.tools/npm` of the checkout and never into the machine, whose
-  npm every other checkout uses. The Makefile, every script that
-  starts npm and every CI job put `.tools/npm/node_modules/.bin` first on `PATH`.
+  npm 12. `make install-tools` (`scripts/kit/install-tools.mjs`) installs exactly
+  that release into the ignored directory `var/tools/npm` of the checkout and never
+  into the machine, whose npm every other checkout uses. The Makefile puts
+  `var/tools/bin` first on `PATH`, and every CI job starts npm through a make target.
 - `.go-version` records the exact Go release, which CI reads. Every `go.mod`
-  names it in its `toolchain` line, and `GOTOOLCHAIN=local`, which the Makefile
-  and CI set, keeps go from downloading another toolchain.
+  names it in its `toolchain` line, `config/toolchain.json` names the `go.mod`
+  whose `toolchain` line `make install-tools` installs into `var/tools/go`, and
+  `GOTOOLCHAIN=local`, which the Makefile and CI set, keeps go from downloading
+  another toolchain.
 - `rust-toolchain.toml` records the exact Rust release with the profile `minimal`
   and the components `rustfmt` and `clippy`. The Makefile and CI set
   `RUSTUP_AUTO_INSTALL=0`, so a cargo without the installed toolchain fails with
@@ -186,16 +188,19 @@ latest release of a channel, and no tool installs another version on its own.
   with `rustup toolchain install --no-self-update`.
 - `config/toolchain.json` records the tested PHP minor releases in `php`, the
   minor release of Python, which runs the tests of `tests/ordered-json`
-  (`make test-ordered-json`), in `python`, compared like PHP, the exact Composer release in `composer`, and the SHA-256 of the Linux x64 archive
-  of the Node.js release in `node`. PHP is pinned by its minor release, because
+  (`make test-ordered-json`), in `python`, compared like PHP, the exact Composer release in `composer`
+  (an object with `version`), the `go.mod` whose `toolchain` line is the Go release in `go`, the exact cargo-audit
+  release in `cargoAudit`, and the SHA-256 of the Linux x64 archive
+  of the Node.js release in `node`. The file follows the schema
+  `scripts/kit/schema/toolchain.schema.json`, which `make kit-check` applies. PHP is pinned by its minor release, because
   setup-php and Homebrew cannot install the same patch: the checks compare the
   major and minor of the running PHP, and the patch that a run ran on is its
-  evidence, which `node scripts/check-toolchain.mjs` prints and
+  evidence, which `scripts/kit/check-toolchain.mjs` prints and
   `var/full-run.json` records with the other running releases.
-- `node scripts/check-toolchain.mjs <tool>...` fails for every named tool that
+- `make toolchain-check TOOLS="<tool>..."` (`scripts/kit/check-toolchain.mjs`) fails for every named tool that
   does not run at its recorded version and names the record, the expected and the
   running version, and the fix; it prints the running release of every named tool. Every CI job runs it for the tools that it set up;
-  `make toolchain-check` runs it for all of them.
+  `make toolchain-check` without `TOOLS` runs it for all of them.
 
 The repository tracks no container definition: Linux runs on the CI runners. Package lock files
 record resolved package versions; they do not select a runtime release.
@@ -246,21 +251,22 @@ Dependencies are judged by the state known at their review, never by a registry
 query of a check, so one tree gives one result at any time. The review covers the
 registry dependencies: the `dependencies` and `devDependencies` of the root
 `package.json` and of each workspace, and the `require` and `require-dev` of the
-Composer packages that `config/dependency-policy.json` names
-(`packages/validator-php` and `packages/generator-php`). Peer dependencies, URL
+Composer manifests that `composerPlatforms` of `config/dependency-policy.json` names
+(the development root, written `./composer.json` because the schema `scripts/kit/schema/dependency-policy.schema.json`
+requires a character before `composer.json`; its lock resolves `packages/validator-php` and `packages/generator-php`). Peer dependencies, URL
 dependencies, packages of this repository and Composer platform requirements are
 outside the review by definition. A polyspec package taken from a GitHub tag is the
 release of that tag: the check requires the root manifest to link it to the checkout of
 the tag, the checkout to have the version of the tag and the lock file to record that
-version. `make dependency-review` asks the registries for
+version. `make dependency-review` (`scripts/kit/dependency-review.mjs`) asks the registries for
 the latest stable release of each registry dependency that its publisher has not
 deprecated, and for the advisories of `package-lock.json` (moderate, high and
 critical), of each `composer.lock` (every advisory and abandoned package) and of
 every Cargo lock of the checkout, which cargo-audit reads from the RustSec advisory
 database (every vulnerability and every unmaintained, unsound or yanked crate).
-`make install-cargo-audit`, a prerequisite of `make dependency-review`, installs the
-cargo-audit release of `config/toolchain.json` into
-`.tools/cargo-audit`.
+`make install-tools` installs the cargo-audit release of `config/toolchain.json` into
+`var/tools/cargo-audit`. The Go modules of the checkout require only modules of
+the checkout through `replace`, so the review records no Go dependency and no `go.sum`.
 `RECORD=1` writes the review with the sha256 of each lock to
 `config/dependency-review.json`, and `UPDATE=1` first raises each newer dependency
 in its manifest, keeping its range operator, and after the npm updates runs
@@ -269,15 +275,22 @@ installs and adds the raised release beside it. The scheduled workflow
 `.github/workflows/dependency-review.yml` runs the review every day; no check and
 no gating CI job runs it.
 
-`npm run test:dependencies` reads only the files of the checkout
-(`scripts/check-dependencies.mjs`) and reports each finding with its rule and fix.
+`make dependency-policy-check` (`scripts/kit/check-dependency-policy.mjs`) reads only the files of the checkout
+and reports each finding with its rule and fix; `make dependency-policy-mutation-check` requires
+the check to reject each known mutation of a copy of the dependency files; `make test-dependencies` runs both and
+`npm run test:dependencies`.
 It fails when a lock changed after its review, a registry dependency has no review
 entry or is locked at another version than its review recorded, a registry
 dependency is older than the latest stable release of its review without an
 exception, an exception names a dependency at its latest release, a lock had an
 advisory at its review, `package-lock.json` does not record a manifest, a package
 of this repository is not required at its own version, or `composer validate
---strict` without a network finds a Composer lock that is not current. An
+--strict` without a network finds a Composer lock that is not current, or a Composer manifest whose
+`config.platform.php` or lock `platform-overrides` differs from the `php` of its entry in `composerPlatforms` (`8.4.1`,
+the lowest PHP release that the locked PHPUnit supports). `taggedNpmPackages` of
+`config/dependency-policy.json` records the OrderedJSON tag that the root manifest links with `file:`; the test
+`tests/build/dependency-health.test.mjs` requires it to equal the tag of
+`examples/form-comparison/src/ordered-json-source.mjs`. An
 exception of `config/dependency-policy.json` names its ecosystem, manifest and
 package and declares a reproduced reason, a removal condition and verification
 commands.
@@ -286,15 +299,15 @@ commands.
 
 A check reads no network. The Makefile exports `CARGO_NET_OFFLINE=true`,
 `GOPROXY=off`, `npm_config_offline=true` and `COMPOSER_DISABLE_NETWORK=1` for every
-recipe and the commands that it starts; only the download targets `install`,
-`install-crates`, `install-ordered-json`, `install-cargo-audit` and
+recipe and the commands that it starts; only the download targets `install`, `install-tools`,
+`install-crates`, `install-ordered-json` and
 `dependency-review`, and the consumer installs of the release archives
 `release-install-check` and `release-install-lock`, which download the
 third-party packages that their locks pin, lift them with `$(ONLINE)`. `make install-crates` downloads the
 crates of every Cargo.lock after the OrderedJSON checkout
 (`.form-comparison/sources/ordered-json`) that the lock of the Rust record server
 reads, and `make install` runs it. Every target that runs cargo depends on
-`make cargo-downloads-check` (`scripts/check-cargo-downloads.mjs`), which runs
+`make cargo-downloads-check` (`scripts/kit/check-cargo-downloads.mjs`), which runs
 `cargo fetch --locked --offline` for each lock and fails with each lock, the first
 error line of cargo and `run make install, which downloads them`, instead of cargo's
 advice to retry without `--offline`. The comparison pipeline reads the OrderedJSON

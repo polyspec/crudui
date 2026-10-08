@@ -10,9 +10,11 @@ import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
+import { isVendored } from '../../scripts/repository-files.mjs';
+
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const read = file => readFileSync(path.join(ROOT, file), 'utf8');
-const tracked = execFileSync('git', ['ls-files', '-z'], { cwd: ROOT, encoding: 'utf8' }).split('\0').filter(Boolean);
+const tracked = execFileSync('git', ['ls-files', '-z'], { cwd: ROOT, encoding: 'utf8' }).split('\0').filter(file => file && !isVendored(file));
 
 test('every package of packages/ has the name of the polyspec convention', () => {
   assert.equal(JSON.parse(read('package.json')).name, '@polyspec/crudui-workspace');

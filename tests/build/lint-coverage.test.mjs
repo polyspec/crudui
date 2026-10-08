@@ -10,6 +10,8 @@ import test from 'node:test';
 
 import { ESLint } from 'eslint';
 
+import { isVendored } from '../../scripts/repository-files.mjs';
+
 const root = path.resolve(import.meta.dirname, '../..');
 const sourcePattern = /\.(?:js|jsx|mjs|cjs|ts|tsx|mts|cts|vue|svelte)$/;
 
@@ -17,7 +19,7 @@ const sourcePattern = /\.(?:js|jsx|mjs|cjs|ts|tsx|mts|cts|vue|svelte)$/;
 // is no longer a source.
 const sources = execFileSync('git', ['ls-files', '--cached', '--others', '--exclude-standard'], { cwd: root, encoding: 'utf8' })
   .split('\n')
-  .filter(file => sourcePattern.test(file) && existsSync(path.join(root, file)));
+  .filter(file => sourcePattern.test(file) && existsSync(path.join(root, file)) && !isVendored(file));
 
 /** The paths `npm run lint` hands to ESLint. */
 function lintTargets() {
@@ -53,8 +55,8 @@ test('the coverage check finds sources the lint command leaves out', async () =>
   assert.deepEqual(await uncovered(['node_modules/eslint/lib/api.js'], ['.']), [
     'node_modules/eslint/lib/api.js: eslint.config.mjs ignores it or no entry matches it',
   ]);
-  assert.deepEqual(await uncovered(['scripts/run-tests.mjs'], ['packages']), [
-    "scripts/run-tests.mjs: outside the lint command's paths (packages)",
+  assert.deepEqual(await uncovered(['scripts/kit/run-tests.mjs'], ['packages']), [
+    "scripts/kit/run-tests.mjs: outside the lint command's paths (packages)",
   ]);
   assert.deepEqual(await uncovered(['notes/example.txt'], ['.']), [
     'notes/example.txt: eslint.config.mjs ignores it or no entry matches it',
@@ -70,7 +72,7 @@ test('npm run lint covers every JavaScript, TypeScript, Vue and Svelte source', 
 // A file under a directory that Git ignores is no source: a stray copy of build output under var/ must not reach ESLint.
 test('ESLint ignores every path that Git ignores', async t => {
   const { mkdirSync, rmSync, writeFileSync } = await import('node:fs');
-  const { ignoredPaths } = await import('../../scripts/tracked-files.mjs');
+  const { ignoredPaths } = await import('../../scripts/kit/tracked-files.mjs');
   const stray = path.join(root, 'var/lint-coverage-stray');
   mkdirSync(stray, { recursive: true });
   t.after(() => rmSync(stray, { recursive: true, force: true }));
@@ -82,4 +84,13 @@ test('ESLint ignores every path that Git ignores', async t => {
     if (!(await eslint.isPathIgnored(probe))) reached.push(probe);
   }
   assert.deepEqual(reached, []);
+});
+
+// The vendored copy of polyspec/kit is the only tracked code that ESLint leaves out: it is linted in polyspec/kit.
+test('ESLint ignores the vendored copy of polyspec/kit and no other tracked source', async () => {
+  const eslint = new ESLint({ cwd: root });
+  assert.equal(await eslint.isPathIgnored('scripts/kit/run-tests.mjs'), true);
+  assert.equal(await eslint.isPathIgnored('tests/kit/run-tests.test.mjs'), true);
+  assert.equal(await eslint.isPathIgnored('scripts/repository-files.mjs'), false);
+  assert.equal(await eslint.isPathIgnored('tests/conformance/run-suite.mjs'), false);
 });

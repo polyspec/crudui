@@ -102,7 +102,7 @@ pull request carries a tag; the maintainer creates and pushes it.
 
 3. `.github/workflows/release.yml` runs on the pushed tag (`tags: ['v*', '**/v*']`: in a tag filter `*` does not
    match `/`, so `**/v*` covers `packages/<directory>/vX.Y.Z`), with the token permission `contents: write`. After the
-   setup steps (`make install-npm`, `make toolchain-check TOOLS="node npm php composer"`,
+   setup steps (`make install-tools`, `make toolchain-check TOOLS="node npm php composer"`,
    `make install-node-modules`) its last five steps run through make in this order; the steps of `scripts/release.mjs`
    take the tag of the environment variable `TAG`, which the recipe passes as `"$$TAG"`:
    - `make release-verify` requires the commit of the tag on `origin/main` (`git merge-base --is-ancestor`) and the

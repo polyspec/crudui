@@ -15,9 +15,8 @@ import { fileURLToPath } from 'node:url';
 
 import { PUPPETEER_REVISIONS } from 'puppeteer-core/internal/revisions.js';
 
-import { useCheckoutNpm } from './checkout-npm.mjs';
 import { failureOf, formatSeconds, runCommand } from './run-command.mjs';
-import { createProgress } from './test-progress/progress.mjs';
+import { createProgress } from './kit/test-progress.mjs';
 
 export const SANDBOX_HELPER = '/usr/local/sbin/chrome-devel-sandbox';
 const BROWSERS = ['chrome', 'firefox', 'webkit'];
@@ -41,7 +40,6 @@ export function installCommands(browsers, { withDeps = false, chromeSandbox = fa
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  useCheckoutNpm();
   const args = process.argv.slice(2);
   const lines = createProgress({ write: text => process.stdout.write(text) });
   let chromePath;

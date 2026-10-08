@@ -17,14 +17,14 @@ npm run test:packages
 `test:runtimes`는 모든 도구의 정확한 릴리스 하나를 요구합니다. Node.js는 `.node-version`에, Go는
 `.go-version`과 모든 `go.mod`의 `toolchain` 줄에, Rust는 `rust-toolchain.toml`에, PHP와 Composer는
 `config/toolchain.json`에 PHP minor와 함께 기록하며, 실행 중인 Node.js, npm, Go, Rust, Composer가 그 릴리스이고 PHP가 기록한 minor이기를 요구합니다
-(`scripts/check-toolchain.mjs`). 모든 CI job은 `ubuntu-24.04`에서 실행되고, action을 commit SHA로 지정하며,
+(`scripts/kit/check-toolchain.mjs`). 모든 CI job은 `ubuntu-24.04`에서 실행되고, action을 commit SHA로 지정하며,
 기록한 릴리스를 설치하고 자신이 설치한 도구를 검사합니다. checkout은 컨테이너 정의를
 두지 않습니다. 릴리스 채널이나 machine의 브라우저는 쓰지 않습니다.
 `package.json`의 `packageManager`는 정확한 npm 릴리스 하나를 기록합니다. 검사는 실행 중인
-npm이나 workflow step이 다른 릴리스를 고르면 실패하며, `node scripts/install-npm.mjs`가
-그 릴리스를 checkout의 `.tools/npm`에 설치합니다. `tests/build/checkout-npm.test.mjs`는 script, make 대상, CI step이
-npm을 machine에 설치할 때, make, npm을 시작하는 script, CI job이 `.tools/npm/node_modules/.bin`을 `PATH`의 맨 앞에
-두지 않을 때, 설치가 다른 릴리스나 임시 directory를 남길 때 실패합니다. 런타임
+npm이나 workflow step이 다른 릴리스를 고르면 실패하며, `make install-tools`가
+그 릴리스를 checkout의 `var/tools`에 설치합니다. `tests/build/tool-path.test.mjs`는 script, make 대상, CI step이
+npm을 machine에 설치할 때, 또는 make나 CI job이 `var/tools/bin`을 `PATH`의 맨 앞에
+두지 않을 때 실패합니다. 런타임
 검사는 프로세스 `PATH`에 Cargo가 없는 환경에서 저장소의 Rust Node.js 진입점을
 실행합니다. 각 진입점은 하나의 toolchain 기록에서 Cargo, rustc, rustdoc을 해석하고
 해석한 컴파일러 경로를 Cargo에 전달해야 합니다.

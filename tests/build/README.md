@@ -18,15 +18,14 @@ npm run test:packages
 Go in `.go-version` and the `toolchain` line of every `go.mod`, Rust in
 `rust-toolchain.toml`, the PHP minors and Composer in `config/toolchain.json`, and requires the
 running Node.js, npm, Go, Rust and Composer to be those releases and PHP to be of a recorded minor
-(`scripts/check-toolchain.mjs`). Every CI job runs on `ubuntu-24.04`, names its actions by
+(`scripts/kit/check-toolchain.mjs`). Every CI job runs on `ubuntu-24.04`, names its actions by
 commit SHA, sets up the recorded releases and checks the tools it set up; the checkout tracks
 no container definition; no browser of a release channel or of the machine is used.
 `packageManager` of `package.json` records one exact npm release;
 the check fails when the running npm or a workflow step
-selects another release, and `node scripts/install-npm.mjs` installs it into `.tools/npm` of the checkout.
-`tests/build/checkout-npm.test.mjs` fails when a script, a make target or a CI step installs npm into the machine,
-when make, a script that starts npm or a CI job does not put `.tools/npm/node_modules/.bin` first on `PATH`, and
-when the installation leaves another release or a temporary directory. The runtime checks run repository Rust Node.js entry points without
+selects another release, and `make install-tools` installs it into `var/tools` of the checkout.
+`tests/build/tool-path.test.mjs` fails when a script, a make target or a CI step installs npm into the machine,
+or when make or a CI job does not put `var/tools/bin` first on `PATH`. The runtime checks run repository Rust Node.js entry points without
 Cargo on the process `PATH`. Each entry point must resolve Cargo, rustc and
 rustdoc from one toolchain record and supply the resolved compiler paths to
 Cargo.

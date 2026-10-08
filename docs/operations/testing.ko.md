@@ -6,9 +6,9 @@
 "런타임과 의존성 버전"). `make install`은 기록한 npm, npm과 Composer 의존성, `rust-toolchain.toml`의 Rust toolchain, comparison의 OrderedJSON checkout과
 모든 Cargo.lock의 crate(`make install-crates`),
 `scripts/install-phpdocumentor.sh`가 SHA-256으로 검사하는 phpDocumentor release를 설치하고, `make toolchain-check`는 다른 release로 실행되는 모든 도구를 기대한 release와 함께 밝힙니다.
-`node scripts/install-npm.mjs`로 `package.json`의 `packageManager`가 기록한 npm
-릴리스를 checkout에 설치하며, 이 명령은 machine의 npm을 바꾸지 않습니다. make는 그 `.tools/npm/node_modules/.bin`을
-`PATH`의 맨 앞에 두고, npm을 직접 실행하는 shell은 `export PATH="$PWD/.tools/npm/node_modules/.bin:$PATH"`로 그렇게
+`make install-tools`(`scripts/kit/install-tools.mjs`)로 checkout이 선언한 npm과 Go release와 cargo-audit를
+checkout에 설치하며, 이 명령은 machine의 도구를 바꾸지 않습니다. make는 `var/tools/bin`의 명령을
+`PATH`의 맨 앞에 두고, npm을 직접 실행하는 shell은 `export PATH="$PWD/var/tools/bin:$PATH"`로 그렇게
 합니다. `npm ci --strict-allow-scripts`로 Node 의존성을
 설치하고 PHP 패키지의
 Composer 의존성을 설치하며 PHP·Go·Cargo를 `PATH`에서 실행할 수 있게 합니다. 비교 예제의 PHP 레코드
@@ -27,7 +27,7 @@ container, form comparison, native와 cross-check suite, 전체 build), `make ow
 CI에서 실행하며, push나 commit 전에 local 검사를 요구하는 규칙은 없습니다. pre-push hook은 checklist 작업이 `[~]`인
 동안 push를 거부할 뿐입니다(아래). `make ci`와 `make owner-check`는 요청할 때 실행할 수 있습니다.
 
-workflow의 모든 step은 make 대상을 실행합니다. 설치(`make install-npm`, `make install-node-modules`,
+workflow의 모든 step은 make 대상을 실행합니다. 설치(`make install-tools`, `make install-node-modules`,
 `make install-composer`, `make install-rust`, `make install-crates`, `make install-browsers BROWSERS="..."`), 도구 검사
 (`make toolchain-check TOOLS="..."`), 각 검사(`make test-runtimes`, `make lint`, `make test-forms`와 `CI_COMMANDS`의 나머지)가
 그렇습니다. 그래서 recipe는 모든 도구를 offline 설정, `$(NPM)`, checkout의 toolchain으로 시작합니다.
@@ -136,8 +136,8 @@ composer install
 npm run build
 npm test --workspace @polyspec/crudui-validator
 composer --working-dir=packages/validator-php test
-node scripts/run-tests.mjs go --cwd packages/validator-go -- ./...
-node scripts/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml
+node scripts/kit/run-tests.mjs go --cwd packages/validator-go -- ./...
+node scripts/kit/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml
 npm test --workspace @polyspec/crudui-cli
 npm run test:forms
 npm run test:packages
@@ -167,10 +167,10 @@ make docs-check
 
 ## 테스트 실행기
 
-모든 테스트는 `scripts/run-tests.mjs`로 실행합니다.
+모든 테스트는 `scripts/kit/run-tests.mjs`로 실행합니다.
 
 ```sh
-node scripts/run-tests.mjs <node|vitest|go|cargo|phpunit> [--timeout <seconds>] [--cwd <directory>] [--] [<arguments>]
+node scripts/kit/run-tests.mjs <node|vitest|go|cargo|phpunit> [--timeout <seconds>] [--cwd <directory>] [--] [<arguments>]
 ```
 
 실행기는 각 테스트의 시작, 실행 중임을 알리는 줄, 결과와 경과 시간을 출력합니다. 모든
@@ -187,7 +187,7 @@ method는 세지 않으며, 없는 test file에 대한 오류나 warning을 담�
 파일의 process를 끝내는 `--test-force-exit`로 실행되므로, handle을 열어 둔 test가 실행을 붙잡지 못합니다.
 대신 module이 그 끝 뒤에 등록하는 test는 실행되지 않습니다. 세 검사가 그 틈을 막습니다.
 
-- 실행기는 모든 test 파일의 process에 `scripts/test-progress/load-check.mjs`를 preload합니다. module의
+- 실행기는 모든 test 파일의 process에 `scripts/kit/test-load-check.mjs`를 preload합니다. module의
   evaluation이 top-level `await`까지 끝나기 전에 끝나는 process는 파일을
   `the process ended before the module finished loading; tests registered later did not run`으로 실패시킵니다.
 - 통과, 실패, skip 중 어떤 case도 보고하지 않은 파일은 `the file ran no test case`로 실패합니다.
@@ -196,19 +196,17 @@ method는 세지 않으며, 없는 test file에 대한 오류나 warning을 담�
   `node:test` 등록 뒤의 top-level `await`를 거부합니다. 그래서 모든 case는 module이 처음 기다리기 전에 등록되고,
   첫 검사는 앞 case의 소요 시간에 의존하지 않습니다.
 
-`tests/build/run-tests.test.mjs`는 앞의 두 검사를 파일로 실행하고, `tests/build/test-commands.test.mjs`는 lint
+`tests/kit/run-tests.test.mjs`는 앞의 두 검사를 파일로 실행하고, `tests/build/test-commands.test.mjs`는 lint
 rule을 fixture로 실행합니다.
 
 실행의 모든 실패는 test 파일과 경과 시간과 함께 출력되며, 테스트 밖의 실패도 포함합니다. 실패하거나
 제한 시간을 넘긴 hook과 test 파일의 오류가 그렇습니다. hook이 실패한 파일이나 suite는 그 안의 모든
-테스트가 통과해도 원인과 함께 실패로 출력됩니다. `node --test`에서 파일의 실패한 hook은
-`{file} › hook`으로 출력됩니다. 요약 줄은 실패한 group 수를 표시하므로, 모든 테스트가 통과하고 도구가
+테스트가 통과해도 실패로 출력됩니다. 요약 줄은 실패한 group 수를 표시하므로, 모든 테스트가 통과하고 도구가
 0이 아닌 코드로 끝난 실행은 그 코드의 원인이 된 실패를 보여 줍니다.
-`tests/build/run-tests.test.mjs`는 제한 시간을 넘긴 after hook을 `node --test`와 Vitest에서
-실행합니다.
+`tests/kit/run-tests.test.mjs`가 이 경우들을 실행합니다.
 
 setup(browser launch, server start, stylesheet compile, build)과 teardown(browser close, server stop,
-directory 삭제)은 test case가 아니라 장기 작업입니다. `node:test` 파일은 `scripts/test-progress/hooks.mjs`의
+directory 삭제)은 test case가 아니라 장기 작업입니다. `node:test` 파일은 `scripts/kit/test-hooks.mjs`의
 `setup`과 `teardown`으로 이를 등록하며, 이는 timeout이 `Infinity`인 파일, suite, test 하나(`{ context: t }`)의
 `before`나 `after` hook입니다. 각각은 작업이 끝나면(browser가 launch되고, server가 listen하고, close가
 resolve되고, process가 종료되면) 끝나고, 그 오류는 파일을 실패시키며, 시작, 실행 중 5초마다의 줄, 경과
@@ -239,9 +237,9 @@ hook입니다. test는 browser를 launch하지 않고 setup이 launch한 browser
 - CI 작업이나 단계에 `timeout-minutes`가 있습니다. 단계는 테스트나 장기 작업(checkout, toolchain
   setup, install, build, lint나 type check, upload, deployment)을 실행합니다. 실행기가 테스트 단계의
   각 test case를 제한하고, 장기 작업은 log를 출력하며 시간 한도를 두지 않습니다. 단계의 명령이
-  `scripts/run-tests.mjs`를 호출하거나 npm script, Composer script, Makefile 대상을 거쳐 테스트 명령이나
+  `scripts/kit/run-tests.mjs`를 호출하거나 npm script, Composer script, Makefile 대상을 거쳐 테스트 명령이나
   실행기에 닿으면 그 단계는 테스트를 실행합니다.
-- 테스트 명령이 시작하는 스크립트가 `scripts/test-progress/progress.mjs`로 출력하지 않습니다.
+- 테스트 명령이 시작하는 스크립트가 `scripts/kit/test-progress.mjs`로 출력하지 않습니다.
 - 어떤 프로젝트 명령도 실행하지 않는 `node:test` 파일이 있습니다.
 - TypeScript 패키지에 `typecheck` 스크립트가 없거나 CI가 `npm run typecheck`를 실행하지 않습니다.
 - Makefile 대상이 테스트를 실행하는 대상을 prerequisite로 둡니다.
@@ -345,7 +343,7 @@ holder가 더 이상 실행되지 않는 lock의 보고와 제거, 해제를 확
 |---|---|
 | `make docs-verify-idempotent`의 snapshot | `mktemp -d`의 directory, 실행이 끝날 때 지움 |
 | build되는 각 package의 `dist` | checkout lock `dist-<package folder>`, package build 전체와 모든 pack이 잡음; build는 `dist.next`에 쓰고 그것으로 `dist`를 바꿈 |
-| build stamp, PHP module과 그 build 기록, OrderedJSON checkout, `.tools/npm` | 실행의 경로에 쓴 뒤 제자리로 rename(`tests/build/atomic-publish.test.mjs`) |
+| build stamp, PHP module과 그 build 기록, OrderedJSON checkout | 실행의 경로에 쓴 뒤 제자리로 rename(`tests/build/atomic-publish.test.mjs`) |
 
 build되는 모든 package의 build script는 `node ../../scripts/package-dist.mjs build '<command>'`이고,
 package `dist` lock 아래에서 build command를 실행합니다. command는 `CRUDUI_DIST`가 가리키는 `dist.next`에 쓰고,

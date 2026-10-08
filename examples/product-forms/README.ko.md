@@ -37,7 +37,7 @@
 
 ```sh
 npm run build
-node scripts/run-tests.mjs node -- examples/product-forms/examples.test.mjs
+node scripts/kit/run-tests.mjs node -- examples/product-forms/examples.test.mjs
 ```
 
 `node scripts/check-schema.mjs`는 세 YAML 파일을 메타 스키마로 검사합니다.

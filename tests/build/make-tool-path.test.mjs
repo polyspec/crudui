@@ -51,7 +51,7 @@ test('test-native runs the Rust tests through the test runner', {
   assert.equal(result.status, 0, [result.stdout, result.stderr].join('\n'));
   const commands = await readFile(commandLog, 'utf8');
   assert.match(commands,
-    /^node\tscripts\/run-tests\.mjs cargo -- --locked --manifest-path packages\/generator-rust\/Cargo\.toml$/m);
+    /^node\tscripts\/kit\/run-tests\.mjs cargo -- --locked --manifest-path packages\/generator-rust\/Cargo\.toml$/m);
 });
 
 test('test-native runs the generator and PHP API parts after the PHP engine tests fail, and fails', {

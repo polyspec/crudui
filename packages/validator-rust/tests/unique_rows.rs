@@ -38,7 +38,7 @@ fn unique_rows_belong_to_one_validation() {
 }
 
 /// 25,000 rows are walked once, within seconds; a walk of every earlier row for each row makes
-/// 3 * 10^8 row visits and does not end before the per-test timeout of scripts/run-tests.mjs.
+/// 3 * 10^8 row visits and does not end before the per-test timeout of scripts/kit/run-tests.mjs.
 #[test]
 fn many_unique_rows_are_walked_once() {
     let result = validate(

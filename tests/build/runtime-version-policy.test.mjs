@@ -6,15 +6,25 @@ import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
 
-import { recordedToolchain, toolchainMismatches, toolchainVersions } from '../../scripts/check-toolchain.mjs';
-import { trackedFiles } from '../../scripts/tracked-files.mjs';
+import { toolchainMismatches } from '../../scripts/kit/check-toolchain.mjs';
+import { declaredToolchain } from '../../scripts/kit/toolchain-declared.mjs';
+import { ownedFiles } from '../../scripts/repository-files.mjs';
 import { makeDryRun } from './make-dry-run.mjs';
 
 const repository = fileURLToPath(new URL('../..', import.meta.url));
 
+/** The releases that the checkout declares, by the names of this test: node, npm, go, rust, composer and the minors of php and python. */
+function recordedToolchain(root) {
+  const declared = declaredToolchain(root);
+  return {
+    node: declared.node.version, npm: declared.npm.version, go: declared.go.version, rust: declared.rust.version,
+    php: declared.php.minors, python: declared.python.minor, composer: declared.composer.version,
+  };
+}
+
 /** The container definitions of the checkout: Dockerfile and *Containerfile among its tracked files. */
 async function findContainerDefinitions() {
-  return trackedFiles(repository).filter(file => /(?:^|\/)(?:Dockerfile|[^/]*Containerfile)$/.test(file)).map(file => path.join(repository, file));
+  return ownedFiles(repository).filter(file => /(?:^|\/)(?:Dockerfile|[^/]*Containerfile)$/.test(file)).map(file => path.join(repository, file));
 }
 
 /** The exact npm release that `packageManager` of package.json records. */
@@ -30,7 +40,7 @@ test('the npm that runs here is the release that package.json records', async ()
   const running = spawnSync(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['--version'], { encoding: 'utf8' });
   assert.equal(running.error, undefined, running.error?.message);
   assert.equal(running.stdout.trim(), recorded,
-    `npm ${running.stdout.trim()} runs here and package.json records npm ${recorded}; fix: node scripts/install-npm.mjs installs it into .tools/npm, and make puts .tools/npm/node_modules/.bin first on PATH`);
+    `npm ${running.stdout.trim()} runs here and package.json records npm ${recorded}; fix: make install-tools installs it into var/tools, and make puts var/tools/bin first on PATH`);
 });
 
 test('every workflow job installs the recorded npm before it runs npm', async () => {
@@ -45,9 +55,9 @@ test('every workflow job installs the recorded npm before it runs npm', async ()
         if (typeof step.run !== 'string') continue;
         for (const command of step.run.split(/\n|&&/).map(text => text.trim()).filter(Boolean)) {
           if (/\bnpm@|\bnpm (?:i|install) (?:-g|--global)\b/.test(command)) violations.push(`${file} ${id}: \`${command}\` selects an npm release`);
-          // make install-node-modules installs the recorded npm first (its prerequisite install-npm).
-          if (/^make\b.*\binstall-(?:npm|node-modules)\b/.test(command)) installed = true;
-          else if (/^npm\b/.test(command) && !installed) violations.push(`${file} ${id}: \`${command}\` runs before make install-npm`);
+          // make install-tools installs the recorded npm, and make install-node-modules runs it first (its prerequisite).
+          if (/^make\b.*\binstall-(?:tools|node-modules)\b/.test(command)) installed = true;
+          else if (/^npm\b/.test(command) && !installed) violations.push(`${file} ${id}: \`${command}\` runs before make install-tools`);
         }
       }
     }
@@ -86,31 +96,6 @@ test('every tool runs at the version that the checkout records, PHP at a recorde
   assert.deepEqual(toolchainMismatches(['node', 'npm', 'go', 'rust', 'php', 'python', 'composer'], { root: repository }), []);
 });
 
-test('the running releases are reported, the patch of PHP included', () => {
-  const outputs = { node: 'v26.8.1\n', php: '8.5.10\n' };
-  const run = command => ({ status: 0, stdout: outputs[command] ?? '', stderr: '' });
-  assert.deepEqual(toolchainVersions(['node', 'php'], { root: repository, run }), { node: '26.8.1', php: '8.5.10' });
-  assert.deepEqual(toolchainVersions(['go'], { root: repository, run: () => ({ status: 1, stdout: '' }) }), { go: 'unavailable: go exited with 1' });
-});
-
-test('a tool at another version fails with its record, the expected and the running version and the fix', () => {
-  const recorded = recordedToolchain(repository);
-  const outputs = { node: 'v1.2.3\n', rustc: 'rustc 1.0.0 (abc 2020-01-01)\n', php: '8.3.30\n' };
-  const run = command => (command === 'go' ? { status: 1, stdout: '', stderr: 'go: not found' } : { status: 0, stdout: outputs[command] ?? '', stderr: '' });
-  // Another patch of a recorded minor is accepted.
-  assert.deepEqual(toolchainMismatches(['php'], { root: repository, run: () => ({ status: 0, stdout: `${recorded.php[0]}.99\n` }) }), []);
-  assert.deepEqual(toolchainMismatches(['python'], { root: repository, run: () => ({ status: 0, stdout: `Python ${recorded.python}.99\n` }) }), []);
-  assert.deepEqual(toolchainMismatches(['python'], { root: repository, run: () => ({ status: 0, stdout: 'Python 3.1.4\n' }) }), [
-    `python: 3.1.4 runs here and config/toolchain.json python records ${recorded.python}; fix: install python ${recorded.python}`,
-  ]);
-  assert.deepEqual(toolchainMismatches(['node', 'rust', 'php', 'go'], { root: repository, run }), [
-    `node: 1.2.3 runs here and .node-version records ${recorded.node}; fix: install node ${recorded.node}`,
-    `rust: 1.0.0 runs here and rust-toolchain.toml records ${recorded.rust}; fix: make install (rustup toolchain install --no-self-update)`,
-    `php: 8.3.30 runs here and config/toolchain.json php records ${recorded.php.join(' or ')}; fix: install php ${recorded.php.join(' or ')}`,
-    'go: `go env GOVERSION` failed (status 1): go: not found',
-  ]);
-});
-
 // The type definitions of Node.js describe the runtime that runs the code, so every manifest requires the major of
 // the recorded Node.js release.
 test('every @types/node range requires the major of .node-version', async () => {
@@ -129,8 +114,9 @@ test('every @types/node range requires the major of .node-version', async () => 
 });
 
 test('every go.mod names the recorded Go release as its toolchain', async () => {
-  const { go } = recordedToolchain(repository);
-  const files = spawnSync('git', ['ls-files', '--cached', '--others', '--exclude-standard', '*go.mod'], { cwd: repository, encoding: 'utf8' }).stdout.split('\n').filter(Boolean);
+  const go = (await read('.go-version')).trim();
+  assert.equal(recordedToolchain(repository).go, go, 'config/toolchain.json go names a go.mod whose toolchain line is the release of .go-version');
+  const files = ownedFiles(repository).filter(file => /(?:^|\/)go\.mod$/.test(file));
   assert.ok(files.length > 0);
   const violations = [];
   for (const file of files) {
@@ -200,7 +186,7 @@ test('every CI job sets up the recorded toolchains and checks the tools it set u
         }
         if (/rust-toolchain|dtolnay/.test(uses)) violations.push(`${file} ${id}: ${uses} selects a Rust toolchain; run rustup toolchain install --no-self-update`);
         if (/^make\b.*\binstall-rust\b/m.test(run)) tools.push('rust');
-        if (/^make\b.*\binstall-(?:npm|node-modules)\b/m.test(run) && !tools.includes('npm')) tools.push('npm');
+        if (/^make\b.*\binstall-(?:tools|node-modules)\b/m.test(run) && !tools.includes('npm')) tools.push('npm');
         const check = /^make toolchain-check TOOLS=(?:"([^"]+)"|(\S+))$/m.exec(run);
         if (check) checked = { tools: (check[1] ?? check[2]).split(' '), index };
       });
@@ -232,7 +218,7 @@ test('the declared contract commands run in a shell without login files', async 
 
 /** The Composer manifests of the checkout among its tracked files. */
 async function composerManifests() {
-  return trackedFiles(repository).filter(file => /(?:^|\/)composer\.json$/.test(file)).map(file => path.join(repository, file));
+  return ownedFiles(repository).filter(file => /(?:^|\/)composer\.json$/.test(file)).map(file => path.join(repository, file));
 }
 
 /** The PHP minors from `lowest` to `newest`, as `8.N` strings. */

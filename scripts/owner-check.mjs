@@ -243,7 +243,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   for (const reason of selection.reasons) say(`${reason}`);
   const commands = [
     ...selection.checks,
-    ...(selection.tests.length ? [{ name: `node tests ${selection.tests.join(' ')}`, command: process.execPath, args: ['scripts/run-tests.mjs', 'node', '--', ...selection.tests] }] : []),
+    ...(selection.tests.length ? [{ name: `node tests ${selection.tests.join(' ')}`, command: process.execPath, args: ['scripts/kit/run-tests.mjs', 'node', '--', ...selection.tests] }] : []),
   ];
   say(`${changed.length} changed paths select ${commands.map(command => command.name).join('; ') || 'nothing'}`);
   if (values['dry-run']) process.exit(0);

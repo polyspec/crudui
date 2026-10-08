@@ -110,7 +110,6 @@ function commands(filename) {
 test('Rust documentation coverage uses one resolved toolchain', t => {
   const root = fixture(t, 'crudui-rust-doc-coverage-', [
     'scripts/check-doc-coverage.mjs',
-    'scripts/checkout-npm.mjs',
   ], [
     'packages/validator-rust',
     'packages/generator-rust',
@@ -141,9 +140,9 @@ test('Rust documentation coverage uses one resolved toolchain', t => {
 test('Rust API generation uses one resolved toolchain', t => {
   const root = fixture(t, 'crudui-rust-api-', [
     'scripts/gen-api-docs.mjs',
-    'scripts/checkout-npm.mjs',
     'scripts/run-command.mjs',
-    'scripts/test-progress/progress.mjs',
+    'scripts/kit/test-progress.mjs',
+    'scripts/kit/time.mjs',
   ], [
     'docs/api',
     'docs/public/api',

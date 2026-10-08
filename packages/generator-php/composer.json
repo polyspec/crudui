@@ -25,6 +25,6 @@
         }
     },
     "scripts": {
-        "test": "node ../../scripts/run-tests.mjs phpunit --cwd packages/generator-php"
+        "test": "node ../../scripts/kit/run-tests.mjs phpunit --cwd packages/generator-php"
     }
 }

@@ -9,13 +9,13 @@ import path from 'node:path';
 import test from 'node:test';
 
 import { failureLines, FAILURE_LINES } from '../../scripts/target-report.mjs';
-import { ROOT } from '../../scripts/tracked-files.mjs';
+import { ROOT } from '../../scripts/kit/paths.mjs';
 
 test('make ci-targets runs every target to its end and reports the failed one with its first failure lines', t => {
   const directory = mkdtempSync(path.join(tmpdir(), 'crudui-ci-targets-'));
   t.after(() => rmSync(directory, { recursive: true, force: true }));
   // A checkout with the two scripts and a Makefile of a failing and a passing probe target.
-  for (const file of ['scripts/ci-targets.mjs', 'scripts/target-report.mjs', 'scripts/holder-lock.mjs', 'scripts/test-progress/progress.mjs']) {
+  for (const file of ['scripts/ci-targets.mjs', 'scripts/target-report.mjs', 'scripts/holder-lock.mjs', 'scripts/kit/test-progress.mjs']) {
     const target = path.join(directory, file);
     spawnSync('mkdir', ['-p', path.dirname(target)]);
     writeFileSync(target, readFileSync(path.join(ROOT, file)));

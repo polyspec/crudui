@@ -8,7 +8,7 @@ import { describe, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { compile } from '@tailwindcss/node';
 import { engineDrivers, engines } from './browser-engines.mjs';
-import { setup, teardown } from '../scripts/test-progress/hooks.mjs';
+import { setup, teardown } from '../scripts/kit/test-hooks.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const styles = `${root}packages/generator-core/styles`;
