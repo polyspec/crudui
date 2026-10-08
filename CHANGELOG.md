@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+### 2026-10-08 — The Python generator package (C13.1-3)
+
+- `packages/generator-python` publishes `polyspec-crudui-generator` as the
+  namespace package `polyspec.crudui.generator` for Python 3.11 and newer, over
+  `polyspec-crudui-validator`: template compilation, field binding, buttons,
+  the form instance with its row operations, list and detail models, the
+  widget, style and rendering internals and the value helpers. `Generator`
+  exposes `compileForm`, `bindForm`, `bindButtons`, `formButtonsHtml`,
+  `createForm`, `renderForm`, `renderList`, `buildList`, `renderDetail`,
+  `buildDetail`, `sequenceRowKey` and `createRowKey` beside `Form` and
+  `FormError`.
+- The validator text module gains the message-returning `specificationFailure`,
+  `inputFailure` and `optionEntries` helpers, which the generator wraps in its
+  `FormError` of code `INVALID_FORM_INPUT`.
+
 ### 2026-10-08 — The Python validator on the shared fixtures (C13.1-2)
 
 - The unit tests of `packages/validator-python` read the shared fixtures and reproduce every
