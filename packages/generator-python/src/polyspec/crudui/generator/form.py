@@ -93,6 +93,8 @@ class Form:
     def setData(self, data):
         """Replace the record and reevaluate the fields atomically."""
         check_inputs([('data', data)])
+        if not isinstance(data, dict):
+            raise FormError('INVALID_FORM_INPUT', 'Form data must be an object')
         self._commit(self._normalize_fields(self._template['fields'], object_value(data)))
 
     def setValue(self, path, value):
