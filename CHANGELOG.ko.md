@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### 2026-10-08 — PHP 실행 파일의 아키텍처로 빌드하는 PHP 확장 (C13.1-16)
+
+- PHP 확장 빌더는 PHP 실행 파일의 아키텍처를 `lipo -archs`로 읽어 컴파일과 링크
+  명령에 `-arch`로 넘긴다. 링크된 module의 아키텍처가 다르면 빌더가 실패한다.
+  Red: 아키텍처 단위 test가 없는 export로 실패했다. Green: 아키텍처 단위 test가
+  통과하고(`tests/build/php-extensions.test.mjs` 5개), `make build-php-extension`이
+  로드되는 arm64 module을 만들며, cross-check vitest가 1267개 test로 통과한다(`php-native`
+  프로세스 포함).
+
 ### 2026-10-08 — Python의 form-outline fixture 범위 (C13.1-15)
 
 - C13.1 행은 `tests/fixtures/form-outline`을 Python validator와 generator의 범위 밖이라고
