@@ -8,6 +8,9 @@ style attribute after the other declared attributes.
 
 import re
 
+from collections.abc import Mapping
+from typing import Any
+
 from .style import rendered as style_rendered
 from .value import MISSING, classes, scalar, style_value
 
@@ -30,7 +33,7 @@ _REACT_ATTRIBUTE_NAMES = {
 }
 
 
-def text(value, raw=False):
+def text(value: str, raw: bool = False) -> str:
     """Escape ordinary text, or explicit raw-control text."""
     if raw:
         return value.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
@@ -40,14 +43,14 @@ def text(value, raw=False):
     )
 
 
-def url(value):
+def url(value: str) -> str:
     """Reject javascript URLs in ordinary link and image attributes."""
     if _SCRIPT_URL.match(value) is not None:
         return "javascript:throw new Error('React has blocked a javascript: URL as a security precaution.')"
     return value
 
 
-def attrs(values, raw=False):
+def attrs(values: Mapping[str, Any], raw: bool = False) -> str:
     """Escape attributes and serialize ordinary or explicit raw styles."""
     out = ''
     for name, value in values.items():
@@ -64,12 +67,12 @@ def attrs(values, raw=False):
     return out
 
 
-def element(tag, values=None, body='', raw=False):
+def element(tag: str, values: Mapping[str, Any] | None = None, body: str = '', raw: bool = False) -> str:
     """A non-void element with an already rendered body."""
     return f'<{tag}{attrs(values or {}, raw)}>{body}</{tag}>'
 
 
-def _control_attrs(values):
+def _control_attrs(values: Mapping[str, Any]) -> dict[str, Any]:
     """A style attribute moves after the other declared attributes."""
     values = dict(values)
     if 'style' in values:
@@ -78,10 +81,10 @@ def _control_attrs(values):
     return values
 
 
-def _input(values, raw=False):
+def _input(values: Mapping[str, Any], raw: bool = False) -> str:
     if not raw:
         values = dict(values)
-        trailing = {}
+        trailing: dict[str, Any] = {}
         for key in ('name', 'checked', 'value'):
             if key in values:
                 trailing[key] = values.pop(key)
@@ -89,11 +92,11 @@ def _input(values, raw=False):
     return f'<input{attrs(values, raw)}{">" if raw else "/>"}'
 
 
-def _script(script):
+def _script(script: str) -> str:
     return f'<script nonce="">{script}</script>'
 
 
-def form(nodes, buttons, messages, model=None, description=''):
+def form(nodes: list[Mapping[str, Any]], buttons: list[Any], messages: Mapping[str, Any], model: Mapping[str, Any] | None = None, description: str = '') -> str:
     """The complete form: the form element and hidden inputs of the model around the block.
 
     The crudui-form block holds the root description when it is not empty, the
@@ -135,10 +138,10 @@ def form(nodes, buttons, messages, model=None, description=''):
     return element('form', model['form'], hidden + block)
 
 
-_EMPTY_MODEL = {'form': None, 'hidden': [], 'formErrors': [], 'nodeErrors': {}}
+_EMPTY_MODEL: dict[str, Any] = {'form': None, 'hidden': [], 'formErrors': [], 'nodeErrors': {}}
 
 
-def _errors(messages):
+def _errors(messages: list[str]) -> str:
     """The errors slot of a node: one paragraph per message, present only with messages."""
     if not messages:
         return ''
@@ -149,17 +152,17 @@ def _errors(messages):
     )
 
 
-def _join(*parts):
+def _join(*parts: str) -> str:
     return ' '.join(part for part in parts if part != '')
 
 
-def _open(values, hidden, declared=None):
+def _open(values: Mapping[str, Any], hidden: object, declared: Mapping[str, Any] | None = None) -> str:
     """A div with an optional valueless hidden attribute, then the declared attributes."""
     hidden_attr = ' hidden=""' if hidden else ''
     return f'<div{attrs(values)}{hidden_attr}{attrs(declared or {})}>'
 
 
-def _node(vm, errors):
+def _node(vm: Mapping[str, Any], errors: Mapping[int, list[str]]) -> str:
     """One node of the recursive form grammar, with its header, body and errors."""
     style = vm.get('style')
     if vm.get('sticky'):
@@ -198,7 +201,7 @@ def _node(vm, errors):
     )
 
 
-def _header(vm):
+def _header(vm: Mapping[str, Any]) -> str:
     header = vm.get('header')
     if header is None:
         header = {}
@@ -249,7 +252,7 @@ def _header(vm):
     )
 
 
-def _body(vm, errors):
+def _body(vm: Mapping[str, Any], errors: Mapping[int, list[str]]) -> str:
     values = {
         'class': _join('crudui-node__body', vm.get('body', {}).get('className', '')),
         'style': vm.get('body', {}).get('style'),
@@ -275,7 +278,7 @@ def _body(vm, errors):
     return _open(values, hidden) + inner + '</div>'
 
 
-def _controls(controls):
+def _controls(controls: Mapping[str, Any]) -> str:
     buttons = ''
     for action in controls['actions']:
         buttons += (
@@ -296,7 +299,7 @@ def _controls(controls):
     )
 
 
-def _affix(affix, raw=False):
+def _affix(affix: Mapping[str, Any] | Any, raw: bool = False) -> str:
     if affix is None:
         return ''
     values = {
@@ -307,11 +310,11 @@ def _affix(affix, raw=False):
     return element('span', values, text(affix['text'], raw), raw)
 
 
-def _has_events(values):
+def _has_events(values: Mapping[str, Any]) -> bool:
     return any(re.match(r'^on[a-z]', name) for name in values)
 
 
-def _control(widget, raw=False):
+def _control(widget: Mapping[str, Any], raw: bool = False) -> str:
     tag = widget.get('tag', '')
     if tag == 'textarea':
         body_text = widget.get('text', '')
@@ -343,7 +346,7 @@ def _control(widget, raw=False):
     return _input(widget['attrs'], raw)
 
 
-def _widget(widget):
+def _widget(widget: Mapping[str, Any]) -> str:
     if widget.get('unsupported'):
         return element(
             'div',
@@ -428,7 +431,7 @@ def _widget(widget):
     raise ValueError(f"Unknown widget layout: {widget['layout']}")
 
 
-def _buttons_html(buttons):
+def _buttons_html(buttons: list[Any]) -> str:
     """The markup of the form buttons; every renderer inserts this one string into the footer."""
     out = ''
     for button in buttons:
