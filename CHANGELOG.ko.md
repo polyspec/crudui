@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-08 — Python 3.11에서 validator resolver의 import (C13.1-27)
+
+- `packages/validator-python/src/polyspec/crudui/validator/resolver.py`는 별칭 `Node`를 `parser`에서 import하고, 별칭 `Context`를 이를 이름으로 쓰는 타입 주석 위에서 정의하여 Python 3.11이 module을 import한다. CI job `python`은 3.11에서 `NameError: name 'Node' is not defined`로 실패했다. Validator와 generator suite는 Python 3.11에서 통과한다.
+
 ### 2026-10-08 — validator와 generator의 Python 구현 (C13.1)
 
 - `polyspec-crudui-validator`와 `polyspec-crudui-generator`를 다른 언어 구현과 같은 자격으로 Python에 구현한다. 공통 fixture는 증거를 남기며 Python 단위 test에서 실행되고, 기능 계약은 Python 지원을 적고, CI 워크플로의 `python` job이 Python suite를 실행하며, 두 package는 `mypy --strict`를 통과한다.

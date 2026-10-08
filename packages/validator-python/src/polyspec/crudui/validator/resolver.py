@@ -14,6 +14,10 @@ from collections.abc import Callable, Iterable, Sequence
 from typing import Any, TypeAlias, Union
 
 from .jsvalue import JsonValue, js_number, js_parse_float, js_string
+from .parser import Node
+
+# The evaluation context: `formData`, `currentPath` and the optional `rowKeys`.
+Context: TypeAlias = dict[str, Any]
 
 __all__ = [
     'evaluate_condition',
@@ -150,10 +154,6 @@ class _Undefined:
 
 _UNDEFINED = _Undefined()
 
-# A parsed expression node: its members depend on its `type`.
-Node: TypeAlias = dict[str, Any]
-# The evaluation context: `formData`, `currentPath` and the optional `rowKeys`.
-Context: TypeAlias = dict[str, Any]
 # A value an expression evaluates to: a JSON value, or the absent value.
 Value: TypeAlias = Union[JsonValue, _Undefined]
 
