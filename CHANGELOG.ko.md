@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### 2026-10-08 — 공통 fixture 위의 Python 생성기 (C13.1-4)
+
+- `packages/generator-python`의 단위 test가 공통 fixture를 읽어 모든 사례를
+  기록된 기대와 비교한다. `form-render`(188: 정규화 tree로 비교한 137개 결과와
+  51개 실패), `list-render`(157), `detail-render`(62), `form-complete`(28),
+  그리고 `text-validity`의 `compileForm`(7), `bindForm`(9), `createForm`(15),
+  `buildList`(11), `buildDetail`(6) 파일.
+
 ### 2026-10-08 — Python 생성기 package (C13.1-3)
 
 - `packages/generator-python`은 Python 3.11 이상에서
