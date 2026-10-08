@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-08 — 체크리스트의 validator test 파일 수 (C13.1-13)
+
+- C13.1-2 행은 패턴 `test_*.py`로 `discover`가 고르는 validator test 파일 다섯 개를 센다.
+
 ### 2026-10-08 — 공통 camelCase 표면의 validator 공개 이름 (C13.1-12)
 
 - `polyspec.crudui.validator`는 `validate_list`, `validate_detail`, `hidden_paths` 대신

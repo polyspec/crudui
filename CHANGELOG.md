@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### 2026-10-08 — Validator test file count in the checklist (C13.1-13)
+
+- The row C13.1-2 counts the five validator test files that `discover` selects
+  with the pattern `test_*.py`.
+
 ### 2026-10-08 — Validator public names in the shared camelCase surface (C13.1-12)
 
 - `polyspec.crudui.validator` exports `validateList`, `validateDetail` and
