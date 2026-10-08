@@ -6,13 +6,18 @@ one for a group's children and a line group ends it; rows keep their keys and
 numbers; a sticky row header carries its depth.
 """
 
+from collections.abc import Mapping
+from typing import Any, cast
+
+from polyspec.crudui.validator.jsvalue import JsonValue
+
 from . import messages as messages_module
 from .design import declared as design_declared
 from .design import resolve as design_resolve
 from .errors import FormError
 from .messages import count as message_count
 from .template import checked as checked_template
-from .value import MISSING, classes, control_id, get, name as value_name, object_value, path as value_path, record, scalar, segments, string, style_value, translate, truthy
+from .value import MISSING, Value, classes, control_id, get, name as value_name, object_value, path as value_path, record, scalar, segments, string, style_value, translate, truthy
 from .widget import evaluate as widget_evaluate
 
 __all__ = ['bind', 'field', 'language']
@@ -20,7 +25,12 @@ __all__ = ['bind', 'field', 'language']
 _LANGUAGES = ('ko', 'en', 'ja', 'zh')
 
 
-def language(options):
+def _model(members: dict[str, Any]) -> dict[str, Any]:
+    """A model object without the members marked absent."""
+    return record(members)
+
+
+def language(options: Mapping[str, Any]) -> str:
     """The checked language option, defaulting to Korean; a null option is absent."""
     value = options.get('language')
     if value is None:
@@ -30,7 +40,7 @@ def language(options):
     return value
 
 
-def bind(template, data, options):
+def bind(template: Mapping[str, Any], data: JsonValue, options: Mapping[str, Any]) -> list[dict[str, Any]]:
     """Evaluate every field of one template against one record."""
     template = checked_template(template)
     data = object_value(data)
@@ -47,7 +57,7 @@ def bind(template, data, options):
     return [field(entry, entry['name'], data, state) for entry in template['fields']]
 
 
-def field(entry, path, data, state):
+def field(entry: Mapping[str, Any], path: str, data: Any, state: Any) -> dict[str, Any]:
     """The node for one field and its group, collection or language children."""
     spec = entry['spec']
     design = design_resolve(spec.get('design'), data, segments(path), state['rowSegments'])
@@ -67,7 +77,7 @@ def field(entry, path, data, state):
                 'crudui-node--line',
                 root['className'],
             )
-        return record({
+        return _model({
             **root,
             'header': _header({'label': label, 'description': description}, design),
             'body': _body(design['group']['class'], design['group']['style']),
@@ -79,14 +89,14 @@ def field(entry, path, data, state):
     return _leaf(spec, path, data, design, label, description, state)
 
 
-def _declared_layout(spec):
+def _declared_layout(spec: Mapping[str, Any]) -> Any:
     """The design.layout a group declares; compilation has checked the value."""
     design = spec.get('design')
     layout = design.get('layout') if isinstance(design, dict) else None
     return layout if isinstance(layout, str) else None
 
 
-def _layout_state(state, layout):
+def _layout_state(state: Any, layout: Any) -> Any:
     """A declared layout replaces the inherited one, and a line ends it."""
     if layout is None:
         return state
@@ -97,7 +107,7 @@ def _layout_state(state, layout):
     return state
 
 
-def _multiple(spec):
+def _multiple(spec: Mapping[str, Any]) -> dict[str, Any] | None:
     """Evaluated controls and limits for a repeated field, or None when it does not repeat."""
     multiple = spec.get('multiple')
     if multiple is True or multiple == 'only':
@@ -110,7 +120,7 @@ def _multiple(spec):
         }
     if not isinstance(multiple, dict):
         return None
-    settings = {'only': multiple.get('only') is True}
+    settings: dict[str, Any] = {'only': multiple.get('only') is True}
     for key in ('min', 'max'):
         value = multiple.get(key)
         if isinstance(value, (int, float)) and not isinstance(value, bool):
@@ -124,9 +134,9 @@ def _multiple(spec):
     return settings
 
 
-def _root(kind, path, design, spec):
+def _root(kind: str, path: str, design: Any, spec: Mapping[str, Any]) -> dict[str, Any]:
     style = style_value(design['wrapper']['style'])
-    return record({
+    return _model({
         'kind': kind,
         'path': path,
         'className': design['wrapper']['class'],
@@ -136,33 +146,33 @@ def _root(kind, path, design, spec):
     })
 
 
-def _header(parts, design):
+def _header(parts: Mapping[str, Any], design: Any) -> Value:
     """A header with the given parts, or the missing marker when every part is empty."""
     present = {key: value for key, value in parts.items() if value is not MISSING and value != ''}
     if not present:
         return MISSING
     style = style_value(design['label']['style'])
-    return record({
+    return _model({
         'className': design['label']['class'],
         'style': style if style is not None else MISSING,
         **present,
     })
 
 
-def _body(class_name='', style=None, identifier=None):
+def _body(class_name: str = '', style: str | None = None, identifier: str | None = None) -> dict[str, Any]:
     style = style_value(style)
-    return record({
+    return _model({
         'className': class_name,
         'style': style if style is not None else MISSING,
         'id': identifier if identifier is not None else MISSING,
     })
 
 
-def _action(name, label, disabled):
+def _action(name: str, label: str, disabled: bool) -> dict[str, Any]:
     return {'name': name, 'label': label, 'disabled': disabled}
 
 
-def _leaf(spec, path, data, design, label, description, state):
+def _leaf(spec: Mapping[str, Any], path: str, data: Any, design: Any, label: Any, description: Any, state: Any) -> dict[str, Any]:
     field_type = string(spec.get('type', ''))
     value = value_path(data, path)
     root = _root('field', path, design, spec)
@@ -177,7 +187,7 @@ def _leaf(spec, path, data, design, label, description, state):
         checked_value = spec.get('default') if value is MISSING else value
         # A switcher is a checkbox input announced and drawn as a switch.
         switcher = field_type == 'switcher'
-        checkbox = record({
+        checkbox = _model({
             'id': identifier,
             'name': value_name(path, state.get('keyPrefix')),
             'className': classes(
@@ -192,10 +202,10 @@ def _leaf(spec, path, data, design, label, description, state):
             {'label': label, 'labelFor': identifier, 'description': description} if header_label else {'description': description},
             design,
         )
-        return record({**root, 'header': header, 'body': _body(), 'checkbox': checkbox})
-    widget = widget_evaluate(spec, value, path, design, state, state['rowSegments'])
+        return _model({**root, 'header': header, 'body': _body(), 'checkbox': checkbox})
+    widget = widget_evaluate(cast(dict[str, Any], spec), value, path, design, state, state['rowSegments'])
     if field_type == 'hidden':
-        return record({**root, 'body': _body(), 'widget': widget})
+        return _model({**root, 'body': _body(), 'widget': widget})
     if label is not MISSING and label != '' and not widget.get('unsupported'):
         extra = widget.get('extra') if isinstance(widget, dict) else None
         file_id = extra.get('file', {}).get('id') if isinstance(extra, dict) and 'file' in extra else None
@@ -206,7 +216,7 @@ def _leaf(spec, path, data, design, label, description, state):
             label_for = found if found is not None else MISSING
     else:
         label_for = MISSING
-    return record({
+    return _model({
         **root,
         'header': _header({'label': label, 'labelFor': label_for, 'description': description}, design),
         'body': _body(),
@@ -214,7 +224,7 @@ def _leaf(spec, path, data, design, label, description, state):
     })
 
 
-def _collection(entry, path, data, design, label, description, settings, state):
+def _collection(entry: Mapping[str, Any], path: str, data: Any, design: Any, label: Any, description: Any, settings: Any, state: Any) -> dict[str, Any]:
     value = value_path(data, path)
     if value is MISSING:
         # Missing data has one initial row, or none in a data-only collection.
@@ -230,7 +240,7 @@ def _collection(entry, path, data, design, label, description, settings, state):
         for index, key in enumerate(keys)
     ]
     state_messages = state['messages']
-    controls = MISSING
+    controls: Any = MISSING
     if not keys and not settings['only']:
         full = 'max' in settings and len(keys) >= settings['max']
         controls = {
@@ -246,7 +256,7 @@ def _collection(entry, path, data, design, label, description, settings, state):
         },
         design,
     )
-    return record({
+    return _model({
         **_root('collection', path, design, entry['spec']),
         'header': header,
         'body': _body(),
@@ -256,7 +266,7 @@ def _collection(entry, path, data, design, label, description, settings, state):
     })
 
 
-def _row(entry, collection_path, key, index, count, item, label, settings, data, state):
+def _row(entry: Mapping[str, Any], collection_path: str, key: str, index: int, count: int, item: str, label: Any, settings: Any, data: Any, state: Any) -> dict[str, Any]:
     spec = entry['spec']
     state_messages = state['messages']
     label = MISSING if label == '' else label
@@ -297,11 +307,11 @@ def _row(entry, collection_path, key, index, count, item, label, settings, data,
     number = '.'.join(str(value) for value in numbers)
     if item == 'field':
         widget = widget_evaluate(
-            spec, value_path(data, row_path), row_path, row_design, row_state, row_state['rowSegments']
+            cast(dict[str, Any], spec), value_path(data, row_path), row_path, row_design, row_state, row_state['rowSegments']
         )
-        return record({
+        return _model({
             **row,
-            'header': record({'className': '', 'label': label, 'number': number}),
+            'header': _model({'className': '', 'label': label, 'number': number}),
             'body': _body(),
             'widget': widget,
         })
@@ -315,7 +325,7 @@ def _row(entry, collection_path, key, index, count, item, label, settings, data,
             state_messages['children'], sum(len(child['children']) for child in nested)
         )
     )
-    title = MISSING
+    title: Any = MISSING
     if 'title' in settings:
         value = value_path(data, f"{row_path}.{settings['title']}")
         title = (
@@ -323,13 +333,13 @@ def _row(entry, collection_path, key, index, count, item, label, settings, data,
             if value is MISSING or value is None or value == ''
             else string(value)
         )
-    header = record({'className': '', 'label': label, 'number': number, 'title': title, 'summary': summary})
+    header = _model({'className': '', 'label': label, 'number': number, 'title': title, 'summary': summary})
     body = _body(
         row_design['group']['class'],
         row_design['group']['style'],
         control_id(state.get('idPrefix', 'crudui'), row_path) + ':body',
     )
-    return record({
+    return _model({
         **row,
         'header': header,
         'body': body,
@@ -340,13 +350,13 @@ def _row(entry, collection_path, key, index, count, item, label, settings, data,
     })
 
 
-def _lang(spec, path, data, design, label, description, lang, state):
+def _lang(spec: Mapping[str, Any], path: str, data: Any, design: Any, label: Any, description: Any, lang: Any, state: Any) -> dict[str, Any]:
     settings = lang if isinstance(lang, dict) else {}
-    codes = settings.get('only') if isinstance(settings.get('only'), list) and settings.get('only') else _LANGUAGES
+    codes: Any = settings.get('only') if isinstance(settings.get('only'), list) and settings.get('only') else _LANGUAGES
     title = translate(settings['title'], state['language']) if truthy(settings.get('title')) else ''
     frame = settings.get('frame') is not False
     group_class = settings['group_class'] if isinstance(settings.get('group_class'), str) else ''
-    children = []
+    children: list[dict[str, Any]] = []
     for code in codes:
         lang_path = f'{path}.{string(code)}'
         lang_design = design_resolve(spec.get('design'), data, segments(lang_path), state['rowSegments'])
@@ -358,14 +368,14 @@ def _lang(spec, path, data, design, label, description, lang, state):
             'header': {'className': '', 'label': code},
             'body': _body(),
             'widget': widget_evaluate(
-                spec, value_path(data, lang_path), lang_path, lang_design, state, state['rowSegments']
+                cast(dict[str, Any], spec), value_path(data, lang_path), lang_path, lang_design, state, state['rowSegments']
             ),
         })
     header = _header({'label': label, 'description': description, 'title': title}, design)
     root = _root('lang', path, design, spec)
     # A framed language group is a node modifier; the stylesheet draws the frame around its body.
     root['className'] = classes('crudui-node--framed' if frame else '', root['className'])
-    return record({
+    return _model({
         **root,
         'header': header,
         'body': _body(classes(group_class)),
@@ -373,11 +383,11 @@ def _lang(spec, path, data, design, label, description, lang, state):
     })
 
 
-def _check_group(value, path):
+def _check_group(value: object, path: str) -> None:
     """Present group data, including a repeated group row, must be an object."""
     if value is not MISSING and not isinstance(value, dict):
         raise FormError('INVALID_FORM_INPUT', f'Group data must be an object: {path}')
 
 
-def _children(entry, path, data, state):
+def _children(entry: Mapping[str, Any], path: str, data: Any, state: Any) -> list[dict[str, Any]]:
     return [field(child, f"{path}.{child['name']}", data, state) for child in entry['children']]
