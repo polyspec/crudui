@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-08 — 이전 세션에서 유지한 generator 동작 (C13.1-21)
+
+- generator module `binding`, `lists`, `value`, `widget`, `__init__`, `dates`, `style`은 이전 세션이 커밋하지 않은 동작을 타입 주석과 분리해 담는다. 이 상태에서 generator 단위 test 11개가 통과하고, `node tests/native-generators/run.mjs --target python`은 741건 통과, 종료 코드 0을 보고한다.
+
 ### 2026-10-08 — CI workflow의 Python job (C13.1-7)
 
 - CI 워크플로의 `python` job은 3.11과 기록된 release 3.14의 matrix를 가지며, `CI_COMMANDS`에 적힌 make 대상으로 validator와 generator 단위 test를 실행하고, 기록된 release의 conformance 증거를 보존하며, `conformance`와 `ci-passed`가 필요로 한다. CI 명령 매핑 test가 15개 통과한다(종료 코드 0). job 자체는 push 후 CI에서 실행된다.

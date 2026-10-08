@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-08 — Generator behavior kept from an earlier session (C13.1-21)
+
+- The generator modules `binding`, `lists`, `value`, `widget`, `__init__`, `dates` and `style` carry the behavior left uncommitted by an earlier session, committed apart from their type annotations. At this state the generator unit tests pass (11 tests) and `node tests/native-generators/run.mjs --target python` reports 741 passed, exit 0.
+
 ### 2026-10-08 — Python job in the CI workflow (C13.1-7)
 
 - The `python` job of the CI workflow has a matrix of 3.11 and the recorded release 3.14, runs the validator and generator unit tests through make targets listed in `CI_COMMANDS`, preserves the conformance evidence of the recorded release, and is needed by `conformance` and `ci-passed`. The CI command mapping test passes 15 tests, exit 0. The job itself runs in CI after the push.
