@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+### 2026-10-08 — Python generator defects found in the review (C13.1-8)
+
+- `Form` binds the one initial row of missing repeated data under the key
+  `__0000000000000__`, as `bindForm` and the `empty-collections` contract
+  state, instead of a random row key. Red: the `multiple-leaf-empty-placeholder`
+  case failed with the key `__0a592ccb0f808__`. Green: the form-render test
+  passes all 137 result cases through `createForm` and `renderForm`.
+- The text-validity test reads `FormError.path` as the `at` member of a
+  generation failure.
+- The conformance normalizer has no branch whose two arms are the same.
+- The unit tests of `packages/generator-python` pass: 11 tests.
+
 ### 2026-10-08 — The Python generator on the shared fixtures (C13.1-4)
 
 - The unit tests of `packages/generator-python` read the shared fixtures and
