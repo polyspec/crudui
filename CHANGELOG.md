@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### 2026-10-08 — The Python validator on the shared fixtures (C13.1-2)
+
+- The unit tests of `packages/validator-python` read the shared fixtures and reproduce every
+  recorded case: `validate` (309: 178 results and 131 failures with `code`, `message` and `at`),
+  `expr` (54), `compose` (20), `spec-validity` (34), `list-validity` (20), `detail-validity` (13)
+  and the `validate`, `validateList` and `validateDetail` files of `text-validity` with the 12
+  value graphs built with shared and self-containing containers.
+
 ### 2026-10-08 — The Python validator package (C13.1-1)
 
 - `packages/validator-python` publishes `polyspec-crudui-validator` as the namespace package

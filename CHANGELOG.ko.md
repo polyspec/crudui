@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### 2026-10-08 — 공통 fixture 위의 Python 검증기 (C13.1-2)
+
+- `packages/validator-python`의 단위 test가 공통 fixture를 읽어 기록된 모든 사례를
+  재현한다. `validate`(309: 178개 결과와 `code`·`message`·`at`를 가진 131개 실패),
+  `expr`(54), `compose`(20), `spec-validity`(34), `list-validity`(20),
+  `detail-validity`(13), 그리고 `text-validity`의 `validate`·`validateList`·
+  `validateDetail` 파일과 공유·자기참조 container로 만든 12개 값 graph.
+
 ### 2026-10-08 — Python 검증기 package (C13.1-1)
 
 - `packages/validator-python`은 Python 3.11 이상에서 표준 라이브러리만으로
