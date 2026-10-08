@@ -7,6 +7,11 @@ instance, and render a form, a list or a detail. The failures it raises are
 composition failures of `polyspec.crudui.validator`.
 """
 
+from collections.abc import Mapping
+from typing import Any
+
+from polyspec.crudui.validator.jsvalue import JsonValue
+
 from .binding import bind as _bind_fields
 from . import buttons as _buttons
 from .details import build as _detail_build
@@ -28,7 +33,7 @@ class Generator:
     """The public operations over specifications, templates and instances."""
 
     @staticmethod
-    def compileForm(spec, options=None):
+    def compileForm(spec: Any, options: Mapping[str, Any] | None = None) -> Any:
         """A JSON-serializable structure without record data."""
         options = options or {}
         _check_specification(spec, options)
@@ -36,7 +41,7 @@ class Generator:
         return _template_compile(spec, options)
 
     @staticmethod
-    def bindForm(template, data=None, options=None):
+    def bindForm(template: Any, data: JsonValue | None = None, options: Mapping[str, Any] | None = None) -> Any:
         """Evaluated fields without modifying the template or the record data."""
         options = options or {}
         _check_inputs(
@@ -47,7 +52,7 @@ class Generator:
         return _bind_fields(template, data if data is not None else {}, options)
 
     @staticmethod
-    def bindButtons(template, data=None, options=None):
+    def bindButtons(template: Any, data: JsonValue | None = None, options: Mapping[str, Any] | None = None) -> Any:
         """The template buttons for a record, with type, tag, text and ordered attrs."""
         options = options or {}
         _check_inputs(
@@ -58,7 +63,7 @@ class Generator:
         return _buttons.bind_public(template, data if data is not None else {}, options)
 
     @staticmethod
-    def formButtonsHtml(buttons):
+    def formButtonsHtml(buttons: Any) -> Any:
         """Evaluated buttons as the markup every renderer places in the form footer.
 
         Any other element is rejected.
@@ -66,12 +71,12 @@ class Generator:
         return _buttons.html_public(buttons)
 
     @staticmethod
-    def createForm(template, data=None, options=None):
+    def createForm(template: Any, data: JsonValue | None = None, options: Mapping[str, Any] | None = None) -> Any:
         """An independent form instance over a copied template."""
         return Form(template, data, options)
 
     @staticmethod
-    def renderForm(form, options=None):
+    def renderForm(form: Any, options: Mapping[str, Any] | None = None) -> Any:
         """The current instance as the complete form.
 
         `options` may carry action, hidden, formErrors and errors members; an
@@ -85,7 +90,7 @@ class Generator:
         )
 
     @staticmethod
-    def renderList(spec, rows, options=None):
+    def renderList(spec: Any, rows: JsonValue, options: Mapping[str, Any] | None = None) -> Any:
         """Supplied list rows with the table or card layout."""
         options = options or {}
         rows = [] if rows is None else rows
@@ -93,7 +98,7 @@ class Generator:
         return _list_render(spec, rows, options)
 
     @staticmethod
-    def buildList(spec, rows=None, options=None):
+    def buildList(spec: Any, rows: JsonValue | None = None, options: Mapping[str, Any] | None = None) -> Any:
         """One read-only list model from supplied rows."""
         options = options or {}
         rows = [] if rows is None else rows
@@ -101,31 +106,31 @@ class Generator:
         return _list_build(spec, rows, options)
 
     @staticmethod
-    def renderDetail(spec, record=None, options=None):
+    def renderDetail(spec: Any, record: JsonValue | None = None, options: Mapping[str, Any] | None = None) -> Any:
         """One read-only detail from a supplied record."""
         options = options or {}
         _display_checks(spec, ('record', record if record is not None else {}), options)
         return _detail_render(spec, record, options)
 
     @staticmethod
-    def buildDetail(spec, record=None, options=None):
+    def buildDetail(spec: Any, record: JsonValue | None = None, options: Mapping[str, Any] | None = None) -> Any:
         """One read-only detail model from a supplied record."""
         options = options or {}
         _display_checks(spec, ('record', record if record is not None else {}), options)
         return _detail_build(spec, record, options)
 
     @staticmethod
-    def sequenceRowKey(sequence):
+    def sequenceRowKey(sequence: Any) -> Any:
         """A nonnegative sequence formatted with thirteen decimal digits."""
         return sequenceRowKey(sequence)
 
     @staticmethod
-    def createRowKey():
+    def createRowKey() -> Any:
         """A thirteen-character hexadecimal row key."""
         return createRowKey()
 
 
-def _display_checks(spec, entry, options):
+def _display_checks(spec: Any, entry: Any, options: Mapping[str, Any]) -> Any:
     """Input text of a list or detail operation: the specification and files,
     then the rows or record, then the display options."""
     _check_specification(spec, options)
