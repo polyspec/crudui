@@ -13,7 +13,7 @@ from .errors import FormError
 __all__ = ['fixed', 'number_string']
 
 
-def number_string(number):
+def number_string(number: int | float) -> str:
     """A number with decimal and exponent thresholds matching the form model.
 
     A whole float writes without a decimal part, as the shortest decimal text
@@ -45,7 +45,7 @@ def number_string(number):
     return f'{sign}{digits[0]}{tail}e{"+" if exponent >= 0 else ""}{exponent}'
 
 
-def fixed(number, decimals):
+def fixed(number: float, decimals: float) -> str:
     """The exact binary value rounded to `decimals` places, ties increasing magnitude."""
     if decimals < 0:
         decimals = math.ceil(decimals)
@@ -81,7 +81,7 @@ def fixed(number, decimals):
     return ('-' if negative else '') + digits
 
 
-def _multiply(digits, factor):
+def _multiply(digits: str, factor: int) -> str:
     out = ''
     carry = 0
     for character in reversed(digits):
@@ -91,7 +91,7 @@ def _multiply(digits, factor):
     return (str(carry) if carry else '') + out
 
 
-def _divide_two(digits):
+def _divide_two(digits: str) -> tuple[str, int]:
     out = ''
     remainder = 0
     for character in digits:
@@ -101,7 +101,7 @@ def _divide_two(digits):
     return out.lstrip('0') or '0', remainder
 
 
-def _increment(digits):
+def _increment(digits: str) -> str:
     characters = list(digits)
     for index in range(len(characters) - 1, -1, -1):
         if characters[index] != '9':

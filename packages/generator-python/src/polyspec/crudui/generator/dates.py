@@ -43,7 +43,7 @@ _RFC2822 = re.compile(
 )
 
 
-def parse_utc(value):
+def parse_utc(value: str) -> int | None:
     """Seconds since 1970-01-01 at whole-second precision, or None for invalid input."""
     parts = _ISO.match(value)
     if parts is not None:
@@ -78,7 +78,7 @@ def parse_utc(value):
     return None
 
 
-def parts_utc(seconds):
+def parts_utc(seconds: int) -> tuple[int, int, int, int, int, int]:
     """The civil date and time of one instant: (year, month, day, hour, minute, second)."""
     days, rest = divmod(seconds, 86400)
     year, month, day = _civil_from_days(days)
@@ -87,7 +87,7 @@ def parts_utc(seconds):
     return year, month, day, hour, minute, second
 
 
-def format_utc(seconds, with_time):
+def format_utc(seconds: int, with_time: bool) -> str:
     """The instant as `YYYY-MM-DD` or `YYYY-MM-DDTHH:MM:SS`, a negative year signed."""
     year, month, day, hour, minute, second = parts_utc(seconds)
     year_text = f'{year:04d}' if year >= 0 else f'-{-year:04d}'
@@ -97,7 +97,7 @@ def format_utc(seconds, with_time):
     return f'{date_text}T{hour:02d}:{minute:02d}:{second:02d}'
 
 
-def _offset(zone):
+def _offset(zone: str) -> int | None:
     named = _ZONES.get(zone.lower())
     if named is not None:
         return named
@@ -109,7 +109,7 @@ def _offset(zone):
     return (-1 if numeric[0] == '-' else 1) * (hours * 3600 + minutes * 60)
 
 
-def _create(year, month, day, hour, minute, second, offset, weekday=None):
+def _create(year: int, month: int, day: int, hour: int, minute: int, second: int, offset: int, weekday: str | None = None) -> int | None:
     if hour > 23 or minute > 59 or second > 59 or month < 1 or month > 12 or day < 1 or day > 31:
         return None
     days = _days_from_civil(year, month, day)
@@ -120,7 +120,7 @@ def _create(year, month, day, hour, minute, second, offset, weekday=None):
     return days * 86400 + hour * 3600 + minute * 60 + second - offset
 
 
-def _trunc_div(value, divisor):
+def _trunc_div(value: int, divisor: int) -> int:
     """The C integer division of the civil-date arithmetic: toward zero."""
     quotient = value // divisor
     if quotient < 0 and quotient * divisor != value:
@@ -128,7 +128,7 @@ def _trunc_div(value, divisor):
     return quotient
 
 
-def _days_from_civil(year, month, day):
+def _days_from_civil(year: int, month: int, day: int) -> int:
     """Days since 1970-01-01 of one proleptic Gregorian date."""
     year -= month <= 2
     era = _trunc_div(year if year >= 0 else year - 399, 400)
@@ -138,7 +138,7 @@ def _days_from_civil(year, month, day):
     return era * 146097 + day_of_era - 719468
 
 
-def _civil_from_days(days):
+def _civil_from_days(days: int) -> tuple[int, int, int]:
     """The proleptic Gregorian date of one count of days since 1970-01-01."""
     days += 719468
     era = _trunc_div(days if days >= 0 else days - 146096, 146097)
