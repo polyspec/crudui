@@ -19,6 +19,8 @@ Tests and deployment are recorded separately. `pending` is not a passing result.
 | generator-php | PHP form generation and SSR | implemented | passed | not-deployed | [Runtime contract](spec/runtime-packages.md) |
 | generator-go | Go form generation and SSR | implemented | passed | not-deployed | [Runtime contract](spec/runtime-packages.md) |
 | generator-rust | Rust form generation and SSR | implemented | passed | not-deployed | [Runtime contract](spec/runtime-packages.md) |
+| generator-python | Python form generation, list and detail rendering, and the native generator checks of the Python program | implemented | passed | not-deployed | [Runtime contract](spec/runtime-packages.md) |
+| validator-python | Python validation of forms, lists and details, the composition and expression rules of the shared fixtures | implemented | passed | not-deployed | [Runtime contract](spec/runtime-packages.md) |
 | generator-html | Framework-independent form and list HTML rendering | implemented | passed | not-deployed | [Feature contract](spec/feature-contracts.md) |
 | php-extension | Native PHP form generation and validation | implemented | passed | not-deployed | [Extension contract](spec/php-extension.md) |
 | server-template-browser | Current keyed browser instances from serialized server-compiled templates | implemented | passed | not-deployed | [Local verification](spec/form-comparison.md#local-verification) (`make test-form-comparison-checks`, CI job `form-comparison-browser`): the initialization reports of [`check.mjs`](../examples/form-comparison/check.mjs) |
