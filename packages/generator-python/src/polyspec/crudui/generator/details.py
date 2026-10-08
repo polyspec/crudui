@@ -1,5 +1,10 @@
 """Compose detail declarations and render one supplied record read-only."""
 
+from collections.abc import Mapping
+from typing import Any
+
+from polyspec.crudui.validator.jsvalue import JsonValue
+
 from . import lists as lists_module
 from .errors import FormError
 from .rendering import attrs as render_attrs
@@ -11,7 +16,7 @@ from .value import MISSING, classes, object_value, spec_value, style_value
 __all__ = ['build', 'render']
 
 
-def build(spec, record, options):
+def build(spec: dict[str, Any], record: JsonValue, options: Mapping[str, Any]) -> dict[str, Any]:
     """A detail model by delegating fields and cells to the list engine."""
     from .input_text import inputs as check_inputs
     from .input_text import specification as check_specification
@@ -35,7 +40,7 @@ def build(spec, record, options):
         'detail',
         'fields',
     )
-    fields = []
+    fields: list[dict[str, Any]] = []
     columns = model['columns']
     cells = model['rows'][0]['cells'] if model['rows'] else []
     for index, column in enumerate(columns):
@@ -53,14 +58,14 @@ def build(spec, record, options):
     return {'fields': fields, 'actions': model['actions'], 'design': model['design']}
 
 
-def _root(value, message):
+def _root(value: object, message: str) -> dict[str, Any]:
     """A root object argument: a dictionary, never an array."""
     if not isinstance(value, dict):
         raise FormError('INVALID_FORM_INPUT', message)
     return object_value(value)
 
 
-def render(spec, record, options):
+def render(spec: dict[str, Any], record: JsonValue, options: Mapping[str, Any]) -> str:
     """One read-only detail: image preload links, the actions and the definition list."""
     model = build(spec, record, options)
     design = model['design']
@@ -84,8 +89,8 @@ def render(spec, record, options):
     )
 
 
-def _preloads(model):
-    seen = set()
+def _preloads(model: dict[str, Any]) -> str:
+    seen: set[str] = set()
     html = ''
     for field in model['fields']:
         display = field['display']
