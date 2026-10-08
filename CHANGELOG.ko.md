@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: ed91c791d8b18cb33fb7ab5ae59e36c84532ba827374da0b67d3af71df2651dc -->
+<!-- source-sha256: b0bc84e1b2b99f97712ffe79611efdc59bd35c335bfa0d7f9e7dd7d1d48773b9 -->
 
 ## Unreleased
+
+### 2026-10-09 — CI job의 tool 설치 앞의 Rust toolchain (C14.1-2-1)
+
+- `make install-tools`를 실행하는 `ci.yml`, `pages.yml`, `release.yml`, `dependency-review.yml`의 모든 job은 먼저 Rust toolchain을 설치하고(`make install-rust`) `make toolchain-check`로 `rust`를 검사한다. `make install-tools`가 `rust-toolchain.toml`의 cargo로 cargo-audit을 build하기 때문이다.
 
 ### 2026-10-09 — kit의 owner 검사와 0.x workflow의 규칙 (C14.1-6)
 

@@ -51,10 +51,12 @@ jobs:
         with:
           path: ~/.npm
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+      - name: Install the Rust toolchain of rust-toolchain.toml
+        run: make install-rust
       - name: Install the declared tools into var/tools
         run: make install-tools
       - name: Check the recorded toolchain versions
-        run: make toolchain-check TOOLS="node npm php composer"
+        run: make toolchain-check TOOLS="node npm rust php composer"
       - name: Install workspace dependencies
         run: make install-node-modules
       - name: Check that the tagged commit is on main and passed its checks
