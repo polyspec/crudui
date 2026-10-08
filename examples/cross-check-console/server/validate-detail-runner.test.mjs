@@ -1,9 +1,9 @@
 /**
- * Detail structure validation across the JavaScript, PHP, Go and Rust validator processes.
+ * Detail structure validation across the JavaScript, PHP, Go, Rust and Python validator processes.
  *
  * Every case in tests/fixtures/detail-validity/cases.json runs through `validateAllDetail`
  * (`mode: "detail"`). The engine verdict follows each case's `engine` member: `"pass"` loads cleanly
- * with `valid: true` in all four languages, and `{ code, at }` is the same load failure in all four.
+ * with `valid: true` in all five languages, and `{ code, at }` is the same load failure in all five.
  * The meta-schema `expect` member is not the engine's verdict.
  */
 
@@ -21,7 +21,7 @@ const allCases = JSON.parse(fs.readFileSync(DETAIL_VALIDITY_FIXTURE, 'utf8'));
 const cleanCases = allCases.filter((c) => c.engine === 'pass');
 const loadFailCases = allCases.filter((c) => c.engine && typeof c.engine === 'object' && c.engine.code);
 
-describe('validateAllDetail — clean structure loads in all four languages', () => {
+describe('validateAllDetail — clean structure loads in all five languages', () => {
   for (const c of cleanCases) {
     test(`${c.name} — valid:true everywhere`, async () => {
       const out = await validateAllDetail({ spec: c.spec, files: c.files ?? {}, basepath: '' });
@@ -32,7 +32,7 @@ describe('validateAllDetail — clean structure loads in all four languages', ()
   }
 });
 
-describe('validateAllDetail — load failures agree in all four languages', () => {
+describe('validateAllDetail — load failures agree in all five languages', () => {
   for (const c of loadFailCases) {
     test(`${c.name} — ${c.engine.code} at ${c.engine.at} everywhere`, async () => {
       const out = await validateAllDetail({ spec: c.spec, files: c.files ?? {}, basepath: '' });

@@ -13,7 +13,7 @@
  * effect after the entry-point guard) and mounted on an ephemeral port. The form
  * and list render paths are covered by their runner tests; the detail render path
  * is exercised here once for a clean and a failing request (it boots the Vite SSR
- * engine). The validate path spawns the four validator processes, which proves the
+ * engine). The validate path spawns the five validator processes, which proves the
  * "validation failure == 200" rule on real engine output.
  */
 
@@ -215,8 +215,8 @@ describe('HTTP boundary — validation FAILURE is a 200 result surface, not an H
 
   // The validate sister of /api/validate (SPEC §9). A list-spec carrying a §6
   // forbidden meta key is a load failure, NOT an HTTP error: still 200, with the
-  // SAME failure record on all four engines (idempotent). Requires Go/Rust.
-  test('list-spec with a forbidden meta key → 200, failure code on all four, idempotent:true', async () => {
+  // SAME failure record on all five engines (idempotent). Requires Go/Rust.
+  test('list-spec with a forbidden meta key → 200, failure code on all five, idempotent:true', async () => {
     const listSpec = {
       columns: { name: { field: 'name' }, display_switch: { field: 'x' } },
     };
@@ -230,7 +230,7 @@ describe('HTTP boundary — validation FAILURE is a 200 result surface, not an H
     expect(body.results.every((r) => r.valid === false)).toBe(true);
   }, 60000);
 
-  test('detail spec with a forbidden meta key → 200, the same failure on all four', async () => {
+  test('detail spec with a forbidden meta key → 200, the same failure on all five', async () => {
     const detailSpec = { fields: { name: { field: 'name', show_if: '.admin' } } };
     const res = await postRaw('/api/validate-detail', JSON.stringify({ detailSpec }));
     expect(res.status).toBe(200);
@@ -240,9 +240,9 @@ describe('HTTP boundary — validation FAILURE is a 200 result surface, not an H
     expect(body.results.every((r) => r.failure && r.failure.code === 'FORBIDDEN_META_KEY' && r.failure.at === 'fields.name.show_if')).toBe(true);
   }, 60000);
 
-  // A clean list-spec → 200, valid:true on all four (idempotent). `data` on the
+  // A clean list-spec → 200, valid:true on all five (idempotent). `data` on the
   // request is ignored — a list has no rows (mode:list runs no DATA pass).
-  test('clean list-spec → 200, valid:true on all four, idempotent:true', async () => {
+  test('clean list-spec → 200, valid:true on all five, idempotent:true', async () => {
     const listSpec = { columns: { name: { field: 'name', label: 'Name' } } };
     const res = await postRaw('/api/validate-list', JSON.stringify({ listSpec, data: { ignored: true } }));
     expect(res.status).toBe(200);
