@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: b0bc84e1b2b99f97712ffe79611efdc59bd35c335bfa0d7f9e7dd7d1d48773b9 -->
+<!-- source-sha256: a8972171750430192f46e8955aeb50e59eb24d8bbcf33b82ca66182eb2d30536 -->
 
 ## Unreleased
+
+### 2026-10-09 — polyspec/kit v0.0.8의 vendored 도구 (C14.1-7)
+
+- vendored file은 tag `v0.0.8`의 것이다. mutation 검사는 추적되는 모든 manifest와 lock을 복사하고, policy schema는 root `composer.json`과 `pyproject.toml`을 받으며, `make install-tools TOOLS="..."`는 이름을 준 도구만 설치하고, `make documents-stamp`는 `source-sha256` marker를 쓴다.
 
 ### 2026-10-09 — CI job의 tool 설치 앞의 Rust toolchain (C14.1-2-1)
 
