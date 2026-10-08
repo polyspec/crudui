@@ -402,7 +402,8 @@
         "php": "pass",
         "go": "pass",
         "rust": "pass",
-        "php-native": "pass"
+        "php-native": "pass",
+        "python": "pass"
       },
       "status": "implemented",
       "state": "none",
@@ -450,7 +451,8 @@
         "php": "pass",
         "go": "pass",
         "rust": "pass",
-        "php-native": "pass"
+        "php-native": "pass",
+        "python": "pass"
       },
       "status": "implemented",
       "state": "none",
@@ -498,7 +500,8 @@
         "php": "pass",
         "go": "pass",
         "rust": "pass",
-        "php-native": "pass"
+        "php-native": "pass",
+        "python": "pass"
       },
       "status": "implemented",
       "state": "none",
@@ -533,7 +536,8 @@
         "php": "pass",
         "go": "pass",
         "rust": "pass",
-        "php-native": "pass"
+        "php-native": "pass",
+        "python": "pass"
       },
       "status": "implemented",
       "state": "none",
@@ -569,7 +573,8 @@
         "php": "pass",
         "go": "pass",
         "rust": "pass",
-        "php-native": "pass"
+        "php-native": "pass",
+        "python": "partial"
       },
       "status": "implemented",
       "state": "instance data, view state and undo history",
@@ -623,7 +628,8 @@
         "php": "pass",
         "go": "pass",
         "rust": "pass",
-        "php-native": "pass"
+        "php-native": "pass",
+        "python": "pass"
       },
       "status": "implemented",
       "state": "none",
@@ -681,7 +687,8 @@
         "php": "pass",
         "go": "pass",
         "rust": "pass",
-        "php-native": "pass"
+        "php-native": "pass",
+        "python": "pass"
       },
       "status": "implemented",
       "state": "none",
@@ -724,7 +731,8 @@
         "php": "pass",
         "go": "pass",
         "rust": "pass",
-        "php-native": "pass"
+        "php-native": "pass",
+        "python": "pass"
       },
       "status": "implemented",
       "state": "none",
@@ -766,7 +774,8 @@
         "php": "pass",
         "go": "pass",
         "rust": "pass",
-        "php-native": "pass"
+        "php-native": "pass",
+        "python": "pass"
       },
       "status": "implemented",
       "state": "none",
@@ -817,7 +826,8 @@
         "php": "pass",
         "go": "pass",
         "rust": "pass",
-        "php-native": "pass"
+        "php-native": "pass",
+        "python": "pass"
       },
       "status": "implemented",
       "state": "none",
@@ -868,7 +878,8 @@
         "php": "pass",
         "go": "pass",
         "rust": "pass",
-        "php-native": "pass"
+        "php-native": "pass",
+        "python": "pass"
       },
       "status": "implemented",
       "state": "none",
@@ -1048,7 +1059,8 @@
         "php": "unsupported",
         "go": "unsupported",
         "rust": "unsupported",
-        "php-native": "unsupported"
+        "php-native": "unsupported",
+        "python": "unsupported"
       },
       "status": "implemented",
       "state": "none",
@@ -1120,7 +1132,8 @@
         "php": "unsupported",
         "go": "unsupported",
         "rust": "unsupported",
-        "php-native": "unsupported"
+        "php-native": "unsupported",
+        "python": "unsupported"
       },
       "status": "implemented",
       "state": "form instance data, view state and undo history",
@@ -1159,7 +1172,8 @@
         "php": "unsupported",
         "go": "unsupported",
         "rust": "unsupported",
-        "php-native": "unsupported"
+        "php-native": "unsupported",
+        "python": "unsupported"
       },
       "status": "implemented",
       "state": "view state owned by a form instance or a bindForm controller",
@@ -1197,7 +1211,8 @@
         "php": "unsupported",
         "go": "unsupported",
         "rust": "unsupported",
-        "php-native": "unsupported"
+        "php-native": "unsupported",
+        "python": "unsupported"
       },
       "status": "implemented",
       "state": "undo history owned by a form instance or a bindForm controller",
@@ -1236,7 +1251,8 @@
         "php": "pass",
         "go": "pass",
         "rust": "pass",
-        "php-native": "pass"
+        "php-native": "pass",
+        "python": "pass"
       },
       "status": "implemented",
       "state": "none",
@@ -1280,7 +1296,8 @@
         "php": "pass",
         "go": "pass",
         "rust": "pass",
-        "php-native": "pass"
+        "php-native": "pass",
+        "python": "pass"
       },
       "status": "implemented",
       "state": "none",

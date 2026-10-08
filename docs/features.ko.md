@@ -19,6 +19,8 @@
 | generator-php | PHP 폼 생성과 SSR | implemented | passed | not-deployed | [런타임 계약](spec/runtime-packages.ko.md) |
 | generator-go | Go 폼 생성과 SSR | implemented | passed | not-deployed | [런타임 계약](spec/runtime-packages.ko.md) |
 | generator-rust | Rust 폼 생성과 SSR | implemented | passed | not-deployed | [런타임 계약](spec/runtime-packages.ko.md) |
+| generator-python | Python 폼 생성, 목록과 상세 렌더링, Python 프로그램의 native generator 검사 | implemented | passed | not-deployed | [런타임 계약](spec/runtime-packages.ko.md) |
+| validator-python | Python 폼·목록·상세 검증, 공통 fixture의 합성과 표현식 규칙 | implemented | passed | not-deployed | [런타임 계약](spec/runtime-packages.ko.md) |
 | generator-html | 프레임워크 독립 폼·목록 HTML 렌더링 | implemented | passed | not-deployed | [기능 계약](spec/feature-contracts.ko.md) |
 | php-extension | PHP 네이티브 폼 생성과 검증 | implemented | passed | not-deployed | [확장 계약](spec/php-extension.ko.md) |
 | server-template-browser | 서버에서 컴파일한 직렬화 템플릿으로 현재 keyed 브라우저 인스턴스 생성 | implemented | passed | not-deployed | [로컬 검증](spec/form-comparison.ko.md#로컬-검증)(`make test-form-comparison-checks`, CI 작업 `form-comparison-browser`): [`check.mjs`](../examples/form-comparison/check.mjs)의 초기화 보고서 |
