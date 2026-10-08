@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-09 — Rust toolchain before the tool install in CI jobs (C14.1-2-1)
+
+- Every job of `ci.yml`, `pages.yml`, `release.yml` and `dependency-review.yml` that runs `make install-tools` installs the Rust toolchain first (`make install-rust`) and checks `rust` with `make toolchain-check`, because `make install-tools` builds cargo-audit with the cargo of `rust-toolchain.toml`.
+
 ### 2026-10-09 — Owner check of kit and the rules of the 0.x workflow (C14.1-6)
 
 - `config/owner-checks.json` declares the owner of every tracked path (`make owner-validate`), with owners for the vendored copy (`make kit-check`, `make kit-test`), the configuration files and `scripts/repository-files.mjs`; the target `owner-check` takes `cargo-downloads-check` as a prerequisite. `scripts/owner-check.mjs`, `scripts/owner-checks.json` and the test of the owner check are removed.

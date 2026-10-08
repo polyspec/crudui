@@ -344,7 +344,7 @@ test('the release workflow checks the tag, writes and installs the archives and 
   assert.equal(job.env.TAG, '${{ github.ref_name }}', 'the tag reaches the make targets through the environment');
   assert.equal(job.steps[0].with['fetch-depth'], 0, 'origin/main is fetched for git merge-base --is-ancestor');
   const runs = job.steps.filter((step) => step.run !== undefined).map((step) => step.run);
-  assert.deepEqual(runs, ['make install-tools', 'make toolchain-check TOOLS="node npm php composer"', 'make install-node-modules', ...RELEASE_STEPS]);
+  assert.deepEqual(runs, ['make install-rust', 'make install-tools', 'make toolchain-check TOOLS="node npm rust php composer"', 'make install-node-modules', ...RELEASE_STEPS]);
   assert.deepEqual(runs.slice(-5), RELEASE_STEPS);
   assert.deepEqual(runs.filter((run) => /\brelease-|\bbuild\b/.test(run)), RELEASE_STEPS, 'the build runs inside make release-assets');
   // The steps are the targets of scripts/kit/kit.mk, which take the tag from the environment variable TAG; the packages are
