@@ -4,15 +4,15 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "1c78dce1557c76af0eddd4a2affa25fe",
+    "content-hash": "679789469b778cc3ee170fd12f60853d",
     "packages": [
         {
             "name": "polyspec/crudui-validator",
-            "version": "0.0.3",
+            "version": "0.0.4",
             "dist": {
                 "type": "path",
                 "url": "packages/validator-php",
-                "reference": "d8d296733823e9cc1e05f5348c90fae2e229c467"
+                "reference": "dadb0f1f30cca0dbe9f9eea01a60b61d0168e335"
             },
             "require": {
                 "php": "^8.4"
