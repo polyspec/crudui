@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+### 2026-10-08 — Python 생성기 package (C13.1-3)
+
+- `packages/generator-python`은 Python 3.11 이상에서
+  `polyspec-crudui-validator` 위에 namespace package
+  `polyspec.crudui.generator`로 `polyspec-crudui-generator`를 내놓는다.
+  template compile, 필드 묶기, button, row 연산을 가진 form instance,
+  list·detail model, widget·style·렌더링 내부, 값 helper로 이루어진다.
+  `Generator`는 `compileForm`, `bindForm`, `bindButtons`, `formButtonsHtml`,
+  `createForm`, `renderForm`, `renderList`, `buildList`, `renderDetail`,
+  `buildDetail`, `sequenceRowKey`, `createRowKey`를 `Form`과 `FormError`와
+  함께 내놓는다.
+- 검증기 text module에 메시지를 반환하는 `specificationFailure`,
+  `inputFailure`, `optionEntries` helper가 더해지며, 생성기는 이를 code
+  `INVALID_FORM_INPUT`의 `FormError`로 감싼다.
+
 ### 2026-10-08 — 공통 fixture 위의 Python 검증기 (C13.1-2)
 
 - `packages/validator-python`의 단위 test가 공통 fixture를 읽어 기록된 모든 사례를

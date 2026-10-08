@@ -23,6 +23,9 @@ __all__ = [
     'check_option_text',
     'check_specification_text',
     'checked_composition',
+    'input_failure',
+    'option_entries',
+    'specification_failure',
     'value_failure',
 ]
 
@@ -121,6 +124,48 @@ def check_specification_text(spec, files=None):
         raise ComposeLoadError('INVALID_TEXT', INVALID_TEXT_MESSAGE, failure['text'])
 
 
+def specification_failure(spec, files=None):
+    """The failure message of a specification or its files, or None when clean.
+
+    Invalid text raises the load failure `ComposeLoadError`, as a caller that
+    loads a specification reports it; only a value beyond the limits returns a
+    message, which names the value.
+    """
+    for name, value in (('spec', spec), ('files', files)):
+        failure = value_failure(value)
+        if failure is None:
+            continue
+        if failure == 'limit':
+            return f'{VALUE_LIMIT_MESSAGE}: {name}'
+        raise ComposeLoadError('INVALID_TEXT', INVALID_TEXT_MESSAGE, failure['text'])
+    return None
+
+
+def input_failure(entries):
+    """The failure message of the first invalid text among named caller values.
+
+    The message names the value and its path, or names a value beyond its
+    limits; None when every value passes.
+    """
+    for name, value in entries:
+        failure = value_failure(value)
+        if failure is None:
+            continue
+        if failure == 'limit':
+            return f'{VALUE_LIMIT_MESSAGE}: {name}'
+        return f'{INVALID_TEXT_MESSAGE}: {".".join([name, *failure["text"]])}'
+    return None
+
+
+def option_entries(options, names):
+    """The present options named in `names`, given in code point order, as named values."""
+    if not isinstance(options, dict):
+        return []
+    return [
+        (f'options.{name}', options[name]) for name in names if name in options
+    ]
+
+
 def check_input_text(inputs):
     """Check named caller values in order.
 
@@ -138,13 +183,7 @@ def check_input_text(inputs):
 
 def check_option_text(options, names):
     """Check the present options named in `names`, given in code point order."""
-    if not isinstance(options, dict):
-        return
-    check_input_text([
-        (f'options.{name}', options[name])
-        for name in names
-        if name in options and options[name] is not None
-    ])
+    check_input_text(option_entries(options, names))
 
 
 class _CheckedLoader:
