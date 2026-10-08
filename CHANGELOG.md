@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-08 — Node.js setup and Python matrix in the python CI job (C13.1-30)
+
+- The CI job `python` sets up the Node.js release of `.node-version` and checks `node python` with `make toolchain-check`, because its `make ci-targets` run needs Node.js. The toolchain policy test accepts the lowest `requires-python` minor (3.11) as a matrix leg beside the recorded minor.
+
 ### 2026-10-08 — Python module names in the generator script docstrings (C13.1-29)
 
 - The docstrings of `packages/generator-python/scripts/generate_interface_messages.py` and `packages/validator-python/scripts/generate_unicode_data.py` name their modules by dotted names, so the package-name rule passes in the CI job `build, lint and types`.
