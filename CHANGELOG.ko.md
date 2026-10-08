@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-08 — python CI job의 Node.js 설정과 Python matrix (C13.1-30)
+
+- CI job `python`은 `.node-version`의 Node.js release를 설정하고, `make ci-targets` 실행에 Node.js가 필요하므로 `make toolchain-check`로 `node python`을 검사한다. Toolchain policy test는 기록된 minor와 함께 `requires-python`의 가장 낮은 minor(3.11)를 matrix leg로 허용한다.
+
 ### 2026-10-08 — Python generator 스크립트 docstring의 module 이름 (C13.1-29)
 
 - `packages/generator-python/scripts/generate_interface_messages.py`와 `packages/validator-python/scripts/generate_unicode_data.py`의 docstring은 module을 dotted 이름으로 적으므로, CI job `build, lint and types`에서 package 이름 규칙이 통과한다.

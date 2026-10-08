@@ -246,10 +246,14 @@ jobs:
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: ${{ matrix.python }}
+      - name: Setup the Node.js release of .node-version
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version-file: '.node-version'
       # The release of .python-version is the matrix leg 3.14; the recorded toolchain names that release.
       - name: Check the recorded toolchain versions
         if: ${{ matrix.python == '3.14' }}
-        run: make toolchain-check TOOLS="python"
+        run: make toolchain-check TOOLS="node python"
       - name: Run the checks and write their report
         if: ${{ !cancelled() }}
         run: make ci-targets TARGETS="test-validator-python test-generator-python"
