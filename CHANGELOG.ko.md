@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-08 — validator package의 타입 주석 (C13.1-17-1)
+
+- `packages/validator-python/src`의 모든 함수에 매개변수와 반환 타입이 있으며, package는 `mypy --strict`를 종료 코드 0으로 통과한다(source 파일 15개). validator 단위 test 23개가 통과한다. 변경은 C13.1-17 아래 커밋되어 있다.
+
 ### 2026-10-08 — 이전 세션에서 유지한 generator 동작 (C13.1-21)
 
 - generator module `binding`, `lists`, `value`, `widget`, `__init__`, `dates`, `style`은 이전 세션이 커밋하지 않은 동작을 타입 주석과 분리해 담는다. 이 상태에서 generator 단위 test 11개가 통과하고, `node tests/native-generators/run.mjs --target python`은 741건 통과, 종료 코드 0을 보고한다.
