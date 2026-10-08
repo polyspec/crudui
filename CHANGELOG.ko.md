@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 2026-10-08 — 웨이브 계획의 Python 버전 파일 (C13.1-14)
+
+- 웨이브 계획은 `.python-version`이 C13.1-6이 완료될 때까지 없다고 적는다.
+
 ### 2026-10-08 — 체크리스트의 validator test 파일 수 (C13.1-13)
 
 - C13.1-2 행은 패턴 `test_*.py`로 `discover`가 고르는 validator test 파일 다섯 개를 센다.
