@@ -21,8 +21,10 @@ _LANGUAGES = ('ko', 'en', 'ja', 'zh')
 
 
 def language(options):
-    """The checked language option, defaulting to Korean."""
-    value = options.get('language', 'ko')
+    """The checked language option, defaulting to Korean; a null option is absent."""
+    value = options.get('language')
+    if value is None:
+        return 'ko'
     if not isinstance(value, str):
         raise FormError('INVALID_FORM_INPUT', 'Language must be a string')
     return value
@@ -123,14 +125,15 @@ def _multiple(spec):
 
 
 def _root(kind, path, design, spec):
-    return {
+    style = style_value(design['wrapper']['style'])
+    return record({
         'kind': kind,
         'path': path,
         'className': design['wrapper']['class'],
-        'style': style_value(design['wrapper']['style']),
+        'style': style if style is not None else MISSING,
         'attributes': design_declared(spec.get('design'), True),
         'hidden': not design['show'],
-    }
+    })
 
 
 def _header(parts, design):
@@ -138,15 +141,21 @@ def _header(parts, design):
     present = {key: value for key, value in parts.items() if value is not MISSING and value != ''}
     if not present:
         return MISSING
+    style = style_value(design['label']['style'])
     return record({
         'className': design['label']['class'],
-        'style': style_value(design['label']['style']),
+        'style': style if style is not None else MISSING,
         **present,
     })
 
 
 def _body(class_name='', style=None, identifier=None):
-    return record({'className': class_name, 'style': style_value(style), 'id': identifier})
+    style = style_value(style)
+    return record({
+        'className': class_name,
+        'style': style if style is not None else MISSING,
+        'id': identifier if identifier is not None else MISSING,
+    })
 
 
 def _action(name, label, disabled):

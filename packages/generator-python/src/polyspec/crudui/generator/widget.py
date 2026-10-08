@@ -121,7 +121,7 @@ class _Widget:
         self.design = design
         self.state = options
         self.rows = rows
-        self.id = control_id(self.state.get('idPrefix', 'crudui'), path)
+        self.id = control_id(self.state.get('idPrefix') or 'crudui', path)
         self.name = value_name(path, self.state.get('keyPrefix'))
         self.language = self.state.get('language', 'ko')
 
@@ -167,10 +167,11 @@ class _Widget:
         if text == '':
             return MISSING
         if kind == 'prepend':
+            style = style_value(self.design['prepend']['style'])
             return record({
                 'text': text,
                 'class': classes('crudui-widget__affix', self.design['prepend']['class']),
-                'style': style_value(self.design['prepend']['style']),
+                'style': style if style is not None else MISSING,
             })
         return record({'text': text, 'class': 'crudui-widget__affix'})
 
@@ -194,7 +195,7 @@ class _Widget:
         if kind in ('date', 'datetime'):
             parsed = dates_module.parse_utc(value)
             if parsed is not None:
-                value = parsed.strftime('%Y-%m-%dT%H:%M:%S' if kind == 'datetime' else '%Y-%m-%d')
+                value = dates_module.format_utc(parsed, kind == 'datetime')
         attrs = {'type': attr_type, 'name': self.name, 'value': value}
         if kind == 'number':
             attrs['step'] = 'any'
