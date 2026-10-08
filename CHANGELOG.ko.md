@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### 2026-10-08 — 공통 camelCase 표면의 validator 공개 이름 (C13.1-12)
+
+- `polyspec.crudui.validator`는 `validate_list`, `validate_detail`, `hidden_paths` 대신
+  공통 표면의 이름인 `validateList`, `validateDetail`, `hiddenPaths`를 내보낸다.
+  validator 단위 test 23개가 통과한다.
+
 ### 2026-10-08 — 커밋된 Python 이력의 기록 사실 (C13.1-11)
 
 - C13.1-1, C13.1-3, C13.1-4 행은 C13.1-1부터 C13.1-4까지 `[o]` 이전에 `[~]` 줄을
