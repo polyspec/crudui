@@ -421,6 +421,7 @@ CI_TARGETS = \
 	lint \
 	typecheck \
 	test-ordered-json \
+	kit-test \
 	test-validator-js \
 	test-validator-php \
 	test-validator-go \

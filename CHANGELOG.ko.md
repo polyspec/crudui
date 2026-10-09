@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 9e5ae3321d573b3f239655c6af704021ab2bb09a35d63684b59c6306efb3106a -->
+<!-- source-sha256: 58afcf7c9db3525087d84625a28a9eac1a101009a46d67c980b0207725592fbb -->
 
 ## Unreleased
+
+### 2026-10-09 — release 단위 test를 필요한 도구가 있는 CI job에서 실행한다 (C13.1-25)
+
+- release 단위 test는 polyspec/kit의 vendored test(`make kit-test`)다. CI job `build, lint and types`가 `test-ordered-json` 뒤에 `make kit-test`를 실행한다. test가 go, php, cargo를 부르고 그 job이 셋을 설치하기 때문이다. `make ci`의 `CI_TARGETS`도 같은 순서로 `kit-test`를 둔다. job `python`은 go, php, cargo를 설치하지 않으므로 이를 실행하지 않는다. `tests/build/ci-local.test.mjs`가 도구를 갖춘 한 job이 `make kit-test`를 실행할 것을 요구한다.
 
 ### 2026-10-09 — AGENTS의 Python git pin release 순서 (C13.1-24)
 

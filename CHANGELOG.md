@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-09 — Release unit tests run in a CI job with their tools (C13.1-25)
+
+- The release unit tests are the vendored tests of polyspec/kit (`make kit-test`). The CI job `build, lint and types` runs `make kit-test` after `test-ordered-json`, because the tests call go, php and cargo, which that job sets up; `make ci` lists `kit-test` in the same order. The job `python` sets up no go, php or cargo, so it does not run them. `tests/build/ci-local.test.mjs` requires one job to run `make kit-test` with those tools.
+
 ### 2026-10-09 — Release order of the Python git pins in AGENTS (C13.1-24)
 
 - `AGENTS.md` and `AGENTS.ko.md` state that the tag `vX.Y.Z` is created only after the release commit is on `main`, because the git pins of `packages/generator-python` name that tag, and that `make release-pins` requires the pins to name the tag.

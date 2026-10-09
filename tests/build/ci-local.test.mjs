@@ -411,3 +411,20 @@ test('only the release workflow starts on a tag push', async () => {
   const { checks } = JSON.parse(await read('config/release.json'));
   assert.deepEqual(checks, ['push-gate', 'ci-passed']);
 });
+
+// The release unit tests are the vendored tests of polyspec/kit (`make kit-test`). They call go, php and cargo, so the CI
+// job that runs them sets up those tools (C13.1-25).
+test('make kit-test runs in a CI job that sets up every tool the vendored tests call', async () => {
+  const workflow = parse(await read('.github/workflows/ci.yml'));
+  const jobs = Object.entries(workflow.jobs).filter(([, job]) => (job.steps ?? []).some((step) => /make ci-targets TARGETS="[^"]*\bkit-test\b/.test(String(step.run ?? ''))));
+  assert.equal(jobs.length, 1, 'exactly one CI job runs make kit-test');
+  const [[id, job]] = jobs;
+  const uses = job.steps.map((step) => String(step.uses ?? ''));
+  const runs = job.steps.map((step) => String(step.run ?? ''));
+  assert.ok(uses.some((use) => use.startsWith('actions/setup-go@')), `${id} sets up go`);
+  assert.ok(uses.some((use) => use.startsWith('shivammathur/setup-php@')), `${id} sets up php and composer`);
+  assert.ok(runs.includes('make install-rust'), `${id} installs the Rust toolchain for cargo`);
+  assert.ok(uses.some((use) => use.startsWith('actions/setup-node@')), `${id} sets up node`);
+  const makefile = await read('Makefile');
+  assert.match(makefile, /^CI_TARGETS = \\\n(?:\t[\w-]+ \\\n)*\tkit-test \\\n/m, 'make ci runs kit-test in the order of the CI job');
+});
