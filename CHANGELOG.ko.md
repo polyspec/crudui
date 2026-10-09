@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 58afcf7c9db3525087d84625a28a9eac1a101009a46d67c980b0207725592fbb -->
+<!-- source-sha256: 783a4f45341a6ef990f568f755173b357f045edbc05699108c1af8c317d0c390 -->
 
 ## Unreleased
+
+### 2026-10-09 — 소비자 npm project가 release version을 적는다 (C13.1-35)
+
+- `tests/release-install/npm/package.json`은 자신의 version 필드에 0.0.4를 적고 있었다. `make release-consumer-lock`은 commit된 그 필드를 유지하고, 의존성은 0.0.5 archive를 적고 있었다. 필드를 0.0.5로 고쳤고, `tests/build/release-fixtures.test.mjs`가 `package.json`의 version과 같기를 요구하므로 release가 이를 남겨 두면 `make test-runtimes`가 실패한다. 0.0.5 archive는 설치되고 smoke 명령을 통과한다(로컬 tag에서 `make release-consumer TAG=...`, exit 0).
 
 ### 2026-10-09 — release 단위 test를 필요한 도구가 있는 CI job에서 실행한다 (C13.1-25)
 

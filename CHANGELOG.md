@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-09 — Consumer project of the npm archives names the release version (C13.1-35)
+
+- `tests/release-install/npm/package.json` named the version 0.0.4 in its own version field, which `make release-consumer-lock` keeps as committed, while its dependencies named the archives of 0.0.5. The field is set to 0.0.5, and `tests/build/release-fixtures.test.mjs` requires it to equal the version of `package.json`, so a release that leaves it behind fails `make test-runtimes`. The archives of 0.0.5 install and pass their smoke commands (`make release-consumer TAG=...` on a local tag, exit 0).
+
 ### 2026-10-09 — Release unit tests run in a CI job with their tools (C13.1-25)
 
 - The release unit tests are the vendored tests of polyspec/kit (`make kit-test`). The CI job `build, lint and types` runs `make kit-test` after `test-ordered-json`, because the tests call go, php and cargo, which that job sets up; `make ci` lists `kit-test` in the same order. The job `python` sets up no go, php or cargo, so it does not run them. `tests/build/ci-local.test.mjs` requires one job to run `make kit-test` with those tools.
