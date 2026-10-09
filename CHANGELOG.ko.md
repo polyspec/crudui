@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 0644bd461ef5be450773fe3540c62c02f7f3b1f54a2b9295b6c8cd689d8fdae6 -->
+<!-- source-sha256: 1cb766576a6abe0c9d2916f2972f738bb1c421afef63c28a7b38f73c44b34f26 -->
 
 ## Unreleased
+
+### 2026-10-09 — CI job python이 node를 설치하고 기록된 toolchain을 검사한다 (C13.1-30)
+
+- `.github/workflows/ci.yml`의 job `python`은 `.node-version`의 Node.js release를 설치하고, 3.14 leg에서 `make toolchain-check TOOLS="node python"`을 실행한다. `tests/build/runtime-version-policy.test.mjs`의 test `every CI job sets up the recorded toolchains and checks the tools it set up`이 exit 0으로 통과한다.
 
 ### 2026-10-09 — docstring이 Python 모듈을 dotted 이름으로 적는다 (C13.1-29)
 

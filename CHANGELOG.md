@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-09 — CI job python sets up node and checks the recorded toolchain (C13.1-30)
+
+- The job `python` of `.github/workflows/ci.yml` sets up the Node.js release of `.node-version`, and `make toolchain-check TOOLS="node python"` runs in the leg that records the minor 3.14. The test `every CI job sets up the recorded toolchains and checks the tools it set up` of `tests/build/runtime-version-policy.test.mjs` passes (exit 0).
+
 ### 2026-10-09 — Python docstrings name modules by dotted names (C13.1-29)
 
 - The docstrings of `packages/generator-python/scripts/generate_interface_messages.py` and `packages/validator-python/scripts/generate_unicode_data.py` name the Python modules by their dotted names, not the `src/polyspec/crudui/...` paths, and `tests/build/package-names.test.mjs` passes (exit 0) with the other package-name tests.
