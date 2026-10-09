@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: c1d1c90ae2adf43faccfd440f1b61e4f76ecbdf0206369d44aec2a73f40bc600 -->
+<!-- source-sha256: 975c234169be6c5399043f2742800ceffe840a83e387320b54e14cd8f380300a -->
 
 ## Unreleased
+
+### 2026-10-09 — release pin script의 owner (C13.1-23-1)
+
+- `config/owner-checks.json`은 `scripts/release-pins.mjs`를 대상 `release-pins`와 test `tests/build/python-git-pins.test.mjs`로 적는다. `make owner-validate`가 exit 0이다. 이 검사는 C13.1-23에서 owner 없이 더해졌다.
 
 ### 2026-10-09 — 의존성이 최신 stable release이고 install 스크립트가 정확한 version으로 승인된다 (C13.1-38)
 

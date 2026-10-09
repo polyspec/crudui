@@ -651,6 +651,17 @@
         "tests/docs/repository-writing.test.mjs",
         "tests/build/python-git-pins.test.mjs"
       ]
+    },
+    {
+      "paths": [
+        "scripts/release-pins.mjs"
+      ],
+      "targets": [
+        "release-pins"
+      ],
+      "tests": [
+        "tests/build/python-git-pins.test.mjs"
+      ]
     }
   ],
   "inputs": [

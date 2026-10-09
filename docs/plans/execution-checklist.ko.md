@@ -1,6 +1,6 @@
 # Execution checklist
 <!-- doc-id: docs-plans-execution-checklist -->
-<!-- source-sha256: a81b4adf9dbcc5a3573a6e30a804b5d524192e8e744ecb3f54fc82578a8c814a -->
+<!-- source-sha256: e6949d05c668c9fc8d9eee3e31cb2a22b38649b06106c653cb2ac1d269ff65cb -->
 
 ## [Wave 1](waves.ko.md#wave-1) — 좁은 viewport를 위한 stylesheet와 stylesheet의 Tailwind 버전
 
@@ -283,3 +283,4 @@
 | C14.1-9 | `push-gate.yml`을 branch push에서만 시작한다(`push: branches: ['**']`). tag push가 이 workflow를 시작해 tag가 가리키는 commit에 완료되지 않은 `push-gate` 실행을 남겼고 `make release-verify`가 이를 거부했다. Red: `tests/build/ci-local.test.mjs`의 test `only the release workflow starts on a tag push`가 `push-gate.yml`에서 실패한다. Green: 통과하며 tag에서 시작하는 workflow는 `release.yml`뿐이다 | `node scripts/kit/run-tests.mjs node -- tests/build/ci-local.test.mjs` | [o] |
 | C14.1-10 | 로컬 pipeline stack test가 kit의 hook module을 이름으로 쓰게 한다. `examples/form-comparison/src/local-servers.test.mjs`는 `pipeline.browser.mjs`와 `record-stores.test.mjs`가 `setup`과 `teardown`을 `scripts/test-progress/hooks.mjs`에서 import할 것을 요구했다. C14.1-2가 file의 import는 `scripts/kit/test-hooks.mjs`로 바꿨지만 test의 pattern은 바꾸지 않아 CI job `Form comparison runner regressions`가 `../pipeline.browser.mjs uses setup and teardown`으로 실패했다. Red: test가 kit의 module에서 실패한다. Green: `npm run test:form-comparison:source`와 `:library`가 통과한다 | `node scripts/kit/run-tests.mjs node -- examples/form-comparison/src/local-servers.test.mjs`, `npm run test:form-comparison:source` | [o] |
 | C14.2 | 릴리스 0.0.5: `config/release.json`이 적은 모든 manifest와 그 lock(`package-lock.json`, `composer.lock`, `Cargo.lock` 6개)의 version, `packages/generator-python`의 git pin, `contracts/features.json`의 version, `packages/php-ext`의 module version, 이를 읽는 검사를 0.0.5로 정한다. `CHANGELOG.md`와 `CHANGELOG.ko.md`의 `## Unreleased`를 `## 0.0.5`로 바꾸고 그 위에 빈 `## Unreleased`를 새로 쓴다. dependency review를 기록하고, 나중에 지우는 로컬 tag에서 `make release-assets`와 `make release-consumer-lock`으로 `tests/release-install`의 사용자 project를 0.0.5 archive에 맞게 쓴다. tag는 push하지 않는다 | `make release-versions TAG=v0.0.5`, `make release-consumer TAG=v0.0.5`, `make release-go-tags TAG=v0.0.5`, `make dependency-policy-check` | [o] |
+| C13.1-23-1 | C13.1-23의 `scripts/release-pins.mjs`에 `config/owner-checks.json`의 owner를 준다. C13.1-23에서 더한 검사는 스크립트에 owner를 주지 않아 `make owner-validate`가 실패했다. 규칙은 대상 `release-pins`와 test `tests/build/python-git-pins.test.mjs`를 적는다. Red: `make owner-validate`가 `scripts/release-pins.mjs: the path matches no owner`로 exit 2다. Green: exit 0이다 | `make owner-validate` | [o] |
