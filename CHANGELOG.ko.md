@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 125e8f423e439921c32c9dbf537db7d2bc51f00ab26594a65b05c492bf29a144 -->
+<!-- source-sha256: aaee9b604545fd5486e16a16e619468733a9e506c402048177c0708ce99ae6c2 -->
 
 ## Unreleased
+
+### 2026-10-09 — release lock의 dependency review 기록 (C13.1-36)
+
+- `config/dependency-review.json`은 advisory 없는 registry 의존성 87개와 lock 8개의 review를 기록한다. `make dependency-policy-check`와 `make dependency-policy-mutation-check`가 exit 0이다. review는 예외 없는 최신 stable release를 보고하지 않는다. React 예외 4개는 남고, puppeteer, playwright, vite의 상향은 main에 있다(C13.1-38).
 
 ### 2026-10-09 — 패키지 파일이 이 저장소의 release version을 적는다 (C13.1-34)
 
