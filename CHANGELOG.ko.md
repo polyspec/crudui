@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: f7b4391baaf483a585643e6b8681ce4f1a3c1f7a1eafbcd395cfd25c531301aa -->
+<!-- source-sha256: ad836db9a023106a6c3342c38efe4f95f34b98e3944d61a4fcb2b7f3cb4a9b81 -->
 
 ## Unreleased
+
+### 2026-10-09 — make-tool-path 검사의 native 생성기 명령이 python을 포함한다 (C13.1-28)
+
+- `make test-native`는 `tests/native-generators/run.mjs --target javascript,html,go,rust,python`을 실행하고, test `tests/build/make-tool-path.test.mjs`는 그 명령을 기대한다. `node scripts/kit/run-tests.mjs node -- tests/build/make-tool-path.test.mjs`는 `tests/build/package-names.test.mjs`, `tests/build/runtime-version-policy.test.mjs`와 함께 exit 0으로 통과한다.
 
 ### 2026-10-09 — Python 3.11이 validator와 generator 모듈을 import한다 (C13.1-27)
 

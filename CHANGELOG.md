@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-09 — Native generator command of make-tool-path names python (C13.1-28)
+
+- `make test-native` runs `tests/native-generators/run.mjs --target javascript,html,go,rust,python`, and the test `tests/build/make-tool-path.test.mjs` expects that command. `node scripts/kit/run-tests.mjs node -- tests/build/make-tool-path.test.mjs` passes with `tests/build/package-names.test.mjs` and `tests/build/runtime-version-policy.test.mjs` (exit 0).
+
 ### 2026-10-09 — Python 3.11 imports the validator and generator modules (C13.1-27)
 
 - The annotations of `packages/validator-python/src/polyspec/crudui/validator/resolver.py` import `Node` from `parser` and define the alias `Context` above their use. On Python 3.11.16, `PYTHONPATH=src python -m unittest discover -s tests -p "test_*.py"` passes in `packages/validator-python` (23 tests) and in `packages/generator-python` (11 tests), exit 0.
