@@ -1,6 +1,6 @@
 # Execution checklist
 <!-- doc-id: docs-plans-execution-checklist -->
-<!-- source-sha256: b0c6b41c934dbb982e8be010f194b0a8eeaba54734498c3ad2bdab2d30ecb51a -->
+<!-- source-sha256: a81b4adf9dbcc5a3573a6e30a804b5d524192e8e744ecb3f54fc82578a8c814a -->
 
 ## [Wave 1](waves.ko.md#wave-1) — 좁은 viewport를 위한 stylesheet와 stylesheet의 Tailwind 버전
 
@@ -265,7 +265,7 @@
 | C13.1-35 | 0.0.4의 consumer fixture `tests/release-install`를 HEAD의 archive에서 다시 쓰고 lock을 다시 생성한다. `make release-assets TAG=v0.0.4 RELEASE_COMMIT=HEAD`는 9개 archive를 `var/release/assets`에 쓰고, `make release-install-lock`은 fixture의 `package.json`, `package-lock.json`, `composer.json`과 `composer.lock`을 쓴다. tag는 만들지 않는다 | `node --test tests/build/release.test.mjs`가 통과하고, test `the consumer fixtures of tests/release-install name the archives of the version of package.json`을 포함한다 | [o] |
 | C13.1-36 | 0.0.4 lock의 dependency review를 기록한다. `make dependency-review RECORD=1`은 version bump로 바뀐 lock 8개의 sha256과 각 advisory(없음)를 `config/dependency-review.json`에 쓴다. review는 exception이 없는 newer stable release 4개를 보고한다. `package.json`의 `puppeteer` 25.13.0과 `playwright` 1.64.0, `package.json`과 `packages/generator-svelte/package.json`의 `vite` 8.3.4이며, 이들은 별도 변경에서 `make dependency-review UPDATE=1`로 올린다 | `node --test tests/build/dependency-review.test.mjs`와 `node --test tests/build/release.test.mjs`가 통과한다 | [o] |
 | C13.1-37 | 0.0.4 bump 뒤 npm lock이 저장소 패키지를 릴리스 version으로 기록하게 합니다. bump는 패키지와 manifest의 version을 바꿨지만 `package-lock.json`의 의존성 항목(root와 workspace 패키지의 14개)은 여전히 0.0.3이었습니다. Red: `tests/build/dependency-health.test.mjs`의 "the dependencies match their recorded review"가 리뷰 뒤 lock이 바뀌었다고 보고합니다. Green: 항목이 0.0.4를 가리키고, 리뷰 기록은 C13.1-38에서 다시 씁니다. | `package-lock.json`, `config/dependency-review.json` | `node --test tests/build/dependency-health.test.mjs` | [o] |
-| C13.1-38 | 의존성을 최신 stable release로 올리고 install 스크립트를 정확한 version으로 승인합니다. 리뷰가 puppeteer 25.13.0, playwright 1.64.0, vite 8.3.4를 manifest보다 새 버전으로 찾았습니다. `make dependency-review UPDATE=1 RECORD=1`이 manifest와 lock을 갱신하고 기록을 씁니다. `npm install-scripts approve`는 puppeteer@25.13.0과 esbuild(0.27.7, 0.28.2)의 install 스크립트를 승인합니다. Red: "tracked npm dependency graphs approve every install script by exact version"이 puppeteer@25.13.0에서 ESTRICTALLOWSCRIPTS로 실패합니다. Green: 승인. | `package.json`, `packages/*/package.json`, `config/dependency-review.json`, `package-lock.json` | `node --test tests/build/dependency-health.test.mjs` | [ ] |
+| C13.1-38 | 의존성을 최신 stable release로 올리고 install 스크립트를 정확한 version으로 승인합니다. 리뷰가 puppeteer 25.13.0, playwright 1.64.0, vite 8.3.4를 manifest보다 새 버전으로 찾았습니다. `make dependency-review UPDATE=1 RECORD=1`이 manifest와 lock을 갱신하고 기록을 씁니다. `npm install-scripts approve`는 puppeteer@25.13.0과 esbuild(0.27.7, 0.28.2)의 install 스크립트를 승인합니다. Red: "tracked npm dependency graphs approve every install script by exact version"이 puppeteer@25.13.0에서 ESTRICTALLOWSCRIPTS로 실패합니다. Green: 승인. | `package.json`, `packages/*/package.json`, `config/dependency-review.json`, `package-lock.json` | `node --test tests/build/dependency-health.test.mjs` | [o] |
 
 ## [Wave 14](waves.ko.md#wave-14) — polyspec/kit으로 공유하는 도구
 

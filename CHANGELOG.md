@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-09 — Dependencies at their latest stable release with exact install approvals (C13.1-38)
+
+- `package.json` declares `puppeteer` ^25.13.0, `playwright` ^1.64.0 and `vite` 8.3.4, and `allowScripts` approves `puppeteer@25.13.0`, `esbuild@0.27.7` and `esbuild@0.28.2` by exact version. `make dependency-policy-check` exits 0 (no newer stable release without an exception), and `tests/build/dependency-health.test.mjs` passes, including `tracked npm dependency graphs approve every install script by exact version`.
+
 ### 2026-10-09 — npm lock records the workspace packages at the release version (C13.1-37)
 
 - The workspace entries of `package-lock.json` and the root entry name the version of `package.json` (0.0.5); a check over the lock finds no mismatch. `node scripts/kit/run-tests.mjs node -- tests/build/dependency-health.test.mjs` passes (exit 0), including the test `the dependencies match their recorded review, without a registry query`.
