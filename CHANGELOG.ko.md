@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: aaee9b604545fd5486e16a16e619468733a9e506c402048177c0708ce99ae6c2 -->
+<!-- source-sha256: d9488888e1e4f87fd0c9b25ea31a419c4f526b843acf5729e2008575f79f99ba -->
 
 ## Unreleased
+
+### 2026-10-09 — npm lock이 workspace package를 release version으로 적는다 (C13.1-37)
+
+- `package-lock.json`의 root와 workspace 항목은 `package.json`의 version(0.0.5)을 적는다. lock을 검사해 불일치가 없다. `node scripts/kit/run-tests.mjs node -- tests/build/dependency-health.test.mjs`가 exit 0으로 통과하며, test `the dependencies match their recorded review, without a registry query`를 포함한다.
 
 ### 2026-10-09 — release lock의 dependency review 기록 (C13.1-36)
 
