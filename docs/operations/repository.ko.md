@@ -1,6 +1,6 @@
 # 저장소
 <!-- doc-id: docs-operations-repository -->
-<!-- source-sha256: 89322c0c252015affea3e822de3e4606defc169a65b78b11cbb34e3fa476b470 -->
+<!-- source-sha256: 12f473b7d684c1981cab09db6e0e2bf8fbfc2b5e5b656af39d3dfe4db3085b4c -->
 
 [English](repository.md).
 
@@ -70,7 +70,8 @@ release는 `main` commit의 tag입니다. 저장소는 `vX.Y.Z`이고, 디렉터
    - `make release-verify`는 tag의 commit이 `origin/main`에 있는지(`git merge-base --is-ancestor`), 모든 Go module의 tag
      `<directory>/vX.Y.Z`가 같은 commit에 있는지, commit의 check run `push-gate`와 `ci-passed`가 conclusion `success`로
      끝났는지(`gh api repos/<owner>/<repo>/commits/<sha>/check-runs`) 확인하고, 빠졌거나 실패한 check마다 적어 실패합니다.
-   - `make release-versions`는 `config/release.json`이 적은 모든 manifest의 version이 tag와 같은지, 모든 Go module의 module
+   - `make release-versions`는 먼저 `make release-pins`를 실행하며, 이것은 `pyproject.toml`의 이 저장소를 가리키는 모든 git pin이 tag의
+     version을 적을 것을 요구합니다. 그다음 `config/release.json`이 적은 모든 manifest의 version이 tag와 같은지, 모든 Go module의 module
      path, `CHANGELOG.md`와 `CHANGELOG.ko.md`의 section `## X.Y.Z`가 있는지 확인하고, 파일과 두 version을 적어 실패합니다.
    - `make release-assets`는 `make build`를 실행하고 `config/release.json`의 package archive를 `var/release/assets`에 씁니다.
      release하는 npm package마다 `npm pack`, Composer package 디렉터리마다 zip `git archive`를 실행하고, 이름은

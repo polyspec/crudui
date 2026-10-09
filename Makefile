@@ -406,7 +406,8 @@ records-check: ## Check the document pairs, links, changelog, writing and checkl
 	exit $$status
 
 # The release steps are the targets of scripts/kit/kit.mk, run by .github/workflows/release.yml in this order: release-verify,
-# release-versions, release-assets, release-consumer, release-publish (docs/operations/repository.md, "Releases"). The
+# release-versions (preceded by release-pins, which requires the git pins of this repository to name the tag),
+# release-assets, release-consumer, release-publish (docs/operations/repository.md, "Releases"). The
 # archives of the npm packages hold their dist directories, so the packages are built before the archives are written.
 release-assets: build
 
@@ -461,3 +462,11 @@ conformance-reset: ## Remove the conformance evidence of earlier runs
 	rm -rf "$(CONFORMANCE_EVIDENCE)"
 
 rerun-failed: export CRUDUI_CONFORMANCE_EVIDENCE := $(CONFORMANCE_EVIDENCE)
+
+# A git pin of this repository in a pyproject.toml names the tag of the release: release-pins requires it to name TAG's
+# version, and release-versions runs it first (scripts/release-pins.mjs).
+release-pins: ## Require every git pin of this repository in a pyproject.toml to name the version of TAG; offline
+	@test -n "$$TAG" || { echo "release-pins: TAG is required, for example make release-pins TAG=v0.0.1"; exit 1; }
+	node scripts/release-pins.mjs "$$TAG"
+
+release-versions: release-pins

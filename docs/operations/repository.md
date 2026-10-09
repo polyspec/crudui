@@ -76,7 +76,8 @@ packages, the manifests that a tag covers and the Go modules are declared in `co
      `<directory>/vX.Y.Z` of every Go module at the same commit, and the check runs `push-gate` and `ci-passed` of the
      commit completed with conclusion `success` (`gh api repos/<owner>/<repo>/commits/<sha>/check-runs`); it fails with
      each missing or failed check;
-   - `make release-versions` requires the version of the tag in every manifest that `config/release.json` lists, the
+   - `make release-versions` first runs `make release-pins`, which requires every git pin of this repository in a `pyproject.toml`
+     to name the version of the tag; it requires the version of the tag in every manifest that `config/release.json` lists, the
      module path of every Go module, and the section `## X.Y.Z` of `CHANGELOG.md` and `CHANGELOG.ko.md`; it fails with the
      file and both versions;
    - `make release-assets` runs `make build` and writes the archives of the packages of `config/release.json` to

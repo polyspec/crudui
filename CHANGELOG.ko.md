@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 08ec2f01645b9d2c2e0ac908b721d789750ccca65c695ee77f2f4af767f5e112 -->
+<!-- source-sha256: ffdce73f0cdfdd93dd4c5efc0aad6258e090cc78279d4b6650d78cacaceb339d -->
 
 ## Unreleased
+
+### 2026-10-09 — stale git pin가 release 검사에서 실패한다 (C13.1-23)
+
+- `make release-pins TAG=...`(`scripts/release-pins.mjs`)는 tag와 다른 version을 적은 `pyproject.toml`의 git pin `polyspec/crudui@vX.Y.Z`에 대해 실패하며, file, pin, tag를 출력한다. `make release-versions`가 이를 먼저 실행한다. `tests/build/python-git-pins.test.mjs`가 실패하는 tag와 통과하는 tag를 확인한다.
 
 ## 0.0.5
 
