@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-09 — Stale git pins of the Python packages fail the release check (C13.1-23)
+
+- `make release-pins TAG=...` (`scripts/release-pins.mjs`) fails for a git pin `polyspec/crudui@vX.Y.Z` in a `pyproject.toml` that names another version than the tag, and prints the file, the pin and the tag. `make release-versions` runs it first. `tests/build/python-git-pins.test.mjs` proves the failing and the passing tags.
+
 ## 0.0.5
 
 ### 2026-10-09 — Release 0.0.5 (C14.2)
