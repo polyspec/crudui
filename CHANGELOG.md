@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-09 — Dependency review record of the release locks (C13.1-36)
+
+- `config/dependency-review.json` records the review of 87 registry dependencies and 8 locks with no advisory. `make dependency-policy-check` and `make dependency-policy-mutation-check` exit 0. The review reports no newer stable release without an exception: the four React exceptions remain, and the raises of puppeteer, playwright and vite are on main (C13.1-38).
+
 ### 2026-10-09 — Package files carry the release version of this repository (C13.1-34)
 
 - The version of the release is set in every manifest that `config/release.json` lists, in their locks, in the git pin of `packages/generator-python`, in `contracts/features.json` and in the module version of `packages/php-ext`. The release of this repository is 0.0.5 (74fd5956); version 0.0.4 was never tagged, so the package files are not set back to it. `make release-pins TAG=v0.0.5` and `make release-coverage` exit 0, and `tests/build/contract-manifest.test.mjs` passes. The section `## 0.0.4` of the change logs stays below `## 0.0.5`, and no tag `v0.0.4` exists locally or on origin.
