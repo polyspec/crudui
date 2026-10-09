@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-09 — Python docstrings name modules by dotted names (C13.1-29)
+
+- The docstrings of `packages/generator-python/scripts/generate_interface_messages.py` and `packages/validator-python/scripts/generate_unicode_data.py` name the Python modules by their dotted names, not the `src/polyspec/crudui/...` paths, and `tests/build/package-names.test.mjs` passes (exit 0) with the other package-name tests.
+
 ### 2026-10-09 — Native generator command of make-tool-path names python (C13.1-28)
 
 - `make test-native` runs `tests/native-generators/run.mjs --target javascript,html,go,rust,python`, and the test `tests/build/make-tool-path.test.mjs` expects that command. `node scripts/kit/run-tests.mjs node -- tests/build/make-tool-path.test.mjs` passes with `tests/build/package-names.test.mjs` and `tests/build/runtime-version-policy.test.mjs` (exit 0).
