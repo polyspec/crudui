@@ -1,6 +1,6 @@
 {
   "name": "@polyspec/crudui-release-install",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "private": true,
   "dependencies": {
     "@polyspec/crudui-generator-html": "file:polyspec-crudui-generator-html-npm-0.0.5.tgz",
