@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: ffdce73f0cdfdd93dd4c5efc0aad6258e090cc78279d4b6650d78cacaceb339d -->
+<!-- source-sha256: 9e5ae3321d573b3f239655c6af704021ab2bb09a35d63684b59c6306efb3106a -->
 
 ## Unreleased
+
+### 2026-10-09 — AGENTS의 Python git pin release 순서 (C13.1-24)
+
+- `AGENTS.md`와 `AGENTS.ko.md`는 `packages/generator-python`의 git pin이 tag `vX.Y.Z`를 적으므로 release commit이 `main`에 있은 뒤에만 그 tag를 만들며, `make release-pins`가 pin이 tag를 적을 것을 요구한다고 적는다.
 
 ### 2026-10-09 — stale git pin가 release 검사에서 실패한다 (C13.1-23)
 

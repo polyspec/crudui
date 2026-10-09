@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-09 — Release order of the Python git pins in AGENTS (C13.1-24)
+
+- `AGENTS.md` and `AGENTS.ko.md` state that the tag `vX.Y.Z` is created only after the release commit is on `main`, because the git pins of `packages/generator-python` name that tag, and that `make release-pins` requires the pins to name the tag.
+
 ### 2026-10-09 — Stale git pins of the Python packages fail the release check (C13.1-23)
 
 - `make release-pins TAG=...` (`scripts/release-pins.mjs`) fails for a git pin `polyspec/crudui@vX.Y.Z` in a `pyproject.toml` that names another version than the tag, and prints the file, the pin and the tag. `make release-versions` runs it first. `tests/build/python-git-pins.test.mjs` proves the failing and the passing tags.

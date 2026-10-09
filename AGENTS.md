@@ -104,7 +104,9 @@
   comes first: it sets the version of every manifest that `config/release.json` lists (`package.json`, `Cargo.toml`,
   `pyproject.toml`, the `composer.json` of `packages/`), and of every dependency and git pin on a package of the
   repository, to X.Y.Z, and renames `## Unreleased` of `CHANGELOG.md` and `CHANGELOG.ko.md` to `## X.Y.Z` below a new
-  empty `## Unreleased`.
+  empty `## Unreleased`. The git pins of `packages/generator-python` name the tag `vX.Y.Z` of this repository, so that tag
+  is created only after this commit is on `main`; `make release-pins` (run by `make release-versions`) requires every such
+  pin to name the tag.
 - The maintainer then tags the commit and pushes the tag. `.github/workflows/release.yml` runs `make release-verify`,
   `make release-versions`, `make release-assets`, `make release-consumer` and `make release-publish`
   (`scripts/kit/release.mjs`): it requires the commit on `main` with the checks `push-gate` and `ci-passed` concluded
