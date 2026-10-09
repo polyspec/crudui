@@ -1,6 +1,6 @@
 # 개발
 <!-- doc-id: agents -->
-<!-- source-sha256: a7b5dec3686835b4131dc3c498f2d512f7bbb5ebaf20ffd5f12db364d2976231 -->
+<!-- source-sha256: a663011f7335b4f6483c8989683a7ddfe361a90e0e5e2f9f997ebbcc4f795259 -->
 
 - 동작이나 방향을 변경하기 전에 명세를 갱신합니다.
 - 브랜치는 `{type}/{shortname}-{체크리스트 ID}`, 워크트리는 `{프로젝트}-{shortname}-{체크리스트 ID}`로
@@ -93,7 +93,9 @@
 - push된 `main`에서 CI check `ci-passed`가 성공한 뒤, commit `chore(release): Release X.Y.Z (#<작업 ID>)`가 먼저 옵니다. 이 commit은
   `config/release.json`이 적은 모든 manifest(`package.json`, `Cargo.toml`, `pyproject.toml`, `packages/`의 `composer.json`)의 version과
   저장소 package에 대한 모든 dependency와 git pin의 version을 X.Y.Z로 정하고, `CHANGELOG.md`와 `CHANGELOG.ko.md`의
-  `## Unreleased`를 `## X.Y.Z`로 바꾼 뒤 그 위에 빈 `## Unreleased`를 새로 씁니다.
+  `## Unreleased`를 `## X.Y.Z`로 바꾼 뒤 그 위에 빈 `## Unreleased`를 새로 씁니다. `packages/generator-python`의 git pin은 이 저장소의
+  tag `vX.Y.Z`를 적으므로, 그 tag는 이 commit이 `main`에 있은 뒤에만 만듭니다. `make release-pins`(`make release-versions`가 실행)가 모든
+  pin이 tag를 적을 것을 요구합니다.
 - 그다음 maintainer가 그 commit에 tag를 달아 push합니다. `.github/workflows/release.yml`은
   `make release-verify`, `make release-versions`, `make release-assets`, `make release-consumer`, `make release-publish`
   (`scripts/kit/release.mjs`)를 실행해, commit이 `main`에 있고 check `push-gate`와 `ci-passed`가 success로 끝났는지, 모든 manifest의
