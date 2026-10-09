@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-09 — Pull request of the Python branch is opened and merged (C13.1-26)
+
+- `gh pr list -R polyspec/crudui --state all --head feat/python-C13.1` lists pull request #1, `feat(python): Add the Python validator and generator (#C13.1)`, in the state MERGED. The row asked for the pull request to be open, and it has been merged since, so its literal open-state check cannot hold now; the pull request was opened and merged to main.
+
 ### 2026-10-09 — Consumer project of the npm archives names the release version (C13.1-35)
 
 - `tests/release-install/npm/package.json` named the version 0.0.4 in its own version field, which `make release-consumer-lock` keeps as committed, while its dependencies named the archives of 0.0.5. The field is set to 0.0.5, and `tests/build/release-fixtures.test.mjs` requires it to equal the version of `package.json`, so a release that leaves it behind fails `make test-runtimes`. The archives of 0.0.5 install and pass their smoke commands (`make release-consumer TAG=...` on a local tag, exit 0).
