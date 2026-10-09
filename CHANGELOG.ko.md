@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 1cb766576a6abe0c9d2916f2972f738bb1c421afef63c28a7b38f73c44b34f26 -->
+<!-- source-sha256: 125e8f423e439921c32c9dbf537db7d2bc51f00ab26594a65b05c492bf29a144 -->
 
 ## Unreleased
+
+### 2026-10-09 — 패키지 파일이 이 저장소의 release version을 적는다 (C13.1-34)
+
+- release version은 `config/release.json`이 적은 모든 manifest와 그 lock, `packages/generator-python`의 git pin, `contracts/features.json`, `packages/php-ext`의 module version에 설정되어 있다. 이 저장소의 release는 0.0.5(74fd5956)다. version 0.0.4는 tag된 적이 없으므로 package 파일을 0.0.4로 되돌리지 않는다. `make release-pins TAG=v0.0.5`와 `make release-coverage`가 exit 0이고, `tests/build/contract-manifest.test.mjs`가 통과한다. change log의 `## 0.0.4` section은 `## 0.0.5` 아래에 남고, tag `v0.0.4`는 로컬에도 origin에도 없다.
 
 ### 2026-10-09 — CI job python이 node를 설치하고 기록된 toolchain을 검사한다 (C13.1-30)
 

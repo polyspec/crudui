@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-09 — Package files carry the release version of this repository (C13.1-34)
+
+- The version of the release is set in every manifest that `config/release.json` lists, in their locks, in the git pin of `packages/generator-python`, in `contracts/features.json` and in the module version of `packages/php-ext`. The release of this repository is 0.0.5 (74fd5956); version 0.0.4 was never tagged, so the package files are not set back to it. `make release-pins TAG=v0.0.5` and `make release-coverage` exit 0, and `tests/build/contract-manifest.test.mjs` passes. The section `## 0.0.4` of the change logs stays below `## 0.0.5`, and no tag `v0.0.4` exists locally or on origin.
+
 ### 2026-10-09 — CI job python sets up node and checks the recorded toolchain (C13.1-30)
 
 - The job `python` of `.github/workflows/ci.yml` sets up the Node.js release of `.node-version`, and `make toolchain-check TOOLS="node python"` runs in the leg that records the minor 3.14. The test `every CI job sets up the recorded toolchains and checks the tools it set up` of `tests/build/runtime-version-policy.test.mjs` passes (exit 0).
