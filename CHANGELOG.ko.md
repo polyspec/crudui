@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: ff95591296e898e97b22cc6045f7221d79a5768369237f85d3d48304bb677cfe -->
+<!-- source-sha256: f7b4391baaf483a585643e6b8681ce4f1a3c1f7a1eafbcd395cfd25c531301aa -->
 
 ## Unreleased
+
+### 2026-10-09 — Python 3.11이 validator와 generator 모듈을 import한다 (C13.1-27)
+
+- `packages/validator-python/src/polyspec/crudui/validator/resolver.py`의 annotation은 `parser`에서 `Node`를 import하고, 사용 앞에서 alias `Context`를 정의한다. Python 3.11.16에서 `packages/validator-python`(23 test)과 `packages/generator-python`(11 test)의 `PYTHONPATH=src python -m unittest discover -s tests -p "test_*.py"`가 exit 0으로 통과한다.
 
 ### 2026-10-09 — Python 브랜치의 pull request가 열렸고 merge되었다 (C13.1-26)
 
