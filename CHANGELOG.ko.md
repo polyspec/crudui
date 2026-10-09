@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: ad836db9a023106a6c3342c38efe4f95f34b98e3944d61a4fcb2b7f3cb4a9b81 -->
+<!-- source-sha256: 0644bd461ef5be450773fe3540c62c02f7f3b1f54a2b9295b6c8cd689d8fdae6 -->
 
 ## Unreleased
+
+### 2026-10-09 — docstring이 Python 모듈을 dotted 이름으로 적는다 (C13.1-29)
+
+- `packages/generator-python/scripts/generate_interface_messages.py`와 `packages/validator-python/scripts/generate_unicode_data.py`의 docstring은 Python 모듈을 `src/polyspec/crudui/...` 경로가 아닌 dotted 이름으로 적는다. `tests/build/package-names.test.mjs`가 다른 package 이름 검사와 함께 exit 0으로 통과한다.
 
 ### 2026-10-09 — make-tool-path 검사의 native 생성기 명령이 python을 포함한다 (C13.1-28)
 
