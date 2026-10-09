@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-09 — Owner of the release pin script (C13.1-23-1)
+
+- `config/owner-checks.json` names `scripts/release-pins.mjs` with the target `release-pins` and the test `tests/build/python-git-pins.test.mjs`; `make owner-validate` exits 0. The check was added with C13.1-23 without this owner.
+
 ### 2026-10-09 — Dependencies at their latest stable release with exact install approvals (C13.1-38)
 
 - `package.json` declares `puppeteer` ^25.13.0, `playwright` ^1.64.0 and `vite` 8.3.4, and `allowScripts` approves `puppeteer@25.13.0`, `esbuild@0.27.7` and `esbuild@0.28.2` by exact version. `make dependency-policy-check` exits 0 (no newer stable release without an exception), and `tests/build/dependency-health.test.mjs` passes, including `tracked npm dependency graphs approve every install script by exact version`.
