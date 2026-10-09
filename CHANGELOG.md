@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-09 — Python 3.11 imports the validator and generator modules (C13.1-27)
+
+- The annotations of `packages/validator-python/src/polyspec/crudui/validator/resolver.py` import `Node` from `parser` and define the alias `Context` above their use. On Python 3.11.16, `PYTHONPATH=src python -m unittest discover -s tests -p "test_*.py"` passes in `packages/validator-python` (23 tests) and in `packages/generator-python` (11 tests), exit 0.
+
 ### 2026-10-09 — Pull request of the Python branch is opened and merged (C13.1-26)
 
 - `gh pr list -R polyspec/crudui --state all --head feat/python-C13.1` lists pull request #1, `feat(python): Add the Python validator and generator (#C13.1)`, in the state MERGED. The row asked for the pull request to be open, and it has been merged since, so its literal open-state check cannot hold now; the pull request was opened and merged to main.
