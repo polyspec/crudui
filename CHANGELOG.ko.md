@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 783a4f45341a6ef990f568f755173b357f045edbc05699108c1af8c317d0c390 -->
+<!-- source-sha256: ff95591296e898e97b22cc6045f7221d79a5768369237f85d3d48304bb677cfe -->
 
 ## Unreleased
+
+### 2026-10-09 — Python 브랜치의 pull request가 열렸고 merge되었다 (C13.1-26)
+
+- `gh pr list -R polyspec/crudui --state all --head feat/python-C13.1`는 pull request #1 `feat(python): Add the Python validator and generator (#C13.1)`을 상태 MERGED로 보여 준다. 이 행은 pull request가 열려 있을 것을 요구했지만 이후 merge되었으므로 열림 상태의 literal 검사는 지금 성립하지 않는다. pull request는 열린 뒤 main에 merge되었다.
 
 ### 2026-10-09 — 소비자 npm project가 release version을 적는다 (C13.1-35)
 
