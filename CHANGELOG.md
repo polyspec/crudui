@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-09 — npm lock records the workspace packages at the release version (C13.1-37)
+
+- The workspace entries of `package-lock.json` and the root entry name the version of `package.json` (0.0.5); a check over the lock finds no mismatch. `node scripts/kit/run-tests.mjs node -- tests/build/dependency-health.test.mjs` passes (exit 0), including the test `the dependencies match their recorded review, without a registry query`.
+
 ### 2026-10-09 — Dependency review record of the release locks (C13.1-36)
 
 - `config/dependency-review.json` records the review of 87 registry dependencies and 8 locks with no advisory. `make dependency-policy-check` and `make dependency-policy-mutation-check` exit 0. The review reports no newer stable release without an exception: the four React exceptions remain, and the raises of puppeteer, playwright and vite are on main (C13.1-38).
