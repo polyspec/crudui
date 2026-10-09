@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: d9488888e1e4f87fd0c9b25ea31a419c4f526b843acf5729e2008575f79f99ba -->
+<!-- source-sha256: c1d1c90ae2adf43faccfd440f1b61e4f76ecbdf0206369d44aec2a73f40bc600 -->
 
 ## Unreleased
+
+### 2026-10-09 — 의존성이 최신 stable release이고 install 스크립트가 정확한 version으로 승인된다 (C13.1-38)
+
+- `package.json`은 `puppeteer` ^25.13.0, `playwright` ^1.64.0, `vite` 8.3.4를 선언하고, `allowScripts`는 `puppeteer@25.13.0`, `esbuild@0.27.7`, `esbuild@0.28.2`를 정확한 version으로 승인한다. `make dependency-policy-check`가 exit 0(예외 없는 최신 stable release 없음)이고, `tests/build/dependency-health.test.mjs`가 test `tracked npm dependency graphs approve every install script by exact version`을 포함해 통과한다.
 
 ### 2026-10-09 — npm lock이 workspace package를 release version으로 적는다 (C13.1-37)
 
