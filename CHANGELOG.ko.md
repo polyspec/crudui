@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 975c234169be6c5399043f2742800ceffe840a83e387320b54e14cd8f380300a -->
+<!-- source-sha256: 4f54c20ee5d33f7cc1ac2b068e9806a5fe9296203ab8255a5edafab2c31a6c99 -->
 
 ## Unreleased
+
+### 2026-10-12 — 각 생태계의 표준 도구를 있는 그대로 사용한다 (C15.1)
+
+- `AGENTS.md`와 `AGENTS.ko.md`는 기존 외부 도구나 라이브러리를 다시 만들지 않고 있는 그대로 사용한다고 적는다. Python interpreter, environment, lock에는 uv를, PHP 의존성에는 Composer를 쓰며, 그 도구가 만드는 symbolic link는 받아들인다. 경로 규칙은 이 저장소가 만드는 것에 적용되고, 경로의 선언적 해석과 discovery 해석을 함께 적는다. `make documents-check`가 exit 0이다.
 
 ### 2026-10-09 — release pin script의 owner (C13.1-23-1)
 

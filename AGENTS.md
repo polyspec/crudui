@@ -65,10 +65,15 @@
 - Use the simplest implementation that meets the current contract. Remove
   replaced runtime paths instead of adding compatibility or migration code.
 - Separate structure compilation, instance data, rendering and validation.
-- Record repository paths relative to the repository. Runtime code resolves
-  repository inputs from its declared root or module location. Require an
-  explicit path or one authoritative discovery record for external inputs.
-  Reject symbolic links, missing records and ambiguous discovery results.
+- Record the repository paths that this repository creates relative to the repository. Runtime code
+  resolves repository inputs from its declared root or module location, either declaratively (a path
+  named in a tracked file) or by discovery (a stated discovery rule). Require an explicit path or one
+  authoritative discovery record for external inputs. In what this repository creates, reject symbolic
+  links, missing records and ambiguous discovery results.
+- Do not rebuild what an existing outside tool or library already does. Use the standard tool of its
+  ecosystem as it is (for example uv for Python interpreters, environments and locks, Composer for PHP
+  dependencies), and accept its own behavior, such as the symbolic links that it creates; our rules
+  govern what we create.
 - Use owned events, promises or process completion to determine readiness and
   success. Do not use sleep intervals or periodic state reads when the producer
   can publish completion. A time limit may only turn missing completion into a

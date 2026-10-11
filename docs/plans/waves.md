@@ -60,3 +60,7 @@ Depends on: none. The repository names its implementations in TypeScript, Go, PH
 ## Wave 14
 
 Depends on: none. The repository takes the tools that every polyspec repository shares from polyspec/kit v0.0.4 as vendored copies in `scripts/kit` and `tests/kit` (`kit.json`, `.kit/kit.lock.json`) and differs from the other repositories only in `config/*.json`. The tools of this repository that kit provides are removed: the dependency review and its check, the toolchain install and check, the test runner, the push check, the full-run guard, the holder lock, the document and owner checks, the CI report tools and the release tool. The 0.x workflow has no pull request, merge queue or ruleset: work is committed locally per row, `main` is pushed once when every row is `[o]`, and a tag is created only after the main CI check `ci-passed` succeeded.
+
+## Wave 15
+
+Depends on: none. The path rule of AGENTS rejected symbolic links in every path without stating that it governs only what this repository creates, so the standard tool of an ecosystem that creates symbolic links, such as uv for a Python environment, would be rejected by it. AGENTS did not state that outside tools and libraries are used as they are and not rebuilt.

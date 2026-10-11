@@ -1,6 +1,6 @@
 # Execution checklist
 <!-- doc-id: docs-plans-execution-checklist -->
-<!-- source-sha256: a8755ba193628d9d00e1660d1819bf91b88940b6fc37f2dab64a4ce8a9ba3bcd -->
+<!-- source-sha256: ddf8c6a727f77c53b69f35262be0d97ab65955367f0c44c687a63488974f470f -->
 
 ## [Wave 1](waves.ko.md#wave-1) — 좁은 viewport를 위한 stylesheet와 stylesheet의 Tailwind 버전
 
@@ -284,3 +284,9 @@
 | C14.1-10 | 로컬 pipeline stack test가 kit의 hook module을 이름으로 쓰게 한다. `examples/form-comparison/src/local-servers.test.mjs`는 `pipeline.browser.mjs`와 `record-stores.test.mjs`가 `setup`과 `teardown`을 `scripts/test-progress/hooks.mjs`에서 import할 것을 요구했다. C14.1-2가 file의 import는 `scripts/kit/test-hooks.mjs`로 바꿨지만 test의 pattern은 바꾸지 않아 CI job `Form comparison runner regressions`가 `../pipeline.browser.mjs uses setup and teardown`으로 실패했다. Red: test가 kit의 module에서 실패한다. Green: `npm run test:form-comparison:source`와 `:library`가 통과한다 | `node scripts/kit/run-tests.mjs node -- examples/form-comparison/src/local-servers.test.mjs`, `npm run test:form-comparison:source` | [o] |
 | C14.2 | 릴리스 0.0.5: `config/release.json`이 적은 모든 manifest와 그 lock(`package-lock.json`, `composer.lock`, `Cargo.lock` 6개)의 version, `packages/generator-python`의 git pin, `contracts/features.json`의 version, `packages/php-ext`의 module version, 이를 읽는 검사를 0.0.5로 정한다. `CHANGELOG.md`와 `CHANGELOG.ko.md`의 `## Unreleased`를 `## 0.0.5`로 바꾸고 그 위에 빈 `## Unreleased`를 새로 쓴다. dependency review를 기록하고, 나중에 지우는 로컬 tag에서 `make release-assets`와 `make release-consumer-lock`으로 `tests/release-install`의 사용자 project를 0.0.5 archive에 맞게 쓴다. tag는 push하지 않는다 | `make release-versions TAG=v0.0.5`, `make release-consumer TAG=v0.0.5`, `make release-go-tags TAG=v0.0.5`, `make dependency-policy-check` | [o] |
 | C13.1-23-1 | C13.1-23의 `scripts/release-pins.mjs`에 `config/owner-checks.json`의 owner를 준다. C13.1-23에서 더한 검사는 스크립트에 owner를 주지 않아 `make owner-validate`가 실패했다. 규칙은 대상 `release-pins`와 test `tests/build/python-git-pins.test.mjs`를 적는다. Red: `make owner-validate`가 `scripts/release-pins.mjs: the path matches no owner`로 exit 2다. Green: exit 0이다 | `make owner-validate` | [o] |
+
+## [Wave 15](waves.ko.md#wave-15) — 각 생태계의 표준 도구를 있는 그대로 사용하기
+
+| ID | 작업 | Verification | 상태 |
+|---|---|---|---|
+| C15.1 | 저장소가 기존 외부 도구나 라이브러리가 이미 하는 일을 다시 만들지 않는다는 규칙을 추가한다. `AGENTS.md`와 `AGENTS.ko.md`는 각 생태계의 표준 도구를 있는 그대로 사용한다고 적고(Python interpreter, environment, lock에는 uv, PHP 의존성에는 Composer), 그런 도구가 만드는 symbolic link를 받아들이며, 경로와 symbolic link 규칙을 이 저장소가 만드는 것에만 적용한다고 명시한다 | `make documents-check` | [o] |
