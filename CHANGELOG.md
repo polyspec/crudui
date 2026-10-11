@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-12 — Standard tools of each ecosystem are used as they are (C15.1)
+
+- `AGENTS.md` and `AGENTS.ko.md` state that an existing outside tool or library is used as it is and not rebuilt, with uv for Python interpreters, environments and locks and Composer for PHP dependencies, and that the symbolic links such a tool creates are accepted. The path rule applies to what this repository creates, and it names the declarative and discovery resolution of paths. `make documents-check` exits 0.
+
 ### 2026-10-09 — Owner of the release pin script (C13.1-23-1)
 
 - `config/owner-checks.json` names `scripts/release-pins.mjs` with the target `release-pins` and the test `tests/build/python-git-pins.test.mjs`; `make owner-validate` exits 0. The check was added with C13.1-23 without this owner.
