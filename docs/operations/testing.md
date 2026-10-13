@@ -187,20 +187,18 @@ install compilation and production rendering.
 
 ## Lint
 
-`npm run lint` runs ESLint over the whole repository (`eslint . --max-warnings 0`); CI's build,
-lint and types job and `make ci` call it. `eslint.config.mjs` applies one rule set to every
-JavaScript, TypeScript, Vue and Svelte source: packages, examples, tests, scripts, tools and the
-root configuration files. It ignores only generated or installed output (`dist`, `out`,
-`.svelte-kit`, `node_modules`, `vendor`, `target`, the documentation web's build and generated API
-pages, and the native build directories). Per-file settings state only where code runs: browser
-globals for browser code, both Node and browser globals for Node programs that hand functions to a
-browser page or a DOM environment, CommonJS for the root package's `.js` scripts, and the Svelte
-parser and rules for Svelte components. A rule is turned off only for the lines where it does not
-apply, with a disable comment that names the rule and gives the reason.
+`make lint` runs `make lint-ts` of kit and the Svelte lint of `packages/generator-svelte`; CI's build, lint and types
+job and `make ci` call it, and `make check` runs `lint-ts`. `make lint-ts` runs oxlint with the copied `.oxlintrc.json`
+(type-aware through oxlint-tsgolint, warnings denied) over every file that Git does not ignore, knip from the root with the
+copied `knip.json`, and API Extractor in each package with an `api-extractor.json`. oxlint has no Svelte rules, so
+`npm run lint -w @polyspec/crudui-generator-svelte` runs ESLint with eslint-plugin-svelte on the components of that
+package (`packages/generator-svelte/eslint.config.js`), whose TypeScript scripts typescript-eslint parses with the
+TypeScript 6 of that package. A rule is turned off only for the lines where it does not apply, with a disable comment that
+names the rule and gives the reason.
 
-`tests/build/lint-coverage.test.mjs`, run by `npm run test:build`, asks ESLint about every source
-that Git tracks or would add and fails when one lies outside the paths `npm run lint` passes, or
-when the configuration ignores it or no configuration entry matches it.
+`tests/build/lint-coverage.test.mjs`, run by `npm run test:build`, requires `make lint` to run both lints, and fails
+unless oxlint with the copied configuration fails on a planted violation and the Svelte lint fails on a planted raw HTML
+tag.
 
 ## Test runner
 
@@ -220,7 +218,7 @@ PHPUnit runs with `--teamcity`: the runner counts each TeamCity test, never a te
 provider method, and prints every line that is not a TeamCity message, such as an error about a
 missing test file or the summary with its warnings.
 
-Every registered case of a `node:test` file runs, or the file fails. Three checks hold it:
+Every registered case of a `node:test` file runs, or the file fails. Two checks hold it:
 
 - The runner preloads `node_modules/@polyspec/kit/dist/test-exit-deadline.mjs` into every test file's process. A
   process whose tests have all ended but that stays alive for the test timeout holds a handle that a test left open; it
@@ -228,13 +226,8 @@ Every registered case of a `node:test` file runs, or the file fails. Three check
   before a test that the module registers after a top-level `await`.
 - A file that reports no case, neither passed, failed nor skipped, fails with `the file ran no test
   case`, for example when `--test-name-pattern` selects none of its tests.
-- The lint rule `crudui/no-await-after-test-registration` of `scripts/lint/node-test-rules.mjs`
-  rejects a top-level `await` after the first `node:test` registration of a module, so every case
-  is registered before the module's first wait and the first check does not depend on how long the
-  earlier cases take.
 
-The tests of polyspec/kit run files for the first two checks, and
-`tests/build/test-commands.test.mjs` runs the lint rule on fixtures.
+The tests of polyspec/kit run files for both checks.
 
 Every failure of a run is printed with its test file and elapsed time, including a failure outside
 a test: a hook that fails or runs out of time and an error of a test file. A file or a suite whose

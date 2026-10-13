@@ -148,8 +148,13 @@ test-dependencies: ## The dependency graph, the dependency policy and its record
 	exit $$status
 build: ## Build the JavaScript packages
 	$(NPM) run build
-lint: ## Lint the repository
-	$(NPM) run lint
+# make lint-ts of kit lints every TypeScript and JavaScript source with oxlint, knip and API Extractor; oxlint has no Svelte
+# rules, so the components of packages/generator-svelte are linted by the ESLint of that workspace. Both run after a failure.
+lint: ## Lint the repository: make lint-ts of kit and the Svelte components
+	@status=0; \
+	node $(KIT)/lint-ts.mjs || status=1; \
+	$(NPM) run lint -w @polyspec/crudui-generator-svelte || status=1; \
+	exit $$status
 typecheck: ## Type-check every TypeScript package
 	$(NPM) run typecheck
 test-validator-js: ## The TypeScript validator suite
