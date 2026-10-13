@@ -4,6 +4,7 @@
     "**/*.md"
   ],
   "exclude": [
+    "packages/*/etc/*.api.md",
     "examples/cross-check-console/client/README.md",
     "tools/bench/README.md"
   ],

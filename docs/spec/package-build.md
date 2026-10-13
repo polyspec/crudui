@@ -28,10 +28,11 @@ Every named type referenced by a public TypeScript declaration is exported from
 the package entry point and included in the generated API reference. The API
 reference covers each package's public `"."` entry; the `./internal` entries of
 generator-core and the validator are built beside it with shared chunks in both module formats, so both
-entries use one copy of each module, and it is not documented as public API. TypeDoc
-validation warnings fail both API generation and documentation coverage checks.
-The documentation pipeline does not suppress references to unexported public
-types.
+entries use one copy of each module, and it is not documented as public API. API Extractor
+checks each package with the copied `config/api-extractor.kit.json` (`make lint-ts`): an undocumented export
+(`ae-undocumented`) and a public declaration that references an unexported type (`ae-forgotten-export`) are errors, and
+the public API equals the committed report `etc/<package>.api.md`, so API generation and the documentation check fail on
+them. The documentation pipeline does not suppress references to unexported public types.
 
 Generated output is not tracked in Git. Svelte's `.svelte-kit` directory is
 temporary packaging output; `src` is the build input and `dist` is the published

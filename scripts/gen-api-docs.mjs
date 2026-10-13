@@ -48,23 +48,18 @@ function cleanDirectory(path) {
   mkdirSync(path, { recursive: true });
 }
 
+// API Extractor checks the public API of each package against its committed report and writes its doc model to
+// var/api-model/<package> (api-extractor.json of the package); API Documenter writes the Markdown pages of that model.
 async function genTypeScript() {
   await run('npm', ['run', 'build']);
   for (const pkg of packages) {
-    const svelte = pkg === 'generator-svelte';
     const pkgDir = join(ROOT, 'packages', pkg);
     const output = join(API_DIR, pkg);
+    const model = join(ROOT, 'var/api-model', pkg === 'validator-ts' ? 'crudui-validator' : `crudui-${pkg}`);
     cleanDirectory(output);
-    const args = [
-      '--options', join(ROOT, 'scripts/typedoc.base.json'),
-      '--tsconfig', svelte ? join(ROOT, 'scripts/tsconfig.svelte-docs.json') : join(pkgDir, 'tsconfig.build.json'),
-      '--name', pkg === 'validator-ts' ? '@polyspec/crudui-validator' : `@polyspec/crudui-${pkg}`,
-      '--out', output,
-      '--entryPointStrategy', 'resolve',
-      ...(svelte ? ['--disableSources'] : []),
-      join(pkgDir, svelte ? 'dist/index.d.ts' : 'src/index.ts'),
-    ];
-    await run(join(ROOT, 'node_modules/.bin/typedoc'), args);
+    rmSync(model, { recursive: true, force: true });
+    await run(join(ROOT, 'node_modules/.bin/api-extractor'), ['run'], pkgDir);
+    await run(join(ROOT, 'node_modules/.bin/api-documenter'), ['markdown', '--input-folder', model, '--output-folder', output]);
     requireOutput(join(output, 'index.md'));
   }
 }

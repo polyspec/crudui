@@ -30,7 +30,8 @@ for (const target of ['ts', 'go', 'rust', 'php']) {
       const root = mkdtempSync(join(repository, 'var/tmp/crudui-api-docs-'));
       try {
         for (const path of ['scripts', 'bin', 'node_modules/.bin', 'tools/bin',
-          'packages/validator-go', 'packages/validator-rust', 'packages/generator-go', 'packages/generator-rust']) {
+          'packages/validator-go', 'packages/validator-rust', 'packages/generator-go', 'packages/generator-rust',
+          ...['validator-ts', 'generator-core', 'generator-html', 'generator-react', 'generator-vue', 'generator-svelte', 'form-binding'].map(pkg => `packages/${pkg}`)]) {
           mkdirSync(join(root, path), { recursive: true });
         }
         for (const file of ['gen-api-docs.mjs', 'run-rust-command.mjs', 'tool-resolution.mjs', 'run-command.mjs']) {
@@ -42,7 +43,9 @@ for (const target of ['ts', 'go', 'rust', 'php']) {
         for (const command of ['npm', 'go', 'php']) {
           writeFileSync(join(root, 'bin', command), script, { mode: 0o755 });
         }
-        writeFileSync(join(root, 'node_modules/.bin/typedoc'), script, { mode: 0o755 });
+        for (const command of ['api-extractor', 'api-documenter']) {
+          writeFileSync(join(root, 'node_modules/.bin', command), script, { mode: 0o755 });
+        }
         const rust = target === 'rust'
           ? mockRust(root, failure === 'tool-failure' ? 27 : 0)
           : {};
@@ -64,15 +67,3 @@ for (const target of ['ts', 'go', 'rust', 'php']) {
     });
   }
 }
-
-test('TypeScript API generation rejects an unexported public type', () => {
-  const result = spawnSync(join(repository, 'node_modules/.bin/typedoc'), [
-    '--options', join(repository, 'scripts/typedoc.base.json'),
-    '--tsconfig', join(repository, 'scripts/fixtures/typedoc/tsconfig.json'),
-    '--entryPointStrategy', 'resolve',
-    '--emit', 'none',
-    join(repository, 'scripts/fixtures/typedoc/unexported.ts'),
-  ], { encoding: 'utf8' });
-  assert.notEqual(result.status, 0, result.stdout + result.stderr);
-  assert.match(result.stdout + result.stderr, /HiddenInput.*not included in the documentation/);
-});

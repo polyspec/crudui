@@ -40,12 +40,14 @@ development server does not scan source files on an interval.
 
 The documentation web build checks internal links. Fix invalid source or
 generated links instead of disabling the link check for the whole web.
-TypeDoc generates relative links and an `index` page for each package.
+API Documenter generates relative links and an `index` page for each TypeScript package.
 Relative links to repository files outside `docs/` are checked for file existence
 and rendered as GitHub source links on the web. Document sources retain their
 repository-relative links. A missing repository file fails the build.
 
-API generation requires TypeDoc, Go, Cargo and phpDocumentor. A tool failure or
+API generation requires API Extractor, API Documenter, Go, Cargo and phpDocumentor. For each TypeScript package, API
+Extractor checks the public API against the committed report `etc/<package>.api.md` and writes its doc model to
+`var/api-model/<package>`, and API Documenter writes the Markdown pages of that model to `docs/api/<package>`. A tool failure or
 missing output fails generation; the generator does not replace failed output
 with a success page. PHP documentation uses `tools/bin/phpDocumentor.phar`.
 

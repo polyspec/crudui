@@ -73,24 +73,45 @@ for (const [target, command] of [['go', 'go'], ['rust', 'cargo'], ['php', 'php']
     }
   }));
 }
-test('TypeScript checks all six current public entries', () => environment(root => {
-  mock(root, 'npm'); mock(root, 'typedoc');
-  const result = run(root, 'ts');
-  assert.equal(result.status, 0, result.stderr);
-  const calls = readFileSync(join(root, 'calls.jsonl'), 'utf8').trim().split('\n').map(JSON.parse);
-  assert.equal(calls[0].command, 'npm');
-  assert.deepEqual(calls.slice(1).map(call => call.args.at(-1)), ['generator-core', 'validator-ts', 'generator-html', 'generator-react', 'generator-vue', 'generator-svelte', 'form-binding'].map(pkg => join(root, 'packages', pkg, pkg === 'generator-svelte' ? 'dist/index.d.ts' : 'src/index.ts')));
-}));
-test('TypeScript rejects a public declaration that references an unexported type', () => {
-  const result = spawnSync(join(repository, 'node_modules/.bin/typedoc'), [
-    '--options', join(repository, 'scripts/typedoc.check.json'),
-    '--tsconfig', join(repository, 'scripts/fixtures/typedoc/tsconfig.json'),
-    '--entryPointStrategy', 'resolve',
-    join(repository, 'scripts/fixtures/typedoc/unexported.ts'),
-  ], { encoding: 'utf8' });
-  assert.notEqual(result.status, 0, result.stdout + result.stderr);
-  assert.match(result.stdout + result.stderr, /HiddenInput.*not included in the documentation/);
+// The documentation of the public TypeScript API is checked by API Extractor, which make lint-ts of kit runs in every package
+// with an api-extractor.json: ae-undocumented and ae-forgotten-export are errors of the copied config/api-extractor.kit.json.
+const TS_PACKAGES = ['validator-ts', 'generator-core', 'generator-html', 'generator-react', 'generator-vue', 'generator-svelte', 'form-binding'];
+
+test('every TypeScript package checks its public API with API Extractor and commits its API report', () => {
+  const problems = [];
+  for (const pkg of TS_PACKAGES) {
+    const directory = join(repository, 'packages', pkg);
+    let config;
+    try { config = JSON.parse(readFileSync(join(directory, 'api-extractor.json'), 'utf8')); } catch (error) { problems.push(`${pkg}: ${error.message}`); continue; }
+    if (config.extends !== '../../config/api-extractor.kit.json') problems.push(`${pkg}: extends ${config.extends}`);
+    if (config.mainEntryPointFilePath !== '<projectFolder>/dist/index.d.ts') problems.push(`${pkg}: mainEntryPointFilePath ${config.mainEntryPointFilePath}`);
+    const name = JSON.parse(readFileSync(join(directory, 'package.json'), 'utf8')).name.replace(/^@[^/]+\//, '');
+    try { readFileSync(join(directory, 'etc', `${name}.api.md`), 'utf8'); } catch { problems.push(`${pkg}: etc/${name}.api.md is missing`); }
+  }
+  assert.deepEqual(problems, []);
 });
+
+test('API Extractor with the copied configuration fails on an undocumented export', t => {
+  mkdirSync(join(repository, 'var/tmp'), { recursive: true });
+  const directory = mkdtempSync(join(repository, 'var/tmp/crudui-api-extractor-'));
+  t.after(() => rmSync(directory, { recursive: true, force: true }));
+  mkdirSync(join(directory, 'dist'));
+  writeFileSync(join(directory, 'package.json'), JSON.stringify({ name: '@polyspec/planted', version: '0.0.0', types: 'dist/index.d.ts' }));
+  writeFileSync(join(directory, 'tsconfig.json'), JSON.stringify({ compilerOptions: { strict: true }, files: ['dist/index.d.ts'] }));
+  writeFileSync(join(directory, 'dist/index.d.ts'), '/** A documented value. */\nexport declare const documented: number;\nexport declare function undocumented(): void;\n');
+  writeFileSync(join(directory, 'api-extractor.json'), JSON.stringify({
+    extends: join(repository, 'config/api-extractor.kit.json'), projectFolder: directory, mainEntryPointFilePath: '<projectFolder>/dist/index.d.ts',
+  }));
+  const result = spawnSync(join(repository, 'node_modules/.bin/api-extractor'), ['run', '--local'], { cwd: directory, encoding: 'utf8' });
+  assert.notEqual(result.status, 0, result.stdout + result.stderr);
+  assert.match(result.stdout + result.stderr, /ae-undocumented/);
+});
+
+test('TypeScript is no target of the doc coverage check', () => environment(root => {
+  const result = run(root, 'ts');
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /Use all, go, rust or php/);
+}));
 test('unknown doc coverage target fails', () => environment(root => {
   assert.notEqual(run(root, 'unknown').status, 0);
 }));

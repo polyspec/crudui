@@ -1,6 +1,6 @@
 # 문서 관리
 <!-- doc-id: docs-operations-documentation -->
-<!-- source-sha256: bae720524060b4aad2b9311944ca8b8b9cec9d47e8083699d12510b1a418232c -->
+<!-- source-sha256: 87df9d9665ac25d5421d32929f9af3b71eb691fcc4c92c3a481286721d277660 -->
 
 [English](documentation.md).
 
@@ -40,12 +40,14 @@
 
 문서 웹 빌드는 내부 링크를 검사합니다. 웹 전체의 링크 검사를 끄지
 않고 소스 또는 생성된 문서의 잘못된 링크를 수정합니다.
-TypeDoc은 패키지마다 상대 링크와 `index` 페이지를 생성합니다.
+API Documenter는 TypeScript 패키지마다 상대 링크와 `index` 페이지를 생성합니다.
 `docs/` 밖의 저장소 파일을 참조하는 상대 링크는 파일 존재를 확인하고 웹에서
 GitHub 소스 링크로 출력합니다. 문서 원문은 저장소 상대 링크를 유지합니다.
 저장소 파일이 없으면 빌드가 실패합니다.
 
-API 생성에는 TypeDoc·Go·Cargo·phpDocumentor가 필요합니다. 도구 실행 실패나
+API 생성에는 API Extractor·API Documenter·Go·Cargo·phpDocumentor가 필요합니다. TypeScript 패키지마다 API Extractor는
+공개 API를 commit된 report `etc/<package>.api.md`와 비교하고 doc model을 `var/api-model/<package>`에 쓰며, API Documenter는 그
+model의 Markdown 페이지를 `docs/api/<package>`에 씁니다. 도구 실행 실패나
 출력 누락은 생성 실패로 처리하며 실패한 출력을 성공 페이지로 대체하지
 않습니다. PHP 문서는 `tools/bin/phpDocumentor.phar`를 사용합니다.
 

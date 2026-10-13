@@ -1,6 +1,6 @@
 # 패키지 빌드
 <!-- doc-id: docs-spec-package-build -->
-<!-- source-sha256: decfb8710e5b39e5c13d63dd4e1a926fd42124bff42a9b2444f347a78b734b83 -->
+<!-- source-sha256: c1ece93713618737b5f0020cf5fbde8bf968780f29cc5e0fba7607cf545a9a07 -->
 
 [English](package-build.md).
 
@@ -26,9 +26,10 @@ Vitest 설정은 `.mts`·`.mjs` 확장자 또는 가장 가까운 `package.json`
 공개 TypeScript 선언이 참조하는 이름 있는 타입은 모두 패키지 진입점에서 export하고
 생성 API 참조에 포함한다. API 참조는 각 패키지의 공개 `"."` 진입점을 다룬다.
 generator-core와 validator의 `./internal` 진입점은 두 모듈 형식 모두에서 공유 chunk로 함께 빌드하여 두 진입점이
-각 모듈의 사본 하나를 사용하며, 공개 API로 문서화하지 않는다. TypeDoc 검증 경고가 있으면 API 생성과 문서 커버리지
-검사가 모두 실패한다. 문서 파이프라인은 export되지 않은 공개 타입 참조를
-제외하지 않는다.
+각 모듈의 사본 하나를 사용하며, 공개 API로 문서화하지 않는다. API Extractor는 copy된 `config/api-extractor.kit.json`으로
+각 package를 검사한다(`make lint-ts`). 문서 없는 export(`ae-undocumented`)와 export되지 않은 type을 참조하는 공개 선언
+(`ae-forgotten-export`)은 error이고, 공개 API는 commit된 report `etc/<package>.api.md`와 같아야 하므로 API 생성과 문서 검사는
+그것들에서 실패한다. 문서 파이프라인은 export되지 않은 공개 타입 참조를 제외하지 않는다.
 
 생성된 출력은 Git에서 추적하지 않습니다. Svelte의 `.svelte-kit` 디렉터리는
 임시 패키징 출력이며 `src`는 빌드 입력, `dist`는 배포 출력입니다.
