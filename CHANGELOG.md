@@ -3,6 +3,11 @@
 
 ## Unreleased
 
+### 2026-10-14 — TypeScript lint of kit instead of ESLint (C14.4)
+
+- `make lint` runs `make lint-ts` of kit (oxlint with the copied `.oxlintrc.json`, knip and API Extractor) and the Svelte lint of `packages/generator-svelte`, the one workspace that keeps ESLint, with eslint-plugin-svelte and typescript-eslint for its components. The root `eslint.config.mjs`, the ESLint packages of the root and of the other workspaces and their `lint` scripts are removed, and so is the rule `crudui/no-await-after-test-registration`: kit runs node:test without `--test-force-exit`, which dropped a test registered after a top-level `await`.
+- `tests/build/lint-coverage.test.mjs` requires `make lint` to run both lints and each to fail on a planted violation.
+
 ### 2026-10-14 — Shared tools from the package @polyspec/kit (C14.3)
 
 - The shared tools are the package `@polyspec/kit`, which `make install-tools TOOLS=npm` and `make install-packages` install before any other target; the vendored `scripts/kit`, `tests/kit`, `kit.json` and `.kit/kit.lock.json` are removed. The Makefile includes the copy `scripts/kit/kit-bootstrap.mk` and runs every kit tool as `$(KIT)/<tool>.mjs`; `make check` runs the checks of kit (`CHECK_TARGETS`) through the guard of the full run; every workflow job installs the npm of `packageManager` and the packages first. Code imports `@polyspec/kit/<module>` and resolves its own root; the tests of kit behavior are kit's.

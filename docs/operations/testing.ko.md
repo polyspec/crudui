@@ -1,6 +1,6 @@
 # 테스트 실행
 <!-- doc-id: docs-operations-testing -->
-<!-- source-sha256: 7e09d485c0cd88e03754f0ce4f699a34e68f611fd6c6236fcd11920b575fac30 -->
+<!-- source-sha256: 92157ebd8293dd1d37e757f40a862bf344ac2662c8a49123cf975c1de89c3620 -->
 
 [English](testing.md).
 
@@ -156,19 +156,16 @@ make docs-check
 
 ## 린트
 
-`npm run lint`는 저장소 전체에 ESLint를 실행합니다(`eslint . --max-warnings 0`). CI의 빌드·린트·타입
-작업과 `make ci`가 이 명령을 호출합니다. `eslint.config.mjs`는 패키지, 예제, 테스트, 스크립트, 도구,
-루트 설정 파일까지 모든 JavaScript, TypeScript, Vue, Svelte 소스에 하나의 규칙 집합을 적용합니다.
-생성되거나 설치된 출력(`dist`, `out`, `.svelte-kit`, `node_modules`, `vendor`, `target`, 문서
-문서 웹의 빌드 결과와 생성된 API 페이지, 네이티브 빌드 디렉터리)만 제외합니다. 파일별 설정은 코드가
-실행되는 환경만 나타냅니다. 브라우저 코드에는 브라우저 전역, 브라우저 페이지나 DOM 환경에 함수를
-넘기는 Node 프로그램에는 Node와 브라우저 전역, 루트 패키지의 `.js` 스크립트에는 CommonJS, Svelte
-컴포넌트에는 Svelte 파서와 규칙을 지정합니다. 규칙은 적용되지 않는 줄에서만, 규칙 이름과 이유를 적은
+`make lint`는 kit의 `make lint-ts`와 `packages/generator-svelte`의 Svelte lint를 실행합니다. CI의 빌드·린트·타입 작업과
+`make ci`가 이를 호출하고, `make check`는 `lint-ts`를 실행합니다. `make lint-ts`는 copy된 `.oxlintrc.json`으로 Git이 무시하지 않는
+모든 file에 oxlint를(oxlint-tsgolint로 type-aware, warning 거부), copy된 `knip.json`으로 root에서 knip을, `api-extractor.json`을
+가진 각 package에서 API Extractor를 실행합니다. oxlint에는 Svelte 규칙이 없으므로 `npm run lint -w @polyspec/crudui-generator-svelte`가
+그 package의 component에 eslint-plugin-svelte를 쓰는 ESLint를 실행하며(`packages/generator-svelte/eslint.config.js`), 그 TypeScript
+script는 typescript-eslint가 그 package의 TypeScript 6으로 parse합니다. 규칙은 적용되지 않는 줄에서만, 규칙 이름과 이유를 적은
 비활성화 주석으로 끕니다.
 
-`npm run test:build`가 실행하는 `tests/build/lint-coverage.test.mjs`는 Git이 추적하거나 추가할 모든
-소스를 ESLint에 묻고, 소스가 `npm run lint`가 넘기는 경로 밖에 있거나 설정이 그 소스를 제외하거나
-어떤 항목도 그 소스에 맞지 않으면 실패합니다.
+`npm run test:build`가 실행하는 `tests/build/lint-coverage.test.mjs`는 `make lint`가 두 lint를 모두 실행하기를 요구하고, copy된
+설정의 oxlint가 심어 둔 위반에서 실패하지 않거나 Svelte lint가 심어 둔 raw HTML tag에서 실패하지 않으면 실패합니다.
 
 ## 테스트 실행기
 
@@ -188,7 +185,7 @@ PHPUnit은 `--teamcity`로 실행합니다. 실행기는 TeamCity test를 하나
 method는 세지 않으며, 없는 test file에 대한 오류나 warning을 담은 요약처럼 TeamCity message가 아닌
 줄을 모두 출력합니다.
 
-`node:test` 파일에 등록된 모든 case는 실행되거나 파일이 실패합니다. 세 검사가 이를 지킵니다.
+`node:test` 파일에 등록된 모든 case는 실행되거나 파일이 실패합니다. 두 검사가 이를 지킵니다.
 
 - 실행기는 모든 test 파일의 process에 `node_modules/@polyspec/kit/dist/test-exit-deadline.mjs`를 preload합니다. test가 모두
   끝났는데도 test timeout 동안 살아 있는 process는 test가 열어 둔 handle을 붙잡고 있으며, 그 handle을 적고 파일을
@@ -196,12 +193,8 @@ method는 세지 않으며, 없는 test file에 대한 오류나 warning을 담�
   `--test-force-exit`는 쓰지 않습니다.
 - 통과, 실패, skip 중 어떤 case도 보고하지 않은 파일은 `the file ran no test case`로 실패합니다.
   `--test-name-pattern`이 그 파일의 test를 하나도 고르지 않을 때가 그렇습니다.
-- `scripts/lint/node-test-rules.mjs`의 lint rule `crudui/no-await-after-test-registration`은 module에서 첫
-  `node:test` 등록 뒤의 top-level `await`를 거부합니다. 그래서 모든 case는 module이 처음 기다리기 전에 등록되고,
-  첫 검사는 앞 case의 소요 시간에 의존하지 않습니다.
 
-polyspec/kit의 test는 앞의 두 검사를 파일로 실행하고, `tests/build/test-commands.test.mjs`는 lint
-rule을 fixture로 실행합니다.
+polyspec/kit의 test는 두 검사를 파일로 실행합니다.
 
 실행의 모든 실패는 test 파일과 경과 시간과 함께 출력되며, 테스트 밖의 실패도 포함합니다. 실패하거나
 제한 시간을 넘긴 hook과 test 파일의 오류가 그렇습니다. hook이 실패한 파일이나 suite는 그 안의 모든

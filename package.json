@@ -17,9 +17,7 @@
     "build:validator": "npm run build -w @polyspec/crudui-validator",
     "build:generators": "npm run build -w @polyspec/crudui-generator-core && npm run build -w @polyspec/crudui-generator-html && npm run build -w @polyspec/crudui-generator-react && npm run build -w @polyspec/crudui-generator-vue && npm run build -w @polyspec/crudui-generator-svelte",
     "test": "npm test --workspaces --if-present",
-    "lint": "eslint . --max-warnings 0",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "lint:fix": "eslint . --max-warnings 0 --fix",
     "docs:api": "node scripts/gen-api-docs.mjs",
     "docs:prepare": "npm run manifest:docs && npm run docs:api && npm run spec:schema",
     "docs:build": "npm run docs:prepare && node scripts/docs-web/cli.mjs build",
@@ -78,7 +76,6 @@
     "puppeteer": "^25.13.0"
   },
   "devDependencies": {
-    "@eslint/js": "^10.0.1",
     "@polyspec/crudui-generator-core": "0.0.5",
     "@polyspec/crudui-generator-html": "0.0.5",
     "@polyspec/crudui-validator": "0.0.5",
@@ -90,9 +87,6 @@
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
     "debug": "^4.4.3",
-    "eslint": "^10.12.0",
-    "eslint-plugin-svelte": "^3.23.0",
-    "globals": "^17.13.0",
     "js-yaml": "^5.4.3",
     "jsdom": "30.1.2",
     "markdown-it": "15.0.2",
@@ -104,7 +98,6 @@
     "tailwindcss": "4.3.3",
     "typedoc": "^0.28.19",
     "typedoc-plugin-markdown": "^4.13.1",
-    "typescript-eslint": "^8.71.1",
     "vite": "8.3.4",
     "vitest": "^5.0.3",
     "yaml": "^2.9.1"

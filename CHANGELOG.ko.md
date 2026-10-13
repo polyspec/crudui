@@ -1,8 +1,13 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: e67ff36702dd7fb431546c43a7908cafbe6ba5d4d874539319ad19a97b4a942b -->
+<!-- source-sha256: eb12d4934bad823318582c183ba6f60f9af2f51e2e16c3d8dab556906ca6e694 -->
 
 ## Unreleased
+
+### 2026-10-14 — ESLint 대신 kit의 TypeScript lint (C14.4)
+
+- `make lint`는 kit의 `make lint-ts`(copy된 `.oxlintrc.json`의 oxlint, knip, API Extractor)와 `packages/generator-svelte`의 Svelte lint를 실행합니다. 그 workspace만 자기 component를 위해 eslint-plugin-svelte와 typescript-eslint를 쓰는 ESLint를 유지합니다. 루트 `eslint.config.mjs`, 루트와 다른 workspace의 ESLint package와 `lint` script를 지웠고, 규칙 `crudui/no-await-after-test-registration`도 지웠습니다. kit은 top-level `await` 뒤에 등록한 test를 버리던 `--test-force-exit` 없이 node:test를 실행합니다.
+- `tests/build/lint-coverage.test.mjs`는 `make lint`가 두 lint를 실행하고 각각이 심어 둔 위반에서 실패하기를 요구합니다.
 
 ### 2026-10-14 — package @polyspec/kit의 공유 도구 (C14.3)
 
