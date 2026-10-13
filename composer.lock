@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "42dae4478d0bfe93ac83514630597024",
+    "content-hash": "3cf61ed3306fb03218a06b618d1b8d2a",
     "packages": [
         {
             "name": "polyspec/crudui-validator",
@@ -12,10 +12,10 @@
             "dist": {
                 "type": "path",
                 "url": "packages/validator-php",
-                "reference": "4870078a2bd0f654f8fb8ccb1f2b6bd7cad2c812"
+                "reference": "9a42c9eaf9978a6810161dfa8420cb06c73649e1"
             },
             "require": {
-                "php": "^8.4"
+                "php": ">=8.5"
             },
             "require-dev": {
                 "phpunit/phpunit": "^13.4.1"
@@ -1978,13 +1978,13 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": "^8.4",
+        "php": ">=8.5",
         "php-64bit": "^8.2",
         "ext-mbstring": "*"
     },
     "platform-dev": {},
     "platform-overrides": {
-        "php": "8.4.1"
+        "php": "8.5.0"
     },
     "plugin-api-version": "2.9.0"
 }

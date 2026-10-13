@@ -1,18 +1,20 @@
 # 테스트 실행
 <!-- doc-id: docs-operations-testing -->
-<!-- source-sha256: 4cb34a1a44189dc5c919efe22084fbb1ac904bf19c6c502910cb24ccb95bf1dd -->
+<!-- source-sha256: 7e09d485c0cd88e03754f0ce4f699a34e68f611fd6c6236fcd11920b575fac30 -->
 
 [English](testing.md).
 
-저장소 루트에서 실행합니다. 모든 도구는 checkout이 기록한 release로 실행됩니다(`docs/spec/package-build.ko.md`,
+저장소 루트에서 실행합니다. checkout은 먼저 `make install-tools TOOLS=npm`으로 `scripts/kit/bootstrap`의 copy된 installer가
+`packageManager`의 npm을 설치하게 하고, `make install-packages`로 그 npm이 package `@polyspec/kit`을 포함한 `package-lock.json`을
+설치하게 합니다. 그 전에는 다른 target이 실행되지 않습니다. 모든 도구는 checkout이 기록한 release로 실행됩니다(`docs/spec/package-build.ko.md`,
 "런타임과 의존성 버전"). `make install`은 기록한 npm, npm과 Composer 의존성, `rust-toolchain.toml`의 Rust toolchain, comparison의 OrderedJSON checkout과
 모든 Cargo.lock의 crate(`make install-crates`),
 `scripts/install-phpdocumentor.sh`가 SHA-256으로 검사하는 phpDocumentor release를 설치하고, `make toolchain-check`는 다른 release로 실행되는 모든 도구를 기대한 release와 함께 밝힙니다.
-`make install-tools`(`scripts/kit/install-tools.mjs`. `TOOLS="npm go cargoAudit"`가 설치할 도구를 지정하며, workflow job은 쓰는 도구만 설치합니다)로 checkout이 선언한 npm과 Go release와 cargo-audit를
+`make install-tools`(`node_modules/@polyspec/kit/dist/install-tools.mjs`. `TOOLS="go cargoAudit"`가 설치할 도구를 지정하며, workflow job은 쓰는 도구만 설치합니다)로 checkout이 선언한 도구(npm, Go, uv와 Python, alint, ruff, vulture, golangci-lint, deadcode, PHPCS와 PHPStan을 포함한 Composer, cargo-audit)를
 checkout에 설치하며, 이 명령은 machine의 도구를 바꾸지 않습니다. make는 `var/tools/bin`의 명령을
 `PATH`의 맨 앞에 두고, npm을 직접 실행하는 shell은 `export PATH="$PWD/var/tools/bin:$PATH"`로 그렇게
-합니다. `npm ci --strict-allow-scripts`로 Node 의존성을
-설치하고 PHP 패키지의
+합니다. `.npmrc`가 `strict-allow-scripts`를 설정하므로 `make install-packages`는 `package.json`의 `allowScripts`가 승인하지 않은
+install script에서 실패합니다. PHP 패키지의
 Composer 의존성을 설치하며 PHP·Go·Cargo를 `PATH`에서 실행할 수 있게 합니다. 비교 예제의 PHP 레코드
 서버에는 `php-fpm`과 `nginx`도 필요합니다(Homebrew: `brew install php nginx`, Debian·Ubuntu:
 `php8.x-fpm`과 `nginx`, 그리고 버전이 붙은 실행 파일을 가리키는 `php-fpm` 링크).
@@ -29,7 +31,7 @@ container, form comparison, native와 cross-check suite, 전체 build), `make ow
 CI에서 실행하며, push나 commit 전에 local 검사를 요구하는 규칙은 없습니다. pre-push hook은 checklist 작업이 `[~]`인
 동안 push를 거부할 뿐입니다(아래). `make ci`와 `make owner-check`는 요청할 때 실행할 수 있습니다.
 
-workflow의 모든 step은 make 대상을 실행합니다. 설치(`make install-tools`, `make install-node-modules`,
+workflow의 모든 step은 make 대상을 실행합니다. 설치(`make install-tools`, `make install-packages`,
 `make install-composer`, `make install-rust`, `make install-crates`, `make install-browsers BROWSERS="..."`), 도구 검사
 (`make toolchain-check TOOLS="..."`), 각 검사(`make test-runtimes`, `make lint`, `make test-forms`와 `CI_COMMANDS`의 나머지)가
 그렇습니다. 그래서 recipe는 모든 도구를 offline 설정, `$(NPM)`, checkout의 toolchain으로 시작합니다.
@@ -55,8 +57,12 @@ package script와 CI step도 같은 규칙을 따릅니다. 독립된 여러 검
 뒤에 그렇게 합니다. `&&` 연결은 검사 뒤에 단계를 두지 않습니다.
 `scripts/run-contract-tests.mjs`는 앞의 명령이 실패한 뒤에도 선언된 모든 명령을 실행하고 마지막 명령 뒤에 실패합니다.
 
+`make check`는 kit의 검사, 곧 Makefile의 `CHECK_TARGETS`(`kit-check`, `toolchain-check`, `layout-check`, `documents-check`,
+`owner-validate`, `commits-check`, `hooks-check`, dependency gate, `cargo-downloads-check`, `lint-*` 대상, `records-check`)를 `make ci`와
+같은 guard로 실행합니다.
+
 `make ci`는 `docs/plans/execution-checklist.md`의 작업 중 `[~]`인 것이 없을 때, 커밋된 tree마다 한 번 실행됩니다. 어떤 대상보다
-먼저 `scripts/kit/full-run.mjs`를 시작하며, 이 guard는 판단을 이유와 함께 출력하고 다음의 경우 status 1로 거부합니다. checklist의
+먼저 `node_modules/@polyspec/kit/dist/full-run.mjs`를 시작하며, 이 guard는 판단을 이유와 함께 출력하고 다음의 경우 status 1로 거부합니다. checklist의
 작업 행이 `[~]`이면 활성 ID를 작업과 함께 나열하며 거부합니다. checklist를 읽을 수 없으면 거부합니다. pre-push hook이
 설치되지 않았으면(`make hooks-check`, 아래) 거부합니다. 추적 파일에 커밋되지 않은 변경이 있거나 무시되지 않는 새 file이 있으면
 거부합니다. 전체 실행은 그 둘을 담지 않는 커밋된 tree를 검증하기 때문입니다. `var/full-run.json`이 현재 tree(`git rev-parse HEAD^{tree}`)의
@@ -95,10 +101,10 @@ toolchain, workspace의 Cargo lock으로 된 key를 가지며, job id마다 그�
 요청하면 `make owner-check`는 바뀐 경로를 소유한 검사를 실행합니다. 경로는 commit되지 않은 변경과 새 file,
 `PATHS`의 경로, 또는 `BASE` 뒤에 바뀐 경로입니다. `config/owner-checks.json`은 경로 glob마다 그것을 소유한 make 대상,
 root npm script, workspace와 package directory의 test script, node test file을, 검사마다 그것이 읽는 경로(`inputs`)를
-밝힙니다. `scripts/kit/owner-check.mjs`는 어떤 규칙도 소유하지 않는 경로, 경로가 없는 glob, full suite 대상, 알 수 없는
+밝힙니다. `node_modules/@polyspec/kit/dist/owner-check.mjs`는 어떤 규칙도 소유하지 않는 경로, 경로가 없는 glob, full suite 대상, 알 수 없는
 script나 test, 그리고 경로의 규칙이 그 검사를 고르지 않는데 검사가 읽는 경로에 대해 어떤 검사보다 먼저 실패합니다. 고른
 모든 검사를 하나가 실패한 뒤에도 실행하며 full suite는 실행하지 않습니다. `make owner-validate`는 repository의 선언을 확인하고,
-`tests/kit/owner-check.test.mjs`는 선택과 거부를 확인합니다.
+polyspec/kit의 `tests/kit/owner-check.test.mts`는 선택과 거부를 확인합니다.
 
 Makefile 대상의 명령을 읽는 test는 `tests/build/make-dry-run.mjs`의 `makeDryRun`을 실행합니다. 이것은 `MAKEFLAGS=w`를 설정하고
 상위 make의 `MAKELEVEL`, `GNUMAKEFLAGS`, `MAKEFILES`, `MFLAGS`를 지운 채 `make --no-print-directory -n <target>`을 실행하므로,
@@ -106,23 +112,23 @@ GNU Make 3.81과 GNU Make 4는 다른 make 안에서도 명령만 출력합니�
 실패합니다.
 
 push는 checklist에 `[~]` 작업이 없을 때만 합니다. 추적되는 pre-push hook `.githooks/pre-push`는 Git이 push하는 ref와 함께
-`node scripts/kit/push-gate.mjs hook`을 실행합니다. 이 검사는 push되는 모든 commit의 checklist(`git show <sha>:docs/plans/execution-checklist.md`)와
+`make push-gate-hook`(`node node_modules/@polyspec/kit/dist/push-gate.mjs hook`)을 실행합니다. 이 검사는 push되는 모든 commit의 checklist(`git show <sha>:docs/plans/execution-checklist.md`)와
 working tree의 checklist를 읽고, 그중 하나에 진행 중인 작업이 있으면 status 1로 push를 거부합니다. 이 검사는 그런 작업마다 file, ID, 제목을 push되는
 ref와 commit 또는 `working tree`와 함께 출력하고, push를 막는 상태(`[~]`)와 막지 않는 상태(`[ ]`, `[o]`, `[!]`)를 밝힙니다. 작업을 완료하거나, 그 원인과
 재시도 조건과 함께 `[!]`로 표시합니다. checklist가 없는 push commit, 잘못된 hook 입력 줄, 읽을 수 없는 checklist, Git 오류도 그 원인을 적으며 push를
 거부합니다. 삭제되는 ref는 commit을 push하지 않으므로 working tree만으로 검사합니다.
 
-Git은 hook을 version 관리하지 않습니다. make 실행은 checkout이 `.githooks/pre-push`를 추적하면 `core.hooksPath`를 `.githooks`로 설정하므로(`scripts/kit/kit.mk`),
-어떤 make target이든 실행한 checkout에는 hook이 있습니다. `make hooks`(`node scripts/kit/git-hooks.mjs install`)는 `core.hooksPath`를 설정하고 hook을 쓰고 실행 가능하게
+Git은 hook을 version 관리하지 않습니다. make 실행은 checkout이 `.githooks/pre-push`를 추적하면 `core.hooksPath`를 `.githooks`로 설정하므로(`@polyspec/kit`의 `kit.mk`),
+어떤 make target이든 실행한 checkout에는 hook이 있습니다. `make hooks`(`node node_modules/@polyspec/kit/dist/git-hooks.mjs install`)는 `core.hooksPath`를 설정하고 hook을 쓰고 실행 가능하게
 하며, `make hooks-check`는 `core.hooksPath`가 `.githooks`가 아니거나 `.githooks/pre-push`가 없거나 실행 가능한 file이 아니거나 도구의 hook과 다른 내용이면
 실패하고 해결 방법을 적습니다. `make ci`의 guard도 같은 이유로 거부합니다.
 
 hook이 없는 clone이나 hook을 건너뛴 push도 GitHub에 도달합니다. `.github/workflows/push-gate.yml`의 job `push-gate`는 branch로의 모든 push에서 실행되어,
 push된 commit을 checkout하고 `make ci-targets TARGETS="push-gate-commit records-check"`를 실행합니다. `make push-gate-commit`
-(`node scripts/kit/push-gate.mjs commit HEAD`)은 그 commit의 checklist에 진행 중인 작업이 있을 때, commit에 checklist가 없을 때, commit이
+(`node node_modules/@polyspec/kit/dist/push-gate.mjs commit HEAD`)은 그 commit의 checklist에 진행 중인 작업이 있을 때, commit에 checklist가 없을 때, commit이
 `.githooks/pre-push`를 실행 가능한 file(mode `100755`)로 추적하지 않을 때 실패하며, 거부 내용을 progress line으로, 각 줄을 error
 annotation으로, 그리고 job summary에 출력합니다. `make records-check`는 `make documents-check`
-(`scripts/kit/check-documents.mjs`, `config/documents.json`)와 link, changelog, 문장, example과 fixture README test를 실행하며, Node.js만 필요하고
+(`node_modules/@polyspec/kit/dist/check-documents.mjs`, `config/documents.json`)와 link, changelog, 문장, example과 fixture README test를 실행하며, Node.js만 필요하고
 network와 이력을 읽지 않습니다. 그래서 문서나 checklist 규칙을 어긴 commit은 release가 요구하는 check에 실패합니다([저장소](repository.ko.md#main-게시)).
 `make docs-check-documents`는 나머지 문서 검사와 함께 `make records-check`를 실행합니다.
 
@@ -133,8 +139,8 @@ composer install
 npm run build
 npm test --workspace @polyspec/crudui-validator
 composer --working-dir=packages/validator-php test
-node scripts/kit/run-tests.mjs go --cwd packages/validator-go -- ./...
-node scripts/kit/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml
+node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/validator-go -- ./...
+node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml
 npm test --workspace @polyspec/crudui-cli
 npm run test:forms
 npm run test:packages
@@ -145,7 +151,7 @@ make docs-check
 [사례 계약](../spec/test-fixtures.ko.md)의 공통 사례를 실행합니다. 구현 간 일치뿐
 아니라 기대 검증 결과 또는 전체 실패 기록을 비교합니다. 패키지 검사는 export 파일,
 선언·설치 컴파일·프로덕션 렌더링을 확인합니다. PHP 검사는 개발 root의 `composer install`이 설치하는 root `vendor/`의 PHPUnit을
-실행합니다. Composer script와 make 대상이 `COMPOSER_VENDOR_DIR=../../vendor`를 설정하고, `scripts/kit/run-tests.mjs phpunit`은 `--cwd`를
+실행합니다. Composer script와 make 대상이 `COMPOSER_VENDOR_DIR=../../vendor`를 설정하고, `node_modules/@polyspec/kit/dist/run-tests.mjs phpunit`은 `--cwd`를
 기준으로 그 값에서 vendor directory를 읽습니다.
 
 ## 린트
@@ -166,10 +172,10 @@ make docs-check
 
 ## 테스트 실행기
 
-모든 테스트는 `scripts/kit/run-tests.mjs`로 실행합니다.
+모든 테스트는 `node_modules/@polyspec/kit/dist/run-tests.mjs`로 실행합니다.
 
 ```sh
-node scripts/kit/run-tests.mjs <node|vitest|go|cargo|phpunit> [--timeout <seconds>] [--cwd <directory>] [--] [<arguments>]
+node node_modules/@polyspec/kit/dist/run-tests.mjs <node|vitest|go|cargo|phpunit> [--timeout <seconds>] [--cwd <directory>] [--] [<arguments>]
 ```
 
 실행기는 각 테스트의 시작, 실행 중임을 알리는 줄, 결과와 경과 시간을 출력합니다. 모든
@@ -182,36 +188,35 @@ PHPUnit은 `--teamcity`로 실행합니다. 실행기는 TeamCity test를 하나
 method는 세지 않으며, 없는 test file에 대한 오류나 warning을 담은 요약처럼 TeamCity message가 아닌
 줄을 모두 출력합니다.
 
-`node:test` 파일에 등록된 모든 case는 실행되거나 파일이 실패합니다. `node --test`는 알려진 test가 끝나면
-파일의 process를 끝내는 `--test-force-exit`로 실행되므로, handle을 열어 둔 test가 실행을 붙잡지 못합니다.
-대신 module이 그 끝 뒤에 등록하는 test는 실행되지 않습니다. 세 검사가 그 틈을 막습니다.
+`node:test` 파일에 등록된 모든 case는 실행되거나 파일이 실패합니다. 세 검사가 이를 지킵니다.
 
-- 실행기는 모든 test 파일의 process에 `scripts/kit/test-load-check.mjs`를 preload합니다. module의
-  evaluation이 top-level `await`까지 끝나기 전에 끝나는 process는 파일을
-  `the process ended before the module finished loading; tests registered later did not run`으로 실패시킵니다.
+- 실행기는 모든 test 파일의 process에 `node_modules/@polyspec/kit/dist/test-exit-deadline.mjs`를 preload합니다. test가 모두
+  끝났는데도 test timeout 동안 살아 있는 process는 test가 열어 둔 handle을 붙잡고 있으며, 그 handle을 적고 파일을
+  실패시킵니다. 그래서 leak이 실행을 붙잡지 못하고, module이 top-level `await` 뒤에 등록하는 test 전에 process를 끝내는
+  `--test-force-exit`는 쓰지 않습니다.
 - 통과, 실패, skip 중 어떤 case도 보고하지 않은 파일은 `the file ran no test case`로 실패합니다.
   `--test-name-pattern`이 그 파일의 test를 하나도 고르지 않을 때가 그렇습니다.
 - `scripts/lint/node-test-rules.mjs`의 lint rule `crudui/no-await-after-test-registration`은 module에서 첫
   `node:test` 등록 뒤의 top-level `await`를 거부합니다. 그래서 모든 case는 module이 처음 기다리기 전에 등록되고,
   첫 검사는 앞 case의 소요 시간에 의존하지 않습니다.
 
-`tests/kit/run-tests.test.mjs`는 앞의 두 검사를 파일로 실행하고, `tests/build/test-commands.test.mjs`는 lint
+polyspec/kit의 test는 앞의 두 검사를 파일로 실행하고, `tests/build/test-commands.test.mjs`는 lint
 rule을 fixture로 실행합니다.
 
 실행의 모든 실패는 test 파일과 경과 시간과 함께 출력되며, 테스트 밖의 실패도 포함합니다. 실패하거나
 제한 시간을 넘긴 hook과 test 파일의 오류가 그렇습니다. hook이 실패한 파일이나 suite는 그 안의 모든
 테스트가 통과해도 실패로 출력됩니다. 요약 줄은 실패한 group 수를 표시하므로, 모든 테스트가 통과하고 도구가
 0이 아닌 코드로 끝난 실행은 그 코드의 원인이 된 실패를 보여 줍니다.
-`tests/kit/run-tests.test.mjs`가 이 경우들을 실행합니다.
+polyspec/kit의 `tests/kit/run-tests.test.mts`가 이 경우들을 실행합니다.
 
 setup(browser launch, server start, stylesheet compile, build)과 teardown(browser close, server stop,
-directory 삭제)은 test case가 아니라 장기 작업입니다. `node:test` 파일은 `scripts/kit/test-hooks.mjs`의
+directory 삭제)은 test case가 아니라 장기 작업입니다. `node:test` 파일은 `node_modules/@polyspec/kit/dist/test-hooks.mjs`의
 `setup`과 `teardown`으로 이를 등록하며, 이는 timeout이 `Infinity`인 파일, suite, test 하나(`{ context: t }`)의
 `before`나 `after` hook입니다. 각각은 작업이 끝나면(browser가 launch되고, server가 listen하고, close가
 resolve되고, process가 종료되면) 끝나고, 그 오류는 파일을 실패시키며, 시작, 실행 중 5초마다의 줄, 경과
 시간과 함께 끝을 출력합니다. Vitest setup이나 teardown은 timeout이 `Infinity`인 `beforeAll`이나 `afterAll`
 hook입니다. test는 browser를 launch하지 않고 setup이 launch한 browser의 page를 엽니다.
-`tests/build/hooks.test.mjs`는 setup이나 teardown이 1.5초 걸리는 파일을 1초 test timeout으로 실행합니다.
+polyspec/kit의 test는 setup이나 teardown이 test timeout보다 오래 걸리는 파일을 실행합니다.
 
 ## 시간과 부하
 
@@ -236,9 +241,9 @@ hook입니다. test는 browser를 launch하지 않고 setup이 launch한 browser
 - CI 작업이나 단계에 `timeout-minutes`가 있습니다. 단계는 테스트나 장기 작업(checkout, toolchain
   setup, install, build, lint나 type check, upload, deployment)을 실행합니다. 실행기가 테스트 단계의
   각 test case를 제한하고, 장기 작업은 log를 출력하며 시간 한도를 두지 않습니다. 단계의 명령이
-  `scripts/kit/run-tests.mjs`를 호출하거나 npm script, Composer script, Makefile 대상을 거쳐 테스트 명령이나
+  `node_modules/@polyspec/kit/dist/run-tests.mjs`를 호출하거나 npm script, Composer script, Makefile 대상을 거쳐 테스트 명령이나
   실행기에 닿으면 그 단계는 테스트를 실행합니다.
-- 테스트 명령이 시작하는 스크립트가 `scripts/kit/test-progress.mjs`로 출력하지 않습니다.
+- 테스트 명령이 시작하는 스크립트가 `node_modules/@polyspec/kit/dist/test-progress.mjs`로 출력하지 않습니다.
 - 어떤 프로젝트 명령도 실행하지 않는 `node:test` 파일이 있습니다.
 - TypeScript 패키지에 `typecheck` 스크립트가 없거나 CI가 `npm run typecheck`를 실행하지 않습니다.
 - Makefile 대상이 테스트를 실행하는 대상을 prerequisite로 둡니다.
@@ -303,21 +308,21 @@ Puppeteer가 고정한 Chromium·Firefox build와 Playwright가 고정한 WebKit
 
 ## 보고서
 
-모든 CI job은 각 실패의 이유를 남깁니다. `make ci-targets TARGETS="..."`(`scripts/kit/ci-targets.mjs`)는 각 대상을
+모든 CI job은 각 실패의 이유를 남깁니다. `make ci-targets TARGETS="..."`(`node_modules/@polyspec/kit/dist/ci-targets.mjs`)는 각 대상을
 `make -k <target>`로 끝까지, 앞의 대상이 실패한 뒤에도 실행하고, 그 출력을 출력하며
 `var/report/ci-targets/targets/<target>.log`에 씁니다. `summary.md`는 각 대상을 결과와 시간과 함께, 실패한 대상마다 그
-첫 실패 줄과 log를 밝히며(`scripts/kit/target-report.mjs`), 같은 글이 GitHub Actions의 job summary로 갑니다. 실행은 lock
+첫 실패 줄과 log를 밝히며(`node_modules/@polyspec/kit/dist/target-report.mjs`), 같은 글이 GitHub Actions의 job summary로 갑니다. 실행은 lock
 `var/report/ci-targets.lock`을 잡으므로 두 실행이 한 보고서를 쓰지 않고, 대상이 실패하면 status 1로 끝납니다. 각 job은
 `var/report/ci-targets`를 artifact `report-<job>`(matrix job은 PHP minor를 붙임)으로 `if: ${{ !cancelled() }}`와
 `if-no-files-found: error`로 올립니다. `tests/build/ci-local.test.mjs`는 `make ci-targets` 밖에서 검사를 실행하거나
-보고서를 올리지 않는 job에서 실패하고, `tests/kit/ci.test.mjs`는 실패하는 probe 대상과 통과하는 probe
+보고서를 올리지 않는 job에서 실패하고, polyspec/kit의 `tests/kit/ci.test.mts`는 실패하는 probe 대상과 통과하는 probe
 대상을 실행해 두 log, summary의 실패 줄, job summary를 확인합니다.
 
 ## 함께 쓰는 resource
 
 다른 checkout의 실행이 한 기기에서 동시에 실행됩니다. 한 실행이 소유할 수 있는 resource는 그
 실행을 위해 만듭니다: `mktemp -d`나 `mkdtemp`의 임시 directory, operating system이 정하는 port, 실행의
-식별자를 담은 이름입니다. 기기나 checkout에 하나뿐인 resource는 `scripts/kit/holder-lock.mjs`의 holder lock
+식별자를 담은 이름입니다. 기기나 checkout에 하나뿐인 resource는 `node_modules/@polyspec/kit/dist/holder-lock.mjs`의 holder lock
 아래에서 씁니다.
 
 - 한 번에 한 실행만 lock을 잡습니다. lock file은 holder의 record를 담습니다: lock을 잡은 code의
@@ -326,15 +331,15 @@ Puppeteer가 고정한 Chromium·Firefox build와 Playwright가 고정한 WebKit
   읽는 쪽은 일부만 쓰인 record를 보지 않습니다.
 - lock이 잡혀 있으면 실행은 holder의 record와 함께 실패합니다.
 - holder process가 더 이상 실행되지 않거나 그 pid가 시작 시각이 다른 process의 것이 된 lock은 record와
-  함께 보고하고 남겨 둡니다. `node scripts/kit/holder-lock.mjs clear <lock file>`로 명시적으로
+  함께 보고하고 남겨 둡니다. `node node_modules/@polyspec/kit/dist/holder-lock.mjs clear <lock file>`로 명시적으로
   지우며, 이 command는 실행 중인 holder를 거부합니다.
 - holder만 lock을 해제합니다. 해제는 먼저 record의 token을 확인합니다.
-- `node scripts/kit/holder-lock.mjs run <lock file> -- <command>`는 lock을 잡은 채 command를 실행하고,
+- `node node_modules/@polyspec/kit/dist/holder-lock.mjs run <lock file> -- <command>`는 lock을 잡은 채 command를 실행하고,
   SIGINT, SIGTERM, SIGHUP을 전달하며, command가 끝나면 lock을 해제하고 그 status로 끝납니다. 획득과
   해제를 출력합니다.
 
 한 checkout의 resource lock은 그 checkout의 `var/locks/<name>.lock`이며, lock file은 절대 경로로 줍니다.
-`tests/kit/holder-lock.test.mjs`는 record, 거부, 동시 실행, holder가 더 이상 실행되지 않는 lock의 제거, 해제를 확인합니다.
+polyspec/kit의 `tests/kit/holder-lock.test.mts`는 record, 거부, 동시 실행, holder가 더 이상 실행되지 않는 lock의 제거, 해제를 확인합니다.
 
 | Resource | 한 실행의 사용 |
 |---|---|

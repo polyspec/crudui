@@ -3,6 +3,12 @@
 
 ## Unreleased
 
+### 2026-10-14 — Shared tools from the package @polyspec/kit (C14.3)
+
+- The shared tools are the package `@polyspec/kit`, which `make install-tools TOOLS=npm` and `make install-packages` install before any other target; the vendored `scripts/kit`, `tests/kit`, `kit.json` and `.kit/kit.lock.json` are removed. The Makefile includes the copy `scripts/kit/kit-bootstrap.mk` and runs every kit tool as `$(KIT)/<tool>.mjs`; `make check` runs the checks of kit (`CHECK_TARGETS`) through the guard of the full run; every workflow job installs the npm of `packageManager` and the packages first. Code imports `@polyspec/kit/<module>` and resolves its own root; the tests of kit behavior are kit's.
+- `make kit-sync` writes the copies of `kit.copies` (the bootstrap, the release workflow, `PRINCIPLES.md`, `config/layout.kit.yml`, the lint configurations); `config/layout.yml` holds the layout map of crudui, and `config/toolchain.json` declares uv and Python, alint, ruff, vulture, golangci-lint, deadcode and Composer with its digest.
+- The floors are the pins of kit: Node.js 26.11.1, PHP `>=8.5` with the Composer platform 8.5.0, Python `>=3.14`, Go 1.27.2 without `toolchain` lines, Rust 1.99.0 and TypeScript 7.0.2; `packages/generator-svelte` keeps TypeScript 6.0.3 as a declared exception. The CI matrices run PHP 8.5 and Python 3.14. The Go modules resolve each other through the root `go.work` instead of `replace`, and `.npmrc` sets `strict-allow-scripts`.
+
 ### 2026-10-12 — Standard tools of each ecosystem are used as they are (C15.1)
 
 - `AGENTS.md` and `AGENTS.ko.md` state that an existing outside tool or library is used as it is and not rebuilt, with uv for Python interpreters, environments and locks and Composer for PHP dependencies, and that the symbolic links such a tool creates are accepted. The path rule applies to what this repository creates, and it names the declarative and discovery resolution of paths. `make documents-check` exits 0.

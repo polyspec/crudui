@@ -1,8 +1,14 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 4f54c20ee5d33f7cc1ac2b068e9806a5fe9296203ab8255a5edafab2c31a6c99 -->
+<!-- source-sha256: e67ff36702dd7fb431546c43a7908cafbe6ba5d4d874539319ad19a97b4a942b -->
 
 ## Unreleased
+
+### 2026-10-14 — package @polyspec/kit의 공유 도구 (C14.3)
+
+- 공유 도구는 package `@polyspec/kit`이며, `make install-tools TOOLS=npm`과 `make install-packages`가 다른 어떤 target보다 먼저 설치합니다. vendor된 `scripts/kit`, `tests/kit`, `kit.json`, `.kit/kit.lock.json`은 지웠습니다. Makefile은 copy `scripts/kit/kit-bootstrap.mk`를 include하고 모든 kit 도구를 `$(KIT)/<tool>.mjs`로 실행합니다. `make check`는 kit의 검사(`CHECK_TARGETS`)를 full run의 guard로 실행하고, 모든 workflow job은 `packageManager`의 npm과 package를 먼저 설치합니다. code는 `@polyspec/kit/<module>`을 import하고 자기 root를 스스로 정하며, kit 동작의 test는 kit에 있습니다.
+- `make kit-sync`는 `kit.copies`의 copy(bootstrap, release workflow, `PRINCIPLES.md`, `config/layout.kit.yml`, lint 설정)를 씁니다. `config/layout.yml`은 crudui의 layout map을 담고, `config/toolchain.json`은 uv와 Python, alint, ruff, vulture, golangci-lint, deadcode, digest를 가진 Composer를 선언합니다.
+- 하한은 kit의 pin입니다. Node.js 26.11.1, Composer platform 8.5.0과 PHP `>=8.5`, Python `>=3.14`, `toolchain` 줄 없는 Go 1.27.2, Rust 1.99.0, TypeScript 7.0.2이며, `packages/generator-svelte`는 선언된 exception으로 TypeScript 6.0.3을 유지합니다. CI matrix는 PHP 8.5와 Python 3.14로 실행합니다. Go module은 `replace` 대신 루트 `go.work`로 서로를 찾고, `.npmrc`는 `strict-allow-scripts`를 설정합니다.
 
 ### 2026-10-12 — 각 생태계의 표준 도구를 있는 그대로 사용한다 (C15.1)
 

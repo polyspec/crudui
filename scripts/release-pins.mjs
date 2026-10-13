@@ -6,8 +6,11 @@
 //   node scripts/release-pins.mjs <tag>        <tag> is vX.Y.Z or <Go module directory>/vX.Y.Z
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
-import { isMain, ROOT } from './kit/paths.mjs';
+import { fileURLToPath } from 'node:url';
+
 import { ownedFiles } from './repository-files.mjs';
+
+const ROOT = path.resolve(import.meta.dirname, '..');
 
 const PIN = /git\+https:\/\/github\.com\/polyspec\/crudui@(\S+?)#/g;
 const TAG = /^(?:.+\/)?v(\d+\.\d+\.\d+)$/;
@@ -25,7 +28,7 @@ export function pinProblems(root, tag) {
     .flatMap(file => stalePins(readFileSync(path.join(root, file), 'utf8'), match[1]).map(problem => `${file}: ${problem}`));
 }
 
-if (isMain(import.meta.url)) {
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const tag = process.argv[2];
   if (!tag) {
     console.error('usage: node scripts/release-pins.mjs <tag>');

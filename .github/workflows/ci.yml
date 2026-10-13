@@ -40,8 +40,10 @@ jobs:
         with:
           path: ~/.npm
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
-      - name: Install the declared tools into var/tools
+      - name: Install the npm of packageManager into var/tools
         run: make install-tools TOOLS="npm"
+      - name: Install the packages of package-lock.json, @polyspec/kit included
+        run: make install-packages
       # The runtime checks compare every running tool with the version that the checkout records.
       - name: Setup PHP
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
@@ -61,11 +63,9 @@ jobs:
           python-version: '3.14'
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm go rust php python composer"
-      - name: Install workspace dependencies
-        run: make install-node-modules
       - name: Run the checks and write their report
         if: ${{ !cancelled() }}
-        run: make ci-targets TARGETS="test-runtimes test-dependencies build lint typecheck test-ordered-json kit-test"
+        run: make ci-targets TARGETS="test-runtimes test-dependencies build lint typecheck test-ordered-json"
       - name: Upload the report of the checks
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -89,12 +89,12 @@ jobs:
         with:
           path: ~/.npm
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
-      - name: Install the declared tools into var/tools
+      - name: Install the npm of packageManager into var/tools
         run: make install-tools TOOLS="npm"
+      - name: Install the packages of package-lock.json, @polyspec/kit included
+        run: make install-packages
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm"
-      - name: Install workspace dependencies
-        run: make install-node-modules
       - name: Run the checks and write their report
         if: ${{ !cancelled() }}
         run: make ci-targets TARGETS="test-validator-js"
@@ -119,7 +119,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: ['8.4', '8.5']
+        php: ['8.5']
     env:
       CRUDUI_CONFORMANCE_EVIDENCE: ${{ github.workspace }}/conformance-evidence
     steps:
@@ -128,13 +128,22 @@ jobs:
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version-file: '.node-version'
+      - name: Cache the npm packages of package-lock.json
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.npm
+          key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+      - name: Install the npm of packageManager into var/tools
+        run: make install-tools TOOLS="npm"
+      - name: Install the packages of package-lock.json, @polyspec/kit included
+        run: make install-packages
       - name: Setup PHP
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
           php-version: ${{ matrix.php }}
           tools: composer:2.10.3
       - name: Check the recorded toolchain versions
-        run: make toolchain-check TOOLS="node php composer"
+        run: make toolchain-check TOOLS="node npm php composer"
       - name: Install PHP dependencies
         run: make install-composer
       - name: Run the checks and write their report
@@ -166,13 +175,22 @@ jobs:
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version-file: '.node-version'
+      - name: Cache the npm packages of package-lock.json
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.npm
+          key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+      - name: Install the npm of packageManager into var/tools
+        run: make install-tools TOOLS="npm"
+      - name: Install the packages of package-lock.json, @polyspec/kit included
+        run: make install-packages
       - name: Setup Go
         uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
         with:
           go-version-file: '.go-version'
           cache-dependency-path: packages/validator-go/go.mod
       - name: Check the recorded toolchain versions
-        run: make toolchain-check TOOLS="node go"
+        run: make toolchain-check TOOLS="node npm go"
       - name: Run the checks and write their report
         if: ${{ !cancelled() }}
         run: make ci-targets TARGETS="test-validator-go"
@@ -202,10 +220,19 @@ jobs:
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version-file: '.node-version'
+      - name: Cache the npm packages of package-lock.json
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.npm
+          key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+      - name: Install the npm of packageManager into var/tools
+        run: make install-tools TOOLS="npm"
+      - name: Install the packages of package-lock.json, @polyspec/kit included
+        run: make install-packages
       - name: Install the Rust toolchain of rust-toolchain.toml
         run: make install-rust
       - name: Check the recorded toolchain versions
-        run: make toolchain-check TOOLS="node rust"
+        run: make toolchain-check TOOLS="node npm rust"
       - name: Cargo cache
         uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
@@ -236,7 +263,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python: ['3.11', '3.14']
+        python: ['3.14']
     env:
       CRUDUI_CONFORMANCE_EVIDENCE: ${{ github.workspace }}/conformance-evidence
     steps:
@@ -249,10 +276,19 @@ jobs:
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version-file: '.node-version'
+      - name: Cache the npm packages of package-lock.json
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.npm
+          key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+      - name: Install the npm of packageManager into var/tools
+        run: make install-tools TOOLS="npm"
+      - name: Install the packages of package-lock.json, @polyspec/kit included
+        run: make install-packages
       # The release of .python-version is the matrix leg 3.14; the recorded toolchain names that release.
       - name: Check the recorded toolchain versions
         if: ${{ matrix.python == '3.14' }}
-        run: make toolchain-check TOOLS="node python"
+        run: make toolchain-check TOOLS="node npm python"
       - name: Run the checks and write their report
         if: ${{ !cancelled() }}
         run: make ci-targets TARGETS="test-validator-python test-generator-python"
@@ -288,6 +324,10 @@ jobs:
         with:
           path: ~/.npm
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+      - name: Install the npm of packageManager into var/tools
+        run: make install-tools TOOLS="npm"
+      - name: Install the packages of package-lock.json, @polyspec/kit included
+        run: make install-packages
       - name: Setup PHP
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
@@ -306,12 +346,8 @@ jobs:
         uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
           workspaces: packages/validator-rust
-      - name: Install the declared tools into var/tools
-        run: make install-tools TOOLS="npm"
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm go rust php composer"
-      - name: Install workspace dependencies
-        run: make install-node-modules
       - name: Install PHP API documentation generator
         run: make install-phpdocumentor
       - name: Download the crates of every Cargo.lock
@@ -344,6 +380,10 @@ jobs:
         with:
           path: ~/.npm
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+      - name: Install the npm of packageManager into var/tools
+        run: make install-tools TOOLS="npm"
+      - name: Install the packages of package-lock.json, @polyspec/kit included
+        run: make install-packages
       - name: Setup PHP
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
@@ -364,12 +404,8 @@ jobs:
         uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
           workspaces: examples/cross-check-console/validators/rust
-      - name: Install the declared tools into var/tools
-        run: make install-tools TOOLS="npm"
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm go rust php composer"
-      - name: Install workspace dependencies
-        run: make install-node-modules
       - name: Download the crates of every Cargo.lock
         run: make install-crates
       - name: Run the checks and write their report
@@ -404,12 +440,12 @@ jobs:
         with:
           path: ~/.npm
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
-      - name: Install the declared tools into var/tools
+      - name: Install the npm of packageManager into var/tools
         run: make install-tools TOOLS="npm"
+      - name: Install the packages of package-lock.json, @polyspec/kit included
+        run: make install-packages
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm"
-      - name: Install workspace dependencies
-        run: make install-node-modules
       - name: Run the checks and write their report
         if: ${{ !cancelled() }}
         run: make ci-targets TARGETS="require-build test-cli"
@@ -439,12 +475,12 @@ jobs:
         with:
           path: ~/.npm
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
-      - name: Install the declared tools into var/tools
+      - name: Install the npm of packageManager into var/tools
         run: make install-tools TOOLS="npm"
+      - name: Install the packages of package-lock.json, @polyspec/kit included
+        run: make install-packages
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm"
-      - name: Install workspace dependencies
-        run: make install-node-modules
       - name: Install the browsers that Puppeteer and Playwright pin
         run: make install-browsers BROWSERS="chrome firefox webkit --with-deps --chrome-sandbox"
       - name: Verify sandboxed Chrome
@@ -485,17 +521,19 @@ jobs:
         with:
           path: ~/.npm
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+      - name: Install the npm of packageManager into var/tools
+        run: make install-tools TOOLS="npm"
+      - name: Install the packages of package-lock.json, @polyspec/kit included
+        run: make install-packages
       - name: Setup PHP
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
           php-version: '8.5'
           tools: composer:2.10.3
-      - name: Install the declared tools into var/tools
-        run: make install-tools TOOLS="npm"
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm php composer"
       - name: Install workspace and PHP dependencies
-        run: make install-node-modules install-composer
+        run: make install-composer
       - name: Install the browsers that Puppeteer pins
         run: make install-browsers BROWSERS="chrome --chrome-sandbox"
       - name: Verify sandboxed Chrome
@@ -529,6 +567,10 @@ jobs:
         with:
           path: ~/.npm
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+      - name: Install the npm of packageManager into var/tools
+        run: make install-tools TOOLS="npm"
+      - name: Install the packages of package-lock.json, @polyspec/kit included
+        run: make install-packages
       - name: Setup PHP
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
@@ -545,12 +587,10 @@ jobs:
         uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
           workspaces: examples/form-comparison/servers/rust
-      - name: Install the declared tools into var/tools
-        run: make install-tools TOOLS="npm"
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm go rust php composer"
       - name: Install workspace and PHP dependencies
-        run: make install-node-modules install-composer
+        run: make install-composer
       - name: Install nginx
         # The PHP record servers run on PHP-FPM behind nginx (examples/form-comparison/servers/php);
         # setup-php provides php-fpm on the PATH.
@@ -599,6 +639,10 @@ jobs:
         with:
           path: ~/.npm
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+      - name: Install the npm of packageManager into var/tools
+        run: make install-tools TOOLS="npm"
+      - name: Install the packages of package-lock.json, @polyspec/kit included
+        run: make install-packages
       - name: Setup PHP
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
@@ -615,12 +659,10 @@ jobs:
         uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
           workspaces: examples/form-comparison/servers/rust
-      - name: Install the declared tools into var/tools
-        run: make install-tools TOOLS="npm"
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm go rust php composer"
       - name: Install workspace and PHP dependencies
-        run: make install-node-modules install-composer
+        run: make install-composer
       - name: Install nginx
         # The PHP record servers run on PHP-FPM behind nginx (examples/form-comparison/servers/php);
         # setup-php provides php-fpm on the PATH.
@@ -673,6 +715,10 @@ jobs:
         with:
           path: ~/.npm
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+      - name: Install the npm of packageManager into var/tools
+        run: make install-tools TOOLS="npm"
+      - name: Install the packages of package-lock.json, @polyspec/kit included
+        run: make install-packages
       - name: Setup PHP
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
@@ -689,12 +735,10 @@ jobs:
         uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
           workspaces: examples/form-comparison/servers/rust
-      - name: Install the declared tools into var/tools
-        run: make install-tools TOOLS="npm"
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm go rust php composer"
       - name: Install workspace and PHP dependencies
-        run: make install-node-modules install-composer
+        run: make install-composer
       - name: Install nginx
         # The PHP record servers run on PHP-FPM behind nginx (examples/form-comparison/servers/php);
         # setup-php provides php-fpm on the PATH.
@@ -741,12 +785,12 @@ jobs:
         with:
           path: ~/.npm
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
-      - name: Install the declared tools into var/tools
+      - name: Install the npm of packageManager into var/tools
         run: make install-tools TOOLS="npm"
+      - name: Install the packages of package-lock.json, @polyspec/kit included
+        run: make install-packages
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm"
-      - name: Install workspace dependencies
-        run: make install-node-modules
       - name: Install the browsers that Puppeteer pins
         run: make install-browsers BROWSERS="chrome --chrome-sandbox"
       - name: Verify sandboxed Chrome
@@ -780,12 +824,12 @@ jobs:
         with:
           path: ~/.npm
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
-      - name: Install the declared tools into var/tools
+      - name: Install the npm of packageManager into var/tools
         run: make install-tools TOOLS="npm"
+      - name: Install the packages of package-lock.json, @polyspec/kit included
+        run: make install-packages
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm"
-      - name: Install workspace dependencies
-        run: make install-node-modules
       - name: Run the checks and write their report
         if: ${{ !cancelled() }}
         run: make ci-targets TARGETS="test-php-engine"
@@ -823,6 +867,10 @@ jobs:
         with:
           path: ~/.npm
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+      - name: Install the npm of packageManager into var/tools
+        run: make install-tools TOOLS="npm"
+      - name: Install the packages of package-lock.json, @polyspec/kit included
+        run: make install-packages
       # The benchmark drivers include the PHP driver, which loads the Composer packages of validator-php.
       - name: Setup PHP
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
@@ -846,12 +894,10 @@ jobs:
             packages/generator-rust
             tests/native-generators/programs/rust
             tools/bench/rust
-      - name: Install the declared tools into var/tools
-        run: make install-tools TOOLS="npm"
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm go rust php composer"
       - name: Install dependencies
-        run: make install-node-modules install-composer
+        run: make install-composer
       - name: Install the browsers that Puppeteer pins
         run: make install-browsers BROWSERS="chrome --chrome-sandbox"
       - name: Verify sandboxed Chrome
@@ -893,7 +939,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: ['8.4', '8.5']
+        php: ['8.5']
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
       - name: Setup the Node.js release of .node-version
@@ -905,17 +951,19 @@ jobs:
         with:
           path: ~/.npm
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+      - name: Install the npm of packageManager into var/tools
+        run: make install-tools TOOLS="npm"
+      - name: Install the packages of package-lock.json, @polyspec/kit included
+        run: make install-packages
       - name: Setup PHP
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
           php-version: ${{ matrix.php }}
           tools: composer:2.10.3
-      - name: Install the declared tools into var/tools
-        run: make install-tools TOOLS="npm"
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm php composer"
       - name: Install dependencies
-        run: make install-node-modules install-composer
+        run: make install-composer
       - name: Run the checks and write their report
         if: ${{ !cancelled() }}
         run: make ci-targets TARGETS="test-php-api"
@@ -955,8 +1003,17 @@ jobs:
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version-file: '.node-version'
+      - name: Cache the npm packages of package-lock.json
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.npm
+          key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+      - name: Install the npm of packageManager into var/tools
+        run: make install-tools TOOLS="npm"
+      - name: Install the packages of package-lock.json, @polyspec/kit included
+        run: make install-packages
       - name: Check the recorded toolchain versions
-        run: make toolchain-check TOOLS="node"
+        run: make toolchain-check TOOLS="node npm"
       # Each artifact goes into conformance-evidence/<artifact name>, so no evidence file of one job replaces a file of
       # another with the same name; scripts/check-conformance.mjs reads the directory with its subdirectories.
       - name: Collect the evidence of every suite
@@ -984,7 +1041,16 @@ jobs:
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version-file: '.node-version'
+      - name: Cache the npm packages of package-lock.json
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.npm
+          key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+      - name: Install the npm of packageManager into var/tools
+        run: make install-tools TOOLS="npm"
+      - name: Install the packages of package-lock.json, @polyspec/kit included
+        run: make install-packages
       - name: Check the recorded toolchain versions
-        run: make toolchain-check TOOLS=node
+        run: make toolchain-check TOOLS="node npm"
       - name: Fail unless every other job succeeded
         run: make ci-passed RESULTS='${{ toJSON(needs) }}'

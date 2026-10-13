@@ -1,6 +1,6 @@
 # 패키지 빌드
 <!-- doc-id: docs-spec-package-build -->
-<!-- source-sha256: fb0417762bc74c839f98e4dc415e6faee2eddc1c6fffcdd15f775bb745288728 -->
+<!-- source-sha256: decfb8710e5b39e5c13d63dd4e1a926fd42124bff42a9b2444f347a78b734b83 -->
 
 [English](package-build.md).
 
@@ -159,27 +159,35 @@ Node.js는 활성 LTS 또는 다음 LTS로 지정된 최신 짝수 안정 메이
 - `.node-version`은 정확한 Node.js 릴리스를 기록하고 CI가 그것을 읽습니다.
 - 루트 `package.json`의 `packageManager`는 정확한 npm 릴리스를 기록합니다. 설치하고 패키징하고
   스크립트를 실행하는 npm이 그 결과를 바꾸기 때문이며, `pack --json` report가 npm 11의 배열에서
-  npm 12의 object로 바뀐 것이 그 예입니다. `make install-tools`(`scripts/kit/install-tools.mjs`)는 정확히 그 릴리스를
+  npm 12의 object로 바뀐 것이 그 예입니다. `make install-tools`(`node_modules/@polyspec/kit/dist/install-tools.mjs`)는 정확히 그 릴리스를
   checkout의 무시되는 directory `var/tools/npm`에 설치하며, 다른 모든 checkout이 쓰는
   machine의 npm에는 설치하지 않습니다. Makefile은 `var/tools/bin`을 `PATH`의 맨 앞에 두고,
   모든 CI job은 npm을 make 대상으로 시작합니다.
-- `.go-version`은 정확한 Go 릴리스를 기록하고 CI가 그것을 읽습니다. 모든 `go.mod`는 그 릴리스를
-  `toolchain` 줄에 적고, `config/toolchain.json`은 `make install-tools`가 `var/tools/go`에 설치하는
-  `toolchain` 줄을 가진 `go.mod`를 지정하며, Makefile과 CI가 설정하는 `GOTOOLCHAIN=local`은 go가 다른
-  toolchain을 내려받지 못하게 합니다.
+- checkout의 kit인 `@polyspec/kit`은 toolchain마다 한 릴리스(Node.js 26.11.1, Python 3.14, PHP 8.5, Go 1.27.2, Rust 1.99.0,
+  TypeScript 7.0.2)를 고정하고, `make toolchain-check`는 그 pin이 아닌 선언과 manifest 하한마다 실패합니다. 대상은
+  `.node-version`, 모든 `package.json`의 `engines.node`(`>=26.11.1`), 모든 `composer.json`의 `require.php`(`>=8.5`), 모든
+  `pyproject.toml`의 `requires-python`(`>=3.14`), 모든 `go.mod`의 `go` 줄(`1.27.2`, `toolchain` 줄 없음), 모든 Cargo package의
+  `rust-version`, 모든 manifest와 lock의 `typescript`입니다. 벗어나는 값은 `config/toolchain.json`의 `exceptions` 항목으로 scope,
+  이유, 재시도 조건과 함께 선언합니다. `packages/generator-svelte`는 svelte-check와 `@sveltejs/package`가 TypeScript 6 API를
+  요구하므로 TypeScript 6.0.3을 유지합니다.
+- `.go-version`은 정확한 Go 릴리스를 기록하고 CI가 그것을 읽습니다. `config/toolchain.json`은 `go` 줄이 그 릴리스인
+  `go.mod`를 지정하고, `make install-tools`는 kit pin의 Go를 `var/tools/go`에 설치하며, Makefile과 CI가 설정하는
+  `GOTOOLCHAIN=local`은 go가 다른 toolchain을 내려받지 못하게 합니다. 저장소의 Go module과 비교 예제의 OrderedJSON checkout의
+  Go module은 루트 `go.work`로 서로를 찾으며, 어떤 `go.mod`도 `replace`를 적지 않습니다.
 - `rust-toolchain.toml`은 정확한 Rust 릴리스를 profile `minimal`과 component `rustfmt`,
   `clippy`와 함께 기록합니다. Makefile과 CI는 `RUSTUP_AUTO_INSTALL=0`을 설정하므로, 설치된
   toolchain이 없는 cargo는 그것을 설치하는 대신 rustup의 메시지로 실패합니다. `make install`과 CI는
   `rustup toolchain install --no-self-update`로 그것을 설치합니다.
 - `config/toolchain.json`은 `php`에 검사하는 PHP minor 릴리스를, `python`에 `tests/ordered-json`의 test
-  (`make test-ordered-json`)를 실행하는 Python의 minor 릴리스(PHP처럼 비교)를, `composer`에 정확한 Composer 릴리스(`version`을 가진
-  object)를, `go`에 `toolchain` 줄이 Go 릴리스인 `go.mod`를, `cargoAudit`에 정확한 cargo-audit 릴리스를,
+  (`make test-ordered-json`)를 실행하는 Python의 minor 릴리스(PHP처럼 비교)를, `composer`에 정확한 Composer 릴리스(`version`과 phar의
+  SHA-256을 가진 object)를, `go`에 `go` 줄이 Go 릴리스인 `go.mod`를, uv와 Python build, alint, ruff, vulture, golangci-lint,
+  deadcode의 정확한 릴리스와 digest를, `cargoAudit`에 정확한 cargo-audit 릴리스를,
   `node`에 Node.js 릴리스의 Linux x64 archive SHA-256을 기록합니다. 이 file은
-  `scripts/kit/schema/toolchain.schema.json` schema를 따르며 `make kit-check`가 이를 적용합니다. setup-php와 Homebrew는 같은 patch를 설치할
+  `node_modules/@polyspec/kit/dist/schema/toolchain.schema.json` schema를 따르며 `make kit-check`가 이를 적용합니다. setup-php와 Homebrew는 같은 patch를 설치할
   수 없으므로 PHP는 minor 릴리스로 고정합니다. 검사는 실행 중인 PHP의 major와 minor를 비교하고, 실행이 쓴 patch는
-  그 실행의 evidence이며 `scripts/kit/check-toolchain.mjs`가 출력하고 `var/full-run.json`이 다른 실행 중인 릴리스와
+  그 실행의 evidence이며 `node_modules/@polyspec/kit/dist/check-toolchain.mjs`가 출력하고 `var/full-run.json`이 다른 실행 중인 릴리스와
   함께 기록합니다.
-- `make toolchain-check TOOLS="<tool>..."`(`scripts/kit/check-toolchain.mjs`)은 기록한 버전으로 실행되지 않는 모든 지정 도구에 대해
+- `make toolchain-check TOOLS="<tool>..."`(`node_modules/@polyspec/kit/dist/check-toolchain.mjs`)은 기록한 버전으로 실행되지 않는 모든 지정 도구에 대해
   실패하며 기록, 기대한 버전, 실행 중인 버전, 해결 방법을 밝히고, 지정한 모든 도구의 실행 중인 릴리스를
   출력합니다. 모든 CI job은 자신이 설치한
   도구에 대해 그것을 실행하고, `TOOLS` 없는 `make toolchain-check`는 모든 도구에 대해 실행합니다.
@@ -231,7 +239,7 @@ tree는 언제나 같은 결과를 냅니다. review 대상은 registry 의존�
 `packages/generator-python`)의 `build-system.requires` pin의 `require`와 `require-dev`입니다. peer 의존성, URL 의존성, 이 저장소의 package와 Composer platform 요구
 사항은 정의상 review 밖에 있습니다. GitHub tag에서 가져온 polyspec package는 그 tag의
 release입니다. 검사는 루트 매니페스트가 그 package를 tag의 checkout에 연결하고, checkout이
-tag의 버전을 가지며, 잠금 파일이 그 버전을 기록할 것을 요구합니다. `make dependency-review`(`scripts/kit/dependency-review.mjs`)는 각 registry 의존성에 대해
+tag의 버전을 가지며, 잠금 파일이 그 버전을 기록할 것을 요구합니다. `make dependency-review`(`node_modules/@polyspec/kit/dist/dependency-review.mjs`)는 각 registry 의존성에 대해
 게시자가 deprecated로 표시하지 않은 최신 안정 release를, 그리고 `package-lock.json`(moderate,
 high, critical)과 각 `composer.lock`(모든 보안 권고와 abandoned package)의 보안 권고를
 registry에 묻고, checkout의 모든 Cargo lock의 보안 권고를 cargo-audit으로 RustSec advisory
@@ -243,7 +251,7 @@ database에서 읽습니다(모든 취약점과 unmaintained, unsound, yanked cr
 release를 그 옆에 추가하므로 npm 갱신 뒤에 `npm dedupe`를 실행합니다. 예약된 workflow `.github/workflows/dependency-review.yml`이
 매일 review를 실행하며, 어떤 검사나 gating CI job도 이를 실행하지 않습니다.
 
-`make dependency-policy-check`(`scripts/kit/check-dependency-policy.mjs`)는 checkout의 file만 읽고 각
+`make dependency-policy-check`(`node_modules/@polyspec/kit/dist/check-dependency-policy.mjs`)는 checkout의 file만 읽고 각
 발견을 규칙과 고치는 방법과 함께 보고합니다. `make dependency-policy-mutation-check`는 의존성 file 사본의 알려진 mutation을 검사가
 각각 거부할 것을 요구하고, `make test-dependencies`는 둘과 `npm run test:dependencies`를 실행합니다. 잠금 파일이 review 뒤에 바뀌었거나, registry
 의존성에 review 항목이 없거나 review가 기록한 것과 다른 version으로 잠겼거나, registry
@@ -267,7 +275,7 @@ package를 내려받는 release archive의 사용자 project lock `release-consu
 `release-consumer`는 script가 스스로 풉니다. `make install-crates`는 Rust record server의 lock이 읽는 OrderedJSON
 checkout(`.form-comparison/sources/ordered-json`) 다음에 모든 Cargo.lock의 crate를
 download하고, `make install`이 이를 실행합니다. cargo를 실행하는 모든 대상은
-`make cargo-downloads-check`(`scripts/kit/check-cargo-downloads.mjs`)에 의존합니다. 이 검사는
+`make cargo-downloads-check`(`node_modules/@polyspec/kit/dist/check-cargo-downloads.mjs`)에 의존합니다. 이 검사는
 lock마다 `cargo fetch --locked --offline`을 실행하고, `--offline` 없이 다시 시도하라는 cargo의
 안내 대신 각 lock, cargo의 첫 오류 줄, `run make install, which downloads them`과 함께
 실패합니다. comparison pipeline은 OrderedJSON checkout을 읽고, 없거나 tracked change가 있거나 tag `v0.0.3`와 다른 commit이면

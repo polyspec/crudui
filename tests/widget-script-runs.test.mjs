@@ -13,7 +13,7 @@ import { join } from 'node:path';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { createServer } from 'vite';
 import { engineDrivers, engines } from './browser-engines.mjs';
-import { setup, teardown } from '../scripts/kit/test-hooks.mjs';
+import { setup, teardown } from '@polyspec/kit/test-hooks';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const clientEntry = '/__crudui_script_runs__.mjs';

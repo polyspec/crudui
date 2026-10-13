@@ -173,15 +173,23 @@ latest release of a channel, and no tool installs another version on its own.
 - `packageManager` of the root `package.json` records the exact npm release,
   because the npm that installs, packs and runs the scripts changes their results,
   as the `pack --json` report changed from an array in npm 11 to an object in
-  npm 12. `make install-tools` (`scripts/kit/install-tools.mjs`) installs exactly
+  npm 12. `make install-tools` (`node_modules/@polyspec/kit/dist/install-tools.mjs`) installs exactly
   that release into the ignored directory `var/tools/npm` of the checkout and never
   into the machine, whose npm every other checkout uses. The Makefile puts
   `var/tools/bin` first on `PATH`, and every CI job starts npm through a make target.
-- `.go-version` records the exact Go release, which CI reads. Every `go.mod`
-  names it in its `toolchain` line, `config/toolchain.json` names the `go.mod`
-  whose `toolchain` line `make install-tools` installs into `var/tools/go`, and
-  `GOTOOLCHAIN=local`, which the Makefile and CI set, keeps go from downloading
-  another toolchain.
+- The kit of the checkout, `@polyspec/kit`, pins one release of each toolchain (Node.js 26.11.1, Python 3.14, PHP 8.5,
+  Go 1.27.2, Rust 1.99.0, TypeScript 7.0.2), and `make toolchain-check` fails on each declaration and manifest floor
+  that is not the pin: `.node-version`, `engines.node` of every `package.json` (`>=26.11.1`), `require.php` of every
+  `composer.json` (`>=8.5`), `requires-python` of every `pyproject.toml` (`>=3.14`), the `go` line of every `go.mod`
+  (`1.27.2`, with no `toolchain` line), `rust-version` of every Cargo package and `typescript` of every manifest and
+  lock. A deviation is an entry of `exceptions` in `config/toolchain.json` with its scope, reason and retry condition:
+  `packages/generator-svelte` keeps TypeScript 6.0.3, because svelte-check and `@sveltejs/package` require the
+  TypeScript 6 API.
+- `.go-version` records the exact Go release, which CI reads. `config/toolchain.json` names the `go.mod` whose `go`
+  line is that release, `make install-tools` installs the Go of the kit pin into `var/tools/go`, and
+  `GOTOOLCHAIN=local`, which the Makefile and CI set, keeps go from downloading another toolchain. The Go modules of
+  the repository, and the Go module of the OrderedJSON checkout of the comparison, resolve each other through the root
+  `go.work`; no `go.mod` names a `replace`.
 - `rust-toolchain.toml` records the exact Rust release with the profile `minimal`
   and the components `rustfmt` and `clippy`. The Makefile and CI set
   `RUSTUP_AUTO_INSTALL=0`, so a cargo without the installed toolchain fails with
@@ -190,15 +198,16 @@ latest release of a channel, and no tool installs another version on its own.
 - `config/toolchain.json` records the tested PHP minor releases in `php`, the
   minor release of Python, which runs the tests of `tests/ordered-json`
   (`make test-ordered-json`), in `python`, compared like PHP, the exact Composer release in `composer`
-  (an object with `version`), the `go.mod` whose `toolchain` line is the Go release in `go`, the exact cargo-audit
-  release in `cargoAudit`, and the SHA-256 of the Linux x64 archive
+  (an object with `version` and the SHA-256 of its phar), the `go.mod` whose `go` line is the Go release in `go`, the
+  exact releases and digests of uv and the Python build, alint, ruff, vulture, golangci-lint and deadcode, the exact
+  cargo-audit release in `cargoAudit`, and the SHA-256 of the Linux x64 archive
   of the Node.js release in `node`. The file follows the schema
-  `scripts/kit/schema/toolchain.schema.json`, which `make kit-check` applies. PHP is pinned by its minor release, because
+  `node_modules/@polyspec/kit/dist/schema/toolchain.schema.json`, which `make kit-check` applies. PHP is pinned by its minor release, because
   setup-php and Homebrew cannot install the same patch: the checks compare the
   major and minor of the running PHP, and the patch that a run ran on is its
-  evidence, which `scripts/kit/check-toolchain.mjs` prints and
+  evidence, which `node_modules/@polyspec/kit/dist/check-toolchain.mjs` prints and
   `var/full-run.json` records with the other running releases.
-- `make toolchain-check TOOLS="<tool>..."` (`scripts/kit/check-toolchain.mjs`) fails for every named tool that
+- `make toolchain-check TOOLS="<tool>..."` (`node_modules/@polyspec/kit/dist/check-toolchain.mjs`) fails for every named tool that
   does not run at its recorded version and names the record, the expected and the
   running version, and the fix; it prints the running release of every named tool. Every CI job runs it for the tools that it set up;
   `make toolchain-check` without `TOOLS` runs it for all of them.
@@ -260,7 +269,7 @@ dependencies, packages of this repository and Composer platform requirements are
 outside the review by definition. A polyspec package taken from a GitHub tag is the
 release of that tag: the check requires the root manifest to link it to the checkout of
 the tag, the checkout to have the version of the tag and the lock file to record that
-version. `make dependency-review` (`scripts/kit/dependency-review.mjs`) asks the registries for
+version. `make dependency-review` (`node_modules/@polyspec/kit/dist/dependency-review.mjs`) asks the registries for
 the latest stable release of each registry dependency that its publisher has not
 deprecated, and for the advisories of `package-lock.json` (moderate, high and
 critical), of each `composer.lock` (every advisory and abandoned package) and of
@@ -277,7 +286,7 @@ installs and adds the raised release beside it. The scheduled workflow
 `.github/workflows/dependency-review.yml` runs the review every day; no check and
 no gating CI job runs it.
 
-`make dependency-policy-check` (`scripts/kit/check-dependency-policy.mjs`) reads only the files of the checkout
+`make dependency-policy-check` (`node_modules/@polyspec/kit/dist/check-dependency-policy.mjs`) reads only the files of the checkout
 and reports each finding with its rule and fix; `make dependency-policy-mutation-check` requires
 the check to reject each known mutation of a copy of the dependency files; `make test-dependencies` runs both and
 `npm run test:dependencies`.
@@ -309,7 +318,7 @@ third-party packages that their locks pin, lift them with `$(ONLINE)`; `release-
 crates of every Cargo.lock after the OrderedJSON checkout
 (`.form-comparison/sources/ordered-json`) that the lock of the Rust record server
 reads, and `make install` runs it. Every target that runs cargo depends on
-`make cargo-downloads-check` (`scripts/kit/check-cargo-downloads.mjs`), which runs
+`make cargo-downloads-check` (`node_modules/@polyspec/kit/dist/check-cargo-downloads.mjs`), which runs
 `cargo fetch --locked --offline` for each lock and fails with each lock, the first
 error line of cargo and `run make install, which downloads them`, instead of cargo's
 advice to retry without `--offline`. The comparison pipeline reads the OrderedJSON

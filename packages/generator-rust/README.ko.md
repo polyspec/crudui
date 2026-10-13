@@ -1,6 +1,6 @@
 # CRUDUI Rust 생성기
 <!-- doc-id: packages-generator-rust-readme -->
-<!-- source-sha256: 7d74d925f900175d505900cd3b55e13308b5d7f19536febb553ef328a6037aa0 -->
+<!-- source-sha256: ec21634bd256979c5ce4b56fc8a700ba1c295e2cdf139ea625b9b99e9bf7249a -->
 
 [English](README.md).
 
@@ -74,7 +74,7 @@ null인 경우를 구분합니다.
 
 ```sh
 cargo run --locked --manifest-path packages/generator-rust/Cargo.toml --example form
-node scripts/kit/run-tests.mjs cargo -- --locked --manifest-path packages/generator-rust/Cargo.toml
+node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/generator-rust/Cargo.toml
 cargo clippy --locked --all-targets --manifest-path packages/generator-rust/Cargo.toml -- -D warnings
 node packages/generator-rust/verify-fixtures.mjs
 make docs-check

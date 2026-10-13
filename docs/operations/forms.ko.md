@@ -1,6 +1,6 @@
 # 폼 개발과 검증
 <!-- doc-id: docs-operations-forms -->
-<!-- source-sha256: f53a6d017d9716089e8cdd3077125784e1257e4cd02092fc3c2348a45e230849 -->
+<!-- source-sha256: c92890a8a164ac030e2f050a5899cfbfbd5604ebcd1cd63acb676f86d95998c5 -->
 
 [English](forms.md). 계약은 [폼 런타임](../spec/form-runtime.ko.md)에 정의합니다.
 
@@ -121,9 +121,9 @@ make docs-check
 서버 검증 사례는 저장소 루트에서 실행합니다.
 
 ```sh
-COMPOSER_VENDOR_DIR=../../vendor node scripts/kit/run-tests.mjs phpunit --cwd packages/validator-php -- --filter ValidateConformanceTest
-node scripts/kit/run-tests.mjs go --cwd packages/validator-go -- ./validator/validate
-node scripts/kit/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml --test validate_conformance
+COMPOSER_VENDOR_DIR=../../vendor node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator-php -- --filter ValidateConformanceTest
+node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/validator-go -- ./validator/validate
+node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml --test validate_conformance
 ```
 
 `test:forms`는 현재 패키지를 빌드하고 코어, SSR, 마운트한 DOM 테스트를 실행합니다.

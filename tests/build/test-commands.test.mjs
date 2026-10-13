@@ -1,4 +1,4 @@
-// The test command standard: every test the project runs goes through scripts/kit/run-tests.mjs,
+// The test command standard: every test the project runs goes through the run-tests tool of @polyspec/kit,
 // which prints each test as it starts, runs, passes or fails with its elapsed time and stops a
 // test that outlives its own timeout. A test tool called directly from a project command, or a
 // CI time limit over a step or a job, fails this check.
@@ -34,7 +34,8 @@ test('a direct test tool call is found in each command form', () => {
     'phpunit', 'vendor/bin/phpunit tests',
   ]) assert.notDeepEqual(directTestTools(command), [], command);
   for (const command of [
-    'node scripts/kit/run-tests.mjs node -- tests/a.test.mjs', 'node scripts/kit/run-tests.mjs vitest --workspace packages/generator-core',
+    'node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/a.test.mjs', 'node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --workspace packages/generator-core',
+    'node $(KIT)/run-tests.mjs go --cwd packages/generator-go -- ./...', 'node ../../node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/cli',
     'npm run test:forms', 'node scripts/run-rust-command.mjs build --release', 'composer install', 'go build ./...',
     'npm run build && npm test -w @polyspec/crudui-generator-html', 'composer --working-dir=packages/generator-php test',
   ]) assert.deepEqual(directTestTools(command), [], command);
@@ -51,7 +52,7 @@ test('project commands call test tools only through the test runner', () => {
 });
 
 test('a script a test command starts prints through the shared progress lines', () => {
-  assert.deepEqual(nodeScripts('node scripts/a.mjs --flag && FOO=1 node --import tsx b/c.js x; node scripts/kit/run-tests.mjs node -- d.test.mjs; npm test'), ['scripts/a.mjs', 'b/c.js']);
+  assert.deepEqual(nodeScripts('node scripts/a.mjs --flag && FOO=1 node --import tsx b/c.js x; node node_modules/@polyspec/kit/dist/run-tests.mjs node -- d.test.mjs; npm test'), ['scripts/a.mjs', 'b/c.js']);
   assert.equal(isTestCommand('package.json', 'test:forms'), true);
   assert.equal(isTestCommand('package.json', 'pretest'), true);
   assert.equal(isTestCommand('package.json', 'build'), false);
@@ -62,11 +63,11 @@ test('a script a test command starts prints through the shared progress lines', 
     const directory = path.dirname(file);
     for (const { name, command } of projectCommands(file, read(file))) {
       if (!isTestCommand(file, name)) continue;
-      // The scripts of the vendored copy of polyspec/kit follow the rules of kit.
-      for (const script of nodeScripts(command).filter(name => !isVendored(name))) {
+      // The tools of @polyspec/kit and its copies follow the rules of kit.
+      for (const script of nodeScripts(command).filter(name => !isVendored(name) && !/^\$\(KIT\)\/|node_modules\/@polyspec\/kit\//.test(name))) {
         const source = [path.join(ROOT, directory, script), path.join(ROOT, script)].find(candidate => existsSync(candidate));
         if (!source) violations.push(`${file} ${name}: ${script} does not exist`);
-        else if (!/kit\/test-progress\.mjs['"]/.test(readFileSync(source, 'utf8'))) violations.push(`${file} ${name}: ${script} does not print through scripts/kit/test-progress.mjs`);
+        else if (!/'@polyspec\/kit\/test-progress'/.test(readFileSync(source, 'utf8'))) violations.push(`${file} ${name}: ${script} does not print through @polyspec/kit/test-progress`);
       }
     }
   }
@@ -74,7 +75,7 @@ test('a script a test command starts prints through the shared progress lines', 
 });
 
 test('every node:test file runs in a project command', () => {
-  assert.deepEqual(nodeTestArguments('node scripts/kit/run-tests.mjs node --timeout 5 -- a.test.mjs b/*.test.mjs && node scripts/kit/run-tests.mjs vitest -- c.test.ts'), ['a.test.mjs', 'b/*.test.mjs']);
+  assert.deepEqual(nodeTestArguments('node node_modules/@polyspec/kit/dist/run-tests.mjs node --timeout 5 -- a.test.mjs b/*.test.mjs && node node_modules/@polyspec/kit/dist/run-tests.mjs vitest -- c.test.ts'), ['a.test.mjs', 'b/*.test.mjs']);
   assert.equal(matchesArgument('tests/docs/a.test.mjs', 'tests/docs/*.test.mjs'), true);
   assert.equal(matchesArgument('tests/docs/x/a.test.mjs', 'tests/docs/*.test.mjs'), false);
   const arguments_ = tracked.flatMap(file => projectCommands(file, read(file)).flatMap(({ command }) => nodeTestArguments(command)));
@@ -119,7 +120,7 @@ test('a CI step runs tests when its command reaches the test runner', () => {
     'make test-cross-check', 'make manifest-test', 'make test-build', 'make test-build-repeat',
   ]) assert.equal(runsTests(command, project), true, command);
   for (const command of [
-    'make install-node-modules install-composer', 'make build', 'make lint', 'make typecheck',
+    'make install-packages', 'make install-composer', 'make build', 'make lint', 'make typecheck',
     'make build-php-extension', 'make check-ci-browser', 'make check-conformance',
   ]) assert.equal(runsTests(command, project), false, command);
 });
@@ -135,8 +136,8 @@ function testPrerequisites(project) {
 // each with `$(MAKE) <target> || status=1` and exits with the collected status.
 test('no Makefile target takes a target that runs tests as a prerequisite', () => {
   const fixture = makeTargets([
-    'all: build test-a test-b', 'build:', '\tnpm run build', 'test-a:', '\tnode scripts/kit/run-tests.mjs node -- a.test.mjs',
-    'test-b:', '\tnode scripts/kit/run-tests.mjs node -- b.test.mjs', 'collect:',
+    'all: build test-a test-b', 'build:', '\tnpm run build', 'test-a:', '\tnode node_modules/@polyspec/kit/dist/run-tests.mjs node -- a.test.mjs',
+    'test-b:', '\tnode node_modules/@polyspec/kit/dist/run-tests.mjs node -- b.test.mjs', 'collect:',
     '\t@status=0; $(MAKE) test-a || status=1; $(MAKE) test-b || status=1; exit $$status', '',
   ].join('\n'));
   assert.deepEqual(testPrerequisites({ npm: {}, composer: {}, workspaces: {}, make: fixture }), ['all: test-a', 'all: test-b']);
@@ -219,10 +220,10 @@ function stoppingCommand(command, project, directory = '.') {
 
 test('a package script or a CI step runs every check after an earlier check failed', () => {
   const project = declaredCommands();
-  const fixture = { ...project, npm: { '.': { 'test:a': 'node scripts/kit/run-tests.mjs node -- a.test.mjs' } } };
-  assert.deepEqual(stoppingCommand('npm run build && node scripts/kit/run-tests.mjs node -- a.test.mjs', fixture), []);
-  assert.deepEqual(stoppingCommand('node scripts/kit/run-tests.mjs node -- a.test.mjs && npm run test:a', fixture), [
-    '`npm run test:a` runs only when `node scripts/kit/run-tests.mjs node -- a.test.mjs` passed',
+  const fixture = { ...project, npm: { '.': { 'test:a': 'node node_modules/@polyspec/kit/dist/run-tests.mjs node -- a.test.mjs' } } };
+  assert.deepEqual(stoppingCommand('npm run build && node node_modules/@polyspec/kit/dist/run-tests.mjs node -- a.test.mjs', fixture), []);
+  assert.deepEqual(stoppingCommand('node node_modules/@polyspec/kit/dist/run-tests.mjs node -- a.test.mjs && npm run test:a', fixture), [
+    '`npm run test:a` runs only when `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- a.test.mjs` passed',
     'the checks do not each set status=1 and the command does not exit with the collected status',
   ]);
   assert.deepEqual(stoppingCommand('npm run build || exit 1; status=0; npm run test:a || status=1; node scripts/check-documents.mjs || status=1; exit $status', fixture), []);
@@ -255,7 +256,7 @@ test('a package script or a CI step runs every check after an earlier check fail
 // test:build builds the packages first and never reads the output of an earlier build.
 test('test:build builds the packages before the tests that load them', () => {
   const script = JSON.parse(read('package.json')).scripts['test:build'];
-  assert.match(script, /^node scripts\/require-current-build\.mjs && node scripts\/kit\/run-tests\.mjs node -- .*tests\/build\/public-packages\.test\.mjs/);
+  assert.match(script, /^node scripts\/require-current-build\.mjs && node node_modules\/@polyspec\/kit\/dist\/run-tests\.mjs node -- .*tests\/build\/public-packages\.test\.mjs/);
   assert.match(read('tests/build/public-packages.test.mjs'), /await import\(pkg\.manifest\.name\)/);
 });
 
@@ -284,7 +285,7 @@ test('CI has no time limit over a long operation, a test step or a job', () => {
 test('the benchmark driver test runs built drivers within the default test timeout', () => {
   const command = JSON.parse(read('package.json')).scripts['test:bench'];
   const build = command.indexOf('node tools/bench/build-drivers.mjs');
-  const runner = command.indexOf('node scripts/kit/run-tests.mjs node');
+  const runner = command.indexOf('node node_modules/@polyspec/kit/dist/run-tests.mjs node');
   assert.ok(build !== -1 && runner > build, `test:bench builds the drivers before the test: ${command}`);
   assert.doesNotMatch(command, /--timeout/, 'test:bench keeps the 30-second timeout of each test');
   const source = read('tests/build/bench-drivers.test.mjs');
@@ -312,7 +313,7 @@ test('no test asserts a bound on an elapsed time', () => {
 // time limit and compares its own two builds; its test reads no build record and runs within the default timeout.
 test('the reproducible build check compares its own builds and its test reads no record', () => {
   const command = JSON.parse(read('package.json')).scripts['test:build:repeat'];
-  assert.equal(command, 'status=0; node scripts/repeat-build.mjs || status=1; node scripts/kit/run-tests.mjs node -- tests/build/reproducible-build.test.mjs || status=1; exit $status');
+  assert.equal(command, 'status=0; node scripts/repeat-build.mjs || status=1; node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/reproducible-build.test.mjs || status=1; exit $status');
   const test = read('tests/build/reproducible-build.test.mjs');
   assert.doesNotMatch(test, /npm', \['run', 'build'\]|REPEAT_BUILD|readFileSync\(join\(/, 'the test runs no build and reads no build record');
   assert.doesNotMatch(read('scripts/repeat-build.mjs'), /writeFile|REPEAT_BUILD/, 'the check keeps no record between runs');

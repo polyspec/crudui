@@ -1,14 +1,15 @@
 // A Python package of the repository installs another one from the tag of this repository: the requirement is a git pin
 // `name @ git+https://github.com/polyspec/crudui@vX.Y.Z#subdirectory=...`. The pin names the version of the repository, so a
-// version change that leaves a pin behind installs the earlier release; scripts/kit/release.mjs does not read it.
+// version change that leaves a pin behind installs the earlier release; the release tool of @polyspec/kit does not read it.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
 
-import { ROOT } from '../../scripts/kit/paths.mjs';
 import { ownedFiles } from '../../scripts/repository-files.mjs';
+
+const ROOT = path.resolve(import.meta.dirname, '../..');
 
 const PIN = /git\+https:\/\/github\.com\/polyspec\/crudui@(\S+?)#/g;
 

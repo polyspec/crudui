@@ -4,7 +4,7 @@
     "type": "project",
     "license": "MIT",
     "require": {
-        "php": "^8.4",
+        "php": ">=8.5",
         "php-64bit": "^8.2",
         "ext-mbstring": "*",
         "polyspec/crudui-validator": "0.0.5"
@@ -35,7 +35,7 @@
     ],
     "config": {
         "platform": {
-            "php": "8.4.1"
+            "php": "8.5.0"
         }
     },
     "minimum-stability": "stable"

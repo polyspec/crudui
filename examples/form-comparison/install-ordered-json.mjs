@@ -3,14 +3,15 @@
 // of the comparison build from (.form-comparison/sources/ordered-json), the download of `make install-ordered-json`, which `make install` runs. A
 // checkout at the commit of the tag without tracked changes stays; any other one is replaced by a checkout of the tag.
 // The pipeline reads the checkout and fails when it is missing, has tracked changes or is at another commit than the
-// tag, naming that command; it downloads nothing itself (docs/spec/package-build.md, "Offline checks").
+// tag, naming that command; it downloads nothing itself (docs/spec/package-build.md, "Offline checks"). It runs before
+// make install-packages, which installs the js package of the checkout, so it imports only Node.js built-ins and the files
+// of examples/form-comparison, and prints each step itself.
 //
 //   node examples/form-comparison/install-ordered-json.mjs
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { installOrderedJson, orderedJsonAtTag, orderedJsonTag } from './src/ordered-json-source.mjs';
-import { createProgress } from '../../scripts/kit/test-progress.mjs';
 
 const directory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../.form-comparison/sources/ordered-json');
 
@@ -20,17 +21,14 @@ export function orderedJsonPresent(checkout = directory) {
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const lines = createProgress({ write: text => process.stdout.write(text) });
-  const id = `ordered-json: the checkout of the tag ${orderedJsonTag} in .form-comparison/sources/ordered-json`;
-  lines.start(id, { group: true });
+  const started = performance.now();
+  const elapsed = () => `${((performance.now() - started) / 1000).toFixed(1)}s`;
+  process.stdout.write(`[ordered-json] start: the checkout of the tag ${orderedJsonTag} in .form-comparison/sources/ordered-json\n`);
   try {
     const { installed } = await installOrderedJson(directory);
-    lines.line(installed ? `ordered-json: installed the tag ${orderedJsonTag}`
-      : `ordered-json: the checkout is at the tag ${orderedJsonTag}`);
-    lines.pass(id);
+    process.stdout.write(`[ordered-json] pass (${elapsed()}): ${installed ? `installed the tag ${orderedJsonTag}` : `the checkout is at the tag ${orderedJsonTag}`}\n`);
   } catch (error) {
-    lines.fail(id, undefined, error.message);
+    process.stdout.write(`[ordered-json] fail (${elapsed()}): ${error.message}\n`);
     process.exitCode = 1;
   }
-  lines.close('ordered-json');
 }

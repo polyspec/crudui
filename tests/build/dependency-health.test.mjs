@@ -5,8 +5,6 @@ import { builtinModules } from 'node:module';
 import path from 'node:path';
 import test from 'node:test';
 
-import { check, findingLine } from '../../scripts/kit/check-dependency-policy.mjs';
-import { npmDuplicates, npmSatisfies } from '../../scripts/kit/dependency-state.mjs';
 import { orderedJsonCheckout, orderedJsonRepository, orderedJsonTag, orderedJsonVersion } from '../../examples/form-comparison/src/ordered-json-source.mjs';
 import { makeTargets, nodeTestArguments } from '../../scripts/test-commands.mjs';
 
@@ -47,14 +45,6 @@ function trackedComposerFiles(basename) {
   return result.stdout.trim().split('\n').filter(Boolean).sort();
 }
 
-function trackedInstallDefinitionFiles() {
-  const result = execute(git, ['ls-files']);
-  assert.equal(result.status, 0, result.stderr);
-  return result.stdout.trim().split('\n').filter((filename) => (
-    (/^\.github\/workflows\/.*\.ya?ml$/).test(filename)
-  )).sort();
-}
-
 function workspacePackageDirectories() {
   const manifest = JSON.parse(readFileSync(path.join(root, 'package.json'), 'utf8'));
   return manifest.workspaces.flatMap((workspace) => {
@@ -90,9 +80,10 @@ export function makeNodeEntrypoints(targets, target, seen = new Set()) {
 }
 
 function nativeTestNodeEntrypoints() {
+  // The tools of @polyspec/kit, $(KIT)/<tool>.mjs, import the dependencies of the kit package, not those of the root.
   const entrypoints = makeNodeEntrypoints(
-    makeTargets(['Makefile', 'scripts/kit/kit.mk'].map((file) => readFileSync(path.join(root, file), 'utf8')).join('\n')), 'test-native',
-  );
+    makeTargets(['Makefile', 'node_modules/@polyspec/kit/dist/kit.mk'].map((file) => readFileSync(path.join(root, file), 'utf8')).join('\n')), 'test-native',
+  ).filter((file) => !file.startsWith('$(KIT)/'));
   assert.notDeepEqual(entrypoints, [], 'make test-native runs no Node.js program');
   return entrypoints;
 }
@@ -100,10 +91,10 @@ function nativeTestNodeEntrypoints() {
 test('the Node.js programs of a target include those of its prerequisites and sub-makes', () => {
   const targets = makeTargets([
     'all: build', '\t@status=0; $(MAKE) --no-print-directory suite || status=1; exit $$status',
-    'build:', '\tnode scripts/build.mjs', 'suite:', '\tnode scripts/kit/run-tests.mjs node -- a.test.mjs b.test.mjs', '',
+    'build:', '\tnode scripts/build.mjs', 'suite:', '\tnode $(KIT)/run-tests.mjs node -- a.test.mjs b.test.mjs', '',
   ].join('\n'));
   assert.deepEqual(makeNodeEntrypoints(targets, 'all').sort(),
-    ['a.test.mjs', 'b.test.mjs', 'scripts/build.mjs', 'scripts/kit/run-tests.mjs']);
+    ['$(KIT)/run-tests.mjs', 'a.test.mjs', 'b.test.mjs', 'scripts/build.mjs']);
   assert.deepEqual(makeNodeEntrypoints(makeTargets('empty:\n\techo\n'), 'empty'), []);
 });
 
@@ -172,56 +163,6 @@ test('installed packages form one valid dependency graph', () => {
     result.report.error?.summary,
     result.stderr,
   ].filter(Boolean).join('\n'));
-  // npm ci installs the lock, so a package that the lock holds twice is installed twice.
-  const lock = JSON.parse(readFileSync(path.join(root, 'package-lock.json'), 'utf8'));
-  assert.deepEqual(npmDuplicates(lock), []);
-});
-
-/** A lock in which a workspace raised svelte while the root kept the hoisted release. */
-const duplicateLock = () => ({
-  lockfileVersion: 3,
-  packages: {
-    '': { name: 'fixture', workspaces: ['packages/*'], devDependencies: { svelte: '^5.57.1', left: '^1.0.0', '@scope/kit': '0.0.1' } },
-    'node_modules/@scope/kit': { resolved: 'packages/kit', link: true },
-    'node_modules/svelte': { version: '5.57.1', dev: true },
-    'node_modules/left': { version: '1.4.0', dev: true },
-    'node_modules/plugin': { version: '6.0.0', dev: true, peerDependencies: { svelte: '^5.0.0', left: '>=1' }, peerDependenciesMeta: { left: { optional: true } } },
-    'packages/kit': { name: '@scope/kit', version: '0.0.1', devDependencies: { svelte: '^5.57.2', left: '^2.0.0', plugin: '^6.0.0' } },
-    'packages/kit/node_modules/svelte': { version: '5.57.2', dev: true },
-    'packages/kit/node_modules/left': { version: '2.1.0', dev: true },
-  },
-});
-
-test('a package installed at two versions that one installed version satisfies fails the dependency graph', () => {
-  assert.deepEqual(npmDuplicates(duplicateLock()), [
-    'svelte is installed at 5.57.1 and 5.57.2, and 5.57.2 satisfies every range: ^5.57.1 of the root, ^5.0.0 of node_modules/plugin and ^5.57.2 of packages/kit',
-  ]);
-});
-
-test('a package installed at two versions that no single version satisfies passes the dependency graph', () => {
-  const lock = duplicateLock();
-  lock.packages['packages/kit'].devDependencies.svelte = '~5.57.2';
-  lock.packages[''].devDependencies.svelte = '5.57.1';
-  assert.deepEqual(npmDuplicates(lock), []);
-  delete lock.packages['packages/kit/node_modules/svelte'];
-  lock.packages[''].devDependencies.svelte = '^5.57.1';
-  assert.deepEqual(npmDuplicates(lock), []);
-});
-
-test('npm version ranges select the versions that npm selects', () => {
-  const cases = [
-    ['1.2.3', '^1.0.0', true], ['2.0.0', '^1.0.0', false], ['2.0.0-rc.1', '^1.0.0', false],
-    ['0.2.5', '^0.2.3', true], ['0.3.0', '^0.2.3', false], ['0.0.4', '^0.0.3', false], ['1.9.0', '^1.x', true],
-    ['1.2.9', '~1.2.3', true], ['1.3.0', '~1.2.3', false], ['1.9.0', '~1', true], ['1.3.0', '~>1.2', false],
-    ['3.0.0', '>=2.1.0 <3.0.0', false], ['2.5.0', '>= 2.1.0 < 3', true], ['5.1.0', '>=5', true], ['4.9.9', '>5', false],
-    ['6.0.0', '>5', true], ['5.0.0', '<=5', true], ['5.9.0', '<=5', true], ['6.0.0', '<=5', false], ['5.0.0', '<5', false],
-    ['1.2.3', '1.2.3', true], ['1.2.4', '=1.2.3', false], ['1.2.9', '1.2.x', true], ['1.3.0', '1.2', false], ['7.0.0', '*', true],
-    ['7.0.0', '', true], ['7.0.0-beta.1', '*', false], ['1.2.3-beta.2', '^1.2.3-beta.1', true], ['1.2.4-beta.2', '^1.2.3-beta.1', false],
-    ['1.2.3', '^1.2.3-beta.1', true], ['2.3.0', '1.0.0 - 2.3', true], ['2.4.0', '1.0.0 - 2.3', false],
-    ['3.1.0', '^2.0.0 || ^3.0.0', true], ['4.0.0', '^2.0.0 || ^3.0.0', false], ['4.2.0', 'npm:other@^4.0.0', true],
-    ['1.0.0', 'file:../local', null], ['1.0.0', 'latest', null], ['1.0.0', 'https://example.test/a.tgz', null],
-  ];
-  assert.deepEqual(cases.map(([version, range]) => [version, range, npmSatisfies(version, range)]), cases);
 });
 
 test('workspace packages use the root dependency lock file', () => {
@@ -270,9 +211,14 @@ test('root example imports are declared by the root package', () => {
   assert.deepEqual(failures, []);
 });
 
-test('npm installs only registry packages and linked directories, and fetches no URL or Git source', () => {
+// The shared tools are the release asset of a tag of polyspec/kit, which the root package.json names by its URL and
+// package-lock.json pins with its integrity; make install-packages allows the URLs of the root package.json alone.
+const KIT_ASSET = /^https:\/\/github\.com\/polyspec\/kit\/releases\/download\/v(\d+\.\d+\.\d+)\/polyspec-kit-npm-\1\.tgz$/;
+
+test('npm installs only registry packages, linked directories and the kit release asset, and fetches no other URL or Git source', () => {
   // A package comes from the npm registry, from a workspace or from a checkout that a make target installed, such
-  // as the OrderedJSON tag checkout that the root package.json links with file:; npm fetches no URL or Git source.
+  // as the OrderedJSON tag checkout that the root package.json links with file:; npm fetches no URL or Git source other
+  // than the release asset of @polyspec/kit that the root package.json names.
   const lock = JSON.parse(readFileSync(path.join(root, 'package-lock.json'), 'utf8'));
   const remote = /^(?:[A-Za-z][A-Za-z0-9+.-]*:\/\/|git(?:\+[a-z]+)?:|github:|gitlab:|bitbucket:|gist:|[^@./][^/:]*\/[^/])/;
   const manifests = ['.', ...workspacePackageDirectories()].map((directory) => [
@@ -281,7 +227,8 @@ test('npm installs only registry packages and linked directories, and fetches no
     ...Object.entries(manifest.dependencies ?? {}),
     ...Object.entries(manifest.devDependencies ?? {}),
     ...Object.entries(manifest.optionalDependencies ?? {}),
-  ].filter(([, specifier]) => remote.test(specifier) && !specifier.startsWith('npm:'))
+  ].filter(([packageName, specifier]) => remote.test(specifier) && !specifier.startsWith('npm:')
+    && !(directory === '.' && packageName === '@polyspec/kit' && KIT_ASSET.test(specifier)))
     .map(([packageName, specifier]) => `${directory}: ${packageName} ${specifier}`));
   assert.deepEqual(remoteDependencies, []);
 
@@ -292,7 +239,8 @@ test('npm installs only registry packages and linked directories, and fetches no
       const target = path.resolve(root, entry.resolved ?? '');
       return target.startsWith(root + path.sep) ? [] : [`${location}: links ${entry.resolved}`];
     }
-    if (!entry.resolved?.startsWith(registry)) return [`${location}: resolves ${entry.resolved ?? 'nothing'}`];
+    const asset = location === 'node_modules/@polyspec/kit' && KIT_ASSET.test(entry.resolved ?? '');
+    if (!entry.resolved?.startsWith(registry) && !asset) return [`${location}: resolves ${entry.resolved ?? 'nothing'}`];
     return /^sha512-[A-Za-z0-9+/]+={0,2}$/.test(entry.integrity ?? '') ? [] : [`${location}: no SHA-512 integrity`];
   });
   assert.deepEqual(unexpected, []);
@@ -314,17 +262,12 @@ test('form comparison commands use the root npm dependency graph', () => {
   assert.deepEqual(failures, []);
 });
 
-test('CI clean installs enforce script approvals', () => {
-  const failures = [];
-  for (const filename of trackedInstallDefinitionFiles()) {
-    const lines = readFileSync(path.join(root, filename), 'utf8').split('\n');
-    for (const [index, line] of lines.entries()) {
-      if (/\bnpm ci(?!\s+--strict-allow-scripts\b)/.test(line)) {
-        failures.push(`${filename}:${index + 1}: ${line.trim()}`);
-      }
-    }
-  }
-  assert.deepEqual(failures, []);
+test('npm installs enforce script approvals', () => {
+  // make install-packages runs npm ci; the .npmrc of the checkout sets strict-allow-scripts, so an install script that
+  // allowScripts of package.json does not approve fails the install.
+  const result = execute(npm, ['config', 'get', 'strict-allow-scripts']);
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(result.stdout.trim(), 'true');
 });
 
 test('Composer path repositories install local packages as copies', () => {
@@ -375,12 +318,6 @@ test('config/dependency-policy.json records the OrderedJSON tag that the compari
   assert.deepEqual(policy.taggedNpmPackages, [{
     directory: `${orderedJsonCheckout}/js`, repository: orderedJsonRepository, tag: orderedJsonTag, version: orderedJsonVersion, fix: 'make install-ordered-json',
   }]);
-});
-
-test('the dependencies match their recorded review, without a registry query', () => {
-  // scripts/kit/check-dependency-policy.mjs reads the manifests, the locks, config/dependency-policy.json and the review
-  // record config/dependency-review.json; `make dependency-review RECORD=1` writes the record from the registries.
-  assert.deepEqual(check(root).map(findingLine), []);
 });
 
 test('tracked npm dependency graphs approve every install script by exact version', () => {

@@ -8,7 +8,7 @@ import test from 'node:test';
 import { tmpdir } from 'node:os';
 import ts from 'typescript';
 
-import { checkedFiles } from '../../scripts/kit/tracked-files.mjs';
+import { checkedFiles } from '@polyspec/kit/tracked-files';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const require = createRequire(import.meta.url);
@@ -310,7 +310,7 @@ function publishedCommands(directory) {
 
 test('each command form in a published package is detected', () => {
   const temporary = mkdtempSync(resolve(tmpdir(), 'crudui-package-commands-'));
-  // The check reads the files of a Git checkout (scripts/kit/tracked-files.mjs).
+  // The check reads the files of a Git checkout (checkedFiles of @polyspec/kit/tracked-files).
   execFileSync('git', ['init', '--quiet'], { cwd: temporary });
   const make = (name, entries) => {
     const directory = resolve(temporary, name);

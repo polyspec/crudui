@@ -3,17 +3,20 @@
 
 [한국어](testing.ko.md).
 
-Run from the repository root. Every tool runs at the release that the checkout records
-(`docs/spec/package-build.md`, "Runtime and dependency versions"): `make install` installs the
+Run from the repository root. A checkout first runs `make install-tools TOOLS=npm`, which installs the npm of
+`packageManager` with the copied installer of `scripts/kit/bootstrap`, and `make install-packages`, which installs
+`package-lock.json` with that npm, the package `@polyspec/kit` included; until then no other target runs. Every tool runs at
+the release that the checkout records (`docs/spec/package-build.md`, "Runtime and dependency versions"): `make install` installs the
 recorded npm, the npm and Composer dependencies, the Rust toolchain of `rust-toolchain.toml`, the
 crates of every Cargo.lock with the OrderedJSON checkout of the comparison (`make install-crates`) and
 the phpDocumentor release that `scripts/install-phpdocumentor.sh` checks by its SHA-256,
 and `make toolchain-check` names every tool that runs at another release with the expected one.
-Install the npm and Go releases that the checkout declares, and cargo-audit, into the checkout
-with `make install-tools` (`scripts/kit/install-tools.mjs`; `TOOLS="npm go cargoAudit"` names the tools to install, and a workflow job installs only the ones it uses), which never changes the tools of the
+Install the tools that the checkout declares (npm, Go, uv and Python, alint, ruff, vulture, golangci-lint, deadcode,
+Composer with PHPCS and PHPStan, cargo-audit) into the checkout with `make install-tools`
+(`node_modules/@polyspec/kit/dist/install-tools.mjs`; `TOOLS="go cargoAudit"` names the tools to install, and a workflow job installs only the ones it uses), which never changes the tools of the
 machine; make puts their commands in `var/tools/bin` first on `PATH`, and a shell that runs npm
-itself puts them there with `export PATH="$PWD/var/tools/bin:$PATH"`. Install Node
-dependencies with `npm ci --strict-allow-scripts`, install the PHP package's Composer dependencies,
+itself puts them there with `export PATH="$PWD/var/tools/bin:$PATH"`. `.npmrc` sets `strict-allow-scripts`, so
+`make install-packages` fails on an install script that `allowScripts` of `package.json` does not approve. Install the PHP package's Composer dependencies,
 and make PHP, Go and Cargo available on `PATH`, with `php-fpm` and `nginx` for the PHP record
 servers of the comparison example (Homebrew: `brew install php nginx`; Debian and Ubuntu:
 `php8.x-fpm` and `nginx`, with `php-fpm` linked to the versioned binary). Build JavaScript packages before
@@ -32,7 +35,7 @@ requires a local check before a push or a commit; the pre-push hook only refuses
 checklist task is `[~]` (below). `make ci` and `make owner-check` remain available on request.
 
 Every step of the workflows runs a make target: the installs (`make install-tools`,
-`make install-node-modules`, `make install-composer`, `make install-rust`, `make install-crates`,
+`make install-packages`, `make install-composer`, `make install-rust`, `make install-crates`,
 `make install-browsers BROWSERS="..."`), the tool check (`make toolchain-check TOOLS="..."`) and each
 check (`make test-runtimes`, `make lint`, `make test-forms` and the others of `CI_COMMANDS`), so the
 recipes start every tool with the offline settings, `$(NPM)` and the toolchains of the checkout.
@@ -61,8 +64,12 @@ and an `&&` chain puts no step after a check.
 `scripts/run-contract-tests.mjs` runs every declared command, also after an earlier one failed, and
 fails after the last one.
 
+`make check` runs the checks of kit, `CHECK_TARGETS` of the Makefile (`kit-check`, `toolchain-check`, `layout-check`,
+`documents-check`, `owner-validate`, `commits-check`, `hooks-check`, the dependency gates, `cargo-downloads-check`, the
+`lint-*` targets and `records-check`), through the same guard as `make ci`.
+
 `make ci` runs once per committed tree, when no task of `docs/plans/execution-checklist.md` is
-`[~]`. Before any target it starts `scripts/kit/full-run.mjs`, which prints its decision with the
+`[~]`. Before any target it starts `node_modules/@polyspec/kit/dist/full-run.mjs`, which prints its decision with the
 reason and refuses with status 1 while a task row of the checklist is `[~]`, listing each active ID
 with its task; while the checklist cannot be read; while the pre-push hook is not installed
 (`make hooks-check`, below); while tracked files have uncommitted changes or new files are not
@@ -113,10 +120,10 @@ On request, `make owner-check` runs the checks that own the changed paths: the u
 changes and new files, the paths of `PATHS`, or the paths changed since `BASE`. `config/owner-checks.json`
 names, for globs of paths, the make targets, the root npm scripts, the test scripts of workspaces and
 package directories and the node test files that own them, and for a check the paths that it reads
-(`inputs`). `scripts/kit/owner-check.mjs` fails before any check runs for a path that no rule owns, a glob
+(`inputs`). `node_modules/@polyspec/kit/dist/owner-check.mjs` fails before any check runs for a path that no rule owns, a glob
 without a path, a target of the full suite, an unknown script or test, and a path that a check reads
 when no rule of the path selects that check; it runs every selected check, also after one failed, and
-never the full suite. `make owner-validate` checks the declaration of the repository, and `tests/kit/owner-check.test.mjs`
+never the full suite. `make owner-validate` checks the declaration of the repository, and `tests/kit/owner-check.test.mts` of polyspec/kit
 checks the selection and the refusals.
 
 A test that reads the commands of a Makefile target runs `makeDryRun` of
@@ -126,7 +133,7 @@ also inside another make, print only the commands. `tests/build/make-dry-run.tes
 run of make outside it.
 
 A push happens only when no task of the checklist is `[~]`. The tracked pre-push hook
-`.githooks/pre-push` runs `node scripts/kit/push-gate.mjs hook` with the refs that Git pushes. The check
+`.githooks/pre-push` runs `make push-gate-hook` (`node node_modules/@polyspec/kit/dist/push-gate.mjs hook`) with the refs that Git pushes. The check
 reads the checklist of every pushed commit (`git show <sha>:docs/plans/execution-checklist.md`) and
 of the working tree, and refuses the push with status 1 while one of them has a task in progress.
 It prints the file, the ID and the title of each such task with the pushed ref and commit or
@@ -137,8 +144,8 @@ refuse the push, naming the cause; a deleted ref pushes no commit and is checked
 alone.
 
 Git does not version hooks. A make run sets `core.hooksPath` to `.githooks` when the checkout tracks
-`.githooks/pre-push` (`scripts/kit/kit.mk`), so a checkout that runs any make target has the hook.
-`make hooks` (`node scripts/kit/git-hooks.mjs install`) sets `core.hooksPath`, writes the hook and makes
+`.githooks/pre-push` (the `kit.mk` of `@polyspec/kit`), so a checkout that runs any make target has the hook.
+`make hooks` (`node node_modules/@polyspec/kit/dist/git-hooks.mjs install`) sets `core.hooksPath`, writes the hook and makes
 it executable, and `make hooks-check` fails while `core.hooksPath` is not `.githooks` or
 `.githooks/pre-push` is missing, is not an executable file or has other content than the hook of the
 tool, and names the fix. The guard of `make ci` refuses for the same reasons.
@@ -146,11 +153,11 @@ tool, and names the fix. The guard of `make ci` refuses for the same reasons.
 A clone without the hook, or a push that skips it, still reaches GitHub. The job `push-gate` of
 `.github/workflows/push-gate.yml` runs on every push to a branch, checks out the pushed commit and runs
 `make ci-targets TARGETS="push-gate-commit records-check"`. `make push-gate-commit`
-(`node scripts/kit/push-gate.mjs commit HEAD`) fails while the checklist of that commit has a task in
+(`node node_modules/@polyspec/kit/dist/push-gate.mjs commit HEAD`) fails while the checklist of that commit has a task in
 progress, when the commit has no checklist and when it does not track `.githooks/pre-push` as an
 executable file (mode `100755`); it prints the refusal through the progress lines, each line as an
 error annotation, and in the job summary. `make records-check` runs `make documents-check`
-(`scripts/kit/check-documents.mjs`, `config/documents.json`) and the link, changelog, writing, example and fixture README
+(`node_modules/@polyspec/kit/dist/check-documents.mjs`, `config/documents.json`) and the link, changelog, writing, example and fixture README
 tests, which need Node.js alone and read neither the network nor the history, so a commit that breaks the document or
 checklist rules fails the check that a release requires ([Repository](repository.md#publishing-main)).
 `make docs-check-documents` runs `make records-check` with the rest of its document checks.
@@ -162,8 +169,8 @@ composer install
 npm run build
 npm test --workspace @polyspec/crudui-validator
 composer --working-dir=packages/validator-php test
-node scripts/kit/run-tests.mjs go --cwd packages/validator-go -- ./...
-node scripts/kit/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml
+node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/validator-go -- ./...
+node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml
 npm test --workspace @polyspec/crudui-cli
 npm run test:forms
 npm run test:packages
@@ -173,7 +180,7 @@ make docs-check
 Validator package suites run the shared fixtures described in the
 [fixture contract](../spec/test-fixtures.md). The PHP suites run the PHPUnit of the root `vendor/`, which
 `composer install` of the development root installs: the Composer scripts and the make targets set
-`COMPOSER_VENDOR_DIR=../../vendor`, and `scripts/kit/run-tests.mjs phpunit` reads the vendor directory from it relative to `--cwd`.
+`COMPOSER_VENDOR_DIR=../../vendor`, and `node_modules/@polyspec/kit/dist/run-tests.mjs phpunit` reads the vendor directory from it relative to `--cwd`.
 Compare the expected validation result or complete failure record, not only
 agreement between implementations. Package checks verify exported files, declarations,
 install compilation and production rendering.
@@ -197,10 +204,10 @@ when the configuration ignores it or no configuration entry matches it.
 
 ## Test runner
 
-Every test runs through `scripts/kit/run-tests.mjs`:
+Every test runs through `node_modules/@polyspec/kit/dist/run-tests.mjs`:
 
 ```sh
-node scripts/kit/run-tests.mjs <node|vitest|go|cargo|phpunit> [--timeout <seconds>] [--cwd <directory>] [--] [<arguments>]
+node node_modules/@polyspec/kit/dist/run-tests.mjs <node|vitest|go|cargo|phpunit> [--timeout <seconds>] [--cwd <directory>] [--] [<arguments>]
 ```
 
 The runner prints each test's start, a line while it is still running, its result and its
@@ -213,15 +220,12 @@ PHPUnit runs with `--teamcity`: the runner counts each TeamCity test, never a te
 provider method, and prints every line that is not a TeamCity message, such as an error about a
 missing test file or the summary with its warnings.
 
-Every registered case of a `node:test` file runs, or the file fails. `node --test` runs with
-`--test-force-exit`, which ends a file's process when its known tests end, so a test that leaves a
-handle open cannot hold the run; a test that the module registers after that end never runs. Three
-checks close that gap:
+Every registered case of a `node:test` file runs, or the file fails. Three checks hold it:
 
-- The runner preloads `scripts/kit/test-load-check.mjs` into every test file's process. A
-  process that ends before its module finished evaluating, top-level `await`s included, fails the
-  file with `the process ended before the module finished loading; tests registered later did not
-  run`.
+- The runner preloads `node_modules/@polyspec/kit/dist/test-exit-deadline.mjs` into every test file's process. A
+  process whose tests have all ended but that stays alive for the test timeout holds a handle that a test left open; it
+  names those handles and fails its file, so a leak cannot hold the run, and no `--test-force-exit` ends a process
+  before a test that the module registers after a top-level `await`.
 - A file that reports no case, neither passed, failed nor skipped, fails with `the file ran no test
   case`, for example when `--test-name-pattern` selects none of its tests.
 - The lint rule `crudui/no-await-after-test-registration` of `scripts/lint/node-test-rules.mjs`
@@ -229,25 +233,25 @@ checks close that gap:
   is registered before the module's first wait and the first check does not depend on how long the
   earlier cases take.
 
-`tests/kit/run-tests.test.mjs` runs files for the first two checks and
+The tests of polyspec/kit run files for the first two checks, and
 `tests/build/test-commands.test.mjs` runs the lint rule on fixtures.
 
 Every failure of a run is printed with its test file and elapsed time, including a failure outside
 a test: a hook that fails or runs out of time and an error of a test file. A file or a suite whose
 hook fails is printed as failed, even when every test in it passed. The summary line names the
 failed groups, so a run whose tests all passed and whose tool exits with a nonzero code shows the
-failure that caused the code. `tests/kit/run-tests.test.mjs` runs these cases.
+failure that caused the code. `tests/kit/run-tests.test.mts` of polyspec/kit runs these cases.
 
 A setup (a browser launch, a server start, a stylesheet compile, a build) and a teardown (a
 browser close, a server stop, a directory removal) are long operations, not test cases. A
-`node:test` file registers them with `setup` and `teardown` of `scripts/kit/test-hooks.mjs`, a
+`node:test` file registers them with `setup` and `teardown` of `node_modules/@polyspec/kit/dist/test-hooks.mjs`, a
 `before` or `after` hook of the file, of a suite or of one test (`{ context: t }`) with the timeout
 `Infinity`: each ends when its operation settles (the browser launched, the server listens, the
 close resolved, the process exited), its error fails the file, and it prints its start, a line
 every five seconds while it runs and its end with the elapsed time. A Vitest setup or teardown is a
 `beforeAll` or `afterAll` hook with the timeout `Infinity`. A test opens pages of a browser that a
-setup launched instead of launching one. `tests/build/hooks.test.mjs` runs files whose setup or
-teardown takes 1.5 seconds under a test timeout of one second.
+setup launched instead of launching one. The tests of polyspec/kit run files whose setup or teardown outlasts the
+test timeout.
 
 ## Time and load
 
@@ -274,9 +278,9 @@ validator test or a PHP extension engine fixture reads a clock.
 - a CI job or step has `timeout-minutes`. A step runs tests or a long operation (a checkout, a
   toolchain setup, an install, a build, a lint or type check, an upload, a deployment). The runner
   bounds each test case of a test step; a long operation prints its logs and has no time limit. A
-  step runs tests when its command calls `scripts/kit/run-tests.mjs` or reaches, through npm scripts,
+  step runs tests when its command calls `node_modules/@polyspec/kit/dist/run-tests.mjs` or reaches, through npm scripts,
   Composer scripts and Makefile targets, a test command or the runner;
-- a script that a test command starts does not print through `scripts/kit/test-progress.mjs`;
+- a script that a test command starts does not print through `node_modules/@polyspec/kit/dist/test-progress.mjs`;
 - a `node:test` file is run by no project command;
 - a TypeScript package has no `typecheck` script, or CI does not run `npm run typecheck`.
 - a Makefile target takes a target that runs tests as a prerequisite;
@@ -347,15 +351,15 @@ actually executed. Test counts alone do not establish coverage or deployment.
 ## Reports
 
 Every CI job leaves the reason of each failure. `make ci-targets TARGETS="..."`
-(`scripts/kit/ci-targets.mjs`) runs each target as `make -k <target>` to its end, also after an earlier
+(`node_modules/@polyspec/kit/dist/ci-targets.mjs`) runs each target as `make -k <target>` to its end, also after an earlier
 target failed, prints its output and writes it to `var/report/ci-targets/targets/<target>.log`;
 `summary.md` names each target with its result and time and, for each failed target, its first
-failure lines and its log (`scripts/kit/target-report.mjs`), and the same text goes to the job summary of
+failure lines and its log (`node_modules/@polyspec/kit/dist/target-report.mjs`), and the same text goes to the job summary of
 GitHub Actions. The run holds the lock `var/report/ci-targets.lock`, so two runs never write one
 report, and ends with status 1 when a target failed. Each job uploads `var/report/ci-targets` as the
 artifact `report-<job>` (with the PHP minor of a matrix job) under `if: ${{ !cancelled() }}` with
 `if-no-files-found: error`. `tests/build/ci-local.test.mjs` fails for a job that runs a check outside
-`make ci-targets` or uploads no report, and `tests/kit/ci.test.mjs` runs a failing and a
+`make ci-targets` or uploads no report, and `tests/kit/ci.test.mts` of polyspec/kit runs a failing and a
 passing probe target and finds both logs, the failure line in the summary and the job summary.
 
 ## Shared resources
@@ -363,7 +367,7 @@ passing probe target and finds both logs, the failure line in the summary and th
 Runs of different checkouts run on one machine at the same time. A resource that one
 run can own is created for that run: a temporary directory from `mktemp -d` or `mkdtemp`, a port
 the operating system assigns, or a name that contains the run's identity. A resource that is single
-for the machine or the checkout is used under a holder lock of `scripts/kit/holder-lock.mjs`:
+for the machine or the checkout is used under a holder lock of `node_modules/@polyspec/kit/dist/holder-lock.mjs`:
 
 - One run holds the lock at a time. The lock file holds the holder's record: the checkout of the
   code that took it, the pid, the start time of that process, the time the lock was taken, the
@@ -373,14 +377,14 @@ for the machine or the checkout is used under a holder lock of `scripts/kit/hold
 - A run that finds the lock held fails with the holder's record.
 - A lock whose holder process no longer runs, or whose pid now belongs to a process with another
   start time, is reported with its record and kept. Remove it explicitly with
-  `node scripts/kit/holder-lock.mjs clear <lock file>`, which refuses a running holder.
+  `node node_modules/@polyspec/kit/dist/holder-lock.mjs clear <lock file>`, which refuses a running holder.
 - Only the holder releases the lock; the release checks the token of the record first.
-- `node scripts/kit/holder-lock.mjs run <lock file> -- <command>` runs a command while holding the
+- `node node_modules/@polyspec/kit/dist/holder-lock.mjs run <lock file> -- <command>` runs a command while holding the
   lock, passes SIGINT, SIGTERM and SIGHUP to it, releases the lock when it exits and exits with its
   status. It prints the acquisition and the release.
 
 The lock of a resource of one checkout is `var/locks/<name>.lock` in that checkout, and a lock file
-is given as an absolute path. `tests/kit/holder-lock.test.mjs` checks the record, the refusal,
+is given as an absolute path. `tests/kit/holder-lock.test.mts` of polyspec/kit checks the record, the refusal,
 concurrent runs and the removal of a lock whose holder no longer runs, and the release.
 
 | Resource | Use by one run |

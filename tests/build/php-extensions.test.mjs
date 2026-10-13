@@ -7,7 +7,7 @@ import path from 'node:path';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
-import { checkedFiles } from '../../scripts/kit/tracked-files.mjs';
+import { checkedFiles } from '@polyspec/kit/tracked-files';
 import { assertMachoArchitecture, machoArchitectures } from '../../scripts/php-extension-builder.mjs';
 
 const repository = fileURLToPath(new URL('../..', import.meta.url));

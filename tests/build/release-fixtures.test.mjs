@@ -6,7 +6,8 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
 
-import { ROOT } from '../../scripts/kit/paths.mjs';
+const ROOT = path.resolve(import.meta.dirname, '../..');
+
 
 const read = file => JSON.parse(readFileSync(path.join(ROOT, file), 'utf8'));
 

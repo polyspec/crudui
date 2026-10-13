@@ -19,9 +19,11 @@ function executable(filename, source) {
   writeFileSync(filename, `#!${process.execPath}\n${source}\n`, { mode: 0o755 });
 }
 
+// The sandbox lies in var/tmp, the ignored directory of this checkout, so the copied scripts resolve @polyspec/kit from
+// the node_modules of this checkout.
 function fixture(t, name, files, directories = []) {
-  const temporaryRoot = realpathSync(os.tmpdir());
-  const root = mkdtempSync(path.join(temporaryRoot, name));
+  mkdirSync(path.join(repository, 'var/tmp'), { recursive: true });
+  const root = mkdtempSync(path.join(repository, 'var/tmp', name));
   t.after(() => rmSync(root, { recursive: true, force: true }));
   for (const directory of directories) mkdirSync(path.join(root, directory), { recursive: true });
   for (const file of [...files, 'scripts/run-rust-command.mjs', 'scripts/tool-resolution.mjs']) {
@@ -141,8 +143,6 @@ test('Rust API generation uses one resolved toolchain', t => {
   const root = fixture(t, 'crudui-rust-api-', [
     'scripts/gen-api-docs.mjs',
     'scripts/run-command.mjs',
-    'scripts/kit/test-progress.mjs',
-    'scripts/kit/time.mjs',
   ], [
     'docs/api',
     'docs/public/api',

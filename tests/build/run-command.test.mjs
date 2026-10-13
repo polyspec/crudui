@@ -6,18 +6,21 @@
 // child that ignores SIGTERM and holds the output open, then ends with status 0.
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
-import { chmodSync, cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { chmodSync, cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const SHARED = ['scripts/run-command.mjs', 'scripts/kit/test-progress.mjs', 'scripts/kit/time.mjs'];
+const SHARED = ['scripts/run-command.mjs'];
 
-/** A sandbox with the listed repository files and a `bin` directory for stand-in programs. */
+/**
+ * A sandbox with the listed repository files and a `bin` directory for stand-in programs. It lies in var/tmp, the ignored
+ * directory of this checkout, so the copied scripts resolve @polyspec/kit from the node_modules of this checkout.
+ */
 function sandbox(t, files) {
-  const root = mkdtempSync(path.join(realpathSync(tmpdir()), 'crudui-run-command-'));
+  mkdirSync(path.join(ROOT, 'var/tmp'), { recursive: true });
+  const root = mkdtempSync(path.join(ROOT, 'var/tmp/crudui-run-command-'));
   t.after(() => rmSync(root, { recursive: true, force: true }));
   for (const file of [...files, ...SHARED]) {
     mkdirSync(path.dirname(path.join(root, file)), { recursive: true });

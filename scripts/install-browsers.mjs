@@ -16,7 +16,7 @@ import { fileURLToPath } from 'node:url';
 import { PUPPETEER_REVISIONS } from 'puppeteer-core/internal/revisions.js';
 
 import { failureOf, formatSeconds, runCommand } from './run-command.mjs';
-import { createProgress } from './kit/test-progress.mjs';
+import { createProgress } from '@polyspec/kit/test-progress';
 
 export const SANDBOX_HELPER = '/usr/local/sbin/chrome-devel-sandbox';
 const BROWSERS = ['chrome', 'firefox', 'webkit'];

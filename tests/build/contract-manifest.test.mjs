@@ -112,7 +112,7 @@ function errorsFor(change = () => {}) {
     }
     mkdirSync(path.join(root, 'contracts'), { recursive: true });
     writeFileSync(path.join(root, 'contracts/features.json'), JSON.stringify(repo.manifest, null, 2));
-    // The check reads the files of a Git checkout (scripts/kit/tracked-files.mjs).
+    // The check reads the files of a Git checkout (checkedFiles of @polyspec/kit/tracked-files).
     execFileSync('git', ['init', '--quiet'], { cwd: root });
     return checkContractManifest(root).errors;
   } finally {

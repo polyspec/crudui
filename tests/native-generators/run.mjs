@@ -8,14 +8,14 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 let dispatch, errorRecord;
-import { checkedFiles } from '../../scripts/kit/tracked-files.mjs';
+import { checkedFiles } from '@polyspec/kit/tracked-files';
 import { parseCLIResponse, OperationError, equalOrdered, equalModels, equalState } from './protocol.mjs';
 import { formScenarios, numberCases, companySpec, companyData, row, imageCase, urlCase, dateCases, dateFormSpec, dateFormData, dateListSpec } from './cases.mjs';
 import { failureOf, runCommand } from '../../scripts/run-command.mjs';
 import { runRustCommand } from '../../scripts/run-rust-command.mjs';
 import { recordConformance } from '../conformance/evidence.mjs';
 import { recordSuiteRun } from '../conformance/runs.mjs';
-import { createProgress } from '../../scripts/kit/test-progress.mjs';
+import { createProgress } from '@polyspec/kit/test-progress';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const USAGE = 'Usage: node tests/native-generators/run.mjs --extension /absolute/crudui.so [--report path] [--source-commit hash] [--target names] [--check patterns]';
@@ -110,7 +110,7 @@ async function inputManifest() {
       else if (entry.isFile() && /\.(?:js|mjs|cjs)$/.test(file)) entries[file] = digest(await readFile(path.join(ROOT, file)));
     }
   };
-  // The sources are the files of the checkout that Git tracks or does not ignore (scripts/kit/tracked-files.mjs).
+  // The sources are the files of the checkout that Git tracks or does not ignore (checkedFiles of @polyspec/kit/tracked-files).
   const sources = /^(?:packages\/(?:generator-[^/]+|validator-[^/]+|php-ext)|tests\/native-generators|tests\/fixtures\/(?:form-render|list-render|detail-render|text-validity))\//;
   for (const file of checkedFiles(ROOT)) {
     if (sources.test(file) && (sourceFile.test(file) || path.basename(file) === 'Makefile')) entries[file] = digest(await readFile(path.join(ROOT, file)));

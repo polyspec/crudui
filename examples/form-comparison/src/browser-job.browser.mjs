@@ -6,7 +6,7 @@ import puppeteer from 'puppeteer';
 
 import { collectBrowserJob } from './browser-job.mjs';
 import { subscribeMainPageReadiness } from './main-page-readiness.mjs';
-import { setup, teardown } from '../../../scripts/kit/test-hooks.mjs';
+import { setup, teardown } from '@polyspec/kit/test-hooks';
 
 const mediaTypes = { '.mjs': 'text/javascript', '.json': 'application/json' };
 

@@ -1,6 +1,6 @@
 # CRUDUI Rust 검증기
 <!-- doc-id: packages-validator-rust-readme -->
-<!-- source-sha256: 02abe0cf87acc26c30851658f4a7c0bec736bb3df3dc64495d0fce36c691296a -->
+<!-- source-sha256: b7e7a788de637e2a659245fe5b7c47ab7f198738f58cf654e5634d807c42567a -->
 
 [English](README.md).
 
@@ -35,7 +35,7 @@ let result = validate(&spec, &data, &ValidateOptions::default())?;
 저장소 루트에서 실행합니다.
 
 ```sh
-node scripts/kit/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml
-node scripts/kit/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml --test list_validity_conformance
-node scripts/kit/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml --test detail_validity_conformance
+node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml
+node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml --test list_validity_conformance
+node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml --test detail_validity_conformance
 ```

@@ -30,7 +30,8 @@ test('CI runs the complete form comparison regression suite', async () => {
   assert.match(job, /uses: shivammathur\/setup-php@/);
   assert.match(job, /php-version:\s*['"]?8\.5['"]?/);
   assert.match(job, /run: make install-tools TOOLS="npm"\n/);
-  assert.match(job, /run: make install-node-modules install-composer\n/);
+  assert.match(job, /run: make install-packages\n/);
+  assert.match(job, /run: make install-composer\n/);
   assert.match(job, /run: make ci-targets TARGETS="test-form-comparison"\n/);
 });
 
@@ -48,7 +49,8 @@ test('CI builds and runs the five record stores and the canonical flow', async (
   // The Rust record server builds from the OrderedJSON checkout, which make install-crates installs before the crates.
   assert.match(job, /run: make install-crates\n/);
   assert.match(job, /workspaces: examples\/form-comparison\/servers\/rust/);
-  assert.match(job, /run: make install-node-modules install-composer\n/);
+  assert.match(job, /run: make install-packages\n/);
+  assert.match(job, /run: make install-composer\n/);
   assert.match(job, /run: make ci-targets TARGETS="test-form-comparison-pipeline"\n/);
   const scripts = JSON.parse(await readFile(path.join(repository, 'package.json'), 'utf8')).scripts;
   assert.match(scripts['test:form-comparison:pipeline'], /examples\/form-comparison\/record-stores\.test\.mjs/);
@@ -100,7 +102,7 @@ test('native PHP matrix passes the selected regular php-config path', async () =
   const workflow = await readFile(path.join(repository, '.github/workflows/ci.yml'), 'utf8');
   const job = workflowJob(workflow, 'php-api');
 
-  assert.match(job, /php:\s*\['8\.4', '8\.5'\]/);
+  assert.match(job, /php:\s*\['8\.5'\]/);
   assert.match(
     job,
     /PHP_EXTENSION_PHP_CONFIG:\s*\/usr\/bin\/php-config\$\{\{ matrix\.php \}\}/,

@@ -70,8 +70,8 @@ Use repository-relative paths in scripts and documents. External source tools
 must require an explicit input path. They must not depend on another project's
 checkout or a developer's home directory.
 
-`make documents-check` (`scripts/kit/check-documents.mjs`, `config/documents.json`) checks every
-Markdown document of the repository except `tests/kit/**` (the vendored tests of polyspec/kit),
+`make documents-check` (`node_modules/@polyspec/kit/dist/check-documents.mjs`, `config/documents.json`) checks every
+Markdown document of the repository except
 `examples/cross-check-console/client/README.md` and `tools/bench/README.md`. Each English document
 has a Korean twin `.ko.md`, and both files hold the same marker `<!-- doc-id: <id> -->`, where the
 id is the path of the English file without `.md`, in lowercase, with `-` between words. The Korean

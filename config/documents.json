@@ -4,7 +4,6 @@
     "**/*.md"
   ],
   "exclude": [
-    "tests/kit/**",
     "examples/cross-check-console/client/README.md",
     "tools/bench/README.md"
   ],

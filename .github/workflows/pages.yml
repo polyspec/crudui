@@ -39,6 +39,10 @@ jobs:
         with:
           path: ~/.npm
           key: npm-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package-lock.json') }}
+      - name: Install the npm of packageManager into var/tools
+        run: make install-tools TOOLS="npm"
+      - name: Install the packages of package-lock.json, @polyspec/kit included
+        run: make install-packages
       - name: Setup PHP
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
@@ -57,12 +61,8 @@ jobs:
         uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
           workspaces: packages/validator-rust
-      - name: Install the declared tools into var/tools
-        run: make install-tools TOOLS="npm"
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm go rust php composer"
-      - name: Install workspace dependencies
-        run: make install-node-modules
       - name: Install PHP API documentation generator
         run: make install-phpdocumentor
       - name: Download the crates of every Cargo.lock

@@ -16,7 +16,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { failureOf, formatSeconds, runCommand } from './run-command.mjs';
-import { createProgress } from './kit/test-progress.mjs';
+import { createProgress } from '@polyspec/kit/test-progress';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const STAMP = path.join(ROOT, 'node_modules/.cache/crudui/build-stamp.json');
