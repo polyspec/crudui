@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { basename, dirname, join, relative } from 'node:path';
 
 import { failureOf, runCommand } from './run-command.mjs';
-import { createProgress } from './kit/test-progress.mjs';
+import { createProgress } from '@polyspec/kit/test-progress';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const RUST_COMMAND = join(ROOT, 'scripts/run-rust-command.mjs');

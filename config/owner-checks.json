@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "comment": "The checks that own the repository paths, read by scripts/kit/owner-check.mjs: make owner-check runs the make targets (targets), the root npm scripts (scripts), the test scripts of workspaces (workspaces) and of package directories (prefixes) and the node test files (tests; $path is the changed test file) of the rules whose globs match a changed path. Every tracked path matches a rule; always lists the tests that run for every change. inputs declares, for a check named as make <target>, npm run <script>, npm test -w <workspace> or npm test --prefix <directory>, the globs of the paths that it reads; the owner check fails when a rule of such a path does not select that check. Globs: * within one path segment, ** across segments, {a,b} either alternative.",
+  "comment": "The checks that own the repository paths, read by owner-check of @polyspec/kit: make owner-check runs the make targets (targets), the root npm scripts (scripts), the test scripts of workspaces (workspaces) and of package directories (prefixes) and the node test files (tests; $path is the changed test file) of the rules whose globs match a changed path. Every tracked path matches a rule; always lists the tests that run for every change. inputs declares, for a check named as make <target>, npm run <script>, npm test -w <workspace> or npm test --prefix <directory>, the globs of the paths that it reads; the owner check fails when a rule of such a path does not select that check. Globs: * within one path segment, ** across segments, {a,b} either alternative.",
   "always": [
     "tests/build/test-commands.test.mjs",
     "tests/build/package-names.test.mjs"
@@ -95,6 +95,26 @@
     {
       "paths": [
         "packages/validator-php/**"
+      ],
+      "targets": [
+        "test-validators",
+        "test-native"
+      ],
+      "prefixes": [
+        "examples/cross-check-console/server"
+      ]
+    },
+    {
+      "paths": [
+        "config/layout.yml"
+      ],
+      "targets": [
+        "layout-check"
+      ]
+    },
+    {
+      "paths": [
+        "go.work"
       ],
       "targets": [
         "test-validators",
@@ -372,14 +392,6 @@
     },
     {
       "paths": [
-        ".githooks/**"
-      ],
-      "tests": [
-        "tests/build/hooks.test.mjs"
-      ]
-    },
-    {
-      "paths": [
         "scripts/package-dist.mjs",
         "scripts/package-install-pack.mjs",
         "scripts/package-outputs.mjs",
@@ -421,6 +433,9 @@
         ".python-version",
         ".go-version",
         "rust-toolchain.toml"
+      ],
+      "targets": [
+        "toolchain-check"
       ],
       "tests": [
         "tests/build/runtime-version-policy.test.mjs",
@@ -575,13 +590,25 @@
     {
       "paths": [
         "scripts/kit/**",
-        "tests/kit/**",
-        "kit.json",
-        ".kit/**"
+        ".github/workflows/release.yml",
+        "PRINCIPLES.md",
+        "PRINCIPLES.ko.md",
+        "config/layout.kit.yml",
+        "ruff.toml",
+        "phpcs.xml.dist",
+        "phpstan.dist.neon",
+        ".golangci.yml",
+        ".oxlintrc.json",
+        "knip.json",
+        ".editorconfig",
+        "config/api-extractor.kit.json",
+        "config/pyproject.schema.json",
+        "config/composer.schema.json",
+        "config/cargo.schema.json",
+        "config/php-lint/**"
       ],
       "targets": [
-        "kit-check",
-        "kit-test"
+        "kit-check"
       ]
     },
     {

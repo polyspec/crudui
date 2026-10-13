@@ -44,7 +44,7 @@ that directory (`packages/generator-go` and `packages/validator-go`), whose modu
 `github.com/polyspec/crudui/<directory>` (`tests/build/package-names.test.mjs`). Every commit of `main` passed the full
 suite of CI before the tag, so the release runs no test again. Only the maintainer creates and pushes a tag. The
 packages, the manifests that a tag covers and the Go modules are declared in `config/release.json`
-(`scripts/kit/schema/release.schema.json`).
+(`node_modules/@polyspec/kit/dist/schema/release.schema.json`).
 
 1. After CI succeeded for the pushed `main`, the commit `chore(release): Release X.Y.Z (#<task ID>)` sets the version of
    every manifest that `config/release.json` lists (`package.json`, the `composer.json` of `packages/`, `Cargo.toml`,
@@ -68,10 +68,10 @@ packages, the manifests that a tag covers and the Go modules are declared in `co
    no run when more than three tags are pushed at once. The run of a Go module tag has no archive to build or install and
    creates a GitHub Release of that tag without assets; it does not depend on the run of `vX.Y.Z`.
 4. `.github/workflows/release.yml` runs on the pushed tag (`tags: ['v*', '**/v*']`: in a tag filter `*` does not
-   match `/`, so `**/v*` covers `packages/<directory>/vX.Y.Z`), with the token permission `contents: write`. After the
-   setup steps (`make install-tools TOOLS="npm"`, `make toolchain-check TOOLS="node npm php composer"`,
-   `make install-node-modules`) its last five steps run through make in this order; the steps of
-   `scripts/kit/release.mjs` take the tag of the environment variable `TAG`:
+   match `/`, so `**/v*` covers `packages/<directory>/vX.Y.Z`), with the token permission `contents: write`. The workflow
+   is the copy of kit. After the setup steps (`make install-tools TOOLS=npm`, `make install-packages`, `make release-tools`,
+   which installs the tools that `config/release.json` needs, and `make release-tools-path`) its steps run through make
+   in this order; the steps of `node_modules/@polyspec/kit/dist/release.mjs` take the tag of the environment variable `TAG`:
    - `make release-verify` requires the commit of the tag on `origin/main` (`git merge-base --is-ancestor`), the tag
      `<directory>/vX.Y.Z` of every Go module at the same commit, and the check runs `push-gate` and `ci-passed` of the
      commit completed with conclusion `success` (`gh api repos/<owner>/<repo>/commits/<sha>/check-runs`); it fails with
@@ -91,19 +91,22 @@ packages, the manifests that a tag covers and the Go modules are declared in `co
      `@polyspec` or the vendor `polyspec` by anything but an exact version. The release assets are npm tarballs and
      Composer zips only: a crate and a Python package are not released as an archive; they are consumed by git tag. A Go
      module tag builds and attaches nothing;
-   - `make release-consumer` installs the archives in clean projects outside the repository (see below);
-   - `make release-publish` runs `gh release create <tag> --verify-tag --title <tag> --notes-file <section ## X.Y.Z>`
-     with the archives. GitHub accepts a release body of at most 125000 characters; a longer section is replaced by
-     one line that links the section of `CHANGELOG.md` at the tag.
+   - `make release-publish` creates the release of the tag as a draft with the archives and the section `## X.Y.Z` as
+     its notes; a draft of an earlier run is replaced. GitHub accepts a release body of at most 125000 characters; a
+     longer section is replaced by one line that links the section of `CHANGELOG.md` at the tag;
+   - `make release-proof TAG=<tag>` proves the draft from outside the checkout: its assets, the consumer installs of
+     `config/release.json` (see below), the git-tag installs and the Go modules;
+   - `make release-undraft TAG=<tag>` makes the draft public, only after the proof passed. A failed step leaves the
+     release a draft and fails the run.
 
-`tests/kit/release.test.mjs` and `tests/kit/release-go-tags.test.mjs` check the tool with command fakes, and
+The tests of polyspec/kit (`tests/kit/release.test.mts` and `tests/kit/release-go-tags.test.mts`) check the tool with command fakes, and
 `tests/build/python-git-pins.test.mjs` requires every git pin on this repository in a `pyproject.toml` to name the
 version of `package.json`. `make release-coverage`
 requires every `package.json`, `composer.json`, `Cargo.toml`, `pyproject.toml` and `go.mod` of the repository to be
 classified in `config/release.json`.
 
-`make release-consumer TAG=vX.Y.Z` (`scripts/kit/release-consumer.mjs`), the step of the release workflow between
-`make release-assets` and `make release-publish`, installs the archives of the tag from `var/release/assets` as a consumer
+`make release-consumer TAG=vX.Y.Z` (`node_modules/@polyspec/kit/dist/release-consumer.mjs`), which a developer runs after
+`make release-assets` and the release proof runs on the draft, installs the archives of the tag from `var/release/assets` as a consumer
 does, in a new temporary directory outside the repository with empty npm and Composer caches. The committed projects are
 `tests/release-install/npm` (`package.json` with the tarballs as `file:` dependencies, and `package-lock.json`) and
 `tests/release-install/composer` (`composer.json` with an `artifact` repository of the zips, and `composer.lock`); the

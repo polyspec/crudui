@@ -1,4 +1,4 @@
-// The tools of the checkout (scripts/kit/install-tools.mjs): npm, Go and cargo-audit at the declared releases are installed
+// The tools of the checkout (make install-tools of @polyspec/kit): npm, Go and the other declared tools are installed
 // into var/tools and never into the machine, and make and CI put their commands in var/tools/bin first on PATH.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
@@ -8,6 +8,7 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
 
+import { isVendored } from '../../scripts/repository-files.mjs';
 import { makeTargets } from '../../scripts/test-commands.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
@@ -16,7 +17,7 @@ const TOOLS_BIN = path.join(ROOT, 'var', 'tools', 'bin');
 // A container image is a machine of its own, so its definition may install npm globally; the scripts, make and CI run
 // on the machine of the checkout.
 test('no script, make target or CI step installs npm into the machine', () => {
-  const files = spawnSync('git', ['ls-files', '--cached', '--others', '--exclude-standard', 'scripts', 'Makefile', '.github'], { cwd: ROOT, encoding: 'utf8' }).stdout.split('\n').filter(file => file && !file.startsWith('scripts/kit/'));
+  const files = spawnSync('git', ['ls-files', '--cached', '--others', '--exclude-standard', 'scripts', 'Makefile', '.github'], { cwd: ROOT, encoding: 'utf8' }).stdout.split('\n').filter(file => file && !isVendored(file));
   const violations = [];
   for (const file of files) {
     if (!existsSync(path.join(ROOT, file))) continue;

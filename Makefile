@@ -8,7 +8,7 @@
 # machine-absolute paths). `make docs` run twice yields identical output.
 
 .DEFAULT_GOAL := help
-# The tools of this checkout: `make install-tools` (scripts/kit/install-tools.mjs) installs npm, Go and cargo-audit at the
+# The tools of this checkout: `make install-tools` (install-tools of @polyspec/kit) installs npm, Go and cargo-audit at the
 # releases that the checkout declares into the ignored var/tools, with their commands in var/tools/bin, and every command
 # of make finds them first on PATH. The tools of the machine are never changed.
 export PATH := $(CURDIR)/var/tools/bin:$(PATH)
@@ -24,18 +24,19 @@ export GOTOOLCHAIN := local
 # run cargo, go, npm and Composer offline, so a missing download fails at once instead of reaching a registry in one run
 # and not in another. The targets that download, install-tools, install-crates, install-ordered-json, dependency-review
 # and release-consumer-lock, and the downloads of install run their commands with $(ONLINE); cargo-downloads-check
-# (scripts/kit/kit.mk) names make install for a missing crate.
+# (the kit.mk of @polyspec/kit) names make install for a missing crate.
 export CARGO_NET_OFFLINE := true
 export GOPROXY := off
 export npm_config_offline := true
 export COMPOSER_DISABLE_NETWORK := 1
 ONLINE := env -u CARGO_NET_OFFLINE -u GOPROXY -u npm_config_offline -u COMPOSER_DISABLE_NETWORK
-.PHONY: help release-assets install install-node-modules install-composer install-rust install-phpdocumentor install-browsers check-ci-browser test-runtimes test-dependencies build lint typecheck test-validator-js test-validator-php test-validator-go test-validator-rust test-validator-python test-generator-python test-cross-check manifest-test require-build test-cli manifest-check manifest-docs-check test-forms test-form-comparison test-form-comparison-pipeline test-form-comparison-checks test-form-comparison-browser test-form-comparison-summary test-packages test-build test-build-repeat test-inspector test-bench check-conformance install-crates install-ordered-json test-ordered-json docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-engine test-native-generators test-php-api test-native test-validators test-form-binding conformance format-check records-check ci conformance-reset
+.PHONY: help release-assets install install-composer install-rust install-phpdocumentor install-browsers check-ci-browser test-runtimes test-dependencies build lint typecheck test-validator-js test-validator-php test-validator-go test-validator-rust test-validator-python test-generator-python test-cross-check manifest-test require-build test-cli manifest-check manifest-docs-check test-forms test-form-comparison test-form-comparison-pipeline test-form-comparison-checks test-form-comparison-browser test-form-comparison-summary test-packages test-build test-build-repeat test-inspector test-bench check-conformance install-crates install-ordered-json test-ordered-json docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-engine test-native-generators test-php-api test-native test-validators test-form-binding conformance format-check records-check ci check conformance-reset
 .NOTPARALLEL: docs docs-web docs-dev docs-preview docs-check docs-verify-idempotent
 
-# The tools that every polyspec repository shares are vendored copies in scripts/kit (kit.json, .kit/kit.lock.json);
-# a change to them is made in polyspec/kit, never here.
-include scripts/kit/kit.mk
+# The tools that every polyspec repository shares are the package @polyspec/kit of package-lock.json. The copy
+# scripts/kit/kit-bootstrap.mk (make kit-sync) includes its kit.mk and sets KIT to the directory of its tools; a change to
+# them is made in polyspec/kit, never here.
+include scripts/kit/kit-bootstrap.mk
 
 # Validator benchmark iteration counts (override on the command line, e.g.
 # `make bench BENCH_ITERS=100000`).
@@ -77,8 +78,9 @@ help: ## 타겟 설명
 	@echo "  make test-form-binding     Test the browser validation binding, its markup parity and three browsers"
 	@echo "  make conformance           Run every conformance suite and check the evidence against the standard"
 	@echo "  make format-check          Fail when any Rust crate or Go file is not formatted"
-	@echo "  make ci                    Run every target of the CI workflow in order, once per tree (scripts/kit/full-run.mjs)"
-	@echo "  make rerun-failed          Rerun the targets of make ci that did not pass on the current tree"
+	@echo "  make ci                    Run every target of the CI workflow in order, once per tree (full-run of @polyspec/kit)"
+	@echo "  make check                 Run the checks of kit over the checkout once per tree (full-run of @polyspec/kit)"
+	@echo "  make rerun-failed          Rerun the targets of make ci or make check that did not pass on the current tree"
 	@echo "  make records-check         The document and checklist rules that need Node.js alone"
 	@echo ""
 	@echo "CRUDUI validator benchmark — make targets:"
@@ -93,18 +95,19 @@ help: ## 타겟 설명
 	@echo "  주의: 절대시간은 머신 의존 — 같은 스펙 안에서 백엔드 간 비율만 비교하라."
 	@echo ""
 
-# The npm, Go and cargo-audit releases that the checkout declares into var/tools (install-tools of scripts/kit/kit.mk), the
+# The npm, Go and cargo-audit releases that the checkout declares into var/tools (install-tools of the kit.mk of @polyspec/kit), the
 # dependencies of the lock files, the Rust toolchain of rust-toolchain.toml, the crates of every Cargo.lock, the OrderedJSON
 # checkout of the comparison and the phpDocumentor release that scripts/install-phpdocumentor.sh checks by its SHA-256.
 # Node.js, PHP, Python and Composer are installed at the versions of .node-version and config/toolchain.json by the
 # machine's package manager; `make toolchain-check` names every tool at another version.
-install: install-tools install-node-modules install-composer install-rust install-crates install-phpdocumentor ## Install the declared tools, the npm, Composer and Cargo dependencies, the Rust toolchain and phpDocumentor
+install: install-packages install-tools install-composer install-rust install-crates install-phpdocumentor ## Install the declared tools, the npm, Composer and Cargo dependencies, the Rust toolchain and phpDocumentor
 
 # The parts of make install, which the CI jobs run for what they check: every CI step runs a make target, so the recipes
-# start every tool with the offline settings, $(NPM) and the toolchains of the checkout.
-install-node-modules: install-ordered-json ## Install the npm dependencies of package-lock.json with their approved install scripts
-	$(MAKE) --no-print-directory install-tools TOOLS=npm
-	$(ONLINE) $(NPM) ci --strict-allow-scripts
+# start every tool with the offline settings, $(NPM) and the toolchains of the checkout. install-packages of
+# kit-bootstrap.mk installs package-lock.json with the npm of var/tools (make install-tools TOOLS=npm); the root
+# package.json links the js package of the OrderedJSON checkout, so that checkout comes first. .npmrc sets
+# strict-allow-scripts, so an install script that allowScripts of package.json does not approve fails the install.
+install-packages: install-ordered-json
 
 # The development root composer.json, never published, resolves the Composer packages of packages/: its path
 # repository installs polyspec/crudui-validator as a copy into vendor/, and its autoload reads the generator sources.
@@ -247,7 +250,7 @@ docs-check-documents: cargo-downloads-check
 	$(NPM) run manifest:check || status=1; \
 	$(NPM) run manifest:docs:check || status=1; \
 	$(MAKE) --no-print-directory records-check || status=1; \
-	node scripts/kit/run-tests.mjs node -- scripts/gen-api-docs.test.mjs scripts/check-doc-coverage.test.mjs scripts/php-doc-coverage.test.mjs || status=1; \
+	node $(KIT)/run-tests.mjs node -- scripts/gen-api-docs.test.mjs scripts/check-doc-coverage.test.mjs scripts/php-doc-coverage.test.mjs || status=1; \
 	$(NPM) run test:docs || status=1; \
 	$(NPM) run docs:build || status=1; \
 	exit $$status
@@ -310,7 +313,7 @@ bench-rust: cargo-downloads-check bench-fixtures ## Rust 검증기만 측정
 
 # The JavaScript packages are built only when their sources or output changed; the
 # extension build and the native suite both read the built packages. Every test runs through
-# scripts/kit/run-tests.mjs, which prints each test with its elapsed time and gives it its own
+# the run-tests tool of @polyspec/kit, which prints each test with its elapsed time and gives it its own
 # timeout.
 build-php-extension:
 	node scripts/require-current-build.mjs
@@ -330,20 +333,20 @@ test-php-engine:
 test-native-generators: cargo-downloads-check
 	node scripts/require-current-build.mjs
 	@status=0; \
-	node scripts/kit/run-tests.mjs go --cwd packages/generator-go -- -race ./... || status=1; \
-	node scripts/kit/run-tests.mjs cargo -- --locked --manifest-path packages/generator-rust/Cargo.toml || status=1; \
-	node scripts/kit/run-tests.mjs node -- tests/native-generators/protocol.test.mjs || status=1; \
-	node scripts/kit/run-tests.mjs node --timeout 60 -- tests/widget-scripts.test.mjs || status=1; \
+	node $(KIT)/run-tests.mjs go --cwd packages/generator-go -- -race ./... || status=1; \
+	node $(KIT)/run-tests.mjs cargo -- --locked --manifest-path packages/generator-rust/Cargo.toml || status=1; \
+	node $(KIT)/run-tests.mjs node -- tests/native-generators/protocol.test.mjs || status=1; \
+	node $(KIT)/run-tests.mjs node --timeout 60 -- tests/widget-scripts.test.mjs || status=1; \
 	node tests/native-generators/run.mjs --target javascript,html,go,rust,python --report "$(NATIVE_REPORT)" || status=1; \
 	exit $$status
 
 test-php-api: build-php-extension
 	# The root vendor/ holds the validator as a copy; refresh it from source before any check loads it, under the
 	# checkout lock of that vendor directory, so two runs never reinstall it at once.
-	node scripts/kit/holder-lock.mjs run "$(CURDIR)/var/locks/composer-vendor.lock" -- composer reinstall polyspec/crudui-validator --no-interaction
+	node $(KIT)/holder-lock.mjs run "$(CURDIR)/var/locks/composer-vendor.lock" -- composer reinstall polyspec/crudui-validator --no-interaction
 	@status=0; \
 	node tests/conformance/run-suite.mjs node -- tests/native-generators/php-extension-builder.test.mjs packages/php-ext/tests/api.test.mjs || status=1; \
-	COMPOSER_VENDOR_DIR=../../vendor node scripts/kit/run-tests.mjs phpunit --cwd packages/generator-php || status=1; \
+	COMPOSER_VENDOR_DIR=../../vendor node $(KIT)/run-tests.mjs phpunit --cwd packages/generator-php || status=1; \
 	node tests/native-generators/run.mjs --extension "$(PHP_EXTENSION)" --target php,php-native --report "$(PHP_NATIVE_REPORT)" || status=1; \
 	exit $$status
 
@@ -402,10 +405,10 @@ format-check:
 records-check: ## Check the document pairs, links, changelog, writing and checklist rules with Node.js alone
 	@status=0; \
 	$(MAKE) --no-print-directory documents-check || status=1; \
-	node scripts/kit/run-tests.mjs node --timeout 10 -- scripts/documentation-links.test.mjs tests/docs/changelog.test.mjs tests/docs/repository-writing.test.mjs tests/docs/example-readmes.test.mjs tests/docs/fixture-readmes.test.mjs || status=1; \
+	node $(KIT)/run-tests.mjs node --timeout 10 -- scripts/documentation-links.test.mjs tests/docs/changelog.test.mjs tests/docs/repository-writing.test.mjs tests/docs/example-readmes.test.mjs tests/docs/fixture-readmes.test.mjs || status=1; \
 	exit $$status
 
-# The release steps are the targets of scripts/kit/kit.mk, run by .github/workflows/release.yml in this order: release-verify,
+# The release steps are the targets of the kit.mk of @polyspec/kit, run by .github/workflows/release.yml in this order: release-verify,
 # release-versions (preceded by release-pins, which requires the git pins of this repository to name the tag),
 # release-assets, release-consumer, release-publish (docs/operations/repository.md, "Releases"). The
 # archives of the npm packages hold their dist directories, so the packages are built before the archives are written.
@@ -421,7 +424,6 @@ CI_TARGETS = \
 	lint \
 	typecheck \
 	test-ordered-json \
-	kit-test \
 	test-validator-js \
 	test-validator-php \
 	test-validator-go \
@@ -451,12 +453,35 @@ CI_TARGETS = \
 	test-php-api \
 	check-conformance
 
-# `make ci` runs conformance-reset and CI_TARGETS through the guard scripts/kit/full-run.mjs, which refuses while a
+# `make ci` runs conformance-reset and CI_TARGETS through the guard full-run of @polyspec/kit, which refuses while a
 # checklist task is [~], while tracked changes are uncommitted or when var/full-run.json records a run of the current tree,
-# runs each target as make -k to its end and records its result; `make rerun-failed` (scripts/kit/kit.mk) reruns the
+# runs each target as make -k to its end and records its result; `make rerun-failed` (the kit.mk of @polyspec/kit) reruns the
 # targets of the current tree that did not pass and keeps the evidence of those that passed.
 ci: ## Run every target of the CI workflow in order through the guard: once per tree, when no checklist task is [~]
-	CRUDUI_CONFORMANCE_EVIDENCE="$(CONFORMANCE_EVIDENCE)" node scripts/kit/full-run.mjs run conformance-reset $(CI_TARGETS)
+	CRUDUI_CONFORMANCE_EVIDENCE="$(CONFORMANCE_EVIDENCE)" node $(KIT)/full-run.mjs run conformance-reset $(CI_TARGETS)
+
+# The checks of kit over the checkout, which make check runs through the guard full-run of @polyspec/kit: once per committed
+# tree, while no checklist task is [~], and with its result recorded in var/full-run.json.
+CHECK_TARGETS = \
+	kit-check \
+	toolchain-check \
+	layout-check \
+	documents-check \
+	owner-validate \
+	commits-check \
+	hooks-check \
+	dependency-policy-check \
+	dependency-policy-mutation-check \
+	cargo-downloads-check \
+	lint-python \
+	lint-php \
+	lint-rust \
+	lint-go \
+	lint-ts \
+	records-check
+
+check: ## Run the checks of kit (CHECK_TARGETS) through the guard: once per tree, when no checklist task is [~]
+	node $(KIT)/full-run.mjs run $(CHECK_TARGETS)
 
 # The conformance evidence of earlier runs; the first target of a full run, which a rerun repeats only when it failed.
 conformance-reset: ## Remove the conformance evidence of earlier runs

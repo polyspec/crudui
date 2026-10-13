@@ -1,12 +1,11 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
-import { acquireHolderLock } from '../../scripts/kit/holder-lock.mjs';
+import { acquireHolderLock } from '@polyspec/kit/holder-lock';
 import { packReport } from '../../scripts/package-install-pack.mjs';
 
 const root = fileURLToPath(new URL('../..', import.meta.url));
@@ -44,15 +43,15 @@ test('every package build runs under the lock of its dist directory', () => {
 });
 
 /**
- * A checkout of its own in a temporary directory: the dist and lock scripts and one package whose
- * build writes `dist/index.js`, so the test reads no build output of this checkout.
+ * A checkout of its own in a directory of this run under var/tmp, the ignored directory of this checkout: the dist script
+ * and one package whose build writes `dist/index.js`, so the test reads no build output of this checkout. The script
+ * imports @polyspec/kit, which Node.js resolves from the node_modules of this checkout above the directory.
  */
 function fixtureCheckout() {
-  const checkout = fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()), 'crudui-dist-lock-'));
-  fs.mkdirSync(path.join(checkout, 'scripts/kit'), { recursive: true });
-  for (const script of ['package-dist.mjs', 'kit/holder-lock.mjs', 'kit/paths.mjs']) {
-    fs.copyFileSync(path.join(root, 'scripts', script), path.join(checkout, 'scripts', script));
-  }
+  fs.mkdirSync(path.join(root, 'var/tmp'), { recursive: true });
+  const checkout = fs.mkdtempSync(path.join(root, 'var/tmp/crudui-dist-lock-'));
+  fs.mkdirSync(path.join(checkout, 'scripts'), { recursive: true });
+  fs.copyFileSync(path.join(root, 'scripts/package-dist.mjs'), path.join(checkout, 'scripts/package-dist.mjs'));
   const packageDirectory = path.join(checkout, 'packages', 'fixture');
   fs.mkdirSync(packageDirectory, { recursive: true });
   fs.writeFileSync(path.join(packageDirectory, 'package.json'), `${JSON.stringify({

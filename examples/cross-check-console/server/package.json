@@ -12,9 +12,9 @@
     "start": "node server.mjs",
     "dev": "node --watch server.mjs",
     "pretest": "npm run build:validators",
-    "test": "node ../../../scripts/kit/run-tests.mjs vitest --cwd examples/cross-check-console/server --root . --dir ."
+    "test": "node ../../../node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd examples/cross-check-console/server --root . --dir ."
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=26.11.1"
   }
 }

@@ -17,7 +17,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import Ajv from 'ajv';
 import ts from 'typescript';
 
-import { checkedFiles } from './kit/tracked-files.mjs';
+import { checkedFiles } from '@polyspec/kit/tracked-files';
 
 const scriptRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const schema = JSON.parse(readFileSync(resolve(scriptRoot, 'contracts/features.schema.json'), 'utf8'));

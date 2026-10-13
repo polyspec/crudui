@@ -1,6 +1,6 @@
 # 상품 폼
 <!-- doc-id: examples-product-forms-readme -->
-<!-- source-sha256: d55f6ea3ef0bb262354754f66b800ae094a7d2b20f67705057674544e5c711cb -->
+<!-- source-sha256: 9372ea8b06bb866b18cdc384cc09a33a6083dd14ccaf28939bde6aefc35523aa -->
 
 [English](README.md).
 
@@ -39,7 +39,7 @@
 
 ```sh
 npm run build
-node scripts/kit/run-tests.mjs node -- examples/product-forms/examples.test.mjs
+node node_modules/@polyspec/kit/dist/run-tests.mjs node -- examples/product-forms/examples.test.mjs
 ```
 
 `node scripts/check-schema.mjs`는 세 YAML 파일을 메타 스키마로 검사합니다.

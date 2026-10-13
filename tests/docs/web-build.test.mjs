@@ -6,7 +6,7 @@ import test from 'node:test';
 
 import { buildDocumentationWeb } from '../../scripts/docs-web/build.mjs';
 import { createDocumentationServer } from '../../scripts/docs-web/server.mjs';
-import { teardown } from '../../scripts/kit/test-hooks.mjs';
+import { teardown } from '@polyspec/kit/test-hooks';
 
 async function files(directory) {
   const result = [];

@@ -7,7 +7,7 @@ name = "polyspec-crudui-validator"
 version = "0.0.5"
 description = "Form, list and detail validation for CRUDUI specifications"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.14"
 
 [tool.setuptools]
 package-dir = {"" = "src"}

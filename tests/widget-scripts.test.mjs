@@ -7,7 +7,7 @@ import { join } from 'node:path';
 import puppeteer from 'puppeteer';
 import { createServer } from 'vite';
 
-import { setup, teardown } from '../scripts/kit/test-hooks.mjs';
+import { setup, teardown } from '@polyspec/kit/test-hooks';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const entry = '/__crudui_widget_scripts__.mjs';

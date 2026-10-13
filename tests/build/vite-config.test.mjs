@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 
-import { checkedFiles } from '../../scripts/kit/tracked-files.mjs';
+import { checkedFiles } from '@polyspec/kit/tracked-files';
 
 const root = path.resolve(import.meta.dirname, '../..');
 /** The Vite configuration files of the checkout at `directory` among its tracked files. */

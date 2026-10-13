@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url';
 
 import { buildOutputs } from './package-outputs.mjs';
 import { failureOf, runCommand } from './run-command.mjs';
-import { createProgress } from './kit/test-progress.mjs';
+import { createProgress } from '@polyspec/kit/test-progress';
 
 /** The differences between the outputs of two builds, one line per file, in path order. */
 export function buildDifferences(first, second) {

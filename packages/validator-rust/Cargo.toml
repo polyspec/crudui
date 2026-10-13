@@ -2,6 +2,7 @@
 name = "polyspec-crudui-validator"
 version = "0.0.5"
 edition = "2021"
+rust-version = "1.99.0"
 license = "MIT"
 
 [lib]

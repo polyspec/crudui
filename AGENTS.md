@@ -1,6 +1,9 @@
 # Development
 <!-- doc-id: agents -->
 
+The working principles of every polyspec repository are [PRINCIPLES.md](PRINCIPLES.md), a copy of kit; this file states
+the rules of crudui.
+
 - Update the authoritative specification before changing behavior or direction.
 - Name branches `{type}/{shortname}-{checklist ID}` and worktrees
   `{project}-{shortname}-{checklist ID}`. After integrating a branch into `main`, verify its commits
@@ -33,14 +36,14 @@
   inactivity limit included: its success or failure is judged from its observed result and errors,
   and its end is the event of that result. A test that runs for tens of minutes, or that prints only
   its start and its end, is a defect.
-- `make ci` reproduces the CI workflow on this machine on request. Its guard `scripts/kit/full-run.mjs`
-  runs it once per committed tree: it is refused while a task is `[~]`, while tracked changes are uncommitted, and when `var/full-run.json`
+- `make ci` reproduces the CI workflow on this machine on request, and `make check` runs the checks of kit
+  (`CHECK_TARGETS`). Their guard, the full-run tool of `@polyspec/kit`, runs each once per committed tree: it is refused while a task is `[~]`, while tracked changes are uncommitted, and when `var/full-run.json`
   records a full run of the current tree, and while the pre-push hook is not installed;
   `make rerun-failed` reruns only the targets of the current tree that did not pass
   (`docs/operations/testing.md`).
 - A push happens only when no task of the checklist is `[~]`, neither in a pushed commit nor in the
   working tree; this is the only check before a push, and it runs no test. The tracked pre-push hook `.githooks/pre-push` runs
-  `node scripts/kit/push-gate.mjs hook`, which refuses such a push and names each task in progress.
+  `make push-gate-hook`, which refuses such a push and names each task in progress.
   Every `make` run sets `core.hooksPath` to `.githooks` when the checkout tracks the hook; `make hooks`
   installs and checks the hook, and `make hooks-check` fails while it is not installed. The job
   `push-gate` of `.github/workflows/push-gate.yml` runs `make push-gate-commit` on every pushed commit and fails
@@ -51,12 +54,18 @@
   row of the checklist is `[o]`. A tag is created only after the CI check `ci-passed` and the push check `push-gate`
   succeeded for the commit on `main`; a release is made from that tag
   (`docs/operations/repository.md`).
-- The shared tools are vendored copies of polyspec/kit in `scripts/kit` and `tests/kit` (`kit.json`,
-  `.kit/kit.lock.json`; `make kit-check` compares them with the lock). They are changed only in polyspec/kit and copied
-  again with `make kit-sync KIT_TAG=<tag>`, never edited here, and no copy of a kit tool exists in another path. This
+- The shared tools are the package `@polyspec/kit`, a devDependency that `package.json` pins to the release asset of a
+  tag of polyspec/kit and `package-lock.json` pins with its integrity. The Makefile includes the copy
+  `scripts/kit/kit-bootstrap.mk`, which includes the `kit.mk` of the installed package and runs its tools as
+  `$(KIT)/<tool>.mjs`; a checkout runs `make install-tools TOOLS=npm` and `make install-packages` before any other target.
+  The files that `kit.copies` of the package lists (`scripts/kit/kit-bootstrap.mk`, `scripts/kit/bootstrap/`, the release
+  workflow, `PRINCIPLES.md`, `config/layout.kit.yml` and the lint configurations) are copies that `make kit-sync` writes
+  from the installed package and `make kit-check` compares with it. They are changed only in polyspec/kit, never edited
+  here, and no copy of a kit tool exists in another path; code imports a kit module only through an export of the
+  package. This
   repository differs from the other polyspec repositories only in `config/*.json` (`toolchain`, `dependency-policy`,
-  `dependency-review`, `checklist`, `documents`, `commits`, `owner-checks`, `release`) and in its own product code and
-  tests.
+  `dependency-review`, `checklist`, `documents`, `commits`, `owner-checks`, `release`), in `config/layout.yml` and in its
+  own product code and tests.
 - Keep contracts in `docs/spec/`, implementation and deployment status in
   `docs/features.md`, procedures in `docs/operations/`, planned tasks with their
   verification and completion in `docs/plans/execution-checklist.md`, and actual
@@ -112,11 +121,12 @@
   empty `## Unreleased`. The git pins of `packages/generator-python` name the tag `vX.Y.Z` of this repository, so that tag
   is created only after this commit is on `main`; `make release-pins` (run by `make release-versions`) requires every such
   pin to name the tag.
-- The maintainer then tags the commit and pushes the tag. `.github/workflows/release.yml` runs `make release-verify`,
-  `make release-versions`, `make release-assets`, `make release-consumer` and `make release-publish`
-  (`scripts/kit/release.mjs`): it requires the commit on `main` with the checks `push-gate` and `ci-passed` concluded
-  success, the version of the tag in every manifest and the section `## X.Y.Z`, installs the archives in clean projects,
-  and creates the GitHub Release with that section as its notes and the archives of `packages/`, named
+- The maintainer then tags the commit and pushes the tag. `.github/workflows/release.yml`, the copy of kit, runs
+  `make release-tools`, `make release-verify`, `make release-versions`, `make release-assets`, `make release-publish`,
+  `make release-proof` and `make release-undraft` (the release tool of `@polyspec/kit`): it requires the commit on `main`
+  with the checks `push-gate` and `ci-passed` concluded success, the version of the tag in every manifest and the section
+  `## X.Y.Z`, creates the GitHub Release as a draft with that section as its notes and the archives of `packages/`, proves
+  the draft from outside the checkout and then makes it public. The archives are named
   `<package>-<language>-<version>.<extension>`, `npm` or `php` being the language. A section over 125000 characters,
   the limit of a release body, is replaced by one line that links the section of `CHANGELOG.md` at the tag. A crate and a
   Python package are not released as an archive; they are consumed by git tag. A Go module tag builds and attaches
@@ -187,6 +197,6 @@ The same tree gives the same result on every date and machine, and a failed run 
   Makefile target are read only through `makeDryRun` of `tests/build/make-dry-run.mjs`.
 - Owners: every path has an owner in `config/owner-checks.json`, with the paths that each check reads, and CI runs
   every check after each push.
-- Shared resources: a resource that runs share is held by a lease (`scripts/kit/holder-lock.mjs`) or each run uses a
+- Shared resources: a resource that runs share is held by a lease (holder-lock of `@polyspec/kit`) or each run uses a
   directory, name or port of its own; a port is taken by the server that listens on it (port 0) and announced, never
   probed before.

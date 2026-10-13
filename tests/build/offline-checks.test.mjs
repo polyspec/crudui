@@ -1,7 +1,7 @@
 // The checks run offline, and only the install targets download (docs/spec/package-build.md, "Offline checks"): the
 // Makefile exports the offline settings of cargo, go, npm and Composer, and `$(ONLINE)` lifts them for the recipe lines
 // of the install targets, dependency-review and the consumer installs of the release archives alone. cargo answers a missing crate offline with "retry
-// without --offline"; every target that runs cargo depends on cargo-downloads-check (scripts/kit/check-cargo-downloads.mjs),
+// without --offline"; every target that runs cargo depends on cargo-downloads-check (check-cargo-downloads of @polyspec/kit),
 // which names the lock and `run make install` instead, so under make -k a target whose crates are missing does not run.
 // A target runs cargo when a recipe line runs `run-tests.mjs cargo` or `run-suite.mjs cargo` or `run-rust-command.mjs` with a command other than
 // fmt, or starts a file, an npm script or a package test that does, directly or through the files that it imports or
@@ -12,20 +12,22 @@ import path from 'node:path';
 import test from 'node:test';
 
 import { makeTargets } from '../../scripts/test-commands.mjs';
-import { ROOT } from '../../scripts/kit/paths.mjs';
-import { checkedFiles } from '../../scripts/kit/tracked-files.mjs';
+import { checkedFiles } from '@polyspec/kit/tracked-files';
+
+const ROOT = path.resolve(import.meta.dirname, '../..');
 
 const SELF = 'tests/build/offline-checks.test.mjs';
 const CHECK = 'cargo-downloads-check';
-// The targets of scripts/kit/kit.mk that download: the vendored copy, the tools, the crates, the dependency review, the
-// locks of the consumer projects and the proof of a release. release-consumer installs the archives of a release in clean
-// projects: the script lifts the offline settings itself (scripts/kit/release-consumer.mjs).
-const KIT_DOWNLOADS = ['kit-sync', 'install-tools', 'cargo-downloads-fetch', 'dependency-review', 'release-consumer-lock', 'release-proof'];
-const DOWNLOADS = [...KIT_DOWNLOADS, 'install-node-modules', 'install-composer', 'install-phpdocumentor', 'install-browsers', 'install-ordered-json'];
+// The targets of the kit.mk of @polyspec/kit and of scripts/kit/kit-bootstrap.mk that download: the tools, the packages, the
+// crates, the dependency review, the Python locks, the release tools and backend, the locks of the consumer projects and
+// the proof of a release. release-consumer installs the archives of a release in clean projects: the tool lifts the
+// offline settings itself.
+const KIT_DOWNLOADS = ['install-tools', 'install-packages', 'cargo-downloads-fetch', 'dependency-review', 'python-lock', 'release-tools', 'release-backend', 'release-consumer-lock', 'release-proof'];
+const DOWNLOADS = [...KIT_DOWNLOADS, 'install-composer', 'install-phpdocumentor', 'install-browsers', 'install-ordered-json'];
 const read = file => readFileSync(path.join(ROOT, file), 'utf8');
 const makefile = read('Makefile');
-// The targets of the Makefile and of the file that it includes.
-const makefiles = `${makefile}\n${read('scripts/kit/kit.mk')}`;
+// The targets of the Makefile and of the files that it includes: scripts/kit/kit-bootstrap.mk and the kit.mk of @polyspec/kit.
+const makefiles = [makefile, read('scripts/kit/kit-bootstrap.mk'), read('node_modules/@polyspec/kit/dist/kit.mk')].join('\n');
 
 /** The value of a Makefile variable defined with `=` or `:=` over continued lines. */
 function variable(name) {
@@ -40,7 +42,7 @@ function cargoFiles() {
   const ENTRY = 'scripts/run-rust-command.mjs';
   // The test runner starts cargo only for `run-tests.mjs cargo`, which a command names, and scripts/test-commands.mjs
   // reads commands without running them.
-  const readers = new Set(['scripts/kit/run-tests.mjs', 'tests/conformance/run-suite.mjs', 'scripts/test-commands.mjs']);
+  const readers = new Set(['tests/conformance/run-suite.mjs', 'scripts/test-commands.mjs']);
   const found = new Set([ENTRY]);
   for (let added = true; added;) {
     added = false;
@@ -104,7 +106,7 @@ test('the Makefile runs cargo, go, npm and Composer offline, and only the instal
   const online = Object.entries(targets).filter(([, rule]) => rule.commands.some(command => command.includes('$(ONLINE)'))).map(([name]) => name).sort();
   assert.deepEqual(online, [...DOWNLOADS].sort());
   // Every recipe line of an install target that downloads runs with $(ONLINE).
-  const downloading = /\b(?:kit-sync\.mjs|install-tools\.mjs|ci --strict-allow-scripts|composer\b.*\binstall\b|check-cargo-downloads\.mjs --fetch|install-ordered-json\.mjs|dependency-review\.mjs|release-consumer\.mjs lock|release-proof\.mjs)/;
+  const downloading = /\b(?:bootstrap-npm\.\$\(KIT_EXT\)|bootstrap-npm\.mts|install-tools\.\$\(KIT_EXT\)|npm ci\b|composer\b.*\binstall\b|check-cargo-downloads\.\$\(KIT_EXT\) --fetch|install-ordered-json\.mjs|dependency-review\.\$\(KIT_EXT\)|python-lock\.\$\(KIT_EXT\) write|release-tools\.\$\(KIT_EXT\)|release-backend\.\$\(KIT_EXT\)|release-consumer\.\$\(KIT_EXT\) lock|release-proof\.\$\(KIT_EXT\))/;
   const offline = Object.entries(targets).flatMap(([name, rule]) => rule.commands
     .filter(command => downloading.test(command) && !command.includes('$(ONLINE)'))
     .map(command => `${name}: ${command}`));
@@ -113,7 +115,7 @@ test('the Makefile runs cargo, go, npm and Composer offline, and only the instal
 
 test('every target that runs cargo depends on cargo-downloads-check', () => {
   const targets = makeTargets(makefiles);
-  assert.deepEqual(targets[CHECK]?.commands, ['node scripts/kit/check-cargo-downloads.mjs']);
+  assert.deepEqual(targets[CHECK]?.commands, ['node $(KIT)/check-cargo-downloads.$(KIT_EXT)']);
   assert.ok(CARGO_FILES.has('scripts/gen-api-docs.mjs') && CARGO_FILES.has('tools/bench/run.js'), 'the cargo files must include the API documentation and the benchmark');
   assert.equal(runsCargo('node tests/native-generators/run.mjs --report r.json'), true);
   assert.equal(runsCargo('node tests/native-generators/run.mjs --target javascript,rust --report r.json'), true);
@@ -123,13 +125,31 @@ test('every target that runs cargo depends on cargo-downloads-check', () => {
     seen.add(name);
     return targets[name].prerequisites.some(prerequisite => prerequisite === CHECK || depends(prerequisite, seen));
   };
-  // make ci and make rerun-failed start the guard scripts/kit/full-run.mjs before any step (tests/kit/full-run.test.mjs);
+  // make ci, make check and make rerun-failed start the guard full-run of @polyspec/kit before any step;
   // the targets of make that their commands run depend on the check.
   const missing = Object.entries(targets)
-    .filter(([name]) => ![...DOWNLOADS, 'install', CHECK, 'ci', 'rerun-failed'].includes(name))
+    .filter(([name]) => ![...DOWNLOADS, 'install', CHECK, 'ci', 'check', 'rerun-failed'].includes(name))
     .filter(([, rule]) => rule.commands.some(command => runsCargo(command)))
     .map(([name]) => name)
     .filter(name => !depends(name))
     .sort();
   assert.deepEqual(missing, [], `targets that run cargo without ${CHECK}; a missing crate fails them with "retry without --offline"`);
+});
+
+// make install-packages installs package-lock.json after install-ordered-json, since the root package.json links the js
+// package of the OrderedJSON checkout. The installer therefore runs before any package exists: it imports only Node.js
+// built-ins and the files of examples/form-comparison.
+test('the OrderedJSON installer imports no package, since it runs before make install-packages', () => {
+  const file = 'examples/form-comparison/install-ordered-json.mjs';
+  const imports = new Set([file]);
+  const packages = [];
+  for (const current of imports) {
+    for (const [, specifier] of read(current).matchAll(/^import\s[^;]*?from\s+'([^']+)'/gms)) {
+      if (specifier.startsWith('node:')) continue;
+      const target = path.posix.normalize(path.posix.join(path.posix.dirname(current), specifier));
+      if (specifier.startsWith('.') && target.startsWith('examples/form-comparison/')) imports.add(target);
+      else packages.push(`${current}: ${specifier}`);
+    }
+  }
+  assert.deepEqual(packages, []);
 });

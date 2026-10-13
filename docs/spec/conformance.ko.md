@@ -1,6 +1,6 @@
 # 적합성 증거
 <!-- doc-id: docs-spec-conformance -->
-<!-- source-sha256: 37455f3d16e563c50964dc77238d150fe61a014e4bc5664dc55db0d738b012ed -->
+<!-- source-sha256: 8a1c02a3c1a0918521a3e190480782cd9b1e8abe124a09668452d4bec464ef55 -->
 
 [English](conformance.md).
 
@@ -49,7 +49,7 @@ JavaScript는 모델과 문자열 렌더러가 별도 패키지이므로 서버 
 빠진 사례만으로는 그 suite가 실패했는지, 끝나지 않았는지, 실행되지 않았는지 알 수 없으므로, 증거를 기록하는
 suite의 실행은 증거 디렉터리의 `runs/`에 실행 기록도 남깁니다.
 [`tests/conformance/run-suite.mjs`](../../tests/conformance/run-suite.mjs)는
-[`scripts/kit/run-tests.mjs`](../../scripts/kit/run-tests.mjs)로 시작하는 suite의 테스트 명령 기록을,
+`node_modules/@polyspec/kit/dist/run-tests.mjs`로 시작하는 suite의 테스트 명령 기록을,
 [`tests/native-generators/run.mjs`](../../tests/native-generators/run.mjs)는 자신의 기록을
 [`tests/conformance/runs.mjs`](../../tests/conformance/runs.mjs)로 씁니다. 기록
 `{"program", "tool", "cwd", "args", "started", "status"}`는 실행이 시작할 때 `status`를 `null`로 써지고,

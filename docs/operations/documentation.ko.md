@@ -1,6 +1,6 @@
 # 문서 관리
 <!-- doc-id: docs-operations-documentation -->
-<!-- source-sha256: 226d5f6ce0fa1b9e61d8f2dc1d01b924b28969eea301e19ff98e2207d2a63d65 -->
+<!-- source-sha256: bae720524060b4aad2b9311944ca8b8b9cec9d47e8083699d12510b1a418232c -->
 
 [English](documentation.md).
 
@@ -67,7 +67,7 @@ HTML은 `docs/public/api/`에서 웹에 포함합니다. 반복 생성 검사는
 Go 참조는 조합·표현식·검증을 포함해 `validator/`
 아래의 모든 패키지를 설명합니다.
 
-`make documents-check`(`scripts/kit/check-documents.mjs`, `config/documents.json`)는 `tests/kit/**`(polyspec/kit의 vendored test),
+`make documents-check`(`node_modules/@polyspec/kit/dist/check-documents.mjs`, `config/documents.json`)는
 `examples/cross-check-console/client/README.md`, `tools/bench/README.md`를 뺀 저장소의 모든 Markdown 문서를 검사합니다. 각 영어 문서에는
 한국어 twin `.ko.md`가 있고, 두 file은 같은 marker `<!-- doc-id: <id> -->`를 가집니다. id는 `.md`를 뺀 영어 file의 경로를 소문자로 하고
 단어 사이를 `-`로 이은 것입니다. 한국어 file은 영어 file의 sha256인 `<!-- source-sha256: <sha256> -->`도 가지며, 영어 문서를 바꾼 뒤에는 한국어

@@ -1,17 +1,9 @@
 module github.com/polyspec/crudui/examples/form-comparison/servers/go
 
-go 1.22
-
-toolchain go1.27.0
+go 1.27.2
 
 require (
-	github.com/polyspec/ordered-json/go v0.0.0
 	github.com/polyspec/crudui/packages/generator-go v0.0.1
 	github.com/polyspec/crudui/packages/validator-go v0.0.1
+	github.com/polyspec/ordered-json/go v0.0.0
 )
-
-replace github.com/polyspec/crudui/packages/generator-go => ../../../../packages/generator-go
-
-replace github.com/polyspec/crudui/packages/validator-go => ../../../../packages/validator-go
-
-replace github.com/polyspec/ordered-json/go => ../../../../.form-comparison/sources/ordered-json/go

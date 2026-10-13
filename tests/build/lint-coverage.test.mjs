@@ -72,7 +72,7 @@ test('npm run lint covers every JavaScript, TypeScript, Vue and Svelte source', 
 // A file under a directory that Git ignores is no source: a stray copy of build output under var/ must not reach ESLint.
 test('ESLint ignores every path that Git ignores', async t => {
   const { mkdirSync, rmSync, writeFileSync } = await import('node:fs');
-  const { ignoredPaths } = await import('../../scripts/kit/tracked-files.mjs');
+  const { ignoredPaths } = await import('@polyspec/kit/tracked-files');
   const stray = path.join(root, 'var/lint-coverage-stray');
   mkdirSync(stray, { recursive: true });
   t.after(() => rmSync(stray, { recursive: true, force: true }));

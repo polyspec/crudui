@@ -1,5 +1,5 @@
 // Project commands and the test tools they call. tests/build/test-commands.test.mjs uses these to
-// require that every test runs through scripts/kit/run-tests.mjs. `npm test` and `composer test` run a
+// require that every test runs through the run-tests tool of @polyspec/kit. `npm test` and `composer test` run a
 // declared script, which is checked where it is declared.
 
 import path from 'node:path';
@@ -49,10 +49,11 @@ export function projectCommands(file, text) {
   return [];
 }
 
-// The test runner of the shared tools, and the runner of the suites that record conformance evidence, which starts it.
-const runner = /(?:^|\/)(?:scripts\/kit\/run-tests|tests\/conformance\/run-suite)\.mjs$/;
+// The test runner of @polyspec/kit, which the Makefile names as $(KIT)/run-tests.mjs and a package script by its path in
+// node_modules, and the runner of the suites that record conformance evidence, which starts it.
+const runner = /(?:^|\/)(?:\$\(KIT\)\/run-tests|node_modules\/@polyspec\/kit\/dist\/run-tests|tests\/conformance\/run-suite)\.mjs$/;
 
-/** The test tools a command calls directly, outside scripts/kit/run-tests.mjs. */
+/** The test tools a command calls directly, outside the test runner. */
 export function directTestTools(command) {
   const tools = [];
   for (const segment of command.split(/&&|\|\||[;|\n]/)) {
@@ -105,7 +106,7 @@ export function nodeScripts(command) {
   return scripts;
 }
 
-/** The file arguments of every `node scripts/kit/run-tests.mjs node` segment of a command. */
+/** The file arguments of every `node <test runner> node` segment of a command. */
 export function nodeTestArguments(command) {
   const files = [];
   for (const segment of command.split(/&&|\|\||[;|\n]/)) {
@@ -183,7 +184,7 @@ function takeOptions(args, names) {
 }
 
 /**
- * Whether a command runs tests: it calls scripts/kit/run-tests.mjs, or an npm script, a Composer
+ * Whether a command runs tests: it calls the test runner, or an npm script, a Composer
  * script or a Makefile target that is a test command (`isTestCommand`) or that reaches one.
  * `project` holds the declared commands: `npm` and `composer` map a directory to its scripts,
  * `workspaces` maps a package name to its directory and `make` maps a target to its prerequisites

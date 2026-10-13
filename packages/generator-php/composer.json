@@ -5,7 +5,7 @@
     "type": "library",
     "license": "MIT",
     "require": {
-        "php": "^8.4",
+        "php": ">=8.5",
         "php-64bit": "^8.2",
         "ext-mbstring": "*",
         "polyspec/crudui-validator": "0.0.5"
@@ -25,6 +25,6 @@
         }
     },
     "scripts": {
-        "test": "COMPOSER_VENDOR_DIR=../../vendor node ../../scripts/kit/run-tests.mjs phpunit --cwd packages/generator-php"
+        "test": "COMPOSER_VENDOR_DIR=../../vendor node ../../node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator-php"
     }
 }

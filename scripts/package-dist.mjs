@@ -4,7 +4,7 @@
  * (docs/operations/testing.md, "Shared resources").
  *
  * A package build empties `dist` before it writes the new output, and a pack reads `dist`. Both run
- * under the checkout lock `dist-<package folder>` (scripts/kit/holder-lock.mjs), so a pack never reads a
+ * under the checkout lock `dist-<package folder>` (holder-lock of @polyspec/kit), so a pack never reads a
  * `dist` that a build has emptied or only partly written; a run that finds the lock held is refused
  * with the holder's record.
  *
@@ -18,8 +18,10 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 
-import { acquireHolderLock, runCommand } from './kit/holder-lock.mjs';
-import { ROOT as repositoryRoot } from './kit/paths.mjs';
+import { acquireHolderLock, runCommand } from '@polyspec/kit/holder-lock';
+
+/** The root of this checkout: the parent of scripts/. A package build runs this script from its package directory. */
+const repositoryRoot = path.resolve(import.meta.dirname, '..');
 
 /** The lock file of a resource of this checkout. */
 const checkoutLockFile = name => path.join(repositoryRoot, 'var/locks', `${name}.lock`);

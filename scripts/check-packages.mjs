@@ -8,7 +8,7 @@ import puppeteer from 'puppeteer';
 import { createRequire } from 'node:module';
 import { installLock } from './install-lock.mjs';
 import { packPackage } from './package-install-pack.mjs';
-import { createProgress } from './kit/test-progress.mjs';
+import { createProgress } from '@polyspec/kit/test-progress';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const require = createRequire(import.meta.url);

@@ -6,5 +6,8 @@
     "@polyspec/crudui-generator-html": "file:polyspec-crudui-generator-html-npm-0.0.5.tgz",
     "@polyspec/crudui-generator-core": "file:polyspec-crudui-generator-core-npm-0.0.5.tgz",
     "@polyspec/crudui-validator": "file:polyspec-crudui-validator-npm-0.0.5.tgz"
+  },
+  "engines": {
+    "node": ">=26.11.1"
   }
 }

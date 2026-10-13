@@ -16,7 +16,7 @@
   "sideEffects": false,
   "scripts": {
     "build": "node ../../scripts/package-dist.mjs build 'tsup src/index.ts --format esm --clean --out-dir \"$CRUDUI_DIST\" && tsc --project tsconfig.build.json --outDir \"$CRUDUI_DIST\"'",
-    "test": "node ../../scripts/kit/run-tests.mjs vitest --cwd packages/form-binding",
+    "test": "node ../../node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/form-binding",
     "typecheck": "status=0; tsc --noEmit || status=1; tsc --noEmit --project tsconfig.tests.json || status=1; exit $status",
     "lint": "eslint src tests",
     "prepublishOnly": "npm run build"
@@ -35,9 +35,10 @@
     "eslint": "^10.12.0",
     "jsdom": "^30.1.2",
     "tsup": "^8.0.0",
-    "typescript": "^7.0.2",
+    "typescript": "7.0.2",
     "vitest": "^5.0.3"
   },
   "repository": { "type": "git", "url": "" },
-  "bugs": { "url": "" }
+  "bugs": { "url": "" },
+  "engines": { "node": ">=26.11.1" }
 }

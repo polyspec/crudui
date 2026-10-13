@@ -1,6 +1,6 @@
 # 네이티브 생성기 적합성 검사
 <!-- doc-id: tests-native-generators-readme -->
-<!-- source-sha256: ff75ebdc4fbca85ced5b9f639fee61be4901a78c1d5264cb1b93872a1e734775 -->
+<!-- source-sha256: 2dc7dfbfec46e02d2c86a0c38adcbae99d90f02ae3a72d584c9eb770b4d0babc -->
 
 [English](README.md).
 
@@ -13,7 +13,7 @@ PHP 네이티브 확장을 실행합니다. 네이티브 모듈의
 ```sh
 node scripts/require-current-build.mjs
 composer install
-node scripts/kit/run-tests.mjs node --timeout 10 -- tests/native-generators/protocol.test.mjs
+node node_modules/@polyspec/kit/dist/run-tests.mjs node --timeout 10 -- tests/native-generators/protocol.test.mjs
 node tests/native-generators/run.mjs \
   --extension /absolute/path/to/crudui.so \
   --report .git/native-generators/report.json

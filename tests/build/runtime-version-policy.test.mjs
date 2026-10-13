@@ -6,19 +6,27 @@ import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
 
-import { toolchainMismatches } from '../../scripts/kit/check-toolchain.mjs';
-import { declaredToolchain } from '../../scripts/kit/toolchain-declared.mjs';
-import { ownedFiles } from '../../scripts/repository-files.mjs';
+import { isVendored, ownedFiles } from '../../scripts/repository-files.mjs';
 import { makeDryRun } from './make-dry-run.mjs';
 
 const repository = fileURLToPath(new URL('../..', import.meta.url));
 
-/** The releases that the checkout declares, by the names of this test: node, npm, go, rust, composer and the minors of php and python. */
-function recordedToolchain(root) {
-  const declared = declaredToolchain(root);
+/**
+ * The releases that the checkout declares, by the names of this test: Node.js of .node-version, npm of packageManager,
+ * Go of the go line of the go.mod that config/toolchain.json names, Rust of rust-toolchain.toml, Composer and the minors
+ * of PHP and Python of config/toolchain.json. make toolchain-check compares them with the running tools and with the pins
+ * of kit.
+ */
+async function recordedToolchain(root) {
+  const text = file => readFile(path.join(root, file), 'utf8');
+  const config = JSON.parse(await text('config/toolchain.json'));
+  const manifest = JSON.parse(await text('package.json'));
   return {
-    node: declared.node.version, npm: declared.npm.version, go: declared.go.version, rust: declared.rust.version,
-    php: declared.php.minors, python: declared.python.minor, composer: declared.composer.version,
+    node: (await text('.node-version')).trim(),
+    npm: /^npm@(\d+\.\d+\.\d+)/.exec(manifest.packageManager ?? '')?.[1],
+    go: /^go (\S+)$/m.exec(await text(config.go.mod))?.[1],
+    rust: /^channel = "([^"]+)"$/m.exec(await text('rust-toolchain.toml'))?.[1],
+    php: config.php, python: config.python, composer: config.composer.version,
   };
 }
 
@@ -55,8 +63,8 @@ test('every workflow job installs the recorded npm before it runs npm', async ()
         if (typeof step.run !== 'string') continue;
         for (const command of step.run.split(/\n|&&/).map(text => text.trim()).filter(Boolean)) {
           if (/\bnpm@|\bnpm (?:i|install) (?:-g|--global)\b/.test(command)) violations.push(`${file} ${id}: \`${command}\` selects an npm release`);
-          // make install-tools installs the recorded npm, and make install-node-modules runs it first (its prerequisite).
-          if (/^make\b.*\binstall-(?:tools|node-modules)\b/.test(command)) installed = true;
+          // make install-tools TOOLS="npm" installs the recorded npm, and make install-packages runs it.
+          if (/^make\b.*\binstall-(?:tools|packages)\b/.test(command)) installed = true;
           else if (/^npm\b/.test(command) && !installed) violations.push(`${file} ${id}: \`${command}\` runs before make install-tools`);
         }
       }
@@ -71,14 +79,14 @@ test('the checkout tracks no container definition: Linux runs on the CI runners'
 
 const read = file => readFile(path.join(repository, file), 'utf8');
 
-/** Every workflow file with its parsed content. */
+/** Every workflow file of this repository with its parsed content; the copy of kit, release.yml, follows the rules of kit. */
 async function workflows() {
   const directory = path.join(repository, '.github/workflows');
-  return Promise.all((await readdir(directory)).filter(name => /\.ya?ml$/.test(name)).map(async file => ({ file, text: await read(`.github/workflows/${file}`), workflow: parse(await read(`.github/workflows/${file}`)) })));
+  return Promise.all((await readdir(directory)).filter(name => /\.ya?ml$/.test(name) && !isVendored(`.github/workflows/${name}`)).map(async file => ({ file, text: await read(`.github/workflows/${file}`), workflow: parse(await read(`.github/workflows/${file}`)) })));
 }
 
 test('the checkout records one exact version of every tool', async () => {
-  const recorded = recordedToolchain(repository);
+  const recorded = await recordedToolchain(repository);
   assert.match(recorded.node, /^\d+\.\d+\.\d+$/);
   assert.equal(Number(recorded.node.split('.')[0]) % 2, 0, 'the Node.js release must be of an even, LTS-designated major');
   const toolchain = await read('rust-toolchain.toml');
@@ -92,14 +100,10 @@ test('the checkout records one exact version of every tool', async () => {
   assert.match(config.python, /^\d+\.\d+$/, 'config/toolchain.json must record python as one minor release');
 });
 
-test('every tool runs at the version that the checkout records, PHP at a recorded minor', () => {
-  assert.deepEqual(toolchainMismatches(['node', 'npm', 'go', 'rust', 'php', 'python', 'composer'], { root: repository }), []);
-});
-
 // The type definitions of Node.js describe the runtime that runs the code, so every manifest requires the major of
 // the recorded Node.js release.
 test('every @types/node range requires the major of .node-version', async () => {
-  const major = recordedToolchain(repository).node.split('.')[0];
+  const major = (await recordedToolchain(repository)).node.split('.')[0];
   const files = spawnSync('git', ['ls-files', '--cached', '--others', '--exclude-standard', '*package.json'], { cwd: repository, encoding: 'utf8' }).stdout.split('\n').filter(Boolean);
   const violations = [];
   for (const file of files) {
@@ -109,19 +113,6 @@ test('every @types/node range requires the major of .node-version', async () => 
       const range = manifest[field]?.['@types/node'];
       if (range !== undefined && !new RegExp(`^[\\^~]?${major}\\.`).test(range)) violations.push(`${file} ${field}: @types/node ${range}, .node-version records Node.js ${major}`);
     }
-  }
-  assert.deepEqual(violations, []);
-});
-
-test('every go.mod names the recorded Go release as its toolchain', async () => {
-  const go = (await read('.go-version')).trim();
-  assert.equal(recordedToolchain(repository).go, go, 'config/toolchain.json go names a go.mod whose toolchain line is the release of .go-version');
-  const files = ownedFiles(repository).filter(file => /(?:^|\/)go\.mod$/.test(file));
-  assert.ok(files.length > 0);
-  const violations = [];
-  for (const file of files) {
-    const lines = [...(await read(file)).matchAll(/^toolchain (\S+)$/gm)].map(match => match[1]);
-    if (lines.length !== 1 || lines[0] !== `go${go}`) violations.push(`${file}: toolchain ${lines.join(', ') || 'missing'}, .go-version records ${go}`);
   }
   assert.deepEqual(violations, []);
 });
@@ -150,7 +141,7 @@ test('every workflow runs on ubuntu-24.04 with actions named by commit SHA and n
 });
 
 test('every CI job sets up the recorded toolchains and checks the tools it set up', async () => {
-  const recorded = recordedToolchain(repository);
+  const recorded = await recordedToolchain(repository);
   const minors = recorded.php;
   const pyproject = await readFile(path.join(repository, 'packages/validator-python/pyproject.toml'), 'utf8');
   const pythonMinimum = /^requires-python = ">=(\d+\.\d+)"$/m.exec(pyproject)?.[1];
@@ -186,7 +177,7 @@ test('every CI job sets up the recorded toolchains and checks the tools it set u
         }
         if (/rust-toolchain|dtolnay/.test(uses)) violations.push(`${file} ${id}: ${uses} selects a Rust toolchain; run rustup toolchain install --no-self-update`);
         if (/^make\b.*\binstall-rust\b/m.test(run)) tools.push('rust');
-        if (/^make\b.*\binstall-(?:tools|node-modules)\b/m.test(run) && !tools.includes('npm')) tools.push('npm');
+        if (/^make\b.*\binstall-(?:tools|packages)\b/m.test(run) && !tools.includes('npm')) tools.push('npm');
         const check = /^make toolchain-check TOOLS=(?:"([^"]+)"|(\S+))$/m.exec(run);
         if (check) checked = { tools: (check[1] ?? check[2]).split(' '), index };
       });
@@ -216,54 +207,13 @@ test('the declared contract commands run in a shell without login files', async 
   assert.doesNotMatch(runner, /'-lc'|'-l'/);
 });
 
-/** The Composer manifests of the checkout among its tracked files. */
-async function composerManifests() {
-  return ownedFiles(repository).filter(file => /(?:^|\/)composer\.json$/.test(file)).map(file => path.join(repository, file));
-}
-
-/** The PHP minors from `lowest` to `newest`, as `8.N` strings. */
-function phpMinors(lowest, newest) {
-  const [lowMajor, lowMinor] = lowest.split('.').map(Number);
-  const [highMajor, highMinor] = newest.split('.').map(Number);
-  assert.equal(lowMajor, highMajor, 'The supported PHP range must stay within one major');
-  return Array.from({ length: highMinor - lowMinor + 1 }, (_, i) => `${lowMajor}.${lowMinor + i}`);
-}
-
-test('the declared PHP range is the range CI tests, and config/toolchain.json records its newest line', async () => {
+// make toolchain-check requires require.php of every composer.json to be >= the PHP pin of kit, and config/toolchain.json php
+// to be that pin; every job that runs the test suite of a PHP package runs it on each of those minors.
+test('every job that tests a PHP package runs on each PHP minor of config/toolchain.json', async () => {
   const workflow = parse(await readFile(path.join(repository, '.github/workflows/ci.yml'), 'utf8'));
-  const composer = await composerManifests();
-  assert.ok(composer.length > 0, 'At least one Composer manifest is required');
-  const constraints = [];
-  for (const file of composer) {
-    const constraint = JSON.parse(await readFile(file, 'utf8')).require?.php;
-    constraints.push({ file: path.relative(repository, file), constraint });
-  }
-  const lowest = constraints[0].constraint?.match(/^\^(\d+\.\d+)$/)?.[1];
-  assert.ok(lowest, `PHP constraints must be one caret range: ${JSON.stringify(constraints)}`);
-  assert.deepEqual(constraints.filter(({ constraint }) => constraint !== `^${lowest}`), [],
-    `Every Composer manifest must require PHP ^${lowest}`);
-
-  const selected = [];
-  for (const job of Object.values(workflow.jobs)) {
-    for (const step of job.steps ?? []) {
-      if (String(step.uses ?? '').startsWith('shivammathur/setup-php@')) {
-        const version = String(step.with?.['php-version'] ?? '');
-        selected.push(version === '${{ matrix.php }}' ? job.strategy.matrix.php.map(String) : [version]);
-      }
-    }
-  }
-  const newest = selected.flat().sort((a, b) => Number(a.split('.')[1]) - Number(b.split('.')[1])).at(-1);
-  const range = phpMinors(lowest, newest);
-  assert.deepEqual(selected.flat().filter((version) => !range.includes(version)), [],
-    `CI must select PHP lines inside ^${lowest}`);
-
-  // Every job that runs a PHP package's own test suite covers the whole declared range.
-  for (const [name, job] of Object.entries(workflow.jobs)) {
-    const commands = (job.steps ?? []).map((step) => String(step.run ?? '')).join('\n');
-    if (/composer --working-dir=packages\/[^ ]+ test\b|make test-native\b/.test(commands)) {
-      assert.deepEqual(job.strategy?.matrix?.php?.map(String), range,
-        `${name} tests a PHP package and must run on every line from ${lowest} to ${newest}`);
-    }
-  }
-  assert.ok(recordedToolchain(repository).php.includes(newest), `config/toolchain.json does not record the newest tested minor ${newest}`);
+  const minors = (await recordedToolchain(repository)).php;
+  const jobs = Object.entries(workflow.jobs).filter(([, job]) => /composer --working-dir=packages\/[^ ]+ test\b|make (?:ci-targets TARGETS="[^"]*\b)?test-(?:native|php-api|validator-php)(?=[\s"])/
+    .test((job.steps ?? []).map(step => String(step.run ?? '')).join('\n')));
+  assert.ok(jobs.length > 0, 'no CI job tests a PHP package');
+  for (const [name, job] of jobs) assert.deepEqual(job.strategy?.matrix?.php?.map(String), minors, `${name} tests a PHP package`);
 });

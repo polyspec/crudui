@@ -1,6 +1,6 @@
 # 저장소
 <!-- doc-id: docs-operations-repository -->
-<!-- source-sha256: 12f473b7d684c1981cab09db6e0e2bf8fbfc2b5e5b656af39d3dfe4db3085b4c -->
+<!-- source-sha256: 876feb62116f17f66f7a9990e2d935742713f4ea774a919ac7c96343301c5803 -->
 
 [English](repository.md).
 
@@ -41,7 +41,7 @@ release는 `main` commit의 tag입니다. 저장소는 `vX.Y.Z`이고, 디렉터
 `packages/validator-go`)은 `<디렉터리>/vX.Y.Z`이며 그 module path는 `github.com/polyspec/crudui/<디렉터리>`입니다
 (`tests/build/package-names.test.mjs`). `main`의 모든 commit은 tag 전에 CI의 전체 suite를 통과했으므로 release는 test를 다시
 실행하지 않습니다. tag는 maintainer만 만들어 push합니다. tag가 release하는 package, 덮는 manifest, Go module은
-`config/release.json`(`scripts/kit/schema/release.schema.json`)에 선언합니다.
+`config/release.json`(`node_modules/@polyspec/kit/dist/schema/release.schema.json`)에 선언합니다.
 
 1. push된 `main`의 CI가 성공한 뒤, commit `chore(release): Release X.Y.Z (#<작업 ID>)`는 `config/release.json`이 적은 모든
    manifest(`package.json`, `packages/`의 `composer.json`, `Cargo.toml`, `pyproject.toml`)의 version과 저장소 package에 대한 모든
@@ -64,9 +64,9 @@ release는 `main` commit의 tag입니다. 저장소는 `vX.Y.Z`이고, 디렉터
    실행을 시작하지 않습니다. Go module tag의 실행은 build하거나 설치할 archive가 없고 asset 없는 그 tag의 GitHub Release를 만들며,
    `vX.Y.Z`의 실행에 의존하지 않습니다.
 4. `.github/workflows/release.yml`은 push된 tag에서(`tags: ['v*', '**/v*']`. tag filter에서 `*`는 `/`와 맞지
-   않으므로 `**/v*`가 `packages/<디렉터리>/vX.Y.Z`를 덮습니다) token 권한 `contents: write`로 실행됩니다. 준비
-   step(`make install-tools TOOLS="npm"`, `make toolchain-check TOOLS="node npm php composer"`, `make install-node-modules`) 뒤의
-   마지막 다섯 step은 이 순서로 make를 통해 실행되며, `scripts/kit/release.mjs`의 step은 환경 변수 `TAG`의 tag를 받습니다.
+   않으므로 `**/v*`가 `packages/<디렉터리>/vX.Y.Z`를 덮습니다) token 권한 `contents: write`로 실행됩니다. 이 workflow는
+   kit의 copy입니다. 준비 step(`make install-tools TOOLS=npm`, `make install-packages`, `config/release.json`이 필요로 하는 도구를
+   설치하는 `make release-tools`, `make release-tools-path`) 뒤의 step은 이 순서로 make를 통해 실행되며, `node_modules/@polyspec/kit/dist/release.mjs`의 step은 환경 변수 `TAG`의 tag를 받습니다.
    - `make release-verify`는 tag의 commit이 `origin/main`에 있는지(`git merge-base --is-ancestor`), 모든 Go module의 tag
      `<directory>/vX.Y.Z`가 같은 commit에 있는지, commit의 check run `push-gate`와 `ci-passed`가 conclusion `success`로
      끝났는지(`gh api repos/<owner>/<repo>/commits/<sha>/check-runs`) 확인하고, 빠졌거나 실패한 check마다 적어 실패합니다.
@@ -82,18 +82,21 @@ release는 `main` commit의 tag입니다. 저장소는 `vX.Y.Z`이고, 디렉터
      manifest와 다른 pack된 manifest, scope `@polyspec`나 vendor `polyspec`의 의존성을 정확한 version이 아닌 것으로 적은 pack된
      manifest를 하나씩 적어 실패합니다. release asset은 npm tarball과 Composer zip뿐입니다. crate와 Python package는 archive로
      release하지 않고 git tag로 사용합니다. Go module tag는 아무것도 build하거나 첨부하지 않습니다.
-   - `make release-consumer`는 archive를 저장소 밖의 깨끗한 project에 설치합니다(아래 참고).
-   - `make release-publish`는 archive와 함께
-     `gh release create <tag> --verify-tag --title <tag> --notes-file <section ## X.Y.Z>`를 실행합니다. GitHub는
-     125000자까지의 release 본문을 받으므로, 더 긴 section은 tag 시점의 `CHANGELOG.md` section을 link하는 한 줄로 대신합니다.
+   - `make release-publish`는 archive와 section `## X.Y.Z`를 notes로 하여 tag의 release를 draft로 만들며, 앞선 실행의 draft는
+     대체합니다. GitHub는 125000자까지의 release 본문을 받으므로, 더 긴 section은 tag 시점의 `CHANGELOG.md` section을 link하는 한
+     줄로 대신합니다.
+   - `make release-proof TAG=<tag>`는 checkout 밖에서 draft를 증명합니다. asset, `config/release.json`의 consumer 설치(아래 참고),
+     git-tag 설치, Go module을 확인합니다.
+   - `make release-undraft TAG=<tag>`는 증명이 통과한 뒤에만 draft를 공개합니다. 실패한 step은 release를 draft로 남기고 실행을
+     실패시킵니다.
 
-`tests/kit/release.test.mjs`와 `tests/kit/release-go-tags.test.mjs`는 명령 fake로 도구를 검사하고,
+polyspec/kit의 test(`tests/kit/release.test.mts`와 `tests/kit/release-go-tags.test.mts`)는 명령 fake로 도구를 검사하고,
 `tests/build/python-git-pins.test.mjs`는 `pyproject.toml`에서 이 저장소를 가리키는 모든 git pin이 `package.json`의 version을 적을 것을
 요구합니다. `make release-coverage`는 저장소의 모든 `package.json`, `composer.json`, `Cargo.toml`, `pyproject.toml`, `go.mod`가
 `config/release.json`에 분류되어 있을 것을 요구합니다.
 
-release workflow에서 `make release-assets`와 `make release-publish` 사이의 step인 `make release-consumer TAG=vX.Y.Z`
-(`scripts/kit/release-consumer.mjs`)는 tag의 archive를 `var/release/assets`에서 사용자처럼, 빈 npm과 Composer cache를 둔 저장소 밖의
+개발자가 `make release-assets` 뒤에 실행하고 release 증명이 draft에서 실행하는 `make release-consumer TAG=vX.Y.Z`
+(`node_modules/@polyspec/kit/dist/release-consumer.mjs`)는 tag의 archive를 `var/release/assets`에서 사용자처럼, 빈 npm과 Composer cache를 둔 저장소 밖의
 새 임시 디렉터리에 설치합니다. commit된 project는 `tests/release-install/npm`(tarball을 `file:` 의존성으로 적은 `package.json`과
 `package-lock.json`)과 `tests/release-install/composer`(zip의 `artifact` repository를 둔 `composer.json`과 `composer.lock`)이며,
 scope `@polyspec`은 닿지 않는 registry `http://127.0.0.1:9/`를 가리킵니다. polyspec package는 archive에서만 오고, 제3자 package는

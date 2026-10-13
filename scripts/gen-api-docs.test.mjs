@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict';
-import { copyFileSync, mkdtempSync, mkdirSync, writeFileSync, rmSync, realpathSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { copyFileSync, mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { test } from 'node:test';
@@ -26,13 +25,15 @@ function mockRust(root, status) {
 for (const target of ['ts', 'go', 'rust', 'php']) {
   for (const failure of ['tool-failure', 'missing-output']) {
     test(`${target} rejects ${failure}`, () => {
-      const root = mkdtempSync(join(realpathSync(tmpdir()), 'crudui-api-docs-'));
+      // The sandbox lies in var/tmp of this checkout, so the copied scripts resolve @polyspec/kit from its node_modules.
+      mkdirSync(join(repository, 'var/tmp'), { recursive: true });
+      const root = mkdtempSync(join(repository, 'var/tmp/crudui-api-docs-'));
       try {
         for (const path of ['scripts', 'bin', 'node_modules/.bin', 'tools/bin',
           'packages/validator-go', 'packages/validator-rust', 'packages/generator-go', 'packages/generator-rust']) {
           mkdirSync(join(root, path), { recursive: true });
         }
-        for (const file of ['gen-api-docs.mjs', 'run-rust-command.mjs', 'tool-resolution.mjs', 'run-command.mjs', 'kit/test-progress.mjs', 'kit/time.mjs']) {
+        for (const file of ['gen-api-docs.mjs', 'run-rust-command.mjs', 'tool-resolution.mjs', 'run-command.mjs']) {
           mkdirSync(dirname(join(root, 'scripts', file)), { recursive: true });
           copyFileSync(new URL('./' + file, import.meta.url), join(root, 'scripts', file));
         }

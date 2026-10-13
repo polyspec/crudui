@@ -1,6 +1,8 @@
 # 개발
 <!-- doc-id: agents -->
-<!-- source-sha256: 9a0de28e2fd6fa1fd2e77099fb5b8d005ff730d48bc9047a3c9f38e466808f2c -->
+<!-- source-sha256: 63eddd41a2de0533ceb5cd6fa182f1e44d8672beec0dd5375c22863bcc621ce0 -->
+
+모든 polyspec 저장소의 작업 원칙은 kit의 copy인 [PRINCIPLES.ko.md](PRINCIPLES.ko.md)이며, 이 file은 crudui의 규칙을 적습니다.
 
 - 동작이나 방향을 변경하기 전에 명세를 갱신합니다.
 - 브랜치는 `{type}/{shortname}-{체크리스트 ID}`, 워크트리는 `{프로젝트}-{shortname}-{체크리스트 ID}`로
@@ -29,13 +31,13 @@
   timeout을 두지 않으며, 출력 없음 한도도 두지 않습니다. 그 성공과 실패는 관측한 결과와 오류로
   판정하고, 그 끝은 그 결과의 event입니다. 수십 분 동안 실행되는 테스트와 시작과 끝만 출력하는
   테스트는 결함입니다.
-- `make ci`는 요청할 때 이 machine에서 CI workflow를 재현합니다. 그 guard `scripts/kit/full-run.mjs`는 커밋된 tree마다
-  한 번 실행합니다. 작업이 `[~]`이거나, 추적 파일의 변경이 커밋되지 않았거나,
+- `make ci`는 요청할 때 이 machine에서 CI workflow를 재현하고, `make check`는 kit의 검사(`CHECK_TARGETS`)를 실행합니다.
+  그 guard인 `@polyspec/kit`의 full-run 도구는 각각을 커밋된 tree마다 한 번 실행합니다. 작업이 `[~]`이거나, 추적 파일의 변경이 커밋되지 않았거나,
   `var/full-run.json`이 현재 tree의 전체 실행을 기록하고 있거나, pre-push hook이 설치되지 않았으면 `make ci`는 거부됩니다.
   `make rerun-failed`는 현재 tree에서 통과하지 못한 대상만 다시 실행합니다(`docs/operations/testing.md`).
 - push는 push되는 commit에도 working tree에도 checklist의 `[~]` 작업이 없을 때만 합니다. 이것이 push 전의 유일한 검사이며
   test는 실행하지 않습니다. 추적되는 pre-push hook
-  `.githooks/pre-push`는 `node scripts/kit/push-gate.mjs hook`을 실행하고, 이 entry는 그런 push를 거부하며 진행 중인 각 작업을
+  `.githooks/pre-push`는 `make push-gate-hook`을 실행하고, 이 target은 그런 push를 거부하며 진행 중인 각 작업을
   적습니다. 모든 `make` 실행은 checkout이 hook을 추적하면 `core.hooksPath`를 `.githooks`로 설정합니다. `make hooks`는 hook을
   설치하고 검사하며, `make hooks-check`는 hook이 설치되지 않은 동안 실패합니다. `.github/workflows/push-gate.yml`의 job
   `push-gate`는 push되는 모든 commit에 `make push-gate-commit`을 실행하고, hook을 거치지
@@ -45,11 +47,15 @@
   row는 그것을 소유한 unit test가 통과한 뒤에 `[o]`가 됩니다. `main`은 checklist의 모든 row가 `[o]`일 때 한 번 push합니다.
   tag는 `main`의 commit에서 CI check `ci-passed`와 push 검사 `push-gate`가 성공한 뒤에만 만들고, release는 그 tag로 만듭니다
   (`docs/operations/repository.md`).
-- 공유 도구는 `scripts/kit`과 `tests/kit`에 있는 polyspec/kit의 vendored copy입니다(`kit.json`, `.kit/kit.lock.json`.
-  `make kit-check`가 lock과 비교합니다). 이 도구는 polyspec/kit에서만 바꾸고 `make kit-sync KIT_TAG=<tag>`로 다시 복사하며, 여기서
-  편집하지 않고, kit 도구의 사본을 다른 경로에 두지 않습니다. 이 저장소는 다른 polyspec 저장소와 `config/*.json`(`toolchain`,
-  `dependency-policy`, `dependency-review`, `checklist`, `documents`, `commits`, `owner-checks`, `release`), 그리고 자신의 제품
-  code와 test에서만 다릅니다.
+- 공유 도구는 package `@polyspec/kit`입니다. `package.json`은 이 devDependency를 polyspec/kit tag의 release asset으로 고정하고,
+  `package-lock.json`은 그 integrity로 고정합니다. Makefile은 copy `scripts/kit/kit-bootstrap.mk`를 include하고, 이 file은 설치된
+  package의 `kit.mk`를 include해 그 도구를 `$(KIT)/<tool>.mjs`로 실행합니다. checkout은 다른 target보다 먼저
+  `make install-tools TOOLS=npm`과 `make install-packages`를 실행합니다. package의 `kit.copies`가 적은 file(`scripts/kit/kit-bootstrap.mk`,
+  `scripts/kit/bootstrap/`, release workflow, `PRINCIPLES.md`, `config/layout.kit.yml`, lint 설정)은 `make kit-sync`가 설치된
+  package에서 쓰고 `make kit-check`가 그것과 비교하는 copy입니다. 이 file은 polyspec/kit에서만 바꾸고 여기서 편집하지 않으며, kit
+  도구의 사본을 다른 경로에 두지 않습니다. code는 kit module을 package의 export로만 import합니다. 이 저장소는 다른 polyspec 저장소와 `config/*.json`(`toolchain`,
+  `dependency-policy`, `dependency-review`, `checklist`, `documents`, `commits`, `owner-checks`, `release`), `config/layout.yml`, 그리고
+  자신의 제품 code와 test에서만 다릅니다.
 - 계약은 `docs/spec/`, 구현·배포 상태는 `docs/features.md`, 절차는
   `docs/operations/`, 계획된 작업과 그 검증·완료는 `docs/plans/execution-checklist.md`,
   실제 변경은 `CHANGELOG.md`에서 관리합니다. 모든 변경은 checklist의 작업 하나에 속하며,
@@ -101,13 +107,13 @@
   `## Unreleased`를 `## X.Y.Z`로 바꾼 뒤 그 위에 빈 `## Unreleased`를 새로 씁니다. `packages/generator-python`의 git pin은 이 저장소의
   tag `vX.Y.Z`를 적으므로, 그 tag는 이 commit이 `main`에 있은 뒤에만 만듭니다. `make release-pins`(`make release-versions`가 실행)가 모든
   pin이 tag를 적을 것을 요구합니다.
-- 그다음 maintainer가 그 commit에 tag를 달아 push합니다. `.github/workflows/release.yml`은
-  `make release-verify`, `make release-versions`, `make release-assets`, `make release-consumer`, `make release-publish`
-  (`scripts/kit/release.mjs`)를 실행해, commit이 `main`에 있고 check `push-gate`와 `ci-passed`가 success로 끝났는지, 모든 manifest의
-  version이 tag와 같은지, section `## X.Y.Z`가 있는지 확인하고, archive를 깨끗한 project에 설치한 뒤, 그 section을 notes로, `packages/`의
-  archive(이름은 `<package>-<language>-<version>.<extension>`이며 language는 `npm` 또는 `php`)를 첨부해 GitHub Release를 만듭니다.
+- 그다음 maintainer가 그 commit에 tag를 달아 push합니다. kit의 copy인 `.github/workflows/release.yml`은
+  `make release-tools`, `make release-verify`, `make release-versions`, `make release-assets`, `make release-publish`,
+  `make release-proof`, `make release-undraft`(`@polyspec/kit`의 release 도구)를 실행해, commit이 `main`에 있고 check `push-gate`와
+  `ci-passed`가 success로 끝났는지, 모든 manifest의 version이 tag와 같은지, section `## X.Y.Z`가 있는지 확인하고, 그 section을 notes로,
+  `packages/`의 archive(이름은 `<package>-<language>-<version>.<extension>`이며 language는 `npm` 또는 `php`)를 첨부해 GitHub Release를 만듭니다.
   release 본문 한도인 125000자를 넘는 section은 tag의 `CHANGELOG.md` section을 link하는 한 줄로 대신합니다. crate와 Python package는
-  archive로 release하지 않고 git tag로 사용합니다. Go module tag는 아무것도 build하거나 첨부하지 않습니다
+  archive로 release하지 않고 git tag로 사용합니다. GitHub Release는 draft로 만들어 checkout 밖에서 증명한 뒤에 공개합니다. Go module tag는 아무것도 build하거나 첨부하지 않습니다
   (`docs/operations/repository.md`).
 
 # Checklist
@@ -166,5 +172,5 @@
   읽는다.
 - owner: 모든 경로는 `config/owner-checks.json`에 owner와 각 검사가 읽는 경로를 가지며, CI는 push마다 모든 검사를
   실행한다.
-- 공유 자원: 실행들이 함께 쓰는 자원은 lease(`scripts/kit/holder-lock.mjs`)로 잡거나 실행마다 자기 directory, 이름, port를
+- 공유 자원: 실행들이 함께 쓰는 자원은 lease(`@polyspec/kit`의 holder-lock)로 잡거나 실행마다 자기 directory, 이름, port를
   쓴다. port는 그것에서 수신하는 server가 잡고(port 0) 알리며, 미리 확인하지 않는다.
