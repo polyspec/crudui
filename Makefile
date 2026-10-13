@@ -1,6 +1,6 @@
 # CRUDUI documentation pipeline.
 #
-# User entry point for all documentation generation. npm scripts, typedoc,
+# User entry point for all documentation generation. npm scripts, API Extractor and API Documenter,
 # cargo doc, and go doc are building blocks invoked from here.
 #
 # Everything is idempotent: generation targets clean before they generate, and

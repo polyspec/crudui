@@ -1,8 +1,13 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: eb12d4934bad823318582c183ba6f60f9af2f51e2e16c3d8dab556906ca6e694 -->
+<!-- source-sha256: 766c08d7cca4524eabf92c703b292de1bde2eeb719a9473198bff4736316a15c -->
 
 ## Unreleased
+
+### 2026-10-14 — API Extractor와 API Documenter의 TypeScript API (C14.5)
+
+- 각 TypeScript package는 copy된 `config/api-extractor.kit.json`을 extend하는 `api-extractor.json`으로 공개 API를 API Extractor로 검사하고 report `etc/<package>.api.md`를 commit합니다. 문서 없는 export와 export되지 않은 type의 참조는 `make lint-ts`의 error입니다. `scripts/check-doc-coverage.mjs`는 Go, Rust, PHP를 검사하고, `scripts/gen-api-docs.mjs`는 API Extractor의 doc model에서 API Documenter로 TypeScript page를 씁니다. TypeDoc과 그 설정은 지웠습니다.
+- root는 TypeScript 7.0.2를 선언하고, npm은 `packages/generator-svelte`의 TypeScript 6.0.3을 svelte-check, `@sveltejs/package`, svelte2tsx, typescript-eslint와 함께 그 workspace에 설치합니다.
 
 ### 2026-10-14 — ESLint 대신 kit의 TypeScript lint (C14.4)
 

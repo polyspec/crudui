@@ -486,12 +486,21 @@
     },
     {
       "paths": [
+        "packages/*/api-extractor.json",
+        "packages/*/etc/*.api.md"
+      ],
+      "targets": [
+        "lint"
+      ],
+      "tests": [
+        "scripts/check-doc-coverage.test.mjs"
+      ]
+    },
+    {
+      "paths": [
         "scripts/check-doc-coverage*.mjs",
         "scripts/php-doc-coverage.*",
         "scripts/gen-api-docs*.mjs",
-        "scripts/typedoc.*.json",
-        "scripts/tsconfig.svelte-docs.json",
-        "scripts/fixtures/typedoc/**",
         "scripts/install-phpdocumentor.sh",
         "scripts/docs-web/**"
       ],

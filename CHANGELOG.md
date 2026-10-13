@@ -3,6 +3,11 @@
 
 ## Unreleased
 
+### 2026-10-14 — TypeScript API with API Extractor and API Documenter (C14.5)
+
+- Each TypeScript package checks its public API with API Extractor through an `api-extractor.json` that extends the copied `config/api-extractor.kit.json`, and commits its report `etc/<package>.api.md`; an undocumented export and a reference to an unexported type are errors of `make lint-ts`. `scripts/check-doc-coverage.mjs` checks Go, Rust and PHP, and `scripts/gen-api-docs.mjs` writes the TypeScript pages with API Documenter from the doc model of API Extractor. TypeDoc and its configurations are removed.
+- The root declares TypeScript 7.0.2; npm installs the TypeScript 6.0.3 of `packages/generator-svelte` with svelte-check, `@sveltejs/package`, svelte2tsx and typescript-eslint in that workspace.
+
 ### 2026-10-14 — TypeScript lint of kit instead of ESLint (C14.4)
 
 - `make lint` runs `make lint-ts` of kit (oxlint with the copied `.oxlintrc.json`, knip and API Extractor) and the Svelte lint of `packages/generator-svelte`, the one workspace that keeps ESLint, with eslint-plugin-svelte and typescript-eslint for its components. The root `eslint.config.mjs`, the ESLint packages of the root and of the other workspaces and their `lint` scripts are removed, and so is the rule `crudui/no-await-after-test-registration`: kit runs node:test without `--test-force-exit`, which dropped a test registered after a top-level `await`.
