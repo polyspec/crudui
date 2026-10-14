@@ -25,7 +25,7 @@ export const pipelineResetLimitMs = 10_000;
 /** Combinations that run at the same time, each in its own browser context. */
 export const pipelineConcurrency = 4;
 /** The page every combination starts from and returns to. */
-export const pipelinePage = 2;
+const pipelinePage = 2;
 const readinessMembers = ['framework', 'id', 'initialization', 'mode', 'page', 'server', 'type', 'view'];
 
 /**
@@ -72,7 +72,7 @@ export function stageContent(html) {
  * The initial document of each page, as view-source shows it: an SSR document carries the rendered
  * stage and its data, a CSR document carries an empty stage and no stage data.
  */
-export async function checkInitialDocuments(origin, combination, { signal } = {}) {
+async function checkInitialDocuments(origin, combination, { signal } = {}) {
   const { selection, recordId } = combination;
   const query = escapeAttribute(selectionQuery(selection));
   const documents = [
@@ -100,7 +100,7 @@ export async function checkInitialDocuments(origin, combination, { signal } = {}
  * Subscribe to the page's readiness events before the first navigation. `next()` waits for the
  * next `crudui:pipeline-ready` event; a script error or a page failure rejects the wait.
  */
-export async function subscribePipelineReadiness(page) {
+async function subscribePipelineReadiness(page) {
   const events = [];
   const waiters = [];
   let failure;

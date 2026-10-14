@@ -9,7 +9,7 @@ import { isEmpty } from './required';
 import { numericValue } from '../values/index';
 
 /** The parameter message of `number`. */
-export const NUMBER_PARAMETER_ERROR = 'Invalid number parameter: expected true or false';
+const NUMBER_PARAMETER_ERROR = 'Invalid number parameter: expected true or false';
 
 /**
  * Number rule definition

@@ -5,7 +5,7 @@ import type { Language } from './content';
 import { FORM_MESSAGES } from './interface-messages';
 
 /** Supported interface languages, in declaration order. */
-export const LANGUAGES: readonly Language[] = ['ko', 'en', 'ja', 'zh'];
+const LANGUAGES: readonly Language[] = ['ko', 'en', 'ja', 'zh'];
 
 /** Interface labels for row, collection and form controls. `{count}` is replaced by a number. */
 export interface FormMessages {

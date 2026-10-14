@@ -39,7 +39,8 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
 export const companyKey = '__0000000000001__';
-export const storeKey = companyKey; // Deliberate: replacement must be scoped by path.
+// Deliberately the key of the company: replacement must be scoped by path.
+export const storeKey = '__0000000000001__';
 export const otherStoreKey = '__0000000000002__';
 export const spec = {
   type: 'group',

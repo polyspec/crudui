@@ -13,6 +13,8 @@ import path from 'node:path';
 import test from 'node:test';
 import { pathToFileURL } from 'node:url';
 
+import { anyLoopbackPort, publicServerDefinition, startProcess } from './local-servers.mjs';
+
 const localServers = pathToFileURL(path.join(import.meta.dirname, 'local-servers.mjs')).href;
 
 test('a process that exits without stopping its local servers stops them', async t => {
@@ -57,7 +59,6 @@ test('a process that exits without stopping its local servers stops them', async
 // A server takes a port of the system and names it on its readiness line, so no port is chosen
 // before the server that listens on it; startProcess reaches the server on the named address.
 test('a server on port 0 is reached on the address that its readiness line names', async () => {
-  const { anyLoopbackPort, startProcess } = await import(localServers);
   const server = [
     "const server = require('node:http').createServer((request, response) => response.end('ok'));",
     "server.listen(0, '127.0.0.1', () => console.log('CRUDUI_READY stand-in 127.0.0.1:' + server.address().port));",
@@ -76,7 +77,6 @@ test('a server on port 0 is reached on the address that its readiness line names
 // a port of the system, so both start and answer on ports of their own.
 test('the public servers of two local stacks start at the same time on ports of their own', async t => {
   const { formServers } = await import('./runtime-paths.mjs');
-  const { publicServerDefinition, startProcess } = await import(localServers);
   const root = await mkdtemp(path.join(tmpdir(), 'crudui-public-servers-'));
   const running = [];
   t.after(async () => {

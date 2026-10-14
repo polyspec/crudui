@@ -27,7 +27,7 @@
 import { ComposeLoadError } from './errors';
 
 /** A `$patch` value: a flat deep-path map, and/or structured add/remove/replace. */
-export type Patch = Record<string, unknown>;
+type Patch = Record<string, unknown>;
 
 /** Apply a `$patch` object to the (already `$ref`-expanded) base spec. */
 export function applyPatch(base: Record<string, unknown>, patch: unknown): Record<string, unknown> {

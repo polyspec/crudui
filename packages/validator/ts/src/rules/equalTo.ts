@@ -6,23 +6,7 @@
 
 import { RuleDefinition, ValidationContext } from '../types';
 import { isEmpty } from './required';
-import {
-  getValueByPath as getValueBySegments,
-  parsePathString,
-  resolveFieldReference,
-} from '../parser/PathResolver';
-
-/**
- * Get value from form data by dot-notation path string.
- * Thin wrapper over the PathResolver implementation (single source of truth
- * for path traversal).
- */
-export function getValueByPath(
-  data: Record<string, unknown>,
-  path: string
-): unknown {
-  return getValueBySegments(data, parsePathString(path.replace(/^\.*/, '')));
-}
+import { resolveFieldReference } from '../parser/PathResolver';
 
 /**
  * Resolve a rule param that references another field (relative or absolute).

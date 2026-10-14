@@ -26,7 +26,7 @@ import {
 /**
  * Resolve a path node to an array of absolute path segments
  */
-export function resolvePathSegments(
+function resolvePathSegments(
   pathNode: PathNode,
   context: PathContext
 ): string[] {
@@ -110,7 +110,7 @@ function findWildcardPosition(path: string[]): {
 /**
  * Resolve path with wildcard to multiple concrete values
  */
-export function resolveWildcardPath(
+function resolveWildcardPath(
   path: string[],
   formData: Record<string, unknown>,
   currentIndex?: number
@@ -172,14 +172,14 @@ export function resolveWildcardPath(
 /**
  * Check if path contains a wildcard
  */
-export function hasWildcard(path: string[]): boolean {
+function hasWildcard(path: string[]): boolean {
   return path.includes('*');
 }
 
 /**
  * Replace wildcard with current index in path
  */
-export function replaceWildcardWithIndex(
+function replaceWildcardWithIndex(
   path: string[],
   currentPath: string[]
 ): string[] {

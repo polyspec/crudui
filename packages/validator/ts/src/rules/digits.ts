@@ -10,7 +10,7 @@ import { isEmpty } from './required';
 import { isDigits } from '../values/index';
 
 /** The parameter message of `digits`. */
-export const DIGITS_PARAMETER_ERROR = 'Invalid digits parameter: expected true or false';
+const DIGITS_PARAMETER_ERROR = 'Invalid digits parameter: expected true or false';
 
 /**
  * Digits rule definition

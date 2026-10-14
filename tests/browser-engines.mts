@@ -7,24 +7,24 @@ import { webkit, type Browser as PlaywrightBrowser } from 'playwright';
 import puppeteer, { Browser as PuppeteerBrowser } from 'puppeteer';
 
 /** An element handle as both drivers give it: clickable, evaluable, and a frame's document for an iframe. */
-export interface EngineElement {
+interface EngineElement {
   click(): Promise<void>;
   evaluate<Result>(fn: (node: Node) => Result): Promise<Awaited<Result>>;
   contentFrame(): Promise<EngineFrame | null>;
 }
 
 /** A handle of an in-page value, an element or not. */
-export interface EngineHandle {
+interface EngineHandle {
   asElement(): EngineElement | null;
 }
 
 /** A locator of both drivers; Puppeteer's takes the selector only and ignores the options. */
-export interface EngineLocator {
+interface EngineLocator {
   click(): Promise<void>;
 }
 
 /** A console message of a page. */
-export interface EngineConsoleMessage {
+interface EngineConsoleMessage {
   type(): string;
   text(): string;
 }

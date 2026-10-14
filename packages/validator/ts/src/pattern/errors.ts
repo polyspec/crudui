@@ -3,7 +3,7 @@
  */
 
 /** The reasons a pattern is outside the language. */
-export type PatternErrorReason =
+type PatternErrorReason =
   | 'empty pattern'
   | 'unexpected character'
   | 'unsupported construct'

@@ -12,13 +12,13 @@ import { PatternSyntaxError } from './errors';
 import { isGeneralCategory, isScript } from './sets';
 
 /** Largest quantifier bound. */
-export const QUANTIFIER_LIMIT = 1000;
+const QUANTIFIER_LIMIT = 1000;
 
 /** Largest pattern size. */
-export const SIZE_LIMIT = 1000;
+const SIZE_LIMIT = 1000;
 
 /** Deepest group nesting. */
-export const DEPTH_LIMIT = 100;
+const DEPTH_LIMIT = 100;
 
 /** A recognized pattern. Leading `^` and trailing `$` add nothing and are not kept. */
 export interface RecognizedPattern {

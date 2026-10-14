@@ -28,7 +28,7 @@ import { applyPatch } from './patch';
 import type { FileLoader } from './loader';
 
 /** Options for a composition pass. */
-export interface ComposeOptions {
+interface ComposeOptions {
   /** Basepath for relative `$ref` resolution . */
   basepath?: string;
 }

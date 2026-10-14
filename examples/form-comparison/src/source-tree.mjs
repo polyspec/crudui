@@ -31,7 +31,7 @@ async function lstatOrNull(file) {
 }
 
 /** Return the checked-out commit of one repository. */
-export async function headCommit(root) {
+async function headCommit(root) {
   const commit = (await git(root, ['rev-parse', '--verify', 'HEAD^{commit}']))
     .toString('utf8').trim();
   if (!commitPattern.test(commit)) throw new Error('Cannot read the checked-out commit');
@@ -39,7 +39,7 @@ export async function headCommit(root) {
 }
 
 /** Return every path that differs from the checked-out commit, including untracked files. */
-export async function uncommittedPaths(root) {
+async function uncommittedPaths(root) {
   const output = await git(root, ['status', '--porcelain=v1', '-z', '--untracked-files=all',
     '--no-renames', '--ignore-submodules=none']);
   // Each entry is two status letters, one space and the path.

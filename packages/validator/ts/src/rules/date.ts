@@ -11,7 +11,7 @@ import { trim } from '../values/index';
 /**
  * Check if a value is a valid date
  */
-export function isValidDate(value: unknown): boolean {
+function isValidDate(value: unknown): boolean {
   if (value instanceof Date) {
     return !isNaN(value.getTime());
   }

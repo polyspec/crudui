@@ -9,7 +9,7 @@
 import { canonicalText } from './canonical';
 
 /** Largest length limit: 2^53 - 1. */
-export const MAX_LENGTH_LIMIT = Number.MAX_SAFE_INTEGER;
+const MAX_LENGTH_LIMIT = Number.MAX_SAFE_INTEGER;
 
 /** The code-point length of a value's canonical text, or `undefined` when it has none. */
 export function codePointLength(value: unknown): number | undefined {

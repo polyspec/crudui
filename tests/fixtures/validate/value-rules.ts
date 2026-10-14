@@ -8,7 +8,7 @@
  */
 
 /** A field outcome: `null` passes; otherwise the failing rule and the message parameters. */
-export type Outcome = null | { rule: string; params?: unknown[] };
+type Outcome = null | { rule: string; params?: unknown[] };
 
 export interface AuthoredCase {
   name: string;

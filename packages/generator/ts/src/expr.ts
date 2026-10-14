@@ -9,13 +9,6 @@ import type { PathContext } from '@polyspec/crudui-validator';
 import { jsString } from './util';
 
 /**
- * A CRUDUI `Evaluated<V>` value as seen at render: a literal, an Expression string,
- * or a declaration-ordered ConditionMap (plain object). Mirrors
- * validator-ts/src/types.ts:73.
- */
-export type Evaluated<V = unknown> = V | string | Record<string, unknown>;
-
-/**
  * Build the engine PathContext for a field at `currentPath` over `formData`; `rowKeys` are the
  * positions of the row keys in the path, so a row is one level of a relative path.
  */

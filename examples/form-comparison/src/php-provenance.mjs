@@ -8,10 +8,10 @@ const classFiles = Object.freeze({
     'vendor/polyspec/crudui-validator/src/Public/Validator.php',
 });
 
-export const phpClassNames = Object.freeze(Object.keys(classFiles));
+const phpClassNames = Object.freeze(Object.keys(classFiles));
 
 /** Return the PHP class files selected from one explicit candidate source directory. */
-export function phpClassFiles(sourceDirectory) {
+function phpClassFiles(sourceDirectory) {
   assert.ok(typeof sourceDirectory === 'string' && path.isAbsolute(sourceDirectory),
     'PHP provenance requires an absolute candidate source directory');
   return Object.fromEntries(Object.entries(classFiles).map(([name, file]) =>

@@ -4,7 +4,6 @@
  * segments with [].
  */
 
-import { styleString } from './css';
 export { styleString } from './css';
 
 /** HTML attribute-value escaping. */
@@ -183,18 +182,6 @@ export function ruleNameForPath(path: string, rowSegments: readonly number[] = [
       .join('') +
     suffix
   );
-}
-
-/** Wrapper layer name for a dot path (`{dotName}-layer`). */
-export function wrapperLayerName(path: string, keyPrefix?: string): string {
-  const dotName = path.split('[]').join('.*');
-  return keyPrefix ? `${keyPrefix}.${dotName}-layer` : `${dotName}-layer`;
-}
-
-/** Merge two style strings (design node + structural), dropping empties. */
-export function mergeStyle(...parts: Array<string | undefined>): string | undefined {
-  const joined = parts.filter((p) => p && p.trim()).join('; ');
-  return styleString(joined);
 }
 
 /** Join class tokens, dropping empties and deduping whitespace. */

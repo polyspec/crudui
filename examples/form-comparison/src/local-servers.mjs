@@ -22,7 +22,7 @@ export const repositoryRoot = path.resolve(exampleDirectory, '../..');
  * The host checkout of the OrderedJSON monorepo. The Go and Rust server manifests name this
  * path relative to the repository root, as the build tree does.
  */
-export const localOrderedJsonDirectory = path.join(repositoryRoot, '.form-comparison/sources/ordered-json');
+const localOrderedJsonDirectory = path.join(repositoryRoot, '.form-comparison/sources/ordered-json');
 
 /** Print one progress line of the local server harness. */
 function progress(write, text) {

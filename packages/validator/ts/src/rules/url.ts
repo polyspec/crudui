@@ -17,7 +17,7 @@ const URL_PATTERN = /^(https?|ftp):\/\/[^\s/$.?#].[^\s]*$/i;
 /**
  * Check if a value is a valid URL
  */
-export function isValidUrl(value: unknown): boolean {
+function isValidUrl(value: unknown): boolean {
   if (typeof value !== 'string') {
     return false;
   }

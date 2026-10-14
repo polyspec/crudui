@@ -14,7 +14,7 @@ export function initialView(): ViewState {
 }
 
 /** Whether `path` is the row path `rowPath` or lies inside that row. */
-export function rowPathContains(rowPath: string, path: string): boolean {
+function rowPathContains(rowPath: string, path: string): boolean {
   return path === rowPath || path.startsWith(`${rowPath}.`);
 }
 

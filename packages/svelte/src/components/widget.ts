@@ -24,7 +24,7 @@ export function isUnsupported(w: AnyWidget): w is UnsupportedVM {
 }
 
 /** Return whether a control contains browser-executed behavior attributes. */
-export function hasEventAttr(attrs: Attrs): boolean {
+function hasEventAttr(attrs: Attrs): boolean {
   return Object.keys(attrs).some(name => name.startsWith('on'));
 }
 
@@ -94,7 +94,7 @@ export function widgetBody(w: WidgetModel): string {
 }
 
 /** choices full html: `<div {attrs}>` + per-item input/label pairs. */
-export function choicesHtml(w: WidgetModel): string {
+function choicesHtml(w: WidgetModel): string {
   const type: 'radio' | 'checkbox' = w.kind === 'choice' ? 'radio' : 'checkbox';
   const shared = (w.extra?.input ?? {}) as Attrs;
   const declared = (w.extra?.option ?? {}) as Attrs;
@@ -131,7 +131,7 @@ export function fileGroupBody(w: WidgetModel): string {
  * host `<select>` inside `.crudui-widget--search`. The host select needs
  * `selected="selected"` (select2 contract), so the whole search body is raw.
  */
-export function searchHtml(w: WidgetModel): string {
+function searchHtml(w: WidgetModel): string {
   const fieldSearch =
     `<div class="crudui-widget crudui-widget--search">` +
     affixHtml(w.prepend) +

@@ -11,7 +11,7 @@ import { isEmpty } from './required';
 import { formatMessage, isNumberRange, numericValue } from '../values/index';
 
 /** The parameter message of `range`. */
-export const RANGE_PARAMETER_ERROR =
+const RANGE_PARAMETER_ERROR =
   'Invalid range parameter: expected [minimum, maximum] finite numbers with minimum not above maximum';
 
 /**
