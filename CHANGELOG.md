@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-15 — The TypeScript without casts (C14.12)
+
+- The TypeScript passes the lint of kit 0.0.47 without type assertions, `any` or non-null assertions (kit K155, K156, K157). `@polyspec/crudui-generator-core`: `Translate` takes its text as `unknown`, as it already returned the fallback for any value that is no localized text, and a declared attribute whose value is no string fails with a `FormInputError` that names its path. `@polyspec/crudui-validator`: the `accept` rule reads only the string members of a file object, where a file whose `type` or `name` is no string crashed `validate`. `@polyspec/crudui-form-binding`: `bindForm` throws a `TypeError` for a form of a document without a window before it changes the form (C14.12).
+
 ### 2026-10-15 — kit 0.0.47 (C14.35)
 
 - crudui pins `@polyspec/kit` 0.0.47, whose oxlint fails a non-null assertion and applies its type-aware rules to TypeScript files only (kit K156, K170); the Svelte tools take `@sveltejs/package` 3.0.1 (C14.35).
