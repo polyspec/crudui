@@ -1,6 +1,6 @@
 # CRUDUI
 <!-- doc-id: readme -->
-<!-- source-sha256: 18ed37b865864a6c5a1408cd6a544a5cf58b85f14b8afa576ec100b1d72c8db2 -->
+<!-- source-sha256: 83070d9c24728c5ce91c1130503994fed75ac98fd6345503559e5117977c060f -->
 
 [English](README.md).
 
@@ -16,6 +16,8 @@ CRUDUI은 YAML 또는 JavaScript 객체로 폼·목록·상세·검증을 정의
 저장소 루트에서 실행합니다.
 
 ```sh
+make install-tools TOOLS=npm
+make install-packages
 make install-tools
 export PATH="$PWD/var/tools/bin:$PATH"
 npm ci --strict-allow-scripts

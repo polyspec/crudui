@@ -8,9 +8,9 @@
 # machine-absolute paths). `make docs` run twice yields identical output.
 
 .DEFAULT_GOAL := help
-# The tools of this checkout: `make install-tools` (install-tools of @polyspec/kit) installs npm, Go and cargo-audit at the
-# releases that the checkout declares into the ignored var/tools, with their commands in var/tools/bin, and every command
-# of make finds them first on PATH. The tools of the machine are never changed.
+# The tools of this checkout: `make install-tools TOOLS=npm` installs the npm of packageManager and mise into var/tools/bin,
+# and `make install-tools` installs the tools of mise.lock into var/tools/mise, whose shims kit.mk puts first on PATH with
+# var/tools/bin, so every command of make finds them. The tools of the machine are never changed.
 export PATH := $(CURDIR)/var/tools/bin:$(PATH)
 # GNU Make 3.81 looks up the program of a recipe line without shell syntax on the PATH that make started with, not on the
 # exported one, so every recipe starts npm by its path (tests/build/tool-path.test.mjs).

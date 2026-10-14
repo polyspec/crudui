@@ -69,7 +69,7 @@ test('the last CI job ci-passed needs every other job and runs always', async ()
 // and Rust targets once, and the PHP API for each PHP release of the matrix; make test-native runs the three parts.
 const NATIVE_JOBS = {
   'php-engine': { targets: 'test-php-engine', tools: ['actions/checkout', 'actions/setup-node'] },
-  'native-generators': { targets: 'test-native-generators test-bench', tools: ['actions/checkout', 'actions/setup-node', 'shivammathur/setup-php', 'actions/setup-go', 'Swatinem/rust-cache'] },
+  'native-generators': { targets: 'test-native-generators test-bench', tools: ['actions/checkout', 'actions/setup-node', 'shivammathur/setup-php', 'Swatinem/rust-cache'] },
   'php-api': { targets: 'test-php-api', tools: ['actions/checkout', 'actions/setup-node', 'shivammathur/setup-php'], php: ['8.5'] },
 };
 

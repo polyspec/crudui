@@ -16,6 +16,8 @@ Install Composer, Node, Go, Cargo and a C compiler. The container below provides
 a complete Linux toolchain.
 
 ```sh
+make install-tools TOOLS=npm
+make install-packages
 make install-tools
 export PATH="$PWD/var/tools/bin:$PATH"
 npm ci --strict-allow-scripts

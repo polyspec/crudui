@@ -8,6 +8,8 @@
 Run commands from the repository root. Install Node.js and npm, then run:
 
 ```sh
+make install-tools TOOLS=npm
+make install-packages
 make install-tools
 export PATH="$PWD/var/tools/bin:$PATH"
 npm ci --strict-allow-scripts

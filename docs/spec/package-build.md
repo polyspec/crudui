@@ -186,8 +186,8 @@ latest release of a channel, and no tool installs another version on its own.
   lock. A deviation is an entry of `exceptions` in `config/toolchain.json` with its scope, reason and retry condition:
   `packages/generator-svelte` keeps TypeScript 6.0.3, because svelte-check and `@sveltejs/package` require the
   TypeScript 6 API.
-- `.go-version` records the exact Go release, which CI reads. `config/toolchain.json` names the `go.mod` whose `go`
-  line is that release, `make install-tools` installs the Go of the kit pin into `var/tools/go`, and
+- `mise.toml` records the exact Go release, the pin of kit, and `make install-tools` installs it with mise at the digest of
+  `mise.lock`, in CI too; the `go` line of every `go.mod` is that release, and
   `GOTOOLCHAIN=local`, which the Makefile and CI set, keeps go from downloading another toolchain. The Go modules of
   the repository, and the Go module of the OrderedJSON checkout of the comparison, resolve each other through the root
   `go.work`; no `go.mod` names a `replace`.

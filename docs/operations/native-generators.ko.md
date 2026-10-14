@@ -1,6 +1,6 @@
 # 네이티브 생성기 검사
 <!-- doc-id: docs-operations-native-generators -->
-<!-- source-sha256: 9c01b048a4ddd8a2d7b9437ee9cd43010e2f2c1b890cf74f04b2558718e94386 -->
+<!-- source-sha256: a59b1c1d845c6581069cc3a7c29d78fd2f8c423ef3bc8a7bce8e7332918e8616 -->
 
 [English](native-generators.md).
 
@@ -16,6 +16,8 @@
 컴파일러를 설치합니다. 아래 컨테이너는 필요한 Linux 빌드 도구를 제공합니다.
 
 ```sh
+make install-tools TOOLS=npm
+make install-packages
 make install-tools
 export PATH="$PWD/var/tools/bin:$PATH"
 npm ci --strict-allow-scripts

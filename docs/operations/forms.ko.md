@@ -1,6 +1,6 @@
 # 폼 개발과 검증
 <!-- doc-id: docs-operations-forms -->
-<!-- source-sha256: c92890a8a164ac030e2f050a5899cfbfbd5604ebcd1cd63acb676f86d95998c5 -->
+<!-- source-sha256: 70b2805fe2a505a5b5b737dbc473764cd36c36b4987bc4daba19f98a93790ea0 -->
 
 [English](forms.md). 계약은 [폼 런타임](../spec/form-runtime.ko.md)에 정의합니다.
 
@@ -9,6 +9,8 @@
 저장소 루트에서 명령을 실행합니다. Node.js와 npm을 설치한 후 실행합니다.
 
 ```sh
+make install-tools TOOLS=npm
+make install-packages
 make install-tools
 export PATH="$PWD/var/tools/bin:$PATH"
 npm ci --strict-allow-scripts

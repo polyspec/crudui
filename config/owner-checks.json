@@ -429,9 +429,10 @@
       "paths": [
         "config/toolchain.json",
         ".node-version",
-        ".python-version",
-        ".go-version",
-        "rust-toolchain.toml"
+        "rust-toolchain.toml",
+        "mise.toml",
+        "mise.lock",
+        ".mise/**"
       ],
       "targets": [
         "toolchain-check"

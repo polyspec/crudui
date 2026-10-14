@@ -22,7 +22,7 @@ const CHECK = 'cargo-downloads-check';
 // crates, the dependency review, the Python locks, the release tools and backend, the locks of the consumer projects and
 // the proof of a release. release-consumer installs the archives of a release in clean projects: the tool lifts the
 // offline settings itself.
-const KIT_DOWNLOADS = ['install-tools', 'install-packages', 'cargo-downloads-fetch', 'dependency-review', 'python-lock', 'release-tools', 'release-backend', 'release-consumer-lock', 'release-proof'];
+const KIT_DOWNLOADS = ['install-tools', 'install-packages', 'cargo-downloads-fetch', 'dependency-review', 'python-lock', 'release-tools', 'release-backend', 'release-consumer-lock', 'release-proof', 'toolchain-lock'];
 const DOWNLOADS = [...KIT_DOWNLOADS, 'install-composer', 'install-phpdocumentor', 'install-browsers', 'install-ordered-json'];
 const read = file => readFileSync(path.join(ROOT, file), 'utf8');
 const makefile = read('Makefile');
