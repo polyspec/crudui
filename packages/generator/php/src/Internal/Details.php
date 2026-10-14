@@ -21,11 +21,21 @@ final class Details
         }
         // An absent or null context is empty; data is a fixed object option.
         $data = $options['data'] ?? null;
-        if ($data !== null && !$data instanceof stdClass && !(is_array($data) && ($data === [] || !array_is_list($data)))) {
+        if (
+            $data !== null
+            && !$data instanceof stdClass
+            && !(is_array($data) && ($data === [] || !array_is_list($data)))
+        ) {
             throw new FormError('INVALID_FORM_INPUT', 'Detail context must be an object');
         }
         // Page and total are list options; a detail neither checks nor uses them.
-        $model = Lists::build($spec, [$record], array_diff_key($options, ['page' => true, 'total' => true]), 'detail', 'fields');
+        $model = Lists::build(
+            $spec,
+            [$record],
+            array_diff_key($options, ['page' => true, 'total' => true]),
+            'detail',
+            'fields'
+        );
         $fields = [];
         $columns = $model->columns;
         $cells = $model->rows[0]->cells ?? [];
@@ -81,10 +91,16 @@ final class Details
                 'div',
                 ['class' => 'crudui-detail__field'],
                 Rendering::element('dt', ['class' => 'crudui-detail__label'], Rendering::text($field->label)) .
-                Lists::renderCell($cell, 'dd', 'crudui-detail__value crudui-value crudui-value--' . $field->format->type)
+                Lists::renderCell(
+                    $cell,
+                    'dd',
+                    'crudui-detail__value crudui-value crudui-value--' . $field->format->type
+                )
             );
         }
-        return self::preloads($model) . Lists::actionsHtml($model->actions, 'crudui-detail') . Rendering::element('dl', $attrs, $body);
+        return self::preloads($model)
+            . Lists::actionsHtml($model->actions, 'crudui-detail')
+            . Rendering::element('dl', $attrs, $body);
     }
 
     private static function preloads(stdClass $model): string
@@ -101,7 +117,9 @@ final class Details
                 continue;
             }
             $seen[$source] = true;
-            $html .= '<link' . Rendering::attrs(['rel' => 'preload', 'as' => 'image', 'href' => Rendering::url($source)]) . '/>';
+            $html .= '<link'
+                . Rendering::attrs(['rel' => 'preload', 'as' => 'image', 'href' => Rendering::url($source)])
+                . '/>';
         }
         return $html;
     }

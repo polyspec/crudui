@@ -131,8 +131,14 @@ final class Form
             }
             $index = $found + 1;
         }
-        $value = $this->normalizeRow($field, array_key_exists('value', $options) ? Value::copy($options['value']) : Missing::Value, implode('.', [...self::checkedPath($path), $key]));
-        $next = (object) (array_slice($members, 0, $index, true) + [$key => $value] + array_slice($members, $index, null, true));
+        $value = $this->normalizeRow(
+            $field,
+            array_key_exists('value', $options) ? Value::copy($options['value']) : Missing::Value,
+            implode('.', [...self::checkedPath($path), $key])
+        );
+        $next = (object) (
+            array_slice($members, 0, $index, true) + [$key => $value] + array_slice($members, $index, null, true)
+        );
         $this->commit(self::put($this->data, self::checkedPath($path), $next));
         return $key;
     }
@@ -184,7 +190,9 @@ final class Form
         }
         $value = $members[$key];
         unset($members[$key]);
-        $next = (object) (array_slice($members, 0, $index, true) + [$key => $value] + array_slice($members, $index, null, true));
+        $next = (object) (
+            array_slice($members, 0, $index, true) + [$key => $value] + array_slice($members, $index, null, true)
+        );
         $this->commit(self::put($this->data, self::checkedPath($path), $next));
     }
 
@@ -237,7 +245,11 @@ final class Form
 
     private static function checkKey(string $key): void
     {
-        if (!preg_match('/^[A-Za-z0-9_-]+$/D', $key) || preg_match('/^\d+$/D', $key) || in_array($key, ['__proto__', 'prototype', 'constructor'], true)) {
+        if (
+            !preg_match('/^[A-Za-z0-9_-]+$/D', $key)
+            || preg_match('/^\d+$/D', $key)
+            || in_array($key, ['__proto__', 'prototype', 'constructor'], true)
+        ) {
             self::fail('Invalid row key: ' . $key . '; use sequenceRowKey for numeric ids');
         }
     }
@@ -246,13 +258,17 @@ final class Form
     {
         $head = array_shift($path);
         $out = clone $data;
-        $out->{$head} = $path ? self::put(($data->{$head} ?? null) instanceof stdClass ? $data->{$head} : new stdClass(), $path, $value) : $value;
+        $out->{$head} = $path
+            ? self::put(($data->{$head} ?? null) instanceof stdClass ? $data->{$head} : new stdClass(), $path, $value)
+            : $value;
         return $out;
     }
 
     private static function repeats(stdClass $field): bool
     {
-        return ($field->spec->multiple ?? null) === true || self::dataOnly($field) || ($field->spec->multiple ?? null) instanceof stdClass;
+        return ($field->spec->multiple ?? null) === true
+            || self::dataOnly($field)
+            || ($field->spec->multiple ?? null) instanceof stdClass;
     }
 
     /** A `multiple: only` collection: its rows come only from the data. */
@@ -288,7 +304,9 @@ final class Form
                     self::fail('Repeated data must be a keyed object: ' . $fieldPath);
                 }
                 $rows = new stdClass();
-                $entries = $raw !== Missing::Value ? $raw : (self::dataOnly($field) ? new stdClass() : (object) [self::freshKey([]) => Missing::Value]);
+                $entries = $raw !== Missing::Value
+                    ? $raw
+                    : (self::dataOnly($field) ? new stdClass() : (object) [self::freshKey([]) => Missing::Value]);
                 foreach ($entries as $key => $row) {
                     self::checkKey((string) $key);
                     $rows->{$key} = $this->normalizeRow($field, $row, $fieldPath . '.' . $key);
@@ -305,12 +323,16 @@ final class Form
 
     private function normalizeRow(stdClass $field, mixed $value, string $path): mixed
     {
-        return ($field->spec->type ?? null) === 'group' ? $this->normalizeFields($field->children, $value, $path) : Value::copy($value === Missing::Value ? $field->spec->default ?? '' : $value);
+        return ($field->spec->type ?? null) === 'group'
+            ? $this->normalizeFields($field->children, $value, $path)
+            : Value::copy($value === Missing::Value ? $field->spec->default ?? '' : $value);
     }
 
     private function copyRowValue(stdClass $field, mixed $value): mixed
     {
-        return ($field->spec->type ?? null) === 'group' ? $this->copyChildren($field->children, Value::copy($value)) : Value::copy($value);
+        return ($field->spec->type ?? null) === 'group'
+            ? $this->copyChildren($field->children, Value::copy($value))
+            : Value::copy($value);
     }
 
     private function copyChildren(array $fields, stdClass $value): stdClass

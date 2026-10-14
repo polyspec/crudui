@@ -75,7 +75,13 @@ final class ChoiceList
         foreach ($items as $item) {
             if ($groups && self::isGroup($item)) {
                 $choices = $item->choices;
-                if (count(get_object_vars($item)) !== 2 || !property_exists($item, 'label') || !is_array($choices) || !array_is_list($choices) || $choices === []) {
+                if (
+                    count(get_object_vars($item)) !== 2
+                    || !property_exists($item, 'label')
+                    || !is_array($choices)
+                    || !array_is_list($choices)
+                    || $choices === []
+                ) {
                     return null;
                 }
                 foreach ($choices as $choice) {
@@ -123,7 +129,10 @@ final class ChoiceList
         foreach ($items as $index => $choice) {
             foreach (['class', 'style'] as $member) {
                 if (property_exists($choice, $member) && !is_string($choice->{$member})) {
-                    throw new FormError('INVALID_FORM_INPUT', sprintf('Invalid items.%d.%s at %s: expected a string', $index, $member, $path));
+                    throw new FormError(
+                        'INVALID_FORM_INPUT',
+                        sprintf('Invalid items.%d.%s at %s: expected a string', $index, $member, $path)
+                    );
                 }
             }
             if (property_exists($choice, 'attributes')) {

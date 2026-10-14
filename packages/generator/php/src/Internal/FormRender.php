@@ -23,7 +23,8 @@ final class FormRender
      * Check render options and build the model the renderer writes.
      *
      * @param list<stdClass> $nodes top-level nodes that the renderer writes
-     * @return array{form: ?array<string, string>, hidden: list<array{string, string}>, formErrors: list<string>, nodeErrors: array<int, list<string>>}
+     * @return array{form: ?array<string, string>, hidden: list<array{string, string}>, formErrors: list<string>,
+     * nodeErrors: array<int, list<string>>}
      * @throws FormError for the first option outside the contract, in the documented order
      */
     public static function model(array $nodes, mixed $templateAction, mixed $options): array
@@ -42,19 +43,34 @@ final class FormRender
             throw self::failure('action must be an object with string method, url and enctype');
         }
         $hidden = array_key_exists('hidden', $members) ? self::members($members['hidden']) : null;
-        if (array_key_exists('hidden', $members) && ($hidden === null || array_filter($hidden, static fn ($value) => !\is_string($value)) !== [])) {
+        if (
+            array_key_exists('hidden', $members)
+            && ($hidden === null || array_filter($hidden, static fn ($value) => !\is_string($value)) !== [])
+        ) {
             throw self::failure('hidden must be an object of strings');
         }
         if ($hidden !== null && $action === null) {
             throw self::failure('hidden requires action');
         }
         $formErrors = $members['formErrors'] ?? [];
-        if (!\is_array($formErrors) || !array_is_list($formErrors) || array_filter($formErrors, static fn ($text) => !\is_string($text)) !== []) {
+        if (
+            !\is_array($formErrors)
+            || !array_is_list($formErrors)
+            || array_filter($formErrors, static fn ($text) => !\is_string($text)) !== []
+        ) {
             throw self::failure('formErrors must be a list of strings');
         }
         $errors = $members['errors'] ?? [];
         $records = \is_array($errors) && array_is_list($errors) ? array_map(self::members(...), $errors) : null;
-        if ($records === null || array_filter($records, static fn ($record) => $record === null || !\is_string($record['path'] ?? null) || !\is_string($record['message'] ?? null)) !== []) {
+        if (
+            $records === null
+            || array_filter(
+                $records,
+                static fn ($record) => $record === null
+                    || !\is_string($record['path'] ?? null)
+                    || !\is_string($record['message'] ?? null)
+            ) !== []
+        ) {
             throw self::failure('errors must be a list of objects with string path and message');
         }
         $nodeErrors = [];
@@ -76,7 +92,14 @@ final class FormRender
                 $value = $action[$key] ?? $declared[$key] ?? null;
                 return \is_string($value) ? $value : null;
             };
-            $form = array_filter(['action' => $value('url') === null ? null : Rendering::url($value('url')), 'encType' => $value('enctype'), 'method' => $value('method')], static fn ($v) => $v !== null);
+            $form = array_filter(
+                [
+                    'action' => $value('url') === null ? null : Rendering::url($value('url')),
+                    'encType' => $value('enctype'),
+                    'method' => $value('method'),
+                ],
+                static fn ($v) => $v !== null
+            );
         }
         $pairs = [];
         foreach ($hidden ?? [] as $name => $value) {

@@ -16,15 +16,25 @@ if ($path === false || $path === '') {
 // The form, list and detail specifications describe the same record. The example stores one
 // record: the form edits it, the list shows it as its only row and the detail shows it.
 $spec = json_decode(<<<'JSON'
-{"type":"group","properties":{"name":{"type":"text","label":"Name","validate":{"required":true}},"email":{"type":"email","label":"Email","validate":{"email":true}},"level":{"type":"choice","label":"Level","items":{"beginner":"Beginner","intermediate":"Intermediate","advanced":"Advanced"}},"topics":{"type":"multichoice","label":"Topics","items":{"forms":"Forms","validation":"Validation","rendering":"Rendering"}},"note":{"type":"textarea","label":"Note"}}}
+{"type":"group","properties":{"name":{"type":"text","label":"Name","validate":{"required":true}},
+"email":{"type":"email","label":"Email","validate":{"email":true}},"level":{"type":"choice","label":"Level",
+"items":{"beginner":"Beginner","intermediate":"Intermediate","advanced":"Advanced"}},"topics":{"type":"multichoice",
+"label":"Topics","items":{"forms":"Forms","validation":"Validation","rendering":"Rendering"}},"note":{"type":"textarea",
+"label":"Note"}}}
 JSON, false, 512, JSON_THROW_ON_ERROR);
 // The list links each name to the detail page, shows the level label and truncates the note.
 $listSpec = json_decode(<<<'JSON'
-{"columns":{"name":{"field":"name","label":"Name","format":{"type":"link","href":"/?view=detail"}},"email":{"field":"email","label":"Email","format":"text"},"level":{"field":"level","label":"Level","format":{"type":"choice-label","items":{"beginner":"Beginner","intermediate":"Intermediate","advanced":"Advanced"}}},"note":{"field":"note","label":"Note","format":{"type":"text","truncate":40}}}}
+{"columns":{"name":{"field":"name","label":"Name","format":{"type":"link","href":"/?view=detail"}},
+"email":{"field":"email","label":"Email","format":"text"},"level":{"field":"level","label":"Level",
+"format":{"type":"choice-label","items":{"beginner":"Beginner","intermediate":"Intermediate","advanced":"Advanced"}}},
+"note":{"field":"note","label":"Note","format":{"type":"text","truncate":40}}}}
 JSON, false, 512, JSON_THROW_ON_ERROR);
 // The detail shows the name as text, the email as a mailto link, the level label and the note.
 $detailSpec = json_decode(<<<'JSON'
-{"fields":{"name":{"field":"name","label":"Name","format":"text"},"email":{"field":"email","label":"Email","format":{"type":"link","href":"mailto:{=email}"}},"level":{"field":"level","label":"Level","format":{"type":"choice-label","items":{"beginner":"Beginner","intermediate":"Intermediate","advanced":"Advanced"}}},"note":{"field":"note","label":"Note","format":"text"}}}
+{"fields":{"name":{"field":"name","label":"Name","format":"text"},"email":{"field":"email","label":"Email",
+"format":{"type":"link","href":"mailto:{=email}"}},"level":{"field":"level","label":"Level",
+"format":{"type":"choice-label","items":{"beginner":"Beginner","intermediate":"Intermediate","advanced":"Advanced"}}},
+"note":{"field":"note","label":"Note","format":"text"}}}
 JSON, false, 512, JSON_THROW_ON_ERROR);
 $stored = is_file($path);
 $data = $stored ? json_decode(file_get_contents($path), false, 512, JSON_THROW_ON_ERROR) : new stdClass();
@@ -58,7 +68,11 @@ if ($view === 'form' && $method === 'POST') {
     }
     $data = (object) $submitted;
     if ($result->valid) {
-        $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . "\n";
+        $json = json_encode(
+            $data,
+            JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR
+        )
+            . "\n";
         if (file_put_contents($path, $json, LOCK_EX) === false) {
             throw new RuntimeException('Record write failed');
         }

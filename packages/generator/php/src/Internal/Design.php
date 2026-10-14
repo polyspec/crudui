@@ -12,10 +12,17 @@ use stdClass;
 /** Evaluate visibility and appearance with the shared expression engine and visibility rule. */
 final class Design
 {
-    private static function condition(string $expression, stdClass $data, array $path, array $rows, bool $raw = false): mixed
-    {
+    private static function condition(
+        string $expression,
+        stdClass $data,
+        array $path,
+        array $rows,
+        bool $raw = false
+    ): mixed {
         try {
-            return $raw ? Expression::evaluateValue($expression, $data, $path, $rows) : Expression::evaluate($expression, $data, $path, $rows);
+            return $raw
+                ? Expression::evaluateValue($expression, $data, $path, $rows)
+                : Expression::evaluate($expression, $data, $path, $rows);
         } catch (\InvalidArgumentException | \RuntimeException $error) {
             return false;
         }
@@ -88,7 +95,11 @@ final class Design
                 }
             } catch (\InvalidArgumentException | \RuntimeException $error) {
             }
-            if (Expression::isConditionExpression($value) && !preg_match('/\?[^:]*:/', $value) && self::parses($value)) {
+            if (
+                Expression::isConditionExpression($value)
+                && !preg_match('/\?[^:]*:/', $value)
+                && self::parses($value)
+            ) {
                 $result = self::condition($value, $data, $path, $rows, true);
                 return $result === false || $result === null ? '' : Value::string($result);
             }
@@ -97,14 +108,27 @@ final class Design
         return Value::string($value);
     }
 
-    /** Evaluate the visibility and named appearance nodes for one field; $rows are the positions of the row keys in $path. */
+    /**
+     * Evaluate the visibility and named appearance nodes for one field; $rows are the positions of the row keys in
+     * $path.
+     */
     public static function resolve(mixed $design, stdClass $data, array $path, array $rows): stdClass
     {
         $design = $design instanceof stdClass ? $design : new stdClass();
         $node = static function (mixed $value) use ($data, $path, $rows): stdClass {
-            return (object) ['class' => self::appearance(Value::get($value, 'class'), $data, $path, $rows), 'style' => self::appearance(Value::get($value, 'style'), $data, $path, $rows)];
+            return (object) [
+                'class' => self::appearance(Value::get($value, 'class'), $data, $path, $rows),
+                'style' => self::appearance(Value::get($value, 'style'), $data, $path, $rows),
+            ];
         };
-        return (object) ['show' => self::show(Value::get($design, 'show'), $data, $path, $rows), 'main' => $node($design), 'label' => $node($design->label ?? null), 'wrapper' => $node($design->wrapper ?? null), 'group' => $node($design->group ?? null), 'prepend' => $node($design->prepend ?? null)];
+        return (object) [
+            'show' => self::show(Value::get($design, 'show'), $data, $path, $rows),
+            'main' => $node($design),
+            'label' => $node($design->label ?? null),
+            'wrapper' => $node($design->wrapper ?? null),
+            'group' => $node($design->group ?? null),
+            'prepend' => $node($design->prepend ?? null),
+        ];
     }
 
     /**
