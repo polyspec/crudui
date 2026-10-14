@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-14 — kit 0.0.42 (C14.11)
+
+- `@polyspec/kit` is pinned at 0.0.42 with the integrity of the published file. `mise.lock` locks the tools of `mise.toml` for linux-arm64 and macos-x64 too, and the copied bootstrap writes `var/tools/go.mod`, so `./...` of a Go module of the checkout does not walk the Go that mise installs.
+
 ### 2026-10-14 — TypeScript API with API Extractor and API Documenter (C14.5)
 
 - Each TypeScript package checks its public API with API Extractor through an `api-extractor.json` that extends the copied `config/api-extractor.kit.json`, and commits its report `etc/<package>.api.md`; an undocumented export and a reference to an unexported type are errors of `make lint-ts`. `scripts/check-doc-coverage.mjs` checks Go, Rust and PHP, and `scripts/gen-api-docs.mjs` writes the TypeScript pages with API Documenter from the doc model of API Extractor. TypeDoc and its configurations are removed.
