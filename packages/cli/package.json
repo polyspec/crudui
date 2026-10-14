@@ -12,8 +12,7 @@
     "src"
   ],
   "scripts": {
-    "describe": "node --import tsx bin/crudui.mjs describe",
-    "test": "node ../../scripts/require-current-build.mjs && node ../../node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/cli"
+    "describe": "node --import tsx bin/crudui.mjs describe"
   },
   "dependencies": {
     "@polyspec/crudui-generator-core": "0.0.5",

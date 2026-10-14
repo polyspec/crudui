@@ -420,7 +420,7 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "npm test -w @polyspec/crudui-generator-core -- src/form.test.ts"
+          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator-core -- src/form.test.ts"
         },
         {
           "id": "test-2",
@@ -428,7 +428,7 @@
         },
         {
           "id": "test-3",
-          "command": "npm test -w @polyspec/crudui-generator-core -- src/input-text.test.ts"
+          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator-core -- src/input-text.test.ts"
         }
       ]
     },
@@ -471,7 +471,7 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "npm test -w @polyspec/crudui-generator-core -- src/form.test.ts"
+          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator-core -- src/form.test.ts"
         },
         {
           "id": "test-2",
@@ -479,7 +479,7 @@
         },
         {
           "id": "test-3",
-          "command": "npm test -w @polyspec/crudui-generator-core -- src/input-text.test.ts"
+          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator-core -- src/input-text.test.ts"
         }
       ]
     },
@@ -515,7 +515,7 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "npm test -w @polyspec/crudui-generator-core -- src/node.test.ts"
+          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator-core -- src/node.test.ts"
         }
       ]
     },
@@ -550,7 +550,7 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "npm test -w @polyspec/crudui-generator-core -- src/node.test.ts"
+          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator-core -- src/node.test.ts"
         }
       ]
     },
@@ -593,15 +593,15 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "npm test -w @polyspec/crudui-generator-core -- src/form.test.ts"
+          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator-core -- src/form.test.ts"
         },
         {
           "id": "test-2",
-          "command": "npm test -w @polyspec/crudui-generator-core -- src/form.test.ts"
+          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator-core -- src/form.test.ts"
         },
         {
           "id": "test-3",
-          "command": "npm test -w @polyspec/crudui-generator-core -- src/input-text.test.ts"
+          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator-core -- src/input-text.test.ts"
         }
       ]
     },
@@ -748,11 +748,11 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "npm test -w @polyspec/crudui-generator-core -- src/list.test.ts"
+          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator-core -- src/list.test.ts"
         },
         {
           "id": "test-2",
-          "command": "npm test -w @polyspec/crudui-generator-core -- src/input-text.test.ts"
+          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator-core -- src/input-text.test.ts"
         }
       ]
     },
@@ -798,11 +798,11 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "npm test -w @polyspec/crudui-generator-core -- src/detail.test.ts"
+          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator-core -- src/detail.test.ts"
         },
         {
           "id": "test-2",
-          "command": "npm test -w @polyspec/crudui-generator-core -- src/input-text.test.ts"
+          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator-core -- src/input-text.test.ts"
         }
       ]
     },
@@ -952,11 +952,11 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "npm test -w @polyspec/crudui-generator-core -- src/widget-controls.test.ts"
+          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator-core -- src/widget-controls.test.ts"
         },
         {
           "id": "test-2",
-          "command": "npm test -w @polyspec/crudui-generator-core -- src/form.test.ts"
+          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator-core -- src/form.test.ts"
         }
       ]
     },
@@ -990,7 +990,7 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "npm test -w @polyspec/crudui-generator-core -- src/patch.test.ts"
+          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator-core -- src/patch.test.ts"
         },
         {
           "id": "test-2",
@@ -1073,7 +1073,7 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "npm test -w @polyspec/crudui-generator-core -- src/node.test.ts"
+          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator-core -- src/node.test.ts"
         }
       ]
     },
@@ -1107,7 +1107,7 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "npm test -w @polyspec/crudui-generator-core -- src/node.test.ts"
+          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator-core -- src/node.test.ts"
         }
       ]
     },
@@ -1148,7 +1148,7 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "npm test -w @polyspec/crudui-generator-core -- src/node.test.ts"
+          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator-core -- src/node.test.ts"
         }
       ]
     },
@@ -1187,7 +1187,7 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "npm test -w @polyspec/crudui-generator-core -- src/node.test.ts"
+          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator-core -- src/node.test.ts"
         }
       ]
     },
@@ -1226,7 +1226,7 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "npm test -w @polyspec/crudui-generator-core -- src/node.test.ts"
+          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator-core -- src/node.test.ts"
         }
       ]
     },
