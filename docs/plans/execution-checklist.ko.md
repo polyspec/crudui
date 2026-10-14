@@ -1,6 +1,6 @@
 # Execution checklist
 <!-- doc-id: docs-plans-execution-checklist -->
-<!-- source-sha256: fbbdc20705479f700b210b63e377617f4887e0d1654f7f1c1dd68aad76db819e -->
+<!-- source-sha256: 5d3d3d8a2cbaa2ee4ddf5eb337acc41a9772c4cd21670b152cc240ca6a7db16e -->
 
 ## [Wave 1](waves.ko.md#wave-1) — 좁은 viewport를 위한 stylesheet와 stylesheet의 Tailwind 버전
 
@@ -301,6 +301,7 @@
 | C14.15 | `equalTo`, `notEqual`, `enddate`, `unique`의 rule parameter를 모든 언어에서 specification을 load할 때 spec 문장과 공유 vector로 검사한다. 그 뒤 TypeScript rule은 `String(ruleParam)` 대신 검사된 문자열을 읽는다. Red: `equalTo.ts`와 `enddate.ts`의 oxlint `no-base-to-string`. 문자열이 아닌 parameter가 rule에 닿았다. | 모든 언어의 공유 vector, `make lint-ts` |[o] |
 | C14.16 | C14.12의 oxlint finding이 드러낸 결함을, 각각 이전에 실패한 test와 함께 고친다. 배열이나 객체의 TypeScript `==`, `!=`, `in`, `connectForm`이 control에 쓰는 값, form comparison의 Svelte adapter의 dispose, 그 PHP 서버의 stop이다. | 각 결함의 test |[o] |
 | C14.17 | CI job이 toolchain-check 뒤까지 실행되며(C14.13) 닿는 검사가 통과한다. `test:forms`는 C14.3-1이 package script를 없앤 form-binding의 Vitest suite를 root에서 실행하고, PHP engine test는 build entry point `scripts/build-crudui-php-extension.mts`를, local-servers test는 TypeScript 이식(C14.7)의 import `@polyspec/kit/test-hooks`를 적는다. Red: CI run 38597830858: `@polyspec/crudui-form-binding`의 `npm error Missing script: "test"`, `The input did not match the regular expression /node scripts\/build-crudui-php-extension\.mjs/`, `../pipeline.browser.mjs uses setup and teardown`. | `make test-forms`, `make test-php-engine`, `make test-form-comparison` |[ ] |
+| C14.18 | crudui의 Go module은 ordered-json의 무시되는 clone 없이 resolve된다. `go.work`는 checkout의 module만 쓰고, C14.7이 tag가 아직 없는 `packages/{validator,generator}/go`로 옮겼으므로 각 workspace module은 다른 module을 main의 push된 commit의 pseudo-version으로 요구한다(`go list -m`이 resolve한 version으로 `go mod edit -require`). form-comparison Go 서버는 `github.com/polyspec/ordered-json/go` v0.0.3을 요구하고, `make install`은 `go mod download`로 Go module을 내려받으며, 검사는 offline으로 남는다. 다음 crudui release가 pseudo-version을 tag `packages/{validator,generator}/go/vX`로 바꾼다. Red: kit 0.0.45에서 `make dependency-policy-mutation-check`가 `.form-comparison/sources/ordered-json/go`의 `use`로 실패했고, 0.0.44에서는 `benchmarks/validators/go/go.mod requires modules and benchmarks/validators/go/go.sum is missing`로 실패했다. | `make dependency-policy-mutation-check`, Go build와 test |[ ] |
 
 ## [Wave 15](waves.ko.md#wave-15) — 각 생태계의 표준 도구를 있는 그대로 사용하기
 
