@@ -10,7 +10,8 @@ passes; a `createForm` case runs its recorded action on the created instance.
 
 import unittest
 
-from conformance import cases_of, Proving
+from .conformance import cases_of
+from polyspec.crudui.conformance import Proving
 
 
 def _options_of(case):

@@ -9,15 +9,9 @@ status 1, as the JavaScript, PHP, Go and Rust programs do.
 
 import json
 import sys
-from pathlib import Path
 
-for source in ("validator/python", "generator/python"):
-    sys.path.insert(
-        0, str(Path(__file__).resolve().parents[2] / "packages" / source / "src")
-    )
-
-from polyspec.crudui.generator import FormError, Generator  # noqa: E402
-from polyspec.crudui.validator import ComposeLoadError, FormInputError  # noqa: E402
+from polyspec.crudui.generator import FormError, Generator
+from polyspec.crudui.validator import ComposeLoadError, FormInputError
 
 FORM_METHODS = frozenset(
     (

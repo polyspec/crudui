@@ -14,19 +14,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[4]
 
-_CONFORMANCE = ROOT / "tests" / "conformance"
-if str(_CONFORMANCE) not in sys.path:
-    sys.path.insert(0, str(_CONFORMANCE))
-from evidence import Proving  # noqa: E402,F401  (records each shared case the Python suites run)
 
 FIXTURES = ROOT / "tests" / "fixtures"
 
-VALIDATOR_SOURCE = ROOT / "packages" / "validator" / "python" / "src"
-GENERATOR_SOURCE = ROOT / "packages" / "generator" / "python" / "src"
-
-for source in (VALIDATOR_SOURCE, GENERATOR_SOURCE):
-    if str(source) not in sys.path:
-        sys.path.insert(0, str(source))
 
 # The deepest fixture value nests 512 levels of containers and the traversal
 # follows it; the default interpreter limit does not.

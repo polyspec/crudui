@@ -237,6 +237,17 @@
     },
     {
       "paths": [
+        "pyproject.toml",
+        "uv.lock",
+        "tests/conformance/python/**"
+      ],
+      "targets": [
+        "test-validator-python",
+        "test-generator-python"
+      ]
+    },
+    {
+      "paths": [
         "examples/form-comparison/**"
       ],
       "scripts": [
@@ -355,14 +366,6 @@
       ],
       "tests": [
         "tests/build/conformance-evidence.test.mts"
-      ]
-    },
-    {
-      "paths": [
-        "tests/ordered-json/**"
-      ],
-      "targets": [
-        "test-ordered-json"
       ]
     },
     {

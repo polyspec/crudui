@@ -1,7 +1,7 @@
 import json
 import unittest
 
-from conformance import ROOT
+from .conformance import ROOT
 from polyspec.crudui.validator import unicode_data
 
 

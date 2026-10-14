@@ -11,27 +11,15 @@ detail result with {valid, errors}. A load or input failure exits 2 with
 
 import json
 import sys
-from pathlib import Path
 
-sys.path.insert(
-    0,
-    str(
-        Path(__file__).resolve().parents[4]
-        / "packages"
-        / "validator"
-        / "python"
-        / "src"
-    ),
-)
-
-from polyspec.crudui.validator import (  # noqa: E402
+from polyspec.crudui.validator import (
     ComposeLoadError,
     FormInputError,
     validate,
     validateDetail,
     validateList,
 )
-from polyspec.crudui.validator.text import input_failure, specification_failure  # noqa: E402
+from polyspec.crudui.validator.text import input_failure, specification_failure
 
 MODES = ("form", "list", "detail")
 

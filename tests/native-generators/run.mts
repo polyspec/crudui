@@ -263,7 +263,7 @@ function phpProvenanceSource(autoload: boolean): string {
 const targets: Target[] = [
   { name: 'javascript', command: process.execPath, args: [path.join(ROOT, 'tests/native-generators/javascript.mts')] },
   { name: 'html', command: process.execPath, args: [path.join(ROOT, 'tests/native-generators/javascript.mts'), '--renderer', 'html'] },
-  { name: 'python', command: process.env.PYTHON ?? 'python3', args: [path.join(ROOT, 'tests/native-generators/python.py')] },
+  { name: 'python', command: process.env.CRUDUI_PYTHON ?? path.join(ROOT, 'var/python/bin/python'), args: [path.join(ROOT, 'tests/native-generators/python.py')] },
   { name: 'php', command: process.env.PHP ?? 'php', args: [phpCLI], probe: async () => {
     await stat(path.join(ROOT, 'vendor/autoload.php'));
     const result = await execute(process.env.PHP ?? 'php', ['-r', phpProvenanceSource(true)]);

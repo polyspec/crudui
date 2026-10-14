@@ -1,61 +1,20 @@
 # JSON 문서 순서 검증
 <!-- doc-id: docs-operations-ordered-json -->
-<!-- source-sha256: e4dd13a9edb1a221cd12ae84ebecbe93189cd898569669f118ad0e9d32ee9847 -->
+<!-- source-sha256: ed38b55ca89eb12eb919aced5104fc3e2c1d8a4840cfda79aa1df9c7a15e7d47 -->
 
 [English](ordered-json.md). [폼 런타임 계약](../spec/form-runtime.ko.md)은 필요한
 데이터 형태와 순서를 정의합니다. [기능 상태](../features.ko.md)는 검증과 런타임
 배포를 구분해 기록합니다.
 
-검사는
-[OrderedJSON](https://github.com/polyspec/ordered-json) 버전 `0.0.3`의 tag `v0.0.3`를
-명시적으로 체크아웃합니다.
-다섯 구현은 이 모노레포의 패키지 디렉터리입니다.
+[폼 비교](../spec/form-comparison.ko.md)의 레코드 서버는 `make install-ordered-json`이 체크아웃하는
+[OrderedJSON](https://github.com/polyspec/ordered-json) tag `v0.0.3`의 패키지로 JSON을 읽고 씁니다.
+JavaScript의 `@polyspec/ordered-json`, Go module, Rust crate, PHP의 `Polyspec\OrderedJson`, `php-extension` 패키지의
+`ordered_json` 확장입니다. 처리기 자체는 OrderedJSON의 parity 검사와 테스트가 다섯 구현에서 검증하며 crudui는 이를
+반복하지 않습니다. crudui는 패키지 사용을 테스트합니다. `examples/form-comparison/src/json.test.mjs`, `test-json.php`,
+Go 서버의 `json_test.go`, Rust 서버의 JSON 테스트는 레코드가 숫자 키와 키가 있는 행을 포함한 멤버 순서와 빈 타입을
+유지하고, 폼 데이터 범위 밖의 숫자가 실패하는지 확인합니다.
 
-| 패키지 | 매니페스트 |
-| --- | --- |
-| `js` | `js/package.json` |
-| `rust` | `rust/Cargo.toml` |
-| `go` | `go/go.mod` |
-| `php` | `php/composer.json` |
-| `php-extension` | `php-extension/composer.json` |
-
-검사기는 저장소 체크아웃의 절대 경로를 요구하며, 실행 전후에
-소스 변경 여부를 확인합니다. PHP는 `Polyspec\OrderedJson` 네임스페이스를 사용하며,
-네이티브 대상은 `php-extension`이고 `ordered_json.so`를 로드합니다.
-
-`ORDERED_JSON_SOURCE`를 체크아웃의 절대 경로로 설정합니다. Node, PHP, PHP 확장
-빌드 도구, Go, Rust, Python이 설치된 환경에서 CRUDUI 루트를 기준으로 실행합니다.
-
-```sh
-ORDERED_JSON_SOURCE=/absolute/path/to/ordered-json
-git clone --depth 1 --branch v0.0.3 https://github.com/polyspec/ordered-json "$ORDERED_JSON_SOURCE"
-make test-ordered-json
-python3 "$ORDERED_JSON_SOURCE/scripts/verify.py"
-python3 tests/ordered-json/check.py "$ORDERED_JSON_SOURCE"
-make docs-check
-```
-
-체크아웃이 이미 있으면 clone 명령을 생략합니다. 단위 검사는 실패 처리와 불완전한
-결과 검출을 확인합니다. 공식 검사기는 어댑터와 PHP
-확장을 빌드하고 다섯 구현에서 공식 예제 17개와 공통 문법 사례 98개를 실행합니다.
-공통 저장소의 전체 검증 기록이나 PIE 검증 기록을 교체하지 않습니다.
-CRUDUI 검사기는 JSON 문서 10개를 다섯 구현의 파싱·직렬화·재구성 API로
-처리합니다. 독립된 Python 디코더가 객체 키·값 쌍과 숫자 토큰을 유지해 비교합니다.
-검사기는 객체 멤버를 정렬하지 않고 순서를 포함한 전체 트리를 비교합니다.
-`scripts/registry.py`로 저장소 경로를 확인하고, 선택한 어댑터를 빌드하고,
-실행 명령을 가져옵니다. 두 검사는 순서대로 실행합니다. 같은 체크아웃에서
-일반 확장 빌드와 PIE 결과물 검사를 동시에 실행하면 안 됩니다.
-
-보고서는 `.verification/ordered-json/ordered-json-<timestamp>.json`에 저장합니다.
-체크아웃의 커밋, 패키지 경로, 검사기·사례 해시, 런타임 버전, 네이티브 모듈
-해시, 빌드 경고와 개별 결과를 포함합니다. 이전 보고서는 유지합니다. 다섯 구현과
-결과 50개가 모두 필요합니다. 응답 누락, 잘못된 출력, 프로세스 실패나 사례 실패는
-실패 보고서와 0이 아닌 종료 상태를 생성합니다. 검증 중 소스나 결과물이 변경되어도
-검사가 실패합니다.
-
-추가·복사·저장 후 키 교체 사례는 JSON 고정 데이터입니다. 전송 표현을 검사하며,
-폼 버튼이나 데이터베이스 작업의 실행을 검사하지는 않습니다. 외부에 보존한 예제의 전송
-모듈은 JSON 요청·응답과 저장소 파일에 이 처리기를 사용합니다. 처리기는 `Value` 노드를 반환하며,
+폼 비교의 전송 모듈은 JSON 요청·응답과 저장소 파일에 이 처리기를 사용합니다. 처리기는 `Value` 노드를 반환하며,
 JavaScript 객체 멤버는 `Map`입니다. 폼 세션은 일반 객체 데이터를 받습니다.
 이 맵을 일반 JavaScript 객체로 변환하면 숫자 형태 멤버의 순서가 변경되므로
 폼 변환은 그런 변경을 거부합니다.
@@ -66,4 +25,3 @@ JavaScript 객체 멤버는 `Map`입니다. 폼 세션은 일반 객체 데이�
 [폼 검사](testing.ko.md#폼과-보고서)가 확인합니다. 레코드 저장소 HTTP 계약은 multipart, URL-encoded, JSON
 저장과 잘못된 요청을 모든 레코드 서버에 보내고, 정본 흐름 검사는 모든 서버·클라이언트·초기화 방식의
 폼에 입력하고 저장한 뒤 목록을 다시 불러옵니다.
-처리기만 검사한 결과와 이 연동 결과는 별도로 기록합니다.

@@ -7,21 +7,17 @@ which the other harnesses canonicalize the same way; arrays keep their order),
 and an error case raises `ComposeLoadError` with the recorded code.
 """
 
-import sys
 import unittest
-from pathlib import Path
 
-SOURCE = str(Path(__file__).resolve().parents[1] / "src")
-if SOURCE not in sys.path:
-    sys.path.insert(0, SOURCE)
 
-from conformance import cases_of, Proving  # noqa: E402
+from .conformance import cases_of
+from polyspec.crudui.conformance import Proving
 from polyspec.crudui.validator.compose import (
     MemoryLoader,
     compose_properties,
     compose_spec,
-)  # noqa: E402
-from polyspec.crudui.validator.compose_errors import ComposeLoadError  # noqa: E402
+)
+from polyspec.crudui.validator.compose_errors import ComposeLoadError
 
 
 def canon(value):

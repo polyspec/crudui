@@ -149,7 +149,7 @@ test('the checkout records one exact version of every tool', async () => {
   assert.match(config.node['linux-x64.tar.gz'] ?? '', /^[0-9a-f]{64}$/, 'config/toolchain.json records the SHA-256 of the Linux x64 archive of the Node.js release');
   // setup-php and Homebrew cannot install the same patch, so PHP is pinned by its minor release; the patch is evidence.
   assert.ok(config.php.length > 0 && config.php.every(release => /^\d+\.\d+$/.test(release)), `config/toolchain.json must record php as minor releases; it records ${JSON.stringify(config.php)}`);
-  // Python, a test tool of tests/ordered-json, and Go and Composer are exact releases of mise.toml, locked by mise.lock.
+  // Python, which runs the Python packages and their suites, and Go and Composer are exact releases of mise.toml, locked by mise.lock.
   for (const tool of ['go', 'python', 'composer'] as const) assert.match(recorded[tool] ?? '', /^\d+\.\d+\.\d+$/, `mise.toml must record ${tool} as one exact release`);
 });
 

@@ -1,6 +1,6 @@
 # 검증기 프로세스
 <!-- doc-id: examples-cross-check-console-validators-readme -->
-<!-- source-sha256: 508d6f3dc05f096f6fcc179aee08b24e067cc052469257edee01311de14a3a73 -->
+<!-- source-sha256: cb5d04f15b2e009b415c9362ee41ebed875cc7951a16207f232e70cdd8ca8062 -->
 
 [English](README.md).
 
@@ -20,9 +20,10 @@
 `../server`에서 `npm run build:validators`를 실행하면 Go 프로그램을 root의 `var/build/cross-check-console/go-validate`로, Rust
 프로그램을 `rust/target/release/polyspec-crudui-cross-check-validator`로 빌드합니다. JavaScript 프로그램은
 빌드된 `@polyspec/crudui-validator` 패키지를 import합니다. PHP 프로그램은 `packages/validator/php`의
-Composer 자동 로더를 불러옵니다. Python 프로그램은 `packages/validator/python`을
-import합니다. 배포 환경은 `CRUDUI_CROSS_CHECK_GO_VALIDATOR`와
-`CRUDUI_CROSS_CHECK_RUST_VALIDATOR`로 다른 Go·Rust 실행 파일을 지정할 수 있습니다.
+Composer 자동 로더를 불러옵니다. Python 프로그램은 `make install-python`이 만드는
+환경 `var/python`에 설치된 `polyspec.crudui.validator`를 import하고, gateway는 그 Python으로 이를 실행합니다. 배포 환경은
+`CRUDUI_CROSS_CHECK_GO_VALIDATOR`, `CRUDUI_CROSS_CHECK_RUST_VALIDATOR`, `CRUDUI_PYTHON`으로 다른 Go·Rust·Python 실행 파일을
+지정할 수 있습니다.
 
 ## 요청
 

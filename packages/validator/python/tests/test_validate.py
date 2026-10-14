@@ -6,24 +6,11 @@ a failure case throws the recorded `{ code, message, at }` record.
 """
 
 import unittest
-from pathlib import Path
-
-sys_path_prefix = str(Path(__file__).resolve().parents[1] / "src")
-
-from conformance import cases_of, failure_record, Proving  # noqa: E402
 
 
-def _load_validator():
-    import sys
-
-    if sys_path_prefix not in sys.path:
-        sys.path.insert(0, sys_path_prefix)
-    from polyspec.crudui import validator
-
-    return validator
-
-
-validator = _load_validator()
+from polyspec.crudui import validator
+from .conformance import cases_of, failure_record
+from polyspec.crudui.conformance import Proving
 
 
 class TestValidateConformance(unittest.TestCase):

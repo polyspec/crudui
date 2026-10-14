@@ -9,7 +9,8 @@ failure case raises the recorded code and message.
 import re
 import unittest
 
-from conformance import cases_of, failure_record, html_tree, Proving
+from .conformance import cases_of, failure_record, html_tree
+from polyspec.crudui.conformance import Proving
 
 _PRELOAD = re.compile(r'<link [^>]*rel="preload"[^>]*>')
 

@@ -197,8 +197,8 @@ latest release of a channel, and no tool installs another version on its own.
   rustup's message instead of installing it; `make install` and CI install it
   with `rustup toolchain install --no-self-update`.
 - `config/toolchain.json` records the tested PHP minor releases in `php`, the
-  minor release of Python, which runs the tests of `tests/ordered-json`
-  (`make test-ordered-json`), in `python`, compared like PHP, the exact Composer release in `composer`
+  minor release of Python, which runs the Python packages and their suites in `var/python`
+  (`make install-python`), in `python`, compared like PHP, the exact Composer release in `composer`
   (an object with `version` and the SHA-256 of its phar), the `go.mod` whose `go` line is the Go release in `go`, the
   exact releases and digests of uv and the Python build, alint, ruff, vulture, golangci-lint and deadcode, the exact
   cargo-audit release in `cargoAudit`, and the SHA-256 of the Linux x64 archive

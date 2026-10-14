@@ -6,17 +6,13 @@ to the recorded value and truthiness; a rejected expression reproduces the
 first line of the recorded error message.
 """
 
-import sys
 import unittest
-from pathlib import Path
 
-SOURCE = str(Path(__file__).resolve().parents[1] / "src")
-if SOURCE not in sys.path:
-    sys.path.insert(0, SOURCE)
 
-from conformance import cases_of, Proving  # noqa: E402
-from polyspec.crudui.validator.parser import ParseError, parse_condition  # noqa: E402
-from polyspec.crudui.validator.resolver import (  # noqa: E402
+from .conformance import cases_of
+from polyspec.crudui.conformance import Proving
+from polyspec.crudui.validator.parser import ParseError, parse_condition
+from polyspec.crudui.validator.resolver import (
     evaluate_condition,
     evaluate_expression_value,
 )

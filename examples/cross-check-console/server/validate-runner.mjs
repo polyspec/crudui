@@ -26,7 +26,7 @@ export const validatorProcesses = Object.freeze({
       ?? path.join(VALIDATORS, 'rust/target/release/polyspec-crudui-cross-check-validator'),
     args: [],
   },
-  python: { command: 'python3', args: [path.join(VALIDATORS, 'python/validate.py')] },
+  python: { command: process.env.CRUDUI_PYTHON ?? path.join(ROOT, 'var/python/bin/python'), args: [path.join(VALIDATORS, 'python/validate.py')] },
 });
 
 /**
