@@ -26,8 +26,8 @@ function mostReads(
     Object.defineProperty(holder, name, {
       enumerable: true,
       get() {
-        reads[index] = reads[index]! + 1;
-        if (reads[index]! > limit) throw new Error(`value ${index} of ${count} was read ${reads[index]} times`);
+        reads[index] = reads[index] + 1;
+        if (reads[index] > limit) throw new Error(`value ${index} of ${count} was read ${reads[index]} times`);
         return `item-${index}`;
       },
     });

@@ -8,6 +8,7 @@
  * recursion that depends on the text.
  */
 
+import { codePointAt, type CodePointText } from '../code-point';
 import type { Alternation, Atom, ClassMember, Term } from './ast';
 import type { RecognizedPattern } from './recognizer';
 import { alternationSize, termSize } from './recognizer';
@@ -141,8 +142,12 @@ export class PatternMatcher {
     const ids = new Map<CodePointSet, number>();
     this.setIds = Int32Array.from(builder.sets, (set) => {
       if (!set) return -1;
-      if (!ids.has(set)) ids.set(set, ids.size);
-      return ids.get(set)!;
+      let id = ids.get(set);
+      if (id === undefined) {
+        id = ids.size;
+        ids.set(set, id);
+      }
+      return id;
     });
     this.setCount = ids.size;
   }
@@ -153,7 +158,7 @@ export class PatternMatcher {
   }
 
   /** Whether the whole text matches. */
-  test(text: string): boolean {
+  test(text: CodePointText): boolean {
     const count = this.kinds.length;
     const marks = new Int32Array(count).fill(-1);
     const stack = new Int32Array(2 * count + 1);
@@ -187,7 +192,7 @@ export class PatternMatcher {
     let size = close(this.start, current, 0);
     for (let index = 0; index < text.length && size > 0; ) {
       // A lone surrogate is one code point.
-      const codePoint = text.codePointAt(index)!;
+      const codePoint = codePointAt(text, index);
       index += codePoint > 0xffff ? 2 : 1;
       generation++;
       const step = generation;
@@ -198,7 +203,9 @@ export class PatternMatcher {
         const id = this.setIds[s];
         if (setStep[id] !== step) {
           setStep[id] = step;
-          setMember[id] = this.sets[s]!.has(codePoint) ? 1 : 0;
+          const set = this.sets[s];
+          if (!set) throw new TypeError(`The character state ${s} has no set`);
+          setMember[id] = set.has(codePoint) ? 1 : 0;
         }
         if (setMember[id] === 1) nextSize = close(this.next[s], following, nextSize);
       }

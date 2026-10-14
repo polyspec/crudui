@@ -28,6 +28,7 @@ import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
 import { load as loadYaml } from 'js-yaml';
 
+import { ComposeLoadError } from '@polyspec/crudui-validator';
 import { composeSpec, MemoryLoader, parseJsonDocument, scanForbiddenKeys } from '@polyspec/crudui-validator/internal';
 // Live widget registry (drift 0): the same key set `describe`/`list-widgets`
 // surface. Imported, never re-declared as a static enum.
@@ -62,8 +63,8 @@ function isFieldNode(v: unknown): v is Record<string, unknown> {
 }
 
 /** A field is a CONTAINER when it owns a `properties` map (SPEC §3). */
-function isContainer(field: Record<string, unknown>): boolean {
-  return isFieldNode(field.properties);
+function containerProperties(field: Record<string, unknown>): Record<string, unknown> | undefined {
+  return isFieldNode(field.properties) ? field.properties : undefined;
 }
 
 const REGISTERED_KINDS = new Set(WIDGET_KINDS);
@@ -80,8 +81,8 @@ const REGISTERED_KINDS = new Set(WIDGET_KINDS);
 function catalogErrors(field: Record<string, unknown>, path: string): CheckError[] {
   const out: CheckError[] = [];
 
-  if (isContainer(field)) {
-    const props = field.properties as Record<string, unknown>;
+  const props = containerProperties(field);
+  if (props) {
     for (const childName of Object.keys(props)) {
       // composition directives are not fields; the compose pass already removed
       // resolved ones, but a literal `$ref`/`$patch` key is never a child field.
@@ -115,12 +116,14 @@ export async function runCheck(file: string | undefined): Promise<CheckResult> {
   try {
     spec = loadSpec(file);
   } catch (e) {
-    return { ok: false, errors: [{ path: file, reason: `parse failed: ${(e as Error).message}` }] };
+    if (!(e instanceof Error)) throw e;
+    return { ok: false, errors: [{ path: file, reason: `parse failed: ${e.message}` }] };
   }
 
   // Check 1 — meta-schema (ajv). strict:false: the schema carries $comment and
   // descriptive metadata the strict mode would flag; the constraints are intact.
   const schema = parseJsonDocument(readFileSync(SCHEMA_PATH, 'utf-8'));
+  if (!isFieldNode(schema)) throw new Error(`${SCHEMA_PATH} holds no JSON object`);
   const ajv = new Ajv({ strict: false, allErrors: true });
   addFormats(ajv);
   const validate = ajv.compile(schema);
@@ -129,10 +132,8 @@ export async function runCheck(file: string | undefined): Promise<CheckResult> {
   const errors: CheckError[] = [];
   if (!valid) {
     for (const err of validate.errors ?? []) {
-      const key =
-        err.keyword === 'additionalProperties'
-          ? (err.params as { additionalProperty?: string }).additionalProperty
-          : undefined;
+      const extra: unknown = err.keyword === 'additionalProperties' ? err.params.additionalProperty : undefined;
+      const key = typeof extra === 'string' ? extra : undefined;
       errors.push({
         path: err.instancePath || '/',
         ...(key ? { key } : {}),
@@ -145,11 +146,12 @@ export async function runCheck(file: string | undefined): Promise<CheckResult> {
   try {
     scanForbiddenKeys(spec);
   } catch (e) {
-    const err = e as { message?: string; trace?: string[] };
+    if (!(e instanceof ComposeLoadError)) throw e;
+    const key = e.trace.at(-1);
     errors.push({
-      path: (err.trace ?? []).join('.') || '/',
-      key: (err.trace ?? []).slice(-1)[0],
-      reason: err.message ?? 'forbidden meta key',
+      path: e.trace.join('.') || '/',
+      ...(key === undefined ? {} : { key }),
+      reason: e.message,
     });
   }
 
@@ -159,7 +161,8 @@ export async function runCheck(file: string | undefined): Promise<CheckResult> {
       const tree = composeSpec(spec, new MemoryLoader({}));
       errors.push(...catalogErrors(tree, ''));
     } catch (error) {
-      errors.push({ path: '/', reason: `composition failed: ${(error as Error).message}` });
+      if (!(error instanceof Error)) throw error;
+      errors.push({ path: '/', reason: `composition failed: ${error.message}` });
     }
   }
 

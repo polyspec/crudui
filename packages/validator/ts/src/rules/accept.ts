@@ -4,6 +4,7 @@
  * Validates that a file has an acceptable MIME type or extension
  */
 
+import { isRecord } from '../record';
 import { RuleDefinition, ValidationContext } from '../types';
 import { isEmpty } from './required';
 import { trim } from '../values/index';
@@ -165,6 +166,17 @@ function matchesExtension(filename: string, acceptList: string[]): boolean {
 }
 
 /**
+ * The first of the members `key` and `alternative` of a file object that is a non-empty string, or '' when neither is
+ * one: a member of another type names no MIME type or file name.
+ */
+function fileText(file: Record<string, unknown>, key: string, alternative: string): string {
+  for (const value of [file[key], file[alternative]]) {
+    if (typeof value === 'string' && value !== '') return value;
+  }
+  return '';
+}
+
+/**
  * Accept rule definition
  */
 export const acceptRule: RuleDefinition = {
@@ -188,7 +200,7 @@ export const acceptRule: RuleDefinition = {
 
     // Handle File object (browser environment)
     if (typeof File !== 'undefined' && value instanceof File) {
-      const file = value as File;
+      const file = value;
 
       // Check MIME type
       if (file.type && matchesMimeType(file.type, acceptList)) {
@@ -221,9 +233,9 @@ export const acceptRule: RuleDefinition = {
     // Handle array of files (React, etc.)
     if (Array.isArray(value)) {
       for (const file of value) {
-        if (typeof file === 'object' && file !== null) {
-          const mimeType = file.type || file.mimeType || '';
-          const filename = file.name || file.filename || '';
+        if (isRecord(file)) {
+          const mimeType = fileText(file, 'type', 'mimeType');
+          const filename = fileText(file, 'name', 'filename');
 
           const isValid =
             (mimeType && matchesMimeType(mimeType, acceptList)) ||
@@ -254,10 +266,9 @@ export const acceptRule: RuleDefinition = {
     }
 
     // Handle object with type/name properties
-    if (typeof value === 'object' && value !== null) {
-      const obj = value as Record<string, unknown>;
-      const mimeType = (obj.type || obj.mimeType || '') as string;
-      const filename = (obj.name || obj.filename || '') as string;
+    if (isRecord(value)) {
+      const mimeType = fileText(value, 'type', 'mimeType');
+      const filename = fileText(value, 'name', 'filename');
 
       const isValid =
         (mimeType && matchesMimeType(mimeType, acceptList)) ||

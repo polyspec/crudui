@@ -21,7 +21,7 @@ const NODE_ERROR = 'crudui-node__error';
 export function formBody(form: HTMLFormElement): HTMLElement {
   const bodies = form.querySelectorAll<HTMLElement>(`.${FORM_BODY}`);
   if (bodies.length !== 1) throw new TypeError('The form must contain one CRUDUI form');
-  return bodies[0]!;
+  return bodies[0];
 }
 
 /** An errors element of one class with one paragraph of another class per text. */
@@ -39,7 +39,9 @@ function errorList(document: Document, listClass: string, itemClass: string, tex
 
 /** Replace the form errors before the form body; no texts leaves no errors element. */
 export function writeFormErrors(body: HTMLElement, texts: readonly string[]): void {
-  for (const child of Array.from(body.parentElement!.children)) {
+  const parent = body.parentElement;
+  if (!parent) throw new TypeError('The form body has no parent element');
+  for (const child of Array.from(parent.children)) {
     if (child.classList.contains(FORM_ERRORS)) child.remove();
   }
   if (texts.length) body.before(errorList(body.ownerDocument, FORM_ERRORS, FORM_ERROR, texts));

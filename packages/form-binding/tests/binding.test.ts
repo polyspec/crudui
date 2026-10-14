@@ -3,8 +3,8 @@
 import { validate } from '@polyspec/crudui-validator';
 import { describe, expect, it } from 'vitest';
 
-import { bindForm } from '../src/index';
-import { control, leave, node, nodeErrors, renderedForm, type } from './dom';
+import { bindForm, type FormBindingOptions } from '../src/index';
+import { control, documentOf, formHtml, found, leave, node, nodeErrors, renderedForm, type } from './dom';
 
 const spec = {
   type: 'group',
@@ -23,8 +23,21 @@ function setup(data: Record<string, unknown> = {}, render = {}) {
   return { ...page, binding };
 }
 
-function submit(window: ReturnType<typeof setup>['window'], form: HTMLFormElement): Event {
-  const event = new window.SubmitEvent('submit', { bubbles: true, cancelable: true });
+/** Call bindForm as JavaScript does, with arguments outside its types. */
+function bindUntyped(...args: unknown[]): void {
+  Reflect.apply(bindForm, undefined, args);
+}
+
+/** Binding options with the key prefix `form` and the option `name` set to a value outside its type, as JavaScript sets it. */
+function optionsWith(name: string, value: unknown): FormBindingOptions {
+  const options: FormBindingOptions = { keyPrefix: 'form' };
+  Object.defineProperty(options, name, { value, enumerable: true });
+  return options;
+}
+
+function submit(form: HTMLFormElement): Event {
+  const view = found(form.ownerDocument.defaultView, 'the window of the form');
+  const event = new view.SubmitEvent('submit', { bubbles: true, cancelable: true });
   form.dispatchEvent(event);
   return event;
 }
@@ -98,12 +111,12 @@ describe('timing', () => {
 
 describe('submission', () => {
   it('cancels an invalid submission before every other listener and focuses the first invalid control', () => {
-    const { window, document, form } = setup({ email: 'ada@example.com' });
+    const { document, form } = setup({ email: 'ada@example.com' });
     const heard: string[] = [];
     document.addEventListener('submit', () => heard.push('document capture'), { capture: true });
     form.addEventListener('submit', () => heard.push('form'));
     document.addEventListener('submit', () => heard.push('document'));
-    const event = submit(window, form);
+    const event = submit(form);
     expect(event.defaultPrevented).toBe(true);
     expect(heard).toStrictEqual([]);
     expect(nodeErrors(node(form, 'email'))).toStrictEqual([]);
@@ -113,34 +126,34 @@ describe('submission', () => {
   });
 
   it('lets a valid submission reach every listener', () => {
-    const { window, document, form } = setup({ email: 'ada@example.com', name: 'Ada', agree: '1' });
+    const { document, form } = setup({ email: 'ada@example.com', name: 'Ada', agree: '1' });
     const heard: string[] = [];
     form.addEventListener('submit', (event) => { heard.push('form'); event.preventDefault(); });
     document.addEventListener('submit', () => heard.push('document'));
-    submit(window, form);
+    submit(form);
     expect(heard).toStrictEqual(['form', 'document']);
   });
 
   it('validates every node after a submission, so each later input validates', () => {
     const { window, form } = setup();
-    submit(window, form);
+    submit(form);
     type(window, control(form, 'form[name]'), 'Ada');
     expect(nodeErrors(node(form, 'name'))).toStrictEqual([]);
     expect(nodeErrors(node(form, 'email'))).toStrictEqual([requiredText]);
   });
 
   it('focuses past a control inside a hidden element', () => {
-    const { window, document, form } = setup({ email: 'ada@example.com' });
-    node(form, 'name').querySelector<HTMLElement>('.crudui-node__body')!.hidden = true;
-    submit(window, form);
+    const { document, form } = setup({ email: 'ada@example.com' });
+    found(node(form, 'name').querySelector<HTMLElement>('.crudui-node__body'), 'the body of the name node').hidden = true;
+    submit(form);
     expect(document.activeElement).toBe(control(form, 'form[agree]'));
   });
 
   it('ignores the submission of another form', () => {
-    const { window, document, form } = setup();
+    const { document, form } = setup();
     const other = document.createElement('form');
     document.body.append(other);
-    const event = submit(window, other);
+    const event = submit(other);
     expect(event.defaultPrevented).toBe(false);
     expect(nodeErrors(node(form, 'name'))).toStrictEqual([]);
   });
@@ -172,7 +185,7 @@ describe('errors', () => {
     });
     binding.validate();
     expect(nodeErrors(node(form, 'email'))).toStrictEqual(['email:required']);
-    const errors = form.querySelector('.crudui-form__errors')!;
+    const errors = found(form.querySelector('.crudui-form__errors'), 'the form errors');
     expect(errors.nextElementSibling?.classList.contains('crudui-form__body')).toBe(true);
     expect(Array.from(errors.children, (paragraph) => [paragraph.className, paragraph.textContent]))
       .toStrictEqual([['crudui-form__error', 'Check the marked fields.'], ['crudui-form__error', 'Then save.']]);
@@ -206,9 +219,9 @@ describe('errors', () => {
 
   it('fails when message or formErrors returns another value', () => {
     const { form } = renderedForm(spec, {});
-    expect(() => bindForm(form, spec, { keyPrefix: 'form', message: () => 1 as unknown as string }).validate())
+    expect(() => bindForm(form, spec, optionsWith('message', () => 1)).validate())
       .toThrow(new TypeError('message must return a string'));
-    expect(() => bindForm(form, spec, { keyPrefix: 'form', formErrors: () => [1] as unknown as string[] }).validate())
+    expect(() => bindForm(form, spec, optionsWith('formErrors', () => [1])).validate())
       .toThrow(new TypeError('formErrors must return a list of strings'));
   });
 });
@@ -223,7 +236,7 @@ describe('binding', () => {
     type(window, email, 'x');
     leave(email);
     expect(nodeErrors(node(form, 'email'))).toStrictEqual([]);
-    expect(submit(window, form).defaultPrevented).toBe(false);
+    expect(submit(form).defaultPrevented).toBe(false);
   });
 
   it('keeps a novalidate the form had on dispose', () => {
@@ -239,15 +252,24 @@ describe('binding', () => {
     const twice = document.createElement('form');
     twice.innerHTML = '<div class="crudui-form__body"></div><div class="crudui-form__body"></div>';
     const cases: Array<[() => unknown, string]> = [
-      [() => bindForm(document.createElement('div') as unknown as HTMLFormElement, spec), 'bindForm requires a form element'],
-      [() => bindForm(form, spec, null as unknown as object), 'Binding options must be an object'],
-      [() => bindForm(form, spec, { other: 1, keyPrefix: 1 } as unknown as object), 'Unknown binding option: other'],
-      [() => bindForm(form, spec, { keyPrefix: 1 } as unknown as object), 'keyPrefix must be a string'],
-      [() => bindForm(form, spec, { message: 'x' } as unknown as object), 'message must be a function'],
-      [() => bindForm(form, spec, { formErrors: [] } as unknown as object), 'formErrors must be a function'],
+      [() => bindUntyped(document.createElement('div'), spec), 'bindForm requires a form element'],
+      [() => bindUntyped(form, spec, null), 'Binding options must be an object'],
+      [() => bindUntyped(form, spec, { other: 1, keyPrefix: 1 }), 'Unknown binding option: other'],
+      [() => bindUntyped(form, spec, { keyPrefix: 1 }), 'keyPrefix must be a string'],
+      [() => bindUntyped(form, spec, { message: 'x' }), 'message must be a function'],
+      [() => bindUntyped(form, spec, { formErrors: [] }), 'formErrors must be a function'],
       [() => bindForm(empty, spec), 'The form must contain one CRUDUI form'],
       [() => bindForm(twice, spec), 'The form must contain one CRUDUI form'],
     ];
     for (const [run, message] of cases) expect(run).toThrow(new TypeError(message));
+  });
+
+  it('rejects a form of a document without a window and leaves it unchanged', () => {
+    const parsed = documentOf('').document.implementation.createHTMLDocument('');
+    parsed.body.innerHTML = formHtml(spec, {});
+    const form = found(parsed.querySelector('form'), 'the parsed form');
+    expect(() => bindForm(form, spec, { keyPrefix: 'form' }))
+      .toThrow(new TypeError('bindForm requires a form of a document with a window'));
+    expect(form.noValidate).toBe(false);
   });
 });

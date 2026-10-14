@@ -24,6 +24,7 @@
  * belongs to the meta-schema; survival means it was not stripped).
  */
 
+import { isRecord } from './record';
 import { ComposeLoadError } from './compose/errors';
 import { FORBIDDEN_META_KEYS } from './schema';
 
@@ -71,10 +72,10 @@ function walk(node: unknown, path: string[]): void {
     }
     return;
   }
-  if (node === null || typeof node !== 'object') {
+  if (!isRecord(node)) {
     return;
   }
-  const obj = node as Record<string, unknown>;
+  const obj = node;
   // Check every key at THIS level first (shallowest hit reported), then descend.
   for (const key of Object.keys(obj)) {
     if (isForbiddenKey(key)) {

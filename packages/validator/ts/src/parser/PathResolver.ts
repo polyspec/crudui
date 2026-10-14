@@ -8,6 +8,7 @@
  * - Array indices
  */
 
+import { isRecord } from '../record';
 import {
   PathNode,
   PathContext,
@@ -67,7 +68,7 @@ function resolvePathSegments(
  * Get value by path from data object
  */
 export function getValueByPath(
-  data: Record<string, unknown>,
+  data: object,
   path: string[]
 ): unknown {
   let current: unknown = data;
@@ -78,7 +79,9 @@ export function getValueByPath(
     }
 
     if (typeof current === 'object') {
-      current = (current as Record<string, unknown>)[segment];
+      // A property read, as `current[segment]` reads it: an index of an array or a member of an object.
+      const next: unknown = Reflect.get(current, segment);
+      current = next;
     } else {
       return undefined;
     }
@@ -478,14 +481,14 @@ function resolvePath(
       // Still has wildcards, resolve to array of values
       const resolved = resolveWildcardPath(
         resolvedPath,
-        context.formData as Record<string, unknown>
+        context.formData
       );
       return new WildcardCandidates(resolved.map((r) => r.value));
     }
   }
 
   return getValueByPath(
-    context.formData as Record<string, unknown>,
+    context.formData,
     resolvedPath
   );
 }
@@ -554,9 +557,9 @@ function jsonEquals(a: unknown, b: unknown): boolean {
     return Array.isArray(a) && Array.isArray(b) && a.length === b.length
       && a.every((item, index) => jsonEquals(item, b[index]));
   }
-  if (a !== null && b !== null && typeof a === 'object' && typeof b === 'object') {
-    const left = a as Record<string, unknown>;
-    const right = b as Record<string, unknown>;
+  if (isRecord(a) && isRecord(b)) {
+    const left = a;
+    const right = b;
     const keys = Object.keys(left);
     return keys.length === Object.keys(right).length
       && keys.every((key) => Object.prototype.hasOwnProperty.call(right, key) && jsonEquals(left[key], right[key]));
@@ -626,7 +629,7 @@ export function resolveFieldReference(
     return undefined;
   }
 
-  const formData = context.formData as Record<string, unknown>;
+  const formData = context.formData;
 
   // Count leading dots; a bare name without dots is the field beside the current one, as `.name`.
   let dots = 0;

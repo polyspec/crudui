@@ -24,14 +24,12 @@
  * LOAD ERROR — never `valid:true`.
  */
 
+import { isRecord } from '../record';
 import { ComposeLoadError } from './errors';
-
-/** A `$patch` value: a flat deep-path map, and/or structured add/remove/replace. */
-type Patch = Record<string, unknown>;
 
 /** Apply a `$patch` object to the (already `$ref`-expanded) base spec. */
 export function applyPatch(base: Record<string, unknown>, patch: unknown): Record<string, unknown> {
-  if (patch === null || typeof patch !== 'object' || Array.isArray(patch)) {
+  if (!isRecord(patch)) {
     throw new ComposeLoadError(
       'PATCH_SHAPE',
       `$patch must be an object of operations, got ${
@@ -39,12 +37,11 @@ export function applyPatch(base: Record<string, unknown>, patch: unknown): Recor
       }`
     );
   }
-  const p = patch as Patch;
   let result = base;
 
   // Apply entries in declaration order (CRUDUI properties preserve order).
-  for (const key of Object.keys(p)) {
-    const val = p[key];
+  for (const key of Object.keys(patch)) {
+    const val = patch[key];
     if (key === 'add' || key === 'replace') {
       result = applyAddReplace(result, val, key);
     } else if (key === 'remove') {
@@ -63,15 +60,15 @@ function applyAddReplace(
   val: unknown,
   op: 'add' | 'replace'
 ): Record<string, unknown> {
-  if (val === null || typeof val !== 'object' || Array.isArray(val)) {
+  if (!isRecord(val)) {
     throw new ComposeLoadError(
       'PATCH_SHAPE',
       `$patch.${op} must be an object of deep-path → value`
     );
   }
   let result = base;
-  for (const path of Object.keys(val as Record<string, unknown>)) {
-    result = setDeepPath(result, splitPath(path), (val as Record<string, unknown>)[path]);
+  for (const path of Object.keys(val)) {
+    result = setDeepPath(result, splitPath(path), val[path]);
   }
   return result;
 }
@@ -88,9 +85,9 @@ function applyRemove(base: Record<string, unknown>, val: unknown): Record<string
     }
     return result;
   }
-  if (val !== null && typeof val === 'object') {
+  if (isRecord(val)) {
     // Nested map form: recurse where both sides are objects.
-    return removeNested(base, val as Record<string, unknown>);
+    return removeNested(base, val);
   }
   throw new ComposeLoadError(
     'PATCH_SHAPE',
@@ -129,8 +126,8 @@ function setDeepPath(
   const child = out[head];
   if (child === undefined) {
     out[head] = setDeepPath({}, rest, value);
-  } else if (child !== null && typeof child === 'object' && !Array.isArray(child)) {
-    out[head] = setDeepPath(child as Record<string, unknown>, rest, value);
+  } else if (isRecord(child)) {
+    out[head] = setDeepPath(child, rest, value);
   } else {
     // Intermediate node is a scalar/array — cannot descend into it.
     throw new ComposeLoadError(
@@ -146,17 +143,10 @@ function setDeepPath(
  * recursive deep merge; otherwise the latter value wins (scalar/array override).
  */
 function mergeValue(existing: unknown, incoming: unknown): unknown {
-  if (
-    existing !== null &&
-    typeof existing === 'object' &&
-    !Array.isArray(existing) &&
-    incoming !== null &&
-    typeof incoming === 'object' &&
-    !Array.isArray(incoming)
-  ) {
-    const out: Record<string, unknown> = { ...(existing as Record<string, unknown>) };
-    for (const k of Object.keys(incoming as Record<string, unknown>)) {
-      out[k] = mergeValue(out[k], (incoming as Record<string, unknown>)[k]);
+  if (isRecord(existing) && isRecord(incoming)) {
+    const out: Record<string, unknown> = { ...existing };
+    for (const k of Object.keys(incoming)) {
+      out[k] = mergeValue(out[k], incoming[k]);
     }
     return out;
   }
@@ -181,13 +171,13 @@ function removeDeepPath(
     return out;
   }
   const child = out[head];
-  if (child === null || typeof child !== 'object' || Array.isArray(child)) {
+  if (!isRecord(child)) {
     throw new ComposeLoadError(
       'PATCH_REMOVE_TARGET_MISSING',
       `$patch remove cannot descend into non-object at '${head}'`
     );
   }
-  out[head] = removeDeepPath(child as Record<string, unknown>, rest);
+  out[head] = removeDeepPath(child, rest);
   return out;
 }
 
@@ -204,16 +194,8 @@ function removeNested(
   for (const key of Object.keys(spec)) {
     const sub = spec[key];
     const target = out[key];
-    if (
-      key in out &&
-      target !== null &&
-      typeof target === 'object' &&
-      !Array.isArray(target) &&
-      sub !== null &&
-      typeof sub === 'object' &&
-      !Array.isArray(sub)
-    ) {
-      out[key] = removeNested(target as Record<string, unknown>, sub as Record<string, unknown>);
+    if (key in out && isRecord(target) && isRecord(sub)) {
+      out[key] = removeNested(target, sub);
     } else {
       delete out[key];
     }

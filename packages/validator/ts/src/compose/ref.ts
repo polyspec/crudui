@@ -21,7 +21,8 @@
  */
 
 import { ComposeLoadError } from './errors';
-import type { FileLoader, LoadedDoc } from './loader';
+import { isRecord } from '../record';
+import type { FileLoader } from './loader';
 import { applyPatch } from './patch';
 
 /** The regex that splits `(path).keys`. */
@@ -54,15 +55,15 @@ export function resolveRef(
 function normalizeRefValue(value: unknown): string[] {
   if (typeof value === 'string') return [value];
   if (Array.isArray(value)) {
-    for (const p of value) {
+    return value.map((p: unknown) => {
       if (typeof p !== 'string') {
         throw new ComposeLoadError(
           'REF_VALUE_TYPE',
           `$ref array entries must be strings, got ${typeof p}`
         );
       }
-    }
-    return value as string[];
+      return p;
+    });
   }
   throw new ComposeLoadError(
     'REF_VALUE_TYPE',
@@ -120,13 +121,8 @@ function resolveSingleRef(
   // Descend detectKeys.
   let node: unknown = doc;
   for (const detectKey of detectKeys) {
-    if (
-      node !== null &&
-      typeof node === 'object' &&
-      !Array.isArray(node) &&
-      detectKey in (node as LoadedDoc)
-    ) {
-      node = (node as LoadedDoc)[detectKey];
+    if (isRecord(node) && detectKey in node) {
+      node = node[detectKey];
     } else {
       throw new ComposeLoadError(
         'REF_DETECT_KEY_NOT_FOUND',
@@ -136,7 +132,7 @@ function resolveSingleRef(
     }
   }
 
-  if (node === null || typeof node !== 'object' || Array.isArray(node)) {
+  if (!isRecord(node)) {
     // A properties layer must be a map. A scalar/array here is a malformed ref.
     throw new ComposeLoadError(
       'REF_DETECT_KEY_NOT_FOUND',
@@ -149,7 +145,7 @@ function resolveSingleRef(
   // file key to the visiting chain so a deeper $ref back to it is a cycle.
   const nextVisiting = new Set(visiting);
   nextVisiting.add(key);
-  return expandNestedRefs(node as Record<string, unknown>, basepath, loader, nextVisiting);
+  return expandNestedRefs(node, basepath, loader, nextVisiting);
 }
 
 /**

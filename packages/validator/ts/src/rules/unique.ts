@@ -16,6 +16,7 @@
  * for which the condition holds participate in the uniqueness check.
  */
 
+import { isRecord } from '../record';
 import { RuleDefinition, ValidationContext } from '../types';
 import { isEmpty } from './required';
 import {
@@ -38,9 +39,9 @@ function canonicalKey(value: unknown): string {
   if (typeof value === 'number') return `n${String(value)}`;
   if (typeof value === 'string') return `s${JSON.stringify(value)}`;
   if (Array.isArray(value)) return `a[${value.map(canonicalKey).join(',')}]`;
-  if (typeof value === 'object') {
-    const members = Object.keys(value as Record<string, unknown>).sort()
-      .map(name => `${JSON.stringify(name)}:${canonicalKey((value as Record<string, unknown>)[name])}`);
+  if (isRecord(value)) {
+    const members = Object.keys(value).sort()
+      .map(name => `${JSON.stringify(name)}:${canonicalKey(value[name])}`);
     return `o{${members.join(',')}}`;
   }
   // The values outside JSON: undefined (a missing member), bigint, symbol and function.
@@ -81,7 +82,7 @@ function extractFieldValues(items: unknown[], fieldName: string): unknown[] {
   for (const item of items) {
     if (typeof item === 'object' && item !== null) {
       const path = parsePathString(fieldName);
-      const value = getValueByPath(item as Record<string, unknown>, path);
+      const value = getValueByPath(item, path);
       // Only include non-empty values
       if (!isEmpty(value)) {
         values.push(value);
@@ -133,7 +134,7 @@ export const uniqueRule: RuleDefinition = {
 
     if (Array.isArray(value) || (value !== null && typeof value === 'object')) {
       // Array-level validation: the field value is the array itself
-      const entries = Object.entries(value);
+      const entries: [string, unknown][] = Object.entries(value);
       const elements = entries.map(([, element]) => element);
       let valuesToCheck: unknown[];
 
@@ -143,7 +144,7 @@ export const uniqueRule: RuleDefinition = {
         valuesToCheck = [];
         for (const [key, element] of entries) {
           const itemPath = [...pathSegments, key];
-          if (!itemPassesCondition(ruleParam as string, itemPath, [...rowKeys, pathSegments.length], allData)) {
+          if (!itemPassesCondition(ruleParam, itemPath, [...rowKeys, pathSegments.length], allData)) {
             continue;
           }
           if (!isEmpty(element)) {
@@ -174,13 +175,19 @@ export const uniqueRule: RuleDefinition = {
       return null;
     }
 
-    const fieldName = pathSegments[pathSegments.length - 1]!;
-    const itemKey = pathSegments[pathSegments.length - 2]!;
+    const fieldName = pathSegments[pathSegments.length - 1];
+    const itemKey = pathSegments[pathSegments.length - 2];
     const containerPath = pathSegments.slice(0, -2);
     const container = getValueByPath(allData, containerPath);
 
     // Rows are list items or members of an object keyed by unique keys (__xxxx__ format)
-    if (Array.isArray(container) ? !/^\d+$/.test(itemKey) : container === null || typeof container !== 'object') {
+    let rows: unknown[] | Record<string, unknown>;
+    if (Array.isArray(container)) {
+      if (!/^\d+$/.test(itemKey)) return null;
+      rows = container;
+    } else if (isRecord(container)) {
+      rows = container;
+    } else {
       return null;
     }
 
@@ -193,33 +200,34 @@ export const uniqueRule: RuleDefinition = {
     // the current item is excluded from the uniqueness check entirely
     if (
       isFilterCondition &&
-      !itemPassesCondition(ruleParam as string, pathSegments, rowKeys, allData)
+      !itemPassesCondition(ruleParam, pathSegments, rowKeys, allData)
     ) {
       return null;
     }
 
     // The rows of this collection field are walked once per validation: the filter is
     // evaluated once per row and each row whose value an earlier row holds is recorded.
-    const cacheKey = [...containerPath, fieldName, isFilterCondition ? (ruleParam as string) : ''].join('\0');
+    const cacheKey = [...containerPath, fieldName, isFilterCondition ? ruleParam : ''].join('\0');
     let duplicates = run.uniqueDuplicates.get(cacheKey);
     if (!duplicates) {
       duplicates = new Set();
       run.uniqueDuplicates.set(cacheKey, duplicates);
       const seen = new Set<string>();
-      const entries: [string, unknown][] = Array.isArray(container)
-        ? container.map((item, i) => [String(i), item])
-        : Object.entries(container as Record<string, unknown>);
+      const entries: [string, unknown][] = Array.isArray(rows)
+        ? rows.map((item, i) => [String(i), item])
+        : Object.entries(rows);
       for (const [key, item] of entries) {
         if (typeof item !== 'object' || item === null) {
           continue;
         }
-        const itemValue = (item as Record<string, unknown>)[fieldName];
+        // A property read, as `item[fieldName]` reads it, of a row that is an object or a list.
+        const itemValue: unknown = Reflect.get(item, fieldName);
         if (isEmpty(itemValue)) {
           continue;
         }
         if (
           isFilterCondition &&
-          !itemPassesCondition(ruleParam as string, [...containerPath, key, fieldName], rowKeys, allData)
+          !itemPassesCondition(ruleParam, [...containerPath, key, fieldName], rowKeys, allData)
         ) {
           continue;
         }

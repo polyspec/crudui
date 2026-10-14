@@ -1,4 +1,6 @@
 // Server-rendered forms parsed into a jsdom document, as a browser receives them.
+import assert from 'node:assert/strict';
+
 import { compileForm, createForm } from '@polyspec/crudui-generator-core';
 import { renderForm } from '@polyspec/crudui-generator-html';
 import { JSDOM } from 'jsdom';
@@ -27,15 +29,32 @@ export function renderedForm(spec: Record<string, unknown>, data: Record<string,
   window: JSDOM['window']; document: Document; form: HTMLFormElement;
 } {
   const { window, document } = documentOf(formHtml(spec, data, options));
-  return { window, document, form: document.querySelector('form')! };
+  return { window, document, form: found(document.querySelector('form'), 'the form element') };
 }
 
-/** The control of a submission name. */
-export function control<T extends Element = HTMLInputElement>(form: HTMLFormElement, name: string, value?: string): T {
-  const found = Array.from(form.querySelectorAll<HTMLInputElement>('[name]'))
-    .find(element => element.name === name && (value === undefined || element.value === value));
-  if (!found) throw new Error(`No control named ${name}${value === undefined ? '' : ` with value ${value}`}`);
-  return found as unknown as T;
+/** `value`, which the test expects to be there; fails the test with `what` when it is null or undefined. */
+export function found<T>(value: T | null | undefined, what: string): T {
+  assert(value !== null && value !== undefined, `${what} is missing`);
+  return value;
+}
+
+/** The control of the tag `tag` with a submission name, and with a value when one is given. */
+export function named<K extends 'input' | 'select' | 'textarea'>(
+  form: HTMLFormElement, tag: K, name: string, value?: string,
+): HTMLElementTagNameMap[K] {
+  return found(Array.from(form.querySelectorAll(tag))
+    .find(element => element.name === name && (value === undefined || element.value === value)),
+  `the ${tag} named ${name}${value === undefined ? '' : ` with value ${value}`}`);
+}
+
+/** The input control of a submission name. */
+export function control(form: HTMLFormElement, name: string, value?: string): HTMLInputElement {
+  return named(form, 'input', name, value);
+}
+
+/** The form body of a form or document. */
+export function formBodyOf(root: ParentNode): HTMLElement {
+  return found(root.querySelector<HTMLElement>('.crudui-form__body'), 'the form body');
 }
 
 /** The node element of a data path. */

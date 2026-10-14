@@ -23,6 +23,7 @@
  * `ComposeLoadError` for any unresolved composition (never `valid:true`).
  */
 
+import { isRecord } from '../record';
 import { resolveRef } from './ref';
 import { applyPatch } from './patch';
 import type { FileLoader } from './loader';
@@ -73,8 +74,8 @@ export function composeProperties(
   // Recurse into every child field's `properties` (the tree may compose deeper).
   for (const fieldName of Object.keys(result)) {
     const field = result[fieldName];
-    if (field !== null && typeof field === 'object' && !Array.isArray(field)) {
-      result[fieldName] = composeSpec(field as Record<string, unknown>, loader, opts);
+    if (isRecord(field)) {
+      result[fieldName] = composeSpec(field, loader, opts);
     }
   }
 
@@ -121,8 +122,8 @@ export function composeSpec(
 
   // Recurse into `properties` (composition entry point, SPEC §2 / types.ts:73).
   const props = resolved.properties;
-  if (props !== null && typeof props === 'object' && !Array.isArray(props)) {
-    resolved.properties = composeProperties(props as Record<string, unknown>, loader, opts);
+  if (isRecord(props)) {
+    resolved.properties = composeProperties(props, loader, opts);
   }
 
   return resolved;

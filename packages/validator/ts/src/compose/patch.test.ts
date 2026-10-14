@@ -10,9 +10,21 @@
  *   - structured-remove array form (strict: missing target throws)
  */
 
+import assert from 'node:assert/strict';
 import { describe, test, expect } from 'vitest';
 import { applyPatch } from './patch';
 import { ComposeLoadError } from './errors';
+
+/** The load error that `run` throws; fails the test when it throws nothing or another error. */
+function loadError(run: () => unknown): ComposeLoadError {
+  try {
+    run();
+  } catch (error) {
+    assert(error instanceof ComposeLoadError, 'the error is a load error');
+    return error;
+  }
+  throw new Error('expected a load error');
+}
 
 describe('$patch deep-path assignment', () => {
   test('both-object leaf deep-merges (preserves disjoint subkeys)', () => {
@@ -77,11 +89,7 @@ describe('$patch remove — array form (strict) vs nested-map form (tolerant)', 
   test('array-path remove of a missing target is a load error', () => {
     const base = { a: { type: 'text' } };
     expect(() => applyPatch(base, { remove: ['a.ghost'] })).toThrow(ComposeLoadError);
-    try {
-      applyPatch(base, { remove: ['a.ghost'] });
-    } catch (e) {
-      expect((e as ComposeLoadError).code).toStrictEqual('PATCH_REMOVE_TARGET_MISSING');
-    }
+    expect(loadError(() => applyPatch(base, { remove: ['a.ghost'] })).code).toStrictEqual('PATCH_REMOVE_TARGET_MISSING');
   });
 
   test('nested-map removal recurses when both values are objects', () => {
@@ -105,22 +113,14 @@ describe('$patch remove — array form (strict) vs nested-map form (tolerant)', 
 
 describe('$patch shape errors are load errors', () => {
   test('non-object $patch throws PATCH_SHAPE', () => {
-    expect(() => applyPatch({}, 'nope' as unknown)).toThrow(ComposeLoadError);
+    expect(() => applyPatch({}, 'nope')).toThrow(ComposeLoadError);
   });
 
   test('add with non-object value throws PATCH_SHAPE', () => {
-    try {
-      applyPatch({}, { add: 'x' });
-    } catch (e) {
-      expect((e as ComposeLoadError).code).toStrictEqual('PATCH_SHAPE');
-    }
+    expect(loadError(() => applyPatch({}, { add: 'x' })).code).toStrictEqual('PATCH_SHAPE');
   });
 
   test('descend into a scalar intermediate throws PATCH_PATH_CONFLICT', () => {
-    try {
-      applyPatch({ a: 'scalar' }, { 'a.b': 1 });
-    } catch (e) {
-      expect((e as ComposeLoadError).code).toStrictEqual('PATCH_PATH_CONFLICT');
-    }
+    expect(loadError(() => applyPatch({ a: 'scalar' }, { 'a.b': 1 })).code).toStrictEqual('PATCH_PATH_CONFLICT');
   });
 });

@@ -51,8 +51,7 @@ descTest('check enforces the leaf-type catalog (WIDGET_KINDS), beyond meta-schem
     expect(r.ok).toBe(false);
     // the error names the offending field path and the unregistered type value
     const hit = r.errors.find((e) => /checkbox/.test(e.reason) || e.key === 'checkbox');
-    expect(hit).toBeDefined();
-    expect(hit!.path).toContain('agree');
+    expect(hit?.path).toContain('agree');
   });
 
   it('accepts leaf fields whose type is a registered kind (canonical + alias)', async () => {
@@ -72,8 +71,7 @@ descTest('check enforces the leaf-type catalog (WIDGET_KINDS), beyond meta-schem
     const r = await runCheck(fixture('nested-invented-leaf-type.yml'));
     expect(r.ok).toBe(false);
     const hit = r.errors.find((e) => e.key === 'slider');
-    expect(hit).toBeDefined();
-    expect(hit!.path).toBe('contact.method');
+    expect(hit?.path).toBe('contact.method');
   });
 
   it('admits registry aliases, not only canonical kinds (full WIDGET_KINDS set)', async () => {

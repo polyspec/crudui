@@ -64,8 +64,11 @@ function decimal(text: string): { significand: bigint; exponent: number } {
  * texts write, without a tolerance.
  */
 export function isMultiple(value: number, step: number): boolean {
-  const v = decimal(canonicalText(Math.abs(value)) as string);
-  const s = decimal(canonicalText(step) as string);
+  const valueText = canonicalText(Math.abs(value));
+  const stepText = canonicalText(step);
+  if (valueText === undefined || stepText === undefined) throw new RangeError('isMultiple reads finite numbers');
+  const v = decimal(valueText);
+  const s = decimal(stepText);
   const base = Math.min(v.exponent, s.exponent);
   const scaledValue = v.significand * 10n ** BigInt(v.exponent - base);
   const scaledStep = s.significand * 10n ** BigInt(s.exponent - base);

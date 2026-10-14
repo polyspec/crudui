@@ -4,6 +4,7 @@
  * `JSON.parse` keeps as unpaired code units, and unit cases for the text helpers.
  */
 
+import assert from 'node:assert/strict';
 import { describe, expect, test } from 'vitest';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -14,6 +15,7 @@ import { validateDetail } from '../validate-detail/index';
 import { ComposeLoadError, MemoryLoader } from '../compose/index';
 import { FormInputError } from '../validate/errors';
 import { compareCodePoints, isScalarText, valueFailure } from './index';
+import { isRecord } from '../record';
 import { provesConformance } from '../../../../../tests/conformance/evidence.mts';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../../..');
@@ -24,7 +26,32 @@ interface TextCase {
   files?: Record<string, Record<string, unknown>>;
   data?: unknown;
   options?: Record<string, unknown>;
-  expect: { code: string; message: string; at: string } | { valid: boolean; errors: unknown[] };
+  expect: unknown;
+}
+
+/** Whether a value is a set of composition files: an object of JSON objects. */
+const isFileSet = (value: unknown): value is Record<string, Record<string, unknown>> =>
+  isRecord(value) && Object.values(value).every(isRecord);
+
+/** A case of a fixture, checked to hold a name and a spec and, when present, files and options. */
+function textCase(item: unknown, at: string): TextCase {
+  if (!isRecord(item) || typeof item.name !== 'string' || !isRecord(item.spec)) throw new TypeError(`${at}: no name and spec`);
+  const { files, options } = item;
+  if (files !== undefined && !isFileSet(files)) throw new TypeError(`${at}: the files are no file set`);
+  if (options !== undefined && !isRecord(options)) throw new TypeError(`${at}: the options are no object`);
+  return {
+    name: item.name, spec: item.spec, expect: item.expect,
+    ...(files === undefined ? {} : { files }),
+    ...('data' in item ? { data: item.data } : {}),
+    ...(options === undefined ? {} : { options }),
+  };
+}
+
+/** The list of the fixture `fixture`, each item read by `read`. */
+function readCases<T>(fixture: string, read: (item: unknown, at: string) => T): T[] {
+  const value: unknown = JSON.parse(fs.readFileSync(path.join(ROOT, fixture), 'utf8'));
+  if (!Array.isArray(value)) throw new TypeError(`${fixture} holds no list of cases`);
+  return value.map((item: unknown, index) => read(item, `case ${index} of ${fixture}`));
 }
 
 function outcome(run: () => unknown): unknown {
@@ -45,7 +72,7 @@ const operations = {
 
 for (const [feature, run] of Object.entries(operations)) {
   const fixture = `tests/fixtures/text-validity/${feature}/cases.json`;
-  const cases: TextCase[] = JSON.parse(fs.readFileSync(path.join(ROOT, fixture), 'utf8'));
+  const cases = readCases(fixture, textCase);
   describe(`${feature} \u2014 input text`, () => {
     test('the fixture carries cases', () => expect(cases.length).toBeGreaterThan(0));
     for (const c of cases) {
@@ -62,6 +89,26 @@ interface Graph { at: string[]; shape: 'doubled' | 'chain' | 'flat' | 'self-twic
 
 interface GraphCase extends TextCase { graph: Graph }
 
+const SHAPES = ['doubled', 'chain', 'flat', 'self-twice'] as const;
+const isShape = (value: unknown): value is Graph['shape'] => SHAPES.some((shape) => shape === value);
+
+/** A case of the value graphs, checked to hold a graph of a path, a shape and, when present, a size and a leaf. */
+function graphCase(item: unknown, at: string): GraphCase {
+  const graph: unknown = isRecord(item) ? item.graph : undefined;
+  const names: unknown[] = isRecord(graph) && Array.isArray(graph.at) ? graph.at : [];
+  const path = names.filter((name): name is string => typeof name === 'string');
+  if (!isRecord(graph) || path.length === 0 || path.length !== names.length || !isShape(graph.shape)) {
+    throw new TypeError(`${at}: no graph of a path and a shape`);
+  }
+  const { size, leaf } = graph;
+  if (size !== undefined && typeof size !== 'number') throw new TypeError(`${at}: the size is no number`);
+  if (leaf !== undefined && typeof leaf !== 'string') throw new TypeError(`${at}: the leaf is no string`);
+  return {
+    ...textCase(item, at),
+    graph: { at: path, shape: graph.shape, ...(size === undefined ? {} : { size }), ...(leaf === undefined ? {} : { leaf }) },
+  };
+}
+
 function build({ shape, size = 0, leaf }: Graph): unknown {
   if (shape === 'self-twice') {
     const loop: Record<string, unknown> = {};
@@ -77,15 +124,19 @@ function build({ shape, size = 0, leaf }: Graph): unknown {
 
 describe('value graphs \u2014 input limits', () => {
   const fixture = 'tests/fixtures/text-validity/value-graphs.json';
-  const cases: GraphCase[] = JSON.parse(fs.readFileSync(path.join(ROOT, fixture), 'utf8'));
+  const cases = readCases(fixture, graphCase);
   test('the fixture carries cases', () => expect(cases.length).toBeGreaterThan(0));
   for (const c of cases) {
     test(c.name, () => {
       const inputs: Record<string, unknown> = { spec: c.spec, files: c.files, data: c.data };
       const [name, ...members] = c.graph.at;
-      let target = inputs[name] as Record<string, unknown>;
-      for (const member of members.slice(0, -1)) target = target[member] as Record<string, unknown>;
-      target[members[members.length - 1]] = build(c.graph);
+      let target: unknown = inputs[name];
+      for (const member of members.slice(0, -1)) {
+        assert(typeof target === 'object' && target !== null, `${c.name}: ${member} lies in an object`);
+        target = Reflect.get(target, member);
+      }
+      assert(typeof target === 'object' && target !== null, `${c.name}: the graph lies in an object`);
+      Reflect.set(target, members[members.length - 1], build(c.graph));
       // Each case is one test within the runner's per-test limit, which a walk that grows with the
       // tree a value denotes (2^40 nodes) never meets.
       expect(outcome(() => operations.validate(c))).toStrictEqual(c.expect);

@@ -235,10 +235,10 @@ function content(v: unknown, lang: string): string {
   if (typeof v === 'string') return v;
   if (typeof v === 'number' || typeof v === 'boolean') return String(v);
   if (isObj(v)) {
-    if (typeof v[lang] === 'string') return v[lang] as string;
+    if (typeof v[lang] === 'string') return v[lang];
     // fall back to the first string value (a translation in another language).
     for (const k of Object.keys(v)) {
-      if (typeof v[k] === 'string') return v[k] as string;
+      if (typeof v[k] === 'string') return v[k];
     }
   }
   return '';
@@ -481,6 +481,7 @@ export function explainFile(file: string | undefined, opts: ExplainOptions = {})
   if (!file) throw new Error('no spec path given');
   const raw = readFileSync(file, 'utf-8');
   const ext = extname(file).toLowerCase();
-  const spec = (ext === '.json' ? parseJsonDocument(raw) : loadYaml(raw)) as Spec;
+  const spec = ext === '.json' ? parseJsonDocument(raw) : loadYaml(raw);
+  if (!isObj(spec)) throw new Error(`${file}: the spec is no mapping`);
   return explainSpec(spec, opts);
 }

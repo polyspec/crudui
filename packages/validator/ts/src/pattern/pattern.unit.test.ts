@@ -153,7 +153,7 @@ describe('matcher', () => {
           return text.codePointAt(index);
         },
       };
-      return { text: view as unknown as string, reads: () => reads };
+      return { text: view, reads: () => reads };
     };
     for (const [pattern, text, expected] of [
       ['(?:.*a){12}c', 'a'.repeat(60), false],

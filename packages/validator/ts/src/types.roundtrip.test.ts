@@ -20,13 +20,15 @@
  *    pinned so tooling can assert global rejection.
  */
 
+import assert from 'node:assert/strict';
 import { describe, it, expect } from 'vitest';
-import type { FieldSpec, ConditionMap, DesignSlot } from './index';
+import type { FieldSpec } from './index';
+import { isRecord } from './record';
 import { FORBIDDEN_META_KEYS, FORBIDDEN_META_KEY_PATTERN } from './internal';
 
 /** Parse → re-serialize and assert byte identity (canonical round trip). */
 function roundTrip(json: string): void {
-  const value = JSON.parse(json) as FieldSpec;
+  const value: unknown = JSON.parse(json);
   expect(JSON.stringify(value)).toBe(json);
 }
 
@@ -83,13 +85,14 @@ describe('FieldSpec round-trip (canonical JSON shape)', () => {
   });
 
   it('preserves condition-map declaration order with the literal `true` default key', () => {
-    const json = JSON.stringify({
+    const field = {
       type: 'text',
       design: { show: { '.a': true, '.b': false, true: false } },
-    });
-    const value = JSON.parse(json) as FieldSpec;
-    const show = (value.design as DesignSlot).show as ConditionMap<boolean>;
-    expect(Object.keys(show)).toEqual(['.a', '.b', 'true']);
+    } satisfies FieldSpec;
+    const json = JSON.stringify(field);
+    const value: unknown = JSON.parse(json);
+    assert(isRecord(value) && isRecord(value.design) && isRecord(value.design.show), 'the field has a condition map show');
+    expect(Object.keys(value.design.show)).toEqual(['.a', '.b', 'true']);
     expect(JSON.stringify(value)).toBe(json);
   });
 

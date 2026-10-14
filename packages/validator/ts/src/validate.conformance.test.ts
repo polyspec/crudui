@@ -23,6 +23,7 @@ import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { validate, ComposeLoadError, FormInputError } from './validate/index';
 import { provesConformance } from '../../../../tests/conformance/evidence.mts';
+import { isRecord } from './record';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -44,11 +45,33 @@ interface FixtureCase {
   spec: Record<string, unknown>;
   files?: Record<string, Record<string, unknown>>;
   data: unknown;
-  expected?: { valid: boolean; errors: unknown[] };
-  expectFailure?: FailureRecord;
+  expected?: unknown;
+  expectFailure?: unknown;
 }
 
-const cases: FixtureCase[] = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
+/** Whether a value is a set of composition files: an object of JSON objects. */
+const isFileSet = (value: unknown): value is Record<string, Record<string, unknown>> =>
+  isRecord(value) && Object.values(value).every(isRecord);
+
+/** The cases of the fixture, each checked to hold a name, a spec and, when present, composition files. */
+function readCases(file: string): FixtureCase[] {
+  const value: unknown = JSON.parse(fs.readFileSync(file, 'utf8'));
+  if (!Array.isArray(value)) throw new TypeError(`${file} holds no list of cases`);
+  return value.map((item: unknown, index): FixtureCase => {
+    if (!isRecord(item) || typeof item.name !== 'string' || typeof item.note !== 'string' || !isRecord(item.spec)
+      || (item.files !== undefined && !isFileSet(item.files))) {
+      throw new TypeError(`case ${index} of ${file} has no name, note and spec, or files that are no file set`);
+    }
+    return {
+      name: item.name, note: item.note, spec: item.spec, data: item.data,
+      ...(isFileSet(item.files) ? { files: item.files } : {}),
+      ...('expected' in item ? { expected: item.expected } : {}),
+      ...('expectFailure' in item ? { expectFailure: item.expectFailure } : {}),
+    };
+  });
+}
+
+const cases = readCases(FIXTURE);
 
 /** Run one fixture case and record validate evidence for it. */
 function proves(name: string, body: () => void): Promise<void> {

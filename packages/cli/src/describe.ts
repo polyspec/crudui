@@ -168,6 +168,7 @@ interface SchemaNode {
   allOf?: SchemaNode[];
   not?: SchemaNode;
   properties?: Record<string, SchemaNode>;
+  propertyNames?: SchemaNode;
   enum?: string[];
   pattern?: string;
   $ref?: string;
@@ -178,8 +179,42 @@ interface SchemaDoc {
   definitions: Record<string, SchemaNode | undefined>;
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+/**
+ * The parts of the schema definition `value` that SchemaNode names. A keyword of another JSON type (a list of types, a
+ * boolean schema, an enum of numbers) is left out, as the projection compares only these types.
+ */
+function schemaNode(value: unknown): SchemaNode {
+  const node: SchemaNode = {};
+  if (!isRecord(value)) return node;
+  const { type, pattern, $ref, anyOf, allOf, not, properties, propertyNames, enum: names } = value;
+  if (typeof type === 'string') node.type = type;
+  if (typeof pattern === 'string') node.pattern = pattern;
+  if (typeof $ref === 'string') node.$ref = $ref;
+  if (Array.isArray(anyOf)) node.anyOf = anyOf.map((item: unknown) => schemaNode(item));
+  if (Array.isArray(allOf)) node.allOf = allOf.map((item: unknown) => schemaNode(item));
+  if (not !== undefined) node.not = schemaNode(not);
+  if (isRecord(properties)) node.properties = schemaNodes(properties);
+  if (propertyNames !== undefined) node.propertyNames = schemaNode(propertyNames);
+  if (Array.isArray(names) && names.every((item: unknown): item is string => typeof item === 'string')) node.enum = names;
+  return node;
+}
+
+function schemaNodes(value: Record<string, unknown>): Record<string, SchemaNode> {
+  return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, schemaNode(item)]));
+}
+
 function loadSchema(): SchemaDoc {
-  return JSON.parse(readFileSync(SCHEMA_PATH, 'utf-8'));
+  const doc: unknown = JSON.parse(readFileSync(SCHEMA_PATH, 'utf-8'));
+  if (!isRecord(doc)) throw new Error(`${SCHEMA_PATH} holds no JSON object`);
+  const id = doc.$id;
+  return {
+    ...(typeof id === 'string' ? { $id: id } : {}),
+    definitions: isRecord(doc.definitions) ? schemaNodes(doc.definitions) : {},
+  };
 }
 
 /** anyOf member that is an object type — where a polymorphic slot's keys live. */
@@ -222,8 +257,9 @@ function collectWidgets(): { widgets: WidgetEntry[]; layouts: string[] } {
   const byCanonical = new Map<string, string[]>();
   for (const key of WIDGET_KINDS) {
     const canonical = WIDGET_CANONICAL[key] ?? key;
-    if (!byCanonical.has(canonical)) byCanonical.set(canonical, []);
-    byCanonical.get(canonical)!.push(key);
+    const keys = byCanonical.get(canonical);
+    if (keys) keys.push(key);
+    else byCanonical.set(canonical, [key]);
   }
   const widgets: WidgetEntry[] = [];
   for (const [canonical, keys] of byCanonical) {

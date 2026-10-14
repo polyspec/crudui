@@ -15,8 +15,6 @@ describe('the YAML schema of the cli', () => {
     directory = mkdtempSync(join(tmpdir(), 'crudui-cli-yaml-'));
     const file = join(directory, 'spec.yml');
     writeFileSync(file, "type: group\nproperties:\n  start:\n    type: date\n    default: 2026-01-01\nextra:\n  <<: {a: 1}\n");
-    const spec = loadSpec(file) as { properties: { start: { default: unknown } }; extra: Record<string, unknown> };
-    expect(spec.properties.start.default).toBe('2026-01-01');
-    expect(spec.extra).toEqual({ '<<': { a: 1 } });
+    expect(loadSpec(file)).toMatchObject({ properties: { start: { default: '2026-01-01' } }, extra: { '<<': { a: 1 } } });
   });
 });

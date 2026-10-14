@@ -73,8 +73,9 @@ descTest('drift injection — the output tracks the registry, it is not a consta
       const byCanonical = new Map<string, string[]>();
       for (const key of kinds) {
         const canonical = (WIDGET_CANONICAL as Record<string, string>)[key] ?? key;
-        if (!byCanonical.has(canonical)) byCanonical.set(canonical, []);
-        byCanonical.get(canonical)!.push(key);
+        const keys = byCanonical.get(canonical);
+        if (keys) keys.push(key);
+        else byCanonical.set(canonical, [key]);
       }
       return new Set(byCanonical.keys());
     };

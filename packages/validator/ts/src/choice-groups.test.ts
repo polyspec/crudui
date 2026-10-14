@@ -1,3 +1,4 @@
+import assert from 'node:assert/strict';
 import { describe, expect, it } from 'vitest';
 import { validate } from './validate';
 import { ComposeLoadError } from './compose/errors';
@@ -12,8 +13,8 @@ const failure = (list: unknown[]) => {
   try {
     validate(spec(list), { region: 'eu-west' });
   } catch (error) {
-    expect(error).toBeInstanceOf(ComposeLoadError);
-    return { code: (error as ComposeLoadError).code, message: (error as Error).message };
+    assert(error instanceof ComposeLoadError, 'the error is a load error');
+    return { code: error.code, message: error.message };
   }
   throw new Error('validate accepted the parameter');
 };
