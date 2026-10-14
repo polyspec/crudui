@@ -34,9 +34,9 @@ full builds), `make owner-check` and the full run `make ci` run in CI on the pus
 requires a local check before a push or a commit; the pre-push hook only refuses a push while a
 checklist task is `[~]` (below). `make ci` and `make owner-check` remain available on request.
 
-Every step of the workflows runs a make target: the installs (`make install-tools`,
-`make install-packages`, `make install-composer`, `make install-rust`, `make install-crates`,
-`make install-browsers BROWSERS="..."`), the tool check (`make toolchain-check TOOLS="..."`) and each
+Every step of the workflows runs a make target: the installs (`make install-tools`, which installs
+the Rust toolchain of `rust-toolchain.toml` too, `make install-packages`, `make install-composer`,
+`make install-crates`, `make install-browsers BROWSERS="..."`), the tool check (`make toolchain-check TOOLS="..."`) and each
 check (`make test-runtimes`, `make lint`, `make test-forms` and the others of `CI_COMMANDS`), so the
 recipes start every tool with the offline settings, `$(NPM)` and the toolchains of the checkout.
 `tests/build/ci-local.test.mts` fails for a step that starts node, npm, npx, cargo, go, php,

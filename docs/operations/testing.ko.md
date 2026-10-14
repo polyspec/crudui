@@ -1,6 +1,6 @@
 # 테스트 실행
 <!-- doc-id: docs-operations-testing -->
-<!-- source-sha256: 3951cf3048d32ed09d61846a9e11f6e5ae2be5bca98fc5e0cee6294858978fc9 -->
+<!-- source-sha256: 2c240bcdf3d8012e28b8de5d75a19a5e8a983957f6772b1eb3cbdf5d92bd7939 -->
 
 [English](testing.md).
 
@@ -31,8 +31,8 @@ container, form comparison, native와 cross-check suite, 전체 build), `make ow
 CI에서 실행하며, push나 commit 전에 local 검사를 요구하는 규칙은 없습니다. pre-push hook은 checklist 작업이 `[~]`인
 동안 push를 거부할 뿐입니다(아래). `make ci`와 `make owner-check`는 요청할 때 실행할 수 있습니다.
 
-workflow의 모든 step은 make 대상을 실행합니다. 설치(`make install-tools`, `make install-packages`,
-`make install-composer`, `make install-rust`, `make install-crates`, `make install-browsers BROWSERS="..."`), 도구 검사
+workflow의 모든 step은 make 대상을 실행합니다. 설치(`rust-toolchain.toml`의 Rust toolchain도 설치하는 `make install-tools`,
+`make install-packages`, `make install-composer`, `make install-crates`, `make install-browsers BROWSERS="..."`), 도구 검사
 (`make toolchain-check TOOLS="..."`), 각 검사(`make test-runtimes`, `make lint`, `make test-forms`와 `CI_COMMANDS`의 나머지)가
 그렇습니다. 그래서 recipe는 모든 도구를 offline 설정, `$(NPM)`, checkout의 toolchain으로 시작합니다.
 `tests/build/ci-local.test.mts`는 make 없이 node, npm, npx, cargo, go, php, composer, rustup, python3, sh를 시작하는 step에서
