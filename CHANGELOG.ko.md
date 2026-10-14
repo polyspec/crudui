@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 766c08d7cca4524eabf92c703b292de1bde2eeb719a9473198bff4736316a15c -->
+<!-- source-sha256: 354e450c165dad2f483992502b3df8a9913edc66441a838441fba1b32e83e1fa -->
 
 ## Unreleased
+
+### 2026-10-14 — kit 0.0.42 (C14.11)
+
+- `@polyspec/kit`은 게시된 파일의 integrity로 0.0.42에 pin한다. `mise.lock`은 `mise.toml`의 도구를 linux-arm64와 macos-x64에도 잠그고, 복사된 bootstrap은 `var/tools/go.mod`를 써서 checkout의 Go module의 `./...`가 mise가 설치한 Go를 걷지 않는다.
 
 ### 2026-10-14 — API Extractor와 API Documenter의 TypeScript API (C14.5)
 
