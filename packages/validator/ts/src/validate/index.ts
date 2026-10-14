@@ -48,13 +48,13 @@ export interface ValidateOptions {
  * are expanded first via the compose pass. An unresolved composition throws
  * `ComposeLoadError` (caller distinguishes a LOAD failure from `valid:false`).
  *
- * @param spec a CRUDUI root spec (a group with `properties`; may use composition).
- * @param data the form data to validate; root and group data are objects and
+ * @param spec - a CRUDUI root spec (a group with `properties`; may use composition).
+ * @param data - the form data to validate; root and group data are objects and
  *        repeated data is a keyed object.
- * @param options compose loader / file set / basepath.
+ * @param options - compose loader / file set / basepath.
  * @returns `{ valid, errors, hidden }`.
- * @throws {ComposeLoadError} when composition cannot be resolved.
- * @throws {FormInputError} when submitted data has the wrong shape.
+ * @throws {@link ComposeLoadError} when composition cannot be resolved.
+ * @throws {@link FormInputError} when submitted data has the wrong shape.
  */
 export function validate(
   spec: Record<string, unknown>,
@@ -77,8 +77,8 @@ export function validate(
  * (form-runtime.md, "Display"), as validation resolves them. The specification is composed
  * without files, as the browser binding sends it.
  *
- * @throws {ComposeLoadError} when composition cannot be resolved.
- * @throws {FormInputError} when the data is not an object.
+ * @throws {@link ComposeLoadError} when composition cannot be resolved.
+ * @throws {@link FormInputError} when the data is not an object.
  */
 export function hiddenPaths(spec: Record<string, unknown>, data: unknown): string[] {
   const checked = checkedComposition(spec, {});

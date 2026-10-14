@@ -158,8 +158,8 @@ export interface BuildListOptions {
   /** Active content language (default 'ko'). */
   language?: Language;
   /**
-   * List-level form data for column-visibility expressions (e.g. `design.show:
-   * '.admin'` on a column). NOT the rows — rows are the separate argument.
+   * List-level form data for column-visibility expressions (e.g.
+   * `design.show: '.admin'` on a column). NOT the rows — rows are the separate argument.
    */
   data?: Record<string, unknown>;
   /** Current page supplied by the caller: absent, null or an integer from 1 to `Number.MAX_SAFE_INTEGER`. */

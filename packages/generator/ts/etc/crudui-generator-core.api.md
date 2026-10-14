@@ -226,7 +226,7 @@ export type CreateFormOptions = Pick<BindFormOptions, 'language' | 'keyPrefix' |
 // @public
 export function createRowKey(): string;
 
-// @public (undocumented)
+// @public
 export interface DetailFieldVM extends CellVM {
     key: string;
     label: string;
@@ -596,7 +596,13 @@ export interface SortVM {
 }
 
 // @public
+export type SourceAttrs = Attrs;
+
+// @public
 export function toggleRowView(view: ViewState, rowPath: string): ViewState;
+
+// @public
+export type Translate = (text: LocalizedText | undefined | null, fallback?: string) => string;
 
 // @public
 export function undoChange<T>(history: History_2<T>, current: T): UndoResult<T>;
