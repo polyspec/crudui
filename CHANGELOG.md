@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-15 — Benchmark console pointer guard (C14.21)
+
+- The benchmark console of the form comparison stops a capture and does not compare the frames while the pointer is over one of them, as its spec requires; no page had called the guard since the console moved out of the main page.
+
 ### 2026-10-15 — Form comparison imports (C14.20)
 
 - The form comparison resolves `#adapter`, `#stage`, `#html` and the component aliases through the subpath imports of the root `package.json`, with a condition per frame and stage build, instead of Vite and esbuild aliases; the benchmark console is bundled from the sources and `record-view.mjs` lives in `public/`, so every import resolves in the source tree and when served (C14.20).

@@ -6,3 +6,11 @@
 export function pointerOverFrame(frame) {
   return frame.contentDocument.documentElement.matches(':hover');
 }
+
+/**
+ * Throws `message` while the pointer is over one of `frames`: a capture requires the pointer outside both frames
+ * (docs/spec/form-comparison.md), so the comparison stops without a result and asks to move the pointer.
+ */
+export function requirePointerOutside(frames, message) {
+  if (frames.some(pointerOverFrame)) throw new Error(message);
+}

@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: cb36b7512b9fd647316688721c7b0f9cb94353fa5ed2e24d32697d1d415d7e6b -->
+<!-- source-sha256: 4318cbbcc9a0d62adb180f75a467e19aa3521848a13d733dfc4308a4f909bcc3 -->
 
 ## Unreleased
+
+### 2026-10-15 — benchmark console pointer guard (C14.21)
+
+- form comparison의 benchmark console은 spec이 요구하는 대로 pointer가 비교 frame 위에 있으면 capture를 멈추고 frame을 비교하지 않는다. console이 main page 밖으로 옮겨간 뒤 어떤 page도 그 guard를 부르지 않았다.
 
 ### 2026-10-15 — Form comparison import (C14.20)
 

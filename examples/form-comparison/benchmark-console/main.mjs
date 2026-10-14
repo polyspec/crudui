@@ -1,5 +1,6 @@
 import { createBrowserJob } from '../src/browser-job.mjs';
 import { loadComparisonFrames } from '../src/frame-readiness.mjs';
+import { pointerOverFrame, requirePointerOutside } from '../src/frame-pointer.mjs';
 import { compareSnapshots, renderedFormSnapshot, snapshotHash, styleSnapshot } from '../../../tests/form-inspector/form-snapshot.mts';
 import {
   formFrameworks, formInitializations, formRenderingPaths, formServers, formTransports,
@@ -43,6 +44,7 @@ async function capture(frame, response) {
   await comparison.idle();
   const document = frame.contentDocument;
   await document.fonts.ready;
+  requirePointerOutside(frames, t.pointerOverFrame);
   const view = document.querySelector('#view');
   const snapshot = renderedFormSnapshot(view, document.querySelector('#form'));
   snapshot.css = styleSnapshot(view);
@@ -52,8 +54,12 @@ async function capture(frame, response) {
   return snapshot;
 }
 
-/** Compare both frames as they finished loading. */
+/** Compare both frames as they finished loading, or say why they cannot be compared yet. */
 async function compareMounted() {
+  if (frames.some(pointerOverFrame)) {
+    document.querySelector('#initialization-status').textContent = t.pointerOverFrame;
+    return;
+  }
   renderInitialization([{
     label: 'mounted',
     results: compareSnapshots(await capture(csrFrame), await capture(ssrFrame), initializationCategories),

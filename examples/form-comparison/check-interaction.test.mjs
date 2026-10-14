@@ -57,6 +57,18 @@ test('finds the row actions it presses in the rendered comparison form', () => {
   }
 });
 
+test('the benchmark console compares the frames only while the pointer is outside them', () => {
+  // docs/spec/form-comparison.md: a capture requires the pointer outside both frames, and the list shown after
+  // loading says to move the pointer instead of comparing.
+  const capture = consoleSource.slice(consoleSource.indexOf('async function capture'),
+    consoleSource.indexOf('async function compareMounted'));
+  assert.match(capture, /requirePointerOutside\(frames, t\.pointerOverFrame\)[\s\S]*renderedFormSnapshot\(/);
+  const mounted = consoleSource.slice(consoleSource.indexOf('async function compareMounted'),
+    consoleSource.indexOf('async function remountColumn'));
+  assert.match(mounted,
+    /if \(frames\.some\(pointerOverFrame\)\) \{\s*document\.querySelector\('#initialization-status'\)\.textContent = t\.pointerOverFrame;\s*return;\s*\}[\s\S]*renderInitialization\(/);
+});
+
 test('each initialization column resets the repository and loads its frame document again', () => {
   // The `mounted` stage is the column's own initialization from the reset record, whatever an
   // earlier check left in the repository.
