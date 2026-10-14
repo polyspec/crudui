@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { bindForm, compileForm, sequenceRowKey, type WidgetModel } from './index';
+import { childrenOf, present } from './test-support';
 
 const key = sequenceRowKey(7);
 const options = { idPrefix: "form scope:'한글", keyPrefix: 'form' };
@@ -25,8 +26,8 @@ function repeatedWidget(type: string, multipleLeaf = false): WidgetModel {
     },
   } };
   const data = { rows: { [key]: multipleLeaf ? 'a' : { value: 'a' } } };
-  const row = bindForm(compileForm(spec), data, options)[0].children![0];
-  const widget = multipleLeaf ? row.widget! : row.children![0].widget!;
+  const row = childrenOf(bindForm(compileForm(spec), data, options)[0])[0];
+  const widget = present(multipleLeaf ? row.widget : childrenOf(row)[0].widget, 'the widget');
   if ('unsupported' in widget) throw new Error('The fixture requires a supported widget');
   return widget;
 }

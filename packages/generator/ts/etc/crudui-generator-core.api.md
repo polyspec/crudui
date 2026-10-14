@@ -602,7 +602,7 @@ export type SourceAttrs = Attrs;
 export function toggleRowView(view: ViewState, rowPath: string): ViewState;
 
 // @public
-export type Translate = (text: LocalizedText | undefined | null, fallback?: string) => string;
+export type Translate = (text: unknown, fallback?: string) => string;
 
 // @public
 export function undoChange<T>(history: History_2<T>, current: T): UndoResult<T>;

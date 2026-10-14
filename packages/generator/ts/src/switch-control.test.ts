@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
+import assert from 'node:assert/strict';
 import { bindForm, compileForm, type NodeVM } from './index';
 
 // Switches (docs/spec/form-markup.md, Switches).
 const field = (spec: Record<string, unknown>, data: Record<string, unknown> = {}): NodeVM =>
-  bindForm(compileForm({ type: 'group', properties: { on: spec } }), data, { language: 'en' })[0]!;
+  bindForm(compileForm({ type: 'group', properties: { on: spec } }), data, { language: 'en' })[0];
 
 describe('switch model', () => {
   it('gives a switcher the switch role and the switch class', () => {
@@ -18,7 +19,8 @@ describe('switch model', () => {
   });
 
   it('keeps the declared attributes of the switch input after the caption', () => {
-    const box = field({ type: 'switcher', label: 'Sync', design: { attributes: { 'data-setting': 'sync', 'aria-describedby': 'sync-help' } } }).checkbox!;
+    const box = field({ type: 'switcher', label: 'Sync', design: { attributes: { 'data-setting': 'sync', 'aria-describedby': 'sync-help' } } }).checkbox;
+    assert(box, 'the switcher has a checkbox');
     expect(Object.keys(box)).toEqual(['id', 'name', 'className', 'checked', 'role', 'caption', 'attributes']);
     expect(box.attributes).toEqual({ 'data-setting': 'sync', 'aria-describedby': 'sync-help' });
   });

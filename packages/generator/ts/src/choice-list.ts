@@ -8,14 +8,12 @@
 
 import { FormInputError } from '@polyspec/crudui-validator';
 import { styleString } from './css';
-import { checkDeclaredAttributes } from './design';
+import { attributeCopy, checkDeclaredAttributes } from './design';
+import { isRecord } from './util';
 
 /** The expected-value text of a choice list declaration failure. */
 export const CHOICE_LIST_EXPECTED = 'value and label pairs with distinct string or number values';
 
-function isPlainObject(value: unknown): value is Record<string, unknown> {
-  return value !== null && typeof value === 'object' && !Array.isArray(value);
-}
 
 function hasMember(item: Record<string, unknown>, key: string): boolean {
   return Object.prototype.hasOwnProperty.call(item, key);
@@ -23,12 +21,12 @@ function hasMember(item: Record<string, unknown>, key: string): boolean {
 
 /** Whether `items` is a choice list: an array with an object element that has a `value` or a `choices` member. */
 export function isChoiceList(items: unknown): items is unknown[] {
-  return Array.isArray(items) && items.some((item) => isPlainObject(item) && (hasMember(item, 'value') || hasMember(item, 'choices')));
+  return Array.isArray(items) && items.some((item) => isRecord(item) && (hasMember(item, 'value') || hasMember(item, 'choices')));
 }
 
 /** Whether a choice list element is a group: an object that has a `choices` member. */
 function isGroup(item: unknown): item is Record<string, unknown> {
-  return isPlainObject(item) && hasMember(item, 'choices');
+  return isRecord(item) && hasMember(item, 'choices');
 }
 
 /** The canonical text of a choice value: a string itself, a number as `Number.prototype.toString` writes it. */
@@ -53,7 +51,7 @@ export function choicePairs(items: readonly unknown[], appearance = false, group
   const pairs: Array<[string, unknown]> = [];
   const seen = new Set<string>();
   const add = (item: unknown, members: readonly string[]): boolean => {
-    if (!isPlainObject(item)) return false;
+    if (!isRecord(item)) return false;
     const extra = Object.keys(item).filter((key) => key !== 'value' && key !== 'label');
     if (!hasMember(item, 'value') || !hasMember(item, 'label') || extra.some((key) => !members.includes(key))) return false;
     const text = valueText(item.value);
@@ -88,7 +86,7 @@ export interface ChoiceListGroup {
  */
 export function choiceGroups(items: readonly unknown[]): Array<ChoiceListGroup | undefined> {
   return items.flatMap((item, index) =>
-    isGroup(item) ? (item.choices as unknown[]).map(() => ({ index, label: item.label })) : [undefined]);
+    isGroup(item) && Array.isArray(item.choices) ? item.choices.map(() => ({ index, label: item.label })) : [undefined]);
 }
 
 /** The appearance of one choice: the label class and style and the input attributes. */
@@ -107,7 +105,8 @@ export interface ChoiceAppearance {
  */
 export function checkChoiceAppearance(items: readonly unknown[], path: string): void {
   items.forEach((item, index) => {
-    const choice = item as Record<string, unknown>;
+    if (!isRecord(item)) return;
+    const choice = item;
     for (const member of ['class', 'style']) {
       if (Object.prototype.hasOwnProperty.call(choice, member) && typeof choice[member] !== 'string') {
         throw new FormInputError(`Invalid items.${index}.${member} at ${path}: expected a string`);
@@ -122,12 +121,13 @@ export function checkChoiceAppearance(items: readonly unknown[], path: string): 
 /** The appearance of each choice of a checked choice list in list order; members only when declared. */
 export function choiceAppearances(items: readonly unknown[]): ChoiceAppearance[] {
   return items.map((item) => {
-    const choice = item as { class?: string; style?: string; attributes?: Record<string, string> };
+    const choice: Record<string, unknown> = isRecord(item) ? item : {};
     const style = styleString(choice.style);
+    const attributes = attributeCopy(choice.attributes);
     return {
-      ...(choice.class ? { className: choice.class } : {}),
+      ...(typeof choice.class === 'string' && choice.class ? { className: choice.class } : {}),
       ...(style ? { style } : {}),
-      ...(choice.attributes && Object.keys(choice.attributes).length ? { attributes: { ...choice.attributes } } : {}),
+      ...(Object.keys(attributes).length ? { attributes } : {}),
     };
   });
 }

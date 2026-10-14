@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest';
+import { FormInputError } from '@polyspec/crudui-validator';
 import { bindForm, buildList, compileForm, type NodeVM, type OptionModel } from './index';
 import { optionSections } from './internal';
+import { present } from './test-support';
 
 // Choice groups (docs/spec/schema.md, Choice groups; docs/spec/form-markup.md, Choice groups).
 const G = (properties: Record<string, unknown>) => ({ type: 'group', properties });
 const field = (spec: Record<string, unknown>, data: Record<string, unknown> = {}): NodeVM =>
-  bindForm(compileForm(G({ region: spec })), data, { language: 'en' })[0]!;
+  bindForm(compileForm(G({ region: spec })), data, { language: 'en' })[0];
 const options = (spec: Record<string, unknown>, data: Record<string, unknown> = {}): OptionModel[] | undefined => {
   const widget = field(spec, data).widget;
   return widget && 'options' in widget ? widget.options : undefined;
@@ -14,8 +16,9 @@ const rejection = (spec: Record<string, unknown>): string => {
   try {
     field(spec);
   } catch (error) {
-    expect((error as { code?: string }).code).toBe('INVALID_FORM_INPUT');
-    return (error as Error).message;
+    if (!(error instanceof FormInputError)) throw error;
+    expect(error.code).toBe('INVALID_FORM_INPUT');
+    return error.message;
   }
   throw new Error('bindForm accepted the specification');
 };
@@ -43,12 +46,12 @@ describe('choice groups in the widget model', () => {
   });
 
   it('translates the group label', () => {
-    const widget = bindForm(compileForm(G({ region: { type: 'select', items: [europe] } })), {}, { language: 'ko' })[0]!.widget;
+    const widget = bindForm(compileForm(G({ region: { type: 'select', items: [europe] } })), {}, { language: 'ko' })[0].widget;
     expect(widget && 'options' in widget ? widget.options?.[0]?.group : undefined).toEqual({ index: 0, label: '유럽' });
   });
 
   it('splits the options into consecutive sections by group', () => {
-    const list = options({ type: 'select', items: [{ value: 'auto', label: 'Automatic' }, europe, asia] })!;
+    const list = present(options({ type: 'select', items: [{ value: 'auto', label: 'Automatic' }, europe, asia] }), 'the options');
     expect(optionSections(list)).toEqual([
       { options: [list[0]] },
       { group: { index: 1, label: 'Europe' }, options: [list[1], list[2]] },

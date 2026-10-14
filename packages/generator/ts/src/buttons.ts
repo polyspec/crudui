@@ -10,7 +10,7 @@ import type { FormTemplate } from './form';
 import { formMessages } from './messages';
 import { checkBindText } from './input-text';
 import { checkFormTemplate } from './template-shape';
-import { escAttr, escText } from './util';
+import { escAttr, escText, isRecord } from './util';
 
 /** Button kinds a spec can declare. A `link` renders an anchor. */
 export type FormButtonType = 'submit' | 'reset' | 'button' | 'link';
@@ -41,8 +41,8 @@ export interface BindButtonsOptions {
 
 /** A behavior script: a string, or the `script` of a `{ label, script }` action. */
 function behaviorScript(behavior: unknown, action: string): string | undefined {
-  const entry = behavior !== null && typeof behavior === 'object' ? (behavior as Record<string, unknown>)[action] : undefined;
-  const script = entry !== null && typeof entry === 'object' ? (entry as Record<string, unknown>).script : entry;
+  const entry = isRecord(behavior) ? behavior[action] : undefined;
+  const script = isRecord(entry) ? entry.script : entry;
   return typeof script === 'string' && script !== '' ? script : undefined;
 }
 
@@ -60,16 +60,17 @@ export function bindButtons(
   checkFormTemplate(template);
   const language = options.language ?? 'ko';
   const t = makeTranslate(language);
-  const messages = formMessages(language) as unknown as Readonly<Record<string, string | undefined>>;
+  const messages = formMessages(language);
   return template.buttons.map((spec): ButtonVM => {
-    const type = spec.type as FormButtonType;
+    const type = FORM_BUTTON_TYPES.find(name => name === spec.type);
+    if (type === undefined) throw new FormInputError(`Invalid button type: ${String(spec.type)}`);
     const design = resolveDesign(spec.design, makeContext([], data));
     const style = styleString(design.main.style);
     const optional = { name: spec.name, value: spec.value, href: spec.href, onclick: behaviorScript(spec.behavior, 'onclick') };
     return {
       type,
       tag: type === 'link' ? 'a' : 'button',
-      text: t(spec.text as never, messages[type]),
+      text: t(spec.text, type === 'submit' || type === 'reset' ? messages[type] : undefined),
       attrs: {
         ...(type === 'link' ? {} : { type }),
         class: ['crudui-action', 'crudui-action--text', design.main.class].filter(Boolean).join(' '),

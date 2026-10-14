@@ -29,6 +29,7 @@ import {
   cleanStr,
   elementId,
   controlId,
+  isRecord,
   joinClass,
   jsString,
   leafName,
@@ -207,11 +208,16 @@ function mainStyle(ctx: WidgetCtx): string | undefined {
   return styleString(ctx.design.main.style);
 }
 
+/** The style attribute of a style string, none when it is empty. */
+function styleAttr(style: string | undefined): Attrs {
+  return style ? { style } : {};
+}
+
 /** Prepend affix from LocalizedText prepend + design.prepend node. */
 function prependAffix(ctx: WidgetCtx): Affix | undefined {
   const content = ctx.spec.prepend;
   if (content === undefined || content === null || content === '') return undefined;
-  const text = ctx.t(content as never);
+  const text = ctx.t(content);
   if (!text) return undefined;
   return {
     text,
@@ -224,7 +230,7 @@ function prependAffix(ctx: WidgetCtx): Affix | undefined {
 function appendAffix(ctx: WidgetCtx): Affix | undefined {
   const content = ctx.spec.append;
   if (content === undefined || content === null || content === '') return undefined;
-  const text = ctx.t(content as never);
+  const text = ctx.t(content);
   if (!text) return undefined;
   return { text, class: 'crudui-widget__affix' };
 }
@@ -233,7 +239,7 @@ function appendAffix(ctx: WidgetCtx): Affix | undefined {
 function placeholder(ctx: WidgetCtx): string {
   const p = ctx.spec.placeholder;
   if (p === undefined || p === null || p === '') return '';
-  return ctx.t(p as never);
+  return ctx.t(p);
 }
 
 /**
@@ -242,17 +248,13 @@ function placeholder(ctx: WidgetCtx): string {
  */
 function behaviorAttrs(ctx: WidgetCtx): Attrs {
   const b = ctx.spec.behavior;
-  if (b === undefined || b === false || b === true || typeof b !== 'object') return {};
+  if (!isRecord(b)) return {};
   const out: Attrs = {};
-  for (const [action, entry] of Object.entries(b as Record<string, unknown>)) {
+  for (const [action, entry] of Object.entries(b)) {
     let script: string | undefined;
     if (typeof entry === 'string') script = entry;
-    else if (
-      entry &&
-      typeof entry === 'object' &&
-      typeof (entry as Record<string, unknown>).script === 'string'
-    ) {
-      script = (entry as Record<string, unknown>).script as string;
+    else if (isRecord(entry) && typeof entry.script === 'string') {
+      script = entry.script;
     }
     if (script) out[action] = script;
   }
@@ -262,15 +264,11 @@ function behaviorAttrs(ctx: WidgetCtx): Attrs {
 /** A single behavior script for one action (or ''). */
 function behaviorScript(ctx: WidgetCtx, action: string): string {
   const b = ctx.spec.behavior;
-  if (b === undefined || b === false || b === true || typeof b !== 'object') return '';
-  const entry = (b as Record<string, unknown>)[action];
+  if (!isRecord(b)) return '';
+  const entry = b[action];
   if (typeof entry === 'string') return entry;
-  if (
-    entry &&
-    typeof entry === 'object' &&
-    typeof (entry as Record<string, unknown>).script === 'string'
-  ) {
-    return (entry as Record<string, unknown>).script as string;
+  if (isRecord(entry) && typeof entry.script === 'string') {
+    return entry.script;
   }
   return '';
 }
@@ -278,8 +276,8 @@ function behaviorScript(ctx: WidgetCtx, action: string): string {
 /** Read one options.* value as a string, or undefined when absent. */
 function optStr(ctx: WidgetCtx, key: string, fallback?: string): string | undefined {
   const o = ctx.spec.options;
-  if (o && typeof o === 'object' && !Array.isArray(o)) {
-    const v = (o as Record<string, unknown>)[key];
+  if (isRecord(o)) {
+    const v = o[key];
     if (v !== undefined && v !== null) return phpString(v);
   }
   return fallback;
@@ -292,12 +290,7 @@ function optWith(ctx: WidgetCtx, key: string, fallback: string): string {
 
 /** A DYNAMIC items source is a `{ model, ... }` descriptor (DB-backed). */
 function isDynamicItemsSource(items: unknown): items is Record<string, unknown> {
-  return (
-    items !== null &&
-    typeof items === 'object' &&
-    !Array.isArray(items) &&
-    'model' in (items as Record<string, unknown>)
-  );
+  return isRecord(items) && 'model' in items;
 }
 
 /**
@@ -309,9 +302,9 @@ function itemEntries(items: unknown): Array<[string, unknown]> {
   if (items === null || items === undefined) return [];
   if (isChoiceList(items)) return choicePairs(items, true, true) ?? [];
   if (Array.isArray(items)) return items.map((v, i) => [String(i), v]);
-  if (typeof items === 'object') {
+  if (isRecord(items)) {
     if (isDynamicItemsSource(items)) return [];
-    return Object.entries(items as Record<string, unknown>);
+    return Object.entries(items);
   }
   return [];
 }
@@ -330,8 +323,8 @@ function dynamicSourceAttrs(items: Record<string, unknown>): SourceAttrs {
 /** accept attr: validate.accept (or options.accept), default fallback. */
 function acceptAttr(ctx: WidgetCtx, fallback: string): string {
   const validate = ctx.spec.validate;
-  if (validate && typeof validate === 'object' && !Array.isArray(validate)) {
-    const a = (validate as Record<string, unknown>).accept;
+  if (isRecord(validate)) {
+    const a = validate.accept;
     if (typeof a === 'string' && a) return a;
   }
   return optWith(ctx, 'accept', fallback);
@@ -378,7 +371,7 @@ function textLike(inputType: string): Evaluator {
       ...(inputType === 'number' ? { step: 'any' } : {}),
       class: mainClass(ctx, 'valid-target crudui-input'),
       ...(placeholder(ctx) ? { placeholder: placeholder(ctx) } : {}),
-      ...(mainStyle(ctx) ? { style: mainStyle(ctx)! } : {}),
+      ...styleAttr(mainStyle(ctx)),
       ...behaviorAttrs(ctx),
       ...dataAttrs(ctx),
     };
@@ -413,7 +406,7 @@ const range: Evaluator = (ctx) => {
       max: String(maximum),
       step: String(validate.step),
       class: mainClass(ctx, 'valid-target crudui-input crudui-input--range'),
-      ...(mainStyle(ctx) ? { style: mainStyle(ctx)! } : {}),
+      ...styleAttr(mainStyle(ctx)),
       ...behaviorAttrs(ctx),
       ...dataAttrs(ctx),
     },
@@ -432,7 +425,7 @@ const password: Evaluator = (ctx) => ({
     name: bracketName(ctx),
     value: phpString(ctx.value),
     class: mainClass(ctx, 'valid-target crudui-input'),
-    ...(mainStyle(ctx) ? { style: mainStyle(ctx)! } : {}),
+    ...styleAttr(mainStyle(ctx)),
     ...dataAttrs(ctx),
   },
 });
@@ -446,7 +439,7 @@ const textarea: Evaluator = (ctx) => ({
     name: bracketName(ctx),
     class: mainClass(ctx, 'valid-target crudui-input'),
     rows: '5',
-    ...(mainStyle(ctx) ? { style: mainStyle(ctx)! } : {}),
+    ...styleAttr(mainStyle(ctx)),
     ...behaviorAttrs(ctx),
     ...dataAttrs(ctx),
   },
@@ -470,7 +463,7 @@ const select: Evaluator = (ctx) => {
         name: bracketName(ctx),
         class: mainClass(ctx, 'valid-target crudui-input crudui-input--select valid-target-async'),
         ...dynamicSourceAttrs(items),
-        ...(mainStyle(ctx) ? { style: mainStyle(ctx)! } : {}),
+        ...styleAttr(mainStyle(ctx)),
         ...behaviorAttrs(ctx),
         ...dataAttrs(ctx),
       },
@@ -490,10 +483,10 @@ const select: Evaluator = (ctx) => {
           const group = groups[index];
           return {
             value: key,
-            label: ctx.t(val as never) || phpString(val),
+            label: ctx.t(val) || phpString(val),
             selected: effectiveValue === key,
             isDefault: false,
-            ...(group ? { group: { index: group.index, label: ctx.t(group.label as never) || phpString(group.label) } } : {}),
+            ...(group ? { group: { index: group.index, label: ctx.t(group.label) || phpString(group.label) } } : {}),
           };
         });
 
@@ -504,7 +497,7 @@ const select: Evaluator = (ctx) => {
     attrs: {
       name: bracketName(ctx),
       class: mainClass(ctx, 'valid-target crudui-input crudui-input--select'),
-      ...(mainStyle(ctx) ? { style: mainStyle(ctx)! } : {}),
+      ...styleAttr(mainStyle(ctx)),
       ...behaviorAttrs(ctx),
       ...dataAttrs(ctx),
     },
@@ -578,7 +571,7 @@ const choice: Evaluator = (ctx) => {
     const value = String(key);
     return {
       value,
-      label: ctx.t(label as never) || phpString(label),
+      label: ctx.t(label) || phpString(label),
       selected: effectiveValue === value,
       isDefault: defaultStr !== null && defaultStr === value,
       id: `${idPrefix}-${index + 1}`,
@@ -648,7 +641,7 @@ const multichoice: Evaluator = (ctx) => {
     const value = String(key);
     return {
       value,
-      label: ctx.t(label as never) || phpString(label),
+      label: ctx.t(label) || phpString(label),
       selected: selectedValues.includes(value),
       isDefault: false,
       id: `${idPrefix}${index + 1}`,
@@ -685,7 +678,7 @@ const date: Evaluator = (ctx) => {
       name: bracketName(ctx),
       value: formatDateValue(rawValue, 'YYYY-MM-DD'),
       class: mainClass(ctx, 'valid-target crudui-input'),
-      ...(mainStyle(ctx) ? { style: mainStyle(ctx)! } : {}),
+      ...styleAttr(mainStyle(ctx)),
       ...behaviorAttrs(ctx),
       ...dataAttrs(ctx),
     },
@@ -705,7 +698,7 @@ const datetime: Evaluator = (ctx) => {
       name: bracketName(ctx),
       value: formatDateValue(rawValue, 'YYYY-MM-DDTHH:mm:ss'),
       class: mainClass(ctx, 'valid-target crudui-input'),
-      ...(mainStyle(ctx) ? { style: mainStyle(ctx)! } : {}),
+      ...styleAttr(mainStyle(ctx)),
       ...behaviorAttrs(ctx),
       ...dataAttrs(ctx),
     },
@@ -720,12 +713,10 @@ const dummy: Evaluator = (ctx) => {
     const pair = (choicePairs(items) ?? []).find(([value]) => value === text);
     if (pair) v = pair[1];
   } else if (
-    items &&
-    typeof items === 'object' &&
-    !Array.isArray(items) &&
+    isRecord(items) &&
     !isDynamicItemsSource(items)
   ) {
-    const looked = (items as Record<string, unknown>)[phpString(v)];
+    const looked = items[phpString(v)];
     if (looked !== undefined) v = looked;
   }
   const textVal = phpString(v);
@@ -733,9 +724,7 @@ const dummy: Evaluator = (ctx) => {
   const rawHtml = phpTruthy(textVal) ? nl2br(textVal) : textVal;
   const attrs: Attrs = {
     ...(ctx.design.main.class ? { class: ctx.design.main.class } : {}),
-    ...(styleString(ctx.design.main.style)
-      ? { style: styleString(ctx.design.main.style)! }
-      : {}),
+    ...styleAttr(styleString(ctx.design.main.style)),
   };
   return {
     kind: 'dummy',
@@ -759,7 +748,7 @@ const dummyInput: Evaluator = (ctx) => {
       readonly: '',
       class: mainClass(ctx, 'crudui-input'),
       ...(placeholder(ctx) ? { placeholder: placeholder(ctx) } : {}),
-      ...(mainStyle(ctx) ? { style: mainStyle(ctx)! } : {}),
+      ...styleAttr(mainStyle(ctx)),
       'data-default': phpString(ctx.spec.default),
     },
     prepend: prependAffix(ctx),
@@ -900,7 +889,7 @@ const search: Evaluator = (ctx) => {
       const value = String(key);
       options.push({
         value,
-        label: ctx.t(label as never) || phpString(label),
+        label: ctx.t(label) || phpString(label),
         selected: effectiveValue === value,
         isDefault: false,
       });
@@ -910,7 +899,7 @@ const search: Evaluator = (ctx) => {
     options.push({ value: '', label: 'select', selected: false, isDefault: false });
   }
 
-  const sourceAttrs = dynamic ? dynamicSourceAttrs(items as Record<string, unknown>) : null;
+  const sourceAttrs = dynamic ? dynamicSourceAttrs(items) : null;
   const selectClass = mainClass(
     ctx,
     dynamic
@@ -920,7 +909,7 @@ const search: Evaluator = (ctx) => {
 
   const selectAttrs: Attrs = {
     class: selectClass,
-    ...(mainStyle(ctx) ? { style: mainStyle(ctx)! } : {}),
+    ...styleAttr(mainStyle(ctx)),
     name,
     'data-keyword-min-length': keywordMinLength,
     'data-delay': delay,
@@ -1043,11 +1032,11 @@ const button: Evaluator = (ctx) => ({
   attrs: {
     type: 'button',
     class: mainClass(ctx, 'crudui-action crudui-action--text'),
-    ...(mainStyle(ctx) ? { style: mainStyle(ctx)! } : {}),
+    ...styleAttr(mainStyle(ctx)),
     id: ctx.controlId,
     ...behaviorAttrs(ctx),
   },
-  text: ctx.spec.content === undefined ? '' : ctx.t(ctx.spec.content as never),
+  text: ctx.spec.content === undefined ? '' : ctx.t(ctx.spec.content),
 });
 
 const tagify: Evaluator = (ctx) => {
@@ -1177,8 +1166,8 @@ export const WIDGET_LAYOUTS: Readonly<Record<string, WidgetModel['layout']>> = (
       wrapper: { ...node },
       group: { ...node },
       prepend: { ...node },
-    } as ResolvedDesign,
-    t: ((v: unknown) => (typeof v === 'string' ? v : '')) as unknown as Translate,
+    },
+    t: (v: unknown) => (typeof v === 'string' ? v : ''),
   };
   const out: Record<string, WidgetModel['layout']> = {};
   for (const [kind, evaluator] of Object.entries(REGISTRY)) {
@@ -1208,8 +1197,8 @@ export const WIDGET_CANONICAL: Readonly<Record<string, string>> = (() => {
       wrapper: { ...node },
       group: { ...node },
       prepend: { ...node },
-    } as ResolvedDesign,
-    t: ((v: unknown) => (typeof v === 'string' ? v : '')) as unknown as Translate,
+    },
+    t: (v: unknown) => (typeof v === 'string' ? v : ''),
   };
   const out: Record<string, string> = {};
   for (const [key, evaluator] of Object.entries(REGISTRY)) {
@@ -1230,9 +1219,15 @@ void everyWidgetMemberOrdered;
 
 /** The widget with its members in output order. */
 function orderedWidget(widget: WidgetModel): WidgetModel {
-  const ordered: Record<string, unknown> = {};
-  for (const name of WIDGET_MEMBERS) if (Object.prototype.hasOwnProperty.call(widget, name)) ordered[name] = widget[name];
-  return ordered as unknown as WidgetModel;
+  const ordered: Partial<WidgetModel> = {};
+  for (const name of WIDGET_MEMBERS) if (Object.prototype.hasOwnProperty.call(widget, name)) copyMember(ordered, widget, name);
+  // The required members are in `ordered` already, so these keep their output positions.
+  return { ...ordered, kind: widget.kind, layout: widget.layout, attrs: widget.attrs };
+}
+
+/** Copy one member of a widget. */
+function copyMember<K extends keyof WidgetModel>(to: Partial<WidgetModel>, from: WidgetModel, name: K): void {
+  to[name] = from[name];
 }
 
 /** Evaluate one leaf field to a markup-free WidgetModel, or undefined if unported. */

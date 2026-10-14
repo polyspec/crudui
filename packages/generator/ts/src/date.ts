@@ -31,8 +31,8 @@ export function parseDateValue(value: string): Date | undefined {
     const rfc = rfcDate.exec(value);
     if (!rfc || rfc[0] !== value) return undefined;
     weekday = rfc[1]?.toLowerCase();
-    year = Number(rfc[4]); month = months.indexOf(rfc[3]!.toLowerCase()) + 1; day = Number(rfc[2]);
-    hour = Number(rfc[5]); minute = Number(rfc[6]); second = Number(rfc[7] ?? 0); zone = rfc[8]!;
+    year = Number(rfc[4]); month = months.indexOf(rfc[3].toLowerCase()) + 1; day = Number(rfc[2]);
+    hour = Number(rfc[5]); minute = Number(rfc[6]); second = Number(rfc[7] ?? 0); zone = rfc[8];
   }
   const offset = offsetMinutes(zone);
   if (offset === undefined || month < 1 || month > 12 || day < 1 || day > 31 || hour > 23 || minute > 59 || second > 59) return undefined;
@@ -55,5 +55,5 @@ export function formatDateValue(value: string, pattern: string): string {
     MM: pad(date.getUTCMonth() + 1), DD: pad(date.getUTCDate()),
     HH: pad(date.getUTCHours()), mm: pad(date.getUTCMinutes()), ss: pad(date.getUTCSeconds()),
   };
-  return pattern.replace(/YYYY|MM|DD|HH|mm|ss/g, token => parts[token]!);
+  return pattern.replace(/YYYY|MM|DD|HH|mm|ss/g, token => parts[token]);
 }

@@ -1,16 +1,18 @@
 import { describe, expect, it } from 'vitest';
+import { FormInputError } from '@polyspec/crudui-validator';
 import { bindForm, compileForm, type NodeVM } from './index';
 
 // Choice appearance (docs/spec/schema.md, Choice appearance; docs/spec/form-markup.md, Choice appearance).
 const G = (properties: Record<string, unknown>) => ({ type: 'group', properties });
 const field = (spec: Record<string, unknown>, data: Record<string, unknown> = {}): NodeVM =>
-  bindForm(compileForm(G({ accent: spec })), data, { language: 'en' })[0]!;
+  bindForm(compileForm(G({ accent: spec })), data, { language: 'en' })[0];
 const rejection = (spec: Record<string, unknown>): string => {
   try {
     field(spec);
   } catch (error) {
-    expect((error as { code?: string }).code).toBe('INVALID_FORM_INPUT');
-    return (error as Error).message;
+    if (!(error instanceof FormInputError)) throw error;
+    expect(error.code).toBe('INVALID_FORM_INPUT');
+    return error.message;
   }
   throw new Error('bindForm accepted the specification');
 };

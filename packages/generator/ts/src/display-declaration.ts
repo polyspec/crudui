@@ -3,6 +3,7 @@
 import { FormInputError } from '@polyspec/crudui-validator';
 import { checkDesignDeclaration } from './form';
 import { CHOICE_LIST_EXPECTED, choicePairs, isChoiceList } from './choice-list';
+import { isRecord } from './util';
 
 /** Declaration path names of a display specification. */
 export interface DisplayPaths {
@@ -27,9 +28,6 @@ const PAGINATION_MODES = ['pages', 'offset', 'cursor', 'none'];
 
 const CONTENT = 'a string, a language map or null';
 
-function isObject(value: unknown): value is Record<string, unknown> {
-  return value !== null && typeof value === 'object' && !Array.isArray(value);
-}
 
 function has(object: Record<string, unknown>, key: string): boolean {
   return Object.prototype.hasOwnProperty.call(object, key);
@@ -38,14 +36,14 @@ function has(object: Record<string, unknown>, key: string): boolean {
 /** A string, a language map (a non-empty object of strings or null) or null. */
 function isContent(value: unknown): boolean {
   if (value === null || typeof value === 'string') return true;
-  if (!isObject(value)) return false;
+  if (!isRecord(value)) return false;
   const entries = Object.values(value);
   return entries.length > 0 && entries.every(entry => entry === null || typeof entry === 'string');
 }
 
 /** A condition map: an object with at least one member. */
 function isConditionMap(value: unknown): boolean {
-  return isObject(value) && Object.keys(value).length > 0;
+  return isRecord(value) && Object.keys(value).length > 0;
 }
 
 function fail(key: string, path: string, expected: string): never {
@@ -62,21 +60,21 @@ function closed(object: Record<string, unknown>, prefix: string, allowed: readon
 /** Check a cell format declaration at `path`. */
 function checkFormat(format: unknown, path: string): void {
   if (typeof format === 'boolean' || typeof format === 'string') return;
-  if (!isObject(format)) fail('format', path, 'a boolean, a string or an object');
+  if (!isRecord(format)) fail('format', path, 'a boolean, a string or an object');
   for (const [key, value] of Object.entries(format)) {
     if (FORMAT_STRINGS.includes(key)) {
       if (typeof value !== 'string') fail(`format.${key}`, path, 'a string');
     } else if (FORMAT_CONTENT.includes(key)) {
       if (!isContent(value)) fail(`format.${key}`, path, CONTENT);
     } else if (key === 'map') {
-      if (!isObject(value)) fail('format.map', path, 'an object');
+      if (!isRecord(value)) fail('format.map', path, 'an object');
       for (const [name, label] of Object.entries(value)) {
         if (!isContent(label)) fail(`format.map.${name}`, path, CONTENT);
       }
     } else if (key === 'href') {
       if (typeof value !== 'string' && !isConditionMap(value)) fail('format.href', path, 'a string or a condition map');
     } else if (key === 'items') {
-      if (!Array.isArray(value) && !isObject(value)) fail('format.items', path, 'an array or an object');
+      if (!Array.isArray(value) && !isRecord(value)) fail('format.items', path, 'an array or an object');
       if (isChoiceList(value) && !choicePairs(value)) fail('format.items', path, CHOICE_LIST_EXPECTED);
     }
   }
@@ -84,7 +82,7 @@ function checkFormat(format: unknown, path: string): void {
 
 /** Check one column or field declaration at `path`. */
 function checkMember(name: string, member: unknown, paths: DisplayPaths): void {
-  if (!isObject(member)) fail(name, paths.members, 'an object');
+  if (!isRecord(member)) fail(name, paths.members, 'an object');
   const path = `${paths.members}.${name}`;
   closed(member, '', paths.members === 'columns' ? COLUMN_KEYS : FIELD_KEYS, path);
   if (has(member, 'field') && typeof member.field !== 'string') fail('field', path, 'a string');
@@ -102,7 +100,7 @@ function checkMember(name: string, member: unknown, paths: DisplayPaths): void {
 /** Check one behavior entry of an action at `path`. */
 function checkBehaviorEntry(event: string, entry: unknown, path: string): void {
   if (typeof entry === 'string') return;
-  if (!isObject(entry)) fail(`behavior.${event}`, path, 'a script or an object');
+  if (!isRecord(entry)) fail(`behavior.${event}`, path, 'a script or an object');
   closed(entry, `behavior.${event}.`, SCRIPT_ACTION_KEYS, path);
   if (has(entry, 'label') && !isContent(entry.label)) fail(`behavior.${event}.label`, path, CONTENT);
   if (has(entry, 'script') && typeof entry.script !== 'string') fail(`behavior.${event}.script`, path, 'a string');
@@ -111,7 +109,7 @@ function checkBehaviorEntry(event: string, entry: unknown, path: string): void {
 /** Check one list or detail action at `actions.{name}`. */
 function checkAction(name: string, action: unknown): void {
   if (typeof action === 'string') return;
-  if (!isObject(action)) fail(name, 'actions', 'a script or an object');
+  if (!isRecord(action)) fail(name, 'actions', 'a script or an object');
   const path = `actions.${name}`;
   if (has(action, 'script')) {
     closed(action, '', SCRIPT_ACTION_KEYS, path);
@@ -124,8 +122,8 @@ function checkAction(name: string, action: unknown): void {
   if (has(action, 'format')) checkFormat(action.format, path);
   if (has(action, 'behavior')) {
     const behavior = action.behavior;
-    if (typeof behavior !== 'boolean' && !isObject(behavior)) fail('behavior', path, 'a boolean or an object');
-    if (isObject(behavior)) {
+    if (typeof behavior !== 'boolean' && !isRecord(behavior)) fail('behavior', path, 'a boolean or an object');
+    if (isRecord(behavior)) {
       closed(behavior, 'behavior.', BEHAVIOR_KEYS, path);
       for (const [event, entry] of Object.entries(behavior)) checkBehaviorEntry(event, entry, path);
     }
@@ -135,20 +133,20 @@ function checkAction(name: string, action: unknown): void {
 
 /** Reject a wrong value type or an unknown key in the pagination declaration at `path`. */
 function checkPagination(pagination: unknown, path: string): void {
-  if (typeof pagination !== 'boolean' && !isObject(pagination)) fail('pagination', path, 'a boolean or an object');
-  if (!isObject(pagination)) return;
+  if (typeof pagination !== 'boolean' && !isRecord(pagination)) fail('pagination', path, 'a boolean or an object');
+  if (!isRecord(pagination)) return;
   closed(pagination, 'pagination.', PAGINATION_KEYS, path);
-  if (has(pagination, 'per_page') && !(Number.isSafeInteger(pagination.per_page) && (pagination.per_page as number) >= 1)) {
+  if (has(pagination, 'per_page') && !(typeof pagination.per_page === 'number' && Number.isSafeInteger(pagination.per_page) && pagination.per_page >= 1)) {
     fail('pagination.per_page', path, 'a positive integer');
   }
-  if (has(pagination, 'mode') && !PAGINATION_MODES.includes(pagination.mode as string)) {
+  if (has(pagination, 'mode') && !(typeof pagination.mode === 'string' && PAGINATION_MODES.includes(pagination.mode))) {
     fail('pagination.mode', path, 'pages, offset, cursor or none');
   }
 }
 
 /** Check the actions declaration of a list or detail at `own`, each action in member order. */
 function checkActions(actions: unknown, own: string): void {
-  if (!isObject(actions)) fail('actions', own, 'an object');
+  if (!isRecord(actions)) fail('actions', own, 'an object');
   for (const [name, action] of Object.entries(actions)) {
     // Actions are not composed: a composition key is not an action name.
     if (name === '$ref' || name === '$patch') throw new FormInputError(`Invalid ${name} at actions: unknown key`);
@@ -170,19 +168,21 @@ export function checkDisplayDeclarations(spec: Record<string, unknown>, paths: D
     }
   }
   if (has(spec, 'design')) checkDesignDeclaration(spec.design, own);
-  for (const [name, member] of Object.entries(spec[paths.members] as Record<string, unknown>)) {
+  const members = spec[paths.members];
+  if (!isRecord(members)) fail(paths.members, own, 'an object');
+  for (const [name, member] of Object.entries(members)) {
     checkMember(name, member, paths);
   }
   if (own === 'detail') {
     if (has(spec, 'actions')) checkActions(spec.actions, own);
     return;
   }
-  if (has(spec, 'search') && typeof spec.search !== 'boolean' && !isObject(spec.search)) {
+  if (has(spec, 'search') && typeof spec.search !== 'boolean' && !isRecord(spec.search)) {
     fail('search', own, 'a boolean or an object');
   }
   if (has(spec, 'sort')) {
     const sort = spec.sort;
-    if (!isObject(sort)) fail('sort', own, 'an object');
+    if (!isRecord(sort)) fail('sort', own, 'an object');
     closed(sort, 'sort.', SORT_KEYS, own);
     if (has(sort, 'field') && typeof sort.field !== 'string') fail('sort.field', own, 'a string');
     if (has(sort, 'dir') && sort.dir !== 'asc' && sort.dir !== 'desc') fail('sort.dir', own, 'asc or desc');

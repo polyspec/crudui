@@ -3,6 +3,7 @@
 import {
   controlId,
   getValueByPath,
+  isRecord,
   joinClass,
   jsString,
   parsePathString,
@@ -200,8 +201,8 @@ function resolveMultiple(spec: Record<string, unknown>): MultipleSettings | null
   const m = spec.multiple;
   if (m === true) return { only: false, copy: false, sortable: false, controls: 'header', header: 'static' };
   if (m === 'only') return { only: true, copy: false, sortable: false, controls: 'header', header: 'static' };
-  if (!m || typeof m !== 'object' || Array.isArray(m)) return null;
-  const o = m as Record<string, unknown>;
+  if (!isRecord(m)) return null;
+  const o = m;
   return {
     only: o.only === true,
     ...(typeof o.min === 'number' ? { min: o.min } : {}),
@@ -227,11 +228,12 @@ function resolveLang(spec: Record<string, unknown>): LangSettings | null {
   const l = spec.lang;
   if (l === undefined || l === false) return null;
   if (l === true) return { langs: DEFAULT_LANGS, frame: true };
-  if (typeof l === 'object' && !Array.isArray(l)) {
-    const o = l as Record<string, unknown>;
+  if (isRecord(l)) {
+    const o = l;
+    const only = o.only;
     return {
       langs:
-        Array.isArray(o.only) && o.only.length > 0 ? (o.only as string[]) : DEFAULT_LANGS,
+        Array.isArray(only) && only.length > 0 && only.every((lang): lang is string => typeof lang === 'string') ? only : DEFAULT_LANGS,
       frame: o.frame !== false,
       title: o.title,
       groupClass: typeof o.group_class === 'string' ? o.group_class : undefined,
@@ -353,8 +355,8 @@ export function buildField(
   children: readonly FormFieldTemplate[]
 ): NodeVM {
   const design = resolveDesign(spec.design, makeContext(parsePathString(path), state.data, state.rowSegments));
-  const label = spec.label ? state.t(spec.label as never) : undefined;
-  const description = spec.description ? state.t(spec.description as never) : undefined;
+  const label = spec.label ? state.t(spec.label) : undefined;
+  const description = spec.description ? state.t(spec.description) : undefined;
   const multiple = resolveMultiple(spec);
   if (multiple) return buildCollection(spec, path, design, label, description, multiple, state, children);
   if (spec.type === 'group') return buildGroup(spec, path, design, label, description, state, children);
@@ -412,8 +414,8 @@ function buildLeaf(
 /** The `design.layout` a group declares; compilation has checked the value. */
 function declaredLayout(spec: Record<string, unknown>): string | undefined {
   const design = spec.design;
-  if (design === null || typeof design !== 'object' || Array.isArray(design)) return undefined;
-  const layout = (design as Record<string, unknown>).layout;
+  if (!isRecord(design)) return undefined;
+  const layout = design.layout;
   return typeof layout === 'string' ? layout : undefined;
 }
 
@@ -574,7 +576,7 @@ function buildLang(
   lang: LangSettings,
   state: BuildState
 ): NodeVM {
-  const title = lang.title ? state.t(lang.title as never) : '';
+  const title = lang.title ? state.t(lang.title) : '';
   const header = nodeHeader({ label, description, title }, design);
   const root = nodeRoot('lang', path, design, spec);
   return {

@@ -50,7 +50,7 @@ export interface UndoResult<T> {
 /** Take the record before the last change; the next value edit starts a new entry. */
 export function undoChange<T>(history: History<T>, current: T): UndoResult<T> {
   if (!history.entries.length) throw new FormInputError('Nothing to undo');
-  return { history: { entries: history.entries.slice(0, -1), redoEntries: [...history.redoEntries, current].slice(-HISTORY_LIMIT) }, value: history.entries[history.entries.length - 1]! };
+  return { history: { entries: history.entries.slice(0, -1), redoEntries: [...history.redoEntries, current].slice(-HISTORY_LIMIT) }, value: history.entries[history.entries.length - 1] };
 }
 
 /** The outcome of redoing one change. */
@@ -64,6 +64,6 @@ export interface RedoResult<T> {
 /** Take the next record after the current change. */
 export function redoChange<T>(history: History<T>, current: T): RedoResult<T> {
   if (!history.redoEntries.length) throw new FormInputError('Nothing to redo');
-  const value = history.redoEntries[history.redoEntries.length - 1]!;
+  const value = history.redoEntries[history.redoEntries.length - 1];
   return { history: { entries: [...history.entries, current].slice(-HISTORY_LIMIT), redoEntries: history.redoEntries.slice(0, -1) }, value };
 }

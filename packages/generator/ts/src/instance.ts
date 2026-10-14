@@ -1,5 +1,5 @@
 import { FormInputError } from '@polyspec/crudui-validator';
-import { bindForm, copyFormValue, formDescription, type BindFormOptions, type FormFieldTemplate, type FormTemplate } from './form';
+import { bindForm, copyFormRecord, copyFormValue, formDescription, type BindFormOptions, type FormFieldTemplate, type FormTemplate } from './form';
 import { bindButtons, type ButtonVM } from './buttons';
 import { formMessages, type FormMessages } from './messages';
 import type { NodeVM } from './viewmodel';
@@ -156,7 +156,7 @@ export class FormInstance {
   get description(): string { return formDescription(this.template, { language: this.options.language ?? 'ko' }); }
 
   /** Detached submission data, retaining keyed nested collections. */
-  getData(): Record<string, unknown> { return copyFormValue(this.data); }
+  getData(): Record<string, unknown> { return copyFormRecord(this.data); }
 
   /** Read a detached value relative to the data root. */
   getValue(path: string): unknown {
@@ -332,7 +332,7 @@ export class FormInstance {
     if (value !== undefined && !isRecord(value)) {
       throw new FormInputError(path ? `Group data must be an object: ${path}` : 'Form data must be an object');
     }
-    const data = value === undefined ? {} : copyFormValue(value as Record<string, unknown>);
+    const data = value === undefined ? {} : copyFormRecord(value);
     for (const field of fields) {
       const raw = data[field.name];
       const fieldPath = path ? `${path}.${field.name}` : field.name;
@@ -341,7 +341,7 @@ export class FormInstance {
         // Missing data creates one usable prototype, except in a data-only collection. Explicit {} means zero rows.
         if (raw !== undefined && !isRecord(raw)) throw new FormInputError(`Repeated data must be a keyed object: ${fieldPath}`);
         const entries = raw === undefined ? (dataOnly(field) ? [] : [[this.freshKey(new Set()), undefined] as const])
-          : Object.entries(raw as Record<string, unknown>);
+          : Object.entries(raw);
         for (const [key, row] of entries) {
           checkKey(key);
           if (hasOwn(rows, key)) throw new FormInputError(`Duplicate normalized row key: ${key}`);
@@ -364,7 +364,7 @@ export class FormInstance {
 
   private copyRowValue(field: FormFieldTemplate, value: unknown): unknown {
     if (field.spec.type !== 'group') return copyFormValue(value);
-    const row = isRecord(value) ? copyFormValue(value) : {};
+    const row = isRecord(value) ? copyFormRecord(value) : {};
     return this.copyChildren(field.children, row);
   }
 

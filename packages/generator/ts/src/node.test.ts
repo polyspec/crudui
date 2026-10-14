@@ -21,6 +21,7 @@ import {
   type NodeVM,
 } from './index';
 import { HISTORY_LIMIT } from './history';
+import { childrenOf, keysOf, present } from './test-support';
 
 const k1 = '__0000000000001__';
 const k2 = '__0000000000002__';
@@ -48,12 +49,12 @@ const data = {
 };
 
 function actions(node: NodeVM) {
-  return node.controls!.actions.map(action => [action.name, action.disabled]);
+  return present(node.controls, 'the row controls').actions.map(action => [action.name, action.disabled]);
 }
 
 describe('node grammar view model', () => {
   const [teams] = bindForm(compileForm(spec), data, { language: 'en' });
-  const [first, second] = teams!.children!;
+  const [first, second] = childrenOf(teams);
 
   it('describes collections and rows with numbers, titles, counts and summaries', () => {
     expect(teams).toMatchObject({ kind: 'collection', path: 'teams', item: 'group', header: { label: 'Team', count: 'Rows: 2' } });
@@ -62,20 +63,20 @@ describe('node grammar view model', () => {
       header: { label: 'Team', number: '1', title: 'Sales', summary: 'Nested rows: 2' },
       body: { id: `crudui:teams.${k1}:body` },
     });
-    expect(second!.header).toMatchObject({ number: '2', title: '(untitled)', summary: 'Nested rows: 0' });
-    const members = first!.children!.find(child => child.kind === 'collection')!;
-    expect(members.children!.map(row => [row.header!.number, row.collapsible, row.controls!.placement]))
+    expect(second.header).toMatchObject({ number: '2', title: '(untitled)', summary: 'Nested rows: 0' });
+    const members = present(childrenOf(first).find(child => child.kind === 'collection'), 'the members collection');
+    expect(childrenOf(members).map(row => [row.header?.number, row.collapsible, row.controls?.placement]))
       .toEqual([['1.1', undefined, 'footer'], ['1.2', undefined, 'footer']]);
   });
 
   it('computes control order and disabled states from limits and position', () => {
-    expect(actions(first!)).toEqual([
+    expect(actions(first)).toEqual([
       ['move-up', true], ['move-down', false], ['add-row', true], ['copy-row', true], ['remove-row', false],
     ]);
-    expect(actions(second!)).toEqual([
+    expect(actions(second)).toEqual([
       ['move-up', false], ['move-down', true], ['add-row', true], ['copy-row', true], ['remove-row', false],
     ]);
-    const emptyMembers = second!.children!.find(child => child.kind === 'collection')!;
+    const emptyMembers = present(childrenOf(second).find(child => child.kind === 'collection'), 'the members collection');
     expect(emptyMembers.controls).toEqual({
       placement: 'footer', label: 'Collection controls', actions: [{ name: 'add-row', label: 'Add', disabled: false }],
     });
@@ -83,7 +84,7 @@ describe('node grammar view model', () => {
 
   it('renders collapsed rows from the collapsed option', () => {
     const [collapsed] = bindForm(compileForm(spec), data, { collapsed: new Set([`teams.${k1}`]) });
-    expect(collapsed!.children!.map(row => row.expanded)).toEqual([false, true]);
+    expect(childrenOf(collapsed).map(row => row.expanded)).toEqual([false, true]);
   });
 
   it('marks hidden nodes and omits empty headers', () => {
@@ -92,8 +93,8 @@ describe('node grammar view model', () => {
       note: { type: 'text', design: { show: false } },
     } });
     const [secret, note] = bindForm(template, {});
-    expect(secret!.header).toBeUndefined();
-    expect(note!.hidden).toBe(true);
+    expect(secret.header).toBeUndefined();
+    expect(note.hidden).toBe(true);
   });
 });
 
@@ -101,17 +102,22 @@ describe('interface messages', () => {
   it('supports ko, en, ja and zh and rejects other languages', () => {
     for (const language of ['ko', 'en', 'ja', 'zh']) expect(formMessages(language).addRow).toBeTruthy();
     expect(() => formMessages('fr')).toThrow('Unsupported language: fr');
-    expect(() => bindForm(compileForm(spec), data, { language: 'fr' as never })).toThrow('Unsupported language: fr');
+    // @ts-expect-error: fr is no Language; bindForm checks the language at run time.
+    expect(() => bindForm(compileForm(spec), data, { language: 'fr' })).toThrow('Unsupported language: fr');
     expect(() => formMessages('')).toThrow('Unsupported language: ');
     for (const language of [5, true, ['ko'], { ko: 1 }]) {
-      expect(() => bindForm(compileForm(spec), data, { language: language as never })).toThrow('Language must be a string');
+      // @ts-expect-error: a value that is no string is no Language; bindForm checks it at run time.
+      expect(() => bindForm(compileForm(spec), data, { language: language })).toThrow('Language must be a string');
     }
     for (const name of ['keyPrefix', 'idPrefix']) {
-      expect(() => bindForm(compileForm(spec), data, { language: 5, [name]: 5 } as never)).toThrow('Language must be a string');
-      expect(() => bindForm(compileForm(spec), data, { language: 'fr', [name]: 5 } as never)).toThrow(`${name} must be a string`);
+      // @ts-expect-error: a number is no Language and no prefix; bindForm checks the options at run time.
+      expect(() => bindForm(compileForm(spec), data, { language: 5, [name]: 5 })).toThrow('Language must be a string');
+      // @ts-expect-error: fr is no Language and a number is no prefix; bindForm checks the options at run time.
+      expect(() => bindForm(compileForm(spec), data, { language: 'fr', [name]: 5 })).toThrow(`${name} must be a string`);
     }
     for (const unsupported of [true, 'other']) {
-      expect(() => bindForm(compileForm(spec), data, { language: 'fr', keyPrefix: 'p', unsupported } as never))
+      // @ts-expect-error: fr is no Language and the value is no UnsupportedMode; bindForm checks the options at run time.
+      expect(() => bindForm(compileForm(spec), data, { language: 'fr', keyPrefix: 'p', unsupported }))
         .toThrow('unsupported must be throw or marker');
     }
   });
@@ -151,11 +157,11 @@ describe('instance view state and undo', () => {
     const form = createForm(compileForm(spec), data);
     const { revision } = form.getSnapshot();
     form.toggleRow('teams', k1);
-    expect(form.getSnapshot().fields[0]!.children!.map(row => row.expanded)).toEqual([false, true]);
+    expect(childrenOf(form.getSnapshot().fields[0]).map(row => row.expanded)).toEqual([false, true]);
     form.setAllExpanded(false);
-    expect(form.getSnapshot().fields[0]!.children!.map(row => row.expanded)).toEqual([false, false]);
+    expect(childrenOf(form.getSnapshot().fields[0]).map(row => row.expanded)).toEqual([false, false]);
     form.setAllExpanded(true);
-    expect(form.getSnapshot().fields[0]!.children!.map(row => row.expanded)).toEqual([true, true]);
+    expect(childrenOf(form.getSnapshot().fields[0]).map(row => row.expanded)).toEqual([true, true]);
     expect(form.getSnapshot().revision).toBe(revision);
     expect(form.getData()).toEqual(data);
   });
@@ -200,17 +206,17 @@ describe('instance view state and undo', () => {
     form.setData(data);
     const snapshot = form.getSnapshot();
     expect(snapshot.canUndo).toBe(false);
-    expect(snapshot.fields[0]!.children!.map(row => row.expanded)).toEqual([true, true]);
+    expect(childrenOf(snapshot.fields[0]).map(row => row.expanded)).toEqual([true, true]);
   });
 
   it('keeps view state attached to rows through removal and rekeying', () => {
     const form = createForm(compileForm(spec), data);
     form.toggleRow('teams', k2);
     form.rekeyRow('teams', k2, '__0000000000042__');
-    expect(form.getSnapshot().fields[0]!.children![1]!.expanded).toBe(false);
+    expect(childrenOf(form.getSnapshot().fields[0])[1].expanded).toBe(false);
     form.removeRow('teams', '__0000000000042__');
     form.undo();
-    expect(form.getSnapshot().fields[0]!.children![1]!.expanded).toBe(true);
+    expect(childrenOf(form.getSnapshot().fields[0])[1].expanded).toBe(true);
   });
 });
 
@@ -221,19 +227,19 @@ describe('structure map and actions', () => {
     expect(rows.map(row => [row.path, row.number, row.title])).toEqual([
       ['teams', '1', 'Sales'], ['teams', '2', '(untitled)'],
     ]);
-    expect(rows[0]!.rows.map(row => [row.path, row.number])).toEqual([[`teams.${k1}.members`, '1.1'], [`teams.${k1}.members`, '1.2']]);
-    expect(rows[1]!.rows).toEqual([]);
+    expect(rows[0].rows.map(row => [row.path, row.number])).toEqual([[`teams.${k1}.members`, '1.1'], [`teams.${k1}.members`, '1.2']]);
+    expect(rows[1].rows).toEqual([]);
   });
 
   it('runs resolved actions against the instance', () => {
     const form = createForm(compileForm(spec), { teams: { [k1]: { name: 'Sales', members: {} } } });
     const members = `teams.${k1}.members`;
     const added = runAction(form, { name: 'add-row', path: members });
-    const [member] = Object.keys(form.getValue(members) as object);
+    const [member] = keysOf(form.getValue(members), members);
     expect(added).toEqual({ focus: { path: members, key: member } });
     expect(runAction(form, { name: 'remove-row', path: 'teams' })).toBeUndefined();
     expect(runAction(form, { name: 'toggle-row', path: 'teams', key: k1 })).toEqual({});
-    expect(form.getSnapshot().fields[0]!.children![0]!.expanded).toBe(false);
+    expect(childrenOf(form.getSnapshot().fields[0])[0].expanded).toBe(false);
     // Selecting changes no state; it names the row to move to.
     const revision = form.getSnapshot();
     expect(runAction(form, { name: 'select-row', path: 'teams', key: k1 })).toEqual({ focus: { path: 'teams', key: k1 } });
@@ -241,15 +247,15 @@ describe('structure map and actions', () => {
     expect(runAction(form, { name: 'undo' })).toEqual({});
     expect(form.getValue(members)).toEqual({});
     expect(runAction(form, { name: 'redo' })).toEqual({});
-    expect(Object.keys(form.getValue(members) as object)).toHaveLength(1);
+    expect(keysOf(form.getValue(members), members)).toHaveLength(1);
   });
 
   it('returns the row that receives focus after copying, moving and removing', () => {
     const form = createForm(compileForm(spec), data);
     // teams allows at most two rows, so remove one before copying.
     expect(runAction(form, { name: 'remove-row', path: 'teams', key: k1 })).toEqual({ focus: { path: 'teams', key: k2 } });
-    const copied = runAction(form, { name: 'copy-row', path: 'teams', key: k2 })!;
-    const [, copy] = Object.keys(form.getValue('teams') as object);
+    const copied = runAction(form, { name: 'copy-row', path: 'teams', key: k2 });
+    const [, copy] = keysOf(form.getValue('teams'), 'teams');
     expect(copied).toEqual({ focus: { path: 'teams', key: copy } });
     expect(runAction(form, { name: 'move-down', path: 'teams', key: k2 })).toEqual({ focus: { path: 'teams', key: k2 } });
     expect(runAction(form, { name: 'remove-row', path: 'teams', key: k2 })).toEqual({ focus: { path: 'teams', key: copy } });
@@ -317,7 +323,8 @@ describe('form buttons', () => {
 
   it('rejects a value that is not a compiled form template before reading its buttons', () => {
     for (const template of [{ kind: 'other' }, { kind: 'other', buttons: [] }]) {
-      expect(() => bindButtons(template as never)).toThrow('Unsupported form template');
+      // @ts-expect-error: an object of another kind is no FormTemplate; bindButtons checks it at run time.
+      expect(() => bindButtons(template)).toThrow('Unsupported form template');
     }
   });
 
@@ -341,11 +348,13 @@ describe('form buttons', () => {
     ]);
     expect(formButtonsHtml(buttons.slice(3))).toBe('<a class="crudui-action crudui-action--text" href="../?a=1&amp;b=&quot;2&quot;">List</a>');
     // Only evaluated buttons are rendered, with one error for any other shape.
-    expect(() => formButtonsHtml({} as never)).toThrow('Form buttons must be a list');
+    // @ts-expect-error: an object is no list of buttons; formButtonsHtml checks it at run time.
+    expect(() => formButtonsHtml({})).toThrow('Form buttons must be a list');
     const button = buttons[0];
     for (const invalid of [null, [], { ...button, tag: 'div' }, { ...button, text: 1 }, { ...button, attrs: [] },
       { ...button, attrs: { onmouseover: 'x' } }, { ...button, attrs: { class: 1 } }]) {
-      expect(() => formButtonsHtml([invalid] as never)).toThrow('Form buttons must be evaluated button objects');
+      // @ts-expect-error: each invalid value is no ButtonVM; formButtonsHtml checks it at run time.
+      expect(() => formButtonsHtml([invalid])).toThrow('Form buttons must be evaluated button objects');
     }
   });
 
@@ -363,6 +372,6 @@ describe('form buttons', () => {
 
   it('carries evaluated buttons in the instance snapshot', () => {
     const form = createForm(compileForm(root({ buttons: [{ type: 'submit', design: { class: { '.name': 'filled' } } }] })), { name: 'Ada' }, { language: 'en' });
-    expect(form.getSnapshot().buttons[0]!.attrs.class).toBe('crudui-action crudui-action--text filled');
+    expect(form.getSnapshot().buttons[0].attrs.class).toBe('crudui-action crudui-action--text filled');
   });
 });

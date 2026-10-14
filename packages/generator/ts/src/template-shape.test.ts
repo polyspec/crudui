@@ -1,10 +1,22 @@
+import assert from 'node:assert/strict';
 import { describe, expect, it } from 'vitest';
 import { FormInputError } from '@polyspec/crudui-validator';
 import { bindButtons, bindForm, compileForm, createForm } from './index';
 
-const compiled = () => JSON.parse(JSON.stringify(compileForm({ type: 'group', properties: { name: { type: 'text' } } })));
 type TemplateRecord = Record<string, unknown>;
-const firstField = (template: TemplateRecord) => (template.fields as TemplateRecord[])[0];
+const isRecord = (value: unknown): value is TemplateRecord => value !== null && typeof value === 'object' && !Array.isArray(value);
+/** A compiled template as decoded JSON, which a test reshapes. */
+const compiled = (): TemplateRecord => {
+  const template: unknown = JSON.parse(JSON.stringify(compileForm({ type: 'group', properties: { name: { type: 'text' } } })));
+  assert(isRecord(template), 'a compiled template is an object');
+  return template;
+};
+const firstField = (template: TemplateRecord): TemplateRecord => {
+  assert(Array.isArray(template.fields), 'a compiled template has a list of fields');
+  const field: unknown = template.fields[0];
+  assert(isRecord(field), 'a compiled field is an object');
+  return field;
+};
 const reshaped = (change: (template: TemplateRecord) => void) => {
   const template = compiled();
   change(template);
@@ -12,15 +24,19 @@ const reshaped = (change: (template: TemplateRecord) => void) => {
 };
 
 describe('form template shape', () => {
-  const entries: [string, (template: never) => unknown][] = [
+  // Each entry takes the decoded JSON of a template, which only the check at run time makes a FormTemplate.
+  const entries: [string, (template: TemplateRecord) => unknown][] = [
+    // @ts-expect-error: a reshaped template is a record, which the type FormTemplate does not accept.
     ['bindForm', template => bindForm(template, { name: 'a' })],
+    // @ts-expect-error: a reshaped template is a record, which the type FormTemplate does not accept.
     ['bindButtons', template => bindButtons(template, { name: 'a' })],
+    // @ts-expect-error: a reshaped template is a record, which the type FormTemplate does not accept.
     ['createForm', template => createForm(template, { name: 'a' })],
   ];
   const shapes: [string, (template: TemplateRecord) => void][] = [
     ['missing fields', t => { delete t.fields; }],
     ['fields not a list', t => { t.fields = {}; }],
-    ['a field that is not an object', t => { (t.fields as unknown[]).push('name'); }],
+    ['a field that is not an object', t => { assert(Array.isArray(t.fields)); t.fields.push('name'); }],
     ['a field without children', t => { delete firstField(t).children; }],
     ['a field with an unknown member', t => { firstField(t).label = 'Name'; }],
     ['missing buttons', t => { delete t.buttons; }],
@@ -35,17 +51,18 @@ describe('form template shape', () => {
     for (const [name, change] of shapes) {
       it(`${entry} rejects ${name}`, () => {
         let caught: unknown;
-        try { run(reshaped(change) as never); } catch (error) { caught = error; }
-        expect(caught).toBeInstanceOf(FormInputError);
-        expect((caught as Error).message).toBe('Unsupported form template');
+        try { run(reshaped(change)); } catch (error) { caught = error; }
+        assert(caught instanceof FormInputError, 'the entry throws a FormInputError');
+        expect(caught.message).toBe('Unsupported form template');
       });
     }
     it(`${entry} accepts the declared optional members`, () => {
-      expect(() => run(reshaped(t => { t.keyPrefix = 'p'; t.action = { url: '/save' }; }) as never)).not.toThrow();
+      expect(() => run(reshaped(t => { t.keyPrefix = 'p'; t.action = { url: '/save' }; }))).not.toThrow();
     });
   }
   it('treats an undefined member as absent', () => {
-    expect(() => bindForm({ ...compiled(), keyPrefix: undefined })).not.toThrow();
+    const template = compileForm({ type: 'group', properties: { name: { type: 'text' } } });
+    expect(() => bindForm({ ...template, keyPrefix: undefined })).not.toThrow();
   });
 });
 
@@ -63,7 +80,8 @@ describe('widget member order', () => {
     });
     const order = ['kind', 'layout', 'tag', 'attrs', 'text', 'rawHtml', 'source', 'options', 'itemLabelClass', 'script', 'styleChrome', 'prepend', 'append', 'extra'];
     for (const node of bindForm(template, {})) {
-      const keys = Object.keys((node as { widget: object }).widget);
+      assert(node.widget, 'a field node has a widget');
+      const keys = Object.keys(node.widget);
       expect(keys).toEqual(order.filter(key => keys.includes(key)));
     }
   });

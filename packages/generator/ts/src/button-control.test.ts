@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { bindForm, compileForm, type NodeVM } from './index';
+import { childrenOf } from './test-support';
 
 // Button fields (docs/spec/form-markup.md, Button fields).
 const field = (spec: Record<string, unknown>): NodeVM =>
-  bindForm(compileForm({ type: 'group', properties: { run: spec } }), {}, { language: 'en' })[0]!;
+  bindForm(compileForm({ type: 'group', properties: { run: spec } }), {}, { language: 'en' })[0];
 
 describe('button widget model', () => {
   it('describes a button element with its content and no script or hidden input', () => {
@@ -42,8 +43,8 @@ describe('button widget model', () => {
 
   it('gives a button in a keyed row its scoped control identifier and no name, value or script', () => {
     const template = compileForm({ type: 'group', properties: { rows: { type: 'group', multiple: true, properties: { run: { type: 'button', content: 'Run' } } } } });
-    const row = bindForm(template, { rows: { __a__: {} } }, { idPrefix: 'p', keyPrefix: 'form' })[0]!.children![0]!;
-    expect(row.children![0]!.widget).toEqual({
+    const row = childrenOf(bindForm(template, { rows: { __a__: {} } }, { idPrefix: 'p', keyPrefix: 'form' })[0])[0];
+    expect(childrenOf(row)[0].widget).toEqual({
       kind: 'button',
       layout: 'button',
       tag: 'button',

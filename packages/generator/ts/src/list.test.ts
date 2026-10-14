@@ -32,9 +32,9 @@ describe('buildList — structure & engine reuse', () => {
     );
 
     expect(vm.columns.map((c) => c.key)).toEqual(['name', 'status']);
-    expect(vm.columns[0]!.label).toBe('Name');
-    expect(vm.columns[0]!.sortable).toBe(true);
-    expect(vm.columns[1]!.sortable).toBe(false);
+    expect(vm.columns[0].label).toBe('Name');
+    expect(vm.columns[0].sortable).toBe(true);
+    expect(vm.columns[1].sortable).toBe(false);
     expect(vm.empty).toBe('No data');
     expect(vm.sort).toEqual({ field: 'created_at', dir: 'desc' });
     expect(vm.pagination).toEqual({
@@ -49,9 +49,9 @@ describe('buildList — structure & engine reuse', () => {
     });
 
     expect(vm.rows).toHaveLength(2);
-    expect(vm.rows[0]!.cells[0]!.value).toBe('Ada');
-    expect(vm.rows[0]!.cells[0]!.display).toBe('Ada');
-    expect(vm.rows[1]!.cells[1]!.value).toBe('blocked');
+    expect(vm.rows[0].cells[0].value).toBe('Ada');
+    expect(vm.rows[0].cells[0].display).toBe('Ada');
+    expect(vm.rows[1].cells[1].value).toBe('blocked');
   });
 
   test('column design.show (expression) drops the hidden column (G1)', () => {
@@ -66,7 +66,7 @@ describe('buildList — structure & engine reuse', () => {
       { data: { admin: false } }
     );
     expect(vm.columns.map((c) => c.key)).toEqual(['name']);
-    expect(vm.rows[0]!.cells).toHaveLength(1);
+    expect(vm.rows[0].cells).toHaveLength(1);
 
     const vmAdmin = buildList(
       {
@@ -104,9 +104,9 @@ describe('buildList — structure & engine reuse', () => {
       }
     );
     expect(vm.columns.map((c) => c.key)).toEqual(['id', 'extra']);
-    expect(vm.columns[0]!.sortable).toBe(true);
-    expect(vm.rows[0]!.cells[0]!.value).toBe(7);
-    expect(vm.rows[0]!.cells[1]!.display).toBe('E');
+    expect(vm.columns[0].sortable).toBe(true);
+    expect(vm.rows[0].cells[0].value).toBe(7);
+    expect(vm.rows[0].cells[1].display).toBe('E');
   });
 
   test('unresolved $ref → ComposeLoadError (never a silent render)', () => {
@@ -123,7 +123,7 @@ describe('renderCell catalog — SPEC §9.2 read display values', () => {
       [{ ...row, c: value }],
       { language }
     );
-    return vm.rows[0]!.cells[0]!.display;
+    return vm.rows[0].cells[0].display;
   }
 
   test('text (default + truncate)', () => {
@@ -246,7 +246,7 @@ describe('buildList — pagination / actions polymorphism', () => {
       []
     );
     expect(vm.actions[0]).toMatchObject({ key: 'edit', label: 'Edit' });
-    expect(vm.actions[0]!.format!.type).toBe('link');
+    expect(vm.actions[0].format?.type).toBe('link');
     expect(vm.actions[1]).toEqual({ key: 'remove', label: 'remove', behavior: { onclick: 'confirmDelete(this)' } });
   });
 });

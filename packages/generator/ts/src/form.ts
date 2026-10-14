@@ -9,6 +9,7 @@ import { DEFAULT_FORM_BUTTONS, FORM_BUTTON_TYPES } from './buttons';
 import { formMessages } from './messages';
 import { checkFormTemplate } from './template-shape';
 import { buildField, type BuildState, type NodeVM, type UnsupportedMode } from './viewmodel';
+import { isRecord } from './util';
 
 /** A data-independent field blueprint. Repeated children are stored just once. */
 export interface FormFieldTemplate {
@@ -63,13 +64,20 @@ export interface BindFormOptions {
 }
 
 /** Copy JSON-shaped values, retaining browser File/Blob and other opaque values. */
-export function copyFormValue<T>(value: T): T {
-  if (Array.isArray(value)) return value.map(copyFormValue) as T;
-  if (value && typeof value === 'object' &&
-      (Object.getPrototypeOf(value) === Object.prototype || Object.getPrototypeOf(value) === null)) {
-    return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, copyFormValue(v)])) as T;
-  }
+export function copyFormValue(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(copyFormValue);
+  if (isPlainRecord(value)) return copyFormRecord(value);
   return value;
+}
+
+/** Copy a JSON object, its members as `copyFormValue` copies them. */
+export function copyFormRecord(value: Readonly<Record<string, unknown>>): Record<string, unknown> {
+  return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, copyFormValue(v)]));
+}
+
+/** Whether a value is a plain object: one whose prototype is Object.prototype or null. */
+function isPlainRecord(value: unknown): value is Record<string, unknown> {
+  return isRecord(value) && (Object.getPrototypeOf(value) === Object.prototype || Object.getPrototypeOf(value) === null);
 }
 
 function freezeTree<T>(value: T): T {
@@ -80,9 +88,6 @@ function freezeTree<T>(value: T): T {
   return value;
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return value !== null && typeof value === 'object' && !Array.isArray(value);
-}
 
 /** A string, or a condition map: a non-empty object. */
 function conditionValue(value: unknown): boolean {
@@ -118,10 +123,10 @@ const ONLY_MULTIPLE_KEYS: readonly string[] = ['only', 'title', 'header'];
  * the values.
  */
 function checkDeclarations(spec: Record<string, unknown>, path: string, field = true): void {
-  const has = (object: Record<string, unknown>, key: string) => Object.prototype.hasOwnProperty.call(object, key);
-  const fail = (key: string, expected: string): never => {
+  const has = (object: object, key: string) => Object.prototype.hasOwnProperty.call(object, key);
+  function fail(key: string, expected: string): never {
     throw new FormInputError(`Invalid ${key} at ${path}: expected ${expected}`);
-  };
+  }
   const closed = (object: Record<string, unknown>, name: string, allowed: readonly string[]) => {
     for (const key of Object.keys(object)) {
       if (!allowed.includes(key)) throw new FormInputError(`Invalid ${name}.${key} at ${path}: unknown key`);
@@ -137,7 +142,7 @@ function checkDeclarations(spec: Record<string, unknown>, path: string, field = 
       fail('multiple', 'a boolean, only or an object');
     }
     if (isRecord(multiple)) {
-      closed(multiple, 'multiple', CLOSED_BUCKET_KEYS.multiple!);
+      closed(multiple, 'multiple', CLOSED_BUCKET_KEYS.multiple);
       if (has(multiple, 'only') && typeof multiple.only !== 'boolean') fail('multiple.only', 'a boolean');
       // Rows of a data-only collection come from the data: row limits and row controls do not apply.
       if (multiple.only === true) {
@@ -158,10 +163,10 @@ function checkDeclarations(spec: Record<string, unknown>, path: string, field = 
           fail('multiple.title', 'the name of a direct child field without multiple, properties or lang');
         }
       }
-      if (has(multiple, 'controls') && !['header', 'footer', 'outline'].includes(multiple.controls as string)) {
+      if (has(multiple, 'controls') && !(typeof multiple.controls === 'string' && ['header', 'footer', 'outline'].includes(multiple.controls))) {
         fail('multiple.controls', 'header, footer or outline');
       }
-      if (has(multiple, 'header') && !['static', 'sticky'].includes(multiple.header as string)) {
+      if (has(multiple, 'header') && !(typeof multiple.header === 'string' && ['static', 'sticky'].includes(multiple.header))) {
         fail('multiple.header', 'static or sticky');
       }
     }
@@ -169,14 +174,14 @@ function checkDeclarations(spec: Record<string, unknown>, path: string, field = 
   if (has(spec, 'lang') && typeof spec.lang !== 'boolean' && !isRecord(spec.lang)) {
     fail('lang', 'a boolean or an object');
   }
-  if (isRecord(spec.lang)) closed(spec.lang, 'lang', CLOSED_BUCKET_KEYS.lang!);
+  if (isRecord(spec.lang)) closed(spec.lang, 'lang', CLOSED_BUCKET_KEYS.lang);
   if (isRecord(spec.lang) && has(spec.lang, 'only')) {
     const only = spec.lang.only;
     const codes = Array.isArray(only) && only.every(code => typeof code === 'string');
     if (!codes && !isRecord(only)) fail('lang.only', 'a list of language codes or an object');
   }
   if (has(spec, 'design')) checkDesignDeclaration(spec.design, path, field, field ? groupLayouts(spec) : undefined);
-  if (isRecord(spec.behavior)) closed(spec.behavior, 'behavior', CLOSED_BUCKET_KEYS.behavior!);
+  if (isRecord(spec.behavior)) closed(spec.behavior, 'behavior', CLOSED_BUCKET_KEYS.behavior);
   if (field && typeof spec.type === 'string' && spec.type.toLowerCase() === 'range') checkRangeDeclaration(spec, path);
 }
 
@@ -212,10 +217,10 @@ function groupLayouts(spec: Record<string, unknown>): readonly string[] | undefi
  * accepts `layout`, one of `layouts`.
  */
 export function checkDesignDeclaration(design: unknown, path: string, field = false, layouts?: readonly string[]): void {
-  const has = (object: Record<string, unknown>, key: string) => Object.prototype.hasOwnProperty.call(object, key);
-  const fail = (key: string, expected: string): never => {
+  const has = (object: object, key: string) => Object.prototype.hasOwnProperty.call(object, key);
+  function fail(key: string, expected: string): never {
     throw new FormInputError(`Invalid ${key} at ${path}: expected ${expected}`);
-  };
+  }
   const closed = (object: Record<string, unknown>, name: string, allowed: readonly string[]) => {
     for (const key of Object.keys(object)) {
       if (!allowed.includes(key)) throw new FormInputError(`Invalid ${name}.${key} at ${path}: unknown key`);
@@ -223,7 +228,7 @@ export function checkDesignDeclaration(design: unknown, path: string, field = fa
   };
   if (typeof design !== 'boolean' && !isRecord(design)) fail('design', 'a boolean or an object');
   if (isRecord(design)) {
-    const keys = layouts ? CLOSED_BUCKET_KEYS.groupDesign! : field ? CLOSED_BUCKET_KEYS.fieldDesign! : CLOSED_BUCKET_KEYS.design!;
+    const keys = layouts ? CLOSED_BUCKET_KEYS.groupDesign : field ? CLOSED_BUCKET_KEYS.fieldDesign : CLOSED_BUCKET_KEYS.design;
     closed(design, 'design', keys);
     if (has(design, 'show') && typeof design.show !== 'boolean' && !conditionValue(design.show)) {
       fail('design.show', 'an expression, a boolean or a condition map');
@@ -232,22 +237,22 @@ export function checkDesignDeclaration(design: unknown, path: string, field = fa
       if (has(design, key) && !conditionValue(design[key])) fail(`design.${key}`, 'a string or a condition map');
     }
     if (has(design, 'attributes')) checkDeclaredAttributes(design.attributes, 'design.attributes', path);
-    if (layouts && has(design, 'layout') && !layouts.includes(design.layout as string)) {
+    if (layouts && has(design, 'layout') && !(typeof design.layout === 'string' && layouts.includes(design.layout))) {
       fail('design.layout', layouts.length === 3 ? 'stacked, inline or line' : 'stacked or inline');
     }
     for (const node of ['label', 'wrapper', 'group', 'prepend']) {
       if (!has(design, node)) continue;
       const value = design[node];
       if (!isRecord(value)) fail(`design.${node}`, 'an object');
-      const nodeKeys = field && node === 'wrapper' ? CLOSED_BUCKET_KEYS.fieldWrapper! : CLOSED_BUCKET_KEYS.node!;
-      closed(value as Record<string, unknown>, `design.${node}`, nodeKeys);
+      const nodeKeys = field && node === 'wrapper' ? CLOSED_BUCKET_KEYS.fieldWrapper : CLOSED_BUCKET_KEYS.node;
+      closed(value, `design.${node}`, nodeKeys);
       for (const key of ['class', 'style']) {
-        if (has(value as Record<string, unknown>, key) && !conditionValue((value as Record<string, unknown>)[key])) {
+        if (has(value, key) && !conditionValue(value[key])) {
           fail(`design.${node}.${key}`, 'a string or a condition map');
         }
       }
-      if (has(value as Record<string, unknown>, 'attributes')) {
-        checkDeclaredAttributes((value as Record<string, unknown>).attributes, `design.${node}.attributes`, path);
+      if (has(value, 'attributes')) {
+        checkDeclaredAttributes(value.attributes, `design.${node}.attributes`, path);
       }
     }
   }
@@ -255,31 +260,34 @@ export function checkDesignDeclaration(design: unknown, path: string, field = fa
 
 /** Reject a wrong root `action` or `buttons` declaration. */
 function checkFormDeclarations(spec: Record<string, unknown>): void {
-  const has = (object: Record<string, unknown>, key: string) => Object.prototype.hasOwnProperty.call(object, key);
-  const fail = (key: string, expected: string): never => {
+  const has = (object: object, key: string) => Object.prototype.hasOwnProperty.call(object, key);
+  function fail(key: string, expected: string): never {
     throw new FormInputError(`Invalid ${key} at form: expected ${expected}`);
-  };
+  }
   if (has(spec, 'action')) {
-    if (!isRecord(spec.action)) fail('action', 'an object');
+    const action = spec.action;
+    if (!isRecord(action)) fail('action', 'an object');
     for (const key of ['method', 'url', 'enctype']) {
-      if (has(spec.action as Record<string, unknown>, key) && typeof (spec.action as Record<string, unknown>)[key] !== 'string') {
+      if (has(action, key) && typeof action[key] !== 'string') {
         fail(`action.${key}`, 'a string');
       }
     }
   }
   if (!has(spec, 'buttons')) return;
-  if (!Array.isArray(spec.buttons)) fail('buttons', 'a list of buttons');
+  const buttons: unknown = spec.buttons;
+  if (!Array.isArray(buttons)) fail('buttons', 'a list of buttons');
   // A button type without interface text needs declared text.
-  const texts = formMessages('ko') as unknown as Record<string, unknown>;
-  (spec.buttons as unknown[]).forEach((button, index) => {
+  const texts = formMessages('ko');
+  buttons.forEach((button: unknown, index) => {
     const key = `buttons.${index}`;
     if (!isRecord(button)) fail(key, 'an object');
-    const declared = button as Record<string, unknown>;
-    if (!FORM_BUTTON_TYPES.includes(declared.type as never)) fail(`${key}.type`, 'submit, reset, button or link');
+    const declared = button;
+    const type = FORM_BUTTON_TYPES.find(name => name === declared.type);
+    if (type === undefined) fail(`${key}.type`, 'submit, reset, button or link');
     for (const name of ['name', 'value', 'href']) {
       if (has(declared, name) && typeof declared[name] !== 'string') fail(`${key}.${name}`, 'a string');
     }
-    if (!has(texts, declared.type as string) && !has(declared, 'text')) fail(`${key}.text`, 'content for this button type');
+    if (!has(texts, type) && !has(declared, 'text')) fail(`${key}.text`, 'content for this button type');
     if (declared.type === 'link' && !has(declared, 'href')) fail(`${key}.href`, 'a link target');
     checkDeclarations(declared, `form.${key}`, false);
   });
@@ -299,6 +307,13 @@ function compileFields(properties: Record<string, unknown>, parent = ''): FormFi
   });
 }
 
+/** The buttons of a form root that checkFormDeclarations has checked: the declared list, else the default buttons. */
+function formButtons(buttons: unknown): readonly Readonly<Record<string, unknown>>[] {
+  if (buttons === undefined) return DEFAULT_FORM_BUTTONS;
+  if (!Array.isArray(buttons) || !buttons.every(isRecord)) throw new FormInputError('Invalid buttons at form: expected a list of buttons');
+  return buttons;
+}
+
 /** Compose and prepare the entire form before any record data exists. */
 export function compileForm(
   rootSpec: Record<string, unknown>,
@@ -307,8 +322,7 @@ export function compileForm(
   // Input text is checked first (docs/spec/input-text.md).
   const checkedLoader = checkedComposition(rootSpec, options);
   checkOptionText(options, ['basepath', 'keyPrefix']);
-  if (rootSpec.type !== 'group' || !rootSpec.properties ||
-      typeof rootSpec.properties !== 'object' || Array.isArray(rootSpec.properties)) {
+  if (rootSpec.type !== 'group' || !isRecord(rootSpec.properties)) {
     throw new FormInputError('A form spec must be a group with properties');
   }
   checkFormDeclarations(rootSpec);
@@ -317,16 +331,16 @@ export function compileForm(
     throw new FormInputError('Invalid design.layout at form: unknown key');
   }
   const properties = composeProperties(
-    (rootSpec.properties as Record<string, unknown>) ?? {},
+    rootSpec.properties,
     checkedLoader ?? new MemoryLoader(options.files ?? {}),
     options.basepath ? { basepath: options.basepath } : {}
   );
   return freezeTree({
     kind: 'crudui/form-template' as const,
     keyPrefix: options.keyPrefix,
-    fields: compileFields(copyFormValue(properties)),
-    buttons: copyFormValue((rootSpec.buttons as Record<string, unknown>[] | undefined) ?? [...DEFAULT_FORM_BUTTONS]),
-    ...(isRecord(rootSpec.action) ? { action: copyFormValue(rootSpec.action) } : {}),
+    fields: compileFields(copyFormRecord(properties)),
+    buttons: formButtons(rootSpec.buttons).map(copyFormRecord),
+    ...(isRecord(rootSpec.action) ? { action: copyFormRecord(rootSpec.action) } : {}),
     ...(Object.prototype.hasOwnProperty.call(rootSpec, 'description') ? { description: copyFormValue(rootSpec.description) } : {}),
   });
 }
@@ -341,7 +355,7 @@ export function formDescription(template: FormTemplate, options: { language?: La
   checkFormTemplate(template);
   const language = options.language ?? 'ko';
   if (typeof language !== 'string') throw new FormInputError('Language must be a string');
-  return makeTranslate(language)(template.description as never);
+  return makeTranslate(language)(template.description);
 }
 
 /** Bind fresh data to a cached structure. No loader, composition or template mutation. */

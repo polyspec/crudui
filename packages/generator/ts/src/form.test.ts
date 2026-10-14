@@ -3,6 +3,7 @@ import { MemoryLoader, Validator } from '@polyspec/crudui-validator/internal';
 import { compileForm, bindForm, createForm, sequenceRowKey, createRowKey } from './index';
 // @ts-expect-error Shared cross-framework scenario.
 import { spec, data, companyKey, storeKey, otherStoreKey, storesPath } from '../../../../tests/fixtures/form-session/scenario.mts';
+import { childrenOf, keysOf, present } from './test-support';
 
 describe('cached structure and nested row lifecycle', () => {
   it('prepares refs and all nested prototypes without data, then binds isolated records from JSON cache', () => {
@@ -16,7 +17,8 @@ describe('cached structure and nested row lifecycle', () => {
     expect(cache).not.toContain('서울');
     const empty = bindForm(template);
     expect(empty[0].children?.[0].children?.find(f => f.path?.endsWith('.name'))?.widget).toBeTruthy();
-    const restored = JSON.parse(cache);
+    const restored: unknown = JSON.parse(cache);
+    // @ts-expect-error: a template restored from its JSON cache is decoded JSON, which bindForm checks at run time.
     expect(bindForm(restored, data)).toEqual(bindForm(template, data));
     bindForm(template, { companies: {} }, { language: 'en' });
     expect(load).toHaveBeenCalledTimes(1);
@@ -32,17 +34,18 @@ describe('cached structure and nested row lifecycle', () => {
     const copied = a.copyRow(storesPath, storeKey);
     expect(copied).toMatch(/^__[0-9a-f]{13}__$/);
     expect(a.getValue(`${storesPath}.${copied}.name`)).toBe('편집');
-    const departments = a.getValue(`${storesPath}.${copied}.departments`) as Record<string, Record<string, unknown>>;
-    expect(Object.keys(departments)).not.toContain('d1');
-    expect(Object.values(departments)[0]).toEqual({ name: '영업' });
+    const departments = a.getValue(`${storesPath}.${copied}.departments`);
+    const departmentKeys = keysOf(departments, 'the departments');
+    expect(departmentKeys).not.toContain('d1');
+    expect(a.getValue(`${storesPath}.${copied}.departments.${departmentKeys[0]}`)).toEqual({ name: '영업' });
     expect(a.getValue(`${storesPath}.${storeKey}.departments.d1.name`)).toBe('영업');
     expect(b.getData()).toEqual(independent);
     a.moveRow(storesPath, copied, 0);
     a.rekeyRow(storesPath, copied, sequenceRowKey(42));
-    expect(Object.keys(a.getValue(storesPath) as object)).toEqual([sequenceRowKey(42), storeKey, otherStoreKey]);
-    expect(Object.keys(a.getData().companies as object)).toEqual([companyKey]);
-    const fields = a.getSnapshot().fields[0].children![0].children!.find(f => f.path === storesPath)!;
-    const widget = fields.children![0].children!.find(f => f.path?.endsWith('.name'))!.widget!;
+    expect(keysOf(a.getValue(storesPath), storesPath)).toEqual([sequenceRowKey(42), storeKey, otherStoreKey]);
+    expect(keysOf(a.getData().companies, 'companies')).toEqual([companyKey]);
+    const fields = present(childrenOf(childrenOf(a.getSnapshot().fields[0])[0]).find(f => f.path === storesPath), storesPath);
+    const widget = present(present(childrenOf(childrenOf(fields)[0]).find(f => f.path?.endsWith('.name')), 'the name node').widget, 'the name widget');
     expect('attrs' in widget && widget.attrs.name).toBe(`form[companies][${companyKey}][stores][${sequenceRowKey(42)}][name]`);
     expect('attrs' in widget && widget.attrs['data-rule-name']).toBe('companies[][stores][][name]');
     a.rekeyRow('companies', companyKey, sequenceRowKey(99));
@@ -60,16 +63,16 @@ describe('cached structure and nested row lifecycle', () => {
     const full = session.getSnapshot();
     expect(() => session.addRow(storesPath)).toThrow('Maximum');
     expect(session.getSnapshot()).toBe(full);
-    for (const key of Object.keys(session.getValue(storesPath) as object)) session.removeRow(storesPath, key);
+    for (const key of keysOf(session.getValue(storesPath), storesPath)) session.removeRow(storesPath, key);
     expect(session.getValue(storesPath)).toEqual({});
-    const fields = session.getSnapshot().fields[0].children![0].children!.find(f => f.path === storesPath)!;
+    const fields = present(childrenOf(childrenOf(session.getSnapshot().fields[0])[0]).find(f => f.path === storesPath), storesPath);
     expect(fields.children).toEqual([]);
     expect(session.addRow(storesPath)).toMatch(/^__[0-9a-f]{13}__$/);
     const fixed = createForm(compileForm({ type: 'group', properties: {
       rows: { type: 'text', multiple: { min: 1, max: 1 } },
     } }));
     const fixedBefore = fixed.getSnapshot();
-    expect(() => fixed.removeRow('rows', Object.keys(fixed.getValue('rows') as object)[0])).toThrow('Minimum');
+    expect(() => fixed.removeRow('rows', keysOf(fixed.getValue('rows'), 'rows')[0])).toThrow('Minimum');
     expect(() => fixed.addRow('rows')).toThrow('Maximum');
     expect(fixed.getSnapshot()).toBe(fixedBefore);
   });
@@ -78,12 +81,12 @@ describe('cached structure and nested row lifecycle', () => {
     expect(() => createForm(compileForm(spec), { companies: [] })).toThrow('keyed object');
     expect(() => bindForm(compileForm(spec), { companies: [] })).toThrow('Repeated data must be a keyed object: companies');
     const session = createForm(compileForm(spec), data);
-    const company = Object.keys(session.getData().companies as object)[0];
+    const company = keysOf(session.getData().companies, 'companies')[0];
     const path = `companies.${company}.stores`;
-    const keys = Object.keys(session.getValue(path) as object);
+    const keys = keysOf(session.getValue(path), path);
     session.setValue(`${path}.${keys[0]}.name`, 'changed');
     session.moveRow(path, keys[1], 0);
-    expect(Object.keys(session.getValue(path) as object)).toEqual([keys[1], keys[0]]);
+    expect(keysOf(session.getValue(path), path)).toEqual([keys[1], keys[0]]);
     expect(sequenceRowKey('1234567890123')).toBe('__1234567890123__');
     expect(() => sequenceRowKey(1.5)).toThrow();
     expect(() => sequenceRowKey('12345678901234')).toThrow();
@@ -159,7 +162,7 @@ it('preserves sequence row keys in names and generates distinct stable DOM scope
   const data = { rows: { [key]: { value: 'saved' } } };
   const first = createForm(template, data, { idPrefix: 'first' });
   const second = createForm(template, data, { idPrefix: 'second' });
-  const widget = (form: typeof first) => form.getSnapshot().fields[0].children![0].children![0].widget!;
+  const widget = (form: typeof first) => present(childrenOf(childrenOf(form.getSnapshot().fields[0])[0])[0].widget, 'the value widget');
   const a = widget(first);
   const b = widget(second);
   if ('unsupported' in a || 'unsupported' in b) throw new Error('Text must be supported');
