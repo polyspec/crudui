@@ -114,7 +114,8 @@
     },
     {
       "paths": [
-        "go.work"
+        "go.work",
+        "go.work.sum"
       ],
       "targets": [
         "test-validators",
