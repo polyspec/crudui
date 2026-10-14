@@ -1,11 +1,15 @@
 <?php
+
 declare(strict_types=1);
+
 require __DIR__ . '/records.php';
 require __DIR__ . '/repository.php';
 
 function checkRecords(bool $condition, string $message): void
 {
-    if (!$condition) throw new RuntimeException($message);
+    if (!$condition) {
+        throw new RuntimeException($message);
+    }
 }
 
 /** Whether the submission is rejected as malformed input. */
@@ -53,24 +57,58 @@ $variant = static function (callable $change) use ($json): stdClass {
     return $form;
 };
 $store = static fn(stdClass $form): stdClass => $form->companies->__00000000000a1__->stores->__00000000000c3__;
-foreach ([
-    'id is missing' => $variant(static function (stdClass $form): void { unset($form->id); }),
-    'relation misses name' => $variant(static function (stdClass $form): void { $form->relation = (object) []; }),
-    'relation has another member' => $variant(static function (stdClass $form): void { $form->relation->extra = 'x'; }),
-    'companies is text' => $variant(static function (stdClass $form): void { $form->companies = 'x'; }),
-    'companies is an array' => $variant(static function (stdClass $form): void { $form->companies = []; }),
-    'row key is not a row key' => $variant(static function (stdClass $form): void { $form->companies = (object) ['first' => $form->companies->__00000000000b2__]; }),
-    'row key has upper case' => $variant(static function (stdClass $form): void { $form->companies = (object) ['__00000000000B2__' => $form->companies->__00000000000b2__]; }),
-    'stores is an array' => $variant(static function (stdClass $form): void { $form->companies->__00000000000b2__->stores = []; }),
-    'store name is null' => $variant(static function (stdClass $form) use ($store): void { $store($form)->name = null; }),
-    'store has another member' => $variant(static function (stdClass $form) use ($store): void { $store($form)->extra = 'x'; }),
-    'enabled is not a checkbox value' => $variant(static function (stdClass $form) use ($store): void { $store($form)->enabled = 'yes'; }),
-    'title misses a language' => $variant(static function (stdClass $form) use ($store): void { $store($form)->title = (object) ['ko' => 'x']; }),
-    'title has another language' => $variant(static function (stdClass $form) use ($store): void { $store($form)->title->ja = 'x'; }),
-    'title is text' => $variant(static function (stdClass $form) use ($store): void { $store($form)->title = 'x'; }),
-    'department name is a number' => $variant(static function (stdClass $form) use ($store): void { $store($form)->departments = (object) ['__0000000000001__' => (object) ['name' => 1]]; }),
-    'row is text' => $variant(static function (stdClass $form): void { $form->companies->__00000000000b2__ = 'x'; }),
-] as $name => $form) {
+foreach (
+    [
+    'id is missing' => $variant(static function (stdClass $form): void {
+        unset($form->id);
+    }),
+    'relation misses name' => $variant(static function (stdClass $form): void {
+        $form->relation = (object) [];
+    }),
+    'relation has another member' => $variant(static function (stdClass $form): void {
+        $form->relation->extra = 'x';
+    }),
+    'companies is text' => $variant(static function (stdClass $form): void {
+        $form->companies = 'x';
+    }),
+    'companies is an array' => $variant(static function (stdClass $form): void {
+        $form->companies = [];
+    }),
+    'row key is not a row key' => $variant(static function (stdClass $form): void {
+        $form->companies = (object) ['first' => $form->companies->__00000000000b2__];
+    }),
+    'row key has upper case' => $variant(static function (stdClass $form): void {
+        $form->companies = (object) ['__00000000000B2__' => $form->companies->__00000000000b2__];
+    }),
+    'stores is an array' => $variant(static function (stdClass $form): void {
+        $form->companies->__00000000000b2__->stores = [];
+    }),
+    'store name is null' => $variant(static function (stdClass $form) use ($store): void {
+        $store($form)->name = null;
+    }),
+    'store has another member' => $variant(static function (stdClass $form) use ($store): void {
+        $store($form)->extra = 'x';
+    }),
+    'enabled is not a checkbox value' => $variant(static function (stdClass $form) use ($store): void {
+        $store($form)->enabled = 'yes';
+    }),
+    'title misses a language' => $variant(static function (stdClass $form) use ($store): void {
+        $store($form)->title = (object) ['ko' => 'x'];
+    }),
+    'title has another language' => $variant(static function (stdClass $form) use ($store): void {
+        $store($form)->title->ja = 'x';
+    }),
+    'title is text' => $variant(static function (stdClass $form) use ($store): void {
+        $store($form)->title = 'x';
+    }),
+    'department name is a number' => $variant(static function (stdClass $form) use ($store): void {
+        $store($form)->departments = (object) ['__0000000000001__' => (object) ['name' => 1]];
+    }),
+    'row is text' => $variant(static function (stdClass $form): void {
+        $form->companies->__00000000000b2__ = 'x';
+    }),
+    ] as $name => $form
+) {
     checkRecords(rejected($form, false), "JSON: $name must be rejected");
 }
 
@@ -79,12 +117,24 @@ $nativeStore = static function (callable $change) use ($native): array {
     $change($form['companies']['__00000000000a1__']['stores']['__00000000000c3__']);
     return $form;
 };
-foreach ([
-    'enabled is not a checkbox value' => $nativeStore(static function (array &$store): void { $store['enabled'] = 'yes'; }),
-    'enabled is nested' => $nativeStore(static function (array &$store): void { $store['enabled'] = ['1']; }),
-    'departments is a list' => $nativeStore(static function (array &$store): void { $store['departments'] = [['name' => 'D']]; }),
-    'companies is text' => (static function () use ($native): array { $form = $native; $form['companies'] = 'x'; return $form; })(),
-] as $name => $form) {
+foreach (
+    [
+    'enabled is not a checkbox value' => $nativeStore(static function (array &$store): void {
+        $store['enabled'] = 'yes';
+    }),
+    'enabled is nested' => $nativeStore(static function (array &$store): void {
+        $store['enabled'] = ['1'];
+    }),
+    'departments is a list' => $nativeStore(static function (array &$store): void {
+        $store['departments'] = [['name' => 'D']];
+    }),
+    'companies is text' => (static function () use ($native): array {
+        $form = $native;
+        $form['companies'] = 'x';
+        return $form;
+    })(),
+    ] as $name => $form
+) {
     checkRecords(rejected($form, true), "Native: $name must be rejected");
 }
 
@@ -98,7 +148,11 @@ checkRecords($benchmark((object) [], false) === '{}', 'A benchmark JSON form wit
 checkRecords($benchmark((object) ['companies' => FormJson::decode($added)], false) === $completedRow, 'A benchmark JSON form completes a new row');
 foreach ([[(object) ['companies' => (object) [], 'extra' => 'x'], false], [['companies' => [], 'extra' => 'x'], true]] as [$form, $isNative]) {
     $failed = false;
-    try { $benchmark($form, $isNative); } catch (InvalidArgumentException) { $failed = true; }
+    try {
+        $benchmark($form, $isNative);
+    } catch (InvalidArgumentException) {
+        $failed = true;
+    }
     checkRecords($failed, 'A benchmark form has only companies');
 }
 
@@ -120,20 +174,28 @@ try {
     $incomplete[0]->companies = FormJson::decode('{"__00000000000b2__":{"name":"B"}}');
     $outOfOrder = FormJson::decode((string) file_get_contents($fixtureFile));
     $outOfOrder[0]->companies = FormJson::decode('{"__00000000000b2__":{"stores":{},"name":"B"}}');
-    foreach ([
+    foreach (
+        [
         'not JSON' => 'not json',
         'a record without companies' => FormJson::encode($withoutCompanies),
         'a company row key that is not a row key' => FormJson::encode($otherKey),
         'a company without stores' => FormJson::encode($incomplete),
         'company members out of order' => FormJson::encode($outOfOrder),
-    ] as $name => $bytes) {
+        ] as $name => $bytes
+    ) {
         file_put_contents($storeFile, $bytes);
-        foreach ([
+        foreach (
+            [
             'read' => static fn() => $recordStore->read(),
             'save' => static fn() => $recordStore->save('1', RecordStore::submission(FormJson::decode($json), false)),
-        ] as $operation => $call) {
+            ] as $operation => $call
+        ) {
             $failed = false;
-            try { $call(); } catch (RuntimeException) { $failed = true; }
+            try {
+                $call();
+            } catch (RuntimeException) {
+                $failed = true;
+            }
             checkRecords($failed, "A store with $name fails the $operation");
         }
         checkRecords(file_get_contents($storeFile) === $bytes, "A store with $name is kept");
@@ -141,7 +203,11 @@ try {
     checkRecords($recordStore->reset() === count($fixture), 'Reset over a malformed store answers the fixture count');
     checkRecords(FormJson::encode($recordStore->read()) === FormJson::encode($fixture), 'Reset replaces a malformed store with the fixture');
 } finally {
-    foreach (glob("$directory/{,.}*", GLOB_BRACE) ?: [] as $file) if (is_file($file)) unlink($file);
+    foreach (glob("$directory/{,.}*", GLOB_BRACE) ?: [] as $file) {
+        if (is_file($file)) {
+            unlink($file);
+        }
+    }
     rmdir($directory);
 }
 

@@ -11,10 +11,14 @@ if (!\function_exists('crudui_record_conformance')) {
     function crudui_record_conformance(string $feature, string $fixture, string $runtime, string $case, bool $passed): void
     {
         foreach (['feature' => $feature, 'fixture' => $fixture, 'runtime' => $runtime, 'case' => $case] as $key => $value) {
-            if ($value === '') throw new \InvalidArgumentException("Conformance evidence {$key} must be a non-empty string");
+            if ($value === '') {
+                throw new \InvalidArgumentException("Conformance evidence {$key} must be a non-empty string");
+            }
         }
         $directory = \getenv('CRUDUI_CONFORMANCE_EVIDENCE');
-        if ($directory === false || $directory === '') return;
+        if ($directory === false || $directory === '') {
+            return;
+        }
         if (!\is_dir($directory) && !\mkdir($directory, 0777, true) && !\is_dir($directory)) {
             throw new \RuntimeException("Cannot create conformance evidence directory {$directory}");
         }

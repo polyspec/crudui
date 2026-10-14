@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+
 require __DIR__ . '/../../../../vendor/autoload.php';
 use Polyspec\Crudui\Form;
 use Polyspec\Crudui\Generator;
@@ -106,8 +107,8 @@ foreach ($errors as $error) {
     ?>
 <p role="alert"><?php
     echo htmlspecialchars($error->path . ': ' . $error->message, ENT_QUOTES, 'UTF-8');
-    ?></p>
-<?php
+?></p>
+    <?php
 }
 echo $body;
 ?>

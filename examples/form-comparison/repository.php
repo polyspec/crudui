@@ -1,5 +1,7 @@
 <?php
+
 declare(strict_types=1);
+
 require_once __DIR__ . '/json.php';
 require_once __DIR__ . '/form-shape.php';
 
@@ -7,7 +9,9 @@ require_once __DIR__ . '/form-shape.php';
 final class FormRepository
 {
     /** Open one independent repository per rendering path and framework. */
-    public function __construct(private readonly string $file) {}
+    public function __construct(private readonly string $file)
+    {
+    }
 
     /** Return the initial database-shaped records. */
     public static function seed(): array
@@ -19,7 +23,9 @@ final class FormRepository
     private static function fixture(string $name): array
     {
         $fixtures = FormJson::arrays(FormJson::decode(file_get_contents(__DIR__ . '/fixtures/records.json')));
-        if (!array_key_exists($name, $fixtures)) throw new InvalidArgumentException('Unknown fixture');
+        if (!array_key_exists($name, $fixtures)) {
+            throw new InvalidArgumentException('Unknown fixture');
+        }
         return $fixtures[$name];
     }
 
@@ -39,7 +45,9 @@ final class FormRepository
     /** Convert stored sequences to the 13-digit transport key. */
     private static function key(string $sequence): string
     {
-        if (!preg_match('/^[0-9]{1,13}$/', $sequence)) throw new RuntimeException('Invalid stored sequence');
+        if (!preg_match('/^[0-9]{1,13}$/', $sequence)) {
+            throw new RuntimeException('Invalid stored sequence');
+        }
         return '__' . str_pad($sequence, 13, '0', STR_PAD_LEFT) . '__';
     }
 
@@ -82,7 +90,9 @@ final class FormRepository
     private static function checkParent(string|int $key, array $rows, string $kind, string $parent, string $parentSeq): void
     {
         foreach ($rows as $row) {
-            if (self::key($row[$kind . '_seq']) === $key && $row[$parent . '_seq'] !== $parentSeq) throw new InvalidArgumentException('Incorrect parent for ' . $kind . '_seq');
+            if (self::key($row[$kind . '_seq']) === $key && $row[$parent . '_seq'] !== $parentSeq) {
+                throw new InvalidArgumentException('Incorrect parent for ' . $kind . '_seq');
+            }
         }
     }
 
@@ -97,7 +107,9 @@ final class FormRepository
                 break;
             }
         }
-        if ($sequence !== null && isset($seen[$sequence])) throw new InvalidArgumentException("Duplicate $field: $sequence");
+        if ($sequence !== null && isset($seen[$sequence])) {
+            throw new InvalidArgumentException("Duplicate $field: $sequence");
+        }
         if ($sequence === null) {
             $sequence = (string) $next[$kind]++;
             self::key($sequence);
@@ -130,11 +142,17 @@ final class FormRepository
                         self::checkParent($departmentKey, $before['departments'], 'department', 'store', $storeSeq);
                         $departmentSeq = self::sequence($departmentKey, $existingDepartments, 'department', $next, $seenDepartments);
                         $after['departments'][] = ['department_seq' => $departmentSeq, 'store_seq' => $storeSeq, 'position' => $departmentPosition++, 'name' => $department['name']];
-                        if (self::key($departmentSeq) !== $departmentKey) $changes[] = ['path' => "companies.$companyKey.stores.$storeKey.departments", 'oldKey' => $departmentKey, 'newKey' => self::key($departmentSeq)];
+                        if (self::key($departmentSeq) !== $departmentKey) {
+                            $changes[] = ['path' => "companies.$companyKey.stores.$storeKey.departments", 'oldKey' => $departmentKey, 'newKey' => self::key($departmentSeq)];
+                        }
                     }
-                    if (self::key($storeSeq) !== $storeKey) $changes[] = ['path' => "companies.$companyKey.stores", 'oldKey' => $storeKey, 'newKey' => self::key($storeSeq)];
+                    if (self::key($storeSeq) !== $storeKey) {
+                        $changes[] = ['path' => "companies.$companyKey.stores", 'oldKey' => $storeKey, 'newKey' => self::key($storeSeq)];
+                    }
                 }
-                if (self::key($companySeq) !== $companyKey) $changes[] = ['path' => 'companies', 'oldKey' => $companyKey, 'newKey' => self::key($companySeq)];
+                if (self::key($companySeq) !== $companyKey) {
+                    $changes[] = ['path' => 'companies', 'oldKey' => $companyKey, 'newKey' => self::key($companySeq)];
+                }
             }
             $after['next'] = $next;
             return [$after, ['storage' => $after, 'data' => self::loadData($after), 'keyChanges' => $changes]];
@@ -145,20 +163,30 @@ final class FormRepository
     private function transaction(callable $operation): array
     {
         $handle = fopen($this->file . '.lock', 'c');
-        if ($handle === false || !flock($handle, LOCK_EX)) throw new RuntimeException('Cannot lock the JSON repository');
+        if ($handle === false || !flock($handle, LOCK_EX)) {
+            throw new RuntimeException('Cannot lock the JSON repository');
+        }
         try {
             $text = is_file($this->file) ? file_get_contents($this->file) : null;
-            if ($text === false) throw new RuntimeException('Cannot read the JSON repository');
+            if ($text === false) {
+                throw new RuntimeException('Cannot read the JSON repository');
+            }
             $before = $text === null ? self::seed() : FormJson::arrays(FormJson::decode($text));
             [$after, $result] = $operation($before);
             if ($text === null || $after !== $before) {
                 $json = FormJson::encode($after) . "\n";
                 $temporary = tempnam(dirname($this->file), '.form-');
-                if ($temporary === false) throw new RuntimeException('Cannot create the JSON repository file');
+                if ($temporary === false) {
+                    throw new RuntimeException('Cannot create the JSON repository file');
+                }
                 try {
-                    if (file_put_contents($temporary, $json) !== strlen($json) || !rename($temporary, $this->file)) throw new RuntimeException('Cannot write the JSON repository');
+                    if (file_put_contents($temporary, $json) !== strlen($json) || !rename($temporary, $this->file)) {
+                        throw new RuntimeException('Cannot write the JSON repository');
+                    }
                 } finally {
-                    if (is_file($temporary)) unlink($temporary);
+                    if (is_file($temporary)) {
+                        unlink($temporary);
+                    }
                 }
             }
             return $result;

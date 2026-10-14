@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 /**
@@ -17,14 +18,20 @@ final class RequestBody
             throw new RuntimeException('The PHP server must run with enable_post_data_reading=0');
         }
         $handle = fopen('php://input', 'rb');
-        if ($handle === false) throw new RuntimeException('Cannot read the request');
+        if ($handle === false) {
+            throw new RuntimeException('Cannot read the request');
+        }
         try {
             $body = stream_get_contents($handle, self::LIMIT + 1);
         } finally {
             fclose($handle);
         }
-        if (!is_string($body)) throw new RuntimeException('Cannot read the request');
-        if (strlen($body) > self::LIMIT) throw new LengthException('Request exceeds 2 MiB');
+        if (!is_string($body)) {
+            throw new RuntimeException('Cannot read the request');
+        }
+        if (strlen($body) > self::LIMIT) {
+            throw new LengthException('Request exceeds 2 MiB');
+        }
         return $body;
     }
 
@@ -39,29 +46,49 @@ final class RequestBody
         $fields = [];
         if ($mediaType === 'application/x-www-form-urlencoded') {
             foreach (explode('&', $body) as $part) {
-                if ($part === '') continue;
+                if ($part === '') {
+                    continue;
+                }
                 [$name, $value] = array_pad(explode('=', $part, 2), 2, '');
                 self::add($fields, urldecode($name), urldecode($value));
             }
             return $fields;
         }
-        if ($mediaType !== 'multipart/form-data') throw new InvalidArgumentException('Expected a native form');
-        if (!preg_match('/;\s*boundary=(?:"([^"]+)"|([^";\s]+))/i', $contentType, $match)) throw new InvalidArgumentException('Expected a multipart boundary');
+        if ($mediaType !== 'multipart/form-data') {
+            throw new InvalidArgumentException('Expected a native form');
+        }
+        if (!preg_match('/;\s*boundary=(?:"([^"]+)"|([^";\s]+))/i', $contentType, $match)) {
+            throw new InvalidArgumentException('Expected a multipart boundary');
+        }
         $delimiter = '--' . ($match[1] !== '' ? $match[1] : $match[2]);
         $parts = explode("\r\n$delimiter", "\r\n$body");
-        if ($parts[0] !== '' || count($parts) < 2) throw new InvalidArgumentException('Malformed multipart body');
+        if ($parts[0] !== '' || count($parts) < 2) {
+            throw new InvalidArgumentException('Malformed multipart body');
+        }
         $last = array_pop($parts);
-        if (!preg_match('/^--(\r\n)?$/D', $last)) throw new InvalidArgumentException('Malformed multipart body');
+        if (!preg_match('/^--(\r\n)?$/D', $last)) {
+            throw new InvalidArgumentException('Malformed multipart body');
+        }
         foreach (array_slice($parts, 1) as $part) {
             $end = strpos($part, "\r\n\r\n");
-            if (!str_starts_with($part, "\r\n") || $end === false) throw new InvalidArgumentException('Malformed multipart part');
+            if (!str_starts_with($part, "\r\n") || $end === false) {
+                throw new InvalidArgumentException('Malformed multipart part');
+            }
             $name = null;
             foreach (explode("\r\n", substr($part, 2, $end - 2)) as $header) {
-                if (!preg_match('/^content-disposition:\s*form-data\s*(;.*)?$/i', $header, $disposition)) continue;
-                if (preg_match('/;\s*filename\*?=/i', $disposition[1] ?? '')) throw new InvalidArgumentException('File uploads are not part of this form');
-                if (preg_match('/;\s*name="([^"]*)"/i', $disposition[1] ?? '', $named)) $name = $named[1];
+                if (!preg_match('/^content-disposition:\s*form-data\s*(;.*)?$/i', $header, $disposition)) {
+                    continue;
+                }
+                if (preg_match('/;\s*filename\*?=/i', $disposition[1] ?? '')) {
+                    throw new InvalidArgumentException('File uploads are not part of this form');
+                }
+                if (preg_match('/;\s*name="([^"]*)"/i', $disposition[1] ?? '', $named)) {
+                    $name = $named[1];
+                }
             }
-            if ($name === null) throw new InvalidArgumentException('Expected a named form-data part');
+            if ($name === null) {
+                throw new InvalidArgumentException('Expected a named form-data part');
+            }
             self::add($fields, $name, substr($part, $end + 4));
         }
         return $fields;
@@ -70,16 +97,24 @@ final class RequestBody
     /** Place one field at the path its name denotes; the path must be new. */
     private static function add(array &$fields, string $name, string $value): void
     {
-        if (!preg_match('/^([^\[\]]+)((?:\[[^\[\]]+\])*)$/D', $name, $match)) throw new InvalidArgumentException("Malformed field name: $name");
+        if (!preg_match('/^([^\[\]]+)((?:\[[^\[\]]+\])*)$/D', $name, $match)) {
+            throw new InvalidArgumentException("Malformed field name: $name");
+        }
         $segments = [$match[1], ...($match[2] === '' ? [] : explode('][', substr($match[2], 1, -1)))];
         $leaf = array_pop($segments);
         $node = &$fields;
         foreach ($segments as $segment) {
-            if (!array_key_exists($segment, $node)) $node[$segment] = [];
-            if (!is_array($node[$segment])) throw new InvalidArgumentException("Field is both a value and a group: $name");
+            if (!array_key_exists($segment, $node)) {
+                $node[$segment] = [];
+            }
+            if (!is_array($node[$segment])) {
+                throw new InvalidArgumentException("Field is both a value and a group: $name");
+            }
             $node = &$node[$segment];
         }
-        if (array_key_exists($leaf, $node)) throw new InvalidArgumentException("Repeated field: $name");
+        if (array_key_exists($leaf, $node)) {
+            throw new InvalidArgumentException("Repeated field: $name");
+        }
         $node[$leaf] = $value;
     }
 }

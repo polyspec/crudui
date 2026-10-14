@@ -1,10 +1,12 @@
 <?php
+
 /**
  * The autoload of a Composer package of packages/ in development: the development root vendor/ and, ahead of it, the
  * classes of the package from its source directory by the PSR-4 map of its composer.json. The root vendor/ holds a
  * copy of polyspec/crudui-validator, so the tests and checks of a package read its source instead of that copy. As the
  * bootstrap of PHPUnit it loads the package of the working directory.
  */
+
 declare(strict_types=1);
 
 require_once __DIR__ . '/../vendor/autoload.php';

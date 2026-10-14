@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 use Polyspec\Crudui\Form;
@@ -21,20 +22,29 @@ final class FormGeneration
         string $sourceRoot,
         stdClass $source,
         ?string $verifiedModuleSha256,
-    )
-    {
-        if (!in_array($runtime, ['php', 'php-ext'], true)) throw new RuntimeException('Unknown PHP generator runtime');
+    ) {
+        if (!in_array($runtime, ['php', 'php-ext'], true)) {
+            throw new RuntimeException('Unknown PHP generator runtime');
+        }
         $native = $runtime === 'php-ext';
-        if (extension_loaded('crudui') !== $native) throw new RuntimeException('CRUDUI extension state does not match the selected server');
+        if (extension_loaded('crudui') !== $native) {
+            throw new RuntimeException('CRUDUI extension state does not match the selected server');
+        }
         $sourceRoot = self::regularDirectory($sourceRoot, 'library directory');
-        if (array_keys(get_object_vars($source)) !== ['commit', 'changes']
+        if (
+            array_keys(get_object_vars($source)) !== ['commit', 'changes']
             || !is_string($source->commit) || !preg_match('/^[a-f0-9]{40}$/D', $source->commit)
-            || !($source->changes === null || (is_string($source->changes) && preg_match('/^[a-f0-9]{64}$/D', $source->changes)))) {
+            || !($source->changes === null || (is_string($source->changes) && preg_match('/^[a-f0-9]{64}$/D', $source->changes)))
+        ) {
             throw new RuntimeException('Invalid source identity');
         }
-        if (!$native) require_once $sourceRoot . '/vendor/autoload.php';
+        if (!$native) {
+            require_once $sourceRoot . '/vendor/autoload.php';
+        }
         $composerAutoload = self::composerAutoloadRegistered();
-        if ($composerAutoload === $native) throw new RuntimeException('Composer autoloader state does not match the selected server');
+        if ($composerAutoload === $native) {
+            throw new RuntimeException('Composer autoloader state does not match the selected server');
+        }
         $classes = [];
         $signatures = [];
         $sourceFiles = [
@@ -48,14 +58,20 @@ final class FormGeneration
         ];
         foreach ($sourceFiles as $name => $files) {
             $class = new ReflectionClass($name);
-            if ($class->isInternal() !== $native || $class->getExtensionName() !== ($native ? 'crudui' : false)) throw new RuntimeException('Incorrect CRUDUI implementation: ' . $name);
-            if (!$native) self::verifyPhpClassSource($name, $class, $sourceRoot, $files);
+            if ($class->isInternal() !== $native || $class->getExtensionName() !== ($native ? 'crudui' : false)) {
+                throw new RuntimeException('Incorrect CRUDUI implementation: ' . $name);
+            }
+            if (!$native) {
+                self::verifyPhpClassSource($name, $class, $sourceRoot, $files);
+            }
             $classes[$name] = ['internal' => $class->isInternal(), 'extension' => $class->getExtensionName() ?: null, 'file' => $class->getFileName() ?: null];
             $signatures[$name] = self::signature($class);
         }
         $moduleHash = null;
         if ($native) {
-            if ($verifiedModuleSha256 === null || !preg_match('/^[a-f0-9]{64}$/D', $verifiedModuleSha256)) throw new RuntimeException('A verified CRUDUI module hash is required');
+            if ($verifiedModuleSha256 === null || !preg_match('/^[a-f0-9]{64}$/D', $verifiedModuleSha256)) {
+                throw new RuntimeException('A verified CRUDUI module hash is required');
+            }
             $moduleHash = $verifiedModuleSha256;
         } elseif ($verifiedModuleSha256 !== null) {
             throw new RuntimeException('Pure PHP must not declare a CRUDUI module hash');
@@ -89,9 +105,13 @@ final class FormGeneration
      */
     public function ssrFrame(string $frame, stdClass $spec, array|stdClass $data, string $language, Closure $encodeJson): string
     {
-        if (!in_array($language, ['ko', 'en'], true)) throw new InvalidArgumentException('Expected language ko or en');
+        if (!in_array($language, ['ko', 'en'], true)) {
+            throw new InvalidArgumentException('Expected language ko or en');
+        }
         foreach (['<html>', '<div id="form-view"></div>', '</body>'] as $marker) {
-            if (substr_count($frame, $marker) !== 1) throw new RuntimeException(self::FRAME_ERROR);
+            if (substr_count($frame, $marker) !== 1) {
+                throw new RuntimeException(self::FRAME_ERROR);
+            }
         }
         $form = new Form(Generator::compileForm($spec, ['keyPrefix' => 'form']), $data, ['language' => $language]);
         $unsafe = ['<', '>', '&'];
@@ -114,7 +134,9 @@ final class FormGeneration
 
     private static function object(mixed $value, string $name): stdClass
     {
-        if (!$value instanceof stdClass) throw new InvalidArgumentException('Expected ' . $name . ' object');
+        if (!$value instanceof stdClass) {
+            throw new InvalidArgumentException('Expected ' . $name . ' object');
+        }
         return $value;
     }
 
@@ -128,7 +150,9 @@ final class FormGeneration
     {
         $methods = [];
         foreach ($class->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
-            if ($method->getDeclaringClass()->getName() !== $class->getName()) continue;
+            if ($method->getDeclaringClass()->getName() !== $class->getName()) {
+                continue;
+            }
             $parameters = [];
             foreach ($method->getParameters() as $parameter) {
                 $parameters[] = [
@@ -149,7 +173,9 @@ final class FormGeneration
     private static function composerAutoloadRegistered(): bool
     {
         foreach (spl_autoload_functions() as $loader) {
-            if (is_array($loader) && is_object($loader[0] ?? null) && $loader[0]::class === 'Composer\Autoload\ClassLoader') return true;
+            if (is_array($loader) && is_object($loader[0] ?? null) && $loader[0]::class === 'Composer\Autoload\ClassLoader') {
+                return true;
+            }
         }
         return false;
     }
@@ -160,8 +186,7 @@ final class FormGeneration
         ReflectionClass $class,
         string $sourceRoot,
         array $files,
-    ): void
-    {
+    ): void {
         $sourceFile = self::regularFile($sourceRoot . '/' . $files['source'], 'candidate source file');
         $expectedFile = $sourceFile;
         if (isset($files['package'], $files['installed'])) {
@@ -234,23 +259,31 @@ final class FormGeneration
     /** Resolve one absolute path after rejecting missing and symbolic components. */
     private static function regularPath(string $path, string $name): string
     {
-        if (!str_starts_with($path, '/')) throw new RuntimeException('Expected absolute ' . $name);
+        if (!str_starts_with($path, '/')) {
+            throw new RuntimeException('Expected absolute ' . $name);
+        }
         $current = '/';
         foreach (explode('/', substr($path, 1)) as $component) {
-            if ($component === '' || $component === '.') continue;
+            if ($component === '' || $component === '.') {
+                continue;
+            }
             if ($component === '..') {
                 $current = dirname($current);
                 continue;
             }
             $current = $current === '/' ? '/' . $component : $current . '/' . $component;
             $status = lstat($current);
-            if ($status === false) throw new RuntimeException('Missing ' . $name);
+            if ($status === false) {
+                throw new RuntimeException('Missing ' . $name);
+            }
             if (($status['mode'] & 0170000) === 0120000) {
                 throw new RuntimeException('Symbolic links are not allowed in ' . $name);
             }
         }
         $resolved = realpath($path);
-        if ($resolved === false) throw new RuntimeException('Cannot resolve ' . $name);
+        if ($resolved === false) {
+            throw new RuntimeException('Cannot resolve ' . $name);
+        }
         return $resolved;
     }
 }

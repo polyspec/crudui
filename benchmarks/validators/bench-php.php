@@ -1,5 +1,6 @@
 #!/usr/bin/env php
 <?php
+
 /**
  * bench-php.php — in-process throughput benchmark for validator-php.
  *
@@ -29,8 +30,10 @@ const MAX_COUNT = 10000000;
 function count_argument(string $flag, ?string $value): int
 {
     $minimum = $flag === '--iters' ? 1 : 0;
-    if ($value === null || preg_match('/\A[0-9]{1,8}\z/', $value) !== 1
-        || (int) $value < $minimum || (int) $value > MAX_COUNT) {
+    if (
+        $value === null || preg_match('/\A[0-9]{1,8}\z/', $value) !== 1
+        || (int) $value < $minimum || (int) $value > MAX_COUNT
+    ) {
         fwrite(STDERR, "$flag must be a whole number from $minimum to " . MAX_COUNT . "\n");
         exit(2);
     }

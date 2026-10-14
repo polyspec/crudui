@@ -1,5 +1,7 @@
 <?php
+
 declare(strict_types=1);
+
 require __DIR__ . '/generation.php';
 require __DIR__ . '/json.php';
 
@@ -16,7 +18,9 @@ $checks = 0;
 function checkGeneration(bool $condition, string $message): void
 {
     global $checks;
-    if (!$condition) throw new RuntimeException($message);
+    if (!$condition) {
+        throw new RuntimeException($message);
+    }
     $checks++;
 }
 function equalGeneration(mixed $expected, mixed $actual, string $message): void
@@ -29,7 +33,9 @@ checkGeneration($provenance['runtime'] === $runtime && $provenance['nativeCRUDUI
 checkGeneration($provenance['composerAutoload'] === ($runtime === 'php'), 'Only pure PHP may register the Composer autoloader');
 equalGeneration($source, $provenance['source'], 'The source identity must be retained');
 checkGeneration(count(get_object_vars($provenance['classes'])) === 3, 'Generation, form state and validation need independent provenance');
-foreach ($provenance['classes'] as $class) checkGeneration($class['internal'] === ($runtime === 'php-ext') && $class['extension'] === ($runtime === 'php-ext' ? 'crudui' : null), 'Incorrect class implementation');
+foreach ($provenance['classes'] as $class) {
+    checkGeneration($class['internal'] === ($runtime === 'php-ext') && $class['extension'] === ($runtime === 'php-ext' ? 'crudui' : null), 'Incorrect class implementation');
+}
 checkGeneration($runtime === 'php-ext' ? $provenance['moduleSha256'] === hash_file('sha256', $moduleFile) : $provenance['moduleSha256'] === null, 'Module hash must describe the selected implementation');
 // Decode as objects: associative decoding would turn an empty object default such as {} into [].
 $expectedSignatures = json_decode(file_get_contents($expectedSignaturesFile), false, 512, JSON_THROW_ON_ERROR);
@@ -61,12 +67,20 @@ checkGeneration(Polyspec\Crudui\Validator::validate($spec, $invalid, ['files' =>
 
 foreach ([(object) ['spec' => []], (object) ['spec' => $spec, 'options' => null]] as $request) {
     $rejected = false;
-    try { $generation->compile($request); } catch (InvalidArgumentException) { $rejected = true; }
+    try {
+        $generation->compile($request);
+    } catch (InvalidArgumentException) {
+        $rejected = true;
+    }
     checkGeneration($rejected, 'Compile must reject incorrect JSON object types');
 }
 foreach ([(object) ['template' => [] , 'data' => $data], (object) ['template' => json_decode($cached), 'data' => []], (object) ['template' => json_decode($cached), 'data' => $data, 'options' => []]] as $request) {
     $rejected = false;
-    try { $generation->render($request); } catch (InvalidArgumentException) { $rejected = true; }
+    try {
+        $generation->render($request);
+    } catch (InvalidArgumentException) {
+        $rejected = true;
+    }
     checkGeneration($rejected, 'Render must reject incorrect JSON object types');
 }
 
@@ -99,8 +113,12 @@ foreach (['ko', 'en'] as $language) {
     equalGeneration($expected['generator'], $decoded->generator, 'The SSR payload provenance must match the render result');
     $document = new DOMDocument();
     $errors = libxml_use_internal_errors(true);
-    try { $document->loadHTML($html, LIBXML_NONET | LIBXML_NOERROR | LIBXML_NOWARNING); }
-    finally { libxml_clear_errors(); libxml_use_internal_errors($errors); }
+    try {
+        $document->loadHTML($html, LIBXML_NONET | LIBXML_NOERROR | LIBXML_NOWARNING);
+    } finally {
+        libxml_clear_errors();
+        libxml_use_internal_errors($errors);
+    }
     $xpath = new DOMXPath($document);
     checkGeneration($xpath->query('//div[@id="form-view"]//input[@name="form[companies][__0000000000007__][stores][__0000000000042__][name]"]')->length === 1, 'SSR controls must exist before JavaScript');
     checkGeneration($xpath->query('//div[@id="form-view"]//input[@type="hidden"]')->length === 0, 'SSR must not add hidden identity controls');
@@ -108,7 +126,8 @@ foreach (['ko', 'en'] as $language) {
     checkGeneration($xpath->query('//script[@id="crudui-ssr"]')->length === 1, 'SSR must write one payload script');
 }
 $view = '<div id="form-view"></div>';
-foreach ([
+foreach (
+    [
     '<body>' . $view . '</body>',
     '<html><html><body>' . $view . '</body>',
     '<html><body></body>',
@@ -116,9 +135,14 @@ foreach ([
     '<html><body><div id="form-view"> </div></body>',
     '<html><body>' . $view,
     '<html><body>' . $view . '</body></body>',
-] as $invalidFrame) {
+    ] as $invalidFrame
+) {
     $rejected = false;
-    try { $generation->ssrFrame($invalidFrame, $resolved, $data, 'en', FormJson::encode(...)); } catch (RuntimeException $error) { $rejected = $error->getMessage() === 'The frame document must contain one html start tag, one empty form view and one body end tag'; }
+    try {
+        $generation->ssrFrame($invalidFrame, $resolved, $data, 'en', FormJson::encode(...));
+    } catch (RuntimeException $error) {
+        $rejected = $error->getMessage() === 'The frame document must contain one html start tag, one empty form view and one body end tag';
+    }
     checkGeneration($rejected, 'SSR must reject a frame without exactly one html start tag, empty form view and body end tag');
 }
 echo "$runtime: $checks PHP generation checks passed\n";

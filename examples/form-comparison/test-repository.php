@@ -1,10 +1,14 @@
 <?php
+
 declare(strict_types=1);
+
 require __DIR__ . '/repository.php';
 
 function check(bool $condition, string $message): void
 {
-    if (!$condition) throw new RuntimeException($message);
+    if (!$condition) {
+        throw new RuntimeException($message);
+    }
 }
 /** The loaded data of one state as the JSON save receives it. */
 function formData(array $state): stdClass
@@ -30,8 +34,10 @@ try {
     foreach (['companies', 'stores', 'departments'] as $table) {
         $reversed[$table] = array_reverse($reversed[$table]);
     }
-    check(FormJson::encode(formData($reversed)) === FormJson::encode(formData($before)),
-        'Loading must use stored positions rather than physical record order');
+    check(
+        FormJson::encode(formData($reversed)) === FormJson::encode(formData($before)),
+        'Loading must use stored positions rather than physical record order'
+    );
 
     $company = array_values($data['companies'])[0];
     $data['companies']['__abcdef0123456__'] = $company;
@@ -48,19 +54,27 @@ try {
     $empty = $repo->read();
     check($empty['companies'] === [] && $empty['stores'] === []
         && $empty['departments'] === [], 'Full deletion must remove descendants');
-    check($empty['next'] === $before['next'],
-        'Full deletion must retain sequence counters');
+    check(
+        $empty['next'] === $before['next'],
+        'Full deletion must retain sequence counters'
+    );
     $loaded = FormRepository::loadData($empty);
-    check($loaded['companies'] instanceof stdClass,
-        'An empty JSON collection must remain an object');
+    check(
+        $loaded['companies'] instanceof stdClass,
+        'An empty JSON collection must remain an object'
+    );
 
     $row = ['name' => 'New company', 'stores' => []];
     $insert = ['companies' => ['__abcdef0123456__' => $row]];
     $created = $repo->save(saved($insert, true));
-    check($created['storage']['companies'][0]['company_seq'] === '2',
-        'A deleted sequence must not be reused');
-    check($created['storage']['next']['company'] === 3,
-        'The sequence counter must increase');
+    check(
+        $created['storage']['companies'][0]['company_seq'] === '2',
+        'A deleted sequence must not be reused'
+    );
+    check(
+        $created['storage']['next']['company'] === 3,
+        'The sequence counter must increase'
+    );
 
     file_put_contents($file, '{invalid');
     $rejected = false;
@@ -69,10 +83,16 @@ try {
     } catch (\Polyspec\OrderedJson\ParseError) {
         $rejected = true;
     }
-    check($rejected && file_get_contents($file) === '{invalid',
-        'Invalid storage must not be replaced with seed data');
+    check(
+        $rejected && file_get_contents($file) === '{invalid',
+        'Invalid storage must not be replaced with seed data'
+    );
     echo "repository checks passed\n";
 } finally {
-    if (is_file($file)) unlink($file);
-    if (is_file($file . '.lock')) unlink($file . '.lock');
+    if (is_file($file)) {
+        unlink($file);
+    }
+    if (is_file($file . '.lock')) {
+        unlink($file . '.lock');
+    }
 }

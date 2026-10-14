@@ -135,10 +135,16 @@ final class Lists
             $controls = '';
             foreach ($vm->pagination->buttons as $button) {
                 $buttonAttrs = ['type' => 'button', 'class' => 'crudui-list__pagination-' . ($button->role === 'previous' ? 'prev' : $button->role), 'data-page' => (string) $button->page, 'aria-label' => $button->label];
-                if ($button->current) $buttonAttrs['aria-current'] = 'page';
-                if ($button->disabled) $buttonAttrs['disabled'] = '';
+                if ($button->current) {
+                    $buttonAttrs['aria-current'] = 'page';
+                }
+                if ($button->disabled) {
+                    $buttonAttrs['disabled'] = '';
+                }
                 // The button's text follows its role.
-                $controls .= Rendering::element('button', $buttonAttrs, match ($button->role) { 'previous' => '‹', 'next' => '›', default => (string) $button->page });
+                $controls .= Rendering::element('button', $buttonAttrs, match ($button->role) {
+                    'previous' => '‹', 'next' => '›', default => (string) $button->page
+                });
             }
             $body .= Rendering::element('nav', $pagination, $controls);
         }
@@ -498,7 +504,9 @@ final class Lists
      */
     private static function paginationPages(int $page, int $pageCount): array
     {
-        if ($pageCount <= 7) return $pageCount > 0 ? range(1, $pageCount) : [];
+        if ($pageCount <= 7) {
+            return $pageCount > 0 ? range(1, $pageCount) : [];
+        }
         return array_values(array_unique([1, max(1, $page - 1), $page, min($pageCount, $page + 1), $pageCount]));
     }
 

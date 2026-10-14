@@ -49,10 +49,12 @@ JSON;
     public function testInputChecksMatchFormBinding(): void
     {
         $template = Generator::compileForm(json_decode('{"type":"group","properties":{}}'));
-        foreach ([
+        foreach (
+            [
             [fn () => Generator::bindButtons((object) ['kind' => 'other']), 'Unsupported form template'],
             [fn () => Generator::bindButtons($template, [], ['language' => 1]), 'Language must be a string'],
-        ] as [$call, $message]) {
+            ] as [$call, $message]
+        ) {
             try {
                 $call();
                 self::fail('Expected a form error');

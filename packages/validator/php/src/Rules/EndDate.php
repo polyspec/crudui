@@ -7,7 +7,6 @@ namespace Polyspec\Crudui\Validator\Rules;
 use Polyspec\Crudui\Validator\Expr\FieldPath;
 use Polyspec\Crudui\Validator\Values\Whitespace;
 
-
 /**
  * End Date validation rule.
  * Validates that an end date is greater than or equal to a start date field.
