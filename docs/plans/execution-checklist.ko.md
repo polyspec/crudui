@@ -1,6 +1,6 @@
 # Execution checklist
 <!-- doc-id: docs-plans-execution-checklist -->
-<!-- source-sha256: 63e284034b5dda05669e1a0e2c47bca2f73232e78f05f1c75fe7a06330269068 -->
+<!-- source-sha256: 091ed1639763db1d48158ea6406b02253623bfa8922b304d9cee4a20d844970f -->
 
 ## [Wave 1](waves.ko.md#wave-1) — 좁은 viewport를 위한 stylesheet와 stylesheet의 Tailwind 버전
 
@@ -292,7 +292,9 @@
 | C14.8 | dependency review가 가리키는 stable release를 받는다(kit K131에서 발견): `make dependency-policy-check`가 20개 finding을 보고하며 첫 줄은 `packages/generator-vue/package.json vitest 5.0.3 < 5.0.4: a newer stable release exists`이다. | `make dependency-review UPDATE=1`, `make dependency-policy-check` | [!] cause: 의존성 업그레이드는 개발 항목을 기다린다; retry: 개발 항목이 닫힌 뒤 모든 저장소와 한 번에 |
 | C14.9 | kit 0.0.40과 그 mise toolchain으로 옮긴다(kit K131): 게시된 파일의 integrity로 pin하고, `mise.toml`은 kit pin의 Go, uv를 가진 Python, ruff, vulture, alint, golangci-lint, deadcode, cargo-audit, Composer를 선언하며 `mise.lock`이 이를 잠그고, `config/toolchain.json`은 mise의 release, PHP, Node.js, TypeScript 예외만 둔다. `.go-version`과 `.python-version`은 지운다. CI는 setup-go, setup-python, setup-php의 Composer 대신 `make install-tools`로 그 도구를 설치하고, Go module cache는 actions/cache로 옮긴다. kit이 가져오는 sprintf-js advisory는 kit처럼 받아들인다. | `make kit-check`, `make toolchain-check`, `make documents-check`, `make owner-validate`, `node --test tests/build/runtime-version-policy.test.mjs tests/build/form-comparison-ci.test.mjs tests/build/ci-local.test.mjs tests/build/offline-checks.test.mjs` | [o] |
 | C14.10 | 빌드된 checkout에서 tests/build의 도구 test가 통과하게 한다(kit K131에서 발견): checkout이 빌드하지 않은 package(dist, vendor, bench program) 말고도, TypeScript 7에 없는 TypeScript JavaScript API(`Cannot read properties of undefined (reading 'ReactJSX')` 외 14건), 옛 kit의 vendor 경로(`node scripts/kit/full-run.mjs rerun-failed`, `scripts/kit/run-tests.mjs cargo`), `examples/form-comparison/src/local-servers.mjs`에서 checkout lock 밖의 Composer reinstall, `scripts/gen-api-docs.mjs:58`의 crate 이름 `crudui-validator`로 실패한다. | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build` | [ ] |
+| C14.10-1 | contract manifest의 export를 TypeScript 7.0이 공개하는 유일한 program과 checker인 `typescript/unstable/sync`와 `typescript/unstable/ast/is` 대신 TypeScript 7.1의 stable API로 읽는다(C14.10). | `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/contract-manifest.test.mjs`, `make manifest-check` | [!] cause: TypeScript 7.0.2는 API를 `unstable/` 아래에만 공개한다; retry: TypeScript 7.1이 stable API를 공개할 때 |
 | C14.11 | kit 0.0.42로 옮긴다: 게시된 파일의 integrity로 pin하고, `make toolchain-lock`은 `mise.toml`의 도구를 linux-arm64와 macos-x64에도 잠그며(kit K134), 복사된 bootstrap은 `var/tools/go.mod`를 써서 checkout의 Go module의 `./...`가 mise가 설치한 Go를 걷지 않게 한다(kit K135). | `make kit-check`, `make toolchain-check`, `make owner-validate`, `node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/runtime-version-policy.test.mjs tests/build/ci-local.test.mjs tests/build/offline-checks.test.mjs` |[o] |
+| C14.12 | `make lint-ts`가 통과하게 한다(C14.10에서 발견): oxlint는 약 700건을 보고하며 그중 516건은 node:test 호출의 `typescript(no-floating-promises)`이고, knip은 약 230건, API Extractor는 일곱 package 모두에서 주로 187건의 `ae-missing-release-tag` 경고로 실패한다. node:test와 release tag 지적은 kit 0.0.43이 닫는 kit의 빈틈이며, 나머지는 code에서 고치고 실제 dead code는 지운다. | `make lint-ts` | [!] cause: node:test와 release tag 지적은 kit 0.0.43을 기다린다; retry: kit 0.0.43으로 옮긴 뒤 |
 
 ## [Wave 15](waves.ko.md#wave-15) — 각 생태계의 표준 도구를 있는 그대로 사용하기
 

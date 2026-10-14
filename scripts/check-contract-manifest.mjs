@@ -4,18 +4,25 @@
  *
  * Besides the manifest shape and its file links, the check compares every package's declared
  * entries with the real package: each JavaScript entry of package.json `exports` is declared
- * with its exact, sorted value exports (read from the source entry file with the TypeScript
- * compiler, aliases resolved, types excluded) and a visibility. Functions named in an
+ * with its exact, sorted value exports (read from the source entry file with the program and checker of the TypeScript 7
+ * API, aliases resolved, types excluded) and a visibility. Functions named in an
  * implemented feature's signature are public exports of the owner's "." entry, the error classes it
  * names are JavaScript built-in errors or public "." exports of a CRUDUI package, only code
  * of CRUDUI packages under packages/ imports an `internal` entry, and no package imports another
  * package's files by a relative path: it imports that package's entries by name.
+ *
+ * TypeScript 7.0 publishes its program and checker only as `typescript/unstable/sync` (and the AST predicates as
+ * `typescript/unstable/ast/is`); package.json pins TypeScript exactly, and the stable API of TypeScript 7.1 replaces that
+ * path (checklist C14.10-1). The API has no module resolution hook: the virtual file system callbacks of the API hide
+ * node_modules and give each `.svelte` component a two-line declaration of its default export, `<name>.d.svelte.ts`, which
+ * `allowArbitraryExtensions` resolves the import to (programFileSystem).
  */
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, extname, relative, resolve, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import Ajv from 'ajv';
-import ts from 'typescript';
+import { API, SymbolFlags } from 'typescript/unstable/sync';
+import * as is from 'typescript/unstable/ast/is';
 
 import { checkedFiles } from '@polyspec/kit/tracked-files';
 
@@ -27,7 +34,6 @@ const codeTarget = /\.[cm]?js$/;
 const sourceExtensions = ['.ts', '.tsx', '.mts', '.cts', '.js', '.mjs', '.cjs'];
 const scannedExtensions = new Set(['.ts', '.tsx', '.mts', '.cts', '.js', '.jsx', '.mjs', '.cjs', '.svelte', '.vue', '.md', '.html']);
 // A `.svelte` module's only value export is its component.
-const svelteModule = resolve(scriptRoot, '__svelte_component__.ts');
 const svelteModuleText = 'declare const component: unknown;\nexport default component;\n';
 const byCodeUnit = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
 // A feature error that names a class is one of these or a public "." export of a CRUDUI package.
@@ -58,10 +64,10 @@ function sourceFor(packagePath, target) {
 }
 
 function isTypeOnly(declaration) {
-  if (ts.isExportSpecifier(declaration) || ts.isImportSpecifier(declaration)) return declaration.isTypeOnly || declaration.parent.parent.isTypeOnly;
-  if (ts.isImportClause(declaration) || ts.isImportEqualsDeclaration(declaration)) return declaration.isTypeOnly;
-  if (ts.isNamespaceImport(declaration)) return declaration.parent.isTypeOnly;
-  if (ts.isNamespaceExport(declaration)) return declaration.parent.isTypeOnly;
+  if (is.isExportSpecifier(declaration) || is.isImportSpecifier(declaration)) return declaration.isTypeOnly || declaration.parent.parent.isTypeOnly;
+  if (is.isImportClause(declaration) || is.isImportEqualsDeclaration(declaration)) return declaration.isTypeOnly;
+  if (is.isNamespaceImport(declaration)) return declaration.parent.isTypeOnly;
+  if (is.isNamespaceExport(declaration)) return declaration.parent.isTypeOnly;
   return false;
 }
 
@@ -69,55 +75,70 @@ function isTypeOnly(declaration) {
 function exportKind(checker, symbol) {
   let current = symbol;
   const seen = new Set();
-  while (current.flags & ts.SymbolFlags.Alias) {
-    if ((current.declarations ?? []).some(isTypeOnly)) return 'type';
-    if (seen.has(current)) return 'unresolved';
-    seen.add(current);
+  while (current.flags & SymbolFlags.Alias) {
+    if (current.declarations.some((handle) => isTypeOnly(handle.resolve()))) return 'type';
+    if (seen.has(current.id)) return 'unresolved';
+    seen.add(current.id);
     const next = checker.getImmediateAliasedSymbol(current);
-    if (!next || !next.declarations?.length) return 'unresolved';
+    if (!next || next.declarations.length === 0) return 'unresolved';
     current = next;
   }
-  return current.flags & ts.SymbolFlags.Value ? 'value' : 'type';
+  return current.flags & SymbolFlags.Value ? 'value' : 'type';
+}
+
+/**
+ * The file system of the program, in the virtual file system callbacks of the API: the configuration of the program is
+ * `configFile`, nothing under node_modules exists, since only repository modules matter, and a `.svelte` component whose
+ * file exists has the declaration `<name>.d.svelte.ts` that `allowArbitraryExtensions` resolves its import to, with the
+ * component as its only value export.
+ */
+function programFileSystem(configFile, configText) {
+  const svelteDeclaration = (file) => {
+    const match = /^(.*)\.d\.svelte\.ts$/.exec(file);
+    return match !== null && existsSync(`${match[1]}.svelte`);
+  };
+  const installed = (path) => /\/node_modules(?:\/|$)/.test(path);
+  return {
+    readFile: (file) => (file === configFile ? configText : svelteDeclaration(file) ? svelteModuleText : installed(file) ? null : undefined),
+    fileExists: (file) => (file === configFile || svelteDeclaration(file) ? true : installed(file) ? false : undefined),
+    directoryExists: (directory) => (installed(directory) ? false : undefined),
+  };
 }
 
 /** Value exports of source entry files; `aliases` maps package specifiers to source files. */
 function readValueExports(files, aliases) {
-  const options = {
-    allowJs: true, noEmit: true, noLib: true, types: [], jsx: ts.JsxEmit.ReactJSX,
-    target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext, moduleResolution: ts.ModuleResolutionKind.Bundler,
-    allowImportingTsExtensions: true,
-  };
-  const host = ts.createCompilerHost(options);
-  const getSourceFile = host.getSourceFile.bind(host);
-  host.getSourceFile = (fileName, language, ...rest) => (fileName === svelteModule
-    ? ts.createSourceFile(fileName, svelteModuleText, language)
-    : getSourceFile(fileName, language, ...rest));
-  const fileExists = host.fileExists.bind(host);
-  host.fileExists = (fileName) => fileName === svelteModule || fileExists(fileName);
-  // Only repository modules matter: relative imports, `.svelte` components and CRUDUI packages.
-  host.resolveModuleNameLiterals = (literals, containingFile) => literals.map(({ text }) => {
-    if (text.endsWith('.svelte')) return { resolvedModule: { resolvedFileName: svelteModule, extension: ts.Extension.Ts } };
-    if (text in aliases) return aliases[text] ? { resolvedModule: { resolvedFileName: aliases[text], extension: extname(aliases[text]) } } : { resolvedModule: undefined };
-    if (!text.startsWith('.')) return { resolvedModule: undefined };
-    return ts.resolveModuleName(text, containingFile, options, host);
+  const configFile = resolve(scriptRoot, 'tsconfig.contract-manifest.json');
+  // A package specifier resolves to its source entry; one without a source entry resolves to nothing, as no node_modules exists.
+  const paths = Object.fromEntries(Object.entries(aliases).filter(([, file]) => file).map(([specifier, file]) => [specifier, [file]]));
+  const configText = JSON.stringify({
+    compilerOptions: {
+      allowJs: true, noEmit: true, noLib: true, types: [], jsx: 'react-jsx', target: 'es2022', module: 'esnext',
+      moduleResolution: 'bundler', allowImportingTsExtensions: true, allowArbitraryExtensions: true, paths,
+    },
+    files,
   });
-  const program = ts.createProgram({ rootNames: files, options, host });
-  const checker = program.getTypeChecker();
-  const result = new Map();
-  for (const file of files) {
-    const source = program.getSourceFile(file);
-    const moduleSymbol = source && checker.getSymbolAtLocation(source);
-    const values = [];
-    const unresolved = [];
-    for (const symbol of moduleSymbol ? checker.getExportsOfModule(moduleSymbol) : []) {
-      const kind = exportKind(checker, symbol);
-      if (kind === 'type') continue;
-      values.push(symbol.escapedName.toString());
-      if (kind === 'unresolved') unresolved.push(symbol.escapedName.toString());
+  const api = new API({ cwd: scriptRoot, fs: programFileSystem(configFile, configText) });
+  try {
+    const project = api.updateSnapshot({ openProjects: [configFile] }).getProject(configFile);
+    const { checker, program } = project;
+    const result = new Map();
+    for (const file of files) {
+      const source = program.getSourceFile(file);
+      const moduleSymbol = source && checker.getSymbolAtLocation(source);
+      const values = [];
+      const unresolved = [];
+      for (const symbol of moduleSymbol ? checker.getExportsOfModule(moduleSymbol) : []) {
+        const kind = exportKind(checker, symbol);
+        if (kind === 'type') continue;
+        values.push(symbol.name);
+        if (kind === 'unresolved') unresolved.push(symbol.name);
+      }
+      result.set(file, { values: values.sort(byCodeUnit), unresolved: unresolved.sort(byCodeUnit) });
     }
-    result.set(file, { values: values.sort(byCodeUnit), unresolved: unresolved.sort(byCodeUnit) });
+    return result;
+  } finally {
+    api.close();
   }
-  return result;
 }
 
 /** Functions a signature names: each call outside a member access, with the `a | b(` names before it. */

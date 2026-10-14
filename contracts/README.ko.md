@@ -1,6 +1,6 @@
 # CRUDUI 계약 manifest
 <!-- doc-id: contracts-readme -->
-<!-- source-sha256: d8d9178e9d176fb10d4a658be05fa09cb3df637c3d38deafd2e9867626c325bd -->
+<!-- source-sha256: 442b04083d382a13b8ae842bc35f5d339a7764df292a9adc2027c0ca4d4a53cf -->
 
 [English](README.md).
 
@@ -20,8 +20,8 @@ npm run manifest:check
 다른 하위 경로. 스타일시트와 `package.json`은 코드가 아닙니다)을 `visibility`, 그리고 코드 단위 순서로
 정렬한 값 export 목록과 함께 선언합니다. 타입은 적지 않습니다. `public` 진입점은 공개
 API입니다. `internal` 진입점은 CRUDUI 자체 패키지만 사용하며 그 밖의 사용은 지원하지 않습니다.
-검사는 TypeScript 컴파일러로 각 진입점 소스 파일(`./dist/<name>.js`는 `src/<name>.ts`에서 빌드)의
-값 export를 별칭과 다시 내보내기를 따라 읽고, 다음 경우 실패합니다.
+검사는 TypeScript 7 API(`typescript/unstable/sync`)의 program과 checker로 각 진입점 소스 파일
+(`./dist/<name>.js`는 `src/<name>.ts`에서 빌드)의 값 export를 별칭과 다시 내보내기를 따라 읽고, 다음 경우 실패합니다.
 
 - `package.json` 코드 진입점에 manifest 항목이 없거나, manifest 항목에 해당하는 `package.json`
   코드 진입점이 없음

@@ -23,8 +23,9 @@ are not code) with a `visibility` and the exact list of its value exports in
 code-unit order; types are not listed. A `public` entry is public API. An
 `internal` entry serves CRUDUI's own packages only and is unsupported for
 any other import. The check reads the value exports of each entry's source file
-(`./dist/<name>.js` is built from `src/<name>.ts`) with the TypeScript compiler,
-resolving aliases and re-exports, and fails when:
+(`./dist/<name>.js` is built from `src/<name>.ts`) with the program and checker of
+the TypeScript 7 API (`typescript/unstable/sync`), resolving aliases and
+re-exports, and fails when:
 
 - a `package.json` code entry has no manifest entry, or a manifest entry has no
   `package.json` code entry;

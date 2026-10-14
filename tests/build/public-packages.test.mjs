@@ -1,12 +1,11 @@
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, realpathSync, statSync, mkdtempSync, mkdirSync, writeFileSync, existsSync, rmSync } from 'node:fs';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 import { tmpdir } from 'node:os';
-import ts from 'typescript';
 
 import { checkedFiles } from '@polyspec/kit/tracked-files';
 
@@ -141,88 +140,84 @@ test('ES module packages load through their import export only', async () => {
   }
 });
 
+const tsc = resolve(root, 'node_modules/.bin/tsc');
+
 /**
- * A compiler host that resolves modules as TypeScript does, and a relative `.svelte` import to the
- * `.svelte.d.ts` declaration that svelte-package writes beside it, as the Svelte toolchain does.
+ * Compiles `files` with the tsc of the root and `compilerOptions`, from a tsconfig.json in a temporary directory: the exit
+ * status and output of `tsc --noEmit`, and the real paths of the files of the program, which `tsc --listFilesOnly` prints
+ * one per line.
  */
-function svelteCompilerHost(options) {
-  const host = ts.createCompilerHost(options);
-  const cache = ts.createModuleResolutionCache(root, (file) => file, options);
-  host.resolveModuleNameLiterals = (literals, containingFile, redirected, compilerOptions, containingSource) => literals.map((literal) => {
-    const declaration = resolve(dirname(containingFile), `${literal.text}.d.ts`);
-    if (/^\.\.?\//.test(literal.text) && literal.text.endsWith('.svelte') && ts.sys.fileExists(declaration)) {
-      return { resolvedModule: { resolvedFileName: declaration, extension: ts.Extension.Dts, isExternalLibraryImport: true } };
-    }
-    const mode = ts.getModeForUsageLocation(containingSource, literal, compilerOptions);
-    return ts.resolveModuleName(literal.text, containingFile, compilerOptions, host, cache, redirected, mode);
-  });
-  return host;
+function compile(compilerOptions, files) {
+  const temporary = mkdtempSync(resolve(tmpdir(), 'crudui-public-types-'));
+  try {
+    const config = resolve(temporary, 'tsconfig.json');
+    writeFileSync(config, JSON.stringify({ compilerOptions: { ...compilerOptions, noEmit: true }, files }));
+    const run = spawnSync(tsc, ['--project', config, '--pretty', 'false'], { cwd: root, encoding: 'utf8' });
+    assert.equal(run.error, undefined);
+    const listed = spawnSync(tsc, ['--project', config, '--listFilesOnly'], { cwd: root, encoding: 'utf8' });
+    assert.equal(listed.status, 0, listed.stdout + listed.stderr);
+    const program = new Set(listed.stdout.split('\n').filter(Boolean).map((file) => realpathSync(resolve(root, file))));
+    return { status: run.status, log: run.stdout + run.stderr, program };
+  } finally { rmSync(temporary, { recursive: true, force: true }); }
 }
 
+const declarationOptions = { strict: true, skipLibCheck: false, types: [], target: 'es2022', lib: ['es2022', 'dom', 'dom.iterable'] };
+
 test('public type entries and their declaration graph compile in ESM and CommonJS', () => {
-  const options = {
-    noEmit: true,
-    strict: true,
-    skipLibCheck: false,
-    types: [],
-    target: ts.ScriptTarget.ES2022,
-    module: ts.ModuleKind.NodeNext,
-    moduleResolution: ts.ModuleResolutionKind.NodeNext,
-    lib: ['lib.es2022.d.ts', 'lib.dom.d.ts', 'lib.dom.iterable.d.ts'],
-  };
   const fixtures = ['public-types.mts', 'public-types.cts'].map((file) => resolve(root, 'tests/build', file));
+  const { status, log, program } = compile({ ...declarationOptions, module: 'nodenext', moduleResolution: 'nodenext' }, fixtures);
+  assert.equal(status, 0, log);
   for (const pkg of packages) {
     const declared = output(pkg, pkg.manifest.types);
     assert.equal(output(pkg, pkg.manifest.exports['.'].types), declared);
-    for (const fixture of fixtures) {
-      const mode = fixture.endsWith('.mts') ? ts.ModuleKind.ESNext : ts.ModuleKind.CommonJS;
-      const resolution = ts.resolveModuleName(pkg.manifest.name, fixture, options, ts.sys, undefined, undefined, mode);
-      assert.ok(resolution.resolvedModule, `${pkg.manifest.name} must resolve for ${fixture}`);
-      assert.equal(realpathSync(resolution.resolvedModule.resolvedFileName), declared);
-    }
+    assert.ok(program.has(declared), `${pkg.manifest.name} must compile from ${relative(root, declared)}`);
   }
-  // An ES module package resolves only for the ES module fixture, to declarations in ES module format.
-  const moduleFormats = new Map();
+  // An ES module package, and one with a top-level types condition that loads through its import and require
+  // exports, declares its types in ES module format: package.json names the type module.
+  for (const pkg of [...moduleOnlyPackages, ...moduleDeclarationPackages]) {
+    assert.equal(pkg.manifest.type, 'module', `${pkg.manifest.name} declarations must be in ES module format`);
+  }
   for (const pkg of moduleOnlyPackages) {
-    const [moduleFixture, commonFixture] = fixtures;
-    const resolution = ts.resolveModuleName(pkg.manifest.name, moduleFixture, options, ts.sys, undefined, undefined, ts.ModuleKind.ESNext);
-    assert.ok(resolution.resolvedModule, `${pkg.manifest.name} must resolve for ${moduleFixture}`);
-    moduleFormats.set(realpathSync(resolution.resolvedModule.resolvedFileName), pkg.manifest.name);
-    const common = ts.resolveModuleName(pkg.manifest.name, commonFixture, options, ts.sys, undefined, undefined, ts.ModuleKind.CommonJS);
-    assert.equal(common.resolvedModule, undefined, `${pkg.manifest.name} must not resolve types for a CommonJS project`);
+    assert.ok(program.has(output(pkg, pkg.manifest.exports['.'].import.types)), `${pkg.manifest.name} must compile from its import types`);
   }
-  // An ES module package with a top-level types condition resolves for the ES module fixture, to
-  // declarations in ES module format; the CommonJS fixture also requires generator-vue.
-  for (const pkg of moduleDeclarationPackages) {
-    const declared = output(pkg, pkg.manifest.types);
-    assert.equal(output(pkg, pkg.manifest.exports['.'].types), declared);
-    const resolution = ts.resolveModuleName(pkg.manifest.name, fixtures[0], options, ts.sys, undefined, undefined, ts.ModuleKind.ESNext);
-    assert.ok(resolution.resolvedModule, `${pkg.manifest.name} must resolve for ${fixtures[0]}`);
-    assert.equal(realpathSync(resolution.resolvedModule.resolvedFileName), declared);
-    moduleFormats.set(declared, pkg.manifest.name);
+  const vue = moduleDeclarationPackages.find(({ manifest }) => manifest.name === '@polyspec/crudui-generator-vue');
+  assert.equal(output(vue, vue.manifest.exports['.'].types), output(vue, vue.manifest.types));
+  assert.ok(program.has(output(vue, vue.manifest.types)), `${vue.manifest.name} must compile from its types`);
+  assertDeclarationsOnly(program);
+});
+
+test('an ES module only package resolves no types for a CommonJS project', () => {
+  const fixture = resolve(root, 'tests/build/module-only-require.cts');
+  const { status, log } = compile({ ...declarationOptions, module: 'nodenext', moduleResolution: 'nodenext' }, [fixture]);
+  assert.notEqual(status, 0);
+  for (const pkg of moduleOnlyPackages) {
+    assert.equal(pkg.manifest.exports['.'].require, undefined, `${pkg.manifest.name} must not declare a CommonJS entry`);
+    assert.ok(log.includes(`error TS2307: Cannot find module '${pkg.manifest.name}'`), log);
   }
-  const program = ts.createProgram(fixtures, options, svelteCompilerHost(options));
-  const diagnostics = ts.getPreEmitDiagnostics(program);
-  assert.equal(diagnostics.length, 0, ts.formatDiagnostics(diagnostics.slice(0, 12), {
-    getCurrentDirectory: () => root,
-    getCanonicalFileName: (file) => file,
-    getNewLine: () => '\n',
-  }));
-  for (const [filename, name] of moduleFormats) {
-    const source = program.getSourceFiles().find((file) => realpathSync(file.fileName) === filename);
-    assert.ok(source, `${name} declarations must be part of the program`);
-    assert.equal(source.impliedNodeFormat, ts.ModuleKind.ESNext, `${name} declarations must be in ES module format`);
-  }
-  for (const source of program.getSourceFiles()) {
-    const filename = realpathSync(source.fileName);
+});
+
+test('the generator-svelte types compile as a Svelte project resolves them', () => {
+  const pkg = moduleDeclarationPackages.find(({ manifest }) => manifest.name === '@polyspec/crudui-generator-svelte');
+  const fixture = resolve(root, 'tests/build/public-types-svelte.mts');
+  const { status, log, program } = compile({ ...declarationOptions, module: 'esnext', moduleResolution: 'bundler' }, [fixture]);
+  assert.equal(status, 0, log);
+  const declared = output(pkg, pkg.manifest.types);
+  assert.equal(output(pkg, pkg.manifest.exports['.'].types), declared);
+  assert.ok(program.has(declared), `${pkg.manifest.name} must compile from ${relative(root, declared)}`);
+  assertDeclarationsOnly(program);
+});
+
+/** Every file of the program inside a published package is a declaration of its dist. */
+function assertDeclarationsOnly(program) {
+  for (const filename of program) {
     for (const pkg of [...packages, ...moduleOnlyPackages, ...moduleDeclarationPackages]) {
       if (within(pkg.directory, filename)) {
         assert.ok(within(resolve(pkg.directory, 'dist'), filename), `declarations read package source: ${relative(root, filename)}`);
-        assert.ok(source.isDeclarationFile, `non-declaration package input: ${relative(root, filename)}`);
+        assert.ok(/\.d\.[cm]?ts$/.test(filename), `non-declaration package input: ${relative(root, filename)}`);
       }
     }
   }
-});
+}
 
 test('generator-core exposes the only form stylesheet through the public crudui.css export', () => {
   const pkg = packages.find(({ manifest }) => manifest.name === '@polyspec/crudui-generator-core');
@@ -254,21 +249,22 @@ test('declaration builds emit no files when a public type is invalid', () => {
     for (const folder of declarationPackages) {
       const directory = resolve(root, 'packages', folder);
       const filename = resolve(directory, 'tsconfig.build.json');
-      const config = ts.readConfigFile(filename, ts.sys.readFile);
-      assert.equal(config.error, undefined);
-      const parsed = ts.parseJsonConfigFileContent(config.config, ts.sys, directory);
-      assert.equal(parsed.options.noEmitOnError, true);
-      assert.equal(parsed.options.emitDeclarationOnly, true);
+      const shown = spawnSync(tsc, ['--project', filename, '--showConfig'], { cwd: directory, encoding: 'utf8' });
+      assert.equal(shown.status, 0, shown.stdout + shown.stderr);
+      const { compilerOptions } = JSON.parse(shown.stdout);
+      assert.equal(compilerOptions.noEmitOnError, true);
+      assert.equal(compilerOptions.emitDeclarationOnly, true);
       const output = resolve(temporary, folder);
-      const program = ts.createProgram([source], { ...parsed.options, rootDir: temporary, outDir: output });
-      assert.ok(ts.getPreEmitDiagnostics(program).some(error => error.code === 2322));
-      assert.equal(program.emit().emitSkipped, true);
+      const config = resolve(temporary, `${folder}.tsconfig.json`);
+      writeFileSync(config, JSON.stringify({ extends: filename, compilerOptions: { rootDir: temporary, outDir: output }, files: [source], include: [] }));
+      const run = spawnSync(tsc, ['--project', config, '--pretty', 'false'], { cwd: directory, encoding: 'utf8' });
+      assert.notEqual(run.status, 0);
+      assert.match(run.stdout, /error TS2322:/);
       assert.equal(existsSync(output), false);
     }
   } finally { rmSync(temporary, { recursive: true, force: true }); }
 });
 
-/** The files of a package directory that Git tracks or does not ignore, as absolute paths. */
 function* files(directory) {
   for (const file of checkedFiles(directory)) yield resolve(directory, file);
 }

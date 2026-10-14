@@ -327,7 +327,9 @@
     },
     {
       "paths": [
-        "tests/build/public-types.{cts,mts}"
+        "tests/build/public-types.{cts,mts}",
+        "tests/build/public-types-svelte.mts",
+        "tests/build/module-only-require.cts"
       ],
       "scripts": [
         "test:build"

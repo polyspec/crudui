@@ -4,8 +4,8 @@ import {
   isConditionExpression,
   evaluateCondition,
   evaluateExpressionValue,
-  type PathContext,
 } from '@polyspec/crudui-validator/internal';
+import type { PathContext } from '@polyspec/crudui-validator';
 
 /**
  * A CRUDUI `Evaluated<V>` value as seen at render: a literal, an Expression string,

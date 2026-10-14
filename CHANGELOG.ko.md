@@ -1,8 +1,14 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 354e450c165dad2f483992502b3df8a9913edc66441a838441fba1b32e83e1fa -->
+<!-- source-sha256: 8c9c57077dba5829527d90b4be055ca2a88b93f197f994e85bd229ee3d79a8b3 -->
 
 ## Unreleased
+
+### 2026-10-14 — TypeScript 7에서의 tests/build 도구 test (C14.10)
+
+- `scripts/check-contract-manifest.mjs`는 각 진입점의 값 export를 TypeScript 7 API(`typescript/unstable/sync`)의 program과 checker로 읽으며, 그 가상 file system은 node_modules를 숨기고 `.svelte` component에 선언을 준다. `tests/build/public-packages.test.mjs`는 consumer fixture를 TypeScript 7의 `tsc --noEmit`으로 compile하고 그 exit status가 결과다. `public-types.mts`와 `public-types.cts`는 Node.js resolution으로, `public-types-svelte.mts`는 Svelte 프로젝트의 bundler resolution으로 compile하고, `module-only-require.cts`는 CommonJS 프로젝트가 compile할 수 없음을 확인한다. `tsc --listFilesOnly`는 program이 dist의 선언만 읽음을 보이고, module format은 package.json에서 읽으며, 선언 build는 `tsc --showConfig`와 실패하는 build로 검사한다.
+- `PathContext`는 `@polyspec/crudui-validator`의 public type이다. generator-core의 public API가 이를 쓰며, 더는 internal 진입점에서 import하지 않는다.
+- test는 kit 도구를 `node_modules/@polyspec/kit/dist`로 적고, Composer reinstall의 lock test는 script가 resolve하는 kit의 holder-lock을 알아본다.
 
 ### 2026-10-14 — kit 0.0.42 (C14.11)
 

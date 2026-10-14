@@ -12,7 +12,6 @@ import {
 } from '@polyspec/crudui-validator';
 import { bindForm, type FormBinding, type FormBindingOptions } from '@polyspec/crudui-form-binding';
 import { Form as VueForm, renderForm as renderVueForm, type AnyWidget as VueAnyWidget } from '@polyspec/crudui-generator-vue';
-import { Form as SvelteForm, renderForm as renderSvelteForm } from '@polyspec/crudui-generator-svelte';
 import { createElement, type ReactElement } from 'react';
 
 const spec = { type: 'group', properties: { name: { type: 'text' } } };
@@ -34,12 +33,10 @@ const bindingOptions: FormBindingOptions = { keyPrefix: 'form' };
 const bind: (form: HTMLFormElement) => FormBinding = (form) => bindForm(form, spec, bindingOptions);
 const vueView = VueForm;
 const vueHtml: Promise<string> = renderVueForm(session);
-const svelteView = SvelteForm;
-const svelteHtml: string = renderSvelteForm(session);
 type PublicTypes = [
   ComposeErrorCode, FileLoader, FileSet, ValidationError, FormConnection,
   NodeVM, ButtonVM, AnyWidget, ListProps, RenderListOptions, VueAnyWidget,
 ];
 const publicTypes: PublicTypes | undefined = undefined;
 
-export { template, session, snapshot, view, html, list, valid, hidden, listResult, detailResult, randomKey, savedKey, bind, vueView, vueHtml, svelteView, svelteHtml, publicTypes };
+export { template, session, snapshot, view, html, list, valid, hidden, listResult, detailResult, randomKey, savedKey, bind, vueView, vueHtml, publicTypes };
