@@ -1,6 +1,6 @@
 # Execution checklist
 <!-- doc-id: docs-plans-execution-checklist -->
-<!-- source-sha256: e90774c9f913ec405afd4e55331a8c2ab5e59f864df9b2466f43a7eafaaf5d7a -->
+<!-- source-sha256: 2eb5bfb489bb9df13c5d677e755d293221d54e11d3c1022404adee17b2d80632 -->
 
 ## [Wave 1](waves.ko.md#wave-1) — 좁은 viewport를 위한 stylesheet와 stylesheet의 Tailwind 버전
 
@@ -307,6 +307,7 @@
 | C14.21 | benchmark console은 docs/spec/form-comparison.md가 요구하는 대로 pointer가 비교 frame 위에 있을 때 capture와 비교를 멈춘다. d5fd5ca3 이후 어떤 page도 `pointerOverFrame`을 부르지 않았다. Red: guard의 Chromium test가 `requirePointerOutside is not a function`으로 실패했고 check-interaction의 연결 test가 실패했다. | `src/browser-job.browser.mjs`, `check-interaction.test.mjs` |[o] |
 | C14.22 | docs/spec/schema.md의 작성 type은 공개된다. `@polyspec/crudui-validator`의 entry는 `FieldSpec`, `RangeFieldSpec`, `DesignSlot`, `Items`, `Multiple`, `Lang`, `ConditionMap`과 이것들이 가리키는 모든 type을 각각 TSDoc과 함께 export하고, API report `etc/crudui-validator.api.md`가 이것들을 나열한다. `ae-undocumented`는 error로 남는다. 원인: docs/spec/schema.md:66과 :84-110은 `schema.ts`를 작성 type으로 정하는데, entry는 그중 아무것도 export하지 않았다. | `packages/validator/ts`의 API Extractor, `types.roundtrip.test.ts`의 type test |[o] |
 | C14.23 | docs/spec/form-comparison.md는 C14.20이 build하는 대로 제공되는 module을 설명한다. `public/`의 module은 브라우저가 해석할 수 있는 import로 그대로 제공되고, build는 benchmark console을 그것이 import하는 source module(`browser-job.mjs`, `frame-readiness.mjs`, `frame-pointer.mjs`, `runtime-paths.mjs`, snapshot module)과 함께 bundle하므로 어떤 source module도 공개 디렉터리에 복사되지 않는다. `src/browser-job.browser.mjs`의 Chromium case는 `src/`의 `frame-readiness.mjs` 대신 `public/`의 module을 로드한다. 원인: spec(305-307행)과 그 case는 C14.20이 bundle로 바꾼, 공개 디렉터리에 복사되는 module을 여전히 설명했다. | `src/browser-job.browser.mjs`, `make documents-check` |[o] |
+| C14.24 | TypeScript validator의 type assertion이 실행된다. 그 Vitest 설정은 Vitest의 typecheck mode(`test.typecheck`)를 켜고, 이 mode는 `src/*.test-d.ts`의 `expectTypeOf` assertion을 `tsc`와 package의 `tsconfig.tests.json`으로 검사하며, `types.roundtrip.test.ts`의 assertion은 `src/types.test-d.ts`로 옮겨진다. 원인: runtime Vitest 실행은 `expectTypeOf`를 평가하지 않고 package의 `tsconfig.json`은 test 파일을 제외하므로 아무것도 그것을 검사하지 않았다. Red: 틀린 assertion 하나가 Vitest 실행을 실패시킨다. | `src/types.test-d.ts`와 `src/types.roundtrip.test.ts`에 대한 `packages/validator/ts`의 Vitest suite |[ ] |
 
 ## [Wave 15](waves.ko.md#wave-15) — 각 생태계의 표준 도구를 있는 그대로 사용하기
 
