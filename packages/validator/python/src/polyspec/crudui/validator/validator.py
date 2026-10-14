@@ -33,7 +33,7 @@ from .compose import MemoryLoader, compose_properties, compose_spec, compose_roo
 from .compose_errors import ComposeLoadError
 from .errors import FormInputError
 from .forbidden import scan_forbidden_keys
-from .jsvalue import JsonValue, compare_code_points, ordered_value
+from .jsvalue import JsonValue, ordered_value
 from .parser import Node, is_condition_expression, parse_condition
 from .resolver import evaluate_condition as _eval_condition
 from .resolver import evaluate_expression_value as _eval_value

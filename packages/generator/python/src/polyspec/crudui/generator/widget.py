@@ -17,7 +17,6 @@ from .choice_list import appearances as choice_appearances
 from .choice_list import check_appearance, is_choice_list, pairs
 from .design import declared as design_declared
 from .errors import FormError
-from .numbers import number_string
 from .value import (
     MISSING,
     Value,

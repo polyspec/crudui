@@ -11,7 +11,7 @@ from .rendering import attrs as render_attrs
 from .rendering import element as render_element
 from .rendering import text as render_text
 from .rendering import url as render_url
-from .value import MISSING, classes, object_value, spec_value, style_value
+from .value import classes, object_value, spec_value, style_value
 
 __all__ = ["build", "render"]
 

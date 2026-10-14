@@ -25,7 +25,7 @@ def _generator():
     return Generator
 
 
-class FormCompleteConformance(unittest.TestCase):
+class TestFormCompleteConformance(unittest.TestCase):
     """The complete form writes the expected bytes or the declared failure."""
 
     def setUp(self):
@@ -66,7 +66,7 @@ class FormCompleteConformance(unittest.TestCase):
                 proof.passed = True
 
 
-class ListRenderConformance(unittest.TestCase):
+class TestListRenderConformance(unittest.TestCase):
     """A list renders byte for byte or raises the recorded code."""
 
     def setUp(self):
@@ -113,7 +113,7 @@ class ListRenderConformance(unittest.TestCase):
                 proof.passed = True
 
 
-class DetailRenderConformance(unittest.TestCase):
+class TestDetailRenderConformance(unittest.TestCase):
     """A detail renders byte for byte or raises the recorded code."""
 
     def setUp(self):

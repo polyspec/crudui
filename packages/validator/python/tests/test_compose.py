@@ -33,7 +33,7 @@ def canon(value):
     return value
 
 
-class ComposeConformance(unittest.TestCase):
+class TestComposeConformance(unittest.TestCase):
     """Composed maps reproduce the fixture; failures raise the recorded code."""
 
     def setUp(self):

@@ -19,7 +19,7 @@ SOURCE = str(Path(__file__).resolve().parents[1] / "src")
 if SOURCE not in sys.path:
     sys.path.insert(0, SOURCE)
 
-from conformance import FIXTURES, cases_of, failure_record, Proving  # noqa: E402
+from conformance import cases_of, failure_record, Proving  # noqa: E402
 from polyspec.crudui.validator import (  # noqa: E402
     ComposeLoadError,
     FormInputError,
@@ -74,7 +74,7 @@ def build_graph(graph):
     return graph["at"], value
 
 
-class TextValidityConformance(unittest.TestCase):
+class TestTextValidityConformance(unittest.TestCase):
     """The input text rule holds at the same operations, in the same order."""
 
     def test_validate_cases(self):

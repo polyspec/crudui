@@ -12,7 +12,7 @@ from collections.abc import Mapping
 from typing import Any
 
 from .style import rendered as style_rendered
-from .value import MISSING, classes, scalar, style_value
+from .value import MISSING, classes, scalar
 
 __all__ = ["attrs", "element", "form", "text", "url"]
 

@@ -10,9 +10,8 @@ is a string, a number or a boolean.
 import math
 import re
 
-from typing import Union
 
-from .jsvalue import JsonValue, is_scalar_text, number_text
+from .jsvalue import JsonValue, number_text
 from .unicode_data import WHITE_SPACE
 
 __all__ = [

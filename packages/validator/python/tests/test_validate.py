@@ -10,7 +10,7 @@ from pathlib import Path
 
 sys_path_prefix = str(Path(__file__).resolve().parents[1] / "src")
 
-from conformance import ROOT, cases_of, failure_record, Proving  # noqa: E402
+from conformance import cases_of, failure_record, Proving  # noqa: E402
 
 
 def _load_validator():
@@ -26,7 +26,7 @@ def _load_validator():
 validator = _load_validator()
 
 
-class ValidateConformance(unittest.TestCase):
+class TestValidateConformance(unittest.TestCase):
     """Result cases reproduce {valid, errors, hidden}; failures throw the exact record."""
 
     def setUp(self):

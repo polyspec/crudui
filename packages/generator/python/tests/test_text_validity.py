@@ -10,7 +10,7 @@ passes; a `createForm` case runs its recorded action on the created instance.
 
 import unittest
 
-from conformance import cases_of, failure_record, Proving, Proving
+from conformance import cases_of, Proving
 
 
 def _options_of(case):
@@ -39,7 +39,7 @@ def _outcome(run):
     return "pass"
 
 
-class GeneratorTextValidityConformance(unittest.TestCase):
+class TestGeneratorTextValidityConformance(unittest.TestCase):
     """The input text rule holds at the generation operations, in the same order."""
 
     def test_compile_form_cases(self):

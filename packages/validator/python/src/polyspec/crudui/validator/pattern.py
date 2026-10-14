@@ -13,7 +13,7 @@ points of the text: time O(length x states), memory O(states), no
 backtracking and no recursion that depends on the text.
 """
 
-from typing import Any, Iterable, Literal, Sequence, TypeAlias
+from typing import Any, Iterable, Sequence, TypeAlias
 
 from .unicode_data import GENERAL_CATEGORIES, SCRIPTS, WHITE_SPACE
 

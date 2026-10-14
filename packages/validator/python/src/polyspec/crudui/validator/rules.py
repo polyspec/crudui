@@ -16,7 +16,7 @@ from datetime import datetime, timezone
 from typing import Any, Callable, TypeAlias, cast
 
 from .jsvalue import JsonValue
-from .parser import Node, is_condition_expression, parse_condition
+from .parser import is_condition_expression, parse_condition
 from .pattern import PatternSyntaxError, compile_pattern
 from .resolver import (
     Value,
