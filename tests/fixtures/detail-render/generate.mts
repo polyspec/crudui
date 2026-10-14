@@ -15,16 +15,20 @@
  */
 
 import { renderDetail } from '@polyspec/crudui-generator-react/server';
-import type { BuildDetailOptions } from '@polyspec/crudui-generator-core';
 import { normalizeHtml } from '../form-render/normalize.mts';
 import { withoutPreloadLinks } from '../preload-links.mts';
 
+/**
+ * A detail case. Its specification, record and options are JSON values as every runtime reads them from the fixture; a
+ * case that a runtime rejects holds a value of another JSON type, so they are unknown, and renderDetail checks them at run
+ * time.
+ */
 interface DetailFixtureCase {
   name: string;
   note: string;
-  spec: Record<string, unknown>;
-  record?: Record<string, unknown>;
-  options?: BuildDetailOptions;
+  spec: unknown;
+  record?: unknown;
+  options?: unknown;
   expected_html?: string;
   expectError?: { code: string; message: string };
 }
@@ -278,7 +282,7 @@ const SCENARIOS: DetailFixtureCase[] = [
   {
     name: 'reject-non-object-specification',
     note: 'a declaration that is not an object is rejected.',
-    spec: [] as unknown as Record<string, unknown>,
+    spec: [],
     record: ADA,
     expectError: { code: 'INVALID_FORM_INPUT', message: 'Detail specification must be an object' },
   },
@@ -308,28 +312,28 @@ const SCENARIOS: DetailFixtureCase[] = [
     note: 'the list-only page, total and layout options are neither checked nor used by a detail.',
     spec: { fields: { name: { field: 'name', label: 'Name' } } },
     record: ADA,
-    options: { page: 0, total: -1, layout: 'grid' } as unknown as BuildDetailOptions,
+    options: { page: 0, total: -1, layout: 'grid' },
   },
   {
     name: 'reject-specification-before-record',
     note: 'the specification rule is checked before the record rule.',
-    spec: [] as unknown as Record<string, unknown>,
-    record: [] as unknown as Record<string, unknown>,
+    spec: [],
+    record: [],
     expectError: { code: 'INVALID_FORM_INPUT', message: 'Detail specification must be an object' },
   },
   {
     name: 'reject-record-before-fields',
     note: 'argument shapes are checked before the declaration: the record rule precedes the fields rule.',
     spec: {},
-    record: [] as unknown as Record<string, unknown>,
+    record: [],
     expectError: { code: 'INVALID_FORM_INPUT', message: 'Detail record must be an object' },
   },
   {
     name: 'reject-record-before-context',
     note: 'the record rule is checked before the context rule.',
     spec: { fields: { name: { field: 'name', label: 'Name' } } },
-    record: [] as unknown as Record<string, unknown>,
-    options: { data: [] } as unknown as BuildDetailOptions,
+    record: [],
+    options: { data: [] },
     expectError: { code: 'INVALID_FORM_INPUT', message: 'Detail record must be an object' },
   },
   {
@@ -351,14 +355,14 @@ const SCENARIOS: DetailFixtureCase[] = [
     note: 'a data option that is not an object is rejected.',
     spec: { fields: { name: { field: 'name', label: 'Name' } } },
     record: ADA,
-    options: { data: [] } as unknown as BuildDetailOptions,
+    options: { data: [] },
     expectError: { code: 'INVALID_FORM_INPUT', message: 'Detail context must be an object' },
   },
   {
     name: 'reject-non-object-record',
     note: 'a record that is not an object is rejected.',
     spec: { fields: { name: { field: 'name', label: 'Name' } } },
-    record: [] as unknown as Record<string, unknown>,
+    record: [],
     expectError: { code: 'INVALID_FORM_INPUT', message: 'Detail record must be an object' },
   },  // Declaration shape: every runtime rejects the same invalid declaration with the same error.
   {
@@ -410,7 +414,7 @@ const SCENARIOS: DetailFixtureCase[] = [
   ] as const).map(([name, note, spec, message]): DetailFixtureCase => ({
     name,
     note,
-    spec: spec as Record<string, unknown>,
+    spec: spec,
     record: ADA,
     expectError: { code: 'INVALID_FORM_INPUT', message },
   })),
@@ -418,7 +422,9 @@ const SCENARIOS: DetailFixtureCase[] = [
 
 const cases = SCENARIOS.map((scenario) => {
   if (scenario.expectError) return scenario;
-  const html = withoutPreloadLinks(renderDetail(scenario.spec, scenario.record ?? {}, scenario.options ?? {}));
+  const rendered: unknown = Reflect.apply(renderDetail, undefined, [scenario.spec, scenario.record ?? {}, scenario.options ?? {}]);
+  if (typeof rendered !== 'string') throw new Error(`renderDetail returned no HTML for ${scenario.name}`);
+  const html = withoutPreloadLinks(rendered);
   return { ...scenario, expected_html: normalizeHtml(html) };
 });
 

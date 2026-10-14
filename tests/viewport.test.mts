@@ -9,14 +9,18 @@ import { describe, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { engineDrivers, engines, type Engine, type EngineBrowser, type EnginePage } from './browser-engines.mts';
 import { setup, teardown } from '@polyspec/kit/test-hooks';
+import { readJson, type JTDSchemaType } from './json.mts';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const stylesheet = readFileSync(`${root}packages/generator/ts/styles/crudui.css`, 'utf8');
 const corpora = ['form-render', 'form-complete', 'list-render', 'detail-render'];
-/** A case of a shared render fixture with the HTML it expects. */
-interface RenderCase { name: string; expected_html: string }
-const cases = corpora.flatMap(corpus => (JSON.parse(readFileSync(`${root}tests/fixtures/${corpus}/cases.json`, 'utf8')) as RenderCase[])
-  .map(item => ({ name: `${corpus}: ${item.name}`, html: item.expected_html })));
+/** A case of a shared render fixture with the HTML it expects; a case that expects an error renders no HTML. */
+interface RenderCase { name: string; expected_html?: string }
+const renderCases: JTDSchemaType<RenderCase[]> = {
+  elements: { properties: { name: { type: 'string' } }, optionalProperties: { expected_html: { type: 'string' } }, additionalProperties: true },
+};
+const cases = corpora.flatMap(corpus => readJson(`${root}tests/fixtures/${corpus}/cases.json`, renderCases)
+  .flatMap(item => item.expected_html === undefined ? [] : [{ name: `${corpus}: ${item.name}`, html: item.expected_html }]));
 const widths = [360, 1280];
 
 const browsers: Partial<Record<Engine, EngineBrowser>> = {};

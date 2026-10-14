@@ -12,6 +12,7 @@ import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
 
 import { isVendored } from '../../scripts/repository-files.mts';
+import { checked, parseJson, manifestSchema, script, type JTDSchemaType, type Manifest } from '../json.mts';
 import {
   directTestTools, isTestCommand, makeTargets, matchesArgument, nodeScripts, nodeTestArguments, projectCommands, runsTests, workflowJobs,
 } from '../../scripts/test-commands.mts';
@@ -40,6 +41,17 @@ interface ProjectCommand {
 interface Workflow {
   jobs?: Record<string, { steps?: { name?: string; run?: unknown }[] }>;
 }
+const workflowSchema: JTDSchemaType<Workflow> = {
+  optionalProperties: {
+    jobs: {
+      values: {
+        optionalProperties: { steps: { elements: { optionalProperties: { name: { type: 'string' }, run: {} }, additionalProperties: true } } },
+        additionalProperties: true,
+      },
+    },
+  },
+  additionalProperties: true,
+};
 
 /** The Makefile targets of `text`. */
 function targetsOf(text: string): Record<string, MakeRule> {
@@ -54,6 +66,8 @@ const tracked = [
   'contracts/features.json',
 ];
 const read = (file: string): string => readFileSync(path.join(ROOT, file), 'utf8');
+/** The package.json or composer.json `file` of the checkout. */
+const manifestOf = (file: string): Manifest => parseJson(read(file), manifestSchema, file);
 
 test('a direct test tool call is found in each command form', () => {
   for (const command of [
@@ -108,7 +122,7 @@ test('every node:test file runs in a project command', () => {
   assert.equal(matchesArgument('tests/docs/x/a.test.mts', 'tests/docs/*.test.mts'), false);
   const arguments_ = tracked.flatMap(file => projectCommands(file, read(file)).flatMap(({ command }: ProjectCommand) => nodeTestArguments(command)));
   // Vitest runs every test file of a package that declares a Vitest test script.
-  const vitest = tracked.filter(file => file.endsWith('package.json') && /vitest/.test(JSON.parse(read(file)).scripts?.test ?? '')).map(path.dirname);
+  const vitest = tracked.filter(file => file.endsWith('package.json') && /vitest/.test(manifestOf(file).scripts?.['test'] ?? '')).map(path.dirname);
   const files = execFileSync('git', ['ls-files', '--cached', '--others', '--exclude-standard', '*.test.mts', '*.test.mjs', '*.test.cjs', '*.test.js', '*.browser.mjs'], { cwd: ROOT, encoding: 'utf8' })
     .split('\n').filter(file => file && existsSync(path.join(ROOT, file)) && !isVendored(file) && !vitest.some(directory => file.startsWith(`${directory}/`)));
   assert.deepEqual(files.filter(file => !arguments_.some(argument => matchesArgument(file, argument))), []);
@@ -116,11 +130,11 @@ test('every node:test file runs in a project command', () => {
 
 test('every TypeScript package declares a typecheck that CI runs', () => {
   const packages = execFileSync('git', ['ls-files', 'packages/*/tsconfig.json'], { cwd: ROOT, encoding: 'utf8' }).split('\n').filter(Boolean).map(path.dirname);
-  const missing = packages.filter(directory => !JSON.parse(read(`${directory}/package.json`)).scripts?.typecheck);
+  const missing = packages.filter(directory => !manifestOf(`${directory}/package.json`).scripts?.['typecheck']);
   assert.deepEqual(missing, []);
   const ci = tracked.filter(file => file.startsWith('.github/workflows/')).flatMap(file => projectCommands(file, read(file)).map((item: ProjectCommand) => item.command));
   assert.ok(ci.some(command => /^make ci-targets TARGETS="(?:[\w-]+ )*typecheck(?: [\w-]+)*"$/.test(command)), 'CI does not run make typecheck');
-  assert.deepEqual(targetsOf(read('Makefile')).typecheck?.commands, ['$(NPM) run typecheck', 'node_modules/.bin/tsc -p tsconfig.json']);
+  assert.deepEqual(targetsOf(read('Makefile')).typecheck?.commands, ['$(NPM) run typecheck', 'node_modules/.bin/tsc -p tsconfig.json', 'node_modules/.bin/tsc -p examples/form-comparison/src/tsconfig.json']);
 });
 
 /** The npm scripts, Composer scripts, workspaces and Makefile targets the repository declares. */
@@ -129,11 +143,11 @@ function declaredCommands(): Project {
   for (const file of tracked) {
     const directory = path.posix.dirname(file);
     if (file.endsWith('package.json')) {
-      const manifest = JSON.parse(read(file));
+      const manifest = manifestOf(file);
       project.npm[directory] = manifest.scripts ?? {};
       if (manifest.name) project.workspaces[manifest.name] = directory;
     } else if (file.endsWith('composer.json')) {
-      project.composer[directory] = JSON.parse(read(file)).scripts ?? {};
+      project.composer[directory] = manifestOf(file).scripts ?? {};
     } else if (file === 'Makefile') {
       project.make = targetsOf(read(file));
     }
@@ -266,12 +280,12 @@ test('a package script or a CI step runs every check after an earlier check fail
 
   const violations: string[] = [];
   for (const file of tracked.filter(name => name.endsWith('package.json'))) {
-    for (const [script, command] of Object.entries((JSON.parse(read(file)) as { scripts?: Record<string, string> }).scripts ?? {})) {
+    for (const [script, command] of Object.entries(manifestOf(file).scripts ?? {})) {
       for (const violation of stoppingCommand(command, project, path.posix.dirname(file))) violations.push(`${file} ${script}: ${violation}`);
     }
   }
   for (const file of tracked.filter(name => name.startsWith('.github/workflows/'))) {
-    for (const [id, job] of Object.entries((parse(read(file)) as Workflow).jobs ?? {})) {
+    for (const [id, job] of Object.entries(checked(parse(read(file)), workflowSchema, file).jobs ?? {})) {
       for (const step of job.steps ?? []) {
         if (typeof step.run !== 'string') continue;
         for (const violation of stoppingCommand(step.run, project)) violations.push(`${file} ${id} ${step.name ?? step.run.split('\n')[0]}: ${violation}`);
@@ -284,8 +298,7 @@ test('a package script or a CI step runs every check after an earlier check fail
 // tests/build/public-packages.test.mts loads every published package through its exports, which name its `dist`, so
 // test:build builds the packages first and never reads the output of an earlier build.
 test('test:build builds the packages before the tests that load them', () => {
-  const script = JSON.parse(read('package.json')).scripts['test:build'];
-  assert.match(script, /^node scripts\/require-current-build\.mts && node node_modules\/@polyspec\/kit\/dist\/run-tests\.mjs node -- .*tests\/build\/public-packages\.test\.mts/);
+  assert.match(script(manifestOf('package.json'), 'test:build'), /^node scripts\/require-current-build\.mts && node node_modules\/@polyspec\/kit\/dist\/run-tests\.mjs node -- .*tests\/build\/public-packages\.test\.mts/);
   assert.match(read('tests/build/public-packages.test.mts'), /await import\(pkg\.manifest\.name\)/);
 });
 
@@ -312,7 +325,7 @@ test('CI has no time limit over a long operation, a test step or a job', () => {
 // The Go and Rust benchmark drivers compile for minutes on a cold cache. The build is its own step
 // with step logs and no time limit; the test runs the built drivers, each test within seconds.
 test('the benchmark driver test runs built drivers within the default test timeout', () => {
-  const command = JSON.parse(read('package.json')).scripts['test:bench'];
+  const command = script(manifestOf('package.json'), 'test:bench');
   const build = command.indexOf('node benchmarks/validators/build-drivers.mjs');
   const runner = command.indexOf('node node_modules/@polyspec/kit/dist/run-tests.mjs node');
   assert.ok(build !== -1 && runner > build, `test:bench builds the drivers before the test: ${command}`);
@@ -341,7 +354,7 @@ test('no test asserts a bound on an elapsed time', () => {
 // Building the packages is a long operation. The reproducible build check builds them twice in a logged step without a
 // time limit and compares its own two builds; its test reads no build record and runs within the default timeout.
 test('the reproducible build check compares its own builds and its test reads no record', () => {
-  const command = JSON.parse(read('package.json')).scripts['test:build:repeat'];
+  const command = script(manifestOf('package.json'), 'test:build:repeat');
   assert.equal(command, 'status=0; node scripts/repeat-build.mts || status=1; node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/reproducible-build.test.mts || status=1; exit $status');
   const test = read('tests/build/reproducible-build.test.mts');
   assert.doesNotMatch(test, /npm', \['run', 'build'\]|REPEAT_BUILD|readFileSync\(join\(/, 'the test runs no build and reads no build record');

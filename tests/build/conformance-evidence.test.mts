@@ -7,6 +7,16 @@ import test from 'node:test';
 
 import { checkConformance, evidenceSuites, readEvidence, readRuns, suiteStates, summarize } from '../../scripts/check-conformance.mts';
 import { recordConformance } from '../conformance/evidence.mts';
+import { parseJson, type JTDSchemaType } from '../json.mts';
+
+/** A suite run record as tests/conformance/runs.mts writes it. */
+interface RunRecord { program: string; tool: string | null; cwd: string; args: string[]; started: string; status: number | null }
+const runSchema: JTDSchemaType<RunRecord> = {
+  properties: {
+    program: { type: 'string' }, tool: { type: 'string', nullable: true }, cwd: { type: 'string' }, args: { elements: { type: 'string' } },
+    started: { type: 'string' }, status: { type: 'int32', nullable: true },
+  },
+};
 
 const ROOT = path.resolve(import.meta.dirname, '../..');
 
@@ -83,10 +93,11 @@ test('the JavaScript recorder appends one line per case only when an evidence di
     assert.equal(files.length, 1);
     const [file] = files;
     assert.ok(file !== undefined);
-    const lines = (await readFile(path.join(directory, file), 'utf8')).trim().split('\n').map(line => JSON.parse(line));
+    const lines = (await readFile(path.join(directory, file), 'utf8')).trim().split('\n').map((line): unknown => JSON.parse(line));
     assert.deepEqual(lines, [record('php', 'a'), record('php', 'b', false)]);
     // A record that arrives as JSON from a recorder of another language, whose passed is no boolean.
-    assert.throws(() => recordConformance(JSON.parse(JSON.stringify({ ...record('php', 'a'), passed: 'yes' }))), /passed must be a boolean/);
+    const parsed: unknown = JSON.parse(JSON.stringify({ ...record('php', 'a'), passed: 'yes' }));
+    assert.throws(() => Reflect.apply(recordConformance, undefined, [parsed]), /passed must be a boolean/);
   } finally {
     if (previous === undefined) delete process.env.CRUDUI_CONFORMANCE_EVIDENCE;
     else process.env.CRUDUI_CONFORMANCE_EVIDENCE = previous;
@@ -150,7 +161,10 @@ test('missing evidence names each suite of its runtime that did not run, did not
 });
 
 test('every runtime that a feature supports is proven by a declared suite', async () => {
-  const standard = JSON.parse(await readFile(path.join(ROOT, 'contracts/features.json'), 'utf8')) as { features: { support: Record<string, string> }[] };
+  const standard = parseJson<{ features: { support: Record<string, string> }[] }>(await readFile(path.join(ROOT, 'contracts/features.json'), 'utf8'), {
+    properties: { features: { elements: { properties: { support: { values: { type: 'string' } } }, additionalProperties: true } } },
+    additionalProperties: true,
+  }, 'contracts/features.json');
   const supported = new Set(standard.features.flatMap(item => Object.entries(item.support)
     .filter(([, support]) => support === 'pass').map(([runtime]) => runtime)));
   const proven = new Set(evidenceSuites.flatMap(suite => suite.runtimes));
@@ -173,7 +187,7 @@ test('the suite runner and the native suite leave a run record with their exit s
     // The native suite records its run before it reads its arguments, so a usage error ends the run.
     spawnSync(process.execPath, [path.join(ROOT, 'tests/native-generators/run.mts'), '--unknown'], { cwd: ROOT, env, encoding: 'utf8' });
     const runs = await Promise.all((await readdir(path.join(evidence, 'runs'))).map(async file => (
-      JSON.parse(await readFile(path.join(evidence, 'runs', file), 'utf8')))));
+      parseJson(await readFile(path.join(evidence, 'runs', file), 'utf8'), runSchema, file))));
     const summary = runs.map(({ program, tool, cwd, args, status }) => ({ program, tool, cwd, args, status }))
       .sort((left, right) => JSON.stringify(left).localeCompare(JSON.stringify(right)));
     assert.deepEqual(summary, [

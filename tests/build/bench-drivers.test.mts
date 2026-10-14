@@ -7,12 +7,13 @@
 // seconds and no case pays a compilation.
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 import { BENCH, compiledDrivers } from '../../benchmarks/validators/drivers.mjs';
+import { parseJson, readJson, type JTDSchemaType } from '../json.mts';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const FIXTURES = path.join(BENCH, 'fixtures');
@@ -23,10 +24,18 @@ interface IterationCases {
 }
 /** One result row a driver prints as JSON. */
 interface BenchRow { spec: string; iters: number }
+const casesSchema: JTDSchemaType<IterationCases> = {
+  properties: {
+    rejected: { elements: { properties: { args: { elements: { type: 'string' } }, message: { type: 'string' } }, additionalProperties: true } },
+    accepted: { properties: { args: { elements: { type: 'string' } }, iters: { type: 'float64' } }, additionalProperties: true },
+  },
+  additionalProperties: true,
+};
+const rowSchema: JTDSchemaType<BenchRow> = { properties: { spec: { type: 'string' }, iters: { type: 'float64' } }, additionalProperties: true };
 interface Program { command: string; args: string[]; cwd: string }
 interface RunResult { status: number | null; stdout: string; stderr: string; timedOut: boolean; elapsedMs: number }
 
-const cases = JSON.parse(readFileSync(path.join(ROOT, 'benchmarks/validators/iteration-arguments.json'), 'utf8')) as IterationCases;
+const cases = readJson(path.join(ROOT, 'benchmarks/validators/iteration-arguments.json'), casesSchema);
 
 const compiled = compiledDrivers();
 const programs: Record<string, Program> = {
@@ -64,7 +73,7 @@ function run({ command, args, cwd }: Program, extra: string[], deadlineMs: numbe
   });
 }
 
-const rows = (stdout: string): BenchRow[] => stdout.split('\n').filter(line => line.trim().startsWith('{')).map(line => JSON.parse(line) as BenchRow);
+const rows = (stdout: string): BenchRow[] => stdout.split('\n').filter(line => line.trim().startsWith('{')).map(line => parseJson(line, rowSchema, 'a result row of a driver'));
 
 for (const [name, program] of Object.entries(programs)) {
   test(`${name} accepts a count inside the range`, async () => {

@@ -7,6 +7,7 @@ import { parse } from 'yaml';
 
 // The browser matrix of examples/form-comparison/src/runtime-paths.mjs, whose formServers lists its servers.
 import matrix from '../../examples/form-comparison/src/runtime-paths.json' with { type: 'json' };
+import { checked, readManifest, script, type JTDSchemaType } from '../json.mts';
 import { makeDryRun } from './make-dry-run.mts';
 
 const repository = path.resolve(import.meta.dirname, '../..');
@@ -16,9 +17,30 @@ interface Step { run?: string; uses?: string; if?: string; with?: Record<string,
 interface Job {
   steps: Step[];
   env: Record<string, string>;
-  needs?: string | string[];
+  /** A job id or a list of them. */
+  needs?: unknown;
   strategy?: { matrix: { server: string[] }; 'fail-fast'?: boolean };
 }
+const jobSchema: JTDSchemaType<Job> = {
+  properties: {
+    steps: {
+      elements: {
+        optionalProperties: { run: { type: 'string' }, uses: { type: 'string' }, if: { type: 'string' }, with: { values: {} } },
+        additionalProperties: true,
+      },
+    },
+    env: { values: { type: 'string' } },
+  },
+  optionalProperties: {
+    needs: {},
+    strategy: {
+      properties: { matrix: { properties: { server: { elements: { type: 'string' } } }, additionalProperties: true } },
+      optionalProperties: { 'fail-fast': { type: 'boolean' } },
+      additionalProperties: true,
+    },
+  },
+  additionalProperties: true,
+};
 
 function workflowJob(source: string, name: string): string {
   const lines = source.split('\n');
@@ -63,21 +85,24 @@ test('CI builds and runs the five record stores and the canonical flow', async (
   assert.match(job, /run: make install-packages\n/);
   assert.match(job, /run: make install-composer\n/);
   assert.match(job, /run: make ci-targets TARGETS="test-form-comparison-pipeline"\n/);
-  const scripts = JSON.parse(await readFile(path.join(repository, 'package.json'), 'utf8')).scripts;
-  assert.match(scripts['test:form-comparison:pipeline'], /examples\/form-comparison\/record-stores\.test\.mjs/);
-  assert.match(scripts['test:form-comparison:pipeline'], /examples\/form-comparison\/pipeline\.browser\.mjs/);
+  const pipeline = script(readManifest(path.join(repository, 'package.json')), 'test:form-comparison:pipeline');
+  assert.match(pipeline, /examples\/form-comparison\/record-stores\.test\.mjs/);
+  assert.match(pipeline, /examples\/form-comparison\/pipeline\.browser\.mjs/);
   // The Go and Rust server tests need the OrderedJSON checkout the record-store test prepares.
   const order = ['record-stores.test.mjs', 'go --cwd examples/form-comparison/servers/go',
     'examples/form-comparison/servers/rust/Cargo.toml', 'pipeline.browser.mjs']
-    .map(part => scripts['test:form-comparison:pipeline'].indexOf(part));
-  assert.ok(order.every((index, position) => index >= 0 && (position === 0 || index > order[position - 1])), String(order));
+    .map(part => pipeline.indexOf(part));
+  assert.ok(order.every((index, position) => index >= 0 && order.slice(0, position).every(earlier => earlier < index)), String(order));
 });
 
 test('CI runs the browser checks of each form server in a job of its own and every other check once after them', async () => {
-  const workflow = parse(await readFile(path.join(repository, '.github/workflows/ci.yml'), 'utf8')) as { jobs: Record<string, Job> };
-  const browser = workflow.jobs['form-comparison-browser'];
-  const summary = workflow.jobs['form-comparison-checks'];
-  assert.ok(browser && summary, 'CI must define the form-comparison-browser and form-comparison-checks jobs');
+  const workflow = checked<{ jobs: Record<string, unknown> }>(parse(await readFile(path.join(repository, '.github/workflows/ci.yml'), 'utf8')),
+    { properties: { jobs: { values: {} } }, additionalProperties: true }, '.github/workflows/ci.yml');
+  const browserJob = workflow.jobs['form-comparison-browser'];
+  const summaryJob = workflow.jobs['form-comparison-checks'];
+  assert.ok(browserJob && summaryJob, 'CI must define the form-comparison-browser and form-comparison-checks jobs');
+  const browser = checked(browserJob, jobSchema, 'the job form-comparison-browser');
+  const summary = checked(summaryJob, jobSchema, 'the job form-comparison-checks');
   const run = (job: Job) => job.steps.map(step => step.run).filter(command => /^make ci-targets\b/.test(command ?? ''));
   // One job per server of the browser matrix, each with the runner to itself.
   assert.deepEqual(browser.strategy?.matrix.server, [...matrix.servers]);

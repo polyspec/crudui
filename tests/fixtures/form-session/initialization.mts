@@ -23,8 +23,10 @@ interface MountedForm {
  * which render nothing: comments and empty text. Attribute order is not part of the DOM.
  */
 function formDom(form: HTMLElement) {
-  // A deep clone of an element is an element of the same kind.
-  const copy = form.cloneNode(true) as HTMLElement;
+  // A deep clone of an element is an element of the same kind, of the window of the form.
+  const copy = form.cloneNode(true);
+  const view = form.ownerDocument.defaultView;
+  if (view === null || !(copy instanceof view.HTMLElement)) throw new Error('the clone of the form is no HTML element');
   // NodeFilter.SHOW_TEXT | NodeFilter.SHOW_COMMENT
   const walker = copy.ownerDocument.createTreeWalker(copy, 4 | 128);
   const anchors: Node[] = [];

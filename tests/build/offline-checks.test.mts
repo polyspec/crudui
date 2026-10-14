@@ -12,6 +12,7 @@ import path from 'node:path';
 import test from 'node:test';
 
 import { makeTargets } from '../../scripts/test-commands.mts';
+import { parseJson, manifestSchema } from '../json.mts';
 import { checkedFiles } from '@polyspec/kit/tracked-files';
 
 /** The prerequisites and recipe lines of a Makefile target. */
@@ -88,7 +89,7 @@ const CARGO_FILES = cargoFiles();
 /** Whether a shell command, run in `directory`, starts cargo. */
 function runsCargo(command: string, directory = '.', seen = new Set<string>()): boolean {
   if (/(?:run-tests\.mjs|run-suite\.mts) cargo\b/.test(command) || /run-rust-command\.mts (?!fmt\b)/.test(command)) return true;
-  const manifestOf = (dir: string): Manifest => JSON.parse(read(path.posix.join(dir, 'package.json'))) as Manifest;
+  const manifestOf = (dir: string): Manifest => parseJson(read(path.posix.join(dir, 'package.json')), manifestSchema, path.posix.join(dir, 'package.json'));
   const script = (dir: string, name: string): boolean => {
     const key = `${dir}:${name}`;
     if (seen.has(key)) return false;

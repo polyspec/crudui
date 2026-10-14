@@ -10,6 +10,7 @@ import test from 'node:test';
 
 import { missingSubdirectories } from '../../scripts/release-pins.mts';
 import { ownedFiles } from '../../scripts/repository-files.mts';
+import { readManifest } from '../json.mts';
 
 const ROOT = path.resolve(import.meta.dirname, '../..');
 
@@ -28,7 +29,8 @@ test('a git pin of another tag than the version is stale', () => {
 });
 
 test('every git pin of a pyproject.toml of the repository names the version of package.json', () => {
-  const version = (JSON.parse(readFileSync(path.join(ROOT, 'package.json'), 'utf8')) as { version: string }).version;
+  const version = readManifest(path.join(ROOT, 'package.json')).version;
+  assert.ok(version !== undefined, 'package.json declares its version');
   const violations = ownedFiles(ROOT).filter(file => path.posix.basename(file) === 'pyproject.toml')
     .flatMap(file => stalePins(readFileSync(path.join(ROOT, file), 'utf8'), version).map(problem => `${file}: ${problem}`));
   assert.deepEqual(violations, []);

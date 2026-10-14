@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 
 import { checkedFiles } from '@polyspec/kit/tracked-files';
 import { assertMachoArchitecture, machoArchitectures } from '../../scripts/php-extension-builder.mts';
+import { parseJson } from '../json.mts';
 
 const repository = fileURLToPath(new URL('../..', import.meta.url));
 
@@ -31,7 +32,10 @@ async function phpFiles(directory: string): Promise<string[]> {
 
 /** Extensions a package's shipped PHP uses without requiring them. */
 export async function undeclaredExtensions(packageDirectory: string): Promise<string[]> {
-  const manifest = JSON.parse(await readFile(path.join(packageDirectory, 'composer.json'), 'utf8')) as { require?: Record<string, string> };
+  const file = path.join(packageDirectory, 'composer.json');
+  const manifest = parseJson<{ require?: Record<string, string> }>(await readFile(file, 'utf8'), {
+    optionalProperties: { require: { values: { type: 'string' } } }, additionalProperties: true,
+  }, file);
   const required = new Set(Object.keys(manifest.require ?? {}));
   const missing: string[] = [];
   for (const file of await phpFiles(path.join(packageDirectory, 'src'))) {

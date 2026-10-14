@@ -14,6 +14,7 @@ import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { createServer, type ViteDevServer } from 'vite';
 import { engineDrivers, engines, type Engine, type EngineBrowser } from './browser-engines.mts';
 import { setup, teardown } from '@polyspec/kit/test-hooks';
+import { checked } from './json.mts';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const clientEntry = '/__crudui_script_runs__.mjs';
@@ -217,9 +218,12 @@ setup('server start and browser launch', async () => {
             const mode = address.searchParams.get('mode');
             let form = '', list = '';
             if (mode === 'server') {
-              // The server module is serverSource.
-              const rendering = await vite.ssrLoadModule(serverEntry) as { render(adapter: string | null): Promise<{ form: string; list: string }> };
-              ({ form, list } = await rendering.render(adapter));
+              // The server module is serverSource: render(adapter) resolves to the form and list markup.
+              const rendering = await vite.ssrLoadModule(serverEntry);
+              const render: unknown = rendering['render'];
+              if (typeof render !== 'function') throw new Error('the server module exports no render function');
+              const rendered: unknown = await Reflect.apply(render, rendering, [adapter]);
+              ({ form, list } = checked<{ form: string; list: string }>(rendered, { properties: { form: { type: 'string' }, list: { type: 'string' } } }, 'render of the server module'));
             }
             const body = `<form id="form">${form}</form><div id="list">${list}</div>`;
             response.setHeader('Content-Type', 'text/html');

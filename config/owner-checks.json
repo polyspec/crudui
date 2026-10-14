@@ -30,6 +30,7 @@
         "contracts/features.json",
         "contracts/features.schema.json",
         "scripts/check-contract-manifest.mts",
+        "scripts/features-manifest.mts",
         "scripts/generate-feature-contract-docs.mts",
         "scripts/run-contract-tests.mts"
       ],
@@ -701,6 +702,19 @@
       ],
       "tests": [
         "tests/build/ci-local.test.mts"
+      ]
+    },
+    {
+      "paths": [
+        "scripts/values.mts",
+        "tests/json.mts"
+      ],
+      "tests": [
+        "tests/build/ci-local.test.mts",
+        "tests/build/public-packages.test.mts",
+        "tests/build/dependency-health.test.mts",
+        "tests/build/package-install-pack.test.mts",
+        "tests/build/contract-manifest.test.mts"
       ]
     },
     {

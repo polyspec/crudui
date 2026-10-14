@@ -37,6 +37,7 @@ import {
 import { AUTHORED_CASES, type AuthoredCase } from './value-rules.mts';
 import { DEFAULT_MESSAGES, VISIBILITY_CASES, type FailingCase, type WrittenCase } from './visibility.mts';
 import { NUMERIC_CASES } from './numeric-rules.mts';
+import { parseJson } from '../../json.mts';
 
 interface CaseSpec {
   /** Specification written as JSON text, so array-index member names keep the order they were written in the fixture file. */
@@ -70,7 +71,7 @@ const SPECS: CaseSpec[] = [
   {
     name: 'property-member-order',
     note: 'Errors follow specification member order: properties written as b, 10, a report 10, b, a. The fixture keeps the written order.',
-    spec: JSON.parse(PROPERTY_ORDER_SPEC),
+    spec: parseJson<Record<string, unknown>>(PROPERTY_ORDER_SPEC, { values: {} }, 'PROPERTY_ORDER_SPEC'),
     specText: PROPERTY_ORDER_SPEC,
     data: {},
   },

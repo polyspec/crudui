@@ -7,6 +7,8 @@ import os from 'node:os';
 import path from 'node:path';
 import test, { type TestContext } from 'node:test';
 
+import { readManifest, script } from '../json.mts';
+
 const repository = path.resolve(import.meta.dirname, '../..');
 
 function copy(root: string, relative: string): void {
@@ -230,10 +232,8 @@ test('native generator integration uses the shared Rust command entry point', ()
 });
 
 test('cross-check server builds Rust through its module-located entry point', t => {
-  const manifest = JSON.parse(readFileSync(
-    path.join(repository, 'examples/cross-check-console/server/package.json'), 'utf8',
-  ));
-  assert.equal(manifest.scripts['build:rust'], 'node build-rust.mjs');
+  const manifest = readManifest(path.join(repository, 'examples/cross-check-console/server/package.json'));
+  assert.equal(script(manifest, 'build:rust'), 'node build-rust.mjs');
 
   const root = fixture(t, 'crudui-rust-cross-check-', []);
   const tools = rustEnvironment(root);

@@ -60,7 +60,7 @@ function error(path: string, rule: string, value: unknown, ...params: unknown[])
   const template = DEFAULT_MESSAGES[rule];
   if (template === undefined) throw new Error(`No default message for ${rule}`);
   const message = params.reduce<string>((text, param, index) => text.replace(`{${index}}`, String(param)), template);
-  return { path, field: path.split('.').at(-1)!, rule, message, value };
+  return { path, field: path.slice(path.lastIndexOf('.') + 1), rule, message, value };
 }
 
 const result = (...errors: ErrorRecord[]) => ({ valid: errors.length === 0, errors });

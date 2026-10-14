@@ -8,29 +8,91 @@ import test from 'node:test';
 import { tmpdir } from 'node:os';
 
 import { checkedFiles } from '@polyspec/kit/tracked-files';
+import { createElement, type FunctionComponent } from 'react';
+import { renderToString } from 'react-dom/server';
+import { isRecord } from '../../scripts/values.mts';
+import { parseJson, readJson, type JTDSchemaType } from '../json.mts';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const require = createRequire(import.meta.url);
 
-/** The conditions of a package.json export, nested as Node.js resolves them. */
-interface ExportConditions { [condition: string]: string | ExportConditions | undefined }
-/** The fields of a package.json that the checks read. */
+/** The fields of a package.json that the checks read; an export is a path or an object of conditions. */
 interface PackageManifest {
   name: string;
   type?: string;
   types?: string;
-  exports: { '.': ExportConditions; [subpath: string]: string | ExportConditions | undefined };
+  exports: Record<string, unknown>;
 }
+const packageSchema: JTDSchemaType<PackageManifest> = {
+  properties: { name: { type: 'string' }, exports: { values: {} } },
+  optionalProperties: { type: { type: 'string' }, types: { type: 'string' } },
+  additionalProperties: true,
+};
 /** A package directory with its package.json. */
 interface LoadedPackage { directory: string; manifest: PackageManifest }
 /** The fields of contracts/features.json that the checks read. */
 interface ContractManifest {
   packages: { name: string; path: string; entries: Record<string, { visibility: string; exports: string[] }> }[];
 }
+const contractSchema: JTDSchemaType<ContractManifest> = {
+  properties: {
+    packages: {
+      elements: {
+        properties: {
+          name: { type: 'string' },
+          path: { type: 'string' },
+          entries: { values: { properties: { visibility: { type: 'string' }, exports: { elements: { type: 'string' } } }, additionalProperties: true } },
+        },
+        additionalProperties: true,
+      },
+    },
+  },
+  additionalProperties: true,
+};
+
+/** The condition or subpath `key` of the export `exports`, an object of conditions; undefined for a path or a missing key. */
+function condition(exports: unknown, key: string): unknown {
+  return isRecord(exports) ? exports[key] : undefined;
+}
+
+/** The member `name` of the loaded module or object `loaded`. */
+function member(loaded: unknown, name: string): unknown {
+  assert.ok(typeof loaded === 'object' && loaded !== null, `${name} is read from an object`);
+  return Reflect.get(loaded, name);
+}
+
+/** Whether `value` is a function; a test calls it with the arguments that its contract names. */
+function isCallable(value: unknown): value is (...args: unknown[]) => unknown {
+  return typeof value === 'function';
+}
+
+/** Whether `value` is a class; a test constructs it with the arguments that its contract names. */
+function isConstructor(value: unknown): value is new (...args: unknown[]) => object {
+  return typeof value === 'function';
+}
+
+/** The function `name` of the loaded module or object `loaded`, bound to it. */
+function callable(loaded: unknown, name: string): (...args: unknown[]) => unknown {
+  const value = member(loaded, name);
+  assert.ok(isCallable(value), `${name} must be a function`);
+  return (...args: unknown[]) => Reflect.apply(value, loaded, args);
+}
+
+/** The class `name` of the loaded module `loaded`. */
+function constructor(loaded: unknown, name: string): new (...args: unknown[]) => object {
+  const value = member(loaded, name);
+  assert.ok(isConstructor(value), `${name} must be a class`);
+  return value;
+}
+
+/** Whether `value` is a React function component that takes the form props. */
+function isFormComponent(value: unknown): value is FunctionComponent<{ form: unknown }> {
+  return typeof value === 'function';
+}
 
 const load = (folder: string): LoadedPackage => {
   const directory = resolve(root, 'packages', folder);
-  const manifest: PackageManifest = JSON.parse(readFileSync(resolve(directory, 'package.json'), 'utf8'));
+  const manifest = readJson(resolve(directory, 'package.json'), packageSchema);
   return { directory, manifest };
 };
 const packages = ['validator/ts', 'generator/ts', 'html', 'react'].map(load);
@@ -41,7 +103,7 @@ const moduleOnlyPackages = ['form-binding'].map(load);
 // generator-vue loads through its import and require exports, and generator-svelte through the
 // svelte export of the Svelte toolchain.
 const moduleDeclarationPackages = ['vue', 'svelte'].map(load);
-const contract: ContractManifest = JSON.parse(readFileSync(resolve(root, 'contracts/features.json'), 'utf8'));
+const contract = readJson(resolve(root, 'contracts/features.json'), contractSchema);
 
 test('ES module Vitest configurations declare their module format', () => {
   const failures = [];
@@ -51,7 +113,7 @@ test('ES module Vitest configurations declare their module format', () => {
     const directory = resolve(packagesDirectory, entry.name);
     const manifestPath = resolve(directory, 'package.json');
     if (!existsSync(manifestPath)) continue;
-    const manifest: { type?: string } = JSON.parse(readFileSync(manifestPath, 'utf8'));
+    const manifest = readJson<{ type?: string }>(manifestPath, { optionalProperties: { type: { type: 'string' } }, additionalProperties: true });
     for (const filename of readdirSync(directory)) {
       if (!/^vitest(?:\.[^.]+)?\.config\.[cm]?[jt]s$/.test(filename)) continue;
       const source = readFileSync(resolve(directory, filename), 'utf8');
@@ -82,23 +144,25 @@ function output(pkg: LoadedPackage, entry: unknown): string {
 
 for (const mode of ['import', 'require']) {
   test(`public ${mode} exports execute the form instance API`, async () => {
-    const modules = [];
+    const modules: unknown[] = [];
     for (const pkg of packages) {
-      const path = output(pkg, pkg.manifest.exports['.'][mode]);
+      const path = output(pkg, condition(pkg.manifest.exports['.'], mode));
       const resolved = mode === 'import'
         ? fileURLToPath(import.meta.resolve(pkg.manifest.name))
         : require.resolve(pkg.manifest.name);
       assert.equal(realpathSync(resolved), path);
-      modules.push(mode === 'import' ? await import(pkg.manifest.name) : require(pkg.manifest.name));
+      const loaded: unknown = mode === 'import' ? await import(pkg.manifest.name) : require(pkg.manifest.name);
+      modules.push(loaded);
     }
     const [validator, core, htmlGenerator, generator] = modules;
     // Each internal entry is built beside its main entry and shares its chunks.
-    const entryNames = async (name: string) => {
-      const entry = mode === 'import' ? await import(name) : require(name);
+    const entryNames = async (name: string): Promise<[Record<string, unknown>, string[]]> => {
+      const entry: unknown = mode === 'import' ? await import(name) : require(name);
+      assert.ok(isRecord(entry), `${name} must load as an object`);
       return [entry, Object.keys(entry).filter(key => key !== 'default' && key !== '__esModule').sort()];
     };
     // The built internal entries export exactly what the contract manifest declares for them.
-    const declared: ContractManifest = JSON.parse(readFileSync(new URL('../../contracts/features.json', import.meta.url), 'utf8'));
+    const declared = parseJson(readFileSync(new URL('../../contracts/features.json', import.meta.url), 'utf8'), contractSchema, 'contracts/features.json');
     const internals = Object.fromEntries(declared.packages
       .filter(({ entries }) => entries['./internal'])
       .map(({ name, entries }): [string, string[]] => {
@@ -107,13 +171,13 @@ for (const mode of ['import', 'require']) {
         return [name, [...internal.exports].sort()];
       }));
     assert.deepEqual(Object.keys(internals).sort(), ['@polyspec/crudui-generator-core', '@polyspec/crudui-validator']);
-    const loaded: Record<string, { MemoryLoader?: new (files: object) => { load(file: string): unknown } }> = {};
+    const loaded: Record<string, Record<string, unknown>> = {};
     for (const [name, expected] of Object.entries(internals)) {
       const pkg = packages.find(({ manifest }) => manifest.name === name);
       assert.ok(pkg, `${name} must be a public package`);
       const internalName = `${name}/internal`;
       const internalExport = pkg.manifest.exports['./internal'];
-      assert.ok(typeof internalExport === 'object', `${name} must export ./internal with conditions`);
+      assert.ok(isRecord(internalExport), `${name} must export ./internal with conditions`);
       const internalPath = output(pkg, internalExport[mode]);
       assert.equal(realpathSync(mode === 'import' ? fileURLToPath(import.meta.resolve(internalName)) : require.resolve(internalName)), internalPath);
       const [entry, names] = await entryNames(internalName);
@@ -122,36 +186,37 @@ for (const mode of ['import', 'require']) {
     }
     assert.deepEqual((await entryNames('@polyspec/crudui-validator'))[1], ['ComposeLoadError', 'FormInputError', 'hiddenPaths', 'validate', 'validateDetail', 'validateList']);
     // An error raised inside the internal entry is the class the public entry exports.
-    const MemoryLoader = loaded['@polyspec/crudui-validator']?.MemoryLoader;
-    assert.ok(MemoryLoader, '@polyspec/crudui-validator/internal must export MemoryLoader');
-    assert.throws(() => new MemoryLoader({}).load('missing.yml'), validator.ComposeLoadError);
-    assert.equal(core.ComposeLoadError, validator.ComposeLoadError);
-    assert.equal(core.FormInputError, validator.FormInputError);
+    const MemoryLoader = constructor(loaded['@polyspec/crudui-validator'], 'MemoryLoader');
+    const ComposeLoadError = constructor(validator, 'ComposeLoadError');
+    assert.throws(() => callable(new MemoryLoader({}), 'load')('missing.yml'), ComposeLoadError);
+    assert.equal(member(core, 'ComposeLoadError'), ComposeLoadError);
+    assert.equal(member(core, 'FormInputError'), member(validator, 'FormInputError'));
     for (const name of ['compileForm', 'createForm', 'createRowKey', 'sequenceRowKey']) {
-      assert.equal(typeof core[name], 'function', `core.${name}`);
-      assert.equal(generator[name], undefined, `react.${name} belongs to generator-core`);
+      assert.equal(typeof member(core, name), 'function', `core.${name}`);
+      assert.equal(member(generator, name), undefined, `react.${name} belongs to generator-core`);
     }
-    assert.equal(typeof validator.validate, 'function');
-    assert.equal(typeof generator.Form, 'function');
-    assert.equal(typeof htmlGenerator.renderForm, 'function');
-    assert.equal(typeof htmlGenerator.renderList, 'function');
+    const Form = member(generator, 'Form');
+    assert.ok(isFormComponent(Form), 'react.Form must be a function');
+    assert.equal(typeof member(htmlGenerator, 'renderList'), 'function');
     const spec = { type: 'group', properties: { name: { type: 'text' } } };
-    const template = core.compileForm(spec);
-    const session = core.createForm(template, { name: 'Build check' });
-    assert.ok(session instanceof core.FormInstance);
-    assert.equal(session.template, template);
-    assert.deepEqual(session.getData(), { name: 'Build check' });
-    const result = validator.validate(spec, session.getData());
-    assert.equal(typeof result.valid, 'boolean');
-    assert.ok(Array.isArray(result.errors));
+    const template = callable(core, 'compileForm')(spec);
+    const session = callable(core, 'createForm')(template, { name: 'Build check' });
+    assert.ok(session instanceof constructor(core, 'FormInstance'));
+    assert.equal(member(session, 'template'), template);
+    const data = callable(session, 'getData')();
+    assert.deepEqual(data, { name: 'Build check' });
+    const result = callable(validator, 'validate')(spec, data);
+    assert.equal(typeof member(result, 'valid'), 'boolean');
+    assert.ok(Array.isArray(member(result, 'errors')));
     const switched = { type: 'group', properties: { on: { type: 'text' }, name: { type: 'text', design: { show: '.on == "1"' } } } };
-    assert.deepEqual(validator.hiddenPaths(switched, { on: '0', name: '' }), ['name']);
-    assert.deepEqual(validator.hiddenPaths(switched, { on: '1', name: '' }), []);
-    const React = require('react');
-    const { renderToString } = require('react-dom/server');
-    const reactHtml = renderToString(React.createElement(generator.Form, { form: session }));
+    const hiddenPaths = callable(validator, 'hiddenPaths');
+    assert.deepEqual(hiddenPaths(switched, { on: '0', name: '' }), ['name']);
+    assert.deepEqual(hiddenPaths(switched, { on: '1', name: '' }), []);
+    const reactHtml = renderToString(createElement(Form, { form: session }));
     assert.match(reactHtml, /<input\b/);
-    assert.match(htmlGenerator.renderForm(session), /<input\b/);
+    const html = callable(htmlGenerator, 'renderForm')(session);
+    assert.ok(typeof html === 'string', 'renderForm must return the HTML text');
+    assert.match(html, /<input\b/);
   });
 }
 
@@ -162,7 +227,9 @@ test('ES module packages load through their import export only', async () => {
     assert.ok(within(resolve(pkg.directory, 'dist'), path) && statSync(path).isFile(), `${name} must load from a file in dist`);
     const declared = contract.packages.find((entry) => entry.name === name)?.entries['.']?.exports;
     assert.ok(declared, `contracts/features.json must declare the "." entry of ${name}`);
-    assert.deepEqual(Object.keys(await import(name)).sort(), [...declared].sort(), name);
+    const loaded: unknown = await import(name);
+    assert.ok(isRecord(loaded), `${name} must load as an object`);
+    assert.deepEqual(Object.keys(loaded).sort(), [...declared].sort(), name);
     assert.throws(() => require.resolve(name), { code: 'ERR_PACKAGE_PATH_NOT_EXPORTED' }, `${name} must not declare a CommonJS entry`);
   }
 });
@@ -196,7 +263,7 @@ test('public type entries and their declaration graph compile in ESM and CommonJ
   assert.equal(status, 0, log);
   for (const pkg of packages) {
     const declared = output(pkg, pkg.manifest.types);
-    assert.equal(output(pkg, pkg.manifest.exports['.'].types), declared);
+    assert.equal(output(pkg, condition(pkg.manifest.exports['.'], 'types')), declared);
     assert.ok(program.has(declared), `${pkg.manifest.name} must compile from ${relative(root, declared)}`);
   }
   // An ES module package, and one with a top-level types condition that loads through its import and require
@@ -205,13 +272,13 @@ test('public type entries and their declaration graph compile in ESM and CommonJ
     assert.equal(pkg.manifest.type, 'module', `${pkg.manifest.name} declarations must be in ES module format`);
   }
   for (const pkg of moduleOnlyPackages) {
-    const conditions = pkg.manifest.exports['.'].import;
-    assert.ok(typeof conditions === 'object', `${pkg.manifest.name} must declare import conditions`);
-    assert.ok(program.has(output(pkg, conditions.types)), `${pkg.manifest.name} must compile from its import types`);
+    const conditions = condition(pkg.manifest.exports['.'], 'import');
+    assert.ok(isRecord(conditions), `${pkg.manifest.name} must declare import conditions`);
+    assert.ok(program.has(output(pkg, conditions['types'])), `${pkg.manifest.name} must compile from its import types`);
   }
   const vue = moduleDeclarationPackages.find(({ manifest }) => manifest.name === '@polyspec/crudui-generator-vue');
   assert.ok(vue);
-  assert.equal(output(vue, vue.manifest.exports['.'].types), output(vue, vue.manifest.types));
+  assert.equal(output(vue, condition(vue.manifest.exports['.'], 'types')), output(vue, vue.manifest.types));
   assert.ok(program.has(output(vue, vue.manifest.types)), `${vue.manifest.name} must compile from its types`);
   assertDeclarationsOnly(program);
 });
@@ -221,7 +288,7 @@ test('an ES module only package resolves no types for a CommonJS project', () =>
   const { status, log } = compile({ ...declarationOptions, module: 'nodenext', moduleResolution: 'nodenext' }, [fixture]);
   assert.notEqual(status, 0);
   for (const pkg of moduleOnlyPackages) {
-    assert.equal(pkg.manifest.exports['.'].require, undefined, `${pkg.manifest.name} must not declare a CommonJS entry`);
+    assert.equal(condition(pkg.manifest.exports['.'], 'require'), undefined, `${pkg.manifest.name} must not declare a CommonJS entry`);
     assert.ok(log.includes(`error TS2307: Cannot find module '${pkg.manifest.name}'`), log);
   }
 });
@@ -233,7 +300,7 @@ test('the generator-svelte types compile as a Svelte project resolves them', () 
   const { status, log, program } = compile({ ...declarationOptions, module: 'esnext', moduleResolution: 'bundler' }, [fixture]);
   assert.equal(status, 0, log);
   const declared = output(pkg, pkg.manifest.types);
-  assert.equal(output(pkg, pkg.manifest.exports['.'].types), declared);
+  assert.equal(output(pkg, condition(pkg.manifest.exports['.'], 'types')), declared);
   assert.ok(program.has(declared), `${pkg.manifest.name} must compile from ${relative(root, declared)}`);
   assertDeclarationsOnly(program);
 });
@@ -260,7 +327,7 @@ test('generator-core exposes the only form stylesheet through the public crudui.
   assert.equal(realpathSync(fileURLToPath(import.meta.resolve(`${pkg.manifest.name}/crudui.css`))), path);
   assert.ok(readFileSync(path).length > 0, 'public stylesheet must not be empty');
   for (const other of packages.filter(({ manifest }) => manifest.name !== '@polyspec/crudui-generator-core')) {
-    assert.ok(!Object.keys(other.manifest.exports ?? {}).some(key => key.endsWith('.css')), `${other.manifest.name} must not export a stylesheet`);
+    assert.ok(!Object.keys(other.manifest.exports).some(key => key.endsWith('.css')), `${other.manifest.name} must not export a stylesheet`);
   }
 });
 
@@ -285,7 +352,10 @@ test('declaration builds emit no files when a public type is invalid', () => {
       const filename = resolve(directory, 'tsconfig.build.json');
       const shown = spawnSync(tsc, ['--project', filename, '--showConfig'], { cwd: directory, encoding: 'utf8' });
       assert.equal(shown.status, 0, shown.stdout + shown.stderr);
-      const { compilerOptions }: { compilerOptions: { noEmitOnError?: boolean; emitDeclarationOnly?: boolean } } = JSON.parse(shown.stdout);
+      const { compilerOptions } = parseJson<{ compilerOptions: { noEmitOnError?: boolean; emitDeclarationOnly?: boolean } }>(shown.stdout, {
+        properties: { compilerOptions: { optionalProperties: { noEmitOnError: { type: 'boolean' }, emitDeclarationOnly: { type: 'boolean' } }, additionalProperties: true } },
+        additionalProperties: true,
+      }, `tsc --showConfig of ${filename}`);
       assert.equal(compilerOptions.noEmitOnError, true);
       assert.equal(compilerOptions.emitDeclarationOnly, true);
       const name = folder.replaceAll('/', '-');
@@ -311,11 +381,11 @@ function* files(directory: string): Generator<string> {
  */
 function publishedCommands(directory: string): string[] {
   const found: string[] = [];
-  const json = (name: string): { private?: boolean; type?: string } | undefined => existsSync(resolve(directory, name)) ? JSON.parse(readFileSync(resolve(directory, name), 'utf8')) : undefined;
+  const json = (name: string): Record<string, unknown> | undefined => existsSync(resolve(directory, name)) ? readJson<Record<string, unknown>>(resolve(directory, name), { values: {} }) : undefined;
   const npm = json('package.json');
-  if (npm && npm.private !== true && Object.hasOwn(npm, 'bin')) found.push('package.json bin');
+  if (npm && npm['private'] !== true && Object.hasOwn(npm, 'bin')) found.push('package.json bin');
   const composer = json('composer.json');
-  if (composer && composer.type !== 'project') {
+  if (composer && composer['type'] !== 'project') {
     if (Object.hasOwn(composer, 'bin')) found.push('composer.json bin');
     for (const file of files(directory)) {
       if (file.endsWith('.php') && readFileSync(file, 'utf8').startsWith('#!')) found.push(`PHP command ${relative(directory, file)}`);
