@@ -152,7 +152,7 @@ func buildDisplay(spec *Object, rows []*Object, options ListOptions, paths displ
 	if e != nil {
 		return nil, e
 	}
-	var search any = absent
+	search := absent
 	if s := object(read(spec, "search")); paths.own == "list" && s != nil && (s.Has("$ref") || s.Has("$patch")) {
 		if search, e = compose.ComposeProperties(s, loader, composeOptions); e != nil {
 			return nil, e

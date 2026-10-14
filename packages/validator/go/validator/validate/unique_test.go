@@ -79,29 +79,6 @@ func TestUniqueManyValues(t *testing.T) {
 	}
 }
 
-// buildUniqueTestValues creates values for uniqueness testing.
-// Each value has a unique object with differing key orders to test canonical JSON.
-func buildUniqueTestValues(count int) []any {
-	values := make([]any, count)
-	for i := 0; i < count; i++ {
-		// Create objects with different key orders to test canonical JSON
-		if i%2 == 0 {
-			values[i] = map[string]any{
-				"a": float64(i),
-				"b": "test",
-				"c": true,
-			}
-		} else {
-			values[i] = map[string]any{
-				"c": true,
-				"b": "test",
-				"a": float64(i),
-			}
-		}
-	}
-	return values
-}
-
 // TestUniqueManyRows validates a repeated group of 200,000 rows whose field declares unique. The
 // rows are walked once per validation, which ends within seconds; a walk of every earlier row for
 // each row makes 2 * 10^10 row visits and does not end before the per-test timeout of

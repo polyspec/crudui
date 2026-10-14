@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -45,16 +46,17 @@ func (r repository) fixture(name string) (*object, error) {
 }
 
 // withLock runs operation under an exclusive lock on file.
-func withLock(file string, operation func() (any, error)) (any, error) {
+func withLock(file string, operation func() (any, error)) (result any, err error) {
 	lock, err := os.OpenFile(file+".lock", os.O_CREATE|os.O_RDWR, 0600)
 	if err != nil {
 		return nil, err
 	}
-	defer lock.Close()
+	// Closing the file releases its lock too; an error of either joins the error of the operation.
+	defer func() { err = errors.Join(err, lock.Close()) }()
 	if err = syscall.Flock(int(lock.Fd()), syscall.LOCK_EX); err != nil {
 		return nil, err
 	}
-	defer syscall.Flock(int(lock.Fd()), syscall.LOCK_UN)
+	defer func() { err = errors.Join(err, syscall.Flock(int(lock.Fd()), syscall.LOCK_UN)) }()
 	return operation()
 }
 
@@ -108,19 +110,17 @@ func replaceFile(file string, encoded []byte) error {
 		return err
 	}
 	name := temp.Name()
-	defer os.Remove(name)
-	if _, err = temp.Write(encoded); err != nil {
-		temp.Close()
-		return err
+	if _, err = temp.Write(encoded); err == nil {
+		err = temp.Sync()
 	}
-	if err = temp.Sync(); err != nil {
-		temp.Close()
-		return err
+	if err = errors.Join(err, temp.Close()); err == nil {
+		err = os.Rename(name, file)
 	}
-	if err = temp.Close(); err != nil {
-		return err
+	if err != nil {
+		// The temporary file stays only when the replacement failed.
+		return errors.Join(err, os.Remove(name))
 	}
-	return os.Rename(name, file)
+	return nil
 }
 
 // transaction locks the form file and atomically replaces changed records.

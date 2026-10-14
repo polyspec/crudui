@@ -86,12 +86,16 @@ func benchSpec(dir, name string, iters, warmup int) report {
 
 	// Warmup.
 	for i := 0; i < warmup; i++ {
-		v.Validate(input)
+		if _, err := v.Validate(input); err != nil {
+			panic(err)
+		}
 	}
 
 	start := time.Now()
 	for i := 0; i < iters; i++ {
-		v.Validate(input)
+		if _, err := v.Validate(input); err != nil {
+			panic(err)
+		}
 	}
 	elapsed := time.Since(start)
 
