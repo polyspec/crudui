@@ -140,10 +140,13 @@ function stop(reason) {
   const deadline = setTimeout(() => {
     for (const child of children) if (child.exitCode === null && child.signalCode === null) child.kill('SIGKILL');
   }, 2_000);
-  Promise.all(children.map(child => child.exitCode !== null || child.signalCode !== null
-    ? null : new Promise(resolve => child.once('exit', resolve))))
+  const running = children.filter(child => child.exitCode === null && child.signalCode === null);
+  Promise.all(running.map(child => new Promise(resolve => child.once('exit', resolve))))
     .then(() => rm(socketDirectory, { recursive: true, force: true }))
-    .then(() => { clearTimeout(deadline); process.exit(reason ? 1 : 0); });
+    .then(() => { clearTimeout(deadline); process.exit(reason ? 1 : 0); }, error => {
+      console.error(`[${server}] stopping failed:`, error);
+      process.exit(1);
+    });
 }
 
 process.on('SIGTERM', () => stop());

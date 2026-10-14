@@ -4,7 +4,9 @@
 // after the launcher has written the configuration files, and accept no connection at all.
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
-import { chmodSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  chmodSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, rmSync, writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -23,9 +25,9 @@ function sandbox(t, programs) {
 }
 
 /** Start the launcher; resolve with its first stdout line or its exit with its output. */
-function launch(root) {
+function launch(root, env = {}) {
   const child = spawn(process.execPath, [launcher, '127.0.0.1:0', path.join(root, 'run')], {
-    env: { ...process.env, PATH: `${root}:${process.env.PATH}`, FORM_PHP_SERVER: 'php' },
+    env: { ...process.env, PATH: `${root}:${process.env.PATH}`, FORM_PHP_SERVER: 'php', ...env },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
   let output = '';
@@ -71,4 +73,39 @@ test('the PHP server fails when a process exits before its readiness line', asyn
   assert.equal(result.ready, false, result.output);
   assert.equal(result.code, 1);
   assert.match(result.output, /\[php\] php-fpm exited: 78/);
+});
+
+test('the PHP server reports a failed cleanup when it stops and exits with status 1', async t => {
+  // The stand-in PHP-FPM leaves a directory that cannot be emptied beside its socket, so removing the
+  // socket directory fails when the launcher stops.
+  const root = sandbox(t, {
+    'php-fpm': "const fs = require('node:fs'); const path = require('node:path');\n"
+      + "const config = fs.readFileSync(process.argv[process.argv.indexOf('-y') + 1], 'utf8');\n"
+      + "const locked = path.join(path.dirname(/^listen = (.*)$/m.exec(config)[1]), 'locked');\n"
+      + "fs.mkdirSync(locked); fs.writeFileSync(path.join(locked, 'file'), ''); fs.chmodSync(locked, 0o500);\n"
+      + ready('[05-Oct-2026 11:27:58] NOTICE: ready to handle connections'),
+    nginx: ready('2026/10/05 11:28:06 [notice] 24002#0: start worker processes'),
+  });
+  const temporary = path.join(root, 'tmp');
+  mkdirSync(temporary);
+  let output;
+  let code;
+  try {
+    const result = await launch(root, { TMPDIR: temporary });
+    assert.equal(result.ready, true, result.output);
+    output = result.output;
+    result.child.stderr.on('data', chunk => { output += chunk; });
+    const exited = new Promise(resolve => result.child.once('exit', resolve));
+    result.child.kill('SIGTERM');
+    code = await exited;
+  } finally {
+    // The sandbox removal (an earlier after hook) needs the locked directory writable again.
+    for (const directory of readdirSync(temporary)) {
+      const locked = path.join(temporary, directory, 'locked');
+      if (existsSync(locked)) chmodSync(locked, 0o700);
+    }
+  }
+  assert.equal(code, 1, output);
+  assert.match(output, /\[php\] stopping failed: .*EACCES/, output);
+  assert.doesNotMatch(output, /triggerUncaughtException|UnhandledPromiseRejection/, output);
 });

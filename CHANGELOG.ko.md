@@ -1,11 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 8c66e2127859d1a414d8634f2dc317c409b134b775b3e4c3b6436dc3ad75de6f -->
+<!-- source-sha256: 5482532afd23b19e8ef95ac427ae0655d92f337ceaf09abdfe828b2102bdcdb4 -->
 
 ## Unreleased
 
 ### 2026-10-15 — lint가 찾은 결함 (C14.16)
 
+- form comparison의 PHP 서버는 지울 수 없는 socket 디렉터리 같은 중지 실패를 보고하고 상태 1로 끝난다. 그 rejection은 처리되지 않아 process를 중단시켰다.
 - form comparison의 Svelte adapter는 dispose될 때 각 컴포넌트의 `unmount`를 기다린다. dispose가 unmount가 끝나기 전에 반환했다.
 - generator-core의 브라우저 binding은 text, date, checkbox, radio control의 값을 서버 render처럼 값의 PHP 문자열로 쓴다. `true`는 `1`이고 `false`, 배열, 객체는 빈 값이며, 이전에는 `true`, `false`, `[object Object]`를 썼다.
 ### 2026-10-15 — Svelte component exports (C14.12)
