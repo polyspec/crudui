@@ -85,7 +85,8 @@
     "examples/cross-check-console/validators/go/go.mod": "an example module of this repository, resolved through replace and never tagged",
     "examples/form-comparison/servers/go/go.mod": "an example module of this repository, resolved through replace and never tagged",
     "tests/native-generators/programs/go/go.mod": "a test program module of this repository, resolved through replace and never tagged",
-    "tools/bench/go/go.mod": "a benchmark module of this repository, resolved through replace and never tagged"
+    "tools/bench/go/go.mod": "a benchmark module of this repository, resolved through replace and never tagged",
+    "packages/generator-svelte/tools/package.json": "the tools of packages/generator-svelte that need the TypeScript 6 API, a project of its own outside the npm workspaces"
   },
   "goModules": {
     "packages/generator-go": "github.com/polyspec/crudui/packages/generator-go",

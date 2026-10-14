@@ -1,11 +1,11 @@
 {
   "schema": 1,
   "comment": "Written by make dependency-review RECORD=1 (scripts/kit/dependency-review.mts) from the registries; make dependency-policy-check compares the checkout with it without a network.",
-  "reviewed": "2026-10-14T06:26:02.973Z",
+  "reviewed": "2026-10-14T07:34:04.093Z",
   "locks": [
     {
       "lock": "package-lock.json",
-      "sha256": "a69c63df794e6be712391f09c0682e27bb5805f8f36a0eb27189a8caf239e2c3",
+      "sha256": "f46f732d9a00d7c0699544152bdefabdaee1afaf25f5f2bd778f10212acae986",
       "advisories": [
         {
           "package": "sprintf-js",
@@ -16,6 +16,11 @@
           "url": "https://github.com/advisories/GHSA-hp3w-g68c-fv3c"
         }
       ]
+    },
+    {
+      "lock": "packages/generator-svelte/tools/package-lock.json",
+      "sha256": "9c3cefc8d0c262a48d64b1f87f1267d1ac6a4d6e7b8fd982af8e3269b2975256",
+      "advisories": []
     },
     {
       "lock": "composer.lock",
@@ -442,30 +447,9 @@
     {
       "ecosystem": "npm",
       "manifest": "packages/generator-svelte/package.json",
-      "package": "@sveltejs/package",
-      "version": "3.0.0",
-      "latest": "3.0.0"
-    },
-    {
-      "ecosystem": "npm",
-      "manifest": "packages/generator-svelte/package.json",
       "package": "@sveltejs/vite-plugin-svelte",
       "version": "7.3.1",
       "latest": "7.3.1"
-    },
-    {
-      "ecosystem": "npm",
-      "manifest": "packages/generator-svelte/package.json",
-      "package": "eslint",
-      "version": "10.12.0",
-      "latest": "10.12.0"
-    },
-    {
-      "ecosystem": "npm",
-      "manifest": "packages/generator-svelte/package.json",
-      "package": "eslint-plugin-svelte",
-      "version": "3.23.1",
-      "latest": "3.23.1"
     },
     {
       "ecosystem": "npm",
@@ -480,27 +464,6 @@
       "package": "svelte",
       "version": "5.57.2",
       "latest": "5.57.2"
-    },
-    {
-      "ecosystem": "npm",
-      "manifest": "packages/generator-svelte/package.json",
-      "package": "svelte-check",
-      "version": "4.7.6",
-      "latest": "4.7.6"
-    },
-    {
-      "ecosystem": "npm",
-      "manifest": "packages/generator-svelte/package.json",
-      "package": "typescript",
-      "version": "6.0.3",
-      "latest": "7.0.2"
-    },
-    {
-      "ecosystem": "npm",
-      "manifest": "packages/generator-svelte/package.json",
-      "package": "typescript-eslint",
-      "version": "8.71.2",
-      "latest": "8.71.2"
     },
     {
       "ecosystem": "npm",
@@ -599,6 +562,55 @@
       "package": "vitest",
       "version": "5.0.3",
       "latest": "5.0.4"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/generator-svelte/tools/package.json",
+      "package": "@sveltejs/package",
+      "version": "3.0.0",
+      "latest": "3.0.0"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/generator-svelte/tools/package.json",
+      "package": "eslint",
+      "version": "10.12.0",
+      "latest": "10.12.0"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/generator-svelte/tools/package.json",
+      "package": "eslint-plugin-svelte",
+      "version": "3.23.1",
+      "latest": "3.23.1"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/generator-svelte/tools/package.json",
+      "package": "svelte",
+      "version": "5.57.2",
+      "latest": "5.57.2"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/generator-svelte/tools/package.json",
+      "package": "svelte-check",
+      "version": "4.7.6",
+      "latest": "4.7.6"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/generator-svelte/tools/package.json",
+      "package": "typescript",
+      "version": "6.0.3",
+      "latest": "7.0.2"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/generator-svelte/tools/package.json",
+      "package": "typescript-eslint",
+      "version": "8.71.2",
+      "latest": "8.71.2"
     },
     {
       "ecosystem": "composer",
