@@ -240,21 +240,22 @@ fn widget(model: &Value) -> String {
         "bare" => control(model, false),
         "range" => {
             let raw = has_events(&model["attrs"]);
-            let (render, text): (fn(&str, &Value, &str) -> String, fn(&str) -> String) = if raw {
-                (raw_element, raw_text)
-            } else {
-                (element, escape)
-            };
-            let mut output = json!({"class":"crudui-widget__output"});
+            let mut attrs = json!({"class":"crudui-widget__output"});
             if let Some(id) = model["attrs"].get("id") {
-                output["for"] = id.clone();
+                attrs["for"] = id.clone();
             }
+            let label = str_at(model, "text");
+            let output = if raw {
+                raw_element("output", &attrs, &raw_text(label))
+            } else {
+                element("output", &attrs, &escape(label))
+            };
             element(
                 "div",
                 &json!({"class":"crudui-widget crudui-widget--range"}),
                 &(affix(&model["prepend"], raw)
                     + &control(model, false)
-                    + &render("output", &output, &text(str_at(model, "text")))
+                    + &output
                     + &affix(&model["append"], raw)),
             )
         }
