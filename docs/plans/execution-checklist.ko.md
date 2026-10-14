@@ -1,6 +1,6 @@
 # Execution checklist
 <!-- doc-id: docs-plans-execution-checklist -->
-<!-- source-sha256: f2deb49349e4e10ac76963937ccc3775091904064d541d14a2e4c942ff9d2c92 -->
+<!-- source-sha256: ae396e785143037e6cde33f06ec02255c96a36f1dec2b6f58bef52c963ffed5c -->
 
 ## [Wave 1](waves.ko.md#wave-1) — 좁은 viewport를 위한 stylesheet와 stylesheet의 Tailwind 버전
 
@@ -302,7 +302,7 @@
 | C14.16 | C14.12의 oxlint finding이 드러낸 결함을, 각각 이전에 실패한 test와 함께 고친다. 배열이나 객체의 TypeScript `==`, `!=`, `in`, `connectForm`이 control에 쓰는 값, form comparison의 Svelte adapter의 dispose, 그 PHP 서버의 stop이다. | 각 결함의 test |[o] |
 | C14.17 | CI job이 toolchain-check 뒤까지 실행되며(C14.13) 닿는 검사가 통과한다. `test:forms`는 C14.3-1이 package script를 없앤 form-binding의 Vitest suite를 root에서 실행하고, PHP engine test는 build entry point `scripts/build-crudui-php-extension.mts`를, local-servers test는 TypeScript 이식(C14.7)의 import `@polyspec/kit/test-hooks`를 적는다. Red: CI run 38597830858: `@polyspec/crudui-form-binding`의 `npm error Missing script: "test"`, `The input did not match the regular expression /node scripts\/build-crudui-php-extension\.mjs/`, `../pipeline.browser.mjs uses setup and teardown`. | `make test-forms`, `make test-php-engine`, `make test-form-comparison` |[ ] |
 | C14.18 | crudui의 Go module은 ordered-json의 무시되는 clone 없이 resolve된다. `go.work`는 checkout의 module만 쓰고, C14.7이 tag가 아직 없는 `packages/{validator,generator}/go`로 옮겼으므로 각 workspace module은 다른 module을 main의 push된 commit의 pseudo-version으로 요구한다(`go list -m`이 resolve한 version으로 `go mod edit -require`). form-comparison Go 서버는 `github.com/polyspec/ordered-json/go` v0.0.3을 요구하고, `make install`은 `go mod download`로 Go module을 내려받으며, 검사는 offline으로 남는다. 다음 crudui release가 pseudo-version을 tag `packages/{validator,generator}/go/vX`로 바꾼다. Red: kit 0.0.45에서 `make dependency-policy-mutation-check`가 `.form-comparison/sources/ordered-json/go`의 `use`로 실패했고, 0.0.44에서는 `benchmarks/validators/go/go.mod requires modules and benchmarks/validators/go/go.sum is missing`로 실패했다. | `make dependency-policy-mutation-check`, Go build와 test |[ ] |
-| C14.19 | kit 0.0.45로 옮긴다(kit K152–K154): 게시된 파일의 integrity로 pin하고, `make kit-sync`가 pin된 런타임의 binary를 무시하는 `knip.json`을 복사하며, `config/knip-entries.json`은 make, test, page, 도구가 경로로 실행하는 파일과 workspace `packages/svelte`, `packages/svelte/tools`, `packages/form-binding`, cross-check 서버를 그 entry와 무시하는 의존성과 함께 선언한다. knip이 찾은 쓰이지 않는 의존성은 없애고 목록에 없는 의존성은 선언한다. `make dependency-review RECORD=1`이 lock을 기록한다. | `make kit-check`, `make dependency-policy-check`, `make dependency-policy-mutation-check` |[ ] |
+| C14.19 | kit 0.0.45로 옮긴다(kit K152–K154): 게시된 파일의 integrity로 pin하고, `make kit-sync`가 pin된 런타임의 binary를 무시하는 `knip.json`을 복사하며, `config/knip-entries.json`은 make, test, page, 도구가 경로로 실행하는 파일과 workspace `packages/svelte`, `packages/svelte/tools`, `packages/form-binding`, cross-check 서버를 그 entry와 무시하는 의존성과 함께 선언한다. knip이 찾은 쓰이지 않는 의존성은 없애고 목록에 없는 의존성은 선언한다. `make dependency-review RECORD=1`이 lock을 기록한다. | `make kit-check`, `make dependency-policy-check`, `make dependency-policy-mutation-check` |[o] |
 
 ## [Wave 15](waves.ko.md#wave-15) — 각 생태계의 표준 도구를 있는 그대로 사용하기
 
