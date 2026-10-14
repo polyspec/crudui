@@ -1,6 +1,6 @@
 // The contract manifest declares every JavaScript entry of every package with its exact value
 // exports and visibility. Each failure the check reports is proven here on a synthetic
-// repository, and the real repository must pass.
+// repository; make manifest-check runs the check on the built repository.
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -82,39 +82,41 @@ function repository(): Repository {
           './package.json': './package.json',
         },
       }),
-      'packages/core/src/index.ts': [
-        "import type { Shape } from './shape';",
-        "export { compile, open, close, helper as renamed } from './compile';",
-        "export { Session } from './session';",
-        "export type { Template } from './compile';",
-        'export type { Shape };',
-        "export interface Options { strict?: boolean }",
+      // The built entries: an ES module and a CommonJS build of each entry of the core package; types are erased.
+      'packages/core/dist/index.mjs': [
+        "export { compile, open, close, helper as renamed } from './compile.mjs';",
+        "export * from './session.mjs';",
         '',
       ].join('\n'),
-      'packages/core/src/compile.ts': [
-        'export interface Template { id: string }',
-        'export function compile(): Template { return { id: "" }; }',
-        'export function open(): void {}',
-        'export function close(): void {}',
+      'packages/core/dist/compile.mjs': [
+        'export function compile() { return { id: "" }; }',
+        'export function open() {}',
+        'export function close() {}',
         'export const helper = 1;',
         '',
       ].join('\n'),
-      'packages/core/src/session.ts': 'export class Session {}\n',
-      'packages/core/src/shape.ts': 'export class Shape {}\n',
-      'packages/core/src/internal.ts': "export { layout } from './layout';\n",
-      'packages/core/src/layout.ts': 'export function layout(): string { return "table"; }\n',
+      'packages/core/dist/session.mjs': 'export class Session {}\nexport default Session;\n',
+      'packages/core/dist/index.js': "'use strict';\nmodule.exports = require('./compile.js');\n",
+      'packages/core/dist/internal.mjs': 'export function layout() { return "table"; }\n',
+      'packages/core/dist/internal.js': "'use strict';\nexports.layout = () => 'table';\n",
       'packages/view/package.json': JSON.stringify({
         name: '@polyspec/crudui-view',
+        type: 'module',
         exports: { '.': { types: './dist/index.d.ts', svelte: './dist/index.js' } },
       }),
+      // A re-export of a component gives its name without the component file.
+      'packages/view/dist/index.js': [
+        "import { layout } from '@polyspec/crudui-core/internal';",
+        "export { default as Widget } from './Widget.svelte';",
+        'export function render() { return layout(); }',
+        '',
+      ].join('\n'),
       'packages/view/src/index.ts': [
         "import { layout } from '@polyspec/crudui-core/internal';",
-        "export type { Session } from '@polyspec/crudui-core';",
         "export { default as Widget } from './Widget.svelte';",
         'export function render(): string { return layout(); }',
         '',
       ].join('\n'),
-      'packages/view/src/Widget.svelte': '<p>widget</p>\n',
       'examples/app/main.mjs': "import { compile } from '@polyspec/crudui-core';\nimport { render } from '@polyspec/crudui-view';\n",
     },
   };
@@ -159,9 +161,15 @@ test('a manifest entry without a package.json code entry fails', () => {
   ]);
 });
 
-test('a package.json code entry without a source entry file fails', () => {
-  assert.deepEqual(errorsFor(repo => { repo.files['packages/core/src/internal.ts'] = undefined; }), [
-    '@polyspec/crudui-core: package.json entry "./internal" has no source file for ./dist/internal.mjs',
+test('a package.json code entry without its built file fails', () => {
+  assert.deepEqual(errorsFor(repo => { repo.files['packages/core/dist/internal.mjs'] = undefined; }), [
+    '@polyspec/crudui-core: package.json entry "./internal" has no built file ./dist/internal.mjs; run npm run build',
+  ]);
+});
+
+test('a package.json code entry with only a CommonJS build fails', () => {
+  assert.deepEqual(errorsFor(repo => { repo.files['packages/core/dist/internal.mjs'] = "'use strict';\nexports.layout = 1;\n"; }), [
+    '@polyspec/crudui-core: package.json entry "./internal" has no ES module file',
   ]);
 });
 
@@ -180,12 +188,9 @@ test('a declared export list must be sorted', () => {
   ]);
 });
 
-test('an export that cannot be resolved fails', () => {
-  assert.deepEqual(errorsFor(repo => {
-    repo.files['packages/core/src/index.ts'] += "export { missing } from './compile';\n";
-    core(repo).entries['.'].exports = ['Session', 'close', 'compile', 'missing', 'open', 'renamed'];
-  }), [
-    '@polyspec/crudui-core ".": export cannot be resolved: missing',
+test('a value export missing from the manifest fails and is named', () => {
+  assert.deepEqual(errorsFor(repo => { repo.files['packages/core/dist/session.mjs'] += 'export const planted = 1;\n'; }), [
+    '@polyspec/crudui-core ".": exported but not declared: planted',
   ]);
 });
 
@@ -237,7 +242,6 @@ test('a package that imports another package by a relative source path fails', (
     repo.files['packages/view/bin/view.mjs'] = "const { layout } = await import(\"../../core/src/layout.ts\");\n";
     repo.files['packages/view/README.md'] = "```ts\nimport { layout } from '../core/src/layout';\n```\n";
     repo.files['examples/app/local.mjs'] = "import { layout } from '../../packages/core/src/layout.ts';\n";
-    repo.manifest.packages[1].entries['.'].exports = ['Widget', 'render', 'viewLayout'];
   }), [
     "packages/view/bin/view.mjs imports another package's source: ../../core/src/layout.ts",
     "packages/view/src/index.ts imports another package's source: ../../core/src/layout",
@@ -247,8 +251,8 @@ test('a package that imports another package by a relative source path fails', (
   ]);
 });
 
-test('the repository manifest matches every package entry', () => {
-  assert.deepEqual(checkContractManifest(ROOT).errors, []);
+// make manifest-check runs the check on the repository after the build; this test needs no build.
+test('the "." entry of every package of the repository manifest is public', () => {
   for (const pkg of realManifest.packages) {
     for (const [entry, { visibility }] of Object.entries(pkg.entries)) {
       if (entry === '.') assert.equal(visibility, 'public', pkg.name);
