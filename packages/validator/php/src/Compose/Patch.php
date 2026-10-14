@@ -161,7 +161,9 @@ final class Patch
         } elseif (self::isPlainObject($out[$head])) {
             /** @var array<string, mixed> $child */
             $child = $out[$head];
-            $out[$head] = ($child instanceof \stdClass ? (object) self::setDeepPath((array) $child, $rest, $value) : self::setDeepPath($child, $rest, $value));
+            $out[$head] = ($child instanceof \stdClass
+                ? (object) self::setDeepPath((array) $child, $rest, $value)
+                : self::setDeepPath($child, $rest, $value));
         } else {
             // Intermediate node is a scalar/array — cannot descend into it.
             throw new ComposeLoadError(
@@ -231,7 +233,9 @@ final class Patch
         }
         /** @var array<string, mixed> $child */
         $child = $out[$head];
-        $out[$head] = ($child instanceof \stdClass ? (object) self::removeDeepPath((array) $child, $rest) : self::removeDeepPath($child, $rest));
+        $out[$head] = ($child instanceof \stdClass
+            ? (object) self::removeDeepPath((array) $child, $rest)
+            : self::removeDeepPath($child, $rest));
         return $out;
     }
 
@@ -257,7 +261,9 @@ final class Patch
             ) {
                 /** @var array<string, mixed> $target */
                 /** @var array<string, mixed> $sub */
-                $out[$key] = ($target instanceof \stdClass ? (object) self::removeNested((array) $target, (array) $sub) : self::removeNested($target, (array) $sub));
+                $out[$key] = ($target instanceof \stdClass
+                    ? (object) self::removeNested((array) $target, (array) $sub)
+                    : self::removeNested($target, (array) $sub));
             } else {
                 unset($out[$key]);
             }

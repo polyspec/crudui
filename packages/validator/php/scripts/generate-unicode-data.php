@@ -10,7 +10,12 @@
 declare(strict_types=1);
 
 $root = dirname(__DIR__, 4);
-$contract = json_decode((string) file_get_contents($root . '/contracts/unicode-properties.json'), true, 512, JSON_THROW_ON_ERROR);
+$contract = json_decode(
+    (string) file_get_contents($root . '/contracts/unicode-properties.json'),
+    true,
+    512,
+    JSON_THROW_ON_ERROR
+);
 if (($contract['format'] ?? null) !== 'crudui/unicode-properties') {
     throw new RuntimeException('Unexpected contract format');
 }
@@ -69,7 +74,12 @@ final class UnicodeData
 }
 
 PHP;
-$output = sprintf($source, crudui_ranges($contract['whiteSpace'], '    '), crudui_table($contract['generalCategories']), crudui_table($contract['scripts']));
+$output = sprintf(
+    $source,
+    crudui_ranges($contract['whiteSpace'], '    '),
+    crudui_table($contract['generalCategories']),
+    crudui_table($contract['scripts'])
+);
 if (in_array('--stdout', $argv, true)) {
     echo $output;
 } else {

@@ -58,8 +58,13 @@ final class Evaluator
         $dots = strspn($trimmed, '.');
         $relative = $dots > 0 || !str_contains($trimmed, '.');
         $segments = array_map(
-            static fn (string $part): PathSegment => $part === '*' ? PathSegment::wildcard() : PathSegment::identifier($part),
-            array_values(array_filter(explode('.', substr($trimmed, $dots)), static fn (string $part): bool => $part !== '')),
+            static fn (string $part): PathSegment => $part === '*'
+                ? PathSegment::wildcard()
+                : PathSegment::identifier($part),
+            array_values(array_filter(
+                explode('.', substr($trimmed, $dots)),
+                static fn (string $part): bool => $part !== ''
+            )),
         );
         return $this->resolvePath(new PathNode($relative, max(0, $dots - 1), $segments));
     }

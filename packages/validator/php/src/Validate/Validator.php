@@ -55,7 +55,8 @@ use Polyspec\Crudui\Validator\Values\NumberText;
  * message itself (DEFAULT_MESSAGES + per-field `messages` override). Declared rule
  * parameters, including every literal a condition can select, are checked when the
  * validator is constructed (DeclarationCheck); a value a ternary takes from the data
- * is checked when it is selected, before the empty-value skip. Both raise ComposeLoadError at the field's declaration path.
+ * is checked when it is selected, before the empty-value skip. Both raise ComposeLoadError at the field's declaration
+ * path.
  */
 final class Validator
 {
@@ -247,21 +248,55 @@ final class Validator
                             if (!self::isObject($row)) {
                                 throw new FormInputError('Group data must be an object: ' . implode('.', $rowPath));
                             }
-                            $this->validateProperties($childProps, (array) $row, $rowPath, [...$rowKeys, \count($fieldPath)], $fieldDeclaration, $allData, $errors, $fieldHidden);
+                            $this->validateProperties(
+                                $childProps,
+                                (array) $row,
+                                $rowPath,
+                                [...$rowKeys, \count($fieldPath)],
+                                $fieldDeclaration,
+                                $allData,
+                                $errors,
+                                $fieldHidden
+                            );
                         }
                     }
                     // Missing data is an empty collection: it has no rows, and the
                     // collection rules still evaluate it.
                     if (!$fieldHidden) {
-                        $this->validateFieldRules($field, $fieldValue, $fieldPath, $rowKeys, $fieldDeclaration, $allData, $errors);
+                        $this->validateFieldRules(
+                            $field,
+                            $fieldValue,
+                            $fieldPath,
+                            $rowKeys,
+                            $fieldDeclaration,
+                            $allData,
+                            $errors
+                        );
                     }
                 } else {
                     if ($present && !self::isObject($fieldValue)) {
                         throw new FormInputError('Group data must be an object: ' . implode('.', $fieldPath));
                     }
-                    $this->validateProperties($childProps, $present ? (array) $fieldValue : [], $fieldPath, $rowKeys, $fieldDeclaration, $allData, $errors, $fieldHidden);
+                    $this->validateProperties(
+                        $childProps,
+                        $present ? (array) $fieldValue : [],
+                        $fieldPath,
+                        $rowKeys,
+                        $fieldDeclaration,
+                        $allData,
+                        $errors,
+                        $fieldHidden
+                    );
                     if (!$fieldHidden) {
-                        $this->validateFieldRules($field, $fieldValue, $fieldPath, $rowKeys, $fieldDeclaration, $allData, $errors);
+                        $this->validateFieldRules(
+                            $field,
+                            $fieldValue,
+                            $fieldPath,
+                            $rowKeys,
+                            $fieldDeclaration,
+                            $allData,
+                            $errors
+                        );
                     }
                 }
             } elseif ($fieldHidden) {
@@ -269,9 +304,25 @@ final class Validator
             } elseif ($isMultiple && $present) {
                 // Repeated scalar field: collection rules on the keyed object, the
                 // rest on each row value.
-                $this->validateMultipleFieldRules($field, $fieldValue, $fieldPath, $rowKeys, $fieldDeclaration, $allData, $errors);
+                $this->validateMultipleFieldRules(
+                    $field,
+                    $fieldValue,
+                    $fieldPath,
+                    $rowKeys,
+                    $fieldDeclaration,
+                    $allData,
+                    $errors
+                );
             } else {
-                $this->validateFieldRules($field, $fieldValue, $fieldPath, $rowKeys, $fieldDeclaration, $allData, $errors);
+                $this->validateFieldRules(
+                    $field,
+                    $fieldValue,
+                    $fieldPath,
+                    $rowKeys,
+                    $fieldDeclaration,
+                    $allData,
+                    $errors
+                );
             }
         }
     }
@@ -288,8 +339,14 @@ final class Validator
      * @param array<string, mixed> $allData
      * @param list<string> $hidden
      */
-    private function collectHidden(array $properties, array $data, array $currentPath, array $rowKeys, array $allData, array &$hidden): void
-    {
+    private function collectHidden(
+        array $properties,
+        array $data,
+        array $currentPath,
+        array $rowKeys,
+        array $allData,
+        array &$hidden
+    ): void {
         foreach ($properties as $propertyKey => $field) {
             if (!is_array($field) && !$field instanceof \stdClass) {
                 continue;
@@ -306,7 +363,14 @@ final class Validator
             }
             $value = $data[$fieldName] ?? null;
             if (!$this->isMultiple($field)) {
-                $this->collectHidden($children, self::isObject($value) ? (array) $value : [], $fieldPath, $rowKeys, $allData, $hidden);
+                $this->collectHidden(
+                    $children,
+                    self::isObject($value) ? (array) $value : [],
+                    $fieldPath,
+                    $rowKeys,
+                    $allData,
+                    $hidden
+                );
                 continue;
             }
             $rows = self::isObject($value) ? (array) $value : [];
@@ -314,7 +378,14 @@ final class Validator
             sort($keys, SORT_STRING);
             foreach ($keys as $key) {
                 $row = $rows[$key];
-                $this->collectHidden($children, self::isObject($row) ? (array) $row : [], [...$fieldPath, $key], [...$rowKeys, \count($fieldPath)], $allData, $hidden);
+                $this->collectHidden(
+                    $children,
+                    self::isObject($row) ? (array) $row : [],
+                    [...$fieldPath, $key],
+                    [...$rowKeys, \count($fieldPath)],
+                    $allData,
+                    $hidden
+                );
             }
         }
     }
@@ -326,7 +397,11 @@ final class Validator
     private static function isSingleChoice(array $field): bool
     {
         $lang = $field['lang'] ?? null;
-        return \in_array($field['type'] ?? null, self::SINGLE_CHOICE_TYPES, true) && ($lang === null || $lang === false);
+        return \in_array(
+            $field['type'] ?? null,
+            self::SINGLE_CHOICE_TYPES,
+            true
+        ) && ($lang === null || $lang === false);
     }
 
     /**
@@ -410,7 +485,16 @@ final class Validator
                 if (!in_array($ruleName, self::ARRAY_LEVEL_RULES, true)) {
                     continue;
                 }
-                $error = $this->runRule($ruleName, $ruleValue, $values, $fieldPath, $rowKeys, $declarationPath, $messages, $allData);
+                $error = $this->runRule(
+                    $ruleName,
+                    $ruleValue,
+                    $values,
+                    $fieldPath,
+                    $rowKeys,
+                    $declarationPath,
+                    $messages,
+                    $allData
+                );
                 if ($error !== null) {
                     $errors[$this->pathKey($fieldPath)] = $this->makeError($fieldPath, $ruleName, $error, $values);
                     return;
@@ -422,7 +506,15 @@ final class Validator
         $values = (array) $values;
         ksort($values, SORT_STRING);
         foreach ($values as $i => $value) {
-            $this->validateElementRules($field, $value, [...$fieldPath, (string) $i], [...$rowKeys, \count($fieldPath)], $declarationPath, $allData, $errors);
+            $this->validateElementRules(
+                $field,
+                $value,
+                [...$fieldPath, (string) $i],
+                [...$rowKeys, \count($fieldPath)],
+                $declarationPath,
+                $allData,
+                $errors
+            );
         }
     }
 
@@ -446,7 +538,19 @@ final class Validator
         $messages = $this->fieldMessages($field);
         $rules = $this->normalizeValidateSlot($field['validate'] ?? null);
 
-        if ($this->runImplicitNumber($field, $rules, $value, $itemPath, $rowKeys, $declarationPath, $messages, $allData, $errors)) {
+        if (
+            $this->runImplicitNumber(
+                $field,
+                $rules,
+                $value,
+                $itemPath,
+                $rowKeys,
+                $declarationPath,
+                $messages,
+                $allData,
+                $errors
+            )
+        ) {
             return;
         }
         if ($rules === null) {
@@ -456,7 +560,16 @@ final class Validator
             if (in_array($ruleName, self::ARRAY_LEVEL_RULES, true)) {
                 continue;
             }
-            $error = $this->runRule($ruleName, $ruleValue, $value, $itemPath, $rowKeys, $declarationPath, $messages, $allData);
+            $error = $this->runRule(
+                $ruleName,
+                $ruleValue,
+                $value,
+                $itemPath,
+                $rowKeys,
+                $declarationPath,
+                $messages,
+                $allData
+            );
             if ($error !== null) {
                 $errors[$this->pathKey($itemPath)] = $this->makeError($itemPath, $ruleName, $error, $value);
                 break;
@@ -484,14 +597,35 @@ final class Validator
         $messages = $this->fieldMessages($field);
         $rules = $this->normalizeValidateSlot($field['validate'] ?? null);
 
-        if ($this->runImplicitNumber($field, $rules, $value, $fieldPath, $rowKeys, $declarationPath, $messages, $allData, $errors)) {
+        if (
+            $this->runImplicitNumber(
+                $field,
+                $rules,
+                $value,
+                $fieldPath,
+                $rowKeys,
+                $declarationPath,
+                $messages,
+                $allData,
+                $errors
+            )
+        ) {
             return;
         }
         if ($rules === null) {
             return;
         }
         foreach ($rules as $ruleName => $ruleValue) {
-            $error = $this->runRule($ruleName, $ruleValue, $value, $fieldPath, $rowKeys, $declarationPath, $messages, $allData);
+            $error = $this->runRule(
+                $ruleName,
+                $ruleValue,
+                $value,
+                $fieldPath,
+                $rowKeys,
+                $declarationPath,
+                $messages,
+                $allData
+            );
             if ($error !== null) {
                 $errors[$this->pathKey($fieldPath)] = $this->makeError($fieldPath, $ruleName, $error, $value);
                 break;
@@ -661,7 +795,14 @@ final class Validator
             if ($isFilterCondition) {
                 foreach ($value as $i => $element) {
                     $itemPath = [...$pathSegments, (string) $i];
-                    if (!$this->itemPassesCondition($ruleParam, $itemPath, [...$rowKeys, \count($pathSegments)], $allData)) {
+                    if (
+                        !$this->itemPassesCondition(
+                            $ruleParam,
+                            $itemPath,
+                            [...$rowKeys, \count($pathSegments)],
+                            $allData
+                        )
+                    ) {
                         continue;
                     }
                     if (!EmptyValue::is($element)) {
@@ -734,7 +875,12 @@ final class Validator
                 $key = (string) $key;
                 if (
                     $isFilterCondition
-                    && !$this->itemPassesCondition($ruleParam, [...$containerPath, $key, $fieldName], $rowKeys, $allData)
+                    && !$this->itemPassesCondition(
+                        $ruleParam,
+                        [...$containerPath, $key, $fieldName],
+                        $rowKeys,
+                        $allData
+                    )
                 ) {
                     continue;
                 }
@@ -963,7 +1109,10 @@ final class Validator
     {
         $current = $data;
         foreach ($path as $segment) {
-            if ((!is_array($current) && !$current instanceof \stdClass) || !array_key_exists($segment, (array) $current)) {
+            if (
+                (!is_array($current) && !$current instanceof \stdClass)
+                || !array_key_exists($segment, (array) $current)
+            ) {
                 return null;
             }
             $current = ((array) $current)[$segment];

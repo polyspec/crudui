@@ -54,7 +54,11 @@ final class Validator
             }
         }
         $result = (new DataValidator(['type' => 'group', 'properties' => $properties]))->validate((array) $data);
-        return (object) ['valid' => $result->valid, 'errors' => array_map(static fn ($error) => JsonValue::copy((object) $error), $result->errors), 'hidden' => $result->hidden];
+        return (object) [
+            'valid' => $result->valid,
+            'errors' => array_map(static fn ($error) => JsonValue::copy((object) $error), $result->errors),
+            'hidden' => $result->hidden
+        ];
     }
 
     /** Validate list composition and metadata without validating row data. */

@@ -56,7 +56,10 @@ final class ConditionalValue
     private static function select(array $map, array|\stdClass $data, array $path, array $rowKeys): mixed
     {
         foreach ($map as $condition => $value) {
-            if ((string) $condition !== ConditionMap::DEFAULT_KEY && self::matches((string) $condition, $data, $path, $rowKeys)) {
+            if (
+                (string) $condition !== ConditionMap::DEFAULT_KEY
+                && self::matches((string) $condition, $data, $path, $rowKeys)
+            ) {
                 return $value;
             }
         }

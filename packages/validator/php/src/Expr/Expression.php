@@ -60,8 +60,12 @@ final class Expression
      * @param list<string>         $currentPath
      * @param list<int>            $rowKeys positions of the row keys in $currentPath
      */
-    public static function evaluate(string $expression, array|\stdClass $formData, array $currentPath = [], array $rowKeys = []): bool
-    {
+    public static function evaluate(
+        string $expression,
+        array|\stdClass $formData,
+        array $currentPath = [],
+        array $rowKeys = []
+    ): bool {
         return (new Evaluator($formData, $currentPath, $rowKeys))->evaluate(self::parse($expression));
     }
 
@@ -72,8 +76,12 @@ final class Expression
      * @param list<string>         $currentPath
      * @param list<int>            $rowKeys positions of the row keys in $currentPath
      */
-    public static function evaluateValue(string $expression, array|\stdClass $formData, array $currentPath = [], array $rowKeys = []): mixed
-    {
+    public static function evaluateValue(
+        string $expression,
+        array|\stdClass $formData,
+        array $currentPath = [],
+        array $rowKeys = []
+    ): mixed {
         return (new Evaluator($formData, $currentPath, $rowKeys))->evaluateValue(self::parse($expression));
     }
 

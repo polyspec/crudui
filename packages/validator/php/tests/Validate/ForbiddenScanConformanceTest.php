@@ -59,13 +59,22 @@ final class ForbiddenScanConformanceTest extends TestCase
     #[DataProvider('fixtureProvider')]
     public function testForbiddenScanMatchesFixture(array $case): void
     {
-        self::assertFalse((new \ReflectionClass(Validator::class))->isInternal(), 'PHPUnit evidence proves the pure PHP runtime, not the native extension');
+        self::assertFalse(
+            (new \ReflectionClass(Validator::class))->isInternal(),
+            'PHPUnit evidence proves the pure PHP runtime, not the native extension'
+        );
         $passed = false;
         try {
             $this->assertCase($case);
             $passed = true;
         } finally {
-            crudui_record_conformance('validate', 'tests/fixtures/spec-validity/cases.json', 'php', $case['name'], $passed);
+            crudui_record_conformance(
+                'validate',
+                'tests/fixtures/spec-validity/cases.json',
+                'php',
+                $case['name'],
+                $passed
+            );
         }
     }
 
@@ -84,7 +93,10 @@ final class ForbiddenScanConformanceTest extends TestCase
         // load path before any data-driven validation.
         if ($engine === 'pass') {
             $result = Validator::validate($spec, [], ['files' => $files ?? []]);
-            self::assertTrue($result->valid, "case {$case['name']} must not be rejected by runtime structure validation");
+            self::assertTrue(
+                $result->valid,
+                "case {$case['name']} must not be rejected by runtime structure validation"
+            );
             self::assertSame([], $result->errors, "case {$case['name']} must produce no errors on a clean load");
             return;
         }
@@ -97,7 +109,9 @@ final class ForbiddenScanConformanceTest extends TestCase
 
         try {
             Validator::validate($spec, [], ['files' => $files ?? []]);
-            self::fail("case {$case['name']} expected load error {$want['code']} at {$want['at']} but validated successfully");
+            self::fail(
+                "case {$case['name']} expected load error {$want['code']} at {$want['at']} but validated successfully"
+            );
         } catch (ComposeLoadError $e) {
             self::assertSame(
                 $want['code'],

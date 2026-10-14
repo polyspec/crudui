@@ -10,7 +10,8 @@ final class NumberValue
     /** Return the parsed number, or null when the complete string is not numeric. */
     public static function parseString(string $value): ?float
     {
-        $whitespace = '\x{0009}-\x{000D}\x{0020}\x{00A0}\x{1680}\x{2000}-\x{200A}\x{2028}\x{2029}\x{202F}\x{205F}\x{3000}\x{FEFF}';
+        $whitespace = '\x{0009}-\x{000D}\x{0020}\x{00A0}\x{1680}\x{2000}-\x{200A}'
+            . '\x{2028}\x{2029}\x{202F}\x{205F}\x{3000}\x{FEFF}';
         $value = preg_replace('/^[' . $whitespace . ']+|[' . $whitespace . ']+$/u', '', $value);
         if ($value === '') {
             return 0.0;

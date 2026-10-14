@@ -149,7 +149,9 @@ final class Numeric
                 return [$minimum, $maximum];
             }
         }
-        throw self::failure('Invalid range parameter: expected [minimum, maximum] finite numbers with minimum not above maximum');
+        throw self::failure(
+            'Invalid range parameter: expected [minimum, maximum] finite numbers with minimum not above maximum'
+        );
     }
 
     /**

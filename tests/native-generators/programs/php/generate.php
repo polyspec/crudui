@@ -19,11 +19,26 @@ use Polyspec\Crudui\Validator\Support\JsonText;
 
 function failure(Throwable $error): array
 {
-    return ['code' => $error instanceof ComposeLoadError || $error instanceof FormError ? $error->getErrorCode() : 'INVALID_FORM_INPUT', 'message' => $error->getMessage(), 'at' => $error instanceof FormError ? $error->getPath() : ($error instanceof ComposeLoadError ? implode('.', $error->getCompositionTrace()) : '')];
+    return [
+        'code' => $error instanceof ComposeLoadError
+            || $error instanceof FormError
+            ? $error->getErrorCode()
+            : 'INVALID_FORM_INPUT',
+        'message' => $error->getMessage(),
+        'at' => $error instanceof FormError ? $error->getPath() : ($error instanceof ComposeLoadError ? implode(
+            '.',
+            $error->getCompositionTrace()
+        ) : '')
+    ];
 }
 function state(Form $form): array
 {
-    return ['data' => $form->getData(), 'fields' => $form->getFields(), 'html' => Generator::renderForm($form), 'revision' => $form->getRevision()];
+    return [
+        'data' => $form->getData(),
+        'fields' => $form->getFields(),
+        'html' => Generator::renderForm($form),
+        'revision' => $form->getRevision()
+    ];
 }
 /** A protocol JSON object; a JSON array or scalar is not an object in any runtime. */
 function objectValue(mixed $value, string $message): stdClass
@@ -67,13 +82,30 @@ try {
     }
     switch ($request->operation ?? null) {
         case 'compileForm':
-            $result = Generator::compileForm(objectValue(member($request, 'spec'), 'A form spec must be a group with properties'), options(property_exists($request, 'options') ? $request->options : new stdClass()));
+            $result = Generator::compileForm(
+                objectValue(member($request, 'spec'), 'A form spec must be a group with properties'),
+                options(property_exists($request, 'options') ? $request->options : new stdClass())
+            );
             break;
         case 'bindForm':
-            $result = Generator::bindForm(template($request), property_exists($request, 'data') ? objectValue($request->data, 'Form data must be an object') : new stdClass(), options(property_exists($request, 'options') ? $request->options : new stdClass()));
+            $result = Generator::bindForm(
+                template($request),
+                property_exists($request, 'data') ? objectValue(
+                    $request->data,
+                    'Form data must be an object'
+                ) : new stdClass(),
+                options(property_exists($request, 'options') ? $request->options : new stdClass())
+            );
             break;
         case 'bindButtons':
-            $result = Generator::bindButtons(template($request), property_exists($request, 'data') ? objectValue($request->data, 'Form data must be an object') : new stdClass(), options(property_exists($request, 'options') ? $request->options : new stdClass()));
+            $result = Generator::bindButtons(
+                template($request),
+                property_exists($request, 'data') ? objectValue(
+                    $request->data,
+                    'Form data must be an object'
+                ) : new stdClass(),
+                options(property_exists($request, 'options') ? $request->options : new stdClass())
+            );
             break;
         case 'formButtonsHtml':
             $buttons = member($request, 'buttons');
@@ -119,7 +151,10 @@ try {
         case 'renderDetail':
             $method = $request->operation;
             $spec = objectValue(member($request, 'spec'), 'Detail specification must be an object');
-            $record = property_exists($request, 'record') ? objectValue($request->record, 'Detail record must be an object') : new stdClass();
+            $record = property_exists($request, 'record') ? objectValue(
+                $request->record,
+                'Detail record must be an object'
+            ) : new stdClass();
             $detailOptions = options(property_exists($request, 'options') ? $request->options : new stdClass());
             // The context is checked after the fields, which the library checks first.
             if (property_exists($spec, 'fields') && isset($detailOptions['data'])) {
@@ -128,11 +163,28 @@ try {
             $result = Generator::$method($spec, $record, $detailOptions);
             break;
         case 'renderForm':
-            $form = new Form(template($request), property_exists($request, 'data') ? objectValue($request->data, 'Form data must be an object') : new stdClass(), options(property_exists($request, 'options') ? $request->options : new stdClass()));
-            $result = Generator::renderForm($form, property_exists($request, 'render') ? $request->render : new stdClass());
+            $form = new Form(
+                template($request),
+                property_exists($request, 'data') ? objectValue(
+                    $request->data,
+                    'Form data must be an object'
+                ) : new stdClass(),
+                options(property_exists($request, 'options') ? $request->options : new stdClass())
+            );
+            $result = Generator::renderForm(
+                $form,
+                property_exists($request, 'render') ? $request->render : new stdClass()
+            );
             break;
         case 'form':
-            $form = new Form(template($request), property_exists($request, 'data') ? objectValue($request->data, 'Form data must be an object') : new stdClass(), options(property_exists($request, 'options') ? $request->options : new stdClass()));
+            $form = new Form(
+                template($request),
+                property_exists($request, 'data') ? objectValue(
+                    $request->data,
+                    'Form data must be an object'
+                ) : new stdClass(),
+                options(property_exists($request, 'options') ? $request->options : new stdClass())
+            );
             $steps = [];
             $actions = property_exists($request, 'actions') ? $request->actions : [];
             if (!is_array($actions)) {
@@ -144,7 +196,24 @@ try {
                 try {
                     $method = $action instanceof stdClass ? ($action->method ?? null) : null;
                     $args = $action instanceof stdClass && property_exists($action, 'args') ? $action->args : null;
-                    if (!in_array($method, ['setData', 'setValue', 'addRow', 'copyRow', 'removeRow', 'moveRow', 'rekeyRow', 'getValue', 'getData'], true) || !is_array($args)) {
+                    if (
+                        !in_array(
+                            $method,
+                            [
+                                'setData',
+                                'setValue',
+                                'addRow',
+                                'copyRow',
+                                'removeRow',
+                                'moveRow',
+                                'rekeyRow',
+                                'getValue',
+                                'getData'
+                            ],
+                            true
+                        )
+                        || !is_array($args)
+                    ) {
                         throw new InvalidArgumentException('Invalid form action');
                     }
                     if ($method === 'setData' && array_key_exists(0, $args)) {
@@ -167,6 +236,9 @@ try {
     }
     echo json_encode($result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . "\n";
 } catch (Throwable $error) {
-    echo json_encode(['error' => failure($error)], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . "\n";
+    echo json_encode(
+        ['error' => failure($error)],
+        JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR
+    ) . "\n";
     exit(1);
 }

@@ -39,8 +39,17 @@ final class MessagePlaceholderTest extends TestCase
             'range' => 'from {0} to {1} {2}',
             default => 'by {0} and {0}',
         };
-        $spec = json_decode('{"type":"group","properties":{"other":{"type":"text"},"value":{"type":"text","validate":' . $rules . ',"messages":' . json_encode([$rule => $template]) . '}}}');
-        $result = json_decode(json_encode(Validator::validate($spec, json_decode('{"other":"y","value":' . $value . '}'))), true);
+        $spec = json_decode(
+            '{"type":"group","properties":{"other":{"type":"text"},"value":{"type":"text","validate":'
+                . $rules
+                . ',"messages":'
+                . json_encode([$rule => $template])
+                . '}}}'
+        );
+        $result = json_decode(
+            json_encode(Validator::validate($spec, json_decode('{"other":"y","value":' . $value . '}'))),
+            true
+        );
         self::assertSame($expected, $result['errors'][0]['message'] ?? null);
     }
 }

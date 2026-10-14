@@ -60,13 +60,22 @@ final class DetailValidateConformanceTest extends TestCase
     #[DataProvider('fixtureProvider')]
     public function testDetailEngineMatchesFixture(array $case): void
     {
-        self::assertFalse((new \ReflectionClass(Validator::class))->isInternal(), 'PHPUnit evidence proves the pure PHP runtime, not the native extension');
+        self::assertFalse(
+            (new \ReflectionClass(Validator::class))->isInternal(),
+            'PHPUnit evidence proves the pure PHP runtime, not the native extension'
+        );
         $passed = false;
         try {
             $this->assertCase($case);
             $passed = true;
         } finally {
-            crudui_record_conformance('validateDetail', 'tests/fixtures/detail-validity/cases.json', 'php', $case['name'], $passed);
+            crudui_record_conformance(
+                'validateDetail',
+                'tests/fixtures/detail-validity/cases.json',
+                'php',
+                $case['name'],
+                $passed
+            );
         }
     }
 
@@ -81,7 +90,10 @@ final class DetailValidateConformanceTest extends TestCase
 
         if ($engine === 'pass') {
             $result = Validator::validateDetail($spec, ['files' => $files]);
-            self::assertTrue($result->valid, "case {$case['name']} must not be rejected by runtime structure validation");
+            self::assertTrue(
+                $result->valid,
+                "case {$case['name']} must not be rejected by runtime structure validation"
+            );
             self::assertSame([], $result->errors, "case {$case['name']} must produce no errors on a clean load");
             return;
         }
@@ -94,9 +106,15 @@ final class DetailValidateConformanceTest extends TestCase
 
         try {
             Validator::validateDetail($spec, ['files' => $files]);
-            self::fail("case {$case['name']} expected load error {$want['code']} at {$want['at']} but loaded successfully");
+            self::fail(
+                "case {$case['name']} expected load error {$want['code']} at {$want['at']} but loaded successfully"
+            );
         } catch (ComposeLoadError $e) {
-            self::assertSame($want['code'], $e->getErrorCode(), "error code mismatch for {$case['name']}: {$e->getMessage()}");
+            self::assertSame(
+                $want['code'],
+                $e->getErrorCode(),
+                "error code mismatch for {$case['name']}: {$e->getMessage()}"
+            );
             self::assertSame(
                 $want['at'],
                 \implode('.', $e->getCompositionTrace()),
@@ -112,7 +130,10 @@ final class DetailValidateConformanceTest extends TestCase
         self::assertEquals((object) ['valid' => true, 'errors' => []], Validator::validateDetail([], ['files' => []]));
         self::assertSame(
             ['spec', 'options'],
-            array_map(static fn ($parameter) => $parameter->getName(), (new \ReflectionMethod(Validator::class, 'validateDetail'))->getParameters()),
+            array_map(
+                static fn ($parameter) => $parameter->getName(),
+                (new \ReflectionMethod(Validator::class, 'validateDetail'))->getParameters()
+            ),
         );
     }
 }

@@ -85,7 +85,10 @@ final class JsonText
                     }
                     $name = $this->string();
                     if ($name !== '' && $name[0] === "\0") {
-                        throw new JsonException('The decoded property name is invalid', JSON_ERROR_INVALID_PROPERTY_NAME);
+                        throw new JsonException(
+                            'The decoded property name is invalid',
+                            JSON_ERROR_INVALID_PROPERTY_NAME
+                        );
                     }
                     $this->space();
                     if (($this->text[$this->pos] ?? '') !== ':') {
@@ -110,7 +113,15 @@ final class JsonText
         if ($char === '"') {
             return $this->string();
         }
-        if (preg_match('/\G(?:true|false|null|-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?)/', $this->text, $match, 0, $this->pos) !== 1) {
+        if (
+            preg_match(
+                '/\G(?:true|false|null|-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?)/',
+                $this->text,
+                $match,
+                0,
+                $this->pos
+            ) !== 1
+        ) {
             $this->fail();
         }
         $this->pos += strlen($match[0]);
@@ -122,7 +133,12 @@ final class JsonText
         $this->pos++;
         $out = '';
         while (true) {
-            $run = strcspn($this->text, "\"\\\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\x0c\r\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f", $this->pos);
+            $run = strcspn(
+                $this->text,
+                "\"\\\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\x0c\r\x0e\x0f"
+                    . "\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f",
+                $this->pos
+            );
             $out .= substr($this->text, $this->pos, $run);
             $this->pos += $run;
             $char = $this->text[$this->pos] ?? '';
@@ -135,7 +151,16 @@ final class JsonText
             }
             $escape = $this->text[$this->pos + 1] ?? '';
             $this->pos += 2;
-            $simple = ['"' => '"', '\\' => '\\', '/' => '/', 'b' => "\x08", 'f' => "\x0c", 'n' => "\n", 'r' => "\r", 't' => "\t"];
+            $simple = [
+                '"' => '"',
+                '\\' => '\\',
+                '/' => '/',
+                'b' => "\x08",
+                'f' => "\x0c",
+                'n' => "\n",
+                'r' => "\r",
+                't' => "\t"
+            ];
             if (isset($simple[$escape])) {
                 $out .= $simple[$escape];
                 continue;
@@ -150,7 +175,10 @@ final class JsonText
                 $low = $this->hex();
                 if ($low >= 0xdc00 && $low < 0xe000) {
                     $code = 0x10000 + (($unit - 0xd800) << 10) + ($low - 0xdc00);
-                    $out .= chr(0xf0 | $code >> 18) . chr(0x80 | $code >> 12 & 0x3f) . chr(0x80 | $code >> 6 & 0x3f) . chr(0x80 | $code & 0x3f);
+                    $out .= chr(0xf0 | $code >> 18)
+                        . chr(0x80 | $code >> 12 & 0x3f)
+                        . chr(0x80 | $code >> 6 & 0x3f)
+                        . chr(0x80 | $code & 0x3f);
                     continue;
                 }
                 $this->pos = $save;

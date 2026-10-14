@@ -53,7 +53,10 @@ final class ValidateConformanceTest extends TestCase
     #[DataProvider('fixtureProvider')]
     public function testValidateMatchesFixture(array $case): void
     {
-        self::assertFalse((new \ReflectionClass(Validator::class))->isInternal(), 'PHPUnit evidence proves the pure PHP runtime, not the native extension');
+        self::assertFalse(
+            (new \ReflectionClass(Validator::class))->isInternal(),
+            'PHPUnit evidence proves the pure PHP runtime, not the native extension'
+        );
         $passed = false;
         try {
             $this->assertCase($case);
@@ -84,7 +87,11 @@ final class ValidateConformanceTest extends TestCase
                 Validator::validate($spec, $data, ['files' => $files ?? []]);
                 self::fail("case {$case['name']} expected failure {$expect['code']} but validated successfully");
             } catch (ComposeLoadError $e) {
-                $actual = ['code' => $e->getErrorCode(), 'message' => $e->getMessage(), 'at' => implode('.', $e->getCompositionTrace())];
+                $actual = [
+                    'code' => $e->getErrorCode(),
+                    'message' => $e->getMessage(),
+                    'at' => implode('.', $e->getCompositionTrace())
+                ];
                 self::assertSame($expect, $actual, "failure mismatch for {$case['name']}");
             } catch (FormInputError $e) {
                 $actual = ['code' => $e->getErrorCode(), 'message' => $e->getMessage(), 'at' => ''];

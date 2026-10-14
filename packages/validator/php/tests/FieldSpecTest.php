@@ -82,7 +82,19 @@ final class FieldSpecTest extends TestCase
      */
     public function testMultipleBucketAcceptsCanonicalKeys(): void
     {
-        self::assertSame([], FieldSpec::validate(['multiple' => ['min' => 1, 'max' => 5, 'copy' => true, 'sortable' => true, 'title' => 'name', 'controls' => 'footer', 'header' => 'sticky', 'onclick' => 'add()']]));
+        self::assertSame(
+            [],
+            FieldSpec::validate(['multiple' => [
+                'min' => 1,
+                'max' => 5,
+                'copy' => true,
+                'sortable' => true,
+                'title' => 'name',
+                'controls' => 'footer',
+                'header' => 'sticky',
+                'onclick' => 'add()'
+            ]])
+        );
     }
 
     /**
@@ -101,16 +113,50 @@ final class FieldSpecTest extends TestCase
      */
     public function testClosedBucketsRejectUnknownKeys(): void
     {
-        self::assertSame(['unknown key under design: text'], FieldSpec::validate(['design' => ['class' => 'a', 'text' => 1]]));
-        self::assertSame(['unknown key under design.label: text'], FieldSpec::validate(['design' => ['label' => ['class' => 'a', 'text' => 1]]]));
-        self::assertSame(['unknown key under behavior: onsubmit'], FieldSpec::validate(['behavior' => ['onclick' => 'go()', 'onsubmit' => 'x']]));
-        self::assertSame(['unknown key under multiple: foo'], FieldSpec::validate(['multiple' => ['min' => 1, 'foo' => 1]]));
-        self::assertSame(['unknown key under lang: append'], FieldSpec::validate(['lang' => ['mode' => 'x', 'append' => true]]));
-        self::assertSame(['unknown key under validate: custom_rule'], FieldSpec::validate(['validate' => ['required' => true, 'custom_rule' => 1]]));
+        self::assertSame(
+            ['unknown key under design: text'],
+            FieldSpec::validate(['design' => ['class' => 'a', 'text' => 1]])
+        );
+        self::assertSame(
+            ['unknown key under design.label: text'],
+            FieldSpec::validate(['design' => ['label' => ['class' => 'a', 'text' => 1]]])
+        );
+        self::assertSame(
+            ['unknown key under behavior: onsubmit'],
+            FieldSpec::validate(['behavior' => ['onclick' => 'go()', 'onsubmit' => 'x']])
+        );
+        self::assertSame(
+            ['unknown key under multiple: foo'],
+            FieldSpec::validate(['multiple' => ['min' => 1, 'foo' => 1]])
+        );
+        self::assertSame(
+            ['unknown key under lang: append'],
+            FieldSpec::validate(['lang' => ['mode' => 'x', 'append' => true]])
+        );
+        self::assertSame(
+            ['unknown key under validate: custom_rule'],
+            FieldSpec::validate(['validate' => ['required' => true, 'custom_rule' => 1]])
+        );
         self::assertSame([], FieldSpec::validate([
-            'design'   => ['show' => true, 'class' => 'a', 'style' => 'b', 'label' => ['class' => 'c', 'style' => 'd'], 'wrapper' => [], 'group' => ['class' => 'e'], 'prepend' => ['style' => 'f']],
+            'design'   => [
+                'show' => true,
+                'class' => 'a',
+                'style' => 'b',
+                'label' => ['class' => 'c', 'style' => 'd'],
+                'wrapper' => [],
+                'group' => ['class' => 'e'],
+                'prepend' => ['style' => 'f']
+            ],
             'behavior' => ['onchange' => 'a', 'onclick' => 'b', 'onload' => 'c'],
-            'lang'     => ['mode' => 'append', 'only' => ['ko'], 'name' => 'n', 'key' => 'k', 'frame' => false, 'title' => false, 'group_class' => 'g'],
+            'lang'     => [
+                'mode' => 'append',
+                'only' => ['ko'],
+                'name' => 'n',
+                'key' => 'k',
+                'frame' => false,
+                'title' => false,
+                'group_class' => 'g'
+            ],
             'validate' => ['required' => true, 'minlength' => 1, 'dateISO' => true, 'step' => 1],
             'options'  => ['custom' => 1],
             'items'    => ['model' => 'm', 'custom_source' => 1],
@@ -127,7 +173,10 @@ final class FieldSpecTest extends TestCase
             'attributes' => ['data-setting' => 'theme', 'aria-describedby' => 'help'],
             'wrapper' => ['class' => 'row', 'attributes' => ['data-section' => 'look']],
         ]]));
-        self::assertSame(['unknown key under design.label: attributes'], FieldSpec::validate(['design' => ['label' => ['attributes' => ['data-x' => '1']]]]));
+        self::assertSame(
+            ['unknown key under design.label: attributes'],
+            FieldSpec::validate(['design' => ['label' => ['attributes' => ['data-x' => '1']]]])
+        );
         self::assertContains('attributes', FieldSpec::DESIGN_NODE_MAP);
         self::assertContains('wrapper.attributes', FieldSpec::DESIGN_NODE_MAP);
     }
@@ -207,8 +256,14 @@ final class FieldSpecTest extends TestCase
     /** The top-level keys are the schema's field keys other than the composition directives. */
     public function testTopLevelKeysAreTheSchemaFieldKeys(): void
     {
-        $schema = json_decode((string) file_get_contents(__DIR__ . '/../../../../contracts/schema/crudui.schema.json'), true);
-        $keys = array_values(array_diff(array_keys($schema['definitions']['Field']['properties']), FieldSpec::COMPOSITION_DIRECTIVES));
+        $schema = json_decode(
+            (string) file_get_contents(__DIR__ . '/../../../../contracts/schema/crudui.schema.json'),
+            true
+        );
+        $keys = array_values(array_diff(
+            array_keys($schema['definitions']['Field']['properties']),
+            FieldSpec::COMPOSITION_DIRECTIVES
+        ));
         self::assertSame($keys, array_keys(FieldSpec::TOP_LEVEL));
     }
 
@@ -216,6 +271,9 @@ final class FieldSpecTest extends TestCase
     public function testMessagesKeysAreRegisteredRules(): void
     {
         self::assertSame([], FieldSpec::validate(['messages' => ['required' => 'a', 'number' => 'b']]));
-        self::assertSame(['unknown key under messages: requird'], FieldSpec::validate(['messages' => ['requird' => 'a']]));
+        self::assertSame(
+            ['unknown key under messages: requird'],
+            FieldSpec::validate(['messages' => ['requird' => 'a']])
+        );
     }
 }

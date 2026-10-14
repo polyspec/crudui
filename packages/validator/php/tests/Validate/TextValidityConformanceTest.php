@@ -42,7 +42,11 @@ final class TextValidityConformanceTest extends TestCase
         try {
             return \json_decode(\json_encode($run(), JSON_THROW_ON_ERROR), true, 512, JSON_THROW_ON_ERROR);
         } catch (ComposeLoadError $error) {
-            return ['code' => $error->getErrorCode(), 'message' => $error->getMessage(), 'at' => \implode('.', $error->getCompositionTrace())];
+            return [
+                'code' => $error->getErrorCode(),
+                'message' => $error->getMessage(),
+                'at' => \implode('.', $error->getCompositionTrace())
+            ];
         } catch (FormInputError $error) {
             return ['code' => $error->getErrorCode(), 'message' => $error->getMessage(), 'at' => ''];
         }
@@ -51,7 +55,10 @@ final class TextValidityConformanceTest extends TestCase
     #[DataProvider('fixtureProvider')]
     public function testInputTextMatchesFixture(string $feature, stdClass $case): void
     {
-        self::assertFalse((new \ReflectionClass(Validator::class))->isInternal(), 'PHPUnit evidence proves the pure PHP runtime, not the native extension');
+        self::assertFalse(
+            (new \ReflectionClass(Validator::class))->isInternal(),
+            'PHPUnit evidence proves the pure PHP runtime, not the native extension'
+        );
         $passed = false;
         try {
             $options = (array) ($case->options ?? []);
@@ -62,7 +69,11 @@ final class TextValidityConformanceTest extends TestCase
             // list [string], whose item is located at data.0.
             $rootString = \is_string($case->data ?? null);
             $actual = self::outcome(match ($feature) {
-                'validate' => static fn () => Validator::validate($case->spec, $rootString ? [$case->data] : $case->data, $options),
+                'validate' => static fn () => Validator::validate(
+                    $case->spec,
+                    $rootString ? [$case->data] : $case->data,
+                    $options
+                ),
                 'validateList' => static fn () => Validator::validateList($case->spec, $options),
                 default => static fn () => Validator::validateDetail($case->spec, $options),
             });
@@ -73,7 +84,13 @@ final class TextValidityConformanceTest extends TestCase
             self::assertSame($expected, $actual);
             $passed = true;
         } finally {
-            crudui_record_conformance($feature, "tests/fixtures/text-validity/{$feature}/cases.json", 'php', $case->name, $passed);
+            crudui_record_conformance(
+                $feature,
+                "tests/fixtures/text-validity/{$feature}/cases.json",
+                'php',
+                $case->name,
+                $passed
+            );
         }
     }
 
@@ -125,12 +142,18 @@ final class TextValidityConformanceTest extends TestCase
         $target->{\end($member)} = self::graph($case->graph);
         $options = $inputs['files'] === null ? [] : ['files' => $inputs['files']];
         $actual = self::outcome(static fn () => Validator::validate($inputs['spec'], $inputs['data'], $options));
-        self::assertSame(\json_decode(\json_encode($case->expect, JSON_THROW_ON_ERROR), true, 512, JSON_THROW_ON_ERROR), $actual);
+        self::assertSame(
+            \json_decode(\json_encode($case->expect, JSON_THROW_ON_ERROR), true, 512, JSON_THROW_ON_ERROR),
+            $actual
+        );
     }
 
     public function testInvalidUtf8Bytes(): void
     {
-        $spec = static fn (string $label) => (object) ['type' => 'group', 'properties' => (object) ['name' => (object) ['type' => 'text', 'label' => $label]]];
+        $spec = static fn (string $label) => (object) [
+            'type' => 'group',
+            'properties' => (object) ['name' => (object) ['type' => 'text', 'label' => $label]]
+        ];
         $sequences = [
             'lone byte' => \chr(0xff),
             'continuation' => 'a' . \chr(0x80),
@@ -141,10 +164,29 @@ final class TextValidityConformanceTest extends TestCase
         ];
         foreach ($sequences as $name => $bytes) {
             self::assertFalse(Text::isScalar($bytes), $name);
-            self::assertSame(['code' => 'INVALID_TEXT', 'message' => Text::MESSAGE, 'at' => 'properties.name.label'], self::outcome(static fn () => Validator::validate($spec('A' . $bytes), [])), $name);
-            self::assertSame(['code' => 'INVALID_FORM_INPUT', 'message' => Text::MESSAGE . ': data.rows.1', 'at' => ''], self::outcome(static fn () => Validator::validate($spec('A'), ['rows' => ['ok', [$bytes => 1]]])), $name);
-            self::assertSame(['code' => 'INVALID_TEXT', 'message' => Text::MESSAGE, 'at' => ''], self::outcome(static fn () => Validator::validateList(['columns' => []], ['files' => [$bytes => new stdClass()]])), $name);
-            self::assertSame(['code' => 'INVALID_FORM_INPUT', 'message' => Text::MESSAGE . ': options.basepath', 'at' => ''], self::outcome(static fn () => Validator::validateDetail(['fields' => []], ['basepath' => $bytes])), $name);
+            self::assertSame(
+                ['code' => 'INVALID_TEXT', 'message' => Text::MESSAGE, 'at' => 'properties.name.label'],
+                self::outcome(static fn () => Validator::validate($spec('A' . $bytes), [])),
+                $name
+            );
+            self::assertSame(
+                ['code' => 'INVALID_FORM_INPUT', 'message' => Text::MESSAGE . ': data.rows.1', 'at' => ''],
+                self::outcome(static fn () => Validator::validate($spec('A'), ['rows' => ['ok', [$bytes => 1]]])),
+                $name
+            );
+            self::assertSame(
+                ['code' => 'INVALID_TEXT', 'message' => Text::MESSAGE, 'at' => ''],
+                self::outcome(static fn () => Validator::validateList(
+                    ['columns' => []],
+                    ['files' => [$bytes => new stdClass()]]
+                )),
+                $name
+            );
+            self::assertSame(
+                ['code' => 'INVALID_FORM_INPUT', 'message' => Text::MESSAGE . ': options.basepath', 'at' => ''],
+                self::outcome(static fn () => Validator::validateDetail(['fields' => []], ['basepath' => $bytes])),
+                $name
+            );
         }
         $bad = \chr(0xff);
         // Integer member names are decimal names in code point order: "10" precedes "9".
@@ -164,16 +206,37 @@ final class TextValidityConformanceTest extends TestCase
 
     public function testJsonTextDecodesAsJsonDecode(): void
     {
-        $same = ['{"a":[1,-2.5e3,0,true,false,null,{"b":"\u00e9\ud83d\ude00\n\/"}],"a":"last","":{}}', ' [ ] ', '123', '"\u0000"', '12345678901234567890', '{"_empty_":1}'];
+        $same = [
+            '{"a":[1,-2.5e3,0,true,false,null,{"b":"\u00e9\ud83d\ude00\n\/"}],"a":"last","":{}}',
+            ' [ ] ',
+            '123',
+            '"\u0000"',
+            '12345678901234567890',
+            '{"_empty_":1}'
+        ];
         foreach ($same as $json) {
             self::assertEquals(\json_decode($json, false, 512, JSON_THROW_ON_ERROR), JsonText::decode($json), $json);
         }
         $surrogate = \chr(0xed) . \chr(0xa0) . \chr(0x80);
         $low = \chr(0xed) . \chr(0xb0) . \chr(0x80);
-        self::assertSame($surrogate . 'A' . $low . $surrogate . \chr(0xff), JsonText::decode('"\ud800A\udc00\ud800' . \chr(0xff) . '"'));
+        self::assertSame(
+            $surrogate . 'A' . $low . $surrogate . \chr(0xff),
+            JsonText::decode('"\ud800A\udc00\ud800' . \chr(0xff) . '"')
+        );
         $decoded = JsonText::decode('{"\ud800":{"\ud800":[1,"x"]}}');
         self::assertSame([1, 'x'], $decoded->{$surrogate}->{$surrogate});
-        $rejected = ['', '{', '[1,]', '01', '"\x"', '"a' . \chr(1) . '"', '{} {}', '"\ud800', '{"\u0000a":"\ud800"}', \str_repeat('[', 512) . '"\ud800"' . \str_repeat(']', 512)];
+        $rejected = [
+            '',
+            '{',
+            '[1,]',
+            '01',
+            '"\x"',
+            '"a' . \chr(1) . '"',
+            '{} {}',
+            '"\ud800',
+            '{"\u0000a":"\ud800"}',
+            \str_repeat('[', 512) . '"\ud800"' . \str_repeat(']', 512)
+        ];
         foreach ($rejected as $json) {
             try {
                 JsonText::decode($json);

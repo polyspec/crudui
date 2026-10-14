@@ -100,7 +100,11 @@ final class Utf8
             $codePoint = ($codePoint << 6) | ($byte & 0x3F);
         }
         $minimum = [2 => 0x80, 3 => 0x800, 4 => 0x10000][$length];
-        if ($codePoint < $minimum || $codePoint > 0x10FFFF || (!$surrogates && $codePoint >= 0xD800 && $codePoint <= 0xDFFF)) {
+        if (
+            $codePoint < $minimum
+            || $codePoint > 0x10FFFF
+            || (!$surrogates && $codePoint >= 0xD800 && $codePoint <= 0xDFFF)
+        ) {
             return null;
         }
         return $codePoint;

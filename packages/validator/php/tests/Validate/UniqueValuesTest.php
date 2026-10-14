@@ -16,7 +16,10 @@ final class UniqueValuesTest extends TestCase
 {
     public function testAnIntAndAFloatOfTheSameNumberAreDuplicates(): void
     {
-        $spec = ['type' => 'group', 'properties' => ['v' => ['type' => 'number', 'multiple' => true, 'validate' => ['unique' => true]]]];
+        $spec = [
+            'type' => 'group',
+            'properties' => ['v' => ['type' => 'number', 'multiple' => true, 'validate' => ['unique' => true]]]
+        ];
         $result = Validator::validate($spec, ['v' => ['__0000000000001__' => 1, '__0000000000002__' => 1.0]]);
         self::assertFalse($result->valid);
         self::assertSame('unique', $result->errors[0]->rule);
@@ -24,7 +27,15 @@ final class UniqueValuesTest extends TestCase
 
     public function testAssociativeArraysCompareTheirMembersInAnyOrder(): void
     {
-        $spec = ['type' => 'group', 'properties' => ['v' => ['type' => 'text', 'lang' => ['only' => ['ko', 'en']], 'multiple' => true, 'validate' => ['unique' => true]]]];
+        $spec = [
+            'type' => 'group',
+            'properties' => ['v' => [
+                'type' => 'text',
+                'lang' => ['only' => ['ko', 'en']],
+                'multiple' => true,
+                'validate' => ['unique' => true]
+            ]]
+        ];
         $duplicate = Validator::validate($spec, ['v' => [
             '__0000000000001__' => ['ko' => 'a', 'en' => 'b'],
             '__0000000000002__' => ['en' => 'b', 'ko' => 'a'],

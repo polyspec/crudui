@@ -17,7 +17,14 @@ if ((new ReflectionClass(Validator::class))->isInternal() !== $native) {
 $root = dirname(__DIR__, 3);
 $results = [];
 $differences = [];
-foreach (json_decode(file_get_contents($root . '/tests/fixtures/validate/cases.json'), false, 512, JSON_THROW_ON_ERROR) as $case) {
+foreach (
+    json_decode(
+        file_get_contents($root . '/tests/fixtures/validate/cases.json'),
+        false,
+        512,
+        JSON_THROW_ON_ERROR
+    ) as $case
+) {
     $options = [];
     foreach (['files','basepath'] as $option) {
         if (property_exists($case, $option)) {
@@ -28,12 +35,19 @@ foreach (json_decode(file_get_contents($root . '/tests/fixtures/validate/cases.j
     try {
         $actual = Validator::validate($case->spec, $case->data, $options);
     } catch (ComposeLoadError $error) {
-        $failure = ['code' => $error->getErrorCode(),'message' => $error->getMessage(),'at' => implode('.', $error->getCompositionTrace())];
+        $failure = [
+            'code' => $error->getErrorCode(),
+            'message' => $error->getMessage(),
+            'at' => implode('.', $error->getCompositionTrace())
+        ];
     } catch (FormInputError $error) {
         $failure = ['code' => $error->getErrorCode(),'message' => $error->getMessage(),'at' => ''];
     }
     if ($failure !== null) {
-        if (!property_exists($case, 'expectFailure') || json_encode($failure, JSON_THROW_ON_ERROR) !== json_encode($case->expectFailure, JSON_THROW_ON_ERROR)) {
+        if (
+            !property_exists($case, 'expectFailure')
+            || json_encode($failure, JSON_THROW_ON_ERROR) !== json_encode($case->expectFailure, JSON_THROW_ON_ERROR)
+        ) {
             throw new RuntimeException($case->name . ': failure differs: ' . json_encode($failure));
         }
         $results[] = ['case' => $case->name,'failure' => $failure];
@@ -53,7 +67,14 @@ if ($differences !== []) {
     throw new RuntimeException(count($differences) . " validation results differ:\n" . implode("\n", $differences));
 }
 foreach (['spec-validity','list-validity','detail-validity'] as $family) {
-    foreach (json_decode(file_get_contents($root . '/tests/fixtures/' . $family . '/cases.json'), false, 512, JSON_THROW_ON_ERROR) as $case) {
+    foreach (
+        json_decode(
+            file_get_contents($root . '/tests/fixtures/' . $family . '/cases.json'),
+            false,
+            512,
+            JSON_THROW_ON_ERROR
+        ) as $case
+    ) {
         $options = [];
         foreach (['files','basepath'] as $option) {
             if (property_exists($case, $option)) {
@@ -67,7 +88,9 @@ foreach (['spec-validity','list-validity','detail-validity'] as $family) {
                 'list-validity' => Validator::validateList($case->spec, $options),
                 'detail-validity' => Validator::validateDetail($case->spec, $options),
             };
-            $clean = $family === 'spec-validity' ? '{"valid":true,"errors":[],"hidden":[]}' : '{"valid":true,"errors":[]}';
+            $clean = $family === 'spec-validity'
+                ? '{"valid":true,"errors":[],"hidden":[]}'
+                : '{"valid":true,"errors":[]}';
             if (json_encode($actual, JSON_THROW_ON_ERROR) !== $clean) {
                 throw new RuntimeException($case->name . ': clean load result differs');
             }
@@ -79,10 +102,17 @@ foreach (['spec-validity','list-validity','detail-validity'] as $family) {
             if (!$expectation instanceof stdClass) {
                 throw $error;
             }
-            if ($expectation->code !== $error->getErrorCode() || $expectation->at !== implode('.', $error->getCompositionTrace())) {
+            if (
+                $expectation->code !== $error->getErrorCode()
+                || $expectation->at !== implode('.', $error->getCompositionTrace())
+            ) {
                 throw new RuntimeException($case->name . ': error code or path differs');
             }
-            $results[] = ['case' => $family . ':' . $case->name,'error' => $error->getErrorCode(),'path' => implode('.', $error->getCompositionTrace())];
+            $results[] = [
+                'case' => $family . ':' . $case->name,
+                'error' => $error->getErrorCode(),
+                'path' => implode('.', $error->getCompositionTrace())
+            ];
         }
     }
 }
@@ -92,7 +122,11 @@ if (!class_exists(JsonText::class)) {
     require_once $root . '/packages/validator/php/src/Support/JsonText.php';
 }
 foreach (['validate','validateList','validateDetail'] as $feature) {
-    foreach (JsonText::decode(file_get_contents($root . '/tests/fixtures/text-validity/' . $feature . '/cases.json')) as $case) {
+    foreach (
+        JsonText::decode(
+            file_get_contents($root . '/tests/fixtures/text-validity/' . $feature . '/cases.json')
+        ) as $case
+    ) {
         $options = (array) ($case->options ?? []);
         if (property_exists($case, 'files')) {
             $options['files'] = $case->files;
@@ -105,18 +139,28 @@ foreach (['validate','validateList','validateDetail'] as $feature) {
         }
         try {
             $outcome = match ($feature) {
-                'validate' => Validator::validate($case->spec, $rootString ? [$case->data] : ($case->data ?? new stdClass()), $options),
+                'validate' => Validator::validate(
+                    $case->spec,
+                    $rootString ? [$case->data] : ($case->data ?? new stdClass()),
+                    $options
+                ),
                 'validateList' => Validator::validateList($case->spec, $options),
                 'validateDetail' => Validator::validateDetail($case->spec, $options),
             };
         } catch (ComposeLoadError $error) {
-            $outcome = ['code' => $error->getErrorCode(),'message' => $error->getMessage(),'at' => implode('.', $error->getCompositionTrace())];
+            $outcome = [
+                'code' => $error->getErrorCode(),
+                'message' => $error->getMessage(),
+                'at' => implode('.', $error->getCompositionTrace())
+            ];
         } catch (FormInputError $error) {
             $outcome = ['code' => $error->getErrorCode(),'message' => $error->getMessage(),'at' => ''];
         }
         $outcome = json_decode(json_encode($outcome, JSON_THROW_ON_ERROR), true, 512, JSON_THROW_ON_ERROR);
         if ($outcome !== $expected) {
-            throw new RuntimeException($feature . '/' . $case->name . ': input text result differs: ' . json_encode($outcome));
+            throw new RuntimeException(
+                $feature . '/' . $case->name . ': input text result differs: ' . json_encode($outcome)
+            );
         }
         $results[] = ['case' => 'text-validity/' . $feature . ':' . $case->name,'outcome' => $outcome];
     }
@@ -148,9 +192,17 @@ foreach (JsonText::decode(file_get_contents($root . '/tests/fixtures/text-validi
     }
     $target->{end($members)} = $graph($case->graph);
     try {
-        $outcome = Validator::validate($inputs['spec'], $inputs['data'], $inputs['files'] === null ? [] : ['files' => $inputs['files']]);
+        $outcome = Validator::validate(
+            $inputs['spec'],
+            $inputs['data'],
+            $inputs['files'] === null ? [] : ['files' => $inputs['files']]
+        );
     } catch (ComposeLoadError $error) {
-        $outcome = ['code' => $error->getErrorCode(),'message' => $error->getMessage(),'at' => implode('.', $error->getCompositionTrace())];
+        $outcome = [
+            'code' => $error->getErrorCode(),
+            'message' => $error->getMessage(),
+            'at' => implode('.', $error->getCompositionTrace())
+        ];
     } catch (FormInputError $error) {
         $outcome = ['code' => $error->getErrorCode(),'message' => $error->getMessage(),'at' => ''];
     }
@@ -160,4 +212,7 @@ foreach (JsonText::decode(file_get_contents($root . '/tests/fixtures/text-validi
     }
     $results[] = ['case' => 'value-graphs:' . $case->name,'outcome' => $outcome];
 }
-echo json_encode(['native' => $native,'checks' => count($results),'results' => $results], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES),"\n";
+echo json_encode(
+    ['native' => $native,'checks' => count($results),'results' => $results],
+    JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES
+),"\n";
