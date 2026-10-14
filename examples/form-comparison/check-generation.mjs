@@ -176,7 +176,7 @@ export function assertGenerationProvenance(actual, server, source, sourceDirecto
 
 async function artifacts(library) {
   const result = {};
-  for (const packageName of ['validator-ts', 'generator-core', 'generator-react']) {
+  for (const packageName of ['validator/ts', 'generator/ts', 'react']) {
     const base = path.join(library, 'packages', packageName);
     result[`packages/${packageName}/package.json`] = digest(await readFile(path.join(base, 'package.json')));
     async function collect(directory) {
@@ -304,8 +304,8 @@ async function main() {
       beforeArtifacts = await artifacts(options.library);
       report.artifactsBefore = beforeArtifacts;
       const require = createRequire(path.join(options.library, 'package.json'));
-      ({ compileForm, createForm } = await import(pathToFileURL(path.join(options.library, 'packages/generator-core/dist/index.mjs'))));
-      ({ renderForm } = await import(pathToFileURL(path.join(options.library, 'packages/generator-react/dist/server.mjs'))));
+      ({ compileForm, createForm } = await import(pathToFileURL(path.join(options.library, 'packages/generator/ts/dist/index.mjs'))));
+      ({ renderForm } = await import(pathToFileURL(path.join(options.library, 'packages/react/dist/server.mjs'))));
       ({ parse } = await import(pathToFileURL(require.resolve('parse5'))));
       report.source = await request('/source.json');
       source = assertSourceIdentity(report.source, 'Missing current source identity');

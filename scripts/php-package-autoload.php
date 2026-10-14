@@ -32,6 +32,6 @@ function crudui_package_autoload(string $packageDir): void
 }
 
 $crudui_package = getcwd();
-if ($crudui_package !== false && dirname($crudui_package) === dirname(__DIR__) . '/packages' && is_file($crudui_package . '/composer.json')) {
+if ($crudui_package !== false && str_starts_with($crudui_package, dirname(__DIR__) . '/packages/') && is_file($crudui_package . '/composer.json')) {
     crudui_package_autoload($crudui_package);
 }

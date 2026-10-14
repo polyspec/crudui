@@ -38,7 +38,7 @@ const data = { [levels[0]]: levelData(0) };
 const siblingData = { [levels[0]]: { [key]: { ...levelData(0)[key], name: 'ACME', stores: { ...levelData(1), [second]: { name: 'Pangyo', note: '', departments: {} } } } } };
 
 const browserSource = `
-import '/packages/generator-core/styles/crudui.css';
+import '/packages/generator/ts/styles/crudui.css';
 import { compileForm, connectForm, connectOutline, createForm, patchContent } from '@polyspec/crudui-generator-core';
 import { renderForm, renderOutline } from '@polyspec/crudui-generator-html';
 

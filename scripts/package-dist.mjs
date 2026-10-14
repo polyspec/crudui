@@ -39,16 +39,17 @@ function acquireReported(lockFile, { command }) {
   };
 }
 
-/** The folder of a package directory of this checkout. */
+/** The folder of a package directory of this checkout, relative to packages/ ('validator/ts', 'html'). */
 function packageFolder(directory) {
   assert.ok(path.isAbsolute(directory), `Package directory must be absolute: ${directory}`);
-  assert.equal(path.dirname(directory), path.join(repositoryRoot, 'packages'),
+  const folder = path.relative(path.join(repositoryRoot, 'packages'), directory);
+  assert.ok(folder !== '' && !folder.startsWith('..') && !path.isAbsolute(folder),
     `${directory} is not a package directory of ${repositoryRoot}`);
   assert.ok(fs.lstatSync(directory).isDirectory(), `${directory} is not a directory`);
-  return path.basename(directory);
+  return folder;
 }
 
-const distLockFile = folder => checkoutLockFile(`dist-${folder}`);
+const distLockFile = folder => checkoutLockFile(`dist-${folder.split(path.sep).join('-')}`);
 
 /**
  * Build the package of the working directory under its `dist` lock. The build command writes into `dist.next`, which

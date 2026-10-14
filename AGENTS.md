@@ -118,9 +118,10 @@ the rules of crudui.
   comes first: it sets the version of every manifest that `config/release.json` lists (`package.json`, `Cargo.toml`,
   `pyproject.toml`, the `composer.json` of `packages/`), and of every dependency and git pin on a package of the
   repository, to X.Y.Z, and renames `## Unreleased` of `CHANGELOG.md` and `CHANGELOG.ko.md` to `## X.Y.Z` below a new
-  empty `## Unreleased`. The git pins of `packages/generator-python` name the tag `vX.Y.Z` of this repository, so that tag
+  empty `## Unreleased`. The git pins of `packages/generator/python` name the tag `vX.Y.Z` of this repository, so that tag
   is created only after this commit is on `main`; `make release-pins` (run by `make release-versions`) requires every such
-  pin to name the tag.
+  pin to name the tag and its `subdirectory` to name a package folder of this checkout (`packages/validator/python` since
+  C14.7).
 - The maintainer then tags the commit and pushes the tag. `.github/workflows/release.yml`, the copy of kit, runs
   `make release-tools`, `make release-verify`, `make release-versions`, `make release-assets`, `make release-publish`,
   `make release-proof` and `make release-undraft` (the release tool of `@polyspec/kit`): it requires the commit on `main`

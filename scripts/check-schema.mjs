@@ -151,7 +151,7 @@ for (const [label, field, expected] of [
   checked++;
 }
 // `validate` and `messages` accept the registered rule names only: the rules of the rule registry.
-const registeredRules = [...readText('packages/validator-ts/src/rules/index.ts').matchAll(/^ {2}\['(\w+)', \w+Rule\],$/gm)]
+const registeredRules = [...readText('packages/validator/ts/src/rules/index.ts').matchAll(/^ {2}\['(\w+)', \w+Rule\],$/gm)]
   .map((match) => match[1]);
 assert.equal(registeredRules.length, 24, 'the rule registry lists 24 rules');
 const validateObject = schema.definitions.Validate.anyOf.find((shape) => shape.type === 'object');
@@ -249,7 +249,7 @@ function checkSpec(label, spec, validate) {
 }
 
 // A specification whose root is a bare composition entry is the properties-layer
-// fragment `$ref` resolves (packages/validator-ts/src/compose/ref.ts), not a
+// fragment `$ref` resolves (packages/validator/ts/src/compose/ref.ts), not a
 // composed specification: the whole-spec entry requires `type`, which such a
 // fragment supplies only after composition (tests/fixtures/spec-validity
 // err-after-compose-ref-base-leak records that result).
@@ -430,9 +430,9 @@ function jsonObjectAt(source, open) {
 
 /** The example specifications each package example embeds in its source. */
 const packageExamples = [
-  ['packages/generator-go/examples/server/main.go', /^const (?<name>\w+) = `(?<spec>\{.*\})`$/gm, (match) => [match.groups.name, JSON.parse(match.groups.spec)]],
-  ['packages/generator-php/examples/index.php', /\$(?<name>\w+) = json_decode\(<<<'JSON'\n(?<spec>\{.*\})\nJSON,/g, (match) => [match.groups.name, JSON.parse(match.groups.spec)]],
-  ['packages/generator-rust/examples/form.rs', /let (?<name>\w*spec) = json!\(/g, (match, source) => [match.groups.name, jsonObjectAt(source, source.indexOf('{', match.index))]],
+  ['packages/generator/go/examples/server/main.go', /^const (?<name>\w+) = `(?<spec>\{.*\})`$/gm, (match) => [match.groups.name, JSON.parse(match.groups.spec)]],
+  ['packages/generator/php/examples/index.php', /\$(?<name>\w+) = json_decode\(<<<'JSON'\n(?<spec>\{.*\})\nJSON,/g, (match) => [match.groups.name, JSON.parse(match.groups.spec)]],
+  ['packages/generator/rust/examples/form.rs', /let (?<name>\w*spec) = json!\(/g, (match, source) => [match.groups.name, jsonObjectAt(source, source.indexOf('{', match.index))]],
 ];
 const packageEntry = {
   specification: validateForm,

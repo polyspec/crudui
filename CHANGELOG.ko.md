@@ -1,8 +1,24 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 49de19ee0ae0deebf7288908fb2aba6c51d2cfb2d8311810951c1112e93120d6 -->
+<!-- source-sha256: 26c82a6bc7f10634907a28c0ab0fcdb841cc39c375d0c18b71e7e540f902c11d -->
 
 ## Unreleased
+
+### 2026-10-14 — kit layout의 폴더 (C14.7)
+
+- package는 S5를 따른다. port를 가진 component는 runtime마다 폴더를 둔다. 이전 → 새 폴더(게시된 이름은 그대로):
+
+  | 이전 | 새 폴더 |
+  |---|---|
+  | `packages/validator-go`, `-php`, `-python`, `-rust`, `-ts` | `packages/validator/go`, `php`, `python`, `rust`, `ts` |
+  | `packages/generator-go`, `-php`, `-python`, `-rust` | `packages/generator/go`, `php`, `python`, `rust` |
+  | `packages/generator-core` | `packages/generator/ts` |
+  | `packages/generator-html`, `-react`, `-vue`, `-svelte` | `packages/html`, `react`, `vue`, `svelte` |
+
+- Go module은 `github.com/polyspec/crudui/packages/validator/go`와 `github.com/polyspec/crudui/packages/generator/go`이므로 tag는 `packages/validator/go/vX.Y.Z`와 `packages/generator/go/vX.Y.Z`다.
+- git tag에서 crudui package를 설치하는 Python 프로젝트는 다음 release부터 새 폴더를 `subdirectory`로 적는다. limepie의 `pyproject.toml`은 v0.0.5에서 `packages/validator-python`과 `packages/generator-python`을 적고, 다음 tag에서는 `packages/validator/python`과 `packages/generator/python`을 적는다. `make release-pins`는 pin의 subdirectory가 checkout의 package 폴더일 것을 요구한다.
+- meta-schema는 `contracts/schema/crudui.schema.json`(그 `$id`도 따른다), validator benchmark는 `benchmarks/validators`이고, phpDocumentor는 `scripts/install-phpdocumentor.mts`로 `var/tools/phpdocumentor`에 설치한다. `config/layout.yml`은 root 파일 `.npmrc`, `composer.json`, `composer.lock`, `tests/`의 cross-language 폴더, `packages/`의 component를 선언한다.
+- 모든 crate는 unsafe code와 이유 없는 allow attribute를 금지하는 자기 workspace이고, 비교의 record server는 OrderedJSON을 그 저장소의 tag에서 받는다.
 
 ### 2026-10-14 — 최신 stable 의존성 (C14.8, C14.3-1)
 

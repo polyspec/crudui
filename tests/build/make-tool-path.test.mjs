@@ -51,7 +51,7 @@ test('test-native runs the Rust tests through the test runner', {
   assert.equal(result.status, 0, [result.stdout, result.stderr].join('\n'));
   const commands = await readFile(commandLog, 'utf8');
   assert.match(commands,
-    /^node\tnode_modules\/@polyspec\/kit\/dist\/run-tests\.mjs cargo -- --locked --manifest-path packages\/generator-rust\/Cargo\.toml$/m);
+    /^node\tnode_modules\/@polyspec\/kit\/dist\/run-tests\.mjs cargo -- --locked --manifest-path packages\/generator\/rust\/Cargo\.toml$/m);
 });
 
 test('test-native runs the generator and PHP API parts after the PHP engine tests fail, and fails', {
@@ -142,7 +142,7 @@ test('the Rust command entry point executes regular toolchain files', {
 
   const result = spawnSync(process.execPath, [
     path.join(repository, 'scripts/run-rust-command.mjs'),
-    'test', '--locked', '--manifest-path', 'packages/generator-rust/Cargo.toml',
+    'test', '--locked', '--manifest-path', 'packages/generator/rust/Cargo.toml',
   ], {
     cwd: repository,
     encoding: 'utf8',
@@ -160,7 +160,7 @@ test('the Rust command entry point executes regular toolchain files', {
 
   assert.equal(result.status, 0, result.stdout + result.stderr);
   assert.equal(await readFile(commandLog, 'utf8'),
-    `cargo\ttest --locked --manifest-path packages/generator-rust/Cargo.toml`
+    `cargo\ttest --locked --manifest-path packages/generator/rust/Cargo.toml`
       + `\t${rustc}\t${rustdoc}\n`);
 });
 

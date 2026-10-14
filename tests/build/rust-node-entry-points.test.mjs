@@ -113,8 +113,8 @@ test('Rust documentation coverage uses one resolved toolchain', t => {
   const root = fixture(t, 'crudui-rust-doc-coverage-', [
     'scripts/check-doc-coverage.mjs',
   ], [
-    'packages/validator-rust',
-    'packages/generator-rust',
+    'packages/validator/rust',
+    'packages/generator/rust',
   ]);
   const tools = rustEnvironment(root);
   const result = spawnSync(process.execPath, [path.join(root, 'scripts/check-doc-coverage.mjs'), 'rust'], {
@@ -126,13 +126,13 @@ test('Rust documentation coverage uses one resolved toolchain', t => {
   assert.deepEqual(commands(tools.commandLog), [
     {
       args: ['build', '--locked', '--lib'],
-      cwd: path.join(root, 'packages/validator-rust'),
+      cwd: path.join(root, 'packages/validator/rust'),
       rustc: tools.rustc,
       rustdoc: tools.rustdoc,
     },
     {
       args: ['build', '--locked', '--lib'],
-      cwd: path.join(root, 'packages/generator-rust'),
+      cwd: path.join(root, 'packages/generator/rust'),
       rustc: tools.rustc,
       rustdoc: tools.rustdoc,
     },
@@ -146,10 +146,10 @@ test('Rust API generation uses one resolved toolchain', t => {
   ], [
     'docs/api',
     'docs/public/api',
-    'packages/generator-rust',
-    'packages/validator-rust',
+    'packages/generator/rust',
+    'packages/validator/rust',
   ]);
-  const generated = path.join(root, 'packages/generator-rust/target/doc');
+  const generated = path.join(root, 'packages/generator/rust/target/doc');
   const tools = rustEnvironment(root, { TEST_RUSTDOC_OUTPUT: generated });
   const result = spawnSync(process.execPath, [path.join(root, 'scripts/gen-api-docs.mjs'), 'rust'], {
     encoding: 'utf8',
@@ -161,7 +161,7 @@ test('Rust API generation uses one resolved toolchain', t => {
     args: [
       'doc', '--locked', '--no-deps', '-p', 'polyspec-crudui-validator', '-p', 'polyspec-crudui-generator',
     ],
-    cwd: path.join(root, 'packages/generator-rust'),
+    cwd: path.join(root, 'packages/generator/rust'),
     rustc: tools.rustc,
     rustdoc: tools.rustdoc,
   }]);
@@ -203,7 +203,7 @@ test('Rust generator fixture validation uses one resolved toolchain', t => {
   const root = fixture(t, 'crudui-rust-generator-fixtures-', []);
   const tools = rustEnvironment(root);
   const result = spawnSync(process.execPath, [
-    path.join(repository, 'packages/generator-rust/verify-fixtures.mjs'),
+    path.join(repository, 'packages/generator/rust/verify-fixtures.mjs'),
   ], {
     cwd: repository,
     encoding: 'utf8',
@@ -215,7 +215,7 @@ test('Rust generator fixture validation uses one resolved toolchain', t => {
   assert.deepEqual(commands(tools.commandLog), [{
     args: [
       'test', '--locked', '--manifest-path',
-      path.join(repository, 'packages/generator-rust/Cargo.toml'), 'native_fixture_records',
+      path.join(repository, 'packages/generator/rust/Cargo.toml'), 'native_fixture_records',
     ],
     cwd: repository,
     rustc: tools.rustc,
@@ -258,7 +258,7 @@ test('a Cargo command refuses a CARGO_TARGET_DIR outside its checkout', async t 
   const { requireCheckoutTarget, runRustCommand } = await import('../../scripts/run-rust-command.mjs');
   const outside = mkdtempSync(path.join(realpathSync(os.tmpdir()), 'crudui-shared-target-'));
   t.after(() => rmSync(outside, { recursive: true, force: true }));
-  const crate = path.join(repository, 'packages/validator-rust');
+  const crate = path.join(repository, 'packages/validator/rust');
   const ran = [];
   await assert.rejects(
     runRustCommand(['build'], { cwd: crate, environment: { ...process.env, CARGO_TARGET_DIR: outside }, run: async (...call) => { ran.push(call); } }),

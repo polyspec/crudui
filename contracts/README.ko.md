@@ -1,6 +1,6 @@
 # CRUDUI 계약 manifest
 <!-- doc-id: contracts-readme -->
-<!-- source-sha256: 442b04083d382a13b8ae842bc35f5d339a7764df292a9adc2027c0ca4d4a53cf -->
+<!-- source-sha256: e2a2b9275d83b3c88ab63bba9cd7f2256e57284b3b1b08dc2ba591305be49ed4 -->
 
 [English](README.md).
 
@@ -49,8 +49,8 @@ CLI는 같은 계약을 도구가 읽을 수 있는 JSON 또는 Markdown으로 �
 다르면 실패하는 테스트를 둡니다. 파일을 고친 뒤에는 모든 런타임의 스크립트를
 실행합니다.
 
-- TypeScript: `node packages/generator-core/scripts/generate-interface-messages.mjs`
-- Go: `packages/generator-go`에서 `go generate`
-- Rust: `node packages/generator-rust/tools/generate-interface-messages.mjs`
-- PHP: `php packages/generator-php/scripts/generate-interface-messages.php`
+- TypeScript: `node packages/generator/ts/scripts/generate-interface-messages.mjs`
+- Go: `packages/generator/go`에서 `go generate`
+- Rust: `node packages/generator/rust/tools/generate-interface-messages.mjs`
+- PHP: `php packages/generator/php/scripts/generate-interface-messages.php`
 - PHP 확장: `node packages/php-ext/tools/generate-interface-messages.mjs`

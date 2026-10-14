@@ -3,16 +3,17 @@ node_modules/
 # The browsers of this checkout (scripts/install-browsers.mjs)
 /.tools/
 # Workspace packages use the root dependency lock file.
-packages/*/package-lock.json
+packages/**/package-lock.json
+!packages/svelte/tools/package-lock.json
 
 # Composer dependencies
 examples/**/vendor/
 /vendor/
-packages/generator-php/.phpunit.cache/
-packages/generator-php/.phpunit.result.cache
+packages/generator/php/.phpunit.cache/
+packages/generator/php/.phpunit.result.cache
 
 # The temporary API reports of API Extractor in each package (make lint-ts)
-packages/*/var/
+packages/**/var/
 
 # Build outputs; a package build writes dist.next and replaces dist with it (scripts/package-dist.mjs)
 dist/

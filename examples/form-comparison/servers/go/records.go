@@ -21,8 +21,8 @@ import (
 	"strings"
 	"unicode"
 
-	generator "github.com/polyspec/crudui/packages/generator-go"
-	"github.com/polyspec/crudui/packages/validator-go/validator/validate"
+	generator "github.com/polyspec/crudui/packages/generator/go"
+	"github.com/polyspec/crudui/packages/validator/go/validator/validate"
 )
 
 const recordsPerPage = 20

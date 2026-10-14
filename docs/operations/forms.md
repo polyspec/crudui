@@ -23,7 +23,7 @@ update the independent graph's root `allowScripts` field with exact versions.
 Run `npm rebuild` to execute newly approved scripts in an existing installation.
 
 PHP with Composer dependencies, Go and Rust are needed for four-language checks.
-Install PHP dependencies with `composer install` in `packages/validator-php`.
+Install PHP dependencies with `composer install` in `packages/validator/php`.
 No container is required when these toolchains are available locally.
 
 ## Build before loading data
@@ -124,9 +124,9 @@ make docs-check
 Run the server validation cases from the repository root:
 
 ```sh
-COMPOSER_VENDOR_DIR=../../vendor node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator-php -- --filter ValidateConformanceTest
-node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/validator-go -- ./validator/validate
-node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml --test validate_conformance
+COMPOSER_VENDOR_DIR=../../../vendor node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- --filter ValidateConformanceTest
+node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/validator/go -- ./validator/validate
+node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/validator/rust/Cargo.toml --test validate_conformance
 ```
 
 `test:forms` builds current packages and runs core, SSR and mounted DOM tests.
@@ -145,7 +145,7 @@ the run with the command that installs it; no engine is skipped. The [browser va
 1280 CSS pixels and requires no horizontal overflow of the document, and
 `tests/tailwind-styles.test.mjs` compiles `crudui.tailwind.css` with Tailwind CSS and requires the
 computed styles of `crudui.css`, both in the same three engines. `test:forms` first runs
-`node packages/generator-core/scripts/write-tailwind-styles.mjs --check`, which fails when
+`node packages/generator/ts/scripts/write-tailwind-styles.mjs --check`, which fails when
 `crudui.tailwind.css` differs from `crudui.css`; after a change of `crudui.css`, run the script
 without `--check` and commit both files.
 `tests/widget-script-runs.test.mjs` runs the script rule in the same three engines for the HTML,

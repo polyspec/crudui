@@ -14,12 +14,12 @@ import {
   MAX_EXPRESSION_DEPTH,
   ParseError,
   Parser,
-} from '../../../packages/validator-ts/src/parser/ConditionParser';
+} from '../../../packages/validator/ts/src/parser/ConditionParser';
 import {
   evaluateCondition,
   evaluateExpressionValue,
-} from '../../../packages/validator-ts/src/parser/PathResolver';
-import type { PathContext } from '../../../packages/validator-ts/src/types';
+} from '../../../packages/validator/ts/src/parser/PathResolver';
+import type { PathContext } from '../../../packages/validator/ts/src/types';
 
 // ---------------------------------------------------------------------------
 // Serialization helpers (drop `position`, keep JS-actual field names)

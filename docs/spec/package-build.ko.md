@@ -1,6 +1,6 @@
 # 패키지 빌드
 <!-- doc-id: docs-spec-package-build -->
-<!-- source-sha256: 2c97f2d3d50896191102d46ee376a92a6db9bd71ba9b821039f850a871131051 -->
+<!-- source-sha256: b6912c1a3e993e7d89830ffe61bde78729d9cee8bad37852bdd91a0ace247837 -->
 
 [English](package-build.md).
 
@@ -73,7 +73,7 @@ Cargo 경로를 실행하고 `RUSTC`와 `RUSTDOC`에 해석된 컴파일러 경�
 | npm | `@polyspec/crudui-<name>`: `@polyspec/crudui-cli`, `@polyspec/crudui-form-binding`, `@polyspec/crudui-generator-core`, `@polyspec/crudui-generator-html`, `@polyspec/crudui-generator-react`, `@polyspec/crudui-generator-svelte`, `@polyspec/crudui-generator-vue`, `@polyspec/crudui-validator`. 비공개 workspace root는 `@polyspec/crudui-workspace`입니다 |
 | Composer | `polyspec/crudui-generator`와 `polyspec/crudui-validator`이며 PHP namespace는 `Polyspec\Crudui\`입니다. 클래스는 `Polyspec\Crudui\Generator`, `Polyspec\Crudui\Validator`, `Polyspec\Crudui\Form`, `Polyspec\Crudui\FormError`이고, 내부 namespace는 `Polyspec\Crudui\Generator\`와 `Polyspec\Crudui\Validator\`입니다. PHP 확장도 같은 클래스를 등록합니다 |
 | Rust | crate `polyspec-crudui-generator`와 `polyspec-crudui-validator`, library `polyspec_crudui_generator`와 `polyspec_crudui_validator` |
-| Go | module `github.com/polyspec/crudui/packages/generator-go`와 `github.com/polyspec/crudui/packages/validator-go` |
+| Go | module `github.com/polyspec/crudui/packages/generator/go`와 `github.com/polyspec/crudui/packages/validator/go` |
 
 `examples/`, `tests/`, `tools/`의 프로그램도 같은 규칙을 따릅니다. 비공개 npm package는
 `@polyspec/crudui-cross-check-console`이고, crate는 `polyspec-crudui-cross-check-validator`,
@@ -169,7 +169,7 @@ Node.js는 활성 LTS 또는 다음 LTS로 지정된 최신 짝수 안정 메이
   `.node-version`, 모든 `package.json`의 `engines.node`(`>=26.11.1`), 모든 `composer.json`의 `require.php`(`>=8.5`), 모든
   `pyproject.toml`의 `requires-python`(`>=3.14`), 모든 `go.mod`의 `go` 줄(`1.27.2`, `toolchain` 줄 없음), 모든 Cargo package의
   `rust-version`, 모든 manifest와 lock의 `typescript`입니다. 벗어나는 값은 `config/toolchain.json`의 `exceptions` 항목으로 scope,
-  이유, 재시도 조건과 함께 선언합니다. `packages/generator-svelte`는 svelte-check와 `@sveltejs/package`가 TypeScript 6 API를
+  이유, 재시도 조건과 함께 선언합니다. `packages/svelte`는 svelte-check와 `@sveltejs/package`가 TypeScript 6 API를
   요구하므로 TypeScript 6.0.3을 유지합니다.
 - `mise.toml`은 kit pin인 정확한 Go 릴리스를 기록하고, `make install-tools`는 CI에서도 mise로 `mise.lock`의 digest에 맞춰
   그것을 설치하며, 모든 `go.mod`의 `go` 줄이 그 릴리스이고, Makefile과 CI가 설정하는
@@ -235,9 +235,9 @@ SHA-512 무결성을 기록하며, 프로젝트 npm 설정은 `allow-remote=none
 의존성은 검사가 registry에 묻는 결과가 아니라 review 때 알려진 상태로 판단하므로, 같은
 tree는 언제나 같은 결과를 냅니다. review 대상은 registry 의존성입니다. 루트와 각 workspace
 `package.json`의 `dependencies`와 `devDependencies`, 그리고 `config/dependency-policy.json`이
-지정한 Composer manifest(`config/dependency-policy.json`의 `composerPlatforms`가 지정하는 개발 root `composer.json`이며, 그 lock이 `packages/validator-php`,
-`packages/generator-php`를 해석합니다)와 `pythonManifests`가 지정하는 Python manifest(`packages/validator-python`,
-`packages/generator-python`)의 `build-system.requires` pin의 `require`와 `require-dev`입니다. peer 의존성, URL 의존성, 이 저장소의 package와 Composer platform 요구
+지정한 Composer manifest(`config/dependency-policy.json`의 `composerPlatforms`가 지정하는 개발 root `composer.json`이며, 그 lock이 `packages/validator/php`,
+`packages/generator/php`를 해석합니다)와 `pythonManifests`가 지정하는 Python manifest(`packages/validator/python`,
+`packages/generator/python`)의 `build-system.requires` pin의 `require`와 `require-dev`입니다. peer 의존성, URL 의존성, 이 저장소의 package와 Composer platform 요구
 사항은 정의상 review 밖에 있습니다. GitHub tag에서 가져온 polyspec package는 그 tag의
 release입니다. 검사는 루트 매니페스트가 그 package를 tag의 checkout에 연결하고, checkout이
 tag의 버전을 가지며, 잠금 파일이 그 버전을 기록할 것을 요구합니다. `make dependency-review`(`node_modules/@polyspec/kit/dist/dependency-review.mjs`)는 각 registry 의존성에 대해

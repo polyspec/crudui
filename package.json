@@ -4,7 +4,14 @@
   "private": true,
   "description": "YAML-based form generation and validation system (Multi-language, Multi-framework)",
   "workspaces": [
-    "packages/*"
+    "packages/cli",
+    "packages/form-binding",
+    "packages/generator/ts",
+    "packages/html",
+    "packages/react",
+    "packages/svelte",
+    "packages/validator/ts",
+    "packages/vue"
   ],
   "directories": {
     "doc": "docs",
@@ -31,7 +38,7 @@
     "manifest:docs:check": "node scripts/generate-feature-contract-docs.mjs --check",
     "manifest:test": "node scripts/require-current-build.mjs && node scripts/run-contract-tests.mjs",
     "spec:schema": "node scripts/check-schema.mjs",
-    "test:forms": "node scripts/require-current-build.mjs || exit 1; status=0; node packages/generator-core/scripts/write-tailwind-styles.mjs --check || status=1; node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator-core || status=1; npm test -w @polyspec/crudui-generator-html || status=1; npm test -w @polyspec/crudui-generator-react || status=1; npm test -w @polyspec/crudui-generator-vue || status=1; npm test -w @polyspec/crudui-generator-svelte || status=1; npm test -w @polyspec/crudui-form-binding || status=1; node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/fixtures/form-render/normalize.test.mjs tests/form-styles.test.mjs tests/viewport.test.mjs tests/tailwind-styles.test.mjs tests/style-properties.test.mjs tests/form-markup/naming.test.mjs examples/product-forms/examples.test.mjs || status=1; node node_modules/@polyspec/kit/dist/run-tests.mjs node --timeout 120 -- tests/widget-script-runs.test.mjs || status=1; exit $status",
+    "test:forms": "node scripts/require-current-build.mjs || exit 1; status=0; node packages/generator/ts/scripts/write-tailwind-styles.mjs --check || status=1; node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts || status=1; npm test -w @polyspec/crudui-generator-html || status=1; npm test -w @polyspec/crudui-generator-react || status=1; npm test -w @polyspec/crudui-generator-vue || status=1; npm test -w @polyspec/crudui-generator-svelte || status=1; npm test -w @polyspec/crudui-form-binding || status=1; node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/fixtures/form-render/normalize.test.mjs tests/form-styles.test.mjs tests/viewport.test.mjs tests/tailwind-styles.test.mjs tests/style-properties.test.mjs tests/form-markup/naming.test.mjs examples/product-forms/examples.test.mjs || status=1; node node_modules/@polyspec/kit/dist/run-tests.mjs node --timeout 120 -- tests/widget-script-runs.test.mjs || status=1; exit $status",
     "test:form-comparison": "status=0; npm run test:form-comparison:source || status=1; npm run test:form-comparison:library || status=1; npm run test:form-comparison:browser || status=1; exit $status",
     "test:form-comparison:source": "node scripts/require-current-build.mjs && node node_modules/@polyspec/kit/dist/run-tests.mjs node -- examples/form-comparison/browser-report.test.mjs examples/form-comparison/check-*.test.mjs examples/form-comparison/public/*.test.mjs examples/form-comparison/src/*.test.mjs",
     "test:form-comparison:browser": "node scripts/require-current-build.mjs && node node_modules/@polyspec/kit/dist/run-tests.mjs node -- examples/form-comparison/src/browser-job.browser.mjs",

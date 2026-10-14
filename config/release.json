@@ -17,42 +17,42 @@
     },
     {
       "kind": "npm",
-      "directory": "packages/generator-core",
+      "directory": "packages/generator/ts",
       "name": "@polyspec/crudui-generator-core"
     },
     {
       "kind": "npm",
-      "directory": "packages/generator-html",
+      "directory": "packages/html",
       "name": "@polyspec/crudui-generator-html"
     },
     {
       "kind": "npm",
-      "directory": "packages/generator-react",
+      "directory": "packages/react",
       "name": "@polyspec/crudui-generator-react"
     },
     {
       "kind": "npm",
-      "directory": "packages/generator-svelte",
+      "directory": "packages/svelte",
       "name": "@polyspec/crudui-generator-svelte"
     },
     {
       "kind": "npm",
-      "directory": "packages/generator-vue",
+      "directory": "packages/vue",
       "name": "@polyspec/crudui-generator-vue"
     },
     {
       "kind": "npm",
-      "directory": "packages/validator-ts",
+      "directory": "packages/validator/ts",
       "name": "@polyspec/crudui-validator"
     },
     {
       "kind": "composer",
-      "directory": "packages/generator-php",
+      "directory": "packages/generator/php",
       "name": "polyspec/crudui-generator"
     },
     {
       "kind": "composer",
-      "directory": "packages/validator-php",
+      "directory": "packages/validator/php",
       "name": "polyspec/crudui-validator"
     }
   ],
@@ -61,18 +61,18 @@
     "packages/cli/package.json": "version",
     "examples/cross-check-console/server/package.json": "version",
     "packages/form-binding/package.json": "archive",
-    "packages/generator-core/package.json": "archive",
-    "packages/generator-html/package.json": "archive",
-    "packages/generator-react/package.json": "archive",
-    "packages/generator-svelte/package.json": "archive",
-    "packages/generator-vue/package.json": "archive",
-    "packages/validator-ts/package.json": "archive",
-    "packages/generator-php/composer.json": "archive",
-    "packages/validator-php/composer.json": "archive",
-    "packages/generator-rust/Cargo.toml": "git-tag",
-    "packages/validator-rust/Cargo.toml": "git-tag",
-    "packages/generator-python/pyproject.toml": "git-tag",
-    "packages/validator-python/pyproject.toml": "git-tag",
+    "packages/generator/ts/package.json": "archive",
+    "packages/html/package.json": "archive",
+    "packages/react/package.json": "archive",
+    "packages/svelte/package.json": "archive",
+    "packages/vue/package.json": "archive",
+    "packages/validator/ts/package.json": "archive",
+    "packages/generator/php/composer.json": "archive",
+    "packages/validator/php/composer.json": "archive",
+    "packages/generator/rust/Cargo.toml": "git-tag",
+    "packages/validator/rust/Cargo.toml": "git-tag",
+    "packages/generator/python/pyproject.toml": "git-tag",
+    "packages/validator/python/pyproject.toml": "git-tag",
     "examples/cross-check-console/validators/rust/Cargo.toml": "version",
     "examples/form-comparison/servers/rust/Cargo.toml": "version",
     "tests/native-generators/programs/rust/Cargo.toml": "version",
@@ -86,11 +86,11 @@
     "examples/form-comparison/servers/go/go.mod": "an example module of this repository, resolved through replace and never tagged",
     "tests/native-generators/programs/go/go.mod": "a test program module of this repository, resolved through replace and never tagged",
     "benchmarks/validators/go/go.mod": "a benchmark module of this repository, resolved through replace and never tagged",
-    "packages/generator-svelte/tools/package.json": "the tools of packages/generator-svelte that need the TypeScript 6 API, a project of its own outside the npm workspaces"
+    "packages/svelte/tools/package.json": "the tools of packages/svelte that need the TypeScript 6 API, a project of its own outside the npm workspaces"
   },
   "goModules": {
-    "packages/generator-go": "github.com/polyspec/crudui/packages/generator-go",
-    "packages/validator-go": "github.com/polyspec/crudui/packages/validator-go"
+    "packages/generator/go": "github.com/polyspec/crudui/packages/generator/go",
+    "packages/validator/go": "github.com/polyspec/crudui/packages/validator/go"
   },
   "consumers": {
     "npm": {
@@ -131,7 +131,7 @@
   },
   "proof": {
     "gitTag": {
-      "packages/validator-python/pyproject.toml": {
+      "packages/validator/python/pyproject.toml": {
         "kind": "python",
         "name": "polyspec-crudui-validator",
         "smoke": [
@@ -140,7 +140,7 @@
           "import polyspec.crudui.validator"
         ]
       },
-      "packages/generator-python/pyproject.toml": {
+      "packages/generator/python/pyproject.toml": {
         "kind": "python",
         "name": "polyspec-crudui-generator",
         "smoke": [
@@ -149,7 +149,7 @@
           "import polyspec.crudui.generator"
         ]
       },
-      "packages/validator-rust/Cargo.toml": {
+      "packages/validator/rust/Cargo.toml": {
         "kind": "rust",
         "name": "polyspec-crudui-validator",
         "smoke": [
@@ -157,7 +157,7 @@
           "check"
         ]
       },
-      "packages/generator-rust/Cargo.toml": {
+      "packages/generator/rust/Cargo.toml": {
         "kind": "rust",
         "name": "polyspec-crudui-generator",
         "smoke": [

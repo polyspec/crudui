@@ -24,10 +24,10 @@ remains and that composing the result again returns it unchanged. An error case 
 composition load error with the recorded `code`; the message and location are not compared.
 
 The cases are read by the composition conformance tests in
-[TypeScript](../../../packages/validator-ts/src/compose.conformance.test.ts),
-[PHP](../../../packages/validator-php/tests/Compose/ComposeConformanceTest.php),
-[Go](../../../packages/validator-go/validator/compose/conformance_test.go),
-[Rust](../../../packages/validator-rust/tests/compose_conformance.rs) and the
+[TypeScript](../../../packages/validator/ts/src/compose.conformance.test.ts),
+[PHP](../../../packages/validator/php/tests/Compose/ComposeConformanceTest.php),
+[Go](../../../packages/validator/go/validator/compose/conformance_test.go),
+[Rust](../../../packages/validator/rust/tests/compose_conformance.rs) and the
 [PHP extension engine test](../../../packages/php-ext/tests/engine.test.mjs).
 
 ## Regeneration

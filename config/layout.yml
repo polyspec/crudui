@@ -75,3 +75,33 @@ rules:
       - "!tests/native-generators"
       - "!tests/ordered-json"
       - "!tests/release-install"
+
+  # S5: the components of crudui beside the runtime folder php-ext: the validator and the generator, each a component with
+  # a port per runtime, the renderers of the frameworks (html, react, vue, svelte), the browser validation (form-binding)
+  # and the command line (cli).
+  - id: layout-packages
+    paths:
+      - "packages/*"
+      - "!packages/go"
+      - "!packages/php"
+      - "!packages/php-ext"
+      - "!packages/python"
+      - "!packages/rust"
+      - "!packages/ts"
+      - "!packages/js"
+      - "!packages/validator"
+      - "!packages/generator"
+      - "!packages/html"
+      - "!packages/react"
+      - "!packages/vue"
+      - "!packages/svelte"
+      - "!packages/form-binding"
+      - "!packages/cli"
+
+  - extends_template: component-ports
+    id: layout-validator-ports
+    vars: { component: validator }
+
+  - extends_template: component-ports
+    id: layout-generator-ports
+    vars: { component: generator }

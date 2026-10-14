@@ -1,6 +1,6 @@
 # 폼 개발과 검증
 <!-- doc-id: docs-operations-forms -->
-<!-- source-sha256: 70b2805fe2a505a5b5b737dbc473764cd36c36b4987bc4daba19f98a93790ea0 -->
+<!-- source-sha256: 5a00e8d8b7bc97608392834e599af6d58ec5391beeee22a6f34b05a47a57c15c -->
 
 [English](forms.md). 계약은 [폼 런타임](../spec/form-runtime.ko.md)에 정의합니다.
 
@@ -24,7 +24,7 @@ npm run build
 기존 설치에서 새로 승인한 스크립트를 실행하려면 `npm rebuild`를 실행합니다.
 
 4개 언어 검증에는 Composer 의존성을 설치한 PHP, Go, Rust가 필요합니다.
-`packages/validator-php`에서 `composer install`로 PHP 의존성을 설치합니다.
+`packages/validator/php`에서 `composer install`로 PHP 의존성을 설치합니다.
 로컬에 이 도구들이 있으면 컨테이너는 필요하지 않습니다.
 
 ## 데이터 로드 전 구성
@@ -123,9 +123,9 @@ make docs-check
 서버 검증 사례는 저장소 루트에서 실행합니다.
 
 ```sh
-COMPOSER_VENDOR_DIR=../../vendor node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator-php -- --filter ValidateConformanceTest
-node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/validator-go -- ./validator/validate
-node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml --test validate_conformance
+COMPOSER_VENDOR_DIR=../../../vendor node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- --filter ValidateConformanceTest
+node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/validator/go -- ./validator/validate
+node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/validator/rust/Cargo.toml --test validate_conformance
 ```
 
 `test:forms`는 현재 패키지를 빌드하고 코어, SSR, 마운트한 DOM 테스트를 실행합니다.
@@ -143,7 +143,7 @@ webkit`이 그것들을 설치합니다(Linux에서는 WebKit에 `--with-deps`).
 `tests/viewport.test.mjs`는 공유 render case 432개의 expected HTML을 360과 1280 CSS pixel로 열어 문서의
 가로 overflow가 없는지 확인하고, `tests/tailwind-styles.test.mjs`는 `crudui.tailwind.css`를 Tailwind CSS로
 compile해 `crudui.css`의 computed style과 같은지 확인합니다. 둘 다 같은 세 엔진에서 실행합니다.
-`test:forms`는 먼저 `node packages/generator-core/scripts/write-tailwind-styles.mjs --check`를 실행하며,
+`test:forms`는 먼저 `node packages/generator/ts/scripts/write-tailwind-styles.mjs --check`를 실행하며,
 이 검사는 `crudui.tailwind.css`가 `crudui.css`와 다르면 실패합니다. `crudui.css`를 바꾼 뒤에는 이 script를
 `--check` 없이 실행하고 두 file을 함께 commit합니다.
 `tests/widget-script-runs.test.mjs`는 같은 세 엔진에서 HTML, React, Vue, Svelte 렌더러를 브라우저에서

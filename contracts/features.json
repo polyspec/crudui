@@ -4,7 +4,7 @@
   "packages": [
     {
       "name": "@polyspec/crudui-generator-core",
-      "path": "packages/generator-core",
+      "path": "packages/generator/ts",
       "layer": "model",
       "entries": {
         ".": {
@@ -67,7 +67,7 @@
     },
     {
       "name": "@polyspec/crudui-generator-html",
-      "path": "packages/generator-html",
+      "path": "packages/html",
       "layer": "renderer",
       "entries": {
         ".": {
@@ -87,7 +87,7 @@
     },
     {
       "name": "@polyspec/crudui-generator-react",
-      "path": "packages/generator-react",
+      "path": "packages/react",
       "layer": "renderer",
       "entries": {
         ".": {
@@ -118,7 +118,7 @@
     },
     {
       "name": "@polyspec/crudui-generator-vue",
-      "path": "packages/generator-vue",
+      "path": "packages/vue",
       "layer": "renderer",
       "entries": {
         ".": {
@@ -143,7 +143,7 @@
     },
     {
       "name": "@polyspec/crudui-generator-svelte",
-      "path": "packages/generator-svelte",
+      "path": "packages/svelte",
       "layer": "renderer",
       "entries": {
         ".": {
@@ -181,7 +181,7 @@
     },
     {
       "name": "@polyspec/crudui-validator",
-      "path": "packages/validator-ts",
+      "path": "packages/validator/ts",
       "layer": "validation",
       "entries": {
         ".": {
@@ -235,7 +235,7 @@
   "examples": [
     {
       "id": "form-instance",
-      "input": "packages/generator-html/README.md",
+      "input": "packages/html/README.md",
       "expected": "tests/fixtures/form-render/cases.json"
     },
     {
@@ -408,9 +408,9 @@
       "status": "implemented",
       "state": "none",
       "tests": [
-        "packages/generator-core/src/form.test.ts",
-        "packages/generator-react/src/__tests__/form-render.conformance.test.ts",
-        "packages/generator-core/src/input-text.test.ts"
+        "packages/generator/ts/src/form.test.ts",
+        "packages/react/src/__tests__/form-render.conformance.test.ts",
+        "packages/generator/ts/src/input-text.test.ts"
       ],
       "docs": [
         "docs/spec/form-runtime.md",
@@ -420,7 +420,7 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator-core -- src/form.test.ts"
+          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/form.test.ts"
         },
         {
           "id": "test-2",
@@ -428,7 +428,7 @@
         },
         {
           "id": "test-3",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator-core -- src/input-text.test.ts"
+          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/input-text.test.ts"
         }
       ]
     },
@@ -457,10 +457,10 @@
       "status": "implemented",
       "state": "none",
       "tests": [
-        "packages/generator-core/src/form.test.ts",
-        "packages/generator-react/src/__tests__/form-render.conformance.test.ts",
-        "packages/generator-core/src/node.test.ts",
-        "packages/generator-core/src/input-text.test.ts"
+        "packages/generator/ts/src/form.test.ts",
+        "packages/react/src/__tests__/form-render.conformance.test.ts",
+        "packages/generator/ts/src/node.test.ts",
+        "packages/generator/ts/src/input-text.test.ts"
       ],
       "docs": [
         "docs/spec/form-runtime.md",
@@ -471,7 +471,7 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator-core -- src/form.test.ts"
+          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/form.test.ts"
         },
         {
           "id": "test-2",
@@ -479,7 +479,7 @@
         },
         {
           "id": "test-3",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator-core -- src/input-text.test.ts"
+          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/input-text.test.ts"
         }
       ]
     },
@@ -506,7 +506,7 @@
       "status": "implemented",
       "state": "none",
       "tests": [
-        "packages/generator-core/src/node.test.ts"
+        "packages/generator/ts/src/node.test.ts"
       ],
       "docs": [
         "docs/spec/form-markup.md",
@@ -515,7 +515,7 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator-core -- src/node.test.ts"
+          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/node.test.ts"
         }
       ]
     },
@@ -542,7 +542,7 @@
       "status": "implemented",
       "state": "none",
       "tests": [
-        "packages/generator-core/src/node.test.ts"
+        "packages/generator/ts/src/node.test.ts"
       ],
       "docs": [
         "docs/spec/form-markup.md"
@@ -550,7 +550,7 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator-core -- src/node.test.ts"
+          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/node.test.ts"
         }
       ]
     },
@@ -579,10 +579,10 @@
       "status": "implemented",
       "state": "instance data, view state and undo history",
       "tests": [
-        "packages/generator-core/src/form.test.ts",
+        "packages/generator/ts/src/form.test.ts",
         "tests/fixtures/form-session/scenario.mjs",
-        "packages/generator-core/src/node.test.ts",
-        "packages/generator-core/src/input-text.test.ts"
+        "packages/generator/ts/src/node.test.ts",
+        "packages/generator/ts/src/input-text.test.ts"
       ],
       "docs": [
         "docs/spec/form-runtime.md",
@@ -593,15 +593,15 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator-core -- src/form.test.ts"
+          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/form.test.ts"
         },
         {
           "id": "test-2",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator-core -- src/form.test.ts"
+          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/form.test.ts"
         },
         {
           "id": "test-3",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator-core -- src/input-text.test.ts"
+          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/input-text.test.ts"
         }
       ]
     },
@@ -634,18 +634,18 @@
       "status": "implemented",
       "state": "none",
       "tests": [
-        "packages/generator-html/src/conformance.test.ts",
-        "packages/generator-react/src/__tests__/form-render.conformance.test.ts",
+        "packages/html/src/conformance.test.ts",
+        "packages/react/src/__tests__/form-render.conformance.test.ts",
         "tests/form-inspector/form-snapshot.test.mjs",
-        "packages/generator-html/src/form-complete.conformance.test.ts",
-        "packages/generator-react/src/__tests__/form-complete.conformance.test.ts",
-        "packages/generator-vue/test/form-complete.conformance.test.mjs",
-        "packages/generator-svelte/test/form-complete.conformance.test.mjs"
+        "packages/html/src/form-complete.conformance.test.ts",
+        "packages/react/src/__tests__/form-complete.conformance.test.ts",
+        "packages/vue/test/form-complete.conformance.test.mjs",
+        "packages/svelte/test/form-complete.conformance.test.mjs"
       ],
       "docs": [
         "docs/spec/form-runtime.md",
         "docs/operations/forms.md",
-        "packages/generator-html/README.md",
+        "packages/html/README.md",
         "docs/spec/form-markup.md"
       ],
       "verification": [
@@ -693,13 +693,13 @@
       "status": "implemented",
       "state": "none",
       "tests": [
-        "packages/generator-html/src/list-conformance.test.ts",
-        "packages/generator-react/src/__tests__/list-render.conformance.test.ts"
+        "packages/html/src/list-conformance.test.ts",
+        "packages/react/src/__tests__/list-render.conformance.test.ts"
       ],
       "docs": [
         "docs/spec/schema.md",
         "docs/spec/form-runtime.md",
-        "packages/generator-html/README.md"
+        "packages/html/README.md"
       ],
       "verification": [
         {
@@ -737,8 +737,8 @@
       "status": "implemented",
       "state": "none",
       "tests": [
-        "packages/generator-core/src/list.test.ts",
-        "packages/generator-core/src/input-text.test.ts"
+        "packages/generator/ts/src/list.test.ts",
+        "packages/generator/ts/src/input-text.test.ts"
       ],
       "docs": [
         "docs/spec/display-formats.md",
@@ -748,11 +748,11 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator-core -- src/list.test.ts"
+          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/list.test.ts"
         },
         {
           "id": "test-2",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator-core -- src/input-text.test.ts"
+          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/input-text.test.ts"
         }
       ]
     },
@@ -780,14 +780,14 @@
       "status": "implemented",
       "state": "none",
       "tests": [
-        "packages/generator-core/src/detail.test.ts",
-        "packages/generator-php/tests/DetailTest.php",
-        "packages/generator-go/detail_test.go",
-        "packages/generator-rust/src/detail.rs",
+        "packages/generator/ts/src/detail.test.ts",
+        "packages/generator/php/tests/DetailTest.php",
+        "packages/generator/go/detail_test.go",
+        "packages/generator/rust/src/detail.rs",
         "packages/php-ext/tests/engine.test.mjs",
         "packages/php-ext/tests/api.php",
         "tests/native-generators/run.mjs",
-        "packages/generator-core/src/input-text.test.ts"
+        "packages/generator/ts/src/input-text.test.ts"
       ],
       "docs": [
         "docs/spec/schema.md",
@@ -798,11 +798,11 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator-core -- src/detail.test.ts"
+          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/detail.test.ts"
         },
         {
           "id": "test-2",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator-core -- src/input-text.test.ts"
+          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/input-text.test.ts"
         }
       ]
     },
@@ -834,13 +834,13 @@
       "tests": [
         "packages/php-ext/tests/engine.test.mjs",
         "packages/php-ext/tests/api.php",
-        "packages/generator-html/src/detail-conformance.test.ts",
-        "packages/generator-react/src/__tests__/detail-render.conformance.test.ts",
-        "packages/generator-vue/src/__tests__/detail-render.conformance.test.ts",
-        "packages/generator-svelte/test/detail-render.conformance.test.mjs",
-        "packages/generator-php/tests/DetailTest.php",
-        "packages/generator-go/detail_test.go",
-        "packages/generator-rust/src/detail.rs",
+        "packages/html/src/detail-conformance.test.ts",
+        "packages/react/src/__tests__/detail-render.conformance.test.ts",
+        "packages/vue/src/__tests__/detail-render.conformance.test.ts",
+        "packages/svelte/test/detail-render.conformance.test.mjs",
+        "packages/generator/php/tests/DetailTest.php",
+        "packages/generator/go/detail_test.go",
+        "packages/generator/rust/src/detail.rs",
         "tests/native-generators/run.mjs"
       ],
       "docs": [
@@ -884,15 +884,15 @@
       "status": "implemented",
       "state": "none",
       "tests": [
-        "packages/validator-ts/src/detail-metaschema.conformance.test.ts",
-        "packages/validator-ts/src/validate-detail/validate-detail.conformance.test.ts",
-        "packages/validator-go/validator/validate/detail_conformance_test.go",
-        "packages/validator-php/tests/Validate/DetailValidateConformanceTest.php",
-        "packages/validator-rust/tests/detail_validity_conformance.rs",
+        "packages/validator/ts/src/detail-metaschema.conformance.test.ts",
+        "packages/validator/ts/src/validate-detail/validate-detail.conformance.test.ts",
+        "packages/validator/go/validator/validate/detail_conformance_test.go",
+        "packages/validator/php/tests/Validate/DetailValidateConformanceTest.php",
+        "packages/validator/rust/tests/detail_validity_conformance.rs",
         "packages/php-ext/tests/validate.php",
         "packages/php-ext/tests/engine.test.mjs",
         "examples/cross-check-console/server/validate-detail-runner.test.mjs",
-        "packages/validator-ts/src/text/text-validity.conformance.test.ts"
+        "packages/validator/ts/src/text/text-validity.conformance.test.ts"
       ],
       "docs": [
         "docs/spec/schema.md",
@@ -941,7 +941,7 @@
       "status": "implemented",
       "state": "form instance and host controls through owned events",
       "tests": [
-        "packages/generator-core/src/widget-controls.test.ts",
+        "packages/generator/ts/src/widget-controls.test.ts",
         "tests/fixtures/form-session/scenario.mjs"
       ],
       "docs": [
@@ -952,11 +952,11 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator-core -- src/widget-controls.test.ts"
+          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/widget-controls.test.ts"
         },
         {
           "id": "test-2",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator-core -- src/form.test.ts"
+          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/form.test.ts"
         }
       ]
     },
@@ -980,9 +980,9 @@
       "status": "implemented",
       "state": "the mounted DOM",
       "tests": [
-        "packages/generator-core/src/patch.test.ts",
-        "packages/generator-html/src/form-session.test.ts",
-        "packages/generator-html/src/view-session.test.ts"
+        "packages/generator/ts/src/patch.test.ts",
+        "packages/html/src/form-session.test.ts",
+        "packages/html/src/view-session.test.ts"
       ],
       "docs": [
         "docs/operations/forms.md"
@@ -990,7 +990,7 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator-core -- src/patch.test.ts"
+          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/patch.test.ts"
         },
         {
           "id": "test-2",
@@ -1019,10 +1019,10 @@
       "status": "implemented",
       "state": "the mounted DOM",
       "tests": [
-        "packages/generator-html/src/view-session.test.ts",
-        "packages/generator-react/src/__tests__/View.test.tsx",
-        "packages/generator-vue/test/view-session.test.mjs",
-        "packages/generator-svelte/test/view-session.client.mjs"
+        "packages/html/src/view-session.test.ts",
+        "packages/react/src/__tests__/View.test.tsx",
+        "packages/vue/test/view-session.test.mjs",
+        "packages/svelte/test/view-session.client.mjs"
       ],
       "docs": [
         "docs/spec/form-runtime.md",
@@ -1065,7 +1065,7 @@
       "status": "implemented",
       "state": "none",
       "tests": [
-        "packages/generator-core/src/node.test.ts"
+        "packages/generator/ts/src/node.test.ts"
       ],
       "docs": [
         "docs/spec/form-markup.md"
@@ -1073,7 +1073,7 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator-core -- src/node.test.ts"
+          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/node.test.ts"
         }
       ]
     },
@@ -1099,7 +1099,7 @@
       "status": "implemented",
       "state": "form instance view state through owned events",
       "tests": [
-        "packages/generator-core/src/node.test.ts"
+        "packages/generator/ts/src/node.test.ts"
       ],
       "docs": [
         "docs/spec/form-markup.md"
@@ -1107,7 +1107,7 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator-core -- src/node.test.ts"
+          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/node.test.ts"
         }
       ]
     },
@@ -1138,7 +1138,7 @@
       "status": "implemented",
       "state": "form instance data, view state and undo history",
       "tests": [
-        "packages/generator-core/src/node.test.ts",
+        "packages/generator/ts/src/node.test.ts",
         "tests/fixtures/form-session/scenario.mjs"
       ],
       "docs": [
@@ -1148,7 +1148,7 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator-core -- src/node.test.ts"
+          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/node.test.ts"
         }
       ]
     },
@@ -1178,7 +1178,7 @@
       "status": "implemented",
       "state": "view state owned by a form instance or a bindForm controller",
       "tests": [
-        "packages/generator-core/src/node.test.ts",
+        "packages/generator/ts/src/node.test.ts",
         "examples/form-comparison/src/bind-form-controller.test.mjs"
       ],
       "docs": [
@@ -1187,7 +1187,7 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator-core -- src/node.test.ts"
+          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/node.test.ts"
         }
       ]
     },
@@ -1217,7 +1217,7 @@
       "status": "implemented",
       "state": "undo history owned by a form instance or a bindForm controller",
       "tests": [
-        "packages/generator-core/src/node.test.ts",
+        "packages/generator/ts/src/node.test.ts",
         "examples/form-comparison/src/bind-form-controller.test.mjs"
       ],
       "docs": [
@@ -1226,7 +1226,7 @@
       "verification": [
         {
           "id": "test-1",
-          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator-core -- src/node.test.ts"
+          "command": "node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/generator/ts -- src/node.test.ts"
         }
       ]
     },
@@ -1257,9 +1257,9 @@
       "status": "implemented",
       "state": "none",
       "tests": [
-        "packages/validator-ts/src/validate.conformance.test.ts",
-        "packages/validator-ts/src/forbidden-scan.conformance.test.ts",
-        "packages/validator-ts/src/text/text-validity.conformance.test.ts"
+        "packages/validator/ts/src/validate.conformance.test.ts",
+        "packages/validator/ts/src/forbidden-scan.conformance.test.ts",
+        "packages/validator/ts/src/text/text-validity.conformance.test.ts"
       ],
       "docs": [
         "docs/spec/validation-rules.md",
@@ -1302,8 +1302,8 @@
       "status": "implemented",
       "state": "none",
       "tests": [
-        "packages/validator-ts/src/validate-list/validate-list.conformance.test.ts",
-        "packages/validator-ts/src/text/text-validity.conformance.test.ts"
+        "packages/validator/ts/src/validate-list/validate-list.conformance.test.ts",
+        "packages/validator/ts/src/text/text-validity.conformance.test.ts"
       ],
       "docs": [
         "docs/spec/display-formats.md",

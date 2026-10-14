@@ -1,6 +1,6 @@
 # 검증 고정 데이터
 <!-- doc-id: tests-fixtures-validate-readme -->
-<!-- source-sha256: 07dbc6aec4c175d8328419196d293f2218fdec1a40891d6e2413b9eae59ed55e -->
+<!-- source-sha256: 406b8c83dcc971146533cc1b128ca98dffc78109e8cd9e59b8199b482acc432e -->
 
 [English](README.md).
 
@@ -35,10 +35,10 @@ Go·Rust·PHP는 숫자를 값으로 비교하므로 `5`와 `5.0`은 같습니�
 교차 검증 콘솔의 검증기 프로세스는 각 사례를 표준 입력으로 받습니다. 결과 사례는 종료 코드 `0`과 함께
 결과를 표준 출력에 쓰고, 실패 사례는 종료 코드 `2`와 함께 `{ error, code, at }`을 씁니다.
 
-[TypeScript](../../../packages/validator-ts/src/validate.conformance.test.ts),
-[PHP](../../../packages/validator-php/tests/Validate/ValidateConformanceTest.php),
-[Go](../../../packages/validator-go/validator/validate/conformance_test.go),
-[Rust](../../../packages/validator-rust/tests/validate_conformance.rs)의 검증 적합성 검사,
+[TypeScript](../../../packages/validator/ts/src/validate.conformance.test.ts),
+[PHP](../../../packages/validator/php/tests/Validate/ValidateConformanceTest.php),
+[Go](../../../packages/validator/go/validator/validate/conformance_test.go),
+[Rust](../../../packages/validator/rust/tests/validate_conformance.rs)의 검증 적합성 검사,
 [PHP 확장 엔진 검사](../../../packages/php-ext/tests/engine.test.mjs)와
 PHP 검증기와 네이티브 검증기를 실행하는 [PHP 확장 API 검사](../../../packages/php-ext/tests/api.test.mjs),
 모든 사례를 다섯 검증기 프로세스에 보내는 교차 검증 콘솔의

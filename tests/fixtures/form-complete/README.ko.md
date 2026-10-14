@@ -1,6 +1,6 @@
 # 완전한 폼 고정 데이터
 <!-- doc-id: tests-fixtures-form-complete-readme -->
-<!-- source-sha256: 9001dab5e88e4d793225bd82ce0c04689af5ca11c047b884669140964698f4f9 -->
+<!-- source-sha256: d5da9ad41198bd4b86f8d7b84bccb5d98309e7e73c5bec0791f7925cd84e0c33 -->
 
 [English](README.md).
 
@@ -16,14 +16,14 @@ JavaScript URL, 빈 옵션, 폼 요소 없는 오류, 폼 오류 순서, 컬렉�
 순서에 따른 모든 옵션 실패를 다룹니다.
 
 테스트는 정확한 바이트를 비교합니다. React 서버 렌더링
-([`form-complete.conformance.test.ts`](../../../packages/generator-react/src/__tests__/form-complete.conformance.test.ts)),
+([`form-complete.conformance.test.ts`](../../../packages/react/src/__tests__/form-complete.conformance.test.ts)),
 HTML renderer
-([`form-complete.conformance.test.ts`](../../../packages/generator-html/src/form-complete.conformance.test.ts)),
+([`form-complete.conformance.test.ts`](../../../packages/html/src/form-complete.conformance.test.ts)),
 그리고 [네이티브 생성기 검사](../../native-generators/README.ko.md)를 통한 PHP, PHP 확장, Go, Rust
 생성기입니다. Vue
-([`form-complete.conformance.test.mjs`](../../../packages/generator-vue/test/form-complete.conformance.test.mjs))와
+([`form-complete.conformance.test.mjs`](../../../packages/vue/test/form-complete.conformance.test.mjs))와
 Svelte
-([`form-complete.conformance.test.mjs`](../../../packages/generator-svelte/test/form-complete.conformance.test.mjs))는
+([`form-complete.conformance.test.mjs`](../../../packages/svelte/test/form-complete.conformance.test.mjs))는
 자체 직렬화를 쓰므로 공유 정규화 뒤에 비교합니다.
 
 저장소 루트에서 다시 생성하고 변경을 명세와 대조해 검토합니다.

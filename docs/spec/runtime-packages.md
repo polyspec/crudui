@@ -32,15 +32,15 @@ unavailable native module fails the native test target.
 
 | Package | Implementation responsibility | Reuse |
 | --- | --- | --- |
-| `packages/generator-core` | JavaScript templates, instances and evaluated models | JavaScript composition and expression modules |
-| `packages/generator-react`, `generator-vue`, `generator-svelte` | Framework integration, browser operation and rendering | Shared JavaScript generator |
-| `packages/generator-html` | Framework-independent JavaScript form, list and detail HTML rendering | Shared JavaScript generator |
+| `packages/generator/ts` | JavaScript templates, instances and evaluated models | JavaScript composition and expression modules |
+| `packages/react`, `generator-vue`, `generator-svelte` | Framework integration, browser operation and rendering | Shared JavaScript generator |
+| `packages/html` | Framework-independent JavaScript form, list and detail HTML rendering | Shared JavaScript generator |
 | `packages/form-binding` | [Browser validation](form-runtime.md#browser-validation) of a server-rendered form | JavaScript validator |
-| `packages/generator-php` | PHP template compilation, data binding, form, list and detail HTML | PHP composition and expression modules |
-| `packages/generator-go` | Go template compilation, data binding, form, list and detail HTML | Go composition and expression modules |
-| `packages/generator-rust` | Rust template compilation, data binding, form, list and detail HTML | Rust composition and expression modules |
+| `packages/generator/php` | PHP template compilation, data binding, form, list and detail HTML | PHP composition and expression modules |
+| `packages/generator/go` | Go template compilation, data binding, form, list and detail HTML | Go composition and expression modules |
+| `packages/generator/rust` | Rust template compilation, data binding, form, list and detail HTML | Rust composition and expression modules |
 | `packages/php-ext` | PHP native generation and validation | The same public classes as the PHP packages; generation and validation execute in native code |
-| `packages/validator-*` | Data and specification validation | Existing language rule implementations and shared cases |
+| `packages/validator/*` | Data and specification validation | Existing language rule implementations and shared cases |
 
 Each server generator is a library that can run in its own language's HTTP
 process. CLI adapters are test and example entry points; they are not the library

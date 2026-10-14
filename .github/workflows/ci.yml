@@ -228,7 +228,7 @@ jobs:
       - name: Cargo cache
         uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
-          workspaces: packages/validator-rust
+          workspaces: packages/validator/rust
       - name: Download the crates of every Cargo.lock
         run: make install-crates
       - name: Run the checks and write their report
@@ -324,7 +324,7 @@ jobs:
       - name: Cargo cache
         uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
-          workspaces: packages/validator-rust
+          workspaces: packages/validator/rust
       - name: Install the tools of mise.lock into var/tools/mise
         run: make install-tools
       - name: Check the recorded toolchain versions
@@ -854,14 +854,14 @@ jobs:
           path: |
             ~/go/pkg/mod
             ~/.cache/go-build
-          key: go-${{ runner.os }}-${{ hashFiles('packages/generator-go/go.mod', 'tests/native-generators/programs/go/go.mod', 'benchmarks/validators/go/go.mod') }}
+          key: go-${{ runner.os }}-${{ hashFiles('packages/generator/go/go.mod', 'tests/native-generators/programs/go/go.mod', 'benchmarks/validators/go/go.mod') }}
       - name: Install the Rust toolchain of rust-toolchain.toml
         run: make install-rust
       - name: Cargo cache
         uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
           workspaces: |
-            packages/generator-rust
+            packages/generator/rust
             tests/native-generators/programs/rust
             benchmarks/validators/rust
       - name: Install the tools of mise.lock into var/tools/mise

@@ -1,6 +1,6 @@
 # 화면 세션 시나리오
 <!-- doc-id: tests-fixtures-view-session-readme -->
-<!-- source-sha256: 53c1f0cde4a38a797df006f16c44a49ddc2e5968ceab1bfc45a3a18da4e1505b -->
+<!-- source-sha256: b392f06c6c8f0a3fc5f9e606f88220aa015517fd287410715b4748ea0ad48f41 -->
 
 [English](README.md).
 
@@ -12,8 +12,8 @@
   작업이 있습니다. 각 화면을 같은 내용의 새 모델과 `html` 값이 바뀐 모델로 다시 보여 주고, 매번 같은
   요소 노드가 유지되고 바뀐 텍스트가 유지한 노드 안에 들어가는지 확인합니다.
 
-[HTML](../../../packages/generator-html/src/view-session.test.ts),
-[React](../../../packages/generator-react/src/__tests__/View.test.tsx),
-[Vue](../../../packages/generator-vue/test/view-session.test.mjs),
-[Svelte](../../../packages/generator-svelte/test/view-session.client.mjs) 테스트가 이를 실행합니다.
+[HTML](../../../packages/html/src/view-session.test.ts),
+[React](../../../packages/react/src/__tests__/View.test.tsx),
+[Vue](../../../packages/vue/test/view-session.test.mjs),
+[Svelte](../../../packages/svelte/test/view-session.client.mjs) 테스트가 이를 실행합니다.
 HTML 테스트는 새로 렌더링한 마크업을 `patchContent`로 요소에 반영합니다.

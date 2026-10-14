@@ -14,7 +14,7 @@ if (process.argv.length !== 3 || !path.isAbsolute(process.argv[2])) {
 const publicDirectory = process.argv[2];
 // The repository that contains this script.
 const source = path.resolve(exampleDirectory, '../..');
-const require = createRequire(path.join(source, 'packages/generator-svelte/package.json'));
+const require = createRequire(path.join(source, 'packages/svelte/package.json'));
 const { build } = await import(pathToFileURL(require.resolve('vite')));
 const { parse } = await import(pathToFileURL(require.resolve('parse5')));
 const { svelte } = await import(pathToFileURL(require.resolve('@sveltejs/vite-plugin-svelte')));
@@ -40,7 +40,7 @@ await cp(path.join(exampleDirectory, 'src/runtime-paths.json'),
 await cp(path.join(source, 'tests/form-inspector/form-snapshot.mjs'),
   path.join(publicDirectory, 'form-snapshot.mjs'));
 // Frames and SSR documents style the form with crudui.css alone, so computed CSS is compared with the real styles.
-await cp(path.join(source, 'packages/generator-core/styles/crudui.css'),
+await cp(path.join(source, 'packages/generator/ts/styles/crudui.css'),
   path.join(publicDirectory, 'crudui.css'));
 await cp(path.join(exampleDirectory, 'fixtures/records.json'),
   path.join(publicDirectory, 'records.json'));
@@ -57,15 +57,15 @@ await writeFile(path.join(publicDirectory, 'spec.json'), JSON.stringify(spec, nu
 
 // The frames and the page stages render with the packages of this source tree.
 const packageAliases = {
-  '#react': path.join(source, 'packages/generator-react/src/components'),
-  '#vue': path.join(source, 'packages/generator-vue/src/components'),
-  '#svelte': path.join(source, 'packages/generator-svelte/src/components'),
-  '#html': path.join(source, 'packages/generator-html/src/index.ts'),
+  '#react': path.join(source, 'packages/react/src/components'),
+  '#vue': path.join(source, 'packages/vue/src/components'),
+  '#svelte': path.join(source, 'packages/svelte/src/components'),
+  '#html': path.join(source, 'packages/html/src/index.ts'),
   // Each internal entry precedes its main entry, whose alias also matches its subpaths.
-  '@polyspec/crudui-generator-core/internal': path.join(source, 'packages/generator-core/src/internal.ts'),
-  '@polyspec/crudui-generator-core': path.join(source, 'packages/generator-core/src/index.ts'),
-  '@polyspec/crudui-validator/internal': path.join(source, 'packages/validator-ts/src/internal.ts'),
-  '@polyspec/crudui-validator': path.join(source, 'packages/validator-ts/src/index.ts'),
+  '@polyspec/crudui-generator-core/internal': path.join(source, 'packages/generator/ts/src/internal.ts'),
+  '@polyspec/crudui-generator-core': path.join(source, 'packages/generator/ts/src/index.ts'),
+  '@polyspec/crudui-validator/internal': path.join(source, 'packages/validator/ts/src/internal.ts'),
+  '@polyspec/crudui-validator': path.join(source, 'packages/validator/ts/src/index.ts'),
 };
 // Svelte modules own reactive state, which lives in a runes module.
 const moduleExtension = { react: 'tsx', vue: 'ts', svelte: 'svelte.ts', html: 'ts' };

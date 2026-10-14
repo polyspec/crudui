@@ -1,0 +1,53 @@
+{
+  "name": "@polyspec/crudui-generator-vue",
+  "version": "0.0.5",
+  "description": "Vue 3 form builder component library based on crudui YAML definitions",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "node ../../scripts/package-dist.mjs build 'tsup src/index.ts --format cjs,esm --clean --external vue --out-dir \"$CRUDUI_DIST\" && tsc --project tsconfig.build.json --outDir \"$CRUDUI_DIST\"'",
+    "dev": "tsup src/index.ts --format cjs,esm --watch --external vue --onSuccess \"tsc --project tsconfig.build.json\"",
+    "test": "node ../../tests/conformance/run-suite.mjs vitest --cwd packages/vue",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "vue",
+    "form",
+    "form-builder",
+    "yaml",
+    "spec",
+    "validation"
+  ],
+  "license": "MIT",
+  "peerDependencies": {
+    "vue": "^3.4.0"
+  },
+  "dependencies": {
+    "@polyspec/crudui-generator-core": "0.0.5"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "parse5": "^8.0.1",
+    "tsup": "^8.0.0",
+    "typescript": "7.0.2",
+    "vitest": "^5.0.4",
+    "vue": "^3.5.44"
+  },
+  "engines": {
+    "node": ">=26.11.1"
+  }
+}

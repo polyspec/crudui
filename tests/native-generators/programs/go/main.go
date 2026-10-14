@@ -11,8 +11,8 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	gen "github.com/polyspec/crudui/packages/generator-go"
-	"github.com/polyspec/crudui/packages/validator-go/validator/compose"
+	gen "github.com/polyspec/crudui/packages/generator/go"
+	"github.com/polyspec/crudui/packages/validator/go/validator/compose"
 )
 
 func val(o *gen.Object, k string) any {

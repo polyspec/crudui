@@ -11,7 +11,7 @@ import json
 import sys
 from pathlib import Path
 
-for source in ('validator-python', 'generator-python'):
+for source in ('validator/python', 'generator/python'):
     sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'packages' / source / 'src'))
 
 from polyspec.crudui.generator import FormError, Generator  # noqa: E402

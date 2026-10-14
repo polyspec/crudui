@@ -14,7 +14,7 @@
  *     > tests/fixtures/detail-render/cases.json
  */
 
-import { renderDetail } from '../../../packages/generator-react/src/server';
+import { renderDetail } from '../../../packages/react/src/server';
 import type { BuildDetailOptions } from '@polyspec/crudui-generator-core';
 // @ts-expect-error — JS normalizer shared across the CRUDUI fixture harness.
 import { normalizeHtml } from '../form-render/normalize.mjs';

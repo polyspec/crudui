@@ -16,7 +16,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/polyspec/crudui/packages/validator-go/validator/validate"
+	"github.com/polyspec/crudui/packages/validator/go/validator/validate"
 )
 
 // server holds the data and public directories, the source identity file and the API routes

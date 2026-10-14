@@ -11,7 +11,7 @@ const repository = join(dirname(fileURLToPath(import.meta.url)), '..');
 function environment(operation) {
   const root = realpathSync(mkdtempSync(join(tmpdir(), 'crudui-doc-check-')));
   try {
-    for (const relative of ['scripts', 'bin', 'node_modules/.bin', 'packages/validator-go', 'packages/generator-go', 'packages/validator-rust', 'packages/generator-rust']) mkdirSync(join(root, relative), { recursive: true });
+    for (const relative of ['scripts', 'bin', 'node_modules/.bin', 'packages/validator/go', 'packages/generator/go', 'packages/validator/rust', 'packages/generator/rust']) mkdirSync(join(root, relative), { recursive: true });
     for (const file of ['check-doc-coverage.mjs', 'run-rust-command.mjs', 'tool-resolution.mjs']) {
       copyFileSync(new URL('./' + file, import.meta.url), join(root, 'scripts', file));
     }
@@ -69,13 +69,13 @@ for (const [target, command] of [['go', 'go'], ['rust', 'cargo'], ['php', 'php']
       assert.equal(calls.length, 1);
       assert.deepEqual(calls[0].args, [join(root, 'scripts/php-doc-coverage.php')]);
     } else {
-      assert.deepEqual(calls.map(call => call.cwd), ['validator', 'generator'].map(kind => join(root, 'packages', `${kind}-${target}`)));
+      assert.deepEqual(calls.map(call => call.cwd), ['validator', 'generator'].map(kind => join(root, 'packages', kind, target)));
     }
   }));
 }
 // The documentation of the public TypeScript API is checked by API Extractor, which make lint-ts of kit runs in every package
 // with an api-extractor.json: ae-undocumented and ae-forgotten-export are errors of the copied config/api-extractor.kit.json.
-const TS_PACKAGES = ['validator-ts', 'generator-core', 'generator-html', 'generator-react', 'generator-vue', 'generator-svelte', 'form-binding'];
+const TS_PACKAGES = ['validator/ts', 'generator/ts', 'html', 'react', 'vue', 'svelte', 'form-binding'];
 
 test('every TypeScript package checks its public API with API Extractor and commits its API report', () => {
   const problems = [];
@@ -83,7 +83,8 @@ test('every TypeScript package checks its public API with API Extractor and comm
     const directory = join(repository, 'packages', pkg);
     let config;
     try { config = JSON.parse(readFileSync(join(directory, 'api-extractor.json'), 'utf8')); } catch (error) { problems.push(`${pkg}: ${error.message}`); continue; }
-    if (config.extends !== '../../config/api-extractor.kit.json') problems.push(`${pkg}: extends ${config.extends}`);
+    const root = '../'.repeat(pkg.split('/').length + 1);
+    if (config.extends !== `${root}config/api-extractor.kit.json`) problems.push(`${pkg}: extends ${config.extends}`);
     if (config.mainEntryPointFilePath !== '<projectFolder>/dist/index.d.ts') problems.push(`${pkg}: mainEntryPointFilePath ${config.mainEntryPointFilePath}`);
     const name = JSON.parse(readFileSync(join(directory, 'package.json'), 'utf8')).name.replace(/^@[^/]+\//, '');
     try { readFileSync(join(directory, 'etc', `${name}.api.md`), 'utf8'); } catch { problems.push(`${pkg}: etc/${name}.api.md is missing`); }

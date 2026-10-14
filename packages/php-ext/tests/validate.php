@@ -62,7 +62,7 @@ foreach (['spec-validity','list-validity','detail-validity'] as $family) {
 }
 // Input text cases are JSON text with unpaired surrogate escapes (docs/spec/input-text.md). The
 // decoder has no dependencies, so the native run without an autoloader loads its file.
-if (!class_exists(JsonText::class)) require_once $root.'/packages/validator-php/src/Support/JsonText.php';
+if (!class_exists(JsonText::class)) require_once $root.'/packages/validator/php/src/Support/JsonText.php';
 foreach (['validate','validateList','validateDetail'] as $feature) {
     foreach (JsonText::decode(file_get_contents($root.'/tests/fixtures/text-validity/'.$feature.'/cases.json')) as $case) {
         $options = (array) ($case->options ?? []);

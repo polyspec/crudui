@@ -59,7 +59,7 @@ targets and `native-generators/report-php.json` of the PHP and native PHP target
 directory, resolved with `git rev-parse --git-path`, so they also work in a worktree.
 `NATIVE_REPORT` and `PHP_NATIVE_REPORT` select other report paths. Before any PHP check,
 `make test-php-api` reinstalls the validator copy in
-`packages/generator-php`, so the PHP checks never load a copy older than its source. A passing run removes its temporary build directory. A failing
+`packages/generator/php`, so the PHP checks never load a copy older than its source. A passing run removes its temporary build directory. A failing
 run keeps it, prints its path and records it as `buildDirectory` in the report. The [suite procedure](../../tests/native-generators/README.md)
 describes direct invocation with an explicit extension path and the comparison
 protocol. Missing executables, missing native classes and malformed responses

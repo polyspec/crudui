@@ -1,7 +1,7 @@
 // `make lint` lints every source of the repository: the TypeScript lint of kit (`make lint-ts`: oxlint with the copied
 // .oxlintrc.json over every file that Git does not ignore, knip and API Extractor) and the Svelte rules of ESLint on the
-// components of packages/generator-svelte, the one package whose tools still need ESLint, run from its tools project
-// packages/generator-svelte/tools with the TypeScript 6 of that project (C14.4). Each lint fails on a planted violation.
+// components of packages/svelte, the one package whose tools still need ESLint, run from its tools project
+// packages/svelte/tools with the TypeScript 6 of that project (C14.4). Each lint fails on a planted violation.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
@@ -12,10 +12,10 @@ import test from 'node:test';
 import { makeDryRun } from './make-dry-run.mjs';
 
 const root = path.resolve(import.meta.dirname, '../..');
-const svelteWorkspace = path.join(root, 'packages/generator-svelte');
+const svelteWorkspace = path.join(root, 'packages/svelte');
 const svelteTools = path.join(svelteWorkspace, 'tools');
 
-test('make lint runs the TypeScript lint of kit and the Svelte lint of packages/generator-svelte', () => {
+test('make lint runs the TypeScript lint of kit and the Svelte lint of packages/svelte', () => {
   const run = makeDryRun(root, 'lint');
   assert.equal(run.status, 0, run.stderr);
   assert.match(run.stdout, /\bnode node_modules\/@polyspec\/kit\/dist\/lint-ts\.mjs\b/);

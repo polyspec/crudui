@@ -1,0 +1,36 @@
+# @polyspec/crudui-generator-core
+<!-- doc-id: packages-generator-core-readme -->
+
+[한국어](README.ko.md).
+
+Framework-independent form compilation, editable sessions and list evaluation.
+
+```ts
+import { compileForm, createForm } from '@polyspec/crudui-generator-core';
+
+const template = compileForm({
+  type: 'group', properties: { name: { type: 'text' } },
+});
+const session = createForm(template);
+session.setData({ name: 'Example' });
+```
+
+Compile once per shared template and create a session per form instance.
+Use `bindForm(template, data)` to evaluate fields without creating an editable session.
+
+The package entry is the public API: form compilation and binding (`compileForm`,
+`bindForm`, `bindButtons`, `formButtonsHtml`), form instances (`createForm`, `FormInstance`,
+`createRowKey`, `sequenceRowKey`, `formMessages`), view state and history functions, list,
+detail and structure-map models (`buildList`, `buildDetail`, `buildOutline`), browser binding
+(`connectForm`, `connectOutline`, `connectStickyHeaders`, `patchContent`, `resolveAction`,
+`runAction`) and the errors it throws (`ComposeLoadError`, `FormInputError`,
+`UnsupportedFieldTypeError`). The stylesheet is `@polyspec/crudui-generator-core/crudui.css`.
+
+`@polyspec/crudui-generator-core/internal` holds helpers shared by CRUDUI's renderer packages. It is not
+public API and changes with the renderers.
+
+- [Runtime contract](../../../docs/spec/form-runtime.md)
+- [Setup, nested rows and verification](../../../docs/operations/forms.md)
+- [Feature status](../../../docs/features.md)
+
+Run `npm run test:forms` from the repository root to build and test all adapters.

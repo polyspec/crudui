@@ -20,7 +20,7 @@ if (!['all', 'ts', 'go', 'rust', 'php'].includes(target)) {
   throw new Error('Use all, ts, go, rust or php');
 }
 const want = name => target === 'all' || target === name;
-const packages = ['validator-ts', 'generator-core', 'generator-html', 'generator-react', 'generator-vue', 'generator-svelte', 'form-binding'];
+const packages = ['validator/ts', 'generator/ts', 'html', 'react', 'vue', 'svelte', 'form-binding'];
 
 const lines = createProgress({ write: text => process.stdout.write(text) });
 const shown = value => value.startsWith(ROOT) ? relative(ROOT, value) || '.' : value;
@@ -54,9 +54,11 @@ async function genTypeScript() {
   await run('npm', ['run', 'build']);
   for (const pkg of packages) {
     const pkgDir = join(ROOT, 'packages', pkg);
-    const output = join(API_DIR, pkg);
-    // API Extractor writes the doc model to var/api-model/<unscopedPackageName> (api-extractor.json of each package).
-    const model = join(ROOT, 'var/api-model', JSON.parse(readFileSync(join(pkgDir, 'package.json'), 'utf8')).name.split('/')[1]);
+    // API Extractor writes the doc model to var/api-model/<unscopedPackageName> (api-extractor.json of each package), and
+    // API Documenter writes its pages to docs/api/<unscopedPackageName>.
+    const unscoped = JSON.parse(readFileSync(join(pkgDir, 'package.json'), 'utf8')).name.split('/')[1];
+    const output = join(API_DIR, unscoped);
+    const model = join(ROOT, 'var/api-model', unscoped);
     cleanDirectory(output);
     rmSync(model, { recursive: true, force: true });
     await run(join(ROOT, 'node_modules/.bin/api-extractor'), ['run'], pkgDir);
@@ -69,7 +71,7 @@ async function genGo() {
   const output = join(API_DIR, 'go.md');
   rmSync(output, { force: true });
   const sections = [];
-  for (const pkg of ['validator-go', 'generator-go']) {
+  for (const pkg of ['validator/go', 'generator/go']) {
     const cwd = join(ROOT, 'packages', pkg);
     const go = process.env.GO ?? 'go';
     const listed = (await run(go, ['list', '-f', '{{if ne .Name "main"}}{{.ImportPath}}{{end}}', './...'], cwd, { capture: true })).trim();
@@ -84,7 +86,7 @@ async function genGo() {
 }
 
 async function genRust() {
-  const pkgDir = join(ROOT, 'packages/generator-rust');
+  const pkgDir = join(ROOT, 'packages/generator/rust');
   const generated = join(pkgDir, 'target/doc');
   const output = join(STATIC_API_DIR, 'rust');
   cleanDirectory(output);
@@ -106,7 +108,7 @@ async function genPhp() {
   const cache = join(ROOT, 'var/tools/phpdocumentor/cache');
   cleanDirectory(output);
   try {
-    await run(process.env.PHP ?? 'php', [phar, 'run', '-d', 'packages/validator-php/src', '-d', 'packages/generator-php/src', '-t', output,
+    await run(process.env.PHP ?? 'php', [phar, 'run', '-d', 'packages/validator/php/src', '-d', 'packages/generator/php/src', '-t', output,
       '--cache-folder', cache, '--title', 'CRUDUI PHP API', '--no-interaction']);
     requireOutput(join(output, 'index.html'));
     for (const name of ['Generator', 'Validator', 'Form', 'FormError']) {
@@ -125,7 +127,8 @@ if (want('go')) await genGo();
 if (want('rust')) await genRust();
 if (want('php')) await genPhp();
 if (target === 'all') {
-  const links = packages.map(pkg => `- [${pkg}](./${pkg}/index.md)`).join('\n');
+  const links = packages.map(pkg => JSON.parse(readFileSync(join(ROOT, 'packages', pkg, 'package.json'), 'utf8')).name.split('/')[1])
+    .map(unscoped => `- [${unscoped}](./${unscoped}/index.md)`).join('\n');
   writeFileSync(join(API_DIR, 'index.md'),
     '# API reference\n\nGenerate with `make docs-api`.\n\n' + links +
     '\n- [Go](./go.md)\n- [Rust](./rust.md)\n- [PHP](./php.md)\n');

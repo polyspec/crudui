@@ -24,10 +24,10 @@ HTML renderer `renderOutlineView` and `renderDataPanel`, Vue `outlineVNode` and 
 its server renderer, and Svelte `OutlineView` and `DataPanel` through `svelte/server`.
 
 The cases are read by the structure map conformance tests in
-[React](../../../packages/generator-react/src/__tests__/outline.conformance.test.tsx),
-[Vue](../../../packages/generator-vue/test/outline.conformance.test.mjs),
-[Svelte](../../../packages/generator-svelte/test/outline.conformance.test.mjs) and the
-[HTML renderer](../../../packages/generator-html/src/outline.conformance.test.ts). The
+[React](../../../packages/react/src/__tests__/outline.conformance.test.tsx),
+[Vue](../../../packages/vue/test/outline.conformance.test.mjs),
+[Svelte](../../../packages/svelte/test/outline.conformance.test.mjs) and the
+[HTML renderer](../../../packages/html/src/outline.conformance.test.ts). The
 [form markup naming test](../../form-markup/naming.test.mjs) checks the class names in both
 expected HTML strings.
 

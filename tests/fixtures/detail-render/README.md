@@ -32,10 +32,10 @@ image preload links included. A field's `value` is `null` when the record has no
 path.
 
 The cases are read by the detail conformance tests in
-[React](../../../packages/generator-react/src/__tests__/detail-render.conformance.test.ts),
-[Vue](../../../packages/generator-vue/src/__tests__/detail-render.conformance.test.ts),
-[Svelte](../../../packages/generator-svelte/test/detail-render.conformance.test.mjs) and the
-[HTML renderer](../../../packages/generator-html/src/detail-conformance.test.ts).
+[React](../../../packages/react/src/__tests__/detail-render.conformance.test.ts),
+[Vue](../../../packages/vue/src/__tests__/detail-render.conformance.test.ts),
+[Svelte](../../../packages/svelte/test/detail-render.conformance.test.mjs) and the
+[HTML renderer](../../../packages/html/src/detail-conformance.test.ts).
 
 ## Regeneration
 

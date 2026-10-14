@@ -12,8 +12,8 @@ import (
 	"slices"
 	"strings"
 
-	generator "github.com/polyspec/crudui/packages/generator-go"
-	"github.com/polyspec/crudui/packages/validator-go/validator/compose"
+	generator "github.com/polyspec/crudui/packages/generator/go"
+	"github.com/polyspec/crudui/packages/validator/go/validator/compose"
 )
 
 // sourceIdentity reads, on every call, the identity of the repository tree the running build

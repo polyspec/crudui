@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import path from 'node:path';
 
 const classFiles = Object.freeze({
-  'Polyspec\\Crudui\\Generator': 'packages/generator-php/src/Generator.php',
-  'Polyspec\\Crudui\\Form': 'packages/generator-php/src/Form.php',
+  'Polyspec\\Crudui\\Generator': 'packages/generator/php/src/Generator.php',
+  'Polyspec\\Crudui\\Form': 'packages/generator/php/src/Form.php',
   'Polyspec\\Crudui\\Validator':
     'vendor/polyspec/crudui-validator/src/Public/Validator.php',
 });

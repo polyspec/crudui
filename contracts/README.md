@@ -57,8 +57,8 @@ place the text is written. Each runtime embeds a source generated from it by its
 own script and has a test that fails when the embedded text differs from the file;
 after editing the file, run every runtime's script:
 
-- TypeScript: `node packages/generator-core/scripts/generate-interface-messages.mjs`
-- Go: `go generate` in `packages/generator-go`
-- Rust: `node packages/generator-rust/tools/generate-interface-messages.mjs`
-- PHP: `php packages/generator-php/scripts/generate-interface-messages.php`
+- TypeScript: `node packages/generator/ts/scripts/generate-interface-messages.mjs`
+- Go: `go generate` in `packages/generator/go`
+- Rust: `node packages/generator/rust/tools/generate-interface-messages.mjs`
+- PHP: `php packages/generator/php/scripts/generate-interface-messages.php`
 - PHP extension: `node packages/php-ext/tools/generate-interface-messages.mjs`

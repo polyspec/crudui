@@ -1,6 +1,6 @@
 # 목록과 상세 개발과 검증
 <!-- doc-id: docs-operations-displays -->
-<!-- source-sha256: f473d11ebda26ba8938a39aa3e8cf74d9b8c51944977586c00ea0e7b8e39a772 -->
+<!-- source-sha256: 91d78bb8d956e18b4596f04c74dde9ba114ac9a0208a6c6c04d7d2ad6b70ab37 -->
 
 [English](displays.md). [표시 형식](../spec/display-formats.ko.md)은 각 형식, 허용 입력과
 마크업을 정의합니다. [명세 구조](../spec/schema.ko.md)는 목록과 상세 필드와
@@ -118,7 +118,7 @@ $detailHtml = Generator::renderDetail($detailSpec, $rows[0], ['language' => 'en'
 
 ## Go
 
-`github.com/polyspec/crudui/packages/generator-go` 패키지는
+`github.com/polyspec/crudui/packages/generator/go` 패키지는
 `BuildList(spec, rows, ListOptions)`, `RenderList(spec, rows, ListOptions)`,
 `BuildDetail(spec, record, DetailOptions)`, `RenderDetail(spec, record, DetailOptions)`를
 제공합니다. 명세, 행, 레코드는 `*generator.Object` 값입니다. `ListOptions` 필드는 `Language`,
@@ -133,8 +133,8 @@ package main
 import (
 	"fmt"
 
-	generator "github.com/polyspec/crudui/packages/generator-go"
-	"github.com/polyspec/crudui/packages/validator-go/validator/validate"
+	generator "github.com/polyspec/crudui/packages/generator/go"
+	"github.com/polyspec/crudui/packages/validator/go/validator/validate"
 )
 
 func object(source string) *generator.Object {
@@ -234,15 +234,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 | 예제 | 목록과 상세 |
 | --- | --- |
-| [Go 서버](../../packages/generator-go/examples/server/main.go) | `/`는 폼을, `/list`는 저장된 레코드를 `RenderList`로, `/detail`은 `RenderDetail`로 렌더링합니다. |
-| [PHP 페이지](../../packages/generator-php/examples/index.php) | `/`는 폼을, `?view=list`는 저장된 레코드를 `Generator::renderList`로, `?view=detail`은 `Generator::renderDetail`로 렌더링합니다. 이 파일은 PHP 구현과 확장에서 모두 실행됩니다. |
-| [Rust 프로그램](../../packages/generator-rust/examples/form.rs) | 폼을 렌더링하고 각 회사 행을 목록 행으로 바꿔 `render_list`로 목록을, `render_detail`로 회사별 상세를 렌더링한 뒤 HTML 문서 하나를 출력합니다. |
+| [Go 서버](../../packages/generator/go/examples/server/main.go) | `/`는 폼을, `/list`는 저장된 레코드를 `RenderList`로, `/detail`은 `RenderDetail`로 렌더링합니다. |
+| [PHP 페이지](../../packages/generator/php/examples/index.php) | `/`는 폼을, `?view=list`는 저장된 레코드를 `Generator::renderList`로, `?view=detail`은 `Generator::renderDetail`로 렌더링합니다. 이 파일은 PHP 구현과 확장에서 모두 실행됩니다. |
+| [Rust 프로그램](../../packages/generator/rust/examples/form.rs) | 폼을 렌더링하고 각 회사 행을 목록 행으로 바꿔 `render_list`로 목록을, `render_detail`로 회사별 상세를 렌더링한 뒤 HTML 문서 하나를 출력합니다. |
 | [교차 검사 콘솔](../../examples/cross-check-console/README.md) | 목록 탭은 4개 언어로 목록 구조를 검증하고 React, Vue, Svelte로 행을 렌더링합니다. 상세 탭은 4개 언어로 상세 구조를 검증하고 세 프레임워크로 레코드를 렌더링합니다. |
 
 ```sh
-(cd packages/generator-go && go run ./examples/server -data /tmp/crudui-go-record.json)
-CRUDUI_DATA_FILE=/tmp/crudui-php-example.json php -S 127.0.0.1:8082 -t packages/generator-php/examples
-cargo run --locked --manifest-path packages/generator-rust/Cargo.toml --example form
+(cd packages/generator/go && go run ./examples/server -data /tmp/crudui-go-record.json)
+CRUDUI_DATA_FILE=/tmp/crudui-php-example.json php -S 127.0.0.1:8082 -t packages/generator/php/examples
+cargo run --locked --manifest-path packages/generator/rust/Cargo.toml --example form
 ```
 
 Go 서버는 `127.0.0.1:8087`에서 수신합니다. Go와 PHP 예제는 레코드 하나를 저장하므로 목록에는
@@ -278,9 +278,9 @@ JavaScript, HTML 렌더러, PHP, PHP 확장, Go, Rust의 원본 목록과 상세
 
 ```sh
 npm test -w @polyspec/crudui-validator -- src/validate-list/validate-list.conformance.test.ts src/validate-detail/validate-detail.conformance.test.ts
-COMPOSER_VENDOR_DIR=../../vendor node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator-php -- --filter 'ListValidateConformanceTest|DetailValidateConformanceTest'
-node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/validator-go -- ./validator/validate -run 'TestValidateListMatchesFixture|TestValidateDetailMatchesFixture'
-node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml --test list_validity_conformance --test detail_validity_conformance
+COMPOSER_VENDOR_DIR=../../../vendor node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/validator/php -- --filter 'ListValidateConformanceTest|DetailValidateConformanceTest'
+node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/validator/go -- ./validator/validate -run 'TestValidateListMatchesFixture|TestValidateDetailMatchesFixture'
+node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/validator/rust/Cargo.toml --test list_validity_conformance --test detail_validity_conformance
 ```
 
 현재 결과는 [기능 상태](../features.ko.md)와 [변경 기록](../../CHANGELOG.ko.md)에 기록합니다.

@@ -13,8 +13,8 @@ that waits for rendering.
   content and from a model whose `html` value changed, and requires the same element nodes after
   every render and the changed text inside the kept nodes.
 
-The [HTML](../../../packages/generator-html/src/view-session.test.ts),
-[React](../../../packages/generator-react/src/__tests__/View.test.tsx),
-[Vue](../../../packages/generator-vue/test/view-session.test.mjs) and
-[Svelte](../../../packages/generator-svelte/test/view-session.client.mjs) tests run it. The HTML
+The [HTML](../../../packages/html/src/view-session.test.ts),
+[React](../../../packages/react/src/__tests__/View.test.tsx),
+[Vue](../../../packages/vue/test/view-session.test.mjs) and
+[Svelte](../../../packages/svelte/test/view-session.client.mjs) tests run it. The HTML
 test patches each newly rendered markup into the element with `patchContent`.

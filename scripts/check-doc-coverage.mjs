@@ -27,10 +27,10 @@ function run(command, args, cwd = ROOT) {
   execFileSync(command, args, { cwd, stdio: 'inherit' });
 }
 
-if (want('go')) for (const pkg of ['validator-go', 'generator-go']) {
+if (want('go')) for (const pkg of ['validator/go', 'generator/go']) {
   check(`go:${pkg}`, () => run(process.env.GO ?? 'go', ['test', './...', '-run', 'DocCoverage', '-count=1'], join(ROOT, 'packages', pkg)));
 }
-if (want('rust')) for (const pkg of ['validator-rust', 'generator-rust']) {
+if (want('rust')) for (const pkg of ['validator/rust', 'generator/rust']) {
   check(`rust:${pkg}`, () => run(process.execPath, [
     RUST_COMMAND, 'build', '--locked', '--lib',
   ], join(ROOT, 'packages', pkg)));

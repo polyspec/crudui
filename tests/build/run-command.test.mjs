@@ -134,7 +134,7 @@ test('gen-api-docs runs each documentation tool to its end with its elapsed time
   // A Go tool that lists one package and documents it, each after 1.2 seconds.
   box.program('go', "process.stdout.write('');\n"
     + "setTimeout(() => process.stdout.write(process.argv[2] === 'list' ? 'example.com/one\\n' : 'package one\\n'), 1200);\n");
-  for (const name of ['validator-go', 'generator-go']) mkdirSync(path.join(box.root, 'packages', name), { recursive: true });
+  for (const name of ['validator/go', 'generator/go']) mkdirSync(path.join(box.root, 'packages', name), { recursive: true });
   const result = await runScript(path.join(box.root, 'scripts/gen-api-docs.mjs'), ['go'], {
     cwd: box.root, env: { ...process.env, PATH: path.join(box.root, 'bin'), GO: 'go' },
   });

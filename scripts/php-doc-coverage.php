@@ -95,7 +95,7 @@ function crudui_php_source_classes(string $code): array
 
 if (PHP_SAPI === 'cli' && isset($argv[0]) && realpath($argv[0]) === realpath(__FILE__)) {
     $failed = false;
-    foreach (['validator-php', 'generator-php'] as $package) {
+    foreach (['validator/php', 'generator/php'] as $package) {
         try {
             $directory = realpath(__DIR__ . '/../packages/' . $package . '/src');
             if ($directory === false) {

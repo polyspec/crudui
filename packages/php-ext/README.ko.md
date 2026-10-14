@@ -1,6 +1,6 @@
 # PHP 네이티브 생성과 검증
 <!-- doc-id: packages-php-ext-readme -->
-<!-- source-sha256: 304074d279e23198e62d89dedcac4c20ac5dc91aa751bb357fb2b3e74a6ab816 -->
+<!-- source-sha256: bbadea0148421b677b86ab53272478da325194578449a6b36e5e1980ab396193 -->
 
 [English](README.md).
 
@@ -66,7 +66,7 @@ PHP 예제는 확장을 로드하고 공개 클래스를 호출합니다.
 ```sh
 CRUDUI_DATA_FILE=/absolute/path/to/record.json \
   php -n -d "extension=$(pwd)/packages/php-ext/modules/crudui.so" \
-  -S 127.0.0.1:8080 packages/generator-php/examples/index.php
+  -S 127.0.0.1:8080 packages/generator/php/examples/index.php
 ```
 
 예제는 HTML을 렌더링하고 폼 전송을 검증하며 승인된 데이터를 JSON으로

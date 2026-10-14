@@ -28,14 +28,14 @@ const read = file => readFileSync(path.join(ROOT, file), 'utf8');
 test('a direct test tool call is found in each command form', () => {
   for (const command of [
     'node --test tests/a.test.mjs', 'node --test-timeout=1 --test a.mjs', 'vitest run', 'npx vitest',
-    'go test ./...', 'go -C packages/generator-go test -race ./...', 'cargo test', 'node scripts/run-rust-command.mjs test --locked',
+    'go test ./...', 'go -C packages/generator/go test -race ./...', 'cargo test', 'node scripts/run-rust-command.mjs test --locked',
     'phpunit', 'vendor/bin/phpunit tests',
   ]) assert.notDeepEqual(directTestTools(command), [], command);
   for (const command of [
-    'node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/a.test.mjs', 'node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --workspace packages/generator-core',
-    'node $(KIT)/run-tests.mjs go --cwd packages/generator-go -- ./...', 'node ../../node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/cli',
+    'node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/a.test.mjs', 'node node_modules/@polyspec/kit/dist/run-tests.mjs vitest --workspace packages/generator/ts',
+    'node $(KIT)/run-tests.mjs go --cwd packages/generator/go -- ./...', 'node ../../node_modules/@polyspec/kit/dist/run-tests.mjs vitest --cwd packages/cli',
     'npm run test:forms', 'node scripts/run-rust-command.mjs build --release', 'composer install', 'go build ./...',
-    'npm run build && npm test -w @polyspec/crudui-generator-html', 'composer --working-dir=packages/generator-php test',
+    'npm run build && npm test -w @polyspec/crudui-generator-html', 'composer --working-dir=packages/generator/php test',
   ]) assert.deepEqual(directTestTools(command), [], command);
 });
 
