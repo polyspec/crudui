@@ -12,8 +12,7 @@ use Polyspec\Crudui\Validator\Validate\FormInputError;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 use PHPUnit\Framework\Attributes\DataProvider;
-
-require_once __DIR__ . '/../../../../../tests/conformance/evidence.php';
+use Polyspec\Crudui\Conformance\Evidence;
 
 /**
  * Input text conformance (docs/spec/input-text.md). The validation families of
@@ -84,7 +83,7 @@ final class TextValidityConformanceTest extends TestCase
             self::assertSame($expected, $actual);
             $passed = true;
         } finally {
-            crudui_record_conformance(
+            Evidence::record(
                 $feature,
                 "tests/fixtures/text-validity/{$feature}/cases.json",
                 'php',

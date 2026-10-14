@@ -30,7 +30,8 @@ A test that runs a shared fixture case records one line for each feature the cas
 `{"feature", "fixture", "runtime", "case", "passed"}`. `passed` is true only when every assertion
 of that case succeeded. The recorders are
 [`tests/conformance/evidence.mts`](../../tests/conformance/evidence.mts),
-[`tests/conformance/evidence.php`](../../tests/conformance/evidence.php), the Go package
+the class `Polyspec\Crudui\Conformance\Evidence` of
+[`tests/conformance/php/Evidence.php`](../../tests/conformance/php/Evidence.php), the Go package
 `validator/internal/conformance` and the Rust test module `tests/common`. They write only when
 `CRUDUI_CONFORMANCE_EVIDENCE` names a directory.
 

@@ -9,8 +9,7 @@ use Polyspec\Crudui\Validator\Compose\ComposeLoadError;
 use Polyspec\Crudui\Validator\Compose\MemoryLoader;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
-
-require_once __DIR__ . '/../../../../../tests/conformance/evidence.php';
+use Polyspec\Crudui\Conformance\Evidence;
 
 /**
  * Compare composed values and load error codes with the shared fixtures.
@@ -56,7 +55,7 @@ final class ComposeConformanceTest extends TestCase
             $this->assertCase($spec);
             $passed = true;
         } finally {
-            crudui_record_conformance(
+            Evidence::record(
                 'compileForm',
                 'tests/fixtures/compose/cases.json',
                 'php',
