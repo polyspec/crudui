@@ -143,20 +143,20 @@ test('ES module packages load through their import export only', async () => {
 const tsc = resolve(root, 'node_modules/.bin/tsc');
 
 /**
- * Compiles `files` with the tsc of the root and `compilerOptions`, from a tsconfig.json in a temporary directory: the exit
- * status and output of `tsc --noEmit`, and the real paths of the files of the program, which `tsc --listFilesOnly` prints
- * one per line.
+ * Compiles `files` with the tsc of the root and `compilerOptions`, from a tsconfig.json in a temporary directory, in one
+ * run of `tsc --noEmit --listFiles --pretty false`: the exit status, the output, and the real paths of the files of the
+ * program, which --listFiles prints one per line beside the diagnostics (`<file>(<line>,<column>): error TS<code>: ...`,
+ * continued on indented lines) and the error count.
  */
 function compile(compilerOptions, files) {
   const temporary = mkdtempSync(resolve(tmpdir(), 'crudui-public-types-'));
   try {
     const config = resolve(temporary, 'tsconfig.json');
     writeFileSync(config, JSON.stringify({ compilerOptions: { ...compilerOptions, noEmit: true }, files }));
-    const run = spawnSync(tsc, ['--project', config, '--pretty', 'false'], { cwd: root, encoding: 'utf8' });
+    const run = spawnSync(tsc, ['--project', config, '--listFiles', '--pretty', 'false'], { cwd: root, encoding: 'utf8' });
     assert.equal(run.error, undefined);
-    const listed = spawnSync(tsc, ['--project', config, '--listFilesOnly'], { cwd: root, encoding: 'utf8' });
-    assert.equal(listed.status, 0, listed.stdout + listed.stderr);
-    const program = new Set(listed.stdout.split('\n').filter(Boolean).map((file) => realpathSync(resolve(root, file))));
+    const listed = run.stdout.split('\n').filter((line) => line !== '' && !/^\s/.test(line) && !/^\S.*\(\d+,\d+\): error TS\d+:/.test(line) && !/^Found \d+ errors?/.test(line));
+    const program = new Set(listed.map((file) => realpathSync(resolve(root, file))));
     return { status: run.status, log: run.stdout + run.stderr, program };
   } finally { rmSync(temporary, { recursive: true, force: true }); }
 }
