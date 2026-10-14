@@ -1,6 +1,6 @@
 # CRUDUI Python generator
 <!-- doc-id: packages-generator-python-readme -->
-<!-- source-sha256: 99a88e3d92bb39ee62ba45880d3fda2dac3d34de2a366b39279312e15021159c -->
+<!-- source-sha256: 165328d6eb1be8e6d321510eb068bfa9e937d17632ac7014f51d9b30177bb923 -->
 
 [English](README.md).
 
