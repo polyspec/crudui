@@ -11,23 +11,24 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[4]
 
-_CONFORMANCE = ROOT / 'tests' / 'conformance'
+_CONFORMANCE = ROOT / "tests" / "conformance"
 if str(_CONFORMANCE) not in sys.path:
     sys.path.insert(0, str(_CONFORMANCE))
 from evidence import Proving  # noqa: E402,F401  (records each shared case the Python suites run)
-FIXTURES = ROOT / 'tests' / 'fixtures'
+
+FIXTURES = ROOT / "tests" / "fixtures"
 
 # The deepest fixture value nests 512 levels of containers and the traversal
 # follows it; the default interpreter limit does not.
 sys.setrecursionlimit(max(sys.getrecursionlimit(), 20000))
 
 
-def cases_of(group, name='cases.json'):
+def cases_of(group, name="cases.json"):
     """The cases of one fixture group, or one operation of the text-validity group."""
     path = FIXTURES / group / name
-    loaded = json.loads(path.read_text(encoding='utf-8'))
+    loaded = json.loads(path.read_text(encoding="utf-8"))
     if not loaded:
-        raise AssertionError(f'{path.relative_to(ROOT)} holds no case')
+        raise AssertionError(f"{path.relative_to(ROOT)} holds no case")
     return loaded
 
 
@@ -36,7 +37,7 @@ def failure_record(error):
     from polyspec.crudui.validator import ComposeLoadError, FormInputError
 
     if isinstance(error, ComposeLoadError):
-        return {'code': error.code, 'message': str(error), 'at': '.'.join(error.trace)}
+        return {"code": error.code, "message": str(error), "at": ".".join(error.trace)}
     if isinstance(error, FormInputError):
-        return {'code': error.code, 'message': str(error), 'at': ''}
+        return {"code": error.code, "message": str(error), "at": ""}
     return None

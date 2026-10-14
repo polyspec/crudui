@@ -13,20 +13,22 @@ import unittest
 
 from runs import finish_suite_run, record_suite_run
 
-PROGRAM = 'tests/conformance/runner.py'
+PROGRAM = "tests/conformance/runner.py"
 
 
 def main(arguments):
     if len(arguments) != 1:
-        raise SystemExit('usage: python3 tests/conformance/runner.py <test directory>')
+        raise SystemExit("usage: python3 tests/conformance/runner.py <test directory>")
     directory = arguments[0]
-    record_suite_run(PROGRAM, 'unittest', directory, [directory])
-    suite = unittest.defaultTestLoader.discover(start_dir=directory, pattern='test_*.py')
+    record_suite_run(PROGRAM, "unittest", directory, [directory])
+    suite = unittest.defaultTestLoader.discover(
+        start_dir=directory, pattern="test_*.py"
+    )
     result = unittest.TextTestRunner().run(suite)
     status = 0 if result.wasSuccessful() else 1
     finish_suite_run(status)
     return status
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main(sys.argv[1:]))

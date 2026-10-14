@@ -16,7 +16,7 @@ _PRELOAD = re.compile(r'<link [^>]*rel="preload"[^>]*>')
 
 def _without_preloads(html):
     """The rendered body without the image preload links before it."""
-    return _PRELOAD.sub('', html)
+    return _PRELOAD.sub("", html)
 
 
 def _generator():
@@ -29,31 +29,40 @@ class FormCompleteConformance(unittest.TestCase):
     """The complete form writes the expected bytes or the declared failure."""
 
     def setUp(self):
-        self.cases = cases_of('form-complete')
+        self.cases = cases_of("form-complete")
 
     def test_every_case_reproduces_its_expectation(self):
         generator = _generator()
         self.assertEqual(len(self.cases), 28)
         for case in self.cases:
-            with self.subTest(case=case['name']), Proving(['renderForm'], 'tests/fixtures/form-complete/cases.json', case['name']) as proof:
+            with (
+                self.subTest(case=case["name"]),
+                Proving(
+                    ["renderForm"],
+                    "tests/fixtures/form-complete/cases.json",
+                    case["name"],
+                ) as proof,
+            ):
                 form = generator.createForm(
-                    generator.compileForm(case['spec']),
-                    case['data'],
-                    case.get('options') or {},
+                    generator.compileForm(case["spec"]),
+                    case["data"],
+                    case.get("options") or {},
                 )
-                if 'expectError' in case:
+                if "expectError" in case:
                     thrown = None
                     try:
-                        generator.renderForm(form, case['render'])
+                        generator.renderForm(form, case["render"])
                     except Exception as error:  # noqa: BLE001 - the record names the failure
                         thrown = error
                     self.assertIsNotNone(thrown, f"{case['name']} must fail")
                     record = failure_record(thrown)
-                    self.assertEqual(record['code'], case['expectError']['code'])
-                    self.assertEqual(record['message'], case['expectError']['message'])
+                    self.assertEqual(record["code"], case["expectError"]["code"])
+                    self.assertEqual(record["message"], case["expectError"]["message"])
                     proof.passed = True
                     continue
-                self.assertEqual(generator.renderForm(form, case['render']), case['expected_html'])
+                self.assertEqual(
+                    generator.renderForm(form, case["render"]), case["expected_html"]
+                )
                 proof.passed = True
 
 
@@ -61,31 +70,46 @@ class ListRenderConformance(unittest.TestCase):
     """A list renders byte for byte or raises the recorded code."""
 
     def setUp(self):
-        self.cases = cases_of('list-render')
+        self.cases = cases_of("list-render")
 
     def run_case(self, case):
         return _generator().renderList(
-            case['spec'], case['rows'], case.get('options') or {}
+            case["spec"], case["rows"], case.get("options") or {}
         )
 
     def test_every_case_reproduces_its_expectation(self):
         self.assertEqual(len(self.cases), 157)
         for case in self.cases:
-            with self.subTest(case=case['name']), Proving(['renderList', 'buildList'], 'tests/fixtures/list-render/cases.json', case['name']) as proof:
-                if 'expectError' in case:
+            with (
+                self.subTest(case=case["name"]),
+                Proving(
+                    ["renderList", "buildList"],
+                    "tests/fixtures/list-render/cases.json",
+                    case["name"],
+                ) as proof,
+            ):
+                if "expectError" in case:
                     thrown = None
                     try:
                         self.run_case(case)
                     except Exception as error:  # noqa: BLE001 - the record names the failure
                         thrown = error
                     self.assertIsNotNone(thrown, f"{case['name']} must fail")
-                    self.assertEqual(failure_record(thrown)['code'], case['expectError']['code'])
-                    if 'message' in case['expectError']:
-                        self.assertIn(case['expectError']['message'], failure_record(thrown)['message'])
+                    self.assertEqual(
+                        failure_record(thrown)["code"], case["expectError"]["code"]
+                    )
+                    if "message" in case["expectError"]:
+                        self.assertIn(
+                            case["expectError"]["message"],
+                            failure_record(thrown)["message"],
+                        )
                     proof.passed = True
                     continue
                 actual = self.run_case(case)
-                self.assertEqual(html_tree(_without_preloads(actual)), html_tree(case['expected_html']))
+                self.assertEqual(
+                    html_tree(_without_preloads(actual)),
+                    html_tree(case["expected_html"]),
+                )
                 proof.passed = True
 
 
@@ -93,33 +117,48 @@ class DetailRenderConformance(unittest.TestCase):
     """A detail renders byte for byte or raises the recorded code."""
 
     def setUp(self):
-        self.cases = cases_of('detail-render')
+        self.cases = cases_of("detail-render")
 
     def run_case(self, case):
         return _generator().renderDetail(
-            case['spec'], case.get('record', {}), case.get('options') or {}
+            case["spec"], case.get("record", {}), case.get("options") or {}
         )
 
     def test_every_case_reproduces_its_expectation(self):
         self.assertEqual(len(self.cases), 62)
         for case in self.cases:
-            with self.subTest(case=case['name']), Proving(['renderDetail', 'buildDetail'], 'tests/fixtures/detail-render/cases.json', case['name']) as proof:
-                if 'expectError' in case:
+            with (
+                self.subTest(case=case["name"]),
+                Proving(
+                    ["renderDetail", "buildDetail"],
+                    "tests/fixtures/detail-render/cases.json",
+                    case["name"],
+                ) as proof,
+            ):
+                if "expectError" in case:
                     thrown = None
                     try:
                         self.run_case(case)
                     except Exception as error:  # noqa: BLE001 - the record names the failure
                         thrown = error
                     self.assertIsNotNone(thrown, f"{case['name']} must fail")
-                    self.assertEqual(failure_record(thrown)['code'], case['expectError']['code'])
-                    if 'message' in case['expectError']:
-                        self.assertIn(case['expectError']['message'], failure_record(thrown)['message'])
+                    self.assertEqual(
+                        failure_record(thrown)["code"], case["expectError"]["code"]
+                    )
+                    if "message" in case["expectError"]:
+                        self.assertIn(
+                            case["expectError"]["message"],
+                            failure_record(thrown)["message"],
+                        )
                     proof.passed = True
                     continue
                 actual = self.run_case(case)
-                self.assertEqual(html_tree(_without_preloads(actual)), html_tree(case['expected_html']))
+                self.assertEqual(
+                    html_tree(_without_preloads(actual)),
+                    html_tree(case["expected_html"]),
+                )
                 proof.passed = True
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

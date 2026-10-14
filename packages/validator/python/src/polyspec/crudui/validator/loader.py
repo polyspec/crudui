@@ -9,7 +9,7 @@ from typing import Protocol
 
 from .jsvalue import JsonValue
 
-__all__ = ['DocumentLoader']
+__all__ = ["DocumentLoader"]
 
 
 class DocumentLoader(Protocol):

@@ -26,7 +26,7 @@ from .lists import render as _list_render
 from .rendering import form as _render_form
 from .template import compile as _template_compile
 
-__all__ = ['Form', 'FormError', 'Generator']
+__all__ = ["Form", "FormError", "Generator"]
 
 
 class Generator:
@@ -37,28 +37,36 @@ class Generator:
         """A JSON-serializable structure without record data."""
         options = options or {}
         _check_specification(spec, options)
-        _check_inputs([], options, ('basepath', 'keyPrefix'))
+        _check_inputs([], options, ("basepath", "keyPrefix"))
         return _template_compile(spec, options)
 
     @staticmethod
-    def bindForm(template: Any, data: JsonValue | None = None, options: Mapping[str, Any] | None = None) -> Any:
+    def bindForm(
+        template: Any,
+        data: JsonValue | None = None,
+        options: Mapping[str, Any] | None = None,
+    ) -> Any:
         """Evaluated fields without modifying the template or the record data."""
         options = options or {}
         _check_inputs(
-            [('template', template), ('data', data if data is not None else {})],
+            [("template", template), ("data", data if data is not None else {})],
             options,
-            ('idPrefix', 'keyPrefix', 'language', 'unsupported'),
+            ("idPrefix", "keyPrefix", "language", "unsupported"),
         )
         return _bind_fields(template, data if data is not None else {}, options)
 
     @staticmethod
-    def bindButtons(template: Any, data: JsonValue | None = None, options: Mapping[str, Any] | None = None) -> Any:
+    def bindButtons(
+        template: Any,
+        data: JsonValue | None = None,
+        options: Mapping[str, Any] | None = None,
+    ) -> Any:
         """The template buttons for a record, with type, tag, text and ordered attrs."""
         options = options or {}
         _check_inputs(
-            [('template', template), ('data', data if data is not None else {})],
+            [("template", template), ("data", data if data is not None else {})],
             options,
-            ('idPrefix', 'keyPrefix', 'language', 'unsupported'),
+            ("idPrefix", "keyPrefix", "language", "unsupported"),
         )
         return _buttons.bind_public(template, data if data is not None else {}, options)
 
@@ -71,7 +79,11 @@ class Generator:
         return _buttons.html_public(buttons)
 
     @staticmethod
-    def createForm(template: Any, data: JsonValue | None = None, options: Mapping[str, Any] | None = None) -> Any:
+    def createForm(
+        template: Any,
+        data: JsonValue | None = None,
+        options: Mapping[str, Any] | None = None,
+    ) -> Any:
         """An independent form instance over a copied template."""
         return Form(template, data, options)
 
@@ -84,39 +96,53 @@ class Generator:
         """
         options = {} if options is None else options
         fields = form.getFields()
-        model = _render_model(fields, form.getTemplate().get('action'), options)
+        model = _render_model(fields, form.getTemplate().get("action"), options)
         return _render_form(
             fields, form.getButtons(), form.getMessages(), model, form.getDescription()
         )
 
     @staticmethod
-    def renderList(spec: Any, rows: JsonValue, options: Mapping[str, Any] | None = None) -> Any:
+    def renderList(
+        spec: Any, rows: JsonValue, options: Mapping[str, Any] | None = None
+    ) -> Any:
         """Supplied list rows with the table or card layout."""
         options = options or {}
         rows = [] if rows is None else rows
-        _display_checks(spec, ('rows', rows), options)
+        _display_checks(spec, ("rows", rows), options)
         return _list_render(spec, rows, options)
 
     @staticmethod
-    def buildList(spec: Any, rows: JsonValue | None = None, options: Mapping[str, Any] | None = None) -> Any:
+    def buildList(
+        spec: Any,
+        rows: JsonValue | None = None,
+        options: Mapping[str, Any] | None = None,
+    ) -> Any:
         """One read-only list model from supplied rows."""
         options = options or {}
         rows = [] if rows is None else rows
-        _display_checks(spec, ('rows', rows), options)
+        _display_checks(spec, ("rows", rows), options)
         return _list_build(spec, rows, options)
 
     @staticmethod
-    def renderDetail(spec: Any, record: JsonValue | None = None, options: Mapping[str, Any] | None = None) -> Any:
+    def renderDetail(
+        spec: Any,
+        record: JsonValue | None = None,
+        options: Mapping[str, Any] | None = None,
+    ) -> Any:
         """One read-only detail from a supplied record."""
         options = options or {}
-        _display_checks(spec, ('record', record if record is not None else {}), options)
+        _display_checks(spec, ("record", record if record is not None else {}), options)
         return _detail_render(spec, record, options)
 
     @staticmethod
-    def buildDetail(spec: Any, record: JsonValue | None = None, options: Mapping[str, Any] | None = None) -> Any:
+    def buildDetail(
+        spec: Any,
+        record: JsonValue | None = None,
+        options: Mapping[str, Any] | None = None,
+    ) -> Any:
         """One read-only detail model from a supplied record."""
         options = options or {}
-        _display_checks(spec, ('record', record if record is not None else {}), options)
+        _display_checks(spec, ("record", record if record is not None else {}), options)
         return _detail_build(spec, record, options)
 
     @staticmethod
@@ -134,4 +160,4 @@ def _display_checks(spec: Any, entry: Any, options: Mapping[str, Any]) -> Any:
     """Input text of a list or detail operation: the specification and files,
     then the rows or record, then the display options."""
     _check_specification(spec, options)
-    _check_inputs([entry], options, ('basepath', 'data', 'language', 'layout'))
+    _check_inputs([entry], options, ("basepath", "data", "language", "layout"))

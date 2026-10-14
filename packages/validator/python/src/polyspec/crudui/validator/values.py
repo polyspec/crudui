@@ -16,42 +16,45 @@ from .jsvalue import JsonValue, is_scalar_text, number_text
 from .unicode_data import WHITE_SPACE
 
 __all__ = [
-    'MAX_LENGTH_LIMIT',
-    'MEMBERSHIP_ERRORS',
-    'canonical_text',
-    'code_point_length',
-    'count_of',
-    'format_message',
-    'is_digits',
-    'is_empty_value',
-    'is_finite_number',
-    'is_length_limit',
-    'is_length_range',
-    'is_member',
-    'is_multiple',
-    'is_number_range',
-    'is_step',
-    'is_whitespace',
-    'numeric_value',
-    'numeric_value_as_written',
-    'read_members',
-    'trim',
-    'whitespace_ranges',
+    "MAX_LENGTH_LIMIT",
+    "MEMBERSHIP_ERRORS",
+    "canonical_text",
+    "code_point_length",
+    "count_of",
+    "format_message",
+    "is_digits",
+    "is_empty_value",
+    "is_finite_number",
+    "is_length_limit",
+    "is_length_range",
+    "is_member",
+    "is_multiple",
+    "is_number_range",
+    "is_step",
+    "is_whitespace",
+    "numeric_value",
+    "numeric_value_as_written",
+    "read_members",
+    "trim",
+    "whitespace_ranges",
 ]
 
 MAX_LENGTH_LIMIT = 9007199254740991
 
 MEMBERSHIP_ERRORS = {
-    'shape': 'Invalid in parameter: expected a list, a comma-separated string or a map',
-    'type': 'Invalid in parameter: members must be strings, numbers or booleans',
-    'empty': 'Invalid in parameter: members must not be empty',
-    'pairs': 'Invalid in parameter: expected value and label pairs with distinct string or number values',
+    "shape": "Invalid in parameter: expected a list, a comma-separated string or a map",
+    "type": "Invalid in parameter: members must be strings, numbers or booleans",
+    "empty": "Invalid in parameter: members must not be empty",
+    "pairs": "Invalid in parameter: expected value and label pairs with distinct string or number values",
 }
 
 
 def whitespace_ranges() -> list[tuple[int, int]]:
     """The White_Space code points as inclusive pairs."""
-    return [(WHITE_SPACE[index], WHITE_SPACE[index + 1]) for index in range(0, len(WHITE_SPACE), 2)]
+    return [
+        (WHITE_SPACE[index], WHITE_SPACE[index + 1])
+        for index in range(0, len(WHITE_SPACE), 2)
+    ]
 
 
 _WHITESPACE_PAIRS = whitespace_ranges()
@@ -82,7 +85,7 @@ def is_empty_value(value: object) -> bool:
     if value is None:
         return True
     if isinstance(value, str):
-        return trim(value) == ''
+        return trim(value) == ""
     if isinstance(value, list):
         return len(value) == 0
     if isinstance(value, dict):
@@ -95,7 +98,7 @@ def canonical_text(value: JsonValue) -> str | None:
     if isinstance(value, str):
         return value
     if isinstance(value, bool):
-        return '1' if value else '0'
+        return "1" if value else "0"
     if isinstance(value, int):
         return number_text(value)
     if isinstance(value, float) and math.isfinite(value):
@@ -164,7 +167,7 @@ def is_step(step: object) -> bool:
     return is_finite_number(step) and isinstance(step, (int, float)) and step > 0
 
 
-_NUMERIC_TEXT = re.compile(r'^-?(?:[0-9]+(?:\.[0-9]+)?|\.[0-9]+)(?:[eE][-+]?[0-9]+)?$')
+_NUMERIC_TEXT = re.compile(r"^-?(?:[0-9]+(?:\.[0-9]+)?|\.[0-9]+)(?:[eE][-+]?[0-9]+)?$")
 
 
 def numeric_value_as_written(value: object) -> int | float | None:
@@ -181,7 +184,7 @@ def numeric_value_as_written(value: object) -> int | float | None:
         return None
     try:
         number = float(value)
-    except (ValueError, OverflowError):
+    except ValueError, OverflowError:
         return None
     return number if math.isfinite(number) else None
 
@@ -195,8 +198,8 @@ def numeric_value(value: JsonValue) -> int | float | None:
 
 def _decimal(text: str) -> tuple[int, int]:
     """A nonnegative decimal `significand x 10^exponent` read from a canonical text."""
-    mantissa, _, power = text.partition('e')
-    whole, _, fraction = mantissa.partition('.')
+    mantissa, _, power = text.partition("e")
+    whole, _, fraction = mantissa.partition(".")
     if power:
         exponent = int(power) - len(fraction)
     else:
@@ -212,7 +215,9 @@ def is_multiple(value: int | float, step: int | float) -> bool:
     """
     value_text = canonical_text(abs(value))
     step_text = canonical_text(step)
-    assert value_text is not None and step_text is not None  # finite numbers always have canonical text
+    assert (
+        value_text is not None and step_text is not None
+    )  # finite numbers always have canonical text
     value_digits, value_exponent = _decimal(value_text)
     step_digits, step_exponent = _decimal(step_text)
     base = min(value_exponent, step_exponent)
@@ -226,7 +231,7 @@ def is_digits(value: JsonValue) -> bool:
     if not isinstance(value, (str, int, float)) or isinstance(value, bool):
         return False
     text = trim(value) if isinstance(value, str) else canonical_text(value)
-    return text is not None and re.match(r'^[0-9]+$', text) is not None
+    return text is not None and re.match(r"^[0-9]+$", text) is not None
 
 
 def count_of(value: JsonValue) -> int:
@@ -237,7 +242,7 @@ def count_of(value: JsonValue) -> int:
         return 0
     if isinstance(value, dict):
         return len(value)
-    if isinstance(value, str) and trim(value) == '':
+    if isinstance(value, str) and trim(value) == "":
         return 0
     return 1
 
@@ -249,7 +254,7 @@ def format_message(template: str, *params: JsonValue) -> str:
         replacement = canonical_text(param)
         if replacement is None:
             replacement = str(param)
-        text = text.replace('{' + str(index) + '}', replacement)
+        text = text.replace("{" + str(index) + "}", replacement)
     return text
 
 
@@ -257,7 +262,11 @@ def _is_member_type(item: object) -> bool:
     return (
         isinstance(item, str)
         or isinstance(item, bool)
-        or (isinstance(item, (int, float)) and not isinstance(item, bool) and is_finite_number(item))
+        or (
+            isinstance(item, (int, float))
+            and not isinstance(item, bool)
+            and is_finite_number(item)
+        )
     )
 
 
@@ -267,10 +276,17 @@ def _choice_values(items: list[JsonValue]) -> list[JsonValue] | None:
     seen: set[str | None] = set()
 
     def add(item: JsonValue) -> bool:
-        if not isinstance(item, dict) or len(item) != 2 or 'value' not in item or 'label' not in item:
+        if (
+            not isinstance(item, dict)
+            or len(item) != 2
+            or "value" not in item
+            or "label" not in item
+        ):
             return False
-        value = item['value']
-        if not isinstance(value, str) and not (is_finite_number(value) and not isinstance(value, bool)):
+        value = item["value"]
+        if not isinstance(value, str) and not (
+            is_finite_number(value) and not isinstance(value, bool)
+        ):
             return False
         text = canonical_text(value)
         if text in seen:
@@ -280,11 +296,11 @@ def _choice_values(items: list[JsonValue]) -> list[JsonValue] | None:
         return True
 
     for item in items:
-        if isinstance(item, dict) and 'choices' in item:
-            choices = item['choices']
+        if isinstance(item, dict) and "choices" in item:
+            choices = item["choices"]
             if (
                 len(item) != 2
-                or 'label' not in item
+                or "label" not in item
                 or not isinstance(choices, list)
                 or len(choices) == 0
             ):
@@ -298,7 +314,8 @@ def _choice_values(items: list[JsonValue]) -> list[JsonValue] | None:
 
 def _is_choice_list(items: list[JsonValue]) -> bool:
     return any(
-        isinstance(item, dict) and ('value' in item or 'choices' in item) for item in items
+        isinstance(item, dict) and ("value" in item or "choices" in item)
+        for item in items
     )
 
 
@@ -308,21 +325,21 @@ def read_members(param: object) -> list[JsonValue] | str:
     if isinstance(param, list) and _is_choice_list(param):
         values = _choice_values(param)
         if values is None:
-            return MEMBERSHIP_ERRORS['pairs']
+            return MEMBERSHIP_ERRORS["pairs"]
         members = values
     elif isinstance(param, list):
         members = list(param)
     elif isinstance(param, str):
-        members = [trim(part) for part in param.split(',')]
+        members = [trim(part) for part in param.split(",")]
     elif isinstance(param, dict):
         members = list(param)
     else:
-        return MEMBERSHIP_ERRORS['shape']
+        return MEMBERSHIP_ERRORS["shape"]
     for member in members:
         if not _is_member_type(member):
-            return MEMBERSHIP_ERRORS['type']
-        if trim(canonical_text(member) or '') == '':
-            return MEMBERSHIP_ERRORS['empty']
+            return MEMBERSHIP_ERRORS["type"]
+        if trim(canonical_text(member) or "") == "":
+            return MEMBERSHIP_ERRORS["empty"]
     return members
 
 
@@ -353,5 +370,8 @@ def is_member(value: JsonValue, members: list[JsonValue]) -> bool:
     as an empty value does, and a non-empty array or object element fails.
     """
     if isinstance(value, list):
-        return all(is_empty_value(element) or _is_scalar_member(element, members) for element in value)
+        return all(
+            is_empty_value(element) or _is_scalar_member(element, members)
+            for element in value
+        )
     return _is_scalar_member(value, members)

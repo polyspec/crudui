@@ -15,9 +15,12 @@ python3 -m unittest discover -s packages/validator/python/tests -p 'test_*.py'
 ```python
 from polyspec.crudui.validator import ComposeLoadError, FormInputError, validate
 
-spec = {'type': 'group', 'properties': {'name': {'type': 'text', 'validate': {'required': True}}}}
-result = validate(spec, {'name': 'Ada'})
-assert result['valid']
+spec = {
+    "type": "group",
+    "properties": {"name": {"type": "text", "validate": {"required": True}}},
+}
+result = validate(spec, {"name": "Ada"})
+assert result["valid"]
 ```
 
 `validate(spec, data, options)`는 명세를 compose하고 지원하지 않는 metadata를 검사한 뒤

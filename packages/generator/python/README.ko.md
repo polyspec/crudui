@@ -15,9 +15,9 @@ python3 -m unittest discover -s packages/generator/python/tests -p 'test_*.py'
 ```python
 from polyspec.crudui.generator import Generator
 
-spec = {'type': 'group', 'properties': {'name': {'type': 'text', 'label': 'Name'}}}
+spec = {"type": "group", "properties": {"name": {"type": "text", "label": "Name"}}}
 template = Generator.compileForm(spec)
-form = Generator.createForm(template, {'name': 'Ada'})
+form = Generator.createForm(template, {"name": "Ada"})
 html = Generator.renderForm(form)
 ```
 

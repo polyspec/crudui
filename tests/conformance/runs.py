@@ -13,7 +13,7 @@ import os
 from datetime import datetime, timezone
 from pathlib import Path
 
-_DIRECTORY = os.environ.get('CRUDUI_CONFORMANCE_EVIDENCE')
+_DIRECTORY = os.environ.get("CRUDUI_CONFORMANCE_EVIDENCE")
 _FILE = None
 _RECORD = None
 
@@ -23,16 +23,16 @@ def record_suite_run(program, tool, cwd, args):
     global _FILE, _RECORD
     if not _DIRECTORY:
         return
-    runs = Path(_DIRECTORY) / 'runs'
+    runs = Path(_DIRECTORY) / "runs"
     runs.mkdir(parents=True, exist_ok=True)
-    _FILE = runs / f'python-{os.getpid()}.json'
+    _FILE = runs / f"python-{os.getpid()}.json"
     _RECORD = {
-        'program': program,
-        'tool': tool,
-        'cwd': cwd,
-        'args': list(args),
-        'started': datetime.now(timezone.utc).isoformat(),
-        'status': None,
+        "program": program,
+        "tool": tool,
+        "cwd": cwd,
+        "args": list(args),
+        "started": datetime.now(timezone.utc).isoformat(),
+        "status": None,
     }
     _write(_FILE, _RECORD)
 
@@ -41,12 +41,12 @@ def finish_suite_run(status):
     """Write the run record again with the exit status of the suite."""
     if not _DIRECTORY:
         return
-    _RECORD['status'] = status
+    _RECORD["status"] = status
     _write(_FILE, _RECORD)
 
 
 def _write(file, record):
     """Write one run record atomically, so a reader never sees a partial one."""
-    partial = file.with_suffix('.json.partial')
-    partial.write_text(f'{json.dumps(record)}\n', encoding='utf-8')
+    partial = file.with_suffix(".json.partial")
+    partial.write_text(f"{json.dumps(record)}\n", encoding="utf-8")
     partial.replace(file)

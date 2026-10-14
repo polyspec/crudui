@@ -32,7 +32,7 @@ The codes:
 
 from collections.abc import Sequence
 
-__all__ = ['ComposeLoadError']
+__all__ = ["ComposeLoadError"]
 
 
 class ComposeLoadError(ValueError):
@@ -40,6 +40,6 @@ class ComposeLoadError(ValueError):
 
     def __init__(self, code: str, message: str, trace: Sequence[str] = ()) -> None:
         super().__init__(message)
-        self.name = 'ComposeLoadError'
+        self.name = "ComposeLoadError"
         self.code = code
         self.trace = list(trace)

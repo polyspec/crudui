@@ -14,9 +14,9 @@ from conformance import cases_of, failure_record, Proving, Proving
 
 
 def _options_of(case):
-    options = dict(case.get('options') or {})
-    if 'files' in case:
-        options['files'] = case['files']
+    options = dict(case.get("options") or {})
+    if "files" in case:
+        options["files"] = case["files"]
     return options
 
 
@@ -29,10 +29,14 @@ def _outcome(run):
         run()
     except (ComposeLoadError, FormInputError, FormError) as error:
         if isinstance(error, ComposeLoadError):
-            return {'code': error.code, 'message': str(error), 'at': '.'.join(error.trace)}
-        at = error.path if isinstance(error, FormError) else ''
-        return {'code': error.code, 'message': str(error), 'at': at}
-    return 'pass'
+            return {
+                "code": error.code,
+                "message": str(error),
+                "at": ".".join(error.trace),
+            }
+        at = error.path if isinstance(error, FormError) else ""
+        return {"code": error.code, "message": str(error), "at": at}
+    return "pass"
 
 
 class GeneratorTextValidityConformance(unittest.TestCase):
@@ -41,75 +45,118 @@ class GeneratorTextValidityConformance(unittest.TestCase):
     def test_compile_form_cases(self):
         from polyspec.crudui.generator import Generator
 
-        cases = cases_of('text-validity', 'compileForm/cases.json')
+        cases = cases_of("text-validity", "compileForm/cases.json")
         self.assertEqual(len(cases), 7)
         for case in cases:
-            with self.subTest(case=case['name']), Proving(['compileForm'], 'tests/fixtures/text-validity/compileForm/cases.json', case['name']) as proof:
-                outcome = _outcome(lambda: Generator.compileForm(case['spec'], _options_of(case)))
-                self.assertEqual(outcome, case['expect'])
+            with (
+                self.subTest(case=case["name"]),
+                Proving(
+                    ["compileForm"],
+                    "tests/fixtures/text-validity/compileForm/cases.json",
+                    case["name"],
+                ) as proof,
+            ):
+                outcome = _outcome(
+                    lambda: Generator.compileForm(case["spec"], _options_of(case))
+                )
+                self.assertEqual(outcome, case["expect"])
                 proof.passed = True
 
     def test_bind_form_cases(self):
         from polyspec.crudui.generator import Generator
 
-        cases = cases_of('text-validity', 'bindForm/cases.json')
+        cases = cases_of("text-validity", "bindForm/cases.json")
         self.assertEqual(len(cases), 9)
         for case in cases:
-            with self.subTest(case=case['name']), Proving(['bindForm'], 'tests/fixtures/text-validity/bindForm/cases.json', case['name']) as proof:
+            with (
+                self.subTest(case=case["name"]),
+                Proving(
+                    ["bindForm"],
+                    "tests/fixtures/text-validity/bindForm/cases.json",
+                    case["name"],
+                ) as proof,
+            ):
                 template = (
-                    case['template'] if 'template' in case else Generator.compileForm(case['spec'])
+                    case["template"]
+                    if "template" in case
+                    else Generator.compileForm(case["spec"])
                 )
                 outcome = _outcome(
-                    lambda: Generator.bindForm(template, case.get('data', {}), _options_of(case))
+                    lambda: Generator.bindForm(
+                        template, case.get("data", {}), _options_of(case)
+                    )
                 )
-                self.assertEqual(outcome, case['expect'])
+                self.assertEqual(outcome, case["expect"])
                 proof.passed = True
 
     def test_create_form_cases(self):
         from polyspec.crudui.generator import Generator
 
-        cases = cases_of('text-validity', 'createForm/cases.json')
+        cases = cases_of("text-validity", "createForm/cases.json")
         self.assertEqual(len(cases), 15)
         for case in cases:
-            with self.subTest(case=case['name']):
+            with self.subTest(case=case["name"]):
+
                 def run():
                     template = (
-                        case['template'] if 'template' in case else Generator.compileForm(case['spec'])
+                        case["template"]
+                        if "template" in case
+                        else Generator.compileForm(case["spec"])
                     )
-                    form = Generator.createForm(template, case.get('data', {}), _options_of(case))
-                    action = case.get('action')
+                    form = Generator.createForm(
+                        template, case.get("data", {}), _options_of(case)
+                    )
+                    action = case.get("action")
                     if action is not None:
-                        method = getattr(form, action['method'])
-                        method(*action['args'])
+                        method = getattr(form, action["method"])
+                        method(*action["args"])
 
-                self.assertEqual(_outcome(run), case['expect'])
+                self.assertEqual(_outcome(run), case["expect"])
 
     def test_build_list_cases(self):
         from polyspec.crudui.generator import Generator
 
-        cases = cases_of('text-validity', 'buildList/cases.json')
+        cases = cases_of("text-validity", "buildList/cases.json")
         self.assertEqual(len(cases), 11)
         for case in cases:
-            with self.subTest(case=case['name']), Proving(['buildList'], 'tests/fixtures/text-validity/buildList/cases.json', case['name']) as proof:
+            with (
+                self.subTest(case=case["name"]),
+                Proving(
+                    ["buildList"],
+                    "tests/fixtures/text-validity/buildList/cases.json",
+                    case["name"],
+                ) as proof,
+            ):
                 outcome = _outcome(
-                    lambda: Generator.buildList(case['spec'], case.get('rows', []), _options_of(case))
+                    lambda: Generator.buildList(
+                        case["spec"], case.get("rows", []), _options_of(case)
+                    )
                 )
-                self.assertEqual(outcome, case['expect'])
+                self.assertEqual(outcome, case["expect"])
                 proof.passed = True
 
     def test_build_detail_cases(self):
         from polyspec.crudui.generator import Generator
 
-        cases = cases_of('text-validity', 'buildDetail/cases.json')
+        cases = cases_of("text-validity", "buildDetail/cases.json")
         self.assertEqual(len(cases), 6)
         for case in cases:
-            with self.subTest(case=case['name']), Proving(['buildDetail'], 'tests/fixtures/text-validity/buildDetail/cases.json', case['name']) as proof:
+            with (
+                self.subTest(case=case["name"]),
+                Proving(
+                    ["buildDetail"],
+                    "tests/fixtures/text-validity/buildDetail/cases.json",
+                    case["name"],
+                ) as proof,
+            ):
                 outcome = _outcome(
-                    lambda: Generator.buildDetail(case['spec'], case.get('record', {}), _options_of(case))
+                    lambda: Generator.buildDetail(
+                        case["spec"], case.get("record", {}), _options_of(case)
+                    )
                 )
-                self.assertEqual(outcome, case['expect'])
+                self.assertEqual(outcome, case["expect"])
                 proof.passed = True
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
