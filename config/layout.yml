@@ -55,3 +55,23 @@ rules:
       - "!.npmrc"
       - "!composer.json"
       - "!composer.lock"
+
+  # S7: the cross-language runners and tool tests of the root tests/: build (the tool tests of the repository),
+  # conformance (the suite runs and evidence of every language), docs (the document checks), fixtures (the cases that
+  # every engine reads), form-inspector (the snapshots that compare the renderers of every framework), form-markup (the
+  # markup rules on the rendered fixtures of every renderer), native-generators (the runner of the generators of every
+  # language), ordered-json (the keyed JSON contract against the OrderedJSON packages) and release-install (the install
+  # of the released packages of every ecosystem).
+  - id: layout-root-tests
+    paths:
+      - "tests/*"
+      - "!tests/kit"
+      - "!tests/build"
+      - "!tests/conformance"
+      - "!tests/docs"
+      - "!tests/fixtures"
+      - "!tests/form-inspector"
+      - "!tests/form-markup"
+      - "!tests/native-generators"
+      - "!tests/ordered-json"
+      - "!tests/release-install"
