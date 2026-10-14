@@ -14,11 +14,10 @@ rules:
     vars: { repo: crudui }
 
   # S5: the root files of crudui beyond the list of kit (K145): .npmrc sets strict-allow-scripts for the npm of the root
-  # (C14.3), composer.json with composer.lock install the development vendor/ of the PHP tools and of the PHP packages,
-  # which load each other through its path repositories, and pyproject.toml with uv.lock is the uv workspace of the
-  # Python packages, which make install-python syncs into var/python (C14.29).
+  # (C14.3), and pyproject.toml with uv.lock is the uv workspace of the Python packages, which make install-python syncs
+  # into var/python (C14.29). kit allows the development composer.json and composer.lock of the root (K167).
   - id: layout-root-files
-    vars: { root_files: "{.npmrc,composer.json,composer.lock,pyproject.toml,uv.lock}" }
+    vars: { root_files: "{.npmrc,pyproject.toml,uv.lock}" }
 
   # S7: the cross-language runners and tool tests of the root tests/: build (the tool tests of the repository),
   # conformance (the suite runs and evidence of every language), docs (the document checks), fixtures (the cases that

@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-15 — kit 0.0.46 (C14.32)
+
+- crudui pins `@polyspec/kit` 0.0.46. kit allows the root `composer.json` and `composer.lock` of a Composer monorepo in its layout, so `config/layout.yml` no longer names them (K167).
+
 ### 2026-10-15 — PHP programs on Composer and PHPUnit (C14.30)
 
 - The root `composer.json` requires `polyspec/crudui-validator` and `polyspec/crudui-generator` through path repositories with Composer's default link, so each package loads by its own autoload; `scripts/php-package-autoload.php`, which registered an autoloader, and the reinstall of the validator copy are gone, and the documentation check is the class `Polyspec\Crudui\Docs\DocCoverage` (C14.30).

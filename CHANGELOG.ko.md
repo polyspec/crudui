@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: f137ab080d6808350ff394802d4c792a0f1f07bc6a4f90dd596935fa1a09d018 -->
+<!-- source-sha256: dd7aac060e44c59f18552f3598c0150f447639f7cd2f1bc3fadbb2ebf895a886 -->
 
 ## Unreleased
+
+### 2026-10-15 — kit 0.0.46 (C14.32)
+
+- crudui는 `@polyspec/kit` 0.0.46을 pin한다. kit이 layout에서 Composer monorepo의 root `composer.json`과 `composer.lock`을 허용하므로 `config/layout.yml`은 더 이상 그 둘을 이름 짓지 않는다(K167).
 
 ### 2026-10-15 — Composer와 PHPUnit 위의 PHP 프로그램 (C14.30)
 
