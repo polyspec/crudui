@@ -37,7 +37,7 @@ export async function pathState(filename: string): Promise<Stats | null> {
   try {
     return await lstat(filename);
   } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return null;
+    if (error instanceof Error && 'code' in error && error.code === 'ENOENT') return null;
     throw error;
   }
 }

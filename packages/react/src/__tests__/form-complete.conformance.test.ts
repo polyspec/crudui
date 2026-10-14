@@ -20,7 +20,15 @@ interface CompleteCase {
   expectError?: { code: string; message: string };
 }
 
-const cases = fixtureCases as unknown as CompleteCase[];
+const cases: CompleteCase[] = fixtureCases;
+
+/**
+ * renderForm with the render options of a case, called as a JavaScript caller does (Reflect.apply): they are JSON that
+ * renderForm checks, and the failing cases hold values that its type rejects.
+ */
+function renderCase(form: ReturnType<typeof createForm>, render: unknown): unknown {
+  return Reflect.apply(renderForm, undefined, [form, render]);
+}
 
 describe('complete form: React writes the expected bytes or the declared failure', () => {
   for (const c of cases) {
@@ -29,11 +37,12 @@ describe('complete form: React writes the expected bytes or the declared failure
       () => {
         const form = createForm(compileForm(c.spec), c.data, c.options);
         if (c.expectError) {
-          let thrown: { code?: string; message?: string } | undefined;
-          try { renderForm(form, c.render as never); } catch (error) { thrown = error as typeof thrown; }
-          expect({ code: thrown?.code, message: thrown?.message }).toStrictEqual(c.expectError);
+          let thrown: unknown;
+          try { renderCase(form, c.render); } catch (error) { thrown = error; }
+          expect(thrown).toBeInstanceOf(Error);
+          expect(thrown).toMatchObject(c.expectError);
         } else {
-          expect(renderForm(form, c.render as never)).toBe(c.expected_html);
+          expect(renderCase(form, c.render)).toBe(c.expected_html);
         }
       },
     ));

@@ -103,6 +103,6 @@ async function main(argv: string[]): Promise<number | null> {
 }
 
 main(process.argv.slice(2)).then(status => { process.exitCode = status; }, (error: unknown) => {
-  process.stderr.write(`package-dist: ${(error as Error).message}\n`);
+  process.stderr.write(`package-dist: ${error instanceof Error ? error.message : String(error)}\n`);
   process.exitCode = 1;
 });

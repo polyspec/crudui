@@ -20,7 +20,7 @@ import { rawVoid, rawElement, rawOptions, serializeAttrs, escAttr, escText } fro
 export type AnyWidget = WidgetModel | UnsupportedVM;
 
 export function isUnsupported(w: AnyWidget): w is UnsupportedVM {
-  return (w as UnsupportedVM).unsupported === true;
+  return 'unsupported' in w && w.unsupported;
 }
 
 /** Return whether a control contains browser-executed behavior attributes. */
@@ -96,8 +96,8 @@ export function widgetBody(w: WidgetModel): string {
 /** choices full html: `<div {attrs}>` + per-item input/label pairs. */
 function choicesHtml(w: WidgetModel): string {
   const type: 'radio' | 'checkbox' = w.kind === 'choice' ? 'radio' : 'checkbox';
-  const shared = (w.extra?.input ?? {}) as Attrs;
-  const declared = (w.extra?.option ?? {}) as Attrs;
+  const shared: Attrs = w.extra?.input ?? {};
+  const declared: Attrs = w.extra?.option ?? {};
   const labelClass = w.itemLabelClass ?? '';
   const body = (w.options ?? [])
     .map((o) => groupButtonHtml(o, type, shared, declared, labelClass))

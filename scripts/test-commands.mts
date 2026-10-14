@@ -4,6 +4,8 @@
 
 import assert from 'node:assert/strict';
 import path from 'node:path';
+import { parseFeatureManifest } from './features-manifest.mts';
+import { isRecord, parseJson, record, string } from './values.mts';
 
 /** A command of a project file, by the name of its script, target or step. */
 export interface ProjectCommand {
@@ -52,10 +54,6 @@ function itemAt<T>(items: readonly T[], index: number): T {
   return item;
 }
 
-interface FeatureManifest {
-  features: { id: string, verification: { id: string, command: string }[] }[];
-}
-
 /**
  * The commands a tracked file declares: npm or composer scripts, Makefile recipes, CI steps and
  * the verification commands of the feature manifest.
@@ -63,11 +61,12 @@ interface FeatureManifest {
 export function projectCommands(file: string, text: string): ProjectCommand[] {
   const name = file.split('/').pop();
   if (file === 'contracts/features.json') {
-    return (JSON.parse(text) as FeatureManifest).features.flatMap(feature => feature.verification.map(item => ({ name: `${feature.id}/${item.id}`, command: item.command })));
+    return parseFeatureManifest(text, file).features.flatMap(feature => feature.verification.map(item => ({ name: `${feature.id}/${item.id}`, command: item.command })));
   }
   if (name === 'package.json' || name === 'composer.json') {
-    const scripts = (JSON.parse(text) as { scripts?: Scripts }).scripts ?? {};
-    return Object.entries(scripts).flatMap(([script, value]) => [value].flat().map(command => ({ name: script, command })));
+    const manifest = parseJson(text);
+    const scripts = isRecord(manifest) && manifest.scripts !== undefined ? record(manifest.scripts, `scripts of ${file}`) : {};
+    return Object.entries(scripts).flatMap(([script, value]) => [value].flat().map(command => ({ name: script, command: string(command, `script ${script} of ${file}`) })));
   }
   if (name === 'Makefile') {
     const commands: ProjectCommand[] = [];

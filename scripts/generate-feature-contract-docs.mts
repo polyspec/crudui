@@ -2,22 +2,10 @@
 import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { readFeatureManifest } from './features-manifest.mts';
 
 const root = resolve(new URL('..', import.meta.url).pathname);
-interface FeatureManifest {
-  features: {
-    id: string;
-    status: string;
-    owner: string;
-    support: Record<string, string>;
-    verification: unknown[];
-  }[];
-  packages: {
-    name: string;
-    entries: Record<string, { visibility: string, exports: string[] }>;
-  }[];
-}
-const manifest = JSON.parse(readFileSync(resolve(root, 'contracts/features.json'), 'utf8')) as FeatureManifest;
+const manifest = readFeatureManifest(root);
 const rows = manifest.features.map((feature) => {
   const support = Object.entries(feature.support).map(([name, status]) => `${name}: ${status}`).join('<br>');
   return `| \`${feature.id}\` | ${feature.status} | \`${feature.owner}\` | ${support} | ${feature.verification.length} command(s) |`;

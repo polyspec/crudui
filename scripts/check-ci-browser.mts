@@ -5,6 +5,7 @@ import { pathToFileURL } from 'node:url';
 import puppeteer from 'puppeteer';
 
 import { createProgress } from '@polyspec/kit/test-progress';
+import { errorReport } from './values.mts';
 
 const forbiddenArguments = new Set(['--no-sandbox', '--disable-setuid-sandbox']);
 const adequateEvaluation = 'You are adequately sandboxed.';
@@ -100,9 +101,9 @@ export async function checkCiBrowser({
       ));
       const status = await page.evaluate(() => ({
         evaluation: document.querySelector('#evaluation')?.textContent?.trim(),
-        rows: Object.fromEntries([...document.querySelectorAll('#sandbox-status tr')].map(row => {
-          const cells = [...row.querySelectorAll('td')].map(cell => cell.textContent?.trim());
-          return [cells[0], cells[1]];
+        rows: Object.fromEntries([...document.querySelectorAll('#sandbox-status tr')].flatMap(row => {
+          const [name, value] = [...row.querySelectorAll('td')].map(cell => cell.textContent.trim());
+          return name === undefined ? [] : [[name, value] as const];
         })),
       }));
       assert.equal(status.evaluation, adequateEvaluation,
@@ -136,8 +137,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     await checkCiBrowser({ executablePath });
     lines.pass(id);
   } catch (error) {
-    const failure = error as Error;
-    lines.fail(id, undefined, failure.stack ?? failure.message);
+    lines.fail(id, undefined, errorReport(error));
     process.exitCode = 1;
   }
   lines.close('CI browser');

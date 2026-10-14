@@ -20,52 +20,13 @@ import { existsSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, extname, relative, resolve, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { Ajv } from 'ajv';
 import { init, parse } from 'es-module-lexer';
 
 import { checkedFiles } from '@polyspec/kit/tracked-files';
+import { featureManifestErrors, isFeatureManifest, type ManifestEntry, type ManifestPackage } from './features-manifest.mts';
+import { isRecord, parseJson } from './values.mts';
 
 const scriptRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const schema = JSON.parse(readFileSync(resolve(scriptRoot, 'contracts/features.schema.json'), 'utf8')) as object;
-
-/** An entry of a package of the manifest (contracts/features.schema.json). */
-interface ManifestEntry {
-  visibility: string;
-  exports: string[];
-}
-
-/** A package of the manifest. */
-interface ManifestPackage {
-  name: string;
-  path: string;
-  entries: Record<string, ManifestEntry>;
-}
-
-/** A feature of the manifest. */
-interface ManifestFeature {
-  id: string;
-  owner: string;
-  status: string;
-  signature: string;
-  errors: string[];
-  support: Record<string, string>;
-  fixtures: string[];
-  tests: string[];
-  docs: string[];
-  verification: { id: string, command: string }[];
-}
-
-/** contracts/features.json; the schema check reports a manifest of another shape. */
-interface Manifest {
-  format: string;
-  version: string;
-  supportValues: string[];
-  packages: ManifestPackage[];
-  features: ManifestFeature[];
-  fixtures: { path: string }[];
-  examples: { id: string, input: string, expected: string }[];
-}
-
 /** A value of a package.json exports map: a target path, a list of targets, or conditions and subpaths. */
 type ExportsValue = string | null | ExportsValue[] | { [key: string]: ExportsValue };
 
@@ -79,7 +40,23 @@ export interface ManifestCheck {
   errors: string[];
   counts: { features: number, packages: number, entries: number, fixtures: number };
 }
-const schemaValidate = new Ajv({ allErrors: true, strict: false }).compile(schema);
+
+/** Whether `value` is a value of a package.json exports map. */
+function isExportsValue(value: unknown): value is ExportsValue {
+  if (value === null || typeof value === 'string') return true;
+  if (Array.isArray(value)) return value.every(isExportsValue);
+  return isRecord(value) && Object.values(value).every(isExportsValue);
+}
+
+/** The name and exports of the package.json `file`; throws when they are of another type. */
+function readPackageManifest(file: string): PackageManifest {
+  const value = parseJson(readFileSync(file, 'utf8'));
+  if (!isRecord(value)) throw new Error(`${file} is no JSON object`);
+  const { name, exports } = value;
+  if (name !== undefined && typeof name !== 'string') throw new Error(`name of ${file} is no string`);
+  if (exports !== undefined && (exports === null || !isExportsValue(exports))) throw new Error(`exports of ${file} is no exports map`);
+  return { ...(name === undefined ? {} : { name }), ...(exports === undefined ? {} : { exports }) };
+}
 
 const codeTarget = /\.[cm]?js$/;
 const scannedExtensions = new Set(['.ts', '.tsx', '.mts', '.cts', '.js', '.jsx', '.mjs', '.cjs', '.svelte', '.vue', '.md', '.html']);
@@ -157,11 +134,15 @@ const moduleSpecifier = /(?:\bfrom\s*|\bimport\s*\(\s*|\brequire\s*\(\s*|\bimpor
 
 /** Check the manifest of the repository at `root`; returns the failures and the checked counts. */
 export function checkContractManifest(root: string): ManifestCheck {
-  const manifest = JSON.parse(readFileSync(resolve(root, 'contracts/features.json'), 'utf8')) as Manifest;
+  const manifest = parseJson(readFileSync(resolve(root, 'contracts/features.json'), 'utf8'));
   const errors: string[] = [];
   const check = (condition: unknown, message: string): void => { if (!condition) errors.push(message); };
 
-  check(schemaValidate(manifest), `manifest schema: ${(schemaValidate.errors ?? []).map((error) => `${error.instancePath} ${error.message}`).join('; ')}`);
+  // The other checks read the manifest in the shape of the schema, so a manifest of another shape fails with the schema alone.
+  if (!isFeatureManifest(manifest)) {
+    errors.push(`manifest schema: ${featureManifestErrors()}`);
+    return { errors, counts: { features: 0, packages: 0, entries: 0, fixtures: 0 } };
+  }
   check(manifest.format === 'crudui/features-manifest', 'format must identify the CRUDUI feature manifest');
   check(manifest.version === '0.0.5', 'manifest version must match the package version');
   const supportValues = new Set(manifest.supportValues);
@@ -176,7 +157,7 @@ export function checkContractManifest(root: string): ManifestCheck {
     const packageFile = resolve(packagePath, 'package.json');
     check(existsSync(packageFile), `${pkg.name}: missing ${pkg.path}/package.json`);
     if (!existsSync(packageFile)) continue;
-    const packageManifest = JSON.parse(readFileSync(packageFile, 'utf8')) as PackageManifest;
+    const packageManifest = readPackageManifest(packageFile);
     check(packageManifest.name === pkg.name, `${pkg.path}: package name mismatch`);
     const entries = pkg.entries ?? {};
     const codeEntries = Object.entries(exportsMap(packageManifest)).filter(([, target]) => codeTargets(target).length > 0);

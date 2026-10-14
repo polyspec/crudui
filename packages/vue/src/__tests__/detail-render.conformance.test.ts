@@ -23,27 +23,46 @@ function proves(name: string, body: () => unknown): Promise<unknown> {
 
 interface DetailFixture {
   name: string;
-  spec: Record<string, unknown>;
-  record?: Record<string, unknown>;
+  /** An object, or another JSON value in a case that a JavaScript caller's specification fails. */
+  spec: unknown;
+  /** An object, or another JSON value in a case that a JavaScript caller's record fails. */
+  record?: unknown;
   options?: Record<string, unknown>;
   expected_html?: string;
   expectError?: { code: string; message: string };
 }
 
-const fixtures = cases as unknown as DetailFixture[];
+const fixtures: DetailFixture[] = cases;
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+/**
+ * renderDetail as a JavaScript caller calls it (Reflect.apply), with a specification or record that its type rejects;
+ * renderDetail checks them.
+ */
+function renderUnchecked(item: DetailFixture): Promise<unknown> {
+  const rendering: unknown = Reflect.apply(renderDetail, undefined, [item.spec, item.record ?? {}, item.options]);
+  return Promise.resolve(rendering);
+}
 
 describe('detail render — Vue reproduces the normalized expected_html', () => {
   for (const item of fixtures.filter((fixture) => !fixture.expectError)) {
     test(item.name, () => proves(item.name, async () => {
-      expect(normalizeHtml(withoutPreloadLinks(await renderDetail(item.spec, item.record ?? {}, item.options)))).toBe(item.expected_html);
+      const record = item.record ?? {};
+      if (!isRecord(item.spec) || !isRecord(record)) throw new Error(`${item.name}: the specification or record of a rendered case is no object`);
+      expect(normalizeHtml(withoutPreloadLinks(await renderDetail(item.spec, record, item.options)))).toBe(item.expected_html);
     }));
   }
 });
 
 describe('detail render — Vue rejects invalid input with the shared message', () => {
-  for (const item of fixtures.filter((fixture) => fixture.expectError)) {
+  for (const item of fixtures) {
+    const expected = item.expectError;
+    if (!expected) continue;
     test(item.name, () => proves(item.name, async () => {
-      await expect(renderDetail(item.spec, item.record ?? {}, item.options)).rejects.toThrow(item.expectError!.message);
+      await expect(renderUnchecked(item)).rejects.toThrow(expected.message);
     }));
   }
 });

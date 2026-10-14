@@ -6,6 +6,7 @@ import { buildList, compileForm, createForm } from '@polyspec/crudui-generator-c
 import { Form } from '../components/Form';
 import { List } from '../components/List';
 import { inputProps, plainProps, resolvedStyleProps, styleObject } from '../components/attrs';
+import { element as elementOf } from './elements';
 
 describe('resolved CSS', () => {
   const css = '--caption: "one;two:three"; color: red !important; background-image: url("data:image/svg+xml;utf8,<svg></svg>")';
@@ -20,7 +21,7 @@ describe('resolved CSS', () => {
 
   it('applies priority, clears removed styles and restores identical DOM HTML', () => {
     const view = render(<div {...resolvedStyleProps(styleObject(css))} />);
-    const element = view.container.firstElementChild as HTMLElement;
+    const element = elementOf(view.container, ':scope > div', HTMLElement);
     const original = element.outerHTML;
     expect(element.style.getPropertyValue('--caption')).toBe('"one;two:three"');
     expect(element.style.getPropertyValue('color')).toBe('red');
@@ -36,7 +37,7 @@ describe('resolved CSS', () => {
 
   it('applies the same CSS behavior to input attribute conversion', () => {
     const view = render(<input {...inputProps({ style: css })} />);
-    const input = view.container.querySelector('input')!;
+    const input = elementOf(view.container, 'input', HTMLInputElement);
     expect(input.style.getPropertyPriority('color')).toBe('important');
     view.rerender(<input {...inputProps({})} />);
     expect(input.hasAttribute('style')).toBe(false);
@@ -63,7 +64,7 @@ describe('resolved CSS', () => {
       const original = first.container.cloneNode(true);
       act(() => deferred.setData(data));
       expect(second.container.isEqualNode(original)).toBe(true);
-      const input = second.container.querySelector('input[name="name"]')! as HTMLInputElement;
+      const input = elementOf(second.container, 'input[name="name"]', HTMLInputElement);
       expect(input.style.getPropertyPriority('color')).toBe('important');
       act(() => deferred.setData({ active: false, name: '' }));
       expect(input.hasAttribute('style')).toBe(false);
@@ -84,7 +85,7 @@ describe('resolved CSS', () => {
     }, [{ name: 'Ada' }]);
     const view = render(<List vm={vm} />);
     try {
-      const wrapper = view.container.querySelector('.crudui-list')! as HTMLElement;
+      const wrapper = elementOf(view.container, '.crudui-list', HTMLElement);
       expect(wrapper.style.getPropertyPriority('border-color')).toBe('important');
       for (const element of view.container.querySelectorAll<HTMLElement>('th, td')) {
         expect(element.style.getPropertyValue('--caption')).toBe('"one;two:three"');

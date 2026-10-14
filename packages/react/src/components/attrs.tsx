@@ -75,8 +75,8 @@ export function styleObject(style?: string): React.CSSProperties | undefined {
     // React style keys: camelCase for known props; custom props (--x) verbatim.
     const key = prop.startsWith('--')
       ? prop
-      : prop.replace(/-([a-z])/g, (_m, c) => c.toUpperCase());
+      : prop.replace(/-([a-z])/g, (_m, c: string) => c.toUpperCase());
     obj[key] = val;
   }
-  return Object.keys(obj).length ? (obj as React.CSSProperties) : undefined;
+  return Object.keys(obj).length ? obj : undefined;
 }

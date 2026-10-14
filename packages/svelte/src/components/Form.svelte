@@ -32,7 +32,8 @@
     const current = form;
     snapshot = current.getSnapshot();
     const unsubscribe = current.subscribe(() => { snapshot = current.getSnapshot(); });
-    binding = connectForm(root!, current);
+    if (!root) throw new Error('Form has no mounted root element');
+    binding = connectForm(root, current);
     return () => { binding?.disconnect(); unsubscribe(); };
   });
   // Reading the snapshot makes every new snapshot sync the rendered controls.

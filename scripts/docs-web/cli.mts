@@ -7,6 +7,7 @@ import { buildDocumentationWeb } from './build.mts';
 import { documentationBasePath } from './paths.mts';
 import { createDocumentationServer } from './server.mts';
 import { watchDocumentation, type DocumentationWatch } from './watch.mts';
+import { errorReport } from '../values.mts';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const DOCS = join(ROOT, 'docs');
@@ -58,9 +59,7 @@ async function serve(development: boolean): Promise<void> {
   }
   if (development) {
     reportBuildError = error => {
-      // A documentation build fails with an Error.
-      const failure = error as Error;
-      process.stderr.write(`[docs-web] rebuild failed: ${failure.stack ?? failure.message}\n`);
+      process.stderr.write(`[docs-web] rebuild failed: ${errorReport(error)}\n`);
     };
   }
   const server = createDocumentationServer({ outputDirectory: OUTPUT, basePath: BASE_PATH });

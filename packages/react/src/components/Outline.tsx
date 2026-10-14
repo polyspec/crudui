@@ -83,7 +83,7 @@ export function Outline({ form, formRef }: OutlineProps): React.ReactElement {
   const root = React.useRef<HTMLDivElement>(null);
   React.useLayoutEffect(() => {
     if (!root.current || !formRef.current) return undefined;
-    const connection = connectOutline(root.current, form, formRef.current as HTMLElement);
+    const connection = connectOutline(root.current, form, formRef.current);
     return () => connection.disconnect();
   }, [form, formRef]);
   return <OutlineView state={snapshot} messages={form.messages} rootRef={root} />;

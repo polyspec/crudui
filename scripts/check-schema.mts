@@ -7,6 +7,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { Ajv, type ValidateFunction } from 'ajv';
 import ajvFormats from 'ajv-formats';
 import YAML from 'yaml';
+import { array, isRecord, parseJson, record, string } from './values.mts';
 
 // ajv-formats is a CommonJS module: its plugin is the `default` of module.exports.
 const addFormats = ajvFormats.default;
@@ -32,29 +33,8 @@ interface ValidityCase {
 }
 
 /** A case of a fixture family that holds a specification. */
-interface FixtureCase {
-  [key: string]: unknown;
-  name: string;
-  expectError?: unknown;
-  expectFailure?: unknown;
-  spec?: unknown;
-  files?: Record<string, unknown>;
-}
-
 /** A case of the compose fixtures. */
-interface ComposeCase {
-  name: string;
-  expectError?: unknown;
-  input: { entry: unknown, files?: Record<string, unknown>, kind?: string };
-}
-
 /** A request of the cross-check console's validator processes. */
-interface ValidatorRequestCase {
-  name: string;
-  input: string;
-  expected: { exit: number };
-}
-
 /** An example of the cross-check console client. */
 interface ConsoleExample {
   id: string;
@@ -67,15 +47,43 @@ type Slot = 'properties' | 'columns' | 'fields';
 const repository = fileURLToPath(new URL('..', import.meta.url));
 const at = (relative: string): string => path.join(repository, relative);
 const readText = (relative: string): string => readFileSync(at(relative), 'utf8');
-/** A JSON file of this repository, of the shape its caller names. */
-const read = <T,>(path: string): T => JSON.parse(readFileSync(new URL(path, import.meta.url), 'utf8')) as T;
-const schema = read<MetaSchema>('../contracts/schema/crudui.schema.json');
+/** A JSON file of this repository, relative to this script, as an unknown value that its caller checks. */
+const read = (path: string): unknown => parseJson(readFileSync(new URL(path, import.meta.url), 'utf8'));
+/** The cases of the JSON file `path`: an array of objects, each with a string name. */
+const readCases = (path: string): (Record<string, unknown> & { name: string })[] =>
+  array(read(path), path).map((item, index) => {
+    const test = record(item, `${path}[${index}]`);
+    return { ...test, name: string(test.name, `${path}[${index}].name`) };
+  });
+/** `value` of the case `label`, an optional object of files. */
+const optionalFiles = (value: unknown, label: string): Record<string, unknown> | undefined =>
+  value === undefined ? undefined : record(value, `${label}: files`);
+
+/** contracts/schema/crudui.schema.json in the members that the check reads. */
+function metaSchema(value: unknown): MetaSchema {
+  const file = 'contracts/schema/crudui.schema.json';
+  const root = record(value, file);
+  const definitions = record(root.definitions, `definitions of ${file}`);
+  const anyOf = array(record(definitions.Validate, `definitions.Validate of ${file}`).anyOf, `definitions.Validate.anyOf of ${file}`)
+    .map((shape, index) => {
+      const what = `definitions.Validate.anyOf[${index}] of ${file}`;
+      const { type, properties } = record(shape, what);
+      return {
+        ...(type === undefined ? {} : { type: string(type, `type of ${what}`) }),
+        ...(properties === undefined ? {} : { properties: record(properties, `properties of ${what}`) }),
+      };
+    });
+  const messages = record(record(definitions.Messages, `definitions.Messages of ${file}`).properties, `definitions.Messages.properties of ${file}`);
+  return { $schema: string(root.$schema, `$schema of ${file}`), definitions: { Validate: { anyOf }, Messages: { properties: messages } } };
+}
+const schemaDocument = record(read('../contracts/schema/crudui.schema.json'), 'contracts/schema/crudui.schema.json');
+const schema = metaSchema(schemaDocument);
 const ajv = new Ajv({ allErrors: true, strict: false });
 addFormats(ajv);
-assert.equal(ajv.validateSchema(schema), true, JSON.stringify(ajv.errors));
+assert.equal(ajv.validateSchema(schemaDocument), true, JSON.stringify(ajv.errors));
 const entry = (definition: string): ValidateFunction =>
-  ajv.compile({ $schema: schema.$schema, definitions: schema.definitions, $ref: `#/definitions/${definition}` });
-const validateForm = ajv.compile(schema);
+  ajv.compile({ $schema: schema.$schema, definitions: schemaDocument.definitions, $ref: `#/definitions/${definition}` });
+const validateForm = ajv.compile(schemaDocument);
 const validateList = entry('List');
 const validateDetail = entry('Detail');
 // Composition files are validated as the fragment a `$ref` selects in them: a form
@@ -240,16 +248,16 @@ for (const [field, expected, keyword] of [
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 const caseKeys = new Set(['name', 'note', 'spec', 'files', 'expect', 'reason', 'engine']);
-function assertValidityCase(family: string, test: unknown): void {
+function validityCase(family: string, test: unknown): ValidityCase {
   assert.ok(isObject(test), `${family}: every case is an object`);
   assert.ok(typeof test.name === 'string', `${family}: every case name is a string`);
   const label = `${family}:${test.name}`;
   for (const key of Object.keys(test)) assert.ok(caseKeys.has(key), `${label}: unknown member ${key}`);
-  assert.equal(typeof test.note, 'string', `${label}: note is a string`);
+  assert.ok(typeof test.note === 'string', `${label}: note is a string`);
   assert.ok(isObject(test.spec), `${label}: spec is an object`);
   if ('files' in test) assert.ok(isObject(test.files), `${label}: files is an object`);
   assert.ok(test.expect === 'ok' || test.expect === 'fail', `${label}: expect is "ok" or "fail"`);
-  if (test.expect === 'fail') assert.equal(typeof test.reason, 'string', `${label}: a fail case names its reason`);
+  if (test.expect === 'fail') assert.ok(typeof test.reason === 'string', `${label}: a fail case names its reason`);
   else assert.ok(!('reason' in test), `${label}: only a fail case has a reason`);
   const engineShape =
     test.engine === 'pass' ||
@@ -258,17 +266,23 @@ function assertValidityCase(family: string, test: unknown): void {
       typeof test.engine.code === 'string' &&
       typeof test.engine.at === 'string');
   assert.ok(engineShape, `${label}: engine is "pass" or { code, at }`);
+  const files = optionalFiles(test.files, label);
+  return {
+    name: test.name, note: test.note, spec: test.spec, expect: test.expect, engine: test.engine,
+    ...(files === undefined ? {} : { files }),
+    ...(typeof test.reason === 'string' ? { reason: test.reason } : {}),
+  };
 }
 for (const [family, validate] of [
   ['spec-validity', validateForm],
   ['list-validity', validateList],
   ['detail-validity', validateDetail],
 ] satisfies [string, ValidateFunction][]) {
-  const cases = read<ValidityCase[]>(`../tests/fixtures/${family}/cases.json`);
-  assert.ok(Array.isArray(cases) && cases.length > 0, `${family}: cases is a nonempty array`);
+  const document = read(`../tests/fixtures/${family}/cases.json`);
+  assert.ok(Array.isArray(document) && document.length > 0, `${family}: cases is a nonempty array`);
+  const cases = document.map((test: unknown) => validityCase(family, test));
   assert.equal(new Set(cases.map((test) => test.name)).size, cases.length, `${family}: case names are unique`);
   for (const test of cases) {
-    assertValidityCase(family, test);
     const label = `${family}:${test.name}`;
     assert.equal(validate(test.spec), test.expect === 'ok', `${label}: ${JSON.stringify(validate.errors)}`);
     if (test.expect === 'fail') {
@@ -329,8 +343,8 @@ for (const [family, member, validate] of [
   ['list-render', 'spec', validateList],
   ['detail-render', 'spec', validateDetail],
 ] satisfies [string, string, ValidateFunction][]) {
-  const cases = read<FixtureCase[]>(`../tests/fixtures/${family}/cases.json`);
-  assert.ok(Array.isArray(cases) && cases.length > 0, `${family}: cases is a nonempty array`);
+  const cases = readCases(`../tests/fixtures/${family}/cases.json`);
+  assert.ok(cases.length > 0, `${family}: cases is a nonempty array`);
   for (const test of cases) {
     if (test.expectError || test.expectFailure) continue;
     const spec = test[member];
@@ -346,9 +360,8 @@ function refFragment(document: unknown, reference: string): unknown {
   const keys = path !== undefined ? [...path.split('.'), 'properties'] : ['properties'];
   let node = document;
   for (const key of keys) {
-    if (node === null || typeof node !== 'object' || !(key in node)) return undefined;
-    // An object that holds `key`.
-    node = (node as Record<string, unknown>)[key];
+    if (!isRecord(node) || !(key in node)) return undefined;
+    node = node[key];
   }
   return node;
 }
@@ -403,39 +416,43 @@ for (const [family, slot] of [
   ['list-validity', 'properties'],
   ['detail-validity', 'fields'],
 ] satisfies [string, Slot][]) {
-  for (const test of read<ValidityCase[]>(`../tests/fixtures/${family}/cases.json`)) {
+  for (const test of array(read(`../tests/fixtures/${family}/cases.json`), family).map((item) => validityCase(family, item))) {
     if (test.expect !== 'ok') continue;
     checkFiles(`${family}:${test.name}`, test.spec, test.files, slot);
   }
 }
-for (const test of read<FixtureCase[]>('../tests/fixtures/validate/cases.json')) {
+for (const test of readCases('../tests/fixtures/validate/cases.json')) {
   if (test.expectFailure) continue;
-  checkFiles(`validate:${test.name}`, test.spec, test.files, 'properties');
+  const label = `validate:${test.name}`;
+  checkFiles(label, test.spec, optionalFiles(test.files, label), 'properties');
 }
 
 // Composition entries are the fragment their kind names: a field map by default,
 // a whole specification for `kind: "spec"`. `err-` cases expect a composition failure.
-for (const test of read<ComposeCase[]>('../tests/fixtures/compose/cases.json')) {
+for (const test of readCases('../tests/fixtures/compose/cases.json')) {
   if (test.name.startsWith('err-') || test.expectError) continue;
-  const { entry: declaration, files, kind } = test.input;
   const label = `compose:${test.name}`;
+  const input = record(test.input, `${label}: input`);
+  const { entry: declaration, kind } = input;
+  const files = optionalFiles(input.files, label);
   checkSpec(label, declaration, kind === 'spec' ? validateForm : validateProperties);
   checkFiles(label, declaration, files, 'properties');
   for (const document of Object.values(files ?? {})) checkFiles(label, document, files, 'properties');
 }
 
 // Requests that the cross-check console's validator processes accept.
-for (const test of read<ValidatorRequestCase[]>('../examples/cross-check-console/validators/requests.json')) {
-  if (test.expected.exit !== 0) continue;
-  let request: { mode?: string, spec: unknown };
+for (const test of readCases('../examples/cross-check-console/validators/requests.json')) {
+  const label = `validator-request:${test.name}`;
+  if (record(test.expected, `${label}: expected`).exit !== 0) continue;
+  let request: unknown;
   try {
-    request = JSON.parse(test.input) as { mode?: string, spec: unknown };
+    request = parseJson(string(test.input, `${label}: input`));
   } catch {
     continue;
   }
-  const mode = request.mode ?? 'form';
+  const { mode, spec } = record(request, `${label}: request`);
   const validate = mode === 'list' ? validateList : mode === 'detail' ? validateDetail : validateForm;
-  checkSpec(`validator-request:${test.name}`, request.spec, validate);
+  checkSpec(label, spec, validate);
 }
 
 // Browser form-session specifications.
@@ -447,8 +464,8 @@ for (const [file, exported] of [
   ['typing.mts', 'typingSpec'],
 ] satisfies [string, string][]) {
   // The fixture module exports its specifications.
-  const module = await import(pathToFileURL(at(`tests/fixtures/form-session/${file}`)).href) as Record<string, unknown>;
-  checkSpec(`form-session:${file}`, module[exported], validateForm);
+  const module: unknown = await import(pathToFileURL(at(`tests/fixtures/form-session/${file}`)).href);
+  checkSpec(`form-session:${file}`, record(module, file)[exported], validateForm);
 }
 
 // ---------------------------------------------------------------------------
@@ -456,10 +473,9 @@ for (const [file, exported] of [
 // ---------------------------------------------------------------------------
 checkSpec('examples/form-structure', YAML.parse(readText('examples/form-structure/spec.yml')), validateForm);
 // The product forms: two specifications and the option-row file they compose with `$ref`.
-const productFiles: { 'option-row.yml': { properties: unknown }, 'option-form.yml': unknown } = {
-  'option-row.yml': YAML.parse(readText('examples/product-forms/option-row.yml')),
-  'option-form.yml': YAML.parse(readText('examples/product-forms/option-form.yml')),
-};
+const optionRow: unknown = YAML.parse(readText('examples/product-forms/option-row.yml'));
+const optionForm: unknown = YAML.parse(readText('examples/product-forms/option-form.yml'));
+const productFiles = { 'option-row.yml': record(optionRow, 'examples/product-forms/option-row.yml'), 'option-form.yml': optionForm };
 const productForm: unknown = YAML.parse(readText('examples/product-forms/product-form.yml'));
 checkSpec('examples/product-forms/option-form', productFiles['option-form.yml'], validateForm);
 checkSpec('examples/product-forms/product-form', productForm, validateForm);
@@ -470,13 +486,19 @@ checkFiles('examples/product-forms/product-form', productForm, productFiles, 'pr
 // The console client is a browser module, so it is loaded by its source rather
 // than by path: the nearest package.json does not declare a module type.
 const consoleSource = readText('examples/cross-check-console/client/examples.js');
-const console_ = await import(
+const consoleModule: unknown = await import(
   `data:text/javascript;base64,${Buffer.from(consoleSource).toString('base64')}`
-) as { examples: ConsoleExample[], listExamples: ConsoleExample[], detailExamples: ConsoleExample[] };
+);
+/** The examples that the console module exports as `name`. */
+const consoleExamples = (name: string): ConsoleExample[] =>
+  array(record(consoleModule, 'examples.js')[name], `${name} of examples.js`).map((item, index) => {
+    const example = record(item, `${name}[${index}] of examples.js`);
+    return { id: string(example.id, `${name}[${index}].id of examples.js`), spec: string(example.spec, `${name}[${index}].spec of examples.js`) };
+  });
 for (const [list, validate] of [
-  [console_.examples, validateForm],
-  [console_.listExamples, validateList],
-  [console_.detailExamples, validateDetail],
+  [consoleExamples('examples'), validateForm],
+  [consoleExamples('listExamples'), validateList],
+  [consoleExamples('detailExamples'), validateDetail],
 ] satisfies [ConsoleExample[], ValidateFunction][]) {
   assert.ok(list.length > 0, 'the cross-check console declares examples');
   for (const example of list) checkSpec(`console:${example.id}`, YAML.parse(example.spec), validate);

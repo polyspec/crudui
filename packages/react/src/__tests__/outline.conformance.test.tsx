@@ -10,7 +10,7 @@
 import * as React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, test } from 'vitest';
-import { bindForm, compileForm, formMessages } from '@polyspec/crudui-generator-core';
+import { bindForm, compileForm, formMessages, type Language } from '@polyspec/crudui-generator-core';
 import { DataPanel, OutlineView } from '../index';
 import { normalizeHtml } from '../../../../tests/fixtures/form-render/normalize.mts';
 import fixtureCases from '../../../../tests/fixtures/form-outline/cases.json';
@@ -35,13 +35,20 @@ interface OutlineCase {
   expected_data_html: string;
 }
 
-const cases = fixtureCases as unknown as OutlineCase[];
+const cases: OutlineCase[] = fixtureCases;
+
+/** The language of the options of a case, one that the generator has messages for. */
+function caseLanguage(c: OutlineCase): Language {
+  const { language } = c.options;
+  if (language === 'ko' || language === 'en' || language === 'ja' || language === 'zh') return language;
+  throw new Error(`${c.name}: no language of the generator: ${language}`);
+}
 
 describe('structure map and data view: React reproduces the fixture', () => {
   for (const c of cases) {
     test(c.name, () => proves(c.name, () => {
       const messages = formMessages(c.options.language);
-      const fields = bindForm(compileForm(c.spec), c.data, c.options as never);
+      const fields = bindForm(compileForm(c.spec), c.data, { language: caseLanguage(c) });
       const state = { fields, canUndo: c.canUndo, canRedo: c.canRedo };
       expect(normalizeHtml(renderToStaticMarkup(<OutlineView state={state} messages={messages} />))).toBe(c.expected_outline_html);
       expect(normalizeHtml(renderToStaticMarkup(<DataPanel data={c.data} messages={messages} />))).toBe(c.expected_data_html);

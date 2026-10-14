@@ -41,7 +41,7 @@ interface FixtureCase {
   expectError?: { code: string; message?: string };
 }
 
-const cases = fixtureCases as unknown as FixtureCase[];
+const cases: FixtureCase[] = fixtureCases;
 
 function render(c: FixtureCase): string {
   return renderFields(compileForm(c.spec, c.options), { ...c.options, data: c.data });
@@ -67,14 +67,16 @@ describe('form rendering: render is idempotent (stable across re-render)', () =>
 // An unresolved $ref throws ComposeLoadError, and an unsupported field type
 // throws UnsupportedFieldTypeError. Both errors provide a stable code, and the
 // renderer does not return successful or empty output for either condition.
-const ERROR_CLASS_BY_CODE: Record<string, new (...args: never[]) => Error & { code: string }> = {
-  REF_FILE_NOT_FOUND: ComposeLoadError as never,
-  UNSUPPORTED_FIELD_TYPE: UnsupportedFieldTypeError as never,
-  INVALID_FORM_INPUT: FormInputError as never,
+const ERROR_CLASS_BY_CODE: Record<string, new (...args: never[]) => Error> = {
+  REF_FILE_NOT_FOUND: ComposeLoadError,
+  UNSUPPORTED_FIELD_TYPE: UnsupportedFieldTypeError,
+  INVALID_FORM_INPUT: FormInputError,
 };
 
 describe('form rendering: a load/registry gap is a surfaced ERROR, never silent', () => {
-  for (const c of cases.filter((x) => x.expectError)) {
+  for (const c of cases) {
+    const expected = c.expectError;
+    if (!expected) continue;
     test(c.name, () => proves(c.name, () => {
       let thrown: unknown;
       try {
@@ -82,11 +84,11 @@ describe('form rendering: a load/registry gap is a surfaced ERROR, never silent'
       } catch (e) {
         thrown = e;
       }
-      const expectedClass = ERROR_CLASS_BY_CODE[c.expectError!.code];
-      expect(expectedClass, `${c.name}: unknown error code ${c.expectError!.code}`).toBeTruthy();
+      const expectedClass = ERROR_CLASS_BY_CODE[expected.code];
+      if (!expectedClass) throw new Error(`${c.name}: unknown error code ${expected.code}`);
       expect(thrown, `${c.name} must throw a surfaced error`).toBeInstanceOf(expectedClass);
-      expect((thrown as { code: string }).code).toStrictEqual(c.expectError!.code);
-      if (c.expectError!.message !== undefined) expect((thrown as Error).message).toStrictEqual(c.expectError!.message);
+      expect(thrown).toHaveProperty('code', expected.code);
+      if (expected.message !== undefined) expect(thrown).toHaveProperty('message', expected.message);
     }));
   }
 });
@@ -122,8 +124,8 @@ describe('form rendering: eval is never used (no condition metadata)', () => {
   // token (no __13hex__ position-id leakage; README coverage line).
   test('multiple-group-rows — real data row id survives unmasked (G4)', () => {
     const c = cases.find((x) => x.name === 'multiple-group-rows');
-    expect(c, 'fixture must contain multiple-group-rows').toBeTruthy();
-    const raw = render(c!);
+    if (!c) throw new Error('the fixture must contain multiple-group-rows');
+    const raw = render(c);
     expect(raw).toContain('data-crudui-row-key="p1"');
   });
 });

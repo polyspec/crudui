@@ -68,6 +68,12 @@ export function rawOptions(
 
 const subscribeNever = () => () => {};
 
+/** The element that `ref` holds once React has mounted it; an effect runs only after the mount. */
+function mounted(ref: React.RefObject<HTMLElement | null>, component: string): HTMLElement {
+  if (!ref.current) throw new Error(`${component} has no mounted element`);
+  return ref.current;
+}
+
 /**
  * An element whose content is raw markup, patched into the existing nodes with `patchContent`, so
  * a re-render keeps the focused control, its caret and its typed order, and a script runs once,
@@ -80,7 +86,7 @@ export function RawContainer({ tag = 'div', html, ...props }: { tag?: string; ht
   const server = React.useSyncExternalStore(subscribeNever, () => false, () => true);
   // React sets the content again whenever this object changes, so it is created once.
   const [content] = React.useState(() => ({ __html: server ? html : '' }));
-  React.useLayoutEffect(() => { patchContent(ref.current!, html); }, [html]);
+  React.useLayoutEffect(() => { patchContent(mounted(ref, 'RawContainer'), html); }, [html]);
   return React.createElement(tag, { ...props, ref, dangerouslySetInnerHTML: content });
 }
 
@@ -97,11 +103,12 @@ export function RawText({ tag, text, ...props }: { tag: 'script' | 'style'; text
   const [content] = React.useState(() => ({ __html: text }));
   const [clientRender] = React.useState(!server);
   React.useLayoutEffect(() => {
-    if (ref.current!.textContent !== text) ref.current!.textContent = text;
+    const element = mounted(ref, 'RawText');
+    if (element.textContent !== text) element.textContent = text;
   }, [text]);
   // A passive effect runs after every layout effect of the render, when the controls are in place.
   React.useEffect(() => {
-    const element = ref.current!;
+    const element = mounted(ref, 'RawText');
     if (tag !== 'script' || !clientRender) return;
     const fresh = element.ownerDocument.createElement('script');
     for (const { name, value } of Array.from(element.attributes)) fresh.setAttribute(name, value);

@@ -13,6 +13,7 @@ import {
   verifyVersion,
 } from './tool-resolution.mts';
 import type { CommandOptions, CommandRunner } from './tool-resolution.mts';
+import { isRecord, parseJson } from './values.mts';
 
 export { assertRegularPath, runCommand } from './tool-resolution.mts';
 
@@ -85,16 +86,6 @@ export interface PhpExtensionBuild {
   php: PhpMetadata;
   tools: PhpBuildTools;
 }
-interface HomebrewFormula {
-  name?: unknown;
-  installed?: Array<{ version?: unknown }>;
-  linked_keg?: unknown;
-}
-interface HomebrewRecord {
-  casks?: unknown;
-  formulae?: HomebrewFormula[];
-}
-
 const list = (value: unknown): value is unknown[] => Array.isArray(value);
 
 function dependencyNames(value: string): string[] {
@@ -108,18 +99,20 @@ function dependencyNames(value: string): string[] {
 
 function versionedGccDependency(value: string): string {
   const names = dependencyNames(value).filter(name => /^gcc-\d+$/.test(name));
-  assert.equal(names.length, 1,
+  const [name, ...others] = names;
+  assert.ok(name !== undefined && others.length === 0,
     'The gcc package must declare one versioned compiler dependency');
-  return names[0]!;
+  return name;
 }
 
 function targetGccDependency(value: string, versionedPackage: string): string {
   const version = versionedPackage.slice('gcc-'.length);
   const pattern = new RegExp('^gcc-' + version + '-[a-z0-9]+(?:-[a-z0-9]+){2,}$');
   const names = dependencyNames(value).filter(name => pattern.test(name));
-  assert.equal(names.length, 1,
+  const [name, ...others] = names;
+  assert.ok(name !== undefined && others.length === 0,
     'The ' + versionedPackage + ' package must declare one target compiler dependency');
-  return names[0]!;
+  return name;
 }
 
 function installedPackageStatus(value: string | undefined, packageName: string): void {
@@ -169,11 +162,12 @@ export async function resolveDebianCompiler(options: DebianCompilerOptions = {})
     environment,
   });
   const compilers = await regularTargetCompilers(packageFiles.stdout, targetPackage);
-  assert.equal(compilers.length, 1,
+  const [compiler, ...others] = compilers;
+  assert.ok(compiler !== undefined && others.length === 0,
     'The ' + targetPackage + ' package must contain one regular target compiler; received '
       + compilers.length);
-  await verifyVersion(compilers[0]!, /(?:gcc|GCC)/, run, environment);
-  return compilers[0]!;
+  await verifyVersion(compiler, /(?:gcc|GCC)/, run, environment);
+  return compiler;
 }
 
 /** The architectures of one Mach-O file, as `lipo -archs` names them. */
@@ -215,17 +209,19 @@ export async function resolvePhpBuildTools(options: PhpBuildToolOptions = {}): P
 
 function installedHomebrewVersion(output: string, formulaName: string): string {
   // The assertions below check every member that the builder reads.
-  const record = JSON.parse(output) as HomebrewRecord;
+  const record = parseJson(output);
+  assert.ok(isRecord(record), formulaName + ' package record is invalid');
   assert.deepEqual(record.casks ?? [], [], formulaName + ' must be installed as one formula');
   assert.ok(Array.isArray(record.formulae), formulaName + ' package record is invalid');
-  const formulae = record.formulae.filter(formula => formula.name === formulaName);
-  assert.equal(formulae.length, 1, formulaName + ' package record must contain one formula');
-  const formula = formulae[0]!;
+  const formulae = record.formulae.filter((formula): formula is Record<string, unknown> => isRecord(formula) && formula.name === formulaName);
+  const [formula, ...others] = formulae;
+  assert.ok(formula !== undefined && others.length === 0, formulaName + ' package record must contain one formula');
   assert.ok(Array.isArray(formula.installed),
     formulaName + ' installed-version record is invalid');
   assert.equal(formula.installed.length, 1,
     'The Homebrew formula ' + formulaName + ' must be installed in exactly one version');
-  const version = formula.installed[0]?.version;
+  const installed: unknown = formula.installed[0];
+  const version = isRecord(installed) ? installed.version : undefined;
   assert.ok(typeof version === 'string', 'Installed ' + formulaName + ' version is invalid');
   assert.match(version, /^[0-9][0-9A-Za-z._-]*$/,
     'Installed ' + formulaName + ' version is invalid');

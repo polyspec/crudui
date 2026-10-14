@@ -8,6 +8,7 @@ import { render } from '@testing-library/react';
 import { describe, expect, test } from 'vitest';
 import { compileForm, createForm } from '@polyspec/crudui-generator-core';
 import { renderForm as htmlForm } from '@polyspec/crudui-generator-html';
+import { element } from './elements';
 import { Form } from '../components/Form';
 import { renderForm } from '../server';
 
@@ -37,11 +38,11 @@ describe('choice group output of React', () => {
   test('the component selects the option of the value inside its group', () => {
     const view = render(<Form form={form(mixed, { region: 'eu-north' })} />);
     try {
-      const select = view.container.querySelector('select')!;
+      const select = element(view.container, 'select', HTMLSelectElement);
       expect([...select.children].map((child) => [child.tagName, child.getAttribute('label')])).toEqual([
         ['OPTION', null], ['OPTGROUP', 'Europe & more'], ['OPTGROUP', 'Asia'],
       ]);
-      expect([...select.querySelectorAll('optgroup')].map((group) => [...group.children].map((option) => (option as HTMLOptionElement).value)))
+      expect([...select.querySelectorAll('optgroup')].map((group) => [...group.children].map((option) => option instanceof HTMLOptionElement ? option.value : option.tagName)))
         .toEqual([['eu-west', 'eu-north'], ['ap-east']]);
       expect(select.value).toBe('eu-north');
     } finally { view.unmount(); }

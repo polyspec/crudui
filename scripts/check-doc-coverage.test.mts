@@ -5,6 +5,7 @@ import { dirname, join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
+import { parseJson, readJson, record, string, strings } from './values.mts';
 
 const repository = join(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -13,6 +14,12 @@ interface LoggedCall {
   command: string;
   cwd: string;
   args: string[];
+}
+
+/** A line of calls.jsonl, which the mocked tools write, checked. */
+function loggedCall(value: unknown): LoggedCall {
+  const call = record(value, 'a logged call');
+  return { command: string(call.command, 'command of a logged call'), cwd: string(call.cwd, 'cwd of a logged call'), args: strings(call.args, 'args of a logged call') };
 }
 
 function environment<T>(operation: (root: string) => T): T {
@@ -72,7 +79,7 @@ for (const [target, command] of toolTargets) {
     const additions = target === 'rust' ? mockRust(root) : (mock(root, command), {});
     const result = run(root, target, additions);
     assert.equal(result.status, 0, result.stderr);
-    const calls = readFileSync(join(root, 'calls.jsonl'), 'utf8').trim().split('\n').map(line => JSON.parse(line) as LoggedCall);
+    const calls = readFileSync(join(root, 'calls.jsonl'), 'utf8').trim().split('\n').map(line => loggedCall(parseJson(line)));
     if (target === 'php') {
       assert.equal(calls.length, 1);
       assert.deepEqual(calls[0]?.args, [join(root, 'scripts/php-doc-coverage.php')]);
@@ -89,12 +96,12 @@ test('every TypeScript package checks its public API with API Extractor and comm
   const problems = [];
   for (const pkg of TS_PACKAGES) {
     const directory = join(repository, 'packages', pkg);
-    let config;
-    try { config = JSON.parse(readFileSync(join(directory, 'api-extractor.json'), 'utf8')); } catch (error) { problems.push(`${pkg}: ${error instanceof Error ? error.message : String(error)}`); continue; }
+    let config: Record<string, unknown>;
+    try { config = record(readJson(join(directory, 'api-extractor.json')), `${pkg}/api-extractor.json`); } catch (error) { problems.push(`${pkg}: ${error instanceof Error ? error.message : String(error)}`); continue; }
     const root = '../'.repeat(pkg.split('/').length + 1);
-    if (config.extends !== `${root}config/api-extractor.kit.json`) problems.push(`${pkg}: extends ${config.extends}`);
-    if (config.mainEntryPointFilePath !== '<projectFolder>/dist/index.d.ts') problems.push(`${pkg}: mainEntryPointFilePath ${config.mainEntryPointFilePath}`);
-    const name = JSON.parse(readFileSync(join(directory, 'package.json'), 'utf8')).name.replace(/^@[^/]+\//, '');
+    if (config.extends !== `${root}config/api-extractor.kit.json`) problems.push(`${pkg}: extends ${String(config.extends)}`);
+    if (config.mainEntryPointFilePath !== '<projectFolder>/dist/index.d.ts') problems.push(`${pkg}: mainEntryPointFilePath ${String(config.mainEntryPointFilePath)}`);
+    const name = string(record(readJson(join(directory, 'package.json')), `${pkg}/package.json`).name, `name of ${pkg}/package.json`).replace(/^@[^/]+\//, '');
     try { readFileSync(join(directory, 'etc', `${name}.api.md`), 'utf8'); } catch { problems.push(`${pkg}: etc/${name}.api.md is missing`); }
   }
   assert.deepEqual(problems, []);

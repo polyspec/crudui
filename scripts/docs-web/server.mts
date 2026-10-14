@@ -5,6 +5,7 @@ import { createServer, type Server } from 'node:http';
 import { extname, join, relative, resolve, sep } from 'node:path';
 
 import { documentationBasePath } from './paths.mts';
+import { errorCode, errorMessage } from '../values.mts';
 
 const MIME = new Map([
   ['.css', 'text/css; charset=utf-8'], ['.html', 'text/html; charset=utf-8'],
@@ -39,7 +40,7 @@ export function createDocumentationServer(
           try {
             if ((await lstat(candidate)).isFile()) filename = candidate;
           } catch (error) {
-            const { code } = error as NodeJS.ErrnoException;
+            const code = errorCode(error);
             if (code !== 'ENOENT' && code !== 'ENOTDIR') throw error;
           }
         }
@@ -52,7 +53,7 @@ export function createDocumentationServer(
       else createReadStream(filename ?? join(output, '404.html')).on('error', error => response.destroy(error)).pipe(response);
     } catch (error) {
       response.writeHead(error instanceof URIError ? 400 : 500, { 'content-type': 'text/plain; charset=utf-8' });
-      response.end(`Documentation server error: ${(error as Error).message}\n`);
+      response.end(`Documentation server error: ${errorMessage(error)}\n`);
     }
   });
 }

@@ -15,26 +15,48 @@ import listCases from '../../../../tests/fixtures/list-render/cases.json';
 import detailCases from '../../../../tests/fixtures/detail-render/cases.json';
 import completeCases from '../../../../tests/fixtures/form-complete/cases.json';
 
-type Case = { name: string; spec: Record<string, unknown>; expectError?: unknown; options?: Record<string, unknown> };
-const valid = <T extends Case>(cases: unknown) => (cases as T[]).filter(c => !c.expectError);
+interface Case { name: string; spec: unknown; expectError?: unknown; options?: Record<string, unknown> }
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+/** The cases of a fixture that render: no expected error, and an object as the specification. */
+function valid<T extends Case>(cases: readonly T[]): Array<Omit<T, 'spec' | 'options'> & Required<Pick<Case, 'options'>> & { spec: Record<string, unknown> }> {
+  return cases.flatMap((c) => !c.expectError && isRecord(c.spec) ? [{ ...c, spec: c.spec, options: c.options ?? {} }] : []);
+}
+
+/** `value` of the case `name`, an object as the renderers take it. */
+function record(value: unknown, name: string): Record<string, unknown> {
+  if (!isRecord(value)) throw new Error(`${name}: a value of a rendered case is no object`);
+  return value;
+}
 
 describe('React server output has the bytes of the HTML renderer', () => {
-  for (const c of valid<Case & { data?: Record<string, unknown> }>(formCases)) {
+  for (const c of valid(formCases)) {
     test(`form ${c.name}`, () => {
-      const form = createForm(compileForm(c.spec, c.options), c.data ?? {}, c.options);
+      const form = createForm(compileForm(c.spec, c.options), record(c.data ?? {}, c.name), c.options);
       expect(renderForm(form)).toBe(htmlForm(form));
     });
   }
-  for (const c of valid<Case & { data: Record<string, unknown>; render: Record<string, unknown> }>(completeCases)) {
+  for (const c of valid(completeCases)) {
     test(`complete form ${c.name}`, () => {
       const form = createForm(compileForm(c.spec), c.data, c.options);
-      expect(renderForm(form, c.render)).toBe(htmlForm(form, c.render));
+      const render = record(c.render, c.name);
+      expect(renderForm(form, render)).toBe(htmlForm(form, render));
     });
   }
-  for (const c of valid<Case & { rows?: Array<Record<string, unknown>> }>(listCases)) {
-    test(`list ${c.name}`, () => expect(renderList(c.spec, c.rows, c.options)).toBe(htmlList(c.spec, c.rows, c.options)));
+  for (const c of valid(listCases)) {
+    test(`list ${c.name}`, () => {
+      const rows: unknown = c.rows ?? [];
+      if (!Array.isArray(rows) || !rows.every(isRecord)) throw new Error(`${c.name}: the rows of a rendered case are no objects`);
+      expect(renderList(c.spec, rows, c.options)).toBe(htmlList(c.spec, rows, c.options));
+    });
   }
-  for (const c of valid<Case & { record?: Record<string, unknown> }>(detailCases)) {
-    test(`detail ${c.name}`, () => expect(renderDetail(c.spec, c.record, c.options)).toBe(htmlDetail(c.spec, c.record, c.options)));
+  for (const c of valid(detailCases)) {
+    test(`detail ${c.name}`, () => {
+      const detailRecord = record(c.record ?? {}, c.name);
+      expect(renderDetail(c.spec, detailRecord, c.options)).toBe(htmlDetail(c.spec, detailRecord, c.options));
+    });
   }
 });

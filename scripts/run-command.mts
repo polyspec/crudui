@@ -34,7 +34,7 @@ function signalGroup(pid: number, signal: NodeJS.Signals): void {
     process.kill(-pid, signal);
   } catch (error) {
     // ESRCH: no process of the group is left. EPERM: only exited processes remain in it.
-    const { code } = error as NodeJS.ErrnoException;
+    const code = error instanceof Error && 'code' in error ? error.code : undefined;
     if (code !== 'ESRCH' && code !== 'EPERM') throw error;
   }
 }
