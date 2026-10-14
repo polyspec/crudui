@@ -58,6 +58,8 @@ jobs:
           workspaces: packages/validator/rust
       - name: Install the tools of mise.lock into var/tools/mise
         run: make install-tools
+      - name: Download the modules that the Go workspace requires
+        run: make install-go-modules
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm go rust php composer"
       - name: Install PHP API documentation generator

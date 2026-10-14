@@ -54,6 +54,8 @@ jobs:
         run: make install-rust
       - name: Install the tools of mise.lock into var/tools/mise
         run: make install-tools
+      - name: Download the modules that the Go workspace requires
+        run: make install-go-modules
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm go rust php python composer"
       - name: Run the checks and write their report
@@ -183,6 +185,8 @@ jobs:
         run: make install-packages
       - name: Install the tools of mise.lock into var/tools/mise
         run: make install-tools
+      - name: Download the modules that the Go workspace requires
+        run: make install-go-modules
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm go"
       - name: Run the checks and write their report
@@ -331,6 +335,8 @@ jobs:
           workspaces: packages/validator/rust
       - name: Install the tools of mise.lock into var/tools/mise
         run: make install-tools
+      - name: Download the modules that the Go workspace requires
+        run: make install-go-modules
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm go rust php composer"
       - name: Install PHP API documentation generator
@@ -384,6 +390,8 @@ jobs:
           workspaces: examples/cross-check-console/validators/rust
       - name: Install the tools of mise.lock into var/tools/mise
         run: make install-tools
+      - name: Download the modules that the Go workspace requires
+        run: make install-go-modules
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm go rust php composer"
       - name: Download the crates of every Cargo.lock
@@ -570,6 +578,8 @@ jobs:
           workspaces: examples/form-comparison/servers/rust
       - name: Install the tools of mise.lock into var/tools/mise
         run: make install-tools
+      - name: Download the modules that the Go workspace requires
+        run: make install-go-modules
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm go rust php composer"
       - name: Install workspace and PHP dependencies
@@ -639,6 +649,8 @@ jobs:
           workspaces: examples/form-comparison/servers/rust
       - name: Install the tools of mise.lock into var/tools/mise
         run: make install-tools
+      - name: Download the modules that the Go workspace requires
+        run: make install-go-modules
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm go rust php composer"
       - name: Install workspace and PHP dependencies
@@ -712,6 +724,8 @@ jobs:
           workspaces: examples/form-comparison/servers/rust
       - name: Install the tools of mise.lock into var/tools/mise
         run: make install-tools
+      - name: Download the modules that the Go workspace requires
+        run: make install-go-modules
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm go rust php composer"
       - name: Install workspace and PHP dependencies
@@ -878,6 +892,8 @@ jobs:
             benchmarks/validators/rust
       - name: Install the tools of mise.lock into var/tools/mise
         run: make install-tools
+      - name: Download the modules that the Go workspace requires
+        run: make install-go-modules
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm go rust php composer"
       - name: Install dependencies

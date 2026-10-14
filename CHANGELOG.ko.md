@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: e47b8049cbf86063e52574cc7d795c9bfd1b30fb47e530475ba2e276f041e469 -->
+<!-- source-sha256: 18e831281d8a33653a98e8317acf548b937bf330e9e9539f777363a531e08ab0 -->
 
 ## Unreleased
+
+### 2026-10-15 — Go module (C14.18)
+
+- Go module은 ordered-json의 무시되는 clone 없이 resolve된다. `go.work`는 checkout의 module만 쓰고, module들은 다음 release가 `packages/{validator,generator}/go`에 tag를 붙일 때까지 서로를 main의 pseudo-version으로 요구하며, form-comparison Go 서버는 `github.com/polyspec/ordered-json/go` v0.0.3을 요구한다. `make install-go-modules`(`make install`의 일부)는 workspace가 요구하는 module을 내려받으므로 Go 검사는 offline으로 남는다. mise.toml의 govulncheck가 새 Go lock을 검토한다(C14.18).
 
 ### 2026-10-15 — rule parameter (C14.15)
 
