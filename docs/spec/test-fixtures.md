@@ -41,7 +41,7 @@ The [TypeScript conformance test](../../packages/validator/ts/src/validate.confo
 compares the complete result or failure record strictly. It also rejects entries
 without exactly one expectation. PHP, the C PHP extension, Go and Rust consume the
 same validation fixture in their package suites and CLI checks.
-`tests/fixtures/validate/generate.ts` produces the fixture from the TypeScript
+`tests/fixtures/validate/generate.mts` produces the fixture from the TypeScript
 engine; regenerate it instead of editing `cases.json`.
 
 ## Adding and reviewing cases

@@ -57,13 +57,13 @@ which compares the four language results.
 Run from the repository root:
 
 ```sh
-node_modules/.bin/tsx tests/fixtures/validate/generate.ts > tests/fixtures/validate/cases.json
+node tests/fixtures/validate/generate.mts > tests/fixtures/validate/cases.json
 ```
 
 The generator runs the TypeScript validator and records each result or failure record, except
-for two groups written from the specification: [`value-rules.ts`](value-rules.ts) states each
-field's outcome, and [`visibility.ts`](visibility.ts) states the complete result record. Both use
-the default rule messages in `visibility.ts`.
+for two groups written from the specification: [`value-rules.mts`](value-rules.mts) states each
+field's outcome, and [`visibility.mts`](visibility.mts) states the complete result record. Both use
+the default rule messages in `visibility.mts`.
 Specifications that the generator holds as JSON text keep their member order in `cases.json`.
 Review changes against the specification and run every test that reads them before accepting them.
 Regeneration alone is not verification.

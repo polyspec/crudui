@@ -1,6 +1,6 @@
 # 기능 계약
 <!-- doc-id: docs-spec-feature-contracts -->
-<!-- source-sha256: 7e2130a03b790a3ccfe70bf0dfdd6cd22915baf58697b2326edecbe1ced1cc11 -->
+<!-- source-sha256: d466b8c38e83697a62e7695002ab662642c35986f3b1d891ee6c202f408b9dae -->
 
 [English](feature-contracts.md).
 
@@ -45,6 +45,6 @@
 | `@polyspec/crudui-generator-svelte` | `.` | public | `Controls`, `DataPanel`, `DataView`, `Detail`, `Form`, `List`, `Node`, `Outline`, `OutlineView`, `Widget`, `renderDetail`, `renderForm`, `renderList` |
 | `@polyspec/crudui-form-binding` | `.` | public | `bindForm` |
 | `@polyspec/crudui-validator` | `.` | public | `ComposeLoadError`, `FormInputError`, `hiddenPaths`, `validate`, `validateDetail`, `validateList` |
-| `@polyspec/crudui-validator` | `./internal` | internal | `ARRAY_LEVEL_RULES`, `FORBIDDEN_META_KEYS`, `FORBIDDEN_META_KEY_PATTERN`, `INVALID_TEXT_MESSAGE`, `LITERAL_PARAM_RULES`, `MEMBERSHIP_PARAM_RULES`, `MemoryLoader`, `PATH_REFERENCE_RULES`, `REGEX_PARAM_RULES`, `Validator`, `checkInputText`, `checkOptionText`, `checkSpecificationText`, `checkedComposition`, `checkedLoader`, `compareCodePoints`, `composeProperties`, `composeSpec`, `evaluateCondition`, `evaluateExpressionValue`, `getRuleNames`, `isConditionExpression`, `isMultiple`, `isNumberRange`, `isScalarText`, `isStep`, `parseCondition`, `parseJsonDocument`, `scanForbiddenKeys` |
+| `@polyspec/crudui-validator` | `./internal` | internal | `ARRAY_LEVEL_RULES`, `FORBIDDEN_META_KEYS`, `FORBIDDEN_META_KEY_PATTERN`, `INVALID_TEXT_MESSAGE`, `LITERAL_PARAM_RULES`, `Lexer`, `MAX_EXPRESSION_DEPTH`, `MEMBERSHIP_PARAM_RULES`, `MemoryLoader`, `PATH_REFERENCE_RULES`, `ParseError`, `Parser`, `REGEX_PARAM_RULES`, `Validator`, `checkInputText`, `checkOptionText`, `checkSpecificationText`, `checkedComposition`, `checkedLoader`, `compareCodePoints`, `composeProperties`, `composeSpec`, `evaluateCondition`, `evaluateExpressionValue`, `getRuleNames`, `isConditionExpression`, `isMultiple`, `isNumberRange`, `isScalarText`, `isStep`, `parseCondition`, `parseJsonDocument`, `scanForbiddenKeys` |
 
 구조와 연결은 `npm run manifest:check`로 검사하고, 선언된 테스트 명령은 `npm run manifest:test`로 실행합니다.

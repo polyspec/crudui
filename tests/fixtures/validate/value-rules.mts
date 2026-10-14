@@ -6,6 +6,8 @@
  * that rule) or the load failure; the generator writes the result record from it, so the
  * expectation comes from the specification, not from any runtime.
  */
+// The global declaration of JSON.rawJSON.
+import type {} from '../json-raw.d.mts';
 
 /** A field outcome: `null` passes; otherwise the failing rule and the message parameters. */
 type Outcome = null | { rule: string; params?: unknown[] };

@@ -1,6 +1,6 @@
 # 구조 지도와 데이터 보기 고정 데이터
 <!-- doc-id: tests-fixtures-form-outline-readme -->
-<!-- source-sha256: a74d041b205802c246f5b0fab0c9fd054a2fe2172c4b0f6087a2200c9695435d -->
+<!-- source-sha256: 7856a66c05d27066628675a12e9c7812352ef937d4d6b35535d5f98d20480a21 -->
 
 [English](README.md).
 
@@ -34,7 +34,7 @@
 패키지를 빌드한 뒤 저장소 루트에서 실행합니다.
 
 ```sh
-node_modules/.bin/tsx tests/fixtures/form-outline/generate.ts
+node tests/fixtures/form-outline/generate.mts
 npm run test:forms
 ```
 

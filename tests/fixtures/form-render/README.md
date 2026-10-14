@@ -36,13 +36,13 @@ initial data and later injection.
 Run from the repository root after building the packages:
 
 ```sh
-node_modules/.bin/tsx tests/fixtures/form-render/generate.ts > tests/fixtures/form-render/cases.json
 node_modules/.bin/tsx packages/react/scripts/generate-form-render-cases.mts
 npm run test:forms
 ```
 
-The generation scripts use React's internal `renderFields` helper as the layout
-reference and normalize its output. The second script updates or appends widget
-cases and the cases in [`written-form-render-cases.ts`](../../../packages/react/scripts/written-form-render-cases.ts), whose `expected_html` is
-written from the specification and never rendered. Review generated changes before accepting them; regeneration alone is not
+The generation script uses React's internal `renderFields` helper as the layout
+reference and normalizes its output. It renders the scenarios of
+[`scenario-form-render-cases.ts`](../../../packages/react/scripts/scenario-form-render-cases.ts) and the widget
+cases, and adds the cases in [`written-form-render-cases.ts`](../../../packages/react/scripts/written-form-render-cases.ts), whose `expected_html` is
+written from the specification and never rendered. It keeps the order of the cases in `cases.json` and appends a new case. Review generated changes before accepting them; regeneration alone is not
 a correctness check. All three framework conformance suites must pass.

@@ -1,6 +1,6 @@
 # 상세 렌더링 고정 데이터
 <!-- doc-id: tests-fixtures-detail-render-readme -->
-<!-- source-sha256: 532cf385c138f50e045bc6f6dfeb65605da4c10f549ccf8d5d5a371019ba0d46 -->
+<!-- source-sha256: 3cca73bdc1876e47d240aa8d9277329dffba8011e0974f8a4db86af47772f0f4 -->
 
 [English](README.md).
 
@@ -39,7 +39,7 @@ React와 같은 전체 원본 HTML을 반환해야 합니다. 필드의 `value`�
 저장소 루트에서 실행합니다.
 
 ```sh
-node_modules/.bin/tsx tests/fixtures/detail-render/generate.ts \
+node tests/fixtures/detail-render/generate.mts \
   > tests/fixtures/detail-render/cases.json
 ```
 

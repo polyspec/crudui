@@ -26,17 +26,17 @@
  *            FormInputError (`at` = "").
  *
  * Regenerate (from repo root):
- *   node_modules/.bin/tsx tests/fixtures/validate/generate.ts > tests/fixtures/validate/cases.json
+ *   node tests/fixtures/validate/generate.mts > tests/fixtures/validate/cases.json
  */
 
 import {
   validate,
   ComposeLoadError,
   FormInputError,
-} from '../../../packages/validator/ts/src/validate/index';
-import { AUTHORED_CASES, type AuthoredCase } from './value-rules';
-import { DEFAULT_MESSAGES, VISIBILITY_CASES, type FailingCase, type WrittenCase } from './visibility';
-import { NUMERIC_CASES } from './numeric-rules';
+} from '@polyspec/crudui-validator';
+import { AUTHORED_CASES, type AuthoredCase } from './value-rules.mts';
+import { DEFAULT_MESSAGES, VISIBILITY_CASES, type FailingCase, type WrittenCase } from './visibility.mts';
+import { NUMERIC_CASES } from './numeric-rules.mts';
 
 interface CaseSpec {
   /** Specification written as JSON text, so array-index member names keep the order they were written in the fixture file. */

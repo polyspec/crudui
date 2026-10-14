@@ -3,7 +3,7 @@
  * "Numbers", "Parameter errors"). Every result record is written from the specification with
  * the default rule messages, never from a runtime's answer.
  */
-import { DEFAULT_MESSAGES, type WrittenCase } from './visibility';
+import { DEFAULT_MESSAGES, type WrittenCase } from './visibility.mts';
 
 interface ErrorRecord { path: string; field: string; rule: string; message: string; value: unknown }
 
@@ -22,8 +22,10 @@ function fields(name: string, note: string, values: Record<string, unknown>, val
   failing: Record<string, [rule: string, params?: unknown[]]>, type = 'text'): WrittenCase {
   const properties: Record<string, unknown> = {};
   for (const field of Object.keys(values)) properties[field] = { type, validate };
-  const errors = Object.keys(values).filter((field) => failing[field])
-    .map((field) => error(field, failing[field][0], values[field] ?? null, failing[field][1] ?? []));
+  const errors = Object.keys(values).flatMap((field) => {
+    const failure = failing[field];
+    return failure === undefined ? [] : [error(field, failure[0], values[field] ?? null, failure[1] ?? [])];
+  });
   return { name, note, spec: { type: 'group', properties }, data: values, expected: { valid: errors.length === 0, errors } };
 }
 

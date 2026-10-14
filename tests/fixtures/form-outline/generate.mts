@@ -9,7 +9,7 @@
  * the nodes that `bindForm(compileForm(spec), data, options)` returns.
  *
  * Do not edit `cases.json` by hand. Regenerate:
- *   node_modules/.bin/tsx tests/fixtures/form-outline/generate.ts
+ *   node tests/fixtures/form-outline/generate.mts
  */
 
 import { writeFileSync } from 'node:fs';
@@ -18,8 +18,7 @@ import { fileURLToPath } from 'node:url';
 import * as React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { bindForm, compileForm, formMessages } from '@polyspec/crudui-generator-core';
-import { DataPanel, OutlineView } from '../../../packages/react/src/index';
-// @ts-expect-error — JS normalizer shared across the fixture harness.
+import { DataPanel, OutlineView } from '@polyspec/crudui-generator-react';
 import { normalizeHtml } from '../form-render/normalize.mts';
 
 interface OutlineCase {

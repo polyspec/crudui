@@ -1,6 +1,6 @@
 # 검증 고정 데이터
 <!-- doc-id: tests-fixtures-validate-readme -->
-<!-- source-sha256: a22e8b8ab2a265563a547992835fc3e48223985f24d72e4b83c376703ab8ebab -->
+<!-- source-sha256: 160c19b27e9d40f61c423bc4c7ed58faa51a137c79878a86f00564ccb81c3943 -->
 
 [English](README.md).
 
@@ -51,11 +51,11 @@ PHP 검증기와 네이티브 검증기를 실행하는 [PHP 확장 API 검사](
 저장소 루트에서 실행합니다.
 
 ```sh
-node_modules/.bin/tsx tests/fixtures/validate/generate.ts > tests/fixtures/validate/cases.json
+node tests/fixtures/validate/generate.mts > tests/fixtures/validate/cases.json
 ```
 
 생성기는 TypeScript 검증기를 실행해 각 결과 또는 실패 기록을 기록합니다. 다만 명세에서 작성한 두
-묶음은 예외입니다. [`value-rules.ts`](value-rules.ts)는 필드별 결과를, [`visibility.ts`](visibility.ts)는
-전체 결과 기록을 명시하며, 둘 다 `visibility.ts`의 기본 규칙 메시지를 사용합니다. 생성기가 JSON 문자열로 가진
+묶음은 예외입니다. [`value-rules.mts`](value-rules.mts)는 필드별 결과를, [`visibility.mts`](visibility.mts)는
+전체 결과 기록을 명시하며, 둘 다 `visibility.mts`의 기본 규칙 메시지를 사용합니다. 생성기가 JSON 문자열로 가진
 명세는 `cases.json`에서도 멤버 순서를 유지합니다. 변경을 반영하기 전에 명세와 비교하여 검토하고 모든
 사용처를 실행합니다. 재생성만으로 검증이 완료되지는 않습니다.

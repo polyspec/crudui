@@ -32,10 +32,10 @@ The cases are read by the composition conformance tests in
 
 ## Regeneration
 
-Run from the repository root:
+Run from the repository root after building the packages:
 
 ```sh
-node_modules/.bin/tsx tests/fixtures/compose/generate.ts > tests/fixtures/compose/cases.json
+node packages/validator/ts/scripts/generate-compose-cases.mts > tests/fixtures/compose/cases.json
 ```
 
 The generator runs the TypeScript composition engine and records its output. A case whose name

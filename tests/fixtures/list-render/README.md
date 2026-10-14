@@ -37,7 +37,7 @@ Composition error cases require the recorded error code.
 Run from the repository root after building the packages:
 
 ```sh
-node_modules/.bin/tsx tests/fixtures/list-render/generate.ts \
+node tests/fixtures/list-render/generate.mts \
   > tests/fixtures/list-render/cases.json
 npm run test:forms
 ```

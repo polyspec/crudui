@@ -1,6 +1,6 @@
 # 공통 표현식 고정 사례
 <!-- doc-id: tests-fixtures-expr-readme -->
-<!-- source-sha256: 4ea78616876f3d1a44371dd98540eaa42df53233ae525900d0cc4d1bee79e6c6 -->
+<!-- source-sha256: 2c87cd0439b27f5e7aa31ed6faa3c295a15b627adfb1e74a21cd96a5ceb5dd7a -->
 
 [English](README.md).
 
@@ -41,10 +41,10 @@ JSON 값으로 비교하는 두 배열이나 두 객체, 문자열 비교에서 
 비교해야 합니다. 어떤 사례도 PHP가 배열로 decode하는 빈 객체나 key가 `0`, `1`, …인
 객체를 갖지 않습니다.
 
-저장소 루트에서 다시 생성합니다.
+패키지를 빌드한 후 저장소 루트에서 다시 생성합니다.
 
 ```sh
-node_modules/.bin/tsx tests/fixtures/expr/generate.ts > tests/fixtures/expr/cases.json
+node packages/validator/ts/scripts/generate-expr-cases.mts > tests/fixtures/expr/cases.json
 ```
 
 생성기는 실제 TypeScript 토큰·AST·결과를 기록합니다. 다만 `expected`가 있는
