@@ -10,7 +10,10 @@ import { setup, teardown } from '@polyspec/kit/test-hooks';
 
 const mediaTypes = { '.mjs': 'text/javascript', '.json': 'application/json' };
 
-/** Serve the modules of src/ over HTTP, so their imports (the JSON module of runtime-paths.mjs among them) resolve as in a browser. */
+/**
+ * Serve the modules of public/ over HTTP, as the public directory serves them unbundled, so their imports resolve as in
+ * a browser. The build bundles every other module that a page loads (docs/spec/form-comparison.md).
+ */
 async function publicModules(t) {
   const server = createServer((request, response) => {
     const name = new URL(request.url, 'http://127.0.0.1').pathname.slice(1);
@@ -24,7 +27,7 @@ async function publicModules(t) {
       response.writeHead(404).end();
       return;
     }
-    readFile(new URL(`./${name}`, import.meta.url)).then(
+    readFile(new URL(`../public/${name}`, import.meta.url)).then(
       content => response.writeHead(200, { 'Content-Type': type }).end(content),
       () => response.writeHead(404).end(),
     );
@@ -47,15 +50,16 @@ teardown('browser close', async () => {
   await browser?.close();
 });
 
-test('loads the public frame readiness module in Chromium', async t => {
+test('loads the module that the page script imports from the public directory in Chromium', async t => {
   const page = await browser.newPage();
   teardown('page close', () => page.close(), { context: t });
   const origin = await publicModules(t);
   await page.goto(`${origin}/`, { waitUntil: 'load' });
+  // main.mjs, the page script, runs the page when it loads, so the case loads record-view.mjs, the module it imports.
   assert.deepEqual(await page.evaluate(async url => {
     const module = await import(url);
-    return [typeof module.loadComparisonFrames, typeof module.frameUrl, typeof module.parseFrameDocument];
-  }, `${origin}/frame-readiness.mjs`), ['function', 'function', 'function']);
+    return [typeof module.selectionDefaults, typeof module.selectionQuery];
+  }, `${origin}/record-view.mjs`), ['object', 'function']);
 });
 
 test('reports whether the pointer is over a comparison frame in Chromium', async t => {

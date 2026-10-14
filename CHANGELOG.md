@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-15 — Bundled benchmark console in the spec (C14.23)
+
+- The form-comparison spec states that the modules of `public/` are served as they are and that the build bundles the benchmark console with the source modules it imports, so no source module is copied to the public directory; the Chromium case loads the module that the page script imports from `public/` instead of `frame-readiness.mjs` of `src/` (C14.23).
+
 ### 2026-10-15 — Public authoring types (C14.22)
 
 - `@polyspec/crudui-validator` exports the authoring types of a specification from its entry: `FieldSpec`, `RangeFieldSpec`, `ValidateSlot`, `DesignSlot`, `Items`, `Multiple`, `Lang`, `ConditionMap` and every type that they name, each documented, as docs/spec/schema.md defines them (C14.22).
