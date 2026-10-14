@@ -1,6 +1,6 @@
 # 폼 검증
 <!-- doc-id: docs-spec-form-comparison -->
-<!-- source-sha256: 7c839d1760da5083d60c3534096d9e5524ccd0d55f3c164fd193a4c61ce0576a -->
+<!-- source-sha256: cd695861cb9fe2ca60c0cbb57237b8c02ee4b0a05100199ad0da1e5f9930f44b -->
 
 [English](form-comparison.md).
 
@@ -213,7 +213,7 @@ Enter)는 폼의 네이티브 필드를 `multipart/form-data`로 `/api/{server}/
 체크아웃에서 시작한 다섯 서버 모두에 `src/record-contract.mjs`의 HTTP 계약 사례를 사례마다 자기
 제한 시간으로 실행합니다. 두 로컬 검사는 먼저 서버 프로그램을 빌드하며 각각 시간 한도 없이
 진행을 출력하는 단계입니다. `.form-comparison/sources/ordered-json`의 OrderedJSON 체크아웃(Go·Rust
-매니페스트가 지정한 경로), 두 PHP 확장, PHP 검증기 사본, Go 바이너리, Rust 디버그
+매니페스트가 지정한 경로), 두 PHP 확장, Go 바이너리, Rust 디버그
 바이너리입니다. 그다음 로컬 구성은 다섯 프로세스를 동시에 시작하고 브라우저를 시작합니다.
 프로세스 시작과 브라우저 시작은 제한 시간이 없는 장기 작업입니다. 각각 준비 이벤트나 launch에서
 끝나고, 기다리는 동안 15초마다 경과 시간 줄을 출력합니다. 이 작업들을 실행하는 테스트 훅은
@@ -295,16 +295,16 @@ console은 그것이 import하는 소스 모듈(`browser-job.mjs`, `frame-readin
 구현합니다. 각 서버는 자체 생성기와 검증기를 사용합니다. PHP 확장 프로세스는
 `crudui.so`와 `ordered_json.so`를 로드하고 PHP 프로세스는 두 확장을 로드하지
 않습니다.
-PHP 프로세스는 체크아웃의
-`vendor/composer/installed.php`에서 검증기 설치
-디렉터리를 읽습니다. 이 파일은 선택한 생성기 오토로더의 설치 패키지 기록입니다. 다른
-Composer 설치가 등록한 기록은 패키지 선택에 영향을 주지 않습니다. 기록 파일, 설치
-디렉터리, 검증기 클래스는 심볼릭 링크가 없는 일반 경로를 사용해야 합니다. 검증기
-클래스는 체크아웃의 대응 소스 파일과 일치해야 합니다. 프로세스는 선택한 패키지
-기록의 누락 또는 잘못된 형식, 외부 설치 디렉터리, 다른 설치 파일을 거부합니다.
-PHP 상태·생성·SSR의 모든 출처 응답은 생성기 소스 디렉터리의 `Generator`와 `Form`,
-선택한 Composer 설치 디렉터리의 `Validator`를 보고합니다. 결과 검증은 하나의 클래스 위치 계약을
-사용하며 이 세 위치만 허용합니다.
+두 PHP 프로세스는 체크아웃의 Composer 오토로더를 불러옵니다. root `composer.json`은 path
+저장소로 검증기와 생성기를 요구하므로 각 패키지는 자신의 소스 디렉터리이고 자신의 `composer.json`이
+클래스를 선언합니다. PHP 확장 프로세스에서 `Polyspec\Crudui\` 아래에 선언된 모든 클래스는
+`Polyspec\Crudui\FormComparison\` 아래의 폼 비교 클래스를 빼고 확장의 내부 클래스여야
+합니다(`ReflectionClass::isInternal()`). 프로세스는 생성을 시작할 때와 각 응답 전에 이를 검사하고,
+PHP가 소스 파일에서 불러온 클래스가 있으면 그 요청은 HTTP 500과 그 클래스 이름으로 실패합니다.
+따라서 PHP 확장은 PHP 라이브러리로 대체되지 않습니다.
+PHP 상태·생성·SSR의 모든 출처 응답은 PHP 프로세스에서는 생성기 소스 디렉터리의 `Generator`와 `Form`,
+검증기 소스 디렉터리의 `Validator`를, PHP 확장 프로세스에서는 확장을 보고합니다. 결과 검증은 하나의
+클래스 위치 계약을 사용하며 이 위치만 허용합니다.
 
 공개 API는 `/api/{server}/{action}/{renderingPath}/{framework}`만 허용합니다. 한 구성은
 PHP 프로세스, PHP 확장 프로세스, Go 프로세스, Rust 프로세스를 각각
