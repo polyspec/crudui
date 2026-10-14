@@ -1,11 +1,11 @@
 {
   "schema": 1,
   "comment": "Written by make dependency-review RECORD=1 (scripts/kit/dependency-review.mts) from the registries; make dependency-policy-check compares the checkout with it without a network.",
-  "reviewed": "2026-10-14T07:36:37.555Z",
+  "reviewed": "2026-10-14T09:11:54.092Z",
   "locks": [
     {
       "lock": "package-lock.json",
-      "sha256": "f46f732d9a00d7c0699544152bdefabdaee1afaf25f5f2bd778f10212acae986",
+      "sha256": "7ade148ca20d7cc10db89d7c13aaa3128b73e650d1923db1ba1392a0f22935f3",
       "advisories": [
         {
           "package": "sprintf-js",
@@ -19,12 +19,12 @@
     },
     {
       "lock": "packages/generator-svelte/tools/package-lock.json",
-      "sha256": "29c9d577f467c923a9169b2d0b90646531f1b96ca6d9779fedb8fbd1dab1f330",
+      "sha256": "529de7f260dcdc36d9ffe93c6d3a8f2fdb669ff806daef1eff40e3333b4a8895",
       "advisories": []
     },
     {
       "lock": "composer.lock",
-      "sha256": "28842c57f7f2d8ac7bf89949519de3b3ec1656f6a7d702c56b549da2b7d6c7a6",
+      "sha256": "e14c8be359145fb5c0bf763fbcfafe1cef8ac0cc5ad3be4b8a9ec7394f2537ce",
       "advisories": []
     },
     {
@@ -168,7 +168,7 @@
       "ecosystem": "npm",
       "manifest": "package.json",
       "package": "postcss",
-      "version": "8.5.29",
+      "version": "8.5.30",
       "latest": "8.5.30"
     },
     {
@@ -210,7 +210,7 @@
       "ecosystem": "npm",
       "manifest": "package.json",
       "package": "vitest",
-      "version": "5.0.3",
+      "version": "5.0.4",
       "latest": "5.0.4"
     },
     {
@@ -252,7 +252,7 @@
       "ecosystem": "npm",
       "manifest": "packages/cli/package.json",
       "package": "vitest",
-      "version": "5.0.3",
+      "version": "5.0.4",
       "latest": "5.0.4"
     },
     {
@@ -266,7 +266,7 @@
       "ecosystem": "npm",
       "manifest": "packages/form-binding/package.json",
       "package": "@types/node",
-      "version": "26.6.4",
+      "version": "26.6.5",
       "latest": "26.6.5"
     },
     {
@@ -301,14 +301,14 @@
       "ecosystem": "npm",
       "manifest": "packages/form-binding/package.json",
       "package": "vitest",
-      "version": "5.0.3",
+      "version": "5.0.4",
       "latest": "5.0.4"
     },
     {
       "ecosystem": "npm",
       "manifest": "packages/generator-core/package.json",
       "package": "@types/node",
-      "version": "26.6.4",
+      "version": "26.6.5",
       "latest": "26.6.5"
     },
     {
@@ -329,14 +329,14 @@
       "ecosystem": "npm",
       "manifest": "packages/generator-core/package.json",
       "package": "vitest",
-      "version": "5.0.3",
+      "version": "5.0.4",
       "latest": "5.0.4"
     },
     {
       "ecosystem": "npm",
       "manifest": "packages/generator-html/package.json",
       "package": "@types/node",
-      "version": "26.6.4",
+      "version": "26.6.5",
       "latest": "26.6.5"
     },
     {
@@ -357,7 +357,7 @@
       "ecosystem": "npm",
       "manifest": "packages/generator-html/package.json",
       "package": "vitest",
-      "version": "5.0.3",
+      "version": "5.0.4",
       "latest": "5.0.4"
     },
     {
@@ -378,14 +378,14 @@
       "ecosystem": "npm",
       "manifest": "packages/generator-react/package.json",
       "package": "@testing-library/user-event",
-      "version": "14.6.7",
+      "version": "14.6.8",
       "latest": "14.6.8"
     },
     {
       "ecosystem": "npm",
       "manifest": "packages/generator-react/package.json",
       "package": "@types/node",
-      "version": "26.6.4",
+      "version": "26.6.5",
       "latest": "26.6.5"
     },
     {
@@ -441,7 +441,7 @@
       "ecosystem": "npm",
       "manifest": "packages/generator-react/package.json",
       "package": "vitest",
-      "version": "5.0.3",
+      "version": "5.0.4",
       "latest": "5.0.4"
     },
     {
@@ -476,14 +476,14 @@
       "ecosystem": "npm",
       "manifest": "packages/generator-svelte/package.json",
       "package": "vitest",
-      "version": "5.0.3",
+      "version": "5.0.4",
       "latest": "5.0.4"
     },
     {
       "ecosystem": "npm",
       "manifest": "packages/generator-vue/package.json",
       "package": "@types/node",
-      "version": "26.6.4",
+      "version": "26.6.5",
       "latest": "26.6.5"
     },
     {
@@ -511,21 +511,21 @@
       "ecosystem": "npm",
       "manifest": "packages/generator-vue/package.json",
       "package": "vitest",
-      "version": "5.0.3",
+      "version": "5.0.4",
       "latest": "5.0.4"
     },
     {
       "ecosystem": "npm",
       "manifest": "packages/generator-vue/package.json",
       "package": "vue",
-      "version": "3.5.43",
+      "version": "3.5.44",
       "latest": "3.5.44"
     },
     {
       "ecosystem": "npm",
       "manifest": "packages/validator-ts/package.json",
       "package": "@types/node",
-      "version": "26.6.4",
+      "version": "26.6.5",
       "latest": "26.6.5"
     },
     {
@@ -560,7 +560,7 @@
       "ecosystem": "npm",
       "manifest": "packages/validator-ts/package.json",
       "package": "vitest",
-      "version": "5.0.3",
+      "version": "5.0.4",
       "latest": "5.0.4"
     },
     {
@@ -587,13 +587,6 @@
     {
       "ecosystem": "npm",
       "manifest": "packages/generator-svelte/tools/package.json",
-      "package": "svelte",
-      "version": "5.57.2",
-      "latest": "5.57.2"
-    },
-    {
-      "ecosystem": "npm",
-      "manifest": "packages/generator-svelte/tools/package.json",
       "package": "svelte-check",
       "version": "4.7.6",
       "latest": "4.7.6"
@@ -616,7 +609,7 @@
       "ecosystem": "composer",
       "manifest": "composer.json",
       "package": "phpunit/phpunit",
-      "version": "13.4.1",
+      "version": "13.4.2",
       "latest": "13.4.2"
     },
     {

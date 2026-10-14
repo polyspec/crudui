@@ -68,6 +68,17 @@
         "node node_modules/@polyspec/kit/dist/run-tests.mjs node --timeout 120 -- tests/widget-script-runs.test.mjs",
         "npm test -w @polyspec/crudui-generator-react"
       ]
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "packages/generator-svelte/tools/package.json",
+      "package": "typescript",
+      "reason": "svelte-check 4.7.6 and @sveltejs/package 3.0.0, which type-check and package the Svelte components, require the TypeScript 6 API: their peer ranges are ^5.0.0 || ^6.0.0 and ^6.0.0, and TypeScript 7 has no such API (the TypeScript exception of config/toolchain.json).",
+      "removalCondition": "Remove the exception when svelte-check and @sveltejs/package admit TypeScript 7 in their peer ranges, together with the exception of config/toolchain.json.",
+      "verification": [
+        "npm run typecheck -w @polyspec/crudui-generator-svelte",
+        "npm run build -w @polyspec/crudui-generator-svelte"
+      ]
     }
   ],
   "advisoryExceptions": [

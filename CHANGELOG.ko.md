@@ -1,8 +1,14 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 8c9c57077dba5829527d90b4be055ca2a88b93f197f994e85bd229ee3d79a8b3 -->
+<!-- source-sha256: 49de19ee0ae0deebf7288908fb2aba6c51d2cfb2d8311810951c1112e93120d6 -->
 
 ## Unreleased
+
+### 2026-10-14 — 최신 stable 의존성 (C14.8, C14.3-1)
+
+- `make dependency-review UPDATE=1`로 최신 stable release를 받았다: vitest 5.0.4, @types/node 26.6.5, vue 3.5.44, postcss 8.5.30, @testing-library/user-event 14.6.8, phpunit 13.4.2. React는 exception(C5.8-2-1)에 따라 19.2.8에 머물고, `packages/generator-svelte`의 tools 프로젝트는 `config/toolchain.json`이 선언한 것과 같은 `config/dependency-policy.json`의 새 exception으로 TypeScript 6.0.3을 유지한다.
+- svelte는 `packages/generator-svelte`만 선언한다. tools 프로젝트는 이를 도구의 peer로 설치하고, script는 도구를 `npm exec --prefix tools`로 실행한다.
+- generator-core, form-binding, cli에는 `test` script가 없다. kit의 run-tests는 root를 작업 디렉터리에서 정하므로 `make test-cli`, `make test-form-binding`, `test:forms`, `contracts/features.json`의 verification 명령은 root에서 `run-tests.mjs vitest --cwd packages/<name>`을 실행한다.
 
 ### 2026-10-14 — TypeScript 7에서의 tests/build 도구 test (C14.10)
 
