@@ -29,7 +29,7 @@ for (const target of ['ts', 'go', 'rust', 'php']) {
       mkdirSync(join(repository, 'var/tmp'), { recursive: true });
       const root = mkdtempSync(join(repository, 'var/tmp/crudui-api-docs-'));
       try {
-        for (const path of ['scripts', 'bin', 'node_modules/.bin', 'tools/bin',
+        for (const path of ['scripts', 'bin', 'node_modules/.bin', 'var/tools/phpdocumentor',
           'packages/validator-go', 'packages/validator-rust', 'packages/generator-go', 'packages/generator-rust',
           ...['validator-ts', 'generator-core', 'generator-html', 'generator-react', 'generator-vue', 'generator-svelte', 'form-binding'].map(pkg => `packages/${pkg}`)]) {
           mkdirSync(join(root, path), { recursive: true });
@@ -38,7 +38,11 @@ for (const target of ['ts', 'go', 'rust', 'php']) {
           mkdirSync(dirname(join(root, 'scripts', file)), { recursive: true });
           copyFileSync(new URL('./' + file, import.meta.url), join(root, 'scripts', file));
         }
-        writeFileSync(join(root, 'tools/bin/phpDocumentor.phar'), '');
+        // gen-api-docs names the doc model of a TypeScript package by the name of its package.json.
+        for (const pkg of ['validator-ts', 'generator-core', 'generator-html', 'generator-react', 'generator-vue', 'generator-svelte', 'form-binding']) {
+          copyFileSync(join(repository, 'packages', pkg, 'package.json'), join(root, 'packages', pkg, 'package.json'));
+        }
+        writeFileSync(join(root, 'var/tools/phpdocumentor/phpDocumentor.phar'), '');
         const script = `#!/bin/sh\nexit ${failure === 'tool-failure' ? 27 : 0}\n`;
         for (const command of ['npm', 'go', 'php']) {
           writeFileSync(join(root, 'bin', command), script, { mode: 0o755 });

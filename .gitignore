@@ -58,9 +58,6 @@ test-*.html
 docs/.web/
 docs/api/
 docs/public/api/
-# phpDocumentor phar + cache (large, environment-local)
-tools/bin/phpDocumentor.phar
-tools/bin/.phpdoc-cache/
 
 # The tools (make install-tools), locks, records and reports of this checkout
 /var/

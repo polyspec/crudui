@@ -97,7 +97,7 @@ help: ## 타겟 설명
 
 # The npm, Go and cargo-audit releases that the checkout declares into var/tools (install-tools of the kit.mk of @polyspec/kit), the
 # dependencies of the lock files, the Rust toolchain of rust-toolchain.toml, the crates of every Cargo.lock, the OrderedJSON
-# checkout of the comparison and the phpDocumentor release that scripts/install-phpdocumentor.sh checks by its SHA-256.
+# checkout of the comparison and the phpDocumentor release that scripts/install-phpdocumentor.mts checks by its SHA-256.
 # Node.js, PHP, Python and Composer are installed at the versions of .node-version and config/toolchain.json by the
 # machine's package manager; `make toolchain-check` names every tool at another version.
 install: install-packages install-tools install-composer install-rust install-crates install-phpdocumentor ## Install the declared tools, the npm, Composer and Cargo dependencies, the Rust toolchain and phpDocumentor
@@ -123,8 +123,8 @@ install-composer: ## Install the Composer dependencies of the development root c
 install-rust: ## Install the Rust toolchain of rust-toolchain.toml
 	rustup toolchain install --no-self-update
 
-install-phpdocumentor: ## Install the phpDocumentor release that scripts/install-phpdocumentor.sh checks by its SHA-256
-	$(ONLINE) sh scripts/install-phpdocumentor.sh
+install-phpdocumentor: ## Install the phpDocumentor release that scripts/install-phpdocumentor.mts checks by its SHA-256
+	$(ONLINE) node scripts/install-phpdocumentor.mts
 
 # The browsers that puppeteer and playwright pin (scripts/install-browsers.mjs); BROWSERS names the browsers and options.
 BROWSERS ?= chrome firefox webkit
@@ -274,7 +274,7 @@ docs-clean: ## 생성물 전부 제거
 	rm -rf docs/api docs/public/api
 	rm -rf docs/.web
 	rm -rf packages/validator-rust/target/doc
-	rm -rf tools/bin/.phpdoc-cache
+	rm -rf var/tools/phpdocumentor/cache
 	@echo "[make] docs-clean: removed generated docs/api, dist, rustdoc, phpdoc cache"
 
 # Generate twice and compare Markdown, native API assets and the schema. The snapshots and the
