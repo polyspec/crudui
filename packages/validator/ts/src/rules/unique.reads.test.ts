@@ -21,7 +21,7 @@ function mostReads(
   spec: Record<string, unknown>,
   data: (define: (holder: object, name: string, index: number) => void) => Record<string, unknown>,
 ): number {
-  const reads = new Array<number>(count).fill(0);
+  const reads = Array.from({ length: count }, () => 0);
   const define = (holder: object, name: string, index: number) => {
     Object.defineProperty(holder, name, {
       enumerable: true,

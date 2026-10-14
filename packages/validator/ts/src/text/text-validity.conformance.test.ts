@@ -69,7 +69,7 @@ function build({ shape, size = 0, leaf }: Graph): unknown {
     loop.again = loop;
     return loop;
   }
-  if (shape === 'flat') return new Array<unknown>(size).fill(leaf);
+  if (shape === 'flat') return Array.from<unknown>({ length: size }, () => leaf);
   let value: unknown = leaf;
   for (let i = 0; i < size; i++) value = shape === 'doubled' ? [value, value] : [value];
   return value;
@@ -121,7 +121,7 @@ describe('input text helpers', () => {
     list.push(list);
     expect(valueFailure(list)).toStrictEqual({ limit: true });
     // A class instance is one node: its members are not walked.
-    class Box { items = new Array(2_000_000).fill('x'); }
+    class Box { items = Array.from({ length: 2_000_000 }, () => 'x'); }
     expect(valueFailure([new Box()])).toBeUndefined();
   });
 

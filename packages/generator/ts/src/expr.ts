@@ -6,6 +6,7 @@ import {
   evaluateExpressionValue,
 } from '@polyspec/crudui-validator/internal';
 import type { PathContext } from '@polyspec/crudui-validator';
+import { jsString } from './util';
 
 /**
  * A CRUDUI `Evaluated<V>` value as seen at render: a literal, an Expression string,
@@ -152,23 +153,23 @@ export function evalAppearance(
       value as Record<string, unknown>,
       context
     );
-    return resolved === null || resolved === undefined ? '' : String(resolved);
+    return resolved === null || resolved === undefined ? '' : jsString(resolved);
   }
   if (typeof value === 'string') {
     const ternary = tryEvaluateTernary(value, context);
     if (ternary.handled) {
       return ternary.value === null || ternary.value === undefined
         ? ''
-        : String(ternary.value);
+        : jsString(ternary.value);
     }
     // A bare condition expression (no ternary) that parses completely returns its
     // evaluated value; any other string is a literal.
     if (isConditionExpression(value) && !/\?[^:]*:/.test(value) && isValidExpression(value)) {
       const v = evalExpressionValue(value, context);
-      return v === null || v === undefined || v === false ? '' : String(v);
+      return v === null || v === undefined || v === false ? '' : jsString(v);
     }
     // Plain literal class/style string.
     return value;
   }
-  return String(value);
+  return jsString(value);
 }

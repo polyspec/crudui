@@ -36,8 +36,10 @@ export function expectedBrowserSections() {
   };
 }
 
+const codeUnitOrder = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
+
 function exactKeys(actual, expected, label) {
-  assert.deepEqual([...new Set(actual)].sort(), [...expected].sort(), `${label} combinations differ`);
+  assert.deepEqual([...new Set(actual)].sort(codeUnitOrder), [...expected].sort(codeUnitOrder), `${label} combinations differ`);
   assert.equal(actual.length, expected.length, `${label} contains duplicates`);
 }
 
@@ -149,7 +151,7 @@ export function verifyServerReport(report, expectedServer) {
     `${label}: browser page errors`);
   verifyActivity(report.activity, report, label);
   assert.ok(typeof report.initializationArtifacts === 'string'
-    && /^initialization-/.test(report.initializationArtifacts),
+    && report.initializationArtifacts.startsWith('initialization-'),
   `${label}: initialization artifacts`);
 
   assert.ok(Array.isArray(report.reports), `${label}: scenario reports`);

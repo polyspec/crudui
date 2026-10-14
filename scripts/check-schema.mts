@@ -135,7 +135,7 @@ for (const [label, properties, expected] of [
   ['owned prefix', { theme: { type: 'text', design: { wrapper: { attributes: { 'data-crudui-row-key': 'x' } } } } }, false],
   ['number value', { theme: { type: 'text', design: { attributes: { 'data-count': 1 } } } }, false],
   ['label node', { theme: { type: 'text', design: { label: { attributes: { 'data-x': '1' } } } } }, false],
-]) {
+] satisfies [string, Record<string, unknown>, boolean][]) {
   const spec = { type: 'group', properties };
   assert.equal(validateForm(spec), expected, `declared attributes, ${label}: ${JSON.stringify(validateForm.errors)}`);
   checked++;
@@ -158,7 +158,7 @@ for (const [label, field, expected] of [
   ['expression bounds', { type: 'range', validate: { range: '.limits', step: 1 } }, false],
   ['zero step', { type: 'range', validate: { range: [0, 100], step: 0 } }, false],
   ['condition map step', { type: 'range', validate: { range: [0, 100], step: { '.fine': 0.1, true: 1 } } }, false],
-]) {
+] satisfies [string, Record<string, unknown>, boolean][]) {
   const spec = { type: 'group', properties: { volume: field } };
   assert.equal(validateForm(spec), expected, `range field, ${label}: ${JSON.stringify(validateForm.errors)}`);
   checked++;
@@ -171,7 +171,7 @@ for (const [label, field, expected] of [
   ['owned attribute name', { type: 'choice', items: [{ value: 'blue', label: 'Blue', attributes: { 'data-is-default': '1' } }] }, false],
   ['another member', { type: 'choice', items: [{ value: 'blue', label: 'Blue', id: 'b' }] }, false],
   ['appearance in a membership rule', { type: 'choice', items: ['Blue'], validate: { in: [{ value: 0, label: 'Blue', class: 'swatch' }] } }, false],
-]) {
+] satisfies [string, Record<string, unknown>, boolean][]) {
   const spec = { type: 'group', properties: { accent: field } };
   assert.equal(validateForm(spec), expected, `choice appearance, ${label}: ${JSON.stringify(validateForm.errors)}`);
   checked++;
@@ -185,7 +185,7 @@ for (const [label, field, expected] of [
   ['line repeated group', { type: 'group', multiple: { min: 1 }, design: { layout: 'line' }, properties: { a: { type: 'text' } } }, false],
   ['other value', { type: 'group', design: { layout: 'grid' }, properties: { a: { type: 'text' } } }, false],
   ['text field', { type: 'text', design: { layout: 'inline' } }, false],
-]) {
+] satisfies [string, Record<string, unknown>, boolean][]) {
   const spec = { type: 'group', properties: { look: field } };
   assert.equal(validateForm(spec), expected, `layout, ${label}: ${JSON.stringify(validateForm.errors)}`);
   checked++;
@@ -202,19 +202,23 @@ for (const [label, field, expected] of [
   ['nested group', { type: 'select', items: [{ label: 'Europe', choices: [{ label: 'West', choices: [{ value: 'eu-west', label: 'West' }] }] }] }, false],
   ['group choice with appearance', { type: 'select', items: [{ label: 'Europe', choices: [{ value: 'eu-west', label: 'West', class: 'x' }] }] }, false],
   ['group without choices in a membership rule', { type: 'select', items: ['Auto'], validate: { in: [{ label: 'Europe', choices: [] }] } }, false],
-]) {
+] satisfies [string, Record<string, unknown>, boolean][]) {
   const spec = { type: 'group', properties: { region: field } };
   assert.equal(validateForm(spec), expected, `choice groups, ${label}: ${JSON.stringify(validateForm.errors)}`);
   checked++;
 }
 // `validate` and `messages` accept the registered rule names only: the rules of the rule registry.
 const registeredRules = [...readText('packages/validator/ts/src/rules/index.ts').matchAll(/^ {2}\['(\w+)', \w+Rule\],$/gm)]
-  .map((match) => match[1]);
+  .map(([line, name]) => {
+    assert.ok(name !== undefined, `the rule registry line names its rule: ${line}`);
+    return name;
+  });
 assert.equal(registeredRules.length, 24, 'the rule registry lists 24 rules');
 const validateObject = schema.definitions.Validate.anyOf.find((shape) => shape.type === 'object');
 assert.ok(validateObject?.properties);
-assert.deepEqual(Object.keys(validateObject.properties).sort(), [...registeredRules].sort(), 'validate lists the registered rules');
-assert.deepEqual(Object.keys(schema.definitions.Messages.properties).sort(), [...registeredRules].sort(), 'messages lists the registered rules');
+const codeUnitOrder = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0);
+assert.deepEqual(Object.keys(validateObject.properties).sort(codeUnitOrder), [...registeredRules].sort(codeUnitOrder), 'validate lists the registered rules');
+assert.deepEqual(Object.keys(schema.definitions.Messages.properties).sort(codeUnitOrder), [...registeredRules].sort(codeUnitOrder), 'messages lists the registered rules');
 for (const [field, expected, keyword] of [
   [{ validate: { required: true, minlength: 2, dateISO: true, equalTo: '.other' } }, true],
   [{ validate: { no_such_rule: true } }, false, 'additionalProperties'],
@@ -238,9 +242,9 @@ const isObject = (value: unknown): value is Record<string, unknown> =>
 const caseKeys = new Set(['name', 'note', 'spec', 'files', 'expect', 'reason', 'engine']);
 function assertValidityCase(family: string, test: unknown): void {
   assert.ok(isObject(test), `${family}: every case is an object`);
+  assert.ok(typeof test.name === 'string', `${family}: every case name is a string`);
   const label = `${family}:${test.name}`;
   for (const key of Object.keys(test)) assert.ok(caseKeys.has(key), `${label}: unknown member ${key}`);
-  assert.equal(typeof test.name, 'string', `${label}: name is a string`);
   assert.equal(typeof test.note, 'string', `${label}: note is a string`);
   assert.ok(isObject(test.spec), `${label}: spec is an object`);
   if ('files' in test) assert.ok(isObject(test.files), `${label}: files is an object`);

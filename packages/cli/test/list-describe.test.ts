@@ -168,7 +168,7 @@ descTest('drift-0 wiring — a renderer added in cell.ts surfaces in describe (d
     // cell.ts does — CELL_FORMATS = Object.keys(CELL_RENDERERS)).
     const extendedRenderers = {
       ...realCell.CELL_RENDERERS,
-      sparkline: (value: unknown) => String(value ?? ''),
+      sparkline: (value: unknown) => (typeof value === 'string' ? value : ''),
     };
     vi.doMock('@polyspec/crudui-generator-core/internal', () => ({
       ...realCell,
@@ -183,7 +183,7 @@ descTest('drift-0 wiring — a renderer added in cell.ts surfaces in describe (d
 
     // The new format flows through; the originals are still there; default holds.
     expect(surfaced).toContain('sparkline');
-    for (const original of [...realCell.CELL_FORMATS]) {
+    for (const original of realCell.CELL_FORMATS) {
       expect(surfaced).toContain(original);
     }
     const defaults = describeFresh().list.cellFormats.filter((f) => f.isDefault).map((f) => f.type);

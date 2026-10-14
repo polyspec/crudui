@@ -86,12 +86,12 @@ function controlledTimers() {
   let nextId = 1;
   const timers = new Map();
   return {
-    setTimer(callback, milliseconds) {
+    setTimer: (callback, milliseconds) => {
       const id = nextId++;
       timers.set(id, { callback, milliseconds });
       return id;
     },
-    clearTimer(id) { timers.delete(id); },
+    clearTimer: id => { timers.delete(id); },
     fire(milliseconds) {
       const found = [...timers].find(([, timer]) => timer.milliseconds === milliseconds);
       assert.ok(found, 'Expected timer ' + milliseconds);

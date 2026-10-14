@@ -19,10 +19,27 @@ export function escText(s: string): string {
 
 /** PHP (string) cast semantics for scalar spec/data values. */
 export function phpString(v: unknown): string {
-  if (v === undefined || v === null) return '';
+  if (typeof v === 'string') return v;
+  if (typeof v === 'number' || typeof v === 'bigint') return String(v);
   if (typeof v === 'boolean') return v ? '1' : '';
-  if (Array.isArray(v) || typeof v === 'object') return '';
-  return String(v);
+  // undefined, null, an array, an object and any other value: an empty string.
+  return '';
+}
+
+/**
+ * Expression string conversion of a JSON value: `undefined` → 'undefined', null → 'null',
+ * an array → its items joined with ',' (null and undefined items empty), an object →
+ * '[object Object]'.
+ */
+export function jsString(v: unknown): string {
+  if (typeof v === 'string') return v;
+  if (typeof v === 'number' || typeof v === 'bigint' || typeof v === 'boolean') return String(v);
+  if (v === undefined) return 'undefined';
+  if (v === null) return 'null';
+  if (Array.isArray(v)) {
+    return v.map((item: unknown) => (item === null || item === undefined ? '' : jsString(item))).join(',');
+  }
+  return '[object Object]';
 }
 
 /** PHP truthiness of an already string-cast value ('' and '0' are falsy). */

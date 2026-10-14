@@ -30,6 +30,7 @@ import {
   elementId,
   controlId,
   joinClass,
+  jsString,
   leafName,
   phpString,
   phpTruthy,
@@ -629,7 +630,7 @@ const multichoice: Evaluator = (ctx) => {
 
   let selectedValues: string[];
   if (Array.isArray(ctx.value)) selectedValues = (ctx.value as unknown[]).map(String);
-  else if (ctx.value) selectedValues = [String(ctx.value)];
+  else if (ctx.value) selectedValues = [jsString(ctx.value)];
   else selectedValues = [];
   if (
     ctx.value === undefined &&
@@ -924,7 +925,7 @@ const search: Evaluator = (ctx) => {
     'data-keyword-min-length': keywordMinLength,
     'data-delay': delay,
     'data-api-server': apiServer,
-    ...(sourceAttrs ?? {}),
+    ...sourceAttrs,
     'data-name': leafName(ctx.path, ctx.rowSegments),
     'data-rule-name': ruleNameForPath(ctx.path, ctx.rowSegments),
     id,
@@ -1000,7 +1001,7 @@ const tinymce: Evaluator = (ctx) => {
       class: mainClass(ctx, 'valid-target crudui-input tinymcearea'),
       name: bracketName(ctx),
       rows,
-      'data-type': String(ctx.spec.type ?? 'tinymce'),
+      'data-type': jsString(ctx.spec.type ?? 'tinymce'),
       'data-height': height,
       'data-upload-server': upload,
       ...behaviorAttrs(ctx),

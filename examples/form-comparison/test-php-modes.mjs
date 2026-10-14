@@ -70,13 +70,13 @@ try {
     ]);
   }
 
-  for (const [mode, args, expected] of [
+  for (const [mode, args, expected] of /** @type {[string, string[], RegExp][]} */ ([
     ['php-ext', commonExtensions, /OrderedJSON extension state does not match/],
     ['php-ext', [...commonExtensions, '-d', `extension=${jsonExtension}`], /CRUDUI extension state does not match/],
     ['php-ext', [...commonExtensions, '-d', `extension=${cruduiExtension}`], /OrderedJSON extension state does not match/],
     ['php', [...commonExtensions, '-d', `extension=${jsonExtension}`], /OrderedJSON extension state does not match/],
     ['php', [...commonExtensions, '-d', `extension=${cruduiExtension}`], /CRUDUI extension state does not match/],
-  ]) {
+  ])) {
     const result = run(mode, [...args, '-r', 'require "json.php";']);
     assert.notEqual(result.status, 0);
     assert.match(diagnostics(result), expected);

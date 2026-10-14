@@ -314,7 +314,7 @@ try {
     .map(report => [key(report), report])).values()];
   const failedAt = new Date().toISOString();
   const incomplete = {
-    ...(finalReport ?? {}), generatedAt: failedAt, startedAt, completedAt: failedAt,
+    ...finalReport, generatedAt: failedAt, startedAt, completedAt: failedAt,
     durationMs: Math.max(0, performance.now() - startedClock),
     origin: base.origin, activity, scenarioJob, units,
     reports: reports.filter(item => item.kind === 'scenario'),

@@ -28,7 +28,7 @@ export interface RecognizedPattern {
 const cp = (char: string): number => char.codePointAt(0)!;
 
 /** Characters a `\` escape turns into themselves. */
-const SYNTAX_ESCAPES = new Set([...'^$\\.*+?()[]{}|/-'].map(cp));
+const SYNTAX_ESCAPES = new Set(Array.from('^$\\.*+?()[]{}|/-', cp));
 
 /** Control escapes. */
 const CONTROL_ESCAPES = new Map<number, number>([
@@ -49,8 +49,8 @@ const SHORTHANDS = new Map<number, { set: Shorthand; negated: boolean }>([
 ]);
 
 /** Characters that are never literals outside a bracket class. */
-const NOT_LITERAL = new Set([...'\\^$.|?*+()[]{}'].map(cp));
-const QUANTIFIER_START = new Set([...'*+?{'].map(cp));
+const NOT_LITERAL = new Set(Array.from('\\^$.|?*+()[]{}', cp));
+const QUANTIFIER_START = new Set(Array.from('*+?{', cp));
 
 const BACKSLASH = cp('\\');
 const OPEN_GROUP = cp('(');

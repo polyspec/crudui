@@ -26,7 +26,7 @@ import { choicePairs, isChoiceList } from './choice-list';
 import type { PathContext } from '@polyspec/crudui-validator';
 import { evalAppearance } from './expr';
 import type { Translate, LocalizedText } from './content';
-import { getValueByPath } from './util';
+import { getValueByPath, phpString } from './util';
 import { formatDateValue } from './date';
 
 /** A resolved cell format: the catalog type + its isolated dependent keys. */
@@ -161,13 +161,6 @@ function itemsLookup(items: unknown): Record<string, unknown> {
 // scalar formatting helpers
 // ---------------------------------------------------------------------------
 
-function asString(value: unknown): string {
-  if (value === undefined || value === null) return '';
-  if (typeof value === 'boolean') return value ? '1' : '';
-  if (Array.isArray(value) || typeof value === 'object') return '';
-  return String(value);
-}
-
 function truthy(value: unknown): boolean {
   if (typeof value === 'boolean') return value;
   if (typeof value === 'number') return value !== 0;
@@ -189,7 +182,7 @@ function truncate(s: string, n: unknown): string {
 /** Format supported date values using UTC date parts. */
 function formatDate(value: unknown, pattern: unknown): string {
   const pat = typeof pattern === 'string' && pattern ? pattern : 'YYYY-MM-DD';
-  return formatDateValue(asString(value), pat);
+  return formatDateValue(phpString(value), pat);
 }
 
 /** Number format: decimals + thousands grouping; prefix/suffix are i18n content. */
@@ -198,8 +191,8 @@ function formatNumber(
   opts: Record<string, unknown>,
   t: Translate
 ): string {
-  const n = typeof value === 'number' ? value : Number(asString(value));
-  if (!Number.isFinite(n)) return asString(value);
+  const n = typeof value === 'number' ? value : Number(phpString(value));
+  if (!Number.isFinite(n)) return phpString(value);
   // Only a number applies; its integer part must be between 0 and 100.
   const decimals = typeof opts.decimals === 'number' ? Math.trunc(opts.decimals) : undefined;
   if (decimals !== undefined && !(decimals >= 0 && decimals <= 100)) {
@@ -227,9 +220,9 @@ function interpolate(
 ): string {
   return template.replace(/\{=[A-Za-z_][\w.]*\}/g, (token) => {
     const path = token.slice(2, -1);
-    if (path === 'field') return asString(cellValue);
+    if (path === 'field') return phpString(cellValue);
     const v = getValueByPath(row, path);
-    return v === undefined ? asString(cellValue) : asString(v);
+    return v === undefined ? phpString(cellValue) : phpString(v);
   });
 }
 
@@ -267,7 +260,7 @@ export type CellRenderer = (
  */
 export const CELL_RENDERERS: Readonly<Record<string, CellRenderer>> = {
   text: (value, o) => {
-    const s = asString(value);
+    const s = phpString(value);
     return o.truncate !== undefined ? truncate(s, o.truncate) : s;
   },
 
@@ -277,7 +270,7 @@ export const CELL_RENDERERS: Readonly<Record<string, CellRenderer>> = {
 
   badge: (value, o, ctx) => {
     const map = (o.map as Record<string, unknown>) ?? {};
-    const key = asString(value);
+    const key = phpString(value);
     // map is value→variant; the variant may be an i18n label (LangMap). A
     // plain-string variant is a style token and the value text is the label;
     // an i18n-object variant resolves to a string used as BOTH variant + label.
@@ -286,7 +279,7 @@ export const CELL_RENDERERS: Readonly<Record<string, CellRenderer>> = {
       const resolved = ctx.t(raw as LocalizedText);
       return { kind: 'badge', variant: resolved, label: resolved };
     }
-    return { kind: 'badge', variant: raw === undefined ? '' : asString(raw), label: key };
+    return { kind: 'badge', variant: raw === undefined ? '' : phpString(raw), label: key };
   },
 
   link: (value, o, ctx) => {
@@ -304,14 +297,14 @@ export const CELL_RENDERERS: Readonly<Record<string, CellRenderer>> = {
     const text =
       o.text !== undefined && o.text !== null && o.text !== ''
         ? ctx.t(o.text as LocalizedText)
-        : asString(value);
+        : phpString(value);
     const out: LinkDisplay = { kind: 'link', href, text };
     if (typeof o.target === 'string' && o.target) out.target = o.target;
     return out;
   },
 
   'choice-label': (value, o, ctx) => {
-    const key = asString(value);
+    const key = phpString(value);
     if (isChoiceList(o.items)) {
       const pair = (choicePairs(o.items) ?? []).find(([text]) => text === key);
       return pair ? ctx.t(pair[1] as LocalizedText) : key;
@@ -340,18 +333,18 @@ export const CELL_RENDERERS: Readonly<Record<string, CellRenderer>> = {
 
   image: (value, o, ctx) => {
     // src is the raw cell value (a URL/path) — NOT an interpolation template.
-    const src = asString(value);
+    const src = phpString(value);
     const alt =
       o.alt !== undefined && o.alt !== null
         ? interpolate(ctx.t(o.alt as LocalizedText), ctx.row, value)
         : '';
     const out: ImageDisplay = { kind: 'image', src, alt };
-    if (o.width !== undefined) out.width = asString(o.width);
-    if (o.height !== undefined) out.height = asString(o.height);
+    if (o.width !== undefined) out.width = phpString(o.width);
+    if (o.height !== undefined) out.height = phpString(o.height);
     return out;
   },
 
-  html: (value) => ({ kind: 'html', html: asString(value) }),
+  html: (value) => ({ kind: 'html', html: phpString(value) }),
 };
 
 /**

@@ -51,7 +51,7 @@ async function step<T>(label: string, budget: number, operation: (budget: number
 let commandTimeout = 120000;
 // Commands run asynchronously, so the progress lines keep reporting while one runs.
 // `input`, when given, is written to the command's standard input.
-function run(command: string, args: string[], cwd: string = directory, input: string | undefined = undefined): Promise<string> {
+function run(command: string, args: string[], cwd: string = directory, input?: string): Promise<string> {
   const started = Date.now();
   return new Promise<string>((resolve, reject) => {
     const child = execFile(command, args, { cwd, encoding: 'utf8', timeout: commandTimeout, killSignal: 'SIGKILL', maxBuffer: 64 * 1024 * 1024 }, (error, stdout, stderr) => {

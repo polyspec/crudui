@@ -174,7 +174,7 @@ export function validateResponse(request: ProtocolRequest, value: unknown): unkn
         validateState(step);
       }
       break;
-    default: throw new Error(`Unknown operation ${request.operation}`);
+    default: throw new Error(`Unknown operation ${JSON.stringify(request.operation)}`);
   }
   return value;
 }

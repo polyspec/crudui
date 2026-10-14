@@ -41,7 +41,7 @@ const FIXTURE = path.resolve(HERE, '../../../tests/fixtures/form-render/cases.js
 const cases = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
 
 async function renderSSR(c) {
-  return renderFields(compileForm(c.spec, c.options), { ...(c.options ?? {}), data: c.data });
+  return renderFields(compileForm(c.spec, c.options), { ...c.options, data: c.data });
 }
 
 describe('form rendering: Vue 3 SSR reproduces the normalized expected_html', () => {

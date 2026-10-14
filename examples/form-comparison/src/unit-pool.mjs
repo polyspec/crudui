@@ -90,7 +90,7 @@ export async function runOperation({ id, run }, options = {}) {
 export async function runUnits(units, { concurrency, ...options } = {}) {
   assert.ok(Number.isSafeInteger(concurrency) && concurrency > 0, 'A unit pool requires a positive concurrency');
   units.forEach(assertUnit);
-  const results = new Array(units.length);
+  const results = Array.from({ length: units.length });
   let next = 0;
   async function worker() {
     while (next < units.length) {

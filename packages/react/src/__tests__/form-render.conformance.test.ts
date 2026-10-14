@@ -44,7 +44,7 @@ interface FixtureCase {
 const cases = fixtureCases as unknown as FixtureCase[];
 
 function render(c: FixtureCase): string {
-  return renderFields(compileForm(c.spec, c.options), { ...(c.options ?? {}), data: c.data });
+  return renderFields(compileForm(c.spec, c.options), { ...c.options, data: c.data });
 }
 
 describe('form rendering: React reproduces the normalized expected_html', () => {

@@ -20,14 +20,14 @@ describe('complete form: Svelte writes the expected markup or the declared failu
   for (const c of cases) {
     test(c.name, () => provesConformance(
       { features: ['renderForm'], fixture: 'tests/fixtures/form-complete/cases.json', runtime: 'svelte', case: c.name },
-      async () => {
+      () => {
         const form = createForm(compileForm(c.spec), c.data, c.options);
         if (c.expectError) {
           let thrown;
-          try { await renderForm(form, c.render); } catch (error) { thrown = error; }
+          try { renderForm(form, c.render); } catch (error) { thrown = error; }
           expect({ code: thrown?.code, message: thrown?.message }).toStrictEqual(c.expectError);
         } else {
-          expect(normalizeHtml(await renderForm(form, c.render))).toBe(normalizeHtml(c.expected_html));
+          expect(normalizeHtml(renderForm(form, c.render))).toBe(normalizeHtml(c.expected_html));
         }
       },
     ));

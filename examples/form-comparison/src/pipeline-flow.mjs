@@ -54,7 +54,10 @@ export function scoreCellText(score, language) {
   const spec = recordSpecs().list;
   const index = Object.keys(spec.columns).indexOf('score');
   const record = { id: '1', name: 'x', status: 'active', joined: '2026-01-01', score: Number(score), relation: { name: 'x' }, avatar: '', markup: '' };
-  return buildList(spec, [record], { language }).rows[0].cells[index].display;
+  const display = buildList(spec, [record], { language }).rows[0].cells[index].display;
+  // A number column displays text; any other display model is not a score cell.
+  if (typeof display !== 'string') throw new Error(`The score cell displays ${JSON.stringify(display)}, not text`);
+  return display;
 }
 
 const escapeAttribute = text => text.replaceAll('&', '&amp;');

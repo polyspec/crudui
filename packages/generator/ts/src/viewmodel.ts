@@ -4,6 +4,7 @@ import {
   controlId,
   getValueByPath,
   joinClass,
+  jsString,
   parsePathString,
   styleString,
   toBracketNotationWithPrefix,
@@ -310,7 +311,7 @@ function buildWidget(
   design: ResolvedDesign,
   state: BuildState
 ): WidgetModel | UnsupportedVM {
-  const type = String(spec.type ?? '');
+  const type = jsString(spec.type ?? '');
   if (isChoiceList(spec.items)) {
     // Only the choices of a choice or multichoice field declare their appearance, and only the
     // choice list of a select field has groups.
@@ -370,7 +371,7 @@ function buildLeaf(
   description: string | undefined,
   state: BuildState
 ): NodeVM {
-  const fieldType = String(spec.type ?? '');
+  const fieldType = jsString(spec.type ?? '');
   const value = getValueByPath(state.data, path);
   const declaredRoot = nodeRoot('field', path, design, spec);
   // A field node of an inline layout is one row of a label column and a control column.
@@ -530,7 +531,7 @@ function buildRow(
   let title: string | undefined;
   if (settings.title !== undefined) {
     const value = getValueByPath(state.data, `${rowPath}.${settings.title}`);
-    title = value === undefined || value === null || value === '' ? messages.untitled : String(value);
+    title = value === undefined || value === null || value === '' ? messages.untitled : jsString(value);
   }
   return {
     ...row,

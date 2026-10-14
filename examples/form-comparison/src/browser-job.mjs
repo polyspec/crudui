@@ -281,6 +281,6 @@ export async function collectBrowserJob(client, input, options = {}) {
     return await completion;
   } finally {
     stopUnitTimers();
-    await unsubscribe();
+    unsubscribe();
   }
 }

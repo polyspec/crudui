@@ -164,7 +164,7 @@ describe('matcher', () => {
     ] as const) {
       const input = counted(text);
       expect(compilePattern(pattern).test(input.text), pattern).toBe(expected);
-      expect(input.reads(), pattern).toBe([...text].length);
+      expect(input.reads(), pattern).toBe(Array.from(text).length);
     }
   });
 });

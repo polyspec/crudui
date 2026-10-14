@@ -43,7 +43,16 @@ function canonicalKey(value: unknown): string {
       .map(name => `${JSON.stringify(name)}:${canonicalKey((value as Record<string, unknown>)[name])}`);
     return `o{${members.join(',')}}`;
   }
-  return `u${String(value)}`;
+  // The values outside JSON: undefined (a missing member), bigint, symbol and function.
+  switch (typeof value) {
+    case 'undefined':
+      return 'uundefined';
+    case 'bigint':
+    case 'symbol':
+    case 'function':
+      return `u${value.toString()}`;
+  }
+  throw new TypeError(`unique: no canonical key for a value of type ${typeof value}`);
 }
 
 /**

@@ -111,7 +111,7 @@ export function coerceSpec(spec) {
 }
 
 /** Serve a static file from client/ (path-traversal safe). */
-function serveStatic(req, res, urlPath) {
+function serveStatic(res, urlPath) {
   let rel = decodeURIComponent(urlPath);
   if (rel === '/' || rel === '') rel = '/index.html';
   const filePath = path.join(CLIENT_DIR, rel);
@@ -123,7 +123,7 @@ function serveStatic(req, res, urlPath) {
     if (err) {
       // SPA-ish fallback: unknown non-API path → index.html.
       if (rel !== '/index.html') {
-        return serveStatic(req, res, '/index.html');
+        return serveStatic(res, '/index.html');
       }
       return sendJson(res, 404, { error: 'Not found' });
     }
@@ -337,7 +337,7 @@ export async function handler(req, res) {
 
   // ---- static console -----------------------------------------------------
   if (req.method === 'GET') {
-    return serveStatic(req, res, pathname);
+    return serveStatic(res, pathname);
   }
 
   return sendJson(res, 404, { error: 'Endpoint not found' });
