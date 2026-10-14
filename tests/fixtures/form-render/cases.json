@@ -2247,732 +2247,6 @@
     "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"b\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:b\">버튼</label></div><div class=\"crudui-node__body\"><button class=\"crudui-action crudui-action--text\" id=\"crudui:b\" onclick=\"window.run() &amp;&amp; go()\" type=\"button\">실행</button></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"폼 작업\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">저장</button></div></div></div>"
   },
   {
-    "name": "multiple-only-group-rows",
-    "note": "multiple: only renders exactly the data rows in data order under their data keys; each row keeps its toggle, label and number and has no row controls.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "variants": {
-          "type": "group",
-          "label": "Variants",
-          "multiple": "only",
-          "properties": {
-            "name": {
-              "type": "text",
-              "label": "Name"
-            },
-            "price": {
-              "type": "number",
-              "label": "Price"
-            }
-          }
-        }
-      }
-    },
-    "data": {
-      "variants": {
-        "__opt_b2__": {
-          "name": "Blue",
-          "price": 2
-        },
-        "__opt_a1__": {
-          "name": "Red",
-          "price": 1
-        }
-      }
-    },
-    "options": {
-      "language": "en"
-    },
-    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--collection\" data-field-path=\"variants\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Variants</span><span class=\"crudui-node__count\">Rows: 2</span></div><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__opt_b2__\"><div class=\"crudui-node__header\"><button aria-controls=\"crudui:variants.__opt_b2__:body\" aria-expanded=\"true\" aria-label=\"Expand or collapse\" class=\"crudui-action\" data-crudui-action=\"toggle-row\" type=\"button\"></button><span class=\"crudui-node__label\">Variants</span><span class=\"crudui-node__number\">1</span><span class=\"crudui-node__summary\" hidden=\"\">Collapsed</span></div><div class=\"crudui-node__body\" id=\"crudui:variants.__opt_b2__:body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"variants.__opt_b2__.name\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:variants.__opt_b2__.name\">Name</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"name\" data-rule-name=\"variants[][name]\" id=\"crudui:variants.__opt_b2__.name\" name=\"variants[__opt_b2__][name]\" type=\"text\" value=\"Blue\"></div></div></div><div class=\"crudui-node crudui-node--field\" data-field-path=\"variants.__opt_b2__.price\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:variants.__opt_b2__.price\">Price</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"price\" data-rule-name=\"variants[][price]\" id=\"crudui:variants.__opt_b2__.price\" name=\"variants[__opt_b2__][price]\" step=\"any\" type=\"number\" value=\"2\"></div></div></div></div></div><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__opt_a1__\"><div class=\"crudui-node__header\"><button aria-controls=\"crudui:variants.__opt_a1__:body\" aria-expanded=\"true\" aria-label=\"Expand or collapse\" class=\"crudui-action\" data-crudui-action=\"toggle-row\" type=\"button\"></button><span class=\"crudui-node__label\">Variants</span><span class=\"crudui-node__number\">2</span><span class=\"crudui-node__summary\" hidden=\"\">Collapsed</span></div><div class=\"crudui-node__body\" id=\"crudui:variants.__opt_a1__:body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"variants.__opt_a1__.name\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:variants.__opt_a1__.name\">Name</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"name\" data-rule-name=\"variants[][name]\" id=\"crudui:variants.__opt_a1__.name\" name=\"variants[__opt_a1__][name]\" type=\"text\" value=\"Red\"></div></div></div><div class=\"crudui-node crudui-node--field\" data-field-path=\"variants.__opt_a1__.price\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:variants.__opt_a1__.price\">Price</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"price\" data-rule-name=\"variants[][price]\" id=\"crudui:variants.__opt_a1__.price\" name=\"variants[__opt_a1__][price]\" step=\"any\" type=\"number\" value=\"1\"></div></div></div></div></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
-  },
-  {
-    "name": "multiple-only-object-title-sticky",
-    "note": "multiple.only: true combines with title and header: rows are titled and sticky, with no row controls.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "variants": {
-          "type": "group",
-          "label": "Variants",
-          "multiple": {
-            "only": true,
-            "title": "name",
-            "header": "sticky"
-          },
-          "properties": {
-            "name": {
-              "type": "text",
-              "label": "Name"
-            }
-          }
-        }
-      }
-    },
-    "data": {
-      "variants": {
-        "__opt_a1__": {
-          "name": "Red"
-        },
-        "__opt_b2__": {
-          "name": ""
-        }
-      }
-    },
-    "options": {
-      "language": "en"
-    },
-    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--collection\" data-field-path=\"variants\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Variants</span><span class=\"crudui-node__count\">Rows: 2</span></div><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--row crudui-node--sticky\" data-crudui-row-key=\"__opt_a1__\" style=\"--crudui-sticky-depth: 0\"><div class=\"crudui-node__header-container\"><div class=\"crudui-node__header\"><button aria-controls=\"crudui:variants.__opt_a1__:body\" aria-expanded=\"true\" aria-label=\"Expand or collapse\" class=\"crudui-action\" data-crudui-action=\"toggle-row\" type=\"button\"></button><span class=\"crudui-node__label\">Variants</span><span class=\"crudui-node__number\">1</span><span class=\"crudui-node__title\">Red</span><span class=\"crudui-node__summary\" hidden=\"\">Collapsed</span></div></div><div class=\"crudui-node__body\" id=\"crudui:variants.__opt_a1__:body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"variants.__opt_a1__.name\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:variants.__opt_a1__.name\">Name</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"name\" data-rule-name=\"variants[][name]\" id=\"crudui:variants.__opt_a1__.name\" name=\"variants[__opt_a1__][name]\" type=\"text\" value=\"Red\"></div></div></div></div></div><div class=\"crudui-node crudui-node--row crudui-node--sticky\" data-crudui-row-key=\"__opt_b2__\" style=\"--crudui-sticky-depth: 0\"><div class=\"crudui-node__header-container\"><div class=\"crudui-node__header\"><button aria-controls=\"crudui:variants.__opt_b2__:body\" aria-expanded=\"true\" aria-label=\"Expand or collapse\" class=\"crudui-action\" data-crudui-action=\"toggle-row\" type=\"button\"></button><span class=\"crudui-node__label\">Variants</span><span class=\"crudui-node__number\">2</span><span class=\"crudui-node__title\">(untitled)</span><span class=\"crudui-node__summary\" hidden=\"\">Collapsed</span></div></div><div class=\"crudui-node__body\" id=\"crudui:variants.__opt_b2__:body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"variants.__opt_b2__.name\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:variants.__opt_b2__.name\">Name</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"name\" data-rule-name=\"variants[][name]\" id=\"crudui:variants.__opt_b2__.name\" name=\"variants[__opt_b2__][name]\" type=\"text\" value=\"\"></div></div></div></div></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
-  },
-  {
-    "name": "multiple-only-missing-data",
-    "note": "Missing data of a multiple: only collection is zero rows, not an initial row: the header and an empty body render, with no footer and no add-row control.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "variants": {
-          "type": "group",
-          "label": "Variants",
-          "multiple": "only",
-          "properties": {
-            "name": {
-              "type": "text",
-              "label": "Name"
-            },
-            "price": {
-              "type": "number",
-              "label": "Price"
-            }
-          }
-        }
-      }
-    },
-    "data": {},
-    "options": {
-      "language": "en"
-    },
-    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--collection\" data-field-path=\"variants\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Variants</span><span class=\"crudui-node__count\">Rows: 0</span></div><div class=\"crudui-node__body\"></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
-  },
-  {
-    "name": "multiple-only-empty-data",
-    "note": "An empty multiple: only collection renders its header and an empty body, with no add-row control.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "variants": {
-          "type": "group",
-          "label": "Variants",
-          "multiple": "only",
-          "properties": {
-            "name": {
-              "type": "text",
-              "label": "Name"
-            },
-            "price": {
-              "type": "number",
-              "label": "Price"
-            }
-          }
-        }
-      }
-    },
-    "data": {
-      "variants": {}
-    },
-    "options": {
-      "language": "en"
-    },
-    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--collection\" data-field-path=\"variants\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Variants</span><span class=\"crudui-node__count\">Rows: 0</span></div><div class=\"crudui-node__body\"></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
-  },
-  {
-    "name": "multiple-only-scalar-rows",
-    "note": "A repeated scalar declared multiple: only renders its data rows under their keys without row controls.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "tags": {
-          "type": "text",
-          "label": "Tags",
-          "multiple": "only"
-        }
-      }
-    },
-    "data": {
-      "tags": {
-        "__opt_a1__": "x",
-        "__opt_b2__": "y"
-      }
-    },
-    "options": {
-      "language": "en"
-    },
-    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--collection\" data-field-path=\"tags\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Tags</span><span class=\"crudui-node__count\">Rows: 2</span></div><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__opt_a1__\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Tags</span><span class=\"crudui-node__number\">1</span></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"tags[]\" data-rule-name=\"tags[]\" id=\"crudui:tags.__opt_a1__\" name=\"tags[__opt_a1__]\" type=\"text\" value=\"x\"></div></div></div><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__opt_b2__\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Tags</span><span class=\"crudui-node__number\">2</span></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"tags[]\" data-rule-name=\"tags[]\" id=\"crudui:tags.__opt_b2__\" name=\"tags[__opt_b2__]\" type=\"text\" value=\"y\"></div></div></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
-  },
-  {
-    "name": "design-show-hidden-group-keeps-values",
-    "note": "A group hidden by design.show carries the hidden attribute and still renders the values of its fields and rows, which stay part of native submission.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "is_display": {
-          "type": "text",
-          "label": "Display"
-        },
-        "display": {
-          "type": "group",
-          "label": "Details",
-          "design": {
-            "show": ".is_display == 1"
-          },
-          "properties": {
-            "code": {
-              "type": "text",
-              "label": "Code"
-            },
-            "items": {
-              "type": "text",
-              "label": "Items",
-              "multiple": true
-            }
-          }
-        }
-      }
-    },
-    "data": {
-      "is_display": "0",
-      "display": {
-        "code": "abc1",
-        "items": {
-          "__opt_a1__": "kept"
-        }
-      }
-    },
-    "options": {
-      "language": "en"
-    },
-    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"is_display\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:is_display\">Display</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"is_display\" data-rule-name=\"is_display\" id=\"crudui:is_display\" name=\"is_display\" type=\"text\" value=\"0\"></div></div></div><div class=\"crudui-node crudui-node--group\" data-field-path=\"display\" hidden=\"\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Details</span></div><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"display.code\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:display.code\">Code</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"code\" data-rule-name=\"display[code]\" id=\"crudui:display.code\" name=\"display[code]\" type=\"text\" value=\"abc1\"></div></div></div><div class=\"crudui-node crudui-node--collection\" data-field-path=\"display.items\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Items</span><span class=\"crudui-node__count\">Rows: 1</span></div><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__opt_a1__\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Items</span><span class=\"crudui-node__number\">1</span><div aria-label=\"Row controls\" class=\"crudui-controls\" role=\"group\"><button aria-label=\"Add\" class=\"crudui-action\" data-crudui-action=\"add-row\" type=\"button\"></button><button aria-label=\"Remove\" class=\"crudui-action\" data-crudui-action=\"remove-row\" type=\"button\"></button></div></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"items[]\" data-rule-name=\"display[items][]\" id=\"crudui:display.items.__opt_a1__\" name=\"display[items][__opt_a1__]\" type=\"text\" value=\"kept\"></div></div></div></div></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
-  },
-  {
-    "name": "design-show-literal-string-visible",
-    "note": "A design.show string that is not a valid expression is a literal and only false hides: the field renders without the hidden attribute.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "mode": {
-          "type": "text",
-          "label": "Mode"
-        },
-        "note": {
-          "type": "text",
-          "label": "Note",
-          "design": {
-            "show": ".mode == ("
-          }
-        }
-      }
-    },
-    "data": {
-      "mode": "off",
-      "note": "kept"
-    },
-    "options": {
-      "language": "en"
-    },
-    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"mode\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:mode\">Mode</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"mode\" data-rule-name=\"mode\" id=\"crudui:mode\" name=\"mode\" type=\"text\" value=\"off\"></div></div></div><div class=\"crudui-node crudui-node--field\" data-field-path=\"note\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:note\">Note</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"note\" data-rule-name=\"note\" id=\"crudui:note\" name=\"note\" type=\"text\" value=\"kept\"></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
-  },
-  {
-    "name": "design-show-condition-map-without-selection",
-    "note": "A design.show condition map that selects nothing leaves the field visible: only a resolved false hides.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "mode": {
-          "type": "text",
-          "label": "Mode"
-        },
-        "note": {
-          "type": "text",
-          "label": "Note",
-          "design": {
-            "show": {
-              ".mode == 'on'": false
-            }
-          }
-        }
-      }
-    },
-    "data": {
-      "mode": "off",
-      "note": "kept"
-    },
-    "options": {
-      "language": "en"
-    },
-    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"mode\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:mode\">Mode</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"mode\" data-rule-name=\"mode\" id=\"crudui:mode\" name=\"mode\" type=\"text\" value=\"off\"></div></div></div><div class=\"crudui-node crudui-node--field\" data-field-path=\"note\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:note\">Note</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"note\" data-rule-name=\"note\" id=\"crudui:note\" name=\"note\" type=\"text\" value=\"kept\"></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
-  },
-  {
-    "name": "design-class-literal-string",
-    "note": "A design.class string that does not parse completely as an expression is a literal: its text is the control class, even though it contains an operator word.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "mode": {
-          "type": "text",
-          "label": "Mode"
-        },
-        "note": {
-          "type": "text",
-          "label": "Note",
-          "design": {
-            "class": "modal fade in show"
-          }
-        }
-      }
-    },
-    "data": {
-      "mode": "off",
-      "note": "kept"
-    },
-    "options": {
-      "language": "en"
-    },
-    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"mode\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:mode\">Mode</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"mode\" data-rule-name=\"mode\" id=\"crudui:mode\" name=\"mode\" type=\"text\" value=\"off\"></div></div></div><div class=\"crudui-node crudui-node--field\" data-field-path=\"note\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:note\">Note</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input modal fade in show\" data-default=\"\" data-name=\"note\" data-rule-name=\"note\" id=\"crudui:note\" name=\"note\" type=\"text\" value=\"kept\"></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
-  },
-  {
-    "name": "design-style-literal-string",
-    "note": "A design.style string that does not parse completely as an expression is a literal: its text is the control style, even though it contains an operator word.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "mode": {
-          "type": "text",
-          "label": "Mode"
-        },
-        "note": {
-          "type": "text",
-          "label": "Note",
-          "design": {
-            "style": "font-family: Made in Script"
-          }
-        }
-      }
-    },
-    "data": {
-      "mode": "off",
-      "note": "kept"
-    },
-    "options": {
-      "language": "en"
-    },
-    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"mode\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:mode\">Mode</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"mode\" data-rule-name=\"mode\" id=\"crudui:mode\" name=\"mode\" type=\"text\" value=\"off\"></div></div></div><div class=\"crudui-node crudui-node--field\" data-field-path=\"note\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:note\">Note</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"note\" data-rule-name=\"note\" id=\"crudui:note\" name=\"note\" style=\"font-family: Made in Script\" type=\"text\" value=\"kept\"></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
-  },
-  {
-    "name": "number-any-step",
-    "note": "A number control accepts any number natively (step=\"any\"), so the step base taken from its value never makes another valid number a step mismatch; the step rule owns increments.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "score": {
-          "type": "number",
-          "label": "Score",
-          "validate": {
-            "required": true,
-            "number": true,
-            "min": 0,
-            "max": 10000000
-          }
-        }
-      }
-    },
-    "data": {
-      "score": 2886.5
-    },
-    "options": {
-      "language": "en"
-    },
-    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"score\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:score\">Score</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"score\" data-rule-name=\"score\" id=\"crudui:score\" name=\"score\" step=\"any\" type=\"number\" value=\"2886.5\"></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
-  },
-  {
-    "name": "choice-list-select-order",
-    "note": "A select field lists a choice list in list order, so the integer-like values 1 and 0 show Yes before No; the option values are the canonical texts of the values.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "answer": {
-          "type": "select",
-          "label": "Answer",
-          "items": [
-            {
-              "value": 1,
-              "label": "Yes"
-            },
-            {
-              "value": 0,
-              "label": "No"
-            }
-          ]
-        }
-      }
-    },
-    "data": {
-      "answer": 0
-    },
-    "options": {
-      "language": "en"
-    },
-    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"answer\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:answer\">Answer</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><select class=\"valid-target crudui-input crudui-input--select\" data-default=\"\" data-name=\"answer\" data-rule-name=\"answer\" id=\"crudui:answer\" name=\"answer\"><option value=\"1\">Yes</option><option selected=\"\" value=\"0\">No</option></select></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
-  },
-  {
-    "name": "choice-list-index-labels",
-    "note": "An array of labels keeps its written order with the indexes as values.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "answer": {
-          "type": "select",
-          "label": "Answer",
-          "items": [
-            "Yes",
-            "No"
-          ]
-        }
-      }
-    },
-    "data": {
-      "answer": "1"
-    },
-    "options": {
-      "language": "en"
-    },
-    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"answer\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:answer\">Answer</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><select class=\"valid-target crudui-input crudui-input--select\" data-default=\"\" data-name=\"answer\" data-rule-name=\"answer\" id=\"crudui:answer\" name=\"answer\"><option value=\"0\">Yes</option><option selected=\"\" value=\"1\">No</option></select></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
-  },
-  {
-    "name": "choice-list-choice-default",
-    "note": "A choice field lists a choice list in list order with a translated label, checks the value and marks the default.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "agree": {
-          "type": "choice",
-          "label": "Agree",
-          "default": 0,
-          "items": [
-            {
-              "value": 1,
-              "label": {
-                "en": "Yes",
-                "ko": "예"
-              }
-            },
-            {
-              "value": 0,
-              "label": "No"
-            }
-          ]
-        }
-      }
-    },
-    "data": {
-      "agree": 1
-    },
-    "options": {
-      "language": "en"
-    },
-    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"agree\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Agree</span></div><div class=\"crudui-node__body\"><div class=\"crudui-choices\"><input autocomplete=\"off\" checked=\"\" class=\"valid-target crudui-choices__input\" data-is-default=\"\" data-name=\"agree\" data-rule-name=\"agree\" id=\"crudui:agree:0\" name=\"agree\" type=\"radio\" value=\"1\"><label class=\"crudui-choices__label\" for=\"crudui:agree:0\"><span>Yes</span></label><input autocomplete=\"off\" class=\"valid-target crudui-choices__input\" data-is-default=\"1\" data-name=\"agree\" data-rule-name=\"agree\" id=\"crudui:agree:1\" name=\"agree\" type=\"radio\" value=\"0\"><label class=\"crudui-choices__label\" for=\"crudui:agree:1\"><span>No</span></label></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
-  },
-  {
-    "name": "choice-list-multichoice-mixed-values",
-    "note": "A multichoice field keeps the list order of string and number values.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "sizes": {
-          "type": "multichoice",
-          "label": "Sizes",
-          "items": [
-            {
-              "value": "10",
-              "label": "Ten"
-            },
-            {
-              "value": 2,
-              "label": "Two"
-            },
-            {
-              "value": "b",
-              "label": "Bee"
-            }
-          ]
-        }
-      }
-    },
-    "data": {
-      "sizes": [
-        "2",
-        "b"
-      ]
-    },
-    "options": {
-      "language": "en"
-    },
-    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"sizes\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Sizes</span></div><div class=\"crudui-node__body\"><div class=\"crudui-choices crudui-choices--multiple\"><input autocomplete=\"off\" class=\"valid-target crudui-choices__input\" data-name=\"sizes\" data-rule-name=\"sizes\" id=\"crudui:sizes:0\" name=\"sizes[]\" type=\"checkbox\" value=\"10\"><label class=\"crudui-choices__label\" for=\"crudui:sizes:0\"><span>Ten</span></label><input autocomplete=\"off\" checked=\"\" class=\"valid-target crudui-choices__input\" data-name=\"sizes\" data-rule-name=\"sizes\" id=\"crudui:sizes:1\" name=\"sizes[]\" type=\"checkbox\" value=\"2\"><label class=\"crudui-choices__label\" for=\"crudui:sizes:1\"><span>Two</span></label><input autocomplete=\"off\" checked=\"\" class=\"valid-target crudui-choices__input\" data-name=\"sizes\" data-rule-name=\"sizes\" id=\"crudui:sizes:2\" name=\"sizes[]\" type=\"checkbox\" value=\"b\"><label class=\"crudui-choices__label\" for=\"crudui:sizes:2\"><span>Bee</span></label></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
-  },
-  {
-    "name": "choice-list-search-order",
-    "note": "A search field lists a static choice list in list order.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "pick": {
-          "type": "search",
-          "label": "Pick",
-          "items": [
-            {
-              "value": 1,
-              "label": "Yes"
-            },
-            {
-              "value": 0,
-              "label": "No"
-            }
-          ]
-        }
-      }
-    },
-    "data": {
-      "pick": 1
-    },
-    "options": {
-      "language": "en"
-    },
-    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"pick\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:pick\">Pick</label></div><div class=\"crudui-node__body\"><style nonce=\"\">[class~=\"crudui:pick_select2\"] .loading-results { display: none; }</style><script nonce=\"\">$(function() {select2(CSS.escape(\"crudui:pick\"), \"2\", \"250\", \"crudui:pick_select2\");});</script><div class=\"crudui-widget crudui-widget--search\"><select class=\"valid-target crudui-input crudui-input--select\" data-api-server=\"\" data-default=\"\" data-delay=\"250\" data-keyword-min-length=\"2\" data-name=\"pick\" data-rule-name=\"pick\" id=\"crudui:pick\" name=\"pick\"><option selected=\"\" value=\"1\">Yes</option><option value=\"0\">No</option></select></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
-  },
-  {
-    "name": "choice-list-dummy-label",
-    "note": "A dummy field displays the label of its value from a choice list.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "shown": {
-          "type": "dummy",
-          "label": "Shown",
-          "items": [
-            {
-              "value": 1,
-              "label": "Yes"
-            },
-            {
-              "value": 0,
-              "label": "No"
-            }
-          ]
-        }
-      }
-    },
-    "data": {
-      "shown": 0
-    },
-    "options": {
-      "language": "en"
-    },
-    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"shown\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Shown</span></div><div class=\"crudui-node__body\"><div>No</div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
-  },
-  {
-    "name": "choice-list-extra-member",
-    "note": "A choice list element has only value and label.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "answer": {
-          "type": "select",
-          "label": "Answer",
-          "items": [
-            {
-              "value": 1,
-              "label": "Yes",
-              "id": 1
-            }
-          ]
-        }
-      }
-    },
-    "expectError": {
-      "code": "INVALID_FORM_INPUT",
-      "message": "Invalid items at answer: expected value and label pairs with distinct string or number values"
-    }
-  },
-  {
-    "name": "choice-list-missing-label",
-    "note": "A choice list element has a label.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "answer": {
-          "type": "choice",
-          "label": "Answer",
-          "items": [
-            {
-              "value": 1
-            }
-          ]
-        }
-      }
-    },
-    "expectError": {
-      "code": "INVALID_FORM_INPUT",
-      "message": "Invalid items at answer: expected value and label pairs with distinct string or number values"
-    }
-  },
-  {
-    "name": "choice-list-mixed-elements",
-    "note": "An array with one object that has a value member is a choice list, so a plain label in it is invalid.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "answer": {
-          "type": "select",
-          "label": "Answer",
-          "items": [
-            "Yes",
-            {
-              "value": 0,
-              "label": "No"
-            }
-          ]
-        }
-      }
-    },
-    "expectError": {
-      "code": "INVALID_FORM_INPUT",
-      "message": "Invalid items at answer: expected value and label pairs with distinct string or number values"
-    }
-  },
-  {
-    "name": "choice-list-boolean-value",
-    "note": "A choice list value is a string or a finite number.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "answer": {
-          "type": "multichoice",
-          "label": "Answer",
-          "items": [
-            {
-              "value": true,
-              "label": "Yes"
-            }
-          ]
-        }
-      }
-    },
-    "expectError": {
-      "code": "INVALID_FORM_INPUT",
-      "message": "Invalid items at answer: expected value and label pairs with distinct string or number values"
-    }
-  },
-  {
-    "name": "choice-list-duplicate-value",
-    "note": "Two choice list values with the same canonical text are invalid, here in a nested group and before the type is evaluated.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "terms": {
-          "type": "group",
-          "label": "Terms",
-          "properties": {
-            "answer": {
-              "type": "not-a-widget",
-              "label": "Answer",
-              "items": [
-                {
-                  "value": 1,
-                  "label": "Yes"
-                },
-                {
-                  "value": "1",
-                  "label": "One"
-                }
-              ]
-            }
-          }
-        }
-      }
-    },
-    "expectError": {
-      "code": "INVALID_FORM_INPUT",
-      "message": "Invalid items at terms.answer: expected value and label pairs with distinct string or number values"
-    }
-  },
-  {
-    "name": "root-description",
-    "note": "The translated root description is the first child of crudui-form, before the body; its text is escaped.",
-    "spec": {
-      "type": "group",
-      "description": {
-        "ko": "회원 정보",
-        "en": "Member <details> & notes"
-      },
-      "properties": {
-        "note": {
-          "type": "text",
-          "label": "Note"
-        }
-      }
-    },
-    "data": {
-      "note": "kept"
-    },
-    "options": {
-      "language": "en"
-    },
-    "expected_html": "<div class=\"crudui-form\"><p class=\"crudui-form__description\">Member &lt;details&gt; &amp; notes</p><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"note\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:note\">Note</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"note\" data-rule-name=\"note\" id=\"crudui:note\" name=\"note\" type=\"text\" value=\"kept\"></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
-  },
-  {
-    "name": "root-description-fallback-language",
-    "note": "A root description without an entry for the display language or en uses the content rule: the ko entry, then the first key.",
-    "spec": {
-      "type": "group",
-      "description": {
-        "ko": "회원 정보",
-        "ja": ""
-      },
-      "properties": {
-        "note": {
-          "type": "text",
-          "label": "Note"
-        }
-      }
-    },
-    "data": {
-      "note": "kept"
-    },
-    "options": {
-      "language": "en"
-    },
-    "expected_html": "<div class=\"crudui-form\"><p class=\"crudui-form__description\">회원 정보</p><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"note\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:note\">Note</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"note\" data-rule-name=\"note\" id=\"crudui:note\" name=\"note\" type=\"text\" value=\"kept\"></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
-  },
-  {
-    "name": "root-description-empty",
-    "note": "A root description whose translated text is empty writes nothing.",
-    "spec": {
-      "type": "group",
-      "description": "",
-      "properties": {
-        "note": {
-          "type": "text",
-          "label": "Note"
-        }
-      }
-    },
-    "data": {
-      "note": "kept"
-    },
-    "options": {
-      "language": "en"
-    },
-    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"note\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:note\">Note</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"note\" data-rule-name=\"note\" id=\"crudui:note\" name=\"note\" type=\"text\" value=\"kept\"></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
-  },
-  {
     "name": "control-attributes-text",
     "note": "design.attributes on a text input after its crudui attributes and design.wrapper.attributes on the node root after its class and path.",
     "spec": {
@@ -3403,291 +2677,6 @@
     "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--collection\" data-field-path=\"tags\" data-section=\"tags\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Tags</span><span class=\"crudui-node__count\">Rows: 2</span></div><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__opt_a1__\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Tags</span><span class=\"crudui-node__number\">1</span><div aria-label=\"Row controls\" class=\"crudui-controls\" role=\"group\"><button aria-label=\"Add\" class=\"crudui-action\" data-crudui-action=\"add-row\" type=\"button\"></button><button aria-label=\"Remove\" class=\"crudui-action\" data-crudui-action=\"remove-row\" type=\"button\"></button></div></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"tags[]\" data-rule-name=\"tags[]\" data-setting=\"tags\" id=\"crudui:tags.__opt_a1__\" name=\"tags[__opt_a1__]\" type=\"text\" value=\"x\"></div></div></div><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__opt_b2__\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Tags</span><span class=\"crudui-node__number\">2</span><div aria-label=\"Row controls\" class=\"crudui-controls\" role=\"group\"><button aria-label=\"Add\" class=\"crudui-action\" data-crudui-action=\"add-row\" type=\"button\"></button><button aria-label=\"Remove\" class=\"crudui-action\" data-crudui-action=\"remove-row\" type=\"button\"></button></div></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"tags[]\" data-rule-name=\"tags[]\" data-setting=\"tags\" id=\"crudui:tags.__opt_b2__\" name=\"tags[__opt_b2__]\" type=\"text\" value=\"y\"></div></div></div></div></div><div class=\"crudui-node crudui-node--lang crudui-node--framed\" data-field-path=\"title\" data-section=\"title\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Title</span></div><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--lang-item\" data-lang=\"en\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">en</span></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"en\" data-rule-name=\"title[en]\" data-setting=\"title\" id=\"crudui:title.en\" name=\"title[en]\" type=\"text\" value=\"Hi\"></div></div></div><div class=\"crudui-node crudui-node--lang-item\" data-lang=\"ko\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">ko</span></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"ko\" data-rule-name=\"title[ko]\" data-setting=\"title\" id=\"crudui:title.ko\" name=\"title[ko]\" type=\"text\" value=\"안녕\"></div></div></div></div></div><div aria-label=\"Look\" class=\"crudui-node crudui-node--group\" data-field-path=\"look\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Look</span></div><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"look.size\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:look.size\">Size</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"size\" data-rule-name=\"look[size]\" id=\"crudui:look.size\" name=\"look[size]\" step=\"any\" type=\"number\" value=\"\"></div></div></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
   },
   {
-    "name": "control-attributes-not-object",
-    "note": "design.attributes must be an object.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "theme": {
-          "type": "text",
-          "label": "Theme",
-          "design": {
-            "attributes": "data-x"
-          }
-        }
-      }
-    },
-    "options": {
-      "language": "en"
-    },
-    "expectError": {
-      "code": "INVALID_FORM_INPUT",
-      "message": "Invalid design.attributes at theme: expected an object"
-    }
-  },
-  {
-    "name": "control-attributes-wrapper-list",
-    "note": "design.wrapper.attributes must be an object, not a list.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "theme": {
-          "type": "text",
-          "label": "Theme",
-          "design": {
-            "wrapper": {
-              "attributes": [
-                "data-x"
-              ]
-            }
-          }
-        }
-      }
-    },
-    "options": {
-      "language": "en"
-    },
-    "expectError": {
-      "code": "INVALID_FORM_INPUT",
-      "message": "Invalid design.wrapper.attributes at theme: expected an object"
-    }
-  },
-  {
-    "name": "control-attributes-event-name",
-    "note": "An event attribute name is neither data-* nor aria-*.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "theme": {
-          "type": "text",
-          "label": "Theme",
-          "design": {
-            "attributes": {
-              "onclick": "go()"
-            }
-          }
-        }
-      }
-    },
-    "options": {
-      "language": "en"
-    },
-    "expectError": {
-      "code": "INVALID_FORM_INPUT",
-      "message": "Invalid design.attributes.onclick at theme: expected a data-* or aria-* name that crudui does not write"
-    }
-  },
-  {
-    "name": "control-attributes-uppercase-name",
-    "note": "A data-* name with an uppercase letter is refused.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "theme": {
-          "type": "text",
-          "label": "Theme",
-          "design": {
-            "attributes": {
-              "data-Key": "x"
-            }
-          }
-        }
-      }
-    },
-    "options": {
-      "language": "en"
-    },
-    "expectError": {
-      "code": "INVALID_FORM_INPUT",
-      "message": "Invalid design.attributes.data-Key at theme: expected a data-* or aria-* name that crudui does not write"
-    }
-  },
-  {
-    "name": "control-attributes-bare-prefix",
-    "note": "A prefix without a name after it is refused.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "theme": {
-          "type": "text",
-          "label": "Theme",
-          "design": {
-            "attributes": {
-              "aria-": "x"
-            }
-          }
-        }
-      }
-    },
-    "options": {
-      "language": "en"
-    },
-    "expectError": {
-      "code": "INVALID_FORM_INPUT",
-      "message": "Invalid design.attributes.aria- at theme: expected a data-* or aria-* name that crudui does not write"
-    }
-  },
-  {
-    "name": "control-attributes-owned-name",
-    "note": "A name crudui writes on a control is refused.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "theme": {
-          "type": "text",
-          "label": "Theme",
-          "design": {
-            "attributes": {
-              "data-rule-name": "x"
-            }
-          }
-        }
-      }
-    },
-    "options": {
-      "language": "en"
-    },
-    "expectError": {
-      "code": "INVALID_FORM_INPUT",
-      "message": "Invalid design.attributes.data-rule-name at theme: expected a data-* or aria-* name that crudui does not write"
-    }
-  },
-  {
-    "name": "control-attributes-owned-prefix",
-    "note": "A data-crudui-* name on the node root is refused.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "theme": {
-          "type": "text",
-          "label": "Theme",
-          "design": {
-            "wrapper": {
-              "attributes": {
-                "data-crudui-row-key": "x"
-              }
-            }
-          }
-        }
-      }
-    },
-    "options": {
-      "language": "en"
-    },
-    "expectError": {
-      "code": "INVALID_FORM_INPUT",
-      "message": "Invalid design.wrapper.attributes.data-crudui-row-key at theme: expected a data-* or aria-* name that crudui does not write"
-    }
-  },
-  {
-    "name": "control-attributes-names-before-values",
-    "note": "Every name is checked before any value: the refused name fails although an earlier value is not a string.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "theme": {
-          "type": "text",
-          "label": "Theme",
-          "design": {
-            "attributes": {
-              "data-count": 1,
-              "data-field-path": "x"
-            }
-          }
-        }
-      }
-    },
-    "options": {
-      "language": "en"
-    },
-    "expectError": {
-      "code": "INVALID_FORM_INPUT",
-      "message": "Invalid design.attributes.data-field-path at theme: expected a data-* or aria-* name that crudui does not write"
-    }
-  },
-  {
-    "name": "control-attributes-value-type",
-    "note": "An attribute value must be a string.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "theme": {
-          "type": "text",
-          "label": "Theme",
-          "design": {
-            "attributes": {
-              "data-x": "ok",
-              "aria-hidden": true
-            }
-          }
-        }
-      }
-    },
-    "options": {
-      "language": "en"
-    },
-    "expectError": {
-      "code": "INVALID_FORM_INPUT",
-      "message": "Invalid design.attributes.aria-hidden at theme: expected a string"
-    }
-  },
-  {
-    "name": "control-attributes-label-node",
-    "note": "Only the wrapper node accepts attributes.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "theme": {
-          "type": "text",
-          "label": "Theme",
-          "design": {
-            "label": {
-              "attributes": {
-                "data-x": "1"
-              }
-            }
-          }
-        }
-      }
-    },
-    "options": {
-      "language": "en"
-    },
-    "expectError": {
-      "code": "INVALID_FORM_INPUT",
-      "message": "Invalid design.label.attributes at theme: unknown key"
-    }
-  },
-  {
-    "name": "control-attributes-form-button",
-    "note": "A form button design does not accept attributes.",
-    "spec": {
-      "type": "group",
-      "buttons": [
-        {
-          "type": "submit",
-          "design": {
-            "attributes": {
-              "data-x": "1"
-            }
-          }
-        }
-      ],
-      "properties": {
-        "theme": {
-          "type": "text"
-        }
-      }
-    },
-    "options": {
-      "language": "en"
-    },
-    "expectError": {
-      "code": "INVALID_FORM_INPUT",
-      "message": "Invalid design.attributes at form.buttons.0: unknown key"
-    }
-  },
-  {
     "name": "range-default-unit",
     "note": "range → a range input with min, max and step from validate.range and validate.step, an output with the default value and the append affix as the unit.",
     "spec": {
@@ -3822,215 +2811,6 @@
       "language": "en"
     },
     "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"volume\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:volume\">Volume</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget crudui-widget--range\"><input class=\"valid-target crudui-input crudui-input--range wide\" data-default=\"50\" data-name=\"volume\" data-rule-name=\"volume\" data-setting=\"volume\" id=\"crudui:volume\" max=\"100\" min=\"0\" name=\"volume\" onchange=\"save(this)\" step=\"10\" style=\"width: 8rem\" type=\"range\" value=\"50\"><output class=\"crudui-widget__output\" for=\"crudui:volume\">50</output><span class=\"crudui-widget__affix\">dB</span></div></div></div><div class=\"crudui-node crudui-node--field\" data-field-path=\"gain\"><div class=\"crudui-node__body\"><div class=\"crudui-widget crudui-widget--range\"><input aria-label=\"Gain\" class=\"valid-target crudui-input crudui-input--range\" data-default=\"\" data-name=\"gain\" data-rule-name=\"gain\" id=\"crudui:gain\" max=\"1\" min=\"0\" name=\"gain\" step=\"0.1\" style=\"width: 4rem\" type=\"range\" value=\"0.3\"><output class=\"crudui-widget__output\" for=\"crudui:gain\">0.3</output></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
-  },
-  {
-    "name": "range-without-rules",
-    "note": "A range field requires validate.range.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "volume": {
-          "type": "range",
-          "label": "Volume"
-        }
-      }
-    },
-    "options": {
-      "language": "en"
-    },
-    "expectError": {
-      "code": "INVALID_FORM_INPUT",
-      "message": "Invalid validate.range at volume: expected [minimum, maximum] finite numbers with minimum not above maximum"
-    }
-  },
-  {
-    "name": "range-reversed-bounds",
-    "note": "The minimum of validate.range is not above the maximum.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "volume": {
-          "type": "range",
-          "label": "Volume",
-          "validate": {
-            "range": [
-              5,
-              1
-            ],
-            "step": 1
-          }
-        }
-      }
-    },
-    "options": {
-      "language": "en"
-    },
-    "expectError": {
-      "code": "INVALID_FORM_INPUT",
-      "message": "Invalid validate.range at volume: expected [minimum, maximum] finite numbers with minimum not above maximum"
-    }
-  },
-  {
-    "name": "range-reference-bounds",
-    "note": "validate.range of a range field is a literal pair, not a reference.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "volume": {
-          "type": "range",
-          "label": "Volume",
-          "validate": {
-            "range": ".limits",
-            "step": 1
-          }
-        }
-      }
-    },
-    "options": {
-      "language": "en"
-    },
-    "expectError": {
-      "code": "INVALID_FORM_INPUT",
-      "message": "Invalid validate.range at volume: expected [minimum, maximum] finite numbers with minimum not above maximum"
-    }
-  },
-  {
-    "name": "range-three-bounds",
-    "note": "validate.range of a range field has exactly two numbers.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "volume": {
-          "type": "range",
-          "label": "Volume",
-          "validate": {
-            "range": [
-              0,
-              1,
-              2
-            ],
-            "step": 1
-          }
-        }
-      }
-    },
-    "options": {
-      "language": "en"
-    },
-    "expectError": {
-      "code": "INVALID_FORM_INPUT",
-      "message": "Invalid validate.range at volume: expected [minimum, maximum] finite numbers with minimum not above maximum"
-    }
-  },
-  {
-    "name": "range-without-step",
-    "note": "A range field requires validate.step.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "volume": {
-          "type": "range",
-          "label": "Volume",
-          "validate": {
-            "range": [
-              0,
-              10
-            ]
-          }
-        }
-      }
-    },
-    "options": {
-      "language": "en"
-    },
-    "expectError": {
-      "code": "INVALID_FORM_INPUT",
-      "message": "Invalid validate.step at volume: expected a finite number above 0"
-    }
-  },
-  {
-    "name": "range-zero-step",
-    "note": "validate.step of a range field is above 0.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "volume": {
-          "type": "range",
-          "label": "Volume",
-          "validate": {
-            "range": [
-              0,
-              10
-            ],
-            "step": 0
-          }
-        }
-      }
-    },
-    "options": {
-      "language": "en"
-    },
-    "expectError": {
-      "code": "INVALID_FORM_INPUT",
-      "message": "Invalid validate.step at volume: expected a finite number above 0"
-    }
-  },
-  {
-    "name": "range-conditional-step",
-    "note": "validate.step of a range field is a literal number, not a conditional map.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "volume": {
-          "type": "range",
-          "label": "Volume",
-          "validate": {
-            "range": [
-              0,
-              10
-            ],
-            "step": {
-              ".fine": 0.1,
-              "true": 1
-            }
-          }
-        }
-      }
-    },
-    "options": {
-      "language": "en"
-    },
-    "expectError": {
-      "code": "INVALID_FORM_INPUT",
-      "message": "Invalid validate.step at volume: expected a finite number above 0"
-    }
-  },
-  {
-    "name": "range-minimum-off-step",
-    "note": "The minimum of validate.range is a multiple of validate.step.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "volume": {
-          "type": "range",
-          "label": "Volume",
-          "validate": {
-            "range": [
-              0.5,
-              10
-            ],
-            "step": 1
-          }
-        }
-      }
-    },
-    "options": {
-      "language": "en"
-    },
-    "expectError": {
-      "code": "INVALID_FORM_INPUT",
-      "message": "Invalid validate.range at volume: expected a minimum that is a multiple of validate.step"
-    }
   },
   {
     "name": "choice-appearance-swatches",
@@ -4173,265 +2953,6 @@
       "language": "en"
     },
     "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"accent\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Accent</span></div><div class=\"crudui-node__body\"><div class=\"crudui-choices\"><input aria-label=\"Blue accent\" autocomplete=\"off\" checked=\"\" class=\"valid-target crudui-choices__input\" data-is-default=\"\" data-name=\"accent\" data-rule-name=\"accent\" data-setting=\"blue\" id=\"crudui:accent:0\" name=\"accent\" onchange=\"go(this)\" type=\"radio\" value=\"blue\"><label class=\"crudui-choices__label swatch\" for=\"crudui:accent:0\" style=\"--swatch-bg: #1d4ed8\"><span>Blue</span></label><input autocomplete=\"off\" class=\"valid-target crudui-choices__input\" data-is-default=\"\" data-name=\"accent\" data-rule-name=\"accent\" data-setting=\"accent\" id=\"crudui:accent:1\" name=\"accent\" onchange=\"go(this)\" type=\"radio\" value=\"red\"><label class=\"crudui-choices__label swatch\" for=\"crudui:accent:1\"><span>Red</span></label></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
-  },
-  {
-    "name": "choice-appearance-select",
-    "note": "A select choice declares no appearance.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "accent": {
-          "label": "Accent",
-          "type": "select",
-          "items": [
-            {
-              "value": "blue",
-              "label": "Blue",
-              "class": "swatch"
-            }
-          ]
-        }
-      }
-    },
-    "options": {
-      "language": "en"
-    },
-    "expectError": {
-      "code": "INVALID_FORM_INPUT",
-      "message": "Invalid items at accent: expected value and label pairs with distinct string or number values"
-    }
-  },
-  {
-    "name": "choice-appearance-search",
-    "note": "A search choice declares no appearance.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "accent": {
-          "label": "Accent",
-          "type": "search",
-          "items": [
-            {
-              "value": "blue",
-              "label": "Blue",
-              "attributes": {
-                "data-x": "1"
-              }
-            }
-          ]
-        }
-      }
-    },
-    "options": {
-      "language": "en"
-    },
-    "expectError": {
-      "code": "INVALID_FORM_INPUT",
-      "message": "Invalid items at accent: expected value and label pairs with distinct string or number values"
-    }
-  },
-  {
-    "name": "choice-appearance-other-member",
-    "note": "A choice of a choice field has no member besides value, label, class, style and attributes.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "accent": {
-          "label": "Accent",
-          "type": "choice",
-          "items": [
-            {
-              "value": "blue",
-              "label": "Blue",
-              "id": "x"
-            }
-          ]
-        }
-      }
-    },
-    "options": {
-      "language": "en"
-    },
-    "expectError": {
-      "code": "INVALID_FORM_INPUT",
-      "message": "Invalid items at accent: expected value and label pairs with distinct string or number values"
-    }
-  },
-  {
-    "name": "choice-appearance-class-list",
-    "note": "The class of a choice is a string.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "accent": {
-          "label": "Accent",
-          "type": "radio",
-          "items": [
-            {
-              "value": "blue",
-              "label": "Blue",
-              "class": [
-                "swatch"
-              ]
-            }
-          ]
-        }
-      }
-    },
-    "options": {
-      "language": "en"
-    },
-    "expectError": {
-      "code": "INVALID_FORM_INPUT",
-      "message": "Invalid items.0.class at accent: expected a string"
-    }
-  },
-  {
-    "name": "choice-appearance-style-map",
-    "note": "The style of a choice is a string, not a condition map.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "accent": {
-          "label": "Accent",
-          "type": "multichoice",
-          "items": [
-            {
-              "value": "blue",
-              "label": "Blue"
-            },
-            {
-              "value": "red",
-              "label": "Red",
-              "style": {
-                ".on": "color: red"
-              }
-            }
-          ]
-        }
-      }
-    },
-    "options": {
-      "language": "en"
-    },
-    "expectError": {
-      "code": "INVALID_FORM_INPUT",
-      "message": "Invalid items.1.style at accent: expected a string"
-    }
-  },
-  {
-    "name": "choice-appearance-attributes-text",
-    "note": "The attributes of a choice are an object.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "accent": {
-          "label": "Accent",
-          "type": "choice",
-          "items": [
-            {
-              "value": "blue",
-              "label": "Blue",
-              "attributes": "data-x"
-            }
-          ]
-        }
-      }
-    },
-    "options": {
-      "language": "en"
-    },
-    "expectError": {
-      "code": "INVALID_FORM_INPUT",
-      "message": "Invalid items.0.attributes at accent: expected an object"
-    }
-  },
-  {
-    "name": "choice-appearance-event-attribute",
-    "note": "A choice attribute name is a data-* or aria-* name.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "accent": {
-          "label": "Accent",
-          "type": "choice",
-          "items": [
-            {
-              "value": "blue",
-              "label": "Blue",
-              "attributes": {
-                "onclick": "go()"
-              }
-            }
-          ]
-        }
-      }
-    },
-    "options": {
-      "language": "en"
-    },
-    "expectError": {
-      "code": "INVALID_FORM_INPUT",
-      "message": "Invalid items.0.attributes.onclick at accent: expected a data-* or aria-* name that crudui does not write"
-    }
-  },
-  {
-    "name": "choice-appearance-owned-attribute",
-    "note": "A choice attribute name is not one that crudui writes.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "accent": {
-          "label": "Accent",
-          "type": "checkboxes",
-          "items": [
-            {
-              "value": "blue",
-              "label": "Blue",
-              "attributes": {
-                "data-name": "x"
-              }
-            }
-          ]
-        }
-      }
-    },
-    "options": {
-      "language": "en"
-    },
-    "expectError": {
-      "code": "INVALID_FORM_INPUT",
-      "message": "Invalid items.0.attributes.data-name at accent: expected a data-* or aria-* name that crudui does not write"
-    }
-  },
-  {
-    "name": "choice-appearance-number-attribute",
-    "note": "A choice attribute value is a string.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "accent": {
-          "label": "Accent",
-          "type": "choice",
-          "items": [
-            {
-              "value": "blue",
-              "label": "Blue",
-              "attributes": {
-                "data-x": 1
-              }
-            }
-          ]
-        }
-      }
-    },
-    "options": {
-      "language": "en"
-    },
-    "expectError": {
-      "code": "INVALID_FORM_INPUT",
-      "message": "Invalid items.0.attributes.data-x at accent: expected a string"
-    }
   },
   {
     "name": "inline-layout-fields",
@@ -4652,149 +3173,6 @@
       "language": "en"
     },
     "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--collection\" data-field-path=\"rows\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Rows</span><span class=\"crudui-node__count\">Rows: 1</span></div><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__opt_a1__\"><div class=\"crudui-node__header\"><button aria-controls=\"crudui:rows.__opt_a1__:body\" aria-expanded=\"true\" aria-label=\"Expand or collapse\" class=\"crudui-action\" data-crudui-action=\"toggle-row\" type=\"button\"></button><span class=\"crudui-node__label\">Rows</span><span class=\"crudui-node__number\">1</span><span class=\"crudui-node__summary\" hidden=\"\">Collapsed</span><div aria-label=\"Row controls\" class=\"crudui-controls\" role=\"group\"><button aria-label=\"Add\" class=\"crudui-action\" data-crudui-action=\"add-row\" type=\"button\"></button><button aria-label=\"Remove\" class=\"crudui-action\" data-crudui-action=\"remove-row\" type=\"button\"></button></div></div><div class=\"crudui-node__body\" id=\"crudui:rows.__opt_a1__:body\"><div class=\"crudui-node crudui-node--field crudui-node--inline\" data-field-path=\"rows.__opt_a1__.name\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:rows.__opt_a1__.name\">Name</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"name\" data-rule-name=\"rows[][name]\" id=\"crudui:rows.__opt_a1__.name\" name=\"rows[__opt_a1__][name]\" type=\"text\" value=\"x\"></div></div></div><div class=\"crudui-node crudui-node--field crudui-node--inline\" data-field-path=\"rows.__opt_a1__.on\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:rows.__opt_a1__.on\">On</label></div><div class=\"crudui-node__body\"><input checked=\"\" class=\"valid-target crudui-input crudui-input--switch\" id=\"crudui:rows.__opt_a1__.on\" name=\"rows[__opt_a1__][on]\" role=\"switch\" type=\"checkbox\" value=\"1\"></div></div></div></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
-  },
-  {
-    "name": "layout-on-field",
-    "note": "design.layout is a member of a group field only.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "a": {
-          "type": "text",
-          "design": {
-            "layout": "inline"
-          }
-        }
-      }
-    },
-    "options": {
-      "language": "en"
-    },
-    "expectError": {
-      "code": "INVALID_FORM_INPUT",
-      "message": "Invalid design.layout at a: unknown key"
-    }
-  },
-  {
-    "name": "layout-on-form-root",
-    "note": "The form root declares no layout.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "a": {
-          "type": "text"
-        }
-      },
-      "design": {
-        "layout": "inline"
-      }
-    },
-    "options": {
-      "language": "en"
-    },
-    "expectError": {
-      "code": "INVALID_FORM_INPUT",
-      "message": "Invalid design.layout at form: unknown key"
-    }
-  },
-  {
-    "name": "layout-on-form-button",
-    "note": "A form button declares no layout.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "a": {
-          "type": "text"
-        }
-      },
-      "buttons": [
-        {
-          "type": "submit",
-          "design": {
-            "layout": "inline"
-          }
-        }
-      ]
-    },
-    "options": {
-      "language": "en"
-    },
-    "expectError": {
-      "code": "INVALID_FORM_INPUT",
-      "message": "Invalid design.layout at form.buttons.0: unknown key"
-    }
-  },
-  {
-    "name": "layout-unknown-value",
-    "note": "design.layout is stacked, inline or line.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "a": {
-          "type": "group",
-          "design": {
-            "layout": "grid"
-          },
-          "properties": {}
-        }
-      }
-    },
-    "options": {
-      "language": "en"
-    },
-    "expectError": {
-      "code": "INVALID_FORM_INPUT",
-      "message": "Invalid design.layout at a: expected stacked, inline or line"
-    }
-  },
-  {
-    "name": "layout-condition-map",
-    "note": "design.layout is a literal, not a condition map.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "a": {
-          "type": "group",
-          "design": {
-            "layout": {
-              ".wide": "inline"
-            }
-          },
-          "properties": {}
-        }
-      }
-    },
-    "options": {
-      "language": "en"
-    },
-    "expectError": {
-      "code": "INVALID_FORM_INPUT",
-      "message": "Invalid design.layout at a: expected stacked, inline or line"
-    }
-  },
-  {
-    "name": "layout-line-repeated",
-    "note": "A repeated group is not laid out on one line.",
-    "spec": {
-      "type": "group",
-      "properties": {
-        "a": {
-          "type": "group",
-          "multiple": true,
-          "design": {
-            "layout": "line"
-          },
-          "properties": {}
-        }
-      }
-    },
-    "options": {
-      "language": "en"
-    },
-    "expectError": {
-      "code": "INVALID_FORM_INPUT",
-      "message": "Invalid design.layout at a: expected stacked or inline"
-    }
   },
   {
     "name": "choice-groups-select",
@@ -5311,6 +3689,1177 @@
     }
   },
   {
+    "name": "layout-on-field",
+    "note": "design.layout is a member of a group field only.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "a": {
+          "type": "text",
+          "design": {
+            "layout": "inline"
+          }
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid design.layout at a: unknown key"
+    }
+  },
+  {
+    "name": "layout-on-form-root",
+    "note": "The form root declares no layout.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "a": {
+          "type": "text"
+        }
+      },
+      "design": {
+        "layout": "inline"
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid design.layout at form: unknown key"
+    }
+  },
+  {
+    "name": "layout-on-form-button",
+    "note": "A form button declares no layout.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "a": {
+          "type": "text"
+        }
+      },
+      "buttons": [
+        {
+          "type": "submit",
+          "design": {
+            "layout": "inline"
+          }
+        }
+      ]
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid design.layout at form.buttons.0: unknown key"
+    }
+  },
+  {
+    "name": "layout-unknown-value",
+    "note": "design.layout is stacked, inline or line.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "a": {
+          "type": "group",
+          "design": {
+            "layout": "grid"
+          },
+          "properties": {}
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid design.layout at a: expected stacked, inline or line"
+    }
+  },
+  {
+    "name": "layout-condition-map",
+    "note": "design.layout is a literal, not a condition map.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "a": {
+          "type": "group",
+          "design": {
+            "layout": {
+              ".wide": "inline"
+            }
+          },
+          "properties": {}
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid design.layout at a: expected stacked, inline or line"
+    }
+  },
+  {
+    "name": "layout-line-repeated",
+    "note": "A repeated group is not laid out on one line.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "a": {
+          "type": "group",
+          "multiple": true,
+          "design": {
+            "layout": "line"
+          },
+          "properties": {}
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid design.layout at a: expected stacked or inline"
+    }
+  },
+  {
+    "name": "choice-appearance-select",
+    "note": "A select choice declares no appearance.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "accent": {
+          "label": "Accent",
+          "type": "select",
+          "items": [
+            {
+              "value": "blue",
+              "label": "Blue",
+              "class": "swatch"
+            }
+          ]
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid items at accent: expected value and label pairs with distinct string or number values"
+    }
+  },
+  {
+    "name": "choice-appearance-search",
+    "note": "A search choice declares no appearance.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "accent": {
+          "label": "Accent",
+          "type": "search",
+          "items": [
+            {
+              "value": "blue",
+              "label": "Blue",
+              "attributes": {
+                "data-x": "1"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid items at accent: expected value and label pairs with distinct string or number values"
+    }
+  },
+  {
+    "name": "choice-appearance-other-member",
+    "note": "A choice of a choice field has no member besides value, label, class, style and attributes.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "accent": {
+          "label": "Accent",
+          "type": "choice",
+          "items": [
+            {
+              "value": "blue",
+              "label": "Blue",
+              "id": "x"
+            }
+          ]
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid items at accent: expected value and label pairs with distinct string or number values"
+    }
+  },
+  {
+    "name": "choice-appearance-class-list",
+    "note": "The class of a choice is a string.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "accent": {
+          "label": "Accent",
+          "type": "radio",
+          "items": [
+            {
+              "value": "blue",
+              "label": "Blue",
+              "class": [
+                "swatch"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid items.0.class at accent: expected a string"
+    }
+  },
+  {
+    "name": "choice-appearance-style-map",
+    "note": "The style of a choice is a string, not a condition map.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "accent": {
+          "label": "Accent",
+          "type": "multichoice",
+          "items": [
+            {
+              "value": "blue",
+              "label": "Blue"
+            },
+            {
+              "value": "red",
+              "label": "Red",
+              "style": {
+                ".on": "color: red"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid items.1.style at accent: expected a string"
+    }
+  },
+  {
+    "name": "choice-appearance-attributes-text",
+    "note": "The attributes of a choice are an object.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "accent": {
+          "label": "Accent",
+          "type": "choice",
+          "items": [
+            {
+              "value": "blue",
+              "label": "Blue",
+              "attributes": "data-x"
+            }
+          ]
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid items.0.attributes at accent: expected an object"
+    }
+  },
+  {
+    "name": "choice-appearance-event-attribute",
+    "note": "A choice attribute name is a data-* or aria-* name.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "accent": {
+          "label": "Accent",
+          "type": "choice",
+          "items": [
+            {
+              "value": "blue",
+              "label": "Blue",
+              "attributes": {
+                "onclick": "go()"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid items.0.attributes.onclick at accent: expected a data-* or aria-* name that crudui does not write"
+    }
+  },
+  {
+    "name": "choice-appearance-owned-attribute",
+    "note": "A choice attribute name is not one that crudui writes.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "accent": {
+          "label": "Accent",
+          "type": "checkboxes",
+          "items": [
+            {
+              "value": "blue",
+              "label": "Blue",
+              "attributes": {
+                "data-name": "x"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid items.0.attributes.data-name at accent: expected a data-* or aria-* name that crudui does not write"
+    }
+  },
+  {
+    "name": "choice-appearance-number-attribute",
+    "note": "A choice attribute value is a string.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "accent": {
+          "label": "Accent",
+          "type": "choice",
+          "items": [
+            {
+              "value": "blue",
+              "label": "Blue",
+              "attributes": {
+                "data-x": 1
+              }
+            }
+          ]
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid items.0.attributes.data-x at accent: expected a string"
+    }
+  },
+  {
+    "name": "range-without-rules",
+    "note": "A range field requires validate.range.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "volume": {
+          "type": "range",
+          "label": "Volume"
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid validate.range at volume: expected [minimum, maximum] finite numbers with minimum not above maximum"
+    }
+  },
+  {
+    "name": "range-reversed-bounds",
+    "note": "The minimum of validate.range is not above the maximum.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "volume": {
+          "type": "range",
+          "label": "Volume",
+          "validate": {
+            "range": [
+              5,
+              1
+            ],
+            "step": 1
+          }
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid validate.range at volume: expected [minimum, maximum] finite numbers with minimum not above maximum"
+    }
+  },
+  {
+    "name": "range-reference-bounds",
+    "note": "validate.range of a range field is a literal pair, not a reference.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "volume": {
+          "type": "range",
+          "label": "Volume",
+          "validate": {
+            "range": ".limits",
+            "step": 1
+          }
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid validate.range at volume: expected [minimum, maximum] finite numbers with minimum not above maximum"
+    }
+  },
+  {
+    "name": "range-three-bounds",
+    "note": "validate.range of a range field has exactly two numbers.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "volume": {
+          "type": "range",
+          "label": "Volume",
+          "validate": {
+            "range": [
+              0,
+              1,
+              2
+            ],
+            "step": 1
+          }
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid validate.range at volume: expected [minimum, maximum] finite numbers with minimum not above maximum"
+    }
+  },
+  {
+    "name": "range-without-step",
+    "note": "A range field requires validate.step.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "volume": {
+          "type": "range",
+          "label": "Volume",
+          "validate": {
+            "range": [
+              0,
+              10
+            ]
+          }
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid validate.step at volume: expected a finite number above 0"
+    }
+  },
+  {
+    "name": "range-zero-step",
+    "note": "validate.step of a range field is above 0.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "volume": {
+          "type": "range",
+          "label": "Volume",
+          "validate": {
+            "range": [
+              0,
+              10
+            ],
+            "step": 0
+          }
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid validate.step at volume: expected a finite number above 0"
+    }
+  },
+  {
+    "name": "range-conditional-step",
+    "note": "validate.step of a range field is a literal number, not a conditional map.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "volume": {
+          "type": "range",
+          "label": "Volume",
+          "validate": {
+            "range": [
+              0,
+              10
+            ],
+            "step": {
+              ".fine": 0.1,
+              "true": 1
+            }
+          }
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid validate.step at volume: expected a finite number above 0"
+    }
+  },
+  {
+    "name": "range-minimum-off-step",
+    "note": "The minimum of validate.range is a multiple of validate.step.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "volume": {
+          "type": "range",
+          "label": "Volume",
+          "validate": {
+            "range": [
+              0.5,
+              10
+            ],
+            "step": 1
+          }
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid validate.range at volume: expected a minimum that is a multiple of validate.step"
+    }
+  },
+  {
+    "name": "control-attributes-not-object",
+    "note": "design.attributes must be an object.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "theme": {
+          "type": "text",
+          "label": "Theme",
+          "design": {
+            "attributes": "data-x"
+          }
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid design.attributes at theme: expected an object"
+    }
+  },
+  {
+    "name": "control-attributes-wrapper-list",
+    "note": "design.wrapper.attributes must be an object, not a list.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "theme": {
+          "type": "text",
+          "label": "Theme",
+          "design": {
+            "wrapper": {
+              "attributes": [
+                "data-x"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid design.wrapper.attributes at theme: expected an object"
+    }
+  },
+  {
+    "name": "control-attributes-event-name",
+    "note": "An event attribute name is neither data-* nor aria-*.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "theme": {
+          "type": "text",
+          "label": "Theme",
+          "design": {
+            "attributes": {
+              "onclick": "go()"
+            }
+          }
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid design.attributes.onclick at theme: expected a data-* or aria-* name that crudui does not write"
+    }
+  },
+  {
+    "name": "control-attributes-uppercase-name",
+    "note": "A data-* name with an uppercase letter is refused.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "theme": {
+          "type": "text",
+          "label": "Theme",
+          "design": {
+            "attributes": {
+              "data-Key": "x"
+            }
+          }
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid design.attributes.data-Key at theme: expected a data-* or aria-* name that crudui does not write"
+    }
+  },
+  {
+    "name": "control-attributes-bare-prefix",
+    "note": "A prefix without a name after it is refused.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "theme": {
+          "type": "text",
+          "label": "Theme",
+          "design": {
+            "attributes": {
+              "aria-": "x"
+            }
+          }
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid design.attributes.aria- at theme: expected a data-* or aria-* name that crudui does not write"
+    }
+  },
+  {
+    "name": "control-attributes-owned-name",
+    "note": "A name crudui writes on a control is refused.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "theme": {
+          "type": "text",
+          "label": "Theme",
+          "design": {
+            "attributes": {
+              "data-rule-name": "x"
+            }
+          }
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid design.attributes.data-rule-name at theme: expected a data-* or aria-* name that crudui does not write"
+    }
+  },
+  {
+    "name": "control-attributes-owned-prefix",
+    "note": "A data-crudui-* name on the node root is refused.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "theme": {
+          "type": "text",
+          "label": "Theme",
+          "design": {
+            "wrapper": {
+              "attributes": {
+                "data-crudui-row-key": "x"
+              }
+            }
+          }
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid design.wrapper.attributes.data-crudui-row-key at theme: expected a data-* or aria-* name that crudui does not write"
+    }
+  },
+  {
+    "name": "control-attributes-names-before-values",
+    "note": "Every name is checked before any value: the refused name fails although an earlier value is not a string.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "theme": {
+          "type": "text",
+          "label": "Theme",
+          "design": {
+            "attributes": {
+              "data-count": 1,
+              "data-field-path": "x"
+            }
+          }
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid design.attributes.data-field-path at theme: expected a data-* or aria-* name that crudui does not write"
+    }
+  },
+  {
+    "name": "control-attributes-value-type",
+    "note": "An attribute value must be a string.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "theme": {
+          "type": "text",
+          "label": "Theme",
+          "design": {
+            "attributes": {
+              "data-x": "ok",
+              "aria-hidden": true
+            }
+          }
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid design.attributes.aria-hidden at theme: expected a string"
+    }
+  },
+  {
+    "name": "control-attributes-label-node",
+    "note": "Only the wrapper node accepts attributes.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "theme": {
+          "type": "text",
+          "label": "Theme",
+          "design": {
+            "label": {
+              "attributes": {
+                "data-x": "1"
+              }
+            }
+          }
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid design.label.attributes at theme: unknown key"
+    }
+  },
+  {
+    "name": "control-attributes-form-button",
+    "note": "A form button design does not accept attributes.",
+    "spec": {
+      "type": "group",
+      "buttons": [
+        {
+          "type": "submit",
+          "design": {
+            "attributes": {
+              "data-x": "1"
+            }
+          }
+        }
+      ],
+      "properties": {
+        "theme": {
+          "type": "text"
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid design.attributes at form.buttons.0: unknown key"
+    }
+  },
+  {
+    "name": "root-description",
+    "note": "The translated root description is the first child of crudui-form, before the body; its text is escaped.",
+    "spec": {
+      "type": "group",
+      "description": {
+        "ko": "회원 정보",
+        "en": "Member <details> & notes"
+      },
+      "properties": {
+        "note": {
+          "type": "text",
+          "label": "Note"
+        }
+      }
+    },
+    "data": {
+      "note": "kept"
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><p class=\"crudui-form__description\">Member &lt;details&gt; &amp; notes</p><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"note\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:note\">Note</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"note\" data-rule-name=\"note\" id=\"crudui:note\" name=\"note\" type=\"text\" value=\"kept\"></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "root-description-fallback-language",
+    "note": "A root description without an entry for the display language or en uses the content rule: the ko entry, then the first key.",
+    "spec": {
+      "type": "group",
+      "description": {
+        "ko": "회원 정보",
+        "ja": ""
+      },
+      "properties": {
+        "note": {
+          "type": "text",
+          "label": "Note"
+        }
+      }
+    },
+    "data": {
+      "note": "kept"
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><p class=\"crudui-form__description\">회원 정보</p><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"note\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:note\">Note</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"note\" data-rule-name=\"note\" id=\"crudui:note\" name=\"note\" type=\"text\" value=\"kept\"></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "root-description-empty",
+    "note": "A root description whose translated text is empty writes nothing.",
+    "spec": {
+      "type": "group",
+      "description": "",
+      "properties": {
+        "note": {
+          "type": "text",
+          "label": "Note"
+        }
+      }
+    },
+    "data": {
+      "note": "kept"
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"note\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:note\">Note</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"note\" data-rule-name=\"note\" id=\"crudui:note\" name=\"note\" type=\"text\" value=\"kept\"></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "multiple-only-group-rows",
+    "note": "multiple: only renders exactly the data rows in data order under their data keys; each row keeps its toggle, label and number and has no row controls.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "variants": {
+          "type": "group",
+          "label": "Variants",
+          "multiple": "only",
+          "properties": {
+            "name": {
+              "type": "text",
+              "label": "Name"
+            },
+            "price": {
+              "type": "number",
+              "label": "Price"
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "variants": {
+        "__opt_b2__": {
+          "name": "Blue",
+          "price": 2
+        },
+        "__opt_a1__": {
+          "name": "Red",
+          "price": 1
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--collection\" data-field-path=\"variants\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Variants</span><span class=\"crudui-node__count\">Rows: 2</span></div><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__opt_b2__\"><div class=\"crudui-node__header\"><button aria-controls=\"crudui:variants.__opt_b2__:body\" aria-expanded=\"true\" aria-label=\"Expand or collapse\" class=\"crudui-action\" data-crudui-action=\"toggle-row\" type=\"button\"></button><span class=\"crudui-node__label\">Variants</span><span class=\"crudui-node__number\">1</span><span class=\"crudui-node__summary\" hidden=\"\">Collapsed</span></div><div class=\"crudui-node__body\" id=\"crudui:variants.__opt_b2__:body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"variants.__opt_b2__.name\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:variants.__opt_b2__.name\">Name</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"name\" data-rule-name=\"variants[][name]\" id=\"crudui:variants.__opt_b2__.name\" name=\"variants[__opt_b2__][name]\" type=\"text\" value=\"Blue\"></div></div></div><div class=\"crudui-node crudui-node--field\" data-field-path=\"variants.__opt_b2__.price\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:variants.__opt_b2__.price\">Price</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"price\" data-rule-name=\"variants[][price]\" id=\"crudui:variants.__opt_b2__.price\" name=\"variants[__opt_b2__][price]\" step=\"any\" type=\"number\" value=\"2\"></div></div></div></div></div><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__opt_a1__\"><div class=\"crudui-node__header\"><button aria-controls=\"crudui:variants.__opt_a1__:body\" aria-expanded=\"true\" aria-label=\"Expand or collapse\" class=\"crudui-action\" data-crudui-action=\"toggle-row\" type=\"button\"></button><span class=\"crudui-node__label\">Variants</span><span class=\"crudui-node__number\">2</span><span class=\"crudui-node__summary\" hidden=\"\">Collapsed</span></div><div class=\"crudui-node__body\" id=\"crudui:variants.__opt_a1__:body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"variants.__opt_a1__.name\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:variants.__opt_a1__.name\">Name</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"name\" data-rule-name=\"variants[][name]\" id=\"crudui:variants.__opt_a1__.name\" name=\"variants[__opt_a1__][name]\" type=\"text\" value=\"Red\"></div></div></div><div class=\"crudui-node crudui-node--field\" data-field-path=\"variants.__opt_a1__.price\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:variants.__opt_a1__.price\">Price</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"price\" data-rule-name=\"variants[][price]\" id=\"crudui:variants.__opt_a1__.price\" name=\"variants[__opt_a1__][price]\" step=\"any\" type=\"number\" value=\"1\"></div></div></div></div></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "multiple-only-object-title-sticky",
+    "note": "multiple.only: true combines with title and header: rows are titled and sticky, with no row controls.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "variants": {
+          "type": "group",
+          "label": "Variants",
+          "multiple": {
+            "only": true,
+            "title": "name",
+            "header": "sticky"
+          },
+          "properties": {
+            "name": {
+              "type": "text",
+              "label": "Name"
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "variants": {
+        "__opt_a1__": {
+          "name": "Red"
+        },
+        "__opt_b2__": {
+          "name": ""
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--collection\" data-field-path=\"variants\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Variants</span><span class=\"crudui-node__count\">Rows: 2</span></div><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--row crudui-node--sticky\" data-crudui-row-key=\"__opt_a1__\" style=\"--crudui-sticky-depth: 0\"><div class=\"crudui-node__header-container\"><div class=\"crudui-node__header\"><button aria-controls=\"crudui:variants.__opt_a1__:body\" aria-expanded=\"true\" aria-label=\"Expand or collapse\" class=\"crudui-action\" data-crudui-action=\"toggle-row\" type=\"button\"></button><span class=\"crudui-node__label\">Variants</span><span class=\"crudui-node__number\">1</span><span class=\"crudui-node__title\">Red</span><span class=\"crudui-node__summary\" hidden=\"\">Collapsed</span></div></div><div class=\"crudui-node__body\" id=\"crudui:variants.__opt_a1__:body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"variants.__opt_a1__.name\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:variants.__opt_a1__.name\">Name</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"name\" data-rule-name=\"variants[][name]\" id=\"crudui:variants.__opt_a1__.name\" name=\"variants[__opt_a1__][name]\" type=\"text\" value=\"Red\"></div></div></div></div></div><div class=\"crudui-node crudui-node--row crudui-node--sticky\" data-crudui-row-key=\"__opt_b2__\" style=\"--crudui-sticky-depth: 0\"><div class=\"crudui-node__header-container\"><div class=\"crudui-node__header\"><button aria-controls=\"crudui:variants.__opt_b2__:body\" aria-expanded=\"true\" aria-label=\"Expand or collapse\" class=\"crudui-action\" data-crudui-action=\"toggle-row\" type=\"button\"></button><span class=\"crudui-node__label\">Variants</span><span class=\"crudui-node__number\">2</span><span class=\"crudui-node__title\">(untitled)</span><span class=\"crudui-node__summary\" hidden=\"\">Collapsed</span></div></div><div class=\"crudui-node__body\" id=\"crudui:variants.__opt_b2__:body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"variants.__opt_b2__.name\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:variants.__opt_b2__.name\">Name</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"name\" data-rule-name=\"variants[][name]\" id=\"crudui:variants.__opt_b2__.name\" name=\"variants[__opt_b2__][name]\" type=\"text\" value=\"\"></div></div></div></div></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "multiple-only-missing-data",
+    "note": "Missing data of a multiple: only collection is zero rows, not an initial row: the header and an empty body render, with no footer and no add-row control.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "variants": {
+          "type": "group",
+          "label": "Variants",
+          "multiple": "only",
+          "properties": {
+            "name": {
+              "type": "text",
+              "label": "Name"
+            },
+            "price": {
+              "type": "number",
+              "label": "Price"
+            }
+          }
+        }
+      }
+    },
+    "data": {},
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--collection\" data-field-path=\"variants\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Variants</span><span class=\"crudui-node__count\">Rows: 0</span></div><div class=\"crudui-node__body\"></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "multiple-only-empty-data",
+    "note": "An empty multiple: only collection renders its header and an empty body, with no add-row control.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "variants": {
+          "type": "group",
+          "label": "Variants",
+          "multiple": "only",
+          "properties": {
+            "name": {
+              "type": "text",
+              "label": "Name"
+            },
+            "price": {
+              "type": "number",
+              "label": "Price"
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "variants": {}
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--collection\" data-field-path=\"variants\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Variants</span><span class=\"crudui-node__count\">Rows: 0</span></div><div class=\"crudui-node__body\"></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "multiple-only-scalar-rows",
+    "note": "A repeated scalar declared multiple: only renders its data rows under their keys without row controls.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "tags": {
+          "type": "text",
+          "label": "Tags",
+          "multiple": "only"
+        }
+      }
+    },
+    "data": {
+      "tags": {
+        "__opt_a1__": "x",
+        "__opt_b2__": "y"
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--collection\" data-field-path=\"tags\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Tags</span><span class=\"crudui-node__count\">Rows: 2</span></div><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__opt_a1__\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Tags</span><span class=\"crudui-node__number\">1</span></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"tags[]\" data-rule-name=\"tags[]\" id=\"crudui:tags.__opt_a1__\" name=\"tags[__opt_a1__]\" type=\"text\" value=\"x\"></div></div></div><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__opt_b2__\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Tags</span><span class=\"crudui-node__number\">2</span></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"tags[]\" data-rule-name=\"tags[]\" id=\"crudui:tags.__opt_b2__\" name=\"tags[__opt_b2__]\" type=\"text\" value=\"y\"></div></div></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "design-show-hidden-group-keeps-values",
+    "note": "A group hidden by design.show carries the hidden attribute and still renders the values of its fields and rows, which stay part of native submission.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "is_display": {
+          "type": "text",
+          "label": "Display"
+        },
+        "display": {
+          "type": "group",
+          "label": "Details",
+          "design": {
+            "show": ".is_display == 1"
+          },
+          "properties": {
+            "code": {
+              "type": "text",
+              "label": "Code"
+            },
+            "items": {
+              "type": "text",
+              "label": "Items",
+              "multiple": true
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "is_display": "0",
+      "display": {
+        "code": "abc1",
+        "items": {
+          "__opt_a1__": "kept"
+        }
+      }
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"is_display\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:is_display\">Display</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"is_display\" data-rule-name=\"is_display\" id=\"crudui:is_display\" name=\"is_display\" type=\"text\" value=\"0\"></div></div></div><div class=\"crudui-node crudui-node--group\" data-field-path=\"display\" hidden=\"\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Details</span></div><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"display.code\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:display.code\">Code</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"code\" data-rule-name=\"display[code]\" id=\"crudui:display.code\" name=\"display[code]\" type=\"text\" value=\"abc1\"></div></div></div><div class=\"crudui-node crudui-node--collection\" data-field-path=\"display.items\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Items</span><span class=\"crudui-node__count\">Rows: 1</span></div><div class=\"crudui-node__body\"><div class=\"crudui-node crudui-node--row\" data-crudui-row-key=\"__opt_a1__\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Items</span><span class=\"crudui-node__number\">1</span><div aria-label=\"Row controls\" class=\"crudui-controls\" role=\"group\"><button aria-label=\"Add\" class=\"crudui-action\" data-crudui-action=\"add-row\" type=\"button\"></button><button aria-label=\"Remove\" class=\"crudui-action\" data-crudui-action=\"remove-row\" type=\"button\"></button></div></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"items[]\" data-rule-name=\"display[items][]\" id=\"crudui:display.items.__opt_a1__\" name=\"display[items][__opt_a1__]\" type=\"text\" value=\"kept\"></div></div></div></div></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
     "name": "design-show-row-parent-on",
     "note": "design.show '..mode' of a field of a group row reads the field beside the collection: the row and its key are one level, so the name of every row is shown when mode is on and hidden when it is off.",
     "spec": {
@@ -5433,5 +4982,456 @@
       "language": "en"
     },
     "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"mode\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:mode\">Mode</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"mode\" data-rule-name=\"mode\" id=\"crudui:mode\" name=\"mode\" type=\"text\" value=\"\"></div></div></div><div class=\"crudui-node crudui-node--field\" data-field-path=\"note\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:note\">Note</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"note\" data-rule-name=\"note\" id=\"crudui:note\" name=\"note\" type=\"text\" value=\"kept\"></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "design-show-literal-string-visible",
+    "note": "A design.show string that is not a valid expression is a literal and only false hides: the field renders without the hidden attribute.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "mode": {
+          "type": "text",
+          "label": "Mode"
+        },
+        "note": {
+          "type": "text",
+          "label": "Note",
+          "design": {
+            "show": ".mode == ("
+          }
+        }
+      }
+    },
+    "data": {
+      "mode": "off",
+      "note": "kept"
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"mode\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:mode\">Mode</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"mode\" data-rule-name=\"mode\" id=\"crudui:mode\" name=\"mode\" type=\"text\" value=\"off\"></div></div></div><div class=\"crudui-node crudui-node--field\" data-field-path=\"note\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:note\">Note</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"note\" data-rule-name=\"note\" id=\"crudui:note\" name=\"note\" type=\"text\" value=\"kept\"></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "design-show-condition-map-without-selection",
+    "note": "A design.show condition map that selects nothing leaves the field visible: only a resolved false hides.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "mode": {
+          "type": "text",
+          "label": "Mode"
+        },
+        "note": {
+          "type": "text",
+          "label": "Note",
+          "design": {
+            "show": {
+              ".mode == 'on'": false
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "mode": "off",
+      "note": "kept"
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"mode\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:mode\">Mode</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"mode\" data-rule-name=\"mode\" id=\"crudui:mode\" name=\"mode\" type=\"text\" value=\"off\"></div></div></div><div class=\"crudui-node crudui-node--field\" data-field-path=\"note\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:note\">Note</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"note\" data-rule-name=\"note\" id=\"crudui:note\" name=\"note\" type=\"text\" value=\"kept\"></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "design-class-literal-string",
+    "note": "A design.class string that does not parse completely as an expression is a literal: its text is the control class, even though it contains an operator word.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "mode": {
+          "type": "text",
+          "label": "Mode"
+        },
+        "note": {
+          "type": "text",
+          "label": "Note",
+          "design": {
+            "class": "modal fade in show"
+          }
+        }
+      }
+    },
+    "data": {
+      "mode": "off",
+      "note": "kept"
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"mode\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:mode\">Mode</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"mode\" data-rule-name=\"mode\" id=\"crudui:mode\" name=\"mode\" type=\"text\" value=\"off\"></div></div></div><div class=\"crudui-node crudui-node--field\" data-field-path=\"note\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:note\">Note</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input modal fade in show\" data-default=\"\" data-name=\"note\" data-rule-name=\"note\" id=\"crudui:note\" name=\"note\" type=\"text\" value=\"kept\"></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "design-style-literal-string",
+    "note": "A design.style string that does not parse completely as an expression is a literal: its text is the control style, even though it contains an operator word.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "mode": {
+          "type": "text",
+          "label": "Mode"
+        },
+        "note": {
+          "type": "text",
+          "label": "Note",
+          "design": {
+            "style": "font-family: Made in Script"
+          }
+        }
+      }
+    },
+    "data": {
+      "mode": "off",
+      "note": "kept"
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"mode\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:mode\">Mode</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"mode\" data-rule-name=\"mode\" id=\"crudui:mode\" name=\"mode\" type=\"text\" value=\"off\"></div></div></div><div class=\"crudui-node crudui-node--field\" data-field-path=\"note\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:note\">Note</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"note\" data-rule-name=\"note\" id=\"crudui:note\" name=\"note\" style=\"font-family: Made in Script\" type=\"text\" value=\"kept\"></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "number-any-step",
+    "note": "A number control accepts any number natively (step=\"any\"), so the step base taken from its value never makes another valid number a step mismatch; the step rule owns increments.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "score": {
+          "type": "number",
+          "label": "Score",
+          "validate": {
+            "required": true,
+            "number": true,
+            "min": 0,
+            "max": 10000000
+          }
+        }
+      }
+    },
+    "data": {
+      "score": 2886.5
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"score\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:score\">Score</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><input class=\"valid-target crudui-input\" data-default=\"\" data-name=\"score\" data-rule-name=\"score\" id=\"crudui:score\" name=\"score\" step=\"any\" type=\"number\" value=\"2886.5\"></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "choice-list-select-order",
+    "note": "A select field lists a choice list in list order, so the integer-like values 1 and 0 show Yes before No; the option values are the canonical texts of the values.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "answer": {
+          "type": "select",
+          "label": "Answer",
+          "items": [
+            {
+              "value": 1,
+              "label": "Yes"
+            },
+            {
+              "value": 0,
+              "label": "No"
+            }
+          ]
+        }
+      }
+    },
+    "data": {
+      "answer": 0
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"answer\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:answer\">Answer</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><select class=\"valid-target crudui-input crudui-input--select\" data-default=\"\" data-name=\"answer\" data-rule-name=\"answer\" id=\"crudui:answer\" name=\"answer\"><option value=\"1\">Yes</option><option selected=\"\" value=\"0\">No</option></select></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "choice-list-index-labels",
+    "note": "An array of labels keeps its written order with the indexes as values.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "answer": {
+          "type": "select",
+          "label": "Answer",
+          "items": [
+            "Yes",
+            "No"
+          ]
+        }
+      }
+    },
+    "data": {
+      "answer": "1"
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"answer\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:answer\">Answer</label></div><div class=\"crudui-node__body\"><div class=\"crudui-widget\"><select class=\"valid-target crudui-input crudui-input--select\" data-default=\"\" data-name=\"answer\" data-rule-name=\"answer\" id=\"crudui:answer\" name=\"answer\"><option value=\"0\">Yes</option><option selected=\"\" value=\"1\">No</option></select></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "choice-list-choice-default",
+    "note": "A choice field lists a choice list in list order with a translated label, checks the value and marks the default.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "agree": {
+          "type": "choice",
+          "label": "Agree",
+          "default": 0,
+          "items": [
+            {
+              "value": 1,
+              "label": {
+                "en": "Yes",
+                "ko": "예"
+              }
+            },
+            {
+              "value": 0,
+              "label": "No"
+            }
+          ]
+        }
+      }
+    },
+    "data": {
+      "agree": 1
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"agree\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Agree</span></div><div class=\"crudui-node__body\"><div class=\"crudui-choices\"><input autocomplete=\"off\" checked=\"\" class=\"valid-target crudui-choices__input\" data-is-default=\"\" data-name=\"agree\" data-rule-name=\"agree\" id=\"crudui:agree:0\" name=\"agree\" type=\"radio\" value=\"1\"><label class=\"crudui-choices__label\" for=\"crudui:agree:0\"><span>Yes</span></label><input autocomplete=\"off\" class=\"valid-target crudui-choices__input\" data-is-default=\"1\" data-name=\"agree\" data-rule-name=\"agree\" id=\"crudui:agree:1\" name=\"agree\" type=\"radio\" value=\"0\"><label class=\"crudui-choices__label\" for=\"crudui:agree:1\"><span>No</span></label></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "choice-list-multichoice-mixed-values",
+    "note": "A multichoice field keeps the list order of string and number values.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "sizes": {
+          "type": "multichoice",
+          "label": "Sizes",
+          "items": [
+            {
+              "value": "10",
+              "label": "Ten"
+            },
+            {
+              "value": 2,
+              "label": "Two"
+            },
+            {
+              "value": "b",
+              "label": "Bee"
+            }
+          ]
+        }
+      }
+    },
+    "data": {
+      "sizes": [
+        "2",
+        "b"
+      ]
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"sizes\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Sizes</span></div><div class=\"crudui-node__body\"><div class=\"crudui-choices crudui-choices--multiple\"><input autocomplete=\"off\" class=\"valid-target crudui-choices__input\" data-name=\"sizes\" data-rule-name=\"sizes\" id=\"crudui:sizes:0\" name=\"sizes[]\" type=\"checkbox\" value=\"10\"><label class=\"crudui-choices__label\" for=\"crudui:sizes:0\"><span>Ten</span></label><input autocomplete=\"off\" checked=\"\" class=\"valid-target crudui-choices__input\" data-name=\"sizes\" data-rule-name=\"sizes\" id=\"crudui:sizes:1\" name=\"sizes[]\" type=\"checkbox\" value=\"2\"><label class=\"crudui-choices__label\" for=\"crudui:sizes:1\"><span>Two</span></label><input autocomplete=\"off\" checked=\"\" class=\"valid-target crudui-choices__input\" data-name=\"sizes\" data-rule-name=\"sizes\" id=\"crudui:sizes:2\" name=\"sizes[]\" type=\"checkbox\" value=\"b\"><label class=\"crudui-choices__label\" for=\"crudui:sizes:2\"><span>Bee</span></label></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "choice-list-search-order",
+    "note": "A search field lists a static choice list in list order.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "pick": {
+          "type": "search",
+          "label": "Pick",
+          "items": [
+            {
+              "value": 1,
+              "label": "Yes"
+            },
+            {
+              "value": 0,
+              "label": "No"
+            }
+          ]
+        }
+      }
+    },
+    "data": {
+      "pick": 1
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"pick\"><div class=\"crudui-node__header\"><label class=\"crudui-node__label\" for=\"crudui:pick\">Pick</label></div><div class=\"crudui-node__body\"><style nonce=\"\">[class~=\"crudui:pick_select2\"] .loading-results { display: none; }</style><script nonce=\"\">$(function() {select2(CSS.escape(\"crudui:pick\"), \"2\", \"250\", \"crudui:pick_select2\");});</script><div class=\"crudui-widget crudui-widget--search\"><select class=\"valid-target crudui-input crudui-input--select\" data-api-server=\"\" data-default=\"\" data-delay=\"250\" data-keyword-min-length=\"2\" data-name=\"pick\" data-rule-name=\"pick\" id=\"crudui:pick\" name=\"pick\"><option selected=\"\" value=\"1\">Yes</option><option value=\"0\">No</option></select></div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "choice-list-dummy-label",
+    "note": "A dummy field displays the label of its value from a choice list.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "shown": {
+          "type": "dummy",
+          "label": "Shown",
+          "items": [
+            {
+              "value": 1,
+              "label": "Yes"
+            },
+            {
+              "value": 0,
+              "label": "No"
+            }
+          ]
+        }
+      }
+    },
+    "data": {
+      "shown": 0
+    },
+    "options": {
+      "language": "en"
+    },
+    "expected_html": "<div class=\"crudui-form\"><div class=\"crudui-form__body\"><div class=\"crudui-node crudui-node--field\" data-field-path=\"shown\"><div class=\"crudui-node__header\"><span class=\"crudui-node__label\">Shown</span></div><div class=\"crudui-node__body\"><div>No</div></div></div></div><div class=\"crudui-form__footer\"><div aria-label=\"Form actions\" class=\"crudui-controls\" role=\"group\"><button class=\"crudui-action crudui-action--text\" type=\"submit\">Save</button></div></div></div>"
+  },
+  {
+    "name": "choice-list-extra-member",
+    "note": "A choice list element has only value and label.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "answer": {
+          "type": "select",
+          "label": "Answer",
+          "items": [
+            {
+              "value": 1,
+              "label": "Yes",
+              "id": 1
+            }
+          ]
+        }
+      }
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid items at answer: expected value and label pairs with distinct string or number values"
+    }
+  },
+  {
+    "name": "choice-list-missing-label",
+    "note": "A choice list element has a label.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "answer": {
+          "type": "choice",
+          "label": "Answer",
+          "items": [
+            {
+              "value": 1
+            }
+          ]
+        }
+      }
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid items at answer: expected value and label pairs with distinct string or number values"
+    }
+  },
+  {
+    "name": "choice-list-mixed-elements",
+    "note": "An array with one object that has a value member is a choice list, so a plain label in it is invalid.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "answer": {
+          "type": "select",
+          "label": "Answer",
+          "items": [
+            "Yes",
+            {
+              "value": 0,
+              "label": "No"
+            }
+          ]
+        }
+      }
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid items at answer: expected value and label pairs with distinct string or number values"
+    }
+  },
+  {
+    "name": "choice-list-boolean-value",
+    "note": "A choice list value is a string or a finite number.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "answer": {
+          "type": "multichoice",
+          "label": "Answer",
+          "items": [
+            {
+              "value": true,
+              "label": "Yes"
+            }
+          ]
+        }
+      }
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid items at answer: expected value and label pairs with distinct string or number values"
+    }
+  },
+  {
+    "name": "choice-list-duplicate-value",
+    "note": "Two choice list values with the same canonical text are invalid, here in a nested group and before the type is evaluated.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "terms": {
+          "type": "group",
+          "label": "Terms",
+          "properties": {
+            "answer": {
+              "type": "not-a-widget",
+              "label": "Answer",
+              "items": [
+                {
+                  "value": 1,
+                  "label": "Yes"
+                },
+                {
+                  "value": "1",
+                  "label": "One"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "expectError": {
+      "code": "INVALID_FORM_INPUT",
+      "message": "Invalid items at terms.answer: expected value and label pairs with distinct string or number values"
+    }
   }
 ]

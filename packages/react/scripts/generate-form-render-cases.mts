@@ -3,14 +3,15 @@
  * Vue and Svelte generators. Runs the React CRUDUI generator (the reference) over the scenarios of
  * scenario-form-render-cases.ts and the widget cases below and normalizes its output through the
  * shared normalizer; the cases of written-form-render-cases.ts carry `expected_html` written from
- * the specification. A widget or written case replaces the scenario of the same name. The file
- * keeps the order of its cases; a new case is appended. The three-framework comparison then
- * verifies that every generator reproduces the same normalized output.
+ * the specification. The cases follow the scenarios, then the widget and written cases, each in
+ * source order; a widget or written case takes the place of the scenario of the same name. The
+ * three-framework comparison then verifies that every generator reproduces the same normalized
+ * output.
  *
  * Run: node_modules/.bin/tsx packages/react/scripts/generate-form-render-cases.mts
  */
 
-import { readFileSync, writeFileSync } from 'node:fs';
+import { writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 import { ComposeLoadError, compileForm, type BindFormOptions, type CompileFormOptions } from '@polyspec/crudui-generator-core';
@@ -401,14 +402,10 @@ function scenario(c: (typeof SCENARIOS)[number]): FixtureCase {
   return { name: c.name, note: c.note, spec: c.spec, data: c.data, options: c.options, expected_html: normalizeHtml(html) };
 }
 
-const scenarios = SCENARIOS.map(scenario);
-const generated = new Map(scenarios.map((c) => [c.name, c]));
-for (const c of NEW) generated.set(c.name, c);
-// Keep the order of the cases already in cases.json, so a regeneration changes only what changed;
-// a case no longer generated goes, and a new one is appended.
-const previous = (JSON.parse(readFileSync(casesPath, 'utf8')) as FixtureCase[]).map((c) => c.name);
-const order = [...previous.filter((name) => generated.has(name)), ...[...generated.keys()].filter((name) => !previous.includes(name))];
-const cases = order.flatMap((name) => generated.get(name) ?? []);
+// The scenarios in their order, then the widget and written cases in theirs; a widget or written case takes the
+// place of the scenario of the same name.
+const cases = new Map(SCENARIOS.map(scenario).map((c) => [c.name, c]));
+for (const c of NEW) cases.set(c.name, c);
 
-writeFileSync(casesPath, JSON.stringify(cases, null, 2) + '\n', 'utf8');
-process.stdout.write(`scenarios=${scenarios.length} total=${cases.length}\n`);
+writeFileSync(casesPath, JSON.stringify([...cases.values()], null, 2) + '\n', 'utf8');
+process.stdout.write(`cases=${cases.size}\n`);

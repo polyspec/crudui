@@ -44,5 +44,5 @@ The generation script uses React's internal `renderFields` helper as the layout
 reference and normalizes its output. It renders the scenarios of
 [`scenario-form-render-cases.ts`](../../../packages/react/scripts/scenario-form-render-cases.ts) and the widget
 cases, and adds the cases in [`written-form-render-cases.ts`](../../../packages/react/scripts/written-form-render-cases.ts), whose `expected_html` is
-written from the specification and never rendered. It keeps the order of the cases in `cases.json` and appends a new case. Review generated changes before accepting them; regeneration alone is not
+written from the specification and never rendered. The cases follow the scenarios, then the widget and written cases, each in source order; a widget or written case takes the place of the scenario of the same name. Review generated changes before accepting them; regeneration alone is not
 a correctness check. All three framework conformance suites must pass.
