@@ -174,9 +174,11 @@ test('make installs nothing on its own and make install installs the Rust toolch
   const makefile = await read('Makefile');
   assert.match(makefile, /^export RUSTUP_AUTO_INSTALL := 0$/m);
   assert.match(makefile, /^export GOTOOLCHAIN := local$/m);
+  // install-tools of kit installs the Rust toolchain of rust-toolchain.toml (kit K151); no target of crudui repeats it.
+  assert.doesNotMatch(makefile, /^install-rust:/m);
   const install = makeDryRun(repository, 'install');
   assert.equal(install.status, 0, install.stderr);
-  assert.ok(install.stdout.split('\n').includes('rustup toolchain install --no-self-update'), install.stdout);
+  assert.ok(install.stdout.split('\n').some(line => / node node_modules\/@polyspec\/kit\/dist\/install-tools\.mjs\s*$/.test(line)), install.stdout);
 });
 
 test('every workflow runs on ubuntu-24.04 with actions named by commit SHA and no auto-install', async () => {
@@ -202,7 +204,8 @@ function phpMatrix(job: WorkflowJob): string[] {
 
 // The tools of mise.toml that the jobs check; make install-tools installs every tool of mise.lock.
 const MISE_TOOLS = ['go', 'python', 'composer'] as const;
-const MISE: readonly string[] = MISE_TOOLS;
+// make install-tools of kit installs the tools of mise.toml and the Rust toolchain of rust-toolchain.toml (kit K151).
+const INSTALL_TOOLS: readonly string[] = [...MISE_TOOLS, 'rust'];
 
 test('every CI job sets up the recorded toolchains and checks the tools it set up', async () => {
   const recorded = await recordedToolchain(repository);
@@ -227,9 +230,9 @@ test('every CI job sets up the recorded toolchains and checks the tools it set u
           for (const version of versions) if (!minors.includes(version)) violations.push(`${file} ${id}: PHP ${version} is not a minor of config/toolchain.json`);
           if (step.with?.tools !== 'none') violations.push(`${file} ${id}: setup-php installs ${step.with?.tools}; it installs PHP alone, and make install-tools installs the Composer of mise.toml`);
         }
-        if (/^make install-tools$/m.test(run)) tools.push(...MISE);
+        if (/^make install-tools$/m.test(run)) tools.push(...INSTALL_TOOLS);
         if (/rust-toolchain|dtolnay/.test(uses)) violations.push(`${file} ${id}: ${uses} selects a Rust toolchain; run rustup toolchain install --no-self-update`);
-        if (/^make\b.*\binstall-rust\b/m.test(run)) tools.push('rust');
+        if (/^make\b.*\binstall-rust\b/m.test(run)) violations.push(`${file} ${id}: make install-rust is gone; make install-tools installs the Rust toolchain of rust-toolchain.toml`);
         if (/^make\b.*\binstall-(?:tools|packages)\b/m.test(run) && !tools.includes('npm')) tools.push('npm');
         const check = /^make toolchain-check TOOLS=(?:"([^"]+)"|(\S+))$/m.exec(run);
         const listed = check?.[1] ?? check?.[2];
@@ -238,7 +241,7 @@ test('every CI job sets up the recorded toolchains and checks the tools it set u
       // A job checks every tool that it set up outside mise, and the tools of mise that it checks are installed.
       if (!checked) violations.push(`${file} ${id}: no step runs make toolchain-check`);
       else {
-        const unchecked = tools.filter(tool => !MISE.includes(tool) && !checked.tools.includes(tool));
+        const unchecked = tools.filter(tool => !INSTALL_TOOLS.includes(tool) && !checked.tools.includes(tool));
         const missing = checked.tools.filter(tool => !tools.includes(tool));
         if (unchecked.length || missing.length) violations.push(`${file} ${id}: checks ${checked.tools.join(' ')}, sets up ${tools.join(' ')}`);
       }

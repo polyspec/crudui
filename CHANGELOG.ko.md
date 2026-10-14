@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 4476b1b02e7ba7e25f110a9bf02c1879af465dd3d8ba6ff301c23a5d5c4911a4 -->
+<!-- source-sha256: b035aa14230a8e0284a755ab692ca9a8fd9e18e4f4469ecbdac3b18733730718 -->
 
 ## Unreleased
+
+### 2026-10-15 — make install-rust 없음 (C14.26)
+
+- `make install-rust`는 없어진다. K151 이후 kit의 `make install-tools`가 `rust-toolchain.toml`의 Rust toolchain을 설치하므로 workflow는 `make install-tools`만 실행하고, 각 Cargo cache step은 cache key를 위해 toolchain이 있도록 그 뒤에 온다(C14.26).
 
 ### 2026-10-15 — 식에서 배열과 객체의 동등 비교 (C14.25)
 

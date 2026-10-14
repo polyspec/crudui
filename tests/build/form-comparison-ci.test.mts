@@ -54,8 +54,9 @@ test('CI builds and runs the five record stores and the canonical flow', async (
   // setup-php installs PHP alone; make install-tools installs the Go and the Composer of mise.toml (kit K127).
   assert.match(job, /tools: none/);
   assert.match(job, /PHP_EXTENSION_PHP_CONFIG:\s*\/usr\/bin\/php-config8\.5/);
+  // make install-tools installs the Rust toolchain of rust-toolchain.toml too (kit K151).
   assert.match(job, /run: make install-tools\n/);
-  assert.match(job, /run: make install-rust\n/);
+  assert.doesNotMatch(job, /install-rust/);
   // The Rust record server builds from the OrderedJSON checkout, which make install-crates installs before the crates.
   assert.match(job, /run: make install-crates\n/);
   assert.match(job, /workspaces: examples\/form-comparison\/servers\/rust/);

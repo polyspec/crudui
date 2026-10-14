@@ -30,7 +30,7 @@ export GOPROXY := off
 export npm_config_offline := true
 export COMPOSER_DISABLE_NETWORK := 1
 ONLINE := env -u CARGO_NET_OFFLINE -u GOPROXY -u npm_config_offline -u COMPOSER_DISABLE_NETWORK
-.PHONY: help release-assets install install-go-modules install-composer install-rust install-phpdocumentor install-browsers check-ci-browser test-runtimes test-dependencies build lint typecheck test-validator-js test-validator-php test-validator-go test-validator-rust test-validator-python test-generator-python test-cross-check manifest-test require-build test-cli manifest-check manifest-docs-check test-forms test-form-comparison test-form-comparison-pipeline test-form-comparison-checks test-form-comparison-browser test-form-comparison-summary test-packages test-build test-build-repeat test-inspector test-bench check-conformance install-crates install-ordered-json install-svelte-tools test-ordered-json docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-engine test-native-generators test-php-api test-native test-validators test-form-binding conformance format-check records-check ci check conformance-reset
+.PHONY: help release-assets install install-go-modules install-composer install-phpdocumentor install-browsers check-ci-browser test-runtimes test-dependencies build lint typecheck test-validator-js test-validator-php test-validator-go test-validator-rust test-validator-python test-generator-python test-cross-check manifest-test require-build test-cli manifest-check manifest-docs-check test-forms test-form-comparison test-form-comparison-pipeline test-form-comparison-checks test-form-comparison-browser test-form-comparison-summary test-packages test-build test-build-repeat test-inspector test-bench check-conformance install-crates install-ordered-json install-svelte-tools test-ordered-json docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-engine test-native-generators test-php-api test-native test-validators test-form-binding conformance format-check records-check ci check conformance-reset
 .NOTPARALLEL: docs docs-web docs-dev docs-preview docs-check docs-verify-idempotent
 
 # The tools that every polyspec repository shares are the package @polyspec/kit of package-lock.json. The copy
@@ -95,12 +95,12 @@ help: ## 타겟 설명
 	@echo "  주의: 절대시간은 머신 의존 — 같은 스펙 안에서 백엔드 간 비율만 비교하라."
 	@echo ""
 
-# The npm, Go and cargo-audit releases that the checkout declares into var/tools (install-tools of the kit.mk of @polyspec/kit), the
-# dependencies of the lock files, the Rust toolchain of rust-toolchain.toml, the crates of every Cargo.lock, the OrderedJSON
+# The npm, Go and cargo-audit releases that the checkout declares into var/tools and the Rust toolchain of rust-toolchain.toml
+# (install-tools of the kit.mk of @polyspec/kit), the dependencies of the lock files, the crates of every Cargo.lock, the OrderedJSON
 # checkout of the comparison and the phpDocumentor release that scripts/install-phpdocumentor.mts checks by its SHA-256.
 # Node.js, PHP, Python and Composer are installed at the versions of .node-version and config/toolchain.json by the
 # machine's package manager; `make toolchain-check` names every tool at another version.
-install: install-packages install-tools install-composer install-rust install-crates install-go-modules install-phpdocumentor ## Install the declared tools, the npm, Composer and Cargo dependencies, the Rust toolchain and phpDocumentor
+install: install-packages install-tools install-composer install-crates install-go-modules install-phpdocumentor ## Install the declared tools with the Rust toolchain, the npm, Composer and Cargo dependencies and phpDocumentor
 
 # The parts of make install, which the CI jobs run for what they check: every CI step runs a make target, so the recipes
 # start every tool with the offline settings, $(NPM) and the toolchains of the checkout. install-packages of
@@ -119,9 +119,6 @@ install-svelte-tools: ## Install the tools project of packages/svelte from its p
 # repository installs polyspec/crudui-validator as a copy into vendor/, and its autoload reads the generator sources.
 install-composer: ## Install the Composer dependencies of the development root composer.json into vendor/
 	$(ONLINE) composer install --no-interaction --prefer-dist
-
-install-rust: ## Install the Rust toolchain of rust-toolchain.toml
-	rustup toolchain install --no-self-update
 
 install-phpdocumentor: ## Install the phpDocumentor release that scripts/install-phpdocumentor.mts checks by its SHA-256
 	$(ONLINE) node scripts/install-phpdocumentor.mts

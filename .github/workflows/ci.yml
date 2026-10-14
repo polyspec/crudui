@@ -50,9 +50,7 @@ jobs:
         with:
           php-version: '8.5'
           tools: none
-      - name: Install the Rust toolchain of rust-toolchain.toml
-        run: make install-rust
-      - name: Install the tools of mise.lock into var/tools/mise
+      - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
         run: make install-tools
       - name: Download the modules that the Go workspace requires
         run: make install-go-modules
@@ -88,7 +86,7 @@ jobs:
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
-      - name: Install the tools of mise.lock into var/tools/mise, the Rust toolchain of rust-toolchain.toml among them
+      - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
         run: make install-tools
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm"
@@ -139,7 +137,7 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
           tools: none
-      - name: Install the tools of mise.lock into var/tools/mise
+      - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
         run: make install-tools
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm php composer"
@@ -183,7 +181,7 @@ jobs:
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
-      - name: Install the tools of mise.lock into var/tools/mise
+      - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
         run: make install-tools
       - name: Download the modules that the Go workspace requires
         run: make install-go-modules
@@ -227,9 +225,7 @@ jobs:
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
-      - name: Install the Rust toolchain of rust-toolchain.toml
-        run: make install-rust
-      - name: Install the tools of mise.lock into var/tools/mise, the Rust toolchain of rust-toolchain.toml among them
+      - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
         run: make install-tools
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm rust"
@@ -277,7 +273,7 @@ jobs:
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
-      - name: Install the tools of mise.lock into var/tools/mise
+      - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
         run: make install-tools
       # The Python is the one of mise.toml, which make install-tools installed at the digest of mise.lock.
       - name: Check the recorded toolchain versions
@@ -327,14 +323,12 @@ jobs:
           tools: none
       - name: Install PHP dependencies
         run: make install-composer
-      - name: Install the Rust toolchain of rust-toolchain.toml
-        run: make install-rust
+      - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
+        run: make install-tools
       - name: Cargo cache
         uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
           workspaces: packages/validator/rust
-      - name: Install the tools of mise.lock into var/tools/mise
-        run: make install-tools
       - name: Download the modules that the Go workspace requires
         run: make install-go-modules
       - name: Check the recorded toolchain versions
@@ -382,14 +376,12 @@ jobs:
           tools: none
       - name: Install PHP dependencies
         run: make install-composer
-      - name: Install the Rust toolchain of rust-toolchain.toml
-        run: make install-rust
+      - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
+        run: make install-tools
       - name: Cargo cache
         uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
           workspaces: examples/cross-check-console/validators/rust
-      - name: Install the tools of mise.lock into var/tools/mise
-        run: make install-tools
       - name: Download the modules that the Go workspace requires
         run: make install-go-modules
       - name: Check the recorded toolchain versions
@@ -432,7 +424,7 @@ jobs:
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
-      - name: Install the tools of mise.lock into var/tools/mise, the Rust toolchain of rust-toolchain.toml among them
+      - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
         run: make install-tools
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm"
@@ -469,7 +461,7 @@ jobs:
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
-      - name: Install the tools of mise.lock into var/tools/mise, the Rust toolchain of rust-toolchain.toml among them
+      - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
         run: make install-tools
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm"
@@ -522,7 +514,7 @@ jobs:
         with:
           php-version: '8.5'
           tools: none
-      - name: Install the tools of mise.lock into var/tools/mise
+      - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
         run: make install-tools
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm php composer"
@@ -570,14 +562,12 @@ jobs:
         with:
           php-version: '8.5'
           tools: none
-      - name: Install the Rust toolchain of rust-toolchain.toml
-        run: make install-rust
+      - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
+        run: make install-tools
       - name: Cargo cache
         uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
           workspaces: examples/form-comparison/servers/rust
-      - name: Install the tools of mise.lock into var/tools/mise
-        run: make install-tools
       - name: Download the modules that the Go workspace requires
         run: make install-go-modules
       - name: Check the recorded toolchain versions
@@ -641,14 +631,12 @@ jobs:
         with:
           php-version: '8.5'
           tools: none
-      - name: Install the Rust toolchain of rust-toolchain.toml
-        run: make install-rust
+      - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
+        run: make install-tools
       - name: Cargo cache
         uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
           workspaces: examples/form-comparison/servers/rust
-      - name: Install the tools of mise.lock into var/tools/mise
-        run: make install-tools
       - name: Download the modules that the Go workspace requires
         run: make install-go-modules
       - name: Check the recorded toolchain versions
@@ -716,14 +704,12 @@ jobs:
         with:
           php-version: '8.5'
           tools: none
-      - name: Install the Rust toolchain of rust-toolchain.toml
-        run: make install-rust
+      - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
+        run: make install-tools
       - name: Cargo cache
         uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
           workspaces: examples/form-comparison/servers/rust
-      - name: Install the tools of mise.lock into var/tools/mise
-        run: make install-tools
       - name: Download the modules that the Go workspace requires
         run: make install-go-modules
       - name: Check the recorded toolchain versions
@@ -780,7 +766,7 @@ jobs:
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
-      - name: Install the tools of mise.lock into var/tools/mise, the Rust toolchain of rust-toolchain.toml among them
+      - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
         run: make install-tools
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm"
@@ -821,7 +807,7 @@ jobs:
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
-      - name: Install the tools of mise.lock into var/tools/mise, the Rust toolchain of rust-toolchain.toml among them
+      - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
         run: make install-tools
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm"
@@ -881,8 +867,8 @@ jobs:
             ~/go/pkg/mod
             ~/.cache/go-build
           key: go-${{ runner.os }}-${{ hashFiles('packages/generator/go/go.mod', 'tests/native-generators/programs/go/go.mod', 'benchmarks/validators/go/go.mod') }}
-      - name: Install the Rust toolchain of rust-toolchain.toml
-        run: make install-rust
+      - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
+        run: make install-tools
       - name: Cargo cache
         uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
@@ -890,8 +876,6 @@ jobs:
             packages/generator/rust
             tests/native-generators/programs/rust
             benchmarks/validators/rust
-      - name: Install the tools of mise.lock into var/tools/mise
-        run: make install-tools
       - name: Download the modules that the Go workspace requires
         run: make install-go-modules
       - name: Check the recorded toolchain versions
@@ -960,7 +944,7 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
           tools: none
-      - name: Install the tools of mise.lock into var/tools/mise
+      - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
         run: make install-tools
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm php composer"
@@ -1014,7 +998,7 @@ jobs:
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
-      - name: Install the tools of mise.lock into var/tools/mise, the Rust toolchain of rust-toolchain.toml among them
+      - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
         run: make install-tools
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm"
@@ -1054,7 +1038,7 @@ jobs:
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
-      - name: Install the tools of mise.lock into var/tools/mise, the Rust toolchain of rust-toolchain.toml among them
+      - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
         run: make install-tools
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm"
