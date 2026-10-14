@@ -241,9 +241,10 @@ def _evaluate_binary(node: Node, context: Context, wildcard_strategy: str) -> bo
         return evaluate_condition(left, context, wildcard_strategy) or evaluate_condition(
             right, context, wildcard_strategy
         )
-    left_value = _resolve_value(left, context, wildcard_strategy)
+    left_value, candidates = _resolve_operand(left, context, wildcard_strategy)
     right_value = _resolve_value(right, context, wildcard_strategy)
-    if isinstance(left_value, list):
+    # The candidates of a wildcard path; a list that a plain path names is one value.
+    if candidates:
         return _with_strategy(
             left_value,
             lambda item: _compare(item, right_value, operator),
@@ -259,9 +260,9 @@ def _evaluate_unary(node: Node, context: Context, wildcard_strategy: str) -> boo
 
 
 def _evaluate_in(node: Node, context: Context, wildcard_strategy: str) -> bool:
-    value = _resolve_value(node['value'], context, wildcard_strategy)
+    value, candidates = _resolve_operand(node['value'], context, wildcard_strategy)
     items = [_resolve_value(item, context, wildcard_strategy) for item in node['list']]
-    if isinstance(value, list):
+    if candidates:
         def check(item: Value) -> bool:
             included = any(_loose_equals(item, candidate) for candidate in items)
             return not included if node['negated'] else included
@@ -283,23 +284,35 @@ def _with_strategy(values: Sequence[Value], predicate: Callable[[Value], bool], 
     return False
 
 
+def _resolve_operand(node: Node, context: Context, wildcard_strategy: str) -> tuple[Value, bool]:
+    """The left operand of a comparison: the candidates of a wildcard path with True, else one value with False."""
+    if node['type'] == 'Path':
+        return _resolve_path(node, context, wildcard_strategy)
+    return _resolve_value(node, context, wildcard_strategy), False
+
+
+def _resolve_path(node: Node, context: Context, wildcard_strategy: str) -> tuple[Value, bool]:
+    """The value of a path with False, or the list of candidate values of a wildcard that the context does not resolve with True."""
+    resolved_path = resolve_path_segments(node, context)
+    if has_wildcard(resolved_path):
+        if wildcard_strategy == 'CURRENT':
+            resolved_path = replace_wildcard_with_index(resolved_path, context['currentPath'])
+        if has_wildcard(resolved_path):
+            # Still has wildcards: resolve to the list of the values it names.
+            return [
+                entry['value']
+                for entry in resolve_wildcard_path(resolved_path, context['formData'])
+            ], True
+    return get_value_by_path(context['formData'], resolved_path), False
+
+
 def _resolve_value(node: Node, context: Context, wildcard_strategy: str) -> Value:
     kind = node['type']
     if kind == 'Literal':
         literal: Value = node['value']
         return literal
     if kind == 'Path':
-        resolved_path = resolve_path_segments(node, context)
-        if has_wildcard(resolved_path):
-            if wildcard_strategy == 'CURRENT':
-                resolved_path = replace_wildcard_with_index(resolved_path, context['currentPath'])
-            if has_wildcard(resolved_path):
-                # Still has wildcards: resolve to the list of the values it names.
-                return [
-                    entry['value']
-                    for entry in resolve_wildcard_path(resolved_path, context['formData'])
-                ]
-        return get_value_by_path(context['formData'], resolved_path)
+        return _resolve_path(node, context, wildcard_strategy)[0]
     if kind == 'Group':
         return evaluate_condition(node['expression'], context, wildcard_strategy)
     return _UNDEFINED
@@ -339,13 +352,14 @@ def _typeof(value: Value) -> str:
 def _loose_equals(left: Value, right: Value) -> bool:
     """Loose equality, like JavaScript `==`.
 
-    Values of one type compare strictly (two objects by identity); values of
-    different types compare numerically when both convert to a number, else by
-    their text. A list or an object has no number and the empty text.
+    Values of one type compare strictly, two lists or two objects as JSON
+    values; values of different types compare numerically when both convert to
+    a number, else by their text. A list or an object has no number and the
+    empty text.
     """
     if _typeof(left) == _typeof(right):
         if _typeof(left) == 'object':
-            return left is right
+            return _json_equals(left, right)
         return left == right
     if left is None or isinstance(left, _Undefined):
         return right is None or isinstance(right, _Undefined)
@@ -356,6 +370,27 @@ def _loose_equals(left: Value, right: Value) -> bool:
     if not math.isnan(left_number) and not math.isnan(right_number):
         return left_number == right_number
     return _equality_text(left) == _equality_text(right)
+
+
+def _json_equals(left: Value, right: Value) -> bool:
+    """JSON-value structural equality (docs/spec/expressions.md, Evaluation).
+
+    Two lists hold equal elements in the same order, two objects the same keys
+    with equal values in any key order; other values compare without
+    conversion, numbers by value. A list never equals an object, and a boolean
+    never equals a number.
+    """
+    if isinstance(left, list) and isinstance(right, list):
+        return len(left) == len(right) and all(
+            _json_equals(item, other) for item, other in zip(left, right, strict=True)
+        )
+    if isinstance(left, dict) and isinstance(right, dict):
+        return left.keys() == right.keys() and all(
+            _json_equals(value, right[key]) for key, value in left.items()
+        )
+    if isinstance(left, (list, dict)) or isinstance(right, (list, dict)):
+        return False
+    return _typeof(left) == _typeof(right) and left == right
 
 
 def _equality_number(value: Value) -> float:

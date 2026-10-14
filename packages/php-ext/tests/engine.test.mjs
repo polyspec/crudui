@@ -505,9 +505,9 @@ function sourceForFixtures() {
 }
 
 test('PHP extension engine evaluates every shared expression fixture', { timeout: ENGINE_TEST_BUDGET }, async t => {
-  assert.equal(fixtures.length, 62,
+  assert.equal(fixtures.length, 74,
     'Review C expression coverage when the shared fixture inventory changes');
-  assert.equal(fixtures.reduce((total, fixture) => total + (fixture.cases?.length ?? 0), 0), 102,
+  assert.equal(fixtures.reduce((total, fixture) => total + (fixture.cases?.length ?? 0), 0), 129,
     'Review C expression coverage when the shared fixture cases change');
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-c-expression-'));
   let output = '';

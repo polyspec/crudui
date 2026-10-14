@@ -102,6 +102,13 @@ interface CaseSpec {
   dataCases: DataSpec[];
 }
 
+/**
+ * The number 1 written `1.0`, a spelling that JSON.stringify does not write for a JavaScript number; a runtime that
+ * decodes it to another type than `1` (a PHP float, a Rust float, a Python float) must still compare it by value.
+ * JSON.rawJSON (ES2025) writes the text as it is; the TypeScript library of the checkout does not declare it yet.
+ */
+const oneWithFraction = (JSON as unknown as { rawJSON(text: string): unknown }).rawJSON('1.0');
+
 const SPECS: CaseSpec[] = [
   // ---- simple paths -----------------------------------------------------
   {
@@ -277,6 +284,99 @@ const SPECS: CaseSpec[] = [
     name: 'not-in-object',
     expr: ".o not in '[object Object]'",
     dataCases: [{ data: { o: { a: 1 } }, expected: true }],
+  },
+
+  // ---- two arrays or two objects: JSON-value structural equality ----------
+  // The objects are not empty and their keys are not 0, 1, …: PHP decodes such an object as an array.
+  {
+    name: 'cmp-eq-array-array',
+    expr: '.a == .b',
+    dataCases: [
+      { data: { a: [1, 'x', true, null], b: [1, 'x', true, null] }, expected: true },
+      { data: { a: [1, 2], b: [2, 1] }, expected: false },
+      { data: { a: [1], b: [1, 1] }, expected: false },
+      { data: { a: [1], b: ['1'] }, expected: false },
+      { data: { a: [true], b: [1] }, expected: false },
+      { data: { a: [[1], { k: 'v' }], b: [[1], { k: 'v' }] }, expected: true },
+      { data: { a: [1], b: [oneWithFraction] }, expected: true },
+    ],
+  },
+  {
+    name: 'cmp-ne-array-array',
+    expr: '.a != .b',
+    dataCases: [
+      { data: { a: ['x'], b: ['x'] }, expected: false },
+      { data: { a: ['x'], b: ['y'] }, expected: true },
+    ],
+  },
+  {
+    name: 'cmp-eq-object-object',
+    expr: '.a == .b',
+    dataCases: [
+      { data: { a: { x: 1, y: 'z' }, b: { y: 'z', x: 1 } }, expected: true },
+      { data: { a: { x: 1 }, b: { x: 1, y: 2 } }, expected: false },
+      { data: { a: { x: 1 }, b: { x: 2 } }, expected: false },
+      { data: { a: { x: 1 }, b: { y: 1 } }, expected: false },
+      { data: { a: { x: { y: [1] } }, b: { x: { y: [1] } } }, expected: true },
+      { data: { a: { x: 1 }, b: { x: oneWithFraction } }, expected: true },
+    ],
+  },
+  {
+    name: 'cmp-eq-array-object',
+    expr: '.a == .o',
+    dataCases: [
+      { data: { a: [1], o: { x: 1 } }, expected: false },
+      { data: { a: ['v'], o: { k: 'v' } }, expected: false },
+    ],
+  },
+  {
+    name: 'cmp-eq-array-null',
+    expr: '.a == .n',
+    dataCases: [
+      { data: { a: [1], n: null }, expected: false },
+      { data: { a: [1] }, expected: false },
+    ],
+  },
+  // An array that a path without a wildcard names is one value, not the candidates of a wildcard.
+  {
+    name: 'in-array',
+    expr: '.tags in a, b',
+    dataCases: [{ data: { tags: ['a'] }, expected: false }],
+  },
+  {
+    name: 'not-in-array',
+    expr: '.tags not in a, b',
+    dataCases: [{ data: { tags: ['a'] }, expected: true }],
+  },
+  {
+    name: 'cmp-eq-number-fraction',
+    expr: '.n == 1.0',
+    dataCases: [{ data: { n: 1 }, expected: true }],
+  },
+
+  // ---- the text of a boolean in a string comparison: true or false --------
+  {
+    name: 'cmp-eq-boolean-text',
+    expr: ".f == 'true'",
+    dataCases: [
+      { data: { f: true }, expected: true },
+      { data: { f: false }, expected: false },
+    ],
+  },
+  {
+    name: 'cmp-eq-boolean-false-text',
+    expr: ".f == 'false'",
+    dataCases: [{ data: { f: false }, expected: true }],
+  },
+  {
+    name: 'cmp-eq-boolean-array',
+    expr: '.f == .tags',
+    dataCases: [{ data: { f: false, tags: ['a'] }, expected: false }],
+  },
+  {
+    name: 'in-boolean-text',
+    expr: ".f in 'true', x",
+    dataCases: [{ data: { f: true }, expected: true }],
   },
 
   // ---- logical ----------------------------------------------------------

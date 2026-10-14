@@ -447,7 +447,7 @@ fn js_type_of(v: &Value) -> &'static str {
 /// equality.
 fn loose_equals(a: &Value, b: &Value) -> bool {
     if js_type_of(a) == js_type_of(b) {
-        return values_strict_eq(a, b);
+        return json_equals(a, b);
     }
 
     if a.is_null() {
@@ -464,16 +464,27 @@ fn loose_equals(a: &Value, b: &Value) -> bool {
     to_string(a) == to_string(b)
 }
 
-/// `===` within a single JS type. Numbers compare by f64 value (so 1 === 1.0);
-/// objects/arrays compare by identity in JS, but the fixture only equates them
-/// via this same-type path when they are deeply equal, so structural equality is
-/// the safe contract here.
-fn values_strict_eq(a: &Value, b: &Value) -> bool {
+/// JSON-value structural equality (docs/spec/expressions.md, Evaluation): two
+/// arrays hold equal elements in the same order, two objects the same keys with
+/// equal values in any key order; other values compare without conversion,
+/// numbers by value (so 1 equals 1.0). An array never equals an object.
+fn json_equals(a: &Value, b: &Value) -> bool {
     match (a, b) {
         (Value::Number(x), Value::Number(y)) => match (x.as_f64(), y.as_f64()) {
             (Some(xf), Some(yf)) => xf == yf,
             _ => x == y,
         },
+        (Value::Array(x), Value::Array(y)) => {
+            x.len() == y.len()
+                && x.iter()
+                    .zip(y)
+                    .all(|(item, other)| json_equals(item, other))
+        }
+        (Value::Object(x), Value::Object(y)) => {
+            x.len() == y.len()
+                && x.iter()
+                    .all(|(key, value)| y.get(key).is_some_and(|other| json_equals(value, other)))
+        }
         _ => a == b,
     }
 }

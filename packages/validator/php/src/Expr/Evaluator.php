@@ -132,12 +132,13 @@ final class Evaluator
             return $this->evaluate($node->left) || $this->evaluate($node->right);
         }
 
-        $left = $this->resolveValue($node->left);
+        [$left, $candidates] = $this->resolveOperand($node->left);
         $right = $this->resolveValue($node->right);
 
-        // Wildcard path may resolve to a list of candidate values: ANY match
+        // A wildcard path resolves to a list of candidate values: ANY match
         // (CURRENT strategy already collapses to a scalar before this point).
-        if (is_array($left) && array_is_list($left)) {
+        // An array that a plain path names is one value.
+        if ($candidates) {
             foreach ($left as $lv) {
                 if (self::compareOp($lv, $right, $node->operator)) {
                     return true;
@@ -172,11 +173,11 @@ final class Evaluator
 
     private function evaluateIn(InNode $node): bool
     {
-        $value = $this->resolveValue($node->value);
+        [$value, $candidates] = $this->resolveOperand($node->value);
         $list = array_map(fn (Node $n): mixed => $this->resolveValue($n), $node->list);
 
         // Wildcard value resolved to a list: ANY element passing membership.
-        if (is_array($value) && array_is_list($value)) {
+        if ($candidates) {
             foreach ($value as $v) {
                 $included = self::inList($v, $list);
                 if ($node->negated ? !$included : $included) {
@@ -216,9 +217,31 @@ final class Evaluator
         };
     }
 
+    /**
+     * Resolve the left operand of a comparison: the list of candidate values of a
+     * wildcard path with true, or the one value of any other node with false.
+     *
+     * @return array{0: mixed, 1: bool}
+     */
+    private function resolveOperand(Node $node): array
+    {
+        return $node instanceof PathNode ? $this->resolvePathOperand($node) : [$this->resolveValue($node), false];
+    }
+
     // --- path resolution (JS resolvePathSegments + resolveValue parity) -------
 
     private function resolvePath(PathNode $node): mixed
+    {
+        return $this->resolvePathOperand($node)[0];
+    }
+
+    /**
+     * The value of a path with false, or the list of candidate values of a wildcard
+     * that the current path does not resolve with true.
+     *
+     * @return array{0: mixed, 1: bool}
+     */
+    private function resolvePathOperand(PathNode $node): array
     {
         $resolvedPath = $this->resolvePathSegments($node);
 
@@ -229,11 +252,11 @@ final class Evaluator
             if (self::hasWildcard($resolvedPath)) {
                 // Still wildcarded: resolve to the list of all matching values.
                 $resolved = $this->resolveWildcardPath($resolvedPath);
-                return array_map(static fn (array $r): mixed => $r['value'], $resolved);
+                return [array_map(static fn (array $r): mixed => $r['value'], $resolved), true];
             }
         }
 
-        return $this->getValueByPath($resolvedPath);
+        return [$this->getValueByPath($resolvedPath), false];
     }
 
     /**
@@ -420,14 +443,14 @@ final class Evaluator
     }
 
     /**
-     * Loose equality (JS looseEquals). Same PHP type compares with ===; null
-     * equals only null; otherwise numeric equality when both Number()-parse,
-     * else string equality.
+     * Loose equality (JS looseEquals). Values of one JS type compare as JSON
+     * values (jsonEquals); null equals only null; otherwise numeric equality when
+     * both Number()-parse, else string equality.
      */
     public static function looseEquals(mixed $a, mixed $b): bool
     {
         if (self::sameJsType($a, $b)) {
-            return $a === $b;
+            return self::jsonEquals($a, $b);
         }
 
         if ($a === null) {
@@ -444,6 +467,39 @@ final class Evaluator
         }
 
         return self::toString($a) === self::toString($b);
+    }
+
+    /**
+     * JSON-value structural equality (docs/spec/expressions.md, Evaluation): two
+     * lists hold equal elements in the same order, two objects the same keys with
+     * equal values in any key order; other values compare without conversion,
+     * numbers by value (int 1 equals float 1.0). A list never equals an object.
+     */
+    private static function jsonEquals(mixed $a, mixed $b): bool
+    {
+        if (\is_array($a) && \is_array($b)) {
+            if (\count($a) !== \count($b) || array_is_list($a) !== array_is_list($b)) {
+                return false;
+            }
+            if (array_is_list($a)) {
+                foreach ($a as $index => $item) {
+                    if (!self::jsonEquals($item, $b[$index])) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            foreach ($a as $key => $item) {
+                if (!\array_key_exists($key, $b) || !self::jsonEquals($item, $b[$key])) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        if ((\is_int($a) || \is_float($a)) && (\is_int($b) || \is_float($b))) {
+            return (float) $a === (float) $b;
+        }
+        return $a === $b;
     }
 
     /**

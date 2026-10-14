@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-15 — Equality of arrays and objects in expressions (C14.25)
+
+- `==`, `!=` and `in` compare two arrays or two objects as JSON values in every port: two arrays with equal elements in the same order and two objects with the same keys and equal values in any key order are equal, numbers by value, and an array never equals an object; TypeScript and Python had compared them by identity, Go had never found them equal, and PHP and Rust had compared an integer and a fraction such as `1` and `1.0` as different. An array that a path without a wildcard names is one value, where TypeScript, PHP, Go and Python had taken it as the candidates of a wildcard. In a string comparison the C engine of the PHP extension writes a boolean as `true` or `false`, as the other ports do, where it wrote `1` and the empty text; shared vectors check each rule (C14.25).
+
 ### 2026-10-15 — Type tests of the validator (C14.24)
 
 - The Vitest suite of `packages/validator/ts` runs in the typecheck mode of Vitest too, so the `expectTypeOf` assertions of the authoring types, now in `src/types.test-d.ts`, are checked with `tsc`; a runtime run had not evaluated them (C14.24).

@@ -601,21 +601,52 @@ static bool number_value(const ps_value *value, bool whole_string, double *numbe
     *number = parsed; return true;
 }
 
+/* The JS typeof of a value: an int and a float are one number type, an array and an object one object type. */
 static int js_type(const ps_value *value)
 {
     if (!value || value->kind == PS_NULL) return PS_NULL;
     if (value->kind == PS_INT || value->kind == PS_FLOAT) return PS_FLOAT;
+    if (value->kind == PS_ARRAY) return PS_OBJECT;
     return value->kind;
+}
+
+/* JSON-value structural equality (docs/spec/expressions.md, Evaluation): two arrays hold equal elements in the same
+   order, two objects the same keys with equal values in any key order; other values compare without conversion,
+   numbers by value. An array never equals an object. */
+static bool json_equal(const ps_value *left, const ps_value *right)
+{
+    if (left && right && left->kind == PS_OBJECT && right->kind == PS_OBJECT) {
+        if (ps_size(left) != ps_size(right)) return false;
+        for (size_t i = 0; i < ps_size(left); ++i) {
+            const ps_value *other = ps_get_text(right, ps_key(left, i));
+            if (!other || !json_equal(ps_at(left, i), other)) return false;
+        }
+        return true;
+    }
+    if (left && right && left->kind == PS_ARRAY && right->kind == PS_ARRAY) {
+        if (ps_size(left) != ps_size(right)) return false;
+        for (size_t i = 0; i < ps_size(left); ++i)
+            if (!json_equal(ps_at(left, i), ps_at(right, i))) return false;
+        return true;
+    }
+    return ps_equal(left, right);
+}
+
+/* The text of a scalar in a string comparison: a boolean is true or false, an array or an object the empty text. */
+static ps_chars equality_text(const ps_value *value)
+{
+    if (value && value->kind == PS_BOOL) return ps_copy(value->data.boolean ? PS_TEXT("true") : PS_TEXT("false"));
+    return ps_scalar_string(value);
 }
 
 static bool loose_equal(const ps_value *left, const ps_value *right)
 {
-    if (js_type(left) == js_type(right)) return ps_equal(left, right);
+    if (js_type(left) == js_type(right)) return json_equal(left, right);
     if (!left || left->kind == PS_NULL) return !right || right->kind == PS_NULL;
     if (!right || right->kind == PS_NULL) return false;
     double a, b;
     if (number_value(left, true, &a) && number_value(right, true, &b)) return a == b;
-    ps_chars sa = ps_scalar_string(left), sb = ps_scalar_string(right);
+    ps_chars sa = equality_text(left), sb = equality_text(right);
     bool equal = sa.bytes && sb.bytes && ps_text_equal(ps_view(sa), ps_view(sb));
     free(sa.bytes); free(sb.bytes); return equal;
 }

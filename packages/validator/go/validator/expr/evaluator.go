@@ -136,13 +136,14 @@ func (e *Evaluator) evaluateBinary(node *BinaryNode) bool {
 		return e.Evaluate(node.Left) || e.Evaluate(node.Right)
 	}
 
-	left := e.resolveValue(node.Left)
+	left, candidates := e.resolveOperand(node.Left)
 	right := e.resolveValue(node.Right)
 
-	// Wildcard path may resolve to a list of candidate values: ANY match
-	// (CURRENT strategy already collapses to a scalar before this point).
-	if list, ok := asList(left); ok {
-		for _, lv := range list {
+	// A wildcard path resolves to a list of candidate values: ANY match
+	// (CURRENT strategy already collapses to a scalar before this point). An
+	// array that a plain path names is one value.
+	if candidates {
+		for _, lv := range left.([]any) {
 			if compareOp(lv, right, node.Operator) {
 				return true
 			}
@@ -180,15 +181,15 @@ func (e *Evaluator) evaluateUnary(node *UnaryNode) bool {
 }
 
 func (e *Evaluator) evaluateIn(node *InNode) bool {
-	value := e.resolveValue(node.Value)
+	value, candidates := e.resolveOperand(node.Value)
 	list := make([]any, len(node.List))
 	for i, item := range node.List {
 		list[i] = e.resolveValue(item)
 	}
 
 	// Wildcard value resolved to a list: ANY element passing membership.
-	if values, ok := asList(value); ok {
-		for _, v := range values {
+	if candidates {
+		for _, v := range value.([]any) {
 			included := inList(v, list)
 			if node.Negated {
 				included = !included
@@ -232,9 +233,27 @@ func (e *Evaluator) resolveValue(node Node) any {
 	}
 }
 
+// resolveOperand resolves the left operand of a comparison: the list of candidate
+// values of a wildcard path with true, or the one value of any other node with
+// false.
+func (e *Evaluator) resolveOperand(node Node) (any, bool) {
+	if path, ok := node.(*PathNode); ok {
+		return e.resolvePathOperand(path)
+	}
+	return e.resolveValue(node), false
+}
+
 // --- path resolution (JS resolvePathSegments + resolveValue parity) ----------
 
 func (e *Evaluator) resolvePath(node *PathNode) any {
+	value, _ := e.resolvePathOperand(node)
+	return value
+}
+
+// resolvePathOperand returns the value of a path with false, or the list of
+// candidate values of a wildcard that the current path does not resolve with
+// true.
+func (e *Evaluator) resolvePathOperand(node *PathNode) (any, bool) {
 	resolvedPath := e.resolvePathSegments(node)
 
 	if hasWildcard(resolvedPath) {
@@ -248,11 +267,11 @@ func (e *Evaluator) resolvePath(node *PathNode) any {
 			for i, r := range resolved {
 				out[i] = r.value
 			}
-			return out
+			return out, true
 		}
 	}
 
-	return e.getValueByPath(resolvedPath)
+	return e.getValueByPath(resolvedPath), false
 }
 
 // resolvePathSegments computes absolute path segments (JS resolvePathSegments).
@@ -409,13 +428,6 @@ func isNumericSegment(segment string) bool {
 	return true
 }
 
-// asList reports whether v is a JSON list ([]any) and returns it. Maps (objects)
-// and scalars are not lists (PHP array_is_list parity).
-func asList(v any) ([]any, bool) {
-	list, ok := v.([]any)
-	return list, ok
-}
-
 // --- value semantics (JS truthy / looseEquals / coerceNumber parity) ---------
 
 // IsTruthy is the truthy test (JS Boolean, GRAMMAR §6). null/false/0/0.0/"" are
@@ -465,8 +477,7 @@ func looseEquals(a, b any) bool {
 
 // sameTypeEquals compares two values of the same JS typeof bucket. Numbers
 // compare numerically (so int 5 and float64 5 are equal); booleans/strings/null
-// compare directly; objects/lists fall back to identity-less false (reference
-// equality is not meaningful here and never reached by the fixture).
+// compare directly; lists and objects compare as JSON values (jsonEquals).
 func sameTypeEquals(a, b any, t string) bool {
 	switch t {
 	case "number":
@@ -478,8 +489,51 @@ func sameTypeEquals(a, b any, t string) bool {
 	case "null":
 		return true
 	default:
-		return false
+		return jsonEquals(a, b)
 	}
+}
+
+// jsonEquals is JSON-value structural equality (docs/spec/expressions.md,
+// Evaluation): two lists hold equal elements in the same order, two objects the
+// same keys with equal values in any key order; other values compare without
+// conversion, numbers by value. A list never equals an object.
+func jsonEquals(a, b any) bool {
+	switch x := a.(type) {
+	case []any:
+		y, ok := b.([]any)
+		if !ok || len(x) != len(y) {
+			return false
+		}
+		for i := range x {
+			if !jsonEquals(x[i], y[i]) {
+				return false
+			}
+		}
+		return true
+	case map[string]any:
+		y, ok := b.(map[string]any)
+		if !ok || len(x) != len(y) {
+			return false
+		}
+		for key, value := range x {
+			other, ok := y[key]
+			if !ok || !jsonEquals(value, other) {
+				return false
+			}
+		}
+		return true
+	case nil:
+		return b == nil
+	case bool:
+		y, ok := b.(bool)
+		return ok && x == y
+	case string:
+		y, ok := b.(string)
+		return ok && x == y
+	}
+	an, aOk := NumberValue(a)
+	bn, bOk := NumberValue(b)
+	return aOk && bOk && an == bn
 }
 
 func jsTypeOf(v any) string {
