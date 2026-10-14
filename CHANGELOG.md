@@ -3,6 +3,12 @@
 
 ## Unreleased
 
+### 2026-10-14 — Latest stable dependencies (C14.8, C14.3-1)
+
+- `make dependency-review UPDATE=1` took the latest stable releases: vitest 5.0.4, @types/node 26.6.5, vue 3.5.44, postcss 8.5.30, @testing-library/user-event 14.6.8 and phpunit 13.4.2. React stays at 19.2.8 by its exception (C5.8-2-1), and the tools project of `packages/generator-svelte` keeps TypeScript 6.0.3 by a new exception of `config/dependency-policy.json`, the one that `config/toolchain.json` declares.
+- svelte is declared once, by `packages/generator-svelte`; its tools project installs it as the peer of its tools, which the scripts start with `npm exec --prefix tools`.
+- generator-core, form-binding and cli have no `test` script: `make test-cli`, `make test-form-binding`, `test:forms` and the verification commands of `contracts/features.json` run `run-tests.mjs vitest --cwd packages/<name>` from the root, since the run-tests of kit takes its root from the working directory.
+
 ### 2026-10-14 — Tool tests of tests/build on TypeScript 7 (C14.10)
 
 - `scripts/check-contract-manifest.mjs` reads the value exports of each entry with the program and checker of the TypeScript 7 API (`typescript/unstable/sync`), whose virtual file system hides node_modules and gives a `.svelte` component its declaration. `tests/build/public-packages.test.mjs` compiles its consumer fixtures with `tsc --noEmit` of TypeScript 7, whose exit status is the result: `public-types.mts` and `public-types.cts` with the Node.js resolution, `public-types-svelte.mts` with the bundler resolution of a Svelte project, and `module-only-require.cts`, which a CommonJS project cannot compile; `tsc --listFilesOnly` shows that the program reads only the declarations of dist, package.json gives the module format, and the declaration builds are checked with `tsc --showConfig` and a failing build.
