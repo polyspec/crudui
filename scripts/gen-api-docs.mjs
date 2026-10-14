@@ -4,7 +4,7 @@
  * command runs to its end without a time limit (scripts/run-command.mjs) and prints its elapsed
  * time.
  */
-import { cpSync, existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { basename, dirname, join, relative } from 'node:path';
 
@@ -55,7 +55,8 @@ async function genTypeScript() {
   for (const pkg of packages) {
     const pkgDir = join(ROOT, 'packages', pkg);
     const output = join(API_DIR, pkg);
-    const model = join(ROOT, 'var/api-model', pkg === 'validator-ts' ? 'crudui-validator' : `crudui-${pkg}`);
+    // API Extractor writes the doc model to var/api-model/<unscopedPackageName> (api-extractor.json of each package).
+    const model = join(ROOT, 'var/api-model', JSON.parse(readFileSync(join(pkgDir, 'package.json'), 'utf8')).name.split('/')[1]);
     cleanDirectory(output);
     rmSync(model, { recursive: true, force: true });
     await run(join(ROOT, 'node_modules/.bin/api-extractor'), ['run'], pkgDir);

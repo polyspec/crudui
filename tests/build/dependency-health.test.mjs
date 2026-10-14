@@ -50,7 +50,7 @@ function workspacePackageDirectories() {
   return manifest.workspaces.flatMap((workspace) => {
     assert.match(workspace, /\/\*$/, `unsupported workspace pattern: ${workspace}`);
     const parent = workspace.slice(0, -2);
-    const result = execute(git, ['ls-files', '--', `${parent}/*/package.json`]);
+    const result = execute(git, ['ls-files', '--', `:(glob)${parent}/*/package.json`]);
     assert.equal(result.status, 0, result.stderr);
     return result.stdout.trim().split('\n').filter(Boolean).map(path.dirname);
   });
