@@ -1,6 +1,6 @@
 # Execution checklist
 <!-- doc-id: docs-plans-execution-checklist -->
-<!-- source-sha256: 65e8c2664349923e93138d109eb944f7831bf6e19d5189ad24fe282279bd41a6 -->
+<!-- source-sha256: fbbdc20705479f700b210b63e377617f4887e0d1654f7f1c1dd68aad76db819e -->
 
 ## [Wave 1](waves.ko.md#wave-1) — 좁은 viewport를 위한 stylesheet와 stylesheet의 Tailwind 버전
 
@@ -300,6 +300,7 @@
 | C14.14 | Pages workflow가 문서 web을 build한다. `scripts/docs-web/build.mts`는 API Documenter의 API page를 그대로 받아 그 첫 heading을 level과 상관없이 제목으로 삼고, 손으로 쓴 page에는 level-one heading이 정확히 하나라는 규칙을 유지한다. 생성된 markdown은 다시 쓰지 않는다. Red: Pages run 38594695043의 docs-web이 `Documentation requires exactly one level-one heading: docs/api/crudui-form-binding/crudui-form-binding.bindform.md`로 실패했고, C14.5가 API page를 API Documenter로 바꾼 뒤로 red였다. | `make docs-web` |[o] |
 | C14.15 | `equalTo`, `notEqual`, `enddate`, `unique`의 rule parameter를 모든 언어에서 specification을 load할 때 spec 문장과 공유 vector로 검사한다. 그 뒤 TypeScript rule은 `String(ruleParam)` 대신 검사된 문자열을 읽는다. Red: `equalTo.ts`와 `enddate.ts`의 oxlint `no-base-to-string`. 문자열이 아닌 parameter가 rule에 닿았다. | 모든 언어의 공유 vector, `make lint-ts` |[o] |
 | C14.16 | C14.12의 oxlint finding이 드러낸 결함을, 각각 이전에 실패한 test와 함께 고친다. 배열이나 객체의 TypeScript `==`, `!=`, `in`, `connectForm`이 control에 쓰는 값, form comparison의 Svelte adapter의 dispose, 그 PHP 서버의 stop이다. | 각 결함의 test |[o] |
+| C14.17 | CI job이 toolchain-check 뒤까지 실행되며(C14.13) 닿는 검사가 통과한다. `test:forms`는 C14.3-1이 package script를 없앤 form-binding의 Vitest suite를 root에서 실행하고, PHP engine test는 build entry point `scripts/build-crudui-php-extension.mts`를, local-servers test는 TypeScript 이식(C14.7)의 import `@polyspec/kit/test-hooks`를 적는다. Red: CI run 38597830858: `@polyspec/crudui-form-binding`의 `npm error Missing script: "test"`, `The input did not match the regular expression /node scripts\/build-crudui-php-extension\.mjs/`, `../pipeline.browser.mjs uses setup and teardown`. | `make test-forms`, `make test-php-engine`, `make test-form-comparison` |[ ] |
 
 ## [Wave 15](waves.ko.md#wave-15) — 각 생태계의 표준 도구를 있는 그대로 사용하기
 
