@@ -9,3 +9,14 @@ publish = false
 polyspec-crudui-generator = { path = "../../../../packages/generator-rust" }
 serde = "1"
 serde_json = { version = "1", features = ["preserve_order"] }
+
+[lints]
+workspace = true
+
+[workspace]
+
+[workspace.lints.rust]
+unsafe_code = "deny"
+
+[workspace.lints.clippy]
+allow_attributes_without_reason = "deny"

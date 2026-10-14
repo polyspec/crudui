@@ -16,3 +16,14 @@ regex = "1"
 ryu-js = "1"
 num-bigint = "0.5"
 num-traits = "0.2"
+
+[lints]
+workspace = true
+
+[workspace]
+
+[workspace.lints.rust]
+unsafe_code = "deny"
+
+[workspace.lints.clippy]
+allow_attributes_without_reason = "deny"
