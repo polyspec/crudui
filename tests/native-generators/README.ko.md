@@ -1,6 +1,6 @@
 # 네이티브 생성기 적합성 검사
 <!-- doc-id: tests-native-generators-readme -->
-<!-- source-sha256: 2dc7dfbfec46e02d2c86a0c38adcbae99d90f02ae3a72d584c9eb770b4d0babc -->
+<!-- source-sha256: 3d98b3939cb227a8eaaa4794ddc33058e71aa6fe531d3b339207eab3520b5245 -->
 
 [English](README.md).
 
@@ -123,8 +123,8 @@ PHP의 `date.timezone`을 모두 설정하고 날짜/날짜시간/목록의 명�
 | 대상 | 프로그램 | 라이브러리 |
 | --- | --- | --- |
 | `javascript`, `html` | [`javascript.mjs`](javascript.mjs)(`--renderer html`은 HTML 렌더러 선택) | `@polyspec/crudui-generator-core`와 `@polyspec/crudui-generator-react` 또는 `@polyspec/crudui-generator-html` |
-| `php`, `php-native` | [`programs/php/generate.php`](programs/php/generate.php) | `packages/generator-php`의 Composer 오토로더로 불러온 `polyspec/crudui-generator`. 확장을 불러오면 확장의 클래스 |
-| `go` | [`programs/go`](programs/go/main.go)(자체 `go.mod`를 가진 모듈) | `packages/generator-go` |
+| `php`, `php-native` | [`programs/php/generate.php`](programs/php/generate.php) | `packages/generator/php`의 Composer 오토로더로 불러온 `polyspec/crudui-generator`. 확장을 불러오면 확장의 클래스 |
+| `go` | [`programs/go`](programs/go/main.go)(자체 `go.mod`를 가진 모듈) | `packages/generator/go` |
 | `rust` | [`programs/rust`](programs/rust/src/main.rs)(크레이트 `polyspec-crudui-native-generator`) | `polyspec-crudui-generator` |
 
 검사기는 Go 프로그램을 빌드 디렉터리에 빌드하고, Rust 프로그램은 `programs/rust`에서

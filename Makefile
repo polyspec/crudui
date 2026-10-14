@@ -109,11 +109,11 @@ install: install-packages install-tools install-composer install-rust install-cr
 # strict-allow-scripts, so an install script that allowScripts of package.json does not approve fails the install.
 install-packages: install-ordered-json install-svelte-tools
 
-# The tools of packages/generator-svelte that need the TypeScript 6 API (svelte-check, @sveltejs/package and the Svelte lint)
+# The tools of packages/svelte that need the TypeScript 6 API (svelte-check, @sveltejs/package and the Svelte lint)
 # are a project of their own outside the npm workspaces, so that no package that npm hoists to the root reaches the
 # TypeScript 7 of the root (C14.4).
-install-svelte-tools: ## Install the tools project of packages/generator-svelte from its package-lock.json; ONLINE
-	$(ONLINE) $(NPM) ci --prefix packages/generator-svelte/tools --no-audit --no-fund
+install-svelte-tools: ## Install the tools project of packages/svelte from its package-lock.json; ONLINE
+	$(ONLINE) $(NPM) ci --prefix packages/svelte/tools --no-audit --no-fund
 
 # The development root composer.json, never published, resolves the Composer packages of packages/: its path
 # repository installs polyspec/crudui-validator as a copy into vendor/, and its autoload reads the generator sources.
@@ -155,7 +155,7 @@ test-dependencies: ## The dependency graph, the dependency policy and its record
 build: ## Build the JavaScript packages
 	$(NPM) run build
 # make lint-ts of kit lints every TypeScript and JavaScript source with oxlint, knip and API Extractor; oxlint has no Svelte
-# rules, so the components of packages/generator-svelte are linted by the ESLint of that workspace. Both run after a failure.
+# rules, so the components of packages/svelte are linted by the ESLint of that workspace. Both run after a failure.
 lint: ## Lint the repository: make lint-ts of kit and the Svelte components
 	@status=0; \
 	node $(KIT)/lint-ts.mjs || status=1; \
@@ -166,15 +166,15 @@ typecheck: ## Type-check every TypeScript package
 test-validator-js: ## The TypeScript validator suite
 	$(NPM) test -w @polyspec/crudui-validator
 test-validator-php: ## The PHP validator suite
-	composer --working-dir=packages/validator-php test
+	composer --working-dir=packages/validator/php test
 test-validator-go: ## The Go validator suite
-	node tests/conformance/run-suite.mjs go --cwd packages/validator-go -- ./...
+	node tests/conformance/run-suite.mjs go --cwd packages/validator/go -- ./...
 test-validator-rust: cargo-downloads-check ## The Rust validator suite
-	node tests/conformance/run-suite.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml
+	node tests/conformance/run-suite.mjs cargo -- --locked --manifest-path packages/validator/rust/Cargo.toml
 test-validator-python: ## The Python validator suite
-	python3 tests/conformance/runner.py packages/validator-python/tests
+	python3 tests/conformance/runner.py packages/validator/python/tests
 test-generator-python: ## The Python generator suite
-	python3 tests/conformance/runner.py packages/generator-python/tests
+	python3 tests/conformance/runner.py packages/generator/python/tests
 test-cross-check: cargo-downloads-check ## The cross-check console gateway conformance
 	$(NPM) test --prefix examples/cross-check-console/server
 manifest-test: cargo-downloads-check ## The verification commands of the feature contracts
@@ -273,7 +273,7 @@ docs-check-libs: cargo-downloads-check ## 라이브러리 packages/* doc-coverag
 docs-clean: ## 생성물 전부 제거
 	rm -rf docs/api docs/public/api
 	rm -rf docs/.web
-	rm -rf packages/validator-rust/target/doc
+	rm -rf packages/validator/rust/target/doc
 	rm -rf var/tools/phpdocumentor/cache
 	@echo "[make] docs-clean: removed generated docs/api, dist, rustdoc, phpdoc cache"
 
@@ -345,8 +345,8 @@ test-php-engine:
 test-native-generators: cargo-downloads-check
 	node scripts/require-current-build.mjs
 	@status=0; \
-	node $(KIT)/run-tests.mjs go --cwd packages/generator-go -- -race ./... || status=1; \
-	node $(KIT)/run-tests.mjs cargo -- --locked --manifest-path packages/generator-rust/Cargo.toml || status=1; \
+	node $(KIT)/run-tests.mjs go --cwd packages/generator/go -- -race ./... || status=1; \
+	node $(KIT)/run-tests.mjs cargo -- --locked --manifest-path packages/generator/rust/Cargo.toml || status=1; \
 	node $(KIT)/run-tests.mjs node -- tests/native-generators/protocol.test.mjs || status=1; \
 	node $(KIT)/run-tests.mjs node --timeout 60 -- tests/widget-scripts.test.mjs || status=1; \
 	node tests/native-generators/run.mjs --target javascript,html,go,rust,python --report "$(NATIVE_REPORT)" || status=1; \
@@ -358,7 +358,7 @@ test-php-api: build-php-extension
 	node $(KIT)/holder-lock.mjs run "$(CURDIR)/var/locks/composer-vendor.lock" -- composer reinstall polyspec/crudui-validator --no-interaction
 	@status=0; \
 	node tests/conformance/run-suite.mjs node -- tests/native-generators/php-extension-builder.test.mjs packages/php-ext/tests/api.test.mjs || status=1; \
-	COMPOSER_VENDOR_DIR=../../vendor node $(KIT)/run-tests.mjs phpunit --cwd packages/generator-php || status=1; \
+	COMPOSER_VENDOR_DIR=../../../vendor node $(KIT)/run-tests.mjs phpunit --cwd packages/generator/php || status=1; \
 	node tests/native-generators/run.mjs --extension "$(PHP_EXTENSION)" --target php,php-native --report "$(PHP_NATIVE_REPORT)" || status=1; \
 	exit $$status
 
@@ -371,10 +371,10 @@ test-native:
 
 test-validators: cargo-downloads-check
 	@status=0; \
-	node tests/conformance/run-suite.mjs vitest --cwd packages/validator-ts || status=1; \
-	COMPOSER_VENDOR_DIR=../../vendor node tests/conformance/run-suite.mjs phpunit --cwd packages/validator-php || status=1; \
-	node tests/conformance/run-suite.mjs go --cwd packages/validator-go -- ./... || status=1; \
-	node tests/conformance/run-suite.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml || status=1; \
+	node tests/conformance/run-suite.mjs vitest --cwd packages/validator/ts || status=1; \
+	COMPOSER_VENDOR_DIR=../../../vendor node tests/conformance/run-suite.mjs phpunit --cwd packages/validator/php || status=1; \
+	node tests/conformance/run-suite.mjs go --cwd packages/validator/go -- ./... || status=1; \
+	node tests/conformance/run-suite.mjs cargo -- --locked --manifest-path packages/validator/rust/Cargo.toml || status=1; \
 	exit $$status
 
 # The browser validation binding (docs/spec/form-runtime.md, "Browser validation"): data

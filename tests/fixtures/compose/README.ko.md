@@ -1,6 +1,6 @@
 # 합성 고정 데이터
 <!-- doc-id: tests-fixtures-compose-readme -->
-<!-- source-sha256: 523a511d4d92b80645f751d3877483aff6e6610fdaea671665a26a32eeb81b7b -->
+<!-- source-sha256: 44a0425ae604d9d1caa13ed3af42bc4b8de0682782950872021ea89d75c78366 -->
 
 [English](README.md).
 
@@ -22,10 +22,10 @@
 `$ref`와 `$patch`가 남지 않았는지, 결과를 다시 합성해도 그대로인지도 확인합니다. 오류 사례는 기록된
 `code`의 합성 로드 오류를 요구하며 메시지와 위치는 비교하지 않습니다.
 
-[TypeScript](../../../packages/validator-ts/src/compose.conformance.test.ts),
-[PHP](../../../packages/validator-php/tests/Compose/ComposeConformanceTest.php),
-[Go](../../../packages/validator-go/validator/compose/conformance_test.go),
-[Rust](../../../packages/validator-rust/tests/compose_conformance.rs)의 합성 적합성 검사와
+[TypeScript](../../../packages/validator/ts/src/compose.conformance.test.ts),
+[PHP](../../../packages/validator/php/tests/Compose/ComposeConformanceTest.php),
+[Go](../../../packages/validator/go/validator/compose/conformance_test.go),
+[Rust](../../../packages/validator/rust/tests/compose_conformance.rs)의 합성 적합성 검사와
 [PHP 확장 엔진 검사](../../../packages/php-ext/tests/engine.test.mjs)가 사용합니다.
 
 ## 재생성

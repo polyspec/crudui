@@ -11,7 +11,7 @@ import { compileForm } from '@polyspec/crudui-generator-core';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
-import { renderFields } from '../../../packages/generator-react/src/internal/renderFields';
+import { renderFields } from '../../../packages/react/src/internal/renderFields';
 import { normalizeHtml } from './normalize.mjs';
 import { WRITTEN_CASES } from './written-cases';
 

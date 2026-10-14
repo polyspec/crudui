@@ -1,4 +1,4 @@
-import { renderFields } from '../../../packages/generator-react/src/internal/renderFields';
+import { renderFields } from '../../../packages/react/src/internal/renderFields';
 import type { BindFormOptions, CompileFormOptions } from '@polyspec/crudui-generator-core';
 import { ComposeLoadError, compileForm } from '@polyspec/crudui-generator-core';
 /**

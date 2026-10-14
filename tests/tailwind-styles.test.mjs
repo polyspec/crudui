@@ -11,7 +11,7 @@ import { engineDrivers, engines } from './browser-engines.mjs';
 import { setup, teardown } from '@polyspec/kit/test-hooks';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
-const styles = `${root}packages/generator-core/styles`;
+const styles = `${root}packages/generator/ts/styles`;
 const corpora = ['form-render', 'form-complete', 'list-render', 'detail-render'];
 const cases = corpora.flatMap(corpus => JSON.parse(readFileSync(`${root}tests/fixtures/${corpus}/cases.json`, 'utf8'))
   .map(item => ({ name: `${corpus}: ${item.name}`, html: item.expected_html })));

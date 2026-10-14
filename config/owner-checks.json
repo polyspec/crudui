@@ -80,7 +80,7 @@
     },
     {
       "paths": [
-        "packages/validator-ts/**"
+        "packages/validator/ts/**"
       ],
       "workspaces": [
         "@polyspec/crudui-validator"
@@ -94,7 +94,7 @@
     },
     {
       "paths": [
-        "packages/validator-php/**"
+        "packages/validator/php/**"
       ],
       "targets": [
         "test-validators",
@@ -127,7 +127,7 @@
     },
     {
       "paths": [
-        "packages/validator-{go,rust}/**"
+        "packages/validator/{go,rust}/**"
       ],
       "targets": [
         "test-validators"
@@ -138,7 +138,7 @@
     },
     {
       "paths": [
-        "packages/validator-python/**"
+        "packages/validator/python/**"
       ],
       "targets": [
         "test-validator-python"
@@ -149,7 +149,7 @@
     },
     {
       "paths": [
-        "packages/generator-core/**"
+        "packages/generator/ts/**"
       ],
       "scripts": [
         "test:forms"
@@ -157,7 +157,7 @@
     },
     {
       "paths": [
-        "packages/generator-html/**"
+        "packages/html/**"
       ],
       "workspaces": [
         "@polyspec/crudui-generator-html"
@@ -168,7 +168,7 @@
     },
     {
       "paths": [
-        "packages/generator-react/**"
+        "packages/react/**"
       ],
       "workspaces": [
         "@polyspec/crudui-generator-react"
@@ -179,7 +179,7 @@
     },
     {
       "paths": [
-        "packages/generator-vue/**"
+        "packages/vue/**"
       ],
       "workspaces": [
         "@polyspec/crudui-generator-vue"
@@ -190,7 +190,7 @@
     },
     {
       "paths": [
-        "packages/generator-svelte/**"
+        "packages/svelte/**"
       ],
       "workspaces": [
         "@polyspec/crudui-generator-svelte"
@@ -220,7 +220,7 @@
     },
     {
       "paths": [
-        "packages/generator-{php,go,rust}/**",
+        "packages/generator/{php,go,rust}/**",
         "packages/php-ext/**",
         "tests/native-generators/**"
       ],
@@ -230,7 +230,7 @@
     },
     {
       "paths": [
-        "packages/generator-python/**"
+        "packages/generator/python/**"
       ],
       "targets": [
         "test-generator-python"
@@ -380,7 +380,7 @@
     {
       "paths": [
         "scripts/test-commands.mjs",
-        "packages/generator-svelte/tools/eslint.config.js"
+        "packages/svelte/tools/eslint.config.js"
       ],
       "targets": [
         "lint"
@@ -487,8 +487,8 @@
     },
     {
       "paths": [
-        "packages/*/api-extractor.json",
-        "packages/*/etc/*.api.md"
+        "packages/{*,*/*}/api-extractor.json",
+        "packages/{*,*/*}/etc/*.api.md"
       ],
       "targets": [
         "lint"
@@ -525,8 +525,8 @@
       "paths": [
         "config/dependency-policy.json",
         "config/dependency-review.json",
-        "packages/*/package.json",
-        "packages/{validator,generator}-php/composer.json",
+        "packages/{*,*/*}/package.json",
+        "packages/{validator,generator}/php/composer.json",
         "composer.{json,lock}"
       ],
       "scripts": [
@@ -701,7 +701,7 @@
     {
       "check": "make test-validators",
       "paths": [
-        "packages/validator-{php,go,rust}/**",
+        "packages/validator/{php,go,rust}/**",
         "tests/fixtures/**",
         "contracts/schema/crudui.schema.json",
         "contracts/unicode-properties.json"
@@ -710,9 +710,9 @@
     {
       "check": "make test-native",
       "paths": [
-        "packages/generator-{php,go,rust}/**",
+        "packages/generator/{php,go,rust}/**",
         "packages/php-ext/**",
-        "packages/validator-php/**",
+        "packages/validator/php/**",
         "tests/native-generators/**",
         "tests/fixtures/**"
       ]
@@ -720,9 +720,9 @@
     {
       "check": "npm run test:forms",
       "paths": [
-        "packages/generator-{core,html,react,vue,svelte}/**",
+        "packages/{generator/ts,html,react,vue,svelte}/**",
         "packages/form-binding/**",
-        "packages/validator-ts/**",
+        "packages/validator/ts/**",
         "tests/fixtures/**",
         "tests/*.test.mjs",
         "tests/browser-engines.*",
@@ -745,7 +745,7 @@
       "check": "npm test --prefix examples/cross-check-console/server",
       "paths": [
         "examples/cross-check-console/**",
-        "packages/validator-{ts,php,go,rust}/**"
+        "packages/validator/{ts,php,go,rust}/**"
       ]
     },
     {
@@ -760,8 +760,8 @@
       "paths": [
         "package.json",
         "package-lock.json",
-        "packages/*/package.json",
-        "packages/{validator,generator}-php/composer.json",
+        "packages/{*,*/*}/package.json",
+        "packages/{validator,generator}/php/composer.json",
         "composer.{json,lock}",
         "config/dependency-{policy,review}.json"
       ]

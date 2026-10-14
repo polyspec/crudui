@@ -1,6 +1,6 @@
 # 네이티브 생성기 검사
 <!-- doc-id: docs-operations-native-generators -->
-<!-- source-sha256: a59b1c1d845c6581069cc3a7c29d78fd2f8c423ef3bc8a7bce8e7332918e8616 -->
+<!-- source-sha256: b05e5bdafc4fb8f8a1110ad053fd9a6d9588bb58b5a20d0fba7eca0b338e6550 -->
 
 [English](native-generators.md).
 
@@ -53,7 +53,7 @@ HTML과 각 거부의 코드·메시지·위치 전체를 비교합니다. 실�
 기본 보고서는 Git 디렉터리의 `native-generators/report.json`(JavaScript, HTML, Go, Rust 대상)과
 `native-generators/report-php.json`(PHP, 네이티브 PHP 대상)이며 `git rev-parse --git-path`로
 결정하므로 worktree에서도 동작합니다. `NATIVE_REPORT`와 `PHP_NATIVE_REPORT`로 다른 보고서 경로를 지정합니다.
-`make test-php-api`는 어떤 PHP 검사보다 먼저 `packages/generator-php`의 검증기 복사본을 다시 설치하므로
+`make test-php-api`는 어떤 PHP 검사보다 먼저 `packages/generator/php`의 검증기 복사본을 다시 설치하므로
 PHP 검사가 소스보다 오래된 복사본을 읽지 않습니다. 통과한 실행은 임시 빌드 디렉터리를 삭제합니다. 실패한
 실행은 디렉터리를 남기고 경로를 출력하며 보고서의 `buildDirectory`에 기록합니다. [검사 절차](../../tests/native-generators/README.ko.md)는
 명시적인 확장 경로를 사용하는 직접 실행과 비교 프로토콜을 설명합니다. 실행 파일이나

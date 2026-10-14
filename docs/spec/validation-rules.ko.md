@@ -1,6 +1,6 @@
 # 검증 규칙
 <!-- doc-id: docs-spec-validation-rules -->
-<!-- source-sha256: 2ac8fd244edea143afeab3fdafb69a5454c7de0317891188d7b95c8eb37936ff -->
+<!-- source-sha256: 1dc0faa97e2792c60c3f10f639428d6b7be583e146923e5ac544c538acea1106 -->
 
 [English](validation-rules.md).
 
@@ -29,7 +29,7 @@
 | `unique` | 고유성 검사이며 선택적으로 참조 또는 필터 매개변수를 사용합니다. |
 | `accept` | 파일 확장자 또는 MIME 타입 매개변수입니다. |
 
-[TypeScript 등록부](../../packages/validator-ts/src/rules/index.ts)는 기본 규칙 이름을
+[TypeScript 등록부](../../packages/validator/ts/src/rules/index.ts)는 기본 규칙 이름을
 정의합니다. `crudui describe`는 이 등록부에서 목록을 생성합니다.
 [CLI 절차](../operations/cli.ko.md)를 참고합니다. 모든 런타임은 같은 기본 규칙을 가지며 다른 규칙을
 등록하는 방법은 없습니다. 이 이름이 아닌 `validate` 또는 `messages` 키는 `UNKNOWN_RULE`로 로드에

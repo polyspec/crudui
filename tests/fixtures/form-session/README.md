@@ -45,11 +45,11 @@ through `setData`: the state from the [form inspector](../../form-inspector/form
 without serialized HTML, the JSON of `getData()` and an unchanged `template`. It then changes and
 restores a value in both forms and requires equal states and the same checkbox elements.
 
-The [React](../../../packages/generator-react/src/__tests__/Form.test.tsx),
-[Vue](../../../packages/generator-vue/test/form-session.test.mjs) and
-[Svelte](../../../packages/generator-svelte/test/form-session.client.mjs) form tests and the
-[HTML renderer session test](../../../packages/generator-html/src/form-session.test.ts) use all four
-modules. The [core form test](../../../packages/generator-core/src/form.test.ts) uses the scenario
+The [React](../../../packages/react/src/__tests__/Form.test.tsx),
+[Vue](../../../packages/vue/test/form-session.test.mjs) and
+[Svelte](../../../packages/svelte/test/form-session.client.mjs) form tests and the
+[HTML renderer session test](../../../packages/html/src/form-session.test.ts) use all four
+modules. The [core form test](../../../packages/generator/ts/src/form.test.ts) uses the scenario
 `spec`, `data`, row keys and `storesPath`.
 
 ## Regeneration

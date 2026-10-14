@@ -32,13 +32,15 @@ test('docs-verify-idempotent compares the two runs in a directory of its own run
   assert.match(lines, /trap 'rm -rf "\$\$runs"' EXIT/);
 });
 
-const builtPackages = ['validator-ts', 'generator-core', 'generator-html', 'generator-react', 'generator-vue',
-  'generator-svelte', 'form-binding'];
+const builtPackages = ['validator/ts', 'generator/ts', 'html', 'react', 'vue',
+  'svelte', 'form-binding'];
 
 test('every package build runs under the lock of its dist directory', () => {
   for (const folder of builtPackages) {
     const build = JSON.parse(read(`packages/${folder}/package.json`)).scripts.build;
-    assert.match(build, /^node \.\.\/\.\.\/scripts\/package-dist\.mjs build '[^']+'$/, folder);
+    // The script of the root, named from the package folder ('../../' or, for a port of a component, '../../../').
+    assert.match(build, /^node (?:\.\.\/){2,3}scripts\/package-dist\.mjs build '[^']+'$/, folder);
+    assert.ok(build.startsWith(`node ${'../'.repeat(folder.split('/').length + 1)}scripts/package-dist.mjs`), folder);
   }
 });
 

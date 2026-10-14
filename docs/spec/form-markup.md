@@ -479,7 +479,7 @@ A page styled with Tailwind CSS 4 uses
 `@polyspec/crudui-generator-core/crudui.tailwind.css` in place of `crudui.css`, and imports it after
 `tailwindcss`. The file holds the rules of `crudui.css` unchanged inside the cascade layer
 `components`, so a utility class of the page, which lies in the later layer `utilities`,
-overrides a CRUDUI rule. The markup is the same for both files. `packages/generator-core/scripts/write-tailwind-styles.mjs`
+overrides a CRUDUI rule. The markup is the same for both files. `packages/generator/ts/scripts/write-tailwind-styles.mjs`
 writes the file from `crudui.css`, and its `--check` mode fails when the committed file differs,
 so the two files never hold different rules. A page themes the blocks with the
 `--crudui-*` properties, as with `crudui.css`, for example with the colors of its Tailwind theme:

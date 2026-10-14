@@ -113,10 +113,10 @@ test('native job caches the generator packages and the programs that run them', 
   const workflow = await readFile(path.join(repository, '.github/workflows/ci.yml'), 'utf8');
   const job = workflowJob(workflow, 'native-generators');
   // The Go module cache is keyed on the go.mod files of the generator and its programs (hashFiles of actions/cache).
-  for (const entry of ['packages/generator-go/go.mod', 'tests/native-generators/programs/go/go.mod']) {
+  for (const entry of ['packages/generator/go/go.mod', 'tests/native-generators/programs/go/go.mod']) {
     assert.ok(job.includes(`'${entry}'`), entry);
   }
-  for (const entry of ['packages/generator-rust', 'tests/native-generators/programs/rust']) {
+  for (const entry of ['packages/generator/rust', 'tests/native-generators/programs/rust']) {
     assert.match(job, new RegExp(`^\\s+${entry.replaceAll('.', '\\.')}$`, 'm'), entry);
   }
 });

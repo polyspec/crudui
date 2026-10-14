@@ -14,20 +14,20 @@
     },
     "autoload": {
         "psr-4": {
-            "Polyspec\\Crudui\\Generator\\": "packages/generator-php/src/Internal/",
-            "Polyspec\\Crudui\\": "packages/generator-php/src/"
+            "Polyspec\\Crudui\\Generator\\": "packages/generator/php/src/Internal/",
+            "Polyspec\\Crudui\\": "packages/generator/php/src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Polyspec\\Crudui\\Generator\\Tests\\": "packages/generator-php/tests/",
-            "Polyspec\\Crudui\\Validator\\Tests\\": "packages/validator-php/tests/"
+            "Polyspec\\Crudui\\Generator\\Tests\\": "packages/generator/php/tests/",
+            "Polyspec\\Crudui\\Validator\\Tests\\": "packages/validator/php/tests/"
         }
     },
     "repositories": [
         {
             "type": "path",
-            "url": "packages/validator-php",
+            "url": "packages/validator/php",
             "options": {
                 "symlink": false
             }

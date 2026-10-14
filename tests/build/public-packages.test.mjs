@@ -16,14 +16,14 @@ const load = (folder) => {
   const manifest = JSON.parse(readFileSync(resolve(directory, 'package.json'), 'utf8'));
   return { directory, manifest };
 };
-const packages = ['validator-ts', 'generator-core', 'generator-html', 'generator-react'].map(load);
+const packages = ['validator/ts', 'generator/ts', 'html', 'react'].map(load);
 // Packages that publish only an ES module: the browser validation binding runs only in a browser
 // (docs/spec/form-runtime.md#browser-validation).
 const moduleOnlyPackages = ['form-binding'].map(load);
 // ES module packages whose declarations TypeScript resolves through the top-level types condition:
 // generator-vue loads through its import and require exports, and generator-svelte through the
 // svelte export of the Svelte toolchain.
-const moduleDeclarationPackages = ['generator-vue', 'generator-svelte'].map(load);
+const moduleDeclarationPackages = ['vue', 'svelte'].map(load);
 const contract = JSON.parse(readFileSync(resolve(root, 'contracts/features.json'), 'utf8'));
 
 test('ES module Vitest configurations declare their module format', () => {
@@ -232,7 +232,7 @@ test('generator-core exposes the only form stylesheet through the public crudui.
 
 
 // The published packages whose declarations TypeScript builds from tsconfig.build.json.
-const declarationPackages = ['validator-ts', 'generator-core', 'generator-html', 'generator-react', 'generator-vue', 'form-binding'];
+const declarationPackages = ['validator/ts', 'generator/ts', 'html', 'react', 'vue', 'form-binding'];
 
 test('the declaration build check covers every published package with a declaration build', () => {
   const built = contract.packages
@@ -254,8 +254,9 @@ test('declaration builds emit no files when a public type is invalid', () => {
       const { compilerOptions } = JSON.parse(shown.stdout);
       assert.equal(compilerOptions.noEmitOnError, true);
       assert.equal(compilerOptions.emitDeclarationOnly, true);
-      const output = resolve(temporary, folder);
-      const config = resolve(temporary, `${folder}.tsconfig.json`);
+      const name = folder.replaceAll('/', '-');
+      const output = resolve(temporary, name);
+      const config = resolve(temporary, `${name}.tsconfig.json`);
       writeFileSync(config, JSON.stringify({ extends: filename, compilerOptions: { rootDir: temporary, outDir: output }, files: [source], include: [] }));
       const run = spawnSync(tsc, ['--project', config, '--pretty', 'false'], { cwd: directory, encoding: 'utf8' });
       assert.notEqual(run.status, 0);

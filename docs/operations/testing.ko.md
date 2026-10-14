@@ -1,6 +1,6 @@
 # 테스트 실행
 <!-- doc-id: docs-operations-testing -->
-<!-- source-sha256: 7fdad39ea651d4a95e5a7de6cf9b8fee3cac3b32637d670fbb5753f623d2fe5e -->
+<!-- source-sha256: ed9ba5d9c26f5abacdc44fb575fcad8abf258eb240ab6832fd6f3ac248467c8d -->
 
 [English](testing.md).
 
@@ -138,9 +138,9 @@ network와 이력을 읽지 않습니다. 그래서 문서나 checklist 규칙�
 composer install
 npm run build
 npm test --workspace @polyspec/crudui-validator
-composer --working-dir=packages/validator-php test
-node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/validator-go -- ./...
-node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml
+composer --working-dir=packages/validator/php test
+node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/validator/go -- ./...
+node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/validator/rust/Cargo.toml
 npm test --workspace @polyspec/crudui-cli
 npm run test:forms
 npm run test:packages
@@ -151,16 +151,16 @@ make docs-check
 [사례 계약](../spec/test-fixtures.ko.md)의 공통 사례를 실행합니다. 구현 간 일치뿐
 아니라 기대 검증 결과 또는 전체 실패 기록을 비교합니다. 패키지 검사는 export 파일,
 선언·설치 컴파일·프로덕션 렌더링을 확인합니다. PHP 검사는 개발 root의 `composer install`이 설치하는 root `vendor/`의 PHPUnit을
-실행합니다. Composer script와 make 대상이 `COMPOSER_VENDOR_DIR=../../vendor`를 설정하고, `node_modules/@polyspec/kit/dist/run-tests.mjs phpunit`은 `--cwd`를
+실행합니다. Composer script와 make 대상이 `COMPOSER_VENDOR_DIR=../../../vendor`를 설정하고, `node_modules/@polyspec/kit/dist/run-tests.mjs phpunit`은 `--cwd`를
 기준으로 그 값에서 vendor directory를 읽습니다.
 
 ## 린트
 
-`make lint`는 kit의 `make lint-ts`와 `packages/generator-svelte`의 Svelte lint를 실행합니다. CI의 빌드·린트·타입 작업과
+`make lint`는 kit의 `make lint-ts`와 `packages/svelte`의 Svelte lint를 실행합니다. CI의 빌드·린트·타입 작업과
 `make ci`가 이를 호출하고, `make check`는 `lint-ts`를 실행합니다. `make lint-ts`는 copy된 `.oxlintrc.json`으로 Git이 무시하지 않는
 모든 file에 oxlint를(oxlint-tsgolint로 type-aware, warning 거부), copy된 `knip.json`으로 root에서 knip을, `api-extractor.json`을
 가진 각 package에서 API Extractor를 실행합니다. oxlint에는 Svelte 규칙이 없으므로 `npm run lint -w @polyspec/crudui-generator-svelte`가
-그 package의 component에 eslint-plugin-svelte를 쓰는 ESLint를 실행하며(`packages/generator-svelte/eslint.config.js`), 그 TypeScript
+그 package의 component에 eslint-plugin-svelte를 쓰는 ESLint를 실행하며(`packages/svelte/eslint.config.js`), 그 TypeScript
 script는 typescript-eslint가 그 package의 TypeScript 6으로 parse합니다. 규칙은 적용되지 않는 줄에서만, 규칙 이름과 이유를 적은
 비활성화 주석으로 끕니다.
 

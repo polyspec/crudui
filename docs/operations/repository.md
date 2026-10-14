@@ -40,7 +40,7 @@ applies them.
 ## Releases
 
 A release is a tag of a commit of `main`: `vX.Y.Z` for the repository, or `<directory>/vX.Y.Z` for the Go module of
-that directory (`packages/generator-go` and `packages/validator-go`), whose module path is
+that directory (`packages/generator/go` and `packages/validator/go`), whose module path is
 `github.com/polyspec/crudui/<directory>` (`tests/build/package-names.test.mjs`). Every commit of `main` passed the full
 suite of CI before the tag, so the release runs no test again. Only the maintainer creates and pushes a tag. The
 packages, the manifests that a tag covers and the Go modules are declared in `config/release.json`
@@ -58,9 +58,9 @@ packages, the manifests that a tag covers and the Go modules are declared in `co
 
    ```sh
    git tag vX.Y.Z <commit of main>
-   git tag packages/generator-go/vX.Y.Z <commit of main>
-   git tag packages/validator-go/vX.Y.Z <commit of main>
-   git push origin vX.Y.Z packages/generator-go/vX.Y.Z packages/validator-go/vX.Y.Z
+   git tag packages/generator/go/vX.Y.Z <commit of main>
+   git tag packages/validator/go/vX.Y.Z <commit of main>
+   git push origin vX.Y.Z packages/generator/go/vX.Y.Z packages/validator/go/vX.Y.Z
    ```
 
    The three tags are pushed together (`make release-go-tags TAG=vX.Y.Z` checks them): `make release-verify` of `vX.Y.Z`
@@ -132,8 +132,8 @@ Development resolution is in the two root manifests, which are never published:
   `@polyspec/ordered-json` is the root dependency `file:.form-comparison/sources/ordered-json/js`, the checkout of the
   tag that `orderedJsonVersion` of `examples/form-comparison/src/ordered-json-source.mjs` records;
 - the root `composer.json` (`polyspec/crudui-workspace`, type `project`) has a `path` repository of
-  `packages/validator-php` with `symlink: false` and requires `polyspec/crudui-validator` at its exact version; its
-  `autoload` reads the generator sources of `packages/generator-php/src` and its `autoload-dev` the tests of both PHP
+  `packages/validator/php` with `symlink: false` and requires `polyspec/crudui-validator` at its exact version; its
+  `autoload` reads the generator sources of `packages/generator/php/src` and its `autoload-dev` the tests of both PHP
   packages. `composer.lock` beside it records the resolution, and `make install-composer` installs `vendor/` at the
   root, which PHPUnit, the PHP checks and the PHP servers load. The validator in `vendor/` is a copy, which
   `make test-php-api` and the comparison servers reinstall from source under the checkout lock

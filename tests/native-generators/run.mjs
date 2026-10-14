@@ -115,7 +115,7 @@ async function inputManifest() {
   for (const file of checkedFiles(ROOT)) {
     if (sources.test(file) && (sourceFile.test(file) || path.basename(file) === 'Makefile')) entries[file] = digest(await readFile(path.join(ROOT, file)));
   }
-  for (const directory of ['packages/generator-core/dist', 'packages/generator-react/dist', 'packages/validator-ts/dist']) await walk(directory);
+  for (const directory of ['packages/generator/ts/dist', 'packages/react/dist', 'packages/validator/ts/dist']) await walk(directory);
   for (const file of ['package.json', 'package-lock.json']) entries[file] = digest(await readFile(path.join(ROOT, file)));
   if (extension) {
     try { entries[extension] = digest(await readFile(extension)); }

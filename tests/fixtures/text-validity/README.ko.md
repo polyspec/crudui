@@ -1,6 +1,6 @@
 # 입력 텍스트 픽스처
 <!-- doc-id: tests-fixtures-text-validity-readme -->
-<!-- source-sha256: 1c573b7d7cde488835b08da4e4714d404dc63ec304b9e0fa7eb700f9e4e023e6 -->
+<!-- source-sha256: 282dedd96d723a0355b6ae3678f12f78b9bc49f32a9b4b181767f14e2e343902 -->
 
 [English](README.md).
 
@@ -50,17 +50,17 @@ TypeScript, PHP, Go, PHP 확장 테스트가 실행합니다. Rust 값은 노드
 
 ## 사례를 읽는 테스트
 
-검증 연산은 [TypeScript](../../../packages/validator-ts/src/text/text-validity.conformance.test.ts),
-[PHP](../../../packages/validator-php/tests/Validate/TextValidityConformanceTest.php),
-[Go](../../../packages/validator-go/validator/validate/text_conformance_test.go),
-[Rust](../../../packages/validator-rust/tests/text_validity_conformance.rs) 테스트,
+검증 연산은 [TypeScript](../../../packages/validator/ts/src/text/text-validity.conformance.test.ts),
+[PHP](../../../packages/validator/php/tests/Validate/TextValidityConformanceTest.php),
+[Go](../../../packages/validator/go/validator/validate/text_conformance_test.go),
+[Rust](../../../packages/validator/rust/tests/text_validity_conformance.rs) 테스트,
 [API 테스트](../../../packages/php-ext/tests/api.test.mjs)가 실행하는
 [PHP 확장 러너](../../../packages/php-ext/tests/validate.php), 그리고 모든 케이스를 다섯 검증
 프로세스에 보내는 교차 검증 콘솔
 [검증 프로세스 테스트](../../../examples/cross-check-console/server/validator-processes.test.mjs)가
 실행합니다.
 
-생성 연산은 [generator core 테스트](../../../packages/generator-core/src/input-text.test.ts)가
+생성 연산은 [generator core 테스트](../../../packages/generator/ts/src/input-text.test.ts)가
 프로세스 안에서 실행하고, [네이티브 생성기 스위트](../../native-generators/README.ko.md)가 모든
 프로그램으로 실행하며 JavaScript, PHP, Go, Rust, PHP 확장 런타임의 증거를 기록합니다.
 

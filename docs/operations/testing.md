@@ -168,9 +168,9 @@ The individual commands are:
 composer install
 npm run build
 npm test --workspace @polyspec/crudui-validator
-composer --working-dir=packages/validator-php test
-node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/validator-go -- ./...
-node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/validator-rust/Cargo.toml
+composer --working-dir=packages/validator/php test
+node node_modules/@polyspec/kit/dist/run-tests.mjs go --cwd packages/validator/go -- ./...
+node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-path packages/validator/rust/Cargo.toml
 npm test --workspace @polyspec/crudui-cli
 npm run test:forms
 npm run test:packages
@@ -180,19 +180,19 @@ make docs-check
 Validator package suites run the shared fixtures described in the
 [fixture contract](../spec/test-fixtures.md). The PHP suites run the PHPUnit of the root `vendor/`, which
 `composer install` of the development root installs: the Composer scripts and the make targets set
-`COMPOSER_VENDOR_DIR=../../vendor`, and `node_modules/@polyspec/kit/dist/run-tests.mjs phpunit` reads the vendor directory from it relative to `--cwd`.
+`COMPOSER_VENDOR_DIR=../../../vendor`, and `node_modules/@polyspec/kit/dist/run-tests.mjs phpunit` reads the vendor directory from it relative to `--cwd`.
 Compare the expected validation result or complete failure record, not only
 agreement between implementations. Package checks verify exported files, declarations,
 install compilation and production rendering.
 
 ## Lint
 
-`make lint` runs `make lint-ts` of kit and the Svelte lint of `packages/generator-svelte`; CI's build, lint and types
+`make lint` runs `make lint-ts` of kit and the Svelte lint of `packages/svelte`; CI's build, lint and types
 job and `make ci` call it, and `make check` runs `lint-ts`. `make lint-ts` runs oxlint with the copied `.oxlintrc.json`
 (type-aware through oxlint-tsgolint, warnings denied) over every file that Git does not ignore, knip from the root with the
 copied `knip.json`, and API Extractor in each package with an `api-extractor.json`. oxlint has no Svelte rules, so
 `npm run lint -w @polyspec/crudui-generator-svelte` runs ESLint with eslint-plugin-svelte on the components of that
-package (`packages/generator-svelte/eslint.config.js`), whose TypeScript scripts typescript-eslint parses with the
+package (`packages/svelte/eslint.config.js`), whose TypeScript scripts typescript-eslint parses with the
 TypeScript 6 of that package. A rule is turned off only for the lines where it does not apply, with a disable comment that
 names the rule and gives the reason.
 

@@ -32,7 +32,7 @@ test('every shared output is written to a path of its run and renamed into place
 
 test('every package build writes into the staging directory that package-dist names', () => {
   const violations = [];
-  for (const name of ['validator-ts', 'generator-core', 'generator-html', 'generator-react', 'generator-vue', 'generator-svelte', 'form-binding']) {
+  for (const name of ['validator/ts', 'generator/ts', 'html', 'react', 'vue', 'svelte', 'form-binding']) {
     const build = JSON.parse(read(`packages/${name}/package.json`)).scripts.build;
     const steps = build.slice(build.indexOf("'") + 1, build.lastIndexOf("'")).split(' && ');
     for (const step of steps) if (!step.includes('"$CRUDUI_DIST"')) violations.push(`${name}: \`${step}\` does not write into "$CRUDUI_DIST"`);

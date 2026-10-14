@@ -13,7 +13,7 @@ import { createProgress } from '@polyspec/kit/test-progress';
 const root = fileURLToPath(new URL('../', import.meta.url));
 const require = createRequire(import.meta.url);
 const directory = mkdtempSync(join(tmpdir(), 'crudui-install-'));
-const packages = ['validator-ts', 'generator-core', 'generator-html', 'generator-react', 'generator-vue', 'generator-svelte', 'form-binding'];
+const packages = ['validator/ts', 'generator/ts', 'html', 'react', 'vue', 'svelte', 'form-binding'];
 // contracts/features.json records every published npm package; the install project installs all of them.
 const published = JSON.parse(readFileSync(join(root, 'contracts/features.json'), 'utf8')).packages
   .map(({ path }) => relative(join(root, 'packages'), join(root, path)));
@@ -74,7 +74,7 @@ try {
   });
   for (const name of ['react', 'react-dom', 'vue', 'svelte', 'typescript', '@types/react', '@types/react-dom', '@types/node', 'vite', '@sveltejs/vite-plugin-svelte']) {
     dependencies[name] = ['vite', '@sveltejs/vite-plugin-svelte'].includes(name)
-      ? JSON.parse(readFileSync(join(root, 'packages/generator-svelte/package.json'), 'utf8')).devDependencies[name]
+      ? JSON.parse(readFileSync(join(root, 'packages/svelte/package.json'), 'utf8')).devDependencies[name]
       : require(`${name}/package.json`).version;
   }
   const project = { name: 'crudui-install-check', version: '0.0.1', private: true, type: 'module', dependencies, allowScripts };

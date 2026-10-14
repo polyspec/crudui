@@ -18,20 +18,21 @@ const tracked = execFileSync('git', ['ls-files', '-z'], { cwd: ROOT, encoding: '
 
 test('every package of packages/ has the name of the polyspec convention', () => {
   assert.equal(JSON.parse(read('package.json')).name, '@polyspec/crudui-workspace');
-  const npm = Object.fromEntries(tracked.filter(file => /^packages\/[^/]+\/package\.json$/.test(file))
-    .map(file => [file.split('/')[1], JSON.parse(read(file)).name]));
+  // The npm workspaces of package.json, by their folder under packages/.
+  const npm = Object.fromEntries(JSON.parse(read('package.json')).workspaces
+    .map(folder => [folder.slice('packages/'.length), JSON.parse(read(`${folder}/package.json`)).name]));
   assert.deepEqual(npm, {
     cli: '@polyspec/crudui-cli',
     'form-binding': '@polyspec/crudui-form-binding',
-    'generator-core': '@polyspec/crudui-generator-core',
-    'generator-html': '@polyspec/crudui-generator-html',
-    'generator-react': '@polyspec/crudui-generator-react',
-    'generator-svelte': '@polyspec/crudui-generator-svelte',
-    'generator-vue': '@polyspec/crudui-generator-vue',
-    'validator-ts': '@polyspec/crudui-validator',
+    'generator/ts': '@polyspec/crudui-generator-core',
+    'html': '@polyspec/crudui-generator-html',
+    'react': '@polyspec/crudui-generator-react',
+    'svelte': '@polyspec/crudui-generator-svelte',
+    'vue': '@polyspec/crudui-generator-vue',
+    'validator/ts': '@polyspec/crudui-validator',
   });
 
-  for (const [directory, name] of [['validator-php', 'polyspec/crudui-validator'], ['generator-php', 'polyspec/crudui-generator']]) {
+  for (const [directory, name] of [['validator/php', 'polyspec/crudui-validator'], ['generator/php', 'polyspec/crudui-generator']]) {
     const composer = JSON.parse(read(`packages/${directory}/composer.json`));
     assert.equal(composer.name, name);
     const prefixes = [...Object.keys(composer.autoload['psr-4']), ...Object.keys(composer['autoload-dev']?.['psr-4'] ?? {})];
@@ -41,14 +42,14 @@ test('every package of packages/ has the name of the polyspec convention', () =>
   assert.ok(namespaces.length > 0);
   assert.deepEqual(namespaces.filter(name => name !== 'Polyspec\\Crudui' && !name.startsWith('Polyspec\\Crudui\\')), []);
 
-  for (const [directory, name] of [['validator-rust', 'polyspec-crudui-validator'], ['generator-rust', 'polyspec-crudui-generator']]) {
+  for (const [directory, name] of [['validator/rust', 'polyspec-crudui-validator'], ['generator/rust', 'polyspec-crudui-generator']]) {
     const manifest = read(`packages/${directory}/Cargo.toml`);
     assert.equal(/^\[package\]\nname = "([^"]+)"/m.exec(manifest)?.[1], name, directory);
     const library = /^\[lib\]\nname = "([^"]+)"/m.exec(manifest)?.[1];
     if (library) assert.equal(library, name.replaceAll('-', '_'), directory);
   }
 
-  for (const directory of ['validator-go', 'generator-go']) {
+  for (const directory of ['validator/go', 'generator/go']) {
     assert.equal(/^module (\S+)$/m.exec(read(`packages/${directory}/go.mod`))?.[1], `github.com/polyspec/crudui/packages/${directory}`);
   }
 });

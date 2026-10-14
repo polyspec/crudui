@@ -12,7 +12,7 @@ import (
 	"strings"
 	"testing"
 
-	generator "github.com/polyspec/crudui/packages/generator-go"
+	generator "github.com/polyspec/crudui/packages/generator/go"
 )
 
 // ssrRequest reads an SSR frame response.

@@ -18,7 +18,7 @@ import { setup, teardown } from '@polyspec/kit/test-hooks';
 const root = fileURLToPath(new URL('..', import.meta.url));
 const clientEntry = '/__crudui_script_runs__.mjs';
 const serverEntry = '/__crudui_script_runs_server__.mjs';
-const viewHost = '/packages/generator-svelte/test/ViewHost.svelte';
+const viewHost = '/packages/svelte/test/ViewHost.svelte';
 const adapters = ['html', 'react', 'vue', 'svelte'];
 const modes = ['client', 'server'];
 const first = '__0000000000001__';

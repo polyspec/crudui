@@ -38,10 +38,10 @@ final class FormGeneration
         $classes = [];
         $signatures = [];
         $sourceFiles = [
-            Generator::class => ['source' => 'packages/generator-php/src/Generator.php'],
-            Form::class => ['source' => 'packages/generator-php/src/Form.php'],
+            Generator::class => ['source' => 'packages/generator/php/src/Generator.php'],
+            Form::class => ['source' => 'packages/generator/php/src/Form.php'],
             Validator::class => [
-                'source' => 'packages/validator-php/src/Public/Validator.php',
+                'source' => 'packages/validator/php/src/Public/Validator.php',
                 'package' => 'polyspec/crudui-validator',
                 'installed' => 'src/Public/Validator.php',
             ],

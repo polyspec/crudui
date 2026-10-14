@@ -319,7 +319,7 @@ test('the release trigger matches vX.Y.Z and the tag of every Go module of packa
   assert.deepEqual(unmatchedReleaseTags(tags, goModules), []);
   // In a tag filter * does not match /, so the filter of one level */v* misses packages/<directory>/vX.Y.Z.
   assert.deepEqual(unmatchedReleaseTags(['v*', '*/v*'], goModules), goModules.map((file) => `${path.posix.dirname(file)}/v1.2.3`));
-  assert.ok(tagFilterMatches('**/v*', 'packages/validator-go/v0.1.0') && !tagFilterMatches('v*', 'go/v0.1.0'));
+  assert.ok(tagFilterMatches('**/v*', 'packages/validator/go/v0.1.0') && !tagFilterMatches('v*', 'go/v0.1.0'));
 });
 
 test('CI runs on a push to main, the push check on every push, and Pages deploys main', async () => {

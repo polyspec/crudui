@@ -33,7 +33,7 @@ import {
   validate,
   ComposeLoadError,
   FormInputError,
-} from '../../../packages/validator-ts/src/validate/index';
+} from '../../../packages/validator/ts/src/validate/index';
 import { AUTHORED_CASES, type AuthoredCase } from './value-rules';
 import { DEFAULT_MESSAGES, VISIBILITY_CASES, type FailingCase, type WrittenCase } from './visibility';
 import { NUMERIC_CASES } from './numeric-rules';

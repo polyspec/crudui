@@ -1,6 +1,6 @@
 # 저장소
 <!-- doc-id: docs-operations-repository -->
-<!-- source-sha256: 876feb62116f17f66f7a9990e2d935742713f4ea774a919ac7c96343301c5803 -->
+<!-- source-sha256: a0c1e44da05b71f970fbedacc19421d8dbe9fd0a7e7a65cde59108f3d13791eb -->
 
 [English](repository.md).
 
@@ -37,8 +37,8 @@ workflow는 다음과 같습니다.
 
 ## Release
 
-release는 `main` commit의 tag입니다. 저장소는 `vX.Y.Z`이고, 디렉터리의 Go module(`packages/generator-go`,
-`packages/validator-go`)은 `<디렉터리>/vX.Y.Z`이며 그 module path는 `github.com/polyspec/crudui/<디렉터리>`입니다
+release는 `main` commit의 tag입니다. 저장소는 `vX.Y.Z`이고, 디렉터리의 Go module(`packages/generator/go`,
+`packages/validator/go`)은 `<디렉터리>/vX.Y.Z`이며 그 module path는 `github.com/polyspec/crudui/<디렉터리>`입니다
 (`tests/build/package-names.test.mjs`). `main`의 모든 commit은 tag 전에 CI의 전체 suite를 통과했으므로 release는 test를 다시
 실행하지 않습니다. tag는 maintainer만 만들어 push합니다. tag가 release하는 package, 덮는 manifest, Go module은
 `config/release.json`(`node_modules/@polyspec/kit/dist/schema/release.schema.json`)에 선언합니다.
@@ -54,9 +54,9 @@ release는 `main` commit의 tag입니다. 저장소는 `vX.Y.Z`이고, 디렉터
 
    ```sh
    git tag vX.Y.Z <commit of main>
-   git tag packages/generator-go/vX.Y.Z <commit of main>
-   git tag packages/validator-go/vX.Y.Z <commit of main>
-   git push origin vX.Y.Z packages/generator-go/vX.Y.Z packages/validator-go/vX.Y.Z
+   git tag packages/generator/go/vX.Y.Z <commit of main>
+   git tag packages/validator/go/vX.Y.Z <commit of main>
+   git push origin vX.Y.Z packages/generator/go/vX.Y.Z packages/validator/go/vX.Y.Z
    ```
 
    tag 셋을 함께 push합니다(`make release-go-tags TAG=vX.Y.Z`가 검사합니다). `vX.Y.Z`의 `make release-verify`가 같은 commit의 Go module
@@ -119,9 +119,9 @@ polyspec archive는 이름과 version으로만(npm은 `integrity` 없이, Compos
   다른 polyspec 저장소의 package는 이 root에서만 공급합니다. `@polyspec/ordered-json`은 root 의존성
   `file:.form-comparison/sources/ordered-json/js`이며, `examples/form-comparison/src/ordered-json-source.mjs`의
   `orderedJsonVersion`이 기록하는 tag의 checkout입니다.
-- root `composer.json`(`polyspec/crudui-workspace`, type `project`)은 `symlink: false`인 `packages/validator-php`의
+- root `composer.json`(`polyspec/crudui-workspace`, type `project`)은 `symlink: false`인 `packages/validator/php`의
   `path` repository를 두고 `polyspec/crudui-validator`를 정확한 version으로 요구합니다. `autoload`는
-  `packages/generator-php/src`의 생성기 source를, `autoload-dev`는 두 PHP package의 test를 읽습니다. 옆의
+  `packages/generator/php/src`의 생성기 source를, `autoload-dev`는 두 PHP package의 test를 읽습니다. 옆의
   `composer.lock`이 해석을 기록하고, `make install-composer`가 root에 `vendor/`를 설치하며, PHPUnit, PHP check, PHP
   server가 그것을 load합니다. `vendor/`의 검증기는 복사본이므로 `make test-php-api`와 비교 server는 load하기 전에
   checkout lock `var/locks/composer-vendor.lock` 아래에서 source로부터 다시 설치합니다. PHPUnit bootstrap

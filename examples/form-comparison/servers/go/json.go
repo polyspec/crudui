@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	orderedjson "github.com/polyspec/ordered-json/go"
-	"github.com/polyspec/crudui/packages/validator-go/validator/compose"
+	"github.com/polyspec/crudui/packages/validator/go/validator/compose"
 )
 
 type object = compose.OMap

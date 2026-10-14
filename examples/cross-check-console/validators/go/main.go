@@ -32,8 +32,8 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/polyspec/crudui/packages/validator-go/validator/compose"
-	"github.com/polyspec/crudui/packages/validator-go/validator/validate"
+	"github.com/polyspec/crudui/packages/validator/go/validator/compose"
+	"github.com/polyspec/crudui/packages/validator/go/validator/validate"
 )
 
 // request is the checked stdin envelope. spec and data stay raw so the model

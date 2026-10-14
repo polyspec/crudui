@@ -1,6 +1,6 @@
 # 폼 마크업
 <!-- doc-id: docs-spec-form-markup -->
-<!-- source-sha256: 80fa904ecd2d5249e83081a7c533805d04b4e07f459e21898459f5c39ef5e7d6 -->
+<!-- source-sha256: 07770ecc509f60b616a1462a3358f6fa27d189a2f5648555d0352bf7b52754a0 -->
 
 [English](form-markup.md). 이 문서는 평가된 폼 노드의 렌더링 방식을 정의합니다.
 React, Vue, Svelte, HTML 렌더러와 네이티브 렌더러는 같은 마크업을 생성합니다.
@@ -442,7 +442,7 @@ Tailwind CSS 4로 꾸미는 page는 `crudui.css` 대신
 `@polyspec/crudui-generator-core/crudui.tailwind.css`를 쓰고, 이 file을 `tailwindcss` 뒤에 import합니다. 이
 file은 `crudui.css`의 rule을 바꾸지 않고 cascade layer `components` 안에 담습니다. 그래서 더 뒤의 layer
 `utilities`에 있는 page의 utility class가 CRUDUI rule보다 우선합니다. markup은 두 file에서
-같습니다. `packages/generator-core/scripts/write-tailwind-styles.mjs`가 `crudui.css`에서 이 file을 쓰고,
+같습니다. `packages/generator/ts/scripts/write-tailwind-styles.mjs`가 `crudui.css`에서 이 file을 쓰고,
 그 `--check` mode는 커밋된 file이 다르면 실패하므로, 두 file은 다른 rule을 담지 않습니다. page는
 `crudui.css`와 같이 `--crudui-*` property로 block의 theme을 정합니다. 예를 들어 Tailwind theme의 색을 쓸
 수 있습니다: `.crudui-form, .crudui-list { --crudui-accent: var(--color-indigo-600); }`.

@@ -8,7 +8,7 @@
 // stdout: one JSON line per spec (same shape as the other drivers).
 //
 // Run via `go run .` from benchmarks/validators/go (its own module with a replace
-// directive to the local packages/validator-go). Flags: --iters, --warmup,
+// directive to the local packages/validator/go). Flags: --iters, --warmup,
 // --spec, --fixtures. The counts follow the rule of ../arguments.js.
 package main
 
@@ -21,8 +21,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/polyspec/crudui/packages/validator-go/validator/compose"
-	validator "github.com/polyspec/crudui/packages/validator-go/validator/validate"
+	"github.com/polyspec/crudui/packages/validator/go/validator/compose"
+	validator "github.com/polyspec/crudui/packages/validator/go/validator/validate"
 )
 
 type report struct {

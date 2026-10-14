@@ -40,10 +40,10 @@ The cross-check console's validator processes receive each case on standard inpu
 exits `0` with the result on standard output; a failure case exits `2` with `{ error, code, at }`.
 
 The cases are read by the validation conformance tests in
-[TypeScript](../../../packages/validator-ts/src/validate.conformance.test.ts),
-[PHP](../../../packages/validator-php/tests/Validate/ValidateConformanceTest.php),
-[Go](../../../packages/validator-go/validator/validate/conformance_test.go) and
-[Rust](../../../packages/validator-rust/tests/validate_conformance.rs); the
+[TypeScript](../../../packages/validator/ts/src/validate.conformance.test.ts),
+[PHP](../../../packages/validator/php/tests/Validate/ValidateConformanceTest.php),
+[Go](../../../packages/validator/go/validator/validate/conformance_test.go) and
+[Rust](../../../packages/validator/rust/tests/validate_conformance.rs); the
 [PHP extension engine test](../../../packages/php-ext/tests/engine.test.mjs) and the
 [PHP extension API test](../../../packages/php-ext/tests/api.test.mjs), which runs the PHP and native
 validators; and the cross-check console

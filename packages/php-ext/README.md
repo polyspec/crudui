@@ -68,7 +68,7 @@ The PHP example loads the extension and calls its public classes:
 ```sh
 CRUDUI_DATA_FILE=/absolute/path/to/record.json \
   php -n -d "extension=$(pwd)/packages/php-ext/modules/crudui.so" \
-  -S 127.0.0.1:8080 packages/generator-php/examples/index.php
+  -S 127.0.0.1:8080 packages/generator/php/examples/index.php
 ```
 
 The example renders HTML, validates a form submission and stores accepted data

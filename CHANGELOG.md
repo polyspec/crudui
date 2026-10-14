@@ -3,6 +3,22 @@
 
 ## Unreleased
 
+### 2026-10-14 — Folders of kit's layout (C14.7)
+
+- The packages follow S5: a component with ports holds a folder per runtime. Old → new folder (published names stay):
+
+  | Old | New |
+  |---|---|
+  | `packages/validator-go`, `-php`, `-python`, `-rust`, `-ts` | `packages/validator/go`, `php`, `python`, `rust`, `ts` |
+  | `packages/generator-go`, `-php`, `-python`, `-rust` | `packages/generator/go`, `php`, `python`, `rust` |
+  | `packages/generator-core` | `packages/generator/ts` |
+  | `packages/generator-html`, `-react`, `-vue`, `-svelte` | `packages/html`, `react`, `vue`, `svelte` |
+
+- The Go modules are `github.com/polyspec/crudui/packages/validator/go` and `github.com/polyspec/crudui/packages/generator/go`, so their tags are `packages/validator/go/vX.Y.Z` and `packages/generator/go/vX.Y.Z`.
+- A Python project that installs a package of crudui from a git tag names the new folder as its `subdirectory` from the next release on: consumer's `pyproject.toml` files name `packages/validator-python` and `packages/generator-python` at v0.0.5, and name `packages/validator/python` and `packages/generator/python` with the next tag. `make release-pins` requires the subdirectory of a pin to be a package folder of the checkout.
+- The meta-schema is `contracts/schema/crudui.schema.json` (its `$id` follows), the validator benchmark is `benchmarks/validators`, and phpDocumentor installs into `var/tools/phpdocumentor` with `scripts/install-phpdocumentor.mts`. `config/layout.yml` declares the root files `.npmrc`, `composer.json` and `composer.lock`, the cross-language folders of `tests/`, and the components of `packages/`.
+- Every crate is a workspace of its own that denies unsafe code and an allow attribute without a reason, and the record server of the comparison takes OrderedJSON from the tag of its repository.
+
 ### 2026-10-14 — Latest stable dependencies (C14.8, C14.3-1)
 
 - `make dependency-review UPDATE=1` took the latest stable releases: vitest 5.0.4, @types/node 26.6.5, vue 3.5.44, postcss 8.5.30, @testing-library/user-event 14.6.8 and phpunit 13.4.2. React stays at 19.2.8 by its exception (C5.8-2-1), and the tools project of `packages/generator-svelte` keeps TypeScript 6.0.3 by a new exception of `config/dependency-policy.json`, the one that `config/toolchain.json` declares.

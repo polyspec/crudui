@@ -28,7 +28,7 @@ entry points, load failures and input failures.
 | `unique` | Uniqueness check, optionally using a reference or filter parameter. |
 | `accept` | File extension or MIME-type parameter. |
 
-The [TypeScript registry](../../packages/validator-ts/src/rules/index.ts) defines
+The [TypeScript registry](../../packages/validator/ts/src/rules/index.ts) defines
 built-in names. `crudui describe` derives its catalog from this registry;
 see the [CLI procedure](../operations/cli.md). Every runtime has the same built-in rules and
 no way to register others. A `validate` or `messages` key that is not one of these names fails the

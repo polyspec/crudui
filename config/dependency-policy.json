@@ -7,13 +7,13 @@
     }
   ],
   "pythonManifests": [
-    "packages/generator-python/pyproject.toml",
-    "packages/validator-python/pyproject.toml"
+    "packages/generator/python/pyproject.toml",
+    "packages/validator/python/pyproject.toml"
   ],
   "pythonLocks": [],
   "npmLocks": [
     "package-lock.json",
-    "packages/generator-svelte/tools/package-lock.json"
+    "packages/svelte/tools/package-lock.json"
   ],
   "taggedNpmPackages": [
     {
@@ -49,7 +49,7 @@
     },
     {
       "ecosystem": "npm",
-      "manifest": "packages/generator-react/package.json",
+      "manifest": "packages/react/package.json",
       "package": "react",
       "reason": "React 19.3 renders the widget scripts of the React renderer as <script> elements in client rendering, which React does not execute: with React 19.3.0, 6 of the 24 cases of tests/widget-script-runs.test.mjs fail in Chromium, Firefox and WebKit with \"Encountered a script tag while rendering React component\" (C5.8-2-1).",
       "removalCondition": "Remove the exception when the React renderer runs widget scripts without <script> elements in client rendering and the 24 cases of tests/widget-script-runs.test.mjs pass with the latest React release.",
@@ -60,7 +60,7 @@
     },
     {
       "ecosystem": "npm",
-      "manifest": "packages/generator-react/package.json",
+      "manifest": "packages/react/package.json",
       "package": "react-dom",
       "reason": "React 19.3 renders the widget scripts of the React renderer as <script> elements in client rendering, which React does not execute: with React 19.3.0, 6 of the 24 cases of tests/widget-script-runs.test.mjs fail in Chromium, Firefox and WebKit with \"Encountered a script tag while rendering React component\" (C5.8-2-1).",
       "removalCondition": "Remove the exception when the React renderer runs widget scripts without <script> elements in client rendering and the 24 cases of tests/widget-script-runs.test.mjs pass with the latest React release.",
@@ -71,7 +71,7 @@
     },
     {
       "ecosystem": "npm",
-      "manifest": "packages/generator-svelte/tools/package.json",
+      "manifest": "packages/svelte/tools/package.json",
       "package": "typescript",
       "reason": "svelte-check 4.7.6 and @sveltejs/package 3.0.0, which type-check and package the Svelte components, require the TypeScript 6 API: their peer ranges are ^5.0.0 || ^6.0.0 and ^6.0.0, and TypeScript 7 has no such API (the TypeScript exception of config/toolchain.json).",
       "removalCondition": "Remove the exception when svelte-check and @sveltejs/package admit TypeScript 7 in their peer ranges, together with the exception of config/toolchain.json.",

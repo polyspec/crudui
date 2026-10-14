@@ -92,10 +92,10 @@ test('the JavaScript recorder appends one line per case only when an evidence di
 });
 
 const suites = [
-  { name: 'validator PHP', run: { program: 'tests/conformance/run-suite.mjs', tool: 'phpunit', cwd: 'packages/validator-php' }, runtimes: ['php'] },
+  { name: 'validator PHP', run: { program: 'tests/conformance/run-suite.mjs', tool: 'phpunit', cwd: 'packages/validator/php' }, runtimes: ['php'] },
   { name: 'native generators', run: { program: 'tests/native-generators/run.mjs' }, runtimes: ['php', 'go'] },
   { name: 'PHP extension', run: { program: 'tests/conformance/run-suite.mjs', tool: 'node', argument: 'packages/php-ext/tests/engine.test.mjs' }, runtimes: ['php-native'] },
-  { name: 'Svelte renderer', run: { program: 'tests/conformance/run-suite.mjs', tool: 'vitest', cwd: 'packages/generator-svelte' }, runtimes: ['svelte'] },
+  { name: 'Svelte renderer', run: { program: 'tests/conformance/run-suite.mjs', tool: 'vitest', cwd: 'packages/svelte' }, runtimes: ['svelte'] },
 ];
 const run = (fields, started, status) => ({ tool: null, cwd: '.', args: [], ...fields, started, status });
 
@@ -124,12 +124,12 @@ test('the check reads the evidence and the run records of every subdirectory', a
 
 test('missing evidence names each suite of its runtime that did not run, did not finish or failed', () => {
   const runs = [
-    run({ program: 'tests/conformance/run-suite.mjs', tool: 'phpunit', cwd: 'packages/validator-php' }, '2026-10-05T10:00:00.000Z', 1),
-    run({ program: 'tests/conformance/run-suite.mjs', tool: 'phpunit', cwd: 'packages/validator-php' }, '2026-10-05T11:00:00.000Z', 0),
+    run({ program: 'tests/conformance/run-suite.mjs', tool: 'phpunit', cwd: 'packages/validator/php' }, '2026-10-05T10:00:00.000Z', 1),
+    run({ program: 'tests/conformance/run-suite.mjs', tool: 'phpunit', cwd: 'packages/validator/php' }, '2026-10-05T11:00:00.000Z', 0),
     run({ program: 'tests/conformance/run-suite.mjs', tool: 'node', args: ['packages/php-ext/tests/engine.test.mjs', 'packages/php-ext/tests/api.test.mjs'] }, '2026-10-05T10:00:00.000Z', null),
-    run({ program: 'tests/conformance/run-suite.mjs', tool: 'vitest', cwd: 'packages/generator-svelte' }, '2026-10-05T10:00:00.000Z', 0),
-    run({ program: 'tests/conformance/run-suite.mjs', tool: 'vitest', cwd: 'packages/generator-svelte', args: ['--config', 'vitest.client.config.ts'] }, '2026-10-05T10:01:00.000Z', 2),
-    run({ program: 'tests/conformance/run-suite.mjs', tool: 'go', cwd: 'packages/generator-go' }, '2026-10-05T10:00:00.000Z', 1),
+    run({ program: 'tests/conformance/run-suite.mjs', tool: 'vitest', cwd: 'packages/svelte' }, '2026-10-05T10:00:00.000Z', 0),
+    run({ program: 'tests/conformance/run-suite.mjs', tool: 'vitest', cwd: 'packages/svelte', args: ['--config', 'vitest.client.config.ts'] }, '2026-10-05T10:01:00.000Z', 2),
+    run({ program: 'tests/conformance/run-suite.mjs', tool: 'go', cwd: 'packages/generator/go' }, '2026-10-05T10:00:00.000Z', 1),
   ];
   assert.deepEqual(Object.fromEntries(suiteStates(suites, runs)), {
     'validator PHP': 'passed',

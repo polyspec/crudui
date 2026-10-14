@@ -53,22 +53,22 @@ function regularTemporaryRoot() {
 function composerCandidate(t, record) {
   const root = mkdtempSync(path.join(regularTemporaryRoot(), 'crudui-form-generation-'));
   t.after(() => rmSync(root, { recursive: true, force: true }));
-  const generatorSource = path.join(root, 'packages/generator-php/src');
+  const generatorSource = path.join(root, 'packages/generator/php/src');
   const vendor = path.join(root, 'vendor');
   const composer = path.join(vendor, 'composer');
   const installedValidator = path.join(vendor, 'polyspec/crudui-validator/src/Public');
-  const validatorSource = path.join(root, 'packages/validator-php/src/Public');
+  const validatorSource = path.join(root, 'packages/validator/php/src/Public');
   for (const directory of [generatorSource, composer, installedValidator, validatorSource]) {
     mkdirSync(directory, { recursive: true });
   }
   for (const filename of ['Generator.php', 'Form.php']) {
     copyFileSync(
-      path.join(library, 'packages/generator-php/src', filename),
+      path.join(library, 'packages/generator/php/src', filename),
       path.join(generatorSource, filename),
     );
   }
   const validator = readFileSync(
-    path.join(library, 'packages/validator-php/src/Public/Validator.php'),
+    path.join(library, 'packages/validator/php/src/Public/Validator.php'),
   );
   writeFileSync(path.join(validatorSource, 'Validator.php'), validator);
   writeFileSync(path.join(installedValidator, 'Validator.php'), validator);
@@ -81,8 +81,8 @@ final class ClassLoader
     public function loadClass(string $class): void
     {
         $files = [
-            'Polyspec\\Crudui\\Generator' => dirname($this->vendor) . '/packages/generator-php/src/Generator.php',
-            'Polyspec\\Crudui\\Form' => dirname($this->vendor) . '/packages/generator-php/src/Form.php',
+            'Polyspec\\Crudui\\Generator' => dirname($this->vendor) . '/packages/generator/php/src/Generator.php',
+            'Polyspec\\Crudui\\Form' => dirname($this->vendor) . '/packages/generator/php/src/Form.php',
             'Polyspec\\Crudui\\Validator' => $this->vendor . '/polyspec/crudui-validator/src/Public/Validator.php',
         ];
         if (isset($files[$class])) require $files[$class];
@@ -137,7 +137,7 @@ test('uses the Composer-installed validator copy from the build tree', () => {
   assert.equal(installedFile, path.join(report.validatorInstall, 'src/Public/Validator.php'));
   assert.deepEqual(
     readFileSync(installedFile),
-    readFileSync(path.join(library, 'packages/validator-php/src/Public/Validator.php')),
+    readFileSync(path.join(library, 'packages/validator/php/src/Public/Validator.php')),
   );
 });
 
@@ -174,7 +174,7 @@ test('rejects a Composer validator package outside the candidate vendor director
     candidate.root, 'vendor/composer',
   );
   writeComposerRecord(
-    composer, 'valid', path.join(candidate.root, 'packages/validator-php'),
+    composer, 'valid', path.join(candidate.root, 'packages/validator/php'),
   );
   const result = constructFrom(candidate.root);
   assert.notEqual(result.status, 0);

@@ -18,7 +18,7 @@ import { fileURLToPath } from 'node:url';
 import * as React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { bindForm, compileForm, formMessages } from '@polyspec/crudui-generator-core';
-import { DataPanel, OutlineView } from '../../../packages/generator-react/src/index';
+import { DataPanel, OutlineView } from '../../../packages/react/src/index';
 // @ts-expect-error — JS normalizer shared across the fixture harness.
 import { normalizeHtml } from '../form-render/normalize.mjs';
 

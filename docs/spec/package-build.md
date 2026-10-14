@@ -79,7 +79,7 @@ The packages follow the naming of the polyspec repositories, as template and hyp
 | npm | `@polyspec/crudui-<name>`: `@polyspec/crudui-cli`, `@polyspec/crudui-form-binding`, `@polyspec/crudui-generator-core`, `@polyspec/crudui-generator-html`, `@polyspec/crudui-generator-react`, `@polyspec/crudui-generator-svelte`, `@polyspec/crudui-generator-vue`, `@polyspec/crudui-validator`; the private workspace root is `@polyspec/crudui-workspace` |
 | Composer | `polyspec/crudui-generator` and `polyspec/crudui-validator`, with the PHP namespace `Polyspec\Crudui\`: the classes `Polyspec\Crudui\Generator`, `Polyspec\Crudui\Validator`, `Polyspec\Crudui\Form` and `Polyspec\Crudui\FormError`, the internal namespaces `Polyspec\Crudui\Generator\` and `Polyspec\Crudui\Validator\`; the PHP extension registers the same classes |
 | Rust | the crates `polyspec-crudui-generator` and `polyspec-crudui-validator`, with the libraries `polyspec_crudui_generator` and `polyspec_crudui_validator` |
-| Go | the modules `github.com/polyspec/crudui/packages/generator-go` and `github.com/polyspec/crudui/packages/validator-go` |
+| Go | the modules `github.com/polyspec/crudui/packages/generator/go` and `github.com/polyspec/crudui/packages/validator/go` |
 
 The programs of `examples/`, `tests/` and `tools/` follow the same convention: the private npm package
 `@polyspec/crudui-cross-check-console`, the crates `polyspec-crudui-cross-check-validator`,
@@ -184,7 +184,7 @@ latest release of a channel, and no tool installs another version on its own.
   `composer.json` (`>=8.5`), `requires-python` of every `pyproject.toml` (`>=3.14`), the `go` line of every `go.mod`
   (`1.27.2`, with no `toolchain` line), `rust-version` of every Cargo package and `typescript` of every manifest and
   lock. A deviation is an entry of `exceptions` in `config/toolchain.json` with its scope, reason and retry condition:
-  `packages/generator-svelte` keeps TypeScript 6.0.3, because svelte-check and `@sveltejs/package` require the
+  `packages/svelte` keeps TypeScript 6.0.3, because svelte-check and `@sveltejs/package` require the
   TypeScript 6 API.
 - `mise.toml` records the exact Go release, the pin of kit, and `make install-tools` installs it with mise at the digest of
   `mise.lock`, in CI too; the `go` line of every `go.mod` is that release, and
@@ -263,9 +263,9 @@ query of a check, so one tree gives one result at any time. The review covers th
 registry dependencies: the `dependencies` and `devDependencies` of the root
 `package.json` and of each workspace, and the `require` and `require-dev` of the
 Composer manifests that `composerPlatforms` of `config/dependency-policy.json` names
-(the development root `composer.json`, whose lock resolves `packages/validator-php` and `packages/generator-php`) and the
-`build-system.requires` pins of the Python manifests that `pythonManifests` names (`packages/validator-python` and
-`packages/generator-python`). Peer dependencies, URL
+(the development root `composer.json`, whose lock resolves `packages/validator/php` and `packages/generator/php`) and the
+`build-system.requires` pins of the Python manifests that `pythonManifests` names (`packages/validator/python` and
+`packages/generator/python`). Peer dependencies, URL
 dependencies, packages of this repository and Composer platform requirements are
 outside the review by definition. A polyspec package taken from a GitHub tag is the
 release of that tag: the check requires the root manifest to link it to the checkout of
