@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-15 — kit 0.0.44 (C14.13)
+
+- crudui pins `@polyspec/kit` 0.0.44: `make install-tools` installs the Rust toolchain of `rust-toolchain.toml` before a CI job runs cargo, API Extractor no longer reports `ae-missing-release-tag`, oxlint allows the registrations of node:test, ruff keeps its cache in `var/ruff`, and `config/layout.yml` adds `.npmrc`, `composer.json` and `composer.lock` to the root files of kit instead of repeating its list. The review of the lock takes `puppeteer` 25.14.0, `playwright` 1.64.1 and `tsup` 9.0.0.
+
 ### 2026-10-14 — Folders of kit's layout (C14.7)
 
 - The packages follow S5: a component with ports holds a folder per runtime. Old → new folder (published names stay):

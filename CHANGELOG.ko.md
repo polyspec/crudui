@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 2b9a2b6da8c7a25ecda0d94bc9aa4846e39db931a57ebf949197ae517ef2ef64 -->
+<!-- source-sha256: b2a64fdfa4d05dea3ffe3ec14e9c6add9d83b2e4a48da3d733918ef104f9c4ac -->
 
 ## Unreleased
+
+### 2026-10-15 — kit 0.0.44 (C14.13)
+
+- crudui는 `@polyspec/kit` 0.0.44를 pin한다. `make install-tools`는 CI job이 cargo를 실행하기 전에 `rust-toolchain.toml`의 Rust toolchain을 설치하고, API Extractor는 더 이상 `ae-missing-release-tag`를 보고하지 않으며, oxlint는 node:test 등록을 허용하고, ruff는 cache를 `var/ruff`에 두며, `config/layout.yml`은 kit의 목록을 반복하는 대신 kit의 root 파일에 `.npmrc`, `composer.json`, `composer.lock`을 더한다. lock의 검토는 `puppeteer` 25.14.0, `playwright` 1.64.1, `tsup` 9.0.0을 받는다.
 
 ### 2026-10-14 — kit layout의 폴더 (C14.7)
 
