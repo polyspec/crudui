@@ -3,6 +3,8 @@ import { createForm } from '@polyspec/crudui-generator-core';
 import Form from '#svelte/Form.svelte';
 import Outline from '#svelte/Outline.svelte';
 import DataView from '#svelte/DataView.svelte';
+import type { FormTemplate, Language } from '@polyspec/crudui-generator-core';
+import type { FormViews, RecordData } from '../form-views.ts';
 
 /**
  * Svelte hydration reads the markers its own server renderer writes (`<!--[-->`), which the form
@@ -10,7 +12,7 @@ import DataView from '#svelte/DataView.svelte';
  */
 export const hydration = 'replace';
 
-function start(views, template, language, data, hydrate) {
+function start(views: FormViews, template: FormTemplate, language: Language, data: RecordData, hydrate: boolean) {
   const session = createForm(template, data, { language });
   if (hydrate) views.form.replaceChildren();
   const apps = flushSync(() => [
@@ -20,17 +22,17 @@ function start(views, template, language, data, hydrate) {
   ]);
   return {
     getData: () => session.getData(),
-    load: next => flushSync(() => session.setData(next)),
+    load: (next: RecordData) => flushSync(() => session.setData(next)),
     idle: () => flushSync(() => {}),
     dispose: async () => { await Promise.all(apps.map(app => unmount(app))); },
     session, template, fromSerializedTemplate: true,
   };
 }
 
-export function mountView(views, template, language, data = {}) {
+export function mountView(views: FormViews, template: FormTemplate, language: Language, data: RecordData = {}) {
   return start(views, template, language, data, false);
 }
 
-export function hydrateView(views, template, language, data) {
+export function hydrateView(views: FormViews, template: FormTemplate, language: Language, data: RecordData) {
   return start(views, template, language, data, true);
 }

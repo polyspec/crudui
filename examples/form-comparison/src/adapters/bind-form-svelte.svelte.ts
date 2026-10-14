@@ -3,6 +3,8 @@ import { bindButtons, bindForm, formDescription, formMessages } from '@polyspec/
 import FormFields from '#svelte/FormFields.svelte';
 import OutlineView from '#svelte/OutlineView.svelte';
 import DataPanel from '#svelte/DataPanel.svelte';
+import type { FormTemplate, Language } from '@polyspec/crudui-generator-core';
+import { emptyView, type BindView, type FormViews, type RecordData } from '../form-views.ts';
 
 /**
  * Svelte hydration reads the markers its own server renderer writes (`<!--[-->`), which the form
@@ -10,14 +12,12 @@ import DataPanel from '#svelte/DataPanel.svelte';
  */
 export const hydration = 'replace';
 
-const emptyView = { collapsed: new Set(), canUndo: false };
-
-function start(views, template, language, data, hydrate) {
+function start(views: FormViews, template: FormTemplate, language: Language, data: RecordData, hydrate: boolean) {
   const messages = formMessages(language);
-  const evaluate = (next, view) => ({
+  const evaluate = (next: RecordData, view: BindView) => ({
     fields: bindForm(template, next, { language, collapsed: view.collapsed }),
     buttons: bindButtons(template, next, { language }),
-    data: next, canUndo: view.canUndo,
+    data: next, canUndo: view.canUndo, canRedo: false,
   });
   // Components read the current binding through props, so a new binding renders them again.
   let current = $state.raw(evaluate(data, emptyView));
@@ -39,15 +39,15 @@ function start(views, template, language, data, hydrate) {
     } }),
   ]);
   return {
-    load: (next, view = emptyView) => flushSync(() => { current = evaluate(next, view); }),
+    load: (next: RecordData, view: BindView = emptyView) => flushSync(() => { current = evaluate(next, view); }),
     dispose: async () => { await Promise.all(apps.map(app => unmount(app))); },
   };
 }
 
-export function mountView(views, template, language, data = {}) {
+export function mountView(views: FormViews, template: FormTemplate, language: Language, data: RecordData = {}) {
   return start(views, template, language, data, false);
 }
 
-export function hydrateView(views, template, language, data) {
+export function hydrateView(views: FormViews, template: FormTemplate, language: Language, data: RecordData) {
   return start(views, template, language, data, true);
 }

@@ -1,10 +1,12 @@
 import { connectForm, connectOutline, createForm, patchContent } from '@polyspec/crudui-generator-core';
 import { renderData, renderForm, renderOutline } from '#html';
+import type { FormTemplate, Language } from '@polyspec/crudui-generator-core';
+import type { FormViews, RecordData } from '../form-views.ts';
 
 /** The markup renderer writes no framework anchors, so it adopts the server-rendered nodes. */
 export const hydration = 'keep';
 
-function start(views, template, language, data, hydrate) {
+function start(views: FormViews, template: FormTemplate, language: Language, data: RecordData, hydrate: boolean) {
   const session = createForm(template, data, { language });
   // The HTML renderer returns markup: every view is rendered again on every change and patched
   // into the page, which keeps the nodes the new markup still contains, and browser bindings run
@@ -29,7 +31,7 @@ function start(views, template, language, data, hydrate) {
   });
   return {
     getData: () => session.getData(),
-    load: next => session.setData(next),
+    load: (next: RecordData) => session.setData(next),
     idle: () => Promise.resolve(),
     dispose: () => {
       unsubscribe();
@@ -41,10 +43,10 @@ function start(views, template, language, data, hydrate) {
   };
 }
 
-export function mountView(views, template, language, data = {}) {
+export function mountView(views: FormViews, template: FormTemplate, language: Language, data: RecordData = {}) {
   return start(views, template, language, data, false);
 }
 
-export function hydrateView(views, template, language, data) {
+export function hydrateView(views: FormViews, template: FormTemplate, language: Language, data: RecordData) {
   return start(views, template, language, data, true);
 }

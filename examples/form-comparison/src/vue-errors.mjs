@@ -6,7 +6,7 @@
 /**
  * Make `app` fail on its first error. `app` is a Vue application; only the member the rule uses
  * is part of this contract.
- * @param {{ config: { errorHandler: (error: unknown) => void } }} app
+ * @param {{ config: { errorHandler?: (error: unknown, ...details: never[]) => void } }} app
  */
 export function failOnErrors(app) {
   app.config.errorHandler = error => {

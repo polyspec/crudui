@@ -20,8 +20,8 @@ const sources = Object.fromEntries(await Promise.all(
 
 test('every adapter offers both initialization paths and declares what hydration does', () => {
   for (const [name, source] of Object.entries(adapterFiles).map(([name]) => [name, sources[name]])) {
-    assert.match(source, /export function mountView\(views, template, language, data = \{\}\)/, `${name} mounts`);
-    assert.match(source, /export function hydrateView\(views, template, language, data\)/, `${name} hydrates`);
+    assert.match(source, /export function mountView\(views: FormViews, template: FormTemplate, language: Language, data: RecordData = \{\}\)/, `${name} mounts`);
+    assert.match(source, /export function hydrateView\(views: FormViews, template: FormTemplate, language: Language, data: RecordData\)/, `${name} hydrates`);
     const declaration = /export const hydration = '(keep|replace)'/.exec(source);
     assert.ok(declaration, `${name} must declare whether hydration keeps the server nodes`);
     assert.equal(declaration[1], name.endsWith('svelte') ? 'replace' : 'keep', `${name} hydration`);
