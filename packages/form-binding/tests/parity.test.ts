@@ -23,15 +23,17 @@ interface Case {
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
-/** The cases of the shared validation fixture, each checked to hold a name, a specification and data. */
+/**
+ * The cases of the shared validation fixture whose specification and data are objects, each checked to hold a name. A case
+ * whose specification or data is no object expects an input failure, which no rendered form holds.
+ */
 function readCases(text: string): Case[] {
   const value: unknown = JSON.parse(text);
   if (!Array.isArray(value)) throw new TypeError('The validation fixture holds no list of cases');
-  return value.map((item: unknown, index): Case => {
-    if (!isRecord(item) || typeof item.name !== 'string' || !isRecord(item.spec) || !isRecord(item.data)) {
-      throw new TypeError(`Case ${index} of the validation fixture has no name, spec and data`);
-    }
-    return { name: item.name, spec: item.spec, data: item.data, ...('expected' in item ? { expected: item.expected } : {}) };
+  return value.flatMap((item: unknown, index): Case[] => {
+    if (!isRecord(item) || typeof item.name !== 'string') throw new TypeError(`Case ${index} of the validation fixture has no name`);
+    if (!isRecord(item.spec) || !isRecord(item.data)) return [];
+    return [{ name: item.name, spec: item.spec, data: item.data, ...('expected' in item ? { expected: item.expected } : {}) }];
   });
 }
 
