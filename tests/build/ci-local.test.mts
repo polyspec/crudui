@@ -179,6 +179,25 @@ test('make ci runs every checking command of the CI workflow, in the same order'
   assert.deepEqual(local, workflow);
 });
 
+/** The lint targets of CHECK_TARGETS, the checks of kit that make check runs. */
+export function checkLintTargets(makefile: string): string[] {
+  const block = makefile.match(/^CHECK_TARGETS = \\\n((?:\t[\w-]+(?: \\)?\n)+)/m);
+  assert.ok(block?.[1] !== undefined, 'the Makefile declares CHECK_TARGETS');
+  return block[1].trim().split('\n').map((line) => line.trim().replace(/ \\$/, '')).filter((target) => target.startsWith('lint-'));
+}
+
+// make check runs every lint target of kit; CI runs each of them too, so a finding fails CI and not only a local run.
+// make lint runs lint-ts, the lint-ts.mjs of kit, with the ESLint of the Svelte components.
+test('a CI job runs every lint target of CHECK_TARGETS', async () => {
+  const makefile = await read('Makefile');
+  const workflow = workflowCommands(parse(await read('.github/workflows/ci.yml')));
+  const targets = checkLintTargets(makefile);
+  assert.deepEqual(targets, ['lint-python', 'lint-php', 'lint-rust', 'lint-go', 'lint-ts']);
+  assert.match(makefile, /^lint:.*\n(?:\t.*\n)*?\tnode \$\(KIT\)\/lint-ts\.mjs/m, 'make lint runs lint-ts.mjs');
+  const run = (target: string): boolean => workflow.includes(`make ${target}`) || (target === 'lint-ts' && workflow.includes('make lint'));
+  assert.deepEqual(targets.filter((target) => !run(target)), []);
+});
+
 /** The steps that run a checking command without `if: ${{ !cancelled() }}`, as `job: step`. */
 export function stepsStoppedByFailure(workflow: Workflow): string[] {
   const violations: string[] = [];

@@ -441,6 +441,10 @@ CI_TARGETS = \
 	test-dependencies \
 	build \
 	lint \
+	lint-python \
+	lint-php \
+	lint-rust \
+	lint-go \
 	typecheck \
 	test-ordered-json \
 	test-validator-js \
