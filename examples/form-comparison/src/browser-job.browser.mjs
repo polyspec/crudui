@@ -10,7 +10,7 @@ import { setup, teardown } from '@polyspec/kit/test-hooks';
 
 const mediaTypes = { '.mjs': 'text/javascript', '.json': 'application/json' };
 
-/** Serve the public modules over HTTP, as the public server does, so their imports resolve. */
+/** Serve the modules of src/ over HTTP, so their imports (the JSON module of runtime-paths.mjs among them) resolve as in a browser. */
 async function publicModules(t) {
   const server = createServer((request, response) => {
     const name = new URL(request.url, 'http://127.0.0.1').pathname.slice(1);
@@ -74,6 +74,36 @@ test('reports whether the pointer is over a comparison frame in Chromium', async
   assert.equal(await over(), true, 'Pointer over the frame');
   await page.mouse.move(50, 20);
   assert.equal(await over(), false, 'Pointer moved back to the page');
+});
+
+test('stops a capture while the pointer is over either comparison frame in Chromium', async t => {
+  // docs/spec/form-comparison.md: a capture requires the pointer outside both frames; over a frame the comparison
+  // stops without a result and asks to move the pointer outside the frames.
+  const page = await browser.newPage();
+  teardown('page close', () => page.close(), { context: t });
+  const source = await readFile(new URL('./frame-pointer.mjs', import.meta.url), 'utf8');
+  const moduleUrl = 'data:text/javascript,' + encodeURIComponent(source);
+  const frame = '<iframe style="display:block;width:400px;height:100px;border:0" srcdoc="<p style=&quot;margin:0;height:100px&quot;>frame</p>"></iframe>';
+  await page.setContent('<div style="height:100px">page</div>' + frame + frame);
+  await page.waitForFunction(() => [...document.querySelectorAll('iframe')]
+    .every(element => element.contentDocument?.querySelector('p')));
+  await page.evaluate(async url => { window.frameModule = await import(url); }, moduleUrl);
+  const capture = () => page.evaluate(() => {
+    try {
+      window.frameModule.requirePointerOutside([...document.querySelectorAll('iframe')], 'Move the pointer');
+      return 'captured';
+    } catch (error) {
+      return error.message;
+    }
+  });
+  await page.mouse.move(50, 20);
+  assert.equal(await capture(), 'captured', 'Pointer over the page');
+  await page.mouse.move(50, 150);
+  assert.equal(await capture(), 'Move the pointer', 'Pointer over the first frame');
+  await page.mouse.move(50, 250);
+  assert.equal(await capture(), 'Move the pointer', 'Pointer over the second frame');
+  await page.mouse.move(50, 20);
+  assert.equal(await capture(), 'captured', 'Pointer moved back to the page');
 });
 
 test('receives delayed main-page readiness without one open protocol call',

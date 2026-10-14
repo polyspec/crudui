@@ -22,8 +22,7 @@
     "examples/form-comparison/build.mjs": "src/local-servers.mjs runs it by path (`node build.mjs <public directory>`) to build the public directory of the local stack",
     "examples/form-comparison/{check-servers,test-php-modes}.mjs": "local-verification.mjs (npm run test:form-comparison:checks) runs them by path as its persistence and php-modes checks",
     "examples/form-comparison/servers/{javascript,php}/main.mjs": "src/local-servers.mjs spawns them by path as the JavaScript and PHP record servers",
-    "examples/form-comparison/src/browser-job.browser.mjs": "npm run test:form-comparison:browser runs it by path",
-    "examples/form-comparison/src/frame-pointer.mjs": "src/browser-job.browser.mjs (npm run test:form-comparison:browser) reads it by path and imports it in Chromium; build.mjs copies it into the public directory"
+    "examples/form-comparison/src/browser-job.browser.mjs": "npm run test:form-comparison:browser runs it by path"
   },
   "workspaces": {
     "examples/cross-check-console/server": {
