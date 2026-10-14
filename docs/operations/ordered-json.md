@@ -6,9 +6,10 @@ defines the required data shapes and order. [Feature status](../features.md)
 records verification separately from runtime deployment.
 
 The record servers of the [form comparison](../spec/form-comparison.md) read and write JSON with the
-packages of [OrderedJSON](https://github.com/polyspec/ordered-json) at the tag `v0.0.3`, which
-`make install-ordered-json` checks out: `@polyspec/ordered-json` in JavaScript, its Go module, its Rust crate and
-the `ordered_json` extension of its `php-extension` package. `Polyspec\OrderedJson` in PHP is the Composer package
+packages of [OrderedJSON](https://github.com/polyspec/ordered-json) 0.0.9: `@polyspec/ordered-json` in JavaScript
+and the `ordered_json` extension of its `packages/php-ext` package from the checkout of the tag `v0.0.9` that
+`make install-ordered-json` makes, the Go module `github.com/polyspec/ordered-json/packages/go` at `v0.0.9` and the
+Rust crate `polyspec-ordered-json` of the Git tag `v0.0.9`. `Polyspec\OrderedJson` in PHP is the Composer package
 `polyspec/ordered-json` of the release zip that `config/release-assets.json` pins, which `make install-composer`
 downloads into the artifact repository `var/composer-artifacts` of the root `composer.json`. OrderedJSON's own
 parity check and tests verify the processor across its five implementations; crudui does not repeat them. crudui

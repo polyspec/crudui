@@ -4,9 +4,9 @@
   "assets": [
     {
       "name": "ordered-json",
-      "version": "0.0.3",
-      "url": "https://github.com/polyspec/ordered-json/releases/download/v{version}/polyspec-ordered-json-{version}.zip",
-      "sha256": "ee07efab5e09fb1998f28989b6d3a0cfde9b82625faa47601bca30fed3b1c0d9",
+      "version": "0.0.9",
+      "url": "https://github.com/polyspec/ordered-json/releases/download/v{version}/polyspec-ordered-json-php-{version}.zip",
+      "sha256": "b094115eaa864b8be01f02074ab3d6e5cac0d7f4d1206c774ab4a608abbb4f5c",
       "directory": "var/composer-artifacts"
     }
   ]

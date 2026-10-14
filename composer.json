@@ -9,7 +9,7 @@
         "ext-mbstring": "*",
         "polyspec/crudui-validator": "0.0.5",
         "polyspec/crudui-generator": "0.0.5",
-        "polyspec/ordered-json": "0.0.3"
+        "polyspec/ordered-json": "0.0.9"
     },
     "require-dev": {
         "phpunit/phpunit": "^13.4.2"

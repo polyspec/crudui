@@ -6,16 +6,16 @@ import { promisify } from 'node:util';
 const execFileAsync = promisify(execFile);
 
 export const orderedJsonRepository = 'https://github.com/polyspec/ordered-json';
-export const orderedJsonVersion = '0.0.3';
+export const orderedJsonVersion = '0.0.9';
 export const orderedJsonTag = `v${orderedJsonVersion}`;
 /** The checkout of the tag, relative to the repository root; the root package.json links its js package. */
 export const orderedJsonCheckout = '.form-comparison/sources/ordered-json';
 export const orderedJsonPackages = Object.freeze({
-  go: 'go/go.mod',
-  js: 'js/package.json',
-  php: 'php/composer.json',
-  'php-extension': 'php-extension/composer.json',
-  rust: 'rust/Cargo.toml',
+  go: 'packages/go/go.mod',
+  js: 'packages/js/package.json',
+  php: 'packages/php/composer.json',
+  'php-extension': 'packages/php-ext/composer.json',
+  rust: 'packages/rust/Cargo.toml',
 });
 
 async function defaultGit(directory, args) {

@@ -59,7 +59,7 @@ export async function prepareRecordServers({ buildDirectory, write = text => pro
   const results = await runStages([[
     step('crudui-php-extension', process.execPath, ['scripts/build-crudui-php-extension.mts']),
     step('ordered-json-php-extension', process.execPath, ['scripts/build-ordered-json-php-extension.mts',
-      '--source', path.join(localOrderedJsonDirectory, 'php-extension/src')]),
+      '--source', path.join(localOrderedJsonDirectory, 'packages/php-ext/src')]),
     step('go-server', 'go', ['build', '-trimpath', '-o', goBinary, '.'],
       path.join(exampleDirectory, 'servers/go'), { CGO_ENABLED: '0' }),
     step('rust-server', process.execPath, [path.join(repositoryRoot, 'scripts/run-rust-command.mts'),
@@ -69,7 +69,7 @@ export async function prepareRecordServers({ buildDirectory, write = text => pro
   assert.equal(failed, undefined, `Building ${failed?.id} ${failed?.status}`);
   return {
     cruduiModule: path.join(repositoryRoot, 'packages/php-ext/modules/crudui.so'),
-    orderedJsonModule: path.join(localOrderedJsonDirectory, 'php-extension/src/modules/ordered_json.so'),
+    orderedJsonModule: path.join(localOrderedJsonDirectory, 'packages/php-ext/src/modules/ordered_json.so'),
     binaries: {
       go: goBinary,
       rust: path.join(exampleDirectory, 'servers/rust/target/debug/polyspec-crudui-form-comparison'),

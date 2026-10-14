@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 94f862d5017941069dbf7d2318375b6cdff98c1e890c111992b4df149fe412db -->
+<!-- source-sha256: f49732af247b845395ef299d994ef43bc9121f1fb4f0391183e6996829e7a8dd -->
 
 ## Unreleased
+
+### 2026-10-15 — OrderedJSON 0.0.9 (C14.34)
+
+- 폼 비교는 모든 언어에서 OrderedJSON 0.0.9로 JSON을 읽고 쓴다. release zip `polyspec-ordered-json-php-0.0.9.zip`의 Composer 패키지, Go module `github.com/polyspec/ordered-json/packages/go` v0.0.9, tag `v0.0.9`의 Rust crate, 그리고 패키지가 `packages/`에 있는 `v0.0.9` 체크아웃의 npm 패키지와 PHP 확장이다(C14.34).
 
 ### 2026-10-15 — 폼 비교 suite의 php-ext leg (C14.33)
 

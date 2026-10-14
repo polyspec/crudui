@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-15 — OrderedJSON 0.0.9 (C14.34)
+
+- The form comparison reads and writes JSON with OrderedJSON 0.0.9 in every language: the Composer package from the release zip `polyspec-ordered-json-php-0.0.9.zip`, the Go module `github.com/polyspec/ordered-json/packages/go` v0.0.9, the Rust crate of the tag `v0.0.9`, and the npm package and PHP extension of the checkout of `v0.0.9`, whose packages lie in `packages/` (C14.34).
+
 ### 2026-10-15 — The php-ext leg of the form comparison suite (C14.33)
 
 - The local verification of the form comparison runs the PHPUnit suite of the PHP server in the php-ext mode too, with both extension modules loaded through the repeatable `--php-extension` of kit (K165) and without the group `php`; the test helper `PhpProcess` moves to the namespace `Polyspec\CruduiTestSupport\`, outside the classes that a php-ext run requires internal (C14.33).

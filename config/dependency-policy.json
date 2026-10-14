@@ -17,10 +17,10 @@
   ],
   "taggedNpmPackages": [
     {
-      "directory": ".form-comparison/sources/ordered-json/js",
+      "directory": ".form-comparison/sources/ordered-json/packages/js",
       "repository": "https://github.com/polyspec/ordered-json",
-      "tag": "v0.0.3",
-      "version": "0.0.3",
+      "tag": "v0.0.9",
+      "version": "0.0.9",
       "fix": "make install-ordered-json"
     }
   ],
