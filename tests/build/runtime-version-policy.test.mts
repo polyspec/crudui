@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
 
 import { isVendored, ownedFiles } from '../../scripts/repository-files.mts';
+import { checked, parseJson, type JTDSchemaType } from '../json.mts';
 import { makeDryRun } from './make-dry-run.mts';
 
 const repository = fileURLToPath(new URL('../..', import.meta.url));
@@ -15,7 +16,7 @@ const repository = fileURLToPath(new URL('../..', import.meta.url));
 interface WorkflowStep {
   run?: unknown;
   uses?: unknown;
-  with?: Record<string, string>;
+  with?: Record<string, unknown>;
 }
 
 /** The text of a step's `uses` or `run`: empty when the step has none; a value that is not text fails the test. */
@@ -28,16 +29,34 @@ function stepText(step: WorkflowStep, member: 'uses' | 'run'): string {
 
 /** The parts of a workflow job that the tests read. */
 interface WorkflowJob {
-  'runs-on'?: string;
+  'runs-on'?: unknown;
   steps?: WorkflowStep[];
-  strategy?: { matrix?: { php?: unknown[] } };
+  strategy?: { matrix?: { php?: unknown } };
 }
 
 /** The parts of a workflow file that the tests read. */
 interface Workflow {
-  env?: Record<string, string>;
+  env?: Record<string, unknown>;
   jobs: Record<string, WorkflowJob>;
 }
+const workflowSchema: JTDSchemaType<Workflow> = {
+  properties: {
+    jobs: {
+      values: {
+        optionalProperties: {
+          'runs-on': {},
+          steps: { elements: { optionalProperties: { run: {}, uses: {}, with: { values: {} } }, additionalProperties: true } },
+          strategy: { optionalProperties: { matrix: { optionalProperties: { php: {} }, additionalProperties: true } }, additionalProperties: true },
+        },
+        additionalProperties: true,
+      },
+    },
+  },
+  optionalProperties: { env: { values: {} } },
+  additionalProperties: true,
+};
+/** The workflow text `text` of `file`, checked against the parts that the tests read. */
+const workflowOf = (text: string, file: string): Workflow => checked(parse(text), workflowSchema, file);
 
 /** The parts of a package.json that the tests read. */
 interface Manifest {
@@ -45,12 +64,22 @@ interface Manifest {
   dependencies?: Record<string, string>;
   devDependencies?: Record<string, string>;
 }
+const manifestSchema: JTDSchemaType<Manifest> = {
+  optionalProperties: {
+    packageManager: { type: 'string' }, dependencies: { values: { type: 'string' } }, devDependencies: { values: { type: 'string' } },
+  },
+  additionalProperties: true,
+};
 
 /** The parts of config/toolchain.json that the tests read. */
 interface ToolchainConfig {
   node: Record<string, string>;
   php: string[];
 }
+const toolchainSchema: JTDSchemaType<ToolchainConfig> = {
+  properties: { node: { values: { type: 'string' } }, php: { elements: { type: 'string' } } },
+  additionalProperties: true,
+};
 
 /** The releases that recordedToolchain reads. */
 interface RecordedToolchain {
@@ -71,8 +100,8 @@ interface RecordedToolchain {
  */
 async function recordedToolchain(root: string): Promise<RecordedToolchain> {
   const text = (file: string): Promise<string> => readFile(path.join(root, file), 'utf8');
-  const config = JSON.parse(await text('config/toolchain.json')) as ToolchainConfig;
-  const manifest = JSON.parse(await text('package.json')) as Manifest;
+  const config = parseJson(await text('config/toolchain.json'), toolchainSchema, 'config/toolchain.json');
+  const manifest = parseJson(await text('package.json'), manifestSchema, 'package.json');
   const mise = await text('mise.toml');
   return {
     node: (await text('.node-version')).trim(),
@@ -90,7 +119,7 @@ async function findContainerDefinitions(): Promise<string[]> {
 
 /** The exact npm release that `packageManager` of package.json records. */
 async function recordedNpm(): Promise<string | undefined> {
-  const manifest = JSON.parse(await readFile(path.join(repository, 'package.json'), 'utf8')) as Manifest;
+  const manifest = parseJson(await readFile(path.join(repository, 'package.json'), 'utf8'), manifestSchema, 'package.json');
   const match = /^npm@(\d+\.\d+\.\d+)$/.exec(manifest.packageManager ?? '');
   assert.ok(match, `package.json must record one exact npm release as packageManager npm@<major>.<minor>.<patch>; it records ${manifest.packageManager}`);
   return match[1];
@@ -109,8 +138,8 @@ test('every workflow job installs the recorded npm before it runs npm', async ()
   const directory = path.join(repository, '.github/workflows');
   const violations: string[] = [];
   for (const file of (await readdir(directory)).filter(name => /\.ya?ml$/.test(name))) {
-    const workflow = parse(await readFile(path.join(directory, file), 'utf8')) as Partial<Workflow>;
-    for (const [id, job] of Object.entries(workflow.jobs ?? {})) {
+    const workflow = workflowOf(await readFile(path.join(directory, file), 'utf8'), file);
+    for (const [id, job] of Object.entries(workflow.jobs)) {
       let installed = false;
       for (const step of job.steps ?? []) {
         if (typeof step.run !== 'string') continue;
@@ -135,7 +164,7 @@ const read = (file: string): Promise<string> => readFile(path.join(repository, f
 /** Every workflow file of this repository with its parsed content; the copy of kit, release.yml, follows the rules of kit. */
 async function workflows(): Promise<{ file: string; text: string; workflow: Workflow }[]> {
   const directory = path.join(repository, '.github/workflows');
-  return Promise.all((await readdir(directory)).filter(name => /\.ya?ml$/.test(name) && !isVendored(`.github/workflows/${name}`)).map(async file => ({ file, text: await read(`.github/workflows/${file}`), workflow: parse(await read(`.github/workflows/${file}`)) as Workflow })));
+  return Promise.all((await readdir(directory)).filter(name => /\.ya?ml$/.test(name) && !isVendored(`.github/workflows/${name}`)).map(async file => ({ file, text: await read(`.github/workflows/${file}`), workflow: workflowOf(await read(`.github/workflows/${file}`), file) })));
 }
 
 test('the checkout records one exact version of every tool', async () => {
@@ -145,7 +174,7 @@ test('the checkout records one exact version of every tool', async () => {
   const toolchain = await read('rust-toolchain.toml');
   assert.match(toolchain, /^profile = "minimal"$/m);
   assert.match(toolchain, /^components = \["rustfmt", "clippy"\]$/m);
-  const config = JSON.parse(await read('config/toolchain.json')) as ToolchainConfig;
+  const config = parseJson(await read('config/toolchain.json'), toolchainSchema, 'config/toolchain.json');
   assert.match(config.node['linux-x64.tar.gz'] ?? '', /^[0-9a-f]{64}$/, 'config/toolchain.json records the SHA-256 of the Linux x64 archive of the Node.js release');
   // setup-php and Homebrew cannot install the same patch, so PHP is pinned by its minor release; the patch is evidence.
   assert.ok(config.php.length > 0 && config.php.every(release => /^\d+\.\d+$/.test(release)), `config/toolchain.json must record php as minor releases; it records ${JSON.stringify(config.php)}`);
@@ -161,7 +190,10 @@ test('every @types/node range requires the major of .node-version', async () => 
   const violations: string[] = [];
   for (const file of files) {
     let manifest: Manifest;
-    try { manifest = JSON.parse(await read(file)) as Manifest; } catch { continue; }
+    // A manifest that is no JSON, such as a template of a fixture, names no range.
+    let parsed: unknown;
+    try { parsed = JSON.parse(await read(file)); } catch { continue; }
+    manifest = checked(parsed, manifestSchema, file);
     for (const field of ['dependencies', 'devDependencies'] as const) {
       const range = manifest[field]?.['@types/node'];
       if (range !== undefined && !new RegExp(`^[\\^~]?${major}\\.`).test(range)) violations.push(`${file} ${field}: @types/node ${range}, .node-version records Node.js ${major}`);
@@ -186,7 +218,7 @@ test('every workflow runs on ubuntu-24.04 with actions named by commit SHA and n
   for (const { file, text, workflow } of await workflows()) {
     if (workflow.env?.RUSTUP_AUTO_INSTALL !== '0' || workflow.env?.GOTOOLCHAIN !== 'local') violations.push(`${file}: env must set RUSTUP_AUTO_INSTALL: '0' and GOTOOLCHAIN: local`);
     for (const [id, job] of Object.entries(workflow.jobs)) {
-      if (job['runs-on'] !== 'ubuntu-24.04') violations.push(`${file} ${id}: runs-on ${job['runs-on']}`);
+      if (job['runs-on'] !== 'ubuntu-24.04') violations.push(`${file} ${id}: runs-on ${String(job['runs-on'])}`);
     }
     for (const line of text.split('\n').filter(entry => /^\s*(?:- )?uses:/.test(entry))) {
       if (!/uses: [\w.-]+\/[\w.-]+@[0-9a-f]{40} # v?\d+\.\d+\.\d+$/.test(line)) violations.push(`${file}: ${line.trim()} is not named by the commit SHA of a release with the release in a comment`);
@@ -198,7 +230,7 @@ test('every workflow runs on ubuntu-24.04 with actions named by commit SHA and n
 /** The PHP minors of the matrix of a job whose setup-php step reads `${{ matrix.php }}`. */
 function phpMatrix(job: WorkflowJob): string[] {
   const php = job.strategy?.matrix?.php;
-  assert.ok(php, 'a job whose setup-php reads ${{ matrix.php }} declares strategy.matrix.php');
+  assert.ok(Array.isArray(php), 'a job whose setup-php reads ${{ matrix.php }} declares strategy.matrix.php');
   return php.map(String);
 }
 
@@ -228,7 +260,7 @@ test('every CI job sets up the recorded toolchains and checks the tools it set u
           tools.push('php');
           const versions = step.with?.['php-version'] === '${{ matrix.php }}' ? phpMatrix(job) : [String(step.with?.['php-version'])];
           for (const version of versions) if (!minors.includes(version)) violations.push(`${file} ${id}: PHP ${version} is not a minor of config/toolchain.json`);
-          if (step.with?.tools !== 'none') violations.push(`${file} ${id}: setup-php installs ${step.with?.tools}; it installs PHP alone, and make install-tools installs the Composer of mise.toml`);
+          if (step.with?.tools !== 'none') violations.push(`${file} ${id}: setup-php installs ${String(step.with?.tools)}; it installs PHP alone, and make install-tools installs the Composer of mise.toml`);
         }
         if (/^make install-tools$/m.test(run)) tools.push(...INSTALL_TOOLS);
         if (/rust-toolchain|dtolnay/.test(uses)) violations.push(`${file} ${id}: ${uses} selects a Rust toolchain; run rustup toolchain install --no-self-update`);
@@ -272,10 +304,10 @@ test('the declared contract commands run in a shell without login files', async 
 // make toolchain-check requires require.php of every composer.json to be >= the PHP pin of kit, and config/toolchain.json php
 // to be that pin; every job that runs the test suite of a PHP package runs it on each of those minors.
 test('every job that tests a PHP package runs on each PHP minor of config/toolchain.json', async () => {
-  const workflow = parse(await readFile(path.join(repository, '.github/workflows/ci.yml'), 'utf8')) as Workflow;
+  const workflow = workflowOf(await readFile(path.join(repository, '.github/workflows/ci.yml'), 'utf8'), 'ci.yml');
   const minors = (await recordedToolchain(repository)).php;
   const jobs = Object.entries(workflow.jobs).filter(([, job]) => /composer --working-dir=packages\/[^ ]+ test\b|make (?:ci-targets TARGETS="[^"]*\b)?test-(?:native|php-api|validator-php)(?=[\s"])/
     .test((job.steps ?? []).map(step => stepText(step, 'run')).join('\n')));
   assert.ok(jobs.length > 0, 'no CI job tests a PHP package');
-  for (const [name, job] of jobs) assert.deepEqual(job.strategy?.matrix?.php?.map(String), minors, `${name} tests a PHP package`);
+  for (const [name, job] of jobs) assert.deepEqual(phpMatrix(job), minors, `${name} tests a PHP package`);
 });

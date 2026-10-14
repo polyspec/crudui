@@ -7,6 +7,8 @@ import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
+import { readManifest, script } from '../json.mts';
+
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const read = (file: string): string => readFileSync(path.join(ROOT, file), 'utf8');
 
@@ -33,7 +35,7 @@ test('every shared output is written to a path of its run and renamed into place
 test('every package build writes into the staging directory that package-dist names', () => {
   const violations: string[] = [];
   for (const name of ['validator/ts', 'generator/ts', 'html', 'react', 'vue', 'svelte', 'form-binding']) {
-    const build = JSON.parse(read(`packages/${name}/package.json`)).scripts.build;
+    const build = script(readManifest(path.join(ROOT, `packages/${name}/package.json`)), 'build');
     const steps = build.slice(build.indexOf("'") + 1, build.lastIndexOf("'")).split(' && ');
     for (const step of steps) if (!step.includes('"$CRUDUI_DIST"')) violations.push(`${name}: \`${step}\` does not write into "$CRUDUI_DIST"`);
   }

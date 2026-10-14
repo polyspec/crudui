@@ -8,8 +8,9 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { checkedFiles } from '@polyspec/kit/tracked-files';
-import { parseCLIResponse, OperationError, equalOrdered, equalModels, equalState } from './protocol.mts';
-import type { ErrorRecord, FormResponse, FormState, JsonObject, ProtocolRequest, ResponseOf } from './protocol.mts';
+import { parseCLIResponse, OperationError, equalOrdered, equalModels, equalState, validateError, validateForm, validateResponse } from './protocol.mts';
+import type { ErrorRecord, FormResponse, FormState, JsonObject, Operation, ProtocolRequest, ResponseMap } from './protocol.mts';
+import { readJson, type JTDSchemaType } from '../json.mts';
 import type * as javascript from './javascript.mts';
 import type { NodeVM, WidgetModel } from '@polyspec/crudui-generator-core';
 import { formScenarios, numberCases, companySpec, companyData, row, imageCase, urlCase, dateCases, dateFormSpec, dateFormData, dateListSpec } from './cases.mts';
@@ -93,20 +94,52 @@ interface Thrown {
 /** A declared fixture error. */
 interface ExpectedError { code: string; message?: string }
 interface FormRenderCase { name: string; spec: JsonObject; options?: JsonObject; data?: JsonObject; expectError?: ExpectedError }
-interface CompleteCase { name: string; spec: JsonObject; data: JsonObject; options: JsonObject; render: JsonObject; expected_html: string; expectError?: ExpectedError }
-interface ListCase { name: string; spec: JsonObject; rows?: JsonObject[]; options?: JsonObject; expectError?: ExpectedError }
-interface DetailCase { name: string; spec: JsonObject; record?: JsonObject; options?: JsonObject; expectError?: ExpectedError }
+// A case that the library rejects holds a member of another JSON type: those members are unknown.
+interface CompleteCase { name: string; spec: JsonObject; data: JsonObject; options: JsonObject; render?: unknown; expected_html?: string; expectError?: ExpectedError }
+interface ListCase { name: string; spec?: unknown; rows?: unknown; options?: JsonObject; expectError?: ExpectedError }
+interface DetailCase { name: string; spec?: unknown; record?: unknown; options?: JsonObject; expectError?: ExpectedError }
 interface TextCase {
   name: string;
   spec?: JsonObject;
   template?: unknown;
   data?: JsonObject;
   options?: JsonObject;
-  action?: { method: string; args: unknown[] };
-  rows?: unknown[];
+  /** The action of a form request, { method, args }, as the fixture writes it. */
+  action?: unknown;
+  rows?: unknown;
   record?: unknown;
-  expect: 'pass' | ErrorRecord;
+  /** 'pass' or the ErrorRecord of the rejection. */
+  expect: unknown;
 }
+const expectedErrorSchema: JTDSchemaType<ExpectedError> = { properties: { code: { type: 'string' } }, optionalProperties: { message: { type: 'string' } } };
+const formCaseSchema: JTDSchemaType<FormRenderCase> = {
+  properties: { name: { type: 'string' }, spec: { values: {} } },
+  optionalProperties: { options: { values: {} }, data: { values: {} }, expectError: expectedErrorSchema },
+  additionalProperties: true,
+};
+const completeCaseSchema: JTDSchemaType<CompleteCase> = {
+  properties: { name: { type: 'string' }, spec: { values: {} }, data: { values: {} }, options: { values: {} } },
+  optionalProperties: { render: {}, expected_html: { type: 'string' }, expectError: expectedErrorSchema },
+  additionalProperties: true,
+};
+const listCaseSchema: JTDSchemaType<ListCase> = {
+  properties: { name: { type: 'string' } },
+  optionalProperties: { spec: {}, rows: {}, options: { values: {} }, expectError: expectedErrorSchema },
+  additionalProperties: true,
+};
+const detailCaseSchema: JTDSchemaType<DetailCase> = {
+  properties: { name: { type: 'string' } },
+  optionalProperties: { spec: {}, record: {}, options: { values: {} }, expectError: expectedErrorSchema },
+  additionalProperties: true,
+};
+const textCaseSchema: JTDSchemaType<TextCase> = {
+  properties: { name: { type: 'string' } },
+  optionalProperties: {
+    expect: {}, spec: { values: {} }, template: {}, data: { values: {} }, options: { values: {} },
+    action: {}, rows: {}, record: {},
+  },
+  additionalProperties: true,
+};
 /** A change of one compiled template with one field: the template, its field list and its field. */
 type TemplateChange = (value: JsonObject, fields: unknown[], field: JsonObject) => void;
 
@@ -233,9 +266,8 @@ async function inputManifest(): Promise<InputManifest> {
     try { entries[extension] = digest(await readFile(extension)); }
     catch (caught) {
       // readFile rejects with a system error.
-      const error = caught as NodeJS.ErrnoException;
-      if (error.code !== 'ENOENT') throw error;
-      entries[extension] = { unavailable: error.code };
+      if (!(caught instanceof Error) || !('code' in caught) || caught.code !== 'ENOENT') throw caught;
+      entries[extension] = { unavailable: caught.code };
     }
   }
   return { ...(sourceCommit ? { commit: sourceCommit } : {}), digest: digest(entries), files: entries };
@@ -285,14 +317,24 @@ const targets: Target[] = [
   } },
 ];
 
-async function invoke<const R extends InvokeRequest>(target: Target, request: R, timezone?: string): Promise<ResponseOf<R>> {
+async function invoke<O extends Operation>(target: Target, request: InvokeRequest & { readonly operation: O }, timezone?: string): Promise<ResponseMap[O]>;
+async function invoke(target: Target, request: InvokeRequest, timezone?: string): Promise<unknown>;
+async function invoke(target: Target, request: InvokeRequest, timezone?: string): Promise<unknown> {
   const args = timezone && target.name.startsWith('php') ? ['-d', `date.timezone=${timezone}`, ...target.args] : target.args;
   const result = await execute(target.command, args, { input: JSON.stringify(request), env: timezone ? { ...process.env, TZ: timezone } : process.env });
   if (result.stderr) report.checks.push({ target: target.name, case: request.operation, diagnostic: result.stderr, passed: false });
   return parseCLIResponse(request, result);
 }
 // The JavaScript dispatcher is the reference of the protocol: its value is the response of the operation of the request.
-function oracle<const R>(request: R): ResponseOf<R> { return jsonValue(dispatch(jsonValue(request))) as ResponseOf<R>; }
+// Its response is checked as the response of every other target is.
+function reference(request: unknown): unknown {
+  const value = jsonValue(dispatch(jsonValue(request)));
+  return object(request) ? validateResponse(request, value) : value;
+}
+/** The reference response of a request that names its operation, as the type of that operation. */
+function oracle<O extends Operation>(request: InvokeRequest & { readonly operation: O }): ResponseMap[O] {
+  return validateResponse(request, jsonValue(dispatch(jsonValue(request))));
+}
 
 /**
  * Conformance evidence of one check: the model features a target proves as its own runtime, and
@@ -346,8 +388,7 @@ function check(target: Target, name: string, operation: () => Promise<JsonObject
 }
 async function runQueue(): Promise<void> {
   let next = 0;
-  // next < queue.length proves that the job exists.
-  const worker = async (): Promise<void> => { while (next < queue.length) await queue[next++]!(); };
+  const worker = async (): Promise<void> => { for (let job = queue[next++]; job !== undefined; job = queue[next++]) await job(); };
   await Promise.all(Array.from({ length: Math.min(CONCURRENCY, queue.length) }, worker));
 }
 function compareError(actual: ErrorRecord | null | undefined, expected: ErrorRecord): asserts actual is ErrorRecord {
@@ -360,9 +401,9 @@ function compareForm(actual: FormResponse, expected: FormResponse, initial: Form
   equalState(actual, expected);
   assert.equal(actual.steps.length, expected.steps.length);
   let previous = stateOnly(initial);
-  for (let index = 0; index < actual.steps.length; index++) {
-    // The lengths are equal and index < actual.steps.length.
-    const a = actual.steps[index]!, e = expected.steps[index]!;
+  for (const [index, a] of actual.steps.entries()) {
+    const e = expected.steps[index];
+    assert.ok(e, `steps[${index}] is missing from the reference`);
     equalState(a, e);
     equalOrdered(a.result, e.result, `steps[${index}].result`);
     if (e.error === null) assert.equal(a.error, null);
@@ -378,11 +419,11 @@ progress(`inputs: ${Object.keys(report.inputs.start.files).length} files hashed 
 ({ dispatch, errorRecord } = await import('./javascript.mts'));
 
 // The tracked fixture files hold cases of these shapes.
-const formCases = JSON.parse(await readFile(path.join(ROOT, 'tests/fixtures/form-render/cases.json'), 'utf8')) as FormRenderCase[];
-const completeCases = JSON.parse(await readFile(path.join(ROOT, 'tests/fixtures/form-complete/cases.json'), 'utf8')) as CompleteCase[];
+const formCases = readJson<FormRenderCase[]>(path.join(ROOT, 'tests/fixtures/form-render/cases.json'), { elements: formCaseSchema });
+const completeCases = readJson<CompleteCase[]>(path.join(ROOT, 'tests/fixtures/form-complete/cases.json'), { elements: completeCaseSchema });
 // Specifications written with array-index member names out of numeric order.
 const orderTemplateText = (() => {
-  const template = JSON.stringify(jsonValue(dispatch({ operation: 'compileForm', spec: { type: 'group', properties: { s: { type: 'select', label: 'S', items: { x: 'Ex', 1: 'One', 2: 'Two' } } } } })));
+  const template = JSON.stringify(jsonValue(dispatch({ operation: 'compileForm' as const, spec: { type: 'group', properties: { s: { type: 'select', label: 'S', items: { x: 'Ex', 1: 'One', 2: 'Two' } } } } })));
   const written = '"items":{"2":"Two","x":"Ex","1":"One"}';
   const parsedOrder = '"items":{"1":"One","2":"Two","x":"Ex"}';
   assert.equal(template.split(parsedOrder).length, 2, 'The member order template must hold one items map');
@@ -399,7 +440,7 @@ const memberOrderRequests: Array<[string, string]> = [
 ];
 // Requests written as standard input text, checked at the process boundary of every program.
 const requestCases = ((): Array<[string, string]> => {
-  const compiled = (spec: JsonObject): string => JSON.stringify(jsonValue(dispatch({ operation: 'compileForm', spec })));
+  const compiled = (spec: JsonObject): string => JSON.stringify(jsonValue(dispatch({ operation: 'compileForm' as const, spec })));
   const empty = compiled({ type: 'group', properties: {} });
   const named = compiled({ type: 'group', properties: { name: { type: 'text' } } });
   const rows = compiled({ type: 'group', properties: { rows: { type: 'text', multiple: true } } });
@@ -408,12 +449,14 @@ const requestCases = ((): Array<[string, string]> => {
   const bareTemplate = '{"kind":"crudui/form-template","fields":[],"buttons":[]}';
   const list = '{"columns":{"v":{"field":"v","label":"V"}}}';
   const detail = '{"fields":{"v":{"field":"v"}}}';
-  const evaluated = dispatch({ operation: 'bindButtons', template: JSON.parse(buttons), data: { name: 'a' }, options: { language: 'en' } });
+  const evaluated = dispatch({ operation: 'bindButtons' as const, template: jsonValue(JSON.parse(buttons)), data: { name: 'a' }, options: { language: 'en' } });
   // A template that is not exactly the compiled shape (docs/spec/form-runtime.md) is rejected by every operation.
   const reshaped = (change: TemplateChange): string => {
     // named is the compiled template of one field.
-    const value = JSON.parse(named) as JsonObject & { fields: [JsonObject] };
-    change(value, value.fields, value.fields[0]);
+    const value = record(jsonValue(JSON.parse(named)), 'template');
+    const fields = value['fields'];
+    assert.ok(Array.isArray(fields), 'the template has its fields');
+    change(value, fields, record(fields[0], 'fields[0]'));
     return JSON.stringify(value);
   };
   const templateShapes = Object.entries<TemplateChange>({
@@ -466,7 +509,7 @@ const requestCases = ((): Array<[string, string]> => {
     ['row-actions-limit', `{"operation":"form","template":${limited},"data":{"rows":{"first":"kept"}},"actions":[{"method":"addRow","args":["rows",{"key":"second"}]},{"method":"copyRow","args":["rows","first"]},{"method":"getValue","args":["rows.first"]}]}`],
     ['bind-buttons-declared', `{"operation":"bindButtons","template":${buttons},"data":{"name":"a"},"options":{"language":"en"}}`],
     ['bind-buttons-default', `{"operation":"bindButtons","template":${empty}}`],
-    ['buttons-html-declared', JSON.stringify({ operation: 'formButtonsHtml', buttons: evaluated })],
+    ['buttons-html-declared', JSON.stringify({ operation: 'formButtonsHtml' as const, buttons: evaluated })],
     ['buttons-html-missing', '{"operation":"formButtonsHtml"}'],
     ['buttons-html-null', '{"operation":"formButtonsHtml","buttons":null}'],
     ['buttons-html-number', '{"operation":"formButtonsHtml","buttons":1}'],
@@ -499,22 +542,22 @@ const requestCases = ((): Array<[string, string]> => {
 const textFamilies: Array<{ feature: string; fixture: string; cases: TextCase[] }> = [];
 for (const feature of ['compileForm', 'bindForm', 'createForm', 'buildList', 'buildDetail']) {
   const fixture = `tests/fixtures/text-validity/${feature}/cases.json`;
-  textFamilies.push({ feature, fixture, cases: JSON.parse(await readFile(path.join(ROOT, fixture), 'utf8')) as TextCase[] });
+  textFamilies.push({ feature, fixture, cases: readJson<TextCase[]>(path.join(ROOT, fixture), { elements: textCaseSchema }) });
 }
 function textRequest(feature: string, fixture: TextCase): InvokeRequest {
   const options = fixture.options ?? {};
   // A case gives its template as JSON text, or the specification it is compiled from.
-  const template = () => fixture.template ?? oracle({ operation: 'compileForm', spec: fixture.spec });
+  const template = () => fixture.template ?? oracle({ operation: 'compileForm' as const, spec: fixture.spec });
   switch (feature) {
-    case 'compileForm': return { operation: 'compileForm', spec: fixture.spec, options };
-    case 'bindForm': return { operation: 'bindForm', template: template(), data: fixture.data ?? {}, options };
-    case 'createForm': return { operation: 'form', template: template(), data: fixture.data ?? {}, options, actions: fixture.action ? [fixture.action] : [] };
-    case 'buildList': return { operation: 'buildList', spec: fixture.spec, rows: fixture.rows ?? [], options };
-    default: return { operation: 'buildDetail', spec: fixture.spec, record: fixture.record ?? {}, options };
+    case 'compileForm': return { operation: 'compileForm' as const, spec: fixture.spec, options };
+    case 'bindForm': return { operation: 'bindForm' as const, template: template(), data: fixture.data ?? {}, options };
+    case 'createForm': return { operation: 'form' as const, template: template(), data: fixture.data ?? {}, options, actions: fixture.action ? [fixture.action] : [] };
+    case 'buildList': return { operation: 'buildList' as const, spec: fixture.spec, rows: fixture.rows ?? [], options };
+    default: return { operation: 'buildDetail' as const, spec: fixture.spec, record: fixture.record ?? {}, options };
   }
 }
-const listCases = JSON.parse(await readFile(path.join(ROOT, 'tests/fixtures/list-render/cases.json'), 'utf8')) as ListCase[];
-const detailCases = JSON.parse(await readFile(path.join(ROOT, 'tests/fixtures/detail-render/cases.json'), 'utf8')) as DetailCase[];
+const listCases = readJson<ListCase[]>(path.join(ROOT, 'tests/fixtures/list-render/cases.json'), { elements: listCaseSchema });
+const detailCases = readJson<DetailCase[]>(path.join(ROOT, 'tests/fixtures/detail-render/cases.json'), { elements: detailCaseSchema });
 assert.equal(formCases.length, 188, 'The form fixture inventory changed; review coverage before changing this assertion');
 assert.equal(listCases.length, 157, 'The list fixture inventory changed; review coverage before changing this assertion');
 assert.equal(detailCases.length, 62, 'The detail fixture inventory changed; review coverage before changing this assertion');
@@ -559,10 +602,10 @@ for (const target of runTargets) {
 
 for (const target of available) {
   for (const fixture of formCases) check(target, `form-fixture:${fixture.name}`, async () => {
-    const compileRequest = { operation: 'compileForm', spec: fixture.spec, options: fixture.options ?? {} };
+    const compileRequest = { operation: 'compileForm' as const, spec: fixture.spec, options: fixture.options ?? {} };
     const bindingOptions = Object.fromEntries(Object.entries(fixture.options ?? {}).filter(([key]) => ['idPrefix', 'language', 'keyPrefix', 'unsupported'].includes(key)));
     let expectedTemplate, expectedFields, expectedError;
-    try { expectedTemplate = oracle(compileRequest); expectedFields = oracle({ operation: 'bindForm', template: expectedTemplate, data: (Object.hasOwn(fixture, 'data') ? fixture.data : {}), options: bindingOptions }); }
+    try { expectedTemplate = oracle(compileRequest); expectedFields = oracle({ operation: 'bindForm' as const, template: expectedTemplate, data: (Object.hasOwn(fixture, 'data') ? fixture.data : {}), options: bindingOptions }); }
     catch (error) { expectedError = errorRecord(error); }
     if (fixture.expectError) {
       assert.equal(expectedError?.code, fixture.expectError.code, 'JavaScript does not meet declared fixture error expectation');
@@ -572,15 +615,15 @@ for (const target of available) {
     let actualTemplate, actualFields, actualError;
     try {
       actualTemplate = await invoke(target, compileRequest);
-      actualFields = await invoke(target, { operation: 'bindForm', template: actualTemplate, data: (Object.hasOwn(fixture, 'data') ? fixture.data : {}), options: bindingOptions });
+      actualFields = await invoke(target, { operation: 'bindForm' as const, template: actualTemplate, data: (Object.hasOwn(fixture, 'data') ? fixture.data : {}), options: bindingOptions });
     } catch (error) { if (!(error instanceof OperationError)) throw error; actualError = error; }
     if (expectedError) { compareError(actualError, expectedError); return { errorCode: actualError.code }; }
     assert.equal(actualError, undefined);
     equalOrdered(actualTemplate, expectedTemplate, '$.template');
     equalModels(actualFields, expectedFields);
-    const foreignFields = await invoke(target, { operation: 'bindForm', template: expectedTemplate, data: (Object.hasOwn(fixture, 'data') ? fixture.data : {}), options: bindingOptions });
+    const foreignFields = await invoke(target, { operation: 'bindForm' as const, template: expectedTemplate, data: (Object.hasOwn(fixture, 'data') ? fixture.data : {}), options: bindingOptions });
     equalModels(foreignFields, expectedFields);
-    equalModels(oracle({ operation: 'bindForm', template: actualTemplate, data: (Object.hasOwn(fixture, 'data') ? fixture.data : {}), options: bindingOptions }), expectedFields);
+    equalModels(oracle({ operation: 'bindForm' as const, template: actualTemplate, data: (Object.hasOwn(fixture, 'data') ? fixture.data : {}), options: bindingOptions }), expectedFields);
     // Server HTML is byte-identical: the form a target renders equals the reference bytes. A row
     // key the instance generates is random, so each distinct generated key becomes its position.
     const formRequest = { operation: 'form' as const, template: expectedTemplate, data: (Object.hasOwn(fixture, 'data') ? fixture.data : {}), options: bindingOptions };
@@ -591,10 +634,10 @@ for (const target of available) {
     const actualHtml = (await invoke(target, formRequest)).html;
     assert.equal(generatedKeys(actualHtml), generatedKeys(oracle(formRequest).html), 'Raw form HTML differs');
     // The form buttons of the record, as a model and as the footer markup built from that model.
-    const buttonsRequest = { operation: 'bindButtons', template: expectedTemplate, data: formRequest.data, options: { language: bindingOptions.language ?? 'ko' } };
+    const buttonsRequest = { operation: 'bindButtons' as const, template: expectedTemplate, data: formRequest.data, options: { language: bindingOptions.language ?? 'ko' } };
     const buttons = await invoke(target, buttonsRequest);
     equalOrdered(buttons, oracle(buttonsRequest), '$.buttons');
-    const buttonsHtmlRequest = { operation: 'formButtonsHtml', buttons };
+    const buttonsHtmlRequest = { operation: 'formButtonsHtml' as const, buttons };
     assert.equal(await invoke(target, buttonsHtmlRequest), oracle(buttonsHtmlRequest), 'Raw button HTML differs');
     return { template: digest(actualTemplate), fields: digest(actualFields), html: digest(actualHtml), interoperability: true };
   }, { fixture: 'tests/fixtures/form-render/cases.json', case: fixture.name, model: ['compileForm', 'bindForm', 'bindButtons', 'formButtonsHtml'], html: ['renderForm'] });
@@ -602,8 +645,8 @@ for (const target of available) {
   // The complete form (docs/spec/form-runtime.md, "Complete form"): the bytes the specification
   // writes, which the reference also writes, or the declared failure.
   for (const fixture of completeCases) check(target, `form-complete:${fixture.name}`, async () => {
-    const template = oracle({ operation: 'compileForm', spec: fixture.spec });
-    const request = { operation: 'renderForm', template, data: fixture.data, options: fixture.options, render: fixture.render };
+    const template = oracle({ operation: 'compileForm' as const, spec: fixture.spec });
+    const request = { operation: 'renderForm' as const, template, data: fixture.data, options: fixture.options, render: fixture.render };
     let expected: unknown, expectedError: ErrorRecord | undefined;
     try { expected = oracle(request); } catch (error) { expectedError = errorRecord(error); }
     let actual, actualError;
@@ -656,7 +699,7 @@ for (const target of available) {
 
   check(target, 'build-list-model', async () => {
     const request = {
-      operation: 'buildList',
+      operation: 'buildList' as const,
       spec: {
         columns: {
           name: { field: 'name', label: 'Name', format: { type: 'link', href: '/users/{=jointablename.id}/{=join.join.name}.pdf' } },
@@ -683,7 +726,7 @@ for (const target of available) {
     ['attribute-name', [{ ...button, attrs: { onmouseover: 'x' } }]], ['attribute-value', [{ ...button, attrs: { class: 1 } }]],
   ];
   for (const [name, buttons] of buttonRejections) check(target, `reject-buttons:${name}`, async () => {
-    const request = { operation: 'formButtonsHtml', buttons };
+    const request = { operation: 'formButtonsHtml' as const, buttons };
     let expected: ErrorRecord | undefined;
     try { oracle(request); } catch (error) { expected = errorRecord(error); }
     assert.ok(expected, 'JavaScript accepted invalid buttons');
@@ -700,7 +743,7 @@ for (const target of available) {
     try { request = JSON.parse(text); } catch { parsed = false; }
     let expected: unknown, expectedError: ErrorRecord | undefined;
     if (!parsed) expectedError = { code: 'INVALID_FORM_INPUT', message: 'Request must be valid JSON', at: '' };
-    else try { expected = oracle(request); } catch (caught) { expectedError = errorRecord(caught); }
+    else try { expected = reference(request); } catch (caught) { expectedError = errorRecord(caught); }
     if (name.startsWith('template-') && name !== 'template-declared-members') {
       assert.deepEqual(expectedError, { code: 'INVALID_FORM_INPUT', message: 'Unsupported form template', at: '' }, 'JavaScript does not meet the template shape contract');
     }
@@ -714,13 +757,13 @@ for (const target of available) {
     assert.equal(actualError, undefined, `The request was rejected: ${actualError?.message}`);
     if (body.operation === 'bindForm') equalModels(actual, expected);
     else if (body.operation === 'form') {
-      // parseCLIResponse validated, and the reference returned, the response of a form request.
-      const actualForm = actual as FormResponse, expectedForm = expected as FormResponse;
-      equalState(actualForm, expectedForm);
-      assert.equal(actualForm.steps.length, expectedForm.steps.length);
-      actualForm.steps.forEach((step, index) => {
-        // The step counts are equal (asserted above).
-        const expectedStep = expectedForm.steps[index]!;
+      validateForm(actual, body.actions);
+      validateForm(expected, body.actions);
+      equalState(actual, expected);
+      assert.equal(actual.steps.length, expected.steps.length);
+      actual.steps.forEach((step, index) => {
+        const expectedStep = expected.steps[index];
+        assert.ok(expectedStep, `steps[${index}] is missing from the reference`);
         equalState(step, expectedStep);
         equalOrdered(step.result, expectedStep.result, `steps[${index}].result`);
         if (expectedStep.error === null) assert.equal(step.error, null);
@@ -736,14 +779,20 @@ for (const target of available) {
     const request = textRequest(feature, fixture);
     let actual: unknown, actualError: OperationError | undefined;
     try { actual = await invoke(target, request); } catch (error) { if (!(error instanceof OperationError)) throw error; actualError = error; }
-    // A case with an action is a form request (textRequest), and parseCLIResponse validated its response.
-    const failure = fixture.action && actualError === undefined ? (actual as FormResponse).steps[0]?.error : actualError ?? null;
-    if (fixture.expect === 'pass') {
+    // A case with an action is a form request (textRequest).
+    let failure: ErrorRecord | null | undefined = actualError ?? null;
+    if (fixture.action && actualError === undefined) {
+      validateForm(actual, request.actions);
+      failure = actual.steps[0]?.error;
+    }
+    const expect = fixture.expect;
+    if (expect === 'pass') {
       assert.equal(failure, null, `The input was rejected: ${failure?.message}`);
       return { passed: true };
     }
-    compareError(failure, fixture.expect);
-    return { error: fixture.expect };
+    validateError(expect);
+    compareError(failure, expect);
+    return { error: expect };
   }, { fixture: file, case: fixture.name, model: [feature] });
   check(target, 'text:request-not-utf8', async () => {
     const result = await execute(target.command, target.args, { input: Buffer.from([0x7b, 0x22, 0x6f, 0x22, 0x3a, 0x22, 0xed, 0xa0, 0x80, 0x22, 0x7d]) });
@@ -874,9 +923,9 @@ for (const target of available) {
   }, { fixture: 'tests/native-generators/cases.mts', case: scenario.name, model: ['createForm'] });
 
   check(target, 'instance:nested-copy-fresh-keys-and-original-values', async () => {
-    const template = await invoke(target, { operation: 'compileForm', spec: companySpec, options: { keyPrefix: 'form' } });
-    const before = await invoke(target, { operation: 'form', template, data: companyData, options: { language: 'en' } });
-    const actual = await invoke(target, { operation: 'form', template, data: companyData, options: { language: 'en' }, actions: [{ method: 'copyRow', args: ['companies', row(5)] }] });
+    const template = await invoke(target, { operation: 'compileForm' as const, spec: companySpec, options: { keyPrefix: 'form' } });
+    const before = await invoke(target, { operation: 'form' as const, template, data: companyData, options: { language: 'en' } });
+    const actual = await invoke(target, { operation: 'form' as const, template, data: companyData, options: { language: 'en' }, actions: [{ method: 'copyRow', args: ['companies', row(5)] }] });
     assert.equal(actual.steps[0]?.error, null);
     const key = actual.steps[0]?.result;
     assert.ok(typeof key === 'string', 'copyRow must return the new row key');
@@ -893,14 +942,15 @@ for (const target of available) {
     for (const [index, copiedStore] of copiedStores.entries()) {
       assert.match(copiedStore, /^__[0-9a-f]{13}__$/);
       assert.ok(!Object.hasOwn(originalStoreRows, copiedStore));
-      // The store counts are equal (asserted above).
-      equalOrdered(copiedStoreRows[copiedStore], originalStoreRows[originalStores[index]!]);
+      const originalStore = originalStores[index];
+      assert.ok(originalStore !== undefined, `the original store ${index} is missing`);
+      equalOrdered(copiedStoreRows[copiedStore], originalStoreRows[originalStore]);
     }
-    const expected = oracle({ operation: 'form', template, data: actual.data, options: { language: 'en' } });
+    const expected = oracle({ operation: 'form' as const, template, data: actual.data, options: { language: 'en' } });
     equalOrdered(actual.data, expected.data);
     equalModels(actual.fields, expected.fields);
     assert.equal(actual.html, expected.html, 'HTML from the actual generated keys differs from JavaScript');
-    const injected = await invoke(target, { operation: 'form', template, data: companyData, options: { language: 'en' }, actions: [{ method: 'setData', args: [actual.data] }] });
+    const injected = await invoke(target, { operation: 'form' as const, template, data: companyData, options: { language: 'en' }, actions: [{ method: 'setData', args: [actual.data] }] });
     equalOrdered(injected.data, actual.data);
     equalModels(injected.fields, actual.fields);
     assert.equal(injected.html, actual.html, 'Copied data injection changes raw HTML');
@@ -909,20 +959,20 @@ for (const target of available) {
 
   check(target, 'instance:missing-repeated-data-creates-one-row', async () => {
     const spec = { type: 'group', properties: { tags: { type: 'text', multiple: true, default: 'new' } } };
-    const template = await invoke(target, { operation: 'compileForm', spec });
-    const actual = await invoke(target, { operation: 'form', template, data: {} });
+    const template = await invoke(target, { operation: 'compileForm' as const, spec });
+    const actual = await invoke(target, { operation: 'form' as const, template, data: {} });
     const tags = record(actual.data.tags, 'tags');
     const keys = Object.keys(tags);
-    // The length assertion proves the first key.
-    assert.equal(keys.length, 1); assert.match(keys[0]!, /^__[0-9a-f]{13}__$/); assert.equal(tags[keys[0]!], 'new');
-    const expected = oracle({ operation: 'form', template, data: actual.data });
+    const [key] = keys;
+    assert.equal(keys.length, 1); assert.ok(key !== undefined); assert.match(key, /^__[0-9a-f]{13}__$/); assert.equal(tags[key], 'new');
+    const expected = oracle({ operation: 'form' as const, template, data: actual.data });
     equalState(actual, expected);
     return { actual, generatedKeysPreserved: true };
   });
 
   const dataRejections: Array<[string, unknown]> = [['null-root', null], ['array-root', []], ['null-collection', { companies: null }], ['array-collection', { companies: [] }], ['numeric-row-key', { companies: { 5: { name: 'Five', stores: {} } } }]];
   for (const [name, data] of dataRejections) check(target, `reject:${name}`, async () => {
-    const request = { operation: 'form', template: oracle({ operation: 'compileForm', spec: companySpec }), data };
+    const request = { operation: 'form' as const, template: oracle({ operation: 'compileForm' as const, spec: companySpec }), data };
     let expected: ErrorRecord | undefined;
     try { oracle(request); } catch (caught) { expected = errorRecord(caught); }
     assert.equal(expected?.code, 'INVALID_FORM_INPUT', 'JavaScript accepted invalid form input');
@@ -974,7 +1024,7 @@ for (const target of available) {
     ['behavior-unknown-key', { type: 'text', behavior: { onclick: 'go()', onsubmit: 'send()' } }, 'Invalid behavior.onsubmit at rows: unknown key'],
   ];
   for (const [name, field, message] of declarationRejections) check(target, `compile-reject:${name}`, async () => {
-    const request = { operation: 'compileForm', spec: { type: 'group', properties: { rows: field } } };
+    const request = { operation: 'compileForm' as const, spec: { type: 'group', properties: { rows: field } } };
     let expected: ErrorRecord | undefined;
     try { oracle(request); } catch (caught) { expected = errorRecord(caught); }
     assert.deepEqual(expected, { code: 'INVALID_FORM_INPUT', message, at: '' }, 'JavaScript does not meet the declaration rejection contract');
@@ -987,10 +1037,9 @@ for (const target of available) {
   // Member order: requests are sent as JSON text, so array-index member names arrive in the order they were written
   // (a JavaScript object would already hold them first). Order is judged where it survives parsing: arrays, HTML and messages.
   for (const [name, text] of memberOrderRequests) check(target, `member-order:${name}`, async () => {
-    // Each member order request names its operation.
-    const request = JSON.parse(text) as InvokeRequest;
+    const request = record(JSON.parse(text), 'member order request');
     let expected: unknown, expectedError: ErrorRecord | undefined;
-    try { expected = oracle(request); } catch (caught) { expectedError = errorRecord(caught); }
+    try { expected = reference(request); } catch (caught) { expectedError = errorRecord(caught); }
     let actual: unknown, actualError: OperationError | undefined;
     try {
       const result = await execute(target.command, target.args, { input: text, env: process.env });
@@ -1012,8 +1061,8 @@ for (const target of available) {
     ['language-unsupported', { language: 'fr', idPrefix: null }, 'Unsupported language: fr'],
   ];
   // The operation is the outer loop so each check group runs as one contiguous group.
-  for (const operation of ['bindForm', 'form']) for (const [name, options, message] of optionRejections) check(target, `${operation}-option-reject:${name}`, async () => {
-    const request = { operation, template: oracle({ operation: 'compileForm', spec: companySpec }), data: companyData, options };
+  for (const operation of ['bindForm', 'form'] as const) for (const [name, options, message] of optionRejections) check(target, `${operation}-option-reject:${name}`, async () => {
+    const request = { operation, template: oracle({ operation: 'compileForm' as const, spec: companySpec }), data: companyData, options };
     let expected: ErrorRecord | undefined;
     try { oracle(request); } catch (caught) { expected = errorRecord(caught); }
     assert.deepEqual(expected, { code: 'INVALID_FORM_INPUT', message, at: '' }, 'JavaScript does not meet the option rejection contract');
@@ -1023,8 +1072,8 @@ for (const target of available) {
     compareError(error, expected);
     return { error: expected };
   });
-  for (const operation of ['bindForm', 'form']) for (const [name, spec, data, message] of shapeRejections) check(target, `${operation}-shape-reject:${name}`, async () => {
-    const request = { operation, template: oracle({ operation: 'compileForm', spec }), data };
+  for (const operation of ['bindForm', 'form'] as const) for (const [name, spec, data, message] of shapeRejections) check(target, `${operation}-shape-reject:${name}`, async () => {
+    const request = { operation, template: oracle({ operation: 'compileForm' as const, spec }), data };
     let expected: ErrorRecord | undefined;
     try { oracle(request); } catch (caught) { expected = errorRecord(caught); }
     assert.deepEqual(expected, { code: 'INVALID_FORM_INPUT', message, at: '' }, 'JavaScript does not meet the data shape rejection contract');
@@ -1036,7 +1085,7 @@ for (const target of available) {
   });
 
   for (const timezone of ['UTC', 'Asia/Seoul', 'America/Los_Angeles']) check(target, `dates:${timezone}`, async () => {
-    const template = await invoke(target, { operation: 'compileForm', spec: dateFormSpec }, timezone);
+    const template = await invoke(target, { operation: 'compileForm' as const, spec: dateFormSpec }, timezone);
     const request = { operation: 'form' as const, template, data: dateFormData, options: { idPrefix: 'utc-dates' } };
     const initial = await invoke(target, request, timezone), expected = oracle(request);
     equalState(initial, expected);

@@ -7,6 +7,7 @@ import test from 'node:test';
 
 import { orderedJsonCheckout, orderedJsonRepository, orderedJsonTag, orderedJsonVersion } from '../../examples/form-comparison/src/ordered-json-source.mjs';
 import { makeTargets, nodeTestArguments } from '../../scripts/test-commands.mts';
+import { checked, readJson, type JTDSchemaType } from '../json.mts';
 
 const root = path.resolve(import.meta.dirname, '../..');
 const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
@@ -15,7 +16,7 @@ const git = process.platform === 'win32' ? 'git.exe' : 'git';
 /** The fields of a package.json that the checks read. */
 interface PackageManifest {
   name?: string;
-  workspaces: string[];
+  workspaces?: string[];
   dependencies?: Record<string, string>;
   devDependencies?: Record<string, string>;
   optionalDependencies?: Record<string, string>;
@@ -26,16 +27,70 @@ interface PackageManifest {
 interface PackageLock { packages?: Record<string, { link?: boolean; resolved?: string; integrity?: string }> }
 /** The JSON report of `npm ls --json`. */
 interface NpmReport { problems?: string[]; error?: { summary?: string } }
-/** The fields of a composer.json that the checks read. */
+/** The fields of a composer.json that the checks read; a repository that disables packagist.org has no type. */
 interface ComposerManifest {
+  name?: string;
   type?: string;
   version?: string;
-  repositories?: { type: string; url: string; options?: { symlink?: boolean } }[];
+  repositories?: { type?: string; url?: string; options?: { symlink?: boolean } }[];
   require?: Record<string, string>;
 }
 /** The fields of a composer.lock that the checks read. */
 interface ComposerLockPackage { name: string; dist?: { type: string }; 'transport-options'?: { symlink?: boolean } }
 interface ComposerLock { packages?: ComposerLockPackage[]; 'packages-dev'?: ComposerLockPackage[] }
+
+const dependencies: JTDSchemaType<Record<string, string>> = { values: { type: 'string' } };
+const packageSchema: JTDSchemaType<PackageManifest> = {
+  optionalProperties: {
+    name: { type: 'string' }, workspaces: { elements: { type: 'string' } }, dependencies, devDependencies: dependencies,
+    optionalDependencies: dependencies, peerDependencies: dependencies, allowScripts: { values: {} },
+  },
+  additionalProperties: true,
+};
+const lockSchema: JTDSchemaType<PackageLock> = {
+  optionalProperties: {
+    packages: {
+      values: { optionalProperties: { link: { type: 'boolean' }, resolved: { type: 'string' }, integrity: { type: 'string' } }, additionalProperties: true },
+    },
+  },
+  additionalProperties: true,
+};
+const reportSchema: JTDSchemaType<NpmReport> = {
+  optionalProperties: { problems: { elements: { type: 'string' } }, error: { optionalProperties: { summary: { type: 'string' } }, additionalProperties: true } },
+  additionalProperties: true,
+};
+const composerSchema: JTDSchemaType<ComposerManifest> = {
+  optionalProperties: {
+    name: { type: 'string' },
+    type: { type: 'string' },
+    version: { type: 'string' },
+    repositories: {
+      elements: {
+        optionalProperties: {
+          type: { type: 'string' }, url: { type: 'string' },
+          options: { optionalProperties: { symlink: { type: 'boolean' } }, additionalProperties: true },
+        },
+        additionalProperties: true,
+      },
+    },
+    require: dependencies,
+  },
+  additionalProperties: true,
+};
+const composerPackage: JTDSchemaType<ComposerLockPackage> = {
+  properties: { name: { type: 'string' } },
+  optionalProperties: {
+    dist: { properties: { type: { type: 'string' } }, additionalProperties: true },
+    'transport-options': { optionalProperties: { symlink: { type: 'boolean' } }, additionalProperties: true },
+  },
+  additionalProperties: true,
+};
+const composerLockSchema: JTDSchemaType<ComposerLock> = {
+  optionalProperties: { packages: { elements: composerPackage }, 'packages-dev': { elements: composerPackage } },
+  additionalProperties: true,
+};
+/** The package.json in `directory` of the checkout. */
+const packageManifest = (directory: string): PackageManifest => readJson(path.join(root, directory, 'package.json'), packageSchema);
 /** A Makefile target as makeTargets of scripts/test-commands.mts returns it. */
 interface MakeRule { prerequisites: string[]; commands: string[] }
 
@@ -54,9 +109,9 @@ function execute(command: string, args: string[], cwd: string = root) {
 
 function executeNpm(args: string[], cwd: string = root) {
   const result = execute(npm, args, cwd);
-  let report: NpmReport;
+  let parsed: unknown;
   try {
-    report = JSON.parse(result.stdout);
+    parsed = JSON.parse(result.stdout);
   } catch {
     assert.fail([
       `npm ${args.join(' ')} did not return JSON:`,
@@ -64,7 +119,7 @@ function executeNpm(args: string[], cwd: string = root) {
       result.stderr,
     ].join('\n'));
   }
-  return { ...result, report };
+  return { ...result, report: checked(parsed, reportSchema, `npm ${args.join(' ')}`) };
 }
 
 function trackedLockFiles(): string[] {
@@ -80,9 +135,9 @@ function trackedComposerFiles(basename: string): string[] {
 }
 
 function workspacePackageDirectories(): string[] {
-  const manifest: PackageManifest = JSON.parse(readFileSync(path.join(root, 'package.json'), 'utf8'));
+  const manifest = packageManifest('.');
   // The workspaces of package.json are the folders of the packages, one by one (C14.7).
-  return manifest.workspaces.map((workspace) => {
+  return (manifest.workspaces ?? []).map((workspace) => {
     assert.doesNotMatch(workspace, /\*/, `unsupported workspace pattern: ${workspace}`);
     const result = execute(git, ['ls-files', '--', `${workspace}/package.json`]);
     assert.equal(result.status, 0, result.stderr);
@@ -172,7 +227,7 @@ function importedPackageNames(filename: string): string[] {
 function packageApprovalFailures(lockFile: string) {
   const directory = path.dirname(path.join(root, lockFile));
   const manifestFile = path.join(directory, 'package.json');
-  const manifest: PackageManifest = JSON.parse(readFileSync(manifestFile, 'utf8'));
+  const manifest = readJson(manifestFile, packageSchema);
   const approvals = manifest.allowScripts ?? {};
   assert.equal(
     approvals !== null && typeof approvals === 'object' && !Array.isArray(approvals),
@@ -210,9 +265,9 @@ test('workspace packages use the root dependency lock file', () => {
 });
 
 test('native test root imports are declared by the root package', () => {
-  const manifest: PackageManifest = JSON.parse(readFileSync(path.join(root, 'package.json'), 'utf8'));
+  const manifest = packageManifest('.');
   const workspaceNames = workspacePackageDirectories().map((directory) => {
-    const workspace: PackageManifest = JSON.parse(readFileSync(path.join(root, directory, 'package.json'), 'utf8'));
+    const workspace = packageManifest(directory);
     assert.equal(typeof workspace.name, 'string', `${directory}/package.json: missing name`);
     return workspace.name;
   });
@@ -232,7 +287,7 @@ test('native test root imports are declared by the root package', () => {
 });
 
 test('root example imports are declared by the root package', () => {
-  const manifest: PackageManifest = JSON.parse(readFileSync(path.join(root, 'package.json'), 'utf8'));
+  const manifest = packageManifest('.');
   const declared = new Set([
     ...Object.keys(manifest.dependencies ?? {}),
     ...Object.keys(manifest.devDependencies ?? {}),
@@ -255,10 +310,9 @@ test('npm installs only registry packages, linked directories and the kit releas
   // A package comes from the npm registry, from a workspace or from a checkout that a make target installed, such
   // as the OrderedJSON tag checkout that the root package.json links with file:; npm fetches no URL or Git source other
   // than the release asset of @polyspec/kit that the root package.json names.
-  const lock: PackageLock = JSON.parse(readFileSync(path.join(root, 'package-lock.json'), 'utf8'));
+  const lock = readJson(path.join(root, 'package-lock.json'), lockSchema);
   const remote = /^(?:[A-Za-z][A-Za-z0-9+.-]*:\/\/|git(?:\+[a-z]+)?:|github:|gitlab:|bitbucket:|gist:|[^@./][^/:]*\/[^/])/;
-  const manifests = ['.', ...workspacePackageDirectories()].map((directory): [string, PackageManifest] => [
-    directory, JSON.parse(readFileSync(path.join(root, directory, 'package.json'), 'utf8'))]);
+  const manifests = ['.', ...workspacePackageDirectories()].map((directory): [string, PackageManifest] => [directory, packageManifest(directory)]);
   const remoteDependencies = manifests.flatMap(([directory, manifest]) => [
     ...Object.entries(manifest.dependencies ?? {}),
     ...Object.entries(manifest.devDependencies ?? {}),
@@ -283,9 +337,9 @@ test('npm installs only registry packages, linked directories and the kit releas
 
   const configFile = path.join(root, '.npmrc');
   const config = existsSync(configFile) ? readFileSync(configFile, 'utf8') : '';
-  const settings = Object.fromEntries(config.split('\n').flatMap((line) => {
+  const settings = Object.fromEntries(config.split('\n').flatMap((line): [string, string][] => {
     const match = line.match(/^\s*(allow-remote|allow-git)\s*=\s*([^#;\s]+)\s*(?:[#;].*)?$/);
-    return match ? [[match[1], match[2]]] : [];
+    return match ? [[captured(match, 1), captured(match, 2)]] : [];
   }));
   assert.deepEqual(settings, { 'allow-remote': 'none', 'allow-git': 'none' });
 });
@@ -312,7 +366,7 @@ test('npm installs enforce script approvals', () => {
 test('Composer path repositories link the local packages', () => {
   const failures = [];
   for (const filename of trackedComposerFiles('composer.json')) {
-    const manifest: ComposerManifest = JSON.parse(readFileSync(path.join(root, filename), 'utf8'));
+    const manifest = readJson(path.join(root, filename), composerSchema);
     for (const [index, repository] of (manifest.repositories ?? []).entries()) {
       if (repository.type === 'path' && repository.options?.symlink === false) {
         failures.push(`${filename}:repositories[${index}]`);
@@ -320,7 +374,7 @@ test('Composer path repositories link the local packages', () => {
     }
   }
   for (const filename of trackedComposerFiles('composer.lock')) {
-    const lock: ComposerLock = JSON.parse(readFileSync(path.join(root, filename), 'utf8'));
+    const lock = readJson(path.join(root, filename), composerLockSchema);
     for (const dependency of [...(lock.packages ?? []), ...(lock['packages-dev'] ?? [])]) {
       if (dependency.dist?.type === 'path' && dependency['transport-options']?.symlink === false) {
         failures.push(`${filename}:${dependency.name}`);
@@ -333,16 +387,19 @@ test('Composer path repositories link the local packages', () => {
 test('a published Composer package declares its version, and the development root requires that version', () => {
   const failures = [];
   for (const filename of trackedComposerFiles('composer.json')) {
-    const manifest: ComposerManifest = JSON.parse(readFileSync(path.join(root, filename), 'utf8'));
+    const manifest = readJson(path.join(root, filename), composerSchema);
     if (filename.startsWith('packages/') && !filename.includes('/vendor/') && manifest.type === 'library') {
       if (!/^\d+\.\d+\.\d+$/.test(manifest.version ?? '')) failures.push(`${filename}: the published package declares no version X.Y.Z`);
       if (Object.hasOwn(manifest, 'repositories')) failures.push(`${filename}: the published package declares repositories`);
     }
     for (const [index, repository] of (manifest.repositories ?? []).entries()) {
-      if (repository.type !== 'path' || repository.url.includes('*')) continue;
+      if (repository.type !== 'path') continue;
+      assert.ok(repository.url !== undefined, `${filename}:repositories[${index}] is a path repository without url`);
+      if (repository.url.includes('*')) continue;
       const targetFile = path.resolve(path.dirname(path.join(root, filename)),
         repository.url, 'composer.json');
-      const target: { name: string; version?: string } = JSON.parse(readFileSync(targetFile, 'utf8'));
+      const target = readJson(targetFile, composerSchema);
+      assert.ok(target.name !== undefined, `${targetFile} declares no name`);
       if (manifest.require?.[target.name] !== target.version) {
         failures.push(`${filename}:repositories[${index}] requires ${target.name} ${manifest.require?.[target.name]}, which declares ${target.version}`);
       }
@@ -352,8 +409,8 @@ test('a published Composer package declares its version, and the development roo
 });
 
 test('config/dependency-policy.json records the OrderedJSON tag that the comparison installs', () => {
-  const policy = JSON.parse(readFileSync(path.join(root, 'config/dependency-policy.json'), 'utf8'));
-  assert.deepEqual(policy.taggedNpmPackages, [{
+  const policy = readJson<Record<string, unknown>>(path.join(root, 'config/dependency-policy.json'), { values: {} });
+  assert.deepEqual(policy['taggedNpmPackages'], [{
     directory: `${orderedJsonCheckout}/packages/js`, repository: orderedJsonRepository, tag: orderedJsonTag, version: orderedJsonVersion, fix: 'make install-ordered-json',
   }]);
 });

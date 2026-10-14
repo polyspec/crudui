@@ -17,19 +17,20 @@
  *     > tests/fixtures/list-render/cases.json
  */
 
-import {
-  renderList,
-  type RenderListOptions,
-} from '@polyspec/crudui-generator-react/server';
+import { renderList } from '@polyspec/crudui-generator-react/server';
 import { normalizeHtml } from '../form-render/normalize.mts';
 import { withoutPreloadLinks } from '../preload-links.mts';
 
+/**
+ * A list case. Its specification, rows and options are JSON values as every runtime reads them from the fixture; a case
+ * that a runtime rejects holds a value of another JSON type, so they are unknown, and renderList checks them at run time.
+ */
 interface ListFixtureCase {
   name: string;
   note: string;
-  spec: Record<string, unknown>;
-  rows: Array<Record<string, unknown>>;
-  options?: RenderListOptions;
+  spec: unknown;
+  rows: unknown;
+  options?: unknown;
   expected_html?: string;
   expectError?: { code: string; message?: string };
 }
@@ -368,14 +369,14 @@ const SCENARIOS: ListFixtureCase[] = [
     note: `pagination button names come from the ${language === 'fr' ? 'English list messages (fr is not in the table)' : `${language} list messages`}; the buttons show ‹, the page number and ›.`,
     spec: { columns: { name: { field: 'name', label: 'Name' } }, pagination: { per_page: 1 } },
     rows: PEOPLE,
-    options: { language, page: 2, total: 3 } as RenderListOptions,
+    options: { language, page: 2, total: 3 },
   })),
   ...(['ko', 'en', 'ja', 'zh'] as const).map(language => ({
     name: `empty-undeclared-${language}`,
     note: `no rows and no declared empty → the ${language} emptyList interface message.`,
     spec: { columns: { name: { field: 'name', label: 'Name' } } },
     rows: [],
-    options: { language } as RenderListOptions,
+    options: { language },
   })),
   {
     name: 'empty-declared-null',
@@ -530,7 +531,7 @@ const SCENARIOS: ListFixtureCase[] = [
   ] as const).map(([name, note, pagination, message]): ListFixtureCase => ({
     name,
     note,
-    spec: { columns: { name: { field: 'name', label: 'Name' } }, pagination } as Record<string, unknown>,
+    spec: { columns: { name: { field: 'name', label: 'Name' } }, pagination },
     rows: [],
     expectError: { code: 'INVALID_FORM_INPUT', message },
   })),
@@ -545,14 +546,14 @@ const SCENARIOS: ListFixtureCase[] = [
   {
     name: 'reject-array-specification',
     note: 'a specification that is not an object is rejected.',
-    spec: [] as unknown as Record<string, unknown>,
+    spec: [],
     rows: [],
     expectError: { code: 'INVALID_FORM_INPUT', message: 'List specification must be an object' },
   },
   {
     name: 'reject-string-specification',
     note: 'a string specification is rejected.',
-    spec: 'list' as unknown as Record<string, unknown>,
+    spec: 'list',
     rows: [],
     expectError: { code: 'INVALID_FORM_INPUT', message: 'List specification must be an object' },
   },
@@ -560,21 +561,21 @@ const SCENARIOS: ListFixtureCase[] = [
     name: 'reject-object-rows',
     note: 'rows that are not an array are rejected.',
     spec: { columns: { name: { field: 'name' } } },
-    rows: {} as unknown as Array<Record<string, unknown>>,
+    rows: {},
     expectError: { code: 'INVALID_FORM_INPUT', message: 'List rows must be an array' },
   },
   {
     name: 'reject-scalar-row',
     note: 'a row that is not an object is rejected.',
     spec: { columns: { name: { field: 'name' } } },
-    rows: [1] as unknown as Array<Record<string, unknown>>,
+    rows: [1],
     expectError: { code: 'INVALID_FORM_INPUT', message: 'List rows must be objects' },
   },
   {
     name: 'reject-array-row',
     note: 'a row that is an array is rejected.',
     spec: { columns: { name: { field: 'name' } } },
-    rows: [[]] as unknown as Array<Record<string, unknown>>,
+    rows: [[]],
     expectError: { code: 'INVALID_FORM_INPUT', message: 'List rows must be objects' },
   },
   {
@@ -582,7 +583,7 @@ const SCENARIOS: ListFixtureCase[] = [
     note: 'a data option that is not an object is rejected.',
     spec: { columns: { name: { field: 'name' } } },
     rows: [],
-    options: { data: [] } as unknown as RenderListOptions,
+    options: { data: [] },
     expectError: { code: 'INVALID_FORM_INPUT', message: 'List context must be an object' },
   },
   {
@@ -590,7 +591,7 @@ const SCENARIOS: ListFixtureCase[] = [
     note: 'the data rule is checked before the page rule.',
     spec: { columns: { name: { field: 'name' } } },
     rows: [],
-    options: { data: [], page: 0 } as unknown as RenderListOptions,
+    options: { data: [], page: 0 },
     expectError: { code: 'INVALID_FORM_INPUT', message: 'List context must be an object' },
   },
   {
@@ -598,7 +599,7 @@ const SCENARIOS: ListFixtureCase[] = [
     note: 'a page that is not a number is rejected.',
     spec: { columns: { name: { field: 'name' } } },
     rows: [],
-    options: { page: '2' } as unknown as RenderListOptions,
+    options: { page: '2' },
     expectError: { code: 'INVALID_FORM_INPUT', message: 'List page must be a positive integer' },
   },
   {
@@ -606,7 +607,7 @@ const SCENARIOS: ListFixtureCase[] = [
     note: 'a page below 1 is rejected, before the total and layout rules.',
     spec: { columns: { name: { field: 'name' } } },
     rows: [],
-    options: { page: 0, total: -1, layout: 'grid' } as unknown as RenderListOptions,
+    options: { page: 0, total: -1, layout: 'grid' },
     expectError: { code: 'INVALID_FORM_INPUT', message: 'List page must be a positive integer' },
   },
   {
@@ -630,7 +631,7 @@ const SCENARIOS: ListFixtureCase[] = [
     note: 'a total below 0 is rejected, before the layout rule.',
     spec: { columns: { name: { field: 'name' } } },
     rows: [],
-    options: { total: -1, layout: 'grid' } as unknown as RenderListOptions,
+    options: { total: -1, layout: 'grid' },
     expectError: { code: 'INVALID_FORM_INPUT', message: 'List total must be a nonnegative integer' },
   },
   {
@@ -646,7 +647,7 @@ const SCENARIOS: ListFixtureCase[] = [
     note: 'a total that is not a number is rejected.',
     spec: { columns: { name: { field: 'name' } } },
     rows: [],
-    options: { total: true } as unknown as RenderListOptions,
+    options: { total: true },
     expectError: { code: 'INVALID_FORM_INPUT', message: 'List total must be a nonnegative integer' },
   },
   {
@@ -654,7 +655,7 @@ const SCENARIOS: ListFixtureCase[] = [
     note: 'a layout other than table or card is rejected.',
     spec: { columns: { name: { field: 'name' } } },
     rows: [],
-    options: { layout: 'grid' } as unknown as RenderListOptions,
+    options: { layout: 'grid' },
     expectError: { code: 'INVALID_FORM_INPUT', message: 'List layout must be table or card' },
   },
   {
@@ -662,7 +663,7 @@ const SCENARIOS: ListFixtureCase[] = [
     note: 'a layout that is not a string is rejected.',
     spec: { columns: { name: { field: 'name' } } },
     rows: [],
-    options: { layout: 5 } as unknown as RenderListOptions,
+    options: { layout: 5 },
     expectError: { code: 'INVALID_FORM_INPUT', message: 'List layout must be table or card' },
   },
   // Declarations: design follows the form declaration rules, checked after input and composition.
@@ -709,7 +710,7 @@ const SCENARIOS: ListFixtureCase[] = [
     name: 'reject-rows-before-columns',
     note: 'the rows argument is checked before the columns declaration.',
     spec: {},
-    rows: {} as unknown as Array<Record<string, unknown>>,
+    rows: {},
     expectError: { code: 'INVALID_FORM_INPUT', message: 'List rows must be an array' },
   },
   {
@@ -717,7 +718,7 @@ const SCENARIOS: ListFixtureCase[] = [
     note: 'the columns declaration is checked before the options.',
     spec: {},
     rows: [],
-    options: { data: [] } as unknown as RenderListOptions,
+    options: { data: [] },
     expectError: { code: 'INVALID_FORM_INPUT', message: 'List specification must declare columns' },
   },
   {
@@ -733,7 +734,7 @@ const SCENARIOS: ListFixtureCase[] = [
     note: 'the options are checked before the columns value.',
     spec: { columns: 5 },
     rows: [],
-    options: { data: [] } as unknown as RenderListOptions,
+    options: { data: [] },
     expectError: { code: 'INVALID_FORM_INPUT', message: 'List context must be an object' },
   },
   {
@@ -741,7 +742,7 @@ const SCENARIOS: ListFixtureCase[] = [
     note: 'the layout option is an input rule: renderList checks it before composition; buildList does not read it.',
     spec: { columns: { $ref: 'missing.yml' } },
     rows: [],
-    options: { files: {}, layout: 'grid' } as unknown as RenderListOptions,
+    options: { files: {}, layout: 'grid' },
     expectError: { code: 'INVALID_FORM_INPUT', message: 'List layout must be table or card' },
   },
   {
@@ -749,7 +750,7 @@ const SCENARIOS: ListFixtureCase[] = [
     note: 'renderList checks the layout option before the declarations.',
     spec: { columns: { name: { field: 'name' } }, limit: 10 },
     rows: [],
-    options: { layout: 'grid' } as unknown as RenderListOptions,
+    options: { layout: 'grid' },
     expectError: { code: 'INVALID_FORM_INPUT', message: 'List layout must be table or card' },
   },
   {
@@ -880,7 +881,7 @@ const SCENARIOS: ListFixtureCase[] = [
   ] as const).map(([name, note, spec, message]): ListFixtureCase => ({
     name,
     note,
-    spec: spec as Record<string, unknown>,
+    spec: spec,
     rows: [],
     expectError: { code: 'INVALID_FORM_INPUT', message },
   })),
@@ -889,7 +890,7 @@ const SCENARIOS: ListFixtureCase[] = [
     note: 'a null layout selects the table layout, as an absent layout does.',
     spec: { columns: { name: { field: 'name', label: 'Name' } } },
     rows: PEOPLE,
-    options: { language: 'en', layout: null } as unknown as RenderListOptions,
+    options: { language: 'en', layout: null },
   },
 ];
 
@@ -900,7 +901,9 @@ function build(): ListFixtureCase[] {
       void _omit;
       return rest;
     }
-    const raw = withoutPreloadLinks(renderList(c.spec, c.rows, c.options ?? {}));
+    const html: unknown = Reflect.apply(renderList, undefined, [c.spec, c.rows, c.options ?? {}]);
+    if (typeof html !== 'string') throw new Error(`renderList returned no HTML for ${c.name}`);
+    const raw = withoutPreloadLinks(html);
     return { ...c, expected_html: normalizeHtml(raw) };
   });
 }

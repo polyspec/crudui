@@ -26,6 +26,7 @@ test('package install packs a package under the lock of its dist', async () => {
       return JSON.stringify([{
         name: '@polyspec/crudui-generator-core',
         filename: 'polyspec-crudui-generator-core-0.0.1.tgz',
+        files: [],
       }]);
     });
 

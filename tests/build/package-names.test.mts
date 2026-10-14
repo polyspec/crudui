@@ -11,9 +11,24 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 import { isVendored } from '../../scripts/repository-files.mts';
+import { parseJson, type JTDSchemaType } from '../json.mts';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const read = (file: string): string => readFileSync(path.join(ROOT, file), 'utf8');
+/** The name and the npm workspaces of a package.json or composer.json. */
+interface Named { name?: string; workspaces?: string[] }
+const namedSchema: JTDSchemaType<Named> = {
+  optionalProperties: { name: { type: 'string' }, workspaces: { elements: { type: 'string' } } },
+  additionalProperties: true,
+};
+const named = (file: string): Named => parseJson(read(file), namedSchema, file);
+/** The fields of a composer.json of packages/ that the test reads. */
+interface Composer { name: string; autoload: { 'psr-4': Record<string, unknown> }; 'autoload-dev'?: { 'psr-4'?: Record<string, unknown> } }
+const composerSchema: JTDSchemaType<Composer> = {
+  properties: { name: { type: 'string' }, autoload: { properties: { 'psr-4': { values: {} } }, additionalProperties: true } },
+  optionalProperties: { 'autoload-dev': { optionalProperties: { 'psr-4': { values: {} } }, additionalProperties: true } },
+  additionalProperties: true,
+};
 /** The capture group `index` of `match`, which the pattern always captures. */
 function group(match: RegExpMatchArray, index: number): string {
   const value = match[index];
@@ -23,10 +38,11 @@ function group(match: RegExpMatchArray, index: number): string {
 const tracked = execFileSync('git', ['ls-files', '-z'], { cwd: ROOT, encoding: 'utf8' }).split('\0').filter(file => file && !isVendored(file));
 
 test('every package of packages/ has the name of the polyspec convention', () => {
-  assert.equal(JSON.parse(read('package.json')).name, '@polyspec/crudui-workspace');
+  const root = named('package.json');
+  assert.equal(root.name, '@polyspec/crudui-workspace');
   // The npm workspaces of package.json, by their folder under packages/.
-  const npm = Object.fromEntries((JSON.parse(read('package.json')) as { workspaces: string[] }).workspaces
-    .map(folder => [folder.slice('packages/'.length), JSON.parse(read(`${folder}/package.json`)).name]));
+  const npm = Object.fromEntries((root.workspaces ?? [])
+    .map(folder => [folder.slice('packages/'.length), named(`${folder}/package.json`).name]));
   assert.deepEqual(npm, {
     cli: '@polyspec/crudui-cli',
     'form-binding': '@polyspec/crudui-form-binding',
@@ -39,7 +55,7 @@ test('every package of packages/ has the name of the polyspec convention', () =>
   });
 
   for (const [directory, name] of [['validator/php', 'polyspec/crudui-validator'], ['generator/php', 'polyspec/crudui-generator']] as const) {
-    const composer = JSON.parse(read(`packages/${directory}/composer.json`));
+    const composer = parseJson(read(`packages/${directory}/composer.json`), composerSchema, `packages/${directory}/composer.json`);
     assert.equal(composer.name, name);
     const prefixes = [...Object.keys(composer.autoload['psr-4']), ...Object.keys(composer['autoload-dev']?.['psr-4'] ?? {})];
     assert.deepEqual(prefixes.filter(prefix => !prefix.startsWith('Polyspec\\Crudui\\')), [], `${directory}: PSR-4 prefixes`);
@@ -69,11 +85,11 @@ test('every tracked manifest names its package by the polyspec convention', () =
     const name = path.posix.basename(file);
     const directory = path.posix.dirname(file);
     if (name === 'package.json') {
-      const manifest = JSON.parse(read(file));
+      const manifest = named(file);
       if (manifest.name !== undefined && !/^@polyspec\/crudui-[a-z0-9-]+$/.test(manifest.name)) failures.push(`${file}: ${manifest.name}`);
     } else if (name === 'composer.json') {
-      const manifest = JSON.parse(read(file));
-      if (!/^polyspec\/crudui-[a-z0-9-]+$/.test(manifest.name)) failures.push(`${file}: ${manifest.name}`);
+      const manifest = named(file);
+      if (manifest.name === undefined || !/^polyspec\/crudui-[a-z0-9-]+$/.test(manifest.name)) failures.push(`${file}: ${manifest.name ?? 'no name'}`);
     } else if (name === 'Cargo.toml') {
       const manifest = read(file);
       const names = [...manifest.matchAll(/^\[(package|\[bin\])\]\nname = "([^"]+)"/gm)].map(match => group(match, 2));

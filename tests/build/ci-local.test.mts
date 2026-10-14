@@ -7,6 +7,8 @@ import { fileURLToPath } from 'node:url';
 
 import { parse } from 'yaml';
 
+import { isRecord, strings } from '../../scripts/values.mts';
+import { checked, parseJson, type JTDSchemaType } from '../json.mts';
 import { makeDryRun } from './make-dry-run.mts';
 
 const read = (file: string): Promise<string> => readFile(new URL(`../../${file}`, import.meta.url), 'utf8');
@@ -16,10 +18,59 @@ const ROOT = fileURLToPath(new URL('../..', import.meta.url));
 interface StepInputs { path?: string; name?: string; key?: string; cache?: string; pattern?: string; 'if-no-files-found'?: string }
 /** A step of a GitHub Actions job. */
 interface Step { name?: string; run?: string; uses?: string; if?: string; with?: StepInputs }
-/** A job of a GitHub Actions workflow. */
-interface Job { name?: string; needs?: string | string[]; steps?: Step[]; strategy?: { matrix?: { php?: string[] } } }
-/** A GitHub Actions workflow as `yaml` parses it. */
-interface Workflow { jobs: Record<string, Job> }
+/** A job of a GitHub Actions workflow; needs is a job id or a list of them. */
+interface Job {
+  name?: string; if?: string; needs?: unknown; 'runs-on'?: string; steps?: Step[]; strategy?: { matrix?: { php?: string[] } };
+  environment?: { name?: string };
+}
+/** A GitHub Actions workflow as `yaml` parses it; on and concurrency are compared as they are parsed. */
+interface Workflow { on?: unknown; concurrency?: unknown; jobs: Record<string, Job> }
+
+const stepSchema: JTDSchemaType<Step> = {
+  optionalProperties: {
+    name: { type: 'string' }, run: { type: 'string' }, uses: { type: 'string' }, if: { type: 'string' },
+    with: {
+      optionalProperties: {
+        path: { type: 'string' }, name: { type: 'string' }, key: { type: 'string' }, cache: { type: 'string' }, pattern: { type: 'string' },
+        'if-no-files-found': { type: 'string' },
+      },
+      additionalProperties: true,
+    },
+  },
+  additionalProperties: true,
+};
+const workflowSchema: JTDSchemaType<Workflow> = {
+  properties: {
+    jobs: {
+      values: {
+        optionalProperties: {
+          name: { type: 'string' }, if: { type: 'string' }, needs: {}, 'runs-on': { type: 'string' }, steps: { elements: stepSchema },
+          strategy: { optionalProperties: { matrix: { optionalProperties: { php: { elements: { type: 'string' } } }, additionalProperties: true } }, additionalProperties: true },
+          environment: { optionalProperties: { name: { type: 'string' } }, additionalProperties: true },
+        },
+        additionalProperties: true,
+      },
+    },
+  },
+  optionalProperties: { on: {}, concurrency: {} },
+  additionalProperties: true,
+};
+
+/** The workflow `.github/workflows/<name>`, checked against the fields that these tests read. */
+const workflowFile = async (name: string): Promise<Workflow> =>
+  checked(parse(await read(`.github/workflows/${name}`)), workflowSchema, `.github/workflows/${name}`);
+
+/** The job `id` of `workflow`. */
+function jobOf(workflow: Workflow, id: string): Job {
+  const job = workflow.jobs[id];
+  assert.ok(job, `the workflow has the job ${id}`);
+  return job;
+}
+
+/** The value of `key` of the parsed object `value`; undefined for a value that is no object. */
+function field(value: unknown, key: string): unknown {
+  return isRecord(value) ? value[key] : undefined;
+}
 
 // Steps that prepare a runner rather than check the repository.
 const preparation = [
@@ -62,15 +113,15 @@ export function makeCommands(makefile: string): string[] {
 // A release requires the check ci-passed of the tagged commit: the last job of the CI workflow needs every other job, runs
 // after a failed, cancelled or skipped one, and fails unless each of them succeeded.
 test('the last CI job ci-passed needs every other job and runs always', async () => {
-  const workflow = parse(await read('.github/workflows/ci.yml'));
+  const workflow = await workflowFile('ci.yml');
   const ids = Object.keys(workflow.jobs);
   assert.equal(ids.at(-1), 'ci-passed', 'ci-passed is the last job of .github/workflows/ci.yml');
-  const job = workflow.jobs['ci-passed'];
+  const job = jobOf(workflow, 'ci-passed');
   assert.equal(job.name, undefined, 'the check carries the job id ci-passed');
   assert.equal(job.if, '${{ always() }}');
   assert.deepEqual(job.needs, ids.slice(0, -1));
   assert.equal(job['runs-on'], 'ubuntu-24.04');
-  assert.deepEqual(job.steps.filter((step: Step) => step.run !== undefined && !/^make (?:toolchain-check|install-tools|install-packages)\b/.test(step.run)).map((step: Step) => step.run),
+  assert.deepEqual((job.steps ?? []).filter((step) => step.run !== undefined && !/^make (?:toolchain-check|install-tools|install-packages)\b/.test(step.run)).map((step) => step.run),
     ["make ci-passed RESULTS='${{ toJSON(needs) }}'"]);
 });
 
@@ -83,13 +134,13 @@ const NATIVE_JOBS: Record<string, { targets: string; tools: string[]; php?: stri
 };
 
 test('the native suites run in three jobs, the PHP API once for each PHP release, and make test-native runs all three', async () => {
-  const workflow = parse(await read('.github/workflows/ci.yml'));
+  const workflow = await workflowFile('ci.yml');
   for (const [id, expected] of Object.entries(NATIVE_JOBS)) {
-    const job = workflow.jobs[id];
-    assert.ok(job, `the CI workflow has the job ${id}`);
-    assert.deepEqual(job.steps.map((step: Step) => step.run).filter((run: string | undefined) => /^make ci-targets\b/.test(run ?? '')), [`make ci-targets TARGETS="${expected.targets}"`], id);
-    const tools = job.steps.map((step: Step) => String(step.uses ?? '').split('@')[0])
-      .filter((uses: string | undefined) => uses && !['actions/upload-artifact', 'actions/cache'].includes(uses));
+    const job = jobOf(workflow, id);
+    const steps = job.steps ?? [];
+    assert.deepEqual(steps.map((step) => step.run).filter((run) => /^make ci-targets\b/.test(run ?? '')), [`make ci-targets TARGETS="${expected.targets}"`], id);
+    const tools = steps.map((step) => String(step.uses ?? '').split('@')[0])
+      .filter((uses) => uses && !['actions/upload-artifact', 'actions/cache'].includes(uses));
     assert.deepEqual(tools, expected.tools, id);
     assert.deepEqual(job.strategy?.matrix?.php, expected.php, id);
   }
@@ -106,7 +157,7 @@ test('the native suites run in three jobs, the PHP API once for each PHP release
 // Each job preserves its conformance evidence under a name of its own, and the conformance job downloads each artifact
 // into a directory of its own, so no evidence file of one job replaces a file of another.
 test('every evidence artifact has a name of its own and the conformance job reads each from its own directory', async () => {
-  const workflow: Workflow & { jobs: { conformance: Omit<Job, 'needs'> & { needs: string[]; steps: Step[] } } } = parse(await read('.github/workflows/ci.yml'));
+  const workflow = await workflowFile('ci.yml');
   const uploads = Object.entries(workflow.jobs).flatMap(([id, job]) => (job.steps ?? [])
     .filter((step) => step.with?.path === 'conformance-evidence/')
     .flatMap((step) => (job.strategy?.matrix?.php ?? [undefined])
@@ -114,9 +165,10 @@ test('every evidence artifact has a name of its own and the conformance job read
   const names = uploads.map((upload) => upload.name);
   assert.equal(new Set(names).size, names.length, names.join(', '));
   assert.ok(names.every((name) => name !== undefined && /^conformance-evidence-[\w.-]+$/.test(name)), names.join(', '));
-  const conformance = workflow.jobs.conformance;
-  assert.deepEqual([...conformance.needs].sort(), [...new Set(uploads.map((upload) => upload.id))].sort());
-  const download = conformance.steps.find((step) => String(step.uses ?? '').startsWith('actions/download-artifact@'));
+  const conformance = jobOf(workflow, 'conformance');
+  const needs = strings(conformance.needs, 'needs of the conformance job');
+  assert.deepEqual([...needs].sort(), [...new Set(uploads.map((upload) => upload.id))].sort());
+  const download = (conformance.steps ?? []).find((step) => String(step.uses ?? '').startsWith('actions/download-artifact@'));
   assert.deepEqual(download?.with, { pattern: 'conformance-evidence-*', path: 'conformance-evidence' });
 });
 
@@ -167,13 +219,13 @@ test('a job that installs the npm packages caches ~/.npm by package-lock.json, a
   const violations: string[] = [];
   // release.yml is the copy of kit, which follows the rules of kit.
   for (const file of ['ci.yml', 'dependency-review.yml', 'pages.yml', 'push-gate.yml']) {
-    violations.push(...npmCacheViolations(parse(await read(`.github/workflows/${file}`))).map((line) => `${file} ${line}`));
+    violations.push(...npmCacheViolations(await workflowFile(file)).map((line) => `${file} ${line}`));
   }
   assert.deepEqual(violations, []);
 });
 
 test('make ci runs every checking command of the CI workflow, in the same order', async () => {
-  const workflow = workflowCommands(parse(await read('.github/workflows/ci.yml')));
+  const workflow = workflowCommands(await workflowFile('ci.yml'));
   const local = makeCommands(await read('Makefile'));
   assert.ok(workflow.length > 10, 'the workflow has checking commands');
   assert.deepEqual(local, workflow);
@@ -190,7 +242,7 @@ export function checkLintTargets(makefile: string): string[] {
 // make lint runs lint-ts, the lint-ts.mjs of kit, with the ESLint of the Svelte components.
 test('a CI job runs every lint target of CHECK_TARGETS', async () => {
   const makefile = await read('Makefile');
-  const workflow = workflowCommands(parse(await read('.github/workflows/ci.yml')));
+  const workflow = workflowCommands(await workflowFile('ci.yml'));
   const targets = checkLintTargets(makefile);
   assert.deepEqual(targets, ['lint-python', 'lint-php', 'lint-rust', 'lint-go', 'lint-ts']);
   assert.match(makefile, /^lint:.*\n(?:\t.*\n)*?\tnode \$\(KIT\)\/lint-ts\.mjs/m, 'make lint runs lint-ts.mjs');
@@ -243,7 +295,7 @@ test('a workflow step starts every tool through a make target', async () => {
   const violations: string[] = [];
   // release.yml is the copy of kit, which follows the rules of kit.
   for (const file of ['ci.yml', 'dependency-review.yml', 'pages.yml', 'push-gate.yml']) {
-    violations.push(...stepsOutsideMake(parse(await read(`.github/workflows/${file}`))).map(line => `${file} ${line}`));
+    violations.push(...stepsOutsideMake(await workflowFile(file)).map(line => `${file} ${line}`));
   }
   assert.deepEqual(violations, []);
 });
@@ -288,7 +340,7 @@ test('every job runs its checks through make ci-targets and uploads their report
   ]);
   const violations: string[] = [];
   for (const file of ['ci.yml', 'dependency-review.yml', 'pages.yml', 'push-gate.yml']) {
-    const workflow: Workflow = parse(await read(`.github/workflows/${file}`));
+    const workflow = await workflowFile(file);
     violations.push(...jobsWithoutReport(workflow).map((line) => `${file} ${line}`));
     // The report artifact of each job, and of each matrix entry, has a name of its own.
     const names = Object.values(workflow.jobs).flatMap((job) => (job.steps ?? [])
@@ -301,11 +353,11 @@ test('every job runs its checks through make ci-targets and uploads their report
 // The runners are few: a new push to a pull request stops the CI run of its previous push. A merge group has a ref of its
 // own and its run is never stopped, and the push check runs on every pushed commit and keeps its runs.
 test('no run of a commit of main is stopped by a later push', async () => {
-  assert.deepEqual(parse(await read('.github/workflows/ci.yml')).concurrency, {
+  assert.deepEqual((await workflowFile('ci.yml')).concurrency, {
     group: '${{ github.workflow }}-${{ github.ref }}', 'cancel-in-progress': false,
   });
-  assert.equal(parse(await read('.github/workflows/push-gate.yml')).concurrency, undefined);
-  assert.deepEqual(parse(await read('.github/workflows/pages.yml')).concurrency, { group: 'github-pages', 'cancel-in-progress': false });
+  assert.equal((await workflowFile('push-gate.yml')).concurrency, undefined);
+  assert.deepEqual((await workflowFile('pages.yml')).concurrency, { group: 'github-pages', 'cancel-in-progress': false });
 });
 
 // main receives a push of the maintainer while the version is 0.x: CI runs on a push to main and on a manual run, the
@@ -345,7 +397,7 @@ function unmatchedReleaseTags(filters: string[], goModules: string[]): string[] 
 test('the release trigger matches vX.Y.Z and the tag of every Go module of packages/', async () => {
   const goModules = execFileSync('git', ['ls-files', 'packages/*/go.mod'], { cwd: new URL('../..', import.meta.url), encoding: 'utf8' }).split('\n').filter(Boolean);
   assert.ok(goModules.length > 0);
-  const { tags } = parse(await read('.github/workflows/release.yml')).on.push;
+  const tags = strings(field(field((await workflowFile('release.yml')).on, 'push'), 'tags'), 'the tag filters of release.yml');
   assert.deepEqual(unmatchedReleaseTags(tags, goModules), []);
   // In a tag filter * does not match /, so the filter of one level */v* misses packages/<directory>/vX.Y.Z.
   assert.deepEqual(unmatchedReleaseTags(['v*', '*/v*'], goModules), goModules.map((file) => `${path.posix.dirname(file)}/v1.2.3`));
@@ -353,17 +405,18 @@ test('the release trigger matches vX.Y.Z and the tag of every Go module of packa
 });
 
 test('CI runs on a push to main, the push check on every push, and Pages deploys main', async () => {
-  assert.deepEqual(parse(await read('.github/workflows/ci.yml')).on, { push: { branches: ['main'] }, workflow_dispatch: null });
-  assert.deepEqual(parse(await read('.github/workflows/push-gate.yml')).on, { push: { branches: ['**'] } });
-  const pages = parse(await read('.github/workflows/pages.yml'));
+  assert.deepEqual((await workflowFile('ci.yml')).on, { push: { branches: ['main'] }, workflow_dispatch: null });
+  assert.deepEqual((await workflowFile('push-gate.yml')).on, { push: { branches: ['**'] } });
+  const pages = await workflowFile('pages.yml');
   assert.deepEqual(pages.on, { push: { branches: ['main'] }, workflow_dispatch: null });
-  assert.equal(pages.jobs.deploy.environment.name, 'github-pages');
-  assert.equal(pages.jobs.deploy.needs, 'docs-web');
+  const deploy = jobOf(pages, 'deploy');
+  assert.equal(deploy.environment?.name, 'github-pages');
+  assert.equal(deploy.needs, 'docs-web');
   assert.doesNotMatch(await read('.github/workflows/ci.yml'), /refs\/heads\/main|deploy-pages|upload-pages-artifact/);
 });
 
 test('every checking step of the CI workflow runs after an earlier failure', async () => {
-  const violations = stepsStoppedByFailure(parse(await read('.github/workflows/ci.yml')));
+  const violations = stepsStoppedByFailure(await workflowFile('ci.yml'));
   assert.deepEqual(violations, []);
 });
 
@@ -404,14 +457,15 @@ test('a workflow command missing from make ci is reported', () => {
 test('only the release workflow starts on a tag push', async () => {
   const violations: string[] = [];
   for (const name of (await readdir(new URL('../../.github/workflows/', import.meta.url))).filter(file => /\.ya?ml$/.test(file))) {
-    const push = parse(await read(`.github/workflows/${name}`)).on?.push;
-    if (push === undefined) continue;
-    const filters = push ?? {};
-    if (name === 'release.yml') { if (!filters.tags?.length || filters.branches) violations.push(`${name}: must start on tags only`); continue; }
-    if (!Array.isArray(filters.branches) || filters.branches.length === 0) violations.push(`${name}: push has no branch filter, so a tag push starts it`);
-    if (filters.tags || filters['tags-ignore']) violations.push(`${name}: push names tags`);
+    const on = (await workflowFile(name)).on;
+    if (!isRecord(on) || !Object.hasOwn(on, 'push')) continue;
+    // A push without filters parses as null.
+    const tags = field(on['push'], 'tags'), branches = field(on['push'], 'branches'), tagsIgnore = field(on['push'], 'tags-ignore');
+    if (name === 'release.yml') { if (!Array.isArray(tags) || tags.length === 0 || branches) violations.push(`${name}: must start on tags only`); continue; }
+    if (!Array.isArray(branches) || branches.length === 0) violations.push(`${name}: push has no branch filter, so a tag push starts it`);
+    if (tags || tagsIgnore) violations.push(`${name}: push names tags`);
   }
   assert.deepEqual(violations, []);
-  const { checks } = JSON.parse(await read('config/release.json'));
+  const { checks } = parseJson<{ checks: string[] }>(await read('config/release.json'), { properties: { checks: { elements: { type: 'string' } } }, additionalProperties: true }, 'config/release.json');
   assert.deepEqual(checks, ['push-gate', 'ci-passed']);
 });

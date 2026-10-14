@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 
 import { acquireHolderLock } from '@polyspec/kit/holder-lock';
 import { packReport } from '../../scripts/package-install-pack.mts';
+import { readManifest, script } from '../json.mts';
 
 const root = fileURLToPath(new URL('../..', import.meta.url));
 const read = (file: string): string => fs.readFileSync(path.join(root, file), 'utf8');
@@ -37,7 +38,7 @@ const builtPackages = ['validator/ts', 'generator/ts', 'html', 'react', 'vue',
 
 test('every package build runs under the lock of its dist directory', () => {
   for (const folder of builtPackages) {
-    const build = JSON.parse(read(`packages/${folder}/package.json`)).scripts.build;
+    const build = script(readManifest(path.join(root, `packages/${folder}/package.json`)), 'build');
     // The script of the root, named from the package folder ('../../' or, for a port of a component, '../../../').
     assert.match(build, /^node (?:\.\.\/){2,3}scripts\/package-dist\.mts build '[^']+'$/, folder);
     assert.ok(build.startsWith(`node ${'../'.repeat(folder.split('/').length + 1)}scripts/package-dist.mts`), folder);

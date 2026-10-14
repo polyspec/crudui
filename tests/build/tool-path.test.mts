@@ -10,12 +10,19 @@ import { parse } from 'yaml';
 
 import { isVendored } from '../../scripts/repository-files.mts';
 import { makeTargets } from '../../scripts/test-commands.mts';
+import { checked, readManifest, type JTDSchemaType } from '../json.mts';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const TOOLS_BIN = path.join(ROOT, 'var', 'tools', 'bin');
 
 /** The parts of a GitHub Actions workflow the checks read. */
 interface Workflow { jobs?: Record<string, { steps?: { run?: unknown }[] }> }
+const workflowSchema: JTDSchemaType<Workflow> = {
+  optionalProperties: {
+    jobs: { values: { optionalProperties: { steps: { elements: { optionalProperties: { run: {} }, additionalProperties: true } } }, additionalProperties: true } },
+  },
+  additionalProperties: true,
+};
 
 // A container image is a machine of its own, so its definition may install npm globally; the scripts, make and CI run
 // on the machine of the checkout.
@@ -54,7 +61,7 @@ test('every recipe starts npm by its path in the checkout', () => {
 });
 
 test('a recipe of make runs the recorded npm of the checkout', () => {
-  const manager = JSON.parse(readFileSync(path.join(ROOT, 'package.json'), 'utf8')).packageManager ?? '';
+  const manager = readManifest(path.join(ROOT, 'package.json')).packageManager ?? '';
   const recorded = /^npm@(\d+\.\d+\.\d+)(?:\+sha512\.[0-9a-f]{128})?$/.exec(manager)?.[1];
   assert.ok(recorded, `package.json must record packageManager as npm@<major>.<minor>.<patch>; it records ${manager}`);
   // The probe recipe has no shell syntax, so make starts the program itself, as it does for `$(NPM) run docs:api`.
@@ -72,7 +79,7 @@ test('every CI job starts npm through make, which puts var/tools/bin first on PA
   const directory = path.join(ROOT, '.github/workflows');
   const violations: string[] = [];
   for (const file of readdirSync(directory).filter(name => /\.ya?ml$/.test(name))) {
-    const workflow = parse(readFileSync(path.join(directory, file), 'utf8')) as Workflow;
+    const workflow = checked(parse(readFileSync(path.join(directory, file), 'utf8')), workflowSchema, file);
     for (const [id, job] of Object.entries(workflow.jobs ?? {})) {
       for (const step of job.steps ?? []) {
         if (typeof step.run !== 'string') continue;

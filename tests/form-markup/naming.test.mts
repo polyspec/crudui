@@ -2,26 +2,37 @@
 // rendered fixture: class shape, allowed names, modifiers with their block, and
 // the containment of parts and child nodes.
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { parseFragment } from 'parse5';
 
+import { readJson, type JTDSchemaType } from '../json.mts';
+
 /** A case of a render fixture; a case without expected HTML expects an error. */
-interface RenderCase { name: string; expected_html?: string; spec: unknown }
+interface RenderCase { name: string; expected_html?: string; spec?: unknown }
 /** A case of the outline fixture. */
-interface OutlineCase { name: string; expected_outline_html: string; expected_data_html: string; spec: unknown }
+interface OutlineCase { name: string; expected_outline_html: string; expected_data_html: string; spec?: unknown }
+const renderCases: JTDSchemaType<RenderCase[]> = {
+  elements: { properties: { name: { type: 'string' } }, optionalProperties: { expected_html: { type: 'string' }, spec: {} }, additionalProperties: true },
+};
+const outlineCases: JTDSchemaType<OutlineCase[]> = {
+  elements: {
+    properties: { name: { type: 'string' }, expected_outline_html: { type: 'string' }, expected_data_html: { type: 'string' } },
+    optionalProperties: { spec: {} },
+    additionalProperties: true,
+  },
+};
 /** A node of a parsed fragment: an element has attributes and children, text and comments have neither. */
 interface MarkupNode { nodeName: string; attrs?: { name: string; value: string }[]; childNodes?: MarkupNode[] }
 
-function read<Case>(path: string): Case[] {
-  return JSON.parse(readFileSync(new URL(path, import.meta.url), 'utf8')) as Case[];
+function read<Case>(path: string, schema: JTDSchemaType<Case[]>): Case[] {
+  return readJson(new URL(path, import.meta.url), schema);
 }
 const rendered = (item: RenderCase): item is RenderCase & { expected_html: string } => Boolean(item.expected_html);
 const fixtures: [label: string, html: string, spec: unknown][] = [
-  ...read<RenderCase>('../fixtures/form-render/cases.json').filter(rendered).map((item): [string, string, unknown] => [`form-render/${item.name}`, item.expected_html, item.spec]),
-  ...read<RenderCase>('../fixtures/list-render/cases.json').filter(rendered).map((item): [string, string, unknown] => [`list-render/${item.name}`, item.expected_html, item.spec]),
-  ...read<RenderCase>('../fixtures/detail-render/cases.json').filter(rendered).map((item): [string, string, unknown] => [`detail-render/${item.name}`, item.expected_html, item.spec]),
-  ...read<OutlineCase>('../fixtures/form-outline/cases.json').flatMap((item): [string, string, unknown][] => [
+  ...read('../fixtures/form-render/cases.json', renderCases).filter(rendered).map((item): [string, string, unknown] => [`form-render/${item.name}`, item.expected_html, item.spec]),
+  ...read('../fixtures/list-render/cases.json', renderCases).filter(rendered).map((item): [string, string, unknown] => [`list-render/${item.name}`, item.expected_html, item.spec]),
+  ...read('../fixtures/detail-render/cases.json', renderCases).filter(rendered).map((item): [string, string, unknown] => [`detail-render/${item.name}`, item.expected_html, item.spec]),
+  ...read('../fixtures/form-outline/cases.json', outlineCases).flatMap((item): [string, string, unknown][] => [
     [`form-outline/${item.name}/outline`, item.expected_outline_html, item.spec],
     [`form-outline/${item.name}/data`, item.expected_data_html, item.spec],
   ]),

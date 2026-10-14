@@ -38,7 +38,9 @@ export function headingProblems(text: string): string[] {
           const older: number[] = previous;
           // Both are the three parts of VERSION.
           assert.equal(older.length, version.length);
-          if (!(version.reduce((order, part, i) => order || Math.sign(older[i]! - part), 0) > 0)) {
+          // The first part that differs orders the versions.
+          const order = version.map((part, i) => Math.sign((older[i] ?? part) - part)).find(sign => sign !== 0) ?? 0;
+          if (!(order > 0)) {
             problems.push(`${at}: ## ${title} is not older than ## ${older.join('.')}`);
           }
         }

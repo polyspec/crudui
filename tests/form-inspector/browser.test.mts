@@ -32,8 +32,13 @@ setup('browser launch and page', async () => {
   page = await browser.newPage();
   await page.setContent('<style>.row { color: rgb(1, 2, 3); } .row::before { content: "Before"; } .row::after { content: "After"; }</style><form><div class="row"><input name="form[name]" value="Saved"></div></form>');
   await page.evaluate(async url => {
-    // The module at the data URL is form-snapshot.mts without its types.
-    const { formSnapshot, styleSnapshot, compareSnapshots } = await import(url) as typeof import('./form-snapshot.mts');
+    // The module at the data URL is form-snapshot.mts without its types; its three functions are checked by name.
+    const snapshotModule = (value: unknown): value is typeof import('./form-snapshot.mts') => typeof value === 'object' && value !== null
+      && 'formSnapshot' in value && typeof value.formSnapshot === 'function' && 'styleSnapshot' in value && typeof value.styleSnapshot === 'function'
+      && 'compareSnapshots' in value && typeof value.compareSnapshots === 'function';
+    const loaded: unknown = await import(url);
+    if (!snapshotModule(loaded)) throw new Error('the module at the data URL is no form snapshot module');
+    const { formSnapshot, styleSnapshot, compareSnapshots } = loaded;
     const form = document.querySelector('form');
     if (!form) throw new Error('the page has no form');
     const snapshot = () => ({ ...formSnapshot(form, form), css: styleSnapshot(form) });

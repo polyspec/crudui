@@ -5,10 +5,10 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
-import { createRequire } from 'node:module';
 import path from 'node:path';
 import test from 'node:test';
 
+import { parseJson } from '../json.mts';
 import { makeDryRun } from './make-dry-run.mts';
 
 const root = path.resolve(import.meta.dirname, '../..');
@@ -30,13 +30,22 @@ test('oxlint with the copied configuration fails on a planted violation', t => {
   writeFileSync(file, 'export function planted(value) {\n  debugger;\n  return value;\n}\n');
   const run = spawnSync(path.join(root, 'node_modules/.bin/oxlint'), ['-c', '.oxlintrc.json', '--deny-warnings', '--format', 'json', file], { cwd: root, encoding: 'utf8' });
   assert.notEqual(run.status, 0, run.stdout + run.stderr);
-  const report = JSON.parse(run.stdout) as { diagnostics: { code: string }[] };
+  const report = parseJson<{ diagnostics: { code: string }[] }>(run.stdout, {
+    properties: { diagnostics: { elements: { properties: { code: { type: 'string' } }, additionalProperties: true } } },
+    additionalProperties: true,
+  }, 'oxlint --format json');
   assert.ok(report.diagnostics.some(diagnostic => /no-debugger/.test(diagnostic.code)), run.stdout);
 });
 
-test('the Svelte lint fails on a planted raw HTML tag in a component', async () => {
-  const { ESLint } = createRequire(path.join(svelteTools, 'package.json'))('eslint');
-  const eslint = new ESLint({ cwd: svelteWorkspace, overrideConfigFile: path.join(svelteTools, 'eslint.config.js') });
-  const [result] = await eslint.lintText('<script lang="ts">\n  export let html: string;\n</script>\n\n{@html html}\n', { filePath: path.join(svelteWorkspace, 'src/components/Planted.svelte') });
-  assert.deepEqual(result.messages.map((message: { ruleId: string | null }) => message.ruleId), ['svelte/no-at-html-tags']);
+test('the Svelte lint fails on a planted raw HTML tag in a component', () => {
+  // The ESLint of the tools project, as the lint script of packages/svelte runs it, reads the component from standard input.
+  const run = spawnSync(path.join(svelteTools, 'node_modules/.bin/eslint'), [
+    '--config', path.join(svelteTools, 'eslint.config.js'), '--format', 'json', '--stdin', '--stdin-filename', 'src/components/Planted.svelte',
+  ], { cwd: svelteWorkspace, encoding: 'utf8', input: '<script lang="ts">\n  export let html: string;\n</script>\n\n{@html html}\n' });
+  assert.equal(run.status, 1, run.stdout + run.stderr);
+  const [result] = parseJson<{ messages: { ruleId: string | null }[] }[]>(run.stdout, {
+    elements: { properties: { messages: { elements: { properties: { ruleId: { type: 'string', nullable: true } }, additionalProperties: true } } }, additionalProperties: true },
+  }, 'eslint --format json');
+  assert.ok(result, run.stdout);
+  assert.deepEqual(result.messages.map(message => message.ruleId), ['svelte/no-at-html-tags']);
 });

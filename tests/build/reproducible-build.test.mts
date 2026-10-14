@@ -1,17 +1,20 @@
 // The reproducible build check (scripts/repeat-build.mts): it covers every published package and names every file
 // whose bytes differ between two builds. The check builds twice itself; these cases read no build record.
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
 import { dirname, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 
 import { PACKAGES } from '../../scripts/package-outputs.mts';
 import { buildDifferences } from '../../scripts/repeat-build.mts';
+import { readJson } from '../json.mts';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 // contracts/features.json records every published npm package; the check compares all of them.
-const published = (JSON.parse(readFileSync(resolve(root, 'contracts/features.json'), 'utf8')) as { packages: { path: string }[] }).packages
+const published = readJson<{ packages: { path: string }[] }>(resolve(root, 'contracts/features.json'), {
+  properties: { packages: { elements: { properties: { path: { type: 'string' } }, additionalProperties: true } } },
+  additionalProperties: true,
+}).packages
   .map(({ path }) => relative(resolve(root, 'packages'), resolve(root, path)));
 
 test('the reproducible build check covers every published package', () => {

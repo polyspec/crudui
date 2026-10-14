@@ -4,7 +4,7 @@
 // command that installs it; no engine is ever skipped.
 import assert from 'node:assert/strict';
 import { webkit, type Browser as PlaywrightBrowser } from 'playwright';
-import puppeteer, { Browser as PuppeteerBrowser } from 'puppeteer';
+import puppeteer, { Browser as PuppeteerBrowser, ConsoleMessage } from 'puppeteer';
 
 /** An element handle as both drivers give it: clickable, evaluable, and a frame's document for an iframe. */
 interface EngineElement {
@@ -75,9 +75,36 @@ async function launchPinned(browser: 'chrome' | 'firefox'): Promise<PuppeteerBro
 async function openPinned(browser: EngineBrowser, viewport: { width: number; height: number }): Promise<EnginePage> {
   assert.ok(browser instanceof PuppeteerBrowser);
   const page = await browser.newPage(); await page.setViewport(viewport);
-  // Puppeteer types the events of `on` by the keys of a const enum, whose values are the event
-  // names 'pageerror' and 'console'; every other call is checked against EnginePage here.
-  return (page satisfies Omit<EnginePage, 'on'>) as EnginePage;
+  // Puppeteer types the events of `on` by the keys of a const enum, whose values are the event names 'pageerror' and
+  // 'console', and passes each listener an unknown value: `on` checks the console message and passes the page error on.
+  // Every other call of EnginePage is the call of the page itself.
+  const calls: Omit<EnginePage, 'on'> = page;
+  function evaluate<Result>(fn: () => Result): Promise<Awaited<Result>>;
+  function evaluate<Result, Argument>(fn: (argument: Argument) => Result, argument: Argument): Promise<Awaited<Result>>;
+  function evaluate<Result, Argument>(...args: [() => Result] | [(argument: Argument) => Result, Argument]): Promise<Awaited<Result>> {
+    return args.length === 1 ? calls.evaluate(args[0]) : calls.evaluate(args[0], args[1]);
+  }
+  function on(event: 'pageerror', listener: (error: unknown) => void): unknown;
+  function on(event: 'console', listener: (message: EngineConsoleMessage) => void): unknown;
+  function on(...[event, listener]: ['pageerror', (error: unknown) => void] | ['console', (message: EngineConsoleMessage) => void]): unknown {
+    if (event === 'pageerror') return page.on('pageerror', error => listener(error));
+    return page.on('console', message => {
+      if (!(message instanceof ConsoleMessage)) throw new Error('Puppeteer reported a console event without a ConsoleMessage');
+      listener(message);
+    });
+  }
+  return {
+    on,
+    evaluate,
+    goto: url => calls.goto(url),
+    setContent: html => calls.setContent(html),
+    waitForSelector: (selector, options) => calls.waitForSelector(selector, options),
+    mainFrame: () => calls.mainFrame(),
+    focus: selector => calls.focus(selector),
+    click: selector => calls.click(selector),
+    keyboard: calls.keyboard,
+    close: () => calls.close(),
+  };
 }
 
 /**
