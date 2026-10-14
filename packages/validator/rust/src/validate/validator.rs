@@ -246,15 +246,14 @@ impl Validator {
                         }
                     }
                     if !hidden {
-                        self.validate_field_rules(
+                        errors.extend(self.validate_field_rules(
                             field,
                             &field_value,
                             &field_path,
                             row_keys,
                             declaration,
                             run,
-                            errors,
-                        )?;
+                        )?);
                     }
                 } else {
                     if present.is_some_and(|value| !value.is_object()) {
@@ -276,15 +275,14 @@ impl Validator {
                         errors,
                     )?;
                     if !hidden {
-                        self.validate_field_rules(
+                        errors.extend(self.validate_field_rules(
                             field,
                             &field_value,
                             &field_path,
                             row_keys,
                             declaration,
                             run,
-                            errors,
-                        )?;
+                        )?);
                     }
                 }
             } else if hidden {
@@ -307,15 +305,14 @@ impl Validator {
                     errors,
                 )?;
             } else {
-                self.validate_field_rules(
+                errors.extend(self.validate_field_rules(
                     field,
                     &field_value,
                     &field_path,
                     row_keys,
                     declaration,
                     run,
-                    errors,
-                )?;
+                )?);
             }
         }
         Ok(())
@@ -376,15 +373,14 @@ impl Validator {
             item_path.push(key);
             let mut item_rows = row_keys.to_vec();
             item_rows.push(field_path.len());
-            self.validate_element_rules(
+            errors.extend(self.validate_element_rules(
                 field,
                 value,
                 &item_path,
                 &item_rows,
                 declaration,
                 run,
-                errors,
-            )?;
+            )?);
         }
         Ok(())
     }
@@ -398,19 +394,18 @@ impl Validator {
         row_keys: &[usize],
         declaration: &[String],
         run: &Run<'_>,
-        errors: &mut Vec<ValidationError>,
-    ) -> Result<(), ValidateError> {
+    ) -> Result<Option<ValidationError>, ValidateError> {
         let messages = field.get("messages");
         let rules = normalize_validate_slot(field);
 
-        if self.run_implicit_number(
-            field, rules, value, item_path, row_keys, messages, run, errors,
-        )? {
-            return Ok(());
+        if let Some(error) =
+            self.run_implicit_number(field, rules, value, item_path, row_keys, messages, run)?
+        {
+            return Ok(Some(error));
         }
         let rules = match rules {
             Some(r) => r,
-            None => return Ok(()),
+            None => return Ok(None),
         };
         for (rule_name, rule_value) in rules {
             if ARRAY_LEVEL_RULES.contains(&rule_name.as_str()) {
@@ -426,17 +421,16 @@ impl Validator {
                 messages,
                 run,
             )? {
-                errors.push(ValidationError {
+                return Ok(Some(ValidationError {
                     path: path_to_string(item_path),
                     field: field_name(item_path),
                     rule: rule_name.clone(),
                     message,
                     value: value.clone(),
-                });
-                break;
+                }));
             }
         }
-        Ok(())
+        Ok(None)
     }
 
     /// All rules for a single (scalar or group-as-whole) field.
@@ -448,19 +442,18 @@ impl Validator {
         row_keys: &[usize],
         declaration: &[String],
         run: &Run<'_>,
-        errors: &mut Vec<ValidationError>,
-    ) -> Result<(), ValidateError> {
+    ) -> Result<Option<ValidationError>, ValidateError> {
         let messages = field.get("messages");
         let rules = normalize_validate_slot(field);
 
-        if self.run_implicit_number(
-            field, rules, value, field_path, row_keys, messages, run, errors,
-        )? {
-            return Ok(());
+        if let Some(error) =
+            self.run_implicit_number(field, rules, value, field_path, row_keys, messages, run)?
+        {
+            return Ok(Some(error));
         }
         let rules = match rules {
             Some(r) => r,
-            None => return Ok(()),
+            None => return Ok(None),
         };
         for (rule_name, rule_value) in rules {
             if let Some(message) = self.run_rule(
@@ -473,21 +466,20 @@ impl Validator {
                 messages,
                 run,
             )? {
-                errors.push(ValidationError {
+                return Ok(Some(ValidationError {
                     path: path_to_string(field_path),
                     field: field_name(field_path),
                     rule: rule_name.clone(),
                     message,
                     value: value.clone(),
-                });
-                break;
+                }));
             }
         }
-        Ok(())
+        Ok(None)
     }
 
     /// `type:number` runs an implicit `number` rule first when no explicit
-    /// `number` rule is declared. Returns true when it pushed an error.
+    /// `number` rule is declared. Returns the error of the rule when it fails.
     #[allow(clippy::too_many_arguments, reason = "the walk of the validator passes its traversal state explicitly, as the engines of the other languages do")]
     fn run_implicit_number(
         &self,
@@ -498,13 +490,12 @@ impl Validator {
         row_keys: &[usize],
         messages: Option<&Value>,
         run: &Run<'_>,
-        errors: &mut Vec<ValidationError>,
-    ) -> Result<bool, ValidateError> {
+    ) -> Result<Option<ValidationError>, ValidateError> {
         if field.get("type").and_then(Value::as_str) != Some("number") {
-            return Ok(false);
+            return Ok(None);
         }
         if rules.map(|r| r.contains_key("number")).unwrap_or(false) {
-            return Ok(false);
+            return Ok(None);
         }
         // The implicit `number` parameter is `true`; it has nothing to check.
         if let Some(message) = self.run_rule(
@@ -517,16 +508,15 @@ impl Validator {
             messages,
             run,
         )? {
-            errors.push(ValidationError {
+            return Ok(Some(ValidationError {
                 path: path_to_string(path),
                 field: field_name(path),
                 rule: "number".to_string(),
                 message,
                 value: value.clone(),
-            });
-            return Ok(true);
+            }));
         }
-        Ok(false)
+        Ok(None)
     }
 
     // =====================================================================
