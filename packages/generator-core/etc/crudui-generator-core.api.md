@@ -7,7 +7,7 @@
 import { ComposeLoadError } from '@polyspec/crudui-validator';
 import { FileLoader } from '@polyspec/crudui-validator';
 import { FormInputError } from '@polyspec/crudui-validator';
-import type { PathContext } from '@polyspec/crudui-validator/internal';
+import type { PathContext } from '@polyspec/crudui-validator';
 
 // @public
 export interface ActionResult {

@@ -3,6 +3,12 @@
 
 ## Unreleased
 
+### 2026-10-14 — Tool tests of tests/build on TypeScript 7 (C14.10)
+
+- `scripts/check-contract-manifest.mjs` reads the value exports of each entry with the program and checker of the TypeScript 7 API (`typescript/unstable/sync`), whose virtual file system hides node_modules and gives a `.svelte` component its declaration. `tests/build/public-packages.test.mjs` compiles its consumer fixtures with `tsc --noEmit` of TypeScript 7, whose exit status is the result: `public-types.mts` and `public-types.cts` with the Node.js resolution, `public-types-svelte.mts` with the bundler resolution of a Svelte project, and `module-only-require.cts`, which a CommonJS project cannot compile; `tsc --listFilesOnly` shows that the program reads only the declarations of dist, package.json gives the module format, and the declaration builds are checked with `tsc --showConfig` and a failing build.
+- `PathContext` is a public type of `@polyspec/crudui-validator`: the public API of generator-core names it, and it is no longer imported from the internal entry.
+- The tests name the tools of kit by `node_modules/@polyspec/kit/dist`, and the lock test of the Composer reinstall recognizes the holder-lock of kit that a script resolves.
+
 ### 2026-10-14 — kit 0.0.42 (C14.11)
 
 - `@polyspec/kit` is pinned at 0.0.42 with the integrity of the published file. `mise.lock` locks the tools of `mise.toml` for linux-arm64 and macos-x64 too, and the copied bootstrap writes `var/tools/go.mod`, so `./...` of a Go module of the checkout does not walk the Go that mise installs.

@@ -82,6 +82,13 @@ export interface ListValidationResult {
 export type LoadedDoc = Record<string, unknown>;
 
 // @public
+export interface PathContext {
+    currentPath: string[];
+    formData: Record<string, unknown>;
+    rowKeys?: readonly number[];
+}
+
+// @public
 export function validate(spec: Record<string, unknown>, data: unknown, options?: ValidateOptions): ValidationResult;
 
 // @public

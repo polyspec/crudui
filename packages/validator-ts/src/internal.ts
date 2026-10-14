@@ -18,7 +18,6 @@ export { getRuleNames } from './rules/index';
 export { parseJsonDocument } from './text/json';
 export { isConditionExpression, parseCondition } from './parser/ConditionParser';
 export { evaluateCondition, evaluateExpressionValue } from './parser/PathResolver';
-export type { PathContext } from './types';
 export {
   INVALID_TEXT_MESSAGE,
   checkInputText,

@@ -20,7 +20,7 @@
  */
 
 import { FormInputError } from '@polyspec/crudui-validator';
-import type { PathContext } from '@polyspec/crudui-validator/internal';
+import type { PathContext } from '@polyspec/crudui-validator';
 import { evalShow, evalAppearance } from './expr';
 
 /** Resolved class+style for one DOM node. */
