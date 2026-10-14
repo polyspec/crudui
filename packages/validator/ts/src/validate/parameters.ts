@@ -35,6 +35,10 @@ const CHECKED_RULES = new Set([
   'in',
   'match',
   'pattern',
+  'equalTo',
+  'enddate',
+  'notEqual',
+  'unique',
 ]);
 
 /**
@@ -70,6 +74,19 @@ export function ruleParameterFailure(ruleName: string, param: unknown): Paramete
         : invalid('Invalid range parameter: expected [minimum, maximum] finite numbers with minimum not above maximum');
     case 'step':
       return isStep(param) ? null : invalid('Invalid step parameter: expected a finite number above 0');
+    case 'equalTo':
+    case 'enddate':
+      return typeof param === 'string'
+        ? null
+        : invalid(`Invalid ${ruleName} parameter: expected a field reference string`);
+    case 'notEqual':
+      return typeof param === 'string' || typeof param === 'boolean' || isFiniteNumber(param)
+        ? null
+        : invalid('Invalid notEqual parameter: expected a string, number or boolean');
+    case 'unique':
+      return typeof param === 'string' || param === true
+        ? null
+        : invalid('Invalid unique parameter: expected true, false or a string');
     case 'in': {
       const members = readMembers(param);
       return 'error' in members ? invalid(members.error) : null;

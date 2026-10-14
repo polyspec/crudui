@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-15 — Rule parameters (C14.15)
+
+- The parameters of `equalTo` and `enddate` (a field reference string), `notEqual` (a string, number or boolean) and `unique` (true, false or a string) are checked when the specification loads, in every language, and fail with `INVALID_RULE_PARAMETER`; an object or a list was taken as a value and reached the rule.
+
 ### 2026-10-15 — Documentation web (C14.14)
 
 - The Pages workflow builds the documentation web again: the API pages that API Documenter writes, with level-two headings only, are taken as they are and titled by their first heading; a written page keeps exactly one level-one heading (C14.14).

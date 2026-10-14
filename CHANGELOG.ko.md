@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: e64f6d8dba1b4ba73a22787a2076fa54aa87efd024ca672741a4112202ea0ec3 -->
+<!-- source-sha256: e47b8049cbf86063e52574cc7d795c9bfd1b30fb47e530475ba2e276f041e469 -->
 
 ## Unreleased
+
+### 2026-10-15 — rule parameter (C14.15)
+
+- `equalTo`와 `enddate`(field reference 문자열), `notEqual`(문자열, 숫자, boolean), `unique`(true, false, 문자열)의 parameter는 모든 언어에서 specification을 load할 때 검사되며 `INVALID_RULE_PARAMETER`로 실패한다. 객체나 목록이 값으로 받아져 rule에 닿았다.
 
 ### 2026-10-15 — Documentation web (C14.14)
 

@@ -1,5 +1,6 @@
 #include "engine_internal.h"
 
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -27,6 +28,31 @@ static bool pattern_rule(ps_text rule)
     return ps_text_is(rule, "pattern") || ps_text_is(rule, "match");
 }
 
+/*
+ * The problem of a parameter of a rule that references a field: equalTo and enddate take a field
+ * reference string, notEqual a string, number or boolean, and unique true or a string.
+ */
+static bool reference_parameter(ps_text rule, const ps_value *parameter, ps_parameter_problem *problem)
+{
+    int kind = parameter ? parameter->kind : PS_NULL;
+    const char *message = NULL;
+    if (ps_text_is(rule, "equalTo")) {
+        if (kind != PS_STRING) message = "Invalid equalTo parameter: expected a field reference string";
+    } else if (ps_text_is(rule, "enddate")) {
+        if (kind != PS_STRING) message = "Invalid enddate parameter: expected a field reference string";
+    } else if (ps_text_is(rule, "notEqual")) {
+        bool number = kind == PS_INT || (kind == PS_FLOAT && isfinite(parameter->data.number));
+        if (kind != PS_STRING && kind != PS_BOOL && !number)
+            message = "Invalid notEqual parameter: expected a string, number or boolean";
+    } else if (ps_text_is(rule, "unique")) {
+        if (kind != PS_STRING && kind != PS_BOOL) message = "Invalid unique parameter: expected true, false or a string";
+    } else {
+        return false;
+    }
+    if (message) *problem = (ps_parameter_problem){.code = "INVALID_RULE_PARAMETER", .message = message};
+    return true;
+}
+
 bool ps_rule_parameter(ps_text rule, const ps_value *parameter, ps_pattern_cache *patterns,
                        ps_parameter_problem *problem)
 {
@@ -43,6 +69,7 @@ bool ps_rule_parameter(ps_text rule, const ps_value *parameter, ps_pattern_cache
         *problem = ps_in_parameter(parameter);
         return !problem->code || strcmp(problem->code, "INTERNAL_ERROR");
     }
+    if (reference_parameter(rule, parameter, problem)) return true;
     if (!pattern_rule(rule)) return true;
     if (!parameter || parameter->kind != PS_STRING) {
         *problem = (ps_parameter_problem){.code = "INVALID_RULE_PARAMETER", .message =

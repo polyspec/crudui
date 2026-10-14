@@ -1,6 +1,6 @@
 # 검증 규칙
 <!-- doc-id: docs-spec-validation-rules -->
-<!-- source-sha256: bab83e066890f58e7809546047a4d54ff56d6002c1e9ffd000ee82f46d641b76 -->
+<!-- source-sha256: f5b18cdc09252dda46846bd853f0da02be6c2257f85094e2c19cf0989fba65f5 -->
 
 [English](validation-rules.md).
 
@@ -200,6 +200,9 @@ POSIX 클래스, 소유·중첩 수량자, `\uHHHH`, 8진수·제어 문자 이�
 | 문자열·숫자·불리언이 아닌 `in` 멤버 | `INVALID_RULE_PARAMETER` | `Invalid in parameter: members must be strings, numbers or booleans` |
 | 빈 멤버가 있는 `in` | `INVALID_RULE_PARAMETER` | `Invalid in parameter: members must not be empty` |
 | 다른 형식의 `pattern`, `match` | `INVALID_RULE_PARAMETER` | `Invalid {rule} parameter: expected a pattern string` |
+| 문자열이 아닌 `equalTo`, `enddate` | `INVALID_RULE_PARAMETER` | `Invalid {rule} parameter: expected a field reference string` |
+| 문자열·숫자·불리언이 아닌 `notEqual` | `INVALID_RULE_PARAMETER` | `Invalid notEqual parameter: expected a string, number or boolean` |
+| 불리언이나 문자열이 아닌 `unique` | `INVALID_RULE_PARAMETER` | `Invalid unique parameter: expected true, false or a string` |
 | 언어에 속하지 않는 `pattern`, `match` | `INVALID_RULE_PATTERN` | `Invalid {rule} pattern: {reason} at {offset}` |
 
 패턴의 `{reason}`은 `empty pattern`, `unexpected character`, `unsupported construct`,
@@ -256,7 +259,9 @@ properties:
 
 `equalTo`, `notEqual`, `unique`, `enddate`, `accept`, `match`, `pattern`, `in`은
 자체 처리를 위해 매개변수를 그대로 받습니다. 특히 `enddate: period.start`는
-불리언 조건이 아니라 필드 참조입니다. 포함 여부 검사 맵은 조건맵이 아닌 값 집합입니다.
+불리언 조건이 아니라 필드 참조입니다. 따라서 `equalTo`, `notEqual`, `unique`,
+`enddate`에 준 객체나 목록은 조건맵이 아니라 [매개변수 오류](#매개변수-오류)입니다.
+포함 여부 검사 맵은 조건맵이 아닌 값 집합입니다.
 
 `enddate`의 `.start`는 형제 필드, `..start`는 한 그룹 위의 필드를 공통 필드 참조
 해석기로 조회합니다.

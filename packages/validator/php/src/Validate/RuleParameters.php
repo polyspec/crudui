@@ -51,10 +51,34 @@ final class RuleParameters
                 'step' => Numeric::step($parameter),
                 'in' => Membership::fromParameter($parameter),
                 'match', 'pattern' => PatternParameter::compile($rule, $parameter),
+                'equalTo', 'enddate', 'notEqual', 'unique' => self::reference($rule, $parameter),
                 default => null,
             };
         } catch (InvalidRuleParameter $error) {
             throw new ComposeLoadError($error->getErrorCode(), $error->getMessage(), $declarationPath);
+        }
+    }
+
+    /**
+     * Check the parameter of a rule that references a field: `equalTo` and `enddate`
+     * take a field reference string, `notEqual` a string, number or boolean, and
+     * `unique` true or a string.
+     *
+     * @throws InvalidRuleParameter
+     */
+    private static function reference(string $rule, mixed $parameter): void
+    {
+        $message = match ($rule) {
+            'equalTo', 'enddate' => \is_string($parameter)
+                ? null : "Invalid $rule parameter: expected a field reference string",
+            'notEqual' => \is_string($parameter) || \is_bool($parameter) || \is_int($parameter)
+                || (\is_float($parameter) && is_finite($parameter))
+                ? null : 'Invalid notEqual parameter: expected a string, number or boolean',
+            default => \is_string($parameter) || $parameter === true
+                ? null : 'Invalid unique parameter: expected true, false or a string',
+        };
+        if ($message !== null) {
+            throw new InvalidRuleParameter(InvalidRuleParameter::PARAMETER, $message);
         }
     }
 

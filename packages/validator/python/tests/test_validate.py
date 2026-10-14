@@ -47,15 +47,15 @@ class ValidateConformance(unittest.TestCase):
         self.assertGreater(len(self.cases), 0)
 
     def test_result_cases_reproduce_the_expected_result(self):
-        self.assertEqual(len(self.cases), 309)
-        self.assertEqual(len(self.result_cases), 178)
+        self.assertEqual(len(self.cases), 318)
+        self.assertEqual(len(self.result_cases), 179)
         for case in self.result_cases:
             with self.subTest(case=case['name']), Proving(['validate'], 'tests/fixtures/validate/cases.json', case['name']) as proof:
                 self.assertEqual(self.run_case(case), case['expected'])
                 proof.passed = True
 
     def test_load_and_input_failures_throw_the_exact_record(self):
-        self.assertEqual(len(self.failure_cases), 131)
+        self.assertEqual(len(self.failure_cases), 139)
         for case in self.failure_cases:
             with self.subTest(case=case['name']), Proving(['validate'], 'tests/fixtures/validate/cases.json', case['name']) as proof:
                 thrown = None
