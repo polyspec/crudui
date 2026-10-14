@@ -21,9 +21,18 @@ final class VisibilityTest extends TestCase
         self::assertTrue(Visibility::shown('.on', $data, ['x']));
         self::assertFalse(Visibility::shown('.on == 2', $data, ['x']));
         self::assertTrue(Visibility::shown(".kind == 'a'", $data, ['rows', 'r1', 'note']));
-        self::assertTrue(Visibility::shown('.on ==', $data, ['x']), 'a string that is not a valid expression is a literal');
-        self::assertTrue(Visibility::shown('.mode == (', $data, ['x']), 'a string that is not a valid expression is a literal');
-        self::assertTrue(Visibility::shown((object) ['.on == 2' => false], $data, ['x']), 'a map that selects nothing leaves the field visible');
+        self::assertTrue(
+            Visibility::shown('.on ==', $data, ['x']),
+            'a string that is not a valid expression is a literal'
+        );
+        self::assertTrue(
+            Visibility::shown('.mode == (', $data, ['x']),
+            'a string that is not a valid expression is a literal'
+        );
+        self::assertTrue(
+            Visibility::shown((object) ['.on == 2' => false], $data, ['x']),
+            'a map that selects nothing leaves the field visible'
+        );
         self::assertTrue(Visibility::shown((object) ['.on == 2' => false, 'true' => true], $data, ['x']));
         self::assertFalse(Visibility::shown((object) ['.on == 2' => true, 'true' => false], $data, ['x']));
         self::assertFalse(Visibility::shown(['.on' => false, 'true' => true], ['on' => 1], ['x']));

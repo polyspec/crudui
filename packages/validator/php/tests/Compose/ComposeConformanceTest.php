@@ -36,7 +36,10 @@ final class ComposeConformanceTest extends TestCase
         foreach ($specs as $index => $spec) {
             $input = $objects[$index]->input;
             $spec['input']['entry'] = (array) $input->entry;
-            $spec['input']['files'] = array_map(static fn($file) => (array) $file, (array) ($input->files ?? new \stdClass()));
+            $spec['input']['files'] = array_map(
+                static fn($file) => (array) $file,
+                (array) ($input->files ?? new \stdClass())
+            );
             $out[$spec['name']] = [$spec];
         }
         return $out;
@@ -53,7 +56,13 @@ final class ComposeConformanceTest extends TestCase
             $this->assertCase($spec);
             $passed = true;
         } finally {
-            crudui_record_conformance('compileForm', 'tests/fixtures/compose/cases.json', 'php', $spec['name'], $passed);
+            crudui_record_conformance(
+                'compileForm',
+                'tests/fixtures/compose/cases.json',
+                'php',
+                $spec['name'],
+                $passed
+            );
         }
     }
 

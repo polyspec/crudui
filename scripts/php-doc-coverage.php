@@ -44,7 +44,11 @@ function crudui_php_doc_gaps(string $srcDir, ?string $autoload = null): array
                 $gaps[] = $name;
             }
             foreach ($class->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
-                if ($method->getDeclaringClass()->getName() === $name && !$method->isInternal() && $method->getDocComment() === false) {
+                if (
+                    $method->getDeclaringClass()->getName() === $name
+                    && !$method->isInternal()
+                    && $method->getDocComment() === false
+                ) {
                     $gaps[] = $name . '::' . $method->getName() . '()';
                 }
             }
@@ -84,7 +88,11 @@ function crudui_php_source_classes(string $code): array
             }
         } elseif (in_array($token[0], [T_CLASS, T_INTERFACE, T_TRAIT, T_ENUM], true)) {
             $next = $index + 1;
-            while ($next < $count && is_array($tokens[$next]) && in_array($tokens[$next][0], [T_WHITESPACE, T_COMMENT, T_DOC_COMMENT], true)) {
+            while (
+                $next < $count
+                && is_array($tokens[$next])
+                && in_array($tokens[$next][0], [T_WHITESPACE, T_COMMENT, T_DOC_COMMENT], true)
+            ) {
                 $next++;
             }
             if ($next < $count && is_array($tokens[$next]) && $tokens[$next][0] === T_STRING) {

@@ -85,7 +85,11 @@ final class PatternLanguageTest extends TestCase
         yield 'size of alternatives' => ['a{500}|b{501}', 'pattern too large', 0];
         yield 'size after other errors' => ['a{1000}b\\q', 'invalid escape', 8];
         yield 'depth before content' => [str_repeat('(', 100) . '(?i)', 'nesting too deep', 100];
-        yield 'depth of named groups' => [str_repeat('(?<a>', 1) . str_repeat('(?:', 100) . ')', 'nesting too deep', 5 + 99 * 3];
+        yield 'depth of named groups' => [
+            str_repeat('(?<a>', 1) . str_repeat('(?:', 100) . ')',
+            'nesting too deep',
+            5 + 99 * 3
+        ];
     }
 
     #[DataProvider('invalidPatterns')]
@@ -157,8 +161,15 @@ final class PatternLanguageTest extends TestCase
         for ($codePoint = 0; $codePoint <= 0x3100; $codePoint++) {
             $text = self::utf8($codePoint);
             $isDigit = $codePoint >= 0x30 && $codePoint <= 0x39;
-            $isWord = $isDigit || ($codePoint >= 0x41 && $codePoint <= 0x5A) || ($codePoint >= 0x61 && $codePoint <= 0x7A) || $codePoint === 0x5F;
-            $isSpace = \in_array($codePoint, [0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x20, 0x85, 0xA0, 0x1680, 0x2028, 0x2029, 0x202F, 0x205F, 0x3000], true)
+            $isWord = $isDigit
+                || ($codePoint >= 0x41 && $codePoint <= 0x5A)
+                || ($codePoint >= 0x61 && $codePoint <= 0x7A)
+                || $codePoint === 0x5F;
+            $isSpace = \in_array(
+                $codePoint,
+                [0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x20, 0x85, 0xA0, 0x1680, 0x2028, 0x2029, 0x202F, 0x205F, 0x3000],
+                true
+            )
                 || ($codePoint >= 0x2000 && $codePoint <= 0x200A);
             self::assertSame($isDigit, $digit->matches($text), sprintf('\\d U+%04X', $codePoint));
             self::assertSame($isWord, $word->matches($text), sprintf('\\w U+%04X', $codePoint));
@@ -179,7 +190,11 @@ final class PatternLanguageTest extends TestCase
                 }
                 $text = self::utf8($codePoint);
                 self::assertSame($set->contains($codePoint), $inside->matches($text), "$name U+" . dechex($codePoint));
-                self::assertSame(!$set->contains($codePoint), $outside->matches($text), "not $name U+" . dechex($codePoint));
+                self::assertSame(
+                    !$set->contains($codePoint),
+                    $outside->matches($text),
+                    "not $name U+" . dechex($codePoint)
+                );
             }
         }
         foreach (array_keys(UnicodeData::SCRIPTS) as $script) {
@@ -192,7 +207,9 @@ final class PatternLanguageTest extends TestCase
         // Surrogates are in C and in every complement; valid UTF-8 text cannot carry
         // them, so the sets are checked directly.
         self::assertTrue(CodePointSet::fromBounds(UnicodeData::GENERAL_CATEGORIES['C'])->contains(0xD800));
-        self::assertTrue(CodePointSet::fromBounds(UnicodeData::GENERAL_CATEGORIES['L'])->complement()->contains(0xDFFF));
+        self::assertTrue(
+            CodePointSet::fromBounds(UnicodeData::GENERAL_CATEGORIES['L'])->complement()->contains(0xDFFF)
+        );
     }
 
     public function testCodePointSets(): void
@@ -203,8 +220,23 @@ final class PatternLanguageTest extends TestCase
         self::assertSame([0, 5, 10, 30, 40, 40], $set->complement()->complement()->bounds());
         self::assertSame([0, 0x10FFFF], CodePointSet::fromBounds([])->complement()->bounds());
         self::assertSame([], CodePointSet::fromBounds([0, 0x10FFFF])->complement()->bounds());
-        self::assertSame([0, 7], CodePointSet::union(CodePointSet::fromBounds([0, 3]), CodePointSet::fromBounds([4, 7]))->bounds());
-        foreach ([[0, true], [5, true], [6, false], [9, false], [10, true], [30, true], [35, false], [40, true], [41, false]] as [$codePoint, $member]) {
+        self::assertSame(
+            [0, 7],
+            CodePointSet::union(CodePointSet::fromBounds([0, 3]), CodePointSet::fromBounds([4, 7]))->bounds()
+        );
+        foreach (
+            [
+                [0, true],
+                [5, true],
+                [6, false],
+                [9, false],
+                [10, true],
+                [30, true],
+                [35, false],
+                [40, true],
+                [41, false]
+            ] as [$codePoint, $member]
+        ) {
             self::assertSame($member, $set->contains($codePoint), (string) $codePoint);
         }
     }
@@ -240,7 +272,11 @@ final class PatternLanguageTest extends TestCase
         foreach (
             [[5, 'Invalid match parameter: expected a pattern string', 'INVALID_RULE_PARAMETER'],
             [['a'], 'Invalid match parameter: expected a pattern string', 'INVALID_RULE_PARAMETER'],
-            ['a(', 'Invalid match pattern: unterminated group at 2', 'INVALID_RULE_PATTERN']] as [$parameter, $message, $code]
+            [
+                'a(',
+                'Invalid match pattern: unterminated group at 2',
+                'INVALID_RULE_PATTERN'
+            ]] as [$parameter, $message, $code]
         ) {
             try {
                 PatternParameter::compile('match', $parameter);
@@ -264,7 +300,9 @@ final class PatternLanguageTest extends TestCase
         return match (true) {
             $codePoint < 0x80 => \chr($codePoint),
             $codePoint < 0x800 => \chr(0xC0 | $codePoint >> 6) . \chr(0x80 | $codePoint & 0x3F),
-            $codePoint < 0x10000 => \chr(0xE0 | $codePoint >> 12) . \chr(0x80 | ($codePoint >> 6) & 0x3F) . \chr(0x80 | $codePoint & 0x3F),
+            $codePoint < 0x10000 => \chr(0xE0 | $codePoint >> 12)
+                . \chr(0x80 | ($codePoint >> 6) & 0x3F)
+                . \chr(0x80 | $codePoint & 0x3F),
             default => \chr(0xF0 | $codePoint >> 18) . \chr(0x80 | ($codePoint >> 12) & 0x3F)
                 . \chr(0x80 | ($codePoint >> 6) & 0x3F) . \chr(0x80 | $codePoint & 0x3F),
         };

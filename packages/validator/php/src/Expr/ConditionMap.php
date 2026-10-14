@@ -29,8 +29,12 @@ final class ConditionMap
      * @param list<string>         $currentPath
      * @param list<int>            $rowKeys positions of the row keys in $currentPath
      */
-    public static function resolve(array|\stdClass $map, array|\stdClass $formData, array $currentPath = [], array $rowKeys = []): mixed
-    {
+    public static function resolve(
+        array|\stdClass $map,
+        array|\stdClass $formData,
+        array $currentPath = [],
+        array $rowKeys = []
+    ): mixed {
         $map = (array) $map;
         $evaluator = new Evaluator($formData, $currentPath, $rowKeys);
 

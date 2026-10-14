@@ -41,7 +41,11 @@ final class ValuesTest extends TestCase
         $all = implode('', array_map(self::utf8(...), self::WHITESPACE));
         foreach (self::WHITESPACE as $codePoint) {
             $space = self::utf8($codePoint);
-            self::assertSame('x' . $space . 'y', Whitespace::trim($space . 'x' . $space . 'y' . $space), sprintf('U+%04X', $codePoint));
+            self::assertSame(
+                'x' . $space . 'y',
+                Whitespace::trim($space . 'x' . $space . 'y' . $space),
+                sprintf('U+%04X', $codePoint)
+            );
         }
         self::assertSame('', Whitespace::trim($all));
         self::assertSame('a', Whitespace::trim($all . 'a' . $all));
@@ -130,7 +134,10 @@ final class ValuesTest extends TestCase
             self::fail('accepted ' . var_export($parameter, true));
         } catch (InvalidRuleParameter $error) {
             self::assertSame('INVALID_RULE_PARAMETER', $error->getErrorCode());
-            self::assertSame('Invalid maxlength parameter: expected an integer from 0 to 9007199254740991', $error->getMessage());
+            self::assertSame(
+                'Invalid maxlength parameter: expected an integer from 0 to 9007199254740991',
+                $error->getMessage()
+            );
         }
     }
 
@@ -143,7 +150,8 @@ final class ValuesTest extends TestCase
                 self::fail('accepted ' . var_export($parameter, true));
             } catch (InvalidRuleParameter $error) {
                 self::assertSame(
-                    'Invalid rangelength parameter: expected [minimum, maximum] integers with minimum not above maximum',
+                    'Invalid rangelength parameter: expected [minimum, maximum] integers with minimum not '
+                        . 'above maximum',
                     $error->getMessage(),
                 );
             }
@@ -246,7 +254,9 @@ final class ValuesTest extends TestCase
         return match (true) {
             $codePoint < 0x80 => \chr($codePoint),
             $codePoint < 0x800 => \chr(0xC0 | $codePoint >> 6) . \chr(0x80 | $codePoint & 0x3F),
-            default => \chr(0xE0 | $codePoint >> 12) . \chr(0x80 | ($codePoint >> 6) & 0x3F) . \chr(0x80 | $codePoint & 0x3F),
+            default => \chr(0xE0 | $codePoint >> 12)
+                . \chr(0x80 | ($codePoint >> 6) & 0x3F)
+                . \chr(0x80 | $codePoint & 0x3F),
         };
     }
 }

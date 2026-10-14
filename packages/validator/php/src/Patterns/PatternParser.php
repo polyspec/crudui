@@ -217,7 +217,11 @@ final class PatternParser
     private function number(): ?int
     {
         $value = null;
-        while ($this->position < $this->length && $this->source[$this->position] >= 0x30 && $this->source[$this->position] <= 0x39) {
+        while (
+            $this->position < $this->length
+            && $this->source[$this->position] >= 0x30
+            && $this->source[$this->position] <= 0x39
+        ) {
             $value = min(($value ?? 0) * 10 + $this->source[$this->position] - 0x30, self::MAXIMUM_BOUND + 1);
             $this->position++;
         }
@@ -235,7 +239,11 @@ final class PatternParser
         if ($this->is($this->position, '?')) {
             if ($this->is($this->position + 1, ':')) {
                 $this->position += 2;
-            } elseif ($this->is($this->position + 1, '<') && !$this->is($this->position + 2, '=') && !$this->is($this->position + 2, '!')) {
+            } elseif (
+                $this->is($this->position + 1, '<')
+                && !$this->is($this->position + 2, '=')
+                && !$this->is($this->position + 2, '!')
+            ) {
                 $this->position = $this->groupName($at, $this->position + 2);
             } else {
                 throw new PatternSyntaxError('unsupported construct', $at);
@@ -301,7 +309,11 @@ final class PatternParser
             }
             $start = $this->position;
             $member = $this->classMember($at, $first);
-            if ($this->is($this->position, '-') && $this->position + 1 < $this->length && !$this->is($this->position + 1, ']')) {
+            if (
+                $this->is($this->position, '-')
+                && $this->position + 1 < $this->length
+                && !$this->is($this->position + 1, ']')
+            ) {
                 if (!\is_int($member)) {
                     throw new PatternSyntaxError('invalid range', $start);
                 }

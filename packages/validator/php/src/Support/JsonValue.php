@@ -59,7 +59,11 @@ final class JsonValue
     /** Count a node at $depth, or reject a value beyond the limits of Text. */
     private static function admit(mixed $value, int $depth, int &$nodes): void
     {
-        if (++$nodes > Text::NODE_LIMIT || $depth >= Text::NESTING_LIMIT && ($value instanceof stdClass || is_array($value))) {
+        if (
+            ++$nodes > Text::NODE_LIMIT
+            || $depth >= Text::NESTING_LIMIT
+            && ($value instanceof stdClass || is_array($value))
+        ) {
             throw new \InvalidArgumentException('Recursive or excessively nested PHP value');
         }
     }
@@ -86,7 +90,14 @@ final class JsonValue
         if (is_string($value) && preg_match('//u', $value) !== 1) {
             throw new \InvalidArgumentException('Strings must contain valid UTF-8');
         }
-        if ($value === null || is_string($value) || is_bool($value) || is_int($value) || is_float($value) && is_finite($value)) {
+        if (
+            $value === null
+            || is_string($value)
+            || is_bool($value)
+            || is_int($value)
+            || is_float($value)
+            && is_finite($value)
+        ) {
             return $value;
         }
         throw new \InvalidArgumentException('Unsupported PHP value: ' . get_debug_type($value));

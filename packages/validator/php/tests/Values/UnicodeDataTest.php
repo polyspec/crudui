@@ -19,7 +19,12 @@ final class UnicodeDataTest extends TestCase
     /** @return array<string, mixed> */
     private static function contract(): array
     {
-        return json_decode((string) file_get_contents(self::ROOT . '/contracts/unicode-properties.json'), true, 512, JSON_THROW_ON_ERROR);
+        return json_decode(
+            (string) file_get_contents(self::ROOT . '/contracts/unicode-properties.json'),
+            true,
+            512,
+            JSON_THROW_ON_ERROR
+        );
     }
 
     /**

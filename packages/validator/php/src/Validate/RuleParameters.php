@@ -131,7 +131,10 @@ final class RuleParameters
         if (\in_array($rule, self::UNCHANGED, true)) {
             return false;
         }
-        if ($parameter instanceof \stdClass || (\is_array($parameter) && $parameter !== [] && !array_is_list($parameter))) {
+        if (
+            $parameter instanceof \stdClass
+            || (\is_array($parameter) && $parameter !== [] && !array_is_list($parameter))
+        ) {
             return true;
         }
         if (!\is_string($parameter)) {

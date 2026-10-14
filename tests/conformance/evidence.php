@@ -8,9 +8,16 @@ declare(strict_types=1);
 
 if (!\function_exists('crudui_record_conformance')) {
     /** Record one case result. */
-    function crudui_record_conformance(string $feature, string $fixture, string $runtime, string $case, bool $passed): void
-    {
-        foreach (['feature' => $feature, 'fixture' => $fixture, 'runtime' => $runtime, 'case' => $case] as $key => $value) {
+    function crudui_record_conformance(
+        string $feature,
+        string $fixture,
+        string $runtime,
+        string $case,
+        bool $passed
+    ): void {
+        foreach (
+            ['feature' => $feature, 'fixture' => $fixture, 'runtime' => $runtime, 'case' => $case] as $key => $value
+        ) {
             if ($value === '') {
                 throw new \InvalidArgumentException("Conformance evidence {$key} must be a non-empty string");
             }

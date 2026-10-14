@@ -6,7 +6,8 @@ namespace Polyspec\Crudui\Validator\Values;
 
 /**
  * The member set of `in`: a list (each element as is), a choice list (the value of each
- * choice, the choices of a group included), a comma-separated string (split at U+002C, each item trimmed) or a map (its keys);
+ * choice, the choices of a group included), a comma-separated string (split at U+002C, each item trimmed) or a map (its
+ * keys);
  * list elements and map keys are read as written. A choice list is checked by the choice list
  * rules before its values are checked as members. A trimmed value matches a member
  * when their canonical texts are the same code points, or when both are numeric

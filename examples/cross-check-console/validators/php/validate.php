@@ -98,7 +98,14 @@ try {
         $output = ['valid' => $result->valid, 'errors' => $result->errors, 'hidden' => $result->hidden];
     }
 } catch (ComposeLoadError $error) {
-    emit(['error' => $error->getMessage(), 'code' => $error->getErrorCode(), 'at' => implode('.', $error->getCompositionTrace())], 2);
+    emit(
+        [
+            'error' => $error->getMessage(),
+            'code' => $error->getErrorCode(),
+            'at' => implode('.', $error->getCompositionTrace())
+        ],
+        2
+    );
 } catch (FormInputError $error) {
     emit(['error' => $error->getMessage(), 'code' => $error->getErrorCode(), 'at' => ''], 2);
 } catch (Throwable $error) {

@@ -196,9 +196,18 @@ final class ExprConformanceTest extends TestCase
      */
     public function testTernaryValueReturn(): void
     {
-        $this->assertSame('huge', Expression::evaluateValue(".big ? 'huge' : 'tiny'", ['big' => true, 'x' => 1], ['x']));
-        $this->assertSame('tiny', Expression::evaluateValue(".big ? 'huge' : 'tiny'", ['big' => false, 'x' => 1], ['x']));
-        $this->assertSame('B', Expression::evaluateValue(".a ? 'A' : .b ? 'B' : 'C'", ['a' => false, 'b' => true, 'x' => 1], ['x']));
+        $this->assertSame(
+            'huge',
+            Expression::evaluateValue(".big ? 'huge' : 'tiny'", ['big' => true, 'x' => 1], ['x'])
+        );
+        $this->assertSame(
+            'tiny',
+            Expression::evaluateValue(".big ? 'huge' : 'tiny'", ['big' => false, 'x' => 1], ['x'])
+        );
+        $this->assertSame(
+            'B',
+            Expression::evaluateValue(".a ? 'A' : .b ? 'B' : 'C'", ['a' => false, 'b' => true, 'x' => 1], ['x'])
+        );
         $this->assertSame(0, Expression::evaluateValue('.active ? 1 : 0', ['active' => false, 'x' => 1], ['x']));
         $this->assertNull(Expression::evaluateValue('.show == 1 ? 1 : null', ['show' => 0, 'x' => 1], ['x']));
     }

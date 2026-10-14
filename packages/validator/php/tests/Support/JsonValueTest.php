@@ -14,18 +14,32 @@ final class JsonValueTest extends TestCase
 {
     public function testOrderedListsArrayIndexNamesFirstAndKeepsOtherNamesInInsertionOrder(): void
     {
-        $spec = json_decode('{"b":1,"10":2,"a":3,"4294967295":4,"2":5,"01":6,"-1":7,"0":8,"4294967294":9}', false, 512, JSON_THROW_ON_ERROR);
+        $spec = json_decode(
+            '{"b":1,"10":2,"a":3,"4294967295":4,"2":5,"01":6,"-1":7,"0":8,"4294967294":9}',
+            false,
+            512,
+            JSON_THROW_ON_ERROR
+        );
 
         $ordered = JsonValue::ordered($spec);
 
         self::assertInstanceOf(stdClass::class, $ordered);
         self::assertSame(['0', '2', '10', '4294967294', 'b', 'a', '4294967295', '01', '-1'], self::names($ordered));
-        self::assertSame(['b', '10', 'a', '4294967295', '2', '01', '-1', '0', '4294967294'], self::names($spec), 'the input is not reordered');
+        self::assertSame(
+            ['b', '10', 'a', '4294967295', '2', '01', '-1', '0', '4294967294'],
+            self::names($spec),
+            'the input is not reordered'
+        );
     }
 
     public function testOrderedReordersNestedObjectsAndObjectsInsideLists(): void
     {
-        $spec = json_decode('{"properties":{"b":{"multiple":{"z":1,"5":1}},"10":{}},"items":[{"y":1,"1":2},3]}', false, 512, JSON_THROW_ON_ERROR);
+        $spec = json_decode(
+            '{"properties":{"b":{"multiple":{"z":1,"5":1}},"10":{}},"items":[{"y":1,"1":2},3]}',
+            false,
+            512,
+            JSON_THROW_ON_ERROR
+        );
 
         $ordered = JsonValue::ordered($spec);
 

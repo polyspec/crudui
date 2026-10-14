@@ -18,14 +18,48 @@ final class NumericTest extends TestCase
 {
     public function testNumericText(): void
     {
-        foreach (['12' => 12.0, '-.5e+2' => -50.0, "\u{3000}1E3\t" => 1000.0, '007' => 7.0, '1e-400' => 0.0, '-0' => -0.0] as $text => $expected) {
+        foreach (
+            [
+                '12' => 12.0,
+                '-.5e+2' => -50.0,
+                "\u{3000}1E3\t" => 1000.0,
+                '007' => 7.0,
+                '1e-400' => 0.0,
+                '-0' => -0.0
+            ] as $text => $expected
+        ) {
             self::assertSame($expected, Numeric::of((string) $text), (string) $text);
         }
-        foreach (['+1', '1.', '.', '-', '0x10', '0b1', 'Infinity', 'NaN', '1_000', '1e', 'e5', '--1', '1e999', '-1e999', '1,5', '1 2', "\u{0661}", '', ' '] as $text) {
+        foreach (
+            [
+                '+1',
+                '1.',
+                '.',
+                '-',
+                '0x10',
+                '0b1',
+                'Infinity',
+                'NaN',
+                '1_000',
+                '1e',
+                'e5',
+                '--1',
+                '1e999',
+                '-1e999',
+                '1,5',
+                '1 2',
+                "\u{0661}",
+                '',
+                ' '
+            ] as $text
+        ) {
             self::assertNull(Numeric::of($text), $text);
         }
         self::assertSame(9007199254740992.0, Numeric::of(9007199254740993));
-        self::assertSame([100.0, null, null, 5.0], [Numeric::asWritten('100'), Numeric::asWritten(' 100'), Numeric::asWritten("100\t"), Numeric::asWritten(5)]);
+        self::assertSame(
+            [100.0, null, null, 5.0],
+            [Numeric::asWritten('100'), Numeric::asWritten(' 100'), Numeric::asWritten("100\t"), Numeric::asWritten(5)]
+        );
         foreach ([true, false, null, [], ['1'], new \stdClass(), INF, NAN] as $value) {
             self::assertNull(Numeric::of($value));
         }
@@ -116,9 +150,18 @@ final class NumericTest extends TestCase
             [fn () => Numeric::bound('min', '5'), 'Invalid min parameter: expected a finite number'],
             [fn () => Numeric::bound('max', INF), 'Invalid max parameter: expected a finite number'],
             [fn () => Numeric::bound('min', false), 'Invalid min parameter: expected a finite number'],
-            [fn () => Numeric::range(['min' => 1, 'max' => 2]), 'Invalid range parameter: expected [minimum, maximum] finite numbers with minimum not above maximum'],
-            [fn () => Numeric::range([2, 1]), 'Invalid range parameter: expected [minimum, maximum] finite numbers with minimum not above maximum'],
-            [fn () => Numeric::range([1, '2']), 'Invalid range parameter: expected [minimum, maximum] finite numbers with minimum not above maximum'],
+            [
+                fn () => Numeric::range(['min' => 1, 'max' => 2]),
+                'Invalid range parameter: expected [minimum, maximum] finite numbers with minimum not above maximum'
+            ],
+            [
+                fn () => Numeric::range([2, 1]),
+                'Invalid range parameter: expected [minimum, maximum] finite numbers with minimum not above maximum'
+            ],
+            [
+                fn () => Numeric::range([1, '2']),
+                'Invalid range parameter: expected [minimum, maximum] finite numbers with minimum not above maximum'
+            ],
             [fn () => Numeric::step(-0.0), 'Invalid step parameter: expected a finite number above 0'],
             [fn () => Numeric::step(NAN), 'Invalid step parameter: expected a finite number above 0'],
             [fn () => Numeric::step('1'), 'Invalid step parameter: expected a finite number above 0'],

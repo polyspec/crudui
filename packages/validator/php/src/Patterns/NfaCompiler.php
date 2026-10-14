@@ -41,7 +41,14 @@ final class NfaCompiler
         [$start, $holes] = $compiler->node($pattern);
         $match = $compiler->state(Nfa::MATCH);
         $compiler->patch($holes, $match);
-        return new Nfa($compiler->kinds, $compiler->setIndexes, $compiler->next, $compiler->alternatives, $compiler->sets, $start);
+        return new Nfa(
+            $compiler->kinds,
+            $compiler->setIndexes,
+            $compiler->next,
+            $compiler->alternatives,
+            $compiler->sets,
+            $start
+        );
     }
 
     /**

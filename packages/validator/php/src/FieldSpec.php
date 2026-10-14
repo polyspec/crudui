@@ -145,7 +145,17 @@ final class FieldSpec
      *
      * @var list<string>
      */
-    public const DESIGN_SUB_KEYS = ['show', 'class', 'style', 'attributes', 'layout', 'label', 'wrapper', 'group', 'prepend'];
+    public const DESIGN_SUB_KEYS = [
+        'show',
+        'class',
+        'style',
+        'attributes',
+        'layout',
+        'label',
+        'wrapper',
+        'group',
+        'prepend'
+    ];
 
     /**
      * Sub-keys inside the `behavior` slot. Opaque client JS, passed through
@@ -599,7 +609,12 @@ final class FieldSpec
                 if ($key === 'design') {
                     foreach (self::DESIGN_NODES as $node) {
                         if (is_array($value[$node] ?? null)) {
-                            self::guardInside("design.{$node}", $value[$node], $node === 'wrapper' ? self::WRAPPER_NODE_KEYS : self::DESIGN_NODE_KEYS, $violations);
+                            self::guardInside(
+                                "design.{$node}",
+                                $value[$node],
+                                $node === 'wrapper' ? self::WRAPPER_NODE_KEYS : self::DESIGN_NODE_KEYS,
+                                $violations
+                            );
                         }
                     }
                 }
