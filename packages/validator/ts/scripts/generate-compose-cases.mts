@@ -18,15 +18,11 @@
  * `expectError`   : `{ code }` — the ComposeLoadError.code the engine throws.
  *
  * Regenerate (from repo root):
- *   node_modules/.bin/tsx tests/fixtures/compose/generate.ts > tests/fixtures/compose/cases.json
+ *   node packages/validator/ts/scripts/generate-compose-cases.mts > tests/fixtures/compose/cases.json
  */
 
-import {
-  composeProperties,
-  composeSpec,
-  MemoryLoader,
-  ComposeLoadError,
-} from '../../../packages/validator/ts/src/compose/index';
+import { ComposeLoadError } from '@polyspec/crudui-validator';
+import { composeProperties, composeSpec, MemoryLoader } from '@polyspec/crudui-validator/internal';
 
 interface CaseInput {
   files?: Record<string, Record<string, unknown>>;

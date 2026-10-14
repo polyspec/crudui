@@ -42,7 +42,7 @@ The cases are read by the detail conformance tests in
 Run from the repository root:
 
 ```sh
-node_modules/.bin/tsx tests/fixtures/detail-render/generate.ts \
+node tests/fixtures/detail-render/generate.mts \
   > tests/fixtures/detail-render/cases.json
 ```
 

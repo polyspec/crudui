@@ -41,10 +41,10 @@ a runtime may decode to another type than `1` and must still compare by value; n
 case holds an empty object or an object whose keys are `0`, `1`, …, which PHP
 decodes as an array.
 
-Regenerate from the repository root:
+Regenerate from the repository root after building the packages:
 
 ```sh
-node_modules/.bin/tsx tests/fixtures/expr/generate.ts > tests/fixtures/expr/cases.json
+node packages/validator/ts/scripts/generate-expr-cases.mts > tests/fixtures/expr/cases.json
 ```
 
 The generator records actual TypeScript tokens, ASTs and results, except that a

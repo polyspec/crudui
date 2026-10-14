@@ -1,6 +1,6 @@
 # 목록 렌더링 고정 데이터
 <!-- doc-id: tests-fixtures-list-render-readme -->
-<!-- source-sha256: 6920810ee28c759ebe4bda5aead54ac9687a6fd78389e6e7e52b31d752b8ad23 -->
+<!-- source-sha256: 438ad63db54d3ce4dd9715fb42e93aa3dcc2a07d2dbe69bdd2f9cee6254dbb96 -->
 
 [English](README.md).
 
@@ -35,7 +35,7 @@
 패키지를 빌드한 다음 저장소 루트에서 실행합니다.
 
 ```sh
-node_modules/.bin/tsx tests/fixtures/list-render/generate.ts \
+node tests/fixtures/list-render/generate.mts \
   > tests/fixtures/list-render/cases.json
 npm run test:forms
 ```

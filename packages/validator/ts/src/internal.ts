@@ -16,7 +16,14 @@ export { scanForbiddenKeys } from './forbidden-scan';
 export { FORBIDDEN_META_KEY_PATTERN, FORBIDDEN_META_KEYS } from './schema';
 export { getRuleNames } from './rules/index';
 export { parseJsonDocument } from './text/json';
-export { isConditionExpression, parseCondition } from './parser/ConditionParser';
+export {
+  Lexer,
+  MAX_EXPRESSION_DEPTH,
+  ParseError,
+  Parser,
+  isConditionExpression,
+  parseCondition,
+} from './parser/ConditionParser';
 export { evaluateCondition, evaluateExpressionValue } from './parser/PathResolver';
 export {
   INVALID_TEXT_MESSAGE,

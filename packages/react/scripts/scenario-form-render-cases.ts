@@ -1,35 +1,22 @@
-import { renderFields } from '../../../packages/react/src/internal/renderFields';
-import type { BindFormOptions, CompileFormOptions } from '@polyspec/crudui-generator-core';
-import { ComposeLoadError, compileForm } from '@polyspec/crudui-generator-core';
 /**
- * Generates shared form-render fixtures for four languages and three frameworks.
- *
- * Produces `cases.json`: one case per render scenario from the CRUDUI analysis
- * `fixture_ideas`. Each case is `{ name, note, spec, data?, options?,
- * expected_html, expectError? }`. The `expected_html` is the NORMALIZED output
- * of the React CRUDUI reference generator (renderForm) — never hand-written. The
- * Vue/Svelte CRUDUI generators must reproduce the same `expected_html` after the
- * shared normalizer (normalize.mts).
- *
- * Do not edit `cases.json` by hand — regenerate:
- *   node_modules/.bin/tsx tests/fixtures/form-render/generate.ts > tests/fixtures/form-render/cases.json
+ * The form rendering scenarios of the CRUDUI analysis `fixture_ideas`: one spec, its data and
+ * options per scenario, or the composition error code it fails with. generate-form-render-cases.mts
+ * renders each one with the React reference generator into tests/fixtures/form-render/cases.json.
  */
+import type { BindFormOptions, CompileFormOptions } from '@polyspec/crudui-generator-core';
 
-// @ts-expect-error — JS normalizer shared across the fixture harness.
-import { normalizeHtml } from './normalize.mts';
-
-interface FixtureCase {
+/** One scenario: a form spec with its data and options, or the composition error it fails with. */
+export interface ScenarioCase {
   name: string;
   note: string;
   spec: Record<string, unknown>;
   data?: Record<string, unknown>;
   options?: BindFormOptions & CompileFormOptions;
-  expected_html?: string;
   expectError?: { code: string };
 }
 
 /** The fixture matrix (one entry per `fixture_ideas` scenario). */
-const SCENARIOS: FixtureCase[] = [
+export const SCENARIOS: ScenarioCase[] = [
   {
     name: 'text-with-nul',
     note: 'a NUL character in a label, a placeholder and a value is written like any other character.',
@@ -355,30 +342,3 @@ const SCENARIOS: FixtureCase[] = [
     data: { x: 1 },
   },
 ];
-
-function build(): FixtureCase[] {
-  return SCENARIOS.map((c) => {
-    if (c.expectError) {
-      // Confirm the error actually throws with the recorded code.
-      let thrown: unknown;
-      try {
-        renderFields(compileForm(c.spec, c.options), { ...c.options, data: c.data });
-      } catch (e) {
-        thrown = e;
-      }
-      if (!(thrown instanceof ComposeLoadError)) {
-        throw new Error(`${c.name}: expected ComposeLoadError, got ${String(thrown)}`);
-      }
-      if (thrown.code !== c.expectError.code) {
-        throw new Error(`${c.name}: expected code ${c.expectError.code}, got ${thrown.code}`);
-      }
-      return { name: c.name, note: c.note, spec: c.spec, data: c.data, options: c.options, expectError: c.expectError };
-    }
-    const html = renderFields(compileForm(c.spec, c.options), { ...c.options, data: c.data });
-    const expected_html = normalizeHtml(html);
-    return { name: c.name, note: c.note, spec: c.spec, data: c.data, options: c.options, expected_html };
-  });
-}
-
-// eslint-disable-next-line no-console
-console.log(JSON.stringify(build(), null, 2));

@@ -1,9 +1,11 @@
-import { compileForm } from '@polyspec/crudui-generator-core';
 /**
- * Fixture generator for the form-render NEW-WIDGET cases. Runs the React CRUDUI
- * generator (the reference) over each new spec, normalizes through the SHARED
- * normalizer, and replaces matching `expected_html` cases or appends new ones. The three-framework comparison then verifies that every generator reproduces
- * the same normalized output.
+ * Generates tests/fixtures/form-render/cases.json, the shared form rendering cases of the React,
+ * Vue and Svelte generators. Runs the React CRUDUI generator (the reference) over the scenarios of
+ * scenario-form-render-cases.ts and the widget cases below and normalizes its output through the
+ * shared normalizer; the cases of written-form-render-cases.ts carry `expected_html` written from
+ * the specification. A widget or written case replaces the scenario of the same name. The file
+ * keeps the order of its cases; a new case is appended. The three-framework comparison then
+ * verifies that every generator reproduces the same normalized output.
  *
  * Run: node_modules/.bin/tsx packages/react/scripts/generate-form-render-cases.mts
  */
@@ -11,8 +13,10 @@ import { compileForm } from '@polyspec/crudui-generator-core';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
+import { ComposeLoadError, compileForm, type BindFormOptions, type CompileFormOptions } from '@polyspec/crudui-generator-core';
 import { renderFields } from '../src/internal/renderFields';
 import { normalizeHtml } from '../../../tests/fixtures/form-render/normalize.mts';
+import { SCENARIOS } from './scenario-form-render-cases';
 import { WRITTEN_CASES } from './written-form-render-cases';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -23,7 +27,8 @@ interface FixtureCase {
   note: string;
   spec: Record<string, unknown>;
   data?: Record<string, unknown>;
-  options?: Record<string, unknown>;
+  /** The typed options of a scenario, or the options object of a widget or written case. */
+  options?: BindFormOptions & CompileFormOptions | Record<string, unknown>;
   expected_html?: string;
   expectError?: { code: string; message?: string };
 }
@@ -375,11 +380,35 @@ NEW.push(...WRITTEN_CASES);
 
 void group; // (kept for ad-hoc use)
 
-const existing = JSON.parse(readFileSync(casesPath, 'utf8')) as FixtureCase[];
-const existingNames = new Set(existing.map((c) => c.name));
-const additions = NEW.filter((c) => !existingNames.has(c.name));
-const replacements = new Map(NEW.map(c => [c.name, c]));
-const merged = [...existing.map(c => replacements.get(c.name) ?? c), ...additions];
+/** The rendered case of a scenario, or its error case after the render throws the recorded ComposeLoadError. */
+function scenario(c: (typeof SCENARIOS)[number]): FixtureCase {
+  if (c.expectError) {
+    let thrown: unknown;
+    try {
+      renderFields(compileForm(c.spec, c.options), { ...c.options, data: c.data });
+    } catch (e) {
+      thrown = e;
+    }
+    if (!(thrown instanceof ComposeLoadError)) {
+      throw new Error(`${c.name}: expected ComposeLoadError, got ${String(thrown)}`);
+    }
+    if (thrown.code !== c.expectError.code) {
+      throw new Error(`${c.name}: expected code ${c.expectError.code}, got ${thrown.code}`);
+    }
+    return { name: c.name, note: c.note, spec: c.spec, data: c.data, options: c.options, expectError: c.expectError };
+  }
+  const html = renderFields(compileForm(c.spec, c.options), { ...c.options, data: c.data });
+  return { name: c.name, note: c.note, spec: c.spec, data: c.data, options: c.options, expected_html: normalizeHtml(html) };
+}
 
-writeFileSync(casesPath, JSON.stringify(merged, null, 2) + '\n', 'utf8');
-process.stdout.write(`existing=${existing.length} new=${additions.length} total=${merged.length}\n`);
+const scenarios = SCENARIOS.map(scenario);
+const generated = new Map(scenarios.map((c) => [c.name, c]));
+for (const c of NEW) generated.set(c.name, c);
+// Keep the order of the cases already in cases.json, so a regeneration changes only what changed;
+// a case no longer generated goes, and a new one is appended.
+const previous = (JSON.parse(readFileSync(casesPath, 'utf8')) as FixtureCase[]).map((c) => c.name);
+const order = [...previous.filter((name) => generated.has(name)), ...[...generated.keys()].filter((name) => !previous.includes(name))];
+const cases = order.flatMap((name) => generated.get(name) ?? []);
+
+writeFileSync(casesPath, JSON.stringify(cases, null, 2) + '\n', 'utf8');
+process.stdout.write(`scenarios=${scenarios.length} total=${cases.length}\n`);

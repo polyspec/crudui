@@ -1,6 +1,6 @@
 # 합성 고정 데이터
 <!-- doc-id: tests-fixtures-compose-readme -->
-<!-- source-sha256: 44a0425ae604d9d1caa13ed3af42bc4b8de0682782950872021ea89d75c78366 -->
+<!-- source-sha256: 290291d2957155da66339535e54c5b29c5f0a6af74691798769b1bcc5d9ad1e6 -->
 
 [English](README.md).
 
@@ -30,10 +30,10 @@
 
 ## 재생성
 
-저장소 루트에서 실행합니다.
+패키지를 빌드한 후 저장소 루트에서 실행합니다.
 
 ```sh
-node_modules/.bin/tsx tests/fixtures/compose/generate.ts > tests/fixtures/compose/cases.json
+node packages/validator/ts/scripts/generate-compose-cases.mts > tests/fixtures/compose/cases.json
 ```
 
 생성기는 TypeScript 합성 엔진을 실행해 결과를 기록합니다. 이름이 `err-`로 시작하는 사례는 실패해야 하고

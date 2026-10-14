@@ -36,7 +36,7 @@ expected HTML strings.
 Run from the repository root after building the packages:
 
 ```sh
-node_modules/.bin/tsx tests/fixtures/form-outline/generate.ts
+node tests/fixtures/form-outline/generate.mts
 npm run test:forms
 ```
 

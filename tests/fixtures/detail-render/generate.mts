@@ -1,7 +1,7 @@
 /**
  * Generates the shared CRUDUI detail-render fixtures.
  *
- * The read sister of tests/fixtures/list-render/generate.ts. It produces `cases.json`: one case
+ * The read sister of tests/fixtures/list-render/generate.mts. It produces `cases.json`: one case
  * per detail render scenario, `{ name, note, spec, record, options?, expected_html?,
  * expectError? }`. The `expected_html` is the NORMALIZED output of the React reference renderer
  * (`renderDetail`) — never hand-written. Every other renderer must reproduce it after the
@@ -10,15 +10,13 @@
  * The record is INJECTED in the fixture; a detail never queries data.
  *
  * Do not edit `cases.json` by hand — regenerate:
- *   node_modules/.bin/tsx tests/fixtures/detail-render/generate.ts \
+ *   node tests/fixtures/detail-render/generate.mts \
  *     > tests/fixtures/detail-render/cases.json
  */
 
-import { renderDetail } from '../../../packages/react/src/server';
+import { renderDetail } from '@polyspec/crudui-generator-react/server';
 import type { BuildDetailOptions } from '@polyspec/crudui-generator-core';
-// @ts-expect-error — JS normalizer shared across the CRUDUI fixture harness.
 import { normalizeHtml } from '../form-render/normalize.mts';
-// @ts-expect-error — shared JS preload link helper.
 import { withoutPreloadLinks } from '../preload-links.mts';
 
 interface DetailFixtureCase {

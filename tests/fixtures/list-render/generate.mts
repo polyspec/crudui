@@ -1,7 +1,7 @@
 /**
  * Generates shared CRUDUI list-render fixtures for three frameworks (SPEC §9).
  *
- * The read sister of tests/fixtures/form-render/generate.ts. It produces
+ * The read sister of packages/react/scripts/generate-form-render-cases.mts. It produces
  * `cases.json`: one case per list render scenario. Each case is
  * `{ name, note, spec, rows, options?, expected_html?, expectError? }`. The
  * `expected_html` is the NORMALIZED output of the React CRUDUI LIST reference
@@ -13,17 +13,15 @@
  * pagination are DECLARED only. The renderer never touches a DB.
  *
  * Do not edit `cases.json` by hand — regenerate:
- *   node_modules/.bin/tsx tests/fixtures/list-render/generate.ts \
+ *   node tests/fixtures/list-render/generate.mts \
  *     > tests/fixtures/list-render/cases.json
  */
 
 import {
   renderList,
   type RenderListOptions,
-} from '../../../packages/react/src/server';
-// @ts-expect-error — JS normalizer shared across the CRUDUI fixture harness.
+} from '@polyspec/crudui-generator-react/server';
 import { normalizeHtml } from '../form-render/normalize.mts';
-// @ts-expect-error — shared JS preload link helper.
 import { withoutPreloadLinks } from '../preload-links.mts';
 
 interface ListFixtureCase {

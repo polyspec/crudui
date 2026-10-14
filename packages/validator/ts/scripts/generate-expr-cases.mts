@@ -9,19 +9,17 @@
  * value  = evaluateExpressionValue(ast, ctx)   (ternary returns its branch value)
  * truthy = evaluateCondition(ast, ctx)          (boolean evaluate())
  */
+import type { PathContext } from '@polyspec/crudui-validator';
 import {
   Lexer,
   MAX_EXPRESSION_DEPTH,
   ParseError,
   Parser,
-} from '../../../packages/validator/ts/src/parser/ConditionParser';
-import {
   evaluateCondition,
   evaluateExpressionValue,
-} from '../../../packages/validator/ts/src/parser/PathResolver';
-import type { PathContext } from '../../../packages/validator/ts/src/types';
+} from '@polyspec/crudui-validator/internal';
 // The global declaration of JSON.rawJSON.
-import type {} from './json-raw.d.ts';
+import type {} from '../../../../tests/fixtures/json-raw.d.mts';
 
 // ---------------------------------------------------------------------------
 // Serialization helpers (drop `position`, keep JS-actual field names)
@@ -107,7 +105,7 @@ interface CaseSpec {
 /**
  * The number 1 written `1.0`, a spelling that JSON.stringify does not write for a JavaScript number; a runtime that
  * decodes it to another type than `1` (a PHP float, a Rust float, a Python float) must still compare it by value.
- * JSON.rawJSON (json-raw.d.ts) writes the text as it is.
+ * JSON.rawJSON (tests/fixtures/json-raw.d.mts) writes the text as it is.
  */
 const oneWithFraction = JSON.rawJSON('1.0');
 
