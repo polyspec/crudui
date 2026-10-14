@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 60895205b0508b9b95cfc09b4200754446e94412a6ddf4fb820af961d014e3c7 -->
+<!-- source-sha256: cb36b7512b9fd647316688721c7b0f9cb94353fa5ed2e24d32697d1d415d7e6b -->
 
 ## Unreleased
+
+### 2026-10-15 — Form comparison import (C14.20)
+
+- form comparison은 `#adapter`, `#stage`, `#html`, component alias를 Vite와 esbuild alias 대신 frame·stage build마다 condition을 가진 root `package.json`의 subpath import로 resolve한다. benchmark console은 source에서 bundle되고 `record-view.mjs`는 `public/`에 있으므로 모든 import가 source tree와 서비스될 때 모두 resolve된다(C14.20).
 
 ### 2026-10-15 — kit 0.0.45 (C14.19)
 

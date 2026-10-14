@@ -70,6 +70,28 @@
   "author": "",
   "license": "MIT",
   "type": "commonjs",
+  "imports": {
+    "#adapter": {
+      "form-comparison-bindForm-html": "./examples/form-comparison/src/adapters/bind-form-html.ts",
+      "form-comparison-bindForm-react": "./examples/form-comparison/src/adapters/bind-form-react.tsx",
+      "form-comparison-bindForm-vue": "./examples/form-comparison/src/adapters/bind-form-vue.ts",
+      "form-comparison-bindForm-svelte": "./examples/form-comparison/src/adapters/bind-form-svelte.svelte.ts",
+      "form-comparison-createForm-html": "./examples/form-comparison/src/adapters/create-form-html.ts",
+      "form-comparison-createForm-react": "./examples/form-comparison/src/adapters/create-form-react.tsx",
+      "form-comparison-createForm-vue": "./examples/form-comparison/src/adapters/create-form-vue.ts",
+      "form-comparison-createForm-svelte": "./examples/form-comparison/src/adapters/create-form-svelte.svelte.ts"
+    },
+    "#stage": {
+      "form-comparison-stage-html": "./examples/form-comparison/src/pages/stage-html.ts",
+      "form-comparison-stage-react": "./examples/form-comparison/src/pages/stage-react.tsx",
+      "form-comparison-stage-vue": "./examples/form-comparison/src/pages/stage-vue.ts",
+      "form-comparison-stage-svelte": "./examples/form-comparison/src/pages/stage-svelte.svelte.ts"
+    },
+    "#html": "./packages/html/src/index.ts",
+    "#react/*": "./packages/react/src/components/*.tsx",
+    "#vue/*": "./packages/vue/src/components/*.ts",
+    "#svelte/*": "./packages/svelte/src/components/*"
+  },
   "packageManager": "npm@12.2.0",
   "bugs": {
     "url": "https://github.com/polyspec/crudui/issues"

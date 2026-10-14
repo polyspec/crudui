@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-15 — Form comparison imports (C14.20)
+
+- The form comparison resolves `#adapter`, `#stage`, `#html` and the component aliases through the subpath imports of the root `package.json`, with a condition per frame and stage build, instead of Vite and esbuild aliases; the benchmark console is bundled from the sources and `record-view.mjs` lives in `public/`, so every import resolves in the source tree and when served (C14.20).
+
 ### 2026-10-15 — kit 0.0.45 (C14.19)
 
 - crudui pins `@polyspec/kit` 0.0.45, whose knip ignores the binaries of the pinned runtimes and reads the `binaries` and `workspaces` of `config/knip-entries.json`, which declares the files that make, a test, a page or a tool runs by path and the workspaces with their entries and ignored dependencies. The dependencies that nothing uses, `debug` of the root, `@testing-library/user-event` of the React package and `parse5` of the Vue and Svelte packages, are removed; `puppeteer-core` and `vue`, which the browser install script and the form comparison import, are declared (C14.19).

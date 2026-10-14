@@ -2,7 +2,7 @@
 // the submit sends the form's native fields to the record API, 200 navigates to the saved list,
 // 422 shows the validation result, and a failed request or any other answer shows an alert before
 // the form and leaves it submittable again.
-import { selectionQuery } from './record-view.mjs';
+import { selectionQuery } from '../public/record-view.mjs';
 
 /** The JSON body of a response with one of the expected statuses; any other response fails. */
 export async function readJson(response, what, statuses = [200]) {

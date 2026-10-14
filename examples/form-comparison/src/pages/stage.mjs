@@ -8,7 +8,7 @@ import { compileForm, createForm } from '@polyspec/crudui-generator-core';
 import * as client from '#stage';
 import { bindFormController } from '../bind-form-controller.mjs';
 import { readJson, saveForm } from '../save-form.mjs';
-import { formData, linkedSpecs } from '../record-view.mjs';
+import { formData, linkedSpecs } from '../../public/record-view.mjs';
 
 /** The data of the view: the document's stage data under SSR, the selected server's JSON under CSR. */
 async function viewData(view, selection, id, hydrate) {

@@ -1,4 +1,4 @@
-import { createRequire, stripTypeScriptTypes } from 'node:module';
+import { createRequire } from 'node:module';
 import { cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import path from 'node:path';
@@ -15,31 +15,23 @@ const publicDirectory = process.argv[2];
 // The repository that contains this script.
 const source = path.resolve(exampleDirectory, '../..');
 const require = createRequire(path.join(source, 'packages/svelte/package.json'));
-const { build } = await import(pathToFileURL(require.resolve('vite')));
+const { build, defaultClientConditions } = await import(pathToFileURL(require.resolve('vite')));
 const { parse } = await import(pathToFileURL(require.resolve('parse5')));
 const { svelte } = await import(pathToFileURL(require.resolve('@sveltejs/vite-plugin-svelte')));
 await mkdir(publicDirectory, { recursive: true });
-// The build volume is persistent; remove the retired public route from an older build.
+// The build volume is persistent; remove the retired public route and the modules that the benchmark console loaded
+// unbundled from an older build.
 await rm(path.join(publicDirectory, 'displays'), { recursive: true, force: true });
+for (const retired of ['browser-job.mjs', 'frame-readiness.mjs', 'storage-lock.mjs', 'frame-pointer.mjs',
+  'runtime-paths.mjs', 'form-snapshot.mjs']) {
+  await rm(path.join(publicDirectory, retired), { force: true });
+}
+// public/ is served as it is, with the page selection rules (record-view.mjs) that the page script imports.
 await cp(path.join(exampleDirectory, 'public'), publicDirectory, { recursive: true });
 await cp(path.join(exampleDirectory, 'benchmark'), path.join(publicDirectory, 'benchmark'), { recursive: true });
-await cp(path.join(exampleDirectory, 'benchmark-console'), path.join(publicDirectory, 'benchmark-console'), { recursive: true });
-await cp(path.join(exampleDirectory, 'src/browser-job.mjs'),
-  path.join(publicDirectory, 'browser-job.mjs'));
-await cp(path.join(exampleDirectory, 'src/frame-readiness.mjs'),
-  path.join(publicDirectory, 'frame-readiness.mjs'));
-await cp(path.join(exampleDirectory, 'src/storage-lock.mjs'),
-  path.join(publicDirectory, 'storage-lock.mjs'));
-await cp(path.join(exampleDirectory, 'src/frame-pointer.mjs'),
-  path.join(publicDirectory, 'frame-pointer.mjs'));
-await cp(path.join(exampleDirectory, 'src/runtime-paths.mjs'),
-  path.join(publicDirectory, 'runtime-paths.mjs'));
-// The browser matrix, read by the page and by the Go and Rust servers.
+// The browser matrix, read by the Go and Rust servers.
 await cp(path.join(exampleDirectory, 'src/runtime-paths.json'),
   path.join(publicDirectory, 'runtime-paths.json'));
-// The page loads the snapshot module as it is, so it gets the module without its types.
-await writeFile(path.join(publicDirectory, 'form-snapshot.mjs'),
-  stripTypeScriptTypes(await readFile(path.join(source, 'tests/form-inspector/form-snapshot.mts'), 'utf8')));
 // Frames and SSR documents style the form with crudui.css alone, so computed CSS is compared with the real styles.
 await cp(path.join(source, 'packages/generator/ts/styles/crudui.css'),
   path.join(publicDirectory, 'crudui.css'));
@@ -50,30 +42,24 @@ await cp(path.join(exampleDirectory, 'fixtures/customer-records.json'),
   path.join(publicDirectory, 'customer-records.json'));
 await cp(path.join(exampleDirectory, 'fixtures/customer-specs.json'),
   path.join(publicDirectory, 'customer-specs.json'));
-// The page selection rules, read by the page script and bundled into each client's stage.
-await cp(path.join(exampleDirectory, 'src/record-view.mjs'),
-  path.join(publicDirectory, 'record-view.mjs'));
 const spec = specFor();
 await writeFile(path.join(publicDirectory, 'spec.json'), JSON.stringify(spec, null, 2) + '\n');
 
-// The frames and the page stages render with the packages of this source tree.
+// The frames and the page stages render with the packages of this source tree: their components through the subpath
+// imports (#html, #react/*, #vue/*, #svelte/*) of the root package.json, and these packages through these aliases.
 const packageAliases = {
-  '#react': path.join(source, 'packages/react/src/components'),
-  '#vue': path.join(source, 'packages/vue/src/components'),
-  '#svelte': path.join(source, 'packages/svelte/src/components'),
-  '#html': path.join(source, 'packages/html/src/index.ts'),
   // Each internal entry precedes its main entry, whose alias also matches its subpaths.
   '@polyspec/crudui-generator-core/internal': path.join(source, 'packages/generator/ts/src/internal.ts'),
   '@polyspec/crudui-generator-core': path.join(source, 'packages/generator/ts/src/index.ts'),
   '@polyspec/crudui-validator/internal': path.join(source, 'packages/validator/ts/src/internal.ts'),
   '@polyspec/crudui-validator': path.join(source, 'packages/validator/ts/src/index.ts'),
 };
-// Svelte modules own reactive state, which lives in a runes module.
-const moduleExtension = { react: 'tsx', vue: 'ts', svelte: 'svelte.ts', html: 'ts' };
+// The subpath imports #adapter and #stage of the root package.json map one module per condition; each build adds its
+// own condition to the default conditions of Vite.
+const conditions = condition => [...defaultClientConditions, `form-comparison-${condition}`];
 
 for (const renderingPath of formRenderingPaths) {
   for (const framework of formFrameworks) {
-    const extension = moduleExtension[framework];
     await build({
       configFile: false,
       root: path.join(exampleDirectory, 'viewer'),
@@ -82,12 +68,8 @@ for (const renderingPath of formRenderingPaths) {
       plugins: framework === 'svelte' ? [svelte({ configFile: false })] : [],
       resolve: {
         dedupe: ['react', 'react-dom', 'vue', 'svelte'],
-        alias: {
-          '#adapter': path.join(exampleDirectory, 'src/adapters',
-            renderingPath === 'bindForm' ? 'bind-form-' + framework + '.' + extension
-              : 'create-form-' + framework + '.' + extension),
-          ...packageAliases,
-        },
+        conditions: conditions(`${renderingPath}-${framework}`),
+        alias: packageAliases,
       },
       define: {
         __FORM_PATH__: JSON.stringify(renderingPath),
@@ -115,10 +97,8 @@ for (const framework of formFrameworks) {
     plugins: framework === 'svelte' ? [svelte({ configFile: false })] : [],
     resolve: {
       dedupe: ['react', 'react-dom', 'vue', 'svelte'],
-      alias: {
-        '#stage': path.join(exampleDirectory, 'src/pages', `stage-${framework}.${moduleExtension[framework]}`),
-        ...packageAliases,
-      },
+      conditions: conditions(`stage-${framework}`),
+      alias: packageAliases,
     },
     // A library build keeps the entry's exports and leaves the mode to the build that bundles it; the page is such a build.
     define: { 'process.env.NODE_ENV': JSON.stringify('production') },
@@ -131,3 +111,18 @@ for (const framework of formFrameworks) {
     },
   });
 }
+
+// The benchmark console bundles the modules it imports from this source tree, the snapshot module of the form inspector
+// among them.
+await build({
+  configFile: false,
+  root: path.join(exampleDirectory, 'benchmark-console'),
+  base: '/benchmark-console/',
+  publicDir: false,
+  build: {
+    target: 'esnext',
+    outDir: path.join(publicDirectory, 'benchmark-console'),
+    emptyOutDir: true,
+    sourcemap: true,
+  },
+});

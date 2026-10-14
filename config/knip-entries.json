@@ -23,13 +23,7 @@
     "examples/form-comparison/{check-servers,test-php-modes}.mjs": "local-verification.mjs (npm run test:form-comparison:checks) runs them by path as its persistence and php-modes checks",
     "examples/form-comparison/servers/{javascript,php}/main.mjs": "src/local-servers.mjs spawns them by path as the JavaScript and PHP record servers",
     "examples/form-comparison/src/browser-job.browser.mjs": "npm run test:form-comparison:browser runs it by path",
-    "examples/form-comparison/src/frame-pointer.mjs": "src/browser-job.browser.mjs (npm run test:form-comparison:browser) reads it by path and imports it in Chromium; build.mjs copies it into the public directory",
-    "examples/form-comparison/src/adapters/{bind,create}-form-{html,vue}.ts": "build.mjs bundles each as the #adapter alias of its frame build",
-    "examples/form-comparison/src/adapters/{bind,create}-form-react.tsx": "build.mjs bundles each as the #adapter alias of its frame build",
-    "examples/form-comparison/src/adapters/{bind,create}-form-svelte.svelte.ts": "build.mjs bundles each as the #adapter alias of its frame build",
-    "examples/form-comparison/src/pages/stage-{html,vue}.ts": "build.mjs bundles each as the #stage alias of the stage of its client",
-    "examples/form-comparison/src/pages/stage-react.tsx": "build.mjs bundles it as the #stage alias of the stage of the React client",
-    "examples/form-comparison/src/pages/stage-svelte.svelte.ts": "build.mjs bundles it as the #stage alias of the stage of the Svelte client"
+    "examples/form-comparison/src/frame-pointer.mjs": "src/browser-job.browser.mjs (npm run test:form-comparison:browser) reads it by path and imports it in Chromium; build.mjs copies it into the public directory"
   },
   "workspaces": {
     "examples/cross-check-console/server": {

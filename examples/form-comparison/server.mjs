@@ -12,7 +12,7 @@ import { forward } from './src/forward.mjs';
 import {
   recordClients, recordInitializations, recordModes, recordServers, selectionQuery,
 } from './src/record-contract.mjs';
-import { recordLanguages, selectionDefaults } from './src/record-view.mjs';
+import { recordLanguages, selectionDefaults } from './public/record-view.mjs';
 import { formServers } from './src/runtime-paths.mjs';
 import { serverRequest } from './src/server-layout.mjs';
 import { recordStore } from './servers/javascript/records.mjs';

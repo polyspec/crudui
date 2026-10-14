@@ -12,7 +12,7 @@ import { FormInputError, validate } from '@polyspec/crudui-validator';
 
 import {
   formData, linkedSpecs, recordClients, recordLanguages, recordModes, recordsPerPage, recordViews,
-} from '../../src/record-view.mjs';
+} from '../../public/record-view.mjs';
 
 const bodyLimit = 2 * 1024 * 1024;
 const positiveInteger = /^[1-9][0-9]*$/;

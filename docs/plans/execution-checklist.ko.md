@@ -1,6 +1,6 @@
 # Execution checklist
 <!-- doc-id: docs-plans-execution-checklist -->
-<!-- source-sha256: 64154ebb44857381496b88f5221cfbdc71c5d0de1d3bc58bb5ebe44044d337f6 -->
+<!-- source-sha256: 8b1cb2f3d3e8532802688beb0e133f1da078a6f4cf334dc2599678cbff095a9a -->
 
 ## [Wave 1](waves.ko.md#wave-1) — 좁은 viewport를 위한 stylesheet와 stylesheet의 Tailwind 버전
 
@@ -303,6 +303,8 @@
 | C14.17 | CI job이 toolchain-check 뒤까지 실행되며(C14.13) 닿는 검사가 통과한다. `test:forms`는 C14.3-1이 package script를 없앤 form-binding의 Vitest suite를 root에서 실행하고, PHP engine test는 build entry point `scripts/build-crudui-php-extension.mts`를, local-servers test는 TypeScript 이식(C14.7)의 import `@polyspec/kit/test-hooks`를 적는다. Red: CI run 38597830858: `@polyspec/crudui-form-binding`의 `npm error Missing script: "test"`, `The input did not match the regular expression /node scripts\/build-crudui-php-extension\.mjs/`, `../pipeline.browser.mjs uses setup and teardown`. | `make test-forms`, `make test-php-engine`, `make test-form-comparison` |[o] |
 | C14.18 | crudui의 Go module은 ordered-json의 무시되는 clone 없이 resolve된다. `go.work`는 checkout의 module만 쓰고, C14.7이 tag가 아직 없는 `packages/{validator,generator}/go`로 옮겼으므로 각 workspace module은 다른 module을 main의 push된 commit의 pseudo-version으로 요구한다(`go list -m`이 resolve한 version으로 `go mod edit -require`). form-comparison Go 서버는 `github.com/polyspec/ordered-json/go` v0.0.3을 요구하고, `make install`은 `go mod download`로 Go module을 내려받으며, 검사는 offline으로 남는다. 다음 crudui release가 pseudo-version을 tag `packages/{validator,generator}/go/vX`로 바꾼다. Red: kit 0.0.45에서 `make dependency-policy-mutation-check`가 `.form-comparison/sources/ordered-json/go`의 `use`로 실패했고, 0.0.44에서는 `benchmarks/validators/go/go.mod requires modules and benchmarks/validators/go/go.sum is missing`로 실패했다. | `make dependency-policy-mutation-check`, Go build와 test |[o] |
 | C14.19 | kit 0.0.45로 옮긴다(kit K152–K154): 게시된 파일의 integrity로 pin하고, `make kit-sync`가 pin된 런타임의 binary를 무시하는 `knip.json`을 복사하며, `config/knip-entries.json`은 make, test, page, 도구가 경로로 실행하는 파일과 workspace `packages/svelte`, `packages/svelte/tools`, `packages/form-binding`, cross-check 서버를 그 entry와 무시하는 의존성과 함께 선언한다. knip이 찾은 쓰이지 않는 의존성은 없애고 목록에 없는 의존성은 선언한다. `make dependency-review RECORD=1`이 lock을 기록한다. | `make kit-check`, `make dependency-policy-check`, `make dependency-policy-mutation-check` |[o] |
+| C14.20 | form comparison은 knip, Node, esbuild, Vite가 읽는 root `package.json`의 표준 subpath import로 alias를 resolve한다. `#adapter`와 `#stage`는 각 frame·stage build가 condition을 넘기는(`resolve.conditions`) 조건부 import이고, `#html`, `#react/*`, `#vue/*`, `#svelte/*`는 source에 대응하며, Vite alias는 없어진다. benchmark console은 source를 import하고 build.mjs가 그것을 bundle하며, `record-view.mjs`는 `public/`에 있으므로 모든 import가 source tree와 서비스될 때 모두 resolve된다. Red: knip이 examples/form-comparison에서 resolve되지 않는 import 41개를 보고했다. | `make lint-ts`(knip), form-comparison build와 그 test |[ ] |
+| C14.21 | benchmark console은 docs/spec/form-comparison.md가 요구하는 대로 pointer가 비교 frame 위에 있을 때 capture와 비교를 멈춘다. d5fd5ca3 이후 어떤 page도 `pointerOverFrame`을 부르지 않았다. Red: guard의 Chromium test가 `requirePointerOutside is not a function`으로 실패했고 check-interaction의 연결 test가 실패했다. | `src/browser-job.browser.mjs`, `check-interaction.test.mjs` |[ ] |
 
 ## [Wave 15](waves.ko.md#wave-15) — 각 생태계의 표준 도구를 있는 그대로 사용하기
 
