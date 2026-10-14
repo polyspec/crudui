@@ -256,8 +256,15 @@
     },
     {
       "paths": [
+        "config/release-assets.json"
+      ],
+      "scripts": [
+        "test:form-comparison:library"
+      ]
+    },
+    {
+      "paths": [
         "examples/form-comparison/servers/**",
-        "examples/form-comparison/*.php",
         "examples/form-comparison/record-stores.test.mjs",
         "examples/form-comparison/pipeline.browser.mjs",
         "examples/form-comparison/src/{local-servers,record-contract,pipeline-flow,step-runner,ordered-json-source}.mjs"
@@ -269,14 +276,12 @@
     {
       "paths": [
         "examples/form-comparison/servers/**",
-        "examples/form-comparison/*.php",
         "examples/form-comparison/src/**",
         "examples/form-comparison/public/**",
         "examples/form-comparison/build.mjs",
         "examples/form-comparison/server.mjs",
         "examples/form-comparison/local-verification.mjs",
         "examples/form-comparison/check*.mjs",
-        "examples/form-comparison/test-php-modes.mjs",
         "examples/form-comparison/verification-evidence.mjs",
         "examples/form-comparison/browser-report-policy.mjs",
         "examples/form-comparison/persistence-report.mjs"

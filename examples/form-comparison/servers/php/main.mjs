@@ -1,4 +1,4 @@
-// The PHP record server (docs/spec/form-comparison.md, "Record servers"): PHP-FPM runs api.php and
+// The PHP record server (docs/spec/form-comparison.md, "Record servers"): PHP-FPM runs servers/php/api.php and
 // nginx in front of it accepts the connections, limits a request body to 2 MiB before PHP reads
 // it and forwards `/api/` requests over FastCGI.
 //   node servers/php/main.mjs {host:port} {run directory} -- {php-fpm arguments}
@@ -95,7 +95,7 @@ http {
 function fastcgi() {
   return [
     `fastcgi_pass unix:${socket};`,
-    `fastcgi_param SCRIPT_FILENAME ${path.join(exampleDirectory, 'api.php')};`,
+    `fastcgi_param SCRIPT_FILENAME ${path.join(exampleDirectory, 'servers/php/api.php')};`,
     'fastcgi_param REQUEST_METHOD $request_method;',
     'fastcgi_param REQUEST_URI $request_uri;',
     'fastcgi_param QUERY_STRING $query_string;',

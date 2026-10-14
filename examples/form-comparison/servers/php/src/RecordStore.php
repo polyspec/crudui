@@ -2,8 +2,12 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/json.php';
-require_once __DIR__ . '/form-shape.php';
+namespace Polyspec\Crudui\FormComparison;
+
+use InvalidArgumentException;
+use RuntimeException;
+use stdClass;
+use Throwable;
 
 /**
  * The customer record store of one PHP server: `records-{server}.json` in the data directory,

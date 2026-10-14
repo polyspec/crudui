@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "comment": "The release zip of the PHP package of OrderedJSON, which publishes to no registry: make install-composer runs make release-assets-fetch, which downloads it into var/composer-artifacts, the Composer artifact repository of the root composer.json, whose form comparison server reads JSON with it.",
+  "assets": [
+    {
+      "name": "ordered-json",
+      "version": "0.0.3",
+      "url": "https://github.com/polyspec/ordered-json/releases/download/v{version}/polyspec-ordered-json-{version}.zip",
+      "sha256": "ee07efab5e09fb1998f28989b6d3a0cfde9b82625faa47601bca30fed3b1c0d9",
+      "directory": "var/composer-artifacts"
+    }
+  ]
+}

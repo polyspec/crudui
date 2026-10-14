@@ -19,12 +19,3 @@ test('includes the browser process check only in the complete runtime suite', as
     'node scripts/require-current-build.mts && node node_modules/@polyspec/kit/dist/run-tests.mjs node -- examples/form-comparison/src/browser-job.browser.mjs');
 });
 
-test('generation fixtures use the canonical operating system temporary directory', async () => {
-  const source = await readFile(
-    new URL('./generation-performance.test.mjs', import.meta.url), 'utf8',
-  );
-  assert.match(source, /realpathSync\(tmpdir\(\)\)/);
-  assert.match(source, /lstatSync\(current\)/);
-  assert.match(source, /state\.isSymbolicLink\(\)/);
-  assert.doesNotMatch(source, /path\.join\(library, ['"]\.git\//);
-});

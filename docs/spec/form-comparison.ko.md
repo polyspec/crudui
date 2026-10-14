@@ -1,6 +1,6 @@
 # 폼 검증
 <!-- doc-id: docs-spec-form-comparison -->
-<!-- source-sha256: cd695861cb9fe2ca60c0cbb57237b8c02ee4b0a05100199ad0da1e5f9930f44b -->
+<!-- source-sha256: 2ff4cb9377ccc88cbd902bc00c16da69081444febb655a516880bd473bd75b61 -->
 
 [English](form-comparison.md).
 
@@ -126,9 +126,9 @@ PHP 서버는 PHP를 운영 환경에서 실행하는 방식대로 nginx 뒤의 
 PHP-FPM은 socket에서 listen한 뒤 `NOTICE: ready to handle connections`를 쓰고, nginx는 `notice` log
 level에서 listening socket을 연 뒤 `start worker processes`를 씁니다. program은 수신 주소에 직접 bind하고 그
 socket을 변수 `NGINX`가 가리키는 file descriptor 3으로 nginx에 넘기므로, nginx는 program이 잡은 port에서
-수신합니다. nginx는 `/api/` 요청을 FastCGI로 `api.php`에 넘기고 다른 경로에는 JSON 404로 응답하며,
+수신합니다. nginx는 `/api/` 요청을 FastCGI로 `servers/php/api.php`에 넘기고 다른 경로에는 JSON 404로 응답하며,
 2 MiB를 넘는 요청 본문은 PHP가 읽기 전에 계약의 JSON 413으로 끝냅니다. 데이터·공개 디렉터리는
-`FORM_DATA_DIRECTORY`, `FORM_PUBLIC_DIRECTORY`로 `api.php`에 전달됩니다. PHP 내장 서버는 스크립트를
+`FORM_DATA_DIRECTORY`, `FORM_PUBLIC_DIRECTORY`로 그 스크립트에 전달됩니다. PHP 내장 서버는 스크립트를
 실행하기 전에 본문 전체를 읽으므로 너무 큰 요청을 멈출 수 없었습니다. 공개
 서버는 주소, 데이터 디렉터리, 공개 디렉터리, 네이티브 서버 포트의 JSON 맵을 인수로 받고,
 `servers/javascript/main.mjs`가 제공하는 모듈과 같은 모듈로 `js` 레코드에 응답하며, 빌드
@@ -547,8 +547,8 @@ PHP-FPM은 `enable_post_data_reading=0`으로 실행하므로 PHP 서버는 다�
 보고, 단계 실행기의 끝까지 실행과 프로세스 트리 정리, 소스 식별자, 스냅샷 차이, 생성 캐시 동작,
 요청 수 변경, 단위 실행기의 제한 시간과 진행 보고, 레코드 리소스의 고정 데이터와 링크, 정본 페이지가
 선언한 컨트롤을 재현합니다. 이 검사는 로컬 검증을 대체하지 않습니다. `main` push CI는
-`npm run test:form-comparison`을 실행해 보고서 정책, 브라우저 작업, 소스 트리와 생성 성능
-회귀가 있으면 통합을 실패로 처리하고, `npm run test:form-comparison:pipeline`을 실행해 다섯
+`npm run test:form-comparison`을 실행해 보고서 정책, 브라우저 작업, 소스 트리와 PHP 서버(php 모드의
+`servers/php` PHPUnit suite) 회귀가 있으면 통합을 실패로 처리하고, `npm run test:form-comparison:pipeline`을 실행해 다섯
 서버의 레코드 저장소 계약, Go·Rust 서버 테스트, 40개 조합의 정본 흐름 검사가 실패하면 통합을
 실패로 처리하며, `npm run test:form-comparison:checks`를 실행해 아래 로컬 검증이 실패하면 통합을
 실패로 처리합니다.
@@ -561,7 +561,9 @@ PHP-FPM은 `enable_post_data_reading=0`으로 실행하므로 PHP 서버는 다�
 로컬 프로세스로 실행합니다. 결과 디렉터리의 `source.json`에 식별자를 기록한 뒤 다음 단계를 순서대로
 실행하며 실패한 단계가 있는 첫 단계에서 멈춥니다.
 
-1. 이 실행이 빌드한 `crudui.so`와 `ordered_json.so`를 로드하는 PHP 처리 모드(`test-php-modes.mjs`)
+1. php 모드의 PHP 서버(`servers/php`) PHPUnit suite. 그 group `modules`는 이 실행이 빌드한 `crudui.so`와
+   `ordered_json.so`를 로드하는 child process에서 처리 모드를 실행합니다. 두 모듈을 자기 process에 로드하는
+   php-ext 모드의 같은 suite는 kit run-tests의 반복 가능한 `--php-extension`(K165)과 함께 이어집니다
 2. 공개 서버를 거쳐 네이티브 서버 네 개를 대상으로 하는 생성 검사(`check-generation.mjs`)
 3. 네이티브 서버 네 개를 대상으로 구성의 데이터 디렉터리 파일을 읽는 저장 검사(`check-servers.mjs`)
 4. 구성 페이지의 40개 조합 정본 흐름 검사(`check-pipeline.mjs`, 단위마다 자기 제한 시간)

@@ -68,7 +68,6 @@ export async function prepareRecordServers({ buildDirectory, write = text => pro
   const failed = results.find(result => result.status !== 'passed');
   assert.equal(failed, undefined, `Building ${failed?.id} ${failed?.status}`);
   return {
-    orderedJsonPhpSource: path.join(localOrderedJsonDirectory, 'php/src/OrderedJson.php'),
     cruduiModule: path.join(repositoryRoot, 'packages/php-ext/modules/crudui.so'),
     orderedJsonModule: path.join(localOrderedJsonDirectory, 'php-extension/src/modules/ordered_json.so'),
     binaries: {
@@ -122,7 +121,6 @@ export async function recordServerProcess(server, { dataDirectory, publicDirecto
         FORM_PHP_SERVER: server,
         FORM_DATA_DIRECTORY: dataDirectory,
         FORM_PUBLIC_DIRECTORY: publicDirectory,
-        FORM_ORDERED_JSON_PHP_SOURCE: prepared.orderedJsonPhpSource,
         ...(server === 'php-ext' ? {
           FORM_CRUDUI_MODULE_SHA256: createHash('sha256').update(await readFile(prepared.cruduiModule)).digest('hex'),
         } : {}),
