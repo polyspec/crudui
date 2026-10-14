@@ -35,7 +35,7 @@ const CHECK = 'cargo-downloads-check';
 // the proof of a release, and the release archives of other repositories (release-assets-fetch, kit K140). release-consumer installs the archives of a release in clean projects: the tool lifts the
 // offline settings itself.
 const KIT_DOWNLOADS = ['install-tools', 'install-packages', 'cargo-downloads-fetch', 'dependency-review', 'python-lock', 'release-tools', 'release-backend', 'release-assets-fetch', 'release-consumer-lock', 'release-proof', 'toolchain-lock'];
-const DOWNLOADS = [...KIT_DOWNLOADS, 'install-composer', 'install-phpdocumentor', 'install-browsers', 'install-ordered-json', 'install-svelte-tools'];
+const DOWNLOADS = [...KIT_DOWNLOADS, 'install-composer', 'install-go-modules', 'install-phpdocumentor', 'install-browsers', 'install-ordered-json', 'install-svelte-tools'];
 const read = (file: string): string => readFileSync(path.join(ROOT, file), 'utf8');
 const makefile = read('Makefile');
 // The targets of the Makefile and of the files that it includes: scripts/kit/kit-bootstrap.mk and the kit.mk of @polyspec/kit.

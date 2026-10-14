@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-15 — Go modules (C14.18)
+
+- The Go modules resolve without the ignored clone of ordered-json: `go.work` uses only the modules of the checkout, the modules require each other at pseudo-versions of main until the next release tags `packages/{validator,generator}/go`, the form-comparison Go server requires `github.com/polyspec/ordered-json/go` v0.0.3, and `make install-go-modules` (part of `make install`) downloads the modules that the workspace requires, so the Go checks stay offline; govulncheck of mise.toml reviews the new Go lock (C14.18).
+
 ### 2026-10-15 — Rule parameters (C14.15)
 
 - The parameters of `equalTo` and `enddate` (a field reference string), `notEqual` (a string, number or boolean) and `unique` (true, false or a string) are checked when the specification loads, in every language, and fail with `INVALID_RULE_PARAMETER`; an object or a list was taken as a value and reached the rule.

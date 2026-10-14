@@ -30,7 +30,7 @@ export GOPROXY := off
 export npm_config_offline := true
 export COMPOSER_DISABLE_NETWORK := 1
 ONLINE := env -u CARGO_NET_OFFLINE -u GOPROXY -u npm_config_offline -u COMPOSER_DISABLE_NETWORK
-.PHONY: help release-assets install install-composer install-rust install-phpdocumentor install-browsers check-ci-browser test-runtimes test-dependencies build lint typecheck test-validator-js test-validator-php test-validator-go test-validator-rust test-validator-python test-generator-python test-cross-check manifest-test require-build test-cli manifest-check manifest-docs-check test-forms test-form-comparison test-form-comparison-pipeline test-form-comparison-checks test-form-comparison-browser test-form-comparison-summary test-packages test-build test-build-repeat test-inspector test-bench check-conformance install-crates install-ordered-json install-svelte-tools test-ordered-json docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-engine test-native-generators test-php-api test-native test-validators test-form-binding conformance format-check records-check ci check conformance-reset
+.PHONY: help release-assets install install-go-modules install-composer install-rust install-phpdocumentor install-browsers check-ci-browser test-runtimes test-dependencies build lint typecheck test-validator-js test-validator-php test-validator-go test-validator-rust test-validator-python test-generator-python test-cross-check manifest-test require-build test-cli manifest-check manifest-docs-check test-forms test-form-comparison test-form-comparison-pipeline test-form-comparison-checks test-form-comparison-browser test-form-comparison-summary test-packages test-build test-build-repeat test-inspector test-bench check-conformance install-crates install-ordered-json install-svelte-tools test-ordered-json docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-engine test-native-generators test-php-api test-native test-validators test-form-binding conformance format-check records-check ci check conformance-reset
 .NOTPARALLEL: docs docs-web docs-dev docs-preview docs-check docs-verify-idempotent
 
 # The tools that every polyspec repository shares are the package @polyspec/kit of package-lock.json. The copy
@@ -100,7 +100,7 @@ help: ## 타겟 설명
 # checkout of the comparison and the phpDocumentor release that scripts/install-phpdocumentor.mts checks by its SHA-256.
 # Node.js, PHP, Python and Composer are installed at the versions of .node-version and config/toolchain.json by the
 # machine's package manager; `make toolchain-check` names every tool at another version.
-install: install-packages install-tools install-composer install-rust install-crates install-phpdocumentor ## Install the declared tools, the npm, Composer and Cargo dependencies, the Rust toolchain and phpDocumentor
+install: install-packages install-tools install-composer install-rust install-crates install-go-modules install-phpdocumentor ## Install the declared tools, the npm, Composer and Cargo dependencies, the Rust toolchain and phpDocumentor
 
 # The parts of make install, which the CI jobs run for what they check: every CI step runs a make target, so the recipes
 # start every tool with the offline settings, $(NPM) and the toolchains of the checkout. install-packages of
@@ -137,6 +137,12 @@ check-ci-browser: ## Check that the pinned Chrome runs sandboxed
 # The crates of every Cargo.lock, after the OrderedJSON checkout that the lock of the Rust record server reads; a CI job
 # that runs a target with cargo-downloads-check runs it.
 install-crates: install-ordered-json cargo-downloads-fetch ## Download the crates of every Cargo.lock
+
+# The modules that the Go workspace of go.work requires, downloaded into the module cache with go mod download at its
+# root: the Go checks run with GOPROXY=off and read only that cache (C14.18). A CI job that runs Go runs it after make
+# install-tools.
+install-go-modules: ## Download the modules that the Go workspace requires; ONLINE
+	$(ONLINE) go mod download
 
 # The OrderedJSON checkout of the comparison record servers (examples/form-comparison/install-ordered-json.mjs);
 # the Cargo lock of the Rust record server reads it.
