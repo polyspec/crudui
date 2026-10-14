@@ -19,9 +19,10 @@ func parseNumberString(value string) (float64, bool) {
 	}
 	if radixNumber.MatchString(value) {
 		base := 16
-		if value[1] == 'b' || value[1] == 'B' {
+		switch value[1] {
+		case 'b', 'B':
 			base = 2
-		} else if value[1] == 'o' || value[1] == 'O' {
+		case 'o', 'O':
 			base = 8
 		}
 		integer, ok := new(big.Int).SetString(value[2:], base)

@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -136,22 +137,24 @@ func (s *server) save(data *generator.Object) error {
 		return e
 	}
 	name := f.Name()
-	defer os.Remove(name)
-	if _, e = f.Write(append(b, '\n')); e != nil {
-		f.Close()
-		return e
+	_, e = f.Write(append(b, '\n'))
+	if e = errors.Join(e, f.Close()); e == nil {
+		e = os.Rename(name, s.file)
 	}
-	if e = f.Close(); e != nil {
-		return e
+	if e != nil {
+		// The temporary file stays only when the replacement failed.
+		return errors.Join(e, os.Remove(name))
 	}
-	return os.Rename(name, s.file)
+	return nil
 }
 
 // page writes one HTML page. The page styles only its own layout; the generated markup takes
 // every style from crudui.css.
 func (s *server) page(w http.ResponseWriter, title, body string) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	fmt.Fprint(w, `<!doctype html><html lang="en"><meta charset="utf-8"><title>`+title+`</title><style>body{max-width:42rem;margin:3rem auto;font-family:system-ui}</style><style>`+s.stylesheet+`</style><h1>`+title+`</h1>`+body+`<p><a href="/">Form</a> · <a href="/list">List</a> · <a href="/detail">Detail</a> · <a href="/data">Stored JSON</a> · <a href="/template">Compiled template</a></p></html>`)
+	if _, e := io.WriteString(w, `<!doctype html><html lang="en"><meta charset="utf-8"><title>`+title+`</title><style>body{max-width:42rem;margin:3rem auto;font-family:system-ui}</style><style>`+s.stylesheet+`</style><h1>`+title+`</h1>`+body+`<p><a href="/">Form</a> · <a href="/list">List</a> · <a href="/detail">Detail</a> · <a href="/data">Stored JSON</a> · <a href="/template">Compiled template</a></p></html>`); e != nil {
+		log.Print(e)
+	}
 }
 
 // loadForGet serves only GET and returns the stored record, writing the error response otherwise.

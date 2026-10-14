@@ -43,7 +43,7 @@ func recordRequest(t *testing.T, host *httptest.Server, method, path, contentTyp
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer response.Body.Close()
+	defer closeBody(t, response.Body)
 	var buffer bytes.Buffer
 	if _, err := buffer.ReadFrom(response.Body); err != nil {
 		t.Fatal(err)

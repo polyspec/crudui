@@ -157,3 +157,21 @@ func TestMessagesReplaceEveryPlaceholder(t *testing.T) {
 		t.Errorf("ruleRange = %q, %v", msg, failed)
 	}
 }
+
+func TestNumberRangeStepSizeAndIsStepMultipleDecideAsTheRules(t *testing.T) {
+	if minimum, maximum, ok := NumberRange([]any{float64(1), float64(5)}); !ok || minimum != 1 || maximum != 5 {
+		t.Errorf("NumberRange([1, 5]) = %v, %v, %v", minimum, maximum, ok)
+	}
+	if _, _, ok := NumberRange([]any{float64(5), float64(1)}); ok {
+		t.Error("NumberRange([5, 1]) accepted a minimum above the maximum")
+	}
+	if step, ok := StepSize(0.5); !ok || step != 0.5 {
+		t.Errorf("StepSize(0.5) = %v, %v", step, ok)
+	}
+	if _, ok := StepSize(float64(0)); ok {
+		t.Error("StepSize(0) accepted a step that is not above 0")
+	}
+	if !IsStepMultiple(1.5, 0.5) || IsStepMultiple(1.25, 0.5) {
+		t.Error("IsStepMultiple did not decide 1.5 and 1.25 against the step 0.5")
+	}
+}

@@ -9,6 +9,7 @@ package conformance
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -63,9 +64,6 @@ func write(directory string, item evidence) error {
 	if err != nil {
 		return err
 	}
-	if _, err := file.Write(append(line, '\n')); err != nil {
-		file.Close()
-		return err
-	}
-	return file.Close()
+	_, err = file.Write(append(line, '\n'))
+	return errors.Join(err, file.Close())
 }

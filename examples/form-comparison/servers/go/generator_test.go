@@ -16,13 +16,21 @@ import (
 )
 
 // ssrRequest reads an SSR frame response.
+// closeBody closes the body of a response and fails the test when the close fails.
+func closeBody(t *testing.T, body io.Closer) {
+	t.Helper()
+	if err := body.Close(); err != nil {
+		t.Error(err)
+	}
+}
+
 func ssrRequest(t *testing.T, host *httptest.Server, path string) (int, http.Header, string) {
 	t.Helper()
 	response, err := host.Client().Get(host.URL + path)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer response.Body.Close()
+	defer closeBody(t, response.Body)
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		t.Fatal(err)
@@ -135,7 +143,7 @@ func generationRequest(t *testing.T, client *http.Client, endpoint string, body 
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer response.Body.Close()
+	defer closeBody(t, response.Body)
 	data, err := io.ReadAll(response.Body)
 	if err != nil {
 		t.Fatal(err)
@@ -240,7 +248,7 @@ func TestGenerationRejectsMalformedRequests(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	response.Body.Close()
+	closeBody(t, response.Body)
 	if response.StatusCode != 405 || response.Header.Get("Allow") != "POST" {
 		t.Fatal("compile accepted GET")
 	}
@@ -248,7 +256,7 @@ func TestGenerationRejectsMalformedRequests(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	response.Body.Close()
+	closeBody(t, response.Body)
 	if response.StatusCode != 415 {
 		t.Fatal("compile accepted a non-JSON request")
 	}
@@ -357,7 +365,7 @@ func TestSSRUsesFrameworkStorageAndNormalSubmission(t *testing.T) {
 			t.Fatal(err)
 		}
 		result, err := io.ReadAll(saved.Body)
-		saved.Body.Close()
+		closeBody(t, saved.Body)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -381,7 +389,7 @@ func TestRemovedModePathReturnsNotFound(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer response.Body.Close()
+	defer closeBody(t, response.Body)
 	if response.StatusCode != http.StatusNotFound {
 		t.Fatalf("removed mode path returned %d", response.StatusCode)
 	}
@@ -438,7 +446,7 @@ func TestSSRRejectsWrongParametersAndFrames(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	response.Body.Close()
+	closeBody(t, response.Body)
 	if response.StatusCode != 405 || response.Header.Get("Allow") != "GET" {
 		t.Fatal("SSR accepted POST")
 	}
