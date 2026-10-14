@@ -22,7 +22,7 @@ function start(views, template, language, data, hydrate) {
     getData: () => session.getData(),
     load: next => flushSync(() => session.setData(next)),
     idle: () => flushSync(() => {}),
-    dispose: () => { for (const app of apps) unmount(app); },
+    dispose: async () => { await Promise.all(apps.map(app => unmount(app))); },
     session, template, fromSerializedTemplate: true,
   };
 }

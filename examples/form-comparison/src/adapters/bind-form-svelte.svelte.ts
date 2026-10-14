@@ -40,7 +40,7 @@ function start(views, template, language, data, hydrate) {
   ]);
   return {
     load: (next, view = emptyView) => flushSync(() => { current = evaluate(next, view); }),
-    dispose: () => { for (const app of apps) unmount(app); },
+    dispose: async () => { await Promise.all(apps.map(app => unmount(app))); },
   };
 }
 
