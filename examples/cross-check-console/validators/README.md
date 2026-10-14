@@ -16,7 +16,7 @@ the packages provide the validator library functions instead.
 | Rust | `rust/` (crate `polyspec-crudui-cross-check-validator`) | `polyspec_crudui_validator::validate`, `validate_list` and `validate_detail` |
 | Python | `python/validate.py` | `validate`, `validateList` and `validateDetail` of `polyspec.crudui.validator` |
 
-`npm run build:validators` in `../server` builds the Go program to `go/validate` and the Rust
+`npm run build:validators` in `../server` builds the Go program to `var/build/cross-check-console/go-validate` of the root and the Rust
 program to `rust/target/release/polyspec-crudui-cross-check-validator`. The JavaScript program imports the
 built `@polyspec/crudui-validator` package. The PHP program loads the Composer autoloader of
 `packages/validator/php`. The Python program imports `packages/validator/python`. A deployment can name other Go and Rust executables with

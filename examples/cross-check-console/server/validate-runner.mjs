@@ -20,7 +20,7 @@ export const PHP_PROGRAM = path.join(VALIDATORS, 'php/validate.php');
 export const validatorProcesses = Object.freeze({
   js: { command: process.execPath, args: [path.join(VALIDATORS, 'js/validate.mjs')] },
   php: { command: 'php', args: [PHP_PROGRAM] },
-  go: { command: process.env.CRUDUI_CROSS_CHECK_GO_VALIDATOR ?? path.join(VALIDATORS, 'go/validate'), args: [] },
+  go: { command: process.env.CRUDUI_CROSS_CHECK_GO_VALIDATOR ?? path.join(ROOT, 'var/build/cross-check-console/go-validate'), args: [] },
   rust: {
     command: process.env.CRUDUI_CROSS_CHECK_RUST_VALIDATOR
       ?? path.join(VALIDATORS, 'rust/target/release/polyspec-crudui-cross-check-validator'),

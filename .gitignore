@@ -28,9 +28,6 @@ target/
 # Python bytecode of the test runs
 __pycache__/
 
-# Compiled Go validator process of the cross-check console
-examples/cross-check-console/validators/go/validate
-
 # IDE
 .idea/
 .vscode/
