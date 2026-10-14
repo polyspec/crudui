@@ -17,10 +17,10 @@
     "dist"
   ],
   "scripts": {
-    "build": "node ../../scripts/package-dist.mjs build 'tools/node_modules/.bin/svelte-package -i src -o \"$CRUDUI_DIST\"'",
+    "build": "node ../../scripts/package-dist.mjs build 'npm exec --prefix tools -- svelte-package -i src -o \"$CRUDUI_DIST\"'",
     "test": "status=0; node ../../tests/conformance/run-suite.mjs vitest --cwd packages/generator-svelte || status=1; node ../../tests/conformance/run-suite.mjs vitest --cwd packages/generator-svelte --config vitest.client.config.ts || status=1; exit $status",
-    "lint": "tools/node_modules/.bin/eslint --config tools/eslint.config.js src",
-    "typecheck": "tools/node_modules/.bin/svelte-check --tsconfig ./tsconfig.json"
+    "lint": "npm exec --prefix tools -- eslint --config tools/eslint.config.js src",
+    "typecheck": "npm exec --prefix tools -- svelte-check --tsconfig ./tsconfig.json"
   },
   "keywords": [
     "svelte",
