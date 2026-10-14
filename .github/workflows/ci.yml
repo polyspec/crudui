@@ -86,6 +86,8 @@ jobs:
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
+      - name: Install the tools of mise.lock into var/tools/mise, the Rust toolchain of rust-toolchain.toml among them
+        run: make install-tools
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm"
       - name: Run the checks and write their report
@@ -223,6 +225,8 @@ jobs:
         run: make install-packages
       - name: Install the Rust toolchain of rust-toolchain.toml
         run: make install-rust
+      - name: Install the tools of mise.lock into var/tools/mise, the Rust toolchain of rust-toolchain.toml among them
+        run: make install-tools
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm rust"
       - name: Cargo cache
@@ -420,6 +424,8 @@ jobs:
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
+      - name: Install the tools of mise.lock into var/tools/mise, the Rust toolchain of rust-toolchain.toml among them
+        run: make install-tools
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm"
       - name: Run the checks and write their report
@@ -455,6 +461,8 @@ jobs:
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
+      - name: Install the tools of mise.lock into var/tools/mise, the Rust toolchain of rust-toolchain.toml among them
+        run: make install-tools
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm"
       - name: Install the browsers that Puppeteer and Playwright pin
@@ -758,6 +766,8 @@ jobs:
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
+      - name: Install the tools of mise.lock into var/tools/mise, the Rust toolchain of rust-toolchain.toml among them
+        run: make install-tools
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm"
       - name: Install the browsers that Puppeteer pins
@@ -797,6 +807,8 @@ jobs:
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
+      - name: Install the tools of mise.lock into var/tools/mise, the Rust toolchain of rust-toolchain.toml among them
+        run: make install-tools
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm"
       - name: Run the checks and write their report
@@ -986,6 +998,8 @@ jobs:
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
+      - name: Install the tools of mise.lock into var/tools/mise, the Rust toolchain of rust-toolchain.toml among them
+        run: make install-tools
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm"
       # Each artifact goes into conformance-evidence/<artifact name>, so no evidence file of one job replaces a file of
@@ -1024,6 +1038,8 @@ jobs:
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
+      - name: Install the tools of mise.lock into var/tools/mise, the Rust toolchain of rust-toolchain.toml among them
+        run: make install-tools
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm"
       - name: Fail unless every other job succeeded
