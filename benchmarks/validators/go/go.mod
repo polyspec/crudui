@@ -1,4 +1,4 @@
-module github.com/polyspec/crudui/tools/bench/go
+module github.com/polyspec/crudui/benchmarks/validators/go
 
 go 1.27.2
 

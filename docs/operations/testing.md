@@ -287,7 +287,7 @@ validator test or a PHP extension engine fixture reads a clock.
 A script that runs other commands runs each of them to its end through `scripts/run-command.mjs`:
 the declared commands of `npm run manifest:test` (`scripts/run-contract-tests.mjs`), the package
 build of `scripts/require-current-build.mjs`, each tool command of `scripts/gen-api-docs.mjs`, each
-benchmark driver of `tools/bench/run.js` and each driver build of `tools/bench/build-drivers.mjs`.
+benchmark driver of `benchmarks/validators/run.js` and each driver build of `benchmarks/validators/build-drivers.mjs`.
 A command has no time limit: its exit ends it and its exit status decides the result, and the
 script prints the command with its elapsed time. The command starts in its own process group; when
 it exits, the processes it left in the group are stopped, so a process that keeps an output pipe

@@ -76,7 +76,7 @@
     "examples/cross-check-console/validators/rust/Cargo.toml": "version",
     "examples/form-comparison/servers/rust/Cargo.toml": "version",
     "tests/native-generators/programs/rust/Cargo.toml": "version",
-    "tools/bench/rust/Cargo.toml": "version"
+    "benchmarks/validators/rust/Cargo.toml": "version"
   },
   "notReleased": {
     "composer.json": "the development root of the Composer packages of packages/, never published; it declares no version",
@@ -85,7 +85,7 @@
     "examples/cross-check-console/validators/go/go.mod": "an example module of this repository, resolved through replace and never tagged",
     "examples/form-comparison/servers/go/go.mod": "an example module of this repository, resolved through replace and never tagged",
     "tests/native-generators/programs/go/go.mod": "a test program module of this repository, resolved through replace and never tagged",
-    "tools/bench/go/go.mod": "a benchmark module of this repository, resolved through replace and never tagged",
+    "benchmarks/validators/go/go.mod": "a benchmark module of this repository, resolved through replace and never tagged",
     "packages/generator-svelte/tools/package.json": "the tools of packages/generator-svelte that need the TypeScript 6 API, a project of its own outside the npm workspaces"
   },
   "goModules": {

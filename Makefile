@@ -85,7 +85,7 @@ help: ## 타겟 설명
 	@echo ""
 	@echo "CRUDUI validator benchmark — make targets:"
 	@echo ""
-	@echo "  make bench                 4언어(JS/PHP/Go/Rust) 처리량 비교 (ops/sec + avg µs 표 → tools/bench/results.md)"
+	@echo "  make bench                 4언어(JS/PHP/Go/Rust) 처리량 비교 (ops/sec + avg µs 표 → benchmarks/validators/results.md)"
 	@echo "  make bench-js              JS 검증기만 측정"
 	@echo "  make bench-php             PHP 검증기만 측정"
 	@echo "  make bench-go              Go 검증기만 측정"
@@ -296,32 +296,32 @@ docs-verify-idempotent: ## docs 를 2회 생성하고 diff 가 비는지 검증
 	fi
 
 # ----------------------------------------------------------------------------
-# Validator throughput benchmark (tools/bench).
+# Validator throughput benchmark (benchmarks/validators).
 #
 # Runs the four validators (JS/PHP/Go/Rust) over the same spec+input N times
 # in-process and prints an ops/sec + avg-µs table, also written to
-# tools/bench/results.md. Absolute times are machine-dependent — compare
-# backends RELATIVELY within one spec. See tools/bench/README.md for the
+# benchmarks/validators/results.md. Absolute times are machine-dependent — compare
+# backends RELATIVELY within one spec. See benchmarks/validators/README.md for the
 # fairness method (startup excluded, same workload enforced, agreement gate).
 # ----------------------------------------------------------------------------
 
 bench-fixtures: ## 벤치 fixture JSON 재생성 (스펙 → spec/input JSON)
-	node tools/bench/gen-fixtures.js
+	node benchmarks/validators/gen-fixtures.js
 
 bench: cargo-downloads-check bench-fixtures ## 4언어 검증기 처리량 비교
-	node tools/bench/run.js --iters $(BENCH_ITERS) --warmup $(BENCH_WARMUP)
+	node benchmarks/validators/run.js --iters $(BENCH_ITERS) --warmup $(BENCH_WARMUP)
 
 bench-js: cargo-downloads-check bench-fixtures ## JS 검증기만 측정
-	node tools/bench/run.js --only js --iters $(BENCH_ITERS) --warmup $(BENCH_WARMUP)
+	node benchmarks/validators/run.js --only js --iters $(BENCH_ITERS) --warmup $(BENCH_WARMUP)
 
 bench-php: cargo-downloads-check bench-fixtures ## PHP 검증기만 측정
-	node tools/bench/run.js --only php --iters $(BENCH_ITERS) --warmup $(BENCH_WARMUP)
+	node benchmarks/validators/run.js --only php --iters $(BENCH_ITERS) --warmup $(BENCH_WARMUP)
 
 bench-go: cargo-downloads-check bench-fixtures ## Go 검증기만 측정
-	node tools/bench/run.js --only go --iters $(BENCH_ITERS) --warmup $(BENCH_WARMUP)
+	node benchmarks/validators/run.js --only go --iters $(BENCH_ITERS) --warmup $(BENCH_WARMUP)
 
 bench-rust: cargo-downloads-check bench-fixtures ## Rust 검증기만 측정
-	node tools/bench/run.js --only rust --iters $(BENCH_ITERS) --warmup $(BENCH_WARMUP)
+	node benchmarks/validators/run.js --only rust --iters $(BENCH_ITERS) --warmup $(BENCH_WARMUP)
 
 # The JavaScript packages are built only when their sources or output changed; the
 # extension build and the native suite both read the built packages. Every test runs through

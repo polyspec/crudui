@@ -1,9 +1,9 @@
 // The benchmark drivers take their iteration counts from the command line. Every driver and the
-// orchestrator apply one rule to them, read from tools/bench/iteration-arguments.json: a
+// orchestrator apply one rule to them, read from benchmarks/validators/iteration-arguments.json: a
 // count is decimal digits inside its range, and anything else stops the program before it loads a
 // validator, with the same message. An unchecked count such as `--iters 1e20` used to loop without
 // end. The JavaScript and PHP drivers run as the README documents them; the Go and Rust drivers run
-// as the programs tools/bench/build-drivers.mjs built before this test, so every case ends within
+// as the programs benchmarks/validators/build-drivers.mjs built before this test, so every case ends within
 // seconds and no case pays a compilation.
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
@@ -12,11 +12,11 @@ import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
-import { BENCH, compiledDrivers } from '../../tools/bench/drivers.mjs';
+import { BENCH, compiledDrivers } from '../../benchmarks/validators/drivers.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const FIXTURES = path.join(BENCH, 'fixtures');
-const cases = JSON.parse(readFileSync(path.join(ROOT, 'tools/bench/iteration-arguments.json'), 'utf8'));
+const cases = JSON.parse(readFileSync(path.join(ROOT, 'benchmarks/validators/iteration-arguments.json'), 'utf8'));
 
 const compiled = compiledDrivers();
 const programs = {
@@ -58,7 +58,7 @@ const rows = stdout => stdout.split('\n').filter(line => line.trim().startsWith(
 
 for (const [name, program] of Object.entries(programs)) {
   test(`${name} accepts a count inside the range`, async () => {
-    assert.ok(existsSync(program.command) || !path.isAbsolute(program.command), `${program.command} is missing; run node tools/bench/build-drivers.mjs`);
+    assert.ok(existsSync(program.command) || !path.isAbsolute(program.command), `${program.command} is missing; run node benchmarks/validators/build-drivers.mjs`);
     const result = await run(program, cases.accepted.args, ACCEPTED_DEADLINE_MS);
     assert.equal(result.timedOut, false, `${name} did not finish`);
     assert.equal(result.status, 0, result.stderr);

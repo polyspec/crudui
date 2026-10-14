@@ -53,7 +53,7 @@
       "advisories": []
     },
     {
-      "lock": "tools/bench/rust/Cargo.lock",
+      "lock": "benchmarks/validators/rust/Cargo.lock",
       "sha256": "3bdce22cf8e2ea5b2e264dc93a1728f24e3263c5eac06489c9013974f20ffe39",
       "advisories": []
     }

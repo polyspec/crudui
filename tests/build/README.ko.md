@@ -1,6 +1,6 @@
 # 패키지 빌드 검사
 <!-- doc-id: tests-build-readme -->
-<!-- source-sha256: 7566e4d7a8605a4337bb96c7f0d0bd05cf1fec2c11c34204fb61301a4ad21493 -->
+<!-- source-sha256: af23ab640c855abe5e70e9141ee24b181eb645ef5c5d924de83097e80f846caa -->
 
 [English](README.md).
 
@@ -47,10 +47,10 @@ validator·generator-core·generator-html·generator-react·generator-vue·gener
 않아야 합니다. 또한 다른 명령을 실행하는 스크립트가 끝나지 않는 명령을 제한 시간에 프로세스 그룹째
 멈추는지 검사합니다([명령 제한 시간](../../docs/operations/testing.ko.md#장기-작업의-명령)).
 
-`test:bench`는 JavaScript·PHP·Go·Rust 벤치마크 드라이버와 `tools/bench/run.js`가
-`tools/bench/iteration-arguments.json`의 반복 횟수를 같은 규칙과 같은 메시지로 받거나
+`test:bench`는 JavaScript·PHP·Go·Rust 벤치마크 드라이버와 `benchmarks/validators/run.js`가
+`benchmarks/validators/iteration-arguments.json`의 반복 횟수를 같은 규칙과 같은 메시지로 받거나
 거부하는지 검사합니다. PHP, Go, Rust가 필요하며 CI의 네이티브 생성 작업이 실행합니다. 먼저 패키지를 빌드하고
-`tools/bench/build-drivers.mjs`로 Go와 Rust 드라이버를 빌드합니다. 이 스크립트는 시간 한도 없이 각 빌드의
+`benchmarks/validators/build-drivers.mjs`로 Go와 Rust 드라이버를 빌드합니다. 이 스크립트는 시간 한도 없이 각 빌드의
 출력을 흘리고 결과를 경과 시간과 함께 출력합니다. 테스트는 빌드된 드라이버를 실행하며 각 테스트는 테스트
 실행기의 30초 제한 시간을 가집니다.
 

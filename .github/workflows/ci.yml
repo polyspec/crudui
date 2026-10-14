@@ -854,7 +854,7 @@ jobs:
           path: |
             ~/go/pkg/mod
             ~/.cache/go-build
-          key: go-${{ runner.os }}-${{ hashFiles('packages/generator-go/go.mod', 'tests/native-generators/programs/go/go.mod', 'tools/bench/go/go.mod') }}
+          key: go-${{ runner.os }}-${{ hashFiles('packages/generator-go/go.mod', 'tests/native-generators/programs/go/go.mod', 'benchmarks/validators/go/go.mod') }}
       - name: Install the Rust toolchain of rust-toolchain.toml
         run: make install-rust
       - name: Cargo cache
@@ -863,7 +863,7 @@ jobs:
           workspaces: |
             packages/generator-rust
             tests/native-generators/programs/rust
-            tools/bench/rust
+            benchmarks/validators/rust
       - name: Install the tools of mise.lock into var/tools/mise
         run: make install-tools
       - name: Check the recorded toolchain versions

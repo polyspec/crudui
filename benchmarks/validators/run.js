@@ -3,7 +3,7 @@
  * run.js — benchmark orchestrator for the four crudui validators.
  *
  * Runs each language's in-process driver (bench-js.js, bench-php.php,
- * tools/bench/go, tools/bench/rust) on the SAME spec+input fixtures, collects
+ * benchmarks/validators/go, benchmarks/validators/rust) on the SAME spec+input fixtures, collects
  * the one-JSON-line-per-spec reports, verifies all four backends agree on the
  * validation OUTCOME (valid/error/field) per spec — divergent results abort the
  * run, because comparing throughput on workloads that split the validators is
@@ -257,7 +257,7 @@ function writeResultsMd(table, args, langs, meta) {
   );
   lines.push('  spawn would fold interpreter/binary boot into every call — unfair here.');
   lines.push(
-    '- All four read the SAME `tools/bench/fixtures/*.json` spec+input, and the'
+    '- All four read the SAME `benchmarks/validators/fixtures/*.json` spec+input, and the'
   );
   lines.push(
     '  orchestrator aborts if the backends disagree on valid/error/field.'
@@ -294,7 +294,7 @@ async function main() {
   const langs = args.only ? allLangs.filter((l) => args.only.includes(l)) : allLangs;
 
   if (!fs.existsSync(path.join(FIXTURES, 'contact.spec.json'))) {
-    console.error('Fixtures missing. Run: node tools/bench/gen-fixtures.js');
+    console.error('Fixtures missing. Run: node benchmarks/validators/gen-fixtures.js');
     process.exit(1);
   }
 

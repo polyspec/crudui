@@ -169,17 +169,17 @@ test('Rust API generation uses one resolved toolchain', t => {
 
 test('Rust benchmark uses one resolved toolchain for execution and version metadata', t => {
   const root = fixture(t, 'crudui-rust-benchmark-', [
-    'tools/bench/run.js',
-    'tools/bench/arguments.js',
+    'benchmarks/validators/run.js',
+    'benchmarks/validators/arguments.js',
     'scripts/run-command.mjs',
   ], [
-    'tools/bench/fixtures',
-    'tools/bench/rust',
+    'benchmarks/validators/fixtures',
+    'benchmarks/validators/rust',
   ]);
-  writeFileSync(path.join(root, 'tools/bench/fixtures/contact.spec.json'), '{}\n');
+  writeFileSync(path.join(root, 'benchmarks/validators/fixtures/contact.spec.json'), '{}\n');
   const tools = rustEnvironment(root);
   const result = spawnSync(process.execPath, [
-    path.join(root, 'tools/bench/run.js'),
+    path.join(root, 'benchmarks/validators/run.js'),
     '--only', 'rust', '--iters', '1', '--warmup', '0',
   ], {
     encoding: 'utf8',
@@ -190,13 +190,13 @@ test('Rust benchmark uses one resolved toolchain for execution and version metad
   assert.deepEqual(commands(tools.commandLog), [{
     args: [
       'run', '--release', '--quiet', '--', '--fixtures',
-      path.join(root, 'tools/bench/fixtures'), '--iters', '1', '--warmup', '0',
+      path.join(root, 'benchmarks/validators/fixtures'), '--iters', '1', '--warmup', '0',
     ],
-    cwd: path.join(root, 'tools/bench/rust'),
+    cwd: path.join(root, 'benchmarks/validators/rust'),
     rustc: tools.rustc,
     rustdoc: tools.rustdoc,
   }]);
-  assert.match(readFileSync(path.join(root, 'tools/bench/results.md'), 'utf8'), /cargo 1\.98\.1/);
+  assert.match(readFileSync(path.join(root, 'benchmarks/validators/results.md'), 'utf8'), /cargo 1\.98\.1/);
 });
 
 test('Rust generator fixture validation uses one resolved toolchain', t => {

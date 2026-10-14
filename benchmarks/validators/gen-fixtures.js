@@ -8,7 +8,7 @@
  * specs are written here once as canonical JSON and the Go/Rust/PHP drivers load
  * the resulting .json files. No validator parses YAML.
  *
- * Output (tools/bench/fixtures/):
+ * Output (benchmarks/validators/fixtures/):
  *   contact.spec.json     contact.input.json
  *   large.spec.json       large.input.json (generated current-schema workload)
  *

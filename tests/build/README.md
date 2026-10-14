@@ -49,10 +49,10 @@ commands stops a command that never ends, with its whole process group, at the c
 ([command limits](../../docs/operations/testing.md#commands-of-long-operations)).
 
 `test:bench` checks that the JavaScript, PHP, Go and Rust benchmark drivers and
-`tools/bench/run.js` accept and reject the iteration counts of
-`tools/bench/iteration-arguments.json` by one rule with one message. It needs PHP, Go
+`benchmarks/validators/run.js` accept and reject the iteration counts of
+`benchmarks/validators/iteration-arguments.json` by one rule with one message. It needs PHP, Go
 and Rust; the native generation job of CI runs it. It first builds the packages and then the Go and
-Rust drivers with `tools/bench/build-drivers.mjs`, which streams each build's output and prints its
+Rust drivers with `benchmarks/validators/build-drivers.mjs`, which streams each build's output and prints its
 result with its elapsed time, without a time limit; the test runs the built drivers, and each of its
 tests has the 30-second timeout of the test runner.
 

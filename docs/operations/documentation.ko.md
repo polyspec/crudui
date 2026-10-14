@@ -1,6 +1,6 @@
 # 문서 관리
 <!-- doc-id: docs-operations-documentation -->
-<!-- source-sha256: 87df9d9665ac25d5421d32929f9af3b71eb691fcc4c92c3a481286721d277660 -->
+<!-- source-sha256: 2348e2ffe213e71a299c1adc5af18e4f8e3f25db955f36a6ba31847004ab92c8 -->
 
 [English](documentation.md).
 
@@ -70,7 +70,7 @@ Go 참조는 조합·표현식·검증을 포함해 `validator/`
 아래의 모든 패키지를 설명합니다.
 
 `make documents-check`(`node_modules/@polyspec/kit/dist/check-documents.mjs`, `config/documents.json`)는
-`examples/cross-check-console/client/README.md`, `tools/bench/README.md`를 뺀 저장소의 모든 Markdown 문서를 검사합니다. 각 영어 문서에는
+`examples/cross-check-console/client/README.md`, `benchmarks/validators/README.md`를 뺀 저장소의 모든 Markdown 문서를 검사합니다. 각 영어 문서에는
 한국어 twin `.ko.md`가 있고, 두 file은 같은 marker `<!-- doc-id: <id> -->`를 가집니다. id는 `.md`를 뺀 영어 file의 경로를 소문자로 하고
 단어 사이를 `-`로 이은 것입니다. 한국어 file은 영어 file의 sha256인 `<!-- source-sha256: <sha256> -->`도 가지며, 영어 문서를 바꾼 뒤에는 한국어
 twin을 검토하고 `make documents-stamp`를 실행하며, 이것이 모든 한국어 file의 marker를 영어 file의 sha256으로 설정합니다. 검사는 명시한 section anchor, fenced code block(info string과 내용),

@@ -7,5 +7,5 @@ use (
 	./packages/generator-go
 	./packages/validator-go
 	./tests/native-generators/programs/go
-	./tools/bench/go
+	./benchmarks/validators/go
 )

@@ -18,7 +18,7 @@
         "schema/README*.md",
         "examples/**/README*.md",
         "tests/**/README*.md",
-        "tools/bench/README.md",
+        "benchmarks/validators/README.md",
         "packages/**/README*.md"
       ],
       "targets": [
@@ -367,7 +367,7 @@
     },
     {
       "paths": [
-        "tools/bench/**"
+        "benchmarks/validators/**"
       ],
       "scripts": [
         "test:bench"
@@ -737,7 +737,7 @@
     {
       "check": "npm run test:bench",
       "paths": [
-        "tools/bench/**"
+        "benchmarks/validators/**"
       ]
     },
     {
