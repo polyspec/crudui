@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: dd7aac060e44c59f18552f3598c0150f447639f7cd2f1bc3fadbb2ebf895a886 -->
+<!-- source-sha256: 94f862d5017941069dbf7d2318375b6cdff98c1e890c111992b4df149fe412db -->
 
 ## Unreleased
+
+### 2026-10-15 — 폼 비교 suite의 php-ext leg (C14.33)
+
+- 폼 비교의 local verification은 PHP 서버의 PHPUnit suite를 php-ext 모드로도 실행한다. 두 확장 모듈은 kit의 반복 가능한 `--php-extension`(K165)으로 로드하고 group `php`는 뺀다. test helper `PhpProcess`는 php-ext 실행이 internal로 요구하는 class 밖의 namespace `Polyspec\CruduiTestSupport\`로 옮긴다(C14.33).
 
 ### 2026-10-15 — kit 0.0.46 (C14.32)
 
