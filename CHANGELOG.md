@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-15 — Type tests of the validator (C14.24)
+
+- The Vitest suite of `packages/validator/ts` runs in the typecheck mode of Vitest too, so the `expectTypeOf` assertions of the authoring types, now in `src/types.test-d.ts`, are checked with `tsc`; a runtime run had not evaluated them (C14.24).
+
 ### 2026-10-15 — Bundled benchmark console in the spec (C14.23)
 
 - The form-comparison spec states that the modules of `public/` are served as they are and that the build bundles the benchmark console with the source modules it imports, so no source module is copied to the public directory; the Chromium case loads the module that the page script imports from `public/` instead of `frame-readiness.mjs` of `src/` (C14.23).

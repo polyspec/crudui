@@ -246,6 +246,11 @@ every five seconds while it runs and its end with the elapsed time. A Vitest set
 setup launched instead of launching one. The tests of polyspec/kit run files whose setup or teardown outlasts the
 test timeout.
 
+A type assertion (`expectTypeOf`) lives in a `*.test-d.ts` file, which the typecheck mode of Vitest
+(`test.typecheck` with `enabled: true` in the Vitest configuration of the package) checks with `tsc` and the
+`tsconfig.json` of the package in the same run as the runtime tests; a runtime test file does not evaluate
+`expectTypeOf`. `packages/validator/ts` checks the authoring types this way (`src/types.test-d.ts`).
+
 ## Time and load
 
 A test never compares an elapsed time with a limit or with another elapsed time, because the

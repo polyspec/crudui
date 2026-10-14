@@ -43,6 +43,12 @@
         "test/*.client.mjs": "the test files of vitest.client.config.ts (its test.include)"
       }
     },
+    "packages/validator/ts": {
+      "reason": "an npm workspace whose Vitest configuration enables the typecheck mode (test.typecheck), whose test files the Vitest plugin of knip does not read: the plugin reads test.include and not typecheck.include",
+      "entries": {
+        "src/**/*.test-d.ts": "the type test files that the typecheck mode of Vitest checks (the default typecheck.include of Vitest)"
+      }
+    },
     "packages/form-binding": {
       "reason": "an npm workspace whose build script runs tsup inside the command that scripts/package-dist.mts receives as one quoted argument, which knip does not parse",
       "ignoreDependencies": {
