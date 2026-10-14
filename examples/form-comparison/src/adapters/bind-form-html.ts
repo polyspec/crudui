@@ -1,18 +1,18 @@
 import { bindButtons, bindForm, formDescription, formMessages, patchContent } from '@polyspec/crudui-generator-core';
+import type { FormTemplate, Language, NodeVM } from '@polyspec/crudui-generator-core';
 import { renderDataPanel, renderFormView, renderOutlineView } from '#html';
+import { emptyView, type BindView, type FormViews, type RecordData } from '../form-views.ts';
 
 /** The markup renderer writes no framework anchors, so it adopts the server-rendered nodes. */
 export const hydration = 'keep';
 
-const emptyView = { collapsed: new Set(), canUndo: false };
-
-function start(views, template, language, data, hydrate) {
+function start(views: FormViews, template: FormTemplate, language: Language, data: RecordData, hydrate: boolean) {
   const messages = formMessages(language);
-  const renderTools = (fields, next, view) => {
-    patchContent(views.outline, renderOutlineView({ fields, canUndo: view.canUndo }, messages));
+  const renderTools = (fields: NodeVM[], next: RecordData, view: BindView) => {
+    patchContent(views.outline, renderOutlineView({ fields, canUndo: view.canUndo, canRedo: false }, messages));
     patchContent(views.data, renderDataPanel(next, messages));
   };
-  const load = (next, view = emptyView) => {
+  const load = (next: RecordData, view: BindView = emptyView) => {
     const fields = bindForm(template, next, { language, collapsed: view.collapsed });
     patchContent(views.form, renderFormView(fields, bindButtons(template, next, { language }), messages, undefined, formDescription(template, { language })));
     renderTools(fields, next, view);
@@ -29,10 +29,10 @@ function start(views, template, language, data, hydrate) {
   };
 }
 
-export function mountView(views, template, language, data = {}) {
+export function mountView(views: FormViews, template: FormTemplate, language: Language, data: RecordData = {}) {
   return start(views, template, language, data, false);
 }
 
-export function hydrateView(views, template, language, data) {
+export function hydrateView(views: FormViews, template: FormTemplate, language: Language, data: RecordData) {
   return start(views, template, language, data, true);
 }

@@ -3,11 +3,13 @@ import { createForm } from '@polyspec/crudui-generator-core';
 import { Form } from '#vue/Form';
 import { Outline } from '#vue/Outline';
 import { DataView } from '#vue/DataView';
+import type { FormTemplate, Language } from '@polyspec/crudui-generator-core';
+import type { FormViews, RecordData } from '../form-views.ts';
 
 /** Vue hydration adopts the server-rendered nodes instead of replacing them. */
 export const hydration = 'keep';
 
-function start(views, template, language, data, hydrate) {
+function start(views: FormViews, template: FormTemplate, language: Language, data: RecordData, hydrate: boolean) {
   const session = createForm(template, data, { language });
   const form = (hydrate ? createSSRApp : createApp)({ render: () => h(Form, { form: session }) });
   const outline = createApp({
@@ -19,17 +21,17 @@ function start(views, template, language, data, hydrate) {
   dataView.mount(views.data);
   return {
     getData: () => session.getData(),
-    load: async next => { session.setData(next); await nextTick(); },
+    load: async (next: RecordData) => { session.setData(next); await nextTick(); },
     idle: () => nextTick(),
     dispose: () => { form.unmount(); outline.unmount(); dataView.unmount(); },
     session, template, fromSerializedTemplate: true,
   };
 }
 
-export function mountView(views, template, language, data = {}) {
+export function mountView(views: FormViews, template: FormTemplate, language: Language, data: RecordData = {}) {
   return start(views, template, language, data, false);
 }
 
-export function hydrateView(views, template, language, data) {
+export function hydrateView(views: FormViews, template: FormTemplate, language: Language, data: RecordData) {
   return start(views, template, language, data, true);
 }

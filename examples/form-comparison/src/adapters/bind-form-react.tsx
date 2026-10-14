@@ -5,37 +5,36 @@ import { bindButtons, bindForm, formDescription, formMessages } from '@polyspec/
 import { FormFields } from '#react/FormFields';
 import { OutlineView } from '#react/Outline';
 import { DataPanel } from '#react/DataView';
+import type { FormTemplate, Language, NodeVM } from '@polyspec/crudui-generator-core';
+import { emptyView, type BindView, type FormViews, type RecordData } from '../form-views.ts';
 
 /** React hydration adopts the server-rendered nodes instead of replacing them. */
 export const hydration = 'keep';
 
-const emptyView = { collapsed: new Set(), canUndo: false };
-
 /** Publish the commit of the hydrated or mounted tree, which is not a timed event. */
-function Committed({ onCommit, children }) {
+function Committed({ onCommit, children }: { onCommit: () => void; children: React.ReactNode }) {
   React.useEffect(onCommit, [onCommit]);
   return children;
 }
 
-function start(views, template, language, data, hydrate) {
+function start(views: FormViews, template: FormTemplate, language: Language, data: RecordData, hydrate: boolean) {
   const messages = formMessages(language);
   const description = formDescription(template, { language });
-  let commit;
-  let fail;
-  const rendered = new Promise((resolve, reject) => { commit = () => resolve(); fail = reject; });
-  const formTree = (fields, next) => (
+  const { promise: rendered, resolve, reject: fail } = Promise.withResolvers<void>();
+  const commit = () => resolve();
+  const formTree = (fields: NodeVM[], next: RecordData) => (
     <Committed onCommit={commit}>
       <FormFields fields={fields} buttons={bindButtons(template, next, { language })} messages={messages} description={description} />
     </Committed>
   );
   const initial = bindForm(template, data, { language, collapsed: emptyView.collapsed });
   const form = hydrate
-    ? hydrateRoot(views.form, formTree(initial, data), { onRecoverableError: error => fail(error) })
+    ? hydrateRoot(views.form, formTree(initial, data), { onRecoverableError: (error: unknown) => fail(error) })
     : createRoot(views.form);
   const outline = createRoot(views.outline);
   const dataPanel = createRoot(views.data);
-  const tools = (fields, next, view) => {
-    outline.render(<OutlineView state={{ fields, canUndo: view.canUndo }} messages={messages} />);
+  const tools = (fields: NodeVM[], next: RecordData, view: BindView) => {
+    outline.render(<OutlineView state={{ fields, canUndo: view.canUndo, canRedo: false }} messages={messages} />);
     dataPanel.render(<DataPanel data={next} messages={messages} />);
   };
   flushSync(() => {
@@ -44,7 +43,7 @@ function start(views, template, language, data, hydrate) {
   });
   return {
     rendered,
-    load: (next, view = emptyView) => flushSync(() => {
+    load: (next: RecordData, view: BindView = emptyView) => flushSync(() => {
       const fields = bindForm(template, next, { language, collapsed: view.collapsed });
       form.render(formTree(fields, next));
       tools(fields, next, view);
@@ -53,10 +52,10 @@ function start(views, template, language, data, hydrate) {
   };
 }
 
-export function mountView(views, template, language, data = {}) {
+export function mountView(views: FormViews, template: FormTemplate, language: Language, data: RecordData = {}) {
   return start(views, template, language, data, false);
 }
 
-export function hydrateView(views, template, language, data) {
+export function hydrateView(views: FormViews, template: FormTemplate, language: Language, data: RecordData) {
   return start(views, template, language, data, true);
 }

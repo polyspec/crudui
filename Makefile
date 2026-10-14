@@ -179,9 +179,10 @@ lint: ## Lint the repository: make lint-ts of kit and the Svelte components
 # The root tsconfig.json checks the TypeScript of scripts/ and tests/ (S9 of kit) strictly. It sets skipLibCheck: the
 # declarations that @tailwindcss/node 4.3.3 publishes import seven modules (./ast, ./candidate, ...) that the package does
 # not ship, so a check of the declaration files of node_modules fails on that package and not on this code.
-typecheck: ## Type-check every TypeScript package, and the TypeScript of scripts/ and tests/ with the root tsconfig.json
+typecheck: ## Type-check every TypeScript package, the TypeScript of scripts/ and tests/ with the root tsconfig.json, and the form comparison
 	$(NPM) run typecheck
 	node_modules/.bin/tsc -p tsconfig.json
+	node_modules/.bin/tsc -p examples/form-comparison/src/tsconfig.json
 test-validator-js: ## The TypeScript validator suite
 	$(NPM) test -w @polyspec/crudui-validator
 test-validator-php: ## The PHP validator suite
