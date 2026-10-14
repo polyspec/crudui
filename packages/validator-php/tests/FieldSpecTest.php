@@ -207,7 +207,7 @@ final class FieldSpecTest extends TestCase
     /** The top-level keys are the schema's field keys other than the composition directives. */
     public function testTopLevelKeysAreTheSchemaFieldKeys(): void
     {
-        $schema = json_decode((string) file_get_contents(__DIR__ . '/../../../schema/crudui.schema.json'), true);
+        $schema = json_decode((string) file_get_contents(__DIR__ . '/../../../contracts/schema/crudui.schema.json'), true);
         $keys = array_values(array_diff(array_keys($schema['definitions']['Field']['properties']), FieldSpec::COMPOSITION_DIRECTIVES));
         self::assertSame($keys, array_keys(FieldSpec::TOP_LEVEL));
     }

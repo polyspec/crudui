@@ -299,7 +299,7 @@ func TestRuleKeysAreRegisteredRules(t *testing.T) {
 }
 
 func TestTopLevelKeysAreTheSchemaFieldKeys(t *testing.T) {
-	data, err := os.ReadFile("../../../schema/crudui.schema.json")
+	data, err := os.ReadFile("../../../contracts/schema/crudui.schema.json")
 	if err != nil {
 		t.Fatal(err)
 	}

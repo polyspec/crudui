@@ -1,7 +1,7 @@
 /**
  * CRUDUI detail-spec meta-schema conformance.
  *
- * This test compiles `#/definitions/Detail` from schema/crudui.schema.json with the
+ * This test compiles `#/definitions/Detail` from contracts/schema/crudui.schema.json with the
  * same Ajv configuration as scripts/check-schema.mjs
  * (`new Ajv({ strict:false, allErrors:true })` + ajv-formats) and runs the shared
  * fixture tests/fixtures/detail-validity. Each case declares the meta-schema result
@@ -18,7 +18,7 @@ import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
-const schema = JSON.parse(fs.readFileSync(path.join(ROOT, 'schema/crudui.schema.json'), 'utf8'));
+const schema = JSON.parse(fs.readFileSync(path.join(ROOT, 'contracts/schema/crudui.schema.json'), 'utf8'));
 const FIXTURE = path.join(ROOT, 'tests/fixtures/detail-validity/cases.json');
 
 interface DetailValidityCase {

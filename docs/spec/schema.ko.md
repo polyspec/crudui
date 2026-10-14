@@ -1,6 +1,6 @@
 # 명세 구조
 <!-- doc-id: docs-spec-schema -->
-<!-- source-sha256: 2724491a469ddafbfa271247ab3a8e30c285ac9bd30b19b70980f41c96798f97 -->
+<!-- source-sha256: 18b07bdf6efd1da6220e08db5846ee5bf11e5736d402b77628d65519e451e9ba -->
 
 [English](schema.md). 이 문서는 필드와 목록 선언을 정의합니다.
 폼 인스턴스, 반복 행 키, 캐싱은 [폼 런타임](form-runtime.ko.md)에 정의합니다.
@@ -14,7 +14,7 @@ CRUDUI의 초기 패키지 버전은 `0.0.1`입니다. 파일명·공개 API·�
 제거한 버전 경로에는 호환 별칭을 제공하지 않습니다.
 
 기계가 읽는 계약은
-[`schema/crudui.schema.json`](../../schema/crudui.schema.json)에 관리합니다.
+[`contracts/schema/crudui.schema.json`](../../contracts/schema/crudui.schema.json)에 관리합니다.
 폼, 목록, 상세 선언 형태를 검증합니다. `make docs-schema`는 규칙을 생성하거나
 교체하지 않고 이 문서와 공유 고정 데이터를 검사합니다.
 

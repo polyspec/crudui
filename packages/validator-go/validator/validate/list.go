@@ -18,7 +18,7 @@ package validate
 // The meta-schema validates closed objects, required columns, the sort.dir and
 // pagination.mode enums, and CellFormat polymorphism. This runtime does not
 // repeat those checks. They are defined in the Ajv entry at
-// schema/crudui.schema.json #/definitions/List, exercised by
+// contracts/schema/crudui.schema.json #/definitions/List, exercised by
 // validator-ts/src/list-metaschema.conformance.test.ts.
 //
 // Go ≥ 1.18: interface{} is spelled any. No eval.

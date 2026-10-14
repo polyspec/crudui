@@ -12,7 +12,7 @@ const repository = fileURLToPath(new URL('..', import.meta.url));
 const at = (relative) => path.join(repository, relative);
 const readText = (relative) => readFileSync(at(relative), 'utf8');
 const read = (path) => JSON.parse(readFileSync(new URL(path, import.meta.url), 'utf8'));
-const schema = read('../schema/crudui.schema.json');
+const schema = read('../contracts/schema/crudui.schema.json');
 const ajv = new Ajv({ allErrors: true, strict: false });
 addFormats(ajv);
 assert.equal(ajv.validateSchema(schema), true, JSON.stringify(ajv.errors));
@@ -469,10 +469,12 @@ const checkedYaml = new Set([
   'examples/product-forms/option-form.yml',
   'examples/product-forms/product-form.yml',
 ]);
+// The configurations of tools, which those tools read: golangci-lint (make lint-go) and alint (make layout-check).
+const toolConfigurations = new Set(['.golangci.yml', 'config/layout.kit.yml', 'config/layout.yml']);
 const trackedYaml = execFileSync('git', ['ls-files', '*.yml', '*.yaml'], { cwd: repository, encoding: 'utf8' })
   .split('\n').filter((file) => file && !file.startsWith('.github/') && existsSync(at(file)));
 const unchecked = trackedYaml.filter((file) =>
-  !checkedYaml.has(file) && !file.startsWith('packages/cli/test/fixtures/'));
+  !checkedYaml.has(file) && !toolConfigurations.has(file) && !file.startsWith('packages/cli/test/fixtures/'));
 assert.deepEqual(unchecked, [], `YAML specifications that no check reads: ${unchecked.join(', ')}`);
 for (const file of trackedYaml) YAML.parse(readText(file)); // Throws on a duplicate key.
 

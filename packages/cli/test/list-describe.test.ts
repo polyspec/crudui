@@ -8,7 +8,7 @@
  *   - read-cell format catalog ← generator-core cell.ts `CELL_FORMATS`
  *     (= Object.keys(CELL_RENDERERS); the SAME map renderCell dispatches over)
  *   - list structure (columns/search/sort/pagination/actions/empty/design) ←
- *     schema/crudui.schema.json List/Column/CellFormat/Pagination/Sort/
+ *     contracts/schema/crudui.schema.json List/Column/CellFormat/Pagination/Sort/
  *     ListAction definitions, JSON.parse'd
  *
  * So a format added to cell.ts's renderer map, or a key changed in a List family
@@ -42,7 +42,7 @@ import {
 } from '@polyspec/crudui-generator-core/internal';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const SCHEMA_PATH = resolve(HERE, '../../..', 'schema/crudui.schema.json');
+const SCHEMA_PATH = resolve(HERE, '../../..', 'contracts/schema/crudui.schema.json');
 const schema = JSON.parse(readFileSync(SCHEMA_PATH, 'utf-8'));
 
 /** The object member of a meta-schema definition written as `anyOf`. */

@@ -8,11 +8,11 @@
  *   - generator-core REGISTRY  → widget kinds + per-kind layout (import)
  *   - validator-ts rules        → rule names (import getRuleNames)
  *   - validator-ts validator.ts → rule param-class tables (import)
- *   - schema/crudui.schema.json  → slots / nodes / buckets / forbidden enum (parse)
+ *   - contracts/schema/crudui.schema.json  → slots / nodes / buckets / forbidden enum (parse)
  *   - validator-ts types.ts     → FORBIDDEN_META_KEYS + pattern (import)
  *   - validator-ts forbidden    → runtime forbidden scan (import — cross-check)
  *   - generator-core cell.ts     → read-cell format catalog (import CELL_FORMATS)
- *   - schema/crudui.schema.json   → list definitions (List/Column/CellFormat/…) (parse)
+ *   - contracts/schema/crudui.schema.json   → list definitions (List/Column/CellFormat/…) (parse)
  *   - docs/spec/expressions.md → tokens / precedence / truthy / unsupported (parse)
  *   - docs/spec/schema.md        → classification rules (parse)
  *
@@ -50,7 +50,7 @@ import {
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(HERE, '../../..');
-const SCHEMA_PATH = resolve(REPO_ROOT, 'schema/crudui.schema.json');
+const SCHEMA_PATH = resolve(REPO_ROOT, 'contracts/schema/crudui.schema.json');
 const GRAMMAR_PATH = resolve(REPO_ROOT, 'docs/spec/expressions.md');
 
 // ---------------------------------------------------------------------------
@@ -551,13 +551,13 @@ export function describe(): DescribeResult {
         widgets: 'packages/generator-core/src/widget.ts (REGISTRY)',
         rules: 'packages/validator-ts/src/rules/index.ts (builtInRules)',
         ruleParamClass: 'packages/validator-ts/src/validate/validator.ts',
-        slots: 'schema/crudui.schema.json (definitions)',
+        slots: 'contracts/schema/crudui.schema.json (definitions)',
         forbiddenKeys: 'packages/validator-ts/src/types.ts (FORBIDDEN_META_KEYS)',
         forbiddenScan: 'packages/validator-ts/src/forbidden-scan.ts',
         grammar: 'docs/spec/expressions.md',
         classification: 'docs/spec/schema.md',
         listCellFormats: 'packages/generator-core/src/cell.ts (CELL_RENDERERS)',
-        listStructure: 'schema/crudui.schema.json (List/Column/CellFormat/Pagination/Sort/ListAction)',
+        listStructure: 'contracts/schema/crudui.schema.json (List/Column/CellFormat/Pagination/Sort/ListAction)',
       },
     },
     widgets,

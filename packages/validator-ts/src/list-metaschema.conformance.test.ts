@@ -2,7 +2,7 @@
  * CRUDUI list-spec meta-schema conformance (SPEC §9.4).
  *
  * The list meta-schema check complements the form-spec check. The definitions are
- * ADDITIVE to schema/crudui.schema.json — they do NOT touch the form-spec
+ * ADDITIVE to contracts/schema/crudui.schema.json — they do NOT touch the form-spec
  * Field entry point (the top `$ref` stays `#/definitions/Field`); a list-spec is
  * validated through a DIFFERENT entry, `#/definitions/List`. This test compiles
  * that entry with the same Ajv configuration as the CLI meta-schema check
@@ -31,7 +31,7 @@ import addFormats from 'ajv-formats';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT = path.resolve(__dirname, '../../..');
-const SCHEMA_PATH = path.join(ROOT, 'schema/crudui.schema.json');
+const SCHEMA_PATH = path.join(ROOT, 'contracts/schema/crudui.schema.json');
 const FIXTURE = path.join(ROOT, 'tests/fixtures/list-validity/cases.json');
 
 interface ListValidityCase {

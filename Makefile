@@ -285,7 +285,7 @@ docs-verify-idempotent: ## docs 를 2회 생성하고 diff 가 비는지 검증
 	@runs=$$(mktemp -d -t crudui-docs-verify.XXXXXX) && trap 'rm -rf "$$runs"' EXIT && \
 	snapshot() { mkdir "$$runs/$$1" && cp -R docs/api "$$runs/$$1/api" && \
 		cp -R docs/public/api "$$runs/$$1/native-api" && cp -R docs/.web/dist "$$runs/$$1/docs" && \
-		cp schema/crudui.schema.json "$$runs/$$1/crudui.schema.json"; } && \
+		cp contracts/schema/crudui.schema.json "$$runs/$$1/crudui.schema.json"; } && \
 	$(MAKE) docs-web && snapshot run1 && $(MAKE) docs-web && snapshot run2 && \
 	if diff -r "$$runs/run1" "$$runs/run2" > "$$runs/diff.txt" 2>&1; then \
 		echo "[make] docs-verify-idempotent: OK — two runs produced identical deterministic output"; \

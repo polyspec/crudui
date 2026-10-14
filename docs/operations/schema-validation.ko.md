@@ -1,11 +1,11 @@
 # 스키마 검증
 <!-- doc-id: docs-operations-schema-validation -->
-<!-- source-sha256: bcaa57442ce890d5b5fe44b744685a7d8062d978554b556d121dcfcfd8c3fd37 -->
+<!-- source-sha256: ecb107f0bc57ec84053ca6efd738312f471e4c0e3ed0f59d0bbc76b55735bdc8 -->
 
 [English](schema-validation.md).
 
 npm 의존성을 설치한 후 저장소 루트에서 `make docs-schema`를 실행합니다.
-명령은 Ajv로 `schema/crudui.schema.json`을 컴파일하고 공유 폼·목록 고정 데이터를
+명령은 Ajv로 `contracts/schema/crudui.schema.json`을 컴파일하고 공유 폼·목록 고정 데이터를
 검사합니다. 스키마가 잘못되었거나 사례 결과가 다르면 실패합니다.
 스키마와 기대 결과를 수정하지 않습니다.
 

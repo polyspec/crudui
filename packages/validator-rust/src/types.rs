@@ -1096,7 +1096,7 @@ mod tests {
     fn top_level_keys_are_the_schema_field_keys() {
         let path = concat!(
             env!("CARGO_MANIFEST_DIR"),
-            "/../../schema/crudui.schema.json"
+            "/../../contracts/schema/crudui.schema.json"
         );
         let text =
             std::fs::read_to_string(path).unwrap_or_else(|error| panic!("read {path}: {error}"));

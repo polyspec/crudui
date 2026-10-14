@@ -15,7 +15,7 @@
         "*.md",
         "docs/**",
         "contracts/README*.md",
-        "schema/README*.md",
+        "contracts/schema/README*.md",
         "examples/**/README*.md",
         "tests/**/README*.md",
         "benchmarks/validators/README.md",
@@ -69,7 +69,7 @@
     },
     {
       "paths": [
-        "schema/crudui.schema.json",
+        "contracts/schema/crudui.schema.json",
         "scripts/check-schema.mjs",
         "examples/form-structure/**"
       ],
@@ -702,7 +702,7 @@
       "paths": [
         "packages/validator-{php,go,rust}/**",
         "tests/fixtures/**",
-        "schema/crudui.schema.json",
+        "contracts/schema/crudui.schema.json",
         "contracts/unicode-properties.json"
       ]
     },

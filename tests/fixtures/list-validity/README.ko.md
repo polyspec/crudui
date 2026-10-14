@@ -1,6 +1,6 @@
 # 목록 유효성 고정 데이터
 <!-- doc-id: tests-fixtures-list-validity-readme -->
-<!-- source-sha256: 7ee2ca7c521f6031d99e326accfdbffc895d02880bdac41ebb4977c3f44fb88c -->
+<!-- source-sha256: 8f744f9491af49a5a5154161d425b1c957990ddbb9f1889e5367fbed15b8cdfb -->
 
 [English](README.md).
 
@@ -8,7 +8,7 @@
 [목록](../list-validity/README.ko.md), [상세](../detail-validity/README.ko.md))와 같은
 `{ name, note, spec, files?, expect, reason?, engine }` 형태를 사용합니다.
 
-- `expect`는 [메타 스키마](../../../schema/crudui.schema.json)의 `#/definitions/List`에 대한 메타 스키마 결과인 `"ok"` 또는 `"fail"`입니다.
+- `expect`는 [메타 스키마](../../../contracts/schema/crudui.schema.json)의 `#/definitions/List`에 대한 메타 스키마 결과인 `"ok"` 또는 `"fail"`입니다.
 - `reason`은 `"fail"` 사례에만 있으며 그 사례에는 반드시 있어야 합니다. 오류 중에 나타나야 하는 Ajv
   키워드를 지정합니다.
 - `engine`은 런타임 구조 검증 결과입니다. `"pass"`는 로드 실패가 없고 결과가 `{ valid: true, errors: [] }`임을

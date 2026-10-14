@@ -2,7 +2,7 @@
  * `crudui check` — meta-schema validation + forbidden-scan + leaf-type catalog.
  *
  * Three checks use the registered schema and widget catalog directly:
- *   1. ajv against schema/crudui.schema.json (additionalProperties:false →
+ *   1. ajv against contracts/schema/crudui.schema.json (additionalProperties:false →
  *      rejects non-first-class keys, unregistered slot keys, ForbiddenKeyNames).
  *   2. scanForbiddenKeys (@polyspec/crudui-validator/internal) — the runtime
  *      backstop that the meta-schema mirrors, walked to arbitrary depth.
@@ -35,7 +35,7 @@ import { WIDGET_KINDS } from '@polyspec/crudui-generator-core/internal';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(HERE, '../../..');
-const SCHEMA_PATH = resolve(REPO_ROOT, 'schema/crudui.schema.json');
+const SCHEMA_PATH = resolve(REPO_ROOT, 'contracts/schema/crudui.schema.json');
 
 export interface CheckError {
   path: string;
