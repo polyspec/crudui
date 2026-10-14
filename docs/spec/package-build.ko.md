@@ -1,6 +1,6 @@
 # 패키지 빌드
 <!-- doc-id: docs-spec-package-build -->
-<!-- source-sha256: f55b7fd3866412acc490ab1bc8f5a0b09825849a1fe9ae0ec7871a5d700857e3 -->
+<!-- source-sha256: 9d440bae6043d95956676a31f14d4ef23a6207e9d144bc0ff2c17def7733adcf -->
 
 [English](package-build.md).
 
@@ -279,7 +279,7 @@ download하고, `make install`이 이를 실행합니다. cargo를 실행하는 
 `make cargo-downloads-check`(`node_modules/@polyspec/kit/dist/check-cargo-downloads.mjs`)에 의존합니다. 이 검사는
 lock마다 `cargo fetch --locked --offline`을 실행하고, `--offline` 없이 다시 시도하라는 cargo의
 안내 대신 각 lock, cargo의 첫 오류 줄, `run make install, which downloads them`과 함께
-실패합니다. comparison pipeline은 OrderedJSON checkout을 읽고, 없거나 tracked change가 있거나 tag `v0.0.3`와 다른 commit이면
+실패합니다. comparison pipeline은 OrderedJSON checkout을 읽고, 없거나 tracked change가 있거나 tag `v0.0.9`와 다른 commit이면
 `make install-ordered-json`을 밝히며 실패하고, 아무것도 download하지 않습니다. checkout의 Go
 module은 `replace`로 checkout의 module만 요구하므로 Go는 module proxy를 읽지 않습니다.
 

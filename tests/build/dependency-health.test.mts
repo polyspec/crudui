@@ -354,7 +354,7 @@ test('a published Composer package declares its version, and the development roo
 test('config/dependency-policy.json records the OrderedJSON tag that the comparison installs', () => {
   const policy = JSON.parse(readFileSync(path.join(root, 'config/dependency-policy.json'), 'utf8'));
   assert.deepEqual(policy.taggedNpmPackages, [{
-    directory: `${orderedJsonCheckout}/js`, repository: orderedJsonRepository, tag: orderedJsonTag, version: orderedJsonVersion, fix: 'make install-ordered-json',
+    directory: `${orderedJsonCheckout}/packages/js`, repository: orderedJsonRepository, tag: orderedJsonTag, version: orderedJsonVersion, fix: 'make install-ordered-json',
   }]);
 });
 

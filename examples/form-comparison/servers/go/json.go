@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	orderedjson "github.com/polyspec/ordered-json/go"
+	orderedjson "github.com/polyspec/ordered-json/packages/go"
 	"github.com/polyspec/crudui/packages/validator/go/validator/compose"
 )
 
