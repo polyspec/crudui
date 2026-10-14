@@ -47,9 +47,12 @@ export const equalToRule: RuleDefinition = {
   validate(context: ValidationContext): string | null {
     const { value, ruleParam, messages } = context;
 
-    // Skip if no rule param
-    if (ruleParam === null || ruleParam === undefined) {
+    // A false or null parameter disables the rule.
+    if (ruleParam === false || ruleParam === null || ruleParam === undefined) {
       return null;
+    }
+    if (typeof ruleParam !== 'string') {
+      throw new TypeError('Invalid equalTo parameter: expected a field reference string');
     }
 
     // Skip validation if value is empty (required rule handles this)
@@ -58,7 +61,7 @@ export const equalToRule: RuleDefinition = {
     }
 
     // Resolve the target field's value via the shared path resolver
-    const targetValue = resolveFieldParam(String(ruleParam), context);
+    const targetValue = resolveFieldParam(ruleParam, context);
 
     // Compare values
     if (value !== targetValue) {

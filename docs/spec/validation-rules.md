@@ -230,6 +230,9 @@ without row keys. Every runtime reports the same code and message:
 | `in` member that is not a string, number or boolean | `INVALID_RULE_PARAMETER` | `Invalid in parameter: members must be strings, numbers or booleans` |
 | `in` with an empty member | `INVALID_RULE_PARAMETER` | `Invalid in parameter: members must not be empty` |
 | `pattern`, `match` of another type | `INVALID_RULE_PARAMETER` | `Invalid {rule} parameter: expected a pattern string` |
+| `equalTo`, `enddate` that is not a string | `INVALID_RULE_PARAMETER` | `Invalid {rule} parameter: expected a field reference string` |
+| `notEqual` that is not a string, number or boolean | `INVALID_RULE_PARAMETER` | `Invalid notEqual parameter: expected a string, number or boolean` |
+| `unique` that is not a boolean or a string | `INVALID_RULE_PARAMETER` | `Invalid unique parameter: expected true, false or a string` |
 | `pattern`, `match` outside the language | `INVALID_RULE_PATTERN` | `Invalid {rule} pattern: {reason} at {offset}` |
 
 The pattern `{reason}` is one of `empty pattern`, `unexpected character`,
@@ -302,6 +305,8 @@ return the selected branch value.
 `equalTo`, `notEqual`, `unique`, `enddate`, `accept`, `match`, `pattern` and `in`
 receive parameters unchanged for their own processing. In particular,
 `enddate: period.start` references a field; it is not a boolean condition.
+An object or a list given to `equalTo`, `notEqual`, `unique` or `enddate` is therefore
+not a condition map but a [parameter error](#parameter-errors).
 For `enddate`, `.start` resolves a sibling field and `..start` resolves one
 group level above, using the common field-reference resolver.
 Membership maps are value sets, not condition maps.

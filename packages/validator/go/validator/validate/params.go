@@ -54,6 +54,8 @@ func (v *Validator) checkParameter(rule string, param any) *parameterError {
 		return checkNumericParameter(rule, param)
 	case "in":
 		return checkIn(param)
+	case "equalTo", "enddate", "notEqual", "unique":
+		return checkReferenceParameter(rule, param)
 	case "match", "pattern":
 		source, ok := param.(string)
 		if !ok {
@@ -70,6 +72,29 @@ func (v *Validator) checkParameter(rule string, param any) *parameterError {
 			}
 		}
 		v.patterns[source] = matcher
+	}
+	return nil
+}
+
+// checkReferenceParameter returns the parameter error of a rule that references a
+// field: equalTo and enddate take a field reference string, notEqual a string,
+// number or boolean, and unique true or a string.
+func checkReferenceParameter(rule string, param any) *parameterError {
+	_, isString := param.(string)
+	_, isBool := param.(bool)
+	switch rule {
+	case "equalTo", "enddate":
+		if !isString {
+			return ruleParameterError("Invalid " + rule + " parameter: expected a field reference string")
+		}
+	case "notEqual":
+		if _, isNumber := finiteNumber(param); !isString && !isBool && !isNumber {
+			return ruleParameterError("Invalid notEqual parameter: expected a string, number or boolean")
+		}
+	case "unique":
+		if !isString && !isBool {
+			return ruleParameterError("Invalid unique parameter: expected true, false or a string")
+		}
 	}
 	return nil
 }

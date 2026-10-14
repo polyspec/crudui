@@ -8144,6 +8144,244 @@
     }
   },
   {
+    "name": "reference-equalto-true-parameter",
+    "note": "an equalTo parameter is a field reference string; true is not one.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "equalTo": true
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid equalTo parameter: expected a field reference string",
+      "at": "value"
+    }
+  },
+  {
+    "name": "reference-equalto-number-parameter",
+    "note": "an equalTo parameter is a field reference string, not a number.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "equalTo": 5
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid equalTo parameter: expected a field reference string",
+      "at": "value"
+    }
+  },
+  {
+    "name": "reference-enddate-list-parameter",
+    "note": "an enddate parameter is a field reference string, not a list.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "enddate": [
+              ".start"
+            ]
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid enddate parameter: expected a field reference string",
+      "at": "value"
+    }
+  },
+  {
+    "name": "reference-enddate-object-parameter",
+    "note": "an enddate parameter is passed unchanged, so an object is not a condition map.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "enddate": {
+              ".on": ".start"
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid enddate parameter: expected a field reference string",
+      "at": "value"
+    }
+  },
+  {
+    "name": "reference-notequal-list-parameter",
+    "note": "a notEqual parameter is a string, number or boolean, not a list.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "notEqual": [
+              "a"
+            ]
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid notEqual parameter: expected a string, number or boolean",
+      "at": "value"
+    }
+  },
+  {
+    "name": "reference-notequal-object-parameter",
+    "note": "a notEqual parameter is passed unchanged, so an object is not a condition map.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "notEqual": {
+              ".on": "a"
+            }
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid notEqual parameter: expected a string, number or boolean",
+      "at": "value"
+    }
+  },
+  {
+    "name": "reference-unique-number-parameter",
+    "note": "a unique parameter is true, false or a string, not a number.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "unique": 1
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid unique parameter: expected true, false or a string",
+      "at": "value"
+    }
+  },
+  {
+    "name": "reference-unique-list-parameter",
+    "note": "a unique parameter is true, false or a string, not a list.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "value": {
+          "type": "text",
+          "validate": {
+            "unique": [
+              "a"
+            ]
+          }
+        }
+      }
+    },
+    "data": {
+      "value": "x"
+    },
+    "expectFailure": {
+      "code": "INVALID_RULE_PARAMETER",
+      "message": "Invalid unique parameter: expected true, false or a string",
+      "at": "value"
+    }
+  },
+  {
+    "name": "reference-parameters-accepted",
+    "note": "false and null disable equalTo and enddate; notEqual takes a number or a boolean as a literal.",
+    "spec": {
+      "type": "group",
+      "properties": {
+        "a": {
+          "type": "text",
+          "validate": {
+            "equalTo": false
+          }
+        },
+        "b": {
+          "type": "text",
+          "validate": {
+            "enddate": null
+          }
+        },
+        "c": {
+          "type": "text",
+          "validate": {
+            "notEqual": 5
+          }
+        },
+        "d": {
+          "type": "text",
+          "validate": {
+            "notEqual": true
+          }
+        }
+      }
+    },
+    "data": {
+      "a": "x",
+      "b": "x",
+      "c": "x",
+      "d": "x"
+    },
+    "expected": {
+      "valid": true,
+      "errors": [],
+      "hidden": []
+    }
+  },
+  {
     "name": "unregistered-rule-rejected",
     "note": "a rule name that is not a registered rule fails the load at the field's declaration path.",
     "spec": {

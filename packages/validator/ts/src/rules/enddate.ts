@@ -16,9 +16,12 @@ export const enddateRule: RuleDefinition = {
   validate(context: ValidationContext): string | null {
     const { value, ruleParam, messages } = context;
 
-    // Skip if no rule param
-    if (ruleParam === null || ruleParam === undefined) {
+    // A false or null parameter disables the rule.
+    if (ruleParam === false || ruleParam === null || ruleParam === undefined) {
       return null;
+    }
+    if (typeof ruleParam !== 'string') {
+      throw new TypeError('Invalid enddate parameter: expected a field reference string');
     }
 
     // Skip validation if value is empty (required rule handles this)
@@ -32,7 +35,7 @@ export const enddateRule: RuleDefinition = {
       return null; // Invalid date format, let date rule handle it
     }
 
-    const startDateValue = resolveFieldParam(String(ruleParam), context);
+    const startDateValue = resolveFieldParam(ruleParam, context);
 
     // Skip if start date is empty
     if (isEmpty(startDateValue)) {

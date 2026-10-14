@@ -27,7 +27,7 @@ use super::validator::{
 
 /// A checked rule parameter.
 pub(crate) enum Parameter {
-    /// A rule whose parameter needs no check here.
+    /// A rule whose parameter needs no value beyond its check.
     Unchecked,
     /// A `minlength` or `maxlength` limit.
     Limit(u64),
@@ -176,6 +176,24 @@ pub(crate) fn check(
         "in" => members(parameter)
             .map(Parameter::Members)
             .map_err(|error| invalid(error.message().to_string())),
+        "equalTo" | "enddate" => match parameter {
+            Value::String(_) => Ok(Parameter::Unchecked),
+            _ => Err(invalid(format!(
+                "Invalid {rule} parameter: expected a field reference string"
+            ))),
+        },
+        "notEqual" => match parameter {
+            Value::String(_) | Value::Number(_) | Value::Bool(_) => Ok(Parameter::Unchecked),
+            _ => Err(invalid(
+                "Invalid notEqual parameter: expected a string, number or boolean".to_string(),
+            )),
+        },
+        "unique" => match parameter {
+            Value::String(_) | Value::Bool(true) => Ok(Parameter::Unchecked),
+            _ => Err(invalid(
+                "Invalid unique parameter: expected true, false or a string".to_string(),
+            )),
+        },
         "pattern" | "match" => {
             let Value::String(source) = parameter else {
                 return Err(invalid(format!(

@@ -822,6 +822,10 @@ _CHECKED_RULES = {
     'in',
     'match',
     'pattern',
+    'equalTo',
+    'enddate',
+    'notEqual',
+    'unique',
 }
 
 
@@ -889,6 +893,24 @@ def rule_parameter_failure(rule_name: str, param: object) -> tuple[str, str] | N
     if rule_name == 'in':
         members = read_members(param)
         return invalid(members) if isinstance(members, str) else None
+    if rule_name in ('equalTo', 'enddate'):
+        return (
+            None
+            if isinstance(param, str)
+            else invalid(f'Invalid {rule_name} parameter: expected a field reference string')
+        )
+    if rule_name == 'notEqual':
+        return (
+            None
+            if isinstance(param, (str, bool)) or is_finite_number(param)
+            else invalid('Invalid notEqual parameter: expected a string, number or boolean')
+        )
+    if rule_name == 'unique':
+        return (
+            None
+            if isinstance(param, str) or param is True
+            else invalid('Invalid unique parameter: expected true, false or a string')
+        )
     if not isinstance(param, str):
         return invalid(f'Invalid {rule_name} parameter: expected a pattern string')
     try:
