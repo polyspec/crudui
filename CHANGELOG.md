@@ -9,6 +9,7 @@
 
 ### 2026-10-15 — Defects found by the lint (C14.16)
 
+- The expression `==`, `!=` and `in` of the TypeScript and Python validators compare an array or an object with a scalar as the PHP, Go, Rust and C evaluators do, with no number and the empty text: `.o == '[object Object]'` with an object and `'a' == .tags` with `['a']` were true there alone; the spec states it and shared vectors check it.
 - The PHP server of the form comparison reports a failure to stop, such as a socket directory it cannot remove, and exits with status 1; the rejection was unhandled and crashed the process.
 - The Svelte adapters of the form comparison wait for `unmount` of each component when they are disposed; dispose returned before the unmount finished.
 - The browser binding of generator-core writes the value of a text, date, checkbox or radio control as the server render does, the PHP string of the value: `true` is `1`, and `false`, an array and an object are empty, where it wrote `true`, `false` and `[object Object]`.

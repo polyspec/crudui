@@ -1439,6 +1439,535 @@
     ]
   },
   {
+    "name": "cmp-eq-object-string",
+    "expr": ".o == '[object Object]'",
+    "tokens": [
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "o",
+        "literal": "o"
+      },
+      {
+        "type": "EQ",
+        "value": "==",
+        "literal": null
+      },
+      {
+        "type": "STRING",
+        "value": "'[object Object]'",
+        "literal": "[object Object]"
+      },
+      {
+        "type": "EOF",
+        "value": "",
+        "literal": null
+      }
+    ],
+    "ast": {
+      "type": "Binary",
+      "operator": "==",
+      "left": {
+        "type": "Path",
+        "relative": true,
+        "levelsUp": 0,
+        "segments": [
+          {
+            "type": "identifier",
+            "value": "o"
+          }
+        ]
+      },
+      "right": {
+        "type": "Literal",
+        "valueType": "string",
+        "value": "[object Object]"
+      }
+    },
+    "cases": [
+      {
+        "data": {
+          "o": {
+            "a": 1
+          }
+        },
+        "value": false,
+        "truthy": false
+      }
+    ]
+  },
+  {
+    "name": "cmp-ne-object-string",
+    "expr": ".o != '[object Object]'",
+    "tokens": [
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "o",
+        "literal": "o"
+      },
+      {
+        "type": "NE",
+        "value": "!=",
+        "literal": null
+      },
+      {
+        "type": "STRING",
+        "value": "'[object Object]'",
+        "literal": "[object Object]"
+      },
+      {
+        "type": "EOF",
+        "value": "",
+        "literal": null
+      }
+    ],
+    "ast": {
+      "type": "Binary",
+      "operator": "!=",
+      "left": {
+        "type": "Path",
+        "relative": true,
+        "levelsUp": 0,
+        "segments": [
+          {
+            "type": "identifier",
+            "value": "o"
+          }
+        ]
+      },
+      "right": {
+        "type": "Literal",
+        "valueType": "string",
+        "value": "[object Object]"
+      }
+    },
+    "cases": [
+      {
+        "data": {
+          "o": {
+            "a": 1
+          }
+        },
+        "value": true,
+        "truthy": true
+      }
+    ]
+  },
+  {
+    "name": "cmp-eq-object-empty-text",
+    "expr": ".o == ''",
+    "tokens": [
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "o",
+        "literal": "o"
+      },
+      {
+        "type": "EQ",
+        "value": "==",
+        "literal": null
+      },
+      {
+        "type": "STRING",
+        "value": "''",
+        "literal": ""
+      },
+      {
+        "type": "EOF",
+        "value": "",
+        "literal": null
+      }
+    ],
+    "ast": {
+      "type": "Binary",
+      "operator": "==",
+      "left": {
+        "type": "Path",
+        "relative": true,
+        "levelsUp": 0,
+        "segments": [
+          {
+            "type": "identifier",
+            "value": "o"
+          }
+        ]
+      },
+      "right": {
+        "type": "Literal",
+        "valueType": "string",
+        "value": ""
+      }
+    },
+    "cases": [
+      {
+        "data": {
+          "o": {
+            "a": 1
+          }
+        },
+        "value": true,
+        "truthy": true
+      }
+    ]
+  },
+  {
+    "name": "cmp-eq-string-array",
+    "expr": "'a' == .tags",
+    "tokens": [
+      {
+        "type": "STRING",
+        "value": "'a'",
+        "literal": "a"
+      },
+      {
+        "type": "EQ",
+        "value": "==",
+        "literal": null
+      },
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "tags",
+        "literal": "tags"
+      },
+      {
+        "type": "EOF",
+        "value": "",
+        "literal": null
+      }
+    ],
+    "ast": {
+      "type": "Binary",
+      "operator": "==",
+      "left": {
+        "type": "Literal",
+        "valueType": "string",
+        "value": "a"
+      },
+      "right": {
+        "type": "Path",
+        "relative": true,
+        "levelsUp": 0,
+        "segments": [
+          {
+            "type": "identifier",
+            "value": "tags"
+          }
+        ]
+      }
+    },
+    "cases": [
+      {
+        "data": {
+          "tags": [
+            "a"
+          ]
+        },
+        "value": false,
+        "truthy": false
+      },
+      {
+        "data": {
+          "tags": []
+        },
+        "value": false,
+        "truthy": false
+      }
+    ]
+  },
+  {
+    "name": "cmp-eq-number-array",
+    "expr": "0 == .tags",
+    "tokens": [
+      {
+        "type": "NUMBER",
+        "value": "0",
+        "literal": 0
+      },
+      {
+        "type": "EQ",
+        "value": "==",
+        "literal": null
+      },
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "tags",
+        "literal": "tags"
+      },
+      {
+        "type": "EOF",
+        "value": "",
+        "literal": null
+      }
+    ],
+    "ast": {
+      "type": "Binary",
+      "operator": "==",
+      "left": {
+        "type": "Literal",
+        "valueType": "number",
+        "value": 0
+      },
+      "right": {
+        "type": "Path",
+        "relative": true,
+        "levelsUp": 0,
+        "segments": [
+          {
+            "type": "identifier",
+            "value": "tags"
+          }
+        ]
+      }
+    },
+    "cases": [
+      {
+        "data": {
+          "tags": []
+        },
+        "value": false,
+        "truthy": false
+      },
+      {
+        "data": {
+          "tags": [
+            0
+          ]
+        },
+        "value": false,
+        "truthy": false
+      }
+    ]
+  },
+  {
+    "name": "cmp-eq-empty-text-array",
+    "expr": "'' == .tags",
+    "tokens": [
+      {
+        "type": "STRING",
+        "value": "''",
+        "literal": ""
+      },
+      {
+        "type": "EQ",
+        "value": "==",
+        "literal": null
+      },
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "tags",
+        "literal": "tags"
+      },
+      {
+        "type": "EOF",
+        "value": "",
+        "literal": null
+      }
+    ],
+    "ast": {
+      "type": "Binary",
+      "operator": "==",
+      "left": {
+        "type": "Literal",
+        "valueType": "string",
+        "value": ""
+      },
+      "right": {
+        "type": "Path",
+        "relative": true,
+        "levelsUp": 0,
+        "segments": [
+          {
+            "type": "identifier",
+            "value": "tags"
+          }
+        ]
+      }
+    },
+    "cases": [
+      {
+        "data": {
+          "tags": [
+            "a"
+          ]
+        },
+        "value": true,
+        "truthy": true
+      }
+    ]
+  },
+  {
+    "name": "in-object",
+    "expr": ".o in '[object Object]', x",
+    "tokens": [
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "o",
+        "literal": "o"
+      },
+      {
+        "type": "IN",
+        "value": "in",
+        "literal": null
+      },
+      {
+        "type": "STRING",
+        "value": "'[object Object]'",
+        "literal": "[object Object]"
+      },
+      {
+        "type": "COMMA",
+        "value": ",",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "x",
+        "literal": "x"
+      },
+      {
+        "type": "EOF",
+        "value": "",
+        "literal": null
+      }
+    ],
+    "ast": {
+      "type": "In",
+      "negated": false,
+      "value": {
+        "type": "Path",
+        "relative": true,
+        "levelsUp": 0,
+        "segments": [
+          {
+            "type": "identifier",
+            "value": "o"
+          }
+        ]
+      },
+      "list": [
+        {
+          "type": "Literal",
+          "valueType": "string",
+          "value": "[object Object]"
+        },
+        {
+          "type": "Literal",
+          "valueType": "string",
+          "value": "x"
+        }
+      ]
+    },
+    "cases": [
+      {
+        "data": {
+          "o": {
+            "a": 1
+          }
+        },
+        "value": false,
+        "truthy": false
+      }
+    ]
+  },
+  {
+    "name": "not-in-object",
+    "expr": ".o not in '[object Object]'",
+    "tokens": [
+      {
+        "type": "DOT",
+        "value": ".",
+        "literal": null
+      },
+      {
+        "type": "IDENTIFIER",
+        "value": "o",
+        "literal": "o"
+      },
+      {
+        "type": "NOT_IN",
+        "value": "not in",
+        "literal": null
+      },
+      {
+        "type": "STRING",
+        "value": "'[object Object]'",
+        "literal": "[object Object]"
+      },
+      {
+        "type": "EOF",
+        "value": "",
+        "literal": null
+      }
+    ],
+    "ast": {
+      "type": "In",
+      "negated": true,
+      "value": {
+        "type": "Path",
+        "relative": true,
+        "levelsUp": 0,
+        "segments": [
+          {
+            "type": "identifier",
+            "value": "o"
+          }
+        ]
+      },
+      "list": [
+        {
+          "type": "Literal",
+          "valueType": "string",
+          "value": "[object Object]"
+        }
+      ]
+    },
+    "cases": [
+      {
+        "data": {
+          "o": {
+            "a": 1
+          }
+        },
+        "value": true,
+        "truthy": true
+      }
+    ]
+  },
+  {
     "name": "logic-and",
     "expr": ".a == 'x' && .b > 5",
     "tokens": [

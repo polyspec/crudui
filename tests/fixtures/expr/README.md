@@ -28,7 +28,8 @@ value, or `index` with a numeric value. Data contexts contain `data`, optional
 `currentPath`, optional `rowKeys` (the zero-based positions of the row keys in
 `currentPath`), expected `value` and expected `truthy`.
 
-The cases cover relative and wildcard paths, comparisons, membership, logical
+The cases cover relative and wildcard paths, comparisons, membership, an array
+or an object compared with a scalar, logical
 precedence, nested ternaries, path comparisons, boolean conversion, an unclosed
 list, and the nesting limit: groups, negations, a chain and ternaries exactly at
 64 levels, each one level over it, and an expression 10,000 groups deep. Empty
@@ -42,7 +43,9 @@ Regenerate from the repository root:
 node_modules/.bin/tsx tests/fixtures/expr/generate.ts > tests/fixtures/expr/cases.json
 ```
 
-The generator records actual TypeScript tokens, ASTs and results. Review generated
+The generator records actual TypeScript tokens, ASTs and results, except that a
+data context with `expected` records the result the contract states, so the
+fixture also judges the TypeScript engine. Review generated
 changes against the contract and run every language suite and the PHP extension
 engine test. Do not update
 expected results solely to make a failed implementation pass.

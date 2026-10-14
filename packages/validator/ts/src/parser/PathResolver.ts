@@ -506,19 +506,35 @@ function looseEquals(a: unknown, b: unknown): boolean {
     return false;
   }
 
-  // String/Number comparison
-  const aStr = String(a);
-  const bStr = String(b);
-
-  // Try numeric comparison if both can be numbers
-  const aNum = Number(a);
-  const bNum = Number(b);
-
-  if (!isNaN(aNum) && !isNaN(bNum)) {
+  // Numeric comparison when both scalars convert to numbers
+  const aNum = equalityNumber(a);
+  const bNum = equalityNumber(b);
+  if (aNum !== undefined && bNum !== undefined) {
     return aNum === bNum;
   }
 
-  return aStr === bStr;
+  return equalityString(a) === equalityString(b);
+}
+
+/**
+ * The number of a scalar for `==`: a number itself, a boolean 1 or 0, a string its
+ * `Number()` value when that is not NaN. An array or an object has none.
+ */
+function equalityNumber(value: unknown): number | undefined {
+  if (typeof value === 'number') return value;
+  if (typeof value === 'boolean') return value ? 1 : 0;
+  if (typeof value === 'string') {
+    const num = Number(value);
+    return Number.isNaN(num) ? undefined : num;
+  }
+  return undefined;
+}
+
+/** The text of a scalar for `==`; an array or an object is the empty string. */
+function equalityString(value: unknown): string {
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+  return '';
 }
 
 /**

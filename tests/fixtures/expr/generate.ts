@@ -89,6 +89,12 @@ interface DataSpec {
   currentPath?: string[];
   /** Positions of the row keys in currentPath (expressions.md, relative paths). */
   rowKeys?: number[];
+  /**
+   * The result the contract states, recorded in place of the engine's. A case of a
+   * rule the languages once disagreed on states it, so that the fixture judges the
+   * reference engine as well.
+   */
+  expected?: boolean;
 }
 interface CaseSpec {
   name: string;
@@ -222,6 +228,55 @@ const SPECS: CaseSpec[] = [
     name: 'not-in-list',
     expr: '.role not in admin,root',
     dataCases: [{ data: { role: 'user' } }, { data: { role: 'admin' } }],
+  },
+
+  // ---- arrays and objects in equality: no number, the empty text --------
+  // The objects are not empty: PHP decodes an empty JSON object as an empty array.
+  {
+    name: 'cmp-eq-object-string',
+    expr: ".o == '[object Object]'",
+    dataCases: [{ data: { o: { a: 1 } }, expected: false }],
+  },
+  {
+    name: 'cmp-ne-object-string',
+    expr: ".o != '[object Object]'",
+    dataCases: [{ data: { o: { a: 1 } }, expected: true }],
+  },
+  {
+    name: 'cmp-eq-object-empty-text',
+    expr: ".o == ''",
+    dataCases: [{ data: { o: { a: 1 } }, expected: true }],
+  },
+  {
+    name: 'cmp-eq-string-array',
+    expr: "'a' == .tags",
+    dataCases: [
+      { data: { tags: ['a'] }, expected: false },
+      { data: { tags: [] }, expected: false },
+    ],
+  },
+  {
+    name: 'cmp-eq-number-array',
+    expr: '0 == .tags',
+    dataCases: [
+      { data: { tags: [] }, expected: false },
+      { data: { tags: [0] }, expected: false },
+    ],
+  },
+  {
+    name: 'cmp-eq-empty-text-array',
+    expr: "'' == .tags",
+    dataCases: [{ data: { tags: ['a'] }, expected: true }],
+  },
+  {
+    name: 'in-object',
+    expr: ".o in '[object Object]', x",
+    dataCases: [{ data: { o: { a: 1 } }, expected: false }],
+  },
+  {
+    name: 'not-in-object',
+    expr: ".o not in '[object Object]'",
+    dataCases: [{ data: { o: { a: 1 } }, expected: true }],
   },
 
   // ---- logical ----------------------------------------------------------
@@ -473,8 +528,8 @@ const out = SPECS.map((spec) => {
       formData: dc.data,
       ...(dc.rowKeys ? { rowKeys: dc.rowKeys } : {}),
     };
-    const value = normalize(evaluateExpressionValue(parsed, ctx, 'CURRENT'));
-    const truthy = evaluateCondition(parsed, ctx, 'CURRENT');
+    const value = dc.expected ?? normalize(evaluateExpressionValue(parsed, ctx, 'CURRENT'));
+    const truthy = dc.expected ?? evaluateCondition(parsed, ctx, 'CURRENT');
     const entry: Record<string, unknown> = { data: dc.data };
     if (dc.currentPath && dc.currentPath.length > 0) entry.currentPath = dc.currentPath;
     if (dc.rowKeys) entry.rowKeys = dc.rowKeys;
