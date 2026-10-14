@@ -16,7 +16,7 @@ import customerSpecs from '../fixtures/customer-specs.json' with { type: 'json' 
 import {
   formData, linkedSpecs, recordClients, recordInitializations, recordModes, recordServers, recordsPerPage,
   recordViews, selectionQuery,
-} from './record-view.mjs';
+} from '../public/record-view.mjs';
 
 export {
   formData, recordClients, recordInitializations, recordModes, recordServers, recordViews, selectionQuery,

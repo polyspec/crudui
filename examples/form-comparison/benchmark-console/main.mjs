@@ -1,11 +1,11 @@
-import { createBrowserJob } from '../browser-job.mjs';
-import { loadComparisonFrames } from '../frame-readiness.mjs';
-import { compareSnapshots, renderedFormSnapshot, snapshotHash, styleSnapshot } from '../form-snapshot.mjs';
+import { createBrowserJob } from '../src/browser-job.mjs';
+import { loadComparisonFrames } from '../src/frame-readiness.mjs';
+import { compareSnapshots, renderedFormSnapshot, snapshotHash, styleSnapshot } from '../../../tests/form-inspector/form-snapshot.mts';
 import {
   formFrameworks, formInitializations, formRenderingPaths, formServers, formTransports,
   initializationCategories, initializationComparisons, initializationStages,
-} from '../runtime-paths.mjs';
-import { translations } from '../text.mjs';
+} from '../src/runtime-paths.mjs';
+import { translations } from '../public/text.mjs';
 
 const language = new URLSearchParams(location.search).get('lang') === 'en' ? 'en' : 'ko';
 const t = translations(language);
