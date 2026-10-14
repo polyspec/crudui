@@ -182,7 +182,8 @@ manifest-test: cargo-downloads-check ## The verification commands of the feature
 require-build: ## Build the packages when their sources or output changed
 	node scripts/require-current-build.mjs
 test-cli: ## The command-line interface suite
-	$(NPM) test -w @polyspec/crudui-cli
+	node scripts/require-current-build.mjs
+	node $(KIT)/run-tests.mjs vitest --cwd packages/cli
 manifest-check: ## The feature contract manifest
 	$(NPM) run manifest:check
 manifest-docs-check: ## The generated feature contract documents
@@ -381,7 +382,7 @@ test-validators: cargo-downloads-check
 # WebKit. It reads the built validator and renderers.
 test-form-binding:
 	node scripts/require-current-build.mjs
-	$(NPM) test -w @polyspec/crudui-form-binding
+	node $(KIT)/run-tests.mjs vitest --cwd packages/form-binding
 
 # Every suite that records conformance evidence, then the check of that evidence against
 # contracts/features.json (docs/spec/conformance.md). Every suite runs even when an earlier one
