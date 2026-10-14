@@ -1,6 +1,6 @@
 # Execution checklist
 <!-- doc-id: docs-plans-execution-checklist -->
-<!-- source-sha256: 5ca08c24fc0bd99c047001546a6f2b847734854a1bbe0b57e6ff6db2d835d56c -->
+<!-- source-sha256: 84640229edac4693cd2c0deb5e5d9ed8def2c078865457c87cf8fbcd27c6c4a5 -->
 
 ## [Wave 1](waves.ko.md#wave-1) — 좁은 viewport를 위한 stylesheet와 stylesheet의 Tailwind 버전
 
@@ -305,7 +305,7 @@
 | C14.19 | kit 0.0.45로 옮긴다(kit K152–K154): 게시된 파일의 integrity로 pin하고, `make kit-sync`가 pin된 런타임의 binary를 무시하는 `knip.json`을 복사하며, `config/knip-entries.json`은 make, test, page, 도구가 경로로 실행하는 파일과 workspace `packages/svelte`, `packages/svelte/tools`, `packages/form-binding`, cross-check 서버를 그 entry와 무시하는 의존성과 함께 선언한다. knip이 찾은 쓰이지 않는 의존성은 없애고 목록에 없는 의존성은 선언한다. `make dependency-review RECORD=1`이 lock을 기록한다. | `make kit-check`, `make dependency-policy-check`, `make dependency-policy-mutation-check` |[o] |
 | C14.20 | form comparison은 knip, Node, esbuild, Vite가 읽는 root `package.json`의 표준 subpath import로 alias를 resolve한다. `#adapter`와 `#stage`는 각 frame·stage build가 condition을 넘기는(`resolve.conditions`) 조건부 import이고, `#html`, `#react/*`, `#vue/*`, `#svelte/*`는 source에 대응하며, Vite alias는 없어진다. benchmark console은 source를 import하고 build.mjs가 그것을 bundle하며, `record-view.mjs`는 `public/`에 있으므로 모든 import가 source tree와 서비스될 때 모두 resolve된다. Red: knip이 examples/form-comparison에서 resolve되지 않는 import 41개를 보고했다. | `make lint-ts`(knip), form-comparison build와 그 test |[o] |
 | C14.21 | benchmark console은 docs/spec/form-comparison.md가 요구하는 대로 pointer가 비교 frame 위에 있을 때 capture와 비교를 멈춘다. d5fd5ca3 이후 어떤 page도 `pointerOverFrame`을 부르지 않았다. Red: guard의 Chromium test가 `requirePointerOutside is not a function`으로 실패했고 check-interaction의 연결 test가 실패했다. | `src/browser-job.browser.mjs`, `check-interaction.test.mjs` |[o] |
-| C14.22 | docs/spec/schema.md의 작성 type은 공개된다. `@polyspec/crudui-validator`의 entry는 `FieldSpec`, `RangeFieldSpec`, `DesignSlot`, `Items`, `Multiple`, `Lang`, `ConditionMap`과 이것들이 가리키는 모든 type을 각각 TSDoc과 함께 export하고, API report `etc/crudui-validator.api.md`가 이것들을 나열한다. `ae-undocumented`는 error로 남는다. 원인: docs/spec/schema.md:66과 :84-110은 `schema.ts`를 작성 type으로 정하는데, entry는 그중 아무것도 export하지 않았다. | `packages/validator/ts`의 API Extractor, `types.roundtrip.test.ts`의 type test |[ ] |
+| C14.22 | docs/spec/schema.md의 작성 type은 공개된다. `@polyspec/crudui-validator`의 entry는 `FieldSpec`, `RangeFieldSpec`, `DesignSlot`, `Items`, `Multiple`, `Lang`, `ConditionMap`과 이것들이 가리키는 모든 type을 각각 TSDoc과 함께 export하고, API report `etc/crudui-validator.api.md`가 이것들을 나열한다. `ae-undocumented`는 error로 남는다. 원인: docs/spec/schema.md:66과 :84-110은 `schema.ts`를 작성 type으로 정하는데, entry는 그중 아무것도 export하지 않았다. | `packages/validator/ts`의 API Extractor, `types.roundtrip.test.ts`의 type test |[o] |
 
 ## [Wave 15](waves.ko.md#wave-15) — 각 생태계의 표준 도구를 있는 그대로 사용하기
 
