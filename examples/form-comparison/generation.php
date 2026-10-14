@@ -9,7 +9,8 @@ use Polyspec\Crudui\Validator;
 /** Generate current forms and verify the loaded PHP implementation. */
 final class FormGeneration
 {
-    public const FRAME_ERROR = 'The frame document must contain one html start tag, one empty form view and one body end tag';
+    public const FRAME_ERROR = 'The frame document must contain one html start tag, one empty form view'
+        . ' and one body end tag';
 
     private readonly array $generator;
 
@@ -34,7 +35,10 @@ final class FormGeneration
         if (
             array_keys(get_object_vars($source)) !== ['commit', 'changes']
             || !is_string($source->commit) || !preg_match('/^[a-f0-9]{40}$/D', $source->commit)
-            || !($source->changes === null || (is_string($source->changes) && preg_match('/^[a-f0-9]{64}$/D', $source->changes)))
+            || !(
+                $source->changes === null
+                || (is_string($source->changes) && preg_match('/^[a-f0-9]{64}$/D', $source->changes))
+            )
         ) {
             throw new RuntimeException('Invalid source identity');
         }
@@ -64,7 +68,11 @@ final class FormGeneration
             if (!$native) {
                 self::verifyPhpClassSource($name, $class, $sourceRoot, $files);
             }
-            $classes[$name] = ['internal' => $class->isInternal(), 'extension' => $class->getExtensionName() ?: null, 'file' => $class->getFileName() ?: null];
+            $classes[$name] = [
+                'internal' => $class->isInternal(),
+                'extension' => $class->getExtensionName() ?: null,
+                'file' => $class->getFileName() ?: null,
+            ];
             $signatures[$name] = self::signature($class);
         }
         $moduleHash = null;
@@ -76,7 +84,15 @@ final class FormGeneration
         } elseif ($verifiedModuleSha256 !== null) {
             throw new RuntimeException('Pure PHP must not declare a CRUDUI module hash');
         }
-        $this->generator = ['runtime' => $runtime, 'source' => (object) ['commit' => $source->commit, 'changes' => $source->changes], 'nativeCRUDUI' => $native, 'moduleSha256' => $moduleHash, 'composerAutoload' => $composerAutoload, 'classes' => (object) $classes, 'signatures' => (object) $signatures];
+        $this->generator = [
+            'runtime' => $runtime,
+            'source' => (object) ['commit' => $source->commit, 'changes' => $source->changes],
+            'nativeCRUDUI' => $native,
+            'moduleSha256' => $moduleHash,
+            'composerAutoload' => $composerAutoload,
+            'classes' => (object) $classes,
+            'signatures' => (object) $signatures,
+        ];
     }
 
     /** Return verified implementation and source metadata. */
@@ -89,22 +105,41 @@ final class FormGeneration
     public function compile(stdClass $request): array
     {
         $spec = self::object($request->spec ?? null, 'spec');
-        return ['template' => Generator::compileForm($spec, self::options($request)), 'generator' => $this->generator, 'referenceReads' => null];
+        return [
+            'template' => Generator::compileForm($spec, self::options($request)),
+            'generator' => $this->generator,
+            'referenceReads' => null,
+        ];
     }
 
     /** Bind a supplied cached template and return its complete state and HTML. */
     public function render(stdClass $request): array
     {
-        $form = new Form(self::object($request->template ?? null, 'template'), self::object($request->data ?? null, 'data'), self::options($request));
-        return ['data' => $form->getData(), 'fields' => $form->getFields(), 'html' => Generator::renderForm($form), 'revision' => $form->getRevision(), 'generator' => $this->generator];
+        $form = new Form(
+            self::object($request->template ?? null, 'template'),
+            self::object($request->data ?? null, 'data'),
+            self::options($request)
+        );
+        return [
+            'data' => $form->getData(),
+            'fields' => $form->getFields(),
+            'html' => Generator::renderForm($form),
+            'revision' => $form->getRevision(),
+            'generator' => $this->generator,
+        ];
     }
 
     /**
      * Render a stored record into the built SSR frame document.
      * The ordered JSON encoder is supplied by the server so this class stays free of file access.
      */
-    public function ssrFrame(string $frame, stdClass $spec, array|stdClass $data, string $language, Closure $encodeJson): string
-    {
+    public function ssrFrame(
+        string $frame,
+        stdClass $spec,
+        array|stdClass $data,
+        string $language,
+        Closure $encodeJson
+    ): string {
         if (!in_array($language, ['ko', 'en'], true)) {
             throw new InvalidArgumentException('Expected language ko or en');
         }
@@ -115,8 +150,15 @@ final class FormGeneration
         }
         $form = new Form(Generator::compileForm($spec, ['keyPrefix' => 'form']), $data, ['language' => $language]);
         $unsafe = ['<', '>', '&'];
-        $escapes = array_map(static fn(string $character): string => sprintf('%su%04x', chr(92), ord($character)), $unsafe);
-        $payload = str_replace($unsafe, $escapes, $encodeJson(['data' => $form->getData(), 'generator' => $this->generator]));
+        $escapes = array_map(
+            static fn(string $character): string => sprintf('%su%04x', chr(92), ord($character)),
+            $unsafe
+        );
+        $payload = str_replace(
+            $unsafe,
+            $escapes,
+            $encodeJson(['data' => $form->getData(), 'generator' => $this->generator])
+        );
         $replacements = [
             '<html>' => '<html lang="' . $language . '">',
             '<div id="form-view"></div>' => '<div id="form-view">' . Generator::renderForm($form) . '</div>',
@@ -127,7 +169,8 @@ final class FormGeneration
         arsort($positions);
         foreach ($positions as $index => $position) {
             $marker = array_keys($replacements)[$index];
-            $frame = substr($frame, 0, $position) . $replacements[$marker] . substr($frame, $position + strlen($marker));
+            $frame = substr($frame, 0, $position) . $replacements[$marker]
+                . substr($frame, $position + strlen($marker));
         }
         return $frame;
     }
@@ -164,7 +207,11 @@ final class FormGeneration
                     'default' => $parameter->isDefaultValueAvailable() ? $parameter->getDefaultValue() : null,
                 ];
             }
-            $methods[$method->getName()] = ['static' => $method->isStatic(), 'parameters' => $parameters, 'return' => (string) $method->getReturnType()];
+            $methods[$method->getName()] = [
+                'static' => $method->isStatic(),
+                'parameters' => $parameters,
+                'return' => (string) $method->getReturnType(),
+            ];
         }
         ksort($methods);
         return $methods;
@@ -173,7 +220,11 @@ final class FormGeneration
     private static function composerAutoloadRegistered(): bool
     {
         foreach (spl_autoload_functions() as $loader) {
-            if (is_array($loader) && is_object($loader[0] ?? null) && $loader[0]::class === 'Composer\Autoload\ClassLoader') {
+            if (
+                is_array($loader)
+                && is_object($loader[0] ?? null)
+                && $loader[0]::class === 'Composer\Autoload\ClassLoader'
+            ) {
                 return true;
             }
         }

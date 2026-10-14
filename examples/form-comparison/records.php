@@ -13,9 +13,31 @@ final class RecordStore
 {
     public const PER_PAGE = 20;
     /** The members of a stored record, in order. */
-    private const RECORD_MEMBERS = ['id', 'name', 'status', 'joined', 'score', 'relation', 'avatar', 'markup', 'companies'];
+    private const RECORD_MEMBERS = [
+        'id',
+        'name',
+        'status',
+        'joined',
+        'score',
+        'relation',
+        'avatar',
+        'markup',
+        'companies',
+    ];
     /** The submitted record form (FormShape); only `id` must be present. */
-    private const FORM = ['fields' => ['id' => 'text', 'name' => 'text', 'status' => 'text', 'joined' => 'text', 'score' => 'text', 'relation' => ['texts' => ['name']], 'markup' => 'text', 'companies' => FormShape::COMPANIES], 'required' => ['id']];
+    private const FORM = [
+        'fields' => [
+            'id' => 'text',
+            'name' => 'text',
+            'status' => 'text',
+            'joined' => 'text',
+            'score' => 'text',
+            'relation' => ['texts' => ['name']],
+            'markup' => 'text',
+            'companies' => FormShape::COMPANIES,
+        ],
+        'required' => ['id'],
+    ];
 
     public function __construct(private readonly string $file, private readonly string $fixtureFile)
     {
@@ -111,7 +133,8 @@ final class RecordStore
     /** Convert submitted number text as JavaScript's Number conversion does. */
     public static function number(string $text): int|float
     {
-        $whitespace = '\x{0009}-\x{000D}\x{0020}\x{00A0}\x{1680}\x{2000}-\x{200A}\x{2028}\x{2029}\x{202F}\x{205F}\x{3000}\x{FEFF}';
+        $whitespace = '\x{0009}-\x{000D}\x{0020}\x{00A0}\x{1680}\x{2000}-\x{200A}'
+            . '\x{2028}\x{2029}\x{202F}\x{205F}\x{3000}\x{FEFF}';
         $text = (string) preg_replace('/^[' . $whitespace . ']+|[' . $whitespace . ']+$/u', '', $text);
         if ($text === '') {
             $value = 0.0;
@@ -131,7 +154,10 @@ final class RecordStore
                 $value = (float) bindec($bits === '' ? '0' : $bits);
             } else {
                 $significand = bindec(substr($bits, 0, 53));
-                if ($bits[53] === '1' && (str_contains(substr($bits, 54), '1') || fmod((float) $significand, 2.0) !== 0.0)) {
+                if (
+                    $bits[53] === '1'
+                    && (str_contains(substr($bits, 54), '1') || fmod((float) $significand, 2.0) !== 0.0)
+                ) {
                     $significand++;
                 }
                 $value = (float) $significand * 2 ** (strlen($bits) - 53);
@@ -168,14 +194,19 @@ final class RecordStore
             throw new RuntimeException("Malformed $name: expected a records array");
         }
         foreach ($value as $record) {
-            if (!$record instanceof stdClass || array_map('strval', array_keys(get_object_vars($record))) !== self::RECORD_MEMBERS) {
+            if (
+                !$record instanceof stdClass
+                || array_map('strval', array_keys(get_object_vars($record))) !== self::RECORD_MEMBERS
+            ) {
                 throw new RuntimeException("Malformed $name: expected the record members");
             }
             foreach (self::RECORD_MEMBERS as $member) {
                 $item = $record->$member;
                 $valid = match ($member) {
                     'score' => is_int($item) || is_float($item),
-                    'relation' => $item instanceof stdClass && array_keys(get_object_vars($item)) === ['name'] && is_string($item->name),
+                    'relation' => $item instanceof stdClass
+                        && array_keys(get_object_vars($item)) === ['name']
+                        && is_string($item->name),
                     'companies' => true,
                     default => is_string($item),
                 };

@@ -58,11 +58,17 @@ final class FormRepository
         usort($state['companies'], static fn($a, $b) => $a['position'] <=> $b['position']);
         foreach ($state['companies'] as $company) {
             $stores = [];
-            $storedStores = array_values(array_filter($state['stores'], static fn($row) => $row['company_seq'] === $company['company_seq']));
+            $storedStores = array_values(array_filter(
+                $state['stores'],
+                static fn($row) => $row['company_seq'] === $company['company_seq']
+            ));
             usort($storedStores, static fn($a, $b) => $a['position'] <=> $b['position']);
             foreach ($storedStores as $store) {
                 $departments = [];
-                $storedDepartments = array_values(array_filter($state['departments'], static fn($row) => $row['store_seq'] === $store['store_seq']));
+                $storedDepartments = array_values(array_filter(
+                    $state['departments'],
+                    static fn($row) => $row['store_seq'] === $store['store_seq']
+                ));
                 usort($storedDepartments, static fn($a, $b) => $a['position'] <=> $b['position']);
                 foreach ($storedDepartments as $department) {
                     $departments[self::key($department['department_seq'])] = ['name' => $department['name']];
@@ -87,8 +93,13 @@ final class FormRepository
     }
 
     /** Reject reuse of a saved child identifier under a different parent. */
-    private static function checkParent(string|int $key, array $rows, string $kind, string $parent, string $parentSeq): void
-    {
+    private static function checkParent(
+        string|int $key,
+        array $rows,
+        string $kind,
+        string $parent,
+        string $parentSeq
+    ): void {
         foreach ($rows as $row) {
             if (self::key($row[$kind . '_seq']) === $key && $row[$parent . '_seq'] !== $parentSeq) {
                 throw new InvalidArgumentException('Incorrect parent for ' . $kind . '_seq');
@@ -128,26 +139,60 @@ final class FormRepository
             $seenCompanies = $seenStores = $seenDepartments = [];
             foreach ($data['companies'] as $companyKey => $company) {
                 $companySeq = self::sequence($companyKey, $before['companies'], 'company', $next, $seenCompanies);
-                $after['companies'][] = ['company_seq' => $companySeq, 'name' => $company['name'], 'position' => count($after['companies'])];
-                $existingStores = array_values(array_filter($before['stores'], static fn($row) => $row['company_seq'] === $companySeq));
+                $after['companies'][] = [
+                    'company_seq' => $companySeq,
+                    'name' => $company['name'],
+                    'position' => count($after['companies']),
+                ];
+                $existingStores = array_values(array_filter(
+                    $before['stores'],
+                    static fn($row) => $row['company_seq'] === $companySeq
+                ));
                 $storePosition = 0;
                 foreach ($company['stores'] as $storeKey => $store) {
                     self::checkParent($storeKey, $before['stores'], 'store', 'company', $companySeq);
                     $storeSeq = self::sequence($storeKey, $existingStores, 'store', $next, $seenStores);
                     $storeRow = array_intersect_key($store, array_flip(['name', 'enabled', 'detail', 'title']));
-                    $after['stores'][] = ['store_seq' => $storeSeq, 'company_seq' => $companySeq, 'position' => $storePosition++, ...$storeRow];
-                    $existingDepartments = array_values(array_filter($before['departments'], static fn($row) => $row['store_seq'] === $storeSeq));
+                    $after['stores'][] = [
+                        'store_seq' => $storeSeq,
+                        'company_seq' => $companySeq,
+                        'position' => $storePosition++,
+                        ...$storeRow,
+                    ];
+                    $existingDepartments = array_values(array_filter(
+                        $before['departments'],
+                        static fn($row) => $row['store_seq'] === $storeSeq
+                    ));
                     $departmentPosition = 0;
                     foreach ($store['departments'] as $departmentKey => $department) {
                         self::checkParent($departmentKey, $before['departments'], 'department', 'store', $storeSeq);
-                        $departmentSeq = self::sequence($departmentKey, $existingDepartments, 'department', $next, $seenDepartments);
-                        $after['departments'][] = ['department_seq' => $departmentSeq, 'store_seq' => $storeSeq, 'position' => $departmentPosition++, 'name' => $department['name']];
+                        $departmentSeq = self::sequence(
+                            $departmentKey,
+                            $existingDepartments,
+                            'department',
+                            $next,
+                            $seenDepartments
+                        );
+                        $after['departments'][] = [
+                            'department_seq' => $departmentSeq,
+                            'store_seq' => $storeSeq,
+                            'position' => $departmentPosition++,
+                            'name' => $department['name'],
+                        ];
                         if (self::key($departmentSeq) !== $departmentKey) {
-                            $changes[] = ['path' => "companies.$companyKey.stores.$storeKey.departments", 'oldKey' => $departmentKey, 'newKey' => self::key($departmentSeq)];
+                            $changes[] = [
+                                'path' => "companies.$companyKey.stores.$storeKey.departments",
+                                'oldKey' => $departmentKey,
+                                'newKey' => self::key($departmentSeq),
+                            ];
                         }
                     }
                     if (self::key($storeSeq) !== $storeKey) {
-                        $changes[] = ['path' => "companies.$companyKey.stores", 'oldKey' => $storeKey, 'newKey' => self::key($storeSeq)];
+                        $changes[] = [
+                            'path' => "companies.$companyKey.stores",
+                            'oldKey' => $storeKey,
+                            'newKey' => self::key($storeSeq),
+                        ];
                     }
                 }
                 if (self::key($companySeq) !== $companyKey) {

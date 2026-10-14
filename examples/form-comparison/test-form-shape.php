@@ -24,10 +24,15 @@ function rejected(mixed $form, bool $native): bool
 }
 
 $json = '{"id":"1","name":"N","status":"active","joined":"2024-01-01","score":"1","relation":{"name":"R"},"markup":"",'
-    . '"companies":{"__00000000000b2__":{"name":"B","stores":{}},"__00000000000a1__":{"name":"A","stores":{"__00000000000c3__":'
-    . '{"name":"S","enabled":"","detail":"Hidden notes","title":{"ko":"가","en":"A"},"departments":{"__00000000000d4__":{"name":"D"}}}}}}}';
+    . '"companies":{"__00000000000b2__":{"name":"B","stores":{}},'
+    . '"__00000000000a1__":{"name":"A","stores":{"__00000000000c3__":'
+    . '{"name":"S","enabled":"","detail":"Hidden notes","title":{"ko":"가","en":"A"},'
+    . '"departments":{"__00000000000d4__":{"name":"D"}}}}}}}';
 $expected = FormJson::encode(FormJson::decode($json));
-checkRecords(FormJson::encode(RecordStore::submission(FormJson::decode($json), false)) === $expected, 'A JSON submission keeps its members, rows, keys and order');
+checkRecords(
+    FormJson::encode(RecordStore::submission(FormJson::decode($json), false)) === $expected,
+    'A JSON submission keeps its members, rows, keys and order'
+);
 
 // Form data leaves out a field that holds no value (a native form also an unchecked checkbox and a
 // collection without rows); both media types complete it.
@@ -39,17 +44,42 @@ $native = [
             'departments' => ['__00000000000d4__' => ['name' => 'D']],
         ]]],
     ],
-    'id' => '1', 'name' => 'N', 'status' => 'active', 'joined' => '2024-01-01', 'score' => '1', 'relation' => ['name' => 'R'],
+    'id' => '1',
+    'name' => 'N',
+    'status' => 'active',
+    'joined' => '2024-01-01',
+    'score' => '1',
+    'relation' => ['name' => 'R'],
 ];
-checkRecords(FormJson::encode(RecordStore::submission($native, true)) === $expected, 'A native submission is completed to the stored shape in member order');
-checkRecords(FormJson::encode(RecordStore::submission(FormJson::decode(json_encode($native)), false)) === $expected, 'A JSON submission is completed as the native one is');
+checkRecords(
+    FormJson::encode(RecordStore::submission($native, true)) === $expected,
+    'A native submission is completed to the stored shape in member order'
+);
+checkRecords(
+    FormJson::encode(RecordStore::submission(FormJson::decode(json_encode($native)), false)) === $expected,
+    'A JSON submission is completed as the native one is'
+);
 $noCompanies = $native;
 unset($noCompanies['companies']);
-checkRecords(FormJson::encode(RecordStore::submission($noCompanies, true)->companies) === '{}', 'A native submission without companies has no rows');
-checkRecords(FormJson::encode(RecordStore::submission((object) ['id' => '1'], false)) === '{"id":"1","name":"","status":"","joined":"","score":"","relation":{"name":""},"markup":"","companies":{}}', 'Every absent member but id completes as its empty value');
-$added = '{"__00000000000a1__":{"stores":{"__00000000000c3__":{"enabled":"1","departments":{"__00000000000d4__":{}}}}}}';
-$completedRow = '{"__00000000000a1__":{"name":"","stores":{"__00000000000c3__":{"name":"","enabled":"1","detail":"","title":{"ko":"","en":""},"departments":{"__00000000000d4__":{"name":""}}}}}}';
-checkRecords(FormJson::encode(RecordStore::submission((object) ['id' => '1', 'companies' => FormJson::decode($added)], false)->companies) === $completedRow, 'A new JSON row completes its absent members');
+checkRecords(
+    FormJson::encode(RecordStore::submission($noCompanies, true)->companies) === '{}',
+    'A native submission without companies has no rows'
+);
+checkRecords(
+    FormJson::encode(RecordStore::submission((object) ['id' => '1'], false))
+        === '{"id":"1","name":"","status":"","joined":"","score":"","relation":{"name":""},"markup":"","companies":{}}',
+    'Every absent member but id completes as its empty value'
+);
+$added = '{"__00000000000a1__":{"stores":{"__00000000000c3__":'
+    . '{"enabled":"1","departments":{"__00000000000d4__":{}}}}}}';
+$completedRow = '{"__00000000000a1__":{"name":"","stores":{"__00000000000c3__":{"name":"","enabled":"1","detail":"",'
+    . '"title":{"ko":"","en":""},"departments":{"__00000000000d4__":{"name":""}}}}}}';
+checkRecords(
+    FormJson::encode(
+        RecordStore::submission((object) ['id' => '1', 'companies' => FormJson::decode($added)], false)->companies
+    ) === $completedRow,
+    'A new JSON row completes its absent members'
+);
 
 $variant = static function (callable $change) use ($json): stdClass {
     $form = FormJson::decode($json);
@@ -139,14 +169,28 @@ foreach (
 }
 
 // The benchmark form holds `companies` alone and follows the same rule.
-$benchmark = static fn(mixed $form, bool $native): string => FormJson::encode(FormRepository::submission($form, $native)->companies);
+$benchmark = static fn(mixed $form, bool $native): string
+    => FormJson::encode(FormRepository::submission($form, $native)->companies);
 $companies = FormJson::encode(FormJson::decode($json)->companies);
-checkRecords($benchmark((object) ['companies' => FormJson::decode($json)->companies], false) === $companies, 'The benchmark JSON form keeps its rows');
-checkRecords($benchmark(['companies' => $native['companies']], true) === $companies, 'The benchmark native form is completed as the record form is');
+checkRecords(
+    $benchmark((object) ['companies' => FormJson::decode($json)->companies], false) === $companies,
+    'The benchmark JSON form keeps its rows'
+);
+checkRecords(
+    $benchmark(['companies' => $native['companies']], true) === $companies,
+    'The benchmark native form is completed as the record form is'
+);
 checkRecords($benchmark([], true) === '{}', 'A benchmark native form without rows has no companies');
 checkRecords($benchmark((object) [], false) === '{}', 'A benchmark JSON form without rows has no companies');
-checkRecords($benchmark((object) ['companies' => FormJson::decode($added)], false) === $completedRow, 'A benchmark JSON form completes a new row');
-foreach ([[(object) ['companies' => (object) [], 'extra' => 'x'], false], [['companies' => [], 'extra' => 'x'], true]] as [$form, $isNative]) {
+checkRecords(
+    $benchmark((object) ['companies' => FormJson::decode($added)], false) === $completedRow,
+    'A benchmark JSON form completes a new row'
+);
+$extraMembers = [
+    [(object) ['companies' => (object) [], 'extra' => 'x'], false],
+    [['companies' => [], 'extra' => 'x'], true],
+];
+foreach ($extraMembers as [$form, $isNative]) {
     $failed = false;
     try {
         $benchmark($form, $isNative);
@@ -201,7 +245,10 @@ try {
         checkRecords(file_get_contents($storeFile) === $bytes, "A store with $name is kept");
     }
     checkRecords($recordStore->reset() === count($fixture), 'Reset over a malformed store answers the fixture count');
-    checkRecords(FormJson::encode($recordStore->read()) === FormJson::encode($fixture), 'Reset replaces a malformed store with the fixture');
+    checkRecords(
+        FormJson::encode($recordStore->read()) === FormJson::encode($fixture),
+        'Reset replaces a malformed store with the fixture'
+    );
 } finally {
     foreach (glob("$directory/{,.}*", GLOB_BRACE) ?: [] as $file) {
         if (is_file($file)) {

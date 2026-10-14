@@ -12,7 +12,13 @@ declare(strict_types=1);
 final class FormShape
 {
     private const DEPARTMENT = ['fields' => ['name' => 'text']];
-    private const STORE = ['fields' => ['name' => 'text', 'enabled' => 'checkbox', 'detail' => 'text', 'title' => ['texts' => ['ko', 'en']], 'departments' => ['rows' => self::DEPARTMENT]]];
+    private const STORE = ['fields' => [
+        'name' => 'text',
+        'enabled' => 'checkbox',
+        'detail' => 'text',
+        'title' => ['texts' => ['ko', 'en']],
+        'departments' => ['rows' => self::DEPARTMENT],
+    ]];
     private const COMPANY = ['fields' => ['name' => 'text', 'stores' => ['rows' => self::STORE]]];
     /** The submitted `companies`, of the record form and of the benchmark form. */
     public const COMPANIES = ['rows' => self::COMPANY];
