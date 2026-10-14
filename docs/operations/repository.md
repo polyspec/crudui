@@ -132,13 +132,12 @@ Development resolution is in the two root manifests, which are never published:
   `@polyspec/ordered-json` is the root dependency `file:.form-comparison/sources/ordered-json/js`, the checkout of the
   tag that `orderedJsonVersion` of `examples/form-comparison/src/ordered-json-source.mjs` records;
 - the root `composer.json` (`polyspec/crudui-workspace`, type `project`) has a `path` repository of
-  `packages/validator/php` with `symlink: false` and requires `polyspec/crudui-validator` at its exact version; its
-  `autoload` reads the generator sources of `packages/generator/php/src` and its `autoload-dev` the tests of both PHP
-  packages. `composer.lock` beside it records the resolution, and `make install-composer` installs `vendor/` at the
-  root, which PHPUnit, the PHP checks and the PHP servers load. The validator in `vendor/` is a copy, which
-  `make test-php-api` and the comparison servers reinstall from source under the checkout lock
-  `var/locks/composer-vendor.lock` before they load it. The PHPUnit bootstrap `scripts/php-package-autoload.php` loads
-  `vendor/` and, ahead of it, the classes of the package of the working directory from its source directory.
+  `packages/validator/php` and one of `packages/generator/php`, with Composer's default link, and requires
+  `polyspec/crudui-validator` and `polyspec/crudui-generator` at their exact versions, so `vendor/` links each package
+  to its source directory and loads it by the `autoload` of its own `composer.json`; its `autoload-dev` reads the tests
+  of both PHP packages and the test classes of `tests/`. `composer.lock` beside it records the resolution, and
+  `make install-composer` installs `vendor/` at the root, which PHPUnit (the bootstrap of each package is
+  `vendor/autoload.php`), the PHP checks and the PHP servers load.
 
 `make test-dependencies` validates the root `composer.json` and its lock with `composer validate --strict`, and each
 published `composer.json` with `composer validate --no-check-lock`, since a published package has no lock.

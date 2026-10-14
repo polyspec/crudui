@@ -1,6 +1,6 @@
 # CRUDUI PHP 생성기
 <!-- doc-id: packages-generator-php-readme -->
-<!-- source-sha256: a5015ac2fc89d2811f277e3260c7dc9175b3dba59b4bbc55d2e8b416534e69a0 -->
+<!-- source-sha256: 0008e7bc6db16b4d3eaa5e70ed8ba638ec76253339176d0c595ff8aca51915b0 -->
 
 [English](README.md).
 
@@ -16,7 +16,7 @@ composer install
 composer test --working-dir=packages/generator/php
 ```
 
-Composer 경로 저장소는 인접 패키지의 `polyspec/crudui-validator`를 `vendor/`에 복사합니다.
+Composer 경로 저장소는 인접 패키지의 `polyspec/crudui-validator`를 `vendor/`에 link합니다.
 64비트 PHP 8.4 이상과 `mbstring`이 필요합니다. 개발 검사는 DOM을 포함하여
 PHPUnit이 사용하는 확장도 필요합니다.
 

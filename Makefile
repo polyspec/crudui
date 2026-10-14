@@ -121,7 +121,7 @@ install-svelte-tools: ## Install the tools project of packages/svelte from its p
 	$(ONLINE) $(NPM) ci --prefix packages/svelte/tools --no-audit --no-fund
 
 # The development root composer.json, never published, resolves the Composer packages of packages/: its path
-# repository installs polyspec/crudui-validator as a copy into vendor/, and its autoload reads the generator sources.
+# repositories link polyspec/crudui-validator and polyspec/crudui-generator into vendor/, each loaded by its own autoload.
 install-composer: ## Install the Composer dependencies of the development root composer.json into vendor/
 	$(ONLINE) composer install --no-interaction --prefer-dist
 
@@ -364,9 +364,6 @@ test-native-generators: cargo-downloads-check
 	exit $$status
 
 test-php-api: build-php-extension
-	# The root vendor/ holds the validator as a copy; refresh it from source before any check loads it, under the
-	# checkout lock of that vendor directory, so two runs never reinstall it at once.
-	node $(KIT)/holder-lock.mjs run "$(CURDIR)/var/locks/composer-vendor.lock" -- composer reinstall polyspec/crudui-validator --no-interaction
 	@status=0; \
 	node tests/conformance/run-suite.mts node -- tests/native-generators/php-extension-builder.test.mts packages/php-ext/tests/api.test.mjs || status=1; \
 	COMPOSER_VENDOR_DIR=../../../vendor node $(KIT)/run-tests.mjs phpunit --cwd packages/generator/php || status=1; \

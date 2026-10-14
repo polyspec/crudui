@@ -4,15 +4,57 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b2a0c86cce46faed195e2c100abd25ad",
+    "content-hash": "dff3f3b65bd8981509856d69e8661318",
     "packages": [
+        {
+            "name": "polyspec/crudui-generator",
+            "version": "0.0.5",
+            "dist": {
+                "type": "path",
+                "url": "packages/generator/php",
+                "reference": "3e26a8d6e48121dad81fbec6caccd31cabea7a18"
+            },
+            "require": {
+                "ext-mbstring": "*",
+                "php": ">=8.5",
+                "php-64bit": "^8.2",
+                "polyspec/crudui-validator": "0.0.5"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^13.4.1"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Polyspec\\Crudui\\Generator\\": "src/Internal/",
+                    "Polyspec\\Crudui\\": "src/"
+                }
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "Polyspec\\Crudui\\Generator\\Tests\\": "tests/"
+                }
+            },
+            "scripts": {
+                "test": [
+                    "COMPOSER_VENDOR_DIR=../../../vendor node ../../../node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/generator/php"
+                ]
+            },
+            "license": [
+                "MIT"
+            ],
+            "description": "Form templates, editable data and HTML rendering for CRUDUI",
+            "transport-options": {
+                "relative": true
+            }
+        },
         {
             "name": "polyspec/crudui-validator",
             "version": "0.0.5",
             "dist": {
                 "type": "path",
                 "url": "packages/validator/php",
-                "reference": "c7d00d1733c23fa3c0f0b4d92045d6cfbd9f8e6b"
+                "reference": "74d4d83795ff0d55d70684a37f98400cfe0cd071"
             },
             "require": {
                 "php": ">=8.5"
@@ -47,7 +89,6 @@
             ],
             "description": "PHP validator for crudui system - validates form data against YAML specifications",
             "transport-options": {
-                "symlink": false,
                 "relative": true
             }
         }

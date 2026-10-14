@@ -148,10 +148,10 @@ inside `node_modules`.
 Dependency updates are prepared and verified locally. The repository does not
 schedule dependency update pull requests. Updated manifests and lock files are
 verified together with the relevant package and documentation checks.
-Composer path repositories for repository-local packages set `symlink` to
-`false`. Composer copies each local package into `vendor/`; installed PHP package
-trees do not contain symbolic links. Manifests and lock files record the same
-copy-install setting. A copy does not follow later source changes, so a check that loads a copied package reinstalls it from its source first.
+Composer path repositories for repository-local packages keep Composer's default link: `vendor/` links each local
+package to its source directory, and the package's own `composer.json` declares its autoload, so no copy can fall
+behind its source. What a release ships is proved by the install of the release archives
+(`make release-consumer`), not by a copy in the development `vendor/`.
 Library manifests do not declare their release version. Git repository metadata
 provides release versions. A project that resolves one local path repository
 declares the exact package version in that repository's `options.versions` map,

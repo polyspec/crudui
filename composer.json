@@ -7,31 +7,28 @@
         "php": ">=8.5",
         "php-64bit": "^8.2",
         "ext-mbstring": "*",
-        "polyspec/crudui-validator": "0.0.5"
+        "polyspec/crudui-validator": "0.0.5",
+        "polyspec/crudui-generator": "0.0.5"
     },
     "require-dev": {
         "phpunit/phpunit": "^13.4.2"
-    },
-    "autoload": {
-        "psr-4": {
-            "Polyspec\\Crudui\\Generator\\": "packages/generator/php/src/Internal/",
-            "Polyspec\\Crudui\\": "packages/generator/php/src/"
-        }
     },
     "autoload-dev": {
         "psr-4": {
             "Polyspec\\Crudui\\Generator\\Tests\\": "packages/generator/php/tests/",
             "Polyspec\\Crudui\\Validator\\Tests\\": "packages/validator/php/tests/",
-            "Polyspec\\Crudui\\Conformance\\": "tests/conformance/php/"
+            "Polyspec\\Crudui\\Conformance\\": "tests/conformance/php/",
+            "Polyspec\\Crudui\\Docs\\": "tests/docs/php/"
         }
     },
     "repositories": [
         {
             "type": "path",
-            "url": "packages/validator/php",
-            "options": {
-                "symlink": false
-            }
+            "url": "packages/validator/php"
+        },
+        {
+            "type": "path",
+            "url": "packages/generator/php"
         }
     ],
     "config": {

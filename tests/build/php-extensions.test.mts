@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
@@ -75,45 +74,6 @@ test('an optional extension used without its requirement is reported', async () 
   } finally {
     await rm(directory, { recursive: true, force: true });
   }
-});
-
-// The development root composer.json installs the validator as a copy into vendor/, so a target whose tests load that
-// vendor directory refreshes the copy from source before them; otherwise the tests read a copy that an earlier run
-// installed.
-test('a make target whose tests load the root vendor reinstalls the validator copy first', async () => {
-  const { makeTargets } = await import('../../scripts/test-commands.mts');
-  const targets = makeTargets(await readFile(path.join(repository, 'Makefile'), 'utf8'));
-  const violations: string[] = [];
-  for (const [name, rule] of Object.entries(targets)) {
-    rule.commands.forEach((command, index) => {
-      const files = /(?:run-tests|run-suite)\.mjs node(?: --timeout \d+)? -- (.+?)(?: \|\||;|$)/.exec(command)?.[1]?.split(/\s+/) ?? [];
-      const reads = files.filter(file => file.endsWith('.mjs') || file.endsWith('.mts')).some(file => /vendor\/(autoload\.php|polyspec\/crudui-validator)/.test(readFileSync(path.join(repository, file), 'utf8')));
-      const reinstalled = rule.commands.slice(0, index).some(line => line.includes('composer reinstall polyspec/crudui-validator'));
-      if (reads && !reinstalled) violations.push(`${name}: \`${command}\` loads vendor/ without reinstalling polyspec/crudui-validator first`);
-    });
-  }
-  assert.deepEqual(violations, []);
-});
-
-// Two runs of one checkout must not reinstall the root vendor directory at once, so every reinstall runs under the
-// checkout lock of that directory.
-test('every reinstall of the root vendor runs under its checkout lock', async () => {
-  const { execFileSync } = await import('node:child_process');
-  const files = execFileSync('git', ['ls-files', 'Makefile', '*.mjs', '*.mts', '*.yml', '*.sh'], { cwd: repository, encoding: 'utf8' }).split('\n').filter(Boolean);
-  const violations: string[] = [];
-  for (const file of files) {
-    let source: string;
-    try { source = readFileSync(path.join(repository, file), 'utf8'); } catch { continue; }
-    // A reinstall and the hold of the lock that starts it, in the same command (the 300 characters before it).
-    for (const match of source.matchAll(/reinstall['",\s]+polyspec\/crudui-validator/g)) {
-      if (/\.test\.m[jt]s$/.test(file)) continue;
-      const statement = source.slice(Math.max(0, match.index - 300), match.index).split(/\bstep\(|\n\t/).at(-1);
-      assert.ok(statement !== undefined);
-      // The holder-lock of kit, as a make recipe runs it ($(KIT)/holder-lock.mjs) or as a script resolves its module.
-      if (!/(?:holder-lock\.mjs|import\.meta\.resolve\('@polyspec\/kit\/holder-lock'\)\)),?\s*'?run\b/.test(statement)) violations.push(`${file}: ${source.slice(match.index - 60, match.index + 30).replace(/\s+/g, ' ')}`);
-    }
-  }
-  assert.deepEqual(violations, []);
 });
 
 test('a PHP extension module has the architecture its PHP executable reports', async () => {

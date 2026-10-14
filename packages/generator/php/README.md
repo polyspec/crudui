@@ -15,7 +15,7 @@ composer install
 composer test --working-dir=packages/generator/php
 ```
 
-The Composer path repository copies `polyspec/crudui-validator` from the adjacent
+The Composer path repository links `polyspec/crudui-validator` from the adjacent
 package into `vendor/`. 64-bit PHP 8.4 or newer and `mbstring` are required.
 Development tests also require the extensions used by PHPUnit, including DOM.
 
