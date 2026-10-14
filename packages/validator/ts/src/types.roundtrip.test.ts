@@ -26,6 +26,7 @@ import {
   type Multiple,
   type Lang,
   type Items,
+  type RangeFieldSpec,
   FORBIDDEN_META_KEYS,
   FORBIDDEN_META_KEY_PATTERN,
 } from './schema';
@@ -117,6 +118,17 @@ describe('FieldSpec type assignability (the type is the reference schema)', () =
     expectTypeOf<Multiple>().toMatchTypeOf<NonNullable<FieldSpec['multiple']>>();
     expectTypeOf<Lang>().toMatchTypeOf<NonNullable<FieldSpec['lang']>>();
     expectTypeOf<Items>().toMatchTypeOf<NonNullable<FieldSpec['items']>>();
+  });
+
+  it('describes a range field with its literal bounds and step (docs/spec/schema.md, Range fields)', () => {
+    const volume = { type: 'range', name: 'volume', append: '%', validate: { range: [0, 100], step: 5 } } as const;
+    expectTypeOf<{ type: 'range'; validate: { range: [number, number]; step: number } }>()
+      .toMatchTypeOf<RangeFieldSpec>();
+    expectTypeOf<RangeFieldSpec>().toMatchTypeOf<FieldSpec>();
+    expectTypeOf<{ type: 'range'; validate: { range: [number, number] } }>().not.toMatchTypeOf<RangeFieldSpec>();
+    expectTypeOf<{ type: 'range'; validate: { step: number } }>().not.toMatchTypeOf<RangeFieldSpec>();
+    expectTypeOf<{ type: 'range' }>().not.toMatchTypeOf<RangeFieldSpec>();
+    roundTrip(JSON.stringify(volume));
   });
 });
 
