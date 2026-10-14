@@ -43,10 +43,10 @@ class ExprConformance(unittest.TestCase):
         for case in self.cases:
             exclusive = ('tokens' in case) != ('error' in case)
             self.assertTrue(exclusive, f"{case['name']} must declare tokens or error")
-        self.assertEqual(len(self.cases), 54)
+        self.assertEqual(len(self.cases), 62)
 
     def test_tokens_and_tree_reproduce_the_fixture(self):
-        self.assertEqual(len(self.accepted), 47)
+        self.assertEqual(len(self.accepted), 55)
         for case in self.accepted:
             with self.subTest(case=case['name']), Proving(['validate'], 'tests/fixtures/expr/cases.json', case['name']) as proof:
                 tokens = _parse_tokens(case['expr'])

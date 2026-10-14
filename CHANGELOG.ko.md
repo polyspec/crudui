@@ -1,6 +1,6 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 50b238f009e72a03904b98ab4b965138fce5d0440584be879e5292ced1b6bd1d -->
+<!-- source-sha256: e64f6d8dba1b4ba73a22787a2076fa54aa87efd024ca672741a4112202ea0ec3 -->
 
 ## Unreleased
 
@@ -10,6 +10,7 @@
 
 ### 2026-10-15 — lint가 찾은 결함 (C14.16)
 
+- TypeScript와 Python validator의 식 `==`, `!=`, `in`은 배열이나 객체를 스칼라와 비교할 때 PHP, Go, Rust, C evaluator처럼 숫자 없이 빈 text로 비교한다. 객체로 `.o == '[object Object]'`, `['a']`로 `'a' == .tags`가 그 둘에서만 참이었다. spec이 이를 적고 공유 vector가 검사한다.
 - form comparison의 PHP 서버는 지울 수 없는 socket 디렉터리 같은 중지 실패를 보고하고 상태 1로 끝난다. 그 rejection은 처리되지 않아 process를 중단시켰다.
 - form comparison의 Svelte adapter는 dispose될 때 각 컴포넌트의 `unmount`를 기다린다. dispose가 unmount가 끝나기 전에 반환했다.
 - generator-core의 브라우저 binding은 text, date, checkbox, radio control의 값을 서버 render처럼 값의 PHP 문자열로 쓴다. `true`는 `1`이고 `false`, 배열, 객체는 빈 값이며, 이전에는 `true`, `false`, `[object Object]`를 썼다.

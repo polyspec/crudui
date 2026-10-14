@@ -341,7 +341,7 @@ def _loose_equals(left: Value, right: Value) -> bool:
 
     Values of one type compare strictly (two objects by identity); values of
     different types compare numerically when both convert to a number, else by
-    their string conversion.
+    their text. A list or an object has no number and the empty text.
     """
     if _typeof(left) == _typeof(right):
         if _typeof(left) == 'object':
@@ -351,11 +351,25 @@ def _loose_equals(left: Value, right: Value) -> bool:
         return right is None or isinstance(right, _Undefined)
     if right is None or isinstance(right, _Undefined):
         return False
-    left_number = js_number(left)
-    right_number = js_number(right)
+    left_number = _equality_number(left)
+    right_number = _equality_number(right)
     if not math.isnan(left_number) and not math.isnan(right_number):
         return left_number == right_number
-    return js_string(left) == js_string(right)
+    return _equality_text(left) == _equality_text(right)
+
+
+def _equality_number(value: Value) -> float:
+    """The number of a value for `==`, or NaN: a list or an object has none."""
+    if isinstance(value, (list, dict)):
+        return math.nan
+    return js_number(value)
+
+
+def _equality_text(value: Value) -> str:
+    """The text of a value for `==`: a list or an object is the empty text."""
+    if isinstance(value, (list, dict)):
+        return ''
+    return js_string(value)
 
 
 def _coerce_number(value: Value) -> int | float:

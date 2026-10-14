@@ -106,8 +106,11 @@ completely under this grammar; any other string is a literal value.
 Logical operators short circuit. Membership uses the same equality operation as
 `==`; `not in` negates membership. Equality compares matching scalar types
 directly; different scalar types use numeric conversion when both convert,
-otherwise string comparison. Relational comparisons convert both sides to
-numbers. A string uses its leading numeric part, or zero when no number is
+otherwise string comparison. Compared with a scalar, an array or an object has
+no number and the empty text: `.o == '[object Object]'` and
+`.o in '[object Object]'` are false for an object, `'a' == .tags` is false for
+`tags: ['a']`, `0 == .tags` is false for an empty array, and `'' == .tags` is
+true for any array. Relational comparisons convert both sides to numbers. A string uses its leading numeric part, or zero when no number is
 available. This condition conversion is separate from numeric validation rules.
 
 A relative `.field` resolves beside the current field. `..field` moves one parent

@@ -1,6 +1,6 @@
 # 공통 표현식 고정 사례
 <!-- doc-id: tests-fixtures-expr-readme -->
-<!-- source-sha256: 1effc29006a61b3a327c7da0770d5b91963eec649202dfafdf9e5879d5b475b7 -->
+<!-- source-sha256: 9b31b7cd4dc0f39de0368f15b2ba4c2e27dd314edfe790392d9d9bfd3d467e2d -->
 
 [English](README.md).
 
@@ -29,7 +29,8 @@ TypeScript·PHP·Go·Rust와 PHP 확장은 `cases.json`을 불러옵니다. 각 
 선택적인 `rowKeys`(`currentPath`에서 행 키의 0부터 시작하는 위치), 기대 `value`, 기대
 `truthy`를 포함합니다.
 
-사례는 상대·와일드카드 경로, 비교, 포함 검사, 논리 우선순위, 중첩 삼항식,
+사례는 상대·와일드카드 경로, 비교, 포함 검사, 스칼라와 비교하는 배열이나 객체,
+논리 우선순위, 중첩 삼항식,
 경로 비교, 불리언 변환, 닫히지 않은 목록, 중첩 한도를 검사합니다. 한도
 사례는 괄호·부정·연쇄·삼항식이 정확히 64 단계인 식, 각각 한 단계를 넘는 식,
 괄호 10,000 겹의 식입니다. 빈 배열과 객체는 조건에서 참이며 필수
@@ -42,6 +43,8 @@ TypeScript·PHP·Go·Rust와 PHP 확장은 `cases.json`을 불러옵니다. 각 
 node_modules/.bin/tsx tests/fixtures/expr/generate.ts > tests/fixtures/expr/cases.json
 ```
 
-생성기는 실제 TypeScript 토큰·AST·결과를 기록합니다. 생성된 변경을 계약과
+생성기는 실제 TypeScript 토큰·AST·결과를 기록합니다. 다만 `expected`가 있는
+데이터 컨텍스트는 계약이 정한 결과를 기록하므로 이 픽스처는 TypeScript 엔진도
+판정합니다. 생성된 변경을 계약과
 대조하고 모든 언어 테스트와 PHP 확장 엔진 테스트를 실행합니다. 실패한 구현을 통과시키기 위한
 목적으로만 기대 결과를 변경하면 안 됩니다.
