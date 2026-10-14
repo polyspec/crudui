@@ -15,7 +15,11 @@ function respond(int $status, array $body, bool $records = false): never
     header('Content-Type: application/json; charset=utf-8');
     header('Cache-Control: no-store');
     $server = ['server' => phpServerMode()];
-    echo FormJson::encode($records ? [...$body, ...$server] : [...$body, ...$server, 'nativeJson' => extension_loaded('ordered_json')]);
+    echo FormJson::encode(
+        $records
+            ? [...$body, ...$server]
+            : [...$body, ...$server, 'nativeJson' => extension_loaded('ordered_json')]
+    );
     exit;
 }
 
@@ -73,7 +77,8 @@ function jsonRequest(): stdClass
 
 /**
  * Return the SSR frame language after requiring exactly lang, server and initialization once each.
- * The query is parsed as application/x-www-form-urlencoded: empty parts are ignored and a part without "=" has an empty value.
+  * The query is parsed as application/x-www-form-urlencoded: empty parts are ignored and a part without "=" has an
+  * empty value.
  */
 function ssrLanguage(string $query): string
 {
@@ -217,8 +222,18 @@ function recordView(RecordStore $store, string $view): never
         if ($rows === null) {
             recordFailure(404, 'Page not found');
         }
-        $html = \Polyspec\Crudui\Generator::renderList($specs->list, $rows, ['language' => $language, 'layout' => 'table', 'page' => $query['page'], 'total' => count($records)]);
-        $data = ['page' => $query['page'], 'perPage' => RecordStore::PER_PAGE, 'total' => count($records), 'records' => $rows];
+        $html = \Polyspec\Crudui\Generator::renderList($specs->list, $rows, [
+            'language' => $language,
+            'layout' => 'table',
+            'page' => $query['page'],
+            'total' => count($records),
+        ]);
+        $data = [
+            'page' => $query['page'],
+            'perPage' => RecordStore::PER_PAGE,
+            'total' => count($records),
+            'records' => $rows,
+        ];
     } else {
         $record = RecordStore::find($records, $query['id']);
         if ($record === null) {
@@ -229,7 +244,8 @@ function recordView(RecordStore $store, string $view): never
         } else {
             $template = \Polyspec\Crudui\Generator::compileForm($specs->form, ['keyPrefix' => 'form']);
             $form = new \Polyspec\Crudui\Form($template, RecordStore::formData($record), ['language' => $language]);
-            $html = '<form id="record-form" method="post" action="/api/' . $query['server'] . '/records/' . $record->id . '" '
+            $html = '<form id="record-form" method="post" '
+                . 'action="/api/' . $query['server'] . '/records/' . $record->id . '" '
                 . 'enctype="multipart/form-data">' . \Polyspec\Crudui\Generator::renderForm($form) . '</form>';
         }
         $data = ['record' => $record];
@@ -253,7 +269,10 @@ function recordRoute(string $path): never
         // Opening the generation loads and verifies the selected CRUDUI implementation.
         currentGeneration();
         $method = $_SERVER['REQUEST_METHOD'] ?? '';
-        $store = new RecordStore(FORM_DATA_DIRECTORY . '/records-' . phpServerMode() . '.json', FORM_PUBLIC_DIRECTORY . '/customer-records.json');
+        $store = new RecordStore(
+            FORM_DATA_DIRECTORY . '/records-' . phpServerMode() . '.json',
+            FORM_PUBLIC_DIRECTORY . '/customer-records.json'
+        );
         if ($path === '/api/records') {
             if ($method !== 'GET') {
                 recordFailure(405, 'Method not allowed');
@@ -268,7 +287,12 @@ function recordRoute(string $path): never
             if ($rows === null) {
                 recordFailure(404, 'Page not found');
             }
-            respond(200, ['page' => $page, 'perPage' => RecordStore::PER_PAGE, 'total' => count($records), 'records' => $rows], true);
+            respond(200, [
+                'page' => $page,
+                'perPage' => RecordStore::PER_PAGE,
+                'total' => count($records),
+                'records' => $rows,
+            ], true);
         }
         if (preg_match('#^/api/records/view/([^/]+)$#D', $path, $match)) {
             if ($method !== 'GET') {
@@ -339,14 +363,25 @@ if (!str_starts_with($path, '/api/')) {
 
 try {
     if ($path === '/api/health') {
-        respond(200, ['status' => 'ok', 'php' => PHP_VERSION, 'storage' => 'JSON files', 'jsonProcessor' => 'ordered-json', 'generator' => currentGeneration()->provenance()]);
+        respond(200, [
+            'status' => 'ok',
+            'php' => PHP_VERSION,
+            'storage' => 'JSON files',
+            'jsonProcessor' => 'ordered-json',
+            'generator' => currentGeneration()->provenance(),
+        ]);
     }
     if ($path === '/api/records' || str_starts_with($path, '/api/records/')) {
         recordRoute($path);
     }
     $matrix = browserMatrix(FORM_SOURCE_ROOT);
-    $alternatives = static fn(array $values): string => implode('|', array_map(static fn(string $value): string => preg_quote($value, '#'), $values));
-    if (!preg_match('#^/api/(' . $alternatives($matrix->actions) . ')/(' . $alternatives($matrix->renderingPaths) . ')/(' . $alternatives($matrix->frameworks) . ')$#D', $path, $match)) {
+    $alternatives = static fn(array $values): string => implode(
+        '|',
+        array_map(static fn(string $value): string => preg_quote($value, '#'), $values)
+    );
+    $route = '#^/api/(' . $alternatives($matrix->actions) . ')/(' . $alternatives($matrix->renderingPaths) . ')/('
+        . $alternatives($matrix->frameworks) . ')$#D';
+    if (!preg_match($route, $path, $match)) {
         respond(404, ['error' => 'Unknown endpoint']);
     }
     [, $action, $renderingPath, $framework] = $match;
@@ -365,7 +400,10 @@ try {
         }
         respond(200, $generation->$action(jsonRequest()));
     }
-    if ($action === 'reset' && !in_array($contentType, ['multipart/form-data', 'application/x-www-form-urlencoded'], true)) {
+    if (
+        $action === 'reset'
+        && !in_array($contentType, ['multipart/form-data', 'application/x-www-form-urlencoded'], true)
+    ) {
         respond(415, ['error' => 'Expected a native form']);
     }
     $repo = new FormRepository(FORM_DATA_DIRECTORY . "/" . phpServerMode() . "-$renderingPath-$framework.json");
@@ -377,7 +415,13 @@ try {
             respond(500, ['error' => FormGeneration::FRAME_ERROR]);
         }
         $spec = FormJson::decode(file_get_contents(FORM_PUBLIC_DIRECTORY . '/spec.json'));
-        $document = $generation->ssrFrame($frame, $spec, FormRepository::loadData($repo->read()), $language, FormJson::encode(...));
+        $document = $generation->ssrFrame(
+            $frame,
+            $spec,
+            FormRepository::loadData($repo->read()),
+            $language,
+            FormJson::encode(...)
+        );
         header('Content-Type: text/html; charset=utf-8');
         header('Cache-Control: no-store');
         echo $document;
@@ -391,7 +435,11 @@ try {
             }
         }
         $state = $action === 'reset' ? $repo->reset($fixture) : $repo->read();
-        respond(200, ['storage' => $state, 'data' => FormRepository::loadData($state), 'generator' => $generation->provenance()]);
+        respond(200, [
+            'storage' => $state,
+            'data' => FormRepository::loadData($state),
+            'generator' => $generation->provenance(),
+        ]);
     }
     $spec = FormJson::decode(file_get_contents(FORM_PUBLIC_DIRECTORY . '/spec.json'));
     if ($contentType === 'application/json') {
@@ -405,7 +453,15 @@ try {
     }
     $normalized = FormRepository::submission($received, $native);
     $validation = (array) \Polyspec\Crudui\Validator::validate($spec, $normalized);
-    $result = ['transport' => $contentType, 'jsonProcessor' => 'ordered-json', 'validatorSource' => 'current', 'received' => $received, 'normalized' => $normalized, 'validation' => $validation, 'generator' => $generation->provenance()];
+    $result = [
+        'transport' => $contentType,
+        'jsonProcessor' => 'ordered-json',
+        'validatorSource' => 'current',
+        'received' => $received,
+        'normalized' => $normalized,
+        'validation' => $validation,
+        'generator' => $generation->provenance(),
+    ];
     if ($action === 'validate') {
         respond(200, $result);
     }
@@ -418,7 +474,11 @@ try {
 } catch (\Polyspec\Crudui\FormError $error) {
     respond(400, ['error' => $error->getMessage(), 'code' => $error->getErrorCode(), 'at' => $error->getPath()]);
 } catch (\Polyspec\Crudui\Validator\Compose\ComposeLoadError $error) {
-    respond(400, ['error' => $error->getMessage(), 'code' => $error->getErrorCode(), 'trace' => $error->getCompositionTrace()]);
+    respond(400, [
+        'error' => $error->getMessage(),
+        'code' => $error->getErrorCode(),
+        'trace' => $error->getCompositionTrace(),
+    ]);
 } catch (\Polyspec\Crudui\Validator\Validate\FormInputError $error) {
     respond(400, ['error' => $error->getMessage(), 'code' => $error->getErrorCode(), 'at' => '']);
 } catch (InvalidArgumentException | JsonException | UnexpectedValueException | TypeError $error) {

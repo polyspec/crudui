@@ -31,13 +31,24 @@ checkBody(
 checkBody(RequestBody::fields($urlencoded, '') === [], 'An empty body has no fields');
 
 $multipart = 'multipart/form-data; boundary=----b0';
-$part = static fn(string $name, string $value): string => "------b0\r\nContent-Disposition: form-data; name=\"$name\"\r\n\r\n$value\r\n";
+$part = static fn(string $name, string $value): string
+    => "------b0\r\nContent-Disposition: form-data; name=\"$name\"\r\n\r\n$value\r\n";
 checkBody(
-    RequestBody::fields($multipart, $part('form[name]', "line\r\nbreak") . $part('form[companies][__0000000000001__][name]', '') . $part('_form_complete', '1') . "------b0--\r\n")
-    === ['form' => ['name' => "line\r\nbreak", 'companies' => ['__0000000000001__' => ['name' => '']]], '_form_complete' => '1'],
+    RequestBody::fields(
+        $multipart,
+        $part('form[name]', "line\r\nbreak") . $part('form[companies][__0000000000001__][name]', '')
+            . $part('_form_complete', '1') . "------b0--\r\n"
+    )
+    === [
+        'form' => ['name' => "line\r\nbreak", 'companies' => ['__0000000000001__' => ['name' => '']]],
+        '_form_complete' => '1',
+    ],
     'Multipart fields nest by their bracketed names and keep their text'
 );
-checkBody(RequestBody::fields('multipart/form-data; boundary="q b"', "--q b--\r\n") === [], 'A quoted boundary and no parts');
+checkBody(
+    RequestBody::fields('multipart/form-data; boundary="q b"', "--q b--\r\n") === [],
+    'A quoted boundary and no parts'
+);
 
 foreach (
     [
@@ -47,7 +58,11 @@ foreach (
     'appended list field' => [$urlencoded, 'form[tags][]=a'],
     'unclosed bracket' => [$urlencoded, 'form[name=a'],
     'repeated multipart field' => [$multipart, $part('form[name]', 'a') . $part('form[name]', 'b') . "------b0--\r\n"],
-    'file part' => [$multipart, "------b0\r\nContent-Disposition: form-data; name=\"form[name]\"; filename=\"a.txt\"\r\nContent-Type: text/plain\r\n\r\nx\r\n------b0--\r\n"],
+    'file part' => [
+        $multipart,
+        "------b0\r\nContent-Disposition: form-data; name=\"form[name]\"; filename=\"a.txt\"\r\n"
+            . "Content-Type: text/plain\r\n\r\nx\r\n------b0--\r\n",
+    ],
     'unnamed part' => [$multipart, "------b0\r\nContent-Type: text/plain\r\n\r\nx\r\n------b0--\r\n"],
     'missing closing delimiter' => [$multipart, $part('form[name]', 'a')],
     'missing boundary' => ['multipart/form-data', $part('form[name]', 'a') . "------b0--\r\n"],
