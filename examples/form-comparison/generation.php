@@ -54,11 +54,7 @@ final class FormGeneration
         $sourceFiles = [
             Generator::class => ['source' => 'packages/generator/php/src/Generator.php'],
             Form::class => ['source' => 'packages/generator/php/src/Form.php'],
-            Validator::class => [
-                'source' => 'packages/validator/php/src/Public/Validator.php',
-                'package' => 'polyspec/crudui-validator',
-                'installed' => 'src/Public/Validator.php',
-            ],
+            Validator::class => ['source' => 'packages/validator/php/src/Public/Validator.php'],
         ];
         foreach ($sourceFiles as $name => $files) {
             $class = new ReflectionClass($name);
@@ -231,7 +227,7 @@ final class FormGeneration
         return false;
     }
 
-    /** Verify one PHP class against its declared source or installed package copy. */
+    /** Verify that one PHP class loaded from its declared source file in the candidate. */
     private static function verifyPhpClassSource(
         string $name,
         ReflectionClass $class,
@@ -239,50 +235,10 @@ final class FormGeneration
         array $files,
     ): void {
         $sourceFile = self::regularFile($sourceRoot . '/' . $files['source'], 'candidate source file');
-        $expectedFile = $sourceFile;
-        if (isset($files['package'], $files['installed'])) {
-            $vendorDirectory = self::regularDirectory(
-                $sourceRoot . '/vendor',
-                'candidate Composer vendor directory',
-            );
-            $installDirectory = self::composerPackageDirectory($files['package'], $vendorDirectory);
-            $expectedFile = self::regularFile($installDirectory . '/' . $files['installed'], 'installed package file');
-            $sourceBytes = file_get_contents($sourceFile);
-            $installedBytes = file_get_contents($expectedFile);
-            if (!is_string($sourceBytes) || !is_string($installedBytes) || $sourceBytes !== $installedBytes) {
-                throw new RuntimeException('Installed CRUDUI source differs from the candidate: ' . $name);
-            }
-        }
         $classFile = $class->getFileName();
-        if (!is_string($classFile) || self::regularFile($classFile, 'loaded class file') !== $expectedFile) {
+        if (!is_string($classFile) || self::regularFile($classFile, 'loaded class file') !== $sourceFile) {
             throw new RuntimeException('Incorrect CRUDUI source file: ' . $name);
         }
-    }
-
-    /** Return one regular package directory from the selected Composer record. */
-    private static function composerPackageDirectory(string $package, string $vendorDirectory): string
-    {
-        $recordFile = self::regularFile(
-            $vendorDirectory . '/composer/installed.php',
-            'Composer installed-package record',
-        );
-        $installed = require $recordFile;
-        if (!is_array($installed) || !is_array($installed['versions'] ?? null)) {
-            throw new RuntimeException('Malformed Composer installed-package record');
-        }
-        if (!array_key_exists($package, $installed['versions'])) {
-            throw new RuntimeException('Missing Composer package record: ' . $package);
-        }
-        $record = $installed['versions'][$package];
-        $directory = is_array($record) ? ($record['install_path'] ?? null) : null;
-        if (!is_string($directory) || $directory === '') {
-            throw new RuntimeException('Malformed Composer package record: ' . $package);
-        }
-        $directory = self::regularDirectory($directory, 'Composer package directory');
-        if (!str_starts_with($directory, $vendorDirectory . '/')) {
-            throw new RuntimeException('Composer package is outside the candidate vendor directory: ' . $package);
-        }
-        return $directory;
     }
 
     /** Return an absolute regular file without symbolic path components. */

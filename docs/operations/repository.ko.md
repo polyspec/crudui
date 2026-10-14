@@ -1,6 +1,6 @@
 # 저장소
 <!-- doc-id: docs-operations-repository -->
-<!-- source-sha256: 0b80c754019e8c1fe0a78d816ff4a35dce6ebe048df12b2f5a870d6df8353215 -->
+<!-- source-sha256: 51e73ad5076e4e88defefae9bc4f9e6c4227b0c72ef1fee6956680104a3964fe -->
 
 [English](repository.md).
 
@@ -119,14 +119,13 @@ polyspec archive는 이름과 version으로만(npm은 `integrity` 없이, Compos
   다른 polyspec 저장소의 package는 이 root에서만 공급합니다. `@polyspec/ordered-json`은 root 의존성
   `file:.form-comparison/sources/ordered-json/js`이며, `examples/form-comparison/src/ordered-json-source.mjs`의
   `orderedJsonVersion`이 기록하는 tag의 checkout입니다.
-- root `composer.json`(`polyspec/crudui-workspace`, type `project`)은 `symlink: false`인 `packages/validator/php`의
-  `path` repository를 두고 `polyspec/crudui-validator`를 정확한 version으로 요구합니다. `autoload`는
-  `packages/generator/php/src`의 생성기 source를, `autoload-dev`는 두 PHP package의 test를 읽습니다. 옆의
-  `composer.lock`이 해석을 기록하고, `make install-composer`가 root에 `vendor/`를 설치하며, PHPUnit, PHP check, PHP
-  server가 그것을 load합니다. `vendor/`의 검증기는 복사본이므로 `make test-php-api`와 비교 server는 load하기 전에
-  checkout lock `var/locks/composer-vendor.lock` 아래에서 source로부터 다시 설치합니다. PHPUnit bootstrap
-  `scripts/php-package-autoload.php`는 `vendor/`를 load하고, 그보다 앞서 작업 디렉터리 package의 class를 source
-  디렉터리에서 load합니다.
+- root `composer.json`(`polyspec/crudui-workspace`, type `project`)은 Composer 기본 link를 쓰는
+  `packages/validator/php`와 `packages/generator/php`의 `path` repository를 두고 `polyspec/crudui-validator`와
+  `polyspec/crudui-generator`를 정확한 version으로 요구합니다. 따라서 `vendor/`는 각 package를 source 디렉터리에
+  link하고 그 package 자신의 `composer.json`의 `autoload`로 load합니다. `autoload-dev`는 두 PHP package의 test와
+  `tests/`의 test class를 읽습니다. 옆의 `composer.lock`이 해석을 기록하고, `make install-composer`가 root에
+  `vendor/`를 설치하며, PHPUnit(각 package의 bootstrap은 `vendor/autoload.php`), PHP check, PHP server가 그것을
+  load합니다.
 
 `make test-dependencies`는 root `composer.json`과 lock을 `composer validate --strict`로, 게시되는 `composer.json`은 lock이
 없으므로 `composer validate --no-check-lock`으로 검사합니다.

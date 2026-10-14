@@ -69,8 +69,8 @@ rules:
     vars: { component: generator }
 
   # S9: the infrastructure of scripts/ and tests/ is TypeScript. The exceptions each drive or serve one language:
-  # - scripts/php-package-autoload.php and scripts/php-doc-coverage.php: the autoload of the PHP packages in development and
-  #   the documentation check of their classes, which PHP itself runs (phpunit bootstrap, DocCoverageTest);
+  # - scripts/php-doc-coverage.php and tests/docs/php/DocCoverage.php: the documentation check of the classes of the PHP
+  #   packages, which PHP itself runs (DocCoverageTest of each package);
   # - tests/conformance/php/Evidence.php and the package of tests/conformance/python: the conformance evidence that the PHP
   #   and Python suites record in their own language;
   # - tests/native-generators/python.py and programs/{go,php,rust}: the programs of the native generator runner, one per
@@ -80,7 +80,7 @@ rules:
       - "scripts/**/*.{js,mjs,cjs,py,sh,bash,zsh,rb,pl,php,go,rs,ps1,bat,cmd}"
       - "tests/**/*.{js,mjs,cjs,py,sh,bash,zsh,rb,pl,php,go,rs,ps1,bat,cmd}"
       - "!tests/kit/fixture/**"
-      - "!scripts/php-package-autoload.php"
+      - "!tests/docs/php/DocCoverage.php"
       - "!scripts/php-doc-coverage.php"
       - "!tests/conformance/php/Evidence.php"
       - "!tests/conformance/python/**"

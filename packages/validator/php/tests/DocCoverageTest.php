@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace Polyspec\Crudui\Validator\Tests;
 
 use PHPUnit\Framework\TestCase;
+use Polyspec\Crudui\Docs\DocCoverage;
 
 /**
  * Requires a docblock on every public class and public method in the
  * validator-php source. An undocumented public symbol fails the test.
  *
- * The check logic lives in scripts/php-doc-coverage.php (also runnable
- * standalone without phpunit); this test wraps it for the suite.
+ * The check is Polyspec\Crudui\Docs\DocCoverage of tests/docs/php, which
+ * scripts/php-doc-coverage.php also runs; this test runs it for the suite.
  */
 final class DocCoverageTest extends TestCase
 {
@@ -20,12 +21,10 @@ final class DocCoverageTest extends TestCase
      */
     public function testAllPublicSymbolsAreDocumented(): void
     {
-        require_once __DIR__ . '/../../../../scripts/php-doc-coverage.php';
-
         $srcDir = realpath(__DIR__ . '/../src');
         self::assertNotFalse($srcDir, 'validator-php src directory not found');
 
-        $gaps = crudui_php_doc_gaps($srcDir);
+        $gaps = DocCoverage::gaps($srcDir);
 
         self::assertSame(
             [],

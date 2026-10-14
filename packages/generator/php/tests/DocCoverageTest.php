@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Polyspec\Crudui\Generator\Tests;
 
 use PHPUnit\Framework\TestCase;
+use Polyspec\Crudui\Docs\DocCoverage;
 use Polyspec\Crudui\Form;
 use Polyspec\Crudui\FormError;
 use Polyspec\Crudui\Generator;
@@ -24,9 +25,8 @@ final class DocCoverageTest extends TestCase
                 }
             }
         }
-        require_once __DIR__ . '/../../../../scripts/php-doc-coverage.php';
         $source = realpath(__DIR__ . '/../src');
         self::assertNotFalse($source);
-        self::assertSame([], crudui_php_doc_gaps($source));
+        self::assertSame([], DocCoverage::gaps($source));
     }
 }

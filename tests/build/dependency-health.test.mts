@@ -306,12 +306,15 @@ test('npm installs enforce script approvals', () => {
   assert.equal(result.stdout.trim(), 'true');
 });
 
-test('Composer path repositories install local packages as copies', () => {
+// The development root requires the Composer packages of packages/ through path repositories with Composer's default
+// link, so vendor/ loads each package from its source directory by the autoload of its own composer.json and no copy
+// can fall behind its source.
+test('Composer path repositories link the local packages', () => {
   const failures = [];
   for (const filename of trackedComposerFiles('composer.json')) {
     const manifest: ComposerManifest = JSON.parse(readFileSync(path.join(root, filename), 'utf8'));
     for (const [index, repository] of (manifest.repositories ?? []).entries()) {
-      if (repository.type === 'path' && repository.options?.symlink !== false) {
+      if (repository.type === 'path' && repository.options?.symlink === false) {
         failures.push(`${filename}:repositories[${index}]`);
       }
     }
@@ -319,8 +322,7 @@ test('Composer path repositories install local packages as copies', () => {
   for (const filename of trackedComposerFiles('composer.lock')) {
     const lock: ComposerLock = JSON.parse(readFileSync(path.join(root, filename), 'utf8'));
     for (const dependency of [...(lock.packages ?? []), ...(lock['packages-dev'] ?? [])]) {
-      if (dependency.dist?.type === 'path'
-        && dependency['transport-options']?.symlink !== false) {
+      if (dependency.dist?.type === 'path' && dependency['transport-options']?.symlink === false) {
         failures.push(`${filename}:${dependency.name}`);
       }
     }

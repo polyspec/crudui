@@ -47,8 +47,8 @@ async function orderedJsonCheckout(write) {
 }
 
 /**
- * Build what the five record servers run: the OrderedJSON checkout, both PHP extensions, the
- * refreshed PHP validator copy and the Go and Rust server binaries. Every build is one step that
+ * Build what the five record servers run: the OrderedJSON checkout, both PHP extensions and the
+ * Go and Rust server binaries. Every build is one step that
  * runs to its end without a time limit and prints its output and progress.
  */
 export async function prepareRecordServers({ buildDirectory, write = text => process.stdout.write(text) }) {
@@ -57,10 +57,6 @@ export async function prepareRecordServers({ buildDirectory, write = text => pro
   const step = (id, command, args, cwd = repositoryRoot, environment = {}) =>
     ({ id, command, args, cwd, environment });
   const results = await runStages([[
-    // Under the checkout lock of the vendor directory, as make reinstalls it.
-    step('composer-validator', process.execPath, [fileURLToPath(import.meta.resolve('@polyspec/kit/holder-lock')), 'run',
-      path.join(repositoryRoot, 'var/locks/composer-vendor.lock'), '--',
-      'composer', 'reinstall', 'polyspec/crudui-validator', '--no-interaction']),
     step('crudui-php-extension', process.execPath, ['scripts/build-crudui-php-extension.mts']),
     step('ordered-json-php-extension', process.execPath, ['scripts/build-ordered-json-php-extension.mts',
       '--source', path.join(localOrderedJsonDirectory, 'php-extension/src')]),

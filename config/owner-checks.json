@@ -479,7 +479,7 @@
     },
     {
       "paths": [
-        "scripts/php-package-autoload.php"
+        "tests/docs/php/**"
       ],
       "targets": [
         "test-validators",

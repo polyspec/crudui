@@ -6,7 +6,8 @@ import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { test } from 'node:test';
 
-const checker = fileURLToPath(new URL('./php-doc-coverage.php', import.meta.url));
+// Polyspec\\Crudui\\Docs\\DocCoverage loads through the autoload-dev of the development root vendor/.
+const rootAutoload = fileURLToPath(new URL('../vendor/autoload.php', import.meta.url));
 const literal = (value: string): string => "'" + value.replace(/\\/g, '\\\\').replace(/'/g, "\\'") + "'";
 /** The planted autoload.php of vendor (false: none) and an extra PHP file outside src. */
 interface CheckOptions {
@@ -20,7 +21,7 @@ function check(source: string, options: CheckOptions = {}) {
     writeFileSync(join(root, 'src/Example.php'), source);
     if (options.autoload !== false) writeFileSync(join(root, 'vendor', 'autoload.php'), options.autoload ?? "<?php require __DIR__ . '/../src/Example.php';");
     if (options.other) writeFileSync(join(root, 'Other.php'), options.other);
-    const command = `require ${literal(checker)}; echo json_encode(crudui_php_doc_gaps(${literal(join(root, 'src'))}, ${literal(join(root, 'vendor', 'autoload.php'))}));`;
+    const command = `require ${literal(rootAutoload)}; echo json_encode(\\Polyspec\\Crudui\\Docs\\DocCoverage::gaps(${literal(join(root, 'src'))}, ${literal(join(root, 'vendor', 'autoload.php'))}));`;
     return spawnSync(process.env.PHP ?? 'php', ['-r', command], { encoding: 'utf8' });
   } finally { rmSync(root, { recursive: true }); }
 }

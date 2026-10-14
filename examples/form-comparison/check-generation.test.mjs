@@ -34,13 +34,13 @@ function phpProvenance() {
       },
       'Polyspec\\Crudui\\Validator': {
         internal: false, extension: null,
-        file: '/workspace/build/tree/vendor/polyspec/crudui-validator/src/Public/Validator.php',
+        file: '/workspace/build/tree/packages/validator/php/src/Public/Validator.php',
       },
     },
   };
 }
 
-test('accepts the selected Composer validator in generation provenance', () => {
+test('accepts the validator source in generation provenance', () => {
   assert.doesNotThrow(() => assertGenerationProvenance(
     phpProvenance(), 'php', source, sourceDirectory));
 });
@@ -63,8 +63,8 @@ test('rejects generator provenance for another source identity', () => {
 
 test('rejects PHP class files outside the selected candidate locations', () => {
   for (const file of [
-    '/workspace/build/tree/packages/validator/php/src/Public/Validator.php',
-    '/workspace/source/vendor/polyspec/crudui-validator/src/Public/Validator.php',
+    '/workspace/build/tree/vendor/polyspec/crudui-validator/src/Public/Validator.php',
+    '/workspace/source/packages/validator/php/src/Public/Validator.php',
   ]) {
     const actual = phpProvenance();
     actual.classes['Polyspec\\Crudui\\Validator'].file = file;
