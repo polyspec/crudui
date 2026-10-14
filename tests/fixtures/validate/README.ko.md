@@ -1,6 +1,6 @@
 # 검증 고정 데이터
 <!-- doc-id: tests-fixtures-validate-readme -->
-<!-- source-sha256: 160c19b27e9d40f61c423bc4c7ed58faa51a137c79878a86f00564ccb81c3943 -->
+<!-- source-sha256: e1fd43fa95ad994384381cade1b08e1abf5602ce2835f2281647fe1c51edf7e2 -->
 
 [English](README.md).
 
@@ -28,7 +28,7 @@
 
 모든 사용처는 검증기를 실행해 결과 또는 실패 기록 전체를 비교합니다. `errors` 배열은 순서대로 비교합니다.
 Go·Rust·PHP는 숫자를 값으로 비교하므로 `5`와 `5.0`은 같습니다.
-[PHP 확장 실행기](../../../packages/php-ext/tests/validate.php)는 JSON 문자열을 비교하므로 멤버 순서도
+[PHP 확장 실행기](../../../packages/php-ext/tests/ValidateReport.php)는 JSON 문자열을 비교하므로 멤버 순서도
 비교합니다. 실패 사례는 `code`, `message`, `at`을 정확히 비교하며, 모든 사례는 `expected`와
 `expectFailure` 중 정확히 하나를 선언해야 합니다.
 
@@ -40,7 +40,7 @@ Go·Rust·PHP는 숫자를 값으로 비교하므로 `5`와 `5.0`은 같습니�
 [Go](../../../packages/validator/go/validator/validate/conformance_test.go),
 [Rust](../../../packages/validator/rust/tests/validate_conformance.rs)의 검증 적합성 검사,
 [PHP 확장 엔진 검사](../../../packages/php-ext/tests/engine.test.mjs)와
-PHP 검증기와 네이티브 검증기를 실행하는 [PHP 확장 API 검사](../../../packages/php-ext/tests/api.test.mjs),
+PHP 검증기와 네이티브 검증기를 실행하는 [PHP 확장 API 검사](../../../packages/php-ext/tests/ApiTest.php),
 모든 사례를 다섯 검증기 프로세스에 보내는 교차 검증 콘솔의
 [검증기 프로세스 검사](../../../examples/cross-check-console/server/validator-processes.test.mjs)와
 네 언어 결과를 비교하는 [검증 실행기 검사](../../../examples/cross-check-console/server/validate-runner.test.mjs)가

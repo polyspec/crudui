@@ -1,6 +1,6 @@
 # 입력 텍스트 픽스처
 <!-- doc-id: tests-fixtures-text-validity-readme -->
-<!-- source-sha256: 282dedd96d723a0355b6ae3678f12f78b9bc49f32a9b4b181767f14e2e343902 -->
+<!-- source-sha256: 593ef993eaf4bdd01ecc7b8fc9f3b2acd6e42c513b195d63dc709b60ed713d5d -->
 
 [English](README.md).
 
@@ -54,8 +54,8 @@ TypeScript, PHP, Go, PHP 확장 테스트가 실행합니다. Rust 값은 노드
 [PHP](../../../packages/validator/php/tests/Validate/TextValidityConformanceTest.php),
 [Go](../../../packages/validator/go/validator/validate/text_conformance_test.go),
 [Rust](../../../packages/validator/rust/tests/text_validity_conformance.rs) 테스트,
-[API 테스트](../../../packages/php-ext/tests/api.test.mjs)가 실행하는
-[PHP 확장 러너](../../../packages/php-ext/tests/validate.php), 그리고 모든 케이스를 다섯 검증
+[API 테스트](../../../packages/php-ext/tests/ApiTest.php)가 실행하는
+[PHP 확장 러너](../../../packages/php-ext/tests/ValidateReport.php), 그리고 모든 케이스를 다섯 검증
 프로세스에 보내는 교차 검증 콘솔
 [검증 프로세스 테스트](../../../examples/cross-check-console/server/validator-processes.test.mjs)가
 실행합니다.
