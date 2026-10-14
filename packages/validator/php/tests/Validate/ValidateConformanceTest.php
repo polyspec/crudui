@@ -9,8 +9,7 @@ use Polyspec\Crudui\Validator\Validate\FormInputError;
 use Polyspec\Crudui\Validator;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
-
-require_once __DIR__ . '/../../../../../tests/conformance/evidence.php';
+use Polyspec\Crudui\Conformance\Evidence;
 
 /**
  * CRUDUI validator conformance verifies SPEC §2 G5, §3 and §2 G1. The shared
@@ -62,7 +61,7 @@ final class ValidateConformanceTest extends TestCase
             $this->assertCase($case);
             $passed = true;
         } finally {
-            crudui_record_conformance('validate', 'tests/fixtures/validate/cases.json', 'php', $case['name'], $passed);
+            Evidence::record('validate', 'tests/fixtures/validate/cases.json', 'php', $case['name'], $passed);
         }
     }
 

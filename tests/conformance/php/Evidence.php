@@ -1,20 +1,19 @@
 <?php
 
-// Conformance evidence for PHP tests. A test that runs a shared fixture case records the feature
-// it proves, the fixture, the runtime and the case. Nothing is written unless
-// CRUDUI_CONFORMANCE_EVIDENCE names a directory; scripts/check-conformance.mts reads it.
-
 declare(strict_types=1);
 
-if (!\function_exists('crudui_record_conformance')) {
-    /** Record one case result. */
-    function crudui_record_conformance(
-        string $feature,
-        string $fixture,
-        string $runtime,
-        string $case,
-        bool $passed
-    ): void {
+namespace Polyspec\Crudui\Conformance;
+
+/**
+ * Conformance evidence for PHP tests. A test that runs a shared fixture case records the feature it proves, the
+ * fixture, the runtime and the case. Nothing is written unless CRUDUI_CONFORMANCE_EVIDENCE names a directory;
+ * scripts/check-conformance.mts reads it. The autoload-dev of the root composer.json loads the class.
+ */
+final class Evidence
+{
+    /** Record one case result as a JSON line of this process. */
+    public static function record(string $feature, string $fixture, string $runtime, string $case, bool $passed): void
+    {
         foreach (
             ['feature' => $feature, 'fixture' => $fixture, 'runtime' => $runtime, 'case' => $case] as $key => $value
         ) {

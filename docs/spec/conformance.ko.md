@@ -1,6 +1,6 @@
 # 적합성 증거
 <!-- doc-id: docs-spec-conformance -->
-<!-- source-sha256: 15dd17f1c0f2670547884f0da5d46edbf89b124d249008dfbf8dfffb51e976bb -->
+<!-- source-sha256: c446af7eb97cc21808e8b1df56553d965c5f51674c4e54954852f60de3dcc48d -->
 
 [English](conformance.md).
 
@@ -29,7 +29,8 @@ JavaScript는 모델과 문자열 렌더러가 별도 패키지이므로 서버 
 `{"feature", "fixture", "runtime", "case", "passed"}`를 기록합니다. `passed`는 그 사례의 모든 검증이
 성공했을 때만 참입니다. 기록기는
 [`tests/conformance/evidence.mts`](../../tests/conformance/evidence.mts),
-[`tests/conformance/evidence.php`](../../tests/conformance/evidence.php), Go 패키지
+[`tests/conformance/php/Evidence.php`](../../tests/conformance/php/Evidence.php)의 class
+`Polyspec\Crudui\Conformance\Evidence`, Go 패키지
 `validator/internal/conformance`, Rust 테스트 모듈 `tests/common`입니다. `CRUDUI_CONFORMANCE_EVIDENCE`가
 디렉터리를 지정할 때만 기록합니다.
 

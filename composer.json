@@ -21,7 +21,8 @@
     "autoload-dev": {
         "psr-4": {
             "Polyspec\\Crudui\\Generator\\Tests\\": "packages/generator/php/tests/",
-            "Polyspec\\Crudui\\Validator\\Tests\\": "packages/validator/php/tests/"
+            "Polyspec\\Crudui\\Validator\\Tests\\": "packages/validator/php/tests/",
+            "Polyspec\\Crudui\\Conformance\\": "tests/conformance/php/"
         }
     },
     "repositories": [

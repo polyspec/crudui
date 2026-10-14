@@ -72,8 +72,8 @@ rules:
   # S9: the infrastructure of scripts/ and tests/ is TypeScript. The exceptions each drive or serve one language:
   # - scripts/php-package-autoload.php and scripts/php-doc-coverage.php: the autoload of the PHP packages in development and
   #   the documentation check of their classes, which PHP itself runs (phpunit bootstrap, DocCoverageTest);
-  # - tests/conformance/evidence.php, evidence.py, runner.py and runs.py: the conformance evidence that the PHP and Python
-  #   suites record in their own language, and the unittest runner of the Python suites;
+  # - tests/conformance/php/Evidence.php, evidence.py, runner.py and runs.py: the conformance evidence that the PHP and
+  #   Python suites record in their own language, and the unittest runner of the Python suites;
   # - tests/native-generators/python.py and programs/{go,php,rust}: the programs of the native generator runner, one per
   #   language, which drive the generator of that language;
   # - tests/ordered-json/check.py and test_check.py: the check of the keyed JSON contract against the Python package of
@@ -85,7 +85,7 @@ rules:
       - "!tests/kit/fixture/**"
       - "!scripts/php-package-autoload.php"
       - "!scripts/php-doc-coverage.php"
-      - "!tests/conformance/evidence.php"
+      - "!tests/conformance/php/Evidence.php"
       - "!tests/conformance/evidence.py"
       - "!tests/conformance/runner.py"
       - "!tests/conformance/runs.py"

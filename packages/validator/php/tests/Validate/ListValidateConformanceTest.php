@@ -8,8 +8,7 @@ use Polyspec\Crudui\Validator\Compose\ComposeLoadError;
 use Polyspec\Crudui\Validator;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
-
-require_once __DIR__ . '/../../../../../tests/conformance/evidence.php';
+use Polyspec\Crudui\Conformance\Evidence;
 
 /**
  * CRUDUI list-spec validation conformance verifies SPEC §9.
@@ -70,7 +69,7 @@ final class ListValidateConformanceTest extends TestCase
             $this->assertCase($case);
             $passed = true;
         } finally {
-            crudui_record_conformance(
+            Evidence::record(
                 'validateList',
                 'tests/fixtures/list-validity/cases.json',
                 'php',

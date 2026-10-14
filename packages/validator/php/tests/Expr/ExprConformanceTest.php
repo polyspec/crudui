@@ -11,8 +11,7 @@ use Polyspec\Crudui\Validator\Expr\Node;
 use Polyspec\Crudui\Validator\Expr\ParseError;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
-
-require_once __DIR__ . '/../../../../../tests/conformance/evidence.php';
+use Polyspec\Crudui\Conformance\Evidence;
 
 /**
  * CRUDUI expression-engine conformance (expressions.md §9 three-stage check):
@@ -64,7 +63,7 @@ final class ExprConformanceTest extends TestCase
             $this->assertEvaluation($spec);
             $passed = true;
         } finally {
-            crudui_record_conformance('validate', 'tests/fixtures/expr/cases.json', 'php', $spec['name'], $passed);
+            Evidence::record('validate', 'tests/fixtures/expr/cases.json', 'php', $spec['name'], $passed);
         }
     }
 

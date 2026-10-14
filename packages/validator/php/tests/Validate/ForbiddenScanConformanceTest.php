@@ -8,8 +8,7 @@ use Polyspec\Crudui\Validator\Compose\ComposeLoadError;
 use Polyspec\Crudui\Validator;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
-
-require_once __DIR__ . '/../../../../../tests/conformance/evidence.php';
+use Polyspec\Crudui\Conformance\Evidence;
 
 /**
  * CRUDUI recursive forbidden-scan conformance (SPEC §6 global meta-key rejection).
@@ -68,7 +67,7 @@ final class ForbiddenScanConformanceTest extends TestCase
             $this->assertCase($case);
             $passed = true;
         } finally {
-            crudui_record_conformance(
+            Evidence::record(
                 'validate',
                 'tests/fixtures/spec-validity/cases.json',
                 'php',
