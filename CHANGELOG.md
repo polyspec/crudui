@@ -3,6 +3,9 @@
 
 ## Unreleased
 
+### 2026-10-15 — Defects found by the lint (C14.16)
+
+- The browser binding of generator-core writes the value of a text, date, checkbox or radio control as the server render does, the PHP string of the value: `true` is `1`, and `false`, an array and an object are empty, where it wrote `true`, `false` and `[object Object]`.
 ### 2026-10-15 — Svelte component exports (C14.12)
 
 - `@polyspec/crudui-generator-core` exports the types `Translate` and `SourceAttrs`, which its public types `NodeVM` and `WidgetModel` already named, and documents `DetailFieldVM`; the TSDoc of the validator and the form binding parses as TSDoc (C14.12).

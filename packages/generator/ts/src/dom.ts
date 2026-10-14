@@ -1,7 +1,7 @@
 import type { FormInstance } from './instance';
 import { resolveAction, runAction, type ActionTarget, type FocusTarget } from './actions';
 import { formatDateValue } from './date';
-import { parsePathString } from './util';
+import { parsePathString, phpString } from './util';
 
 /** Browser binding lifecycle. */
 export interface FormConnection {
@@ -236,7 +236,7 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
         const input = control as HTMLInputElement;
         if (input.type === 'file') continue;
         if (input.type === 'date' || input.type === 'datetime-local') {
-          const raw = value === undefined || value === null ? '' : String(value);
+          const raw = phpString(value);
           input.value = formatDateValue(
             raw,
             input.type === 'date' ? 'YYYY-MM-DD' : 'YYYY-MM-DDTHH:mm:ss',
@@ -245,7 +245,7 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
         }
         if (input.type === 'checkbox' || input.type === 'radio') {
           input.checked = Array.isArray(value) ? value.map(String).includes(input.value)
-            : value !== undefined && value !== null && (value === true ? '1' : String(value)) === input.value;
+            : value !== undefined && value !== null && phpString(value) === input.value;
           continue;
         }
       }
@@ -253,7 +253,7 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
         const selected = Array.isArray(value) ? value.map(String) : [];
         for (const option of (control as HTMLSelectElement).options) option.selected = selected.includes(option.value);
       } else {
-        const next = value === undefined || value === null ? '' : String(value);
+        const next = phpString(value);
         if (control.value !== next) control.value = next;
       }
     }

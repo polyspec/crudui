@@ -1,9 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 786b5f38144dd29b4f52f30975cb0876f07de0e3de89ad445d63e5656ac43077 -->
+<!-- source-sha256: e9ea658a2cff11b6f7978fde364dd8921c183b0f58fbe14d03796ba343c11828 -->
 
 ## Unreleased
 
+### 2026-10-15 — lint가 찾은 결함 (C14.16)
+
+- generator-core의 브라우저 binding은 text, date, checkbox, radio control의 값을 서버 render처럼 값의 PHP 문자열로 쓴다. `true`는 `1`이고 `false`, 배열, 객체는 빈 값이며, 이전에는 `true`, `false`, `[object Object]`를 썼다.
 ### 2026-10-15 — Svelte component exports (C14.12)
 
 - `@polyspec/crudui-generator-core`는 공개 타입 `NodeVM`과 `WidgetModel`이 이미 이름 짓던 타입 `Translate`와 `SourceAttrs`를 내보내고 `DetailFieldVM`을 문서화한다. validator와 form binding의 TSDoc은 TSDoc으로 해석된다(C14.12).
