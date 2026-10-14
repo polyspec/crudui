@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "comment": "Written by make dependency-review RECORD=1 (scripts/kit/dependency-review.mts) from the registries; make dependency-policy-check compares the checkout with it without a network.",
-  "reviewed": "2026-10-14T07:34:04.093Z",
+  "reviewed": "2026-10-14T07:36:37.555Z",
   "locks": [
     {
       "lock": "package-lock.json",
@@ -19,7 +19,7 @@
     },
     {
       "lock": "packages/generator-svelte/tools/package-lock.json",
-      "sha256": "9c3cefc8d0c262a48d64b1f87f1267d1ac6a4d6e7b8fd982af8e3269b2975256",
+      "sha256": "29c9d577f467c923a9169b2d0b90646531f1b96ca6d9779fedb8fbd1dab1f330",
       "advisories": []
     },
     {
