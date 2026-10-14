@@ -6,7 +6,7 @@ import {
   evaluateExpressionValue,
 } from '@polyspec/crudui-validator/internal';
 import type { PathContext } from '@polyspec/crudui-validator';
-import { jsString } from './util';
+import { isRecord, jsString } from './util';
 
 /**
  * Build the engine PathContext for a field at `currentPath` over `formData`; `rowKeys` are the
@@ -82,8 +82,8 @@ export function evalFlag(
 ): boolean {
   if (value === undefined || value === null) return false;
   if (typeof value === 'boolean') return value;
-  if (typeof value === 'object' && !Array.isArray(value)) {
-    return Boolean(resolveConditionMap(value as Record<string, unknown>, context));
+  if (isRecord(value)) {
+    return Boolean(resolveConditionMap(value, context));
   }
   if (typeof value === 'string') {
     return evalConditionBool(value, context);
@@ -117,8 +117,8 @@ export function evalShow(
 }
 
 function resolveShow(value: unknown, context: PathContext): unknown {
-  if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
-    return resolveConditionMap(value as Record<string, unknown>, context);
+  if (isRecord(value)) {
+    return resolveConditionMap(value, context);
   }
   if (typeof value !== 'string') return value;
   const ternary = tryEvaluateTernary(value, context);
@@ -141,11 +141,8 @@ export function evalAppearance(
   context: PathContext
 ): string {
   if (value === undefined || value === null) return '';
-  if (typeof value === 'object' && !Array.isArray(value)) {
-    const resolved = resolveConditionMap(
-      value as Record<string, unknown>,
-      context
-    );
+  if (isRecord(value)) {
+    const resolved = resolveConditionMap(value, context);
     return resolved === null || resolved === undefined ? '' : jsString(resolved);
   }
   if (typeof value === 'string') {

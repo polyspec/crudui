@@ -1,6 +1,14 @@
 // @vitest-environment jsdom
+import assert from 'node:assert/strict';
 import { describe, expect, test } from 'vitest';
-import { bindForm, compileForm, connectForm, createForm } from './index';
+import { bindForm, compileForm, connectForm, createForm, type NodeVM, type WidgetModel } from './index';
+
+/** The widget of a field node that a supported widget type renders. */
+const widgetOf = (node: NodeVM): WidgetModel => {
+  const widget = node.widget;
+  assert(widget && !('unsupported' in widget), `${node.path ?? ''} has a widget`);
+  return widget;
+};
 
 /**
  * connectForm().sync() writes the live value of a control from the form value. It must write the
@@ -28,10 +36,10 @@ describe('connectForm writes the same control value as the server render', () =>
     document.body.append(element);
     const connection = connectForm(element, createForm(template, data));
     const controls = Array.from(element.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('input[type=text],textarea'));
-    expect(controls.map(control => control.value)).toEqual(server.slice(0, 4).map(field =>
-      field.widget.tag === 'textarea' ? field.widget.text : field.widget.attrs.value));
+    expect(controls.map(control => control.value)).toEqual(server.slice(0, 4).map(widgetOf).map(widget =>
+      widget.tag === 'textarea' ? widget.text : widget.attrs.value));
     const radios = Array.from(element.querySelectorAll<HTMLInputElement>('input[type=radio]'));
-    expect(radios.map(radio => radio.checked)).toEqual(server[4]!.widget.options!.map(option => option.selected));
+    expect(radios.map(radio => radio.checked)).toEqual((widgetOf(server[4]).options ?? []).map(option => option.selected));
     connection.disconnect();
     element.remove();
   });

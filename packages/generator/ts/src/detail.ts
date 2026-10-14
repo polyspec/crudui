@@ -66,7 +66,7 @@ export function buildDetail(
     fields: vm.columns.map((column, index) => ({
       key: column.key,
       label: column.label,
-      ...(row?.cells[index] as CellVM),
+      ...row?.cells[index],
     })),
     actions: vm.actions,
     design: vm.design,

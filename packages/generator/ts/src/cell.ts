@@ -25,8 +25,8 @@ import { FormInputError } from '@polyspec/crudui-validator';
 import { choicePairs, isChoiceList } from './choice-list';
 import type { PathContext } from '@polyspec/crudui-validator';
 import { evalAppearance } from './expr';
-import type { Translate, LocalizedText } from './content';
-import { getValueByPath, phpString } from './util';
+import type { Translate } from './content';
+import { getValueByPath, isRecord, phpString } from './util';
 import { formatDateValue } from './date';
 
 /** A resolved cell format: the catalog type + its isolated dependent keys. */
@@ -118,8 +118,8 @@ export function normalizeFormat(format: unknown): CellFormatModel {
   if (typeof format === 'string') {
     return { type: format || 'text', options: {} };
   }
-  if (typeof format === 'object' && !Array.isArray(format)) {
-    const o = format as Record<string, unknown>;
+  if (isRecord(format)) {
+    const o = format;
     const type = typeof o.type === 'string' && o.type ? o.type : 'text';
     return { type, options: o };
   }
@@ -132,12 +132,7 @@ export function normalizeFormat(format: unknown): CellFormatModel {
 
 /** A DYNAMIC items source is a `{ model, ... }` descriptor (preserved, not read). */
 function isDynamicItemsSource(items: unknown): items is Record<string, unknown> {
-  return (
-    items !== null &&
-    typeof items === 'object' &&
-    !Array.isArray(items) &&
-    'model' in (items as Record<string, unknown>)
-  );
+  return isRecord(items) && 'model' in items;
 }
 
 /** Static items → a value→label lookup. Dynamic source → empty (never enumerate). */
@@ -150,9 +145,9 @@ function itemsLookup(items: unknown): Record<string, unknown> {
     });
     return out;
   }
-  if (typeof items === 'object') {
+  if (isRecord(items)) {
     if (isDynamicItemsSource(items)) return {};
-    return items as Record<string, unknown>;
+    return items;
   }
   return {};
 }
@@ -204,8 +199,8 @@ function formatNumber(
     const grouped = (intPart ?? '').replace(/\B(?=(\d{3})+(?!\d))/g, ',');
     body = frac !== undefined ? `${grouped}.${frac}` : grouped;
   }
-  const prefix = opts.prefix !== undefined ? t(opts.prefix as LocalizedText) : '';
-  const suffix = opts.suffix !== undefined ? t(opts.suffix as LocalizedText) : '';
+  const prefix = opts.prefix !== undefined ? t(opts.prefix) : '';
+  const suffix = opts.suffix !== undefined ? t(opts.suffix) : '';
   return `${prefix}${body}${suffix}`;
 }
 
@@ -269,14 +264,14 @@ export const CELL_RENDERERS: Readonly<Record<string, CellRenderer>> = {
   number: (value, o, ctx) => formatNumber(value, o, ctx.t),
 
   badge: (value, o, ctx) => {
-    const map = (o.map as Record<string, unknown>) ?? {};
+    const map = isRecord(o.map) ? o.map : {};
     const key = phpString(value);
     // map is value→variant; the variant may be an i18n label (LangMap). A
     // plain-string variant is a style token and the value text is the label;
     // an i18n-object variant resolves to a string used as BOTH variant + label.
     const raw = key in map ? map[key] : undefined;
     if (typeof raw === 'object' && raw !== null) {
-      const resolved = ctx.t(raw as LocalizedText);
+      const resolved = ctx.t(raw);
       return { kind: 'badge', variant: resolved, label: resolved };
     }
     return { kind: 'badge', variant: raw === undefined ? '' : phpString(raw), label: key };
@@ -296,7 +291,7 @@ export const CELL_RENDERERS: Readonly<Record<string, CellRenderer>> = {
     const href = interpolate(hrefTemplate, ctx.row, value);
     const text =
       o.text !== undefined && o.text !== null && o.text !== ''
-        ? ctx.t(o.text as LocalizedText)
+        ? ctx.t(o.text)
         : phpString(value);
     const out: LinkDisplay = { kind: 'link', href, text };
     if (typeof o.target === 'string' && o.target) out.target = o.target;
@@ -307,12 +302,12 @@ export const CELL_RENDERERS: Readonly<Record<string, CellRenderer>> = {
     const key = phpString(value);
     if (isChoiceList(o.items)) {
       const pair = (choicePairs(o.items) ?? []).find(([text]) => text === key);
-      return pair ? ctx.t(pair[1] as LocalizedText) : key;
+      return pair ? ctx.t(pair[1]) : key;
     }
     const lookup = itemsLookup(o.items);
     if (key in lookup) {
       // A choice label is content: a string or a language map.
-      return ctx.t(lookup[key] as LocalizedText);
+      return ctx.t(lookup[key]);
     }
     // dynamic {model} source or unknown key → preserve the raw code (never fabricate).
     return key;
@@ -323,7 +318,7 @@ export const CELL_RENDERERS: Readonly<Record<string, CellRenderer>> = {
     const labelSource = b ? o.true : o.false;
     const label =
       labelSource !== undefined && labelSource !== null
-        ? ctx.t(labelSource as LocalizedText)
+        ? ctx.t(labelSource)
         : b
         ? 'true'
         : 'false';
@@ -336,7 +331,7 @@ export const CELL_RENDERERS: Readonly<Record<string, CellRenderer>> = {
     const src = phpString(value);
     const alt =
       o.alt !== undefined && o.alt !== null
-        ? interpolate(ctx.t(o.alt as LocalizedText), ctx.row, value)
+        ? interpolate(ctx.t(o.alt), ctx.row, value)
         : '';
     const out: ImageDisplay = { kind: 'image', src, alt };
     if (o.width !== undefined) out.width = phpString(o.width);

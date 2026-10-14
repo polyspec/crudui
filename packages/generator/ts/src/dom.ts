@@ -11,6 +11,36 @@ export interface FormConnection {
   disconnect(): void;
 }
 
+/** A rendered form control. */
+type Control = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+
+/** Whether an event target is an element. */
+function isElement(target: EventTarget | null): target is Element {
+  return target !== null && 'nodeType' in target && target.nodeType === 1;
+}
+
+/** Whether an element is a named form control: the selector names its element types. */
+function isControl(element: Element): element is Control {
+  return element.matches('input[name],select[name],textarea[name]');
+}
+
+function isInput(element: Element): element is HTMLInputElement {
+  return element.tagName === 'INPUT';
+}
+
+function isSelect(element: Element): element is HTMLSelectElement {
+  return element.tagName === 'SELECT';
+}
+
+function isTextArea(element: Element): element is HTMLTextAreaElement {
+  return element.tagName === 'TEXTAREA';
+}
+
+/** Whether an element can take focus: an HTML, SVG or MathML element. */
+function isFocusable(element: Element): element is Element & HTMLOrSVGElement {
+  return 'focus' in element && typeof element.focus === 'function' && 'dataset' in element;
+}
+
 /** The element whose `data-field-path` equals a path. */
 function scopeElement(root: ParentNode, path: string): HTMLElement | undefined {
   return Array.from(root.querySelectorAll<HTMLElement>('[data-field-path]'))
@@ -80,7 +110,8 @@ export function connectStickyHeaders(element: HTMLElement): FormConnection {
   const mark = () => {
     frame = 0;
     for (const header of element.querySelectorAll<HTMLElement>('.crudui-node--sticky > .crudui-node__header-container')) {
-      const row = header.parentElement!;
+      const row = header.parentElement;
+      if (!row) continue;
       const moved = header.getBoundingClientRect().top - (row.getBoundingClientRect().top + row.clientTop);
       header.toggleAttribute('data-crudui-stuck', moved > 0.5);
     }
@@ -106,9 +137,8 @@ export function connectStickyHeaders(element: HTMLElement): FormConnection {
 
 /** Browser event delegation for all adapters, including raw leaf controls. */
 export function connectForm(element: HTMLElement, session: FormInstance): FormConnection {
-  type Control = HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
   let focus: {
-    active: HTMLElement;
+    active: Element & HTMLOrSVGElement;
     name?: string;
     action?: ActionTarget;
     start: number | null;
@@ -138,20 +168,18 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
     });
   const captureFocus = () => {
     synced = false;
-    const active = element.ownerDocument.activeElement as (HTMLElement & {
-      name?: string; selectionStart?: number | null; selectionEnd?: number | null;
-      selectionDirection?: 'forward' | 'backward' | 'none' | null;
-    }) | null;
+    const active = element.ownerDocument.activeElement;
     focus = undefined;
-    if (active && element.contains(active)) {
+    if (active && isFocusable(active) && element.contains(active)) {
       const action = active.matches('button[data-crudui-action]') ? resolveAction(active) : undefined;
+      const text = isInput(active) || isTextArea(active) ? active : undefined;
       focus = {
         active,
         ...(action ? { action } : {}),
-        name: active.name,
-        start: active.selectionStart ?? null,
-        end: active.selectionEnd ?? null,
-        direction: active.selectionDirection ?? undefined,
+        ...('name' in active && typeof active.name === 'string' ? { name: active.name } : {}),
+        start: text?.selectionStart ?? null,
+        end: text?.selectionEnd ?? null,
+        direction: text?.selectionDirection ?? undefined,
         visible: active.matches(':focus-visible'),
       };
     }
@@ -162,14 +190,15 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
    * scripted focus from earlier pointer input, which differs between documents.
    */
   const restoreFocus = () => {
-    if (!focus) return;
-    const control = element.contains(focus.active) ? focus.active
-      : focus.action ? actionButton(focus.action)
-        : controls().find(c => c.name === focus!.name);
+    const saved = focus;
+    if (!saved) return;
+    const control = element.contains(saved.active) ? saved.active
+      : saved.action ? actionButton(saved.action)
+        : controls().find(c => c.name === saved.name);
     if (control) {
-      control.focus({ preventScroll: true, focusVisible: focus.visible });
-      if (focus.start !== null && 'setSelectionRange' in control) {
-        (control as HTMLInputElement).setSelectionRange(focus.start, focus.end, focus.direction);
+      control.focus({ preventScroll: true, focusVisible: saved.visible });
+      if (saved.start !== null && (isInput(control) || isTextArea(control))) {
+        control.setSelectionRange(saved.start, saved.end, saved.direction);
       }
     }
   };
@@ -188,23 +217,25 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
     if (control) revealControl(control);
   };
   const onInput = (event: Event) => {
-    const control = event.target as Control;
-    if (!control?.matches?.('input[name],select[name],textarea[name]') || control.disabled) return;
+    const control = event.target;
+    if (isElement(control) && isControl(control)) input(control);
+  };
+  const input = (control: Control) => {
+    if (control.disabled) return;
     const path = pathOf(control.name);
     if (!path) return;
     let value: unknown = control.value;
-    if (control.tagName === 'INPUT') {
-      const input = control as HTMLInputElement;
-      if (input.type === 'radio' && !input.checked) return;
-      if (input.type === 'checkbox') {
-        value = input.name.endsWith('[]')
-          ? controls().filter(c => c.name === input.name && (c as HTMLInputElement).checked).map(c => c.value)
-          : input.checked ? input.value : '';
-      } else if (input.type === 'file') {
-        value = input.multiple ? Array.from(input.files ?? []) : input.files?.[0] ?? null;
+    if (isInput(control)) {
+      if (control.type === 'radio' && !control.checked) return;
+      if (control.type === 'checkbox') {
+        value = control.name.endsWith('[]')
+          ? controls().filter(c => c.name === control.name && isInput(c) && c.checked).map(c => c.value)
+          : control.checked ? control.value : '';
+      } else if (control.type === 'file') {
+        value = control.multiple ? Array.from(control.files ?? []) : control.files?.[0] ?? null;
       }
-    } else if (control.tagName === 'SELECT' && (control as HTMLSelectElement).multiple) {
-      value = Array.from((control as HTMLSelectElement).selectedOptions, option => option.value);
+    } else if (isSelect(control) && control.multiple) {
+      value = Array.from(control.selectedOptions, option => option.value);
     }
     // Browsers emit input followed by change for several controls.
     const previous = session.getValue(path);
@@ -214,7 +245,7 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
     session.setValue(path, value);
   };
   const onClick = (event: Event) => {
-    const button = (event.target as Element)?.closest?.('button[data-crudui-action]') as HTMLButtonElement | null;
+    const button = isElement(event.target) ? event.target.closest<HTMLButtonElement>('button[data-crudui-action]') : null;
     if (!button || !element.contains(button) || unavailable(button)) return;
     const target = resolveAction(button);
     const result = target && runAction(session, target);
@@ -232,8 +263,8 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
       const path = pathOf(control.name);
       if (!path) continue;
       const value = session.getValue(path);
-      if (control.tagName === 'INPUT') {
-        const input = control as HTMLInputElement;
+      if (isInput(control)) {
+        const input = control;
         if (input.type === 'file') continue;
         if (input.type === 'date' || input.type === 'datetime-local') {
           const raw = phpString(value);
@@ -249,9 +280,9 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
           continue;
         }
       }
-      if (control.tagName === 'SELECT' && (control as HTMLSelectElement).multiple) {
+      if (isSelect(control) && control.multiple) {
         const selected = Array.isArray(value) ? value.map(String) : [];
-        for (const option of (control as HTMLSelectElement).options) option.selected = selected.includes(option.value);
+        for (const option of control.options) option.selected = selected.includes(option.value);
       } else {
         const next = phpString(value);
         if (control.value !== next) control.value = next;
@@ -278,21 +309,21 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
   // the default is compared after the same sanitization: a datetime control reads
   // 2026-09-09T00:00:00 as 2026-09-09T00:00, which is not an edit.
   const sanitizedDefault = (control: HTMLInputElement | HTMLTextAreaElement) => {
-    if (control.tagName !== 'INPUT') return control.defaultValue;
+    if (!isInput(control)) return control.defaultValue;
     const probe = control.ownerDocument.createElement('input');
-    probe.type = (control as HTMLInputElement).type;
+    probe.type = control.type;
     probe.value = control.defaultValue;
     return probe.value;
   };
   for (const control of controls()) {
-    const edited = control.tagName === 'SELECT'
-      ? Array.from((control as HTMLSelectElement).options).some(option => option.selected !== option.defaultSelected)
-      : control.tagName === 'INPUT' && ['checkbox', 'radio'].includes((control as HTMLInputElement).type)
-        ? (control as HTMLInputElement).checked !== (control as HTMLInputElement).defaultChecked
-        : control.tagName === 'INPUT' && (control as HTMLInputElement).type === 'file'
-          ? ((control as HTMLInputElement).files?.length ?? 0) > 0
-          : control.value !== sanitizedDefault(control as HTMLInputElement | HTMLTextAreaElement);
-    if (edited) onInput({ target: control } as unknown as Event);
+    const edited = isSelect(control)
+      ? Array.from(control.options).some(option => option.selected !== option.defaultSelected)
+      : isInput(control) && ['checkbox', 'radio'].includes(control.type)
+        ? control.checked !== control.defaultChecked
+        : isInput(control) && control.type === 'file'
+          ? (control.files?.length ?? 0) > 0
+          : control.value !== sanitizedDefault(control);
+    if (edited) input(control);
   }
   sync();
   return {
@@ -314,7 +345,7 @@ export function connectForm(element: HTMLElement, session: FormInstance): FormCo
  */
 export function connectOutline(element: HTMLElement, session: FormInstance, formElement: HTMLElement): FormConnection {
   const onClick = (event: Event) => {
-    const button = (event.target as Element)?.closest?.('button[data-crudui-action]') as HTMLButtonElement | null;
+    const button = isElement(event.target) ? event.target.closest<HTMLButtonElement>('button[data-crudui-action]') : null;
     if (!button || !element.contains(button) || unavailable(button)) return;
     const target = resolveAction(button);
     const result = target && runAction(session, target);

@@ -22,9 +22,19 @@ export function patchContent(element: Element, html: string): void {
   for (const [mark, script] of scripts) mark.replaceWith(freshScript(script));
 }
 
+/** Whether a node is an element. */
+function isElement(node: Node): node is Element {
+  return node.nodeType === 1;
+}
+
+/** Whether a node is a template element, whose children are those of its content. */
+function isTemplate(node: Node): node is HTMLTemplateElement {
+  return node.nodeName === 'TEMPLATE';
+}
+
 function identity(node: Node): string | undefined {
-  if (node.nodeType !== 1) return undefined;
-  const element = node as Element;
+  if (!isElement(node)) return undefined;
+  const element = node;
   const row = element.getAttribute('data-crudui-row-key');
   if (row !== null) return `row:${row}`;
   const path = element.getAttribute('data-field-path');
@@ -49,8 +59,8 @@ function freshScript(script: Element): Element {
  * place; a comment never runs, while some engines run an imported script.
  */
 function imported(node: Node, scripts: Array<[Comment, Element]>): Node {
-  if (node.nodeType !== 1) return node;
-  const element = node as Element;
+  if (!isElement(node)) return node;
+  const element = node;
   const hold = (script: Element) => {
     const mark = element.ownerDocument.createComment('');
     scripts.push([mark, script]);
@@ -63,7 +73,7 @@ function imported(node: Node, scripts: Array<[Comment, Element]>): Node {
 
 const sameKind = (current: Node, next: Node) => current.nodeType === next.nodeType && current.nodeName === next.nodeName;
 
-function patchChildren(parent: Node, source: Node, scripts: Array<[Comment, Element]>): void {
+function patchChildren(parent: Element | DocumentFragment, source: Node, scripts: Array<[Comment, Element]>): void {
   const unused: Node[] = Array.from(parent.childNodes);
   const keyed = new Map<string, Node>();
   for (const node of unused) {
@@ -87,25 +97,25 @@ function patchChildren(parent: Node, source: Node, scripts: Array<[Comment, Elem
       else position = position.nextSibling;
       patchNode(current, next, scripts);
     } else {
-      parent.insertBefore(imported(parent.ownerDocument!.importNode(next, true), scripts), position);
+      parent.insertBefore(imported(parent.ownerDocument.importNode(next, true), scripts), position);
     }
   }
   for (const node of unused) node.parentNode?.removeChild(node);
 }
 
 function patchNode(current: Node, next: Node, scripts: Array<[Comment, Element]>): void {
-  if (current.nodeType !== 1) {
+  if (!isElement(current) || !isElement(next)) {
     if (current.nodeValue !== next.nodeValue) current.nodeValue = next.nodeValue;
     return;
   }
-  const element = current as Element;
-  const source = next as Element;
+  const element = current;
+  const source = next;
   for (const { name } of Array.from(element.attributes)) {
     if (!source.hasAttribute(name)) element.removeAttribute(name);
   }
   for (const { name, value } of Array.from(source.attributes)) {
     if (element.getAttribute(name) !== value) element.setAttribute(name, value);
   }
-  const content = (node: Node) => (node.nodeName === 'TEMPLATE' ? (node as HTMLTemplateElement).content : node);
+  const content = (node: Element) => (isTemplate(node) ? node.content : node);
   patchChildren(content(element), content(source), scripts);
 }

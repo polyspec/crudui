@@ -17,10 +17,12 @@ describe('buildDetail', () => {
 
   test('rejects a declaration or record that is not an object', () => {
     for (const spec of [null, 'detail', ['fields'], 1]) {
-      expect(() => buildDetail(spec as never)).toThrow('Detail specification must be an object');
+      // @ts-expect-error: a declaration that is no object is no record; buildDetail checks it at run time.
+      expect(() => buildDetail(spec)).toThrow('Detail specification must be an object');
     }
     expect(() => buildDetail({})).toThrow('Detail specification must declare fields');
-    expect(() => buildDetail({ fields: {} }, [] as never))
+    // @ts-expect-error: a list is no record; buildDetail checks the record at run time.
+    expect(() => buildDetail({ fields: {} }, []))
       .toThrow('Detail record must be an object');
   });
 

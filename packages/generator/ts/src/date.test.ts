@@ -24,7 +24,7 @@ const invalid = [
 
 describe('UTC date formatting', () => {
   it.each(valid)('formats %s as UTC %s', (input, expected) => {
-    expect(formatDateValue(input!, 'YYYY-MM-DDTHH:mm:ss')).toBe(expected);
+    expect(formatDateValue(input, 'YYYY-MM-DDTHH:mm:ss')).toBe(expected);
   });
 
   it.each(invalid)('retains invalid or unsupported input %j', input => {
@@ -39,8 +39,8 @@ describe('UTC date formatting', () => {
     for (const [input, expected] of valid) {
       const data = { date: input, time: input };
       const fields = bindForm(template, data);
-      expect(fields[0]!.widget).toMatchObject({ attrs: { value: expected!.split('T')[0] } });
-      expect(fields[1]!.widget).toMatchObject({ attrs: { value: expected } });
+      expect(fields[0].widget).toMatchObject({ attrs: { value: expected.split('T')[0] } });
+      expect(fields[1].widget).toMatchObject({ attrs: { value: expected } });
       const initial = createForm(template, data);
       const injected = createForm(template);
       injected.setData(data);
@@ -48,8 +48,8 @@ describe('UTC date formatting', () => {
       expect(injected.getSnapshot().fields).toEqual(initial.getSnapshot().fields);
       expect(injected.getData()).toEqual(data);
       const list = buildList({ columns: { time: { field: 'time', format: { type: 'date', pattern: 'YYYY-MM-DDTHH:mm:ss' } } } }, [data]);
-      expect(list.rows[0]!.cells[0]!.display).toBe(expected);
-      expect(list.rows[0]!.cells[0]!.value).toBe(input);
+      expect(list.rows[0].cells[0].display).toBe(expected);
+      expect(list.rows[0].cells[0].value).toBe(input);
     }
   });
 });

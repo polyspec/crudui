@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { bindForm, compileForm } from './index';
+import { childrenOf } from './test-support';
 
 const group = { type: 'group', multiple: true, properties: { name: { type: 'text' } } };
 const scalar = { type: 'text', multiple: true };
@@ -7,7 +8,7 @@ const scalar = { type: 'text', multiple: true };
 /** Row nodes of the `items` collection. */
 function rows(field: Record<string, unknown>, data: Record<string, unknown>) {
   const template = compileForm({ type: 'group', properties: { items: field } });
-  return bindForm(template, data)[0]!.children!;
+  return childrenOf(bindForm(template, data)[0]);
 }
 
 describe('explicit empty collections', () => {
@@ -32,7 +33,7 @@ describe('explicit empty collections', () => {
       for (const visible of [false, true]) {
         const data = { items, visible };
         const before = structuredClone(data);
-        const vm = bindForm(template, data)[0]!;
+        const vm = bindForm(template, data)[0];
         expect(vm.hidden).toBe(!visible);
         expect(vm.children).toHaveLength(Object.keys(items).length);
         expect(data).toEqual(before);
@@ -49,8 +50,8 @@ describe('explicit empty collections', () => {
     const before = structuredClone(data);
     const output = rows(field, data);
     expect(output.map(row => row.key)).toEqual(Object.keys(data.items));
-    expect(output.map(row => row.children![1]!.children!.length)).toEqual([0, 1, 0]);
-    expect(output[1]!.children![1]!.children![0]!.key).toBe('__0000000000001__');
+    expect(output.map(row => childrenOf(childrenOf(row)[1]).length)).toEqual([0, 1, 0]);
+    expect(childrenOf(childrenOf(output[1])[1])[0].key).toBe('__0000000000001__');
     expect(data).toEqual(before);
   });
 });

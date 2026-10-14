@@ -4,17 +4,20 @@
  */
 
 import { test, expect } from 'vitest';
+import assert from 'node:assert/strict';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { FORM_MESSAGES, LIST_MESSAGES } from './interface-messages';
 
-const contract = JSON.parse(
+const contract: unknown = JSON.parse(
   fs.readFileSync(
     path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../../contracts/interface-messages.json'),
     'utf8'
   )
-) as { form: unknown; list: unknown };
+);
+assert(contract !== null && typeof contract === 'object' && 'form' in contract && 'list' in contract,
+  'contracts/interface-messages.json has the form and list tables');
 
 test('src/interface-messages.ts equals contracts/interface-messages.json', () => {
   const embedded = { form: FORM_MESSAGES, list: LIST_MESSAGES };

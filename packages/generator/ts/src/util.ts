@@ -6,6 +6,11 @@
 
 export { styleString } from './css';
 
+/** Whether a value is an object that is not an array, as an object of decoded JSON is. */
+export function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
 /** HTML attribute-value escaping. */
 export function escAttr(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
@@ -76,7 +81,7 @@ export function parsePathString(path: string): string[] {
   let current = '';
   let inBracket = false;
   for (let i = 0; i < path.length; i++) {
-    const ch = path[i]!;
+    const ch = path[i];
     if (ch === '[' && !inBracket) {
       if (current) {
         segments.push(current);
@@ -102,14 +107,19 @@ export function parsePathString(path: string): string[] {
   return segments;
 }
 
+/** Whether a value is an object or an array, whose members a path segment names. */
+function isIndexable(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === 'object';
+}
+
 /** Read the value at a dot/bracket path. */
 export function getValueByPath(obj: unknown, path: string): unknown {
   const segments = parsePathString(path);
   let current: unknown = obj;
   for (const segment of segments) {
     if (current === null || current === undefined) return undefined;
-    if (typeof current === 'object') {
-      current = (current as Record<string, unknown>)[segment];
+    if (isIndexable(current)) {
+      current = current[segment];
     } else {
       return undefined;
     }
@@ -123,8 +133,8 @@ export function toBracketNotationWithPrefix(path: string, keyPrefix?: string): s
   const segments = parsePathString(path);
   if (keyPrefix) segments.unshift(keyPrefix);
   if (segments.length === 0) return '';
-  if (segments.length === 1) return segments[0]!;
-  return segments[0]! + segments.slice(1).map((s) => `[${s}]`).join('');
+  if (segments.length === 1) return segments[0];
+  return segments[0] + segments.slice(1).map((s) => `[${s}]`).join('');
 }
 
 /**

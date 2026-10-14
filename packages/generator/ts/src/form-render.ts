@@ -6,6 +6,7 @@
 
 import { FormInputError } from '@polyspec/crudui-validator';
 import type { NodeVM } from './viewmodel';
+import { isRecord } from './util';
 
 /** The submission target of the form element; each member overrides the template's `action`. */
 export interface FormRenderAction {
@@ -65,9 +66,21 @@ const ACTION_MEMBERS = new Set(['method', 'url', 'enctype']);
 const javascriptProtocol = /^[\u0000-\u001F ]*j[\r\n\t]*a[\r\n\t]*v[\r\n\t]*a[\r\n\t]*s[\r\n\t]*c[\r\n\t]*r[\r\n\t]*i[\r\n\t]*p[\r\n\t]*t[\r\n\t]*:/i;
 const BLOCKED_URL = "javascript:throw new Error('React has blocked a javascript: URL as a security precaution.')";
 
-function isObject(value: unknown): value is Record<string, unknown> {
-  return value !== null && typeof value === 'object' && !Array.isArray(value);
+/** Whether a value is an object of strings. */
+function isStringRecord(value: unknown): value is Record<string, string> {
+  return isRecord(value) && Object.values(value).every((text) => typeof text === 'string');
 }
+
+/** Whether a value is a form action: an object of strings named method, url or enctype. */
+function isRenderAction(value: unknown): value is FormRenderAction {
+  return isStringRecord(value) && Object.keys(value).every((key) => ACTION_MEMBERS.has(key));
+}
+
+/** Whether a value is a node error: an object with a string path and message. */
+function isRenderError(value: unknown): value is FormRenderError {
+  return isRecord(value) && typeof value.path === 'string' && typeof value.message === 'string';
+}
+
 
 /** Every node with a data path, by that path: a row's path is its collection path, `.` and its key. */
 function nodesByPath(nodes: readonly NodeVM[], parent: string | undefined, out: Map<string, NodeVM>): Map<string, NodeVM> {
@@ -89,30 +102,28 @@ export function formRenderModel(
   templateAction: Readonly<Record<string, unknown>> | undefined,
   options: unknown = {},
 ): FormRenderModel {
-  if (!isObject(options)) throw new FormInputError('Render options must be an object');
+  if (!isRecord(options)) throw new FormInputError('Render options must be an object');
   for (const name of Object.keys(options)) {
     if (!MEMBERS.has(name)) throw new FormInputError(`Unknown render option: ${name}`);
   }
   const { action, hidden, formErrors, errors } = options;
-  if (action !== undefined && (!isObject(action)
-    || Object.entries(action).some(([key, value]) => !ACTION_MEMBERS.has(key) || typeof value !== 'string'))) {
+  if (action !== undefined && !isRenderAction(action)) {
     throw new FormInputError('action must be an object with string method, url and enctype');
   }
-  if (hidden !== undefined && (!isObject(hidden) || Object.values(hidden).some((value) => typeof value !== 'string'))) {
+  if (hidden !== undefined && !isStringRecord(hidden)) {
     throw new FormInputError('hidden must be an object of strings');
   }
   if (hidden !== undefined && action === undefined) throw new FormInputError('hidden requires action');
-  if (formErrors !== undefined && (!Array.isArray(formErrors) || formErrors.some((text) => typeof text !== 'string'))) {
+  if (formErrors !== undefined && !(Array.isArray(formErrors) && formErrors.every((text): text is string => typeof text === 'string'))) {
     throw new FormInputError('formErrors must be a list of strings');
   }
-  if (errors !== undefined && (!Array.isArray(errors)
-    || errors.some((error) => !isObject(error) || typeof error.path !== 'string' || typeof error.message !== 'string'))) {
+  if (errors !== undefined && !(Array.isArray(errors) && errors.every(isRenderError))) {
     throw new FormInputError('errors must be a list of objects with string path and message');
   }
   const nodeErrors = new Map<NodeVM, string[]>();
   if (errors !== undefined && errors.length) {
     const byPath = nodesByPath(fields, undefined, new Map());
-    for (const { path, message } of errors as FormRenderError[]) {
+    for (const { path, message } of errors) {
       const node = byPath.get(path);
       if (!node) throw new FormInputError(`Unknown error path: ${path}`);
       nodeErrors.set(node, [...(nodeErrors.get(node) ?? []), message]);
@@ -120,7 +131,7 @@ export function formRenderModel(
   }
   let form: FormElementAttributes | undefined;
   if (action !== undefined) {
-    const own = action as FormRenderAction;
+    const own = action;
     const declared = (key: keyof FormRenderAction): string | undefined => {
       const value = own[key] ?? templateAction?.[key];
       return typeof value === 'string' ? value : undefined;
@@ -136,8 +147,8 @@ export function formRenderModel(
   }
   return {
     ...(form ? { form } : {}),
-    hidden: hidden === undefined ? [] : Object.entries(hidden as Record<string, string>),
-    formErrors: (formErrors as string[] | undefined) ?? [],
+    hidden: hidden === undefined ? [] : Object.entries(hidden),
+    formErrors: formErrors ?? [],
     nodeErrors,
   };
 }

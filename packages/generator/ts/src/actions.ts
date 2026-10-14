@@ -1,6 +1,8 @@
 /** Resolve and run `data-crudui-action` buttons for forms and structure maps. */
 
 import type { FormInstance } from './instance';
+import { FormInputError } from '@polyspec/crudui-validator';
+import { isRecord } from './util';
 
 /** Operations a `data-crudui-action` button can request. */
 export type FormActionName =
@@ -50,8 +52,9 @@ export interface ActionResult {
  * the key is the nearest `[data-crudui-row-key]` inside that path element.
  */
 export function resolveAction(button: Element): ActionTarget | undefined {
-  const name = button.getAttribute('data-crudui-action') as FormActionName | null;
-  if (!name || !ACTIONS.includes(name)) return undefined;
+  const declared = button.getAttribute('data-crudui-action');
+  const name = ACTIONS.find(action => action === declared);
+  if (!name) return undefined;
   const scope = button.closest('[data-field-path]');
   const path = scope?.getAttribute('data-field-path') ?? undefined;
   const row = button.closest('[data-crudui-row-key]');
@@ -88,7 +91,7 @@ export function runAction(form: FormInstance, target: ActionTarget): ActionResul
     case 'copy-row':
       return { focus: { path, key: form.copyRow(path, key) } };
     case 'remove-row': {
-      const keys = Object.keys(form.getValue(path) as Record<string, unknown>);
+      const keys = rowKeys(form, path);
       const index = keys.indexOf(key);
       const neighbour = keys[index - 1] ?? keys[index + 1];
       form.removeRow(path, key);
@@ -101,9 +104,16 @@ export function runAction(form: FormInstance, target: ActionTarget): ActionResul
       // Selecting changes no state: it only moves focus to the row.
       return { focus: { path, key } };
     default: {
-      const keys = Object.keys(form.getValue(path) as Record<string, unknown>);
+      const keys = rowKeys(form, path);
       form.moveRow(path, key, keys.indexOf(key) + (name === 'move-up' ? -1 : 1));
       return { focus: { path, key } };
     }
   }
+}
+
+/** The row keys of the keyed collection at `path`, whose row an action names. */
+function rowKeys(form: FormInstance, path: string): string[] {
+  const rows = form.getValue(path);
+  if (!isRecord(rows)) throw new FormInputError(`Repeated data must be a keyed object: ${path}`);
+  return Object.keys(rows);
 }

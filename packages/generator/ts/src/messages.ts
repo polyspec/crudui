@@ -63,10 +63,11 @@ const MESSAGES: Readonly<Record<Language, FormMessages>> = FORM_MESSAGES;
 export function formMessages(language: string): FormMessages {
   // Callers can pass decoded JSON; a non-string is rejected before any text conversion.
   if (typeof language !== 'string') throw new FormInputError('Language must be a string');
-  if (!(LANGUAGES as readonly string[]).includes(language)) {
+  const supported = LANGUAGES.find(name => name === language);
+  if (supported === undefined) {
     throw new FormInputError(`Unsupported language: ${language}`);
   }
-  return MESSAGES[language as Language];
+  return MESSAGES[supported];
 }
 
 /** Replace `{count}` in a counted message. */

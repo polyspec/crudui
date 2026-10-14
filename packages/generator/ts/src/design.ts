@@ -22,6 +22,7 @@
 import { FormInputError } from '@polyspec/crudui-validator';
 import type { PathContext } from '@polyspec/crudui-validator';
 import { evalShow, evalAppearance } from './expr';
+import { isRecord } from './util';
 
 /** Resolved class+style for one DOM node. */
 export interface ResolvedNode {
@@ -65,10 +66,10 @@ function resolveNode(
   node: unknown,
   ctx: PathContext
 ): ResolvedNode {
-  if (node === null || node === undefined || typeof node !== 'object') {
+  if (!isRecord(node)) {
     return { ...EMPTY_NODE };
   }
-  const n = node as Record<string, unknown>;
+  const n = node;
   return {
     class: 'class' in n ? evalAppearance(n.class, ctx) : '',
     style: 'style' in n ? evalAppearance(n.style, ctx) : '',
@@ -87,10 +88,10 @@ export function resolveDesign(
   if (design === false || design === true || design === undefined || design === null) {
     return emptyDesign();
   }
-  if (typeof design !== 'object' || Array.isArray(design)) {
+  if (!isRecord(design)) {
     return emptyDesign();
   }
-  const d = design as Record<string, unknown>;
+  const d = design;
   return {
     show: 'show' in d ? evalShow(d.show, ctx) : true,
     main: {
@@ -112,9 +113,10 @@ export interface DeclaredAttributes {
   wrapper: Record<string, string>;
 }
 
-function attributeCopy(value: unknown): Record<string, string> {
-  if (value === null || typeof value !== 'object' || Array.isArray(value)) return {};
-  return { ...(value as Record<string, string>) };
+/** A copy of checked declared attributes, whose values are strings; any other value has none. */
+export function attributeCopy(value: unknown): Record<string, string> {
+  if (!isRecord(value)) return {};
+  return Object.fromEntries(Object.entries(value).filter((entry): entry is [string, string] => typeof entry[1] === 'string'));
 }
 
 /**
@@ -122,11 +124,9 @@ function attributeCopy(value: unknown): Record<string, string> {
  * names and values; a design without them yields empty objects.
  */
 export function declaredAttributes(design: unknown): DeclaredAttributes {
-  if (design === null || typeof design !== 'object' || Array.isArray(design)) return { control: {}, wrapper: {} };
-  const d = design as Record<string, unknown>;
-  const wrapper = d.wrapper !== null && typeof d.wrapper === 'object' && !Array.isArray(d.wrapper)
-    ? (d.wrapper as Record<string, unknown>).attributes
-    : undefined;
+  if (!isRecord(design)) return { control: {}, wrapper: {} };
+  const d = design;
+  const wrapper = isRecord(d.wrapper) ? d.wrapper.attributes : undefined;
   return { control: attributeCopy(d.attributes), wrapper: attributeCopy(wrapper) };
 }
 
@@ -148,16 +148,16 @@ const OWNED_ATTRIBUTE_NAMES: readonly string[] = [
 
 /** Reject declared attributes at `key` that are not an object of permitted names to strings. */
 export function checkDeclaredAttributes(attributes: unknown, key: string, path: string): void {
-  if (attributes === null || typeof attributes !== 'object' || Array.isArray(attributes)) {
+  if (!isRecord(attributes)) {
     throw new FormInputError(`Invalid ${key} at ${path}: expected an object`);
   }
-  for (const name of Object.keys(attributes as Record<string, unknown>)) {
+  for (const name of Object.keys(attributes)) {
     if (!DECLARED_ATTRIBUTE_NAME.test(name) || OWNED_ATTRIBUTE_NAMES.includes(name) ||
         OWNED_ATTRIBUTE_PREFIXES.some(prefix => name.startsWith(prefix))) {
       throw new FormInputError(`Invalid ${key}.${name} at ${path}: expected a data-* or aria-* name that crudui does not write`);
     }
   }
-  for (const [name, value] of Object.entries(attributes as Record<string, unknown>)) {
+  for (const [name, value] of Object.entries(attributes)) {
     if (typeof value !== 'string') throw new FormInputError(`Invalid ${key}.${name} at ${path}: expected a string`);
   }
 }

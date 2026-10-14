@@ -3,11 +3,11 @@
 import { FormInputError, type FileLoader } from '@polyspec/crudui-validator';
 import { checkedComposition, composeProperties, MemoryLoader, scanForbiddenKeys } from '@polyspec/crudui-validator/internal';
 import { checkArgumentText, DISPLAY_OPTIONS } from './input-text';
-import { makeTranslate, type Language, type LocalizedText } from './content';
+import { makeTranslate, type Language } from './content';
 import { LIST_MESSAGES } from './interface-messages';
 import { resolveDesign, type ResolvedDesign } from './design';
 import { evalFlag, makeContext } from './expr';
-import { parsePathString, getValueByPath } from './util';
+import { parsePathString, getValueByPath, isRecord } from './util';
 import {
   normalizeFormat,
   renderCell,
@@ -92,8 +92,7 @@ export interface PaginationButtonVM {
 
 /** The list interface text of a display language: the table's entry for it, else English. */
 function listMessages(language: string): (typeof LIST_MESSAGES)[keyof typeof LIST_MESSAGES] {
-  return Object.prototype.hasOwnProperty.call(LIST_MESSAGES, language)
-    ? LIST_MESSAGES[language as keyof typeof LIST_MESSAGES] : LIST_MESSAGES.en;
+  return Object.entries(LIST_MESSAGES).find(([name]) => name === language)?.[1] ?? LIST_MESSAGES.en;
 }
 
 /** Return a bounded page-number window so a large total cannot allocate an unbounded DOM. */
@@ -178,9 +177,6 @@ export interface BuildListOptions {
 // resolution helpers
 // ---------------------------------------------------------------------------
 
-function isPlainObject(v: unknown): v is Record<string, unknown> {
-  return v !== null && typeof v === 'object' && !Array.isArray(v);
-}
 
 function resolveSortable(
   sortable: unknown,
@@ -194,7 +190,7 @@ function resolveSortable(
 
 /** A page or total option: absent or null, or a safe integer of at least `min`. */
 function countOption(value: unknown, min: number): value is number | null | undefined {
-  return value === undefined || value === null || (Number.isSafeInteger(value) && (value as number) >= min);
+  return value === undefined || value === null || (typeof value === 'number' && Number.isSafeInteger(value) && value >= min);
 }
 
 /**
@@ -205,23 +201,25 @@ function countOption(value: unknown, min: number): value is number | null | unde
 function resolvePagination(
   pagination: unknown, page: number | null | undefined, total: number | null | undefined, language: string,
 ): PaginationVM {
-  const enabled = pagination === true || isPlainObject(pagination);
+  const enabled = pagination === true || isRecord(pagination);
   const vm: PaginationVM = { enabled };
-  const declared = isPlainObject(pagination) ? pagination : {};
+  const declared = isRecord(pagination) ? pagination : {};
+  const perPage = typeof declared.per_page === 'number' ? declared.per_page : 20;
+  const currentPage = page ?? 1;
   if (enabled) {
-    vm.perPage = (declared.per_page as number | undefined) ?? 20;
-    vm.mode = (declared.mode as string | undefined) ?? 'pages';
-    vm.page = page ?? 1;
+    vm.perPage = perPage;
+    vm.mode = typeof declared.mode === 'string' ? declared.mode : 'pages';
+    vm.page = currentPage;
   } else if (page !== undefined && page !== null) {
     vm.page = page;
   }
   // `+ 0` writes negative zero as 0, as every runtime does.
   if (total !== undefined && total !== null) vm.total = total + 0;
   if (enabled) {
-    const pageCount = vm.total === undefined ? 0 : Math.max(1, Math.ceil(vm.total / vm.perPage!));
+    const pageCount = vm.total === undefined ? 0 : Math.max(1, Math.ceil(vm.total / perPage));
     vm.pageCount = pageCount;
     // Without a total the current page is 1; a page after the last page selects the last page.
-    const current = pageCount > 0 ? Math.min(pageCount, vm.page!) : 1;
+    const current = pageCount > 0 ? Math.min(pageCount, currentPage) : 1;
     const messages = listMessages(language);
     vm.buttons = [
       { role: 'previous', page: Math.max(1, current - 1), label: messages.previousPage, current: false, disabled: current <= 1 || pageCount === 0 },
@@ -235,7 +233,7 @@ function resolvePagination(
 }
 
 function resolveSort(sort: unknown): SortVM | undefined {
-  if (!isPlainObject(sort)) return undefined;
+  if (!isRecord(sort)) return undefined;
   const field = typeof sort.field === 'string' ? sort.field : '';
   if (!field) return undefined;
   const dir = sort.dir === 'desc' ? 'desc' : 'asc';
@@ -246,7 +244,7 @@ function resolveActions(
   actions: unknown,
   t: ReturnType<typeof makeTranslate>
 ): ActionVM[] {
-  if (!isPlainObject(actions)) return [];
+  if (!isRecord(actions)) return [];
   const out: ActionVM[] = [];
   for (const [key, raw] of Object.entries(actions)) {
     if (typeof raw === 'string') {
@@ -254,8 +252,9 @@ function resolveActions(
       out.push({ key, label: key, behavior: { onclick: raw } });
       continue;
     }
-    const declared = raw as Record<string, unknown>;
-    const label = declared.label !== undefined ? t(declared.label as LocalizedText) : key;
+    if (!isRecord(raw)) throw new FormInputError(`Invalid actions.${key}: expected a string or an object`);
+    const declared = raw;
+    const label = declared.label !== undefined ? t(declared.label) : key;
     // An action object with a script is the object form of a script action.
     if (typeof declared.script === 'string') {
       out.push({ key, label, behavior: { onclick: declared.script } });
@@ -263,11 +262,11 @@ function resolveActions(
     }
     const action: ActionVM = { key, label };
     if (declared.format !== undefined) action.format = normalizeFormat(declared.format);
-    if (isPlainObject(declared.behavior)) {
+    if (isRecord(declared.behavior)) {
       const beh: Record<string, string> = {};
       for (const [ev, scr] of Object.entries(declared.behavior)) {
         if (typeof scr === 'string') beh[ev] = scr;
-        else if (isPlainObject(scr) && typeof scr.script === 'string') beh[ev] = scr.script;
+        else if (isRecord(scr) && typeof scr.script === 'string') beh[ev] = scr.script;
       }
       if (Object.keys(beh).length > 0) action.behavior = beh;
     }
@@ -297,13 +296,13 @@ function checkListInput(
   const loader = checkedComposition(listSpec, options);
   checkArgumentText([['rows', rows]], options, DISPLAY_OPTIONS);
   // List input, checked in the order every runtime uses (docs/spec/display-formats.md).
-  if (!isPlainObject(listSpec)) throw new FormInputError('List specification must be an object');
+  if (!isRecord(listSpec)) throw new FormInputError('List specification must be an object');
   if (!Array.isArray(rows)) throw new FormInputError('List rows must be an array');
-  if (rows.some((row) => !isPlainObject(row))) throw new FormInputError('List rows must be objects');
+  if (rows.some((row) => !isRecord(row))) throw new FormInputError('List rows must be objects');
   if (!Object.prototype.hasOwnProperty.call(listSpec, 'columns')) {
     throw new FormInputError('List specification must declare columns');
   }
-  if (options.data !== undefined && options.data !== null && !isPlainObject(options.data)) {
+  if (options.data !== undefined && options.data !== null && !isRecord(options.data)) {
     throw new FormInputError('List context must be an object');
   }
   if (!countOption(options.page, 1)) throw new FormInputError('List page must be a positive integer');
@@ -358,12 +357,12 @@ export function buildDisplay(
 
   // Stage 2: compose the member map (expands $ref/$patch at map + per-member).
   const rawMembers = spec[paths.members];
-  if (!isPlainObject(rawMembers)) throw new FormInputError(`Invalid ${paths.members} at ${paths.own}: expected an object`);
+  if (!isRecord(rawMembers)) throw new FormInputError(`Invalid ${paths.members} at ${paths.own}: expected an object`);
   const columns = composeProperties(rawMembers, loader, composeOpts);
   const search = spec.search;
-  const composeSearch = paths.own === 'list' && isPlainObject(search) &&
+  const composeSearch = paths.own === 'list' && isRecord(search) &&
     (Object.prototype.hasOwnProperty.call(search, '$ref') || Object.prototype.hasOwnProperty.call(search, '$patch'));
-  const composedSearch = composeSearch ? composeProperties(search as Record<string, unknown>, loader, composeOpts) : search;
+  const composedSearch = composeSearch ? composeProperties(search, loader, composeOpts) : search;
   // The composed specification keeps the member order of the declared one.
   const listSpec: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(spec)) {
@@ -379,14 +378,15 @@ export function buildDisplay(
   // Stages 3–4: resolve every column header (drop columns hidden by design.show).
   const columnVMs: ColumnVM[] = [];
   for (const [key, member] of Object.entries(columns)) {
-    const raw = member as Record<string, unknown>;
+    if (!isRecord(member)) throw new FormInputError(`Invalid ${paths.members}.${key} at ${paths.own}: expected an object`);
+    const raw = member;
     const colCtx = makeContext([], listData);
     const colDesign = resolveDesign(raw.design, colCtx);
     if (!colDesign.show) continue; // condition-hidden column → omitted (G1).
     columnVMs.push({
       key,
       field: typeof raw.field === 'string' ? raw.field : '',
-      label: raw.label !== undefined ? t(raw.label as LocalizedText) : key,
+      label: raw.label !== undefined ? t(raw.label) : key,
       format: normalizeFormat(raw.format),
       sortable: resolveSortable(raw.sortable, listCtx),
       design: colDesign,
@@ -394,7 +394,7 @@ export function buildDisplay(
   }
 
   // Re-read the composed column specs by key (for per-cell design re-evaluation).
-  const colSpecs = columnVMs.map((c) => columns[c.key] as Record<string, unknown>);
+  const colSpecs = columnVMs.map((c) => columns[c.key]);
 
   // Rows: one cell per visible column, value read by the column field path.
   const rowVMs: RowVM[] = rows.map((row) => {
@@ -405,7 +405,7 @@ export function buildDisplay(
         col.field ? parsePathString(col.field) : [],
         row
       );
-      const cellDesign = resolveDesign(colSpecs[i]?.design, cellExpr);
+      const cellDesign = resolveDesign(designOf(colSpecs[i]), cellExpr);
       const renderCtx: CellRenderCtx = { row, expr: cellExpr, t };
       return {
         format: col.format,
@@ -426,10 +426,15 @@ export function buildDisplay(
     actions: resolveActions(listSpec.actions, t),
     // An absent or null empty uses the interface message; a declared text is used as declared.
     empty: listSpec.empty === undefined || listSpec.empty === null
-      ? listMessages(options.language ?? 'ko').emptyList : t(listSpec.empty as LocalizedText),
-    description: t(listSpec.description as LocalizedText | undefined),
+      ? listMessages(options.language ?? 'ko').emptyList : t(listSpec.empty),
+    description: t(listSpec.description),
     design: resolveDesign(listSpec.design, listCtx),
   };
+}
+
+/** The design that a column specification declares. */
+function designOf(spec: unknown): unknown {
+  return isRecord(spec) ? spec.design : undefined;
 }
 
 /** A column `field` is an Expression path; a leading `.` means root-relative. */

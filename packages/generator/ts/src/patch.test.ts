@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { describe, expect, test } from 'vitest';
 import { patchContent } from './patch';
+import { present } from './test-support';
 
 function root(html: string) {
   const element = document.createElement('div');
@@ -12,7 +13,7 @@ describe('patchContent keeps the nodes the new markup still contains', () => {
   test('controls, their live values and focus survive a render', () => {
     const element = root('<label for="a">A</label><input id="a" name="form[a]" value="1">');
     document.body.append(element);
-    const input = element.querySelector('input')!;
+    const input = present(element.querySelector('input'), 'the input');
     input.value = 'typed';
     input.focus();
     patchContent(element, '<label for="a">Name</label><input id="a" name="form[a]" value="2" class="changed">');
@@ -21,7 +22,7 @@ describe('patchContent keeps the nodes the new markup still contains', () => {
     expect(input.value).toBe('typed');
     expect(input.getAttribute('value')).toBe('2');
     expect(input.className).toBe('changed');
-    expect(element.querySelector('label')!.textContent).toBe('Name');
+    expect(element.querySelector('label')?.textContent).toBe('Name');
     element.remove();
   });
 
@@ -48,7 +49,7 @@ describe('patchContent keeps the nodes the new markup still contains', () => {
 
   test('removed attributes, changed text and a different element are applied', () => {
     const element = root('<p class="old" hidden>Before</p><span>kept</span>');
-    const paragraph = element.firstElementChild!;
+    const paragraph = element.firstElementChild;
     patchContent(element, '<p>After</p><strong>kept</strong>');
     expect(element.firstElementChild).toBe(paragraph);
     expect(element.innerHTML).toBe('<p>After</p><strong>kept</strong>');
@@ -71,12 +72,12 @@ describe('patchContent keeps the nodes the new markup still contains', () => {
     document.body.append(element);
     patchContent(element, row('a', '1'));
     expect(runs.scriptRuns).toEqual(['a:1']);
-    const first = element.querySelector('script');
-    expect(first!.getAttribute('nonce')).toBe('');
+    const first = present(element.querySelector('script'), 'the first script');
+    expect(first.getAttribute('nonce')).toBe('');
     patchContent(element, row('a', '1'));
     patchContent(element, row('b', '1') + row('a', '2'));
     expect(element.querySelector('[data-crudui-row-key="a"] script')).toBe(first);
-    expect(first!.textContent).toContain('a:2');
+    expect(first.textContent).toContain('a:2');
     expect(runs.scriptRuns).toEqual(['a:1', 'b:1']);
     patchContent(element, row('a', '2') + row('b', '1') + script('top'));
     expect(runs.scriptRuns).toEqual(['a:1', 'b:1', 'top']);

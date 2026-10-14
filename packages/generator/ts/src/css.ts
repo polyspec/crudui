@@ -18,7 +18,7 @@ export function parseStyle(style: unknown): StyleDeclaration[] {
     colon = -1;
   };
   for (let index = 0; index < style.length; index++) {
-    const character = style[index]!;
+    const character = style[index];
     if (comment) {
       if (character === '*' && style[index + 1] === '/') { comment = false; index++; }
       continue;
