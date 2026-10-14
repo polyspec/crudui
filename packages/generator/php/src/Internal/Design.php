@@ -16,7 +16,7 @@ final class Design
     {
         try {
             return $raw ? Expression::evaluateValue($expression, $data, $path, $rows) : Expression::evaluate($expression, $data, $path, $rows);
-        } catch (\InvalidArgumentException|\RuntimeException $error) {
+        } catch (\InvalidArgumentException | \RuntimeException $error) {
             return false;
         }
     }
@@ -62,7 +62,7 @@ final class Design
         try {
             Expression::parse($value);
             return true;
-        } catch (\InvalidArgumentException|\RuntimeException $error) {
+        } catch (\InvalidArgumentException | \RuntimeException $error) {
             return false;
         }
     }
@@ -86,7 +86,7 @@ final class Design
                     $result = Expression::evaluateValue($value, $data, $path, $rows);
                     return $result === null ? '' : Value::string($result);
                 }
-            } catch (\InvalidArgumentException|\RuntimeException $error) {
+            } catch (\InvalidArgumentException | \RuntimeException $error) {
             }
             if (Expression::isConditionExpression($value) && !preg_match('/\?[^:]*:/', $value) && self::parses($value)) {
                 $result = self::condition($value, $data, $path, $rows, true);

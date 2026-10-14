@@ -46,8 +46,10 @@ final class DeclarationCheck
                 }
             }
             $children = $field['properties'] ?? null;
-            if (($field['type'] ?? null) === 'group'
-                && ($children instanceof \stdClass || (\is_array($children) && !array_is_list($children)))) {
+            if (
+                ($field['type'] ?? null) === 'group'
+                && ($children instanceof \stdClass || (\is_array($children) && !array_is_list($children)))
+            ) {
                 self::run((array) $children, $fieldPath);
             }
         }

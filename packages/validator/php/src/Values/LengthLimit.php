@@ -66,8 +66,10 @@ final class LengthLimit
         if (\is_int($value)) {
             return $value >= 0 && $value <= self::MAXIMUM ? $value : null;
         }
-        if (\is_float($value) && is_finite($value) && floor($value) === $value
-            && $value >= 0.0 && $value <= (float) self::MAXIMUM) {
+        if (
+            \is_float($value) && is_finite($value) && floor($value) === $value
+            && $value >= 0.0 && $value <= (float) self::MAXIMUM
+        ) {
             return (int) $value;
         }
         return null;

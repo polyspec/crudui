@@ -1,5 +1,7 @@
 <?php
+
 declare(strict_types=1);
+
 require_once __DIR__ . '/json.php';
 require_once __DIR__ . '/form-shape.php';
 
@@ -15,13 +17,17 @@ final class RecordStore
     /** The submitted record form (FormShape); only `id` must be present. */
     private const FORM = ['fields' => ['id' => 'text', 'name' => 'text', 'status' => 'text', 'joined' => 'text', 'score' => 'text', 'relation' => ['texts' => ['name']], 'markup' => 'text', 'companies' => FormShape::COMPANIES], 'required' => ['id']];
 
-    public function __construct(private readonly string $file, private readonly string $fixtureFile) {}
+    public function __construct(private readonly string $file, private readonly string $fixtureFile)
+    {
+    }
 
     /** Read the fixture records, in id order. */
     public function fixture(): array
     {
         $text = file_get_contents($this->fixtureFile);
-        if (!is_string($text)) throw new RuntimeException('Cannot read the record fixture');
+        if (!is_string($text)) {
+            throw new RuntimeException('Cannot read the record fixture');
+        }
         return self::records(FormJson::decode($text), 'record fixture');
     }
 
@@ -47,7 +53,9 @@ final class RecordStore
     {
         return $this->transaction(static function (array $records) use ($id, $submitted): array {
             $index = self::indexOf($records, $id);
-            if ($index === null) return [$records, null];
+            if ($index === null) {
+                return [$records, null];
+            }
             $previous = $records[$index];
             $record = (object) [
                 'id' => $previous->id,
@@ -111,15 +119,21 @@ final class RecordStore
             $width = ['x' => 4, 'b' => 1, 'o' => 3][strtolower($match[1])];
             $alphabet = substr('0123456789abcdef', 0, 1 << $width);
             $digits = strtolower($match[2]);
-            if (strspn($digits, $alphabet) !== strlen($digits)) throw new InvalidArgumentException('Expected a number');
+            if (strspn($digits, $alphabet) !== strlen($digits)) {
+                throw new InvalidArgumentException('Expected a number');
+            }
             $bits = '';
-            foreach (str_split($digits) as $digit) $bits .= str_pad(decbin(strpos($alphabet, $digit)), $width, '0', STR_PAD_LEFT);
+            foreach (str_split($digits) as $digit) {
+                $bits .= str_pad(decbin(strpos($alphabet, $digit)), $width, '0', STR_PAD_LEFT);
+            }
             $bits = ltrim($bits, '0');
             if (strlen($bits) <= 53) {
                 $value = (float) bindec($bits === '' ? '0' : $bits);
             } else {
                 $significand = bindec(substr($bits, 0, 53));
-                if ($bits[53] === '1' && (str_contains(substr($bits, 54), '1') || fmod((float) $significand, 2.0) !== 0.0)) $significand++;
+                if ($bits[53] === '1' && (str_contains(substr($bits, 54), '1') || fmod((float) $significand, 2.0) !== 0.0)) {
+                    $significand++;
+                }
                 $value = (float) $significand * 2 ** (strlen($bits) - 53);
             }
         } elseif (preg_match('/^[+-]?(?:[0-9]+\.?[0-9]*|\.[0-9]+)(?:[eE][+-]?[0-9]+)?$/D', $text)) {
@@ -127,13 +141,19 @@ final class RecordStore
         } else {
             throw new InvalidArgumentException('Expected a number');
         }
-        if (!is_finite($value)) throw new InvalidArgumentException('Expected a finite number');
+        if (!is_finite($value)) {
+            throw new InvalidArgumentException('Expected a finite number');
+        }
         return floor($value) === $value && abs($value) <= 9007199254740991.0 ? (int) $value : $value;
     }
 
     private static function indexOf(array $records, string $id): ?int
     {
-        foreach ($records as $index => $record) if ($record->id === $id) return $index;
+        foreach ($records as $index => $record) {
+            if ($record->id === $id) {
+                return $index;
+            }
+        }
         return null;
     }
 
@@ -144,9 +164,13 @@ final class RecordStore
      */
     private static function records(mixed $value, string $name): array
     {
-        if (!is_array($value) || !array_is_list($value)) throw new RuntimeException("Malformed $name: expected a records array");
+        if (!is_array($value) || !array_is_list($value)) {
+            throw new RuntimeException("Malformed $name: expected a records array");
+        }
         foreach ($value as $record) {
-            if (!$record instanceof stdClass || array_map('strval', array_keys(get_object_vars($record))) !== self::RECORD_MEMBERS) throw new RuntimeException("Malformed $name: expected the record members");
+            if (!$record instanceof stdClass || array_map('strval', array_keys(get_object_vars($record))) !== self::RECORD_MEMBERS) {
+                throw new RuntimeException("Malformed $name: expected the record members");
+            }
             foreach (self::RECORD_MEMBERS as $member) {
                 $item = $record->$member;
                 $valid = match ($member) {
@@ -155,7 +179,9 @@ final class RecordStore
                     'companies' => true,
                     default => is_string($item),
                 };
-                if (!$valid) throw new RuntimeException("Malformed $name: expected the record member $member");
+                if (!$valid) {
+                    throw new RuntimeException("Malformed $name: expected the record member $member");
+                }
             }
             try {
                 $companies = FormShape::shaped($record->companies, FormShape::COMPANIES, false, 'companies');
@@ -163,7 +189,9 @@ final class RecordStore
                 throw new RuntimeException("Malformed $name: {$error->getMessage()}", 0, $error);
             }
             // A stored record holds its companies complete, in member order.
-            if (FormJson::encode($companies) !== FormJson::encode($record->companies)) throw new RuntimeException("Malformed $name: expected complete companies in member order");
+            if (FormJson::encode($companies) !== FormJson::encode($record->companies)) {
+                throw new RuntimeException("Malformed $name: expected complete companies in member order");
+            }
         }
         return $value;
     }
@@ -172,7 +200,9 @@ final class RecordStore
     private function locked(callable $operation): mixed
     {
         $handle = fopen($this->file . '.lock', 'c');
-        if ($handle === false || !flock($handle, LOCK_EX)) throw new RuntimeException('Cannot lock the record store');
+        if ($handle === false || !flock($handle, LOCK_EX)) {
+            throw new RuntimeException('Cannot lock the record store');
+        }
         try {
             return $operation();
         } finally {
@@ -186,11 +216,17 @@ final class RecordStore
     {
         $json = FormJson::encode($records) . "\n";
         $temporary = tempnam(dirname($this->file), '.records-');
-        if ($temporary === false) throw new RuntimeException('Cannot create the record store file');
+        if ($temporary === false) {
+            throw new RuntimeException('Cannot create the record store file');
+        }
         try {
-            if (file_put_contents($temporary, $json) !== strlen($json) || !rename($temporary, $this->file)) throw new RuntimeException('Cannot write the record store');
+            if (file_put_contents($temporary, $json) !== strlen($json) || !rename($temporary, $this->file)) {
+                throw new RuntimeException('Cannot write the record store');
+            }
         } finally {
-            if (is_file($temporary)) unlink($temporary);
+            if (is_file($temporary)) {
+                unlink($temporary);
+            }
         }
     }
 
@@ -203,7 +239,9 @@ final class RecordStore
                 $before = $this->fixture();
             } else {
                 $text = file_get_contents($this->file);
-                if (!is_string($text)) throw new RuntimeException('Cannot read the record store');
+                if (!is_string($text)) {
+                    throw new RuntimeException('Cannot read the record store');
+                }
                 try {
                     $before = self::records(FormJson::decode($text), 'record store');
                 } catch (Throwable $error) {
@@ -211,7 +249,9 @@ final class RecordStore
                 }
             }
             [$after, $result] = $operation($before);
-            if ($missing || $after !== $before) $this->replace($after);
+            if ($missing || $after !== $before) {
+                $this->replace($after);
+            }
             return $result;
         });
     }

@@ -38,7 +38,9 @@ final class ValidateConformanceTest extends TestCase
         $out = [];
         foreach ($cases as $index => $case) {
             foreach (['spec', 'data', 'files'] as $key) {
-                if (property_exists($objects[$index], $key)) $case[$key] = $objects[$index]->{$key};
+                if (property_exists($objects[$index], $key)) {
+                    $case[$key] = $objects[$index]->{$key};
+                }
             }
             $out[$case['name']] = [$case];
         }

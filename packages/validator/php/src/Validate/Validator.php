@@ -732,8 +732,10 @@ final class Validator
                     continue;
                 }
                 $key = (string) $key;
-                if ($isFilterCondition
-                    && !$this->itemPassesCondition($ruleParam, [...$containerPath, $key, $fieldName], $rowKeys, $allData)) {
+                if (
+                    $isFilterCondition
+                    && !$this->itemPassesCondition($ruleParam, [...$containerPath, $key, $fieldName], $rowKeys, $allData)
+                ) {
                     continue;
                 }
                 $itemValueKey = $this->canonicalKey($itemValue);
@@ -882,7 +884,9 @@ final class Validator
             ?? self::DEFAULT_MESSAGES[$ruleName]
             ?? 'Validation failed.';
 
-        if ($message instanceof \stdClass) $message = (array) $message;
+        if ($message instanceof \stdClass) {
+            $message = (array) $message;
+        }
         if (is_array($message)) {
             $message = $message['en'] ?? $message['ko'] ?? (reset($message) ?: 'Validation failed.');
         }

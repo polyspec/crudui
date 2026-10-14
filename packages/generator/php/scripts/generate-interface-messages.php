@@ -1,10 +1,12 @@
 <?php
+
 /**
  * Generate src/Internal/InterfaceMessages.php from contracts/interface-messages.json.
  *
  * Run: php packages/generator/php/scripts/generate-interface-messages.php
  * With --stdout the source is printed instead of written.
  */
+
 declare(strict_types=1);
 
 $root = dirname(__DIR__, 4);

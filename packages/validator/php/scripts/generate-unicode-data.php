@@ -1,10 +1,12 @@
 <?php
+
 /**
  * Generate src/Values/UnicodeData.php from contracts/unicode-properties.json.
  *
  * Run: php packages/validator/php/scripts/generate-unicode-data.php
  * With --stdout the source is printed instead of written.
  */
+
 declare(strict_types=1);
 
 $root = dirname(__DIR__, 4);

@@ -141,14 +141,16 @@ final class Parser
             return new InNode($negated, $left, $list);
         }
 
-        if ($this->match(
-            TokenType::EQ,
-            TokenType::NE,
-            TokenType::GT,
-            TokenType::GE,
-            TokenType::LT,
-            TokenType::LE,
-        )) {
+        if (
+            $this->match(
+                TokenType::EQ,
+                TokenType::NE,
+                TokenType::GT,
+                TokenType::GE,
+                TokenType::LT,
+                TokenType::LE,
+            )
+        ) {
             $operator = $this->previous()->value;
             $right = $this->parseComparisonValue();
             $this->node(max($leftHeight, $this->height));

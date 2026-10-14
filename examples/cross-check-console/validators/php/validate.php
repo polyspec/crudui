@@ -55,17 +55,29 @@ try {
 } catch (JsonException) {
     reject('Request must be valid JSON');
 }
-if (!$request instanceof stdClass) reject('Request must be an object');
-if (!property_exists($request, 'spec') || !$request->spec instanceof stdClass) reject('Request spec must be an object');
+if (!$request instanceof stdClass) {
+    reject('Request must be an object');
+}
+if (!property_exists($request, 'spec') || !$request->spec instanceof stdClass) {
+    reject('Request spec must be an object');
+}
 $mode = property_exists($request, 'mode') ? $request->mode : 'form';
-if (!in_array($mode, ['form', 'list', 'detail'], true)) reject('Unsupported validation mode');
+if (!in_array($mode, ['form', 'list', 'detail'], true)) {
+    reject('Unsupported validation mode');
+}
 $files = $request->files ?? new stdClass();
-if (!$files instanceof stdClass) reject('Request files must be an object');
+if (!$files instanceof stdClass) {
+    reject('Request files must be an object');
+}
 foreach ($files as $file) {
-    if (!$file instanceof stdClass) reject('Request files must contain objects');
+    if (!$file instanceof stdClass) {
+        reject('Request files must contain objects');
+    }
 }
 $basepath = $request->basepath ?? '';
-if (!is_string($basepath)) reject('Request basepath must be a string');
+if (!is_string($basepath)) {
+    reject('Request basepath must be a string');
+}
 
 try {
     $options = ['files' => $files, 'basepath' => $basepath];

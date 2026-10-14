@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 /**
@@ -27,8 +28,12 @@ final class FormShape
     public static function shaped(mixed $value, string|array $shape, bool $native, string $path): string|stdClass
     {
         if (is_string($shape)) {
-            if (!is_string($value)) throw new InvalidArgumentException("Expected text at $path");
-            if ($shape === 'checkbox' && !in_array($value, ['', '1'], true)) throw new InvalidArgumentException("Expected \"\" or \"1\" at $path");
+            if (!is_string($value)) {
+                throw new InvalidArgumentException("Expected text at $path");
+            }
+            if ($shape === 'checkbox' && !in_array($value, ['', '1'], true)) {
+                throw new InvalidArgumentException("Expected \"\" or \"1\" at $path");
+            }
             return $value;
         }
         $given = self::object($value, $native, $path);
@@ -36,7 +41,9 @@ final class FormShape
         if (isset($shape['rows'])) {
             foreach ($given as $key => $row) {
                 $key = (string) $key;
-                if (!preg_match('/^__[0-9a-f]{13}__$/D', $key)) throw new InvalidArgumentException("Expected a row key at $path: $key");
+                if (!preg_match('/^__[0-9a-f]{13}__$/D', $key)) {
+                    throw new InvalidArgumentException("Expected a row key at $path: $key");
+                }
                 $result->$key = self::shaped($row, $shape['rows'], $native, "$path.$key");
             }
             return $result;
@@ -45,12 +52,18 @@ final class FormShape
         $members = isset($shape['texts']) ? array_fill_keys($shape['texts'], 'text') : $shape['fields'];
         $required = isset($shape['texts']) ? $shape['texts'] : ($shape['required'] ?? []);
         foreach (array_keys($given) as $name) {
-            if (!array_key_exists((string) $name, $members)) throw new InvalidArgumentException("Unexpected member $path.$name");
+            if (!array_key_exists((string) $name, $members)) {
+                throw new InvalidArgumentException("Unexpected member $path.$name");
+            }
         }
         foreach ($members as $name => $member) {
-            if (array_key_exists($name, $given)) $result->$name = self::shaped($given[$name], $member, $native, "$path.$name");
-            elseif (in_array($name, $required, true)) throw new InvalidArgumentException("Missing member $path.$name");
-            else $result->$name = self::empty($member);
+            if (array_key_exists($name, $given)) {
+                $result->$name = self::shaped($given[$name], $member, $native, "$path.$name");
+            } elseif (in_array($name, $required, true)) {
+                throw new InvalidArgumentException("Missing member $path.$name");
+            } else {
+                $result->$name = self::empty($member);
+            }
         }
         return $result;
     }
@@ -58,15 +71,21 @@ final class FormShape
     /** The value of an absent field: empty text, empty texts or no rows. */
     private static function empty(string|array $shape): string|stdClass
     {
-        if (is_string($shape)) return '';
+        if (is_string($shape)) {
+            return '';
+        }
         return (object) array_fill_keys($shape['texts'] ?? [], '');
     }
 
     /** Return the members of a JSON object or of native nested fields (an array that is not a list). */
     private static function object(mixed $value, bool $native, string $path): array
     {
-        if (!$native && $value instanceof stdClass) return get_object_vars($value);
-        if ($native && is_array($value) && ($value === [] || !array_is_list($value))) return $value;
+        if (!$native && $value instanceof stdClass) {
+            return get_object_vars($value);
+        }
+        if ($native && is_array($value) && ($value === [] || !array_is_list($value))) {
+            return $value;
+        }
         throw new InvalidArgumentException("Expected an object at $path");
     }
 }

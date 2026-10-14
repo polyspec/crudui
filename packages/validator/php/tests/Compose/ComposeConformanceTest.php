@@ -102,7 +102,9 @@ final class ComposeConformanceTest extends TestCase
     /** Compare composed values without requiring identical member or numeric representations. */
     private static function normalize(mixed $v): mixed
     {
-        if ($v instanceof \stdClass) $v = (array) $v;
+        if ($v instanceof \stdClass) {
+            $v = (array) $v;
+        }
         if (\is_array($v)) {
             if (\array_is_list($v)) {
                 return \array_map([self::class, 'normalize'], $v);

@@ -95,8 +95,10 @@ final class Membership
         $values = [];
         $seen = [];
         $add = static function (mixed $item) use (&$values, &$seen): bool {
-            if (!$item instanceof \stdClass || \count(get_object_vars($item)) !== 2
-                || !property_exists($item, 'value') || !property_exists($item, 'label')) {
+            if (
+                !$item instanceof \stdClass || \count(get_object_vars($item)) !== 2
+                || !property_exists($item, 'value') || !property_exists($item, 'label')
+            ) {
                 return false;
             }
             $value = $item->value;
@@ -114,8 +116,10 @@ final class Membership
         foreach ($list as $item) {
             if ($item instanceof \stdClass && property_exists($item, 'choices')) {
                 $choices = $item->choices;
-                if (\count(get_object_vars($item)) !== 2 || !property_exists($item, 'label')
-                    || !\is_array($choices) || !array_is_list($choices) || $choices === []) {
+                if (
+                    \count(get_object_vars($item)) !== 2 || !property_exists($item, 'label')
+                    || !\is_array($choices) || !array_is_list($choices) || $choices === []
+                ) {
                     return null;
                 }
                 foreach ($choices as $choice) {

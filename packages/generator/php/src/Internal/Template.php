@@ -415,8 +415,10 @@ final class Template
             }
             $members = array_map('strval', array_keys((array) $field));
             sort($members);
-            if ($members !== ['children', 'name', 'spec'] || !is_string($field->name)
-                || !$field->spec instanceof stdClass || !self::fieldList($field->children)) {
+            if (
+                $members !== ['children', 'name', 'spec'] || !is_string($field->name)
+                || !$field->spec instanceof stdClass || !self::fieldList($field->children)
+            ) {
                 return false;
             }
         }

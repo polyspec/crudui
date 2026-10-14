@@ -237,9 +237,11 @@ final class PatternLanguageTest extends TestCase
 
     public function testParameterFailures(): void
     {
-        foreach ([[5, 'Invalid match parameter: expected a pattern string', 'INVALID_RULE_PARAMETER'],
+        foreach (
+            [[5, 'Invalid match parameter: expected a pattern string', 'INVALID_RULE_PARAMETER'],
             [['a'], 'Invalid match parameter: expected a pattern string', 'INVALID_RULE_PARAMETER'],
-            ['a(', 'Invalid match pattern: unterminated group at 2', 'INVALID_RULE_PATTERN']] as [$parameter, $message, $code]) {
+            ['a(', 'Invalid match pattern: unterminated group at 2', 'INVALID_RULE_PATTERN']] as [$parameter, $message, $code]
+        ) {
             try {
                 PatternParameter::compile('match', $parameter);
                 self::fail('accepted ' . var_export($parameter, true));

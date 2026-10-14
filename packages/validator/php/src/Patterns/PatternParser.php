@@ -203,8 +203,10 @@ final class PatternParser
                 }
             }
         }
-        if ($minimum === null || !$this->is($this->position, '}') || $minimum > self::MAXIMUM_BOUND
-            || ($maximum !== null && ($maximum < $minimum || $maximum > self::MAXIMUM_BOUND))) {
+        if (
+            $minimum === null || !$this->is($this->position, '}') || $minimum > self::MAXIMUM_BOUND
+            || ($maximum !== null && ($maximum < $minimum || $maximum > self::MAXIMUM_BOUND))
+        ) {
             throw new PatternSyntaxError('invalid quantifier', $at);
         }
         $this->position++;
@@ -457,8 +459,10 @@ final class PatternParser
         $digits = '';
         for ($index = $start; $index < $this->length && \strlen($digits) < $limit; $index++) {
             $character = $this->source[$index];
-            if (!(($character >= 0x30 && $character <= 0x39) || ($character >= 0x41 && $character <= 0x46)
-                || ($character >= 0x61 && $character <= 0x66))) {
+            if (
+                !(($character >= 0x30 && $character <= 0x39) || ($character >= 0x41 && $character <= 0x46)
+                || ($character >= 0x61 && $character <= 0x66))
+            ) {
                 break;
             }
             $digits .= \chr($character);

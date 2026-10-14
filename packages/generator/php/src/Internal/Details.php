@@ -77,9 +77,12 @@ final class Details
         $body = '';
         foreach ($model->fields as $field) {
             $cell = (object) ['display' => $field->display, 'design' => $field->design, 'format' => $field->format];
-            $body .= Rendering::element('div', ['class' => 'crudui-detail__field'],
+            $body .= Rendering::element(
+                'div',
+                ['class' => 'crudui-detail__field'],
                 Rendering::element('dt', ['class' => 'crudui-detail__label'], Rendering::text($field->label)) .
-                Lists::renderCell($cell, 'dd', 'crudui-detail__value crudui-value crudui-value--' . $field->format->type));
+                Lists::renderCell($cell, 'dd', 'crudui-detail__value crudui-value crudui-value--' . $field->format->type)
+            );
         }
         return self::preloads($model) . Lists::actionsHtml($model->actions, 'crudui-detail') . Rendering::element('dl', $attrs, $body);
     }

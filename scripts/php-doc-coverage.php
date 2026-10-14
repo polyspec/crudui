@@ -1,5 +1,7 @@
 <?php
+
 /** Check documentation and source provenance for both public PHP packages. */
+
 declare(strict_types=1);
 
 /**

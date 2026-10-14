@@ -354,7 +354,8 @@ final class FormTest extends TestCase
         $form->setValue('name', '');
         self::assertSame('crudui-action crudui-action--text', $form->getButtons()[0]->attrs->class);
         self::assertSame('{"kind":"crudui/form-template","fields":[{"name":"name","spec":{"type":"text"},"children":[]}],"buttons":[{"type":"submit"}]}', json_encode(Generator::compileForm(self::object('{"type":"group","properties":{"name":{"type":"text"}}}')), JSON_UNESCAPED_SLASHES));
-        foreach ([
+        foreach (
+            [
             ['{"buttons":{}}', 'Invalid buttons at form: expected a list of buttons'],
             ['{"buttons":[{"type":"image"}]}', 'Invalid buttons.0.type at form: expected submit, reset, button or link'],
             ['{"buttons":[{"type":"button"}]}', 'Invalid buttons.0.text at form: expected content for this button type'],
@@ -363,7 +364,8 @@ final class FormTest extends TestCase
             ['{"buttons":[{"type":"submit","design":[]}]}', 'Invalid design at form.buttons.0: expected a boolean or an object'],
             ['{"action":"post"}', 'Invalid action at form: expected an object'],
             ['{"action":{"url":false}}', 'Invalid action.url at form: expected a string'],
-        ] as [$extra, $message]) {
+            ] as [$extra, $message]
+        ) {
             $invalid = self::object('{"type":"group","properties":{"name":{"type":"text"}}}');
             foreach ((array) self::object($extra) as $key => $value) {
                 $invalid->{$key} = $value;
