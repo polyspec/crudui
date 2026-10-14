@@ -63,3 +63,24 @@ export function script(manifest: Manifest, name: string): string {
   return command;
 }
 
+
+/**
+ * The render options of a complete form case that renders (tests/fixtures/form-complete/cases.json): the members of
+ * FormRenderOptions of @polyspec/crudui-generator-core. A node error may carry the other members of a validation error.
+ */
+export interface RenderOptions {
+  action?: { method?: string; url?: string; enctype?: string };
+  hidden?: Record<string, string>;
+  formErrors?: string[];
+  errors?: Array<{ path: string; message: string }>;
+}
+
+/** The JSON Type Definition of RenderOptions. */
+export const renderOptionsSchema: JTDSchemaType<RenderOptions> = {
+  optionalProperties: {
+    action: { optionalProperties: { method: { type: 'string' }, url: { type: 'string' }, enctype: { type: 'string' } } },
+    hidden: { values: { type: 'string' } },
+    formErrors: { elements: { type: 'string' } },
+    errors: { elements: { properties: { path: { type: 'string' }, message: { type: 'string' } }, additionalProperties: true } },
+  },
+};

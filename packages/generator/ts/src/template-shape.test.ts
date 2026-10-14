@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import { describe, expect, it } from 'vitest';
 import { FormInputError } from '@polyspec/crudui-validator';
 import { bindButtons, bindForm, compileForm, createForm } from './index';
+import { isRecord } from './util';
 
 type TemplateRecord = Record<string, unknown>;
-const isRecord = (value: unknown): value is TemplateRecord => value !== null && typeof value === 'object' && !Array.isArray(value);
 /** A compiled template as decoded JSON, which a test reshapes. */
 const compiled = (): TemplateRecord => {
   const template: unknown = JSON.parse(JSON.stringify(compileForm({ type: 'group', properties: { name: { type: 'text' } } })));
@@ -60,6 +60,16 @@ describe('form template shape', () => {
       expect(() => run(reshaped(t => { t.keyPrefix = 'p'; t.action = { url: '/save' }; }))).not.toThrow();
     });
   }
+  it('bindButtons rejects a button whose type is no form button type', () => {
+    const template = reshaped(t => {
+      assert(Array.isArray(t.buttons), 'a compiled template has a list of buttons');
+      const button: unknown = t.buttons[0];
+      assert(isRecord(button), 'a compiled button is an object');
+      button.type = 'other';
+    });
+    // @ts-expect-error: a reshaped template is a record, which the type FormTemplate does not accept.
+    expect(() => bindButtons(template)).toThrow(new FormInputError('Invalid button type: other'));
+  });
   it('treats an undefined member as absent', () => {
     const template = compileForm({ type: 'group', properties: { name: { type: 'text' } } });
     expect(() => bindForm({ ...template, keyPrefix: undefined })).not.toThrow();

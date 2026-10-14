@@ -44,6 +44,7 @@ import type { FileLoader } from '../compose/index';
 import type { FileSet, ListValidationResult } from '../types';
 import { scanForbiddenKeys } from '../forbidden-scan';
 import { checkOptionText, checkedComposition } from '../text/index';
+import { isRecord } from '../record';
 
 /** Options for a CRUDUI list validation run (mirrors `ValidateOptions`). */
 export interface ValidateListOptions {
@@ -53,11 +54,6 @@ export interface ValidateListOptions {
   loader?: FileLoader;
   /** Basepath for relative `$ref` resolution. */
   basepath?: string;
-}
-
-/** Whether `v` is a plain (non-array) object. */
-function isObject(v: unknown): v is Record<string, unknown> {
-  return v !== null && typeof v === 'object' && !Array.isArray(v);
 }
 
 /**
@@ -97,7 +93,7 @@ export function validateList(
   // columns is the composition ENTRY POINT (read mirror of form-spec
   // `properties`): $ref/$patch on the columns map expand through composeProperties
   // — the SAME engine. An unresolved columns $ref throws ComposeLoadError.
-  if (isObject(composed.columns)) {
+  if (isRecord(composed.columns)) {
     composed = {
       ...composed,
       columns: composeProperties(
@@ -111,7 +107,7 @@ export function validateList(
   // search is INPUT — a form-spec reference (SPEC §9.1). A `{ $ref, $patch }`
   // search overlay expands through the SAME compose primitives; its expanded
   // sub-form then rides the SAME forbidden-scan below (no separate invention).
-  if (isObject(composed.search) && ('$ref' in composed.search || '$patch' in composed.search)) {
+  if (isRecord(composed.search) && ('$ref' in composed.search || '$patch' in composed.search)) {
     composed = {
       ...composed,
       search: composeProperties(

@@ -9,6 +9,7 @@ import { bindButtons, bindForm, compileForm, createForm, formDescription, formMe
 import { renderForm, renderFormView } from './index';
 import fixtureCases from '../../../tests/fixtures/form-complete/cases.json';
 import { provesConformance } from '../../../tests/conformance/evidence.mts';
+import { checked, renderOptionsSchema } from '../../../tests/json.mts';
 
 interface CompleteCase {
   name: string;
@@ -35,10 +36,10 @@ function failure(render: () => unknown): unknown {
 }
 
 /**
- * renderForm with the render options of a case, called as a JavaScript caller does (Reflect.apply): they are JSON that
- * renderForm checks, and the failing cases hold values that its type rejects.
+ * renderForm with the render options of a case that fails, called as a JavaScript caller does (Reflect.apply): they hold
+ * values that the type of the options rejects and renderForm checks at run time.
  */
-function renderCase(form: ReturnType<typeof createForm>, render: unknown): unknown {
+function renderFailingCase(form: ReturnType<typeof createForm>, render: unknown): unknown {
   return Reflect.apply(renderForm, undefined, [form, render]);
 }
 
@@ -48,8 +49,8 @@ describe('complete form: the HTML renderer writes the expected bytes or the decl
       { features: ['renderForm'], fixture: 'tests/fixtures/form-complete/cases.json', runtime: 'javascript-html', case: c.name },
       () => {
         const form = createForm(compileForm(c.spec), c.data, caseOptions(c));
-        if (c.expectError) expect(failure(() => renderCase(form, c.render))).toMatchObject(c.expectError);
-        else expect(renderCase(form, c.render)).toBe(c.expected_html);
+        if (c.expectError) expect(failure(() => renderFailingCase(form, c.render))).toMatchObject(c.expectError);
+        else expect(renderForm(form, checked(c.render, renderOptionsSchema, c.name))).toBe(c.expected_html);
       },
     ));
   }
@@ -60,9 +61,8 @@ describe('complete form: renderFormView writes the same markup from bound nodes'
     test(c.name, () => {
       const template = compileForm(c.spec);
       const options = caseOptions(c);
-      // The render options are JSON that renderFormView checks, passed as a JavaScript caller does (Reflect.apply).
-      const html: unknown = Reflect.apply(renderFormView, undefined, [bindForm(template, c.data, options),
-        bindButtons(template, c.data, options), formMessages(options.language), c.render, formDescription(template, options)]);
+      const html = renderFormView(bindForm(template, c.data, options), bindButtons(template, c.data, options),
+        formMessages(options.language), checked(c.render, renderOptionsSchema, c.name), formDescription(template, options));
       expect(html).toBe(c.expected_html);
     });
   }

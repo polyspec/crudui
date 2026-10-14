@@ -269,7 +269,7 @@ function nodeRoot(
   spec: Record<string, unknown>
 ): Pick<NodeVM, 'kind' | 'path' | 'className' | 'style' | 'attributes' | 'hidden'> {
   const style = styleString(design.wrapper.style);
-  const attributes = declaredAttributes(spec.design).wrapper;
+  const attributes = declaredAttributes(spec.design, path).wrapper;
   return {
     kind,
     path,
@@ -331,7 +331,7 @@ function buildWidget(
     keyPrefix: state.keyPrefix,
     idPrefix: state.idPrefix,
     design,
-    attributes: declaredAttributes(spec.design).control,
+    attributes: declaredAttributes(spec.design, path).control,
     t: state.t,
     rowSegments: state.rowSegments,
   };
@@ -385,7 +385,7 @@ function buildLeaf(
     // An inline layout writes the label in the label column of the header instead of the caption.
     const headerLabel = state.layout === 'inline' && label ? label : undefined;
     const header = nodeHeader(headerLabel ? { label: headerLabel, labelFor: id, description } : { description }, design);
-    const attributes = declaredAttributes(spec.design).control;
+    const attributes = declaredAttributes(spec.design, path).control;
     // A switcher is a checkbox input announced and drawn as a switch.
     const switcher = fieldType === 'switcher';
     return {

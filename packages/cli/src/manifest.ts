@@ -37,15 +37,18 @@ export interface ContractManifest {
   supportValues: string[];
 }
 
-/** contracts/features.json, checked against contracts/features.schema.json; throws with the errors of ajv when it breaks the schema. */
-export function loadManifest(): ContractManifest {
+/**
+ * The manifest `file`, contracts/features.json by default, checked against contracts/features.schema.json; throws with the
+ * errors of ajv when it breaks the schema.
+ */
+export function loadManifest(file = path): ContractManifest {
   const schema: unknown = JSON.parse(readFileSync(schemaPath, 'utf8'));
   if (schema === null || typeof schema !== 'object' || Array.isArray(schema)) throw new Error(`${schemaPath} holds no JSON object`);
   const validate = new Ajv({ allErrors: true }).compile<ContractManifest>(schema);
-  const manifest: unknown = JSON.parse(readFileSync(path, 'utf8'));
+  const manifest: unknown = JSON.parse(readFileSync(file, 'utf8'));
   if (!validate(manifest)) {
     const lines = (validate.errors ?? []).map((error) => `${error.instancePath || '/'} ${error.message ?? error.keyword}`);
-    throw new Error(`${path} breaks ${schemaPath}:\n${lines.join('\n')}`);
+    throw new Error(`${file} breaks ${schemaPath}:\n${lines.join('\n')}`);
   }
   return manifest;
 }

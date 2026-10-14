@@ -105,7 +105,8 @@ export interface ChoiceAppearance {
  */
 export function checkChoiceAppearance(items: readonly unknown[], path: string): void {
   items.forEach((item, index) => {
-    if (!isRecord(item)) return;
+    // choicePairs has accepted the list, whose every choice is an object.
+    if (!isRecord(item)) throw new FormInputError(`Invalid items at ${path}: expected ${CHOICE_LIST_EXPECTED}`);
     const choice = item;
     for (const member of ['class', 'style']) {
       if (Object.prototype.hasOwnProperty.call(choice, member) && typeof choice[member] !== 'string') {
@@ -118,12 +119,12 @@ export function checkChoiceAppearance(items: readonly unknown[], path: string): 
   });
 }
 
-/** The appearance of each choice of a checked choice list in list order; members only when declared. */
-export function choiceAppearances(items: readonly unknown[]): ChoiceAppearance[] {
-  return items.map((item) => {
+/** The appearance of each choice of the checked choice list of the field at `path` in list order; members only when declared. */
+export function choiceAppearances(items: readonly unknown[], path: string): ChoiceAppearance[] {
+  return items.map((item, index) => {
     const choice: Record<string, unknown> = isRecord(item) ? item : {};
     const style = styleString(choice.style);
-    const attributes = attributeCopy(choice.attributes);
+    const attributes = attributeCopy(choice.attributes, `items.${index}.attributes`, path);
     return {
       ...(typeof choice.class === 'string' && choice.class ? { className: choice.class } : {}),
       ...(style ? { style } : {}),

@@ -422,6 +422,8 @@ const SCENARIOS: DetailFixtureCase[] = [
 
 const cases = SCENARIOS.map((scenario) => {
   if (scenario.expectError) return scenario;
+  // The cases are the JSON of every language, called as a JavaScript caller does (Reflect.apply): a case that renders may
+  // still hold members outside the TypeScript options, such as the list members layout, page and total.
   const rendered: unknown = Reflect.apply(renderDetail, undefined, [scenario.spec, scenario.record ?? {}, scenario.options ?? {}]);
   if (typeof rendered !== 'string') throw new Error(`renderDetail returned no HTML for ${scenario.name}`);
   const html = withoutPreloadLinks(rendered);

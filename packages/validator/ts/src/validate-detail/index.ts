@@ -5,6 +5,7 @@ import { composeRoot } from '../compose-root';
 import type { FileSet, ListValidationResult } from '../types';
 import { scanForbiddenKeys } from '../forbidden-scan';
 import { checkOptionText, checkedComposition } from '../text/index';
+import { isRecord } from '../record';
 
 /** Options for a detail structure validation run. */
 export interface ValidateDetailOptions {
@@ -14,10 +15,6 @@ export interface ValidateDetailOptions {
   loader?: FileLoader;
   /** Base directory for relative composition references. */
   basepath?: string;
-}
-
-function isObject(value: unknown): value is Record<string, unknown> {
-  return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
 
 /** Validate a detail specification's composition and forbidden-key structure. */
@@ -32,7 +29,7 @@ export function validateDetail(
   const opts = options.basepath ? { basepath: options.basepath } : {};
   // The root composes exactly as a list root does.
   const composed = composeRoot(spec, loader, opts);
-  if (isObject(composed.fields)) {
+  if (isRecord(composed.fields)) {
     scanForbiddenKeys({ ...composed, fields: composeProperties(composed.fields, loader, opts) }, []);
   } else {
     scanForbiddenKeys(composed, []);

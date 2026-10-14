@@ -9,7 +9,7 @@ import { DEFAULT_FORM_BUTTONS, FORM_BUTTON_TYPES } from './buttons';
 import { formMessages } from './messages';
 import { checkFormTemplate } from './template-shape';
 import { buildField, type BuildState, type NodeVM, type UnsupportedMode } from './viewmodel';
-import { isRecord } from './util';
+import { isPlainRecord, isRecord } from './util';
 
 /** A data-independent field blueprint. Repeated children are stored just once. */
 export interface FormFieldTemplate {
@@ -73,11 +73,6 @@ export function copyFormValue(value: unknown): unknown {
 /** Copy a JSON object, its members as `copyFormValue` copies them. */
 export function copyFormRecord(value: Readonly<Record<string, unknown>>): Record<string, unknown> {
   return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, copyFormValue(v)]));
-}
-
-/** Whether a value is a plain object: one whose prototype is Object.prototype or null. */
-function isPlainRecord(value: unknown): value is Record<string, unknown> {
-  return isRecord(value) && (Object.getPrototypeOf(value) === Object.prototype || Object.getPrototypeOf(value) === null);
 }
 
 function freezeTree<T>(value: T): T {

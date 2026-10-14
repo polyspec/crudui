@@ -3,6 +3,7 @@ import { MemoryLoader, Validator } from '@polyspec/crudui-validator/internal';
 import { compileForm, bindForm, createForm, sequenceRowKey, createRowKey } from './index';
 // @ts-expect-error Shared cross-framework scenario.
 import { spec, data, companyKey, storeKey, otherStoreKey, storesPath } from '../../../../tests/fixtures/form-session/scenario.mts';
+import { checkFormTemplate } from './template-shape';
 import { childrenOf, keysOf, present } from './test-support';
 
 describe('cached structure and nested row lifecycle', () => {
@@ -18,7 +19,7 @@ describe('cached structure and nested row lifecycle', () => {
     const empty = bindForm(template);
     expect(empty[0].children?.[0].children?.find(f => f.path?.endsWith('.name'))?.widget).toBeTruthy();
     const restored: unknown = JSON.parse(cache);
-    // @ts-expect-error: a template restored from its JSON cache is decoded JSON, which bindForm checks at run time.
+    checkFormTemplate(restored);
     expect(bindForm(restored, data)).toEqual(bindForm(template, data));
     bindForm(template, { companies: {} }, { language: 'en' });
     expect(load).toHaveBeenCalledTimes(1);
