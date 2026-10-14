@@ -151,11 +151,6 @@ def replace_wildcard_with_index(path: list[str], current_path: list[str]) -> lis
     return result
 
 
-def _is_missing(value: object) -> bool:
-    """The JavaScript `undefined`, which Python holds as a distinct marker."""
-    return isinstance(value, _Undefined)
-
-
 class _Undefined:
     """The JavaScript `undefined`: a value that is absent, distinct from null."""
 

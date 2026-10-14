@@ -6,7 +6,7 @@ from typing import Any, TypeGuard
 
 from .errors import FormError
 from .template import check_declared_attributes
-from .value import MISSING, scalar, style_value
+from .value import scalar, style_value
 
 __all__ = [
     "EXPECTED",

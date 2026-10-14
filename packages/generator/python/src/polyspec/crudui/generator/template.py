@@ -16,7 +16,6 @@ from typing import Any, NoReturn, TypeGuard
 from polyspec.crudui.validator.compose import MemoryLoader, compose_properties
 from polyspec.crudui.validator.jsvalue import JsonValue
 from polyspec.crudui.validator.values import (
-    is_finite_number,
     is_multiple,
     is_number_range,
     is_step,
@@ -24,7 +23,7 @@ from polyspec.crudui.validator.values import (
 
 from . import messages as messages_module
 from .errors import FormError
-from .value import MISSING, Value, copy_value, get, object_value, record, spec_value
+from .value import MISSING, Value, copy_value, object_value, record, spec_value
 
 __all__ = [
     "check_declared_attributes",

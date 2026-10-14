@@ -28,7 +28,7 @@ def options_of(case):
     return {"files": case["files"]} if case.get("files") else {}
 
 
-class SpecValidityConformance(unittest.TestCase):
+class TestSpecValidityConformance(unittest.TestCase):
     """A forbidden meta key at any depth is a load failure; a clean spec validates empty data."""
 
     def setUp(self):
@@ -94,7 +94,7 @@ class SpecValidityConformance(unittest.TestCase):
                 proof.passed = True
 
 
-class ListValidityConformance(unittest.TestCase):
+class TestListValidityConformance(unittest.TestCase):
     """A list specification loads clean or raises the recorded load failure."""
 
     def setUp(self):
@@ -157,7 +157,7 @@ class ListValidityConformance(unittest.TestCase):
                 proof.passed = True
 
 
-class DetailValidityConformance(unittest.TestCase):
+class TestDetailValidityConformance(unittest.TestCase):
     """A detail specification loads clean or raises the recorded load failure."""
 
     def setUp(self):

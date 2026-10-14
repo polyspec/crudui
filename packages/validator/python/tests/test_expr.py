@@ -31,7 +31,7 @@ def _strip(value):
     return value
 
 
-class ExprConformance(unittest.TestCase):
+class TestExprConformance(unittest.TestCase):
     """Tokens, trees and evaluation results reproduce the fixture; errors their message."""
 
     def setUp(self):

@@ -8,10 +8,10 @@ Binding the same template twice writes the same fields.
 
 import unittest
 
-from conformance import cases_of, failure_record, html_tree, Proving, Proving
+from conformance import cases_of, failure_record, html_tree, Proving
 
 
-class FormRenderConformance(unittest.TestCase):
+class TestFormRenderConformance(unittest.TestCase):
     """The layout of the rendered form matches the shared fixture."""
 
     def setUp(self):
@@ -56,7 +56,6 @@ class FormRenderConformance(unittest.TestCase):
 
     def test_failure_cases_raise_the_recorded_code(self):
         self.assertEqual(len(self.failures), 51)
-        from polyspec.crudui.generator import Generator
 
         for case in self.failures:
             with (

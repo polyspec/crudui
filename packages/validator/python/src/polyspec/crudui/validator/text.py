@@ -10,12 +10,12 @@ at most 512 levels, so a value that contains itself is always beyond the
 limits. A container reached twice, through sharing, is walked at each place.
 """
 
-from collections.abc import Iterable, Mapping, Sequence
+from collections.abc import Iterable, Sequence
 from typing import Literal, TypeAlias, Union, cast
 
 from .compose_errors import ComposeLoadError
 from .errors import FormInputError
-from .jsvalue import JsonValue, compare_code_points, is_scalar_text
+from .jsvalue import JsonValue, is_scalar_text
 from .loader import DocumentLoader
 
 # The failure of a value: 'limit' when it is beyond the limits, {'text': path} for invalid text at a path, None when clean.
