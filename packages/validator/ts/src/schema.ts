@@ -34,6 +34,8 @@
  * custom (de)serialization that preserves the same shapes.
  */
 
+import type { MessagesSpec } from './types';
+
 // ============================================================================
 // Expression & Condition Map (G1 / expressions.md §2, §8)
 // ============================================================================
@@ -44,7 +46,7 @@
  * literals. No arithmetic, functions, methods, regex, or `eval`. A bare ternary
  * `"...?...:..."` is the shorthand of a condition map (same semantics).
  */
-type Expression = string;
+export type Expression = string;
 
 /**
  * Declaration-ordered condition map (expressions.md §8). Each key is an
@@ -69,7 +71,7 @@ export type ConditionMap<V = unknown> = {
  * The call site fixes the expected result type (boolean for `show`, string for
  * `class`/`style`, …).
  */
-type Evaluated<V = unknown> = V | Expression | ConditionMap<V>;
+export type Evaluated<V = unknown> = V | Expression | ConditionMap<V>;
 
 /**
  * Multilingual content map (G3 content translation): a value translated per
@@ -78,21 +80,21 @@ type Evaluated<V = unknown> = V | Expression | ConditionMap<V>;
  * language slot may be `null` (no value — identical to absent; no render/validate
  * effect, SPEC §2 G3).
  */
-type LangMap = Record<string, string | null>;
+export type LangMap = Record<string, string | null>;
 
 /**
  * Field content text that may be a plain string or a per-language LangMap (G3).
  * Empty content is omitted or `null` — `null` is identical to absent and has no
  * render/validate effect (SPEC §2 G3).
  */
-type LocalizedText = string | LangMap | null;
+export type LocalizedText = string | LangMap | null;
 
 /**
  * Composition reference: one file path, or a list of paths resolved in
  * declaration order where a later path overrides an earlier one. A path may
  * select a fragment of a file as `(file.yml).key`.
  */
-type Reference = string | string[];
+export type Reference = string | string[];
 
 
 /**
@@ -100,7 +102,7 @@ type Reference = string | string[];
  * nullifies composed inheritance); `true` is the shorthand for `{}` (default
  * on); an object carries the slot's settings.
  */
-type Slot<T> = false | true | T;
+export type Slot<T> = false | true | T;
 
 // ============================================================================
 // Field Spec (top-level — structure / identity / content + role slots)
@@ -136,8 +138,8 @@ export interface FieldSpec {
    */
   properties?: Properties;
   /**
-   * Structure — option source. Static array, or a dynamic `{ model, method,
-   * table, relations }` source. A dependency-isolation bucket and first-class.
+   * Structure — option source. Static array, or a dynamic
+   * `{ model, method, table, relations }` source. A dependency-isolation bucket and first-class.
    */
   items?: Items;
   /**
@@ -173,7 +175,7 @@ export interface FieldSpec {
   /** Role slot — validation (SPEC §3 common-role distribution). */
   validate?: Slot<ValidateSlot>;
   /** Error message overrides by rule name, beside the rules they belong to. */
-  messages?: import('./types').MessagesSpec;
+  messages?: MessagesSpec;
   /**
    * Role slot — appearance = visibility + per-node external appearance map, with the attributes
    * the field declares for its control and node root.
@@ -228,7 +230,7 @@ export interface RangeFieldSpec extends FieldSpec {
 }
 
 /** One form button. A button or link needs text; a link needs href. */
-interface FormButton {
+export interface FormButton {
   /** Button type; a link renders an anchor. */
   type: 'submit' | 'reset' | 'button' | 'link';
   /** Button text; submit and reset default to interface text. */
@@ -246,7 +248,7 @@ interface FormButton {
 }
 
 /** Submission target of the form, kept unchanged in the template. */
-interface FormAction {
+export interface FormAction {
   /** HTTP method. */
   method?: string;
   /** Submission URL. */
@@ -260,7 +262,7 @@ interface FormAction {
  * alongside named child fields; the parser expands composition first, then the
  * field layer.
  */
-type Properties = {
+export type Properties = {
   /** Base inheritance for the whole child map. */
   $ref?: Reference;
   /** Composition change directive for the child map. */
@@ -274,7 +276,7 @@ type Properties = {
  * (set/replace); the resolution order is `$ref` → `$patch` → single spec →
  * field layer.
  */
-interface PatchDirective {
+export interface PatchDirective {
   /** Deep-path key (e.g. `'field.validate.required'`) → patched value. */
   [path: string]: unknown;
 }
@@ -295,7 +297,7 @@ interface PatchDirective {
  * parameter unchanged, so they take no condition map. No other rule name exists:
  * the meta-schema rejects it and the runtime fails the load with `UNKNOWN_RULE`.
  */
-interface ValidateSlot {
+export interface ValidateSlot {
   /** Requires a supplied, nonempty value when enabled. */
   required?: Evaluated<boolean | null>;
   /** Requires a syntactically valid email address when enabled. */
@@ -354,7 +356,7 @@ interface ValidateSlot {
  * Per-node appearance: `class`/`style` for one DOM node. Both values are
  * evaluated (expression or condition map) and yield strings.
  */
-interface DesignNode {
+export interface DesignNode {
   /** CSS class for this node (evaluated → string). */
   class?: Evaluated<string>;
   /** Inline style for this node (evaluated → string). */
@@ -388,16 +390,16 @@ export interface DesignSlot {
  * Attributes a form field declares for an element: a `data-*` or `aria-*` name that crudui does
  * not write, to a literal string value (docs/spec/schema.md, Declared attributes).
  */
-type DeclaredAttributes = Record<string, string>;
+export type DeclaredAttributes = Record<string, string>;
 
 /** The wrapper node of a form field: appearance and the attributes of the node root. */
-interface FieldWrapperNode extends DesignNode {
+export interface FieldWrapperNode extends DesignNode {
   /** Attributes written on the node root after the attributes crudui writes. */
   attributes?: DeclaredAttributes;
 }
 
 /** The design slot of a form field: the design slot with declared attributes and a group's layout. */
-interface FieldDesignSlot extends DesignSlot {
+export interface FieldDesignSlot extends DesignSlot {
   /** Attributes written on the field's control after the attributes crudui writes. */
   attributes?: DeclaredAttributes;
   /**
@@ -417,7 +419,7 @@ interface FieldDesignSlot extends DesignSlot {
  * A behavior entry: an opaque client-JS script string, or `{ script, label }`
  * where the action label sits adjacent (`behavior.{action}.label`).
  */
-type BehaviorEntry =
+export type BehaviorEntry =
   | string
   | {
       /** Opaque client-JS passed through verbatim (not parsed by the engine). */
@@ -431,7 +433,7 @@ type BehaviorEntry =
  * passed through verbatim and never routed through the expression engine.
  * `behavior: false` nullifies composed inheritance.
  */
-interface BehaviorSlot {
+export interface BehaviorSlot {
   /** Change handler (opaque script). */
   onchange?: BehaviorEntry;
   /** Click handler (opaque script). */
@@ -453,7 +455,7 @@ interface BehaviorSlot {
  * scripts/callbacks live here too. The listed keys are common examples; the
  * index signature admits any type-specific key.
  */
-interface OptionsSlot {
+export interface OptionsSlot {
   /** Minimum keyword length (e.g. autocomplete trigger). */
   keyword_min_length?: number;
   /** Whether the map marker is draggable. */
@@ -498,7 +500,7 @@ interface OptionsSlot {
  * runtime's job, out of scope here (SPEC §6 R1: types preserve, validation
  * blocks; never model runtime resolution into the type).
  */
-interface ItemsModel {
+export interface ItemsModel {
   /** Primary table the rows are drawn from. */
   table?: string;
   /** Join/relation descriptors (each row links a related table to a column pair). */
@@ -521,7 +523,7 @@ interface ItemsModel {
  * here — the runtime calls `api_server`, runs the `model` query, and replaces
  * the placeholder. Runtime resolution is out of scope (SPEC §6 R1).
  */
-interface ItemsSource {
+export interface ItemsSource {
   /**
    * Data model the options are loaded from. Either a model-name string OR a
    * nested `{ table, relations, keys }` relational query.
@@ -565,7 +567,7 @@ export type Items = StaticItem[] | ChoiceItems | ItemLabelMap | ItemsSource;
  * One choice of a choice list (docs/spec/schema.md, "Choice lists"). The option value is
  * the canonical text of `value`; the list order is the display order for any values.
  */
-interface ChoicePair {
+export interface ChoicePair {
   /** Option value: a string or a finite number, distinct by canonical text in its list. */
   value: string | number;
   /** Display label of the value. */
@@ -573,14 +575,14 @@ interface ChoicePair {
 }
 
 /** Choices in list order for any values. */
-type ChoiceList = ChoicePair[];
+export type ChoiceList = ChoicePair[];
 
 /**
  * One choice of a field's `items` (docs/spec/schema.md, "Choice appearance"). In a choice or
  * multichoice field it may declare the appearance of its label and input; binding rejects these
  * members in other fields.
  */
-interface ChoiceItem extends ChoicePair {
+export interface ChoiceItem extends ChoicePair {
   /** Class of the choice's label, after the label classes. */
   class?: string;
   /** Inline style of the choice's label. */
@@ -593,7 +595,7 @@ interface ChoiceItem extends ChoicePair {
  * A group of choices in a choice list (docs/spec/schema.md, "Choice groups"). Only the choice list
  * of a select field and the `in` rule accept groups; binding rejects a group in other fields.
  */
-interface ChoiceGroup {
+export interface ChoiceGroup {
   /** Display label of the group. */
   label: ItemLabel;
   /** One or more choices of the group in list order; their values are distinct across the list. */
@@ -601,7 +603,7 @@ interface ChoiceGroup {
 }
 
 /** The choices and groups of a field's `items` in list order. */
-type ChoiceItems = Array<ChoiceItem | ChoiceGroup>;
+export type ChoiceItems = Array<ChoiceItem | ChoiceGroup>;
 
 /**
  * A static option label (display only). A plain string or a per-language LangMap
@@ -609,7 +611,7 @@ type ChoiceItems = Array<ChoiceItem | ChoiceGroup>;
  * for display, so the label never participates in membership. Empty label may be
  * `null` (SPEC §2 G3).
  */
-type ItemLabel = LocalizedText;
+export type ItemLabel = LocalizedText;
 
 /**
  * Static value→label map (SPEC §2 G3): the key is the option value (the
@@ -617,10 +619,10 @@ type ItemLabel = LocalizedText;
  * e.g. `{ "0": { ko: '미사용', en: 'Off' }, "1": { ko: '사용', en: 'On' } }`.
  * The label is display-only; a LangMap label is NOT a membership value.
  */
-type ItemLabelMap = Record<string, ItemLabel>;
+export type ItemLabelMap = Record<string, ItemLabel>;
 
 /** A label of an array whose indexes are the values. */
-type StaticItem = ItemLabel;
+export type StaticItem = ItemLabel;
 
 // ============================================================================
 // multiple bucket (repeated rows — multiple-dependent keys live under it)
@@ -644,7 +646,7 @@ type StaticItem = ItemLabel;
 export type Multiple = boolean | 'only' | MultipleSettings;
 
 /** Repeated-row settings object (kept under `multiple`). */
-interface MultipleSettings {
+export interface MultipleSettings {
   /**
    * Rows exist only in the data: the data keys are the rows and the form offers
    * no row controls. With `true`, only `title` and `header` may accompany it.
@@ -687,7 +689,7 @@ export type Lang = boolean | LangSettings;
  * the allowlist restricts which languages render, the override map redefines
  * slots per language.
  */
-interface LangOverride {
+export interface LangOverride {
   /** Validation rules for this language input. */
   validate?: Slot<ValidateSlot>;
   /** Appearance settings for this language input. */
@@ -698,10 +700,10 @@ interface LangOverride {
   options?: Slot<OptionsSlot>;
 }
 /** Per-language overrides indexed by language code. */
-type LangOverrideMap = Record<string, LangOverride>;
+export type LangOverrideMap = Record<string, LangOverride>;
 
 /** Input multilingual settings object (kept under `lang`). */
-interface LangSettings {
+export interface LangSettings {
   /** Expansion mode (e.g. append). */
   mode?: string;
   /**

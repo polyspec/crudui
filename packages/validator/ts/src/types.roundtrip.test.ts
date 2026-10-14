@@ -13,23 +13,15 @@
  *    the Go (custom UnmarshalJSON / order-preserving PropertyMap) and Rust
  *    (serde untagged + preserve_order) siblings carry the equivalent guarantee.
  *  - Type assignability: each shape compiles against `FieldSpec` (the type IS
- *    the schema for the reference layer).
+ *    the schema for the reference layer), imported from the package entry,
+ *    which exports the authoring types.
  *  - Forbidden meta keys: the canonical enumeration and the `x{key}` pattern are
  *    pinned so tooling can assert global rejection.
  */
 
 import { describe, it, expect, expectTypeOf } from 'vitest';
-import {
-  type FieldSpec,
-  type ConditionMap,
-  type DesignSlot,
-  type Multiple,
-  type Lang,
-  type Items,
-  type RangeFieldSpec,
-  FORBIDDEN_META_KEYS,
-  FORBIDDEN_META_KEY_PATTERN,
-} from './schema';
+import type { FieldSpec, ConditionMap, DesignSlot, Multiple, Lang, Items, RangeFieldSpec } from './index';
+import { FORBIDDEN_META_KEYS, FORBIDDEN_META_KEY_PATTERN } from './internal';
 
 /** Parse → re-serialize and assert byte identity (canonical round trip). */
 function roundTrip(json: string): void {

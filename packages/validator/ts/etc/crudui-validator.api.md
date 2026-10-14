@@ -5,6 +5,45 @@
 ```ts
 
 // @public
+export type BehaviorEntry = string | {
+    script?: string;
+    label?: LocalizedText;
+};
+
+// @public
+export interface BehaviorSlot {
+    [action: string]: BehaviorEntry | undefined;
+    onchange?: BehaviorEntry;
+    onclick?: BehaviorEntry;
+    onload?: BehaviorEntry;
+}
+
+// @public
+export interface ChoiceGroup {
+    choices: ChoicePair[];
+    label: ItemLabel;
+}
+
+// @public
+export interface ChoiceItem extends ChoicePair {
+    attributes?: DeclaredAttributes;
+    class?: string;
+    style?: string;
+}
+
+// @public
+export type ChoiceItems = Array<ChoiceItem | ChoiceGroup>;
+
+// @public
+export type ChoiceList = ChoicePair[];
+
+// @public
+export interface ChoicePair {
+    label: ItemLabel;
+    value: string | number;
+}
+
+// @public
 export type ComposeErrorCode =
 /** $ref points at a file that does not exist (or cannot be read). */
 'REF_FILE_NOT_FOUND'
@@ -55,6 +94,77 @@ export class ComposeLoadError extends Error {
 }
 
 // @public
+export type ConditionMap<V = unknown> = {
+    true?: V;
+    [expression: string]: V | undefined;
+};
+
+// @public
+export type DeclaredAttributes = Record<string, string>;
+
+// @public
+export interface DesignNode {
+    class?: Evaluated<string>;
+    style?: Evaluated<string>;
+}
+
+// @public
+export interface DesignSlot {
+    class?: Evaluated<string>;
+    group?: DesignNode;
+    label?: DesignNode;
+    prepend?: DesignNode;
+    show?: Evaluated<boolean>;
+    style?: Evaluated<string>;
+    wrapper?: DesignNode;
+}
+
+// @public
+export type Evaluated<V = unknown> = V | Expression | ConditionMap<V>;
+
+// @public
+export type Expression = string;
+
+// @public
+export interface FieldDesignSlot extends DesignSlot {
+    attributes?: DeclaredAttributes;
+    layout?: 'stacked' | 'inline' | 'line';
+    wrapper?: FieldWrapperNode;
+}
+
+// @public
+export interface FieldSpec {
+    $patch?: PatchDirective;
+    $ref?: Reference;
+    action?: FormAction;
+    append?: LocalizedText;
+    behavior?: Slot<BehaviorSlot>;
+    buttons?: FormButton[];
+    content?: LocalizedText;
+    default?: unknown;
+    description?: LocalizedText;
+    design?: Slot<FieldDesignSlot>;
+    help?: LocalizedText;
+    items?: Items;
+    label?: LocalizedText;
+    lang?: Lang;
+    messages?: MessagesSpec;
+    multiple?: Multiple;
+    name?: string;
+    options?: Slot<OptionsSlot>;
+    placeholder?: LocalizedText;
+    prepend?: LocalizedText;
+    properties?: Properties;
+    type: string;
+    validate?: Slot<ValidateSlot>;
+}
+
+// @public
+export interface FieldWrapperNode extends DesignNode {
+    attributes?: DeclaredAttributes;
+}
+
+// @public
 export interface FileLoader {
     load(key: string): LoadedDoc;
     normalize(path: string, basepath: string): string;
@@ -62,6 +172,24 @@ export interface FileLoader {
 
 // @public
 export type FileSet = Record<string, Record<string, unknown>>;
+
+// @public
+export interface FormAction {
+    enctype?: string;
+    method?: string;
+    url?: string;
+}
+
+// @public
+export interface FormButton {
+    behavior?: Slot<BehaviorSlot>;
+    design?: Slot<DesignSlot>;
+    href?: string;
+    name?: string;
+    text?: LocalizedText;
+    type: 'submit' | 'reset' | 'button' | 'link';
+    value?: string;
+}
 
 // @public
 export class FormInputError extends Error {
@@ -73,6 +201,62 @@ export class FormInputError extends Error {
 export function hiddenPaths(spec: Record<string, unknown>, data: unknown): string[];
 
 // @public
+export type ItemLabel = LocalizedText;
+
+// @public
+export type ItemLabelMap = Record<string, ItemLabel>;
+
+// @public
+export type Items = StaticItem[] | ChoiceItems | ItemLabelMap | ItemsSource;
+
+// @public
+export interface ItemsModel {
+    [key: string]: unknown;
+    keys?: unknown[];
+    relations?: unknown[];
+    table?: string;
+}
+
+// @public
+export interface ItemsSource {
+    [key: string]: unknown;
+    api_server?: string;
+    items?: StaticItem[] | ChoiceList | ItemLabelMap;
+    method?: string;
+    model?: string | ItemsModel;
+    relations?: unknown;
+    table?: string;
+}
+
+// @public
+export type Lang = boolean | LangSettings;
+
+// @public
+export type LangMap = Record<string, string | null>;
+
+// @public
+export interface LangOverride {
+    behavior?: Slot<BehaviorSlot>;
+    design?: Slot<DesignSlot>;
+    options?: Slot<OptionsSlot>;
+    validate?: Slot<ValidateSlot>;
+}
+
+// @public
+export type LangOverrideMap = Record<string, LangOverride>;
+
+// @public
+export interface LangSettings {
+    frame?: boolean;
+    group_class?: string;
+    key?: string;
+    mode?: string;
+    name?: string;
+    only?: string[] | LangOverrideMap;
+    title?: LocalizedText;
+}
+
+// @public
 export interface ListValidationResult {
     errors: ValidationError[];
     valid: boolean;
@@ -82,11 +266,108 @@ export interface ListValidationResult {
 export type LoadedDoc = Record<string, unknown>;
 
 // @public
+export type LocalizedText = string | LangMap | null;
+
+// @public
+export interface MessagesSpec {
+    accept?: string;
+    date?: string;
+    dateISO?: string;
+    digits?: string;
+    email?: string;
+    enddate?: string;
+    equalTo?: string;
+    in?: string;
+    match?: string;
+    max?: string;
+    maxcount?: string;
+    maxlength?: string;
+    min?: string;
+    mincount?: string;
+    minlength?: string;
+    notEqual?: string;
+    number?: string;
+    pattern?: string;
+    range?: string;
+    rangelength?: string;
+    required?: string;
+    step?: string;
+    unique?: string;
+    url?: string;
+}
+
+// @public
+export type Multiple = boolean | 'only' | MultipleSettings;
+
+// @public
+export interface MultipleSettings {
+    controls?: 'header' | 'footer' | 'outline';
+    copy?: boolean;
+    header?: 'static' | 'sticky';
+    max?: number;
+    min?: number;
+    onclick?: string;
+    only?: boolean;
+    sortable?: boolean;
+    title?: string;
+}
+
+// @public
+export interface OptionsSlot {
+    [option: string]: unknown;
+    blank_message?: LocalizedText;
+    callback?: string;
+    checkbox_label?: LocalizedText;
+    collapse?: boolean;
+    event?: unknown;
+    expend?: boolean;
+    geometry_type?: string;
+    keyword_min_length?: number;
+    marker_draggable?: boolean;
+    max_tags?: number;
+    on_label?: LocalizedText;
+    stepper?: boolean;
+    view_total?: boolean;
+    zoom?: number;
+}
+
+// @public
+export interface PatchDirective {
+    [path: string]: unknown;
+}
+
+// @public
 export interface PathContext {
     currentPath: string[];
     formData: Record<string, unknown>;
     rowKeys?: readonly number[];
 }
+
+// @public
+export type Properties = {
+    $ref?: Reference;
+    $patch?: PatchDirective;
+} & {
+    [fieldName: string]: FieldSpec | string | PatchDirective | undefined;
+};
+
+// @public
+export interface RangeFieldSpec extends FieldSpec {
+    type: 'range';
+    validate: ValidateSlot & {
+        range: [number, number];
+        step: number;
+    };
+}
+
+// @public
+export type Reference = string | string[];
+
+// @public
+export type Slot<T> = false | true | T;
+
+// @public
+export type StaticItem = ItemLabel;
 
 // @public
 export function validate(spec: Record<string, unknown>, data: unknown, options?: ValidateOptions): ValidationResult;
@@ -116,6 +397,34 @@ export interface ValidateOptions {
     basepath?: string;
     files?: FileSet;
     loader?: FileLoader;
+}
+
+// @public
+export interface ValidateSlot {
+    accept?: string | string[] | false | null;
+    date?: Evaluated<boolean | null>;
+    dateISO?: Evaluated<boolean | null>;
+    digits?: Evaluated<boolean | null>;
+    email?: Evaluated<boolean | null>;
+    enddate?: string | false | null;
+    equalTo?: string | false | null;
+    in?: string | Array<string | number | boolean | null> | Array<ChoicePair | ChoiceGroup> | Record<string, LangMap | string | null> | false | null;
+    match?: string | false | null;
+    max?: Evaluated<number | false | null>;
+    maxcount?: Evaluated<number | false | null>;
+    maxlength?: Evaluated<number | false | null>;
+    min?: Evaluated<number | false | null>;
+    mincount?: Evaluated<number | false | null>;
+    minlength?: Evaluated<number | false | null>;
+    notEqual?: string | number | boolean | null;
+    number?: Evaluated<boolean | null>;
+    pattern?: string | false | null;
+    range?: Evaluated<[number, number] | false | null>;
+    rangelength?: Evaluated<[number, number] | false | null>;
+    required?: Evaluated<boolean | null>;
+    step?: Evaluated<number | false | null>;
+    unique?: boolean | string | null;
+    url?: Evaluated<boolean | null>;
 }
 
 // @public

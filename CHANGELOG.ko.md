@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 4318cbbcc9a0d62adb180f75a467e19aa3521848a13d733dfc4308a4f909bcc3 -->
+<!-- source-sha256: e5925310f3a8ee8fe44a5843c0ddb8f036c735bee95f3ecae58165478383b35d -->
 
 ## Unreleased
+
+### 2026-10-15 — 공개 작성 type (C14.22)
+
+- `@polyspec/crudui-validator`는 명세의 작성 type을 entry에서 export한다. `FieldSpec`, `RangeFieldSpec`, `ValidateSlot`, `DesignSlot`, `Items`, `Multiple`, `Lang`, `ConditionMap`과 이것들이 가리키는 모든 type이 docs/spec/schema.md가 정의하는 대로 각각 문서와 함께 제공된다(C14.22).
 
 ### 2026-10-15 — benchmark console pointer guard (C14.21)
 

@@ -1,6 +1,6 @@
 # @polyspec/crudui-validator
 <!-- doc-id: packages-validator-ts-readme -->
-<!-- source-sha256: f03b11ea4e683e31a7513dff32717a25a0ae070a5d6faeab97536bc5f2cb9c6b -->
+<!-- source-sha256: d16b930d95b3ef3f8f01843c98fda86abc03a33f1e892552efee054468d08b36 -->
 
 [English](README.md).
 
@@ -30,6 +30,12 @@ JavaScript와 TypeScript에서 CRUDUI 폼 데이터를 검증하고 목록·상�
 옵션은 `$ref`용 가상 파일 집합 `files`, `files`보다 우선하며
 `normalize(path, basepath)`와 `load(key)`를 가진 객체 `loader`, 상대 참조의 기준
 경로 `basepath`를 받습니다. 옵션과 결과 타입은 함수와 함께 export됩니다.
+
+명세의 작성용 타입은 type으로 export됩니다. 필드나 폼 루트에는 `FieldSpec`,
+range 필드에는 `RangeFieldSpec`, 그리고 이것들이 가리키는 타입(`ValidateSlot`,
+`DesignSlot`, `Items`, `Multiple`, `Lang`, `ConditionMap` 등)이
+[docs/spec/schema.ko.md](../../../docs/spec/schema.ko.md)가 정의하는 대로
+제공됩니다.
 
 로드 실패와 입력 실패는 예외로 던지며 `valid: false`로 반환하지 않습니다.
 [검증 절차](../../../docs/operations/validation.ko.md)는 모든 언어의 사용법을

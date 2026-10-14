@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-15 — Public authoring types (C14.22)
+
+- `@polyspec/crudui-validator` exports the authoring types of a specification from its entry: `FieldSpec`, `RangeFieldSpec`, `ValidateSlot`, `DesignSlot`, `Items`, `Multiple`, `Lang`, `ConditionMap` and every type that they name, each documented, as docs/spec/schema.md defines them (C14.22).
+
 ### 2026-10-15 — Benchmark console pointer guard (C14.21)
 
 - The benchmark console of the form comparison stops a capture and does not compare the frames while the pointer is over one of them, as its spec requires; no page had called the guard since the console moved out of the main page.
