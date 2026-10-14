@@ -10,7 +10,7 @@ const ROOT = path.resolve(BENCH, '../..');
 /** The build command and the program of the Go and Rust drivers. */
 export function compiledDrivers(environment = process.env) {
   const rustTarget = environment.CARGO_TARGET_DIR ? path.resolve(environment.CARGO_TARGET_DIR) : path.join(BENCH, 'rust/target');
-  const goBinary = path.join(BENCH, 'go/target/polyspec-crudui-bench');
+  const goBinary = path.join(ROOT, 'var/build/benchmarks/polyspec-crudui-bench');
   return {
     go: {
       build: { command: environment.GO ?? 'go', args: ['build', '-o', goBinary, '.'], cwd: path.join(BENCH, 'go') },

@@ -1,6 +1,6 @@
 # 검증기 프로세스
 <!-- doc-id: examples-cross-check-console-validators-readme -->
-<!-- source-sha256: 5ae74dd371524b87c8d16510108f57151a93523d130c03115f2e6d0b7dd9a6e7 -->
+<!-- source-sha256: 508d6f3dc05f096f6fcc179aee08b24e067cc052469257edee01311de14a3a73 -->
 
 [English](README.md).
 
@@ -17,7 +17,7 @@
 | Rust | `rust/`(크레이트 `polyspec-crudui-cross-check-validator`) | `polyspec_crudui_validator::validate`, `validate_list`, `validate_detail` |
 | Python | `python/validate.py` | `polyspec.crudui.validator`의 `validate`, `validateList`, `validateDetail` |
 
-`../server`에서 `npm run build:validators`를 실행하면 Go 프로그램을 `go/validate`로, Rust
+`../server`에서 `npm run build:validators`를 실행하면 Go 프로그램을 root의 `var/build/cross-check-console/go-validate`로, Rust
 프로그램을 `rust/target/release/polyspec-crudui-cross-check-validator`로 빌드합니다. JavaScript 프로그램은
 빌드된 `@polyspec/crudui-validator` 패키지를 import합니다. PHP 프로그램은 `packages/validator/php`의
 Composer 자동 로더를 불러옵니다. Python 프로그램은 `packages/validator/python`을
