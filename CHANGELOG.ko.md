@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: b035aa14230a8e0284a755ab692ca9a8fd9e18e4f4469ecbdac3b18733730718 -->
+<!-- source-sha256: fe30396f8c34b7cf3bf5b28e547a5e3c489544419ef3579ba43449f747aeaf2e -->
 
 ## Unreleased
+
+### 2026-10-15 — 빌드된 모듈에서 읽는 계약 manifest export (C14.10-1)
+
+- `scripts/check-contract-manifest.mts`는 각 패키지 진입점의 값 export를 선언한 devDependency인 es-module-lexer로 빌드된 ES module 파일에서 읽고, 각 `export * from`은 Node의 해석이 주는 모듈로 따라간다. TypeScript 7 API(`typescript/unstable/sync`), 그 가상 file system과 `.svelte` 선언 stub은 없어졌다. `npm run manifest:check`는 빌드가 최신이 아니면 먼저 패키지를 빌드하고, 검사는 진입점의 빌드된 파일이 없거나 진입점에 ES module 파일이 없으면 실패한다(C14.10-1).
 
 ### 2026-10-15 — make install-rust 없음 (C14.26)
 

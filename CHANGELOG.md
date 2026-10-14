@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-15 — Contract manifest exports from the built modules (C14.10-1)
+
+- `scripts/check-contract-manifest.mts` reads the value exports of each package entry from its built ES module files with es-module-lexer, a declared devDependency, following each `export * from` to the module that Node's resolution gives; the TypeScript 7 API (`typescript/unstable/sync`), its virtual file system and the `.svelte` declaration stub are gone. `npm run manifest:check` builds the packages first when their build is not current, and the check fails when a built file of an entry is missing or an entry has no ES module file (C14.10-1).
+
 ### 2026-10-15 — No make install-rust (C14.26)
 
 - `make install-rust` is gone: `make install-tools` of kit installs the Rust toolchain of `rust-toolchain.toml` since K151, so the workflows run only `make install-tools`, and each Cargo cache step follows it, so the toolchain exists for the key of the cache (C14.26).

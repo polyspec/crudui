@@ -22,15 +22,22 @@ Each package lists under `entries` every JavaScript entry of its `package.json`
 are not code) with a `visibility` and the exact list of its value exports in
 code-unit order; types are not listed. A `public` entry is public API. An
 `internal` entry serves CRUDUI's own packages only and is unsupported for
-any other import. The check reads the value exports of each entry's source file
-(`./dist/<name>.js` is built from `src/<name>.ts`) with the program and checker of
-the TypeScript 7 API (`typescript/unstable/sync`), resolving aliases and
-re-exports, and fails when:
+any other import. `npm run manifest:check` builds the packages when their build
+is not current, and the check reads the value exports of each entry from its
+built ES module files, where types are already erased, with
+[es-module-lexer](https://github.com/guybedford/es-module-lexer): an
+`export * from` is followed to the module that Node's resolution gives for its
+specifier, and a re-export such as `export { default as Widget } from
+'./Widget.svelte'` gives its name without loading that module. A CommonJS build
+of the entry, such as that of a `require` condition, has no module syntax and is
+not read. The check fails when:
 
 - a `package.json` code entry has no manifest entry, or a manifest entry has no
   `package.json` code entry;
-- the value exports differ from the declared list in either direction, an export
-  cannot be resolved, or the list is not sorted;
+- a built file of a `package.json` code entry is missing, or the entry has no ES
+  module file;
+- the value exports differ from the declared list in either direction, or the
+  list is not sorted;
 - a function named in an implemented feature's `signature` is not in the public
   `"."` list of its owner;
 - an error class named in an implemented feature's `errors` (a name ending in
@@ -44,8 +51,8 @@ re-exports, and fails when:
   mock). A package uses another package only through its entries by name.
 
 [`tests/build/contract-manifest.test.mts`](../tests/build/contract-manifest.test.mts)
-proves each failure on a synthetic repository and runs the check on this
-repository. The CLI can print the same contract
+proves each failure on a synthetic repository, and `npm run manifest:check`
+runs the check on this repository. The CLI can print the same contract
 for tools that need a compact machine-readable or Markdown description.
 
 ## Interface messages

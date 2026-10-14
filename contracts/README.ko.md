@@ -1,6 +1,6 @@
 # CRUDUI 계약 manifest
 <!-- doc-id: contracts-readme -->
-<!-- source-sha256: 3b24606726eb229681c2d6105e1c60edd1404895e95be27684b0b97182379510 -->
+<!-- source-sha256: d8abb10354c4de37a2e17c357bb82d202f87bb860a71df36deeec9bdae6a3cc2 -->
 
 [English](README.md).
 
@@ -20,13 +20,17 @@ npm run manifest:check
 다른 하위 경로. 스타일시트와 `package.json`은 코드가 아닙니다)을 `visibility`, 그리고 코드 단위 순서로
 정렬한 값 export 목록과 함께 선언합니다. 타입은 적지 않습니다. `public` 진입점은 공개
 API입니다. `internal` 진입점은 CRUDUI 자체 패키지만 사용하며 그 밖의 사용은 지원하지 않습니다.
-검사는 TypeScript 7 API(`typescript/unstable/sync`)의 program과 checker로 각 진입점 소스 파일
-(`./dist/<name>.js`는 `src/<name>.ts`에서 빌드)의 값 export를 별칭과 다시 내보내기를 따라 읽고, 다음 경우 실패합니다.
+`npm run manifest:check`는 빌드가 최신이 아니면 패키지를 빌드하고, 검사는 타입이 이미 지워진 각
+진입점의 빌드된 ES module 파일에서 [es-module-lexer](https://github.com/guybedford/es-module-lexer)로
+값 export를 읽습니다. `export * from`은 Node의 해석이 그 지정자에 주는 모듈로 따라가고,
+`export { default as Widget } from './Widget.svelte'` 같은 다시 내보내기는 그 모듈을 읽지 않고
+이름을 줍니다. `require` 조건의 빌드 같은 CommonJS 빌드는 모듈 구문이 없으므로 읽지 않습니다.
+검사는 다음 경우 실패합니다.
 
 - `package.json` 코드 진입점에 manifest 항목이 없거나, manifest 항목에 해당하는 `package.json`
   코드 진입점이 없음
-- 값 export가 선언 목록과 어느 방향으로든 다르거나, 해석할 수 없는 export가 있거나, 목록이
-  정렬되지 않음
+- `package.json` 코드 진입점의 빌드된 파일이 없거나, 진입점에 ES module 파일이 없음
+- 값 export가 선언 목록과 어느 방향으로든 다르거나, 목록이 정렬되지 않음
 - 구현 완료 기능의 `signature`에 적은 함수가 담당 패키지의 공개 `"."` 목록에 없음
 - 구현 완료 기능의 `errors`에 적은 오류 클래스(`Error`로 끝나는 이름)가 JavaScript 기본 오류도
   아니고 어느 CRUDUI 패키지의 공개 `"."` 목록에도 없음
@@ -37,7 +41,7 @@ API입니다. `internal` 진입점은 CRUDUI 자체 패키지만 사용하며 �
   사용합니다.
 
 [`tests/build/contract-manifest.test.mts`](../tests/build/contract-manifest.test.mts)는 각 실패를
-합성 저장소에서 증명하고 이 저장소에 검사를 실행합니다.
+합성 저장소에서 증명하고, `npm run manifest:check`가 이 저장소에 검사를 실행합니다.
 CLI는 같은 계약을 도구가 읽을 수 있는 JSON 또는 Markdown으로 출력할 수 있습니다.
 
 ## 화면 문구

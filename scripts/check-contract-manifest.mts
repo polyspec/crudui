@@ -4,28 +4,24 @@
  *
  * Besides the manifest shape and its file links, the check compares every package's declared
  * entries with the real package: each JavaScript entry of package.json `exports` is declared
- * with its exact, sorted value exports (read from the source entry file with the program and checker of the TypeScript 7
- * API, aliases resolved, types excluded) and a visibility. Functions named in an
- * implemented feature's signature are public exports of the owner's "." entry, the error classes it
- * names are JavaScript built-in errors or public "." exports of a CRUDUI package, only code
- * of CRUDUI packages under packages/ imports an `internal` entry, and no package imports another
- * package's files by a relative path: it imports that package's entries by name.
- *
- * TypeScript 7.0 publishes its program and checker only as `typescript/unstable/sync` (and the AST predicates as
- * `typescript/unstable/ast/is`); package.json pins TypeScript exactly, and the stable API of TypeScript 7.1 replaces that
- * path (checklist C14.10-1). The API has no module resolution hook: the virtual file system callbacks of the API hide
- * node_modules and give each `.svelte` component a two-line declaration of its default export, `<name>.d.svelte.ts`, which
- * `allowArbitraryExtensions` resolves the import to (programFileSystem).
+ * with its exact, sorted value exports and a visibility. The value exports of an entry are the
+ * exports of its built ES module files, where types are already erased, read with es-module-lexer;
+ * an `export * from` is followed to the module that Node's resolution gives for its specifier,
+ * and a re-export, such as `export { default as Widget } from './Widget.svelte'`, gives its name
+ * without loading its module. The packages are built first (`npm run manifest:check` runs
+ * scripts/require-current-build.mts). Functions named in an implemented feature's signature are
+ * public exports of the owner's "." entry, the error classes it names are JavaScript built-in
+ * errors or public "." exports of a CRUDUI package, only code of CRUDUI packages under packages/
+ * imports an `internal` entry, and no package imports another package's files by a relative
+ * path: it imports that package's entries by name.
  */
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { dirname, extname, relative, resolve, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { Ajv } from 'ajv';
-import { API, SymbolFlags, type Checker, type Symbol as TsSymbol } from 'typescript/unstable/sync';
-import { SyntaxKind, type Node } from 'typescript/unstable/ast';
-import * as is from 'typescript/unstable/ast/is';
-import type { FileSystem } from 'typescript/unstable/fs';
+import { init, parse } from 'es-module-lexer';
 
 import { checkedFiles } from '@polyspec/kit/tracked-files';
 
@@ -79,12 +75,6 @@ interface PackageManifest {
   exports?: string | ExportsValue[] | { [key: string]: ExportsValue };
 }
 
-/** The value exports of a source entry file and those whose alias chain cannot be resolved. */
-interface ValueExports {
-  values: string[];
-  unresolved: string[];
-}
-
 export interface ManifestCheck {
   errors: string[];
   counts: { features: number, packages: number, entries: number, fixtures: number };
@@ -92,10 +82,7 @@ export interface ManifestCheck {
 const schemaValidate = new Ajv({ allErrors: true, strict: false }).compile(schema);
 
 const codeTarget = /\.[cm]?js$/;
-const sourceExtensions = ['.ts', '.tsx', '.mts', '.cts', '.js', '.mjs', '.cjs'];
 const scannedExtensions = new Set(['.ts', '.tsx', '.mts', '.cts', '.js', '.jsx', '.mjs', '.cjs', '.svelte', '.vue', '.md', '.html']);
-// A `.svelte` module's only value export is its component.
-const svelteModuleText = 'declare const component: unknown;\nexport default component;\n';
 const byCodeUnit = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0);
 // A feature error that names a class is one of these or a public "." export of a CRUDUI package.
 const builtInErrors = new Set(['AggregateError', 'Error', 'EvalError', 'RangeError', 'ReferenceError', 'SyntaxError', 'TypeError', 'URIError']);
@@ -117,104 +104,28 @@ function codeTargets(target: ExportsValue): string[] {
   return [];
 }
 
-/** The source file a build output comes from: `./dist/<name>.<js>` is built from `src/<name>.<ts|js>`. */
-function sourceFor(packagePath: string, target: string): string | undefined {
-  const match = /^\.\/dist\/(.+)\.[cm]?js$/.exec(target);
-  if (!match) return undefined;
-  return sourceExtensions.map((extension) => resolve(packagePath, 'src', match[1] + extension)).find((file) => existsSync(file));
-}
-
-// An import clause is type-only when its phase modifier is `type`; an export specifier's export declaration and an
-// import specifier's import clause are its grandparent, a namespace import's import clause and a namespace export's
-// export declaration its parent.
-const typeOnlyClause = (node: Node): boolean => is.isImportClause(node) && node.phaseModifier === SyntaxKind.TypeKeyword;
-const typeOnlyExport = (node: Node): boolean => is.isExportDeclaration(node) && node.isTypeOnly;
-
-function isTypeOnly(declaration: Node): boolean {
-  if (is.isExportSpecifier(declaration)) return declaration.isTypeOnly || typeOnlyExport(declaration.parent.parent);
-  if (is.isImportSpecifier(declaration)) return declaration.isTypeOnly || typeOnlyClause(declaration.parent.parent);
-  if (is.isImportClause(declaration)) return typeOnlyClause(declaration);
-  if (is.isImportEqualsDeclaration(declaration)) return declaration.isTypeOnly;
-  if (is.isNamespaceImport(declaration)) return typeOnlyClause(declaration.parent);
-  if (is.isNamespaceExport(declaration)) return typeOnlyExport(declaration.parent);
-  return false;
-}
-
-/** 'value', 'type' or 'unresolved' for one exported symbol, following its alias chain. */
-function exportKind(checker: Checker, symbol: TsSymbol): 'value' | 'type' | 'unresolved' {
-  let current = symbol;
-  const seen = new Set<number>();
-  while (current.flags & SymbolFlags.Alias) {
-    if (current.declarations.some((handle) => {
-      const declaration = handle.resolve();
-      assert.ok(declaration, 'a declaration of an export resolves in its program');
-      return isTypeOnly(declaration);
-    })) return 'type';
-    if (seen.has(current.id)) return 'unresolved';
-    seen.add(current.id);
-    const next = checker.getImmediateAliasedSymbol(current);
-    if (!next || next.declarations.length === 0) return 'unresolved';
-    current = next;
-  }
-  return current.flags & SymbolFlags.Value ? 'value' : 'type';
-}
+await init();
 
 /**
- * The file system of the program, in the virtual file system callbacks of the API: the configuration of the program is
- * `configFile`, nothing under node_modules exists, since only repository modules matter, and a `.svelte` component whose
- * file exists has the declaration `<name>.d.svelte.ts` that `allowArbitraryExtensions` resolves its import to, with the
- * component as its only value export.
+ * The exports of the built file `file`, or undefined when it has no module syntax, such as the CommonJS build of a
+ * `require` condition: its names and those of each module that an `export * from` of it names, which Node's resolution
+ * finds from `file`. A star re-export gives no `default`; `seen` stops a cycle.
  */
-function programFileSystem(configFile: string, configText: string): FileSystem {
-  const svelteDeclaration = (file: string): boolean => {
-    const match = /^(.*)\.d\.svelte\.ts$/.exec(file);
-    return match !== null && existsSync(`${match[1]}.svelte`);
-  };
-  const installed = (path: string): boolean => /\/node_modules(?:\/|$)/.test(path);
-  return {
-    readFile: (file) => (file === configFile ? configText : svelteDeclaration(file) ? svelteModuleText : installed(file) ? null : undefined),
-    fileExists: (file) => (file === configFile || svelteDeclaration(file) ? true : installed(file) ? false : undefined),
-    directoryExists: (directory) => (installed(directory) ? false : undefined),
-  };
-}
-
-/** Value exports of source entry files; `aliases` maps package specifiers to source files. */
-function readValueExports(
-  files: string[], aliases: Record<string, string | undefined>,
-): Map<string, ValueExports> {
-  const configFile = resolve(scriptRoot, 'tsconfig.contract-manifest.json');
-  // A package specifier resolves to its source entry; one without a source entry resolves to nothing, as no node_modules exists.
-  const paths = Object.fromEntries(Object.entries(aliases).filter(([, file]) => file).map(([specifier, file]) => [specifier, [file]]));
-  const configText = JSON.stringify({
-    compilerOptions: {
-      allowJs: true, noEmit: true, noLib: true, types: [], jsx: 'react-jsx', target: 'es2022', module: 'esnext',
-      moduleResolution: 'bundler', allowImportingTsExtensions: true, allowArbitraryExtensions: true, paths,
-    },
-    files,
-  });
-  const api = new API({ cwd: scriptRoot, fs: programFileSystem(configFile, configText) });
-  try {
-    const project = api.updateSnapshot({ openProjects: [configFile] }).getProject(configFile);
-    assert.ok(project, `the API opens the project of ${configFile}`);
-    const { checker, program } = project;
-    const result = new Map<string, ValueExports>();
-    for (const file of files) {
-      const source = program.getSourceFile(file);
-      const moduleSymbol = source && checker.getSymbolAtLocation(source);
-      const values: string[] = [];
-      const unresolved: string[] = [];
-      for (const symbol of moduleSymbol ? checker.getExportsOfModule(moduleSymbol) : []) {
-        const kind = exportKind(checker, symbol);
-        if (kind === 'type') continue;
-        values.push(symbol.name);
-        if (kind === 'unresolved') unresolved.push(symbol.name);
-      }
-      result.set(file, { values: values.sort(byCodeUnit), unresolved: unresolved.sort(byCodeUnit) });
+function moduleExports(file: string, seen = new Set<string>()): string[] | undefined {
+  const [, exports, , hasModuleSyntax] = parse(readFileSync(file, 'utf8'), file);
+  if (!hasModuleSyntax) return undefined;
+  seen.add(file);
+  const names = new Set<string>();
+  for (const declared of exports) {
+    if (declared.type !== 'reexport-all') {
+      names.add(declared.name);
+      continue;
     }
-    return result;
-  } finally {
-    api.close();
+    const target = createRequire(file).resolve(declared.from);
+    if (seen.has(target)) continue;
+    for (const name of moduleExports(target, seen) ?? []) if (name !== 'default') names.add(name);
   }
+  return [...names].sort(byCodeUnit);
 }
 
 /** Functions a signature names: each call outside a member access, with the `a | b(` names before it. */
@@ -257,7 +168,7 @@ export function checkContractManifest(root: string): ManifestCheck {
 
   // Entries: package.json code entries and manifest entries match one to one.
   const packageNames = new Set<string>();
-  const declaredEntries: { pkg: ManifestPackage, subpath: string, entry: ManifestEntry, source: string }[] = [];
+  const declaredEntries: { pkg: ManifestPackage, subpath: string, entry: ManifestEntry, modules: { output: string, values: string[] }[] }[] = [];
   for (const pkg of manifest.packages ?? []) {
     check(!packageNames.has(pkg.name), `duplicate package: ${pkg.name}`);
     packageNames.add(pkg.name);
@@ -274,48 +185,41 @@ export function checkContractManifest(root: string): ManifestCheck {
         errors.push(`${pkg.name}: package.json code entry "${subpath}" is not declared in the manifest`);
         continue;
       }
-      const sources = new Set<string>();
-      const unmatched = new Set<string>();
-      for (const output of codeTargets(target)) {
-        const source = sourceFor(packagePath, output);
-        const stem = output.replace(/\.[cm]?js$/, '');
-        if (source) sources.add(source);
-        else if (!unmatched.has(stem)) {
-          unmatched.add(stem);
-          errors.push(`${pkg.name}: package.json entry "${subpath}" has no source file for ${output}`);
+      // The ES module files of the entry; a CommonJS build, such as that of a `require` condition, has no module syntax.
+      const modules: { output: string, values: string[] }[] = [];
+      let built = true;
+      for (const output of new Set(codeTargets(target))) {
+        const file = resolve(packagePath, output);
+        if (!existsSync(file)) {
+          built = false;
+          errors.push(`${pkg.name}: package.json entry "${subpath}" has no built file ${output}; run npm run build`);
+          continue;
         }
+        const values = moduleExports(file);
+        if (values) modules.push({ output, values });
       }
-      check(sources.size <= 1, `${pkg.name}: package.json entry "${subpath}" is built from more than one source file`);
+      check(!built || modules.length > 0, `${pkg.name}: package.json entry "${subpath}" has no ES module file`);
       const entry = entries[subpath];
-      const [source] = sources;
       assert.ok(entry);
-      if (sources.size === 1 && source !== undefined) declaredEntries.push({ pkg, subpath, entry, source });
+      declaredEntries.push({ pkg, subpath, entry, modules });
     }
     for (const subpath of Object.keys(entries)) {
       check(codeEntries.some(([name]) => name === subpath), `${pkg.name}: manifest entry "${subpath}" is not a package.json code entry`);
     }
   }
 
-  // Exports: the declared list is the sorted list of the entry's value exports.
-  const aliases: Record<string, string | undefined> = {};
-  for (const pkg of manifest.packages ?? []) {
-    for (const subpath of Object.keys(pkg.entries ?? {})) aliases[subpath === '.' ? pkg.name : pkg.name + subpath.slice(1)] = undefined;
-  }
-  for (const { pkg, subpath, source } of declaredEntries) aliases[subpath === '.' ? pkg.name : pkg.name + subpath.slice(1)] = source;
-  const actual = readValueExports(declaredEntries.map(({ source }) => source), aliases);
-  for (const { pkg, subpath, entry, source } of declaredEntries) {
-    const label = `${pkg.name} "${subpath}"`;
-    const exports = actual.get(source);
-    assert.ok(exports);
-    const { values, unresolved } = exports;
+  // Exports: the declared list is the sorted list of the value exports of each ES module file of the entry.
+  for (const { pkg, subpath, entry, modules } of declaredEntries) {
     const declared = entry.exports ?? [];
-    for (const name of unresolved) errors.push(`${label}: export cannot be resolved: ${name}`);
-    const undeclared = values.filter((name) => !declared.includes(name));
-    const missing = declared.filter((name) => !values.includes(name)).sort(byCodeUnit);
-    if (undeclared.length) errors.push(`${label}: exported but not declared: ${undeclared.join(', ')}`);
-    if (missing.length) errors.push(`${label}: declared but not exported: ${missing.join(', ')}`);
+    for (const { output, values } of modules) {
+      const label = `${pkg.name} "${subpath}"${modules.length > 1 ? ` (${output})` : ''}`;
+      const undeclared = values.filter((name) => !declared.includes(name));
+      const missing = declared.filter((name) => !values.includes(name)).sort(byCodeUnit);
+      if (undeclared.length) errors.push(`${label}: exported but not declared: ${undeclared.join(', ')}`);
+      if (missing.length) errors.push(`${label}: declared but not exported: ${missing.join(', ')}`);
+    }
     const sorted = [...declared].sort(byCodeUnit);
-    check(declared.every((name, index) => name === sorted[index]), `${label}: exports must be sorted: ${sorted.join(', ')}`);
+    check(declared.every((name, index) => name === sorted[index]), `${pkg.name} "${subpath}": exports must be sorted: ${sorted.join(', ')}`);
   }
 
   // Features.
