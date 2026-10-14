@@ -467,8 +467,10 @@ export function explainSpec(spec: Spec, opts: ExplainOptions = {}): string {
       explainField(name, props[name], cat, p, lang, 0, lines);
     }
   } else {
-    // A single top-level field (no properties wrapper).
-    explainField(String(composed.name ?? composed.type ?? 'field'), composed, cat, p, lang, 0, lines);
+    // A single top-level field (no properties wrapper), named by its string `name`, else its
+    // string `type`, else 'field'.
+    const fieldName = [composed.name, composed.type].find((v): v is string => typeof v === 'string') ?? 'field';
+    explainField(fieldName, composed, cat, p, lang, 0, lines);
   }
 
   return lines.join('\n');

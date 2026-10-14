@@ -111,11 +111,11 @@ export class ParseError extends Error {
       case TokenType.EOF:
         return 'end of expression';
       case TokenType.STRING:
-        return `string "${token.literal}"`;
+        return `string "${token.literal as string}"`;
       case TokenType.NUMBER:
-        return `number ${token.literal}`;
+        return `number ${token.literal as number}`;
       case TokenType.BOOLEAN:
-        return `boolean ${token.literal}`;
+        return `boolean ${token.literal as boolean}`;
       case TokenType.NULL:
         return 'null';
       case TokenType.IDENTIFIER:

@@ -362,7 +362,7 @@ function build(): FixtureCase[] {
       // Confirm the error actually throws with the recorded code.
       let thrown: unknown;
       try {
-        renderFields(compileForm(c.spec, c.options), { ...(c.options ?? {}), data: c.data });
+        renderFields(compileForm(c.spec, c.options), { ...c.options, data: c.data });
       } catch (e) {
         thrown = e;
       }
@@ -374,7 +374,7 @@ function build(): FixtureCase[] {
       }
       return { name: c.name, note: c.note, spec: c.spec, data: c.data, options: c.options, expectError: c.expectError };
     }
-    const html = renderFields(compileForm(c.spec, c.options), { ...(c.options ?? {}), data: c.data });
+    const html = renderFields(compileForm(c.spec, c.options), { ...c.options, data: c.data });
     const expected_html = normalizeHtml(html);
     return { name: c.name, note: c.note, spec: c.spec, data: c.data, options: c.options, expected_html };
   });

@@ -108,7 +108,8 @@ export function assertGenerationReportInvariants(report) {
       }
     }
   }
-  assert.deepStrictEqual([...shared].sort(), [...requiredSharedIds].sort(), 'Shared generation check IDs differ');
+  const codeUnitOrder = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
+  assert.deepStrictEqual([...shared].sort(codeUnitOrder), [...requiredSharedIds].sort(codeUnitOrder), 'Shared generation check IDs differ');
   assert.equal(report.results.length, expectedGenerationResults, `Generation report must contain exactly ${expectedGenerationResults} results`);
   assert.equal(report.requests.length, expectedGenerationRequests, `Generation report must contain exactly ${expectedGenerationRequests} HTTP requests`);
 }

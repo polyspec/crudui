@@ -63,6 +63,8 @@ function cStringLiteral(value) {
 }
 
 /** The C field of a contract key: moveUp → move_up. */
+/** Code unit order of two strings, the order of `Array.prototype.sort` without a comparator. */
+const codeUnitOrder = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
 const fieldName = key => key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
 
 /** Each contract table, its C struct and the generated array of {language, messages}. */
@@ -101,7 +103,7 @@ export function interfaceMessagesSource(contract, fields) {
     for (const language of contract.languages) {
       const messages = contract[table][language];
       const keys = Object.keys(messages).map(fieldName);
-      if (JSON.stringify([...keys].sort()) !== JSON.stringify([...fields[struct]].sort())) {
+      if (JSON.stringify([...keys].sort(codeUnitOrder)) !== JSON.stringify([...fields[struct]].sort(codeUnitOrder))) {
         throw new Error(`${table}.${language} keys ${keys.join(', ')} differ from ${struct} fields ${fields[struct].join(', ')}`);
       }
       lines.push(`    {"${language}", {`);

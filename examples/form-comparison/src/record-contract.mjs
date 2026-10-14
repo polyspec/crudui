@@ -125,6 +125,8 @@ export function browserFields(html) {
   return fields;
 }
 
+/** @typedef {{ body?: unknown, headers?: Record<string, string> }} Submission The body and headers of one request. */
+
 /** Encode one submission in the given transport. */
 export function submission(data, format) {
   return format === 'json'
@@ -139,7 +141,9 @@ export function submission(data, format) {
  */
 export function recordClient({ origin, server, storeFile, restart }) {
   async function request(method, target, { body, headers } = {}) {
-    const response = await fetch(new URL(target, origin()), { method, body, headers, redirect: 'manual' });
+    // fetch rejects a body on GET and HEAD, so a request sends its body only when it has one.
+    const init = body === undefined ? { method, headers, redirect: 'manual' } : { method, body, headers, redirect: 'manual' };
+    const response = await fetch(new URL(target, origin()), init);
     const text = await response.text();
     const type = response.headers.get('content-type') ?? '';
     let json;
@@ -387,7 +391,7 @@ export const recordContractCases = Object.freeze([
         [`__000000000000${n}__`, structuredClone(row)]));
       const unnamed = edited('25', 'unnamed');
       Object.values(Object.values(unnamed.companies)[0].stores)[0].name = '';
-      for (const [name, data] of [['five companies', five], ['unnamed store', unnamed]]) {
+      for (const [name, data] of /** @type {[string, object][]} */ ([['five companies', five], ['unnamed store', unnamed]])) {
         for (const format of ['multipart', 'json']) {
           await unchanged(client, async () => {
             const result = await client.save('25', data, format);
@@ -404,6 +408,7 @@ export const recordContractCases = Object.freeze([
       await client.reset();
       const variant = change => { const data = edited('26', 'shape'); change(data); return data; };
       const firstStore = data => Object.values(Object.values(data.companies)[0].stores)[0];
+      /** @type {[string, object, string][]} */
       const cases = [
         ['company is text', variant(data => { data.companies = 'x'; }), 'json'],
         ['row key is not a row key', variant(data => { data.companies = { first: Object.values(data.companies)[0] }; }), 'json'],
@@ -446,6 +451,7 @@ export const recordContractCases = Object.freeze([
     async run(client) {
       await client.reset();
       const data = edited('22', 'rejected');
+      /** @type {[string, string, Submission, number][]} */
       const cases = [
         ['unknown record', '46', submission({ ...data, id: '46' }, 'multipart'), 404],
         ['different id', '22', submission({ ...data, id: '23' }, 'multipart'), 400],
@@ -506,10 +512,10 @@ export const recordContractCases = Object.freeze([
       for (const [name, bytes] of malformed) {
         await client.reset();
         await client.writeStore(bytes);
-        for (const [method, target, request] of [
+        for (const [method, target, request] of /** @type {[string, string, Submission?][]} */ ([
           ['GET', '/api/records?page=1'], ['GET', '/api/records/1'],
           ['POST', '/api/records/1', submission(edited('1', 'malformed'), 'json')],
-        ]) {
+        ])) {
           const result = await client.request(method, target, request);
           assert.equal(result.status, 500, `${name}: ${method} ${target}: ${result.text}`);
           assert.equal(typeof result.json?.error, 'string', `${name}: error message`);

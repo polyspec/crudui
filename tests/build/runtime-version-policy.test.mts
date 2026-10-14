@@ -18,6 +18,14 @@ interface WorkflowStep {
   with?: Record<string, string>;
 }
 
+/** The text of a step's `uses` or `run`: empty when the step has none; a value that is not text fails the test. */
+function stepText(step: WorkflowStep, member: 'uses' | 'run'): string {
+  const value = step[member];
+  if (value === undefined) return '';
+  assert.ok(typeof value === 'string', `a step's ${member} is text: ${JSON.stringify(value)}`);
+  return value;
+}
+
 /** The parts of a workflow job that the tests read. */
 interface WorkflowJob {
   'runs-on'?: string;
@@ -204,12 +212,12 @@ test('every CI job sets up the recorded toolchains and checks the tools it set u
   for (const { file, workflow } of await workflows()) {
     for (const [id, job] of Object.entries(workflow.jobs)) {
       const steps = job.steps ?? [];
-      if (!steps.some(step => String(step.uses ?? '').startsWith('actions/checkout@'))) continue;
+      if (!steps.some(step => stepText(step, 'uses').startsWith('actions/checkout@'))) continue;
       const tools = ['node'];
       let checked: { tools: string[]; index: number } | undefined;
       for (const [index, step] of steps.entries()) {
-        const uses = String(step.uses ?? '');
-        const run = String(step.run ?? '');
+        const uses = stepText(step, 'uses');
+        const run = stepText(step, 'run');
         if (uses.startsWith('actions/setup-node@') && step.with?.['node-version-file'] !== '.node-version') violations.push(`${file} ${id}: setup-node must read .node-version`);
         if (uses.startsWith('actions/setup-go@')) violations.push(`${file} ${id}: setup-go installs a Go; make install-tools installs the Go of mise.toml`);
         if (uses.startsWith('actions/setup-python@')) violations.push(`${file} ${id}: setup-python installs a Python; make install-tools installs the Python of mise.toml`);
@@ -264,7 +272,7 @@ test('every job that tests a PHP package runs on each PHP minor of config/toolch
   const workflow = parse(await readFile(path.join(repository, '.github/workflows/ci.yml'), 'utf8')) as Workflow;
   const minors = (await recordedToolchain(repository)).php;
   const jobs = Object.entries(workflow.jobs).filter(([, job]) => /composer --working-dir=packages\/[^ ]+ test\b|make (?:ci-targets TARGETS="[^"]*\b)?test-(?:native|php-api|validator-php)(?=[\s"])/
-    .test((job.steps ?? []).map(step => String(step.run ?? '')).join('\n')));
+    .test((job.steps ?? []).map(step => stepText(step, 'run')).join('\n')));
   assert.ok(jobs.length > 0, 'no CI job tests a PHP package');
   for (const [name, job] of jobs) assert.deepEqual(job.strategy?.matrix?.php?.map(String), minors, `${name} tests a PHP package`);
 });

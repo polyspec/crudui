@@ -23,13 +23,13 @@ type Host = 'page' | 'box' | 'frame';
 const hosts: Host[] = ['page', 'box', 'frame'];
 
 /** The calls of the page module (browserSource). */
-interface FormStylesTest { mount(spec: unknown, data: unknown): void; mountChoice(): void }
+interface FormStylesTest { mount(spec: unknown, data: unknown): void; mountChoice(): void; container(): Container }
 
 declare global {
   interface Window { formStylesTest: FormStylesTest }
 }
 
-/** What containerSource evaluates to in the form document. */
+/** The scroll container of the form document and its measures (FormStylesTest.container). */
 interface Container { scroller: Element; top: number; height: number; token: number }
 
 // Five nested repeated levels, each with a sticky header titled by its name.
@@ -71,6 +71,18 @@ window.formStylesTest = {
       connection.sync();
       patchContent(outline, renderOutline(form));
     });
+  },
+  container() {
+    const box = document.getElementById('box');
+    const scroller = box ?? document.scrollingElement;
+    const top = box ? box.getBoundingClientRect().top + box.clientTop : 0;
+    const height = box ? box.clientHeight : document.documentElement.clientHeight;
+    const probe = document.createElement('div');
+    probe.style.height = 'var(--crudui-node-header-height)';
+    document.querySelector('.crudui-form').append(probe);
+    const token = probe.getBoundingClientRect().height;
+    probe.remove();
+    return { scroller, top, height, token };
   },
   mountChoice() {
     const form = createForm(compileForm({
@@ -170,35 +182,22 @@ async function openHost(engine: Engine, host: Host) {
 const frames = (target: EngineFrame) => target.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
 
 // In the form document: the scroll container, its content top in the viewport and its height.
-const containerSource = `(() => {
-  const box = document.getElementById('box');
-  const scroller = box ?? document.scrollingElement;
-  const top = box ? box.getBoundingClientRect().top + box.clientTop : 0;
-  const height = box ? box.clientHeight : document.documentElement.clientHeight;
-  const probe = document.createElement('div');
-  probe.style.height = 'var(--crudui-node-header-height)';
-  document.querySelector('.crudui-form').append(probe);
-  const token = probe.getBoundingClientRect().height;
-  probe.remove();
-  return { scroller, top, height, token };
-})()`;
-
 for (const engine of engines) for (const host of hosts) {
   test(`${engine} ${host}: sticky row headers stack on their lines and show their labels only while stuck`, async () => {
     const { page, target, failures } = await openHost(engine, host);
     try {
       await target.evaluate(([spec, data]: [unknown, unknown]) => window.formStylesTest.mount(spec, data), [spec, data]);
       // Scroll until the deepest row's top is 10 px past its line, under the four pinned ancestor headers.
-      await target.evaluate(source => {
-        const { scroller, top, token } = eval(source) as Container;
+      await target.evaluate(() => {
+        const { scroller, top, token } = window.formStylesTest.container();
         const rows = document.querySelectorAll('.crudui-node--sticky');
         const last = rows[rows.length - 1];
         if (!last) throw new Error('the form has no sticky row');
         scroller.scrollTop += last.getBoundingClientRect().top - top - (4 * token - 10);
-      }, containerSource);
+      });
       await frames(target);
-      const layout = await target.evaluate(source => {
-        const { top, token } = eval(source) as Container;
+      const layout = await target.evaluate(() => {
+        const { top, token } = window.formStylesTest.container();
         const need = <T,>(value: T | null | undefined, what: string): T => {
           if (value === null || value === undefined) throw new Error(`the form has no ${what}`);
           return value;
@@ -229,7 +228,7 @@ for (const engine of engines) for (const host of hosts) {
           titleTruncated: title.scrollWidth > title.clientWidth,
           actionRows: new Set([...first.querySelectorAll('.crudui-action')].map(button => Math.round(button.getBoundingClientRect().top))).size,
         };
-      }, containerSource);
+      });
       assert.deepEqual(failures, []);
       assert.ok(layout.token > 0, 'The header height token resolves');
       assert.equal(layout.headers.length, levels.length);
@@ -255,7 +254,7 @@ for (const engine of engines) for (const host of hosts) {
       assert.equal(layout.actionRows, 1, 'Header controls stay on one line');
 
       // Scrolled back to the top, nothing is stuck and the level labels are hidden.
-      await target.evaluate(source => { (eval(source) as Container).scroller.scrollTop = 0; }, containerSource);
+      await target.evaluate(() => { window.formStylesTest.container().scroller.scrollTop = 0; });
       await frames(target);
       const loose = await target.evaluate(() => [...document.querySelectorAll('.crudui-node--sticky > .crudui-node__header-container > .crudui-node__header')].map(header => {
         const label = header.querySelector(':scope > .crudui-node__label');
@@ -265,8 +264,8 @@ for (const engine of engines) for (const host of hosts) {
         edge: getComputedStyle(header, '::before').display,
         };
       }));
-      assert.ok(loose.every(header => header.label === 'none'), `Level labels are hidden while headers are not stuck: ${loose.map(header => header.label)}`);
-      assert.ok(loose.every(header => header.edge !== 'none'), `A row that is not stuck draws its card top edge: ${loose.map(header => header.edge)}`);
+      assert.ok(loose.every(header => header.label === 'none'), `Level labels are hidden while headers are not stuck: ${loose.map(header => header.label).join(', ')}`);
+      assert.ok(loose.every(header => header.edge !== 'none'), `A row that is not stuck draws its card top edge: ${loose.map(header => header.edge).join(', ')}`);
     } finally { await page.close(); }
   });
 
@@ -296,21 +295,21 @@ for (const engine of engines) for (const host of hosts) {
         .map(header => getComputedStyle(header, '::before').display));
       await frames(target);
       const top = await labels();
-      assert.ok(top.every(display => display === 'none'), `Level labels are hidden while headers are not stuck: ${top}`);
+      assert.ok(top.every(display => display === 'none'), `Level labels are hidden while headers are not stuck: ${top.join(', ')}`);
       const topEdges = await edges();
-      assert.ok(topEdges.every(display => display !== 'none'), `Card top edges show while headers are not stuck: ${topEdges}`);
-      await target.evaluate(source => {
-        const { scroller, top, token } = eval(source) as Container;
+      assert.ok(topEdges.every(display => display !== 'none'), `Card top edges show while headers are not stuck: ${topEdges.join(', ')}`);
+      await target.evaluate(() => {
+        const { scroller, top, token } = window.formStylesTest.container();
         const rows = document.querySelectorAll('.crudui-node--sticky');
         const last = rows[rows.length - 1];
         if (!last) throw new Error('the form has no sticky row');
         scroller.scrollTop += last.getBoundingClientRect().top - top - (4 * token - 10);
-      }, containerSource);
+      });
       await frames(target);
       const stuck = await labels();
-      assert.ok(stuck.every(display => display !== 'none'), `Level labels show while stuck: ${stuck}`);
+      assert.ok(stuck.every(display => display !== 'none'), `Level labels show while stuck: ${stuck.join(', ')}`);
       const stuckEdges = await edges();
-      assert.ok(stuckEdges.every(display => display === 'none'), `Card top edges go while stuck: ${stuckEdges}`);
+      assert.ok(stuckEdges.every(display => display === 'none'), `Card top edges go while stuck: ${stuckEdges.join(', ')}`);
       // A re-render keeps the marks.
       await target.evaluate(() => {
         const input = document.querySelector<HTMLInputElement>('.crudui-form input[name]');
@@ -319,15 +318,15 @@ for (const engine of engines) for (const host of hosts) {
       });
       await frames(target);
       const rendered = await labels();
-      assert.ok(rendered.every(display => display !== 'none'), `Level labels still show after a render: ${rendered}`);
+      assert.ok(rendered.every(display => display !== 'none'), `Level labels still show after a render: ${rendered.join(', ')}`);
       const renderedEdges = await edges();
-      assert.ok(renderedEdges.every(display => display === 'none'), `Card top edges stay hidden after a render: ${renderedEdges}`);
-      await target.evaluate(source => { (eval(source) as Container).scroller.scrollTop = 0; }, containerSource);
+      assert.ok(renderedEdges.every(display => display === 'none'), `Card top edges stay hidden after a render: ${renderedEdges.join(', ')}`);
+      await target.evaluate(() => { window.formStylesTest.container().scroller.scrollTop = 0; });
       await frames(target);
       const back = await labels();
-      assert.ok(back.every(display => display === 'none'), `Level labels hide again at the top: ${back}`);
+      assert.ok(back.every(display => display === 'none'), `Level labels hide again at the top: ${back.join(', ')}`);
       const backEdges = await edges();
-      assert.ok(backEdges.every(display => display !== 'none'), `Card top edges show again at the top: ${backEdges}`);
+      assert.ok(backEdges.every(display => display !== 'none'), `Card top edges show again at the top: ${backEdges.join(', ')}`);
       assert.deepEqual(failures, []);
     } finally { await page.close(); }
   });
@@ -336,8 +335,8 @@ for (const engine of engines) for (const host of hosts) {
     const { page, target, failures } = await openHost(engine, host);
     try {
       await target.evaluate(([spec, data]: [unknown, unknown]) => window.formStylesTest.mount(spec, data), [spec, siblingData]);
-      const focused = () => target.evaluate(source => {
-        const { top, height } = eval(source) as Container;
+      const focused = () => target.evaluate(() => {
+        const { top, height } = window.formStylesTest.container();
         // Focus is on a text input of a row.
         const active = document.activeElement;
         if (!(active instanceof HTMLInputElement)) throw new Error('no input is focused');
@@ -352,7 +351,7 @@ for (const engine of engines) for (const host of hosts) {
           marginBottom: parseFloat(style.scrollMarginBottom),
           height,
         };
-      }, containerSource);
+      });
 
       // Adding a store after the first one moves focus to the new row far below.
       await target.evaluate(() => {
@@ -373,7 +372,7 @@ for (const engine of engines) for (const host of hosts) {
 
       // Scrolled to the end, selecting the first store from the structure map moves focus back
       // up; the binding scrolls its input into view clear of the pinned headers and the footer.
-      await target.evaluate(source => { const { scroller } = eval(source) as Container; scroller.scrollTop = scroller.scrollHeight; }, containerSource);
+      await target.evaluate(() => { const { scroller } = window.formStylesTest.container(); scroller.scrollTop = scroller.scrollHeight; });
       await frames(target);
       await target.evaluate(() => {
         const button = [...document.querySelectorAll<HTMLButtonElement>('#outline [data-crudui-action="select-row"]')]

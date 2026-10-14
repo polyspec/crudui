@@ -71,6 +71,7 @@ const state = {
   running: false,
   validate: null, // last /api/validate response
   render: null, // last /api/render response
+  /** @type {string | null} */
   lastError: null, // network/transport error string
 
   // ---- list tab (parallel to the form tab; never crosses into it) ----
@@ -80,6 +81,7 @@ const state = {
   listValidate: null, // last /api/validate-list response (4-language list structure)
   listRender: null, // last /api/render-list response
   searchRender: null, // last /api/render of listSpec.search (form reuse)
+  /** @type {string | null} */
   listError: null, // network/transport error string (list tab)
 
   // ---- detail tab (parallel to the list tab) ----
@@ -88,6 +90,7 @@ const state = {
   detailRunning: false,
   detailValidate: null, // last /api/validate-detail response
   detailRender: null, // last /api/render-detail response
+  /** @type {string | null} */
   detailError: null, // network/transport error string (detail tab)
 };
 

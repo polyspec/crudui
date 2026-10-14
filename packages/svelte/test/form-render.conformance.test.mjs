@@ -36,7 +36,7 @@ const FIXTURE = path.resolve(HERE, '../../../tests/fixtures/form-render/cases.js
 const cases = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
 
 function render(c) {
-  return renderFields(compileForm(c.spec, c.options), { ...(c.options ?? {}), data: c.data });
+  return renderFields(compileForm(c.spec, c.options), { ...c.options, data: c.data });
 }
 
 describe('form rendering: Svelte reproduces the normalized expected_html', () => {

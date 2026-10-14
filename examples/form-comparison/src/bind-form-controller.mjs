@@ -258,6 +258,8 @@ export function bindFormController(element, start, template, language, initialDa
     return schedule(result.value, capture());
   }
 
+  // The DOM listeners below cannot await the render they schedule. Each scheduled render joins
+  // `pending`, which idle() and dispose() await, so a failed render rejects those calls.
   function onInput(event) {
     const control = event.target;
     if (!control.matches?.('input[name],textarea[name],select[name]') || control.disabled) return;
@@ -275,7 +277,7 @@ export function bindFormController(element, start, template, language, initialDa
     const focus = capture();
     const normalized = commit(next, { path: segments.join('.') });
     const version = ++inputVersion;
-    schedule(normalized, focus, version);
+    void schedule(normalized, focus, version);
   }
 
   function onClick(event) {
@@ -286,18 +288,18 @@ export function bindFormController(element, start, template, language, initialDa
     const { name: action, path, key } = target;
     if (action === 'expand-all' || action === 'collapse-all') {
       event.preventDefault();
-      setAllExpanded(action === 'expand-all');
+      void setAllExpanded(action === 'expand-all');
       return;
     }
     if (action === 'undo') {
       event.preventDefault();
-      undo();
+      void undo();
       return;
     }
     if (!path || (action !== 'add-row' && key === undefined)) return;
     if (action === 'toggle-row') {
       event.preventDefault();
-      toggleRow(path, key);
+      void toggleRow(path, key);
       return;
     }
     if (action === 'select-row') {
@@ -339,7 +341,7 @@ export function bindFormController(element, start, template, language, initialDa
     }
     put(next, segments, Object.fromEntries(entries));
     event.preventDefault();
-    schedule(commit(next, change), undefined, inputVersion, { path, key: focusKey });
+    void schedule(commit(next, change), undefined, inputVersion, { path, key: focusKey });
   }
 
   element.addEventListener('input', onInput);

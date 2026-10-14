@@ -198,7 +198,7 @@ function stoppingRecipes(project: Project): string[] {
     const checks = segments.flatMap((command, index) => (isCheck(command) ? [index] : []));
     const recorded = checks.every((index, position) => segments.slice(index, checks[position + 1] ?? segments.length)
       .some(command => /\bstatus=1\b/.test(command)));
-    if (checks.length > 1 && (!recorded || !/exit \$\$status$/.test(line))) {
+    if (checks.length > 1 && (!recorded || !line.endsWith('exit $$status'))) {
       violations.push(`${target}: the checks of one line do not each set status=1 and exit with it`);
     }
   }

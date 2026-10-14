@@ -41,7 +41,7 @@ function pass(
   data?: Record<string, unknown>,
   options?: Record<string, unknown>
 ): FixtureCase {
-  const html = renderFields(compileForm(spec, options), { ...(options ?? {}), ...(data === undefined ? {} : { data }) });
+  const html = renderFields(compileForm(spec, options), { ...options, ...(data === undefined ? {} : { data }) });
   return {
     name,
     note,

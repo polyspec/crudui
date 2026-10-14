@@ -106,7 +106,7 @@ test('the native suites run in three jobs, the PHP API once for each PHP release
 // Each job preserves its conformance evidence under a name of its own, and the conformance job downloads each artifact
 // into a directory of its own, so no evidence file of one job replaces a file of another.
 test('every evidence artifact has a name of its own and the conformance job reads each from its own directory', async () => {
-  const workflow: Workflow & { jobs: { conformance: Job & { needs: string[]; steps: Step[] } } } = parse(await read('.github/workflows/ci.yml'));
+  const workflow: Workflow & { jobs: { conformance: Omit<Job, 'needs'> & { needs: string[]; steps: Step[] } } } = parse(await read('.github/workflows/ci.yml'));
   const uploads = Object.entries(workflow.jobs).flatMap(([id, job]) => (job.steps ?? [])
     .filter((step) => step.with?.path === 'conformance-evidence/')
     .flatMap((step) => (job.strategy?.matrix?.php ?? [undefined])

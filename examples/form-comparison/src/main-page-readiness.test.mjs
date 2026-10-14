@@ -35,7 +35,7 @@ class PageFixture {
   }
 
   emit(name, value) {
-    for (const listener of [...(this.#listeners.get(name) ?? [])]) listener(value);
+    for (const listener of Array.from(this.#listeners.get(name) ?? [])) listener(value);
   }
 }
 

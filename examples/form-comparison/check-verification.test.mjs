@@ -154,7 +154,8 @@ test('splits the verification into the browser checks of selected servers and ev
   ]);
   // The four browser jobs and the summary together run every check of the full run, each once, unchanged.
   const parts = [...formServerIds().flatMap(server => verificationStages({ ...options, servers: [server] }).flat()), ...rest.flat()];
-  assert.deepEqual(parts.map(step => step.id).sort(), full.map(step => step.id).sort());
+  const codeUnitOrder = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
+  assert.deepEqual(parts.map(step => step.id).sort(codeUnitOrder), full.map(step => step.id).sort(codeUnitOrder));
   for (const step of parts) assert.deepEqual(step, full.find(item => item.id === step.id));
   assert.throws(() => verificationStages({ ...options, servers: ['php'], browserReports: true }), /not both/);
 
@@ -180,10 +181,10 @@ test('no browser run has a budget or a summed limit; every unit limit comes from
   // Three times the slowest measurement, rounded up to five seconds, at least ten seconds.
   assert.equal(measuredLimitMs(32_415), 100_000);
   assert.equal(measuredLimitMs(1_804), 10_000);
-  for (const [name, measurements, limits] of [
+  for (const [name, measurements, limits] of /** @type {[string, Record<string, number> | undefined, Record<string, number>][]} */ ([
     ['report', browserReportMeasurementsMs, browserReportLimitsMs],
     ['browser unit', browserPolicy.browserUnitMeasurementsMs, browserPolicy.browserUnitLimitsMs],
-  ]) {
+  ])) {
     assert.deepEqual(Object.keys(limits).sort(), Object.keys(measurements ?? {}).sort(), `${name} limits`);
     for (const [id, measured] of Object.entries(measurements)) {
       assert.equal(limits[id], measuredLimitMs(measured), `${name} ${id}: limit from its measurement`);

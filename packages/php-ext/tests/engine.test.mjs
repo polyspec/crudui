@@ -70,6 +70,7 @@ export class EngineFixtureSource {
 }
 
 /* Shared C value builders; a program includes only the helpers it calls. */
+/** @type {Array<[string, string[]]>} */
 const fixtureHelpers = [
   ['crudui_locale_start', [
       '/*',
@@ -726,9 +727,9 @@ function sourceForUniqueField() {
   }, ['    put(row, PS_TEXT("code"), ps_string_value(name));'], []);
 }
 
-for (const [title, name, source] of [
-  ['PHP extension engine unique rule walks the rows once', 'unique-rows', sourceForUniqueRows],
-  ['PHP extension engine unique rule on a field in rows walks the rows once', 'unique-field', sourceForUniqueField],
+for (const { title, name, source } of [
+  { title: 'PHP extension engine unique rule walks the rows once', name: 'unique-rows', source: sourceForUniqueRows },
+  { title: 'PHP extension engine unique rule on a field in rows walks the rows once', name: 'unique-field', source: sourceForUniqueField },
 ]) {
   test(title, { timeout: ENGINE_TEST_BUDGET }, async t => {
     const directory = await mkdtemp(path.join(os.tmpdir(), `crudui-extension-${name}-`));
@@ -2309,6 +2310,7 @@ test('CRUDUI PHP extension package contains one C implementation', { timeout: EN
   const sourceRoot = new URL('packages/php-ext/', root);
   const generated = new Set(['.build', '.libs', 'autom4te.cache', 'build', 'include',
     'modules', 'target']);
+  /** @type {string[]} */
   const prohibited = [];
   async function inspect(directory, relative = '') {
     for (const entry of await readdir(directory, { withFileTypes: true })) {
@@ -2344,7 +2346,7 @@ const textBytes = [
 ];
 function sourceForText() {
   const cases = textBytes.map(([bytes, valid]) =>
-    `    {(const uint8_t *)"${bytes.map(byte => `\\${byte.toString(8).padStart(3, '0')}`).join('')}", ${bytes.length}, ${valid}},`);
+    `    {(const uint8_t *)"${bytes.map(byte => `\\${byte.toString(8).padStart(3, '0')}`).join('')}", ${bytes.length}, ${valid ? 'true' : 'false'}},`);
   return [
     '#include <stdio.h>',
     '#include "crudui_engine.h"',
@@ -2411,8 +2413,8 @@ test('every C program of the engine tests compiles through one function that lin
 test('a comma locale that localedef wrote with warnings is reported as written', async t => {
   const directory = await mkdtemp(path.join(os.tmpdir(), 'crudui-comma-locale-'));
   const lines = [];
-  const write = process.stderr.write;
-  process.stderr.write = (chunk, ...rest) => { lines.push(String(chunk)); return write.call(process.stderr, chunk, ...rest); };
+  const write = process.stderr.write.bind(process.stderr);
+  t.mock.method(process.stderr, 'write', (chunk, ...rest) => { lines.push(String(chunk)); return write(chunk, ...rest); });
   try {
     // localedef exits with status 1 when it writes a locale with warnings; the stub does the same.
     const localedef = path.join(directory, 'localedef');
@@ -2428,7 +2430,6 @@ test('a comma locale that localedef wrote with warnings is reported as written',
     await assert.rejects(commaLocaleEnvironment(directory, t.signal, { platform: 'linux', localedef }), /localedef wrote no locale/);
     assert.match(lines.join(''), /comma locale: compiling: failed \(1\)/);
   } finally {
-    process.stderr.write = write;
     await rm(directory, { recursive: true, force: true });
   }
 });
