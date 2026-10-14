@@ -5,6 +5,7 @@ import { afterEach, beforeEach, expect, it } from 'vitest';
 import { compileForm, createForm } from '@polyspec/crudui-generator-core';
 import { Form } from '../components/Form';
 import { installWidgetHost } from '../../../../tests/fixtures/form-session/typing.mts';
+import { element } from './elements';
 
 const behavior = { onchange: 'document.body.dataset.cruduiBehaviorEvents = String(Number(document.body.dataset.cruduiBehaviorEvents || 0) + 1)' };
 const template = compileForm({ type: 'group', properties: {
@@ -28,30 +29,30 @@ it('executes handlers, updates values and retains the existing row and language 
   const view = render(<Form form={form} />);
   try {
     expect(view.container.querySelectorAll('[onchange]')).toHaveLength(4);
-    const date = view.container.querySelector<HTMLInputElement>('input[name="dates[first]"]')!;
+    const date = element(view.container, 'input[name="dates[first]"]', HTMLInputElement);
     expect(date.getAttribute('onchange')).toBe(behavior.onchange);
     expect(typeof date.onchange).toBe('function');
     // The row body holds only the widget; row controls live in the row header.
-    expect(Array.from(date.parentElement!.children, child => child.tagName)).toEqual(['INPUT']);
-    expect(date.closest('[data-crudui-row-key]')!.querySelectorAll('[data-crudui-action]')).toHaveLength(5);
+    expect(Array.from(date.parentElement?.children ?? [], child => child.tagName)).toEqual(['INPUT']);
+    expect(date.closest('[data-crudui-row-key]')?.querySelectorAll('[data-crudui-action]')).toHaveLength(5);
     for (const language of view.container.querySelectorAll('[data-lang]')) {
-      expect(Array.from(language.querySelector('input')!.parentElement!.children, child => child.tagName)).toEqual(['INPUT']);
+      expect(Array.from(element(language, 'input', HTMLInputElement).parentElement?.children ?? [], child => child.tagName)).toEqual(['INPUT']);
     }
     fireEvent.change(date, { target: { value: '2026-09-10T14:00' } });
     expect(document.body.dataset.cruduiBehaviorEvents).toBe('1');
     expect(form.getValue('dates.first')).toBe('2026-09-10T14:00');
-    const note = view.container.querySelector<HTMLTextAreaElement>('textarea[name="notes[first]"]')!;
+    const note = element(view.container, 'textarea[name="notes[first]"]', HTMLTextAreaElement);
     fireEvent.change(note, { target: { value: 'Updated' } });
     expect(document.body.dataset.cruduiBehaviorEvents).toBe('2');
     expect(form.getValue('notes.first')).toBe('Updated');
-    const translated = view.container.querySelector<HTMLInputElement>('input[name="translated[en]"]')!;
+    const translated = element(view.container, 'input[name="translated[en]"]', HTMLInputElement);
     fireEvent.change(translated, { target: { value: '2026-09-10T15:00' } });
     expect(document.body.dataset.cruduiBehaviorEvents).toBe('3');
     expect(form.getValue('translated.en')).toBe('2026-09-10T15:00');
     act(() => form.setData(data));
     expect(view.container.querySelectorAll('[onchange]')).toHaveLength(4);
-    fireEvent.click(view.container.querySelector('[data-field-path="dates"] [data-crudui-action="add-row"]')!);
-    expect(Object.keys(form.getData().dates as object)).toHaveLength(2);
+    fireEvent.click(element(view.container, '[data-field-path="dates"] [data-crudui-action="add-row"]', HTMLElement));
+    expect(form.getData().dates).toSatisfy((dates: unknown) => typeof dates === 'object' && dates !== null && Object.keys(dates).length === 2);
     expect(view.container.querySelectorAll('[onchange]')).toHaveLength(5);
   } finally { view.unmount(); }
 });
@@ -65,13 +66,17 @@ it('preserves exact injected HTML and focuses the row added beside a raw editor'
     const original = first.container.innerHTML;
     act(() => deferred.setData(data));
     expect(second.container.innerHTML).toBe(original);
-    const note = second.container.querySelector<HTMLTextAreaElement>('textarea[name="notes[first]"]')!;
+    const note = element(second.container, 'textarea[name="notes[first]"]', HTMLTextAreaElement);
     note.focus();
     note.setSelectionRange(1, 2);
-    const button = note.closest('[data-crudui-row-key]')!.querySelector('[data-crudui-action="add-row"]')!;
+    const row = note.closest('[data-crudui-row-key]');
+    if (!row) throw new Error('the note has no row');
+    const button = element(row, '[data-crudui-action="add-row"]', HTMLElement);
     fireEvent.click(button);
-    const added = Object.keys(deferred.getData().notes as object)[1];
-    expect((document.activeElement as HTMLTextAreaElement).name).toBe(`notes[${added}]`);
+    const notes = deferred.getData().notes;
+    if (typeof notes !== 'object' || notes === null) throw new Error('the notes are no object');
+    const added = Object.keys(notes)[1];
+    expect(document.activeElement).toHaveProperty('name', `notes[${added}]`);
     act(() => deferred.setData({ ...data, notes: {} }));
     act(() => deferred.setData(data));
     expect(second.container.innerHTML).toBe(original);

@@ -65,8 +65,7 @@ export async function runRustCommand(
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   runRustCommand(process.argv.slice(2), { cwd: process.cwd() }).catch((error: unknown) => {
-    const failure = error as Partial<Error>;
-    process.stderr.write((failure.stack ?? failure.message ?? String(error)) + '\n');
+    process.stderr.write((error instanceof Error ? error.stack ?? error.message : String(error)) + '\n');
     process.exitCode = 1;
   });
 }

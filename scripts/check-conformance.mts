@@ -5,12 +5,13 @@
 // counterparts). This check fails when a supported runtime has no passing evidence for a case,
 // when evidence exists for a runtime the standard does not declare, when a fixture family is not
 // registered and when a registered fixture is proven by no feature.
-import assert from 'node:assert/strict';
 import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { createProgress } from '@polyspec/kit/test-progress';
+import { readFeatureManifest } from './features-manifest.mts';
+import { array, errorCode, parseJson, record, string, strings } from './values.mts';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -248,17 +249,37 @@ export function summarize(
  */
 async function fixtureCases(fixture: RegisteredFixture): Promise<string[] | undefined> {
   if (fixture.path.endsWith('/cases.json')) {
-    const cases = JSON.parse(await readFile(path.join(ROOT, fixture.path), 'utf8')) as { name: string }[];
-    return cases.map(item => item.name);
+    const cases = array(parseJson(await readFile(path.join(ROOT, fixture.path), 'utf8')), fixture.path);
+    return cases.map((item, index) => string(record(item, `${fixture.path}[${index}]`).name, `${fixture.path}[${index}].name`));
   }
   if (fixture.export) {
     // The registry names an export of the module that holds its cases.
-    const module = await import(pathToFileURL(path.join(ROOT, fixture.path)).href) as Record<string, { name: string }[]>;
-    const cases = module[fixture.export];
-    assert.ok(cases);
-    return cases.map(item => item.name);
+    const module: unknown = await import(pathToFileURL(path.join(ROOT, fixture.path)).href);
+    const what = `${fixture.export} of ${fixture.path}`;
+    const cases = array(record(module, fixture.path)[fixture.export], what);
+    return cases.map((item, index) => string(record(item, `${what}[${index}]`).name, `${what}[${index}].name`));
   }
   return fixture.cases;
+}
+
+/** A line of an evidence file, checked. */
+function evidenceRecord(value: unknown, file: string): EvidenceRecord {
+  const item = record(value, `an evidence record of ${file}`);
+  const field = (name: string) => string(item[name], `${name} of an evidence record of ${file}`);
+  if (typeof item.passed !== 'boolean') throw new Error(`passed of an evidence record of ${file} is no boolean`);
+  return { feature: field('feature'), fixture: field('fixture'), runtime: field('runtime'), case: field('case'), passed: item.passed };
+}
+
+/** A run record file, checked. */
+function runRecord(value: unknown, file: string): RunRecord {
+  const item = record(value, file);
+  const { tool, status } = item;
+  if (tool !== null && typeof tool !== 'string') throw new Error(`tool of ${file} is no string or null`);
+  if (status !== null && typeof status !== 'number') throw new Error(`status of ${file} is no number or null`);
+  return {
+    program: string(item.program, `program of ${file}`), tool, cwd: string(item.cwd, `cwd of ${file}`),
+    args: strings(item.args, `args of ${file}`), started: string(item.started, `started of ${file}`), status,
+  };
 }
 
 /**
@@ -267,7 +288,7 @@ async function fixtureCases(fixture: RegisteredFixture): Promise<string[] | unde
  * read.
  */
 async function filesBelow(directory: string): Promise<string[]> {
-  try { return (await readdir(directory, { recursive: true })).sort(); } catch (error) { if ((error as NodeJS.ErrnoException).code === 'ENOENT') return []; throw error; }
+  try { return (await readdir(directory, { recursive: true })).sort(); } catch (error) { if (errorCode(error) === 'ENOENT') return []; throw error; }
 }
 
 /** The evidence records of every `.jsonl` file of `directory` and its subdirectories, and the number of those files. */
@@ -278,7 +299,7 @@ export async function readEvidence(
   const files = (await filesBelow(directory)).filter(name => name.endsWith('.jsonl'));
   for (const file of files) {
     const text = await readFile(path.join(directory, file), 'utf8');
-    for (const line of text.split('\n').filter(Boolean)) evidence.push(JSON.parse(line) as EvidenceRecord);
+    for (const line of text.split('\n').filter(Boolean)) evidence.push(evidenceRecord(parseJson(line), file));
   }
   return { evidence, files: files.length };
 }
@@ -286,14 +307,13 @@ export async function readEvidence(
 /** The run records of every `runs/` directory of `directory` and its subdirectories. */
 export async function readRuns(directory: string): Promise<RunRecord[]> {
   const files = (await filesBelow(directory)).filter(name => name.endsWith('.json') && path.basename(path.dirname(name)) === 'runs');
-  return Promise.all(files.map(async file => JSON.parse(await readFile(path.join(directory, file), 'utf8')) as RunRecord));
+  return Promise.all(files.map(async file => runRecord(parseJson(await readFile(path.join(directory, file), 'utf8')), file)));
 }
 
 async function main(): Promise<void> {
   const directory = process.env.CRUDUI_CONFORMANCE_EVIDENCE;
   if (!directory) throw new Error('CRUDUI_CONFORMANCE_EVIDENCE names the evidence directory');
-  const standard = JSON.parse(await readFile(path.join(ROOT, 'contracts/features.json'), 'utf8')) as
-    { features: Feature[], fixtures: RegisteredFixture[] };
+  const standard = readFeatureManifest(ROOT);
   const features = standard.features.map(({ id, support, fixtures }) => ({ id, support, fixtures }));
   const registry = standard.fixtures;
   const cases: Record<string, string[] | undefined> = {};

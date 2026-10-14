@@ -44,7 +44,7 @@ import {
 export type AnyWidget = WidgetModel | UnsupportedVM;
 
 function isUnsupported(w: AnyWidget): w is UnsupportedVM {
-  return (w as UnsupportedVM).unsupported === true;
+  return 'unsupported' in w && w.unsupported;
 }
 
 // ---------------------------------------------------------------------------
@@ -128,8 +128,8 @@ function rangeVNode(w: WidgetModel): VNode {
  */
 function choicesHtml(w: WidgetModel): string {
   const type: 'radio' | 'checkbox' = w.kind === 'choice' ? 'radio' : 'checkbox';
-  const shared = (w.extra?.input ?? {}) as Attrs;
-  const declared = (w.extra?.option ?? {}) as Attrs;
+  const shared: Attrs = w.extra?.input ?? {};
+  const declared: Attrs = w.extra?.option ?? {};
   const labelClass = w.itemLabelClass ?? '';
   const body = (w.options ?? [])
     .map((o) => groupButtonHtml(o, type, shared, declared, labelClass))

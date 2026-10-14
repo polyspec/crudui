@@ -13,10 +13,43 @@ import { failureOf, runCommand } from './run-command.mts';
 import { createProgress } from '@polyspec/kit/test-progress';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-interface FeatureManifest {
-  features: { id: string, verification?: { id: string, command: string }[] }[];
+/** A feature of contracts/features.json in the members that the runner reads. */
+interface Feature { id: string, verification: { id: string, command: string }[] }
+
+/** `value` as an object; throws an Error that names `what` otherwise. */
+function object(value: unknown, what: string): Record<string, unknown> {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) throw new Error(`${what} is no object`);
+  return Object.fromEntries(Object.entries(value));
 }
-const manifest = JSON.parse(readFileSync(resolve(root, 'contracts/features.json'), 'utf8')) as FeatureManifest;
+
+/** `value` as a string; throws an Error that names `what` otherwise. */
+function text(value: unknown, what: string): string {
+  if (typeof value !== 'string') throw new Error(`${what} is no string`);
+  return value;
+}
+
+/** `value` as an array; throws an Error that names `what` otherwise. */
+function list(value: unknown, what: string): unknown[] {
+  if (!Array.isArray(value)) throw new Error(`${what} is no array`);
+  return value;
+}
+
+/** The features of contracts/features.json with their verification commands, checked. */
+function manifestFeatures(value: unknown): Feature[] {
+  const file = 'contracts/features.json';
+  return list(object(value, file).features, `features of ${file}`).map((entry, index) => {
+    const feature = object(entry, `features[${index}] of ${file}`);
+    const verification = feature.verification === undefined ? [] : list(feature.verification, `features[${index}].verification of ${file}`);
+    return {
+      id: text(feature.id, `features[${index}].id of ${file}`),
+      verification: verification.map((item, at) => {
+        const command = object(item, `features[${index}].verification[${at}] of ${file}`);
+        return { id: text(command.id, `the id of a verification of ${file}`), command: text(command.command, `the command of a verification of ${file}`) };
+      }),
+    };
+  });
+}
+const manifest = { features: manifestFeatures(JSON.parse(readFileSync(resolve(root, 'contracts/features.json'), 'utf8'))) };
 const requested = process.argv.slice(2);
 const featureId = requested[0] === '--feature' ? requested[1] : undefined;
 const features = featureId ? manifest.features.filter((feature) => feature.id === featureId) : manifest.features;
@@ -28,7 +61,7 @@ if (featureId && features.length === 0) {
 
 const commands = new Map<string, string[]>();
 for (const feature of features) {
-  for (const verification of feature.verification ?? []) {
+  for (const verification of feature.verification) {
     const owners = commands.get(verification.command) ?? [];
     owners.push(`${feature.id}/${verification.id}`);
     commands.set(verification.command, owners);

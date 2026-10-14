@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { isRecord, parseJson } from './values.mts';
 
 const repositoryRoot = path.resolve(import.meta.dirname, '..');
 
@@ -14,6 +15,14 @@ export interface PackReport {
   name?: string;
   filename?: string;
   files: { path: string }[];
+}
+
+/** Whether `value` has the fields of an archive report of npm pack that the callers read. */
+function isPackReport(value: unknown): value is PackReport {
+  return isRecord(value)
+    && (value.name === undefined || typeof value.name === 'string')
+    && (value.filename === undefined || typeof value.filename === 'string')
+    && Array.isArray(value.files) && value.files.every((file) => isRecord(file) && typeof file.path === 'string');
 }
 
 export function packReport(output: string, packageName: string): PackReport {
@@ -33,8 +42,8 @@ export function packReport(output: string, packageName: string): PackReport {
   assert.equal(results.length, 1,
     `npm pack must produce one archive of ${packageName}; received ${results.length}`);
   // An archive report of npm pack, whose name and filename the callers check.
-  const [result] = results as (PackReport | undefined)[];
-  assert.ok(result, `npm pack must report the archive of ${packageName}`);
+  const [result] = results;
+  assert.ok(isPackReport(result), `npm pack must report the archive of ${packageName} with its name, filename and files`);
   if (result.name !== undefined) {
     assert.equal(result.name, packageName, 'npm pack report name must match the package name');
   }
@@ -51,10 +60,8 @@ export async function packPackage(
     `Package destination must be absolute: ${destination}`);
   assert.equal(typeof packageName, 'string', 'Package name is required');
   assert.equal(typeof run, 'function', 'Package command runner is required');
-  const sourceManifest = JSON.parse(
-    fs.readFileSync(path.join(source, 'package.json'), 'utf8'),
-  ) as { name?: unknown };
-  assert.equal(sourceManifest.name, packageName,
+  const sourceManifest = parseJson(fs.readFileSync(path.join(source, 'package.json'), 'utf8'));
+  assert.equal(isRecord(sourceManifest) ? sourceManifest.name : undefined, packageName,
     'Package source name must match the expected package name');
 
   // scripts/package-dist.mts packs under the lock of the package's dist, so no build of another

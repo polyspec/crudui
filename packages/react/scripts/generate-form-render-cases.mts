@@ -36,7 +36,10 @@ interface FixtureCase {
 
 /** Wrap a single field spec in a root group (matches the fixture shape). */
 function group(field: Record<string, unknown>): Record<string, unknown> {
-  return { type: 'group', properties: { [Object.keys(field)[0]!]: field[Object.keys(field)[0]!] } };
+  const [first] = Object.entries(field);
+  if (!first) throw new Error('a field spec names one field');
+  const [name, spec] = first;
+  return { type: 'group', properties: { [name]: spec } };
 }
 
 // Declare a case with an automatically computed expected_html value.

@@ -36,17 +36,28 @@ function proves(name: string, body: () => unknown): Promise<unknown> {
 interface ListFixtureCase {
   name: string;
   note: string;
-  spec: Record<string, unknown>;
-  rows: Array<Record<string, unknown>>;
+  /** An object, or another JSON value in a case that a JavaScript caller's specification fails. */
+  spec: unknown;
+  /** An array of objects, or another JSON value in a case that a JavaScript caller's rows fail. */
+  rows?: unknown;
   options?: Record<string, unknown>;
   expected_html?: string;
   expectError?: { code: string; message?: string };
 }
 
-const cases = fixtureCases as unknown as ListFixtureCase[];
+const cases: ListFixtureCase[] = fixtureCases;
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
 
 function render(c: ListFixtureCase): string {
-  return withoutPreloadLinks(renderList(c.spec, c.rows ?? [], c.options ?? {}));
+  const rows = c.rows ?? [];
+  if (isRecord(c.spec) && Array.isArray(rows) && rows.every(isRecord)) return withoutPreloadLinks(renderList(c.spec, rows, c.options ?? {}));
+  // A specification or rows that the type of renderList rejects: called as a JavaScript caller does, renderList checks them.
+  const html: unknown = Reflect.apply(renderList, undefined, [c.spec, rows, c.options ?? {}]);
+  if (typeof html !== 'string') throw new Error(`${c.name}: renderList returned no string`);
+  return withoutPreloadLinks(html);
 }
 
 describe('list render — React reproduces the normalized expected_html', () => {
@@ -77,18 +88,22 @@ describe('list render — read-only invariant (no input control EVER reaches out
   }
 });
 
-const ERROR_CLASS_BY_CODE: Record<string, unknown> = { REF_FILE_NOT_FOUND: ComposeLoadError };
+const ERROR_CLASS_BY_CODE: Record<string, new (...args: never[]) => Error> = { REF_FILE_NOT_FOUND: ComposeLoadError };
 
 describe('list render — invalid input fails with the shared message', () => {
-  for (const c of cases.filter((x) => x.expectError?.message)) {
+  for (const c of cases) {
+    const message = c.expectError?.message;
+    if (!message) continue;
     test(c.name, () => proves(c.name, () => {
-      expect(() => render(c)).toThrow(c.expectError!.message);
+      expect(() => render(c)).toThrow(message);
     }));
   }
 });
 
 describe('list render — a load gap is a surfaced ERROR, never a silent table', () => {
-  for (const c of cases.filter((x) => x.expectError && !x.expectError.message)) {
+  for (const c of cases) {
+    const expected = c.expectError;
+    if (!expected || expected.message) continue;
     test(c.name, () => proves(c.name, () => {
       let thrown: unknown;
       try {
@@ -96,11 +111,9 @@ describe('list render — a load gap is a surfaced ERROR, never a silent table',
       } catch (e) {
         thrown = e;
       }
-      const expectedClass = ERROR_CLASS_BY_CODE[c.expectError!.code];
-      expect(expectedClass, `${c.name}: unknown error code ${c.expectError!.code}`).toBeTruthy();
-      expect(thrown, `${c.name} must throw a surfaced error`).toBeInstanceOf(
-        expectedClass as new (...args: never[]) => Error
-      );
+      const expectedClass = ERROR_CLASS_BY_CODE[expected.code];
+      if (!expectedClass) throw new Error(`${c.name}: unknown error code ${expected.code}`);
+      expect(thrown, `${c.name} must throw a surfaced error`).toBeInstanceOf(expectedClass);
     }));
   }
 });

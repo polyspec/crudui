@@ -48,6 +48,13 @@ interface LinkContext {
 
 // The environment that buildDocumentationWeb passes to the renderer for each page.
 type RenderEnvironment = { page: Page, context: LinkContext };
+// markdown-it passes its environment to every rule; the page and the links of buildDocumentationWeb are its members here.
+declare module 'markdown-it' {
+  interface Env {
+    page?: Page;
+    context?: LinkContext;
+  }
+}
 // The environment of a parse: the heading rule records the headings of the document in it.
 type ParseEnvironment = { headings?: Heading[] };
 
@@ -66,8 +73,10 @@ export interface DocumentationWebReport {
 }
 
 function renderEnvironment(environment: Env | undefined): RenderEnvironment {
-  assert.ok(environment);
-  return environment as RenderEnvironment;
+  const page = environment?.page;
+  const context = environment?.context;
+  assert.ok(page && context, 'the renderer environment holds the page and its link context');
+  return { page, context };
 }
 
 function posix(path: string): string {

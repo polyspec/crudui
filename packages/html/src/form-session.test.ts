@@ -151,9 +151,12 @@ test('connecting keeps values entered into the server markup before the connecti
   }, { keyPrefix: 'form' }), { email: '', note: '', kept: 'server' });
   const element = document.createElement('div');
   element.innerHTML = renderForm(session);
-  const email = element.querySelector<HTMLInputElement>('input[name="form[email]"]')!;
-  const note = element.querySelector<HTMLTextAreaElement>('textarea[name="form[note]"]')!;
-  const kept = element.querySelector<HTMLInputElement>('input[name="form[kept]"]')!;
+  const email = element.querySelector('input[name="form[email]"]');
+  const note = element.querySelector('textarea[name="form[note]"]');
+  const kept = element.querySelector('input[name="form[kept]"]');
+  if (!(email instanceof HTMLInputElement) || !(note instanceof HTMLTextAreaElement) || !(kept instanceof HTMLInputElement)) {
+    throw new Error('the server markup has no email, note or kept control');
+  }
   email.value = 'typed@example.test';
   note.value = 'typed note';
   const connection = connectForm(element, session);

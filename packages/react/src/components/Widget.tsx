@@ -38,7 +38,7 @@ import {
 export type AnyWidget = WidgetModel | UnsupportedVM;
 
 function isUnsupported(w: AnyWidget): w is UnsupportedVM {
-  return (w as UnsupportedVM).unsupported === true;
+  return 'unsupported' in w && w.unsupported;
 }
 
 /** Prepend/append affix span (real JSX). */
@@ -253,8 +253,8 @@ function GroupButton({
 /** choices layout: choice (radios) / multichoice (checkboxes). */
 function Choices({ w }: { w: WidgetModel }): React.ReactElement {
   const type: 'radio' | 'checkbox' = w.kind === 'choice' ? 'radio' : 'checkbox';
-  const shared = (w.extra?.input ?? {}) as Attrs;
-  const declared = (w.extra?.option ?? {}) as Attrs;
+  const shared: Attrs = w.extra?.input ?? {};
+  const declared: Attrs = w.extra?.option ?? {};
   const props = plainProps(w.attrs);
   const labelClass = w.itemLabelClass ?? '';
   // Opaque on* attrs live on the per-item inputs → serialize the group body raw.

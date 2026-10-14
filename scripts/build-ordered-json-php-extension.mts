@@ -12,6 +12,7 @@ import {
   type PhpExtensionBuild,
   type PhpExtensionBuildOptions,
 } from './php-extension-builder.mts';
+import { errorReport } from './values.mts';
 
 const generatedPaths = [
   '.libs',
@@ -130,8 +131,7 @@ async function main(): Promise<void> {
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   main().catch((error: unknown) => {
-    const failure = error as Partial<Error>;
-    process.stderr.write((failure.stack ?? failure.message ?? String(error)) + '\n');
+    process.stderr.write(errorReport(error) + '\n');
     process.exitCode = 1;
   });
 }

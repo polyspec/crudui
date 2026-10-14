@@ -20,7 +20,7 @@ function check(name: string, operation: () => void): void {
     process.stdout.write(`[doc-coverage] ${name}: PASS\n`);
   } catch (error) {
     results.push({ name, passed: false });
-    process.stderr.write(`[doc-coverage] ${name}: FAIL: ${(error as Error).message}\n`);
+    process.stderr.write(`[doc-coverage] ${name}: FAIL: ${error instanceof Error ? error.message : String(error)}\n`);
   }
 }
 function run(command: string, args: string[], cwd: string = ROOT): void {

@@ -8,6 +8,7 @@ import { render } from '@testing-library/react';
 import { describe, expect, test } from 'vitest';
 import { compileForm, createForm } from '@polyspec/crudui-generator-core';
 import { renderForm as htmlForm } from '@polyspec/crudui-generator-html';
+import { element } from './elements';
 import { Form } from '../components/Form';
 import { renderForm } from '../server';
 
@@ -37,13 +38,13 @@ describe('inline layout output of React', () => {
     const view = render(<Form form={form('inline')} />);
     try {
       for (const [path, label] of [['look.sync', 'Sync'], ['look.agree', 'Agree']] as const) {
-        const node = view.container.querySelector(`[data-field-path="${path}"]`)!;
-        const header = node.querySelector(':scope > .crudui-node__header > label.crudui-node__label')!;
-        const body = node.querySelector(':scope > .crudui-node__body')!;
+        const node = element(view.container, `[data-field-path="${path}"]`, HTMLElement);
+        const header = element(node, ':scope > .crudui-node__header > label.crudui-node__label', HTMLLabelElement);
+        const body = element(node, ':scope > .crudui-node__body', HTMLElement);
         expect(header.textContent).toBe(label);
         expect(header.getAttribute('for')).toBe(`crudui:${path}`);
         expect([...body.children].map(child => child.tagName)).toEqual(['INPUT']);
-        expect((body.firstElementChild as HTMLInputElement).labels![0]).toBe(header);
+        expect(element(body, ':scope > input', HTMLInputElement).labels?.[0]).toBe(header);
       }
     } finally { view.unmount(); }
   });

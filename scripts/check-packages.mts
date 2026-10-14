@@ -1,26 +1,27 @@
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
-import { mkdtempSync, readFileSync, rmSync, writeFileSync, existsSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, relative, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import puppeteer from 'puppeteer';
 import { createRequire } from 'node:module';
-import { installLock, type LockPackages, type PackedManifest, type PackedPackage } from './install-lock.mts';
+import { installLock, isLockPackages, isPackedManifest, type PackedPackage } from './install-lock.mts';
 import { packPackage } from './package-install-pack.mts';
 import { createProgress } from '@polyspec/kit/test-progress';
+import { readFeatureManifest } from './features-manifest.mts';
+import { errorMessage, isRecord, readJson, record, string } from './values.mts';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const require = createRequire(import.meta.url);
 const directory = mkdtempSync(join(tmpdir(), 'crudui-install-'));
 const packages = ['validator/ts', 'generator/ts', 'html', 'react', 'vue', 'svelte', 'form-binding'];
 // contracts/features.json records every published npm package; the install project installs all of them.
-const published = (JSON.parse(readFileSync(join(root, 'contracts/features.json'), 'utf8')) as { packages: { path: string }[] }).packages
-  .map(({ path }) => relative(join(root, 'packages'), join(root, path)));
+const published = readFeatureManifest(root).packages.map(({ path }) => relative(join(root, 'packages'), join(root, path)));
 const dependencies: Record<string, string> = {};
 // The packed packages for the install lock (scripts/install-lock.mts).
 const packed: Record<string, PackedPackage> = {};
-const { allowScripts } = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')) as { allowScripts?: unknown };
+const { allowScripts } = record(readJson(join(root, 'package.json')), 'package.json');
 process.stdout.write(`Install project: ${directory}\n`);
 
 /*
@@ -32,6 +33,17 @@ process.stdout.write(`Install project: ${directory}\n`);
 /** A value of the `exports` map of a package.json: a path, or conditions and subpaths that lead to paths. */
 type ExportTarget = string | { [key: string]: ExportTarget };
 
+/** Whether `value` is a value of an exports map that leads to paths. */
+const isExportTarget = (value: unknown): value is ExportTarget =>
+  typeof value === 'string' || (isRecord(value) && Object.values(value).every(isExportTarget));
+
+/** Whether `value` is the module of vite, in the two functions that the check calls. */
+const isVite = (value: unknown): value is typeof import('vite') =>
+  isRecord(value) && typeof value.createServer === 'function' && typeof value.preview === 'function';
+
+/** Whether `value` is a function, which the check calls without arguments. */
+const isCallable = (value: unknown): value is () => unknown => typeof value === 'function';
+
 const lines = createProgress({ write: text => process.stdout.write(text) });
 async function step<T>(label: string, budget: number, operation: (budget: number) => T | Promise<T>): Promise<T> {
   const id = `${label} (limit ${budget / 1000}s)`;
@@ -42,7 +54,7 @@ async function step<T>(label: string, budget: number, operation: (budget: number
     lines.pass(id);
     return value;
   } catch (error) {
-    lines.fail(id, undefined, (error as Error).message);
+    lines.fail(id, undefined, errorMessage(error));
     throw error;
   }
 }
@@ -69,7 +81,8 @@ try {
   assert.deepEqual([...packages].sort(), [...published].sort(), 'the install check packs every published package');
   for (const folder of packages) {
     const source = join(root, 'packages', folder);
-    const manifest = JSON.parse(readFileSync(join(source, 'package.json'), 'utf8')) as PackedManifest;
+    const manifest = readJson(join(source, 'package.json'));
+    assert.ok(isPackedManifest(manifest), `${folder}/package.json has a name, a version and dependency fields of strings`);
     assert.equal(manifest.version, '0.0.5', manifest.name);
     const tarball = await packPackage(source, directory, manifest.name, run);
     dependencies[manifest.name] = `file:${tarball}`;
@@ -78,15 +91,16 @@ try {
   });
   for (const name of ['react', 'react-dom', 'vue', 'svelte', 'typescript', '@types/react', '@types/react-dom', '@types/node', 'vite', '@sveltejs/vite-plugin-svelte']) {
     const version = ['vite', '@sveltejs/vite-plugin-svelte'].includes(name)
-      ? (JSON.parse(readFileSync(join(root, 'packages/svelte/package.json'), 'utf8')) as { devDependencies: Record<string, string> }).devDependencies[name]
-      : (require(`${name}/package.json`) as { version: string }).version;
-    assert.ok(version !== undefined, name);
-    dependencies[name] = version;
+      ? record(record(readJson(join(root, 'packages/svelte/package.json')), 'packages/svelte/package.json').devDependencies, 'devDependencies of packages/svelte/package.json')[name]
+      : record(readJson(require.resolve(`${name}/package.json`)), `${name}/package.json`).version;
+    dependencies[name] = string(version, `the version of ${name}`);
   }
   const project = { name: 'crudui-install-check', version: '0.0.1', private: true, type: 'module', dependencies, allowScripts };
   writeFileSync(join(directory, 'package.json'), JSON.stringify(project, null, 2));
   // The install project installs the releases of the root lock from the npm cache that make install fills, without a registry.
-  const rootLock = JSON.parse(readFileSync(join(root, 'package-lock.json'), 'utf8')) as { packages?: LockPackages };
+  const lockPackages = record(readJson(join(root, 'package-lock.json')), 'package-lock.json').packages;
+  assert.ok(lockPackages === undefined || isLockPackages(lockPackages), 'the packages of package-lock.json are lock entries');
+  const rootLock = lockPackages === undefined ? {} : { packages: lockPackages };
   writeFileSync(join(directory, 'package-lock.json'), `${JSON.stringify(installLock({ rootLock, manifest: project, packed }), null, 2)}\n`);
   writeFileSync(join(directory, 'tsconfig.json'), JSON.stringify({ compilerOptions: {
     target: 'ES2022', module: 'ESNext', moduleResolution: 'bundler', strict: true, noEmit: true,
@@ -132,7 +146,8 @@ bindForm(document.querySelector<HTMLFormElement>('#binding form')!, bindingSpec,
   await step('verify package exports', 10000, () => {
   for (const name of Object.keys(dependencies).filter(name => name.startsWith('@polyspec/crudui-'))) {
     const base = join(directory, 'node_modules', name);
-    const manifest = JSON.parse(readFileSync(join(base, 'package.json'), 'utf8')) as { exports: ExportTarget };
+    const manifest = record(readJson(join(base, 'package.json')), `${name}/package.json`);
+    assert.ok(isExportTarget(manifest.exports), `${name}: the exports of package.json lead to paths`);
     const check = (value: ExportTarget): void => {
       if (typeof value === 'string') assert.ok(existsSync(resolve(base, value)), `${name}: ${value}`);
       else for (const child of Object.values(value)) check(child);
@@ -158,10 +173,13 @@ if (!html.every(part => part.includes('Ada'))) throw new Error('server rendering
   }
   writeFileSync(join(directory, 'render.mjs'), `import * as core from '@polyspec/crudui-generator-core';\nimport * as m from '@polyspec/crudui-generator-svelte';\nexport async function render() {${rendering}\n}\n`);
   // The vite of the install project: the release that the root package.json pins.
-  const vite = await import(pathToFileURL(installRequire.resolve('vite')).href) as typeof import('vite');
+  const vite: unknown = await import(pathToFileURL(installRequire.resolve('vite')).href);
+  assert.ok(isVite(vite), 'the vite of the install project has createServer and preview');
   const renderer = await vite.createServer({ root: directory, logLevel: 'silent', server: { middlewareMode: true } });
   try {
-    await (await renderer.ssrLoadModule('/render.mjs')).render();
+    const { render }: { render?: unknown } = await renderer.ssrLoadModule('/render.mjs');
+    assert.ok(isCallable(render), 'render.mjs exports render');
+    await render();
   } finally {
     await renderer.close();
   }
@@ -209,8 +227,11 @@ if (!html.every(part => part.includes('Ada'))) throw new Error('server rendering
   rmSync(directory, { recursive: true, force: true });
 } catch (error) {
   // A failed step throws an Error; a failed command adds its output to it.
-  const failure = error as Error & { stdout?: string, stderr?: string };
-  const detail = [failure.message, failure.stdout, failure.stderr].filter(Boolean).join('\n');
+  const output = (name: string) => {
+    const value = isRecord(error) ? error[name] : undefined;
+    return typeof value === 'string' ? value : undefined;
+  };
+  const detail = [errorMessage(error), output('stdout'), output('stderr')].filter(Boolean).join('\n');
   writeFileSync(join(directory, 'failure.log'), detail);
   console.error(detail);
   console.error(`Install project retained: ${directory}`);

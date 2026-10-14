@@ -18,6 +18,7 @@ import { PUPPETEER_REVISIONS } from 'puppeteer-core/internal/revisions.js';
 
 import { failureOf, formatSeconds, runCommand } from './run-command.mts';
 import { createProgress } from '@polyspec/kit/test-progress';
+import { errorMessage } from './values.mts';
 
 export const SANDBOX_HELPER = '/usr/local/sbin/chrome-devel-sandbox';
 const BROWSERS = ['chrome', 'firefox', 'webkit'];
@@ -83,7 +84,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
       lines.pass(step.id, result.elapsedMs);
     }
   } catch (error) {
-    lines.line((error as Error).message);
+    lines.line(errorMessage(error));
     failed = true;
   }
   lines.close('browsers');

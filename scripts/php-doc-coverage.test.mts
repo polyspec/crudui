@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { test } from 'node:test';
+import { parseJson, strings } from './values.mts';
 
 // Polyspec\\Crudui\\Docs\\DocCoverage loads through the autoload-dev of the development root vendor/.
 const rootAutoload = fileURLToPath(new URL('../vendor/autoload.php', import.meta.url));
@@ -54,5 +55,5 @@ test('PHP enums require source docs without requiring docs on runtime-generated 
 });
 test('PHP checker rejects a source tree without declarations', () => {
   const result = check('<?php');
-  assert.equal(result.status, 0, result.stderr); assert.match(JSON.parse(result.stdout)[0], /no class declarations found/);
+  assert.equal(result.status, 0, result.stderr); assert.match(strings(parseJson(result.stdout), 'the problems of the PHP checker')[0] ?? '', /no class declarations found/);
 });

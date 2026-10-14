@@ -33,7 +33,10 @@ export const Form = defineComponent({
       snapshot.value = props.form.getSnapshot();
     };
     subscribe();
-    onMounted(() => { binding = connectForm(root.value!, props.form); });
+    onMounted(() => {
+      if (!root.value) throw new Error('Form has no mounted root element');
+      binding = connectForm(root.value, props.form);
+    });
     watch(() => props.form, () => {
       binding?.disconnect();
       subscribe();

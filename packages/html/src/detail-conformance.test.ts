@@ -9,14 +9,20 @@ import { provesConformance } from '../../../tests/conformance/evidence.mts';
 
 interface DetailFixture {
   name: string;
-  spec: Record<string, unknown>;
-  record?: Record<string, unknown>;
+  /** An object, or another JSON value in a case that a JavaScript caller's specification fails. */
+  spec: unknown;
+  /** An object, or another JSON value in a case that a JavaScript caller's record fails. */
+  record?: unknown;
   options?: Record<string, unknown>;
   expected_html?: string;
   expectError?: { code: string; message: string };
 }
 
-const fixtures = cases as unknown as DetailFixture[];
+const fixtures: DetailFixture[] = cases;
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
 
 /** Run one fixture case and record renderDetail evidence for the HTML renderer. */
 function proves(name: string, body: () => void): Promise<void> {
@@ -29,12 +35,17 @@ function proves(name: string, body: () => void): Promise<void> {
 describe('framework-independent detail renderer conformance', () => {
   for (const item of fixtures.filter((fixture) => !fixture.expectError)) {
     test(item.name, () => proves(item.name, () => {
-      expect(normalizeHtml(withoutPreloadLinks(renderDetail(item.spec, item.record ?? {}, item.options)))).toBe(item.expected_html);
+      const record = item.record ?? {};
+      if (!isRecord(item.spec) || !isRecord(record)) throw new Error(`${item.name}: the specification or record of a rendered case is no object`);
+      expect(normalizeHtml(withoutPreloadLinks(renderDetail(item.spec, record, item.options)))).toBe(item.expected_html);
     }));
   }
-  for (const item of fixtures.filter((fixture) => fixture.expectError)) {
+  for (const item of fixtures) {
+    const expected = item.expectError;
+    if (!expected) continue;
     test(item.name, () => proves(item.name, () => {
-      expect(() => renderDetail(item.spec, item.record ?? {}, item.options)).toThrow(item.expectError!.message);
+      // Reflect.apply calls renderDetail as a JavaScript caller does, with a specification or record that its type rejects.
+      expect(() => { Reflect.apply(renderDetail, undefined, [item.spec, item.record ?? {}, item.options]); }).toThrow(expected.message);
     }));
   }
 });

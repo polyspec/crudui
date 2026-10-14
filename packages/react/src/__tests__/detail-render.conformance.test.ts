@@ -24,27 +24,44 @@ function proves(name: string, body: () => unknown): Promise<unknown> {
 
 interface DetailFixture {
   name: string;
-  spec: Record<string, unknown>;
-  record?: Record<string, unknown>;
+  /** An object, or another JSON value in a case that a JavaScript caller's specification fails. */
+  spec: unknown;
+  /** An object, or another JSON value in a case that a JavaScript caller's record fails. */
+  record?: unknown;
   options?: Record<string, unknown>;
   expected_html?: string;
   expectError?: { code: string; message: string };
 }
 
-const fixtures = cases as unknown as DetailFixture[];
+const fixtures: DetailFixture[] = cases;
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function render(item: DetailFixture): string {
+  const record = item.record ?? {};
+  if (isRecord(item.spec) && isRecord(record)) return renderDetail(item.spec, record, item.options);
+  // A specification or record that the type of renderDetail rejects: called as a JavaScript caller does, renderDetail checks them.
+  const html: unknown = Reflect.apply(renderDetail, undefined, [item.spec, record, item.options]);
+  if (typeof html !== 'string') throw new Error(`${item.name}: renderDetail returned no string`);
+  return html;
+}
 
 describe('detail render — React reproduces the normalized expected_html', () => {
   for (const item of fixtures.filter((fixture) => !fixture.expectError)) {
     test(item.name, () => proves(item.name, () => {
-      expect(normalizeHtml(withoutPreloadLinks(renderDetail(item.spec, item.record ?? {}, item.options)))).toBe(item.expected_html);
+      expect(normalizeHtml(withoutPreloadLinks(render(item)))).toBe(item.expected_html);
     }));
   }
 });
 
 describe('detail render — React rejects invalid input with the shared message', () => {
-  for (const item of fixtures.filter((fixture) => fixture.expectError)) {
+  for (const item of fixtures) {
+    const expected = item.expectError;
+    if (!expected) continue;
     test(item.name, () => proves(item.name, () => {
-      expect(() => renderDetail(item.spec, item.record ?? {}, item.options)).toThrow(item.expectError!.message);
+      expect(() => render(item)).toThrow(expected.message);
     }));
   }
 });
@@ -52,7 +69,7 @@ describe('detail render — React rejects invalid input with the shared message'
 describe('detail render — read-only output contains no control', () => {
   for (const item of fixtures.filter((fixture) => !fixture.expectError)) {
     test(item.name, () => proves(item.name, () => {
-      expect(renderDetail(item.spec, item.record ?? {}, item.options)).not.toMatch(/<(?:input|select|textarea|form)\b/);
+      expect(render(item)).not.toMatch(/<(?:input|select|textarea|form)\b/);
     }));
   }
 });

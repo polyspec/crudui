@@ -5,6 +5,7 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { checkedFiles } from '@polyspec/kit/tracked-files';
+import { errorCode, parseJson, record } from './values.mts';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
 // The copies of each root that a process read: the installed package does not change while a check runs.
@@ -20,20 +21,16 @@ export function kitCopies(root: string = ROOT): string[] {
   return copies;
 }
 
-interface KitManifest {
-  kit: { copies: Record<string, unknown> };
-}
-
 function readCopies(root: string): string[] {
   const manifest = path.join(root, 'node_modules/@polyspec/kit/package.json');
   let text;
   try {
     text = readFileSync(manifest, 'utf8');
   } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === 'ENOENT') throw new Error(`${manifest} is missing; run make install-tools TOOLS=npm, then make install-packages`);
+    if (errorCode(error) === 'ENOENT') throw new Error(`${manifest} is missing; run make install-tools TOOLS=npm, then make install-packages`);
     throw error;
   }
-  return Object.keys((JSON.parse(text) as KitManifest).kit.copies).sort();
+  return Object.keys(record(record(record(parseJson(text), manifest).kit, `kit of ${manifest}`).copies, `kit.copies of ${manifest}`)).sort();
 }
 
 /** Whether `file`, relative to the checkout, is a copy of polyspec/kit. */

@@ -30,7 +30,7 @@ async function walk(
 ): Promise<void> {
   let listing;
   try { listing = await readdir(directory, { withFileTypes: true }); }
-  catch (error) { if ((error as NodeJS.ErrnoException).code === 'ENOENT') return; throw error; }
+  catch (error) { if (missing(error)) return; throw error; }
   for (const entry of listing.sort((first, second) => first.name.localeCompare(second.name))) {
     const file = path.join(directory, entry.name);
     if (entry.isDirectory()) await walk(file, entries, accept);
@@ -45,6 +45,18 @@ interface BuildState {
   packages: string[];
 }
 
+/** Whether a caught error is ENOENT, a missing file. */
+const missing = (error: unknown): boolean => error instanceof Error && 'code' in error && error.code === 'ENOENT';
+
+/** The recorded build state `value`, checked; a stamp of another shape is no state, so the packages build again. */
+function buildState(value: unknown): BuildState | undefined {
+  if (typeof value !== 'object' || value === null || !('inputs' in value) || !('outputs' in value) || !('packages' in value)) return undefined;
+  if (typeof value.inputs !== 'string' || typeof value.outputs !== 'string') return undefined;
+  const { packages } = value;
+  if (!Array.isArray(packages) || !packages.every((name) => typeof name === 'string')) return undefined;
+  return { inputs: value.inputs, outputs: value.outputs, packages };
+}
+
 async function state(): Promise<BuildState> {
   const inputs: Record<string, string> = {}, outputs: Record<string, string> = {};
   for (const name of PACKAGES) {
@@ -52,7 +64,7 @@ async function state(): Promise<BuildState> {
     await walk(path.join(base, 'src'), inputs, file => SOURCE_FILE.test(file));
     for (const file of ['package.json', 'tsconfig.json', 'tsconfig.build.json', 'vite.config.ts', 'svelte.config.js']) {
       try { inputs[path.relative(ROOT, path.join(base, file))] = digest(await readFile(path.join(base, file))); }
-      catch (error) { if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error; }
+      catch (error) { if (!missing(error)) throw error; }
     }
     await walk(path.join(base, 'dist'), outputs, () => true);
   }
@@ -75,7 +87,7 @@ const id = 'build: workspace packages';
 lines.start(id, { group: true });
 const current = await state();
 let recorded: BuildState | undefined;
-try { recorded = JSON.parse(await readFile(STAMP, 'utf8')) as BuildState; } catch (error) { if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error; }
+try { recorded = buildState(JSON.parse(await readFile(STAMP, 'utf8'))); } catch (error) { if (!missing(error)) throw error; }
 if (recorded && recorded.inputs === current.inputs && recorded.outputs === current.outputs) {
   lines.pass(id);
   lines.line('build: packages are current; no build needed');
@@ -84,7 +96,7 @@ if (recorded && recorded.inputs === current.inputs && recorded.outputs === curre
   try {
     await run('npm', ['run', 'build']);
   } catch (error) {
-    lines.fail(id, undefined, (error as Error).message);
+    lines.fail(id, undefined, error instanceof Error ? error.message : String(error));
     throw error;
   }
   await mkdir(path.dirname(STAMP), { recursive: true });

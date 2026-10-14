@@ -19,7 +19,8 @@ export function Form({ form, renderButtons = true, options }: FormProps): React.
   const root = React.useRef<HTMLDivElement>(null);
   const binding = React.useRef<ReturnType<typeof connectForm> | null>(null);
   React.useLayoutEffect(() => {
-    binding.current = connectForm(root.current!, form);
+    if (!root.current) throw new Error('Form has no mounted root element');
+    binding.current = connectForm(root.current, form);
     return () => { binding.current?.disconnect(); binding.current = null; };
   }, [form]);
   React.useLayoutEffect(() => { binding.current?.sync(); }, [snapshot]);

@@ -53,12 +53,11 @@ function cleanDirectory(path: string): void {
 
 // API Extractor checks the public API of each package against its committed report and writes its doc model to
 // var/api-model/<package> (api-extractor.json of the package); API Documenter writes the Markdown pages of that model.
-interface PackageManifest {
-  name: string;
-}
-
 function unscopedName(manifest: string): string {
-  const unscoped = (JSON.parse(readFileSync(manifest, 'utf8')) as PackageManifest).name.split('/')[1];
+  const value: unknown = JSON.parse(readFileSync(manifest, 'utf8'));
+  const name = typeof value === 'object' && value !== null && 'name' in value ? value.name : undefined;
+  assert.ok(typeof name === 'string', `${manifest} names its package`);
+  const unscoped = name.split('/')[1];
   assert.ok(unscoped !== undefined);
   return unscoped;
 }

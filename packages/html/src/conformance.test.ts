@@ -18,7 +18,7 @@ interface FixtureCase {
   expectError?: { code: string };
 }
 
-const fixtures = cases as unknown as FixtureCase[];
+const fixtures: FixtureCase[] = cases;
 
 /** Run one fixture case and record renderForm evidence for the HTML renderer. */
 function proves(name: string, body: () => void): Promise<void> {
@@ -37,7 +37,7 @@ function renderFixture(item: FixtureCase): string {
 
 /** Render a fixture from data bound with bindForm: bindForm, bindButtons and renderFormView. */
 function renderFixtureView(item: FixtureCase): string {
-  const template = compileForm(item.spec, (item.options ?? {}) as CompileFormOptions);
+  const template = compileForm(item.spec, item.options ?? {});
   const options = (item.options ?? {}) as NonNullable<Parameters<typeof bindForm>[2]> & { language?: string };
   const data = item.data ?? {};
   return renderFormView(bindForm(template, data, options), bindButtons(template, data, options), formMessages(options.language ?? 'ko'),
@@ -75,7 +75,7 @@ describe('HTML form rendering: a load or registry failure is a surfaced error', 
         thrown = error;
       }
       expect(thrown, `${item.name} must throw`).toBeInstanceOf(Error);
-      expect((thrown as { code?: unknown }).code).toBe(item.expectError!.code);
+      expect(thrown).toHaveProperty('code', item.expectError?.code);
     }));
   }
 });

@@ -10,6 +10,7 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
+import { isRecord } from './values.mts';
 
 /** The sha512 integrity of a file, as npm records it. */
 export const fileIntegrity = (file: string): string => `sha512-${createHash('sha512').update(readFileSync(file)).digest('base64')}`;
@@ -66,6 +67,35 @@ export interface InstallLock {
 }
 const ROOT_FLAGS = new Set(['dev', 'devOptional', 'peer', 'optional']);
 
+const isOptional = <T,>(value: unknown, check: (value: unknown) => value is T): value is T | undefined => value === undefined || check(value);
+const isString = (value: unknown): value is string => typeof value === 'string';
+const isBoolean = (value: unknown): value is boolean => typeof value === 'boolean';
+const isStringRecord = (value: unknown): value is Record<string, string> => isRecord(value) && Object.values(value).every(isString);
+const isPeerMeta = (value: unknown): value is Record<string, { optional?: boolean | undefined }> =>
+  isRecord(value) && Object.values(value).every((meta) => isRecord(meta) && isOptional(meta.optional, isBoolean));
+
+/** Whether the dependency fields of `value` hold objects of strings, and peerDependenciesMeta objects with a boolean optional. */
+function hasDependencyFields(value: Record<string, unknown>): boolean {
+  return RELATIONS.every((kind) => isOptional(value[kind], isStringRecord)) && isOptional(value.peerDependenciesMeta, isPeerMeta);
+}
+
+/** Whether `value` is an entry of the `packages` of a package lock, in the fields that the lock of the install project reads. */
+export function isLockEntry(value: unknown): value is LockEntry {
+  return isRecord(value) && hasDependencyFields(value)
+    && ['name', 'version', 'resolved', 'integrity'].every((key) => isOptional(value[key], isString))
+    && ['link', 'dev', 'devOptional', 'peer', 'optional'].every((key) => isOptional(value[key], isBoolean));
+}
+
+/** Whether `value` is the `packages` of a package lock. */
+export function isLockPackages(value: unknown): value is LockPackages {
+  return isRecord(value) && Object.values(value).every(isLockEntry);
+}
+
+/** Whether `value` is the package.json of a packed package: its name, version and dependency fields. */
+export function isPackedManifest(value: unknown): value is PackedManifest {
+  return isRecord(value) && isString(value.name) && isString(value.version) && hasDependencyFields(value);
+}
+
 /** The lock path from which npm resolves `name` for a package at `from`: its own node_modules, then each parent's. */
 export function resolveIn(packages: LockPackages, from: string, name: string): string | null {
   let place = from;
@@ -110,7 +140,7 @@ export function installLock(
     const entry = source[found];
     assert.ok(entry);
     // The entry of the root lock without its flags.
-    packages[installPath] = Object.fromEntries(Object.entries(entry).filter(([key]) => !ROOT_FLAGS.has(key))) as LockEntry;
+    packages[installPath] = Object.fromEntries(Object.entries(entry).filter(([key]) => !ROOT_FLAGS.has(key)));
     pending.push(found);
   };
   const requireAll = (from: string, entry: DependencyFields, dependent: string): void => {
