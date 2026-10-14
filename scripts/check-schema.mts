@@ -510,7 +510,7 @@ function group(match: RegExpExecArray, name: string): string {
 /** The example specifications each package example embeds in its source. */
 const packageExamples: [string, RegExp, (match: RegExpExecArray, source: string) => [string, unknown]][] = [
   ['packages/generator/go/examples/server/main.go', /^const (?<name>\w+) = `(?<spec>\{.*\})`$/gm, (match) => [group(match, 'name'), JSON.parse(group(match, 'spec'))]],
-  ['packages/generator/php/examples/index.php', /\$(?<name>\w+) = json_decode\(<<<'JSON'\n(?<spec>\{.*\})\nJSON,/g, (match) => [group(match, 'name'), JSON.parse(group(match, 'spec'))]],
+  ['packages/generator/php/examples/index.php', /\$(?<name>\w+) = json_decode\(<<<'JSON'\n(?<spec>\{[\s\S]*?\})\nJSON,/g, (match) => [group(match, 'name'), JSON.parse(group(match, 'spec'))]],
   ['packages/generator/rust/examples/form.rs', /let (?<name>\w*spec) = json!\(/g, (match, source) => [group(match, 'name'), jsonObjectAt(source, source.indexOf('{', match.index))]],
 ];
 const packageEntry: Record<string, ValidateFunction | undefined> = {
