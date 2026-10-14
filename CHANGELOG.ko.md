@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 23dcc243fb1235edbe32ced258072c5bc3bf858733be0f257c2b3c6099f9f58b -->
+<!-- source-sha256: b1500dba64a9b241a3d3ce14efb7ccedbfd7c03a4d1cf91995a5982f3fa1244c -->
 
 ## Unreleased
+
+### 2026-10-15 — cast 없는 TypeScript (C14.12)
+
+- TypeScript가 type assertion, `any`, non-null assertion 없이 kit 0.0.47의 lint를 통과한다(kit K155, K156, K157). `@polyspec/crudui-generator-core`: `Translate`는 text를 `unknown`으로 받는다. 지역화된 text가 아닌 값에는 이미 fallback을 돌려주었기 때문이다. 값이 문자열이 아닌 선언된 attribute는 그 경로를 밝히는 `FormInputError`로 실패한다. `@polyspec/crudui-validator`: `accept` rule은 file 객체의 문자열 member만 읽는다. 전에는 `type`이나 `name`이 문자열이 아닌 file이 `validate`를 죽였다. `@polyspec/crudui-form-binding`: `bindForm`은 window가 없는 document의 form에 대해 form을 바꾸기 전에 `TypeError`를 던진다(C14.12).
 
 ### 2026-10-15 — kit 0.0.47 (C14.35)
 
