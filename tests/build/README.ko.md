@@ -1,6 +1,6 @@
 # 패키지 빌드 검사
 <!-- doc-id: tests-build-readme -->
-<!-- source-sha256: af23ab640c855abe5e70e9141ee24b181eb645ef5c5d924de83097e80f846caa -->
+<!-- source-sha256: 144dac29d4ce2972012ce5000684aa77a97cb5adf49b6fcfbab2bac7330dfec3 -->
 
 [English](README.md).
 
@@ -23,7 +23,7 @@ npm run test:packages
 두지 않습니다. 릴리스 채널이나 machine의 브라우저는 쓰지 않습니다.
 `package.json`의 `packageManager`는 정확한 npm 릴리스 하나를 기록합니다. 검사는 실행 중인
 npm이나 workflow step이 다른 릴리스를 고르면 실패하며, `make install-tools`가
-그 릴리스를 checkout의 `var/tools`에 설치합니다. `tests/build/tool-path.test.mjs`는 script, make 대상, CI step이
+그 릴리스를 checkout의 `var/tools`에 설치합니다. `tests/build/tool-path.test.mts`는 script, make 대상, CI step이
 npm을 machine에 설치할 때, 또는 make나 CI job이 `var/tools/bin`을 `PATH`의 맨 앞에
 두지 않을 때 실패합니다. 런타임
 검사는 프로세스 `PATH`에 Cargo가 없는 환경에서 저장소의 Rust Node.js 진입점을
@@ -54,7 +54,7 @@ validator·generator-core·generator-html·generator-react·generator-vue·gener
 출력을 흘리고 결과를 경과 시간과 함께 출력합니다. 테스트는 빌드된 드라이버를 실행하며 각 테스트는 테스트
 실행기의 30초 제한 시간을 가집니다.
 
-`test:build:repeat`는 `scripts/repeat-build.mjs`로 전체 빌드를 두 번 실행합니다. 이는 시간 한도 없이
+`test:build:repeat`는 `scripts/repeat-build.mts`로 전체 빌드를 두 번 실행합니다. 이는 시간 한도 없이
 로그를 남기는 단계로, 각 빌드 뒤에 공개 패키지의 모든 산출물 파일 경로와 SHA-256을 읽고 두 빌드 사이에 다른
 모든 파일과 함께 실패하며, 실행 사이에 기록을 남기지 않습니다. 테스트는 빌드 없이 패키지 목록과 비교를 검사하며
 각 테스트는 테스트 실행기의 30초 제한 시간을 가집니다.

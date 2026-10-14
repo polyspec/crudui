@@ -1,6 +1,6 @@
 # 폼 구조와 데이터 바인딩
 <!-- doc-id: docs-spec-form-runtime -->
-<!-- source-sha256: 6d81713273da24618379db663b0e11b27532b2b3cac7d6f2e7615f75f99911b9 -->
+<!-- source-sha256: a03bbdc6834e2458286b13a2253507dbb50ab225eef4ebc15b81765867d39e63 -->
 
 이 문서는 폼 런타임 계약을 정의합니다. [English](form-runtime.md).
 구현과 검증 상태는 [기능 상태](../features.ko.md)에 기록합니다.
@@ -415,7 +415,7 @@ Rust는 옵션을 순서 있는 JSON 객체로 받습니다.
 새 모델로 다시 렌더링한 목록이나 상세(`updateView`)는 `html` 셀과 값을 포함해 새 마크업에 여전히 있는
 모든 요소 노드를 유지합니다. HTML 렌더러의 새 마크업은 `patchContent`로 반영되고, React,
 Vue, Svelte의 목록·상세 컴포넌트도 원시 내용을 같은 방식으로 반영합니다. 공유 보기 사례
-`tests/fixtures/view-session/rerender.mjs`가 네 렌더러에서 이를 검사합니다.
+`tests/fixtures/view-session/rerender.mts`가 네 렌더러에서 이를 검사합니다.
 
 브라우저 파일 입력은 저장한 문자열로 채울 수 없습니다. 폼 런타임은 레코드 저장,
 DB seq 발급이나 배포를 수행하지 않습니다.

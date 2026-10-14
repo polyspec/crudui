@@ -1,6 +1,6 @@
 # 스키마 검증
 <!-- doc-id: docs-operations-schema-validation -->
-<!-- source-sha256: 3ab0edff1e6f2f15c9e91520423303fa44abfc5ba2cb934e73c97b02a0adfffa -->
+<!-- source-sha256: 488e7394a81883de54c188fd5decd44196ea40977aae5b1cd15a0aede33d955c -->
 
 [English](schema-validation.md).
 
@@ -9,7 +9,7 @@ npm 의존성을 설치한 후 저장소 루트에서 `make docs-schema`를 실�
 검사합니다. 스키마가 잘못되었거나 사례 결과가 다르면 실패합니다.
 스키마와 기대 결과를 수정하지 않습니다.
 
-`scripts/check-schema.mjs`는 저장소에서 유효해야 하는 모든 명세를 메타 스키마로
+`scripts/check-schema.mts`는 저장소에서 유효해야 하는 모든 명세를 메타 스키마로
 검사합니다. 모든 고정 데이터 계열의 폼·목록·상세 명세, 각 합성 파일을 그 `$ref`가
 선택하는 조각으로, `examples`와 `packages/*/examples`의 모든 예제 명세, 폼 세션 명세,
 교차 검증 콘솔의 검증기 프로세스가 받아들이는 요청의 명세가 대상입니다. 입력 실패나

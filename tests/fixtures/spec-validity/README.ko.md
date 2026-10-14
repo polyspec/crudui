@@ -1,6 +1,6 @@
 # 명세 유효성 고정 데이터
 <!-- doc-id: tests-fixtures-spec-validity-readme -->
-<!-- source-sha256: c9b0cf3493dc0baed6ab72dd3c6e7413573a3851a91193d2a6d5bacaaa5fc157 -->
+<!-- source-sha256: 59cdf4a7be30a044728c67ddb2a5fe53dcb0e28f2d430b1c92f86fd22d346a40 -->
 
 [English](README.md).
 
@@ -17,7 +17,7 @@
 
 두 결과는 서로 독립적입니다. 모든 사용처는 자신이 담당하는 모든 멤버를 적용하며, 사례를 스스로 분류하거나
 자체 파일을 제공하는 사용처는 없습니다. `npm run spec:schema`로 실행하는
-[`check-schema.mjs`](../../../scripts/check-schema.mjs)는 `expect`와 `reason`을 확인하기 전에 세 고정
+[`check-schema.mts`](../../../scripts/check-schema.mts)는 `expect`와 `reason`을 확인하기 전에 세 고정
 데이터 모두의 형태를 검사합니다.
 
 허용 사례는 기본 명세, 조건부 필수 입력 표현식, `true` 기본 키를 가진 조건맵, 깊은 중첩, 여러 언어의 선택지
@@ -34,7 +34,7 @@
 ## 비교
 
 [폼 메타 스키마 검사](../../../packages/validator/ts/src/form-metaschema.conformance.test.ts)와
-`check-schema.mjs`는 메타 스키마를 컴파일해 `expect`와 `reason`을 확인합니다.
+`check-schema.mts`는 메타 스키마를 컴파일해 `expect`와 `reason`을 확인합니다.
 
 런타임 검사는 빈 데이터와 사례의 `files`로 전체 폼 로드 과정(합성, 금지 키 검사, 검증)을 실행해 `engine`과
 비교하며 메시지는 비교하지 않습니다.

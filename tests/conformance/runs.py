@@ -3,7 +3,7 @@
 A run writes its record when it starts, with the status None, and again when
 it ends, with the exit status, so a stopped run keeps None (docs/spec/
 conformance.md, "Suite runs"). Nothing is written unless
-CRUDUI_CONFORMANCE_EVIDENCE names a directory; scripts/check-conformance.mjs
+CRUDUI_CONFORMANCE_EVIDENCE names a directory; scripts/check-conformance.mts
 reads the records to name the suites behind missing evidence.
 tests/conformance/runner.py is the process that calls these functions.
 """

@@ -46,4 +46,4 @@ npm run build
 node node_modules/@polyspec/kit/dist/run-tests.mjs node -- examples/product-forms/examples.test.mjs
 ```
 
-`node scripts/check-schema.mjs` checks the three YAML files against the meta-schema.
+`node scripts/check-schema.mts` checks the three YAML files against the meta-schema.

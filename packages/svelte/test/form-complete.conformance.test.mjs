@@ -9,9 +9,9 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, test, expect } from 'vitest';
 import { compileForm, createForm } from '@polyspec/crudui-generator-core';
-import { normalizeHtml } from '../../../tests/fixtures/form-render/normalize.mjs';
+import { normalizeHtml } from '../../../tests/fixtures/form-render/normalize.mts';
 import { renderForm } from '../src/index.ts';
-import { provesConformance } from '../../../tests/conformance/evidence.mjs';
+import { provesConformance } from '../../../tests/conformance/evidence.mts';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const cases = JSON.parse(fs.readFileSync(path.resolve(HERE, '../../../tests/fixtures/form-complete/cases.json'), 'utf8'));

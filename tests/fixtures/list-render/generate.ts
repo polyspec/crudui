@@ -7,7 +7,7 @@
  * `expected_html` is the NORMALIZED output of the React CRUDUI LIST reference
  * generator (`renderList`) — never hand-written. The Vue/Svelte CRUDUI list
  * generators must reproduce the SAME `expected_html` after the shared normalizer
- * (tests/fixtures/form-render/normalize.mjs — reused verbatim, SPEC §9 plan).
+ * (tests/fixtures/form-render/normalize.mts — reused verbatim, SPEC §9 plan).
  *
  * DB-agnostic (SPEC §9): `rows` are INJECTED in the fixture; search/sort/
  * pagination are DECLARED only. The renderer never touches a DB.
@@ -22,9 +22,9 @@ import {
   type RenderListOptions,
 } from '../../../packages/react/src/server';
 // @ts-expect-error — JS normalizer shared across the CRUDUI fixture harness.
-import { normalizeHtml } from '../form-render/normalize.mjs';
+import { normalizeHtml } from '../form-render/normalize.mts';
 // @ts-expect-error — shared JS preload link helper.
-import { withoutPreloadLinks } from '../preload-links.mjs';
+import { withoutPreloadLinks } from '../preload-links.mts';
 
 interface ListFixtureCase {
   name: string;

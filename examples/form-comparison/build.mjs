@@ -1,4 +1,4 @@
-import { createRequire } from 'node:module';
+import { createRequire, stripTypeScriptTypes } from 'node:module';
 import { cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import path from 'node:path';
@@ -37,8 +37,9 @@ await cp(path.join(exampleDirectory, 'src/runtime-paths.mjs'),
 // The browser matrix, read by the page and by the Go and Rust servers.
 await cp(path.join(exampleDirectory, 'src/runtime-paths.json'),
   path.join(publicDirectory, 'runtime-paths.json'));
-await cp(path.join(source, 'tests/form-inspector/form-snapshot.mjs'),
-  path.join(publicDirectory, 'form-snapshot.mjs'));
+// The page loads the snapshot module as it is, so it gets the module without its types.
+await writeFile(path.join(publicDirectory, 'form-snapshot.mjs'),
+  stripTypeScriptTypes(await readFile(path.join(source, 'tests/form-inspector/form-snapshot.mts'), 'utf8')));
 // Frames and SSR documents style the form with crudui.css alone, so computed CSS is compared with the real styles.
 await cp(path.join(source, 'packages/generator/ts/styles/crudui.css'),
   path.join(publicDirectory, 'crudui.css'));

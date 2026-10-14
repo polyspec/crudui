@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Python target of the native generator checks.
 
-It answers the operation protocol of tests/native-generators/run.mjs through the
+It answers the operation protocol of tests/native-generators/run.mts through the
 public API of polyspec.crudui.generator: one JSON request on standard input,
 one JSON response on standard output. A failure answers {error} with the exit
 status 1, as the JavaScript, PHP, Go and Rust programs do.

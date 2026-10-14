@@ -21,7 +21,7 @@ import {
   evaluateExpressionValue,
 } from './parser/PathResolver';
 import type { ASTNode, Token, PathContext } from './types';
-import { provesConformance } from '../../../../tests/conformance/evidence.mjs';
+import { provesConformance } from '../../../../tests/conformance/evidence.mts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

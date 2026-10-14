@@ -1,6 +1,6 @@
 # Dependencies
 node_modules/
-# The browsers of this checkout (scripts/install-browsers.mjs)
+# The browsers of this checkout (scripts/install-browsers.mts)
 /.tools/
 # Workspace packages use the root dependency lock file.
 packages/**/package-lock.json
@@ -15,7 +15,7 @@ packages/generator/php/.phpunit.result.cache
 # The temporary API reports of API Extractor in each package (make lint-ts)
 packages/**/var/
 
-# Build outputs; a package build writes dist.next and replaces dist with it (scripts/package-dist.mjs)
+# Build outputs; a package build writes dist.next and replaces dist with it (scripts/package-dist.mts)
 dist/
 dist.next/
 dist.old/

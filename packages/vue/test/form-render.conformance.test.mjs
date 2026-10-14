@@ -23,10 +23,10 @@ import { fileURLToPath } from 'node:url';
 import { describe, test, expect } from 'vitest';
 
 // Shared 3-framework fixture + normalizer (the SAME files React/Svelte load).
-import { normalizeHtml } from '../../../tests/fixtures/form-render/normalize.mjs';
+import { normalizeHtml } from '../../../tests/fixtures/form-render/normalize.mts';
 // Vue CRUDUI generator (TypeScript source; Vitest transforms it).
 import { renderFields } from '../src/internal/renderFields.ts';
-import { provesConformance } from '../../../tests/conformance/evidence.mjs';
+import { provesConformance } from '../../../tests/conformance/evidence.mts';
 
 /** Run one fixture case and record renderForm evidence for it. */
 function proves(name, body) {

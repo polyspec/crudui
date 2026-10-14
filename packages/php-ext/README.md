@@ -31,11 +31,11 @@ PCRE2 files or `pkg-config`.
 Run from the repository root:
 
 ```sh
-node scripts/build-crudui-php-extension.mjs
+node scripts/build-crudui-php-extension.mts
 composer install
 node node_modules/@polyspec/kit/dist/run-tests.mjs node -- packages/php-ext/tests/api.test.mjs
 npm run build
-node tests/native-generators/run.mjs \
+node tests/native-generators/run.mts \
   --extension "$(pwd)/packages/php-ext/modules/crudui.so" \
   --report .git/native-generators/report.json
 ```

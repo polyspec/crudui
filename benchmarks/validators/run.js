@@ -23,7 +23,7 @@
  * The counts follow the rule of arguments.js, checked before any driver starts.
  *
  * Each driver runs to its end in its own process group without a time limit
- * (scripts/run-command.mjs); its exit status decides the result, and the
+ * (scripts/run-command.mts); its exit status decides the result, and the
  * processes it leaves behind, such as the benchmark program under `go run` or
  * cargo, are stopped when it exits.
  */
@@ -37,8 +37,8 @@ const BENCH_DIR = __dirname;
 const FIXTURES = path.join(BENCH_DIR, 'fixtures');
 const REPO_ROOT = path.resolve(BENCH_DIR, '..', '..');
 const RESULTS_MD = path.join(BENCH_DIR, 'results.md');
-const RUST_COMMAND = path.join(REPO_ROOT, 'scripts/run-rust-command.mjs');
-const RUN_COMMAND = path.join(REPO_ROOT, 'scripts/run-command.mjs');
+const RUST_COMMAND = path.join(REPO_ROOT, 'scripts/run-rust-command.mts');
+const RUN_COMMAND = path.join(REPO_ROOT, 'scripts/run-command.mts');
 
 const SPECS = [
   { name: 'contact', label: 'contact (small, ~6 fields)' },

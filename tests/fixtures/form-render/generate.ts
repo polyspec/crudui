@@ -9,14 +9,14 @@ import { ComposeLoadError, compileForm } from '@polyspec/crudui-generator-core';
  * expected_html, expectError? }`. The `expected_html` is the NORMALIZED output
  * of the React CRUDUI reference generator (renderForm) — never hand-written. The
  * Vue/Svelte CRUDUI generators must reproduce the same `expected_html` after the
- * shared normalizer (normalize.mjs).
+ * shared normalizer (normalize.mts).
  *
  * Do not edit `cases.json` by hand — regenerate:
  *   node_modules/.bin/tsx tests/fixtures/form-render/generate.ts > tests/fixtures/form-render/cases.json
  */
 
 // @ts-expect-error — JS normalizer shared across the fixture harness.
-import { normalizeHtml } from './normalize.mjs';
+import { normalizeHtml } from './normalize.mts';
 
 interface FixtureCase {
   name: string;

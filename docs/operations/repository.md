@@ -33,7 +33,7 @@ The workflows are:
 - `.github/workflows/dependency-review.yml` on its schedule and on a manual run;
 - `.github/workflows/release.yml` on a pushed tag `v*` or `**/v*` ([releases](#releases)).
 
-No other workflow exists (`tests/build/ci-local.test.mjs`). The settings of the repository on GitHub (the Pages source
+No other workflow exists (`tests/build/ci-local.test.mts`). The settings of the repository on GitHub (the Pages source
 **GitHub Actions**, the environment `github-pages`) are set in the GitHub interface; no command of this repository
 applies them.
 
@@ -41,7 +41,7 @@ applies them.
 
 A release is a tag of a commit of `main`: `vX.Y.Z` for the repository, or `<directory>/vX.Y.Z` for the Go module of
 that directory (`packages/generator/go` and `packages/validator/go`), whose module path is
-`github.com/polyspec/crudui/<directory>` (`tests/build/package-names.test.mjs`). Every commit of `main` passed the full
+`github.com/polyspec/crudui/<directory>` (`tests/build/package-names.test.mts`). Every commit of `main` passed the full
 suite of CI before the tag, so the release runs no test again. Only the maintainer creates and pushes a tag. The
 packages, the manifests that a tag covers and the Go modules are declared in `config/release.json`
 (`node_modules/@polyspec/kit/dist/schema/release.schema.json`).
@@ -100,7 +100,7 @@ packages, the manifests that a tag covers and the Go modules are declared in `co
      release a draft and fails the run.
 
 The tests of polyspec/kit (`tests/kit/release.test.mts` and `tests/kit/release-go-tags.test.mts`) check the tool with command fakes, and
-`tests/build/python-git-pins.test.mjs` requires every git pin on this repository in a `pyproject.toml` to name the
+`tests/build/python-git-pins.test.mts` requires every git pin on this repository in a `pyproject.toml` to name the
 version of `package.json`. `make release-coverage`
 requires every `package.json`, `composer.json`, `Cargo.toml`, `pyproject.toml` and `go.mod` of the repository to be
 classified in `config/release.json`.

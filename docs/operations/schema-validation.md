@@ -8,7 +8,7 @@ The command compiles `contracts/schema/crudui.schema.json` with Ajv and checks s
 and list fixtures. It fails when the schema is invalid or a fixture result differs.
 It does not modify the schema or expected results.
 
-`scripts/check-schema.mjs` holds every specification in the repository that is meant
+`scripts/check-schema.mts` holds every specification in the repository that is meant
 to be valid to the meta-schema: the form, list and detail specification of every
 fixture family, each composition file as the fragment its `$ref` selects, the
 specifications of every example under `examples` and `packages/*/examples`, the

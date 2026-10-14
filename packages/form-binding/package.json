@@ -18,7 +18,7 @@
   ],
   "sideEffects": false,
   "scripts": {
-    "build": "node ../../scripts/package-dist.mjs build 'tsup src/index.ts --format esm --clean --out-dir \"$CRUDUI_DIST\" && tsc --project tsconfig.build.json --outDir \"$CRUDUI_DIST\"'",
+    "build": "node ../../scripts/package-dist.mts build 'tsup src/index.ts --format esm --clean --out-dir \"$CRUDUI_DIST\" && tsc --project tsconfig.build.json --outDir \"$CRUDUI_DIST\"'",
     "typecheck": "status=0; tsc --noEmit || status=1; tsc --noEmit --project tsconfig.tests.json || status=1; exit $status",
     "prepublishOnly": "npm run build"
   },

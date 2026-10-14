@@ -11,10 +11,10 @@ The report records unavailable targets separately and continues available
 checks to collect their actual results.
 
 ```sh
-node scripts/require-current-build.mjs
+node scripts/require-current-build.mts
 composer install
-node node_modules/@polyspec/kit/dist/run-tests.mjs node --timeout 10 -- tests/native-generators/protocol.test.mjs
-node tests/native-generators/run.mjs \
+node node_modules/@polyspec/kit/dist/run-tests.mjs node --timeout 10 -- tests/native-generators/protocol.test.mts
+node tests/native-generators/run.mts \
   --extension /absolute/path/to/crudui.so \
   --report .git/native-generators/report.json
 ```
@@ -55,10 +55,10 @@ target, only the list and detail checks of the Go and native PHP targets, and th
 fixtures whose id contains `lang` (`*` matches any text).
 
 ```sh
-node tests/native-generators/run.mjs --extension /absolute/crudui.so --target rust
-node tests/native-generators/run.mjs --extension /absolute/crudui.so \
+node tests/native-generators/run.mts --extension /absolute/crudui.so --target rust
+node tests/native-generators/run.mts --extension /absolute/crudui.so \
   --target go,php-native --check list,detail
-node tests/native-generators/run.mjs --extension /absolute/crudui.so \
+node tests/native-generators/run.mts --extension /absolute/crudui.so \
   --check 'form-fixture:*lang*'
 ```
 
@@ -128,7 +128,7 @@ programs; each one calls only its package's public API.
 
 | Target | Program | Library |
 | --- | --- | --- |
-| `javascript`, `html` | [`javascript.mjs`](javascript.mjs) (`--renderer html` selects the HTML renderer) | `@polyspec/crudui-generator-core` with `@polyspec/crudui-generator-react` or `@polyspec/crudui-generator-html` |
+| `javascript`, `html` | [`javascript.mts`](javascript.mts) (`--renderer html` selects the HTML renderer) | `@polyspec/crudui-generator-core` with `@polyspec/crudui-generator-react` or `@polyspec/crudui-generator-html` |
 | `php`, `php-native` | [`programs/php/generate.php`](programs/php/generate.php) | `polyspec/crudui-generator` through the Composer autoloader of `packages/generator/php`; with the extension loaded, the extension's classes |
 | `go` | [`programs/go`](programs/go/main.go) (module with its own `go.mod`) | `packages/generator/go` |
 | `rust` | [`programs/rust`](programs/rust/src/main.rs) (crate `polyspec-crudui-native-generator`) | `polyspec-crudui-generator` |
@@ -139,8 +139,8 @@ The suite builds the Go program into its build directory and the Rust program wi
 ```sh
 gofmt -l tests/native-generators/programs/go
 go -C tests/native-generators/programs/go vet ./...
-node scripts/run-rust-command.mjs fmt --check --manifest-path tests/native-generators/programs/rust/Cargo.toml
-node scripts/run-rust-command.mjs clippy --locked --all-targets --manifest-path tests/native-generators/programs/rust/Cargo.toml -- -D warnings
+node scripts/run-rust-command.mts fmt --check --manifest-path tests/native-generators/programs/rust/Cargo.toml
+node scripts/run-rust-command.mts clippy --locked --all-targets --manifest-path tests/native-generators/programs/rust/Cargo.toml -- -D warnings
 ```
 
 Each program reads one JSON value on stdin. Operations are `compileForm`, `bindForm`,

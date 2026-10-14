@@ -3,11 +3,9 @@ import { act, render } from '@testing-library/react';
 import { expect, it } from 'vitest';
 import { compileForm, createForm } from '@polyspec/crudui-generator-core';
 import { Form } from '../components/Form';
-// @ts-expect-error Shared browser lifecycle across all frameworks.
-import { spec, data, exerciseSessionDom } from '../../../../tests/fixtures/form-session/scenario.mjs';
-// @ts-expect-error Shared initialization comparison across all frameworks.
-import { compareInitialization, compareServerTakeover } from '../../../../tests/fixtures/form-session/initialization.mjs';
-import { provesConformance } from '../../../../tests/conformance/evidence.mjs';
+import { spec, data, exerciseSessionDom } from '../../../../tests/fixtures/form-session/scenario.mts';
+import { compareInitialization, compareServerTakeover } from '../../../../tests/fixtures/form-session/initialization.mts';
+import { provesConformance } from '../../../../tests/conformance/evidence.mts';
 
 /** Run one shared form session case and record react evidence for the features it proves. */
 function proves(fixture: string, name: string, features: string[], run: () => unknown) {
@@ -22,10 +20,10 @@ it('renders identical HTML and control state with initial or repeatedly injected
   const first = render(<Form form={initial.session} />, { container: initial.element });
   const second = render(<Form form={deferred.session} />, { container: deferred.element });
   try {
-    await proves('initialization.mjs', 'compareServerTakeover', ['connectForm'], () =>
+    await proves('initialization.mts', 'compareServerTakeover', ['connectForm'], () =>
       compareServerTakeover({ element: initial.element, session: initial.session, expect }));
     await act(async () => {
-      await proves('initialization.mjs', 'compareInitialization', ['connectForm'], () =>
+      await proves('initialization.mts', 'compareInitialization', ['connectForm'], () =>
         compareInitialization({ initial, deferred, expect, flush: async () => { await act(async () => {}); } }));
     });
   } finally { first.unmount(); second.unmount(); }
@@ -35,13 +33,12 @@ it('injects into a mounted cached form, edits, copies, sorts, rekeys, deletes an
   const session = createForm(compileForm(spec, { keyPrefix: 'form' }), {});
   const { container } = render(<Form form={session} />);
   await act(async () => {
-    await proves('scenario.mjs', 'exerciseSessionDom', SESSION_FEATURES, () =>
+    await proves('scenario.mts', 'exerciseSessionDom', SESSION_FEATURES, () =>
       exerciseSessionDom({ element: container, session, expect, flush: async () => { await act(async () => {}); } }));
   });
 });
 
-// @ts-expect-error Shared browser control assertions across frameworks.
-import { controlSpec, exerciseControls } from '../../../../tests/fixtures/form-session/controls.mjs';
+import { controlSpec, exerciseControls } from '../../../../tests/fixtures/form-session/controls.mts';
 it('connects labels and preserves multiple choice values through editing and submission', async () => {
   const form = createForm(compileForm(controlSpec), { enabled: 1, memo: 'Original', choices: ['a', 'c'] });
   const element = document.createElement('form');
@@ -49,14 +46,13 @@ it('connects labels and preserves multiple choice values through editing and sub
   const view = render(<Form form={form} />, { container: element });
   try {
     await act(async () => {
-      await proves('controls.mjs', 'exerciseControls', ['connectForm'], () =>
+      await proves('controls.mts', 'exerciseControls', ['connectForm'], () =>
         exerciseControls({ element, form, expect, flush: async () => { await act(async () => {}); } }));
     });
   } finally { view.unmount(); element.remove(); }
 });
 
-// @ts-expect-error Shared data-only collection and visibility assertions across frameworks.
-import { onlySpec, exerciseOnlyRows, visibilitySpec, visibilityData, exerciseHiddenValues } from '../../../../tests/fixtures/form-session/data-rows.mjs';
+import { onlySpec, exerciseOnlyRows, visibilitySpec, visibilityData, exerciseHiddenValues } from '../../../../tests/fixtures/form-session/data-rows.mts';
 it('keeps a data-only collection to the rows of its data', async () => {
   const session = createForm(compileForm(onlySpec));
   const element = document.createElement('form');
@@ -64,7 +60,7 @@ it('keeps a data-only collection to the rows of its data', async () => {
   const view = render(<Form form={session} />, { container: element });
   try {
     await act(async () => {
-      await proves('data-rows.mjs', 'exerciseOnlyRows', ['connectForm'], () =>
+      await proves('data-rows.mts', 'exerciseOnlyRows', ['connectForm'], () =>
         exerciseOnlyRows({ element, session, expect, flush: async () => { await act(async () => {}); } }));
     });
   } finally { view.unmount(); element.remove(); }
@@ -77,14 +73,13 @@ it('keeps the values of a group hidden by design.show', async () => {
   const view = render(<Form form={session} />, { container: element });
   try {
     await act(async () => {
-      await proves('data-rows.mjs', 'exerciseHiddenValues', ['connectForm'], () =>
+      await proves('data-rows.mts', 'exerciseHiddenValues', ['connectForm'], () =>
         exerciseHiddenValues({ element, session, expect, flush: async () => { await act(async () => {}); } }));
     });
   } finally { view.unmount(); element.remove(); }
 });
 
-// @ts-expect-error Shared typing assertions across frameworks.
-import { typingSpec, exerciseTyping, installWidgetHost } from '../../../../tests/fixtures/form-session/typing.mjs';
+import { typingSpec, exerciseTyping, installWidgetHost } from '../../../../tests/fixtures/form-session/typing.mts';
 it('keeps the typed control node, its order and its caret', async () => {
   installWidgetHost(document);
   const form = createForm(compileForm(typingSpec));
@@ -93,7 +88,7 @@ it('keeps the typed control node, its order and its caret', async () => {
   const view = render(<Form form={form} />, { container: element });
   try {
     await act(async () => {
-      await proves('typing.mjs', 'exerciseTyping', ['connectForm'], () =>
+      await proves('typing.mts', 'exerciseTyping', ['connectForm'], () =>
         exerciseTyping({ element, form, expect, flush: async () => { await act(async () => {}); } }));
     });
   } finally { view.unmount(); element.remove(); }

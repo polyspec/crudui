@@ -26,7 +26,7 @@ The release profile of the cross-check console's Rust validator program uses `st
 This keeps release builds independent of the toolchain's optional `rust-objcopy`/`libLLVM.dylib`
 strip pairing; a build must not leave a strip warning after reporting a successful binary.
 Every crate that declares a release profile sets `strip = "none"`;
-`tests/build/rust-release-profile.test.mjs`, run by `npm run test:runtimes`, fails otherwise.
+`tests/build/rust-release-profile.test.mts`, run by `npm run test:runtimes`, fails otherwise.
 
 During development, run only the unit tests that own the change: its Red and Green cases.
 End-to-end checks (browsers, containers, the form comparison, the native and cross-check suites,
@@ -39,17 +39,17 @@ Every step of the workflows runs a make target: the installs (`make install-tool
 `make install-browsers BROWSERS="..."`), the tool check (`make toolchain-check TOOLS="..."`) and each
 check (`make test-runtimes`, `make lint`, `make test-forms` and the others of `CI_COMMANDS`), so the
 recipes start every tool with the offline settings, `$(NPM)` and the toolchains of the checkout.
-`tests/build/ci-local.test.mjs` fails for a step that starts node, npm, npx, cargo, go, php,
+`tests/build/ci-local.test.mts` fails for a step that starts node, npm, npx, cargo, go, php,
 composer, rustup, python3 or sh without make.
 
 `make ci` runs `conformance-reset` and then every target of `CI_TARGETS` in the workflow's order, collects
-the conformance evidence and checks it as the final CI job does; `tests/build/ci-local.test.mjs` fails
+the conformance evidence and checks it as the final CI job does; `tests/build/ci-local.test.mts` fails
 when the list differs from `.github/workflows/ci.yml`.
 
 A failure never stops the later checks, so one run reports every failure. Each CI job runs its
 checks in one step, `make ci-targets TARGETS="..."`, which runs every target to its end, and that
 step has `if: ${{ !cancelled() }}`, so a failed preparation does not skip the checks of its job;
-`tests/build/ci-local.test.mjs` fails with the job and the step of each checking step without it. A Makefile target never takes a target that runs tests as a prerequisite, because
+`tests/build/ci-local.test.mts` fails with the job and the step of each checking step without it. A Makefile target never takes a target that runs tests as a prerequisite, because
 make stops at the first prerequisite that fails; a target that runs several test targets, such as
 `make test-native` and `make docs-check`, runs each with `$(MAKE) <target> || status=1` and exits
 with the collected status. Make also stops at the first recipe line that fails, so the recipe line
@@ -59,13 +59,13 @@ lines before it, such as a build or an install, still stop the target, and a cha
 whose later steps read the result of the earlier ones, as in `make docs-verify-idempotent`, is one
 check. A package script and a CI step follow the same rule: several independent checks run as
 `status=0; <check> || status=1; ...; exit $status`, as `npm run test:forms` and
-`npm run test:form-comparison:pipeline` do after `node scripts/require-current-build.mjs || exit 1`,
+`npm run test:form-comparison:pipeline` do after `node scripts/require-current-build.mts || exit 1`,
 and an `&&` chain puts no step after a check.
-`scripts/run-contract-tests.mjs` runs every declared command, also after an earlier one failed, and
+`scripts/run-contract-tests.mts` runs every declared command, also after an earlier one failed, and
 fails after the last one.
 
 `make check` runs the checks of kit, `CHECK_TARGETS` of the Makefile (`kit-check`, `toolchain-check`, `layout-check`,
-`documents-check`, `owner-validate`, `commits-check`, `hooks-check`, the dependency gates, `cargo-downloads-check`, the
+`documents-check`, `owner-validate`, `commits-check`, `hooks-check`, `dependency-policy-check`, `dependency-policy-mutation-check`, `cargo-downloads-check`, the
 `lint-*` targets and `records-check`), through the same guard as `make ci`.
 
 `make ci` runs once per committed tree, when no task of `docs/plans/execution-checklist.md` is
@@ -92,7 +92,7 @@ A commit that changes the tree permits a new full run when no task is `[~]`.
 
 `make rerun-failed` reruns only the targets of the current tree that did not pass: the failed
 targets and the targets that an `incomplete` run did not finish. It keeps the conformance evidence
-of the targets that passed, which `node scripts/check-conformance.mjs` reads. It is refused like
+of the targets that passed, which `node scripts/check-conformance.mts` reads. It is refused like
 `make ci` for a task in progress, uncommitted changes and a running process, and also when there is
 no record, when the record belongs to another tree and when the full run of the tree passed. It
 writes each rerun into `reruns` of the record; when every target has passed, the result of the tree
@@ -127,9 +127,9 @@ never the full suite. `make owner-validate` checks the declaration of the reposi
 checks the selection and the refusals.
 
 A test that reads the commands of a Makefile target runs `makeDryRun` of
-`tests/build/make-dry-run.mjs`: `make --no-print-directory -n <target>` with `MAKEFLAGS=w` and without
+`tests/build/make-dry-run.mts`: `make --no-print-directory -n <target>` with `MAKEFLAGS=w` and without
 `MAKELEVEL`, `GNUMAKEFLAGS`, `MAKEFILES` and `MFLAGS` of a parent make, so GNU Make 3.81 and GNU Make 4,
-also inside another make, print only the commands. `tests/build/make-dry-run.test.mjs` fails for a dry
+also inside another make, print only the commands. `tests/build/make-dry-run.test.mts` fails for a dry
 run of make outside it.
 
 A push happens only when no task of the checklist is `[~]`. The tracked pre-push hook
@@ -196,7 +196,7 @@ package (`packages/svelte/eslint.config.js`), whose TypeScript scripts typescrip
 TypeScript 6 of that package. A rule is turned off only for the lines where it does not apply, with a disable comment that
 names the rule and gives the reason.
 
-`tests/build/lint-coverage.test.mjs`, run by `npm run test:build`, requires `make lint` to run both lints, and fails
+`tests/build/lint-coverage.test.mts`, run by `npm run test:build`, requires `make lint` to run both lints, and fails
 unless oxlint with the copied configuration fails on a planted violation and the Svelte lint fails on a planted raw HTML
 tag.
 
@@ -251,7 +251,7 @@ test timeout.
 A test never compares an elapsed time with a limit or with another elapsed time, because the
 load of the machine changes elapsed time. It checks the cause instead: an event, a result that only
 the expected path produces, or an operation that never ends unless the code under test stops it,
-under the test's own timeout. `tests/build/test-commands.test.mjs` fails on an assertion that bounds
+under the test's own timeout. `tests/build/test-commands.test.mts` fails on an assertion that bounds
 an elapsed time. A check that an operation takes linear time does one of
 two things:
 
@@ -262,10 +262,10 @@ two things:
   the test's timeout, while the linear implementation ends within a few seconds. The PHP, Go and
   Rust validator checks and the PHP extension engine fixtures do this.
 
-`tests/build/validator-test-clocks.test.mjs`, run by `npm run test:runtimes`, fails when a
+`tests/build/validator-test-clocks.test.mts`, run by `npm run test:runtimes`, fails when a
 validator test or a PHP extension engine fixture reads a clock.
 
-`tests/build/test-commands.test.mjs`, run by `npm run test:runtimes`, fails when:
+`tests/build/test-commands.test.mts`, run by `npm run test:runtimes`, fails when:
 
 - a package script, Composer script, Makefile target or CI step calls a test tool directly;
 - a CI job or step has `timeout-minutes`. A step runs tests or a long operation (a checkout, a
@@ -284,15 +284,15 @@ validator test or a PHP extension engine fixture reads a clock.
 
 ## Commands of long operations
 
-A script that runs other commands runs each of them to its end through `scripts/run-command.mjs`:
-the declared commands of `npm run manifest:test` (`scripts/run-contract-tests.mjs`), the package
-build of `scripts/require-current-build.mjs`, each tool command of `scripts/gen-api-docs.mjs`, each
+A script that runs other commands runs each of them to its end through `scripts/run-command.mts`:
+the declared commands of `npm run manifest:test` (`scripts/run-contract-tests.mts`), the package
+build of `scripts/require-current-build.mts`, each tool command of `scripts/gen-api-docs.mts`, each
 benchmark driver of `benchmarks/validators/run.js` and each driver build of `benchmarks/validators/build-drivers.mjs`.
 A command has no time limit: its exit ends it and its exit status decides the result, and the
 script prints the command with its elapsed time. The command starts in its own process group; when
 it exits, the processes it left in the group are stopped, so a process that keeps an output pipe
 open cannot hold the script. An interrupted script stops its running commands.
-`tests/build/run-command.test.mjs`, run by `npm run test:build`, runs each script with a command
+`tests/build/run-command.test.mts`, run by `npm run test:build`, runs each script with a command
 that ends after 1.2 seconds, and checks with the close of the script's output that a child the
 command left behind was stopped.
 
@@ -332,7 +332,7 @@ the two parts that CI runs, the first in one CI job per server. The
 checks. JSON order and HTTP save/load checks are separate from validator package tests.
 
 `npm run test:forms` checks the stylesheet layout in Chromium, Firefox and WebKit on the host and
-the custom properties of the stylesheet (`tests/style-properties.test.mjs`).
+the custom properties of the stylesheet (`tests/style-properties.test.mts`).
 The CI job `form-runtime` runs the same checks on its Linux runner, `ubuntu-24.04`, with the
 Chromium and Firefox builds that Puppeteer pins and the WebKit build that Playwright pins, installed
 by `make install-browsers`; an engine difference on Linux shows in that job.
@@ -351,7 +351,7 @@ failure lines and its log (`node_modules/@polyspec/kit/dist/target-report.mjs`),
 GitHub Actions. The run holds the lock `var/report/ci-targets.lock`, so two runs never write one
 report, and ends with status 1 when a target failed. Each job uploads `var/report/ci-targets` as the
 artifact `report-<job>` (with the PHP minor of a matrix job) under `if: ${{ !cancelled() }}` with
-`if-no-files-found: error`. `tests/build/ci-local.test.mjs` fails for a job that runs a check outside
+`if-no-files-found: error`. `tests/build/ci-local.test.mts` fails for a job that runs a check outside
 `make ci-targets` or uploads no report, and `tests/kit/ci.test.mts` of polyspec/kit runs a failing and a
 passing probe target and finds both logs, the failure line in the summary and the job summary.
 
@@ -384,19 +384,19 @@ concurrent runs and the removal of a lock whose holder no longer runs, and the r
 |---|---|
 | Snapshots of `make docs-verify-idempotent` | A directory from `mktemp -d`, removed at the run's exit |
 | `dist` of each built package | Checkout lock `dist-<package folder>`, held by the package's whole build and by every pack; the build writes `dist.next` and replaces `dist` with it |
-| The build stamp, the PHP modules and their build records, the OrderedJSON checkout | Written to a path of the run and renamed into place (`tests/build/atomic-publish.test.mjs`) |
+| The build stamp, the PHP modules and their build records, the OrderedJSON checkout | Written to a path of the run and renamed into place (`tests/build/atomic-publish.test.mts`) |
 
-The build script of every built package is `node ../../scripts/package-dist.mjs build '<command>'`,
+The build script of every built package is `node ../../scripts/package-dist.mts build '<command>'`,
 which runs the build command under the package's `dist` lock. The command writes into `dist.next`,
 which `CRUDUI_DIST` names, and a complete build replaces `dist` with two renames, so a test or a
 program that reads `dist` during a build finds the previous output or the new one, never an emptied
-directory; a failed build leaves `dist` as it was. `node scripts/package-dist.mjs pack
+directory; a failed build leaves `dist` as it was. `node scripts/package-dist.mts pack
 <package directory> <destination directory>` checks under the same lock that `dist` holds output
 and runs `npm pack`, whose JSON report it prints on standard output; the package install check and
 repositories that install CRUDUI archives pack through it, so a pack never reads a `dist` that a
 build has emptied. On Linux the lock reads the start time of a process from `/proc`, since minimal
 container images have no `ps`.
 
-`tests/build/shared-resources.test.mjs`, run by `npm run test:runtimes`, checks the documentation
+`tests/build/shared-resources.test.mts`, run by `npm run test:runtimes`, checks the documentation
 and `dist` rows; it checks the `dist` lock on a fixture package that it builds in a temporary
 checkout, so it reads no build output of the repository and runs before `npm run build`.

@@ -6,9 +6,9 @@ import { fileURLToPath } from 'node:url';
 import { createServer } from 'vite';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { normalizeHtml } from '../../../tests/fixtures/form-render/normalize.mjs';
-import { equalModels, equalOrdered } from '../../../tests/native-generators/protocol.mjs';
-import { runRustCommand } from '../../../scripts/run-rust-command.mjs';
+import { normalizeHtml } from '../../../tests/fixtures/form-render/normalize.mts';
+import { equalModels, equalOrdered } from '../../../tests/native-generators/protocol.mts';
+import { runRustCommand } from '../../../scripts/run-rust-command.mts';
 
 const packageRoot = dirname(fileURLToPath(import.meta.url));
 const repositoryRoot = resolve(packageRoot, '../../..');

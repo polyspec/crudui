@@ -1,6 +1,6 @@
 # 테스트 실행
 <!-- doc-id: docs-operations-testing -->
-<!-- source-sha256: ed9ba5d9c26f5abacdc44fb575fcad8abf258eb240ab6832fd6f3ac248467c8d -->
+<!-- source-sha256: a565d6a3fc1f81b06fed0e373cb22ce06569e3b4a578cf15e588928f86ca1a32 -->
 
 [English](testing.md).
 
@@ -24,7 +24,7 @@ Composer 의존성을 설치하며 PHP·Go·Cargo를 `PATH`에서 실행할 수 
 빌드가 toolchain의 선택적 `rust-objcopy`·`libLLVM.dylib` 조합에 의존하지 않게 하며, 바이너리를
 성공으로 보고한 뒤 strip 경고를 남기지 않게 합니다.
 릴리스 프로필을 선언한 모든 크레이트는 `strip = "none"`을 설정하며,
-`npm run test:runtimes`가 실행하는 `tests/build/rust-release-profile.test.mjs`가 이를 검사합니다.
+`npm run test:runtimes`가 실행하는 `tests/build/rust-release-profile.test.mts`가 이를 검사합니다.
 
 개발하는 동안에는 바뀐 것을 소유한 unit test, 곧 그 Red와 Green case만 실행합니다. end-to-end 검사(browser,
 container, form comparison, native와 cross-check suite, 전체 build), `make owner-check`, 전체 실행 `make ci`는 `main`으로의 push의
@@ -35,16 +35,16 @@ workflow의 모든 step은 make 대상을 실행합니다. 설치(`make install-
 `make install-composer`, `make install-rust`, `make install-crates`, `make install-browsers BROWSERS="..."`), 도구 검사
 (`make toolchain-check TOOLS="..."`), 각 검사(`make test-runtimes`, `make lint`, `make test-forms`와 `CI_COMMANDS`의 나머지)가
 그렇습니다. 그래서 recipe는 모든 도구를 offline 설정, `$(NPM)`, checkout의 toolchain으로 시작합니다.
-`tests/build/ci-local.test.mjs`는 make 없이 node, npm, npx, cargo, go, php, composer, rustup, python3, sh를 시작하는 step에서
+`tests/build/ci-local.test.mts`는 make 없이 node, npm, npx, cargo, go, php, composer, rustup, python3, sh를 시작하는 step에서
 실패합니다.
 
 `make ci`는 `conformance-reset`을 실행한 뒤 `CI_TARGETS`의 모든 대상을 워크플로 순서대로 실행하고, 적합성 증거를 모아
-CI의 마지막 작업처럼 검사합니다. `tests/build/ci-local.test.mjs`는 이 목록이 `.github/workflows/ci.yml`과 다르면
+CI의 마지막 작업처럼 검사합니다. `tests/build/ci-local.test.mts`는 이 목록이 `.github/workflows/ci.yml`과 다르면
 실패합니다.
 
 실패는 이후 검사를 멈추지 않으므로 한 번의 실행이 모든 실패를 보고합니다. 각 CI job은 검사를 한 step,
 `make ci-targets TARGETS="..."`로 실행하고 이것은 모든 대상을 끝까지 실행하며, 그 step은 `if: ${{ !cancelled() }}`를
-가지므로 실패한 준비 단계가 그 job의 검사를 건너뛰게 하지 않습니다. `tests/build/ci-local.test.mjs`는 그것이 없는
+가지므로 실패한 준비 단계가 그 job의 검사를 건너뛰게 하지 않습니다. `tests/build/ci-local.test.mts`는 그것이 없는
 검사 단계마다 작업과 단계를 적고 실패합니다. make는 처음 실패한
 prerequisite에서 멈추므로 Makefile 대상은 테스트를 실행하는 대상을 prerequisite로 두지 않습니다.
 `make test-native`와 `make docs-check`처럼 여러 테스트 대상을 실행하는 대상은 각각을
@@ -53,12 +53,12 @@ prerequisite에서 멈추므로 Makefile 대상은 테스트를 실행하는 대
 각 검사를 `|| status=1`로 실행하고 `exit $$status`로 끝납니다. build나 install 같은 그 앞의 준비 줄은 여전히 대상을
 멈추며, `make docs-verify-idempotent`처럼 뒤 단계가 앞 단계의 결과를 읽는 `&&` 연결은 하나의 검사입니다.
 package script와 CI step도 같은 규칙을 따릅니다. 독립된 여러 검사는 `status=0; <check> || status=1; ...; exit $status`로
-실행하며, `npm run test:forms`와 `npm run test:form-comparison:pipeline`은 `node scripts/require-current-build.mjs || exit 1`
+실행하며, `npm run test:forms`와 `npm run test:form-comparison:pipeline`은 `node scripts/require-current-build.mts || exit 1`
 뒤에 그렇게 합니다. `&&` 연결은 검사 뒤에 단계를 두지 않습니다.
-`scripts/run-contract-tests.mjs`는 앞의 명령이 실패한 뒤에도 선언된 모든 명령을 실행하고 마지막 명령 뒤에 실패합니다.
+`scripts/run-contract-tests.mts`는 앞의 명령이 실패한 뒤에도 선언된 모든 명령을 실행하고 마지막 명령 뒤에 실패합니다.
 
 `make check`는 kit의 검사, 곧 Makefile의 `CHECK_TARGETS`(`kit-check`, `toolchain-check`, `layout-check`, `documents-check`,
-`owner-validate`, `commits-check`, `hooks-check`, dependency gate, `cargo-downloads-check`, `lint-*` 대상, `records-check`)를 `make ci`와
+`owner-validate`, `commits-check`, `hooks-check`, `dependency-policy-check`, `dependency-policy-mutation-check`, `cargo-downloads-check`, `lint-*` 대상, `records-check`)를 `make ci`와
 같은 guard로 실행합니다.
 
 `make ci`는 `docs/plans/execution-checklist.md`의 작업 중 `[~]`인 것이 없을 때, 커밋된 tree마다 한 번 실행됩니다. 어떤 대상보다
@@ -78,7 +78,7 @@ package script와 CI step도 같은 규칙을 따릅니다. 독립된 여러 검
 worktree마다 자기 record를 가집니다. tree를 바꾸는 commit은 `[~]` 작업이 없을 때 새 전체 실행을 허용합니다.
 
 `make rerun-failed`는 현재 tree에서 통과하지 못한 대상, 즉 실패한 대상과 `incomplete` 실행이 끝내지 못한 대상만 다시 실행합니다. `node
-scripts/check-conformance.mjs`가 읽는, 통과한 대상의 적합성 증거는 유지합니다. 진행 중인 작업, 커밋되지 않은 변경, 실행 중인 process에 대해서는
+scripts/check-conformance.mts`가 읽는, 통과한 대상의 적합성 증거는 유지합니다. 진행 중인 작업, 커밋되지 않은 변경, 실행 중인 process에 대해서는
 `make ci`와 같이 거부되고, record가 없을 때, record가 다른 tree의 것일 때, 그 tree의 전체 실행이 통과했을 때도 거부됩니다. 각 재실행을
 record의 `reruns`에 쓰고, 모든 대상이 통과하면 그 tree의 결과는 `passed`가 됩니다.
 
@@ -106,9 +106,9 @@ script나 test, 그리고 경로의 규칙이 그 검사를 고르지 않는데 
 모든 검사를 하나가 실패한 뒤에도 실행하며 full suite는 실행하지 않습니다. `make owner-validate`는 repository의 선언을 확인하고,
 polyspec/kit의 `tests/kit/owner-check.test.mts`는 선택과 거부를 확인합니다.
 
-Makefile 대상의 명령을 읽는 test는 `tests/build/make-dry-run.mjs`의 `makeDryRun`을 실행합니다. 이것은 `MAKEFLAGS=w`를 설정하고
+Makefile 대상의 명령을 읽는 test는 `tests/build/make-dry-run.mts`의 `makeDryRun`을 실행합니다. 이것은 `MAKEFLAGS=w`를 설정하고
 상위 make의 `MAKELEVEL`, `GNUMAKEFLAGS`, `MAKEFILES`, `MFLAGS`를 지운 채 `make --no-print-directory -n <target>`을 실행하므로,
-GNU Make 3.81과 GNU Make 4는 다른 make 안에서도 명령만 출력합니다. `tests/build/make-dry-run.test.mjs`는 그 밖의 make dry run에 대해
+GNU Make 3.81과 GNU Make 4는 다른 make 안에서도 명령만 출력합니다. `tests/build/make-dry-run.test.mts`는 그 밖의 make dry run에 대해
 실패합니다.
 
 push는 checklist에 `[~]` 작업이 없을 때만 합니다. 추적되는 pre-push hook `.githooks/pre-push`는 Git이 push하는 ref와 함께
@@ -164,7 +164,7 @@ make docs-check
 script는 typescript-eslint가 그 package의 TypeScript 6으로 parse합니다. 규칙은 적용되지 않는 줄에서만, 규칙 이름과 이유를 적은
 비활성화 주석으로 끕니다.
 
-`npm run test:build`가 실행하는 `tests/build/lint-coverage.test.mjs`는 `make lint`가 두 lint를 모두 실행하기를 요구하고, copy된
+`npm run test:build`가 실행하는 `tests/build/lint-coverage.test.mts`는 `make lint`가 두 lint를 모두 실행하기를 요구하고, copy된
 설정의 oxlint가 심어 둔 위반에서 실패하지 않거나 Svelte lint가 심어 둔 raw HTML tag에서 실패하지 않으면 실패합니다.
 
 ## 테스트 실행기
@@ -216,7 +216,7 @@ polyspec/kit의 test는 setup이나 teardown이 test timeout보다 오래 걸리
 테스트는 경과 시간을 제한값이나 다른 경과 시간과 비교하지 않습니다. 기계의 부하가 경과 시간을
 바꾸기 때문입니다. 대신 원인을 확인합니다. event, 예상한 경로만 만드는 결과, 또는 시험 대상 code가
 멈추지 않으면 끝나지 않는 작업을 test 자신의 timeout 아래에서 확인합니다.
-`tests/build/test-commands.test.mjs`는 경과 시간에 한도를 두는 assertion에서 실패합니다. 연산이 선형 시간에 끝나는지 확인하는 검사는 다음 둘 중 하나를 합니다.
+`tests/build/test-commands.test.mts`는 경과 시간에 한도를 두는 assertion에서 실패합니다. 연산이 선형 시간에 끝나는지 확인하는 검사는 다음 둘 중 하나를 합니다.
 
 - 결정적인 양을 셉니다. JavaScript test runner는 동기 작업을 멈출 수 없으므로 validator의
   JavaScript 검사는 getter로 데이터 읽기를, 세는 `codePointAt`으로 텍스트 읽기를 세고, 선형 순회의
@@ -224,10 +224,10 @@ polyspec/kit의 test는 setup이나 teardown이 test timeout보다 오래 걸리
 - 이차 시간이나 지수 시간 구현은 테스트 제한 시간 안에 끝나지 않고 선형 구현은 몇 초 안에 끝나는
   큰 입력을 실행합니다. PHP, Go, Rust validator 검사와 PHP extension engine fixture가 이렇게 합니다.
 
-`npm run test:runtimes`가 실행하는 `tests/build/validator-test-clocks.test.mjs`는 validator
+`npm run test:runtimes`가 실행하는 `tests/build/validator-test-clocks.test.mts`는 validator
 테스트나 PHP extension engine fixture가 시계를 읽으면 실패합니다.
 
-`npm run test:runtimes`가 실행하는 `tests/build/test-commands.test.mjs`는 다음 경우에
+`npm run test:runtimes`가 실행하는 `tests/build/test-commands.test.mts`는 다음 경우에
 실패합니다.
 
 - 패키지 스크립트, Composer 스크립트, Makefile 대상, CI 단계가 테스트 도구를 직접 호출합니다.
@@ -247,14 +247,14 @@ polyspec/kit의 test는 setup이나 teardown이 test timeout보다 오래 걸리
 
 ## 장기 작업의 명령
 
-다른 명령을 실행하는 스크립트는 `scripts/run-command.mjs`로 각 명령을 끝까지 실행합니다.
-`npm run manifest:test`의 선언된 명령(`scripts/run-contract-tests.mjs`), `scripts/require-current-build.mjs`의
-패키지 빌드, `scripts/gen-api-docs.mjs`의 각 도구 명령, `benchmarks/validators/run.js`의 각 벤치마크 드라이버,
+다른 명령을 실행하는 스크립트는 `scripts/run-command.mts`로 각 명령을 끝까지 실행합니다.
+`npm run manifest:test`의 선언된 명령(`scripts/run-contract-tests.mts`), `scripts/require-current-build.mts`의
+패키지 빌드, `scripts/gen-api-docs.mts`의 각 도구 명령, `benchmarks/validators/run.js`의 각 벤치마크 드라이버,
 `benchmarks/validators/build-drivers.mjs`의 각 드라이버 빌드가 대상입니다. 명령에는 시간 한도가 없습니다. 명령의
 종료가 명령을 끝내고 종료 상태가 결과를 정하며, 스크립트는 명령과 경과 시간을 출력합니다. 명령은 자기
 프로세스 그룹에서 시작하고, 명령이 끝나면 그룹에 남긴 프로세스를 멈추므로 출력 pipe를 열어 둔
 프로세스가 스크립트를 붙잡지 못합니다. 중단된 스크립트는 실행 중인 명령을 멈춥니다.
-`npm run test:build`가 실행하는 `tests/build/run-command.test.mjs`는 1.2초 뒤에 끝나는 명령으로 각
+`npm run test:build`가 실행하는 `tests/build/run-command.test.mts`는 1.2초 뒤에 끝나는 명령으로 각
 스크립트를 실행하고, 명령이 남긴 자식이 멈췄는지를 스크립트 출력의 close로 확인합니다.
 
 `make conformance`는 적합성 근거를 기록하는 모든 테스트 모음을 실행하고 그 근거를 기능
@@ -290,7 +290,7 @@ refresh 검사를 실행합니다. `php-config`가 있는 PHP, Composer, Go, Rus
 저장·로드 검사는 검증기 패키지 테스트와 별도입니다.
 
 `npm run test:forms`는 호스트에서 Chromium, Firefox, WebKit의 스타일시트 배치와 스타일시트의
-사용자 정의 속성(`tests/style-properties.test.mjs`)을 검사합니다.
+사용자 정의 속성(`tests/style-properties.test.mts`)을 검사합니다.
 CI job `form-runtime`은 같은 검사를 Linux runner `ubuntu-24.04`에서 `make install-browsers`가 설치한,
 Puppeteer가 고정한 Chromium·Firefox build와 Playwright가 고정한 WebKit build로 실행합니다. Linux에서만
 드러나는 엔진 차이는 그 job에서 보입니다.
@@ -307,7 +307,7 @@ Puppeteer가 고정한 Chromium·Firefox build와 Playwright가 고정한 WebKit
 첫 실패 줄과 log를 밝히며(`node_modules/@polyspec/kit/dist/target-report.mjs`), 같은 글이 GitHub Actions의 job summary로 갑니다. 실행은 lock
 `var/report/ci-targets.lock`을 잡으므로 두 실행이 한 보고서를 쓰지 않고, 대상이 실패하면 status 1로 끝납니다. 각 job은
 `var/report/ci-targets`를 artifact `report-<job>`(matrix job은 PHP minor를 붙임)으로 `if: ${{ !cancelled() }}`와
-`if-no-files-found: error`로 올립니다. `tests/build/ci-local.test.mjs`는 `make ci-targets` 밖에서 검사를 실행하거나
+`if-no-files-found: error`로 올립니다. `tests/build/ci-local.test.mts`는 `make ci-targets` 밖에서 검사를 실행하거나
 보고서를 올리지 않는 job에서 실패하고, polyspec/kit의 `tests/kit/ci.test.mts`는 실패하는 probe 대상과 통과하는 probe
 대상을 실행해 두 log, summary의 실패 줄, job summary를 확인합니다.
 
@@ -338,18 +338,18 @@ polyspec/kit의 `tests/kit/holder-lock.test.mts`는 record, 거부, 동시 실�
 |---|---|
 | `make docs-verify-idempotent`의 snapshot | `mktemp -d`의 directory, 실행이 끝날 때 지움 |
 | build되는 각 package의 `dist` | checkout lock `dist-<package folder>`, package build 전체와 모든 pack이 잡음; build는 `dist.next`에 쓰고 그것으로 `dist`를 바꿈 |
-| build stamp, PHP module과 그 build 기록, OrderedJSON checkout | 실행의 경로에 쓴 뒤 제자리로 rename(`tests/build/atomic-publish.test.mjs`) |
+| build stamp, PHP module과 그 build 기록, OrderedJSON checkout | 실행의 경로에 쓴 뒤 제자리로 rename(`tests/build/atomic-publish.test.mts`) |
 
-build되는 모든 package의 build script는 `node ../../scripts/package-dist.mjs build '<command>'`이고,
+build되는 모든 package의 build script는 `node ../../scripts/package-dist.mts build '<command>'`이고,
 package `dist` lock 아래에서 build command를 실행합니다. command는 `CRUDUI_DIST`가 가리키는 `dist.next`에 쓰고,
 완료된 build는 rename 두 번으로 `dist`를 바꾸므로, build 중에 `dist`를 읽는 test나 program은 이전 output이나 새
-output을 보며 비워진 directory는 보지 않습니다. 실패한 build는 `dist`를 그대로 둡니다. `node scripts/package-dist.mjs pack
+output을 보며 비워진 directory는 보지 않습니다. 실패한 build는 `dist`를 그대로 둡니다. `node scripts/package-dist.mts pack
 <package directory> <destination directory>`는 같은 lock 아래에서 `dist`에 output이 있는지 확인하고
 `npm pack`을 실행하며, 그 JSON report를 standard output에 출력합니다. package install check와 CRUDUI
 archive를 설치하는 repository는 이것으로 pack하므로, build가 비운 `dist`를 읽는 pack은 없습니다.
 Linux에서 lock은 process 시작 시각을 `/proc`에서 읽습니다. 최소 container image에는 `ps`가 없기
 때문입니다.
 
-`npm run test:runtimes`가 실행하는 `tests/build/shared-resources.test.mjs`는 documentation,
+`npm run test:runtimes`가 실행하는 `tests/build/shared-resources.test.mts`는 documentation,
 `dist` 행을 확인합니다. `dist` lock은 임시 checkout에서 build하는 fixture package로 확인하므로 저장소의 build
 결과물을 읽지 않고 `npm run build`보다 먼저 실행됩니다.

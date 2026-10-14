@@ -1,6 +1,6 @@
 # CRUDUI 계약 manifest
 <!-- doc-id: contracts-readme -->
-<!-- source-sha256: e2a2b9275d83b3c88ab63bba9cd7f2256e57284b3b1b08dc2ba591305be49ed4 -->
+<!-- source-sha256: 3b24606726eb229681c2d6105e1c60edd1404895e95be27684b0b97182379510 -->
 
 [English](README.md).
 
@@ -36,7 +36,7 @@ API입니다. `internal` 진입점은 CRUDUI 자체 패키지만 사용하며 �
   `require`, 동적 import, Vitest 모듈 mock). 패키지는 다른 패키지를 이름으로 지정한 진입점으로만
   사용합니다.
 
-[`tests/build/contract-manifest.test.mjs`](../tests/build/contract-manifest.test.mjs)는 각 실패를
+[`tests/build/contract-manifest.test.mts`](../tests/build/contract-manifest.test.mts)는 각 실패를
 합성 저장소에서 증명하고 이 저장소에 검사를 실행합니다.
 CLI는 같은 계약을 도구가 읽을 수 있는 JSON 또는 Markdown으로 출력할 수 있습니다.
 

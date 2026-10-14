@@ -1,6 +1,6 @@
 # 검증기 프로세스
 <!-- doc-id: examples-cross-check-console-validators-readme -->
-<!-- source-sha256: 33aefc8745874aabfb8881c26d539b169a014f19bd3f7da12d2c14da288d99a0 -->
+<!-- source-sha256: 5ae74dd371524b87c8d16510108f57151a93523d130c03115f2e6d0b7dd9a6e7 -->
 
 [English](README.md).
 
@@ -70,7 +70,7 @@ import합니다. 배포 환경은 `CRUDUI_CROSS_CHECK_GO_VALIDATOR`와
 
 `requests.json`은 요청 사례 목록입니다. 사례마다 `name`, `note`, 표준 입력 원문 `input`,
 `expected: { exit, output }`이 있으며 `output`은 표준 출력에 쓰는 JSON 객체 전체입니다.
-`scripts/check-schema.mjs`는 받아들이는 모든 요청의 명세를 메타 스키마로 검사합니다.
+`scripts/check-schema.mts`는 받아들이는 모든 요청의 명세를 메타 스키마로 검사합니다.
 
 [`../server/validator-processes.test.mjs`](../server/validator-processes.test.mjs)는 모든 요청 사례와
 [`tests/fixtures/validate`](../../../tests/fixtures/validate/README.ko.md),

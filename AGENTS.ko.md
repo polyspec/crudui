@@ -1,6 +1,6 @@
 # 개발
 <!-- doc-id: agents -->
-<!-- source-sha256: 88487adb323ce674680111e0ecf9db92e2d7c60e17e4864200c6d974dc889d15 -->
+<!-- source-sha256: f0a71d4cd7c0703af706bc37fe440cdb3ff4ca17a26930b61dd32b806409dfeb -->
 
 모든 polyspec 저장소의 작업 원칙은 kit의 copy인 [PRINCIPLES.ko.md](PRINCIPLES.ko.md)이며, 이 file은 crudui의 규칙을 적습니다.
 
@@ -56,6 +56,10 @@
   도구의 사본을 다른 경로에 두지 않습니다. code는 kit module을 package의 export로만 import합니다. 이 저장소는 다른 polyspec 저장소와 `config/*.json`(`toolchain`,
   `dependency-policy`, `dependency-review`, `checklist`, `documents`, `commits`, `owner-checks`, `release`), `config/layout.yml`, 그리고
   자신의 제품 code와 test에서만 다릅니다.
+- 폴더는 kit의 layout(`make layout-check`)을 따릅니다. validator와 generator는 runtime마다 폴더를 두고
+  (`packages/validator/<runtime>`, `packages/generator/<runtime>`), `scripts/`와 `tests/`의 infrastructure는 `make typecheck`가
+  엄격한 root `tsconfig.json`으로 검사하는 TypeScript(`.mts`)입니다. `config/layout.yml`은 다른 한 언어를 구동하거나 돕는
+  파일인 각 예외를 그 이유와 함께 적습니다.
 - 계약은 `docs/spec/`, 구현·배포 상태는 `docs/features.md`, 절차는
   `docs/operations/`, 계획된 작업과 그 검증·완료는 `docs/plans/execution-checklist.md`,
   실제 변경은 `CHANGELOG.md`에서 관리합니다. 모든 변경은 checklist의 작업 하나에 속하며,
@@ -168,7 +172,7 @@
 - process: 실행은 process를 자기 group에서 시작하고, tree 전체를 멈춘 뒤 사라질 때까지 기다리며, 잡은 것은 `finally`에서
   놓는다.
 - 단언: test는 외부 도구의 구조화된 결과(exit status, report, event)를 단언하고, version, locale, 부모 process에 따라 문구가
-  바뀌는 사람이 읽는 출력은 단언하지 않는다. Makefile 대상의 명령은 `tests/build/make-dry-run.mjs`의 `makeDryRun`으로만
+  바뀌는 사람이 읽는 출력은 단언하지 않는다. Makefile 대상의 명령은 `tests/build/make-dry-run.mts`의 `makeDryRun`으로만
   읽는다.
 - owner: 모든 경로는 `config/owner-checks.json`에 owner와 각 검사가 읽는 경로를 가지며, CI는 push마다 모든 검사를
   실행한다.

@@ -16,7 +16,7 @@ import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { validateDetail } from './index';
 import { ComposeLoadError } from '../compose/index';
-import { provesConformance } from '../../../../../tests/conformance/evidence.mjs';
+import { provesConformance } from '../../../../../tests/conformance/evidence.mts';
 
 const FIXTURE = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),

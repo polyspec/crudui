@@ -21,10 +21,10 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, test, expect } from 'vitest';
 
-import { normalizeHtml } from '../../../tests/fixtures/form-render/normalize.mjs';
+import { normalizeHtml } from '../../../tests/fixtures/form-render/normalize.mts';
 import { renderList } from '../src/listSsr.ts';
 import { ComposeLoadError } from '@polyspec/crudui-generator-core';
-import { provesConformance } from '../../../tests/conformance/evidence.mjs';
+import { provesConformance } from '../../../tests/conformance/evidence.mts';
 
 /** Run one fixture case and record renderList evidence for it. */
 function proves(name, body) {

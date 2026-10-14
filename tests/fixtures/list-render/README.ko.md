@@ -1,6 +1,6 @@
 # 목록 렌더링 고정 데이터
 <!-- doc-id: tests-fixtures-list-render-readme -->
-<!-- source-sha256: 6c4c8e6258f6eff77b19cda630cd4f41d0be478d7eb7958f02af1059d6420f6f -->
+<!-- source-sha256: 6920810ee28c759ebe4bda5aead54ac9687a6fd78389e6e7e52b31d752b8ad23 -->
 
 [English](README.md).
 
@@ -17,7 +17,7 @@
 프레임워크 레이아웃 검사는 정규화한 목록 본문을 `expected_html`과 비교합니다.
 [폼 HTML 정규화기](../form-render/README.ko.md#정규화)를 사용합니다. 문자열
 렌더러(React 서버 렌더링과 HTML 렌더러)는 목록 앞에 이미지 preload 링크를 쓰며,
-[`preload-links.mjs`](../preload-links.mjs)가 이를 제거하므로 본문 기대값은 목록 본문만 다룹니다.
+[`preload-links.mjs`](../preload-links.mts)가 이를 제거하므로 본문 기대값은 목록 본문만 다룹니다.
 이 비교로 전체 원본 HTML의 동일성을 확인할 수는 없습니다.
 
 [네이티브 생성기 검사](../../native-generators/README.ko.md)는 같은 입력으로 모든 문자열

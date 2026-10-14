@@ -327,26 +327,26 @@
       "kind": "detail-html"
     },
     {
-      "path": "tests/native-generators/cases.mjs",
+      "path": "tests/native-generators/cases.mts",
       "kind": "form-instance",
       "export": "formScenarios"
     },
     {
-      "path": "tests/fixtures/form-session/scenario.mjs",
+      "path": "tests/fixtures/form-session/scenario.mts",
       "kind": "browser-session",
       "cases": [
         "exerciseSessionDom"
       ]
     },
     {
-      "path": "tests/fixtures/form-session/controls.mjs",
+      "path": "tests/fixtures/form-session/controls.mts",
       "kind": "browser-session",
       "cases": [
         "exerciseControls"
       ]
     },
     {
-      "path": "tests/fixtures/form-session/initialization.mjs",
+      "path": "tests/fixtures/form-session/initialization.mts",
       "kind": "browser-session",
       "cases": [
         "compareServerTakeover",
@@ -354,7 +354,7 @@
       ]
     },
     {
-      "path": "tests/fixtures/form-session/data-rows.mjs",
+      "path": "tests/fixtures/form-session/data-rows.mts",
       "kind": "browser-session",
       "cases": [
         "exerciseOnlyRows",
@@ -362,14 +362,14 @@
       ]
     },
     {
-      "path": "tests/fixtures/form-session/typing.mjs",
+      "path": "tests/fixtures/form-session/typing.mts",
       "kind": "browser-session",
       "cases": [
         "exerciseTyping"
       ]
     },
     {
-      "path": "tests/fixtures/view-session/rerender.mjs",
+      "path": "tests/fixtures/view-session/rerender.mts",
       "kind": "browser-session",
       "cases": [
         "exerciseViewRerender"
@@ -565,7 +565,7 @@
         "FormInputError"
       ],
       "fixtures": [
-        "tests/native-generators/cases.mjs",
+        "tests/native-generators/cases.mts",
         "tests/fixtures/text-validity/createForm/cases.json"
       ],
       "support": {
@@ -580,7 +580,7 @@
       "state": "instance data, view state and undo history",
       "tests": [
         "packages/generator/ts/src/form.test.ts",
-        "tests/fixtures/form-session/scenario.mjs",
+        "tests/fixtures/form-session/scenario.mts",
         "packages/generator/ts/src/node.test.ts",
         "packages/generator/ts/src/input-text.test.ts"
       ],
@@ -636,7 +636,7 @@
       "tests": [
         "packages/html/src/conformance.test.ts",
         "packages/react/src/__tests__/form-render.conformance.test.ts",
-        "tests/form-inspector/form-snapshot.test.mjs",
+        "tests/form-inspector/form-snapshot.test.mts",
         "packages/html/src/form-complete.conformance.test.ts",
         "packages/react/src/__tests__/form-complete.conformance.test.ts",
         "packages/vue/test/form-complete.conformance.test.mjs",
@@ -786,7 +786,7 @@
         "packages/generator/rust/src/detail.rs",
         "packages/php-ext/tests/engine.test.mjs",
         "packages/php-ext/tests/api.php",
-        "tests/native-generators/run.mjs",
+        "tests/native-generators/run.mts",
         "packages/generator/ts/src/input-text.test.ts"
       ],
       "docs": [
@@ -841,7 +841,7 @@
         "packages/generator/php/tests/DetailTest.php",
         "packages/generator/go/detail_test.go",
         "packages/generator/rust/src/detail.rs",
-        "tests/native-generators/run.mjs"
+        "tests/native-generators/run.mts"
       ],
       "docs": [
         "docs/spec/schema.md",
@@ -926,11 +926,11 @@
         "FormInputError"
       ],
       "fixtures": [
-        "tests/fixtures/form-session/scenario.mjs",
-        "tests/fixtures/form-session/controls.mjs",
-        "tests/fixtures/form-session/initialization.mjs",
-        "tests/fixtures/form-session/data-rows.mjs",
-        "tests/fixtures/form-session/typing.mjs"
+        "tests/fixtures/form-session/scenario.mts",
+        "tests/fixtures/form-session/controls.mts",
+        "tests/fixtures/form-session/initialization.mts",
+        "tests/fixtures/form-session/data-rows.mts",
+        "tests/fixtures/form-session/typing.mts"
       ],
       "support": {
         "javascript-dom": "pass",
@@ -942,7 +942,7 @@
       "state": "form instance and host controls through owned events",
       "tests": [
         "packages/generator/ts/src/widget-controls.test.ts",
-        "tests/fixtures/form-session/scenario.mjs"
+        "tests/fixtures/form-session/scenario.mts"
       ],
       "docs": [
         "docs/spec/form-runtime.md",
@@ -970,9 +970,9 @@
         "TypeError"
       ],
       "fixtures": [
-        "tests/fixtures/form-session/initialization.mjs",
-        "tests/fixtures/form-session/typing.mjs",
-        "tests/fixtures/view-session/rerender.mjs"
+        "tests/fixtures/form-session/initialization.mts",
+        "tests/fixtures/form-session/typing.mts",
+        "tests/fixtures/view-session/rerender.mts"
       ],
       "support": {
         "javascript-dom": "pass"
@@ -1008,7 +1008,7 @@
         "FormInputError"
       ],
       "fixtures": [
-        "tests/fixtures/view-session/rerender.mjs"
+        "tests/fixtures/view-session/rerender.mts"
       ],
       "support": {
         "javascript-dom": "pass",
@@ -1088,7 +1088,7 @@
         "FormInputError"
       ],
       "fixtures": [
-        "tests/fixtures/form-session/scenario.mjs"
+        "tests/fixtures/form-session/scenario.mts"
       ],
       "support": {
         "javascript-dom": "pass",
@@ -1122,7 +1122,7 @@
         "FormInputError"
       ],
       "fixtures": [
-        "tests/fixtures/form-session/scenario.mjs"
+        "tests/fixtures/form-session/scenario.mts"
       ],
       "support": {
         "javascript-dom": "pass",
@@ -1139,7 +1139,7 @@
       "state": "form instance data, view state and undo history",
       "tests": [
         "packages/generator/ts/src/node.test.ts",
-        "tests/fixtures/form-session/scenario.mjs"
+        "tests/fixtures/form-session/scenario.mts"
       ],
       "docs": [
         "docs/spec/form-runtime.md",
@@ -1162,7 +1162,7 @@
         "TypeError"
       ],
       "fixtures": [
-        "tests/fixtures/form-session/scenario.mjs"
+        "tests/fixtures/form-session/scenario.mts"
       ],
       "support": {
         "javascript-dom": "pass",
@@ -1201,7 +1201,7 @@
         "RangeError"
       ],
       "fixtures": [
-        "tests/fixtures/form-session/scenario.mjs"
+        "tests/fixtures/form-session/scenario.mts"
       ],
       "support": {
         "javascript-dom": "pass",

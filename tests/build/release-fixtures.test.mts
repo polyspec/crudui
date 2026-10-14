@@ -1,0 +1,16 @@
+// The consumer project of the npm archives (tests/release-install/npm) names the release in its own version field, which
+// kit's lock step keeps as committed. The project must name the version of package.json, so that a release that leaves it
+// behind fails the check (C13.1-35).
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+import test from 'node:test';
+
+const ROOT = path.resolve(import.meta.dirname, '../..');
+
+
+const read = (file: string): { version: string } => JSON.parse(readFileSync(path.join(ROOT, file), 'utf8')) as { version: string };
+
+test('the npm consumer project of the release archives has the version of package.json', () => {
+  assert.equal(read('tests/release-install/npm/package.json').version, read('package.json').version);
+});

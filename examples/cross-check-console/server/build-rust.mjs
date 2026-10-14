@@ -2,7 +2,7 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { runRustCommand } from '../../../scripts/run-rust-command.mjs';
+import { runRustCommand } from '../../../scripts/run-rust-command.mts';
 
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 

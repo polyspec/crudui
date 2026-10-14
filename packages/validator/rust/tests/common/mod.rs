@@ -1,10 +1,10 @@
 //! Conformance evidence for Rust integration tests (runtime key `rust`).
 //!
-//! Mirrors tests/conformance/evidence.mjs: when CRUDUI_CONFORMANCE_EVIDENCE names
+//! Mirrors tests/conformance/evidence.mts: when CRUDUI_CONFORMANCE_EVIDENCE names
 //! a directory, each shared fixture case appends one JSON line
 //! `{"feature","fixture","runtime","case","passed"}` to `<dir>/rust-<pid>.jsonl`.
 //! Nothing is written when the variable is unset or empty.
-//! scripts/check-conformance.mjs reads these files.
+//! scripts/check-conformance.mts reads these files.
 
 use serde_json::{Map, Value};
 use std::fs::{create_dir_all, OpenOptions};

@@ -24,7 +24,7 @@ no container definition; no browser of a release channel or of the machine is us
 `packageManager` of `package.json` records one exact npm release;
 the check fails when the running npm or a workflow step
 selects another release, and `make install-tools` installs it into `var/tools` of the checkout.
-`tests/build/tool-path.test.mjs` fails when a script, a make target or a CI step installs npm into the machine,
+`tests/build/tool-path.test.mts` fails when a script, a make target or a CI step installs npm into the machine,
 or when make or a CI job does not put `var/tools/bin` first on `PATH`. The runtime checks run repository Rust Node.js entry points without
 Cargo on the process `PATH`. Each entry point must resolve Cargo, rustc and
 rustdoc from one toolchain record and supply the resolved compiler paths to
@@ -56,7 +56,7 @@ Rust drivers with `benchmarks/validators/build-drivers.mjs`, which streams each 
 result with its elapsed time, without a time limit; the test runs the built drivers, and each of its
 tests has the 30-second timeout of the test runner.
 
-`test:build:repeat` runs the complete build twice with `scripts/repeat-build.mjs`, a logged step
+`test:build:repeat` runs the complete build twice with `scripts/repeat-build.mts`, a logged step
 without a time limit that reads the path and SHA-256 digest of every output file of the published
 packages after each build and fails with every file that differs between its two builds; it keeps no
 record between runs. The test covers the package list and the comparison without a build, each test

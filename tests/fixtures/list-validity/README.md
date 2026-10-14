@@ -17,7 +17,7 @@
   meta-schema reads `spec` alone.
 
 The two results are independent. Every test applies every member it owns: no test classifies
-cases itself or supplies its own files. [`check-schema.mjs`](../../../scripts/check-schema.mjs), run by
+cases itself or supplies its own files. [`check-schema.mts`](../../../scripts/check-schema.mts), run by
 `npm run spec:schema`, asserts this shape for all three families before it checks `expect` and
 `reason`.
 
@@ -33,7 +33,7 @@ enum values and a malformed format value.
 ## Comparisons
 
 The [list meta-schema test](../../../packages/validator/ts/src/list-metaschema.conformance.test.ts)
-and `check-schema.mjs` compile the list entry point and check `expect` and `reason`.
+and `check-schema.mts` compile the list entry point and check `expect` and `reason`.
 
 The runtime tests validate `spec` with `files`, read no rows and compare `engine`. The Rust structure
 API returns `Ok(())` for `"pass"`, its equivalent of `{ valid: true, errors: [] }`. The

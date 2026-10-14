@@ -4,8 +4,8 @@ import { expect, it } from 'vitest';
 import { buildDetail, buildList } from '@polyspec/crudui-generator-core';
 import { List } from '../src/components/List';
 import { Detail } from '../src/components/Detail';
-import { exerciseViewRerender } from '../../../tests/fixtures/view-session/rerender.mjs';
-import { provesConformance } from '../../../tests/conformance/evidence.mjs';
+import { exerciseViewRerender } from '../../../tests/fixtures/view-session/rerender.mts';
+import { provesConformance } from '../../../tests/conformance/evidence.mts';
 
 it('keeps list and detail nodes across re-renders', async () => {
   const element = document.createElement('div');
@@ -21,7 +21,7 @@ it('keeps list and detail nodes across re-renders', async () => {
   });
   app.mount(element);
   try {
-    await provesConformance({ features: ['updateView'], fixture: 'tests/fixtures/view-session/rerender.mjs', runtime: 'vue', case: 'exerciseViewRerender' }, () =>
+    await provesConformance({ features: ['updateView'], fixture: 'tests/fixtures/view-session/rerender.mts', runtime: 'vue', case: 'exerciseViewRerender' }, () =>
       exerciseViewRerender({ element, expect, flush: nextTick, show: (next) => { view.value = next; } }));
   } finally { app.unmount(); element.remove(); }
 });

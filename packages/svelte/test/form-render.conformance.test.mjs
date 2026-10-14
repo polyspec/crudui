@@ -20,8 +20,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, test, expect } from 'vitest';
-import { normalizeHtml } from '../../../tests/fixtures/form-render/normalize.mjs';
-import { provesConformance } from '../../../tests/conformance/evidence.mjs';
+import { normalizeHtml } from '../../../tests/fixtures/form-render/normalize.mts';
+import { provesConformance } from '../../../tests/conformance/evidence.mts';
 
 /** Run one fixture case and record renderForm evidence for it. */
 function proves(name, body) {

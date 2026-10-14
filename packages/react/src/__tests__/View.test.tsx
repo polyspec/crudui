@@ -4,18 +4,17 @@ import { expect, it } from 'vitest';
 import { buildDetail, buildList } from '@polyspec/crudui-generator-core';
 import { List } from '../components/List';
 import { Detail } from '../components/Detail';
-// @ts-expect-error Shared view assertions across frameworks.
-import { exerciseViewRerender } from '../../../../tests/fixtures/view-session/rerender.mjs';
-import { provesConformance } from '../../../../tests/conformance/evidence.mjs';
-
-interface View { kind: 'list' | 'detail'; layout?: 'table' | 'card'; spec: Record<string, unknown>; data: never }
+import { exerciseViewRerender, type ViewModel } from '../../../../tests/fixtures/view-session/rerender.mts';
+import { provesConformance } from '../../../../tests/conformance/evidence.mts';
 
 it('keeps list and detail nodes across re-renders', async () => {
   const element = document.createElement('div');
   document.body.append(element);
   let view: { rerender: (node: React.ReactElement) => void; unmount: () => void } | undefined;
-  const show = ({ kind, layout, spec, data }: View) => {
-    const node = kind === 'list'
+  const show = ({ kind, layout, spec, data }: ViewModel) => {
+    // A list shows rows and a detail one record (tests/fixtures/view-session/rerender.mts).
+    if ((kind === 'list') !== Array.isArray(data)) throw new TypeError(`a ${kind} view takes ${kind === 'list' ? 'rows' : 'one record'}`);
+    const node = Array.isArray(data)
       ? <List key={`list-${layout}`} vm={buildList(spec, data)} layout={layout} />
       : <Detail key="detail" vm={buildDetail(spec, data)} />;
     act(() => {
@@ -24,7 +23,7 @@ it('keeps list and detail nodes across re-renders', async () => {
     });
   };
   try {
-    await provesConformance({ features: ['updateView'], fixture: 'tests/fixtures/view-session/rerender.mjs', runtime: 'react', case: 'exerciseViewRerender' }, () =>
+    await provesConformance({ features: ['updateView'], fixture: 'tests/fixtures/view-session/rerender.mts', runtime: 'react', case: 'exerciseViewRerender' }, () =>
       exerciseViewRerender({ element, show, expect, flush: async () => { await act(async () => {}); } }));
   } finally { view?.unmount(); element.remove(); }
 });

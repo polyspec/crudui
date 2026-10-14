@@ -1,6 +1,6 @@
 # 상세 렌더링 고정 데이터
 <!-- doc-id: tests-fixtures-detail-render-readme -->
-<!-- source-sha256: a6c9a7e1669988359965785cebe677bdfd4e1b083fa2fe07717696882fe20a61 -->
+<!-- source-sha256: 532cf385c138f50e045bc6f6dfeb65605da4c10f549ccf8d5d5a371019ba0d46 -->
 
 [English](README.md).
 
@@ -20,7 +20,7 @@
 
 프레임워크 적합성 검사는 [폼 HTML 정규화기](../form-render/README.ko.md#정규화)로 정규화한 상세 본문을
 `expected_html`과 비교합니다. 문자열 렌더러(React 서버 렌더링과 HTML 렌더러)는 상세 앞에 이미지
-preload 링크를 쓰며, [`preload-links.mjs`](../preload-links.mjs)가 이를 제거하므로 본문 기대값은 상세
+preload 링크를 쓰며, [`preload-links.mjs`](../preload-links.mts)가 이를 제거하므로 본문 기대값은 상세
 본문만 다룹니다. 오류 사례는 기록된 메시지를 확인합니다.
 
 [네이티브 생성기 검사](../../native-generators/README.ko.md)는 모든 사례를 모든 런타임에 두 수준으로

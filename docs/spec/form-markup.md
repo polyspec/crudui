@@ -457,7 +457,7 @@ the rule overrides the defaults in any stylesheet order.
 
 `--crudui-node-header-height`, `--crudui-row-padding`, `--crudui-row-border` and
 `--crudui-form-footer-height` size the sticky rows and the form footer (see above).
-`tests/style-properties.test.mjs` checks the property rule, that every property a rule
+`tests/style-properties.test.mts` checks the property rule, that every property a rule
 reads is declared and that no other rule writes a color.
 
 ### Viewport widths
@@ -470,7 +470,7 @@ the scroll width of the document element is not greater than the viewport width.
 (`input`, `select`, `textarea`, `button`) and every action lies within the viewport, except
 inside an element that scrolls horizontally on its own (`overflow-x` `auto` or `scroll`), such
 as the table of a list, whose content may be wider than the viewport. A list scrolls
-horizontally on its own, so a wide table does not widen the page. `tests/viewport.test.mjs`
+horizontally on its own, so a wide table does not widen the page. `tests/viewport.test.mts`
 checks every case at both widths in Chromium, Firefox and WebKit.
 
 ### Tailwind CSS
@@ -488,7 +488,7 @@ so the two files never hold different rules. A page themes the blocks with the
 Compiled with the theme and the utilities of the latest stable Tailwind CSS and no other
 stylesheet, `crudui.tailwind.css` gives every element of the expected HTML of every shared render
 fixture the same computed style, without custom properties, as `crudui.css` at the viewport widths
-360 and 1280. `tests/tailwind-styles.test.mjs` compares them in Chromium, Firefox and WebKit.
+360 and 1280. `tests/tailwind-styles.test.mts` compares them in Chromium, Firefox and WebKit.
 
 ## List and detail markup
 
