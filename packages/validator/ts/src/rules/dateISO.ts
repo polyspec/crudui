@@ -16,7 +16,7 @@ const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 /**
  * Check if a value is a valid ISO date
  */
-export function isValidDateISO(value: unknown): boolean {
+function isValidDateISO(value: unknown): boolean {
   if (typeof value !== 'string') {
     return false;
   }

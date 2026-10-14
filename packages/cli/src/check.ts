@@ -37,7 +37,7 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(HERE, '../../..');
 const SCHEMA_PATH = resolve(REPO_ROOT, 'contracts/schema/crudui.schema.json');
 
-export interface CheckError {
+interface CheckError {
   path: string;
   key?: string;
   reason: string;

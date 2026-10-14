@@ -44,7 +44,7 @@
  * literals. No arithmetic, functions, methods, regex, or `eval`. A bare ternary
  * `"...?...:..."` is the shorthand of a condition map (same semantics).
  */
-export type Expression = string;
+type Expression = string;
 
 /**
  * Declaration-ordered condition map (expressions.md §8). Each key is an
@@ -69,7 +69,7 @@ export type ConditionMap<V = unknown> = {
  * The call site fixes the expected result type (boolean for `show`, string for
  * `class`/`style`, …).
  */
-export type Evaluated<V = unknown> = V | Expression | ConditionMap<V>;
+type Evaluated<V = unknown> = V | Expression | ConditionMap<V>;
 
 /**
  * Multilingual content map (G3 content translation): a value translated per
@@ -78,21 +78,21 @@ export type Evaluated<V = unknown> = V | Expression | ConditionMap<V>;
  * language slot may be `null` (no value — identical to absent; no render/validate
  * effect, SPEC §2 G3).
  */
-export type LangMap = Record<string, string | null>;
+type LangMap = Record<string, string | null>;
 
 /**
  * Field content text that may be a plain string or a per-language LangMap (G3).
  * Empty content is omitted or `null` — `null` is identical to absent and has no
  * render/validate effect (SPEC §2 G3).
  */
-export type LocalizedText = string | LangMap | null;
+type LocalizedText = string | LangMap | null;
 
 /**
  * Composition reference: one file path, or a list of paths resolved in
  * declaration order where a later path overrides an earlier one. A path may
  * select a fragment of a file as `(file.yml).key`.
  */
-export type Reference = string | string[];
+type Reference = string | string[];
 
 
 /**
@@ -100,7 +100,7 @@ export type Reference = string | string[];
  * nullifies composed inheritance); `true` is the shorthand for `{}` (default
  * on); an object carries the slot's settings.
  */
-export type Slot<T> = false | true | T;
+type Slot<T> = false | true | T;
 
 // ============================================================================
 // Field Spec (top-level — structure / identity / content + role slots)
@@ -211,24 +211,8 @@ export interface FieldSpec {
   $patch?: PatchDirective;
 }
 
-/**
- * A range field (docs/spec/schema.md, Range fields): a number chosen on a slider whose bounds and
- * increment are the literal `range` and `step` rules; the minimum is a multiple of the step.
- */
-export interface RangeFieldSpec extends FieldSpec {
-  /** The range type. */
-  type: 'range';
-  /** Validation with the required literal bounds and step of the slider. */
-  validate: ValidateSlot & {
-    /** Inclusive `[minimum, maximum]` of the slider. */
-    range: [number, number];
-    /** Increment of the slider, a finite number above 0. */
-    step: number;
-  };
-}
-
 /** One form button. A button or link needs text; a link needs href. */
-export interface FormButton {
+interface FormButton {
   /** Button type; a link renders an anchor. */
   type: 'submit' | 'reset' | 'button' | 'link';
   /** Button text; submit and reset default to interface text. */
@@ -246,7 +230,7 @@ export interface FormButton {
 }
 
 /** Submission target of the form, kept unchanged in the template. */
-export interface FormAction {
+interface FormAction {
   /** HTTP method. */
   method?: string;
   /** Submission URL. */
@@ -260,7 +244,7 @@ export interface FormAction {
  * alongside named child fields; the parser expands composition first, then the
  * field layer.
  */
-export type Properties = {
+type Properties = {
   /** Base inheritance for the whole child map. */
   $ref?: Reference;
   /** Composition change directive for the child map. */
@@ -274,7 +258,7 @@ export type Properties = {
  * (set/replace); the resolution order is `$ref` → `$patch` → single spec →
  * field layer.
  */
-export interface PatchDirective {
+interface PatchDirective {
   /** Deep-path key (e.g. `'field.validate.required'`) → patched value. */
   [path: string]: unknown;
 }
@@ -295,7 +279,7 @@ export interface PatchDirective {
  * parameter unchanged, so they take no condition map. No other rule name exists:
  * the meta-schema rejects it and the runtime fails the load with `UNKNOWN_RULE`.
  */
-export interface ValidateSlot {
+interface ValidateSlot {
   /** Requires a supplied, nonempty value when enabled. */
   required?: Evaluated<boolean | null>;
   /** Requires a syntactically valid email address when enabled. */
@@ -354,7 +338,7 @@ export interface ValidateSlot {
  * Per-node appearance: `class`/`style` for one DOM node. Both values are
  * evaluated (expression or condition map) and yield strings.
  */
-export interface DesignNode {
+interface DesignNode {
   /** CSS class for this node (evaluated → string). */
   class?: Evaluated<string>;
   /** Inline style for this node (evaluated → string). */
@@ -388,16 +372,16 @@ export interface DesignSlot {
  * Attributes a form field declares for an element: a `data-*` or `aria-*` name that crudui does
  * not write, to a literal string value (docs/spec/schema.md, Declared attributes).
  */
-export type DeclaredAttributes = Record<string, string>;
+type DeclaredAttributes = Record<string, string>;
 
 /** The wrapper node of a form field: appearance and the attributes of the node root. */
-export interface FieldWrapperNode extends DesignNode {
+interface FieldWrapperNode extends DesignNode {
   /** Attributes written on the node root after the attributes crudui writes. */
   attributes?: DeclaredAttributes;
 }
 
 /** The design slot of a form field: the design slot with declared attributes and a group's layout. */
-export interface FieldDesignSlot extends DesignSlot {
+interface FieldDesignSlot extends DesignSlot {
   /** Attributes written on the field's control after the attributes crudui writes. */
   attributes?: DeclaredAttributes;
   /**
@@ -409,16 +393,6 @@ export interface FieldDesignSlot extends DesignSlot {
   wrapper?: FieldWrapperNode;
 }
 
-/** Design node names (the per-DOM-node appearance map keys). */
-export type DesignNodeName =
-  | 'show'
-  | 'class'
-  | 'style'
-  | 'label'
-  | 'wrapper'
-  | 'group'
-  | 'prepend';
-
 // ============================================================================
 // behavior slot (opaque scripts — NOT routed through the expression engine)
 // ============================================================================
@@ -427,7 +401,7 @@ export type DesignNodeName =
  * A behavior entry: an opaque client-JS script string, or `{ script, label }`
  * where the action label sits adjacent (`behavior.{action}.label`).
  */
-export type BehaviorEntry =
+type BehaviorEntry =
   | string
   | {
       /** Opaque client-JS passed through verbatim (not parsed by the engine). */
@@ -441,7 +415,7 @@ export type BehaviorEntry =
  * passed through verbatim and never routed through the expression engine.
  * `behavior: false` nullifies composed inheritance.
  */
-export interface BehaviorSlot {
+interface BehaviorSlot {
   /** Change handler (opaque script). */
   onchange?: BehaviorEntry;
   /** Click handler (opaque script). */
@@ -463,7 +437,7 @@ export interface BehaviorSlot {
  * scripts/callbacks live here too. The listed keys are common examples; the
  * index signature admits any type-specific key.
  */
-export interface OptionsSlot {
+interface OptionsSlot {
   /** Minimum keyword length (e.g. autocomplete trigger). */
   keyword_min_length?: number;
   /** Whether the map marker is draggable. */
@@ -508,7 +482,7 @@ export interface OptionsSlot {
  * runtime's job, out of scope here (SPEC §6 R1: types preserve, validation
  * blocks; never model runtime resolution into the type).
  */
-export interface ItemsModel {
+interface ItemsModel {
   /** Primary table the rows are drawn from. */
   table?: string;
   /** Join/relation descriptors (each row links a related table to a column pair). */
@@ -531,7 +505,7 @@ export interface ItemsModel {
  * here — the runtime calls `api_server`, runs the `model` query, and replaces
  * the placeholder. Runtime resolution is out of scope (SPEC §6 R1).
  */
-export interface ItemsSource {
+interface ItemsSource {
   /**
    * Data model the options are loaded from. Either a model-name string OR a
    * nested `{ table, relations, keys }` relational query.
@@ -575,7 +549,7 @@ export type Items = StaticItem[] | ChoiceItems | ItemLabelMap | ItemsSource;
  * One choice of a choice list (docs/spec/schema.md, "Choice lists"). The option value is
  * the canonical text of `value`; the list order is the display order for any values.
  */
-export interface ChoicePair {
+interface ChoicePair {
   /** Option value: a string or a finite number, distinct by canonical text in its list. */
   value: string | number;
   /** Display label of the value. */
@@ -583,14 +557,14 @@ export interface ChoicePair {
 }
 
 /** Choices in list order for any values. */
-export type ChoiceList = ChoicePair[];
+type ChoiceList = ChoicePair[];
 
 /**
  * One choice of a field's `items` (docs/spec/schema.md, "Choice appearance"). In a choice or
  * multichoice field it may declare the appearance of its label and input; binding rejects these
  * members in other fields.
  */
-export interface ChoiceItem extends ChoicePair {
+interface ChoiceItem extends ChoicePair {
   /** Class of the choice's label, after the label classes. */
   class?: string;
   /** Inline style of the choice's label. */
@@ -603,7 +577,7 @@ export interface ChoiceItem extends ChoicePair {
  * A group of choices in a choice list (docs/spec/schema.md, "Choice groups"). Only the choice list
  * of a select field and the `in` rule accept groups; binding rejects a group in other fields.
  */
-export interface ChoiceGroup {
+interface ChoiceGroup {
   /** Display label of the group. */
   label: ItemLabel;
   /** One or more choices of the group in list order; their values are distinct across the list. */
@@ -611,7 +585,7 @@ export interface ChoiceGroup {
 }
 
 /** The choices and groups of a field's `items` in list order. */
-export type ChoiceItems = Array<ChoiceItem | ChoiceGroup>;
+type ChoiceItems = Array<ChoiceItem | ChoiceGroup>;
 
 /**
  * A static option label (display only). A plain string or a per-language LangMap
@@ -619,7 +593,7 @@ export type ChoiceItems = Array<ChoiceItem | ChoiceGroup>;
  * for display, so the label never participates in membership. Empty label may be
  * `null` (SPEC §2 G3).
  */
-export type ItemLabel = LocalizedText;
+type ItemLabel = LocalizedText;
 
 /**
  * Static value→label map (SPEC §2 G3): the key is the option value (the
@@ -627,10 +601,10 @@ export type ItemLabel = LocalizedText;
  * e.g. `{ "0": { ko: '미사용', en: 'Off' }, "1": { ko: '사용', en: 'On' } }`.
  * The label is display-only; a LangMap label is NOT a membership value.
  */
-export type ItemLabelMap = Record<string, ItemLabel>;
+type ItemLabelMap = Record<string, ItemLabel>;
 
 /** A label of an array whose indexes are the values. */
-export type StaticItem = ItemLabel;
+type StaticItem = ItemLabel;
 
 // ============================================================================
 // multiple bucket (repeated rows — multiple-dependent keys live under it)
@@ -654,7 +628,7 @@ export type StaticItem = ItemLabel;
 export type Multiple = boolean | 'only' | MultipleSettings;
 
 /** Repeated-row settings object (kept under `multiple`). */
-export interface MultipleSettings {
+interface MultipleSettings {
   /**
    * Rows exist only in the data: the data keys are the rows and the form offers
    * no row controls. With `true`, only `title` and `header` may accompany it.
@@ -697,7 +671,7 @@ export type Lang = boolean | LangSettings;
  * the allowlist restricts which languages render, the override map redefines
  * slots per language.
  */
-export interface LangOverride {
+interface LangOverride {
   /** Validation rules for this language input. */
   validate?: Slot<ValidateSlot>;
   /** Appearance settings for this language input. */
@@ -708,10 +682,10 @@ export interface LangOverride {
   options?: Slot<OptionsSlot>;
 }
 /** Per-language overrides indexed by language code. */
-export type LangOverrideMap = Record<string, LangOverride>;
+type LangOverrideMap = Record<string, LangOverride>;
 
 /** Input multilingual settings object (kept under `lang`). */
-export interface LangSettings {
+interface LangSettings {
   /** Expansion mode (e.g. append). */
   mode?: string;
   /**
@@ -777,9 +751,6 @@ export const FORBIDDEN_META_KEYS = [
   'xclass',
   'xstyle',
 ] as const;
-
-/** A meta key that the CRUDUI model forbids (enumerated literals; `x{key}` matched by pattern). */
-export type ForbiddenMetaKey = (typeof FORBIDDEN_META_KEYS)[number];
 
 /**
  * Pattern for the forbidden `x{key}` comment family (x-strip premise above).

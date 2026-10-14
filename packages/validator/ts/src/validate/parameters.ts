@@ -14,7 +14,7 @@ import { PatternSyntaxError, compilePattern } from '../pattern/index';
 import { getRule } from '../rules/index';
 
 /** The failure a rule parameter causes. */
-export interface ParameterFailure {
+interface ParameterFailure {
   code: 'INVALID_RULE_PARAMETER' | 'INVALID_RULE_PATTERN';
   message: string;
 }
@@ -45,7 +45,7 @@ const CHECKED_RULES = new Set([
  * The failure an effective (resolved) parameter of a rule causes, or `null`.
  * `false` and `null` disable a rule and are never failures.
  */
-export function ruleParameterFailure(ruleName: string, param: unknown): ParameterFailure | null {
+function ruleParameterFailure(ruleName: string, param: unknown): ParameterFailure | null {
   if (param === false || param === null || !CHECKED_RULES.has(ruleName)) {
     return null;
   }

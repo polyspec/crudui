@@ -9,9 +9,9 @@
 import { recognizePattern } from './recognizer';
 import { PatternMatcher } from './matcher';
 
-export { recognizePattern, QUANTIFIER_LIMIT, SIZE_LIMIT, DEPTH_LIMIT, type RecognizedPattern } from './recognizer';
+export { recognizePattern } from './recognizer';
 export { PatternMatcher } from './matcher';
-export { PatternSyntaxError, type PatternErrorReason } from './errors';
+export { PatternSyntaxError } from './errors';
 
 const compiled = new Map<string, PatternMatcher>();
 

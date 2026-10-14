@@ -9,7 +9,7 @@ import assert from 'node:assert/strict';
 import { formatDuration, stepHeartbeatMs } from './step-runner.mjs';
 
 /** Validate one unit: an id, its own positive timeout and its action. */
-export function assertUnit(unit) {
+function assertUnit(unit) {
   assert.match(unit?.id ?? '', /^[a-z0-9][a-z0-9/-]*$/, 'A unit requires a lowercase id');
   assert.ok(Number.isSafeInteger(unit.timeoutMs) && unit.timeoutMs > 0, `${unit.id}: every unit requires its own timeout`);
   assert.equal(typeof unit.run, 'function', `${unit.id}: a unit requires an action`);

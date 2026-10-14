@@ -58,7 +58,7 @@ function canonicalKey(value: unknown): string {
 /**
  * Check if all values in array are unique
  */
-export function areAllUnique(values: unknown[]): boolean {
+function areAllUnique(values: unknown[]): boolean {
   const seen = new Set<string>();
 
   for (const value of values) {

@@ -15,7 +15,7 @@ import { isEmptyValue } from './empty';
 import { numericValue, numericValueAsWritten } from './numeric';
 
 /** The parameter messages of `in` (validation-rules.md, "Parameter errors"). */
-export const MEMBERSHIP_ERRORS = {
+const MEMBERSHIP_ERRORS = {
   shape: 'Invalid in parameter: expected a list, a comma-separated string or a map',
   type: 'Invalid in parameter: members must be strings, numbers or booleans',
   empty: 'Invalid in parameter: members must not be empty',
@@ -23,10 +23,10 @@ export const MEMBERSHIP_ERRORS = {
 } as const;
 
 /** A member: a string, a finite number or a boolean. */
-export type Member = string | number | boolean;
+type Member = string | number | boolean;
 
 /** Result of reading a membership parameter. */
-export type MembersResult = { members: Member[] } | { error: string };
+type MembersResult = { members: Member[] } | { error: string };
 
 function isMemberType(item: unknown): item is Member {
   return typeof item === 'string' || typeof item === 'boolean' || (typeof item === 'number' && Number.isFinite(item));

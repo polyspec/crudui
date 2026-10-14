@@ -19,14 +19,11 @@ import {
 } from './record-view.mjs';
 
 export {
-  formData, recordClients, recordInitializations, recordModes, recordServers, recordsPerPage, recordViews,
-  selectionQuery,
+  formData, recordClients, recordInitializations, recordModes, recordServers, recordViews, selectionQuery,
 };
 /** Files every record server reads from its public directory. */
 export const recordFixtureFile = 'customer-records.json';
 export const recordSpecsFile = 'customer-specs.json';
-/** The editable members of one record; `id` is read-only and `avatar` is not part of the form. */
-export const editableRecordFields = Object.freeze(['name', 'status', 'joined', 'score', 'relation', 'markup']);
 
 /** An independent copy of the 45 seeded records. */
 export function recordFixture() {
@@ -57,7 +54,7 @@ export function stageSpecs(selection) {
 }
 
 /** The records of one list page, in id order. */
-export function pageRecords(records, page) {
+function pageRecords(records, page) {
   return records.slice((page - 1) * recordsPerPage, page * recordsPerPage);
 }
 
@@ -99,7 +96,7 @@ export function passedValidation(data) {
  * Native fields of one submission, as the rendered form posts them: an unchecked `enabled`
  * checkbox and a collection without rows post nothing.
  */
-export function nativeFields(data, format, { complete = true } = {}) {
+function nativeFields(data, format, { complete = true } = {}) {
   const fields = format === 'multipart' ? new FormData() : new URLSearchParams();
   const append = (value, name) => {
     if (value !== null && typeof value === 'object') {
@@ -115,7 +112,7 @@ export function nativeFields(data, format, { complete = true } = {}) {
  * The multipart fields a browser submits from rendered form content: the form's successful
  * controls in tree order, as FormData collects them, and the completion field of its submit button.
  */
-export function browserFields(html) {
+function browserFields(html) {
   const { window } = new JSDOM(`<form>${html}</form>`);
   const fields = new FormData();
   for (const [name, value] of new window.FormData(window.document.querySelector('form'))) {
@@ -128,7 +125,7 @@ export function browserFields(html) {
 /** @typedef {{ body?: unknown, headers?: Record<string, string> }} Submission The body and headers of one request. */
 
 /** Encode one submission in the given transport. */
-export function submission(data, format) {
+function submission(data, format) {
   return format === 'json'
     ? { body: JSON.stringify({ form: data }), headers: { 'Content-Type': 'application/json' } }
     : { body: nativeFields(data, format), headers: {} };

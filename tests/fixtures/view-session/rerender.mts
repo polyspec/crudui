@@ -1,7 +1,7 @@
 import type { ExpectStatic } from 'vitest';
 
 /** Re-rendering read-only lists and details through each framework's public components. */
-export const listSpec = {
+const listSpec = {
   columns: {
     name: { field: 'name', label: 'Name' },
     bio: { field: 'bio', label: 'Bio', format: { type: 'html' } },
@@ -9,7 +9,7 @@ export const listSpec = {
   actions: { edit: { label: 'Edit', format: { type: 'link', href: '/edit' } }, remove: 'void 0' },
 };
 
-export const detailSpec = {
+const detailSpec = {
   fields: {
     name: { field: 'name', label: 'Name' },
     bio: { field: 'bio', label: 'Bio', format: { type: 'html' } },
@@ -17,7 +17,7 @@ export const detailSpec = {
 };
 
 /** A record the views show. */
-export type ViewRecord = {
+type ViewRecord = {
   name: string;
   bio: string;
 };

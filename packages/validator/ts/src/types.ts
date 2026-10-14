@@ -152,7 +152,7 @@ export interface ValidationRun {
 /**
  * Rule function signature
  */
-export type RuleFn = (context: ValidationContext) => string | null;
+type RuleFn = (context: ValidationContext) => string | null;
 
 /**
  * Rule definition with its validation function
@@ -251,7 +251,7 @@ export interface Token {
 /**
  * Base AST node interface
  */
-export interface ASTNodeBase {
+interface ASTNodeBase {
   /** Discriminant identifying the node kind (e.g., `Binary`, `Path`, `Literal`). */
   type: string;
   /** Source span covered by this node. */

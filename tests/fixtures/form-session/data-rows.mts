@@ -15,7 +15,7 @@ export const onlySpec = {
     },
   },
 };
-export const onlyData = {
+const onlyData = {
   variants: {
     __opt_b2__: { name: 'Blue', price: 2 },
     __opt_a1__: { name: 'Red', price: 1 },

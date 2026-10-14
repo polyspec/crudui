@@ -11,7 +11,7 @@ import { isEmpty } from './required';
 import { formatMessage, isMultiple, isStep, numericValue } from '../values/index';
 
 /** The parameter message of `step`. */
-export const STEP_PARAMETER_ERROR = 'Invalid step parameter: expected a finite number above 0';
+const STEP_PARAMETER_ERROR = 'Invalid step parameter: expected a finite number above 0';
 
 /**
  * Step rule definition

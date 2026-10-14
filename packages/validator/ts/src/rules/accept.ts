@@ -64,7 +64,7 @@ const EXTENSION_TO_MIME: Record<string, string[]> = {
 /**
  * Parse accept parameter into a list of allowed MIME types
  */
-export function parseAcceptParam(param: unknown): string[] {
+function parseAcceptParam(param: unknown): string[] {
   const acceptList: string[] = [];
 
   if (typeof param === 'string') {
@@ -98,7 +98,7 @@ export function parseAcceptParam(param: unknown): string[] {
 /**
  * Check if a MIME type matches the accept list
  */
-export function matchesMimeType(mimeType: string, acceptList: string[]): boolean {
+function matchesMimeType(mimeType: string, acceptList: string[]): boolean {
   const normalizedMime = mimeType.toLowerCase();
 
   for (const accept of acceptList) {
@@ -132,7 +132,7 @@ export function matchesMimeType(mimeType: string, acceptList: string[]): boolean
  * extension entries (.jpg) are also matched. Without this mapping a filename
  * such as "image1.jpg" would never satisfy accept of image slash star.
  */
-export function matchesExtension(filename: string, acceptList: string[]): boolean {
+function matchesExtension(filename: string, acceptList: string[]): boolean {
   const parts = filename.toLowerCase().split('.');
   // No dot in the filename means no extension to test.
   if (parts.length < 2) {

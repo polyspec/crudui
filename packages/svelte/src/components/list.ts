@@ -23,7 +23,7 @@ import type {
 } from '@polyspec/crudui-generator-core';
 
 /** Join base class + a design node's class into one className ('' → undefined). */
-export function nodeClass(base: string, node: ResolvedNode | undefined): string | undefined {
+function nodeClass(base: string, node: ResolvedNode | undefined): string | undefined {
   const merged = [base, node?.class]
     .filter((s) => s && s.trim())
     .join(' ')
@@ -32,7 +32,7 @@ export function nodeClass(base: string, node: ResolvedNode | undefined): string 
 }
 
 /** A design node's style trimmed ('' → undefined so the attr is omitted). */
-export function nodeStyle(node: ResolvedNode | undefined): string | undefined {
+function nodeStyle(node: ResolvedNode | undefined): string | undefined {
   const s = node?.style?.trim();
   return s || undefined;
 }
@@ -90,7 +90,7 @@ function escText(s: string): string {
  * '' when the action carries no behavior. Each behavior key is an event attribute name
  * (e.g. `onclick`); its value is the opaque script body kept verbatim by the core.
  */
-export function actionBehaviorAttrs(action: ActionVM): string {
+function actionBehaviorAttrs(action: ActionVM): string {
   if (!action.behavior) return '';
   let out = '';
   for (const [attribute, script] of Object.entries(action.behavior)) {

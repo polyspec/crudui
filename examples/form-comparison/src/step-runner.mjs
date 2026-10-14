@@ -6,7 +6,7 @@ const execFileAsync = promisify(execFile);
 /** A running step prints one line with its elapsed time at this interval. */
 export const stepHeartbeatMs = 15_000;
 /** A stopped process tree gets this long to exit after SIGTERM before SIGKILL. */
-export const stepTerminationGraceMs = 5_000;
+const stepTerminationGraceMs = 5_000;
 
 /** Format a duration for progress lines: `850ms`, `42.1s`, `3m04s`. */
 export function formatDuration(milliseconds) {

@@ -37,7 +37,7 @@ export const initializationComparisons = Object.freeze([
 export const initializationCategories = Object.freeze([
   'dom', 'controls', 'fields', 'css', 'data', 'focus', 'response',
 ]);
-export const formActions = Object.freeze([...matrix.actions]);
+const formActions = Object.freeze([...matrix.actions]);
 
 const apiPattern = new RegExp(
   `^/api/(${formServers.join('|')})/(${formActions.join('|')})/`

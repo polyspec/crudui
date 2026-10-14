@@ -9,7 +9,7 @@
 import { GENERAL_CATEGORIES, SCRIPTS, WHITE_SPACE } from '../unicode/properties';
 
 /** Largest code point. */
-export const MAX_CODE_POINT = 0x10ffff;
+const MAX_CODE_POINT = 0x10ffff;
 
 /** An immutable set of code points. */
 export class CodePointSet {

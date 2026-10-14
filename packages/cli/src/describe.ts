@@ -57,7 +57,7 @@ const GRAMMAR_PATH = resolve(REPO_ROOT, 'docs/spec/expressions.md');
 // Result shape (the one object both --json and --md render from).
 // ---------------------------------------------------------------------------
 
-export interface WidgetEntry {
+interface WidgetEntry {
   /** Registry key (a type or an alias). */
   kind: string;
   /** Layout family the adapters wrap the control in. */

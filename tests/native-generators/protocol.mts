@@ -8,11 +8,11 @@ export interface ErrorRecord { code: string; message: string; at: string }
 /** The form state of a `form` response and of each of its steps. */
 export interface FormState { data: JsonObject; fields: NodeVM[]; html: string; revision: number }
 /** One action of a `form` request: its result or its error, and the state after it. */
-export interface FormStep extends FormState { result: unknown; error: ErrorRecord | null }
+interface FormStep extends FormState { result: unknown; error: ErrorRecord | null }
 /** The response of a `form` request. */
 export interface FormResponse extends FormState { steps: FormStep[] }
 /** The response of each protocol operation. */
-export interface ResponseMap {
+interface ResponseMap {
   compileForm: FormTemplate;
   bindForm: NodeVM[];
   bindButtons: ButtonVM[];
@@ -24,7 +24,7 @@ export interface ResponseMap {
   renderForm: string;
   form: FormResponse;
 }
-export type Operation = keyof ResponseMap;
+type Operation = keyof ResponseMap;
 /** A protocol request; its operation selects the response type. */
 export interface ProtocolRequest { readonly operation?: unknown; readonly actions?: unknown }
 /** The response type of a request: the response of its operation, unknown for another operation. */
@@ -52,7 +52,7 @@ export class OperationError extends Error {
   }
 }
 
-export function validateError(error: unknown): asserts error is ErrorRecord {
+function validateError(error: unknown): asserts error is ErrorRecord {
   assert.ok(object(error), 'Error must be an object');
   for (const key of ['code', 'message', 'at']) {
     assert.equal(typeof error[key], 'string', `Error ${key} must be a string`);
@@ -115,7 +115,7 @@ function validateState(value: unknown): asserts value is JsonObject {
   assert.ok(typeof value.revision === 'number' && Number.isSafeInteger(value.revision) && value.revision >= 0, 'Revision must be a nonnegative integer');
 }
 
-export function validateResponse(request: ProtocolRequest, value: unknown): unknown {
+function validateResponse(request: ProtocolRequest, value: unknown): unknown {
   switch (request.operation) {
     case 'compileForm': {
       assert.ok(object(value), 'Template must be an object');

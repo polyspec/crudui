@@ -17,7 +17,7 @@ const EMAIL_PATTERN =
 /**
  * Check if a value is a valid email address
  */
-export function isValidEmail(value: unknown): boolean {
+function isValidEmail(value: unknown): boolean {
   if (typeof value !== 'string') {
     return false;
   }

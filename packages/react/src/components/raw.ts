@@ -32,7 +32,7 @@ export function hasEventAttr(attrs: Attrs): boolean {
 }
 
 /** Serialize an attribute map to ` k="v"` pairs; normalization compares order. */
-export function serializeAttrs(attrs: Attrs): string {
+function serializeAttrs(attrs: Attrs): string {
   let out = '';
   for (const [k, v] of Object.entries(attrs)) {
     out += ` ${k}="${escAttr(v)}"`;

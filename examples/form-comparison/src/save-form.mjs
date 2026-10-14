@@ -14,7 +14,7 @@ export async function readJson(response, what, statuses = [200]) {
 }
 
 /** Mark the fields the validation result names and list its errors before the form. */
-export function showValidation(stage, form, validation, text) {
+function showValidation(stage, form, validation, text) {
   stage.querySelector('#record-errors')?.remove();
   for (const input of form.querySelectorAll('[aria-invalid]')) input.removeAttribute('aria-invalid');
   for (const message of form.querySelectorAll('[data-validation-error]')) message.remove();

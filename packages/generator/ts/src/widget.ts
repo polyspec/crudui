@@ -1261,8 +1261,3 @@ export function evalWidget(type: string, ctx: WidgetCtx): WidgetModel | undefine
   }
   return orderedWidget(widget);
 }
-
-/** True when a field `type` has a registered widget evaluator. */
-export function hasWidget(type: string): boolean {
-  return Boolean(REGISTRY[type.toLowerCase()]);
-}
