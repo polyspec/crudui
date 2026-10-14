@@ -10,23 +10,22 @@
 declare(strict_types=1);
 
 $root = dirname(__DIR__, 4);
-$contract = json_decode((string) file_get_contents($root . '/contracts/interface-messages.json'), true, 512, JSON_THROW_ON_ERROR);
+$contract = json_decode(
+    (string) file_get_contents($root . '/contracts/interface-messages.json'),
+    true,
+    512,
+    JSON_THROW_ON_ERROR
+);
 if (($contract['format'] ?? null) !== 'crudui/interface-messages') {
     throw new RuntimeException('Unexpected contract format');
 }
 
-/** Write a language table as a PHP array. */
+/** Write a language table as a PHP array, one message on each line, so no line exceeds the PSR-12 limit. */
 function crudui_language_table(array $messages): string
 {
     $lines = [];
-    $keys = array_keys($messages);
-
-    foreach (array_chunk($keys, 5) as $chunk) {
-        $items = [];
-        foreach ($chunk as $key) {
-            $items[] = var_export($key, true) . ' => ' . var_export($messages[$key], true);
-        }
-        $lines[] = '            ' . implode(', ', $items) . ',';
+    foreach ($messages as $key => $message) {
+        $lines[] = '            ' . var_export($key, true) . ' => ' . var_export($message, true) . ',';
     }
 
     return "\n" . implode("\n", $lines) . "\n        ";
@@ -60,6 +59,7 @@ final class InterfaceMessages
      */
     public const MESSAGES = [
 PHP;
+$source .= "\n";
 
 foreach ($form as $lang => $messages) {
     $source .= "        '{$lang}' => [" . crudui_language_table($messages) . "],\n";
@@ -75,6 +75,7 @@ $source .= <<<'PHP'
      */
     public const LIST = [
 PHP;
+$source .= "\n";
 
 foreach ($list as $lang => $messages) {
     $source .= "        '{$lang}' => [" . crudui_language_table($messages) . "],\n";
