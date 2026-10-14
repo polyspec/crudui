@@ -27,8 +27,7 @@ $FIXTURES = __DIR__ . '/fixtures';
 const MAX_COUNT = 10000000;
 
 /** The count a flag names, or the exit with the shared message (arguments.js). */
-function count_argument(string $flag, ?string $value): int
-{
+$count_argument = static function (string $flag, ?string $value): int {
     $minimum = $flag === '--iters' ? 1 : 0;
     if (
         $value === null || preg_match('/\A[0-9]{1,8}\z/', $value) !== 1
@@ -38,31 +37,28 @@ function count_argument(string $flag, ?string $value): int
         exit(2);
     }
     return (int) $value;
-}
+};
 
-function parse_args(array $argv): array
-{
+$parse_args = static function (array $argv) use ($count_argument): array {
     $out = ['iters' => 50000, 'warmup' => 5000, 'spec' => null];
     for ($i = 1; $i < count($argv); $i++) {
         if ($argv[$i] === '--iters' || $argv[$i] === '--warmup') {
             $flag = $argv[$i];
-            $out[substr($flag, 2)] = count_argument($flag, $argv[++$i] ?? null);
+            $out[substr($flag, 2)] = $count_argument($flag, $argv[++$i] ?? null);
         } elseif ($argv[$i] === '--spec') {
             $out['spec'] = $argv[++$i];
         }
     }
     return $out;
-}
+};
 
-function load_fixture(string $dir, string $name): array
-{
+$load_fixture = static function (string $dir, string $name): array {
     $spec = json_decode(file_get_contents("$dir/$name.spec.json"), true);
     $input = json_decode(file_get_contents("$dir/$name.input.json"), true);
     return [$spec, $input];
-}
+};
 
-function first_error($result): array
-{
+$first_error = static function ($result): array {
     if ($result->valid) {
         return [null, null];
     }
@@ -72,11 +68,18 @@ function first_error($result): array
     }
     $first = reset($errors);
     return [$first['rule'] ?? null, $first['field'] ?? null];
-}
+};
 
-function bench_spec(string $dir, string $name, int $iters, int $warmup): array
-{
-    [$spec, $input] = load_fixture($dir, $name);
+$bench_spec = static function (
+    string $dir,
+    string $name,
+    int $iters,
+    int $warmup
+) use (
+    $load_fixture,
+    $first_error
+): array {
+    [$spec, $input] = $load_fixture($dir, $name);
 
     // Build the validator once; reuse across iterations.
     $validator = new Validator($spec);
@@ -98,7 +101,7 @@ function bench_spec(string $dir, string $name, int $iters, int $warmup): array
     $avgUs = $ns / 1000.0 / $iters;
 
     $result = $validator->validate($input);
-    [$error, $field] = first_error($result);
+    [$error, $field] = $first_error($result);
 
     return [
         'lang' => 'php',
@@ -111,12 +114,12 @@ function bench_spec(string $dir, string $name, int $iters, int $warmup): array
         'error' => $error,
         'field' => $field,
     ];
-}
+};
 
-$args = parse_args($argv);
+$args = $parse_args($argv);
 require_once __DIR__ . '/../../vendor/autoload.php';
 $specs = $args['spec'] !== null ? [$args['spec']] : ['contact', 'large'];
 foreach ($specs as $name) {
-    $r = bench_spec($FIXTURES, $name, $args['iters'], $args['warmup']);
+    $r = $bench_spec($FIXTURES, $name, $args['iters'], $args['warmup']);
     echo json_encode($r) . "\n";
 }

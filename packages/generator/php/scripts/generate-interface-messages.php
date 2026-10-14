@@ -21,15 +21,14 @@ if (($contract['format'] ?? null) !== 'crudui/interface-messages') {
 }
 
 /** Write a language table as a PHP array, one message on each line, so no line exceeds the PSR-12 limit. */
-function crudui_language_table(array $messages): string
-{
+$crudui_language_table = static function (array $messages): string {
     $lines = [];
     foreach ($messages as $key => $message) {
         $lines[] = '            ' . var_export($key, true) . ' => ' . var_export($message, true) . ',';
     }
 
     return "\n" . implode("\n", $lines) . "\n        ";
-}
+};
 
 $form = $contract['form'];
 $list = $contract['list'];
@@ -62,7 +61,7 @@ PHP;
 $source .= "\n";
 
 foreach ($form as $lang => $messages) {
-    $source .= "        '{$lang}' => [" . crudui_language_table($messages) . "],\n";
+    $source .= "        '{$lang}' => [" . $crudui_language_table($messages) . "],\n";
 }
 
 $source .= <<<'PHP'
@@ -78,7 +77,7 @@ PHP;
 $source .= "\n";
 
 foreach ($list as $lang => $messages) {
-    $source .= "        '{$lang}' => [" . crudui_language_table($messages) . "],\n";
+    $source .= "        '{$lang}' => [" . $crudui_language_table($messages) . "],\n";
 }
 
 $source .= <<<'PHP'

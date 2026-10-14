@@ -21,25 +21,23 @@ if (($contract['format'] ?? null) !== 'crudui/unicode-properties') {
 }
 
 /** Write ranges as a flat list of inclusive bounds, six ranges per line. */
-function crudui_ranges(array $ranges, string $indent): string
-{
+$crudui_ranges = static function (array $ranges, string $indent): string {
     $lines = [];
     foreach (array_chunk($ranges, 6) as $chunk) {
         $bounds = array_map(static fn (array $range) => sprintf('0x%X, 0x%X', $range[0], $range[1]), $chunk);
         $lines[] = $indent . '    ' . implode(', ', $bounds) . ',';
     }
     return "[\n" . implode("\n", $lines) . "\n" . $indent . ']';
-}
+};
 
 /** Write a name => ranges map. */
-function crudui_table(array $table): string
-{
+$crudui_table = static function (array $table) use ($crudui_ranges): string {
     $lines = [];
     foreach ($table as $name => $ranges) {
-        $lines[] = '        ' . var_export((string) $name, true) . ' => ' . crudui_ranges($ranges, '        ') . ',';
+        $lines[] = '        ' . var_export((string) $name, true) . ' => ' . $crudui_ranges($ranges, '        ') . ',';
     }
     return "[\n" . implode("\n", $lines) . "\n    ]";
-}
+};
 
 $version = $contract['unicodeVersion'];
 $source = <<<PHP
@@ -76,9 +74,9 @@ final class UnicodeData
 PHP;
 $output = sprintf(
     $source,
-    crudui_ranges($contract['whiteSpace'], '    '),
-    crudui_table($contract['generalCategories']),
-    crudui_table($contract['scripts'])
+    $crudui_ranges($contract['whiteSpace'], '    '),
+    $crudui_table($contract['generalCategories']),
+    $crudui_table($contract['scripts'])
 );
 if (in_array('--stdout', $argv, true)) {
     echo $output;
