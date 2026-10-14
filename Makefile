@@ -30,7 +30,7 @@ export GOPROXY := off
 export npm_config_offline := true
 export COMPOSER_DISABLE_NETWORK := 1
 ONLINE := env -u CARGO_NET_OFFLINE -u GOPROXY -u npm_config_offline -u COMPOSER_DISABLE_NETWORK
-.PHONY: help release-assets install install-composer install-rust install-phpdocumentor install-browsers check-ci-browser test-runtimes test-dependencies build lint typecheck test-validator-js test-validator-php test-validator-go test-validator-rust test-validator-python test-generator-python test-cross-check manifest-test require-build test-cli manifest-check manifest-docs-check test-forms test-form-comparison test-form-comparison-pipeline test-form-comparison-checks test-form-comparison-browser test-form-comparison-summary test-packages test-build test-build-repeat test-inspector test-bench check-conformance install-crates install-ordered-json test-ordered-json docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-engine test-native-generators test-php-api test-native test-validators test-form-binding conformance format-check records-check ci check conformance-reset
+.PHONY: help release-assets install install-composer install-rust install-phpdocumentor install-browsers check-ci-browser test-runtimes test-dependencies build lint typecheck test-validator-js test-validator-php test-validator-go test-validator-rust test-validator-python test-generator-python test-cross-check manifest-test require-build test-cli manifest-check manifest-docs-check test-forms test-form-comparison test-form-comparison-pipeline test-form-comparison-checks test-form-comparison-browser test-form-comparison-summary test-packages test-build test-build-repeat test-inspector test-bench check-conformance install-crates install-ordered-json install-svelte-tools test-ordered-json docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-engine test-native-generators test-php-api test-native test-validators test-form-binding conformance format-check records-check ci check conformance-reset
 .NOTPARALLEL: docs docs-web docs-dev docs-preview docs-check docs-verify-idempotent
 
 # The tools that every polyspec repository shares are the package @polyspec/kit of package-lock.json. The copy
@@ -107,7 +107,13 @@ install: install-packages install-tools install-composer install-rust install-cr
 # kit-bootstrap.mk installs package-lock.json with the npm of var/tools (make install-tools TOOLS=npm); the root
 # package.json links the js package of the OrderedJSON checkout, so that checkout comes first. .npmrc sets
 # strict-allow-scripts, so an install script that allowScripts of package.json does not approve fails the install.
-install-packages: install-ordered-json
+install-packages: install-ordered-json install-svelte-tools
+
+# The tools of packages/generator-svelte that need the TypeScript 6 API (svelte-check, @sveltejs/package and the Svelte lint)
+# are a project of their own outside the npm workspaces, so that no package that npm hoists to the root reaches the
+# TypeScript 7 of the root (C14.4).
+install-svelte-tools: ## Install the tools project of packages/generator-svelte from its package-lock.json; ONLINE
+	$(ONLINE) $(NPM) ci --prefix packages/generator-svelte/tools --no-audit --no-fund
 
 # The development root composer.json, never published, resolves the Composer packages of packages/: its path
 # repository installs polyspec/crudui-validator as a copy into vendor/, and its autoload reads the generator sources.

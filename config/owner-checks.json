@@ -380,7 +380,7 @@
     {
       "paths": [
         "scripts/test-commands.mjs",
-        "packages/generator-svelte/eslint.config.js"
+        "packages/generator-svelte/tools/eslint.config.js"
       ],
       "targets": [
         "lint"

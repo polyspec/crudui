@@ -1,7 +1,7 @@
 // `make lint` lints every source of the repository: the TypeScript lint of kit (`make lint-ts`: oxlint with the copied
 // .oxlintrc.json over every file that Git does not ignore, knip and API Extractor) and the Svelte rules of ESLint on the
-// components of packages/generator-svelte, the one workspace whose tools still need ESLint. Each lint fails on a planted
-// violation.
+// components of packages/generator-svelte, the one package whose tools still need ESLint, run from its tools project
+// packages/generator-svelte/tools with the TypeScript 6 of that project (C14.4). Each lint fails on a planted violation.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
@@ -13,6 +13,7 @@ import { makeDryRun } from './make-dry-run.mjs';
 
 const root = path.resolve(import.meta.dirname, '../..');
 const svelteWorkspace = path.join(root, 'packages/generator-svelte');
+const svelteTools = path.join(svelteWorkspace, 'tools');
 
 test('make lint runs the TypeScript lint of kit and the Svelte lint of packages/generator-svelte', () => {
   const run = makeDryRun(root, 'lint');
@@ -34,8 +35,8 @@ test('oxlint with the copied configuration fails on a planted violation', t => {
 });
 
 test('the Svelte lint fails on a planted raw HTML tag in a component', async () => {
-  const { ESLint } = createRequire(path.join(svelteWorkspace, 'package.json'))('eslint');
-  const eslint = new ESLint({ cwd: svelteWorkspace });
+  const { ESLint } = createRequire(path.join(svelteTools, 'package.json'))('eslint');
+  const eslint = new ESLint({ cwd: svelteWorkspace, overrideConfigFile: path.join(svelteTools, 'eslint.config.js') });
   const [result] = await eslint.lintText('<script lang="ts">\n  export let html: string;\n</script>\n\n{@html html}\n', { filePath: path.join(svelteWorkspace, 'src/components/Planted.svelte') });
   assert.deepEqual(result.messages.map(message => message.ruleId), ['svelte/no-at-html-tags']);
 });

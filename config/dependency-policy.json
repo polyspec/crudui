@@ -12,7 +12,8 @@
   ],
   "pythonLocks": [],
   "npmLocks": [
-    "package-lock.json"
+    "package-lock.json",
+    "packages/generator-svelte/tools/package-lock.json"
   ],
   "taggedNpmPackages": [
     {
