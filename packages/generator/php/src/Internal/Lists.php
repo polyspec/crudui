@@ -69,7 +69,11 @@ final class Lists
             foreach ($action->behavior ?? [] as $attribute => $script) {
                 $attrsAction[$attribute] = $script;
             }
-            $html .= Rendering::element('span', ['class' => $block . '__action', 'data-action' => $action->key], Rendering::element($tag, $attrsAction, Rendering::text($action->label, true), true));
+            $html .= Rendering::element(
+                'span',
+                ['class' => $block . '__action', 'data-action' => $action->key],
+                Rendering::element($tag, $attrsAction, Rendering::text($action->label, true), true)
+            );
         }
         return Rendering::element('div', ['class' => $block . '__actions'], $html);
     }
@@ -86,7 +90,11 @@ final class Lists
         $attrs = self::node('crudui-list', $vm->design->wrapper);
         $body = '';
         if ($vm->description !== '') {
-            $body .= Rendering::element('p', ['class' => 'crudui-list__description'], Rendering::text($vm->description));
+            $body .= Rendering::element(
+                'p',
+                ['class' => 'crudui-list__description'],
+                Rendering::text($vm->description)
+            );
         }
         $body .= self::actionsHtml($vm->actions, 'crudui-list');
         if ($vm->rows === []) {
@@ -104,37 +112,77 @@ final class Lists
                 if (isset($vm->sort) && in_array($vm->sort->field, [$column->field, $column->key], true)) {
                     $header['data-sort-dir'] = $vm->sort->dir;
                 }
-                $headers .= Rendering::element('th', $header, Rendering::element('span', ['class' => 'crudui-list__heading-label'], Rendering::text($column->label)) . ($column->sortable ? Rendering::element('span', ['class' => 'crudui-list__sort'], '↕') : ''));
+                $headers .= Rendering::element(
+                    'th',
+                    $header,
+                    Rendering::element(
+                        'span',
+                        ['class' => 'crudui-list__heading-label'],
+                        Rendering::text($column->label)
+                    )
+                        . ($column->sortable ? Rendering::element('span', ['class' => 'crudui-list__sort'], '↕') : '')
+                );
             }
             $bodyRows = '';
             foreach ($vm->rows as $row) {
                 $cells = '';
                 foreach ($row->cells as $cell) {
-                    $cells .= self::cell($cell, 'td', 'crudui-list__cell crudui-value crudui-value--' . $cell->format->type);
+                    $cells .= self::cell(
+                        $cell,
+                        'td',
+                        'crudui-list__cell crudui-value crudui-value--' . $cell->format->type
+                    );
                 }
                 $bodyRows .= Rendering::element('tr', [], $cells);
             }
-            $body .= Rendering::element('table', ['class' => 'crudui-list__table'], Rendering::element('thead', [], Rendering::element('tr', [], $headers)) . Rendering::element('tbody', [], $bodyRows));
+            $body .= Rendering::element(
+                'table',
+                ['class' => 'crudui-list__table'],
+                Rendering::element('thead', [], Rendering::element('tr', [], $headers))
+                    . Rendering::element('tbody', [], $bodyRows)
+            );
         } else {
             $cards = '';
             foreach ($vm->rows as $row) {
                 $cells = '';
                 foreach ($row->cells as $i => $cell) {
-                    $class = Value::classes('crudui-list__cell crudui-value crudui-value--' . $cell->format->type, $cell->design->main->class);
-                    $cells .= Rendering::element('div', ['class' => $class], Rendering::element('span', ['class' => 'crudui-list__card-label'], Rendering::text($vm->columns[$i]->label)) . self::cell($cell, 'span', 'crudui-list__card-value'));
+                    $class = Value::classes(
+                        'crudui-list__cell crudui-value crudui-value--' . $cell->format->type,
+                        $cell->design->main->class
+                    );
+                    $cells .= Rendering::element(
+                        'div',
+                        ['class' => $class],
+                        Rendering::element(
+                            'span',
+                            ['class' => 'crudui-list__card-label'],
+                            Rendering::text($vm->columns[$i]->label)
+                        )
+                            . self::cell($cell, 'span', 'crudui-list__card-value')
+                    );
                 }
                 $cards .= Rendering::element('article', ['class' => 'crudui-list__card'], $cells);
             }
             $body .= Rendering::element('div', ['class' => 'crudui-list__cards'], $cards);
         }
         if ($vm->pagination->enabled) {
-            $pagination = ['class' => 'crudui-list__pagination', 'data-mode' => $vm->pagination->mode, 'data-per-page' => (string) $vm->pagination->perPage, 'data-page' => (string) $vm->pagination->page];
+            $pagination = [
+                'class' => 'crudui-list__pagination',
+                'data-mode' => $vm->pagination->mode,
+                'data-per-page' => (string) $vm->pagination->perPage,
+                'data-page' => (string) $vm->pagination->page,
+            ];
             if (property_exists($vm->pagination, 'total')) {
                 $pagination['data-total'] = (string) $vm->pagination->total;
             }
             $controls = '';
             foreach ($vm->pagination->buttons as $button) {
-                $buttonAttrs = ['type' => 'button', 'class' => 'crudui-list__pagination-' . ($button->role === 'previous' ? 'prev' : $button->role), 'data-page' => (string) $button->page, 'aria-label' => $button->label];
+                $buttonAttrs = [
+                    'type' => 'button',
+                    'class' => 'crudui-list__pagination-' . ($button->role === 'previous' ? 'prev' : $button->role),
+                    'data-page' => (string) $button->page,
+                    'aria-label' => $button->label,
+                ];
                 if ($button->current) {
                     $buttonAttrs['aria-current'] = 'page';
                 }
@@ -170,13 +218,19 @@ final class Lists
         $basepath = $options['basepath'] ?? '';
         $columns = Compose::properties((array) $spec->{$members}, $loader, $basepath);
         $search = $spec->search ?? null;
-        $composeSearch = $own === 'list' && $search instanceof stdClass && (property_exists($search, '$ref') || property_exists($search, '$patch'));
+        $composeSearch = $own === 'list'
+            && $search instanceof stdClass
+            && (property_exists($search, '$ref') || property_exists($search, '$patch'));
         // The composed specification keeps the member order of the declared one.
         $composed = new stdClass();
         foreach ($spec as $key => $value) {
             $composed->{$key} = match (true) {
                 $key === $members => (object) $columns,
-                $key === 'search' && $composeSearch => (object) Compose::properties((array) $search, $loader, $basepath),
+                $key === 'search' && $composeSearch => (object) Compose::properties(
+                    (array) $search,
+                    $loader,
+                    $basepath
+                ),
                 default => $value,
             };
         }
@@ -192,7 +246,14 @@ final class Lists
             if (!$design->show) {
                 continue;
             }
-            $columnModels[] = (object) ['key' => (string) $key, 'field' => is_string($raw->field ?? null) ? $raw->field : '', 'label' => property_exists($raw, 'label') ? Value::translate($raw->label, $language) : (string) $key, 'format' => self::format($raw->format ?? null), 'sortable' => Design::flag($raw->sortable ?? null, $data, [], []), 'design' => $design];
+            $columnModels[] = (object) [
+                'key' => (string) $key,
+                'field' => is_string($raw->field ?? null) ? $raw->field : '',
+                'label' => property_exists($raw, 'label') ? Value::translate($raw->label, $language) : (string) $key,
+                'format' => self::format($raw->format ?? null),
+                'sortable' => Design::flag($raw->sortable ?? null, $data, [], []),
+                'design' => $design,
+            ];
             $columnSpecs[] = $raw;
         }
         $rowModels = [];
@@ -206,12 +267,19 @@ final class Lists
                 $path = $column->field;
                 $value = $path !== '' ? Value::path($row, $path) : Missing::Value;
                 // A model is JSON: a path absent from the row is null, and the member is always present.
-                $cells[] = Value::record(['format' => $column->format, 'value' => $value === Missing::Value ? null : $value, 'display' => self::display($column->format, $value, $row, Value::segments($path), $language), 'design' => Design::resolve($columnSpecs[$i]->design ?? null, $row, Value::segments($path), [])]);
+                $cells[] = Value::record([
+                    'format' => $column->format,
+                    'value' => $value === Missing::Value ? null : $value,
+                    'display' => self::display($column->format, $value, $row, Value::segments($path), $language),
+                    'design' => Design::resolve($columnSpecs[$i]->design ?? null, $row, Value::segments($path), []),
+                ]);
             }
             $rowModels[] = (object) ['cells' => $cells];
         }
         $pagination = self::pagination($spec->pagination ?? null, self::countOptions($options), $language);
-        $sort = isset($spec->sort->field) && is_string($spec->sort->field) && $spec->sort->field !== '' ? (object) ['field' => $spec->sort->field, 'dir' => ($spec->sort->dir ?? null) === 'desc' ? 'desc' : 'asc'] : Missing::Value;
+        $sort = isset($spec->sort->field) && is_string($spec->sort->field) && $spec->sort->field !== ''
+            ? (object) ['field' => $spec->sort->field, 'dir' => ($spec->sort->dir ?? null) === 'desc' ? 'desc' : 'asc']
+            : Missing::Value;
         $actions = [];
         if (($spec->actions ?? null) instanceof stdClass) {
             foreach ($spec->actions as $key => $raw) {
@@ -224,7 +292,11 @@ final class Lists
                 $label = property_exists($raw, 'label') ? Value::translate($raw->label, $language) : $key;
                 // An action object with a script is the object form of a script action.
                 if (is_string($raw->script ?? null)) {
-                    $actions[] = (object) ['key' => $key, 'label' => $label, 'behavior' => (object) ['onclick' => $raw->script]];
+                    $actions[] = (object) [
+                        'key' => $key,
+                        'label' => $label,
+                        'behavior' => (object) ['onclick' => $raw->script],
+                    ];
                     continue;
                 }
                 $action = ['key' => $key, 'label' => $label];
@@ -248,8 +320,19 @@ final class Lists
         }
         // An absent or null empty uses the interface message; a declared text is used as declared.
         $declaredEmpty = $spec->empty ?? null;
-        $empty = $declaredEmpty === null ? self::messages($language)['emptyList'] : Value::translate($declaredEmpty, $language);
-        return Value::record(['columns' => $columnModels, 'rows' => $rowModels, 'pagination' => (object) $pagination, 'sort' => $sort, 'actions' => $actions, 'empty' => $empty, 'description' => Value::translate($spec->description ?? null, $language), 'design' => Design::resolve($spec->design ?? null, $data, [], [])]);
+        $empty = $declaredEmpty === null
+            ? self::messages($language)['emptyList']
+            : Value::translate($declaredEmpty, $language);
+        return Value::record([
+            'columns' => $columnModels,
+            'rows' => $rowModels,
+            'pagination' => (object) $pagination,
+            'sort' => $sort,
+            'actions' => $actions,
+            'empty' => $empty,
+            'description' => Value::translate($spec->description ?? null, $language),
+            'design' => Design::resolve($spec->design ?? null, $data, [], []),
+        ]);
     }
 
     /**
@@ -283,9 +366,13 @@ final class Lists
         $pagination = ['enabled' => $enabled];
         $perPage = 20;
         if ($enabled) {
-            $perPage = $declared instanceof stdClass && property_exists($declared, 'per_page') ? (int) $declared->per_page : 20;
+            $perPage = $declared instanceof stdClass && property_exists($declared, 'per_page')
+                ? (int) $declared->per_page
+                : 20;
             $pagination['perPage'] = $perPage;
-            $pagination['mode'] = $declared instanceof stdClass && property_exists($declared, 'mode') ? $declared->mode : 'pages';
+            $pagination['mode'] = $declared instanceof stdClass && property_exists($declared, 'mode')
+                ? $declared->mode
+                : 'pages';
             $pagination['page'] = $counts['page'] ?? 1;
         } elseif ($counts['page'] !== null) {
             $pagination['page'] = $counts['page'];
@@ -300,12 +387,38 @@ final class Lists
             $current = $pageCount > 0 ? min($pageCount, $pagination['page']) : 1;
             $messages = self::messages($language);
             $button = static fn (string $role, int $page, string $label, bool $isCurrent, bool $disabled): stdClass
-                => (object) ['role' => $role, 'page' => $page, 'label' => $label, 'current' => $isCurrent, 'disabled' => $disabled];
-            $buttons = [$button('previous', max(1, $current - 1), $messages['previousPage'], false, $current <= 1 || $pageCount === 0)];
+                => (object) [
+                    'role' => $role,
+                    'page' => $page,
+                    'label' => $label,
+                    'current' => $isCurrent,
+                    'disabled' => $disabled,
+                ];
+            $buttons = [
+                $button(
+                    'previous',
+                    max(1, $current - 1),
+                    $messages['previousPage'],
+                    false,
+                    $current <= 1 || $pageCount === 0
+                )
+            ];
             foreach (self::paginationPages($current, $pageCount) as $value) {
-                $buttons[] = $button('page', $value, str_replace('{page}', (string) $value, $messages['page']), $value === $current, $value === $current);
+                $buttons[] = $button(
+                    'page',
+                    $value,
+                    str_replace('{page}', (string) $value, $messages['page']),
+                    $value === $current,
+                    $value === $current
+                );
             }
-            $buttons[] = $button('next', $pageCount > 0 ? min($pageCount, $current + 1) : 1, $messages['nextPage'], false, $pageCount === 0 || $current >= $pageCount);
+            $buttons[] = $button(
+                'next',
+                $pageCount > 0 ? min($pageCount, $current + 1) : 1,
+                $messages['nextPage'],
+                false,
+                $pageCount === 0 || $current >= $pageCount
+            );
             $pagination['buttons'] = $buttons;
         }
         return (object) $pagination;
@@ -341,7 +454,12 @@ final class Lists
     private static function countOptions(array $options): array
     {
         $counts = [];
-        foreach (['page' => [1, 'List page must be a positive integer'], 'total' => [0, 'List total must be a nonnegative integer']] as $key => [$min, $message]) {
+        foreach (
+            [
+                'page' => [1, 'List page must be a positive integer'],
+                'total' => [0, 'List total must be a nonnegative integer'],
+            ] as $key => [$min, $message]
+        ) {
             $value = $options[$key] ?? null;
             if ($value === null) {
                 $counts[$key] = null;
@@ -367,7 +485,9 @@ final class Lists
                     continue;
                 }
                 $seen[$source] = true;
-                $html .= '<link' . Rendering::attrs(['rel' => 'preload', 'as' => 'image', 'href' => Rendering::url($source)]) . '/>';
+                $html .= '<link'
+                    . Rendering::attrs(['rel' => 'preload', 'as' => 'image', 'href' => Rendering::url($source)])
+                    . '/>';
             }
         }
         return $html;
@@ -376,7 +496,9 @@ final class Lists
     private static function format(mixed $format): stdClass
     {
         $options = $format instanceof stdClass ? $format : new stdClass();
-        $type = is_string($format) && $format !== '' ? $format : (is_string($options->type ?? null) && $options->type !== '' ? $options->type : 'text');
+        $type = is_string($format) && $format !== ''
+            ? $format
+            : (is_string($options->type ?? null) && $options->type !== '' ? $options->type : 'text');
         return (object) ['type' => $type, 'options' => $options];
     }
 
@@ -390,21 +512,38 @@ final class Lists
                 if ($date === null) {
                     return $text;
                 }
-                $pattern = is_string($options->pattern ?? null) && $options->pattern !== '' ? $options->pattern : 'YYYY-MM-DD';
-                return str_replace(['YYYY', 'MM', 'DD', 'HH', 'mm', 'ss'], [$date->format('Y'), $date->format('m'), $date->format('d'), $date->format('H'), $date->format('i'), $date->format('s')], $pattern);
+                $pattern = is_string($options->pattern ?? null) && $options->pattern !== ''
+                    ? $options->pattern
+                    : 'YYYY-MM-DD';
+                return str_replace(
+                    ['YYYY', 'MM', 'DD', 'HH', 'mm', 'ss'],
+                    [
+                        $date->format('Y'),
+                        $date->format('m'),
+                        $date->format('d'),
+                        $date->format('H'),
+                        $date->format('i'),
+                        $date->format('s'),
+                    ],
+                    $pattern
+                );
             case 'number':
                 $number = NumberValue::parseString($text);
                 if ($number === null || !is_finite($number)) {
                     return $text;
                 }
                 $places = $options->decimals ?? null;
-                $body = is_int($places) || is_float($places) ? Numbers::fixed($number, $places) : Value::scalar($number);
+                $body = is_int($places) || is_float($places)
+                    ? Numbers::fixed($number, $places)
+                    : Value::scalar($number);
                 if ($options->thousands ?? false) {
                     $parts = explode('.', $body);
                     $parts[0] = preg_replace('/\B(?=(\d{3})+(?!\d))/', ',', $parts[0]);
                     $body = implode('.', $parts);
                 }
-                return Value::translate($options->prefix ?? null, $language) . $body . Value::translate($options->suffix ?? null, $language);
+                return Value::translate($options->prefix ?? null, $language)
+                    . $body
+                    . Value::translate($options->suffix ?? null, $language);
             case 'badge':
                 $variant = Value::get($options->map ?? null, $text);
                 if ($variant instanceof stdClass) {
@@ -414,8 +553,19 @@ final class Lists
                 return (object) ['kind' => 'badge', 'variant' => Value::scalar($variant), 'label' => $text];
             case 'link':
                 $href = $options->href ?? null;
-                $href = is_string($href) ? $href : ($href instanceof stdClass ? Design::appearance($href, $row, $path, []) : '');
-                return Value::record(['kind' => 'link', 'href' => self::interpolate($href, $row, $value), 'text' => isset($options->text) && $options->text !== '' ? Value::translate($options->text, $language) : $text, 'target' => is_string($options->target ?? null) && $options->target !== '' ? $options->target : Missing::Value]);
+                $href = is_string($href)
+                    ? $href
+                    : ($href instanceof stdClass ? Design::appearance($href, $row, $path, []) : '');
+                return Value::record([
+                    'kind' => 'link',
+                    'href' => self::interpolate($href, $row, $value),
+                    'text' => isset($options->text) && $options->text !== ''
+                        ? Value::translate($options->text, $language)
+                        : $text,
+                    'target' => is_string($options->target ?? null) && $options->target !== ''
+                        ? $options->target
+                        : Missing::Value,
+                ]);
             case 'choice-label':
                 $items = $options->items ?? null;
                 if (ChoiceList::is($items)) {
@@ -435,11 +585,34 @@ final class Lists
                 }
                 return $text;
             case 'bool':
-                $truth = is_bool($value) ? $value : (is_int($value) || is_float($value) ? $value != 0 : (is_string($value) ? !in_array($value, ['', '0', 'false'], true) : $value !== null && $value !== Missing::Value));
+                $truth = is_bool($value)
+                    ? $value
+                    : (
+                        is_int($value) || is_float($value)
+                            ? $value != 0
+                            : (
+                                is_string($value)
+                                    ? !in_array($value, ['', '0', 'false'], true)
+                                    : $value !== null && $value !== Missing::Value
+                            )
+                    );
                 $label = Value::get($options, $truth ? 'true' : 'false');
-                return (object) ['kind' => 'bool', 'value' => $truth, 'label' => $label !== Missing::Value && $label !== null ? Value::translate($label, $language) : ($truth ? 'true' : 'false'), 'as' => is_string($options->as ?? null) && $options->as !== '' ? $options->as : 'text'];
+                return (object) [
+                    'kind' => 'bool',
+                    'value' => $truth,
+                    'label' => $label !== Missing::Value && $label !== null
+                        ? Value::translate($label, $language)
+                        : ($truth ? 'true' : 'false'),
+                    'as' => is_string($options->as ?? null) && $options->as !== '' ? $options->as : 'text',
+                ];
             case 'image':
-                return Value::record(['kind' => 'image', 'src' => $text, 'alt' => self::interpolate(Value::translate($options->alt ?? null, $language), $row, $value), 'width' => property_exists($options, 'width') ? Value::scalar($options->width) : Missing::Value, 'height' => property_exists($options, 'height') ? Value::scalar($options->height) : Missing::Value]);
+                return Value::record([
+                    'kind' => 'image',
+                    'src' => $text,
+                    'alt' => self::interpolate(Value::translate($options->alt ?? null, $language), $row, $value),
+                    'width' => property_exists($options, 'width') ? Value::scalar($options->width) : Missing::Value,
+                    'height' => property_exists($options, 'height') ? Value::scalar($options->height) : Missing::Value,
+                ]);
             case 'html':
                 return (object) ['kind' => 'html', 'html' => $text];
             default:
@@ -482,13 +655,56 @@ final class Lists
             $body = Rendering::text($display);
         } else {
             $body = match ($display->kind) {
-                'badge' => Rendering::element('span', ['class' => 'crudui-badge', ...$display->variant !== '' ? ['data-crudui-variant' => $display->variant] : []], Rendering::text($display->label)),
-                'link' => Rendering::element('a', ['href' => Rendering::url($display->href), ...isset($display->target) ? ['target' => $display->target] : []], Rendering::text($display->text)),
-                'image' => '<img' . Rendering::attrs(['src' => Rendering::url($display->src), 'alt' => $display->alt, ...isset($display->width) ? ['width' => $display->width] : [], ...isset($display->height) ? ['height' => $display->height] : []]) . '/>',
+                'badge' => Rendering::element(
+                    'span',
+                    [
+                        'class' => 'crudui-badge',
+                        ...$display->variant !== '' ? ['data-crudui-variant' => $display->variant] : [],
+                    ],
+                    Rendering::text($display->label)
+                ),
+                'link' => Rendering::element(
+                    'a',
+                    [
+                        'href' => Rendering::url($display->href),
+                        ...isset($display->target) ? ['target' => $display->target] : [],
+                    ],
+                    Rendering::text($display->text)
+                ),
+                'image' => '<img'
+                    . Rendering::attrs([
+                        'src' => Rendering::url($display->src),
+                        'alt' => $display->alt,
+                        ...isset($display->width) ? ['width' => $display->width] : [],
+                        ...isset($display->height) ? ['height' => $display->height] : [],
+                    ])
+                    . '/>',
                 'bool' => match ($display->as) {
-                    'check' => Rendering::element('span', ['class' => 'crudui-bool crudui-bool--check', 'data-crudui-state' => $display->value ? 'true' : 'false', 'aria-label' => $display->label], $display->value ? '✔' : '✘'),
-                    'icon' => Rendering::element('span', ['class' => 'crudui-bool crudui-bool--icon', 'data-crudui-state' => $display->value ? 'true' : 'false', 'aria-label' => $display->label]),
-                    default => Rendering::element('span', ['class' => 'crudui-bool crudui-bool--text', 'data-crudui-state' => $display->value ? 'true' : 'false'], Rendering::text($display->label)),
+                    'check' => Rendering::element(
+                        'span',
+                        [
+                            'class' => 'crudui-bool crudui-bool--check',
+                            'data-crudui-state' => $display->value ? 'true' : 'false',
+                            'aria-label' => $display->label,
+                        ],
+                        $display->value ? '✔' : '✘'
+                    ),
+                    'icon' => Rendering::element(
+                        'span',
+                        [
+                            'class' => 'crudui-bool crudui-bool--icon',
+                            'data-crudui-state' => $display->value ? 'true' : 'false',
+                            'aria-label' => $display->label,
+                        ]
+                    ),
+                    default => Rendering::element(
+                        'span',
+                        [
+                            'class' => 'crudui-bool crudui-bool--text',
+                            'data-crudui-state' => $display->value ? 'true' : 'false',
+                        ],
+                        Rendering::text($display->label)
+                    ),
                 },
                 'html' => $display->html,
             };

@@ -120,7 +120,12 @@ final class Value
     /** Evaluate condition truthiness while keeping empty collections true. */
     public static function truthy(mixed $value): bool
     {
-        return $value !== Missing::Value && $value !== null && $value !== false && $value !== '' && $value !== 0 && $value !== 0.0;
+        return $value !== Missing::Value
+            && $value !== null
+            && $value !== false
+            && $value !== ''
+            && $value !== 0
+            && $value !== 0.0;
     }
 
     /** Select the default only when the field value is absent. */
@@ -177,7 +182,11 @@ final class Value
     /** Encode the instance prefix and complete field path as a control identifier. */
     public static function controlId(string $prefix, string $path): string
     {
-        $encode = static fn ($v) => str_replace(['%21', '%27', '%28', '%29', '%2A'], ['!', "'", '(', ')', '*'], rawurlencode($v));
+        $encode = static fn ($v) => str_replace(
+            ['%21', '%27', '%28', '%29', '%2A'],
+            ['!', "'", '(', ')', '*'],
+            rawurlencode($v)
+        );
         return $encode($prefix) . ':' . $encode($path);
     }
 

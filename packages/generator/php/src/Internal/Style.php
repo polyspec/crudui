@@ -94,7 +94,9 @@ final class Style
             return null;
         }
         $declarations = self::declarations($style);
-        return $declarations ? implode('; ', array_map(static fn ($entry) => $entry[0] . ': ' . $entry[1], $declarations)) : null;
+        return $declarations
+            ? implode('; ', array_map(static fn ($entry) => $entry[0] . ': ' . $entry[1], $declarations))
+            : null;
     }
 
     /** Serialize final property values in their first insertion order. */
@@ -111,6 +113,11 @@ final class Style
             }
             $properties[$property] = $value;
         }
-        return $properties ? implode(';', array_map(static fn ($key, $value) => $key . ':' . $value, array_keys($properties), $properties)) : null;
+        return $properties
+            ? implode(
+                ';',
+                array_map(static fn ($key, $value) => $key . ':' . $value, array_keys($properties), $properties)
+            )
+            : null;
     }
 }

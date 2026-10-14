@@ -26,7 +26,11 @@ final class Template
         if (self::isObject($spec->design ?? null) && array_key_exists('layout', (array) $spec->design)) {
             throw new FormError('INVALID_FORM_INPUT', 'Invalid design.layout at form: unknown key');
         }
-        $properties = Compose::properties((array) $spec->properties, self::loader($options), $options['basepath'] ?? '');
+        $properties = Compose::properties(
+            (array) $spec->properties,
+            self::loader($options),
+            $options['basepath'] ?? ''
+        );
         return Value::record([
             'kind' => 'crudui/form-template',
             'keyPrefix' => $options['keyPrefix'] ?? Missing::Value,
@@ -63,7 +67,13 @@ final class Template
             self::checkDeclarations($raw, $path, true);
             $children = $raw['properties'] ?? null;
             unset($raw['properties']);
-            $out[] = (object) ['name' => (string) $name, 'spec' => Value::copy((object) $raw), 'children' => $children instanceof stdClass || is_array($children) && !array_is_list($children) ? self::fields((array) $children, $path) : []];
+            $out[] = (object) [
+                'name' => (string) $name,
+                'spec' => Value::copy((object) $raw),
+                'children' => $children instanceof stdClass || is_array($children) && !array_is_list($children)
+                    ? self::fields((array) $children, $path)
+                    : [],
+            ];
         }
         return $out;
     }
@@ -87,7 +97,9 @@ final class Template
             return false;
         }
         $child = (array) $child;
-        $repeated = ($child['multiple'] ?? null) === true || ($child['multiple'] ?? null) === 'only' || self::isObject($child['multiple'] ?? null);
+        $repeated = ($child['multiple'] ?? null) === true
+            || ($child['multiple'] ?? null) === 'only'
+            || self::isObject($child['multiple'] ?? null);
         $lang = ($child['lang'] ?? null) === true || self::isObject($child['lang'] ?? null);
         return ($child['type'] ?? null) !== 'group' && !array_key_exists('properties', $child) && !$repeated && !$lang;
     }
@@ -163,7 +175,12 @@ final class Template
             }
             if (self::isObject($multiple)) {
                 $settings = (array) $multiple;
-                self::closed('multiple', $settings, ['only', 'min', 'max', 'copy', 'sortable', 'title', 'controls', 'header', 'onclick'], $path);
+                self::closed(
+                    'multiple',
+                    $settings,
+                    ['only', 'min', 'max', 'copy', 'sortable', 'title', 'controls', 'header', 'onclick'],
+                    $path
+                );
                 if (array_key_exists('only', $settings) && !is_bool($settings['only'])) {
                     $fail('multiple.only', 'a boolean');
                 }
@@ -186,14 +203,27 @@ final class Template
                         $fail('multiple.title', 'a repeated group');
                     }
                     $properties = self::isObject($spec['properties'] ?? null) ? (array) $spec['properties'] : [];
-                    if (!is_string($settings['title']) || !array_key_exists($settings['title'], $properties) || !self::scalarChild($properties[$settings['title']])) {
-                        $fail('multiple.title', 'the name of a direct child field without multiple, properties or lang');
+                    if (
+                        !is_string($settings['title'])
+                        || !array_key_exists($settings['title'], $properties)
+                        || !self::scalarChild($properties[$settings['title']])
+                    ) {
+                        $fail(
+                            'multiple.title',
+                            'the name of a direct child field without multiple, properties or lang'
+                        );
                     }
                 }
-                if (array_key_exists('controls', $settings) && !in_array($settings['controls'], ['header', 'footer', 'outline'], true)) {
+                if (
+                    array_key_exists('controls', $settings)
+                    && !in_array($settings['controls'], ['header', 'footer', 'outline'], true)
+                ) {
                     $fail('multiple.controls', 'header, footer or outline');
                 }
-                if (array_key_exists('header', $settings) && !in_array($settings['header'], ['static', 'sticky'], true)) {
+                if (
+                    array_key_exists('header', $settings)
+                    && !in_array($settings['header'], ['static', 'sticky'], true)
+                ) {
                     $fail('multiple.header', 'static or sticky');
                 }
             }
@@ -206,7 +236,9 @@ final class Template
             self::closed('lang', $lang, ['mode', 'only', 'name', 'key', 'frame', 'title', 'group_class'], $path);
             if (array_key_exists('only', $lang)) {
                 $only = $lang['only'];
-                $codes = is_array($only) && array_is_list($only) && array_filter($only, static fn ($code) => !is_string($code)) === [];
+                $codes = is_array($only)
+                    && array_is_list($only)
+                    && array_filter($only, static fn ($code) => !is_string($code)) === [];
                 if (!$codes && !self::isObject($only)) {
                     $fail('lang.only', 'a list of language codes or an object');
                 }
@@ -279,7 +311,10 @@ final class Template
      */
     private static function declaredAttributeName(string $name): bool
     {
-        if (preg_match('/\A(?:data|aria)-[a-z0-9][a-z0-9._-]*\z/', $name) !== 1 || in_array($name, self::OWNED_ATTRIBUTE_NAMES, true)) {
+        if (
+            preg_match('/\A(?:data|aria)-[a-z0-9][a-z0-9._-]*\z/', $name) !== 1
+            || in_array($name, self::OWNED_ATTRIBUTE_NAMES, true)
+        ) {
             return false;
         }
         foreach (self::OWNED_ATTRIBUTE_PREFIXES as $prefix) {
@@ -315,8 +350,12 @@ final class Template
      * accepts attributes and wrapper.attributes, and only a group field ($layouts) accepts layout,
      * one of $layouts.
      */
-    public static function checkDesignDeclaration(mixed $design, string $path, bool $field = false, ?array $layouts = null): void
-    {
+    public static function checkDesignDeclaration(
+        mixed $design,
+        string $path,
+        bool $field = false,
+        ?array $layouts = null
+    ): void {
         if (!is_bool($design) && !self::isObject($design)) {
             self::invalid('design', $path, 'a boolean or an object');
         }
@@ -325,7 +364,17 @@ final class Template
         }
         $design = (array) $design;
         self::closed('design', $design, match (true) {
-            $layouts !== null => ['show', 'class', 'style', 'attributes', 'layout', 'label', 'wrapper', 'group', 'prepend'],
+            $layouts !== null => [
+                'show',
+                'class',
+                'style',
+                'attributes',
+                'layout',
+                'label',
+                'wrapper',
+                'group',
+                'prepend',
+            ],
             $field => ['show', 'class', 'style', 'attributes', 'label', 'wrapper', 'group', 'prepend'],
             default => ['show', 'class', 'style', 'label', 'wrapper', 'group', 'prepend'],
         }, $path);
@@ -341,7 +390,11 @@ final class Template
             self::checkDeclaredAttributes($design['attributes'], 'design.attributes', $path);
         }
         if ($layouts !== null && array_key_exists('layout', $design) && !in_array($design['layout'], $layouts, true)) {
-            self::invalid('design.layout', $path, count($layouts) === 3 ? 'stacked, inline or line' : 'stacked or inline');
+            self::invalid(
+                'design.layout',
+                $path,
+                count($layouts) === 3 ? 'stacked, inline or line' : 'stacked or inline'
+            );
         }
         foreach (['label', 'wrapper', 'group', 'prepend'] as $node) {
             if (!array_key_exists($node, $design)) {
@@ -351,7 +404,12 @@ final class Template
                 self::invalid('design.' . $node, $path, 'an object');
             }
             $values = (array) $design[$node];
-            self::closed('design.' . $node, $values, $field && $node === 'wrapper' ? ['class', 'style', 'attributes'] : ['class', 'style'], $path);
+            self::closed(
+                'design.' . $node,
+                $values,
+                $field && $node === 'wrapper' ? ['class', 'style', 'attributes'] : ['class', 'style'],
+                $path
+            );
             foreach (['class', 'style'] as $key) {
                 if (array_key_exists($key, $values) && !self::conditionValue($values[$key])) {
                     self::invalid('design.' . $node . '.' . $key, $path, 'a string or a condition map');
@@ -374,7 +432,10 @@ final class Template
     {
         foreach (array_keys($members) as $key) {
             if (!in_array((string) $key, $allowed, true)) {
-                throw new FormError('INVALID_FORM_INPUT', sprintf('Invalid %s.%s at %s: unknown key', $bucket, $key, $path));
+                throw new FormError(
+                    'INVALID_FORM_INPUT',
+                    sprintf('Invalid %s.%s at %s: unknown key', $bucket, $key, $path)
+                );
             }
         }
     }

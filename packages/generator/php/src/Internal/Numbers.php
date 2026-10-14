@@ -36,7 +36,12 @@ final class Numbers
             return $sign . substr($digits, 0, $position) . '.' . substr($digits, $position);
         }
         $exp = $position - 1;
-        return $sign . $digits[0] . (strlen($digits) > 1 ? '.' . substr($digits, 1) : '') . 'e' . ($exp >= 0 ? '+' : '') . $exp;
+        return $sign
+            . $digits[0]
+            . (strlen($digits) > 1 ? '.' . substr($digits, 1) : '')
+            . 'e'
+            . ($exp >= 0 ? '+' : '')
+            . $exp;
     }
 
     /** Truncate the precision and round the exact binary value; ties increase magnitude. */

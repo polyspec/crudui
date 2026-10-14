@@ -26,7 +26,8 @@ final class DisplayDeclaration
     /**
      * Check a composed list or detail specification: the root members, the own design, each
      * column or field in member order and then, for a list, search, sort, actions, empty,
-     * description and pagination, and for a detail, actions. $own is `list` or `detail` and $members is `columns` or `fields`.
+     * description and pagination, and for a detail, actions. $own is `list` or `detail` and $members is `columns` or
+     * `fields`.
      */
     public static function check(stdClass $spec, string $own, string $members): void
     {

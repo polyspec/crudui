@@ -73,15 +73,21 @@ final class Generator
     }
 
     /** Render one read-only detail from a supplied record. */
-    public static function renderDetail(array|stdClass $spec, array|stdClass $record = new stdClass(), array $options = []): string
-    {
+    public static function renderDetail(
+        array|stdClass $spec,
+        array|stdClass $record = new stdClass(),
+        array $options = []
+    ): string {
         self::checkDisplay($spec, ['record', $record], $options);
         return Details::render($spec, $record, $options);
     }
 
     /** Build one read-only detail model from a supplied record. */
-    public static function buildDetail(array|stdClass $spec, array|stdClass $record = new stdClass(), array $options = []): stdClass
-    {
+    public static function buildDetail(
+        array|stdClass $spec,
+        array|stdClass $record = new stdClass(),
+        array $options = []
+    ): stdClass {
         self::checkDisplay($spec, ['record', $record], $options);
         return Details::build($spec, $record, $options);
     }

@@ -23,7 +23,12 @@ final class RenderingConformanceTest extends TestCase
 
     private static function fixtures(string $directory): array
     {
-        $cases = json_decode(file_get_contents(__DIR__ . '/../../../../tests/fixtures/' . $directory . '/cases.json'), false, 512, JSON_THROW_ON_ERROR);
+        $cases = json_decode(
+            file_get_contents(__DIR__ . '/../../../../tests/fixtures/' . $directory . '/cases.json'),
+            false,
+            512,
+            JSON_THROW_ON_ERROR
+        );
         $out = [];
         foreach ($cases as $case) {
             $out[$case->name] = [$case];
@@ -53,7 +58,16 @@ final class RenderingConformanceTest extends TestCase
         }
         self::assertFalse(isset($case->expectError), 'Expected generation error');
         self::assertSame(self::html($case->expected_html), self::html($actual));
-        self::assertSame($actual, Rendering::form(Generator::bindForm($template, $case->data ?? [], $options), $buttons, $messages, FormRender::EMPTY, $description));
+        self::assertSame(
+            $actual,
+            Rendering::form(
+                Generator::bindForm($template, $case->data ?? [], $options),
+                $buttons,
+                $messages,
+                FormRender::EMPTY,
+                $description
+            )
+        );
     }
 
     /**
@@ -62,7 +76,11 @@ final class RenderingConformanceTest extends TestCase
      */
     private static function html(string $html): array
     {
-        $document = \Dom\HTMLDocument::createFromString('<!doctype html><html><body>' . $html . '</body></html>', LIBXML_NOERROR, 'UTF-8');
+        $document = \Dom\HTMLDocument::createFromString(
+            '<!doctype html><html><body>' . $html . '</body></html>',
+            LIBXML_NOERROR,
+            'UTF-8'
+        );
         return self::children($document->body, false);
     }
 
@@ -82,7 +100,13 @@ final class RenderingConformanceTest extends TestCase
             $attrs = [];
             foreach ($node->attributes as $attribute) {
                 $value = $attribute->value;
-                if (in_array($attribute->name, ['checked', 'selected', 'disabled', 'readonly', 'multiple', 'required', 'autofocus'], true)) {
+                if (
+                    in_array(
+                        $attribute->name,
+                        ['checked', 'selected', 'disabled', 'readonly', 'multiple', 'required', 'autofocus'],
+                        true
+                    )
+                ) {
                     $value = '';
                 }
                 if ($attribute->name === 'style') {
@@ -94,7 +118,14 @@ final class RenderingConformanceTest extends TestCase
                 $attrs[$attribute->name] = $value;
             }
             ksort($attrs, SORT_STRING);
-            $out[] = ['tag' => $node->localName, 'attributes' => $attrs, 'children' => self::children($node, $preserve || in_array($node->localName, ['textarea', 'pre', 'script', 'style'], true))];
+            $out[] = [
+                'tag' => $node->localName,
+                'attributes' => $attrs,
+                'children' => self::children(
+                    $node,
+                    $preserve || in_array($node->localName, ['textarea', 'pre', 'script', 'style'], true)
+                ),
+            ];
         }
         return $out;
     }

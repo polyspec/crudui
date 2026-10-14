@@ -16,7 +16,11 @@ final class DetailTest extends TestCase
             ['fields' => ['name' => ['field' => 'name', 'label' => 'Name']]],
             ['name' => 'Ada'],
         );
-        self::assertSame('<dl class="crudui-detail"><div class="crudui-detail__field"><dt class="crudui-detail__label">Name</dt><dd class="crudui-detail__value crudui-value crudui-value--text">Ada</dd></div></dl>', $html);
+        self::assertSame(
+            '<dl class="crudui-detail"><div class="crudui-detail__field"><dt class="crudui-detail__label">Name<'
+                . '/dt><dd class="crudui-detail__value crudui-value crudui-value--text">Ada</dd></div></dl>',
+            $html
+        );
     }
 
     public function testBuildsTheReadOnlyDetailModel(): void
@@ -46,7 +50,10 @@ final class DetailTest extends TestCase
         $emptyArray = json_decode('[]', true, 512, JSON_THROW_ON_ERROR);
 
         self::assertSame($emptyArray, $emptyObject);
-        self::assertSame('<dl class="crudui-detail"></dl>', Generator::renderDetail(['fields' => new stdClass()], $emptyObject));
+        self::assertSame(
+            '<dl class="crudui-detail"></dl>',
+            Generator::renderDetail(['fields' => new stdClass()], $emptyObject)
+        );
     }
 
     public function testRejectsAssociativeDecodeOfASequentialNumericObject(): void

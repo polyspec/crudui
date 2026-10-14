@@ -23,7 +23,10 @@ final class Binding
                 throw new FormError('INVALID_FORM_INPUT', $name . ' must be a string');
             }
         }
-        if (($options['unsupported'] ?? null) !== null && !in_array($options['unsupported'], ['throw', 'marker'], true)) {
+        if (
+            ($options['unsupported'] ?? null) !== null
+            && !in_array($options['unsupported'], ['throw', 'marker'], true)
+        ) {
             throw new FormError('INVALID_FORM_INPUT', 'unsupported must be throw or marker');
         }
         $options['messages'] = Messages::forLanguage($options['language']);
@@ -50,8 +53,12 @@ final class Binding
     {
         $spec = $field->spec;
         $design = Design::resolve($spec->design ?? null, $data, Value::segments($path), $state['rowSegments']);
-        $label = Value::truthy($spec->label ?? null) ? Value::translate($spec->label, $state['language']) : Missing::Value;
-        $description = Value::truthy($spec->description ?? null) ? Value::translate($spec->description, $state['language']) : Missing::Value;
+        $label = Value::truthy($spec->label ?? null)
+            ? Value::translate($spec->label, $state['language'])
+            : Missing::Value;
+        $description = Value::truthy($spec->description ?? null)
+            ? Value::translate($spec->description, $state['language'])
+            : Missing::Value;
         $multiple = self::multiple($spec);
         if ($multiple !== null) {
             return self::collection($field, $path, $data, $design, $label, $description, $multiple, $state);
@@ -62,9 +69,18 @@ final class Binding
             $root = self::root('group', $path, $design, $spec);
             // A line group is one row in an inline layout, and its children take no inline layout.
             if ($layout === 'line') {
-                $root['className'] = Value::classes(($state['layout'] ?? null) === 'inline' ? 'crudui-node--inline' : '', 'crudui-node--line', $root['className']);
+                $root['className'] = Value::classes(
+                    ($state['layout'] ?? null) === 'inline' ? 'crudui-node--inline' : '',
+                    'crudui-node--line',
+                    $root['className']
+                );
             }
-            return Value::record([...$root, 'header' => self::header(['label' => $label, 'description' => $description], $design), 'body' => self::body($design->group->class, $design->group->style), 'children' => self::children($field, $path, $data, self::layoutState($state, $layout))]);
+            return Value::record([
+                ...$root,
+                'header' => self::header(['label' => $label, 'description' => $description], $design),
+                'body' => self::body($design->group->class, $design->group->style),
+                'children' => self::children($field, $path, $data, self::layoutState($state, $layout)),
+            ]);
         }
         $lang = $spec->lang ?? null;
         if ($lang === true || $lang instanceof stdClass) {
@@ -98,7 +114,13 @@ final class Binding
     {
         $multiple = $spec->multiple ?? null;
         if ($multiple === true || $multiple === 'only') {
-            return ['only' => $multiple === 'only', 'copy' => false, 'sortable' => false, 'controls' => 'header', 'header' => 'static'];
+            return [
+                'only' => $multiple === 'only',
+                'copy' => false,
+                'sortable' => false,
+                'controls' => 'header',
+                'header' => 'static',
+            ];
         }
         if (!$multiple instanceof stdClass) {
             return null;
@@ -114,14 +136,23 @@ final class Binding
         if (is_string($multiple->title ?? null)) {
             $settings['title'] = $multiple->title;
         }
-        $settings['controls'] = in_array($multiple->controls ?? null, ['footer', 'outline'], true) ? $multiple->controls : 'header';
+        $settings['controls'] = in_array($multiple->controls ?? null, ['footer', 'outline'], true)
+            ? $multiple->controls
+            : 'header';
         $settings['header'] = ($multiple->header ?? null) === 'sticky' ? 'sticky' : 'static';
         return $settings;
     }
 
     private static function root(string $kind, string $path, stdClass $design, stdClass $spec): array
     {
-        return ['kind' => $kind, 'path' => $path, 'className' => $design->wrapper->class, 'style' => Value::style($design->wrapper->style) ?? Missing::Value, 'attributes' => Design::declared($spec->design ?? null, true), 'hidden' => !$design->show];
+        return [
+            'kind' => $kind,
+            'path' => $path,
+            'className' => $design->wrapper->class,
+            'style' => Value::style($design->wrapper->style) ?? Missing::Value,
+            'attributes' => Design::declared($spec->design ?? null, true),
+            'hidden' => !$design->show,
+        ];
     }
 
     /** Header with the given parts, or the missing marker when every part is empty. */
@@ -131,12 +162,20 @@ final class Binding
         if ($present === []) {
             return Missing::Value;
         }
-        return Value::record(['className' => $design->label->class, 'style' => Value::style($design->label->style) ?? Missing::Value, ...$present]);
+        return Value::record([
+            'className' => $design->label->class,
+            'style' => Value::style($design->label->style) ?? Missing::Value,
+            ...$present,
+        ]);
     }
 
     private static function body(string $className = '', mixed $style = null, ?string $id = null): stdClass
     {
-        return Value::record(['className' => $className, 'style' => Value::style($style) ?? Missing::Value, 'id' => $id ?? Missing::Value]);
+        return Value::record([
+            'className' => $className,
+            'style' => Value::style($style) ?? Missing::Value,
+            'id' => $id ?? Missing::Value,
+        ]);
     }
 
     private static function action(string $name, string $label, bool $disabled): stdClass
@@ -144,8 +183,15 @@ final class Binding
         return (object) ['name' => $name, 'label' => $label, 'disabled' => $disabled];
     }
 
-    private static function leaf(stdClass $spec, string $path, stdClass $data, stdClass $design, string|Missing $label, string|Missing $description, array $state): stdClass
-    {
+    private static function leaf(
+        stdClass $spec,
+        string $path,
+        stdClass $data,
+        stdClass $design,
+        string|Missing $label,
+        string|Missing $description,
+        array $state
+    ): stdClass {
         $type = Value::string($spec->type ?? '');
         $value = Value::path($data, $path);
         $root = self::root('field', $path, $design, $spec);
@@ -161,20 +207,55 @@ final class Binding
             $checkedValue = $value === Missing::Value ? $spec->default ?? null : $value;
             // A switcher is a checkbox input announced and drawn as a switch.
             $switcher = $type === 'switcher';
-            $checkbox = Value::record(['id' => $id, 'name' => Value::name($path, $state['keyPrefix'] ?? null), 'className' => Value::classes('valid-target', $switcher ? 'crudui-input crudui-input--switch' : '', $design->main->class), 'checked' => in_array($checkedValue, [true, 1, '1'], true), 'role' => $switcher ? 'switch' : Missing::Value, 'caption' => $headerLabel ? Missing::Value : ($label === Missing::Value ? '' : $label), 'attributes' => Design::declared($spec->design ?? null, false)]);
-            $header = self::header($headerLabel ? ['label' => $label, 'labelFor' => $id, 'description' => $description] : ['description' => $description], $design);
+            $checkbox = Value::record([
+                'id' => $id,
+                'name' => Value::name($path, $state['keyPrefix'] ?? null),
+                'className' => Value::classes(
+                    'valid-target',
+                    $switcher ? 'crudui-input crudui-input--switch' : '',
+                    $design->main->class
+                ),
+                'checked' => in_array($checkedValue, [true, 1, '1'], true),
+                'role' => $switcher ? 'switch' : Missing::Value,
+                'caption' => $headerLabel ? Missing::Value : ($label === Missing::Value ? '' : $label),
+                'attributes' => Design::declared($spec->design ?? null, false),
+            ]);
+            $header = self::header(
+                $headerLabel
+                    ? ['label' => $label, 'labelFor' => $id, 'description' => $description]
+                    : ['description' => $description],
+                $design
+            );
             return Value::record([...$root, 'header' => $header, 'body' => self::body(), 'checkbox' => $checkbox]);
         }
         $widget = Widget::evaluate($spec, $value, $path, $design, $state, $state['rowSegments']);
         if ($type === 'hidden') {
             return Value::record([...$root, 'body' => self::body(), 'widget' => $widget]);
         }
-        $labelFor = $label !== Missing::Value && $label !== '' && !($widget->unsupported ?? false) ? $widget->extra->file->id ?? $widget->attrs->id ?? Missing::Value : Missing::Value;
-        return Value::record([...$root, 'header' => self::header(['label' => $label, 'labelFor' => $labelFor, 'description' => $description], $design), 'body' => self::body(), 'widget' => $widget]);
+        $labelFor = $label !== Missing::Value && $label !== '' && !($widget->unsupported ?? false)
+            ? $widget->extra->file->id ?? $widget->attrs->id ?? Missing::Value
+            : Missing::Value;
+        return Value::record([
+            ...$root,
+            'header' => self::header(
+                ['label' => $label, 'labelFor' => $labelFor, 'description' => $description],
+                $design
+            ),
+            'body' => self::body(),
+            'widget' => $widget,
+        ]);
     }
 
-    private static function collection(stdClass $field, string $path, stdClass $data, stdClass $design, string|Missing $label, string|Missing $description, array $settings, array $state): stdClass
-    {
+    private static function collection(
+        stdClass $field,
+        string $path,
+        stdClass $data,
+        stdClass $design,
+        string|Missing $label,
+        string|Missing $description,
+        array $settings,
+        array $state
+    ): stdClass {
         $value = Value::path($data, $path);
         if ($value === Missing::Value) {
             // Missing data has one initial row, or none in a data-only collection.
@@ -194,22 +275,60 @@ final class Binding
         $controls = Missing::Value;
         if ($keys === [] && !$settings['only']) {
             $full = isset($settings['max']) && count($keys) >= $settings['max'];
-            $controls = (object) ['placement' => 'footer', 'label' => $messages['collectionControls'], 'actions' => [self::action('add-row', $messages['addRow'], $full)]];
+            $controls = (object) [
+                'placement' => 'footer',
+                'label' => $messages['collectionControls'],
+                'actions' => [self::action('add-row', $messages['addRow'], $full)],
+            ];
         }
-        $header = self::header(['label' => $label, 'description' => $description, 'count' => Messages::count($messages['count'], count($keys))], $design);
-        return Value::record([...self::root('collection', $path, $design, $field->spec), 'header' => $header, 'body' => self::body(), 'item' => $item, 'controls' => $controls, 'children' => $rows]);
+        $header = self::header(
+            [
+                'label' => $label,
+                'description' => $description,
+                'count' => Messages::count($messages['count'], count($keys)),
+            ],
+            $design
+        );
+        return Value::record([
+            ...self::root('collection', $path, $design, $field->spec),
+            'header' => $header,
+            'body' => self::body(),
+            'item' => $item,
+            'controls' => $controls,
+            'children' => $rows,
+        ]);
     }
 
-    private static function row(stdClass $field, string $collectionPath, string $key, int $index, int $count, string $item, string|Missing $label, array $settings, stdClass $data, array $state): stdClass
-    {
+    private static function row(
+        stdClass $field,
+        string $collectionPath,
+        string $key,
+        int $index,
+        int $count,
+        string $item,
+        string|Missing $label,
+        array $settings,
+        stdClass $data,
+        array $state
+    ): stdClass {
         $spec = $field->spec;
         $messages = $state['messages'];
         $label = $label === '' ? Missing::Value : $label;
         $rowPath = $collectionPath . '.' . $key;
-        $rowDesign = Design::resolve($spec->design ?? null, $data, Value::segments($rowPath), [...$state['rowSegments'], count(Value::segments($collectionPath))]);
+        $rowDesign = Design::resolve(
+            $spec->design ?? null,
+            $data,
+            Value::segments($rowPath),
+            [...$state['rowSegments'], count(Value::segments($collectionPath))]
+        );
         $numbers = [...$state['rowNumbers'], $index + 1];
         $sticky = $settings['header'] === 'sticky';
-        $rowState = ['rowSegments' => [...$state['rowSegments'], count(Value::segments($collectionPath))], 'rowNumbers' => $numbers, 'stickyDepth' => $state['stickyDepth'] + ($sticky ? 1 : 0)] + $state;
+        $rowState = [
+            'rowSegments' => [...$state['rowSegments'], count(Value::segments($collectionPath))],
+            'rowNumbers' => $numbers,
+            'stickyDepth' => $state['stickyDepth'] + ($sticky ? 1 : 0),
+        ]
+            + $state;
         $full = isset($settings['max']) && $count >= $settings['max'];
         $actions = [];
         if ($settings['sortable']) {
@@ -220,36 +339,89 @@ final class Binding
         if ($settings['copy']) {
             $actions[] = self::action('copy-row', $messages['copyRow'], $full);
         }
-        $actions[] = self::action('remove-row', $messages['removeRow'], isset($settings['min']) && $count <= $settings['min']);
+        $actions[] = self::action(
+            'remove-row',
+            $messages['removeRow'],
+            isset($settings['min']) && $count <= $settings['min']
+        );
         $row = ['kind' => 'row', 'key' => $key, 'className' => '', 'hidden' => false];
         // Rows of a data-only collection have no row controls.
         if (!$settings['only']) {
-            $row['controls'] = (object) ['placement' => $settings['controls'], 'label' => $messages['rowControls'], 'actions' => $actions];
+            $row['controls'] = (object) [
+                'placement' => $settings['controls'],
+                'label' => $messages['rowControls'],
+                'actions' => $actions,
+            ];
         }
         if ($sticky) {
             $row += ['sticky' => true, 'stickyDepth' => $state['stickyDepth']];
         }
         $number = implode('.', $numbers);
         if ($item === 'field') {
-            $widget = Widget::evaluate($spec, Value::path($data, $rowPath), $rowPath, $rowDesign, $rowState, $rowState['rowSegments']);
-            return Value::record([...$row, 'header' => Value::record(['className' => '', 'label' => $label, 'number' => $number]), 'body' => self::body(), 'widget' => $widget]);
+            $widget = Widget::evaluate(
+                $spec,
+                Value::path($data, $rowPath),
+                $rowPath,
+                $rowDesign,
+                $rowState,
+                $rowState['rowSegments']
+            );
+            return Value::record([
+                ...$row,
+                'header' => Value::record(['className' => '', 'label' => $label, 'number' => $number]),
+                'body' => self::body(),
+                'widget' => $widget,
+            ]);
         }
         self::checkGroup(Value::path($data, $rowPath), $rowPath);
         $children = self::children($field, $rowPath, $data, $rowState);
         $nested = array_filter($children, static fn ($child) => $child->kind === 'collection');
-        $summary = $nested === [] ? $messages['collapsed'] : Messages::count($messages['children'], array_sum(array_map(static fn ($child) => count($child->children), $nested)));
+        $summary = $nested === []
+            ? $messages['collapsed']
+            : Messages::count(
+                $messages['children'],
+                array_sum(array_map(static fn ($child) => count($child->children), $nested))
+            );
         $title = Missing::Value;
         if (isset($settings['title'])) {
             $value = Value::path($data, $rowPath . '.' . $settings['title']);
-            $title = $value === Missing::Value || $value === null || $value === '' ? $messages['untitled'] : Value::string($value);
+            $title = $value === Missing::Value || $value === null || $value === ''
+                ? $messages['untitled']
+                : Value::string($value);
         }
-        $header = Value::record(['className' => '', 'label' => $label, 'number' => $number, 'title' => $title, 'summary' => $summary]);
-        $body = self::body($rowDesign->group->class, $rowDesign->group->style, Value::controlId($state['idPrefix'] ?? 'crudui', $rowPath) . ':body');
-        return Value::record([...$row, 'header' => $header, 'body' => $body, 'collapsible' => true, 'expanded' => true, 'toggleLabel' => $messages['toggleRow'], 'children' => $children]);
+        $header = Value::record([
+            'className' => '',
+            'label' => $label,
+            'number' => $number,
+            'title' => $title,
+            'summary' => $summary,
+        ]);
+        $body = self::body(
+            $rowDesign->group->class,
+            $rowDesign->group->style,
+            Value::controlId($state['idPrefix'] ?? 'crudui', $rowPath) . ':body'
+        );
+        return Value::record([
+            ...$row,
+            'header' => $header,
+            'body' => $body,
+            'collapsible' => true,
+            'expanded' => true,
+            'toggleLabel' => $messages['toggleRow'],
+            'children' => $children,
+        ]);
     }
 
-    private static function lang(stdClass $spec, string $path, stdClass $data, stdClass $design, string|Missing $label, string|Missing $description, true|stdClass $lang, array $state): stdClass
-    {
+    private static function lang(
+        stdClass $spec,
+        string $path,
+        stdClass $data,
+        stdClass $design,
+        string|Missing $label,
+        string|Missing $description,
+        true|stdClass $lang,
+        array $state
+    ): stdClass {
         $settings = $lang instanceof stdClass ? $lang : new stdClass();
         $codes = is_array($settings->only ?? null) && $settings->only !== [] ? $settings->only : self::LANGUAGES;
         $title = Value::truthy($settings->title ?? null) ? Value::translate($settings->title, $state['language']) : '';
@@ -258,14 +430,39 @@ final class Binding
         $children = [];
         foreach ($codes as $code) {
             $langPath = $path . '.' . Value::string($code);
-            $langDesign = Design::resolve($spec->design ?? null, $data, Value::segments($langPath), $state['rowSegments']);
-            $children[] = (object) ['kind' => 'lang-item', 'lang' => $code, 'className' => '', 'hidden' => false, 'header' => (object) ['className' => '', 'label' => $code], 'body' => self::body(), 'widget' => Widget::evaluate($spec, Value::path($data, $langPath), $langPath, $langDesign, $state, $state['rowSegments'])];
+            $langDesign = Design::resolve(
+                $spec->design ?? null,
+                $data,
+                Value::segments($langPath),
+                $state['rowSegments']
+            );
+            $children[] = (object) [
+                'kind' => 'lang-item',
+                'lang' => $code,
+                'className' => '',
+                'hidden' => false,
+                'header' => (object) ['className' => '', 'label' => $code],
+                'body' => self::body(),
+                'widget' => Widget::evaluate(
+                    $spec,
+                    Value::path($data, $langPath),
+                    $langPath,
+                    $langDesign,
+                    $state,
+                    $state['rowSegments']
+                ),
+            ];
         }
         $header = self::header(['label' => $label, 'description' => $description, 'title' => $title], $design);
         $root = self::root('lang', $path, $design, $spec);
         // A framed language group is a node modifier; the stylesheet draws the frame around its body.
         $root['className'] = Value::classes($frame ? 'crudui-node--framed' : '', $root['className']);
-        return Value::record([...$root, 'header' => $header, 'body' => self::body(Value::classes($groupClass)), 'children' => $children]);
+        return Value::record([
+            ...$root,
+            'header' => $header,
+            'body' => self::body(Value::classes($groupClass)),
+            'children' => $children,
+        ]);
     }
 
     /** Present group data, including a repeated group row, must be an object. */
@@ -278,6 +475,9 @@ final class Binding
 
     private static function children(stdClass $field, string $path, stdClass $data, array $state): array
     {
-        return array_map(static fn ($child) => self::field($child, $path . '.' . $child->name, $data, $state), $field->children);
+        return array_map(
+            static fn ($child) => self::field($child, $path . '.' . $child->name, $data, $state),
+            $field->children
+        );
     }
 }

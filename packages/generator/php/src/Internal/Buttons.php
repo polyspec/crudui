@@ -32,7 +32,13 @@ final class Buttons
             if ($type !== 'link') {
                 $attrs->type = $type;
             }
-            $attrs->class = implode(' ', array_filter(['crudui-action', 'crudui-action--text', $design->main->class], static fn ($part) => $part !== ''));
+            $attrs->class = implode(
+                ' ',
+                array_filter(
+                    ['crudui-action', 'crudui-action--text', $design->main->class],
+                    static fn ($part) => $part !== ''
+                )
+            );
             $style = Value::style($design->main->style);
             if ($style !== null) {
                 $attrs->style = $style;
@@ -79,7 +85,12 @@ final class Buttons
     /** Whether a value has the tag, text and string attributes that the markup reads. */
     private static function evaluated(mixed $button): bool
     {
-        if (!$button instanceof stdClass || !in_array($button->tag ?? null, ['a', 'button'], true) || !is_string($button->text ?? null) || !($button->attrs ?? null) instanceof stdClass) {
+        if (
+            !$button instanceof stdClass
+            || !in_array($button->tag ?? null, ['a', 'button'], true)
+            || !is_string($button->text ?? null)
+            || !($button->attrs ?? null) instanceof stdClass
+        ) {
             return false;
         }
         foreach ((array) $button->attrs as $name => $value) {
@@ -99,7 +110,11 @@ final class Buttons
             foreach ((array) $button->attrs as $name => $value) {
                 $out .= ' ' . $name . '="' . strtr($value, ['&' => '&amp;', '"' => '&quot;', '<' => '&lt;']) . '"';
             }
-            $out .= '>' . strtr($button->text, ['&' => '&amp;', '<' => '&lt;', '>' => '&gt;']) . '</' . $button->tag . '>';
+            $out .= '>'
+                . strtr($button->text, ['&' => '&amp;', '<' => '&lt;', '>' => '&gt;'])
+                . '</'
+                . $button->tag
+                . '>';
         }
         return $out;
     }
@@ -107,8 +122,12 @@ final class Buttons
     /** A behavior script: a string, or the script of a label and script action. */
     private static function script(mixed $behavior, string $action): ?string
     {
-        $entry = $behavior instanceof stdClass ? ($behavior->{$action} ?? null) : (is_array($behavior) ? ($behavior[$action] ?? null) : null);
-        $script = $entry instanceof stdClass ? ($entry->script ?? null) : (is_array($entry) ? ($entry['script'] ?? null) : $entry);
+        $entry = $behavior instanceof stdClass
+            ? ($behavior->{$action} ?? null)
+            : (is_array($behavior) ? ($behavior[$action] ?? null) : null);
+        $script = $entry instanceof stdClass
+            ? ($entry->script ?? null)
+            : (is_array($entry) ? ($entry['script'] ?? null) : $entry);
         return is_string($script) && $script !== '' ? $script : null;
     }
 }

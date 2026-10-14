@@ -18,7 +18,12 @@ final class InterfaceMessagesTest extends TestCase
     /** @return array<string, mixed> */
     private static function contract(): array
     {
-        return json_decode((string) file_get_contents(self::ROOT . '/contracts/interface-messages.json'), true, 512, JSON_THROW_ON_ERROR);
+        return json_decode(
+            (string) file_get_contents(self::ROOT . '/contracts/interface-messages.json'),
+            true,
+            512,
+            JSON_THROW_ON_ERROR
+        );
     }
 
     public function testEmbeddedMessagesEqualsTheContract(): void
@@ -41,7 +46,15 @@ final class InterfaceMessagesTest extends TestCase
         $output = [];
         $status = 0;
         exec(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($script) . ' --stdout', $output, $status);
-        self::assertSame(0, $status, 'Generator script failed; run: php packages/generator/php/scripts/generate-interface-messages.php');
-        self::assertSame($expected, implode("\n", $output) . "\n", 'Generated source does not match; run: php packages/generator/php/scripts/generate-interface-messages.php');
+        self::assertSame(
+            0,
+            $status,
+            'Generator script failed; run: php packages/generator/php/scripts/generate-interface-messages.php'
+        );
+        self::assertSame(
+            $expected,
+            implode("\n", $output) . "\n",
+            'Generated source does not match; run: php packages/generator/php/scripts/generate-interface-messages.php'
+        );
     }
 }
