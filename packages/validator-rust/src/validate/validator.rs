@@ -155,7 +155,7 @@ impl Validator {
     /// `current_path` is the data path (with row keys); `declaration_path` is the
     /// field's declaration path (without row keys); `hidden` says an enclosing field
     /// is hidden, so only the data shape is checked.
-    #[allow(clippy::too_many_arguments)]
+    #[allow(clippy::too_many_arguments, reason = "the walk of the validator passes its traversal state explicitly, as the engines of the other languages do")]
     fn validate_properties(
         &self,
         properties: &Map<String, Value>,
@@ -326,7 +326,7 @@ impl Validator {
     // =====================================================================
 
     /// Collection rules and per-row rules for a repeated scalar field.
-    #[allow(clippy::too_many_arguments)]
+    #[allow(clippy::too_many_arguments, reason = "the walk of the validator passes its traversal state explicitly, as the engines of the other languages do")]
     fn validate_multiple_field_rules(
         &self,
         field: &Value,
@@ -488,7 +488,7 @@ impl Validator {
 
     /// `type:number` runs an implicit `number` rule first when no explicit
     /// `number` rule is declared. Returns true when it pushed an error.
-    #[allow(clippy::too_many_arguments)]
+    #[allow(clippy::too_many_arguments, reason = "the walk of the validator passes its traversal state explicitly, as the engines of the other languages do")]
     fn run_implicit_number(
         &self,
         field: &Value,
@@ -537,7 +537,7 @@ impl Validator {
     /// param, skip on false/null, check the parameter, else call the rule.
     /// Returns the error message, `None` on a pass, or the failure of a selected
     /// parameter located at `declaration`.
-    #[allow(clippy::too_many_arguments)]
+    #[allow(clippy::too_many_arguments, reason = "the walk of the validator passes its traversal state explicitly, as the engines of the other languages do")]
     fn run_rule(
         &self,
         rule_name: &str,

@@ -14,3 +14,14 @@ serde_json = { version = "1", features = ["preserve_order", "float_roundtrip"] }
 # toolchain's rust-objcopy, whose macOS distribution may lack libLLVM.dylib.
 # The build must not report a successful binary after that step fails.
 strip = "none"
+
+[lints]
+workspace = true
+
+[workspace]
+
+[workspace.lints.rust]
+unsafe_code = "deny"
+
+[workspace.lints.clippy]
+allow_attributes_without_reason = "deny"
