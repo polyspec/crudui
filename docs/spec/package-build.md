@@ -332,8 +332,10 @@ proxy.
 ## Documentation web
 
 The documentation web build reads Markdown from `docs/` after API reference
-generation. Every Markdown document must contain exactly one level-one heading.
-The heading becomes the document heading and the browser title is
+generation. Every written Markdown document must contain exactly one level-one
+heading. A page that API Documenter writes, which starts with its marker comment
+and has level-two headings only, is taken as the tool writes it, and its first
+heading is its title. The heading becomes the document heading and the browser title is
 `<heading> | CRUDUI`. `index.md` maps to the directory route; every other
 Markdown filename maps to the same path with an `.html` suffix. The
 build also creates a `404.html` page.

@@ -1,6 +1,6 @@
 # 패키지 빌드
 <!-- doc-id: docs-spec-package-build -->
-<!-- source-sha256: 7e877a5b0f315f44ece070b6b638c4e2c403ee5f2e99bab1fcf1206c1e2a232e -->
+<!-- source-sha256: 1f319975e271ff0a6dff6fb6162732766b96164894d805a5d46e2d4130e4f50a -->
 
 [English](package-build.md).
 
@@ -285,8 +285,10 @@ module은 `replace`로 checkout의 module만 요구하므로 Go는 module proxy�
 
 ## 문서 웹
 
-문서 웹 빌드는 API 참조 생성 후 `docs/`의 Markdown을 읽습니다. 각 Markdown
-문서는 H1 제목을 정확히 하나 포함해야 합니다. 이 제목을 문서 제목으로 사용하고
+문서 웹 빌드는 API 참조 생성 후 `docs/`의 Markdown을 읽습니다. 손으로 쓴 각
+Markdown 문서는 H1 제목을 정확히 하나 포함해야 합니다. API Documenter가 쓴
+page는 그 표지 주석으로 시작하고 H2 제목만 가지며, 도구가 쓴 그대로 받아 그 첫
+제목을 제목으로 삼습니다. 이 제목을 문서 제목으로 사용하고
 브라우저 제목은 `<제목> | CRUDUI`으로 생성합니다. `index.md`는 해당 디렉터리
 경로로 변환하고 나머지 Markdown 파일은 `.html` 확장자를 사용하는 동일 경로로
 변환합니다. 빌드는 `404.html`도 생성합니다.

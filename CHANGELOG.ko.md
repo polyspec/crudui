@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 5482532afd23b19e8ef95ac427ae0655d92f337ceaf09abdfe828b2102bdcdb4 -->
+<!-- source-sha256: 50b238f009e72a03904b98ab4b965138fce5d0440584be879e5292ced1b6bd1d -->
 
 ## Unreleased
+
+### 2026-10-15 — Documentation web (C14.14)
+
+- Pages workflow가 다시 문서 web을 build한다. API Documenter가 H2 제목만으로 쓰는 API page는 그대로 받아 그 첫 제목을 제목으로 삼고, 손으로 쓴 page는 H1 제목을 정확히 하나 유지한다(C14.14).
 
 ### 2026-10-15 — lint가 찾은 결함 (C14.16)
 

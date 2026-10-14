@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-15 — Documentation web (C14.14)
+
+- The Pages workflow builds the documentation web again: the API pages that API Documenter writes, with level-two headings only, are taken as they are and titled by their first heading; a written page keeps exactly one level-one heading (C14.14).
+
 ### 2026-10-15 — Defects found by the lint (C14.16)
 
 - The PHP server of the form comparison reports a failure to stop, such as a socket directory it cannot remove, and exits with status 1; the rejection was unhandled and crashed the process.
