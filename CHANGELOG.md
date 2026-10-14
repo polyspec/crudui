@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-15 — kit 0.0.45 (C14.19)
+
+- crudui pins `@polyspec/kit` 0.0.45, whose knip ignores the binaries of the pinned runtimes and reads the `binaries` and `workspaces` of `config/knip-entries.json`, which declares the files that make, a test, a page or a tool runs by path and the workspaces with their entries and ignored dependencies. The dependencies that nothing uses, `debug` of the root, `@testing-library/user-event` of the React package and `parse5` of the Vue and Svelte packages, are removed; `puppeteer-core` and `vue`, which the browser install script and the form comparison import, are declared (C14.19).
+
 ### 2026-10-15 — Go modules (C14.18)
 
 - The Go modules resolve without the ignored clone of ordered-json: `go.work` uses only the modules of the checkout, the modules require each other at pseudo-versions of main until the next release tags `packages/{validator,generator}/go`, the form-comparison Go server requires `github.com/polyspec/ordered-json/go` v0.0.3, and `make install-go-modules` (part of `make install`) downloads the modules that the workspace requires, so the Go checks stay offline; govulncheck of mise.toml reviews the new Go lock (C14.18).
