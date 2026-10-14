@@ -29,6 +29,7 @@
  *      list section
  */
 
+import assert from 'node:assert/strict';
 import { describe as descTest, it, test, expect, vi, afterEach } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -43,12 +44,27 @@ import {
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const SCHEMA_PATH = resolve(HERE, '../../..', 'contracts/schema/crudui.schema.json');
-const schema = JSON.parse(readFileSync(SCHEMA_PATH, 'utf-8'));
+const schema: unknown = JSON.parse(readFileSync(SCHEMA_PATH, 'utf-8'));
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  value !== null && typeof value === 'object' && !Array.isArray(value);
+/** `value` as the JSON object that `what` names. */
+function record(value: unknown, what: string): Record<string, unknown> {
+  assert(isRecord(value), `${what} is a JSON object`);
+  return value;
+}
+const definitions = record(record(schema, 'the meta-schema').definitions, 'definitions');
+/** The meta-schema definition `name`. */
+const definition = (name: string): Record<string, unknown> => record(definitions[name], `definitions.${name}`);
+/** The properties of a schema object. */
+const propertiesOf = (node: Record<string, unknown>): Record<string, unknown> => record(node.properties, 'properties');
 /** The object member of a meta-schema definition written as `anyOf`. */
-type SchemaObject = { type?: string; properties: Record<string, { enum?: unknown[] }> };
-const objectMember = (definition: { anyOf: SchemaObject[] }): SchemaObject =>
-  definition.anyOf.find((m) => m.type === 'object')!;
+function objectMember(node: Record<string, unknown>): Record<string, unknown> {
+  const members: unknown = node.anyOf;
+  assert(Array.isArray(members), 'the definition is an anyOf');
+  const member: unknown = members.find((m: unknown) => isRecord(m) && m.type === 'object');
+  return record(member, 'the object member');
+}
 
 descTest('describe.list is a drift-0 projection of cell.ts + the meta-schema', () => {
   const r = describe();
@@ -85,37 +101,37 @@ descTest('describe.list is a drift-0 projection of cell.ts + the meta-schema', (
   });
 
   it('cellFormatSchemaKeys equal the meta-schema CellFormat object-member keys', () => {
-    const obj = objectMember(schema.definitions.CellFormat);
-    expect(r.list.cellFormatSchemaKeys).toEqual(Object.keys(obj.properties));
+    const obj = objectMember(definition('CellFormat'));
+    expect(r.list.cellFormatSchemaKeys).toEqual(Object.keys(propertiesOf(obj)));
   });
 
   it('list entry is the additive List definition (not Field)', () => {
     expect(r.list.entry).toBe('#/definitions/List');
-    expect(schema.definitions.List).toBeDefined();
+    expect(definitions.List).toBeDefined();
   });
 
   it('list structure equals the parsed meta-schema definitions exactly', () => {
-    const listProps = Object.keys(schema.definitions.List.properties).filter(
+    const listProps = Object.keys(propertiesOf(definition('List'))).filter(
       (k) => k !== '$ref' && k !== '$patch'
     );
     expect(r.list.structure.firstClass).toEqual(listProps);
 
-    const colProps = Object.keys(schema.definitions.Column.properties).filter(
+    const colProps = Object.keys(propertiesOf(definition('Column'))).filter(
       (k) => k !== '$ref' && k !== '$patch'
     );
     expect(r.list.structure.column.firstClass).toEqual(colProps);
 
-    const pagObj = objectMember(schema.definitions.Pagination);
-    expect(r.list.structure.pagination.keys).toEqual(Object.keys(pagObj.properties));
-    expect(r.list.structure.pagination.modes).toEqual(pagObj.properties.mode.enum);
+    const pagObj = objectMember(definition('Pagination'));
+    expect(r.list.structure.pagination.keys).toEqual(Object.keys(propertiesOf(pagObj)));
+    expect(r.list.structure.pagination.modes).toEqual(record(propertiesOf(pagObj).mode, 'mode').enum);
 
     expect(r.list.structure.sort.keys).toEqual(
-      Object.keys(schema.definitions.Sort.properties)
+      Object.keys(propertiesOf(definition('Sort')))
     );
-    expect(r.list.structure.sort.dirs).toEqual(schema.definitions.Sort.properties.dir.enum);
+    expect(r.list.structure.sort.dirs).toEqual(record(propertiesOf(definition('Sort')).dir, 'dir').enum);
 
-    const actObj = objectMember(schema.definitions.ListAction);
-    expect(r.list.structure.action.objectKeys).toEqual(Object.keys(actObj.properties));
+    const actObj = objectMember(definition('ListAction'));
+    expect(r.list.structure.action.objectKeys).toEqual(Object.keys(propertiesOf(actObj)));
   });
 });
 

@@ -4,7 +4,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { bindForm } from '../src/index';
-import { control, node, nodeErrors, renderedForm, type } from './dom';
+import { control, named, node, nodeErrors, renderedForm, type } from './dom';
 
 const spec = {
   type: 'group',
@@ -48,9 +48,9 @@ describe('display', () => {
   it('hides and shows a group when the field its design.show reads changes', () => {
     const { window, form } = setup({ render: 'ssr', modes: { navigation: 'document' } });
     expect(node(form, 'modes').hidden).toBe(false);
-    choose(window, control<HTMLSelectElement>(form, 'form[render]'), 'csr');
+    choose(window, named(form, 'select', 'form[render]'), 'csr');
     expect(node(form, 'modes').hidden).toBe(true);
-    choose(window, control<HTMLSelectElement>(form, 'form[render]'), 'ssr');
+    choose(window, named(form, 'select', 'form[render]'), 'ssr');
     expect(node(form, 'modes').hidden).toBe(false);
   });
 
@@ -66,7 +66,7 @@ describe('display', () => {
 
   it('writes the display of the data when it binds', () => {
     const page = renderedForm(spec, { render: 'ssr', modes: { navigation: 'document' } });
-    control<HTMLSelectElement>(page.form, 'form[render]').value = 'csr';
+    named(page.form, 'select', 'form[render]').value = 'csr';
     bindForm(page.form, spec, { keyPrefix: 'form' });
     expect(node(page.form, 'modes').hidden).toBe(true);
   });
@@ -75,7 +75,7 @@ describe('display', () => {
     const { window, form, binding } = setup({ render: 'ssr', modes: { navigation: '' } });
     expect(binding.validate().valid).toBe(false);
     expect(nodeErrors(node(form, 'modes.navigation'))).toStrictEqual([requiredText]);
-    choose(window, control<HTMLSelectElement>(form, 'form[render]'), 'csr');
+    choose(window, named(form, 'select', 'form[render]'), 'csr');
     expect(nodeErrors(node(form, 'modes.navigation'))).toStrictEqual([]);
     expect(control(form, 'form[modes][navigation]').hasAttribute('aria-invalid')).toBe(false);
     expect(control(form, 'form[modes][navigation]').value).toBe('');

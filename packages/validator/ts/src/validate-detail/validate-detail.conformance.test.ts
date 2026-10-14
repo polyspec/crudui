@@ -10,12 +10,14 @@
  *    dotted composition trace.
  */
 
+import assert from 'node:assert/strict';
 import { describe, test, expect } from 'vitest';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { validateDetail } from './index';
 import { ComposeLoadError } from '../compose/index';
+import { isRecord } from '../record';
 import { provesConformance } from '../../../../../tests/conformance/evidence.mts';
 
 const FIXTURE = path.resolve(
@@ -26,14 +28,36 @@ const FIXTURE = path.resolve(
 interface DetailValidityCase {
   name: string;
   note: string;
-  expect: 'ok' | 'fail';
-  reason?: string;
-  engine: 'pass' | { code: string; at: string };
+  engine: unknown;
   files?: Record<string, Record<string, unknown>>;
   spec: Record<string, unknown>;
 }
 
-const cases: DetailValidityCase[] = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
+/** Whether a value is a set of composition files: an object of JSON objects. */
+const isFileSet = (value: unknown): value is Record<string, Record<string, unknown>> =>
+  isRecord(value) && Object.values(value).every(isRecord);
+
+/** Whether an engine expectation is a load error: its code and the dotted path of the offending key. */
+const isLoadError = (engine: unknown): engine is { code: string; at: string } =>
+  isRecord(engine) && typeof engine.code === 'string' && typeof engine.at === 'string';
+
+/** The cases of the fixture, each checked to hold a name, a note, a spec and, when present, composition files. */
+function readCases(file: string): DetailValidityCase[] {
+  const value: unknown = JSON.parse(fs.readFileSync(file, 'utf8'));
+  if (!Array.isArray(value)) throw new TypeError(`${file} holds no list of cases`);
+  return value.map((item: unknown, index): DetailValidityCase => {
+    if (!isRecord(item) || typeof item.name !== 'string' || typeof item.note !== 'string' || !isRecord(item.spec)
+      || (item.files !== undefined && !isFileSet(item.files))) {
+      throw new TypeError(`case ${index} of ${file} has no name, note and spec, or files that are no file set`);
+    }
+    return {
+      name: item.name, note: item.note, spec: item.spec, engine: item.engine,
+      ...(isFileSet(item.files) ? { files: item.files } : {}),
+    };
+  });
+}
+
+const cases = readCases(FIXTURE);
 
 /** Run one fixture case and record validateDetail evidence for it. */
 function proves(name: string, body: () => void): Promise<void> {
@@ -52,7 +76,7 @@ describe('detail validate — every case declares an engine expectation', () => 
     for (const c of cases) {
       const declared =
         c.engine === 'pass' ||
-        (typeof c.engine === 'object' && typeof c.engine.code === 'string' && typeof c.engine.at === 'string');
+        isLoadError(c.engine);
       expect(declared, `${c.name} must declare engine: "pass" | {code, at}`).toBe(true);
     }
     expect(cases.length).toBeGreaterThan(0);
@@ -69,18 +93,19 @@ describe('detail validate — engine:pass loads clean', () => {
 });
 
 describe('detail validate — a composition or forbidden-key failure is a load error', () => {
-  for (const c of cases.filter((x) => typeof x.engine === 'object')) {
+  for (const c of cases.filter((x) => isLoadError(x.engine))) {
     test(c.name, () =>
       proves(c.name, () => {
-        const want = c.engine as { code: string; at: string };
+        const want = c.engine;
+        assert(isLoadError(want), `${c.name} expects a load error`);
         let thrown: unknown;
         try {
           run(c);
         } catch (error) {
           thrown = error;
         }
-        expect(thrown, `${c.name} must throw a load error`).toBeInstanceOf(ComposeLoadError);
-        const error = thrown as ComposeLoadError;
+        assert(thrown instanceof ComposeLoadError, `${c.name} must throw a load error`);
+        const error = thrown;
         expect(error.code).toStrictEqual(want.code);
         expect(error.trace.join('.')).toStrictEqual(want.at);
       }));

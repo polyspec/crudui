@@ -16,9 +16,10 @@ import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
+import { isRecord } from './record';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../..');
-const schema = JSON.parse(fs.readFileSync(path.join(ROOT, 'contracts/schema/crudui.schema.json'), 'utf8'));
+const SCHEMA_PATH = path.join(ROOT, 'contracts/schema/crudui.schema.json');
 const FIXTURE = path.join(ROOT, 'tests/fixtures/spec-validity/cases.json');
 
 interface SpecValidityCase {
@@ -26,10 +27,34 @@ interface SpecValidityCase {
   note: string;
   expect: 'ok' | 'fail';
   reason?: string;
-  spec: Record<string, unknown>;
+  spec: unknown;
 }
 
-const cases: SpecValidityCase[] = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
+/** The cases of the fixture, each checked to hold a name, a note, the meta-schema result and, for a failure, its reason. */
+function readCases(file: string): SpecValidityCase[] {
+  const value: unknown = JSON.parse(fs.readFileSync(file, 'utf8'));
+  if (!Array.isArray(value)) throw new TypeError(`${file} holds no list of cases`);
+  return value.map((item: unknown, index): SpecValidityCase => {
+    if (!isRecord(item) || typeof item.name !== 'string' || typeof item.note !== 'string'
+      || (item.expect !== 'ok' && item.expect !== 'fail') || (item.reason !== undefined && typeof item.reason !== 'string')) {
+      throw new TypeError(`case ${index} of ${file} has no name, note and expect, or a reason that is no string`);
+    }
+    const { reason } = item;
+    return { name: item.name, note: item.note, expect: item.expect, spec: item.spec, ...(reason === undefined ? {} : { reason }) };
+  });
+}
+
+/** The meta-schema, checked to name its draft and to hold its definitions. */
+function readSchema(file: string): { $schema: string; definitions: Record<string, unknown> } & Record<string, unknown> {
+  const value: unknown = JSON.parse(fs.readFileSync(file, 'utf8'));
+  if (!isRecord(value) || typeof value.$schema !== 'string' || !isRecord(value.definitions)) {
+    throw new TypeError(`${file} holds no schema with $schema and definitions`);
+  }
+  return { ...value, $schema: value.$schema, definitions: value.definitions };
+}
+
+const schema = readSchema(SCHEMA_PATH);
+const cases = readCases(FIXTURE);
 
 const ajv = new Ajv({ strict: false, allErrors: true });
 addFormats(ajv);

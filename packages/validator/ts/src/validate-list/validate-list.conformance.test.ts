@@ -26,12 +26,14 @@
  * the JS engine output and the cross-language contract is broken.
  */
 
+import assert from 'node:assert/strict';
 import { describe, test, expect } from 'vitest';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { validateList } from './index';
 import { ComposeLoadError } from '../compose/index';
+import { isRecord } from '../record';
 import { provesConformance } from '../../../../../tests/conformance/evidence.mts';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -45,15 +47,37 @@ const FIXTURE = path.resolve(
 interface ListValidityCase {
   name: string;
   note: string;
-  expect: 'ok' | 'fail';
-  reason?: string;
   /** What the four-language engine (compose + forbidden-scan) does. */
-  engine: 'pass' | { code: string; at: string };
+  engine: unknown;
   files?: Record<string, Record<string, unknown>>;
   spec: Record<string, unknown>;
 }
 
-const cases: ListValidityCase[] = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
+/** Whether a value is a set of composition files: an object of JSON objects. */
+const isFileSet = (value: unknown): value is Record<string, Record<string, unknown>> =>
+  isRecord(value) && Object.values(value).every(isRecord);
+
+/** Whether an engine expectation is a load error: its code and the dotted path of the offending key. */
+const isLoadError = (engine: unknown): engine is { code: string; at: string } =>
+  isRecord(engine) && typeof engine.code === 'string' && typeof engine.at === 'string';
+
+/** The cases of the fixture, each checked to hold a name, a note, a spec and, when present, composition files. */
+function readCases(file: string): ListValidityCase[] {
+  const value: unknown = JSON.parse(fs.readFileSync(file, 'utf8'));
+  if (!Array.isArray(value)) throw new TypeError(`${file} holds no list of cases`);
+  return value.map((item: unknown, index): ListValidityCase => {
+    if (!isRecord(item) || typeof item.name !== 'string' || typeof item.note !== 'string' || !isRecord(item.spec)
+      || (item.files !== undefined && !isFileSet(item.files))) {
+      throw new TypeError(`case ${index} of ${file} has no name, note and spec, or files that are no file set`);
+    }
+    return {
+      name: item.name, note: item.note, spec: item.spec, engine: item.engine,
+      ...(isFileSet(item.files) ? { files: item.files } : {}),
+    };
+  });
+}
+
+const cases = readCases(FIXTURE);
 
 /** Run one fixture case and record validateList evidence for it. */
 function proves(name: string, body: () => void): Promise<void> {
@@ -72,9 +96,7 @@ describe('list validate — every case declares an engine expectation', () => {
     for (const c of cases) {
       const ok =
         c.engine === 'pass' ||
-        (typeof c.engine === 'object' &&
-          typeof c.engine.code === 'string' &&
-          typeof c.engine.at === 'string');
+        isLoadError(c.engine);
       expect(ok, `${c.name} must declare engine: "pass" | {code, at}`).toBe(true);
     }
     expect(cases.length).toBeGreaterThan(0);
@@ -99,20 +121,19 @@ describe('list validate — engine:pass loads clean (no rows validated)', () => 
 });
 
 describe('list validate — a forbidden meta key in the list tree is a LOAD ERROR', () => {
-  for (const c of cases.filter((x) => typeof x.engine === 'object')) {
+  for (const c of cases.filter((x) => isLoadError(x.engine))) {
     test(c.name, () =>
       proves(c.name, () => {
-        const want = c.engine as { code: string; at: string };
+        const want = c.engine;
+        assert(isLoadError(want), `${c.name} expects a load error`);
         let thrown: unknown;
         try {
           run(c);
         } catch (e) {
           thrown = e;
         }
-        expect(thrown, `${c.name} must throw a load error`).toBeInstanceOf(
-          ComposeLoadError
-        );
-        const err = thrown as ComposeLoadError;
+        assert(thrown instanceof ComposeLoadError, `${c.name} must throw a load error`);
+        const err = thrown;
         expect(err.code).toStrictEqual(want.code);
         // The dotted trace points at the shallowest offending key — depth is
         // load-bearing (a deeply nested meta key must be caught at its real path).

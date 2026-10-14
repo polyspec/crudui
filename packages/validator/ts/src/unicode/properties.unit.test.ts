@@ -13,16 +13,42 @@ import { WHITESPACE_RANGES, isWhitespace } from '../values/whitespace';
 interface Contract {
   unicodeVersion: string;
   whiteSpace: Array<[number, number]>;
-  generalCategories: Record<string, Array<[number, number]>>;
-  scripts: Record<string, Array<[number, number]>>;
+  generalCategories: Record<string, unknown>;
+  scripts: Record<string, unknown>;
 }
 
-const contract = JSON.parse(
-  fs.readFileSync(
-    path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../../../contracts/unicode-properties.json'),
-    'utf8'
-  )
-) as Contract;
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+/** The ranges `value` holds as pairs of numbers. */
+function ranges(value: unknown): Array<[number, number]> {
+  if (!Array.isArray(value)) throw new TypeError('the White_Space ranges are no list');
+  return value.map((range: unknown): [number, number] => {
+    const pair: unknown[] = Array.isArray(range) ? range : [];
+    if (pair.length !== 2) throw new TypeError('a White_Space range is no pair');
+    const [first, last] = pair;
+    if (typeof first !== 'number' || typeof last !== 'number') throw new TypeError('a White_Space range holds no numbers');
+    return [first, last];
+  });
+}
+
+/** contracts/unicode-properties.json, checked to hold the version, the White_Space ranges and the two tables. */
+function readContract(file: string): Contract {
+  const value: unknown = JSON.parse(fs.readFileSync(file, 'utf8'));
+  if (!isRecord(value) || typeof value.unicodeVersion !== 'string' || !isRecord(value.generalCategories) || !isRecord(value.scripts)) {
+    throw new TypeError(`${file} holds no version and tables`);
+  }
+  return {
+    unicodeVersion: value.unicodeVersion,
+    whiteSpace: ranges(value.whiteSpace),
+    generalCategories: value.generalCategories,
+    scripts: value.scripts,
+  };
+}
+
+const contract = readContract(
+  path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../../../contracts/unicode-properties.json')
+);
 
 const pairs = (flat: readonly number[]) => Array.from({ length: flat.length / 2 }, (_, i) => [flat[2 * i], flat[2 * i + 1]]);
 const table = (map: Readonly<Record<string, readonly number[]>>) =>

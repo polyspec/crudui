@@ -30,7 +30,7 @@ function serializeTokens(expr: string): unknown[] {
   return tokens.map((t) => ({
     type: t.type,
     value: t.value,
-    literal: t.literal as string | number | boolean | null,
+    literal: t.literal,
   }));
 }
 
@@ -44,20 +44,24 @@ const AST_FIELD_ORDER: Record<string, string[]> = {
   Group: ['type', 'expression'],
 };
 
+/** Whether a value is a JSON object: an object that is neither null nor an array. */
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  value !== null && typeof value === 'object' && !Array.isArray(value);
+
 function stripPosition(value: unknown): unknown {
   if (Array.isArray(value)) {
     return value.map(stripPosition);
   }
-  if (value === null || typeof value !== 'object') {
+  if (!isRecord(value)) {
     return value;
   }
-  const node = value as Record<string, unknown>;
+  const node = value;
   // Path segment: {type:'identifier',value} | {type:'wildcard'} | {type:'index',value}
   if (node.type === 'identifier' || node.type === 'wildcard' || node.type === 'index') {
     if (node.type === 'wildcard') return { type: 'wildcard' };
     return { type: node.type, value: node.value };
   }
-  const order = AST_FIELD_ORDER[node.type as string];
+  const order = typeof node.type === 'string' ? AST_FIELD_ORDER[node.type] : undefined;
   const out: Record<string, unknown> = {};
   if (order) {
     for (const k of order) {

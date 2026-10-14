@@ -4,7 +4,7 @@
  */
 import { FormInputError } from '@polyspec/crudui-validator';
 
-import { dataControls, type Control } from './nodes.js';
+import { dataControls, isInput, isSelect, type Control } from './nodes.js';
 
 type Data = Record<string, unknown>;
 
@@ -13,10 +13,10 @@ const NAME = /^([^[\]]+)((?:\[[^[\]]*\])*)$/;
 /** The values a control submits, each with its line breaks written as CRLF. */
 function submitted(control: Control): string[] {
   let values: string[];
-  if (control.tagName === 'SELECT') {
-    values = Array.from((control as HTMLSelectElement).selectedOptions, (option) => option.value);
-  } else if (control.tagName === 'INPUT' && ['checkbox', 'radio'].includes((control as HTMLInputElement).type)) {
-    values = (control as HTMLInputElement).checked ? [control.value] : [];
+  if (isSelect(control)) {
+    values = Array.from(control.selectedOptions, (option) => option.value);
+  } else if (isInput(control) && ['checkbox', 'radio'].includes(control.type)) {
+    values = control.checked ? [control.value] : [];
   } else {
     values = [control.value];
   }
@@ -27,7 +27,7 @@ function submitted(control: Control): string[] {
 function segments(name: string, keyPrefix: string | undefined): { path: string[]; list: boolean } {
   const match = NAME.exec(name);
   if (!match) throw new FormInputError(`Malformed control name: ${name}`);
-  const path = [match[1]!, ...Array.from(match[2]!.matchAll(/\[([^[\]]*)\]/g), (part) => part[1]!)];
+  const path = [match[1], ...Array.from(match[2].matchAll(/\[([^[\]]*)\]/g), (part) => part[1])];
   const list = path[path.length - 1] === '';
   if (list) path.pop();
   if (keyPrefix !== undefined) {
@@ -59,7 +59,7 @@ function place(data: Data, name: string, keyPrefix: string | undefined, value: s
     if (!isGroup(next)) throw conflict();
     target = next;
   }
-  const leaf = path[path.length - 1]!;
+  const leaf = path[path.length - 1];
   const present = Object.hasOwn(target, leaf);
   const current = target[leaf];
   if (list) {

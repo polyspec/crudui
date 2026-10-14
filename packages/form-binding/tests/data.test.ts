@@ -3,7 +3,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { collectData } from '../src/data';
-import { control, documentOf, renderedForm } from './dom';
+import { control, documentOf, formBodyOf, named, renderedForm } from './dom';
 
 const first = '__0000000000001__';
 const spec = {
@@ -34,7 +34,7 @@ const filled = {
   stores: { [first]: { name: 'Seoul' } }, codes: { [first]: 'C1' }, later: 'kept',
 };
 
-const body = (form: HTMLFormElement) => form.querySelector<HTMLElement>('.crudui-form__body')!;
+const body = (form: HTMLFormElement) => formBodyOf(form);
 
 describe('data collection', () => {
   it('reads every supported control kind as the string a submission sends', () => {
@@ -60,8 +60,8 @@ describe('data collection', () => {
     control(form, 'form[agree]').checked = true;
     control(form, 'form[tags][]', '1').checked = true;
     control(form, 'form[color]', '0').checked = true;
-    control<HTMLSelectElement>(form, 'form[size]').value = '1';
-    control<HTMLTextAreaElement>(form, 'form[note]').value = 'a\rb\nc\r\nd';
+    named(form, 'select', 'form[size]').value = '1';
+    named(form, 'textarea', 'form[note]').value = 'a\rb\nc\r\nd';
     expect(collectData(body(form), 'form')).toMatchObject({
       name: 'Typed', agree: '1', tags: ['1'], color: '0', size: '1', note: 'a\r\nb\r\nc\r\nd',
     });
@@ -69,7 +69,7 @@ describe('data collection', () => {
 
   it('reads each selected option of a multiple select into a list and leaves out an empty one', () => {
     const { form } = renderedForm({ type: 'group', properties: { sizes: { type: 'select', items: ['s', 'm', 'l'] } } }, {});
-    const select = control<HTMLSelectElement>(form, 'form[sizes]');
+    const select = named(form, 'select', 'form[sizes]');
     select.multiple = true;
     select.name = 'form[sizes][]';
     for (const option of Array.from(select.options)) option.selected = option.value !== '1';
@@ -95,7 +95,7 @@ describe('data collection', () => {
     expect(collectData(body(form), 'form')).toStrictEqual({ level: '50', pick: 'a', row: { x: 'X' }, inline: { z: 'Z' } });
     control(form, 'form[on]').checked = true;
     control(form, 'form[level]').value = '35';
-    control<HTMLSelectElement>(form, 'form[pick]').value = 'b';
+    named(form, 'select', 'form[pick]').value = 'b';
     expect(collectData(body(form), 'form')).toStrictEqual({ on: '1', level: '35', pick: 'b', row: { x: 'X' }, inline: { z: 'Z' } });
   });
 
@@ -122,14 +122,14 @@ describe('data collection', () => {
     const { document } = documentOf(
       '<div class="crudui-form__body"><div data-field-path="name"><input name="name" value="Ada"/></div>' +
       `<div data-field-path="rows"><div data-crudui-row-key="${first}"><input name="rows[${first}]" value="R"/></div></div></div>`);
-    expect(collectData(document.querySelector<HTMLElement>('.crudui-form__body')!, undefined))
+    expect(collectData(formBodyOf(document), undefined))
       .toStrictEqual({ name: 'Ada', rows: { [first]: 'R' } });
   });
 
   it('creates members named like object prototype members as own members', () => {
     const { document } = documentOf(
       '<div class="crudui-form__body"><div data-field-path="__proto__"><input name="form[__proto__][polluted]" value="x"/></div></div>');
-    const data = collectData(document.querySelector<HTMLElement>('.crudui-form__body')!, 'form');
+    const data = collectData(formBodyOf(document), 'form');
     expect(Object.getPrototypeOf(data)).toBe(Object.prototype);
     expect(Object.keys(data)).toStrictEqual(['__proto__']);
     expect(({} as Record<string, unknown>).polluted).toBeUndefined();
@@ -149,9 +149,9 @@ describe('data collection', () => {
     it(`fails on ${names.join(', ')}`, () => {
       const inputs = names.map(name => `<input name="${name}" value="v"/>`).join('');
       const { document } = documentOf(`<div class="crudui-form__body"><div data-field-path="a">${inputs}</div></div>`);
-      const run = () => collectData(document.querySelector<HTMLElement>('.crudui-form__body')!, 'form');
+      const run = () => collectData(formBodyOf(document), 'form');
       expect(run).toThrow(message);
-      try { run(); } catch (error) { expect((error as { code?: string }).code).toBe('INVALID_FORM_INPUT'); }
+      try { run(); } catch (error) { expect(error).toHaveProperty('code', 'INVALID_FORM_INPUT'); }
     });
   }
 });

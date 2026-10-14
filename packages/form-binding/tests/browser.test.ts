@@ -3,15 +3,15 @@
 // focus, an invalid submission sends no request and reaches no other submit listener, and a
 // corrected form submits normally. A local server serves the page, the bundled binding and the
 // submission target and records every submission it receives.
+import assert from 'node:assert/strict';
 import { createServer, type Server } from 'node:http';
-import type { AddressInfo } from 'node:net';
 import { fileURLToPath } from 'node:url';
 
 import { build } from 'esbuild';
 import { afterAll, beforeAll, expect, it } from 'vitest';
 
 import { engineDrivers, engines, type Engine, type EngineBrowser, type EnginePage } from '../../../tests/browser-engines.mts';
-import { formHtml } from './dom';
+import { formHtml, found } from './dom';
 
 const spec = {
   type: 'group',
@@ -47,7 +47,7 @@ beforeAll(async () => {
     entryPoints: [fileURLToPath(new URL('../src/index.ts', import.meta.url))],
     bundle: true, format: 'esm', platform: 'browser', write: false, logLevel: 'silent',
   });
-  const bundle = output.outputFiles[0]!.text;
+  const bundle = found(output.outputFiles[0], 'the bundle of the build').text;
   const body = page(formHtml(spec, {}));
   server = createServer((request, response) => {
     const path = new URL(request.url ?? '/', 'http://localhost').pathname;
@@ -69,7 +69,9 @@ beforeAll(async () => {
     }
   });
   await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
-  origin = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+  const address = server.address();
+  assert(address !== null && typeof address === 'object', 'the server listens on a TCP port');
+  origin = `http://127.0.0.1:${address.port}`;
   for (const engine of engines) browsers[engine] = await engineDrivers[engine].launch();
   process.stdout.write(`[setup] bundle build, server start and browser launch: finished in ${((performance.now() - started) / 1000).toFixed(1)}s\n`);
 }, Infinity);
@@ -97,11 +99,15 @@ const texts = (tab: EnginePage, selector: string) =>
 
 /** The `aria-invalid` attribute of the element a selector matches. */
 const invalid = (tab: EnginePage, selector: string) =>
-  tab.evaluate((target) => document.querySelector(target)!.getAttribute('aria-invalid'), selector);
+  tab.evaluate((target) => {
+    const element = document.querySelector(target);
+    if (!element) throw new Error(`No element matches ${target}`);
+    return element.getAttribute('aria-invalid');
+  }, selector);
 
 for (const engine of engines) {
   it(`${engine}: shows errors while typing, stops an invalid submission and submits a corrected form`, async () => {
-    const tab = await engineDrivers[engine].open(browsers[engine]!, { width: 1000, height: 700 });
+    const tab = await engineDrivers[engine].open(found(browsers[engine], `the ${engine} browser`), { width: 1000, height: 700 });
     const failures: string[] = [];
     tab.on('pageerror', (error) => failures.push(error instanceof Error ? error.message : String(error)));
     posts.length = 0;
@@ -119,12 +125,16 @@ for (const engine of engines) {
 
       // The click dispatches the submit event and runs its listeners before it returns.
       await tab.click('button[type="submit"]');
-      expect(await tab.evaluate(() => (window as unknown as { librarySubmits: number }).librarySubmits, undefined)).toBe(0);
+      expect(await tab.evaluate(() => { const submits: unknown = Reflect.get(window, 'librarySubmits'); return submits; }, undefined)).toBe(0);
       expect(await texts(tab, nameErrors)).toStrictEqual(['This field is required.']);
       expect(await tab.evaluate((target) => document.querySelector(target) === document.activeElement, email)).toBe(true);
 
       // Typing over the selected value replaces it, as a user does.
-      await tab.evaluate((target) => document.querySelector<HTMLInputElement>(target)!.select(), email);
+      await tab.evaluate((target) => {
+        const input = document.querySelector<HTMLInputElement>(target);
+        if (!input) throw new Error(`No input matches ${target}`);
+        input.select();
+      }, email);
       await tab.keyboard.type('ada@example.com');
       expect(await texts(tab, emailErrors)).toStrictEqual([]);
       expect(await invalid(tab, email)).toBeNull();

@@ -44,7 +44,7 @@ export function compareCodePoints(a: string, b: string): number {
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   if (value === null || typeof value !== 'object' || Array.isArray(value)) return false;
-  const prototype = Object.getPrototypeOf(value);
+  const prototype: unknown = Object.getPrototypeOf(value);
   return prototype === Object.prototype || prototype === null;
 }
 
@@ -152,8 +152,9 @@ export function checkInputText(inputs: ReadonlyArray<readonly [string, unknown]>
 /** Check the present options named in `names`, given in code point order, as `options.{name}`. */
 export function checkOptionText(options: unknown, names: readonly string[]): void {
   if (options === null || typeof options !== 'object') return;
-  const record = options as Record<string, unknown>;
-  checkInputText(names.filter(name => record[name] !== undefined).map(name => [`options.${name}`, record[name]] as const));
+  // A property read, as `options[name]` reads it, of options that are an object or a list.
+  const read = (name: string): unknown => Reflect.get(options, name);
+  checkInputText(names.filter(name => read(name) !== undefined).map(name => [`options.${name}`, read(name)] as const));
 }
 
 /** A loader that checks each document it loads, located and named as a composition file. */

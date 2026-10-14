@@ -119,11 +119,8 @@ export interface ValidationContext {
   value: unknown;
   /** All form data */
   allData: Record<string, unknown>;
-  /** Field specification */
-  spec: {
-    /** Widget type for the value being validated. */
-    type: string;
-  };
+  /** The composed specification of the field, as the specification declares it. */
+  spec: Readonly<Record<string, unknown>>;
   /** Parsed path segments */
   pathSegments: string[];
   /** Positions of the row keys in `pathSegments` (expressions.md, "Evaluation"). */
@@ -341,7 +338,7 @@ export interface PathNode extends ASTNodeBase {
 /**
  * Literal value node
  */
-export interface LiteralNode extends ASTNodeBase {
+interface LiteralNode extends ASTNodeBase {
   /** Node discriminant; always `'Literal'`. */
   type: 'Literal';
   /** Primitive kind of the literal value. */
@@ -353,7 +350,7 @@ export interface LiteralNode extends ASTNodeBase {
 /**
  * Grouped expression node (parentheses)
  */
-export interface GroupNode extends ASTNodeBase {
+interface GroupNode extends ASTNodeBase {
   /** Node discriminant; always `'Group'`. */
   type: 'Group';
   /** The parenthesized inner expression. */

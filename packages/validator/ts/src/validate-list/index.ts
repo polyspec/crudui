@@ -101,7 +101,7 @@ export function validateList(
     composed = {
       ...composed,
       columns: composeProperties(
-        composed.columns as Record<string, unknown>,
+        composed.columns,
         loader,
         opts
       ),
@@ -115,7 +115,7 @@ export function validateList(
     composed = {
       ...composed,
       search: composeProperties(
-        composed.search as Record<string, unknown>,
+        composed.search,
         loader,
         opts
       ),

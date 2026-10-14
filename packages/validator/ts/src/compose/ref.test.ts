@@ -5,22 +5,28 @@
  * sibling AFTER $ref overrides the base).
  */
 
+import assert from 'node:assert/strict';
 import { describe, test, expect } from 'vitest';
 import { resolveRef } from './ref';
 import { composeProperties } from './compose';
 import { MemoryLoader } from './loader';
 import { ComposeLoadError } from './errors';
 
+/** The load error that `run` throws; fails the test when it throws nothing or another error. */
+function loadError(run: () => unknown): ComposeLoadError {
+  try {
+    run();
+  } catch (error) {
+    assert(error instanceof ComposeLoadError, 'the error is a load error');
+    return error;
+  }
+  throw new Error('expected a load error');
+}
+
 describe('$ref cycle detection rejects recursive references', () => {
   test('self-cycle a -> a', () => {
     const loader = new MemoryLoader({ 'a.yml': { properties: { $ref: 'a.yml' } } });
-    try {
-      resolveRef('a.yml', '', loader);
-      throw new Error('expected cycle error');
-    } catch (e) {
-      expect(e).toBeInstanceOf(ComposeLoadError);
-      expect((e as ComposeLoadError).code).toStrictEqual('REF_CYCLE');
-    }
+    expect(loadError(() => resolveRef('a.yml', '', loader)).code).toStrictEqual('REF_CYCLE');
   });
 
   test('three-node cycle a -> b -> c -> a', () => {
@@ -29,12 +35,7 @@ describe('$ref cycle detection rejects recursive references', () => {
       'b.yml': { properties: { $ref: 'c.yml' } },
       'c.yml': { properties: { $ref: 'a.yml' } },
     });
-    try {
-      resolveRef('a.yml', '', loader);
-      throw new Error('expected cycle error');
-    } catch (e) {
-      expect((e as ComposeLoadError).code).toStrictEqual('REF_CYCLE');
-    }
+    expect(loadError(() => resolveRef('a.yml', '', loader)).code).toStrictEqual('REF_CYCLE');
   });
 
   test('diamond is NOT a cycle (same file on two disjoint branches)', () => {
@@ -51,11 +52,7 @@ describe('$ref cycle detection rejects recursive references', () => {
 describe('$ref format errors', () => {
   test('empty string path is a format error', () => {
     const loader = new MemoryLoader({});
-    try {
-      resolveRef('', '', loader);
-    } catch (e) {
-      expect((e as ComposeLoadError).code).toStrictEqual('REF_FORMAT_ERROR');
-    }
+    expect(loadError(() => resolveRef('', '', loader)).code).toStrictEqual('REF_FORMAT_ERROR');
   });
 
   test('empty path inside parens is a detect/format error', () => {

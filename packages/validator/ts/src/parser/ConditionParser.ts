@@ -14,12 +14,7 @@ import {
   TokenPosition,
   ASTNode,
   BinaryNode,
-  UnaryNode,
-  InNode,
   PathNode,
-  LiteralNode,
-  GroupNode,
-  TernaryNode,
   PathSegment,
 } from '../types';
 import { ConditionCache, getDefaultCache } from './ConditionCache';
@@ -27,6 +22,37 @@ import { ConditionCache, getDefaultCache } from './ConditionCache';
 // ============================================================================
 // Lexer
 // ============================================================================
+
+/** The string literal of a STRING token; the lexer gives every STRING token its string. */
+function stringLiteral(token: Token): string {
+  if (typeof token.literal !== 'string') throw new TypeError(`The ${token.type} token holds no string literal`);
+  return token.literal;
+}
+
+/** The number literal of a NUMBER or DOT_DOT token; the lexer gives each of them its number. */
+function numberLiteral(token: Token): number {
+  if (typeof token.literal !== 'number') throw new TypeError(`The ${token.type} token holds no number literal`);
+  return token.literal;
+}
+
+/** The boolean literal of a BOOLEAN token; the lexer gives every BOOLEAN token its boolean. */
+function booleanLiteral(token: Token): boolean {
+  if (typeof token.literal !== 'boolean') throw new TypeError(`The ${token.type} token holds no boolean literal`);
+  return token.literal;
+}
+
+/** The operator of a comparison token. */
+function comparisonOperator(type: TokenType): BinaryNode['operator'] {
+  switch (type) {
+    case TokenType.EQ: return '==';
+    case TokenType.NE: return '!=';
+    case TokenType.GT: return '>';
+    case TokenType.GE: return '>=';
+    case TokenType.LT: return '<';
+    case TokenType.LE: return '<=';
+    default: throw new TypeError(`The ${type} token is no comparison operator`);
+  }
+}
 
 /**
  * Error context information for detailed error reporting
@@ -111,11 +137,11 @@ export class ParseError extends Error {
       case TokenType.EOF:
         return 'end of expression';
       case TokenType.STRING:
-        return `string "${token.literal as string}"`;
+        return `string "${stringLiteral(token)}"`;
       case TokenType.NUMBER:
-        return `number ${token.literal as number}`;
+        return `number ${numberLiteral(token)}`;
       case TokenType.BOOLEAN:
-        return `boolean ${token.literal as boolean}`;
+        return `boolean ${booleanLiteral(token) ? 'true' : 'false'}`;
       case TokenType.NULL:
         return 'null';
       case TokenType.IDENTIFIER:
@@ -123,7 +149,7 @@ export class ParseError extends Error {
       case TokenType.DOT:
         return 'dot (.)';
       case TokenType.DOT_DOT:
-        return `dots (${'.'.repeat(token.literal as number)})`;
+        return `dots (${'.'.repeat(numberLiteral(token))})`;
       case TokenType.ASTERISK:
         return 'wildcard (*)';
       case TokenType.LPAREN:
@@ -631,7 +657,7 @@ export class Parser {
           start: condition.position.start,
           end: falseValue.position.end,
         },
-      } as TernaryNode);
+      });
     }
 
     return condition;
@@ -653,7 +679,7 @@ export class Parser {
           start: left.position.start,
           end: right.position.end,
         },
-      } as BinaryNode);
+      });
       height = this.height;
     }
 
@@ -676,7 +702,7 @@ export class Parser {
           start: left.position.start,
           end: right.position.end,
         },
-      } as BinaryNode);
+      });
       height = this.height;
     }
 
@@ -698,7 +724,7 @@ export class Parser {
           start: startPos,
           end: operand.position.end,
         },
-      } as UnaryNode);
+      });
     }
 
     return this.parseComparison();
@@ -723,7 +749,7 @@ export class Parser {
           start: left.position.start,
           end: lastItem ? lastItem.position.end : left.position.end,
         },
-      } as InNode);
+      });
     }
 
     // Check for comparison operators
@@ -737,7 +763,7 @@ export class Parser {
         TokenType.LE
       )
     ) {
-      const operator = this.previous().value as BinaryNode['operator'];
+      const operator = comparisonOperator(this.previous().type);
       // Parse right side: allows unquoted identifiers as string literals
       const right = this.parseComparisonValue();
       return this.node(Math.max(leftHeight, this.height), {
@@ -749,7 +775,7 @@ export class Parser {
           start: left.position.start,
           end: right.position.end,
         },
-      } as BinaryNode);
+      });
     }
 
     return left;
@@ -800,7 +826,7 @@ export class Parser {
         valueType: 'string',
         value: prev.value,
         position: prev.position,
-      } as LiteralNode;
+      };
     }
 
     // Numbers
@@ -809,9 +835,9 @@ export class Parser {
       return {
         type: 'Literal',
         valueType: 'number',
-        value: prev.literal as number,
+        value: numberLiteral(prev),
         position: prev.position,
-      } as LiteralNode;
+      };
     }
 
     // Strings
@@ -820,9 +846,9 @@ export class Parser {
       return {
         type: 'Literal',
         valueType: 'string',
-        value: prev.literal as string,
+        value: stringLiteral(prev),
         position: prev.position,
-      } as LiteralNode;
+      };
     }
 
     throw new ParseError(
@@ -859,7 +885,7 @@ export class Parser {
           valueType: 'string',
           value: prev.value,
           position: prev.position,
-        } as LiteralNode;
+        };
       }
 
       // Has a dot - this is a path reference, backtrack
@@ -901,7 +927,7 @@ export class Parser {
           start: startPos,
           end: this.previous().position.end,
         },
-      } as GroupNode);
+      });
     }
 
     // A path or a literal is a leaf.
@@ -922,9 +948,9 @@ export class Parser {
       return {
         type: 'Literal',
         valueType: 'string',
-        value: prev.literal as string,
+        value: stringLiteral(prev),
         position: prev.position,
-      } as LiteralNode;
+      };
     }
 
     if (this.match(TokenType.NUMBER)) {
@@ -932,9 +958,9 @@ export class Parser {
       return {
         type: 'Literal',
         valueType: 'number',
-        value: prev.literal as number,
+        value: numberLiteral(prev),
         position: prev.position,
-      } as LiteralNode;
+      };
     }
 
     if (this.match(TokenType.BOOLEAN)) {
@@ -942,9 +968,9 @@ export class Parser {
       return {
         type: 'Literal',
         valueType: 'boolean',
-        value: prev.literal as boolean,
+        value: booleanLiteral(prev),
         position: prev.position,
-      } as LiteralNode;
+      };
     }
 
     if (this.match(TokenType.NULL)) {
@@ -954,7 +980,7 @@ export class Parser {
         valueType: 'null',
         value: null,
         position: prev.position,
-      } as LiteralNode;
+      };
     }
 
     const token = this.peek();
@@ -981,7 +1007,7 @@ export class Parser {
     // Check for relative path prefix
     if (this.match(TokenType.DOT_DOT)) {
       relative = true;
-      levelsUp = (this.previous().literal as number) - 1;
+      levelsUp = numberLiteral(this.previous()) - 1;
     } else if (this.match(TokenType.DOT)) {
       relative = true;
       levelsUp = 0;
@@ -1014,7 +1040,7 @@ export class Parser {
       } else if (this.match(TokenType.NUMBER)) {
         segments.push({
           type: 'index',
-          value: this.previous().literal as number,
+          value: numberLiteral(this.previous()),
         });
       } else if (this.match(TokenType.IDENTIFIER)) {
         segments.push({
@@ -1101,11 +1127,11 @@ export class Parser {
   }
 
   private peek(): Token {
-    return this.tokens[this.current]!;
+    return this.tokens[this.current];
   }
 
   private previous(): Token {
-    return this.tokens[this.current - 1]!;
+    return this.tokens[this.current - 1];
   }
 }
 

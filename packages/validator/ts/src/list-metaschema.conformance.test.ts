@@ -27,6 +27,7 @@ import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import Ajv, { type ValidateFunction } from 'ajv';
 import addFormats from 'ajv-formats';
+import { isRecord } from './record';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -39,15 +40,34 @@ interface ListValidityCase {
   note: string;
   expect: 'ok' | 'fail';
   reason?: string;
-  spec: Record<string, unknown>;
+  spec: unknown;
 }
 
-const schema = JSON.parse(fs.readFileSync(SCHEMA_PATH, 'utf8')) as {
-  $schema: string;
-  $ref: string;
-  definitions: Record<string, unknown>;
-};
-const cases: ListValidityCase[] = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
+/** The cases of the fixture, each checked to hold a name, a note, the meta-schema result and, for a failure, its reason. */
+function readCases(file: string): ListValidityCase[] {
+  const value: unknown = JSON.parse(fs.readFileSync(file, 'utf8'));
+  if (!Array.isArray(value)) throw new TypeError(`${file} holds no list of cases`);
+  return value.map((item: unknown, index): ListValidityCase => {
+    if (!isRecord(item) || typeof item.name !== 'string' || typeof item.note !== 'string'
+      || (item.expect !== 'ok' && item.expect !== 'fail') || (item.reason !== undefined && typeof item.reason !== 'string')) {
+      throw new TypeError(`case ${index} of ${file} has no name, note and expect, or a reason that is no string`);
+    }
+    const { reason } = item;
+    return { name: item.name, note: item.note, expect: item.expect, spec: item.spec, ...(reason === undefined ? {} : { reason }) };
+  });
+}
+
+/** The meta-schema, checked to name its draft and to hold its definitions. */
+function readSchema(file: string): { $schema: string; definitions: Record<string, unknown> } & Record<string, unknown> {
+  const value: unknown = JSON.parse(fs.readFileSync(file, 'utf8'));
+  if (!isRecord(value) || typeof value.$schema !== 'string' || !isRecord(value.definitions)) {
+    throw new TypeError(`${file} holds no schema with $schema and definitions`);
+  }
+  return { ...value, $schema: value.$schema, definitions: value.definitions };
+}
+
+const schema = readSchema(SCHEMA_PATH);
+const cases = readCases(FIXTURE);
 
 /**
  * Compile a root that points at `#/definitions/List` while keeping the shared

@@ -1,6 +1,6 @@
 /** Parse JSON without discarding repeated object members. */
 export function parseJsonDocument(source: string): unknown {
-  const value = JSON.parse(source) as unknown;
+  const value: unknown = JSON.parse(source);
   let position = 0;
   const whitespace = () => {
     while (/\s/.test(source[position] ?? '') && position < source.length) position++;
@@ -11,7 +11,9 @@ export function parseJsonDocument(source: string): unknown {
       if (source[position] === '\\') {
         position += 2;
       } else if (source[position++] === '"') {
-        return JSON.parse(source.slice(start, position)) as string;
+        const text: unknown = JSON.parse(source.slice(start, position));
+        if (typeof text !== 'string') throw new SyntaxError(`No JSON string at ${start}`);
+        return text;
       }
     }
     throw new SyntaxError(`Unterminated JSON string at ${start}`);

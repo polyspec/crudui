@@ -2,7 +2,11 @@ import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const path = resolve(dirname(fileURLToPath(import.meta.url)), '../../../contracts/features.json');
+import Ajv from 'ajv';
+
+const contracts = resolve(dirname(fileURLToPath(import.meta.url)), '../../../contracts');
+const path = resolve(contracts, 'features.json');
+const schemaPath = resolve(contracts, 'features.schema.json');
 
 export interface ContractManifest {
   format: string;
@@ -33,8 +37,17 @@ export interface ContractManifest {
   supportValues: string[];
 }
 
+/** contracts/features.json, checked against contracts/features.schema.json; throws with the errors of ajv when it breaks the schema. */
 export function loadManifest(): ContractManifest {
-  return JSON.parse(readFileSync(path, 'utf8')) as ContractManifest;
+  const schema: unknown = JSON.parse(readFileSync(schemaPath, 'utf8'));
+  if (schema === null || typeof schema !== 'object' || Array.isArray(schema)) throw new Error(`${schemaPath} holds no JSON object`);
+  const validate = new Ajv({ allErrors: true }).compile<ContractManifest>(schema);
+  const manifest: unknown = JSON.parse(readFileSync(path, 'utf8'));
+  if (!validate(manifest)) {
+    const lines = (validate.errors ?? []).map((error) => `${error.instancePath || '/'} ${error.message ?? error.keyword}`);
+    throw new Error(`${path} breaks ${schemaPath}:\n${lines.join('\n')}`);
+  }
+  return manifest;
 }
 
 export function renderManifestMarkdown(manifest = loadManifest()): string {

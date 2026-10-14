@@ -14,8 +14,10 @@ const CONTROL = 'input[name], select[name], textarea[name]';
 export function nodePath(node: HTMLElement): string {
   const path = node.getAttribute('data-field-path');
   if (path !== null) return path;
-  const collection = node.parentElement!.closest<HTMLElement>('[data-field-path]')!;
-  return `${collection.getAttribute('data-field-path')}.${node.getAttribute('data-crudui-row-key')}`;
+  const key = node.getAttribute('data-crudui-row-key');
+  const collection = node.parentElement?.closest<HTMLElement>('[data-field-path]');
+  if (key === null || !collection) throw new TypeError('A node has no data-field-path, and no row key inside a collection');
+  return `${collection.getAttribute('data-field-path')}.${key}`;
 }
 
 /** The nearest node of an element inside the form body, if any. */
@@ -29,11 +31,29 @@ export function nodesByPath(body: HTMLElement): Map<string, HTMLElement> {
   return new Map(Array.from(body.querySelectorAll<HTMLElement>(NODE), (node) => [nodePath(node), node]));
 }
 
+/** Whether an event target is an element, of any window. */
+function isElement(target: EventTarget | null): target is Element {
+  return target !== null && 'matches' in target && typeof target.matches === 'function';
+}
+
+/** Whether an element is an input, select or textarea element with a name attribute. */
+function isNamedControl(element: Element): element is Control {
+  return element.matches(CONTROL);
+}
+
+/** Whether a control is an input element. */
+export function isInput(control: Control): control is HTMLInputElement {
+  return control.tagName === 'INPUT';
+}
+
+/** Whether a control is a select element. */
+export function isSelect(control: Control): control is HTMLSelectElement {
+  return control.tagName === 'SELECT';
+}
+
 /** Whether an element is a named control of the form body. */
 export function isControl(body: HTMLElement, element: EventTarget | null): element is Control {
-  const candidate = element as Element | null;
-  return typeof candidate?.matches === 'function' && candidate.matches(CONTROL) && (candidate as Control).name !== ''
-    && nodeOf(body, candidate) !== undefined;
+  return isElement(element) && isNamedControl(element) && element.name !== '' && nodeOf(body, element) !== undefined;
 }
 
 /**
@@ -43,7 +63,7 @@ export function isControl(body: HTMLElement, element: EventTarget | null): eleme
 export function dataControls(body: HTMLElement): Control[] {
   return Array.from(body.querySelectorAll<Control>(CONTROL))
     .filter((control) => isControl(body, control) && !control.matches(':disabled')
-      && !(control.tagName === 'INPUT' && (control as HTMLInputElement).type === 'file'));
+      && !(isInput(control) && control.type === 'file'));
 }
 
 /** Whether a node contains a file control. */

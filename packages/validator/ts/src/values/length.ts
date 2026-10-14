@@ -6,6 +6,7 @@
  * and fails a length rule.
  */
 
+import { codePointAt } from '../code-point';
 import { canonicalText } from './canonical';
 
 /** Largest length limit: 2^53 - 1. */
@@ -16,7 +17,7 @@ export function codePointLength(value: unknown): number | undefined {
   const text = canonicalText(value);
   if (text === undefined) return undefined;
   let count = 0;
-  for (let index = 0; index < text.length; index += text.codePointAt(index)! > 0xffff ? 2 : 1) count++;
+  for (let index = 0; index < text.length; index += codePointAt(text, index) > 0xffff ? 2 : 1) count++;
   return count;
 }
 

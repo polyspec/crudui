@@ -115,9 +115,14 @@ function isSingleChoice(field: ComposedField): boolean {
  * @throws {FormInputError} for the first value that is not a single value.
  */
 function assertSingleChoiceData(value: unknown, path: string[], repeated: boolean): void {
-  const entries: Array<[string[], unknown]> = repeated
-    ? Object.keys(value as Record<string, unknown>).sort().map((key) => [[...path, key], (value as Record<string, unknown>)[key]])
-    : [[path, value]];
+  let entries: Array<[string[], unknown]>;
+  if (!repeated) {
+    entries = [[path, value]];
+  } else if (isPlainObject(value)) {
+    entries = Object.keys(value).sort().map((key) => [[...path, key], value[key]]);
+  } else {
+    throw new FormInputError(`Repeated data must be a keyed object: ${pathToString(path)}`);
+  }
   for (const [entryPath, entry] of entries) {
     if (entry !== null && typeof entry === 'object') {
       throw new FormInputError(`Choice data must be a single value: ${pathToString(entryPath)}`);
@@ -136,8 +141,8 @@ function normalizeValidateSlot(
   if (slot === false || slot === true || slot === undefined || slot === null) {
     return undefined;
   }
-  if (typeof slot === 'object' && !Array.isArray(slot)) {
-    return slot as Record<string, unknown>;
+  if (isPlainObject(slot)) {
+    return slot;
   }
   return undefined;
 }
@@ -150,14 +155,18 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
 /** Read the per-field custom messages (the field's `messages` map). */
 function fieldMessages(field: ComposedField): MessagesSpec | undefined {
   const m = field.messages;
-  if (m && typeof m === 'object' && !Array.isArray(m)) {
-    return m as MessagesSpec;
+  if (isPlainObject(m)) {
+    return m;
   }
   return undefined;
 }
 
 /** How a declared rule value becomes the rule's effective parameter. */
-type RuleValueForm = 'literal' | 'conditionMap' | 'ternary' | 'expression';
+type RuleValueForm =
+  | { form: 'literal' }
+  | { form: 'conditionMap'; map: Record<string, unknown> }
+  | { form: 'ternary'; text: string }
+  | { form: 'expression'; text: string };
 
 /** Whether a string parses as a complete ternary expression. */
 function isTernary(expression: string): boolean {
@@ -197,24 +206,24 @@ function ruleValueForm(ruleName: string, ruleValue: unknown): RuleValueForm {
     REGEX_PARAM_RULES.includes(ruleName) ||
     MEMBERSHIP_PARAM_RULES.includes(ruleName)
   ) {
-    return 'literal';
+    return { form: 'literal' };
   }
   if (isPlainObject(ruleValue)) {
-    return 'conditionMap';
+    return { form: 'conditionMap', map: ruleValue };
   }
   if (typeof ruleValue === 'string') {
     if (isTernary(ruleValue)) {
-      return 'ternary';
+      return { form: 'ternary', text: ruleValue };
     }
     if (
       isConditionExpression(ruleValue) &&
       !/\?[^:]*:/.test(ruleValue) &&
       isValidExpression(ruleValue)
     ) {
-      return 'expression';
+      return { form: 'expression', text: ruleValue };
     }
   }
-  return 'literal';
+  return { form: 'literal' };
 }
 
 /**
@@ -225,13 +234,14 @@ function ruleValueForm(ruleName: string, ruleValue: unknown): RuleValueForm {
  * selected. A plain condition expression always reads the data.
  */
 function declaredLiterals(ruleName: string, ruleValue: unknown): unknown[] {
-  switch (ruleValueForm(ruleName, ruleValue)) {
+  const resolved = ruleValueForm(ruleName, ruleValue);
+  switch (resolved.form) {
     case 'literal':
       return [ruleValue];
     case 'conditionMap':
-      return Object.values(ruleValue as Record<string, unknown>);
+      return Object.values(resolved.map);
     case 'ternary':
-      return ternaryLiterals(parseCondition(ruleValue as string));
+      return ternaryLiterals(parseCondition(resolved.text));
     case 'expression':
       return [];
   }
@@ -255,7 +265,7 @@ function ternaryLiterals(node: ASTNode): unknown[] {
  * eliminated). `validate` (index) does the compose pass first.
  */
 export class Validator {
-  private readonly properties: Record<string, ComposedField>;
+  private readonly properties: Record<string, unknown>;
   /** The state of the validation in progress. */
   private run: ValidationRun = { uniqueDuplicates: new Map() };
 
@@ -265,10 +275,7 @@ export class Validator {
    */
   constructor(composedSpec: ComposedField) {
     const props = composedSpec.properties;
-    this.properties =
-      props && typeof props === 'object' && !Array.isArray(props)
-        ? (props as Record<string, ComposedField>)
-        : {};
+    this.properties = isPlainObject(props) ? props : {};
   }
 
   /**
@@ -299,7 +306,7 @@ export class Validator {
   }
 
   private collectHidden(
-    properties: Record<string, ComposedField>,
+    properties: Record<string, unknown>,
     data: Record<string, unknown>,
     currentPath: string[],
     rowKeys: number[],
@@ -307,7 +314,7 @@ export class Validator {
     hidden: string[]
   ): void {
     for (const [name, field] of Object.entries(properties)) {
-      if (!field || typeof field !== 'object') {
+      if (!isPlainObject(field)) {
         continue;
       }
       const fieldPath = [...currentPath, name];
@@ -345,11 +352,11 @@ export class Validator {
    * @throws {ComposeLoadError} for the first unknown rule name or parameter outside the definitions.
    */
   private checkDeclaredParameters(
-    properties: Record<string, ComposedField>,
+    properties: Record<string, unknown>,
     declarationPath: string[]
   ): void {
     for (const [propertyKey, field] of Object.entries(properties)) {
-      if (!field || typeof field !== 'object') {
+      if (!isPlainObject(field)) {
         continue;
       }
       const path = [...declarationPath, propertyKey];
@@ -375,7 +382,7 @@ export class Validator {
   // =========================================================================
 
   private validateProperties(
-    properties: Record<string, ComposedField>,
+    properties: Record<string, unknown>,
     data: Record<string, unknown>,
     currentPath: string[],
     rowKeys: number[],
@@ -390,7 +397,7 @@ export class Validator {
       }
     }
     for (const [propertyKey, field] of Object.entries(properties)) {
-      if (!field || typeof field !== 'object') {
+      if (!isPlainObject(field)) {
         continue;
       }
       const fieldName = propertyKey;
@@ -421,7 +428,7 @@ export class Validator {
           // Keyed rows use sorted-key traversal so the first reported error
           // is identical in every validation implementation. Row keys stay in paths.
           // Missing data is an empty collection: no rows, collection rules still run.
-          const rows = present ? (fieldValue as Record<string, unknown>) : {};
+          const rows = present && isPlainObject(fieldValue) ? fieldValue : {};
           for (const key of Object.keys(rows).sort()) {
             const row = rows[key];
             if (!isPlainObject(row)) {
@@ -442,7 +449,7 @@ export class Validator {
           }
           this.validateProperties(
             childProps,
-            present ? (fieldValue as Record<string, unknown>) : {},
+            present && isPlainObject(fieldValue) ? fieldValue : {},
             fieldPath,
             rowKeys,
             fieldDeclaration,
@@ -461,7 +468,7 @@ export class Validator {
         // on each row value. Missing data is an empty collection without rows.
         this.validateMultipleFieldRules(
           field,
-          fieldValue as Record<string, unknown> | undefined,
+          present && isPlainObject(fieldValue) ? fieldValue : undefined,
           fieldPath,
           rowKeys,
           fieldDeclaration,
@@ -496,10 +503,10 @@ export class Validator {
   /** The child field map of a group (composed, plain object), or undefined. */
   private childProperties(
     field: ComposedField
-  ): Record<string, ComposedField> | undefined {
+  ): Record<string, unknown> | undefined {
     const props = field.properties;
-    if (props && typeof props === 'object' && !Array.isArray(props)) {
-      return props as Record<string, ComposedField>;
+    if (isPlainObject(props)) {
+      return props;
     }
     return undefined;
   }
@@ -702,7 +709,7 @@ export class Validator {
     // A value taken from the data is checked when it is selected, before the
     // empty-value skip. Declared literals already passed at load, so checking
     // every resolved conditional value adds no other failure.
-    if (ruleValueForm(ruleName, ruleValue) !== 'literal') {
+    if (ruleValueForm(ruleName, ruleValue).form !== 'literal') {
       assertRuleParameter(ruleName, effectiveParam, declarationPath);
     }
 
@@ -716,9 +723,8 @@ export class Validator {
       path: pathToString(context.currentPath),
       field: getFieldName(context.currentPath),
       value,
-      allData: context.formData as Record<string, unknown>,
-      // The rule reads `spec.type`/`spec.messages` only; pass the CRUDUI field as-is.
-      spec: field as { type: string },
+      allData: context.formData,
+      spec: field,
       pathSegments: context.currentPath,
       rowKeys: context.rowKeys ?? [],
       ruleParam: effectiveParam,
@@ -748,13 +754,14 @@ export class Validator {
     ruleValue: unknown,
     context: PathContext
   ): unknown {
-    switch (ruleValueForm(ruleName, ruleValue)) {
+    const resolved = ruleValueForm(ruleName, ruleValue);
+    switch (resolved.form) {
       case 'conditionMap':
-        return this.resolveConditionMap(ruleValue as Record<string, unknown>, context);
+        return this.resolveConditionMap(resolved.map, context);
       case 'ternary':
-        return this.evaluateTernary(ruleValue as string, context);
+        return this.evaluateTernary(resolved.text, context);
       case 'expression':
-        return this.evaluateExpressionValue(ruleValue as string, context);
+        return this.evaluateExpressionValue(resolved.text, context);
       case 'literal':
         return ruleValue;
     }

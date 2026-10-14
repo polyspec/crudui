@@ -27,18 +27,19 @@ export interface FormBinding {
 
 const OPTIONS = new Set(['keyPrefix', 'message', 'formErrors']);
 
-function checkedOptions(options: unknown): FormBindingOptions {
+/** The options of `bindForm`, checked for a caller without types. */
+function checkedOptions(options: FormBindingOptions): FormBindingOptions {
   if (typeof options !== 'object' || options === null || Array.isArray(options)) {
     throw new TypeError('Binding options must be an object');
   }
   for (const name of Object.keys(options)) {
     if (!OPTIONS.has(name)) throw new TypeError(`Unknown binding option: ${name}`);
   }
-  const { keyPrefix, message, formErrors } = options as Record<string, unknown>;
+  const { keyPrefix, message, formErrors } = options;
   if (keyPrefix !== undefined && typeof keyPrefix !== 'string') throw new TypeError('keyPrefix must be a string');
   if (message !== undefined && typeof message !== 'function') throw new TypeError('message must be a function');
   if (formErrors !== undefined && typeof formErrors !== 'function') throw new TypeError('formErrors must be a function');
-  return options as FormBindingOptions;
+  return options;
 }
 
 /**
@@ -58,7 +59,8 @@ export function bindForm(form: HTMLFormElement, spec: Record<string, unknown>, o
   }
   const { keyPrefix, message, formErrors } = checkedOptions(options);
   const body = formBody(form);
-  const view = form.ownerDocument.defaultView!;
+  const view = form.ownerDocument.defaultView;
+  if (view === null) throw new TypeError('bindForm requires a form of a document with a window');
   // Nodes changed by the user and not yet validated, and nodes validated since binding, by path.
   const changed = new Set<string>();
   const validated = new Set<string>();
@@ -74,15 +76,15 @@ export function bindForm(form: HTMLFormElement, spec: Record<string, unknown>, o
   const run = (all: boolean): { result: ValidationResult; failing: HTMLElement[] } => {
     const nodes = nodesByPath(body);
     const raw = validate(spec, collectData(body, keyPrefix));
-    const errors = raw.errors.filter((error) => {
+    const located = raw.errors.flatMap((error) => {
       const node = nodes.get(error.path);
       if (!node) throw new FormInputError(`Unknown error path: ${error.path}`);
-      return !containsFile(node);
+      return containsFile(node) ? [] : [{ error, node }];
     });
+    const errors = located.map(({ error }) => error);
     const result: ValidationResult = errors.length === raw.errors.length ? raw : { valid: errors.length === 0, errors, hidden: raw.hidden };
     const messages = new Map<HTMLElement, string[]>();
-    for (const error of errors) {
-      const node = nodes.get(error.path)!;
+    for (const { error, node } of located) {
       messages.set(node, [...(messages.get(node) ?? []), text(error)]);
     }
     const formTexts = all && formErrors ? formErrors(result) : [];
@@ -115,7 +117,7 @@ export function bindForm(form: HTMLFormElement, spec: Record<string, unknown>, o
     const hidden = new Set(hiddenPaths(spec, collectData(body, keyPrefix)));
     const controls = dataControls(body);
     for (const node of body.querySelectorAll<HTMLElement>('[data-field-path]')) {
-      const hide = hidden.has(node.getAttribute('data-field-path')!);
+      const hide = hidden.has(nodePath(node));
       if (hide === node.hidden) continue;
       node.hidden = hide;
       if (!hide) continue;
@@ -128,8 +130,10 @@ export function bindForm(form: HTMLFormElement, spec: Record<string, unknown>, o
     }
   };
 
-  const pathOf = (target: EventTarget | null): string | undefined =>
-    isControl(body, target) ? nodePath(nodeOf(body, target)!) : undefined;
+  const pathOf = (target: EventTarget | null): string | undefined => {
+    const node = isControl(body, target) ? nodeOf(body, target) : undefined;
+    return node && nodePath(node);
+  };
 
   const onChange = (event: Event) => {
     const path = pathOf(event.target);
@@ -153,7 +157,7 @@ export function bindForm(form: HTMLFormElement, spec: Record<string, unknown>, o
       .find((candidate) => !candidate.matches(':disabled') && !candidate.closest('[hidden]')
         && failing.some((node) => node.contains(candidate)));
     if (!target) return;
-    target.focus({ preventScroll: true, focusVisible: true } as FocusOptions);
+    target.focus({ preventScroll: true, focusVisible: true });
     // A document without layout (jsdom) has no scrollIntoView.
     target.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
   };

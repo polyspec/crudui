@@ -54,8 +54,8 @@ function choiceValues(list: readonly unknown[]): Member[] | undefined {
     if (!isObject(item) || Object.keys(item).length !== 2 || !hasMember(item, 'value') || !hasMember(item, 'label')) return false;
     const value = item.value;
     if (typeof value !== 'string' && !(typeof value === 'number' && Number.isFinite(value))) return false;
-    const text = canonicalText(value) as string;
-    if (seen.has(text)) return false;
+    const text = canonicalText(value);
+    if (text === undefined || seen.has(text)) return false;
     seen.add(text);
     values.push(value);
     return true;
@@ -93,11 +93,14 @@ export function readMembers(param: unknown): MembersResult {
   } else {
     return { error: MEMBERSHIP_ERRORS.shape };
   }
+  const checked: Member[] = [];
   for (const member of members) {
     if (!isMemberType(member)) return { error: MEMBERSHIP_ERRORS.type };
-    if (trim(canonicalText(member) as string) === '') return { error: MEMBERSHIP_ERRORS.empty };
+    const text = canonicalText(member);
+    if (text === undefined || trim(text) === '') return { error: MEMBERSHIP_ERRORS.empty };
+    checked.push(member);
   }
-  return { members: members as Member[] };
+  return { members: checked };
 }
 
 /** Whether one scalar value matches one member. */

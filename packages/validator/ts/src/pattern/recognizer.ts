@@ -7,6 +7,7 @@
  * with the reason and code-point offset the specification assigns to it.
  */
 
+import { codePointAt } from '../code-point';
 import type { Alternation, Atom, ClassMember, CodePoint, Property, Quantifier, Shorthand, Term } from './ast';
 import { PatternSyntaxError } from './errors';
 import { isGeneralCategory, isScript } from './sets';
@@ -25,7 +26,7 @@ export interface RecognizedPattern {
   body: Alternation;
 }
 
-const cp = (char: string): number => char.codePointAt(0)!;
+const cp = (char: string): number => codePointAt(char, 0);
 
 /** Characters a `\` escape turns into themselves. */
 const SYNTAX_ESCAPES = new Set(Array.from('^$\\.*+?()[]{}|/-', cp));
@@ -241,8 +242,8 @@ class Recognizer {
   private bound(quantifierStart: number): number {
     const digitsStart = this.position;
     let value = 0;
-    while (isDigit(this.peek())) {
-      value = Math.min(value * 10 + (this.peek()! - 0x30), QUANTIFIER_LIMIT + 1);
+    for (let digit = this.peek(); isDigit(digit); digit = this.peek()) {
+      value = Math.min(value * 10 + (digit - 0x30), QUANTIFIER_LIMIT + 1);
       this.position++;
     }
     if (this.position === digitsStart || value > QUANTIFIER_LIMIT) {
@@ -275,8 +276,10 @@ class Recognizer {
       return { kind: 'shorthand', ...shorthand };
     }
     if (kind === cp('x')) {
-      if (!isHex(this.peek(2)) || !isHex(this.peek(3))) throw new PatternSyntaxError('invalid escape', start);
-      const value = parseInt(String.fromCodePoint(this.peek(2)!, this.peek(3)!), 16);
+      const high = this.peek(2);
+      const low = this.peek(3);
+      if (!isHex(high) || !isHex(low)) throw new PatternSyntaxError('invalid escape', start);
+      const value = parseInt(String.fromCodePoint(high, low), 16);
       this.position += 4;
       return { kind: 'char', value };
     }
@@ -290,8 +293,8 @@ class Recognizer {
     if (this.peek(2) !== OPEN_BRACE) throw new PatternSyntaxError('invalid escape', start);
     let index = 3;
     let digits = '';
-    while (isHex(this.peek(index))) {
-      digits += String.fromCodePoint(this.peek(index)!);
+    for (let digit = this.peek(index); isHex(digit); digit = this.peek(index)) {
+      digits += String.fromCodePoint(digit);
       index++;
     }
     if (digits.length < 1 || digits.length > 6 || this.peek(index) !== CLOSE_BRACE) {
@@ -363,8 +366,8 @@ class Recognizer {
    * `\` are never literals; `-` is a literal only at a boundary of the class.
    */
   private classAtom(classStart: number, first: boolean): Escape {
-    const char = this.peek()!;
-    if (char === OPEN_CLASS) throw new PatternSyntaxError('invalid class', classStart);
+    const char = this.peek();
+    if (char === undefined || char === OPEN_CLASS) throw new PatternSyntaxError('invalid class', classStart);
     if (char === BACKSLASH) return this.escape(classStart);
     if (char === DASH) {
       const next = this.peek(1);

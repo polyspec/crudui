@@ -17,6 +17,7 @@
  * rule registry are reused as-is. Nothing here re-implements them.
  */
 
+import { isRecord } from '../record';
 import {
   composeSpec,
   composeProperties,
@@ -83,11 +84,11 @@ export function validate(
 export function hiddenPaths(spec: Record<string, unknown>, data: unknown): string[] {
   const checked = checkedComposition(spec, {});
   checkInputText([['data', data]]);
-  if (data === null || typeof data !== 'object' || Array.isArray(data)) {
+  if (!isRecord(data)) {
     throw new FormInputError('Form data must be an object');
   }
   return new Validator({ type: 'group', properties: composedProperties(spec, checked, {}) })
-    .hiddenPaths(data as Record<string, unknown>);
+    .hiddenPaths(data);
 }
 
 /** The composed `properties` of a root specification or a properties composition entry, scanned for forbidden keys. */
@@ -111,16 +112,17 @@ function composedProperties(
   //       `properties` — compose it AS a properties map directly. A top-level
   //       `$ref` flattens the base file's `properties` into this map.
   // Pass 2/3 (§3 + §2 G1): traverse + evaluate the validate slot.
-  const hasOwnProperties =
-    spec.properties !== null &&
-    typeof spec.properties === 'object' &&
-    !Array.isArray(spec.properties);
+  const hasOwnProperties = isRecord(spec.properties);
   const isCompositionEntry = '$ref' in spec || '$patch' in spec;
 
-  const properties: Record<string, unknown> =
-    isCompositionEntry && !hasOwnProperties
-      ? composeProperties(spec, loader, opts)
-      : (composeSpec(spec, loader, opts).properties as Record<string, unknown>) ?? {};
+  let properties: Record<string, unknown>;
+  if (isCompositionEntry && !hasOwnProperties) {
+    properties = composeProperties(spec, loader, opts);
+  } else {
+    const composed = composeSpec(spec, loader, opts).properties;
+    // A root whose composed `properties` is no object has no fields.
+    properties = isRecord(composed) ? composed : {};
+  }
 
   // Load-path forbidden-scan (SPEC §6): walk the composed single spec to
   // arbitrary depth and reject any forbidden meta key BEFORE validation entry.
@@ -129,7 +131,7 @@ function composedProperties(
   scanForbiddenKeys(properties, ['properties']);
   // The form root declarations are scanned like the fields they sit beside.
   for (const key of ['buttons', 'action']) {
-    if (key in spec) scanForbiddenKeys((spec as Record<string, unknown>)[key], [key]);
+    if (key in spec) scanForbiddenKeys(spec[key], [key]);
   }
 
   return properties;

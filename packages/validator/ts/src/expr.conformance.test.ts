@@ -21,6 +21,7 @@ import {
   evaluateExpressionValue,
 } from './parser/PathResolver';
 import type { ASTNode, Token, PathContext } from './types';
+import { isRecord } from './record';
 import { provesConformance } from '../../../../tests/conformance/evidence.mts';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -41,8 +42,8 @@ interface FixtureCase {
 interface FixtureSpec {
   name: string;
   expr: string;
-  tokens: Array<Record<string, unknown>>;
-  ast: Record<string, unknown>;
+  tokens: unknown;
+  ast: unknown;
   cases: FixtureCase[];
 }
 /** An expression the parser rejects, with the first line of its message. */
@@ -52,14 +53,56 @@ interface RejectedSpec {
   error: string;
 }
 
-const specs: Array<FixtureSpec | RejectedSpec> = JSON.parse(fs.readFileSync(FIXTURE, 'utf8'));
+const isStrings = (value: unknown): value is string[] =>
+  Array.isArray(value) && value.every((item: unknown) => typeof item === 'string');
+const isNumbers = (value: unknown): value is number[] =>
+  Array.isArray(value) && value.every((item: unknown) => typeof item === 'number');
+
+/** An evaluation case of an entry, checked to hold data, a truthiness and, when present, a current path and row keys. */
+function fixtureCase(item: unknown, at: string): FixtureCase {
+  if (!isRecord(item) || !isRecord(item.data) || typeof item.truthy !== 'boolean') {
+    throw new TypeError(`${at}: no data and truthiness`);
+  }
+  const { currentPath, rowKeys } = item;
+  if (currentPath !== undefined && !isStrings(currentPath)) throw new TypeError(`${at}: the current path is no list of strings`);
+  if (rowKeys !== undefined && !isNumbers(rowKeys)) throw new TypeError(`${at}: the row keys are no list of numbers`);
+  return {
+    data: item.data, value: item.value, truthy: item.truthy,
+    ...(currentPath === undefined ? {} : { currentPath }),
+    ...(rowKeys === undefined ? {} : { rowKeys }),
+  };
+}
+
+/** The entries of the fixture: an expression with its tokens, AST and cases, or an expression the parser rejects. */
+function readSpecs(file: string): Array<FixtureSpec | RejectedSpec> {
+  const value: unknown = JSON.parse(fs.readFileSync(file, 'utf8'));
+  if (!Array.isArray(value)) throw new TypeError(`${file} holds no list of entries`);
+  return value.map((item: unknown, index): FixtureSpec | RejectedSpec => {
+    const at = `entry ${index} of ${file}`;
+    if (!isRecord(item) || typeof item.name !== 'string' || typeof item.expr !== 'string') {
+      throw new TypeError(`${at}: no name and expression`);
+    }
+    if ('error' in item) {
+      if (typeof item.error !== 'string') throw new TypeError(`${at}: the error is no string`);
+      return { name: item.name, expr: item.expr, error: item.error };
+    }
+    const cases: unknown = item.cases;
+    if (!Array.isArray(cases)) throw new TypeError(`${at}: no list of cases`);
+    return {
+      name: item.name, expr: item.expr, tokens: item.tokens, ast: item.ast,
+      cases: cases.map((c: unknown, i) => fixtureCase(c, `case ${i} of ${at}`)),
+    };
+  });
+}
+
+const specs = readSpecs(FIXTURE);
 
 function parseFailure(expr: string): string | null {
   try {
     parseCondition(expr);
     return null;
   } catch (error) {
-    return error instanceof ParseError ? error.message.split('\n')[0]! : String(error);
+    return error instanceof ParseError ? error.message.split('\n')[0] : String(error);
   }
 }
 
@@ -103,7 +146,7 @@ function astToFixture(node: ASTNode): unknown {
     case 'Literal':
       return stripPos(node);
     default:
-      return stripPos(node as unknown as Record<string, unknown>);
+      return stripPos(node);
   }
 }
 
@@ -115,8 +158,8 @@ function canon(v: unknown): unknown {
   if (Array.isArray(v)) return v.map(canon);
   if (v && typeof v === 'object') {
     const out: Record<string, unknown> = {};
-    for (const k of Object.keys(v as Record<string, unknown>).sort()) {
-      out[k] = canon((v as Record<string, unknown>)[k]);
+    for (const k of Object.keys(v).sort()) {
+      out[k] = canon(Reflect.get(v, k));
     }
     return out;
   }
