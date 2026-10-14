@@ -61,18 +61,19 @@ function isObject(v: unknown): v is Record<string, unknown> {
 }
 
 /**
- * Validate a CRUDUI list-spec STRUCTURE. The spec's `columns` map (and a `{ $ref,
- * $patch }` `search` overlay) may carry composition; it is expanded first via the
+ * Validate a CRUDUI list-spec STRUCTURE. The spec's `columns` map (and a
+ * `{ $ref, $patch }` `search` overlay) may carry composition; it is expanded first via the
  * compose pass — the SAME engine form-spec uses. An unresolved composition throws
  * `ComposeLoadError` (caller distinguishes a LOAD failure from `valid:false`). A
  * forbidden meta key anywhere in the composed list tree is likewise a LOAD
  * failure. NO rows/data are validated (SPEC §9: rows are injected).
  *
- * @param spec a CRUDUI list root spec (`{ columns, search?, sort?, pagination?,
- *   actions?, empty?, design?, $ref?, $patch? }`; columns may use composition).
- * @param options compose loader / file set / basepath.
+ * @param spec - a CRUDUI list root spec
+ *   (`{ columns, search?, sort?, pagination?, actions?, empty?, design?, $ref?, $patch? }`;
+ *   columns may use composition).
+ * @param options - compose loader / file set / basepath.
  * @returns `{ valid: true, errors: [] }` when the structure loads cleanly.
- * @throws {ComposeLoadError} when composition cannot be resolved OR a forbidden
+ * @throws {@link ComposeLoadError} when composition cannot be resolved OR a forbidden
  *   meta key survives into the composed list tree.
  */
 export function validateList(

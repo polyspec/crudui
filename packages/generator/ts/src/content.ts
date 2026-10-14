@@ -19,7 +19,7 @@ export type LocalizedText = string | Record<string, string>;
  * non-empty string entry for `language`, then `en`, then `ko`, then its first key; any other
  * value (a number, a boolean, an array or a map without such an entry) is the fallback.
  */
-export function makeTranslate(language: Language) {
+export function makeTranslate(language: Language): Translate {
   return function t(text: LocalizedText | undefined | null, fallback = ''): string {
     if (typeof text === 'string') return text;
     if (text === null || typeof text !== 'object' || Array.isArray(text)) return fallback;
@@ -32,5 +32,5 @@ export function makeTranslate(language: Language) {
   };
 }
 
-/** Resolve content for the selected language. */
-export type Translate = ReturnType<typeof makeTranslate>;
+/** Resolve content for the selected language: the text of the language, else English, Korean or the first entry, else `fallback`. */
+export type Translate = (text: LocalizedText | undefined | null, fallback?: string) => string;

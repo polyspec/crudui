@@ -129,7 +129,7 @@ export function optionSections(options: readonly OptionModel[]): OptionSection[]
   return sections;
 }
 
-/** data-source-* descriptor for a dynamic {model} items stub. */
+/** data-source-* descriptor for a dynamic `{model}` items stub. */
 export type SourceAttrs = Attrs;
 
 /**

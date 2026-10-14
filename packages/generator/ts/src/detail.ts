@@ -6,6 +6,7 @@ import { buildDisplay, type ActionVM, type BuildListOptions, type CellVM } from 
 import { checkArgumentText, DISPLAY_OPTIONS } from './input-text';
 import type { ResolvedDesign } from './design';
 
+/** One field of a detail view model: a list cell with its key and its translated label. */
 export interface DetailFieldVM extends CellVM {
   /** Stable field key from the detail declaration. */
   key: string;

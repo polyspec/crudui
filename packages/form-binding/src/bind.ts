@@ -50,7 +50,7 @@ function checkedOptions(options: unknown): FormBindingOptions {
  * @param form - The parsed `form` element that holds one complete form.
  * @param spec - The specification the server validates the form with, its composition resolved.
  * @param options - Key prefix and texts.
- * @throws {TypeError} for a value outside the contract, in the documented order.
+ * @throws TypeError for a value outside the contract, in the documented order.
  */
 export function bindForm(form: HTMLFormElement, spec: Record<string, unknown>, options: FormBindingOptions = {}): FormBinding {
   if (typeof form !== 'object' || form === null || (form as Element).tagName !== 'FORM') {

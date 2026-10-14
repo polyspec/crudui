@@ -5,6 +5,7 @@
 
 ### 2026-10-15 — Svelte component exports (C14.12)
 
+- `@polyspec/crudui-generator-core` exports the types `Translate` and `SourceAttrs`, which its public types `NodeVM` and `WidgetModel` already named, and documents `DetailFieldVM`; the TSDoc of the validator and the form binding parses as TSDoc (C14.12).
 - `@polyspec/crudui-generator-svelte` exports each component as a documented Svelte 5 `Component<XProps>` and its props type `XProps` by name (`FormProps`, `ListProps`, `DetailProps`, `NodeProps`, `ControlsProps`, `WidgetProps`, `OutlineProps`, `OutlineViewProps`, `DataViewProps`, `DataPanelProps`). The type alias of the Svelte 4 instance, `type X = ReturnType<typeof X>`, which svelte-package wrote undocumented for each component, is no longer exported; the type of an instance is `ReturnType<typeof X>` (C14.12).
 
 ### 2026-10-15 — kit 0.0.44 (C14.13)
