@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: f49732af247b845395ef299d994ef43bc9121f1fb4f0391183e6996829e7a8dd -->
+<!-- source-sha256: 23dcc243fb1235edbe32ced258072c5bc3bf858733be0f257c2b3c6099f9f58b -->
 
 ## Unreleased
+
+### 2026-10-15 — kit 0.0.47 (C14.35)
+
+- crudui는 `@polyspec/kit` 0.0.47을 pin한다. 그 oxlint는 non-null assertion을 실패시키고 type-aware rule을 TypeScript 파일에만 적용한다(kit K156, K170). Svelte 도구는 `@sveltejs/package` 3.0.1을 받는다(C14.35).
 
 ### 2026-10-15 — OrderedJSON 0.0.9 (C14.34)
 

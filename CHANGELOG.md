@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-15 — kit 0.0.47 (C14.35)
+
+- crudui pins `@polyspec/kit` 0.0.47, whose oxlint fails a non-null assertion and applies its type-aware rules to TypeScript files only (kit K156, K170); the Svelte tools take `@sveltejs/package` 3.0.1 (C14.35).
+
 ### 2026-10-15 — OrderedJSON 0.0.9 (C14.34)
 
 - The form comparison reads and writes JSON with OrderedJSON 0.0.9 in every language: the Composer package from the release zip `polyspec-ordered-json-php-0.0.9.zip`, the Go module `github.com/polyspec/ordered-json/packages/go` v0.0.9, the Rust crate of the tag `v0.0.9`, and the npm package and PHP extension of the checkout of `v0.0.9`, whose packages lie in `packages/` (C14.34).
