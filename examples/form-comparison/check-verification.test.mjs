@@ -114,7 +114,7 @@ const prepared = {
 test('verifies the local stack in stages, against the origin of its public server', () => {
   const stages = verificationStages({ origin: stackOrigin, results: '/run/results', data: '/run/data', prepared, library: '/checkout' });
   assert.deepEqual(stages.map(stage => stage.map(step => step.id)), [
-    ['php-modes'], ['generation'], ['persistence'], ['pipeline'],
+    ['php-modes'], ['php-ext-mode'], ['generation'], ['persistence'], ['pipeline'],
     ['browser-php', 'browser-php-ext', 'browser-go', 'browser-rust'],
     ['browser-summary'], ['typing'],
   ]);
@@ -128,6 +128,14 @@ test('verifies the local stack in stages, against the origin of its public serve
   assert.deepEqual(byId['php-modes'].args.slice(1), ['phpunit', '--cwd', 'examples/form-comparison/servers/php']);
   assert.deepEqual(byId['php-modes'].environment, {
     FORM_PHP_SERVER: 'php', FORM_ORDERED_JSON_MODULE: prepared.orderedJsonModule, FORM_CRUDUI_MODULE: prepared.cruduiModule,
+    COMPOSER_VENDOR_DIR: '../../../../vendor',
+  });
+  // The php-ext leg loads the ordered_json and crudui modules into the PHP of PHPUnit and leaves out the php-only group.
+  assert.deepEqual(byId['php-ext-mode'].args.slice(1), ['phpunit',
+    '--php-extension', prepared.orderedJsonModule, '--php-extension', prepared.cruduiModule,
+    '--cwd', 'examples/form-comparison/servers/php', '--', '--exclude-group', 'php']);
+  assert.deepEqual(byId['php-ext-mode'].environment, {
+    FORM_PHP_SERVER: 'php-ext', FORM_ORDERED_JSON_MODULE: prepared.orderedJsonModule, FORM_CRUDUI_MODULE: prepared.cruduiModule,
     COMPOSER_VENDOR_DIR: '../../../../vendor',
   });
   assert.deepEqual(byId.generation.args, ['check-generation.mjs', '--url', stackOrigin,
@@ -154,7 +162,7 @@ test('splits the verification into the browser checks of selected servers and ev
   assert.deepEqual(browser[0][0], full.find(step => step.id === 'browser-php'));
   const rest = verificationStages({ ...options, browserReports: true });
   assert.deepEqual(rest.map(stage => stage.map(step => step.id)), [
-    ['php-modes'], ['generation'], ['persistence'], ['pipeline'], ['browser-summary'], ['typing'],
+    ['php-modes'], ['php-ext-mode'], ['generation'], ['persistence'], ['pipeline'], ['browser-summary'], ['typing'],
   ]);
   // The four browser jobs and the summary together run every check of the full run, each once, unchanged.
   const parts = [...formServerIds().flatMap(server => verificationStages({ ...options, servers: [server] }).flat()), ...rest.flat()];

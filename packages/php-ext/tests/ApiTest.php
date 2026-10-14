@@ -7,7 +7,7 @@ namespace Polyspec\Crudui\Extension\Tests;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Polyspec\Crudui\Conformance\Evidence;
-use Polyspec\Crudui\TestSupport\PhpProcess;
+use Polyspec\CruduiTestSupport\PhpProcess;
 use Polyspec\Crudui\Validator\Support\JsonText;
 use RuntimeException;
 use stdClass;

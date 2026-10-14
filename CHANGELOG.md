@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-15 — The php-ext leg of the form comparison suite (C14.33)
+
+- The local verification of the form comparison runs the PHPUnit suite of the PHP server in the php-ext mode too, with both extension modules loaded through the repeatable `--php-extension` of kit (K165) and without the group `php`; the test helper `PhpProcess` moves to the namespace `Polyspec\CruduiTestSupport\`, outside the classes that a php-ext run requires internal (C14.33).
+
 ### 2026-10-15 — kit 0.0.46 (C14.32)
 
 - crudui pins `@polyspec/kit` 0.0.46. kit allows the root `composer.json` and `composer.lock` of a Composer monorepo in its layout, so `config/layout.yml` no longer names them (K167).

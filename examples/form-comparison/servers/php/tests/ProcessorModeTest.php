@@ -7,7 +7,7 @@ namespace Polyspec\Crudui\FormComparison\Tests;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
-use Polyspec\Crudui\TestSupport\PhpProcess;
+use Polyspec\CruduiTestSupport\PhpProcess;
 use Polyspec\Crudui\FormComparison\FormGeneration;
 use Polyspec\Crudui\FormComparison\ServerMode;
 use Polyspec\Crudui\Validator\Support\JsonText;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Polyspec\Crudui\TestSupport;
+namespace Polyspec\CruduiTestSupport;
 
 use RuntimeException;
 
@@ -10,6 +10,8 @@ use RuntimeException;
  * One child PHP process of a test: `php -n` with the extension modules a test names and one script, by default after
  * the mbstring and dom extensions that the binary builds as shared modules and the Composer autoloader of the checkout.
  * The PHP tests of the form comparison and of the PHP extension start their processes with it.
+ * Its namespace lies outside Polyspec\Crudui\: a php-ext run of the form comparison requires every class under that
+ * namespace but its own to be internal to the crudui extension, and the PHPUnit process of that run loads this class.
  */
 final class PhpProcess
 {

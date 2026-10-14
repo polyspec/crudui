@@ -1,6 +1,6 @@
 # 폼 검증
 <!-- doc-id: docs-spec-form-comparison -->
-<!-- source-sha256: 2ff4cb9377ccc88cbd902bc00c16da69081444febb655a516880bd473bd75b61 -->
+<!-- source-sha256: 55d59cdaf3cba86450fea7ef45ac0320b5600297e97a065826794e24a041239f -->
 
 [English](form-comparison.md).
 
@@ -562,15 +562,16 @@ PHP-FPM은 `enable_post_data_reading=0`으로 실행하므로 PHP 서버는 다�
 실행하며 실패한 단계가 있는 첫 단계에서 멈춥니다.
 
 1. php 모드의 PHP 서버(`servers/php`) PHPUnit suite. 그 group `modules`는 이 실행이 빌드한 `crudui.so`와
-   `ordered_json.so`를 로드하는 child process에서 처리 모드를 실행합니다. 두 모듈을 자기 process에 로드하는
-   php-ext 모드의 같은 suite는 kit run-tests의 반복 가능한 `--php-extension`(K165)과 함께 이어집니다
-2. 공개 서버를 거쳐 네이티브 서버 네 개를 대상으로 하는 생성 검사(`check-generation.mjs`)
-3. 네이티브 서버 네 개를 대상으로 구성의 데이터 디렉터리 파일을 읽는 저장 검사(`check-servers.mjs`)
-4. 구성 페이지의 40개 조합 정본 흐름 검사(`check-pipeline.mjs`, 단위마다 자기 제한 시간)
-5. PHP, PHP 확장, Go, Rust 브라우저 검증 네 개를 동시에(`check.mjs`와 `check-interaction.mjs`의
+   `ordered_json.so`를 로드하는 child process에서 처리 모드를 실행합니다
+2. php-ext 모드의 같은 suite. 그 PHP는 kit run-tests의 반복 가능한 `--php-extension`(K165)으로 이 실행의
+   두 모듈을 로드하며, PHP 라이브러리를 구성하는 group `php`는 빼고 실행합니다
+3. 공개 서버를 거쳐 네이티브 서버 네 개를 대상으로 하는 생성 검사(`check-generation.mjs`)
+4. 네이티브 서버 네 개를 대상으로 구성의 데이터 디렉터리 파일을 읽는 저장 검사(`check-servers.mjs`)
+5. 구성 페이지의 40개 조합 정본 흐름 검사(`check-pipeline.mjs`, 단위마다 자기 제한 시간)
+6. PHP, PHP 확장, Go, Rust 브라우저 검증 네 개를 동시에(`check.mjs`와 `check-interaction.mjs`의
    상호작용 검사, 단위마다 자기 제한 시간)
-6. 이번 실행의 브라우저 보고서 네 개를 집계(`check-browser-reports.mjs`)
-7. 모든 프레임워크와 렌더링 경로의 키 간격 0, 10, 50밀리초 입력 검사(`check-typing.mjs`). 프레임의 PHP
+7. 이번 실행의 브라우저 보고서 네 개를 집계(`check-browser-reports.mjs`)
+8. 모든 프레임워크와 렌더링 경로의 키 간격 0, 10, 50밀리초 입력 검사(`check-typing.mjs`). 프레임의 PHP
    레코드를 수정하므로 브라우저 검사 뒤에 실행합니다.
 
 각 단계의 step은 시간 한도 없이 끝까지 실행하며 진행을 출력합니다. 브라우저 검사 네 개를 동시에

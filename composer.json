@@ -26,7 +26,7 @@
             "Polyspec\\Crudui\\Conformance\\": "tests/conformance/php/",
             "Polyspec\\Crudui\\Docs\\": "tests/docs/php/",
             "Polyspec\\Crudui\\FormComparison\\Tests\\": "examples/form-comparison/servers/php/tests/",
-            "Polyspec\\Crudui\\TestSupport\\": "tests/php/",
+            "Polyspec\\CruduiTestSupport\\": "tests/php/",
             "Polyspec\\Crudui\\Extension\\Tests\\": "packages/php-ext/tests/"
         }
     },

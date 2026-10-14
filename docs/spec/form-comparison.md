@@ -639,18 +639,19 @@ identity in `source.json` of its results directory and runs these stages in orde
 first stage with a failed step:
 
 1. the PHPUnit suite of the PHP server (`servers/php`) in the php mode, whose group `modules` runs the
-   processor modes in child processes that load the `crudui.so` and `ordered_json.so` of this run; the
-   same suite in the php-ext mode, which loads both modules in its own process, follows with the
-   repeatable `--php-extension` of the run-tests of kit (K165);
-2. generation against the four native servers through the public server (`check-generation.mjs`);
-3. persistence against the four native servers, reading their files in the stack's data directory
+   processor modes in child processes that load the `crudui.so` and `ordered_json.so` of this run;
+2. the same suite in the php-ext mode, whose PHP loads both modules of this run through the repeatable
+   `--php-extension` of the run-tests of kit (K165), without the group `php`, which constructs the PHP
+   library;
+3. generation against the four native servers through the public server (`check-generation.mjs`);
+4. persistence against the four native servers, reading their files in the stack's data directory
    (`check-servers.mjs`);
-4. the canonical flow check of the stack's page for all 40 combinations (`check-pipeline.mjs`;
+5. the canonical flow check of the stack's page for all 40 combinations (`check-pipeline.mjs`;
    units with their own limits);
-5. browser verification for PHP, the PHP extension, Go and Rust, the four at the same time
+6. browser verification for PHP, the PHP extension, Go and Rust, the four at the same time
    (`check.mjs` with the interaction checks of `check-interaction.mjs`; units with their own limits);
-6. the browser aggregate of this run's four reports (`check-browser-reports.mjs`);
-7. the typing check of every framework and rendering path at key delays of 0, 10 and 50
+7. the browser aggregate of this run's four reports (`check-browser-reports.mjs`);
+8. the typing check of every framework and rendering path at key delays of 0, 10 and 50
    milliseconds (`check-typing.mjs`), after the browser checks, since it edits the PHP records of
    the frames.
 

@@ -53,9 +53,20 @@ export function verificationStages({ origin, results, data, prepared, library = 
   }
   return [
     // The PHPUnit suite of the PHP server in the php mode, whose group modules starts the processor modes with the
-    // modules of this run. Its php-ext leg loads both modules, which the run-tests of kit takes with K165.
+    // modules of this run.
     [check('php-modes', [phpRunTests, 'phpunit', '--cwd', 'examples/form-comparison/servers/php'], {
       FORM_PHP_SERVER: 'php',
+      FORM_ORDERED_JSON_MODULE: prepared.orderedJsonModule,
+      FORM_CRUDUI_MODULE: prepared.cruduiModule,
+      COMPOSER_VENDOR_DIR: '../../../../vendor',
+    })],
+    // The same suite in the php-ext mode: the run-tests of kit loads the ordered_json and crudui modules into
+    // the PHP of PHPUnit (K165), and the group php, which constructs the PHP library, stays out. It shares the cache
+    // directory of PHPUnit with the php mode, so it runs after it.
+    [check('php-ext-mode', [phpRunTests, 'phpunit',
+      '--php-extension', prepared.orderedJsonModule, '--php-extension', prepared.cruduiModule,
+      '--cwd', 'examples/form-comparison/servers/php', '--', '--exclude-group', 'php'], {
+      FORM_PHP_SERVER: 'php-ext',
       FORM_ORDERED_JSON_MODULE: prepared.orderedJsonModule,
       FORM_CRUDUI_MODULE: prepared.cruduiModule,
       COMPOSER_VENDOR_DIR: '../../../../vendor',
