@@ -3,7 +3,7 @@ import { bindForm, copyFormRecord, copyFormValue, formDescription, type BindForm
 import { bindButtons, type ButtonVM } from './buttons';
 import { formMessages, type FormMessages } from './messages';
 import type { NodeVM } from './viewmodel';
-import { getValueByPath, parsePathString } from './util';
+import { getValueByPath, isPlainRecord, parsePathString } from './util';
 import { canUndo, canRedo, emptyHistory, recordChange, undoChange, redoChange, type History } from './history';
 import { initialView, rekeyRowView, removeRowView, setAllExpandedView, toggleRowView, type ViewState } from './view';
 import { checkFormTemplate } from './template-shape';
@@ -56,19 +56,14 @@ function hasOwn(value: object, key: string): boolean {
   return Object.prototype.hasOwnProperty.call(value, key);
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return value !== null && typeof value === 'object' && !Array.isArray(value) &&
-    (Object.getPrototypeOf(value) === Object.prototype || Object.getPrototypeOf(value) === null);
-}
-
 function repeats(field: FormFieldTemplate): boolean {
-  return field.spec.multiple === true || dataOnly(field) || isRecord(field.spec.multiple);
+  return field.spec.multiple === true || dataOnly(field) || isPlainRecord(field.spec.multiple);
 }
 
 /** A `multiple: only` collection: its rows come only from the data. */
 function dataOnly(field: FormFieldTemplate): boolean {
   const multiple = field.spec.multiple;
-  return multiple === 'only' || (isRecord(multiple) && multiple.only === true);
+  return multiple === 'only' || (isPlainRecord(multiple) && multiple.only === true);
 }
 
 function checkedSegments(path: string): string[] {
@@ -91,7 +86,7 @@ function checkKey(key: string): void {
 function putAt(data: Record<string, unknown>, path: string[], value: unknown): Record<string, unknown> {
   const [head, ...tail] = path;
   return { ...data, [head]: tail.length
-    ? putAt(isRecord(data[head]) ? data[head] : {}, tail, value) : value };
+    ? putAt(isPlainRecord(data[head]) ? data[head] : {}, tail, value) : value };
 }
 
 /** Data and view changes applied together by one commit. */
@@ -183,7 +178,7 @@ export class FormInstance {
   addRow(path: string, options: AddRowOptions = {}): string {
     checkArgumentText([['path', path]], options, ['afterKey', 'key', 'value']);
     const { field, rows } = this.editableCollection(path);
-    const settings = isRecord(field.spec.multiple) ? field.spec.multiple : {};
+    const settings = isPlainRecord(field.spec.multiple) ? field.spec.multiple : {};
     if (typeof settings.max === 'number' && Object.keys(rows).length >= settings.max) {
       throw new FormInputError(`Maximum row count reached: ${path}`);
     }
@@ -212,7 +207,7 @@ export class FormInstance {
     checkArgumentText([['path', path], ['key', key]]);
     const { field, rows } = this.editableCollection(path);
     if (!hasOwn(rows, key)) throw new FormInputError(`Unknown row: ${key}`);
-    const settings = isRecord(field.spec.multiple) ? field.spec.multiple : {};
+    const settings = isPlainRecord(field.spec.multiple) ? field.spec.multiple : {};
     if (typeof settings.min === 'number' && Object.keys(rows).length <= settings.min) {
       throw new FormInputError(`Minimum row count reached: ${path}`);
     }
@@ -329,7 +324,7 @@ export class FormInstance {
 
   /** Normalize record data; `path` is the full data path, empty at the root. */
   private normalizeFields(fields: readonly FormFieldTemplate[], value: unknown, path = ''): Record<string, unknown> {
-    if (value !== undefined && !isRecord(value)) {
+    if (value !== undefined && !isPlainRecord(value)) {
       throw new FormInputError(path ? `Group data must be an object: ${path}` : 'Form data must be an object');
     }
     const data = value === undefined ? {} : copyFormRecord(value);
@@ -339,7 +334,7 @@ export class FormInstance {
       if (repeats(field)) {
         const rows: Record<string, unknown> = {};
         // Missing data creates one usable prototype, except in a data-only collection. Explicit {} means zero rows.
-        if (raw !== undefined && !isRecord(raw)) throw new FormInputError(`Repeated data must be a keyed object: ${fieldPath}`);
+        if (raw !== undefined && !isPlainRecord(raw)) throw new FormInputError(`Repeated data must be a keyed object: ${fieldPath}`);
         const entries = raw === undefined ? (dataOnly(field) ? [] : [[this.freshKey(new Set()), undefined] as const])
           : Object.entries(raw);
         for (const [key, row] of entries) {
@@ -364,7 +359,7 @@ export class FormInstance {
 
   private copyRowValue(field: FormFieldTemplate, value: unknown): unknown {
     if (field.spec.type !== 'group') return copyFormValue(value);
-    const row = isRecord(value) ? copyFormRecord(value) : {};
+    const row = isPlainRecord(value) ? copyFormRecord(value) : {};
     return this.copyChildren(field.children, row);
   }
 
@@ -372,14 +367,14 @@ export class FormInstance {
     const out = { ...value };
     for (const child of fields) {
       const raw = out[child.name];
-      if (repeats(child) && isRecord(raw)) {
+      if (repeats(child) && isPlainRecord(raw)) {
         const used = new Set(Object.keys(raw));
         out[child.name] = Object.fromEntries(Object.values(raw).map(row => {
           const key = this.freshKey(used);
           used.add(key);
           return [key, this.copyRowValue(child, row)];
         }));
-      } else if (child.spec.type === 'group' && isRecord(raw)) {
+      } else if (child.spec.type === 'group' && isPlainRecord(raw)) {
         out[child.name] = this.copyChildren(child.children, raw);
       }
     }
@@ -406,7 +401,7 @@ export class FormInstance {
       field = undefined;
     }
     const rows = getValueByPath(this.data, path);
-    if (!field || !repeats(field) || !isRecord(rows)) throw new FormInputError(`Not a keyed collection: ${path}`);
+    if (!field || !repeats(field) || !isPlainRecord(rows)) throw new FormInputError(`Not a keyed collection: ${path}`);
     return { field, rows };
   }
 }

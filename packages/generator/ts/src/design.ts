@@ -113,21 +113,24 @@ export interface DeclaredAttributes {
   wrapper: Record<string, string>;
 }
 
-/** A copy of checked declared attributes, whose values are strings; any other value has none. */
-export function attributeCopy(value: unknown): Record<string, string> {
-  if (!isRecord(value)) return {};
-  return Object.fromEntries(Object.entries(value).filter((entry): entry is [string, string] => typeof entry[1] === 'string'));
+/**
+ * A copy of the declared attributes `value` at `key` of the node at `path`, none when it is absent. Compilation has checked
+ * them; a template that did not come from compileForm, such as decoded JSON, fails here as compilation fails.
+ */
+export function attributeCopy(value: unknown, key: string, path: string): Record<string, string> {
+  if (value === undefined) return {};
+  checkDeclaredAttributes(value, key, path);
+  return { ...value };
 }
 
 /**
- * The declared attributes of a field design in declaration order. Compilation has checked the
- * names and values; a design without them yields empty objects.
+ * The declared attributes of the field design of the node at `path` in declaration order; a design without them yields
+ * empty objects.
  */
-export function declaredAttributes(design: unknown): DeclaredAttributes {
+export function declaredAttributes(design: unknown, path: string): DeclaredAttributes {
   if (!isRecord(design)) return { control: {}, wrapper: {} };
-  const d = design;
-  const wrapper = isRecord(d.wrapper) ? d.wrapper.attributes : undefined;
-  return { control: attributeCopy(d.attributes), wrapper: attributeCopy(wrapper) };
+  const wrapper = isRecord(design.wrapper) ? design.wrapper.attributes : undefined;
+  return { control: attributeCopy(design.attributes, 'design.attributes', path), wrapper: attributeCopy(wrapper, 'design.wrapper.attributes', path) };
 }
 
 /**
@@ -147,7 +150,7 @@ const OWNED_ATTRIBUTE_NAMES: readonly string[] = [
 ];
 
 /** Reject declared attributes at `key` that are not an object of permitted names to strings. */
-export function checkDeclaredAttributes(attributes: unknown, key: string, path: string): void {
+export function checkDeclaredAttributes(attributes: unknown, key: string, path: string): asserts attributes is Record<string, string> {
   if (!isRecord(attributes)) {
     throw new FormInputError(`Invalid ${key} at ${path}: expected an object`);
   }

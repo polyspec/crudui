@@ -13,9 +13,12 @@
  * required ".subscribe == '1'" + lang.only:[ko,en] title + multiple.
  */
 
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { describe as descTest, it, expect } from 'vitest';
 
-import { explainSpec } from '../src/explain.ts';
+import { explainFile, explainSpec } from '../src/explain.ts';
 
 // The exemplar spec, in the parsed (object) form explain receives.
 const SPEC = {
@@ -139,5 +142,18 @@ descTest('explain — choice lists keep their written order', () => {
       { lang: 'en' }
     );
     expect(out).toContain('static options (1=Yes, 0=No)');
+  });
+});
+
+descTest('explain — the spec file', () => {
+  it('fails with the file when its YAML document is no mapping', () => {
+    const directory = mkdtempSync(join(tmpdir(), 'crudui-explain-'));
+    try {
+      const file = join(directory, 'spec.yml');
+      writeFileSync(file, '- name\n- type\n');
+      expect(() => explainFile(file)).toThrow(new Error(`${file}: the spec is no mapping`));
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
   });
 });

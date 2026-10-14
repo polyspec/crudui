@@ -252,7 +252,7 @@ function resolveActions(
       out.push({ key, label: key, behavior: { onclick: raw } });
       continue;
     }
-    if (!isRecord(raw)) throw new FormInputError(`Invalid actions.${key}: expected a string or an object`);
+    if (!isRecord(raw)) throw new FormInputError(`Invalid ${key} at actions: expected a script or an object`);
     const declared = raw;
     const label = declared.label !== undefined ? t(declared.label) : key;
     // An action object with a script is the object form of a script action.

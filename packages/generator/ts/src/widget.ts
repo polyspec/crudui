@@ -565,7 +565,7 @@ const choice: Evaluator = (ctx) => {
     return ctx.value === undefined ? defaultStr ?? '' : v;
   })();
   const idPrefix = elementId('choice', ctx.path);
-  const appearances = isChoiceList(items) ? choiceAppearances(items) : [];
+  const appearances = isChoiceList(items) ? choiceAppearances(items, ctx.path) : [];
 
   const options: OptionModel[] = itemEntries(items).map(([key, label], index) => {
     const value = String(key);
@@ -636,7 +636,7 @@ const multichoice: Evaluator = (ctx) => {
   }
 
   const idPrefix = `mchoice-${cleanStr(name)}`;
-  const appearances = isChoiceList(items) ? choiceAppearances(items) : [];
+  const appearances = isChoiceList(items) ? choiceAppearances(items, ctx.path) : [];
   const options: OptionModel[] = itemEntries(items).map(([key, label], index) => {
     const value = String(key);
     return {

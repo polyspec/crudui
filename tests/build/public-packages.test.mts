@@ -66,11 +66,6 @@ function isCallable(value: unknown): value is (...args: unknown[]) => unknown {
   return typeof value === 'function';
 }
 
-/** Whether `value` is a class; a test constructs it with the arguments that its contract names. */
-function isConstructor(value: unknown): value is new (...args: unknown[]) => object {
-  return typeof value === 'function';
-}
-
 /** The function `name` of the loaded module or object `loaded`, bound to it. */
 function callable(loaded: unknown, name: string): (...args: unknown[]) => unknown {
   const value = member(loaded, name);
@@ -78,11 +73,18 @@ function callable(loaded: unknown, name: string): (...args: unknown[]) => unknow
   return (...args: unknown[]) => Reflect.apply(value, loaded, args);
 }
 
-/** The class `name` of the loaded module `loaded`. */
-function constructor(loaded: unknown, name: string): new (...args: unknown[]) => object {
+/** The class `name` of the loaded module `loaded`: a function, which a test constructs with construct or names in instanceof. */
+function classOf(loaded: unknown, name: string): Function {
   const value = member(loaded, name);
-  assert.ok(isConstructor(value), `${name} must be a class`);
+  assert.ok(typeof value === 'function', `${name} must be a class`);
   return value;
+}
+
+/** A new instance of the class `type` with `args`, constructed as `new` does (Reflect.construct). */
+function construct(type: Function, ...args: unknown[]): object {
+  const instance: unknown = Reflect.construct(type, args);
+  assert.ok(typeof instance === 'object' && instance !== null, 'a class constructs an object');
+  return instance;
 }
 
 /** Whether `value` is a React function component that takes the form props. */
@@ -186,9 +188,9 @@ for (const mode of ['import', 'require']) {
     }
     assert.deepEqual((await entryNames('@polyspec/crudui-validator'))[1], ['ComposeLoadError', 'FormInputError', 'hiddenPaths', 'validate', 'validateDetail', 'validateList']);
     // An error raised inside the internal entry is the class the public entry exports.
-    const MemoryLoader = constructor(loaded['@polyspec/crudui-validator'], 'MemoryLoader');
-    const ComposeLoadError = constructor(validator, 'ComposeLoadError');
-    assert.throws(() => callable(new MemoryLoader({}), 'load')('missing.yml'), ComposeLoadError);
+    const MemoryLoader = classOf(loaded['@polyspec/crudui-validator'], 'MemoryLoader');
+    const ComposeLoadError = classOf(validator, 'ComposeLoadError');
+    assert.throws(() => callable(construct(MemoryLoader, {}), 'load')('missing.yml'), ComposeLoadError);
     assert.equal(member(core, 'ComposeLoadError'), ComposeLoadError);
     assert.equal(member(core, 'FormInputError'), member(validator, 'FormInputError'));
     for (const name of ['compileForm', 'createForm', 'createRowKey', 'sequenceRowKey']) {
@@ -201,7 +203,7 @@ for (const mode of ['import', 'require']) {
     const spec = { type: 'group', properties: { name: { type: 'text' } } };
     const template = callable(core, 'compileForm')(spec);
     const session = callable(core, 'createForm')(template, { name: 'Build check' });
-    assert.ok(session instanceof constructor(core, 'FormInstance'));
+    assert.ok(session instanceof classOf(core, 'FormInstance'));
     assert.equal(member(session, 'template'), template);
     const data = callable(session, 'getData')();
     assert.deepEqual(data, { name: 'Build check' });

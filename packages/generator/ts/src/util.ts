@@ -11,6 +11,11 @@ export function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
 
+/** Whether a value is a plain object: one whose prototype is Object.prototype or null. */
+export function isPlainRecord(value: unknown): value is Record<string, unknown> {
+  return isRecord(value) && (Object.getPrototypeOf(value) === Object.prototype || Object.getPrototypeOf(value) === null);
+}
+
 /** HTML attribute-value escaping. */
 export function escAttr(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');

@@ -18,6 +18,16 @@ const rejection = (spec: Record<string, unknown>): string => {
 };
 
 describe('declared attributes in the node and widget models', () => {
+  it('rejects a decoded template whose declared attribute is no string, as compileForm rejects its specification', () => {
+    const template = compileForm(G({ f: { type: 'text', design: { attributes: { 'data-x': 'y' }, wrapper: { attributes: { 'data-w': 'z' } } } } }));
+    const control: unknown = JSON.parse(JSON.stringify(template).replace('"data-x":"y"', '"data-x":5'));
+    const wrapper: unknown = JSON.parse(JSON.stringify(template).replace('"data-w":"z"', '"data-w":5'));
+    // @ts-expect-error: a template from its JSON cache that was changed after compilation, which bindForm checks at run time.
+    expect(() => bindForm(control)).toThrow(new FormInputError('Invalid design.attributes.data-x at f: expected a string'));
+    // @ts-expect-error: a template from its JSON cache that was changed after compilation, which bindForm checks at run time.
+    expect(() => bindForm(wrapper)).toThrow(new FormInputError('Invalid design.wrapper.attributes.data-w at f: expected a string'));
+  });
+
   it('appends control attributes after the attributes crudui writes, in declaration order', () => {
     const node = field({ type: 'text', design: { attributes: { 'data-setting': 'theme', 'aria-describedby': 'help' } } });
     expect(node.widget && 'attrs' in node.widget ? Object.entries(node.widget.attrs).slice(-3) : []).toEqual([

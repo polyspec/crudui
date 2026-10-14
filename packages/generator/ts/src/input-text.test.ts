@@ -12,6 +12,8 @@ import { fileURLToPath } from 'node:url';
 import {
   bindButtons, bindForm, buildDetail, buildList, compileForm, ComposeLoadError, createForm, FormInputError,
 } from './index';
+import { checkFormTemplate } from './template-shape';
+import { isRecord } from './util';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../..');
 
@@ -28,9 +30,6 @@ interface TextCase {
   /** 'pass', or the code, message and composition trace of the failure. */
   expect: unknown;
 }
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  value !== null && typeof value === 'object' && !Array.isArray(value);
 
 /** A member of a case that is absent or an object. */
 function optionalRecord(value: unknown, what: string): Record<string, unknown> | undefined {
@@ -106,15 +105,16 @@ function failure(run: () => unknown): unknown {
 const template = (c: TextCase): unknown => c.template ?? compileForm(c.spec ?? {});
 const operations: Record<string, (c: TextCase) => unknown> = {
   compileForm: c => failure(() => compileForm(c.spec ?? {}, c.options)),
-  // @ts-expect-error: a fixture template is decoded JSON, which bindForm checks at run time.
+  // @ts-expect-error: a fixture template is decoded JSON that may break the template shape or its text, which bindForm checks at run time.
   bindForm: c => failure(() => bindForm(template(c), c.data, c.options)),
   createForm: c => {
-    // @ts-expect-error: a fixture template is decoded JSON, which createForm checks at run time.
+    // @ts-expect-error: a fixture template is decoded JSON that may break the template shape or its text, which createForm checks at run time.
     const created = failure(() => createForm(template(c), c.data, c.options));
     const action = c.action;
     if (!action || created !== 'pass') return created;
-    // @ts-expect-error: a fixture template is decoded JSON, which createForm has accepted above.
-    const form = createForm(template(c), c.data, c.options);
+    const accepted = template(c);
+    checkFormTemplate(accepted);
+    const form = createForm(accepted, c.data, c.options);
     return failure(() => runFormAction(form, action));
   },
   buildList: c => failure(() => buildList(c.spec ?? {}, c.rows, c.options)),

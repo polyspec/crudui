@@ -84,8 +84,6 @@ export function bindButtons(
 /** The attributes a button may carry, in output order. */
 const BUTTON_ATTRIBUTES = new Set(['type', 'class', 'style', 'name', 'value', 'href', 'onclick']);
 
-const isObject = (value: unknown): value is Record<string, unknown> => value !== null && typeof value === 'object' && !Array.isArray(value);
-
 /**
  * Markup of the form buttons. Every renderer inserts this one string into the footer controls
  * group. The buttons are evaluated buttons: a list of objects whose `tag` is `a` or `button`,
@@ -94,8 +92,8 @@ const isObject = (value: unknown): value is Record<string, unknown> => value !==
 export function formButtonsHtml(buttons: readonly ButtonVM[]): string {
   if (!Array.isArray(buttons)) throw new FormInputError('Form buttons must be a list');
   for (const button of buttons as unknown[]) {
-    const evaluated = isObject(button) && (button.tag === 'a' || button.tag === 'button') && typeof button.text === 'string'
-      && isObject(button.attrs) && Object.entries(button.attrs).every(([name, value]) => BUTTON_ATTRIBUTES.has(name) && typeof value === 'string');
+    const evaluated = isRecord(button) && (button.tag === 'a' || button.tag === 'button') && typeof button.text === 'string'
+      && isRecord(button.attrs) && Object.entries(button.attrs).every(([name, value]) => BUTTON_ATTRIBUTES.has(name) && typeof value === 'string');
     if (!evaluated) throw new FormInputError('Form buttons must be evaluated button objects');
   }
   return (buttons as readonly ButtonVM[]).map(button =>

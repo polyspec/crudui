@@ -40,6 +40,7 @@ import type {
 } from '../types';
 import { getRule } from '../rules/index';
 import { FormInputError } from './errors';
+import { isRecord } from '../record';
 import { compareCodePoints } from '../text/index';
 import { assertRuleParameter, assertRuleName } from './parameters';
 import {
@@ -118,7 +119,7 @@ function assertSingleChoiceData(value: unknown, path: string[], repeated: boolea
   let entries: Array<[string[], unknown]>;
   if (!repeated) {
     entries = [[path, value]];
-  } else if (isPlainObject(value)) {
+  } else if (isRecord(value)) {
     entries = Object.keys(value).sort().map((key) => [[...path, key], value[key]]);
   } else {
     throw new FormInputError(`Repeated data must be a keyed object: ${pathToString(path)}`);
@@ -141,21 +142,17 @@ function normalizeValidateSlot(
   if (slot === false || slot === true || slot === undefined || slot === null) {
     return undefined;
   }
-  if (isPlainObject(slot)) {
+  if (isRecord(slot)) {
     return slot;
   }
   return undefined;
 }
 
 /** True for a JSON object value; arrays and null are not objects. */
-function isPlainObject(value: unknown): value is Record<string, unknown> {
-  return value !== null && typeof value === 'object' && !Array.isArray(value);
-}
-
 /** Read the per-field custom messages (the field's `messages` map). */
 function fieldMessages(field: ComposedField): MessagesSpec | undefined {
   const m = field.messages;
-  if (isPlainObject(m)) {
+  if (isRecord(m)) {
     return m;
   }
   return undefined;
@@ -208,7 +205,7 @@ function ruleValueForm(ruleName: string, ruleValue: unknown): RuleValueForm {
   ) {
     return { form: 'literal' };
   }
-  if (isPlainObject(ruleValue)) {
+  if (isRecord(ruleValue)) {
     return { form: 'conditionMap', map: ruleValue };
   }
   if (typeof ruleValue === 'string') {
@@ -275,7 +272,7 @@ export class Validator {
    */
   constructor(composedSpec: ComposedField) {
     const props = composedSpec.properties;
-    this.properties = isPlainObject(props) ? props : {};
+    this.properties = isRecord(props) ? props : {};
   }
 
   /**
@@ -284,7 +281,7 @@ export class Validator {
    * @throws {FormInputError} when root, group or repeated data has the wrong shape.
    */
   validate(data: unknown): ValidationResult {
-    if (!isPlainObject(data)) {
+    if (!isRecord(data)) {
       throw new FormInputError('Form data must be an object');
     }
     this.checkDeclaredParameters(this.properties, []);
@@ -314,7 +311,7 @@ export class Validator {
     hidden: string[]
   ): void {
     for (const [name, field] of Object.entries(properties)) {
-      if (!isPlainObject(field)) {
+      if (!isRecord(field)) {
         continue;
       }
       const fieldPath = [...currentPath, name];
@@ -327,13 +324,13 @@ export class Validator {
       }
       const value = data[name];
       if (!this.isMultiple(field)) {
-        this.collectHidden(children, isPlainObject(value) ? value : {}, fieldPath, rowKeys, allData, hidden);
+        this.collectHidden(children, isRecord(value) ? value : {}, fieldPath, rowKeys, allData, hidden);
         continue;
       }
-      const rows = isPlainObject(value) ? value : {};
+      const rows = isRecord(value) ? value : {};
       for (const key of Object.keys(rows).sort()) {
         const row = rows[key];
-        this.collectHidden(children, isPlainObject(row) ? row : {}, [...fieldPath, key], [...rowKeys, fieldPath.length], allData, hidden);
+        this.collectHidden(children, isRecord(row) ? row : {}, [...fieldPath, key], [...rowKeys, fieldPath.length], allData, hidden);
       }
     }
   }
@@ -356,7 +353,7 @@ export class Validator {
     declarationPath: string[]
   ): void {
     for (const [propertyKey, field] of Object.entries(properties)) {
-      if (!isPlainObject(field)) {
+      if (!isRecord(field)) {
         continue;
       }
       const path = [...declarationPath, propertyKey];
@@ -397,7 +394,7 @@ export class Validator {
       }
     }
     for (const [propertyKey, field] of Object.entries(properties)) {
-      if (!isPlainObject(field)) {
+      if (!isRecord(field)) {
         continue;
       }
       const fieldName = propertyKey;
@@ -414,7 +411,7 @@ export class Validator {
 
       const childProps = this.childProperties(field);
 
-      if (isMultiple && present && !isPlainObject(fieldValue)) {
+      if (isMultiple && present && !isRecord(fieldValue)) {
         throw new FormInputError(
           `Repeated data must be a keyed object: ${pathToString(fieldPath)}`
         );
@@ -428,10 +425,10 @@ export class Validator {
           // Keyed rows use sorted-key traversal so the first reported error
           // is identical in every validation implementation. Row keys stay in paths.
           // Missing data is an empty collection: no rows, collection rules still run.
-          const rows = present && isPlainObject(fieldValue) ? fieldValue : {};
+          const rows = present && isRecord(fieldValue) ? fieldValue : {};
           for (const key of Object.keys(rows).sort()) {
             const row = rows[key];
-            if (!isPlainObject(row)) {
+            if (!isRecord(row)) {
               throw new FormInputError(
                 `Group data must be an object: ${pathToString([...fieldPath, key])}`
               );
@@ -442,14 +439,14 @@ export class Validator {
             this.validateFieldRules(field, fieldValue, fieldPath, rowKeys, fieldDeclaration, allData, errors);
           }
         } else {
-          if (present && !isPlainObject(fieldValue)) {
+          if (present && !isRecord(fieldValue)) {
             throw new FormInputError(
               `Group data must be an object: ${pathToString(fieldPath)}`
             );
           }
           this.validateProperties(
             childProps,
-            present && isPlainObject(fieldValue) ? fieldValue : {},
+            present && isRecord(fieldValue) ? fieldValue : {},
             fieldPath,
             rowKeys,
             fieldDeclaration,
@@ -468,7 +465,7 @@ export class Validator {
         // on each row value. Missing data is an empty collection without rows.
         this.validateMultipleFieldRules(
           field,
-          present && isPlainObject(fieldValue) ? fieldValue : undefined,
+          present && isRecord(fieldValue) ? fieldValue : undefined,
           fieldPath,
           rowKeys,
           fieldDeclaration,
@@ -484,7 +481,7 @@ export class Validator {
   /** Whether a CRUDUI field repeats (`multiple: true`, `multiple: only` or `multiple: { ... }`). */
   private isMultiple(field: ComposedField): boolean {
     const m = field.multiple;
-    return m === true || m === 'only' || isPlainObject(m);
+    return m === true || m === 'only' || isRecord(m);
   }
 
   /**
@@ -494,7 +491,7 @@ export class Validator {
    */
   private isHidden(field: ComposedField, context: PathContext): boolean {
     const design = field.design;
-    if (!isPlainObject(design) || !('show' in design)) {
+    if (!isRecord(design) || !('show' in design)) {
       return false;
     }
     return this.resolveRuleValue('show', design.show, context) === false;
@@ -505,7 +502,7 @@ export class Validator {
     field: ComposedField
   ): Record<string, unknown> | undefined {
     const props = field.properties;
-    if (isPlainObject(props)) {
+    if (isRecord(props)) {
       return props;
     }
     return undefined;

@@ -3,7 +3,7 @@
 import { validate } from '@polyspec/crudui-validator';
 import { describe, expect, it } from 'vitest';
 
-import { bindForm, type FormBindingOptions } from '../src/index';
+import { bindForm } from '../src/index';
 import { control, documentOf, formHtml, found, leave, node, nodeErrors, renderedForm, type } from './dom';
 
 const spec = {
@@ -26,13 +26,6 @@ function setup(data: Record<string, unknown> = {}, render = {}) {
 /** Call bindForm as JavaScript does, with arguments outside its types. */
 function bindUntyped(...args: unknown[]): void {
   Reflect.apply(bindForm, undefined, args);
-}
-
-/** Binding options with the key prefix `form` and the option `name` set to a value outside its type, as JavaScript sets it. */
-function optionsWith(name: string, value: unknown): FormBindingOptions {
-  const options: FormBindingOptions = { keyPrefix: 'form' };
-  Object.defineProperty(options, name, { value, enumerable: true });
-  return options;
 }
 
 function submit(form: HTMLFormElement): Event {
@@ -219,9 +212,11 @@ describe('errors', () => {
 
   it('fails when message or formErrors returns another value', () => {
     const { form } = renderedForm(spec, {});
-    expect(() => bindForm(form, spec, optionsWith('message', () => 1)).validate())
+    // @ts-expect-error: a JavaScript caller's message function may return a value that is no string, which validate checks.
+    expect(() => bindForm(form, spec, { keyPrefix: 'form', message: () => 1 }).validate())
       .toThrow(new TypeError('message must return a string'));
-    expect(() => bindForm(form, spec, optionsWith('formErrors', () => [1])).validate())
+    // @ts-expect-error: a JavaScript caller's formErrors function may return a list that holds no strings, which validate checks.
+    expect(() => bindForm(form, spec, { keyPrefix: 'form', formErrors: () => [1] }).validate())
       .toThrow(new TypeError('formErrors must return a list of strings'));
   });
 });

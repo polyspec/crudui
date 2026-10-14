@@ -901,6 +901,8 @@ function build(): ListFixtureCase[] {
       void _omit;
       return rest;
     }
+    // The cases are the JSON of every language, called as a JavaScript caller does (Reflect.apply): a case that renders may
+    // still hold a value outside the TypeScript options, such as layout null, which renderList takes as the default.
     const html: unknown = Reflect.apply(renderList, undefined, [c.spec, c.rows, c.options ?? {}]);
     if (typeof html !== 'string') throw new Error(`renderList returned no HTML for ${c.name}`);
     const raw = withoutPreloadLinks(html);

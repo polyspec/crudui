@@ -245,23 +245,21 @@ for (const [field, expected, keyword] of [
 // The structure-validity families share one case shape:
 // { name, note, spec, files?, expect: "ok"|"fail", reason?, engine: "pass"|{ code, at } }.
 // `expect` and `reason` are the meta-schema result for the family entry point.
-const isObject = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== null && !Array.isArray(value);
 const caseKeys = new Set(['name', 'note', 'spec', 'files', 'expect', 'reason', 'engine']);
 function validityCase(family: string, test: unknown): ValidityCase {
-  assert.ok(isObject(test), `${family}: every case is an object`);
+  assert.ok(isRecord(test), `${family}: every case is an object`);
   assert.ok(typeof test.name === 'string', `${family}: every case name is a string`);
   const label = `${family}:${test.name}`;
   for (const key of Object.keys(test)) assert.ok(caseKeys.has(key), `${label}: unknown member ${key}`);
   assert.ok(typeof test.note === 'string', `${label}: note is a string`);
-  assert.ok(isObject(test.spec), `${label}: spec is an object`);
-  if ('files' in test) assert.ok(isObject(test.files), `${label}: files is an object`);
+  assert.ok(isRecord(test.spec), `${label}: spec is an object`);
+  if ('files' in test) assert.ok(isRecord(test.files), `${label}: files is an object`);
   assert.ok(test.expect === 'ok' || test.expect === 'fail', `${label}: expect is "ok" or "fail"`);
   if (test.expect === 'fail') assert.ok(typeof test.reason === 'string', `${label}: a fail case names its reason`);
   else assert.ok(!('reason' in test), `${label}: only a fail case has a reason`);
   const engineShape =
     test.engine === 'pass' ||
-    (isObject(test.engine) &&
+    (isRecord(test.engine) &&
       Object.keys(test.engine).sort().join() === 'at,code' &&
       typeof test.engine.code === 'string' &&
       typeof test.engine.at === 'string');

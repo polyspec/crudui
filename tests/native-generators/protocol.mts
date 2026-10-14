@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import type { ButtonVM, DetailViewModel, FormTemplate, ListViewModel, NodeVM } from '@polyspec/crudui-generator-core';
+import type { ButtonVM, NodeVM } from '@polyspec/crudui-generator-core';
 
 /** A JSON object value. */
 export type JsonObject = Record<string, unknown>;
@@ -11,15 +11,25 @@ export interface FormState { data: JsonObject; fields: NodeVM[]; html: string; r
 interface FormStep extends FormState { result: unknown; error: ErrorRecord | null }
 /** The response of a `form` request. */
 export interface FormResponse extends FormState { steps: FormStep[] }
+/** A field of a compiled template, as far as validateTemplate checks it. */
+interface TemplateField { name: string; spec: JsonObject; children: TemplateField[] }
+/** A compiled template (docs/spec/form-runtime.md), as far as validateTemplate checks it. */
+interface CheckedTemplate { kind: 'crudui/form-template'; fields: TemplateField[] }
+/** A list model, as far as validateList checks it: its members and their kinds. */
+interface CheckedList { columns: unknown[]; rows: unknown[]; pagination: unknown; actions: unknown[]; empty: unknown; description: string; design: unknown }
+/** A field of a detail model, as far as validateDetail checks it: its members. */
+interface CheckedDetailField { key: unknown; label: unknown; format: unknown; value: unknown; display: unknown; design: unknown }
+/** A detail model, as far as validateDetail checks it. */
+interface CheckedDetail { fields: CheckedDetailField[]; actions: unknown[]; design: unknown }
 /** The response of each protocol operation. */
 export interface ResponseMap {
-  compileForm: FormTemplate;
+  compileForm: CheckedTemplate;
   bindForm: NodeVM[];
   bindButtons: ButtonVM[];
   formButtonsHtml: string;
   renderList: string;
-  buildList: ListViewModel;
-  buildDetail: DetailViewModel;
+  buildList: CheckedList;
+  buildDetail: CheckedDetail;
   renderDetail: string;
   renderForm: string;
   form: FormResponse;
@@ -114,7 +124,7 @@ function validateState(value: unknown): asserts value is FormState {
 }
 
 /** Checks the compiled template `value` (docs/spec/form-runtime.md). */
-function validateTemplate(value: unknown): asserts value is FormTemplate {
+function validateTemplate(value: unknown): asserts value is CheckedTemplate {
   assert.ok(object(value), 'Template must be an object');
   assert.equal(value.kind, 'crudui/form-template');
   const check = (fields: unknown): void => {
@@ -140,7 +150,7 @@ function validateButtons(value: unknown): asserts value is ButtonVM[] {
 }
 
 /** Checks the list model `value`. */
-function validateList(value: unknown): asserts value is ListViewModel {
+function validateList(value: unknown): asserts value is CheckedList {
   assert.ok(object(value), 'List model must be an object');
   // A list without a sort declaration has no sort member.
   const members = ['columns', 'rows', 'pagination', ...(Object.hasOwn(value, 'sort') ? ['sort'] : []), 'actions', 'empty', 'description', 'design'];
@@ -150,7 +160,7 @@ function validateList(value: unknown): asserts value is ListViewModel {
 }
 
 /** Checks the detail model `value`. */
-function validateDetail(value: unknown): asserts value is DetailViewModel {
+function validateDetail(value: unknown): asserts value is CheckedDetail {
   assert.ok(object(value), 'Detail model must be an object');
   assert.deepEqual(Object.keys(value), ['fields', 'actions', 'design'], 'Detail model members differ');
   assert.ok(array(value.fields), 'Detail fields must be an array');

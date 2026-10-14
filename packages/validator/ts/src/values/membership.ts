@@ -13,6 +13,7 @@ import { canonicalText } from './canonical';
 import { trim } from './whitespace';
 import { isEmptyValue } from './empty';
 import { numericValue, numericValueAsWritten } from './numeric';
+import { isRecord } from '../record';
 
 /** The parameter messages of `in` (validation-rules.md, "Parameter errors"). */
 const MEMBERSHIP_ERRORS = {
@@ -32,10 +33,6 @@ function isMemberType(item: unknown): item is Member {
   return typeof item === 'string' || typeof item === 'boolean' || (typeof item === 'number' && Number.isFinite(item));
 }
 
-function isObject(item: unknown): item is Record<string, unknown> {
-  return item !== null && typeof item === 'object' && !Array.isArray(item);
-}
-
 function hasMember(item: Record<string, unknown>, key: string): boolean {
   return Object.prototype.hasOwnProperty.call(item, key);
 }
@@ -51,7 +48,7 @@ function choiceValues(list: readonly unknown[]): Member[] | undefined {
   const values: Member[] = [];
   const seen = new Set<string>();
   const add = (item: unknown): boolean => {
-    if (!isObject(item) || Object.keys(item).length !== 2 || !hasMember(item, 'value') || !hasMember(item, 'label')) return false;
+    if (!isRecord(item) || Object.keys(item).length !== 2 || !hasMember(item, 'value') || !hasMember(item, 'label')) return false;
     const value = item.value;
     if (typeof value !== 'string' && !(typeof value === 'number' && Number.isFinite(value))) return false;
     const text = canonicalText(value);
@@ -61,7 +58,7 @@ function choiceValues(list: readonly unknown[]): Member[] | undefined {
     return true;
   };
   for (const item of list) {
-    if (isObject(item) && hasMember(item, 'choices')) {
+    if (isRecord(item) && hasMember(item, 'choices')) {
       const choices = item.choices;
       if (Object.keys(item).length !== 2 || !hasMember(item, 'label') || !Array.isArray(choices) || choices.length === 0) return undefined;
       if (!choices.every(add)) return undefined;
@@ -74,7 +71,7 @@ function choiceValues(list: readonly unknown[]): Member[] | undefined {
 
 /** Whether a list is a choice list: it has an object element with a `value` or a `choices` member. */
 function isChoiceList(list: readonly unknown[]): boolean {
-  return list.some((item) => isObject(item) && (hasMember(item, 'value') || hasMember(item, 'choices')));
+  return list.some((item) => isRecord(item) && (hasMember(item, 'value') || hasMember(item, 'choices')));
 }
 
 /** Read the members of an `in` parameter, or the parameter error it causes. */
