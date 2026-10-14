@@ -15,7 +15,7 @@ framework-independent `@polyspec/crudui-generator-html` renderer. Replaced versi
 paths have no compatibility aliases.
 
 The machine-readable contract is maintained in
-[`schema/crudui.schema.json`](../../schema/crudui.schema.json). It validates
+[`contracts/schema/crudui.schema.json`](../../contracts/schema/crudui.schema.json). It validates
 form, list and detail declaration shapes. `make docs-schema` checks this source against
 shared fixtures without generating or replacing its rules.
 

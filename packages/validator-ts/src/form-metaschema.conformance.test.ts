@@ -1,7 +1,7 @@
 /**
  * CRUDUI form-spec meta-schema conformance.
  *
- * This test compiles the form entry point of schema/crudui.schema.json with the
+ * This test compiles the form entry point of contracts/schema/crudui.schema.json with the
  * same Ajv configuration as scripts/check-schema.mjs
  * (`new Ajv({ strict:false, allErrors:true })` + ajv-formats) and runs the shared
  * fixture tests/fixtures/spec-validity. Each case declares the meta-schema result
@@ -18,7 +18,7 @@ import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
-const schema = JSON.parse(fs.readFileSync(path.join(ROOT, 'schema/crudui.schema.json'), 'utf8'));
+const schema = JSON.parse(fs.readFileSync(path.join(ROOT, 'contracts/schema/crudui.schema.json'), 'utf8'));
 const FIXTURE = path.join(ROOT, 'tests/fixtures/spec-validity/cases.json');
 
 interface SpecValidityCase {

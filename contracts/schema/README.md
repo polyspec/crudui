@@ -12,12 +12,12 @@ make docs-schema
 ```
 
 The command compiles the schema and verifies shared fixtures without changing
-source or expected results. See [schema validation](../docs/operations/schema-validation.md).
+source or expected results. See [schema validation](../../docs/operations/schema-validation.md).
 
 Configure your YAML editor to use this schema for CRUDUI declarations:
 
 ```yaml
-# yaml-language-server: $schema=../../schema/crudui.schema.json
+# yaml-language-server: $schema=../../contracts/schema/crudui.schema.json
 type: group
 properties:
   email:
@@ -29,4 +29,4 @@ properties:
 
 Composition and expression evaluation are separate runtime operations. JSON Schema
 checks declaration shapes; the validators check submitted data against those
-declarations. See the [schema contract](../docs/spec/schema.md).
+declarations. See the [schema contract](../../docs/spec/schema.md).

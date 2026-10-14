@@ -1,6 +1,6 @@
 # CRUDUI JSON Schema
 <!-- doc-id: schema-readme -->
-<!-- source-sha256: 950ced77989db8ce0a8d91c71e5a87823f5899a68ce3e14f716e5455ccc5e2fb -->
+<!-- source-sha256: ec545f055446d2e0ce18350b06c2b2688ce393cbffad86ade2f16ac1d18d035a -->
 
 [English](README.md).
 
@@ -13,12 +13,12 @@ make docs-schema
 ```
 
 명령은 소스와 기대 결과를 변경하지 않고 스키마를 컴파일하고 공유 고정 데이터를
-검증합니다. [스키마 검증](../docs/operations/schema-validation.ko.md)을 참고합니다.
+검증합니다. [스키마 검증](../../docs/operations/schema-validation.ko.md)을 참고합니다.
 
 YAML 편집기에서 CRUDUI 선언에 이 스키마를 사용하도록 설정합니다.
 
 ```yaml
-# yaml-language-server: $schema=../../schema/crudui.schema.json
+# yaml-language-server: $schema=../../contracts/schema/crudui.schema.json
 type: group
 properties:
   email:
@@ -30,4 +30,4 @@ properties:
 
 합성과 표현식 평가는 별도 런타임 동작입니다. JSON Schema는 선언 형태를 검사하고
 검증기는 해당 선언에 따라 제출 데이터를 검사합니다.
-[스키마 계약](../docs/spec/schema.ko.md)에 정의합니다.
+[스키마 계약](../../docs/spec/schema.ko.md)에 정의합니다.
