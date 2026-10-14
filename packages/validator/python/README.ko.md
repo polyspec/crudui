@@ -1,6 +1,6 @@
 # CRUDUI Python 검증기
 <!-- doc-id: packages-validator-python-readme -->
-<!-- source-sha256: 50eb9c45a89df219b4d870e0a6e365937e90696468d2f5426b63babace90783a -->
+<!-- source-sha256: 7bfaee48e43e8b42e683deaa3d288712aedfae27092062f2aef7e2ea7a840098 -->
 
 [English](README.md).
 
