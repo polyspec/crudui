@@ -6,9 +6,18 @@
   tags): every renderer produces the same DOM, and Svelte keeps whitespace between
   sibling nodes as text.
 -->
+<script module lang="ts">
+  import type { NodeVM } from '@polyspec/crudui-generator-core';
+
+  /** The props of the component Node. */
+  export interface NodeProps {
+    /** The evaluated node to render. */
+    vm: NodeVM;
+  }
+</script>
+
 <script lang="ts">
   import { getContext } from 'svelte';
-  import type { NodeVM } from '@polyspec/crudui-generator-core';
   import Controls from './Controls.svelte';
   import Header from './Header.svelte';
   import Widget from './Widget.svelte';
@@ -17,7 +26,7 @@
   import { patched, firstMarkup } from './raw.js';
   import { classes, rootStyle, NODE_ERRORS, type NodeErrorsSource } from './field.js';
 
-  let { vm }: { vm: NodeVM } = $props();
+  let { vm }: NodeProps = $props();
 
   const header = $derived(vm.header);
   const hasHeader = $derived(vm.collapsible === true || header !== undefined || vm.controls?.placement === 'header');

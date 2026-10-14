@@ -2,13 +2,25 @@
   Render an editable form instance and synchronize its data, row actions and input state.
   `options` are the complete form options (form-runtime.md, "Complete form").
 -->
+<script module lang="ts">
+  import type { FormInstance, FormRenderOptions } from '@polyspec/crudui-generator-core';
+
+  /** The props of the component Form. */
+  export interface FormProps {
+    /** The form instance to render. */
+    form: FormInstance;
+    /** The complete form options (form-runtime.md, "Complete form"). */
+    options?: FormRenderOptions;
+  }
+</script>
+
 <script lang="ts">
   import { untrack } from 'svelte';
-  import { connectForm, type FormInstance, type FormRenderOptions } from '@polyspec/crudui-generator-core';
+  import { connectForm } from '@polyspec/crudui-generator-core';
   import { formRenderModel } from '@polyspec/crudui-generator-core/internal';
   import FormFields from './FormFields.svelte';
 
-  let { form, options }: { form: FormInstance; options?: FormRenderOptions } = $props();
+  let { form, options }: FormProps = $props();
   let root = $state<HTMLDivElement>();
   let snapshot = $state(untrack(() => form.getSnapshot()));
   let binding: ReturnType<typeof connectForm> | undefined;

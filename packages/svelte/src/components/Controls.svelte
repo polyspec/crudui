@@ -2,10 +2,18 @@
   Render one control group of `data-crudui-action` buttons. Sibling buttons are written
   without whitespace between them; see Node.svelte.
 -->
-<script lang="ts">
+<script module lang="ts">
   import type { ControlsVM } from '@polyspec/crudui-generator-core';
 
-  let { controls }: { controls: ControlsVM } = $props();
+  /** The props of the component Controls. */
+  export interface ControlsProps {
+    /** The control group to render. */
+    controls: ControlsVM;
+  }
+</script>
+
+<script lang="ts">
+  let { controls }: ControlsProps = $props();
 </script>
 
 <div class="crudui-controls" role="group" aria-label={controls.label}

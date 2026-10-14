@@ -3,6 +3,10 @@
 
 ## Unreleased
 
+### 2026-10-15 — Svelte component exports (C14.12)
+
+- `@polyspec/crudui-generator-svelte` exports each component as a documented Svelte 5 `Component<XProps>` and its props type `XProps` by name (`FormProps`, `ListProps`, `DetailProps`, `NodeProps`, `ControlsProps`, `WidgetProps`, `OutlineProps`, `OutlineViewProps`, `DataViewProps`, `DataPanelProps`). The type alias of the Svelte 4 instance, `type X = ReturnType<typeof X>`, which svelte-package wrote undocumented for each component, is no longer exported; the type of an instance is `ReturnType<typeof X>` (C14.12).
+
 ### 2026-10-15 — kit 0.0.44 (C14.13)
 
 - crudui pins `@polyspec/kit` 0.0.44: `make install-tools` installs the Rust toolchain of `rust-toolchain.toml` before a CI job runs cargo, API Extractor no longer reports `ae-missing-release-tag`, oxlint allows the registrations of node:test, ruff keeps its cache in `var/ruff`, and `config/layout.yml` adds `.npmrc`, `composer.json` and `composer.lock` to the root files of kit instead of repeating its list. The review of the lock takes `puppeteer` 25.14.0, `playwright` 1.64.1 and `tsup` 9.0.0.

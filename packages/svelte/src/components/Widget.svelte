@@ -1,14 +1,23 @@
 <!-- @component
   Render an evaluated widget and its native controls inside the required container.
 -->
+<script module lang="ts">
+  import type { UnsupportedVM, WidgetModel } from '@polyspec/crudui-generator-core';
+
+  /** The props of the component Widget. */
+  export interface WidgetProps {
+    /** The evaluated widget, or the model of an unsupported field type. */
+    w: WidgetModel | UnsupportedVM;
+  }
+</script>
+
 <script lang="ts">
   import {
     affixHtml, widgetBody, fileGroupBody, rangeBody, isUnsupported, usesStableControl,
-    type AnyWidget,
   } from './widget.js';
   import { patched, firstMarkup } from './raw.js';
 
-  let { w }: { w: AnyWidget } = $props();
+  let { w }: WidgetProps = $props();
 
   const model = $derived(isUnsupported(w) ? null : w);
   // dummy-input is a widget control, not a RAW display div.

@@ -1,10 +1,20 @@
 <!-- @component
   Render current data markup directly from the data.
 -->
-<script lang="ts">
+<script module lang="ts">
   import type { FormMessages } from '@polyspec/crudui-generator-core';
 
-  let { data, messages }: { data: unknown; messages: FormMessages } = $props();
+  /** The props of the component DataPanel. */
+  export interface DataPanelProps {
+    /** The data to show. */
+    data: unknown;
+    /** The interface text of the panel. */
+    messages: FormMessages;
+  }
+</script>
+
+<script lang="ts">
+  let { data, messages }: DataPanelProps = $props();
 </script>
 
 <div class="crudui-data">

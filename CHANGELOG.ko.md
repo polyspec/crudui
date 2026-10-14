@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: b2a64fdfa4d05dea3ffe3ec14e9c6add9d83b2e4a48da3d733918ef104f9c4ac -->
+<!-- source-sha256: 775b919fe45180c06c1545abd535b71ff71a6127c60dfd5af0ba2e826f12c757 -->
 
 ## Unreleased
+
+### 2026-10-15 — Svelte component exports (C14.12)
+
+- `@polyspec/crudui-generator-svelte`는 각 컴포넌트를 문서화된 Svelte 5 `Component<XProps>`로, 그 props 타입 `XProps`를 이름으로 내보낸다(`FormProps`, `ListProps`, `DetailProps`, `NodeProps`, `ControlsProps`, `WidgetProps`, `OutlineProps`, `OutlineViewProps`, `DataViewProps`, `DataPanelProps`). svelte-package가 컴포넌트마다 문서 없이 쓰던 Svelte 4 instance의 타입 별칭 `type X = ReturnType<typeof X>`는 더 이상 내보내지 않으며, instance의 타입은 `ReturnType<typeof X>`이다(C14.12).
 
 ### 2026-10-15 — kit 0.0.44 (C14.13)
 
