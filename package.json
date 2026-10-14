@@ -80,7 +80,7 @@
     "react-dom": "19.2.8"
   },
   "dependencies": {
-    "puppeteer": "^25.13.0"
+    "puppeteer": "^25.14.0"
   },
   "devDependencies": {
     "@microsoft/api-documenter": "7.30.18",
@@ -88,7 +88,7 @@
     "@polyspec/crudui-generator-core": "0.0.5",
     "@polyspec/crudui-generator-html": "0.0.5",
     "@polyspec/crudui-validator": "0.0.5",
-    "@polyspec/kit": "https://github.com/polyspec/kit/releases/download/v0.0.42/polyspec-kit-npm-0.0.42.tgz",
+    "@polyspec/kit": "https://github.com/polyspec/kit/releases/download/v0.0.44/polyspec-kit-npm-0.0.44.tgz",
     "@polyspec/ordered-json": "file:.form-comparison/sources/ordered-json/js",
     "@sveltejs/vite-plugin-svelte": "7.3.1",
     "@tailwindcss/node": "4.3.3",
@@ -101,7 +101,7 @@
     "jsdom": "30.1.2",
     "markdown-it": "15.0.2",
     "parse5": "^8.0.1",
-    "playwright": "^1.64.0",
+    "playwright": "^1.64.1",
     "postcss": "^8.5.30",
     "react": "19.2.8",
     "react-dom": "19.2.8",
@@ -113,7 +113,7 @@
   },
   "allowScripts": {
     "fsevents@2.3.3": true,
-    "puppeteer@25.13.0": true,
+    "puppeteer@25.14.0": true,
     "esbuild@0.27.7": true,
     "esbuild@0.28.2": true
   },
