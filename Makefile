@@ -368,7 +368,8 @@ test-native-generators: cargo-downloads-check
 
 test-php-api: build-php-extension
 	@status=0; \
-	node tests/conformance/run-suite.mts node -- tests/native-generators/php-extension-builder.test.mts packages/php-ext/tests/api.test.mjs || status=1; \
+	node tests/conformance/run-suite.mts node -- tests/native-generators/php-extension-builder.test.mts || status=1; \
+	PHP_EXTENSION="$(PHP_EXTENSION)" COMPOSER_VENDOR_DIR=../../vendor node tests/conformance/run-suite.mts phpunit --cwd packages/php-ext || status=1; \
 	COMPOSER_VENDOR_DIR=../../../vendor node $(KIT)/run-tests.mjs phpunit --cwd packages/generator/php || status=1; \
 	node tests/native-generators/run.mts --extension "$(PHP_EXTENSION)" --target php,php-native --report "$(PHP_NATIVE_REPORT)" || status=1; \
 	exit $$status

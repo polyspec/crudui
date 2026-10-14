@@ -33,7 +33,7 @@ Run from the repository root:
 ```sh
 node scripts/build-crudui-php-extension.mts
 composer install
-node node_modules/@polyspec/kit/dist/run-tests.mjs node -- packages/php-ext/tests/api.test.mjs
+COMPOSER_VENDOR_DIR=../../vendor node node_modules/@polyspec/kit/dist/run-tests.mjs phpunit --cwd packages/php-ext
 npm run build
 node tests/native-generators/run.mts \
   --extension "$(pwd)/packages/php-ext/modules/crudui.so" \

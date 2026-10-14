@@ -46,7 +46,7 @@ The cases are read at runtime by the list validation tests in
 [Go](../../../packages/validator/go/validator/validate/list_conformance_test.go),
 [Rust](../../../packages/validator/rust/tests/list_validity_conformance.rs), the
 [PHP extension engine test](../../../packages/php-ext/tests/engine.test.mjs), the
-[PHP extension runner](../../../packages/php-ext/tests/validate.php) and the cross-check console
+[PHP extension runner](../../../packages/php-ext/tests/ValidateReport.php) and the cross-check console
 [list runner test](../../../examples/cross-check-console/server/validate-list-runner.test.mjs) and
 [validator process test](../../../examples/cross-check-console/server/validator-processes.test.mjs).
 

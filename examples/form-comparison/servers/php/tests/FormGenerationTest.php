@@ -10,6 +10,7 @@ use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
+use Polyspec\Crudui\TestSupport\PhpProcess;
 use Polyspec\Crudui\FormComparison\FormGeneration;
 use Polyspec\Crudui\FormComparison\FormJson;
 use Polyspec\Crudui\FormComparison\ServerMode;

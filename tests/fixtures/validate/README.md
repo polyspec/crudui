@@ -32,7 +32,7 @@ missing data that has no row but still fails `required` and `mincount`. Failure 
 
 Each test runs the validator and compares the complete result or failure record. The `errors`
 array is compared in order. Go, Rust and PHP compare numbers by value, so `5` and `5.0` are equal.
-The [PHP extension runner](../../../packages/php-ext/tests/validate.php) compares JSON text, so
+The [PHP extension runner](../../../packages/php-ext/tests/ValidateReport.php) compares JSON text, so
 member order is compared there as well. A failure case compares `code`, `message` and `at`
 exactly, and every case must declare exactly one of `expected` and `expectFailure`.
 
@@ -45,7 +45,7 @@ The cases are read by the validation conformance tests in
 [Go](../../../packages/validator/go/validator/validate/conformance_test.go) and
 [Rust](../../../packages/validator/rust/tests/validate_conformance.rs); the
 [PHP extension engine test](../../../packages/php-ext/tests/engine.test.mjs) and the
-[PHP extension API test](../../../packages/php-ext/tests/api.test.mjs), which runs the PHP and native
+[PHP extension API test](../../../packages/php-ext/tests/ApiTest.php), which runs the PHP and native
 validators; and the cross-check console
 [validator process test](../../../examples/cross-check-console/server/validator-processes.test.mjs),
 which sends every case to the five validator processes, and its

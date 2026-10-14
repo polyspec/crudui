@@ -2,13 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Polyspec\Crudui\FormComparison\Tests;
+namespace Polyspec\Crudui\TestSupport;
 
 use RuntimeException;
 
 /**
- * One child PHP process of a test: `php -n` with the mbstring and dom extensions that the binary builds as shared
- * modules, the extension modules a test names, the Composer autoloader of the checkout and one script.
+ * One child PHP process of a test: `php -n` with the extension modules a test names and one script, by default after
+ * the mbstring and dom extensions that the binary builds as shared modules and the Composer autoloader of the checkout.
+ * The PHP tests of the form comparison and of the PHP extension start their processes with it.
  */
 final class PhpProcess
 {
@@ -20,16 +21,20 @@ final class PhpProcess
     }
 
     /**
-     * Run `$script` after the autoloader in a child process with the extension modules `$modules` and the environment
-     * variables `$environment` added to those of this process.
+     * Run `$script` in a child process with the extension modules `$modules` and the environment variables
+     * `$environment` added to those of this process; with `$libraries`, after mbstring, dom and the autoloader.
      *
      * @param list<string> $modules Absolute paths of extension modules.
      * @param array<string, string> $environment
      */
-    public static function run(array $modules, string $script, array $environment = []): self
-    {
+    public static function run(
+        array $modules,
+        string $script,
+        array $environment = [],
+        bool $libraries = true,
+    ): self {
         $arguments = [PHP_BINARY, '-n'];
-        foreach (['mbstring', 'dom'] as $name) {
+        foreach ($libraries ? ['mbstring', 'dom'] : [] as $name) {
             if (!self::builtIn($name)) {
                 array_push($arguments, '-d', 'extension=' . $name);
             }
@@ -37,8 +42,9 @@ final class PhpProcess
         foreach ($modules as $module) {
             array_push($arguments, '-d', 'extension=' . $module);
         }
-        $autoload = dirname(__DIR__, 5) . '/vendor/autoload.php';
-        array_push($arguments, '-r', 'require ' . var_export($autoload, true) . ';' . $script);
+        $autoload = dirname(__DIR__, 2) . '/vendor/autoload.php';
+        $prefix = $libraries ? 'require ' . var_export($autoload, true) . ';' : '';
+        array_push($arguments, '-r', $prefix . $script);
         $pipes = [];
         $process = proc_open($arguments, [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes, null, [
             ...getenv(),

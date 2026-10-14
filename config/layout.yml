@@ -24,7 +24,8 @@ rules:
   # conformance (the suite runs and evidence of every language), docs (the document checks), fixtures (the cases that
   # every engine reads), form-inspector (the snapshots that compare the renderers of every framework), form-markup (the
   # markup rules on the rendered fixtures of every renderer), native-generators (the runner of the generators of every
-  # language) and release-install (the install of the released packages of every ecosystem).
+  # language), php (the child PHP processes that the PHPUnit tests of the form comparison and of the PHP extension start)
+  # and release-install (the install of the released packages of every ecosystem).
   - id: layout-root-tests
     paths:
       - "tests/*"
@@ -36,6 +37,7 @@ rules:
       - "!tests/form-inspector"
       - "!tests/form-markup"
       - "!tests/native-generators"
+      - "!tests/php"
       - "!tests/release-install"
 
   # S5: the components of crudui beside the runtime folder php-ext: the validator and the generator, each a component with
@@ -71,6 +73,7 @@ rules:
   # S9: the infrastructure of scripts/ and tests/ is TypeScript. The exceptions each drive or serve one language:
   # - scripts/php-doc-coverage.php and tests/docs/php/DocCoverage.php: the documentation check of the classes of the PHP
   #   packages, which PHP itself runs (DocCoverageTest of each package);
+  # - tests/php/PhpProcess.php: the child PHP process of the PHPUnit tests of the form comparison and the PHP extension;
   # - tests/conformance/php/Evidence.php and the package of tests/conformance/python: the conformance evidence that the PHP
   #   and Python suites record in their own language;
   # - tests/native-generators/python.py and programs/{go,php,rust}: the programs of the native generator runner, one per
@@ -81,6 +84,7 @@ rules:
       - "tests/**/*.{js,mjs,cjs,py,sh,bash,zsh,rb,pl,php,go,rs,ps1,bat,cmd}"
       - "!tests/kit/fixture/**"
       - "!tests/docs/php/DocCoverage.php"
+      - "!tests/php/PhpProcess.php"
       - "!scripts/php-doc-coverage.php"
       - "!tests/conformance/php/Evidence.php"
       - "!tests/conformance/python/**"

@@ -54,8 +54,8 @@ The validation operations are run by the
 [PHP](../../../packages/validator/php/tests/Validate/TextValidityConformanceTest.php),
 [Go](../../../packages/validator/go/validator/validate/text_conformance_test.go) and
 [Rust](../../../packages/validator/rust/tests/text_validity_conformance.rs) tests, the
-[PHP extension runner](../../../packages/php-ext/tests/validate.php) through its
-[API test](../../../packages/php-ext/tests/api.test.mjs), and the cross-check console
+[PHP extension runner](../../../packages/php-ext/tests/ValidateReport.php) through its
+[API test](../../../packages/php-ext/tests/ApiTest.php), and the cross-check console
 [validator process test](../../../examples/cross-check-console/server/validator-processes.test.mjs),
 which sends every case to the five validator processes.
 
