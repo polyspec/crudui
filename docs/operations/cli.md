@@ -8,6 +8,8 @@ and `explain`. Install dependencies and build the packages from the repository
 root before running commands:
 
 ```sh
+make install-tools TOOLS=npm
+make install-packages
 make install-tools
 export PATH="$PWD/var/tools/bin:$PATH"
 npm ci --strict-allow-scripts

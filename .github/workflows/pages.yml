@@ -47,20 +47,17 @@ jobs:
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
           php-version: '8.5'
-          tools: composer:2.10.3
+          tools: none
       - name: Install PHP dependencies
         run: make install-composer
-      - name: Setup Go
-        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
-        with:
-          go-version-file: '.go-version'
-          cache-dependency-path: packages/validator-go/go.mod
       - name: Install the Rust toolchain of rust-toolchain.toml
         run: make install-rust
       - name: Cargo cache
         uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
           workspaces: packages/validator-rust
+      - name: Install the tools of mise.lock into var/tools/mise
+        run: make install-tools
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm go rust php composer"
       - name: Install PHP API documentation generator

@@ -1,6 +1,6 @@
 # 개발
 <!-- doc-id: agents -->
-<!-- source-sha256: 63eddd41a2de0533ceb5cd6fa182f1e44d8672beec0dd5375c22863bcc621ce0 -->
+<!-- source-sha256: 095a6ba16c21c71cb3c60056ea694f998b6a95d364f4c17426a10211ddcf96cc -->
 
 모든 polyspec 저장소의 작업 원칙은 kit의 copy인 [PRINCIPLES.ko.md](PRINCIPLES.ko.md)이며, 이 file은 crudui의 규칙을 적습니다.
 
@@ -151,8 +151,8 @@
 
 같은 tree는 모든 날짜와 machine에서 같은 결과를 내고, 실패한 실행은 무엇이 왜 실패했는지 보여 준다.
 
-- 도구와 의존성: 모든 도구는 checkout이 기록한 정확한 release(`.node-version`, `.go-version`, `rust-toolchain.toml`,
-  `config/toolchain.json`, `package.json`의 `packageManager`)로 실행되고, `make toolchain-check`는 다른 release에
+- 도구와 의존성: 모든 도구는 checkout이 기록한 정확한 release(`.node-version`, `rust-toolchain.toml`,
+  `mise.lock`과 함께 `mise.toml`, `config/toolchain.json`, `package.json`의 `packageManager`)로 실행되고, `make toolchain-check`는 다른 release에
   대해 실패한다. image는 digest로, 그 Debian package는 snapshot 날짜로, action은 commit SHA로, browser는 잠긴 package가
   고정한 build로 지정한다. 어떤 실행도 registry에 최신 release나 channel을 묻지 않고, 어떤 도구도 스스로 다른 release를
   설치하지 않는다(`RUSTUP_AUTO_INSTALL=0`, `GOTOOLCHAIN=local`). repository의 도구는 checkout(`make install-tools`가 쓰는 `var/tools`)에 설치하며, 다른

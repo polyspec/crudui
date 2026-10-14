@@ -15,6 +15,8 @@ classes using native generation and validation.
 Run from the repository root:
 
 ```sh
+make install-tools TOOLS=npm
+make install-packages
 make install-tools
 export PATH="$PWD/var/tools/bin:$PATH"
 npm ci --strict-allow-scripts

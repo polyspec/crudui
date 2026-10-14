@@ -41,12 +41,14 @@ jobs:
       - name: Install the Rust toolchain of rust-toolchain.toml
         run: make install-rust
       - name: Install npm and cargo-audit into var/tools
-        run: make install-tools TOOLS="cargoAudit"
+        run: make install-tools
       - name: Setup PHP
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
           php-version: '8.5'
-          tools: composer:2.10.3
+          tools: none
+      - name: Install the tools of mise.lock into var/tools/mise
+        run: make install-tools
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm rust php composer"
       - name: Review the dependencies

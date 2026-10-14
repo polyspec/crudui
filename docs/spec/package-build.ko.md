@@ -1,6 +1,6 @@
 # 패키지 빌드
 <!-- doc-id: docs-spec-package-build -->
-<!-- source-sha256: c1ece93713618737b5f0020cf5fbde8bf968780f29cc5e0fba7607cf545a9a07 -->
+<!-- source-sha256: 2c97f2d3d50896191102d46ee376a92a6db9bd71ba9b821039f850a871131051 -->
 
 [English](package-build.md).
 
@@ -171,8 +171,8 @@ Node.js는 활성 LTS 또는 다음 LTS로 지정된 최신 짝수 안정 메이
   `rust-version`, 모든 manifest와 lock의 `typescript`입니다. 벗어나는 값은 `config/toolchain.json`의 `exceptions` 항목으로 scope,
   이유, 재시도 조건과 함께 선언합니다. `packages/generator-svelte`는 svelte-check와 `@sveltejs/package`가 TypeScript 6 API를
   요구하므로 TypeScript 6.0.3을 유지합니다.
-- `.go-version`은 정확한 Go 릴리스를 기록하고 CI가 그것을 읽습니다. `config/toolchain.json`은 `go` 줄이 그 릴리스인
-  `go.mod`를 지정하고, `make install-tools`는 kit pin의 Go를 `var/tools/go`에 설치하며, Makefile과 CI가 설정하는
+- `mise.toml`은 kit pin인 정확한 Go 릴리스를 기록하고, `make install-tools`는 CI에서도 mise로 `mise.lock`의 digest에 맞춰
+  그것을 설치하며, 모든 `go.mod`의 `go` 줄이 그 릴리스이고, Makefile과 CI가 설정하는
   `GOTOOLCHAIN=local`은 go가 다른 toolchain을 내려받지 못하게 합니다. 저장소의 Go module과 비교 예제의 OrderedJSON checkout의
   Go module은 루트 `go.work`로 서로를 찾으며, 어떤 `go.mod`도 `replace`를 적지 않습니다.
 - `rust-toolchain.toml`은 정확한 Rust 릴리스를 profile `minimal`과 component `rustfmt`,

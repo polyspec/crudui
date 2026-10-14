@@ -49,18 +49,11 @@ jobs:
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
           php-version: '8.5'
-          tools: composer:2.10.3
-      - name: Setup Go
-        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
-        with:
-          go-version-file: '.go-version'
-          cache: false
+          tools: none
       - name: Install the Rust toolchain of rust-toolchain.toml
         run: make install-rust
-      - name: Setup Python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
-        with:
-          python-version: '3.14'
+      - name: Install the tools of mise.lock into var/tools/mise
+        run: make install-tools
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm go rust php python composer"
       - name: Run the checks and write their report
@@ -141,7 +134,9 @@ jobs:
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
           php-version: ${{ matrix.php }}
-          tools: composer:2.10.3
+          tools: none
+      - name: Install the tools of mise.lock into var/tools/mise
+        run: make install-tools
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm php composer"
       - name: Install PHP dependencies
@@ -184,11 +179,8 @@ jobs:
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
-      - name: Setup Go
-        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
-        with:
-          go-version-file: '.go-version'
-          cache-dependency-path: packages/validator-go/go.mod
+      - name: Install the tools of mise.lock into var/tools/mise
+        run: make install-tools
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm go"
       - name: Run the checks and write their report
@@ -258,20 +250,12 @@ jobs:
           if-no-files-found: error
 
   python:
-    name: python · ${{ matrix.python }}
+    name: python
     runs-on: ubuntu-24.04
-    strategy:
-      fail-fast: false
-      matrix:
-        python: ['3.14']
     env:
       CRUDUI_CONFORMANCE_EVIDENCE: ${{ github.workspace }}/conformance-evidence
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
-      - name: Setup Python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
-        with:
-          python-version: ${{ matrix.python }}
       - name: Setup the Node.js release of .node-version
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
@@ -285,9 +269,10 @@ jobs:
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
-      # The release of .python-version is the matrix leg 3.14; the recorded toolchain names that release.
+      - name: Install the tools of mise.lock into var/tools/mise
+        run: make install-tools
+      # The Python is the one of mise.toml, which make install-tools installed at the digest of mise.lock.
       - name: Check the recorded toolchain versions
-        if: ${{ matrix.python == '3.14' }}
         run: make toolchain-check TOOLS="node npm python"
       - name: Run the checks and write their report
         if: ${{ !cancelled() }}
@@ -296,12 +281,11 @@ jobs:
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: report-python-${{ matrix.python }}
+          name: report-python
           path: var/report/ci-targets
           if-no-files-found: error
-      # Both legs record the same evidence; the recorded release leg preserves it.
       - name: Preserve conformance evidence
-        if: ${{ !cancelled() && matrix.python == '3.14' }}
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: conformance-evidence-python
@@ -332,20 +316,17 @@ jobs:
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
           php-version: '8.5'
-          tools: composer:2.10.3
+          tools: none
       - name: Install PHP dependencies
         run: make install-composer
-      - name: Setup Go
-        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
-        with:
-          go-version-file: '.go-version'
-          cache-dependency-path: packages/validator-go/go.mod
       - name: Install the Rust toolchain of rust-toolchain.toml
         run: make install-rust
       - name: Cargo cache
         uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
           workspaces: packages/validator-rust
+      - name: Install the tools of mise.lock into var/tools/mise
+        run: make install-tools
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm go rust php composer"
       - name: Install PHP API documentation generator
@@ -388,22 +369,17 @@ jobs:
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
           php-version: '8.5'
-          tools: composer:2.10.3
+          tools: none
       - name: Install PHP dependencies
         run: make install-composer
-      - name: Setup Go
-        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
-        with:
-          go-version-file: '.go-version'
-          cache-dependency-path: |
-            packages/validator-go/go.mod
-            examples/cross-check-console/validators/go/go.mod
       - name: Install the Rust toolchain of rust-toolchain.toml
         run: make install-rust
       - name: Cargo cache
         uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
           workspaces: examples/cross-check-console/validators/rust
+      - name: Install the tools of mise.lock into var/tools/mise
+        run: make install-tools
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm go rust php composer"
       - name: Download the crates of every Cargo.lock
@@ -529,7 +505,9 @@ jobs:
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
           php-version: '8.5'
-          tools: composer:2.10.3
+          tools: none
+      - name: Install the tools of mise.lock into var/tools/mise
+        run: make install-tools
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm php composer"
       - name: Install workspace and PHP dependencies
@@ -575,18 +553,15 @@ jobs:
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
           php-version: '8.5'
-          tools: composer:2.10.3
-      - name: Setup Go
-        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
-        with:
-          go-version-file: '.go-version'
-          cache-dependency-path: examples/form-comparison/servers/go/go.mod
+          tools: none
       - name: Install the Rust toolchain of rust-toolchain.toml
         run: make install-rust
       - name: Cargo cache
         uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
           workspaces: examples/form-comparison/servers/rust
+      - name: Install the tools of mise.lock into var/tools/mise
+        run: make install-tools
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm go rust php composer"
       - name: Install workspace and PHP dependencies
@@ -647,18 +622,15 @@ jobs:
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
           php-version: '8.5'
-          tools: composer:2.10.3
-      - name: Setup Go
-        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
-        with:
-          go-version-file: '.go-version'
-          cache-dependency-path: examples/form-comparison/servers/go/go.mod
+          tools: none
       - name: Install the Rust toolchain of rust-toolchain.toml
         run: make install-rust
       - name: Cargo cache
         uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
           workspaces: examples/form-comparison/servers/rust
+      - name: Install the tools of mise.lock into var/tools/mise
+        run: make install-tools
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm go rust php composer"
       - name: Install workspace and PHP dependencies
@@ -723,18 +695,15 @@ jobs:
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
           php-version: '8.5'
-          tools: composer:2.10.3
-      - name: Setup Go
-        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
-        with:
-          go-version-file: '.go-version'
-          cache-dependency-path: examples/form-comparison/servers/go/go.mod
+          tools: none
       - name: Install the Rust toolchain of rust-toolchain.toml
         run: make install-rust
       - name: Cargo cache
         uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
         with:
           workspaces: examples/form-comparison/servers/rust
+      - name: Install the tools of mise.lock into var/tools/mise
+        run: make install-tools
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm go rust php composer"
       - name: Install workspace and PHP dependencies
@@ -876,15 +845,16 @@ jobs:
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
           php-version: '8.5'
-          tools: composer:2.10.3
-      - name: Setup Go
-        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+          tools: none
+      # The Go modules and builds of the generator and its programs, keyed on their go.mod files; make install-tools installs
+      # the Go of mise.toml.
+      - name: Cache the Go modules of the generator and its programs
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          go-version-file: '.go-version'
-          cache-dependency-path: |
-            packages/generator-go/go.mod
-            tests/native-generators/programs/go/go.mod
-            tools/bench/go/go.mod
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: go-${{ runner.os }}-${{ hashFiles('packages/generator-go/go.mod', 'tests/native-generators/programs/go/go.mod', 'tools/bench/go/go.mod') }}
       - name: Install the Rust toolchain of rust-toolchain.toml
         run: make install-rust
       - name: Cargo cache
@@ -894,6 +864,8 @@ jobs:
             packages/generator-rust
             tests/native-generators/programs/rust
             tools/bench/rust
+      - name: Install the tools of mise.lock into var/tools/mise
+        run: make install-tools
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm go rust php composer"
       - name: Install dependencies
@@ -959,7 +931,9 @@ jobs:
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
           php-version: ${{ matrix.php }}
-          tools: composer:2.10.3
+          tools: none
+      - name: Install the tools of mise.lock into var/tools/mise
+        run: make install-tools
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm php composer"
       - name: Install dependencies

@@ -16,7 +16,7 @@ npm run test:packages
 ```
 
 `test:runtimes` requires one exact release of every tool: Node.js in `.node-version`,
-Go in `.go-version`, Rust in `rust-toolchain.toml`, the PHP minors and Composer in `config/toolchain.json`;
+Rust in `rust-toolchain.toml`, the PHP minors in `config/toolchain.json`, and Go, Python and Composer in `mise.toml`;
 `make toolchain-check` requires the running tools to be those releases and the declarations and manifest floors to be
 the pins of kit. Every CI job runs on `ubuntu-24.04`, names its actions by
 commit SHA, sets up the recorded releases and checks the tools it set up; the checkout tracks

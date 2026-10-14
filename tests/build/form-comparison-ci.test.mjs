@@ -41,10 +41,10 @@ test('CI builds and runs the five record stores and the canonical flow', async (
   // The test runner bounds each test; the job has no time limit over them (test-commands.test.mjs).
   assert.doesNotMatch(job, /^ {4}timeout-minutes:/m);
   assert.match(job, /uses: shivammathur\/setup-php@/);
-  assert.match(job, /tools: composer/);
+  // setup-php installs PHP alone; make install-tools installs the Go and the Composer of mise.toml (kit K127).
+  assert.match(job, /tools: none/);
   assert.match(job, /PHP_EXTENSION_PHP_CONFIG:\s*\/usr\/bin\/php-config8\.5/);
-  assert.match(job, /uses: actions\/setup-go@/);
-  assert.match(job, /go-version-file:\s*['"]?\.go-version['"]?/);
+  assert.match(job, /run: make install-tools\n/);
   assert.match(job, /run: make install-rust\n/);
   // The Rust record server builds from the OrderedJSON checkout, which make install-crates installs before the crates.
   assert.match(job, /run: make install-crates\n/);
@@ -112,7 +112,11 @@ test('native PHP matrix passes the selected regular php-config path', async () =
 test('native job caches the generator packages and the programs that run them', async () => {
   const workflow = await readFile(path.join(repository, '.github/workflows/ci.yml'), 'utf8');
   const job = workflowJob(workflow, 'native-generators');
-  for (const entry of ['packages/generator-go/go.mod', 'tests/native-generators/programs/go/go.mod', 'packages/generator-rust', 'tests/native-generators/programs/rust']) {
+  // The Go module cache is keyed on the go.mod files of the generator and its programs (hashFiles of actions/cache).
+  for (const entry of ['packages/generator-go/go.mod', 'tests/native-generators/programs/go/go.mod']) {
+    assert.ok(job.includes(`'${entry}'`), entry);
+  }
+  for (const entry of ['packages/generator-rust', 'tests/native-generators/programs/rust']) {
     assert.match(job, new RegExp(`^\\s+${entry.replaceAll('.', '\\.')}$`, 'm'), entry);
   }
 });
