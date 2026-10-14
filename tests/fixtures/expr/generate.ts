@@ -20,6 +20,8 @@ import {
   evaluateExpressionValue,
 } from '../../../packages/validator/ts/src/parser/PathResolver';
 import type { PathContext } from '../../../packages/validator/ts/src/types';
+// The global declaration of JSON.rawJSON.
+import type {} from './json-raw.d.ts';
 
 // ---------------------------------------------------------------------------
 // Serialization helpers (drop `position`, keep JS-actual field names)
@@ -105,10 +107,9 @@ interface CaseSpec {
 /**
  * The number 1 written `1.0`, a spelling that JSON.stringify does not write for a JavaScript number; a runtime that
  * decodes it to another type than `1` (a PHP float, a Rust float, a Python float) must still compare it by value.
- * JSON.rawJSON, of the JSON.parse source text access proposal, writes the text as it is.
+ * JSON.rawJSON (json-raw.d.ts) writes the text as it is.
  */
-// No lib of TypeScript 7.0.2 declares JSON.rawJSON, not "esnext" either, so the call names its type here.
-const oneWithFraction = (JSON as unknown as { rawJSON(text: string): unknown }).rawJSON('1.0');
+const oneWithFraction = JSON.rawJSON('1.0');
 
 const SPECS: CaseSpec[] = [
   // ---- simple paths -----------------------------------------------------
