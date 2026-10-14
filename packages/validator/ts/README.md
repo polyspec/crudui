@@ -32,6 +32,12 @@ Options accept `files`, a virtual file set for `$ref`, `loader`, an object with
 and `basepath` for relative references. The option and result types are
 exported with the functions.
 
+The authoring types of a specification are exported as types: `FieldSpec` for a
+field or a form root, `RangeFieldSpec` for a range field, and the types that they
+name (`ValidateSlot`, `DesignSlot`, `Items`, `Multiple`, `Lang`, `ConditionMap`
+and the rest), as [docs/spec/schema.md](../../../docs/spec/schema.md) defines
+them.
+
 A load or input failure is thrown, never returned as `valid: false`. The
 [validation procedure](../../../docs/operations/validation.md) shows usage in every
 language.
