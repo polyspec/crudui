@@ -14,17 +14,17 @@ rules:
     vars: { repo: crudui }
 
   # S5: the root files of crudui beyond the list of kit (K145): .npmrc sets strict-allow-scripts for the npm of the root
-  # (C14.3), and composer.json with composer.lock install the development vendor/ of the PHP tools and of the PHP packages,
-  # which load each other through its path repositories.
+  # (C14.3), composer.json with composer.lock install the development vendor/ of the PHP tools and of the PHP packages,
+  # which load each other through its path repositories, and pyproject.toml with uv.lock is the uv workspace of the
+  # Python packages, which make install-python syncs into var/python (C14.29).
   - id: layout-root-files
-    vars: { root_files: "{.npmrc,composer.json,composer.lock}" }
+    vars: { root_files: "{.npmrc,composer.json,composer.lock,pyproject.toml,uv.lock}" }
 
   # S7: the cross-language runners and tool tests of the root tests/: build (the tool tests of the repository),
   # conformance (the suite runs and evidence of every language), docs (the document checks), fixtures (the cases that
   # every engine reads), form-inspector (the snapshots that compare the renderers of every framework), form-markup (the
   # markup rules on the rendered fixtures of every renderer), native-generators (the runner of the generators of every
-  # language), ordered-json (the keyed JSON contract against the OrderedJSON packages) and release-install (the install
-  # of the released packages of every ecosystem).
+  # language) and release-install (the install of the released packages of every ecosystem).
   - id: layout-root-tests
     paths:
       - "tests/*"
@@ -36,7 +36,6 @@ rules:
       - "!tests/form-inspector"
       - "!tests/form-markup"
       - "!tests/native-generators"
-      - "!tests/ordered-json"
       - "!tests/release-install"
 
   # S5: the components of crudui beside the runtime folder php-ext: the validator and the generator, each a component with
@@ -72,12 +71,10 @@ rules:
   # S9: the infrastructure of scripts/ and tests/ is TypeScript. The exceptions each drive or serve one language:
   # - scripts/php-package-autoload.php and scripts/php-doc-coverage.php: the autoload of the PHP packages in development and
   #   the documentation check of their classes, which PHP itself runs (phpunit bootstrap, DocCoverageTest);
-  # - tests/conformance/php/Evidence.php, evidence.py, runner.py and runs.py: the conformance evidence that the PHP and
-  #   Python suites record in their own language, and the unittest runner of the Python suites;
+  # - tests/conformance/php/Evidence.php and the package of tests/conformance/python: the conformance evidence that the PHP
+  #   and Python suites record in their own language;
   # - tests/native-generators/python.py and programs/{go,php,rust}: the programs of the native generator runner, one per
   #   language, which drive the generator of that language;
-  # - tests/ordered-json/check.py and test_check.py: the check of the keyed JSON contract against the Python package of
-  #   OrderedJSON, with its test.
   - id: layout-infrastructure-typescript
     paths:
       - "scripts/**/*.{js,mjs,cjs,py,sh,bash,zsh,rb,pl,php,go,rs,ps1,bat,cmd}"
@@ -86,15 +83,11 @@ rules:
       - "!scripts/php-package-autoload.php"
       - "!scripts/php-doc-coverage.php"
       - "!tests/conformance/php/Evidence.php"
-      - "!tests/conformance/evidence.py"
-      - "!tests/conformance/runner.py"
-      - "!tests/conformance/runs.py"
+      - "!tests/conformance/python/**"
       - "!tests/native-generators/python.py"
       - "!tests/native-generators/programs/go/main.go"
       - "!tests/native-generators/programs/php/generate.php"
       - "!tests/native-generators/programs/rust/src/main.rs"
-      - "!tests/ordered-json/check.py"
-      - "!tests/ordered-json/test_check.py"
 
   - id: layout-infrastructure-shebang
     paths:
@@ -102,4 +95,3 @@ rules:
       - "tests/**"
       - "!tests/kit/fixture/**"
       - "!tests/native-generators/python.py"
-      - "!tests/ordered-json/check.py"

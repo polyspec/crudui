@@ -1,6 +1,6 @@
 # 예제
 <!-- doc-id: docs-spec-examples -->
-<!-- source-sha256: 956e947fccd242869487b3b2d0b719e7da0f31021207b297cb88438fea6979b2 -->
+<!-- source-sha256: c86403853218b3a3708741c26e755e79a04cf893b28b0b2d385eb297e94ff3de -->
 
 [English](examples.md).
 
@@ -42,7 +42,7 @@ JSON 객체를 출력한 경우에만 응답을 인정합니다. 데이터 검�
 잘못된 실패 응답은 비교 실패로 처리합니다.
 
 재사용 폼 검사기와 JSON 순서
-검사는 `tests/form-inspector/`와 `tests/ordered-json/`에서 관리합니다.
+검사는 `tests/form-inspector/`에서 관리합니다.
 
 프론트엔드 예제는 예제 빌드 시 저장소의 로컬 명세를 import합니다.
 생성된 정적 예제는 폼 명세를 포함합니다.

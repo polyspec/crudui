@@ -3,7 +3,8 @@
 A test that runs a shared fixture case records the feature it proves, the
 fixture, the runtime and the case. Nothing is written unless
 CRUDUI_CONFORMANCE_EVIDENCE names a directory; scripts/check-conformance.mts
-reads it. The run record of the suite is written by tests/conformance/runner.py.
+reads it. The run record of the suite is written by tests/conformance/run-suite.mts,
+which runs the suite.
 """
 
 import json
@@ -59,14 +60,9 @@ class Proving:
     def __enter__(self):
         return self
 
-    def __exit__(self, kind, value, trace):
+    def __exit__(self, _kind, _value, _trace):
         for feature in self.features:
             record_conformance(
                 feature, self.fixture, self.runtime, self.case, self.passed
             )
         return False
-
-
-def proving(features, fixture, case):
-    """One fixture case that proves every feature in `features`."""
-    return Proving(features, fixture, case)

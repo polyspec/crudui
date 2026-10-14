@@ -1,6 +1,6 @@
 # 적합성 증거
 <!-- doc-id: docs-spec-conformance -->
-<!-- source-sha256: c446af7eb97cc21808e8b1df56553d965c5f51674c4e54954852f60de3dcc48d -->
+<!-- source-sha256: 5dc3e8391a33b541ad645d48b0a2992ef93c246fecd540fd3db7e28ce14e0ff7 -->
 
 [English](conformance.md).
 
@@ -54,9 +54,10 @@ suite의 실행은 증거 디렉터리의 `runs/`에 실행 기록도 남깁니�
 [`tests/native-generators/run.mts`](../../tests/native-generators/run.mts)는 자신의 기록을
 [`tests/conformance/runs.mts`](../../tests/conformance/runs.mts)로 씁니다. 기록
 `{"program", "tool", "cwd", "args", "started", "status"}`는 실행이 시작할 때 `status`를 `null`로 써지고,
-process가 끝날 때 종료 상태로 다시 써지므로 멈춘 실행은 `null`을 유지합니다. Python suite는
-[`tests/conformance/runner.py`](../../tests/conformance/runner.py)로 기록을 쓰며, 각 기록의 program은 그 runner
-자신이므로 suite를 실행하는 Python 실행 파일에 따라 달라지지 않습니다.
+process가 끝날 때 종료 상태로 다시 써지므로 멈춘 실행은 `null`을 유지합니다. Python suite도
+`make install-python`이 만드는 환경 `var/python`의 Python으로 `run-suite.mts`를 거쳐 실행되고,
+[`tests/conformance/python`](../../tests/conformance/python/pyproject.toml)의 package `polyspec.crudui.conformance`로
+증거를 기록합니다.
 
 검사의 `evidenceSuites`는 suite마다 그것을 실행하는 명령과 증명하는 런타임을 선언합니다. 증거가 빠졌거나
 실패한 기능, fixture, 런타임마다 검사는 그 런타임을 증명하는 모든 suite를 상태와 함께 적습니다. 명령에 맞는

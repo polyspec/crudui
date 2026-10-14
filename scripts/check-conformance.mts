@@ -173,7 +173,7 @@ export function checkConformance(
 export const evidenceSuites: EvidenceSuite[] = [
   { name: 'validator JavaScript', run: { program: 'tests/conformance/run-suite.mts', tool: 'vitest', cwd: 'packages/validator/ts' }, runtimes: ['javascript'] },
   { name: 'validator PHP', run: { program: 'tests/conformance/run-suite.mts', tool: 'phpunit', cwd: 'packages/validator/php' }, runtimes: ['php'] },
-  { name: 'validator Python', run: { program: 'tests/conformance/runner.py', tool: 'unittest', cwd: 'packages/validator/python/tests' }, runtimes: ['python'] },
+  { name: 'validator Python', run: { program: 'tests/conformance/run-suite.mts', tool: 'python', cwd: 'packages/validator/python' }, runtimes: ['python'] },
   { name: 'validator Go', run: { program: 'tests/conformance/run-suite.mts', tool: 'go', cwd: 'packages/validator/go' }, runtimes: ['go'] },
   { name: 'validator Rust', run: { program: 'tests/conformance/run-suite.mts', tool: 'cargo', argument: 'packages/validator/rust/Cargo.toml' }, runtimes: ['rust'] },
   { name: 'HTML renderer', run: { program: 'tests/conformance/run-suite.mts', tool: 'vitest', cwd: 'packages/html' }, runtimes: ['javascript-html', 'javascript-dom'] },
@@ -182,7 +182,7 @@ export const evidenceSuites: EvidenceSuite[] = [
   { name: 'Svelte renderer', run: { program: 'tests/conformance/run-suite.mts', tool: 'vitest', cwd: 'packages/svelte' }, runtimes: ['svelte'] },
   { name: 'PHP extension', run: { program: 'tests/conformance/run-suite.mts', tool: 'node', argument: 'packages/php-ext/tests/engine.test.mjs' }, runtimes: ['php-native'] },
   { name: 'PHP extension API', run: { program: 'tests/conformance/run-suite.mts', tool: 'node', argument: 'packages/php-ext/tests/api.test.mjs' }, runtimes: ['php-native'] },
-  { name: 'generator Python', run: { program: 'tests/conformance/runner.py', tool: 'unittest', cwd: 'packages/generator/python/tests' }, runtimes: ['python'] },
+  { name: 'generator Python', run: { program: 'tests/conformance/run-suite.mts', tool: 'python', cwd: 'packages/generator/python' }, runtimes: ['python'] },
   { name: 'native generators', run: { program: 'tests/native-generators/run.mts' }, runtimes: ['javascript', 'javascript-html', 'php', 'go', 'rust', 'php-native'] },
 ];
 

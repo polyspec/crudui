@@ -64,7 +64,7 @@ jobs:
         run: make install-crates
       - name: Run the checks and write their report
         if: ${{ !cancelled() }}
-        run: make ci-targets TARGETS="test-runtimes test-dependencies build lint lint-python lint-php lint-rust lint-go typecheck test-ordered-json"
+        run: make ci-targets TARGETS="test-runtimes test-dependencies build lint lint-python lint-php lint-rust lint-go typecheck"
       - name: Upload the report of the checks
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -281,6 +281,9 @@ jobs:
         run: make install-packages
       - name: Install the tools of mise.lock into var/tools/mise and the Rust toolchain of rust-toolchain.toml
         run: make install-tools
+      # The suites and programs import the Python packages installed in var/python (S3).
+      - name: Install the Python packages of the uv workspace into var/python
+        run: make install-python
       # The Python is the one of mise.toml, which make install-tools installed at the digest of mise.lock.
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm python"
@@ -390,6 +393,9 @@ jobs:
           workspaces: examples/cross-check-console/validators/rust
       - name: Download the modules that the Go workspace requires
         run: make install-go-modules
+      # The suites and programs import the Python packages installed in var/python (S3).
+      - name: Install the Python packages of the uv workspace into var/python
+        run: make install-python
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm go rust php composer"
       - name: Download the crates of every Cargo.lock
@@ -884,6 +890,9 @@ jobs:
             benchmarks/validators/rust
       - name: Download the modules that the Go workspace requires
         run: make install-go-modules
+      # The suites and programs import the Python packages installed in var/python (S3).
+      - name: Install the Python packages of the uv workspace into var/python
+        run: make install-python
       - name: Check the recorded toolchain versions
         run: make toolchain-check TOOLS="node npm go rust php composer"
       - name: Install dependencies

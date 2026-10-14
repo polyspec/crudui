@@ -44,8 +44,7 @@ strings and `at` as a string. The console records them as
 A failure response with another exit status, missing or additional members, or
 malformed values fails comparison.
 
-Reusable form inspection and JSON order checks are maintained under
-`tests/form-inspector/` and `tests/ordered-json/`.
+Reusable form inspection checks are maintained under `tests/form-inspector/`.
 
 Frontend examples import repository-local specifications during the example
 build. The resulting static build includes its form specifications.

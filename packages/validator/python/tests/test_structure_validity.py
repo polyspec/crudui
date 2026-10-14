@@ -7,16 +7,12 @@ dotted trace. The list and detail groups run the same contract through
 `validateList` and `validateDetail`.
 """
 
-import sys
 import unittest
-from pathlib import Path
 
-SOURCE = str(Path(__file__).resolve().parents[1] / "src")
-if SOURCE not in sys.path:
-    sys.path.insert(0, SOURCE)
 
-from conformance import cases_of, Proving  # noqa: E402
-from polyspec.crudui.validator import (  # noqa: E402
+from .conformance import cases_of
+from polyspec.crudui.conformance import Proving
+from polyspec.crudui.validator import (
     ComposeLoadError,
     validate,
     validateDetail,

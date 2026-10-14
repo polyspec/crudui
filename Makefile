@@ -30,7 +30,7 @@ export GOPROXY := off
 export npm_config_offline := true
 export COMPOSER_DISABLE_NETWORK := 1
 ONLINE := env -u CARGO_NET_OFFLINE -u GOPROXY -u npm_config_offline -u COMPOSER_DISABLE_NETWORK
-.PHONY: help release-assets install install-go-modules install-composer install-phpdocumentor install-browsers check-ci-browser test-runtimes test-dependencies build lint typecheck test-validator-js test-validator-php test-validator-go test-validator-rust test-validator-python test-generator-python test-cross-check manifest-test require-build test-cli manifest-check manifest-docs-check test-forms test-form-comparison test-form-comparison-pipeline test-form-comparison-checks test-form-comparison-browser test-form-comparison-summary test-packages test-build test-build-repeat test-inspector test-bench check-conformance install-crates install-ordered-json install-svelte-tools test-ordered-json docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-engine test-native-generators test-php-api test-native test-validators test-form-binding conformance format-check records-check ci check conformance-reset
+.PHONY: help release-assets install install-go-modules install-composer install-python install-phpdocumentor install-browsers check-ci-browser test-runtimes test-dependencies build lint typecheck test-validator-js test-validator-php test-validator-go test-validator-rust test-validator-python test-generator-python test-cross-check manifest-test require-build test-cli manifest-check manifest-docs-check test-forms test-form-comparison test-form-comparison-pipeline test-form-comparison-checks test-form-comparison-browser test-form-comparison-summary test-packages test-build test-build-repeat test-inspector test-bench check-conformance install-crates install-ordered-json install-svelte-tools docs docs-api docs-schema docs-web docs-dev docs-preview docs-clean docs-check docs-check-documents docs-check-libs docs-verify-idempotent bench bench-fixtures bench-js bench-php bench-go bench-rust build-php-extension test-php-engine test-native-generators test-php-api test-native test-validators test-form-binding conformance format-check records-check ci check conformance-reset
 .NOTPARALLEL: docs docs-web docs-dev docs-preview docs-check docs-verify-idempotent
 
 # The tools that every polyspec repository shares are the package @polyspec/kit of package-lock.json. The copy
@@ -48,6 +48,12 @@ PHP_EXTENSION ?= $(CURDIR)/packages/php-ext/modules/crudui.so
 NATIVE_REPORT ?= $(shell git rev-parse --git-path native-generators/report.json)
 PHP_NATIVE_REPORT ?= $(shell git rev-parse --git-path native-generators/report-php.json)
 CONFORMANCE_EVIDENCE ?= $(abspath $(shell git rev-parse --git-path conformance-evidence))
+# The virtual environment of the Python packages (S3): make install-python makes it from the Python of mise.toml with
+# python-venv of kit and syncs the uv workspace of the root pyproject.toml into it, so the suites, the native generator
+# program and the cross-check console import the installed packages and change no sys.path.
+PYTHON_VENV := $(CURDIR)/var/python
+UV := $(CURDIR)/var/tools/mise/shims/uv
+export CRUDUI_PYTHON := $(PYTHON_VENV)/bin/python
 help: ## 타겟 설명
 	@echo "CRUDUI docs — make targets:"
 	@echo ""
@@ -58,7 +64,6 @@ help: ## 타겟 설명
 	@echo "  make dependency-review     Ask the registries for newer stable releases and advisories; RECORD=1 records, UPDATE=1 updates first"
 	@echo "  make dependency-policy-check  Check the manifests and locks against config/dependency-policy.json and the review record"
 	@echo "  make owner-check           Run the owner checks of the changed paths (config/owner-checks.json); PATHS or BASE select the paths"
-	@echo "  make test-ordered-json     Test the processor checks of tests/ordered-json without an OrderedJSON checkout"
 	@echo "  make docs                  전체 문서 생성 (API doc 멀티언어 + JSON schema 검사 + 정적 웹)"
 	@echo "  make docs-api              Generate API references for all languages"
 	@echo "  make docs-schema           스펙 JSON Schema와 공유 고정 데이터 검사"
@@ -100,7 +105,7 @@ help: ## 타겟 설명
 # checkout of the comparison and the phpDocumentor release that scripts/install-phpdocumentor.mts checks by its SHA-256.
 # Node.js, PHP, Python and Composer are installed at the versions of .node-version and config/toolchain.json by the
 # machine's package manager; `make toolchain-check` names every tool at another version.
-install: install-packages install-tools install-composer install-crates install-go-modules install-phpdocumentor ## Install the declared tools with the Rust toolchain, the npm, Composer and Cargo dependencies and phpDocumentor
+install: install-packages install-tools install-composer install-python install-crates install-go-modules install-phpdocumentor ## Install the declared tools with the Rust toolchain, the npm, Composer, Python and Cargo dependencies and phpDocumentor
 
 # The parts of make install, which the CI jobs run for what they check: every CI step runs a make target, so the recipes
 # start every tool with the offline settings, $(NPM) and the toolchains of the checkout. install-packages of
@@ -119,6 +124,10 @@ install-svelte-tools: ## Install the tools project of packages/svelte from its p
 # repository installs polyspec/crudui-validator as a copy into vendor/, and its autoload reads the generator sources.
 install-composer: ## Install the Composer dependencies of the development root composer.json into vendor/
 	$(ONLINE) composer install --no-interaction --prefer-dist
+
+install-python: ## Make the venv var/python and install the Python packages of the uv workspace into it in editable mode
+	$(MAKE) --no-print-directory python-venv DIR=$(PYTHON_VENV)
+	UV_PROJECT_ENVIRONMENT=$(PYTHON_VENV) $(ONLINE) $(UV) sync --quiet --locked --all-packages
 
 install-phpdocumentor: ## Install the phpDocumentor release that scripts/install-phpdocumentor.mts checks by its SHA-256
 	$(ONLINE) node scripts/install-phpdocumentor.mts
@@ -179,9 +188,9 @@ test-validator-go: ## The Go validator suite
 test-validator-rust: cargo-downloads-check ## The Rust validator suite
 	node tests/conformance/run-suite.mts cargo -- --locked --manifest-path packages/validator/rust/Cargo.toml
 test-validator-python: ## The Python validator suite
-	python3 tests/conformance/runner.py packages/validator/python/tests
+	node tests/conformance/run-suite.mts python --venv $(PYTHON_VENV) --cwd packages/validator/python -- discover -s tests -t .
 test-generator-python: ## The Python generator suite
-	python3 tests/conformance/runner.py packages/generator/python/tests
+	node tests/conformance/run-suite.mts python --venv $(PYTHON_VENV) --cwd packages/generator/python -- discover -s tests -t .
 test-cross-check: cargo-downloads-check ## The cross-check console gateway conformance
 	$(NPM) test --prefix examples/cross-check-console/server
 manifest-test: cargo-downloads-check ## The verification commands of the feature contracts
@@ -229,11 +238,6 @@ check-conformance: ## The conformance evidence against contracts/features.json
 # The owner checks run the checks of the changed paths (config/owner-checks.json), some of which run cargo; make -k skips
 # them while a crate is missing.
 owner-check: cargo-downloads-check
-
-# The unit tests of the processor checks of tests/ordered-json (docs/operations/ordered-json.md); the checks themselves need
-# an OrderedJSON checkout and run by hand.
-test-ordered-json: ## Test the processor checks of tests/ordered-json without an OrderedJSON checkout
-	python3 -m unittest discover -s tests/ordered-json -p 'test_*.py'
 
 docs: docs-clean docs-web ## 전체 문서 생성 (clean-then-generate)
 	@echo "[make] docs: complete -> docs/.web/dist"
@@ -446,7 +450,6 @@ CI_TARGETS = \
 	lint-rust \
 	lint-go \
 	typecheck \
-	test-ordered-json \
 	test-validator-js \
 	test-validator-php \
 	test-validator-go \

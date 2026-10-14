@@ -1,6 +1,6 @@
 # 패키지 빌드
 <!-- doc-id: docs-spec-package-build -->
-<!-- source-sha256: 1f319975e271ff0a6dff6fb6162732766b96164894d805a5d46e2d4130e4f50a -->
+<!-- source-sha256: a6bef9e3f11cd18edb6d6cabb86ef9bbc95ef956fced101e506fff4a345e9438 -->
 
 [English](package-build.md).
 
@@ -179,8 +179,8 @@ Node.js는 활성 LTS 또는 다음 LTS로 지정된 최신 짝수 안정 메이
   `clippy`와 함께 기록합니다. Makefile과 CI는 `RUSTUP_AUTO_INSTALL=0`을 설정하므로, 설치된
   toolchain이 없는 cargo는 그것을 설치하는 대신 rustup의 메시지로 실패합니다. `make install`과 CI는
   `rustup toolchain install --no-self-update`로 그것을 설치합니다.
-- `config/toolchain.json`은 `php`에 검사하는 PHP minor 릴리스를, `python`에 `tests/ordered-json`의 test
-  (`make test-ordered-json`)를 실행하는 Python의 minor 릴리스(PHP처럼 비교)를, `composer`에 정확한 Composer 릴리스(`version`과 phar의
+- `config/toolchain.json`은 `php`에 검사하는 PHP minor 릴리스를, `python`에 `var/python`에서 Python package와
+  그 suite를 실행하는(`make install-python`) Python의 minor 릴리스(PHP처럼 비교)를, `composer`에 정확한 Composer 릴리스(`version`과 phar의
   SHA-256을 가진 object)를, `go`에 `go` 줄이 Go 릴리스인 `go.mod`를, uv와 Python build, alint, ruff, vulture, golangci-lint,
   deadcode의 정확한 릴리스와 digest를, `cargoAudit`에 정확한 cargo-audit 릴리스를,
   `node`에 Node.js 릴리스의 Linux x64 archive SHA-256을 기록합니다. 이 file은

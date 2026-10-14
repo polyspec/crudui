@@ -1,0 +1,9 @@
+# The uv workspace of the Python packages of crudui (S3): make install-python syncs it into the virtual environment
+# var/python, where the suites, the native generator program and the cross-check console import the installed packages.
+# The generator's dependency on the validator is the git pin of its release (make release-pins); in the workspace the
+# validator of the checkout replaces it.
+[tool.uv.workspace]
+members = ["packages/validator/python", "packages/generator/python", "tests/conformance/python"]
+
+[tool.uv.sources]
+polyspec-crudui-validator = { workspace = true }

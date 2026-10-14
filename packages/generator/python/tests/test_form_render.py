@@ -8,7 +8,8 @@ Binding the same template twice writes the same fields.
 
 import unittest
 
-from conformance import cases_of, failure_record, html_tree, Proving
+from .conformance import cases_of, failure_record, html_tree
+from polyspec.crudui.conformance import Proving
 
 
 class TestFormRenderConformance(unittest.TestCase):

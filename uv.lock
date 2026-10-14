@@ -1,0 +1,31 @@
+version = 1
+revision = 5
+requires-python = ">=3.14"
+
+[manifest]
+members = [
+    "polyspec-crudui-conformance",
+    "polyspec-crudui-generator",
+    "polyspec-crudui-validator",
+]
+
+[[package]]
+name = "polyspec-crudui-conformance"
+version = "0.0.5"
+source = { editable = "tests/conformance/python" }
+
+[[package]]
+name = "polyspec-crudui-generator"
+version = "0.0.5"
+source = { editable = "packages/generator/python" }
+dependencies = [
+    { name = "polyspec-crudui-validator" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "polyspec-crudui-validator", editable = "packages/validator/python" }]
+
+[[package]]
+name = "polyspec-crudui-validator"
+version = "0.0.5"
+source = { editable = "packages/validator/python" }

@@ -1,0 +1,19 @@
+# The conformance evidence of the Python suites (docs/spec/conformance.md): the tests of packages/validator/python and
+# packages/generator/python import it from the uv workspace of the root pyproject.toml. Never published.
+[build-system]
+requires = ["setuptools==84.0.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "polyspec-crudui-conformance"
+version = "0.0.5"
+description = "Conformance evidence of the Python suites of crudui"
+requires-python = ">=3.14"
+classifiers = ["Private :: Do Not Upload"]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+namespaces = true
