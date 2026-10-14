@@ -2,12 +2,22 @@
   Render an evaluated read-only detail model with shared CRUDUI display cells: the actions, when
   the detail has any, and the definition list.
 -->
+<script module lang="ts">
+  import type { DetailViewModel } from '@polyspec/crudui-generator-core';
+
+  /** The props of the component Detail. */
+  export interface DetailProps {
+    /** The detail model that `buildDetail` of `@polyspec/crudui-generator-core` builds. */
+    vm: DetailViewModel;
+  }
+</script>
+
 <script lang="ts">
-  import type { DetailViewModel, DetailFieldVM, CellDisplay } from '@polyspec/crudui-generator-core';
+  import type { DetailFieldVM, CellDisplay } from '@polyspec/crudui-generator-core';
   import { patched, firstMarkup } from './raw.js';
   import Actions from './Actions.svelte';
 
-  let { vm }: { vm: DetailViewModel } = $props();
+  let { vm }: DetailProps = $props();
   const wrapperClass = $derived(['crudui-detail', vm.design.wrapper.class].filter((s) => s && s.trim()).join(' ').trim());
   const wrapperStyle = $derived(vm.design.wrapper.style?.trim() || undefined);
   const valueClass = (field: DetailFieldVM) => ['crudui-detail__value', 'crudui-value', `crudui-value--${field.format.type}`, field.design.main.class].filter((s) => s && s.trim()).join(' ').trim();

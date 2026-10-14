@@ -1,8 +1,19 @@
 <!-- @component
   Render an evaluated list model as a table or cards with display cells and row actions.
 -->
-<script lang="ts">
+<script module lang="ts">
   import type { ListViewModel } from '@polyspec/crudui-generator-core';
+
+  /** The props of the component List. */
+  export interface ListProps {
+    /** The list model that `buildList` of `@polyspec/crudui-generator-core` builds. */
+    vm: ListViewModel;
+    /** Table (default) or stacked-card layout. */
+    layout?: 'table' | 'card';
+  }
+</script>
+
+<script lang="ts">
   import {
     headerClass,
     headerStyle,
@@ -14,10 +25,7 @@
   import { patched, firstMarkup } from './raw.js';
   import Actions from './Actions.svelte';
 
-  let {
-    vm,
-    layout = 'table',
-  }: { vm: ListViewModel; layout?: 'table' | 'card' } = $props();
+  let { vm, layout = 'table' }: ListProps = $props();
 
   const wrapperClass = $derived(
     ['crudui-list', vm.design.wrapper.class].filter((s) => s && s.trim()).join(' ').trim()

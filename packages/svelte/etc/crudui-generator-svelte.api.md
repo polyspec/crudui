@@ -6,73 +6,97 @@
 
 import { BuildDetailOptions } from '@polyspec/crudui-generator-core';
 import { BuildListOptions } from '@polyspec/crudui-generator-core';
-import { Component } from 'svelte';
+import type { Component } from 'svelte';
 import type { ControlsVM } from '@polyspec/crudui-generator-core';
 import type { DetailViewModel } from '@polyspec/crudui-generator-core';
 import { FormInstance } from '@polyspec/crudui-generator-core';
-import { FormMessages } from '@polyspec/crudui-generator-core';
+import type { FormMessages } from '@polyspec/crudui-generator-core';
 import { FormRenderOptions } from '@polyspec/crudui-generator-core';
 import type { ListViewModel } from '@polyspec/crudui-generator-core';
 import type { NodeVM } from '@polyspec/crudui-generator-core';
-import { OutlineState } from '@polyspec/crudui-generator-core';
+import type { OutlineState } from '@polyspec/crudui-generator-core';
 import type { UnsupportedVM } from '@polyspec/crudui-generator-core';
 import type { WidgetModel } from '@polyspec/crudui-generator-core';
 
 // @public
-export const Controls: Component<$$ComponentProps_2, {}, "">;
-
-// @public (undocumented)
-export type Controls = ReturnType<typeof Controls>;
+export const Controls: Component<ControlsProps>;
 
 // @public
-export const DataPanel: Component<$$ComponentProps_6, {}, "">;
-
-// @public (undocumented)
-export type DataPanel = ReturnType<typeof DataPanel>;
+export interface ControlsProps {
+    controls: ControlsVM;
+}
 
 // @public
-const DataView_2: Component<$$ComponentProps_5, {}, "">;
+export const DataPanel: Component<DataPanelProps>;
 
-// @public (undocumented)
-type DataView_2 = ReturnType<typeof DataView_2>;
+// @public
+export interface DataPanelProps {
+    data: unknown;
+    messages: FormMessages;
+}
+
+// @public
+const DataView_2: Component<DataViewProps>;
 export { DataView_2 as DataView }
 
 // @public
-export const Detail: Component<$$ComponentProps_10, {}, "">;
-
-// @public (undocumented)
-export type Detail = ReturnType<typeof Detail>;
-
-// @public
-export const Form: Component<$$ComponentProps_8, {}, "">;
-
-// @public (undocumented)
-export type Form = ReturnType<typeof Form>;
+export interface DataViewProps {
+    form: FormInstance;
+}
 
 // @public
-export const List: Component<$$ComponentProps_9, {}, "">;
-
-// @public (undocumented)
-export type List = ReturnType<typeof List>;
+export const Detail: Component<DetailProps>;
 
 // @public
-const Node_2: Component<$$ComponentProps, {}, "">;
+export interface DetailProps {
+    vm: DetailViewModel;
+}
 
-// @public (undocumented)
-type Node_2 = ReturnType<typeof Node_2>;
+// @public
+export const Form: Component<FormProps>;
+
+// @public
+export interface FormProps {
+    form: FormInstance;
+    options?: FormRenderOptions;
+}
+
+// @public
+export const List: Component<ListProps>;
+
+// @public
+export interface ListProps {
+    layout?: 'table' | 'card';
+    vm: ListViewModel;
+}
+
+// @public
+const Node_2: Component<NodeProps>;
 export { Node_2 as Node }
 
 // @public
-export const Outline: Component<$$ComponentProps_3, {}, "">;
-
-// @public (undocumented)
-export type Outline = ReturnType<typeof Outline>;
+export interface NodeProps {
+    vm: NodeVM;
+}
 
 // @public
-export const OutlineView: Component<$$ComponentProps_4, {}, "root">;
+export const Outline: Component<OutlineProps>;
 
-// @public (undocumented)
-export type OutlineView = ReturnType<typeof OutlineView>;
+// @public
+export interface OutlineProps {
+    form: FormInstance;
+    formElement?: HTMLElement;
+}
+
+// @public
+export const OutlineView: Component<OutlineViewProps>;
+
+// @public
+export interface OutlineViewProps {
+    messages: FormMessages;
+    root?: HTMLDivElement;
+    state: OutlineState;
+}
 
 // @public
 export function renderDetail(detailSpec: Record<string, unknown>, record?: Record<string, unknown>, options?: BuildDetailOptions): string;
@@ -89,10 +113,12 @@ export interface RenderListOptions extends BuildListOptions {
 }
 
 // @public
-export const Widget: Component<$$ComponentProps_7, {}, "">;
+export const Widget: Component<WidgetProps>;
 
-// @public (undocumented)
-export type Widget = ReturnType<typeof Widget>;
+// @public
+export interface WidgetProps {
+    w: WidgetModel | UnsupportedVM;
+}
 
 // (No @packageDocumentation comment for this package)
 

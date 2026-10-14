@@ -1,6 +1,6 @@
 # @polyspec/crudui-generator-svelte
 <!-- doc-id: packages-generator-svelte-readme -->
-<!-- source-sha256: 0d4fe2f657feefac5d5e985203d48f673462a6e12e3692732b7bc68497c439aa -->
+<!-- source-sha256: 7c8e4956b139cf5e227f20cde5458c903c274b54d13c2e73e0bc6b5f8bdf75c0 -->
 
 [English](README.md).
 
@@ -32,6 +32,8 @@ const listHtml = renderList(listSpec, [{ name: 'Ada' }], { language: 'en' });
 `OutlineView`, `DataView`, `DataPanel`)와 렌더 함수 `renderForm`, `renderList`, `renderDetail`을
 내보냅니다. 컴파일, 폼 인스턴스, 모델과 오류 클래스는 `@polyspec/crudui-generator-core`에서 가져오며
 이 패키지는 이를 다시 내보내지 않습니다.
+각 컴포넌트는 props 타입 `XProps`(`FormProps`, `ListProps` 등)를 이름으로 내보내는 Svelte 5 `Component<XProps>`이며,
+컴포넌트 instance의 타입은 `ReturnType<typeof X>`입니다.
 
 이 패키지는 `svelte` 내보내기 조건으로 Svelte 컴포넌트를 배포합니다. 서버에서도
 `@sveltejs/vite-plugin-svelte`를 쓰는 Vite 같은 Svelte 인식 번들러로 불러옵니다(예: `ssrLoadModule`).

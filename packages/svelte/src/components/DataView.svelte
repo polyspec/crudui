@@ -1,12 +1,21 @@
 <!-- @component
   Render the current submission data of a form instance.
 -->
+<script module lang="ts">
+  import type { FormInstance } from '@polyspec/crudui-generator-core';
+
+  /** The props of the component DataView. */
+  export interface DataViewProps {
+    /** The form instance whose submission data is shown. */
+    form: FormInstance;
+  }
+</script>
+
 <script lang="ts">
   import { untrack } from 'svelte';
-  import type { FormInstance } from '@polyspec/crudui-generator-core';
   import DataPanel from './DataPanel.svelte';
 
-  let { form }: { form: FormInstance } = $props();
+  let { form }: DataViewProps = $props();
   let data = $state(untrack(() => form.getData()));
 
   $effect(() => {

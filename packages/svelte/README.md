@@ -32,6 +32,8 @@ The package entry exports components (`Form`, `List`, `Detail`, `Node`, `Control
 `Outline`, `OutlineView`, `DataView`, `DataPanel`) and the render functions `renderForm`,
 `renderList` and `renderDetail`. Compilation, form instances, models and error classes come from
 `@polyspec/crudui-generator-core`; this package does not re-export them.
+Each component is a Svelte 5 `Component<XProps>` with its props type `XProps` exported by name (`FormProps`,
+`ListProps` and so on); the type of a component instance is `ReturnType<typeof X>`.
 
 The package publishes Svelte components under the `svelte` export condition. Load it through a
 Svelte-aware bundler such as Vite with `@sveltejs/vite-plugin-svelte`, including on the server
