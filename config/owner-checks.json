@@ -50,8 +50,8 @@
         "test-validators",
         "test-native"
       ],
-      "workspaces": [
-        "@polyspec/crudui-generator-core"
+      "scripts": [
+        "test:forms"
       ]
     },
     {
@@ -150,9 +150,6 @@
       "paths": [
         "packages/generator-core/**"
       ],
-      "workspaces": [
-        "@polyspec/crudui-generator-core"
-      ],
       "scripts": [
         "test:forms"
       ]
@@ -216,8 +213,8 @@
       "paths": [
         "packages/cli/**"
       ],
-      "workspaces": [
-        "@polyspec/crudui-cli"
+      "targets": [
+        "test-cli"
       ]
     },
     {
