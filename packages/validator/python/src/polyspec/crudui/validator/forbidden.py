@@ -14,23 +14,23 @@ from collections.abc import Sequence
 from .compose_errors import ComposeLoadError
 from .jsvalue import JsonValue
 
-__all__ = ['FORBIDDEN_META_KEYS', 'scan_forbidden_keys']
+__all__ = ["FORBIDDEN_META_KEYS", "scan_forbidden_keys"]
 
 FORBIDDEN_META_KEYS = (
-    'display_switch',
-    'display_target',
-    'if',
-    'when',
-    'show_if',
-    '_',
-    'seqtokey',
-    '__13hex__',
-    '$after',
-    '$before',
-    '$merge',
-    '$remove',
-    'xclass',
-    'xstyle',
+    "display_switch",
+    "display_target",
+    "if",
+    "when",
+    "show_if",
+    "_",
+    "seqtokey",
+    "__13hex__",
+    "$after",
+    "$before",
+    "$merge",
+    "$remove",
+    "xclass",
+    "xstyle",
 )
 
 _FORBIDDEN = frozenset(FORBIDDEN_META_KEYS)
@@ -66,7 +66,9 @@ def _walk(node: JsonValue, path: list[str]) -> None:
         if _is_forbidden_key(key):
             at = [*path, key]
             raise ComposeLoadError(
-                'FORBIDDEN_META_KEY', f'forbidden meta key "{key}" at {".".join(at)}', at
+                "FORBIDDEN_META_KEY",
+                f'forbidden meta key "{key}" at {".".join(at)}',
+                at,
             )
     for key in node:
         _walk(node[key], [*path, key])

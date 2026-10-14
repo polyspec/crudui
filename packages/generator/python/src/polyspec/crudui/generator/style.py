@@ -2,9 +2,9 @@
 
 import re
 
-__all__ = ['canonical', 'declarations', 'rendered']
+__all__ = ["canonical", "declarations", "rendered"]
 
-_COMMENT = re.compile(r'/\*.*?\*/', re.DOTALL)
+_COMMENT = re.compile(r"/\*.*?\*/", re.DOTALL)
 
 
 def declarations(style: str) -> list[tuple[str, str]]:
@@ -21,9 +21,9 @@ def declarations(style: str) -> list[tuple[str, str]]:
     def finish(end: int) -> None:
         nonlocal start, colon
         if colon is not None:
-            prop = _COMMENT.sub(' ', style[start:colon]).strip()
-            value = style[colon + 1:end].strip()
-            if prop != '' and value != '':
+            prop = _COMMENT.sub(" ", style[start:colon]).strip()
+            value = style[colon + 1 : end].strip()
+            if prop != "" and value != "":
                 out.append((prop, value))
         start = end + 1
         colon = None
@@ -31,9 +31,9 @@ def declarations(style: str) -> list[tuple[str, str]]:
     index = 0
     while index < length:
         char = style[index]
-        following = style[index + 1] if index + 1 < length else ''
+        following = style[index + 1] if index + 1 < length else ""
         if comment:
-            if char == '*' and following == '/':
+            if char == "*" and following == "/":
                 comment = False
                 index += 1
             index += 1
@@ -42,7 +42,7 @@ def declarations(style: str) -> list[tuple[str, str]]:
             escape = False
             index += 1
             continue
-        if char == '\\':
+        if char == "\\":
             escape = True
             index += 1
             continue
@@ -51,7 +51,7 @@ def declarations(style: str) -> list[tuple[str, str]]:
                 quote = None
             index += 1
             continue
-        if char == '/' and following == '*':
+        if char == "/" and following == "*":
             comment = True
             index += 2
             continue
@@ -59,23 +59,23 @@ def declarations(style: str) -> list[tuple[str, str]]:
             quote = char
             index += 1
             continue
-        if char in '([{':
+        if char in "([{":
             stack.append(char)
             index += 1
             continue
-        if char in ')]}':
-            if stack and {'(': ')', '[': ']', '{': '}'}[stack[-1]] == char:
+        if char in ")]}":
+            if stack and {"(": ")", "[": "]", "{": "}"}[stack[-1]] == char:
                 stack.pop()
             index += 1
             continue
         if stack:
             index += 1
             continue
-        if char == ':' and colon is None:
+        if char == ":" and colon is None:
             colon = index
             index += 1
             continue
-        if char == ';':
+        if char == ";":
             finish(index)
         index += 1
     finish(length)
@@ -89,7 +89,7 @@ def canonical(style: object) -> str | None:
     parsed = declarations(style)
     if not parsed:
         return None
-    return '; '.join(f'{prop}: {value}' for prop, value in parsed)
+    return "; ".join(f"{prop}: {value}" for prop, value in parsed)
 
 
 def _dash_lower(match: re.Match[str]) -> str:
@@ -97,7 +97,7 @@ def _dash_lower(match: re.Match[str]) -> str:
 
 
 def _dash_property(match: re.Match[str]) -> str:
-    return '-' + match.group(0).lower()
+    return "-" + match.group(0).lower()
 
 
 def rendered(style: object) -> str | None:
@@ -106,12 +106,12 @@ def rendered(style: object) -> str | None:
         return None
     properties: dict[str, str] = {}
     for prop, value in declarations(style):
-        if not prop.startswith('--'):
-            key = re.sub('-([a-z])', _dash_lower, prop)
-            prop = re.sub('[A-Z]', _dash_property, key)
-            if prop.startswith('ms-'):
-                prop = '-' + prop
+        if not prop.startswith("--"):
+            key = re.sub("-([a-z])", _dash_lower, prop)
+            prop = re.sub("[A-Z]", _dash_property, key)
+            if prop.startswith("ms-"):
+                prop = "-" + prop
         properties[prop] = value
     if not properties:
         return None
-    return ';'.join(f'{key}:{value}' for key, value in properties.items())
+    return ";".join(f"{key}:{value}" for key, value in properties.items())

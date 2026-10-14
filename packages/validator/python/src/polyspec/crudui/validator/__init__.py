@@ -12,11 +12,11 @@ from .errors import FormInputError
 from .validator import Validator, hiddenPaths, validate, validateDetail, validateList
 
 __all__ = [
-    'ComposeLoadError',
-    'FormInputError',
-    'Validator',
-    'hiddenPaths',
-    'validate',
-    'validateDetail',
-    'validateList',
+    "ComposeLoadError",
+    "FormInputError",
+    "Validator",
+    "hiddenPaths",
+    "validate",
+    "validateDetail",
+    "validateList",
 ]

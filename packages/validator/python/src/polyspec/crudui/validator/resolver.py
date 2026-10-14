@@ -20,44 +20,44 @@ from .parser import Node
 Context: TypeAlias = dict[str, Any]
 
 __all__ = [
-    'evaluate_condition',
-    'evaluate_expression_value',
-    'get_field_name',
-    'get_value_by_path',
-    'has_wildcard',
-    'path_to_string',
-    'parse_path_string',
-    'resolve_field_reference',
-    'resolve_path_segments',
-    'resolve_wildcard_path',
+    "evaluate_condition",
+    "evaluate_expression_value",
+    "get_field_name",
+    "get_value_by_path",
+    "has_wildcard",
+    "path_to_string",
+    "parse_path_string",
+    "resolve_field_reference",
+    "resolve_path_segments",
+    "resolve_wildcard_path",
 ]
 
-_INDEX = re.compile(r'^\d+$')
+_INDEX = re.compile(r"^\d+$")
 
 
 def resolve_path_segments(path_node: Node, context: Context) -> list[str]:
     """Resolve a path node to absolute path segments."""
-    current_path = context['currentPath']
-    relative = path_node['relative']
+    current_path = context["currentPath"]
+    relative = path_node["relative"]
     if relative:
         # The current field is one level and each further dot moves one more level up; a row key
         # and the name of its collection leave together.
         base_path = list(current_path)
-        row_keys = context.get('rowKeys') or []
-        for _level in range(path_node['levelsUp'] + 1):
+        row_keys = context.get("rowKeys") or []
+        for _level in range(path_node["levelsUp"] + 1):
             if not base_path:
                 break
             leaving = 2 if (len(base_path) - 1) in row_keys else 1
-            base_path = base_path[:max(0, len(base_path) - leaving)]
+            base_path = base_path[: max(0, len(base_path) - leaving)]
     else:
         base_path = []
-    for segment in path_node['segments']:
-        if segment['type'] == 'identifier':
-            base_path.append(segment['value'])
-        elif segment['type'] == 'index':
-            base_path.append(_number_text(segment['value']))
-        elif segment['type'] == 'wildcard':
-            base_path.append('*')
+    for segment in path_node["segments"]:
+        if segment["type"] == "identifier":
+            base_path.append(segment["value"])
+        elif segment["type"] == "index":
+            base_path.append(_number_text(segment["value"]))
+        elif segment["type"] == "wildcard":
+            base_path.append("*")
     return base_path
 
 
@@ -79,7 +79,11 @@ def get_value_by_path(data: JsonValue, path: list[str]) -> JsonValue:
             return None
         if isinstance(current, dict):
             current = current.get(segment)
-        elif isinstance(current, list) and _INDEX.match(segment) and int(segment) < len(current):
+        elif (
+            isinstance(current, list)
+            and _INDEX.match(segment)
+            and int(segment) < len(current)
+        ):
             current = current[int(segment)]
         else:
             return None
@@ -88,20 +92,22 @@ def get_value_by_path(data: JsonValue, path: list[str]) -> JsonValue:
 
 def has_wildcard(path: list[str]) -> bool:
     """Whether a path contains a wildcard."""
-    return '*' in path
+    return "*" in path
 
 
-def resolve_wildcard_path(path: list[str], form_data: JsonValue, current_index: int | None = None) -> list[dict[str, Any]]:
+def resolve_wildcard_path(
+    path: list[str], form_data: JsonValue, current_index: int | None = None
+) -> list[dict[str, Any]]:
     """Resolve a path with wildcards to concrete paths and values.
 
     Each wildcard takes every index of the array it names, or the index of the
     current row when `current_index` is given.
     """
-    if '*' not in path:
-        return [{'path': list(path), 'value': get_value_by_path(form_data, path)}]
-    wildcard_index = path.index('*')
+    if "*" not in path:
+        return [{"path": list(path), "value": get_value_by_path(form_data, path)}]
+    wildcard_index = path.index("*")
     array_path = path[:wildcard_index]
-    remaining = path[wildcard_index + 1:]
+    remaining = path[wildcard_index + 1 :]
     array_data = get_value_by_path(form_data, array_path)
 
     # An object under a wildcard (a keyed collection) is read without the index.
@@ -111,7 +117,9 @@ def resolve_wildcard_path(path: list[str], form_data: JsonValue, current_index: 
         return []
 
     results: list[dict[str, Any]] = []
-    indexes: Iterable[int | None] = [current_index] if current_index is not None else range(len(array_data))
+    indexes: Iterable[int | None] = (
+        [current_index] if current_index is not None else range(len(array_data))
+    )
     for index in indexes:
         if index is None:
             continue
@@ -127,7 +135,7 @@ def replace_wildcard_with_index(path: list[str], current_path: list[str]) -> lis
     current_array_index = 0
     array_indices = [int(segment) for segment in current_path if _INDEX.match(segment)]
     for segment in path:
-        if segment == '*':
+        if segment == "*":
             index = (
                 array_indices[current_array_index]
                 if current_array_index < len(array_indices)
@@ -137,7 +145,7 @@ def replace_wildcard_with_index(path: list[str], current_path: list[str]) -> lis
                 result.append(str(index))
                 current_array_index += 1
             else:
-                result.append('*')
+                result.append("*")
         else:
             result.append(segment)
     return result
@@ -158,33 +166,37 @@ _UNDEFINED = _Undefined()
 Value: TypeAlias = Union[JsonValue, _Undefined]
 
 
-def evaluate_condition(node: Node, context: Context, wildcard_strategy: str = 'CURRENT') -> bool:
+def evaluate_condition(
+    node: Node, context: Context, wildcard_strategy: str = "CURRENT"
+) -> bool:
     """Evaluate an AST node to a boolean."""
-    kind = node['type']
-    if kind == 'Binary':
+    kind = node["type"]
+    if kind == "Binary":
         return _evaluate_binary(node, context, wildcard_strategy)
-    if kind == 'Unary':
+    if kind == "Unary":
         return _evaluate_unary(node, context, wildcard_strategy)
-    if kind == 'In':
+    if kind == "In":
         return _evaluate_in(node, context, wildcard_strategy)
-    if kind == 'Group':
-        return evaluate_condition(node['expression'], context, wildcard_strategy)
-    if kind == 'Ternary':
+    if kind == "Group":
+        return evaluate_condition(node["expression"], context, wildcard_strategy)
+    if kind == "Ternary":
         # In a boolean context a ternary's value is read for its truthiness.
         return _truthy(_evaluate_ternary(node, context, wildcard_strategy))
-    if kind in ('Path', 'Literal'):
+    if kind in ("Path", "Literal"):
         return _truthy(_resolve_value(node, context, wildcard_strategy))
     return False
 
 
-def evaluate_expression_value(node: Node, context: Context, wildcard_strategy: str = 'CURRENT') -> Value | None:
+def evaluate_expression_value(
+    node: Node, context: Context, wildcard_strategy: str = "CURRENT"
+) -> Value | None:
     """Evaluate an AST node to its value: a ternary keeps its branch value."""
-    kind = node['type']
-    if kind == 'Ternary':
+    kind = node["type"]
+    if kind == "Ternary":
         return _evaluate_ternary(node, context, wildcard_strategy)
-    if kind == 'Group':
-        return evaluate_expression_value(node['expression'], context, wildcard_strategy)
-    if kind in ('Binary', 'Unary', 'In', 'Path', 'Literal'):
+    if kind == "Group":
+        return evaluate_expression_value(node["expression"], context, wildcard_strategy)
+    if kind in ("Binary", "Unary", "In", "Path", "Literal"):
         # Every other expression is a condition and evaluates to a boolean.
         return evaluate_condition(node, context, wildcard_strategy)
     return None
@@ -199,48 +211,50 @@ def _truthy(value: object) -> bool:
     if isinstance(value, (int, float)):
         return value != 0
     if isinstance(value, str):
-        return value != ''
+        return value != ""
     return True
 
 
-def _resolve_branch_value(node: Node, context: Context, wildcard_strategy: str) -> Value:
+def _resolve_branch_value(
+    node: Node, context: Context, wildcard_strategy: str
+) -> Value:
     """The value of a ternary branch: a nested ternary, a literal, a path or a condition."""
-    kind = node['type']
-    if kind == 'Ternary':
+    kind = node["type"]
+    if kind == "Ternary":
         return _evaluate_ternary(node, context, wildcard_strategy)
-    if kind == 'Group':
-        return _resolve_branch_value(node['expression'], context, wildcard_strategy)
-    if kind == 'Literal':
-        literal: Value = node['value']
+    if kind == "Group":
+        return _resolve_branch_value(node["expression"], context, wildcard_strategy)
+    if kind == "Literal":
+        literal: Value = node["value"]
         return literal
-    if kind == 'Path':
+    if kind == "Path":
         return _resolve_value(node, context, wildcard_strategy)
-    if kind == 'Binary':
+    if kind == "Binary":
         return _evaluate_binary(node, context, wildcard_strategy)
-    if kind == 'Unary':
+    if kind == "Unary":
         return _evaluate_unary(node, context, wildcard_strategy)
-    if kind == 'In':
+    if kind == "In":
         return _evaluate_in(node, context, wildcard_strategy)
     return _UNDEFINED
 
 
 def _evaluate_ternary(node: Node, context: Context, wildcard_strategy: str) -> Value:
-    if evaluate_condition(node['condition'], context, wildcard_strategy):
-        return _resolve_branch_value(node['trueValue'], context, wildcard_strategy)
-    return _resolve_branch_value(node['falseValue'], context, wildcard_strategy)
+    if evaluate_condition(node["condition"], context, wildcard_strategy):
+        return _resolve_branch_value(node["trueValue"], context, wildcard_strategy)
+    return _resolve_branch_value(node["falseValue"], context, wildcard_strategy)
 
 
 def _evaluate_binary(node: Node, context: Context, wildcard_strategy: str) -> bool:
-    operator = node['operator']
-    left, right = node['left'], node['right']
-    if operator == '&&':
-        return evaluate_condition(left, context, wildcard_strategy) and evaluate_condition(
-            right, context, wildcard_strategy
-        )
-    if operator == '||':
-        return evaluate_condition(left, context, wildcard_strategy) or evaluate_condition(
-            right, context, wildcard_strategy
-        )
+    operator = node["operator"]
+    left, right = node["left"], node["right"]
+    if operator == "&&":
+        return evaluate_condition(
+            left, context, wildcard_strategy
+        ) and evaluate_condition(right, context, wildcard_strategy)
+    if operator == "||":
+        return evaluate_condition(
+            left, context, wildcard_strategy
+        ) or evaluate_condition(right, context, wildcard_strategy)
     left_value, candidates = _resolve_operand(left, context, wildcard_strategy)
     right_value = _resolve_value(right, context, wildcard_strategy)
     # The candidates of a wildcard path; a list that a plain path names is one value.
@@ -254,84 +268,93 @@ def _evaluate_binary(node: Node, context: Context, wildcard_strategy: str) -> bo
 
 
 def _evaluate_unary(node: Node, context: Context, wildcard_strategy: str) -> bool:
-    if node['operator'] == '!':
-        return not evaluate_condition(node['operand'], context, wildcard_strategy)
+    if node["operator"] == "!":
+        return not evaluate_condition(node["operand"], context, wildcard_strategy)
     return False
 
 
 def _evaluate_in(node: Node, context: Context, wildcard_strategy: str) -> bool:
-    value, candidates = _resolve_operand(node['value'], context, wildcard_strategy)
-    items = [_resolve_value(item, context, wildcard_strategy) for item in node['list']]
+    value, candidates = _resolve_operand(node["value"], context, wildcard_strategy)
+    items = [_resolve_value(item, context, wildcard_strategy) for item in node["list"]]
     if candidates:
+
         def check(item: Value) -> bool:
             included = any(_loose_equals(item, candidate) for candidate in items)
-            return not included if node['negated'] else included
+            return not included if node["negated"] else included
 
         return _with_strategy(value, check, wildcard_strategy)
     included = any(_loose_equals(value, item) for item in items)
-    return not included if node['negated'] else included
+    return not included if node["negated"] else included
 
 
-def _with_strategy(values: Sequence[Value], predicate: Callable[[Value], bool], strategy: str) -> bool:
-    if strategy == 'ANY':
+def _with_strategy(
+    values: Sequence[Value], predicate: Callable[[Value], bool], strategy: str
+) -> bool:
+    if strategy == "ANY":
         return any(predicate(value) for value in values)
-    if strategy == 'ALL':
+    if strategy == "ALL":
         return all(predicate(value) for value in values)
-    if strategy == 'NONE':
+    if strategy == "NONE":
         return all(not predicate(value) for value in values)
-    if strategy == 'CURRENT':
+    if strategy == "CURRENT":
         return bool(values) and predicate(values[0])
     return False
 
 
-def _resolve_operand(node: Node, context: Context, wildcard_strategy: str) -> tuple[Value, bool]:
+def _resolve_operand(
+    node: Node, context: Context, wildcard_strategy: str
+) -> tuple[Value, bool]:
     """The left operand of a comparison: the candidates of a wildcard path with True, else one value with False."""
-    if node['type'] == 'Path':
+    if node["type"] == "Path":
         return _resolve_path(node, context, wildcard_strategy)
     return _resolve_value(node, context, wildcard_strategy), False
 
 
-def _resolve_path(node: Node, context: Context, wildcard_strategy: str) -> tuple[Value, bool]:
+def _resolve_path(
+    node: Node, context: Context, wildcard_strategy: str
+) -> tuple[Value, bool]:
     """The value of a path with False, or the list of candidate values of a wildcard that the context does not resolve with True."""
     resolved_path = resolve_path_segments(node, context)
     if has_wildcard(resolved_path):
-        if wildcard_strategy == 'CURRENT':
-            resolved_path = replace_wildcard_with_index(resolved_path, context['currentPath'])
+        if wildcard_strategy == "CURRENT":
+            resolved_path = replace_wildcard_with_index(
+                resolved_path, context["currentPath"]
+            )
         if has_wildcard(resolved_path):
             # Still has wildcards: resolve to the list of the values it names.
             return [
-                entry['value']
-                for entry in resolve_wildcard_path(resolved_path, context['formData'])
+                entry["value"]
+                for entry in resolve_wildcard_path(resolved_path, context["formData"])
             ], True
-    return get_value_by_path(context['formData'], resolved_path), False
+    return get_value_by_path(context["formData"], resolved_path), False
 
 
 def _resolve_value(node: Node, context: Context, wildcard_strategy: str) -> Value:
-    kind = node['type']
-    if kind == 'Literal':
-        literal: Value = node['value']
+    kind = node["type"]
+    if kind == "Literal":
+        literal: Value = node["value"]
         return literal
-    if kind == 'Path':
+    if kind == "Path":
         return _resolve_path(node, context, wildcard_strategy)[0]
-    if kind == 'Group':
-        return evaluate_condition(node['expression'], context, wildcard_strategy)
+    if kind == "Group":
+        return evaluate_condition(node["expression"], context, wildcard_strategy)
     return _UNDEFINED
 
 
 def _compare(left: Value, right: Value, operator: str) -> bool:
-    if operator == '==':
+    if operator == "==":
         return _loose_equals(left, right)
-    if operator == '!=':
+    if operator == "!=":
         return not _loose_equals(left, right)
     left_number = _coerce_number(left)
     right_number = _coerce_number(right)
-    if operator == '>':
+    if operator == ">":
         return left_number > right_number
-    if operator == '>=':
+    if operator == ">=":
         return left_number >= right_number
-    if operator == '<':
+    if operator == "<":
         return left_number < right_number
-    if operator == '<=':
+    if operator == "<=":
         return left_number <= right_number
     return False
 
@@ -339,14 +362,14 @@ def _compare(left: Value, right: Value, operator: str) -> bool:
 def _typeof(value: Value) -> str:
     """The JavaScript `typeof` a value: null, lists and objects are one type."""
     if value is _UNDEFINED:
-        return 'undefined'
+        return "undefined"
     if value is None or isinstance(value, (list, dict)):
-        return 'object'
+        return "object"
     if isinstance(value, bool):
-        return 'boolean'
+        return "boolean"
     if isinstance(value, (int, float)):
-        return 'number'
-    return 'string'
+        return "number"
+    return "string"
 
 
 def _loose_equals(left: Value, right: Value) -> bool:
@@ -358,7 +381,7 @@ def _loose_equals(left: Value, right: Value) -> bool:
     empty text.
     """
     if _typeof(left) == _typeof(right):
-        if _typeof(left) == 'object':
+        if _typeof(left) == "object":
             return _json_equals(left, right)
         return left == right
     if left is None or isinstance(left, _Undefined):
@@ -403,7 +426,7 @@ def _equality_number(value: Value) -> float:
 def _equality_text(value: Value) -> str:
     """The text of a value for `==`: a list or an object is the empty text."""
     if isinstance(value, (list, dict)):
-        return ''
+        return ""
     return js_string(value)
 
 
@@ -427,31 +450,33 @@ def resolve_field_reference(expression: str, context: Context) -> Value:
     `field` resolved as `.field`.
     """
     trimmed = expression.strip()
-    if trimmed == '':
+    if trimmed == "":
         return _UNDEFINED
-    form_data = context['formData']
+    form_data = context["formData"]
     dots = 0
-    while dots < len(trimmed) and trimmed[dots] == '.':
+    while dots < len(trimmed) and trimmed[dots] == ".":
         dots += 1
-    if dots > 0 or '.' not in trimmed:
+    if dots > 0 or "." not in trimmed:
         field_path = trimmed[dots:]
         path_node = {
-            'type': 'Path',
-            'relative': True,
-            'levelsUp': max(0, dots - 1),
-            'segments': [
-                {'type': 'wildcard'} if segment == '*' else {'type': 'identifier', 'value': segment}
+            "type": "Path",
+            "relative": True,
+            "levelsUp": max(0, dots - 1),
+            "segments": [
+                {"type": "wildcard"}
+                if segment == "*"
+                else {"type": "identifier", "value": segment}
                 for segment in parse_path_string(field_path)
             ],
-            'position': {'start': 0, 'end': len(trimmed)},
+            "position": {"start": 0, "end": len(trimmed)},
         }
         resolved = resolve_path_segments(path_node, context)
         if has_wildcard(resolved):
-            resolved = replace_wildcard_with_index(resolved, context['currentPath'])
+            resolved = replace_wildcard_with_index(resolved, context["currentPath"])
         return get_value_by_path(form_data, resolved)
     segments = parse_path_string(trimmed)
     if has_wildcard(segments):
-        segments = replace_wildcard_with_index(segments, context['currentPath'])
+        segments = replace_wildcard_with_index(segments, context["currentPath"])
     return get_value_by_path(form_data, segments)
 
 
@@ -459,14 +484,14 @@ def parse_path_string(path_string: str) -> list[str]:
     """Split a dotted path into its non-empty segments."""
     if not path_string:
         return []
-    return [segment for segment in path_string.split('.') if segment]
+    return [segment for segment in path_string.split(".") if segment]
 
 
 def path_to_string(path: list[str]) -> str:
     """Join path segments with dots, numeric indices and row keys included."""
-    return '.'.join(path)
+    return ".".join(path)
 
 
 def get_field_name(path: list[str]) -> str:
     """The last segment of a path."""
-    return path[-1] if path else ''
+    return path[-1] if path else ""

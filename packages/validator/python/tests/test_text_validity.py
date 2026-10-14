@@ -15,7 +15,7 @@ import sys
 import unittest
 from pathlib import Path
 
-SOURCE = str(Path(__file__).resolve().parents[1] / 'src')
+SOURCE = str(Path(__file__).resolve().parents[1] / "src")
 if SOURCE not in sys.path:
     sys.path.insert(0, SOURCE)
 
@@ -29,94 +29,123 @@ from polyspec.crudui.validator import (  # noqa: E402
 )
 
 ENTRIES = {
-    'validate': lambda spec, data, options: validate(spec, data, options),
-    'validateList': lambda spec, data, options: validateList(spec, options),
-    'validateDetail': lambda spec, data, options: validateDetail(spec, options),
+    "validate": lambda spec, data, options: validate(spec, data, options),
+    "validateList": lambda spec, data, options: validateList(spec, options),
+    "validateDetail": lambda spec, data, options: validateDetail(spec, options),
 }
 
 
 def outcome(case, entry):
     """The failure record of a thrown failure, or the validation result."""
     options = {}
-    if case.get('files') is not None:
-        options['files'] = case['files']
-    if case.get('options', {}).get('basepath') is not None:
-        options['basepath'] = case['options']['basepath']
-    data = case.get('data', {}) if 'data' in case else {}
+    if case.get("files") is not None:
+        options["files"] = case["files"]
+    if case.get("options", {}).get("basepath") is not None:
+        options["basepath"] = case["options"]["basepath"]
+    data = case.get("data", {}) if "data" in case else {}
     try:
-        result = entry(case['spec'], data, options)
+        result = entry(case["spec"], data, options)
     except (ComposeLoadError, FormInputError) as error:
         return failure_record(error)
-    if 'hidden' in result:
-        return {'valid': result['valid'], 'errors': result['errors'], 'hidden': result['hidden']}
-    return {'valid': result['valid'], 'errors': result['errors']}
+    if "hidden" in result:
+        return {
+            "valid": result["valid"],
+            "errors": result["errors"],
+            "hidden": result["hidden"],
+        }
+    return {"valid": result["valid"], "errors": result["errors"]}
 
 
 def build_graph(graph):
     """The placement path and the value a graph case describes, with shared containers."""
-    shape = graph['shape']
-    if shape == 'self-twice':
+    shape = graph["shape"]
+    if shape == "self-twice":
         loop = {}
-        loop['self'] = loop
-        loop['again'] = loop
-        return graph['at'], loop
-    size = graph['size']
-    leaf = graph['leaf']
-    if shape == 'flat':
-        return graph['at'], [leaf] * size
+        loop["self"] = loop
+        loop["again"] = loop
+        return graph["at"], loop
+    size = graph["size"]
+    leaf = graph["leaf"]
+    if shape == "flat":
+        return graph["at"], [leaf] * size
     value = leaf
     for _ in range(size):
-        value = [value, value] if shape == 'doubled' else [value]
-    return graph['at'], value
+        value = [value, value] if shape == "doubled" else [value]
+    return graph["at"], value
 
 
 class TextValidityConformance(unittest.TestCase):
     """The input text rule holds at the same operations, in the same order."""
 
     def test_validate_cases(self):
-        cases = cases_of('text-validity', 'validate/cases.json')
+        cases = cases_of("text-validity", "validate/cases.json")
         self.assertEqual(len(cases), 21)
         for case in cases:
-            with self.subTest(case=case['name']), Proving(['validate'], 'tests/fixtures/text-validity/validate/cases.json', case['name']) as proof:
-                self.assertEqual(outcome(case, ENTRIES['validate']), case['expect'])
+            with (
+                self.subTest(case=case["name"]),
+                Proving(
+                    ["validate"],
+                    "tests/fixtures/text-validity/validate/cases.json",
+                    case["name"],
+                ) as proof,
+            ):
+                self.assertEqual(outcome(case, ENTRIES["validate"]), case["expect"])
                 proof.passed = True
 
     def test_validate_list_cases(self):
-        cases = cases_of('text-validity', 'validateList/cases.json')
+        cases = cases_of("text-validity", "validateList/cases.json")
         self.assertEqual(len(cases), 6)
         for case in cases:
-            with self.subTest(case=case['name']), Proving(['validateList'], 'tests/fixtures/text-validity/validateList/cases.json', case['name']) as proof:
-                self.assertEqual(outcome(case, ENTRIES['validateList']), case['expect'])
+            with (
+                self.subTest(case=case["name"]),
+                Proving(
+                    ["validateList"],
+                    "tests/fixtures/text-validity/validateList/cases.json",
+                    case["name"],
+                ) as proof,
+            ):
+                self.assertEqual(outcome(case, ENTRIES["validateList"]), case["expect"])
                 proof.passed = True
 
     def test_validate_detail_cases(self):
-        cases = cases_of('text-validity', 'validateDetail/cases.json')
+        cases = cases_of("text-validity", "validateDetail/cases.json")
         self.assertEqual(len(cases), 5)
         for case in cases:
-            with self.subTest(case=case['name']), Proving(['validateDetail'], 'tests/fixtures/text-validity/validateDetail/cases.json', case['name']) as proof:
-                self.assertEqual(outcome(case, ENTRIES['validateDetail']), case['expect'])
+            with (
+                self.subTest(case=case["name"]),
+                Proving(
+                    ["validateDetail"],
+                    "tests/fixtures/text-validity/validateDetail/cases.json",
+                    case["name"],
+                ) as proof,
+            ):
+                self.assertEqual(
+                    outcome(case, ENTRIES["validateDetail"]), case["expect"]
+                )
                 proof.passed = True
 
     def test_value_graph_cases(self):
-        cases = cases_of('text-validity', 'value-graphs.json')
+        cases = cases_of("text-validity", "value-graphs.json")
         self.assertEqual(len(cases), 12)
         for case in cases:
-            with self.subTest(case=case['name']):
-                spec = case['spec']
-                data = case['data']
-                files = case.get('files')
-                options = {'files': files} if files is not None else {}
-                path, graph = build_graph(case['graph'])
+            with self.subTest(case=case["name"]):
+                spec = case["spec"]
+                data = case["data"]
+                files = case.get("files")
+                options = {"files": files} if files is not None else {}
+                path, graph = build_graph(case["graph"])
                 member = path[-1]
-                if path[0] == 'spec':
+                if path[0] == "spec":
                     spec[member] = graph
-                elif path[0] == 'files':
-                    options['files'][path[1]][member] = graph
+                elif path[0] == "files":
+                    options["files"][path[1]][member] = graph
                 else:
                     data[member] = graph
-                result = outcome({'spec': spec, 'data': data, **options}, ENTRIES['validate'])
-                self.assertEqual(result, case['expect'])
+                result = outcome(
+                    {"spec": spec, "data": data, **options}, ENTRIES["validate"]
+                )
+                self.assertEqual(result, case["expect"])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

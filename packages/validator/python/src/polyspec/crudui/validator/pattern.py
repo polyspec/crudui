@@ -18,15 +18,15 @@ from typing import Any, Iterable, Literal, Sequence, TypeAlias
 from .unicode_data import GENERAL_CATEGORIES, SCRIPTS, WHITE_SPACE
 
 __all__ = [
-    'DEPTH_LIMIT',
-    'PatternMatcher',
-    'PatternSyntaxError',
-    'QUANTIFIER_LIMIT',
-    'SIZE_LIMIT',
-    'CodePointSet',
-    'compile_pattern',
-    'is_general_category',
-    'is_script',
+    "DEPTH_LIMIT",
+    "PatternMatcher",
+    "PatternSyntaxError",
+    "QUANTIFIER_LIMIT",
+    "SIZE_LIMIT",
+    "CodePointSet",
+    "compile_pattern",
+    "is_general_category",
+    "is_script",
 ]
 
 # A quantifier: its minimum, its maximum (None when unbounded) and whether it is lazy.
@@ -49,8 +49,8 @@ class PatternSyntaxError(ValueError):
     """A pattern outside the CRUDUI pattern language, with the offset of the invalid construct."""
 
     def __init__(self, reason: str, offset: int) -> None:
-        super().__init__(f'{reason} at {offset}')
-        self.name = 'PatternSyntaxError'
+        super().__init__(f"{reason} at {offset}")
+        self.name = "PatternSyntaxError"
         self.reason = reason
         self.offset = offset
 
@@ -58,13 +58,13 @@ class PatternSyntaxError(ValueError):
 class CodePointSet:
     """An immutable set of code points: a sorted list of disjoint inclusive ranges."""
 
-    __slots__ = ('ranges',)
+    __slots__ = ("ranges",)
 
     def __init__(self, ranges: list[int]) -> None:
         self.ranges = ranges
 
     @staticmethod
-    def of(*lists: Sequence[int]) -> 'CodePointSet':
+    def of(*lists: Sequence[int]) -> "CodePointSet":
         """The union of flat inclusive ranges in any order, possibly overlapping."""
         pairs: list[tuple[int, int]] = []
         for one_list in lists:
@@ -81,11 +81,11 @@ class CodePointSet:
         return CodePointSet(merged)
 
     @staticmethod
-    def union(sets: Iterable['CodePointSet']) -> 'CodePointSet':
+    def union(sets: Iterable["CodePointSet"]) -> "CodePointSet":
         """The union of several sets."""
         return CodePointSet.of(*(one_set.ranges for one_set in sets))
 
-    def complement(self) -> 'CodePointSet':
+    def complement(self) -> "CodePointSet":
         """Every code point from 0 to U+10FFFF outside this set."""
         result = []
         following = 0
@@ -119,7 +119,7 @@ WORD = CodePointSet.of([0x30, 0x39, 0x41, 0x5A, 0x61, 0x7A, 0x5F, 0x5F])
 SPACE = CodePointSet.of(WHITE_SPACE)
 ANY = CodePointSet.of([0x0A, 0x0A]).complement()
 
-SHORTHAND_SETS = {'digit': DIGIT, 'word': WORD, 'space': SPACE}
+SHORTHAND_SETS = {"digit": DIGIT, "word": WORD, "space": SPACE}
 
 
 def is_general_category(name: str) -> bool:
@@ -132,7 +132,7 @@ def is_script(name: str) -> bool:
     return name in SCRIPTS
 
 
-def property_set(name: str, script: bool) -> 'CodePointSet':
+def property_set(name: str, script: bool) -> "CodePointSet":
     """The set of a general category or a script."""
     table = SCRIPTS if script else GENERAL_CATEGORIES
     return CodePointSet.of(table[name])
@@ -142,46 +142,46 @@ def _cp(character: str) -> int:
     return ord(character)
 
 
-SYNTAX_ESCAPES = {_cp(character) for character in '^$\\.*+?()[]{}|/-'}
+SYNTAX_ESCAPES = {_cp(character) for character in "^$\\.*+?()[]{}|/-"}
 CONTROL_ESCAPES = {
-    _cp('t'): 0x09,
-    _cp('n'): 0x0A,
-    _cp('r'): 0x0D,
-    _cp('f'): 0x0C,
-    _cp('v'): 0x0B,
+    _cp("t"): 0x09,
+    _cp("n"): 0x0A,
+    _cp("r"): 0x0D,
+    _cp("f"): 0x0C,
+    _cp("v"): 0x0B,
 }
 SHORTHANDS = {
-    _cp('d'): ('digit', False),
-    _cp('w'): ('word', False),
-    _cp('s'): ('space', False),
-    _cp('D'): ('digit', True),
-    _cp('W'): ('word', True),
-    _cp('S'): ('space', True),
+    _cp("d"): ("digit", False),
+    _cp("w"): ("word", False),
+    _cp("s"): ("space", False),
+    _cp("D"): ("digit", True),
+    _cp("W"): ("word", True),
+    _cp("S"): ("space", True),
 }
-NOT_LITERAL = {_cp(character) for character in '\\^$.|?*+()[]{}'}
-QUANTIFIER_START = {_cp(character) for character in '*+?{'}
+NOT_LITERAL = {_cp(character) for character in "\\^$.|?*+()[]{}"}
+QUANTIFIER_START = {_cp(character) for character in "*+?{"}
 
-BACKSLASH = _cp('\\')
-OPEN_GROUP = _cp('(')
-CLOSE_GROUP = _cp(')')
-OPEN_CLASS = _cp('[')
-CLOSE_CLASS = _cp(']')
-OPEN_BRACE = _cp('{')
-CLOSE_BRACE = _cp('}')
-CARET = _cp('^')
-DOLLAR = _cp('$')
-DOT = _cp('.')
-BAR = _cp('|')
-QUESTION = _cp('?')
-STAR = _cp('*')
-PLUS = _cp('+')
-DASH = _cp('-')
-COMMA = _cp(',')
-COLON = _cp(':')
-LESS = _cp('<')
-GREATER = _cp('>')
-EQUALS = _cp('=')
-BANG = _cp('!')
+BACKSLASH = _cp("\\")
+OPEN_GROUP = _cp("(")
+CLOSE_GROUP = _cp(")")
+OPEN_CLASS = _cp("[")
+CLOSE_CLASS = _cp("]")
+OPEN_BRACE = _cp("{")
+CLOSE_BRACE = _cp("}")
+CARET = _cp("^")
+DOLLAR = _cp("$")
+DOT = _cp(".")
+BAR = _cp("|")
+QUESTION = _cp("?")
+STAR = _cp("*")
+PLUS = _cp("+")
+DASH = _cp("-")
+COMMA = _cp(",")
+COLON = _cp(":")
+LESS = _cp("<")
+GREATER = _cp(">")
+EQUALS = _cp("=")
+BANG = _cp("!")
 
 
 def _is_surrogate(code: int) -> bool:
@@ -193,11 +193,15 @@ def _is_digit(code: int | None) -> bool:
 
 
 def _is_hex(code: int | None) -> bool:
-    return code is not None and (_is_digit(code) or 0x41 <= code <= 0x46 or 0x61 <= code <= 0x66)
+    return code is not None and (
+        _is_digit(code) or 0x41 <= code <= 0x46 or 0x61 <= code <= 0x66
+    )
 
 
 def _is_name_start(code: int | None) -> bool:
-    return code is not None and (0x41 <= code <= 0x5A or 0x61 <= code <= 0x7A or code == 0x5F)
+    return code is not None and (
+        0x41 <= code <= 0x5A or 0x61 <= code <= 0x7A or code == 0x5F
+    )
 
 
 def _is_name_part(code: int | None) -> bool:
@@ -220,7 +224,7 @@ def _alternation_size(node: Alternation) -> int:
 def _term_size(term: Term) -> int:
     """The size of a term: an atom is 1, a group its body; a quantified item is multiplied."""
     atom, quantifier = term
-    item = _alternation_size(atom[1]) if atom[0] == 'group' else 1
+    item = _alternation_size(atom[1]) if atom[0] == "group" else 1
     if quantifier is None:
         return item
     low, high, _lazy = quantifier
@@ -244,15 +248,15 @@ class _Recognizer:
         """The alternation tree of the pattern; leading `^` and trailing `$` add nothing."""
         length = len(self.source)
         if length == 0:
-            raise PatternSyntaxError('empty pattern', 0)
+            raise PatternSyntaxError("empty pattern", 0)
         if self.source[0] == CARET:
             self.position = 1
         alternation = self._alternation()
         if self.position < length:
             # Only a `)` without an open group stops the top-level alternation early.
-            raise PatternSyntaxError('unexpected character', self.position)
+            raise PatternSyntaxError("unexpected character", self.position)
         if _alternation_size(alternation) > SIZE_LIMIT:
-            raise PatternSyntaxError('pattern too large', 0)
+            raise PatternSyntaxError("pattern too large", 0)
         return alternation
 
     def _alternation(self) -> Alternation:
@@ -272,11 +276,11 @@ class _Recognizer:
             if code == DOLLAR or code == CARET:
                 # `^` at 0 was consumed before; `$` is an anchor only as the last character.
                 if code == CARET or self.position != length - 1:
-                    raise PatternSyntaxError('unexpected character', self.position)
+                    raise PatternSyntaxError("unexpected character", self.position)
                 self.position += 1
                 break
             if code in QUANTIFIER_START:
-                raise PatternSyntaxError('invalid quantifier', self.position)
+                raise PatternSyntaxError("invalid quantifier", self.position)
             atom = self._atom()
             terms.append((atom, self._quantifier()))
         return terms
@@ -290,18 +294,18 @@ class _Recognizer:
             return self._bracket_class()
         if code == DOT:
             self.position += 1
-            return ('any',)
+            return ("any",)
         if code == BACKSLASH:
             return self._escape(None)
         if code in NOT_LITERAL or _is_surrogate(code):
-            raise PatternSyntaxError('unexpected character', start)
+            raise PatternSyntaxError("unexpected character", start)
         self.position += 1
-        return ('char', code)
+        return ("char", code)
 
     def _group(self) -> Atom:
         start = self.position
         if self.depth == DEPTH_LIMIT:
-            raise PatternSyntaxError('nesting too deep', start)
+            raise PatternSyntaxError("nesting too deep", start)
         self.position += 1
         if self.peek() == QUESTION:
             following = self.peek(1)
@@ -311,28 +315,28 @@ class _Recognizer:
                 self.position += 2
                 self._group_name(start)
             else:
-                raise PatternSyntaxError('unsupported construct', start)
+                raise PatternSyntaxError("unsupported construct", start)
         self.depth += 1
         body = self._alternation()
         self.depth -= 1
         if self.position >= len(self.source):
-            raise PatternSyntaxError('unterminated group', len(self.source))
+            raise PatternSyntaxError("unterminated group", len(self.source))
         self.position += 1  # `)`
-        return ('group', body)
+        return ("group", body)
 
     def _group_name(self, group_start: int) -> None:
         """`name>` after `(?<`."""
         name_start = self.position
         if not _is_name_start(self.peek()):
-            raise PatternSyntaxError('invalid group name', group_start)
+            raise PatternSyntaxError("invalid group name", group_start)
         while _is_name_part(self.peek()):
             self.position += 1
         if self.peek() != GREATER:
-            raise PatternSyntaxError('invalid group name', group_start)
-        name = ''.join(chr(code) for code in self.source[name_start:self.position])
+            raise PatternSyntaxError("invalid group name", group_start)
+        name = "".join(chr(code) for code in self.source[name_start : self.position])
         self.position += 1
         if name in self.group_names:
-            raise PatternSyntaxError('duplicate group name', group_start)
+            raise PatternSyntaxError("duplicate group name", group_start)
         self.group_names.add(name)
 
     def _quantifier(self) -> Quantifier:
@@ -357,11 +361,11 @@ class _Recognizer:
                 self.position += 1
                 high = None if self.peek() == CLOSE_BRACE else self._bound(start)
                 if high is not None and low > high:
-                    raise PatternSyntaxError('invalid quantifier', start)
+                    raise PatternSyntaxError("invalid quantifier", start)
             else:
-                raise PatternSyntaxError('invalid quantifier', start)
+                raise PatternSyntaxError("invalid quantifier", start)
             if self.peek() != CLOSE_BRACE:
-                raise PatternSyntaxError('invalid quantifier', start)
+                raise PatternSyntaxError("invalid quantifier", start)
             self.position += 1
         else:
             return None
@@ -380,7 +384,7 @@ class _Recognizer:
             self.position += 1
             digit = self.peek()
         if self.position == digits_start or value > QUANTIFIER_LIMIT:
-            raise PatternSyntaxError('invalid quantifier', quantifier_start)
+            raise PatternSyntaxError("invalid quantifier", quantifier_start)
         return value
 
     def _escape(self, class_start: int | None) -> Atom:
@@ -392,67 +396,74 @@ class _Recognizer:
         start = self.position
         kind = self.peek(1)
         if kind is None:
-            raise PatternSyntaxError('invalid escape', start)
+            raise PatternSyntaxError("invalid escape", start)
         if kind in SYNTAX_ESCAPES:
             self.position += 2
-            return ('char', kind)
+            return ("char", kind)
         if kind in CONTROL_ESCAPES:
             self.position += 2
-            return ('char', CONTROL_ESCAPES[kind])
+            return ("char", CONTROL_ESCAPES[kind])
         if kind in SHORTHANDS:
             shorthand, negated = SHORTHANDS[kind]
             if negated and class_start is not None:
-                raise PatternSyntaxError('invalid class', class_start)
+                raise PatternSyntaxError("invalid class", class_start)
             self.position += 2
-            return ('shorthand', shorthand, negated)
-        if kind == _cp('x'):
+            return ("shorthand", shorthand, negated)
+        if kind == _cp("x"):
             first_digit, second_digit = self.peek(2), self.peek(3)
-            if first_digit is None or second_digit is None or not _is_hex(first_digit) or not _is_hex(second_digit):
-                raise PatternSyntaxError('invalid escape', start)
+            if (
+                first_digit is None
+                or second_digit is None
+                or not _is_hex(first_digit)
+                or not _is_hex(second_digit)
+            ):
+                raise PatternSyntaxError("invalid escape", start)
             value = int(chr(first_digit) + chr(second_digit), 16)
             self.position += 4
-            return ('char', value)
-        if kind == _cp('u'):
+            return ("char", value)
+        if kind == _cp("u"):
             return self._code_point_escape(start)
-        if kind in (_cp('p'), _cp('P')):
-            return self._property(start, kind == _cp('P'))
-        raise PatternSyntaxError('invalid escape', start)
+        if kind in (_cp("p"), _cp("P")):
+            return self._property(start, kind == _cp("P"))
+        raise PatternSyntaxError("invalid escape", start)
 
     def _code_point_escape(self, start: int) -> Atom:
         """`\\u{H...}`: 1-6 hexadecimal digits naming a Unicode scalar value."""
         if self.peek(2) != OPEN_BRACE:
-            raise PatternSyntaxError('invalid escape', start)
+            raise PatternSyntaxError("invalid escape", start)
         index = 3
-        digits = ''
+        digits = ""
         code = self.peek(index)
         while code is not None and _is_hex(code):
             digits += chr(code)
             index += 1
             code = self.peek(index)
         if len(digits) < 1 or len(digits) > 6 or self.peek(index) != CLOSE_BRACE:
-            raise PatternSyntaxError('invalid escape', start)
+            raise PatternSyntaxError("invalid escape", start)
         value = int(digits, 16)
         if value > 0x10FFFF or _is_surrogate(value):
-            raise PatternSyntaxError('invalid escape', start)
+            raise PatternSyntaxError("invalid escape", start)
         self.position += index + 1
-        return ('char', value)
+        return ("char", value)
 
     def _property(self, start: int, negated: bool) -> Atom:
         """`\\p{X}` or `\\P{X}` with a general category or `Script=Name`."""
         if self.peek(2) != OPEN_BRACE:
-            raise PatternSyntaxError('invalid property', start)
+            raise PatternSyntaxError("invalid property", start)
         index = 3
         while self.peek(index) is not None and self.peek(index) != CLOSE_BRACE:
             index += 1
         if self.peek(index) is None:
-            raise PatternSyntaxError('invalid property', start)
-        text = ''.join(chr(code) for code in self.source[self.position + 3:self.position + index])
+            raise PatternSyntaxError("invalid property", start)
+        text = "".join(
+            chr(code) for code in self.source[self.position + 3 : self.position + index]
+        )
         if is_general_category(text):
-            atom: Atom = ('property', negated, text, False)
-        elif text.startswith('Script=') and is_script(text[len('Script='):]):
-            atom = ('property', negated, text[len('Script='):], True)
+            atom: Atom = ("property", negated, text, False)
+        elif text.startswith("Script=") and is_script(text[len("Script=") :]):
+            atom = ("property", negated, text[len("Script=") :], True)
         else:
-            raise PatternSyntaxError('invalid property', start)
+            raise PatternSyntaxError("invalid property", start)
         self.position += index + 1
         return atom
 
@@ -468,71 +479,75 @@ class _Recognizer:
         members: list[Atom] = []
         while True:
             if self.position >= length:
-                raise PatternSyntaxError('unterminated class', length)
+                raise PatternSyntaxError("unterminated class", length)
             if self.peek() == CLOSE_CLASS:
                 self.position += 1
                 break
             member_start = self.position
             first = self._class_atom(start, member_start == first_member)
-            if self.peek() == DASH and self.peek(1) is not None and self.peek(1) != CLOSE_CLASS:
+            if (
+                self.peek() == DASH
+                and self.peek(1) is not None
+                and self.peek(1) != CLOSE_CLASS
+            ):
                 # A range `from-to` of single code points in non-descending order. The
                 # class is read left to right: the end is read before the range is judged.
                 self.position += 1
                 to = self._class_atom(start, False)
-                if first[0] != 'char' or to[0] != 'char' or to[1] < first[1]:
-                    raise PatternSyntaxError('invalid range', member_start)
-                members.append(('range', first[1], to[1]))
-            elif first[0] == 'shorthand':
-                members.append(('shorthand', first[1]))
+                if first[0] != "char" or to[0] != "char" or to[1] < first[1]:
+                    raise PatternSyntaxError("invalid range", member_start)
+                members.append(("range", first[1], to[1]))
+            elif first[0] == "shorthand":
+                members.append(("shorthand", first[1]))
             else:
                 members.append(first)
         if len(members) == 0:
-            raise PatternSyntaxError('invalid class', start)
-        return ('class', negated, members)
+            raise PatternSyntaxError("invalid class", start)
+        return ("class", negated, members)
 
     def _class_atom(self, class_start: int, first: bool) -> Atom:
         """One class member: a literal, an escape, a shorthand or a property."""
         code = self.peek()
         if code == OPEN_CLASS:
-            raise PatternSyntaxError('invalid class', class_start)
+            raise PatternSyntaxError("invalid class", class_start)
         if code == BACKSLASH:
             return self._escape(class_start)
         if code == DASH:
             following = self.peek(1)
             boundary = first or following == CLOSE_CLASS or following is None
             if not boundary:
-                raise PatternSyntaxError('invalid class', class_start)
+                raise PatternSyntaxError("invalid class", class_start)
         if code is not None and _is_surrogate(code):
-            raise PatternSyntaxError('unexpected character', self.position)
+            raise PatternSyntaxError("unexpected character", self.position)
         self.position += 1
-        return ('char', code)
+        return ("char", code)
 
 
-def _member_set(member: Atom) -> 'CodePointSet':
+def _member_set(member: Atom) -> "CodePointSet":
     """The set of one class member."""
     kind = member[0]
-    if kind == 'char':
+    if kind == "char":
         return CodePointSet.of([member[1], member[1]])
-    if kind == 'range':
+    if kind == "range":
         return CodePointSet.of([member[1], member[2]])
-    if kind == 'shorthand':
+    if kind == "shorthand":
         return SHORTHAND_SETS[member[1]]
     _kind, negated, name, script = member
     one_set = property_set(name, script)
     return one_set.complement() if negated else one_set
 
 
-def _atom_set(atom: Atom) -> 'CodePointSet':
+def _atom_set(atom: Atom) -> "CodePointSet":
     """The set of one atom that is not a group."""
     kind = atom[0]
-    if kind == 'char':
+    if kind == "char":
         return CodePointSet.of([atom[1], atom[1]])
-    if kind == 'any':
+    if kind == "any":
         return ANY
-    if kind == 'shorthand':
+    if kind == "shorthand":
         base = SHORTHAND_SETS[atom[1]]
         return base.complement() if atom[2] else base
-    if kind == 'property':
+    if kind == "property":
         return _member_set(atom)
     _kind, negated, members = atom
     union = CodePointSet.union([_member_set(member) for member in members])
@@ -552,7 +567,13 @@ class _Builder:
         self.sets: list[CodePointSet | None] = []
         self._atom_sets: dict[int, CodePointSet] = {}
 
-    def state(self, kind: int, following: int, alternative: int = -1, one_set: CodePointSet | None = None) -> int:
+    def state(
+        self,
+        kind: int,
+        following: int,
+        alternative: int = -1,
+        one_set: CodePointSet | None = None,
+    ) -> int:
         self.kinds.append(kind)
         self.following.append(following)
         self.alternative.append(alternative)
@@ -594,7 +615,7 @@ class _Builder:
         return start
 
     def _item(self, atom: Atom, following: int) -> int:
-        if atom[0] == 'group':
+        if atom[0] == "group":
             return (
                 self.state(EPSILON, following)
                 if _alternation_size(atom[1]) == 0
@@ -693,7 +714,7 @@ class PatternMatcher:
 _compiled: dict[str, PatternMatcher] = {}
 
 
-def compile_pattern(pattern: str) -> 'PatternMatcher':
+def compile_pattern(pattern: str) -> "PatternMatcher":
     """The compiled matcher of a pattern, compiled once per pattern string.
 
     Raises `PatternSyntaxError` when the pattern is outside the language.

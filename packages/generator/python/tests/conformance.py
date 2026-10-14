@@ -14,14 +14,15 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[4]
 
-_CONFORMANCE = ROOT / 'tests' / 'conformance'
+_CONFORMANCE = ROOT / "tests" / "conformance"
 if str(_CONFORMANCE) not in sys.path:
     sys.path.insert(0, str(_CONFORMANCE))
 from evidence import Proving  # noqa: E402,F401  (records each shared case the Python suites run)
-FIXTURES = ROOT / 'tests' / 'fixtures'
 
-VALIDATOR_SOURCE = ROOT / 'packages' / 'validator' / 'python' / 'src'
-GENERATOR_SOURCE = ROOT / 'packages' / 'generator' / 'python' / 'src'
+FIXTURES = ROOT / "tests" / "fixtures"
+
+VALIDATOR_SOURCE = ROOT / "packages" / "validator" / "python" / "src"
+GENERATOR_SOURCE = ROOT / "packages" / "generator" / "python" / "src"
 
 for source in (VALIDATOR_SOURCE, GENERATOR_SOURCE):
     if str(source) not in sys.path:
@@ -32,20 +33,35 @@ for source in (VALIDATOR_SOURCE, GENERATOR_SOURCE):
 sys.setrecursionlimit(max(sys.getrecursionlimit(), 20000))
 
 BOOLEAN_ATTRIBUTES = frozenset(
-    ('checked', 'selected', 'disabled', 'readonly', 'multiple', 'required', 'autofocus')
+    ("checked", "selected", "disabled", "readonly", "multiple", "required", "autofocus")
 )
-PRESERVE = frozenset(('textarea', 'pre', 'script', 'style'))
+PRESERVE = frozenset(("textarea", "pre", "script", "style"))
 VOID = frozenset(
-    ('area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr')
+    (
+        "area",
+        "base",
+        "br",
+        "col",
+        "embed",
+        "hr",
+        "img",
+        "input",
+        "link",
+        "meta",
+        "param",
+        "source",
+        "track",
+        "wbr",
+    )
 )
 
 
-def cases_of(group, name='cases.json'):
+def cases_of(group, name="cases.json"):
     """The cases of one fixture group."""
     path = FIXTURES / group / name
-    loaded = json.loads(path.read_text(encoding='utf-8'))
+    loaded = json.loads(path.read_text(encoding="utf-8"))
     if not loaded:
-        raise AssertionError(f'{path.relative_to(ROOT)} holds no case')
+        raise AssertionError(f"{path.relative_to(ROOT)} holds no case")
     return loaded
 
 
@@ -54,44 +70,44 @@ class _TreeBuilder(HTMLParser):
 
     def __init__(self):
         super().__init__(convert_charrefs=True)
-        self.root = {'tag': '#root', 'attributes': {}, 'children': []}
+        self.root = {"tag": "#root", "attributes": {}, "children": []}
         self.stack = [self.root]
 
     def handle_starttag(self, tag, attrs):
         node = self._node(tag, attrs)
-        self.stack[-1]['children'].append(node)
+        self.stack[-1]["children"].append(node)
         if tag not in VOID:
             self.stack.append(node)
 
     def handle_startendtag(self, tag, attrs):
-        self.stack[-1]['children'].append(self._node(tag, attrs))
+        self.stack[-1]["children"].append(self._node(tag, attrs))
 
     def _node(self, tag, attrs):
         """A parsed element; a NUL in an attribute value reads as U+FFFD."""
-        node = {'tag': tag, 'attributes': {}, 'children': []}
+        node = {"tag": tag, "attributes": {}, "children": []}
         for name, value in attrs:
             if value is None:
-                value = ''
+                value = ""
             if name in BOOLEAN_ATTRIBUTES:
-                value = ''
-            node['attributes'][name] = value.replace('\x00', '\ufffd')
+                value = ""
+            node["attributes"][name] = value.replace("\x00", "\ufffd")
         return node
 
     def handle_endtag(self, tag):
         while len(self.stack) > 1:
             node = self.stack.pop()
-            if node['tag'] == tag:
+            if node["tag"] == tag:
                 return
 
     def handle_data(self, data):
         parent = self.stack[-1]
-        preserve = any(node['tag'] in PRESERVE for node in self.stack)
+        preserve = any(node["tag"] in PRESERVE for node in self.stack)
         if not preserve:
             # A NUL in text is dropped, as an HTML5 parser drops it.
-            data = data.replace('\x00', '')
-            if data.strip() == '':
+            data = data.replace("\x00", "")
+            if data.strip() == "":
                 return
-        parent['children'].append({'text': data})
+        parent["children"].append({"text": data})
 
 
 def _normalize(node):
@@ -99,23 +115,23 @@ def _normalize(node):
     from polyspec.crudui.generator.style import canonical as canonical_style
 
     out = []
-    for child in node['children']:
-        if 'text' in child:
-            out.append({'text': child['text']})
+    for child in node["children"]:
+        if "text" in child:
+            out.append({"text": child["text"]})
             continue
         attributes = {}
-        for name in sorted(child['attributes']):
-            value = child['attributes'][name]
-            if name == 'style':
-                value = canonical_style(value) or ''
-            if name in ('class', 'style') and value == '':
+        for name in sorted(child["attributes"]):
+            value = child["attributes"][name]
+            if name == "style":
+                value = canonical_style(value) or ""
+            if name in ("class", "style") and value == "":
                 continue
             attributes[name] = value
         out.append(
             {
-                'tag': child['tag'],
-                'attributes': attributes,
-                'children': _normalize(child),
+                "tag": child["tag"],
+                "attributes": attributes,
+                "children": _normalize(child),
             }
         )
     return out
@@ -124,9 +140,9 @@ def _normalize(node):
 def html_tree(html):
     """The normalized layout tree of an HTML string."""
     builder = _TreeBuilder()
-    builder.feed('<!doctype html><html><body>')
+    builder.feed("<!doctype html><html><body>")
     builder.feed(html)
-    builder.feed('</body></html>')
+    builder.feed("</body></html>")
     return _normalize_body(builder.root)
 
 
@@ -141,9 +157,9 @@ def failure_record(error):
     from polyspec.crudui.validator import ComposeLoadError, FormInputError
 
     if isinstance(error, ComposeLoadError):
-        return {'code': error.code, 'message': str(error), 'at': '.'.join(error.trace)}
+        return {"code": error.code, "message": str(error), "at": ".".join(error.trace)}
     if isinstance(error, FormInputError):
-        return {'code': error.code, 'message': str(error), 'at': ''}
+        return {"code": error.code, "message": str(error), "at": ""}
     if isinstance(error, FormError):
-        return {'code': error.code, 'message': str(error)}
+        return {"code": error.code, "message": str(error)}
     return None

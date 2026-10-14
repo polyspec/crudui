@@ -14,9 +14,12 @@ python3 -m unittest discover -s packages/validator/python/tests -p 'test_*.py'
 ```python
 from polyspec.crudui.validator import ComposeLoadError, FormInputError, validate
 
-spec = {'type': 'group', 'properties': {'name': {'type': 'text', 'validate': {'required': True}}}}
-result = validate(spec, {'name': 'Ada'})
-assert result['valid']
+spec = {
+    "type": "group",
+    "properties": {"name": {"type": "text", "validate": {"required": True}}},
+}
+result = validate(spec, {"name": "Ada"})
+assert result["valid"]
 ```
 
 `validate(spec, data, options)` composes the specification, scans for

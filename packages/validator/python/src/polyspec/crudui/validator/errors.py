@@ -8,8 +8,8 @@ class FormInputError(ValueError):
     runtime.
     """
 
-    code = 'INVALID_FORM_INPUT'
+    code = "INVALID_FORM_INPUT"
 
     def __init__(self, message: str) -> None:
         super().__init__(message)
-        self.name = 'FormInputError'
+        self.name = "FormInputError"

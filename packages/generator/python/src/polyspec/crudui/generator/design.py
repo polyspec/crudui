@@ -12,34 +12,53 @@ import re
 from typing import Any
 
 from polyspec.crudui.validator.jsvalue import JsonValue
-from polyspec.crudui.validator.parser import ParseError, is_condition_expression, parse_condition
-from polyspec.crudui.validator.resolver import evaluate_condition, evaluate_expression_value
+from polyspec.crudui.validator.parser import (
+    ParseError,
+    is_condition_expression,
+    parse_condition,
+)
+from polyspec.crudui.validator.resolver import (
+    evaluate_condition,
+    evaluate_expression_value,
+)
 
 from .value import MISSING, Value, get, string, truthy
 
-__all__ = ['appearance', 'declared', 'flag', 'resolve', 'show']
+__all__ = ["appearance", "declared", "flag", "resolve", "show"]
 
-_TERNARY_COLON = re.compile(r'\?[^:]*:')
+_TERNARY_COLON = re.compile(r"\?[^:]*:")
 
 
 def _context(data: JsonValue, path: list[str], rows: list[int]) -> dict[str, Any]:
-    return {'currentPath': path, 'rowKeys': rows, 'formData': data}
+    return {"currentPath": path, "rowKeys": rows, "formData": data}
 
 
-def _condition(expression: str, data: JsonValue, path: list[str], rows: list[int], raw: bool = False) -> object:
+def _condition(
+    expression: str,
+    data: JsonValue,
+    path: list[str],
+    rows: list[int],
+    raw: bool = False,
+) -> object:
     try:
         if raw:
-            return evaluate_expression_value(parse_condition(expression), _context(data, path, rows))
-        return evaluate_condition(parse_condition(expression), _context(data, path, rows))
-    except (ParseError, ValueError, TypeError, ZeroDivisionError):
+            return evaluate_expression_value(
+                parse_condition(expression), _context(data, path, rows)
+            )
+        return evaluate_condition(
+            parse_condition(expression), _context(data, path, rows)
+        )
+    except ParseError, ValueError, TypeError, ZeroDivisionError:
         return False
 
 
-def _condition_map(mapping: dict[str, JsonValue], data: JsonValue, path: list[str], rows: list[int]) -> JsonValue:
+def _condition_map(
+    mapping: dict[str, JsonValue], data: JsonValue, path: list[str], rows: list[int]
+) -> JsonValue:
     for condition, value in mapping.items():
-        if condition != 'true' and _condition(condition, data, path, rows):
+        if condition != "true" and _condition(condition, data, path, rows):
             return value
-    return mapping.get('true')
+    return mapping.get("true")
 
 
 def show(value: Value, data: JsonValue, path: list[str], rows: list[int]) -> bool:
@@ -67,27 +86,33 @@ def _parses(value: str) -> bool:
     try:
         parse_condition(value)
         return True
-    except (ParseError, ValueError, TypeError):
+    except ParseError, ValueError, TypeError:
         return False
 
 
 def appearance(value: Value, data: JsonValue, path: list[str], rows: list[int]) -> str:
     """Appearance text from a literal, an expression or a condition map."""
     if value is MISSING or value is None:
-        return ''
+        return ""
     if isinstance(value, dict):
         resolved = _condition_map(value, data, path, rows)
-        return '' if resolved is None else string(resolved)
+        return "" if resolved is None else string(resolved)
     if isinstance(value, str):
         try:
-            if parse_condition(value)['type'] == 'Ternary':
-                result = evaluate_expression_value(parse_condition(value), _context(data, path, rows))
-                return '' if result is None else string(result)
-        except (ParseError, ValueError, TypeError, ZeroDivisionError):
+            if parse_condition(value)["type"] == "Ternary":
+                result = evaluate_expression_value(
+                    parse_condition(value), _context(data, path, rows)
+                )
+                return "" if result is None else string(result)
+        except ParseError, ValueError, TypeError, ZeroDivisionError:
             pass
-        if is_condition_expression(value) and _TERNARY_COLON.search(value) is None and _parses(value):
+        if (
+            is_condition_expression(value)
+            and _TERNARY_COLON.search(value) is None
+            and _parses(value)
+        ):
             evaluated: object = _condition(value, data, path, rows, True)
-            return '' if evaluated is False or evaluated is None else string(evaluated)
+            return "" if evaluated is False or evaluated is None else string(evaluated)
         return value
     return string(value)
 
@@ -100,46 +125,50 @@ def _resolve(value: Value, data: JsonValue, path: list[str], rows: list[int]) ->
         return value
     try:
         node = parse_condition(value)
-    except (ParseError, ValueError, TypeError):
+    except ParseError, ValueError, TypeError:
         return value
-    if node['type'] == 'Ternary':
+    if node["type"] == "Ternary":
         try:
             return evaluate_expression_value(node, _context(data, path, rows))
-        except (ValueError, TypeError, ZeroDivisionError):
+        except ValueError, TypeError, ZeroDivisionError:
             return value
     if is_condition_expression(value) and _TERNARY_COLON.search(value) is None:
         try:
             return evaluate_expression_value(node, _context(data, path, rows))
-        except (ValueError, TypeError, ZeroDivisionError):
+        except ValueError, TypeError, ZeroDivisionError:
             return False
     return value
 
 
-def _node(value: Value, data: JsonValue, path: list[str], rows: list[int]) -> dict[str, str]:
+def _node(
+    value: Value, data: JsonValue, path: list[str], rows: list[int]
+) -> dict[str, str]:
     return {
-        'class': appearance(get(value, 'class'), data, path, rows),
-        'style': appearance(get(value, 'style'), data, path, rows),
+        "class": appearance(get(value, "class"), data, path, rows),
+        "style": appearance(get(value, "style"), data, path, rows),
     }
 
 
-def resolve(design: Value, data: JsonValue, path: list[str], rows: list[int]) -> dict[str, Any]:
+def resolve(
+    design: Value, data: JsonValue, path: list[str], rows: list[int]
+) -> dict[str, Any]:
     """The visibility and named appearance nodes of one field."""
     design = design if isinstance(design, dict) else {}
     return {
-        'show': show(get(design, 'show'), data, path, rows),
-        'main': _node(design, data, path, rows),
-        'label': _node(get(design, 'label'), data, path, rows),
-        'wrapper': _node(get(design, 'wrapper'), data, path, rows),
-        'group': _node(get(design, 'group'), data, path, rows),
-        'prepend': _node(get(design, 'prepend'), data, path, rows),
+        "show": show(get(design, "show"), data, path, rows),
+        "main": _node(design, data, path, rows),
+        "label": _node(get(design, "label"), data, path, rows),
+        "wrapper": _node(get(design, "wrapper"), data, path, rows),
+        "group": _node(get(design, "group"), data, path, rows),
+        "prepend": _node(get(design, "prepend"), data, path, rows),
     }
 
 
 def declared(design: Value, wrapper: bool) -> Value:
     """A copy of the declared control or node-root attributes, or the missing marker."""
     if wrapper and isinstance(design, dict):
-        design = design.get('wrapper')
-    attributes = design.get('attributes') if isinstance(design, dict) else None
+        design = design.get("wrapper")
+    attributes = design.get("attributes") if isinstance(design, dict) else None
     if not isinstance(attributes, dict) or not attributes:
         return MISSING
     return dict(attributes)
