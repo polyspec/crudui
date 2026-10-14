@@ -1,6 +1,6 @@
 # 폼 검증
 <!-- doc-id: docs-spec-form-comparison -->
-<!-- source-sha256: b8a34a9b7a2f47b16073c40ed22ecd3332e2220677ca803b38b83f424be57e83 -->
+<!-- source-sha256: 7c839d1760da5083d60c3534096d9e5524ccd0d55f3c164fd193a4c61ce0576a -->
 
 [English](form-comparison.md).
 
@@ -272,8 +272,12 @@ Rust 서버는 상태·생성·SSR 응답마다 이 파일을 읽고, 메인 페
 브라우저 검증은 이동 전에 메인 페이지 준비 이벤트를 수신할 호스트 콜백을
 등록합니다. 메인 페이지는 초기 비교 프레임 두 개가 준비 이벤트를 게시한 뒤 준비
 이벤트를 게시합니다. 검증기는 브라우저 평가 호출을 열린 상태로 유지하지 않고 호스트
-콜백을 기다립니다. 공개 디렉터리에 직접 복사하는 모든 모듈은 브라우저가 해석할 수 있는
-import만 사용합니다. 소스 검증은 해당 모듈을 HTTP로 제공해 import까지 Chromium에서
+콜백을 기다립니다. `public/`의 모듈은 그대로 제공되며 브라우저가 해석할 수 있는 상대
+import만 사용합니다. 페이지가 로드하는 다른 모든 모듈은 build가 bundle합니다. benchmark
+console은 그것이 import하는 소스 모듈(`browser-job.mjs`, `frame-readiness.mjs`,
+`frame-pointer.mjs`, `runtime-paths.mjs`, form inspector의 snapshot 모듈)과 함께, 프레임과
+페이지 stage도 bundle됩니다. 어떤 소스 모듈도 공개 디렉터리에 복사하지 않습니다. 소스
+검증은 `public/`을 HTTP로 제공하고 페이지 스크립트가 import하는 모듈을 Chromium에서
 로드합니다. 초기화할 수 없는 프레임은 준비 이벤트 대신 이유를 게시하고, 페이지는 그 이유로
 실패합니다. 메인 페이지
 준비 전에 스크립트 오류, 페이지 실패, 페이지 종료가 발생하면 현재 서버 실행을 실패로

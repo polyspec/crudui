@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: e5925310f3a8ee8fe44a5843c0ddb8f036c735bee95f3ecae58165478383b35d -->
+<!-- source-sha256: 9d3b0ad4cc6ddfb3b193f87b7dab8640b3f89ab0e5709481c8dd2eee9b366d01 -->
 
 ## Unreleased
+
+### 2026-10-15 — spec의 bundle된 benchmark console (C14.23)
+
+- form-comparison spec은 `public/`의 module이 그대로 제공되고 build가 benchmark console을 그것이 import하는 source module과 함께 bundle하므로 어떤 source module도 공개 디렉터리에 복사되지 않는다고 명시한다. Chromium case는 `src/`의 `frame-readiness.mjs` 대신 page script가 `public/`에서 import하는 module을 로드한다(C14.23).
 
 ### 2026-10-15 — 공개 작성 type (C14.22)
 

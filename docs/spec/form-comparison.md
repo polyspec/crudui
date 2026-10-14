@@ -302,9 +302,14 @@ construction suites. A clean checkout does not use an ignored `vendor/` director
 Browser verification registers the host callback for main-page readiness before
 navigating. The main page publishes readiness after both initial comparison
 frames publish their readiness events. The verifier waits for the host callback
-without keeping a browser evaluation call open. Every module copied directly to
-the public directory uses only browser-resolvable imports. Source verification serves
-those modules over HTTP and loads them in Chromium with their imports. A frame that
+without keeping a browser evaluation call open. The modules of `public/` are served
+as they are and use only browser-resolvable relative imports. The build bundles every
+other module that a page loads: the benchmark console with the source modules it
+imports (`browser-job.mjs`, `frame-readiness.mjs`, `frame-pointer.mjs`,
+`runtime-paths.mjs` and the snapshot module of the form inspector), the frames and the
+page stages. No source module is copied to the public directory. Source verification
+serves `public/` over HTTP and loads in Chromium the module that the page script
+imports. A frame that
 cannot initialize publishes the reason instead of a readiness event, and the page
 fails with that reason. A script error, page failure or page close before
 main-page readiness rejects the current server run and records the failure. The
