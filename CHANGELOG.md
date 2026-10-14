@@ -3,6 +3,12 @@
 
 ## Unreleased
 
+### 2026-10-15 — PHP programs on Composer and PHPUnit (C14.30)
+
+- The root `composer.json` requires `polyspec/crudui-validator` and `polyspec/crudui-generator` through path repositories with Composer's default link, so each package loads by its own autoload; `scripts/php-package-autoload.php`, which registered an autoloader, and the reinstall of the validator copy are gone, and the documentation check is the class `Polyspec\Crudui\Docs\DocCoverage` (C14.30).
+- The PHP record server of the form comparison is the PSR-4 namespace `Polyspec\Crudui\FormComparison\` in `examples/form-comparison/servers/php`, with the entry `servers/php/api.php`; it reads JSON with `polyspec/ordered-json` 0.0.3 from the release zip that `config/release-assets.json` pins. In php-ext every CRUDUI class must be internal to the extension, checked before each response, instead of no Composer autoloader (C14.30).
+- The PHP check scripts of the form comparison and of `packages/php-ext` are PHPUnit suites (`servers/php/tests`, `packages/php-ext/tests/ApiTest.php`); five PHP programs keep their functions as closures, so no PHP file declares symbols beside its side effects (C14.30).
+
 ### 2026-10-15 — Contract manifest exports from the built modules (C14.10-1)
 
 - `scripts/check-contract-manifest.mts` reads the value exports of each package entry from its built ES module files with es-module-lexer, a declared devDependency, following each `export * from` to the module that Node's resolution gives; the TypeScript 7 API (`typescript/unstable/sync`), its virtual file system and the `.svelte` declaration stub are gone. `npm run manifest:check` builds the packages first when their build is not current, and the check fails when a built file of an entry is missing or an entry has no ES module file (C14.10-1).

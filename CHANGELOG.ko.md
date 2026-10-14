@@ -1,8 +1,14 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: fe30396f8c34b7cf3bf5b28e547a5e3c489544419ef3579ba43449f747aeaf2e -->
+<!-- source-sha256: f137ab080d6808350ff394802d4c792a0f1f07bc6a4f90dd596935fa1a09d018 -->
 
 ## Unreleased
+
+### 2026-10-15 — Composer와 PHPUnit 위의 PHP 프로그램 (C14.30)
+
+- root `composer.json`은 Composer 기본 link를 쓰는 path 저장소로 `polyspec/crudui-validator`와 `polyspec/crudui-generator`를 요구하므로 각 패키지는 자신의 autoload로 로드된다. autoloader를 등록하던 `scripts/php-package-autoload.php`와 검증기 사본의 재설치는 없어졌고, 문서 검사는 class `Polyspec\Crudui\Docs\DocCoverage`이다(C14.30).
+- 폼 비교의 PHP 레코드 서버는 `examples/form-comparison/servers/php`의 PSR-4 namespace `Polyspec\Crudui\FormComparison\`이고 진입점은 `servers/php/api.php`이며, `config/release-assets.json`이 고정하는 release zip의 `polyspec/ordered-json` 0.0.3으로 JSON을 읽는다. php-ext에서는 Composer autoloader가 없다는 조건 대신 모든 CRUDUI class가 확장의 내부 class여야 하며 각 응답 전에 이를 검사한다(C14.30).
+- 폼 비교와 `packages/php-ext`의 PHP 검사 script는 PHPUnit suite(`servers/php/tests`, `packages/php-ext/tests/ApiTest.php`)이고, 다섯 PHP 프로그램은 함수를 closure로 두므로 어떤 PHP 파일도 side effect 옆에 symbol을 선언하지 않는다(C14.30).
 
 ### 2026-10-15 — 빌드된 모듈에서 읽는 계약 manifest export (C14.10-1)
 
