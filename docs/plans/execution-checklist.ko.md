@@ -1,6 +1,6 @@
 # Execution checklist
 <!-- doc-id: docs-plans-execution-checklist -->
-<!-- source-sha256: 719ed44aa3b81846d165f3c893300384e3454726e35bbecee76d6be56aace92c -->
+<!-- source-sha256: a23ffad0b5641cb3de430e9e6c8d6899ee3b2bb77c086469a5dca483f102a311 -->
 
 ## [Wave 1](waves.ko.md#wave-1) — 좁은 viewport를 위한 stylesheet와 stylesheet의 Tailwind 버전
 
