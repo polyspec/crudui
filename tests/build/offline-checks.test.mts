@@ -32,9 +32,9 @@ const SELF = 'tests/build/offline-checks.test.mts';
 const CHECK = 'cargo-downloads-check';
 // The targets of the kit.mk of @polyspec/kit and of scripts/kit/kit-bootstrap.mk that download: the tools, the packages, the
 // crates, the dependency review, the Python locks, the release tools and backend, the locks of the consumer projects and
-// the proof of a release. release-consumer installs the archives of a release in clean projects: the tool lifts the
+// the proof of a release, and the release archives of other repositories (release-assets-fetch, kit K140). release-consumer installs the archives of a release in clean projects: the tool lifts the
 // offline settings itself.
-const KIT_DOWNLOADS = ['install-tools', 'install-packages', 'cargo-downloads-fetch', 'dependency-review', 'python-lock', 'release-tools', 'release-backend', 'release-consumer-lock', 'release-proof', 'toolchain-lock'];
+const KIT_DOWNLOADS = ['install-tools', 'install-packages', 'cargo-downloads-fetch', 'dependency-review', 'python-lock', 'release-tools', 'release-backend', 'release-assets-fetch', 'release-consumer-lock', 'release-proof', 'toolchain-lock'];
 const DOWNLOADS = [...KIT_DOWNLOADS, 'install-composer', 'install-phpdocumentor', 'install-browsers', 'install-ordered-json', 'install-svelte-tools'];
 const read = (file: string): string => readFileSync(path.join(ROOT, file), 'utf8');
 const makefile = read('Makefile');

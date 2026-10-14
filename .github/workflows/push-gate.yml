@@ -5,8 +5,7 @@
 # history. It starts on branch pushes only: a tag push would leave a push-gate run that has not completed on the tagged
 # commit, and the release requires the check to have succeeded there. A release requires this job, with ci-passed, to have succeeded for the tagged commit. make toolchain-check
 # reads the floors of every Cargo.toml through cargo metadata, so the job installs the tools of the checkout with make
-# install-tools first, the Rust toolchain of rust-toolchain.toml among them (kit K151), after PHP, which installs the PHP
-# lint tools of kit.
+# install-tools first, the Rust toolchain of rust-toolchain.toml among them (kit K151).
 
 name: Push check
 
@@ -44,11 +43,6 @@ jobs:
         run: make install-tools TOOLS="npm"
       - name: Install the packages of package-lock.json, @polyspec/kit included
         run: make install-packages
-      - name: Setup PHP
-        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
-        with:
-          php-version: '8.5'
-          tools: none
       - name: Install the tools of mise.lock into var/tools/mise
         run: make install-tools
       - name: Check the recorded toolchain versions
