@@ -125,7 +125,11 @@ test('verifies the local stack in stages, against the origin of its public serve
     assert.doesNotThrow(() => assertStep(check), `${check.id} holds no time limit`);
   }
   const byId = Object.fromEntries(checks.map(check => [check.id, check]));
-  assert.deepEqual(byId['php-modes'].args, ['test-php-modes.mjs', prepared.orderedJsonModule, prepared.cruduiModule, '/checkout']);
+  assert.deepEqual(byId['php-modes'].args.slice(1), ['phpunit', '--cwd', 'examples/form-comparison/servers/php']);
+  assert.deepEqual(byId['php-modes'].environment, {
+    FORM_PHP_SERVER: 'php', FORM_ORDERED_JSON_MODULE: prepared.orderedJsonModule, FORM_CRUDUI_MODULE: prepared.cruduiModule,
+    COMPOSER_VENDOR_DIR: '../../../../vendor',
+  });
   assert.deepEqual(byId.generation.args, ['check-generation.mjs', '--url', stackOrigin,
     '--library', '/checkout', '--report', '/run/results/generation.json']);
   assert.deepEqual(byId.persistence.args, ['check-servers.mjs', '--origin', stackOrigin, '--data', '/run/data',

@@ -121,8 +121,11 @@ install-svelte-tools: ## Install the tools project of packages/svelte from its p
 	$(ONLINE) $(NPM) ci --prefix packages/svelte/tools --no-audit --no-fund
 
 # The development root composer.json, never published, resolves the Composer packages of packages/: its path
-# repositories link polyspec/crudui-validator and polyspec/crudui-generator into vendor/, each loaded by its own autoload.
+# repositories link polyspec/crudui-validator and polyspec/crudui-generator into vendor/, each loaded by its own autoload,
+# and its artifact repository var/composer-artifacts holds the release zip of polyspec/ordered-json that
+# config/release-assets.json pins, which make release-assets-fetch of kit downloads first.
 install-composer: ## Install the Composer dependencies of the development root composer.json into vendor/
+	$(MAKE) --no-print-directory release-assets-fetch
 	$(ONLINE) composer install --no-interaction --prefer-dist
 
 install-python: ## Make the venv var/python and install the Python packages of the uv workspace into it in editable mode

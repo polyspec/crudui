@@ -2,34 +2,11 @@
 
 declare(strict_types=1);
 
-$orderedJsonSource = getenv('FORM_ORDERED_JSON_PHP_SOURCE');
-if ($orderedJsonSource === false) {
-    $orderedJsonSource = dirname(__DIR__, 2)
-        . '/.form-comparison/sources/ordered-json/php/src/OrderedJson.php';
-}
-if (!str_starts_with($orderedJsonSource, '/') || !is_file($orderedJsonSource)) {
-    throw new RuntimeException('FORM_ORDERED_JSON_PHP_SOURCE must identify the absolute OrderedJSON PHP source file');
-}
-require_once $orderedJsonSource;
+namespace Polyspec\Crudui\FormComparison;
 
+use InvalidArgumentException;
 use Polyspec\OrderedJson\Value;
-
-/** Require the configured JSON and CRUDUI extension modes. */
-function phpServerMode(): string
-{
-    $mode = getenv('FORM_PHP_SERVER') ?: 'php';
-    if (!in_array($mode, ['php', 'php-ext'], true)) {
-        throw new RuntimeException('Unknown PHP server mode');
-    }
-    if (extension_loaded('ordered_json') !== ($mode === 'php-ext')) {
-        throw new RuntimeException('OrderedJSON extension state does not match the selected server');
-    }
-    if (extension_loaded('crudui') !== ($mode === 'php-ext')) {
-        throw new RuntimeException('CRUDUI extension state does not match the selected server');
-    }
-    return $mode;
-}
-phpServerMode();
+use stdClass;
 
 /** Convert ordered JSON values to objects, arrays and scalar values. */
 final class FormJson
@@ -37,8 +14,8 @@ final class FormJson
     public static function decode(string $source): mixed
     {
         // The PHP package parses with the ordered_json extension exactly when it is loaded, which
-        // phpServerMode() requires for php-ext and forbids for php.
-        phpServerMode();
+        // ServerMode::current() requires for php-ext and forbids for php.
+        ServerMode::current();
         return self::data(\Polyspec\OrderedJson\parse($source));
     }
 

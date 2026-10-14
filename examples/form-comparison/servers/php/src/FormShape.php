@@ -2,6 +2,11 @@
 
 declare(strict_types=1);
 
+namespace Polyspec\Crudui\FormComparison;
+
+use InvalidArgumentException;
+use stdClass;
+
 /**
  * The shape rule of submitted form data, shared by the record save and the benchmark save and
  * validation (docs/spec/form-comparison.md, "Record resource"). JSON members arrive as objects

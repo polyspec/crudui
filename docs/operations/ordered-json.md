@@ -7,10 +7,12 @@ records verification separately from runtime deployment.
 
 The record servers of the [form comparison](../spec/form-comparison.md) read and write JSON with the
 packages of [OrderedJSON](https://github.com/polyspec/ordered-json) at the tag `v0.0.3`, which
-`make install-ordered-json` checks out: `@polyspec/ordered-json` in JavaScript, its Go module, its Rust crate,
-`Polyspec\OrderedJson` in PHP and the `ordered_json` extension of its `php-extension` package. OrderedJSON's own
+`make install-ordered-json` checks out: `@polyspec/ordered-json` in JavaScript, its Go module, its Rust crate and
+the `ordered_json` extension of its `php-extension` package. `Polyspec\OrderedJson` in PHP is the Composer package
+`polyspec/ordered-json` of the release zip that `config/release-assets.json` pins, which `make install-composer`
+downloads into the artifact repository `var/composer-artifacts` of the root `composer.json`. OrderedJSON's own
 parity check and tests verify the processor across its five implementations; crudui does not repeat them. crudui
-tests its use of the packages: `examples/form-comparison/src/json.test.mjs`, `test-json.php`, `json_test.go` of the Go
+tests its use of the packages: `examples/form-comparison/src/json.test.mjs`, `FormJsonTest.php` of `servers/php`, `json_test.go` of the Go
 server and the JSON tests of the Rust server check that a record keeps its member order, numeric keys and keyed rows
 included, and its empty types, and that a number outside the form data range fails.
 

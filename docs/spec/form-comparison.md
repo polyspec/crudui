@@ -142,9 +142,9 @@ socket, and nginx, at the `notice` log level, writes `start worker processes` af
 listening socket. The program binds the listening address itself and passes the socket to nginx as
 file descriptor 3, which the variable `NGINX` names, so nginx listens on the port that the program
 took.
-nginx passes `/api/` requests to `api.php` over FastCGI, answers every other path with a JSON 404,
+nginx passes `/api/` requests to `servers/php/api.php` over FastCGI, answers every other path with a JSON 404,
 and ends a request body above 2 MiB with the JSON 413 of the contract before PHP reads it; the
-data and public directories reach `api.php` as `FORM_DATA_DIRECTORY` and
+data and public directories reach that script as `FORM_DATA_DIRECTORY` and
 `FORM_PUBLIC_DIRECTORY`. PHP's built-in server reads a whole body before it runs the script, so
 it could not stop an oversized request. The public server
 takes its address, its data directory, its public directory and the JSON map of the native
@@ -623,7 +623,7 @@ request-count changes, the unit runner's limits and progress, the record resourc
 fixture and links, and the canonical page's declared controls. These tests do not
 replace the local verification. `main` push CI runs
 `npm run test:form-comparison` so report-policy, browser-job, source-tree and
-generation-performance regressions block integration,
+PHP server regressions (the PHPUnit suite of `servers/php` in the php mode) block integration,
 `npm run test:form-comparison:pipeline` so the record-store contract of all five
 servers, the Go and Rust server tests and the canonical flow check of all 40
 combinations block integration, and `npm run test:form-comparison:checks` so the local
@@ -638,8 +638,10 @@ public server, each a local process on a port of 127.0.0.1 that the system assig
 identity in `source.json` of its results directory and runs these stages in order, stopping at the
 first stage with a failed step:
 
-1. the PHP processor modes, which load the `crudui.so` and `ordered_json.so` of this run
-   (`test-php-modes.mjs`);
+1. the PHPUnit suite of the PHP server (`servers/php`) in the php mode, whose group `modules` runs the
+   processor modes in child processes that load the `crudui.so` and `ordered_json.so` of this run; the
+   same suite in the php-ext mode, which loads both modules in its own process, follows with the
+   repeatable `--php-extension` of the run-tests of kit (K165);
 2. generation against the four native servers through the public server (`check-generation.mjs`);
 3. persistence against the four native servers, reading their files in the stack's data directory
    (`check-servers.mjs`);

@@ -27,6 +27,9 @@ import { createProgress } from '@polyspec/kit/test-progress';
 import { verifyEvidence } from './verification-evidence.mjs';
 
 /** One check of the verification: a step that runs to its end and prints its progress. */
+/** The run-tests tool of kit, which runs the PHPUnit suite of the PHP server. */
+const phpRunTests = fileURLToPath(import.meta.resolve('@polyspec/kit/run-tests'));
+
 function check(id, args, environment = {}) {
   return { id, command: process.execPath, args, cwd: exampleDirectory, environment };
 }
@@ -49,7 +52,14 @@ export function verificationStages({ origin, results, data, prepared, library = 
     return [selectedServers(servers).map(browser)];
   }
   return [
-    [check('php-modes', ['test-php-modes.mjs', prepared.orderedJsonModule, prepared.cruduiModule, library])],
+    // The PHPUnit suite of the PHP server in the php mode, whose group modules starts the processor modes with the
+    // modules of this run. Its php-ext leg loads both modules, which the run-tests of kit takes with K165.
+    [check('php-modes', [phpRunTests, 'phpunit', '--cwd', 'examples/form-comparison/servers/php'], {
+      FORM_PHP_SERVER: 'php',
+      FORM_ORDERED_JSON_MODULE: prepared.orderedJsonModule,
+      FORM_CRUDUI_MODULE: prepared.cruduiModule,
+      COMPOSER_VENDOR_DIR: '../../../../vendor',
+    })],
     [check('generation', ['check-generation.mjs', '--url', origin,
       '--library', library, '--report', path.join(results, 'generation.json')])],
     [check('persistence', ['check-servers.mjs', '--origin', origin, '--data', data,

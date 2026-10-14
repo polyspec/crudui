@@ -2,6 +2,12 @@
 
 declare(strict_types=1);
 
+namespace Polyspec\Crudui\FormComparison;
+
+use InvalidArgumentException;
+use LengthException;
+use RuntimeException;
+
 /**
  * The request body of one PHP server. The servers run with `enable_post_data_reading=0`, so PHP
  * fills neither `$_POST` nor `$_FILES`: the server reads at most 2 MiB itself and parses native

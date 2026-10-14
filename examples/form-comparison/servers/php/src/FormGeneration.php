@@ -2,9 +2,17 @@
 
 declare(strict_types=1);
 
+namespace Polyspec\Crudui\FormComparison;
+
+use Closure;
+use InvalidArgumentException;
 use Polyspec\Crudui\Form;
 use Polyspec\Crudui\Generator;
 use Polyspec\Crudui\Validator;
+use ReflectionClass;
+use ReflectionMethod;
+use RuntimeException;
+use stdClass;
 
 /** Generate current forms and verify the loaded PHP implementation. */
 final class FormGeneration
@@ -42,12 +50,8 @@ final class FormGeneration
         ) {
             throw new RuntimeException('Invalid source identity');
         }
-        if (!$native) {
-            require_once $sourceRoot . '/vendor/autoload.php';
-        }
-        $composerAutoload = self::composerAutoloadRegistered();
-        if ($composerAutoload === $native) {
-            throw new RuntimeException('Composer autoloader state does not match the selected server');
+        if ($native) {
+            self::assertNativeClasses();
         }
         $classes = [];
         $signatures = [];
@@ -85,7 +89,6 @@ final class FormGeneration
             'source' => (object) ['commit' => $source->commit, 'changes' => $source->changes],
             'nativeCRUDUI' => $native,
             'moduleSha256' => $moduleHash,
-            'composerAutoload' => $composerAutoload,
             'classes' => (object) $classes,
             'signatures' => (object) $signatures,
         ];
@@ -213,18 +216,24 @@ final class FormGeneration
         return $methods;
     }
 
-    private static function composerAutoloadRegistered(): bool
+    /**
+     * Require that every declared class under Polyspec\Crudui\, other than those of the form comparison, is internal
+     * to the crudui extension, so the PHP extension process never runs a class of the PHP library
+     * (docs/spec/form-comparison.md, "Implementations and requests").
+     */
+    public static function assertNativeClasses(): void
     {
-        foreach (spl_autoload_functions() as $loader) {
+        foreach (get_declared_classes() as $name) {
             if (
-                is_array($loader)
-                && is_object($loader[0] ?? null)
-                && $loader[0]::class === 'Composer\Autoload\ClassLoader'
+                str_starts_with($name, 'Polyspec\\Crudui\\')
+                && !str_starts_with($name, 'Polyspec\\Crudui\\FormComparison\\')
+                && !(new ReflectionClass($name))->isInternal()
             ) {
-                return true;
+                throw new RuntimeException(
+                    'A CRUDUI class loaded from PHP source in the PHP extension process: ' . $name
+                );
             }
         }
-        return false;
     }
 
     /** Verify that one PHP class loaded from its declared source file in the candidate. */

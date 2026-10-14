@@ -2,8 +2,11 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/json.php';
-require_once __DIR__ . '/form-shape.php';
+namespace Polyspec\Crudui\FormComparison;
+
+use InvalidArgumentException;
+use RuntimeException;
+use stdClass;
 
 /** File-backed company, store and department records for the form comparison example. */
 final class FormRepository
@@ -22,7 +25,8 @@ final class FormRepository
     /** Read the shared stored-record fixture. */
     private static function fixture(string $name): array
     {
-        $fixtures = FormJson::arrays(FormJson::decode(file_get_contents(__DIR__ . '/fixtures/records.json')));
+        $fixtureFile = dirname(__DIR__, 3) . '/fixtures/records.json';
+        $fixtures = FormJson::arrays(FormJson::decode(file_get_contents($fixtureFile)));
         if (!array_key_exists($name, $fixtures)) {
             throw new InvalidArgumentException('Unknown fixture');
         }

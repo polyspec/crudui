@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "comment": "Written by make dependency-review RECORD=1 (scripts/kit/dependency-review.mts) from the registries; make dependency-policy-check compares the checkout with it without a network.",
-  "reviewed": "2026-10-14T20:56:15.113Z",
+  "reviewed": "2026-10-14T21:12:48.084Z",
   "locks": [
     {
       "lock": "package-lock.json",
@@ -24,7 +24,7 @@
     },
     {
       "lock": "composer.lock",
-      "sha256": "1bf39033570968b9f3e8731391a039d2aad38684601ab1d6791da2c14ab3ba4e",
+      "sha256": "96331d79a177bfd714710739c52060ab5633ca07fc72a402b97be8a9f38b588b",
       "advisories": []
     },
     {
@@ -602,6 +602,13 @@
       "package": "typescript-eslint",
       "version": "8.71.2",
       "latest": "8.71.2"
+    },
+    {
+      "ecosystem": "composer",
+      "manifest": "composer.json",
+      "package": "polyspec/ordered-json",
+      "version": "0.0.3",
+      "latest": "0.0.3"
     },
     {
       "ecosystem": "composer",
