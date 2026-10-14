@@ -9,7 +9,7 @@ Run from the repository root. A checkout first runs `make install-tools TOOLS=np
 the release that the checkout records (`docs/spec/package-build.md`, "Runtime and dependency versions"): `make install` installs the
 recorded npm, the npm and Composer dependencies, the Rust toolchain of `rust-toolchain.toml`, the
 crates of every Cargo.lock with the OrderedJSON checkout of the comparison (`make install-crates`) and
-the phpDocumentor release that `scripts/install-phpdocumentor.sh` checks by its SHA-256,
+the phpDocumentor release that `scripts/install-phpdocumentor.mts` checks by its SHA-256,
 and `make toolchain-check` names every tool that runs at another release with the expected one.
 Install the tools that the checkout declares (npm, Go, uv and Python, alint, ruff, vulture, golangci-lint, deadcode,
 Composer with PHPCS and PHPStan, cargo-audit) into the checkout with `make install-tools`

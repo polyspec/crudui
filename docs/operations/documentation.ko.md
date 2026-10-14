@@ -1,6 +1,6 @@
 # 문서 관리
 <!-- doc-id: docs-operations-documentation -->
-<!-- source-sha256: 2348e2ffe213e71a299c1adc5af18e4f8e3f25db955f36a6ba31847004ab92c8 -->
+<!-- source-sha256: 3be2313fe71686123e4eb35cd92f3f0c8d6ab855ede8228e7d5f977de441927d -->
 
 [English](documentation.md).
 
@@ -49,15 +49,13 @@ API 생성에는 API Extractor·API Documenter·Go·Cargo·phpDocumentor가 필�
 공개 API를 commit된 report `etc/<package>.api.md`와 비교하고 doc model을 `var/api-model/<package>`에 쓰며, API Documenter는 그
 model의 Markdown 페이지를 `docs/api/<package>`에 씁니다. 도구 실행 실패나
 출력 누락은 생성 실패로 처리하며 실패한 출력을 성공 페이지로 대체하지
-않습니다. PHP 문서는 `tools/bin/phpDocumentor.phar`를 사용합니다.
+않습니다. PHP 문서는 `var/tools/phpdocumentor/phpDocumentor.phar`를 사용합니다.
 
-저장소 루트에서 phpDocumentor 3.10.0을 설치합니다. Go·Cargo·PHP는 `PATH`에
+`make install-phpdocumentor`는 phpDocumentor 3.10.0을 설치하고 SHA-256으로 검사합니다. Go·Cargo·PHP는 `PATH`에
 있어야 하며 PHP에는 mbstring 확장이 필요합니다.
 
 ```sh
-mkdir -p tools/bin
-curl --fail --location https://github.com/phpDocumentor/phpDocumentor/releases/download/v3.10.0/phpDocumentor.phar -o tools/bin/phpDocumentor.phar
-php tools/bin/phpDocumentor.phar --version
+make install-phpdocumentor
 make docs
 make docs-verify-idempotent
 ```

@@ -49,15 +49,13 @@ API generation requires API Extractor, API Documenter, Go, Cargo and phpDocument
 Extractor checks the public API against the committed report `etc/<package>.api.md` and writes its doc model to
 `var/api-model/<package>`, and API Documenter writes the Markdown pages of that model to `docs/api/<package>`. A tool failure or
 missing output fails generation; the generator does not replace failed output
-with a success page. PHP documentation uses `tools/bin/phpDocumentor.phar`.
+with a success page. PHP documentation uses `var/tools/phpdocumentor/phpDocumentor.phar`.
 
-Install phpDocumentor 3.10.0 from the repository root. Go, Cargo and PHP must be
+`make install-phpdocumentor` installs phpDocumentor 3.10.0 and checks it by its SHA-256. Go, Cargo and PHP must be
 available on `PATH`; PHP requires the mbstring extension.
 
 ```sh
-mkdir -p tools/bin
-curl --fail --location https://github.com/phpDocumentor/phpDocumentor/releases/download/v3.10.0/phpDocumentor.phar -o tools/bin/phpDocumentor.phar
-php tools/bin/phpDocumentor.phar --version
+make install-phpdocumentor
 make docs
 make docs-verify-idempotent
 ```

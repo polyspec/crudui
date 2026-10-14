@@ -100,10 +100,10 @@ async function genRust() {
 }
 
 async function genPhp() {
-  const phar = join(ROOT, 'tools/bin/phpDocumentor.phar');
+  const phar = join(ROOT, 'var/tools/phpdocumentor/phpDocumentor.phar');
   requireOutput(phar);
   const output = join(STATIC_API_DIR, 'php');
-  const cache = join(ROOT, 'tools/bin/.phpdoc-cache');
+  const cache = join(ROOT, 'var/tools/phpdocumentor/cache');
   cleanDirectory(output);
   try {
     await run(process.env.PHP ?? 'php', [phar, 'run', '-d', 'packages/validator-php/src', '-d', 'packages/generator-php/src', '-t', output,

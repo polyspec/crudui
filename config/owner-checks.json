@@ -502,7 +502,7 @@
         "scripts/check-doc-coverage*.mjs",
         "scripts/php-doc-coverage.*",
         "scripts/gen-api-docs*.mjs",
-        "scripts/install-phpdocumentor.sh",
+        "scripts/install-phpdocumentor.mts",
         "scripts/docs-web/**"
       ],
       "targets": [
