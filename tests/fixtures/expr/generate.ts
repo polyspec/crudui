@@ -105,8 +105,9 @@ interface CaseSpec {
 /**
  * The number 1 written `1.0`, a spelling that JSON.stringify does not write for a JavaScript number; a runtime that
  * decodes it to another type than `1` (a PHP float, a Rust float, a Python float) must still compare it by value.
- * JSON.rawJSON (ES2025) writes the text as it is; the TypeScript library of the checkout does not declare it yet.
+ * JSON.rawJSON, of the JSON.parse source text access proposal, writes the text as it is.
  */
+// No lib of TypeScript 7.0.2 declares JSON.rawJSON, not "esnext" either, so the call names its type here.
 const oneWithFraction = (JSON as unknown as { rawJSON(text: string): unknown }).rawJSON('1.0');
 
 const SPECS: CaseSpec[] = [
