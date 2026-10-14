@@ -14,13 +14,14 @@
  *    (serde untagged + preserve_order) siblings carry the equivalent guarantee.
  *  - Type assignability: each shape compiles against `FieldSpec` (the type IS
  *    the schema for the reference layer), imported from the package entry,
- *    which exports the authoring types.
+ *    which exports the authoring types; `types.test-d.ts` holds the type
+ *    assertions, which the typecheck mode of Vitest checks.
  *  - Forbidden meta keys: the canonical enumeration and the `x{key}` pattern are
  *    pinned so tooling can assert global rejection.
  */
 
-import { describe, it, expect, expectTypeOf } from 'vitest';
-import type { FieldSpec, ConditionMap, DesignSlot, Multiple, Lang, Items, RangeFieldSpec } from './index';
+import { describe, it, expect } from 'vitest';
+import type { FieldSpec, ConditionMap, DesignSlot } from './index';
 import { FORBIDDEN_META_KEYS, FORBIDDEN_META_KEY_PATTERN } from './internal';
 
 /** Parse → re-serialize and assert byte identity (canonical round trip). */
@@ -102,24 +103,9 @@ describe('FieldSpec round-trip (canonical JSON shape)', () => {
   });
 });
 
-describe('FieldSpec type assignability (the type is the reference schema)', () => {
-  it('accepts the canonical shapes for slots and buckets', () => {
-    expectTypeOf<false>().toMatchTypeOf<FieldSpec['behavior']>();
-    expectTypeOf<true>().toMatchTypeOf<FieldSpec['validate']>();
-    expectTypeOf<{ show: string }>().toMatchTypeOf<NonNullable<FieldSpec['design']>>();
-    expectTypeOf<Multiple>().toMatchTypeOf<NonNullable<FieldSpec['multiple']>>();
-    expectTypeOf<Lang>().toMatchTypeOf<NonNullable<FieldSpec['lang']>>();
-    expectTypeOf<Items>().toMatchTypeOf<NonNullable<FieldSpec['items']>>();
-  });
-
-  it('describes a range field with its literal bounds and step (docs/spec/schema.md, Range fields)', () => {
+describe('FieldSpec round-trip of a range field', () => {
+  it('round-trips a range field with its literal bounds and step (docs/spec/schema.md, Range fields)', () => {
     const volume = { type: 'range', name: 'volume', append: '%', validate: { range: [0, 100], step: 5 } } as const;
-    expectTypeOf<{ type: 'range'; validate: { range: [number, number]; step: number } }>()
-      .toMatchTypeOf<RangeFieldSpec>();
-    expectTypeOf<RangeFieldSpec>().toMatchTypeOf<FieldSpec>();
-    expectTypeOf<{ type: 'range'; validate: { range: [number, number] } }>().not.toMatchTypeOf<RangeFieldSpec>();
-    expectTypeOf<{ type: 'range'; validate: { step: number } }>().not.toMatchTypeOf<RangeFieldSpec>();
-    expectTypeOf<{ type: 'range' }>().not.toMatchTypeOf<RangeFieldSpec>();
     roundTrip(JSON.stringify(volume));
   });
 });

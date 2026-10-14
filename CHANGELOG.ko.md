@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 9d3b0ad4cc6ddfb3b193f87b7dab8640b3f89ab0e5709481c8dd2eee9b366d01 -->
+<!-- source-sha256: 5040395bb6b8675a396a2704cdd1a43fdba2e848897d31878512270fce47bc44 -->
 
 ## Unreleased
+
+### 2026-10-15 — validator의 type test (C14.24)
+
+- `packages/validator/ts`의 Vitest suite는 Vitest의 typecheck mode로도 실행되므로, 이제 `src/types.test-d.ts`에 있는 작성 type의 `expectTypeOf` assertion이 `tsc`로 검사된다. runtime 실행은 이를 평가하지 않았다(C14.24).
 
 ### 2026-10-15 — spec의 bundle된 benchmark console (C14.23)
 

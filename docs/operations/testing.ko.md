@@ -1,6 +1,6 @@
 # 테스트 실행
 <!-- doc-id: docs-operations-testing -->
-<!-- source-sha256: a565d6a3fc1f81b06fed0e373cb22ce06569e3b4a578cf15e588928f86ca1a32 -->
+<!-- source-sha256: 3951cf3048d32ed09d61846a9e11f6e5ae2be5bca98fc5e0cee6294858978fc9 -->
 
 [English](testing.md).
 
@@ -210,6 +210,11 @@ resolve되고, process가 종료되면) 끝나고, 그 오류는 파일을 실�
 시간과 함께 끝을 출력합니다. Vitest setup이나 teardown은 timeout이 `Infinity`인 `beforeAll`이나 `afterAll`
 hook입니다. test는 browser를 launch하지 않고 setup이 launch한 browser의 page를 엽니다.
 polyspec/kit의 test는 setup이나 teardown이 test timeout보다 오래 걸리는 파일을 실행합니다.
+
+type assertion(`expectTypeOf`)은 `*.test-d.ts` 파일에 있고, Vitest의 typecheck mode(package의 Vitest 설정에서
+`enabled: true`인 `test.typecheck`)가 runtime test와 같은 실행에서 `tsc`와 package의 `tsconfig.json`으로 이를
+검사합니다. runtime test 파일은 `expectTypeOf`를 평가하지 않습니다. `packages/validator/ts`는 이렇게 작성 type을
+검사합니다(`src/types.test-d.ts`).
 
 ## 시간과 부하
 
