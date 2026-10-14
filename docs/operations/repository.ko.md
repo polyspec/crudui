@@ -1,6 +1,6 @@
 # 저장소
 <!-- doc-id: docs-operations-repository -->
-<!-- source-sha256: a0c1e44da05b71f970fbedacc19421d8dbe9fd0a7e7a65cde59108f3d13791eb -->
+<!-- source-sha256: 0b80c754019e8c1fe0a78d816ff4a35dce6ebe048df12b2f5a870d6df8353215 -->
 
 [English](repository.md).
 
@@ -32,14 +32,14 @@ workflow는 다음과 같습니다.
 - `.github/workflows/dependency-review.yml`: 예약된 시각과 수동 실행.
 - `.github/workflows/release.yml`: push된 tag `v*` 또는 `**/v*`([release](#release)).
 
-다른 workflow는 없습니다(`tests/build/ci-local.test.mjs`). GitHub의 저장소 설정(Pages source **GitHub Actions**, environment
+다른 workflow는 없습니다(`tests/build/ci-local.test.mts`). GitHub의 저장소 설정(Pages source **GitHub Actions**, environment
 `github-pages`)은 GitHub 화면에서 정하며, 이 저장소의 어떤 명령도 이를 적용하지 않습니다.
 
 ## Release
 
 release는 `main` commit의 tag입니다. 저장소는 `vX.Y.Z`이고, 디렉터리의 Go module(`packages/generator/go`,
 `packages/validator/go`)은 `<디렉터리>/vX.Y.Z`이며 그 module path는 `github.com/polyspec/crudui/<디렉터리>`입니다
-(`tests/build/package-names.test.mjs`). `main`의 모든 commit은 tag 전에 CI의 전체 suite를 통과했으므로 release는 test를 다시
+(`tests/build/package-names.test.mts`). `main`의 모든 commit은 tag 전에 CI의 전체 suite를 통과했으므로 release는 test를 다시
 실행하지 않습니다. tag는 maintainer만 만들어 push합니다. tag가 release하는 package, 덮는 manifest, Go module은
 `config/release.json`(`node_modules/@polyspec/kit/dist/schema/release.schema.json`)에 선언합니다.
 
@@ -91,7 +91,7 @@ release는 `main` commit의 tag입니다. 저장소는 `vX.Y.Z`이고, 디렉터
      실패시킵니다.
 
 polyspec/kit의 test(`tests/kit/release.test.mts`와 `tests/kit/release-go-tags.test.mts`)는 명령 fake로 도구를 검사하고,
-`tests/build/python-git-pins.test.mjs`는 `pyproject.toml`에서 이 저장소를 가리키는 모든 git pin이 `package.json`의 version을 적을 것을
+`tests/build/python-git-pins.test.mts`는 `pyproject.toml`에서 이 저장소를 가리키는 모든 git pin이 `package.json`의 version을 적을 것을
 요구합니다. `make release-coverage`는 저장소의 모든 `package.json`, `composer.json`, `Cargo.toml`, `pyproject.toml`, `go.mod`가
 `config/release.json`에 분류되어 있을 것을 요구합니다.
 

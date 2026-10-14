@@ -43,7 +43,7 @@ re-exports, and fails when:
   relative path (in an import, export, `require`, dynamic import or Vitest module
   mock). A package uses another package only through its entries by name.
 
-[`tests/build/contract-manifest.test.mjs`](../tests/build/contract-manifest.test.mjs)
+[`tests/build/contract-manifest.test.mts`](../tests/build/contract-manifest.test.mts)
 proves each failure on a synthetic repository and runs the check on this
 repository. The CLI can print the same contract
 for tools that need a compact machine-readable or Markdown description.

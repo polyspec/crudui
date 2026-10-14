@@ -454,7 +454,7 @@ cloned scripts.
 A list or detail rendered again from a new model (`updateView`) keeps every element node its new
 markup still contains, including `html` cells and values: a page of the HTML renderer patches
 the new markup with `patchContent`, and the React, Vue and Svelte list and detail components patch
-their raw content the same way. The shared view fixture `tests/fixtures/view-session/rerender.mjs`
+their raw content the same way. The shared view fixture `tests/fixtures/view-session/rerender.mts`
 checks this in all four renderers.
 
 Browser file inputs cannot be filled from a saved string.

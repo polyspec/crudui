@@ -5,7 +5,7 @@
  * A page with the HTML renderer renders the session with `renderForm` and
  * `renderOutline`, connects the markup with `connectForm` and `connectOutline` from
  * @polyspec/crudui-generator-core, and on every change patches the new markup into the page with
- * `patchContent` and synchronizes the controls (tests/form-styles.test.mjs mounts it the same
+ * `patchContent` and synchronizes the controls (tests/form-styles.test.mts mounts it the same
  * way in a browser). The React, Vue and Svelte
  * form tests run the same scenario modules over their components.
  */
@@ -17,12 +17,12 @@ import {
 } from '@polyspec/crudui-generator-core';
 import { renderForm, renderOutline } from './index';
 // @ts-expect-error Shared browser lifecycle across all renderers.
-import { spec, data, exerciseSessionDom } from '../../../tests/fixtures/form-session/scenario.mjs';
+import { spec, data, exerciseSessionDom } from '../../../tests/fixtures/form-session/scenario.mts';
 // @ts-expect-error Shared initialization comparison across all renderers.
-import { compareInitialization, compareServerTakeover } from '../../../tests/fixtures/form-session/initialization.mjs';
+import { compareInitialization, compareServerTakeover } from '../../../tests/fixtures/form-session/initialization.mts';
 // @ts-expect-error Shared control assertions across all renderers.
-import { controlSpec, exerciseControls } from '../../../tests/fixtures/form-session/controls.mjs';
-import { provesConformance } from '../../../tests/conformance/evidence.mjs';
+import { controlSpec, exerciseControls } from '../../../tests/fixtures/form-session/controls.mts';
+import { provesConformance } from '../../../tests/conformance/evidence.mts';
 
 const SESSION_FEATURES = ['connectForm', 'connectOutline', 'runAction', 'viewState', 'formHistory'];
 
@@ -68,9 +68,9 @@ test('renders identical DOM and control state with initial or repeatedly injecte
   const deferred = { session: createForm(template), element: document.createElement('form') };
   const unmounts = [initial, deferred].map(({ session, element }) => mount(session, element));
   try {
-    await proves('initialization.mjs', 'compareServerTakeover', ['connectForm', 'patchContent'], () =>
+    await proves('initialization.mts', 'compareServerTakeover', ['connectForm', 'patchContent'], () =>
       compareServerTakeover({ element: initial.element, session: initial.session, expect }));
-    await proves('initialization.mjs', 'compareInitialization', ['connectForm', 'patchContent'], () =>
+    await proves('initialization.mts', 'compareInitialization', ['connectForm', 'patchContent'], () =>
       compareInitialization({ initial, deferred, expect, flush }));
   } finally {
     unmounts.forEach(unmount => unmount());
@@ -82,7 +82,7 @@ test('runs the shared browser lifecycle over the connected HTML form', async () 
   const element = document.createElement('div');
   const unmount = mount(session, element);
   try {
-    await proves('scenario.mjs', 'exerciseSessionDom', SESSION_FEATURES, () =>
+    await proves('scenario.mts', 'exerciseSessionDom', SESSION_FEATURES, () =>
       exerciseSessionDom({ element, session, expect, flush }));
   } finally {
     unmount();
@@ -94,7 +94,7 @@ test('connects labels and preserves multiple choice values through editing and s
   const element = document.createElement('form');
   const unmount = mount(form, element);
   try {
-    await proves('controls.mjs', 'exerciseControls', ['connectForm'], () =>
+    await proves('controls.mts', 'exerciseControls', ['connectForm'], () =>
       exerciseControls({ element, form, expect, flush }));
   } finally {
     unmount();
@@ -102,14 +102,14 @@ test('connects labels and preserves multiple choice values through editing and s
 });
 
 // @ts-expect-error Shared data-only collection and visibility assertions across all renderers.
-import { onlySpec, exerciseOnlyRows, visibilitySpec, visibilityData, exerciseHiddenValues } from '../../../tests/fixtures/form-session/data-rows.mjs';
+import { onlySpec, exerciseOnlyRows, visibilitySpec, visibilityData, exerciseHiddenValues } from '../../../tests/fixtures/form-session/data-rows.mts';
 
 test('keeps a data-only collection to the rows of its data', async () => {
   const session = createForm(compileForm(onlySpec));
   const element = document.createElement('form');
   const unmount = mount(session, element);
   try {
-    await proves('data-rows.mjs', 'exerciseOnlyRows', ['connectForm'], () =>
+    await proves('data-rows.mts', 'exerciseOnlyRows', ['connectForm'], () =>
       exerciseOnlyRows({ element, session, expect, flush }));
   } finally {
     unmount();
@@ -121,7 +121,7 @@ test('keeps the values of a group hidden by design.show', async () => {
   const element = document.createElement('form');
   const unmount = mount(session, element);
   try {
-    await proves('data-rows.mjs', 'exerciseHiddenValues', ['connectForm'], () =>
+    await proves('data-rows.mts', 'exerciseHiddenValues', ['connectForm'], () =>
       exerciseHiddenValues({ element, session, expect, flush }));
   } finally {
     unmount();
@@ -129,7 +129,7 @@ test('keeps the values of a group hidden by design.show', async () => {
 });
 
 // @ts-expect-error Shared typing assertions across all renderers.
-import { typingSpec, exerciseTyping, installWidgetHost } from '../../../tests/fixtures/form-session/typing.mjs';
+import { typingSpec, exerciseTyping, installWidgetHost } from '../../../tests/fixtures/form-session/typing.mts';
 
 test('keeps the typed control node, its order and its caret', async () => {
   installWidgetHost(document);
@@ -137,7 +137,7 @@ test('keeps the typed control node, its order and its caret', async () => {
   const element = document.createElement('form');
   const unmount = mount(form, element);
   try {
-    await proves('typing.mjs', 'exerciseTyping', ['connectForm', 'patchContent'], () =>
+    await proves('typing.mts', 'exerciseTyping', ['connectForm', 'patchContent'], () =>
       exerciseTyping({ element, form, expect, flush }));
   } finally {
     unmount();

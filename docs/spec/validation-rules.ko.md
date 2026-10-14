@@ -1,6 +1,6 @@
 # 검증 규칙
 <!-- doc-id: docs-spec-validation-rules -->
-<!-- source-sha256: 1dc0faa97e2792c60c3f10f639428d6b7be583e146923e5ac544c538acea1106 -->
+<!-- source-sha256: bab83e066890f58e7809546047a4d54ff56d6002c1e9ffd000ee82f46d641b76 -->
 
 [English](validation-rules.md).
 
@@ -86,7 +86,7 @@ display:
 모든 런타임은 다음 정의를 적용하며, 아래 규칙은 이 밖의 공백·빈 값·텍스트 개념을 쓰지 않습니다.
 
 **Unicode 데이터**는 [`contracts/unicode-properties.json`](../../contracts/unicode-properties.json)에 기록된
-Unicode 16.0.0입니다. `scripts/generate-unicode-properties.mjs`가 `contracts/unicode/`의 Unicode Character
+Unicode 16.0.0입니다. `scripts/generate-unicode-properties.mts`가 `contracts/unicode/`의 Unicode Character
 Database 파일에서 이 표를 만듭니다. 모든 런타임은 이 표를 내장하고 다른 Unicode 데이터를 쓰지 않으므로 모든
 코드 포인트를 똑같이 분류합니다.
 

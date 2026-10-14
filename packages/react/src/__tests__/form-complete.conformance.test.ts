@@ -8,7 +8,7 @@ import { describe, expect, test } from 'vitest';
 import { compileForm, createForm } from '@polyspec/crudui-generator-core';
 import { renderForm } from '../server';
 import fixtureCases from '../../../../tests/fixtures/form-complete/cases.json';
-import { provesConformance } from '../../../../tests/conformance/evidence.mjs';
+import { provesConformance } from '../../../../tests/conformance/evidence.mts';
 
 interface CompleteCase {
   name: string;

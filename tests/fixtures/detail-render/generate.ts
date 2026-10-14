@@ -17,9 +17,9 @@
 import { renderDetail } from '../../../packages/react/src/server';
 import type { BuildDetailOptions } from '@polyspec/crudui-generator-core';
 // @ts-expect-error — JS normalizer shared across the CRUDUI fixture harness.
-import { normalizeHtml } from '../form-render/normalize.mjs';
+import { normalizeHtml } from '../form-render/normalize.mts';
 // @ts-expect-error — shared JS preload link helper.
-import { withoutPreloadLinks } from '../preload-links.mjs';
+import { withoutPreloadLinks } from '../preload-links.mts';
 
 interface DetailFixtureCase {
   name: string;

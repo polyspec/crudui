@@ -1,11 +1,11 @@
 import { describe, expect, test } from 'vitest';
 import { renderList } from './index';
 // @ts-expect-error shared JavaScript fixture normalizer
-import { normalizeHtml } from '../../../tests/fixtures/form-render/normalize.mjs';
+import { normalizeHtml } from '../../../tests/fixtures/form-render/normalize.mts';
 // @ts-expect-error shared JavaScript preload link helper
-import { withoutPreloadLinks } from '../../../tests/fixtures/preload-links.mjs';
+import { withoutPreloadLinks } from '../../../tests/fixtures/preload-links.mts';
 import cases from '../../../tests/fixtures/list-render/cases.json';
-import { provesConformance } from '../../../tests/conformance/evidence.mjs';
+import { provesConformance } from '../../../tests/conformance/evidence.mts';
 
 interface ListFixture {
   name: string;

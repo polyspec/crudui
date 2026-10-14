@@ -13,7 +13,7 @@
 # var/tools/bin, so every command of make finds them. The tools of the machine are never changed.
 export PATH := $(CURDIR)/var/tools/bin:$(PATH)
 # GNU Make 3.81 looks up the program of a recipe line without shell syntax on the PATH that make started with, not on the
-# exported one, so every recipe starts npm by its path (tests/build/tool-path.test.mjs).
+# exported one, so every recipe starts npm by its path (tests/build/tool-path.test.mts).
 NPM := $(CURDIR)/var/tools/bin/npm
 # The exact toolchains of the checkout (docs/spec/package-build.md): rustup runs the toolchain of rust-toolchain.toml and
 # never installs one on the first cargo, which fails with rustup's message naming `rustup toolchain install`; go runs the
@@ -44,7 +44,7 @@ BENCH_ITERS  ?= 50000
 BENCH_WARMUP ?= 5000
 PHP_EXTENSION ?= $(CURDIR)/packages/php-ext/modules/crudui.so
 # Reports live in the Git directory, which is a file-referenced directory in a worktree: NATIVE_REPORT of the JavaScript,
-# HTML, Go and Rust targets and PHP_NATIVE_REPORT of the PHP and native PHP targets of tests/native-generators/run.mjs.
+# HTML, Go and Rust targets and PHP_NATIVE_REPORT of the PHP and native PHP targets of tests/native-generators/run.mts.
 NATIVE_REPORT ?= $(shell git rev-parse --git-path native-generators/report.json)
 PHP_NATIVE_REPORT ?= $(shell git rev-parse --git-path native-generators/report-php.json)
 CONFORMANCE_EVIDENCE ?= $(abspath $(shell git rev-parse --git-path conformance-evidence))
@@ -126,13 +126,13 @@ install-rust: ## Install the Rust toolchain of rust-toolchain.toml
 install-phpdocumentor: ## Install the phpDocumentor release that scripts/install-phpdocumentor.mts checks by its SHA-256
 	$(ONLINE) node scripts/install-phpdocumentor.mts
 
-# The browsers that puppeteer and playwright pin (scripts/install-browsers.mjs); BROWSERS names the browsers and options.
+# The browsers that puppeteer and playwright pin (scripts/install-browsers.mts); BROWSERS names the browsers and options.
 BROWSERS ?= chrome firefox webkit
 install-browsers: ## Install the pinned browsers of BROWSERS (chrome firefox webkit) into the checkout
-	$(ONLINE) node scripts/install-browsers.mjs $(BROWSERS)
+	$(ONLINE) node scripts/install-browsers.mts $(BROWSERS)
 
 check-ci-browser: ## Check that the pinned Chrome runs sandboxed
-	node scripts/check-ci-browser.mjs
+	node scripts/check-ci-browser.mts
 
 # The crates of every Cargo.lock, after the OrderedJSON checkout that the lock of the Rust record server reads; a CI job
 # that runs a target with cargo-downloads-check runs it.
@@ -161,16 +161,20 @@ lint: ## Lint the repository: make lint-ts of kit and the Svelte components
 	node $(KIT)/lint-ts.mjs || status=1; \
 	$(NPM) run lint -w @polyspec/crudui-generator-svelte || status=1; \
 	exit $$status
-typecheck: ## Type-check every TypeScript package
+# The root tsconfig.json checks the TypeScript of scripts/ and tests/ (S9 of kit) strictly. It sets skipLibCheck: the
+# declarations that @tailwindcss/node 4.3.3 publishes import seven modules (./ast, ./candidate, ...) that the package does
+# not ship, so a check of the declaration files of node_modules fails on that package and not on this code.
+typecheck: ## Type-check every TypeScript package, and the TypeScript of scripts/ and tests/ with the root tsconfig.json
 	$(NPM) run typecheck
+	node_modules/.bin/tsc -p tsconfig.json
 test-validator-js: ## The TypeScript validator suite
 	$(NPM) test -w @polyspec/crudui-validator
 test-validator-php: ## The PHP validator suite
 	composer --working-dir=packages/validator/php test
 test-validator-go: ## The Go validator suite
-	node tests/conformance/run-suite.mjs go --cwd packages/validator/go -- ./...
+	node tests/conformance/run-suite.mts go --cwd packages/validator/go -- ./...
 test-validator-rust: cargo-downloads-check ## The Rust validator suite
-	node tests/conformance/run-suite.mjs cargo -- --locked --manifest-path packages/validator/rust/Cargo.toml
+	node tests/conformance/run-suite.mts cargo -- --locked --manifest-path packages/validator/rust/Cargo.toml
 test-validator-python: ## The Python validator suite
 	python3 tests/conformance/runner.py packages/validator/python/tests
 test-generator-python: ## The Python generator suite
@@ -180,9 +184,9 @@ test-cross-check: cargo-downloads-check ## The cross-check console gateway confo
 manifest-test: cargo-downloads-check ## The verification commands of the feature contracts
 	$(NPM) run manifest:test
 require-build: ## Build the packages when their sources or output changed
-	node scripts/require-current-build.mjs
+	node scripts/require-current-build.mts
 test-cli: ## The command-line interface suite
-	node scripts/require-current-build.mjs
+	node scripts/require-current-build.mts
 	node $(KIT)/run-tests.mjs vitest --cwd packages/cli
 manifest-check: ## The feature contract manifest
 	$(NPM) run manifest:check
@@ -217,7 +221,7 @@ test-inspector: ## The browser inspector
 test-bench: cargo-downloads-check ## The benchmark drivers
 	$(NPM) run test:bench
 check-conformance: ## The conformance evidence against contracts/features.json
-	node scripts/check-conformance.mjs
+	node scripts/check-conformance.mts
 
 # The owner checks run the checks of the changed paths (config/owner-checks.json), some of which run cargo; make -k skips
 # them while a crate is missing.
@@ -262,7 +266,7 @@ docs-check-documents: cargo-downloads-check
 	$(NPM) run manifest:check || status=1; \
 	$(NPM) run manifest:docs:check || status=1; \
 	$(MAKE) --no-print-directory records-check || status=1; \
-	node $(KIT)/run-tests.mjs node -- scripts/gen-api-docs.test.mjs scripts/check-doc-coverage.test.mjs scripts/php-doc-coverage.test.mjs || status=1; \
+	node $(KIT)/run-tests.mjs node -- scripts/gen-api-docs.test.mts scripts/check-doc-coverage.test.mts scripts/php-doc-coverage.test.mts || status=1; \
 	$(NPM) run test:docs || status=1; \
 	$(NPM) run docs:build || status=1; \
 	exit $$status
@@ -328,8 +332,8 @@ bench-rust: cargo-downloads-check bench-fixtures ## Rust 검증기만 측정
 # the run-tests tool of @polyspec/kit, which prints each test with its elapsed time and gives it its own
 # timeout.
 build-php-extension:
-	node scripts/require-current-build.mjs
-	node scripts/build-crudui-php-extension.mjs
+	node scripts/require-current-build.mts
+	node scripts/build-crudui-php-extension.mts
 
 # The native suites in three parts, which CI runs in three jobs (.github/workflows/ci.yml) and test-native runs in one
 # command. test-php-engine compiles the C engine of the PHP extension with the C compiler and its sanitizers and needs
@@ -339,17 +343,17 @@ build-php-extension:
 # PHP release of the CI matrix. Within a part every suite runs even when an earlier one fails, so one run reports every
 # failure; any failure fails the target.
 test-php-engine:
-	node scripts/require-current-build.mjs
-	node tests/conformance/run-suite.mjs node -- packages/php-ext/tests/engine.test.mjs
+	node scripts/require-current-build.mts
+	node tests/conformance/run-suite.mts node -- packages/php-ext/tests/engine.test.mjs
 
 test-native-generators: cargo-downloads-check
-	node scripts/require-current-build.mjs
+	node scripts/require-current-build.mts
 	@status=0; \
 	node $(KIT)/run-tests.mjs go --cwd packages/generator/go -- -race ./... || status=1; \
 	node $(KIT)/run-tests.mjs cargo -- --locked --manifest-path packages/generator/rust/Cargo.toml || status=1; \
-	node $(KIT)/run-tests.mjs node -- tests/native-generators/protocol.test.mjs || status=1; \
-	node $(KIT)/run-tests.mjs node --timeout 60 -- tests/widget-scripts.test.mjs || status=1; \
-	node tests/native-generators/run.mjs --target javascript,html,go,rust,python --report "$(NATIVE_REPORT)" || status=1; \
+	node $(KIT)/run-tests.mjs node -- tests/native-generators/protocol.test.mts || status=1; \
+	node $(KIT)/run-tests.mjs node --timeout 60 -- tests/widget-scripts.test.mts || status=1; \
+	node tests/native-generators/run.mts --target javascript,html,go,rust,python --report "$(NATIVE_REPORT)" || status=1; \
 	exit $$status
 
 test-php-api: build-php-extension
@@ -357,9 +361,9 @@ test-php-api: build-php-extension
 	# checkout lock of that vendor directory, so two runs never reinstall it at once.
 	node $(KIT)/holder-lock.mjs run "$(CURDIR)/var/locks/composer-vendor.lock" -- composer reinstall polyspec/crudui-validator --no-interaction
 	@status=0; \
-	node tests/conformance/run-suite.mjs node -- tests/native-generators/php-extension-builder.test.mjs packages/php-ext/tests/api.test.mjs || status=1; \
+	node tests/conformance/run-suite.mts node -- tests/native-generators/php-extension-builder.test.mts packages/php-ext/tests/api.test.mjs || status=1; \
 	COMPOSER_VENDOR_DIR=../../../vendor node $(KIT)/run-tests.mjs phpunit --cwd packages/generator/php || status=1; \
-	node tests/native-generators/run.mjs --extension "$(PHP_EXTENSION)" --target php,php-native --report "$(PHP_NATIVE_REPORT)" || status=1; \
+	node tests/native-generators/run.mts --extension "$(PHP_EXTENSION)" --target php,php-native --report "$(PHP_NATIVE_REPORT)" || status=1; \
 	exit $$status
 
 test-native:
@@ -371,17 +375,17 @@ test-native:
 
 test-validators: cargo-downloads-check
 	@status=0; \
-	node tests/conformance/run-suite.mjs vitest --cwd packages/validator/ts || status=1; \
-	COMPOSER_VENDOR_DIR=../../../vendor node tests/conformance/run-suite.mjs phpunit --cwd packages/validator/php || status=1; \
-	node tests/conformance/run-suite.mjs go --cwd packages/validator/go -- ./... || status=1; \
-	node tests/conformance/run-suite.mjs cargo -- --locked --manifest-path packages/validator/rust/Cargo.toml || status=1; \
+	node tests/conformance/run-suite.mts vitest --cwd packages/validator/ts || status=1; \
+	COMPOSER_VENDOR_DIR=../../../vendor node tests/conformance/run-suite.mts phpunit --cwd packages/validator/php || status=1; \
+	node tests/conformance/run-suite.mts go --cwd packages/validator/go -- ./... || status=1; \
+	node tests/conformance/run-suite.mts cargo -- --locked --manifest-path packages/validator/rust/Cargo.toml || status=1; \
 	exit $$status
 
 # The browser validation binding (docs/spec/form-runtime.md, "Browser validation"): data
 # collection, timing, error markup parity with renderForm and the check in Chromium, Firefox and
 # WebKit. It reads the built validator and renderers.
 test-form-binding:
-	node scripts/require-current-build.mjs
+	node scripts/require-current-build.mts
 	node $(KIT)/run-tests.mjs vitest --cwd packages/form-binding
 
 # Every suite that records conformance evidence, then the check of that evidence against
@@ -395,7 +399,7 @@ conformance: cargo-downloads-check
 	$(MAKE) --no-print-directory test-native || status=1; \
 	$(NPM) run test:forms || status=1; \
 	$(NPM) test --prefix examples/cross-check-console/server || status=1; \
-	node scripts/check-conformance.mjs || status=1; \
+	node scripts/check-conformance.mts || status=1; \
 	exit $$status
 
 # Every Rust crate and Go file in the working tree (tracked, or new and not ignored) must match
@@ -405,7 +409,7 @@ WORKTREE_FILES = git ls-files --cached --others --exclude-standard $(1) | while 
 format-check:
 	@status=0; \
 	for manifest in $$($(call WORKTREE_FILES,'*Cargo.toml')); do \
-		node scripts/run-rust-command.mjs fmt --check --manifest-path "$$manifest" || status=1; \
+		node scripts/run-rust-command.mts fmt --check --manifest-path "$$manifest" || status=1; \
 	done; \
 	unformatted="$$(gofmt -l $$($(call WORKTREE_FILES,'*.go')))"; \
 	if [ -n "$$unformatted" ]; then echo "gofmt differences:"; echo "$$unformatted"; status=1; fi; \
@@ -417,7 +421,7 @@ format-check:
 records-check: ## Check the document pairs, links, changelog, writing and checklist rules with Node.js alone
 	@status=0; \
 	$(MAKE) --no-print-directory documents-check || status=1; \
-	node $(KIT)/run-tests.mjs node --timeout 10 -- scripts/documentation-links.test.mjs tests/docs/changelog.test.mjs tests/docs/repository-writing.test.mjs tests/docs/example-readmes.test.mjs tests/docs/fixture-readmes.test.mjs || status=1; \
+	node $(KIT)/run-tests.mjs node --timeout 10 -- scripts/documentation-links.test.mts tests/docs/changelog.test.mts tests/docs/repository-writing.test.mts tests/docs/example-readmes.test.mts tests/docs/fixture-readmes.test.mts || status=1; \
 	exit $$status
 
 # The release steps are the targets of the kit.mk of @polyspec/kit, run by .github/workflows/release.yml in this order: release-verify,
@@ -427,7 +431,7 @@ records-check: ## Check the document pairs, links, changelog, writing and checkl
 release-assets: build
 
 # Every target the CI workflow runs after installing tools and dependencies, in workflow order, with the conformance
-# evidence collected and checked like the final CI job (tests/build/ci-local.test.mjs keeps this list equal to
+# evidence collected and checked like the final CI job (tests/build/ci-local.test.mts keeps this list equal to
 # .github/workflows/ci.yml).
 CI_TARGETS = \
 	test-runtimes \
@@ -502,9 +506,9 @@ conformance-reset: ## Remove the conformance evidence of earlier runs
 rerun-failed: export CRUDUI_CONFORMANCE_EVIDENCE := $(CONFORMANCE_EVIDENCE)
 
 # A git pin of this repository in a pyproject.toml names the tag of the release: release-pins requires it to name TAG's
-# version, and release-versions runs it first (scripts/release-pins.mjs).
+# version, and release-versions runs it first (scripts/release-pins.mts).
 release-pins: ## Require every git pin of this repository in a pyproject.toml to name the version of TAG; offline
 	@test -n "$$TAG" || { echo "release-pins: TAG is required, for example make release-pins TAG=v0.0.1"; exit 1; }
-	node scripts/release-pins.mjs "$$TAG"
+	node scripts/release-pins.mts "$$TAG"
 
 release-versions: release-pins

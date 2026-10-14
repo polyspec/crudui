@@ -6,7 +6,7 @@ import { specFor } from './scenario.mjs';
 import { translations } from '../public/text.mjs';
 import { decodeJson, encodeJson, readJson } from './json.mjs';
 import { formInitializations, pipelineServers } from './runtime-paths.mjs';
-import { domSnapshot, identical, renderedNodes } from '../../../tests/form-inspector/form-snapshot.mjs';
+import { domSnapshot, identical, renderedNodes } from '../../../tests/form-inspector/form-snapshot.mts';
 import { serverGeneration } from './server-generation.mjs';
 import { createActionCompletion } from './action-completion.mjs';
 import { exclusive } from './storage-lock.mjs';

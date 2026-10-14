@@ -17,7 +17,7 @@
   meta-schema reads `spec` alone.
 
 The two results are independent. Every test applies every member it owns: no test classifies
-cases itself or supplies its own files. [`check-schema.mjs`](../../../scripts/check-schema.mjs), run by
+cases itself or supplies its own files. [`check-schema.mts`](../../../scripts/check-schema.mts), run by
 `npm run spec:schema`, asserts this shape for all three families before it checks `expect` and
 `reason`.
 
@@ -39,7 +39,7 @@ which does not read `items`, and `err-in-choice-list-boolean-value` fails with `
 ## Comparisons
 
 The [form meta-schema test](../../../packages/validator/ts/src/form-metaschema.conformance.test.ts)
-and `check-schema.mjs` compile the meta-schema and check `expect` and `reason`.
+and `check-schema.mts` compile the meta-schema and check `expect` and `reason`.
 
 The runtime tests run the complete form load path (composition, forbidden-key scan and validation)
 with empty data and the case `files`, and compare `engine`; the message is not compared. Runtime

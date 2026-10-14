@@ -86,7 +86,7 @@ The programs of `examples/`, `tests/` and `tools/` follow the same convention: t
 `polyspec-crudui-form-comparison`, `polyspec-crudui-native-generator` and `polyspec-crudui-bench` with binaries of the
 same names, and for each `go.mod` the module `github.com/polyspec/crudui/<directory>`.
 
-`tests/build/package-names.test.mjs` requires these names and fails for a maintained file that names a package
+`tests/build/package-names.test.mts` requires these names and fails for a maintained file that names a package
 by an earlier form; the changelog, the checklist and the wave descriptions keep the names that their entries recorded.
 
 ## Acceptance
@@ -224,7 +224,7 @@ replaces that runtime during execution.
 
 The browser checks run Chrome and Firefox at the builds that the locked
 `puppeteer` pins and WebKit at the build that the locked `playwright` pins;
-`node scripts/install-browsers.mjs <chrome|firefox|webkit>...` installs them, and
+`node scripts/install-browsers.mts <chrome|firefox|webkit>...` installs them, and
 no browser of the machine or of a release channel is used. Linux CI browser jobs
 keep the cache of Puppeteer in `.tools/puppeteer` of the checkout
 (`PUPPETEER_CACHE_DIR`) and install the set-user-ID sandbox helper of that
@@ -241,7 +241,7 @@ browser checks do not use `--no-sandbox` or `--disable-setuid-sandbox`.
 Every Git-tracked npm lock file is a maintained dependency graph. The root
 installation must make `npm ls --all` return status 0 without invalid, missing or
 conflicting dependencies. The root lock file holds one version of a package wherever
-one version satisfies the ranges: `tests/build/dependency-health.test.mjs` fails for a
+one version satisfies the ranges: `tests/build/dependency-health.test.mts` fails for a
 package that the lock file installs at two versions when one of them satisfies every
 range that the packages loading either copy declare, each package loading the copy in
 the nearest `node_modules` upward from its location. `npm ci --dry-run --strict-allow-scripts` must succeed
@@ -301,7 +301,7 @@ of this repository is not required at its own version, or `composer validate
 `config.platform.php` or lock `platform-overrides` differs from the `php` of its entry in `composerPlatforms` (`8.4.1`,
 the lowest PHP release that the locked PHPUnit supports). `taggedNpmPackages` of
 `config/dependency-policy.json` records the OrderedJSON tag that the root manifest links with `file:`; the test
-`tests/build/dependency-health.test.mjs` requires it to equal the tag of
+`tests/build/dependency-health.test.mts` requires it to equal the tag of
 `examples/form-comparison/src/ordered-json-source.mjs`. An
 exception of `config/dependency-policy.json` names its ecosystem, manifest and
 package and declares a reproduced reason, a removal condition and verification

@@ -29,12 +29,12 @@ key.
 A test that runs a shared fixture case records one line for each feature the case proves:
 `{"feature", "fixture", "runtime", "case", "passed"}`. `passed` is true only when every assertion
 of that case succeeded. The recorders are
-[`tests/conformance/evidence.mjs`](../../tests/conformance/evidence.mjs),
+[`tests/conformance/evidence.mts`](../../tests/conformance/evidence.mts),
 [`tests/conformance/evidence.php`](../../tests/conformance/evidence.php), the Go package
 `validator/internal/conformance` and the Rust test module `tests/common`. They write only when
 `CRUDUI_CONFORMANCE_EVIDENCE` names a directory.
 
-[`scripts/check-conformance.mjs`](../../scripts/check-conformance.mjs) reads that directory and
+[`scripts/check-conformance.mts`](../../scripts/check-conformance.mts) reads that directory and
 fails when:
 
 - a supported runtime has no evidence, or failing evidence, for a case of a fixture its feature
@@ -52,10 +52,10 @@ is required, because the shared fixtures do not state which cases a partial runt
 
 A missing case does not tell whether its suite failed, did not finish or did not run, so each run of
 a suite that records evidence also leaves a run record in `runs/` of the evidence directory:
-[`tests/conformance/run-suite.mjs`](../../tests/conformance/run-suite.mjs) for the test command of a suite that it
+[`tests/conformance/run-suite.mts`](../../tests/conformance/run-suite.mts) for the test command of a suite that it
 starts through `node_modules/@polyspec/kit/dist/run-tests.mjs` and
-[`tests/native-generators/run.mjs`](../../tests/native-generators/run.mjs) for itself, through
-[`tests/conformance/runs.mjs`](../../tests/conformance/runs.mjs). A record
+[`tests/native-generators/run.mts`](../../tests/native-generators/run.mts) for itself, through
+[`tests/conformance/runs.mts`](../../tests/conformance/runs.mts). A record
 `{"program", "tool", "cwd", "args", "started", "status"}` is written with `status` `null` when the run
 starts and again with the exit status when its process exits, so a stopped run keeps `null`. The
 Python suites write theirs through [`tests/conformance/runner.py`](../../tests/conformance/runner.py),
@@ -70,7 +70,7 @@ latest record of each matching command decides, and a suite run by several comma
 state of them. Every runtime that a feature supports is proven by a declared suite.
 
 Server runtimes are compared byte for byte with the JavaScript reference output by
-[`tests/native-generators/run.mjs`](../../tests/native-generators/run.mjs); client renderers are
+[`tests/native-generators/run.mts`](../../tests/native-generators/run.mts); client renderers are
 compared with the fixture's normalized HTML, where only differences a framework itself causes are
 normalized.
 

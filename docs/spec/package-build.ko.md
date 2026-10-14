@@ -1,6 +1,6 @@
 # 패키지 빌드
 <!-- doc-id: docs-spec-package-build -->
-<!-- source-sha256: b6912c1a3e993e7d89830ffe61bde78729d9cee8bad37852bdd91a0ace247837 -->
+<!-- source-sha256: 7e877a5b0f315f44ece070b6b638c4e2c403ee5f2e99bab1fcf1206c1e2a232e -->
 
 [English](package-build.md).
 
@@ -80,7 +80,7 @@ Cargo 경로를 실행하고 `RUSTC`와 `RUSTDOC`에 해석된 컴파일러 경�
 `polyspec-crudui-form-comparison`, `polyspec-crudui-native-generator`, `polyspec-crudui-bench`이며 binary도 같은
 이름입니다. 각 `go.mod`의 module은 `github.com/polyspec/crudui/<directory>`입니다.
 
-`tests/build/package-names.test.mjs`는 이 이름을 요구하고, 유지되는 파일이 이전 형태의 이름으로 패키지를 가리키면
+`tests/build/package-names.test.mts`는 이 이름을 요구하고, 유지되는 파일이 이전 형태의 이름으로 패키지를 가리키면
 실패합니다. 변경 기록, 체크리스트, wave 설명은 각 항목이 기록한 이름을 유지합니다.
 
 ## 인수 기준
@@ -202,7 +202,7 @@ GitHub 호스팅 CI는 `ubuntu-24.04`에서 실행되고, 모든 action을 한 �
 Node.js 런타임을 선언한 action은 허용하지 않습니다.
 
 브라우저 검사는 잠긴 `puppeteer`가 고정한 build의 Chrome과 Firefox, 잠긴 `playwright`가 고정한
-build의 WebKit을 실행합니다. `node scripts/install-browsers.mjs <chrome|firefox|webkit>...`가
+build의 WebKit을 실행합니다. `node scripts/install-browsers.mts <chrome|firefox|webkit>...`가
 그것들을 설치하며, machine의 브라우저나 릴리스 채널의 브라우저는 사용하지 않습니다. Linux CI
 브라우저 작업은 Puppeteer의 cache를 checkout의 `.tools/puppeteer`(`PUPPETEER_CACHE_DIR`)에 두고, 그
 Chrome의 set-user-ID sandbox helper를 `CHROME_DEVEL_SANDBOX`가 지정하는
@@ -217,7 +217,7 @@ sandbox 비활성화 인자 없이 Chrome을 시작하고 `chrome://sandbox`가
 Git에서 추적하는 모든 npm 잠금 파일은 유지 관리 대상 의존성 그래프입니다. 루트
 설치의 `npm ls --all`은 잘못되거나 누락되거나 충돌하는 의존성 없이 상태 0을
 반환해야 합니다. 루트 잠금 파일은 한 version이 범위를 만족하는 package를 한 version으로
-담습니다. `tests/build/dependency-health.test.mjs`는 잠금 파일이 두 version으로 설치하는
+담습니다. `tests/build/dependency-health.test.mts`는 잠금 파일이 두 version으로 설치하는
 package 가운데, 각 사본을 읽는 package들이 선언한 모든 범위를 그중 한 version이 만족하는
 package에서 실패하며, 각 package는 자기 위치에서 위로 가장 가까운 `node_modules`의 사본을
 읽습니다. 각 그래프의
@@ -262,7 +262,7 @@ release를 그 옆에 추가하므로 npm 갱신 뒤에 `npm dedupe`를 실행�
 `composer validate --strict`가 최신이 아닌 Composer lock을 찾거나, Composer manifest의 `config.platform.php` 또는 lock의
 `platform-overrides`가 `composerPlatforms` 항목의 `php`(`8.4.1`, 잠긴 PHPUnit이 지원하는 가장 낮은 PHP release)와 다르면 실패합니다.
 `config/dependency-policy.json`의 `taggedNpmPackages`는 루트 manifest가 `file:`로 연결하는 OrderedJSON tag를 기록하며,
-`tests/build/dependency-health.test.mjs` test는 이것이 `examples/form-comparison/src/ordered-json-source.mjs`의 tag와 같을 것을 요구합니다.
+`tests/build/dependency-health.test.mts` test는 이것이 `examples/form-comparison/src/ordered-json-source.mjs`의 tag와 같을 것을 요구합니다.
 `config/dependency-policy.json`의 예외는 ecosystem, manifest, package를 지정하고 재현된 이유,
 제거 조건, 검증 명령을 선언합니다.
 

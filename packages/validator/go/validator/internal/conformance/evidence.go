@@ -3,8 +3,8 @@
 // A test that runs a shared fixture case records the feature it proves, the
 // fixture, the runtime and the case. Nothing is written unless the environment
 // variable CRUDUI_CONFORMANCE_EVIDENCE names a directory;
-// scripts/check-conformance.mjs reads it. The format matches
-// tests/conformance/evidence.mjs.
+// scripts/check-conformance.mts reads it. The format matches
+// tests/conformance/evidence.mts.
 package conformance
 
 import (

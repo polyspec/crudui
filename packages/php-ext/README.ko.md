@@ -1,6 +1,6 @@
 # PHP 네이티브 생성과 검증
 <!-- doc-id: packages-php-ext-readme -->
-<!-- source-sha256: bbadea0148421b677b86ab53272478da325194578449a6b36e5e1980ab396193 -->
+<!-- source-sha256: 1a8d796213230db90e20ab967d20be09cb29785c760b7cf74f48e18a6d8c5887 -->
 
 [English](README.md).
 
@@ -30,11 +30,11 @@ PCRE2 파일이나 `pkg-config`가 필요하지 않습니다.
 저장소 루트에서 실행합니다.
 
 ```sh
-node scripts/build-crudui-php-extension.mjs
+node scripts/build-crudui-php-extension.mts
 composer install
 node node_modules/@polyspec/kit/dist/run-tests.mjs node -- packages/php-ext/tests/api.test.mjs
 npm run build
-node tests/native-generators/run.mjs \
+node tests/native-generators/run.mts \
   --extension "$(pwd)/packages/php-ext/modules/crudui.so" \
   --report .git/native-generators/report.json
 ```

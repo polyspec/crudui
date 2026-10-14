@@ -61,12 +61,12 @@ export async function prepareRecordServers({ buildDirectory, write = text => pro
     step('composer-validator', process.execPath, [fileURLToPath(import.meta.resolve('@polyspec/kit/holder-lock')), 'run',
       path.join(repositoryRoot, 'var/locks/composer-vendor.lock'), '--',
       'composer', 'reinstall', 'polyspec/crudui-validator', '--no-interaction']),
-    step('crudui-php-extension', process.execPath, ['scripts/build-crudui-php-extension.mjs']),
-    step('ordered-json-php-extension', process.execPath, ['scripts/build-ordered-json-php-extension.mjs',
+    step('crudui-php-extension', process.execPath, ['scripts/build-crudui-php-extension.mts']),
+    step('ordered-json-php-extension', process.execPath, ['scripts/build-ordered-json-php-extension.mts',
       '--source', path.join(localOrderedJsonDirectory, 'php-extension/src')]),
     step('go-server', 'go', ['build', '-trimpath', '-o', goBinary, '.'],
       path.join(exampleDirectory, 'servers/go'), { CGO_ENABLED: '0' }),
-    step('rust-server', process.execPath, [path.join(repositoryRoot, 'scripts/run-rust-command.mjs'),
+    step('rust-server', process.execPath, [path.join(repositoryRoot, 'scripts/run-rust-command.mts'),
       'build', '--locked'], path.join(exampleDirectory, 'servers/rust')),
   ]], { label: 'local-servers', write });
   const failed = results.find(result => result.status !== 'passed');

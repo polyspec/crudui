@@ -10,9 +10,9 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, test } from 'vitest';
 import { bindForm, compileForm, formMessages } from '@polyspec/crudui-generator-core';
 // @ts-expect-error — shared JS normalizer (cross-framework).
-import { normalizeHtml } from '../../../tests/fixtures/form-render/normalize.mjs';
+import { normalizeHtml } from '../../../tests/fixtures/form-render/normalize.mts';
 import { renderDataPanel, renderOutlineView } from './index';
-import { provesConformance } from '../../../tests/conformance/evidence.mjs';
+import { provesConformance } from '../../../tests/conformance/evidence.mts';
 
 interface OutlineCase {
   name: string;

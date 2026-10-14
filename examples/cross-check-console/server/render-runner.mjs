@@ -5,7 +5,7 @@
 
 import { getEngine } from './engine.mjs';
 // Preload links are removed by the helper the framework conformance checks use, so both compare the same body.
-import { withoutPreloadLinks } from '../../../tests/fixtures/preload-links.mjs';
+import { withoutPreloadLinks } from '../../../tests/fixtures/preload-links.mts';
 
 /**
  * Render one request across HTML / React / Svelte / Vue in parallel.

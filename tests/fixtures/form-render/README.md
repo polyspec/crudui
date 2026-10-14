@@ -19,7 +19,7 @@ collections as defined in the [form runtime](../../../docs/spec/form-runtime.md)
 
 ## Normalization
 
-`normalize.mjs` parses HTML with parse5 and inline styles with PostCSS. It sorts
+`normalize.mts` parses HTML with parse5 and inline styles with PostCSS. It sorts
 attributes, canonicalizes HTML boolean attributes and CSS declarations, removes
 comments and empty class/style attributes, and removes whitespace-only text
 nodes outside preformatted elements. Text within `pre`, `textarea`, `script` and
@@ -27,7 +27,7 @@ nodes outside preformatted elements. Text within `pre`, `textarea`, `script` and
 not masked.
 
 Normalized layout equality does not establish original HTML equality. The
-[form inspector](../../../tests/form-inspector/form-snapshot.mjs)
+[form inspector](../../../tests/form-inspector/form-snapshot.mts)
 compares original HTML, DOM, CSS, controls and runtime state separately for
 initial data and later injection.
 
@@ -37,12 +37,12 @@ Run from the repository root after building the packages:
 
 ```sh
 node_modules/.bin/tsx tests/fixtures/form-render/generate.ts > tests/fixtures/form-render/cases.json
-node_modules/.bin/tsx tests/fixtures/form-render/gen-cases.mts
+node_modules/.bin/tsx packages/react/scripts/generate-form-render-cases.mts
 npm run test:forms
 ```
 
 The generation scripts use React's internal `renderFields` helper as the layout
 reference and normalize its output. The second script updates or appends widget
-cases and the cases in [`written-cases.ts`](written-cases.ts), whose `expected_html` is
+cases and the cases in [`written-form-render-cases.ts`](../../../packages/react/scripts/written-form-render-cases.ts), whose `expected_html` is
 written from the specification and never rendered. Review generated changes before accepting them; regeneration alone is not
 a correctness check. All three framework conformance suites must pass.

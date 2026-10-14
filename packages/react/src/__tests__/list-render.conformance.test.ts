@@ -6,7 +6,7 @@
  * React CRUDUI LIST reference generator's OWN normalized output. This test re-verifies
  * that claim by running the real generator (renderList) against the SAME fixture
  * the Vue/Svelte list generators load, normalized through the SAME shared
- * normalizer (tests/fixtures/form-render/normalize.mjs). Every framework
+ * normalizer (tests/fixtures/form-render/normalize.mts). Every framework
  * generator must reproduce `expected_html` after normalization.
  *
  * DB-agnostic (SPEC §9): rows are INJECTED; sort/pagination are declared only.
@@ -19,13 +19,11 @@
 import { describe, test, expect } from 'vitest';
 import { ComposeLoadError } from '@polyspec/crudui-generator-core';
 import { renderList } from '../server';
-// @ts-expect-error — shared JS normalizer (cross-framework).
-import { normalizeHtml } from '../../../../tests/fixtures/form-render/normalize.mjs';
+import { normalizeHtml } from '../../../../tests/fixtures/form-render/normalize.mts';
 // The shared fixture, imported as JSON — the SAME file Vue/Svelte load.
 import fixtureCases from '../../../../tests/fixtures/list-render/cases.json';
-// @ts-expect-error — shared JS preload link helper.
-import { withoutPreloadLinks } from '../../../../tests/fixtures/preload-links.mjs';
-import { provesConformance } from '../../../../tests/conformance/evidence.mjs';
+import { withoutPreloadLinks } from '../../../../tests/fixtures/preload-links.mts';
+import { provesConformance } from '../../../../tests/conformance/evidence.mts';
 
 /** Run one fixture case and record renderList evidence for it. */
 function proves(name: string, body: () => unknown): Promise<unknown> {

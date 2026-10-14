@@ -12,9 +12,9 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { Node } from '@polyspec/crudui-generator-react';
 import { buildDetail } from '@polyspec/crudui-generator-core';
 
-import { dateCases, dateListSpec, imageCase, numberCases, urlCase } from '../../../tests/native-generators/cases.mjs';
-import { dispatch, errorRecord } from '../../../tests/native-generators/javascript.mjs';
-import { recordConformance } from '../../../tests/conformance/evidence.mjs';
+import { dateCases, dateListSpec, imageCase, numberCases, urlCase } from '../../../tests/native-generators/cases.mts';
+import { dispatch, errorRecord } from '../../../tests/native-generators/javascript.mts';
+import { recordConformance } from '../../../tests/conformance/evidence.mts';
 import { contractPath, outputPath, unicodeDataSource } from '../tools/generate-unicode-data.mjs';
 
 /*
@@ -2279,13 +2279,13 @@ const files = Object.fromEntries([
   'Makefile',
   'packages/php-ext/README.md',
   'packages/php-ext/README.ko.md',
-  'scripts/build-crudui-php-extension.mjs',
+  'scripts/build-crudui-php-extension.mts',
 ].map(filename => [filename, readFileSync(new URL(filename, root), 'utf8')]));
 
 test('PHP modules use the shared builder through explicit entry points', { timeout: ENGINE_INSPECTION_BUDGET }, async () => {
-  const common = 'scripts/php-extension-builder.mjs';
-  const crudui = 'scripts/build-crudui-php-extension.mjs';
-  const orderedJson = 'scripts/build-ordered-json-php-extension.mjs';
+  const common = 'scripts/php-extension-builder.mts';
+  const crudui = 'scripts/build-crudui-php-extension.mts';
+  const orderedJson = 'scripts/build-ordered-json-php-extension.mts';
   for (const filename of [common, crudui, orderedJson]) await access(new URL(filename, root));
 
   assert.match(files.Makefile, /node scripts\/build-crudui-php-extension\.mjs/);
@@ -2323,7 +2323,7 @@ test('CRUDUI PHP extension package contains one C implementation', { timeout: EN
   prohibited.sort();
   assert.deepEqual(prohibited, []);
   assert.doesNotMatch(
-    files['scripts/build-crudui-php-extension.mjs'],
+    files['scripts/build-crudui-php-extension.mts'],
     /\b(?:cargo|rustc|rustdoc|Rust)\b/,
   );
   for (const filename of ['packages/php-ext/README.md', 'packages/php-ext/README.ko.md']) {

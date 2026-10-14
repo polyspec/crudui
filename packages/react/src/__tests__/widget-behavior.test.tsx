@@ -4,8 +4,7 @@ import { act, fireEvent, render } from '@testing-library/react';
 import { afterEach, beforeEach, expect, it } from 'vitest';
 import { compileForm, createForm } from '@polyspec/crudui-generator-core';
 import { Form } from '../components/Form';
-// @ts-expect-error Shared widget host across frameworks.
-import { installWidgetHost } from '../../../../tests/fixtures/form-session/typing.mjs';
+import { installWidgetHost } from '../../../../tests/fixtures/form-session/typing.mts';
 
 const behavior = { onchange: 'document.body.dataset.cruduiBehaviorEvents = String(Number(document.body.dataset.cruduiBehaviorEvents || 0) + 1)' };
 const template = compileForm({ type: 'group', properties: {

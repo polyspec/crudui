@@ -12,10 +12,9 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, test } from 'vitest';
 import { bindForm, compileForm, formMessages } from '@polyspec/crudui-generator-core';
 import { DataPanel, OutlineView } from '../index';
-// @ts-expect-error — shared JS normalizer (cross-framework).
-import { normalizeHtml } from '../../../../tests/fixtures/form-render/normalize.mjs';
+import { normalizeHtml } from '../../../../tests/fixtures/form-render/normalize.mts';
 import fixtureCases from '../../../../tests/fixtures/form-outline/cases.json';
-import { provesConformance } from '../../../../tests/conformance/evidence.mjs';
+import { provesConformance } from '../../../../tests/conformance/evidence.mts';
 
 /** Run one fixture case and record buildOutline evidence for it. */
 function proves(name: string, body: () => unknown): Promise<unknown> {

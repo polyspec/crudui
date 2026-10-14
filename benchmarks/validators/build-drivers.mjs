@@ -1,9 +1,9 @@
 #!/usr/bin/env node
-// Build the Go and Rust benchmark drivers before tests/build/bench-drivers.test.mjs runs them.
+// Build the Go and Rust benchmark drivers before tests/build/bench-drivers.test.mts runs them.
 // Each build prints its start and command, streams the output of the compiler as it runs, prints a
 // line while it is still running, and ends with its result and its elapsed time. A build has no
-// time limit: its exit status decides the result (scripts/run-command.mjs).
-import { failureOf, runCommand } from '../../scripts/run-command.mjs';
+// time limit: its exit status decides the result (scripts/run-command.mts).
+import { failureOf, runCommand } from '../../scripts/run-command.mts';
 import { createProgress } from '@polyspec/kit/test-progress';
 import { compiledDrivers } from './drivers.mjs';
 

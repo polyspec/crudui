@@ -28,7 +28,7 @@ The cases are read by the structure map conformance tests in
 [Vue](../../../packages/vue/test/outline.conformance.test.mjs),
 [Svelte](../../../packages/svelte/test/outline.conformance.test.mjs) and the
 [HTML renderer](../../../packages/html/src/outline.conformance.test.ts). The
-[form markup naming test](../../form-markup/naming.test.mjs) checks the class names in both
+[form markup naming test](../../form-markup/naming.test.mts) checks the class names in both
 expected HTML strings.
 
 ## Regeneration

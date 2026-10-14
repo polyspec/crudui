@@ -17,12 +17,11 @@ import { ComposeLoadError, FormInputError, UnsupportedFieldTypeError, compileFor
  */
 
 import { describe, test, expect } from 'vitest';
-// @ts-expect-error — shared JS normalizer (cross-framework).
-import { normalizeHtml } from '../../../../tests/fixtures/form-render/normalize.mjs';
+import { normalizeHtml } from '../../../../tests/fixtures/form-render/normalize.mts';
 // The shared fixture, imported as JSON (resolveJsonModule) — the SAME file the
 // Vue/Svelte CRUDUI generators load. No node:fs dependency (DOM test env).
 import fixtureCases from '../../../../tests/fixtures/form-render/cases.json';
-import { provesConformance } from '../../../../tests/conformance/evidence.mjs';
+import { provesConformance } from '../../../../tests/conformance/evidence.mts';
 
 /** Run one fixture case and record renderForm evidence for it. */
 function proves(name: string, body: () => unknown): Promise<unknown> {

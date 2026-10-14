@@ -7,7 +7,7 @@ This family contains a shared module instead of `cases.json`. Each renderer's te
 a detail in a mounted element and passes a `show` function with `expect` and a `flush` function
 that waits for rendering.
 
-- [`rerender.mjs`](rerender.mjs) exports `listSpec`, `detailSpec` and `exerciseViewRerender`. It
+- [`rerender.mts`](rerender.mts) exports `listSpec`, `detailSpec` and `exerciseViewRerender`. It
   shows a list as a table and as cards and a detail, each with a name, an `html` cell and, for the
   list, a link action and a behavior action. It shows each again from a new model with the same
   content and from a model whose `html` value changed, and requires the same element nodes after

@@ -5,7 +5,7 @@
  * expected_outline_html, expected_data_html }`. The expected HTML is the
  * normalized static markup of the React reference components `OutlineView` and
  * `DataPanel`, never hand-written. The HTML, Vue and Svelte renderers must
- * reproduce it after the shared normalizer (`../form-render/normalize.mjs`) for
+ * reproduce it after the shared normalizer (`../form-render/normalize.mts`) for
  * the nodes that `bindForm(compileForm(spec), data, options)` returns.
  *
  * Do not edit `cases.json` by hand. Regenerate:
@@ -20,7 +20,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { bindForm, compileForm, formMessages } from '@polyspec/crudui-generator-core';
 import { DataPanel, OutlineView } from '../../../packages/react/src/index';
 // @ts-expect-error — JS normalizer shared across the fixture harness.
-import { normalizeHtml } from '../form-render/normalize.mjs';
+import { normalizeHtml } from '../form-render/normalize.mts';
 
 interface OutlineCase {
   name: string;

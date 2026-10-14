@@ -55,7 +55,7 @@ describe('coerceSpec — unit (YAML string vs object)', () => {
     });
   });
 
-  // The console reads YAML in the YAML 1.2 core schema, as the cli and scripts/check-schema.mjs read it.
+  // The console reads YAML in the YAML 1.2 core schema, as the cli and scripts/check-schema.mts read it.
   test('a date-like value of a YAML string stays a string', () => {
     expect(coerceSpec('type: group\nproperties:\n  start:\n    type: date\n    default: 2026-01-01\n')).toEqual({
       type: 'group',

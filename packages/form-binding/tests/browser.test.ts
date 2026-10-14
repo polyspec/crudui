@@ -1,5 +1,5 @@
 // The binding in Chromium, Firefox and WebKit, the browsers of the repository's browser checks
-// (tests/browser-engines.mjs): a server-rendered form shows an error when a changed control loses
+// (tests/browser-engines.mts): a server-rendered form shows an error when a changed control loses
 // focus, an invalid submission sends no request and reaches no other submit listener, and a
 // corrected form submits normally. A local server serves the page, the bundled binding and the
 // submission target and records every submission it receives.
@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
 import { afterAll, beforeAll, expect, it } from 'vitest';
 
-import { engineDrivers, engines, type Engine, type EngineBrowser, type EnginePage } from '../../../tests/browser-engines.mjs';
+import { engineDrivers, engines, type Engine, type EngineBrowser, type EnginePage } from '../../../tests/browser-engines.mts';
 import { formHtml } from './dom';
 
 const spec = {
@@ -103,7 +103,7 @@ for (const engine of engines) {
   it(`${engine}: shows errors while typing, stops an invalid submission and submits a corrected form`, async () => {
     const tab = await engineDrivers[engine].open(browsers[engine]!, { width: 1000, height: 700 });
     const failures: string[] = [];
-    tab.on('pageerror', (error) => failures.push(error.message));
+    tab.on('pageerror', (error) => failures.push(error instanceof Error ? error.message : String(error)));
     posts.length = 0;
     try {
       await tab.goto(`${origin}/`);

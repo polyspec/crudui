@@ -12,9 +12,9 @@ import { createSSRApp } from 'vue';
 import { renderToString } from 'vue/server-renderer';
 import { describe, expect, test } from 'vitest';
 import { bindForm, compileForm, formMessages } from '@polyspec/crudui-generator-core';
-import { normalizeHtml } from '../../../tests/fixtures/form-render/normalize.mjs';
+import { normalizeHtml } from '../../../tests/fixtures/form-render/normalize.mts';
 import { dataVNode, outlineVNode } from '../src/index.ts';
-import { provesConformance } from '../../../tests/conformance/evidence.mjs';
+import { provesConformance } from '../../../tests/conformance/evidence.mts';
 
 /** Run one fixture case and record buildOutline evidence for it. */
 function proves(name, body) {

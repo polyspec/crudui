@@ -11,12 +11,12 @@ test('includes the browser process check only in the complete runtime suite', as
     'status=0; npm run test:form-comparison:source || status=1; npm run test:form-comparison:library || status=1; '
     + 'npm run test:form-comparison:browser || status=1; exit $status');
   for (const name of ['source', 'library', 'browser']) {
-    assert.ok(scripts[`test:form-comparison:${name}`].startsWith('node scripts/require-current-build.mjs && '), name);
+    assert.ok(scripts[`test:form-comparison:${name}`].startsWith('node scripts/require-current-build.mts && '), name);
   }
   assert.ok(scripts['test:form-comparison:source'].includes('src/*.test.mjs'));
   assert.doesNotMatch(scripts['test:form-comparison:source'], /browser-job\.browser\.mjs|prepare\.test\.mjs/);
   assert.equal(scripts['test:form-comparison:browser'],
-    'node scripts/require-current-build.mjs && node node_modules/@polyspec/kit/dist/run-tests.mjs node -- examples/form-comparison/src/browser-job.browser.mjs');
+    'node scripts/require-current-build.mts && node node_modules/@polyspec/kit/dist/run-tests.mjs node -- examples/form-comparison/src/browser-job.browser.mjs');
 });
 
 test('generation fixtures use the canonical operating system temporary directory', async () => {

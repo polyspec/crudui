@@ -13,7 +13,7 @@ import { ROOT } from './engine.mjs';
 
 // The validator processes of the console (../validators): one program per language that answers
 // one JSON request through the language's public validator API. The JavaScript program needs the
-// built packages (`node scripts/require-current-build.mjs`); `npm run build:validators` builds
+// built packages (`node scripts/require-current-build.mts`); `npm run build:validators` builds
 // the Go and Rust programs. A deployment may name other Go and Rust executables.
 export const VALIDATORS = path.join(ROOT, 'examples/cross-check-console/validators');
 export const PHP_PROGRAM = path.join(VALIDATORS, 'php/validate.php');

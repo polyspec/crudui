@@ -95,7 +95,7 @@ whitespace, emptiness or text.
 
 **Unicode data** is Unicode 16.0.0 as recorded in
 [`contracts/unicode-properties.json`](../../contracts/unicode-properties.json), which
-`scripts/generate-unicode-properties.mjs` derives from the Unicode Character Database files in
+`scripts/generate-unicode-properties.mts` derives from the Unicode Character Database files in
 `contracts/unicode/`. Every runtime embeds that table and uses no other Unicode data, so every
 runtime classifies every code point the same way.
 

@@ -1,6 +1,6 @@
 # 폼 개발과 검증
 <!-- doc-id: docs-operations-forms -->
-<!-- source-sha256: 5a00e8d8b7bc97608392834e599af6d58ec5391beeee22a6f34b05a47a57c15c -->
+<!-- source-sha256: e24087b1538035b92607df7afc432e9a13b1d9f2d452e8cbf5e4eff7e3d62518 -->
 
 [English](forms.md). 계약은 [폼 런타임](../spec/form-runtime.ko.md)에 정의합니다.
 
@@ -132,21 +132,21 @@ node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-
 공유 DOM 시나리오는 지연 데이터 주입, 편집, 중첩 행 연산, 저장된 키, 체크박스,
 날짜, 언어 필드, 조건부 표시를 검사합니다. DOM 테스트는 jsdom을 사용하며 외부
 편집기나 브라우저 파일 선택기의 동작을 검증하지 않습니다.
-`tests/form-styles.test.mjs`는 `crudui.css`의 레이아웃을 Chromium, Firefox, WebKit에서
+`tests/form-styles.test.mts`는 `crudui.css`의 레이아웃을 Chromium, Firefox, WebKit에서
 검사합니다. sticky 헤더 쌓임, 단계 레이블과 그 `data-crudui-stuck` 대체 경로, 테두리 한 겹의
 이음매, 행 카드의 선, 포커스 스크롤을 페이지, 스크롤 상자, 프레임에서 각각 확인합니다. 모든
 엔진이 같은 시나리오를 실행하며, Chromium과 Firefox는 Puppeteer로, WebKit은 Playwright로
-구동하며, 각각 잠긴 package가 고정한 build를 씁니다. `node scripts/install-browsers.mjs chrome firefox
+구동하며, 각각 잠긴 package가 고정한 build를 씁니다. `node scripts/install-browsers.mts chrome firefox
 webkit`이 그것들을 설치합니다(Linux에서는 WebKit에 `--with-deps`). 브라우저가 없으면 실행이 그것을 설치하는
 명령과 함께 실패하며 어떤 엔진도 건너뛰지 않습니다. `packages/form-binding/tests/browser.test.ts`의
 [브라우저 검증](validation.ko.md#브라우저-검증) 검사도 같은 세 엔진에서 실행합니다.
-`tests/viewport.test.mjs`는 공유 render case 432개의 expected HTML을 360과 1280 CSS pixel로 열어 문서의
-가로 overflow가 없는지 확인하고, `tests/tailwind-styles.test.mjs`는 `crudui.tailwind.css`를 Tailwind CSS로
+`tests/viewport.test.mts`는 공유 render case 432개의 expected HTML을 360과 1280 CSS pixel로 열어 문서의
+가로 overflow가 없는지 확인하고, `tests/tailwind-styles.test.mts`는 `crudui.tailwind.css`를 Tailwind CSS로
 compile해 `crudui.css`의 computed style과 같은지 확인합니다. 둘 다 같은 세 엔진에서 실행합니다.
 `test:forms`는 먼저 `node packages/generator/ts/scripts/write-tailwind-styles.mjs --check`를 실행하며,
 이 검사는 `crudui.tailwind.css`가 `crudui.css`와 다르면 실패합니다. `crudui.css`를 바꾼 뒤에는 이 script를
 `--check` 없이 실행하고 두 file을 함께 commit합니다.
-`tests/widget-script-runs.test.mjs`는 같은 세 엔진에서 HTML, React, Vue, Svelte 렌더러를 브라우저에서
+`tests/widget-script-runs.test.mts`는 같은 세 엔진에서 HTML, React, Vue, Svelte 렌더러를 브라우저에서
 렌더링한 경우와 서버에서 렌더링한 뒤 하이드레이션한 경우로 스크립트 규칙을 실행합니다. 폼 행 스크립트와
 `html` 목록 셀 스크립트는 첫 렌더링과 추가한 각 행에서 한 번 실행되고, 입력, 행 복사나 이동, 다시
 로드, 목록 다시 그리기에서는 실행되지 않습니다. 목록 스크립트 동작의 스크립트는 그 button을 누를 때마다
@@ -159,7 +159,7 @@ Svelte 패키지 빌드는 JavaScript, 전처리한 Svelte 컴포넌트, TypeScr
 
 `npm run test:packages`는 JavaScript 패키지 전체를 빌드·패키징하고 별도 설치
 프로젝트에 설치합니다. export 파일과 타입 선언을 검사하고 세 폼 컴포넌트를
-사용하는 프로덕션 번들을 컴파일합니다. 설치 프로젝트는 `scripts/install-lock.mjs`가 루트
+사용하는 프로덕션 번들을 컴파일합니다. 설치 프로젝트는 `scripts/install-lock.mts`가 루트
 `package-lock.json`에서 만든 lock으로 `npm ci --offline`을 실행해 설치합니다. 이 lock은 패키징한 패키지를
 `file:` tarball로, npm이 설치 프로젝트에 resolve하는 모든 registry 패키지를 루트 lock 항목으로 담으므로, 설치 프로젝트는
 `make install`의 npm cache에서 루트 lock의 release를 설치하고 registry에 range를 묻지 않습니다. 통과한 검사는 임시 설치 프로젝트를

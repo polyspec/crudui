@@ -26,7 +26,7 @@ import {
   MemoryLoader,
   ComposeLoadError,
 } from './compose/index';
-import { provesConformance } from '../../../../tests/conformance/evidence.mjs';
+import { provesConformance } from '../../../../tests/conformance/evidence.mts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

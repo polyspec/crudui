@@ -1,6 +1,6 @@
 # 폼 마크업
 <!-- doc-id: docs-spec-form-markup -->
-<!-- source-sha256: 07770ecc509f60b616a1462a3358f6fa27d189a2f5648555d0352bf7b52754a0 -->
+<!-- source-sha256: cf24a3eef50bfe4303d2a0e4a55788eaadedc52cd835f1954d5709cea7e577cb -->
 
 [English](form-markup.md). 이 문서는 평가된 폼 노드의 렌더링 방식을 정의합니다.
 React, Vue, Svelte, HTML 렌더러와 네이티브 렌더러는 같은 마크업을 생성합니다.
@@ -421,7 +421,7 @@ href, design, behavior }` 목록이고 `type`은 `submit`, `reset`, `button`, `l
 
 `--crudui-node-header-height`, `--crudui-row-padding`, `--crudui-row-border`,
 `--crudui-form-footer-height`는 고정 행과 폼 바닥글의 크기를 정합니다(위 참조).
-`tests/style-properties.test.mjs`는 속성 규칙, 규칙이 읽는 모든 속성이 선언되었는지, 다른 규칙이
+`tests/style-properties.test.mts`는 속성 규칙, 규칙이 읽는 모든 속성이 선언되었는지, 다른 규칙이
 색을 쓰지 않는지 검사합니다.
 
 ### Viewport 폭
@@ -433,7 +433,7 @@ overflow가 생기지 않습니다. 곧 document element의 scroll width가 view
 모든 control(`input`, `select`, `textarea`, `button`)과 모든 action은 viewport 안에 있습니다. 다만
 list의 table처럼 스스로 가로로 scroll하는 element(`overflow-x`가 `auto`나 `scroll`) 안은 viewport보다
 넓을 수 있습니다. list는
-스스로 가로로 scroll하므로, 넓은 table이 page를 넓히지 않습니다. `tests/viewport.test.mjs`는 Chromium,
+스스로 가로로 scroll하므로, 넓은 table이 page를 넓히지 않습니다. `tests/viewport.test.mts`는 Chromium,
 Firefox, WebKit에서 모든 case를 두 폭으로 검사합니다.
 
 ### Tailwind CSS
@@ -450,7 +450,7 @@ file은 `crudui.css`의 rule을 바꾸지 않고 cascade layer `components` 안�
 최신 stable Tailwind CSS의 theme과 utility로 compile하고 다른 stylesheet가 없을 때,
 `crudui.tailwind.css`는 viewport 폭 360과 1280에서 모든 공유 render fixture의 expected HTML의 모든
 element에 `crudui.css`와 같은 computed style(custom property 제외)을 줍니다.
-`tests/tailwind-styles.test.mjs`가 Chromium, Firefox, WebKit에서 둘을 비교합니다.
+`tests/tailwind-styles.test.mts`가 Chromium, Firefox, WebKit에서 둘을 비교합니다.
 
 ## 목록·상세 마크업
 

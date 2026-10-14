@@ -7,7 +7,7 @@ import { dirname, resolve } from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
-import { recordConformance } from '../../../tests/conformance/evidence.mjs';
+import { recordConformance } from '../../../tests/conformance/evidence.mts';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 const extension = resolve(root, process.env.PHP_EXTENSION ?? 'packages/php-ext/modules/crudui.so');

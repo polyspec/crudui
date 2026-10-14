@@ -1,6 +1,6 @@
 # 네이티브 생성기 적합성 검사
 <!-- doc-id: tests-native-generators-readme -->
-<!-- source-sha256: 3d98b3939cb227a8eaaa4794ddc33058e71aa6fe531d3b339207eab3520b5245 -->
+<!-- source-sha256: fc9615391717e0633f3d40887e8becdaa884a2a3517281f5b46ecb9bc22648c0 -->
 
 [English](README.md).
 
@@ -11,10 +11,10 @@ PHP 네이티브 확장을 실행합니다. 네이티브 모듈의
 실행 가능한 대상의 검사를 계속하여 실제 결과를 수집합니다.
 
 ```sh
-node scripts/require-current-build.mjs
+node scripts/require-current-build.mts
 composer install
-node node_modules/@polyspec/kit/dist/run-tests.mjs node --timeout 10 -- tests/native-generators/protocol.test.mjs
-node tests/native-generators/run.mjs \
+node node_modules/@polyspec/kit/dist/run-tests.mjs node --timeout 10 -- tests/native-generators/protocol.test.mts
+node tests/native-generators/run.mts \
   --extension /absolute/path/to/crudui.so \
   --report .git/native-generators/report.json
 ```
@@ -53,10 +53,10 @@ node tests/native-generators/run.mjs \
 문자열과 일치합니다.
 
 ```sh
-node tests/native-generators/run.mjs --extension /absolute/crudui.so --target rust
-node tests/native-generators/run.mjs --extension /absolute/crudui.so \
+node tests/native-generators/run.mts --extension /absolute/crudui.so --target rust
+node tests/native-generators/run.mts --extension /absolute/crudui.so \
   --target go,php-native --check list,detail
-node tests/native-generators/run.mjs --extension /absolute/crudui.so \
+node tests/native-generators/run.mts --extension /absolute/crudui.so \
   --check 'form-fixture:*lang*'
 ```
 
@@ -122,7 +122,7 @@ PHP의 `date.timezone`을 모두 설정하고 날짜/날짜시간/목록의 명�
 
 | 대상 | 프로그램 | 라이브러리 |
 | --- | --- | --- |
-| `javascript`, `html` | [`javascript.mjs`](javascript.mjs)(`--renderer html`은 HTML 렌더러 선택) | `@polyspec/crudui-generator-core`와 `@polyspec/crudui-generator-react` 또는 `@polyspec/crudui-generator-html` |
+| `javascript`, `html` | [`javascript.mts`](javascript.mts)(`--renderer html`은 HTML 렌더러 선택) | `@polyspec/crudui-generator-core`와 `@polyspec/crudui-generator-react` 또는 `@polyspec/crudui-generator-html` |
 | `php`, `php-native` | [`programs/php/generate.php`](programs/php/generate.php) | `packages/generator/php`의 Composer 오토로더로 불러온 `polyspec/crudui-generator`. 확장을 불러오면 확장의 클래스 |
 | `go` | [`programs/go`](programs/go/main.go)(자체 `go.mod`를 가진 모듈) | `packages/generator/go` |
 | `rust` | [`programs/rust`](programs/rust/src/main.rs)(크레이트 `polyspec-crudui-native-generator`) | `polyspec-crudui-generator` |
@@ -133,8 +133,8 @@ PHP의 `date.timezone`을 모두 설정하고 날짜/날짜시간/목록의 명�
 ```sh
 gofmt -l tests/native-generators/programs/go
 go -C tests/native-generators/programs/go vet ./...
-node scripts/run-rust-command.mjs fmt --check --manifest-path tests/native-generators/programs/rust/Cargo.toml
-node scripts/run-rust-command.mjs clippy --locked --all-targets --manifest-path tests/native-generators/programs/rust/Cargo.toml -- -D warnings
+node scripts/run-rust-command.mts fmt --check --manifest-path tests/native-generators/programs/rust/Cargo.toml
+node scripts/run-rust-command.mts clippy --locked --all-targets --manifest-path tests/native-generators/programs/rust/Cargo.toml -- -D warnings
 ```
 
 각 프로그램은 표준 입력으로 JSON 값 하나를 받습니다. 연산은 `compileForm`, `bindForm`,

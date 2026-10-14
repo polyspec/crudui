@@ -1,5 +1,5 @@
 // The compiled benchmark drivers: where benchmarks/validators/build-drivers.mjs builds the Go and Rust
-// drivers and where tests/build/bench-drivers.test.mjs runs them. Cargo places the Rust driver
+// drivers and where tests/build/bench-drivers.test.mts runs them. Cargo places the Rust driver
 // under CARGO_TARGET_DIR when it is set.
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -19,7 +19,7 @@ export function compiledDrivers(environment = process.env) {
     rust: {
       build: {
         command: process.execPath,
-        args: [path.join(ROOT, 'scripts/run-rust-command.mjs'), 'build', '--release', '--locked', '--quiet'],
+        args: [path.join(ROOT, 'scripts/run-rust-command.mts'), 'build', '--release', '--locked', '--quiet'],
         cwd: path.join(BENCH, 'rust'),
       },
       program: path.join(rustTarget, 'release/polyspec-crudui-bench'),

@@ -1,4 +1,4 @@
-// The cli reads YAML in the YAML 1.2 core schema, as scripts/check-schema.mjs and the cross-check console read it:
+// The cli reads YAML in the YAML 1.2 core schema, as scripts/check-schema.mts and the cross-check console read it:
 // a date-like scalar stays a string and `<<` is no merge key.
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';

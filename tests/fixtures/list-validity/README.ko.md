@@ -1,6 +1,6 @@
 # 목록 유효성 고정 데이터
 <!-- doc-id: tests-fixtures-list-validity-readme -->
-<!-- source-sha256: dca1f97fea4881907bfb502d9fb8067bae0c92d89558b3470cdb29618d05a191 -->
+<!-- source-sha256: 88df5d21411b6ceab29c280f7b8a9413a01bab59fda0112b8a384b32299b6247 -->
 
 [English](README.md).
 
@@ -17,7 +17,7 @@
 
 두 결과는 서로 독립적입니다. 모든 사용처는 자신이 담당하는 모든 멤버를 적용하며, 사례를 스스로 분류하거나
 자체 파일을 제공하는 사용처는 없습니다. `npm run spec:schema`로 실행하는
-[`check-schema.mjs`](../../../scripts/check-schema.mjs)는 `expect`와 `reason`을 확인하기 전에 세 고정
+[`check-schema.mts`](../../../scripts/check-schema.mts)는 `expect`와 `reason`을 확인하기 전에 세 고정
 데이터 모두의 형태를 검사합니다.
 
 `columns` 누락, 알 수 없는 `sort` 키, 잘못된 `pagination.mode`처럼 메타 스키마만 거부하는 형태는
@@ -31,7 +31,7 @@
 ## 비교
 
 [목록 메타 스키마 검사](../../../packages/validator/ts/src/list-metaschema.conformance.test.ts)와
-`check-schema.mjs`는 목록 진입점을 컴파일해 `expect`와 `reason`을 확인합니다.
+`check-schema.mts`는 목록 진입점을 컴파일해 `expect`와 `reason`을 확인합니다.
 
 런타임 검사는 `spec`을 `files`와 함께 검증하고 행은 읽지 않으며 `engine`과 비교합니다. Rust 구조 API는
 `"pass"`에 대해 `{ valid: true, errors: [] }`에 해당하는 `Ok(())`를 반환합니다.

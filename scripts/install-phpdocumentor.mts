@@ -1,4 +1,4 @@
-// Installs the phpDocumentor release that the PHP API documentation runs (scripts/gen-api-docs.mjs) into
+// Installs the phpDocumentor release that the PHP API documentation runs (scripts/gen-api-docs.mts) into
 // var/tools/phpdocumentor/phpDocumentor.phar, the download of `make install-phpdocumentor`. The phar is checked by its
 // SHA-256 before it replaces an installed one, and a release already installed with that digest stays.
 //
@@ -14,7 +14,7 @@ const SHA256 = 'fe1e7c23ba3329aa6f19ac3c807446159a431a195ec5d9163b0c281a15105207
 const URL = `https://github.com/phpDocumentor/phpDocumentor/releases/download/v${VERSION}/phpDocumentor.phar`;
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-/** The installed phar, which scripts/gen-api-docs.mjs runs. */
+/** The installed phar, which scripts/gen-api-docs.mts runs. */
 export const PHAR = path.join(root, 'var/tools/phpdocumentor/phpDocumentor.phar');
 
 const sha256 = (bytes: Uint8Array): string => createHash('sha256').update(bytes).digest('hex');

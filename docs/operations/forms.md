@@ -133,22 +133,22 @@ node node_modules/@polyspec/kit/dist/run-tests.mjs cargo -- --locked --manifest-
 The shared DOM scenario covers late data injection, edits, nested row operations,
 saved keys, checkboxes, dates, language fields and conditional display. DOM tests
 use jsdom; they do not establish external editor or browser file-picker behavior.
-`tests/form-styles.test.mjs` checks the layout of `crudui.css` in Chromium, Firefox and
+`tests/form-styles.test.mts` checks the layout of `crudui.css` in Chromium, Firefox and
 WebKit: sticky header stacking, the level label and its `data-crudui-stuck` fallback, one-border
 seams, row card edges and focus scrolling, each in a page, a scrolling box and a frame. Every
 engine runs the same scenarios; Chromium and Firefox are driven by Puppeteer, WebKit by
-Playwright, each at the build that the locked package pins; `node scripts/install-browsers.mjs
+Playwright, each at the build that the locked package pins; `node scripts/install-browsers.mts
 chrome firefox webkit` installs them (on Linux with `--with-deps` for WebKit). A missing browser fails
 the run with the command that installs it; no engine is skipped. The [browser validation](validation.md#browser-validation) check of
 `packages/form-binding/tests/browser.test.ts` runs in the same three engines.
-`tests/viewport.test.mjs` places the expected HTML of the 432 shared render cases at 360 and
+`tests/viewport.test.mts` places the expected HTML of the 432 shared render cases at 360 and
 1280 CSS pixels and requires no horizontal overflow of the document, and
-`tests/tailwind-styles.test.mjs` compiles `crudui.tailwind.css` with Tailwind CSS and requires the
+`tests/tailwind-styles.test.mts` compiles `crudui.tailwind.css` with Tailwind CSS and requires the
 computed styles of `crudui.css`, both in the same three engines. `test:forms` first runs
 `node packages/generator/ts/scripts/write-tailwind-styles.mjs --check`, which fails when
 `crudui.tailwind.css` differs from `crudui.css`; after a change of `crudui.css`, run the script
 without `--check` and commit both files.
-`tests/widget-script-runs.test.mjs` runs the script rule in the same three engines for the HTML,
+`tests/widget-script-runs.test.mts` runs the script rule in the same three engines for the HTML,
 React, Vue and Svelte renderers, each rendered in the browser and rendered on the server and
 hydrated: a form row script and an `html` list cell script run once on the first render and
 once for each added row, and never on typing, a copied or moved row, a reload or a list re-render;
@@ -162,7 +162,7 @@ packaged files. The package build of a project compiles components for its brows
 Run `npm run test:packages` to build and pack all JavaScript packages, install
 them into an isolated install project, check exported files and declarations,
 and compile a production application using all three form components. The install
-project installs with `npm ci --offline` from a lock that `scripts/install-lock.mjs`
+project installs with `npm ci --offline` from a lock that `scripts/install-lock.mts`
 derives from the root `package-lock.json`: the packed packages as `file:` tarballs and
 the root lock entries of every registry package that npm resolves for the install project, so
 it installs the releases of the root lock from the npm cache of `make install` and

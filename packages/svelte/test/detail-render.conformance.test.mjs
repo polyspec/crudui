@@ -12,10 +12,10 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, test } from 'vitest';
 
-import { normalizeHtml } from '../../../tests/fixtures/form-render/normalize.mjs';
-import { withoutPreloadLinks } from '../../../tests/fixtures/preload-links.mjs';
+import { normalizeHtml } from '../../../tests/fixtures/form-render/normalize.mts';
+import { withoutPreloadLinks } from '../../../tests/fixtures/preload-links.mts';
 import { renderDetail } from '../src/index.ts';
-import { provesConformance } from '../../../tests/conformance/evidence.mjs';
+import { provesConformance } from '../../../tests/conformance/evidence.mts';
 
 /** Run one fixture case and record renderDetail evidence for it. */
 function proves(name, body) {

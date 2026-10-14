@@ -66,6 +66,10 @@ the rules of crudui.
   repository differs from the other polyspec repositories only in `config/*.json` (`toolchain`, `dependency-policy`,
   `dependency-review`, `checklist`, `documents`, `commits`, `owner-checks`, `release`), in `config/layout.yml` and in its
   own product code and tests.
+- The folders follow kit's layout (`make layout-check`): the validator and the generator hold a folder per runtime
+  (`packages/validator/<runtime>`, `packages/generator/<runtime>`), and the infrastructure of `scripts/` and `tests/` is
+  TypeScript (`.mts`) that `make typecheck` checks with the strict root `tsconfig.json`; `config/layout.yml` names each
+  exception, a file that drives or serves one other language, with its reason.
 - Keep contracts in `docs/spec/`, implementation and deployment status in
   `docs/features.md`, procedures in `docs/operations/`, planned tasks with their
   verification and completion in `docs/plans/execution-checklist.md`, and actual
@@ -195,7 +199,7 @@ The same tree gives the same result on every date and machine, and a failed run 
   and releases what it holds in `finally`.
 - Assertions: a test asserts the structured result of an external tool (its exit status, report, events), never its
   human-readable output, whose wording changes with its version, its locale or a parent process; the commands of a
-  Makefile target are read only through `makeDryRun` of `tests/build/make-dry-run.mjs`.
+  Makefile target are read only through `makeDryRun` of `tests/build/make-dry-run.mts`.
 - Owners: every path has an owner in `config/owner-checks.json`, with the paths that each check reads, and CI runs
   every check after each push.
 - Shared resources: a resource that runs share is held by a lease (holder-lock of `@polyspec/kit`) or each run uses a

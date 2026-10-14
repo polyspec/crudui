@@ -8,7 +8,7 @@
   "scripts": {
     "build:go": "cd ../validators/go && go build -o validate .",
     "build:rust": "node build-rust.mjs",
-    "build:validators": "node ../../../scripts/require-current-build.mjs && npm run build:go && npm run build:rust",
+    "build:validators": "node ../../../scripts/require-current-build.mts && npm run build:go && npm run build:rust",
     "start": "node server.mjs",
     "dev": "node --watch server.mjs",
     "pretest": "npm run build:validators",

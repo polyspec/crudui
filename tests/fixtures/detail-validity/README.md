@@ -17,7 +17,7 @@
   meta-schema reads `spec` alone.
 
 The two results are independent. Every test applies every member it owns: no test classifies
-cases itself or supplies its own files. [`check-schema.mjs`](../../../scripts/check-schema.mjs), run by
+cases itself or supplies its own files. [`check-schema.mts`](../../../scripts/check-schema.mts), run by
 `npm run spec:schema`, asserts this shape for all three families before it checks `expect` and
 `reason`.
 
@@ -33,7 +33,7 @@ The runtime codes are `FORBIDDEN_META_KEY` and `REF_FILE_NOT_FOUND`.
 ## Comparisons
 
 The [detail meta-schema test](../../../packages/validator/ts/src/detail-metaschema.conformance.test.ts)
-and `check-schema.mjs` compile the detail entry point and check `expect` and `reason`.
+and `check-schema.mts` compile the detail entry point and check `expect` and `reason`.
 
 The runtime tests validate `spec` with `files`, read no record data and compare `engine`. The Rust
 structure API returns `Ok(())` for `"pass"`, its equivalent of `{ valid: true, errors: [] }`. The

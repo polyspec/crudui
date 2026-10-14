@@ -1,6 +1,6 @@
 # 상세 유효성 고정 데이터
 <!-- doc-id: tests-fixtures-detail-validity-readme -->
-<!-- source-sha256: a14e316507f8aadd52951c345ab2df5bed7b39a628c51f7f190d1d0bfd0d9440 -->
+<!-- source-sha256: 61e7cfde04dbb94ba0cc75ab9194627014460df71fd0281b5e14828c953aa39a -->
 
 [English](README.md).
 
@@ -17,7 +17,7 @@
 
 두 결과는 서로 독립적입니다. 모든 사용처는 자신이 담당하는 모든 멤버를 적용하며, 사례를 스스로 분류하거나
 자체 파일을 제공하는 사용처는 없습니다. `npm run spec:schema`로 실행하는
-[`check-schema.mjs`](../../../scripts/check-schema.mjs)는 `expect`와 `reason`을 확인하기 전에 세 고정
+[`check-schema.mts`](../../../scripts/check-schema.mts)는 `expect`와 `reason`을 확인하기 전에 세 고정
 데이터 모두의 형태를 검사합니다.
 
 필드의 `sortable`과 자체 `fields`가 없는 루트 `$ref`는 메타 스키마에서 실패하고 런타임을 통과하며,
@@ -30,7 +30,7 @@
 ## 비교
 
 [상세 메타 스키마 검사](../../../packages/validator/ts/src/detail-metaschema.conformance.test.ts)와
-`check-schema.mjs`는 상세 진입점을 컴파일해 `expect`와 `reason`을 확인합니다.
+`check-schema.mts`는 상세 진입점을 컴파일해 `expect`와 `reason`을 확인합니다.
 
 런타임 검사는 `spec`을 `files`와 함께 검증하고 레코드 데이터는 읽지 않으며 `engine`과 비교합니다. Rust 구조
 API는 `"pass"`에 대해 `{ valid: true, errors: [] }`에 해당하는 `Ok(())`를 반환합니다.

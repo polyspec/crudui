@@ -1,6 +1,6 @@
 # 완전한 폼 고정 데이터
 <!-- doc-id: tests-fixtures-form-complete-readme -->
-<!-- source-sha256: d5da9ad41198bd4b86f8d7b84bccb5d98309e7e73c5bec0791f7925cd84e0c33 -->
+<!-- source-sha256: e6c3f521b03a9eaca3dc1241fbc2a9dfd13c9f66f7a1255e98317ed1c2539cee -->
 
 [English](README.md).
 
@@ -9,7 +9,7 @@
 `spec`, `data`, 바인딩 `options`, 렌더 옵션 `render`, 그리고 `expected_html` 또는
 `expectError`(`{ code, message }`)를 가집니다.
 
-`expected_html`은 [`generate.mjs`](generate.mjs)에서 명세로부터 작성하며 렌더링하지 않습니다. 노드와
+`expected_html`은 [`generate.mts`](generate.mts)에서 명세로부터 작성하며 렌더링하지 않습니다. 노드와
 footer 마크업은 form-render 고정 데이터가 정의한 마크업이고, 폼 요소, 숨은 input, 오류 요소는 명세가
 정한 위치에 둡니다. 사례는 속성과 텍스트 이스케이프, 템플릿 action과 그 멤버, 폼 오류 앞의 루트 설명과 `null` 설명, 숨은 input 순서, 차단한
 JavaScript URL, 빈 옵션, 폼 요소 없는 오류, 폼 오류 순서, 컬렉션·행·그룹·필드·숨긴 필드 오류, 검사
@@ -29,5 +29,5 @@ Svelte
 저장소 루트에서 다시 생성하고 변경을 명세와 대조해 검토합니다.
 
 ```sh
-node tests/fixtures/form-complete/generate.mjs > tests/fixtures/form-complete/cases.json
+node tests/fixtures/form-complete/generate.mts > tests/fixtures/form-complete/cases.json
 ```

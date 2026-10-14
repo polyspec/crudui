@@ -32,7 +32,7 @@ import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { validateList } from './index';
 import { ComposeLoadError } from '../compose/index';
-import { provesConformance } from '../../../../../tests/conformance/evidence.mjs';
+import { provesConformance } from '../../../../../tests/conformance/evidence.mts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

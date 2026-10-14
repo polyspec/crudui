@@ -69,7 +69,7 @@ shape rule itself when `data` is not an object, because their APIs take only an 
 
 `requests.json` lists request cases. Each case has `name`, `note`, the raw standard input
 `input` and `expected: { exit, output }`, where `output` is the complete JSON object written to
-standard output. `scripts/check-schema.mjs` checks the specification of every accepted request
+standard output. `scripts/check-schema.mts` checks the specification of every accepted request
 against the meta-schema.
 
 [`../server/validator-processes.test.mjs`](../server/validator-processes.test.mjs) runs the six

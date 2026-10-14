@@ -5,9 +5,9 @@ import {
 } from '@polyspec/crudui-generator-core';
 import { renderForm, renderFormView } from './index';
 // @ts-expect-error shared JavaScript fixture normalizer
-import { normalizeHtml } from '../../../tests/fixtures/form-render/normalize.mjs';
+import { normalizeHtml } from '../../../tests/fixtures/form-render/normalize.mts';
 import cases from '../../../tests/fixtures/form-render/cases.json';
-import { provesConformance } from '../../../tests/conformance/evidence.mjs';
+import { provesConformance } from '../../../tests/conformance/evidence.mts';
 
 interface FixtureCase {
   name: string;

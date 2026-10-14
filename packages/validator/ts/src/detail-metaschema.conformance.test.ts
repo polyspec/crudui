@@ -2,7 +2,7 @@
  * CRUDUI detail-spec meta-schema conformance.
  *
  * This test compiles `#/definitions/Detail` from contracts/schema/crudui.schema.json with the
- * same Ajv configuration as scripts/check-schema.mjs
+ * same Ajv configuration as scripts/check-schema.mts
  * (`new Ajv({ strict:false, allErrors:true })` + ajv-formats) and runs the shared
  * fixture tests/fixtures/detail-validity. Each case declares the meta-schema result
  * in `expect`; a `fail` case names in `reason` the Ajv keyword that must appear

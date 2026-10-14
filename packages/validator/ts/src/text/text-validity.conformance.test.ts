@@ -14,7 +14,7 @@ import { validateDetail } from '../validate-detail/index';
 import { ComposeLoadError, MemoryLoader } from '../compose/index';
 import { FormInputError } from '../validate/errors';
 import { compareCodePoints, isScalarText, valueFailure } from './index';
-import { provesConformance } from '../../../../../tests/conformance/evidence.mjs';
+import { provesConformance } from '../../../../../tests/conformance/evidence.mts';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../../..');
 

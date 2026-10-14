@@ -2,8 +2,8 @@
   "schema": 1,
   "comment": "The checks that own the repository paths, read by owner-check of @polyspec/kit: make owner-check runs the make targets (targets), the root npm scripts (scripts), the test scripts of workspaces (workspaces) and of package directories (prefixes) and the node test files (tests; $path is the changed test file) of the rules whose globs match a changed path. Every tracked path matches a rule; always lists the tests that run for every change. inputs declares, for a check named as make <target>, npm run <script>, npm test -w <workspace> or npm test --prefix <directory>, the globs of the paths that it reads; the owner check fails when a rule of such a path does not select that check. Globs: * within one path segment, ** across segments, {a,b} either alternative.",
   "always": [
-    "tests/build/test-commands.test.mjs",
-    "tests/build/package-names.test.mjs"
+    "tests/build/test-commands.test.mts",
+    "tests/build/package-names.test.mts"
   ],
   "fullSuite": [
     "ci",
@@ -29,17 +29,17 @@
       "paths": [
         "contracts/features.json",
         "contracts/features.schema.json",
-        "scripts/check-contract-manifest.mjs",
-        "scripts/generate-feature-contract-docs.mjs",
-        "scripts/run-contract-tests.mjs"
+        "scripts/check-contract-manifest.mts",
+        "scripts/generate-feature-contract-docs.mts",
+        "scripts/run-contract-tests.mts"
       ],
       "scripts": [
         "manifest:check",
         "manifest:docs:check"
       ],
       "tests": [
-        "tests/build/contract-manifest.test.mjs",
-        "tests/build/run-command.test.mjs"
+        "tests/build/contract-manifest.test.mts",
+        "tests/build/run-command.test.mts"
       ]
     },
     {
@@ -58,19 +58,19 @@
       "paths": [
         "contracts/unicode-properties.json",
         "contracts/unicode/**",
-        "scripts/generate-unicode-properties.mjs"
+        "scripts/generate-unicode-properties.mts"
       ],
       "targets": [
         "test-validators"
       ],
       "tests": [
-        "tests/build/unicode-properties.test.mjs"
+        "tests/build/unicode-properties.test.mts"
       ]
     },
     {
       "paths": [
         "contracts/schema/crudui.schema.json",
-        "scripts/check-schema.mjs",
+        "scripts/check-schema.mts",
         "examples/form-structure/**"
       ],
       "targets": [
@@ -287,7 +287,7 @@
       "paths": [
         "examples/product-forms/**",
         "examples/README*.md",
-        "tests/*.test.mjs",
+        "tests/*.test.mts",
         "tests/browser-engines.*",
         "tests/form-markup/**"
       ],
@@ -309,7 +309,7 @@
     },
     {
       "paths": [
-        "tests/build/*.test.mjs"
+        "tests/build/*.test.mts"
       ],
       "tests": [
         "$path"
@@ -317,10 +317,10 @@
     },
     {
       "paths": [
-        "tests/build/make-dry-run.mjs"
+        "tests/build/make-dry-run.mts"
       ],
       "tests": [
-        "tests/build/make-dry-run.test.mjs"
+        "tests/build/make-dry-run.test.mts"
       ]
     },
     {
@@ -352,10 +352,10 @@
     {
       "paths": [
         "tests/conformance/**",
-        "scripts/check-conformance.mjs"
+        "scripts/check-conformance.mts"
       ],
       "tests": [
-        "tests/build/conformance-evidence.test.mjs"
+        "tests/build/conformance-evidence.test.mts"
       ]
     },
     {
@@ -374,55 +374,55 @@
         "test:bench"
       ],
       "tests": [
-        "tests/build/rust-node-entry-points.test.mjs"
+        "tests/build/rust-node-entry-points.test.mts"
       ]
     },
     {
       "paths": [
-        "scripts/test-commands.mjs",
+        "scripts/test-commands.mts",
         "packages/svelte/tools/eslint.config.js"
       ],
       "targets": [
         "lint"
       ],
       "tests": [
-        "tests/build/lint-coverage.test.mjs"
+        "tests/build/lint-coverage.test.mts"
       ]
     },
     {
       "paths": [
-        "scripts/package-dist.mjs",
-        "scripts/package-install-pack.mjs",
-        "scripts/package-outputs.mjs",
-        "scripts/repeat-build.mjs"
+        "scripts/package-dist.mts",
+        "scripts/package-install-pack.mts",
+        "scripts/package-outputs.mts",
+        "scripts/repeat-build.mts"
       ],
       "tests": [
-        "tests/build/shared-resources.test.mjs",
-        "tests/build/package-install-pack.test.mjs",
-        "tests/build/atomic-publish.test.mjs",
-        "tests/build/reproducible-build.test.mjs"
+        "tests/build/shared-resources.test.mts",
+        "tests/build/package-install-pack.test.mts",
+        "tests/build/atomic-publish.test.mts",
+        "tests/build/reproducible-build.test.mts"
       ]
     },
     {
       "paths": [
-        "scripts/require-current-build.mjs",
-        "scripts/run-command.mjs"
+        "scripts/require-current-build.mts",
+        "scripts/run-command.mts"
       ],
       "tests": [
-        "tests/build/run-command.test.mjs",
-        "tests/build/atomic-publish.test.mjs"
+        "tests/build/run-command.test.mts",
+        "tests/build/atomic-publish.test.mts"
       ]
     },
     {
       "paths": [
-        "scripts/install-browsers.mjs",
-        "scripts/check-ci-browser.mjs"
+        "scripts/install-browsers.mts",
+        "scripts/check-ci-browser.mts"
       ],
       "tests": [
-        "tests/build/install-browsers.test.mjs",
-        "tests/build/ci-browser.test.mjs",
-        "tests/build/form-comparison-ci.test.mjs",
-        "tests/build/runtime-version-policy.test.mjs"
+        "tests/build/install-browsers.test.mts",
+        "tests/build/ci-browser.test.mts",
+        "tests/build/form-comparison-ci.test.mts",
+        "tests/build/runtime-version-policy.test.mts"
       ]
     },
     {
@@ -438,38 +438,38 @@
         "toolchain-check"
       ],
       "tests": [
-        "tests/build/runtime-version-policy.test.mjs",
-        "tests/build/shared-resources.test.mjs"
+        "tests/build/runtime-version-policy.test.mts",
+        "tests/build/shared-resources.test.mts"
       ]
     },
     {
       "paths": [
-        "scripts/run-rust-command.mjs",
-        "scripts/tool-resolution.mjs"
+        "scripts/run-rust-command.mts",
+        "scripts/tool-resolution.mts"
       ],
       "tests": [
-        "tests/build/rust-node-entry-points.test.mjs",
-        "tests/build/make-tool-path.test.mjs"
+        "tests/build/rust-node-entry-points.test.mts",
+        "tests/build/make-tool-path.test.mts"
       ]
     },
     {
       "paths": [
-        "scripts/php-extension-builder.mjs",
-        "scripts/build-crudui-php-extension.mjs",
-        "scripts/build-ordered-json-php-extension.mjs"
+        "scripts/php-extension-builder.mts",
+        "scripts/build-crudui-php-extension.mts",
+        "scripts/build-ordered-json-php-extension.mts"
       ],
       "targets": [
         "test-php-engine",
         "test-php-api"
       ],
       "tests": [
-        "tests/build/atomic-publish.test.mjs",
-        "tests/build/php-extensions.test.mjs"
+        "tests/build/atomic-publish.test.mts",
+        "tests/build/php-extensions.test.mts"
       ]
     },
     {
       "paths": [
-        "scripts/documentation-links*.mjs"
+        "scripts/documentation-links*.mts"
       ],
       "targets": [
         "docs-check-documents"
@@ -494,14 +494,14 @@
         "lint"
       ],
       "tests": [
-        "scripts/check-doc-coverage.test.mjs"
+        "scripts/check-doc-coverage.test.mts"
       ]
     },
     {
       "paths": [
-        "scripts/check-doc-coverage*.mjs",
+        "scripts/check-doc-coverage*.mts",
         "scripts/php-doc-coverage.*",
-        "scripts/gen-api-docs*.mjs",
+        "scripts/gen-api-docs*.mts",
         "scripts/install-phpdocumentor.mts",
         "scripts/docs-web/**"
       ],
@@ -511,14 +511,14 @@
     },
     {
       "paths": [
-        "scripts/check-packages.mjs",
-        "scripts/install-lock.mjs"
+        "scripts/check-packages.mts",
+        "scripts/install-lock.mts"
       ],
       "scripts": [
         "test:packages"
       ],
       "tests": [
-        "tests/build/install-lock.test.mjs"
+        "tests/build/install-lock.test.mts"
       ]
     },
     {
@@ -547,8 +547,8 @@
         "test:dependencies"
       ],
       "tests": [
-        "tests/build/runtime-version-policy.test.mjs",
-        "tests/build/tool-path.test.mjs"
+        "tests/build/runtime-version-policy.test.mts",
+        "tests/build/tool-path.test.mts"
       ]
     },
     {
@@ -556,7 +556,7 @@
         "examples/form-comparison/install-ordered-json.mjs"
       ],
       "tests": [
-        "tests/build/offline-checks.test.mjs"
+        "tests/build/offline-checks.test.mts"
       ]
     },
     {
@@ -564,13 +564,13 @@
         "Makefile"
       ],
       "tests": [
-        "tests/build/offline-checks.test.mjs",
-        "tests/build/make-dry-run.test.mjs",
-        "tests/build/make-tool-path.test.mjs",
-        "tests/build/php-extensions.test.mjs",
-        "tests/build/tool-path.test.mjs",
-        "tests/build/runtime-version-policy.test.mjs",
-        "tests/build/ci-local.test.mjs"
+        "tests/build/offline-checks.test.mts",
+        "tests/build/make-dry-run.test.mts",
+        "tests/build/make-tool-path.test.mts",
+        "tests/build/php-extensions.test.mts",
+        "tests/build/tool-path.test.mts",
+        "tests/build/runtime-version-policy.test.mts",
+        "tests/build/ci-local.test.mts"
       ]
     },
     {
@@ -578,10 +578,10 @@
         ".github/workflows/**"
       ],
       "tests": [
-        "tests/build/ci-local.test.mjs",
-        "tests/build/runtime-version-policy.test.mjs",
-        "tests/build/form-comparison-ci.test.mjs",
-        "tests/build/tool-path.test.mjs"
+        "tests/build/ci-local.test.mts",
+        "tests/build/runtime-version-policy.test.mts",
+        "tests/build/form-comparison-ci.test.mts",
+        "tests/build/tool-path.test.mts"
       ]
     },
     {
@@ -592,8 +592,8 @@
         "test-php-engine"
       ],
       "tests": [
-        "tests/build/lint-coverage.test.mjs",
-        "tests/build/tool-path.test.mjs"
+        "tests/build/lint-coverage.test.mts",
+        "tests/build/tool-path.test.mts"
       ]
     },
     {
@@ -667,33 +667,41 @@
         "kit-check"
       ],
       "tests": [
-        "tests/build/ci-local.test.mjs"
+        "tests/build/ci-local.test.mts"
       ]
     },
     {
       "paths": [
-        "scripts/repository-files.mjs"
+        "scripts/repository-files.mts"
       ],
       "tests": [
-        "tests/build/repository-files.test.mjs",
-        "tests/build/tool-path.test.mjs",
-        "tests/build/test-commands.test.mjs",
-        "tests/build/package-names.test.mjs",
-        "tests/build/runtime-version-policy.test.mjs",
-        "tests/build/make-dry-run.test.mjs",
-        "tests/docs/repository-writing.test.mjs",
-        "tests/build/python-git-pins.test.mjs"
+        "tests/build/repository-files.test.mts",
+        "tests/build/tool-path.test.mts",
+        "tests/build/test-commands.test.mts",
+        "tests/build/package-names.test.mts",
+        "tests/build/runtime-version-policy.test.mts",
+        "tests/build/make-dry-run.test.mts",
+        "tests/docs/repository-writing.test.mts",
+        "tests/build/python-git-pins.test.mts"
       ]
     },
     {
       "paths": [
-        "scripts/release-pins.mjs"
+        "scripts/release-pins.mts"
       ],
       "targets": [
         "release-pins"
       ],
       "tests": [
-        "tests/build/python-git-pins.test.mjs"
+        "tests/build/python-git-pins.test.mts"
+      ]
+    },
+    {
+      "paths": [
+        "tsconfig.json"
+      ],
+      "targets": [
+        "typecheck"
       ]
     }
   ],
@@ -724,7 +732,7 @@
         "packages/form-binding/**",
         "packages/validator/ts/**",
         "tests/fixtures/**",
-        "tests/*.test.mjs",
+        "tests/*.test.mts",
         "tests/browser-engines.*",
         "examples/product-forms/**"
       ]

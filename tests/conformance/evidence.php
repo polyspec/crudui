@@ -2,7 +2,7 @@
 
 // Conformance evidence for PHP tests. A test that runs a shared fixture case records the feature
 // it proves, the fixture, the runtime and the case. Nothing is written unless
-// CRUDUI_CONFORMANCE_EVIDENCE names a directory; scripts/check-conformance.mjs reads it.
+// CRUDUI_CONFORMANCE_EVIDENCE names a directory; scripts/check-conformance.mts reads it.
 
 declare(strict_types=1);
 

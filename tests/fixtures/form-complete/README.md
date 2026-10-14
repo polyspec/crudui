@@ -8,7 +8,7 @@
 Each case has `name`, `note`, `spec`, `data`, binding `options`, the render options `render`, and
 either `expected_html` or `expectError` (`{ code, message }`).
 
-`expected_html` is written from the specification in [`generate.mjs`](generate.mjs) and never
+`expected_html` is written from the specification in [`generate.mts`](generate.mts) and never
 rendered: the node and footer markup is the markup the form-render fixture defines, and the form
 element, the hidden inputs and the error elements are placed where the specification places them.
 The cases cover attribute and text escaping, the template action and its members, the root
@@ -29,5 +29,5 @@ compare after the shared normalization, because they write their own serializati
 Regenerate from the repository root and review the change against the specification:
 
 ```sh
-node tests/fixtures/form-complete/generate.mjs > tests/fixtures/form-complete/cases.json
+node tests/fixtures/form-complete/generate.mts > tests/fixtures/form-complete/cases.json
 ```

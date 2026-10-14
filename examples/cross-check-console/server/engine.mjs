@@ -74,7 +74,7 @@ async function bootEngine() {
     vite.ssrLoadModule(path.resolve(ROOT, 'packages/svelte/src/index.ts')),
     vite.ssrLoadModule(path.resolve(ROOT, 'packages/vue/src/index.ts')),
     vite.ssrLoadModule(path.resolve(ROOT, 'packages/vue/src/listSsr.ts')),
-    vite.ssrLoadModule(path.resolve(ROOT, 'tests/fixtures/form-render/normalize.mjs')),
+    vite.ssrLoadModule(path.resolve(ROOT, 'tests/fixtures/form-render/normalize.mts')),
   ]);
 
   const coreErrors = { ComposeLoadError: core.ComposeLoadError, UnsupportedFieldTypeError: core.UnsupportedFieldTypeError };
