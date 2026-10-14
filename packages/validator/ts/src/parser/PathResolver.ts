@@ -344,13 +344,13 @@ function evaluateBinary(
   }
 
   // Comparison operators
-  const leftValue = resolveValue(left, context, wildcardStrategy);
+  const leftValue = resolveOperand(left, context, wildcardStrategy);
   const rightValue = resolveValue(right, context, wildcardStrategy);
 
-  // Handle array of values from wildcard resolution
-  if (Array.isArray(leftValue)) {
+  // The candidates of a wildcard path; an array that a plain path names is one value.
+  if (leftValue instanceof WildcardCandidates) {
     return evaluateWithStrategy(
-      leftValue,
+      leftValue.values,
       (lv) => compare(lv, rightValue, operator),
       wildcardStrategy
     );
@@ -375,18 +375,18 @@ function evaluateIn(
   context: PathContext,
   wildcardStrategy: WildcardStrategy
 ): boolean {
-  const value = resolveValue(node.value, context, wildcardStrategy);
+  const value = resolveOperand(node.value, context, wildcardStrategy);
   const list = node.list.map((item) =>
     resolveValue(item, context, wildcardStrategy)
   );
 
-  // Handle array of values from wildcard resolution
-  if (Array.isArray(value)) {
+  // The candidates of a wildcard path; an array that a plain path names is one value.
+  if (value instanceof WildcardCandidates) {
     const check = (v: unknown) => {
       const included = list.some((item) => looseEquals(v, item));
       return node.negated ? !included : included;
     };
-    return evaluateWithStrategy(value, check, wildcardStrategy);
+    return evaluateWithStrategy(value.values, check, wildcardStrategy);
   }
 
   const included = list.some((item) => looseEquals(value, item));
@@ -413,6 +413,24 @@ function evaluateWithStrategy(
   }
 }
 
+/** The values that a path with an unresolved wildcard names, each a candidate of a comparison. */
+class WildcardCandidates {
+  constructor(readonly values: unknown[]) {}
+}
+
+/**
+ * Resolve the left operand of a comparison: the candidates of a wildcard path, or the one value of any other node.
+ */
+function resolveOperand(
+  node: ASTNode,
+  context: PathContext,
+  wildcardStrategy: WildcardStrategy
+): unknown {
+  return node.type === 'Path'
+    ? resolvePath(node, context, wildcardStrategy)
+    : resolveValue(node, context, wildcardStrategy);
+}
+
 /**
  * Resolve an AST node to its value
  */
@@ -426,32 +444,8 @@ function resolveValue(
       return node.value;
 
     case 'Path': {
-      let resolvedPath = resolvePathSegments(node, context);
-
-      // Handle wildcard in path
-      if (hasWildcard(resolvedPath)) {
-        if (wildcardStrategy === 'CURRENT') {
-          // Replace wildcards with current indices
-          resolvedPath = replaceWildcardWithIndex(
-            resolvedPath,
-            context.currentPath
-          );
-        }
-
-        if (hasWildcard(resolvedPath)) {
-          // Still has wildcards, resolve to array of values
-          const resolved = resolveWildcardPath(
-            resolvedPath,
-            context.formData as Record<string, unknown>
-          );
-          return resolved.map((r) => r.value);
-        }
-      }
-
-      return getValueByPath(
-        context.formData as Record<string, unknown>,
-        resolvedPath
-      );
+      const value = resolvePath(node, context, wildcardStrategy);
+      return value instanceof WildcardCandidates ? value.values : value;
     }
 
     case 'Group':
@@ -460,6 +454,40 @@ function resolveValue(
     default:
       return undefined;
   }
+}
+
+/** Resolve a path to its value, or to the candidates of a wildcard that the context does not resolve. */
+function resolvePath(
+  node: PathNode,
+  context: PathContext,
+  wildcardStrategy: WildcardStrategy
+): unknown {
+  let resolvedPath = resolvePathSegments(node, context);
+
+  // Handle wildcard in path
+  if (hasWildcard(resolvedPath)) {
+    if (wildcardStrategy === 'CURRENT') {
+      // Replace wildcards with current indices
+      resolvedPath = replaceWildcardWithIndex(
+        resolvedPath,
+        context.currentPath
+      );
+    }
+
+    if (hasWildcard(resolvedPath)) {
+      // Still has wildcards, resolve to array of values
+      const resolved = resolveWildcardPath(
+        resolvedPath,
+        context.formData as Record<string, unknown>
+      );
+      return new WildcardCandidates(resolved.map((r) => r.value));
+    }
+  }
+
+  return getValueByPath(
+    context.formData as Record<string, unknown>,
+    resolvedPath
+  );
 }
 
 /**
@@ -490,12 +518,12 @@ function compare(
 
 /**
  * Loose equality comparison (like JavaScript ==)
- * Handles string/number comparisons
+ * Handles string/number comparisons; two arrays or two objects compare as JSON values.
  */
 function looseEquals(a: unknown, b: unknown): boolean {
   // Same type comparison
   if (typeof a === typeof b) {
-    return a === b;
+    return typeof a === 'object' ? jsonEquals(a, b) : a === b;
   }
 
   // null/undefined comparison
@@ -514,6 +542,26 @@ function looseEquals(a: unknown, b: unknown): boolean {
   }
 
   return equalityString(a) === equalityString(b);
+}
+
+/**
+ * JSON-value structural equality (docs/spec/expressions.md, Evaluation): two arrays hold equal elements in the same
+ * order, two objects the same keys with equal values in any key order; other values compare without conversion,
+ * numbers by value. An array never equals an object or null.
+ */
+function jsonEquals(a: unknown, b: unknown): boolean {
+  if (Array.isArray(a) || Array.isArray(b)) {
+    return Array.isArray(a) && Array.isArray(b) && a.length === b.length
+      && a.every((item, index) => jsonEquals(item, b[index]));
+  }
+  if (a !== null && b !== null && typeof a === 'object' && typeof b === 'object') {
+    const left = a as Record<string, unknown>;
+    const right = b as Record<string, unknown>;
+    const keys = Object.keys(left);
+    return keys.length === Object.keys(right).length
+      && keys.every((key) => Object.prototype.hasOwnProperty.call(right, key) && jsonEquals(left[key], right[key]));
+  }
+  return a === b;
 }
 
 /**

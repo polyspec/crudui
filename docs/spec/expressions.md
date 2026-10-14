@@ -110,7 +110,19 @@ otherwise string comparison. Compared with a scalar, an array or an object has
 no number and the empty text: `.o == '[object Object]'` and
 `.o in '[object Object]'` are false for an object, `'a' == .tags` is false for
 `tags: ['a']`, `0 == .tags` is false for an empty array, and `'' == .tags` is
-true for any array. Relational comparisons convert both sides to numbers. A string uses its leading numeric part, or zero when no number is
+true for any array. In that string comparison the text of a boolean is `true` or
+`false`: `.f == 'true'` is true for `f: true`, and `.f == .tags` is false for
+`f: false` and any array.
+
+Two arrays or two objects are equal when they hold the same JSON value. Two arrays
+have the same length and equal elements in the same order; two objects have the
+same set of keys and equal values under each key, in any key order. Elements and
+member values are compared as JSON values without conversion: values of different
+types are unequal, numbers are equal by value (`1` equals `1.0`), strings by their
+characters, and `null` equals `null`. An array never equals an object or `null`.
+An array that a path without a wildcard names is one value, not the candidates of
+a wildcard: `.a == .b` compares the two arrays, and `.tags in a, b` is false for
+`tags: ['a']`. Relational comparisons convert both sides to numbers. A string uses its leading numeric part, or zero when no number is
 available. This condition conversion is separate from numeric validation rules.
 
 A relative `.field` resolves beside the current field. `..field` moves one parent

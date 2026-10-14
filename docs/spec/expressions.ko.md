@@ -1,6 +1,6 @@
 # 표현식 문법
 <!-- doc-id: docs-spec-expressions -->
-<!-- source-sha256: 66927195c3c9436c0d265253cdd7b1c8fa9826c9b14915313eb4815f081a9295 -->
+<!-- source-sha256: 1359eb60faae7080a4b2c5090c477aa00891dd8e38785e7b1ba4f74fa2d4cb0a -->
 
 [English](expressions.md).
 
@@ -110,7 +110,17 @@ literal = STRING | NUMBER | BOOLEAN | NULL ;
 빈 문자열입니다. 따라서 객체에 대해 `.o == '[object Object]'`와
 `.o in '[object Object]'`는 거짓이고, `tags: ['a']`에 대해 `'a' == .tags`는
 거짓이며, 빈 배열에 대해 `0 == .tags`는 거짓이고, 어떤 배열이든
-`'' == .tags`는 참입니다.
+`'' == .tags`는 참입니다. 그 문자열 비교에서 boolean의 텍스트는 `true`나
+`false`입니다. `f: true`에 대해 `.f == 'true'`는 참이고, `f: false`와 어떤 배열에
+대해서든 `.f == .tags`는 거짓입니다.
+
+두 배열이나 두 객체는 같은 JSON 값을 가질 때 같습니다. 두 배열은 길이가 같고 같은
+순서로 같은 원소를 가지며, 두 객체는 key 순서와 관계없이 같은 key 집합과 각 key
+아래 같은 값을 가집니다. 원소와 member 값은 변환 없이 JSON 값으로 비교합니다. 타입이
+다른 값은 같지 않고, 숫자는 값으로(`1`은 `1.0`과 같음), 문자열은 문자로 비교하며,
+`null`은 `null`과 같습니다. 배열은 객체나 `null`과 같지 않습니다. wildcard 없는
+경로가 가리키는 배열은 wildcard의 후보가 아니라 하나의 값입니다. `.a == .b`는 두
+배열을 비교하고, `tags: ['a']`에 대해 `.tags in a, b`는 거짓입니다.
 대소 비교는 양쪽을 숫자로 변환합니다. 문자열은 앞부분의
 숫자를 사용하며 숫자가 없으면 0을 사용합니다. 이 조건 변환은 숫자 검증 규칙과
 별개입니다.

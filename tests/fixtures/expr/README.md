@@ -29,13 +29,17 @@ value, or `index` with a numeric value. Data contexts contain `data`, optional
 `currentPath`), expected `value` and expected `truthy`.
 
 The cases cover relative and wildcard paths, comparisons, membership, an array
-or an object compared with a scalar, logical
+or an object compared with a scalar, two arrays or two objects compared as JSON
+values, the text of a boolean in a string comparison, logical
 precedence, nested ternaries, path comparisons, boolean conversion, an unclosed
 list, and the nesting limit: groups, negations, a chain and ternaries exactly at
 64 levels, each one level over it, and an expression 10,000 groups deep. Empty
 arrays and objects are true in a condition; required-input validation is separate.
 Condition-map keys are tested as expressions; these cases do not prove map-order
-resolution by themselves.
+resolution by themselves. The data of two cases writes the number 1 as `1.0`, which
+a runtime may decode to another type than `1` and must still compare by value; no
+case holds an empty object or an object whose keys are `0`, `1`, …, which PHP
+decodes as an array.
 
 Regenerate from the repository root:
 

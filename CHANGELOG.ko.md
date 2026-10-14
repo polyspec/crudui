@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 5040395bb6b8675a396a2704cdd1a43fdba2e848897d31878512270fce47bc44 -->
+<!-- source-sha256: 4476b1b02e7ba7e25f110a9bf02c1879af465dd3d8ba6ff301c23a5d5c4911a4 -->
 
 ## Unreleased
+
+### 2026-10-15 — 식에서 배열과 객체의 동등 비교 (C14.25)
+
+- `==`, `!=`, `in`은 모든 port에서 두 배열이나 두 객체를 JSON 값으로 비교한다. 같은 원소를 같은 순서로 가진 두 배열과 key 순서와 관계없이 같은 key와 같은 값을 가진 두 객체는 같고, 숫자는 값으로 비교하며, 배열은 객체와 같지 않다. TypeScript와 Python은 이를 identity로 비교했고, Go에서는 결코 같지 않았으며, PHP와 Rust는 `1`과 `1.0` 같은 정수와 소수를 다르게 비교했다. wildcard 없는 경로가 가리키는 배열은 하나의 값이며, TypeScript, PHP, Go, Python은 이를 wildcard의 후보로 다뤘다. 문자열 비교에서 PHP extension의 C engine은 다른 port처럼 boolean을 `true`나 `false`로 쓰며, 이전에는 `1`과 빈 text를 썼다. 공유 vector가 각 규칙을 검사한다(C14.25).
 
 ### 2026-10-15 — validator의 type test (C14.24)
 
