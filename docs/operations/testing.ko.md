@@ -1,6 +1,6 @@
 # 테스트 실행
 <!-- doc-id: docs-operations-testing -->
-<!-- source-sha256: 92157ebd8293dd1d37e757f40a862bf344ac2662c8a49123cf975c1de89c3620 -->
+<!-- source-sha256: 22060b4ee028268bf561b5c568ed09af0aa75bf938b94136506381b18e3ab28a -->
 
 [English](testing.md).
 
@@ -249,8 +249,8 @@ polyspec/kit의 test는 setup이나 teardown이 test timeout보다 오래 걸리
 
 다른 명령을 실행하는 스크립트는 `scripts/run-command.mjs`로 각 명령을 끝까지 실행합니다.
 `npm run manifest:test`의 선언된 명령(`scripts/run-contract-tests.mjs`), `scripts/require-current-build.mjs`의
-패키지 빌드, `scripts/gen-api-docs.mjs`의 각 도구 명령, `tools/bench/run.js`의 각 벤치마크 드라이버,
-`tools/bench/build-drivers.mjs`의 각 드라이버 빌드가 대상입니다. 명령에는 시간 한도가 없습니다. 명령의
+패키지 빌드, `scripts/gen-api-docs.mjs`의 각 도구 명령, `benchmarks/validators/run.js`의 각 벤치마크 드라이버,
+`benchmarks/validators/build-drivers.mjs`의 각 드라이버 빌드가 대상입니다. 명령에는 시간 한도가 없습니다. 명령의
 종료가 명령을 끝내고 종료 상태가 결과를 정하며, 스크립트는 명령과 경과 시간을 출력합니다. 명령은 자기
 프로세스 그룹에서 시작하고, 명령이 끝나면 그룹에 남긴 프로세스를 멈추므로 출력 pipe를 열어 둔
 프로세스가 스크립트를 붙잡지 못합니다. 중단된 스크립트는 실행 중인 명령을 멈춥니다.

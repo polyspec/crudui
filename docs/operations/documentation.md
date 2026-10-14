@@ -74,7 +74,7 @@ checkout or a developer's home directory.
 
 `make documents-check` (`node_modules/@polyspec/kit/dist/check-documents.mjs`, `config/documents.json`) checks every
 Markdown document of the repository except
-`examples/cross-check-console/client/README.md` and `tools/bench/README.md`. Each English document
+`examples/cross-check-console/client/README.md` and `benchmarks/validators/README.md`. Each English document
 has a Korean twin `.ko.md`, and both files hold the same marker `<!-- doc-id: <id> -->`, where the
 id is the path of the English file without `.md`, in lowercase, with `-` between words. The Korean
 file also holds `<!-- source-sha256: <sha256> -->`, the sha256 of the English file: after a change

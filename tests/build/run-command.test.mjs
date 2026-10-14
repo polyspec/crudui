@@ -145,10 +145,10 @@ test('gen-api-docs runs each documentation tool to its end with its elapsed time
 
 test('run.js runs a benchmark driver to its end', async t => {
   // The JavaScript driver starts as `node` from PATH; here it reports one row after 1.2 seconds.
-  const box = sandbox(t, ['tools/bench/run.js', 'tools/bench/arguments.js', 'tools/bench/fixtures']);
+  const box = sandbox(t, ['benchmarks/validators/run.js', 'benchmarks/validators/arguments.js', 'benchmarks/validators/fixtures']);
   const row = JSON.stringify({ spec: 'contact', lang: 'js', valid: true, error: null, field: null, opsSec: 1, avgUs: 1, ms: 1 });
   box.program('node', slow('driver', `${row}\n`));
-  const result = await runScript(path.join(box.root, 'tools/bench/run.js'), ['--only', 'js', '--json'], {
+  const result = await runScript(path.join(box.root, 'benchmarks/validators/run.js'), ['--only', 'js', '--json'], {
     cwd: box.root, env: { ...process.env, PATH: path.join(box.root, 'bin') },
   });
   assert.equal(result.status, 0, result.output);
@@ -166,38 +166,38 @@ function benchNode(box, version) {
 }
 
 test('run.js records the version of each tool of the backends it ran', async t => {
-  const box = sandbox(t, ['tools/bench/run.js', 'tools/bench/arguments.js', 'tools/bench/fixtures']);
+  const box = sandbox(t, ['benchmarks/validators/run.js', 'benchmarks/validators/arguments.js', 'benchmarks/validators/fixtures']);
   benchNode(box, 'v99.1.0');
-  const result = await runScript(path.join(box.root, 'tools/bench/run.js'), ['--only', 'js'], {
+  const result = await runScript(path.join(box.root, 'benchmarks/validators/run.js'), ['--only', 'js'], {
     cwd: box.root, env: { ...process.env, PATH: path.join(box.root, 'bin') },
   });
   assert.equal(result.status, 0, result.output);
-  const report = readFileSync(path.join(box.root, 'tools/bench/results.md'), 'utf8');
+  const report = readFileSync(path.join(box.root, 'benchmarks/validators/results.md'), 'utf8');
   assert.match(report, /^- node: v99\.1\.0$/m);
   assert.doesNotMatch(report, /^- (?:php|go|rust\/cargo):/m, 'a tool of a backend that did not run is not recorded');
 });
 
 test('run.js fails when a version command fails, with its error', async t => {
-  const box = sandbox(t, ['tools/bench/run.js', 'tools/bench/arguments.js', 'tools/bench/fixtures']);
+  const box = sandbox(t, ['benchmarks/validators/run.js', 'benchmarks/validators/arguments.js', 'benchmarks/validators/fixtures']);
   benchNode(box);
-  const result = await runScript(path.join(box.root, 'tools/bench/run.js'), ['--only', 'js'], {
+  const result = await runScript(path.join(box.root, 'benchmarks/validators/run.js'), ['--only', 'js'], {
     cwd: box.root, env: { ...process.env, PATH: path.join(box.root, 'bin') },
   });
   assert.notEqual(result.status, 0, result.output);
   assert.match(result.output, /node --version failed with status 3/);
   assert.match(result.output, /node: broken installation/);
-  assert.equal(existsSync(path.join(box.root, 'tools/bench/results.md')), false, 'no report with a missing version');
+  assert.equal(existsSync(path.join(box.root, 'benchmarks/validators/results.md')), false, 'no report with a missing version');
 });
 
 test('build-drivers.mjs streams a driver build to its end and stops what it left behind', async t => {
   // GO names the Go command of the build. The Rust build finds no toolchain in the sandbox and fails.
-  const box = sandbox(t, ['tools/bench/build-drivers.mjs', 'tools/bench/drivers.mjs', 'scripts/run-rust-command.mjs', 'scripts/tool-resolution.mjs']);
+  const box = sandbox(t, ['benchmarks/validators/build-drivers.mjs', 'benchmarks/validators/drivers.mjs', 'scripts/run-rust-command.mjs', 'scripts/tool-resolution.mjs']);
   const pidFile = path.join(box.root, 'orphan.pid');
   stopRecorded(t, pidFile);
-  mkdirSync(path.join(box.root, 'tools/bench/go'));
-  mkdirSync(path.join(box.root, 'tools/bench/rust'));
+  mkdirSync(path.join(box.root, 'benchmarks/validators/go'));
+  mkdirSync(path.join(box.root, 'benchmarks/validators/rust'));
   const go = box.program('go', `${slow('go build')}${orphan(pidFile)}`);
-  const result = await runScript(path.join(box.root, 'tools/bench/build-drivers.mjs'), [], {
+  const result = await runScript(path.join(box.root, 'benchmarks/validators/build-drivers.mjs'), [], {
     cwd: box.root, env: { ...process.env, GO: go, CARGO_HOME: path.join(box.root, 'cargo') },
   });
   assert.match(result.output, /go build: running/);

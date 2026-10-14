@@ -17,12 +17,12 @@ make bench-rust
 Or directly:
 
 ```sh
-node tools/bench/run.js --iters 50000 --warmup 5000
-node tools/bench/run.js --only js,rust --iters 100000
-node tools/bench/run.js --json          # raw JSON lines, no table/file
+node benchmarks/validators/run.js --iters 50000 --warmup 5000
+node benchmarks/validators/run.js --only js,rust --iters 100000
+node benchmarks/validators/run.js --json          # raw JSON lines, no table/file
 ```
 
-Results print as a table and are written to `tools/bench/results.md`.
+Results print as a table and are written to `benchmarks/validators/results.md`.
 
 `--iters` is a whole number from 1 to 10000000 and `--warmup` one from 0 to
 10000000, written as one to eight decimal digits. `run.js` and every driver
@@ -31,7 +31,7 @@ drivers) before they load a validator; any other value, such as `1e20`,
 `1.5`, `-1` or `abc`, stops the program with exit status 2 and
 `--iters must be a whole number from 1 to 10000000`. `npm run test:bench`
 builds the Go and Rust drivers with `build-drivers.mjs` (into `go/target/` and the Cargo target
-directory) and checks every driver against `tools/bench/iteration-arguments.json`. That file lists each rejected
+directory) and checks every driver against `benchmarks/validators/iteration-arguments.json`. That file lists each rejected
 argument pair with its message under `rejected`, and under `accepted` one run of the `contact`
 fixture with the smallest counts, whose report must name that spec and that iteration count.
 

@@ -1,4 +1,4 @@
-// The compiled benchmark drivers: where tools/bench/build-drivers.mjs builds the Go and Rust
+// The compiled benchmark drivers: where benchmarks/validators/build-drivers.mjs builds the Go and Rust
 // drivers and where tests/build/bench-drivers.test.mjs runs them. Cargo places the Rust driver
 // under CARGO_TARGET_DIR when it is set.
 import path from 'node:path';

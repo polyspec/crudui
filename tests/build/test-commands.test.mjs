@@ -282,7 +282,7 @@ test('CI has no time limit over a long operation, a test step or a job', () => {
 // with step logs and no time limit; the test runs the built drivers, each test within seconds.
 test('the benchmark driver test runs built drivers within the default test timeout', () => {
   const command = JSON.parse(read('package.json')).scripts['test:bench'];
-  const build = command.indexOf('node tools/bench/build-drivers.mjs');
+  const build = command.indexOf('node benchmarks/validators/build-drivers.mjs');
   const runner = command.indexOf('node node_modules/@polyspec/kit/dist/run-tests.mjs node');
   assert.ok(build !== -1 && runner > build, `test:bench builds the drivers before the test: ${command}`);
   assert.doesNotMatch(command, /--timeout/, 'test:bench keeps the 30-second timeout of each test');

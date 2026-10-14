@@ -7,7 +7,7 @@
 //
 // stdout: one JSON line per spec (same shape as the other drivers).
 //
-// Run via `go run .` from tools/bench/go (its own module with a replace
+// Run via `go run .` from benchmarks/validators/go (its own module with a replace
 // directive to the local packages/validator-go). Flags: --iters, --warmup,
 // --spec, --fixtures. The counts follow the rule of ../arguments.js.
 package main

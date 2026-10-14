@@ -45,7 +45,7 @@
     "test:docs": "node node_modules/@polyspec/kit/dist/run-tests.mjs node --timeout 10 -- tests/docs/*.test.mjs",
     "test:inspector": "node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/form-inspector/form-snapshot.test.mjs tests/form-inspector/browser.test.mjs",
     "test:build": "node scripts/require-current-build.mjs && node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/public-packages.test.mjs tests/build/vite-config.test.mjs tests/build/ci-browser.test.mjs tests/build/package-install-pack.test.mjs tests/build/lint-coverage.test.mjs tests/build/run-command.test.mjs",
-    "test:bench": "node scripts/require-current-build.mjs && node tools/bench/build-drivers.mjs && node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/bench-drivers.test.mjs",
+    "test:bench": "node scripts/require-current-build.mjs && node benchmarks/validators/build-drivers.mjs && node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/bench-drivers.test.mjs",
     "test:build:repeat": "status=0; node scripts/repeat-build.mjs || status=1; node node_modules/@polyspec/kit/dist/run-tests.mjs node -- tests/build/reproducible-build.test.mjs || status=1; exit $status"
   },
   "repository": {
