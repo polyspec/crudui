@@ -621,6 +621,15 @@
     },
     {
       "paths": [
+        "config/knip-entries.json"
+      ],
+      "targets": [
+        "kit-check",
+        "lint"
+      ]
+    },
+    {
+      "paths": [
         "config/checklist.json",
         ".githooks/**"
       ],

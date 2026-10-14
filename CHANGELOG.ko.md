@@ -1,8 +1,12 @@
 # 변경 기록
 <!-- doc-id: changelog -->
-<!-- source-sha256: 18e831281d8a33653a98e8317acf548b937bf330e9e9539f777363a531e08ab0 -->
+<!-- source-sha256: 60895205b0508b9b95cfc09b4200754446e94412a6ddf4fb820af961d014e3c7 -->
 
 ## Unreleased
+
+### 2026-10-15 — kit 0.0.45 (C14.19)
+
+- crudui는 `@polyspec/kit` 0.0.45를 pin한다. 그 knip은 pin된 런타임의 binary를 무시하고 `config/knip-entries.json`의 `binaries`와 `workspaces`를 읽으며, 이 파일은 make, test, page, 도구가 경로로 실행하는 파일과 workspace를 그 entry와 무시하는 의존성과 함께 선언한다. 아무것도 쓰지 않는 의존성인 root의 `debug`, React 패키지의 `@testing-library/user-event`, Vue와 Svelte 패키지의 `parse5`를 없애고, 브라우저 설치 script와 form comparison이 import하는 `puppeteer-core`와 `vue`를 선언한다(C14.19).
 
 ### 2026-10-15 — Go module (C14.18)
 

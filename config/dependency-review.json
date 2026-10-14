@@ -1,11 +1,11 @@
 {
   "schema": 1,
   "comment": "Written by make dependency-review RECORD=1 (scripts/kit/dependency-review.mts) from the registries; make dependency-policy-check compares the checkout with it without a network.",
-  "reviewed": "2026-10-14T15:46:52.043Z",
+  "reviewed": "2026-10-14T17:45:35.024Z",
   "locks": [
     {
       "lock": "package-lock.json",
-      "sha256": "12496be7dcccc0a00abf88cf70b61a64dc63cf0ad506a76954d608551e434114",
+      "sha256": "85be2a31c82cc29b5f7fd87c5b51769d507a8d2e0a692928d0848dc6b5ce9bb4",
       "advisories": [
         {
           "package": "sprintf-js",
@@ -25,6 +25,11 @@
     {
       "lock": "composer.lock",
       "sha256": "4153f7ff838c8fee9770d4c426ad7b001e5db644e99ad4ff1cd6738f81e9b12f",
+      "advisories": []
+    },
+    {
+      "lock": "examples/form-comparison/servers/go/go.sum",
+      "sha256": "b1b15f47e4948eca73ba93ee7c730d16a529b1306d038e24caaee9847072b91c",
       "advisories": []
     },
     {
@@ -125,13 +130,6 @@
     {
       "ecosystem": "npm",
       "manifest": "package.json",
-      "package": "debug",
-      "version": "4.4.3",
-      "latest": "4.4.3"
-    },
-    {
-      "ecosystem": "npm",
-      "manifest": "package.json",
       "package": "js-yaml",
       "version": "5.4.3",
       "latest": "5.4.3"
@@ -174,16 +172,23 @@
     {
       "ecosystem": "npm",
       "manifest": "package.json",
+      "package": "puppeteer-core",
+      "version": "25.14.0",
+      "latest": "25.14.0"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "package.json",
       "package": "react",
       "version": "19.2.8",
-      "latest": "19.3.0"
+      "latest": "19.3.1"
     },
     {
       "ecosystem": "npm",
       "manifest": "package.json",
       "package": "react-dom",
       "version": "19.2.8",
-      "latest": "19.3.0"
+      "latest": "19.3.1"
     },
     {
       "ecosystem": "npm",
@@ -212,6 +217,13 @@
       "package": "vitest",
       "version": "5.0.4",
       "latest": "5.0.4"
+    },
+    {
+      "ecosystem": "npm",
+      "manifest": "package.json",
+      "package": "vue",
+      "version": "3.5.44",
+      "latest": "3.5.44"
     },
     {
       "ecosystem": "npm",
@@ -377,13 +389,6 @@
     {
       "ecosystem": "npm",
       "manifest": "packages/react/package.json",
-      "package": "@testing-library/user-event",
-      "version": "14.6.8",
-      "latest": "14.6.8"
-    },
-    {
-      "ecosystem": "npm",
-      "manifest": "packages/react/package.json",
       "package": "@types/node",
       "version": "26.6.5",
       "latest": "26.6.5"
@@ -414,14 +419,14 @@
       "manifest": "packages/react/package.json",
       "package": "react",
       "version": "19.2.8",
-      "latest": "19.3.0"
+      "latest": "19.3.1"
     },
     {
       "ecosystem": "npm",
       "manifest": "packages/react/package.json",
       "package": "react-dom",
       "version": "19.2.8",
-      "latest": "19.3.0"
+      "latest": "19.3.1"
     },
     {
       "ecosystem": "npm",
@@ -450,13 +455,6 @@
       "package": "@sveltejs/vite-plugin-svelte",
       "version": "7.3.1",
       "latest": "7.3.1"
-    },
-    {
-      "ecosystem": "npm",
-      "manifest": "packages/svelte/package.json",
-      "package": "parse5",
-      "version": "8.0.1",
-      "latest": "8.0.1"
     },
     {
       "ecosystem": "npm",
@@ -527,13 +525,6 @@
       "package": "@types/node",
       "version": "26.6.5",
       "latest": "26.6.5"
-    },
-    {
-      "ecosystem": "npm",
-      "manifest": "packages/vue/package.json",
-      "package": "parse5",
-      "version": "8.0.1",
-      "latest": "8.0.1"
     },
     {
       "ecosystem": "npm",
@@ -632,6 +623,13 @@
       "package": "ruff",
       "version": "0.17.0",
       "latest": "0.17.0"
+    },
+    {
+      "ecosystem": "go",
+      "manifest": "examples/form-comparison/servers/go/go.mod",
+      "package": "github.com/polyspec/ordered-json/go",
+      "version": "v0.0.3",
+      "latest": "v0.0.3"
     }
   ],
   "vcs": []
